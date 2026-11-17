@@ -24,6 +24,8 @@ export const TECHNICAL_TABLES: Record<string, string> = {
   "hub.help_progress": "progression d'un compte dans l'aide : l'auteur est le compte",
   "hub.user_tour_seen": "visite guidée vue par un compte",
   "hub.connection_traces": "adresses IP des connexions, illisibles par l'app, purgées (décision D5)",
+  // Lot 39b (UX-09, ADR 0074) : brouillon de saisie, réécrit à chaque pause de frappe.
+  "hub.form_drafts": "brouillon de saisie d'une personne : l'auteur est le compte ; temporaire, purgé après 30 jours",
   "quotes.number_series": "compteur de numérotation, verrouillé en transaction",
   "quotes.signature_webhook_log": "trace technique des appels du fournisseur de signature (received_at)",
 };

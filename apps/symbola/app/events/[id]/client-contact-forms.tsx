@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import type { EventClient, EventDetail } from "@/modules/events/service";
-import { setEventIdentityAction, setWantedBudgetAction, updateClientContactAction, type ClientContactFormState, setVenueAction } from "./client-contact-actions";
+import { autosaveEventIdentityAction, setWantedBudgetAction, updateClientContactAction, type ClientContactFormState, setVenueAction } from "./client-contact-actions";
+import { AutoSaveForm } from "@/app/ui/autosave-form";
 
 export function ClientContactForm({ eventId, client }: { eventId: string; client: EventClient }) {
   const t = useTranslations("Events");
@@ -102,12 +103,22 @@ export function VenueForm({ eventId, venueName, venueCity }: { eventId: string; 
 
 // Lot 34b (EVT-03, D11) — fiche d'identité : invités estimés et confirmés (le nombre confirmé se
 // saisit à la main jusqu'au module Invités), style, notes.
-export function EventIdentityForm({ eventId, identity }: { eventId: string; identity: Pick<EventDetail, "guestsEstimated" | "guestsConfirmed" | "style" | "notes"> }) {
+// Lot 39b (UX-09 ; D7, D8) : la fiche s'enregistre toute seule ; une modification faite entre-temps
+// est fusionnée ou montrée en conflit (AutoSaveForm).
+export function EventIdentityForm({ eventId, identity, version }: { eventId: string; identity: Pick<EventDetail, "guestsEstimated" | "guestsConfirmed" | "style" | "notes">; version: string }) {
   const t = useTranslations("Events");
-  const [state, action, pending] = useActionState<ClientContactFormState, FormData>(setEventIdentityAction, {});
   return (
-    <form action={action} className="stack" aria-label={t("identityTitle")}>
-      <input type="hidden" name="eventId" value={eventId} />
+    <AutoSaveForm
+      action={autosaveEventIdentityAction}
+      recordId={eventId}
+      version={version}
+      values={{ guestsEstimated: identity.guestsEstimated?.toString() ?? "", guestsConfirmed: identity.guestsConfirmed?.toString() ?? "", style: identity.style ?? "", notes: identity.notes ?? "" }}
+      fieldLabels={{ guestsEstimated: t("guestsEstimated"), guestsConfirmed: t("guestsConfirmed"), style: t("eventStyle"), notes: t("eventNotes") }}
+      ariaLabel={t("identityTitle")}
+      submitLabel={t("identitySave")}
+      savedLabel={t("identitySaved")}
+      className="stack"
+    >
       <div className="row-wrap">
         <label>
           {t("guestsEstimated")}
@@ -126,11 +137,6 @@ export function EventIdentityForm({ eventId, identity }: { eventId: string; iden
         {t("eventNotes")}
         <textarea name="notes" maxLength={10000} rows={4} defaultValue={identity.notes ?? ""} />
       </label>
-      <button type="submit" disabled={pending}>
-        {t("identitySave")}
-      </button>
-      {state.error ? <p role="alert">{state.error}</p> : null}
-      {state.success ? <p role="status">{t("identitySaved")}</p> : null}
-    </form>
+    </AutoSaveForm>
   );
 }

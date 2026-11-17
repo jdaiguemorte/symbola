@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { unexpectedActionError } from "@/lib/action-errors";
+import { discardMyFormDraft } from "@/lib/form-drafts";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { EventClientInput } from "@symbola/contracts";
 import type { Locale } from "@symbola/i18n";
@@ -67,7 +69,7 @@ export async function createProspectAction(
   } catch (error) {
     // Un contact choisi qui n'existe pas (ou plus) dans l'organisation.
     if (error instanceof ContactNotFoundError) return { error: (await getTranslations("Contacts"))("notFound") };
-    throw error;
+    return { error: await unexpectedActionError(error) };
   }
 
   // L12-HUB-13 : « Créer un événement » depuis l'agenda = confirmé d'emblée (la
@@ -79,5 +81,7 @@ export async function createProspectAction(
   // Lot 33b (HUB-10, D10) : au premier évènement réel, la suppression de l'exemple est proposée.
   const example = await getActiveEventsTrial(organizationId);
   const first = example ? (await countOrganizationRealEvents(organizationId)) === 1 : false;
+  // Lot 39b (UX-09) : l'évènement est créé, le brouillon de la saisie n'a plus lieu d'être.
+  await discardMyFormDraft("event-new");
   redirect(`/events/${result.id}${first ? "?exemple=proposer" : ""}`);
 }

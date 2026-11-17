@@ -86,6 +86,8 @@ export const HUB_EXPORT_EXCLUSIONS: Readonly<Record<string, string>> = {
   storage_snapshots: "exploitation : relevé mensuel du stockage (nombres de fichiers et volumes)",
   // Lot 38b (HUB-29, D11) : des adresses secrètes, propres à chaque personne ; une archive ne les porte pas.
   calendar_feeds: "secret : adresses des flux de calendrier (jetons hachés), propres à chaque personne",
+  // Lot 39b (UX-09, ADR 0074).
+  form_drafts: "temporaire : brouillons de saisie, effacés à l'enregistrement et purgés après 30 jours",
   domain_events: "technique : événements internes entre modules",
   domain_event_consumers: "technique : suivi des événements internes",
   rate_limit_events: "exploitation : tentatives limitées",

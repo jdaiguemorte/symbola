@@ -1146,3 +1146,15 @@ export {
   type HubTrashKind,
 } from "./trash";
 export { restoreContactNote } from "./contacts";
+export { getContactStamp } from "./contacts";
+
+// Lot 39b (UX-09 ; D7 ; ADR 0074) — brouillons des formulaires, repris sur tout appareil.
+export {
+  discardFormDraft,
+  FormDraftInvalidError,
+  getFormDraft,
+  isFormDraftKey,
+  purgeFormDrafts,
+  saveFormDraft,
+  type FormDraft,
+} from "./form-drafts";

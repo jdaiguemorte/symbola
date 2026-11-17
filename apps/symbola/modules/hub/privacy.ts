@@ -7,6 +7,7 @@ import { and, eq, inArray, isNotNull } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { importItems, imports, privacyRequests } from "@symbola/db/schema/hub";
 import { anonymizeContacts, findContactsByTerms, getContactsByIds, listContactGroups, listContactMembers, listContactNotes } from "./contacts";
+import { eraseFormDrafts, findFormDraftsByTerms, listFormDraftIds } from "./form-drafts";
 import { withOrganization } from "@symbola/db/with-organization";
 import {
   ANONYMIZED,
@@ -106,6 +107,10 @@ async function hubErasure(input: ErasureInput, execute: boolean): Promise<Erasur
       for (const id of ids) items.push({ kind: "privacy_request", recordId: id, fate: "anonymized", legalBasis: null, keptUntil: null });
     }
   });
+  // Lot 39b (UX-09, ADR 0074) : un brouillon qui mentionne la personne est supprimé.
+  const draftIds = await listFormDraftIds(input.organizationId, idsOfKind(input.records, "form_draft").filter((id) => UUID.test(id)));
+  if (execute) await eraseFormDrafts(input.organizationId, draftIds);
+  for (const id of draftIds) items.push({ kind: "form_draft", recordId: id, fate: "deleted", legalBasis: null, keptUntil: null });
   return [...contactItems, ...items];
 }
 
@@ -179,6 +184,10 @@ export const hubPrivacy: PrivacyContractV1 = {
         });
       }
     });
+    // Lot 39b (UX-09, ADR 0074) : un brouillon de formulaire qui mentionne la personne.
+    for (const draft of await findFormDraftsByTerms(organizationId, rawTerms)) {
+      records.push({ module: MODULE, kind: "form_draft", recordId: draft.id, label: draft.formKey, fields: Object.fromEntries(Object.entries(draft.content).filter(([, value]) => value.trim() !== "")), eventId: null });
+    }
     return records;
   },
 

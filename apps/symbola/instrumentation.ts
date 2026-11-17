@@ -59,3 +59,13 @@ export async function register() {
     scheduleStorageSnapshots();
   }
 }
+
+// Lot 39b (NFR-16 ; D9 ; ADR 0074) : toute erreur du serveur est notée avec sa référence courte — celle
+// que montre l'écran d'erreur —, la route et le nom de l'erreur ; jamais son message (il peut contenir
+// une donnée personnelle, SEC-20).
+export async function onRequestError(error: unknown, _request: unknown, context: { routePath?: string; routeType?: string }) {
+  const { errorReference } = await import("./lib/error-reference");
+  const digest = (error as { digest?: unknown }).digest;
+  const name = error instanceof Error ? error.name : "inconnue";
+  console.error("erreur serveur", JSON.stringify({ reference: errorReference(typeof digest === "string" ? digest : name), route: context.routePath ?? null, type: context.routeType ?? null, name }));
+}

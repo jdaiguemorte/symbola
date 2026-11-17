@@ -1,6 +1,8 @@
 "use server";
 
 import { offerUndo } from "@/lib/undo";
+import { unexpectedActionError } from "@/lib/action-errors";
+import { discardMyFormDraft } from "@/lib/form-drafts";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import {
@@ -102,7 +104,12 @@ async function run(
     const result = await write(planner.organizationId, quoteId, t);
     if (result) return result;
   } catch (error) {
-    return errorState(error, t);
+    // Lot 39b (NFR-16) : une erreur imprévue rend un message avec sa référence, la page reste.
+    try {
+      return errorState(error, t);
+    } catch {
+      return { error: await unexpectedActionError(error) };
+    }
   }
   revalidatePath(`/devis/${quoteId}`);
   return { success: true };
@@ -138,6 +145,8 @@ export async function addFreeLineAction(_prevState: QuoteFormState, formData: Fo
       vatRateBasisPoints,
       ...readPlacement(formData),
     });
+    // Lot 39b (UX-09) : la ligne est ajoutée, le brouillon de la saisie n'a plus lieu d'être.
+    await discardMyFormDraft(`quote-line:${quoteId}`);
   });
 }
 

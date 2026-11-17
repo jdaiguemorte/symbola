@@ -74,3 +74,5 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0070 — L'espace documents d'un évènement, l'aperçu sans cadre et les liens de partage](0070-espace-documents-et-liens-de-partage.md)
 - [0071 — Le programme diffusé par versions, et le relevé mensuel du stockage](0071-programme-diffuse-et-releve-de-stockage.md)
 - [0072 — Les e-mails à l'image de l'organisation, des modèles à variables, le garde-fou d'envoi groupé et les flux de calendrier](0072-emails-a-l-image-de-l-organisation.md)
+- [0073 — Suppression logique cachée par la base, corbeille de 30 jours et « Annuler »](0073-suppression-logique-et-corbeille.md)
+- [0074 — Brouillons repris sur tout appareil, enregistrement automatique sans écrasement, erreurs référencées](0074-brouillons-conflits-et-erreurs-referencees.md)

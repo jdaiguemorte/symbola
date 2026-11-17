@@ -437,6 +437,10 @@ sans cette clé, l'app refuse de démarrer.
    `budget`, et des politiques RLS qui cachent ce qui est à la corbeille. La purge de la corbeille
    tourne toutes les heures dans l'app (rien à planifier). Leur annulation est refusée tant qu'une
    ligne est à la corbeille.
+   La migration 0148 (lot 39b, ADR 0074) passe aussi sans arrêter `symbola` : elle ajoute la table
+   des brouillons de formulaires (vide au départ), purgée avec la corbeille. Les erreurs du serveur
+   s'écrivent dans le journal du conteneur `symbola` sous la forme `erreur serveur {"reference":…}` :
+   la référence est celle que l'écran d'erreur montre à la personne.
 4. Redémarrer seulement le service `symbola` :
    ```bash
    sudo docker compose -f infra/compose/docker-compose.prod.yml \

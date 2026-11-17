@@ -3,6 +3,7 @@
 // Lot 11 (L11-PRE-01 / L11-PRE-02) — fiche d'un prestataire : coordonnées, type et
 // ses champs, étiquettes, note interne. Les champs suivent le type choisi.
 import { useActionState, useState } from "react";
+import { DraftKeeper } from "@/app/ui/draft-keeper";
 import { useTranslations } from "next-intl";
 import { VENDOR_SOCIAL_NETWORKS } from "@symbola/contracts";
 import type { Vendor, VendorFamily, VendorFieldValue, VendorTag, VendorTagGroup, VendorType, VendorTypeField } from "@/modules/vendors/service";
@@ -122,6 +123,8 @@ export function VendorForm({
   return (
     <form action={action} className="vendor-form">
       {vendor ? <input type="hidden" name="vendorId" value={vendor.id} /> : null}
+      {/* Lot 39b (UX-09) : la saisie en cours est gardée et se reprend sur tout appareil. */}
+      <DraftKeeper formKey={vendor ? `vendor:${vendor.id}` : "vendor-new"} submission={state} saved={Boolean(state.success)} />
       {back ? <input type="hidden" name="back" value={back} /> : null}
       <fieldset>
         <legend>{t("identity")}</legend>

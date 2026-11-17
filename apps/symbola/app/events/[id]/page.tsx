@@ -47,6 +47,7 @@ import {
   listProspectSources,
   summarizeVendorSlots,
   type EventVendorSlot,
+  getEventIdentityState,
 } from "@/modules/events/service";
 import { getEventBudget, listBudgetLines } from "@/modules/budget/service";
 import { confirmEventBudgetAction } from "@/app/budget/[eventId]/actions";
@@ -172,6 +173,8 @@ export default async function EventDetailPage({
 
   const event = await getEvent(organizationId, id);
   if (!event) notFound();
+  // Lot 39b (UX-09, D8) : la version de la fiche, pour l'enregistrement automatique sans écrasement.
+  const identityVersion = String((await getEventIdentityState(organizationId, id))?.updatedAt.getTime() ?? 0);
   const [
     reasons,
     sources,
@@ -673,7 +676,7 @@ export default async function EventDetailPage({
             <WantedBudgetForm key={`wanted-${event.wantedBudgetCents ?? ""}`} eventId={event.id} wantedBudgetCents={event.wantedBudgetCents} />
             <VenueForm eventId={event.id} venueName={event.venueName} venueCity={event.venueCity} />
             {/* Sans clé liée aux valeurs : l'enregistrement garde son message de confirmation. */}
-            <EventIdentityForm eventId={event.id} identity={event} />
+            <EventIdentityForm eventId={event.id} identity={event} version={identityVersion} />
           </details>
           <ImportedFields fields={event.importedFields} />
           {suggestConfirmBudget ? (

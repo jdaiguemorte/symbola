@@ -534,3 +534,13 @@ export async function removeContactMember(organizationId: string, membershipId: 
   );
   if (rows.length === 0) throw new ContactMemberNotFoundError();
 }
+
+// Lot 39b (UX-09 ; D8 ; ADR 0074) — version d'une fiche (date et auteur de la dernière modification),
+// pour l'enregistrement automatique : une modification faite entre-temps est fusionnée ou signalée.
+export async function getContactStamp(organizationId: string, id: string): Promise<{ updatedAt: Date; updatedBy: string | null } | null> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
+  const [row] = await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx.select({ updatedAt: contacts.updatedAt, updatedBy: contacts.updatedBy }).from(contacts).where(eq(contacts.id, id)),
+  );
+  return row ?? null;
+}

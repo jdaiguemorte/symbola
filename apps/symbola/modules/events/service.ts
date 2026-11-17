@@ -104,6 +104,7 @@ import {
   updateVenueRow,
   restoreEventTaskRow,
   restoreProgramItemRow,
+  findEventIdentityState,
 } from "./repository";
 import {
   addStarterEventTypes,
@@ -3078,4 +3079,13 @@ export async function listTrashedEventObjects(organizationId: string): Promise<T
 export async function getTrashedEventLabel(organizationId: string, eventId: string): Promise<string | null> {
   const event = await includingDeleted(() => getEvent(organizationId, eventId));
   return event ? eventNames(event.clients) : null;
+}
+
+// Lot 39b (UX-09 ; D8 ; ADR 0074) — identité d'un évènement (invités, style, notes) et sa version.
+export async function getEventIdentityState(
+  organizationId: string,
+  eventId: string,
+): Promise<{ guestsEstimated: number | null; guestsConfirmed: number | null; style: string | null; notes: string | null; updatedAt: Date; updatedBy: string | null } | null> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventId)) return null;
+  return findEventIdentityState(organizationId, eventId);
 }

@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import type { EventType } from "@/modules/events/service";
 import type { Audience, ClientFieldLabels } from "@/lib/vocabulary";
 import { SameDayNotice } from "@/app/events/same-day-notice";
+import { DraftKeeper } from "@/app/ui/draft-keeper";
 import { createFirstEventAction, type FirstEventFormState } from "./actions";
 
 export function FirstEventForm({ eventTypes, clientLabels }: { eventTypes: Pick<EventType, "id" | "label" | "audience">[]; clientLabels: Record<Audience, ClientFieldLabels> }) {
@@ -19,6 +20,8 @@ export function FirstEventForm({ eventTypes, clientLabels }: { eventTypes: Pick<
 
   return (
     <form action={action} className="stack">
+      {/* Lot 39b (UX-09) : SC-01 étape 7, la saisie se reprend sur un autre appareil. */}
+      <DraftKeeper formKey="event-first" submission={state} />
       <label>
         {tEvents("eventType")}
         <select name="eventTypeId" required value={eventTypeId} onChange={(event) => setEventTypeId(event.target.value)}>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { DraftKeeper } from "@/app/ui/draft-keeper";
 import { useActionState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { AdvanceKind, CatalogItem, GlobalDiscountInput, QuoteLine, QuoteSection, QuoteTemplateSummary } from "@/modules/quotes/service";
@@ -34,12 +35,15 @@ export function QuoteActionForm({
   submitLabel,
   successMessage,
   children,
+  draftKey,
 }: {
   action: Action;
   quoteId: string;
   label: string;
   submitLabel: string;
   successMessage: string;
+  // Lot 39b (UX-09) : la saisie en cours est gardée (brouillon) et se reprend sur tout appareil.
+  draftKey?: string;
   children?: ReactNode | ((state: QuoteFormState) => ReactNode);
 }) {
   const t = useTranslations("Quotes");
@@ -48,6 +52,7 @@ export function QuoteActionForm({
   return (
     <form action={formAction} aria-label={label}>
       <input type="hidden" name="quoteId" value={quoteId} />
+      {draftKey ? <DraftKeeper formKey={draftKey} submission={state} saved={Boolean(state.success)} /> : null}
       {typeof children === "function" ? children(state) : children}
       {state.confirmRecipients ? (
         <RecipientsGuard review={state.confirmRecipients} pending={pending} />
@@ -144,6 +149,7 @@ export function AddFreeLineForm({
     <QuoteActionForm
       action={addFreeLineAction}
       quoteId={quoteId}
+      draftKey={`quote-line:${quoteId}`}
       label={t("addFreeLine")}
       submitLabel={t("addLine")}
       successMessage={t("lineAdded")}

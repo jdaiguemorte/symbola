@@ -47,6 +47,7 @@ import { SearchBox } from "./search-box";
 import { QuickCreate } from "./creation-rapide/quick-create";
 import { HelpProvider } from "./help-context";
 import { UndoNotice } from "./undo-notice";
+import { NetworkStatus } from "./ui/network-status";
 import { HelpButton } from "./help-button";
 import { OrganizationSwitcher } from "./organization-switcher";
 import { getHelpProgress } from "@/modules/hub/service";
@@ -508,6 +509,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
             <section className="app-topbar" aria-label={t("topBar")}>
               <HelpButton />
             </section>
+            {/* Lot 39b (NFR-16) : la coupure réseau est annoncée, la saisie gardée. */}
+            <NetworkStatus />
             {/* Lot 39a (UX-07) : « Annuler » pendant dix secondes après une suppression. */}
             <UndoNotice />
             {children}
@@ -662,6 +665,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
           {helpBar ? (
             <HelpBar tutorial={helpBar.tutorial} invites={helpBar.invites} />
           ) : null}
+          <NetworkStatus />
           {/* Lot 39a (UX-07) : « Annuler » pendant dix secondes après une suppression. */}
           <UndoNotice />
           {children}

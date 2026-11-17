@@ -385,3 +385,41 @@ Trois PR vers `main`, chacune avec ses migrations (39a, 39b), ses tests et son r
 vides, attente, patron, palette, mises en garde des champs libres). Au journal d'activité, une mise
 à la corbeille paraît comme une modification de la ligne (`deleted_at`) ; la purge, comme une
 suppression.
+
+## Bilan du lot 39b (17/11/2026)
+
+**Fait** (ADR 0074) :
+- Migration 0148 (`hub.form_drafts`, annulable) : un brouillon par organisation, personne et
+  formulaire, borné, sous RLS ; déclaré au registre, trouvé et effacé par une demande RGPD, exclu de
+  l'export complet, purgé 30 jours après la dernière frappe (tâche horaire).
+- `DraftKeeper` : la saisie part au serveur à chaque pause de frappe (et reste sur l'appareil tant
+  qu'elle n'a pas pu partir), un brouillon retrouvé se reprend (« Brouillon du … retrouvé »), le texte
+  revient après un refus, et s'efface à l'enregistrement. Posé sur la création d'un évènement
+  (nouveau prospect, création rapide, premier évènement), d'un contact et d'une note, la ligne libre
+  d'un devis, la fiche prestataire et les modèles de messages.
+- `AutoSaveForm` : les fiches contact et évènement (identité) s'enregistrent toutes seules, à la
+  pause de frappe ou en quittant un champ ; une modification faite entre-temps est fusionnée champ
+  par champ, ou montrée en conflit avec son auteur, au choix de la personne.
+- Erreurs : page d'erreur et page de secours à l'image de l'app, référence courte (« 7KQ2-M9XD »)
+  identique à l'écran et au journal du serveur (`onRequestError`, sans message d'erreur) ; une action
+  de formulaire en échec imprévu rend un message avec sa référence au lieu de casser la page.
+- Coupure réseau : bandeau qui l'annonce, envoi retenu (la saisie reste), retour annoncé.
+
+**Preuves** :
+- base : isolation de `form_drafts`, accès Admin, contraintes, annulation de 0148 ;
+- app : `lib/form-drafts.integration.test.ts` (6 cas : reprise par la personne seule, autre
+  organisation, purge à 30 jours, RGPD, fusion et conflit entre deux personnes), tests unitaires de
+  la fusion et de la référence d'erreur ;
+- parcours : `e2e/ux-09-nfr-16-saisie.spec.ts` (brouillon repris ailleurs, conflit entre deux
+  fenêtres, coupure réseau ; ordinateur et 375 px, axe-core) ;
+- chaîne : unitaires app 535, intégration app 725 et base 197, lint, typecheck, frontières, registre
+  RGPD, Semgrep et Gitleaks sans alerte ;
+- rejeu : `docs/recette/SC-01.md` (étapes 6 et 7, brouillon retrouvé à l'identique).
+
+**Reste** :
+- UX-09 : poser les brouillons et l'enregistrement automatique sur les autres fiches au fil des lots
+  (prestataire en enregistrement automatique, modèles de devis et de contrat, budget) ;
+- NFR-16 : le test de panne d'un service tiers sur les parcours P0, et le service de suivi des
+  erreurs (lot 40, Q27) ;
+- UX-10 : la relecture des autres messages d'erreur des parcours P0, selon la règle « ce qui s'est
+  passé, comment en sortir ».

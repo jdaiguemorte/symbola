@@ -6,6 +6,7 @@
 // - « Explorer avec un exemple » : le mariage de référence en données fictives (30 jours).
 // Contrôles côté serveur : session de l'équipe, organisation, module Évènements.
 import { redirect } from "next/navigation";
+import { discardMyFormDraft } from "@/lib/form-drafts";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@symbola/i18n";
 import {
@@ -66,6 +67,8 @@ export async function createFirstEventAction(_prev: FirstEventFormState, formDat
   // HUB-10 : au premier évènement réel, la suppression de l'exemple est proposée.
   const example = await getActiveEventsTrial(access.organizationId);
   const first = (await countOrganizationRealEvents(access.organizationId)) === 1;
+  // Lot 39b (UX-09) : l'évènement est créé, le brouillon de la saisie n'a plus lieu d'être.
+  await discardMyFormDraft("event-first");
   redirect(`/events/${created.id}${example && first ? "?exemple=proposer" : ""}`);
 }
 
