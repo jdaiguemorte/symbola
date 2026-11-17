@@ -1,0 +1,14 @@
+# Exceptions de l'audit des dépendances (SEC-32), lues par OSV-Scanner en CI
+# (.github/workflows/ci.yml, job osv-scanner).
+#
+# SEC-32 bloque sur les failles critiques corrigeables. Une faille sans version corrigée peut être
+# ignorée ici, avec sa raison et une date d'expiration courte : passé cette date, la CI échoue de
+# nouveau et l'exception est à revoir (mise à jour publiée, ou prolongation décidée par Julien).
+
+# picomatch 4.0.7 : ReDoS par motifs extglob répétés à une branche, par exemple « +(*) ».
+# Signalée le 17/11/2026 ; 4.0.7 est la dernière version publiée, aucune version corrigée.
+# Exception décidée par Julien le 17/11/2026, pour trente jours.
+[[IgnoredVulns]]
+id = "GHSA-fc5q-39xc-vjpf"
+ignoreUntil = 2026-12-17T00:00:00Z
+reason = "Aucune version corrigée de picomatch. Seuls les outils de build, de test et de développement l'emploient (vite, vitest, tinyglobby, fdir, @parcel/watcher par next-intl), avec des motifs tirés de leur configuration, jamais d'une saisie : la faille n'est pas atteignable depuis l'app."

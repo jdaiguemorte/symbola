@@ -289,7 +289,7 @@ SEC-28,SEC,12,P0,Serveur durci,Partiel,infra/server/check-hardening.sh ; docs/ru
 SEC-29,SEC,12,P1,Procédure d'incident,Absent,—,Ni procédure d'incident écrite ni contact de sécurité publié,S,Moyen,57,
 SEC-30,SEC,12,P0,Analyse statique du code,Conforme,.github/workflows/ci.yml (semgrep --severity=ERROR --error),,,,,
 SEC-31,SEC,12,P0,Détection de secrets,Conforme,".github/workflows/ci.yml (gitleaks detect, fetch-depth 0)",,,,,
-SEC-32,SEC,12,P0,Audit des dépendances,Conforme,.github/workflows/ci.yml (OSV-Scanner) ; renovate.json,,,,,
+SEC-32,SEC,12,P0,Audit des dépendances,Conforme,.github/workflows/ci.yml (OSV-Scanner) ; osv-scanner.toml ; renovate.json,,,,,"Exception temporaire (décision de Julien du 17/11/2026) : GHSA-fc5q-39xc-vjpf (picomatch 4.0.7, sans version corrigée, outils de build et de test seulement) ignorée jusqu'au 17/12/2026"
 SEC-33,SEC,12,P1,Versions figées et inventaire des composants,Partiel,pnpm-lock.yaml (--frozen-lockfile en CI),Pas d'inventaire des composants archivé avec la version,S,Faible,57,
 SEC-34,SEC,12,P1,Analyse des images de conteneurs,Conforme,".github/workflows/ci.yml (Trivy, bloque sur CRITICAL)",,,,,
 SEC-35,SEC,12,P1,Analyse dynamique en recette,Partiel,.github/workflows/zap-baseline.yml (déclenchement manuel),Analyse dynamique non lancée à chaque version,S,Faible,57,
