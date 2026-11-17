@@ -442,8 +442,12 @@ suppression.
   essai guidé, corbeille…). Le squelette naît donc dans le cadre de l'app (avenant de l'ADR 0074).
 - UX-13 (D13) : raccourcis communs (⌘K ou Ctrl K, N, Échap, ?), annoncés dans le centre d'aide
   (« Raccourcis clavier ») ; « ? » ouvre l'aide de l'écran hors d'un champ de saisie. Relevé des
-  écrans hors patron : `docs/audits/2026-11-17-patron-ecrans.md`, joint à la PR avant de toucher aux
-  écrans.
+  écrans hors patron (`docs/audits/2026-11-17-patron-ecrans.md`), validé par Julien le 17/11 ; puis
+  passés au panneau latéral : la création d'un contact, la fiche d'un contact et celle d'un
+  prestataire (lecture dans la page, « Modifier la fiche » en panneau), la synthèse d'un évènement
+  (« Modifier les informations » en panneau). « Créer » est en tête de la liste, « Modifier » en tête
+  de la section qu'il modifie. Budget, éditeur de devis et paramètres gardent la saisie dans la page
+  (exceptions validées).
 - HUB-12 (D12) : ⌘K propose aussi des actions (« Créer un évènement », « Ouvrir la corbeille »,
   « Importer un fichier »…), réservées à l'équipe et selon les modules souscrits ; chaque mot tapé
   filtre par début de mot, sans accent ni majuscule.
@@ -460,11 +464,10 @@ suppression.
   navigation interrompue sur le portail, passe rejoué seul), lint, typecheck, frontières, registre
   RGPD, catalogues FR/EN (5 435 clés), Semgrep et Gitleaks sans alerte sur les fichiers du lot ;
 - rejeu : `docs/recette/SC-01.md` (un espace vide guide : écrans vides, palette) et
-  `docs/recette/SC-03.md` (étape 3 : la coche s'affiche en 4 ms, avant la réponse du serveur).
+  `docs/recette/SC-03.md` (étape 3 : la coche s'affiche en 4 ms, avant la réponse du serveur), puis
+  `docs/recette/UX-13.md` (les quatre écrans passés au panneau).
 
 **Reste** :
-- UX-13 : passer au panneau latéral les écrans qui éditent encore en place, selon le relevé, une
-  fois les propositions validées par Julien ;
 - UX-15 : mise à jour optimiste du choix d'une option et du changement de statut ; mesure des
   100 ms au lot 40b (NFR-01) ; revenir aux `loading.tsx` quand Next.js corrige ce comportement ;
 - HUB-12 : mesure des 500 ms au lot 40b ;

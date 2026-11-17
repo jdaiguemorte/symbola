@@ -1,6 +1,7 @@
 # Relevé du patron des écrans — liste, fiche, panneau latéral (UX-13, lot 39c, décision D13)
 
-Date : 17/11/2026, par Claude Code. UX-13 veut, partout, la liste, puis la fiche, puis un panneau
+Date : 17/11/2026, par Claude Code. **Propositions validées par Julien le 17/11/2026** (« Je valide
+le relevé UX-13 »). UX-13 veut, partout, la liste, puis la fiche, puis un panneau
 latéral d'édition, avec les mêmes raccourcis, emplacements et libellés. Ce relevé borne le travail :
 il dit quels écrans suivent déjà le patron et lesquels éditent encore en place.
 
@@ -22,19 +23,27 @@ Ils sont annoncés dans le centre d'aide (« Raccourcis clavier »).
 - Paramètres des évènements, du carnet, des étiquettes : listes et panneaux d'édition.
 - Rétroplanning d'un évènement : tableau des tâches, tâche en panneau (`?tache=`).
 
-## Écrans qui éditent encore en place
+## Passages au panneau (faits au lot 39c, après validation)
 
-| Écran | Aujourd'hui | Proposition |
+| Écran | Avant | Maintenant |
 | --- | --- | --- |
-| Fiche d'un contact | Coordonnées en formulaire dans la page (enregistrement automatique, lot 39b) | Garder la lecture dans la page, l'édition en panneau |
-| Fiche d'un évènement, aperçu | « Modifier les informations » replié dans la page | Panneau « Modifier les informations » |
-| Fiche d'un prestataire | Formulaire complet dans la page | Lecture en fiche, édition en panneau |
-| Budget d'un évènement | Montants modifiés dans le tableau | Garder la saisie dans le tableau (tableur attendu par les planners), panneau pour l'historique et les pièces |
-| Éditeur de devis | Lignes modifiées en place | Garder : c'est un document en cours d'écriture, pas une fiche |
-| Paramètres de l'organisation (entreprise, mentions, e-mails, messages) | Formulaires dans la page | Garder : un réglage par page, sans liste |
-| Contacts (liste) | Création repliée dans la page | Création en panneau, comme les modèles |
+| Contacts (liste) | Création repliée dans la page | « Ajouter un contact » en tête de la liste ; le formulaire s'ouvre en panneau (`?nouveau=1`) |
+| Fiche d'un contact | Coordonnées en formulaire dans la page | Lecture dans la page ; « Modifier la fiche », en tête de la section, ouvre le panneau (`?modifier=1`), enregistrement automatique gardé |
+| Fiche d'un prestataire | Formulaire complet dans la page | Lecture (coordonnées, caractéristiques du type, évaluation, tarifs, note) ; « Modifier la fiche » ouvre le panneau (`?modifier=1`) |
+| Fiche d'un évènement, synthèse | « Modifier les informations » replié dans la page | Le lien, en tête de la fiche d'identité, ouvre le panneau (`?modifier=infos`) |
+
+Mêmes emplacements partout : « Créer » en tête de la liste, « Modifier » en tête de la section
+qu'il modifie ; le panneau se ferme par « Fermer », Échap ou un clic hors de lui, et son état est
+dans l'adresse (rechargement, retour arrière).
+
+## Exceptions validées
+
+| Écran | Pourquoi il garde la saisie dans la page |
+| --- | --- |
+| Budget d'un évènement | Tableur attendu par les planners ; le panneau sert à l'historique et aux pièces |
+| Éditeur de devis | Un document en cours d'écriture, pas une fiche |
+| Paramètres de l'organisation (entreprise, mentions, e-mails, messages) | Un réglage par page, sans liste |
 
 ## Suite
 
-Les passages au panneau se font écran par écran, avec leur parcours e2e (lots suivants) ; ce relevé
-est tenu à jour à chaque passage. UX-13 reste « Partiel » dans `docs/gap.csv` jusque-là.
+Un nouvel écran suit le patron (liste, fiche, panneau) ou s'ajoute aux exceptions, avec sa raison.
