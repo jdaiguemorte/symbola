@@ -7,7 +7,7 @@ import { assertOrganizationIsolation } from "@symbola/testing";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
-import { calendarFeeds, contactMembers, contactNotes, contacts, emailTemplates, messageTemplates, messageTemplateVersions, storageSnapshots, users } from "./schema/hub";
+import { calendarFeeds, contactMembers, contactNotes, contacts, emailTemplates, formDrafts, messageTemplates, messageTemplateVersions, storageSnapshots, users } from "./schema/hub";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -156,5 +156,24 @@ describe("HUB-29 / SEC-10 — Isolation des adresses de calendrier entre organis
     const feed = await withOrganization(db, organizationId, async (tx) => first(await tx.insert(calendarFeeds).values({ organizationId, userId: user!.id, tokenHash: randomHash() }).returning()));
     await withOrganization(db, organizationId, (tx) => tx.update(calendarFeeds).set({ lastUsedAt: new Date(), revokedAt: new Date() }).where(eq(calendarFeeds.id, feed.id)));
     expect(await refusal(withOrganization(db, organizationId, (tx) => tx.update(calendarFeeds).set({ tokenHash: randomHash() }).where(eq(calendarFeeds.id, feed.id))))).toMatch(/permission denied/);
+  });
+});
+
+describe("UX-09 / SEC-10 — Isolation des brouillons de formulaires entre organisations (lot 39b, PostgreSQL réel)", () => {
+  it("une organisation ne voit, ne réécrit ni n'efface jamais le brouillon d'une autre ; la clé et le contenu sont bornés", async () => {
+    const [user] = await db.insert(users).values({ email: `brouillon-${randomUUID()}@example.test` }).returning();
+    await assertOrganizationIsolation({
+      seed: (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => first(await tx.insert(formDrafts).values({ organizationId, userId: user!.id, formKey: "event-new", content: { clientFirstName1: "Léa" } }).returning())),
+      listVisible: (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(formDrafts)),
+      attemptCrossOrganizationUpdate: async (organizationId, target) => {
+        const updated = await withOrganization(db, organizationId, (tx) => tx.update(formDrafts).set({ content: { clientFirstName1: "falsifié" } }).where(eq(formDrafts.id, target.id)).returning());
+        const removed = await withOrganization(db, organizationId, (tx) => tx.delete(formDrafts).where(eq(formDrafts.id, target.id)).returning());
+        return { affectedRows: updated.length + removed.length };
+      },
+    });
+    const organizationId = randomUUID();
+    expect(await refusal(withOrganization(db, organizationId, (tx) => tx.insert(formDrafts).values({ organizationId, userId: user!.id, formKey: "../evil", content: {} })))).toMatch(/form_drafts_form_key_check/);
+    expect(await refusal(withOrganization(db, organizationId, (tx) => tx.insert(formDrafts).values({ organizationId, userId: user!.id, formKey: "event-new", content: { body: "x".repeat(70_000) } })))).toMatch(/form_drafts_content_check/);
   });
 });

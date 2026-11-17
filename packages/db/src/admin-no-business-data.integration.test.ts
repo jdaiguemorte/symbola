@@ -11,7 +11,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { alertThresholds, budgetLineAttachments, budgetLines, vendorPayments } from "./schema/budget";
 import { vendors, vendorTypes } from "./schema/vendors";
-import { calendarFeeds, contactMembers, contactNotes, contacts, emailTemplates, importItems, imports, messageTemplates, messageTemplateVersions, privacyRequests, storageSnapshots, users } from "./schema/hub";
+import { calendarFeeds, contactMembers, contactNotes, contacts, emailTemplates, formDrafts, importItems, imports, messageTemplates, messageTemplateVersions, privacyRequests, storageSnapshots, users } from "./schema/hub";
 import {
   catalogItems,
   creditNotes,
@@ -417,7 +417,9 @@ describe("PRD-HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
     });
     const [user] = await db.insert(users).values({ email: `flux-${randomUUID()}@example.test` }).returning();
     await withOrganization(db, organizationId, (tx) => tx.insert(calendarFeeds).values({ organizationId, userId: user!.id, tokenHash: createHash("sha256").update(randomUUID()).digest("hex") }));
-    for (const table of [programVersions, storageSnapshots, emailTemplates, messageTemplates, messageTemplateVersions, calendarFeeds]) {
+    // Lot 39b (UX-09) : les brouillons des formulaires.
+    await withOrganization(db, organizationId, (tx) => tx.insert(formDrafts).values({ organizationId, userId: user!.id, formKey: "event-new", content: { clientFirstName1: "Léa" } }));
+    for (const table of [programVersions, storageSnapshots, emailTemplates, messageTemplates, messageTemplateVersions, calendarFeeds, formDrafts]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);

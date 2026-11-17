@@ -929,6 +929,30 @@ export const calendarFeeds = hubSchema.table(
   ],
 );
 
+// Lot 39b (UX-09 ; D7 ; ADR 0074) : brouillon d'un formulaire, par personne et par formulaire (« event-new »,
+// « contact-note:<id> »…), repris sur tout appareil ; effacé à l'enregistrement, purgé au bout de
+// 30 jours. Table technique : ni auteur ni journal (row-stamps.ts), chaque frappe le réécrit.
+export const formDrafts = hubSchema.table(
+  "form_drafts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    formKey: text("form_key").notNull(),
+    content: jsonb("content").$type<Record<string, string>>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("form_drafts_person_form_idx").on(table.organizationId, table.userId, table.formKey),
+    index("form_drafts_organization_idx").on(table.organizationId),
+    check("form_drafts_form_key_check", sql`${table.formKey} ~ '^[a-z][a-z0-9-]{0,40}(:[0-9a-f-]{36})?$'`),
+    check("form_drafts_content_check", sql`jsonb_typeof(${table.content}) = 'object' and pg_column_size(${table.content}) <= 65536`),
+  ],
+);
+
 // Lot 37b (DOC-12 ; D12, D13, ADR 0071) — relevé mensuel du stockage d'une organisation, par
 // nature : nombre de fichiers et volume, pris le premier du mois et gardé d'un mois sur l'autre ; il
 // alimentera le calcul des quotas (DOC-06). Des nombres seulement, jamais un nom de fichier
