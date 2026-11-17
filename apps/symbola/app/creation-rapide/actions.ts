@@ -6,6 +6,8 @@
 // session planner, organisation, module souscrit, évènement de l'organisation (RLS), entrées
 // validées ; mêmes services et mêmes règles que les formulaires de chaque écran.
 import { revalidatePath } from "next/cache";
+import { unexpectedActionError } from "@/lib/action-errors";
+import { discardMyFormDraft } from "@/lib/form-drafts";
 import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import { parseAmountToCents, type Locale } from "@symbola/i18n";
@@ -140,6 +142,8 @@ export async function quickCreateProspectAction(_prev: QuickCreateState, formDat
     venueCity: null,
   });
   refresh(created.id);
+  // Lot 39b (UX-09) : l'évènement est créé, le brouillon de la saisie n'a plus lieu d'être.
+  await discardMyFormDraft("event-quick");
   return { done: { message: t("prospectDone", { name: firstName }), href: `/events/${created.id}` }, nonce: Date.now() };
 }
 
@@ -162,7 +166,7 @@ export async function quickCreateTaskAction(_prev: QuickCreateState, formData: F
   } catch (error) {
     if (error instanceof RangeError) return { error: tEvents("invalidDate") };
     if ((error as Error).name === "EventNotFoundError") return { error: tEvents("eventNotFound") };
-    throw error;
+    return { error: await unexpectedActionError(error) };
   }
   refresh(eventId);
   return { done: { message: t("taskDone", { label }), href: `/events/${eventId}?onglet=retroplanning` }, nonce: Date.now() };
@@ -192,7 +196,7 @@ export async function quickCreateExpenseAction(_prev: QuickCreateState, formData
   } catch (error) {
     if (error instanceof BudgetLineDetailsInvalidError) return { error: tBudget(error.reason === "label" ? "lineLabelRequired" : error.reason === "vendor" ? "lineVendorInvalid" : "lineVatRateInvalid") };
     if (["EventNotFoundError", "EventVendorSlotNotFoundError", "BudgetLineNotFoundError"].includes((error as Error).name)) return { error: tBudget("unknownVendorSlot") };
-    throw error;
+    return { error: await unexpectedActionError(error) };
   }
   refresh(eventId);
   revalidatePath(`/budget/${eventId}`);
@@ -212,7 +216,7 @@ export async function quickCreateQuoteAction(_prev: QuickCreateState, formData: 
     quote = await createQuote({ organizationId: access.organizationId, eventId, createdByUserId: access.userId });
   } catch (error) {
     if (error instanceof EventNotFoundError) return { error: t("chooseEventError") };
-    throw error;
+    return { error: await unexpectedActionError(error) };
   }
   refresh(eventId);
   revalidatePath("/devis");

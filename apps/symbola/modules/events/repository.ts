@@ -1873,3 +1873,15 @@ export async function countRealClientLinks(organizationId: string): Promise<numb
     return row?.count ?? 0;
   });
 }
+
+// Lot 39b (UX-09 ; D8 ; ADR 0074) — identité d'un évènement et sa version (date et auteur de la
+// dernière modification de l'évènement), pour l'enregistrement automatique.
+export async function findEventIdentityState(organizationId: string, eventId: string) {
+  const [row] = await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx
+      .select({ guestsEstimated: events.guestsEstimated, guestsConfirmed: events.guestsConfirmed, style: events.style, notes: events.notes, updatedAt: events.updatedAt, updatedBy: events.updatedBy })
+      .from(events)
+      .where(eq(events.id, eventId)),
+  );
+  return row ?? null;
+}

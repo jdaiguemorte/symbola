@@ -10,7 +10,7 @@ import { ScreenHelp } from "@/app/screen-help";
 import { PageHeader } from "@/app/ui/page-header";
 import { requirePlanner } from "@/lib/guards";
 import { listEventDocuments, listEventsOfContact } from "@/modules/events/service";
-import { getContact, isModuleEnabled, listContactGroups, listContactMembers, listContactNotes } from "@/modules/hub/service";
+import { getContact, getContactStamp, isModuleEnabled, listContactGroups, listContactMembers, listContactNotes } from "@/modules/hub/service";
 import { listEventQuotes, listQuoteInvoices } from "@/modules/quotes/service";
 import { deleteContactAction, removeContactMemberAction, removeContactNoteAction } from "../actions";
 import { ContactForm, MemberForm, NoteForm } from "../contact-forms";
@@ -30,6 +30,9 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
   const organizationId = auth.user.organizationId;
   const contact = await getContact(organizationId, id);
   if (!contact || contact.isDemo || contact.anonymized) notFound();
+  // Lot 39b (UX-09, D8) : la version de la fiche, pour l'enregistrement automatique sans écrasement.
+  const stamp = await getContactStamp(organizationId, id);
+  const contactVersion = String((stamp?.updatedAt ?? contact.updatedAt).getTime());
 
   const t = await getTranslations("Contacts");
   const tEvents = await getTranslations("Events");
@@ -79,7 +82,7 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
 
       <section aria-labelledby="contact-identity" className="card">
         <h2 id="contact-identity">{t("identityTitle")}</h2>
-        <ContactForm contact={contact} />
+        <ContactForm contact={contact} version={contactVersion} />
       </section>
 
       {isGroup ? (

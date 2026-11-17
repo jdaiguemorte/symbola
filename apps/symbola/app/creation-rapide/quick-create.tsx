@@ -6,6 +6,7 @@
 // suivent les modules souscrits (ARC-06).
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { DraftKeeper } from "@/app/ui/draft-keeper";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -197,6 +198,8 @@ function ProspectForm({ options }: { options: QuickCreateOptions }) {
   const [date, setDate] = useState("");
   return (
     <form action={action}>
+      {/* Lot 39b (UX-09) : la saisie est gardée et se reprend sur tout appareil. */}
+      <DraftKeeper formKey="event-quick" submission={state} saved={Boolean("done" in state && state.done)} />
       <label>
         {t("eventType")}
         <select name="eventTypeId" required defaultValue={options.eventTypes[0]?.id ?? ""}>

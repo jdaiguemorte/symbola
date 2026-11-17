@@ -1,7 +1,7 @@
 // Lot 39a (DAT-03, HUB-17, UX-07 ; ADR 0073) — corbeille de 30 jours et « Annuler », tous modules
 // confondus. Chaque module marque, rend et purge ses propres lignes ; les modules ne se connaissent
 // que par leur service.ts (ADR 0011) : l'orchestration vit ici, comme lib/demo-purge.ts.
-import { ELEMENT_PURGE_MINUTES, TRASH_RETENTION_DAYS, type TrashedObject, type TrashKind, type UndoKind } from "@symbola/contracts";
+import { ELEMENT_PURGE_MINUTES, FORM_DRAFT_RETENTION_DAYS, TRASH_RETENTION_DAYS, type TrashedObject, type TrashKind, type UndoKind } from "@symbola/contracts";
 import { includingDeleted } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
 import { purgeBudgetElements, removeEventBudgetData, restoreBudgetLine, restoreEventBudget, trashEventBudget } from "@/modules/budget/service";
@@ -28,6 +28,7 @@ import {
   isModuleEnabled,
   listOrganizations,
   listTrashedHubRows,
+  purgeFormDrafts,
   purgeHubElements,
   purgeTrashedHubObjects,
   restoreContact,
@@ -237,6 +238,8 @@ export async function purgeOrganizationTrash(organizationId: string, now: Date =
   objects += await purgeTrashedEventObjects(organizationId, { before: objectsBefore });
   objects += await purgeTrashedHubObjects(organizationId, { before: objectsBefore });
   objects += await purgeTrashedQuotesObjects(organizationId, { before: objectsBefore });
+  // Lot 39b (UX-09, ADR 0074) : brouillons de formulaires laissés en l'état depuis 30 jours.
+  await purgeFormDrafts(organizationId, new Date(now.getTime() - FORM_DRAFT_RETENTION_DAYS * DAY_MS));
   return { elements, objects };
 }
 

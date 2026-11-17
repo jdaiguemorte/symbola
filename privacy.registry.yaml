@@ -1217,3 +1217,15 @@ fields:
     anonymization: >-
       Supprimé du stockage avec sa ligne lors d'une demande d'oubli qui le vise, qui vise sa tâche
       ou l'événement (pas d'anonymisation partielle d'un fichier).
+  - schema: hub
+    table: form_drafts
+    field: content
+    category: contenu_libre
+    retention: >-
+      Lot 39b (UX-09, D7, ADR 0074) : brouillon de saisie d'une personne de l'équipe (nouvel
+      évènement, contact, note, ligne de devis, modèle), qui peut nommer des personnes. Effacé
+      quand le formulaire est enregistré ; sinon purgé 30 jours après la dernière frappe. Une
+      copie peut rester dans le navigateur de l'appareil tant qu'elle n'a pas été envoyée (coupure
+      réseau) ; elle s'efface quand le brouillon est enregistré ou effacé.
+    anonymization: >-
+      Supprimé lors d'une demande d'oubli qui le vise, à la purge, ou avec le compte de son auteur.

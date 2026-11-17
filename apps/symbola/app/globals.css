@@ -3507,3 +3507,17 @@
     @apply m-0 whitespace-pre-line break-words;
   }
 }
+
+@layer components {
+  /* Lot 39b (UX-09, NFR-16) — brouillon retrouvé dans un formulaire, coupure réseau annoncée, conflit
+     d'édition montré champ par champ. */
+  .draft-offer {
+    @apply flex flex-wrap items-center gap-3 rounded-md bg-primary-soft px-4 py-3 text-primary;
+  }
+  .network-status {
+    @apply fixed top-4 right-4 left-4 z-40 mx-auto max-w-md rounded-lg bg-ink px-4 py-2 text-label text-on-primary shadow-float;
+  }
+  .autosave-conflict {
+    @apply flex flex-col gap-3 rounded-md border border-line-strong bg-surface p-4;
+  }
+}

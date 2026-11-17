@@ -4,6 +4,7 @@
 // langue (à la création), objet, texte et variables. React vide le formulaire après l'action : le
 // texte saisi revient (values).
 import { useActionState } from "react";
+import { DraftKeeper } from "@/app/ui/draft-keeper";
 import { useTranslations } from "next-intl";
 import { createMessageTemplateAction, saveMessageTemplateAction, type MessageTemplateFormState } from "./actions";
 
@@ -30,6 +31,8 @@ export function MessageTemplateForm({
   const key = state.at ?? 0;
   return (
     <form action={formAction} className="stack" aria-label={template ? t("edit", { name: template.name }) : t("newTitle")}>
+      {/* Lot 39b (UX-09) : la saisie en cours est gardée et se reprend sur tout appareil. */}
+      <DraftKeeper formKey={template ? `message-template:${template.id}` : "message-template-new"} submission={state} saved={Boolean(state.saved)} />
       {template ? <input type="hidden" name="templateId" value={template.id} /> : null}
       <label htmlFor="message-template-name">{t("name")}</label>
       <input key={`name-${key}`} id="message-template-name" type="text" name="name" defaultValue={values.name} maxLength={limits.name} required />

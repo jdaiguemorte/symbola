@@ -5,6 +5,8 @@
 // Contrôles côté serveur : session, organisation (requirePlanner), et le service du hub (RLS).
 // Une adresse e-mail déjà prise est refusée et nomme le contact qui la porte (DAT-12).
 import { offerUndo } from "@/lib/undo";
+import { unexpectedActionError } from "@/lib/action-errors";
+import { discardMyFormDraft } from "@/lib/form-drafts";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -23,8 +25,11 @@ import {
   listContacts,
   removeContactMember,
   removeContactNote,
+  getContact,
+  getContactStamp,
   updateContact,
 } from "@/modules/hub/service";
+import { runAutosave, versionOf, type AutosaveState } from "@/lib/autosave-server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -60,7 +65,7 @@ async function failure(error: unknown, kind: ContactKind = "person"): Promise<Co
     return { error: kind === "person" ? t("missingFirstName") : t("missingName") };
   }
   if (error instanceof ContactNotFoundError) return { error: t("notFound") };
-  throw error;
+  return { error: await unexpectedActionError(error) };
 }
 
 export async function createContactAction(_previous: ContactFormState, formData: FormData): Promise<ContactFormState> {
@@ -72,6 +77,8 @@ export async function createContactAction(_previous: ContactFormState, formData:
   } catch (error) {
     return { ...(await failure(error, input.kind)), at: Date.now(), values: input };
   }
+  // Lot 39b (UX-09) : le contact est créé, le brouillon de la saisie n'a plus lieu d'être.
+  await discardMyFormDraft("contact-new");
   revalidatePath("/contacts");
   redirect(`/contacts/${id}`);
 }
@@ -102,8 +109,9 @@ export async function addContactNoteAction(_previous: NoteFormState, formData: F
   } catch (error) {
     if (error instanceof ContactInvalidError) return { error: t("noteInvalid") };
     if (error instanceof ContactNotFoundError) return { error: t("notFound") };
-    throw error;
+    return { error: await unexpectedActionError(error) };
   }
+  await discardMyFormDraft(`contact-note:${id}`);
   revalidatePath(`/contacts/${id}`);
   return { added: true };
 }
@@ -192,4 +200,45 @@ export async function deleteContactAction(formData: FormData): Promise<void> {
   if (outcome === "deleted") await offerUndo({ kind: "contact", id });
   revalidatePath("/contacts");
   redirect("/contacts");
+}
+
+// Lot 39b (UX-09 ; D7, D8 ; ADR 0074) — la fiche d'un contact s'enregistre toute seule, champ par
+// champ ; une modification faite entre-temps par quelqu'un d'autre est fusionnée ou montrée en
+// conflit, jamais écrasée en silence. La nature du contact décide des champs.
+const CONTACT_COMMON_FIELDS = ["email", "phone", "addressLine", "postalCode", "city", "country", "billingAddress"] as const;
+
+function contactFieldsOf(kind: ContactKind): string[] {
+  if (kind === "person") return ["firstName", "lastName", ...CONTACT_COMMON_FIELDS];
+  if (kind === "company") return ["name", "companyIdNumber", "vatNumber", ...CONTACT_COMMON_FIELDS];
+  return ["name", ...CONTACT_COMMON_FIELDS];
+}
+
+export async function autosaveContactAction(_previous: AutosaveState, formData: FormData): Promise<AutosaveState> {
+  const auth = await requirePlanner();
+  const organizationId = auth.user.organizationId;
+  const t = await getTranslations("Contacts");
+  const id = String(formData.get("id") ?? "");
+  const contact = UUID.test(id) ? await getContact(organizationId, id) : null;
+  if (!contact) return { status: "error", message: t("notFound"), at: Date.now() };
+  const fields = contactFieldsOf(contact.kind);
+  return runAutosave({
+    organizationId,
+    userId: auth.user.id,
+    formData,
+    fields,
+    read: async () => {
+      const [current, stamp] = await Promise.all([getContact(organizationId, id), getContactStamp(organizationId, id)]);
+      if (!current || !stamp) return null;
+      const values = Object.fromEntries(fields.map((field) => [field, String((current as Record<string, unknown>)[field] ?? "")]));
+      return { values, version: versionOf(stamp.updatedAt), updatedBy: stamp.updatedBy };
+    },
+    write: async (values) => {
+      await updateContact(organizationId, id, { kind: contact.kind, ...values });
+    },
+    knownError: async (error) => {
+      if (error instanceof ContactEmailTakenError || error instanceof ContactInvalidError || error instanceof ContactNotFoundError) return (await failure(error, contact.kind)).error ?? null;
+      return null;
+    },
+    notFound: t("notFound"),
+  });
 }

@@ -5,7 +5,8 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { parseAmountToCents } from "@symbola/i18n";
-import { ClientEmailTakenError, EventNotFoundError, InvalidClientContactError, setEventIdentity, setEventVenue, setEventWantedBudget, updateEventClientContact } from "@/modules/events/service";
+import { ClientEmailTakenError, EventNotFoundError, getEventIdentityState, InvalidClientContactError, setEventIdentity, setEventVenue, setEventWantedBudget, updateEventClientContact } from "@/modules/events/service";
+import { runAutosave, versionOf, type AutosaveState } from "@/lib/autosave-server";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
@@ -118,4 +119,55 @@ export async function setEventIdentityAction(_prev: ClientContactFormState, form
   }
   revalidatePath(`/events/${eventId}`);
   return { success: true };
+}
+
+// Lot 39b (UX-09 ; D7, D8 ; ADR 0074) — l'identité de l'évènement (invités, style, notes) s'enregistre
+// toute seule ; une modification faite entre-temps est fusionnée ou montrée en conflit.
+const IDENTITY_FIELDS = ["guestsEstimated", "guestsConfirmed", "style", "notes"] as const;
+
+class IdentityCountError extends Error {}
+
+export async function autosaveEventIdentityAction(_previous: AutosaveState, formData: FormData): Promise<AutosaveState> {
+  const t = await getTranslations("Events");
+  const auth = await getPlannerAuthContext();
+  if (auth.status !== "authenticated" || !auth.user.organizationId) return { status: "error", message: t("unauthenticated"), at: Date.now() };
+  const organizationId = auth.user.organizationId;
+  const eventId = field(formData, "id");
+  if (!isValidId(eventId) || !(await isEventsModuleEnabled(organizationId))) return { status: "error", message: t("eventNotFound"), at: Date.now() };
+  const count = (raw: string): number | null => {
+    const value = raw.trim();
+    if (!value) return null;
+    if (!/^\d{1,6}$/.test(value)) throw new IdentityCountError();
+    return Number(value);
+  };
+  return runAutosave({
+    organizationId,
+    userId: auth.user.id,
+    formData,
+    fields: IDENTITY_FIELDS,
+    read: async () => {
+      const state = await getEventIdentityState(organizationId, eventId);
+      if (!state) return null;
+      return {
+        values: { guestsEstimated: state.guestsEstimated?.toString() ?? "", guestsConfirmed: state.guestsConfirmed?.toString() ?? "", style: state.style ?? "", notes: state.notes ?? "" },
+        version: versionOf(state.updatedAt),
+        updatedBy: state.updatedBy,
+      };
+    },
+    write: async (values) => {
+      await setEventIdentity(organizationId, eventId, {
+        guestsEstimated: count(values.guestsEstimated ?? ""),
+        guestsConfirmed: count(values.guestsConfirmed ?? ""),
+        style: (values.style ?? "").slice(0, 2001),
+        notes: (values.notes ?? "").slice(0, 10_001),
+      });
+    },
+    knownError: async (error) => {
+      if (error instanceof IdentityCountError) return t("guestsInvalid");
+      if (error instanceof RangeError) return t("identityInvalid");
+      if (error instanceof EventNotFoundError) return t("eventNotFound");
+      return null;
+    },
+    notFound: t("eventNotFound"),
+  });
 }

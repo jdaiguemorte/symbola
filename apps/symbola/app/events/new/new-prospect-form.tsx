@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
+import { DraftKeeper } from "@/app/ui/draft-keeper";
 import { createProspectAction, type NewProspectFormState } from "./actions";
 import type { EventType, ProspectSource } from "@/modules/events/service";
 import type { Audience, ClientFieldLabels } from "@/lib/vocabulary";
@@ -38,6 +39,8 @@ export function NewProspectForm({
 
   return (
     <form action={formAction}>
+      {/* Lot 39b (UX-09) : la saisie est gardée et se reprend sur tout appareil. */}
+      <DraftKeeper formKey="event-new" submission={state} />
       {confirmed ? <input type="hidden" name="confirmed" value="1" /> : null}
       <label>
         {t("eventType")}

@@ -3090,7 +3090,8 @@
       "task_comment": "Task comment",
       "vendor": "Vendor book entry",
       "vendor_candidate": "Consulted vendor",
-      "vendor_payment": "Vendor payment"
+      "vendor_payment": "Vendor payment",
+      "form_draft": "Unsaved draft"
     },
     "field": {
       "firstName": "First name",
@@ -6391,5 +6392,38 @@
       "messageTemplate": "Template moved to the trash.",
       "vendor": "Supplier archived."
     }
+  },
+  "Drafts": {
+    "found": "Draft from {date} found.",
+    "resume": "Resume",
+    "discard": "Delete the draft",
+    "offlineSubmit": "No connection: nothing was sent, and what you typed is kept on this device. Try again when the connection is back."
+  },
+  "Network": {
+    "offline": "No connection: what you type is kept on this device.",
+    "back": "Connection restored: what you typed is being sent."
+  },
+  "Errors": {
+    "title": "Something went wrong",
+    "body": "This page could not be displayed, or your last action did not go through, because of an incident on our side. Nothing you saved is lost.",
+    "draftsKept": "What you were typing in a form is kept as a draft: you will find it when you come back to it.",
+    "reference": "If this happens again, give this reference to support: {reference}.",
+    "retry": "Try again",
+    "home": "Back to home",
+    "offlineTitle": "No connection",
+    "offlineBody": "Your device is no longer connected to the internet. What you type is kept on this device; try again when the connection is back.",
+    "actionFailed": "Saving did not go through because of an incident on our side. What you typed is kept: try again in a moment. If this happens again, give this reference to support: {reference}."
+  },
+  "Autosave": {
+    "saving": "Saving…",
+    "offline": "No connection: the record will be saved when the connection is back. What you typed stays on screen.",
+    "conflictTitle": "Changed while you were typing",
+    "conflictBy": "\"{field}\" was changed by {who} while you were typing. Nothing is overwritten: choose which version to keep.",
+    "conflictBySelf": "\"{field}\" was changed in another window while you were typing. Nothing is overwritten: choose which version to keep.",
+    "theirs": "Saved version: {value}",
+    "mine": "Your version: {value}",
+    "keepMine": "Keep my version",
+    "takeTheirs": "Take the saved version",
+    "empty": "(empty)"
   }
 }

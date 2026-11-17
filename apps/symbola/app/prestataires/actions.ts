@@ -3,6 +3,8 @@
 // Lot 11 (L11-PRE-01 à L11-PRE-03, L11-PRE-10) — actions du carnet de prestataires.
 // Chaque action vérifie session, organisation et module ; entrées validées.
 import { offerUndo } from "@/lib/undo";
+import { unexpectedActionError } from "@/lib/action-errors";
+import { discardMyFormDraft } from "@/lib/form-drafts";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -124,9 +126,11 @@ export async function saveVendorAction(_prev: VendorFormState, formData: FormDat
     if (error instanceof InvalidVendorLinkError) return { error: t(error.field === "siret" ? "invalidSiret" : "invalidWebsite") };
     if (error instanceof InvalidVendorRatingError) return { error: t("invalidRating") };
     if (error instanceof VendorNotFoundError || error instanceof VendorTypeNotFoundError) return { error: t("notFound") };
-    throw error;
+    return { error: await unexpectedActionError(error) };
   }
   revalidatePath("/prestataires");
+  // Lot 39b (UX-09) : la fiche est enregistrée, le brouillon de la saisie n'a plus lieu d'être.
+  await discardMyFormDraft(isValidId(vendorId) ? `vendor:${vendorId}` : "vendor-new");
   const notice = geocodingNotice(t, result);
   if (!isValidId(vendorId)) {
     // Créée depuis un poste : on y revient pour l'ajouter.

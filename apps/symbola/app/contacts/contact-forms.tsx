@@ -4,6 +4,8 @@
 // e-mail déjà prise renvoie vers le contact qui la porte. Lot 36b (D2) : un foyer ou une entreprise
 // a un nom ; une entreprise, ses identifiants (SIREN ou SIRET, TVA) ; on y ajoute des personnes.
 import Link from "next/link";
+import { DraftKeeper } from "@/app/ui/draft-keeper";
+import { AutoSaveForm } from "@/app/ui/autosave-form";
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { Contact, ContactInput, ContactKind } from "@symbola/contracts";
@@ -11,7 +13,7 @@ import {
   addContactMemberAction,
   addContactNoteAction,
   createContactAction,
-  updateContactAction,
+  autosaveContactAction,
   type ContactFormState,
   type MemberFormState,
   type NoteFormState,
@@ -120,6 +122,8 @@ export function NewContactForm() {
   const round = state.at ?? 0;
   return (
     <form action={action} aria-label={t("newTitle")} className="stack">
+      {/* Lot 39b (UX-09) : la saisie est gardée et se reprend sur tout appareil. */}
+      <DraftKeeper formKey="contact-new" submission={state} />
       <fieldset key={round} className="row-wrap">
         <legend>{t("kindLegend")}</legend>
         {KINDS.map((option) => (
@@ -138,18 +142,36 @@ export function NewContactForm() {
   );
 }
 
-export function ContactForm({ contact }: { contact: Contact }) {
+// Lot 39b (UX-09 ; D7, D8) : la fiche s'enregistre toute seule, champ par champ ; une modification
+// faite entre-temps est fusionnée ou montrée en conflit (AutoSaveForm).
+type ContactField = "firstName" | "lastName" | "name" | "companyIdNumber" | "vatNumber" | "email" | "phone" | "addressLine" | "postalCode" | "city" | "country" | "billingAddress";
+
+function contactAutosaveFields(kind: ContactKind): readonly ContactField[] {
+  const common: ContactField[] = ["email", "phone", "addressLine", "postalCode", "city", "country", "billingAddress"];
+  if (kind === "person") return ["firstName", "lastName", ...common];
+  if (kind === "company") return ["name", "companyIdNumber", "vatNumber", ...common];
+  return ["name", ...common];
+}
+
+export function ContactForm({ contact, version }: { contact: Contact; version: string }) {
   const t = useTranslations("Contacts");
-  const [state, action, pending] = useActionState<ContactFormState, FormData>(updateContactAction, {});
+  const fields = contactAutosaveFields(contact.kind);
+  const values = Object.fromEntries(fields.map((field) => [field, String(contact[field] ?? "")]));
+  const labels = Object.fromEntries(fields.map((field) => [field, field === "name" ? t(contact.kind === "company" ? "nameCompany" : "nameHousehold") : t(field)]));
   return (
-    <form action={action} aria-label={t("identityTitle")} className="stack">
-      <input type="hidden" name="contactId" value={contact.id} />
-      <ContactFields key={state.at ?? 0} contact={state.error && state.values ? state.values : contact} kind={contact.kind} />
-      <button type="submit" disabled={pending}>
-        {t("save")}
-      </button>
-      <Feedback state={state} />
-    </form>
+    <AutoSaveForm
+      action={autosaveContactAction}
+      recordId={contact.id}
+      version={version}
+      values={values}
+      fieldLabels={labels}
+      ariaLabel={t("identityTitle")}
+      submitLabel={t("save")}
+      savedLabel={t("saved")}
+      className="stack"
+    >
+      <ContactFields contact={contact} kind={contact.kind} />
+    </AutoSaveForm>
   );
 }
 
@@ -159,6 +181,8 @@ export function NoteForm({ contactId }: { contactId: string }) {
   return (
     <form action={action} aria-label={t("noteAdd")} className="stack" key={state.added ? "added" : "form"}>
       <input type="hidden" name="contactId" value={contactId} />
+      {/* Lot 39b (UX-09) : la note en cours est gardée et se reprend sur tout appareil. */}
+      <DraftKeeper formKey={`contact-note:${contactId}`} submission={state} saved={Boolean(state.added)} />
       <label>
         {t("noteBody")}
         <textarea name="body" rows={3} maxLength={2000} required />

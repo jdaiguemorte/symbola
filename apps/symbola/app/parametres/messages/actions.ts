@@ -5,6 +5,8 @@
 // départ. Session planner vérifiée ; le module Évènements doit être souscrit ; le type d'évènement
 // choisi doit être un type de l'organisation.
 import { offerUndo } from "@/lib/undo";
+import { unexpectedActionError } from "@/lib/action-errors";
+import { discardMyFormDraft } from "@/lib/form-drafts";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -77,8 +79,9 @@ export async function createMessageTemplateAction(_prev: MessageTemplateFormStat
     id = (await createMessageTemplate({ organizationId, locale, ...values, eventTypeId: await eventTypeOf(organizationId, values.eventTypeId) })).id;
   } catch (error) {
     if (error instanceof MessageTemplateInvalidError) return { problems: await problemMessages(error), values, at: Date.now() };
-    throw error;
+    return { problems: [await unexpectedActionError(error)], at: Date.now() };
   }
+  await discardMyFormDraft("message-template-new");
   revalidatePath(PATH);
   redirect(`${PATH}/${id}`);
 }
@@ -92,12 +95,13 @@ export async function saveMessageTemplateAction(_prev: MessageTemplateFormState,
     const before = await getMessageTemplate(organizationId, templateId);
     if (!before) redirect(PATH);
     const saved = await saveMessageTemplate({ organizationId, templateId, ...values, eventTypeId: await eventTypeOf(organizationId, values.eventTypeId) });
+    await discardMyFormDraft(`message-template:${templateId}`);
     revalidatePath(PATH, "layout");
     return { saved: { version: saved.version, changed: saved.version !== before.version }, values: { name: saved.name, eventTypeId: saved.eventTypeId ?? "", subject: saved.subject, body: saved.body }, at: Date.now() };
   } catch (error) {
     if (error instanceof MessageTemplateInvalidError) return { problems: await problemMessages(error), values, at: Date.now() };
     if (error instanceof MessageTemplateNotFoundError) redirect(PATH);
-    throw error;
+    return { problems: [await unexpectedActionError(error)], at: Date.now() };
   }
 }
 
