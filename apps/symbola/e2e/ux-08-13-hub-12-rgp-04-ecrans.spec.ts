@@ -6,6 +6,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
+import { addEventTask, createProspect, createProspectSource } from "../modules/events/service";
 import { createContact } from "../modules/hub/service";
 import { readyOrganization, signIn } from "./helpers";
 
@@ -74,6 +75,50 @@ test("UX-15 — un écran qui tarde laisse place à son squelette, puis à l'éc
   await expect(page.getByRole("main")).toHaveCount(1);
   await expect(page.getByRole("heading", { level: 1, name: "Nouveau prospect" })).toBeVisible();
   await expect(skeleton).toHaveCount(0);
+});
+
+test("UX-07 et UX-15 — une tâche cochée l'est tout de suite, et « Annuler » la rétablit pendant dix secondes", async ({ page }) => {
+  test.setTimeout(150_000);
+  const email = `planner-ux07-${randomUUID()}@symbola.test`;
+  const { sql, db } = createAppConnection();
+  let eventId: string;
+  try {
+    const organization = await readyOrganization(db, `Atelier ${randomUUID().slice(0, 6)}`);
+    const owner = await createUser(db, { organizationId: organization.id, email, role: "owner" });
+    const source = await createProspectSource(organization.id, "Salon");
+    const event = await createProspect({ organizationId: organization.id, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: "Inès" }, { firstName: "Sacha" }], eventDate: "2027-09-18", applyTemplate: false });
+    eventId = event.id;
+    await addEventTask(organization.id, event.id, { label: "Réserver le traiteur", dueDate: "2027-03-01", responsible: "planner" });
+    await addEventTask(organization.id, event.id, { label: "Choisir les faire-part", dueDate: "2027-04-01", responsible: "planner" });
+  } finally {
+    await sql.end();
+  }
+  await signIn(page, email, /\/$/);
+
+  // Écran « Tâches », vue « À faire » : la tâche cochée quitte la liste, le bandeau reste.
+  await page.goto("/taches");
+  await page.getByRole("button", { name: "Cocher la tâche Réserver le traiteur" }).click();
+  const offer = page.getByRole("status").filter({ hasText: "Tâche « Réserver le traiteur » faite." });
+  await expect(offer.getByRole("button", { name: "Annuler" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Cocher la tâche Réserver le traiteur" })).toHaveCount(0);
+  await expectNoAxeViolation(page);
+  await offer.getByRole("button", { name: "Annuler" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Tâche « Réserver le traiteur » remise à faire." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Cocher la tâche Réserver le traiteur" })).toBeVisible();
+
+  // Rétroplanning, en 375 px : sans « Annuler », la coche reste après dix secondes ; décocher ne
+  // propose rien.
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(`/events/${eventId}?onglet=retroplanning`);
+  await page.getByRole("button", { name: "Cocher la tâche Choisir les faire-part" }).click();
+  const second = page.getByRole("status").filter({ hasText: "Tâche « Choisir les faire-part » faite." });
+  await expect(second.getByRole("button", { name: "Annuler" })).toBeVisible();
+  await expectNoAxeViolation(page);
+  await expect(second).toHaveCount(0, { timeout: 15_000 });
+  await expect(page.getByRole("button", { name: "Décocher la tâche Choisir les faire-part" })).toBeVisible();
+  await page.getByRole("button", { name: "Décocher la tâche Choisir les faire-part" }).click();
+  await expect(page.getByRole("button", { name: "Cocher la tâche Choisir les faire-part" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Annuler", exact: true })).toHaveCount(0);
 });
 
 test("HUB-12 — ⌘K propose aussi des actions, filtrées par les modules souscrits", async ({ page }) => {

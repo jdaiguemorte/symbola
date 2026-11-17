@@ -575,7 +575,7 @@
     },
     "eventsDetail": {
       "title": "Event page",
-      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; « Edit the details », at the top of the event profile, opens a panel where they are edited, the event's time zone included. The top timeline shows where it stands: Option, Confirmed, In preparation, Event day, Closed. Click a step to set it; « Event day » applies by itself on the day of the event, and closing is offered from the next day. « Postpone the event… » asks for the new date: once you confirm the postponement, the planning's due dates follow, except tasks already done and those whose date you set by hand; the ones that would fall in the past are listed first. « Cancel the event… » asks for a reason: the data stays, links close, reminders and scheduled deposit invoices stop, and a credit note is offered for each issued invoice. The « Event profile » gathers estimated and confirmed guests, venues, contacts, style and notes; venues are managed in the « Day programme » tab (address, town, times, on-site contact), the first being the reception venue. A task can be given to you, to the couple or to a retained vendor, who ticks it in their space; its attachments and comments stay within the team. The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). Each tab has a « Settings » link to its templates.",
+      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; « Edit the details », at the top of the event profile, opens a panel where they are edited, the event's time zone included. The top timeline shows where it stands: Option, Confirmed, In preparation, Event day, Closed. Click a step to set it; « Event day » applies by itself on the day of the event, and closing is offered from the next day. « Postpone the event… » asks for the new date: once you confirm the postponement, the planning's due dates follow, except tasks already done and those whose date you set by hand; the ones that would fall in the past are listed first. « Cancel the event… » asks for a reason: the data stays, links close, reminders and scheduled deposit invoices stop, and a credit note is offered for each issued invoice. The « Event profile » gathers estimated and confirmed guests, venues, contacts, style and notes; venues are managed in the « Day programme » tab (address, town, times, on-site contact), the first being the reception venue. A task can be given to you, to the couple or to a retained vendor, who ticks it in their space; its attachments and comments stay within the team. Ticked by mistake, a task comes back with « Undo », for ten seconds. The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). Each tab has a « Settings » link to its templates.",
       "faq": [
         {
           "q": "How do I mark an event as lost?",
@@ -845,7 +845,7 @@
     },
     "allTasks": {
       "title": "Tasks across all your weddings",
-      "body": "The tasks of all your events, sorted by due date. Filter « Overdue » to catch up, or by who does it; tick a task when done. « Calendar » places them on their due date, month by month. Click one to edit it on its wedding's page.",
+      "body": "The tasks of all your events, sorted by due date. Filter « Overdue » to catch up, or by who does it; tick a task when done: it is done at once, and « Undo » brings it back for ten seconds. « Calendar » places them on their due date, month by month. Click one to edit it on its wedding's page.",
       "faq": [
         {
           "q": "Do the couple's tasks appear here?",
@@ -5767,6 +5767,7 @@
     "upToDate": "Up to date",
     "undo": {
       "taskDone": "Task “{label}” done.",
+      "taskReopened": "Task “{label}” back to do.",
       "action": "Undo"
     },
     "remind": {

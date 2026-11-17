@@ -448,6 +448,11 @@ suppression.
   (« Modifier les informations » en panneau). « Créer » est en tête de la liste, « Modifier » en tête
   de la section qu'il modifie. Budget, éditeur de devis et paramètres gardent la saisie dans la page
   (exceptions validées).
+- UX-07 (arbitré par Julien le 17/11) : « Annuler » dix secondes après une tâche cochée dans un
+  tableau des tâches (rétroplanning, écran « Tâches »), le bandeau de « Aujourd'hui » et de la fiche.
+  Monté par le cadre de l'app (`app/taches/task-undo.tsx`), il reste quand la tâche quitte « À faire »
+  ou que l'écran change ; « Annuler » décoche aussitôt (mise à jour optimiste) et l'écran dit
+  « Tâche … remise à faire. » ; décocher ne propose rien. Une nouvelle coche remplace l'offre.
 - HUB-12 (D12) : ⌘K propose aussi des actions (« Créer un évènement », « Ouvrir la corbeille »,
   « Importer un fichier »…), réservées à l'équipe et selon les modules souscrits ; chaque mot tapé
   filtre par début de mot, sans accent ni majuscule.
@@ -458,18 +463,23 @@ suppression.
 
 **Preuves** :
 - parcours : `e2e/ux-08-13-hub-12-rgp-04-ecrans.spec.ts` (écrans vides, squelette d'un écran
-  retardé, palette, « ? », mise en garde ; ordinateur et 375 px, axe-core) ;
+  retardé, tâche cochée puis rétablie par « Annuler », offre qui s'efface au bout de dix secondes,
+  palette, « ? », mise en garde ; ordinateur et 375 px, axe-core) ;
 - tests unitaires : registre et mises en garde, écran visé par un clic (`lib/navigation-target.ts`) ;
-- chaîne : unitaires app 541, bout en bout 328 passés et 3 ignorés (PRD-EVT-06 en 375 px, une
-  navigation interrompue sur le portail, passe rejoué seul), lint, typecheck, frontières, registre
-  RGPD, catalogues FR/EN (5 435 clés), Semgrep et Gitleaks sans alerte sur les fichiers du lot ;
+- chaîne : unitaires app 541, bout en bout 329 passés et 3 ignorés ; les deux échecs du conflit
+  d'édition (UX-09 : depuis le passage au panneau, la seconde fenêtre pouvait ouvrir le sien après
+  le premier enregistrement) sont corrigés dans le parcours, rejoués seuls (6 sur 6) puis cinq fois
+  de suite (10 sur 10) ; lint, typecheck, frontières, registre RGPD, catalogues FR/EN (5 440 clés),
+  Semgrep et Gitleaks sans alerte sur les fichiers du lot ;
 - rejeu : `docs/recette/SC-01.md` (un espace vide guide : écrans vides, palette) et
-  `docs/recette/SC-03.md` (étape 3 : la coche s'affiche en 4 ms, avant la réponse du serveur), puis
-  `docs/recette/UX-13.md` (les quatre écrans passés au panneau).
+  `docs/recette/SC-03.md` (étape 3 : la coche s'affiche en 4 ms, avant la réponse du serveur ;
+  « Annuler » la rétablit en un geste), puis `docs/recette/UX-13.md` (les quatre écrans passés au
+  panneau).
 
 **Reste** :
 - UX-15 : mise à jour optimiste du choix d'une option et du changement de statut ; mesure des
   100 ms au lot 40b (NFR-01) ; revenir aux `loading.tsx` quand Next.js corrige ce comportement ;
 - HUB-12 : mesure des 500 ms au lot 40b ;
-- SC-03 étape 3 : une tâche cochée quitte « À faire » ; un « Annuler » de dix secondes après une
-  coche (comme après une suppression) est à arbitrer.
+- signalé hors du lot : la fiche d'un évènement déclenche une erreur d'hydratation de React (le
+  formulaire du type d'évènement est posé dans la ligne `meta` de l'en-tête, un `<p>`, depuis le
+  lot 16) ; React refait alors l'écran côté navigateur. Sans perte de données ; à corriger.

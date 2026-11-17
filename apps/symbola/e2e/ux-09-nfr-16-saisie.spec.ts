@@ -69,9 +69,11 @@ test("UX-09 — un conflit d'édition entre deux fenêtres est montré champ par
   const setup = await atelier();
   await signIn(page, setup.email, /\/$/);
   const other = await page.context().newPage();
+  // Les deux panneaux sont ouverts (et la version de la fiche lue) avant le premier enregistrement.
   for (const view of [page, other]) {
     await view.goto(`/events/${setup.eventId}`);
     await view.getByRole("link", { name: "Modifier les informations" }).click();
+    await expect(view.getByRole("form", { name: "Fiche d'identité" })).toBeVisible();
   }
   const style = (view: Page) => view.getByRole("form", { name: "Fiche d'identité" }).locator('input[name="style"]');
 
