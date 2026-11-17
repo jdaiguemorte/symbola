@@ -49,6 +49,7 @@ import { HelpProvider } from "./help-context";
 import { UndoNotice } from "./undo-notice";
 import { NetworkStatus } from "./ui/network-status";
 import { NavigationSkeleton } from "./ui/navigation-skeleton";
+import { TaskUndoProvider } from "./taches/task-undo";
 import { HelpButton } from "./help-button";
 import { OrganizationSwitcher } from "./organization-switcher";
 import { getHelpProgress } from "@/modules/hub/service";
@@ -153,6 +154,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const t = await getTranslations("Home");
   const tAide = await getTranslations("Aide");
   const tLoading = await getTranslations("Loading");
+  const tToday = await getTranslations("Today");
 
   // Connexion, double authentification, invitation : pas de menu.
   if (auth.status !== "authenticated") {
@@ -687,7 +689,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
           <UndoNotice />
           {/* Lot 39c (UX-15) : squelette d'écran au passage d'un écran à l'autre. */}
           <NavigationSkeleton label={tLoading("label")} />
-          {children}
+          {/* Lot 39c (UX-07) : « Annuler » pendant dix secondes après une tâche cochée dans un tableau. */}
+          <TaskUndoProvider undoLabel={tToday("undo.action")}>{children}</TaskUndoProvider>
         </div>
       </HelpProvider>
     </div>
