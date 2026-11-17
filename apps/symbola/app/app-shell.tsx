@@ -192,7 +192,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const tPalette = await getTranslations("Palette");
   const paletteActions = [
     ...(events ? [{ label: tPalette("actions.newEvent"), href: "/events/new" }, { label: tPalette("actions.tasks"), href: "/taches" }] : []),
-    { label: tPalette("actions.contacts"), href: "/contacts#nouveau-contact" },
+    { label: tPalette("actions.contacts"), href: "/contacts?nouveau=1" },
     ...(vendors ? [{ label: tPalette("actions.newVendor"), href: "/prestataires/nouveau" }] : []),
     ...(quotes ? [{ label: tPalette("actions.quotes"), href: "/devis" }] : []),
     { label: tPalette("actions.today"), href: "/" },

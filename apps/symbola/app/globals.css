@@ -1184,6 +1184,13 @@
   .vendor-form fieldset:not(.tag-fieldset, .tag-group) > legend {
     @apply sm:col-span-2;
   }
+  /* Lot 39c (UX-13) : dans le panneau latéral (400 px), la fiche se remplit sur une colonne. */
+  .side-panel .vendor-form fieldset:not(.tag-fieldset, .tag-group) {
+    @apply sm:grid-cols-1;
+  }
+  .side-panel .vendor-form fieldset:not(.tag-fieldset, .tag-group) > legend {
+    @apply sm:col-span-1;
+  }
 }
 
 @layer components {
@@ -3313,9 +3320,6 @@
   }
   .health-tiles dd.health-detail.text-overdue {
     @apply font-medium text-critical;
-  }
-  .edit-info > summary {
-    @apply min-h-11 cursor-pointer font-semibold;
   }
   .postpone {
     @apply mt-2;

@@ -135,8 +135,10 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   await page.goto(`/events/${setup.lea}`);
 
   // CRM-04 sur la fiche : la date de l'évènement annonce les autres évènements de ce jour.
-  await page.locator("summary", { hasText: "Modifier les informations" }).click();
+  await page.getByRole("link", { name: "Modifier les informations" }).click();
   await expect(page.getByRole("status").filter({ hasText: "vous avez déjà" })).toContainText("Inès & Sacha (option)");
+  await page.getByRole("link", { name: "Fermer le panneau" }).click();
+  await expect(page.getByRole("complementary", { name: "Modifier les informations" })).toHaveCount(0);
 
   // ARC-06 : sans le module Devis, l'entrée « Devis » disparaît.
   const { sql, db } = createAppConnection();

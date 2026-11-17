@@ -121,6 +121,8 @@ test("MSG-01 / HUB-18 — Paramètres › Modèles d'e-mails : variable inconnue
   // L'autre langue : le modèle anglais, avec son aperçu.
   await page.getByRole("link", { name: "Tous les modèles d'e-mails" }).click();
   await page.getByRole("navigation", { name: "Langue des modèles" }).getByRole("link", { name: "Anglais" }).click();
+  // La liste anglaise remplace la française avant le choix du modèle.
+  await expect(page.getByRole("navigation", { name: "Langue des modèles" }).getByRole("link", { name: "Anglais" })).toHaveAttribute("aria-current", "page");
   await page.getByRole("link", { name: "Lien d'un client", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Lien d'un client (Anglais)", level: 1 })).toBeVisible();
   await expect(page.getByRole("region", { name: "Aperçu de l'e-mail" })).toContainText("Objet : Your space to follow your wedding");

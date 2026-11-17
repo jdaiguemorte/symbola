@@ -17,11 +17,13 @@ import { VendorForm } from "../vendor-form";
 import { VendorMap } from "../vendor-map";
 import { VendorFileForm, VendorLocationForm } from "./vendor-side-forms";
 import { ScreenHelp } from "@/app/screen-help";
+import { SidePanel } from "@/app/ui/side-panel";
+import { RatingStars } from "../rating-stars";
 
 const OUTCOME_KEYS = { selected: "outcomeSelected", not_selected: "outcomeNotSelected", pending: "outcomePending" } as const;
 const OUTCOME_CLASSES = { selected: "badge badge-sauge", not_selected: "badge", pending: "badge badge-ambre" } as const;
 
-export default async function VendorPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ placement?: string }> }) {
+export default async function VendorPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ placement?: string; modifier?: string }> }) {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("VendorBook");
@@ -48,10 +50,20 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
     listVendorTagGroups(organizationId),
   ]);
   const locale = (await getLocale()) as Locale;
-  const placement = (await searchParams).placement;
+  const tCommon = await getTranslations("Common");
+  const query = await searchParams;
+  const placement = query.placement;
+  // Lot 39c (UX-13, relevé validé le 17/11) : la fiche se lit dans la page, se modifie en panneau.
+  const editing = query.modifier === "1";
+  const vendorHref = `/prestataires/${vendor.id}`;
   const type = types.find((candidate) => candidate.id === vendor.typeId);
   const vendorTags = tags.filter((tag) => vendor.tagIds.includes(tag.id));
   const amount = (cents: number | null) => (cents === null ? "—" : formatAmount(cents, locale));
+  const family = type ? families.find((candidate) => candidate.id === type.familyId) : undefined;
+  const address = [vendor.addressLine, [vendor.postalCode, vendor.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  const typedFields = type ? type.fields.filter((field) => vendor.fieldValues[field.id] !== undefined && vendor.fieldValues[field.id] !== null && vendor.fieldValues[field.id] !== "") : [];
+  const fieldText = (kind: string, value: unknown) =>
+    kind === "boolean" ? t(value === true ? "fieldYes" : "fieldNo") : kind === "amount" && typeof value === "number" ? formatAmount(value, locale) : String(value);
 
   return (
     <main>
@@ -126,7 +138,12 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
       </section>
 
       <section className="card" aria-labelledby="details-title">
-        <h2 id="details-title">{t("detailsTitle")}</h2>
+        <div className="section-head">
+          <h2 id="details-title">{t("detailsTitle")}</h2>
+          <Link className="button-link" href={`${vendorHref}?modifier=1`} scroll={false}>
+            {t("editRecord")}
+          </Link>
+        </div>
         {vendor.website || vendor.socialLinks.length > 0 ? (
           <ul className="vendor-links" aria-label={t("links")}>
             {vendor.website ? (
@@ -145,7 +162,50 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
             ))}
           </ul>
         ) : null}
-        <VendorForm key={JSON.stringify(vendor)} types={types} tags={tags} tagGroups={tagGroups} families={families} vendor={vendor} />
+        <dl className="vendor-summary">
+          <div>
+            <dt>{t("summaryType")}</dt>
+            <dd>{type ? (family ? t("typeInFamily", { family: family.label, type: type.label }) : type.label) : "—"}</dd>
+          </div>
+          <div>
+            <dt>{t("summaryContact")}</dt>
+            <dd>{vendor.contactName ?? "—"}</dd>
+          </div>
+          <div>
+            <dt>{t("summaryPhone")}</dt>
+            <dd>{vendor.phone ? <a href={`tel:${vendor.phone}`}>{vendor.phone}</a> : "—"}</dd>
+          </div>
+          <div>
+            <dt>{t("summaryEmail")}</dt>
+            <dd>{vendor.email ? <a href={`mailto:${vendor.email}`}>{vendor.email}</a> : "—"}</dd>
+          </div>
+          <div>
+            <dt>{t("summaryAddress")}</dt>
+            <dd>{address || "—"}</dd>
+          </div>
+          <div>
+            <dt>{t("siret")}</dt>
+            <dd>{vendor.siret ?? "—"}</dd>
+          </div>
+          {typedFields.map((field) => (
+            <div key={field.id}>
+              <dt>{field.label}</dt>
+              <dd>{fieldText(field.kind, vendor.fieldValues[field.id])}</dd>
+            </div>
+          ))}
+          <div>
+            <dt>{t("rating")}</dt>
+            <dd>{vendor.rating ? <RatingStars rating={vendor.rating} label={t("ratingValue", { rating: vendor.rating })} /> : "—"}</dd>
+          </div>
+          <div>
+            <dt>{t("indicativePrices")}</dt>
+            <dd className="vendor-prices">{vendor.indicativePrices ?? "—"}</dd>
+          </div>
+          <div>
+            <dt>{t("internalNote")}</dt>
+            <dd className="task-comment-body">{vendor.internalNote ?? "—"}</dd>
+          </div>
+        </dl>
         <ImportedFields fields={vendor.importedFields ?? undefined} />
       </section>
 
@@ -191,6 +251,11 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
           <input type="hidden" name="vendorId" value={vendor.id} />
           <button type="submit">{t("archive", { vendor: vendor.name })}</button>
         </form>
+      ) : null}
+      {editing ? (
+        <SidePanel title={t("editRecord")} closeHref={vendorHref} closeLabel={tCommon("closePanel")}>
+          <VendorForm key={JSON.stringify(vendor)} types={types} tags={tags} tagGroups={tagGroups} families={families} vendor={vendor} />
+        </SidePanel>
       ) : null}
     </main>
   );

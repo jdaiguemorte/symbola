@@ -40,7 +40,7 @@ test("L21-PRE-20 — les pastilles d'étiquettes prennent toute la largeur de la
   }
   await loginAndSetupMfa(page, email, password);
 
-  for (const path of [`/prestataires/${vendorId}`, "/prestataires/nouveau"]) {
+  for (const path of [`/prestataires/${vendorId}?modifier=1`, "/prestataires/nouveau"]) {
     await page.goto(path);
     const chips = page.locator(".tag-chips .tag-chip");
     await expect(chips).toHaveCount(3);
@@ -221,14 +221,14 @@ test("L21-PRE-18 / L21-PRE-19 — étiquettes importées rangées d'un clic, ét
   await expect(page.getByRole("status").filter({ hasText: "ajoutées" })).toBeVisible();
 
   // La fiche du lieu : un seul palier de capacité, la plus haute tranche gardée.
-  await page.goto(`/prestataires/${venueId}`);
+  await page.goto(`/prestataires/${venueId}?modifier=1`);
   const capacity = page.getByRole("group", { name: "Capacité · un seul choix" });
   await expect(capacity.getByRole("radio", { name: "150 à 200 personnes" })).toBeChecked();
   await expect(page.getByRole("checkbox", { name: "Accès PMR" })).toBeChecked();
   await expectNoAxeViolation(page);
 
   // La fiche de la fleuriste : ses étiquettes, pas celles des lieux.
-  await page.goto(`/prestataires/${floristId}`);
+  await page.goto(`/prestataires/${floristId}?modifier=1`);
   await expect(page.getByRole("checkbox", { name: "Bougies" })).toBeChecked();
   await expect(page.getByRole("checkbox", { name: "Bohème" })).toBeVisible();
   await expect(page.getByRole("group", { name: "Capacité · un seul choix" })).toHaveCount(0);

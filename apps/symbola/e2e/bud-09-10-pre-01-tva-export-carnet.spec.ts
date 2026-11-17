@@ -108,14 +108,14 @@ test("PRE-01 — évaluation et tarifs indicatifs d'une fiche du carnet, filtre 
   await plannerLogin(page, planner.email, PASSWORD);
 
   // Sur la fiche complète : évaluation et tarifs indicatifs.
-  await page.goto(`/prestataires/${studio.id}`);
+  await page.goto(`/prestataires/${studio.id}?modifier=1`);
   await page.waitForLoadState("networkidle");
   await page.getByLabel("Évaluation").selectOption({ label: "4 sur 5" });
   await page.getByLabel("Tarifs indicatifs").fill("Forfait journée 1 900 €");
   // Le formulaire se recharge avec la fiche enregistrée : on attend la réponse
   // de l'enregistrement, puis on relit la page.
   await Promise.all([
-    page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes(`/prestataires/${studio.id}`)),
+    page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes(`/prestataires/${studio.id}?modifier=1`)),
     page.getByRole("button", { name: "Enregistrer", exact: true }).click(),
   ]);
   await page.reload();

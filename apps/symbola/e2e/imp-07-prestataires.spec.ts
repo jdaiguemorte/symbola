@@ -93,7 +93,7 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
   await expectNoAxeViolation(page);
 
   // La fiche existante est complétée : site, SIRET, champs importés, étiquettes.
-  await page.goto(`/prestataires/${existingId}`);
+  await page.goto(`/prestataires/${existingId}?modifier=1`);
   await expect(page.getByRole("link", { name: "Site web" })).toHaveAttribute("href", "https://www.domaine-tilleuls.example.org");
   await expect(page.getByLabel("N° SIRET")).toHaveValue("12345678900011");
   const imported = page.getByRole("region", { name: "Champs importés" });
@@ -108,7 +108,7 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
   await page.getByRole("button", { name: "Annuler l'import" }).click();
   await expect(page.getByText(/éléments annulés ; aucun gardé car modifié ; aucun gardé car utilisé\./)).toBeVisible();
   await expectNoAxeViolation(page);
-  await page.goto(`/prestataires/${existingId}`);
+  await page.goto(`/prestataires/${existingId}?modifier=1`);
   await expect(page.getByRole("link", { name: "Site web" })).toHaveCount(0);
   await expect(page.getByLabel("Téléphone")).toHaveValue("05 00 00 00 00");
   await page.goto("/prestataires");

@@ -91,12 +91,35 @@ test("HUB-12 — ⌘K propose aussi des actions, filtrées par les modules sousc
   await expect(page).toHaveURL(/\/parametres\/corbeille$/);
 });
 
-test("UX-13 et RGP-04 — « ? » ouvre l'aide de l'écran ; une note de contact porte la mise en garde", async ({ page }) => {
+test("UX-13 et RGP-04 — créer et modifier en panneau, « ? » ouvre l'aide de l'écran ; une note de contact porte la mise en garde", async ({ page }) => {
   test.setTimeout(120_000);
   const setup = await atelierVide();
   const contact = await createContact(setup.organizationId, { firstName: "Rose", lastName: "Fleuriste" });
   await signIn(page, setup.email, /\/$/);
+
+  // Relevé validé le 17/11 : « Créer » en tête de la liste, le formulaire en panneau ; Échap le ferme.
+  await page.goto("/contacts");
+  await page.getByRole("link", { name: "Ajouter un contact" }).first().click();
+  const creation = page.getByRole("complementary", { name: "Ajouter un contact" });
+  await expect(creation.getByRole("form", { name: "Ajouter un contact" })).toBeVisible();
+  await expectNoAxeViolation(page);
+  await page.keyboard.press("Escape");
+  await expect(creation).toHaveCount(0);
+  await expect(page).toHaveURL(/\/contacts$/);
+
+  // La fiche se lit dans la page ; « Modifier la fiche », en tête de sa section, ouvre le panneau.
   await page.goto(`/contacts/${contact.id}`);
+  const identity = page.getByRole("region", { name: "Identité et coordonnées" });
+  await expect(identity.getByRole("textbox")).toHaveCount(0);
+  await identity.getByRole("link", { name: "Modifier la fiche" }).click();
+  const edition = page.getByRole("complementary", { name: "Modifier la fiche" });
+  await edition.getByLabel("Téléphone").fill("06 12 34 56 78");
+  await edition.getByLabel("Téléphone").press("Tab");
+  await expect(edition.getByText("Fiche enregistrée.")).toBeVisible();
+  await expect(identity).toContainText("06 12 34 56 78");
+  await page.getByRole("link", { name: "Fermer le panneau" }).click();
+  await expect(edition).toHaveCount(0);
+
   await expect(page.getByRole("form", { name: "Ajouter la note" }).getByText("Ne notez ici ni donnée de santé, ni opinion, ni religion : ce champ peut être lu par votre équipe et exporté.")).toBeVisible();
 
   const help = page.getByRole("button", { name: "Aide sur cet écran" });

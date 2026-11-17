@@ -126,6 +126,7 @@ import {
 import { countdownLabel, EventCockpit } from "./cockpit";
 import { UndoTaskNotice } from "@/app/accueil/today-client";
 import { deleteEventAction } from "./trash-actions";
+import { SidePanel } from "@/app/ui/side-panel";
 
 // Lot 26a (SEC-15) : état d'un lien personnel.
 const LINK_STATUS_KEYS = {
@@ -140,7 +141,7 @@ const LINK_STATUS_KEYS = {
 const TABS = ["apercu", "budget", "retroplanning", "programme", "devis", "maries", "documents"] as const;
 type Tab = (typeof TABS)[number];
 
-type SearchParams = { suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string };
+type SearchParams = { suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string };
 
 // Lot 28a (PRE-02) : postes pourvus (un prestataire retenu) ou non requis.
 const SETTLED_SLOT_STATUSES = new Set<string>(["retained", "contract_signed", "paid_off", "not_required"]);
@@ -160,6 +161,7 @@ export default async function EventDetailPage({
   const t = await getTranslations("Events");
   const tTrash = await getTranslations("Trash");
   const tHelp = await getTranslations("Help");
+  const tCommon = await getTranslations("Common");
 
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
@@ -646,7 +648,13 @@ export default async function EventDetailPage({
           <EventCockpit organizationId={organizationId} eventId={event.id} tasks={tasks} quotesAvailable={quotesAvailable} today={today} locale={locale} afterNextAction={stepBanner} vendorProgress={progress} />
           {/* Lot 34b (EVT-03, D10, D11) : fiche d'identité — invités, lieux, interlocuteurs, style, notes. */}
           <section className="card" aria-labelledby="identity-title">
-            <h2 id="identity-title">{t("identityTitle")}</h2>
+            {/* Lot 39c (UX-13, relevé validé le 17/11) : « Modifier les informations » ouvre un panneau. */}
+            <div className="section-head">
+              <h2 id="identity-title">{t("identityTitle")}</h2>
+              <Link className="button-link" href={tabHref("apercu", { modifier: "infos" })} scroll={false}>
+                {tToday("cockpit.editInfo")}
+              </Link>
+            </div>
             <dl className="identity-facts">
               <dt>{t("guestsLabel")}</dt>
               <dd>{t("guestsSummary", { estimated: event.guestsEstimated === null ? "—" : String(event.guestsEstimated), confirmed: event.guestsConfirmed === null ? "—" : String(event.guestsConfirmed) })}</dd>
@@ -668,16 +676,17 @@ export default async function EventDetailPage({
               <dd className="task-comment-body">{event.notes ?? "—"}</dd>
             </dl>
           </section>
-          {/* D5 : les formulaires de l'ancien aperçu, repliés. */}
-          <details className="card edit-info">
-            <summary>{tToday("cockpit.editInfo")}</summary>
-            <EventDateForm eventId={event.id} eventDate={event.eventDate} />
-            <TimeZoneForm eventId={event.id} timeZone={event.timeZone} zones={Intl.supportedValuesOf("timeZone")} />
-            <WantedBudgetForm key={`wanted-${event.wantedBudgetCents ?? ""}`} eventId={event.id} wantedBudgetCents={event.wantedBudgetCents} />
-            <VenueForm eventId={event.id} venueName={event.venueName} venueCity={event.venueCity} />
-            {/* Sans clé liée aux valeurs : l'enregistrement garde son message de confirmation. */}
-            <EventIdentityForm eventId={event.id} identity={event} version={identityVersion} />
-          </details>
+          {/* D5 : les formulaires de l'ancien aperçu, dans le panneau. */}
+          {query.modifier === "infos" ? (
+            <SidePanel title={tToday("cockpit.editInfo")} closeHref={tabHref("apercu")} closeLabel={tCommon("closePanel")}>
+              <EventDateForm eventId={event.id} eventDate={event.eventDate} />
+              <TimeZoneForm eventId={event.id} timeZone={event.timeZone} zones={Intl.supportedValuesOf("timeZone")} />
+              <WantedBudgetForm key={`wanted-${event.wantedBudgetCents ?? ""}`} eventId={event.id} wantedBudgetCents={event.wantedBudgetCents} />
+              <VenueForm eventId={event.id} venueName={event.venueName} venueCity={event.venueCity} />
+              {/* Sans clé liée aux valeurs : l'enregistrement garde son message de confirmation. */}
+              <EventIdentityForm eventId={event.id} identity={event} version={identityVersion} />
+            </SidePanel>
+          ) : null}
           <ImportedFields fields={event.importedFields} />
           {suggestConfirmBudget ? (
             <section aria-labelledby="confirm-budget-title">

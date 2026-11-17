@@ -575,7 +575,7 @@
     },
     "eventsDetail": {
       "title": "Fiche de l'événement",
-      "body": "Tout l'événement, en onglets. La « Synthèse » s'ouvre sur la prochaine action et qui doit agir, puis la santé de l'événement (planning, budget, décisions du client) et les quatorze prochains jours ; les informations se modifient en bas, dans « Modifier les informations », fuseau de l'évènement compris. La frise du haut montre où il en est : Option, Confirmé, En préparation, Jour J, Clôturé. Cliquez une étape pour la poser ; « Jour J » s'applique de lui-même le jour de l'évènement, et la clôture vous est proposée dès le lendemain. « Reporter l'évènement… » demande la nouvelle date : à la confirmation du report, les échéances du rétroplanning suivent, sauf les tâches faites et celles dont vous avez fixé la date ; celles qui tomberaient dans le passé sont listées avant. « Annuler l'évènement… » demande un motif : les données restent, les liens se ferment, les rappels et les factures d'acompte programmées s'arrêtent, et un avoir vous est proposé pour chaque facture émise. La « Fiche d'identité » rassemble les invités estimés et confirmés, les lieux, les interlocuteurs, le style et les notes ; les lieux se gèrent dans l'onglet « Programme du jour J » (adresse, ville, horaires, contact sur place), le premier étant le lieu de réception. Une tâche se confie à vous, aux mariés ou à un prestataire retenu, qui la coche dans son espace ; ses pièces jointes et ses commentaires restent dans l'équipe. Le bandeau « Prochaine étape » propose l'étape du parcours (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Chaque onglet a son lien « Réglages » vers ses modèles.",
+      "body": "Tout l'événement, en onglets. La « Synthèse » s'ouvre sur la prochaine action et qui doit agir, puis la santé de l'événement (planning, budget, décisions du client) et les quatorze prochains jours ; « Modifier les informations », en tête de la fiche d'identité, ouvre un panneau où elles se modifient, fuseau de l'évènement compris. La frise du haut montre où il en est : Option, Confirmé, En préparation, Jour J, Clôturé. Cliquez une étape pour la poser ; « Jour J » s'applique de lui-même le jour de l'évènement, et la clôture vous est proposée dès le lendemain. « Reporter l'évènement… » demande la nouvelle date : à la confirmation du report, les échéances du rétroplanning suivent, sauf les tâches faites et celles dont vous avez fixé la date ; celles qui tomberaient dans le passé sont listées avant. « Annuler l'évènement… » demande un motif : les données restent, les liens se ferment, les rappels et les factures d'acompte programmées s'arrêtent, et un avoir vous est proposé pour chaque facture émise. La « Fiche d'identité » rassemble les invités estimés et confirmés, les lieux, les interlocuteurs, le style et les notes ; les lieux se gèrent dans l'onglet « Programme du jour J » (adresse, ville, horaires, contact sur place), le premier étant le lieu de réception. Une tâche se confie à vous, aux mariés ou à un prestataire retenu, qui la coche dans son espace ; ses pièces jointes et ses commentaires restent dans l'équipe. Le bandeau « Prochaine étape » propose l'étape du parcours (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Chaque onglet a son lien « Réglages » vers ses modèles.",
       "faq": [
         {
           "q": "Comment marquer un événement perdu ?",
@@ -983,7 +983,7 @@
     },
     "vendorDetail": {
       "title": "Fiche d'un prestataire",
-      "body": "Tout ce que vous savez d'un prestataire : coordonnées, caractéristiques de son type, étiquettes, évaluation (de 1 à 5) et tarifs indicatifs, documents, note interne. Cliquez une pastille pour choisir une étiquette ; seules celles de sa famille s'affichent. « Historique avec vous » liste ses prestations, prix devisé et prix final.",
+      "body": "Tout ce que vous savez d'un prestataire : coordonnées, caractéristiques de son type, étiquettes, évaluation (de 1 à 5) et tarifs indicatifs, documents, note interne. « Modifier la fiche » ouvre tout cela dans un panneau ; cliquez une pastille pour choisir une étiquette ; seules celles de sa famille s'affichent. « Historique avec vous » liste ses prestations, prix devisé et prix final.",
       "faq": [
         {
           "q": "Archiver efface-t-il son historique ?",
@@ -1089,11 +1089,11 @@
     },
     "contactsList": {
       "title": "Contacts",
-      "body": "Chaque personne n'existe qu'une fois dans votre espace : un couple qui revient pour un second évènement garde sa fiche, ses coordonnées et son historique. Cherchez par nom, adresse ou téléphone ; une adresse e-mail n'appartient qu'à un contact. Un foyer relie des personnes (un couple, une famille) ; une entreprise, ses interlocuteurs, avec son SIREN et son numéro de TVA. « Importer des contacts » reprend votre fichier (CSV ou Excel). Les contacts d'essai n'apparaissent pas ici."
+      "body": "Chaque personne n'existe qu'une fois dans votre espace : un couple qui revient pour un second évènement garde sa fiche, ses coordonnées et son historique. Cherchez par nom, adresse ou téléphone ; une adresse e-mail n'appartient qu'à un contact. Un foyer relie des personnes (un couple, une famille) ; une entreprise, ses interlocuteurs, avec son SIREN et son numéro de TVA. « Ajouter un contact » ouvre sa fiche à remplir dans un panneau ; « Importer des contacts » reprend votre fichier (CSV ou Excel). Les contacts d'essai n'apparaissent pas ici."
     },
     "contactDetail": {
       "title": "Fiche d'un contact",
-      "body": "Les coordonnées de la fiche sont celles que reprennent ses évènements, ses liens personnels et ses devis : les modifier ici les modifie partout. L'historique rassemble ses évènements, ses devis et factures, et les documents de ses évènements ; les notes sont à l'équipe. « Créer un évènement » le choisit d'emblée comme client. Sur la fiche d'un foyer ou d'une entreprise, ajoutez les personnes qui en font partie, avec leur rôle ; la fiche d'une personne dit de quels foyers et entreprises elle fait partie. Le SIREN ou SIRET et le numéro de TVA d'une entreprise se reportent sur ses devis."
+      "body": "Les coordonnées de la fiche sont celles que reprennent ses évènements, ses liens personnels et ses devis : « Modifier la fiche » les ouvre dans un panneau, et les modifier là les modifie partout. L'historique rassemble ses évènements, ses devis et factures, et les documents de ses évènements ; les notes sont à l'équipe. « Créer un évènement » le choisit d'emblée comme client. Sur la fiche d'un foyer ou d'une entreprise, ajoutez les personnes qui en font partie, avec leur rôle ; la fiche d'une personne dit de quels foyers et entreprises elle fait partie. Le SIREN ou SIRET et le numéro de TVA d'une entreprise se reportent sur ses devis."
     },
     "importRows": {
       "title": "Écarter des lignes",
@@ -3710,7 +3710,7 @@
         },
         {
           "title": "Déplacer la date",
-          "body": "Onglet Synthèse, dans « Modifier les informations », changez la date de l'événement : Symbola propose de recalculer les échéances. Acceptez et regardez-les suivre."
+          "body": "Onglet Synthèse, ouvrez « Modifier les informations » et changez la date de l'événement : Symbola propose de recalculer les échéances. Acceptez et regardez-les suivre."
         },
         {
           "title": "Garder ou supprimer",
@@ -4355,7 +4355,10 @@
     "indicativePricesHint": "Texte libre, visible de votre équipe seulement : par exemple « à partir de 85 € par couvert » ou « forfait soirée 1 200 € ».",
     "invalidRating": "Choisissez une évaluation de 1 à 5.",
     "filterRating": "Évaluation",
-    "filterRatingAtLeast": "{rating, plural, =5 {5 sur 5} other {Au moins # sur 5}}"
+    "filterRatingAtLeast": "{rating, plural, =5 {5 sur 5} other {Au moins # sur 5}}",
+    "editRecord": "Modifier la fiche",
+    "fieldYes": "Oui",
+    "fieldNo": "Non"
   },
   "Onboarding": {
     "title": "Préparons votre espace",
@@ -6002,7 +6005,8 @@
     "memberRoleInvalid": "Le rôle compte 100 caractères au plus.",
     "groupsTitle": "Foyers et entreprises",
     "memberSearch": "Cherchez la personne par son nom, son e-mail ou son téléphone",
-    "pickerNoneAlone": "Aucun contact trouvé : ajoutez-le d'abord à vos contacts."
+    "pickerNoneAlone": "Aucun contact trouvé : ajoutez-le d'abord à vos contacts.",
+    "editRecord": "Modifier la fiche"
   },
   "SharedDocuments": {
     "title": "Documents",
