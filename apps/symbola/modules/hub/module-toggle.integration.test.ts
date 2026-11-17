@@ -98,3 +98,27 @@ describe("PRD-HUB-03 — Activation/désactivation de module", () => {
     expect(all.some((org) => org.id === organizationId)).toBe(true);
   });
 });
+
+// Lot 40b (ARC-06, décision D11) — droits d'usage pilotés sans redéploiement : l'activation d'un
+// module est lue à chaque requête, par n'importe quel processus. Les interrupteurs par fonction
+// rejoignent l'abonnement au lot 54 (HUB-27).
+describe("ARC-06 — Droits d'usage pilotés par l'organisation, sans redéploiement", () => {
+  it("activer ou retirer un module prend effet dès la requête suivante, lue par un autre processus", async () => {
+    const adminUserId = await createTestAdmin();
+    const [organization] = await db
+      .insert(organizations)
+      .values({ name: `Org ${randomUUID()}` })
+      .returning();
+    // Une autre connexion : la requête suivante, servie par un autre processus de l'app.
+    const other = createAppConnection();
+    try {
+      expect(await isModuleEnabled(other.db, organization!.id, "quotes")).toBe(true);
+      await setModuleEnabled(db, { adminUserId, organizationId: organization!.id, moduleKey: "quotes", enabled: false });
+      expect(await isModuleEnabled(other.db, organization!.id, "quotes")).toBe(false);
+      await setModuleEnabled(db, { adminUserId, organizationId: organization!.id, moduleKey: "quotes", enabled: true });
+      expect(await isModuleEnabled(other.db, organization!.id, "quotes")).toBe(true);
+    } finally {
+      await other.sql.end();
+    }
+  });
+});
