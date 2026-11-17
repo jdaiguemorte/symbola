@@ -1566,7 +1566,7 @@
     "templateColumnActions": "Actions",
     "templateColumnDue": "Due",
     "templateColumnTask": "Task",
-    "deleteTemplate": "Delete this template…",
+    "deleteTemplate": "Delete this template",
     "deleteTemplateTitle": "Delete the template “{name}”?",
     "deleteProgramTemplateBody": "Programmes already applied to events do not change.",
     "deleteTaskTemplateBody": "Tasks already created on events remain.",
@@ -6388,7 +6388,8 @@
       "programTemplate": "Template moved to the trash.",
       "quoteTemplate": "Template moved to the trash.",
       "contractTemplate": "Template moved to the trash.",
-      "messageTemplate": "Template moved to the trash."
+      "messageTemplate": "Template moved to the trash.",
+      "vendor": "Supplier archived."
     }
   }
 }

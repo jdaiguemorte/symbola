@@ -79,11 +79,11 @@ test("HUB-21 — Modèles de messages : modèles de départ, une version à chaq
   await expect(page.getByRole("form", { name: "Modifier « Proposer un rendez-vous »" }).getByLabel("Texte")).toHaveValue(original);
   await expect(page.getByText("Tous les évènements · Français · version 3")).toBeVisible();
 
-  // Dupliquer, puis supprimer la copie (confirmé).
+  // Dupliquer, puis supprimer la copie (lot 39a : à la corbeille, « Annuler » proposé, sans confirmation).
   await page.getByRole("button", { name: "Dupliquer le modèle" }).click();
   await expect(page.getByRole("heading", { name: "Copie de Proposer un rendez-vous", level: 1 })).toBeVisible();
   await page.getByRole("button", { name: "Supprimer le modèle" }).click();
-  await page.getByRole("dialog", { name: "Supprimer « Copie de Proposer un rendez-vous » ?" }).getByRole("button", { name: "Supprimer le modèle" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Modèle mis à la corbeille." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Modèles de messages", level: 1 })).toBeVisible();
   await expect(page.getByRole("link", { name: "Copie de Proposer un rendez-vous" })).toHaveCount(0);
   await expectNoHorizontalScroll(page);

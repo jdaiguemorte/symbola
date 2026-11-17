@@ -11,12 +11,14 @@ export const UNDO_COOKIE = "symbola_undo";
 // Un peu plus que les dix secondes affichées : le temps de la redirection et de l'affichage.
 const COOKIE_SECONDS = UNDO_SECONDS + 5;
 
-export type UndoOffer = { kind: UndoKind; id: string; at: number };
+// done : « Annuler » a déjà rendu l'objet ; le bandeau le dit jusqu'à la fin des dix secondes.
+export type UndoOffer = { kind: UndoKind; id: string; at: number; done?: boolean };
 
 const offerSchema = z.object({
   kind: z.string().refine(isUndoKind),
   id: z.uuid(),
   at: z.number().int().positive(),
+  done: z.boolean().optional(),
 });
 
 export async function offerUndo(offer: { kind: UndoKind; id: string }): Promise<void> {
@@ -30,8 +32,14 @@ export async function offerUndo(offer: { kind: UndoKind; id: string }): Promise<
   });
 }
 
-export async function clearUndo(): Promise<void> {
-  (await cookies()).delete(UNDO_COOKIE);
+// L'offre devient « rétablie » : le bandeau garde ce message (il ne disparaît pas au rendu qui suit
+// l'action), et ne propose plus « Annuler ».
+export async function markUndone(offer: { kind: UndoKind; id: string }): Promise<void> {
+  const store = await cookies();
+  const current = await readUndo();
+  const at = current && current.kind === offer.kind && current.id === offer.id ? current.at : Date.now();
+  const value: UndoOffer = { kind: offer.kind, id: offer.id, at, done: true };
+  store.set(UNDO_COOKIE, JSON.stringify(value), { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: COOKIE_SECONDS });
 }
 
 // L'offre en cours et le temps qu'il lui reste (dix secondes depuis la suppression), ou rien.
@@ -48,5 +56,5 @@ export async function readUndo(now: number = Date.now()): Promise<(UndoOffer & {
   if (!result.success) return null;
   const remainingMs = UNDO_SECONDS * 1000 - (now - result.data.at);
   if (remainingMs <= 0) return null;
-  return { kind: result.data.kind as UndoKind, id: result.data.id, at: result.data.at, remainingMs };
+  return { kind: result.data.kind as UndoKind, id: result.data.id, at: result.data.at, done: result.data.done === true, remainingMs };
 }

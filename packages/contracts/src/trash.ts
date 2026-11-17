@@ -8,7 +8,8 @@ export const ELEMENT_PURGE_MINUTES = 10;
 export const TRASH_KINDS = ["event", "contact", "document", "taskTemplate", "programTemplate", "quoteTemplate", "contractTemplate", "messageTemplate"] as const;
 export type TrashKind = (typeof TRASH_KINDS)[number];
 
-export const ELEMENT_KINDS = ["task", "programItem", "place", "taskComment", "contactNote", "budgetLine", "quoteLine"] as const;
+// « vendor » : l'archivage d'un prestataire s'annule aussi (D6), sans passer par la corbeille.
+export const ELEMENT_KINDS = ["task", "programItem", "place", "taskComment", "contactNote", "budgetLine", "quoteLine", "vendor"] as const;
 export type ElementKind = (typeof ELEMENT_KINDS)[number];
 
 export type UndoKind = TrashKind | ElementKind;

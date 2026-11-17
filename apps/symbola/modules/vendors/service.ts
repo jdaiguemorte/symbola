@@ -48,6 +48,7 @@ import { planStarterTags, planTagArrangement, type PlanCatalogGroup, type PlanVe
 import {
   countRealVendors,
   archiveVendorRow,
+  unarchiveVendorRow,
   deleteDemoVendors,
   deleteVendorFileRow,
   deleteVendorTag,
@@ -674,6 +675,12 @@ export async function setVendorLocation(organizationId: string, vendorId: string
 // Archivé plutôt que supprimé : l'historique des événements garde le nom.
 export async function archiveVendor(organizationId: string, vendorId: string): Promise<void> {
   await archiveVendorRow(organizationId, vendorId);
+}
+
+// Lot 39a (UX-07 ; D6 ; ADR 0073) : « Annuler » après l'archivage.
+export async function unarchiveVendor(organizationId: string, vendorId: string): Promise<boolean> {
+  if (!UUID.test(vendorId)) return false;
+  return unarchiveVendorRow(organizationId, vendorId);
 }
 
 export async function getVendor(organizationId: string, vendorId: string): Promise<Vendor | null> {

@@ -1566,7 +1566,7 @@
     "templateColumnActions": "Actions",
     "templateColumnDue": "Échéance",
     "templateColumnTask": "Tâche",
-    "deleteTemplate": "Supprimer ce modèle…",
+    "deleteTemplate": "Supprimer ce modèle",
     "deleteTemplateTitle": "Supprimer le modèle « {name} » ?",
     "deleteProgramTemplateBody": "Les programmes déjà appliqués aux événements ne changent pas.",
     "deleteTaskTemplateBody": "Les tâches déjà créées sur les événements restent.",
@@ -6388,7 +6388,8 @@
       "programTemplate": "Modèle mis à la corbeille.",
       "quoteTemplate": "Modèle mis à la corbeille.",
       "contractTemplate": "Modèle mis à la corbeille.",
-      "messageTemplate": "Modèle mis à la corbeille."
+      "messageTemplate": "Modèle mis à la corbeille.",
+      "vendor": "Prestataire archivé."
     }
   }
 }

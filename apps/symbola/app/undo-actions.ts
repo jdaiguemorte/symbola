@@ -8,7 +8,7 @@ import { z } from "zod";
 import { isUndoKind, type UndoKind } from "@symbola/contracts";
 import { requirePlanner } from "@/lib/guards";
 import { TrashItemNotFoundError, undoDeletion } from "@/lib/trash";
-import { clearUndo } from "@/lib/undo";
+import { markUndone } from "@/lib/undo";
 import { ContactRestoreConflictError } from "@/modules/hub/service";
 
 export type UndoState = { status: "idle" | "restored" | "gone" | "conflict" };
@@ -26,7 +26,7 @@ export async function undoDeletionAction(_previous: UndoState, formData: FormDat
     if (error instanceof TrashItemNotFoundError) return { status: "gone" };
     throw error;
   }
-  await clearUndo();
+  await markUndone({ kind: parsed.data.kind as UndoKind, id: parsed.data.id });
   revalidatePath("/", "layout");
   return { status: "restored" };
 }

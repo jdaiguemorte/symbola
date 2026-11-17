@@ -8,8 +8,9 @@ import { undoDeletionAction, type UndoState } from "./undo-actions";
 
 export type UndoBannerLabels = { message: string; undo: string; restored: string; gone: string; conflict: string; trash: string | null };
 
-export function UndoBanner({ kind, id, remainingMs, labels }: { kind: string; id: string; remainingMs: number; labels: UndoBannerLabels }) {
-  const [state, formAction, pending] = useActionState<UndoState, FormData>(undoDeletionAction, { status: "idle" });
+export function UndoBanner({ kind, id, remainingMs, done, labels }: { kind: string; id: string; remainingMs: number; done: boolean; labels: UndoBannerLabels }) {
+  // done : l'objet a déjà été rendu (rendu qui suit « Annuler », ou page rechargée) : le bandeau le dit.
+  const [state, formAction, pending] = useActionState<UndoState, FormData>(undoDeletionAction, { status: done ? "restored" : "idle" });
   const [visible, setVisible] = useState(true);
   useEffect(() => {
     // Après « Annuler », le résultat reste lisible quelques secondes de plus.

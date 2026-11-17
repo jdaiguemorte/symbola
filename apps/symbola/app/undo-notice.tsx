@@ -16,6 +16,7 @@ export async function UndoNotice() {
       kind={offer.kind}
       id={offer.id}
       remainingMs={offer.remainingMs}
+      done={offer.done === true}
       labels={{
         message: t(`undo.${offer.kind}`),
         undo: t("undo.action"),

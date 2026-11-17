@@ -49,6 +49,7 @@ import {
   trashEventQuotes,
   type RetainedDocuments,
 } from "@/modules/quotes/service";
+import { unarchiveVendor } from "@/modules/vendors/service";
 
 const PURGE_INTERVAL_MS = 60 * 60 * 1000; // toutes les heures
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -188,6 +189,9 @@ export async function undoDeletion(input: { organizationId: string; userId: stri
         () => true,
         () => false,
       );
+      break;
+    case "vendor":
+      restored = await unarchiveVendor(organizationId, id);
       break;
     default:
       await restoreFromTrash(organizationId, kind, id);

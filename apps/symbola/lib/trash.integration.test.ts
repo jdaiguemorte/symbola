@@ -5,6 +5,7 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
+import type { EventLinkRights } from "@symbola/contracts";
 import { createOrganization } from "@symbola/auth";
 import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import { quotes } from "@symbola/db/schema/quotes";
@@ -12,11 +13,13 @@ import { withOrganization } from "@symbola/db/with-organization";
 import {
   addEventTask,
   addTaskComment,
+  createEventLink,
   createProspect,
   createProspectSource,
   getEvent,
   listEventTasks,
   listTaskComments,
+  openEventLink,
   removeEventTask,
   removeTaskComment,
 } from "@/modules/events/service";
@@ -100,6 +103,18 @@ describe("HUB-17 — Corbeille de 30 jours avec restauration", () => {
     expect(await getContact(organizationId, florist.id)).toBeNull();
     await restoreFromTrash(organizationId, "contact", florist.id);
     expect(await getContact(organizationId, florist.id)).not.toBeNull();
+  });
+
+  it("abus — le lien personnel d'un évènement à la corbeille ne s'ouvre plus (même réponse qu'un lien retiré), puis revient avec lui", async () => {
+    const organizationId = await organization();
+    const { eventId } = await wedding(organizationId);
+    const rights: EventLinkRights = { rubrics: [], budgetScope: "all", sharedSlotIds: [] };
+    const delivery = await createEventLink({ organizationId, eventId, createdByUserId: plannerId, audience: "client", locale: "fr", link: { personName: "Inès", email: `ines-${randomUUID()}@example.test`, rights } });
+    const token = delivery.url.split("#")[1]!;
+    await deleteEvent(organizationId, eventId);
+    expect(await openEventLink(token)).toEqual({ outcome: "invalid" });
+    await restoreFromTrash(organizationId, "event", eventId);
+    expect((await openEventLink(token)).outcome).not.toBe("invalid");
   });
 
   it("une autre organisation ne voit ni ne rend la corbeille d'une autre", async () => {

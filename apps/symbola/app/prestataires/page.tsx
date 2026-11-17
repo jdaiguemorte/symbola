@@ -14,7 +14,6 @@ import { mapAssets } from "@/lib/map/tiles";
 import { PageTour } from "@/app/page-tour";
 import { SettingsLink } from "@/app/settings-link";
 import { addVendorToSlotAction, archiveVendorAction } from "./actions";
-import { ConfirmDialog } from "@/app/ui/confirm-dialog";
 import { queryString, RADIUS_CHOICES, UNCLASSIFIED_FAMILY, type BookQuery } from "./filters";
 import { isVendorsModuleEnabled } from "./module-access";
 import { loadBookSelection } from "./selection";
@@ -320,17 +319,14 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
                     {!vendor.location ? <span>{t("notPlaced")}</span> : null}
                   </span>
                   {/* Lot 20 (L20-PRE-17) : archiver sans ouvrir la fiche, après confirmation. */}
-                  <ConfirmDialog
-                    trigger={t("archiveShort")}
-                    triggerLabel={t("archive", { vendor: vendor.name })}
-                    triggerClassName="link-button vendor-row-archive"
-                    title={t("archiveConfirmTitle", { vendor: vendor.name })}
-                    body={t("archiveConfirmBody")}
-                    confirmLabel={t("archiveConfirm")}
-                    cancelLabel={t("archiveCancel")}
-                    action={archiveVendorAction}
-                    fields={{ vendorId: vendor.id, back: `/prestataires${queryString(query, { fiche: null })}` }}
-                  />
+                  {/* Lot 39a (UX-07 ; D6) : l'archivage s'annule pendant dix secondes : plus de confirmation. */}
+                  <form action={archiveVendorAction}>
+                    <input type="hidden" name="vendorId" value={vendor.id} />
+                    <input type="hidden" name="back" value={`/prestataires${queryString(query, { fiche: null })}`} />
+                    <button type="submit" className="link-button vendor-row-archive" aria-label={t("archive", { vendor: vendor.name })}>
+                      {t("archiveShort")}
+                    </button>
+                  </form>
                   {target ? (
                     <form action={addVendorToSlotAction}>
                       <input type="hidden" name="vendorId" value={vendor.id} />
