@@ -3,7 +3,7 @@
 // sur une connexion à lui, les lance. Au déploiement, l'ancien conteneur et le nouveau peuvent tourner
 // un instant ensemble : le nouveau réessaie jusqu'à ce que l'ancien s'arrête (sa connexion fermée
 // libère le verrou), puis lance les tâches. Une base injoignable au démarrage est réessayée de même.
-import { createAppConnection } from "@symbola/db/client";
+import { reserveAppConnection } from "@symbola/db/client";
 
 export const SCHEDULER_LOCK_NAME = "symbola:taches-periodiques";
 const RETRY_MS = 30_000;
@@ -13,8 +13,9 @@ export type SchedulerLock = { held(): boolean; release(): Promise<void> };
 export function whenSchedulerLockHeld(start: () => void, options: { retryMs?: number; lockName?: string } = {}): SchedulerLock {
   const retryMs = options.retryMs ?? RETRY_MS;
   const lockName = options.lockName ?? SCHEDULER_LOCK_NAME;
-  // Une connexion dédiée, gardée tant que le processus vit : le verrou vit avec elle.
-  const { sql } = createAppConnection();
+  // Le verrou vit avec la connexion qui l'a pris : une connexion de la réserve partagée, gardée à
+  // part tant que le processus tient le verrou (L16-ARC-01 : aucune connexion ouverte à part).
+  let connection: Awaited<ReturnType<typeof reserveAppConnection>> | null = null;
   let held = false;
   let released = false;
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -22,12 +23,16 @@ export function whenSchedulerLockHeld(start: () => void, options: { retryMs?: nu
   const attempt = async () => {
     if (released) return;
     try {
-      const [row] = await sql<{ locked: boolean }[]>`select pg_try_advisory_lock(hashtext(${lockName})) as locked`;
-      if (row?.locked) {
+      const reserved = await reserveAppConnection();
+      const [row] = await reserved<{ locked: boolean }[]>`select pg_try_advisory_lock(hashtext(${lockName})) as locked`;
+      if (row?.locked && !released) {
+        connection = reserved;
         held = true;
         start();
         return;
       }
+      if (row?.locked) await reserved`select pg_advisory_unlock(hashtext(${lockName}))`;
+      reserved.release();
     } catch (error) {
       console.error("tâches périodiques : verrou indisponible", error instanceof Error ? error.name : "inconnue");
     }
@@ -36,7 +41,6 @@ export function whenSchedulerLockHeld(start: () => void, options: { retryMs?: nu
       timer.unref?.();
     }
   };
-  // Une seule connexion dans la réserve : le verrou est pris et gardé sur la même.
   void attempt();
 
   return {
@@ -44,7 +48,12 @@ export function whenSchedulerLockHeld(start: () => void, options: { retryMs?: nu
     async release() {
       released = true;
       if (timer) clearTimeout(timer);
-      await sql.end();
+      if (connection) {
+        await connection`select pg_advisory_unlock(hashtext(${lockName}))`;
+        connection.release();
+        connection = null;
+        held = false;
+      }
     },
   };
 }
