@@ -432,6 +432,11 @@ sans cette clé, l'app refuse de démarrer.
    modèles de messages de la planner et leurs versions, et les adresses des flux de calendrier
    (vides au départ). La route `/calendrier/…` est publique (adresse secrète, lecture seule,
    débit limité) : rien à ouvrir de plus dans Caddy.
+   Les migrations 0144 à 0147 (lot 39a, ADR 0073) passent sans arrêter `symbola` : elles ajoutent
+   `deleted_at` et `deleted_by` (vides) à dix-sept tables des schémas `events`, `hub`, `quotes` et
+   `budget`, et des politiques RLS qui cachent ce qui est à la corbeille. La purge de la corbeille
+   tourne toutes les heures dans l'app (rien à planifier). Leur annulation est refusée tant qu'une
+   ligne est à la corbeille.
 4. Redémarrer seulement le service `symbola` :
    ```bash
    sudo docker compose -f infra/compose/docker-compose.prod.yml \

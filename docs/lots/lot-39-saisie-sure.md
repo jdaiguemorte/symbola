@@ -350,3 +350,38 @@ Trois PR vers `main`, chacune avec ses migrations (39a, 39b), ses tests et son r
   immédiat) ; la purge à 30 jours s'ajoute aux durées de l'ADR 0024 sans les raccourcir.
 - **UX-13** : « mêmes raccourcis » n'est pas détaillé par le cahier des charges ; la liste proposée
   (⌘K, N, Échap, ?) est à valider avec D13.
+
+## Bilan du lot 39a (17/11/2026)
+
+**Fait** (ADR 0073) :
+- Migrations 0144 à 0147, une par schéma, chacune annulable (refusée tant qu'une ligne est à la
+  corbeille) : `deleted_at` et `deleted_by` sur dix-sept tables ; politiques RLS restrictives qui
+  cachent une ligne supprimée (`soft_delete_visibility`) et le contenu d'un évènement supprimé
+  (`event_visibility`, et celles des tâches, documents, contacts et lignes de budget).
+- Voir la corbeille est un acte explicite (`includingDeleted`) : suppression, restauration, purge,
+  liste de la corbeille, demandes RGPD (recherche, export, effacement) et export complet.
+- Suppression logique dans chaque module (`trash.ts`), orchestrée par `lib/trash.ts` ; purge
+  horaire (éléments après dix minutes, corbeille après 30 jours, fichiers compris).
+- « Annuler » pendant dix secondes sur tout l'écran (cookie de courte durée, sans libellé) pour
+  toute suppression et l'archivage d'un prestataire ; plus de fenêtre de confirmation pour un geste
+  réversible (modèles, prestataire).
+- Paramètres › Corbeille : restaurer (toute l'équipe), supprimer définitivement (la titulaire, avec
+  une confirmation qui nomme l'objet).
+- Nouveaux gestes : « Supprimer l'évènement » (refusé s'il porte une pièce à conserver, D4) et
+  « Supprimer le contact » (refusé s'il est client d'un évènement ou titulaire d'un lien).
+
+**Preuves** :
+- base : `soft-delete.integration.test.ts` (6 cas) et annulations (`rollback.integration.test.ts`) ;
+- app : `lib/trash.integration.test.ts` (10 cas, dont horloge simulée et abus : autre organisation,
+  lien personnel d'un évènement à la corbeille, commentaire d'un autre auteur) ;
+- parcours : `e2e/hub-17-ux-07-corbeille.spec.ts` (ordinateur et 375 px, axe-core), parcours des
+  lots 20, 21 et 38b adaptés ;
+- chaîne : unitaires app 529, intégration app 719 et base 195, suite e2e complète 315 réussis et 3
+  ignorés, Semgrep et Gitleaks sans
+  alerte sur les fichiers du lot, registre RGPD à jour, frontières de modules respectées ;
+- rejeu : `docs/recette/HUB-17.md` (tâche annulée, document et évènement restaurés).
+
+**Reste** : 39b (brouillons, conflits d'édition, erreurs référencées, coupure réseau) et 39c (écrans
+vides, attente, patron, palette, mises en garde des champs libres). Au journal d'activité, une mise
+à la corbeille paraît comme une modification de la ligne (`deleted_at`) ; la purge, comme une
+suppression.

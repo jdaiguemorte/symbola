@@ -34,6 +34,10 @@ Modules, dans l'ordre de l'archive (et de la reprise) : `hub`, `events`, `budget
 - **Absence** : `null`, jamais une chaîne vide à la place.
 - **Champ d'organisation** : retiré de chaque ligne (il est dans le manifeste), sauf l'identifiant
   de l'organisation elle-même (`hub/organizations`).
+- **Corbeille** (lot 39a, ADR 0073) : ce qui est à la corbeille est exporté comme le reste, avec
+  `deletedAt` (instant de la suppression) et `deletedBy` (compte qui a supprimé) ; ces deux champs
+  sont `null` pour une ligne en place. Le contenu d'un évènement à la corbeille garde ses champs à
+  `null` : il suit son évènement. Un champ ajouté à une entité ne change pas la version du format.
 
 ## Ce qui n'est pas exporté
 
