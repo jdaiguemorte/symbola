@@ -4857,6 +4857,8 @@
       "ops_database_opened": "Accès à la base ouvert",
       "ops_database_closed": "Accès à la base fermé",
       "ops_backup_restored": "Sauvegarde restaurée",
+      "ops_deploy_completed": "Nouvelle version de Symbola installée",
+      "ops_deploy_rolled_back": "Retour à la version précédente de Symbola",
       "quotes_original_altered": "Original altéré détecté",
       "quotes_ledger_anomaly_detected": "Anomalie dans la chaîne des pièces",
       "quotes_archive_exported": "Archive comptable exportée",

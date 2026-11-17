@@ -30,6 +30,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "bootstrap": "tsx scripts/bootstrap-roles.ts",
     "migrate": "tsx scripts/migrate.ts",
+    "migrate:plan": "tsx scripts/migration-plan.ts",
     "db:generate": "drizzle-kit generate",
     "db:generate:custom": "drizzle-kit generate --custom",
     "rollback": "tsx scripts/rollback.ts"
