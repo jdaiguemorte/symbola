@@ -150,11 +150,12 @@ export async function sendOrganizationEmail(input: {
   attachments?: Attachment[];
   reserve?: boolean;
   idempotencyKey?: string;
-}): Promise<void> {
+}): Promise<{ deferred: boolean }> {
   const mail = await composeOrganizationEmail(input);
-  if (input.idempotencyKey && (await jobKeyExists(input.organizationId, input.idempotencyKey))) return;
+  if (input.idempotencyKey && (await jobKeyExists(input.organizationId, input.idempotencyKey))) return { deferred: false };
   if (input.reserve !== false) await reserveOrganizationMail(input.organizationId);
-  await queueAndSendEmail(input.organizationId, {
+  // deferred : l'envoi immédiat a échoué ; la file le reprend. Un appelant peut le dire à la personne.
+  const outcome = await queueAndSendEmail(input.organizationId, {
     to: input.to,
     subject: mail.subject,
     text: mail.text,
@@ -163,6 +164,7 @@ export async function sendOrganizationEmail(input: {
     ...(mail.replyTo ? { replyTo: mail.replyTo } : {}),
     attachments: [...mail.attachments, ...(input.attachments ?? [])],
   }, input.idempotencyKey);
+  return { deferred: outcome === "retry" || outcome === "failed" };
 }
 
 // Données fictives de l'aperçu et de l'essai : celles de l'exemple de l'aide, dans la langue du modèle.

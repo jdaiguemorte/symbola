@@ -1948,13 +1948,15 @@ export async function sendQuoteForSignature(input: SendForSignatureInput): Promi
       try {
         // Lot 24b (SEC-22, décision D5) : au-delà du plafond de l'heure, l'e-mail
         // ne part pas ; la planner copie le lien depuis le devis. Lot 38a : le modèle de l'organisation.
-        await sendOrganizationEmail({
+        // Lot 40b (ARC-10) : un envoi immédiat en échec repart plus tard ; la planner le sait tout de suite.
+        const { deferred } = await sendOrganizationEmail({
           organizationId: input.organizationId,
           to: signer.email,
           kind: mailKind,
           locale: input.locale,
           values: { first_name: signer.name, quote_number: quote.number, ...(orderFirst ? {} : { link: signer.signingUrl }) },
         });
+        if (deferred) notMailed += 1;
       } catch (error) {
         // La demande existe chez le fournisseur : on n'annule rien, la
         // planner copie les liens depuis le devis (jamais l'adresse au journal).
@@ -3247,13 +3249,14 @@ export async function sendContractForSignature(input: SendContractForSignatureIn
     let notMailed = 0;
     for (const signer of signers) {
       try {
-        await sendOrganizationEmail({
+        const { deferred } = await sendOrganizationEmail({
           organizationId: input.organizationId,
           to: signer.email,
           kind: mailKind,
           locale: input.locale,
           values: { first_name: signer.name, quote_number: quote.number, ...(contract.regime.orderRequired ? {} : { link: signer.signingUrl }) },
         });
+        if (deferred) notMailed += 1;
       } catch (error) {
         notMailed += 1;
         console.error(`e-mail de signature du contrat non envoyé (signataire ${signer.id})`, error instanceof Error ? error.message : error);
