@@ -8,7 +8,7 @@
 // couplage direct aux données internes d'un autre module. C'est un uuid
 // opaque, validé à la couche service via
 // eventsService.listDefaultVendorSlots(organizationId).
-import { check, date, integer, pgSchema, text, timestamp, unique, uuid, index } from "drizzle-orm/pg-core";
+import { boolean, check, date, integer, pgSchema, text, timestamp, unique, uniqueIndex, uuid, index } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 export const budgetSchema = pgSchema("budget");
@@ -207,6 +207,17 @@ export const vendorPayments = budgetSchema.table(
     declaredAt: timestamp("declared_at", { withTimezone: true }),
     refusalReason: text("refusal_reason"),
     refusedAt: timestamp("refused_at", { withTimezone: true }),
+    // Lot 51 (JRJ-09 ; D8, ADR 0091) : échéance « à remettre le jour J » (chèque, espèces,
+    // enveloppe), avec son moyen et la personne qui remet ; la remise se pointe dans le mode Jour J
+    // (qui, quand, photo du reçu facultative) et règle l'échéance. Une remise reçue deux fois (même
+    // action) n'en fait qu'une.
+    handoverOnDay: boolean("handover_on_day").notNull().default(false),
+    handoverMethod: text("handover_method"),
+    handoverBy: text("handover_by"),
+    handedOverAt: timestamp("handed_over_at", { withTimezone: true }),
+    handedOverBy: uuid("handed_over_by"),
+    handoverActionId: uuid("handover_action_id"),
+    handoverReceiptPhotoId: uuid("handover_receipt_photo_id"),
     position: integer("position").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
@@ -219,6 +230,11 @@ export const vendorPayments = budgetSchema.table(
   (table) => [
     index("vendor_payments_organization_idx").on(table.organizationId),
     index("vendor_payments_line_idx").on(table.lineId),
+    uniqueIndex("vendor_payments_handover_action_idx").on(table.organizationId, table.handoverActionId),
+    check(
+      "vendor_payments_handover_check",
+      sql`(${table.handoverMethod} is null or char_length(${table.handoverMethod}) between 1 and 80) and (${table.handoverBy} is null or char_length(${table.handoverBy}) between 1 and 120) and ((${table.handedOverAt} is null and ${table.handedOverBy} is null and ${table.handoverActionId} is null) or (${table.handedOverAt} is not null and ${table.handedOverBy} is not null))`,
+    ),
     check(
       "vendor_payments_amount_check",
       sql`(${table.fixedAmountCents} is not null and ${table.fixedAmountCents} > 0 and ${table.percentageBasisPoints} is null) or (${table.fixedAmountCents} is null and ${table.percentageBasisPoints} between 1 and 10000)`,

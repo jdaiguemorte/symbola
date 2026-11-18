@@ -19,6 +19,7 @@ import {
   programItemParticipants,
   programItems,
   programTemplateItems,
+  keyMoments,
   programTemplates,
   prospectSources,
   taskTemplateItems,
@@ -41,6 +42,7 @@ import {
 } from "@symbola/contracts";
 import { addDays, daysBetween, dueDateFor } from "./schedule";
 import { shiftedTimes } from "./program";
+import { ensureMainKeyMoment, keyMomentOfEvent } from "./main-moment";
 import { resolveClientContacts, withContacts, type EventClientLinkRow, type EventClientRow } from "./clients";
 import { searchContactIds, searchContactIdsByWord } from "@/modules/hub/service";
 
@@ -1081,6 +1083,9 @@ export type ProgramItemData = {
   internalNote: string | null;
   // Lot 30b (CHR-06, décision D6).
   responsible: string | null;
+  // Lot 51 (EVT-04 ; D1) : le temps fort de la séquence ; absent à l'ajout, le premier temps fort du
+  // jour de l'évènement (créé de lui-même au besoin) ; absent à la modification, inchangé.
+  keyMomentId?: string | null;
 };
 
 export type ProgramItemWithParticipants = {
@@ -1158,7 +1163,7 @@ export async function findEventProgram(
 
 export type ProgramWriteResult =
   | { status: "saved"; item: ProgramItemWithParticipants }
-  | { status: "event_not_found" | "item_not_found" | "participant_not_found" };
+  | { status: "event_not_found" | "item_not_found" | "participant_not_found" | "moment_not_found" };
 
 export async function insertProgramItem(
   organizationId: string,
@@ -1166,13 +1171,17 @@ export async function insertProgramItem(
   data: ProgramItemData,
   vendorSlotIds: string[],
   freeLabels: string[],
+  // Lot 51 (D1) : nom du temps fort créé de lui-même, dans la langue de l'organisation.
+  mainMomentName: string,
 ): Promise<ProgramWriteResult> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
     const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
     if (!event) return { status: "event_not_found" };
     if (!(await vendorSlotsBelongToEvent(tx, eventId, vendorSlotIds))) return { status: "participant_not_found" };
-    const [item] = await tx.insert(programItems).values({ organizationId, eventId, ...data }).returning();
+    if (data.keyMomentId && !(await keyMomentOfEvent(tx, eventId, data.keyMomentId))) return { status: "moment_not_found" };
+    const keyMomentId = data.keyMomentId || (await ensureMainKeyMoment(tx, organizationId, eventId, mainMomentName));
+    const [item] = await tx.insert(programItems).values({ organizationId, eventId, ...data, keyMomentId }).returning();
     if (!item) throw new Error("ajout de la ligne du programme échoué");
     await insertParticipants(tx, organizationId, item.id, vendorSlotIds, freeLabels);
     await touchProgram(tx, eventId);
@@ -1195,9 +1204,11 @@ export async function updateProgramItemRow(
     if (!(await vendorSlotsBelongToEvent(tx, current.eventId, vendorSlotIds))) {
       return { status: "participant_not_found" };
     }
+    if (data.keyMomentId && !(await keyMomentOfEvent(tx, current.eventId, data.keyMomentId))) return { status: "moment_not_found" };
+    const { keyMomentId, ...fields } = data;
     const [item] = await tx
       .update(programItems)
-      .set({ ...data, updatedAt: new Date() })
+      .set({ ...fields, ...(keyMomentId ? { keyMomentId } : {}), updatedAt: new Date() })
       .where(eq(programItems.id, itemId))
       .returning();
     if (!item) throw new Error("mise à jour de la ligne du programme échouée");
@@ -1283,7 +1294,12 @@ export async function findProgramTemplates(
   });
 }
 
-export type ProgramTemplateItemData = Omit<ProgramItemData, "internalNote" | "responsible"> & { participantLabels: string[] };
+export type ProgramTemplateItemData = Omit<ProgramItemData, "internalNote" | "responsible" | "keyMomentId"> & {
+  participantLabels: string[];
+  // Lot 51 (CHR-08, EVT-04) : temps fort de la ligne et son jour depuis le jour de l'évènement.
+  momentName: string | null;
+  dayOffset: number;
+};
 
 export async function insertProgramTemplate(
   organizationId: string,
@@ -1375,14 +1391,24 @@ export type ApplyProgramTemplateResult =
 // Copie les lignes du modèle à la suite du programme. Un intervenant du
 // modèle devient le poste de l'événement de même libellé (sans tenir
 // compte de la casse), sinon un intervenant libre.
+function shiftDate(date: string, days: number): string {
+  const value = new Date(`${date}T12:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + days);
+  return value.toISOString().slice(0, 10);
+}
+
+// Lot 51 (CHR-08, EVT-04) : une ligne qui nomme un temps fort rejoint celui de même nom au jour dit
+// (créé s'il manque) ; sans nom, le premier temps fort du jour de l'évènement. Le modèle est copié tel
+// qu'il est à l'application (HUB-21) : le modifier ensuite ne change pas l'évènement.
 export async function applyProgramTemplateRows(
   organizationId: string,
   eventId: string,
   templateId: string,
+  mainMomentName: string,
 ): Promise<ApplyProgramTemplateResult> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
-    const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
+    const [event] = await tx.select({ id: events.id, eventDate: events.eventDate }).from(events).where(eq(events.id, eventId));
     if (!event) return { status: "event_not_found" };
     const [template] = await tx.select().from(programTemplates).where(eq(programTemplates.id, templateId));
     if (!template) return { status: "template_not_found" };
@@ -1396,6 +1422,20 @@ export async function applyProgramTemplateRows(
     const slotByLabel = new Map(slots.map((slot) => [slot.label.trim().toLowerCase(), slot.id]));
 
     const created: ProgramItemRow[] = [];
+    const momentIds = new Map<string, string | null>();
+    const momentFor = async (name: string | null, dayOffset: number): Promise<string | null> => {
+      if (!event.eventDate) return null;
+      if (name === null && dayOffset === 0) return ensureMainKeyMoment(tx, organizationId, eventId, mainMomentName);
+      const date = shiftDate(event.eventDate, dayOffset);
+      const wanted = name ?? mainMomentName;
+      const key = `${date}|${wanted.trim().toLowerCase()}`;
+      if (momentIds.has(key)) return momentIds.get(key)!;
+      const existing = await tx.select({ id: keyMoments.id, name: keyMoments.name }).from(keyMoments).where(and(eq(keyMoments.eventId, eventId), eq(keyMoments.date, date)));
+      const found = existing.find((moment) => moment.name.trim().toLowerCase() === wanted.trim().toLowerCase());
+      const id = found?.id ?? (await tx.insert(keyMoments).values({ organizationId, eventId, name: wanted, date, position: existing.length }).returning({ id: keyMoments.id }))[0]?.id ?? null;
+      momentIds.set(key, id);
+      return id;
+    };
     for (const templateItem of templateItems) {
       const [item] = await tx
         .insert(programItems)
@@ -1406,6 +1446,7 @@ export async function applyProgramTemplateRows(
           endTime: templateItem.endTime,
           label: templateItem.label,
           location: templateItem.location,
+          keyMomentId: await momentFor(templateItem.momentName, templateItem.dayOffset),
         })
         .returning();
       if (!item) throw new Error("copie de la ligne du modèle échouée");

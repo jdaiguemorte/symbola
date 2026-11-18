@@ -194,6 +194,9 @@ export type {
   LinkVendorPayment,
   LinkVendorPaymentStatus,
   PendingPaymentDeclaration,
+  DayHandover,
+  VendorPaymentHandover,
+  VendorPaymentHandoverInput,
 } from "./budget/service-contract";
 export { BUDGET_AMOUNT_FIELDS, BUDGET_DOCUMENT_KINDS } from "./budget/service-contract";
 export type {
@@ -441,3 +444,5 @@ export {
 } from "./appointments/events";
 // Lot 44 (CRM-01, CRM-02 ; ADR 0084) : formulaire de contact public et pipeline en colonnes.
 export * from "./events/pipeline";
+// Lot 51 (EVT-04, CHR-08, JRJ-05 à JRJ-09, ARC-09) : le jour J de terrain.
+export * from "./events/day-of";

@@ -15,7 +15,7 @@ import { includingDeleted, SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { MailQuotaExceededError, reserveOrganizationMail } from "@symbola/mail";
-import { starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, type StarterLinkProfile } from "@symbola/starter-templates";
+import { starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, starterDayOfSettings, type StarterLinkProfile } from "@symbola/starter-templates";
 import {
   postponeEventRow,
   confirmPostponementRow,
@@ -167,7 +167,7 @@ import {
 import { isSendingHour, reminderTaskLines, reminderThreshold, type ReminderTask } from "./task-reminders";
 import { recordAudit } from "@symbola/db/audit";
 import { resolveClientContacts } from "./clients";
-import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, getUserContact, sendOrganizationEmail, sendSymbolaEmail, updateContact } from "@/modules/hub/service";
+import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, getOrganizationLanguage, getUserContact, sendOrganizationEmail, sendSymbolaEmail, updateContact } from "@/modules/hub/service";
 import { createTranslator } from "next-intl";
 import type { EmailTemplateKind, EmailValues, TrashedObject } from "@symbola/contracts";
 import frMessages from "@symbola/i18n/messages/fr.json";
@@ -181,7 +181,7 @@ import { addPlace, listPlaces, makeReceptionPlace, removePlace, restorePlace, up
 import { attachFile, getAttachmentFile, listAttachments, listEventAttachments, removeAttachment } from "./task-attachments";
 import { addComment, listComments, removeComment, restoreComment } from "./task-comments";
 import { listTrashedEventRows, restoreDocumentRow, restoreEventRow, restoreProgramTemplateRow, restoreTaskTemplateRow, trashEventRow } from "./trash";
-import { createStorageClient, deletePrivateObject } from "@symbola/files";
+import { createStorageClient, deletePrivateObject, detectFileType, uploadFile } from "@symbola/files";
 import {
   addCandidate,
   addCandidateNote,
@@ -207,6 +207,27 @@ import {
   updateCandidate,
 } from "./vendor-candidates";
 import { addDayContact, listDayContacts, removeDayContact } from "./day-contacts";
+import { KeyMomentNotFoundError, listKeyMoments as listKeyMomentsOf } from "./key-moments";
+import {
+  actualsOf,
+  claimDayShiftNotification,
+  dayPhotoActionExists,
+  deviceInstant,
+  findDayRecords,
+  insertDayPhoto,
+  recordDayCheck,
+  recordDayCheckpoint,
+  recordDayIncident,
+  recordDayShift,
+  recordDayShiftNotification,
+  resolveDayPhotoSubject,
+  setDayShiftVersion,
+  type DayActionResult,
+} from "./day-of";
+import { buildDayReport, saveDayReport } from "./day-report";
+import { importProgram } from "./program-import";
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 import {
   addDocumentVersion,
   attachDocument,
@@ -326,6 +347,15 @@ import type {
   ProgramRecipient,
   ProgramRecipientDocument,
   NotifyProgramVersionInput,
+  DayAction,
+  DayActionStatus,
+  DayPhoto,
+  DayPhotoMeta,
+  DayPhotoRejection,
+  DayReport,
+  DayReportHandover,
+  DayState,
+  ProgramImportResult,
   ProgramNotification,
   CalendarEvent,
   PublishedProgramView,
@@ -1507,7 +1537,7 @@ export class ProgramTemplateNotFoundError extends Error {
 
 // Lot 30b (CHR-06, décisions D6 et D7) : responsable trop long, durée hors d'une journée.
 export class ProgramItemInvalidError extends Error {
-  constructor(readonly reason: "responsible" | "duration") {
+  constructor(readonly reason: "responsible" | "duration" | "moment") {
     super(`ligne du programme invalide : ${reason}`);
     this.name = "ProgramItemInvalidError";
   }
@@ -1558,6 +1588,7 @@ function normalizeProgramItem(input: ProgramItemInput): ProgramItemData {
     location: optionalText(input.location),
     internalNote: optionalText(input.internalNote),
     responsible,
+    keyMomentId: input.keyMomentId && UUID_PATTERN.test(input.keyMomentId) ? input.keyMomentId : null,
   };
 }
 
@@ -1571,6 +1602,7 @@ function toProgramItem({ item, participants }: ProgramItemWithParticipants): Pro
     location: item.location,
     internalNote: item.internalNote,
     responsible: item.responsible,
+    keyMomentId: item.keyMomentId,
     participants: participants.map(
       ({ row, vendorSlotLabel }): ProgramParticipant => ({
         vendorSlotId: row.vendorSlotId,
@@ -1590,7 +1622,14 @@ function savedProgramItem(result: ProgramWriteResult): ProgramItem {
       throw new ProgramItemNotFoundError();
     case "participant_not_found":
       throw new ProgramParticipantNotFoundError();
+    case "moment_not_found":
+      throw new KeyMomentNotFoundError();
   }
+}
+
+// Lot 51 (EVT-04 ; D1) : nom du temps fort créé de lui-même, dans la langue de l'organisation.
+async function mainMomentName(organizationId: string): Promise<string> {
+  return starterDayOfSettings(await getOrganizationLanguage(appDatabase(), organizationId)).mainMomentName;
 }
 
 export async function getEventProgram(organizationId: string, eventId: string): Promise<EventProgram> {
@@ -1749,6 +1788,7 @@ export async function addProgramItem(organizationId: string, eventId: string, it
       normalizeProgramItem(item),
       item.vendorSlotIds,
       cleanLabels(item.freeParticipants),
+      await mainMomentName(organizationId),
     ),
   );
 }
@@ -1796,6 +1836,8 @@ function toProgramTemplateItem(row: ProgramTemplateItemRow): ProgramTemplateItem
     location: row.location,
     participantLabels: row.participantLabels,
     position: row.position,
+    momentName: row.momentName,
+    dayOffset: row.dayOffset,
   };
 }
 
@@ -1806,7 +1848,11 @@ function toProgramTemplate(template: ProgramTemplateRow, items: ProgramTemplateI
 function normalizeProgramTemplateItem(item: ProgramTemplateItemInput) {
   // Un modèle n'a pas de note interne : elle est propre à chaque événement.
   const { startTime, endTime, label, location } = normalizeProgramItem({ ...item, vendorSlotIds: [], freeParticipants: [] });
-  return { startTime, endTime, label, location, participantLabels: cleanLabels(item.participantLabels) };
+  // Lot 51 (CHR-08, EVT-04) : temps fort nommé (100 caractères) et jour (de la veille à J+6).
+  const momentName = optionalText(item.momentName)?.replace(/\s+/g, " ") ?? null;
+  const dayOffset = item.dayOffset ?? 0;
+  if ((momentName !== null && momentName.length > 100) || !Number.isInteger(dayOffset) || dayOffset < -3 || dayOffset > 6) throw new ProgramItemInvalidError("moment");
+  return { startTime, endTime, label, location, participantLabels: cleanLabels(item.participantLabels), momentName, dayOffset };
 }
 
 export async function listProgramTemplates(organizationId: string): Promise<ProgramTemplate[]> {
@@ -1860,7 +1906,7 @@ export async function applyProgramTemplate(
   eventId: string,
   templateId: string,
 ): Promise<ProgramItem[]> {
-  const result = await applyProgramTemplateRows(organizationId, eventId, templateId);
+  const result = await applyProgramTemplateRows(organizationId, eventId, templateId, await mainMomentName(organizationId));
   if (result.status !== "applied") {
     throw result.status === "event_not_found" ? new EventNotFoundError() : new ProgramTemplateNotFoundError();
   }
@@ -3193,4 +3239,197 @@ export async function listNewProspectRequests(organizationId: string, locale: "f
 export async function countProspectRequestsToReview(organizationId: string): Promise<{ count: number; oldest: string | null }> {
   const result = await countRequestsToReview(organizationId);
   return { count: result.count, oldest: result.oldest ? result.oldest.toISOString() : null };
+}
+
+// —— Lot 51 (EVT-04, CHR-08, JRJ-05 à JRJ-09, ARC-09, PAR-08 ; D1 à D8, ADR 0091) : jour J de terrain ——
+
+export { DayChecklistInvalidError, DayChecklistNotFoundError } from "./day-checklists";
+export {
+  addDayChecklistItem,
+  createDayChecklist,
+  listDayChecklistTemplates,
+  removeDayChecklist,
+  removeDayChecklistItem,
+  removeDayChecklistTemplate,
+  saveDayChecklistTemplate,
+} from "./day-checklists";
+export { deviceInstant, findDayPhotoFile } from "./day-of";
+
+// Réglages de départ du jour J (seuil de retard, photos, rafraîchissement), dans une langue.
+export function dayOfSettings(locale: "fr" | "en") {
+  return starterDayOfSettings(locale);
+}
+
+// CHR-08 : aperçu, puis écriture, d'un chrono importé d'un tableur.
+export async function importEventProgram(input: { organizationId: string; eventId: string; bytes: Uint8Array; apply: { skipLines: number[] } | null }): Promise<ProgramImportResult> {
+  const result = await importProgram({ ...input, mainMomentName: await mainMomentName(input.organizationId) });
+  if (!result) throw new EventNotFoundError();
+  return result;
+}
+
+// JRJ-08 : l'état partagé du jour J (pointages, première heure retenue, décalages, incidents, listes),
+// avec le nom affiché (l'adresse du compte) des membres cités.
+export async function getDayState(organizationId: string, eventId: string): Promise<DayState | null> {
+  const records = await findDayRecords(organizationId, eventId);
+  if (!records) return null;
+  const cited = new Set<string>([
+    ...records.checkpoints.map((checkpoint) => checkpoint.userId),
+    ...records.shifts.map((shift) => shift.validatedBy),
+    ...records.incidents.map((incident) => incident.userId),
+    ...records.checklists.flatMap((list) => list.items.flatMap((item) => (item.checkedBy ? [item.checkedBy] : []))),
+  ]);
+  const team = cited.size > 0 ? await listTeam(appDatabase(), organizationId) : [];
+  return {
+    eventId,
+    checkpoints: records.checkpoints,
+    actuals: actualsOf(records),
+    shifts: records.shifts,
+    incidents: records.incidents,
+    checklists: records.checklists,
+    people: team.filter((member) => cited.has(member.id)).map((member) => ({ id: member.id, name: member.email })),
+  };
+}
+
+export type DayEventAction = Exclude<DayAction, { kind: "handover" }>;
+
+// Une action de la file (hors remise, tenue par le module budget). Un décalage appliqué diffuse une
+// nouvelle version du programme (CHR-07) et prévient les prestataires concernés, une seule fois.
+export async function applyDayAction(input: {
+  organizationId: string;
+  eventId: string;
+  userId: string;
+  action: DayEventAction;
+  renderDocument: NotifyProgramVersionInput["renderDocument"];
+  now?: Date;
+}): Promise<DayActionResult> {
+  const base = { organizationId: input.organizationId, eventId: input.eventId, userId: input.userId, now: input.now ?? new Date() };
+  switch (input.action.kind) {
+    case "checkpoint":
+      return recordDayCheckpoint({ ...base, action: input.action });
+    case "incident":
+      return recordDayIncident({ ...base, action: input.action });
+    case "check":
+      return recordDayCheck({ ...base, action: input.action });
+    case "shift": {
+      const recorded = await recordDayShift({ ...base, action: input.action });
+      if (recorded.status === "applied" && recorded.shiftId) {
+        await recordAudit(appDatabase(), { organizationId: input.organizationId, action: "events.day_shift.applied", objectId: input.eventId, details: { minutes: input.action.minutes, items: input.action.itemIds.length } });
+        await publishAndNotifyDayShift({ organizationId: input.organizationId, eventId: input.eventId, shiftId: recorded.shiftId, userId: input.userId, renderDocument: input.renderDocument, now: input.now ?? new Date() });
+      }
+      return { status: recorded.status, ...(recorded.reason ? { reason: recorded.reason } : {}) };
+    }
+  }
+}
+
+// D3 : après validation, une nouvelle version du programme est diffusée, puis chaque prestataire
+// concerné (lien actif d'un poste des séquences décalées, retenu par la planner) reçoit un e-mail avec
+// le programme de son poste à jour. Réservé avant l'envoi : un rejeu ne renvoie rien ; la clé de chaque
+// e-mail le dédoublonne aussi dans la file des tâches. Un évènement d'essai n'envoie rien.
+export async function publishAndNotifyDayShift(input: {
+  organizationId: string;
+  eventId: string;
+  shiftId: string;
+  userId: string;
+  renderDocument: NotifyProgramVersionInput["renderDocument"];
+  now: Date;
+}): Promise<{ sent: number; notSent: number }> {
+  const { organizationId, eventId } = input;
+  const program = await getEventProgram(organizationId, eventId);
+  const published = await insertProgramVersion({ organizationId, eventId, userId: input.userId, items: publishedProgramItems(program.items), now: input.now });
+  const version = published.status === "published" ? published.version.number : ((await findLatestProgramVersion(organizationId, eventId))?.number ?? null);
+  if (version !== null) await setDayShiftVersion(organizationId, input.shiftId, version);
+  const found = await findEventById(organizationId, eventId);
+  if (!found || found.event.isDemo) return { sent: 0, notSent: 0 };
+  const shift = await claimDayShiftNotification(organizationId, input.shiftId, input.now);
+  if (!shift) return { sent: 0, notSent: 0 };
+  const latest = await findLatestProgramVersion(organizationId, eventId);
+  if (!latest) return { sent: 0, notSent: 0 };
+  const slots = new Set(shift.vendorSlotIds);
+  const rows = (await programRecipientRows(organizationId, eventId, input.now)).filter((row) => row.vendor && slots.has(row.vendor.vendorSlotId));
+  const vocabulary = (await findEventAudience(organizationId, eventId)) ?? "couple";
+  let sent = 0;
+  for (const row of rows) {
+    try {
+      const values: EmailValues = {
+        ...(await linkEmailValues({ organizationId, eventId, audience: row.audience, personName: row.name, locale: row.locale, vocabulary, expiresOn: null })),
+        version: String(latest.number),
+      };
+      const pdf = await input.renderDocument(programDocumentOf(row, found, latest));
+      await sendOrganizationEmail({
+        organizationId,
+        to: row.email,
+        kind: "program_published",
+        locale: row.locale,
+        values,
+        attachments: [{ filename: pdf.filename, content: Buffer.from(pdf.content), contentType: "application/pdf" }],
+        idempotencyKey: `day-shift:${shift.id}:${row.linkId}`,
+      });
+      sent += 1;
+    } catch (error) {
+      if (error instanceof MailQuotaExceededError) break;
+      // Nom de l'erreur seulement au journal : jamais d'adresse (SEC-20).
+      console.error("e-mail du décalage non parti", error instanceof Error ? error.name : "erreur");
+    }
+  }
+  await recordDayShiftNotification(organizationId, shift.id, sent);
+  return { sent, notSent: rows.length - sent };
+}
+
+// Les liens de prestataires qu'un décalage peut prévenir : les postes qui ont un lien actif.
+export async function listNotifiableVendorSlots(organizationId: string, eventId: string, now: Date = new Date()): Promise<string[]> {
+  return [...new Set((await programRecipientRows(organizationId, eventId, now)).flatMap((row) => (row.vendor ? [row.vendor.vendorSlotId] : [])))];
+}
+
+// D3 : l'espace du prestataire affiche en tête le dernier décalage appliqué qui concerne son poste.
+export async function latestVendorDayShift(organizationId: string, eventId: string, vendorSlotId: string): Promise<{ minutes: number; validatedAt: string; programVersion: number | null } | null> {
+  const records = await findDayRecords(organizationId, eventId);
+  const shift = [...(records?.shifts ?? [])].reverse().find((entry) => entry.outcome === "applied" && entry.vendorSlotIds.includes(vendorSlotId));
+  return shift ? { minutes: shift.minutes, validatedAt: shift.validatedAt, programVersion: shift.programVersion } : null;
+}
+
+// JRJ-06, JRJ-07, JRJ-09 : une photo reçue de la file. Le sujet est vérifié (une case ou un incident
+// de cet évènement ; une échéance l'est par le module budget avant l'appel), puis le fichier est
+// contrôlé à l'arrivée (taille, type par le contenu, antivirus, ADR 0027) : refusé, il garde une ligne
+// sans fichier (l'écran le dit) et l'incident ou la case restent. Une action rejouée est ignorée.
+export async function receiveDayPhoto(input: {
+  organizationId: string;
+  eventId: string;
+  userId: string;
+  meta: DayPhotoMeta;
+  bytes: Uint8Array | null;
+  maxBytes: number;
+  now?: Date;
+}): Promise<{ status: DayActionStatus; reason?: string; photo?: DayPhoto }> {
+  const already = await dayPhotoActionExists(input.organizationId, input.meta.actionId);
+  if (already) return { status: "duplicate", photo: already };
+  const takenAt = deviceInstant(input.meta.deviceAt, input.now ?? new Date());
+  if (!takenAt) return { status: "rejected", reason: "time" };
+  const target = await resolveDayPhotoSubject({ organizationId: input.organizationId, eventId: input.eventId, subject: input.meta.subject, subjectId: input.meta.subjectId, subjectActionId: input.meta.subjectActionId });
+  if (!target) return { status: "rejected", reason: "subject" };
+  let stored: { key: string; contentType: string; sizeBytes: number } | null = null;
+  let rejection: DayPhotoRejection | null = null;
+  if (!input.bytes || input.bytes.length === 0) rejection = "unavailable";
+  else {
+    const isImage = detectFileType(input.bytes)?.mime.startsWith("image/") ?? false;
+    if (!isImage && input.bytes.length <= input.maxBytes) rejection = "type";
+    else {
+      const upload = await uploadFile({ organizationId: input.organizationId, buffer: Buffer.from(input.bytes), maxSizeBytes: input.maxBytes });
+      if (upload.status === "uploaded") stored = { key: upload.key, contentType: upload.mime, sizeBytes: upload.size };
+      else rejection = upload.reason === "too_large" ? "size" : upload.reason === "infected" ? "virus" : "type";
+    }
+  }
+  const { photo, duplicate } = await insertDayPhoto({ organizationId: input.organizationId, eventId: input.eventId, userId: input.userId, actionId: input.meta.actionId, takenAt, target, stored, rejection });
+  if (duplicate && stored) await deletePrivateObject(createStorageClient(), stored.key).catch(() => undefined);
+  return { status: duplicate ? "duplicate" : "applied", photo };
+}
+
+// PAR-08, étape 7 : le bilan du lendemain ; la synthèse se garde dès qu'il est prêt.
+export async function getDayReport(input: { organizationId: string; eventId: string; handovers: DayReportHandover[]; now?: Date }): Promise<DayReport | null> {
+  const now = input.now ?? new Date();
+  const [event, records, moments] = await Promise.all([findEventById(input.organizationId, input.eventId), findDayRecords(input.organizationId, input.eventId), listKeyMomentsOf(input.organizationId, input.eventId)]);
+  if (!event || !records) return null;
+  const program = await getEventProgram(input.organizationId, input.eventId);
+  const report = buildDayReport({ eventId: input.eventId, eventDate: event.event.eventDate, timeZone: event.event.timeZone, moments, items: program.items, records, handovers: input.handovers, now });
+  if (!report.ready) return report;
+  return { ...report, preparedAt: await saveDayReport(input.organizationId, input.eventId, report, now) };
 }
