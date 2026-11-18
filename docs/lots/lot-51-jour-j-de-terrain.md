@@ -1,6 +1,6 @@
 # Lot 51 — Jour J de terrain : temps forts, pointage, main courante, listes, partage
 
-**Statut** : spécification proposée le 18/11/2026, **à valider par Julien**. Le lot change les
+**Statut** : spécification proposée le 18/11/2026, **validée par Julien le 18/11/2026** : toutes les décisions retenues dans leur option recommandée (a), changements de schéma et élargissement de la contrainte des natures d'e-mails du `hub` compris (accord donné). Le lot change les
 schémas `events` et `budget` (tables et colonnes) : validation explicite requise (CLAUDE.md § 8).
 Aucune dépendance nouvelle (D7).
 
