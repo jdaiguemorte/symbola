@@ -403,3 +403,39 @@ export {
 } from "./trash";
 // Lot 49 (module Invités, ADR 0083) : contrat interne du module.
 export * from "./guests/service-contract";
+// Lot 46 (RDV-01 à RDV-04, EVT-10 ; ADR 0082) — module Rendez-vous.
+export type {
+  Appointment,
+  AppointmentAnswerView,
+  AppointmentCancelReason,
+  AppointmentLocationKind,
+  AppointmentOrigin,
+  AppointmentQuestion,
+  AppointmentQuestionKind,
+  AppointmentReminderPlan,
+  AppointmentReport,
+  AppointmentReportAction,
+  AppointmentStatus,
+  AppointmentType,
+  AppointmentTypeInput,
+  AvailabilityClosure,
+  AvailabilityRule,
+  BookingPage,
+  CalendarSourceErrorKind,
+  CalendarSourceState,
+  CalendarSourceView,
+  TodayAppointment,
+} from "./appointments/service-contract";
+export {
+  APPOINTMENT_CANCEL_REASONS,
+  APPOINTMENT_LOCATION_KINDS,
+  APPOINTMENT_QUESTION_KINDS,
+  APPOINTMENT_QUESTIONS_MAX,
+  APPOINTMENT_REMINDER_PLANS,
+} from "./appointments/service-contract";
+export {
+  APPOINTMENTS_APPOINTMENT_BOOKED,
+  APPOINTMENTS_APPOINTMENT_BOOKED_VERSION,
+  appointmentBookedPayloadSchema,
+  type AppointmentBookedPayload,
+} from "./appointments/events";

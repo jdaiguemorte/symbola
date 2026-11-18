@@ -7,7 +7,7 @@
 import type { HelpModule } from "./catalog";
 import type { TourKey } from "./tours";
 
-export type HelpGroup = "events" | "vendors" | "quotes" | "budget" | "company" | "data" | "admin";
+export type HelpGroup = "events" | "appointments" | "vendors" | "quotes" | "budget" | "company" | "data" | "admin";
 // Lot 26a : les tiers (portail par lien) n'ont pas de compte ; leur aide est
 // sur l'écran même (ScreenHelp), pas dans le centre d'aide.
 export type HelpAudience = "team" | "admin";
@@ -46,6 +46,13 @@ export const HELP_SCREENS: HelpScreen[] = [
   // Lot 49 (INV-01 à INV-04, INV-07) : onglet Invités de la fiche, liste des régimes et allergies.
   { key: "guests", group: "events", audience: "team", module: "guests", path: null, capture: false },
   { key: "dietaryOptions", group: "events", audience: "team", module: "guests", path: "/events/parametres/regimes", capture: false },
+  // Lot 46 (RDV-01 à RDV-04, EVT-10) : rendez-vous.
+  { key: "appointmentsList", group: "appointments", audience: "team", module: "appointments", path: "/rendez-vous", capture: false },
+  { key: "appointmentDetail", group: "appointments", audience: "team", module: "appointments", path: null, capture: false },
+  { key: "appointmentNew", group: "appointments", audience: "team", module: "appointments", path: "/rendez-vous/nouveau", capture: false },
+  { key: "appointmentSettings", group: "appointments", audience: "team", module: "appointments", path: "/rendez-vous/reglages", capture: false },
+  { key: "appointmentType", group: "appointments", audience: "team", module: "appointments", path: null, capture: false },
+  { key: "appointmentAvailability", group: "appointments", audience: "team", module: "appointments", path: "/rendez-vous/disponibilites", capture: false },
   // Prestataires
   { key: "vendorBook", group: "vendors", audience: "team", module: "vendors", path: "/prestataires", tour: "vendors", capture: true },
   { key: "vendorDetail", group: "vendors", audience: "team", module: "vendors", path: null, capture: true },
@@ -122,7 +129,7 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "adminSettings", group: "admin", audience: "admin", path: "/exploitation/parametres", capture: false },
 ];
 
-export const HELP_GROUP_ORDER: HelpGroup[] = ["events", "vendors", "quotes", "budget", "company", "data", "admin"];
+export const HELP_GROUP_ORDER: HelpGroup[] = ["events", "appointments", "vendors", "quotes", "budget", "company", "data", "admin"];
 
 export type HelpViewer = { audience: HelpAudience; isOwner: boolean; modules: Record<HelpModule, boolean> };
 

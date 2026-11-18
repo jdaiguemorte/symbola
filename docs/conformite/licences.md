@@ -10,7 +10,7 @@ Il ne tranche aucun point juridique ; les questions pour l'avocat sont à la fin
 
 ## Bibliothèques
 
-379 paquets installés, dont 363 dans les dépendances de l'app livrée (« production ») ; les autres
+380 paquets installés, dont 364 dans les dépendances de l'app livrée (« production ») ; les autres
 servent à construire et à tester (« développement »). Les paquets propres à une plateforme
 (macOS, Linux) comptent pour un.
 
@@ -21,7 +21,7 @@ servent à construire et à tester (« développement »). Les paquets propres �
 | ISC | permissive | 29 | 0 |
 | BSD-3-Clause | permissive | 10 | 1 |
 | BSD-2-Clause | permissive | 8 | 0 |
-| MPL-2.0 | copyleft | 2 | 2 |
+| MPL-2.0 | copyleft | 3 | 2 |
 | BlueOak-1.0.0 | permissive | 2 | 0 |
 | (MIT OR Apache-2.0) | permissive | 1 | 0 |
 | 0BSD | permissive | 1 | 0 |
@@ -41,6 +41,7 @@ servent à construire et à tester (« développement »). Les paquets propres �
 | `@img/sharp-libvips-<plateforme>` | LGPL-3.0-or-later | production | Bibliothèque native de traitement d'images (libvips), chargée par sharp pour l'optimisation des images de Next.js ; employée sans modification, telle que publiée. |
 | `lightningcss` | MPL-2.0 | production | Transformation du CSS (Tailwind CSS) à la construction de l'app, employée sans modification. |
 | `lightningcss-<plateforme>` | MPL-2.0 | production | Binaire natif de lightningcss pour la plateforme de construction, employé sans modification. |
+| `ical.js` | MPL-2.0 | production | Lecture des agendas extérieurs au format iCalendar (lot 46, ADR 0082) : répétitions, exceptions et fuseaux ; employée sans modification, telle que publiée. |
 
 ## Services (images Docker)
 

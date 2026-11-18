@@ -125,7 +125,10 @@
     "followUpDepositBlocked": "Facture d'acompte du devis {number} bloquée : une mention manque",
     "followUpDepositOn": "le {date}",
     "followUpDepositBlockedBadge": "à émettre",
-    "contacts": "Contacts"
+    "contacts": "Contacts",
+    "appointments": "Rendez-vous",
+    "settingsAppointments": "Types et page de réservation",
+    "appointmentAvailability": "Mes disponibilités"
   },
   "Admin": {
     "createOrganizationTitle": "Créer une organisation",
@@ -1176,6 +1179,30 @@
     "portalGuests": {
       "title": "Vos invités",
       "body": "Ajoutez vos invités par foyer, ou importez votre tableur : les doublons vous sont signalés avant tout enregistrement. Pour un invité sans e-mail, obtenez son lien personnel ou son QR code et envoyez-le par SMS. Vous suivez les réponses par moment ; les régimes s'affichent en nombres, jamais nominatifs."
+    },
+    "appointmentsList": {
+      "title": "Rendez-vous",
+      "body": "Les rendez-vous pris sur votre page de réservation, et ceux saisis par l'équipe (téléphone, salon). Les nouveaux, reportés ou annulés apparaissent aussi dans « Aujourd'hui ». Commencez par créer un type de rendez-vous (un nom et une durée), puis choisissez l'adresse de votre page et donnez-la à vos futurs clients. Personne n'a besoin de compte : chaque personne reçoit une confirmation avec l'invitation pour son agenda, et un lien pour reporter ou annuler."
+    },
+    "appointmentDetail": {
+      "title": "Fiche d'un rendez-vous",
+      "body": "Déplacez ou annulez le rendez-vous : la personne est prévenue par e-mail si vous le cochez. Avec le module Évènements, rattachez-le à un évènement, ou créez-en une option sans rien ressaisir. Après le rendez-vous, écrivez le compte rendu (réservé à l'équipe) et ses actions : « En faire une tâche » range l'action dans le rétroplanning de l'évènement, avec son échéance et son responsable."
+    },
+    "appointmentNew": {
+      "title": "Saisir un rendez-vous",
+      "body": "Pour un rendez-vous convenu par téléphone ou de vive voix : choisissez le type, le jour et l'heure (heure de Paris), puis la personne. Sa fiche contact est créée, ou retrouvée par son adresse e-mail. Cochez « Prévenir » pour lui envoyer la confirmation et son lien de gestion."
+    },
+    "appointmentSettings": {
+      "title": "Types et page de réservation",
+      "body": "Un type se crée avec son nom et sa durée ; le reste a une valeur par défaut (visio, prévenance de 24 heures, réservable 60 jours, rappel 24 heures avant). L'adresse de la page est la vôtre (/reserver/votre-nom) ; la changer fait cesser l'ancienne. La mention d'information s'affiche sous le formulaire, à votre nom."
+    },
+    "appointmentType": {
+      "title": "Réglages d'un type",
+      "body": "Lieu (adresse, lien de visio ou téléphone), marges avant et après (le temps de trajet ou de préparation, jamais proposé à un autre rendez-vous), délai de prévenance, horizon de réservation, rappels, questions préalables (cinq au plus) et personne qui reçoit. Par défaut, aucun rendez-vous n'est proposé un jour d'évènement confirmé."
+    },
+    "appointmentAvailability": {
+      "title": "Mes disponibilités",
+      "body": "Vos plages de la semaine (deux par jour au plus), vos jours fermés et vos agendas. Reliez votre agenda Google, Apple ou Outlook par son adresse secrète iCal : seules les heures occupées sont lues, toutes les quinze minutes, jamais le contenu. Si un agenda ne se lit plus, aucun créneau n'est proposé jusqu'à ce qu'il soit relu : mieux vaut ne rien proposer qu'une heure déjà prise."
     }
   },
   "Aide": {
@@ -3735,7 +3762,8 @@
       "company": "Mon entreprise et mon compte",
       "data": "Import et données personnelles",
       "admin": "Exploitation de la suite",
-      "clients": "Votre espace"
+      "clients": "Votre espace",
+      "appointments": "Rendez-vous"
     },
     "screenTitle": "Aide : {title}",
     "back": "Retour au centre d'aide",
@@ -4791,7 +4819,10 @@
     "emailTemplates": "Modèles d'e-mails",
     "messageTemplates": "Modèles de messages",
     "trash": "Corbeille",
-    "dietaryOptions": "Régimes et allergies"
+    "dietaryOptions": "Régimes et allergies",
+    "groupAppointments": "Rendez-vous",
+    "appointmentTypes": "Types et page de réservation",
+    "appointmentAvailability": "Mes disponibilités et agendas"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -5368,7 +5399,10 @@
     "navDecisions": "À décider",
     "actionGoDecision": "Répondre",
     "navDocuments": "Documents",
-    "guestsLink": "Vos invités : liste, import et réponses"
+    "guestsLink": "Vos invités : liste, import et réponses",
+    "appointmentsTitle": "Vos prochains rendez-vous",
+    "appointmentVideo": "en visio",
+    "appointmentPhone": "par téléphone"
   },
   "VendorSpace": {
     "title": "Votre espace prestataire",
@@ -5959,7 +5993,14 @@
       "linkRenewal": "{name} demande un nouveau lien",
       "guestPurgeDiets": "Les régimes des invités seront effacés : reporter si besoin",
       "guestPurgeAll": "Les données des invités seront effacées : reporter si besoin",
-      "guestOpposition": "{count, plural, one {Un invité s'est opposé} other {# invités se sont opposés}} à la conservation de ses données"
+      "guestOpposition": "{count, plural, one {Un invité s'est opposé} other {# invités se sont opposés}} à la conservation de ses données",
+      "appointment": "{time} · {type} avec {person}",
+      "appointmentChange": {
+        "new": "Nouveau rendez-vous : {type} avec {person}, le {time}",
+        "rescheduled": "Rendez-vous déplacé : {type} avec {person}, au {time}",
+        "cancelled": "Rendez-vous annulé : {type} avec {person}, du {time}"
+      },
+      "calendarSourceError": "L'agenda « {label} » ne se lit plus : aucun créneau n'est proposé tant qu'il n'est pas relu"
     },
     "myEventsTitle": "Mes évènements",
     "myEventsEmpty": "Aucun évènement en cours.",
@@ -6020,7 +6061,8 @@
       "events": "évènements",
       "quotes": "devis et encaissements",
       "budget": "budget",
-      "guests": "invités"
+      "guests": "invités",
+      "appointments": "rendez-vous"
     }
   },
   "QuickCreate": {
@@ -6268,7 +6310,8 @@
     "button": {
       "space": "Ouvrir mon espace",
       "sign": "Signer en ligne",
-      "answer": "Répondre"
+      "answer": "Répondre",
+      "manage": "Reporter ou annuler"
     },
     "footerNote": "Envoyé avec Symbola",
     "symbolaFooter": "Symbola — la suite des organisateurs d'évènements",
@@ -6283,7 +6326,10 @@
       "validUntil": "19 juin 2027",
       "tasks": "- Choisir les alliances : avant le 10 mars 2027 (dans 7 jours)\n- Valider le menu : avant le 15 mars 2027 (dans 12 jours)",
       "quoteNumber": "D-2027-0042",
-      "version": "3"
+      "version": "3",
+      "place": "en visio : https://visio.exemple.fr/atelier",
+      "appointment": "Premier rendez-vous découverte",
+      "appointmentDate": "2 mars 2027 à 10:00"
     },
     "event": {
       "coupleClient": "votre mariage",
@@ -6348,7 +6394,8 @@
       "links": "Liens personnels",
       "reminders": "Rappels",
       "signatures": "Devis et contrats",
-      "program": "Programme"
+      "program": "Programme",
+      "appointments": "Rendez-vous"
     },
     "kinds": {
       "client_link": {
@@ -6390,6 +6437,22 @@
       "program_published": {
         "title": "Nouvelle version du programme",
         "description": "Part quand vous prévenez par e-mail d'une version diffusée, avec le programme en PDF."
+      },
+      "appointment_confirmed": {
+        "title": "Rendez-vous confirmé",
+        "description": "Part dès qu'un rendez-vous est pris, avec l'invitation pour l'agenda et le lien pour reporter ou annuler."
+      },
+      "appointment_reminder": {
+        "title": "Rappel de rendez-vous",
+        "description": "Part tout seul avant le rendez-vous, selon les rappels du type."
+      },
+      "appointment_rescheduled": {
+        "title": "Rendez-vous déplacé",
+        "description": "Part quand le rendez-vous change d'heure, avec la nouvelle invitation."
+      },
+      "appointment_cancelled": {
+        "title": "Rendez-vous annulé",
+        "description": "Part quand vous annulez un rendez-vous, ou que la personne l'annule."
       }
     },
     "variables": {
@@ -6402,7 +6465,10 @@
       "valid_until": "La date de fin de validité du lien",
       "tasks": "La liste des tâches à faire, avec leur échéance",
       "quote_number": "Le numéro du devis",
-      "version": "Le numéro de la version du programme"
+      "version": "Le numéro de la version du programme",
+      "place": "Le lieu : adresse, lien de visio ou téléphone",
+      "appointment": "Le type de rendez-vous",
+      "appointment_date": "Le jour et l'heure du rendez-vous"
     },
     "back": "Tous les modèles d'e-mails",
     "editorTitle": "{title} ({language})",
@@ -6447,7 +6513,7 @@
     "title": "Mon calendrier",
     "intro": "Abonnez votre agenda (Google, Apple, Outlook…) à vos évènements : il les relit tout seul. Chaque adresse est secrète et personnelle : ne la partagez pas.",
     "personTitle": "Mes évènements",
-    "personHint": "Les évènements datés de l'entreprise, en journée entière, avec le lien vers leur fiche. Ni essai, ni évènement perdu ou annulé.",
+    "personHint": "Les évènements datés de l'entreprise, en journée entière, avec le lien vers leur fiche, et les rendez-vous que vous recevez. Ni essai, ni évènement perdu ou annulé.",
     "create": "Créer mon adresse",
     "regenerate": "Nouvelle adresse",
     "regenerateHint": "Une nouvelle adresse remplace l'ancienne, qui cesse aussitôt de répondre.",
@@ -6471,7 +6537,366 @@
     "programFollowed": "Ce programme est dans votre agenda (adresse créée le {date}).",
     "programRenew": "Nouvelle adresse du programme",
     "programRevoke": "Retirer le programme de mon agenda",
-    "unavailable": "Le calendrier suit les évènements : il demande le module Évènements."
+    "unavailable": "Le calendrier suit les évènements : il demande le module Évènements.",
+    "appointment": "{type} — {name}"
+  },
+  "Appointments": {
+    "title": "Rendez-vous",
+    "subtitle": "Les rendez-vous pris sur votre page de réservation ou saisis par l'équipe.",
+    "moduleUnavailable": "Le module Rendez-vous n'est pas activé pour votre organisation.",
+    "availabilityLink": "Mes disponibilités",
+    "settingsLink": "Types et page de réservation",
+    "newManual": "Saisir un rendez-vous",
+    "status": {
+      "booked": "Confirmé",
+      "cancelled": "Annulé"
+    },
+    "origin": {
+      "public": "pris sur la page",
+      "manual": "saisi par l'équipe"
+    },
+    "originLabel": "Origine",
+    "start": {
+      "title": "Ouvrez votre page de réservation en trois étapes",
+      "types": "Créez un type de rendez-vous (un nom et une durée suffisent), ou ajoutez les trois types de départ.",
+      "page": "Choisissez l'adresse de votre page de réservation.",
+      "share": "Donnez cette adresse à vos futurs clients : signature d'e-mail, site, réseaux.",
+      "action": "Commencer",
+      "help": "Voir l'aide"
+    },
+    "pageAddress": "Votre page de réservation :",
+    "pageInactive": "fermée pour l'instant",
+    "upcomingTitle": "À venir",
+    "upcomingEmpty": "Aucun rendez-vous à venir.",
+    "pastTitle": "Passés",
+    "pastEmpty": "Aucun rendez-vous passé.",
+    "showPast": "Voir les trente derniers rendez-vous passés",
+    "ok": {
+      "pageSaved": "Page de réservation enregistrée.",
+      "typeCreated": "Type créé : réglez-le si besoin, il est déjà proposé sur votre page.",
+      "startersAdded": "Les types de départ sont ajoutés.",
+      "typeSaved": "Type enregistré.",
+      "typeTrashed": "Type mis à la corbeille.",
+      "availabilitySaved": "Disponibilités enregistrées.",
+      "closureAdded": "Jours fermés ajoutés.",
+      "closureRemoved": "Jours fermés retirés.",
+      "sourceAdded": "Agenda ajouté.",
+      "sourceRefreshed": "Agenda relu.",
+      "sourceRemoved": "Agenda retiré : ses plages occupées sont effacées.",
+      "created": "Rendez-vous enregistré.",
+      "cancelled": "Rendez-vous annulé.",
+      "moved": "Rendez-vous déplacé.",
+      "trashed": "Rendez-vous mis à la corbeille.",
+      "linked": "Rendez-vous rattaché à l'évènement.",
+      "unlinked": "Rendez-vous détaché de l'évènement.",
+      "optionCreated": "Option créée et rattachée à ce rendez-vous.",
+      "reportSaved": "Compte rendu enregistré.",
+      "actionAdded": "Action ajoutée.",
+      "actionRemoved": "Action retirée.",
+      "taskCreated": "Tâche créée dans le rétroplanning de l'évènement."
+    },
+    "errors": {
+      "slugTaken": "Cette adresse est déjà prise : choisissez-en une autre.",
+      "calendarUrl": "Cette adresse d'agenda n'est pas utilisable : collez l'adresse secrète au format iCal (https:// ou webcal://) donnée par votre agenda.",
+      "notLinked": "Rattachez d'abord ce rendez-vous à un évènement : la tâche sera rangée dans son rétroplanning.",
+      "notFound": "Introuvable : il a peut-être déjà été supprimé.",
+      "unexpected": "L'action n'a pas abouti. Réessayez dans un instant.",
+      "invalid": {
+        "slug": "L'adresse doit compter 3 à 60 caractères : lettres minuscules, chiffres et tirets.",
+        "privacyNotice": "La mention d'information ne doit pas dépasser 3 000 caractères.",
+        "name": "Le nom est obligatoire (120 caractères au plus pour un type, 200 pour une personne).",
+        "durationMinutes": "La durée va de 15 minutes à 8 heures.",
+        "location": "Le lieu est trop long, ou le lien de visio ne commence pas par https://.",
+        "locationKind": "Choisissez un lieu, une visio ou un téléphone.",
+        "questions": "Cinq questions au plus ; une question à choix demande au moins deux choix.",
+        "rules": "Chaque plage doit finir après son début.",
+        "closure": "Les jours fermés doivent finir après leur premier jour.",
+        "reason": "Le motif ne doit pas dépasser 80 caractères.",
+        "label": "Le nom est obligatoire (200 caractères au plus).",
+        "sources": "Cinq agendas au plus par personne.",
+        "calendarUrl": "Collez l'adresse secrète de votre agenda.",
+        "startsAt": "Choisissez le jour et l'heure.",
+        "email": "L'adresse e-mail n'est pas valable.",
+        "phone": "Le numéro de téléphone n'est pas valable.",
+        "eventId": "Cet évènement est introuvable.",
+        "status": "Ce rendez-vous est déjà annulé.",
+        "prospectSourceId": "Choisissez la source du prospect.",
+        "notes": "Le compte rendu ne doit pas dépasser 10 000 caractères.",
+        "dueOn": "La date de l'action n'est pas valable.",
+        "host": "Choisissez une personne de l'équipe."
+      }
+    },
+    "settingsTitle": "Types et page de réservation",
+    "settingsSubtitle": "Ce que vos futurs clients peuvent réserver, et à quelle adresse.",
+    "backToList": "Retour aux rendez-vous",
+    "backToSettings": "Retour aux types",
+    "typesTitle": "Types de rendez-vous",
+    "typesEmpty": "Aucun type pour l'instant. Créez-en un ci-dessous, ou partez des trois types de départ (découverte en visio, visite de lieu, dégustation).",
+    "addStarters": "Ajouter les types de départ",
+    "typeSummary": "{minutes} min · {place}",
+    "locationKind": {
+      "place": "sur place",
+      "video": "en visio",
+      "phone": "par téléphone"
+    },
+    "typeInactive": "non proposé",
+    "trashType": "Supprimer",
+    "trashTypeLabel": "Supprimer le type {name}",
+    "newTypeTitle": "Nouveau type",
+    "typeName": "Nom",
+    "typeNamePlaceholder": "Premier rendez-vous",
+    "typeDuration": "Durée",
+    "minutes": "{minutes, plural, =60 {1 heure} =90 {1 h 30} =120 {2 heures} =180 {3 heures} =240 {4 heures} other {# minutes}}",
+    "createType": "Créer le type",
+    "pageTitle": "Page de réservation",
+    "pageHint": "Une page publique, sans compte, où vos futurs clients choisissent un créneau libre. Elle ne montre que les créneaux, jamais votre agenda.",
+    "pageSlug": "Adresse de la page",
+    "pageSlugHint": "Lettres minuscules, chiffres et tirets. Changer l'adresse fait cesser l'ancienne.",
+    "pageActive": "Page ouverte aux réservations",
+    "pageNotice": "Mention d'information (RGPD)",
+    "pageNoticeHint": "Affichée sous le formulaire, à votre nom. Laissez vide pour le texte proposé (en gris), à faire relire avant la première réservation réelle.",
+    "pageSave": "Enregistrer la page",
+    "pageOpen": "Voir ma page de réservation",
+    "typeEditSubtitle": "Réglages du type ; chaque réglage a sa valeur par défaut.",
+    "typeDurationMinutes": "Durée (minutes)",
+    "typeLocation": "Lieu",
+    "typeLocationDetail": "Adresse, lien de visio ou numéro",
+    "typeLocationHint": "Pour une visio, collez le lien de votre salle (https://…). Il est envoyé avec la confirmation.",
+    "bufferBefore": "Marge avant (minutes)",
+    "bufferAfter": "Marge après (minutes)",
+    "minNoticeHours": "Délai de prévenance (heures)",
+    "horizonDays": "Réservable jusqu'à (jours)",
+    "reminders": "Rappels par e-mail",
+    "reminderPlan": {
+      "none": "Aucun",
+      "24h": "24 heures avant",
+      "24h_2h": "24 heures et 2 heures avant"
+    },
+    "host": "Personne qui reçoit",
+    "allowEventDays": "Accepter ces rendez-vous les jours d'évènement",
+    "typeActive": "Proposé sur la page de réservation",
+    "questionsTitle": "Questions préalables",
+    "questionsHint": "Zéro à cinq questions, posées à la réservation. Une question à choix : un choix par ligne. Ne demandez que ce qui sert à préparer le rendez-vous.",
+    "questionLabel": "Question {number}",
+    "questionKind": "Réponse",
+    "questionKindText": "Réponse courte",
+    "questionKindChoice": "Choix dans une liste",
+    "questionChoices": "Choix (un par ligne)",
+    "typeSave": "Enregistrer le type",
+    "availabilityTitle": "Mes disponibilités",
+    "availabilitySubtitle": "Quand vous recevez, et les agendas qui disent quand vous êtes déjà pris.",
+    "weekTitle": "Ma semaine",
+    "weekDefault": "Plages de départ : du lundi au vendredi, de 9 h à 18 h. Changez-les puis enregistrez.",
+    "weekday": {
+      "1": "Lundi",
+      "2": "Mardi",
+      "3": "Mercredi",
+      "4": "Jeudi",
+      "5": "Vendredi",
+      "6": "Samedi",
+      "7": "Dimanche"
+    },
+    "from": "De",
+    "to": "à",
+    "weekSave": "Enregistrer ma semaine",
+    "closuresTitle": "Jours fermés",
+    "closuresEmpty": "Aucun jour fermé.",
+    "closureRange": "du {from} au {to}",
+    "remove": "Retirer",
+    "closureFrom": "Du",
+    "closureTo": "Au (facultatif)",
+    "closureReason": "Motif (facultatif)",
+    "closureAdd": "Ajouter",
+    "sourcesTitle": "Mes agendas",
+    "sourcesHint": "Collez l'adresse secrète iCal de votre agenda Google, Apple ou Outlook : Symbola la relit toutes les quinze minutes et ne garde que les heures occupées, jamais le titre, le lieu ni les participants. L'adresse est chiffrée et ne s'affiche plus. Un rendez-vous pris ailleurs il y a moins de quinze minutes peut encore paraître libre.",
+    "sourcesEmpty": "Aucun agenda relié.",
+    "sourceOk": "Lu le {date}.",
+    "sourcePending": "Pas encore lu : aucun créneau n'est proposé tant qu'il n'a pas été lu.",
+    "sourceError": "En erreur ({reason}) : aucun créneau n'est proposé tant qu'il n'est pas relu.",
+    "sourceErrorKind": {
+      "blocked": "adresse refusée",
+      "too_large": "agenda trop volumineux",
+      "timeout": "pas de réponse à temps",
+      "http": "adresse injoignable ou retirée",
+      "parse": "fichier illisible"
+    },
+    "sourceRefresh": "Relire maintenant",
+    "sourceRemoveLabel": "Retirer l'agenda {label}",
+    "sourceLabel": "Nom de l'agenda",
+    "sourceLabelPlaceholder": "Agenda personnel",
+    "sourceUrl": "Adresse secrète (iCal)",
+    "sourceUrlHint": "Google : Paramètres de l'agenda › Adresse secrète au format iCal. Apple : partager l'agenda › Calendrier public. Outlook : Partager › Publier un calendrier (ICS).",
+    "sourceAdd": "Relier cet agenda",
+    "newManualSubtitle": "Un rendez-vous pris par téléphone, sur un salon ou de vive voix.",
+    "noActiveType": "Aucun type de rendez-vous proposé pour l'instant.",
+    "type": "Type",
+    "typeOption": "{name} ({minutes} min)",
+    "startsAt": "Jour et heure",
+    "personName": "Nom",
+    "personEmail": "E-mail",
+    "personPhone": "Téléphone",
+    "linkedEvent": "Évènement",
+    "noEvent": "Aucun pour l'instant",
+    "notifyPerson": "Prévenir la personne par e-mail",
+    "createManual": "Enregistrer le rendez-vous",
+    "detailsTitle": "Le rendez-vous",
+    "cancelledOn": "Annulé le",
+    "cancelledBy": {
+      "person": "par la personne",
+      "planner": "par l'équipe"
+    },
+    "cancelReason": {
+      "schedule": "Empêchement",
+      "other_provider": "A choisi un autre prestataire",
+      "project_changed": "Projet changé ou reporté",
+      "other": "Autre raison"
+    },
+    "answersTitle": "Réponses aux questions",
+    "changeTitle": "Déplacer ou annuler",
+    "newStartsAt": "Nouveau jour et heure",
+    "move": "Déplacer",
+    "cancelReasonLabel": "Motif (facultatif)",
+    "cancelReasonNone": "Sans motif",
+    "cancel": "Annuler le rendez-vous",
+    "eventTitle": "Évènement",
+    "unlinkEvent": "Détacher de l'évènement",
+    "eventHint": "Rattachez ce rendez-vous à un évènement existant, ou créez-en une option : le contact est repris, rien à ressaisir.",
+    "linkEvent": "Rattacher",
+    "optionSource": "Source du prospect",
+    "optionDate": "Date souhaitée (facultatif)",
+    "createOption": "Créer une option",
+    "reportTitle": "Compte rendu",
+    "reportPrivate": "Réservé à l'équipe : jamais montré au client.",
+    "reportNotes": "Notes",
+    "reportSave": "Enregistrer le compte rendu",
+    "actionsTitle": "Actions",
+    "responsible": {
+      "planner": "vous",
+      "clients": "le client"
+    },
+    "isTask": "Tâche créée",
+    "makeTask": "En faire une tâche",
+    "makeTaskLabel": "Faire de « {label} » une tâche de l'évènement",
+    "linkFirst": "Rattacher d'abord à un évènement",
+    "removeActionLabel": "Retirer l'action « {label} »",
+    "actionsEmpty": "Aucune action pour l'instant.",
+    "actionLabel": "Quoi",
+    "actionDue": "Pour quand",
+    "actionWho": "Qui",
+    "actionAdd": "Ajouter l'action",
+    "trash": "Supprimer ce rendez-vous",
+    "emails": {
+      "place": {
+        "videoLink": "en visio : {link}",
+        "video": "en visio, le lien vous sera envoyé",
+        "phoneNumber": "par téléphone, au {phone}",
+        "phone": "par téléphone",
+        "toBeConfirmed": "le lieu vous sera précisé"
+      },
+      "host": {
+        "open": "Ouvrir le rendez-vous",
+        "booked": {
+          "subject": "Nouveau rendez-vous : {type} avec {name}",
+          "body": "{name} a pris rendez-vous sur votre page : {type}, le {date}."
+        },
+        "rescheduled": {
+          "subject": "Rendez-vous déplacé : {type} avec {name}",
+          "body": "{name} a déplacé son rendez-vous {type} au {date}."
+        },
+        "cancelled": {
+          "subject": "Rendez-vous annulé : {type} avec {name}",
+          "body": "{name} a annulé son rendez-vous {type} du {date}."
+        }
+      }
+    },
+    "public": {
+      "title": "Prendre rendez-vous avec {organization}",
+      "noType": "Aucun rendez-vous n'est proposé pour l'instant.",
+      "chooseType": "Choisissez votre rendez-vous :",
+      "typeMeta": "{minutes} min · {place}",
+      "place": {
+        "place": "sur place",
+        "video": "en visio",
+        "phone": "par téléphone"
+      },
+      "otherTypes": "Voir les autres rendez-vous",
+      "noSlot": "Aucun créneau libre pour l'instant. Écrivez à {organization} pour en convenir.",
+      "weeksLabel": "Semaines",
+      "previousWeek": "Semaine précédente",
+      "nextWeek": "Semaine suivante",
+      "delayNotice": "Les créneaux tiennent compte de l'agenda de votre interlocuteur, mis à jour toutes les quinze minutes.",
+      "bookedTitle": "Votre rendez-vous est confirmé",
+      "bookedBody": "Rendez-vous le {date} avec {organization}. Un e-mail de confirmation vous est envoyé, avec l'invitation pour votre agenda.",
+      "bookedFallback": "Votre demande est enregistrée.",
+      "manageLink": "Reporter ou annuler ce rendez-vous",
+      "refused": "Cette réservation n'a pas pu être enregistrée. Réessayez plus tard, ou écrivez à {organization}.",
+      "unavailable": "Ce rendez-vous n'est plus proposé.",
+      "taken": "Ce créneau vient d'être pris. Voici les créneaux libres les plus proches :",
+      "takenNone": "Ce créneau vient d'être pris, et aucun autre n'est libre pour l'instant.",
+      "error": {
+        "invalid": "Le formulaire n'est pas complet.",
+        "name": "Indiquez votre nom.",
+        "email": "Indiquez une adresse e-mail valable : la confirmation y sera envoyée.",
+        "phone": "Le numéro de téléphone n'est pas valable.",
+        "answer": "Une réponse n'est pas valable.",
+        "slot": "Choisissez un créneau."
+      },
+      "chooseSlot": "Choisissez un créneau",
+      "alternatives": "Créneaux proposés",
+      "dayFull": "Aucun créneau ce jour-là.",
+      "name": "Votre nom",
+      "email": "Votre e-mail",
+      "phone": "Votre téléphone (facultatif)",
+      "noAnswer": "Choisir…",
+      "booking": "Réservation…",
+      "book": "Réserver ce rendez-vous",
+      "freeTextNotice": "Ne donnez ici ni donnée de santé, ni opinion, ni religion : votre réponse est lue par {organization}."
+    },
+    "manage": {
+      "pageNotice": "Cette page ne recueille aucune information nouvelle. Le lien est personnel et cesse de fonctionner à la fin du rendez-vous.",
+      "openingTitle": "Votre rendez-vous",
+      "openingBody": "Ouverture de votre rendez-vous…",
+      "noScript": "Cette page a besoin de JavaScript pour ouvrir votre lien.",
+      "invalidTitle": "Ce lien n'est pas valable",
+      "invalidBody": "Ce lien n'ouvre plus de rendez-vous : il a peut-être expiré. Écrivez à votre interlocuteur pour reporter ou annuler.",
+      "retryLater": "Trop de tentatives : réessayez dans {minutes, plural, one {# minute} other {# minutes}}.",
+      "message": {
+        "rescheduled": "C'est noté : votre rendez-vous est déplacé. Un e-mail de confirmation vous est envoyé.",
+        "cancelled": "C'est noté : votre rendez-vous est annulé.",
+        "taken": "Ce créneau vient d'être pris. Choisissez-en un autre."
+      },
+      "cancelledBadge": "annulé",
+      "reschedule": "Reporter",
+      "cancel": "Annuler",
+      "chooseSlot": "Choisissez un nouveau créneau",
+      "noSlot": "Aucun autre créneau libre pour l'instant. Écrivez à {organization}.",
+      "confirmReschedule": "Confirmer le report",
+      "back": "Retour",
+      "reasonLabel": "Pourquoi annulez-vous ? (facultatif)",
+      "reasonNone": "Je préfère ne pas le dire",
+      "reason": {
+        "schedule": "Un empêchement",
+        "other_provider": "J'ai choisi un autre prestataire",
+        "project_changed": "Mon projet a changé",
+        "other": "Une autre raison"
+      },
+      "confirmCancel": "Confirmer l'annulation"
+    },
+    "event": {
+      "title": "Rendez-vous et comptes rendus",
+      "add": "Saisir un rendez-vous",
+      "empty": "Aucun rendez-vous rattaché à cet évènement.",
+      "cancelled": "annulé",
+      "actionsLabel": "Actions du compte rendu",
+      "isTask": "tâche créée"
+    },
+    "contact": {
+      "title": "Rendez-vous",
+      "empty": "Aucun rendez-vous.",
+      "cancelled": "annulé"
+    },
+    "optionNeedsSource": "Pour créer une option, ajoutez d'abord une source de prospects.",
+    "optionSourcesLink": "Sources de prospects"
   },
   "MessageTemplates": {
     "title": "Modèles de messages",
@@ -6558,7 +6983,9 @@
       "programTemplate": "Modèle de programme",
       "quoteTemplate": "Modèle de devis",
       "contractTemplate": "Modèle de contrat",
-      "messageTemplate": "Modèle de message"
+      "messageTemplate": "Modèle de message",
+      "appointmentType": "Type de rendez-vous",
+      "appointment": "Rendez-vous"
     },
     "deletedBy": "Supprimé le {date} par {author}",
     "deletedOn": "Supprimé le {date}",
@@ -6602,7 +7029,9 @@
       "quoteTemplate": "Modèle mis à la corbeille.",
       "contractTemplate": "Modèle mis à la corbeille.",
       "messageTemplate": "Modèle mis à la corbeille.",
-      "vendor": "Prestataire archivé."
+      "vendor": "Prestataire archivé.",
+      "appointmentType": "Type de rendez-vous mis à la corbeille.",
+      "appointment": "Rendez-vous mis à la corbeille."
     }
   },
   "Drafts": {
@@ -6732,7 +7161,8 @@
       "settings": "Aller aux Paramètres",
       "trash": "Ouvrir la corbeille",
       "help": "Ouvrir l'aide",
-      "import": "Importer un fichier"
+      "import": "Importer un fichier",
+      "appointments": "Voir les rendez-vous"
     }
   },
   "Shortcuts": {

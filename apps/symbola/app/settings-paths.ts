@@ -11,6 +11,9 @@ export const SETTINGS_PATHS = [
   "/devis/parametres",
   "/devis/catalogue",
   "/devis/e-reporting",
+  // Lot 46 : réglages du module Rendez-vous.
+  "/rendez-vous/reglages",
+  "/rendez-vous/disponibilites",
   "/import",
   "/rgpd",
   "/profil",

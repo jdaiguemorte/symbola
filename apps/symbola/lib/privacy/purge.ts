@@ -11,9 +11,11 @@ import { appDatabase } from "@symbola/db/client";
 import { clientDueOn, isExpired, parisDate, prospectDueOn, type PrivacyRecord } from "@symbola/privacy";
 import { lastPaymentDates as quotesLastPaymentDates, listExpiredDocuments } from "@/modules/quotes/service";
 import { listLinkedContactIds, listRetentionEvents } from "@/modules/events/service";
+import { listAppointmentRetention } from "@/modules/appointments/service";
 import {
   getPrivacyPurge,
   getPrivacySettings,
+  isModuleEnabled,
   listContactsUnchangedSince,
   listExpiredPrivacyRequests,
   recordPrivacyPurgeAcks,
@@ -90,6 +92,16 @@ export async function listPurgeCandidates(organizationId: string, today: string 
     candidates.push({ key: `contact:${contact.id}`, rule: "prospect", dueOn, label: contact.displayName, eventDate: null });
   }
 
+  // Lot 46 (RGP-05 ; question DPO-2, défaut prudent) : une personne qui a seulement pris rendez-vous,
+  // sans évènement, suit la règle des prospects à compter de son dernier échange.
+  if (await isModuleEnabled(db, organizationId, "appointments")) {
+    for (const appointment of await listAppointmentRetention(organizationId)) {
+      const dueOn = prospectDueOn([parisDate(appointment.lastActivity)], settings);
+      if (!dueOn || !isExpired(today, dueOn)) continue;
+      candidates.push({ key: `appointment:${appointment.appointmentId}`, rule: "prospect", dueOn, label: appointment.label, eventDate: null });
+    }
+  }
+
   for (const request of await listExpiredPrivacyRequests(db, { organizationId, months: settings, today })) {
     candidates.push({ key: `request:${request.id}`, rule: "privacy_request", dueOn: request.dueOn, label: request.personLabel, eventDate: null });
   }
@@ -117,6 +129,7 @@ async function recordsOf(organizationId: string, keys: string[], options: Option
     if (prefix === "invoice" || prefix === "credit_note" || prefix === "quote" || prefix === "earnest_receipt") refs.push({ module: "quotes", kind: prefix, recordId: id! });
     if (prefix === "request") refs.push({ module: "hub", kind: "privacy_request", recordId: id! });
     if (prefix === "contact") refs.push({ module: "hub", kind: "contact", recordId: id! });
+    if (prefix === "appointment") refs.push({ module: "appointments", kind: "appointment", recordId: id! });
   }
   return refs;
 }
