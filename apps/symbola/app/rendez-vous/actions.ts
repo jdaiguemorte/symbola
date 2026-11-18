@@ -1,6 +1,6 @@
 "use server";
 
-// Lot 46 (RDV-01 à RDV-04, EVT-10 ; D1 à D11 ; ADR 0083) — actions de la planner sur le module
+// Lot 46 (RDV-01 à RDV-04, EVT-10 ; D1 à D11 ; ADR 0082) — actions de la planner sur le module
 // Rendez-vous. Contrôles côté serveur à chaque appel : session, organisation et module ouvert
 // (appointmentsPlanner), puis le service (RLS). Toute entrée est validée par Zod ; une erreur revient
 // dans l'adresse sous une clé (jamais un message technique ni une donnée).

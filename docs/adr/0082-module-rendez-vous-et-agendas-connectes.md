@@ -1,4 +1,4 @@
-# ADR 0083 — Module Rendez-vous : page publique sur les disponibilités réelles, agendas connectés par adresse ICS (ical.js), lien de gestion sans compte
+# ADR 0082 — Module Rendez-vous : page publique sur les disponibilités réelles, agendas connectés par adresse ICS (ical.js), lien de gestion sans compte
 
 - Statut : accepté (spécification du lot 46 validée par Julien le 18/11/2026 ; décisions D1 à D11
   retenues dans leur option (a), dépendance `ical.js` accordée)

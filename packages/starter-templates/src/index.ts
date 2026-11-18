@@ -1191,7 +1191,7 @@ export function starterMessageTemplates(locale: StarterLocale): StarterMessageTe
 }
 
 
-// Lot 46 (RDV-01, HUB-20 ; D6, D10 ; ADR 0083) — module Rendez-vous : trois types de départ, plages
+// Lot 46 (RDV-01, HUB-20 ; D6, D10 ; ADR 0082) — module Rendez-vous : trois types de départ, plages
 // hebdomadaires par défaut, réglages par défaut d'un type créé avec son seul nom et sa durée, et
 // mention d'information de la page de réservation (à faire relire, question DPO-3).
 const appointmentLocationKindSchema = z.enum(["place", "video", "phone"]);

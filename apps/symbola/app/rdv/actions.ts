@@ -1,6 +1,6 @@
 "use server";
 
-// Lot 46 (RDV-03 ; D10 ; ADR 0053, ADR 0083) — ce que permet le lien de gestion d'un rendez-vous, sans
+// Lot 46 (RDV-03 ; D10 ; ADR 0053, ADR 0082) — ce que permet le lien de gestion d'un rendez-vous, sans
 // compte : le voir, reporter sur un créneau libre du même type, annuler (motif facultatif choisi dans
 // une liste). Le jeton arrive en POST, n'est écrit nulle part ; débit limité par adresse IP et par
 // organisation (SEC-04). Un lien non valable, quel qu'en soit le motif, reçoit la même réponse.

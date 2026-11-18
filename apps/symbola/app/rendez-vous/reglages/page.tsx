@@ -11,7 +11,7 @@ import { addStarterTypesAction, createAppointmentTypeAction, saveBookingPageActi
 
 type Query = { ok?: string; erreur?: string; type?: string };
 
-// Lot 46 (RDV-01, D11 ; ADR 0083) — la page publique de réservation (adresse, ouverture, mention
+// Lot 46 (RDV-01, D11 ; ADR 0082) — la page publique de réservation (adresse, ouverture, mention
 // d'information) et les types de rendez-vous. Un type se crée avec son nom et sa durée seulement
 // (moins d'une minute) ; le reste a sa valeur par défaut et se règle ensuite.
 export default async function AppointmentSettingsPage({ searchParams }: { searchParams: Promise<Query> }) {

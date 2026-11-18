@@ -1,4 +1,4 @@
-// Lot 46 (RDV-03 ; ADR 0053, ADR 0083) : la page d'un lien de gestion n'est pas indexée (en-tête
+// Lot 46 (RDV-03 ; ADR 0053, ADR 0082) : la page d'un lien de gestion n'est pas indexée (en-tête
 // X-Robots-Tag dans next.config.ts, et balise robots ici), ni citée comme référent.
 import type { ReactNode } from "react";
 

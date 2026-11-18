@@ -1,4 +1,4 @@
-// Lot 46 (RDV-02, D11 ; ADR 0083) : la page publique de réservation n'est pas indexée (en-tête
+// Lot 46 (RDV-02, D11 ; ADR 0082) : la page publique de réservation n'est pas indexée (en-tête
 // X-Robots-Tag dans next.config.ts, et balise robots ici), ni citée comme référent.
 import type { ReactNode } from "react";
 

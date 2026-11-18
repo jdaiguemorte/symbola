@@ -27,6 +27,6 @@
   {
     "paquet": "ical.js",
     "licence": "MPL-2.0",
-    "usage": "Lecture des agendas extérieurs au format iCalendar (lot 46, ADR 0083) : répétitions, exceptions et fuseaux ; employée sans modification, telle que publiée."
+    "usage": "Lecture des agendas extérieurs au format iCalendar (lot 46, ADR 0082) : répétitions, exceptions et fuseaux ; employée sans modification, telle que publiée."
   }
 ]

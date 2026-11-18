@@ -1,4 +1,4 @@
-// Schéma du module appointments (lot 46 : RDV-01 à RDV-04, EVT-10 ; décisions D1 à D11 ; ADR 0083).
+// Schéma du module appointments (lot 46 : RDV-01 à RDV-04, EVT-10 ; décisions D1 à D11 ; ADR 0082).
 // Le module Rendez-vous : types, disponibilités, agendas extérieurs lus (plages occupées seulement),
 // rendez-vous, comptes rendus et leurs actions. Chaque table a organization_id (CLAUDE.md § 2.3),
 // protégé par Row-Level Security forcée (migration 0151). Les autres modules n'y sont connus que par

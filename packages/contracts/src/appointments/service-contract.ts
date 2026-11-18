@@ -1,4 +1,4 @@
-// Contrat du module appointments (lot 46 : RDV-01 à RDV-04, EVT-10 ; D1 à D11 ; ADR 0083) : ce que
+// Contrat du module appointments (lot 46 : RDV-01 à RDV-04, EVT-10 ; D1 à D11 ; ADR 0082) : ce que
 // son service.ts expose aux écrans et aux autres modules. Pensé comme le futur contrat HTTP
 // /v1/appointments si le module devient une app autonome (ADR 0011).
 

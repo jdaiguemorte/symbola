@@ -1,4 +1,4 @@
-// Lot 46 (RDV-01 à RDV-04, EVT-10, HUB-08, POR-02 ; D2 à D10 ; ADR 0083) — le module Rendez-vous contre
+// Lot 46 (RDV-01 à RDV-04, EVT-10, HUB-08, POR-02 ; D2 à D10 ; ADR 0082) — le module Rendez-vous contre
 // un vrai PostgreSQL (RLS), Mailpit et une horloge simulée. Les agendas extérieurs sont servis par un
 // transport simulé (aucun accès réseau).
 import { randomUUID } from "node:crypto";

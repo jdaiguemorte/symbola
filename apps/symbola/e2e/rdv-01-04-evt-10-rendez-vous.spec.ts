@@ -1,4 +1,4 @@
-// Lot 46 (RDV-01 à RDV-04, EVT-10, HUB-08 ; SC-02 étapes 2 et 3 ; ADR 0083) — Camille crée un type
+// Lot 46 (RDV-01 à RDV-04, EVT-10, HUB-08 ; SC-02 étapes 2 et 3 ; ADR 0082) — Camille crée un type
 // de rendez-vous en moins d'une minute et ouvre sa page ; Léa réserve sans compte, au clavier, reçoit
 // la confirmation avec l'invitation .ics, puis reporte par son lien ; Camille rattache le rendez-vous
 // au mariage, écrit son compte rendu et en tire une tâche en un geste. En taille ordinateur et en

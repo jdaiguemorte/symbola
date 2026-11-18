@@ -1,4 +1,4 @@
-// Lot 46 (RDV-02, RDV-03 ; D2, D10 ; ADR 0083) — tâches périodiques du module Rendez-vous, pour chaque
+// Lot 46 (RDV-02, RDV-03 ; D2, D10 ; ADR 0082) — tâches périodiques du module Rendez-vous, pour chaque
 // organisation qui l'a ouvert : relire les agendas extérieurs dont la lecture a quinze minutes, puis
 // envoyer les rappels dus (clé d'unicité par rendez-vous et par rappel : un passage rejoué n'envoie
 // rien de plus). Lancé par instrumentation.ts, derrière le verrou des tâches périodiques. Les

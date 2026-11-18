@@ -1,5 +1,5 @@
 // Porte d'entrée publique du module appointments (lot 46 : RDV-01 à RDV-04, EVT-10 ; D1 à D11 ;
-// ADR 0083) — seul fichier que les autres modules et les écrans peuvent importer (ADR 0011). Pensé
+// ADR 0082) — seul fichier que les autres modules et les écrans peuvent importer (ADR 0011). Pensé
 // comme le futur contrat HTTP /v1/appointments si le module devient une app autonome.
 import { randomUUID } from "node:crypto";
 import { formatLinkToken, hashLinkSecret, newLinkSecret, openField, parseLinkToken, sealField } from "@symbola/auth";

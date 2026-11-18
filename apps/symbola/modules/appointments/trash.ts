@@ -1,4 +1,4 @@
-// Lot 46 (DAT-03, UX-07 ; ADR 0073, ADR 0083) — corbeille du module Rendez-vous : un type ou un
+// Lot 46 (DAT-03, UX-07 ; ADR 0073, ADR 0082) — corbeille du module Rendez-vous : un type ou un
 // rendez-vous supprimé y reste 30 jours, puis est purgé ; il revient tel qu'il était. Les rendez-vous
 // gardent le nom figé de leur type : supprimer un type ne change aucun rendez-vous.
 import type { TrashedObject } from "@symbola/contracts";

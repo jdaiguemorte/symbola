@@ -1,6 +1,6 @@
 "use server";
 
-// Lot 46 (RDV-02, RDV-03 ; D5 ; ADR 0083) — réservation sur la page publique, sans compte. Entrée
+// Lot 46 (RDV-02, RDV-03 ; D5 ; ADR 0082) — réservation sur la page publique, sans compte. Entrée
 // validée par Zod ; piège à robots (ignoré sans le dire) ; limitation de débit par adresse IP et par
 // adresse e-mail ; au plus trois rendez-vous à venir par adresse et par organisation. La réponse ne
 // dit jamais si une adresse est connue : le plafond atteint reçoit le même message qu'un débit
