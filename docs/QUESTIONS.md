@@ -757,7 +757,7 @@ en a). Le 35a (export complet) est fusionné (PR #117).
 ### Q38 — Lot 49 : six points à la DPO sur le module Invités (18 novembre 2026)
 
 Versés dans sa fiche (`docs/conformite/fiche-dpo.md`, question 14) ; aucun ne bloque l'écriture du
-lot, qui applique d'ici là le réglage le plus prudent (ADR 0082) :
+lot, qui applique d'ici là le réglage le plus prudent (ADR 0083) :
 
 - **DPO-1** : régimes à caractère religieux, absents de la liste de départ (D6) ;
 - **DPO-2** : régime d'un accompagnant adulte sans moyen de contact (vide aujourd'hui) ;
@@ -768,7 +768,7 @@ lot, qui applique d'ici là le réglage le plus prudent (ADR 0082) :
 
 **Avant d'ouvrir le module à la pilote** (Julien) : DPO-1 et DPO-4 tranchés, analyse d'impact
 « socle » remise (réponse 5 de la DPO) ; puis l'Exploitation ouvre le module (fermé par défaut,
-ADR 0078) et la titulaire confirme l'analyse dans l'onglet Invités.
+ADR 0079) et la titulaire confirme l'analyse dans l'onglet Invités.
 
 ## Remarques sur le nouveau document lui-même
 

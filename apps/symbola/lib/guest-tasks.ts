@@ -1,4 +1,4 @@
-// Lot 49 (INV-04, RGP-08 ; D9, D10 ; ADR 0056, 0082) — tâche horaire du module Invités : pour
+// Lot 49 (INV-04, RGP-08 ; D9, D10 ; ADR 0056, 0083) — tâche horaire du module Invités : pour
 // chaque organisation où les modules Évènements et Invités sont ouverts, la purge des données
 // d'invités échues (avec ses préavis) puis les relances du jour (le module ne fait rien hors des
 // heures d'envoi). Lancée par instrumentation.ts, derrière le verrou des tâches périodiques

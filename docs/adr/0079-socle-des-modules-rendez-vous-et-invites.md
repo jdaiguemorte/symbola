@@ -1,4 +1,4 @@
-# ADR 0078 — Socle des modules Rendez-vous et Invités : modules fermés par défaut, chiffrement au niveau du champ, jeton de lien commun
+# ADR 0079 — Socle des modules Rendez-vous et Invités : modules fermés par défaut, chiffrement au niveau du champ, jeton de lien commun
 
 - Statut : accepté (décision D0 des spécifications des lots 46 et 49, validées par Julien le
   18/11/2026)

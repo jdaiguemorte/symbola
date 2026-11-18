@@ -1,4 +1,4 @@
-// DAT-08 (socle des lots 46 et 49, ADR 0078) — chiffrement au niveau du champ pour
+// DAT-08 (socle des lots 46 et 49, ADR 0079) — chiffrement au niveau du champ pour
 // les données sensibles : adresse secrète d'un agenda extérieur (lot 46), régimes
 // et allergies des invités (lot 49), plus tard l'IBAN (lot 48). Même construction
 // que les secrets de double authentification (secret-box.ts, ADR 0037) :

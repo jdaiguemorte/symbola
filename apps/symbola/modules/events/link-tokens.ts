@@ -9,7 +9,7 @@ import { addDays } from "./schedule";
 
 // SEC-14 : le jeton lui-même (secret, haché, format) est commun à tous les
 // modules qui ouvrent un lien personnel ; il vit dans packages/auth (socle des
-// lots 46 et 49, ADR 0078). Réexporté ici pour les appelants du module events.
+// lots 46 et 49, ADR 0079). Réexporté ici pour les appelants du module events.
 export { formatLinkToken, hashLinkSecret, newLinkSecret, parseLinkToken } from "@symbola/auth";
 
 // SEC-15, décision D4 : dernier jour valable (AAAA-MM-JJ, heure de Paris). La

@@ -4,7 +4,7 @@
 // prestataires) avec appel et SMS ; en mode avion aussi. Cibles de 56 px à 360 px,
 // axe-core. Sur la fiche : un contact du jour J s'ajoute et se retire.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { parisToday } from "@symbola/i18n";

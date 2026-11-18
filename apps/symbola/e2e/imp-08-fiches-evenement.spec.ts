@@ -7,7 +7,7 @@
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { prospectSources } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";

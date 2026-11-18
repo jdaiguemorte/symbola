@@ -1,7 +1,7 @@
--- Lot 49 (INV-01 à INV-04, INV-07, RGP-06 à RGP-08, RGP-18 ; D1, D3, D6 à D13 ; ADR 0082) : le
+-- Lot 49 (INV-01 à INV-04, INV-07, RGP-06 à RGP-08, RGP-18 ; D1, D3, D6 à D13 ; ADR 0083) : le
 -- module Invités, dans son propre schéma (ADR 0012). Foyers et personnes (un enfant n'a aucun moyen
 -- de contact, contrainte en base), réponses par temps fort, liste fermée des régimes, régimes
--- chiffrés au niveau du champ (ADR 0078), preuves d'accord, liens personnels (jamais pour un
+-- chiffrés au niveau du champ (ADR 0079), preuves d'accord, liens personnels (jamais pour un
 -- enfant : référence composée), reports de purge, imports. Les évènements, temps forts et clients
 -- sont désignés sans clé étrangère entre schémas (avenant de l'ADR 0012). Schéma nouveau : ajout
 -- seul, compatible avec la version précédente du code (ARC-14).

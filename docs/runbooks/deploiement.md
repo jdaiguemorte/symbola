@@ -375,7 +375,7 @@ sans cette clé, l'app refuse de démarrer.
    journal de l'app indique `double authentification : n secret(s) chiffré(s) au repos (L16-SEC-01)`
    (aucune ligne si tout était déjà chiffré).
 
-## Socle des lots 46 et 49 : clé du chiffrement au niveau du champ (DAT-08, ADR 0078)
+## Socle des lots 46 et 49 : clé du chiffrement au niveau du champ (DAT-08, ADR 0079)
 
 À faire **une fois par environnement, avant** le premier déploiement qui contient le socle des
 lots 46 et 49 : sans cette clé, l'app refuse de démarrer.
@@ -489,7 +489,7 @@ lire le résultat :
    des brouillons de formulaires (vide au départ), purgée avec la corbeille. Les erreurs du serveur
    s'écrivent dans le journal du conteneur `symbola` sous la forme `erreur serveur {"reference":…}` :
    la référence est celle que l'écran d'erreur montre à la personne.
-   Les migrations 0150 à 0153 (lot 49, ADR 0082) passent sans arrêter `symbola` : temps forts des
+   Les migrations 0150 à 0153 (lot 49, ADR 0083) passent sans arrêter `symbola` : temps forts des
    évènements (`events.key_moments`), durées de la purge des invités (0151) et contrainte des
    natures d'e-mails élargie à l'invitation et à la relance (0152, `hub`), schéma `guests` (vide). Le module Invités reste **fermé** chez chaque organisation tant
    que l'Exploitation ne l'ouvre pas (après l'analyse d'impact, Q38) ; la page `/rsvp` est publique

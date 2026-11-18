@@ -4,7 +4,7 @@
 // corrigée est gardée sur sa fiche. Le choix d'un contact existant par la recherche. En taille
 // ordinateur et en 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { expect, test, type Page } from "@playwright/test";

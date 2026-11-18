@@ -105,7 +105,7 @@ export const envSchema = z.object({
     .refine((value) => /^[A-Za-z0-9+/]+={0,2}$/.test(value) && Buffer.from(value, "base64").length === 32, {
       message: "32 octets encodés en base64 (openssl rand -base64 32)",
     }),
-  // Socle des lots 46 et 49 (DAT-08, ADR 0078) : clé du chiffrement au niveau du champ
+  // Socle des lots 46 et 49 (DAT-08, ADR 0079) : clé du chiffrement au niveau du champ
   // (agendas extérieurs, régimes des invités, plus tard IBAN), 32 octets en base64
   // (openssl rand -base64 32), distincte de MFA_ENCRYPTION_KEY. Requise partout. Perdue, les
   // valeurs chiffrées sont perdues : la garder dans le gestionnaire de mots de passe.

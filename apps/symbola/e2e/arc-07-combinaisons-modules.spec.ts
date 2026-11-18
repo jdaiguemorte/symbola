@@ -13,7 +13,7 @@ import { createProspect, createProspectSource } from "../modules/events/service"
 import { setModuleEnabled } from "../modules/hub/service";
 
 // Les quatre modules du pilote. Les rendez-vous et les invités (socle des lots 46 et 49,
-// ADR 0078) restent fermés par défaut ici ; chacun de ces lots ajoute son module à la preuve :
+// ADR 0079) restent fermés par défaut ici ; chacun de ces lots ajoute son module à la preuve :
 // pour les invités, e2e/inv-01-04-invites-rsvp.spec.ts (avec et sans Évènements, avec et sans
 // Invités).
 const MODULE_KEYS = ["events", "budget", "quotes", "vendors"] as const;

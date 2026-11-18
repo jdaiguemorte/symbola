@@ -5,7 +5,7 @@
 // proposition d'un avoir ; réactivé, l'évènement repasse en Option. En taille ordinateur et en
 // 375 px, axe-core.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { formatCalendarDate, parisToday } from "@symbola/i18n";

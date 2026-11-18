@@ -240,7 +240,7 @@ describe("SEC-01 — Fournisseur d'identité Logto dans les compose (lot 33, ADR
   });
 });
 
-describe("DAT-08 — Clé du chiffrement au niveau du champ (socle des lots 46 et 49, ADR 0078)", () => {
+describe("DAT-08 — Clé du chiffrement au niveau du champ (socle des lots 46 et 49, ADR 0079)", () => {
   it("l'app reçoit la clé de son environnement, sans valeur par défaut (refus de démarrer si elle manque)", () => {
     expect(serviceBlock(prodCompose, "symbola")).toContain("DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY}");
   });

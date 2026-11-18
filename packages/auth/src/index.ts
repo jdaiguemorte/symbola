@@ -52,7 +52,7 @@ export { MfaKeyError, readMfaEncryptionKey } from "./secret-box";
 export { isPlannerRole, isProfessionalRole, ROLES, type Role } from "./roles";
 // Lot 24b (SEC-06, décision D3) : équipe, retrait d'un accès, déconnexion de tous les appareils.
 export { listTeam, removeMember, revokeOtherSessions, type RemoveMemberOutcome, type TeamMember } from "./team";
-// Socle des lots 46 et 49 (ADR 0078) : chiffrement au niveau du champ (DAT-08), avec sa propre
+// Socle des lots 46 et 49 (ADR 0079) : chiffrement au niveau du champ (DAT-08), avec sa propre
 // clé DATA_ENCRYPTION_KEY, et jeton des liens personnels commun aux modules (SEC-14, ADR 0053).
 export {
   DataKeyError,

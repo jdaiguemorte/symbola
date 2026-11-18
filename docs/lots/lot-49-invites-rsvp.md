@@ -1,7 +1,7 @@
 # Lot 49 — Invités et RSVP, régimes avec accord, purge des invités
 
 **Statut** : spécification proposée le 18/11/2026, **validée par Julien le 18/11/2026** : toutes les décisions retenues dans leur option recommandée (a), dépendances comprises (accord donné, ADR à écrire dans la PR du lot).
-**Réalisation** (18/11/2026) : écrit en une PR, ADR 0082 (écarts assumés : temps forts restreints
+**Réalisation** (18/11/2026) : écrit en une PR, ADR 0083 (écarts assumés : temps forts restreints
 par foyer ; contrainte des natures d'e-mails du hub réécrite ; jeton de style `reading` ; page de
 réponse sans session). Migrations 0150 à 0153 (0152 : contrainte des natures d'e-mails, accord de Julien du 18/11). Rejeu `docs/recette/SC-07.md` ; revue
 d'accessibilité `docs/recette/accessibilite-rsvp.md` (VoiceOver à faire par Julien) ; DPO-1 à

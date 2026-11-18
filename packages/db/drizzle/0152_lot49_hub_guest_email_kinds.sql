@@ -1,4 +1,4 @@
--- Lot 49 (INV-03, INV-04 ; D4, D10 ; ADR 0082) : deux natures de modèles d'e-mails, l'invitation à
+-- Lot 49 (INV-03, INV-04 ; D4, D10 ; ADR 0083) : deux natures de modèles d'e-mails, l'invitation à
 -- répondre et la relance des invités. Remplace seulement la contrainte des natures de
 -- hub.email_templates (migration 0142) par la liste élargie (accord de Julien du 18/11/2026) ; une
 -- nature inconnue reste refusée. Le lot 46 fait de même pour ses natures : la seconde PR fusionnée

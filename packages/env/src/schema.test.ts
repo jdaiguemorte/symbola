@@ -116,7 +116,7 @@ describe("L16-SEC-01 — Clé de chiffrement de la double authentification", () 
   });
 });
 
-describe("DAT-08 — Clé du chiffrement au niveau du champ (socle des lots 46 et 49, ADR 0078)", () => {
+describe("DAT-08 — Clé du chiffrement au niveau du champ (socle des lots 46 et 49, ADR 0079)", () => {
   it("refuse un démarrage sans clé, avec une clé qui ne fait pas 32 octets en base64, ou avec la clé de MFA_ENCRYPTION_KEY", () => {
     const { DATA_ENCRYPTION_KEY, ...rest } = validEnv;
     expect(DATA_ENCRYPTION_KEY).toBeTruthy();

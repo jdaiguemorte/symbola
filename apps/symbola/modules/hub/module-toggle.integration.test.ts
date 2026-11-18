@@ -38,7 +38,7 @@ describe("PRD-HUB-03 — Activation/désactivation de module", () => {
     expect(await isModuleEnabled(db, organization!.id, "budget")).toBe(true);
   });
 
-  it("socle des lots 46 et 49 (ADR 0078) — les rendez-vous et les invités sont fermés sans réglage ; l'Admin les ouvre", async () => {
+  it("socle des lots 46 et 49 (ADR 0079) — les rendez-vous et les invités sont fermés sans réglage ; l'Admin les ouvre", async () => {
     const adminUserId = await createTestAdmin();
     const [organization] = await db
       .insert(organizations)

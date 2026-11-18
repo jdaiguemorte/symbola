@@ -1241,7 +1241,7 @@ fields:
     anonymization: >-
       Supprimé lors d'une demande d'oubli qui le vise (l'e-mail ne part pas), ou à la fin de la
       tâche.
-  # Lot 49 (module Invités ; INV-01 à INV-04, INV-07, RGP-06 à RGP-08, RGP-18 ; ADR 0082). Base
+  # Lot 49 (module Invités ; INV-01 à INV-04, INV-07, RGP-06 à RGP-08, RGP-18 ; ADR 0083). Base
   # légale : intérêt légitime du planner et du couple (réponse 2 de la DPO), information de l'invité
   # au premier contact (article 14) et droit d'opposition ; régimes et allergies : accord de
   # l'invité lui-même (article 9, réponse 3). Purge automatique après le dernier jour de
@@ -1335,7 +1335,7 @@ fields:
       Lot 49 (INV-07, RGP-06, RGP-07, DAT-08) : régimes et allergies cochés dans la liste fermée de
       l'organisation (article 9), enregistrés seulement avec l'accord de l'invité lui-même (ou du
       représentant légal d'un enfant), chiffrés au niveau du champ (AES-256-GCM, clé
-      DATA_ENCRYPTION_KEY, ADR 0078) ; nominatifs pour la titulaire seule, comptés ailleurs (« moins
+      DATA_ENCRYPTION_KEY, ADR 0079) ; nominatifs pour la titulaire seule, comptés ailleurs (« moins
       de 3 »). Ne sortent ni dans l'export complet de l'organisation, ni dans les copies hors ligne.
       Purgés 7 jours après le dernier jour de l'évènement.
     anonymization: >-

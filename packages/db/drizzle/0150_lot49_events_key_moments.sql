@@ -1,4 +1,4 @@
--- Lot 49 (EVT-04 premier pas, INV-02, INV-03 ; D2, D5 ; ADR 0082) : temps forts de l'évènement
+-- Lot 49 (EVT-04 premier pas, INV-02, INV-03 ; D2, D5 ; ADR 0083) : temps forts de l'évènement
 -- (events.key_moments), gérés depuis la fiche, et rubrique « Invités » du portail (fermée par
 -- défaut, POR-10). Schéma events seulement ; ajout seul (table nouvelle, contrainte élargie) :
 -- compatible avec la version précédente du code (ARC-14).

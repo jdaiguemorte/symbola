@@ -1,4 +1,4 @@
-# ADR 0082 — Module Invités : RSVP par lien sans session, régimes avec accord et chiffrés, purge automatique
+# ADR 0083 — Module Invités : RSVP par lien sans session, régimes avec accord et chiffrés, purge automatique
 
 - Statut : accepté (spécification du lot 49 validée par Julien le 18/11/2026, décisions D1 à D13
   dans leur option a)
@@ -7,7 +7,7 @@
   (un module, un schéma), [0053](0053-acces-des-tiers-par-lien-personnel.md) (liens personnels),
   [0056](0056-purge-rgpd-automatique-avec-preavis.md) (purge automatique avec préavis),
   [0072](0072-emails-a-l-image-de-l-organisation.md) et [0076](0076-file-des-taches-et-adaptateur-e-mail.md)
-  (e-mails, file sans doublon), [0078](0078-socle-des-modules-rendez-vous-et-invites.md) (module
+  (e-mails, file sans doublon), [0079](0079-socle-des-modules-rendez-vous-et-invites.md) (module
   fermé par défaut, chiffrement au niveau du champ, jeton commun).
 - Exigences : INV-01 à INV-04, INV-07, RGP-06 à RGP-08, RGP-18, EVT-04 (premier pas) ;
   `docs/lots/lot-49-invites-rsvp.md`. Réponses 2 à 5 de la DPO (Q35) ; points ouverts DPO-1 à
@@ -23,7 +23,7 @@ RGP-08 doivent tenir dès l'activation du module.
 ## Décision
 
 1. **Un module, un schéma** (D1) : `modules/guests`, schéma `guests`, clé `guests`, fermé par
-   défaut (ADR 0078). Les invités ne sont pas des contacts du hub (CRM-03) : ils appartiennent à
+   défaut (ADR 0079). Les invités ne sont pas des contacts du hub (CRM-03) : ils appartiennent à
    l'évènement, désigné sans clé étrangère entre schémas. Les **temps forts** (D2) vivent dans le
    module events (`events.key_moments`, suppression logique) ; le module Invités les lit par
    `guestEventContexts` du service events.
@@ -88,7 +88,7 @@ RGP-08 doivent tenir dès l'activation du module.
 
 - Avant d'ouvrir le module à la pilote : DPO-1 et DPO-4 tranchés, analyse d'impact remise, puis
   l'Exploitation ouvre le module et la titulaire confirme l'analyse. Rien d'autre à configurer :
-  `DATA_ENCRYPTION_KEY` est déjà exigée par le socle (ADR 0078).
+  `DATA_ENCRYPTION_KEY` est déjà exigée par le socle (ADR 0079).
 - Migrations 0150 à 0153 : ajouts seuls, compatibles avec la version précédente du code (pas
   d'arrêt de l'app) ; leurs annulations refusent tant que des invités ou des temps forts existent.
 - La synthèse pour le traiteur et son export (lot 50) suivront la règle de l'accès : nominatif

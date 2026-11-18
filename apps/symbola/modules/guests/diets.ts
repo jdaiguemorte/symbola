@@ -1,6 +1,6 @@
 // Lot 49 (INV-07, RGP-06, RGP-07, DAT-08 ; D7, D8) — règles des régimes et allergies : la liste
 // cochée d'une personne est chiffrée au niveau du champ (AES-256-GCM, clé DATA_ENCRYPTION_KEY,
-// ADR 0078), rattachée à sa place (organisation, table, colonne, personne) ; les nombres sont
+// ADR 0079), rattachée à sa place (organisation, table, colonne, personne) ; les nombres sont
 // comptés après déchiffrement, sans nom, et un nombre sous le seuil s'affiche « moins de N »
 // (réponse 3 de la DPO : ne pas dévoiler un régime unique dans un petit groupe).
 import { openField, sealField, type FieldPlace } from "@symbola/auth";

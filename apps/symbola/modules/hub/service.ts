@@ -278,7 +278,7 @@ export type VatRegime = "franchise" | "assujetti";
 export type LegalForm = "ei" | "eirl" | "eurl" | "sarl" | "sas" | "sasu" | "sa" | "auto_entrepreneur" | "autre";
 export type Metier = "wedding_planner" | "event_agency" | "autre";
 
-// Registre des modules et état par défaut de chacun (socle des lots 46 et 49, ADR 0078).
+// Registre des modules et état par défaut de chacun (socle des lots 46 et 49, ADR 0079).
 import { moduleEnabledByDefault, type ModuleKey } from "./module-registry";
 export { isModuleKey, MODULE_ENABLED_BY_DEFAULT, MODULE_KEYS, moduleEnabledByDefault, type ModuleKey } from "./module-registry";
 
@@ -433,7 +433,7 @@ export async function listPendingTeamInvitations(db: AppDatabase, organizationId
   return findPendingRoleInvitations(db, organizationId, "member", now);
 }
 
-// Absence de ligne = état par défaut du module (ADR 0078) : ouvert pour les quatre
+// Absence de ligne = état par défaut du module (ADR 0079) : ouvert pour les quatre
 // modules du pilote, fermé pour les rendez-vous et les invités tant que l'Admin ne
 // les a pas ouverts.
 export async function isModuleEnabled(db: AppDatabase, organizationId: string, moduleKey: ModuleKey): Promise<boolean> {

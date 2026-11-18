@@ -1,5 +1,5 @@
 // Clés des modules qu'un Admin peut activer ou désactiver par organisation (lot 11 :
-// vendors, ADR 0031 ; socle des lots 46 et 49, ADR 0078 : appointments et guests).
+// vendors, ADR 0031 ; socle des lots 46 et 49, ADR 0079 : appointments et guests).
 export const MODULE_KEYS = ["events", "budget", "quotes", "vendors", "appointments", "guests"] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 

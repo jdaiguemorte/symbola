@@ -4,7 +4,7 @@
 // PDF et l'archive ZIP par un lien temporaire. En taille ordinateur et en
 // 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { eventClients, events, eventTasks, prospectSources } from "@symbola/db/schema/events";
 import { privacyRequests } from "@symbola/db/schema/hub";

@@ -1,4 +1,4 @@
-// Schéma du module guests (lot 49, ADR 0011, 0012 et 0082 ; décision D1) : foyers et personnes
+// Schéma du module guests (lot 49, ADR 0011, 0012 et 0083 ; décision D1) : foyers et personnes
 // invités à un évènement, leurs réponses par temps fort, leurs régimes (chiffrés, avec l'accord de
 // l'invité), leurs liens personnels et la purge de tout cela après l'évènement. Chaque table a
 // organization_id, protégée par Row-Level Security (migration 0153). Les invités ne sont pas des
@@ -211,7 +211,7 @@ export const dietaryOptions = guestsSchema.table("dietary_options", {
 ]);
 
 // Régimes et allergies d'une personne (RGP-07, DAT-08, D7) : la liste cochée, chiffrée au niveau
-// du champ (AES-256-GCM, clé DATA_ENCRYPTION_KEY, ADR 0078) ; jamais en clair en base.
+// du champ (AES-256-GCM, clé DATA_ENCRYPTION_KEY, ADR 0079) ; jamais en clair en base.
 export const diets = guestsSchema.table("diets", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
