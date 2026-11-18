@@ -1,4 +1,4 @@
-# ADR 0080 — Factur-X : fichier CII écrit par l'app et PDF/A-3 par mise à jour incrémentale
+# ADR 0079 — Factur-X : fichier CII écrit par l'app et PDF/A-3 par mise à jour incrémentale
 
 - Statut : accepté (lot 41, décisions D1, D2, D3 et D5 validées par Julien le 18/11/2026)
 - Date : 2026-11-18
@@ -45,7 +45,7 @@ classiques, polices non incorporées, gardés comme originaux avec leur empreint
    « Alternative », dictionnaire des noms, catalogue complété — avec leur table de références et
    leur trailer. Le lecteur ne connaît que ce qu'il faut (table de références classique, catalogue,
    dictionnaire des noms) et refuse tout autre PDF (`UnreadablePdfError`). Le repli `pdf-lib` prévu
-   par la spécification n'a pas servi : les validateurs acceptent les fichiers (ADR 0081).
+   par la spécification n'a pas servi : les validateurs acceptent les fichiers (ADR 0080).
 5. **Le profil sRGB est écrit par l'app** (`facturx/icc.ts`) : en-tête ICC v2, primaires sRGB
    adaptées à D50 et courbe de transfert échantillonnée ; aucun fichier tiers ni licence.
 6. **Polices incorporées** (D5 a) : factures et avoirs en **Liberation Sans et Liberation Serif 2.1.5**

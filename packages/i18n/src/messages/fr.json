@@ -5807,10 +5807,12 @@
     "orderFirstHint": "Contrat à distance : chaque signataire lit le contrat et commande sur son espace personnel ; son lien de signature s'y affiche ensuite. L'e-mail envoyé l'y invite, sans lien direct."
   },
   "Compliance": {
-    "title": "Vérifications avant envoi",
     "nothing": "Rien à signaler.",
     "intro": "{count, plural, one {Un point à regarder ; il ne bloque pas l'envoi.} other {# points à regarder ; ils ne bloquent pas l'envoi.}}",
-    "goTo": "Y aller"
+    "goTo": "Y aller",
+    "title_quote": "Vérifications avant l'envoi du devis",
+    "title_contract": "Vérifications avant l'envoi du contrat",
+    "title_invoice": "Vérifications avant l'émission de la facture"
   },
   "Today": {
     "title": "Aujourd'hui",

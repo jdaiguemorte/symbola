@@ -1,4 +1,4 @@
--- Lot 41 (FAC-10, JUR-02, JUR-12, JUR-13 ; D1, D6, D8, D9, D11 ; ADR 0080) : Factur-X et mentions de la
+-- Lot 41 (FAC-10, JUR-02, JUR-12, JUR-13 ; D1, D6, D8, D9, D11 ; ADR 0079) : Factur-X et mentions de la
 -- réforme dans le schéma quotes. Ajouts seulement (colonnes facultatives ou avec valeur par défaut,
 -- contraintes) : l'ancien code continue de tourner pendant la migration.
 ALTER TABLE "quotes"."catalog_items" ADD COLUMN "nature" text DEFAULT 'service' NOT NULL;--> statement-breakpoint

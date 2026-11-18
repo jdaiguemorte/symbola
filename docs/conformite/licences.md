@@ -67,10 +67,10 @@ Fichiers rangés dans le dépôt (polices) et outils qui ne tournent qu'en inté
 
 | Fichier ou outil | Licence | Portée | Usage |
 | --- | --- | --- | --- |
-| Liberation Sans et Liberation Serif 2.1.5 | OFL-1.1 | production | Polices incorporées aux factures et aux avoirs (lot 41, D5, ADR 0080), mêmes largeurs que Helvetica et Times ; fichiers tels que publiés (liberationfonts, version 2.1.5), licence jointe (LICENSE-Liberation.txt). |
+| Liberation Sans et Liberation Serif 2.1.5 | OFL-1.1 | production | Polices incorporées aux factures et aux avoirs (lot 41, D5, ADR 0079), mêmes largeurs que Helvetica et Times ; fichiers tels que publiés (liberationfonts, version 2.1.5), licence jointe (LICENSE-Liberation.txt). |
 | Profil de couleur sRGB des PDF/A-3 | aucune (écrit par Symbola) | production | Profil ICC construit par le code de l'app à partir des valeurs publiques de sRGB (CEI 61966-2-1) ; aucun fichier tiers. |
-| veraPDF 1.30.4 (image verapdf/cli) | (GPL-3.0-or-later OR MPL-2.0) | CI | Validateur PDF/A des factures de test, dans un job de CI (lot 41, D4, ADR 0081) ; jamais dans l'app ni en production, aucune donnée réelle. |
-| Mustang 2.26.0 (Mustang-CLI, Maven Central) | Apache-2.0 | CI | Validateur Factur-X et EN 16931 des factures de test, dans un job de CI (lot 41, D4, ADR 0081) ; jamais dans l'app ni en production. |
+| veraPDF 1.30.4 (image verapdf/cli) | (GPL-3.0-or-later OR MPL-2.0) | CI | Validateur PDF/A des factures de test, dans un job de CI (lot 41, D4, ADR 0080) ; jamais dans l'app ni en production, aucune donnée réelle. |
+| Mustang 2.26.0 (Mustang-CLI, Maven Central) | Apache-2.0 | CI | Validateur Factur-X et EN 16931 des factures de test, dans un job de CI (lot 41, D4, ADR 0080) ; jamais dans l'app ni en production. |
 | Java Temurin 21 (actions/setup-java) | GPL-2.0-with-classpath-exception | CI | Environnement d'exécution de Mustang sur le runner de CI, tel que publié ; jamais dans l'app. |
 
 ## Points à faire valider par l'avocat

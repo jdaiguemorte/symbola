@@ -1,8 +1,8 @@
-# ADR 0081 — Validateurs veraPDF et Mustang en CI, jamais dans l'app
+# ADR 0080 — Validateurs veraPDF et Mustang en CI, jamais dans l'app
 
 - Statut : accepté (lot 41, décision D4 validée par Julien le 18/11/2026)
 - Date : 2026-11-18
-- Complète : [0080](0080-factur-x-pdfa3-sans-dependance.md).
+- Complète : [0079](0079-factur-x-pdfa3-sans-dependance.md).
 - Exigences : FAC-10 ; spécification `docs/lots/lot-41-facturx-conformite.md` (D4) ; SEC-30 à
   SEC-36 (chaîne de contrôle).
 

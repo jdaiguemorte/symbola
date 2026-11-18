@@ -79,5 +79,5 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0075 — Déploiement et retour arrière en une commande, migrations compatibles, licences et installation contrôlées](0075-deploiement-en-une-commande.md)
 - [0076 — File des tâches de fond, e-mail derrière une interface, couverture des règles métier](0076-file-des-taches-et-adaptateur-e-mail.md)
 - [0077 — Suivi des erreurs : GlitchTip, hors d'internet, et des erreurs triées par l'app](0077-suivi-des-erreurs-glitchtip.md)
-- [0080 — Factur-X : fichier CII écrit par l'app et PDF/A-3 par mise à jour incrémentale](0080-factur-x-pdfa3-sans-dependance.md)
-- [0081 — Validateurs veraPDF et Mustang en CI, jamais dans l'app](0081-validateurs-factur-x-en-ci.md)
+- [0079 — Factur-X : fichier CII écrit par l'app et PDF/A-3 par mise à jour incrémentale](0079-factur-x-pdfa3-sans-dependance.md)
+- [0080 — Validateurs veraPDF et Mustang en CI, jamais dans l'app](0080-validateurs-factur-x-en-ci.md)

@@ -5807,10 +5807,12 @@
     "orderFirstHint": "Distance contract: each signer reads the contract and orders on their personal space; their signing link then appears there. The e-mail sent invites them there, without a direct link."
   },
   "Compliance": {
-    "title": "Pre-send checks",
     "nothing": "Nothing to report.",
     "intro": "{count, plural, one {One point to look at; it does not block sending.} other {# points to look at; they do not block sending.}}",
-    "goTo": "Go there"
+    "goTo": "Go there",
+    "title_quote": "Checks before sending the quote",
+    "title_contract": "Checks before sending the contract",
+    "title_invoice": "Checks before issuing the invoice"
   },
   "Today": {
     "title": "Today",

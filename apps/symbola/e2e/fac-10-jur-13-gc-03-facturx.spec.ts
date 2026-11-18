@@ -103,7 +103,7 @@ test("FAC-10 / JUR-02 / JUR-13 / GC-03 / SC-11 étapes 4 et 5 — devis professi
   await expect(page.getByText("Acheteur de la facture : Novaléa SAS.")).toBeVisible();
 
   // GC-03 : le bon de commande manque ; le point informe, l'envoi reste possible.
-  const checks = page.getByRole("region", { name: "Vérifications avant envoi" }).first();
+  const checks = page.getByRole("group", { name: "Vérifications avant l'envoi du devis" });
   await expect(checks).toContainText("Client professionnel sans numéro de bon de commande");
   await expect(checks).toContainText("elles ne remplacent pas le conseil d'un professionnel du droit ou de la comptabilité");
   await expectNoAxeViolation(page);

@@ -1,4 +1,4 @@
-// Lot 41 (FAC-10, D3, ADR 0080) — profil de couleur sRGB du PDF/A-3, écrit par l'app : un PDF/A
+// Lot 41 (FAC-10, D3, ADR 0079) — profil de couleur sRGB du PDF/A-3, écrit par l'app : un PDF/A
 // qui emploie des couleurs RGB déclare l'espace de couleur de sortie par un profil ICC incorporé
 // (« OutputIntent »). Le profil est construit ici, octet par octet, d'après la norme ICC v2 (en-tête
 // de 128 octets, table des balises, puis balises) et les valeurs publiques de sRGB (CEI 61966-2-1)

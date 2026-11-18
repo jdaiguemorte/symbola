@@ -98,12 +98,12 @@ Versions figées dans les ADR. Colonne « Pilote » = ce qu'on construit mainten
 | Événements | **Table `domain_events`** (outbox), schémas versionnés dans `packages/contracts` | Bus séparé si un module est extrait |
 | Fichiers | Garage (S3) sur le VPS (ADR 0015, 0051), servis par l'app après contrôle des droits (ADR 0027), ClamAV à l'envoi | Stockage d'objets hors du serveur (NFR-31, palier 2) |
 | i18n | next-intl | — |
-| PDF | @react-pdf/renderer (ADR 0019), rendu côté serveur ; factures et avoirs en Factur-X (PDF/A-3 et fichier CII écrits par l'app, polices Liberation incorporées, ADR 0080) | Transmission par une plateforme agréée (lot 42) |
+| PDF | @react-pdf/renderer (ADR 0019), rendu côté serveur ; factures et avoirs en Factur-X (PDF/A-3 et fichier CII écrits par l'app, polices Liberation incorporées, ADR 0079) | Transmission par une plateforme agréée (lot 42) |
 | Carte | MapLibre GL + PMTiles servi par l'app, géocodage IGN derrière une interface (ADR 0031) | — |
 | Tests | Vitest, Playwright (ordinateur et 375 px), axe-core | — |
 | Proxy | Caddy partagé du VPS (ADR 0018) ; Traefik en dev local uniquement | — |
 | Déploiement | Docker Compose, `deploy.sh` en une commande : fenêtre, durcissement, sauvegarde, migrations, retour automatique (ADR 0075) | Chaîne automatique depuis la CI |
-| CI | GitHub Actions : Semgrep, Gitleaks, Trivy, OSV-Scanner, Renovate, OWASP ZAP (staging) ; veraPDF et Mustang pour les Factur-X de test (ADR 0081) | — |
+| CI | GitHub Actions : Semgrep, Gitleaks, Trivy, OSV-Scanner, Renovate, OWASP ZAP (staging) ; veraPDF et Mustang pour les Factur-X de test (ADR 0080) | — |
 | Sauvegarde | restic chiffré vers Hetzner Storage Box, copies instantanées (ADR 0051) | — |
 | Surveillance | Uptime Kuma, alertes ntfy sur le téléphone ; suivi des erreurs GlitchTip, hors d'internet (ADR 0077) | — |
 | E-mails | Mailpit en dev (jamais d'e-mail réel hors production), IONOS en production | Envoi depuis le domaine du planner (Q18, lots 38 et 55) |
@@ -267,7 +267,7 @@ interne ; Julien passe par l'équivalent Docker donné à droite. Sur le VPS : `
 | Créer le compte d'Exploitation, ou une organisation et sa titulaire (aucun mot de passe : connexion par lien, second facteur installé chez Logto à la première connexion ; **Julien, sur le VPS**, voir `docs/runbooks/deploiement.md` § Premiers comptes) | `pnpm --filter @symbola/auth create-account -- --role admin --email <e-mail>` | voir le runbook (conteneur `node:22-slim` sur le réseau Docker de l'environnement) |
 | Lancer le socle en local seul | — | `docker compose -f infra/compose/docker-compose.dev.yml --env-file .env up` |
 | Vérifier les scripts serveur (SOC-10, SOC-12, lots 11, 22 et 23) | `shellcheck -x infra/server/*.sh infra/backup/*.sh infra/map/*.sh infra/monitoring/*.sh` | `docker run --rm -v "$PWD/infra":/mnt:ro -w /mnt koalaman/shellcheck:stable -x server/check-hardening.sh server/acces-base.sh backup/backup.sh backup/restore.sh backup/lib.sh backup/check-snapshot-protection.sh monitoring/disk-check.sh` |
-| Factur-X de chaque cas (données fictives), puis leur contrôle par veraPDF (PDF/A-3 B) et Mustang (EN 16931), comme le job « Factur-X » de la CI (FAC-10, lot 41, ADR 0081 ; Docker requis pour les validateurs) | `FACTURX_SAMPLES_DIR=/tmp/facturx pnpm --filter @symbola/app facturx:samples`, puis les commandes de `docs/recette/SC-11.md` | — (Node requis pour les fichiers ; les validateurs tournent dans Docker) |
+| Factur-X de chaque cas (données fictives), puis leur contrôle par veraPDF (PDF/A-3 B) et Mustang (EN 16931), comme le job « Factur-X » de la CI (FAC-10, lot 41, ADR 0080 ; Docker requis pour les validateurs) | `FACTURX_SAMPLES_DIR=/tmp/facturx pnpm --filter @symbola/app facturx:samples`, puis les commandes de `docs/recette/SC-11.md` | — (Node requis pour les fichiers ; les validateurs tournent dans Docker) |
 | Tests des sauvegardes et des configurations de déploiement (SOC-09 à SOC-12, lot 22) | `pnpm --filter @symbola/tools-deployment-config test` | `docker run --rm -v "$PWD":/app -w /app node:22-slim pnpm --filter @symbola/tools-deployment-config test` |
 | Sauvegarder un environnement à la main (SOC-10, **Julien, sur le VPS**) | — | `sudo systemctl start symbola-backup@staging.service` (voir `docs/runbooks/restauration.md`) |
 | Restaurer un environnement (SOC-10, **Julien, sur le VPS**, destructif) | — | `sudo /opt/symbola/infra/backup/restore.sh staging --confirm=staging` |

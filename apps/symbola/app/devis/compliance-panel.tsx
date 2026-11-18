@@ -10,8 +10,10 @@ export async function CompliancePanel({ document, findings, disclaimer }: { docu
   const t = await getTranslations("Compliance");
   const titleId = `compliance-${document}-title`;
   return (
-    <section aria-labelledby={titleId} className="compliance-panel">
-      <h3 id={titleId}>{t("title")}</h3>
+    // Un groupe nommé, pas un repère de page : la page en garde la liste courte (axe-core).
+    <div role="group" aria-labelledby={titleId} className="compliance-panel">
+      {/* Un titre par pièce : le devis et son contrat peuvent montrer chacun leur panneau. */}
+      <h3 id={titleId}>{t(`title_${document}`)}</h3>
       {findings.length === 0 ? (
         <p>{t("nothing")}</p>
       ) : (
@@ -30,6 +32,6 @@ export async function CompliancePanel({ document, findings, disclaimer }: { docu
         </>
       )}
       <p className="meta">{disclaimer}</p>
-    </section>
+    </div>
   );
 }

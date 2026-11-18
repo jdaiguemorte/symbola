@@ -1,4 +1,4 @@
-// Lot 41 (FAC-10, D5, ADR 0080) — polices incorporées des factures et des avoirs : Liberation Sans
+// Lot 41 (FAC-10, D5, ADR 0079) — polices incorporées des factures et des avoirs : Liberation Sans
 // et Liberation Serif 2.1.5 (licence SIL OFL 1.1, fichier LICENSE-Liberation.txt), mêmes largeurs
 // de caractères que Helvetica et Times. Rangées dans le dépôt (lib/documents/fonts), copiées dans
 // l'image par outputFileTracingIncludes (next.config.ts) ; le chemin part du dossier de l'app,
