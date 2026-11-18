@@ -1180,6 +1180,28 @@
       "title": "Your guests",
       "body": "Add your guests by household, or import your spreadsheet: duplicates are flagged before anything is saved. For a guest without email, get their personal link or QR code and send it by text. You follow replies per moment; diets show as numbers, never by name."
     },
+    "seatingPlan": {
+      "title": "Seating plan",
+      "body": "One plan per key moment with tables (dinner, brunch). Add tables in series (“12 round tables of 10”), or copy the plan of another key moment. Seat a guest or a whole household with the “Move” button, from the keyboard or by touch, or drag them with the mouse. Only attending guests and those who have not answered can be seated; guests not seated stay visible with their number. “Together” and “apart” constraints and overfull tables are flagged, never blocked.",
+      "faq": [
+        {
+          "q": "A guest declines after being seated: what happens?",
+          "a": "They leave their table at once and an alert tells you on the plan; clear it once you have seen it."
+        },
+        {
+          "q": "Does the client see the plan or the constraints?",
+          "a": "No. The plan is built by the team; constraints never leave it, neither to the client nor in a summary."
+        }
+      ]
+    },
+    "catererSummary": {
+      "title": "Send the summary to the caterer",
+      "body": "From the seating plan, “Caterer summary” gives the PDF or the spreadsheet: covers and meals by type, diets and allergens, by table; vendor meals and guests awaiting an answer apart. The owner gets the named version; a team member, the version without names, exact per table. Nothing is kept in Symbola: the copy you send leaves Symbola, ask the caterer to delete it after the event."
+    },
+    "mealTypes": {
+      "title": "Meal types",
+      "body": "The meal types of the caterer summary: adult, child, baby (no meal), vendor to start with. Rename, hide or add a type; a guest's type follows their age, unless you change it on the seating plan."
+    },
     "appointmentsList": {
       "title": "Appointments",
       "body": "Appointments booked on your booking page, and those entered by the team (phone, fair). New, moved or cancelled ones also show in “Today”. Start by creating an appointment type (a name and a duration), then choose your page address and give it to your future clients. Nobody needs an account: each person gets a confirmation with the invitation for their calendar, and a link to reschedule or cancel."
@@ -4820,6 +4842,7 @@
     "messageTemplates": "Message templates",
     "trash": "Trash",
     "dietaryOptions": "Diets and allergies",
+    "mealTypes": "Meal types",
     "groupAppointments": "Appointments",
     "appointmentTypes": "Types and booking page",
     "appointmentAvailability": "My availability and calendars"
@@ -5093,7 +5116,8 @@
       "guests_purge_postponed": "Guest purge postponed",
       "guests_purge_executed": "Guest data purged",
       "guests_import_applied": "Guest list imported",
-      "guests_import_undone": "Guest import undone"
+      "guests_import_undone": "Guest import undone",
+      "guests_caterer_summary_downloaded": "Caterer summary downloaded"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -5218,7 +5242,15 @@
       "guests_diets": "guest's diets",
       "guests_diet_consents": "proof of consent to diets",
       "guests_guest_links": "guest personal link",
-      "guests_purge_postponements": "guest purge postponement"
+      "guests_purge_postponements": "guest purge postponement",
+      "guests_meal_types": "meal type",
+      "guests_seating_plans": "seating plan",
+      "guests_seating_tables": "seating plan table",
+      "guests_seat_assignments": "seat on the seating plan",
+      "guests_seating_constraints": "seating constraint",
+      "guests_seating_constraint_members": "person in a seating constraint",
+      "guests_vendor_meal_counts": "vendor meals",
+      "guests_caterer_summary_downloads": "caterer summary download"
     },
     "modules": {
       "events": "Events",
@@ -7290,7 +7322,19 @@
         "no_date": "The event has no date yet: there is no purge to postpone."
       },
       "importFile": "Choose a file (CSV or XLSX).",
-      "importTooLarge": "The file exceeds 1 MB: save the list as CSV, or split it."
+      "importTooLarge": "The file exceeds 1 MB: save the list as CSV, or split it.",
+      "seating": {
+        "table_name": "A table name has 1 to 60 characters.",
+        "capacity": "A table has 1 to 60 seats.",
+        "count": "Add 1 to 50 tables at a time.",
+        "too_many_tables": "A plan has at most 150 tables.",
+        "constraint_members": "A constraint brings together two to twenty people.",
+        "target_not_empty": "This key moment already has tables: copying does not replace a plan in progress.",
+        "same_moment": "Choose another key moment to copy.",
+        "vendor_count": "The number of vendor meals ranges from 0 to 1000.",
+        "not_eligible": "This person declined this key moment or is not invited to it: they cannot be seated.",
+        "meal_label": "A label has 1 to 60 characters."
+      }
     },
     "activation": {
       "assessmentLink": "Read the baseline impact assessment provided by Symbola",
@@ -7484,7 +7528,8 @@
       },
       "revoke": "Withdraw {name}'s links",
       "edit": "Edit {name}",
-      "remove": "Delete the household {name}"
+      "remove": "Delete the household {name}",
+      "planLink": "Seating plan and caterer summary"
     },
     "portal": {
       "title": "Your guests",
@@ -7508,6 +7553,175 @@
       "kindAllergen": "Allergy",
       "add": "Add",
       "added": "Entry added."
+    },
+    "caterer": {
+      "title": "Caterer summary",
+      "heading": "{moment} — {date}",
+      "generatedAt": "As of {date}: answers may still change.",
+      "versionNominative": "Named version: name, table, meal type, diets and allergies of each person.",
+      "versionAggregate": "Version without names: exact numbers per table.",
+      "noPlan": "No seating plan yet: totals only.",
+      "dietsPurged": "Diets and allergies were erased after the event: the summary no longer contains any.",
+      "totalsTitle": "Totals",
+      "coversLabel": "Covers (attending guests)",
+      "covers": "{count, plural, =0 {No cover} one {# cover} other {# covers}}",
+      "mealsTitle": "Meals by type",
+      "dietsTitle": "Diets and allergens",
+      "noDiets": "No diet or allergen declared.",
+      "vendorMeals": "Vendor meals",
+      "pendingTitle": "Awaiting an answer",
+      "pendingNone": "Nobody is awaiting an answer.",
+      "tablesTitle": "By table",
+      "unplaced": "No table",
+      "tableLine": "{name} — {shape}, {capacity} seats",
+      "person": "{name} — {meal}",
+      "personWithDiets": "{name} — {meal} — {diets}",
+      "footerNominative": "Data shared for meal service only; delete after the event.",
+      "footerAggregate": "Numbers per table, without names.",
+      "page": "Page {page} of {total}",
+      "fileNominative": "caterer-summary-named",
+      "fileAggregate": "caterer-summary",
+      "shape": {
+        "round": "round table",
+        "rectangular": "rectangular table",
+        "head": "head table"
+      },
+      "csv": {
+        "table": "Table",
+        "name": "Name",
+        "mealType": "Meal type",
+        "diets": "Diets and allergies",
+        "count": "Count",
+        "response": "Answer",
+        "covers": "Covers",
+        "total": "Total",
+        "present": "Attending"
+      }
+    },
+    "plan": {
+      "title": "Seating plan",
+      "back": "Back to guests",
+      "unavailable": "The seating plan is unavailable: the Guests module is not open for your organization.",
+      "notReady": "The seating plan opens once the owner has confirmed the impact assessment, in the Guests tab.",
+      "notReadyLink": "Go to the Guests tab",
+      "noKeyMoments": "First add the event's key moments (dinner, brunch): a plan is built per key moment.",
+      "noKeyMomentsLink": "Add key moments",
+      "momentsNav": "Key moments",
+      "momentLink": "{name}, {date}",
+      "momentPlanned": "{placed} seated out of {present}",
+      "momentNoPlan": "no plan",
+      "createPlan": "Build the plan for “{moment}”",
+      "noPlan": "This key moment has no plan yet: {present} attending, {pending} awaiting an answer.",
+      "counts": "{unplaced, plural, =0 {Everyone attending is seated} one {# attending guest not seated} other {# attending guests not seated}} · {pending, plural, =0 {nobody awaiting an answer} one {# awaiting an answer} other {# awaiting an answer}}",
+      "viewSwitch": "Show",
+      "showTables": "Tables",
+      "showUnplaced": "Not seated ({count})",
+      "unplacedTitle": "Not seated ({count})",
+      "unplacedEmpty": "Everyone attending is seated.",
+      "pendingTitle": "Awaiting an answer ({count})",
+      "pendingHelp": "No answer yet: you can seat them; they stay marked and are not counted in the covers.",
+      "pendingMark": "awaiting an answer",
+      "child": "child",
+      "householdItem": "the whole {name} household",
+      "householdHeading": "{name} ({count})",
+      "householdMoved": "{name} household: {count, plural, =0 {nobody was seated} one {# person seated} other {# people seated}} at “{group}”.",
+      "householdMoveFailed": "The {name} household could not be seated: the page shows the saved state.",
+      "unplacedTarget": "Not seated",
+      "tableTarget": "{name} ({occupied}/{capacity})",
+      "tablesTitle": "Tables ({count})",
+      "noTables": "No table yet: add some below.",
+      "occupancy": "{occupied} of {capacity} seats",
+      "children": "{count, plural, one {including # child} other {including # children}}",
+      "tableDiets": "Diets: {list}",
+      "dietCount": "{label}: {count}",
+      "dietFewer": "{label}: fewer than {threshold}",
+      "tableEmpty": "Nobody at this table.",
+      "overCapacity": "Over capacity",
+      "constraintAlert": "Constraint not met",
+      "shape": {
+        "round": "Round",
+        "rectangular": "Rectangular",
+        "head": "Head table"
+      },
+      "mealOf": "Meal: {meal}",
+      "mealDefault": "{meal} (default)",
+      "mealChange": "Meal for {name}",
+      "mealSelect": "Meal type",
+      "mealDefaultOption": "Default (by age)",
+      "mealSave": "Save meal",
+      "alertsTitle": "Alerts ({count})",
+      "alertTogether": "“Together” not met: {names} are at {tables}.",
+      "alertApart": "“Apart” not met: {names} are together at {table}.",
+      "alertCapacity": "{table}: {occupied} people for {capacity} seats.",
+      "alertReleased": "{name} declined and left {table}.",
+      "alertReleasedNoTable": "{name} declined and left their table.",
+      "alertReleasedDismiss": "Clear the alert for {name}",
+      "alertNotInvited": "{name} is no longer expected at this key moment but is still seated at {table}.",
+      "alertNotInvitedRemove": "Remove {name} from their table",
+      "addTablesTitle": "Add tables",
+      "addCount": "Number of tables",
+      "addShape": "Shape",
+      "addCapacity": "Seats per table",
+      "addSubmit": "Add the tables",
+      "namePrefix": "Table",
+      "tablesAdded": "Tables added.",
+      "editTable": "Edit {name}",
+      "tableName": "Name or number",
+      "tableShape": "Shape",
+      "tableCapacity": "Seats",
+      "saveTable": "Save the table",
+      "tableSaved": "Table saved.",
+      "removeTable": "Delete {name}",
+      "removeTableHelp": "Its guests go back to “Not seated”.",
+      "copyTitle": "Copy a plan",
+      "copyHelp": "Reuse the tables of another key moment, and the seats of those who also attend this one.",
+      "copyFrom": "Copy from",
+      "copySubmit": "Copy the plan",
+      "copied": "{tables, plural, one {# table copied} other {# tables copied}}, {seats, plural, =0 {no seat} one {# seat} other {# seats}}.",
+      "constraintsTitle": "Seating constraints",
+      "constraintsHelp": "Internal to your team: never shown to the client, never in a summary or an export. A constraint that is not met is flagged, without blocking.",
+      "constraintKind": {
+        "together": "Together",
+        "apart": "Apart"
+      },
+      "constraintLine": "{kind}: {names}",
+      "removeConstraint": "Delete the “{kind}” constraint: {names}",
+      "constraintsNone": "No constraint.",
+      "addConstraint": "Add a constraint",
+      "constraintKindLabel": "Kind",
+      "constraintMembers": "People concerned (two or more)",
+      "constraintSubmit": "Add the constraint",
+      "constraintAdded": "Constraint added.",
+      "catererTitle": "Caterer summary",
+      "catererHelp": "Computed when you download it, since answers change: meals by type, diets and allergens, by table. Nothing is kept in Symbola; each download is logged.",
+      "catererOutside": "The copy sent to the caterer leaves Symbola: ask them to delete it after the event.",
+      "catererNominativePdf": "Named PDF",
+      "catererNominativeCsv": "Named spreadsheet",
+      "catererAggregatePdf": "PDF without names",
+      "catererAggregateCsv": "Spreadsheet without names",
+      "catererMember": "You get the version without names, exact per table; the named version is reserved for the owner.",
+      "vendorTitle": "Vendor meals",
+      "vendorHelp": "Photographer, DJ…: a number for this key moment, without a table.",
+      "vendorCount": "Number of meals",
+      "vendorSave": "Save",
+      "vendorSaved": "Number saved.",
+      "mealTypesLink": "Meal types"
+    },
+    "mealTypes": {
+      "title": "Meal types",
+      "intro": "The meal types of the caterer summary. By default, an adult is served “Adult”, a child “Child”, a child under 3 “Baby”; change a guest's type on the seating plan. Hiding erases nothing.",
+      "unavailable": "Meal types are unavailable: the Guests module is not open for your organization.",
+      "hidden": "hidden",
+      "show": "Show {label}",
+      "hide": "Hide {label}",
+      "rename": "Rename {label}",
+      "label": "Label",
+      "save": "Save",
+      "saved": "Label saved.",
+      "reset": "Restore the starting label",
+      "addTitle": "Add a type",
+      "add": "Add",
+      "added": "Type added."
     }
   },
   "MoveToGroup": {

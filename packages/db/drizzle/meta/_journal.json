@@ -1114,6 +1114,13 @@
       "when": 1795003178610,
       "tag": "0158_lot46_hub_email_template_kinds",
       "breakpoints": true
+    },
+    {
+      "idx": 159,
+      "version": "7",
+      "when": 1795005916019,
+      "tag": "0159_lot50_guests_seating",
+      "breakpoints": true
     }
   ]
 }

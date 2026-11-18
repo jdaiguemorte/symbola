@@ -4,6 +4,9 @@ import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
 import {
   starterDietaryOptions,
+  starterMealTypes,
+  starterMealTypeLabel,
+  starterSeatingRules,
   starterDietConsent,
   starterGuestPrivacyNotice,
   starterGuestRules,
@@ -631,5 +634,26 @@ describe("HUB-10 — L'exemple du démarrage (lot 33b, D10)", () => {
     expect(starterExampleEvent("en").clients.every((client) => client.lastName.includes("(example)"))).toBe(true);
     expect(starterExampleEvent("fr").venueName).toContain("fictif");
     expect(starterExampleEvent("fr").daysFromToday).toBeGreaterThan(180);
+  });
+});
+
+describe("Lot 50 — Données de départ du plan de table et de la synthèse pour le traiteur", () => {
+  it("INV-06, D5 : quatre types de repas (adulte, enfant, bébé sans repas, prestataire), en français et en anglais", () => {
+    const fr = starterMealTypes("fr");
+    const en = starterMealTypes("en");
+    expect(fr.map((type) => type.key)).toEqual(["adult", "child", "baby", "vendor"]);
+    expect(en.map((type) => type.key)).toEqual(fr.map((type) => type.key));
+    expect(fr.every((type) => type.label.length > 0)).toBe(true);
+    expect(starterMealTypeLabel("baby", "en")).toBeTruthy();
+    expect(starterMealTypeLabel("inconnu", "fr")).toBeNull();
+  });
+
+  it("INV-05, D2 : la forme donne la capacité proposée ; ajout en série et plan bornés", () => {
+    const rules = starterSeatingRules();
+    expect(Object.keys(rules.defaultCapacity).sort()).toEqual(["head", "rectangular", "round"]);
+    for (const capacity of Object.values(rules.defaultCapacity)) expect(capacity).toBeGreaterThan(0);
+    expect(rules.maxTablesPerSeries).toBeGreaterThanOrEqual(12);
+    expect(rules.maxTablesPerPlan).toBeGreaterThanOrEqual(rules.maxTablesPerSeries);
+    expect(rules.maxCapacity).toBeGreaterThanOrEqual(rules.defaultCapacity.round);
   });
 });

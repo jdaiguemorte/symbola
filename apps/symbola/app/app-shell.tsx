@@ -359,7 +359,12 @@ export async function AppShell({ children }: { children: ReactNode }) {
                           href: "/events/modeles-programme",
                           label: tSettings("program"),
                         },
-                        ...(guests ? [{ href: "/events/parametres/regimes", label: tSettings("dietaryOptions") }] : []),
+                        ...(guests
+                          ? [
+                              { href: "/events/parametres/regimes", label: tSettings("dietaryOptions") },
+                              { href: "/events/parametres/repas", label: tSettings("mealTypes") },
+                            ]
+                          : []),
                       ]
                     : []),
                   ...(budget

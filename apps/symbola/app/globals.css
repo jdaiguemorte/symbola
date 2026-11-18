@@ -3733,3 +3733,102 @@
     @apply opacity-60;
   }
 }
+
+@layer components {
+  /* Lot 50 (INV-05, INV-06) — plan de table : les non placés dans une colonne fixe sur ordinateur, un
+     onglet avec leur nombre à 375 px (bascule « Tables » / « Non placés ») ; les tables en cartes,
+     une par ligne à 375 px ; une table en alerte (contrainte, capacité) bordée d'ambre ; un invité
+     « en attente de réponse » en pointillés. Rien ne déborde à 375 px. */
+  .seating-counts {
+    @apply text-body-strong;
+  }
+  .seating-switch {
+    @apply flex flex-wrap gap-2;
+  }
+  .seating-switch button[aria-pressed="true"] {
+    @apply border-primary bg-primary-soft;
+  }
+  .seating-layout {
+    @apply grid grid-cols-1 gap-4;
+  }
+  .seating-panel {
+    @apply flex min-w-0 flex-col gap-3;
+  }
+  .seating-unplaced {
+    @apply rounded-md border border-line bg-surface p-3;
+  }
+  .seating-tables {
+    @apply grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3;
+  }
+  .seating-table {
+    @apply flex min-w-0 flex-col gap-2 rounded-md border border-line bg-surface p-3;
+  }
+  .seating-table[data-alert="true"] {
+    @apply border-2 border-attention;
+  }
+  .seating-table-meta {
+    @apply m-0 text-label text-ink-muted;
+  }
+  .seating-table-alerts li {
+    @apply font-semibold text-attention;
+  }
+  .seating-household {
+    @apply flex flex-col gap-2;
+  }
+  .seating-household-head {
+    @apply flex flex-wrap items-center justify-between gap-2;
+  }
+  .seating-household-head h3 {
+    @apply m-0;
+  }
+  .seating-guests {
+    @apply gap-2;
+  }
+  .seating-guest {
+    @apply flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-sm border border-line p-2;
+  }
+  .seating-guest[data-status="pending"] {
+    @apply border-dashed border-line-strong;
+  }
+  .seating-guest-name {
+    @apply flex min-w-0 flex-col;
+  }
+  .seating-guest-meta {
+    @apply text-label text-ink-muted;
+  }
+  .seating-guest-meal {
+    @apply w-full;
+  }
+  .seating-form {
+    @apply my-2 flex flex-wrap items-end gap-3;
+  }
+  .seating-alerts {
+    @apply rounded-md border border-attention bg-attention-soft p-3;
+  }
+  .seating-checklist {
+    @apply m-0 grid max-h-80 list-none grid-cols-1 gap-1 overflow-y-auto p-0 sm:grid-cols-2;
+  }
+  .seating-choice {
+    @apply flex min-h-11 items-center gap-2;
+  }
+  .seating-downloads {
+    @apply m-0 flex list-none flex-row flex-wrap gap-2 p-0;
+  }
+  @media (width < 1024px) {
+    .seating-panel[data-active="false"] {
+      @apply hidden;
+    }
+  }
+  @media (min-width: 1024px) {
+    .seating-layout {
+      grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+      align-items: start;
+    }
+    .seating-switch {
+      @apply hidden;
+    }
+    .seating-unplaced {
+      @apply sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto;
+    }
+  }
+}
