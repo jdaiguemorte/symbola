@@ -1,6 +1,6 @@
 # Lot 47 — Prestataires par lien : brief groupé, espace prestataire, sélection au client
 
-**Statut** : spécification proposée le 18/11/2026, **à valider par Julien**. Le lot change le
+**Statut** : spécification proposée le 18/11/2026, **validée par Julien le 18/11/2026** : toutes les décisions retenues dans leur option recommandée (a), préalable commun et élargissement de la contrainte des natures d'e-mails du `hub` compris (accord donné). Le lot change le
 schéma `events` (tables et colonnes) et la contrainte des natures d'e-mails du schéma `hub`
 (D9) ; il revient sur une décision du lot 28 (D5) : validation explicite requise (CLAUDE.md § 8).
 Aucune dépendance nouvelle.
