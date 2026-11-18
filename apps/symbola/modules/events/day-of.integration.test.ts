@@ -69,8 +69,11 @@ async function mailsTo(to: string, wait = true): Promise<{ Subject: string }[]> 
   return [];
 }
 
-const action = <T extends DayAction>(value: Omit<T, "actionId" | "deviceAt"> & { deviceAt?: string; actionId?: string }) =>
-  ({ actionId: randomUUID(), deviceAt: "2027-06-12T14:20:00Z", ...value }) as T;
+type DayEventAction = Exclude<DayAction, { kind: "handover" }>;
+type Draft<T> = T extends unknown ? Omit<T, "actionId" | "deviceAt"> & { deviceAt?: string; actionId?: string } : never;
+function action<T extends DayEventAction = DayEventAction>(value: Draft<T>): T {
+  return { actionId: randomUUID(), deviceAt: "2027-06-12T14:20:00Z", ...value } as unknown as T;
+}
 
 // Mariage de Camille sur trois jours : vendredi (cocktail), samedi (cérémonie, cocktail, bus, dîner),
 // dimanche (brunch). Officiante, traiteur et autocariste, chacun avec son lien ; un client.

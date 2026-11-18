@@ -182,7 +182,7 @@ import { addPlace, listPlaces, makeReceptionPlace, removePlace, restorePlace, up
 import { attachFile, getAttachmentFile, listAttachments, listEventAttachments, removeAttachment } from "./task-attachments";
 import { addComment, listComments, removeComment, restoreComment } from "./task-comments";
 import { listTrashedEventRows, restoreDocumentRow, restoreEventRow, restoreProgramTemplateRow, restoreTaskTemplateRow, trashEventRow } from "./trash";
-import { createStorageClient, deletePrivateObject, detectFileType, scanBuffer, uploadPrivateObject } from "@symbola/files";
+import { createStorageClient, deletePrivateObject, detectFileType, PrivateObjectNotFoundError, readPrivateObject, scanBuffer, uploadPrivateObject } from "@symbola/files";
 import {
   addCandidate,
   addCandidateNote,
@@ -221,6 +221,7 @@ import {
   recordDayIncident,
   recordDayShift,
   recordDayShiftNotification,
+  findDayPhotoFile,
   resolveDayPhotoSubject,
   setDayShiftVersion,
   type DayActionResult,
@@ -3254,7 +3255,7 @@ export {
   removeDayChecklistTemplate,
   saveDayChecklistTemplate,
 } from "./day-checklists";
-export { deviceInstant, findDayPhotoFile } from "./day-of";
+export { deviceInstant } from "./day-of";
 
 // Réglages de départ du jour J (seuil de retard, photos, rafraîchissement), dans une langue.
 export function dayOfSettings(locale: "fr" | "en") {
@@ -3438,4 +3439,18 @@ export async function getDayReport(input: { organizationId: string; eventId: str
   const report = buildDayReport({ eventId: input.eventId, eventDate: event.event.eventDate, timeZone: event.event.timeZone, moments, items: program.items, records, handovers: input.handovers, now });
   if (!report.ready) return report;
   return { ...report, preparedAt: await saveDayReport(input.organizationId, input.eventId, report, now) };
+}
+
+// Le fichier d'une photo du jour J de cet évènement, servi par l'app après le contrôle des droits
+// (ADR 0027) ; null si elle n'existe pas, a été refusée, ou n'est pas de cet évènement.
+export async function readDayPhoto(organizationId: string, eventId: string, photoId: string): Promise<FileDownload | null> {
+  const file = await findDayPhotoFile(organizationId, eventId, photoId);
+  if (!file) return null;
+  try {
+    const object = await readPrivateObject(createStorageClient(), file.key);
+    return { data: object.data, contentType: file.contentType, fileName: `photo-${photoId}.${file.contentType.split("/")[1] ?? "jpg"}` };
+  } catch (error) {
+    if (error instanceof PrivateObjectNotFoundError) return null;
+    throw error;
+  }
 }
