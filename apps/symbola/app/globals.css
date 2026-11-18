@@ -3712,3 +3712,24 @@
     @apply flex items-center gap-1;
   }
 }
+
+@layer components {
+  /* Socle des lots 44 et 50 (D0) — « Déplacer » vers un groupe (app/ui/move-to-group.tsx) : la liste
+     des groupes s'ouvre sous le bouton, sans sortir de l'écran à 375 px ; le groupe survolé pendant
+     un glisser-déposer est entouré ; l'élément tiré s'estompe. */
+  .move-to-group {
+    @apply relative inline-block;
+  }
+  .move-to-group-menu {
+    @apply absolute right-0 z-10 mt-1 flex max-w-[calc(100vw-2rem)] min-w-48 flex-col gap-1 rounded-md border border-line-strong bg-surface p-1 shadow-float;
+  }
+  .move-to-group-menu button {
+    @apply min-h-11 w-full justify-start text-left;
+  }
+  [data-drop-target="true"] {
+    @apply outline-2 outline-offset-2 outline-dashed outline-primary;
+  }
+  [data-move-item][data-dragging="true"] {
+    @apply opacity-60;
+  }
+}

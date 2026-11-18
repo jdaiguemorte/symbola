@@ -7509,5 +7509,12 @@
       "add": "Add",
       "added": "Entry added."
     }
+  },
+  "MoveToGroup": {
+    "move": "Move",
+    "moveItem": "Move {item}",
+    "destinations": "Where to move {item}",
+    "moved": "{item} moved to “{group}”.",
+    "moveFailed": "{item} could not be moved: the page shows the saved state."
   }
 }
