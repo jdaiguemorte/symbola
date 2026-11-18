@@ -1,6 +1,6 @@
 # Lot 52 — Équipe : membres, rôles par évènement, renfort du jour J, comptable, sessions et alertes
 
-**Statut** : spécification proposée le 18/11/2026, **à valider par Julien**. Le lot change les
+**Statut** : spécification proposée le 18/11/2026, **validée par Julien le 18/11/2026** : toutes les décisions retenues dans leur option recommandée (a), changements de schéma, contrainte des natures d'e-mails du `hub` et, pour le lot 53, dépendance `web-push` compris (accord donné, ADR à écrire dans la PR). Le lot change les
 schémas `hub` et `events`, et touche le fournisseur d'identité (webhooks, D6) : validation
 explicite requise (CLAUDE.md § 8). Aucune dépendance nouvelle.
 
