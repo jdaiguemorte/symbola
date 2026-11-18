@@ -3,7 +3,8 @@
 **Statut** : spécification **validée par Julien le 15/11/2026** (« Oui, je valide » : D1 à D9
 en (a)). D7 reste à faire confirmer par l'expert-comptable avant le code du 35b (question 11 de
 sa fiche), et D8 par l'avocat et le DPO avant le code du 35c (question 12 de leurs fiches). D9
-rejoint la décision Q35 sur les sauvegardes (erratum ci-dessous, Q37).
+rejoint la décision Q35 sur les sauvegardes (erratum ci-dessous, Q37). **Le 18/11/2026, Julien a
+tranché D7 et D8 en (a)** (Q37) : les lots 35b et 35c peuvent se coder.
 Branche `lot-35-export` (35a), partie de `main` après le lot 34 (PR #116).
 
 ## Contexte

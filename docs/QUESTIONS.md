@@ -749,6 +749,15 @@ en a). Le 35a (export complet) est fusionné (PR #117).
   question 12 de `docs/conformite/fiche-dpo.md` (avec la trace des suppressions). Elles bloquent
   le lot 35c.
 
+**Décisions de Julien (18/11/2026)** :
+
+- **D7** : (a), reprise des pièces en lecture seule, numérotation continue pour le même SIREN,
+  chaîne vérifiée puis prolongée.
+- **D8** : (a), tout effacer au 30e jour, export jusqu'au dernier jour. La clause de réversibilité
+  sera écrite à la création de la société.
+- Les lots 35b et 35c ne sont plus bloqués. **Reste ouvert** : le choix de Q35 sur la rétention des
+  sauvegardes (35 jours ou 12 mois), à prendre avant la première donnée réelle.
+
 **D9 rejoint Q35 (erratum de la spécification)** :
 
 - **Ce que dit la spécification** : D9 recommandait de garder la rétention de NFR-13 (12 copies
