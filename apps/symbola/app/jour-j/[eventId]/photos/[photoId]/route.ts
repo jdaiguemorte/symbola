@@ -11,6 +11,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ even
   const access = await dayOfAccess(request, eventId, { write: false });
   if (!access.ok) return access.response;
   if (!isValidId(photoId)) return new Response(null, { status: 404 });
-  const file = await readDayPhoto(access.organizationId, eventId, photoId);
+  // Lot 52 (D3) : le reçu d'une remise d'argent reste fermé au renfort.
+  const file = await readDayPhoto(access.organizationId, eventId, photoId, { withoutHandovers: access.viewer.kind === "helper" });
   return file ? fileDownloadResponse(file, { inline: true }) : new Response(null, { status: 404 });
 }

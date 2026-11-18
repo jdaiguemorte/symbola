@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { visibleEventScope, withinScope } from "@/lib/event-visibility";
 import { EmptyState } from "@/app/ui/empty-state";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, parisToday, type Locale } from "@symbola/i18n";
@@ -71,7 +72,9 @@ export default async function EventsListPage({
       : tabStatuses;
   // L13-EVT-18 : années et effectifs des onglets depuis tous les événements
   // (quelques centaines au plus pour une organisation).
-  const allEvents = await listEvents({ organizationId });
+  // Lot 52 (EVT-06, D2) : les évènements visibles de la personne (réglage de visibilité).
+  const scope = await visibleEventScope(auth);
+  const allEvents = withinScope(scope, await listEvents({ organizationId }), (event) => event.id);
   const years = yearOptions(allEvents.map((event) => event.eventDate), parisToday());
   const yearFilter = parseYear(year, years);
   const counts = tabCounts(allEvents.map((event) => event.status));
@@ -88,13 +91,17 @@ export default async function EventsListPage({
     ? source
     : undefined;
 
-  const items = await listEvents({
-    organizationId,
-    statusIn: statusFilter,
-    year: yearFilter,
-    search: search || undefined,
-    prospectSourceId: sourceFilter,
-  });
+  const items = withinScope(
+    scope,
+    await listEvents({
+      organizationId,
+      statusIn: statusFilter,
+      year: yearFilter,
+      search: search || undefined,
+      prospectSourceId: sourceFilter,
+    }),
+    (event) => event.id,
+  );
 
   function clientNames(
     clients: { firstName: string; lastName: string | null }[],
@@ -242,7 +249,7 @@ export default async function EventsListPage({
       {/* Lot 39c (UX-08) : l'écran vide enseigne (action, exemple, aide). */}
       {!calendarView && items.length === 0 ? counts.upcoming + counts.past === 0 ? <EmptyState screen="events" actionHref="/events/new" /> : <p>{t("noResults")}</p> : null}
       {/* Lot 32a (D3), 32b (D11) : l'agenda des mois à venir, en vue calendrier. */}
-      {calendarView ? <AgendaBlock organizationId={organizationId} locale={locale} today={parisToday()} query={{ agenda, debut }} params={{ affichage: "calendrier" }} /> : null}
+      {calendarView ? <AgendaBlock organizationId={organizationId} scope={scope} locale={locale} today={parisToday()} query={{ agenda, debut }} params={{ affichage: "calendrier" }} /> : null}
       {isPastTab ? null : <MonthlyLoad load={load} locale={locale} />}
       {counts.upcoming + counts.past === 0 ? (
         <section className="card" aria-labelledby="events-empty-trial">

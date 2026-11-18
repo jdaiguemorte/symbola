@@ -289,14 +289,15 @@ export async function insertDayPhoto(input: {
 }
 
 // Le fichier d'une photo de cet évènement (servi par l'app après contrôle des droits, ADR 0027).
-export async function findDayPhotoFile(organizationId: string, eventId: string, photoId: string): Promise<{ key: string; contentType: string } | null> {
+export async function findDayPhotoFile(organizationId: string, eventId: string, photoId: string, options: { withoutHandovers?: boolean } = {}): Promise<{ key: string; contentType: string } | null> {
   if (!DAY_UUID.test(photoId)) return null;
   const [row] = await inOrganization(organizationId, (tx) =>
     tx
-      .select({ key: dayPhotos.storageKey, contentType: dayPhotos.contentType })
+      .select({ key: dayPhotos.storageKey, contentType: dayPhotos.contentType, subject: dayPhotos.subject })
       .from(dayPhotos)
       .where(and(eq(dayPhotos.id, photoId), eq(dayPhotos.eventId, eventId), eq(dayPhotos.state, "stored"))),
   );
+  if (options.withoutHandovers && row?.subject === "handover") return null;
   return row?.key && row.contentType ? { key: row.key, contentType: row.contentType } : null;
 }
 

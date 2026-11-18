@@ -117,3 +117,10 @@ export type EventViewer = { userId: string; role: "owner" | "member"; allPlanner
 export function seesAllEvents(viewer: EventViewer): boolean {
   return viewer.role === "owner" || viewer.allPlannersSeeAll;
 }
+
+// La personne qui crée un évènement en devient le planner principal s'il n'en a pas (une Planner garde
+// ainsi la vue sur ses évènements quand le réglage de visibilité est coupé). Sans journal : c'est la
+// création elle-même.
+export async function insertLeadIfNone(organizationId: string, eventId: string, userId: string): Promise<void> {
+  await inOrganization(organizationId, (tx) => tx.insert(eventTeamMembers).values({ organizationId, eventId, userId, role: "lead" }).onConflictDoNothing());
+}

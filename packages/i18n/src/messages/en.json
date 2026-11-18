@@ -1416,6 +1416,10 @@
     "accounting": {
       "title": "Accountant access",
       "body": "The Owner gave you read-only access: invoices, credit notes, payments, ledgers, exports and e-reporting. You see neither events, nor guests, nor settings. Two-step verification is asked at every sign-in."
+    },
+    "eventTeam": {
+      "title": "Event team",
+      "body": "Name a lead planner (who receives the event's alerts and digests) and assistants. When “All Planners see all events” is off (Settings, Team), a Planner only sees the events of her team. A big day helper comes without an account: their link only opens this event's Big day mode, from the day before to the day after."
     }
   },
   "Aide": {
@@ -5399,7 +5403,14 @@
       "quotes_validity_extended": "Quote validity extended",
       "quotes_signing_code_verified": "Code checked before signing",
       "budget_payers_changed": "Payers or shares changed",
-      "budget_payer_visibility_changed": "What a payer sees, changed"
+      "budget_payer_visibility_changed": "What a payer sees, changed",
+      "hub_identity_changed": "Account changed at the identity provider",
+      "hub_identity_webhook_refused": "Identity provider call refused",
+      "hub_ownership_transfer_requested": "Ownership transfer requested",
+      "hub_ownership_transferred": "Ownership transferred",
+      "hub_ownership_transfer_cancelled": "Ownership transfer cancelled",
+      "hub_organization_visibility_changed": "Event visibility changed",
+      "events_team_changed": "Event team changed"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -6075,7 +6086,10 @@
     "prepAddItem": "Add the box",
     "prepRemove": "Remove",
     "prepRemoveItem": "Remove the box {label}",
-    "prepRemoveList": "Remove the checklist \"{name}\""
+    "prepRemoveList": "Remove the checklist \"{name}\"",
+    "helperWelcome": "Hello {name}: here is the big day, as a helper.",
+    "byHelper": "{name}, helper",
+    "syncLinkRevoked": "{count, plural, =0 {Your helper link was removed or has expired.} one {Your helper link was removed or has expired: # action stays on this phone and will not be sent. Let the planner know.} other {Your helper link was removed or has expired: # actions stay on this phone and will not be sent. Let the planner know.}}"
   },
   "Offline": {
     "title": "Offline",
@@ -7668,7 +7682,8 @@
       "vendor": "Supplier archived.",
       "appointmentType": "Appointment type moved to the bin.",
       "appointment": "Appointment moved to the bin."
-    }
+    },
+    "eventAssistant": "As an assistant on this event, you cannot delete it: ask its lead planner or the Owner."
   },
   "Drafts": {
     "found": "Draft from {date} found.",
@@ -9428,6 +9443,64 @@
       "invalid": "This link is no longer valid: it was already used, cancelled, or is more than seven days old.",
       "not_recipient": "This link is meant for another team member.",
       "mfa_required": "To confirm, sign in again with your two-step verification, then open the link again."
+    }
+  },
+  "EventTeam": {
+    "title": "Event team",
+    "subtitle": "The lead planner receives the alerts and digests; assistants work on the whole event, except deleting it.",
+    "back": "Back to {event}",
+    "untitled": "the event",
+    "manage": "Manage the team",
+    "lead": "Lead planner",
+    "assistants": "Assistants",
+    "helpers": "Big day helpers",
+    "noLead": "None",
+    "noAssistant": "None",
+    "noHelper": "No helper yet.",
+    "membersTitle": "Planners of the event",
+    "roles": {
+      "lead": "Lead planner",
+      "assistant": "Assistant"
+    },
+    "notInTeam": "Not in the team",
+    "makeLead": "Make lead planner",
+    "makeLeadLabel": "Make {email} the lead planner",
+    "addAssistant": "Add as assistant",
+    "addAssistantLabel": "Add {email} as assistant",
+    "remove": "Remove from the team",
+    "removeLabel": "Remove {email} from the team",
+    "formerMembers": "A person whose access was removed no longer appears.",
+    "helpersTitle": "Big day helpers",
+    "helpersIntro": "A helper gets a personal link, with no account: it only opens this event's Big day mode (live schedule, contacts, kept documents, check-ins, log, checklists), from the day before to the day after, with a code sent by email. No budget, quotes, guests or settings.",
+    "helperName": "Helper's name",
+    "helperEmail": "Their email (the opening code is sent there)",
+    "helperPhone": "Their phone (optional, for the contact list)",
+    "helperHint": "The link is emailed right away. You can remove it at any time: their pending actions will be refused.",
+    "helperAdd": "Add the helper",
+    "helperSent": "Helper added: their link was emailed.",
+    "helperValid": "Link valid from {from} to {until} included",
+    "helperStatus": {
+      "expired": "Link expired",
+      "revoked": "Link removed"
+    },
+    "helperRevoke": "Remove the link",
+    "helperRevokeLabel": "Remove {name}'s link",
+    "helperNeedsDate": "Give the event a date to add a helper: their link follows that date.",
+    "helperError": {
+      "name": "Enter the helper's name.",
+      "email": "This email address is not valid.",
+      "phone": "This phone number is not valid.",
+      "date": "The event has no date yet.",
+      "demo": "A trial never emails a third party.",
+      "quota": "The hourly sending limit is reached: try again a bit later.",
+      "template": "The helper email template has a variable without a value: fix it in the email settings.",
+      "failed": "The helper could not be added. Try again in a few minutes."
+    },
+    "outcome": {
+      "saved": "Team saved.",
+      "removed": "Removed from the team.",
+      "helper_revoked": "Link removed: the helper no longer has access, their pending actions will be refused.",
+      "invalid": "This person cannot join the event team."
     }
   }
 }

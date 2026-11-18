@@ -26,6 +26,7 @@ import {
   listEventVendorSlots,
   listProspectSources,
   listVendorCandidates,
+  makeCreatorLead,
 } from "@/modules/events/service";
 import { isModuleEnabled } from "@/modules/hub/service";
 import { createQuote, EventNotFoundError, getQuote } from "@/modules/quotes/service";
@@ -141,6 +142,8 @@ export async function quickCreateProspectAction(_prev: QuickCreateState, formDat
     venueName: null,
     venueCity: null,
   });
+  // Lot 52 (EVT-06, D2) : la personne qui crée l'évènement en est le planner principal.
+  await makeCreatorLead(organizationId, created.id, access.userId);
   refresh(created.id);
   // Lot 39b (UX-09) : l'évènement est créé, le brouillon de la saisie n'a plus lieu d'être.
   await discardMyFormDraft("event-quick");

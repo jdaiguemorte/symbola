@@ -7,7 +7,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import type { EventClientInput } from "@symbola/contracts";
 import type { Locale } from "@symbola/i18n";
 import { ContactNotFoundError } from "@/modules/hub/service";
-import { changeEventStatus, countOrganizationRealEvents, createProspect, getActiveEventsTrial, listEventTypes, listProspectSources } from "@/modules/events/service";
+import { makeCreatorLead, changeEventStatus, countOrganizationRealEvents, createProspect, getActiveEventsTrial, listEventTypes, listProspectSources } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { eventsMessageFor } from "@/lib/vocabulary";
 import { isEventsModuleEnabled } from "../module-access";
@@ -71,6 +71,9 @@ export async function createProspectAction(
     if (error instanceof ContactNotFoundError) return { error: (await getTranslations("Contacts"))("notFound") };
     return { error: await unexpectedActionError(error) };
   }
+
+  // Lot 52 (EVT-06, D2) : la personne qui crée l'évènement en est le planner principal.
+  await makeCreatorLead(organizationId, result.id, auth.user.id);
 
   // L12-HUB-13 : « Créer un événement » depuis l'agenda = confirmé d'emblée (la
   // fiche propose alors le rétroplanning, L12-EVT-13).

@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import { requirePlanner } from "@/lib/guards";
 import { deleteEvent, EventDeletionRefusedError, TrashItemNotFoundError } from "@/lib/trash";
 import { offerUndo } from "@/lib/undo";
+import { eventTeamRole } from "@/modules/events/service";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
 export async function deleteEventAction(formData: FormData): Promise<void> {
@@ -16,6 +17,8 @@ export async function deleteEventAction(formData: FormData): Promise<void> {
   const organizationId = auth.user.organizationId;
   const eventId = String(formData.get("eventId") ?? "");
   if (!isValidId(eventId) || !(await isEventsModuleEnabled(organizationId))) redirect("/events");
+  // Lot 52 (EVT-06, D2) : l'assistant d'un évènement ne le supprime pas.
+  if (auth.user.role !== "owner" && (await eventTeamRole(organizationId, eventId, auth.user.id)) === "assistant") redirect(`/events/${eventId}?suppression=assistant`);
   let outcome: "deleted" | "refused" | "missing" = "deleted";
   try {
     await deleteEvent(organizationId, eventId);

@@ -35,7 +35,10 @@ export async function AgendaBlock({
   query,
   basePath = "/events",
   params = {},
+  scope = null,
 }: {
+  // Lot 52 (EVT-06, D2) : les évènements visibles de la personne ; null : tous.
+  scope?: Set<string> | null;
   organizationId: string;
   locale: Locale;
   today: string;
@@ -53,7 +56,7 @@ export async function AgendaBlock({
   const start = query.debut && /^\d{4}-(0[1-9]|1[0-2])$/.test(query.debut) ? query.debut : current;
 
   const events = (await listEvents({ organizationId }))
-    .filter((event) => event.eventDate !== null && event.status !== "cancelled")
+    .filter((event) => event.eventDate !== null && event.status !== "cancelled" && (!scope || scope.has(event.id)))
     .map((event) => ({ id: event.id, date: event.eventDate!, status: event.status, names: eventNames(event.clients), isDemo: event.isDemo }));
   const months = buildCalendar({ start, months: span, events });
   const href = (changes: { agenda?: number; debut?: string }) =>

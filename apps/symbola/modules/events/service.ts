@@ -248,7 +248,7 @@ import {
   type DayActionResult,
 } from "./day-of";
 import { buildDayReport, saveDayReport } from "./day-report";
-import { deleteEventTeamMember, deleteMemberFromAllTeams, findEventLeads, findEventTeam, findTeamEventIds, findTeamRole, seesAllEvents, upsertEventTeamMember, type EventViewer } from "./team";
+import { insertLeadIfNone, deleteEventTeamMember, deleteMemberFromAllTeams, findEventLeads, findEventTeam, findTeamEventIds, findTeamRole, seesAllEvents, upsertEventTeamMember, type EventViewer } from "./team";
 import { importProgram } from "./program-import";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -2191,6 +2191,10 @@ export async function removeEventTeamMember(input: { organizationId: string; eve
   return deleteEventTeamMember(input);
 }
 
+export async function makeCreatorLead(organizationId: string, eventId: string, userId: string): Promise<void> {
+  await insertLeadIfNone(organizationId, eventId, userId);
+}
+
 // HUB-04 : un membre retiré de l'organisation n'est plus dans aucune équipe d'évènement.
 export async function removeMemberFromEvents(organizationId: string, userId: string): Promise<number> {
   return deleteMemberFromAllTeams(organizationId, userId);
@@ -3608,7 +3612,9 @@ export async function latestVendorDayShift(organizationId: string, eventId: stri
 export async function receiveDayPhoto(input: {
   organizationId: string;
   eventId: string;
-  userId: string;
+  userId: string | null;
+  // Lot 52 (D3) : la photo vient du lien d'un renfort du jour J.
+  linkId?: string | null;
   meta: DayPhotoMeta;
   bytes: Uint8Array | null;
   maxBytes: number;
@@ -3637,7 +3643,7 @@ export async function receiveDayPhoto(input: {
       stored = { key, contentType: detected.mime, sizeBytes: buffer.length };
     }
   }
-  const { photo, duplicate } = await insertDayPhoto({ organizationId: input.organizationId, eventId: input.eventId, userId: input.userId, actionId: input.meta.actionId, takenAt, target, stored, rejection });
+  const { photo, duplicate } = await insertDayPhoto({ organizationId: input.organizationId, eventId: input.eventId, userId: input.userId, linkId: input.linkId ?? null, actionId: input.meta.actionId, takenAt, target, stored, rejection });
   if (duplicate && stored) await deletePrivateObject(createStorageClient(), stored.key).catch(() => undefined);
   return { status: duplicate ? "duplicate" : "applied", photo };
 }
@@ -3655,8 +3661,9 @@ export async function getDayReport(input: { organizationId: string; eventId: str
 
 // Le fichier d'une photo du jour J de cet évènement, servi par l'app après le contrôle des droits
 // (ADR 0027) ; null si elle n'existe pas, a été refusée, ou n'est pas de cet évènement.
-export async function readDayPhoto(organizationId: string, eventId: string, photoId: string): Promise<FileDownload | null> {
-  const file = await findDayPhotoFile(organizationId, eventId, photoId);
+// Lot 52 (D3) : withoutHandovers, pour un renfort : le reçu d'une remise d'argent (budget) lui reste fermé.
+export async function readDayPhoto(organizationId: string, eventId: string, photoId: string, options: { withoutHandovers?: boolean } = {}): Promise<FileDownload | null> {
+  const file = await findDayPhotoFile(organizationId, eventId, photoId, options);
   if (!file) return null;
   try {
     const object = await readPrivateObject(createStorageClient(), file.key);

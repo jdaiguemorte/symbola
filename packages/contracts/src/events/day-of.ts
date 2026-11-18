@@ -112,7 +112,9 @@ export type DayState = {
   incidents: DayIncident[];
   checklists: DayChecklist[];
   // Membres de l'organisation cités (pointages, cases, incidents) : identifiant et nom affiché.
-  people: { id: string; name: string }[];
+  // Lot 52 (EVT-06, D3) : helper, un renfort du jour J (son lien) ; name vide : une personne de l'équipe
+  // qui n'est pas nommée à un renfort.
+  people: { id: string; name: string; helper?: boolean }[];
 };
 
 // Le bilan du lendemain (PAR-08, étape 7), interne à l'organisation.

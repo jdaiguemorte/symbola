@@ -28,10 +28,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ eve
   const parsed = dayActionBatchSchema.safeParse(body);
   if (!parsed.success) return Response.json({ error: "invalid" }, { status: 400 });
 
-  const { organizationId, userId, event } = access;
+  const { organizationId, userId, linkId, event } = access;
   const now = new Date();
   const outcomes: DayActionOutcome[] = [];
   for (const action of parsed.data.actions) {
+    // Lot 52 (D3) : une remise d'argent n'est pas du ressort du renfort (budget) ; refusée pour de bon.
+    if (action.kind === "handover" && linkId) {
+      outcomes.push({ actionId: action.actionId, status: "rejected", reason: "scope" });
+      continue;
+    }
     if (action.kind === "handover") {
       // JRJ-09 : la remise est tenue par le module Budget (dégradation propre s'il n'est pas souscrit).
       const at = deviceInstant(action.deviceAt, now);
@@ -39,11 +44,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ eve
         outcomes.push({ actionId: action.actionId, status: "rejected", reason: at ? "module" : "time" });
         continue;
       }
-      const status = await recordDayHandover({ organizationId, eventId, paymentId: action.paymentId, userId, actionId: action.actionId, handedOverAt: at, timeZone: event.timeZone });
+      const status = await recordDayHandover({ organizationId, eventId, paymentId: action.paymentId, userId: userId!, actionId: action.actionId, handedOverAt: at, timeZone: event.timeZone });
       outcomes.push(status === "not_found" ? { actionId: action.actionId, status: "rejected", reason: "payment" } : { actionId: action.actionId, status });
       continue;
     }
-    const result = await applyDayAction({ organizationId, eventId, userId, action, now, renderDocument: (document) => renderRecipientProgramPdf(organizationId, document) });
+    const result = await applyDayAction({ organizationId, eventId, userId, linkId, action, now, renderDocument: (document) => renderRecipientProgramPdf(organizationId, document) });
     outcomes.push({ actionId: action.actionId, status: result.status, ...(result.reason ? { reason: result.reason } : {}) });
   }
   return Response.json({ outcomes }, { headers: { "Cache-Control": "no-store" } });

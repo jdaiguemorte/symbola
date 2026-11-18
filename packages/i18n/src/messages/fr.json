@@ -1416,6 +1416,10 @@
     "accounting": {
       "title": "Accès comptable",
       "body": "La Propriétaire vous a ouvert un accès en lecture seule : factures, avoirs, encaissements, journaux, exports et e-reporting. Vous ne voyez ni les évènements, ni les invités, ni les réglages. La double authentification vous est demandée à chaque connexion."
+    },
+    "eventTeam": {
+      "title": "Équipe de l'évènement",
+      "body": "Nommez un planner principal (il reçoit les alertes et les récapitulatifs de l'évènement) et des assistants. Quand « Toutes les Planners voient tous les évènements » est coupé (Réglages, Équipe), une Planner ne voit que les évènements de son équipe. Un renfort du jour J vient sans compte : son lien n'ouvre que le mode Jour J de cet évènement, de la veille au lendemain."
     }
   },
   "Aide": {
@@ -5399,7 +5403,14 @@
       "quotes_validity_extended": "Validité d'un devis prolongée",
       "quotes_signing_code_verified": "Code vérifié avant la signature",
       "budget_payers_changed": "Payeurs ou parts modifiés",
-      "budget_payer_visibility_changed": "Ce que voit un payeur, modifié"
+      "budget_payer_visibility_changed": "Ce que voit un payeur, modifié",
+      "hub_identity_changed": "Compte modifié chez le fournisseur d'identité",
+      "hub_identity_webhook_refused": "Appel du fournisseur d'identité refusé",
+      "hub_ownership_transfer_requested": "Transfert de propriété demandé",
+      "hub_ownership_transferred": "Propriété transférée",
+      "hub_ownership_transfer_cancelled": "Transfert de propriété annulé",
+      "hub_organization_visibility_changed": "Visibilité des évènements modifiée",
+      "events_team_changed": "Équipe de l'évènement modifiée"
     },
     "categories": {
       "connexion": "Connexions",
@@ -6075,7 +6086,10 @@
     "prepAddItem": "Ajouter la case",
     "prepRemove": "Retirer",
     "prepRemoveItem": "Retirer la case {label}",
-    "prepRemoveList": "Retirer la liste « {name} »"
+    "prepRemoveList": "Retirer la liste « {name} »",
+    "helperWelcome": "Bonjour {name} : voici le jour J, en renfort.",
+    "byHelper": "{name}, renfort",
+    "syncLinkRevoked": "{count, plural, =0 {Votre lien de renfort a été retiré ou a expiré.} one {Votre lien de renfort a été retiré ou a expiré : # action reste sur ce téléphone, elle ne sera pas envoyée. Prévenez la planner.} other {Votre lien de renfort a été retiré ou a expiré : # actions restent sur ce téléphone, elles ne seront pas envoyées. Prévenez la planner.}}"
   },
   "Offline": {
     "title": "Hors ligne",
@@ -7668,7 +7682,8 @@
       "vendor": "Prestataire archivé.",
       "appointmentType": "Type de rendez-vous mis à la corbeille.",
       "appointment": "Rendez-vous mis à la corbeille."
-    }
+    },
+    "eventAssistant": "Comme assistant de cet évènement, vous ne pouvez pas le supprimer : demandez à son planner principal ou à la Propriétaire."
   },
   "Drafts": {
     "found": "Brouillon du {date} retrouvé.",
@@ -9428,6 +9443,64 @@
       "invalid": "Ce lien n'est plus valable : il a déjà servi, il a été annulé ou il a plus de sept jours.",
       "not_recipient": "Ce lien est destiné à une autre personne de l'équipe.",
       "mfa_required": "Pour confirmer, reconnectez-vous avec votre double authentification, puis rouvrez le lien."
+    }
+  },
+  "EventTeam": {
+    "title": "Équipe de l'évènement",
+    "subtitle": "Le planner principal reçoit les alertes et récapitulatifs ; les assistants travaillent sur tout l'évènement, sauf sa suppression.",
+    "back": "Retour à {event}",
+    "untitled": "l'évènement",
+    "manage": "Gérer l'équipe",
+    "lead": "Planner principal",
+    "assistants": "Assistants",
+    "helpers": "Renforts du jour J",
+    "noLead": "Aucun",
+    "noAssistant": "Aucun",
+    "noHelper": "Aucun renfort pour l'instant.",
+    "membersTitle": "Planners de l'évènement",
+    "roles": {
+      "lead": "Planner principal",
+      "assistant": "Assistant"
+    },
+    "notInTeam": "Pas dans l'équipe",
+    "makeLead": "Nommer planner principal",
+    "makeLeadLabel": "Nommer {email} planner principal",
+    "addAssistant": "Ajouter comme assistant",
+    "addAssistantLabel": "Ajouter {email} comme assistant",
+    "remove": "Retirer de l'équipe",
+    "removeLabel": "Retirer {email} de l'équipe",
+    "formerMembers": "Une personne dont l'accès a été retiré n'apparaît plus.",
+    "helpersTitle": "Renforts du jour J",
+    "helpersIntro": "Un renfort reçoit un lien personnel, sans compte : il ouvre seulement le mode Jour J de cet évènement (programme en direct, annuaire, documents gardés, pointage, main courante, listes), de la veille au lendemain, avec un code envoyé par e-mail. Ni budget, ni devis, ni invités, ni réglages.",
+    "helperName": "Nom du renfort",
+    "helperEmail": "Son e-mail (le code d'ouverture y part)",
+    "helperPhone": "Son téléphone (facultatif, pour l'annuaire)",
+    "helperHint": "Le lien part aussitôt par e-mail. Vous pouvez le retirer à tout moment : ses actions encore en attente seront refusées.",
+    "helperAdd": "Ajouter le renfort",
+    "helperSent": "Renfort ajouté : son lien est parti par e-mail.",
+    "helperValid": "Lien valable du {from} au {until} inclus",
+    "helperStatus": {
+      "expired": "Lien expiré",
+      "revoked": "Lien retiré"
+    },
+    "helperRevoke": "Retirer le lien",
+    "helperRevokeLabel": "Retirer le lien de {name}",
+    "helperNeedsDate": "Donnez une date à l'évènement pour ajouter un renfort : son lien suit cette date.",
+    "helperError": {
+      "name": "Indiquez le nom du renfort.",
+      "email": "Cette adresse e-mail n'est pas valide.",
+      "phone": "Ce numéro de téléphone n'est pas valide.",
+      "date": "L'évènement n'a pas encore de date.",
+      "demo": "Un essai n'envoie jamais d'e-mail à un tiers.",
+      "quota": "Le plafond d'envois de l'heure est atteint : réessayez un peu plus tard.",
+      "template": "Le modèle de l'e-mail du renfort a une variable sans valeur : corrigez-le dans les réglages des e-mails.",
+      "failed": "Le renfort n'a pas pu être ajouté. Réessayez dans quelques minutes."
+    },
+    "outcome": {
+      "saved": "Équipe enregistrée.",
+      "removed": "Retiré de l'équipe.",
+      "helper_revoked": "Lien retiré : le renfort n'a plus accès, ses actions en attente seront refusées.",
+      "invalid": "Cette personne ne peut pas rejoindre l'équipe de l'évènement."
     }
   }
 }
