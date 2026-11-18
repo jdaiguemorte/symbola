@@ -1,5 +1,5 @@
 // Lot 31a (FAC-07, JUR-09 ; décision D4) — pour les tests : une organisation « prête » a ses
-// mentions requises remplies (adresse, SIREN, assurance, médiateur, conditions générales,
+// mentions requises remplies (adresse, code postal et ville, SIREN, assurance, médiateur, conditions générales,
 // numéro de TVA en assujetti, conditions de paiement) et propose l'acompte sur ses devis.
 // Seuls les champs vides sont remplis : un test qui fixe une adresse la garde.
 import { appDatabase } from "@symbola/db/client";
@@ -12,6 +12,9 @@ export async function fillRequiredMentions(organizationId: string): Promise<void
   const profile = await getOrganizationProfile(db, organizationId);
   await saveOnboardingStep(db, organizationId, {
     ...(profile.address ? {} : { address: "12 rue des Tilleuls, 24200 Sarlat" }),
+    // Lot 41 (FAC-10, D7) : adresse structurée, demandée avant la première facture.
+    ...(profile.postalCode ? {} : { postalCode: "24200" }),
+    ...(profile.city ? {} : { city: "Sarlat-la-Canéda" }),
     ...(profile.siren ? {} : { siren: "123456789" }),
     ...(profile.vatRegime === "assujetti" && !profile.vatNumber ? { vatNumber: "FR12123456789" } : {}),
     ...(profile.insurer ? {} : { insurer: "Assurances du Périgord", insurancePolicy: "RCP-2027-001" }),

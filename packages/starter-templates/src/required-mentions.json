@@ -1,8 +1,8 @@
 {
   "version": 1,
   "status": {
-    "fr": "Liste de départ à valider par l'expert-comptable (JUR-01, fiche docs/conformite/fiche-expert-comptable.md).",
-    "en": "Starter list, to be validated by the chartered accountant (JUR-01)."
+    "fr": "Liste de départ à valider par l'expert-comptable (JUR-01, fiche docs/conformite/fiche-expert-comptable.md). Lot 41 : adresse structurée du vendeur sur les factures et avoirs, acheteur entreprise (raison sociale, SIREN, adresse) et escompte face à un professionnel.",
+    "en": "Starter list, to be validated by the chartered accountant (JUR-01). Lot 41: structured seller address on invoices and credit notes, business buyer (name, SIREN, address) and early payment discount for a business client."
   },
   "rules": [
     {
@@ -124,6 +124,61 @@
     },
     {
       "field": "latePenaltyRate",
+      "documents": [
+        "quote",
+        "deposit_invoice",
+        "balance_invoice"
+      ],
+      "clientKinds": [
+        "professional"
+      ]
+    },
+    {
+      "field": "postalCode",
+      "documents": [
+        "deposit_invoice",
+        "balance_invoice"
+      ]
+    },
+    {
+      "field": "city",
+      "documents": [
+        "deposit_invoice",
+        "balance_invoice"
+      ]
+    },
+    {
+      "field": "buyerCompany",
+      "documents": [
+        "deposit_invoice",
+        "balance_invoice"
+      ],
+      "clientKinds": [
+        "professional"
+      ]
+    },
+    {
+      "field": "buyerSiren",
+      "documents": [
+        "deposit_invoice",
+        "balance_invoice"
+      ],
+      "clientKinds": [
+        "professional"
+      ]
+    },
+    {
+      "field": "buyerAddress",
+      "documents": [
+        "deposit_invoice",
+        "balance_invoice"
+      ],
+      "clientKinds": [
+        "professional"
+      ]
+    },
+    {
+      "field": "professionalDiscountTerms",
       "documents": [
         "quote",
         "deposit_invoice",

@@ -184,6 +184,7 @@ export function buildInvoicePdfModel(input: {
     footer: documentFooter(invoice.seller, labels, locale),
     watermark: input.watermark,
     signature: null,
+    embedFonts: true,
   };
 }
 
@@ -222,5 +223,6 @@ export function buildCreditNotePdfModel(input: {
     footer: documentFooter(creditNote.seller, labels, locale),
     watermark: input.watermark,
     signature: null,
+    embedFonts: true,
   };
 }

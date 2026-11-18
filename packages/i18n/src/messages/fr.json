@@ -2162,7 +2162,6 @@
     "invoiceNotFound": "Cette facture n'existe pas ou plus.",
     "quoteNotSigned": "Une facture ne s'émet que depuis un devis signé.",
     "invoiceAlreadyIssued": "Cette facture a déjà été émise.",
-    "professionalInvoiceNotSupported": "Facture à un client professionnel : le format Factur-X arrive dans un prochain lot. En attendant, l'émission n'est pas possible depuis Symbola.",
     "creditNoteExceedsInvoice": "L'avoir dépasse le montant restant de la facture.",
     "invalidCreditNote": "Indiquez un montant positif et un motif.",
     "pdfInvoiceTitle": "Facture {number}",
@@ -2246,7 +2245,13 @@
       "advanceKind": "Acompte ou arrhes, sur ce devis",
       "professionalPaymentTerms": "Conditions de paiement face à un professionnel",
       "latePenaltyRate": "Taux des pénalités de retard (client professionnel)",
-      "earnestSingleInstalment": "Des arrhes se versent en une seule échéance"
+      "earnestSingleInstalment": "Des arrhes se versent en une seule échéance",
+      "postalCode": "Code postal de l'entreprise",
+      "city": "Ville de l'entreprise",
+      "buyerCompany": "Acheteur entreprise du devis (client professionnel)",
+      "buyerSiren": "SIREN ou SIRET de l'acheteur entreprise",
+      "buyerAddress": "Adresse complète de l'acheteur entreprise (ligne, code postal, ville)",
+      "professionalDiscountTerms": "Escompte pour paiement anticipé (clients professionnels)"
     },
     "mentionsMissing": "Mentions requises manquantes : remplissez-les, puis recommencez.",
     "mentionsMissingBeforeSend": "Avant l'envoi, il manque :",
@@ -2352,7 +2357,9 @@
     "pdfReceiptMethod": "Reçu par {method}",
     "pdfReceiptMention": "Reçu non fiscal. Ces arrhes viendront en règlement sur la facture de solde.",
     "pdfReceiptCancelled": "Encaissement annulé",
-    "signerSaveAddress": "Garder cette adresse sur la fiche du contact"
+    "signerSaveAddress": "Garder cette adresse sur la fiche du contact",
+    "professionalInvoiceFacturX": "Client professionnel : la facture est un Factur-X adressé à l'acheteur entreprise du devis (raison sociale, SIREN, adresse), avec son bon de commande s'il en émet un.",
+    "facturxMismatch": "La facture n'a pas été émise : son fichier structuré ne donne pas les mêmes totaux que le PDF. Aucun numéro n'a été consommé ; signalez-le au support avec la référence de l'erreur."
   },
   "Documents": {
     "pdfSellerHeading": "De",
@@ -2467,7 +2474,12 @@
     "pdfInsuranceCoverage": "Assurance de responsabilité civile professionnelle : {insurer}, contrat {policy}, couverture : {coverage}.",
     "pdfMediator": "Médiateur de la consommation : {name} — {url}",
     "pdfGeneralTermsTitle": "Conditions générales de vente",
-    "pdfReceiptKind": "Reçu"
+    "pdfReceiptKind": "Reçu",
+    "pdfPaymentTermDays": "Délai de paiement : {days} jours à compter de la date d'émission.",
+    "pdfPaymentTermEndOfMonth": "Délai de paiement : {days} jours fin de mois.",
+    "pdfDiscountTerms": "Escompte pour paiement anticipé : {terms}.",
+    "facturxLineDiscount": "Remise sur la ligne",
+    "facturxFranchiseReason": "TVA non applicable, art. 293 B du CGI"
   },
   "ClientSpace": {
     "title": "Mon mariage",
@@ -4887,7 +4899,10 @@
       "hub_organization_export_requested": "Export complet demandé",
       "hub_organization_export_ready": "Export complet préparé",
       "hub_organization_export_downloaded": "Export complet téléchargé",
-      "hub_mail_variable_missing": "E-mail automatique non envoyé : variable du modèle sans valeur"
+      "hub_mail_variable_missing": "E-mail automatique non envoyé : variable du modèle sans valeur",
+      "hub_compliance_checks_updated": "Vérifications de l'assistant de conformité modifiées",
+      "quotes_order_reference_set_by_client": "Numéro de bon de commande indiqué par le client",
+      "quotes_compliance_shown": "Vérifications avant envoi affichées"
     },
     "categories": {
       "connexion": "Connexions",

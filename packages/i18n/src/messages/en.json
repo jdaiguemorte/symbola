@@ -2162,7 +2162,6 @@
     "invoiceNotFound": "This invoice does not exist or no longer exists.",
     "quoteNotSigned": "An invoice can only be issued from a signed quote.",
     "invoiceAlreadyIssued": "This invoice has already been issued.",
-    "professionalInvoiceNotSupported": "Invoice to a business client: the Factur-X format comes in a future release. Until then, it cannot be issued from Symbola.",
     "creditNoteExceedsInvoice": "The credit note exceeds the invoice's remaining amount.",
     "invalidCreditNote": "Enter a positive amount and a reason.",
     "pdfInvoiceTitle": "Invoice {number}",
@@ -2246,7 +2245,13 @@
       "advanceKind": "Deposit or earnest money, on this quote",
       "professionalPaymentTerms": "Payment terms for a business client",
       "latePenaltyRate": "Late payment penalty rate (business client)",
-      "earnestSingleInstalment": "Earnest money is paid in a single instalment"
+      "earnestSingleInstalment": "Earnest money is paid in a single instalment",
+      "postalCode": "Company postal code",
+      "city": "Company city",
+      "buyerCompany": "Business buyer of the quote (business client)",
+      "buyerSiren": "SIREN or SIRET of the business buyer",
+      "buyerAddress": "Full address of the business buyer (line, postal code, city)",
+      "professionalDiscountTerms": "Early payment discount (business clients)"
     },
     "mentionsMissing": "Required mentions are missing: fill them in, then try again.",
     "mentionsMissingBeforeSend": "Before sending, these are missing:",
@@ -2352,7 +2357,9 @@
     "pdfReceiptMethod": "Received by {method}",
     "pdfReceiptMention": "Non-tax receipt. This earnest money will be credited as a payment on the balance invoice.",
     "pdfReceiptCancelled": "Payment cancelled",
-    "signerSaveAddress": "Keep this address on the contact's record"
+    "signerSaveAddress": "Keep this address on the contact's record",
+    "professionalInvoiceFacturX": "Business client: the invoice is a Factur-X addressed to the quote's business buyer (company name, SIREN, address), with its purchase order number if it issues one.",
+    "facturxMismatch": "The invoice was not issued: its structured file does not give the same totals as the PDF. No number was used; report it to support with the error reference."
   },
   "Documents": {
     "pdfSellerHeading": "From",
@@ -2467,7 +2474,12 @@
     "pdfInsuranceCoverage": "Professional liability insurance: {insurer}, policy {policy}, coverage: {coverage}.",
     "pdfMediator": "Consumer mediator: {name} — {url}",
     "pdfGeneralTermsTitle": "General terms of sale",
-    "pdfReceiptKind": "Receipt"
+    "pdfReceiptKind": "Receipt",
+    "pdfPaymentTermDays": "Payment term: {days} days from the date of issue.",
+    "pdfPaymentTermEndOfMonth": "Payment term: {days} days end of month.",
+    "pdfDiscountTerms": "Early payment discount: {terms}.",
+    "facturxLineDiscount": "Line discount",
+    "facturxFranchiseReason": "VAT not applicable, art. 293 B of the French General Tax Code"
   },
   "ClientSpace": {
     "title": "My wedding",
@@ -4887,7 +4899,10 @@
       "hub_organization_export_requested": "Full export requested",
       "hub_organization_export_ready": "Full export prepared",
       "hub_organization_export_downloaded": "Full export downloaded",
-      "hub_mail_variable_missing": "Automatic e-mail not sent: template variable without a value"
+      "hub_mail_variable_missing": "Automatic e-mail not sent: template variable without a value",
+      "hub_compliance_checks_updated": "Compliance assistant checks changed",
+      "quotes_order_reference_set_by_client": "Purchase order number given by the client",
+      "quotes_compliance_shown": "Pre-send checks shown"
     },
     "categories": {
       "connexion": "Sign-ins",

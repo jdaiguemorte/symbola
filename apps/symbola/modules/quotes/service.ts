@@ -3,7 +3,7 @@
 // /v1/quotes si ce module est extrait en app autonome.
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { LATE_PENALTY_RATE_KEYS, starterContractRules, starterContractTemplates, starterDemoQuote, starterEventTypes, starterInvoiceMentions, starterProfessionalPaymentTerms, starterQuoteTemplates } from "@symbola/starter-templates";
+import { LATE_PENALTY_RATE_KEYS, starterComplianceChecks, starterInvoiceReform, starterProfessionalTerms, starterContractRules, starterContractTemplates, starterDemoQuote, starterEventTypes, starterInvoiceMentions, starterProfessionalPaymentTerms, starterQuoteTemplates } from "@symbola/starter-templates";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile, uploadPrivateObject } from "@symbola/files";
@@ -38,6 +38,7 @@ import type {
   MonthlyCount,
   QuotesSearchResults,
   CatalogItemInput,
+  LineNature,
   CreateQuoteInput,
   GlobalDiscountInput,
   MarkScheduleItemPaidInput,
@@ -67,6 +68,11 @@ import type {
   DocumentSettings,
   EReportingView,
   InvoiceBuyer,
+  InvoiceReform,
+  QuoteBuyerDetails,
+  QuoteBuyerDetailsInput,
+  ComplianceDocument,
+  ComplianceFinding,
   InvoiceTotalsView,
   InvoiceView,
   IssueBalanceInvoiceInput,
@@ -91,6 +97,8 @@ import {
   getOrganizationProfile,
   getRequiredMentionRules,
   getSellerDetails,
+  getContactsByIds,
+  vatOnDebitsOn,
   getUserContact,
   sendOrganizationEmail,
   sendSymbolaEmail,
@@ -102,12 +110,16 @@ import { signatureTag, type SignatureProvider } from "./signature/provider";
 import { computeQuoteTotals, formatDocumentNumber, lineAmounts, validUntil, type GlobalDiscount } from "./amounts";
 import { addCalendarDays, groupByMonth, isOverdue, parisToday, resolveSchedule } from "./schedule";
 import { addDays, balanceTotals, prorateTotals, subtractTotals, type InvoiceTotals } from "./invoicing";
-import { paymentTermsFor } from "./payment-terms";
+import { paymentTermsFor, professionalDueDate, professionalTermAllowed } from "./payment-terms";
 import { findRevenue } from "./revenue";
 import { sellerDisplayName } from "@/lib/documents/seller-lines";
+import { attachFacturX, extractFacturXml } from "./facturx/pdfa3";
+import { checkedCii, creditNoteFacturX, invoiceFacturX, printedCreditNoteAmounts, printedInvoiceAmounts } from "./facturx/document";
+import { creditNoteFacturXTexts, invoiceFacturXTexts, type DocumentLocale } from "./facturx/texts";
 import { recordAudit } from "@symbola/db/audit";
 import { cleanDocumentSettings, documentSnapshot, EMPTY_DOCUMENT_SETTINGS } from "./document-settings";
 import { missingMentions, type MentionValues } from "./mentions";
+import { cleanPostalAddress, cleanReference, companyBuyerOf, formatPostalAddress, operationCategory, type BuyerMention } from "./reform";
 import {
   advanceClauseProblem,
   contractRegime,
@@ -185,6 +197,10 @@ import {
   insertCreditNote,
   insertInvoice,
   updateQuoteClientKind,
+  updateQuoteBuyerRow,
+  updateClientOrderReferenceRow,
+  hasActiveBalanceInvoice,
+  quoteIdOfScheduleItem,
   type CreditNoteRow,
   type InvoiceRow,
   type InvoicingContext,
@@ -270,6 +286,7 @@ export type {
   SignatureRequestKind,
   CatalogItem,
   CatalogItemInput,
+  LineNature,
   CreateQuoteInput,
   GlobalDiscountInput,
   MarkScheduleItemPaidInput,
@@ -306,6 +323,11 @@ export type {
   DocumentSnapshot,
   EReportingView,
   InvoiceBuyer,
+  InvoiceReform,
+  QuoteBuyerDetails,
+  QuoteBuyerDetailsInput,
+  ComplianceDocument,
+  ComplianceFinding,
   InvoiceTotalsView,
   InvoiceView,
   IssueBalanceInvoiceInput,
@@ -442,13 +464,6 @@ export class InvoiceAlreadyIssuedError extends Error {
 
 // Décision 1 du lot 4 : Factur-X (client professionnel) vient dans un lot
 // dédié ; d'ici là, l'émission est refusée avec un message clair.
-export class ProfessionalInvoiceNotSupportedError extends Error {
-  constructor() {
-    super("facture Factur-X pour un client professionnel : pas encore disponible");
-    this.name = "ProfessionalInvoiceNotSupportedError";
-  }
-}
-
 export class InvoiceNotFoundError extends Error {
   constructor() {
     super("facture introuvable");
@@ -538,6 +553,10 @@ const DEFAULT_SETTINGS: QuoteSettings = {
   invoiceMentionsProfessional: null,
   latePenaltyRate: null,
   receiptPrefix: "R",
+  // Lot 41 (JUR-12, D11) : 30 jours (données), escompte « Néant » des données.
+  professionalPaymentTermDays: starterProfessionalTerms().paymentTerm.defaultDays,
+  professionalPaymentTermEndOfMonth: false,
+  professionalDiscountTerms: null,
 };
 const DEMO_PREFIX = "DEMO";
 const MAX_AMOUNT_CENTS = 100_000_000_00; // 100 M€ : garde-fou contre les débordements d'entier
@@ -579,6 +598,7 @@ function toCatalogItem(row: CatalogItemRow): CatalogItem {
     unitPriceCents: row.unitPriceCents,
     vatRateBasisPoints: row.vatRateBasisPoints,
     category: row.category,
+    nature: row.nature,
     archived: row.archivedAt !== null,
     ...(row.importedFields ? { importedFields: row.importedFields } : {}),
   };
@@ -594,7 +614,15 @@ function catalogItemData(item: CatalogItemInput): CatalogItemData {
     unitPriceCents: item.unitPriceCents,
     vatRateBasisPoints: item.vatRateBasisPoints,
     category: optionalText(item.category),
+    nature: lineNature(item.nature),
   };
+}
+
+// Lot 41 (JUR-02, D9) : bien ou service ; toute autre valeur est refusée.
+function lineNature(value: string | undefined, fallback: LineNature = "service"): LineNature {
+  if (value === undefined) return fallback;
+  if (value !== "service" && value !== "goods") throw new RangeError("nature de ligne inconnue");
+  return value;
 }
 
 export async function listCatalogItems(organizationId: string, options: { includeArchived?: boolean } = {}): Promise<CatalogItem[]> {
@@ -633,6 +661,9 @@ export async function getQuoteSettings(organizationId: string): Promise<QuoteSet
     invoiceMentionsProfessional: row.invoiceMentionsProfessional,
     latePenaltyRate: row.latePenaltyRate,
     receiptPrefix: row.receiptPrefix,
+    professionalPaymentTermDays: row.professionalPaymentTermDays,
+    professionalPaymentTermEndOfMonth: row.professionalPaymentTermEndOfMonth,
+    professionalDiscountTerms: row.professionalDiscountTerms,
   };
 }
 
@@ -654,6 +685,10 @@ export async function updateQuoteSettings(organizationId: string, settings: Quot
   const invoiceMentionsProfessional = settings.invoiceMentionsProfessional === undefined ? undefined : optionalText(settings.invoiceMentionsProfessional);
   if (invoiceMentionsProfessional && invoiceMentionsProfessional.length > 2000) throw new RangeError("mentions trop longues");
   const latePenaltyRate = latePenaltyRateOf(settings.latePenaltyRate);
+  // Lot 41 (JUR-12, D11) : délai d'un professionnel dans les bornes des données ; escompte borné.
+  const professionalTerm = professionalTermOf(settings);
+  const professionalDiscountTerms = settings.professionalDiscountTerms === undefined ? undefined : optionalText(settings.professionalDiscountTerms);
+  if (professionalDiscountTerms && professionalDiscountTerms.length > 500) throw new RangeError("escompte trop long");
   const prefixes = [settings.quotePrefix, settings.invoicePrefix, settings.creditNotePrefix, ...(settings.receiptPrefix === undefined ? [] : [settings.receiptPrefix])];
   for (const prefix of prefixes) {
     // DEMO est réservé à la série d'essai (ADR 0008).
@@ -672,6 +707,8 @@ export async function updateQuoteSettings(organizationId: string, settings: Quot
     ...(invoiceMentionsProfessional === undefined ? {} : { invoiceMentionsProfessional }),
     ...(latePenaltyRate === undefined ? {} : { latePenaltyRate }),
     ...(settings.receiptPrefix === undefined ? {} : { receiptPrefix: settings.receiptPrefix }),
+    ...(professionalTerm ?? {}),
+    ...(professionalDiscountTerms === undefined ? {} : { professionalDiscountTerms }),
   });
   return {
     validityDays: row.validityDays,
@@ -685,7 +722,32 @@ export async function updateQuoteSettings(organizationId: string, settings: Quot
     invoiceMentionsProfessional: row.invoiceMentionsProfessional,
     latePenaltyRate: row.latePenaltyRate,
     receiptPrefix: row.receiptPrefix,
+    professionalPaymentTermDays: row.professionalPaymentTermDays,
+    professionalPaymentTermEndOfMonth: row.professionalPaymentTermEndOfMonth,
+    professionalDiscountTerms: row.professionalDiscountTerms,
   };
+}
+
+// Lot 41 (JUR-12, D11, réponse 7 de l'avocat) : un délai hors des bornes légales est refusé et le dit.
+export class ProfessionalTermOutOfBoundsError extends Error {
+  constructor(readonly maxDays: number, readonly endOfMonth: boolean) {
+    super("délai de paiement d'un professionnel hors des bornes légales");
+    this.name = "ProfessionalTermOutOfBoundsError";
+  }
+}
+
+function professionalTermOf(settings: QuoteSettings): { professionalPaymentTermDays: number; professionalPaymentTermEndOfMonth: boolean } | null {
+  if (settings.professionalPaymentTermDays === undefined && settings.professionalPaymentTermEndOfMonth === undefined) return null;
+  const bounds = starterProfessionalTerms().paymentTerm;
+  const days = settings.professionalPaymentTermDays ?? bounds.defaultDays;
+  const endOfMonth = settings.professionalPaymentTermEndOfMonth ?? false;
+  if (!professionalTermAllowed(days, endOfMonth, bounds)) throw new ProfessionalTermOutOfBoundsError(endOfMonth ? bounds.maxDaysEndOfMonth : bounds.maxDaysAfterIssue, endOfMonth);
+  return { professionalPaymentTermDays: days, professionalPaymentTermEndOfMonth: endOfMonth };
+}
+
+// L'escompte imprimé : celui de l'organisation, sinon « Néant » des données (dans la langue).
+export function professionalDiscountTermsOf(settings: Pick<QuoteSettings, "professionalDiscountTerms">, locale: "fr" | "en"): string {
+  return settings.professionalDiscountTerms?.trim() || starterProfessionalTerms().discountTerms[locale];
 }
 
 // Lot 31c (D18 ; remarque du rejeu du 31b) : à l'assistant de démarrage, les deux textes de départ
@@ -807,6 +869,7 @@ function toLine(row: QuoteLineRow): QuoteLine {
     sectionId: row.sectionId,
     isOption: row.isOption,
     optionChosen: row.optionChosen,
+    nature: row.nature,
   };
 }
 
@@ -948,6 +1011,12 @@ function toDetail(aggregate: QuoteAggregate, profile: OrganizationProfile, now: 
     versions,
     current,
     signature: request ? toSignatureView(request, aggregate.signers) : null,
+    buyer: {
+      buyerContactId: aggregate.quote.buyerContactId,
+      orderReference: aggregate.quote.clientOrderReference,
+      buyerReference: aggregate.quote.buyerReference,
+      deliveryAddress: aggregate.quote.deliveryAddress ?? null,
+    },
     regimeChangedSinceSent:
       aggregate.quote.status === "sent" && current.sentAt !== null && current.vatRegime !== profile.vatRegime,
   };
@@ -1060,7 +1129,7 @@ function validateLineNumbers(line: { quantityMilli: number; unitPriceCents: numb
 // ligne libre : intitulé, unité et prix obligatoires, taux par défaut de
 // l'organisation si absent.
 async function newLineData(organizationId: string, line: QuoteLineInput): Promise<LineData> {
-  let base: { catalogItemId: string | null; label?: string; description: string | null; unit?: string; unitPriceCents?: number; vatRateBasisPoints?: number } = {
+  let base: { catalogItemId: string | null; label?: string; description: string | null; unit?: string; unitPriceCents?: number; vatRateBasisPoints?: number; nature?: LineNature } = {
     catalogItemId: null,
     description: null,
   };
@@ -1074,6 +1143,7 @@ async function newLineData(organizationId: string, line: QuoteLineInput): Promis
       unit: item.unit,
       unitPriceCents: item.unitPriceCents,
       vatRateBasisPoints: item.vatRateBasisPoints,
+      nature: item.nature,
     };
   }
   let vatRate = line.vatRateBasisPoints ?? base.vatRateBasisPoints;
@@ -1095,6 +1165,7 @@ async function newLineData(organizationId: string, line: QuoteLineInput): Promis
     sectionId: line.sectionId ?? null,
     isOption: line.isOption ?? false,
     optionChosen: false,
+    nature: lineNature(line.nature, base.nature),
   };
   validateLineNumbers(data);
   return data;
@@ -1122,6 +1193,7 @@ export async function updateQuoteLine(organizationId: string, lineId: string, li
         sectionId: line.sectionId !== undefined ? line.sectionId : current.sectionId,
         isOption: line.isOption ?? current.isOption,
         optionChosen: (line.isOption ?? current.isOption) ? current.optionChosen : false,
+        nature: lineNature(line.nature, current.nature),
       };
       validateLineNumbers(data);
       return data;
@@ -1256,9 +1328,15 @@ export async function listClientQuoteOptions(organizationId: string, eventId: st
 
 function mentionValues(
   seller: Partial<SellerSnapshot> & { organizationName?: string | null },
-  terms: { individual: string | null; professional: string | null; latePenaltyRate: LatePenaltyRate | null },
+  terms: { individual: string | null; professional: string | null; latePenaltyRate: LatePenaltyRate | null; discount?: string | null },
+  buyerMissing: BuyerMention[] = [],
 ): MentionValues {
   return {
+    // Lot 41 (FAC-10, JUR-02, JUR-12 ; D6, D7, D11).
+    postalCode: seller.postalCode ?? null,
+    city: seller.city ?? null,
+    buyerMissing,
+    professionalDiscountTerms: terms.discount === undefined ? "—" : terms.discount,
     organizationName: seller.organizationName ?? null,
     address: seller.address ?? null,
     siren: seller.siren ?? null,
@@ -1283,6 +1361,8 @@ function requireInvoiceMentions(
   document: "deposit_invoice" | "balance_invoice",
   context: InvoicingContext,
   seller: Awaited<ReturnType<typeof getSellerDetails>>,
+  buyerMissing: BuyerMention[],
+  locale: DocumentLocale,
 ): void {
   if (context.quote.isDemo) return;
   const missing = missingMentions(rules, {
@@ -1290,9 +1370,13 @@ function requireInvoiceMentions(
     vatRegime: context.version.vatRegime === "assujetti" ? "assujetti" : context.version.vatRegime === "franchise" ? "franchise" : null,
     clientKind: context.quote.clientKind,
     legalForm: seller.legalForm,
-    values: mentionValues(seller, termsSettings(context.settings)),
+    values: mentionValues(seller, { ...termsSettings(context.settings), discount: discountOf(context.settings, locale) }, buyerMissing),
   });
   if (missing.length > 0) throw new RequiredMentionsMissingError(missing);
+}
+
+function discountOf(settings: QuoteSettingsRow | null, locale: DocumentLocale): string {
+  return professionalDiscountTermsOf({ professionalDiscountTerms: settings?.professionalDiscountTerms ?? null }, locale);
 }
 
 // Ce qui manque pour envoyer ce devis : mentions requises de la liste, et acompte ou arrhes
@@ -1314,7 +1398,7 @@ export async function quoteMissingMentions(organizationId: string, quoteId: stri
     vatRegime: profile.vatRegime,
     clientKind: aggregate.quote.clientKind,
     legalForm: seller.legalForm,
-    values: mentionValues(seller, termsSettings(settings)),
+    values: mentionValues(seller, { ...termsSettings(settings), discount: discountOf(settings, "fr") }),
   });
   const items = aggregate.scheduleItems.filter((item) => item.versionId === version.id);
   if (items.length > 0 && !version.advanceKind) missing.push("advanceKind");
@@ -1372,6 +1456,7 @@ async function quoteAsTemplateContent(organizationId: string, quoteId: string): 
       vatRateBasisPoints: line.vatRateBasisPoints,
       discountBasisPoints: line.discountBasisPoints,
       isOption: line.isOption,
+      nature: line.nature,
     })),
     schedule: content.schedule.map((item) => {
       const before = event?.eventDate && item.dueDate > reference ? daysBetweenDates(item.dueDate, event.eventDate) : null;
@@ -1462,6 +1547,7 @@ function templateContentOf({ template, sections, lines, schedule }: TemplateWith
       vatRateBasisPoints: line.vatRateBasisPoints,
       discountBasisPoints: line.discountBasisPoints,
       isOption: line.isOption,
+      nature: line.nature,
     })),
     schedule: schedule.map((item) => ({ label: item.label, amountCents: item.amountCents, percentageBasisPoints: item.percentageBasisPoints, dueRule: item.dueRule === "before_event" ? "before_event" : "at_signature", daysBeforeEvent: item.daysBeforeEvent })),
   };
@@ -2219,9 +2305,56 @@ export async function listClientQuotesToSign(organizationId: string, eventId: st
       advanceKind: context.version.advanceKind,
       kind: context.request.kind,
       contract,
+      // Lot 41 (JUR-13, D8) : un signataire d'un devis professionnel indique son bon de commande.
+      professional: context.quote.clientKind === "professional",
+      orderReference: context.quote.clientOrderReference,
+      canSetOrderReference:
+        context.quote.clientKind === "professional" &&
+        own !== null &&
+        context.request.kind !== "contract" &&
+        !(await hasActiveBalanceInvoice(organizationId, context.quote.id)),
     });
   }
   return result;
+}
+
+// Lot 41 (JUR-02, JUR-13 ; D6, D8) — l'acheteur entreprise, les références d'achat et l'adresse de
+// livraison du devis : modifiables jusqu'à chaque émission, même après la signature ; chaque
+// facture fige la valeur du moment. Un acheteur qui n'est pas un contact « entreprise » de
+// l'organisation est refusé comme un contact inconnu (SEC-13).
+export class QuoteBuyerNotFoundError extends Error {
+  constructor() {
+    super("acheteur entreprise introuvable");
+    this.name = "QuoteBuyerNotFoundError";
+  }
+}
+
+export async function setQuoteBuyerDetails(organizationId: string, quoteId: string, input: QuoteBuyerDetailsInput): Promise<QuoteDetail> {
+  const buyerContactId = input.buyerContactId?.trim() || null;
+  if (buyerContactId) {
+    const contact = (await getContactsByIds(organizationId, [buyerContactId])).get(buyerContactId);
+    if (!contact || contact.kind !== "company" || contact.anonymized) throw new QuoteBuyerNotFoundError();
+  }
+  const values = {
+    buyerContactId,
+    clientOrderReference: cleanReference(input.orderReference, "orderReference"),
+    buyerReference: cleanReference(input.buyerReference, "buyerReference"),
+    deliveryAddress: cleanPostalAddress(input.deliveryAddress),
+  };
+  if (!(await updateQuoteBuyerRow(organizationId, quoteId, values))) throw new QuoteNotFoundError();
+  return loadDetail(organizationId, quoteId);
+}
+
+// Lot 41 (JUR-13, D8, SC-11 étape 4) — depuis son lien, la cliente signataire d'un devis
+// professionnel de l'évènement indique son numéro de bon de commande ; la planner le voit et le
+// corrige avant l'émission. Hors de cette portée : comme un devis inconnu, rien ne change.
+export async function setClientOrderReference(input: { organizationId: string; eventId: string; linkId: string; quoteId: string; clientEmail: string; reference: string }): Promise<void> {
+  const reference = cleanReference(input.reference, "orderReference");
+  const email = input.clientEmail.trim().toLowerCase();
+  if (!(await updateClientOrderReferenceRow(input.organizationId, { eventId: input.eventId, quoteId: input.quoteId, clientEmail: email, reference }))) throw new QuoteNotFoundError();
+  await withDb((db) =>
+    recordAudit(db, { organizationId: input.organizationId, action: "quotes.order_reference.set_by_client", objectType: "quote", objectId: input.quoteId, actor: { kind: "link", id: input.linkId } }),
+  );
 }
 
 async function clientContract(organizationId: string, contractId: string, signerId: string | null, open: boolean): Promise<ClientContract | null> {
@@ -2298,34 +2431,97 @@ function documentNumbering(settingsPrefix: string, isDemo: boolean, now: Date) {
   return { year, formatNumber: (rank: number) => formatDocumentNumber(prefix, year, rank) };
 }
 
+// Lot 41 (FAC-10, JUR-02, JUR-12, JUR-13 ; D6, D8 à D11) — ce que l'émission lit hors de la
+// transaction du numéro : le profil (option sur les débits datée) et l'acheteur entreprise désigné
+// sur le devis (contact du hub), revérifié dans la transaction.
+type ReformInputs = { profile: OrganizationProfile; buyerContactId: string | null; contact: Awaited<ReturnType<typeof getContactsByIds>> extends Map<string, infer C> ? C | null : never };
+
+async function reformInputs(organizationId: string, quoteId: string | null): Promise<ReformInputs> {
+  const profile = await withDb((db) => getOrganizationProfile(db, organizationId));
+  const aggregate = quoteId ? await findQuoteAggregate(organizationId, quoteId) : null;
+  const buyerContactId = aggregate?.quote.buyerContactId ?? null;
+  const contact = buyerContactId ? ((await getContactsByIds(organizationId, [buyerContactId])).get(buyerContactId) ?? null) : null;
+  return { profile, buyerContactId, contact };
+}
+
+// L'acheteur figé d'une facture : l'entreprise désignée (professionnel), sinon les signataires.
+function invoiceBuyers(context: InvoicingContext, inputs: ReformInputs): { buyers: InvoiceBuyer[]; missing: BuyerMention[] } {
+  if (context.quote.clientKind !== "professional") {
+    return { buyers: context.signers.map((signer) => ({ name: signer.name, billingAddress: signer.billingAddress })), missing: [] };
+  }
+  // Désigné entre la lecture et la transaction : relu à la prochaine émission.
+  const contact = context.quote.buyerContactId === inputs.buyerContactId ? inputs.contact : null;
+  const { buyer, missing } = companyBuyerOf(contact);
+  if (!buyer) return { buyers: [], missing };
+  return {
+    buyers: [{ kind: "company", name: buyer.name, billingAddress: formatPostalAddress(buyer.address), siren: buyer.siren, vatNumber: buyer.vatNumber, address: buyer.address }],
+    missing: [],
+  };
+}
+
+// La copie de la réforme : catégorie (natures des lignes comptées), option sur les débits active à la
+// date d'émission, références d'achat du moment, adresse de livraison si elle diffère, conditions
+// d'un professionnel.
+function invoiceReform(context: InvoicingContext, inputs: ReformInputs, buyers: InvoiceBuyer[], issuedOn: string, locale: DocumentLocale): InvoiceReform {
+  const settings = context.settings;
+  const delivery = context.quote.deliveryAddress ?? null;
+  const billing = buyers.map((buyer) => buyer.billingAddress.trim().toLowerCase());
+  const differs = delivery !== null && !billing.includes(formatPostalAddress(delivery).toLowerCase());
+  const professional = context.quote.clientKind === "professional";
+  return {
+    format: "facturx",
+    category: operationCategory(includedLines(context.lines).map((line) => line.nature)),
+    vatOnDebits: context.version.vatRegime === "assujetti" && vatOnDebitsOn(inputs.profile, issuedOn) === true,
+    orderReference: context.quote.clientOrderReference,
+    buyerReference: context.quote.buyerReference,
+    deliveryAddress: differs ? delivery : null,
+    professionalTerms: professional
+      ? {
+          paymentTermDays: settings?.professionalPaymentTermDays ?? DEFAULT_SETTINGS.professionalPaymentTermDays!,
+          endOfMonth: settings?.professionalPaymentTermEndOfMonth ?? false,
+          discountTerms: discountOf(settings, locale),
+          latePenaltyRate: settings?.latePenaltyRate ?? null,
+        }
+      : null,
+  };
+}
+
 // Contrôles communs puis copies figées : mention de TVA (figée à l'envoi du
 // devis), vendeur à jour et apparence de la facture (lot 17, ADR 0046),
-// acheteurs (signataires), réglages de facturation.
-function invoiceBase(context: InvoicingContext, now: Date, seller: Omit<SellerSnapshot, "document">) {
+// acheteurs (signataires, ou l'entreprise d'un devis professionnel, lot 41), réglages de facturation.
+function invoiceBase(context: InvoicingContext, now: Date, seller: Omit<SellerSnapshot, "document">, buyers: InvoiceBuyer[], inputs: ReformInputs, locale: DocumentLocale) {
   if (context.quote.status !== "signed" || !context.version.sentAt) throw new QuoteNotSignedError();
-  if (context.quote.clientKind === "professional") throw new ProfessionalInvoiceNotSupportedError();
-  const buyers: InvoiceBuyer[] = context.signers.map((signer) => ({ name: signer.name, billingAddress: signer.billingAddress }));
-  if (buyers.length === 0) throw new QuoteNotSignedError();
+  if (context.signers.length === 0) throw new QuoteNotSignedError();
   const totals = context.version.totalsSnapshot as QuoteTotalsView;
   const settings = context.settings;
+  const issuedOn = parisDate(now);
+  const reform = invoiceReform(context, inputs, buyers, issuedOn, locale);
+  // Lot 31c (D18) : face à un professionnel, son texte ; sinon celui des particuliers.
+  const mentions = context.quote.clientKind === "professional" ? (settings?.invoiceMentionsProfessional ?? null) : (settings?.invoiceMentions ?? null);
   return {
-    issuedOn: parisDate(now),
+    issuedOn,
     totals,
     buyers,
+    reform,
     settings: {
       invoicePrefix: settings?.invoicePrefix ?? DEFAULT_SETTINGS.invoicePrefix,
       paymentTermDays: settings?.invoicePaymentTermDays ?? DEFAULT_SETTINGS.invoicePaymentTermDays,
-      mentions: settings?.invoiceMentions ?? null,
+      mentions,
     },
+    // Échéance d'une facture de solde : délai des particuliers, ou celui d'un professionnel (JUR-12).
+    balanceDueOn: reform.professionalTerms
+      ? professionalDueDate(issuedOn, reform.professionalTerms.paymentTermDays, reform.professionalTerms.endOfMonth)
+      : addDays(issuedOn, settings?.invoicePaymentTermDays ?? DEFAULT_SETTINGS.invoicePaymentTermDays),
     common: {
       quoteId: context.quote.id,
       versionId: context.version.id,
       issuedAt: now,
       vatRegime: context.version.vatRegime ?? "franchise",
       legalMention: context.version.legalMention,
-      mentions: settings?.invoiceMentions ?? null,
+      mentions,
       sellerSnapshot: { ...seller, document: documentSnapshot(toDocumentSettings(settings), "invoice") } satisfies SellerSnapshot,
       buyerSnapshot: buyers,
+      reformSnapshot: reform,
     },
   };
 }
@@ -2340,6 +2536,7 @@ function frozenLines(context: InvoicingContext): FrozenLine[] {
     vatRateBasisPoints: line.vatRateBasisPoints,
     discountBasisPoints: line.discountBasisPoints,
     netCents: lineAmounts(line).netCents,
+    nature: line.nature,
   }));
 }
 
@@ -2369,6 +2566,7 @@ function toCreditNoteView(note: CreditNoteRow, invoiceNumber: string): CreditNot
     seller: note.sellerSnapshot as SellerSnapshot,
     buyers: note.buyerSnapshot as InvoiceBuyer[],
     totals: note.totalsSnapshot as InvoiceTotalsView,
+    reform: (note.reformSnapshot as InvoiceReform | null) ?? null,
   };
 }
 
@@ -2403,6 +2601,7 @@ function toInvoiceView(invoice: InvoiceRow, quoteNumber: string, notes: CreditNo
     totals: snapshot.totals,
     creditNotes: own.map((note) => toCreditNoteView(note, invoice.number)),
     creditedCents: own.reduce((sum, note) => sum + note.amountCents, 0),
+    reform: (invoice.reformSnapshot as InvoiceReform | null) ?? null,
   };
 }
 
@@ -2412,17 +2611,20 @@ function toInvoiceView(invoice: InvoiceRow, quoteNumber: string, notes: CreditNo
 // après la facture de solde.
 export async function issueDepositInvoice(input: IssueDepositInvoiceInput): Promise<InvoiceView> {
   const now = input.now ?? new Date();
+  const locale = input.locale ?? "fr";
   const seller = await withDb((db) => getSellerDetails(db, input.organizationId));
   const { rules } = await withDb((db) => getRequiredMentionRules(db));
+  const inputs = await reformInputs(input.organizationId, await quoteIdOfScheduleItem(input.organizationId, input.scheduleItemId));
   // Lot 31b (réponse 1 de l'avocat) : hors établissement, aucun paiement avant sept jours.
   const paymentNotBefore = input.paymentNotBefore === undefined ? ((await findScheduledDepositForItem(input.organizationId, input.scheduleItemId))?.paymentNotBefore ?? null) : input.paymentNotBefore;
   const row = await insertInvoice(input.organizationId, { scheduleItemId: input.scheduleItemId }, (context) => {
     // Lot 31c (D21) : des arrhes ne se facturent pas ; aucun numéro n'est consommé.
     if (context.version.advanceKind === "earnest") throw new EarnestNotInvoicedError();
-    // Le refus du client professionnel (Factur-X, lot 41) passe avant ses mentions (D18).
-    if (context.quote.clientKind === "professional") throw new ProfessionalInvoiceNotSupportedError();
-    requireInvoiceMentions(rules, "deposit_invoice", context, seller);
-    const base = invoiceBase(context, now, seller);
+    // Lot 41 (FAC-10, D6) : un professionnel exige son acheteur entreprise, nommé s'il manque.
+    const { buyers, missing } = invoiceBuyers(context, inputs);
+    requireInvoiceMentions(rules, "deposit_invoice", context, seller, missing, locale);
+    if (missing.length > 0) throw new RequiredMentionsMissingError(missing);
+    const base = invoiceBase(context, now, seller, buyers, inputs, locale);
     const index = context.scheduleItems.findIndex((item) => item.id === input.scheduleItemId);
     const item = context.scheduleItems[index];
     if (!item) throw new QuoteVersionLockedError();
@@ -2452,7 +2654,7 @@ export async function issueDepositInvoice(input: IssueDepositInvoiceInput): Prom
         totalsSnapshot: snapshot,
       },
     };
-  }, keepInvoiceOriginal(input.organizationId, input.renderOriginal));
+  }, keepInvoiceOriginal(input.organizationId, input.renderOriginal, locale));
   if (!row) throw new QuoteNotFoundError();
   // Lot 31b (FAC-05) : émise à la main ou d'elle-même, elle clôt la facture à émettre.
   await closeScheduledDepositForItem(input.organizationId, input.scheduleItemId, row.id);
@@ -2466,12 +2668,16 @@ export async function issueBalanceInvoice(input: IssueBalanceInvoiceInput): Prom
   const quote = await findQuoteAggregate(input.organizationId, input.quoteId);
   if (!quote) throw new QuoteNotFoundError();
   const event = await getEvent(input.organizationId, quote.quote.eventId);
+  const locale = input.locale ?? "fr";
   const seller = await withDb((db) => getSellerDetails(db, input.organizationId));
   const { rules } = await withDb((db) => getRequiredMentionRules(db));
+  const inputs = await reformInputs(input.organizationId, input.quoteId);
   const row = await insertInvoice(input.organizationId, { quoteId: input.quoteId }, (context) => {
-    if (context.quote.clientKind === "professional") throw new ProfessionalInvoiceNotSupportedError();
-    requireInvoiceMentions(rules, "balance_invoice", context, seller);
-    const base = invoiceBase(context, now, seller);
+    // Lot 41 (FAC-10, D6) : un professionnel exige son acheteur entreprise, nommé s'il manque.
+    const { buyers, missing } = invoiceBuyers(context, inputs);
+    requireInvoiceMentions(rules, "balance_invoice", context, seller, missing, locale);
+    if (missing.length > 0) throw new RequiredMentionsMissingError(missing);
+    const base = invoiceBase(context, now, seller, buyers, inputs, locale);
     const active = context.invoices.filter((invoice) => isActive(invoice, context.creditNotes));
     if (active.some((invoice) => invoice.kind === "balance")) throw new InvoiceAlreadyIssuedError();
     // Lot 31c (D20) : chaque acompte, net de ses avoirs, est retiré en HT et en TVA de son propre
@@ -2513,13 +2719,13 @@ export async function issueBalanceInvoice(input: IssueBalanceInvoiceInput): Prom
         kind: "balance",
         issuedOn: base.issuedOn,
         serviceDate: event?.eventDate ?? null,
-        paymentDueOn: addDays(base.issuedOn, base.settings.paymentTermDays),
+        paymentDueOn: base.balanceDueOn,
         amountCents,
         linesSnapshot: frozenLines(context),
         totalsSnapshot: snapshot,
       },
     };
-  }, keepInvoiceOriginal(input.organizationId, input.renderOriginal));
+  }, keepInvoiceOriginal(input.organizationId, input.renderOriginal, locale));
   if (!row) throw new QuoteNotFoundError();
   return getInvoice(input.organizationId, row.id);
 }
@@ -2530,7 +2736,9 @@ export async function issueCreditNote(input: IssueCreditNoteInput): Promise<Cred
   const now = input.now ?? new Date();
   requireInteger(input.amountCents, 1, MAX_AMOUNT_CENTS, "montant de l'avoir");
   const reason = requireText(input.reason, "motif de l'avoir");
+  const locale = input.locale ?? "fr";
   const { rules } = await withDb((db) => getRequiredMentionRules(db));
+  const profile = await withDb((db) => getOrganizationProfile(db, input.organizationId));
   const row = await insertCreditNote(input.organizationId, input.invoiceId, (invoice, existing, settings) => {
     if (!invoice.isDemo) {
       const frozen = invoice.sellerSnapshot as SellerSnapshot;
@@ -2560,13 +2768,21 @@ export async function issueCreditNote(input: IssueCreditNoteInput): Promise<Cred
         sellerSnapshot: invoice.sellerSnapshot,
         buyerSnapshot: invoice.buyerSnapshot,
         totalsSnapshot: prorateTotals(asQuoteTotals, input.amountCents),
+        // Lot 41 (FAC-10) : la copie de la réforme de la facture, avec sa date d'émission ; pour une
+        // facture d'avant le lot, la catégorie de ses lignes et l'option sur les débits à sa date.
+        reformSnapshot: creditNoteReform(invoice, profile),
       },
     };
   }, async (tx, creditNote, invoice) => {
-    // Lot 23b (DOC-08) : l'original de l'avoir, dans la transaction du numéro.
-    if (creditNote.isDemo) return;
-    const pdf = await input.renderOriginal(toCreditNoteView(creditNote, invoice.number), invoice.vatRegime !== "franchise");
-    await storeOriginal(tx, { organizationId: input.organizationId, kind: "credit_note", documentId: creditNote.id, pdf });
+    // Lot 23b (DOC-08) : l'original de l'avoir, dans la transaction du numéro ; lot 41 : Factur-X.
+    const view = toCreditNoteView(creditNote, invoice.number);
+    const vatApplicable = invoice.vatRegime !== "franchise";
+    if (creditNote.isDemo) {
+      checkedCii(creditNoteFacturX(view, vatApplicable, creditNoteFacturXTexts(view, locale)), printedCreditNoteAmounts(view, vatApplicable));
+      return;
+    }
+    const pdf = await input.renderOriginal(view, vatApplicable);
+    await storeOriginal(tx, { organizationId: input.organizationId, kind: "credit_note", documentId: creditNote.id, pdf: creditNoteFacturXFile(view, vatApplicable, pdf, locale), format: "facturx" });
   });
   if (!row) throw new InvoiceNotFoundError();
   return getCreditNote(input.organizationId, row.id);
@@ -2576,13 +2792,68 @@ export async function issueCreditNote(input: IssueCreditNoteInput): Promise<Cred
 // figée et déposé tel quel, dans la transaction qui attribue son numéro. Si le
 // stockage ne répond pas, la facture n'est pas émise et le numéro n'est pas
 // consommé. Pas d'original pour une facture d'essai (rendue à la demande).
-function keepInvoiceOriginal(organizationId: string, render: RenderInvoiceOriginal) {
+// Lot 41 (FAC-10, D1) : l'original est le Factur-X ; une facture d'essai n'a pas d'original, mais
+// son fichier structuré est contrôlé de même (une différence arrête aussi son émission).
+function keepInvoiceOriginal(organizationId: string, render: RenderInvoiceOriginal, locale: DocumentLocale) {
   return async (tx: Parameters<NonNullable<Parameters<typeof insertInvoice>[3]>>[0], invoice: InvoiceRow, context: InvoicingContext) => {
-    if (invoice.isDemo) return;
-    const pdf = await render(toInvoiceView(invoice, context.quote.number, []));
-    await storeOriginal(tx, { organizationId, kind: "invoice", documentId: invoice.id, pdf });
+    const view = toInvoiceView(invoice, context.quote.number, []);
+    if (invoice.isDemo) {
+      checkedCii((facturXOverride.invoice ?? invoiceFacturX)(view, invoiceFacturXTexts(view, locale)), printedInvoiceAmounts(view));
+      return;
+    }
+    const pdf = await render(view);
+    await storeOriginal(tx, { organizationId, kind: "invoice", documentId: invoice.id, pdf: invoiceFacturXFile(view, pdf, locale), format: "facturx" });
   };
 }
+
+function creditNoteReform(invoice: InvoiceRow, profile: OrganizationProfile): InvoiceReform {
+  const frozen = invoice.reformSnapshot as InvoiceReform | null;
+  if (frozen) return { ...frozen, invoiceIssuedOn: invoice.issuedOn };
+  const lines = (invoice.linesSnapshot as FrozenLine[]) ?? [];
+  return {
+    format: "facturx",
+    category: operationCategory(lines.map((line) => line.nature ?? "service")),
+    vatOnDebits: invoice.vatRegime === "assujetti" && vatOnDebitsOn(profile, invoice.issuedOn) === true,
+    orderReference: null,
+    buyerReference: null,
+    deliveryAddress: null,
+    professionalTerms: null,
+    invoiceIssuedOn: invoice.issuedOn,
+  };
+}
+
+// Lot 41 (FAC-10 ; D1 à D3, ADR 0078) — le Factur-X d'une pièce émise à partir du lot 41 : son
+// fichier structuré, écrit depuis les mêmes copies figées que le PDF, relu et comparé au centime
+// aux montants imprimés (réponse 10), puis joint au PDF devenu PDF/A-3. Une différence lève
+// FacturXTotalsMismatchError : dans la transaction de l'émission, le numéro n'est pas consommé.
+// Une pièce d'avant le lot (reform null) garde son PDF simple.
+let facturXOverride: { invoice?: typeof invoiceFacturX; creditNote?: typeof creditNoteFacturX } = {};
+
+// Pour les tests seulement : provoquer une différence entre le fichier structuré et le PDF.
+export function setFacturXBuildersForTests(override: typeof facturXOverride | undefined): void {
+  facturXOverride = override ?? {};
+}
+
+function issueDate(issuedOn: string): Date {
+  return new Date(`${issuedOn}T00:00:00Z`);
+}
+
+export function invoiceFacturXFile(invoice: InvoiceView, pdf: Uint8Array, locale: DocumentLocale = "fr"): Buffer {
+  const build = facturXOverride.invoice ?? invoiceFacturX;
+  const { xml } = checkedCii(build(invoice, invoiceFacturXTexts(invoice, locale)), printedInvoiceAmounts(invoice));
+  return attachFacturX(pdf, { xml, title: invoice.number, issuedAt: issueDate(invoice.issuedOn), conformanceLevel: "EN 16931" });
+}
+
+export function creditNoteFacturXFile(creditNote: CreditNoteView, vatApplicable: boolean, pdf: Uint8Array, locale: DocumentLocale = "fr"): Buffer {
+  const build = facturXOverride.creditNote ?? creditNoteFacturX;
+  const { xml } = checkedCii(build(creditNote, vatApplicable, creditNoteFacturXTexts(creditNote, locale)), printedCreditNoteAmounts(creditNote, vatApplicable));
+  return attachFacturX(pdf, { xml, title: creditNote.number, issuedAt: issueDate(creditNote.issuedOn), conformanceLevel: "EN 16931" });
+}
+
+// Le fichier structuré porté par un original (relecture, rejeu) ; null pour un PDF simple.
+export { extractFacturXml };
+export { FacturXTotalsMismatchError } from "./facturx/document";
+export { UnreadablePdfError } from "./facturx/pdfa3";
 
 export class OriginalAlteredError extends Error {
   constructor() {
@@ -2622,13 +2893,19 @@ async function originalPdf(
   return { pdf, reconstructed: original.isReconstructed };
 }
 
+// Lot 41 (FAC-10) : une pièce d'essai émise à partir du lot se rend en Factur-X, comme les autres
+// (pour montrer la vraie pièce) ; jamais transmise ni comptée (ARC-13, DAT-10).
 export async function getInvoicePdf(
   organizationId: string,
   invoiceId: string,
   render: RenderInvoiceOriginal,
+  locale: DocumentLocale = "fr",
 ): Promise<{ pdf: Buffer; number: string; reconstructed: boolean }> {
   const invoice = await getInvoice(organizationId, invoiceId);
-  const found = await originalPdf(organizationId, "invoice", invoice, () => render(invoice));
+  const found = await originalPdf(organizationId, "invoice", invoice, async () => {
+    const pdf = await render(invoice);
+    return invoice.reform && invoice.isDemo ? invoiceFacturXFile(invoice, pdf, locale) : pdf;
+  });
   return { ...found, number: invoice.number };
 }
 
@@ -2636,10 +2913,14 @@ export async function getCreditNotePdf(
   organizationId: string,
   creditNoteId: string,
   render: RenderCreditNoteOriginal,
+  locale: DocumentLocale = "fr",
 ): Promise<{ pdf: Buffer; number: string; reconstructed: boolean }> {
   const creditNote = await getCreditNote(organizationId, creditNoteId);
   const invoice = await getInvoice(organizationId, creditNote.invoiceId);
-  const found = await originalPdf(organizationId, "credit_note", creditNote, () => render(creditNote, invoice.vatApplicable));
+  const found = await originalPdf(organizationId, "credit_note", creditNote, async () => {
+    const pdf = await render(creditNote, invoice.vatApplicable);
+    return creditNote.reform && creditNote.isDemo ? creditNoteFacturXFile(creditNote, invoice.vatApplicable, pdf, locale) : pdf;
+  });
   return { ...found, number: creditNote.number };
 }
 
@@ -2711,10 +2992,11 @@ export async function getEventInvoicePdf(
   eventId: string,
   invoiceId: string,
   render: RenderInvoiceOriginal,
+  locale: DocumentLocale = "fr",
 ): Promise<{ pdf: Buffer; number: string; reconstructed: boolean }> {
   const invoice = await getInvoice(organizationId, invoiceId);
   if (!(await findEventQuotes(organizationId, eventId)).some((quote) => quote.id === invoice.quoteId)) throw new InvoiceNotFoundError();
-  return getInvoicePdf(organizationId, invoiceId, render);
+  return getInvoicePdf(organizationId, invoiceId, render, locale);
 }
 
 export async function getEventCreditNotePdf(
@@ -2722,11 +3004,12 @@ export async function getEventCreditNotePdf(
   eventId: string,
   creditNoteId: string,
   render: RenderCreditNoteOriginal,
+  locale: DocumentLocale = "fr",
 ): Promise<{ pdf: Buffer; number: string; reconstructed: boolean }> {
   const creditNote = await getCreditNote(organizationId, creditNoteId);
   const invoice = await getInvoice(organizationId, creditNote.invoiceId);
   if (!(await findEventQuotes(organizationId, eventId)).some((quote) => quote.id === invoice.quoteId)) throw new InvoiceNotFoundError();
-  return getCreditNotePdf(organizationId, creditNoteId, render);
+  return getCreditNotePdf(organizationId, creditNoteId, render, locale);
 }
 
 export async function getInvoice(organizationId: string, invoiceId: string): Promise<InvoiceView> {
@@ -3456,6 +3739,7 @@ export async function issueScheduledDepositInvoices(input: IssueScheduledDeposit
         now,
         paymentNotBefore: entry.row.paymentNotBefore,
         renderOriginal: (invoice) => input.renderOriginal(invoice, locale),
+        locale,
       });
       issued += 1;
     } catch (error) {

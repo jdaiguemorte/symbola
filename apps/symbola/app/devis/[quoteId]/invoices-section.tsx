@@ -49,7 +49,8 @@ export async function InvoicesSection({
       {quote.status === "signed" ? (
         <>
           <ClientKindForm quoteId={quote.id} clientKind={quote.clientKind} />
-          {quote.clientKind === "professional" ? <p role="status">{t("professionalInvoiceNotSupported")}</p> : null}
+          {/* Lot 41 (FAC-10, D6) : la facture d'un professionnel est un Factur-X adressé à son acheteur entreprise. */}
+          {quote.clientKind === "professional" ? <p className="meta">{t("professionalInvoiceFacturX")}</p> : null}
           {earnest && quote.current.schedule.items.length > 0 ? <p className="meta">{t("earnestNoInvoice")}</p> : null}
           {pendingItems.map((item) => (
             <IssueDepositInvoiceForm key={item.id} quoteId={quote.id} scheduleItemId={item.id} label={item.label} />

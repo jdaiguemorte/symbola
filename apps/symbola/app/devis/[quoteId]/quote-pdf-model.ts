@@ -88,6 +88,9 @@ export type QuotePdfModel = {
   // DEV-02 : bloc « Bon pour accord » avec une balise de signature par
   // signataire, seulement dans le PDF envoyé en signature.
   signature: { title: string; slots: { role: string; tag: string }[] } | null;
+  // Lot 41 (FAC-10, D5) : factures et avoirs aux polices incorporées (Liberation), exigées par
+  // PDF/A ; devis et contrats gardent les polices du moteur.
+  embedFonts?: boolean;
 };
 
 function quantity(milli: number, unit: string, locale: Locale): string {

@@ -49,8 +49,8 @@ export async function renderInvoicePdf(organizationId: string, invoice: InvoiceV
   );
 }
 
-export async function renderCreditNotePdf(organizationId: string, creditNote: CreditNoteView, vatApplicable: boolean): Promise<Buffer> {
-  const { locale, labels, watermark, defaultColor } = await context();
+export async function renderCreditNotePdf(organizationId: string, creditNote: CreditNoteView, vatApplicable: boolean, fixedLocale?: Locale): Promise<Buffer> {
+  const { locale, labels, watermark, defaultColor } = await context(fixedLocale);
   return toBuffer(
     buildCreditNotePdfModel({
       creditNote,

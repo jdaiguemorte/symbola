@@ -55,6 +55,8 @@ const balance: InvoiceView = {
   totals,
   creditNotes: [],
   creditedCents: 0,
+  // Pièce émise avant le lot 41 : ni Factur-X ni mentions de la réforme.
+  reform: null,
 };
 
 function invoiceModel(invoice: InvoiceView, watermark: string | null = null) {
@@ -74,6 +76,7 @@ const creditNote: CreditNoteView = {
   seller: balance.seller,
   buyers: balance.buyers,
   totals: { totalHtCents: 10000, vatByRate: [{ rateBasisPoints: 2000, baseCents: 10000, vatCents: 2000 }], totalVatCents: 2000, totalTtcCents: 12000 },
+  reform: null,
 };
 
 describe("DEV-04 — PDF de facture et d'avoir", () => {

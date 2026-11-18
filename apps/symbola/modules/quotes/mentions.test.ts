@@ -20,6 +20,10 @@ const complete: MentionValues = {
   paymentTerms: "À réception de la facture.",
   professionalPaymentTerms: "Par virement à l'échéance.",
   latePenaltyRate: "ecb_plus_10",
+  postalCode: "24200",
+  city: "Sarlat-la-Canéda",
+  buyerMissing: [],
+  professionalDiscountTerms: "Néant",
 };
 const rules = starterRequiredMentions();
 const context = (document: "quote" | "deposit_invoice" | "balance_invoice" | "credit_note", values: Partial<MentionValues>, extra: { vatRegime?: "franchise" | "assujetti"; clientKind?: "individual" | "professional" | "non_professional"; legalForm?: string | null } = {}) => ({
@@ -76,5 +80,29 @@ describe("FAC-07 / JUR-01 — Conditions de paiement selon le client (lot 31c, e
       expect(missingMentions(rules, context("deposit_invoice", { paymentTerms: null, professionalPaymentTerms: null, latePenaltyRate: null }, { clientKind }))).toEqual(["paymentTerms"]);
       expect(missingMentions(rules, context("quote", { professionalPaymentTerms: null, latePenaltyRate: null }, { clientKind }))).toEqual([]);
     }
+  });
+});
+
+describe("FAC-10 — Mentions d'une facture Factur-X (lot 41, D6, D7, D11)", () => {
+  it("une facture exige le code postal et la ville du vendeur ; le devis et l'avoir non (l'avoir reprend la facture)", () => {
+    const values = { postalCode: null, city: " " };
+    expect(missingMentions(rules, context("balance_invoice", values))).toEqual(["postalCode", "city"]);
+    expect(missingMentions(rules, context("deposit_invoice", values))).toEqual(["postalCode", "city"]);
+    expect(missingMentions(rules, context("quote", values))).toEqual([]);
+    expect(missingMentions(rules, context("credit_note", values))).toEqual([]);
+  });
+
+  it("client professionnel sans acheteur, sans SIREN ou sans adresse structurée : refus qui nomme le champ ; particulier : rien", () => {
+    const pro = { clientKind: "professional" as const };
+    expect(missingMentions(rules, context("balance_invoice", { buyerMissing: ["buyerCompany"] }, pro))).toEqual(["buyerCompany"]);
+    expect(missingMentions(rules, context("deposit_invoice", { buyerMissing: ["buyerSiren", "buyerAddress"] }, pro))).toEqual(["buyerSiren", "buyerAddress"]);
+    expect(missingMentions(rules, context("balance_invoice", { buyerMissing: ["buyerCompany"] }))).toEqual([]);
+    expect(missingMentions(rules, context("quote", { buyerMissing: ["buyerCompany"] }, pro))).toEqual([]);
+  });
+
+  it("JUR-12 : face à un professionnel, l'escompte est exigé sur le devis et la facture ; jamais pour un particulier", () => {
+    expect(missingMentions(rules, context("quote", { professionalDiscountTerms: null }, { clientKind: "professional" }))).toEqual(["professionalDiscountTerms"]);
+    expect(missingMentions(rules, context("balance_invoice", { professionalDiscountTerms: "" }, { clientKind: "professional" }))).toEqual(["professionalDiscountTerms"]);
+    expect(missingMentions(rules, context("balance_invoice", { professionalDiscountTerms: null }))).toEqual([]);
   });
 });

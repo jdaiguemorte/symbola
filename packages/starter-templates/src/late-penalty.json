@@ -32,5 +32,9 @@
     "fr": "En cas de retard de paiement : pénalités au {taux}, et indemnité forfaitaire pour frais de recouvrement de {indemnite}.",
     "en": "In the event of late payment: penalties at {taux}, and a fixed recovery fee of {indemnite}."
   },
-  "recoveryIndemnityCents": 4000
+  "recoveryIndemnityCents": 4000,
+  "recoverySentence": {
+    "fr": "Indemnité forfaitaire pour frais de recouvrement due en cas de retard de paiement : {indemnite}.",
+    "en": "Fixed recovery fee due in the event of late payment: {indemnite}."
+  }
 }

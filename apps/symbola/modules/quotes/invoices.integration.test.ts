@@ -17,7 +17,6 @@ import {
   CreditNoteExceedsInvoiceError,
   InvoiceAlreadyIssuedError,
   InvoiceNotFoundError,
-  ProfessionalInvoiceNotSupportedError,
   QuoteNotFoundError,
   QuoteNotSignedError,
   RequiredMentionsMissingError,
@@ -51,13 +50,15 @@ import {
   listLedgerEntries,
   listLedgerYears,
   verifyLedger,
+  extractFacturXml,
 } from "./service";
 import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
 import { confirmed } from "@/lib/test-fixtures/recipients";
+import { minimalPdf } from "@/lib/test-fixtures/pdf";
 
 // Lot 23b (DOC-08) : rendu factice de l'original déposé à l'émission.
-const renderInvoice = async () => Buffer.from("%PDF-1.4\n% facture de test\n%%EOF\n", "latin1");
-const renderCreditNote = async () => Buffer.from("%PDF-1.4\n% avoir de test\n%%EOF\n", "latin1");
+const renderInvoice = async () => minimalPdf("facture de test");
+const renderCreditNote = async () => minimalPdf("avoir de test");
 
 
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
@@ -133,6 +134,13 @@ async function signedQuote(options: { demoEventId?: string; organizationId?: str
 }
 
 const year = (prefix: string, rank: number) => `${prefix}-2027-${String(rank).padStart(4, "0")}`;
+
+// Lot 41 (FAC-10, D1) : l'original servi est le Factur-X, le PDF rendu à l'émission complété par
+// une mise à jour incrémentale (ses octets d'origine en tête, son fichier structuré à la fin).
+async function isFacturXOf(pdf: Buffer, render: () => Promise<Buffer>): Promise<boolean> {
+  const original = await render();
+  return pdf.subarray(0, original.length).equals(original) && extractFacturXml(pdf) !== null;
+}
 
 describe("DEV-04 — Facture d'acompte et de solde depuis un devis signé", () => {
   it("quand elle génère une facture d'acompte, alors elle reçoit un numéro de la série de facturation ; tout ce qui y figure est figé", async () => {
@@ -217,16 +225,6 @@ describe("DEV-04 — Facture d'acompte et de solde depuis un devis signé", () =
     const event = await createProspect({ organizationId: otherOrg, createdByUserId: plannerId, prospectSourceId: source.id, clients: [{ firstName: "Lou" }] });
     const draft = await createQuote({ organizationId: otherOrg, eventId: event.id, createdByUserId: plannerId, now: NOW });
     await expect(issueBalanceInvoice({ renderOriginal: renderInvoice, organizationId: otherOrg, quoteId: draft.id, now: NOW })).rejects.toBeInstanceOf(QuoteNotSignedError);
-  });
-
-  it("client professionnel : le choix est enregistré, l'émission refusée tant que Factur-X n'est pas livré, sans consommer de numéro", async () => {
-    const { organizationId, quoteId, items } = await signedQuote();
-    expect((await setQuoteClientKind(organizationId, quoteId, "professional")).clientKind).toBe("professional");
-    await expect(issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW })).rejects.toBeInstanceOf(
-      ProfessionalInvoiceNotSupportedError,
-    );
-    await setQuoteClientKind(organizationId, quoteId, "individual");
-    expect((await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW })).number).toBe(year("F", 1));
   });
 });
 
@@ -408,11 +406,11 @@ describe("DOC-08 — Originaux conservés tels qu'émis", () => {
       renders += 1;
       return Buffer.from("autre rendu");
     });
-    expect(served.pdf.equals(await renderInvoice())).toBe(true);
+    expect(await isFacturXOf(served.pdf, renderInvoice)).toBe(true);
     expect(served).toMatchObject({ number: invoice.number, reconstructed: false });
     expect(renders).toBe(0);
     const creditNote = await issueCreditNote({ renderOriginal: renderCreditNote, organizationId, invoiceId: invoice.id, amountCents: 100, reason: "Geste", now: NOW });
-    expect((await getCreditNotePdf(organizationId, creditNote.id, async () => Buffer.from("x"))).pdf.equals(await renderCreditNote())).toBe(true);
+    expect(await isFacturXOf((await getCreditNotePdf(organizationId, creditNote.id, async () => Buffer.from("x"))).pdf, renderCreditNote)).toBe(true);
     expect((await ledgerOf(organizationId)).map((entry) => entry.entryKind)).toEqual(["invoice", "original", "credit_note", "original"]);
     expect(await verifyLedger(organizationId)).toMatchObject({ ok: true, entries: 4 });
   });
@@ -566,8 +564,8 @@ describe("POR-04 — Les factures et avoirs émis d'un évènement, pour son por
     const notRendered = async () => {
       throw new Error("l'original ne doit pas être reconstruit");
     };
-    expect((await getEventInvoicePdf(organizationId, eventId, invoice.id, notRendered)).pdf.equals(await renderInvoice())).toBe(true);
-    expect((await getEventCreditNotePdf(organizationId, eventId, credit.id, notRendered)).pdf.equals(await renderCreditNote())).toBe(true);
+    expect(await isFacturXOf((await getEventInvoicePdf(organizationId, eventId, invoice.id, notRendered)).pdf, renderInvoice)).toBe(true);
+    expect(await isFacturXOf((await getEventCreditNotePdf(organizationId, eventId, credit.id, notRendered)).pdf, renderCreditNote)).toBe(true);
 
     // Un autre évènement de l'organisation : ni liste, ni pièce.
     const source = await createProspectSource(organizationId, "Salon");

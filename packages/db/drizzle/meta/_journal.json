@@ -1051,6 +1051,20 @@
       "when": 1794945608939,
       "tag": "0149_lot40b_hub_jobs",
       "breakpoints": true
+    },
+    {
+      "idx": 150,
+      "version": "7",
+      "when": 1794979780274,
+      "tag": "0150_lot41_quotes_facturx",
+      "breakpoints": true
+    },
+    {
+      "idx": 151,
+      "version": "7",
+      "when": 1794979781488,
+      "tag": "0151_lot41_hub_seller_address_vat_debits",
+      "breakpoints": true
     }
   ]
 }

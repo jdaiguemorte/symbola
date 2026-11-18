@@ -148,6 +148,15 @@ export async function updatePlatformRequiredMentions(db: AppDatabase, rules: unk
     .onConflictDoUpdate({ target: platformSettings.id, set: { requiredMentions: rules, updatedAt: new Date() } });
 }
 
+// Lot 41 (GC-03, D12) : vérifications de l'assistant de conformité désactivées par l'Admin (null :
+// toutes actives).
+export async function updatePlatformComplianceChecks(db: AppDatabase, value: { disabled: string[] } | null) {
+  await db
+    .insert(platformSettings)
+    .values({ id: 1, complianceChecks: value, updatedAt: new Date() })
+    .onConflictDoUpdate({ target: platformSettings.id, set: { complianceChecks: value, updatedAt: new Date() } });
+}
+
 // Lot 10 — progression d'un compte dans l'aide (visites focus, tutoriels).
 export async function findHelpProgress(db: AppDatabase, userId: string) {
   return db.select().from(helpProgress).where(eq(helpProgress.userId, userId));

@@ -64,6 +64,7 @@ function version(overrides: Partial<QuoteVersionView> = {}): QuoteVersionView {
         sectionId: null,
         isOption: false,
         optionChosen: false,
+        nature: "service",
       },
     ],
     globalDiscount: { kind: "none" },
@@ -93,6 +94,7 @@ function quote(current: QuoteVersionView, isDemo = false): QuoteDetail {
     current,
     regimeChangedSinceSent: false,
     signature: null,
+    buyer: { buyerContactId: null, orderReference: null, buyerReference: null, deliveryAddress: null },
   };
 }
 

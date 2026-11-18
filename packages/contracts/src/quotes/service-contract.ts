@@ -13,7 +13,17 @@ export type CatalogItemInput = {
   unitPriceCents: number;
   vatRateBasisPoints: number;
   category?: string | null | undefined;
+  // Lot 41 (JUR-02, D9) : bien ou service (« service » par défaut).
+  nature?: LineNature | undefined;
 };
+
+// Lot 41 (JUR-02, D9, réponse 7 de l'expert-comptable) : nature d'une ligne ; la facture en déduit
+// la catégorie de l'opération (prestations de services, livraisons de biens, opération mixte).
+export type LineNature = "service" | "goods";
+export type OperationCategory = "services" | "goods" | "mixed";
+
+// Lot 41 (JUR-02, D6, D7) : adresse structurée (exigée par le fichier Factur-X) ; code pays ISO 3166-1.
+export type PostalAddress = { line: string; postalCode: string; city: string; countryCode: string };
 
 export type CatalogItem = Required<{ [K in keyof CatalogItemInput]: Exclude<CatalogItemInput[K], undefined> }> & {
   id: string;
@@ -41,6 +51,12 @@ export type QuoteSettings = {
   latePenaltyRate?: LatePenaltyRate | null | undefined;
   // Lot 31c (D21) : préfixe de la série des reçus d'arrhes.
   receiptPrefix?: string | undefined;
+  // Lot 41 (JUR-12, D11, réponse 7 de l'avocat) : délai de paiement d'un professionnel (jours après
+  // l'émission, ou « fin de mois »), dans les bornes de professional-terms.json ; escompte pour
+  // paiement anticipé (null : « Néant » des données). Absents : inchangés à l'enregistrement.
+  professionalPaymentTermDays?: number | undefined;
+  professionalPaymentTermEndOfMonth?: boolean | undefined;
+  professionalDiscountTerms?: string | null | undefined;
 };
 
 // Lot 31c (D18) : taux des pénalités de retard face à un professionnel, choisi par la planner.
@@ -144,6 +160,8 @@ export type QuoteLineInput = {
   // Lot 31a (FAC-01, décision D2) : section de la ligne, ligne en option.
   sectionId?: string | null | undefined;
   isOption?: boolean | undefined;
+  // Lot 41 (JUR-02, D9) : bien ou service ; absente, celle de l'article du catalogue, sinon « service ».
+  nature?: LineNature | undefined;
 };
 
 export type QuoteLine = {
@@ -162,6 +180,8 @@ export type QuoteLine = {
   sectionId: string | null;
   isOption: boolean;
   optionChosen: boolean;
+  // Lot 41 (JUR-02, D9).
+  nature: LineNature;
 };
 
 // Lot 31a (FAC-01) : section titrée d'une version, avec le sous-total de ses lignes au total.
@@ -242,6 +262,11 @@ export type SellerSnapshot = {
   // pénalités, figés à l'envoi (la phrase des pénalités s'imprime dans la langue du document).
   paymentTerms?: string | null;
   latePenaltyRate?: LatePenaltyRate | null;
+  // Lot 41 (FAC-10, JUR-02, D7) : adresse structurée du vendeur (address en est la ligne) ; absents
+  // des copies antérieures au lot 41.
+  postalCode?: string | null;
+  city?: string | null;
+  countryCode?: string | null;
 };
 
 export type QuoteVersionView = {
@@ -275,7 +300,34 @@ export type InvoiceTotalsView = {
   totalTtcCents: number;
 };
 
-export type InvoiceBuyer = { name: string; billingAddress: string };
+export type InvoiceBuyer = {
+  name: string;
+  billingAddress: string;
+  // Lot 41 (JUR-02, D6) : l'acheteur entreprise d'un devis professionnel, figé avec sa raison
+  // sociale (name), son SIREN (un SIRET donne ses neuf premiers chiffres), son numéro de TVA et son
+  // adresse structurée ; billingAddress en est la forme imprimée. Absents avant le lot 41.
+  kind?: "company" | "person";
+  siren?: string | null;
+  vatNumber?: string | null;
+  address?: PostalAddress | null;
+};
+
+// Lot 41 (FAC-10, JUR-02, JUR-12, JUR-13 ; D1, D8 à D11) — ce qu'une pièce émise à partir du lot 41
+// fige en plus : format Factur-X de l'original, catégorie de l'opération, option pour la TVA sur les
+// débits active à la date d'émission, bon de commande et référence de l'acheteur, adresse de
+// livraison (si elle diffère), conditions d'un professionnel. null : pièce émise avant le lot 41,
+// gardée telle quelle (PDF simple).
+export type InvoiceReform = {
+  format: "facturx";
+  category: OperationCategory;
+  vatOnDebits: boolean;
+  orderReference: string | null;
+  buyerReference: string | null;
+  deliveryAddress: PostalAddress | null;
+  professionalTerms: { paymentTermDays: number; endOfMonth: boolean; discountTerms: string; latePenaltyRate: LatePenaltyRate | null } | null;
+  // Avoir : date d'émission de la facture d'origine (référence du fichier structuré).
+  invoiceIssuedOn?: string;
+};
 
 export type CreditNoteView = {
   id: string;
@@ -290,6 +342,8 @@ export type CreditNoteView = {
   seller: SellerSnapshot;
   buyers: InvoiceBuyer[];
   totals: InvoiceTotalsView;
+  // Lot 41 (FAC-10) : copie de la réforme, reprise de la facture (null avant le lot 41).
+  reform: InvoiceReform | null;
 };
 
 // DEV-04 — facture émise, copie figée de tout ce qui y figure.
@@ -313,7 +367,8 @@ export type InvoiceView = {
   seller: SellerSnapshot;
   buyers: InvoiceBuyer[];
   // Lignes du devis (solde) ou libellé de l'acompte.
-  lines: { label: string; description: string | null; unit: string; quantityMilli: number; unitPriceCents: number; vatRateBasisPoints: number; discountBasisPoints: number; netCents: number }[];
+  // Lot 41 (JUR-02, D9) : nature de chaque ligne (absente avant le lot 41).
+  lines: { label: string; description: string | null; unit: string; quantityMilli: number; unitPriceCents: number; vatRateBasisPoints: number; discountBasisPoints: number; netCents: number; nature?: LineNature }[];
   depositLabel: string | null;
   // Lot 31a (JUR-08) : acompte ou arrhes, repris du devis (null avant le lot 31a).
   advanceKind: AdvanceKind | null;
@@ -328,6 +383,8 @@ export type InvoiceView = {
   totals: InvoiceTotalsView;
   creditNotes: CreditNoteView[];
   creditedCents: number;
+  // Lot 41 (FAC-10, JUR-02, JUR-12, JUR-13).
+  reform: InvoiceReform | null;
 };
 
 // Lot 32a (FAC-12, D8) — les trois chiffres d'une année civile : signé, facturé, encaissé (TTC).
@@ -363,12 +420,15 @@ export type StartQuotesTrialInput = {
 
 // Lot 23b (DOC-08, ADR 0061) : renderOriginal rend le PDF de la pièce émise,
 // déposé tel quel dans la transaction de l'émission (sauf pièce d'essai).
+// Lot 41 (FAC-10, D3) : ce PDF, polices incorporées, devient le Factur-X (PDF/A-3 qui porte son
+// fichier structuré, écrit dans la langue « locale », français par défaut).
 export type RenderInvoiceOriginal = (invoice: InvoiceView) => Promise<Uint8Array>;
 export type RenderCreditNoteOriginal = (creditNote: CreditNoteView, vatApplicable: boolean) => Promise<Uint8Array>;
 export type IssueDepositInvoiceInput = {
   organizationId: string;
   scheduleItemId: string;
   renderOriginal: RenderInvoiceOriginal;
+  locale?: "fr" | "en" | undefined;
   now?: Date | undefined;
   // Lot 31b (réponse 1 de l'avocat) : contrat hors établissement, aucun paiement avant ce jour.
   paymentNotBefore?: string | null | undefined;
@@ -377,6 +437,7 @@ export type IssueBalanceInvoiceInput = {
   organizationId: string;
   quoteId: string;
   renderOriginal: RenderInvoiceOriginal;
+  locale?: "fr" | "en" | undefined;
   now?: Date | undefined;
 };
 export type IssueCreditNoteInput = {
@@ -385,6 +446,7 @@ export type IssueCreditNoteInput = {
   amountCents: number;
   reason: string;
   renderOriginal: RenderCreditNoteOriginal;
+  locale?: "fr" | "en" | undefined;
   now?: Date | undefined;
 };
 
@@ -412,6 +474,29 @@ export type QuoteSummary = {
   clientKind: ClientKind;
   totalTtcCents: number;
 };
+
+// Lot 41 (JUR-02, JUR-13 ; D6, D8) — ce que le devis porte pour la facture : son acheteur entreprise
+// (contact « entreprise » du hub, client professionnel), le numéro de bon de commande du client et
+// la référence de l'acheteur (modifiables jusqu'à chaque émission), l'adresse de livraison si elle
+// diffère de l'adresse de facturation.
+export type QuoteBuyerDetails = {
+  buyerContactId: string | null;
+  orderReference: string | null;
+  buyerReference: string | null;
+  deliveryAddress: PostalAddress | null;
+};
+
+export type QuoteBuyerDetailsInput = {
+  buyerContactId: string | null;
+  orderReference: string | null;
+  buyerReference: string | null;
+  deliveryAddress: PostalAddress | null;
+};
+
+// Lot 41 (GC-03, D12) — un point d'attention de l'assistant de conformité : il informe, il ne bloque
+// jamais. La règle (clé, textes) vient des données ; « target » mène au réglage ou au champ concerné.
+export type ComplianceDocument = "quote" | "contract" | "invoice";
+export type ComplianceFinding = { key: string; title: string; why: string; target: string };
 
 // DEV-02 — signataires saisis sur le devis (ADR 0021).
 export type SignerInput = {
@@ -496,6 +581,11 @@ export type ClientQuoteToSign = {
   // Lot 31b (JUR-07 ; D11, D13) : le contrat signé avec le devis (ou seul), lisible avant la
   // signature, et les actes de ce signataire : commande à distance, exécution anticipée.
   contract: ClientContract | null;
+  // Lot 41 (JUR-13, D8, SC-11 étape 4) : devis d'un professionnel, son numéro de bon de commande, et
+  // si ce signataire peut l'indiquer (tant qu'aucune facture de solde n'est émise).
+  professional: boolean;
+  orderReference: string | null;
+  canSetOrderReference: boolean;
 };
 
 export type SignatureRequestKind = "quote" | "quote_contract" | "contract";
@@ -560,7 +650,14 @@ export type MissingMention =
   // Lot 31c (D18, D22).
   | "professionalPaymentTerms"
   | "latePenaltyRate"
-  | "earnestSingleInstalment";
+  | "earnestSingleInstalment"
+  // Lot 41 (FAC-10, JUR-02, JUR-12 ; D6, D7, D11).
+  | "postalCode"
+  | "city"
+  | "buyerCompany"
+  | "buyerSiren"
+  | "buyerAddress"
+  | "professionalDiscountTerms";
 
 // --- Lot 31b (FAC-04, FAC-05, DOC-02, DOC-03, JUR-07, JUR-08, HUB-21 ; décisions D6, D7, D9, D11
 // à D17, révisées après les réponses de l'avocat du 13/11/2026) ---
@@ -714,6 +811,8 @@ export type QuoteDetail = QuoteSummary & {
   regimeChangedSinceSent: boolean;
   // DEV-02 : demande de signature de la version courante.
   signature: SignatureView | null;
+  // Lot 41 (JUR-02, JUR-13 ; D6, D8).
+  buyer: QuoteBuyerDetails;
 };
 
 export type CreateQuoteInput = {

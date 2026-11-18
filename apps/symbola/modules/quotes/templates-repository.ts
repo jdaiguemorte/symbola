@@ -48,6 +48,8 @@ export type TemplateContent = {
     vatRateBasisPoints: number;
     discountBasisPoints: number;
     isOption: boolean;
+    // Lot 41 (JUR-02, D9) : bien ou service (« service » si absent).
+    nature?: "service" | "goods";
   }[];
   schedule: {
     label: string;
@@ -227,6 +229,7 @@ export async function applyTemplateToDraft(
           vatRateBasisPoints: input.vatRateFor(line),
           discountBasisPoints: line.discountBasisPoints,
           isOption: line.isOption,
+          nature: line.nature,
           position: line.position,
         })),
       );

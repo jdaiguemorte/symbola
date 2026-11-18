@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "status": {
+    "fr": "Mentions de la réforme de la facturation électronique (JUR-02, réponse 2 de l'expert-comptable) et date de l'obligation d'émission (JUR-03). Textes à valider par l'expert-comptable (fiche, questions 13 et 14, EC-2 et EC-3). Lot 41.",
+    "en": "Mentions of the French e-invoicing reform (JUR-02, chartered accountant's answer 2) and date of the issuing obligation (JUR-03). Wording to be validated by the chartered accountant (sheet, questions 13 and 14, EC-2 and EC-3). Lot 41."
+  },
+  "categories": {
+    "services": { "fr": "Prestations de services", "en": "Supply of services" },
+    "goods": { "fr": "Livraisons de biens", "en": "Supply of goods" },
+    "mixed": { "fr": "Opération mixte (livraisons de biens et prestations de services)", "en": "Mixed transaction (supply of goods and services)" }
+  },
+  "vatOnDebitsMention": {
+    "fr": "Option pour le paiement de la taxe d'après les débits",
+    "en": "Option for payment of VAT on an accrual basis (« d'après les débits »)"
+  },
+  "electronicInvoicingFrom": "2027-09-01"
+}

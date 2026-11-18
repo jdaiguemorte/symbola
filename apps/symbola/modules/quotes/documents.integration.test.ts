@@ -33,10 +33,11 @@ import {
   updateDocumentSettings,
 } from "./service";
 import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
+import { minimalPdf } from "@/lib/test-fixtures/pdf";
 
 // Lot 23b (DOC-08) : rendu factice de l'original déposé à l'émission.
-const renderInvoice = async () => Buffer.from("%PDF-1.4\n% facture de test\n%%EOF\n", "latin1");
-const renderCreditNote = async () => Buffer.from("%PDF-1.4\n% avoir de test\n%%EOF\n", "latin1");
+const renderInvoice = async () => minimalPdf("facture de test");
+const renderCreditNote = async () => minimalPdf("avoir de test");
 
 
 const NOW = new Date("2027-04-10T10:00:00Z");
