@@ -1093,6 +1093,20 @@
       "when": 1794999261986,
       "tag": "0155_lot41_hub_seller_address_vat_debits",
       "breakpoints": true
+    },
+    {
+      "idx": 156,
+      "version": "7",
+      "when": 1795005709224,
+      "tag": "0159_lot47_events_vendor_coordination",
+      "breakpoints": true
+    },
+    {
+      "idx": 157,
+      "version": "7",
+      "when": 1795005757132,
+      "tag": "0160_lot47_hub_vendor_email_kinds",
+      "breakpoints": true
     }
   ]
 }
