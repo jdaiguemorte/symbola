@@ -2,8 +2,9 @@
 -- contact », envoyée à la titulaire) devient personnalisable par l'organisation. Exception écrite à la
 -- règle « une migration ne touche que le schéma de son module » (DAT-09, ADR 0036), accordée par Julien
 -- le 18/11/2026 : seule la contrainte des natures de hub.email_templates est remplacée, par la réunion
--- des natures présentes sur main (dont celles du lot 49, migration 0152) et de prospect_form_received ;
+-- des natures présentes sur main (lot 49, migration 0152 ; lot 46, migration 0158) et de
+-- prospect_form_received ;
 -- rien d'autre dans hub. Une nature inconnue reste refusée. Ajout seul : compatible avec la version
 -- précédente du code (ARC-14).
 ALTER TABLE "hub"."email_templates" DROP CONSTRAINT "email_templates_kind_check";--> statement-breakpoint
-ALTER TABLE "hub"."email_templates" ADD CONSTRAINT "email_templates_kind_check" CHECK ("hub"."email_templates"."kind" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'prospect_form_received'));
+ALTER TABLE "hub"."email_templates" ADD CONSTRAINT "email_templates_kind_check" CHECK ("hub"."email_templates"."kind" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received'));

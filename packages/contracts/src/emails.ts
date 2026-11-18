@@ -7,6 +7,11 @@ export const EMAIL_TEMPLATE_KINDS = [
   "vendor_link",
   "vendor_link_renewed",
   "task_reminder",
+  // Lot 46 (RDV-03, D10 ; ADR 0082) : rendez-vous, côté personne qui l'a pris.
+  "appointment_confirmed",
+  "appointment_reminder",
+  "appointment_rescheduled",
+  "appointment_cancelled",
   "quote_signature",
   "contract_signature",
   "order_first",
@@ -27,7 +32,8 @@ export type EmailLocale = (typeof EMAIL_LOCALES)[number];
 // Les variables, désignées par une clé stable ; chacune s'écrit en français ou en anglais dans un
 // modèle (« {{prénom}} », « {{first_name}} »).
 // Lot 38b : « place » (le lieu de réception) sert aux modèles de messages de la planner.
-export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place"] as const;
+// Lot 46 : « appointment » (le type de rendez-vous) et « appointment_date » (jour et heure, à Paris).
+export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date"] as const;
 export type EmailVariable = (typeof EMAIL_VARIABLES)[number];
 export type EmailValues = Partial<Record<EmailVariable, string>>;
 

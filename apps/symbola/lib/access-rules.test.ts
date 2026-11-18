@@ -43,6 +43,8 @@ const SHARED_ACCESS: Record<string, string> = {
   // Lot 49 : module Invités, côté équipe (session, modules) et au portail (lien, rubrique, modules).
   guestsAccess: "app/events/[id]/invites/access.ts",
   portalGuestsAccess: "app/portail/invites/access.ts",
+  // Lot 46 : la planner connectée, et le module Rendez-vous ouvert.
+  appointmentsPlanner: "app/rendez-vous/access.ts",
 };
 
 const GUARDS = new Set([...BASE_GUARDS, ...Object.keys(SHARED_ACCESS)]);
@@ -93,6 +95,14 @@ const PUBLIC_ENTRIES: Record<string, string> = {
   "rsvp/actions.ts#answerRsvpAction": "jeton du lien de l'invité, relu à chaque envoi ; seuls son foyer et ses droits (répondant, régimes avec accord), limité en débit",
   "rsvp/actions.ts#opposeRsvpAction": "jeton du lien de l'invité : efface ses propres coordonnées et régimes, limité en débit",
   "partage/fichier/route.ts#POST": "jeton du lien de partage en POST du même site, vérifié haché sous RLS, limité en débit ; son document seul, l'ouverture journalisée",
+  // Lot 46 (RDV-02, RDV-03 ; D5, D11 ; ADR 0082) : page publique de réservation et lien de gestion d'un rendez-vous.
+  "reserver/[adresse]/page.tsx#default": "page publique de réservation : adresse lisible choisie par la planner, page active et module ouvert, sinon introuvable ; créneaux libres seulement, aucune donnée personnelle",
+  "reserver/[adresse]/actions.ts#bookAppointmentAction": "réservation sans compte : entrée validée, piège à robots, débit limité par adresse IP et par adresse e-mail, trois rendez-vous à venir par adresse, même réponse au plafond qu'au débit",
+  "rdv/page.tsx#default": "arrivée d'un lien de gestion : le jeton reste dans le navigateur, la page n'affiche rien d'autre",
+  "rdv/actions.ts#describeAppointmentLinkAction": "jeton du lien de gestion, vérifié haché sous RLS, valable jusqu'à la fin du rendez-vous, limité en débit ; même réponse pour un lien inconnu, expiré ou retiré",
+  "rdv/actions.ts#appointmentLinkSlotsAction": "jeton du lien de gestion : créneaux libres du même type seulement, limité en débit",
+  "rdv/actions.ts#rescheduleAppointmentAction": "jeton du lien de gestion : report sur un créneau libre recalculé sous verrou, limité en débit",
+  "rdv/actions.ts#cancelAppointmentByLinkAction": "jeton du lien de gestion : annulation de ce rendez-vous seul, motif choisi dans une liste, limité en débit",
 };
 
 const HTTP_METHODS = new Set(["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]);

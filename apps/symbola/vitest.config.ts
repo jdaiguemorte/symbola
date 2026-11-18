@@ -27,6 +27,8 @@ export const BUSINESS_RULE_FILES = [
   "modules/guests/reminders.ts",
   "modules/guests/purge-rules.ts",
   "modules/guests/import-rules.ts",
+  // Lot 46 (RDV-02) : calcul des créneaux libres.
+  "modules/appointments/slots.ts",
   // Lot 44 : formulaire de contact (validation, budget, liens, sites autorisés) et pipeline (cartes, ordre).
   "modules/events/contact-form-rules.ts",
   "modules/events/pipeline-rules.ts",

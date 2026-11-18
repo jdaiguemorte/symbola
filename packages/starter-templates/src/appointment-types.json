@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "_source": "Lot 46 (RDV-01, HUB-20 ; D6, D10 ; ADR 0082) : modèles de départ du module Rendez-vous, traduisibles, jamais en dur. Trois types (premier rendez-vous découverte en visio, visite de lieu, dégustation), les plages hebdomadaires par défaut de la personne qui reçoit (lundi au vendredi, 9 h - 18 h, heure de Paris), les réglages par défaut d'un type créé avec son seul nom et sa durée, et la mention d'information de la page publique de réservation. Mention à faire relire par la DPO (question DPO-3, docs/conformite/fiche-dpo.md) avant la première donnée réelle ; la planner la remplace dans les réglages de sa page. Variables de la mention : {organization}, {contact}.",
+  "defaults": {
+    "locationKind": "video",
+    "bufferBeforeMinutes": 0,
+    "bufferAfterMinutes": 0,
+    "minNoticeMinutes": 1440,
+    "horizonDays": 60,
+    "reminders": "24h",
+    "allowEventDays": false
+  },
+  "availability": [
+    { "weekday": 1, "startTime": "09:00", "endTime": "18:00" },
+    { "weekday": 2, "startTime": "09:00", "endTime": "18:00" },
+    { "weekday": 3, "startTime": "09:00", "endTime": "18:00" },
+    { "weekday": 4, "startTime": "09:00", "endTime": "18:00" },
+    { "weekday": 5, "startTime": "09:00", "endTime": "18:00" }
+  ],
+  "types": [
+    {
+      "key": "discovery",
+      "name": { "fr": "Premier rendez-vous découverte", "en": "First discovery call" },
+      "durationMinutes": 60,
+      "locationKind": "video",
+      "bufferAfterMinutes": 15,
+      "questions": [
+        { "id": "date", "kind": "text", "label": { "fr": "Date ou période envisagée", "en": "Date or period you have in mind" }, "choices": [] },
+        { "id": "guests", "kind": "choice", "label": { "fr": "Nombre d'invités", "en": "Number of guests" }, "choices": { "fr": ["Moins de 50", "50 à 100", "100 à 150", "Plus de 150", "Je ne sais pas encore"], "en": ["Fewer than 50", "50 to 100", "100 to 150", "More than 150", "Not sure yet"] } }
+      ]
+    },
+    {
+      "key": "venue_visit",
+      "name": { "fr": "Visite de lieu", "en": "Venue visit" },
+      "durationMinutes": 90,
+      "locationKind": "place",
+      "bufferBeforeMinutes": 30,
+      "bufferAfterMinutes": 30,
+      "questions": []
+    },
+    {
+      "key": "tasting",
+      "name": { "fr": "Dégustation", "en": "Tasting" },
+      "durationMinutes": 120,
+      "locationKind": "place",
+      "bufferBeforeMinutes": 30,
+      "bufferAfterMinutes": 30,
+      "questions": []
+    }
+  ],
+  "privacyNotice": {
+    "fr": "{organization} utilise les informations de ce formulaire (votre nom, votre adresse e-mail, votre téléphone si vous le donnez et vos réponses) pour organiser ce rendez-vous et vous recontacter à son sujet, à votre demande. Elles sont gardées trois ans après votre dernier échange avec {organization} si aucun projet ne suit, puis supprimées. Vous pouvez y accéder, les faire corriger ou effacer, ou vous opposer à leur utilisation en écrivant à {contact}. Vous pouvez aussi adresser une réclamation à la CNIL (www.cnil.fr). Symbola héberge ces données pour le compte de {organization}.",
+    "en": "{organization} uses the information in this form (your name, your email address, your phone number if you give it and your answers) to arrange this appointment and get back to you about it, at your request. It is kept for three years after your last exchange with {organization} if no project follows, then deleted. You can access it, have it corrected or erased, or object to its use by writing to {contact}. You can also lodge a complaint with the CNIL (www.cnil.fr). Symbola hosts this data on behalf of {organization}."
+  }
+}

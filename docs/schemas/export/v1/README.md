@@ -184,3 +184,20 @@ Tables non exportées :
 
 - `diets` — régimes et allergies des invités, chiffrés au niveau du champ (données de santé, article 9) : ils restent dans Symbola, réservés à la titulaire, et sont purgés sept jours après l'évènement
 - `guest_links` — empreintes des jetons des liens personnels des invités : sans usage hors de Symbola
+
+## Module `appointments`
+
+| Entité | Champs | Schéma |
+| --- | --- | --- |
+| `booking_pages` | `id`, `slug`, `active`, `privacyNotice`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [booking_pages.schema.json](appointments/booking_pages.schema.json) |
+| `appointment_types` | `id`, `name`, `durationMinutes`, `locationKind`, `location`, `bufferBeforeMinutes`, `bufferAfterMinutes`, `minNoticeMinutes`, `horizonDays`, `reminders`, `questions`, `hostUserId`, `allowEventDays`, `active`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [appointment_types.schema.json](appointments/appointment_types.schema.json) |
+| `availability_rules` | `id`, `userId`, `weekday`, `startTime`, `endTime`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [availability_rules.schema.json](appointments/availability_rules.schema.json) |
+| `availability_closures` | `id`, `userId`, `startsOn`, `endsOn`, `reason`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [availability_closures.schema.json](appointments/availability_closures.schema.json) |
+| `calendar_sources` | `id`, `userId`, `label`, `urlHint`, `state`, `failures`, `lastErrorKind`, `lastReadAt`, `lastSuccessAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [calendar_sources.schema.json](appointments/calendar_sources.schema.json) |
+| `appointments` | `id`, `typeId`, `typeName`, `hostUserId`, `startsAt`, `endsAt`, `bufferBeforeMinutes`, `bufferAfterMinutes`, `locationKind`, `location`, `reminders`, `status`, `origin`, `personName`, `personEmail`, `personPhone`, `locale`, `answers`, `contactId`, `eventId`, `manageTokenSealed`, `rescheduledAt`, `cancelledAt`, `cancelledBy`, `cancelReason`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [appointments.schema.json](appointments/appointments.schema.json) |
+| `appointment_reports` | `id`, `appointmentId`, `notes`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [appointment_reports.schema.json](appointments/appointment_reports.schema.json) |
+| `appointment_report_actions` | `id`, `reportId`, `label`, `dueOn`, `responsible`, `taskId`, `taskEventId`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [appointment_report_actions.schema.json](appointments/appointment_report_actions.schema.json) |
+
+Tables non exportées :
+
+- `busy_intervals` — technique : plages occupées relues dans les agendas extérieurs toutes les quinze minutes, sans titre ; l'agenda d'origine les garde

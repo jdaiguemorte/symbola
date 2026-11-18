@@ -29,8 +29,9 @@ const securityHeaders = [
 
 // Lot 37a (DOC-04, ADR 0070) : la page d'un lien de partage de document, comme celles des liens personnels.
 // Lot 49 (INV-03, SEC-17) : la page de réponse des invités.
+// Lot 46 (RDV-02, RDV-03, D11) : la page publique de réservation et le lien de gestion d'un rendez-vous.
 // Lot 44 (CRM-01 ; D2 ; ADR 0084) : le formulaire de contact public et sa page encadrée.
-const LINK_PAGES = ["/lien", "/lien/:path*", "/portail", "/portail/:path*", "/prestataire", "/prestataire/:path*", "/partage", "/partage/:path*", "/rsvp", "/rsvp/:path*", "/contact/:path*"];
+const LINK_PAGES = ["/lien", "/lien/:path*", "/portail", "/portail/:path*", "/prestataire", "/prestataire/:path*", "/partage", "/partage/:path*", "/rsvp", "/rsvp/:path*", "/reserver/:path*", "/rdv", "/rdv/:path*", "/contact/:path*"];
 
 // Lot 44 (CRM-01, D1 ; ADR 0084) : la page encadrée du formulaire de contact
 // (/contact/<adresse>/cadre) est la seule qui n'a pas X-Frame-Options: DENY ; ses parents

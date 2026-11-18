@@ -1,5 +1,6 @@
 -- Annulation de 0160 (lot 44) : la contrainte des natures d'e-mails revient exactement à la liste
--- d'avant (migration 0152 du lot 49 : natures d'origine, invitations et relances des invités).
+-- de main (migration 0158 du lot 46 : natures d'origine, invitations et relances des invités,
+-- e-mails des rendez-vous).
 -- Refusée tant qu'un modèle « Nouvelle demande de contact » personnalisé existe : il serait perdu ; la
 -- planner le remet au texte de départ (« Revenir au texte de départ ») avant l'annulation.
 DO $$
@@ -12,4 +13,4 @@ $$;
 --> statement-breakpoint
 ALTER TABLE "hub"."email_templates" DROP CONSTRAINT "email_templates_kind_check";
 --> statement-breakpoint
-ALTER TABLE "hub"."email_templates" ADD CONSTRAINT "email_templates_kind_check" CHECK ("hub"."email_templates"."kind" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder'));
+ALTER TABLE "hub"."email_templates" ADD CONSTRAINT "email_templates_kind_check" CHECK ("hub"."email_templates"."kind" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled'));

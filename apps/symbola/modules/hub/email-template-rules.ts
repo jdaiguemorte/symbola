@@ -21,6 +21,8 @@ const TOKENS: Record<EmailVariable, Record<EmailLocale, string>> = {
   quote_number: { fr: "numéro_devis", en: "quote_number" },
   version: { fr: "version", en: "version" },
   place: { fr: "lieu", en: "place" },
+  appointment: { fr: "rendez_vous", en: "appointment" },
+  appointment_date: { fr: "date_rendez_vous", en: "appointment_date" },
 };
 
 const BY_TOKEN = new Map<string, EmailVariable>(
@@ -30,7 +32,7 @@ const BY_TOKEN = new Map<string, EmailVariable>(
   ]),
 );
 
-type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "request" | null };
+type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | "request" | null };
 
 export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   client_link: { variables: ["first_name", "organization", "event", "link", "valid_until"], required: ["link"], button: "space" },
@@ -38,6 +40,11 @@ export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   vendor_link: { variables: ["first_name", "organization", "event", "clients", "event_date", "link", "valid_until"], required: ["link"], button: "space" },
   vendor_link_renewed: { variables: ["first_name", "organization", "event", "clients", "event_date", "link", "valid_until"], required: ["link"], button: "space" },
   task_reminder: { variables: ["first_name", "organization", "event", "event_date", "tasks"], required: ["tasks"], button: null },
+  // Lot 46 (RDV-03, D10) : le lien de gestion du rendez-vous (report, annulation, sans compte).
+  appointment_confirmed: { variables: ["first_name", "organization", "appointment", "appointment_date", "place", "link"], required: ["link"], button: "manage" },
+  appointment_reminder: { variables: ["first_name", "organization", "appointment", "appointment_date", "place", "link"], required: ["link"], button: "manage" },
+  appointment_rescheduled: { variables: ["first_name", "organization", "appointment", "appointment_date", "place", "link"], required: ["link"], button: "manage" },
+  appointment_cancelled: { variables: ["first_name", "organization", "appointment", "appointment_date"], required: [], button: null },
   quote_signature: { variables: ["first_name", "organization", "quote_number", "link"], required: ["link"], button: "sign" },
   contract_signature: { variables: ["first_name", "organization", "quote_number", "link"], required: ["link"], button: "sign" },
   order_first: { variables: ["first_name", "organization", "quote_number"], required: [], button: null },

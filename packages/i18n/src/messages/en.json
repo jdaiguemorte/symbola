@@ -125,7 +125,10 @@
     "followUpDepositBlocked": "Deposit invoice for quote {number} blocked: a mention is missing",
     "followUpDepositOn": "on {date}",
     "followUpDepositBlockedBadge": "to issue",
-    "contacts": "Contacts"
+    "contacts": "Contacts",
+    "appointments": "Appointments",
+    "settingsAppointments": "Types and booking page",
+    "appointmentAvailability": "My availability"
   },
   "Admin": {
     "createOrganizationTitle": "Create an organization",
@@ -1176,6 +1179,30 @@
     "portalGuests": {
       "title": "Your guests",
       "body": "Add your guests by household, or import your spreadsheet: duplicates are flagged before anything is saved. For a guest without email, get their personal link or QR code and send it by text. You follow replies per moment; diets show as numbers, never by name."
+    },
+    "appointmentsList": {
+      "title": "Appointments",
+      "body": "Appointments booked on your booking page, and those entered by the team (phone, fair). New, moved or cancelled ones also show in “Today”. Start by creating an appointment type (a name and a duration), then choose your page address and give it to your future clients. Nobody needs an account: each person gets a confirmation with the invitation for their calendar, and a link to reschedule or cancel."
+    },
+    "appointmentDetail": {
+      "title": "An appointment",
+      "body": "Move or cancel the appointment: the person is told by email if you tick the box. With the Events module, link it to an event, or create an option from it with nothing to type again. After the appointment, write the report (team only) and its actions: “Make it a task” puts the action in the event's planning, with its due date and owner."
+    },
+    "appointmentNew": {
+      "title": "Enter an appointment",
+      "body": "For an appointment agreed by phone or in person: choose the type, the day and time (Paris time), then the person. Their contact card is created, or found by their email address. Tick “Notify” to send them the confirmation and their management link."
+    },
+    "appointmentSettings": {
+      "title": "Types and booking page",
+      "body": "A type is created with its name and duration; everything else has a default value (video call, 24 hours' notice, bookable 60 days ahead, reminder 24 hours before). The page address is yours (/reserver/your-name); changing it stops the old one. The privacy notice is shown under the form, in your name."
+    },
+    "appointmentType": {
+      "title": "Type settings",
+      "body": "Location (address, video link or phone), buffers before and after (travel or preparation time, never offered to another appointment), minimum notice, booking horizon, reminders, questions before booking (five at most) and the team member who hosts. By default, no appointment is offered on a confirmed event day."
+    },
+    "appointmentAvailability": {
+      "title": "My availability",
+      "body": "Your weekly hours (two ranges per day at most), your closed days and your calendars. Link your Google, Apple or Outlook calendar through its secret iCal address: only busy times are read, every fifteen minutes, never the content. If a calendar can no longer be read, no slot is offered until it is read again: better offer nothing than a time already taken."
     },
     "eventsPipeline": {
       "title": "Follow your requests in columns",
@@ -3780,7 +3807,8 @@
       "company": "My company and account",
       "data": "Import and personal data",
       "admin": "Suite operations",
-      "clients": "Your space"
+      "clients": "Your space",
+      "appointments": "Appointments"
     },
     "screenTitle": "Help: {title}",
     "back": "Back to the help centre",
@@ -4837,6 +4865,9 @@
     "messageTemplates": "Message templates",
     "trash": "Trash",
     "dietaryOptions": "Diets and allergies",
+    "groupAppointments": "Appointments",
+    "appointmentTypes": "Types and booking page",
+    "appointmentAvailability": "My availability and calendars",
     "pipelineStages": "Pipeline stages",
     "contactForm": "Contact form"
   },
@@ -5421,7 +5452,10 @@
     "navDecisions": "To decide",
     "actionGoDecision": "Answer",
     "navDocuments": "Documents",
-    "guestsLink": "Your guests: list, import and replies"
+    "guestsLink": "Your guests: list, import and replies",
+    "appointmentsTitle": "Your next appointments",
+    "appointmentVideo": "video call",
+    "appointmentPhone": "phone call"
   },
   "VendorSpace": {
     "title": "Your vendor space",
@@ -6013,6 +6047,13 @@
       "guestPurgeDiets": "Guests' diets will be erased: postpone if needed",
       "guestPurgeAll": "Guest data will be erased: postpone if needed",
       "guestOpposition": "{count, plural, one {A guest objected} other {# guests objected}} to their data being kept",
+      "appointment": "{time} · {type} with {person}",
+      "appointmentChange": {
+        "new": "New appointment: {type} with {person}, on {time}",
+        "rescheduled": "Appointment moved: {type} with {person}, to {time}",
+        "cancelled": "Appointment cancelled: {type} with {person}, on {time}"
+      },
+      "calendarSourceError": "The calendar “{label}” can no longer be read: no slot is offered until it is read again",
       "prospectRequest": "New request: {names}, {when}",
       "prospectRequestNoDate": "New request: {names}",
       "prospectRequestDateTaken": "Date already taken",
@@ -6077,7 +6118,8 @@
       "events": "events",
       "quotes": "quotes and payments",
       "budget": "budget",
-      "guests": "guests"
+      "guests": "guests",
+      "appointments": "appointments"
     }
   },
   "QuickCreate": {
@@ -6326,6 +6368,7 @@
       "space": "Open my space",
       "sign": "Sign online",
       "answer": "Reply",
+      "manage": "Reschedule or cancel",
       "request": "View the request"
     },
     "footerNote": "Sent with Symbola",
@@ -6341,7 +6384,10 @@
       "validUntil": "June 19, 2027",
       "tasks": "- Choose the rings: due March 10, 2027 (in 7 days)\n- Confirm the menu: due March 15, 2027 (in 12 days)",
       "quoteNumber": "D-2027-0042",
-      "version": "3"
+      "version": "3",
+      "place": "video call: https://video.example.com/studio",
+      "appointment": "First discovery call",
+      "appointmentDate": "2 March 2027 at 10:00"
     },
     "event": {
       "coupleClient": "your wedding",
@@ -6407,6 +6453,7 @@
       "reminders": "Reminders",
       "signatures": "Quotes and contracts",
       "program": "Schedule",
+      "appointments": "Appointments",
       "prospects": "Contact requests"
     },
     "kinds": {
@@ -6450,6 +6497,22 @@
         "title": "New schedule version",
         "description": "Sent when you notify a shared version by email, with the schedule as a PDF."
       },
+      "appointment_confirmed": {
+        "title": "Appointment confirmed",
+        "description": "Sent as soon as an appointment is booked, with the calendar invitation and the link to reschedule or cancel."
+      },
+      "appointment_reminder": {
+        "title": "Appointment reminder",
+        "description": "Sent automatically before the appointment, according to the type's reminders."
+      },
+      "appointment_rescheduled": {
+        "title": "Appointment moved",
+        "description": "Sent when the appointment changes time, with the new invitation."
+      },
+      "appointment_cancelled": {
+        "title": "Appointment cancelled",
+        "description": "Sent when you cancel an appointment, or when the person cancels it."
+      },
       "prospect_form_received": {
         "title": "New contact request",
         "description": "Sent to the account owner at each request received through the contact form, without the person's message or contact details."
@@ -6465,7 +6528,10 @@
       "valid_until": "The link's expiry date",
       "tasks": "The list of tasks to do, with their due dates",
       "quote_number": "The quote number",
-      "version": "The schedule version number"
+      "version": "The schedule version number",
+      "place": "The place: address, video link or phone",
+      "appointment": "The appointment type",
+      "appointment_date": "The day and time of the appointment"
     },
     "back": "All email templates",
     "editorTitle": "{title} ({language})",
@@ -6510,7 +6576,7 @@
     "title": "My calendar",
     "intro": "Subscribe your calendar (Google, Apple, Outlook…) to your events: it refreshes on its own. Each address is secret and personal: do not share it.",
     "personTitle": "My events",
-    "personHint": "The business's dated events, as all-day events, with a link to their record. No trial, lost or cancelled event.",
+    "personHint": "The business's dated events, as all-day events, with a link to their record, and the appointments you host. No trial, lost or cancelled event.",
     "create": "Create my address",
     "regenerate": "New address",
     "regenerateHint": "A new address replaces the old one, which stops responding at once.",
@@ -6534,7 +6600,366 @@
     "programFollowed": "This schedule is in your calendar (address created on {date}).",
     "programRenew": "New schedule address",
     "programRevoke": "Remove the schedule from my calendar",
-    "unavailable": "The calendar follows events: it needs the Events module."
+    "unavailable": "The calendar follows events: it needs the Events module.",
+    "appointment": "{type} — {name}"
+  },
+  "Appointments": {
+    "title": "Appointments",
+    "subtitle": "Appointments booked on your booking page or entered by the team.",
+    "moduleUnavailable": "The Appointments module is not enabled for your organization.",
+    "availabilityLink": "My availability",
+    "settingsLink": "Types and booking page",
+    "newManual": "Enter an appointment",
+    "status": {
+      "booked": "Confirmed",
+      "cancelled": "Cancelled"
+    },
+    "origin": {
+      "public": "booked on the page",
+      "manual": "entered by the team"
+    },
+    "originLabel": "Origin",
+    "start": {
+      "title": "Open your booking page in three steps",
+      "types": "Create an appointment type (a name and a duration are enough), or add the three starter types.",
+      "page": "Choose the address of your booking page.",
+      "share": "Give this address to your future clients: email signature, website, social media.",
+      "action": "Get started",
+      "help": "See help"
+    },
+    "pageAddress": "Your booking page:",
+    "pageInactive": "closed for now",
+    "upcomingTitle": "Upcoming",
+    "upcomingEmpty": "No upcoming appointment.",
+    "pastTitle": "Past",
+    "pastEmpty": "No past appointment.",
+    "showPast": "See the last thirty past appointments",
+    "ok": {
+      "pageSaved": "Booking page saved.",
+      "typeCreated": "Type created: adjust it if needed, it is already offered on your page.",
+      "startersAdded": "The starter types have been added.",
+      "typeSaved": "Type saved.",
+      "typeTrashed": "Type moved to the bin.",
+      "availabilitySaved": "Availability saved.",
+      "closureAdded": "Closed days added.",
+      "closureRemoved": "Closed days removed.",
+      "sourceAdded": "Calendar added.",
+      "sourceRefreshed": "Calendar read again.",
+      "sourceRemoved": "Calendar removed: its busy times are deleted.",
+      "created": "Appointment saved.",
+      "cancelled": "Appointment cancelled.",
+      "moved": "Appointment moved.",
+      "trashed": "Appointment moved to the bin.",
+      "linked": "Appointment linked to the event.",
+      "unlinked": "Appointment detached from the event.",
+      "optionCreated": "Option created and linked to this appointment.",
+      "reportSaved": "Report saved.",
+      "actionAdded": "Action added.",
+      "actionRemoved": "Action removed.",
+      "taskCreated": "Task created in the event's planning."
+    },
+    "errors": {
+      "slugTaken": "This address is already taken: choose another one.",
+      "calendarUrl": "This calendar address can't be used: paste the secret address in iCal format (https:// or webcal://) given by your calendar.",
+      "notLinked": "Link this appointment to an event first: the task will go into its planning.",
+      "notFound": "Not found: it may have been deleted already.",
+      "unexpected": "The action did not go through. Try again in a moment.",
+      "invalid": {
+        "slug": "The address must have 3 to 60 characters: lowercase letters, digits and hyphens.",
+        "privacyNotice": "The privacy notice must not exceed 3,000 characters.",
+        "name": "The name is required (at most 120 characters for a type, 200 for a person).",
+        "durationMinutes": "The duration ranges from 15 minutes to 8 hours.",
+        "location": "The location is too long, or the video link does not start with https://.",
+        "locationKind": "Choose a place, a video call or a phone call.",
+        "questions": "Five questions at most; a choice question needs at least two choices.",
+        "rules": "Each time range must end after it starts.",
+        "closure": "Closed days must end after their first day.",
+        "reason": "The reason must not exceed 80 characters.",
+        "label": "The name is required (at most 200 characters).",
+        "sources": "Five calendars at most per person.",
+        "calendarUrl": "Paste the secret address of your calendar.",
+        "startsAt": "Choose the day and time.",
+        "email": "The email address is not valid.",
+        "phone": "The phone number is not valid.",
+        "eventId": "This event cannot be found.",
+        "status": "This appointment is already cancelled.",
+        "prospectSourceId": "Choose the lead source.",
+        "notes": "The report must not exceed 10,000 characters.",
+        "dueOn": "The action date is not valid.",
+        "host": "Choose a team member."
+      }
+    },
+    "settingsTitle": "Types and booking page",
+    "settingsSubtitle": "What your future clients can book, and at which address.",
+    "backToList": "Back to appointments",
+    "backToSettings": "Back to types",
+    "typesTitle": "Appointment types",
+    "typesEmpty": "No type yet. Create one below, or start from the three starter types (discovery video call, venue visit, tasting).",
+    "addStarters": "Add the starter types",
+    "typeSummary": "{minutes} min · {place}",
+    "locationKind": {
+      "place": "in person",
+      "video": "video call",
+      "phone": "phone call"
+    },
+    "typeInactive": "not offered",
+    "trashType": "Delete",
+    "trashTypeLabel": "Delete the type {name}",
+    "newTypeTitle": "New type",
+    "typeName": "Name",
+    "typeNamePlaceholder": "First meeting",
+    "typeDuration": "Duration",
+    "minutes": "{minutes, plural, =60 {1 hour} =90 {1.5 hours} =120 {2 hours} =180 {3 hours} =240 {4 hours} other {# minutes}}",
+    "createType": "Create the type",
+    "pageTitle": "Booking page",
+    "pageHint": "A public page, with no account, where your future clients pick a free slot. It only shows slots, never your calendar.",
+    "pageSlug": "Page address",
+    "pageSlugHint": "Lowercase letters, digits and hyphens. Changing the address stops the old one.",
+    "pageActive": "Page open to bookings",
+    "pageNotice": "Privacy notice (GDPR)",
+    "pageNoticeHint": "Shown under the form, in your name. Leave empty for the suggested text (in grey), to be reviewed before the first real booking.",
+    "pageSave": "Save the page",
+    "pageOpen": "See my booking page",
+    "typeEditSubtitle": "Type settings; each setting has its default value.",
+    "typeDurationMinutes": "Duration (minutes)",
+    "typeLocation": "Location",
+    "typeLocationDetail": "Address, video link or number",
+    "typeLocationHint": "For a video call, paste the link to your room (https://…). It is sent with the confirmation.",
+    "bufferBefore": "Buffer before (minutes)",
+    "bufferAfter": "Buffer after (minutes)",
+    "minNoticeHours": "Minimum notice (hours)",
+    "horizonDays": "Bookable up to (days)",
+    "reminders": "Email reminders",
+    "reminderPlan": {
+      "none": "None",
+      "24h": "24 hours before",
+      "24h_2h": "24 hours and 2 hours before"
+    },
+    "host": "Team member who hosts",
+    "allowEventDays": "Accept these appointments on event days",
+    "typeActive": "Offered on the booking page",
+    "questionsTitle": "Questions before booking",
+    "questionsHint": "Zero to five questions, asked when booking. A choice question: one choice per line. Only ask what helps prepare the appointment.",
+    "questionLabel": "Question {number}",
+    "questionKind": "Answer",
+    "questionKindText": "Short answer",
+    "questionKindChoice": "Choice from a list",
+    "questionChoices": "Choices (one per line)",
+    "typeSave": "Save the type",
+    "availabilityTitle": "My availability",
+    "availabilitySubtitle": "When you take appointments, and the calendars that say when you are already busy.",
+    "weekTitle": "My week",
+    "weekDefault": "Starter hours: Monday to Friday, 9 am to 6 pm. Change them and save.",
+    "weekday": {
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday",
+      "7": "Sunday"
+    },
+    "from": "From",
+    "to": "to",
+    "weekSave": "Save my week",
+    "closuresTitle": "Closed days",
+    "closuresEmpty": "No closed day.",
+    "closureRange": "from {from} to {to}",
+    "remove": "Remove",
+    "closureFrom": "From",
+    "closureTo": "To (optional)",
+    "closureReason": "Reason (optional)",
+    "closureAdd": "Add",
+    "sourcesTitle": "My calendars",
+    "sourcesHint": "Paste the secret iCal address of your Google, Apple or Outlook calendar: Symbola reads it every fifteen minutes and only keeps busy times, never the title, location or attendees. The address is encrypted and never shown again. An appointment booked elsewhere less than fifteen minutes ago may still look free.",
+    "sourcesEmpty": "No calendar linked.",
+    "sourceOk": "Read on {date}.",
+    "sourcePending": "Not read yet: no slot is offered until it has been read.",
+    "sourceError": "Failing ({reason}): no slot is offered until it is read again.",
+    "sourceErrorKind": {
+      "blocked": "address refused",
+      "too_large": "calendar too large",
+      "timeout": "no answer in time",
+      "http": "address unreachable or removed",
+      "parse": "unreadable file"
+    },
+    "sourceRefresh": "Read now",
+    "sourceRemoveLabel": "Remove the calendar {label}",
+    "sourceLabel": "Calendar name",
+    "sourceLabelPlaceholder": "Personal calendar",
+    "sourceUrl": "Secret address (iCal)",
+    "sourceUrlHint": "Google: calendar settings › Secret address in iCal format. Apple: share the calendar › Public calendar. Outlook: Share › Publish a calendar (ICS).",
+    "sourceAdd": "Link this calendar",
+    "newManualSubtitle": "An appointment agreed by phone, at a fair or in person.",
+    "noActiveType": "No appointment type is offered yet.",
+    "type": "Type",
+    "typeOption": "{name} ({minutes} min)",
+    "startsAt": "Day and time",
+    "personName": "Name",
+    "personEmail": "Email",
+    "personPhone": "Phone",
+    "linkedEvent": "Event",
+    "noEvent": "None for now",
+    "notifyPerson": "Notify the person by email",
+    "createManual": "Save the appointment",
+    "detailsTitle": "The appointment",
+    "cancelledOn": "Cancelled on",
+    "cancelledBy": {
+      "person": "by the person",
+      "planner": "by the team"
+    },
+    "cancelReason": {
+      "schedule": "Unavailable",
+      "other_provider": "Chose another provider",
+      "project_changed": "Project changed or postponed",
+      "other": "Another reason"
+    },
+    "answersTitle": "Answers to the questions",
+    "changeTitle": "Move or cancel",
+    "newStartsAt": "New day and time",
+    "move": "Move",
+    "cancelReasonLabel": "Reason (optional)",
+    "cancelReasonNone": "No reason",
+    "cancel": "Cancel the appointment",
+    "eventTitle": "Event",
+    "unlinkEvent": "Detach from the event",
+    "eventHint": "Link this appointment to an existing event, or create an option from it: the contact is reused, nothing to type again.",
+    "linkEvent": "Link",
+    "optionSource": "Lead source",
+    "optionDate": "Wanted date (optional)",
+    "createOption": "Create an option",
+    "reportTitle": "Report",
+    "reportPrivate": "Team only: never shown to the client.",
+    "reportNotes": "Notes",
+    "reportSave": "Save the report",
+    "actionsTitle": "Actions",
+    "responsible": {
+      "planner": "you",
+      "clients": "the client"
+    },
+    "isTask": "Task created",
+    "makeTask": "Make it a task",
+    "makeTaskLabel": "Make “{label}” a task of the event",
+    "linkFirst": "Link to an event first",
+    "removeActionLabel": "Remove the action “{label}”",
+    "actionsEmpty": "No action yet.",
+    "actionLabel": "What",
+    "actionDue": "By when",
+    "actionWho": "Who",
+    "actionAdd": "Add the action",
+    "trash": "Delete this appointment",
+    "emails": {
+      "place": {
+        "videoLink": "video call: {link}",
+        "video": "video call, the link will be sent to you",
+        "phoneNumber": "phone call, at {phone}",
+        "phone": "phone call",
+        "toBeConfirmed": "the place will be confirmed"
+      },
+      "host": {
+        "open": "Open the appointment",
+        "booked": {
+          "subject": "New appointment: {type} with {name}",
+          "body": "{name} booked an appointment on your page: {type}, on {date}."
+        },
+        "rescheduled": {
+          "subject": "Appointment moved: {type} with {name}",
+          "body": "{name} moved their {type} appointment to {date}."
+        },
+        "cancelled": {
+          "subject": "Appointment cancelled: {type} with {name}",
+          "body": "{name} cancelled their {type} appointment on {date}."
+        }
+      }
+    },
+    "public": {
+      "title": "Book an appointment with {organization}",
+      "noType": "No appointment is offered for now.",
+      "chooseType": "Choose your appointment:",
+      "typeMeta": "{minutes} min · {place}",
+      "place": {
+        "place": "in person",
+        "video": "video call",
+        "phone": "phone call"
+      },
+      "otherTypes": "See the other appointments",
+      "noSlot": "No free slot for now. Write to {organization} to agree on one.",
+      "weeksLabel": "Weeks",
+      "previousWeek": "Previous week",
+      "nextWeek": "Next week",
+      "delayNotice": "Slots take into account your host's calendar, updated every fifteen minutes.",
+      "bookedTitle": "Your appointment is confirmed",
+      "bookedBody": "Appointment on {date} with {organization}. A confirmation email is on its way, with the invitation for your calendar.",
+      "bookedFallback": "Your request has been recorded.",
+      "manageLink": "Reschedule or cancel this appointment",
+      "refused": "This booking could not be recorded. Try again later, or write to {organization}.",
+      "unavailable": "This appointment is no longer offered.",
+      "taken": "This slot has just been taken. Here are the nearest free slots:",
+      "takenNone": "This slot has just been taken, and no other one is free for now.",
+      "error": {
+        "invalid": "The form is not complete.",
+        "name": "Enter your name.",
+        "email": "Enter a valid email address: the confirmation will be sent there.",
+        "phone": "The phone number is not valid.",
+        "answer": "An answer is not valid.",
+        "slot": "Choose a slot."
+      },
+      "chooseSlot": "Choose a slot",
+      "alternatives": "Suggested slots",
+      "dayFull": "No slot on that day.",
+      "name": "Your name",
+      "email": "Your email",
+      "phone": "Your phone (optional)",
+      "noAnswer": "Choose…",
+      "booking": "Booking…",
+      "book": "Book this appointment",
+      "freeTextNotice": "Do not give any health data, opinion or religion here: your answer is read by {organization}."
+    },
+    "manage": {
+      "pageNotice": "This page collects no new information. The link is personal and stops working at the end of the appointment.",
+      "openingTitle": "Your appointment",
+      "openingBody": "Opening your appointment…",
+      "noScript": "This page needs JavaScript to open your link.",
+      "invalidTitle": "This link is not valid",
+      "invalidBody": "This link no longer opens an appointment: it may have expired. Write to your host to reschedule or cancel.",
+      "retryLater": "Too many attempts: try again in {minutes, plural, one {# minute} other {# minutes}}.",
+      "message": {
+        "rescheduled": "Done: your appointment is moved. A confirmation email is on its way.",
+        "cancelled": "Done: your appointment is cancelled.",
+        "taken": "This slot has just been taken. Choose another one."
+      },
+      "cancelledBadge": "cancelled",
+      "reschedule": "Reschedule",
+      "cancel": "Cancel",
+      "chooseSlot": "Choose a new slot",
+      "noSlot": "No other free slot for now. Write to {organization}.",
+      "confirmReschedule": "Confirm the new time",
+      "back": "Back",
+      "reasonLabel": "Why are you cancelling? (optional)",
+      "reasonNone": "I'd rather not say",
+      "reason": {
+        "schedule": "Something came up",
+        "other_provider": "I chose another provider",
+        "project_changed": "My project changed",
+        "other": "Another reason"
+      },
+      "confirmCancel": "Confirm the cancellation"
+    },
+    "event": {
+      "title": "Appointments and reports",
+      "add": "Enter an appointment",
+      "empty": "No appointment linked to this event.",
+      "cancelled": "cancelled",
+      "actionsLabel": "Report actions",
+      "isTask": "task created"
+    },
+    "contact": {
+      "title": "Appointments",
+      "empty": "No appointment.",
+      "cancelled": "cancelled"
+    },
+    "optionNeedsSource": "To create an option, first add a lead source.",
+    "optionSourcesLink": "Lead sources"
   },
   "MessageTemplates": {
     "title": "Message templates",
@@ -6621,7 +7046,9 @@
       "programTemplate": "Programme template",
       "quoteTemplate": "Quote template",
       "contractTemplate": "Contract template",
-      "messageTemplate": "Message template"
+      "messageTemplate": "Message template",
+      "appointmentType": "Appointment type",
+      "appointment": "Appointment"
     },
     "deletedBy": "Deleted on {date} by {author}",
     "deletedOn": "Deleted on {date}",
@@ -6665,7 +7092,9 @@
       "quoteTemplate": "Template moved to the trash.",
       "contractTemplate": "Template moved to the trash.",
       "messageTemplate": "Template moved to the trash.",
-      "vendor": "Supplier archived."
+      "vendor": "Supplier archived.",
+      "appointmentType": "Appointment type moved to the bin.",
+      "appointment": "Appointment moved to the bin."
     }
   },
   "Drafts": {
@@ -6795,7 +7224,8 @@
       "settings": "Go to Settings",
       "trash": "Open the trash",
       "help": "Open the help",
-      "import": "Import a file"
+      "import": "Import a file",
+      "appointments": "See appointments"
     }
   },
   "Shortcuts": {
