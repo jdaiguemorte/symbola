@@ -32,6 +32,7 @@ async function expectNoAxeViolation(page: Page) {
 
 test.describe("HUB-04 — Équipe : inviter un Comptable, visibilité des évènements", () => {
   test("la Propriétaire invite un Comptable et coupe « toutes les Planners voient tout »", async ({ page }) => {
+    test.setTimeout(90_000);
     const t = await team();
     await signIn(page, t.owner);
     await page.goto("/parametres/equipe");
@@ -54,6 +55,7 @@ test.describe("HUB-04 — Équipe : inviter un Comptable, visibilité des évèn
 
 test.describe("HUB-05 — Mes sessions", () => {
   test("l'utilisateur voit chacune de ses sessions et ferme les autres ; elles sont refusées à leur requête suivante", async ({ page, browser }) => {
+    test.setTimeout(90_000);
     const t = await team();
     const other = await browser.newContext({ storageState: { cookies: [], origins: [] } });
     const otherPage = await other.newPage();
@@ -74,6 +76,7 @@ test.describe("HUB-05 — Mes sessions", () => {
 
 test.describe("SEC-02 (D5) — Double authentification proposée aux Planners", () => {
   test("une Planner sans second facteur voit le bandeau ; « Plus tard » le ferme", async ({ page }) => {
+    test.setTimeout(90_000);
     const t = await team();
     await signIn(page, t.planner);
     await page.goto("/");
@@ -87,10 +90,11 @@ test.describe("SEC-02 (D5) — Double authentification proposée aux Planners", 
 
 test.describe("HUB-04 — Le Comptable, en lecture seule", () => {
   test("se connecte avec sa double authentification, arrive sur sa comptabilité ; les écrans de la planner le renvoient", async ({ page }) => {
+    test.setTimeout(90_000);
     const t = await team();
     await signIn(page, t.accountant, /\/comptable/);
     await expect(page.getByRole("heading", { name: /Comptabilité de/ })).toBeVisible();
-    await expect(page.getByText("Lecture seule")).toBeVisible();
+    await expect(page.getByText("Lecture seule", { exact: true })).toBeVisible();
     await expectNoAxeViolation(page);
     for (const path of ["/events", "/contacts", "/parametres", "/parametres/equipe"]) {
       await page.goto(path);

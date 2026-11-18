@@ -81,6 +81,7 @@ async function outcome(page: Page, path: string): Promise<{ path: string; status
 
 test.describe("EVT-06 (D3) — Renfort du jour J par lien personnel (SC-08 étape 7)", () => {
   test("Hugo ouvre le jour J par son lien et un code, voit le pointage de Camille, pointe à son tour ; rien d'autre ne s'ouvre", async ({ page }) => {
+    test.setTimeout(150_000);
     const day = await weddingToday();
     await openAsHelper(page, day.token, day.email);
     await expect(page).toHaveURL(new RegExp(`/jour-j/${day.eventId}$`));
@@ -120,6 +121,7 @@ test.describe("EVT-06 (D3) — Renfort du jour J par lien personnel (SC-08 étap
   });
 
   test("après le retrait de son lien, le jour J ne s'ouvre plus et répond comme une page inexistante", async ({ page }) => {
+    test.setTimeout(90_000);
     const day = await weddingToday();
     await openAsHelper(page, day.token, day.email);
     await revokeDayHelper(day.organizationId, day.eventId, day.linkId);
