@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, formatDateTime, formatMonth, parisToday, type Locale } from "@symbola/i18n";
@@ -20,6 +21,8 @@ import { decisionLabel } from "./decision-label";
 import { declarablePaymentMethods } from "./payment-methods";
 import { countdown, nextActions, progress } from "./portal-home";
 import { closeLinkSessionAction, toggleLinkTaskAction } from "./actions";
+import { guestsRubricOpen } from "./invites/access";
+import { isGuestsAvailable } from "@/app/events/[id]/invites/access";
 
 // PRD-EVT-06, lot 26a (UX-11, POR-01, POR-10 ; ADR 0053) — le portail d'un tiers,
 // ouvert par son lien personnel, sans compte. Il ne montre que les rubriques que
@@ -57,6 +60,7 @@ export async function PortalContent({ access, preview = false, banner }: { acces
     throw error;
   }
   const rubrics = access.rights.rubrics;
+  const guestsOpen = !preview && guestsRubricOpen(access) && (await isGuestsAvailable(organizationId));
   const today = parisToday();
   // Lot 37b (CHR-07 ; D10, D11) : la version diffusée affichée est désormais vue ; jamais depuis
   // l'aperçu « vu par ».
@@ -142,6 +146,12 @@ export async function PortalContent({ access, preview = false, banner }: { acces
       <p className="muted">{tLink("greeting", { name: access.personName })}</p>
       <h1>{view.event.clients.map((client) => client.firstName).join(" & ")}</h1>
       <ScreenHelp title={tHelp("clientEvent.title")} body={tHelp("clientEvent.body")} />
+      {/* Lot 49 (INV-02, D5) : la rubrique « Invités », si la planner l'a ouverte à ce lien. */}
+      {guestsOpen ? (
+        <p>
+          <Link href="/portail/invites">{tLink("guestsLink")}</Link>
+        </p>
+      ) : null}
 
       {/* POR-02 : accueil, avant les rubriques. */}
       <section aria-labelledby="portal-home-title" className="portal-home">

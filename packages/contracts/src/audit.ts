@@ -132,6 +132,24 @@ export const AUDIT_ACTIONS = {
   // correctif urgent hors fenêtre, son motif.
   "ops.deploy.completed": { category: "exploitation", objectType: null },
   "ops.deploy.rolled_back": { category: "exploitation", objectType: null },
+  // Lot 49 (module Invités, ADR 0083) : objet l'évènement, jamais l'invité nommé (SEC-20).
+  // Partie G : la titulaire confirme avoir complété l'analyse d'impact.
+  "guests.impact_assessment.confirmed": { category: "droits", objectType: null },
+  // INV-03 (D3, D4) : liens personnels des invités créés, envoyés, retirés ; page ouverte.
+  "guests.link.created": { category: "partage", objectType: "event" },
+  "guests.link.revoked": { category: "partage", objectType: "event" },
+  "guests.invitations.sent": { category: "partage", objectType: "event" },
+  "guests.link.opened": { category: "connexion", objectType: "event" },
+  // RGP-06 : accord aux régimes donné ou retiré par l'invité (la preuve est dans la table).
+  "guests.diet_consent.granted": { category: "droits", objectType: "event" },
+  "guests.diet_consent.withdrawn": { category: "droits", objectType: "event" },
+  // RGP-08 : opposition d'un invité, report de la purge, purges exécutées.
+  "guests.guest.opposed": { category: "suppression", objectType: "event" },
+  "guests.purge.postponed": { category: "suppression", objectType: "event" },
+  "guests.purge.executed": { category: "suppression", objectType: "event" },
+  // INV-02 : liste importée, import annulé.
+  "guests.import.applied": { category: "emission", objectType: "event" },
+  "guests.import.undone": { category: "suppression", objectType: "event" },
 } as const satisfies Record<string, ActionSpec>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;

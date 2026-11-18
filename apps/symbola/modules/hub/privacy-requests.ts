@@ -29,7 +29,9 @@ export class PrivacyRequestInvalidError extends Error {
       | "response_missing"
       | "not_manual"
       // Lot 31b (D16) : conservation des devis signés sous les dix ans légaux.
-      | "signed_quote_retention_too_short",
+      | "signed_quote_retention_too_short"
+      // Lot 49 (RGP-08, D9) : données d'invités gardées au-delà de ce que la DPO admet.
+      | "guest_retention_too_long",
   ) {
     super(code);
   }
@@ -52,6 +54,9 @@ export async function getPrivacySettings(db: AppDatabase, organizationId: string
         inactiveAccountMonths: row.inactiveAccountMonths,
         signedQuoteRetentionMonths: row.signedQuoteRetentionMonths,
         requestProofRetentionMonths: row.requestProofRetentionMonths,
+        guestRetentionDays: row.guestRetentionDays,
+        guestDietRetentionDays: row.guestDietRetentionDays,
+        guestPurgeMaxPostponeDays: row.guestPurgeMaxPostponeDays,
       };
     }
     // Première lecture : le modèle de départ devient le réglage de l'organisation.
@@ -69,6 +74,17 @@ export async function updatePrivacySettings(db: AppDatabase, organizationId: str
   // gardent dix ans au moins.
   if (settings.signedQuoteRetentionMonths < starterContractRules().retention.signedContractMinimumMonths) {
     throw new PrivacyRequestInvalidError("signed_quote_retention_too_short");
+  }
+  // Lot 49 (RGP-08, D9 ; réponses 2 et 3 de la DPO) : une durée des données d'invités ne dépasse
+  // jamais sa valeur de départ plus un report ; les régimes ne restent pas plus que le reste.
+  const starter = starterPrivacySettings();
+  if (
+    settings.guestRetentionDays > starter.guestRetentionDays + starter.guestPurgeMaxPostponeDays ||
+    settings.guestDietRetentionDays > starter.guestDietRetentionDays + starter.guestPurgeMaxPostponeDays ||
+    settings.guestPurgeMaxPostponeDays > starter.guestPurgeMaxPostponeDays ||
+    settings.guestDietRetentionDays > settings.guestRetentionDays
+  ) {
+    throw new PrivacyRequestInvalidError("guest_retention_too_long");
   }
   await getPrivacySettings(db, organizationId);
   await withOrganization(db, organizationId, (tx) =>

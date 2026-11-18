@@ -9,6 +9,7 @@ import * as events from "@symbola/db/schema/events";
 import * as hub from "@symbola/db/schema/hub";
 import * as quotes from "@symbola/db/schema/quotes";
 import * as vendors from "@symbola/db/schema/vendors";
+import * as guests from "@symbola/db/schema/guests";
 import en from "@symbola/i18n/messages/en.json";
 import fr from "@symbola/i18n/messages/fr.json";
 import { describe, expect, it } from "vitest";
@@ -16,7 +17,7 @@ import { actionLabel, actorLabel, activityDetail, objectHref } from "./activity-
 
 function journaledTables(): string[] {
   const names = new Set<string>();
-  for (const schema of [budget, events, hub, quotes, vendors]) {
+  for (const schema of [budget, events, hub, quotes, vendors, guests]) {
     for (const value of Object.values(schema)) {
       try {
         const config = getTableConfig(value as never);

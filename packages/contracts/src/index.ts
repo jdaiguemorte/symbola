@@ -151,6 +151,10 @@ export type {
   RequestDecisionInput,
   EventsTrial,
   StartEventsTrialInput,
+  // Lot 49 (D2) : temps forts, et ce que le module Invités lit d'un évènement.
+  KeyMoment,
+  KeyMomentInput,
+  GuestEventContext,
 } from "./events/service-contract";
 export { DAY_DOCUMENT_SOURCES, DECISION_KINDS, ENGAGED_CANDIDATE_STATUSES, LINK_AUDIENCES, LINK_BUDGET_SCOPES, LINK_RUBRICS, VENDOR_CANDIDATE_STATUSES } from "./events/service-contract";
 export type {
@@ -388,3 +392,5 @@ export {
   type TrashKind,
   type UndoKind,
 } from "./trash";
+// Lot 49 (module Invités, ADR 0083) : contrat interne du module.
+export * from "./guests/service-contract";

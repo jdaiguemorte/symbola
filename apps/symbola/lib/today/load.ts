@@ -16,11 +16,14 @@ import {
   listStaleProspects,
   listUncontractedVendors, isInProgress } from "@/modules/events/service";
 import { getFollowUpDelays } from "@/modules/hub/service";
+import { listGuestPurgeNotices, listRecentOppositions } from "@/modules/guests/service";
 import { listEventIdsWithSentQuote, listOpenScheduledDeposits, listQuotesAwaitingAnswer, listUnpaidPayments } from "@/modules/quotes/service";
 import { TODAY_HORIZON_DAYS, type TodayItem } from "./rank";
 import { settleWithin, TODAY_SOURCE_TIMEOUT_MS } from "./settle";
 
-export type TodayModules = { events: boolean; quotes: boolean; budget: boolean };
+// Lot 49 : « guests » (préavis de purge des invités, oppositions), facultatif pour les écrans qui ne
+// le demandent pas.
+export type TodayModules = { events: boolean; quotes: boolean; budget: boolean; guests?: boolean };
 export type TodaySource = keyof TodayModules;
 
 export type TodayWords = {
@@ -34,6 +37,9 @@ export type TodayWords = {
   vendorContract: (vendorName: string, slotLabel: string) => string;
   dateConflict: (count: number) => string;
   linkRenewal: (personName: string) => string;
+  // Lot 49 (RGP-08) : préavis de purge (« régimes » ou « tout ») et oppositions des invités.
+  guestPurge?: (stage: "diets" | "all") => string;
+  guestOpposition?: (count: number) => string;
 };
 
 // Évènements en cours : ni clôturés, ni annulés (lot 34a, EVT-05).
@@ -154,6 +160,41 @@ async function eventItems({ organizationId, words, today, now, events, names, de
   return items;
 }
 
+// Lot 49 (RGP-08 ; D9) : préavis de purge des invités (sept jours avant chaque purge) et oppositions
+// des quatorze derniers jours ; ouvrent l'onglet Invités de l'évènement.
+async function guestItems({ organizationId, words, now, names }: Context): Promise<TodayItem[]> {
+  const items: TodayItem[] = [];
+  for (const notice of await listGuestPurgeNotices(organizationId, now)) {
+    items.push({
+      key: `guest-purge:${notice.eventId}:${notice.stage}`,
+      kind: "guest_purge",
+      eventId: notice.eventId,
+      eventNames: names(notice.eventId),
+      title: words.guestPurge?.(notice.stage) ?? notice.stage,
+      dueOn: notice.dueOn,
+      since: null,
+      actor: { kind: "you" },
+      href: `/events/${notice.eventId}?onglet=invites#purge`,
+      action: { kind: "open" },
+    });
+  }
+  for (const opposition of await listRecentOppositions(organizationId, now)) {
+    items.push({
+      key: `guest-opposition:${opposition.eventId}`,
+      kind: "guest_opposition",
+      eventId: opposition.eventId,
+      eventNames: names(opposition.eventId),
+      title: words.guestOpposition?.(opposition.count) ?? String(opposition.count),
+      dueOn: null,
+      since: day(opposition.latest),
+      actor: { kind: "you" },
+      href: `/events/${opposition.eventId}?onglet=invites`,
+      action: { kind: "open" },
+    });
+  }
+  return items;
+}
+
 async function quoteItems({ organizationId, words, now, names, money, delays }: Context): Promise<TodayItem[]> {
   const items: TodayItem[] = [];
   const unpaid = await listUnpaidPayments(organizationId, { now, horizonDays: TODAY_HORIZON_DAYS });
@@ -265,6 +306,7 @@ export async function loadTodayItems(
     ["events", modules.events && listed.ok, eventItems],
     ["quotes", modules.quotes, quoteItems],
     ["budget", modules.budget, budgetItems],
+    ["guests", Boolean(modules.guests) && modules.events && listed.ok, guestItems],
   ];
   const settled = await Promise.all(
     sources.map(async ([source, enabled, collect]) => [source, enabled ? await settleWithin(() => collect(context), timeoutMs, source) : { ok: true as const, value: [] }] as const),

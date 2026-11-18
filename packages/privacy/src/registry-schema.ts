@@ -8,7 +8,9 @@ export const registryEntrySchema = z.object({
   schema: z.string().min(1),
   table: z.string().min(1),
   field: z.string().min(1),
-  category: z.enum(["identifiant", "contact", "securite", "contenu_libre"]),
+  // Lot 49 (RGP-06, RGP-07) : « sensible », une donnée de l'article 9 du RGPD (régimes et allergies
+  // des invités), chiffrée au niveau du champ et réservée à la titulaire.
+  category: z.enum(["identifiant", "contact", "securite", "contenu_libre", "sensible"]),
   retention: z.string().min(1),
   anonymization: z.string().min(1),
 });

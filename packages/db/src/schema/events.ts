@@ -536,7 +536,8 @@ export const eventLinks = eventsSchema.table("event_links", {
   index("event_links_event_idx").on(table.eventId),
   index("event_links_vendor_candidate_idx").on(table.vendorCandidateId),
   index("event_links_contact_idx").on(table.contactId),
-  check("event_links_rubrics_check", sql`${table.rubrics} <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes']::text[]`),
+  // Lot 49 (INV-02, D5) : rubrique « Invités », fermée par défaut comme les autres (POR-10).
+  check("event_links_rubrics_check", sql`${table.rubrics} <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes', 'guests']::text[]`),
   check("event_links_budget_scope_check", sql`${table.budgetScope} in ('all', 'selected')`),
   check("event_links_vendor_candidate_check", sql`${table.audience} <> 'vendor' or ${table.vendorCandidateId} is not null`),
   check("event_links_locale_check", sql`${table.locale} in ('fr', 'en')`),
@@ -932,4 +933,34 @@ export const eventTaskComments = eventsSchema.table("event_task_comments", {
   index("event_task_comments_organization_idx").on(table.organizationId),
   index("event_task_comments_task_idx").on(table.taskId),
   check("event_task_comments_body_check", sql`char_length(${table.body}) between 1 and 2000`),
+]);
+
+// Lot 49 (EVT-04 premier pas, INV-03 ; D2) : temps forts de l'évènement (cérémonie, dîner,
+// brunch), gérés depuis la fiche. Le RSVP demande la présence par temps fort ; le lot 51 les
+// complète (chrono par temps fort, évènement sur plusieurs jours). Lieu facultatif parmi les lieux
+// de l'évènement.
+export const keyMoments = eventsSchema.table("key_moments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  // Date sans heure (CLAUDE.md § 5) ; heure de début facultative, dans le fuseau de l'évènement.
+  date: date("date").notNull(),
+  startTime: time("start_time"),
+  placeId: uuid("place_id").references(() => eventPlaces.id, { onDelete: "set null" }),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+  // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  deletedBy: uuid("deleted_by"),
+}, (table) => [
+  index("key_moments_organization_idx").on(table.organizationId),
+  index("key_moments_event_idx").on(table.eventId),
+  check("key_moments_name_check", sql`char_length(${table.name}) between 1 and 100`),
 ]);

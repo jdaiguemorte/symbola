@@ -51,6 +51,7 @@ import {
   type RetainedDocuments,
 } from "@/modules/quotes/service";
 import { unarchiveVendor } from "@/modules/vendors/service";
+import { removeEventGuestsData } from "@/modules/guests/service";
 
 const PURGE_INTERVAL_MS = 60 * 60 * 1000; // toutes les heures
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -217,6 +218,8 @@ async function purgeEvents(organizationId: string, eventIds: string[]): Promise<
   await includingDeleted(async () => {
     await removeEventBudgetData(organizationId, eventIds);
     await removeEventQuotesData(organizationId, eventIds);
+    // Lot 49 : les invités de l'évènement (foyers, réponses, régimes, preuves) partent avec lui.
+    await removeEventGuestsData(organizationId, eventIds);
     await purgeTrashedEvents(organizationId, eventIds);
   });
 }

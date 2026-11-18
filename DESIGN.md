@@ -51,6 +51,11 @@ typography:
     fontSize: 15px
     fontWeight: 600
     lineHeight: 1.5
+  reading:
+    fontFamily: Inter
+    fontSize: 18px
+    fontWeight: 400
+    lineHeight: 1.55
   label:
     fontFamily: Inter
     fontSize: 13px
@@ -197,6 +202,8 @@ Deux familles. Space Grotesk pour les titres et les chiffres, Inter pour le text
 - `title` : titre de page et nom d'évènement.
 - `heading` : titre de carte et de section.
 - `body` et `body-strong` : texte courant, 15 px. Jamais en dessous de 13 px.
+- `reading` : 18 px, la page de réponse des invités (lot 49, INV-03) : des personnes de tout âge,
+  sur un téléphone d'entrée de gamme, y répondent sans compte (corps de 18 px au moins).
 - `label` : libellés, statuts, métadonnées.
 - `figure` : montants et compteurs, en chiffres tabulaires.
 - `field-now` : la séquence en cours du mode Jour J.

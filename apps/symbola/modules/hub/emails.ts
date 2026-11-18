@@ -90,7 +90,7 @@ function layoutOf(input: { kind: EmailTemplateKind; locale: EmailLocale; identit
   const rendered = renderEmailTemplate(input.kind, input.template, values);
   const t = translator(input.locale);
   const button = EMAIL_TEMPLATE_RULES[input.kind].button;
-  const label = button === "sign" ? t("button.sign") : t("button.space");
+  const label = button === "sign" ? t("button.sign") : button === "answer" ? t("button.answer") : t("button.space");
   const blocks: MailBlock[] = rendered.blocks.map((block) => (block.kind === "button" ? { kind: "button", url: block.url, label } : block));
   const layout: MailLayout = {
     lang: input.locale,

@@ -45,6 +45,21 @@
         "null"
       ]
     },
+    "guestRetentionDays": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "guestDietRetentionDays": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "guestPurgeMaxPostponeDays": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
     "updatedAt": {
       "type": "string",
       "format": "date-time",
@@ -89,6 +104,9 @@
     "signedQuoteRetentionMonths",
     "requestProofRetentionMonths",
     "linkPrivacyNotice",
+    "guestRetentionDays",
+    "guestDietRetentionDays",
+    "guestPurgeMaxPostponeDays",
     "updatedAt",
     "createdAt",
     "createdBy",

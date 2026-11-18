@@ -118,6 +118,10 @@ describe("RGPD-04 — Suivi des demandes", () => {
       // Lot 31b (réponse 3 de l'avocat, D16) : contrat électronique et dossier de preuve, dix ans.
       signedQuoteRetentionMonths: 120,
       requestProofRetentionMonths: 60,
+      // Lot 49 (RGP-08, D9) : purge des données d'invités, régimes à 7 jours, le reste à 30, un report de 90 jours au plus.
+      guestRetentionDays: 30,
+      guestDietRetentionDays: 7,
+      guestPurgeMaxPostponeDays: 90,
     });
     // Lot 31b (D16) : la conservation des devis signés ne descend pas sous dix ans.
     await expect(updatePrivacySettings(db, owner.organizationId, { ...(await getPrivacySettings(db, owner.organizationId)), signedQuoteRetentionMonths: 60 })).rejects.toThrow(PrivacyRequestInvalidError);
