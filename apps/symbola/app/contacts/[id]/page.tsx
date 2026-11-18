@@ -15,6 +15,7 @@ import { getContact, getContactStamp, isModuleEnabled, listContactGroups, listCo
 import { listEventQuotes, listQuoteInvoices } from "@/modules/quotes/service";
 import { deleteContactAction, removeContactMemberAction, removeContactNoteAction } from "../actions";
 import { ContactForm, MemberForm, NoteForm } from "../contact-forms";
+import { ContactAppointments } from "./contact-appointments";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -221,6 +222,8 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
             )}
           </>
         ) : null}
+        {/* Lot 46 (CRM-03) : ses rendez-vous, si le module Rendez-vous est ouvert. */}
+        <ContactAppointments organizationId={organizationId} contactId={contact.id} locale={locale} />
       </section>
 
       <section aria-labelledby="contact-notes" className="card">

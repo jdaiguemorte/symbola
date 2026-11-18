@@ -204,6 +204,43 @@ qui suit est ce que Symbola en retient. Suites : `docs/QUESTIONS.md` (Q35).
 
 Besoin : une réponse **avant de développer la fermeture d'un espace** (lot 35c).
 
+## Questions du 18 novembre 2026 (lot 46, rendez-vous)
+
+### 13. Page publique de réservation et agenda de la planner
+
+Le module Rendez-vous ouvre une page publique où un futur client choisit un créneau libre, sans
+compte. Les créneaux tiennent compte de l'agenda personnel de la planner (Google, Apple, Outlook),
+lu toutes les quinze minutes par son adresse secrète.
+
+- **DPO-1 — Lecture de l'agenda de la planner.** Symbola ne garde de cet agenda que les heures
+  occupées (début et fin), de la veille à l'horizon de réservation, remplacées à chaque lecture :
+  ni titre, ni lieu, ni participants. L'adresse est chiffrée et ne se réaffiche jamais. Faut-il une
+  information particulière pour la planner elle-même (ou pour chaque personne de son équipe qui
+  relie son agenda) ? Rien sur les tiers de son agenda n'est gardé.
+- **DPO-2 — Durée de conservation d'une personne qui a seulement pris rendez-vous**, sans suite (ni
+  évènement, ni devis). Nous appliquons la règle des prospects : trois ans après son dernier
+  échange (le plus récent de ses rendez-vous), puis la ligne entre dans la purge mensuelle, validée
+  par la titulaire. Cette règle convient-elle, ou faut-il plus court ?
+- **DPO-3 — Mention d'information de la page de réservation**, au nom de la planner. Texte de départ
+  proposé (la planner peut le remplacer) :
+
+  > {organisation} utilise les informations de ce formulaire (votre nom, votre adresse e-mail,
+  > votre téléphone si vous le donnez et vos réponses) pour organiser ce rendez-vous et vous
+  > recontacter à son sujet, à votre demande. Elles sont gardées trois ans après votre dernier
+  > échange avec {organisation} si aucun projet ne suit, puis supprimées. Vous pouvez y accéder,
+  > les faire corriger ou effacer, ou vous opposer à leur utilisation en écrivant à {contact}. Vous
+  > pouvez aussi adresser une réclamation à la CNIL (www.cnil.fr). Symbola héberge ces données pour
+  > le compte de {organisation}.
+
+  Convient-il (finalité, base, durée, droits, réclamation) ? Faut-il nommer la base légale
+  (mesures précontractuelles prises à la demande de la personne) ?
+
+> **Symbola** : en attendant vos réponses, le module reste fermé par défaut (seule l'Exploitation
+> l'ouvre), le texte ci-dessus s'affiche à titre provisoire et la règle des prospects s'applique.
+> Aucune donnée réelle avant votre relecture de DPO-3.
+
+Besoin : une réponse **avant d'ouvrir le module Rendez-vous à la pilote**.
+
 ## Question du 18 novembre 2026 (lot 49)
 
 ### 14. Module Invités : six points avant l'ouverture à la pilote

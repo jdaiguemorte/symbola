@@ -9,6 +9,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Building2,
+  CalendarClock,
   CalendarDays,
   Contact,
   ReceiptText,
@@ -16,11 +17,12 @@ import {
 } from "lucide-react";
 import { isSettingsPath } from "./settings-paths";
 
-export type SettingsGroupIcon = "company" | "events" | "sales" | "data";
+export type SettingsGroupIcon = "company" | "events" | "appointments" | "sales" | "data";
 
 const GROUP_ICONS: Record<SettingsGroupIcon, LucideIcon> = {
   company: Building2,
   events: CalendarDays,
+  appointments: CalendarClock,
   sales: ReceiptText,
   data: Contact,
 };

@@ -9,7 +9,8 @@ import enMessages from "@symbola/i18n/messages/en.json";
 import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { eventNames, getEvent, getEventProgram, listCalendarEvents, listEventTypes } from "@/modules/events/service";
-import { getDocumentHeader, getUserContact, type CalendarFeedAccess } from "@/modules/hub/service";
+import { getDocumentHeader, getUserContact, isModuleEnabled, type CalendarFeedAccess } from "@/modules/hub/service";
+import { listHostAppointmentsForFeed } from "@/modules/appointments/service";
 import { buildIcs, wallTimeToInstant, type IcsEvent } from "./ics";
 
 function nextDate(date: string): string {
@@ -26,8 +27,24 @@ export async function calendarFeedIcs(access: CalendarFeedAccess, now: Date = ne
   const appUrl = parseEnv(process.env).APP_PUBLIC_URL.replace(/\/+$/, "");
 
   if (access.eventId === null) {
-    const [events, types] = await Promise.all([listCalendarEvents(access.organizationId), listEventTypes(access.organizationId)]);
+    // Lot 46 (RDV-04, HUB-29) : ses rendez-vous, s'il les reçoit (module Rendez-vous ouvert) ; les
+    // évènements, si le module Évènements l'est.
+    const eventsEnabled = await isModuleEnabled(db, access.organizationId, "events");
+    const [events, types, appointments] = await Promise.all([
+      eventsEnabled ? listCalendarEvents(access.organizationId) : Promise.resolve([]),
+      eventsEnabled ? listEventTypes(access.organizationId) : Promise.resolve([]),
+      listHostAppointmentsForFeed(access.organizationId, access.userId, now),
+    ]);
     const typeLabel = new Map(types.map((type) => [type.id, type.label]));
+    const appointmentItems: IcsEvent[] = appointments.map((appointment) => ({
+      uid: `${appointment.id}@symbola`,
+      summary: t("appointment", { type: appointment.typeName, name: appointment.personName }),
+      start: { dateTime: new Date(appointment.startsAt) },
+      end: { dateTime: new Date(appointment.endsAt) },
+      location: appointment.locationKind === "place" ? appointment.location : null,
+      url: `${appUrl}/rendez-vous/${appointment.id}`,
+      status: "CONFIRMED",
+    }));
     const items: IcsEvent[] = events.map((event) => {
       const names = eventNames(event.clients);
       const type = event.eventTypeId ? typeLabel.get(event.eventTypeId) : undefined;
@@ -40,7 +57,7 @@ export async function calendarFeedIcs(access: CalendarFeedAccess, now: Date = ne
         status: event.status === "option" ? "TENTATIVE" : "CONFIRMED",
       };
     });
-    return buildIcs({ name: t("personFeed", { organization }), events: items, now });
+    return buildIcs({ name: t("personFeed", { organization }), events: [...items, ...appointmentItems], now });
   }
 
   const event = await getEvent(access.organizationId, access.eventId);

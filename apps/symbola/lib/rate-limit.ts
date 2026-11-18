@@ -17,7 +17,7 @@ type Window = { limit: number; windowMs: number };
 // ADR 0037) reste en place en plus.
 // Lot 33 : « login » limite les demandes de lien de connexion (chacune envoie un e-mail) ; les
 // échecs de mot de passe et leurs délais sont chez le fournisseur d'identité (ADR 0067).
-export const RATE_LIMITS: Record<"login" | "search" | "upload" | "linkOpen" | "linkRenewal" | "linkCode" | "teamInvite" | "organizationExport" | "calendarFeed" | "errorReport" | "rsvpOpen" | "rsvpAnswer", { ip: Window; account: Window }> = {
+export const RATE_LIMITS: Record<"login" | "search" | "upload" | "linkOpen" | "linkRenewal" | "linkCode" | "teamInvite" | "organizationExport" | "calendarFeed" | "errorReport" | "rsvpOpen" | "rsvpAnswer" | "appointmentBooking" | "appointmentManage", { ip: Window; account: Window }> = {
   login: { ip: { limit: 20, windowMs: 15 * MINUTE }, account: { limit: 5, windowMs: 15 * MINUTE } },
   search: { ip: { limit: 300, windowMs: MINUTE }, account: { limit: 120, windowMs: MINUTE } },
   upload: { ip: { limit: 60, windowMs: 10 * MINUTE }, account: { limit: 30, windowMs: 10 * MINUTE } },
@@ -44,6 +44,11 @@ export const RATE_LIMITS: Record<"login" | "search" | "upload" | "linkOpen" | "l
   // invités qui répondent dans l'heure de l'envoi ne se gênent pas.
   rsvpOpen: { ip: { limit: 30, windowMs: 15 * MINUTE }, account: { limit: 20, windowMs: 15 * MINUTE } },
   rsvpAnswer: { ip: { limit: 20, windowMs: 15 * MINUTE }, account: { limit: 10, windowMs: 15 * MINUTE } },
+  // Lot 46 (RDV-02, RDV-03 ; D5) : réservation sur une page publique, par adresse IP et par adresse
+  // e-mail saisie (chacune envoie un e-mail) ; gestion d'un rendez-vous par son lien (« account » :
+  // l'organisation du jeton).
+  appointmentBooking: { ip: { limit: 10, windowMs: 60 * MINUTE }, account: { limit: 5, windowMs: 60 * MINUTE } },
+  appointmentManage: { ip: { limit: 30, windowMs: 15 * MINUTE }, account: { limit: 30, windowMs: 15 * MINUTE } },
 };
 
 export type RateLimitedAction = keyof typeof RATE_LIMITS;
