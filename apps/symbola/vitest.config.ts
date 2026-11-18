@@ -21,6 +21,12 @@ export const BUSINESS_RULE_FILES = [
   "modules/events/task-reminders.ts",
   "modules/events/lifecycle.ts",
   "modules/events/decisions.ts",
+  // Lot 49 : foyers et RSVP, régimes (accord, chiffrement, compteurs), relances, purge, import.
+  "modules/guests/rsvp.ts",
+  "modules/guests/diets.ts",
+  "modules/guests/reminders.ts",
+  "modules/guests/purge-rules.ts",
+  "modules/guests/import-rules.ts",
 ];
 
 export default defineConfig({
