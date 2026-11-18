@@ -158,7 +158,10 @@ test("SC-03 / HUB-08 / UX-01 / UX-06 / EVT-02 — lundi matin : les urgences, an
   // Étape 5 (D6) : relancer le photographe ; la relance s'inscrit dans l'activité de l'évènement.
   await next.getByRole("button", { name: "Relancer Studio Lumière" }).click();
   await expect(next.getByRole("status")).toHaveText("Relance inscrite dans l'activité de l'évènement.");
-  await page.reload();
+  // La page est rouverte plutôt que rechargée : juste après l'action serveur, Firefox refuse parfois
+  // le rechargement (« NS_ERROR_NO_CONTENT », CI du 18/11/2026). Rouvrir l'adresse montre la même
+  // chose : le fil d'activité relu depuis le serveur.
+  await page.goto(page.url());
   await expect(page.getByRole("list", { name: "Fil d'activité" })).toContainText("Relance envoyée à Studio Lumière.");
   await expectNoAxeViolation(page);
 });
