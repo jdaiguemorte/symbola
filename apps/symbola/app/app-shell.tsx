@@ -355,12 +355,14 @@ export async function AppShell({ children }: { children: ReactNode }) {
                           href: "/events/parametres/types",
                           label: tSettings("eventTypes"),
                         },
-                        // Lot 44 (CRM-01, CRM-02) : étapes du pipeline et formulaire de contact.
-                        {
-                          href: "/events/parametres/etapes",
-                          label: tSettings("pipelineStages"),
-                        },
-                        ...(isOwner ? [{ href: "/events/parametres/contact", label: tSettings("contactForm") }] : []),
+                        // Lot 44 (CRM-01, CRM-02) : étapes du pipeline et formulaire de contact, réglés par la
+                        // titulaire.
+                        ...(isOwner
+                          ? [
+                              { href: "/events/parametres/etapes", label: tSettings("pipelineStages") },
+                              { href: "/events/parametres/contact", label: tSettings("contactForm") },
+                            ]
+                          : []),
                         {
                           href: "/events/modeles",
                           label: tSettings("retroplanning"),

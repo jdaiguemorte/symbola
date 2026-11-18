@@ -30,8 +30,9 @@ function formData(slug: string, opened: string, extra: Record<string, string> = 
 }
 
 const headers = (ip: string) => new Headers({ "x-forwarded-for": ip });
-let ipCounter = 10;
-const freshIp = () => `198.51.100.${ipCounter++}`;
+// Une adresse de documentation IPv6 neuve à chaque appel : les tentatives restent en base une heure,
+// d'une exécution des tests à l'autre.
+const freshIp = () => `2001:db8:${randomUUID().slice(0, 4)}:${randomUUID().slice(0, 4)}::1`;
 
 describe("CRM-01 — Anti-spam sans captcha visible (D4)", () => {
   it("un envoi ordinaire crée le prospect et répond « envoyé »", async () => {

@@ -57,8 +57,12 @@ export default async function PipelinePage() {
       <ScreenHelp title={tHelp("eventsPipeline.title")} body={tHelp("eventsPipeline.body")} />
       <nav className="row-wrap" aria-label={t("viewsLabel")}>
         <Link href="/events">{t("listView")}</Link>
-        <Link href="/events/parametres/etapes">{t("stagesSettings")}</Link>
-        <Link href="/events/parametres/contact">{t("contactSettings")}</Link>
+        {auth.user.role === "owner" ? (
+          <>
+            <Link href="/events/parametres/etapes">{t("stagesSettings")}</Link>
+            <Link href="/events/parametres/contact">{t("contactSettings")}</Link>
+          </>
+        ) : null}
       </nav>
       <PipelineBoard stages={pipeline.stages.map((stage) => ({ id: stage.id, label: stage.label }))} cards={cards} lossReasons={reasons.map((reason) => ({ id: reason.id, label: reason.label, isFreeText: reason.isFreeText }))} />
 
