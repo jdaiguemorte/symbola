@@ -1137,6 +1137,27 @@
       "breakpoints": true
     },
     {
+      "idx": 162,
+      "version": "7",
+      "when": 1795017100267,
+      "tag": "0162_lot47_events_vendor_coordination",
+      "breakpoints": true
+    },
+    {
+      "idx": 163,
+      "version": "7",
+      "when": 1795017101667,
+      "tag": "0163_lot47_hub_vendor_email_kinds",
+      "breakpoints": true
+    },
+    {
+      "idx": 164,
+      "version": "7",
+      "when": 1795017103042,
+      "tag": "0164_lot47_budget_history_release",
+      "breakpoints": true
+    },
+    {
       "idx": 165,
       "version": "7",
       "when": 1795019437103,

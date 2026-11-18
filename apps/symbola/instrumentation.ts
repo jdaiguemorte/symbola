@@ -79,6 +79,9 @@ async function startScheduledTasks() {
     // Lot 44 (CRM-01, D4) : demandes « à vérifier » du formulaire de contact non traitées, à 30 jours.
     const { scheduleProspectRequestPurge } = await import("./lib/prospect-request-purge");
     scheduleProspectRequestPurge();
+    // Lot 47 (PAR-05 ; D2, D8 ; ADR 0085) : relance des briefs la veille, feuilles de route J-30 et J-7.
+    const { scheduleVendorCoordinationTasks } = await import("./lib/vendor-coordination-tasks");
+    scheduleVendorCoordinationTasks();
     // Lot 43 (FAC-09, FAC-15, JUR-07 ; ADR 0089) : relance avant expiration, RIB du 8e jour hors
     // établissement, relances d'impayés.
     const { scheduleSettlementJobs } = await import("./lib/settlement-jobs");

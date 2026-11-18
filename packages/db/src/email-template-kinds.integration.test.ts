@@ -43,6 +43,19 @@ describe("MSG-01 (lot 44, D7) — Nature « Nouvelle demande de contact »", () 
   });
 });
 
+// Lot 47 (PRE-03, PAR-05 ; D9 ; migration 0163, accord de Julien du 18/11/2026).
+describe("PAR-05 (lot 47) — Natures des modèles d'e-mails des prestataires", () => {
+  it("le brief, sa relance et la feuille de route sont des natures admises", async () => {
+    expect(await refusal("vendor_brief")).toBe("accepté");
+    expect(await refusal("vendor_brief_reminder")).toBe("accepté");
+    expect(await refusal("vendor_roadmap")).toBe("accepté");
+  });
+
+  it("une nature voisine inconnue reste refusée", async () => {
+    expect(await refusal("vendor_briefs")).toBe("email_templates_kind_check");
+  });
+});
+
 describe("MSG-01 (lot 43, D10) — Natures de la proposition et du règlement", () => {
   it("proposition envoyée, relance avant expiration, RIB du règlement et relance d'impayé sont admises ; une nature voisine reste refusée", async () => {
     for (const kind of ["proposal_sent", "proposal_expiry_reminder", "payment_details", "invoice_reminder"]) expect(await refusal(kind)).toBe("accepté");

@@ -327,10 +327,25 @@ la politique de confidentialité de la planner, à laquelle la mention renvoie, 
 Besoin : des réponses **avant la première demande réelle** reçue par le formulaire (aucune ne
 bloque le développement).
 
+## Décision du 18 novembre 2026 (lot 47)
+
+### 18. Choix du client sur son portail : pas une commande (AV-6, tranché)
+
+Pour information, sans question ouverte : sur son portail, le client choisit entre les
+propositions de prestataires que la planner lui montre. Son choix retient le prestataire dans
+Symbola (la ligne de budget est engagée de son devis, des tâches de suivi sont créées) ; la planner
+peut ensuite modifier le prestataire retenu à tout moment. **Décision de Julien (18/11/2026)** : ce
+choix n'est pas une commande ; Symbola affiche un devis et met en relation, il ne porte pas la
+facture du prestataire (seulement celles des planners). Aucun délai de rétractation n'est géré à
+cet endroit. Sous le bouton, le client lit : « Votre choix est transmis à <nom de la planner> ; le
+contrat se signe directement avec le prestataire. »
+
+Si cette lecture vous semble appeler une réserve, dites-le-nous ; elle n'attend pas de réponse
+pour être mise en œuvre.
+
 ## Questions du 18 novembre 2026 (lot 43, proposition et règlement)
 
-Numéros provisoires : ils suivent ceux des lots 41, 46 et 44 ; le lot 47 (AV-6) et le lot 43 les
-réordonnent à la fusion.
+Numéros à la suite de ceux des lots 44 et 47 (fusionnés avant le lot 43).
 
 ### 19. Relances d'impayés à un particulier (AV-7)
 

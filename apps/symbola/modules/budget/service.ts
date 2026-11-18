@@ -14,6 +14,7 @@ import {
   findBudgetLineAttachment,
   findBudgetLineAttachments,
   findBudgetLinesOfSlot,
+  releaseCommittedAmount,
   findDueVendorPayments,
   findFirstBudgetLineOfSlot,
   findVendorPayment,
@@ -124,6 +125,7 @@ import type {
   VendorPayment,
   VendorPaymentInput,
   VendorSlotBookedPayload,
+  VendorRetentionReleasedPayload,
 } from "@symbola/contracts";
 import { BUDGET_DOCUMENT_KINDS } from "@symbola/contracts";
 
@@ -858,6 +860,23 @@ export async function applyVendorSlotBookedToBudget(
   for (const line of linked) {
     if (line.quotedAmountCents !== null && line.committedAmountCents !== line.quotedAmountCents) await engage(line.id, "committed", line.quotedAmountCents);
   }
+}
+
+// Lot 47 (PAR-05, D6 ; ADR 0085) : gestionnaire de events.vendor_retention.released (un prestataire
+// n'est plus retenu, par le choix de la planner). L'engagé des lignes de ce prestataire est libéré,
+// seulement s'il vaut encore ce que la retenue avait engagé : son devis (une seule ligne), ou le
+// devisé de chaque ligne (plusieurs lignes). Un engagé modifié depuis, à la main ou par un autre
+// événement, n'est pas touché ; un rejeu ne trouve plus rien à libérer. Sous RLS, dans
+// l'organisation de l'événement.
+export async function applyVendorRetentionReleasedToBudget(organizationId: string, payload: VendorRetentionReleasedPayload): Promise<number> {
+  const linked = (await findBudgetLinesOfSlot(organizationId, payload.vendorSlotId)).filter((line) => line.vendorCandidateId === payload.candidateId && line.eventId === payload.eventId);
+  let released = 0;
+  for (const line of linked) {
+    const expected = linked.length === 1 ? (payload.amountCents ?? line.quotedAmountCents) : line.quotedAmountCents;
+    if (expected === null) continue;
+    if (await releaseCommittedAmount({ organizationId, lineId: line.id, expectedCents: expected, changedByUserId: payload.releasedByUserId })) released += 1;
+  }
+  return released;
 }
 
 async function committedChangedSince(organizationId: string, lineIds: string[], occurredAt: Date): Promise<boolean> {

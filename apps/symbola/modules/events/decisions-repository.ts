@@ -41,6 +41,8 @@ export async function answerDecisionRow(input: {
   linkId: string;
   personName: string;
   now: Date;
+  // Lot 47 (D6) : l'engagement du choix, dans la même transaction que la réponse.
+  engage?: ((tx: Parameters<Parameters<typeof withOrganization>[2]>[0], row: EventDecisionRow) => Promise<void>) | undefined;
 }): Promise<EventDecisionRow | null> {
   const db = appDatabase();
   return await withOrganization(db, input.organizationId, async (tx) => {
@@ -52,6 +54,11 @@ export async function answerDecisionRow(input: {
     if (!row) return null;
     await tx.insert(eventActivities).values({ organizationId: input.organizationId, eventId: row.eventId, actorLinkId: input.linkId, kind: "decision_made", taskLabel: row.title, createdAt: input.now });
     await appendAudit(tx, { organizationId: input.organizationId, action: "events.decision.answered", objectId: row.eventId, details: { decisionId: row.id, status: input.status } });
+    if (input.engage) {
+      await input.engage(tx, row);
+      const [engaged] = await tx.select().from(eventDecisions).where(eq(eventDecisions.id, row.id));
+      return engaged ?? row;
+    }
     return row;
   });
 }

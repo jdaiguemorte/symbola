@@ -49,7 +49,7 @@ describe("MSG-01 — E-mails de service depuis des modèles à variables, avec a
     const link = renderEmailTemplate("client_link", { subject: "Votre espace", body: "Votre lien :\n\n{{ lien }}\n\nÀ bientôt" }, { link: "https://symbola.test/lien#abc" });
     expect(link.blocks).toEqual([
       { kind: "paragraph", text: "Votre lien :" },
-      { kind: "button", url: "https://symbola.test/lien#abc" },
+      { kind: "button", url: "https://symbola.test/lien#abc", variable: "link" },
       { kind: "paragraph", text: "À bientôt" },
     ]);
     expect(link.text).toBe("Votre lien :\n\nhttps://symbola.test/lien#abc\n\nÀ bientôt");

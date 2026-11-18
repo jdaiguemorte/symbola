@@ -18,10 +18,18 @@ type State =
   | { step: "retry"; minutes: number }
   | { step: "requested" };
 
+// Lot 47 (PRE-04, D4) : « ?reponse=oui|non » vient d'un bouton de l'e-mail du brief ; il suit
+// jusqu'à l'espace du prestataire, qui présélectionne la réponse (à confirmer d'un toucher).
+let preselectedAnswer: "oui" | "non" | null = null;
+
+function homeWithAnswer(home: string): string {
+  return home === "/prestataire" && preselectedAnswer ? `${home}?reponse=${preselectedAnswer}` : home;
+}
+
 // Suite d'une ouverture (ou d'une demande de nouveau code).
 function nextState(token: string, result: OpenLinkOutcome): State | null {
   if (result.outcome === "opened") {
-    window.location.replace(result.home);
+    window.location.replace(homeWithAnswer(result.home));
     return null;
   }
   if (result.outcome === "code_required") return { step: "code", token, emailHint: result.emailHint, codeSent: result.codeSent, problem: null };
@@ -30,6 +38,8 @@ function nextState(token: string, result: OpenLinkOutcome): State | null {
 }
 
 function takeTokenFromAddress(): string | null {
+  const answer = new URLSearchParams(window.location.search).get("reponse");
+  preselectedAnswer = answer === "oui" || answer === "non" ? answer : preselectedAnswer;
   const hash = window.location.hash.slice(1);
   if (hash) window.history.replaceState(window.history.state, "", window.location.pathname);
   try {
@@ -140,7 +150,7 @@ function CodeStep({ state, onState }: { state: Extract<State, { step: "code" }>;
           const code = String(new FormData(event.currentTarget).get("code") ?? "");
           startTransition(async () => {
             const result = await verifyLinkCodeAction(state.token, code);
-            if (result.outcome === "opened") window.location.replace(result.home);
+            if (result.outcome === "opened") window.location.replace(homeWithAnswer(result.home));
             else if (result.outcome === "wrong_code") onState({ ...state, problem: { kind: "wrong", attemptsLeft: result.attemptsLeft } });
             else if (result.outcome === "code_expired") onState({ ...state, problem: { kind: "expired" } });
             else if (result.outcome === "retry") onState({ step: "retry", minutes: result.minutes });

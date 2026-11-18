@@ -1244,6 +1244,38 @@ fields:
     anonymization: >-
       Supprimée lors d'une demande d'oubli du consulté ou de l'événement (RGPD-03).
   - schema: events
+    table: vendor_briefs
+    field: need
+    category: contenu_libre
+    retention: >-
+      Lot 47 (PRE-03, D1 ; ADR 0085) : le besoin d'un poste, envoyé aux prestataires consultés par leur lien. Tant que l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli du poste ou de l'événement (RGPD-03).
+  - schema: events
+    table: event_vendor_candidates
+    field: answer_message
+    category: contenu_libre
+    retention: >-
+      Lot 47 (PRE-04, D3 ; ADR 0085) : message court du prestataire avec sa réponse au brief. Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Effacé (null) lors d'une demande d'oubli du consulté (RGPD-03), avec son nom et son devis.
+  - schema: events
+    table: event_decision_option_feedback
+    field: comment
+    category: contenu_libre
+    retention: >-
+      Lot 47 (PRE-09, D7 ; ADR 0085) : avis court du client sur une option proposée, par son lien. Tant que l'événement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimé avec l'avis lors d'une demande d'oubli du lien de la personne (RGPD-03).
+  - schema: events
+    table: vendor_scenarios
+    field: name
+    category: contenu_libre
+    retention: >-
+      Lot 47 (BUD-05, D5 ; ADR 0085) : nom court d'un scénario d'options, écrit par l'équipe. Tant que l'événement existe.
+    anonymization: >-
+      Supprimé avec l'événement (RGPD-03).
+  - schema: events
     table: event_vendor_slots
     field: brief
     category: contenu_libre
