@@ -392,5 +392,5 @@ export {
   type TrashKind,
   type UndoKind,
 } from "./trash";
-// Lot 49 (module Invités, ADR 0081) : contrat interne du module.
+// Lot 49 (module Invités, ADR 0082) : contrat interne du module.
 export * from "./guests/service-contract";

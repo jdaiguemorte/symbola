@@ -754,6 +754,22 @@ en a). Le 35a (export complet) est fusionné (PR #117).
   (trace des suppressions) ; seul le délai écrit dans la fiche de conformité et dans l'accord de
   sous-traitance dépend de ce choix.
 
+### Q38 — Lot 49 : six points à la DPO sur le module Invités (18 novembre 2026)
+
+Versés dans sa fiche (`docs/conformite/fiche-dpo.md`, question 14) ; aucun ne bloque l'écriture du
+lot, qui applique d'ici là le réglage le plus prudent (ADR 0082) :
+
+- **DPO-1** : régimes à caractère religieux, absents de la liste de départ (D6) ;
+- **DPO-2** : régime d'un accompagnant adulte sans moyen de contact (vide aujourd'hui) ;
+- **DPO-3** : présence gardée sous le seul nom après une opposition ;
+- **DPO-4** : textes de la mention d'information, de l'e-mail d'invitation et de l'accord ;
+- **DPO-5** : seuil « moins de 3 » des compteurs de régimes ;
+- **DPO-6** : suppression des exports stockés à la purge des invités.
+
+**Avant d'ouvrir le module à la pilote** (Julien) : DPO-1 et DPO-4 tranchés, analyse d'impact
+« socle » remise (réponse 5 de la DPO) ; puis l'Exploitation ouvre le module (fermé par défaut,
+ADR 0078) et la titulaire confirme l'analyse dans l'onglet Invités.
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que

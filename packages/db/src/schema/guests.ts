@@ -1,4 +1,4 @@
-// Schéma du module guests (lot 49, ADR 0011, 0012 et 0081 ; décision D1) : foyers et personnes
+// Schéma du module guests (lot 49, ADR 0011, 0012 et 0082 ; décision D1) : foyers et personnes
 // invités à un évènement, leurs réponses par temps fort, leurs régimes (chiffrés, avec l'accord de
 // l'invité), leurs liens personnels et la purge de tout cela après l'évènement. Chaque table a
 // organization_id, protégée par Row-Level Security (migration 0151). Les invités ne sont pas des

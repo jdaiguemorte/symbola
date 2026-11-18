@@ -1,4 +1,4 @@
-// Lot 49 (RGP-08 ; D9 ; ADR 0056, 0081 ; réponses 2 et 3 de la DPO) — purge automatique des
+// Lot 49 (RGP-08 ; D9 ; ADR 0056, 0082 ; réponses 2 et 3 de la DPO) — purge automatique des
 // données d'invités, avec préavis : régimes et allergies à J+7, le reste à J+30, comptés depuis le
 // dernier jour de l'évènement (ou son annulation), en heure de Paris. Le préavis (sept jours avant
 // chaque purge) s'affiche dans « Aujourd'hui » et part par e-mail à la titulaire ; un seul report,

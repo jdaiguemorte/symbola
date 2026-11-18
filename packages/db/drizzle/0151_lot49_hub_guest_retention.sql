@@ -1,4 +1,4 @@
--- Lot 49 (RGP-08, INV-03, INV-04 ; D4, D9, D10 ; ADR 0081) : durées de la purge des invités dans
+-- Lot 49 (RGP-08, INV-03, INV-04 ; D4, D9, D10 ; ADR 0082) : durées de la purge des invités dans
 -- les réglages RGPD (régimes et allergies à J+7, le reste à J+30, un report de 90 jours au plus ;
 -- réponses 2 et 3 de la DPO), et deux modèles d'e-mails (invitation à répondre, relance). Schéma
 -- hub seulement ; ajout seul (colonnes avec valeur par défaut, contrainte élargie) : compatible

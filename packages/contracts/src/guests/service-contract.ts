@@ -1,4 +1,4 @@
-// Lot 49 (INV-01 à INV-04, INV-07, RGP-06 à RGP-08, RGP-18 ; ADR 0081) — contrat interne du module
+// Lot 49 (INV-01 à INV-04, INV-07, RGP-06 à RGP-08, RGP-18 ; ADR 0082) — contrat interne du module
 // Invités (ADR 0011) : le futur contrat HTTP /v1/guests si le module est extrait. Les régimes
 // nominatifs ne sortent que vers la titulaire (D8) ; ailleurs, des nombres, sous un seuil
 // « moins de N ».

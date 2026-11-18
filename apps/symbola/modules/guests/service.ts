@@ -1,4 +1,4 @@
-// Porte d'entrée publique du module guests (lot 49, ADR 0011 et 0081) — seul fichier que les autres
+// Porte d'entrée publique du module guests (lot 49, ADR 0011 et 0082) — seul fichier que les autres
 // modules, lib/ et les écrans peuvent importer. Pensé comme le futur contrat HTTP /v1/guests si le
 // module est extrait. Le module est fermé par défaut (ADR 0078) ; sans l'analyse d'impact confirmée,
 // aucune saisie (partie G). Les régimes nominatifs ne sortent que vers la titulaire (D8).

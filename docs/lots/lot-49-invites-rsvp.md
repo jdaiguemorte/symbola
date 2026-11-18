@@ -1,6 +1,11 @@
 # Lot 49 — Invités et RSVP, régimes avec accord, purge des invités
 
 **Statut** : spécification proposée le 18/11/2026, **validée par Julien le 18/11/2026** : toutes les décisions retenues dans leur option recommandée (a), dépendances comprises (accord donné, ADR à écrire dans la PR du lot).
+**Réalisation** (18/11/2026) : écrit en une PR, ADR 0082 (écarts assumés : temps forts restreints
+par foyer ; contrainte des natures d'e-mails du hub réécrite ; jeton de style `reading` ; page de
+réponse sans session). Migrations 0150 à 0152. Rejeu `docs/recette/SC-07.md` ; revue
+d'accessibilité `docs/recette/accessibilite-rsvp.md` (VoiceOver à faire par Julien) ; DPO-1 à
+DPO-6 versés dans la fiche de la DPO (question 14) et dans Q38.
 Branche `lot-49-invites-rsvp`, partie de `main` (85c655d, après la PR #131). Le lot crée un
 module et son schéma (`guests`), ajoute une table au schéma `events` (D2) et des colonnes au
 schéma `hub` (D9) : validation explicite requise (CLAUDE.md § 8). Aucune dépendance nouvelle

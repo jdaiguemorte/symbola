@@ -112,7 +112,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
-  it("lot 49 (D2, D9 ; ADR 0081) — 0150 à 0152 : un enfant n'a ni contact ni lien ; annulation refusée tant que des invités ou des temps forts existent, puis tout est retiré", async () => {
+  it("lot 49 (D2, D9 ; ADR 0082) — 0150 à 0152 : un enfant n'a ni contact ni lien ; annulation refusée tant que des invités ou des temps forts existent, puis tout est retiré", async () => {
     await migrateAll();
     const organizationId = randomUUID();
     const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
