@@ -24,6 +24,8 @@ const NOTICED: Record<string, { file: string; name: string }> = {
   "quotes.payment_entries.reason": { file: "app/devis/[quoteId]/schedule-forms.tsx", name: "reason" },
   // Lot 49 (RGP-08, D9) : motif du report de la purge des invités.
   "guests.purge_postponements.reason": { file: "app/events/[id]/invites/guest-forms.tsx", name: "reason" },
+  // Lot 47 (PRE-03, D1) : le besoin du brief d'un poste.
+  "events.vendor_briefs.need": { file: "app/events/[id]/consultation/consultation-forms.tsx", name: "need" },
 };
 
 // Aussi mis en garde, bien que rangés autrement au registre : la note d'un contact, le motif d'une perte.
@@ -60,6 +62,10 @@ const WITHOUT_ENTRY: Record<string, string> = {
   "vendors.vendors.indicative_prices": "tarifs indicatifs du prestataire",
   "vendors.vendors.field_values": "valeurs des champs propres au type de prestataire",
   "events.event_decisions.comment": "réponse du client sur son portail ; la mise en garde s'adresse à l'équipe",
+  // Lot 47 (prestataires par lien).
+  "events.event_vendor_candidates.answer_message": "message du prestataire par son lien ; la mise en garde s'adresse à l'équipe",
+  "events.event_decision_option_feedback.comment": "avis du client sur son portail ; la mise en garde s'adresse à l'équipe",
+  "events.vendor_scenarios.name": "nom court d'un scénario d'options",
   // Lot 49 (module Invités).
   "guests.household_groups.label": "libellé court d'un groupe d'invités (« Amis du lycée »)",
   "guests.rsvp_answers.attending": "réponse oui ou non à un temps fort, sans texte",

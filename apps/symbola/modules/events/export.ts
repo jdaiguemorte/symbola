@@ -61,7 +61,7 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: programTemplates },
   { table: programTemplateItems, parents: { templateId: "program_templates" } },
   // Lot 47 (partie F) : réglages des prestataires par lien.
-  { table: vendorCoordinationSettings },
+  { table: vendorCoordinationSettings, idField: "organizationId" },
   { table: events, demoField: "isDemo" },
   { table: eventClients, ...ofEvent },
   { table: eventStatusHistory, ...ofEvent },

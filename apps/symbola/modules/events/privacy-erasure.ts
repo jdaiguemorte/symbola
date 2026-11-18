@@ -9,6 +9,8 @@ import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import {
   eventActivities,
   eventDecisions,
+  eventDecisionOptionFeedback,
+  vendorBriefs,
   eventLinks,
   eventClients,
   eventDayContacts,
@@ -199,6 +201,8 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       // Le poste reste (statistiques) ; lot 28b : le nom de ses prestataires est
       // porté par les prestataires rattachés, anonymisés plus bas.
       await tx.update(eventVendorSlots).set({ importedFields: null, brief: null }).where(inArray(eventVendorSlots.id, slotIds));
+      // Lot 47 (D1) : le besoin du brief du poste.
+      await tx.update(vendorBriefs).set({ need: ANONYMIZED, updatedAt: now }).where(inArray(vendorBriefs.vendorSlotId, slotIds));
     }
     // Lot 11 : le consulté reste (statistiques, retenu ou non) sans nom ni
     // notes ; son devis, qui le nomme, est supprimé (fichier compris).
@@ -212,12 +216,14 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       fileKeys.push(...withFiles.map((row) => row.key).filter((key): key is string => key !== null));
       await tx
         .update(eventVendorCandidates)
-        .set({ vendorName: ANONYMIZED, vendorId: null, quoteFileKey: null, quoteMime: null, quoteSizeBytes: null, updatedAt: now })
+        .set({ vendorName: ANONYMIZED, vendorId: null, quoteFileKey: null, quoteMime: null, quoteSizeBytes: null, answerMessage: null, updatedAt: now })
         .where(inArray(eventVendorCandidates.id, candidateIds));
     }
     if (idsFor("link").length > 0) {
       // Lot 27b (EVT-09) : la décision reste, sans le nom ni le commentaire de la personne.
       await tx.update(eventDecisions).set({ decidedByName: ANONYMIZED, comment: sql`case when ${eventDecisions.comment} is null then null else ${ANONYMIZED} end` }).where(inArray(eventDecisions.decidedByLinkId, idsFor("link")));
+      // Lot 47 (D7) : ses avis sur les options partent avec lui.
+      await tx.delete(eventDecisionOptionFeedback).where(inArray(eventDecisionOptionFeedback.linkId, idsFor("link")));
       await tx.delete(eventLinks).where(inArray(eventLinks.id, idsFor("link")));
     }
     if (idsFor("event_day_contact").length > 0) await tx.delete(eventDayContacts).where(inArray(eventDayContacts.id, idsFor("event_day_contact")));

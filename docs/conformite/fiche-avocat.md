@@ -270,3 +270,23 @@ développement.
 
 Besoin : des réponses **avant la mise en service auprès de la pilote** (aucune ne bloque le
 développement).
+
+## Question du 18 novembre 2026 (lot 47)
+
+Numéro donné à la fusion : les lots 44, 46 et 50, menés en parallèle, ajoutent aussi des questions.
+
+### 16. Choix du client qui engage la ligne de budget (AV-6)
+
+Sur son portail, le client choisit entre les propositions de prestataires que la planner lui
+montre (par exemple deux fleuristes). Depuis le lot 47, ce choix **engage** : le prestataire choisi
+passe à « Retenu » (la ligne de budget est engagée de son devis), les autres sont écartés et des
+tâches de suivi sont créées (contrat, acompte, attestation d'assurance) ; la planner peut tout
+annuler pendant 7 jours. Le choix **ne vaut pas commande auprès du prestataire** : le contrat reste
+à signer, c'est la première tâche de suivi.
+
+Faut-il le dire au client sur l'écran du choix, et en quels termes ? Le choix du client crée-t-il
+un engagement envers la planner ou le prestataire qu'il faudrait encadrer (conditions, délai de
+réflexion) ?
+
+> En attendant : une phrase sous le bouton, « Votre choix est transmis à l'organisation de votre
+> évènement ; le contrat avec le prestataire sera signé ensuite. »

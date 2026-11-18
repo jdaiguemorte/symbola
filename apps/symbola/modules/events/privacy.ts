@@ -8,10 +8,12 @@
 // l'événement (« Plan de table Martin ») ; le fichier lui-même peut nommer des
 // personnes, il est supprimé à l'oubli. Les données d'un essai guidé (ADR 0008)
 // ne sont jamais trouvées.
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import {
   eventLinks,
+  eventDecisionOptionFeedback,
+  vendorBriefs,
   eventClients,
   eventDayContacts,
   eventDocumentFolders,
@@ -85,13 +87,14 @@ async function candidateRecords(tx: Tx, eventIds: string[], matches: ((values: (
   const records: PrivacyRecord[] = [];
   for (const candidate of candidates) {
     const bodies = notes.filter((note) => note.candidateId === candidate.id).map((note) => note.body);
-    if (matches && !matches([candidate.vendorName, ...bodies])) continue;
+    // Lot 47 (PRE-04) : le message du prestataire avec sa réponse au brief.
+    if (matches && !matches([candidate.vendorName, candidate.answerMessage, ...bodies])) continue;
     records.push({
       module: MODULE,
       kind: "vendor_candidate",
       recordId: candidate.id,
       label: candidate.vendorName,
-      fields: compact({ vendorName: candidate.vendorName, notes: bodies.join(" · ") || null }),
+      fields: compact({ vendorName: candidate.vendorName, answerMessage: candidate.answerMessage, notes: bodies.join(" · ") || null }),
       eventId: candidate.eventId,
     });
   }
@@ -187,14 +190,18 @@ export const eventsPrivacy: PrivacyContractV1 = {
         });
       }
       // Lot 26a : lien personnel d'un tiers (nom et e-mail de la personne).
+      // Lot 47 (D7) : les avis du client sur les options sont rattachés à son lien.
+      const linkFeedback = await tx.select({ linkId: eventDecisionOptionFeedback.linkId, comment: eventDecisionOptionFeedback.comment }).from(eventDecisionOptionFeedback).where(isNotNull(eventDecisionOptionFeedback.linkId));
       for (const link of await tx.select().from(eventLinks).where(inArray(eventLinks.eventId, eventIds))) {
-        if (recordMatches([link.email, link.personName], terms)) {
+        if (recordMatches([link.email, link.personName, ...linkFeedback.filter((entry) => entry.linkId === link.id).map((entry) => entry.comment)], terms)) {
           records.push({ module: MODULE, kind: "link", recordId: link.id, label: link.personName, fields: { name: link.personName, email: link.email }, eventId: link.eventId });
         }
       }
+      const briefs = await tx.select({ vendorSlotId: vendorBriefs.vendorSlotId, need: vendorBriefs.need }).from(vendorBriefs).where(inArray(vendorBriefs.eventId, eventIds));
       for (const slot of await tx.select().from(eventVendorSlots).where(inArray(eventVendorSlots.eventId, eventIds))) {
-        // Lot 28b : le nom des prestataires est porté par les prestataires rattachés.
-        if (recordMatches(importedValues(slot.importedFields), terms)) {
+        // Lot 28b : le nom des prestataires est porté par les prestataires rattachés. Lot 47 (D1) :
+        // le besoin du brief du poste peut nommer la personne.
+        if (recordMatches([...importedValues(slot.importedFields), slot.brief, ...briefs.filter((brief) => brief.vendorSlotId === slot.id).map((brief) => brief.need)], terms)) {
           records.push({
             module: MODULE,
             kind: "event_vendor_slot",
