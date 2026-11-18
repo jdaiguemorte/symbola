@@ -8,7 +8,10 @@ import { createTranslator } from "next-intl";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import frMessages from "@symbola/i18n/messages/fr.json";
+import enMessages from "@symbola/i18n/messages/en.json";
+import { starterLatePenalty } from "@symbola/starter-templates";
 import type { CreditNoteView, InvoiceView } from "@/modules/quotes/service";
+import { balanceInvoiceCase, creditNoteCase, depositInvoiceCase } from "@/lib/test-fixtures/facturx-cases";
 import { pdfSafe } from "@/lib/pdf-text";
 import { QuotePdfDocument } from "../[quoteId]/quote-pdf";
 import { invoicePdfLabels, type Translate } from "../document-labels";
@@ -17,6 +20,10 @@ import { buildCreditNotePdfModel, buildInvoicePdfModel } from "./invoice-pdf-mod
 const t = createTranslator({ locale: "fr", messages: frMessages, namespace: "Documents" }) as unknown as Translate;
 const tQuotes = createTranslator({ locale: "fr", messages: frMessages, namespace: "Quotes" }) as unknown as Translate;
 const labels = invoicePdfLabels(t, tQuotes);
+const labelsEn = invoicePdfLabels(
+  createTranslator({ locale: "en", messages: enMessages, namespace: "Documents" }) as unknown as Translate,
+  createTranslator({ locale: "en", messages: enMessages, namespace: "Quotes" }) as unknown as Translate,
+);
 const DEFAULT_COLOR = "#3b3b3b";
 
 const totals = { totalHtCents: 156333, vatByRate: [{ rateBasisPoints: 2000, baseCents: 156333, vatCents: 31267 }], totalVatCents: 31267, totalTtcCents: 187600 };
@@ -55,6 +62,8 @@ const balance: InvoiceView = {
   totals,
   creditNotes: [],
   creditedCents: 0,
+  // Pièce émise avant le lot 41 : ni Factur-X ni mentions de la réforme.
+  reform: null,
 };
 
 function invoiceModel(invoice: InvoiceView, watermark: string | null = null) {
@@ -74,6 +83,7 @@ const creditNote: CreditNoteView = {
   seller: balance.seller,
   buyers: balance.buyers,
   totals: { totalHtCents: 10000, vatByRate: [{ rateBasisPoints: 2000, baseCents: 10000, vatCents: 2000 }], totalVatCents: 2000, totalTtcCents: 12000 },
+  reform: null,
 };
 
 describe("DEV-04 — PDF de facture et d'avoir", () => {
@@ -248,5 +258,59 @@ describe("FAC-05 — Solde par taux, arrhes en règlement (lot 31c, D20, D21)", 
       ["Arrhes reçues le 5 janvier 2027 (Arrhes à la réservation)", "− 800,00 €", false],
       ["Reste à payer", "1 876,00 €", true],
     ]);
+  });
+});
+
+// Lot 41 (JUR-02, JUR-12, JUR-13 ; D6, D8 à D11) — mentions de la réforme sur la facture et l'avoir.
+describe("JUR-02 — Mentions de la réforme imprimées sur la facture", () => {
+  const printed = (model: ReturnType<typeof invoiceModel>) => [...model.client.lines, ...model.dates.map((date) => `${date.label} ${date.value}`), ...model.professional].join("\n");
+
+  it("professionnel : SIREN et TVA de l'acheteur, livraison différente, catégorie, option sur les débits", () => {
+    const text = printed(pdfSafe(buildInvoicePdfModel({ invoice: balanceInvoiceCase({ vat: true, professional: true }), labels, locale: "fr", logo: null, watermark: null, defaultColor: DEFAULT_COLOR, latePenalty: starterLatePenalty() })));
+    expect(text).toContain("SIREN 552100554");
+    expect(text).toContain("TVA intracommunautaire FR83552100554");
+    expect(text).toContain("Livraison : Château des Essais, route du Lac, 74000 Annecy");
+    expect(text).toContain("Catégorie de l'opération : Opération mixte");
+    expect(text).toContain("Option pour le paiement de la taxe d'après les débits");
+  });
+
+  it("la catégorie figure sur toutes les factures, particuliers compris ; ni livraison ni débits s'ils ne s'appliquent pas", () => {
+    const individual = balanceInvoiceCase({ vat: true, professional: false });
+    const text = printed(pdfSafe(buildInvoicePdfModel({ invoice: { ...individual, reform: { ...individual.reform!, category: "services" } }, labels, locale: "fr", logo: null, watermark: null, defaultColor: DEFAULT_COLOR })));
+    expect(text).toContain("Catégorie de l'opération : Prestations de services");
+    expect(text).not.toContain("Livraison");
+    expect(text).not.toContain("débits");
+    const english = printed(pdfSafe(buildInvoicePdfModel({ invoice: { ...individual, reform: { ...individual.reform!, category: "goods" } }, labels: labelsEn, locale: "en", logo: null, watermark: null, defaultColor: DEFAULT_COLOR })));
+    expect(english).toContain("Category of the transaction: Supply of goods");
+  });
+
+  it("une facture émise avant le lot 41 s'imprime comme à son émission, sans mention de la réforme", () => {
+    const text = printed(invoiceModel(balance));
+    expect(text).not.toContain("Catégorie");
+    expect(text).not.toContain("Bon de commande");
+  });
+});
+
+describe("JUR-13 — Bon de commande et références d'achat sur la facture et l'avoir", () => {
+  it("le numéro de bon de commande et la référence de l'acheteur figés sont imprimés sur la facture et sur l'avoir", () => {
+    const model = pdfSafe(buildInvoicePdfModel({ invoice: depositInvoiceCase({ vat: true, professional: true }), labels, locale: "fr", logo: null, watermark: null, defaultColor: DEFAULT_COLOR }));
+    expect(model.dates).toContainEqual({ label: "Bon de commande", value: 'BC-2027-0142 "urgent" & <prioritaire>' });
+    expect(model.dates).toContainEqual({ label: "Référence de l'acheteur", value: "Service achats 'Événements'" });
+    const { creditNote, vatApplicable } = creditNoteCase({ vat: true, professional: true, total: false });
+    const note = buildCreditNotePdfModel({ creditNote, vatApplicable, labels, locale: "fr", logo: null, watermark: null, defaultColor: DEFAULT_COLOR });
+    expect(note.dates.map((date) => date.label)).toContain("Bon de commande");
+  });
+});
+
+describe("JUR-12 — Délai, pénalités et indemnité forfaitaire sur la facture d'un professionnel", () => {
+  it("délai, escompte « Néant », pénalités et indemnité de 40 € pour un professionnel ; rien de cela pour un particulier", () => {
+    const pro = pdfSafe(buildInvoicePdfModel({ invoice: balanceInvoiceCase({ vat: true, professional: true }), labels, locale: "fr", logo: null, watermark: null, defaultColor: DEFAULT_COLOR, latePenalty: starterLatePenalty() })).professional.join("\n");
+    expect(pro).toContain("Délai de paiement : 30 jours à compter de la date d'émission.");
+    expect(pro).toContain("Escompte pour paiement anticipé : Néant.");
+    expect(pro).toContain("trois fois le taux d'intérêt légal");
+    expect(pro).toMatch(/40,00 €/);
+    const individual = pdfSafe(buildInvoicePdfModel({ invoice: balanceInvoiceCase({ vat: true, professional: false }), labels, locale: "fr", logo: null, watermark: null, defaultColor: DEFAULT_COLOR, latePenalty: starterLatePenalty() })).professional.join("\n");
+    expect(individual).not.toContain("Délai de paiement");
+    expect(individual).not.toContain("Escompte");
   });
 });

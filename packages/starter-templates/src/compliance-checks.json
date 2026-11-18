@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "status": {
+    "fr": "Premier jeu de vérifications de l'assistant de conformité (GC-03, lot 41, décision D12), à faire relire par l'avocat (fiche, question 15, AV-2) et l'expert-comptable (fiche, question 15, EC-4). Elles informent ; aucune ne bloque. L'Admin les désactive une à une.",
+    "en": "First set of checks of the compliance assistant (GC-03, lot 41, decision D12), to be reviewed by the lawyer (sheet, question 15, AV-2) and the chartered accountant. They inform; none blocks. The Admin can turn each one off."
+  },
+  "disclaimer": {
+    "fr": "Ces vérifications vous aident ; elles ne remplacent pas le conseil d'un professionnel du droit ou de la comptabilité.",
+    "en": "These checks help you; they do not replace advice from a legal or accounting professional."
+  },
+  "checks": [
+    {
+      "key": "orderReferenceMissing",
+      "documents": ["quote", "invoice"],
+      "target": "#acheteur",
+      "title": { "fr": "Client professionnel sans numéro de bon de commande", "en": "Business client without a purchase order number" },
+      "why": { "fr": "Si le client émet un bon de commande, son numéro doit figurer sur la facture ; sans lui, son service comptable peut la refuser.", "en": "If the client issues a purchase order, its number must appear on the invoice; without it, their accounts department may reject it." }
+    },
+    {
+      "key": "deliveryAddressMissing",
+      "documents": ["quote", "invoice"],
+      "target": "#acheteur",
+      "title": { "fr": "Des biens sont livrés, l'adresse de livraison n'est pas renseignée", "en": "Goods are delivered, but no delivery address is given" },
+      "why": { "fr": "Depuis la réforme, l'adresse de livraison des biens figure sur la facture quand elle diffère de l'adresse de facturation.", "en": "Since the reform, the delivery address of goods appears on the invoice when it differs from the billing address." }
+    },
+    {
+      "key": "withdrawalClauseMissing",
+      "documents": ["quote", "contract"],
+      "target": "#contrat",
+      "title": { "fr": "Contrat à distance ou hors établissement sans clause de rétractation", "en": "Distance or off-premises contract without a withdrawal clause" },
+      "why": { "fr": "Un particulier dispose d'un délai de rétractation de quatorze jours ; le contrat doit l'en informer, sinon ce délai est prolongé d'un an.", "en": "A consumer has a fourteen-day withdrawal period; the contract must say so, otherwise the period is extended by a year." }
+    },
+    {
+      "key": "clauseToDraft",
+      "documents": ["contract"],
+      "target": "/devis/modeles-contrat",
+      "title": { "fr": "Une clause du contrat reste à rédiger", "en": "A contract clause is still to be written" },
+      "why": { "fr": "Une clause marquée « [À rédiger] » ou « [À compléter] » partirait telle quelle chez le client.", "en": "A clause marked « [À rédiger] » or « [À compléter] » would reach the client as is." }
+    },
+    {
+      "key": "advancedSignatureRecommended",
+      "documents": ["contract"],
+      "target": "#signature",
+      "title": { "fr": "Montant élevé, signature simple", "en": "High amount, simple signature" },
+      "why": { "fr": "Au-delà du seuil fixé, une signature avancée prouve mieux l'engagement du client en cas de litige.", "en": "Above the set threshold, an advanced signature better proves the client's commitment in a dispute." }
+    },
+    {
+      "key": "depositNotInvoiced",
+      "documents": ["invoice"],
+      "target": "#factures",
+      "title": { "fr": "Facture de solde alors qu'un acompte n'est pas facturé", "en": "Balance invoice while a deposit is not invoiced" },
+      "why": { "fr": "Un acompte encaissé appelle sa propre facture ; le solde ne déduit que les acomptes déjà facturés.", "en": "A deposit received calls for its own invoice; the balance only deducts deposits already invoiced." }
+    },
+    {
+      "key": "vatOnDebitsUnset",
+      "documents": ["quote", "invoice"],
+      "target": "/parametres#tva-debits",
+      "title": { "fr": "Option pour la TVA sur les débits non renseignée", "en": "Option for VAT on an accrual basis not filled in" },
+      "why": { "fr": "Depuis la réforme, la facture d'une entreprise assujettie dit si elle a opté pour le paiement de la TVA d'après les débits.", "en": "Since the reform, the invoice of a VAT-registered business states whether it opted to pay VAT on an accrual basis." }
+    },
+    {
+      "key": "serviceDateMissing",
+      "documents": ["quote", "invoice"],
+      "target": "/events",
+      "title": { "fr": "Date de la prestation absente ou lointaine", "en": "Service date missing or far away" },
+      "why": { "fr": "La facture porte la date de la prestation ; absente ou à plus d'un an, elle mérite d'être vérifiée.", "en": "The invoice carries the service date; missing or more than a year away, it deserves a check." }
+    }
+  ]
+}

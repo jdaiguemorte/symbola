@@ -24,9 +24,10 @@ import {
   setQuoteAdvanceKind,
 } from "./service";
 import { fakeSignatureProvider, setSignatureProviderForTests } from "./signature";
+import { minimalPdf } from "@/lib/test-fixtures/pdf";
 
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
-const render = async () => Buffer.from("%PDF-1.4\n% pièce de test\n%%EOF\n", "latin1");
+const render = async () => minimalPdf("pièce de test");
 // Les signatures et les émissions sont datées du jour réel : l'année est la courante, à Paris.
 const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 const year = () => Number(today().slice(0, 4));

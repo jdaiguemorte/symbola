@@ -11,7 +11,7 @@ import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import { sendSymbolaEmail } from "./emails";
 import { parseEnv } from "@symbola/env";
-import { requiredMentionRuleSchema, starterFollowUpDelays, starterLinkPrivacyNotice, starterRequiredMentions, type RequiredMentionRule } from "@symbola/starter-templates";
+import { COMPLIANCE_CHECK_KEYS, requiredMentionRuleSchema, starterFollowUpDelays, starterLinkPrivacyNotice, starterRequiredMentions, type RequiredMentionRule } from "@symbola/starter-templates";
 import { getLinkPrivacyNotice } from "./privacy-requests";
 import {
   findInvitationByTokenHash,
@@ -36,6 +36,7 @@ import {
   upsertOrganizationProfileFields,
   upsertPlatformSettings,
   updatePlatformRequiredMentions,
+  updatePlatformComplianceChecks,
 } from "./repository";
 import type { Language } from "./types";
 
@@ -482,6 +483,13 @@ export type OrganizationProfile = {
   mediatorName: string | null;
   mediatorUrl: string | null;
   generalTerms: string | null;
+  // Lot 41 (FAC-10, JUR-02 ; D7, D10) : adresse structurée (address en est la ligne), option pour la
+  // TVA sur les débits datée (null : non renseignée).
+  postalCode: string | null;
+  city: string | null;
+  countryCode: string;
+  vatOnDebits: boolean | null;
+  vatOnDebitsFrom: string | null;
 };
 
 const EMPTY_PROFILE: OrganizationProfile = {
@@ -508,6 +516,11 @@ const EMPTY_PROFILE: OrganizationProfile = {
   mediatorName: null,
   mediatorUrl: null,
   generalTerms: null,
+  postalCode: null,
+  city: null,
+  countryCode: "FR",
+  vatOnDebits: null,
+  vatOnDebitsFrom: null,
 };
 
 // ONB-01 — Pas encore de ligne = questionnaire jamais commencé : toutes
@@ -656,6 +669,10 @@ export type SellerDetails = {
   mediatorName: string | null;
   mediatorUrl: string | null;
   generalTerms: string | null;
+  // Lot 41 (FAC-10, D7) : adresse structurée, exigée par le fichier Factur-X.
+  postalCode: string | null;
+  city: string | null;
+  countryCode: string;
 };
 
 export async function getSellerDetails(db: AppDatabase, organizationId: string): Promise<SellerDetails> {
@@ -680,7 +697,78 @@ export async function getSellerDetails(db: AppDatabase, organizationId: string):
     mediatorName: profile.mediatorName,
     mediatorUrl: profile.mediatorUrl,
     generalTerms: profile.generalTerms,
+    postalCode: profile.postalCode,
+    city: profile.city,
+    countryCode: profile.countryCode,
   };
+}
+
+// Lot 41 (FAC-10, JUR-02 ; D7) — adresse structurée du vendeur : ligne, code postal, ville, pays.
+// Rien n'est deviné de l'ancien texte libre (il reste la ligne d'adresse) ; la liste des mentions
+// demande code postal et ville avant la première facture.
+export type SellerAddressInput = { address: string | null; postalCode: string | null; city: string | null; countryCode: string | null };
+
+export class InvalidSellerAddressError extends Error {
+  constructor(readonly field: "address" | "postalCode" | "city" | "countryCode") {
+    super(`adresse du vendeur invalide : ${field}`);
+    this.name = "InvalidSellerAddressError";
+  }
+}
+
+export function cleanSellerAddress(input: SellerAddressInput): { address: string | null; postalCode: string | null; city: string | null; countryCode: string } {
+  const text = (value: string | null, max: number, field: "address" | "postalCode" | "city") => {
+    const clean = (value ?? "").replace(/\s+/g, " ").trim();
+    if (clean.length > max) throw new InvalidSellerAddressError(field);
+    return clean === "" ? null : clean;
+  };
+  const countryCode = (input.countryCode ?? "").trim().toUpperCase() || "FR";
+  if (!/^[A-Z]{2}$/.test(countryCode)) throw new InvalidSellerAddressError("countryCode");
+  const postalCode = text(input.postalCode, 16, "postalCode");
+  if (postalCode && !/^[0-9A-Za-z -]+$/.test(postalCode)) throw new InvalidSellerAddressError("postalCode");
+  return { address: text(input.address, 300, "address"), postalCode, city: text(input.city, 120, "city"), countryCode };
+}
+
+export async function saveSellerAddress(db: AppDatabase, organizationId: string, input: SellerAddressInput): Promise<void> {
+  await upsertOrganizationProfileFields(db, organizationId, cleanSellerAddress(input));
+}
+
+// Lot 41 (JUR-02, D10, HUB-23) — option pour le paiement de la TVA d'après les débits : choix fiscal
+// daté, réservé au régime assujetti (sans objet en franchise). Une facture la fige à sa date
+// d'émission.
+export class VatOnDebitsNotApplicableError extends Error {
+  constructor() {
+    super("option sur les débits réservée au régime assujetti");
+    this.name = "VatOnDebitsNotApplicableError";
+  }
+}
+
+export async function saveVatOnDebits(db: AppDatabase, organizationId: string, input: { enabled: boolean; from: string | null }): Promise<void> {
+  const profile = await getOrganizationProfile(db, organizationId);
+  if (input.enabled && profile.vatRegime !== "assujetti") throw new VatOnDebitsNotApplicableError();
+  if (input.from !== null && !/^\d{4}-\d{2}-\d{2}$/.test(input.from)) throw new RangeError("date d'effet invalide");
+  await upsertOrganizationProfileFields(db, organizationId, { vatOnDebits: input.enabled, vatOnDebitsFrom: input.enabled ? input.from : null });
+}
+
+// L'option est-elle active à cette date (AAAA-MM-JJ) ? null : non renseignée (assujetti seulement).
+export function vatOnDebitsOn(profile: Pick<OrganizationProfile, "vatRegime" | "vatOnDebits" | "vatOnDebitsFrom">, date: string): boolean | null {
+  if (profile.vatRegime !== "assujetti") return false;
+  if (profile.vatOnDebits === null) return null;
+  return profile.vatOnDebits && (profile.vatOnDebitsFrom === null || profile.vatOnDebitsFrom <= date);
+}
+
+// Lot 41 (GC-03, D12) — vérifications de l'assistant de conformité désactivées par l'Admin (valeurs
+// réglementaires, comme les mentions requises) ; jamais une donnée métier.
+export async function getDisabledComplianceChecks(db: AppDatabase): Promise<string[]> {
+  const row = await findPlatformSettings(db);
+  const value = row?.complianceChecks as { disabled?: unknown } | null | undefined;
+  return Array.isArray(value?.disabled) ? value.disabled.filter((key): key is string => typeof key === "string") : [];
+}
+
+export async function setDisabledComplianceChecks(db: AppDatabase, input: { adminUserId: string; disabled: string[] }): Promise<void> {
+  const known = new Set<string>(COMPLIANCE_CHECK_KEYS);
+  const disabled = [...new Set(input.disabled)].filter((key) => known.has(key));
+  await updatePlatformComplianceChecks(db, disabled.length > 0 ? { disabled } : null);
+  await recordAudit(db, { organizationId: null, action: "hub.compliance_checks.updated", actor: { kind: "admin", id: input.adminUserId }, details: { disabled: disabled.join(",") } });
 }
 
 // Lot 31a (JUR-09, décision D4) — informations du professionnel : assurance de

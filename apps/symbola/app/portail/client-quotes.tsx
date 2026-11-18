@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { formatAmount, formatDateTime, type Locale } from "@symbola/i18n";
 import { starterContractRules } from "@symbola/starter-templates";
 import type { ClientQuoteToSign } from "@/modules/quotes/service";
-import { EarlyExecutionForm, OrderContractForm } from "./client-contract-forms";
+import { EarlyExecutionForm, OrderContractForm, OrderReferenceForm } from "./client-contract-forms";
 
 const OWN_STATUS_KEYS = { pending: "quoteToSign", signed: "quoteSignedByYou", declined: "quoteDeclinedByYou" } as const;
 
@@ -40,6 +40,14 @@ export async function ClientQuotes({ quotes, locale, preview = false }: { quotes
                   </a>
                 )}
               </>
+            ) : null}
+            {/* Lot 41 (JUR-13, D8) : devis professionnel, le numéro de bon de commande de l'entreprise. */}
+            {quote.professional && quote.kind !== "contract" ? (
+              quote.canSetOrderReference ? (
+                <OrderReferenceForm quoteId={quote.quoteId} value={quote.orderReference} preview={preview} />
+              ) : quote.orderReference ? (
+                <p>{t("orderReferenceIs", { reference: quote.orderReference })}</p>
+              ) : null
             ) : null}
             {/* Lot 31a (JUR-08, D5) : acompte ou arrhes, rappelé avant de signer. */}
             {quote.advanceKind && quote.kind !== "contract" ? (

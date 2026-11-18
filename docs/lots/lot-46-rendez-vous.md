@@ -308,7 +308,7 @@ modifier, sauf l'affichage d'« Aujourd'hui » et du portail.
 - **DPO-3** : texte de départ de la mention d'information de la page de réservation (au nom de la
   planner : finalité, base, durée, droits, réclamation).
 
-**Avocat** (question 15 de sa fiche ; la 14 vient du lot 41) :
+**Avocat** (question 16 de sa fiche ; les 14 et 15 viennent du lot 41) :
 
 - **AV-3** : la page publique de réservation, éditée au nom de la planner sur le domaine de
   Symbola : faut-il y faire figurer ses mentions légales (identité, immatriculation, hébergeur) ?

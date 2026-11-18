@@ -59,9 +59,10 @@ import { fakeSignatureProvider, setSignatureProviderForTests } from "./signature
 import { quotesPrivacy } from "./privacy";
 import { confirmed } from "@/lib/test-fixtures/recipients";
 import { recipientsDigest } from "@/modules/hub/service";
+import { minimalPdf } from "@/lib/test-fixtures/pdf";
 
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
-const render = async () => new Uint8Array(PDF);
+const render = async () => new Uint8Array(minimalPdf("facture de test"));
 const rules = starterContractRules();
 afterEach(() => setSignatureProviderForTests(undefined));
 

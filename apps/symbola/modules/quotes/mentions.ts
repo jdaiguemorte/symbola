@@ -22,6 +22,12 @@ export type MentionValues = {
   // Lot 31c (D18) : face à un professionnel, son texte et le taux des pénalités choisi.
   professionalPaymentTerms: string | null;
   latePenaltyRate: LatePenaltyRateKey | null;
+  // Lot 41 (FAC-10, JUR-02, JUR-12 ; D6, D7, D11) : adresse structurée du vendeur, ce qui manque à
+  // l'acheteur entreprise d'un devis professionnel, escompte face à un professionnel.
+  postalCode: string | null;
+  city: string | null;
+  buyerMissing: ("buyerCompany" | "buyerSiren" | "buyerAddress")[];
+  professionalDiscountTerms: string | null;
 };
 
 export type MentionContext = {
@@ -61,6 +67,16 @@ function present(field: RequiredMentionRule["field"], values: MentionValues): bo
       return filled(values.professionalPaymentTerms);
     case "latePenaltyRate":
       return values.latePenaltyRate !== null;
+    case "postalCode":
+      return filled(values.postalCode);
+    case "city":
+      return filled(values.city);
+    case "buyerCompany":
+    case "buyerSiren":
+    case "buyerAddress":
+      return !values.buyerMissing.includes(field);
+    case "professionalDiscountTerms":
+      return filled(values.professionalDiscountTerms);
   }
 }
 

@@ -12,6 +12,8 @@ import { sellerContactLine, sellerDisplayName, sellerLegalLine, type SellerLegal
 import { formatRate } from "../quote-display";
 import type { LatePenaltyData } from "@symbola/starter-templates";
 import { professionalTermsText } from "@/lib/documents/payment-terms";
+import { starterInvoiceReform, starterProfessionalTerms } from "@symbola/starter-templates";
+import type { OperationCategory, PostalAddress } from "@symbola/contracts";
 
 export type QuotePdfLogo = { data: Buffer; format: "png" | "jpg" };
 
@@ -28,6 +30,15 @@ export type DocumentCommonLabels = {
   totalHt: string;
   vatAtRate: (rate: string) => string;
   totalTtc: string;
+  // Lot 41 (JUR-02, JUR-12, JUR-13) : mentions de la réforme et conditions d'un professionnel.
+  reform: {
+    orderReference: string;
+    buyerReference: string;
+    delivery: (address: string) => string;
+    category: (category: string) => string;
+    paymentTerm: (days: number, endOfMonth: boolean) => string;
+    discount: (terms: string) => string;
+  };
 };
 
 export type QuotePdfLabels = DocumentCommonLabels & {
@@ -88,6 +99,9 @@ export type QuotePdfModel = {
   // DEV-02 : bloc « Bon pour accord » avec une balise de signature par
   // signataire, seulement dans le PDF envoyé en signature.
   signature: { title: string; slots: { role: string; tag: string }[] } | null;
+  // Lot 41 (FAC-10, D5) : factures et avoirs aux polices incorporées (Liberation), exigées par
+  // PDF/A ; devis et contrats gardent les polices du moteur.
+  embedFonts?: boolean;
 };
 
 function quantity(milli: number, unit: string, locale: Locale): string {
@@ -100,11 +114,45 @@ export function groupIban(iban: string): string {
 }
 
 export function sellerBlock(seller: SellerSnapshot, labels: DocumentCommonLabels): QuotePdfModel["seller"] {
+  // Lot 41 (D7) : la ligne d'adresse, puis code postal et ville s'ils sont renseignés.
+  const town = [seller.postalCode, seller.city].filter(Boolean).join(" ");
   return {
     heading: labels.sellerHeading,
     name: sellerDisplayName(seller, labels.legal),
-    lines: [seller.address, sellerContactLine(seller)].filter((line): line is string => Boolean(line)),
+    lines: [seller.address, town || null, sellerContactLine(seller)].filter((line): line is string => Boolean(line)),
   };
+}
+
+export function formatAddress(address: PostalAddress): string {
+  return `${address.line}, ${address.postalCode} ${address.city}${address.countryCode === "FR" ? "" : `, ${address.countryCode}`}`;
+}
+
+// Lot 41 (JUR-02, JUR-12, JUR-13 ; D8 à D11) — ce que la réforme ajoute au document : bon de commande
+// et référence de l'acheteur (avec les dates), adresse de livraison (sous le client), puis la
+// catégorie de l'opération, l'option pour la TVA sur les débits, le délai et l'escompte d'un
+// professionnel (avec les mentions). Textes réglementaires depuis les données, dans la langue.
+export type ReformPrint = {
+  orderReference: string | null;
+  buyerReference: string | null;
+  deliveryAddress: PostalAddress | null;
+  category: OperationCategory | null;
+  vatOnDebits: boolean;
+  professionalTerms: { paymentTermDays: number; endOfMonth: boolean; discountTerms: string | null } | null;
+};
+
+export function reformParts(print: ReformPrint, labels: DocumentCommonLabels, locale: Locale): { dates: QuotePdfModel["dates"]; clientLines: string[]; mentions: string[] } {
+  const data = starterInvoiceReform();
+  const dates: QuotePdfModel["dates"] = [];
+  if (print.orderReference) dates.push({ label: labels.reform.orderReference, value: print.orderReference });
+  if (print.buyerReference) dates.push({ label: labels.reform.buyerReference, value: print.buyerReference });
+  const mentions: string[] = [];
+  if (print.category) mentions.push(labels.reform.category(data.categories[print.category][locale]));
+  if (print.vatOnDebits) mentions.push(data.vatOnDebitsMention[locale]);
+  if (print.professionalTerms) {
+    mentions.push(labels.reform.paymentTerm(print.professionalTerms.paymentTermDays, print.professionalTerms.endOfMonth));
+    mentions.push(labels.reform.discount(print.professionalTerms.discountTerms ?? starterProfessionalTerms().discountTerms[locale]));
+  }
+  return { dates, clientLines: print.deliveryAddress ? [labels.reform.delivery(formatAddress(print.deliveryAddress))] : [], mentions };
 }
 
 export function documentFooter(seller: SellerSnapshot, labels: DocumentCommonLabels, locale: Locale): QuotePdfModel["footer"] {
@@ -192,10 +240,27 @@ export function buildQuotePdfModel(input: {
   signatureSlots?: { role: string; tag: string }[];
   // Lot 31c (D18) : données de la phrase des pénalités (rendu serveur ; l'aperçu s'en passe).
   latePenalty?: LatePenaltyData;
+  // Lot 41 (JUR-02, JUR-13 ; D6, D8, D9) : acheteur entreprise (lignes imprimées à la place des
+  // prénoms), références d'achat, livraison, catégorie de l'opération.
+  buyerLines?: string[] | null;
+  category?: OperationCategory | null;
 }): QuotePdfModel {
   const { version, labels, locale } = input;
   const sent = version.sentAt !== null;
   const seller = sent && version.seller ? version.seller : input.draftSeller;
+  const buyer = input.quote.buyer;
+  const reform = reformParts(
+    {
+      orderReference: buyer?.orderReference ?? null,
+      buyerReference: buyer?.buyerReference ?? null,
+      deliveryAddress: buyer?.deliveryAddress ?? null,
+      category: input.category ?? null,
+      vatOnDebits: Boolean(seller.vatOnDebits) && version.vatApplicable,
+      professionalTerms: input.quote.clientKind === "professional" ? (seller.professionalTerms ?? null) : null,
+    },
+    labels,
+    locale,
+  );
   const document = seller.document;
   const vat = version.vatApplicable;
 
@@ -216,6 +281,7 @@ export function buildQuotePdfModel(input: {
   if (version.sentAt) dates.push({ label: labels.dates.issuedOn, value: formatCalendarDate(version.sentAt.slice(0, 10), locale) });
   if (input.eventDate) dates.push({ label: labels.dates.eventDate, value: formatCalendarDate(input.eventDate, locale) });
   if (version.validUntil) dates.push({ label: labels.dates.validUntil, value: formatCalendarDate(version.validUntil, locale) });
+  dates.push(...reform.dates);
 
   // DEV-11 : échéancier des acomptes et solde, puis l'IBAN s'il est renseigné.
   const { schedule } = version;
@@ -245,7 +311,7 @@ export function buildQuotePdfModel(input: {
     appearance: appearanceOf(seller, input.defaultColor),
     logo: input.logo,
     seller: sellerBlock(seller, labels),
-    client: { heading: labels.clientHeading, lines: [input.clientNames, ...(input.clientDetails ?? [])] },
+    client: { heading: labels.clientHeading, lines: [...(input.buyerLines && input.buyerLines.length > 0 ? input.buyerLines : [input.clientNames, ...(input.clientDetails ?? [])]), ...reform.clientLines] },
     dates,
     intro: document?.intro ?? null,
     columns: columnsFor(vat, labels),
@@ -254,7 +320,7 @@ export function buildQuotePdfModel(input: {
     payment,
     legalMention: sent ? version.legalMention : input.draftLegalMention,
     terms: document?.terms ?? null,
-    professional: professionalLines(seller, labels, locale, input.latePenalty),
+    professional: [...reform.mentions, ...professionalLines(seller, labels, locale, input.latePenalty)],
     generalTerms: seller.generalTerms ? { title: labels.generalTermsTitle, text: seller.generalTerms } : null,
     footer: documentFooter(seller, labels, locale),
     watermark: input.watermark,

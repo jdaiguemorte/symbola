@@ -230,9 +230,50 @@ une conformité partielle à WCAG 2.2 AA, faute d'audit complet par un tiers.
 
 Besoin : une réponse **avant de publier la page `/accessibilite`** (lot 40c, JUR-17).
 
+## Questions du 18 novembre 2026 (lot 41)
+
+### 14. Délai de paiement entre professionnels (AV-1)
+
+Votre réponse 7 fixe, face à une entreprise cliente, un délai de 30 jours par défaut, verrouillé
+hors des bornes légales. Symbola refuse tout réglage au-delà de **60 jours après l'émission** ou de
+**45 jours fin de mois** (article L441-10 du Code de commerce), et accepte ces bornes. Pour « fin
+de mois », Symbola ajoute le délai à la date d'émission puis va au dernier jour de ce mois (la plus
+courte des deux lectures usuelles). Ces bornes et ce calcul sont-ils justes ? Existe-t-il un
+plafond propre au secteur de l'évènementiel ?
+
+> En attendant : 60 jours, ou 45 jours fin de mois, calcul ci-dessus.
+
+### 15. Assistant de conformité (AV-2)
+
+Avant l'envoi d'un devis, d'un contrat ou d'une facture, un panneau « Vérifications avant envoi »
+liste des points d'attention qui **ne bloquent pas** l'envoi (le blocage reste celui des mentions
+obligatoires). Premier jeu :
+
+1. client professionnel sans numéro de bon de commande ;
+2. des biens livrés à un professionnel sans adresse de livraison ;
+3. contrat à distance ou hors établissement d'un particulier sans clause de rétractation ;
+4. clause de contrat encore marquée « [À rédiger] » ou « [À compléter] » ;
+5. contrat au-delà du seuil de signature avancée, signé en signature simple ;
+6. facture de solde alors qu'un acompte de l'échéancier n'est pas facturé ;
+7. option pour la TVA sur les débits non renseignée (entreprise assujettie) ;
+8. date de la prestation absente, ou à plus d'un an.
+
+Sous le panneau, une mention fixe : « Ces vérifications vous aident ; elles ne remplacent pas le
+conseil d'un professionnel du droit ou de la comptabilité. »
+
+Cette liste vous semble-t-elle juste ? Le texte de la mention convient-il ? Symbola, éditeur,
+encourt-il une responsabilité si un point manque à la liste, ou si un point affiché est erroné ?
+L'Admin peut retirer une vérification ; la liste et ses textes sont des données, modifiables sans
+développement.
+
+> En attendant : ce jeu et cette mention.
+
+Besoin : des réponses **avant la mise en service auprès de la pilote** (aucune ne bloque le
+développement).
+
 ## Question du 18 novembre 2026 (lot 46, rendez-vous)
 
-### 15. Mentions légales de la page publique de réservation
+### 16. Mentions légales de la page publique de réservation
 
 Le module Rendez-vous publie, pour chaque planner qui l'ouvre, une page publique de réservation
 (`/reserver/<adresse-choisie>`), à son nom, sur le domaine de Symbola. On y choisit un créneau et on

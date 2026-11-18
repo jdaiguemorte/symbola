@@ -125,6 +125,20 @@
     "receiptPrefix": {
       "type": "string"
     },
+    "professionalPaymentTermDays": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "professionalPaymentTermEndOfMonth": {
+      "type": "boolean"
+    },
+    "professionalDiscountTerms": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "updatedAt": {
       "type": "string",
       "format": "date-time",
@@ -181,6 +195,9 @@
     "invoiceMentionsProfessional",
     "latePenaltyRate",
     "receiptPrefix",
+    "professionalPaymentTermDays",
+    "professionalPaymentTermEndOfMonth",
+    "professionalDiscountTerms",
     "updatedAt",
     "createdAt",
     "createdBy",

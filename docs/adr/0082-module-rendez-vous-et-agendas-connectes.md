@@ -102,5 +102,5 @@ critère est « aucun créneau proposé sur une plage occupée » (RDV-02), un r
 - **Hors périmètre** : synchronisation dans les deux sens et OAuth (V2), SMS (D10), intégration de
   la page dans le site de la planner (`X-Frame-Options: DENY`), partage du compte rendu au portail.
 - **Conseils** : DPO-1 à DPO-3 (fiche de la DPO, question 13) et AV-3 (fiche de l'avocat,
-  question 15) ; en attendant, le défaut prudent s'applique (mention d'information de départ à
+  question 16) ; en attendant, le défaut prudent s'applique (mention d'information de départ à
   faire relire, règle des prospects pour une personne qui a seulement pris rendez-vous).

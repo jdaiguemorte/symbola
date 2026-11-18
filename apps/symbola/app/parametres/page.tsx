@@ -9,6 +9,7 @@ import { DocumentDetailsForm } from "./document-details-form";
 import { ProfessionalMentionsForm } from "./professional-mentions-form";
 import { ProfileForm } from "./profile-form";
 import { VatRegimeForm } from "./vat-regime-form";
+import { VatOnDebitsForm } from "./vat-on-debits-form";
 
 export default async function SettingsPage() {
   const auth = await requirePlanner();
@@ -35,6 +36,11 @@ export default async function SettingsPage() {
 
       <h2>{t("vatRegimeTitle")}</h2>
       <VatRegimeForm currentRegime={profile.vatRegime} />
+
+      {/* Lot 41 (JUR-02, D10) : option pour la TVA sur les débits, datée (assujetti seulement). */}
+      <h2 id="tva-debits">{t("vatOnDebitsTitle")}</h2>
+      <p className="meta">{t("vatOnDebitsHint")}</p>
+      {profile.vatRegime === "assujetti" ? <VatOnDebitsForm value={profile.vatOnDebits} from={profile.vatOnDebitsFrom} /> : <p>{t("vatOnDebitsFranchise")}</p>}
 
       {/* Lot 17 (DEV-07, DEV-08, décision A) : coordonnées et logo des documents. */}
       <h2 id="coordonnees-documents">{t("documentDetailsTitle")}</h2>

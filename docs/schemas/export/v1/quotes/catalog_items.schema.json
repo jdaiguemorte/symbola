@@ -37,6 +37,13 @@
         "null"
       ]
     },
+    "nature": {
+      "type": "string",
+      "enum": [
+        "service",
+        "goods"
+      ]
+    },
     "importedFields": {
       "anyOf": [
         {
@@ -102,6 +109,7 @@
     "unitPriceCents",
     "vatRateBasisPoints",
     "category",
+    "nature",
     "importedFields",
     "archivedAt",
     "createdAt",

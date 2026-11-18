@@ -78,6 +78,25 @@ fields:
       d'oubli (RGPD-03).
   - schema: hub
     table: organization_profiles
+    field: postal_code
+    category: contact
+    retention: >-
+      Lot 41 (FAC-10, JUR-02, D7) : code postal de l'adresse de l'organisation, structurée pour le
+      fichier Factur-X (address en est la ligne) ; celle d'une entrepreneuse individuelle peut être
+      son domicile. Tant que l'organisation existe ; les factures émises en gardent la copie figée.
+    anonymization: >-
+      Comme organization_profiles.address (demande d'oubli de l'organisation, RGPD-03).
+  - schema: hub
+    table: organization_profiles
+    field: city
+    category: contact
+    retention: >-
+      Lot 41 (FAC-10, JUR-02, D7) : ville de l'adresse de l'organisation. Même conservation que
+      postal_code.
+    anonymization: >-
+      Comme organization_profiles.address (demande d'oubli de l'organisation, RGPD-03).
+  - schema: hub
+    table: organization_profiles
     field: contact_email
     category: contact
     retention: >-
@@ -903,6 +922,36 @@ fields:
       Remplacé par une valeur générée non réversible lors d'une demande d'oubli
       (RGPD-03), sauf sur un devis signé (preuve du contrat, même durée).
   - schema: quotes
+    table: quotes
+    field: delivery_address
+    category: contact
+    retention: >-
+      Lot 41 (JUR-02, D6) : adresse de livraison des biens, si elle diffère de l'adresse de
+      facturation (lieu de réception ou domicile d'un client). Tant que le devis existe ; chaque
+      facture en garde la copie (invoices.reform_snapshot).
+    anonymization: >-
+      Effacée avec les autres données du devis lors d'une demande d'oubli (RGPD-03) ; les factures
+      émises gardent leur copie jusqu'à la fin de la conservation légale.
+  - schema: quotes
+    table: quotes
+    field: client_order_reference
+    category: identifiant
+    retention: >-
+      Lot 41 (JUR-13, D8) : numéro de bon de commande d'une entreprise cliente, saisi par la planner
+      ou par le signataire depuis son lien. Donnée de l'entreprise, sans nom de personne attendu ;
+      tant que le devis existe.
+    anonymization: >-
+      Effacé avec les autres données du devis lors d'une demande d'oubli (RGPD-03).
+  - schema: quotes
+    table: quotes
+    field: buyer_reference
+    category: identifiant
+    retention: >-
+      Lot 41 (JUR-13, D8) : référence de l'acheteur (code service, référence interne de l'entreprise
+      cliente) ; peut nommer une personne du service achats. Tant que le devis existe.
+    anonymization: >-
+      Effacée avec les autres données du devis lors d'une demande d'oubli (RGPD-03).
+  - schema: quotes
     table: quote_signers
     field: billing_address
     category: contact
@@ -937,6 +986,30 @@ fields:
     anonymization: >-
       Aucune avant la fin de la conservation légale (facture immuable) ;
       suppression à son terme (RGPD-05).
+  - schema: quotes
+    table: invoices
+    field: reform_snapshot
+    category: contact
+    retention: >-
+      Lot 41 (FAC-10, JUR-02, JUR-13) : copie figée des mentions de la réforme, dont l'adresse de
+      livraison (lieu de l'évènement ou domicile d'un client, si elle diffère de l'adresse de
+      facturation) et le numéro de bon de commande et la référence de l'acheteur (données d'une
+      entreprise). Conservation légale des factures, comme buyer_snapshot ; aussi dans le fichier
+      Factur-X de l'original. L'acheteur entreprise (raison sociale, SIREN, TVA, adresse) est dans
+      buyer_snapshot.
+    anonymization: >-
+      Aucune avant la fin de la conservation légale ; à son terme, l'adresse de livraison est
+      retirée dans la même transaction que l'acheteur (RGPD-05, déclencheur
+      forbid_issued_document_change). L'original Factur-X suit la purge des originaux.
+  - schema: quotes
+    table: credit_notes
+    field: reform_snapshot
+    category: contact
+    retention: >-
+      Lot 41 (FAC-10) : copie de la réforme de la facture corrigée. Conservation légale, comme
+      invoices.reform_snapshot.
+    anonymization: >-
+      Comme invoices.reform_snapshot.
   - schema: quotes
     table: invoices
     field: seller_snapshot

@@ -139,6 +139,35 @@ describe("DEV-04 — Factures et avoirs immuables (PostgreSQL réel, rôle appli
     ).toMatch(/immuable/);
   });
 
+  it("FAC-10 (lot 41) — la copie de la réforme reste immuable ; à la fin de la conservation, seule son adresse de livraison s'efface", async () => {
+    const organizationId = randomUUID();
+    const reform = { format: "facturx", category: "goods", vatOnDebits: false, orderReference: "BC-2027-0142", buyerReference: null, deliveryAddress: { line: "Château", postalCode: "74000", city: "Annecy", countryCode: "FR" }, professionalTerms: null };
+    const { invoice } = await withOrganization(db, organizationId, async (tx) => {
+      const seeded = await seedInvoice(tx, organizationId);
+      await tx.execute(rawSql`SET LOCAL app.retention_anonymization = 'on'`);
+      return seeded;
+    });
+    // Une copie posée à l'émission : on la simule par une facture insérée avec elle.
+    const [withReform] = await withOrganization(db, organizationId, (tx) =>
+      tx.insert(invoices).values({ ...invoice, id: randomUUID(), number: `F-${randomUUID().slice(0, 8)}`, reformSnapshot: reform, createdBy: null }).returning(),
+    );
+    expect(await failure(withOrganization(db, organizationId, (tx) => tx.update(invoices).set({ reformSnapshot: { ...reform, deliveryAddress: null } }).where(eq(invoices.id, withReform!.id))))).toMatch(/immuable/);
+    expect(
+      await failure(
+        withOrganization(db, organizationId, async (tx) => {
+          await tx.execute(rawSql`SET LOCAL app.retention_anonymization = 'on'`);
+          await tx.update(invoices).set({ reformSnapshot: { ...reform, orderReference: "AUTRE" } }).where(eq(invoices.id, withReform!.id));
+        }),
+      ),
+    ).toMatch(/immuable/);
+    await withOrganization(db, organizationId, async (tx) => {
+      await tx.execute(rawSql`SET LOCAL app.retention_anonymization = 'on'`);
+      await tx.update(invoices).set({ reformSnapshot: { ...reform, deliveryAddress: null } }).where(eq(invoices.id, withReform!.id));
+    });
+    const [row] = await withOrganization(db, organizationId, (tx) => tx.select().from(invoices).where(eq(invoices.id, withReform!.id)));
+    expect(row!.reformSnapshot).toEqual({ ...reform, deliveryAddress: null });
+  });
+
   it("seuls les documents d'un essai guidé se suppriment (purge de l'essai, ADR 0008)", async () => {
     const organizationId = randomUUID();
     const { invoice, creditNote } = await withOrganization(db, organizationId, (tx) => seedInvoice(tx, organizationId, true));

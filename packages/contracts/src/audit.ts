@@ -60,6 +60,8 @@ export const AUDIT_ACTIONS = {
   "hub.platform_settings.updated": { category: "administration", objectType: null },
   // Lot 31a (FAC-07, décision D4) : liste des mentions requises réglée par l'Admin.
   "hub.required_mentions.updated": { category: "administration", objectType: null },
+  // Lot 41 (GC-03, D12) : vérifications de l'assistant de conformité désactivées par l'Admin.
+  "hub.compliance_checks.updated": { category: "administration", objectType: null },
   // Exports.
   "hub.privacy_export.created": { category: "export", objectType: "privacy_export" },
   "hub.privacy_export.downloaded": { category: "export", objectType: "privacy_export" },
@@ -106,6 +108,10 @@ export const AUDIT_ACTIONS = {
   "quotes.contract.generated": { category: "partage", objectType: "quote" },
   "quotes.contract.ordered": { category: "partage", objectType: "quote" },
   "quotes.contract.early_execution_requested": { category: "partage", objectType: "quote" },
+  // Lot 41 (JUR-13, D8) : numéro de bon de commande indiqué par le client depuis son lien.
+  "quotes.order_reference.set_by_client": { category: "partage", objectType: "quote" },
+  // Lot 41 (GC-03, D12) : points de l'assistant de conformité affichés (clés, sans donnée personnelle).
+  "quotes.compliance.shown": { category: "emission", objectType: "quote" },
   // Émissions.
   "quotes.invoice.issued": { category: "emission", objectType: "invoice" },
   "quotes.credit_note.issued": { category: "emission", objectType: "credit_note" },

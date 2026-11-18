@@ -10,6 +10,9 @@ import importSynonymsFile from "./import-synonyms.json";
 import importProfilesFile from "./import-profiles.json";
 import invoiceMentionsFile from "./invoice-mentions.json";
 import latePenaltyFile from "./late-penalty.json";
+import professionalTermsFile from "./professional-terms.json";
+import invoiceReformFile from "./invoice-reform.json";
+import complianceChecksFile from "./compliance-checks.json";
 import documentStyleFile from "./document-style.json";
 import lossReasonsFile from "./loss-reasons.json";
 import paymentMethodsFile from "./payment-methods.json";
@@ -173,6 +176,8 @@ const latePenaltySchema = z.object({
   status: translatedLabelSchema,
   rates: z.array(z.object({ key: z.enum(LATE_PENALTY_RATE_KEYS), label: translatedLabelSchema, phrase: translatedLabelSchema })).min(1),
   sentence: translatedLabelSchema,
+  // Lot 41 (FAC-10) : l'indemnité seule, note « PMT » du fichier Factur-X (la phrase entière va en « PMD »).
+  recoverySentence: translatedLabelSchema.optional(),
   recoveryIndemnityCents: z.number().int().positive(),
 });
 export type LatePenaltyData = Omit<z.infer<typeof latePenaltySchema>, "version" | "status">;
@@ -182,8 +187,83 @@ export function starterLatePenalty(): LatePenaltyData {
   return {
     rates: latePenalty.rates.map((rate) => ({ key: rate.key, label: { ...rate.label }, phrase: { ...rate.phrase } })),
     sentence: { ...latePenalty.sentence },
+    ...(latePenalty.recoverySentence ? { recoverySentence: { ...latePenalty.recoverySentence } } : {}),
     recoveryIndemnityCents: latePenalty.recoveryIndemnityCents,
   };
+}
+
+// Lot 41 (JUR-12, D11, réponse 7 de l'avocat) — délai de paiement d'un professionnel : 30 jours
+// par défaut, bornes de l'article L441-10 (60 jours après l'émission, 45 jours fin de mois ; AV-1),
+// escompte « Néant » par défaut. Valeurs réglementaires : jamais dans le code.
+const professionalTermsSchema = z.object({
+  version: z.literal(1),
+  status: translatedLabelSchema,
+  paymentTerm: z.object({
+    defaultDays: z.number().int().min(0).max(120),
+    maxDaysAfterIssue: z.number().int().min(1).max(120),
+    maxDaysEndOfMonth: z.number().int().min(1).max(120),
+  }),
+  discountTerms: translatedLabelSchema,
+});
+export type ProfessionalTermsData = Omit<z.infer<typeof professionalTermsSchema>, "version" | "status">;
+const professionalTerms = professionalTermsSchema.parse(professionalTermsFile);
+
+export function starterProfessionalTerms(): ProfessionalTermsData {
+  return structuredClone({ paymentTerm: professionalTerms.paymentTerm, discountTerms: professionalTerms.discountTerms });
+}
+
+// Lot 41 (JUR-02, JUR-03 ; réponse 2 de l'expert-comptable, EC-2, EC-3) — catégorie de l'opération
+// imprimée sur toutes les factures, mention de l'option pour la TVA sur les débits, date de
+// l'obligation d'émission électronique (bandeau des réglages de facturation).
+const invoiceReformSchema = z.object({
+  version: z.literal(1),
+  status: translatedLabelSchema,
+  categories: z.object({ services: translatedLabelSchema, goods: translatedLabelSchema, mixed: translatedLabelSchema }),
+  vatOnDebitsMention: translatedLabelSchema,
+  electronicInvoicingFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+export type InvoiceReformData = Omit<z.infer<typeof invoiceReformSchema>, "version" | "status">;
+const invoiceReform = invoiceReformSchema.parse(invoiceReformFile);
+
+export function starterInvoiceReform(): InvoiceReformData {
+  return structuredClone({ categories: invoiceReform.categories, vatOnDebitsMention: invoiceReform.vatOnDebitsMention, electronicInvoicingFrom: invoiceReform.electronicInvoicingFrom });
+}
+
+// Lot 41 (GC-03, D12) — vérifications de l'assistant de conformité : clé (la règle elle-même est dans
+// modules/quotes/compliance.ts), documents où elle s'affiche, cible, textes FR et EN. L'Admin en
+// désactive (hub.platform_settings.compliance_checks) ; à relire par l'avocat (AV-2).
+export const COMPLIANCE_CHECK_KEYS = [
+  "orderReferenceMissing",
+  "deliveryAddressMissing",
+  "withdrawalClauseMissing",
+  "clauseToDraft",
+  "advancedSignatureRecommended",
+  "depositNotInvoiced",
+  "vatOnDebitsUnset",
+  "serviceDateMissing",
+] as const;
+export type ComplianceCheckKey = (typeof COMPLIANCE_CHECK_KEYS)[number];
+const complianceChecksSchema = z.object({
+  version: z.literal(1),
+  status: translatedLabelSchema,
+  disclaimer: translatedLabelSchema,
+  checks: z
+    .array(
+      z.object({
+        key: z.enum(COMPLIANCE_CHECK_KEYS),
+        documents: z.array(z.enum(["quote", "contract", "invoice"])).min(1),
+        target: z.string().min(1),
+        title: translatedLabelSchema,
+        why: translatedLabelSchema,
+      }),
+    )
+    .min(1),
+});
+export type ComplianceCheckRule = z.infer<typeof complianceChecksSchema>["checks"][number];
+const complianceChecks = complianceChecksSchema.parse(complianceChecksFile);
+
+export function starterComplianceChecks(): { disclaimer: { fr: string; en: string }; checks: ComplianceCheckRule[] } {
+  return structuredClone({ disclaimer: complianceChecks.disclaimer, checks: complianceChecks.checks });
 }
 
 // Lot 17 (DEV-09, DEV-10) — apparence des documents : couleur neutre (celle
@@ -924,6 +1004,14 @@ export const MENTION_FIELDS = [
   // Lot 31c (D18) : conditions de paiement et taux des pénalités face à un professionnel.
   "professionalPaymentTerms",
   "latePenaltyRate",
+  // Lot 41 (FAC-10, JUR-02, JUR-12 ; D6, D7, D11) : adresse structurée du vendeur, acheteur
+  // entreprise d'un devis professionnel, escompte face à un professionnel.
+  "postalCode",
+  "city",
+  "buyerCompany",
+  "buyerSiren",
+  "buyerAddress",
+  "professionalDiscountTerms",
 ] as const;
 export type MentionField = (typeof MENTION_FIELDS)[number];
 export const MENTION_DOCUMENTS = ["quote", "deposit_invoice", "balance_invoice", "credit_note"] as const;

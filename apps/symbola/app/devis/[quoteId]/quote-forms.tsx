@@ -79,6 +79,20 @@ export function QuoteActionForm({
 }
 
 // Lot 31a (FAC-01, D2) : section de la ligne et ligne en option.
+// Lot 41 (JUR-02, D9) : bien ou service (« service » par défaut) ; la facture en déduit la catégorie.
+export function NatureField({ idPrefix, value }: { idPrefix: string; value?: "service" | "goods" | undefined }) {
+  const t = useTranslations("Quotes");
+  return (
+    <>
+      <label htmlFor={`${idPrefix}-nature`}>{t("lineNature")}</label>
+      <select id={`${idPrefix}-nature`} name="nature" defaultValue={value ?? "service"}>
+        <option value="service">{t("lineNatureService")}</option>
+        <option value="goods">{t("lineNatureGoods")}</option>
+      </select>
+    </>
+  );
+}
+
 function PlacementFields({ idPrefix, sections, line }: { idPrefix: string; sections: QuoteSection[]; line?: QuoteLine }) {
   const t = useTranslations("Quotes");
   return (
@@ -176,6 +190,7 @@ export function AddFreeLineForm({
           />
         </>
       ) : null}
+      <NatureField idPrefix="free" />
       <PlacementFields idPrefix="free" sections={sections} />
     </QuoteActionForm>
   );
@@ -210,6 +225,7 @@ export function EditLineForm({ quoteId, line, vatApplicable, sections = [] }: { 
           <input id={id("vatRate")} type="text" inputMode="decimal" name="vatRate" defaultValue={formatDecimal(line.vatRateBasisPoints, 2, locale)} />
         </>
       ) : null}
+      <NatureField idPrefix={`edit-${line.id}`} value={line.nature} />
       <PlacementFields idPrefix={`edit-${line.id}`} sections={sections} line={line} />
     </QuoteActionForm>
   );

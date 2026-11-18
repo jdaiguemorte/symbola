@@ -250,12 +250,25 @@ export const organizationProfiles = hubSchema.table("organization_profiles", {
   mediatorName: text("mediator_name"),
   mediatorUrl: text("mediator_url"),
   generalTerms: text("general_terms"),
+  // Lot 41 (FAC-10, JUR-02 ; D7) : adresse structurée du vendeur, exigée par le fichier Factur-X ;
+  // « address » en devient la ligne. Code pays ISO 3166-1 (FR par défaut).
+  postalCode: text("postal_code"),
+  city: text("city"),
+  countryCode: text("country_code").notNull().default("FR"),
+  // Lot 41 (JUR-02, D10) : option pour le paiement de la TVA d'après les débits, datée comme le
+  // régime de TVA (null : non renseignée ; vrai à partir de vat_on_debits_from). Réservée au régime
+  // assujetti, figée sur chaque facture à la date de son émission.
+  vatOnDebits: boolean("vat_on_debits"),
+  vatOnDebitsFrom: date("vat_on_debits_from"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
 }, (table) => [
+  check("organization_profiles_postal_code_check", sql`${table.postalCode} is null or char_length(${table.postalCode}) between 1 and 16`),
+  check("organization_profiles_city_check", sql`${table.city} is null or char_length(${table.city}) between 1 and 120`),
+  check("organization_profiles_country_code_check", sql`${table.countryCode} ~ '^[A-Z]{2}$'`),
   check("organization_profiles_insurer_check", sql`${table.insurer} is null or char_length(${table.insurer}) between 1 and 120`),
   check("organization_profiles_insurance_policy_check", sql`${table.insurancePolicy} is null or char_length(${table.insurancePolicy}) between 1 and 80`),
   check("organization_profiles_insurance_coverage_check", sql`${table.insuranceCoverage} is null or char_length(${table.insuranceCoverage}) between 1 and 200`),
@@ -325,6 +338,9 @@ export const platformSettings = hubSchema.table("platform_settings", {
   // Lot 35a (HUB-13, décision D4) : durée pendant laquelle l'archive d'un export complet de
   // l'organisation reste téléchargeable (7 jours), puis effacée du stockage.
   organizationExportRetentionDays: integer("organization_export_retention_days").notNull().default(7),
+  // Lot 41 (GC-03, D12) : vérifications de l'assistant de conformité désactivées par l'Admin
+  // ({ "disabled": ["clé", …] }) ; null : toutes celles de la liste de départ.
+  complianceChecks: jsonb("compliance_checks"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

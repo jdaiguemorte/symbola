@@ -11,7 +11,7 @@ import type { Locale } from "@symbola/i18n";
 import { starterDocumentStyle, starterLatePenalty } from "@symbola/starter-templates";
 import { getEvent } from "@/modules/events/service";
 import { computeLegalMention, getContactsByIds, getOrganizationProfile } from "@/modules/hub/service";
-import { currentQuoteSeller, type QuoteDetail, type QuoteVersionView } from "@/modules/quotes/service";
+import { currentQuoteSeller, operationCategory, type QuoteDetail, type QuoteVersionView } from "@/modules/quotes/service";
 import { loadDocumentLogo } from "@/lib/document-logo";
 import { pdfSafe } from "@/lib/pdf-text";
 import { quotePdfLabels, type Translate } from "../document-labels";
@@ -53,7 +53,22 @@ export async function quotePdfModelFor(input: {
       ...(contact.vatNumber ? [t("pdfVatNumber", { vatNumber: contact.vatNumber })] : []),
     ]);
 
+  // Lot 41 (JUR-02, D6) : l'acheteur entreprise désigné, avec son SIREN, sa TVA et son adresse.
+  const buyerContact = quote.buyer.buyerContactId ? (await getContactsByIds(organizationId, [quote.buyer.buyerContactId])).get(quote.buyer.buyerContactId) : undefined;
+  const buyerLines =
+    buyerContact && buyerContact.kind === "company" && !buyerContact.anonymized
+      ? [
+          buyerContact.displayName,
+          [buyerContact.addressLine, [buyerContact.postalCode, buyerContact.city].filter(Boolean).join(" ")].filter(Boolean).join(", "),
+          ...(buyerContact.companyIdNumber ? [buyerContact.companyIdNumber.length === 14 ? t("pdfSiret", { siret: buyerContact.companyIdNumber }) : t("pdfSiren", { siren: buyerContact.companyIdNumber })] : []),
+          ...(buyerContact.vatNumber ? [t("pdfVatNumber", { vatNumber: buyerContact.vatNumber })] : []),
+        ].filter(Boolean)
+      : null;
+  const included = version.lines.filter((line) => !line.isOption || line.optionChosen);
+
   const model = buildQuotePdfModel({
+    buyerLines,
+    category: operationCategory(included.map((line) => line.nature)),
     quote,
     version,
     draftSeller,
