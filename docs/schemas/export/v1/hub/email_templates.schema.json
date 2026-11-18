@@ -28,7 +28,11 @@
         "program_published",
         "guest_invitation",
         "guest_reminder",
-        "prospect_form_received"
+        "prospect_form_received",
+        "proposal_sent",
+        "proposal_expiry_reminder",
+        "payment_details",
+        "invoice_reminder"
       ]
     },
     "locale": {
