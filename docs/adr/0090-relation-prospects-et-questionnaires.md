@@ -86,7 +86,9 @@ gardait aucun historique et ne pouvait donc pas relancer.
 - La fusion ne se défait pas automatiquement ; la trace permet de la reprendre à la main.
 - Les relances à un prospect qui a fait une demande sont traitées comme la suite de sa demande, pas
   comme de la prospection (RGP-17 « Sans objet ») ; chaque relance porte « Répondez simplement » et la
-  planner peut arrêter les relances. À confirmer par l'avocat (AV-9).
+  planner peut arrêter les relances. À confirmer par l'avocat (AV-9) : la DPO (sa question 10) y voit
+  de la prospection (accord préalable d'un particulier) ; la contradiction est écrite en Q39, à
+  trancher par Julien avant la première relance réelle.
 
 ## Options écartées
 
