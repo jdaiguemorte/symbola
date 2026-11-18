@@ -224,7 +224,10 @@ describe("SEC-12 — Chaque route a sa règle d'accès, vérifiée côté serveu
     expect([...guardedFunctions(parsed, GUARDS)].sort()).toEqual(["arrowAction", "context", "guardedAction"]);
   });
 
-  it("l'analyse voit chaque page, chaque route et chaque action exportée", () => {
+  // Lot 53 : délai explicite. Le test lit et analyse toutes les sources de l'app ; sa durée croît avec
+  // chaque lot et a dépassé les 5 s par défaut en CI (5 057 ms, PR #148). Rien de ce qu'il vérifie ne
+  // change.
+  it("l'analyse voit chaque page, chaque route et chaque action exportée", { timeout: 30_000 }, () => {
     const files = sourceFiles(APP_DIR).map((path) => ({ name: path.split("/").pop()!, text: readFileSync(path, "utf8") }));
     const entries = appEntries();
     const count = (kind: Entry["kind"]) => entries.filter((entry) => entry.kind === kind).length;
