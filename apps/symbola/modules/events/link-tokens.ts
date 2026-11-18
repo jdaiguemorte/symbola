@@ -1,39 +1,16 @@
 // Lot 26a (SEC-14, SEC-15, SEC-17, POR-10 ; ADR 0053, décisions D4 et D7) —
 // règles pures des liens personnels : jeton, expiration, droits. Sans base ni
 // horloge implicite : chaque fonction reçoit l'instant qu'elle juge.
-import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 import { parisToday } from "@symbola/i18n";
 import { starterLinkExpiry } from "@symbola/starter-templates";
 import { LINK_RUBRICS, type EventLinkRights, type EventLinkStatus, type LinkAudience } from "@symbola/contracts";
 import { addDays } from "./schedule";
 
-// SEC-14 : 256 bits aléatoires (le cahier des charges en demande 128 au moins).
-const SECRET_BYTES = 32;
-const SECRET_PATTERN = /^[A-Za-z0-9_-]{43}$/;
-
-export function newLinkSecret(): string {
-  return randomBytes(SECRET_BYTES).toString("base64url");
-}
-
-// Seul ce haché est stocké (lien et session).
-export function hashLinkSecret(secret: string): string {
-  return createHash("sha256").update(secret).digest("hex");
-}
-
-// Format de l'ADR 0053 : l'organisation, non secrète, permet la recherche sous
-// RLS ; le secret ne quitte jamais le navigateur de la personne qu'en POST.
-export function formatLinkToken(organizationId: string, secret: string): string {
-  return `${organizationId}.${secret}`;
-}
-
-export function parseLinkToken(token: string): { organizationId: string; secret: string } | null {
-  const parts = token.trim().split(".");
-  if (parts.length !== 2) return null;
-  const [organizationId, secret] = parts as [string, string];
-  if (!z.uuid().safeParse(organizationId).success || !SECRET_PATTERN.test(secret)) return null;
-  return { organizationId, secret };
-}
+// SEC-14 : le jeton lui-même (secret, haché, format) est commun à tous les
+// modules qui ouvrent un lien personnel ; il vit dans packages/auth (socle des
+// lots 46 et 49, ADR 0078). Réexporté ici pour les appelants du module events.
+export { formatLinkToken, hashLinkSecret, newLinkSecret, parseLinkToken } from "@symbola/auth";
 
 // SEC-15, décision D4 : dernier jour valable (AAAA-MM-JJ, heure de Paris). La
 // date choisie par la planner, sinon la date de l'événement plus le délai du

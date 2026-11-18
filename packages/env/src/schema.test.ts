@@ -7,6 +7,7 @@ const validEnv = {
   S3_ACCESS_KEY: "dev-access-key",
   S3_SECRET_KEY: "dev-secret-key",
   MFA_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString("base64"),
+  DATA_ENCRYPTION_KEY: Buffer.alloc(32, 9).toString("base64"),
   LOGTO_M2M_SECRET: "s".repeat(64),
   LOGTO_ENDPOINT: "https://connexion.symbola.test",
 };
@@ -112,5 +113,16 @@ describe("L16-SEC-01 — Clé de chiffrement de la double authentification", () 
     expect(parseEnv(withoutEndpoint).LOGTO_ENDPOINT).toBe("http://localhost:3001");
     expect(() => parseEnv({ ...withoutEndpoint, NODE_ENV: "production" })).toThrow(/LOGTO_ENDPOINT/);
     expect(parseEnv({ ...validEnv, NODE_ENV: "production", LOGTO_ENDPOINT: "https://connexion.symbola.test" }).LOGTO_ENDPOINT).toBe("https://connexion.symbola.test");
+  });
+});
+
+describe("DAT-08 — Clé du chiffrement au niveau du champ (socle des lots 46 et 49, ADR 0078)", () => {
+  it("refuse un démarrage sans clé, avec une clé qui ne fait pas 32 octets en base64, ou avec la clé de MFA_ENCRYPTION_KEY", () => {
+    const { DATA_ENCRYPTION_KEY, ...rest } = validEnv;
+    expect(DATA_ENCRYPTION_KEY).toBeTruthy();
+    expect(() => parseEnv(rest)).toThrow(/DATA_ENCRYPTION_KEY/);
+    expect(() => parseEnv({ ...validEnv, DATA_ENCRYPTION_KEY: Buffer.alloc(16, 9).toString("base64") })).toThrow(/DATA_ENCRYPTION_KEY/);
+    expect(() => parseEnv({ ...validEnv, DATA_ENCRYPTION_KEY: "pas-une-clé" })).toThrow(/DATA_ENCRYPTION_KEY/);
+    expect(() => parseEnv({ ...validEnv, DATA_ENCRYPTION_KEY: validEnv.MFA_ENCRYPTION_KEY })).toThrow(/DATA_ENCRYPTION_KEY/);
   });
 });

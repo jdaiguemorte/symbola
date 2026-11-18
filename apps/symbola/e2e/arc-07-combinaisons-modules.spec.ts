@@ -10,7 +10,12 @@ import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { expect, test, type Page } from "@playwright/test";
 import { createProspect, createProspectSource } from "../modules/events/service";
-import { MODULE_KEYS, setModuleEnabled, type ModuleKey } from "../modules/hub/service";
+import { setModuleEnabled } from "../modules/hub/service";
+
+// Les quatre modules du pilote. Les rendez-vous et les invités (socle des lots 46 et 49,
+// ADR 0078) restent fermés par défaut ici ; chacun de ces lots ajoute son module à la preuve.
+const MODULE_KEYS = ["events", "budget", "quotes", "vendors"] as const;
+type ModuleKey = (typeof MODULE_KEYS)[number];
 import { createQuote } from "../modules/quotes/service";
 import { createVendor } from "../modules/vendors/service";
 import { mainMenu, readyOrganization, signIn as signInByLink } from "./helpers";

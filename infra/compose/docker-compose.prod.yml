@@ -149,6 +149,9 @@ services:
       # Lot 16 (L16-SEC-01, ADR 0037) : sans valeur par défaut, l'app refuse de
       # démarrer si la clé manque dans .env.<environnement>.
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY}
+      # Socle des lots 46 et 49 (DAT-08, ADR 0078) : clé du chiffrement au niveau du champ,
+      # sans valeur par défaut (refus de démarrer si elle manque).
+      DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY}
       # Lot 33 (ADR 0067) : fournisseur d'identité. Adresse publique (émetteur des jetons) et
       # application machine à machine créée par l'amorçage ; l'app retrouve son application
       # web par l'API d'administration. Sans valeur par défaut : refus de démarrer.

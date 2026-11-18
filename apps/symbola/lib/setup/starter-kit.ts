@@ -52,11 +52,13 @@ export type StarterKitResult = {
   paymentTerms: boolean;
 };
 
-async function enabled(organizationId: string): Promise<Record<ModuleKey, boolean>> {
+// Modules qui ont un kit de départ (les rendez-vous et les invités ajoutent le leur à leur lot).
+const STARTER_KIT_MODULES = ["events", "budget", "quotes", "vendors"] as const satisfies readonly ModuleKey[];
+
+async function enabled(organizationId: string): Promise<Record<(typeof STARTER_KIT_MODULES)[number], boolean>> {
   const db = appDatabase();
-  const keys: ModuleKey[] = ["events", "budget", "quotes", "vendors"];
-  const values = await Promise.all(keys.map((key) => isModuleEnabled(db, organizationId, key)));
-  return Object.fromEntries(keys.map((key, index) => [key, values[index]!])) as Record<ModuleKey, boolean>;
+  const values = await Promise.all(STARTER_KIT_MODULES.map((key) => isModuleEnabled(db, organizationId, key)));
+  return Object.fromEntries(STARTER_KIT_MODULES.map((key, index) => [key, values[index]!])) as Record<(typeof STARTER_KIT_MODULES)[number], boolean>;
 }
 
 export async function loadStarterKit(organizationId: string, metier: StarterMetier, locale: StarterLocale): Promise<StarterKitResult> {

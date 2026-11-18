@@ -375,6 +375,26 @@ sans cette clé, l'app refuse de démarrer.
    journal de l'app indique `double authentification : n secret(s) chiffré(s) au repos (L16-SEC-01)`
    (aucune ligne si tout était déjà chiffré).
 
+## Socle des lots 46 et 49 : clé du chiffrement au niveau du champ (DAT-08, ADR 0078)
+
+À faire **une fois par environnement, avant** le premier déploiement qui contient le socle des
+lots 46 et 49 : sans cette clé, l'app refuse de démarrer.
+
+1. Générer une clé propre à l'environnement, différente de `MFA_ENCRYPTION_KEY` (l'app refuse
+   deux clés identiques) :
+   ```bash
+   openssl rand -base64 32
+   ```
+2. La ranger dans le gestionnaire de mots de passe (« Symbola — clé des données chiffrées —
+   staging »). **Perdue, les valeurs chiffrées sont perdues** (adresses d'agendas extérieurs,
+   régimes des invités) : la sauvegarde restic contient les données, pas cette clé.
+3. L'ajouter dans `infra/compose/.env.staging` (puis `.env.production`) :
+   `DATA_ENCRYPTION_KEY=<la clé>`, et vérifier :
+   ```bash
+   sudo grep -c '^DATA_ENCRYPTION_KEY=.\+' infra/compose/.env.staging   # attendu : 1
+   ```
+4. Suivre ensuite « Mise à jour » comme d'habitude.
+
 ## Mise à jour (nouvelle version) : une commande (lot 40a, ADR 0075)
 
 1. La CI publie l'image de chaque commit fusionné sur `main`, taguée par son
