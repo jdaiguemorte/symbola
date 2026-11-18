@@ -1,4 +1,4 @@
--- Annulation de 0166 (lot 45) : les doublons possibles et la trace des fusions disparaissent.
+-- Annulation de 0171 (lot 45) : les doublons possibles et la trace des fusions disparaissent.
 -- Refusée tant qu'une fusion est tracée : la trace (qui, quand, quelles fiches) est la seule façon de
 -- reprendre une fusion à la main. Les paires détectées, elles, se retrouvent à la détection suivante.
 DO $$

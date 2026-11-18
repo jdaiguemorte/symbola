@@ -914,6 +914,12 @@ export const EMAIL_TEMPLATE_KINDS = [
   "vendor_brief",
   "vendor_brief_reminder",
   "vendor_roadmap",
+  // Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10) : proposition, relance avant expiration, RIB du
+  // règlement, relance d'impayé.
+  "proposal_sent",
+  "proposal_expiry_reminder",
+  "payment_details",
+  "invoice_reminder",
   // Lot 45 (CRM-05, CRM-06, POR-07 ; D9) : réponse à un prospect et relance (le texte de la planner,
   // à l'image de l'organisation), questionnaire envoyé (son lien personnel).
   "prospect_reply",
@@ -942,8 +948,10 @@ export const emailTemplates = hubSchema.table(
     // Lot 46 (migration 0158, accord de Julien du 18/11) : natures des e-mails de rendez-vous, après celles du lot 49.
     // Lot 44 (migration 0161, accord de Julien du 18/11) : « Nouvelle demande de contact ».
     // Lot 47 (migration 0163, accord de Julien du 18/11) : natures des prestataires par lien.
-    // Lot 45 (migration 0167, accord de Julien du 18/11) : réponse, relance, questionnaire envoyé.
-    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent')`),
+    // Lot 43 (migration 0169, accord de Julien du 18/11, D10) : proposition, relance avant expiration,
+    // RIB du règlement, relance d'impayé.
+    // Lot 45 (migration 0172, accord de Julien du 18/11) : réponse, relance, questionnaire envoyé.
+    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent')`),
     check("email_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
     check("email_templates_subject_check", sql`char_length(${table.subject}) between 1 and 200`),
     check("email_templates_body_check", sql`char_length(${table.body}) between 1 and 5000`),

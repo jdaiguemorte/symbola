@@ -10,6 +10,8 @@ import importSynonymsFile from "./import-synonyms.json";
 import importProfilesFile from "./import-profiles.json";
 import invoiceMentionsFile from "./invoice-mentions.json";
 import latePenaltyFile from "./late-penalty.json";
+import paymentRemindersFile from "./payment-reminders.json";
+import proposalTemplatesFile from "./proposal-templates.json";
 import professionalTermsFile from "./professional-terms.json";
 import invoiceReformFile from "./invoice-reform.json";
 import complianceChecksFile from "./compliance-checks.json";
@@ -1216,6 +1218,9 @@ const contractRulesSchema = z.object({
   // Réponse 3 de l'avocat (D16) : contrat électronique de 120 € et plus, conservé dix ans.
   retention: z.object({ signedContractMinimumMonths: z.number().int().min(1).max(1200) }),
   placeholderMarkers: z.array(z.string().min(2)).min(1),
+  // Lot 43 (GC-01, JUR-07 ; ADR 0089) : textes de l'écran « Régler l'acompte » selon le canal ({jours},
+  // {date}) ; aucun n'est écrit dans le code.
+  settlement: z.object({ _source: z.string().min(1), distance: translatedLabelSchema, offPremisesWaiting: translatedLabelSchema, offPremisesOpen: translatedLabelSchema }),
 });
 
 export type ContractRules = Omit<z.infer<typeof contractRulesSchema>, "version" | "status">;
@@ -1330,6 +1335,8 @@ export function starterMessageTemplates(locale: StarterLocale): StarterMessageTe
 // Lot 49 (module Invités) : liste des régimes, règles, textes de la page de réponse, colonnes
 // d'import (guests.ts).
 export * from "./guests";
+// Lot 51 (EVT-04, CHR-08, JRJ-05, JRJ-06) : données de départ du jour J de terrain.
+export * from "./day-of";
 
 // Lot 46 (RDV-01, HUB-20 ; D6, D10 ; ADR 0082) — module Rendez-vous : trois types de départ, plages
 // hebdomadaires par défaut, réglages par défaut d'un type créé avec son seul nom et sa durée, et
@@ -1411,6 +1418,45 @@ export function starterBookingPrivacyNotice(locale: StarterLocale): string {
 
 // Lot 47 (PAR-05 ; ADR 0085) : délais et tâches de suivi des prestataires par lien.
 export * from "./vendor-coordination";
+// Lot 43 (FAC-09, FAC-15 ; D1, D7) — relances de départ : jours avant l'expiration d'un devis, jours
+// après une échéance impayée, phrase d'une relance sans pénalité et phrase de la clause de pénalités
+// d'un particulier ({taux}). L'organisation les règle ; rien n'est écrit dans le code.
+const paymentRemindersSchema = z.object({
+  version: z.literal(1),
+  status: translatedLabelSchema,
+  expiryReminderDays: z.number().int().min(1).max(30),
+  paymentReminderDays: z.array(z.number().int().min(1).max(120)).min(1).max(5),
+  noPenaltySentence: translatedLabelSchema,
+  consumerClauseSentence: translatedLabelSchema,
+});
+
+export type PaymentReminderDefaults = Omit<z.infer<typeof paymentRemindersSchema>, "version" | "status">;
+
+export function starterPaymentReminders(): PaymentReminderDefaults {
+  const { version: _version, status: _status, ...rest } = paymentRemindersSchema.parse(paymentRemindersFile);
+  return structuredClone(rest);
+}
+
+// Lot 43 (FAC-02, D2) — modèle de départ de la page de proposition : ordre des blocs (le devis
+// toujours présent) et mot d'accueil.
+export const PROPOSAL_BLOCK_KEYS = ["greeting", "organization", "photos", "quote", "schedule", "validity"] as const;
+export type ProposalBlockKey = (typeof PROPOSAL_BLOCK_KEYS)[number];
+
+const proposalTemplatesSchema = z.object({
+  version: z.literal(1),
+  status: translatedLabelSchema,
+  blocks: z
+    .array(z.enum(PROPOSAL_BLOCK_KEYS))
+    .min(1)
+    .refine((blocks) => blocks.includes("quote") && new Set(blocks).size === blocks.length),
+  greeting: translatedLabelSchema,
+});
+
+export function starterProposalTemplate(locale: StarterLocale): { blocks: ProposalBlockKey[]; greeting: string } {
+  const parsed = proposalTemplatesSchema.parse(proposalTemplatesFile);
+  return { blocks: [...parsed.blocks], greeting: parsed.greeting[locale] };
+}
+
 
 // Lot 45 (CRM-06, CRM-05 ; D2 ; ADR 0090) — réglage de départ des relances d'un prospect (J+3 et J+7,
 // envoi automatique désactivé), durée du lien de la brochure et sa taille maximale.

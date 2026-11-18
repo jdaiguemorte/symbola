@@ -17,6 +17,8 @@ import {
   removeBudgetLine,
   removeVendorPayment,
   setVendorPaymentPaid,
+  setVendorPaymentHandover,
+  VendorPaymentHandoverInvalidError,
   confirmVendorPaymentDeclaration,
   refuseVendorPaymentDeclaration,
   VendorPaymentDeclarationError,
@@ -346,6 +348,27 @@ export async function setVendorPaymentPaidAction(formData: FormData): Promise<vo
   const paidOn = String(formData.get("paidOn") ?? "").trim() || null;
   await setVendorPaymentPaid({ organizationId: access.organizationId, eventId, paymentId, paidOn, changedByUserId: access.userId }).catch((error: unknown) => {
     if (!(error instanceof VendorPaymentNotFoundError) && !(error instanceof VendorPaymentInvalidError)) throw error;
+  });
+  refresh(eventId);
+}
+
+// Lot 51 (JRJ-09 ; D8) — marquer une échéance « à remettre le jour J » (moyen, personne qui remet),
+// ou retirer la marque ; une remise déjà pointée reste.
+export async function setVendorPaymentHandoverAction(formData: FormData): Promise<void> {
+  const access = await plannerAccess();
+  const eventId = String(formData.get("eventId") ?? "");
+  const paymentId = String(formData.get("paymentId") ?? "");
+  if (!access || !isValidId(eventId) || !isValidId(paymentId)) return;
+  await setVendorPaymentHandover({
+    organizationId: access.organizationId,
+    eventId,
+    paymentId,
+    onDay: formData.get("onDay") === "on",
+    method: String(formData.get("method") ?? ""),
+    by: String(formData.get("by") ?? ""),
+    changedByUserId: access.userId,
+  }).catch((error: unknown) => {
+    if (!(error instanceof VendorPaymentNotFoundError) && !(error instanceof VendorPaymentHandoverInvalidError)) throw error;
   });
   refresh(eventId);
 }

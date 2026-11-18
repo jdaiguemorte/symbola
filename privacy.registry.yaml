@@ -22,6 +22,11 @@
 # et le programme d'un évènement (events.program_items, sans note interne). L'agenda abonné en garde
 # une copie, hors de Symbola ; retirer ou régénérer l'adresse arrête les mises à jour, sans effacer
 # ce que l'agenda a déjà copié ; l'adresse d'une personne retirée de l'équipe ne répond plus.
+#
+# Jour J de terrain (lot 51, ADR 0091, DPO-9) : la file d'actions de l'appareil (IndexedDB
+# « symbola-jour-j-file ») garde, jusqu'à leur envoi, les pointages, décalages, incidents, cases,
+# remises et photos faits sans réseau ; seule l'action de son auteur part, avec sa session. Elle
+# n'est pas chiffrée par l'application (verrouillage du téléphone) et se vide à l'envoi.
 version: 1
 fields:
   - schema: hub
@@ -720,6 +725,120 @@ fields:
       RGPD-03/RGPD-05.
     anonymization: >-
       Effacé avec le libellé de l'échéance lors d'une demande d'oubli (RGPD-03).
+  # Lot 51 (JRJ-05 à JRJ-09, PAR-08 ; ADR 0091, DPO-9) : le jour J de terrain.
+  - schema: events
+    table: day_incidents
+    field: body
+    category: contenu_libre
+    retention: >-
+      Lot 51 (JRJ-07) : incident noté (dicté) le jour J par un membre de l'équipe, interne à
+      l'organisation ; ni nom d'invité ni donnée de santé (l'aide le rappelle). Tant que
+      l'évènement existe ; purgé avec lui (corbeille, durée de conservation des évènements).
+    anonymization: >-
+      Supprimé avec l'évènement, ou lors d'une demande d'oubli qui vise l'évènement (RGPD-03).
+  - schema: events
+    table: day_photos
+    field: storage_key
+    category: contenu_libre
+    retention: >-
+      Lot 51 (JRJ-06, JRJ-07, JRJ-09 ; DPO-9) : photo d'un incident, d'une case ou d'un reçu, prise
+      sur le lieu (des invités peuvent y apparaître ; l'écran conseille de photographier les choses).
+      Interne à l'organisation, jamais montrée aux clients ni aux prestataires ; purgée avec les
+      documents de l'évènement.
+    anonymization: >-
+      Fichier et ligne supprimés avec l'évènement, ou lors d'une demande d'oubli qui vise
+      l'évènement (RGPD-03).
+  - schema: events
+    table: day_checkpoints
+    field: user_id
+    category: identifiant
+    retention: >-
+      Lot 51 (JRJ-05, JRJ-08) : membre de l'équipe qui a pointé une séquence (identifiant, jamais
+      son nom). Tant que l'évènement existe.
+    anonymization: >-
+      Supprimé avec l'évènement ; l'identifiant d'un compte supprimé ne désigne plus personne.
+  - schema: events
+    table: day_incidents
+    field: user_id
+    category: identifiant
+    retention: >-
+      Lot 51 (JRJ-07) : membre de l'équipe qui a noté l'incident (identifiant). Tant que l'évènement
+      existe.
+    anonymization: >-
+      Supprimé avec l'incident.
+  - schema: events
+    table: day_photos
+    field: taken_by
+    category: identifiant
+    retention: >-
+      Lot 51 : membre de l'équipe qui a pris la photo (identifiant). Tant que la photo existe.
+    anonymization: >-
+      Supprimé avec la photo.
+  - schema: events
+    table: day_shifts
+    field: validated_by
+    category: identifiant
+    retention: >-
+      Lot 51 (JRJ-05) : membre de l'équipe qui a validé un décalage (identifiant). Tant que
+      l'évènement existe.
+    anonymization: >-
+      Supprimé avec l'évènement.
+  - schema: events
+    table: day_checklist_items
+    field: checked_by
+    category: identifiant
+    retention: >-
+      Lot 51 (JRJ-06) : membre de l'équipe qui a coché la case (identifiant). Tant que la liste
+      existe.
+    anonymization: >-
+      Supprimé avec la liste.
+  - schema: events
+    table: day_checklist_items
+    field: label
+    category: contenu_libre
+    retention: >-
+      Lot 51 (JRJ-06) : intitulé libre d'une case (copié d'un modèle ou saisi). Tant que la liste
+      existe.
+    anonymization: >-
+      Supprimé avec la liste, ou lors d'une demande d'oubli qui vise l'évènement (RGPD-03).
+  - schema: events
+    table: day_reports
+    field: summary
+    category: contenu_libre
+    retention: >-
+      Lot 51 (PAR-08, étape 7) : bilan du lendemain, qui recopie les incidents notés ; interne à
+      l'organisation. Refait tant que des actions arrivent ; supprimé avec l'évènement.
+    anonymization: >-
+      Supprimé avec l'évènement, ou lors d'une demande d'oubli qui vise l'évènement (RGPD-03).
+  - schema: budget
+    table: vendor_payments
+    field: handover_by
+    category: contenu_libre
+    retention: >-
+      Lot 51 (JRJ-09) : personne qui remet un paiement le jour J (nom saisi par la planner). Tant
+      que l'échéance existe.
+    anonymization: >-
+      Effacé avec le libellé de l'échéance lors d'une demande d'oubli (RGPD-03).
+  - schema: budget
+    table: vendor_payments
+    field: handed_over_by
+    category: identifiant
+    retention: >-
+      Lot 51 (JRJ-09) : membre de l'équipe qui a pointé la remise (identifiant). Tant que
+      l'échéance existe.
+    anonymization: >-
+      Gardé (preuve du règlement) ; l'identifiant d'un compte supprimé ne désigne plus personne.
+  - schema: budget
+    table: event_payers
+    field: name
+    category: identifiant
+    retention: >-
+      Lot 43 (BUD-06, D8) : nom d'un payeur de l'évènement (« Famille Martin », « Société Durand »),
+      saisi par la planner, tant que l'évènement existe. Après suppression ou demande d'oubli : voir
+      RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ; ses parts et ses échéances
+      restent, sans nom.
   - schema: events
     table: event_day_contacts
     field: name
@@ -899,6 +1018,45 @@ fields:
       L'adresse est remplacée par « [anonymisé] » lors d'une demande
       d'oubli de l'organisation (RGPD-03), sauf obligation légale de
       conservation (factures, lot 4).
+  - schema: quotes
+    table: payment_references
+    field: declared_by_name
+    category: identifiant
+    retention: >-
+      Lot 43 (FAC-08, ADR 0087) : nom copié de la personne qui déclare, depuis son lien, avoir fait le
+      virement d'une échéance, montré à la planner jusqu'à sa confirmation, gardé ensuite avec
+      l'échéance. Voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ; la date déclarée et
+      l'encaissement confirmé restent, sans nom.
+  - schema: quotes
+    table: payment_references
+    field: reminders_suspension_reason
+    category: contenu_libre
+    retention: >-
+      Lot 43 (FAC-09, D7) : motif libre écrit par la planner quand elle suspend les relances d'une
+      échéance (« arrangement avec le client »), tant que l'échéance existe. Voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03).
+  - schema: quotes
+    table: quote_versions
+    field: proposal_greeting
+    category: contenu_libre
+    retention: >-
+      Lot 43 (FAC-02, D2) : mot d'accueil de la page de proposition, écrit par la planner (il peut
+      nommer le client), figé avec la version envoyée, tant que le devis existe.
+    anonymization: >-
+      Suit le devis : effacé avec lui ; sur un devis signé, gardé comme le reste de la version
+      (preuve du contrat), puis effacé avec le devis.
+  - schema: quotes
+    table: proposal_templates
+    field: greeting
+    category: contenu_libre
+    retention: >-
+      Lot 43 (FAC-02, D2) : mot d'accueil du modèle de proposition de l'organisation, sans donnée d'un
+      client attendue, tant que le modèle existe.
+    anonymization: >-
+      Supprimé avec le modèle.
   - schema: quotes
     table: quote_signers
     field: name

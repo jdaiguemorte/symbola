@@ -72,7 +72,7 @@ gardait aucun historique et ne pouvait donc pas relancer.
    fiche attend le choix de la planner (`resolution`). Une question déjà répondue dans un autre
    questionnaire de l'évènement (même clé ou même champ) n'est pas reposée ; un champ connu est
    proposé pré-rempli. Pas de question « fichier » (D8).
-10. **Migrations** : 0165 (`events`), 0166 (`hub` : doublons, fusions), 0167 (`hub` : contrainte des
+10. **Migrations** : 0170 (`events`), 0171 (`hub` : doublons, fusions), 0172 (`hub` : contrainte des
     natures d'e-mails, réunion de la liste de `main` et des trois natures ; l'annulation rend la
     liste de `main`). Chacune s'annule, refusée tant que des données en dépendent.
 

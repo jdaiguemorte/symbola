@@ -75,7 +75,17 @@ async function atelier() {
 }
 
 // Le client lit son contrat, commande, demande l'exécution anticipée, puis signe.
-async function clientSigns(page: Page, url: string, number: string) {
+async function signingCodeSentTo(email: string, after: number): Promise<string> {
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const list = (await (await fetch(`http://localhost:8025/api/v1/search?query=${encodeURIComponent(`to:"${email}"`)}`)).json()) as { messages?: { Subject: string; Created: string }[] };
+    const code = (list.messages ?? []).filter((message) => new Date(message.Created).getTime() >= after).map((message) => /(\d{6})$/.exec(message.Subject)?.[1]).find(Boolean);
+    if (code) return code;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error("aucun code reçu");
+}
+
+async function clientSigns(page: Page, url: string, email: string, number: string) {
   await page.goto(url);
   await expect(page).toHaveURL(/\/portail$/);
   const quotes = page.getByRole("region", { name: "Devis", exact: true });
@@ -84,7 +94,7 @@ async function clientSigns(page: Page, url: string, number: string) {
   const pdf = await page.request.get(await quotes.getByRole("link", { name: "Lire le contrat (PDF)" }).getAttribute("href").then((href) => href!));
   expect(pdf.headers()["content-type"]).toBe("application/pdf");
   // Pas de lien de signature avant la commande.
-  await expect(quotes.getByRole("link", { name: `Signer le devis ${number}` })).toHaveCount(0);
+  await expect(quotes.getByRole("link", { name: `Signer le devis ${number}`, exact: true })).toHaveCount(0);
   await quotes.getByRole("button", { name: "Je commande avec obligation de paiement" }).click();
   await expect(quotes).toContainText("Commande enregistrée le");
   const early = quotes.getByRole("form", { name: "Démarrage avant la fin du délai de rétractation" });
@@ -92,7 +102,14 @@ async function clientSigns(page: Page, url: string, number: string) {
   await early.getByRole("button", { name: "Enregistrer ma demande" }).click();
   await expect(quotes).toContainText("Demande de démarrage avant la fin du délai enregistrée le");
   await expectNoAxeViolation(page);
-  const signing = await quotes.getByRole("link", { name: `Signer le devis ${number}` }).getAttribute("href");
+  // Lot 43 (SEC-16, D4) : le lien de signature s'obtient après le code à usage unique, dans l'enchaînement de la proposition.
+  await quotes.getByRole("link", { name: `Accepter et signer le devis ${number}` }).click();
+  const flow = page.getByRole("region", { name: "Accepter et signer" });
+  const after = Date.now() - 1000;
+  await flow.getByRole("button", { name: "Recevoir mon code par e-mail" }).click();
+  await flow.getByLabel("Code reçu par e-mail").fill(await signingCodeSentTo(email, after));
+  await flow.getByRole("button", { name: "Valider le code" }).click();
+  const signing = await flow.getByRole("link", { name: `Signer le devis ${number}`, exact: true }).getAttribute("href");
   await page.goto(new URL(signing!).pathname);
   await page.getByRole("button", { name: "Signer le devis" }).click();
   await expect(page.getByText("Vous avez signé ce devis.")).toBeVisible();
@@ -165,7 +182,7 @@ test("FAC-04 / DOC-03 / FAC-05 / SC-02 étapes 4 à 7 — contrat généré (pro
   // Étape 7 : Léa puis Maxime lisent le contrat, commandent, demandent l'exécution anticipée, signent.
   for (const name of ["Léa", "Maxime"]) {
     const context = await browser.newContext({ locale: "fr-FR", viewport: page.viewportSize() });
-    await clientSigns(await context.newPage(), setup.links[name]!.url, setup.number);
+    await clientSigns(await context.newPage(), setup.links[name]!.url, setup.links[name]!.email, setup.number);
     await context.close();
   }
 

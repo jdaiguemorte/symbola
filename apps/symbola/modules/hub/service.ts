@@ -17,6 +17,7 @@ import {
   findInvitationByTokenHash,
   findOrganizationById,
   findOrganizationModule,
+  findOrganizationLanguage,
   findOrganizationProfile,
   findPlatformSettings,
   findHelpProgress,
@@ -526,6 +527,11 @@ const EMPTY_PROFILE: OrganizationProfile = {
 
 // ONB-01 — Pas encore de ligne = questionnaire jamais commencé : toutes
 // les réponses sont nulles plutôt que de bloquer l'accès à l'app.
+// Lot 51 (EVT-04) : langue de l'organisation, pour les données de départ écrites sans écran.
+export async function getOrganizationLanguage(db: AppDatabase, organizationId: string): Promise<"fr" | "en"> {
+  return findOrganizationLanguage(db, organizationId);
+}
+
 export async function getOrganizationProfile(db: AppDatabase, organizationId: string): Promise<OrganizationProfile> {
   const row = await findOrganizationProfile(db, organizationId);
   return row ?? EMPTY_PROFILE;

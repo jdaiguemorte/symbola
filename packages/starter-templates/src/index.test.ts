@@ -50,6 +50,8 @@ import {
   starterQuoteTemplates,
   starterContractTemplates,
   starterContractRules,
+  starterPaymentReminders,
+  starterProposalTemplate,
   contractTemplateWarning,
   starterQuoteTerms,
   starterRequestResponse,
@@ -693,6 +695,48 @@ describe("CRM-01 / CRM-02 — Données de départ du formulaire de contact et du
       expect(template.body).toMatch(locale === "fr" ? /\{\{lien\}\}/ : /\{\{link\}\}/);
       expect(template.body).not.toMatch(/prénom|first_name|e-mail du|téléphone/);
     }
+  });
+});
+
+describe("FAC-09 / FAC-15 / FAC-02 / GC-01 — Données de départ de la proposition et du règlement (lot 43)", () => {
+  it("relances de départ : J-3 avant l'expiration, puis J+3, J+10 et J+20 après l'échéance ; aucune pénalité d'un particulier par défaut", () => {
+    const reminders = starterPaymentReminders();
+    expect(reminders.expiryReminderDays).toBe(3);
+    expect(reminders.paymentReminderDays).toEqual([3, 10, 20]);
+    expect(reminders.consumerClauseSentence.fr).toContain("{taux}");
+    expect(reminders.noPenaltySentence.en.length).toBeGreaterThan(0);
+  });
+
+  it("le modèle de proposition de départ place le devis, et chaque bloc une seule fois, en français et en anglais", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const template = starterProposalTemplate(locale);
+      expect(template.blocks).toContain("quote");
+      expect(new Set(template.blocks).size).toBe(template.blocks.length);
+      expect(template.greeting.length).toBeGreaterThan(20);
+    }
+  });
+
+  it("les textes de l'écran de règlement viennent des règles du contrat, avec le délai et la date en variables", () => {
+    const { settlement, withdrawal, regime } = starterContractRules();
+    expect(regime.noPaymentDays.off_premises).toBe(7);
+    expect(withdrawal.periodDays).toBe(14);
+    for (const locale of ["fr", "en"] as const) {
+      expect(settlement.distance[locale]).toContain("{jours}");
+      expect(settlement.offPremisesOpen[locale]).toContain("{jours}");
+      expect(settlement.offPremisesWaiting[locale]).toContain("{date}");
+    }
+  });
+
+  it("les quatre e-mails de départ existent dans les deux langues, sans lien ni donnée de carte", () => {
+    for (const kind of ["proposal_sent", "proposal_expiry_reminder", "payment_details", "invoice_reminder"]) {
+      for (const locale of ["fr", "en"] as const) {
+        const template = starterEmailTemplate(kind, locale);
+        expect(template.subject.length).toBeGreaterThan(0);
+        expect(template.body).not.toMatch(/\{\{(lien|link)\}\}|carte|card/i);
+      }
+    }
+    expect(starterEmailTemplate("payment_details", "fr").body).toContain("{{référence}}");
+    expect(starterEmailTemplate("invoice_reminder", "en").body).toContain("{{penalties}}");
   });
 });
 

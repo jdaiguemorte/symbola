@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_source": "Lot 38a (MSG-01, D3, D5, D6 ; ADR 0072) : textes de départ des e-mails que l'organisation adresse aux tiers. Variables entre doubles accolades, en français ({{prénom}}) ou en anglais ({{first_name}}) ; un paragraphe fait du seul lien devient un bouton. La planner les remplace dans Paramètres › Modèles d'e-mails. Les textes de départ n'emploient que des variables toujours renseignées (aucun e-mail ne part avec une variable vide). Repris des textes des lots 26 à 31 ; l'exemplaire signé garde le sens validé par l'avocat (réponse 1, lot 31b). Lot 46 (RDV-03, D10 ; ADR 0082) : confirmation (avec l'invitation .ics), rappel, report et annulation d'un rendez-vous, côté personne qui a pris rendez-vous. Lot 47 (PRE-03, PAR-05 ; D2, D4, D8 ; ADR 0085) : brief à un prestataire (deux boutons, « disponible » ou non), sa relance, feuille de route. Lot 45 (CRM-05, CRM-06, POR-07 ; D9 ; ADR 0090) : réponse à un prospect et relance (le texte de la planner), questionnaire envoyé.",
+  "_source": "Lot 38a (MSG-01, D3, D5, D6 ; ADR 0072) : textes de départ des e-mails que l'organisation adresse aux tiers. Variables entre doubles accolades, en français ({{prénom}}) ou en anglais ({{first_name}}) ; un paragraphe fait du seul lien devient un bouton. La planner les remplace dans Paramètres › Modèles d'e-mails. Les textes de départ n'emploient que des variables toujours renseignées (aucun e-mail ne part avec une variable vide). Repris des textes des lots 26 à 31 ; l'exemplaire signé garde le sens validé par l'avocat (réponse 1, lot 31b). Lot 46 (RDV-03, D10 ; ADR 0082) : confirmation (avec l'invitation .ics), rappel, report et annulation d'un rendez-vous, côté personne qui a pris rendez-vous. Lot 47 (PRE-03, PAR-05 ; D2, D4, D8 ; ADR 0085) : brief à un prestataire (deux boutons, « disponible » ou non), sa relance, feuille de route. Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10 ; ADR 0087, ADR 0089) : proposition envoyée et relance avant son expiration (lues dans l'espace du client), RIB et référence du virement envoyés au 8e jour d'un contrat hors établissement, relance d'une échéance impayée ; aucun paiement en ligne. Lot 45 (CRM-05, CRM-06, POR-07 ; D9 ; ADR 0090) : réponse à un prospect et relance (le texte de la planner), questionnaire envoyé.",
   "templates": {
     "fr": {
       "client_link": {
@@ -94,6 +94,22 @@
       "vendor_roadmap": {
         "subject": "Votre feuille de route pour {{évènement}} — {{organisation}}",
         "body": "Bonjour {{prénom}},\n\nVoici votre feuille de route pour {{évènement}}, le {{date_évènement}} : vos horaires, les lieux et leurs accès, le contact sur place et vos tâches. Merci de confirmer d'un toucher que vous l'avez bien reçue :\n\n{{lien}}\n\nCe lien vous est réservé : ne le transférez pas.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "proposal_sent": {
+        "subject": "Votre proposition {{numéro_devis}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\n{{organisation}} vous a préparé une proposition : le devis {{numéro_devis}}, valable jusqu'au {{valable_jusqu_au}} inclus.\n\nVous la trouverez dans votre espace, avec le lien personnel que vous avez reçu : vous pourrez y choisir vos options, puis l'accepter et la signer.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "proposal_expiry_reminder": {
+        "subject": "Votre proposition {{numéro_devis}} expire bientôt",
+        "body": "Bonjour {{prénom}},\n\nLa proposition {{numéro_devis}} de {{organisation}} est valable jusqu'au {{valable_jusqu_au}} inclus.\n\nVous la retrouvez dans votre espace, avec votre lien personnel. Pour toute question, répondez simplement à cet e-mail.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "payment_details": {
+        "subject": "Règlement de l'acompte — devis {{numéro_devis}}",
+        "body": "Bonjour {{prénom}},\n\nVous pouvez désormais régler l'acompte du devis {{numéro_devis}} par virement :\n\nMontant : {{montant}}\nIBAN : {{iban}}\nBIC : {{bic}}\nRéférence à indiquer : {{référence}}\n\nUne fois le virement fait, indiquez-le dans votre espace (« J'ai fait le virement ») : {{organisation}} confirmera sa réception.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "invoice_reminder": {
+        "subject": "Rappel : échéance du {{échéance}} — devis {{numéro_devis}}",
+        "body": "Bonjour {{prénom}},\n\nSauf erreur de notre part, l'échéance de {{montant}} du {{échéance}} (devis {{numéro_devis}}) n'est pas encore réglée.\n\nVous pouvez la régler par virement sur l'IBAN {{iban}}, avec la référence {{référence}}, puis l'indiquer dans votre espace (« J'ai fait le virement »). Si le virement est déjà parti, ne tenez pas compte de ce message.\n\n{{pénalités}}\n\nÀ bientôt,\n{{organisation}}"
       }
     },
     "en": {
@@ -188,6 +204,22 @@
       "vendor_roadmap": {
         "subject": "Your run sheet for {{event}} — {{organization}}",
         "body": "Hello {{first_name}},\n\nHere is your run sheet for {{event}}, on {{event_date}}: your times, the venues and how to get there, the on-site contact and your tasks. Please confirm with one tap that you have received it:\n\n{{link}}\n\nThis link is for you only: please do not forward it.\n\nSee you soon,\n{{organization}}"
+      },
+      "proposal_sent": {
+        "subject": "Your proposal {{quote_number}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\n{{organization}} has prepared a proposal for you: quote {{quote_number}}, valid until {{valid_until}} included.\n\nYou will find it in your space, through the personal link you received: you can choose your options there, then accept and sign it.\n\nSee you soon,\n{{organization}}"
+      },
+      "proposal_expiry_reminder": {
+        "subject": "Your proposal {{quote_number}} expires soon",
+        "body": "Hello {{first_name}},\n\nProposal {{quote_number}} from {{organization}} is valid until {{valid_until}} included.\n\nYou will find it in your space, through your personal link. For any question, simply reply to this email.\n\nSee you soon,\n{{organization}}"
+      },
+      "payment_details": {
+        "subject": "Deposit payment — quote {{quote_number}}",
+        "body": "Hello {{first_name}},\n\nYou can now pay the deposit for quote {{quote_number}} by bank transfer:\n\nAmount: {{amount}}\nIBAN: {{iban}}\nBIC: {{bic}}\nReference to include: {{reference}}\n\nOnce the transfer is made, tell us in your space (“I have made the transfer”): {{organization}} will confirm its receipt.\n\nSee you soon,\n{{organization}}"
+      },
+      "invoice_reminder": {
+        "subject": "Reminder: payment due on {{due_date}} — quote {{quote_number}}",
+        "body": "Hello {{first_name}},\n\nUnless we are mistaken, the payment of {{amount}} due on {{due_date}} (quote {{quote_number}}) has not been settled yet.\n\nYou can pay it by bank transfer to IBAN {{iban}}, with the reference {{reference}}, then tell us in your space (“I have made the transfer”). If the transfer has already left, please disregard this message.\n\n{{penalties}}\n\nSee you soon,\n{{organization}}"
       }
     }
   }

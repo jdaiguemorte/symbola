@@ -12,6 +12,8 @@ import {
   EventNotFoundError,
   getEventProgram,
   ProgramItemInvalidError,
+  KeyMomentNotFoundError,
+  importEventProgram,
   ProgramItemNotFoundError,
   ProgramShiftOutOfDayError,
   ProgramParticipantNotFoundError,
@@ -28,7 +30,7 @@ import {
   type ProgramItemInput,
 } from "@/modules/events/service";
 import { MailQuotaExceededError } from "@symbola/mail";
-import type { RecipientsReview } from "@symbola/contracts";
+import type { ProgramImportResult, RecipientsReview } from "@symbola/contracts";
 import { EmailVariableMissingError, RecipientsNotConfirmedError } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { emailVariableMissingMessage } from "../../email-errors";
@@ -62,6 +64,8 @@ function readProgramItem(formData: FormData): ProgramItemInput | null {
     responsible: String(formData.get("responsible") ?? ""),
     vendorSlotIds,
     freeParticipants: String(formData.get("freeParticipants") ?? "").split(","),
+    // Lot 51 (EVT-04) : vide, le premier temps fort du jour de l'évènement (ou inchangé).
+    keyMomentId: isValidId(String(formData.get("keyMomentId") ?? "")) ? String(formData.get("keyMomentId")) : null,
   };
 }
 
@@ -71,7 +75,8 @@ function programErrorMessage(error: unknown, t: Translator): string {
   if (error instanceof ProgramParticipantNotFoundError) return t("programParticipantNotFound");
   if (error instanceof ProgramTemplateNotFoundError) return t("programTemplateNotFound");
   if (error instanceof TaskLabelRequiredError) return t("missingLabel");
-  if (error instanceof ProgramItemInvalidError) return error.reason === "responsible" ? t("programResponsibleTooLong") : t("programDurationInvalid");
+  if (error instanceof ProgramItemInvalidError) return error.reason === "responsible" ? t("programResponsibleTooLong") : error.reason === "moment" ? t("programMomentInvalid") : t("programDurationInvalid");
+  if (error instanceof KeyMomentNotFoundError) return t("programMomentInvalid");
   if (error instanceof ProgramShiftOutOfDayError) return t("programShiftOutOfDay");
   if (error instanceof RangeError) return t("invalidTime");
   throw error;
@@ -234,5 +239,31 @@ export async function notifyProgramAction(_prevState: ProgramNotifyState, formDa
     // Messagerie injoignable : message clair ; nom de l'erreur seulement au journal (SEC-20).
     console.error("envoi du programme échoué", error instanceof Error ? error.name : "erreur");
     return { error: t("programNotifyFailed") };
+  }
+}
+
+// Lot 51 (CHR-08 ; ADR 0091) — import d'un chrono depuis un tableur : l'aperçu (écran de contrôle,
+// écarts expliqués) d'abord, rien n'est écrit ; puis l'écriture, du même fichier, sans les lignes
+// écartées. Le fichier passe par l'action serveur (limite de 1 Mo : un chrono en pèse quelques Ko).
+export type ProgramImportState = { error?: string; result?: ProgramImportResult };
+const PROGRAM_IMPORT_MAX_BYTES = 1024 * 1024;
+
+export async function importProgramAction(_prev: ProgramImportState, formData: FormData): Promise<ProgramImportState> {
+  const t = await getTranslations("Events");
+  const auth = await authorize(t);
+  if ("error" in auth) return { error: auth.error };
+  const eventId = String(formData.get("eventId") ?? "");
+  const file = formData.get("file");
+  if (!isValidId(eventId) || !(file instanceof File) || file.size === 0) return { error: t("programImportFile") };
+  if (file.size > PROGRAM_IMPORT_MAX_BYTES) return { error: t("programImportTooLarge") };
+  const apply = formData.get("intent") === "apply";
+  const skipLines = formData.getAll("skip").map(Number).filter((line) => Number.isInteger(line) && line > 0);
+  try {
+    const result = await importEventProgram({ organizationId: auth.organizationId, eventId, bytes: new Uint8Array(await file.arrayBuffer()), apply: apply ? { skipLines } : null });
+    if (result.status === "applied") revalidatePath(`/events/${eventId}`);
+    return { result };
+  } catch (error) {
+    if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
+    throw error;
   }
 }

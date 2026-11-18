@@ -47,6 +47,8 @@ const SHARED_ACCESS: Record<string, string> = {
   portalGuestsAccess: "app/portail/invites/access.ts",
   // Lot 46 : la planner connectée, et le module Rendez-vous ouvert.
   appointmentsPlanner: "app/rendez-vous/access.ts",
+  // Lot 51 : le jour J de terrain (session de l'équipe, module, évènement ouvert au jour J, origine).
+  dayOfAccess: "app/jour-j/[eventId]/access.ts",
   // Lot 45 : la rubrique « Questionnaires » du portail (lien, rubrique ouverte, module Évènements).
   portalQuestionnairesAccess: "app/portail/questionnaires/access.ts",
 };

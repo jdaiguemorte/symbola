@@ -3947,6 +3947,252 @@
   }
 }
 
+/* Lot 51 (JRJ-05 à JRJ-09, ARC-09, EVT-04 ; ADR 0091) — jour J de terrain : état de la file
+   (role="status"), jours de l'évènement, pointage, décalage proposé, main courante, listes,
+   remises, feuille « Incident ». Thème nuit, contraste de 7:1, cibles de 56 px. */
+@layer components {
+  .field-sync {
+    @apply my-2 rounded-md border border-night-line bg-night-surface px-3 py-2 text-label font-medium text-night-ink;
+  }
+  .field-sync-pending {
+    @apply border-night-accent text-night-accent;
+  }
+  .field-alert,
+  .field-notice {
+    @apply my-2 rounded-md border border-night-accent bg-night-surface px-3 py-2 text-body text-night-ink;
+  }
+  .field-days {
+    @apply my-3 flex flex-wrap gap-2;
+  }
+  .day-shell .field-days button {
+    @apply min-h-14 rounded-md border px-4 text-body-strong;
+  }
+  .field-shift {
+    @apply my-3 border-night-accent;
+  }
+  .field-input {
+    @apply flex flex-col gap-1 text-body text-night-ink;
+  }
+  .day-shell .field-input input,
+  .day-shell .field-input textarea {
+    @apply min-h-14 w-full rounded-md border border-night-line bg-night px-3 py-2 text-reading text-night-ink;
+  }
+  .field-choices {
+    @apply m-0 flex flex-col gap-2 rounded-md border border-night-line p-3;
+  }
+  .field-choice {
+    @apply flex min-h-14 items-center gap-3 text-body;
+  }
+  .field-choice input {
+    @apply h-6 w-6 shrink-0;
+  }
+  .field-buttons {
+    @apply flex flex-wrap gap-3;
+  }
+  .day-shell .field-buttons button {
+    @apply min-h-14 rounded-md border px-6 text-heading font-semibold;
+  }
+  .field-point {
+    @apply mt-2 flex flex-col gap-2;
+  }
+  .day-shell .field-point-button {
+    @apply min-h-14 rounded-md border border-night-accent px-6 text-heading font-semibold text-night-accent;
+  }
+  .field-moment h3 {
+    @apply mt-4 mb-2 text-heading;
+  }
+  .field-log-body {
+    @apply m-0 text-reading break-words whitespace-pre-wrap;
+  }
+  .field-severity {
+    @apply ml-2 inline-block rounded-sm border px-2 text-label font-semibold;
+  }
+  .field-severity-info {
+    @apply border-night-line text-night-ink;
+  }
+  .field-severity-follow_up {
+    @apply border-night-accent text-night-accent;
+  }
+  .field-severity-urgent {
+    @apply border-night-accent bg-night-accent text-on-night-accent;
+  }
+  .field-checklist h3 {
+    @apply mt-4 mb-2 text-heading;
+  }
+  .field-check-items {
+    @apply m-0 flex list-none flex-col gap-3 p-0;
+  }
+  .field-check-items > li {
+    @apply flex flex-col gap-1 border-b border-night-line pb-3;
+  }
+  .day-shell .field-check {
+    @apply flex min-h-14 w-full items-center gap-3 rounded-md border px-3 text-left text-reading;
+  }
+  .day-shell .field-check:disabled {
+    @apply border-night-line text-night-ink-muted;
+  }
+  .field-check-box {
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border-2 border-night-ink text-heading;
+  }
+  .field-photo {
+    @apply inline-flex min-h-14 min-w-28 cursor-pointer items-center justify-center rounded-md border border-night-line px-4 text-body-strong text-night-accent;
+  }
+  .field-photo:focus-within {
+    outline: 2px solid var(--color-night-accent);
+    outline-offset: 2px;
+  }
+  .field-sheet {
+    @apply fixed inset-0 z-30 overflow-y-auto bg-night p-4 text-night-ink;
+  }
+  .field-sheet form {
+    @apply mx-auto flex max-w-xl flex-col gap-4;
+  }
+  .field-severities {
+    @apply m-0 flex flex-wrap gap-3 rounded-md border border-night-line p-3;
+  }
+  .field-bar-actions {
+    @apply flex gap-2;
+  }
+  .day-shell .field-bar-actions .field-action {
+    @apply flex-1;
+  }
+  .field-prep {
+    @apply my-2 flex flex-wrap items-end gap-3;
+  }
+  .field-prep-list h3 {
+    @apply mt-4 text-heading;
+  }
+  .program-moment h3 {
+    @apply mt-4 mb-2 text-heading;
+  }
+  .program-import {
+    @apply my-3;
+  }
+}
+
+/* Lot 43 (FAC-02, FAC-08, GC-01, BUD-06, BUD-11) — page de proposition, enchaînement « Accepter et
+   signer », écran « Régler l'acompte », calendrier des sorties d'argent, payeurs. Une colonne, lisible
+   à 375 px : aucune table large, les montants passent sous le libellé quand la place manque. */
+@layer components {
+  .proposal {
+    @apply flex flex-col gap-4;
+  }
+  .proposal-greeting {
+    @apply whitespace-pre-line;
+  }
+  .proposal-greeting-preview {
+    @apply my-3 border-l-4 border-line-strong pl-3 whitespace-pre-line;
+  }
+  .proposal-organization {
+    @apply flex flex-col gap-1;
+  }
+  .proposal-logo {
+    @apply h-16 w-auto max-w-full self-start object-contain;
+  }
+  .proposal-photos {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-3;
+  }
+  .proposal-photos img {
+    @apply h-48 w-full rounded-md object-cover;
+  }
+  .proposal-lines {
+    @apply m-0 flex list-none flex-col gap-2 p-0;
+  }
+  .proposal-line {
+    @apply flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line pb-2;
+  }
+  .proposal-line-option {
+    @apply text-ink-muted;
+  }
+  .proposal-line-label {
+    @apply min-w-0 flex-1 break-words;
+  }
+  .proposal-line-amount {
+    @apply shrink-0 font-semibold tabular-nums;
+  }
+  .proposal-subtotal {
+    @apply text-right text-label;
+  }
+  .proposal-totals {
+    @apply m-0 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1;
+  }
+  .proposal-totals dd {
+    @apply m-0 text-right tabular-nums;
+  }
+  .signing-flow {
+    @apply flex flex-col gap-3;
+  }
+  .signing-code {
+    @apply flex flex-col gap-3;
+  }
+  .signing-code input[name="code"] {
+    @apply max-w-48 text-heading tracking-widest;
+  }
+  .settlement {
+    @apply flex flex-col gap-3;
+  }
+  .settlement-amount {
+    @apply text-heading;
+  }
+  .settlement-notice {
+    @apply rounded-md bg-primary-soft px-4 py-3 text-body text-primary;
+  }
+  .settlement-transfer {
+    @apply flex flex-col gap-3;
+  }
+  .settlement-details {
+    @apply m-0 grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-[auto_1fr];
+  }
+  .settlement-details dt {
+    @apply text-label text-ink-muted;
+  }
+  .settlement-details dd {
+    @apply m-0 flex flex-wrap items-center gap-2 break-all;
+  }
+  .settlement-qr {
+    @apply m-0 flex flex-col items-start gap-2;
+  }
+  .settlement-qr img {
+    @apply h-48 w-48 rounded-md bg-surface;
+  }
+  .button-small {
+    @apply min-h-11 px-3 text-label;
+  }
+  .transfer-declaration {
+    @apply flex flex-col items-start gap-2;
+  }
+  .cash-calendar {
+    @apply flex flex-col gap-4;
+  }
+  .cash-month {
+    @apply flex flex-col gap-2;
+  }
+  .cash-entries {
+    @apply m-0 flex list-none flex-col gap-3 p-0;
+  }
+  .cash-entry {
+    @apply flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line pb-2;
+  }
+  .cash-entry[data-status="paid"] {
+    @apply text-ink-muted;
+  }
+  .cash-entry-main {
+    @apply min-w-0 flex-1 break-words;
+  }
+  .cash-entry-amount {
+    @apply shrink-0 font-semibold tabular-nums;
+  }
+  .payer-list {
+    @apply m-0 flex list-none flex-col gap-3 p-0;
+  }
+  .payer-share ul {
+    @apply m-0 flex list-none flex-col gap-1 p-0;
+  }
+  .payer-share-row {
+    @apply flex flex-wrap items-center gap-2;
+  }
+}
+
 @layer components {
   /* Lot 45 (CRM-05, CRM-06, CRM-07, POR-07 ; ADR 0090) — réponses, relances, doublons, questionnaires.
      Questionnaire du portail : à 375 px, une question par écran (« Précédente », « Suivante ») ; sur

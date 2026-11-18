@@ -194,6 +194,9 @@ export type {
   LinkVendorPayment,
   LinkVendorPaymentStatus,
   PendingPaymentDeclaration,
+  DayHandover,
+  VendorPaymentHandover,
+  VendorPaymentHandoverInput,
 } from "./budget/service-contract";
 export { BUDGET_AMOUNT_FIELDS, BUDGET_DOCUMENT_KINDS } from "./budget/service-contract";
 export type {
@@ -441,8 +444,13 @@ export {
 } from "./appointments/events";
 // Lot 44 (CRM-01, CRM-02 ; ADR 0084) : formulaire de contact public et pipeline en colonnes.
 export * from "./events/pipeline";
+// Lot 51 (EVT-04, CHR-08, JRJ-05 à JRJ-09, ARC-09) : le jour J de terrain.
+export * from "./events/day-of";
 // Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; ADR 0085) : prestataires par lien.
 export * from "./events/vendor-coordination";
+// Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15, GC-01, SEC-16, BUD-06, BUD-11 ; ADR 0089) : proposition,
+// règlement par virement, relances, payeurs et calendrier des sorties d'argent.
+export * from "./quotes/settlement";
 // Lot 45 (CRM-05 à CRM-09, POR-07, HUB-21 ; ADR 0090) : messages, relances, questionnaires ; fusion
 // de contacts (hub.contact.merged).
 export * from "./events/relation";

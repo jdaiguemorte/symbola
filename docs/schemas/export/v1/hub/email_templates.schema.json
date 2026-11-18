@@ -32,6 +32,10 @@
         "vendor_brief",
         "vendor_brief_reminder",
         "vendor_roadmap",
+        "proposal_sent",
+        "proposal_expiry_reminder",
+        "payment_details",
+        "invoice_reminder",
         "prospect_reply",
         "prospect_follow_up",
         "questionnaire_sent"

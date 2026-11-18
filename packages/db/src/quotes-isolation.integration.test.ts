@@ -33,6 +33,9 @@ import {
   quotes,
   quoteVersions,
   scheduledDepositInvoices,
+  paymentReferences,
+  paymentReminders,
+  proposalTemplates,
 } from "./schema/quotes";
 import { withOrganization } from "./with-organization";
 
@@ -475,6 +478,61 @@ describe("DEV-01 — Isolation entre organisations (module quotes, PostgreSQL r�
         const updated = await withOrganization(db, organizationId, (tx) =>
           tx.update(signatureWebhookLog).set({ outcome: "falsifié" }).where(eq(signatureWebhookLog.id, targetRow.id)).returning(),
         );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+});
+
+// Lot 43 (FAC-02, FAC-08, FAC-09 ; SEC-10, SEC-36) — critère obligatoire sur les trois tables neuves :
+// modèles de proposition, références de virement et déclarations, relances d'impayés.
+describe("FAC-08 / FAC-09 / FAC-02 — Isolation entre organisations (lot 43, PostgreSQL réel)", () => {
+  async function seedItem(tx: Tx, organizationId: string) {
+    const { version } = await seedQuote(tx, organizationId);
+    const [item] = await tx.insert(paymentScheduleItems).values({ organizationId, versionId: version.id, label: "Acompte", percentageBasisPoints: 3000, dueDate: "2027-01-15" }).returning();
+    return item!;
+  }
+  const letters = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+  const reference = () => `SYM-2027-${Array.from({ length: 6 }, () => letters[Math.floor(Math.random() * letters.length)]).join("")}`;
+
+  it("modèles de proposition", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) => withOrganization(db, organizationId, async (tx) => (await tx.insert(proposalTemplates).values({ organizationId, greeting: "Bonjour", blocks: ["greeting", "quote"] }).returning())[0]!),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(proposalTemplates)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) => tx.update(proposalTemplates).set({ greeting: "Volé" }).where(eq(proposalTemplates.id, targetRow.id)).returning());
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("références de virement et déclarations des payeurs", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const item = await seedItem(tx, organizationId);
+          return (await tx.insert(paymentReferences).values({ organizationId, scheduleItemId: item.id, reference: reference() }).returning())[0]!;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(paymentReferences)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) =>
+          tx.update(paymentReferences).set({ declaredAt: new Date(), declaredPaidOn: "2027-01-10", declaredByLinkId: randomUUID(), declaredByName: "Intrus" }).where(eq(paymentReferences.id, targetRow.id)).returning(),
+        );
+        return { affectedRows: updated.length };
+      },
+    });
+  });
+
+  it("relances d'impayés", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const item = await seedItem(tx, organizationId);
+          return (await tx.insert(paymentReminders).values({ organizationId, scheduleItemId: item.id, rank: 1, dueOn: "2027-01-18", sentAt: new Date() }).returning())[0]!;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(paymentReminders)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) => tx.update(paymentReminders).set({ rank: 2 }).where(eq(paymentReminders.id, targetRow.id)).returning());
         return { affectedRows: updated.length };
       },
     });

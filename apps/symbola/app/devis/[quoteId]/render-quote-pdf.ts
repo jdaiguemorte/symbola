@@ -23,8 +23,12 @@ export async function renderQuotePdf(input: {
   quote: QuoteDetail;
   version: QuoteVersionView;
   signatureSlots?: { role: string; tag: string }[];
+  // Lot 43 (FAC-02) : le PDF de la proposition s'ouvre sur le mot d'accueil figé de la version.
+  greeting?: string | null;
 }): Promise<Buffer> {
-  const element = createElement(QuotePdfDocument, { model: pdfSafe(await quotePdfModelFor(input)) }) as unknown as ReactElement<DocumentProps>;
+  const model = await quotePdfModelFor(input);
+  const withGreeting = input.greeting ? { ...model, intro: [input.greeting, model.intro].filter(Boolean).join("\n\n") } : model;
+  const element = createElement(QuotePdfDocument, { model: pdfSafe(withGreeting) }) as unknown as ReactElement<DocumentProps>;
   return renderToBuffer(element);
 }
 

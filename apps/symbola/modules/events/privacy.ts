@@ -18,6 +18,7 @@ import {
   eventDayContacts,
   eventDocumentFolders,
   eventDocuments,
+  dayIncidents,
   eventPlaces,
   eventTaskAttachments,
   eventTaskComments,
@@ -125,6 +126,11 @@ function folderRecord(folder: typeof eventDocumentFolders.$inferSelect): Privacy
 // Lot 34b (EVT-03, CHR-02) : contact d'un lieu, commentaires et pièces jointes des tâches.
 function placeRecord(place: typeof eventPlaces.$inferSelect): PrivacyRecord {
   return { module: MODULE, kind: "event_place", recordId: place.id, label: place.label, fields: compact({ address: place.address, city: place.city, contactName: place.contactName, contactPhone: place.contactPhone, contactEmail: place.contactEmail }), eventId: place.eventId };
+}
+
+// Lot 51 (JRJ-07) : un incident du jour J (texte noté, gravité, heure du téléphone).
+function incidentRecord(incident: typeof dayIncidents.$inferSelect): PrivacyRecord {
+  return { module: MODULE, kind: "day_incident", recordId: incident.id, label: incident.deviceAt.toISOString().slice(0, 16), fields: compact({ body: incident.body, severity: incident.severity }), eventId: incident.eventId };
 }
 
 function commentRecord(comment: typeof eventTaskComments.$inferSelect): PrivacyRecord {
@@ -280,6 +286,10 @@ export const eventsPrivacy: PrivacyContractV1 = {
       for (const contact of await tx.select().from(eventDayContacts).where(inArray(eventDayContacts.eventId, eventIds))) {
         if (recordMatches([contact.name, contact.role, contact.phone], terms)) records.push(dayContactRecord(contact));
       }
+      // Lot 51 (JRJ-07, DPO-9) : un incident de la main courante peut nommer la personne.
+      for (const incident of await tx.select().from(dayIncidents).where(inArray(dayIncidents.eventId, eventIds))) {
+        if (recordMatches([incident.body], terms)) records.push(incidentRecord(incident));
+      }
       // Lot 29b : documents de l'événement, par leur intitulé.
       for (const document of await tx.select().from(eventDocuments).where(inArray(eventDocuments.eventId, eventIds))) {
         if (recordMatches([document.label], terms)) records.push(documentRecord(document));
@@ -396,6 +406,8 @@ export const eventsPrivacy: PrivacyContractV1 = {
         records.push(documentRecord(document));
       }
       for (const folder of await tx.select().from(eventDocumentFolders).where(inArray(eventDocumentFolders.eventId, ids)).orderBy(asc(eventDocumentFolders.name))) records.push(folderRecord(folder));
+      // Lot 51 (JRJ-07) : la main courante de l'évènement (le texte ; les photos restent internes).
+      for (const incident of await tx.select().from(dayIncidents).where(inArray(dayIncidents.eventId, ids)).orderBy(asc(dayIncidents.deviceAt))) records.push(incidentRecord(incident));
       for (const request of await tx.select().from(prospectRequests).where(inArray(prospectRequests.eventId, ids)).orderBy(asc(prospectRequests.receivedAt))) records.push(prospectRequestRecord(request));
       // Lot 45 : messages, relances, questionnaires et réponses de l'évènement.
       for (const message of await tx.select().from(eventMessages).where(inArray(eventMessages.eventId, ids)).orderBy(asc(eventMessages.occurredAt))) records.push(messageRecord(message));

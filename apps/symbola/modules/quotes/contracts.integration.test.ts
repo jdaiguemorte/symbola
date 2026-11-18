@@ -60,6 +60,7 @@ import { quotesPrivacy } from "./privacy";
 import { confirmed } from "@/lib/test-fixtures/recipients";
 import { recipientsDigest } from "@/modules/hub/service";
 import { minimalPdf } from "@/lib/test-fixtures/pdf";
+import { markSigningCodeVerified } from "@/lib/test-fixtures/signing-code";
 
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
 const render = async () => new Uint8Array(minimalPdf("facture de test"));
@@ -361,6 +362,9 @@ describe("DOC-03 / JUR-07 — Devis et contrat signés ensemble, actes du client
       await act(person.email, "order");
       await act(person.email, "early_execution");
     }
+    // Lot 43 (SEC-16, D4) : commandé, le lien de signature attend encore le code à usage unique.
+    expect((await portal(people[0]!.email)).ownSigningUrl).toBeNull();
+    await markSigningCodeVerified(context.organizationId, people[0]!.email);
     const after = await portal(people[0]!.email);
     expect(after.ownSigningUrl).not.toBeNull();
     expect(after.contract!.orderedAt).not.toBeNull();
@@ -406,6 +410,7 @@ describe("DOC-03 / JUR-07 — Devis et contrat signés ensemble, actes du client
     const alone = await sendContractForSignature({ organizationId: context.organizationId, quoteId: sent.id, contractId: contract.id, documentPdf: PDF, locale: "fr", confirmedRecipients: recipientsDigest(signing.signature!.signers) });
     expect(alone.signature).toMatchObject({ kind: "contract", status: "pending" });
     for (const signer of signing.signature!.signers) {
+      await markSigningCodeVerified(context.organizationId, signer.email);
       const entry = (await listClientQuotesToSign(context.organizationId, context.eventId, signer.email)).find((candidate) => candidate.kind === "contract")!;
       expect(entry.contract).toMatchObject({ orderRequired: false, earlyExecutionText: null });
       expect(await actOnFakeSignature(entry.ownSigningUrl!.split("/").pop()!, "sign")).toBe(true);

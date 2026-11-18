@@ -31,6 +31,10 @@ const NOTICED: Record<string, { file: string; name: string }> = {
   "events.prospect_follow_ups.body": { file: "app/events/[id]/relances/[followUpId]/follow-up-form.tsx", name: "body" },
   // Lot 47 (PRE-03, D1) : le besoin du brief d'un poste.
   "events.vendor_briefs.need": { file: "app/events/[id]/consultation/consultation-forms.tsx", name: "need" },
+  // Lot 43 (FAC-02, FAC-09) : mot d'accueil de la proposition (devis, modèle), motif d'une suspension des relances.
+  "quotes.quote_versions.proposal_greeting": { file: "app/devis/[quoteId]/proposal-forms.tsx", name: "greeting" },
+  "quotes.proposal_templates.greeting": { file: "app/devis/modeles-proposition/proposal-template-forms.tsx", name: "greeting" },
+  "quotes.payment_references.reminders_suspension_reason": { file: "app/devis/[quoteId]/proposal-forms.tsx", name: "reason" },
 };
 
 // Aussi mis en garde, bien que rangés autrement au registre : la note d'un contact, le motif d'une perte.
@@ -40,6 +44,12 @@ const ALSO_NOTICED = [
 ];
 
 const WITHOUT_ENTRY: Record<string, string> = {
+  // Lot 51 (JRJ-06, JRJ-07, JRJ-09 ; DPO-9) : le jour J de terrain.
+  "events.day_incidents.body": "main courante dictée sur le terrain : la feuille « Incident » porte sa propre mise en garde (ni nom d'invité ni donnée de santé), sous le champ",
+  "events.day_photos.storage_key": "photo prise sur le lieu, sans champ de texte ; la mise en garde (photographier les choses plutôt que les personnes) est sous le bouton",
+  "events.day_checklist_items.label": "intitulé court d'une case de liste de contrôle (200 caractères)",
+  "events.day_reports.summary": "bilan écrit par l'app, sans saisie",
+  "budget.vendor_payments.handover_by": "nom court de la personne qui remet un paiement (120 caractères)",
   "hub.privacy_purges.lines": "relevé écrit par l'app à la purge, sans saisie",
   "events.events.imported_fields": "valeurs reprises d'un fichier importé, sans saisie à l'écran",
   "events.event_tasks.imported_fields": "valeurs reprises d'un fichier importé, sans saisie à l'écran",

@@ -60,6 +60,9 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "seatingPlan", group: "events", audience: "team", module: "guests", path: null, capture: false },
   { key: "catererSummary", group: "events", audience: "team", module: "guests", path: null, capture: false },
   { key: "mealTypes", group: "events", audience: "team", module: "guests", path: "/events/parametres/repas", capture: false },
+  // Lot 51 (JRJ-06, CHR-08) : modèles des listes du jour J ; import d'un chrono (onglet Programme).
+  { key: "dayChecklists", group: "events", audience: "team", module: "events", path: "/events/parametres/listes-jour-j", capture: false },
+  { key: "programImport", group: "events", audience: "team", module: "events", path: null, capture: false },
   // Lot 46 (RDV-01 à RDV-04, EVT-10) : rendez-vous.
   { key: "appointmentsList", group: "appointments", audience: "team", module: "appointments", path: "/rendez-vous", capture: false },
   { key: "appointmentDetail", group: "appointments", audience: "team", module: "appointments", path: null, capture: false },
@@ -87,6 +90,10 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "quotesTemplates", group: "quotes", audience: "team", module: "quotes", path: "/devis/modeles", capture: false },
   // Lot 31b (FAC-04, HUB-21, JUR-20) : modèles de contrat.
   { key: "contractTemplates", group: "quotes", audience: "team", module: "quotes", path: "/devis/modeles-contrat", capture: false },
+  // Lot 43 (FAC-02, FAC-09, FAC-15 ; ADR 0089) : modèles de proposition, relances, aperçu « vu par le client ».
+  { key: "proposalTemplates", group: "quotes", audience: "team", module: "quotes", path: "/devis/modeles-proposition", capture: false },
+  { key: "reminderSettings", group: "quotes", audience: "team", module: "quotes", path: "/devis/relances", capture: false },
+  { key: "proposalPreview", group: "quotes", audience: "team", module: "quotes", path: null, capture: false },
   { key: "quotesPayments", group: "quotes", audience: "team", module: "quotes", path: "/devis/encaissements", capture: true },
   { key: "quotesEReporting", group: "quotes", audience: "team", module: "quotes", path: "/devis/e-reporting", capture: true },
   { key: "quotesSettings", group: "quotes", audience: "team", module: "quotes", path: "/devis/parametres", capture: true },
@@ -95,6 +102,9 @@ export const HELP_SCREENS: HelpScreen[] = [
   // Budget
   { key: "budgetDetail", group: "budget", audience: "team", module: "budget", path: null, capture: true },
   { key: "budgetSettings", group: "budget", audience: "team", module: "budget", path: "/budget/parametres", tour: "budget", capture: true },
+  // Lot 43 (BUD-06, BUD-11 ; D8, D9) : payeurs et calendrier des sorties d'argent d'un évènement.
+  { key: "budgetPayers", group: "budget", audience: "team", module: "budget", path: null, capture: false },
+  { key: "budgetCashCalendar", group: "budget", audience: "team", module: "budget", path: null, capture: false },
   // Mon entreprise et mon compte
   { key: "home", group: "company", audience: "team", path: "/", tour: "hub", capture: true },
   { key: "settings", group: "company", audience: "team", path: "/parametres", capture: true },

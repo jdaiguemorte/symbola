@@ -69,6 +69,13 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
   professionalPaymentTermDays: integer("professional_payment_term_days").notNull().default(30),
   professionalPaymentTermEndOfMonth: boolean("professional_payment_term_end_of_month").notNull().default(false),
   professionalDiscountTerms: text("professional_discount_terms"),
+  // Lot 43 (FAC-15, FAC-09 ; D1, D7) : relance avant l'expiration d'un devis (jours avant), relances
+  // d'une échéance impayée (jours après), et taux de la clause de pénalités prévue au contrat d'un
+  // particulier (points de base). null : les valeurs de départ (payment-reminders.json) ; pour le
+  // taux, aucune pénalité (D7, sous réserve de l'avocat, AV-7).
+  expiryReminderDays: integer("expiry_reminder_days"),
+  paymentReminderDays: integer("payment_reminder_days").array(),
+  consumerLatePenaltyBasisPoints: integer("consumer_late_penalty_basis_points"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -78,6 +85,12 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
   check("quote_settings_late_penalty_rate_check", sql`${table.latePenaltyRate} is null or ${table.latePenaltyRate} in ('ecb_plus_10', 'three_times_legal')`),
   check("quote_settings_professional_payment_term_check", sql`${table.professionalPaymentTermDays} between 0 and 120`),
   check("quote_settings_professional_discount_terms_check", sql`${table.professionalDiscountTerms} is null or char_length(${table.professionalDiscountTerms}) <= 500`),
+  check("quote_settings_expiry_reminder_days_check", sql`${table.expiryReminderDays} is null or ${table.expiryReminderDays} between 1 and 30`),
+  check(
+    "quote_settings_payment_reminder_days_check",
+    sql`${table.paymentReminderDays} is null or (cardinality(${table.paymentReminderDays}) between 1 and 5 and 1 <= all(${table.paymentReminderDays}) and 120 >= all(${table.paymentReminderDays}))`,
+  ),
+  check("quote_settings_consumer_late_penalty_check", sql`${table.consumerLatePenaltyBasisPoints} is null or ${table.consumerLatePenaltyBasisPoints} between 1 and 10000`),
 ]);
 
 // Lot 41 (JUR-02, D9, réponse 7 de l'expert-comptable) : nature d'une ligne (catalogue, modèle,
@@ -210,6 +223,14 @@ export const quoteVersions = quotesSchema.table(
     // Lot 31a (HUB-21, décision D3) : modèle d'origine et sa version.
     templateId: uuid("template_id").references((): AnyPgColumn => quoteTemplates.id, { onDelete: "set null" }),
     templateVersion: integer("template_version"),
+    // Lot 43 (FAC-02, FAC-15 ; D1, D2) : mot d'accueil de la page de proposition (repris du modèle
+    // de proposition, modifiable tant que la version est un brouillon, figé à l'envoi), modèle et
+    // version d'origine ; date de la relance avant expiration (une seule fois). La date
+    // d'expiration est valid_until, figée à l'envoi (ADR 0089).
+    proposalGreeting: text("proposal_greeting"),
+    proposalTemplateId: uuid("proposal_template_id").references((): AnyPgColumn => proposalTemplates.id, { onDelete: "set null" }),
+    proposalTemplateVersion: integer("proposal_template_version"),
+    expiryRemindedAt: timestamp("expiry_reminded_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdBy: uuid("created_by"),
@@ -219,6 +240,7 @@ export const quoteVersions = quotesSchema.table(
   (table) => [
     index("quote_versions_organization_idx").on(table.organizationId),
     unique().on(table.quoteId, table.version),
+    check("quote_versions_proposal_greeting_check", sql`${table.proposalGreeting} is null or char_length(${table.proposalGreeting}) between 1 and 4000`),
     check(
       "quote_versions_options_chosen_check",
       sql`(${table.optionsChosenAt} is null and ${table.optionsChosenBy} is null and ${table.optionsChosenByKind} is null) or (${table.optionsChosenAt} is not null and ${table.optionsChosenBy} is not null and ${table.optionsChosenByKind} is not null and char_length(${table.optionsChosenBy}) between 1 and 200 and ${table.optionsChosenByKind} in ('client', 'planner'))`,
@@ -682,6 +704,9 @@ export const quoteSigners = quotesSchema.table("quote_signers", {
   externalId: text("external_id"),
   status: quoteSignerStatusEnum("status").notNull().default("pending"),
   signedAt: timestamp("signed_at", { withTimezone: true }),
+  // Lot 43 (SEC-16, D4) : code à usage unique vérifié par ce signataire, depuis son lien, avant que son
+  // lien de signature ne s'affiche sur son portail (valable trente minutes).
+  signingCodeVerifiedAt: timestamp("signing_code_verified_at", { withTimezone: true }),
   position: integer("position").notNull().default(0),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -1033,3 +1058,110 @@ export const ledgerEntries = quotesSchema.table(
   ],
 );
 
+
+// Lot 43 (FAC-02, HUB-21 ; D2, ADR 0089) — modèle de la page de proposition, par type d'évènement
+// (null : pour tous ; un seul par type) : mot d'accueil, ordre des blocs, jusqu'à trois photos
+// (stockage privé, servies par l'app après contrôle du lien). Le devis reste le cœur de la page.
+// Données de départ : packages/starter-templates/src/proposal-templates.json.
+export const PROPOSAL_BLOCKS = ["greeting", "organization", "photos", "quote", "schedule", "validity"] as const;
+export type ProposalPhoto = { key: string; mime: string; sizeBytes: number };
+
+export const proposalTemplates = quotesSchema.table(
+  "proposal_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventTypeId: uuid("event_type_id"),
+    greeting: text("greeting").notNull(),
+    blocks: text("blocks").array().notNull(),
+    photos: jsonb("photos").$type<ProposalPhoto[]>().notNull().default(sql`'[]'::jsonb`),
+    version: integer("version").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("proposal_templates_organization_idx").on(table.organizationId),
+    unique("proposal_templates_organization_event_type_unique").on(table.organizationId, table.eventTypeId).nullsNotDistinct(),
+    check("proposal_templates_greeting_check", sql`char_length(${table.greeting}) between 1 and 4000`),
+    check(
+      "proposal_templates_blocks_check",
+      sql`cardinality(${table.blocks}) between 1 and 6 and ${table.blocks} <@ array['greeting', 'organization', 'photos', 'quote', 'schedule', 'validity']::text[] and 'quote' = any(${table.blocks})`,
+    ),
+    check("proposal_templates_photos_check", sql`jsonb_typeof(${table.photos}) = 'array' and jsonb_array_length(${table.photos}) <= 3`),
+    check("proposal_templates_version_check", sql`${table.version} >= 1`),
+  ],
+);
+
+// Lot 43 (FAC-08 Divergent, GC-01, FAC-09 ; D5, ADR 0087, ADR 0089) — règlement d'une échéance par
+// virement au RIB : référence unique dans l'organisation (« SYM-<année>-<numéro court> », sans
+// donnée personnelle, elle passe par les banques), déclaration du payeur (date, lien, nom copié),
+// suspension des relances par la planner (motif), RIB envoyé au 8e jour hors établissement. La
+// planner confirme l'encaissement par le rapprochement existant (payment_entries) : aucun
+// rapprochement automatique.
+export const paymentReferences = quotesSchema.table(
+  "payment_references",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    scheduleItemId: uuid("schedule_item_id")
+      .notNull()
+      .unique()
+      .references(() => paymentScheduleItems.id, { onDelete: "cascade" }),
+    reference: text("reference").notNull(),
+    isDemo: boolean("is_demo").notNull().default(false),
+    declaredAt: timestamp("declared_at", { withTimezone: true }),
+    declaredPaidOn: date("declared_paid_on"),
+    declaredByLinkId: uuid("declared_by_link_id"),
+    declaredByName: text("declared_by_name"),
+    remindersSuspendedAt: timestamp("reminders_suspended_at", { withTimezone: true }),
+    remindersSuspensionReason: text("reminders_suspension_reason"),
+    remindersSuspendedBy: uuid("reminders_suspended_by"),
+    detailsMailedAt: timestamp("details_mailed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("payment_references_organization_idx").on(table.organizationId),
+    unique("payment_references_organization_reference_unique").on(table.organizationId, table.reference),
+    check("payment_references_reference_check", sql`${table.reference} ~ '^SYM-[0-9]{4}-[0-9A-HJKMNP-TV-Z]{6}$'`),
+    check(
+      "payment_references_declaration_check",
+      sql`(${table.declaredAt} is null and ${table.declaredPaidOn} is null and ${table.declaredByLinkId} is null and ${table.declaredByName} is null) or (${table.declaredAt} is not null and ${table.declaredPaidOn} is not null and ${table.declaredByLinkId} is not null and char_length(${table.declaredByName}) between 1 and 200)`,
+    ),
+    check(
+      "payment_references_suspension_check",
+      sql`(${table.remindersSuspendedAt} is null and ${table.remindersSuspensionReason} is null) or (${table.remindersSuspendedAt} is not null and char_length(trim(${table.remindersSuspensionReason})) between 1 and 500)`,
+    ),
+  ],
+);
+
+// Lot 43 (FAC-09 ; D7) — relances d'une échéance impayée : une ligne par rang (J+3, J+10, J+20…),
+// écrite juste avant l'envoi, après avoir revérifié que l'échéance n'est ni réglée, ni déclarée, ni
+// suspendue. L'unicité (échéance, rang) garantit une seule relance par rang, même rejouée.
+export const paymentReminders = quotesSchema.table(
+  "payment_reminders",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    scheduleItemId: uuid("schedule_item_id")
+      .notNull()
+      .references(() => paymentScheduleItems.id, { onDelete: "cascade" }),
+    rank: integer("rank").notNull(),
+    // Jour (Paris) où la relance était prévue ; envoyée le (instant réel).
+    dueOn: date("due_on").notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("payment_reminders_organization_idx").on(table.organizationId),
+    unique("payment_reminders_item_rank_unique").on(table.scheduleItemId, table.rank),
+    check("payment_reminders_rank_check", sql`${table.rank} between 1 and 5`),
+  ],
+);

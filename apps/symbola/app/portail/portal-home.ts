@@ -55,7 +55,8 @@ export function nextActions(
       .filter((task) => task.responsible === "clients" && !task.done)
       .map((task): NextAction => ({ kind: "task", id: task.id, label: task.label, dueDate: task.dueDate, overdue: task.dueDate < today })),
     ...input.quotes
-      .filter((quote) => quote.status === "pending" && quote.ownStatus === "pending" && quote.ownSigningUrl !== null)
+      // Lot 43 (SEC-16) : à signer, même si le lien n'apparaît qu'après le code.
+      .filter((quote) => quote.status === "pending" && quote.ownStatus === "pending")
       .map((quote): NextAction => ({ kind: "quote", id: quote.quoteId, number: quote.number, version: quote.version })),
     ...(input.payments ?? [])
       .filter((payment) => payment.status === "due" || payment.status === "overdue")

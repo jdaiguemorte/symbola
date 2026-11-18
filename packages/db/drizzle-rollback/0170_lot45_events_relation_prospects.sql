@@ -1,4 +1,4 @@
--- Annulation de 0165 (lot 45) : messages, relances, réglage des relances, questionnaires et rubrique
+-- Annulation de 0170 (lot 45) : messages, relances, réglage des relances, questionnaires et rubrique
 -- « Questionnaires » disparaissent. Refusée tant qu'un message est rangé dans l'historique d'un contact
 -- ou qu'un questionnaire a été envoyé (ses réponses seraient perdues), et tant qu'un lien a la rubrique
 -- « Questionnaires » ouverte (la contrainte la refuserait). Les modèles de questionnaires et le réglage

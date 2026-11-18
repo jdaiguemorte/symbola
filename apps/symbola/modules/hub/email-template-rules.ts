@@ -27,6 +27,13 @@ const TOKENS: Record<EmailVariable, Record<EmailLocale, string>> = {
   link_unavailable: { fr: "lien_indisponible", en: "link_unavailable" },
   appointment: { fr: "rendez_vous", en: "appointment" },
   appointment_date: { fr: "date_rendez_vous", en: "appointment_date" },
+  // Lot 43 (FAC-08, FAC-09 ; D10).
+  amount: { fr: "montant", en: "amount" },
+  due_date: { fr: "échéance", en: "due_date" },
+  reference: { fr: "référence", en: "reference" },
+  iban: { fr: "iban", en: "iban" },
+  bic: { fr: "bic", en: "bic" },
+  penalties: { fr: "pénalités", en: "penalties" },
   // Lot 45 (CRM-05, POR-07) : brochure, page de réservation, nom du questionnaire.
   brochure: { fr: "brochure", en: "brochure" },
   booking_link: { fr: "lien_rendez_vous", en: "booking_link" },
@@ -73,6 +80,13 @@ export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   vendor_brief: { variables: ["first_name", "organization", "event", "clients", "event_date", "slot", "deadline", "link", "link_available", "link_unavailable"], required: ["link_available", "link_unavailable"], button: "space" },
   vendor_brief_reminder: { variables: ["first_name", "organization", "event", "clients", "event_date", "slot", "deadline", "link", "link_available", "link_unavailable"], required: ["link_available", "link_unavailable"], button: "space" },
   vendor_roadmap: { variables: ["first_name", "organization", "event", "clients", "event_date", "link"], required: ["link"], button: "roadmap" },
+  // Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10) : la proposition se lit dans l'espace du client (son
+  // lien personnel n'est gardé que haché : pas de bouton) ; le RIB et la relance portent le montant et
+  // la référence du virement, jamais de donnée de carte (ADR 0087).
+  proposal_sent: { variables: ["first_name", "organization", "quote_number", "valid_until"], required: ["quote_number"], button: null },
+  proposal_expiry_reminder: { variables: ["first_name", "organization", "quote_number", "valid_until"], required: ["valid_until"], button: null },
+  payment_details: { variables: ["first_name", "organization", "quote_number", "amount", "reference", "iban", "bic"], required: ["amount", "reference", "iban"], button: null },
+  invoice_reminder: { variables: ["first_name", "organization", "quote_number", "amount", "due_date", "reference", "iban", "penalties"], required: ["amount", "due_date", "reference"], button: null },
   // Lot 45 (CRM-05, CRM-06 ; D1, D2) : le texte de la planner (un modèle de message relu et modifié),
   // à l'image de l'organisation ; la brochure et la page de réservation sont des liens dans le texte.
   prospect_reply: { variables: ["first_name", "organization", "event", "event_date", "clients", "place", "brochure", "booking_link"], required: [], button: null },

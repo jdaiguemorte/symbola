@@ -33,6 +33,13 @@ export const BUSINESS_RULE_FILES = [
   "modules/events/contact-form-rules.ts",
   "modules/events/pipeline-rules.ts",
   "lib/csp.ts",
+  // Lot 43 : référence et QR code du virement, écran de règlement selon le canal, relances, parts des
+  // payeurs et calendrier des sorties d'argent.
+  "modules/quotes/payment-references.ts",
+  "modules/quotes/settlement.ts",
+  "modules/quotes/payment-reminders.ts",
+  "modules/budget/payers.ts",
+  "modules/budget/cash-calendar.ts",
 ];
 
 export default defineConfig({
