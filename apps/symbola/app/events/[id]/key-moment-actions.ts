@@ -67,8 +67,9 @@ export async function removeKeyMomentAction(formData: FormData): Promise<void> {
   const eventId = String(formData.get("eventId") ?? "");
   const keyMomentId = String(formData.get("keyMomentId") ?? "");
   if (!organizationId || !isValidId(eventId) || !isValidId(keyMomentId)) return;
+  // Lot 51 (EVT-04) : un temps fort qui porte des séquences reste (son bouton n'est pas montré).
   await removeKeyMoment(organizationId, eventId, keyMomentId).catch((error: unknown) => {
-    if (!(error instanceof KeyMomentNotFoundError)) throw error;
+    if (!(error instanceof KeyMomentNotFoundError) && !(error instanceof KeyMomentInvalidError)) throw error;
   });
   revalidatePath(`/events/${eventId}`);
 }

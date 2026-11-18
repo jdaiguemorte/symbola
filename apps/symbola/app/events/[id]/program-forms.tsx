@@ -29,7 +29,12 @@ type Draft = {
   responsible: string;
   vendorSlotIds: string[];
   freeParticipants: string;
+  // Lot 51 (EVT-04 ; D1) : le temps fort de la séquence (son jour) ; vide, le jour de l'évènement.
+  keyMomentId: string;
 };
+
+// Lot 51 (EVT-04) : les temps forts proposés (nom, jour).
+export type MomentChoice = { id: string; label: string };
 
 const EMPTY_DRAFT: Draft = {
   startTime: "",
@@ -41,6 +46,7 @@ const EMPTY_DRAFT: Draft = {
   responsible: "",
   vendorSlotIds: [],
   freeParticipants: "",
+  keyMomentId: "",
 };
 
 function draftOf(item: ProgramItem): Draft {
@@ -57,6 +63,7 @@ function draftOf(item: ProgramItem): Draft {
       .filter((participant) => participant.vendorSlotId === null)
       .map((participant) => participant.label)
       .join(", "),
+    keyMomentId: item.keyMomentId ?? "",
   };
 }
 
@@ -66,10 +73,12 @@ function ProgramItemFields({
   draft,
   setDraft,
   vendorSlots,
+  moments,
 }: {
   draft: Draft;
   setDraft: (draft: Draft) => void;
   vendorSlots: EventVendorSlot[];
+  moments: MomentChoice[];
 }) {
   const t = useTranslations("Events");
   const set = (field: keyof Omit<Draft, "vendorSlotIds">) => (event: { target: { value: string } }) =>
@@ -96,6 +105,21 @@ function ProgramItemFields({
 
   return (
     <>
+      {moments.length > 1 ? (
+        <label>
+          {t("programKeyMoment")}
+          <select name="keyMomentId" value={draft.keyMomentId} onChange={(event) => setDraft({ ...draft, keyMomentId: event.target.value })}>
+            {draft.keyMomentId === "" ? <option value="">{t("programKeyMomentDefault")}</option> : null}
+            {moments.map((moment) => (
+              <option key={moment.id} value={moment.id}>
+                {moment.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : (
+        <input type="hidden" name="keyMomentId" value={draft.keyMomentId} />
+      )}
       <label>
         {t("programStartTime")}
         <input type="time" name="startTime" required value={draft.startTime} onChange={setStart} />
@@ -157,7 +181,7 @@ function ProgramItemFields({
   );
 }
 
-export function AddProgramItemForm({ eventId, vendorSlots }: { eventId: string; vendorSlots: EventVendorSlot[] }) {
+export function AddProgramItemForm({ eventId, vendorSlots, moments = [] }: { eventId: string; vendorSlots: EventVendorSlot[]; moments?: MomentChoice[] }) {
   const t = useTranslations("Events");
   const initialState: ProgramFormState = {};
   const [state, formAction, pending] = useActionState(addProgramItemAction, initialState);
@@ -172,7 +196,7 @@ export function AddProgramItemForm({ eventId, vendorSlots }: { eventId: string; 
       <input type="hidden" name="eventId" value={eventId} />
       <fieldset>
         <legend>{t("newProgramItem")}</legend>
-        <ProgramItemFields draft={draft} setDraft={setDraft} vendorSlots={vendorSlots} />
+        <ProgramItemFields draft={draft} setDraft={setDraft} vendorSlots={vendorSlots} moments={moments} />
         <button type="submit" disabled={pending}>
           {t("addProgramItem")}
         </button>
@@ -187,10 +211,12 @@ export function EditProgramItemForm({
   eventId,
   item,
   vendorSlots,
+  moments = [],
 }: {
   eventId: string;
   item: ProgramItem;
   vendorSlots: EventVendorSlot[];
+  moments?: MomentChoice[];
 }) {
   const t = useTranslations("Events");
   const initialState: ProgramFormState = {};
@@ -208,7 +234,7 @@ export function EditProgramItemForm({
         <input type="hidden" name="itemId" value={item.id} />
         <fieldset>
           <legend>{item.label}</legend>
-          <ProgramItemFields draft={draft} setDraft={setDraft} vendorSlots={vendorSlots} />
+          <ProgramItemFields draft={draft} setDraft={setDraft} vendorSlots={vendorSlots} moments={moments} />
           <button type="submit" disabled={pending}>
             {t("saveProgramItem")}
           </button>

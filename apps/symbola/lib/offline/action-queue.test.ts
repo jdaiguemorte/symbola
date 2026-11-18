@@ -3,6 +3,7 @@
 // ni avec une session expirée, la photo d'un incident après lui, les actions d'une autre personne
 // gardées pour elle. Magasin en mémoire et transport simulé (IndexedDB dans le navigateur).
 import { describe, expect, it } from "vitest";
+import type { DayAction } from "@symbola/contracts";
 import { createMemoryQueueStore, enqueueDayAction, flushDayQueue, pendingDayActions, type DayQueueTransport, type QueuedDayAction } from "./action-queue";
 
 const EVENT = "11111111-1111-4111-8111-111111111111";
@@ -38,13 +39,8 @@ function serverOf() {
   return { transport, log, received, setMode: (next: typeof mode) => (mode = next) };
 }
 
-const checkpoint = (id: string, userId = CAMILLE): QueuedDayAction => ({
-  actionId: id,
-  eventId: EVENT,
-  userId,
-  createdAt: "2027-06-12T14:20:00Z",
-  action: { kind: "checkpoint", actionId: id, deviceAt: "2027-06-12T14:20:00Z", itemId: "item", checkpoint: "started" },
-});
+const queued = (id: string, action: DayAction, userId = CAMILLE): QueuedDayAction => ({ actionId: id, eventId: EVENT, userId, createdAt: "2027-06-12T14:20:00Z", action });
+const checkpoint = (id: string, userId = CAMILLE): QueuedDayAction => queued(id, { kind: "checkpoint", actionId: id, deviceAt: "2027-06-12T14:20:00Z", itemId: "item", checkpoint: "started" }, userId);
 
 describe("ARC-09 — file d'actions hors ligne du jour J", () => {
   it("sans réseau, tout reste dans la file ; au retour du réseau, tout part dans l'ordre et la file se vide", async () => {
@@ -87,7 +83,7 @@ describe("ARC-09 — file d'actions hors ligne du jour J", () => {
   it("une action refusée pour de bon sort de la file et se signale ; les autres partent", async () => {
     const store = createMemoryQueueStore();
     const server = serverOf();
-    await enqueueDayAction(store, { ...checkpoint("d1"), action: { kind: "check", actionId: "d1", deviceAt: "2027-06-12T14:20:00Z", checklistItemId: "gone" } });
+    await enqueueDayAction(store, queued("d1", { kind: "check", actionId: "d1", deviceAt: "2027-06-12T14:20:00Z", checklistItemId: "gone" }));
     await enqueueDayAction(store, checkpoint("d2"));
     const result = await flushDayQueue({ store, eventId: EVENT, userId: CAMILLE, transport: server.transport });
     expect(result).toMatchObject({ status: "done", sent: 1, remaining: 0, rejected: [{ actionId: "d1", reason: "item" }] });
@@ -96,7 +92,7 @@ describe("ARC-09 — file d'actions hors ligne du jour J", () => {
   it("la photo d'un incident part après lui, dans l'ordre de la file", async () => {
     const store = createMemoryQueueStore();
     const server = serverOf();
-    await enqueueDayAction(store, { ...checkpoint("e1"), action: { kind: "incident", actionId: "e1", deviceAt: "2027-06-12T14:41:00Z", body: "Portail bloqué", severity: null, keyMomentId: null } });
+    await enqueueDayAction(store, queued("e1", { kind: "incident", actionId: "e1", deviceAt: "2027-06-12T14:41:00Z", body: "Portail bloqué", severity: null, keyMomentId: null }));
     await enqueueDayAction(store, {
       actionId: "e2",
       eventId: EVENT,

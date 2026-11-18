@@ -133,6 +133,7 @@ import { SidePanel } from "@/app/ui/side-panel";
 import { listKeyMoments } from "@/modules/events/service";
 import { getGuestEventSummary, getGuestModuleState } from "@/modules/guests/service";
 import { AddKeyMomentForm, EditKeyMomentForm } from "./key-moments";
+import { ProgramImportForm } from "./program-import-form";
 import { guestsAccess } from "./invites/access";
 import { GuestsTab } from "./invites/guests-tab";
 
@@ -269,7 +270,9 @@ export default async function EventDetailPage({
   const slotIconOf = new Map(vendorSlots.map((slot) => [slot.id, slot.icon]));
   // Lot 34b (EVT-03) : les lieux nourrissent aussi la fiche d'identité de la synthèse.
   const places = tab === "programme" || tab === "apercu" ? await listEventPlaces(organizationId, id) : [];
-  const keyMoments = tab === "apercu" ? await listKeyMoments(organizationId, id) : [];
+  const keyMoments = tab === "apercu" || tab === "programme" ? await listKeyMoments(organizationId, id) : [];
+  // Lot 51 (EVT-04 ; D1) : le programme se lit par jour et par temps fort.
+  const momentChoices = keyMoments.map((moment) => ({ id: moment.id, label: `${moment.name} — ${formatCalendarDate(moment.date, locale)}` }));
   const guestSummary = tab === "apercu" && guests && (await getGuestModuleState(organizationId)).impactAssessmentConfirmedAt ? await getGuestEventSummary(organizationId, id) : null;
   // Lot 30a (JRJ-03, D4) : contacts du jour J, dans l'annuaire de l'écran du jour J.
   const dayContacts = tab === "programme" ? await listEventDayContacts(organizationId, id) : [];
@@ -283,7 +286,13 @@ export default async function EventDetailPage({
   // Lot 30b (CHR-06, D7 et D8) : durées partout ; après le changement d'une heure de
   // début, la proposition de décaler les séquences suivantes d'autant.
   const spanWords = await programSpanWords();
-  const programSpanOf = new Map(programSpans(program.items).map((span) => [span.id, span]));
+  // Lot 51 (EVT-04) : un groupe par temps fort (dans l'ordre des jours), puis les séquences sans temps
+  // fort ; les durées se calculent dans chaque groupe (la fin d'une séquence sans fin : la suivante).
+  const programGroups = [
+    ...keyMoments.map((moment) => ({ id: moment.id as string | null, label: `${moment.name} — ${formatCalendarDate(moment.date, locale)}` as string | null, items: program.items.filter((item) => item.keyMomentId === moment.id) })),
+    { id: null, label: null, items: program.items.filter((item) => !keyMoments.some((moment) => moment.id === item.keyMomentId)) },
+  ].filter((group) => group.items.length > 0);
+  const programSpanOf = new Map(programGroups.flatMap((group) => programSpans(group.items)).map((span) => [span.id, span]));
   const responsibleOptions = [...new Set(program.items.flatMap((item) => (item.responsible ? [item.responsible] : [])))].sort((a, b) => a.localeCompare(b, "fr"));
   const shiftedItem = tab === "programme" && query.decalage && isValidId(query.decalage) ? program.items.find((item) => item.id === query.decalage) : undefined;
   const shiftPlan = shiftedItem && query.depuis && /^([01]\d|2[0-3]):[0-5]\d$/.test(query.depuis) ? proposeProgramShift(program.items, shiftedItem.id, query.depuis, shiftedItem.startTime) : null;
@@ -702,7 +711,7 @@ export default async function EventDetailPage({
               {keyMoments.map((moment) => (
                 <li key={moment.id}>
                   <strong>{moment.name}</strong> — {[formatCalendarDate(moment.date, locale), moment.startTime, moment.placeLabel].filter(Boolean).join(" · ")}
-                  <EditKeyMomentForm eventId={event.id} moment={moment} places={places} />
+                  <EditKeyMomentForm eventId={event.id} moment={moment} places={places} itemCount={program.items.filter((item) => item.keyMomentId === moment.id).length} />
                 </li>
               ))}
             </ul>
@@ -1204,8 +1213,13 @@ export default async function EventDetailPage({
           )}
           {program.items.length === 0 ? <p>{t("noProgramItems")}</p> : null}
           {/* Lot 12 (L12-EVT-14) : une ligne par moment, une icône par prestataire concerné, actions discrètes à droite. */}
-          <ul aria-label={t("programTitle")} className="program-list">
-            {program.items.map((item) => (
+          {/* Lot 51 (EVT-04, CHR-08) : un chrono importé d'un tableur, avec son écran de contrôle. */}
+          <ProgramImportForm eventId={event.id} />
+          {programGroups.map((group) => (
+          <section key={group.id ?? "sans-temps-fort"} aria-label={group.label ?? t("programTitle")} className="program-moment">
+          {group.label && programGroups.length > 1 ? <h3>{group.label}</h3> : null}
+          <ul aria-label={group.label ?? t("programTitle")} className="program-list">
+            {group.items.map((item) => (
               <li key={item.id} className="program-row">
                 <span className="program-time">{spanLabel(programSpanOf.get(item.id)!, spanWords)}</span>
                 <span className="program-main">
@@ -1238,7 +1252,7 @@ export default async function EventDetailPage({
                   ) : null}
                 </span>
                 <span className="program-actions">
-                  <EditProgramItemForm key={JSON.stringify(item)} eventId={event.id} item={item} vendorSlots={vendorSlots} />
+                  <EditProgramItemForm key={JSON.stringify(item)} eventId={event.id} item={item} vendorSlots={vendorSlots} moments={momentChoices} />
                   <form action={removeProgramItemAction}>
                     <input type="hidden" name="eventId" value={event.id} />
                     <input type="hidden" name="itemId" value={item.id} />
@@ -1250,6 +1264,8 @@ export default async function EventDetailPage({
               </li>
             ))}
           </ul>
+          </section>
+          ))}
           <datalist id="program-responsible-options">
             {responsibleOptions.map((option) => (
               <option key={option} value={option} />
@@ -1260,7 +1276,7 @@ export default async function EventDetailPage({
               <option key={option} value={option} />
             ))}
           </datalist>
-          <AddProgramItemForm eventId={event.id} vendorSlots={vendorSlots} />
+          <AddProgramItemForm eventId={event.id} vendorSlots={vendorSlots} moments={momentChoices} />
           <section aria-labelledby="places-title" className="places">
             <h3 id="places-title">{t("placesTitle")}</h3>
             <p className="muted">{t("placesHint")}</p>
