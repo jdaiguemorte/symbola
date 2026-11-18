@@ -342,6 +342,10 @@ Répondez simplement à ce message. », et la planner a un geste « Ne plus rela
 
 Ces relances sont-elles de la prospection commerciale (consentement préalable, lien de
 désinscription : exigence RGP-17), ou la suite de la demande de la personne, sans ces obligations ?
+La DPO, interrogée le 13/11 sur les relances de devis, y voit de la prospection (accord préalable
+d'un particulier, par une case non précochée au formulaire de demande, et liste d'opposition) ; nous
+souhaitons votre avis sur le cas précis d'une personne qui vient d'écrire pour demander une
+prestation (`docs/QUESTIONS.md`, Q39).
 
 > En attendant : la suite de sa demande (RGP-17 reste « Sans objet ») ; la phrase « Répondez
 > simplement » et le geste « Ne plus relancer » sont en place.
