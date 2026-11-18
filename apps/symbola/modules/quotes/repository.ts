@@ -33,7 +33,9 @@ import { foldedContains } from "@symbola/db/search";
 import { resolveSchedule } from "./schedule";
 
 export type CatalogItemRow = typeof catalogItems.$inferSelect;
-export type QuoteSettingsRow = typeof quoteSettings.$inferSelect;
+// Lot 48a (DAT-08, ADR 0093) : réglages lus avec l'IBAN et le BIC déchiffrés (bank-details.ts).
+export type QuoteSettingsRow = OpenQuoteSettings;
+import { newSettingsId, openQuoteSettings, sealedBankColumns, type OpenQuoteSettings } from "./bank-details";
 export type QuoteRow = typeof quotes.$inferSelect;
 export type QuoteVersionRow = typeof quoteVersions.$inferSelect;
 export type QuoteLineRow = typeof quoteLines.$inferSelect;
@@ -144,7 +146,7 @@ export async function findQuoteSettings(
 ): Promise<QuoteSettingsRow | null> {
   return inOrganization(organizationId, async (tx) => {
     const [row] = await tx.select().from(quoteSettings);
-    return row ?? null;
+    return row ? openQuoteSettings(row) : null;
   });
 }
 
@@ -174,7 +176,7 @@ export async function upsertQuoteSettings(
       })
       .returning();
     if (!row) throw new Error("enregistrement des réglages échoué");
-    return row;
+    return openQuoteSettings(row);
   });
 }
 
@@ -187,13 +189,17 @@ export async function upsertDocumentSettings(
   >,
 ): Promise<QuoteSettingsRow> {
   return inOrganization(organizationId, async (tx) => {
+    // Lot 48a (DAT-08) : l'IBAN et le BIC sont chiffrés à leur place (la ligne des réglages).
+    const [existing] = await tx.select({ id: quoteSettings.id }).from(quoteSettings).for("update");
+    const id = existing?.id ?? newSettingsId();
+    const values = { ...data, ...sealedBankColumns(organizationId, id, { iban: data.iban, bic: data.bic }) };
     const [row] = await tx
       .insert(quoteSettings)
-      .values({ organizationId, ...data })
-      .onConflictDoUpdate({ target: quoteSettings.organizationId, set: { ...data, updatedAt: new Date() } })
+      .values({ id, organizationId, ...values })
+      .onConflictDoUpdate({ target: quoteSettings.organizationId, set: { ...values, updatedAt: new Date() } })
       .returning();
     if (!row) throw new Error("enregistrement des réglages de documents échoué");
-    return row;
+    return openQuoteSettings(row);
   });
 }
 
@@ -1788,7 +1794,8 @@ async function invoicingContext(
         .where(eq(quoteSigners.requestId, request.id))
         .orderBy(asc(quoteSigners.position))
     : [];
-  const [settings] = await tx.select().from(quoteSettings);
+  const [rawSettings] = await tx.select().from(quoteSettings);
+  const settings = rawSettings ? openQuoteSettings(rawSettings) : undefined;
   const payments =
     scheduleItems.length > 0
       ? await tx

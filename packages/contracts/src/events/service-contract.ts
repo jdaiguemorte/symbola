@@ -88,6 +88,9 @@ export type EventDetail = EventSummary & {
   guestsConfirmed: number | null;
   style: string | null;
   notes: string | null;
+  // Lot 48a (DAT-08, ADR 0093) : notes confidentielles (chiffrées ; notes est alors null), lues par
+  // readEventConfidentialNotes pour la titulaire et leur auteur seuls.
+  notesConfidential?: { authorUserId: string } | null;
 };
 
 // Lot 34b (EVT-03, D11) : fiche d'identité de l'événement.

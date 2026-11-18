@@ -8,6 +8,7 @@
 // l'événement (« Plan de table Martin ») ; le fichier lui-même peut nommer des
 // personnes, il est supprimé à l'oubli. Les données d'un essai guidé (ADR 0008)
 // ne sont jamais trouvées.
+import { revealEventNotes } from "./confidential-notes";
 import { and, asc, eq, inArray, isNotNull } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import {
@@ -362,7 +363,8 @@ export const eventsPrivacy: PrivacyContractV1 = {
             guestsEstimated: event.guestsEstimated === null ? null : String(event.guestsEstimated),
             guestsConfirmed: event.guestsConfirmed === null ? null : String(event.guestsConfirmed),
             style: event.style,
-            notes: event.notes,
+            // Lot 48a (DAT-08) : droit d'accès de la personne, notes confidentielles comprises.
+            notes: revealEventNotes(organizationId, event),
             ...importedFieldsOf(event.importedFields),
           }),
           eventId: event.id,

@@ -46,8 +46,14 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
   // Couleur #RRGGBB (null : gris ardoise de départ).
   documentColor: text("document_color"),
   documentFont: documentFontEnum("document_font").notNull().default("modern"),
+  // Lot 48 (DAT-08 ; D5, ADR 0093) : IBAN et BIC de la planner chiffrés au niveau du champ
+  // (field-box, ADR 0079), par la migration 0176 et son étape de données (annulable) ; les
+  // colonnes en clair iban et bic restent vides, gardées pour l'annulation (et pour le nom des champs
+  // de l'export, qui livre la valeur déchiffrée).
   iban: text("iban"),
   bic: text("bic"),
+  ibanSealed: text("iban_sealed"),
+  bicSealed: text("bic_sealed"),
   quoteIntro: text("quote_intro"),
   quoteTerms: text("quote_terms"),
   invoiceIntro: text("invoice_intro"),
@@ -91,6 +97,10 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
     sql`${table.paymentReminderDays} is null or (cardinality(${table.paymentReminderDays}) between 1 and 5 and 1 <= all(${table.paymentReminderDays}) and 120 >= all(${table.paymentReminderDays}))`,
   ),
   check("quote_settings_consumer_late_penalty_check", sql`${table.consumerLatePenaltyBasisPoints} is null or ${table.consumerLatePenaltyBasisPoints} between 1 and 10000`),
+  check(
+    "quote_settings_sealed_bank_check",
+    sql`(${table.ibanSealed} is null or (${table.ibanSealed} like 'f1:%' and ${table.iban} is null)) and (${table.bicSealed} is null or (${table.bicSealed} like 'f1:%' and ${table.bic} is null))`,
+  ),
 ]);
 
 // Lot 41 (JUR-02, D9, réponse 7 de l'expert-comptable) : nature d'une ligne (catalogue, modèle,

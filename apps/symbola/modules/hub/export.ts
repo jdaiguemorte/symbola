@@ -39,7 +39,8 @@ export const HUB_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: vatRegimeChanges },
   // Lot 36a (CRM-03, ADR 0069) : le contact unique et ses notes ; les contacts d'essai sont exclus.
   { table: contacts, demoField: "isDemo" },
-  { table: contactNotes, parents: { contactId: "contacts" } },
+  // Lot 48a (DAT-08) : le texte chiffré d'une note confidentielle ne sort pas.
+  { table: contactNotes, parents: { contactId: "contacts" }, omit: ["bodySealed"] },
   // Lot 45 (CRM-07) : doublons possibles et trace des fusions (identifiants et noms de champs).
   { table: contactDuplicates, parents: { firstContactId: "contacts", secondContactId: "contacts" } },
   { table: contactMerges },

@@ -14,7 +14,8 @@
             "en": "Seated capacity"
           },
           "kind": "number",
-          "isFilter": true
+          "isFilter": true,
+          "rule": "capacity_seated"
         },
         {
           "label": {
@@ -22,7 +23,8 @@
             "en": "Standing capacity"
           },
           "kind": "number",
-          "isFilter": false
+          "isFilter": false,
+          "rule": "capacity_standing"
         },
         {
           "label": {
@@ -38,7 +40,89 @@
             "en": "Imposed end time"
           },
           "kind": "time",
-          "isFilter": true
+          "isFilter": true,
+          "rule": "guests_departure"
+        },
+        {
+          "label": {
+            "fr": "Capacité cérémonie",
+            "en": "Ceremony capacity"
+          },
+          "kind": "number",
+          "isFilter": false,
+          "rule": "capacity_ceremony"
+        },
+        {
+          "label": {
+            "fr": "Fin de la musique",
+            "en": "Music end"
+          },
+          "kind": "time",
+          "isFilter": false,
+          "rule": "music_end"
+        },
+        {
+          "label": {
+            "fr": "Baisse du volume",
+            "en": "Volume reduction"
+          },
+          "kind": "time",
+          "isFilter": false,
+          "rule": "volume_down"
+        },
+        {
+          "label": {
+            "fr": "Limite de bruit (dB)",
+            "en": "Noise limit (dB)"
+          },
+          "kind": "number",
+          "isFilter": false,
+          "rule": "decibel_limit"
+        },
+        {
+          "label": {
+            "fr": "Accès des prestataires à partir de",
+            "en": "Vendor access from"
+          },
+          "kind": "time",
+          "isFilter": false,
+          "rule": "vendor_access_start"
+        },
+        {
+          "label": {
+            "fr": "Accès des prestataires jusqu'à",
+            "en": "Vendor access until"
+          },
+          "kind": "time",
+          "isFilter": false,
+          "rule": "vendor_access_end"
+        },
+        {
+          "label": {
+            "fr": "Traiteur imposé (lequel)",
+            "en": "Imposed caterer (which)"
+          },
+          "kind": "text",
+          "isFilter": false,
+          "rule": "imposed_caterer_name"
+        },
+        {
+          "label": {
+            "fr": "Accès (parking, livraison, cheminement)",
+            "en": "Access (parking, delivery, route)"
+          },
+          "kind": "text",
+          "isFilter": false,
+          "rule": "access"
+        },
+        {
+          "label": {
+            "fr": "Hébergements proches",
+            "en": "Nearby lodging"
+          },
+          "kind": "text",
+          "isFilter": false,
+          "rule": "nearby_lodging"
         },
         {
           "label": {
@@ -64,7 +148,8 @@
               "Imposed"
             ]
           },
-          "isFilter": true
+          "isFilter": true,
+          "rule": "imposed_caterer"
         },
         {
           "label": {

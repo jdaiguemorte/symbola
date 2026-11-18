@@ -561,7 +561,8 @@ function toEventDetail(event: EventRecord, clients: EventClientRow[]): EventDeta
     guestsEstimated: event.guestsEstimated,
     guestsConfirmed: event.guestsConfirmed,
     style: event.style,
-    notes: event.notes,
+    notes: event.notesSealed ? null : event.notes,
+    notesConfidential: event.notesSealed && event.notesConfidentialBy ? { authorUserId: event.notesConfidentialBy } : null,
     ...(event.importedFields ? { importedFields: event.importedFields } : {}),
   };
 }
@@ -3804,3 +3805,6 @@ export async function finishQuestionnaireOfLink(scope: LinkQuestionnaireScope, q
   const result = await applyQuestionnairePrefill(scope.organizationId, scope.eventId);
   return { filled: result.filled, differences: result.differences.length };
 }
+
+// Lot 48a (DAT-08 ; D5, ADR 0093) : notes d'évènement confidentielles.
+export { readEventConfidentialNotes, saveEventNotes, EventNotesForbiddenError, type EventNotesViewer } from "./confidential-notes";
