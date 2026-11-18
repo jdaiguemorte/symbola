@@ -1,6 +1,12 @@
 # Étude : prestataire de paiement (lot 43) et plateforme agréée (lot 42)
 
-**Date** : 18/11/2026. **Statut** : étude préparatoire, **aucune décision prise**. Elle répond à Q21
+**Date** : 18/11/2026. **Statut** : étude préparatoire, **tranchée par Julien le 18/11/2026** :
+- **paiement** : règlement par virement au RIB du planner seulement ; aucun prestataire, aucune
+  liaison de compte, aucun supplément pour la carte (ADR 0087) ;
+- **plateforme agréée** : une plateforme partenaire unique, Euro-Information pressentie ; pas de
+  choix pour le planner (ADR 0088).
+
+Le reste du document garde l'analyse qui a servi à décider. Elle répond à Q21
 (« Quel prestataire de paiement ? ») et prépare Q20 (« Quelle plateforme agréée ? »). Les
 prestataires sont nommés (Q25 : un comparatif assumé peut les nommer).
 
