@@ -1093,6 +1093,13 @@
       "when": 1794999261986,
       "tag": "0155_lot41_hub_seller_address_vat_debits",
       "breakpoints": true
+    },
+    {
+      "idx": 156,
+      "version": "7",
+      "when": 1795005916019,
+      "tag": "0159_lot50_guests_seating",
+      "breakpoints": true
     }
   ]
 }

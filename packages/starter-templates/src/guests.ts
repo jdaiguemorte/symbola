@@ -8,6 +8,8 @@ import dietaryOptionsFile from "./dietary-options.json";
 import guestRulesFile from "./guest-rules.json";
 import guestTextsFile from "./guest-texts.json";
 import guestImportColumnsFile from "./guest-import-columns.json";
+import mealTypesFile from "./meal-types.json";
+import seatingRulesFile from "./seating-rules.json";
 
 type Locale = "fr" | "en";
 const translated = z.object({ fr: z.string().min(1), en: z.string().min(1) });
@@ -92,4 +94,37 @@ export function starterGuestImportColumns(): StarterGuestImportColumns {
     ignoredDiet: both(parsed.ignored.diet),
     values: { child: both(parsed.values.child), both: both(parsed.values.both), en: both(parsed.values.en) },
   };
+}
+
+// Lot 50 (INV-05, INV-06 ; D2, D5) — types de repas de départ (adulte, enfant, bébé sans repas,
+// prestataire) et règles du plan de table (capacité proposée par forme, bornes).
+const mealTypesSchema = z.object({
+  version: z.literal(1),
+  types: z.array(z.object({ key: z.string().regex(/^[a-z][a-z0-9_]*$/), label: translated })).min(1),
+});
+
+export type StarterMealType = { key: string; label: string };
+
+export function starterMealTypes(locale: Locale): StarterMealType[] {
+  return mealTypesSchema.parse(mealTypesFile).types.map((type) => ({ key: type.key, label: type.label[locale] }));
+}
+
+export function starterMealTypeLabel(key: string, locale: Locale): string | null {
+  return mealTypesSchema.parse(mealTypesFile).types.find((type) => type.key === key)?.label[locale] ?? null;
+}
+
+const capacity = z.number().int().min(1).max(200);
+const seatingRulesSchema = z.object({
+  version: z.literal(1),
+  defaultCapacity: z.object({ round: capacity, rectangular: capacity, head: capacity }),
+  maxCapacity: capacity,
+  maxTablesPerSeries: z.number().int().min(1).max(200),
+  maxTablesPerPlan: z.number().int().min(1).max(500),
+});
+
+export type StarterSeatingRules = Omit<z.infer<typeof seatingRulesSchema>, "version">;
+
+export function starterSeatingRules(): StarterSeatingRules {
+  const { version: _version, ...rules } = seatingRulesSchema.parse(seatingRulesFile);
+  return { ...rules, defaultCapacity: { ...rules.defaultCapacity } };
 }

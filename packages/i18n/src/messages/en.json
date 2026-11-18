@@ -5062,7 +5062,8 @@
       "guests_purge_postponed": "Guest purge postponed",
       "guests_purge_executed": "Guest data purged",
       "guests_import_applied": "Guest list imported",
-      "guests_import_undone": "Guest import undone"
+      "guests_import_undone": "Guest import undone",
+      "guests_caterer_summary_downloaded": "Caterer summary downloaded"
     },
     "categories": {
       "connexion": "Sign-ins",

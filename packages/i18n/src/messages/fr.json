@@ -5062,7 +5062,8 @@
       "guests_purge_postponed": "Purge des invités reportée",
       "guests_purge_executed": "Données des invités purgées",
       "guests_import_applied": "Liste d'invités importée",
-      "guests_import_undone": "Import d'invités annulé"
+      "guests_import_undone": "Import d'invités annulé",
+      "guests_caterer_summary_downloaded": "Synthèse pour le traiteur téléchargée"
     },
     "categories": {
       "connexion": "Connexions",
