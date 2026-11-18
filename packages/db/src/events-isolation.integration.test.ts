@@ -665,7 +665,7 @@ describe("PRD-EVT-01/02 — Isolation entre organisations (module events, Postgr
     const b = randomUUID();
     const [form] = await withOrganization(db, a, (tx) => tx.insert(contactForms).values({ organizationId: a, slug: `atelier-${a.slice(0, 8)}` }).returning());
     const fromB = await withOrganization(db, b, (tx) => tx.select({ id: contactForms.id }).from(contactForms).where(eq(contactForms.id, form!.id)));
-    // Exception écrite (migration 0159) : la ligne, sans donnée personnelle, se lit pour retrouver l'adresse.
+    // Exception écrite (migration 0160) : la ligne, sans donnée personnelle, se lit pour retrouver l'adresse.
     expect(fromB).toHaveLength(1);
     const updated = await withOrganization(db, b, (tx) => tx.update(contactForms).set({ active: true, allowedOrigins: ["https://pirate.test"] }).where(eq(contactForms.id, form!.id)).returning());
     const deleted = await withOrganization(db, b, (tx) => tx.delete(contactForms).where(eq(contactForms.id, form!.id)).returning());

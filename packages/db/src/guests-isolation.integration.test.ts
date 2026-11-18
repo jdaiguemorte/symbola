@@ -9,6 +9,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { events, keyMoments } from "./schema/events";
 import {
+  catererSummaryDownloads,
   dietaryOptions,
   dietConsents,
   diets,
@@ -18,9 +19,16 @@ import {
   guests,
   householdGroups,
   households,
+  mealTypes,
   moduleSettings,
   purgePostponements,
   rsvpAnswers,
+  seatAssignments,
+  seatingConstraintMembers,
+  seatingConstraints,
+  seatingPlans,
+  seatingTables,
+  vendorMealCounts,
 } from "./schema/guests";
 import { withOrganization } from "./with-organization";
 
@@ -53,7 +61,20 @@ async function seedAll(tx: Tx, organizationId: string) {
   const link = first(await tx.insert(guestLinks).values({ organizationId, eventId: event.id, guestId: person.id, tokenHash: randomUUID().replace(/-/g, "").padEnd(64, "0") }).returning());
   const postponement = first(await tx.insert(purgePostponements).values({ organizationId, eventId: event.id, reason: "Litige", postponedUntil: "2027-09-01" }).returning());
   const module = first(await tx.insert(moduleSettings).values({ organizationId, impactAssessmentConfirmedAt: new Date() }).returning());
-  return { moment, settings, group, imported, household, person, answer, option, diet, consent, link, postponement, module: { ...module, id: module.organizationId } };
+  // Lot 50 : type de repas, plan du dîner, table, place, contrainte « séparés », repas prestataires,
+  // trace d'un téléchargement de la synthèse pour le traiteur.
+  const mealType = first(await tx.insert(mealTypes).values({ organizationId, starterKey: "adult" }).returning());
+  const plan = first(await tx.insert(seatingPlans).values({ organizationId, eventId: event.id, keyMomentId: moment.id }).returning());
+  const table = first(await tx.insert(seatingTables).values({ organizationId, planId: plan.id, name: "Table 1", shape: "round", capacity: 10 }).returning());
+  const seat = first(await tx.insert(seatAssignments).values({ organizationId, planId: plan.id, tableId: table.id, guestId: person.id }).returning());
+  const constraint = first(await tx.insert(seatingConstraints).values({ organizationId, planId: plan.id, kind: "apart" }).returning());
+  const member = first(await tx.insert(seatingConstraintMembers).values({ organizationId, constraintId: constraint.id, guestId: person.id }).returning());
+  const vendorMeals = first(await tx.insert(vendorMealCounts).values({ organizationId, eventId: event.id, keyMomentId: moment.id, mealCount: 4 }).returning());
+  const download = first(await tx.insert(catererSummaryDownloads).values({ organizationId, eventId: event.id, keyMomentId: moment.id, version: "aggregate", format: "csv", downloadedBy: randomUUID() }).returning());
+  return {
+    moment, settings, group, imported, household, person, answer, option, diet, consent, link, postponement, module: { ...module, id: module.organizationId },
+    mealType, plan, table, seat, constraint, member: { ...member, id: member.constraintId }, vendorMeals, download,
+  };
 }
 
 type Seeded = Awaited<ReturnType<typeof seedAll>>;
@@ -71,6 +92,13 @@ const CASES: [string, PgTable & { id?: unknown }, keyof Seeded][] = [
   ["preuves d'accord", dietConsents, "consent"],
   ["liens personnels", guestLinks, "link"],
   ["reports de purge", purgePostponements, "postponement"],
+  ["types de repas (lot 50)", mealTypes, "mealType"],
+  ["plans de table (lot 50)", seatingPlans, "plan"],
+  ["tables (lot 50)", seatingTables, "table"],
+  ["places (lot 50)", seatAssignments, "seat"],
+  ["contraintes de placement (lot 50)", seatingConstraints, "constraint"],
+  ["repas des prestataires (lot 50)", vendorMealCounts, "vendorMeals"],
+  ["téléchargements de la synthèse (lot 50)", catererSummaryDownloads, "download"],
 ];
 
 describe("SEC-10 — Isolation entre organisations du module Invités (PostgreSQL réel)", () => {
@@ -86,6 +114,17 @@ describe("SEC-10 — Isolation entre organisations du module Invités (PostgreSQ
       });
     });
   }
+
+  it("membres d'une contrainte de placement (lot 50, clé composée)", async () => {
+    const a = randomUUID();
+    const b = randomUUID();
+    await withOrganization(db, a, (tx) => seedAll(tx, a));
+    const seededB = await withOrganization(db, b, (tx) => seedAll(tx, b));
+    const visible = await withOrganization(db, a, (tx) => tx.select().from(seatingConstraintMembers));
+    expect(visible.map((row) => row.organizationId)).toEqual([a]);
+    const removed = await withOrganization(db, a, (tx) => tx.delete(seatingConstraintMembers).where(eq(seatingConstraintMembers.constraintId, seededB.constraint.id)).returning());
+    expect(removed).toEqual([]);
+  });
 
   it("réglages du module (une ligne par organisation)", async () => {
     const a = randomUUID();
@@ -103,7 +142,7 @@ describe("SEC-09, PRD-HUB-03 — L'Admin ne lit aucune donnée d'invité", () =>
   it("sans app.organization_id (session Admin), aucune table du module ne renvoie de ligne", async () => {
     const organizationId = randomUUID();
     await withOrganization(db, organizationId, (tx) => seedAll(tx, organizationId));
-    for (const [, table] of [...CASES, ["réglages", moduleSettings, "module"] as const]) {
+    for (const [, table] of [...CASES, ["réglages", moduleSettings, "module"] as const, ["membres", seatingConstraintMembers, "member"] as const]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);

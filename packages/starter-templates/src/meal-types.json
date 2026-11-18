@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "_source": "Lot 50 (INV-06 ; D5) : types de repas de départ de la synthèse pour le traiteur, copiés dans chaque organisation à la première lecture ; la planner renomme, ajoute ou masque. Valeur par défaut d'une personne : un adulte prend « adult », un enfant « child », un enfant de la tranche 0-2 ans « baby » (sans repas). « vendor » nomme les repas des prestataires, saisis en nombre par temps fort.",
+  "types": [
+    { "key": "adult", "label": { "fr": "Adulte", "en": "Adult" } },
+    { "key": "child", "label": { "fr": "Enfant", "en": "Child" } },
+    { "key": "baby", "label": { "fr": "Bébé (sans repas)", "en": "Baby (no meal)" } },
+    { "key": "vendor", "label": { "fr": "Prestataire", "en": "Vendor" } }
+  ]
+}

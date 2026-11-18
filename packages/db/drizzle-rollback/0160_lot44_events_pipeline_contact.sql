@@ -1,4 +1,4 @@
--- Annulation de 0159 (lot 44) : formulaire de contact, demandes reçues et pipeline disparaissent.
+-- Annulation de 0160 (lot 44) : formulaire de contact, demandes reçues et pipeline disparaissent.
 -- Refusée tant qu'une demande reçue existe (son message et sa période seraient perdus), tant qu'un
 -- déplacement d'étape est au fil d'activité (le type énuméré est recréé sans la valeur) et tant qu'un
 -- changement de statut n'a pas d'auteur (prospect créé par le formulaire : la colonne redevient

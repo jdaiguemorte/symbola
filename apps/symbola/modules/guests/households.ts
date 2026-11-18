@@ -5,7 +5,7 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { recordAudit } from "@symbola/db/audit";
 import { appDatabase } from "@symbola/db/client";
-import { dietaryOptions, dietConsents, eventSettings, guestImports, guestLinks, guests, householdGroups, households, moduleSettings, purgePostponements, rsvpAnswers } from "@symbola/db/schema/guests";
+import { catererSummaryDownloads, dietaryOptions, dietConsents, eventSettings, guestImports, guestLinks, guests, householdGroups, households, moduleSettings, purgePostponements, rsvpAnswers, seatingPlans, vendorMealCounts } from "@symbola/db/schema/guests";
 import { parisToday } from "@symbola/i18n";
 import { starterDietaryOptionLabel, starterGuestPrivacyNotice, starterGuestRules } from "@symbola/starter-templates";
 import type {
@@ -29,6 +29,7 @@ import type {
 import { guestEventContexts } from "@/modules/events/service";
 import { aggregateDiets, dietPlace, openDietOptions } from "./diets";
 import { ensureDietaryOptions, ensureEventSettings, findEventSettings, findModuleSettings, inOrganization, loadEventRows, UUID, type DietaryOptionRow, type EventGuestRows, type GuestRow, type HouseholdRow, type Tx } from "./repository";
+import { pruneSeatingConstraints, releaseDeclinedSeats } from "./seating-release";
 import { defaultDisplayName, householdComplete, invitedMoments, rsvpOpen, suggestedCloseOn, validateHousehold, type HouseholdProblem } from "./rsvp";
 
 // —— Erreurs ———————————————————————————————————————————————————————————————————————————
@@ -377,7 +378,12 @@ export async function saveHousehold(
 
 export async function removeHousehold(organizationId: string, eventId: string, householdId: string): Promise<void> {
   if (!UUID.test(householdId) || !UUID.test(eventId)) throw new HouseholdNotFoundError();
-  const removed = await inOrganization(organizationId, (tx) => tx.delete(households).where(and(eq(households.id, householdId), eq(households.eventId, eventId))).returning({ id: households.id }));
+  const removed = await inOrganization(organizationId, async (tx) => {
+    const rows = await tx.delete(households).where(and(eq(households.id, householdId), eq(households.eventId, eventId))).returning({ id: households.id });
+    // Lot 50 : une contrainte de placement réduite à moins de deux personnes disparaît.
+    await pruneSeatingConstraints(tx);
+    return rows;
+  });
   if (removed.length === 0) throw new HouseholdNotFoundError();
 }
 
@@ -420,6 +426,8 @@ export async function recordHouseholdAnswers(
         .values({ organizationId, guestId: answer.guestId, keyMomentId: answer.keyMomentId, attending: answer.attending, channel, answeredAt: now })
         .onConflictDoUpdate({ target: [rsvpAnswers.guestId, rsvpAnswers.keyMomentId], set: { attending: answer.attending, channel, answeredAt: now, updatedAt: now } });
     }
+    // Lot 50 (INV-05) : un désistement libère la place au plan de table.
+    await releaseDeclinedSeats(tx, [...members], now);
     await refreshAnswered(tx, context, householdId, now);
   });
 }
@@ -481,6 +489,11 @@ export async function removeEventGuestRows(organizationId: string, eventIds: str
   const ids = eventIds.filter((id) => UUID.test(id));
   if (ids.length === 0) return;
   await inOrganization(organizationId, async (tx) => {
+    // Lot 50 : plans (en cascade tables, places, contraintes), repas prestataires, traces des
+    // téléchargements de la synthèse.
+    await tx.delete(seatingPlans).where(inArray(seatingPlans.eventId, ids));
+    await tx.delete(vendorMealCounts).where(inArray(vendorMealCounts.eventId, ids));
+    await tx.delete(catererSummaryDownloads).where(inArray(catererSummaryDownloads.eventId, ids));
     await tx.delete(households).where(inArray(households.eventId, ids));
     await tx.delete(householdGroups).where(inArray(householdGroups.eventId, ids));
     await tx.delete(dietConsents).where(inArray(dietConsents.eventId, ids));

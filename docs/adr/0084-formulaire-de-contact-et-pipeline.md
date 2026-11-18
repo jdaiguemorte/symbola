@@ -63,13 +63,13 @@ d'être encadrées (`X-Frame-Options: DENY`, `frame-ancestors 'none'`).
 8. **E-mails** (D6, D7) : aucun e-mail au prospect (pas de relais pour les robots) ; « Nouvelle
    demande de contact » à la titulaire, réglable, sans le message ni les coordonnées (nature
    `prospect_form_received`, contrainte `hub.email_templates_kind_check` élargie par la migration
-   hub 0160, à part et annulable — exception écrite à DAT-09, accordée par Julien).
+   hub 0161, à part et annulable — exception écrite à DAT-09, accordée par Julien).
 9. **Langue** : la page publique suit la langue du navigateur ; sans cookie (cadre dans un autre
    site), `i18n/request.ts` lit `Accept-Language`.
 
 ## Conséquences
 
-- Migrations 0159 (`events`) et 0160 (`hub`), chacune avec son annulation (refusée tant que des
+- Migrations 0160 (`events`) et 0161 (`hub`), numérotées après celle du lot 50 (0159), chacune avec son annulation (refusée tant que des
   demandes, des passages d'étape, un historique sans auteur ou un modèle personnalisé existent).
   Compatibles avec la version précédente du code (ajout seul, contrainte relâchée).
 - Registre RGPD : `events.prospect_requests` (message, période, tranche, champs en attente) ;

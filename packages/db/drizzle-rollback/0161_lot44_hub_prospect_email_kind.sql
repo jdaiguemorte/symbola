@@ -1,4 +1,4 @@
--- Annulation de 0160 (lot 44) : la contrainte des natures d'e-mails revient exactement à la liste
+-- Annulation de 0161 (lot 44) : la contrainte des natures d'e-mails revient exactement à la liste
 -- de main (migration 0158 du lot 46 : natures d'origine, invitations et relances des invités,
 -- e-mails des rendez-vous).
 -- Refusée tant qu'un modèle « Nouvelle demande de contact » personnalisé existe : il serait perdu ; la

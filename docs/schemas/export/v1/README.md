@@ -171,19 +171,27 @@ Toutes les tables du module sont exportées.
 | --- | --- | --- |
 | `module_settings` | `impactAssessmentConfirmedAt`, `impactAssessmentConfirmedBy`, `privacyNotice`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [module_settings.schema.json](guests/module_settings.schema.json) |
 | `dietary_options` | `id`, `kind`, `starterKey`, `label`, `hidden`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [dietary_options.schema.json](guests/dietary_options.schema.json) |
+| `meal_types` | `id`, `starterKey`, `label`, `hidden`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [meal_types.schema.json](guests/meal_types.schema.json) |
 | `event_settings` | `id`, `eventId`, `responsesCloseOn`, `askDiet`, `askAccommodation`, `askTransport`, `reminderDays`, `invitationsSentAt`, `dietPurgeNoticeAt`, `purgeNoticeAt`, `dietsPurgedAt`, `purgedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_settings.schema.json](guests/event_settings.schema.json) |
 | `household_groups` | `id`, `eventId`, `label`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [household_groups.schema.json](guests/household_groups.schema.json) |
 | `guest_imports` | `id`, `eventId`, `channel`, `householdCount`, `guestCount`, `undoneAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [guest_imports.schema.json](guests/guest_imports.schema.json) |
 | `households` | `id`, `eventId`, `displayName`, `sideKind`, `sideClientId`, `groupId`, `language`, `respondentGuestId`, `keyMomentIds`, `needsAccommodation`, `needsTransport`, `answeredAt`, `invitedAt`, `importId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [households.schema.json](guests/households.schema.json) |
-| `guests` | `id`, `eventId`, `householdId`, `kind`, `firstName`, `lastName`, `email`, `phone`, `ageRange`, `position`, `opposedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [guests.schema.json](guests/guests.schema.json) |
+| `guests` | `id`, `eventId`, `householdId`, `kind`, `firstName`, `lastName`, `email`, `phone`, `ageRange`, `position`, `opposedAt`, `mealTypeId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [guests.schema.json](guests/guests.schema.json) |
 | `rsvp_answers` | `id`, `guestId`, `keyMomentId`, `attending`, `channel`, `answeredAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [rsvp_answers.schema.json](guests/rsvp_answers.schema.json) |
 | `diet_consents` | `id`, `eventId`, `guestId`, `givenByGuestId`, `textVersion`, `channel`, `legalGuardian`, `grantedAt`, `withdrawnAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [diet_consents.schema.json](guests/diet_consents.schema.json) |
 | `purge_postponements` | `id`, `eventId`, `reason`, `postponedUntil`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [purge_postponements.schema.json](guests/purge_postponements.schema.json) |
+| `seating_plans` | `id`, `eventId`, `keyMomentId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [seating_plans.schema.json](guests/seating_plans.schema.json) |
+| `seating_tables` | `id`, `planId`, `name`, `shape`, `capacity`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [seating_tables.schema.json](guests/seating_tables.schema.json) |
+| `seat_assignments` | `id`, `planId`, `tableId`, `guestId`, `releasedAt`, `releasedTableName`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [seat_assignments.schema.json](guests/seat_assignments.schema.json) |
+| `vendor_meal_counts` | `id`, `eventId`, `keyMomentId`, `mealCount`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_meal_counts.schema.json](guests/vendor_meal_counts.schema.json) |
+| `caterer_summary_downloads` | `id`, `eventId`, `keyMomentId`, `version`, `format`, `downloadedBy`, `downloadedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [caterer_summary_downloads.schema.json](guests/caterer_summary_downloads.schema.json) |
 
 Tables non exportées :
 
 - `diets` — régimes et allergies des invités, chiffrés au niveau du champ (données de santé, article 9) : ils restent dans Symbola, réservés à la titulaire, et sont purgés sept jours après l'évènement
 - `guest_links` — empreintes des jetons des liens personnels des invités : sans usage hors de Symbola
+- `seating_constraints` — contraintes de placement « ensemble » et « séparés » : données internes de l'organisation, jamais exportées (lot 50, D4)
+- `seating_constraint_members` — personnes d'une contrainte de placement : données internes de l'organisation, jamais exportées (lot 50, D4)
 
 ## Module `appointments`
 

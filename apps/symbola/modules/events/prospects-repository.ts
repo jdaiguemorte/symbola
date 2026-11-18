@@ -1,7 +1,7 @@
 // Lot 44 (CRM-01, CRM-02 ; ADR 0084) — accès aux données du formulaire de contact, des demandes reçues
 // et du pipeline. Jamais importé hors de modules/events/ (ADR 0011). Tout se lit et s'écrit sous RLS,
 // dans l'organisation ; seule l'adresse publique du formulaire se lit sans organisation (exception
-// écrite de la migration 0159, comme la page de réservation du lot 46).
+// écrite de la migration 0160, comme la page de réservation du lot 46).
 import { and, asc, desc, eq, inArray, isNull, lt, max, or, sql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { appendAudit } from "@symbola/db/audit";

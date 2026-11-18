@@ -161,6 +161,9 @@ export const AUDIT_ACTIONS = {
   // INV-02 : liste importée, import annulé.
   "guests.import.applied": { category: "emission", objectType: "event" },
   "guests.import.undone": { category: "suppression", objectType: "event" },
+  // Lot 50 (INV-06, D8) : synthèse pour le traiteur téléchargée (temps fort, version, format ;
+  // jamais son contenu, jamais un nom) ; elle n'est rangée nulle part dans Symbola.
+  "guests.caterer_summary.downloaded": { category: "export", objectType: "event" },
 } as const satisfies Record<string, ActionSpec>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;
