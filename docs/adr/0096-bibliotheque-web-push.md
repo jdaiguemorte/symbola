@@ -20,8 +20,8 @@ de la cryptographie : CLAUDE.md interdit de l'écrire nous-mêmes. Rien dans la 
 - **Licence** : `web-push` est sous **MPL-2.0** (et non MIT, comme l'indiquait la spécification) ; ses
   dépendances (`http_ece`, `asn1.js`, `jws`, `https-proxy-agent`, `minimist`) sont sous MIT. Employée sans
   modification, comme `lightningcss` (MPL-2.0, déjà en production) : elle est déclarée dans
-  `tools/licences/autorisees.json` et `docs/conformite/licences.md`. Écart signalé à la session de
-  coordination le 18/11/2026 pour confirmation de Julien.
+  `tools/licences/autorisees.json` et `docs/conformite/licences.md`. Écart signalé le 18/11/2026 ;
+  **Julien a confirmé son accord pour la MPL-2.0 le 18/11/2026** (« Oui, je maintiens »).
 - Clés VAPID propres à chaque environnement (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, base64url),
   tirées par `apps/symbola/scripts/generate-vapid-keys.mjs` (Node seul, sans dépendance), validées au
   démarrage par `packages/env` (paire cohérente), transmises par le compose de production sans valeur par
