@@ -1055,15 +1055,43 @@
     {
       "idx": 150,
       "version": "7",
-      "when": 1794979780274,
-      "tag": "0150_lot41_quotes_facturx",
+      "when": 1794983521425,
+      "tag": "0150_lot49_events_key_moments",
       "breakpoints": true
     },
     {
       "idx": 151,
       "version": "7",
-      "when": 1794979781488,
-      "tag": "0151_lot41_hub_seller_address_vat_debits",
+      "when": 1794983522671,
+      "tag": "0151_lot49_hub_guest_retention",
+      "breakpoints": true
+    },
+    {
+      "idx": 152,
+      "version": "7",
+      "when": 1794983523836,
+      "tag": "0152_lot49_hub_guest_email_kinds",
+      "breakpoints": true
+    },
+    {
+      "idx": 153,
+      "version": "7",
+      "when": 1794983525054,
+      "tag": "0153_lot49_guests",
+      "breakpoints": true
+    },
+    {
+      "idx": 154,
+      "version": "7",
+      "when": 1794999260786,
+      "tag": "0154_lot41_quotes_facturx",
+      "breakpoints": true
+    },
+    {
+      "idx": 155,
+      "version": "7",
+      "when": 1794999261986,
+      "tag": "0155_lot41_hub_seller_address_vat_debits",
       "breakpoints": true
     }
   ]

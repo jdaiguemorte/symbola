@@ -27,7 +27,10 @@ export type TodayItemKind =
   | "deposit_blocked"
   | "vendor_contract"
   | "date_conflict"
-  | "link_renewal";
+  | "link_renewal"
+  // Lot 49 (RGP-08) : préavis de purge des invités, opposition d'un invité.
+  | "guest_purge"
+  | "guest_opposition";
 
 // L'action en un clic (HUB-08) : cocher une tâche, relancer un prestataire, ou ouvrir l'objet.
 export type TodayAction =

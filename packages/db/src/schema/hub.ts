@@ -622,6 +622,12 @@ export const privacySettings = hubSchema.table("privacy_settings", {
   // Lot 26a (RGP-03) : mention d'information des pages à lien personnel, au nom
   // de l'organisation ; vide, le texte de départ (packages/starter-templates).
   linkPrivacyNotice: text("link_privacy_notice"),
+  // Lot 49 (RGP-08, D9 ; réponses 2 et 3 de la DPO) : purge des données d'invités, comptée depuis
+  // le dernier jour de l'évènement (ou son annulation) : régimes et allergies, puis le reste ; un
+  // seul report, motivé, borné. Valeurs de départ dans privacy-settings.json.
+  guestRetentionDays: integer("guest_retention_days").notNull().default(30),
+  guestDietRetentionDays: integer("guest_diet_retention_days").notNull().default(7),
+  guestPurgeMaxPostponeDays: integer("guest_purge_max_postpone_days").notNull().default(90),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -827,6 +833,9 @@ export const EMAIL_TEMPLATE_KINDS = [
   "order_first",
   "signed_copy",
   "program_published",
+  // Lot 49 (INV-03, INV-04 ; D4, D10) : invitation à répondre et relance des invités.
+  "guest_invitation",
+  "guest_reminder",
 ] as const;
 
 export const emailTemplates = hubSchema.table(
@@ -847,7 +856,7 @@ export const emailTemplates = hubSchema.table(
   (table) => [
     index("email_templates_organization_idx").on(table.organizationId),
     unique("email_templates_kind_locale_unique").on(table.organizationId, table.kind, table.locale),
-    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published')`),
+    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder')`),
     check("email_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
     check("email_templates_subject_check", sql`char_length(${table.subject}) between 1 and 200`),
     check("email_templates_body_check", sql`char_length(${table.body}) between 1 and 5000`),

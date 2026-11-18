@@ -1,5 +1,5 @@
 {
-  "id": "ee138104-36be-400a-a7ac-d2b900fb05f5",
+  "id": "1c32b101-0851-4819-9280-f25908e6c78d",
   "prevId": "a2b556b3-25d6-4330-9a30-3231d8d339da",
   "version": "7",
   "dialect": "postgresql",
@@ -3495,7 +3495,7 @@
       "checkConstraints": {
         "event_links_rubrics_check": {
           "name": "event_links_rubrics_check",
-          "value": "\"events\".\"event_links\".\"rubrics\" <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes']::text[]"
+          "value": "\"events\".\"event_links\".\"rubrics\" <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes', 'guests']::text[]"
         },
         "event_links_budget_scope_check": {
           "name": "event_links_budget_scope_check",
@@ -5165,6 +5165,172 @@
         "events_identity_text_check": {
           "name": "events_identity_text_check",
           "value": "(\"events\".\"events\".\"style\" is null or char_length(\"events\".\"events\".\"style\") <= 2000) and (\"events\".\"events\".\"notes\" is null or char_length(\"events\".\"events\".\"notes\") <= 10000)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "events.key_moments": {
+      "name": "key_moments",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_time": {
+          "name": "start_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "place_id": {
+          "name": "place_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deleted_by": {
+          "name": "deleted_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "key_moments_organization_idx": {
+          "name": "key_moments_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "key_moments_event_idx": {
+          "name": "key_moments_event_idx",
+          "columns": [
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "key_moments_event_id_events_id_fk": {
+          "name": "key_moments_event_id_events_id_fk",
+          "tableFrom": "key_moments",
+          "tableTo": "events",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "key_moments_place_id_event_places_id_fk": {
+          "name": "key_moments_place_id_event_places_id_fk",
+          "tableFrom": "key_moments",
+          "tableTo": "event_places",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "place_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "key_moments_name_check": {
+          "name": "key_moments_name_check",
+          "value": "char_length(\"events\".\"key_moments\".\"name\") between 1 and 100"
         }
       },
       "isRLSEnabled": false
@@ -10276,13 +10442,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "nature": {
-          "name": "nature",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'service'"
-        },
         "imported_fields": {
           "name": "imported_fields",
           "type": "jsonb",
@@ -10343,12 +10502,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {
-        "catalog_items_nature_check": {
-          "name": "catalog_items_nature_check",
-          "value": "\"quotes\".\"catalog_items\".\"nature\" in ('service', 'goods')"
-        }
-      },
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "quotes.contract_evidence": {
@@ -11351,12 +11505,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
-        },
-        "reform_snapshot": {
-          "name": "reform_snapshot",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {},
@@ -11709,12 +11857,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
-        },
-        "reform_snapshot": {
-          "name": "reform_snapshot",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {},
@@ -12011,13 +12153,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
-        },
-        "format": {
-          "name": "format",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'pdf'"
         }
       },
       "indexes": {
@@ -12051,10 +12186,6 @@
       },
       "policies": {},
       "checkConstraints": {
-        "original_documents_format_check": {
-          "name": "original_documents_format_check",
-          "value": "\"quotes\".\"original_documents\".\"format\" in ('pdf', 'facturx')"
-        },
         "original_documents_kind_check": {
           "name": "original_documents_kind_check",
           "value": "\"quotes\".\"original_documents\".\"document_kind\" in ('invoice', 'credit_note')"
@@ -12583,13 +12714,6 @@
           "notNull": true,
           "default": false
         },
-        "nature": {
-          "name": "nature",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'service'"
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -12693,12 +12817,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {
-        "quote_lines_nature_check": {
-          "name": "quote_lines_nature_check",
-          "value": "\"quotes\".\"quote_lines\".\"nature\" in ('service', 'goods')"
-        }
-      },
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "quotes.quote_sections": {
@@ -12965,26 +13084,6 @@
           "notNull": true,
           "default": "'R'"
         },
-        "professional_payment_term_days": {
-          "name": "professional_payment_term_days",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 30
-        },
-        "professional_payment_term_end_of_month": {
-          "name": "professional_payment_term_end_of_month",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "professional_discount_terms": {
-          "name": "professional_discount_terms",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp with time zone",
@@ -13029,14 +13128,6 @@
         "quote_settings_late_penalty_rate_check": {
           "name": "quote_settings_late_penalty_rate_check",
           "value": "\"quotes\".\"quote_settings\".\"late_penalty_rate\" is null or \"quotes\".\"quote_settings\".\"late_penalty_rate\" in ('ecb_plus_10', 'three_times_legal')"
-        },
-        "quote_settings_professional_payment_term_check": {
-          "name": "quote_settings_professional_payment_term_check",
-          "value": "\"quotes\".\"quote_settings\".\"professional_payment_term_days\" between 0 and 120"
-        },
-        "quote_settings_professional_discount_terms_check": {
-          "name": "quote_settings_professional_discount_terms_check",
-          "value": "\"quotes\".\"quote_settings\".\"professional_discount_terms\" is null or char_length(\"quotes\".\"quote_settings\".\"professional_discount_terms\") <= 500"
         }
       },
       "isRLSEnabled": false
@@ -13300,13 +13391,6 @@
           "notNull": true,
           "default": 0
         },
-        "nature": {
-          "name": "nature",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'service'"
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -13398,12 +13482,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {
-        "quote_template_lines_nature_check": {
-          "name": "quote_template_lines_nature_check",
-          "value": "\"quotes\".\"quote_template_lines\".\"nature\" in ('service', 'goods')"
-        }
-      },
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "quotes.quote_template_schedule_items": {
@@ -14091,30 +14170,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
-        },
-        "buyer_contact_id": {
-          "name": "buyer_contact_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "client_order_reference": {
-          "name": "client_order_reference",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "buyer_reference": {
-          "name": "buyer_reference",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "delivery_address": {
-          "name": "delivery_address",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {},
@@ -14131,16 +14186,7 @@
         }
       },
       "policies": {},
-      "checkConstraints": {
-        "quotes_client_order_reference_check": {
-          "name": "quotes_client_order_reference_check",
-          "value": "\"quotes\".\"quotes\".\"client_order_reference\" is null or char_length(\"quotes\".\"quotes\".\"client_order_reference\") between 1 and 60"
-        },
-        "quotes_buyer_reference_check": {
-          "name": "quotes_buyer_reference_check",
-          "value": "\"quotes\".\"quotes\".\"buyer_reference\" is null or char_length(\"quotes\".\"quotes\".\"buyer_reference\") between 1 and 60"
-        }
-      },
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "quotes.scheduled_deposit_invoices": {

@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "_source": "Lot 49 (INV-07, RGP-06 ; D6) : liste fermée de départ des régimes et allergies que l'invité coche, avec son accord. Régimes courants, puis les quatorze allergènes à déclaration obligatoire du règlement (UE) n° 1169/2011 (INCO, annexe II). Aucun régime à caractère religieux tant que la DPO ne s'est pas prononcée (DPO-1) : la planner peut en ajouter, sous sa responsabilité, avec un avertissement. La planner masque une entrée ou en ajoute une (libellé court) ; l'invité ne fait que cocher.",
+  "options": [
+    { "key": "vegetarian", "kind": "diet", "label": { "fr": "Végétarien", "en": "Vegetarian" } },
+    { "key": "vegan", "kind": "diet", "label": { "fr": "Végétalien (vegan)", "en": "Vegan" } },
+    { "key": "pescatarian", "kind": "diet", "label": { "fr": "Pescétarien (poisson, pas de viande)", "en": "Pescatarian (fish, no meat)" } },
+    { "key": "gluten_free", "kind": "diet", "label": { "fr": "Sans gluten", "en": "Gluten-free" } },
+    { "key": "lactose_free", "kind": "diet", "label": { "fr": "Sans lactose", "en": "Lactose-free" } },
+    { "key": "allergen_gluten", "kind": "allergen", "label": { "fr": "Céréales contenant du gluten", "en": "Cereals containing gluten" } },
+    { "key": "allergen_crustaceans", "kind": "allergen", "label": { "fr": "Crustacés", "en": "Crustaceans" } },
+    { "key": "allergen_eggs", "kind": "allergen", "label": { "fr": "Œufs", "en": "Eggs" } },
+    { "key": "allergen_fish", "kind": "allergen", "label": { "fr": "Poissons", "en": "Fish" } },
+    { "key": "allergen_peanuts", "kind": "allergen", "label": { "fr": "Arachides", "en": "Peanuts" } },
+    { "key": "allergen_soybeans", "kind": "allergen", "label": { "fr": "Soja", "en": "Soybeans" } },
+    { "key": "allergen_milk", "kind": "allergen", "label": { "fr": "Lait", "en": "Milk" } },
+    { "key": "allergen_nuts", "kind": "allergen", "label": { "fr": "Fruits à coque", "en": "Tree nuts" } },
+    { "key": "allergen_celery", "kind": "allergen", "label": { "fr": "Céleri", "en": "Celery" } },
+    { "key": "allergen_mustard", "kind": "allergen", "label": { "fr": "Moutarde", "en": "Mustard" } },
+    { "key": "allergen_sesame", "kind": "allergen", "label": { "fr": "Graines de sésame", "en": "Sesame seeds" } },
+    { "key": "allergen_sulphites", "kind": "allergen", "label": { "fr": "Sulfites", "en": "Sulphites" } },
+    { "key": "allergen_lupin", "kind": "allergen", "label": { "fr": "Lupin", "en": "Lupin" } },
+    { "key": "allergen_molluscs", "kind": "allergen", "label": { "fr": "Mollusques", "en": "Molluscs" } }
+  ]
+}

@@ -1,4 +1,4 @@
--- Annulation de 0151 (lot 41) : le code postal, la ville et le pays du vendeur, l'option pour la TVA
+-- Annulation de 0155 (lot 41) : le code postal, la ville et le pays du vendeur, l'option pour la TVA
 -- sur les débits et les vérifications désactivées par l'Admin sont perdus. L'adresse (ligne) reste.
 ALTER TABLE "hub"."organization_profiles" DROP CONSTRAINT IF EXISTS "organization_profiles_country_code_check";
 --> statement-breakpoint

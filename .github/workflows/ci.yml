@@ -116,20 +116,25 @@ jobs:
   e2e:
     name: Parcours bout en bout (${{ matrix.partie }})
     runs-on: ubuntu-latest
-    # Lot 33 : chaque connexion passe par le lien, Mailpit et Logto ; la suite en série dure
-    # environ 28 min sur le runner (16 min avant).
+    # Lot 33 : chaque connexion passe par le lien, Mailpit et Logto ; les parcours tournent en
+    # série (un seul worker par job).
     timeout-minutes: 45
-    # Lot 40c (NFR-17 à NFR-19, NFR-01, NFR-02 ; ADR 0078) : deux volets en parallèle. Le premier
-    # joue toute la suite sous Chromium (ordinateur et 375 px, axe-core en WCAG 2.2 AA, mesures du
-    # temps de réponse, clavier, zoom à 200 %) ; le second rejoue les parcours des scénarios sous
-    # Firefox et WebKit, à 360 et à 1 920 px, et SC-10 à 150 %.
+    # Lot 40c (NFR-17 à NFR-19, NFR-01, NFR-02 ; ADR 0078) : la suite sous Chromium (ordinateur et
+    # 375 px, axe-core en WCAG 2.2 AA, mesures du temps de réponse, clavier, zoom à 200 %), et les
+    # parcours des scénarios rejoués sous Firefox et WebKit, à 360 et à 1 920 px, et SC-10 à 150 %.
+    # 18/11/2026 (lots 41, 46, 49) : la suite sous Chromium dépassait les 45 min d'un job ; elle est
+    # partagée en deux moitiés (--shard), chacune sur son runner, avec sa propre base et ses
+    # propres services : environ 20 min chacune au lieu de 40.
     strategy:
       fail-fast: false
       matrix:
         include:
-          - partie: Chromium, ordinateur et 375 px, axe-core, mesures
+          - partie: Chromium, ordinateur et 375 px, axe-core, mesures, moitié 1 sur 2
             navigateurs: chromium
-            projets: --project=desktop --project=mobile-375
+            projets: --project=desktop --project=mobile-375 --shard=1/2
+          - partie: Chromium, ordinateur et 375 px, axe-core, mesures, moitié 2 sur 2
+            navigateurs: chromium
+            projets: --project=desktop --project=mobile-375 --shard=2/2
           - partie: scénarios sous Firefox et WebKit, 360 et 1 920 px, zoom à 150 %
             navigateurs: chromium firefox webkit
             projets: --project=firefox --project=webkit --project=mobile-360 --project=desktop-1920 --project=zoom-150

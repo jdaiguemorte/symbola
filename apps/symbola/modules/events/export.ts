@@ -20,6 +20,7 @@ import {
   eventLinks,
   eventLinkSharedSlots,
   eventPlaces,
+  keyMoments,
   events,
   eventStatusHistory,
   eventTaskAttachments,
@@ -56,6 +57,8 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: eventClients, ...ofEvent },
   { table: eventStatusHistory, ...ofEvent },
   { table: eventPlaces, ...ofEvent },
+  // Lot 49 (D2) : temps forts de l'évènement.
+  { table: keyMoments, ...ofEvent },
   { table: eventDayContacts, ...ofEvent },
   // Lot 37a (D3, D4) : dossiers d'abord, puis les documents et toutes leurs versions.
   { table: eventDocumentFolders, ...ofEvent },

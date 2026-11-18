@@ -22,6 +22,8 @@ const NOTICED: Record<string, { file: string; name: string }> = {
   "events.event_task_comments.body": { file: "app/events/[id]/task-extra-forms.tsx", name: "body" },
   "hub.privacy_requests.extension_reason": { file: "app/rgpd/demandes/request-forms.tsx", name: "reason" },
   "quotes.payment_entries.reason": { file: "app/devis/[quoteId]/schedule-forms.tsx", name: "reason" },
+  // Lot 49 (RGP-08, D9) : motif du report de la purge des invités.
+  "guests.purge_postponements.reason": { file: "app/events/[id]/invites/guest-forms.tsx", name: "reason" },
 };
 
 // Aussi mis en garde, bien que rangés autrement au registre : la note d'un contact, le motif d'une perte.
@@ -58,6 +60,10 @@ const WITHOUT_ENTRY: Record<string, string> = {
   "vendors.vendors.indicative_prices": "tarifs indicatifs du prestataire",
   "vendors.vendors.field_values": "valeurs des champs propres au type de prestataire",
   "events.event_decisions.comment": "réponse du client sur son portail ; la mise en garde s'adresse à l'équipe",
+  // Lot 49 (module Invités).
+  "guests.household_groups.label": "libellé court d'un groupe d'invités (« Amis du lycée »)",
+  "guests.rsvp_answers.attending": "réponse oui ou non à un temps fort, sans texte",
+  "guests.module_settings.privacy_notice": "mention d'information écrite par la titulaire, lue par les invités (texte juridique)",
 };
 
 function freeTextFields(): string[] {

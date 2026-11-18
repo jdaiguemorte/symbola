@@ -1,4 +1,4 @@
--- Annulation de 0150 (lot 41) : la copie de la réforme des pièces émises (Factur-X, bon de commande,
+-- Annulation de 0154 (lot 41) : la copie de la réforme des pièces émises (Factur-X, bon de commande,
 -- livraison, catégorie, débits), l'acheteur entreprise et les références des devis, la nature des
 -- lignes et les conditions des professionnels sont perdus. Refusée tant qu'une pièce non fictive
 -- porte sa copie de la réforme : ses originaux Factur-X resteraient sans leur description.

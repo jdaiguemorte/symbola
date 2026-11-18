@@ -17,7 +17,7 @@ type Window = { limit: number; windowMs: number };
 // ADR 0037) reste en place en plus.
 // Lot 33 : « login » limite les demandes de lien de connexion (chacune envoie un e-mail) ; les
 // échecs de mot de passe et leurs délais sont chez le fournisseur d'identité (ADR 0067).
-export const RATE_LIMITS: Record<"login" | "search" | "upload" | "linkOpen" | "linkRenewal" | "linkCode" | "teamInvite" | "organizationExport" | "calendarFeed" | "errorReport", { ip: Window; account: Window }> = {
+export const RATE_LIMITS: Record<"login" | "search" | "upload" | "linkOpen" | "linkRenewal" | "linkCode" | "teamInvite" | "organizationExport" | "calendarFeed" | "errorReport" | "rsvpOpen" | "rsvpAnswer", { ip: Window; account: Window }> = {
   login: { ip: { limit: 20, windowMs: 15 * MINUTE }, account: { limit: 5, windowMs: 15 * MINUTE } },
   search: { ip: { limit: 300, windowMs: MINUTE }, account: { limit: 120, windowMs: MINUTE } },
   upload: { ip: { limit: 60, windowMs: 10 * MINUTE }, account: { limit: 30, windowMs: 10 * MINUTE } },
@@ -39,6 +39,11 @@ export const RATE_LIMITS: Record<"login" | "search" | "upload" | "linkOpen" | "l
   calendarFeed: { ip: { limit: 300, windowMs: 15 * MINUTE }, account: { limit: 300, windowMs: 15 * MINUTE } },
   // Lot 40b (Q27, D14) : erreurs du navigateur relayées au suivi des erreurs, par adresse IP.
   errorReport: { ip: { limit: 30, windowMs: 15 * MINUTE }, account: { limit: 30, windowMs: 15 * MINUTE } },
+  // Lot 49 (INV-03, SEC-04, SEC-14) : ouverture et envoi de la page de réponse d'un invité, par
+  // adresse IP et par lien (« account » : l'empreinte du jeton), pas par organisation : cent
+  // invités qui répondent dans l'heure de l'envoi ne se gênent pas.
+  rsvpOpen: { ip: { limit: 30, windowMs: 15 * MINUTE }, account: { limit: 20, windowMs: 15 * MINUTE } },
+  rsvpAnswer: { ip: { limit: 20, windowMs: 15 * MINUTE }, account: { limit: 10, windowMs: 15 * MINUTE } },
 };
 
 export type RateLimitedAction = keyof typeof RATE_LIMITS;

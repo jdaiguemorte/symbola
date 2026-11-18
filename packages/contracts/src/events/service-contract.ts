@@ -583,7 +583,8 @@ export const LINK_AUDIENCES = ["client", "vendor", "guest"] as const;
 export type LinkAudience = (typeof LINK_AUDIENCES)[number];
 
 // Rubriques du portail qu'un lien peut ouvrir (POR-10 : rien par défaut).
-export const LINK_RUBRICS = ["tasks", "program", "vendor_options", "budget", "quotes"] as const;
+// Lot 49 (INV-02, D5) : « guests », la liste des invités et le suivi des réponses (module Invités).
+export const LINK_RUBRICS = ["tasks", "program", "vendor_options", "budget", "quotes", "guests"] as const;
 export type LinkRubric = (typeof LINK_RUBRICS)[number];
 
 // Budget entier, ou seulement les catégories choisies (sans total général).
@@ -990,3 +991,39 @@ export interface EventsServiceContract {
   startTutorialEvent(input: StartEventsTrialInput & { tutorialKey: string }): Promise<EventsTrial & { kind: string }>;
   listExpiredDemoEvents(organizationIds: string[], now?: Date): Promise<{ organizationId: string; eventId: string }[]>;
 }
+
+// Lot 49 (EVT-04 premier pas, INV-03 ; D2) — temps forts d'un évènement (cérémonie, dîner, brunch) :
+// le RSVP demande la présence par temps fort. Date sans heure, heure de début facultative (dans le
+// fuseau de l'évènement), lieu facultatif parmi les lieux de l'évènement.
+export type KeyMoment = {
+  id: string;
+  eventId: string;
+  name: string;
+  date: string;
+  startTime: string | null;
+  placeId: string | null;
+  placeLabel: string | null;
+  position: number;
+};
+
+export type KeyMomentInput = {
+  name: string;
+  date: string;
+  startTime?: string | null | undefined;
+  placeId?: string | null | undefined;
+};
+
+// Ce que le module Invités lit d'un évènement (ADR 0011 : par le service) : ses clients (le côté
+// d'un foyer), ses dates (clôture proposée, purge), son statut (annulation), ses temps forts.
+export type GuestEventContext = {
+  eventId: string;
+  isDemo: boolean;
+  status: EventStatus;
+  eventDate: string | null;
+  timeZone: string;
+  // Jour (Paris) de la dernière annulation, si l'évènement est annulé.
+  cancelledOn: string | null;
+  clients: { id: string; firstName: string; lastName: string | null }[];
+  vocabulary: EventTypeAudience;
+  keyMoments: KeyMoment[];
+};

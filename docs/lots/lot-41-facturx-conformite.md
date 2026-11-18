@@ -478,10 +478,11 @@ Fait (ADR 0080 et 0081) :
 - **GC-03** : panneau « Vérifications avant envoi » non bloquant sur le devis, le contrat et la
   facture ; huit règles en données (FR, EN), désactivables par l'Admin ; points vus au journal
   d'audit par leurs clés.
-- Migrations `0150` (quotes) et `0151` (hub), annulables, ajouts seulement ; registre RGPD,
-  anonymisation de l'adresse de livraison à la fin de la conservation ; inventaire des licences
-  (polices, outils de la CI) ; questions EC-1 à EC-7 (fiche de l'expert-comptable, 12 à 18) et AV-1,
-  AV-2 (fiche de l'avocat, 14 et 15), défauts prudents appliqués en attendant.
+- Migrations `0154` (quotes) et `0155` (hub), renumérotées après le lot 49 (0150 à 0153),
+  annulables, ajouts seulement ; registre RGPD, anonymisation de l'adresse de livraison à la fin de
+  la conservation ; inventaire des licences (polices, outils de la CI) ; questions EC-1 à EC-7
+  (fiche de l'expert-comptable, 12 à 18) et AV-1, AV-2 (fiche de l'avocat, 14 et 15), défauts
+  prudents appliqués en attendant.
 
 Constats faits en route :
 

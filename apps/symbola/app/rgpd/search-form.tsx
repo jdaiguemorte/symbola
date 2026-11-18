@@ -9,7 +9,8 @@ import { ErasurePreview } from "./erasure-preview";
 import { exportRecordsAction, type ExportFormState } from "./export-actions";
 import { NewRequestForm } from "./demandes/request-forms";
 
-const MODULE_ORDER = ["events", "budget", "quotes", "hub"];
+// Lot 49 : « guests », le module Invités.
+const MODULE_ORDER = ["events", "budget", "quotes", "guests", "hub"];
 
 // Lot 18 (RGPD-07, décision B) : un export ou un effacement part toujours
 // d'une demande. Dans le dossier, la recherche porte sur sa demande ; seule,

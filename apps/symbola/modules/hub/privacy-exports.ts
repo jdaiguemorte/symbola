@@ -5,7 +5,7 @@
 // téléchargement — jamais stocké ni affiché d'avance. Les fichiers sont
 // effacés à l'expiration (purge horaire), la ligne reste comme trace.
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, gt, inArray, isNull, lte } from "drizzle-orm";
+import { and, desc, eq, gt, gte, inArray, isNull, lte } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import { privacyExports, privacyRequests } from "@symbola/db/schema/hub";
 import { appendAudit } from "@symbola/db/audit";
@@ -194,4 +194,18 @@ export async function purgeExpiredPrivacyExports(db: AppDatabase, organizationId
     }
   }
   return purged;
+}
+
+// Lot 49 (RGP-08, D9 ; DPO-6) — exports RGPD d'une personne encore gardés, préparés depuis la date
+// donnée : ils peuvent contenir des invités de l'évènement purgé ; supprimés avec eux.
+export async function purgePrivacyExportsSince(db: AppDatabase, organizationId: string, since: Date, now: Date = new Date()): Promise<number> {
+  const rows = await withOrganization(db, organizationId, (tx) => tx.select().from(privacyExports).where(and(isNull(privacyExports.purgedAt), gte(privacyExports.createdAt, since))));
+  if (rows.length === 0) return 0;
+  const storage = createStorageClient();
+  for (const row of rows) {
+    await deletePrivateObject(storage, row.pdfKey);
+    await deletePrivateObject(storage, row.archiveKey);
+    await withOrganization(db, organizationId, (tx) => tx.update(privacyExports).set({ purgedAt: now }).where(eq(privacyExports.id, row.id)));
+  }
+  return rows.length;
 }
