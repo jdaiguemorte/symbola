@@ -77,3 +77,11 @@ describe("MSG-01 (lot 45, D9) — Natures « réponse », « relance » et « qu
     expect(await refusal("payment_details")).toBe("accepté");
   });
 });
+
+// Lot 52 (HUB-04, EVT-06, SEC-08 ; migration 0175, spécification validée par Julien le 18/11/2026).
+describe("SEC-08 (lot 52) — Natures des e-mails de sécurité, du transfert de propriété et du renfort", () => {
+  it("nouvelle connexion, changement d'identité, transfert de propriété et lien du renfort sont admis ; une nature voisine reste refusée", async () => {
+    for (const kind of ["new_device_login", "identity_changed", "ownership_transfer", "day_helper_link"]) expect(await refusal(kind)).toBe("accepté");
+    expect(await refusal("day_helper")).toBe("email_templates_kind_check");
+  });
+});

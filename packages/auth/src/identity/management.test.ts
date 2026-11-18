@@ -17,7 +17,7 @@ function fakeFetch(routes: Record<string, (call: Call) => { status?: number; jso
     const route = routes[`${call.method} ${path}`];
     if (!route) return new Response(JSON.stringify({ code: "test.not_found" }), { status: 404 });
     const { status = 200, json } = route(call);
-    return new Response(JSON.stringify(json), { status });
+    return new Response(status === 204 ? null : JSON.stringify(json), { status });
   }) as typeof fetch;
   return { impl, calls };
 }
@@ -116,5 +116,58 @@ describe("SEC-01 — Client de l'API d'administration du fournisseur d'identité
     const client = createManagementClient(connection, impl);
     await expect(client.findWebApplication("Symbola")).resolves.toEqual({ id: "app-symbola", secret: "secret-web" });
     await expect(client.findWebApplication("Inconnue")).resolves.toBeNull();
+  });
+});
+
+describe("HUB-04 (lot 52) — Fermeture des sessions d'un compte chez le fournisseur (adaptateur)", () => {
+  it("liste les sessions du compte, puis ferme chacune et révoque ses autorisations ; une session déjà fermée est ignorée", async () => {
+    const { impl, calls } = fakeFetch({
+      "POST /oidc/token": token,
+      "GET /api/users/sub-1/sessions": () => ({ json: { sessions: [{ payload: { uid: "s-a" } }, { payload: { uid: "s-b" } }] } }),
+      "DELETE /api/users/sub-1/sessions/s-a": () => ({ status: 204, json: null }),
+      "DELETE /api/users/sub-1/sessions/s-b": () => ({ status: 404, json: { code: "oidc.session_not_found" } }),
+    });
+    const client = createManagementClient(connection, impl);
+    await expect(client.closeAllSessions("sub-1")).resolves.toBe(2);
+    const deletions = calls.filter((call) => call.method === "DELETE").map((call) => new URL(call.url));
+    expect(deletions.map((url) => url.pathname)).toEqual(["/api/users/sub-1/sessions/s-a", "/api/users/sub-1/sessions/s-b"]);
+    expect(deletions.every((url) => url.searchParams.get("revokeGrantsTarget") === "all")).toBe(true);
+  });
+
+  it("une autre erreur du fournisseur remonte, sans donnée personnelle", async () => {
+    const { impl } = fakeFetch({
+      "POST /oidc/token": token,
+      "GET /api/users/sub-1/sessions": () => ({ status: 500, json: { code: "oidc.internal" } }),
+    });
+    const client = createManagementClient(connection, impl);
+    await expect(client.closeAllSessions("sub-1")).rejects.toBeInstanceOf(IdentityProviderError);
+  });
+});
+
+describe("SEC-08 (lot 52, D6) — Webhook du fournisseur d'identité", () => {
+  it("crée le webhook de Symbola s'il manque, sur le changement des données d'un compte et la réinitialisation du mot de passe", async () => {
+    const { impl, calls } = fakeFetch({
+      "POST /oidc/token": token,
+      "GET /api/hooks": () => ({ json: [] }),
+      "POST /api/hooks": () => ({ status: 201, json: { id: "hook-1", name: "Symbola", signingKey: "cle" } }),
+    });
+    const client = createManagementClient(connection, impl);
+    await expect(client.upsertWebhook({ name: "Symbola", url: "https://app.test/api/webhooks/identite" })).resolves.toMatchObject({ id: "hook-1" });
+    const created = calls.find((call) => call.method === "POST" && call.url.endsWith("/api/hooks"))!;
+    expect(JSON.parse(created.body!)).toEqual({ name: "Symbola", events: ["User.Data.Updated", "PostResetPassword"], config: { url: "https://app.test/api/webhooks/identite" }, enabled: true });
+  });
+
+  it("met à jour le webhook existant (commande rejouable) et lit sa clé de signature", async () => {
+    const { impl, calls } = fakeFetch({
+      "POST /oidc/token": token,
+      "GET /api/hooks": () => ({ json: [{ id: "hook-1", name: "Symbola" }] }),
+      "PATCH /api/hooks/hook-1": () => ({ json: { id: "hook-1", name: "Symbola" } }),
+      "GET /api/hooks/hook-1": () => ({ json: { id: "hook-1", name: "Symbola", signingKey: "cle-secrete" } }),
+    });
+    const client = createManagementClient(connection, impl);
+    await client.upsertWebhook({ name: "Symbola", url: "https://app.test/api/webhooks/identite" });
+    expect(calls.some((call) => call.method === "PATCH")).toBe(true);
+    await expect(client.findWebhookSigningKey("Symbola")).resolves.toBe("cle-secrete");
+    await expect(client.findWebhookSigningKey("Autre")).resolves.toBeNull();
   });
 });

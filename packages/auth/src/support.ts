@@ -6,12 +6,13 @@ import { and, eq, sql } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import { memberships, sessions, users } from "@symbola/db/schema/hub";
 import type { ManagementClient } from "./identity/management";
+import type { MembershipRole } from "./roles";
 
 export type TeamAccountStatus = {
   userId: string;
   organizationId: string;
   email: string;
-  role: "owner" | "member";
+  role: MembershipRole;
   lastLoginAt: Date | null;
   createdAt: Date;
 };

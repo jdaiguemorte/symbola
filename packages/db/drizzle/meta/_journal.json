@@ -1212,6 +1212,27 @@
       "when": 1795030935335,
       "tag": "0172_lot45_hub_prospect_email_kinds",
       "breakpoints": true
+    },
+    {
+      "idx": 173,
+      "version": "7",
+      "when": 1795035833108,
+      "tag": "0173_lot52_hub_team_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 174,
+      "version": "7",
+      "when": 1795035907167,
+      "tag": "0174_lot52_events_team_day_helper",
+      "breakpoints": true
+    },
+    {
+      "idx": 175,
+      "version": "7",
+      "when": 1795035946412,
+      "tag": "0175_lot52_hub_team_email_kinds",
+      "breakpoints": true
     }
   ]
 }

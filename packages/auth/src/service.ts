@@ -8,13 +8,18 @@
 // (hub.memberships, HUB-02) ; la session porte l'organisation active, relue à chaque requête.
 import { and, asc, eq, isNotNull, isNull } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
-import { memberships, organizations, sessions, users } from "@symbola/db/schema/hub";
+import { knownDevices, memberships, organizations, sessions, users } from "@symbola/db/schema/hub";
 import { journalConnection } from "./connection-journal";
+import { deviceLabelOf, formatDeviceLabel, hashAlertToken, newAlertToken, newDeviceId, validDeviceId } from "./devices";
 import type { IdentityClaims } from "./identity/oidc";
-import type { Role } from "./roles";
+import { requiresMfa as roleRequiresMfa, type MembershipRole, type Role } from "./roles";
 import { generateSessionToken, hashSessionToken } from "./session-token";
 
 const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 h sans activité, glissantes
+// Lot 52 (HUB-05, D4) : la dernière activité d'une session s'écrit au plus une fois par heure.
+export const SESSION_ACTIVITY_STEP_MS = 60 * 60 * 1000;
+// Lot 52 (SEC-08) : le lien « Ce n'est pas moi » d'une alerte de nouvel appareil vaut sept jours.
+export const DEVICE_ALERT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 // D4 (lot 33) : la double authentification est demandée après « Votre espace est prêt », pas
 // pendant l'inscription. Seule la séance ouverte par l'inscription elle-même en est dispensée :
 // sa session naît dans la minute qui suit la création du compte.
@@ -34,6 +39,8 @@ export type AuthenticatedUser = {
   firstStepsHidden: boolean;
   // La session a été ouverte avec une double authentification (déclaration acr).
   mfaEnabled: boolean;
+  // Lot 52 (HUB-05) : la session en cours, pour la marquer « cet appareil ».
+  sessionId?: string;
 };
 
 export type AuthResult =
@@ -65,15 +72,16 @@ export async function createUser(db: AppDatabase, input: { organizationId: strin
   });
 }
 
-export async function addMembership(db: AppDatabase, input: { userId: string; organizationId: string; role: "owner" | "member" }): Promise<void> {
+export async function addMembership(db: AppDatabase, input: { userId: string; organizationId: string; role: MembershipRole }): Promise<void> {
   await db.insert(memberships).values(input).onConflictDoNothing();
 }
 
 // Invitation acceptée (lot 33, HUB-02) : le compte de l'adresse invitée, créé s'il n'existe pas,
 // reçoit l'adhésion à l'organisation. Un compte qui a déjà d'autres organisations les garde. Lot 33b
 // (HUB-03) : une adhésion retirée se rouvre quand la Propriétaire invite de nouveau la personne ;
-// le rôle d'une adhésion existante ne change pas (transfert de propriété : lot 52).
-export async function ensureMembership(db: AppDatabase, input: { organizationId: string; email: string; role: "owner" | "member" }): Promise<{ userId: string }> {
+// le rôle d'une adhésion active ne change pas (transfert de propriété : lot 52). Lot 52 : une adhésion
+// retirée se rouvre avec le rôle de la nouvelle invitation (Planner ou Comptable).
+export async function ensureMembership(db: AppDatabase, input: { organizationId: string; email: string; role: MembershipRole }): Promise<{ userId: string }> {
   const email = input.email.toLowerCase();
   return db.transaction(async (tx) => {
     const [existing] = await tx.select({ id: users.id }).from(users).where(eq(users.email, email));
@@ -81,14 +89,19 @@ export async function ensureMembership(db: AppDatabase, input: { organizationId:
     await tx
       .insert(memberships)
       .values({ userId, organizationId: input.organizationId, role: input.role })
-      .onConflictDoUpdate({ target: [memberships.userId, memberships.organizationId], set: { disabledAt: null }, setWhere: isNotNull(memberships.disabledAt) });
+      .onConflictDoUpdate({ target: [memberships.userId, memberships.organizationId], set: { disabledAt: null, role: input.role }, setWhere: isNotNull(memberships.disabledAt) });
     return { userId };
   });
 }
 
+// Lot 52 (SEC-08) : connexion depuis un appareil inconnu de ce compte ; le jeton du lien « Ce n'est pas
+// moi » n'est remis qu'ici, pour l'e-mail d'alerte.
+export type NewDeviceAlert = { alertToken: string; deviceLabel: string; at: Date };
+
 export type SignInOutcome =
-  // requiresMfa : Propriétaire de l'organisation ouverte, ou Exploitation (D4).
-  | { outcome: "signed_in"; sessionToken: string; userId: string; organizationId: string | null; isNewAccount: boolean; requiresMfa: boolean }
+  // requiresMfa : Propriétaire ou Comptable de l'organisation ouverte, ou Exploitation (D4, lot 52).
+  // deviceId : identifiant d'appareil à garder dans le cookie (lot 52, HUB-05).
+  | { outcome: "signed_in"; sessionToken: string; userId: string; organizationId: string | null; isNewAccount: boolean; requiresMfa: boolean; deviceId: string; newDevice: NewDeviceAlert | null }
   // Compte désactivé, ou plus aucune organisation active (accès retirés) : refus, sans détail.
   | { outcome: "refused" };
 
@@ -98,10 +111,12 @@ export type SignInOutcome =
 export async function signInWithIdentity(
   db: AppDatabase,
   claims: IdentityClaims,
-  options: { preferredOrganizationId?: string | null; clientIp?: string | null; now?: Date } = {},
+  options: { preferredOrganizationId?: string | null; clientIp?: string | null; now?: Date; device?: { id?: string | null; userAgent?: string | null } } = {},
 ): Promise<SignInOutcome> {
   const now = options.now ?? new Date();
   const email = claims.email.toLowerCase();
+  const deviceId = validDeviceId(options.device?.id) ?? newDeviceId();
+  const deviceLabel = formatDeviceLabel(deviceLabelOf(options.device?.userAgent));
   const result = await db.transaction(async (tx) => {
     let isNewAccount = false;
     let [user] = await tx.select().from(users).where(eq(users.idpSubject, claims.subject));
@@ -131,7 +146,7 @@ export async function signInWithIdentity(
       const preferred = active.find((membership) => membership.organizationId === options.preferredOrganizationId);
       const chosen = preferred ?? active[0]!;
       organizationId = chosen.organizationId;
-      requiresMfa = chosen.role === "owner";
+      requiresMfa = roleRequiresMfa(chosen.role);
     }
 
     const sessionToken = generateSessionToken();
@@ -142,9 +157,13 @@ export async function signInWithIdentity(
       mfaVerified: claims.mfa,
       expiresAt: new Date(now.getTime() + SESSION_DURATION_MS),
       createdAt: now,
+      deviceLabel,
+      deviceId,
+      lastSeenAt: now,
     });
     await tx.update(users).set({ lastLoginAt: now }).where(eq(users.id, user.id));
-    return { outcome: "signed_in", sessionToken, userId: user.id, organizationId, isNewAccount, requiresMfa, operator: user.operator } as const;
+    const newDevice = await rememberDevice(tx, { userId: user.id, deviceId, deviceLabel, now, silent: isNewAccount });
+    return { outcome: "signed_in", sessionToken, userId: user.id, organizationId, isNewAccount, requiresMfa, operator: user.operator, deviceId, newDevice } as const;
   });
   if (result.outcome === "signed_in") {
     await journalConnection(db, { id: result.userId, organizationId: result.organizationId, role: result.operator ? "admin" : "member" }, "hub.session.opened", {
@@ -155,6 +174,37 @@ export async function signInWithIdentity(
     return outcome;
   }
   return result;
+}
+
+type Tx = Parameters<Parameters<AppDatabase["transaction"]>[0]>[0];
+
+// SEC-08 : un appareil inconnu du compte est retenu, avec le haché du jeton « Ce n'est pas moi », et
+// l'alerte est demandée. Le premier appareil d'un compte (inscription, ou premier passage après le lot
+// 52) est retenu sans alerte : rien n'était encore connu.
+async function rememberDevice(tx: Tx, input: { userId: string; deviceId: string; deviceLabel: string; now: Date; silent: boolean }): Promise<NewDeviceAlert | null> {
+  const known = await tx.select({ deviceId: knownDevices.deviceId }).from(knownDevices).where(eq(knownDevices.userId, input.userId));
+  if (known.some((device) => device.deviceId === input.deviceId)) {
+    await tx
+      .update(knownDevices)
+      .set({ lastSeenAt: input.now, deviceLabel: input.deviceLabel })
+      .where(and(eq(knownDevices.userId, input.userId), eq(knownDevices.deviceId, input.deviceId)));
+    return null;
+  }
+  if (input.silent || known.length === 0) {
+    await tx.insert(knownDevices).values({ userId: input.userId, deviceId: input.deviceId, deviceLabel: input.deviceLabel, firstSeenAt: input.now, lastSeenAt: input.now });
+    return null;
+  }
+  const alertToken = newAlertToken();
+  await tx.insert(knownDevices).values({
+    userId: input.userId,
+    deviceId: input.deviceId,
+    deviceLabel: input.deviceLabel,
+    firstSeenAt: input.now,
+    lastSeenAt: input.now,
+    alertTokenHash: hashAlertToken(alertToken),
+    alertExpiresAt: new Date(input.now.getTime() + DEVICE_ALERT_TTL_MS),
+  });
+  return { alertToken, deviceLabel: input.deviceLabel, at: input.now };
 }
 
 type SessionRow = {
@@ -169,7 +219,9 @@ type SessionRow = {
   mfaVerified: boolean;
   expiresAt: Date;
   sessionCreatedAt: Date;
-  membershipRole: "owner" | "member" | null;
+  sessionId: string;
+  lastSeenAt: Date | null;
+  membershipRole: MembershipRole | null;
 };
 
 async function readSession(db: AppDatabase, tokenHash: string): Promise<SessionRow | null> {
@@ -186,6 +238,8 @@ async function readSession(db: AppDatabase, tokenHash: string): Promise<SessionR
       mfaVerified: sessions.mfaVerified,
       expiresAt: sessions.expiresAt,
       sessionCreatedAt: sessions.createdAt,
+      sessionId: sessions.id,
+      lastSeenAt: sessions.lastSeenAt,
       membershipRole: memberships.role,
     })
     .from(sessions)
@@ -206,10 +260,10 @@ function sessionRole(row: SessionRow): Role | null {
   return row.membershipRole;
 }
 
-// D4 : Propriétaire et Exploitation sans double authentification dans cette session ? La séance
-// ouverte par l'inscription en est seule dispensée (jamais l'Exploitation).
+// D4 : Propriétaire, Comptable (lot 52) et Exploitation sans double authentification dans cette
+// session ? La séance ouverte par l'inscription en est seule dispensée (Propriétaire seulement).
 function missesMfa(row: SessionRow, role: Role): boolean {
-  if (row.mfaVerified || role === "member") return false;
+  if (row.mfaVerified || !roleRequiresMfa(role)) return false;
   if (role === "owner" && row.sessionCreatedAt.getTime() - row.userCreatedAt.getTime() <= SIGNUP_GRACE_MS) return false;
   return true;
 }
@@ -222,8 +276,14 @@ export async function requireUser(db: AppDatabase, sessionToken: string | undefi
   const role = sessionRole(row);
   if (!role) return { status: "unauthenticated" };
 
-  // Session glissante : chaque appel réussi repousse l'expiration.
-  await db.update(sessions).set({ expiresAt: new Date(Date.now() + SESSION_DURATION_MS) }).where(eq(sessions.tokenHash, tokenHash));
+  // Session glissante : chaque appel réussi repousse l'expiration. Lot 52 (HUB-05) : la dernière
+  // activité, au plus une fois par heure.
+  const now = Date.now();
+  const touch = !row.lastSeenAt || now - row.lastSeenAt.getTime() >= SESSION_ACTIVITY_STEP_MS;
+  await db
+    .update(sessions)
+    .set({ expiresAt: new Date(now + SESSION_DURATION_MS), ...(touch ? { lastSeenAt: new Date(now) } : {}) })
+    .where(eq(sessions.tokenHash, tokenHash));
 
   if (missesMfa(row, role)) return { status: "mfa_required", userId: row.userId, role };
   return {
@@ -236,6 +296,7 @@ export async function requireUser(db: AppDatabase, sessionToken: string | undefi
       language: row.language,
       firstStepsHidden: row.firstStepsHidden,
       mfaEnabled: row.mfaVerified,
+      sessionId: row.sessionId,
     },
   };
 }
@@ -252,7 +313,7 @@ export async function findSessionActor(db: AppDatabase, sessionToken: string | u
 }
 
 // HUB-02 : organisations où le compte a une adhésion active, pour le sélecteur.
-export async function listOrganizations(db: AppDatabase, userId: string): Promise<{ organizationId: string; name: string; role: "owner" | "member" }[]> {
+export async function listOrganizations(db: AppDatabase, userId: string): Promise<{ organizationId: string; name: string; role: MembershipRole }[]> {
   return db
     .select({ organizationId: organizations.id, name: organizations.name, role: memberships.role })
     .from(memberships)

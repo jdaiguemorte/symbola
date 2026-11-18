@@ -73,13 +73,14 @@ export function smtpConnector(smtp: SmtpSettings) {
 }
 
 // Centre de compte du fournisseur (/account) : la personne y gère elle-même son mot de passe, sa
-// clé d'accès et sa double authentification (D4). L'adresse reste en lecture seule : Symbola
-// la connaît, et son changement (avec l'alerte de SEC-08) vient au lot 52. Le reste est coupé.
+// clé d'accès et sa double authentification (D4). Lot 52 (SEC-08, D6) : l'adresse aussi ; son
+// changement arrive à Symbola par le webhook signé, et l'alerte part à l'ancienne adresse. Le reste est
+// coupé.
 export function accountCenter() {
   return {
     enabled: true,
     fields: {
-      email: "ReadOnly",
+      email: "Edit",
       password: "Edit",
       mfa: "Edit",
       passkey: "Edit",
@@ -95,4 +96,11 @@ export function accountCenter() {
       personalAccessToken: "Off",
     },
   };
+}
+
+// Lot 52 (SEC-08, D6) : le webhook de Symbola chez le fournisseur, et l'adresse où il appelle l'app.
+export const IDENTITY_WEBHOOK_NAME = "Symbola";
+
+export function identityWebhookUrl(appPublicUrl: string, override?: string): string {
+  return override ?? `${appPublicUrl.replace(/\/+$/, "")}/api/webhooks/identite`;
 }

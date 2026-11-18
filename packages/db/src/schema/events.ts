@@ -541,7 +541,9 @@ export const programTemplateItems = eventsSchema.table("program_template_items",
 // « <organisation>.<secret> » : seul le haché du secret est stocké, et il
 // disparaît quand le lien est retiré. Remplace event_client_accesses (comptes
 // des mariés, ADR 0020).
-export const eventLinkAudienceEnum = eventsSchema.enum("event_link_audience", ["client", "vendor", "guest"]);
+// Lot 52 (EVT-06, D3, ADR 0094) : « day_helper », le renfort du jour J, sans compte : son lien n'ouvre
+// que le mode Jour J de son évènement, de la veille au lendemain, avec un code à usage unique.
+export const eventLinkAudienceEnum = eventsSchema.enum("event_link_audience", ["client", "vendor", "guest", "day_helper"]);
 
 export const eventLinks = eventsSchema.table("event_links", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -571,6 +573,8 @@ export const eventLinks = eventsSchema.table("event_links", {
   // la langue de l'e-mail du lien.
   taskReminders: boolean("task_reminders").notNull().default(true),
   locale: text("locale").notNull().default("fr"),
+  // Lot 52 (EVT-06, D3) : téléphone du renfort du jour J, pour l'annuaire du jour (facultatif).
+  phone: text("phone"),
   // SEC-15 : dernier jour valable choisi par la planner ; sinon calculé.
   customExpiresOn: date("custom_expires_on"),
   tokenHash: text("token_hash").unique(),
@@ -596,7 +600,41 @@ export const eventLinks = eventsSchema.table("event_links", {
   check("event_links_budget_scope_check", sql`${table.budgetScope} in ('all', 'selected')`),
   check("event_links_vendor_candidate_check", sql`${table.audience} <> 'vendor' or ${table.vendorCandidateId} is not null`),
   check("event_links_locale_check", sql`${table.locale} in ('fr', 'en')`),
+  // Lot 52 (D3) : un renfort du jour J n'a aucune rubrique du portail ; il demande un code à l'ouverture.
+  check("event_links_day_helper_check", sql`${table.audience}::text <> 'day_helper' or (${table.rubrics} = '{}'::text[] and ${table.otpRequired})`),
+  check("event_links_phone_check", sql`${table.phone} is null or char_length(${table.phone}) between 1 and 40`),
 ]);
+
+// Lot 52 (EVT-06, D2 ; ADR 0094) — l'équipe d'un évènement : un planner principal (« lead », un seul
+// par évènement : il reçoit les alertes et récapitulatifs du lot 53) et des assistants (tout
+// l'évènement, sauf la suppression). Le membre est un compte de l'organisation (hub.memberships, sans
+// clé entre schémas) ; son retrait de l'organisation le retire des équipes.
+export const EVENT_TEAM_ROLES = ["lead", "assistant"] as const;
+
+export const eventTeamMembers = eventsSchema.table(
+  "event_team_members",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull(),
+    role: text("role", { enum: EVENT_TEAM_ROLES }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("event_team_members_organization_idx").on(table.organizationId),
+    index("event_team_members_event_idx").on(table.eventId),
+    index("event_team_members_user_idx").on(table.userId),
+    unique("event_team_members_event_user_unique").on(table.eventId, table.userId),
+    uniqueIndex("event_team_members_one_lead").on(table.eventId).where(sql`${table.role} = 'lead'`),
+    check("event_team_members_role_check", sql`${table.role} in ('lead', 'assistant')`),
+  ],
+);
 
 // Lot 26a (POR-10) : catégories du budget (postes de l'événement) partagées
 // avec un lien en « catégories choisies ».
@@ -1134,7 +1172,9 @@ export const dayCheckpoints = eventsSchema.table(
     // « started » (Commencé) ou « finished » (Terminé).
     kind: text("kind").notNull(),
     deviceAt: timestamp("device_at", { withTimezone: true }).notNull(),
-    userId: uuid("user_id").notNull(),
+    // Lot 52 (EVT-06, D3) : l'auteur est un compte de l'équipe, ou le lien du renfort du jour J.
+    userId: uuid("user_id"),
+    linkId: uuid("link_id").references((): AnyPgColumn => eventLinks.id, { onDelete: "set null" }),
     actionId: uuid("action_id").notNull(),
     receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -1149,6 +1189,7 @@ export const dayCheckpoints = eventsSchema.table(
     index("day_checkpoints_item_idx").on(table.programItemId),
     unique("day_checkpoints_action_unique").on(table.organizationId, table.actionId),
     check("day_checkpoints_kind_check", sql`${table.kind} in ('started', 'finished')`),
+    check("day_checkpoints_author_check", sql`${table.userId} is null or ${table.linkId} is null`),
   ],
 );
 
@@ -1213,7 +1254,9 @@ export const dayPhotos = eventsSchema.table(
     contentType: text("content_type"),
     sizeBytes: integer("size_bytes"),
     takenAt: timestamp("taken_at", { withTimezone: true }).notNull(),
-    takenBy: uuid("taken_by").notNull(),
+    // Lot 52 (D3) : prise par un compte de l'équipe, ou par le lien du renfort du jour J.
+    takenBy: uuid("taken_by"),
+    takenByLinkId: uuid("taken_by_link_id").references((): AnyPgColumn => eventLinks.id, { onDelete: "set null" }),
     actionId: uuid("action_id").notNull(),
     receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -1227,6 +1270,7 @@ export const dayPhotos = eventsSchema.table(
     index("day_photos_subject_idx").on(table.subjectId),
     unique("day_photos_action_unique").on(table.organizationId, table.actionId),
     check("day_photos_subject_check", sql`${table.subject} in ('incident', 'checklist_item', 'handover')`),
+    check("day_photos_author_check", sql`${table.takenBy} is null or ${table.takenByLinkId} is null`),
     check(
       "day_photos_state_check",
       sql`(${table.state} = 'stored' and ${table.storageKey} is not null and ${table.contentType} is not null and ${table.sizeBytes} > 0 and ${table.rejection} is null) or (${table.state} = 'rejected' and ${table.storageKey} is null and ${table.rejection} in ('type', 'size', 'virus', 'unavailable'))`,
@@ -1248,7 +1292,9 @@ export const dayIncidents = eventsSchema.table(
     body: text("body").notNull(),
     severity: text("severity"),
     deviceAt: timestamp("device_at", { withTimezone: true }).notNull(),
-    userId: uuid("user_id").notNull(),
+    // Lot 52 (D3) : écrit par un compte de l'équipe, ou par le lien du renfort du jour J.
+    userId: uuid("user_id"),
+    linkId: uuid("link_id").references((): AnyPgColumn => eventLinks.id, { onDelete: "set null" }),
     actionId: uuid("action_id").notNull(),
     receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -1260,6 +1306,7 @@ export const dayIncidents = eventsSchema.table(
     index("day_incidents_organization_idx").on(table.organizationId),
     index("day_incidents_event_idx").on(table.eventId),
     unique("day_incidents_action_unique").on(table.organizationId, table.actionId),
+    check("day_incidents_author_check", sql`${table.userId} is null or ${table.linkId} is null`),
     check("day_incidents_body_check", sql`char_length(${table.body}) between 1 and 2000`),
     check("day_incidents_severity_check", sql`${table.severity} is null or ${table.severity} in ('info', 'follow_up', 'urgent')`),
   ],
@@ -1332,6 +1379,8 @@ export const dayChecklistItems = eventsSchema.table(
     position: integer("position").notNull().default(0),
     checkedAt: timestamp("checked_at", { withTimezone: true }),
     checkedBy: uuid("checked_by"),
+    // Lot 52 (D3) : case cochée par le lien du renfort du jour J.
+    checkedByLinkId: uuid("checked_by_link_id").references((): AnyPgColumn => eventLinks.id, { onDelete: "set null" }),
     checkActionId: uuid("check_action_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
@@ -1342,7 +1391,11 @@ export const dayChecklistItems = eventsSchema.table(
     index("day_checklist_items_organization_idx").on(table.organizationId),
     index("day_checklist_items_checklist_idx").on(table.checklistId),
     check("day_checklist_items_label_check", sql`char_length(${table.label}) between 1 and 200`),
-    check("day_checklist_items_check_check", sql`(${table.checkedAt} is null and ${table.checkedBy} is null) or (${table.checkedAt} is not null and ${table.checkedBy} is not null)`),
+    // Lot 52 : cochée par un compte ou par un lien (ce dernier peut disparaître avec son évènement).
+    check(
+      "day_checklist_items_check_check",
+      sql`(${table.checkedAt} is null and ${table.checkedBy} is null and ${table.checkedByLinkId} is null) or (${table.checkedAt} is not null and (${table.checkedBy} is null or ${table.checkedByLinkId} is null))`,
+    ),
   ],
 );
 
