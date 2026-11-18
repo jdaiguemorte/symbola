@@ -77,11 +77,15 @@ export function ContactForm({
       ) : null}
       <div className="field-row">
         <label>
-          {t("firstName")} <span aria-hidden="true">*</span>
+          <span>
+            {t("firstName")} <span className="required-mark" aria-hidden="true">*</span>
+          </span>
           <input type="text" name="firstName" required maxLength={100} autoComplete="given-name" defaultValue={values.firstName ?? ""} />
         </label>
         <label>
-          {t("lastName")} <span aria-hidden="true">*</span>
+          <span>
+            {t("lastName")} <span className="required-mark" aria-hidden="true">*</span>
+          </span>
           <input type="text" name="lastName" required maxLength={100} autoComplete="family-name" defaultValue={values.lastName ?? ""} />
         </label>
       </div>

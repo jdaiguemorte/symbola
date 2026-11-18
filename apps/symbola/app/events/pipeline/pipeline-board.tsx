@@ -110,7 +110,16 @@ export function PipelineBoard({ stages, cards, lossReasons }: { stages: Stage[];
                     <dd>{t("days", { count: card.daysInStage })}</dd>
                   </div>
                 </dl>
-                <MoveToGroupButton itemLabel={card.label} currentGroupId={board.groupOf(card.id)} targets={targets} onChoose={(groupId) => board.move(card.id, groupId)} />
+                <MoveToGroupButton
+                  itemLabel={card.label}
+                  currentGroupId={board.groupOf(card.id)}
+                  targets={targets}
+                  onChoose={(groupId) => {
+                    // À 375 px, l'onglet suit la carte : elle reste visible et garde le focus.
+                    if (stages.some((candidate) => candidate.id === groupId)) setActive(groupId);
+                    board.move(card.id, groupId);
+                  }}
+                />
               </article>
             </li>
           ))}
@@ -124,7 +133,7 @@ export function PipelineBoard({ stages, cards, lossReasons }: { stages: Stage[];
       {/* D10 : à 375 px, une étape à la fois ; les onglets donnent le nombre de cartes. */}
       <div className="pipeline-tabs" role="group" aria-label={t("stagesLabel")}>
         {stages.map((stage) => (
-          <button key={stage.id} type="button" className="button-ghost" aria-pressed={active === stage.id} onClick={() => setActive(stage.id)}>
+          <button key={stage.id} type="button" aria-pressed={active === stage.id} onClick={() => setActive(stage.id)}>
             {stage.label} <span className="nav-count">{board.itemsIn(stage.id).length}</span>
           </button>
         ))}

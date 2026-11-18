@@ -3727,8 +3727,14 @@
   .pipeline-tabs {
     @apply my-3 flex flex-wrap gap-2 sm:hidden;
   }
+  .pipeline-tabs button {
+    @apply inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-surface px-3 text-body text-ink-muted;
+  }
   .pipeline-tabs button[aria-pressed="true"] {
-    @apply border-primary bg-primary-soft font-semibold text-ink;
+    @apply border-primary bg-primary-soft font-semibold text-primary-strong;
+  }
+  .contact-form .required-mark {
+    @apply text-critical;
   }
   .pipeline-board {
     @apply grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(15rem,1fr))];

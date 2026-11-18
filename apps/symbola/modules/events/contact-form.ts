@@ -214,7 +214,9 @@ export async function resolvePublicContactForm(slug: string, locale: "fr" | "en"
     listEventTypes(form.organizationId),
     findProspectSources(form.organizationId),
   ]);
-  const address = [seller.address, [seller.postalCode, seller.city].filter(Boolean).join(" ")].filter(Boolean).join(", ") || null;
+  // L'adresse du profil est sa ligne ; code postal et ville s'y ajoutent s'ils n'y sont pas déjà.
+  const locality = [seller.postalCode, seller.city].filter(Boolean).join(" ");
+  const address = [seller.address, locality && !(seller.address ?? "").includes(seller.postalCode ?? locality) ? locality : ""].filter(Boolean).join(", ") || null;
   const settings = toSettings(form);
   return {
     organizationId: form.organizationId,
