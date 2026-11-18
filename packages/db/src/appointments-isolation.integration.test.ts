@@ -35,7 +35,9 @@ function first<T>(rows: T[]): T {
   return row;
 }
 
-const SEALED = "f1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+// Une valeur au format chiffré (« f1: ») sans être un vrai chiffré : la contrainte de la table ne
+// regarde que le préfixe. Construite ici plutôt qu'écrite en entier, pour ne pas imiter une clé.
+const SEALED = `f1:${"A".repeat(40)}`;
 
 async function seedType(tx: Tx, organizationId: string) {
   return first(await tx.insert(appointmentTypes).values({ organizationId, name: "Découverte", durationMinutes: 60, hostUserId: randomUUID() }).returning());
