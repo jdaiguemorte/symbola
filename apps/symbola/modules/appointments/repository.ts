@@ -1,4 +1,4 @@
-// Accès aux données du module appointments (lot 46, ADR 0080) — jamais importé hors de
+// Accès aux données du module appointments (lot 46, ADR 0083) — jamais importé hors de
 // modules/appointments/ (ADR 0011). Chaque requête passe par withOrganization (RLS, CLAUDE.md § 5),
 // sauf la recherche publique d'une adresse de page de réservation (lisible sans organisation).
 import { and, asc, desc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, ne, or, sql } from "drizzle-orm";

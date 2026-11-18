@@ -1,4 +1,4 @@
--- Lot 46 (RDV-01 à RDV-04, EVT-10 ; D1 à D11 ; ADR 0080) : le module Rendez-vous, dans son propre
+-- Lot 46 (RDV-01 à RDV-04, EVT-10 ; D1 à D11 ; ADR 0083) : le module Rendez-vous, dans son propre
 -- schéma (appointments) : page publique de réservation, types, disponibilités, agendas extérieurs
 -- (adresse chiffrée, plages occupées seulement), rendez-vous, comptes rendus et actions. Schéma
 -- appointments seulement ; les autres modules n'y sont connus que par un identifiant opaque.

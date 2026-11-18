@@ -1,4 +1,4 @@
-// Lot 46 (RDV-02 ; D2, D3, D4 ; ADR 0080) — lecture d'un agenda extérieur par son adresse secrète
+// Lot 46 (RDV-02 ; D2, D3, D4 ; ADR 0083) — lecture d'un agenda extérieur par son adresse secrète
 // ICS (Google, Apple, Outlook), et garde réseau. L'adresse est un justificatif : elle n'apparaît dans
 // aucun message d'erreur ni journal (une erreur ne porte que son genre). Garde (SSRF) :
 // - https seulement (« webcal:// » est lu en https), sans identifiants dans l'adresse ;

@@ -1,4 +1,4 @@
-// Schéma du module appointments (lot 46 : RDV-01 à RDV-04, EVT-10 ; décisions D1 à D11 ; ADR 0080).
+// Schéma du module appointments (lot 46 : RDV-01 à RDV-04, EVT-10 ; décisions D1 à D11 ; ADR 0083).
 // Le module Rendez-vous : types, disponibilités, agendas extérieurs lus (plages occupées seulement),
 // rendez-vous, comptes rendus et leurs actions. Chaque table a organization_id (CLAUDE.md § 2.3),
 // protégé par Row-Level Security forcée (migration 0151). Les autres modules n'y sont connus que par
@@ -128,7 +128,7 @@ export const availabilityClosures = appointmentsSchema.table(
 );
 
 // D2 — agenda extérieur d'une personne de l'équipe : son adresse secrète ICS, chiffrée au repos
-// (DAT-08, ADR 0078 ; « f1: »), jamais affichée en entier (url_hint : hôte et quatre derniers
+// (DAT-08, ADR 0079 ; « f1: »), jamais affichée en entier (url_hint : hôte et quatre derniers
 // caractères). Trois échecs de suite : « error », aucun créneau tant qu'elle n'est pas relue.
 export const calendarSources = appointmentsSchema.table(
   "calendar_sources",
@@ -209,7 +209,7 @@ export const appointments = appointmentsSchema.table(
     contactId: uuid("contact_id"),
     eventId: uuid("event_id"),
     manageTokenHash: text("manage_token_hash"),
-    // Le même jeton, chiffré (DAT-08, ADR 0078) : les rappels redonnent le lien déjà envoyé.
+    // Le même jeton, chiffré (DAT-08, ADR 0079) : les rappels redonnent le lien déjà envoyé.
     manageTokenSealed: text("manage_token_sealed"),
     rescheduledAt: timestamp("rescheduled_at", { withTimezone: true }),
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),

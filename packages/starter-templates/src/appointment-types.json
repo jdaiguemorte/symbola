@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_source": "Lot 46 (RDV-01, HUB-20 ; D6, D10 ; ADR 0080) : modèles de départ du module Rendez-vous, traduisibles, jamais en dur. Trois types (premier rendez-vous découverte en visio, visite de lieu, dégustation), les plages hebdomadaires par défaut de la personne qui reçoit (lundi au vendredi, 9 h - 18 h, heure de Paris), les réglages par défaut d'un type créé avec son seul nom et sa durée, et la mention d'information de la page publique de réservation. Mention à faire relire par la DPO (question DPO-3, docs/conformite/fiche-dpo.md) avant la première donnée réelle ; la planner la remplace dans les réglages de sa page. Variables de la mention : {organization}, {contact}.",
+  "_source": "Lot 46 (RDV-01, HUB-20 ; D6, D10 ; ADR 0083) : modèles de départ du module Rendez-vous, traduisibles, jamais en dur. Trois types (premier rendez-vous découverte en visio, visite de lieu, dégustation), les plages hebdomadaires par défaut de la personne qui reçoit (lundi au vendredi, 9 h - 18 h, heure de Paris), les réglages par défaut d'un type créé avec son seul nom et sa durée, et la mention d'information de la page publique de réservation. Mention à faire relire par la DPO (question DPO-3, docs/conformite/fiche-dpo.md) avant la première donnée réelle ; la planner la remplace dans les réglages de sa page. Variables de la mention : {organization}, {contact}.",
   "defaults": {
     "locationKind": "video",
     "bufferBeforeMinutes": 0,

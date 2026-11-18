@@ -1,4 +1,4 @@
-// Schémas des événements internes du module appointments (lot 46, RDV-04, D7 ; ADR 0080).
+// Schémas des événements internes du module appointments (lot 46, RDV-04, D7 ; ADR 0083).
 // Nommage <module>.<entité>.<action> au passé (CLAUDE.md § 5).
 import { z } from "zod";
 

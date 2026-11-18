@@ -151,9 +151,9 @@ test("ARC-07 — chaque combinaison de modules s'affiche sans erreur, et un modu
   }
 });
 
-// Lot 46 (RDV-04, ARC-07 ; ADR 0062, ADR 0080) : le module Rendez-vous rejoint la preuve. Pour ne pas
+// Lot 46 (RDV-04, ARC-07 ; ADR 0062, ADR 0083) : le module Rendez-vous rejoint la preuve. Pour ne pas
 // doubler la durée du parcours (32 combinaisons), il est joué fermé avec les 16 combinaisons
-// ci-dessus (fermé par défaut, ADR 0078), puis dans les deux cas qui comptent : seul, et avec les
+// ci-dessus (fermé par défaut, ADR 0079), puis dans les deux cas qui comptent : seul, et avec les
 // quatre autres. Ses écrans répondent sans erreur, sans écran vide ; fermé, il est « indisponible ».
 const APPOINTMENT_SCREENS = ["/rendez-vous", "/rendez-vous/reglages", "/rendez-vous/disponibilites", "/rendez-vous/nouveau"];
 const APPOINTMENTS_UNAVAILABLE = "Le module Rendez-vous n'est pas activé pour votre organisation.";

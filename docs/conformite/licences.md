@@ -41,7 +41,7 @@ servent à construire et à tester (« développement »). Les paquets propres �
 | `@img/sharp-libvips-<plateforme>` | LGPL-3.0-or-later | production | Bibliothèque native de traitement d'images (libvips), chargée par sharp pour l'optimisation des images de Next.js ; employée sans modification, telle que publiée. |
 | `lightningcss` | MPL-2.0 | production | Transformation du CSS (Tailwind CSS) à la construction de l'app, employée sans modification. |
 | `lightningcss-<plateforme>` | MPL-2.0 | production | Binaire natif de lightningcss pour la plateforme de construction, employé sans modification. |
-| `ical.js` | MPL-2.0 | production | Lecture des agendas extérieurs au format iCalendar (lot 46, ADR 0080) : répétitions, exceptions et fuseaux ; employée sans modification, telle que publiée. |
+| `ical.js` | MPL-2.0 | production | Lecture des agendas extérieurs au format iCalendar (lot 46, ADR 0083) : répétitions, exceptions et fuseaux ; employée sans modification, telle que publiée. |
 
 ## Services (images Docker)
 

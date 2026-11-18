@@ -806,7 +806,7 @@ export const EMAIL_TEMPLATE_KINDS = [
   "vendor_link",
   "vendor_link_renewed",
   "task_reminder",
-  // Lot 46 (RDV-03, ADR 0080) : rendez-vous, côté personne qui l'a pris.
+  // Lot 46 (RDV-03, ADR 0083) : rendez-vous, côté personne qui l'a pris.
   "appointment_confirmed",
   "appointment_reminder",
   "appointment_rescheduled",

@@ -83,7 +83,7 @@ const PUBLIC_ENTRIES: Record<string, string> = {
   "partage/page.tsx#default": "arrivée d'un lien de partage : le jeton reste dans le navigateur, la page n'affiche rien d'autre",
   "partage/actions.ts#describeShareLinkAction": "jeton du lien de partage, vérifié haché sous RLS, limité en débit ; l'intitulé seul, même réponse pour un lien inconnu, expiré ou révoqué",
   "partage/fichier/route.ts#POST": "jeton du lien de partage en POST du même site, vérifié haché sous RLS, limité en débit ; son document seul, l'ouverture journalisée",
-  // Lot 46 (RDV-02, RDV-03 ; D5, D11 ; ADR 0080) : page publique de réservation et lien de gestion d'un rendez-vous.
+  // Lot 46 (RDV-02, RDV-03 ; D5, D11 ; ADR 0083) : page publique de réservation et lien de gestion d'un rendez-vous.
   "reserver/[adresse]/page.tsx#default": "page publique de réservation : adresse lisible choisie par la planner, page active et module ouvert, sinon introuvable ; créneaux libres seulement, aucune donnée personnelle",
   "reserver/[adresse]/actions.ts#bookAppointmentAction": "réservation sans compte : entrée validée, piège à robots, débit limité par adresse IP et par adresse e-mail, trois rendez-vous à venir par adresse, même réponse au plafond qu'au débit",
   "rdv/page.tsx#default": "arrivée d'un lien de gestion : le jeton reste dans le navigateur, la page n'affiche rien d'autre",

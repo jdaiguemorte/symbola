@@ -1,4 +1,4 @@
-// Lot 46 (RDV-03 ; D5, D10 ; ADR 0080) — les e-mails d'un rendez-vous. À la personne : modèles de
+// Lot 46 (RDV-03 ; D5, D10 ; ADR 0083) — les e-mails d'un rendez-vous. À la personne : modèles de
 // l'organisation (confirmation avec l'invitation .ics, rappel, report, annulation), par la file des
 // tâches avec une clé d'unicité (un e-mail rejoué ne part qu'une fois, ADR 0076). À la personne qui
 // reçoit : un e-mail de Symbola (nouveau rendez-vous, report, annulation par la personne), dans sa

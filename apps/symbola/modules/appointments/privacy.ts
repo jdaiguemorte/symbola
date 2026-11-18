@@ -1,4 +1,4 @@
-// Lot 46 (RGP-05, RGPD-01 à RGPD-05 ; ADR 0080) — contrat privacy/v1 du module Rendez-vous. Champs
+// Lot 46 (RGP-05, RGPD-01 à RGPD-05 ; ADR 0083) — contrat privacy/v1 du module Rendez-vous. Champs
 // personnels (privacy.registry.yaml) : nom, e-mail et téléphone figés d'une personne qui a pris
 // rendez-vous, ses réponses aux questions préalables, les notes du compte rendu. Une fiche « appointment »
 // par rendez-vous ; rattachée à son évènement quand il y en a un. Les rendez-vous d'essai ne sont

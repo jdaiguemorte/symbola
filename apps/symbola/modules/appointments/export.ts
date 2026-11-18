@@ -1,4 +1,4 @@
-// Lot 46 (HUB-13, DAT-13 ; ADR 0068, ADR 0080) — entités du module Rendez-vous dans l'export complet
+// Lot 46 (HUB-13, DAT-13 ; ADR 0068, ADR 0083) — entités du module Rendez-vous dans l'export complet
 // de l'organisation (contrat export/v1) : page de réservation, types, disponibilités, agendas
 // extérieurs (sans leur adresse secrète), rendez-vous, comptes rendus et actions. Les rendez-vous
 // d'essai sont exclus ; le jeton de gestion n'est jamais exporté. Exposé par service.ts.

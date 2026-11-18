@@ -1128,8 +1128,8 @@ fields:
       Lot 11 (ADR 0031) : ce que veulent les clients pour un poste. Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
     anonymization: >-
       Effacé (null) lors d'une demande d'oubli de l'événement (RGPD-03).
-  # Module Rendez-vous (lot 46, ADR 0080). Agendas extérieurs (D2, D4) : l'adresse secrète est
-  # chiffrée (DAT-08, ADR 0078) ; seules les plages occupées (début, fin) en sont gardées
+  # Module Rendez-vous (lot 46, ADR 0083). Agendas extérieurs (D2, D4) : l'adresse secrète est
+  # chiffrée (DAT-08, ADR 0079) ; seules les plages occupées (début, fin) en sont gardées
   # (appointments.busy_intervals), sans titre, lieu ni participant, remplacées à chaque lecture
   # (toutes les quinze minutes) et effacées avec la source. Elles disent quand la personne de
   # l'équipe est prise, rien de plus. La page de réservation (booking_pages) ne porte que son
@@ -1139,7 +1139,7 @@ fields:
     field: person_name
     category: identifiant
     retention: >-
-      Lot 46 (RDV-02, RDV-03 ; ADR 0080) : figé à la réservation. Tant que le rendez-vous existe ; une personne qui a seulement pris rendez-vous, sans évènement, suit la règle des prospects (durée réglée après son dernier échange ; question DPO-2, défaut prudent) ; rattaché à un évènement, il suit l'évènement ; voir RGPD-03/RGPD-05.
+      Lot 46 (RDV-02, RDV-03 ; ADR 0083) : figé à la réservation. Tant que le rendez-vous existe ; une personne qui a seulement pris rendez-vous, sans évènement, suit la règle des prospects (durée réglée après son dernier échange ; question DPO-2, défaut prudent) ; rattaché à un évènement, il suit l'évènement ; voir RGPD-03/RGPD-05.
     anonymization: >-
       Lors d'une demande d'oubli ou de la purge (RGPD-03, RGPD-05) : nom remplacé par « [anonymisé] », e-mail, téléphone, réponses et jeton de gestion effacés, rattachement au contact retiré ; un rendez-vous à venir est annulé. Le rendez-vous reste (type, heure), sans personne.
   - schema: appointments
@@ -1147,7 +1147,7 @@ fields:
     field: person_email
     category: contact
     retention: >-
-      Lot 46 (RDV-02, RDV-03 ; ADR 0080) : figé à la réservation. Tant que le rendez-vous existe ; une personne qui a seulement pris rendez-vous, sans évènement, suit la règle des prospects (durée réglée après son dernier échange ; question DPO-2, défaut prudent) ; rattaché à un évènement, il suit l'évènement ; voir RGPD-03/RGPD-05.
+      Lot 46 (RDV-02, RDV-03 ; ADR 0083) : figé à la réservation. Tant que le rendez-vous existe ; une personne qui a seulement pris rendez-vous, sans évènement, suit la règle des prospects (durée réglée après son dernier échange ; question DPO-2, défaut prudent) ; rattaché à un évènement, il suit l'évènement ; voir RGPD-03/RGPD-05.
     anonymization: >-
       Lors d'une demande d'oubli ou de la purge (RGPD-03, RGPD-05) : nom remplacé par « [anonymisé] », e-mail, téléphone, réponses et jeton de gestion effacés, rattachement au contact retiré ; un rendez-vous à venir est annulé. Le rendez-vous reste (type, heure), sans personne.
   - schema: appointments
@@ -1155,7 +1155,7 @@ fields:
     field: person_phone
     category: contact
     retention: >-
-      Lot 46 (RDV-02, RDV-03 ; ADR 0080) : figé à la réservation. Tant que le rendez-vous existe ; une personne qui a seulement pris rendez-vous, sans évènement, suit la règle des prospects (durée réglée après son dernier échange ; question DPO-2, défaut prudent) ; rattaché à un évènement, il suit l'évènement ; voir RGPD-03/RGPD-05.
+      Lot 46 (RDV-02, RDV-03 ; ADR 0083) : figé à la réservation. Tant que le rendez-vous existe ; une personne qui a seulement pris rendez-vous, sans évènement, suit la règle des prospects (durée réglée après son dernier échange ; question DPO-2, défaut prudent) ; rattaché à un évènement, il suit l'évènement ; voir RGPD-03/RGPD-05.
     anonymization: >-
       Lors d'une demande d'oubli ou de la purge (RGPD-03, RGPD-05) : nom remplacé par « [anonymisé] », e-mail, téléphone, réponses et jeton de gestion effacés, rattachement au contact retiré ; un rendez-vous à venir est annulé. Le rendez-vous reste (type, heure), sans personne.
   - schema: appointments
@@ -1179,7 +1179,7 @@ fields:
     field: manage_token_sealed
     category: securite
     retention: >-
-      Lot 46 (RDV-03, DAT-08) : le même jeton, chiffré (« f1: », ADR 0078), pour redonner le lien dans les rappels ; jamais affiché à l'équipe.
+      Lot 46 (RDV-03, DAT-08) : le même jeton, chiffré (« f1: », ADR 0079), pour redonner le lien dans les rappels ; jamais affiché à l'équipe.
     anonymization: >-
       Effacé à l'oubli ou à la purge, avec l'empreinte.
   - schema: appointments

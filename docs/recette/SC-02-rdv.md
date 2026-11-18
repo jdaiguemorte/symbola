@@ -14,7 +14,7 @@ du mariage. Le devis de l'étape 3 est rejoué au lot 31a (`SC-02.md`).
 - Personnes fictives équivalentes à SU-01 et SU-05 : l'organisation « Atelier Camille » (fiche
   entreprise remplie) et sa titulaire, créées par la fabrique de test ; Léa Martin réserve avec
   une adresse `@example.test`. Le chargeur du jeu fictif (`seed:recette`) n'ouvre pas le module
-  Rendez-vous (fermé par défaut, ADR 0078) : il n'a pas servi ici.
+  Rendez-vous (fermé par défaut, ADR 0079) : il n'a pas servi ici.
 - Module Rendez-vous ouvert pour l'organisation, comme le fera l'Exploitation.
 
 | Étape | Rejouée par | Résultat |

@@ -9,7 +9,7 @@ import { Notice } from "./notice";
 
 type Query = { ok?: string; erreur?: string; passes?: string };
 
-// Lot 46 (RDV-01 à RDV-04 ; ADR 0080) — les rendez-vous de l'organisation : à venir d'abord, puis les
+// Lot 46 (RDV-01 à RDV-04 ; ADR 0083) — les rendez-vous de l'organisation : à venir d'abord, puis les
 // trente derniers passés à la demande. L'app s'utilise seule (RDV-04) : sans type ni page, l'écran
 // dit par quoi commencer ; jamais d'écran vide ni d'erreur.
 export default async function AppointmentsPage({ searchParams }: { searchParams: Promise<Query> }) {

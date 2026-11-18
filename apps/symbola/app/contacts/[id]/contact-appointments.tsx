@@ -1,4 +1,4 @@
-// Lot 46 (CRM-03, RDV-04 ; ADR 0080) — dans l'historique d'un contact : ses rendez-vous et la note de
+// Lot 46 (CRM-03, RDV-04 ; ADR 0083) — dans l'historique d'un contact : ses rendez-vous et la note de
 // leur compte rendu. Seulement si le module Rendez-vous est ouvert (ARC-07).
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";

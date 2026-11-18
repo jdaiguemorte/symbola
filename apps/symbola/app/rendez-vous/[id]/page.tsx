@@ -29,7 +29,7 @@ function localInput(iso: string): string {
   return `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}`;
 }
 
-// Lot 46 (RDV-03, RDV-04, EVT-10 ; D7 à D9 ; ADR 0080) — la fiche d'un rendez-vous : déplacer ou
+// Lot 46 (RDV-03, RDV-04, EVT-10 ; D7 à D9 ; ADR 0083) — la fiche d'un rendez-vous : déplacer ou
 // annuler (la personne est prévenue), rattacher à un évènement ou en créer une option sans ressaisie
 // (si le module Évènements est ouvert), compte rendu et actions ; une action devient une tâche de
 // l'évènement en un geste. Le compte rendu n'est jamais partagé au client (POR-10).

@@ -612,7 +612,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
                   </AppNavLink>
                 </li>
               ) : null}
-              {/* Lot 46 (RDV-01 à RDV-04, ADR 0080) : les rendez-vous, juste après les contacts. */}
+              {/* Lot 46 (RDV-01 à RDV-04, ADR 0083) : les rendez-vous, juste après les contacts. */}
               {appointments ? (
                 <li>
                   <AppNavLink href="/rendez-vous" except={["/rendez-vous/reglages", "/rendez-vous/disponibilites"]}>

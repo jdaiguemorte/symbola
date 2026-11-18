@@ -1,4 +1,4 @@
--- Lot 46 (RDV-01 à RDV-04, EVT-10 ; ADR 0080) : Row-Level Security forcée et droits du rôle
+-- Lot 46 (RDV-01 à RDV-04, EVT-10 ; ADR 0083) : Row-Level Security forcée et droits du rôle
 -- applicatif sur le schéma appointments (CLAUDE.md § 2.3, SEC-10, SEC-11), même patron que 0063.
 -- La page de réservation (booking_pages) est l'exception écrite : son adresse est publique par
 -- nature (/reserver/<adresse>), sa ligne se lit sans organisation pour retrouver celle de l'adresse ;

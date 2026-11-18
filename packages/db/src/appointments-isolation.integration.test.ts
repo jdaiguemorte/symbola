@@ -1,4 +1,4 @@
-// Lot 46 (RDV-01 à RDV-04, EVT-10 ; ADR 0080) — critère obligatoire (CLAUDE.md § 6) sur chaque
+// Lot 46 (RDV-01 à RDV-04, EVT-10 ; ADR 0083) — critère obligatoire (CLAUDE.md § 6) sur chaque
 // nouvelle table du schéma appointments : une organisation ne voit ni ne modifie les lignes d'une
 // autre ; l'Admin (sans organisation) n'en lit aucune. Exception écrite : l'adresse de la page de
 // réservation se lit sans organisation (elle est publique), mais ne s'écrit que par la sienne.

@@ -1,4 +1,4 @@
-// Lot 46 (EVT-10 ; D8 ; ADR 0080) — section « Rendez-vous et comptes rendus » de l'onglet Synthèse :
+// Lot 46 (EVT-10 ; D8 ; ADR 0083) — section « Rendez-vous et comptes rendus » de l'onglet Synthèse :
 // les rendez-vous rattachés à l'évènement, leur compte rendu et leurs actions (celles devenues
 // tâches le disent). Elle n'existe que si le module Rendez-vous est ouvert (ARC-07) ; elle charge
 // elle-même ses données, par le service du module.

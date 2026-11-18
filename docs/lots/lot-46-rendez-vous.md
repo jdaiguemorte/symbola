@@ -450,7 +450,7 @@ par le lot 49.
 
 ## Bilan (18/11/2026)
 
-Fait, dans une seule PR (ADR 0080) :
+Fait, dans une seule PR (ADR 0083) :
 
 - Module `appointments` (schéma et migrations 0150, 0151, annulables ; RLS forcée sur les neuf
   tables, lecture publique de la seule adresse de page) ; contrat et évènement interne

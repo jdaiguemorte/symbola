@@ -1,4 +1,4 @@
--- Lot 46 (RDV-03, D10 ; ADR 0080) : les quatre natures des e-mails de rendez-vous (confirmé, rappel,
+-- Lot 46 (RDV-03, D10 ; ADR 0083) : les quatre natures des e-mails de rendez-vous (confirmé, rappel,
 -- déplacé, annulé) deviennent personnalisables par l'organisation. Exception écrite à la règle
 -- « une migration ne touche que le schéma de son module » (DAT-09, ADR 0036), accordée par Julien le
 -- 18/11/2026 : seule la contrainte des natures de hub.email_templates est remplacée par la liste

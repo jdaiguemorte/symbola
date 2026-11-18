@@ -388,7 +388,7 @@ export {
   type TrashKind,
   type UndoKind,
 } from "./trash";
-// Lot 46 (RDV-01 à RDV-04, EVT-10 ; ADR 0080) — module Rendez-vous.
+// Lot 46 (RDV-01 à RDV-04, EVT-10 ; ADR 0083) — module Rendez-vous.
 export type {
   Appointment,
   AppointmentAnswerView,

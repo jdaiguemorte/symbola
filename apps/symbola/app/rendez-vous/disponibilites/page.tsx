@@ -8,7 +8,7 @@ import { appointmentsPlanner } from "../access";
 import { Notice } from "../notice";
 import { addCalendarSourceAction, addClosureAction, refreshCalendarSourceAction, removeCalendarSourceAction, removeClosureAction, saveAvailabilityAction } from "../actions";
 
-// Lot 46 (RDV-02 ; D2, D4 ; ADR 0080) — mes disponibilités : plages de la semaine (deux par jour au
+// Lot 46 (RDV-02 ; D2, D4 ; ADR 0083) — mes disponibilités : plages de la semaine (deux par jour au
 // plus), jours fermés, et mes agendas extérieurs (adresse secrète ICS, relue toutes les quinze
 // minutes ; seules les plages occupées sont gardées). Chaque personne de l'équipe ne voit que les
 // siens ; l'adresse n'est jamais réaffichée.

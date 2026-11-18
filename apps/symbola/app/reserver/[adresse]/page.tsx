@@ -13,7 +13,7 @@ function zonedDate(instant: Date): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: APPOINTMENTS_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(instant);
 }
 
-// Lot 46 (RDV-02, RDV-03 ; D5, D11 ; ADR 0080) — la page publique de réservation d'une organisation
+// Lot 46 (RDV-02, RDV-03 ; D5, D11 ; ADR 0083) — la page publique de réservation d'une organisation
 // (/reserver/<adresse>) : un type, puis une semaine de créneaux libres, puis le formulaire. Aucun
 // compte ; aucun cookie autre que celui de la langue ; ni indexée ni citée comme référent. Une
 // adresse inconnue, une page fermée ou un module fermé : la même page « introuvable ». Les créneaux

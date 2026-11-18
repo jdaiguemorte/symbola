@@ -1,4 +1,4 @@
-# ADR 0080 — Module Rendez-vous : page publique sur les disponibilités réelles, agendas connectés par adresse ICS (ical.js), lien de gestion sans compte
+# ADR 0083 — Module Rendez-vous : page publique sur les disponibilités réelles, agendas connectés par adresse ICS (ical.js), lien de gestion sans compte
 
 - Statut : accepté (spécification du lot 46 validée par Julien le 18/11/2026 ; décisions D1 à D11
   retenues dans leur option (a), dépendance `ical.js` accordée)
@@ -10,7 +10,7 @@
   [0069](0069-contact-dans-le-noyau.md) (contact dans le noyau),
   [0072](0072-emails-a-l-image-de-l-organisation.md) (e-mails, flux ICS),
   [0076](0076-file-des-taches-et-adaptateur-e-mail.md) (file des tâches),
-  [0078](0078-socle-des-modules-rendez-vous-et-invites.md) (module fermé par défaut, chiffrement de
+  [0079](0079-socle-des-modules-rendez-vous-et-invites.md) (module fermé par défaut, chiffrement de
   champ, jeton de lien commun).
 - Exigences : RDV-01 à RDV-04, EVT-10, HUB-08, POR-02 de `docs/CAHIER_DES_CHARGES.md` ;
   spécification `docs/lots/lot-46-rendez-vous.md`.
@@ -27,7 +27,7 @@ critère est « aucun créneau proposé sur une plage occupée » (RDV-02), un r
 ## Décision
 
 1. **Un module neuf** (D1) : `apps/symbola/modules/appointments`, schéma PostgreSQL `appointments`,
-   clé `appointments`, fermé par défaut (ADR 0078). Neuf tables, chacune avec `organization_id` et
+   clé `appointments`, fermé par défaut (ADR 0079). Neuf tables, chacune avec `organization_id` et
    RLS forcée ; auteur et dates (DAT-06) ; suppression logique des types et des rendez-vous
    (ADR 0073). Les autres modules ne sont connus que par un identifiant opaque (compte qui reçoit,
    contact, évènement, tâche), sans clé étrangère entre schémas. Migrations 0150 (création) et 0151
@@ -44,7 +44,7 @@ critère est « aucun créneau proposé sur une plage occupée » (RDV-02), un r
    dans la transaction, sous un verrou par personne qui reçoit (`pg_advisory_xact_lock`) : deux
    réservations du même créneau, une seule passe ; l'autre reçoit les créneaux voisins.
 4. **Agendas connectés** (D2) : l'adresse secrète ICS d'un agenda Google, Apple ou Outlook,
-   chiffrée au repos (`sealField`, ADR 0078), jamais réaffichée ni journalisée. Relue toutes les
+   chiffrée au repos (`sealField`, ADR 0079), jamais réaffichée ni journalisée. Relue toutes les
    quinze minutes (tâche périodique), et à l'ouverture de la page si sa lecture a plus de quinze
    minutes. Seules les plages occupées sont gardées (D4), sans titre, lieu ni participant. Trois
    échecs de suite : « en erreur », la planner est prévenue dans « Aujourd'hui », et **aucun
@@ -65,7 +65,7 @@ critère est « aucun créneau proposé sur une plage occupée » (RDV-02), un r
 7. **Confirmation immédiate** (D5), avec limitation de débit (adresse IP et adresse e-mail), piège à
    robots et au plus trois rendez-vous à venir par adresse et par organisation. Le plafond atteint
    reçoit le même message qu'un débit dépassé : la réponse ne dit jamais si une adresse est connue.
-8. **Lien de gestion** (D10) : jeton de 256 bits (`newLinkSecret`, ADR 0078), après « # », retiré
+8. **Lien de gestion** (D10) : jeton de 256 bits (`newLinkSecret`, ADR 0079), après « # », retiré
    de l'adresse à l'ouverture, envoyé en POST seulement, sans cookie ni compte ; valable jusqu'à
    la fin du rendez-vous. L'empreinte sert à retrouver le rendez-vous ; le jeton lui-même est gardé
    chiffré (DAT-08), pour redonner **le même lien** dans les rappels et après un déplacement.

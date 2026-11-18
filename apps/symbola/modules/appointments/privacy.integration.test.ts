@@ -1,4 +1,4 @@
-// Lot 46 (RGP-05, RGPD-01 à RGPD-05 ; question DPO-2, défaut prudent ; ADR 0080) — privacy/v1 du
+// Lot 46 (RGP-05, RGPD-01 à RGPD-05 ; question DPO-2, défaut prudent ; ADR 0083) — privacy/v1 du
 // module Rendez-vous : trouver, exporter (fiches de la recherche), anonymiser et effacer une personne
 // qui a pris rendez-vous ; purge selon la règle des prospects, horloge simulée.
 import { randomUUID } from "node:crypto";

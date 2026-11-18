@@ -22,7 +22,7 @@ export const PARTICIPANTS: Participant[] = [
   { contract: budgetPrivacy, moduleKey: "budget" },
   { contract: quotesPrivacy, moduleKey: "quotes" },
   { contract: vendorsPrivacy, moduleKey: "vendors" },
-  // Lot 46 (ADR 0080) : les personnes qui ont pris rendez-vous.
+  // Lot 46 (ADR 0083) : les personnes qui ont pris rendez-vous.
   { contract: appointmentsPrivacy, moduleKey: "appointments" },
 ];
 

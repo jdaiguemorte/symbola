@@ -1,5 +1,5 @@
 // Porte d'entrée publique du module appointments (lot 46 : RDV-01 à RDV-04, EVT-10 ; D1 à D11 ;
-// ADR 0080) — seul fichier que les autres modules et les écrans peuvent importer (ADR 0011). Pensé
+// ADR 0083) — seul fichier que les autres modules et les écrans peuvent importer (ADR 0011). Pensé
 // comme le futur contrat HTTP /v1/appointments si le module devient une app autonome.
 import { randomUUID } from "node:crypto";
 import { formatLinkToken, hashLinkSecret, newLinkSecret, openField, parseLinkToken, sealField } from "@symbola/auth";
@@ -451,7 +451,7 @@ export async function refreshCalendarSource(organizationId: string, sourceId: st
   return toSourceView(updated);
 }
 
-// L'adresse est chiffrée avant tout enregistrement (DAT-08, ADR 0078), puis lue aussitôt.
+// L'adresse est chiffrée avant tout enregistrement (DAT-08, ADR 0079), puis lue aussitôt.
 export async function addCalendarSource(organizationId: string, userId: string, input: { label: string; url: string }, options: { now?: Date; transport?: Transport } = {}): Promise<CalendarSourceView> {
   const label = input.label.trim();
   if (label.length === 0 || label.length > 80) throw new AppointmentInvalidError("label");
