@@ -446,6 +446,10 @@ describe("DEV-02 — Espace du marié", () => {
         // Lot 31b (D9) : le devis seul, sans contrat.
         kind: "quote",
         contract: null,
+        // Lot 41 (JUR-13, D8) : un particulier n'indique pas de bon de commande.
+        professional: false,
+        orderReference: null,
+        canSetOrderReference: false,
       },
     ]);
     const stranger = await listClientQuotesToSign(organizationId, eventId, "inconnu@example.test");
