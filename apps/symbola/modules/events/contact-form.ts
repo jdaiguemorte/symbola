@@ -256,8 +256,6 @@ export function isFormTimingValid(form: { organizationId: string; formId: string
 
 // —— Envoi (CRM-01 ; D3, D4, D5) ————————————————————————————————————————————————————————————
 
-const text = (max: number) => z.string().trim().max(max).transform((value) => (value === "" ? null : value));
-
 const rawSchema = z.object({
   firstName: z.string().trim().max(100),
   lastName: z.string().trim().max(100),

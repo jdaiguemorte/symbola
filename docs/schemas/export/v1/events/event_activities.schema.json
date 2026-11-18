@@ -45,7 +45,8 @@
         "task_undone",
         "decision_made",
         "vendor_reminded",
-        "document_link_opened"
+        "document_link_opened",
+        "stage_changed"
       ]
     },
     "taskId": {

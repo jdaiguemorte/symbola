@@ -64,6 +64,11 @@ const WITHOUT_ENTRY: Record<string, string> = {
   "guests.household_groups.label": "libellé court d'un groupe d'invités (« Amis du lycée »)",
   "guests.rsvp_answers.attending": "réponse oui ou non à un temps fort, sans texte",
   "guests.module_settings.privacy_notice": "mention d'information écrite par la titulaire, lue par les invités (texte juridique)",
+  // Lot 44 (CRM-01) : ce qu'écrit le prospect sur le formulaire public ; la mention d'information est
+  // au-dessus du bouton d'envoi, la mise en garde s'adresse à l'équipe.
+  "events.prospect_requests.message": "message du prospect sur le formulaire de contact public ; la mention d'information est affichée avant l'envoi",
+  "events.prospect_requests.period": "période en texte court écrite par le prospect sur le formulaire public",
+  "events.prospect_requests.budget_range": "tranche de budget en texte court écrite par le prospect sur le formulaire public",
 };
 
 function freeTextFields(): string[] {

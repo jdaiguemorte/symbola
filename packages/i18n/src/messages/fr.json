@@ -1176,6 +1176,44 @@
     "portalGuests": {
       "title": "Vos invités",
       "body": "Ajoutez vos invités par foyer, ou importez votre tableur : les doublons vous sont signalés avant tout enregistrement. Pour un invité sans e-mail, obtenez son lien personnel ou son QR code et envoyez-le par SMS. Vous suivez les réponses par moment ; les régimes s'affichent en nombres, jamais nominatifs."
+    },
+    "eventsPipeline": {
+      "title": "Suivre vos demandes en colonnes",
+      "body": "Chaque carte est un évènement au statut Option, rangé à son étape. Pour déplacer une carte, faites-la glisser à la souris, ou utilisez son bouton « Déplacer » puis choisissez l'étape (au clavier comme au doigt). Déposer sur « Gagné » confirme l'évènement après votre accord ; sur « Perdu », l'annule avec son motif. Dans une colonne, la carte qui attend depuis le plus longtemps est en haut. Sur téléphone, choisissez l'étape dans les onglets.",
+      "faq": [
+        {
+          "q": "Une étape change-t-elle le statut de l'évènement ?",
+          "a": "Non : les étapes ne sont que des repères à l'intérieur du statut Option. Seuls « Gagné » et « Perdu » changent le statut (Confirmé, Annulé)."
+        },
+        {
+          "q": "Qu'est-ce qu'une demande « à vérifier » ?",
+          "a": "Une demande du formulaire de contact dont le message contient plusieurs liens : elle peut venir d'un robot. Acceptez-la pour créer le prospect, ou effacez-la. Sans réponse, elle est effacée au bout de 30 jours."
+        }
+      ]
+    },
+    "eventsPipelineStages": {
+      "title": "Étapes du pipeline",
+      "body": "Renommez les étapes, ajoutez-en (dix au plus), changez leur ordre, retirez celles qui ne vous servent pas. Une étape qui contient des cartes se vide d'abord : choisissez l'étape où elles passent.",
+      "faq": [
+        {
+          "q": "Puis-je ajouter « Gagné » comme étape ?",
+          "a": "Inutile : « Gagné » et « Perdu » sont toujours au bout du pipeline ; ils confirment ou annulent l'évènement."
+        }
+      ]
+    },
+    "eventsContactForm": {
+      "title": "Mettre le formulaire sur votre site",
+      "body": "Ouvrez le formulaire, choisissez son adresse et donnez l'adresse de votre politique de confidentialité (obligatoire). Partagez le lien, ou copiez le code dans votre site après avoir déclaré son adresse dans « Sites autorisés » : le formulaire ne s'affiche que dans ces sites. Chaque demande crée un prospect au statut Option, à la première étape du pipeline, et apparaît dans « Aujourd'hui ». La personne ne reçoit pas d'e-mail automatique : la réponse vient de vous.",
+      "faq": [
+        {
+          "q": "Et le spam ?",
+          "a": "Le formulaire se protège sans captcha : un champ piège invisible, un délai minimal de remplissage, un nombre d'envois limité. Une demande dont le message contient plusieurs liens est mise de côté « à vérifier » dans le pipeline."
+        },
+        {
+          "q": "Une personne déjà connue remplit le formulaire ?",
+          "a": "Elle est retrouvée par son e-mail, et sa fiche n'est pas modifiée : ce qu'elle a écrit va dans la demande."
+        }
+      ]
     }
   },
   "Aide": {
@@ -1847,7 +1885,14 @@
       "time": "L'heure n'est pas valable (HH:MM).",
       "place": "Ce lieu n'est pas un lieu de l'évènement.",
       "too_many": "Un évènement compte au plus 20 temps forts."
-    }
+    },
+    "activityStageChanged": "Passé à l'étape « {task} ».",
+    "prospectRequestTitle": "Demande reçue par le formulaire de contact",
+    "prospectRequestReceived": "Reçue le {date}",
+    "prospectRequestPeriod": "Période souhaitée : {period}",
+    "prospectRequestBudget": "Budget indiqué : {budget}",
+    "prospectRequestNoMessage": "Sans message.",
+    "pipelineView": "Vue en colonnes"
   },
   "Budget": {
     "title": "Budget",
@@ -4791,7 +4836,9 @@
     "emailTemplates": "Modèles d'e-mails",
     "messageTemplates": "Modèles de messages",
     "trash": "Corbeille",
-    "dietaryOptions": "Régimes et allergies"
+    "dietaryOptions": "Régimes et allergies",
+    "pipelineStages": "Étapes du pipeline",
+    "contactForm": "Formulaire de contact"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -5062,7 +5109,10 @@
       "guests_purge_postponed": "Purge des invités reportée",
       "guests_purge_executed": "Données des invités purgées",
       "guests_import_applied": "Liste d'invités importée",
-      "guests_import_undone": "Import d'invités annulé"
+      "guests_import_undone": "Import d'invités annulé",
+      "events_contact_form_updated": "Formulaire de contact réglé",
+      "events_prospect_request_received": "Demande reçue par le formulaire de contact",
+      "events_prospect_request_to_review": "Demande mise de côté « à vérifier »"
     },
     "categories": {
       "connexion": "Connexions",
@@ -5187,7 +5237,10 @@
       "guests_diets": "régimes d'invité",
       "guests_diet_consents": "preuve d'accord aux régimes",
       "guests_guest_links": "lien personnel d'invité",
-      "guests_purge_postponements": "report de purge des invités"
+      "guests_purge_postponements": "report de purge des invités",
+      "events_contact_forms": "formulaire de contact",
+      "events_pipeline_stages": "étape du pipeline",
+      "events_prospect_requests": "demande de contact"
     },
     "modules": {
       "events": "Événements",
@@ -5959,7 +6012,11 @@
       "linkRenewal": "{name} demande un nouveau lien",
       "guestPurgeDiets": "Les régimes des invités seront effacés : reporter si besoin",
       "guestPurgeAll": "Les données des invités seront effacées : reporter si besoin",
-      "guestOpposition": "{count, plural, one {Un invité s'est opposé} other {# invités se sont opposés}} à la conservation de ses données"
+      "guestOpposition": "{count, plural, one {Un invité s'est opposé} other {# invités se sont opposés}} à la conservation de ses données",
+      "prospectRequest": "Nouvelle demande : {names}, {when}",
+      "prospectRequestNoDate": "Nouvelle demande : {names}",
+      "prospectRequestDateTaken": "Date déjà prise",
+      "prospectToReview": "{count, plural, one {Une demande à vérifier} other {# demandes à vérifier}} (formulaire de contact)"
     },
     "myEventsTitle": "Mes évènements",
     "myEventsEmpty": "Aucun évènement en cours.",
@@ -6349,7 +6406,8 @@
       "links": "Liens personnels",
       "reminders": "Rappels",
       "signatures": "Devis et contrats",
-      "program": "Programme"
+      "program": "Programme",
+      "prospects": "Demandes de contact"
     },
     "kinds": {
       "client_link": {
@@ -6391,6 +6449,10 @@
       "program_published": {
         "title": "Nouvelle version du programme",
         "description": "Part quand vous prévenez par e-mail d'une version diffusée, avec le programme en PDF."
+      },
+      "prospect_form_received": {
+        "title": "Nouvelle demande de contact",
+        "description": "Part à la titulaire à chaque demande reçue par le formulaire de contact, sans le message ni les coordonnées de la personne."
       }
     },
     "variables": {
@@ -7087,5 +7149,165 @@
     "destinations": "Où déplacer {item}",
     "moved": "{item} déplacé vers « {group} ».",
     "moveFailed": "{item} n'a pas pu être déplacé : la page montre l'état enregistré."
+  },
+  "ContactForm": {
+    "public": {
+      "title": "Contacter {organization}",
+      "intro": "Parlez-nous de votre projet : nous revenons vers vous rapidement.",
+      "required": "Les champs marqués d'un astérisque (*) sont obligatoires, ainsi que votre e-mail ou votre téléphone.",
+      "sentTitle": "Merci, votre demande est envoyée",
+      "sentBody": "{organization} l'a bien reçue et vous répondra personnellement. Vous pouvez fermer cette page.",
+      "unavailable": "Ce formulaire n'est plus disponible.",
+      "error": {
+        "name": "Indiquez votre prénom et votre nom.",
+        "contact": "Indiquez votre e-mail ou votre téléphone, pour que nous puissions vous répondre.",
+        "email": "Cette adresse e-mail ne semble pas valide.",
+        "phone": "Ce numéro de téléphone ne semble pas valide.",
+        "date": "Cette date ne semble pas valide.",
+        "guests": "Indiquez un nombre d'invités entier, sans lettres.",
+        "budget": "Ce budget est trop long : 100 caractères au plus.",
+        "message": "Votre message est trop long : 5 000 caractères au plus.",
+        "period": "Cette période est trop longue : 100 caractères au plus.",
+        "place": "Ce lieu est trop long : 200 caractères au plus."
+      },
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "contactLegend": "Pour vous répondre (l'un des deux au moins)",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "eventType": "Type d'évènement",
+      "noChoice": "Je ne sais pas encore",
+      "eventDate": "Date souhaitée",
+      "period": "Ou une période",
+      "periodExample": "Au printemps 2028",
+      "place": "Lieu ou ville",
+      "budget": "Budget",
+      "budgetExample": "25 000 € ou « entre 20 et 30 k€ »",
+      "guests": "Nombre d'invités",
+      "source": "Comment nous avez-vous connus ?",
+      "message": "Votre message",
+      "noticeTitle": "Vos informations",
+      "policyLink": "Politique de confidentialité de {organization}",
+      "sending": "Envoi…",
+      "send": "Envoyer ma demande"
+    },
+    "fields": {
+      "phone": "Téléphone",
+      "date": "Date souhaitée ou période",
+      "place": "Lieu ou ville",
+      "budget": "Budget",
+      "guests": "Nombre d'invités",
+      "eventType": "Type d'évènement",
+      "source": "« Comment m'avez-vous connue ? »",
+      "message": "Message"
+    },
+    "settings": {
+      "title": "Formulaire de contact",
+      "ownerOnly": "Le formulaire de contact se règle par la titulaire du compte.",
+      "moduleUnavailable": "Le formulaire de contact fait partie du module Évènements, qui n'est pas ouvert pour votre organisation.",
+      "intro": "Un formulaire à mettre sur votre site ou à partager par lien. Chaque demande crée un prospect au statut Option, à la première étape de votre pipeline.",
+      "stateOpen": "Ouvert",
+      "stateClosed": "Fermé",
+      "saved": "Réglages enregistrés.",
+      "active": "Ouvrir le formulaire",
+      "slug": "Adresse du formulaire",
+      "slugHelp": "Lettres minuscules, chiffres et tirets. Si vous la changez, l'ancienne adresse cesse de répondre.",
+      "privacyPolicyUrl": "Adresse de votre politique de confidentialité",
+      "privacyPolicyHelp": "Obligatoire pour ouvrir le formulaire : la mention d'information y renvoie. Adresse en https://.",
+      "shownFields": "Champs proposés",
+      "shownFieldsHelp": "Le prénom, le nom et l'e-mail sont toujours demandés. Décochez les champs facultatifs que vous ne voulez pas.",
+      "allowedOrigins": "Sites autorisés à afficher le formulaire",
+      "allowedOriginsHelp": "Une adresse par ligne, en https://, cinq au plus (par exemple https://www.monsite.fr). Sans site, seul le lien fonctionne.",
+      "notifyOwner": "M'envoyer un e-mail à chaque nouvelle demande (sans le message ni les coordonnées de la personne)",
+      "locale": "Langue des textes de départ",
+      "localeFr": "Français",
+      "localeEn": "Anglais",
+      "save": "Enregistrer",
+      "slugTaken": "Cette adresse est déjà prise : choisissez-en une autre.",
+      "invalid": {
+        "slug": "L'adresse doit compter de 3 à 60 caractères : lettres minuscules, chiffres et tirets.",
+        "privacyPolicyUrl": "Indiquez l'adresse de votre politique de confidentialité, en https://, pour ouvrir le formulaire.",
+        "allowedOrigins": "Chaque site doit commencer par https:// ; cinq sites au plus.",
+        "hiddenFields": "Un champ demandé n'existe pas."
+      },
+      "shareTitle": "Partager le formulaire",
+      "shareLink": "Le lien à donner (site, réseaux, signature d'e-mail) :",
+      "embedCode": "Le code à copier dans votre site",
+      "embedTitle": "Formulaire de contact",
+      "embedSites": "Le formulaire peut s'afficher sur : {sites}.",
+      "embedNoSite": "Aucun site déclaré : le code ne s'affichera dans aucun site tant que vous n'en ajoutez pas un.",
+      "preview": "Aperçu",
+      "previewTitle": "Aperçu du formulaire de contact"
+    }
+  },
+  "Pipeline": {
+    "title": "Pipeline",
+    "unnamed": "Sans nom",
+    "viewsLabel": "Vues et réglages",
+    "listView": "Liste des évènements",
+    "stagesSettings": "Régler les étapes",
+    "contactSettings": "Formulaire de contact",
+    "toReviewTitle": "{count, plural, =0 {Aucune demande à vérifier} one {Une demande à vérifier} other {# demandes à vérifier}}",
+    "toReviewIntro": "Les demandes dont le message contient plusieurs liens sont mises de côté : elles peuvent venir d'un robot. Acceptez-les pour créer le prospect, ou effacez-les. Sans réponse, elles sont effacées au bout de 30 jours.",
+    "toReviewEmpty": "Rien à vérifier.",
+    "acceptRequestLabel": "Accepter la demande de {name}",
+    "acceptRequest": "Accepter",
+    "discardRequestLabel": "Effacer la demande de {name}",
+    "discardRequest": "Effacer",
+    "refused": "Ce déplacement n'est pas possible : l'évènement a peut-être changé entre-temps.",
+    "lossReasonRequired": "Choisissez le motif de perte.",
+    "lossNoteRequired": "Précisez le motif « Autre ».",
+    "won": "Gagné",
+    "lost": "Perdu",
+    "wonHint": "Déposez ici une option gagnée : elle sera confirmée.",
+    "lostHint": "Déposez ici une option perdue : elle sera annulée, avec son motif.",
+    "emptyStage": "Aucune carte.",
+    "noDate": "Date à définir",
+    "dateTaken": "Date déjà prise",
+    "demo": "Essai",
+    "guests": "Invités",
+    "budget": "Budget",
+    "source": "Source",
+    "inStage": "Dans l'étape",
+    "days": "{count, plural, =0 {depuis aujourd'hui} one {depuis # jour} other {depuis # jours}}",
+    "stagesLabel": "Étapes",
+    "wonTitle": "Confirmer l'évènement de {name} ?",
+    "lostTitle": "Annuler l'option de {name} ?",
+    "wonBody": "L'évènement passe au statut Confirmé et quitte le pipeline. Le rétroplanning et le reste suivent, comme lorsque vous le confirmez depuis sa fiche.",
+    "lostBody": "L'évènement passe au statut Annulé et quitte le pipeline. Le motif de perte est demandé ; les données restent.",
+    "lossReason": "Motif de perte",
+    "chooseReason": "Choisir un motif",
+    "lossNoteRequiredLabel": "Précision (obligatoire pour ce motif)",
+    "lossNote": "Précision (facultative)",
+    "cancel": "Annuler",
+    "confirmWon": "Confirmer l'évènement",
+    "confirmLost": "Annuler l'option",
+    "settings": {
+      "title": "Étapes du pipeline",
+      "ownerOnly": "Les étapes du pipeline se règlent par la titulaire du compte.",
+      "moduleUnavailable": "Le pipeline fait partie du module Évènements, qui n'est pas ouvert pour votre organisation.",
+      "intro": "Les étapes de votre démarche commerciale, pour les évènements au statut Option : entre {min} et {max}. « Gagné » et « Perdu » n'en sont pas : ils confirment ou annulent l'évènement.",
+      "back": "Revenir au pipeline",
+      "refusal": {
+        "label": "Le nom d'une étape compte de 1 à 60 caractères.",
+        "too_many": "Dix étapes au plus.",
+        "too_few": "Il faut garder au moins une étape.",
+        "not_found": "Cette étape n'existe plus.",
+        "not_empty": "Cette étape contient des cartes : choisissez l'étape où elles passent.",
+        "destination": "L'étape choisie pour les cartes n'existe plus."
+      },
+      "stageLabel": "Étape {position}",
+      "rename": "Renommer",
+      "cards": "{count, plural, =0 {Aucune carte} one {Une carte} other {# cartes}}",
+      "up": "Monter",
+      "upLabel": "Monter l'étape {stage}",
+      "down": "Descendre",
+      "downLabel": "Descendre l'étape {stage}",
+      "destination": "Ses cartes passent à",
+      "remove": "Retirer",
+      "removeLabel": "Retirer l'étape {stage}",
+      "newStage": "Nouvelle étape",
+      "add": "Ajouter"
+    }
   }
 }

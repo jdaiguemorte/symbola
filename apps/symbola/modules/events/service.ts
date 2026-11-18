@@ -3127,6 +3127,7 @@ export {
   type RawContactSubmission,
   type SubmitOptions,
 } from "./contact-form";
+export { contactFrameOrigins } from "./contact-frame";
 export {
   addPipelineStage,
   listPipelineStages,

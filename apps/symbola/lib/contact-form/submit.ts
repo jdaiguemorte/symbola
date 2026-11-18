@@ -35,7 +35,8 @@ export async function handleContactSubmission(formData: FormData, context: { hea
   // Garde : piège rempli, envoi trop rapide ou horodatage falsifié, débit dépassé → « envoyé ».
   if (isHoneypotFilled(formData)) return SENT;
   if (!isFormTimingValid(form, String(formData.get("opened") ?? ""), now)) return SENT;
-  const decision = await consumeRateLimits(appDatabase(), rateLimitRules("contactForm", { ip: clientIpFrom(context.headers), account: form.organizationId }), now);
+  const rules = [...rateLimitRules("contactForm", { ip: clientIpFrom(context.headers), account: null }), ...rateLimitRules("contactFormOrganization", { ip: null, account: form.organizationId })];
+  const decision = await consumeRateLimits(appDatabase(), rules, now);
   if (!decision.allowed) return SENT;
   const values = valuesOf(formData);
   try {

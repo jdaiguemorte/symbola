@@ -29,6 +29,9 @@ export function todayWords(t: TodayTranslator): TodayWords {
     linkRenewal: (name) => t("words.linkRenewal", { name }),
     guestPurge: (stage) => t(stage === "diets" ? "words.guestPurgeDiets" : "words.guestPurgeAll"),
     guestOpposition: (count) => t("words.guestOpposition", { count }),
+    prospectRequest: (names, when) => (when ? t("words.prospectRequest", { names, when }) : t("words.prospectRequestNoDate", { names })),
+    prospectRequestDateTaken: t("words.prospectRequestDateTaken"),
+    prospectToReview: (count) => t("words.prospectToReview", { count }),
   };
 }
 

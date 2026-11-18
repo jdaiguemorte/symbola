@@ -146,8 +146,18 @@ function DayShell({ children }: { children: ReactNode }) {
   );
 }
 
+// Lot 44 (CRM-01 ; D1, D2 ; ADR 0084) : le formulaire de contact public (/contact/<adresse>) et sa page
+// encadrée, sans menu, sans recherche ni compte, même pour une personne connectée (aperçu des réglages) ;
+// le nom de l'organisation est le titre de la page.
+const CONTACT_PAGE = /^\/contact\/[^/]+(?:\/cadre)?\/?$/;
+
+function ContactShell({ children, framed }: { children: ReactNode; framed: boolean }) {
+  return <div className={framed ? "contact-shell contact-shell-framed" : "link-shell contact-shell"}>{children}</div>;
+}
+
 export async function AppShell({ children }: { children: ReactNode }) {
   const requestPath = (await headers()).get("x-pathname") ?? "";
+  if (CONTACT_PAGE.test(requestPath)) return <ContactShell framed={requestPath.replace(/\/$/, "").endsWith("/cadre")}>{children}</ContactShell>;
   if (LINK_PAGE.test(requestPath)) return <LinkShell>{children}</LinkShell>;
   if (DAY_PAGE.test(requestPath)) return <DayShell>{children}</DayShell>;
   const auth = await getAuthContext();
@@ -345,6 +355,12 @@ export async function AppShell({ children }: { children: ReactNode }) {
                           href: "/events/parametres/types",
                           label: tSettings("eventTypes"),
                         },
+                        // Lot 44 (CRM-01, CRM-02) : étapes du pipeline et formulaire de contact.
+                        {
+                          href: "/events/parametres/etapes",
+                          label: tSettings("pipelineStages"),
+                        },
+                        ...(isOwner ? [{ href: "/events/parametres/contact", label: tSettings("contactForm") }] : []),
                         {
                           href: "/events/modeles",
                           label: tSettings("retroplanning"),
