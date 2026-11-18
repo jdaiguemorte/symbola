@@ -1420,6 +1420,14 @@
     "eventTeam": {
       "title": "Event team",
       "body": "Name a lead planner (who receives the event's alerts and digests) and assistants. When “All Planners see all events” is off (Settings, Team), a Planner only sees the events of her team. A big day helper comes without an account: their link only opens this event's Big day mode, from the day before to the day after."
+    },
+    "ownership": {
+      "title": "Ownership transfer",
+      "body": "The Owner offers to hand over to you. Sign in with your two-step verification, then confirm: the roles are swapped and you both get an email. The link is valid for seven days and works once."
+    },
+    "notMe": {
+      "title": "This wasn't me",
+      "body": "Your account was signed in from a device Symbola did not know. If it wasn't you, close all your sessions here, then change your address, password and two-step verification in your account."
     }
   },
   "Aide": {
@@ -5576,7 +5584,8 @@
       "quotes_payment_reminders": "Payment reminder",
       "budget_event_payers": "Payer",
       "budget_budget_line_payer_shares": "Payer's share",
-      "budget_planner_instalment_payers": "Payer of an instalment"
+      "budget_planner_instalment_payers": "Payer of an instalment",
+      "events_event_team_members": "event team"
     },
     "modules": {
       "events": "Events",

@@ -1420,6 +1420,14 @@
     "eventTeam": {
       "title": "Équipe de l'évènement",
       "body": "Nommez un planner principal (il reçoit les alertes et les récapitulatifs de l'évènement) et des assistants. Quand « Toutes les Planners voient tous les évènements » est coupé (Réglages, Équipe), une Planner ne voit que les évènements de son équipe. Un renfort du jour J vient sans compte : son lien n'ouvre que le mode Jour J de cet évènement, de la veille au lendemain."
+    },
+    "ownership": {
+      "title": "Transfert de propriété",
+      "body": "La Propriétaire vous propose de prendre sa place. Connectez-vous avec votre double authentification, puis confirmez : les rôles s'échangent et vous recevez toutes les deux un e-mail. Le lien vaut sept jours et ne sert qu'une fois."
+    },
+    "notMe": {
+      "title": "Ce n'est pas moi",
+      "body": "Une connexion à votre compte a eu lieu depuis un appareil que Symbola ne connaissait pas. Si ce n'était pas vous, fermez toutes vos sessions ici, puis changez votre adresse, votre mot de passe et votre double authentification dans votre compte."
     }
   },
   "Aide": {
@@ -5576,7 +5584,8 @@
       "quotes_payment_reminders": "Relance d'impayé",
       "budget_event_payers": "Payeur",
       "budget_budget_line_payer_shares": "Part d'un payeur",
-      "budget_planner_instalment_payers": "Payeur d'une échéance"
+      "budget_planner_instalment_payers": "Payeur d'une échéance",
+      "events_event_team_members": "équipe d'un évènement"
     },
     "modules": {
       "events": "Événements",

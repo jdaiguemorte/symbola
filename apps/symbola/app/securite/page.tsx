@@ -4,12 +4,12 @@
 // Lot 52 (HUB-05, D4 ; ADR 0094) — connecté, « Mes sessions » : chaque session ouverte du compte, son
 // appareil (sans adresse IP ni ville), sa dernière activité, « cet appareil » ; « Fermer » sur chacune
 // et « Fermer toutes les autres ».
-import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { listAccountSessions } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { formatDateTime, type Locale } from "@symbola/i18n";
-import { getAuthContext, getSessionToken } from "@/lib/auth-context";
+import { getSessionToken } from "@/lib/auth-context";
+import { requireAccountSession } from "@/lib/guards";
 import { deviceText } from "@/lib/device";
 import { accountCenterUrl } from "@/lib/identity";
 import { logoutAction } from "@/app/logout-action";
@@ -21,8 +21,7 @@ import { SecurityLinkForm } from "./security-link-form";
 type Query = { ferme?: string; fermees?: string };
 
 export default async function SecurityPage({ searchParams }: { searchParams: Promise<Query> }) {
-  const auth = await getAuthContext();
-  if (auth.status === "unauthenticated") redirect("/login");
+  const auth = await requireAccountSession();
   const t = await getTranslations("Security");
   if (auth.status === "mfa_required") {
     return (

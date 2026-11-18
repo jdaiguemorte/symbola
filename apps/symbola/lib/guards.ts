@@ -5,7 +5,7 @@
 // (guards.test.ts) vérifie que chaque page hors des écrans publics en appelle
 // une.
 import { notFound, redirect } from "next/navigation";
-import { isAccountingReaderRole, type AuthenticatedUser, type Role } from "@symbola/auth";
+import { isAccountingReaderRole, type AuthenticatedUser, type AuthResult, type Role } from "@symbola/auth";
 import type { LinkAccess, LinkAudience } from "@/modules/events/service";
 import { getAuthContext, getPlannerAuthContext } from "./auth-context";
 import { currentLinkAccess } from "./link-session";
@@ -96,4 +96,19 @@ export async function requireAccountant(): Promise<InOrganization> {
   if (auth.status === "mfa_required") redirect("/securite");
   if (auth.user.role !== "accountant" || !auth.user.organizationId) redirect("/");
   return { status: "authenticated", user: { ...auth.user, organizationId: auth.user.organizationId } };
+}
+
+// Lot 52 (HUB-05, D4) — « Mes sessions » (/securite) : toute session de compte, qu'elle attende ou non
+// la double authentification (la page le lui demande alors) ; sans session, la connexion.
+export async function requireAccountSession(): Promise<Exclude<AuthResult, { status: "unauthenticated" }>> {
+  const auth = await getAuthContext();
+  if (auth.status === "unauthenticated") redirect("/login");
+  return auth;
+}
+
+// Lot 52 (HUB-04, D1) — page publique qui s'adapte à une personne connectée (confirmation du transfert
+// de propriété) : la session complète, sinon null.
+export async function optionalSignedIn(): Promise<SignedIn | null> {
+  const auth = await getAuthContext();
+  return auth.status === "authenticated" ? auth : null;
 }

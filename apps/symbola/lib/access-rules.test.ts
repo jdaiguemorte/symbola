@@ -31,6 +31,13 @@ const BASE_GUARDS = [
   "getPlannerAuthContext",
   // @symbola/auth : connexion en cours, avant la double authentification
   "requireUser",
+  // Lot 52 (HUB-04, HUB-05, EVT-06 ; ADR 0094) : lecture comptable, Comptable, « Mes sessions », page
+  // publique qui s'adapte à une personne connectée, et qui ouvre le mode Jour J (équipe ou renfort).
+  "requireAccountingReader",
+  "requireAccountant",
+  "requireAccountSession",
+  "optionalSignedIn",
+  "resolveDayOfViewer",
 ];
 
 // Accès communs (fichier où chacun est défini) : ils appellent eux-mêmes une garde.
@@ -51,6 +58,8 @@ const SHARED_ACCESS: Record<string, string> = {
   dayOfAccess: "app/jour-j/[eventId]/access.ts",
   // Lot 45 : la rubrique « Questionnaires » du portail (lien, rubrique ouverte, module Évènements).
   portalQuestionnairesAccess: "app/portail/questionnaires/access.ts",
+  // Lot 52 : PDF des factures et avoirs, e-reporting, écritures, aussi pour le Comptable (lecture).
+  authorizedAccountingReader: "app/devis/planner-access.ts",
 };
 
 const GUARDS = new Set([...BASE_GUARDS, ...Object.keys(SHARED_ACCESS)]);
@@ -108,6 +117,10 @@ const PUBLIC_ENTRIES: Record<string, string> = {
   "rdv/actions.ts#describeAppointmentLinkAction": "jeton du lien de gestion, vérifié haché sous RLS, valable jusqu'à la fin du rendez-vous, limité en débit ; même réponse pour un lien inconnu, expiré ou retiré",
   "rdv/actions.ts#appointmentLinkSlotsAction": "jeton du lien de gestion : créneaux libres du même type seulement, limité en débit",
   "rdv/actions.ts#rescheduleAppointmentAction": "jeton du lien de gestion : report sur un créneau libre recalculé sous verrou, limité en débit",
+  // Lot 52 (SEC-08, D6 ; ADR 0094).
+  "api/webhooks/identite/route.ts#POST": "webhook du fournisseur d'identité, authentifié par la signature HMAC de son corps (clé lue par l'API d'administration), refusé et journalisé sinon",
+  "securite/pas-moi/page.tsx#default": "« Ce n'est pas moi » : le jeton reste dans le navigateur, la page n'affiche rien d'autre",
+  "securite/actions.ts#disownDeviceAction": "jeton « Ce n'est pas moi » en POST, vérifié haché, usage unique, sept jours, limité en débit ; ferme seulement les sessions du compte de l'alerte",
   "rdv/actions.ts#cancelAppointmentByLinkAction": "jeton du lien de gestion : annulation de ce rendez-vous seul, motif choisi dans une liste, limité en débit",
 };
 

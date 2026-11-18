@@ -75,6 +75,10 @@ const teamMemberSchema = z.strictObject({
 // (docs/export/format-v1.md).
 export const HUB_EXPORT_EXCLUSIONS: Readonly<Record<string, string>> = {
   sessions: "secret : sessions ouvertes (jetons hachés)",
+  // Lot 52 (HUB-05, SEC-08, HUB-04 ; ADR 0094).
+  known_devices: "sécurité : appareils déjà vus d'un compte, sans donnée métier ; oubliés après 30 jours",
+  ownership_transfers: "secret : demandes de transfert de propriété (jetons hachés) ; le transfert est au journal d'activité",
+  identity_change_alerts: "sécurité : alertes de changement d'identité d'un compte, gardées 30 jours",
   invitations: "secret : invitations en attente (jetons hachés) ; une invitation se renvoie",
   users: "identité : les comptes sont listés dans team_members ; leurs identifiants de connexion restent chez le fournisseur d'identité",
   memberships: "identité : listées dans team_members",
