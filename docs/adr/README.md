@@ -83,4 +83,5 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0079 — Socle des modules Rendez-vous et Invités : modules fermés par défaut, chiffrement au niveau du champ, jeton de lien commun](0079-socle-des-modules-rendez-vous-et-invites.md)
 - [0080 — Factur-X : fichier CII écrit par l'app et PDF/A-3 par mise à jour incrémentale](0080-factur-x-pdfa3-sans-dependance.md)
 - [0081 — Validateurs veraPDF et Mustang en CI, jamais dans l'app](0081-validateurs-factur-x-en-ci.md)
+- [0082 — Module Rendez-vous : page publique sur les disponibilités réelles, agendas connectés par adresse ICS (ical.js), lien de gestion sans compte](0082-module-rendez-vous-et-agendas-connectes.md)
 - [0083 — Module Invités : RSVP par lien sans session, régimes avec accord et chiffrés, purge automatique](0083-module-invites-donnees-sensibles-et-purge.md)

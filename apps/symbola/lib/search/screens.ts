@@ -18,6 +18,10 @@ export const SCREENS: ScreenEntry[] = [
   { path: "/events/modeles-programme", module: "events", label: "settingsProgramTemplates", help: "eventsProgramTemplates" },
   { path: "/budget/parametres", module: "budget", label: "budgetModels", help: "budgetSettings" },
   { path: "/prestataires", module: "vendors", label: "vendorBook", help: "vendorBook" },
+  // Lot 46 : rendez-vous.
+  { path: "/rendez-vous", module: "appointments", label: "appointments", help: "appointmentsList" },
+  { path: "/rendez-vous/reglages", module: "appointments", label: "settingsAppointments", help: "appointmentSettings" },
+  { path: "/rendez-vous/disponibilites", module: "appointments", label: "appointmentAvailability", help: "appointmentAvailability" },
   { path: "/prestataires/parametres", module: "vendors", label: "settingsVendorTypes", help: "vendorBook" },
   { path: "/devis/parametres", module: "quotes", label: "quoteSettings", help: "quotesSettings" },
   { path: "/devis/parametres/documents", module: "quotes", label: "documentsSettings", help: "quotesDocuments" },

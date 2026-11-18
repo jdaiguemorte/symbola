@@ -11,15 +11,19 @@ import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
 import { getEvent } from "@/modules/events/service";
 import { issueCalendarFeed, revokeCalendarFeed } from "@/modules/hub/service";
+import { isAppointmentsModuleEnabled } from "@/modules/appointments/service";
 
 export type CalendarAddressState = { url?: string; error?: string; at?: number };
 
 async function target(formData: FormData): Promise<{ organizationId: string; userId: string; eventId: string | null } | null> {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
-  if (!(await isEventsModuleEnabled(organizationId))) return null;
+  const eventsEnabled = await isEventsModuleEnabled(organizationId);
   const eventId = String(formData.get("eventId") ?? "");
-  if (!eventId) return { organizationId, userId: auth.user.id, eventId: null };
+  // Lot 46 (RDV-04, HUB-29) : son propre flux porte aussi ses rendez-vous ; il suffit de l'un des
+  // deux modules. Le flux d'un évènement demande le module Évènements.
+  if (!eventId) return eventsEnabled || (await isAppointmentsModuleEnabled(organizationId)) ? { organizationId, userId: auth.user.id, eventId: null } : null;
+  if (!eventsEnabled) return null;
   if (!isValidId(eventId) || !(await getEvent(organizationId, eventId))) return null;
   return { organizationId, userId: auth.user.id, eventId };
 }

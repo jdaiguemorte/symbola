@@ -1201,6 +1201,100 @@ fields:
       Lot 11 (ADR 0031) : ce que veulent les clients pour un poste. Tant que la fiche ou l'événement existe ; voir RGPD-03/RGPD-05.
     anonymization: >-
       Effacé (null) lors d'une demande d'oubli de l'événement (RGPD-03).
+  # Module Rendez-vous (lot 46, ADR 0082). Agendas extérieurs (D2, D4) : l'adresse secrète est
+  # chiffrée (DAT-08, ADR 0079) ; seules les plages occupées (début, fin) en sont gardées
+  # (appointments.busy_intervals), sans titre, lieu ni participant, remplacées à chaque lecture
+  # (toutes les quinze minutes) et effacées avec la source. Elles disent quand la personne de
+  # l'équipe est prise, rien de plus. La page de réservation (booking_pages) ne porte que son
+  # adresse publique et la mention d'information, aucune donnée de personne.
+  - schema: appointments
+    table: appointments
+    field: person_name
+    category: identifiant
+    retention: >-
+      Lot 46 (RDV-02, RDV-03 ; ADR 0082) : figé à la réservation. Tant que le rendez-vous existe ; une personne qui a seulement pris rendez-vous, sans évènement, suit la règle des prospects (durée réglée après son dernier échange ; question DPO-2, défaut prudent) ; rattaché à un évènement, il suit l'évènement ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli ou de la purge (RGPD-03, RGPD-05) : nom remplacé par « [anonymisé] », e-mail, téléphone, réponses et jeton de gestion effacés, rattachement au contact retiré ; un rendez-vous à venir est annulé. Le rendez-vous reste (type, heure), sans personne.
+  - schema: appointments
+    table: appointments
+    field: person_email
+    category: contact
+    retention: >-
+      Lot 46 (RDV-02, RDV-03 ; ADR 0082) : figé à la réservation. Tant que le rendez-vous existe ; une personne qui a seulement pris rendez-vous, sans évènement, suit la règle des prospects (durée réglée après son dernier échange ; question DPO-2, défaut prudent) ; rattaché à un évènement, il suit l'évènement ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli ou de la purge (RGPD-03, RGPD-05) : nom remplacé par « [anonymisé] », e-mail, téléphone, réponses et jeton de gestion effacés, rattachement au contact retiré ; un rendez-vous à venir est annulé. Le rendez-vous reste (type, heure), sans personne.
+  - schema: appointments
+    table: appointments
+    field: person_phone
+    category: contact
+    retention: >-
+      Lot 46 (RDV-02, RDV-03 ; ADR 0082) : figé à la réservation. Tant que le rendez-vous existe ; une personne qui a seulement pris rendez-vous, sans évènement, suit la règle des prospects (durée réglée après son dernier échange ; question DPO-2, défaut prudent) ; rattaché à un évènement, il suit l'évènement ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli ou de la purge (RGPD-03, RGPD-05) : nom remplacé par « [anonymisé] », e-mail, téléphone, réponses et jeton de gestion effacés, rattachement au contact retiré ; un rendez-vous à venir est annulé. Le rendez-vous reste (type, heure), sans personne.
+  - schema: appointments
+    table: appointments
+    field: answers
+    category: contenu_libre
+    retention: >-
+      Lot 46 (RDV-01, RGP-04) : réponses aux questions préalables du type (zéro à cinq ; une réponse courte porte la mise en garde de RGP-04). Même durée que le rendez-vous ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli ou de la purge (RGPD-03, RGPD-05) : nom remplacé par « [anonymisé] », e-mail, téléphone, réponses et jeton de gestion effacés, rattachement au contact retiré ; un rendez-vous à venir est annulé. Le rendez-vous reste (type, heure), sans personne.
+  - schema: appointments
+    table: appointments
+    field: manage_token_hash
+    category: securite
+    retention: >-
+      Lot 46 (RDV-03, SEC-14) : empreinte SHA-256 du jeton du lien de gestion ; le lien cesse de fonctionner à la fin du rendez-vous.
+    anonymization: >-
+      Effacée à l'oubli ou à la purge ; le lien ne fonctionne plus.
+  - schema: appointments
+    table: appointments
+    field: manage_token_sealed
+    category: securite
+    retention: >-
+      Lot 46 (RDV-03, DAT-08) : le même jeton, chiffré (« f1: », ADR 0079), pour redonner le lien dans les rappels ; jamais affiché à l'équipe.
+    anonymization: >-
+      Effacé à l'oubli ou à la purge, avec l'empreinte.
+  - schema: appointments
+    table: appointment_reports
+    field: notes
+    category: contenu_libre
+    retention: >-
+      Lot 46 (EVT-10, RGP-04) : compte rendu d'un rendez-vous, réservé à l'équipe, jamais partagé au client. Même durée que le rendez-vous ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Effacé (null) à l'oubli ou à la purge du rendez-vous.
+  - schema: appointments
+    table: appointment_report_actions
+    field: label
+    category: contenu_libre
+    retention: >-
+      Lot 46 (EVT-10) : action tirée du compte rendu (quoi, pour quand, qui) ; une action devenue tâche vit aussi dans le rétroplanning de l'évènement. Supprimée avec le rendez-vous.
+    anonymization: >-
+      Supprimée avec le compte rendu (purge du rendez-vous) ; la tâche suit l'évènement.
+  - schema: appointments
+    table: availability_closures
+    field: reason
+    category: contenu_libre
+    retention: >-
+      Lot 46 : motif court d'un jour fermé (80 caractères), visible de l'équipe seulement. Tant que la personne le garde ; supprimé avec son compte.
+    anonymization: >-
+      Supprimé par la personne, ou avec les données de l'organisation.
+  - schema: appointments
+    table: calendar_sources
+    field: url_sealed
+    category: securite
+    retention: >-
+      Lot 46 (D2, DAT-08) : adresse secrète de l'agenda extérieur d'une personne de l'équipe, chiffrée au repos, jamais affichée après l'enregistrement ni écrite dans un journal. Tant que la personne garde l'agenda relié.
+    anonymization: >-
+      Supprimée quand la personne retire l'agenda, avec ses plages occupées.
+  - schema: appointments
+    table: calendar_sources
+    field: url_hint
+    category: identifiant
+    retention: >-
+      Lot 46 (D2) : hôte de l'adresse et ses quatre derniers caractères, pour reconnaître l'agenda. Même durée que l'adresse.
+    anonymization: >-
+      Supprimé avec l'agenda.
   - schema: core
     table: rate_limit_events
     field: key_hash

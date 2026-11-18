@@ -12,6 +12,7 @@ import { hubPrivacy, isModuleEnabled, type ModuleKey } from "@/modules/hub/servi
 import { quotesPrivacy } from "@/modules/quotes/service";
 import { vendorsPrivacy } from "@/modules/vendors/service";
 import { guestsPrivacy } from "@/modules/guests/service";
+import { appointmentsPrivacy } from "@/modules/appointments/service";
 
 // Modules interrogés, et la clé de souscription de chacun (le hub l'est toujours).
 export type Participant = { contract: PrivacyContractV1; moduleKey: ModuleKey | null };
@@ -24,6 +25,8 @@ export const PARTICIPANTS: Participant[] = [
   { contract: vendorsPrivacy, moduleKey: "vendors" },
   // Lot 49 (RGP-05, RGP-08) : invités, foyers, réponses, régimes, preuves d'accord.
   { contract: guestsPrivacy, moduleKey: "guests" },
+  // Lot 46 (ADR 0082) : les personnes qui ont pris rendez-vous.
+  { contract: appointmentsPrivacy, moduleKey: "appointments" },
 ];
 
 // Délai de réponse d'un module, au-delà duquel le résultat est déclaré incomplet.

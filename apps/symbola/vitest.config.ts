@@ -27,6 +27,8 @@ export const BUSINESS_RULE_FILES = [
   "modules/guests/reminders.ts",
   "modules/guests/purge-rules.ts",
   "modules/guests/import-rules.ts",
+  // Lot 46 (RDV-02) : calcul des créneaux libres.
+  "modules/appointments/slots.ts",
 ];
 
 export default defineConfig({

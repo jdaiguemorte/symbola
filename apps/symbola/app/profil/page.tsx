@@ -8,6 +8,7 @@ import { listCalendarFeeds } from "@/modules/hub/service";
 import { revokeCalendarAddressAction } from "../calendar-actions";
 import { CalendarAddressForm } from "../calendar-address-form";
 import { isEventsModuleEnabled } from "../events/module-access";
+import { isAppointmentsModuleEnabled } from "@/modules/appointments/service";
 import { SignOutEverywhereForm } from "../sign-out-everywhere-form";
 import { LanguageForm } from "./language-form";
 
@@ -21,7 +22,8 @@ export default async function ProfilePage() {
   const accountCenter = `${parseEnv(process.env).LOGTO_ENDPOINT.replace(/\/+$/, "")}/account/security`;
   // Lot 38b (HUB-29 ; D11) : Mon calendrier, pour une personne de l'équipe (module Évènements).
   const organizationId = auth.user.role !== "admin" ? auth.user.organizationId : null;
-  const calendar = organizationId && (await isEventsModuleEnabled(organizationId)) ? await listCalendarFeeds(organizationId, auth.user.id) : null;
+  // Lot 46 (RDV-04, HUB-29) : aussi avec le seul module Rendez-vous (son flux porte ses rendez-vous).
+  const calendar = organizationId && ((await isEventsModuleEnabled(organizationId)) || (await isAppointmentsModuleEnabled(organizationId))) ? await listCalendarFeeds(organizationId, auth.user.id) : null;
   const personFeed = calendar?.find((feed) => feed.eventId === null) ?? null;
   const followed = calendar
     ? await Promise.all(

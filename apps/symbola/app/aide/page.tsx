@@ -29,19 +29,20 @@ export default async function AidePage() {
   const organizationId = auth.user.organizationId;
   const isTeam = Boolean(organizationId) && (auth.user.role === "owner" || auth.user.role === "member");
   const audience: HelpAudience = isTeam ? "team" : "admin";
-  let modules: Record<HelpModule, boolean> = { hub: true, events: false, budget: false, quotes: false, vendors: false, guests: false };
+  let modules: Record<HelpModule, boolean> = { hub: true, events: false, budget: false, quotes: false, vendors: false, guests: false, appointments: false };
   let progress: HelpProgressEntry[] = [];
   if (isTeam && organizationId) {
     const db = appDatabase();
-    const [events, budget, quotes, vendors] = await Promise.all([
+    const [events, budget, quotes, vendors, appointments] = await Promise.all([
       isModuleEnabled(db, organizationId, "events"),
       isModuleEnabled(db, organizationId, "budget"),
       isModuleEnabled(db, organizationId, "quotes"),
       isModuleEnabled(db, organizationId, "vendors"),
+      isModuleEnabled(db, organizationId, "appointments"),
     ]);
     // Lot 49 : les écrans du module Invités, s'il est ouvert avec le module Évènements.
     const guests = events && (await isModuleEnabled(db, organizationId, "guests"));
-    modules = { hub: true, events, budget, quotes, vendors, guests };
+    modules = { hub: true, events, budget, quotes, vendors, guests, appointments };
     progress = await getHelpProgress(db, auth.user.id);
   }
   const seen = (tour: string) => progress.some((entry) => entry.itemKey === `tour:${tour}`);
