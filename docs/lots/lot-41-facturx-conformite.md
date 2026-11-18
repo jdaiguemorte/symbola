@@ -1,6 +1,6 @@
 # Lot 41 — Factur-X, mentions de la réforme, bon de commande, assistant de conformité
 
-**Statut** : spécification **proposée le 18/11/2026**, en attente de la validation de Julien.
+**Statut** : spécification proposée le 18/11/2026, **validée par Julien le 18/11/2026** : toutes les décisions retenues dans leur option recommandée (a), dépendances comprises (accord donné, ADR à écrire dans la PR du lot).
 Branche `lot-41-facturx-conformite`, partie de `main` (85c655d, après la PR #131). Le lot change
 le schéma `quotes` et, si D7 et D10 sont acceptées, le schéma `hub` : validation explicite
 requise (CLAUDE.md § 8). Il ajoute peut-être des outils de contrôle à la CI (D4) : accord et ADR
