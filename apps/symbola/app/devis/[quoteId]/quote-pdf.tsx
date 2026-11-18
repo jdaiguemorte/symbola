@@ -2,7 +2,7 @@
 // (@react-pdf/renderer, ADR 0019). Le contenu vient des constructeurs de
 // modèle ; ce fichier ne fait que la mise en page, aux couleurs et dans la
 // police du document (Helvetica ou Times, incluses dans le moteur PDF).
-// Lot 41 (FAC-10, D5, ADR 0079) : factures et avoirs en Liberation Sans ou Serif, aux mêmes
+// Lot 41 (FAC-10, D5, ADR 0080) : factures et avoirs en Liberation Sans ou Serif, aux mêmes
 // largeurs de caractères, incorporées (PDF/A-3).
 import type { ComponentProps } from "react";
 import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";

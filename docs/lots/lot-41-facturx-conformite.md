@@ -456,7 +456,7 @@ les lots 46 et 49 :
 
 ## Bilan du lot 41 (18/11/2026)
 
-Fait (ADR 0079 et 0080) :
+Fait (ADR 0080 et 0081) :
 
 - **FAC-10 (partie 1)** : toutes les factures, factures d'acompte, de solde et tous les avoirs
   émis sont des Factur-X EN 16931 : PDF/A-3 B par mise à jour incrémentale, sans dépendance (le

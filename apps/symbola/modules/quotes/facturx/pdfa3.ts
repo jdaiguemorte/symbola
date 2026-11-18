@@ -1,4 +1,4 @@
-// Lot 41 (FAC-10, D3, ADR 0079) — du PDF de la facture au Factur-X : le PDF rendu par
+// Lot 41 (FAC-10, D3, ADR 0080) — du PDF de la facture au Factur-X : le PDF rendu par
 // @react-pdf/renderer (polices incorporées, D5) reçoit une mise à jour incrémentale, comme le
 // prévoit la norme PDF (ISO 32000, § 7.5.6) : de nouveaux objets ajoutés à la fin du fichier, sans
 // réécrire ce qui précède. Ces objets font du fichier un PDF/A-3 (niveau B) qui porte son fichier
@@ -6,7 +6,7 @@
 // (« OutputIntent »), fichier joint « factur-x.xml » en relation « Alternative », catalogue
 // complété. Aucune dépendance (D3 a) ; le lecteur ne sait que ce qu'il faut : table de références
 // classique, catalogue, dictionnaire des noms. Les validateurs veraPDF et Mustang le contrôlent en
-// CI (D4, ADR 0080).
+// CI (D4, ADR 0081).
 import { createHash } from "node:crypto";
 import { srgbIccProfile, SRGB_DESCRIPTION } from "./icc";
 

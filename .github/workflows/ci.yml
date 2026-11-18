@@ -247,7 +247,7 @@ jobs:
           path: apps/symbola/test-results/
           retention-days: 7
 
-  # Lot 41 (FAC-10, D4, ADR 0080) : chaque cas de facture (acompte, solde avec acomptes déduits, avoirs,
+  # Lot 41 (FAC-10, D4, ADR 0081) : chaque cas de facture (acompte, solde avec acomptes déduits, avoirs,
   # franchise et assujetti, particulier et professionnel, essai guidé, en français et en anglais) est
   # contrôlé par les deux validateurs de référence, jamais embarqués dans l'app : veraPDF (PDF/A-3 B)
   # et Mustang (Factur-X, règles EN 16931). Versions figées par empreinte.
