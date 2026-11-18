@@ -56,6 +56,9 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "seatingPlan", group: "events", audience: "team", module: "guests", path: null, capture: false },
   { key: "catererSummary", group: "events", audience: "team", module: "guests", path: null, capture: false },
   { key: "mealTypes", group: "events", audience: "team", module: "guests", path: "/events/parametres/repas", capture: false },
+  // Lot 51 (JRJ-06, CHR-08) : modèles des listes du jour J ; import d'un chrono (onglet Programme).
+  { key: "dayChecklists", group: "events", audience: "team", module: "events", path: "/events/parametres/listes-jour-j", capture: false },
+  { key: "programImport", group: "events", audience: "team", module: "events", path: null, capture: false },
   // Lot 46 (RDV-01 à RDV-04, EVT-10) : rendez-vous.
   { key: "appointmentsList", group: "appointments", audience: "team", module: "appointments", path: "/rendez-vous", capture: false },
   { key: "appointmentDetail", group: "appointments", audience: "team", module: "appointments", path: null, capture: false },

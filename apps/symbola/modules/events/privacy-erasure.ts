@@ -7,6 +7,10 @@ import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import {
+  dayChecklists,
+  dayIncidents,
+  dayPhotos,
+  dayReports,
   eventActivities,
   eventDecisions,
   eventDecisionOptionFeedback,
@@ -68,6 +72,9 @@ const FATES: Record<string, ErasureFate> = {
   task_attachment: "deleted",
   // Lot 44 (CRM-01) : une demande du formulaire de contact (message libre, champs reçus) : supprimée.
   prospect_request: "deleted",
+  // Lot 51 (JRJ-07, DPO-9) : un incident de la main courante peut nommer la personne : supprimé, ses
+  // photos (fichiers compris) avec lui.
+  day_incident: "deleted",
 };
 
 type Found = { kind: string; ids: string[] };
@@ -132,6 +139,8 @@ async function existing(tx: Tx, input: ErasureInput): Promise<Found[]> {
   if (ids("task_attachment").length > 0)
     add("task_attachment", keep(await tx.select({ id: eventTaskAttachments.id, eventId: eventTaskAttachments.eventId }).from(eventTaskAttachments).where(inArray(eventTaskAttachments.id, ids("task_attachment")))));
   // Lot 44 : une demande « à vérifier » n'a pas encore d'évènement ; elle est de l'organisation (RLS).
+  if (ids("day_incident").length > 0)
+    add("day_incident", keep(await tx.select({ id: dayIncidents.id, eventId: dayIncidents.eventId }).from(dayIncidents).where(inArray(dayIncidents.id, ids("day_incident")))));
   if (ids("prospect_request").length > 0)
     add(
       "prospect_request",
@@ -191,6 +200,13 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       await tx.delete(eventActivities).where(inArray(eventActivities.eventId, eventIds));
       // Lot 44 (CRM-01) : la demande du formulaire de contact (message libre de la personne).
       await tx.delete(prospectRequests).where(inArray(prospectRequests.eventId, eventIds));
+      // Lot 51 (JRJ-07, DPO-9) : la main courante, ses photos (fichiers compris), les listes et le bilan
+      // du jour J (qui recopie les incidents) ; les pointages et décalages (heures, identifiants) restent.
+      await tx.delete(dayIncidents).where(inArray(dayIncidents.eventId, eventIds));
+      const photos = await tx.delete(dayPhotos).where(inArray(dayPhotos.eventId, eventIds)).returning({ key: dayPhotos.storageKey });
+      fileKeys.push(...photos.map((photo) => photo.key).filter((key): key is string => key !== null));
+      await tx.delete(dayChecklists).where(inArray(dayChecklists.eventId, eventIds));
+      await tx.delete(dayReports).where(inArray(dayReports.eventId, eventIds));
       // Lot 12 : lieux de l'événement (adresse possiblement privée), réception comprise (lot 34b).
       await tx.delete(eventPlaces).where(inArray(eventPlaces.eventId, eventIds));
       // Lot 34b (CHR-02) : commentaires et pièces jointes des tâches de l'événement.
@@ -257,6 +273,11 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
     }
     if (idsFor("prospect_request").length > 0) await tx.delete(prospectRequests).where(inArray(prospectRequests.id, idsFor("prospect_request")));
     if (idsFor("event_document_folder").length > 0) await tx.delete(eventDocumentFolders).where(inArray(eventDocumentFolders.id, idsFor("event_document_folder")));
+    if (idsFor("day_incident").length > 0) {
+      const photos = await tx.delete(dayPhotos).where(and(eq(dayPhotos.subject, "incident"), inArray(dayPhotos.subjectId, idsFor("day_incident")))).returning({ key: dayPhotos.storageKey });
+      fileKeys.push(...photos.map((photo) => photo.key).filter((key): key is string => key !== null));
+      await tx.delete(dayIncidents).where(inArray(dayIncidents.id, idsFor("day_incident")));
+    }
     if (idsFor("task_comment").length > 0) await tx.delete(eventTaskComments).where(inArray(eventTaskComments.id, idsFor("task_comment")));
     if (idsFor("task_attachment").length > 0) {
       const removed = await tx.delete(eventTaskAttachments).where(inArray(eventTaskAttachments.id, idsFor("task_attachment"))).returning({ key: eventTaskAttachments.fileKey });

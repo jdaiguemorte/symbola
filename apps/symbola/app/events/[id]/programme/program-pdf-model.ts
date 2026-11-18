@@ -91,7 +91,7 @@ export function buildProgramPdfModel(input: {
 // Lot 37b (CHR-07, DAT-14 ; D8, D10) — le programme d'une version diffusée, rendu comme la variante
 // « mariés » : la copie figée n'a pas de note interne.
 export function publishedPdfProgram(items: PublishedProgramItem[], publishedAt: string): EventProgram {
-  return { items: items.map((item) => ({ ...item, eventId: "", internalNote: null })), overlaps: [], updatedAt: publishedAt };
+  return { items: items.map((item) => ({ ...item, eventId: "", internalNote: null, keyMomentId: null })), overlaps: [], updatedAt: publishedAt };
 }
 
 // Lot 37b (D9) — le PDF d'un prestataire : le déroulé du jour en titres et horaires ; ses séquences
@@ -112,6 +112,7 @@ export function vendorPdfProgram(program: VendorProgramView, slotLabel: string, 
         internalNote: null,
         responsible: detail?.responsible ?? null,
         participants: detail ? [{ vendorSlotId: null, label: slotLabel }] : [],
+        keyMomentId: null,
       };
     }),
     overlaps: [],

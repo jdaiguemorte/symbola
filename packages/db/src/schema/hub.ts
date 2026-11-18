@@ -878,7 +878,7 @@ export const emailTemplates = hubSchema.table(
     // Lot 46 (migration 0158, accord de Julien du 18/11) : natures des e-mails de rendez-vous, après celles du lot 49.
     // Lot 44 (migration 0161, accord de Julien du 18/11) : « Nouvelle demande de contact ».
     // Lot 47 (migration 0163, accord de Julien du 18/11) : natures des prestataires par lien.
-    // Lot 43 (migration 0167, accord de Julien du 18/11, D10) : proposition, relance avant expiration,
+    // Lot 43 (migration 0169, accord de Julien du 18/11, D10) : proposition, relance avant expiration,
     // RIB du règlement, relance d'impayé.
     check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder')`),
     check("email_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),

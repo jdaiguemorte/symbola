@@ -185,6 +185,12 @@ export const AUDIT_ACTIONS = {
   // Lot 50 (INV-06, D8) : synthèse pour le traiteur téléchargée (temps fort, version, format ;
   // jamais son contenu, jamais un nom) ; elle n'est rangée nulle part dans Symbola.
   "guests.caterer_summary.downloaded": { category: "export", objectType: "event" },
+  // Lot 51 (CHR-08) : chrono importé d'un tableur (nombre de séquences et de temps forts créés).
+  "events.program.imported": { category: "emission", objectType: "event" },
+  // Lot 51 (JRJ-05) : décalage du jour J validé par la planner, appliqué et diffusé aux prestataires.
+  "events.day_shift.applied": { category: "partage", objectType: "event" },
+  // Lot 51 (PAR-08, étape 7) : bilan du lendemain exporté en PDF (jamais son contenu).
+  "events.day_report.downloaded": { category: "export", objectType: "event" },
 } as const satisfies Record<string, ActionSpec>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;

@@ -124,12 +124,12 @@ hors du lot. La page de signature fictive renvoie à l'espace du client, où l'e
 
 `proposal_sent`, `proposal_expiry_reminder`, `payment_details`, `invoice_reminder`, personnalisables
 par l'organisation. La contrainte `hub.email_templates_kind_check` est élargie par une migration hub
-à part (0167), accord de Julien : réunion des natures de main et des quatre ; l'annulation rend la
+à part (0169), accord de Julien : réunion des natures de main et des quatre ; l'annulation rend la
 liste de main et est refusée tant qu'un modèle personnalisé de ces natures existe.
 
 ## Conséquences
 
-- Migrations 0165 (quotes), 0166 (budget), 0167 (hub), ajouts seulement, annulables, sans arrêt de
+- Migrations 0167 (quotes), 0168 (budget), 0169 (hub), ajouts seulement, annulables, sans arrêt de
   l'app. La PR fusionnée après une autre les renumérote et date leur `when` après la dernière.
 - Données de départ : `proposal-templates.json`, `payment-reminders.json`, textes du règlement dans
   `contract-rules.json`, quatre modèles d'e-mails.

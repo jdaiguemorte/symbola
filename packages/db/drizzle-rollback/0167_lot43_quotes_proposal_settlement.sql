@@ -1,4 +1,4 @@
--- Annulation de 0165 (lot 43) : les modèles de proposition, les références de virement, les
+-- Annulation de 0167 (lot 43) : les modèles de proposition, les références de virement, les
 -- déclarations des payeurs, les relances d'impayés et les réglages des relances sont perdus ; le mot
 -- d'accueil figé de chaque version aussi. Les encaissements confirmés restent (payment_entries).
 DROP TABLE "quotes"."payment_reminders";

@@ -127,7 +127,7 @@ describe("CHR-06 — Décaler une séquence propose de décaler les suivantes (l
 
 // Lot 37b (CHR-07, DAT-14 ; D8, D9) — règles pures de la diffusion du programme.
 function item(id: string, startTime: string, label: string, extra: Partial<ProgramItem> = {}): ProgramItem {
-  return { id, eventId: "evt", startTime, endTime: null, label, location: null, internalNote: null, responsible: null, participants: [], ...extra };
+  return { id, eventId: "evt", startTime, endTime: null, label, location: null, internalNote: null, responsible: null, participants: [], keyMomentId: null, ...extra };
 }
 
 describe("CHR-07 — Diffusion du chrono par destinataire, par lien et en PDF ; versions numérotées", () => {

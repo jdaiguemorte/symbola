@@ -1,4 +1,4 @@
--- Annulation de 0167 (lot 43) : la contrainte des natures d'e-mails revient exactement à la liste de
+-- Annulation de 0169 (lot 43) : la contrainte des natures d'e-mails revient exactement à la liste de
 -- main (migration 0163 du lot 47 : natures d'origine, invités, rendez-vous, nouvelle demande de
 -- contact, prestataires par lien).
 -- Refusée tant qu'un modèle personnalisé d'une des quatre natures du lot existe : il serait perdu ; la

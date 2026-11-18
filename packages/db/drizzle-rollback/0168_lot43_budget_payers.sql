@@ -1,4 +1,4 @@
--- Annulation de 0166 (lot 43) : les payeurs, leurs parts et les payeurs désignés des échéances sont
+-- Annulation de 0168 (lot 43) : les payeurs, leurs parts et les payeurs désignés des échéances sont
 -- perdus ; le budget redevient celui des mariés seuls. Les échéances et les lignes restent.
 DROP TABLE "budget"."planner_instalment_payers";
 --> statement-breakpoint

@@ -7,6 +7,14 @@ import type { ExportEntitySchema, ModuleExport, ModuleExportContext } from "@sym
 import { appDatabase } from "@symbola/db/client";
 import { describeModuleEntities, exportModuleEntities, type ExportEntitySpec } from "@symbola/db/export";
 import {
+  dayChecklistItems,
+  dayChecklists,
+  dayChecklistTemplates,
+  dayCheckpoints,
+  dayIncidents,
+  dayPhotos,
+  dayReports,
+  dayShifts,
   defaultVendorSlots,
   eventActivities,
   eventClients,
@@ -67,6 +75,8 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: taskTemplateItems, parents: { templateId: "task_templates" } },
   { table: programTemplates },
   { table: programTemplateItems, parents: { templateId: "program_templates" } },
+  // Lot 51 (JRJ-06) : modèles des listes de contrôle du jour J.
+  { table: dayChecklistTemplates },
   // Lot 47 (partie F) : réglages des prestataires par lien.
   { table: vendorCoordinationSettings, idField: "organizationId" },
   { table: events, demoField: "isDemo" },
@@ -100,6 +110,15 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: programItemParticipants, parents: { programItemId: "program_items" } },
   // Lot 37b (DAT-14) : versions diffusées du programme.
   { table: programVersions, ...ofEvent },
+  // Lot 51 (JRJ-05 à JRJ-08, PAR-08) : le jour J de terrain — pointages, décalages validés, main
+  // courante, listes et cases, photos (fichiers compris ; une photo refusée n'en a pas), bilan.
+  { table: dayCheckpoints, ...ofEvent },
+  { table: dayShifts, ...ofEvent },
+  { table: dayIncidents, ...ofEvent },
+  { table: dayChecklists, ...ofEvent },
+  { table: dayChecklistItems, parents: { checklistId: "day_checklists" } },
+  { table: dayPhotos, ...ofEvent, files: ["storageKey"] },
+  { table: dayReports, ...ofEvent },
   // Liens personnels des tiers, pour mémoire : jamais leur jeton (haché) ; ils se recréent.
   { table: eventLinks, ...ofEvent, omit: ["tokenHash"] },
   { table: eventLinkSharedSlots, parents: { linkId: "event_links" } },

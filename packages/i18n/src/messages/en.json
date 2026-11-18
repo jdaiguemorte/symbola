@@ -1064,7 +1064,7 @@
     },
     "dayOf": {
       "title": "Day-of",
-      "body": "The day of the event on one dark screen, readable in the sun: “Now” (the current item, in large type, with a call to its vendors) and “Next”, worked out on the phone, even without a network. The bottom bar, within thumb reach, calls the contact of the current item and leads to the schedule, the contacts (emergencies, day-of contacts, vendors, couple: call or text in one tap) and the chosen documents. “Keep on this device” copies the screen to the phone: it then opens without a network, and updates each time it is opened with a network.",
+      "body": "The day of the event on one dark screen, readable in the sun: “Now” (the current item, in large type, with a call to its vendors) and “Next”, worked out on the phone, even without a network. The bottom bar, within thumb reach, calls the contact of the current item and leads to the schedule, the contacts (emergencies, day-of contacts, vendors, couple: call or text in one tap) and the chosen documents. “Keep on this device” copies the screen to the phone: it then opens without a network, and updates each time it is opened with a network. The day is checked in: \"Started\", \"Finished\"; a delay offers to shift the rest and notify vendors after your confirmation; \"Incident\" logs a dictated fact in ten seconds; checklists tick in one tap and the day's payment handovers are recorded. Everything starts from the phone, even offline.",
       "faq": [
         {
           "q": "How do I open the day without a network?",
@@ -1089,6 +1089,34 @@
         {
           "q": "Where do I add the venue manager or a taxi?",
           "a": "In the event's “Schedule” tab, “Day-of contacts” section: name, role and phone. They appear in the day-of directory, below the emergency numbers."
+        },
+        {
+          "q": "How do I check in a sequence?",
+          "a": "On \"Now\" (or in the day's schedule), tap \"Started\", then \"Finished\". The time is your phone's, even offline. If two people check in the same sequence, both check-ins are kept and the screen shows the first time."
+        },
+        {
+          "q": "What happens when a sequence runs late?",
+          "a": "If it starts or finishes later than planned, the screen offers to shift the rest of the key moment: by the delay observed (editable), all following sequences by default (untick fixed ones, like a coach arrival), and the vendors concerned. Nothing is sent without your confirmation. Once confirmed, the schedule is shifted, a new version is published and each vendor concerned receives an email; offline, it is sent when the network is back, only once."
+        },
+        {
+          "q": "How do I log an incident in a few seconds?",
+          "a": "Tap \"Incident\" in the bottom bar: the field opens with the keyboard; tap its microphone to dictate. Severity and photo are optional; \"Save\" records the time. Write the facts without guest names; a guest feeling unwell is logged without their name (no health data)."
+        },
+        {
+          "q": "Are photos shared?",
+          "a": "No: incident, checklist and receipt photos stay within your organisation, never shown to clients or vendors. Photograph things rather than people. Reduced on the phone, they are checked on arrival (type, size, antivirus); a refused photo is flagged and the incident stays. They are deleted with the event documents."
+        },
+        {
+          "q": "What happens without network?",
+          "a": "Everything you do (check-in, shift, incident, box, handover, photo) is kept on the phone and sent in order as soon as the network is back, with the screen open. \"3 actions waiting\" then \"Up to date\" tell you. If your session has expired, nothing is lost: sign in again and sending resumes."
+        },
+        {
+          "q": "How do I record a handover on the day?",
+          "a": "In the budget, mark the instalment \"To hand over on the day\" (cheque, cash, envelope) with the person handing it over. On the day, the \"Payments handed over today\" list shows it: tap \"Handed over\" (and \"Receipt\" to photograph the receipt). The instalment becomes handed over and paid in the client's budget. Cash: cash payments are capped by law; check the limit that applies before planning a cash handover."
+        },
+        {
+          "q": "Where is the report?",
+          "a": "The day after the event's last day, in its time zone, the report is ready on the event page (Overview): planned and actual sequences, shifts, incidents and photos, unticked boxes, handovers. It exports as a PDF and stays internal to your team."
         }
       ]
     },
@@ -1275,6 +1303,14 @@
     "vendorCoordinationSettings": {
       "title": "Supplier run sheets",
       "body": "Set the default deadline of a brief, the reminder the day before, the run sheets sent 30 and 7 days before to booked suppliers (each confirms with one tap), the delay after which an unconfirmed run sheet is flagged to you, and the follow-up tasks created when the client chooses a supplier."
+    },
+    "dayChecklists": {
+      "title": "Event-day checklists",
+      "body": "Your organisation's checklist templates (setup, teardown), copied at first from a few standard lists. Add a checklist to a key moment from the event-day screen (\"Prepare the checklists\"): it is copied, and editing the template afterwards does not change it."
+    },
+    "programImport": {
+      "title": "Import a schedule",
+      "body": "A schedule kept in a spreadsheet (CSV or XLSX) imports into the event schedule: columns day or key moment, start, end, sequence, location, responsible, note. The review screen shows the sequences read and the issues row by row; nothing is written before \"Import\". Missing key moments are created; a cell starting with =, +, - or @ stays text."
     },
     "settlement": {
       "title": "Pay the deposit",
@@ -1977,7 +2013,8 @@
       "date": "The date is not valid.",
       "time": "The time is not valid (HH:MM).",
       "place": "This place is not one of the event's places.",
-      "too_many": "An event has at most 20 key moments."
+      "too_many": "An event has at most 20 key moments.",
+      "has_items": "This key moment holds schedule sequences."
     },
     "activityStageChanged": "Moved to the “{task}” stage.",
     "prospectRequestTitle": "Request received through the contact form",
@@ -1985,7 +2022,44 @@
     "prospectRequestPeriod": "Preferred period: {period}",
     "prospectRequestBudget": "Stated budget: {budget}",
     "prospectRequestNoMessage": "No message.",
-    "pipelineView": "Column view"
+    "pipelineView": "Column view",
+    "programKeyMoment": "Key moment",
+    "programKeyMomentDefault": "Event day",
+    "programMomentInvalid": "This key moment does not belong to the event.",
+    "keyMomentHasItems": "{count, plural, one {This key moment holds # schedule sequence: move or delete it to remove the key moment.} other {This key moment holds # schedule sequences: move or delete them to remove the key moment.}}",
+    "programImportTitle": "Import a schedule (spreadsheet)",
+    "programImportHint": "Recognised columns: day or key moment, date, start, end, sequence, location, responsible, note. Nothing is written before you agree; missing key moments are created.",
+    "programImportFileLabel": "CSV or XLSX file",
+    "programImportFile": "Choose a CSV or XLSX file.",
+    "programImportTooLarge": "This file is over 1 MB: a schedule weighs a few KB.",
+    "programImportPreview": "Preview before importing",
+    "programImportPreviewTitle": "{count, plural, =0 {No sequence read} one {# sequence read} other {# sequences read}}",
+    "programImportNeutralized": "{count, plural, one {# cell starting with =, +, - or @ was kept as text.} other {# cells starting with =, +, - or @ were kept as text.}}",
+    "programImportUnknownColumns": "Ignored columns: {columns}.",
+    "programImportNewMoments": "Key moments created: {moments}.",
+    "programImportProblems": "Rows set aside",
+    "programImportProblem": "Row {line}: {problem}",
+    "programImportProblems_": {
+      "start": "unreadable start time",
+      "end": "unreadable end time",
+      "label": "empty sequence",
+      "moment_date": "key moment without a date (the event has no date)",
+      "too_long": "text too long"
+    },
+    "programImportLine": "Row",
+    "programImportSkip": "Set aside",
+    "programImportSkipLine": "Set aside row {line}",
+    "programImportApply": "{count, plural, one {Import # sequence} other {Import # sequences}}",
+    "programImportApplied": "{items, plural, one {# sequence imported} other {# sequences imported}}, {moments, plural, =0 {no key moment created} one {# key moment created} other {# key moments created}}.",
+    "programImportRejected": {
+      "empty": "The file is empty.",
+      "too_large": "The file is too large.",
+      "infected": "The file was refused by the antivirus.",
+      "no_start_column": "No start time column recognised (start, time…).",
+      "no_label_column": "No sequence column recognised (sequence, item…).",
+      "unsupported_format": "Unread format: save the file as .xlsx or .csv.",
+      "malformed": "The file could not be read."
+    }
   },
   "Budget": {
     "title": "Budget",
@@ -2174,6 +2248,14 @@
     "declarationsTitle": "Declared payments to confirm",
     "declarationLine": "{name} paid {label} ({amount}) — {event}",
     "declarationLineMeta": "on {date}, {method}",
+    "handoverOpen": "Handed over on the day: {label}",
+    "handoverOnDay": "To hand over on the day",
+    "handoverMethod": "Method (cheque, cash, envelope…)",
+    "handoverBy": "Handed over by",
+    "handoverSave": "Save the handover",
+    "handoverMarked": "To hand over on the day: {method}, by {by}",
+    "handoverDone": "Handed over on the day ({method})",
+    "handoverCashHint": "Cash: cash payments are capped by law (see the help).",
     "payersNav": "Payers and calendar",
     "payersLink": "Payers and split",
     "cashCalendarLink": "Cash-out calendar"
@@ -4943,6 +5025,7 @@
     "pipelineStages": "Pipeline stages",
     "contactForm": "Contact form",
     "vendorCoordination": "Suppliers by link",
+    "dayChecklists": "Event-day checklists",
     "proposalTemplates": "Proposal templates",
     "paymentReminders": "Reminders"
   },
@@ -5228,6 +5311,9 @@
       "events_vendor_roadmap_confirmed": "Run sheet confirmed by a supplier",
       "events_decision_engaged": "Client choice committed (supplier booked, follow-up tasks)",
       "events_vendor_retention_changed": "Booked supplier changed by the team",
+      "events_program_imported": "Schedule imported from a spreadsheet",
+      "events_day_shift_applied": "Event-day shift confirmed and published",
+      "events_day_report_downloaded": "Event-day report downloaded",
       "quotes_transfer_declared": "Transfer declared by the payer",
       "quotes_reminders_suspended": "Payment reminders suspended",
       "quotes_reminders_resumed": "Payment reminders resumed",
@@ -5378,6 +5464,14 @@
       "events_event_decision_option_feedback": "client opinion on an option",
       "events_vendor_roadmaps": "supplier run sheet",
       "events_vendor_coordination_settings": "suppliers by link settings",
+      "events_day_checkpoints": "event-day check-in",
+      "events_day_shifts": "event-day shift",
+      "events_day_photos": "event-day photo",
+      "events_day_incidents": "incident log entry",
+      "events_day_checklist_templates": "event-day checklist template",
+      "events_day_checklists": "event-day checklist",
+      "events_day_checklist_items": "event-day checklist box",
+      "events_day_reports": "event-day report",
       "quotes_proposal_templates": "Proposal template",
       "quotes_payment_references": "Transfer reference",
       "quotes_payment_reminders": "Payment reminder",
@@ -5598,7 +5692,8 @@
     "programPdf": "Download your schedule (PDF)",
     "programNotPublished": "The schedule has not been shared yet.",
     "outlineTitle": "The day at a glance",
-    "outlineYours": "you"
+    "outlineYours": "you",
+    "programDayShift": "{minutes} min shift on the day: your times below are up to date."
   },
   "Decisions": {
     "decisionOptionTitle": "Choose: {slot}",
@@ -5783,7 +5878,90 @@
     "sms": "Text",
     "mail": "Email",
     "smsLabel": "Text {name} on {phone}",
-    "responsible": "In charge: {name}"
+    "responsible": "In charge: {name}",
+    "you": "you",
+    "teammate": "a team member",
+    "daysLabel": "Event days",
+    "started": "Started",
+    "finished": "Finished",
+    "startLabel": "Started: {label}",
+    "finishLabel": "Finished: {label}",
+    "startedAt": "Started at {time} ({name})",
+    "finishedAt": "Finished at {time} ({name})",
+    "pendingMark": "— waiting to be sent",
+    "present": "{count, plural, =0 {No guests expected} one {# guest expected} other {# guests expected}}",
+    "shiftTitle": "{minutes} min late",
+    "shiftIntro": "\"{label}\" is {minutes} min late. Shift the rest of this key moment?",
+    "shiftMinutes": "Shift by (minutes)",
+    "shiftItems": "Sequences to shift",
+    "shiftFixedHint": "Untick those that do not move (a coach arrival, for instance).",
+    "shiftVendors": "Vendors notified by email",
+    "shiftNoVendor": "No vendor on these sequences.",
+    "shiftNoLink": "{name}: no link, call them.",
+    "vendorUnknown": "Vendor not booked",
+    "shiftValidate": "{count, plural, =0 {Confirm the shift} one {Confirm and notify # vendor} other {Confirm and notify # vendors}}",
+    "shiftRefuse": "Do not shift",
+    "shiftQueued": "{count, plural, =0 {Shift confirmed: it will apply as soon as the network is back.} one {Shift confirmed: # vendor will be notified as soon as the network is back.} other {Shift confirmed: # vendors will be notified as soon as the network is back.}}",
+    "shiftSent": "{count, plural, =0 {{minutes} min shift confirmed.} one {{minutes} min shift confirmed: # vendor notified.} other {{minutes} min shift confirmed: # vendors notified.}}",
+    "syncDone": "Up to date",
+    "syncPending": "{count, plural, one {# action waiting to be sent} other {# actions waiting to be sent}}",
+    "syncOffline": "{count, plural, one {Offline: # action waiting, sent when the network is back.} other {Offline: # actions waiting, sent when the network is back.}}",
+    "syncSession": "{count, plural, =0 {Your session has expired.} one {Your session has expired: # action is waiting on this phone. Sign in again to send it.} other {Your session has expired: # actions are waiting on this phone. Sign in again to send them.}}",
+    "syncRejected": "{count, plural, one {One action could not be saved (sequence or box deleted, or wrong phone time).} other {# actions could not be saved (sequence or box deleted, or wrong phone time).}}",
+    "photoRefused": "Photo refused ({reason}): everything else is saved.",
+    "photoRejection": {
+      "type": "not an image",
+      "size": "too large",
+      "virus": "refused by the antivirus",
+      "unavailable": "not received"
+    },
+    "photo": "Photo",
+    "photoAdded": "Photo attached",
+    "photoOf": "Photo of: {label}",
+    "photoHint": "Photograph things rather than people.",
+    "incidentButton": "Incident",
+    "incidentTitle": "Log an incident",
+    "incidentLabel": "What is happening",
+    "incidentHint": "Tap the keyboard microphone to dictate. Write the facts, without guest names or health data.",
+    "incidentPhoto": "Attach a photo to the incident",
+    "severityLegend": "Severity (optional)",
+    "severity": {
+      "info": "Info",
+      "follow_up": "Follow up",
+      "urgent": "Urgent"
+    },
+    "save": "Save",
+    "close": "Close",
+    "incidentSaved": "Incident logged at {time}.",
+    "logTitle": "Incident log",
+    "logEmpty": "No incident logged.",
+    "logPhoto": "See the photo",
+    "checklistsTitle": "Checklists",
+    "checklistsEmpty": "No checklist for this day. Prepare them below.",
+    "phase": {
+      "setup": "setup",
+      "teardown": "teardown"
+    },
+    "checkedAt": "Ticked at {time} ({name})",
+    "handoversTitle": "Payments handed over today",
+    "handoversEmpty": "No payment to hand over this day.",
+    "handoverBy": "handed over by {name}",
+    "handoverDone": "Handed over",
+    "handoverLabel": "Handed over: {vendor}",
+    "handedOverAt": "Handed over at {time} ({name})",
+    "receipt": "Receipt",
+    "receiptOf": "Receipt photo: {vendor}",
+    "prepTitle": "Prepare the checklists",
+    "prepHint": "Add to a key moment a checklist copied from a template; it goes to the team's phones.",
+    "prepTemplate": "Template",
+    "prepMoment": "Key moment",
+    "prepAdd": "Add the checklist",
+    "prepTemplatesLink": "Edit the checklist templates",
+    "prepNewItem": "New box",
+    "prepAddItem": "Add the box",
+    "prepRemove": "Remove",
+    "prepRemoveItem": "Remove the box {label}",
+    "prepRemoveList": "Remove the checklist \"{name}\""
   },
   "Offline": {
     "title": "Offline",
@@ -8331,6 +8509,64 @@
       "tooLarge": "The file is too large (20 MB at most).",
       "infected": "The file was refused by the antivirus.",
       "unsupported": "Only a photo or a PDF is accepted."
+    }
+  },
+  "DayChecklists": {
+    "title": "Event-day checklists",
+    "unavailable": "The Events module is not subscribed: event-day checklists are unavailable.",
+    "intro": "The setup and teardown checklists you add to an event's key moments. A checklist already copied into an event does not change.",
+    "name": "Name",
+    "phase": "Type",
+    "setup": "Setup",
+    "teardown": "Teardown",
+    "items": "Boxes (one per line)",
+    "save": "Save",
+    "add": "Add the template",
+    "saved": "Template saved.",
+    "invalid": "Name required (100 characters), at most 100 boxes of 200 characters.",
+    "count": "{count, plural, =0 {No box} one {# box} other {# boxes}}",
+    "edit": "Edit \"{name}\"",
+    "remove": "Remove \"{name}\"",
+    "addTitle": "New template"
+  },
+  "DayReport": {
+    "title": "Event-day report",
+    "event": "Event",
+    "heading": "{event} — {date}",
+    "preparedAt": "Prepared on {date}",
+    "download": "Download the report (PDF)",
+    "internal": "Internal to your team: never shown to clients or vendors.",
+    "footer": "Internal report — do not forward",
+    "page": "Page {page} of {total}",
+    "sequence": "{label}: planned {planned}, actual {actual}{gap}",
+    "notPointed": "not checked in",
+    "gap": "{minutes, plural, =0 {} other { ({minutes, number} min gap)}}",
+    "onTime": " (on time)",
+    "shift": "{minutes} min shift confirmed at {time}: {items, plural, one {# sequence} other {# sequences}}, {notified, plural, =0 {no vendor notified} one {# vendor notified} other {# vendors notified}}",
+    "shiftRefused": "{minutes} min shift confirmed at {time}, not applied (schedule changed meanwhile)",
+    "incident": "{time} · {severity} · {body}{photos, plural, =0 {} one { (# photo)} other { (# photos)}}",
+    "severity": {
+      "none": "no severity",
+      "info": "info",
+      "follow_up": "follow up",
+      "urgent": "urgent"
+    },
+    "unchecked": "{list}: {label}",
+    "handoverDone": "{vendor} — {amount} ({method}) handed over at {time}",
+    "handoverMissing": "{vendor} — {amount} ({method}) not handed over",
+    "titles": {
+      "sequences": "Planned and actual sequences",
+      "shifts": "Confirmed shifts",
+      "incidents": "Incident log",
+      "unchecked": "Unticked boxes",
+      "handovers": "Payments handed over"
+    },
+    "empties": {
+      "sequences": "No sequence in the schedule.",
+      "shifts": "No shift.",
+      "incidents": "No incident logged.",
+      "unchecked": "All boxes are ticked.",
+      "handovers": "No payment to hand over."
     }
   },
   "Proposal": {

@@ -416,6 +416,9 @@ export const programItems = eventsSchema.table("program_items", {
   internalNote: text("internal_note"),
   // Lot 30b (CHR-06, décision D6) : responsable de la séquence, texte court.
   responsible: text("responsible"),
+  // Lot 51 (EVT-04 ; D1, ADR 0091) : le temps fort de la séquence, donc son jour. Facultatif en base
+  // (compatible avec l'ancien code, ARC-14) ; l'app rattache toute séquence nouvelle à un temps fort.
+  keyMomentId: uuid("key_moment_id").references((): AnyPgColumn => keyMoments.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
@@ -426,6 +429,7 @@ export const programItems = eventsSchema.table("program_items", {
   deletedBy: uuid("deleted_by"),
 }, (table) => [
   index("program_items_organization_idx").on(table.organizationId),
+  index("program_items_key_moment_idx").on(table.keyMomentId),
   check("program_items_responsible_check", sql`${table.responsible} is null or char_length(${table.responsible}) between 1 and 120`),
 ]);
 
@@ -514,12 +518,19 @@ export const programTemplateItems = eventsSchema.table("program_template_items",
   location: text("location"),
   participantLabels: text("participant_labels").array().notNull().default([]),
   position: integer("position").notNull().default(0),
+  // Lot 51 (CHR-08, EVT-04) : un modèle porte plusieurs temps forts (week-end de mariage) : nom du
+  // temps fort de la ligne et son jour, compté depuis le jour de l'évènement (0 : le jour même).
+  momentName: text("moment_name"),
+  dayOffset: integer("day_offset").notNull().default(0),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-}, (table) => [index("program_template_items_organization_idx").on(table.organizationId)]);
+}, (table) => [
+  index("program_template_items_organization_idx").on(table.organizationId),
+  check("program_template_items_moment_check", sql`(${table.momentName} is null or char_length(${table.momentName}) between 1 and 100) and ${table.dayOffset} between -3 and 6`),
+]);
 
 // PRD-EVT-06 : accès d'un marié à un événement. Une ligne par invitation ;
 // userId est posé à l'acceptation (compte hub.users au rôle « client »),
@@ -1016,6 +1027,10 @@ export const keyMoments = eventsSchema.table("key_moments", {
   startTime: time("start_time"),
   placeId: uuid("place_id").references(() => eventPlaces.id, { onDelete: "set null" }),
   position: integer("position").notNull().default(0),
+  // Lot 51 (EVT-04 ; D1) : temps fort unique créé de lui-même pour porter le chrono d'un évènement
+  // d'un jour (migration 0165, puis à la première séquence). Tant que la planner ne l'a pas modifié,
+  // il n'est pas proposé aux invités : rien ne change pour eux.
+  autoCreated: boolean("auto_created").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
@@ -1100,6 +1115,256 @@ export const prospectRequests = eventsSchema.table(
   ],
 );
 
+// Lot 51 (JRJ-05 à JRJ-09, ARC-09 ; D2 à D5, ADR 0091) — le jour J de terrain. Toute écriture du
+// jour J part d'une file sur l'appareil, même sans réseau : chaque ligne garde l'identifiant de
+// l'action créé sur le téléphone (unique par organisation : une action rejouée est ignorée), la
+// personne qui l'a faite et l'heure de l'appareil. Les pointages s'ajoutent, jamais ne s'écrasent.
+export const dayCheckpoints = eventsSchema.table(
+  "day_checkpoints",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    programItemId: uuid("program_item_id")
+      .notNull()
+      .references(() => programItems.id, { onDelete: "cascade" }),
+    // « started » (Commencé) ou « finished » (Terminé).
+    kind: text("kind").notNull(),
+    deviceAt: timestamp("device_at", { withTimezone: true }).notNull(),
+    userId: uuid("user_id").notNull(),
+    actionId: uuid("action_id").notNull(),
+    receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("day_checkpoints_organization_idx").on(table.organizationId),
+    index("day_checkpoints_event_idx").on(table.eventId),
+    index("day_checkpoints_item_idx").on(table.programItemId),
+    unique("day_checkpoints_action_unique").on(table.organizationId, table.actionId),
+    check("day_checkpoints_kind_check", sql`${table.kind} in ('started', 'finished')`),
+  ],
+);
+
+// Un décalage validé par la planner (JRJ-05) : de combien, quelles séquences, quels prestataires
+// prévenus. Rien n'est envoyé sans cette ligne ; « applied_at » quand le programme est décalé et une
+// version diffusée, « notified_at » quand les e-mails sont inscrits dans la file (une seule fois).
+export const dayShifts = eventsSchema.table(
+  "day_shifts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    keyMomentId: uuid("key_moment_id").references(() => keyMoments.id, { onDelete: "set null" }),
+    lateItemId: uuid("late_item_id").references(() => programItems.id, { onDelete: "set null" }),
+    minutes: integer("minutes").notNull(),
+    itemIds: uuid("item_ids").array().notNull(),
+    vendorSlotIds: uuid("vendor_slot_ids").array().notNull().default(sql`'{}'::uuid[]`),
+    validatedAt: timestamp("validated_at", { withTimezone: true }).notNull(),
+    validatedBy: uuid("validated_by").notNull(),
+    actionId: uuid("action_id").notNull(),
+    // « applied » : programme décalé ; « out_of_day » ou « items_missing » : refusé à l'arrivée.
+    outcome: text("outcome"),
+    appliedAt: timestamp("applied_at", { withTimezone: true }),
+    programVersion: integer("program_version"),
+    notifiedAt: timestamp("notified_at", { withTimezone: true }),
+    notifiedCount: integer("notified_count"),
+    receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("day_shifts_organization_idx").on(table.organizationId),
+    index("day_shifts_event_idx").on(table.eventId),
+    unique("day_shifts_action_unique").on(table.organizationId, table.actionId),
+    check("day_shifts_minutes_check", sql`${table.minutes} between 1 and 720`),
+    check("day_shifts_items_check", sql`coalesce(array_length(${table.itemIds}, 1), 0) between 1 and 200 and coalesce(array_length(${table.vendorSlotIds}, 1), 0) <= 200`),
+    check("day_shifts_outcome_check", sql`${table.outcome} is null or ${table.outcome} in ('applied', 'out_of_day', 'items_missing')`),
+  ],
+);
+
+// Photo du jour J (JRJ-06, JRJ-07, JRJ-09) : réduite sur le téléphone, contrôlée à l'arrivée (type,
+// taille, antivirus, ADR 0027). Une photo refusée garde sa ligne, sans fichier : l'écran le dit, et
+// l'incident ou la case restent. Interne à l'organisation ; purgée avec l'évènement (DPO-9).
+export const dayPhotos = eventsSchema.table(
+  "day_photos",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    // « incident », « checklist_item » ou « handover » (reçu d'une remise, échéance du budget).
+    subject: text("subject").notNull(),
+    subjectId: uuid("subject_id").notNull(),
+    state: text("state").notNull(),
+    rejection: text("rejection"),
+    storageKey: text("storage_key"),
+    contentType: text("content_type"),
+    sizeBytes: integer("size_bytes"),
+    takenAt: timestamp("taken_at", { withTimezone: true }).notNull(),
+    takenBy: uuid("taken_by").notNull(),
+    actionId: uuid("action_id").notNull(),
+    receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("day_photos_organization_idx").on(table.organizationId),
+    index("day_photos_event_idx").on(table.eventId),
+    index("day_photos_subject_idx").on(table.subjectId),
+    unique("day_photos_action_unique").on(table.organizationId, table.actionId),
+    check("day_photos_subject_check", sql`${table.subject} in ('incident', 'checklist_item', 'handover')`),
+    check(
+      "day_photos_state_check",
+      sql`(${table.state} = 'stored' and ${table.storageKey} is not null and ${table.contentType} is not null and ${table.sizeBytes} > 0 and ${table.rejection} is null) or (${table.state} = 'rejected' and ${table.storageKey} is null and ${table.rejection} in ('type', 'size', 'virus', 'unavailable'))`,
+    ),
+  ],
+);
+
+// Main courante (JRJ-07) : incident horodaté, dicté par le clavier du téléphone (D2), gravité
+// facultative. Données de travail : ni nom d'invité ni donnée de santé (l'aide le rappelle).
+export const dayIncidents = eventsSchema.table(
+  "day_incidents",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    keyMomentId: uuid("key_moment_id").references(() => keyMoments.id, { onDelete: "set null" }),
+    body: text("body").notNull(),
+    severity: text("severity"),
+    deviceAt: timestamp("device_at", { withTimezone: true }).notNull(),
+    userId: uuid("user_id").notNull(),
+    actionId: uuid("action_id").notNull(),
+    receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("day_incidents_organization_idx").on(table.organizationId),
+    index("day_incidents_event_idx").on(table.eventId),
+    unique("day_incidents_action_unique").on(table.organizationId, table.actionId),
+    check("day_incidents_body_check", sql`char_length(${table.body}) between 1 and 2000`),
+    check("day_incidents_severity_check", sql`${table.severity} is null or ${table.severity} in ('info', 'follow_up', 'urgent')`),
+  ],
+);
+
+// Modèles de listes de contrôle de l'organisation (JRJ-06), copiés des données de départ
+// (day-checklists.json) à la première lecture ; la planner les modifie (HUB-20).
+export const dayChecklistTemplates = eventsSchema.table(
+  "day_checklist_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    starterKey: text("starter_key"),
+    name: text("name").notNull(),
+    // « setup » (installation) ou « teardown » (démontage).
+    phase: text("phase").notNull(),
+    items: text("items").array().notNull().default(sql`'{}'::text[]`),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("day_checklist_templates_organization_idx").on(table.organizationId),
+    unique("day_checklist_templates_starter_unique").on(table.organizationId, table.starterKey),
+    check("day_checklist_templates_name_check", sql`char_length(${table.name}) between 1 and 100`),
+    check("day_checklist_templates_phase_check", sql`${table.phase} in ('setup', 'teardown')`),
+    check("day_checklist_templates_items_check", sql`coalesce(array_length(${table.items}, 1), 0) <= 100`),
+  ],
+);
+
+// La liste d'un temps fort, copiée d'un modèle (ou vide), et ses cases.
+export const dayChecklists = eventsSchema.table(
+  "day_checklists",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    keyMomentId: uuid("key_moment_id").references(() => keyMoments.id, { onDelete: "set null" }),
+    templateId: uuid("template_id").references(() => dayChecklistTemplates.id, { onDelete: "set null" }),
+    name: text("name").notNull(),
+    phase: text("phase").notNull(),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("day_checklists_organization_idx").on(table.organizationId),
+    index("day_checklists_event_idx").on(table.eventId),
+    check("day_checklists_name_check", sql`char_length(${table.name}) between 1 and 100`),
+    check("day_checklists_phase_check", sql`${table.phase} in ('setup', 'teardown')`),
+  ],
+);
+
+// Une case : cochée d'un toucher (heure de l'appareil, personne, action) ; la première coche reste.
+export const dayChecklistItems = eventsSchema.table(
+  "day_checklist_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    checklistId: uuid("checklist_id")
+      .notNull()
+      .references(() => dayChecklists.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    position: integer("position").notNull().default(0),
+    checkedAt: timestamp("checked_at", { withTimezone: true }),
+    checkedBy: uuid("checked_by"),
+    checkActionId: uuid("check_action_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("day_checklist_items_organization_idx").on(table.organizationId),
+    index("day_checklist_items_checklist_idx").on(table.checklistId),
+    check("day_checklist_items_label_check", sql`char_length(${table.label}) between 1 and 200`),
+    check("day_checklist_items_check_check", sql`(${table.checkedAt} is null and ${table.checkedBy} is null) or (${table.checkedAt} is not null and ${table.checkedBy} is not null)`),
+  ],
+);
+
+// Le bilan du lendemain (PAR-08, étape 7) : la dernière synthèse préparée, interne à l'organisation.
+export type DayReportSummaryRow = Record<string, unknown>;
+
+export const dayReports = eventsSchema.table(
+  "day_reports",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    preparedAt: timestamp("prepared_at", { withTimezone: true }).notNull(),
+    summary: jsonb("summary").$type<DayReportSummaryRow>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [index("day_reports_organization_idx").on(table.organizationId), uniqueIndex("day_reports_event_idx").on(table.eventId)],
+);
 // --- Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; ADR 0085) : prestataires par lien. ---
 
 // D1, D10 : un brief par poste, envoyé à plusieurs prestataires. Le budget indicatif est facultatif

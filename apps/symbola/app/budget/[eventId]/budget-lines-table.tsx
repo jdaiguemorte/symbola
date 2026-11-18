@@ -23,6 +23,7 @@ import {
   removeBudgetLineAction,
   removeVendorPaymentAction,
   setVendorPaymentPaidAction,
+  setVendorPaymentHandoverAction,
   updateBudgetLineAction,
   updateBudgetLineDetailsAction,
   type BudgetFormState,
@@ -216,6 +217,32 @@ function Payments({ eventId, line, locale }: { eventId: string; line: Line; loca
                 {t("removePayment", { label: payment.label })}
               </button>
             </form>
+            {/* Lot 51 (JRJ-09 ; D8) : à remettre le jour J (moyen, personne qui remet), pointée dans le mode Jour J. */}
+            {payment.handover?.handedOverAt ? (
+              <p className="muted">{t("handoverDone", { method: payment.handover.method ?? "—" })}</p>
+            ) : payment.status === "paid" ? null : (
+              <details>
+                <summary>{payment.handover ? t("handoverMarked", { method: payment.handover.method ?? "—", by: payment.handover.by ?? "—" }) : t("handoverOpen", { label: payment.label })}</summary>
+                <form action={setVendorPaymentHandoverAction} className="stack">
+                  <input type="hidden" name="eventId" value={eventId} />
+                  <input type="hidden" name="paymentId" value={payment.id} />
+                  <label>
+                    <input type="checkbox" name="onDay" defaultChecked={payment.handover !== null} />
+                    {t("handoverOnDay")}
+                  </label>
+                  <label>
+                    {t("handoverMethod")}
+                    <input type="text" name="method" maxLength={80} defaultValue={payment.handover?.method ?? ""} />
+                  </label>
+                  <label>
+                    {t("handoverBy")}
+                    <input type="text" name="by" maxLength={120} defaultValue={payment.handover?.by ?? ""} />
+                  </label>
+                  <p className="muted">{t("handoverCashHint")}</p>
+                  <button type="submit">{t("handoverSave")}</button>
+                </form>
+              </details>
+            )}
           </li>
         ))}
       </ul>

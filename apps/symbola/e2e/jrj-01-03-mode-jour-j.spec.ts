@@ -131,7 +131,7 @@ test("JRJ-01 / JRJ-03 / SC-08 étapes 1 et 2 — à 17:20 le jour J : Maintenant
 
   // Gardé, puis en mode avion : « Maintenant » se calcule sur l'appareil.
   await page.getByRole("button", { name: "Garder sur cet appareil" }).click();
-  await expect(page.getByRole("status")).toContainText("Prêt hors ligne");
+  await expect(page.getByRole("region", { name: "Sur cet appareil" }).getByRole("status")).toContainText("Prêt hors ligne");
   // Gardé, l'écran gagne « Retirer de cet appareil » ; l'aide ouverte reste en thème nuit.
   await expectTouchTargets(page, 56);
   await page.getByRole("button", { name: "Aide sur cet écran" }).click();

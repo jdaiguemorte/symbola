@@ -1,6 +1,6 @@
 {
-  "id": "3465639b-7408-4ac6-856e-afd75e106899",
-  "prevId": "10f8bdb1-7b01-451b-bc13-f9e2de2bb471",
+  "id": "8c4432ac-dcb0-4697-9edb-a70ec0312aad",
+  "prevId": "9a20014b-fcf5-4e92-9af8-f03693a98bca",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -2438,8 +2438,45 @@
           "primaryKey": false,
           "notNull": false
         },
-        "payer_id": {
-          "name": "payer_id",
+        "handover_on_day": {
+          "name": "handover_on_day",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "handover_method": {
+          "name": "handover_method",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "handover_by": {
+          "name": "handover_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "handed_over_at": {
+          "name": "handed_over_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "handed_over_by": {
+          "name": "handed_over_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "handover_action_id": {
+          "name": "handover_action_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "handover_receipt_photo_id": {
+          "name": "handover_receipt_photo_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
@@ -2520,6 +2557,27 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "vendor_payments_handover_action_idx": {
+          "name": "vendor_payments_handover_action_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "handover_action_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -2536,26 +2594,16 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
-        },
-        "vendor_payments_payer_id_event_payers_id_fk": {
-          "name": "vendor_payments_payer_id_event_payers_id_fk",
-          "tableFrom": "vendor_payments",
-          "tableTo": "event_payers",
-          "schemaTo": "budget",
-          "columnsFrom": [
-            "payer_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {
+        "vendor_payments_handover_check": {
+          "name": "vendor_payments_handover_check",
+          "value": "(\"budget\".\"vendor_payments\".\"handover_method\" is null or char_length(\"budget\".\"vendor_payments\".\"handover_method\") between 1 and 80) and (\"budget\".\"vendor_payments\".\"handover_by\" is null or char_length(\"budget\".\"vendor_payments\".\"handover_by\") between 1 and 120) and ((\"budget\".\"vendor_payments\".\"handed_over_at\" is null and \"budget\".\"vendor_payments\".\"handed_over_by\" is null and \"budget\".\"vendor_payments\".\"handover_action_id\" is null) or (\"budget\".\"vendor_payments\".\"handed_over_at\" is not null and \"budget\".\"vendor_payments\".\"handed_over_by\" is not null))"
+        },
         "vendor_payments_amount_check": {
           "name": "vendor_payments_amount_check",
           "value": "(\"budget\".\"vendor_payments\".\"fixed_amount_cents\" is not null and \"budget\".\"vendor_payments\".\"fixed_amount_cents\" > 0 and \"budget\".\"vendor_payments\".\"percentage_basis_points\" is null) or (\"budget\".\"vendor_payments\".\"fixed_amount_cents\" is null and \"budget\".\"vendor_payments\".\"percentage_basis_points\" between 1 and 10000)"
@@ -3075,6 +3123,1367 @@
         "contact_forms_locale_check": {
           "name": "contact_forms_locale_check",
           "value": "\"events\".\"contact_forms\".\"locale\" in ('fr', 'en')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "events.day_checklist_items": {
+      "name": "day_checklist_items",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "checklist_id": {
+          "name": "checklist_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "checked_at": {
+          "name": "checked_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "checked_by": {
+          "name": "checked_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "check_action_id": {
+          "name": "check_action_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "day_checklist_items_organization_idx": {
+          "name": "day_checklist_items_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "day_checklist_items_checklist_idx": {
+          "name": "day_checklist_items_checklist_idx",
+          "columns": [
+            {
+              "expression": "checklist_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "day_checklist_items_checklist_id_day_checklists_id_fk": {
+          "name": "day_checklist_items_checklist_id_day_checklists_id_fk",
+          "tableFrom": "day_checklist_items",
+          "tableTo": "day_checklists",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "checklist_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "day_checklist_items_label_check": {
+          "name": "day_checklist_items_label_check",
+          "value": "char_length(\"events\".\"day_checklist_items\".\"label\") between 1 and 200"
+        },
+        "day_checklist_items_check_check": {
+          "name": "day_checklist_items_check_check",
+          "value": "(\"events\".\"day_checklist_items\".\"checked_at\" is null and \"events\".\"day_checklist_items\".\"checked_by\" is null) or (\"events\".\"day_checklist_items\".\"checked_at\" is not null and \"events\".\"day_checklist_items\".\"checked_by\" is not null)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "events.day_checklist_templates": {
+      "name": "day_checklist_templates",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "starter_key": {
+          "name": "starter_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phase": {
+          "name": "phase",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "items": {
+          "name": "items",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::text[]"
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "day_checklist_templates_organization_idx": {
+          "name": "day_checklist_templates_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "day_checklist_templates_starter_unique": {
+          "name": "day_checklist_templates_starter_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "starter_key"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "day_checklist_templates_name_check": {
+          "name": "day_checklist_templates_name_check",
+          "value": "char_length(\"events\".\"day_checklist_templates\".\"name\") between 1 and 100"
+        },
+        "day_checklist_templates_phase_check": {
+          "name": "day_checklist_templates_phase_check",
+          "value": "\"events\".\"day_checklist_templates\".\"phase\" in ('setup', 'teardown')"
+        },
+        "day_checklist_templates_items_check": {
+          "name": "day_checklist_templates_items_check",
+          "value": "coalesce(array_length(\"events\".\"day_checklist_templates\".\"items\", 1), 0) <= 100"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "events.day_checklists": {
+      "name": "day_checklists",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "key_moment_id": {
+          "name": "key_moment_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "template_id": {
+          "name": "template_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phase": {
+          "name": "phase",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "day_checklists_organization_idx": {
+          "name": "day_checklists_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "day_checklists_event_idx": {
+          "name": "day_checklists_event_idx",
+          "columns": [
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "day_checklists_event_id_events_id_fk": {
+          "name": "day_checklists_event_id_events_id_fk",
+          "tableFrom": "day_checklists",
+          "tableTo": "events",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "day_checklists_key_moment_id_key_moments_id_fk": {
+          "name": "day_checklists_key_moment_id_key_moments_id_fk",
+          "tableFrom": "day_checklists",
+          "tableTo": "key_moments",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "key_moment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "day_checklists_template_id_day_checklist_templates_id_fk": {
+          "name": "day_checklists_template_id_day_checklist_templates_id_fk",
+          "tableFrom": "day_checklists",
+          "tableTo": "day_checklist_templates",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "template_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "day_checklists_name_check": {
+          "name": "day_checklists_name_check",
+          "value": "char_length(\"events\".\"day_checklists\".\"name\") between 1 and 100"
+        },
+        "day_checklists_phase_check": {
+          "name": "day_checklists_phase_check",
+          "value": "\"events\".\"day_checklists\".\"phase\" in ('setup', 'teardown')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "events.day_checkpoints": {
+      "name": "day_checkpoints",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "program_item_id": {
+          "name": "program_item_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "device_at": {
+          "name": "device_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action_id": {
+          "name": "action_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "received_at": {
+          "name": "received_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "day_checkpoints_organization_idx": {
+          "name": "day_checkpoints_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "day_checkpoints_event_idx": {
+          "name": "day_checkpoints_event_idx",
+          "columns": [
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "day_checkpoints_item_idx": {
+          "name": "day_checkpoints_item_idx",
+          "columns": [
+            {
+              "expression": "program_item_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "day_checkpoints_event_id_events_id_fk": {
+          "name": "day_checkpoints_event_id_events_id_fk",
+          "tableFrom": "day_checkpoints",
+          "tableTo": "events",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "day_checkpoints_program_item_id_program_items_id_fk": {
+          "name": "day_checkpoints_program_item_id_program_items_id_fk",
+          "tableFrom": "day_checkpoints",
+          "tableTo": "program_items",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "program_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "day_checkpoints_action_unique": {
+          "name": "day_checkpoints_action_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "action_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "day_checkpoints_kind_check": {
+          "name": "day_checkpoints_kind_check",
+          "value": "\"events\".\"day_checkpoints\".\"kind\" in ('started', 'finished')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "events.day_incidents": {
+      "name": "day_incidents",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "key_moment_id": {
+          "name": "key_moment_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "body": {
+          "name": "body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "severity": {
+          "name": "severity",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "device_at": {
+          "name": "device_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action_id": {
+          "name": "action_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "received_at": {
+          "name": "received_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "day_incidents_organization_idx": {
+          "name": "day_incidents_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "day_incidents_event_idx": {
+          "name": "day_incidents_event_idx",
+          "columns": [
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "day_incidents_event_id_events_id_fk": {
+          "name": "day_incidents_event_id_events_id_fk",
+          "tableFrom": "day_incidents",
+          "tableTo": "events",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "day_incidents_key_moment_id_key_moments_id_fk": {
+          "name": "day_incidents_key_moment_id_key_moments_id_fk",
+          "tableFrom": "day_incidents",
+          "tableTo": "key_moments",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "key_moment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "day_incidents_action_unique": {
+          "name": "day_incidents_action_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "action_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "day_incidents_body_check": {
+          "name": "day_incidents_body_check",
+          "value": "char_length(\"events\".\"day_incidents\".\"body\") between 1 and 2000"
+        },
+        "day_incidents_severity_check": {
+          "name": "day_incidents_severity_check",
+          "value": "\"events\".\"day_incidents\".\"severity\" is null or \"events\".\"day_incidents\".\"severity\" in ('info', 'follow_up', 'urgent')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "events.day_photos": {
+      "name": "day_photos",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subject": {
+          "name": "subject",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subject_id": {
+          "name": "subject_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rejection": {
+          "name": "rejection",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "storage_key": {
+          "name": "storage_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "content_type": {
+          "name": "content_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "size_bytes": {
+          "name": "size_bytes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "taken_at": {
+          "name": "taken_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "taken_by": {
+          "name": "taken_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action_id": {
+          "name": "action_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "received_at": {
+          "name": "received_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "day_photos_organization_idx": {
+          "name": "day_photos_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "day_photos_event_idx": {
+          "name": "day_photos_event_idx",
+          "columns": [
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "day_photos_subject_idx": {
+          "name": "day_photos_subject_idx",
+          "columns": [
+            {
+              "expression": "subject_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "day_photos_event_id_events_id_fk": {
+          "name": "day_photos_event_id_events_id_fk",
+          "tableFrom": "day_photos",
+          "tableTo": "events",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "day_photos_action_unique": {
+          "name": "day_photos_action_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "action_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "day_photos_subject_check": {
+          "name": "day_photos_subject_check",
+          "value": "\"events\".\"day_photos\".\"subject\" in ('incident', 'checklist_item', 'handover')"
+        },
+        "day_photos_state_check": {
+          "name": "day_photos_state_check",
+          "value": "(\"events\".\"day_photos\".\"state\" = 'stored' and \"events\".\"day_photos\".\"storage_key\" is not null and \"events\".\"day_photos\".\"content_type\" is not null and \"events\".\"day_photos\".\"size_bytes\" > 0 and \"events\".\"day_photos\".\"rejection\" is null) or (\"events\".\"day_photos\".\"state\" = 'rejected' and \"events\".\"day_photos\".\"storage_key\" is null and \"events\".\"day_photos\".\"rejection\" in ('type', 'size', 'virus', 'unavailable'))"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "events.day_reports": {
+      "name": "day_reports",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "prepared_at": {
+          "name": "prepared_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "summary": {
+          "name": "summary",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "day_reports_organization_idx": {
+          "name": "day_reports_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "day_reports_event_idx": {
+          "name": "day_reports_event_idx",
+          "columns": [
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "day_reports_event_id_events_id_fk": {
+          "name": "day_reports_event_id_events_id_fk",
+          "tableFrom": "day_reports",
+          "tableTo": "events",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "events.day_shifts": {
+      "name": "day_shifts",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "key_moment_id": {
+          "name": "key_moment_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "late_item_id": {
+          "name": "late_item_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "minutes": {
+          "name": "minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "item_ids": {
+          "name": "item_ids",
+          "type": "uuid[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vendor_slot_ids": {
+          "name": "vendor_slot_ids",
+          "type": "uuid[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::uuid[]"
+        },
+        "validated_at": {
+          "name": "validated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "validated_by": {
+          "name": "validated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action_id": {
+          "name": "action_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "outcome": {
+          "name": "outcome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "applied_at": {
+          "name": "applied_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "program_version": {
+          "name": "program_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notified_at": {
+          "name": "notified_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notified_count": {
+          "name": "notified_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "received_at": {
+          "name": "received_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "day_shifts_organization_idx": {
+          "name": "day_shifts_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "day_shifts_event_idx": {
+          "name": "day_shifts_event_idx",
+          "columns": [
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "day_shifts_event_id_events_id_fk": {
+          "name": "day_shifts_event_id_events_id_fk",
+          "tableFrom": "day_shifts",
+          "tableTo": "events",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "day_shifts_key_moment_id_key_moments_id_fk": {
+          "name": "day_shifts_key_moment_id_key_moments_id_fk",
+          "tableFrom": "day_shifts",
+          "tableTo": "key_moments",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "key_moment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "day_shifts_late_item_id_program_items_id_fk": {
+          "name": "day_shifts_late_item_id_program_items_id_fk",
+          "tableFrom": "day_shifts",
+          "tableTo": "program_items",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "late_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "day_shifts_action_unique": {
+          "name": "day_shifts_action_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "action_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "day_shifts_minutes_check": {
+          "name": "day_shifts_minutes_check",
+          "value": "\"events\".\"day_shifts\".\"minutes\" between 1 and 720"
+        },
+        "day_shifts_items_check": {
+          "name": "day_shifts_items_check",
+          "value": "coalesce(array_length(\"events\".\"day_shifts\".\"item_ids\", 1), 0) between 1 and 200 and coalesce(array_length(\"events\".\"day_shifts\".\"vendor_slot_ids\", 1), 0) <= 200"
+        },
+        "day_shifts_outcome_check": {
+          "name": "day_shifts_outcome_check",
+          "value": "\"events\".\"day_shifts\".\"outcome\" is null or \"events\".\"day_shifts\".\"outcome\" in ('applied', 'out_of_day', 'items_missing')"
         }
       },
       "isRLSEnabled": false
@@ -7223,6 +8632,13 @@
           "notNull": true,
           "default": 0
         },
+        "auto_created": {
+          "name": "auto_created",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -7683,6 +9099,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "key_moment_id": {
+          "name": "key_moment_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -7737,6 +9159,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "program_items_key_moment_idx": {
+          "name": "program_items_key_moment_idx",
+          "columns": [
+            {
+              "expression": "key_moment_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -7752,6 +9189,20 @@
             "id"
           ],
           "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "program_items_key_moment_id_key_moments_id_fk": {
+          "name": "program_items_key_moment_id_key_moments_id_fk",
+          "tableFrom": "program_items",
+          "tableTo": "key_moments",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "key_moment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -7827,6 +9278,19 @@
           "notNull": true,
           "default": 0
         },
+        "moment_name": {
+          "name": "moment_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "day_offset": {
+          "name": "day_offset",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -7890,7 +9354,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "program_template_items_moment_check": {
+          "name": "program_template_items_moment_check",
+          "value": "(\"events\".\"program_template_items\".\"moment_name\" is null or char_length(\"events\".\"program_template_items\".\"moment_name\") between 1 and 100) and \"events\".\"program_template_items\".\"day_offset\" between -3 and 6"
+        }
+      },
       "isRLSEnabled": false
     },
     "events.program_templates": {
@@ -12943,7 +14412,7 @@
       "checkConstraints": {
         "email_templates_kind_check": {
           "name": "email_templates_kind_check",
-          "value": "\"hub\".\"email_templates\".\"kind\" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder')"
+          "value": "\"hub\".\"email_templates\".\"kind\" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap')"
         },
         "email_templates_locale_check": {
           "name": "email_templates_locale_check",
@@ -22063,389 +23532,6 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "budget.event_payers": {
-      "name": "event_payers",
-      "schema": "budget",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "event_id": {
-          "name": "event_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "kind": {
-          "name": "kind",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "link_id": {
-          "name": "link_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "own_share_only": {
-          "name": "own_share_only",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "position": {
-          "name": "position",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_by": {
-          "name": "updated_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "event_payers_organization_idx": {
-          "name": "event_payers_organization_idx",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "event_payers_event_idx": {
-          "name": "event_payers_event_idx",
-          "columns": [
-            {
-              "expression": "event_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "event_payers_event_link_unique": {
-          "name": "event_payers_event_link_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "event_id",
-            "link_id"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {
-        "event_payers_name_check": {
-          "name": "event_payers_name_check",
-          "value": "char_length(trim(\"budget\".\"event_payers\".\"name\")) between 1 and 120"
-        },
-        "event_payers_kind_check": {
-          "name": "event_payers_kind_check",
-          "value": "\"budget\".\"event_payers\".\"kind\" in ('couple', 'family_one', 'family_two', 'company', 'other')"
-        }
-      },
-      "isRLSEnabled": false
-    },
-    "budget.budget_line_payer_shares": {
-      "name": "budget_line_payer_shares",
-      "schema": "budget",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "line_id": {
-          "name": "line_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "payer_id": {
-          "name": "payer_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "percentage_basis_points": {
-          "name": "percentage_basis_points",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "amount_cents": {
-          "name": "amount_cents",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_by": {
-          "name": "updated_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "budget_line_payer_shares_organization_idx": {
-          "name": "budget_line_payer_shares_organization_idx",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "budget_line_payer_shares_line_id_budget_lines_id_fk": {
-          "name": "budget_line_payer_shares_line_id_budget_lines_id_fk",
-          "tableFrom": "budget_line_payer_shares",
-          "tableTo": "budget_lines",
-          "schemaTo": "budget",
-          "columnsFrom": [
-            "line_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "budget_line_payer_shares_payer_id_event_payers_id_fk": {
-          "name": "budget_line_payer_shares_payer_id_event_payers_id_fk",
-          "tableFrom": "budget_line_payer_shares",
-          "tableTo": "event_payers",
-          "schemaTo": "budget",
-          "columnsFrom": [
-            "payer_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "budget_line_payer_shares_line_payer_unique": {
-          "name": "budget_line_payer_shares_line_payer_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "line_id",
-            "payer_id"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {
-        "budget_line_payer_shares_value_check": {
-          "name": "budget_line_payer_shares_value_check",
-          "value": "(\"budget\".\"budget_line_payer_shares\".\"percentage_basis_points\" between 1 and 10000 and \"budget\".\"budget_line_payer_shares\".\"amount_cents\" is null) or (\"budget\".\"budget_line_payer_shares\".\"percentage_basis_points\" is null and \"budget\".\"budget_line_payer_shares\".\"amount_cents\" > 0)"
-        }
-      },
-      "isRLSEnabled": false
-    },
-    "budget.planner_instalment_payers": {
-      "name": "planner_instalment_payers",
-      "schema": "budget",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "event_id": {
-          "name": "event_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "schedule_item_id": {
-          "name": "schedule_item_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "payer_id": {
-          "name": "payer_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_by": {
-          "name": "updated_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "planner_instalment_payers_organization_idx": {
-          "name": "planner_instalment_payers_organization_idx",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "planner_instalment_payers_payer_id_event_payers_id_fk": {
-          "name": "planner_instalment_payers_payer_id_event_payers_id_fk",
-          "tableFrom": "planner_instalment_payers",
-          "tableTo": "event_payers",
-          "schemaTo": "budget",
-          "columnsFrom": [
-            "payer_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "planner_instalment_payers_schedule_item_unique": {
-          "name": "planner_instalment_payers_schedule_item_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "schedule_item_id"
-          ]
-        }
-      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
