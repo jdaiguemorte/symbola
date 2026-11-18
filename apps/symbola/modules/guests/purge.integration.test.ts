@@ -114,7 +114,7 @@ describe("RGP-08 — Purge programmée, annoncée sept jours avant, report possi
   });
 
   it("la purge efface aussi les exports stockés qui peuvent contenir les invités (DPO-6)", async () => {
-    const { organizationId, ownerId, eventId } = await eventWithDiet();
+    const { organizationId, ownerId } = await eventWithDiet();
     const [withGuests] = await rows(organizationId, (tx) =>
       tx.insert(organizationExports).values({ organizationId, status: "ready", requestedByUserId: ownerId, readyAt: new Date(), expiresAt: new Date("2027-12-31T00:00:00Z"), entityCounts: { "guests/households": 1 }, archiveKey: null }).returning({ id: organizationExports.id }),
     );

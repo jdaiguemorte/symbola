@@ -8,7 +8,6 @@ import { foldHeader, findDuplicates, mapGuestColumns, phoneKey, readGuestRows } 
 import { isDue, noticeActive, noticeOn, purgeBaseDate, purgeSchedule, validatePostponement } from "./purge-rules";
 import { currentReminder, reminderKey, withinSendingHours } from "./reminders";
 import {
-  addDays,
   defaultDisplayName,
   householdComplete,
   invitedMoments,

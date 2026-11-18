@@ -1120,6 +1120,32 @@
     "trash": {
       "title": "Trash",
       "body": "What you delete stays here for 30 days: an event with all its content, a contact, a document, a template. \"Restore\" puts it back as it was. After 30 days it is erased for good, files included; only the account owner can erase it sooner. Items on a record (task, line, sequence, note…) do not come here: they can be undone for ten seconds after you delete them."
+    },
+    "guests": {
+      "title": "Guests",
+      "body": "The event's guest list, by household: for each, a name and a way to reach them (an adult's email or phone); a child only has a first name and an age range. First set the closing date for replies and the questions, then send the invitations: the check screen shows the list and the reminder schedule. Each adult gets their personal link; for a guest without email, hand out a link to copy or a QR code. Replies come in per key moment. Diets are recorded only with the guest's consent; you see numbers, and only the owner sees names. Everything is erased after the event, with notice.",
+      "faq": [
+        {
+          "q": "Why can't I enter a guest's diet?",
+          "a": "Diets and allergies are health data: only the guest gives them, with their consent, on their reply page (or the parent for their child). A diet column in an imported file is ignored."
+        },
+        {
+          "q": "Does a reminder go to a household that replied?",
+          "a": "No: the reply is checked again just before each sending. A household without an email address appears under “To follow up by hand”."
+        },
+        {
+          "q": "When is guest data erased?",
+          "a": "Diets 7 days after the last day of the event, the rest 30 days after (privacy settings). You are notified seven days before; one justified postponement is possible."
+        }
+      ]
+    },
+    "dietaryOptions": {
+      "title": "Diets and allergies",
+      "body": "The closed list your guests tick, after their consent, on their reply page: common diets and the fourteen allergens that must be declared. Hide a useless entry, or add one with a short label. No religious diet is offered by default: it reveals a religious belief."
+    },
+    "portalGuests": {
+      "title": "Your guests",
+      "body": "Add your guests by household, or import your spreadsheet: duplicates are flagged before anything is saved. For a guest without email, get their personal link or QR code and send it by text. You follow replies per moment; diets show as numbers, never by name."
     }
   },
   "Aide": {
@@ -1596,7 +1622,8 @@
       "program": "Programme",
       "vendor_options": "Vendor options",
       "budget": "Budget",
-      "quotes": "Quotes to sign"
+      "quotes": "Quotes to sign",
+      "guests": "Guests (entry, import, reply tracking; never named diets)"
     },
     "createLinkTitle": "Create a link",
     "linkPerson": "Person",
@@ -1767,7 +1794,30 @@
     "programNotifyAlready": "This version has already been sent by email.",
     "programNotifyNoRecipients": "Nobody to notify by email: no active client link with the Schedule section, and no vendor link.",
     "programNotifyTrial": "During the trial, no email is sent.",
-    "programNotifyFailed": "The emails could not be sent: the mail server is not responding. Try again later."
+    "programNotifyFailed": "The emails could not be sent: the mail server is not responding. Try again later.",
+    "tabGuests": "Guests",
+    "keyMomentsTitle": "Key moments",
+    "keyMomentsHelp": "The main moments of the event (ceremony, dinner, next-day brunch): guests reply for each.",
+    "keyMomentsEmpty": "No key moment yet.",
+    "keyMomentName": "Key moment name",
+    "keyMomentNamePlaceholder": "Ceremony, dinner, brunch…",
+    "keyMomentDate": "Date",
+    "keyMomentTime": "Start time (optional)",
+    "keyMomentPlace": "Place (optional)",
+    "keyMomentNoPlace": "None",
+    "keyMomentAdd": "Add a key moment",
+    "keyMomentAdded": "Key moment added.",
+    "keyMomentEdit": "Edit “{name}”",
+    "keyMomentSave": "Save",
+    "keyMomentSaved": "Key moment saved.",
+    "keyMomentRemove": "Delete “{name}”",
+    "keyMomentInvalid": {
+      "name": "The name is required (100 characters at most).",
+      "date": "The date is not valid.",
+      "time": "The time is not valid (HH:MM).",
+      "place": "This place is not one of the event's places.",
+      "too_many": "An event has at most 20 key moments."
+    }
   },
   "Budget": {
     "title": "Budget",
@@ -4652,7 +4702,8 @@
     "storage": "Storage",
     "emailTemplates": "Email templates",
     "messageTemplates": "Message templates",
-    "trash": "Trash"
+    "trash": "Trash",
+    "dietaryOptions": "Diets and allergies"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -4908,7 +4959,19 @@
       "hub_organization_export_requested": "Full export requested",
       "hub_organization_export_ready": "Full export prepared",
       "hub_organization_export_downloaded": "Full export downloaded",
-      "hub_mail_variable_missing": "Automatic e-mail not sent: template variable without a value"
+      "hub_mail_variable_missing": "Automatic e-mail not sent: template variable without a value",
+      "guests_impact_assessment_confirmed": "Guest impact assessment confirmed",
+      "guests_link_created": "Guest personal link created",
+      "guests_link_revoked": "Guest links withdrawn",
+      "guests_invitations_sent": "Invitations sent to guests",
+      "guests_link_opened": "Guest reply page opened",
+      "guests_diet_consent_granted": "Guest consent to diets given",
+      "guests_diet_consent_withdrawn": "Guest consent to diets withdrawn",
+      "guests_guest_opposed": "Guest objected to their data being kept",
+      "guests_purge_postponed": "Guest purge postponed",
+      "guests_purge_executed": "Guest data purged",
+      "guests_import_applied": "Guest list imported",
+      "guests_import_undone": "Guest import undone"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -5020,7 +5083,20 @@
       "hub_email_templates": "email template",
       "hub_message_templates": "message template",
       "hub_message_template_versions": "message template version",
-      "hub_calendar_feeds": "calendar address"
+      "hub_calendar_feeds": "calendar address",
+      "events_key_moments": "key moment",
+      "guests_module_settings": "Guests module settings",
+      "guests_event_settings": "reply settings",
+      "guests_household_groups": "guest group",
+      "guests_guest_imports": "guest import",
+      "guests_households": "guest household",
+      "guests_guests": "guest",
+      "guests_rsvp_answers": "guest reply",
+      "guests_dietary_options": "diet list entry",
+      "guests_diets": "guest's diets",
+      "guests_diet_consents": "proof of consent to diets",
+      "guests_guest_links": "guest personal link",
+      "guests_purge_postponements": "guest purge postponement"
     },
     "modules": {
       "events": "Events",
@@ -5200,7 +5276,8 @@
     "cancelDeclarationShort": "Cancel my declaration",
     "navDecisions": "To decide",
     "actionGoDecision": "Answer",
-    "navDocuments": "Documents"
+    "navDocuments": "Documents",
+    "guestsLink": "Your guests: list, import and replies"
   },
   "VendorSpace": {
     "title": "Your vendor space",
@@ -6578,6 +6655,330 @@
     "emailWords": {
       "wedding": "wedding",
       "event": "event"
+    },
+    "rsvp": {
+      "openingTitle": "Opening your invitation",
+      "openingBody": "One moment…",
+      "noScript": "This page needs JavaScript to read your personal link.",
+      "invalidTitle": "Unknown link",
+      "invalidBody": "This link does not, or no longer, allow you to reply. If you think this is a mistake, ask the people who invited you for a new link.",
+      "retryLater": "Too many attempts: try again in {minutes, plural, one {# minute} other {# minutes}}.",
+      "title": {
+        "wedding": "{clients} invite you to their wedding",
+        "event": "{clients} invite you"
+      },
+      "intro": "Let us know who will come. You can reply, then change your reply, until {date}.",
+      "noticeShort": "{organization} is preparing this event and receives your reply.",
+      "noticeLink": "What is done with your data",
+      "presenceTitle": "Who will come?",
+      "presenceSelf": "{moment} — {name} (you)",
+      "presenceOther": "{moment} — {name}",
+      "yes": "Yes, coming",
+      "no": "No, not coming",
+      "noAnswer": "no reply",
+      "presenceMissing": "Answer yes or no for each person and each moment.",
+      "dietTitle": "Diets and allergies",
+      "dietIntro": "Optional. For the meal: tick only what applies to you. Nothing is recorded without your consent.",
+      "dietSelf": "For {name} (you)",
+      "dietChild": "For {name}",
+      "stayTitle": "Accommodation and transport",
+      "accommodationQuestion": "Do you need a room?",
+      "transportQuestion": "Do you need a shuttle?",
+      "submit": "Send my reply",
+      "sending": "Sending…",
+      "help": "No account, no password. Your link is personal: please do not forward it.",
+      "thanksTitle": "Thank you, your reply is recorded",
+      "thanksBody": "Here is what you replied.",
+      "recapTitle": "Your reply",
+      "recapDiet": "Diet of {name}: {diet}",
+      "recapAccommodationYes": "Room: yes",
+      "recapAccommodationNo": "Room: no",
+      "recapTransportYes": "Shuttle: yes",
+      "recapTransportNo": "Shuttle: no",
+      "nextTitle": "What next?",
+      "nextBody": "You can change your reply until {date}, with this same link. After that date, replies are closed.",
+      "edit": "Change my reply",
+      "closedNow": "Replies are closed: your change was not recorded.",
+      "closedTitle": "The invitation from {clients}",
+      "closedBody": "Replies have been closed since {date}. Here is your reply; for any question, write to the organiser below.",
+      "noticeTitle": "Your data",
+      "contact": "Contact: {name}",
+      "opposeTitle": "You do not want your data to be kept?",
+      "oppose": "I do not want my data to be kept",
+      "opposeConfirmBody": "Your contact details and diets will be erased right away, and you will receive nothing more. Your attendance already given stays, under your name only, until the erasure planned after the event. Do you confirm?",
+      "opposeConfirm": "Yes, erase my data",
+      "opposeCancel": "No, go back",
+      "opposedTitle": "Done",
+      "opposedBody": "Your contact details and diets are erased; this link no longer works. The organisers have been told."
+    },
+    "errors": {
+      "generic": "Saving did not succeed. Check the fields and try again.",
+      "denied": "You do not have access to this guest list.",
+      "confirmRequired": "Tick the box to confirm the impact assessment.",
+      "notReady": "The Guests module awaits the owner's confirmation of the impact assessment.",
+      "eventNotFound": "Event not found.",
+      "notFound": "Not found: the list may have changed. Reload the page.",
+      "household": {
+        "no_adult": "A household has at least one adult.",
+        "person_name_missing": "Each person has a first name.",
+        "contact_missing": "Give one way to reach the household: an adult's email or phone.",
+        "child_contact": "A child has no email, phone or last name: only a first name and an age range.",
+        "adult_age_range": "The age range only applies to children.",
+        "email_invalid": "An email address is not valid.",
+        "phone_invalid": "A phone number is not valid.",
+        "respondent_not_adult": "The person replying for the household is an adult.",
+        "too_many_people": "A household has at most 20 people.",
+        "name_too_long": "A first or last name is too long (100 characters at most).",
+        "group_too_long": "The group name is too long (100 characters at most).",
+        "side_unknown": "This side is not a client of the event.",
+        "key_moment_unknown": "A chosen key moment no longer exists.",
+        "display_name_too_long": "The household name is too long (200 characters at most)."
+      },
+      "link": {
+        "child": "A child has no personal link.",
+        "no_contact": "First add this person's email or phone.",
+        "opposed": "This person objected to their data being kept.",
+        "no_close_date": "First choose the closing date for replies.",
+        "closed": "Replies are closed: push back the closing date to hand out a link."
+      },
+      "invitations": {
+        "no_close_date": "First choose the closing date for replies (reply settings).",
+        "closed": "Replies are closed: push back the closing date to invite.",
+        "no_key_moment": "First add the event's key moments, on its overview."
+      },
+      "settings": {
+        "close_date": "The closing date is not valid (it cannot be in the past).",
+        "reminders": "Reminders: three at most, between 1 and 90 days before closing.",
+        "notice_too_long": "The text is too long (4,000 characters at most).",
+        "option_label": "The label is required (60 characters at most)."
+      },
+      "postpone": {
+        "already_postponed": "The purge was already postponed once: only one postponement is possible.",
+        "already_purged": "The guest data is already erased.",
+        "reason_missing": "The reason for postponing is required.",
+        "too_early": "The new date must fall after the next planned purge.",
+        "too_late": "The postponement is 90 days at most after the planned purge.",
+        "no_date": "The event has no date yet: there is no purge to postpone."
+      },
+      "importFile": "Choose a file (CSV or XLSX).",
+      "importTooLarge": "The file exceeds 1 MB: save the list as CSV, or split it."
+    },
+    "activation": {
+      "assessmentLink": "Read the baseline impact assessment provided by Symbola",
+      "assessmentProvided": "The baseline impact assessment is provided to you by Symbola; complete it with your DPO.",
+      "confirmLabel": "I confirm I have completed my business's impact assessment for guest data.",
+      "confirm": "Open the Guests module"
+    },
+    "settings": {
+      "closeOn": "Replies close (links expire at the end of this day)",
+      "closeOnSuggested": "Suggested date: 30 days before the first key moment. Save to keep it.",
+      "questions": "Questions asked to guests",
+      "presenceAlways": "Attendance per key moment is always asked. No free text.",
+      "askDiet": "Diets and allergies (with the guest's consent)",
+      "askAccommodation": "Needs a room",
+      "askTransport": "Needs a shuttle",
+      "reminders": "Automatic email reminders",
+      "remindersHelp": "Days before closing; only to households without a reply who have an email address. Leave empty for fewer reminders.",
+      "reminderN": "Reminder {n} (days before closing)",
+      "save": "Save settings",
+      "saved": "Settings saved."
+    },
+    "household": {
+      "required": "Only each person's first name and one way to reach the household are required.",
+      "adultN": "Person {n}: adult",
+      "childN": "Person {n}: child",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email",
+      "phone": "Phone",
+      "respondent": "Replies for the household",
+      "ageRange": "Age range",
+      "ageUnknown": "Not given",
+      "age": {
+        "0-2": "0 to 2 years",
+        "3-5": "3 to 5 years",
+        "6-11": "6 to 11 years",
+        "12-17": "12 to 17 years"
+      },
+      "childNoContact": "No contact is asked for a child.",
+      "removePerson": "Remove {name}",
+      "thisPerson": "this person",
+      "addAdult": "Add an adult",
+      "addChild": "Add a child",
+      "displayName": "Household name",
+      "displayNamePlaceholder": "By default: the adults' first names",
+      "side": "Side",
+      "sideNone": "Not given",
+      "sideOf": "{name}'s side",
+      "sideBoth": "Both",
+      "group": "Group",
+      "language": "Language of messages",
+      "languageFr": "French",
+      "languageEn": "English",
+      "moments": "Invited to the key moments",
+      "save": "Save the household",
+      "add": "Add the household",
+      "saved": "Household saved.",
+      "added": "Household added."
+    },
+    "link": {
+      "issue": "Link and QR code for {name}",
+      "issued": "Here is a personal link, to send by text or messaging, or to print as a QR code. It is shown only once and expires when replies close.",
+      "url": "Personal link",
+      "copy": "Copy the link",
+      "copied": "Link copied",
+      "qrAlt": "QR code of {name}'s personal link",
+      "qrDownload": "Download the QR code (PNG)"
+    },
+    "invitations": {
+      "schedule": "Planned reminders, to households without a reply who have an email address: {dates}.",
+      "noReminders": "No automatic reminder is planned.",
+      "prepare": "{count, plural, =0 {No invitation to send} one {Prepare sending # invitation} other {Prepare sending # invitations}}",
+      "sent": "{count, plural, =0 {No invitation sent.} one {# invitation sent.} other {# invitations sent.}}",
+      "notSent": "{count, plural, one {# was not sent (sending limit reached): try again later.} other {# were not sent (sending limit reached): try again later.}}"
+    },
+    "import": {
+      "file": "Guest list (CSV or XLSX)",
+      "help": "One row per person. Recognised columns: household, first name, last name, email, phone, child, age, side, group, language. A diet column is ignored: only the guest gives their diet.",
+      "preview": "See the preview",
+      "rejected": {
+        "empty": "The file is empty.",
+        "too_large": "The file is too large.",
+        "too_many_rows": "The file has too many rows.",
+        "too_many_columns": "The file has too many columns.",
+        "unsupported_format": "Unsupported format: save the file as .xlsx or .csv.",
+        "malformed": "The file cannot be read.",
+        "infected": "The file was rejected by the antivirus.",
+        "no_name_column": "No first name column was recognised (“First name”, “Prénom”)."
+      },
+      "applied": "Import done: {households, plural, one {# household} other {# households}}, {people, plural, one {# person} other {# people}}; {skipped, plural, =0 {no row skipped} one {# row skipped} other {# rows skipped}}.",
+      "previewTitle": "Preview: {rows, plural, one {# row} other {# rows}}, {households, plural, one {# household} other {# households}}",
+      "nothingWritten": "Nothing is saved yet: check, then import.",
+      "dietIgnored": "Column ignored: {columns}. Diets and allergies are given by each guest, with their consent, on their reply page.",
+      "neutralized": "{count, plural, one {# cell starting with a formula was neutralised.} other {# cells starting with a formula were neutralised.}}",
+      "duplicates": "{count, plural, one {# possible duplicate: ticked, it is not imported} other {# possible duplicates: ticked, they are not imported}}",
+      "duplicateOfLine": "Row {line} ({name}): same person as row {other}",
+      "duplicateInEvent": "Row {line}: already in the list ({name})",
+      "noDuplicates": "No duplicate found.",
+      "problem": {
+        "name_missing": "Row {line}: without a first name, it is not imported.",
+        "child_contact_dropped": "Row {line}: a child, their email, phone and last name are not imported.",
+        "household_without_contact": "Row {line}: its household has no way to be reached; it is not imported."
+      },
+      "apply": "{count, plural, one {Import # row} other {Import # rows}}"
+    },
+    "answers": {
+      "record": "Record a reply received another way",
+      "personAt": "{name} — {moment}",
+      "noAnswer": "No reply",
+      "yes": "Coming",
+      "no": "Not coming",
+      "save": "Save the replies",
+      "saved": "Replies saved."
+    },
+    "purge": {
+      "postpone": "Postpone the purge (once only)",
+      "postponeHelp": "One postponement only, with a reason, of 90 days at most. The reason stays here; the log only keeps the date.",
+      "until": "New purge date",
+      "reason": "Reason for postponing",
+      "postponeConfirm": "Postpone the purge",
+      "postponed": "Purge postponed."
+    },
+    "tab": {
+      "activationTitle": "Open the Guests module",
+      "activationBody": "The Guests module keeps data about people who asked for nothing: before the first real data, the owner confirms having completed their business's impact assessment (the DPO's request).",
+      "activationData": "Households and people, replies per key moment; one way to reach each household, none for a child.",
+      "activationDiets": "Diets and allergies: only with the guest's consent, encrypted, readable by the owner only.",
+      "activationPurge": "Automatic erasure: diets 7 days after the event, the rest 30 days after, with notice.",
+      "activationOwnerOnly": "The organisation's owner opens the module, after the impact assessment.",
+      "summaryTitle": "Replies",
+      "summaryLine": "{households, plural, =0 {No household} one {# household} other {# households}}, {people, plural, one {# person} other {# people}}; {answered, plural, =0 {no household replied} one {# household replied} other {# households replied}}; {confirmed, plural, =0 {no confirmed guest} one {# confirmed guest} other {# confirmed guests}}.",
+      "noKeyMoments": "Add the event's key moments (ceremony, dinner…): guests reply for each.",
+      "noKeyMomentsLink": "Go to the overview",
+      "tally": "{yes} yes · {no} no · {pending} pending",
+      "dietsTitle": "Diets and allergies",
+      "dietsOwner": "Numbers per key moment; as the owner, you also see the detail per person in the list.",
+      "dietsMember": "Numbers per key moment, never a name; “fewer than 3” protects a diet held by one or two people.",
+      "dietsNone": "No diet declared yet.",
+      "dietCount": "{label}: {count}",
+      "dietFewer": "{label}: fewer than {threshold}",
+      "settingsTitle": "Reply settings (closing, questions, reminders)",
+      "invitationsTitle": "Invitations",
+      "closesOn": "Replies open until {date} included.",
+      "closeOnRequired": "Choose the closing date for replies before sending the invitations.",
+      "manualTitle": "To follow up by hand",
+      "manualHelp": "These households have no email address: call them, or send them their link by text.",
+      "listTitle": "Households",
+      "filters": "Filter the households",
+      "filterAll": "All",
+      "filterUnanswered": "No reply",
+      "filterSide": "{name}'s side",
+      "filterBoth": "Both sides",
+      "addHousehold": "Add a household",
+      "empty": "No household yet: add one, or import a list.",
+      "importTitle": "Import a list",
+      "importEntry": "{date}: {households, plural, one {# household} other {# households}}, {people, plural, one {# person} other {# people}} ({channel, select, client {by the client} other {by the team}})",
+      "importUndone": "undone",
+      "importUndo": "Undo this import",
+      "purgeTitle": "Keeping guest data",
+      "purged": "Guest data erased on {date}.",
+      "dietsPurged": "Diets and allergies erased.",
+      "dietsDue": "Diets and allergies erased on {date}.",
+      "allDue": "Other guest data erased on {date} (households, replies, links).",
+      "postponed": "Purge postponed to {date}: {reason}",
+      "purgeNoDate": "The event has no date: the purge is counted from its last day.",
+      "purgeHelp": "Notice seven days before each purge, in “Today” and by email to the owner. Stored exports containing these guests are deleted with them.",
+      "sideBoth": "Both sides",
+      "sideOf": "{name}'s side",
+      "answered": "replied on {date}",
+      "answeredShort": "replied",
+      "notAnswered": "no reply",
+      "child": "child",
+      "age": {
+        "0-2": "0 to 2 years",
+        "3-5": "3 to 5 years",
+        "6-11": "6 to 11 years",
+        "12-17": "12 to 17 years"
+      },
+      "respondent": "replies for the household",
+      "opposed": "objected to their data being kept",
+      "yes": "yes",
+      "no": "no",
+      "pending": "pending",
+      "diet": "Diets: {diet}",
+      "noContact": "no contact details",
+      "linkStatus": {
+        "none": "No link handed out",
+        "active": "Valid personal link",
+        "revoked": "Link withdrawn",
+        "expired": "Link expired (replies closed)"
+      },
+      "revoke": "Withdraw {name}'s links",
+      "edit": "Edit {name}",
+      "remove": "Delete the household {name}"
+    },
+    "portal": {
+      "title": "Your guests",
+      "unavailable": "This section is not open for your space.",
+      "back": "Back to your space"
+    },
+    "options": {
+      "title": "Diets and allergies",
+      "unavailable": "The Guests module is not enabled for your organisation.",
+      "intro": "The list your guests tick on their reply page, after their consent. No free text: hide a useless entry, or add one with a short label.",
+      "diets": "Diets",
+      "allergens": "Allergens that must be declared (EU INCO regulation)",
+      "hidden": "hidden",
+      "show": "Offer “{label}”",
+      "hide": "Hide “{label}”",
+      "addTitle": "Add an entry",
+      "religiousWarning": "A religious diet (halal, kosher, no pork…) reveals a religious belief, data protected by the GDPR: it is not offered by default. Add it only under your responsibility, after your DPO's advice.",
+      "label": "Label (short)",
+      "kind": "Type",
+      "kindDiet": "Diet",
+      "kindAllergen": "Allergy",
+      "add": "Add",
+      "added": "Entry added."
     }
   }
 }

@@ -37,6 +37,7 @@ const guestRulesSchema = z.object({
   purgeNoticeDays: z.number().int().min(1).max(30),
   aggregateThreshold: z.number().int().min(1).max(20),
   reminderHours: z.object({ from: z.number().int().min(0).max(23), until: z.number().int().min(1).max(24) }),
+  impactAssessmentUrl: z.url().nullable(),
 });
 
 export type StarterGuestRules = Omit<z.infer<typeof guestRulesSchema>, "version">;

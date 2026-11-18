@@ -182,12 +182,15 @@ export async function AppShell({ children }: { children: ReactNode }) {
   let budget = false;
   let quotes = false;
   let vendors = false;
+  // Lot 49 : module Invités (réglage de la liste des régimes, dans le groupe Évènements).
+  let guests = false;
   if (organizationId) {
     const db = appDatabase();
     events = await isModuleEnabled(db, organizationId, "events");
     budget = await isModuleEnabled(db, organizationId, "budget");
     quotes = await isModuleEnabled(db, organizationId, "quotes");
     vendors = await isModuleEnabled(db, organizationId, "vendors");
+    guests = await isModuleEnabled(db, organizationId, "guests");
   }
   const isOwner = auth.user.role === "owner" && Boolean(organizationId);
   // Lot 39c (HUB-12, D12) : les actions de la palette ⌘K, selon les modules souscrits.
@@ -229,6 +232,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
       budget,
       quotes,
       vendors,
+      guests: guests && events,
     };
     const available = TUTORIALS.filter(
       (tutorial) => subscribed[tutorial.module],
@@ -349,6 +353,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
                           href: "/events/modeles-programme",
                           label: tSettings("program"),
                         },
+                        ...(guests ? [{ href: "/events/parametres/regimes", label: tSettings("dietaryOptions") }] : []),
                       ]
                     : []),
                   ...(budget

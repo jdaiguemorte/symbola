@@ -3,19 +3,15 @@
 // forts, un foyer, un lien personnel. Données fictives générées (aucune donnée réelle).
 import { randomUUID } from "node:crypto";
 import { createOrganization, createUser } from "@symbola/auth";
-import { createAppConnection, type AppDatabase } from "@symbola/db/client";
+import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import type { HouseholdInput } from "@symbola/contracts";
 import { addKeyMoment, createProspect, createProspectSource } from "@/modules/events/service";
 import { setModuleEnabled } from "@/modules/hub/service";
 import { confirmImpactAssessment, issueGuestLink, listHouseholds, saveGuestEventSettings, saveHousehold } from "./service";
 
+// La réserve partagée du processus (rendue à la fin de chaque fichier par vitest.integration.setup.ts).
 export async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
-  const { sql, db } = createAppConnection();
-  try {
-    return await fn(db);
-  } finally {
-    await sql.end();
-  }
+  return fn(appDatabase());
 }
 
 export async function readyOrganization(options: { confirm?: boolean; enabled?: boolean } = {}) {

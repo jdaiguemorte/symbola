@@ -40,9 +40,10 @@ export const RATE_LIMITS: Record<"login" | "search" | "upload" | "linkOpen" | "l
   // Lot 40b (Q27, D14) : erreurs du navigateur relayées au suivi des erreurs, par adresse IP.
   errorReport: { ip: { limit: 30, windowMs: 15 * MINUTE }, account: { limit: 30, windowMs: 15 * MINUTE } },
   // Lot 49 (INV-03, SEC-04, SEC-14) : ouverture et envoi de la page de réponse d'un invité, par
-  // adresse IP (« account » : l'organisation du jeton, qui reçoit les réponses de tous ses invités).
-  rsvpOpen: { ip: { limit: 30, windowMs: 15 * MINUTE }, account: { limit: 600, windowMs: 15 * MINUTE } },
-  rsvpAnswer: { ip: { limit: 20, windowMs: 15 * MINUTE }, account: { limit: 300, windowMs: 15 * MINUTE } },
+  // adresse IP et par lien (« account » : l'empreinte du jeton), pas par organisation : cent
+  // invités qui répondent dans l'heure de l'envoi ne se gênent pas.
+  rsvpOpen: { ip: { limit: 30, windowMs: 15 * MINUTE }, account: { limit: 20, windowMs: 15 * MINUTE } },
+  rsvpAnswer: { ip: { limit: 20, windowMs: 15 * MINUTE }, account: { limit: 10, windowMs: 15 * MINUTE } },
 };
 
 export type RateLimitedAction = keyof typeof RATE_LIMITS;
