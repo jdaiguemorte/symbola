@@ -1,6 +1,6 @@
 # Lot 60 — Plans de salle des lieux : configurations, prestataires et installations
 
-**Statut** : spécification proposée le 18/11/2026, **à valider par Julien**. Demande de Julien du
+**Statut** : spécification proposée le 18/11/2026, **validée par Julien le 18/11/2026** : toutes les décisions retenues dans leur option recommandée (a), module `floorplans` et migration de la rubrique du portail compris (accord donné). Demande de Julien du
 18/11/2026, qui dépasse le cahier des charges : ADR à écrire. Le lot crée un module et son
 schéma (D1) : validation explicite requise (CLAUDE.md § 8). Aucune dépendance nouvelle (D3).
 
