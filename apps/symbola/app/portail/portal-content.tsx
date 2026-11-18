@@ -401,10 +401,11 @@ export async function PortalContent({ access, preview = false, banner }: { acces
             </section>
           ) : null}
           {quotesToSign.length > 0 ? <ClientQuotes quotes={quotesToSign} locale={locale} preview={preview} /> : null}
-          {/* Lot 48b (PRE-07, D6) : commissions de la planner, affichées d'office à un particulier. */}
-          {quotesEnabled && access.audience === "client" ? <ClientCommissions organizationId={organizationId} eventId={access.eventId} locale={locale} /> : null}
         </div>
       ) : null}
+      {/* Lot 48b (PRE-07, D6) : commissions de la planner, affichées d'office à un particulier, même sans
+          devis à signer. */}
+      {quotesEnabled && access.audience === "client" ? <ClientCommissions organizationId={organizationId} eventId={access.eventId} locale={locale} /> : null}
 
       {hasDocuments ? <SharedDocuments documents={sharedDocuments} basePath="/portail/documents" invoices={invoices} locale={locale} preview={preview} headingId="portal-documents-title" /> : null}
 

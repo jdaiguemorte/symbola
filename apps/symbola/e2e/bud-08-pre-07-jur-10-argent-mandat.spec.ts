@@ -60,7 +60,7 @@ test("BUD-08 / PRE-07 / JUR-10 — honoraires à part, commission montrée d'off
   await fees.getByRole("button", { name: "Enregistrer les honoraires" }).click();
   await expect(fees.getByText("Honoraires : 1 500,00 € HT")).toBeVisible();
   const commissions = page.getByRole("region", { name: "Commissions et apports d'affaires" });
-  await expect(commissions.getByText("Client particulier : chaque commission lui est montrée")).toBeVisible();
+  await expect(commissions.getByText("Client particulier : chaque commission lui est montrée").first()).toBeVisible();
   await commissions.getByLabel("Montant (€ HT)").fill("200");
   await commissions.getByRole("button", { name: "Tracer la commission" }).click();
   await expect(commissions.getByText(/Fleurs d'Élodie · 200,00/)).toBeVisible();
