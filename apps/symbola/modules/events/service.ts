@@ -3301,7 +3301,7 @@ export async function prospectMessageContext(input: { organizationId: string; ev
 // Envoyer un questionnaire à un client de l'évènement : la copie figée du modèle, la rubrique
 // « Questionnaires » ouverte sur son lien personnel (créé si besoin ; s'il existe, son jeton est
 // renouvelé : le nouveau lien part avec le questionnaire), l'e-mail « Questionnaire envoyé ».
-export async function sendEventQuestionnaire(input: { organizationId: string; eventId: string; eventClientId: string; templateId: string; userId: string; locale: "fr" | "en"; now?: Date }): Promise<{ questionnaireId: string; linkId: string }> {
+export async function sendEventQuestionnaire(input: { organizationId: string; eventId: string; eventClientId: string; templateId: string; userId: string; locale: "fr" | "en"; now?: Date }): Promise<{ questionnaireId: string; linkId: string; url: string }> {
   const now = input.now ?? new Date();
   const found = await findEventById(input.organizationId, input.eventId);
   if (!found) throw new EventNotFoundError();
@@ -3348,7 +3348,7 @@ export async function sendEventQuestionnaire(input: { organizationId: string; ev
   const questionnaireId = await insertEventQuestionnaire({ organizationId: input.organizationId, eventId: input.eventId, contactId: client.contactId, linkId: link.id, frozen, now });
   await sendOrganizationEmail({ organizationId: input.organizationId, to: link.email, kind: "questionnaire_sent", locale: input.locale, values: await valuesFor(link.expiresOn, url), reserve: false });
   await recordQuestionnaireSent({ organizationId: input.organizationId, eventId: input.eventId, contactId: client.contactId, userId: input.userId, name: frozen.name, now });
-  return { questionnaireId, linkId: link.id };
+  return { questionnaireId, linkId: link.id, url };
 }
 
 // Les champs de l'évènement qu'un questionnaire peut alimenter, tels qu'ils sont (D7).

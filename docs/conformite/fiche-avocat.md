@@ -326,3 +326,24 @@ la politique de confidentialité de la planner, à laquelle la mention renvoie, 
 
 Besoin : des réponses **avant la première demande réelle** reçue par le formulaire (aucune ne
 bloque le développement).
+
+## Question du 18 novembre 2026 (lot 45)
+
+### 19. Relances d'un prospect qui a fait une demande (AV-9)
+
+Numéro provisoire : donné à la fusion avec les questions des autres lots.
+
+Après une demande (formulaire de contact, e-mail, téléphone), la planner répond depuis Symbola. Sans
+retour, une relance est préparée à J+3 puis à J+7 (réglable, trois au plus) ; par défaut, la planner
+la relit et l'envoie elle-même, l'envoi automatique est un réglage qu'elle active. Les relances
+s'arrêtent dès que la personne répond (geste de la planner), que l'évènement est confirmé ou perdu, ou
+que la personne agit dans Symbola. Chaque relance porte : « Vous ne souhaitez plus de nouvelles ?
+Répondez simplement à ce message. », et la planner a un geste « Ne plus relancer ».
+
+Ces relances sont-elles de la prospection commerciale (consentement préalable, lien de
+désinscription : exigence RGP-17), ou la suite de la demande de la personne, sans ces obligations ?
+
+> En attendant : la suite de sa demande (RGP-17 reste « Sans objet ») ; la phrase « Répondez
+> simplement » et le geste « Ne plus relancer » sont en place.
+
+Besoin : une réponse **avant la première relance réelle** (elle ne bloque pas le développement).
