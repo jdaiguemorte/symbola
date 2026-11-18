@@ -1422,6 +1422,7 @@ export function starterBookingPrivacyNotice(locale: StarterLocale): string {
 // Lot 47 (PAR-05 ; ADR 0085) : délais et tâches de suivi des prestataires par lien.
 export * from "./vendor-coordination";
 export * from "./vendor-records";
+export * from "./planner-money";
 // Lot 43 (FAC-09, FAC-15 ; D1, D7) — relances de départ : jours avant l'expiration d'un devis, jours
 // après une échéance impayée, phrase d'une relance sans pénalité et phrase de la clause de pénalités
 // d'un particulier ({taux}). L'organisation les règle ; rien n'est écrit dans le code.

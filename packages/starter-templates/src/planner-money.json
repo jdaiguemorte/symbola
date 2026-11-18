@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "packageTravel": {
+    "modes": ["resale"],
+    "primaryKinds": ["transport", "lodging"],
+    "minimumKinds": 2
+  },
+  "commissionNatures": ["commission", "referral"],
+  "franchiseAlertRatioBasisPoints": 8000
+}
