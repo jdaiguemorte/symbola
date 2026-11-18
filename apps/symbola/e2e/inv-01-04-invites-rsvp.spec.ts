@@ -169,7 +169,9 @@ test("ARC-07 (lot 49) — sans le module Invités, ni onglet, ni rubrique, ni pa
     const combination = `[events: ${events}, guests: ${guests}]`;
     const fiche = await page.goto(`/events/${org.eventId}?onglet=invites`);
     expect(fiche!.status(), combination).toBeLessThan(500);
-    await expect(page.locator(`a[href="/events/${org.eventId}?onglet=invites"]`), combination).toHaveCount(events && guests ? 1 : 0);
+    // Dans la barre d'onglets seulement : sur l'onglet Invités, le filtre « Tous » de la liste mène à la même adresse.
+    const tabs = page.getByRole("navigation", { name: "Sections de l'événement" });
+    await expect(tabs.locator(`a[href="/events/${org.eventId}?onglet=invites"]`), combination).toHaveCount(events && guests ? 1 : 0);
     const settings = await page.goto("/events/parametres/regimes");
     expect(settings!.status(), combination).toBeLessThan(500);
     if (!(events && guests)) await expect(page.getByText("Le module Invités n'est pas activé pour votre organisation."), combination).toBeVisible();
