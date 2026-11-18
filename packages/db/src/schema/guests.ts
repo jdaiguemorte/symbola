@@ -6,7 +6,7 @@
 // étrangère entre schémas (avenant de l'ADR 0012) ; même chose pour les temps forts
 // (events.key_moments) et le côté (un client de l'évènement).
 import { sql } from "drizzle-orm";
-import { boolean, check, date, foreignKey, index, integer, pgSchema, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, check, date, foreignKey, index, integer, pgSchema, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const guestsSchema = pgSchema("guests");
 
@@ -16,6 +16,12 @@ export const GUEST_KINDS = ["adult", "child"] as const;
 export const GUEST_AGE_RANGES = ["0-2", "3-5", "6-11", "12-17"] as const;
 export const RSVP_CHANNELS = ["link", "planner", "client"] as const;
 export const DIETARY_OPTION_KINDS = ["diet", "allergen"] as const;
+// Lot 50 (INV-05, INV-06) : forme d'une table, nature d'une contrainte de placement, version et
+// format d'une synthèse pour le traiteur.
+export const SEATING_SHAPES = ["round", "rectangular", "head"] as const;
+export const SEATING_CONSTRAINT_KINDS = ["together", "apart"] as const;
+export const CATERER_SUMMARY_VERSIONS = ["nominative", "aggregate"] as const;
+export const CATERER_SUMMARY_FORMATS = ["pdf", "csv"] as const;
 
 // Partie G (INV-07) : réglages du module pour l'organisation. La titulaire confirme avoir complété
 // l'analyse d'impact « socle » avant toute saisie (réponse 5 de la DPO) ; la mention d'information
@@ -128,6 +134,26 @@ export const households = guestsSchema.table("households", {
   check("households_language_check", sql`${table.language} in ('fr', 'en')`),
 ]);
 
+// Lot 50 (INV-06, D5) : types de repas de l'organisation, copiés des données de départ
+// (meal-types.json : adulte, enfant, bébé sans repas, prestataire). La planner renomme (le libellé
+// remplace celui de départ, la clé reste pour la valeur par défaut), ajoute ou masque.
+export const mealTypes = guestsSchema.table("meal_types", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  starterKey: text("starter_key"),
+  label: text("label"),
+  hidden: boolean("hidden").notNull().default(false),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("meal_types_organization_idx").on(table.organizationId),
+  unique("meal_types_starter_unique").on(table.organizationId, table.starterKey),
+  check("meal_types_label_check", sql`(${table.starterKey} is not null or ${table.label} is not null) and (${table.label} is null or char_length(${table.label}) between 1 and 60)`),
+]);
+
 // Personne invitée (INV-01, RGP-18) : un adulte (prénom, nom, e-mail, téléphone) ou un enfant
 // (prénom et tranche d'âge, jamais de moyen de contact : contrainte en base). Une opposition
 // (RGP-08, partie F) efface aussitôt ses coordonnées et ses régimes.
@@ -146,6 +172,8 @@ export const guests = guestsSchema.table("guests", {
   ageRange: text("age_range", { enum: GUEST_AGE_RANGES }),
   position: integer("position").notNull().default(0),
   opposedAt: timestamp("opposed_at", { withTimezone: true }),
+  // Lot 50 (D5) : type de repas choisi par la planner ; vide = valeur par défaut tirée de l'âge.
+  mealTypeId: uuid("meal_type_id").references(() => mealTypes.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -296,4 +324,156 @@ export const purgePostponements = guestsSchema.table("purge_postponements", {
   index("purge_postponements_organization_idx").on(table.organizationId),
   unique("purge_postponements_event_unique").on(table.eventId),
   check("purge_postponements_reason_check", sql`char_length(btrim(${table.reason})) between 3 and 500`),
+]);
+
+// —— Lot 50 : plan de table et synthèse pour le traiteur (INV-05, INV-06 ; D1 à D8) ——————————————
+
+// Un plan par temps fort à table (D1) : le dîner, le brunch. Le temps fort (events.key_moments) est
+// désigné sans clé étrangère entre schémas (avenant de l'ADR 0012).
+export const seatingPlans = guestsSchema.table("seating_plans", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id").notNull(),
+  keyMomentId: uuid("key_moment_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("seating_plans_organization_idx").on(table.organizationId),
+  index("seating_plans_event_idx").on(table.eventId),
+  unique("seating_plans_moment_unique").on(table.keyMomentId),
+]);
+
+// Table d'un plan (D2) : nom ou numéro, forme (l'icône, l'ordre des places au PDF, la capacité
+// proposée), capacité ; la forme ne dessine pas la salle.
+export const seatingTables = guestsSchema.table("seating_tables", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  planId: uuid("plan_id")
+    .notNull()
+    .references(() => seatingPlans.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  shape: text("shape", { enum: SEATING_SHAPES }).notNull(),
+  capacity: integer("capacity").notNull(),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("seating_tables_organization_idx").on(table.organizationId),
+  index("seating_tables_plan_idx").on(table.planId),
+  // Clé de la référence des places : une place désigne une table de son propre plan.
+  unique("seating_tables_id_plan_unique").on(table.id, table.planId),
+  check("seating_tables_name_check", sql`char_length(btrim(${table.name})) between 1 and 60`),
+  check("seating_tables_shape_check", sql`${table.shape} in ('round', 'rectangular', 'head')`),
+  check("seating_tables_capacity_check", sql`${table.capacity} between 1 and 200`),
+]);
+
+// Place d'un invité (D3) : une seule par invité et par plan, à une table du même plan. Un
+// désistement la libère (releasedAt) : la planner en est prévenue sur le plan, puis l'efface.
+export const seatAssignments = guestsSchema.table("seat_assignments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  planId: uuid("plan_id")
+    .notNull()
+    .references(() => seatingPlans.id, { onDelete: "cascade" }),
+  tableId: uuid("table_id"),
+  guestId: uuid("guest_id")
+    .notNull()
+    .references(() => guests.id, { onDelete: "cascade" }),
+  releasedAt: timestamp("released_at", { withTimezone: true }),
+  releasedTableName: text("released_table_name"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("seat_assignments_organization_idx").on(table.organizationId),
+  index("seat_assignments_table_idx").on(table.tableId),
+  index("seat_assignments_guest_idx").on(table.guestId),
+  unique("seat_assignments_plan_guest_unique").on(table.planId, table.guestId),
+  foreignKey({ name: "seat_assignments_table_fk", columns: [table.tableId, table.planId], foreignColumns: [seatingTables.id, seatingTables.planId] }).onDelete("cascade"),
+  // Placé à une table, ou libéré par un désistement (sans table).
+  check("seat_assignments_state_check", sql`(${table.releasedAt} is null and ${table.tableId} is not null) or (${table.releasedAt} is not null and ${table.tableId} is null)`),
+  check("seat_assignments_released_name_check", sql`${table.releasedTableName} is null or char_length(${table.releasedTableName}) between 1 and 60`),
+]);
+
+// Contrainte de placement (D4) : « ensemble » ou « séparés », entre deux invités ou plus ; interne
+// à l'organisation, jamais montrée au client ni exportée.
+export const seatingConstraints = guestsSchema.table("seating_constraints", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  planId: uuid("plan_id")
+    .notNull()
+    .references(() => seatingPlans.id, { onDelete: "cascade" }),
+  kind: text("kind", { enum: SEATING_CONSTRAINT_KINDS }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("seating_constraints_organization_idx").on(table.organizationId),
+  index("seating_constraints_plan_idx").on(table.planId),
+  check("seating_constraints_kind_check", sql`${table.kind} in ('together', 'apart')`),
+]);
+
+export const seatingConstraintMembers = guestsSchema.table("seating_constraint_members", {
+  organizationId: uuid("organization_id").notNull(),
+  constraintId: uuid("constraint_id")
+    .notNull()
+    .references(() => seatingConstraints.id, { onDelete: "cascade" }),
+  guestId: uuid("guest_id")
+    .notNull()
+    .references(() => guests.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  primaryKey({ name: "seating_constraint_members_pk", columns: [table.constraintId, table.guestId] }),
+  index("seating_constraint_members_organization_idx").on(table.organizationId),
+  index("seating_constraint_members_guest_idx").on(table.guestId),
+]);
+
+// Repas des prestataires (D5) : un nombre par temps fort, saisi par la planner ; ce ne sont pas des
+// invités et ils n'ont pas de table.
+export const vendorMealCounts = guestsSchema.table("vendor_meal_counts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id").notNull(),
+  keyMomentId: uuid("key_moment_id").notNull(),
+  mealCount: integer("meal_count").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("vendor_meal_counts_organization_idx").on(table.organizationId),
+  index("vendor_meal_counts_event_idx").on(table.eventId),
+  unique("vendor_meal_counts_moment_unique").on(table.keyMomentId),
+  check("vendor_meal_counts_count_check", sql`${table.mealCount} between 0 and 1000`),
+]);
+
+// Téléchargement d'une synthèse pour le traiteur (D8) : qui, quand, quel temps fort, quelle version,
+// quel format ; jamais son contenu. La synthèse elle-même n'est rangée nulle part.
+export const catererSummaryDownloads = guestsSchema.table("caterer_summary_downloads", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id").notNull(),
+  keyMomentId: uuid("key_moment_id").notNull(),
+  version: text("version", { enum: CATERER_SUMMARY_VERSIONS }).notNull(),
+  format: text("format", { enum: CATERER_SUMMARY_FORMATS }).notNull(),
+  downloadedBy: uuid("downloaded_by").notNull(),
+  downloadedAt: timestamp("downloaded_at", { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("caterer_summary_downloads_organization_idx").on(table.organizationId),
+  index("caterer_summary_downloads_event_idx").on(table.eventId),
+  check("caterer_summary_downloads_version_check", sql`${table.version} in ('nominative', 'aggregate')`),
+  check("caterer_summary_downloads_format_check", sql`${table.format} in ('pdf', 'csv')`),
 ]);

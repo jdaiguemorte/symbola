@@ -17,7 +17,10 @@ import {
   listEngagedChoiceNotices,
   listVendorAnswerNotices,
   listVendorRoadmapAlerts,
-  listUncontractedVendors, isInProgress } from "@/modules/events/service";
+  listUncontractedVendors, isInProgress,
+  countProspectRequestsToReview,
+  listNewProspectRequests,
+} from "@/modules/events/service";
 import { getFollowUpDelays } from "@/modules/hub/service";
 import { listGuestPurgeNotices, listRecentOppositions } from "@/modules/guests/service";
 import { listEventIdsWithSentQuote, listOpenScheduledDeposits, listQuotesAwaitingAnswer, listUnpaidPayments } from "@/modules/quotes/service";
@@ -49,6 +52,11 @@ export type TodayWords = {
   appointment?: (time: string, type: string, person: string) => string;
   appointmentChange?: (change: "new" | "rescheduled" | "cancelled", time: string, type: string, person: string) => string;
   calendarSourceError?: (label: string) => string;
+  // Lot 44 (CRM-01, PAR-02) : nouvelle demande du formulaire (« Léa M., 12 juin 2027 »), date déjà
+  // prise, demandes « à vérifier ».
+  prospectRequest?: (names: string, when: string | null) => string;
+  prospectRequestDateTaken?: string;
+  prospectToReview?: (count: number) => string;
   // Lot 47 (PAR-05) : réponse d'un prestataire, choix du client engagé, feuille de route non confirmée.
   vendorAnswer?: (vendor: string, slot: string, answer: "available" | "quote" | "unavailable") => string;
   vendorChoice?: (vendor: string, slot: string) => string;
@@ -76,7 +84,7 @@ type Context = {
   delays: { prospectFollowUpDays: number; quoteFollowUpDays: number };
 };
 
-async function eventItems({ organizationId, words, today, now, events, names, delays }: Context): Promise<TodayItem[]> {
+async function eventItems({ organizationId, words, locale, today, now, events, names, delays }: Context): Promise<TodayItem[]> {
   const items: TodayItem[] = [];
   for (const task of await listOrganizationTasks({ organizationId, today, horizonDays: TODAY_HORIZON_DAYS })) {
     const mine = task.responsible === "planner";
@@ -205,6 +213,43 @@ async function eventItems({ organizationId, words, today, now, events, names, de
       href: `/events/${prospect.eventId}`,
       action: { kind: "open" },
     });
+  }
+  // Lot 44 (CRM-01, PAR-02 étape 1) : la demande du formulaire, tant qu'elle est à la première étape du
+  // pipeline, avec le contrôle de disponibilité de la date (CRM-04) ; les demandes « à vérifier ».
+  if (words.prospectRequest) {
+    const dateFormat = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+    for (const request of await listNewProspectRequests(organizationId, locale === "en" ? "en" : "fr")) {
+      items.push({
+        key: `prospect-request:${request.eventId}`,
+        kind: "prospect_request",
+        eventId: request.eventId,
+        eventNames: request.names,
+        title: words.prospectRequest(request.names, request.eventDate ? dateFormat.format(new Date(`${request.eventDate}T12:00:00Z`)) : request.period),
+        detail: request.dateTaken ? words.prospectRequestDateTaken : undefined,
+        dueOn: null,
+        since: day(request.receivedAt),
+        actor: { kind: "you" },
+        href: `/events/${request.eventId}`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  if (words.prospectToReview) {
+    const review = await countProspectRequestsToReview(organizationId);
+    if (review.count > 0) {
+      items.push({
+        key: "prospect-review",
+        kind: "prospect_review",
+        eventId: null,
+        eventNames: null,
+        title: words.prospectToReview(review.count),
+        dueOn: null,
+        since: review.oldest ? day(review.oldest) : null,
+        actor: { kind: "you" },
+        href: "/events/pipeline#a-verifier",
+        action: { kind: "open" },
+      });
+    }
   }
   for (const renewal of await listPendingLinkRenewals(organizationId)) {
     items.push({

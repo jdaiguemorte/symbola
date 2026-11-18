@@ -30,6 +30,7 @@ import {
   programItemParticipants,
   programItems,
   programVersions,
+  prospectRequests,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { ANONYMIZED, idsOfKind, monthStart, type ErasureFate, type ErasureInput, type ErasurePlanItem } from "@symbola/privacy";
@@ -65,6 +66,8 @@ const FATES: Record<string, ErasureFate> = {
   // supprimés, fichier compris.
   task_comment: "deleted",
   task_attachment: "deleted",
+  // Lot 44 (CRM-01) : une demande du formulaire de contact (message libre, champs reçus) : supprimée.
+  prospect_request: "deleted",
 };
 
 type Found = { kind: string; ids: string[] };
@@ -128,6 +131,14 @@ async function existing(tx: Tx, input: ErasureInput): Promise<Found[]> {
     add("task_comment", keep(await tx.select({ id: eventTaskComments.id, eventId: eventTaskComments.eventId }).from(eventTaskComments).where(inArray(eventTaskComments.id, ids("task_comment")))));
   if (ids("task_attachment").length > 0)
     add("task_attachment", keep(await tx.select({ id: eventTaskAttachments.id, eventId: eventTaskAttachments.eventId }).from(eventTaskAttachments).where(inArray(eventTaskAttachments.id, ids("task_attachment")))));
+  // Lot 44 : une demande « à vérifier » n'a pas encore d'évènement ; elle est de l'organisation (RLS).
+  if (ids("prospect_request").length > 0)
+    add(
+      "prospect_request",
+      (await tx.select({ id: prospectRequests.id, eventId: prospectRequests.eventId }).from(prospectRequests).where(inArray(prospectRequests.id, ids("prospect_request"))))
+        .filter((row) => row.eventId === null || realEventIds.has(row.eventId))
+        .map((row) => row.id),
+    );
   if (ids("status_change").length > 0)
     add(
       "status_change",
@@ -178,6 +189,8 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       }
       // Fil d'activité des mariés (qui a coché quelle tâche) : données sur eux.
       await tx.delete(eventActivities).where(inArray(eventActivities.eventId, eventIds));
+      // Lot 44 (CRM-01) : la demande du formulaire de contact (message libre de la personne).
+      await tx.delete(prospectRequests).where(inArray(prospectRequests.eventId, eventIds));
       // Lot 12 : lieux de l'événement (adresse possiblement privée), réception comprise (lot 34b).
       await tx.delete(eventPlaces).where(inArray(eventPlaces.eventId, eventIds));
       // Lot 34b (CHR-02) : commentaires et pièces jointes des tâches de l'événement.
@@ -242,6 +255,7 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       }
       await tx.delete(eventDayDocuments).where(and(eq(eventDayDocuments.source, "event_document"), inArray(eventDayDocuments.sourceId, documentIds)));
     }
+    if (idsFor("prospect_request").length > 0) await tx.delete(prospectRequests).where(inArray(prospectRequests.id, idsFor("prospect_request")));
     if (idsFor("event_document_folder").length > 0) await tx.delete(eventDocumentFolders).where(inArray(eventDocumentFolders.id, idsFor("event_document_folder")));
     if (idsFor("task_comment").length > 0) await tx.delete(eventTaskComments).where(inArray(eventTaskComments.id, idsFor("task_comment")));
     if (idsFor("task_attachment").length > 0) {

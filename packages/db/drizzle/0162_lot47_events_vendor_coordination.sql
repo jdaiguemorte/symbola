@@ -3,7 +3,7 @@
 -- relance, motif d'écart, facture déposée), scénarios d'options, avis du client sur une option,
 -- engagement d'une décision « options », tâches de suivi rattachées au prestataire retenu,
 -- feuilles de route J-30 et J-7 et leur confirmation, réglages de l'organisation. Schéma events seulement (la contrainte des natures
--- d'e-mails du hub a sa migration à part, 0160). Ajouts seuls, et deux colonnes d'auteur devenues
+-- d'e-mails du hub a sa migration à part, 0163 ; l'historique du budget, 0164). Ajouts seuls, et deux colonnes d'auteur devenues
 -- facultatives (facture déposée par un lien) : compatible avec l'image précédente (ARC-14).
 ALTER TYPE "events"."event_activity_kind" ADD VALUE 'vendor_answered';--> statement-breakpoint
 ALTER TYPE "events"."event_activity_kind" ADD VALUE 'vendor_invoice_received';--> statement-breakpoint

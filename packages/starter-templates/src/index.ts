@@ -31,6 +31,8 @@ import quoteTemplatesFile from "./quote-templates.json";
 import contractTemplatesFile from "./contract-templates.json";
 import contractRulesFile from "./contract-rules.json";
 import linkPrivacyNoticeFile from "./link-privacy-notice.json";
+import pipelineStagesFile from "./pipeline-stages.json";
+import contactFormFile from "./contact-form.json";
 import emailTemplatesFile from "./email-templates.json";
 import messageTemplatesFile from "./message-templates.json";
 import programFile from "./program.json";
@@ -115,6 +117,43 @@ const agencyProspectSources = vendorSlotsSchema.parse(agencyProspectSourcesFile)
 
 export function starterProspectSources(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): string[] {
   return (isWedding(metier) ? prospectSources : agencyProspectSources).items.map((item) => item.label[locale]);
+}
+
+// Lot 44 (CRM-01, D5) : libellé d'une source de départ par sa clé (« Formulaire de contact »), dans les
+// deux langues, pour la retrouver dans la liste de l'organisation quelle que soit la langue.
+export function starterProspectSourceLabels(key: string): { fr: string; en: string } | null {
+  const item = [...prospectSources.items, ...agencyProspectSources.items].find((candidate) => candidate.key === key);
+  return item ? { fr: item.label.fr, en: item.label.en } : null;
+}
+
+// Lot 44 (CRM-02, D9 ; ADR 0084) — étapes de départ du pipeline, copiées dans l'organisation.
+const pipelineStagesSchema = z.object({ version: z.literal(1), items: z.array(z.object({ key: z.string().min(1), label: translatedLabelSchema })).min(1).max(10) });
+
+export function starterPipelineStages(locale: StarterLocale): string[] {
+  return pipelineStagesSchema.parse(pipelineStagesFile).items.map((item) => item.label[locale]);
+}
+
+// Lot 44 (CRM-01, RGP-03 ; D1 à D6 ; ADR 0084) — réglages de départ du formulaire de contact : mention
+// d'information (à faire relire par l'avocat, AV-4 et AV-5), source par défaut, seuils de l'anti-spam,
+// durée de garde d'une demande « à vérifier ».
+const contactFormSchema = z.object({
+  version: z.literal(1),
+  defaultSourceKey: z.string().min(1),
+  minimumFillSeconds: z.number().int().min(1).max(60),
+  maxLinksBeforeReview: z.number().int().min(0).max(20),
+  toReviewRetentionDays: z.number().int().min(1).max(365),
+  notice: translatedLabelSchema,
+});
+
+export type StarterContactForm = { defaultSourceKey: string; minimumFillSeconds: number; maxLinksBeforeReview: number; toReviewRetentionDays: number };
+
+export function starterContactForm(): StarterContactForm {
+  const parsed = contactFormSchema.parse(contactFormFile);
+  return { defaultSourceKey: parsed.defaultSourceKey, minimumFillSeconds: parsed.minimumFillSeconds, maxLinksBeforeReview: parsed.maxLinksBeforeReview, toReviewRetentionDays: parsed.toReviewRetentionDays };
+}
+
+export function starterContactFormNotice(locale: StarterLocale): string {
+  return contactFormSchema.parse(contactFormFile).notice[locale];
 }
 
 // PRD-EVT-07 : motifs de perte de départ ; « Autre » demande une précision.

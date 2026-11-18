@@ -42,10 +42,20 @@ export const HELP_SCREENS: HelpScreen[] = [
   // Lot 20 (AIDE-14) : chaque écran de réglage a sa fiche.
   { key: "eventsSources", group: "events", audience: "team", module: "events", path: "/events/parametres/sources", capture: true },
   { key: "eventTypes", group: "events", audience: "team", module: "events", path: "/events/parametres/types", capture: true },
+  // Lot 44 (CRM-01, CRM-02) : « Suivre vos demandes en colonnes », « Mettre le formulaire sur votre
+  // site », et les étapes du pipeline.
+  { key: "eventsPipeline", group: "events", audience: "team", module: "events", path: "/events/pipeline", capture: false },
+  { key: "eventsContactForm", group: "events", audience: "team", module: "events", ownerOnly: true, path: "/events/parametres/contact", capture: false },
+  { key: "eventsPipelineStages", group: "events", audience: "team", module: "events", ownerOnly: true, path: "/events/parametres/etapes", capture: false },
   { key: "followUps", group: "events", audience: "team", module: "events", path: "/parametres/relances", capture: true },
   // Lot 49 (INV-01 à INV-04, INV-07) : onglet Invités de la fiche, liste des régimes et allergies.
   { key: "guests", group: "events", audience: "team", module: "guests", path: null, capture: false },
   { key: "dietaryOptions", group: "events", audience: "team", module: "guests", path: "/events/parametres/regimes", capture: false },
+  // Lot 50 (INV-05, INV-06) : plan de table (depuis l'onglet Invités d'une fiche), synthèse pour le
+  // traiteur (sur le plan), types de repas.
+  { key: "seatingPlan", group: "events", audience: "team", module: "guests", path: null, capture: false },
+  { key: "catererSummary", group: "events", audience: "team", module: "guests", path: null, capture: false },
+  { key: "mealTypes", group: "events", audience: "team", module: "guests", path: "/events/parametres/repas", capture: false },
   // Lot 46 (RDV-01 à RDV-04, EVT-10) : rendez-vous.
   { key: "appointmentsList", group: "appointments", audience: "team", module: "appointments", path: "/rendez-vous", capture: false },
   { key: "appointmentDetail", group: "appointments", audience: "team", module: "appointments", path: null, capture: false },

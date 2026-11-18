@@ -3,7 +3,7 @@
 // Security activée par une migration dédiée (même patron que hello,
 // packages/db/drizzle).
 import { sql } from "drizzle-orm";
-import { boolean, check, date, integer, pgSchema, text, time, timestamp, unique, uuid, jsonb, index, type AnyPgColumn } from "drizzle-orm/pg-core";
+import { boolean, check, date, integer, pgSchema, text, time, timestamp, unique, uniqueIndex, uuid, jsonb, index, type AnyPgColumn } from "drizzle-orm/pg-core";
 
 export const eventsSchema = pgSchema("events");
 
@@ -11,6 +11,24 @@ export const eventsSchema = pgSchema("events");
 // à la différence des sources de prospect et des motifs de perte ci-dessous. Lot 34a (EVT-05,
 // ADR 0055, décisions D2 et D3) : Option, Confirmé, En préparation, Clôturé, Reporté, Annulé ;
 // « Jour J » n'est pas stocké, il s'applique de lui-même le jour de l'événement, dans son fuseau.
+// Lot 44 (CRM-02, D9 ; ADR 0084) — étapes du pipeline commercial, liste de l'organisation copiée des
+// données de départ (pipeline-stages.json), entre une et dix, dans l'ordre de position.
+export const pipelineStages = eventsSchema.table(
+  "pipeline_stages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    label: text("label").notNull(),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [index("pipeline_stages_organization_idx").on(table.organizationId), check("pipeline_stages_label_check", sql`char_length(${table.label}) between 1 and 60`)],
+);
+
 export const eventStatusEnum = eventsSchema.enum("event_status", [
   "option",
   "confirmed",
@@ -108,6 +126,9 @@ export const events = eventsSchema.table("events", {
   eventTypeId: uuid("event_type_id").references(() => eventTypes.id, { onDelete: "set null" }),
   lossReasonId: uuid("loss_reason_id").references(() => lossReasons.id),
   lossReasonNote: text("loss_reason_note"),
+  // Lot 44 (CRM-02, D9 ; ADR 0084) : étape du pipeline commercial, pour une option ; vide = la première
+  // étape. Une étape n'est qu'un repère, les statuts restent ceux du cycle de vie (ADR 0055).
+  pipelineStageId: uuid("pipeline_stage_id").references(() => pipelineStages.id, { onDelete: "set null" }),
   // PRD-EVT-04 : date de l'événement pour laquelle les échéances du
   // rétroplanning ont été calculées. Quand eventDate en diffère, l'app
   // propose de recalculer les échéances des tâches non faites.
@@ -165,7 +186,9 @@ export const eventStatusHistory = eventsSchema.table("event_status_history", {
     .references(() => events.id),
   fromStatus: eventStatusEnum("from_status"),
   toStatus: eventStatusEnum("to_status").notNull(),
-  changedByUserId: uuid("changed_by_user_id").notNull(),
+  // Lot 44 (CRM-01, D5 ; ADR 0084) : vide quand le changement ne vient d'aucun compte (prospect créé
+  // par le formulaire de contact public).
+  changedByUserId: uuid("changed_by_user_id"),
   changedAt: timestamp("changed_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
@@ -692,6 +715,8 @@ export const eventLinkSessions = eventsSchema.table("event_link_sessions", {
 // le cockpit ; task_label reste vide, le nom se lit sur le prestataire (RGP-05).
 // Lot 37a (DOC-04, D7) : « document_link_opened », un lien de partage d'un document ouvert ;
 // task_label porte l'intitulé du document.
+// Lot 44 (CRM-02) : « stage_changed », une carte passée à une autre étape du pipeline ; task_label
+// porte le nom de l'étape au moment du déplacement.
 // Lot 47 (PAR-05, PRE-04) : « vendor_answered » (réponse d'un prestataire à un brief),
 // « vendor_invoice_received » (facture déposée), « vendor_roadmap_confirmed » (feuille de route
 // reçue) ; task_label reste vide, le nom se lit sur le prestataire (RGP-05).
@@ -701,6 +726,7 @@ export const eventActivityKindEnum = eventsSchema.enum("event_activity_kind", [
   "decision_made",
   "vendor_reminded",
   "document_link_opened",
+  "stage_changed",
   "vendor_answered",
   "vendor_invoice_received",
   "vendor_roadmap_confirmed",
@@ -1003,6 +1029,76 @@ export const keyMoments = eventsSchema.table("key_moments", {
   index("key_moments_event_idx").on(table.eventId),
   check("key_moments_name_check", sql`char_length(${table.name}) between 1 and 100`),
 ]);
+
+// Lot 44 (CRM-01 ; D1 à D5 ; ADR 0084) — le formulaire de contact public d'une organisation
+// (/contact/<adresse>). Une ligne par organisation ; l'adresse est unique et se lit sans organisation
+// (exception écrite de la RLS, comme la page de réservation du lot 46) ; rien de personnel n'y figure.
+// hidden_fields : champs facultatifs masqués ; allowed_origins : sites qui peuvent l'encadrer
+// (https, cinq au plus) ; locale : langue des textes de départ (source, e-mail à la titulaire).
+export const CONTACT_FORM_OPTIONAL_FIELDS = ["phone", "date", "place", "budget", "guests", "eventType", "source", "message"] as const;
+
+export const contactForms = eventsSchema.table(
+  "contact_forms",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    active: boolean("active").notNull().default(false),
+    slug: text("slug").notNull(),
+    hiddenFields: text("hidden_fields").array().notNull().default(sql`'{}'::text[]`),
+    privacyPolicyUrl: text("privacy_policy_url"),
+    allowedOrigins: text("allowed_origins").array().notNull().default(sql`'{}'::text[]`),
+    notifyOwner: boolean("notify_owner").notNull().default(true),
+    locale: text("locale").notNull().default("fr"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    uniqueIndex("contact_forms_organization_idx").on(table.organizationId),
+    uniqueIndex("contact_forms_slug_idx").on(table.slug),
+    check("contact_forms_slug_check", sql`${table.slug} ~ '^[a-z0-9]+(-[a-z0-9]+)*$' and char_length(${table.slug}) between 3 and 60`),
+    check("contact_forms_hidden_fields_check", sql`${table.hiddenFields} <@ array['phone', 'date', 'place', 'budget', 'guests', 'eventType', 'source', 'message']::text[]`),
+    check("contact_forms_privacy_url_check", sql`${table.privacyPolicyUrl} is null or (${table.privacyPolicyUrl} ~ '^https://' and char_length(${table.privacyPolicyUrl}) <= 500)`),
+    check("contact_forms_origins_check", sql`coalesce(array_length(${table.allowedOrigins}, 1), 0) <= 5`),
+    check("contact_forms_locale_check", sql`${table.locale} in ('fr', 'en')`),
+  ],
+);
+
+// Lot 44 (CRM-01 ; D4, D5 ; ADR 0084) — une demande reçue par le formulaire de contact. « received » :
+// le prospect est créé (évènement Option, contact du hub), la demande garde le message, la période et
+// la tranche de budget, affichés tels quels. « to_review » : envoi mis de côté (message à liens) ; rien
+// n'est encore créé, les champs reçus attendent dans « pending » ; effacée à 30 jours si elle n'est pas
+// traitée (contact-form.json).
+export const prospectRequests = eventsSchema.table(
+  "prospect_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id").references(() => events.id, { onDelete: "cascade" }),
+    state: text("state").notNull(),
+    message: text("message"),
+    period: text("period"),
+    budgetRange: text("budget_range"),
+    pending: jsonb("pending").$type<Record<string, string> | null>(),
+    receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("prospect_requests_organization_idx").on(table.organizationId),
+    index("prospect_requests_event_idx").on(table.eventId),
+    check("prospect_requests_state_check", sql`(${table.state} = 'received' and ${table.eventId} is not null and ${table.pending} is null) or (${table.state} = 'to_review' and ${table.eventId} is null and ${table.pending} is not null)`),
+    check(
+      "prospect_requests_text_check",
+      sql`(${table.message} is null or char_length(${table.message}) <= 5000) and (${table.period} is null or char_length(${table.period}) <= 100) and (${table.budgetRange} is null or char_length(${table.budgetRange}) <= 100)`,
+    ),
+  ],
+);
 
 // --- Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; ADR 0085) : prestataires par lien. ---
 

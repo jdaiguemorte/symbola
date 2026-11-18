@@ -1180,6 +1180,28 @@
       "title": "Your guests",
       "body": "Add your guests by household, or import your spreadsheet: duplicates are flagged before anything is saved. For a guest without email, get their personal link or QR code and send it by text. You follow replies per moment; diets show as numbers, never by name."
     },
+    "seatingPlan": {
+      "title": "Seating plan",
+      "body": "One plan per key moment with tables (dinner, brunch). Add tables in series (“12 round tables of 10”), or copy the plan of another key moment. Seat a guest or a whole household with the “Move” button, from the keyboard or by touch, or drag them with the mouse. Only attending guests and those who have not answered can be seated; guests not seated stay visible with their number. “Together” and “apart” constraints and overfull tables are flagged, never blocked.",
+      "faq": [
+        {
+          "q": "A guest declines after being seated: what happens?",
+          "a": "They leave their table at once and an alert tells you on the plan; clear it once you have seen it."
+        },
+        {
+          "q": "Does the client see the plan or the constraints?",
+          "a": "No. The plan is built by the team; constraints never leave it, neither to the client nor in a summary."
+        }
+      ]
+    },
+    "catererSummary": {
+      "title": "Send the summary to the caterer",
+      "body": "From the seating plan, “Caterer summary” gives the PDF or the spreadsheet: covers and meals by type, diets and allergens, by table; vendor meals and guests awaiting an answer apart. The owner gets the named version; a team member, the version without names, exact per table. Nothing is kept in Symbola: the copy you send leaves Symbola, ask the caterer to delete it after the event."
+    },
+    "mealTypes": {
+      "title": "Meal types",
+      "body": "The meal types of the caterer summary: adult, child, baby (no meal), vendor to start with. Rename, hide or add a type; a guest's type follows their age, unless you change it on the seating plan."
+    },
     "appointmentsList": {
       "title": "Appointments",
       "body": "Appointments booked on your booking page, and those entered by the team (phone, fair). New, moved or cancelled ones also show in “Today”. Start by creating an appointment type (a name and a duration), then choose your page address and give it to your future clients. Nobody needs an account: each person gets a confirmation with the invitation for their calendar, and a link to reschedule or cancel."
@@ -1203,6 +1225,44 @@
     "appointmentAvailability": {
       "title": "My availability",
       "body": "Your weekly hours (two ranges per day at most), your closed days and your calendars. Link your Google, Apple or Outlook calendar through its secret iCal address: only busy times are read, every fifteen minutes, never the content. If a calendar can no longer be read, no slot is offered until it is read again: better offer nothing than a time already taken."
+    },
+    "eventsPipeline": {
+      "title": "Follow your requests in columns",
+      "body": "Each card is an event with the Option status, placed at its stage. To move a card, drag it with the mouse, or use its “Move” button and choose the stage (with the keyboard as with a finger). Dropping on “Won” confirms the event once you agree; on “Lost”, cancels it with its reason. In a column, the card that has been waiting the longest is at the top. On a phone, choose the stage in the tabs.",
+      "faq": [
+        {
+          "q": "Does a stage change the event's status?",
+          "a": "No: stages are only markers within the Option status. Only “Won” and “Lost” change the status (Confirmed, Cancelled)."
+        },
+        {
+          "q": "What is a request “to check”?",
+          "a": "A contact form request whose message contains several links: it may come from a robot. Accept it to create the prospect, or delete it. Without action, it is deleted after 30 days."
+        }
+      ]
+    },
+    "eventsPipelineStages": {
+      "title": "Pipeline stages",
+      "body": "Rename stages, add some (ten at most), change their order, remove those you do not use. A stage holding cards is emptied first: choose the stage they move to.",
+      "faq": [
+        {
+          "q": "Can I add “Won” as a stage?",
+          "a": "No need: “Won” and “Lost” are always at the end of the pipeline; they confirm or cancel the event."
+        }
+      ]
+    },
+    "eventsContactForm": {
+      "title": "Put the form on your website",
+      "body": "Open the form, choose its address and give the address of your privacy policy (required). Share the link, or copy the code into your website after declaring its address under “Websites allowed”: the form only shows on those websites. Each request creates a prospect with the Option status, at the first stage of the pipeline, and appears in “Today”. The person receives no automatic email: the reply comes from you.",
+      "faq": [
+        {
+          "q": "What about spam?",
+          "a": "The form protects itself without a captcha: an invisible trap field, a minimum filling time, a limited number of submissions. A request whose message contains several links is set aside “to check” in the pipeline."
+        },
+        {
+          "q": "A person you already know fills in the form?",
+          "a": "They are found by their email, and their record is not changed: what they wrote goes into the request."
+        }
+      ]
     },
     "vendorCoordination": {
       "title": "Request quotes from several suppliers",
@@ -1886,7 +1946,14 @@
       "time": "The time is not valid (HH:MM).",
       "place": "This place is not one of the event's places.",
       "too_many": "An event has at most 20 key moments."
-    }
+    },
+    "activityStageChanged": "Moved to the “{task}” stage.",
+    "prospectRequestTitle": "Request received through the contact form",
+    "prospectRequestReceived": "Received on {date}",
+    "prospectRequestPeriod": "Preferred period: {period}",
+    "prospectRequestBudget": "Stated budget: {budget}",
+    "prospectRequestNoMessage": "No message.",
+    "pipelineView": "Column view"
   },
   "Budget": {
     "title": "Budget",
@@ -4832,9 +4899,12 @@
     "messageTemplates": "Message templates",
     "trash": "Trash",
     "dietaryOptions": "Diets and allergies",
+    "mealTypes": "Meal types",
     "groupAppointments": "Appointments",
     "appointmentTypes": "Types and booking page",
     "appointmentAvailability": "My availability and calendars",
+    "pipelineStages": "Pipeline stages",
+    "contactForm": "Contact form",
     "vendorCoordination": "Suppliers by link"
   },
   "Common": {
@@ -5107,6 +5177,10 @@
       "guests_purge_executed": "Guest data purged",
       "guests_import_applied": "Guest list imported",
       "guests_import_undone": "Guest import undone",
+      "guests_caterer_summary_downloaded": "Caterer summary downloaded",
+      "events_contact_form_updated": "Contact form set up",
+      "events_prospect_request_received": "Request received through the contact form",
+      "events_prospect_request_to_review": "Request set aside “to check”",
       "events_vendor_brief_sent": "Quote request sent to suppliers",
       "events_vendor_brief_reminded": "Supplier reminded the day before the deadline",
       "events_vendor_answered": "Supplier answered a quote request",
@@ -5240,6 +5314,17 @@
       "guests_diet_consents": "proof of consent to diets",
       "guests_guest_links": "guest personal link",
       "guests_purge_postponements": "guest purge postponement",
+      "guests_meal_types": "meal type",
+      "guests_seating_plans": "seating plan",
+      "guests_seating_tables": "seating plan table",
+      "guests_seat_assignments": "seat on the seating plan",
+      "guests_seating_constraints": "seating constraint",
+      "guests_seating_constraint_members": "person in a seating constraint",
+      "guests_vendor_meal_counts": "vendor meals",
+      "guests_caterer_summary_downloads": "caterer summary download",
+      "events_contact_forms": "contact form",
+      "events_pipeline_stages": "pipeline stage",
+      "events_prospect_requests": "contact request",
       "events_vendor_briefs": "quote request brief",
       "events_vendor_brief_documents": "brief inspiration",
       "events_vendor_scenarios": "option scenario",
@@ -6037,6 +6122,10 @@
         "cancelled": "Appointment cancelled: {type} with {person}, on {time}"
       },
       "calendarSourceError": "The calendar “{label}” can no longer be read: no slot is offered until it is read again",
+      "prospectRequest": "New request: {names}, {when}",
+      "prospectRequestNoDate": "New request: {names}",
+      "prospectRequestDateTaken": "Date already taken",
+      "prospectToReview": "{count, plural, one {One request to check} other {# requests to check}} (contact form)",
       "vendorAnswer": {
         "available": "{vendor} is available ({slot}), quote to come",
         "quote": "{vendor} sent their quote ({slot})",
@@ -6355,6 +6444,7 @@
       "sign": "Sign online",
       "answer": "Reply",
       "manage": "Reschedule or cancel",
+      "request": "View the request",
       "available": "I am available",
       "unavailable": "I am not available",
       "roadmap": "See my run sheet"
@@ -6444,6 +6534,7 @@
       "signatures": "Quotes and contracts",
       "program": "Schedule",
       "appointments": "Appointments",
+      "prospects": "Contact requests",
       "vendors": "Suppliers"
     },
     "kinds": {
@@ -6502,6 +6593,10 @@
       "appointment_cancelled": {
         "title": "Appointment cancelled",
         "description": "Sent when you cancel an appointment, or when the person cancels it."
+      },
+      "prospect_form_received": {
+        "title": "New contact request",
+        "description": "Sent to the account owner at each request received through the contact form, without the person's message or contact details."
       },
       "vendor_brief": {
         "title": "Quote request to a supplier",
@@ -7355,7 +7450,19 @@
         "no_date": "The event has no date yet: there is no purge to postpone."
       },
       "importFile": "Choose a file (CSV or XLSX).",
-      "importTooLarge": "The file exceeds 1 MB: save the list as CSV, or split it."
+      "importTooLarge": "The file exceeds 1 MB: save the list as CSV, or split it.",
+      "seating": {
+        "table_name": "A table name has 1 to 60 characters.",
+        "capacity": "A table has 1 to 60 seats.",
+        "count": "Add 1 to 50 tables at a time.",
+        "too_many_tables": "A plan has at most 150 tables.",
+        "constraint_members": "A constraint brings together two to twenty people.",
+        "target_not_empty": "This key moment already has tables: copying does not replace a plan in progress.",
+        "same_moment": "Choose another key moment to copy.",
+        "vendor_count": "The number of vendor meals ranges from 0 to 1000.",
+        "not_eligible": "This person declined this key moment or is not invited to it: they cannot be seated.",
+        "meal_label": "A label has 1 to 60 characters."
+      }
     },
     "activation": {
       "assessmentLink": "Read the baseline impact assessment provided by Symbola",
@@ -7549,7 +7656,8 @@
       },
       "revoke": "Withdraw {name}'s links",
       "edit": "Edit {name}",
-      "remove": "Delete the household {name}"
+      "remove": "Delete the household {name}",
+      "planLink": "Seating plan and caterer summary"
     },
     "portal": {
       "title": "Your guests",
@@ -7573,6 +7681,175 @@
       "kindAllergen": "Allergy",
       "add": "Add",
       "added": "Entry added."
+    },
+    "caterer": {
+      "title": "Caterer summary",
+      "heading": "{moment} — {date}",
+      "generatedAt": "As of {date}: answers may still change.",
+      "versionNominative": "Named version: name, table, meal type, diets and allergies of each person.",
+      "versionAggregate": "Version without names: exact numbers per table.",
+      "noPlan": "No seating plan yet: totals only.",
+      "dietsPurged": "Diets and allergies were erased after the event: the summary no longer contains any.",
+      "totalsTitle": "Totals",
+      "coversLabel": "Covers (attending guests)",
+      "covers": "{count, plural, =0 {No cover} one {# cover} other {# covers}}",
+      "mealsTitle": "Meals by type",
+      "dietsTitle": "Diets and allergens",
+      "noDiets": "No diet or allergen declared.",
+      "vendorMeals": "Vendor meals",
+      "pendingTitle": "Awaiting an answer",
+      "pendingNone": "Nobody is awaiting an answer.",
+      "tablesTitle": "By table",
+      "unplaced": "No table",
+      "tableLine": "{name} — {shape}, {capacity} seats",
+      "person": "{name} — {meal}",
+      "personWithDiets": "{name} — {meal} — {diets}",
+      "footerNominative": "Data shared for meal service only; delete after the event.",
+      "footerAggregate": "Numbers per table, without names.",
+      "page": "Page {page} of {total}",
+      "fileNominative": "caterer-summary-named",
+      "fileAggregate": "caterer-summary",
+      "shape": {
+        "round": "round table",
+        "rectangular": "rectangular table",
+        "head": "head table"
+      },
+      "csv": {
+        "table": "Table",
+        "name": "Name",
+        "mealType": "Meal type",
+        "diets": "Diets and allergies",
+        "count": "Count",
+        "response": "Answer",
+        "covers": "Covers",
+        "total": "Total",
+        "present": "Attending"
+      }
+    },
+    "plan": {
+      "title": "Seating plan",
+      "back": "Back to guests",
+      "unavailable": "The seating plan is unavailable: the Guests module is not open for your organization.",
+      "notReady": "The seating plan opens once the owner has confirmed the impact assessment, in the Guests tab.",
+      "notReadyLink": "Go to the Guests tab",
+      "noKeyMoments": "First add the event's key moments (dinner, brunch): a plan is built per key moment.",
+      "noKeyMomentsLink": "Add key moments",
+      "momentsNav": "Key moments",
+      "momentLink": "{name}, {date}",
+      "momentPlanned": "{placed} seated out of {present}",
+      "momentNoPlan": "no plan",
+      "createPlan": "Build the plan for “{moment}”",
+      "noPlan": "This key moment has no plan yet: {present} attending, {pending} awaiting an answer.",
+      "counts": "{unplaced, plural, =0 {Everyone attending is seated} one {# attending guest not seated} other {# attending guests not seated}} · {pending, plural, =0 {nobody awaiting an answer} one {# awaiting an answer} other {# awaiting an answer}}",
+      "viewSwitch": "Show",
+      "showTables": "Tables",
+      "showUnplaced": "Not seated ({count})",
+      "unplacedTitle": "Not seated ({count})",
+      "unplacedEmpty": "Everyone attending is seated.",
+      "pendingTitle": "Awaiting an answer ({count})",
+      "pendingHelp": "No answer yet: you can seat them; they stay marked and are not counted in the covers.",
+      "pendingMark": "awaiting an answer",
+      "child": "child",
+      "householdItem": "the whole {name} household",
+      "householdHeading": "{name} ({count})",
+      "householdMoved": "{name} household: {count, plural, =0 {nobody was seated} one {# person seated} other {# people seated}} at “{group}”.",
+      "householdMoveFailed": "The {name} household could not be seated: the page shows the saved state.",
+      "unplacedTarget": "Not seated",
+      "tableTarget": "{name} ({occupied}/{capacity})",
+      "tablesTitle": "Tables ({count})",
+      "noTables": "No table yet: add some below.",
+      "occupancy": "{occupied} of {capacity} seats",
+      "children": "{count, plural, one {including # child} other {including # children}}",
+      "tableDiets": "Diets: {list}",
+      "dietCount": "{label}: {count}",
+      "dietFewer": "{label}: fewer than {threshold}",
+      "tableEmpty": "Nobody at this table.",
+      "overCapacity": "Over capacity",
+      "constraintAlert": "Constraint not met",
+      "shape": {
+        "round": "Round",
+        "rectangular": "Rectangular",
+        "head": "Head table"
+      },
+      "mealOf": "Meal: {meal}",
+      "mealDefault": "{meal} (default)",
+      "mealChange": "Meal for {name}",
+      "mealSelect": "Meal type",
+      "mealDefaultOption": "Default (by age)",
+      "mealSave": "Save meal",
+      "alertsTitle": "Alerts ({count})",
+      "alertTogether": "“Together” not met: {names} are at {tables}.",
+      "alertApart": "“Apart” not met: {names} are together at {table}.",
+      "alertCapacity": "{table}: {occupied} people for {capacity} seats.",
+      "alertReleased": "{name} declined and left {table}.",
+      "alertReleasedNoTable": "{name} declined and left their table.",
+      "alertReleasedDismiss": "Clear the alert for {name}",
+      "alertNotInvited": "{name} is no longer expected at this key moment but is still seated at {table}.",
+      "alertNotInvitedRemove": "Remove {name} from their table",
+      "addTablesTitle": "Add tables",
+      "addCount": "Number of tables",
+      "addShape": "Shape",
+      "addCapacity": "Seats per table",
+      "addSubmit": "Add the tables",
+      "namePrefix": "Table",
+      "tablesAdded": "Tables added.",
+      "editTable": "Edit {name}",
+      "tableName": "Name or number",
+      "tableShape": "Shape",
+      "tableCapacity": "Seats",
+      "saveTable": "Save the table",
+      "tableSaved": "Table saved.",
+      "removeTable": "Delete {name}",
+      "removeTableHelp": "Its guests go back to “Not seated”.",
+      "copyTitle": "Copy a plan",
+      "copyHelp": "Reuse the tables of another key moment, and the seats of those who also attend this one.",
+      "copyFrom": "Copy from",
+      "copySubmit": "Copy the plan",
+      "copied": "{tables, plural, one {# table copied} other {# tables copied}}, {seats, plural, =0 {no seat} one {# seat} other {# seats}}.",
+      "constraintsTitle": "Seating constraints",
+      "constraintsHelp": "Internal to your team: never shown to the client, never in a summary or an export. A constraint that is not met is flagged, without blocking.",
+      "constraintKind": {
+        "together": "Together",
+        "apart": "Apart"
+      },
+      "constraintLine": "{kind}: {names}",
+      "removeConstraint": "Delete the “{kind}” constraint: {names}",
+      "constraintsNone": "No constraint.",
+      "addConstraint": "Add a constraint",
+      "constraintKindLabel": "Kind",
+      "constraintMembers": "People concerned (two or more)",
+      "constraintSubmit": "Add the constraint",
+      "constraintAdded": "Constraint added.",
+      "catererTitle": "Caterer summary",
+      "catererHelp": "Computed when you download it, since answers change: meals by type, diets and allergens, by table. Nothing is kept in Symbola; each download is logged.",
+      "catererOutside": "The copy sent to the caterer leaves Symbola: ask them to delete it after the event.",
+      "catererNominativePdf": "Named PDF",
+      "catererNominativeCsv": "Named spreadsheet",
+      "catererAggregatePdf": "PDF without names",
+      "catererAggregateCsv": "Spreadsheet without names",
+      "catererMember": "You get the version without names, exact per table; the named version is reserved for the owner.",
+      "vendorTitle": "Vendor meals",
+      "vendorHelp": "Photographer, DJ…: a number for this key moment, without a table.",
+      "vendorCount": "Number of meals",
+      "vendorSave": "Save",
+      "vendorSaved": "Number saved.",
+      "mealTypesLink": "Meal types"
+    },
+    "mealTypes": {
+      "title": "Meal types",
+      "intro": "The meal types of the caterer summary. By default, an adult is served “Adult”, a child “Child”, a child under 3 “Baby”; change a guest's type on the seating plan. Hiding erases nothing.",
+      "unavailable": "Meal types are unavailable: the Guests module is not open for your organization.",
+      "hidden": "hidden",
+      "show": "Show {label}",
+      "hide": "Hide {label}",
+      "rename": "Rename {label}",
+      "label": "Label",
+      "save": "Save",
+      "saved": "Label saved.",
+      "reset": "Restore the starting label",
+      "addTitle": "Add a type",
+      "add": "Add",
+      "added": "Type added."
     }
   },
   "MoveToGroup": {
@@ -7581,6 +7858,166 @@
     "destinations": "Where to move {item}",
     "moved": "{item} moved to “{group}”.",
     "moveFailed": "{item} could not be moved: the page shows the saved state."
+  },
+  "ContactForm": {
+    "public": {
+      "title": "Contact {organization}",
+      "intro": "Tell us about your project: we will get back to you shortly.",
+      "required": "Fields marked with an asterisk (*) are required, as well as your email or your phone number.",
+      "sentTitle": "Thank you, your request has been sent",
+      "sentBody": "{organization} has received it and will reply to you personally. You can close this page.",
+      "unavailable": "This form is no longer available.",
+      "error": {
+        "name": "Please enter your first and last name.",
+        "contact": "Please enter your email or your phone number, so that we can reply.",
+        "email": "This email address does not look valid.",
+        "phone": "This phone number does not look valid.",
+        "date": "This date does not look valid.",
+        "guests": "Please enter a whole number of guests, without letters.",
+        "budget": "This budget is too long: 100 characters at most.",
+        "message": "Your message is too long: 5,000 characters at most.",
+        "period": "This period is too long: 100 characters at most.",
+        "place": "This place is too long: 200 characters at most."
+      },
+      "firstName": "First name",
+      "lastName": "Last name",
+      "contactLegend": "So that we can reply (at least one of the two)",
+      "email": "Email",
+      "phone": "Phone",
+      "eventType": "Type of event",
+      "noChoice": "I don't know yet",
+      "eventDate": "Preferred date",
+      "period": "Or a period",
+      "periodExample": "In spring 2028",
+      "place": "Venue or town",
+      "budget": "Budget",
+      "budgetExample": "€25,000 or “between 20 and 30k”",
+      "guests": "Number of guests",
+      "source": "How did you hear about us?",
+      "message": "Your message",
+      "noticeTitle": "Your information",
+      "policyLink": "{organization}'s privacy policy",
+      "sending": "Sending…",
+      "send": "Send my request"
+    },
+    "fields": {
+      "phone": "Phone",
+      "date": "Preferred date or period",
+      "place": "Venue or town",
+      "budget": "Budget",
+      "guests": "Number of guests",
+      "eventType": "Type of event",
+      "source": "“How did you hear about me?”",
+      "message": "Message"
+    },
+    "settings": {
+      "title": "Contact form",
+      "ownerOnly": "The contact form is set up by the account owner.",
+      "moduleUnavailable": "The contact form is part of the Events module, which is not open for your organisation.",
+      "intro": "A form to put on your website or share by link. Each request creates a prospect with the Option status, at the first stage of your pipeline.",
+      "stateOpen": "Open",
+      "stateClosed": "Closed",
+      "saved": "Settings saved.",
+      "active": "Open the form",
+      "slug": "Form address",
+      "slugHelp": "Lowercase letters, digits and hyphens. If you change it, the old address stops working.",
+      "privacyPolicyUrl": "Address of your privacy policy",
+      "privacyPolicyHelp": "Required to open the form: the privacy notice links to it. Address starting with https://.",
+      "shownFields": "Fields offered",
+      "shownFieldsHelp": "First name, last name and email are always asked. Untick the optional fields you do not want.",
+      "allowedOrigins": "Websites allowed to show the form",
+      "allowedOriginsHelp": "One address per line, starting with https://, five at most (for example https://www.mysite.com). Without a website, only the link works.",
+      "notifyOwner": "Email me at each new request (without the person's message or contact details)",
+      "locale": "Language of the starter texts",
+      "localeFr": "French",
+      "localeEn": "English",
+      "save": "Save",
+      "slugTaken": "This address is already taken: please choose another one.",
+      "invalid": {
+        "slug": "The address must be 3 to 60 characters long: lowercase letters, digits and hyphens.",
+        "privacyPolicyUrl": "Enter the address of your privacy policy, starting with https://, to open the form.",
+        "allowedOrigins": "Each website must start with https://; five websites at most.",
+        "hiddenFields": "A requested field does not exist."
+      },
+      "shareTitle": "Share the form",
+      "shareLink": "The link to give (website, social networks, email signature):",
+      "embedCode": "The code to copy into your website",
+      "embedTitle": "Contact form",
+      "embedSites": "The form can be shown on: {sites}.",
+      "embedNoSite": "No website declared: the code will not show on any website until you add one.",
+      "preview": "Preview",
+      "previewTitle": "Preview of the contact form"
+    }
+  },
+  "Pipeline": {
+    "title": "Pipeline",
+    "unnamed": "No name",
+    "viewsLabel": "Views and settings",
+    "listView": "List of events",
+    "stagesSettings": "Set up stages",
+    "contactSettings": "Contact form",
+    "toReviewTitle": "{count, plural, =0 {No request to check} one {One request to check} other {# requests to check}}",
+    "toReviewIntro": "Requests whose message contains several links are set aside: they may come from a robot. Accept them to create the prospect, or delete them. Without action, they are deleted after 30 days.",
+    "toReviewEmpty": "Nothing to check.",
+    "acceptRequestLabel": "Accept the request from {name}",
+    "acceptRequest": "Accept",
+    "discardRequestLabel": "Delete the request from {name}",
+    "discardRequest": "Delete",
+    "refused": "This move is not possible: the event may have changed in the meantime.",
+    "lossReasonRequired": "Choose the reason for the loss.",
+    "lossNoteRequired": "Please detail the “Other” reason.",
+    "won": "Won",
+    "lost": "Lost",
+    "wonHint": "Drop a won option here: it will be confirmed.",
+    "lostHint": "Drop a lost option here: it will be cancelled, with its reason.",
+    "emptyStage": "No card.",
+    "noDate": "Date to be set",
+    "dateTaken": "Date already taken",
+    "demo": "Trial",
+    "guests": "Guests",
+    "budget": "Budget",
+    "source": "Source",
+    "inStage": "In this stage",
+    "days": "{count, plural, =0 {since today} one {for # day} other {for # days}}",
+    "stagesLabel": "Stages",
+    "wonTitle": "Confirm {name}'s event?",
+    "lostTitle": "Cancel {name}'s option?",
+    "wonBody": "The event moves to the Confirmed status and leaves the pipeline. The schedule and the rest follow, as when you confirm it from its page.",
+    "lostBody": "The event moves to the Cancelled status and leaves the pipeline. The reason for the loss is required; the data stays.",
+    "lossReason": "Reason for the loss",
+    "chooseReason": "Choose a reason",
+    "lossNoteRequiredLabel": "Detail (required for this reason)",
+    "lossNote": "Detail (optional)",
+    "cancel": "Cancel",
+    "confirmWon": "Confirm the event",
+    "confirmLost": "Cancel the option",
+    "settings": {
+      "title": "Pipeline stages",
+      "ownerOnly": "The pipeline stages are set up by the account owner.",
+      "moduleUnavailable": "The pipeline is part of the Events module, which is not open for your organisation.",
+      "intro": "The stages of your sales process, for events with the Option status: between {min} and {max}. “Won” and “Lost” are not stages: they confirm or cancel the event.",
+      "back": "Back to the pipeline",
+      "refusal": {
+        "label": "A stage name is 1 to 60 characters long.",
+        "too_many": "Ten stages at most.",
+        "too_few": "At least one stage must remain.",
+        "not_found": "This stage no longer exists.",
+        "not_empty": "This stage holds cards: choose the stage they move to.",
+        "destination": "The stage chosen for the cards no longer exists."
+      },
+      "stageLabel": "Stage {position}",
+      "rename": "Rename",
+      "cards": "{count, plural, =0 {No card} one {One card} other {# cards}}",
+      "up": "Move up",
+      "upLabel": "Move stage {stage} up",
+      "down": "Move down",
+      "downLabel": "Move stage {stage} down",
+      "destination": "Its cards move to",
+      "remove": "Remove",
+      "removeLabel": "Remove stage {stage}",
+      "newStage": "New stage",
+      "add": "Add"
+    }
   },
   "VendorCoordination": {
     "title": "Request quotes",

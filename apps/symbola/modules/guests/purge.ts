@@ -13,7 +13,7 @@ import { listTeam } from "@symbola/auth";
 import { withAuditBulk } from "@symbola/db/actor";
 import { recordAudit } from "@symbola/db/audit";
 import { appDatabase } from "@symbola/db/client";
-import { dietConsents, diets, eventSettings, guests, householdGroups, households, purgePostponements } from "@symbola/db/schema/guests";
+import { catererSummaryDownloads, dietConsents, diets, eventSettings, guests, householdGroups, households, purgePostponements, seatingPlans, vendorMealCounts } from "@symbola/db/schema/guests";
 import { formatCalendarDate, parisToday, type Locale } from "@symbola/i18n";
 import { starterGuestRules } from "@symbola/starter-templates";
 import type { GuestEventContext, GuestPurgeNotice, GuestPurgeSchedule, GuestPurgeStage } from "@symbola/contracts";
@@ -95,7 +95,10 @@ async function eventsWithData(organizationId: string): Promise<EventWithData[]> 
   const found = await inOrganization(organizationId, async (tx) => {
     const firsts = await tx.select({ eventId: households.eventId, first: min(households.createdAt) }).from(households).groupBy(households.eventId);
     const consentEvents = await tx.selectDistinct({ eventId: dietConsents.eventId }).from(dietConsents).where(isNotNull(dietConsents.guestId));
-    const ids = [...new Set([...firsts.map((row) => row.eventId), ...consentEvents.map((row) => row.eventId)])];
+    // Lot 50 : un plan de table ou des repas prestataires gardent l'évènement dans la purge.
+    const planEvents = await tx.selectDistinct({ eventId: seatingPlans.eventId }).from(seatingPlans);
+    const vendorEvents = await tx.selectDistinct({ eventId: vendorMealCounts.eventId }).from(vendorMealCounts);
+    const ids = [...new Set([...firsts.map((row) => row.eventId), ...consentEvents.map((row) => row.eventId), ...planEvents.map((row) => row.eventId), ...vendorEvents.map((row) => row.eventId)])];
     const settings = ids.length > 0 ? await tx.select().from(eventSettings).where(inArray(eventSettings.eventId, ids)) : [];
     const postponements = ids.length > 0 ? await tx.select().from(purgePostponements).where(inArray(purgePostponements.eventId, ids)) : [];
     return { ids, firsts, settings, postponements };
@@ -133,9 +136,14 @@ async function purgeDiets(tx: Tx, eventId: string): Promise<number> {
   return (await tx.delete(diets).where(inArray(diets.guestId, people.map((person) => person.id))).returning({ id: diets.id })).length;
 }
 
-// Tout le reste : foyers (et en cascade personnes, réponses, régimes, liens), groupes, report ;
+// Tout le reste : foyers (et en cascade personnes, réponses, régimes, liens), groupes, report, plan de table ;
 // les preuves d'accord perdent la personne (horodatage anonymisé, la clé passe à null).
 async function purgeAll(tx: Tx, eventId: string): Promise<number> {
+  // Lot 50 : plans (en cascade tables, places, contraintes et leurs membres), repas prestataires,
+  // traces des téléchargements de la synthèse (le journal d'audit garde le sien).
+  await tx.delete(seatingPlans).where(eq(seatingPlans.eventId, eventId));
+  await tx.delete(vendorMealCounts).where(eq(vendorMealCounts.eventId, eventId));
+  await tx.delete(catererSummaryDownloads).where(eq(catererSummaryDownloads.eventId, eventId));
   const removed = await tx.delete(households).where(eq(households.eventId, eventId)).returning({ id: households.id });
   await tx.delete(householdGroups).where(eq(householdGroups.eventId, eventId));
   await tx.delete(purgePostponements).where(eq(purgePostponements.eventId, eventId));

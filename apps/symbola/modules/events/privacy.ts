@@ -30,6 +30,7 @@ import {
   programItemParticipants,
   programItems,
   programVersions,
+  prospectRequests,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { hasTerms, prepareTerms, recordMatches, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
@@ -128,6 +129,23 @@ function commentRecord(comment: typeof eventTaskComments.$inferSelect): PrivacyR
 
 function attachmentRecord(attachment: typeof eventTaskAttachments.$inferSelect): PrivacyRecord {
   return { module: MODULE, kind: "task_attachment", recordId: attachment.id, label: attachment.label, fields: { label: attachment.label, mime: attachment.mime }, eventId: attachment.eventId };
+}
+
+// Lot 44 (CRM-01) : demande reçue par le formulaire de contact (message, période, tranche de budget ;
+// pour une demande « à vérifier », les champs reçus en attente : nom, e-mail, téléphone…).
+function prospectRequestRecord(request: typeof prospectRequests.$inferSelect): PrivacyRecord {
+  return {
+    module: MODULE,
+    kind: "prospect_request",
+    recordId: request.id,
+    label: request.receivedAt.toISOString().slice(0, 10),
+    fields: compact({ message: request.message, period: request.period, budgetRange: request.budgetRange, ...(request.pending ?? {}) }),
+    eventId: request.eventId,
+  };
+}
+
+function prospectRequestValues(request: typeof prospectRequests.$inferSelect): (string | null)[] {
+  return [request.message, request.period, request.budgetRange, ...Object.values(request.pending ?? {})];
 }
 
 function dayContactRecord(contact: typeof eventDayContacts.$inferSelect): PrivacyRecord {
@@ -267,6 +285,12 @@ export const eventsPrivacy: PrivacyContractV1 = {
           }
         }
       }
+      // Lot 44 (CRM-01) : demandes du formulaire de contact, dont celles « à vérifier » (sans évènement).
+      const demoIds = new Set((await tx.select({ id: events.id }).from(events).where(eq(events.isDemo, true))).map((event) => event.id));
+      for (const request of await tx.select().from(prospectRequests)) {
+        if (request.eventId && demoIds.has(request.eventId)) continue;
+        if (recordMatches(prospectRequestValues(request), terms)) records.push(prospectRequestRecord(request));
+      }
       return records;
     });
   },
@@ -342,6 +366,7 @@ export const eventsPrivacy: PrivacyContractV1 = {
         records.push(documentRecord(document));
       }
       for (const folder of await tx.select().from(eventDocumentFolders).where(inArray(eventDocumentFolders.eventId, ids)).orderBy(asc(eventDocumentFolders.name))) records.push(folderRecord(folder));
+      for (const request of await tx.select().from(prospectRequests).where(inArray(prospectRequests.eventId, ids)).orderBy(asc(prospectRequests.receivedAt))) records.push(prospectRequestRecord(request));
       for (const change of await tx.select().from(eventStatusHistory).where(inArray(eventStatusHistory.eventId, ids)).orderBy(asc(eventStatusHistory.changedAt))) {
         records.push({
           module: MODULE,

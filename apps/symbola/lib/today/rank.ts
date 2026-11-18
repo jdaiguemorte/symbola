@@ -36,6 +36,9 @@ export type TodayItemKind =
   | "appointment"
   | "appointment_change"
   | "calendar_source_error"
+  // Lot 44 (CRM-01) : nouvelle demande du formulaire de contact, demandes « à vérifier ».
+  | "prospect_request"
+  | "prospect_review"
   // Lot 47 (PAR-05 ; D3, D6, D8) : réponse d'un prestataire à un brief, choix du client engagé,
   // feuille de route non confirmée.
   | "vendor_answer"

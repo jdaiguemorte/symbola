@@ -11,6 +11,9 @@ import { hasTerms, idsOfKind, prepareTerms, recordMatches, type ErasurePlanItem,
 import { dietPlace, openDietOptions } from "./diets";
 import { removeEventGuestRows } from "./households";
 import { ensureDietaryOptions, inOrganization, UUID, type Tx } from "./repository";
+import { seatsOfGuests } from "./seating";
+import { pruneSeatingConstraints } from "./seating-release";
+import { guestEventContexts } from "@/modules/events/service";
 import { starterDietaryOptionLabel } from "@symbola/starter-templates";
 
 const MODULE = "guests";
@@ -40,6 +43,9 @@ async function eraseGuests(tx: Tx, ids: string[]): Promise<void> {
   const rows = await tx.select({ id: guests.id, householdId: guests.householdId }).from(guests).where(inArray(guests.id, ids));
   await tx.update(dietConsents).set({ guestId: null }).where(inArray(dietConsents.guestId, ids));
   await tx.delete(guests).where(inArray(guests.id, ids));
+  // Lot 50 : places et appartenances aux contraintes partent en cascade ; une contrainte réduite à
+  // moins de deux personnes disparaît.
+  await pruneSeatingConstraints(tx);
   for (const householdId of new Set(rows.map((row) => row.householdId))) {
     const left = await tx.select().from(guests).where(eq(guests.householdId, householdId));
     if (left.length === 0) {
@@ -60,17 +66,27 @@ export const guestsPrivacy: PrivacyContractV1 = {
   async find({ organizationId, terms: rawTerms }) {
     const terms = prepareTerms(rawTerms);
     if (!hasTerms(terms)) return [];
-    return inOrganization(organizationId, async (tx) => {
+    const found = await inOrganization(organizationId, async (tx) => {
       const rows = await tx.select({ person: guests, householdName: households.displayName }).from(guests).innerJoin(households, eq(households.id, guests.householdId));
       const matches = rows.filter(({ person }) => recordMatches([person.firstName, person.lastName, person.email, person.phone], terms));
-      if (matches.length === 0) return [];
+      if (matches.length === 0) return null;
       const ids = matches.map(({ person }) => person.id);
-      const [answers, dietRows, consents, options] = await Promise.all([
+      const [answers, dietRows, consents, options, seats] = await Promise.all([
         tx.select().from(rsvpAnswers).where(inArray(rsvpAnswers.guestId, ids)),
         tx.select().from(diets).where(inArray(diets.guestId, ids)),
         tx.select().from(dietConsents).where(inArray(dietConsents.guestId, ids)),
         ensureDietaryOptions(tx, organizationId),
+        seatsOfGuests(tx, ids),
       ]);
+      return { matches, answers, dietRows, consents, options, seats };
+    });
+    if (!found) return [];
+    // Lot 50 : la table de la personne à chaque temps fort à table ; jamais les contraintes de
+    // placement, données internes de l'organisation (DPO-8).
+    const contexts = await guestEventContexts(organizationId, [...new Set(found.seats.map((seat) => seat.eventId))]);
+    const momentName = new Map(contexts.flatMap((context) => context.keyMoments.map((moment) => [moment.id, moment.name] as const)));
+    {
+      const { matches, answers, dietRows, consents, options, seats } = found;
       const labelOf = new Map(options.map((option) => [option.id, option.starterKey ? (starterDietaryOptionLabel(option.starterKey, "fr") ?? option.starterKey) : (option.label ?? "")]));
       return matches.map(({ person, householdName }): PrivacyRecord => {
         const sealed = dietRows.find((row) => row.guestId === person.id)?.optionsSealed;
@@ -91,11 +107,12 @@ export const guestsPrivacy: PrivacyContractV1 = {
             diet: diet.join(", ") || null,
             dietConsent: consents.filter((consent) => consent.guestId === person.id).map((consent) => `${consent.textVersion} ${consent.grantedAt.toISOString()}${consent.withdrawnAt ? ` → ${consent.withdrawnAt.toISOString()}` : ""}`).join(" · ") || null,
             opposedAt: person.opposedAt?.toISOString() ?? null,
+            seating: seats.filter((seat) => seat.guestId === person.id).map((seat) => `${momentName.get(seat.keyMomentId) ?? seat.keyMomentId} : ${seat.tableName}`).join(" · ") || null,
           }),
           eventId: person.eventId,
         };
       });
-    });
+    }
   },
 
   async related({ organizationId, eventIds }) {

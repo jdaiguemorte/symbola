@@ -13,6 +13,8 @@ import {
   HouseholdNotFoundError,
   InvitationsNotReadyError,
   PostponementInvalidError,
+  SeatingInvalidError,
+  SeatingNotFoundError,
 } from "@/modules/guests/service";
 
 const text = (max: number) => z.string().max(max).nullable().optional();
@@ -59,5 +61,8 @@ export function guestErrorKey(error: unknown): string | null {
   if (error instanceof GuestSettingsInvalidError) return `settings.${error.problem}`;
   if (error instanceof PostponementInvalidError) return `postpone.${error.problem}`;
   if (error instanceof GuestImportNotFoundError) return "notFound";
+  // Lot 50 : plan de table, types de repas, synthèse pour le traiteur.
+  if (error instanceof SeatingNotFoundError) return "notFound";
+  if (error instanceof SeatingInvalidError) return `seating.${error.problem}`;
   return null;
 }

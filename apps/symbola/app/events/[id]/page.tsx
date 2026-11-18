@@ -32,6 +32,7 @@ import {
   previewTaskRecalculation,
   getActiveEventsTrial,
   listEventActivity,
+  getEventProspectRequest,
   listEventDecisions,
   listEventDocuments,
   listEventDayContacts,
@@ -209,6 +210,8 @@ export default async function EventDetailPage({
     listEventLinks(organizationId, id),
     listEventActivity(organizationId, id),
   ]);
+  // Lot 44 (CRM-01, D5) : la demande reçue par le formulaire de contact, affichée telle quelle.
+  const prospectRequest = await getEventProspectRequest(organizationId, id);
   const programLabels = new Map(
     program.items.map((item) => [item.id, item.label]),
   );
@@ -731,6 +734,16 @@ export default async function EventDetailPage({
           ) : null}
           {/* Lot 46 (EVT-10, D8) : rendez-vous et comptes rendus, si le module Rendez-vous est ouvert. */}
           <EventAppointments organizationId={organizationId} eventId={event.id} locale={locale} />
+          {prospectRequest ? (
+            <section className="card" aria-labelledby="prospect-request-title">
+              <h2 id="prospect-request-title">{t("prospectRequestTitle")}</h2>
+              <p className="meta">{t("prospectRequestReceived", { date: eventTime(prospectRequest.receivedAt) })}</p>
+              {prospectRequest.period ? <p>{t("prospectRequestPeriod", { period: prospectRequest.period })}</p> : null}
+              {prospectRequest.budgetRange ? <p>{t("prospectRequestBudget", { budget: prospectRequest.budgetRange })}</p> : null}
+              {/* Le message du prospect, en texte : jamais interprété (balises affichées telles quelles). */}
+              {prospectRequest.message ? <p className="pipeline-message">{prospectRequest.message}</p> : <p className="meta">{t("prospectRequestNoMessage")}</p>}
+            </section>
+          ) : null}
           <section className="card" aria-labelledby="activity-title">
             <h2 id="activity-title">{t("activityTitle")}</h2>
             {activity.length === 0 ? <p>{t("noActivity")}</p> : null}
@@ -738,7 +751,7 @@ export default async function EventDetailPage({
               {activity.map((entry) => (
                 <li key={entry.id}>
                   {eventTime(entry.createdAt)} —{" "}
-                  {t(entry.kind === "task_done" ? "activityTaskDone" : entry.kind === "decision_made" ? "activityDecisionMade" : entry.kind === "vendor_reminded" ? "activityVendorReminded" : entry.kind === "document_link_opened" ? "activityDocumentLinkOpened" : "activityTaskUndone", {
+                  {t(entry.kind === "task_done" ? "activityTaskDone" : entry.kind === "decision_made" ? "activityDecisionMade" : entry.kind === "vendor_reminded" ? "activityVendorReminded" : entry.kind === "document_link_opened" ? "activityDocumentLinkOpened" : entry.kind === "stage_changed" ? "activityStageChanged" : "activityTaskUndone", {
                     actor: entry.actorName ?? t("activityFormerClient"),
                     task: entry.taskLabel || (entry.kind === "vendor_reminded" ? t("activityVendorRemoved") : tDecisions("programLabel")),
                   })}

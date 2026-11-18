@@ -92,6 +92,11 @@ export const AUDIT_ACTIONS = {
   "events.decision.requested": { category: "partage", objectType: "event" },
   "events.decision.answered": { category: "partage", objectType: "event" },
   "events.decision.withdrawn": { category: "partage", objectType: "event" },
+  // Lot 44 (CRM-01 ; D1, D4, D5) : formulaire de contact public réglé (ouvert ou fermé), demande reçue
+  // (prospect créé) ou mise de côté (« à vérifier ») ; identifiants seulement (SEC-20).
+  "events.contact_form.updated": { category: "partage", objectType: null },
+  "events.prospect_request.received": { category: "partage", objectType: "event" },
+  "events.prospect_request.to_review": { category: "partage", objectType: null },
   // Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09 ; ADR 0085) : prestataires par lien (identifiants, nombres,
   // étape ; jamais un nom, un e-mail ni un montant).
   "events.vendor_brief.sent": { category: "partage", objectType: "event" },
@@ -166,6 +171,9 @@ export const AUDIT_ACTIONS = {
   // INV-02 : liste importée, import annulé.
   "guests.import.applied": { category: "emission", objectType: "event" },
   "guests.import.undone": { category: "suppression", objectType: "event" },
+  // Lot 50 (INV-06, D8) : synthèse pour le traiteur téléchargée (temps fort, version, format ;
+  // jamais son contenu, jamais un nom) ; elle n'est rangée nulle part dans Symbola.
+  "guests.caterer_summary.downloaded": { category: "export", objectType: "event" },
 } as const satisfies Record<string, ActionSpec>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;

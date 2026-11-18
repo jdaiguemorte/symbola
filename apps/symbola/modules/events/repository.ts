@@ -182,7 +182,8 @@ export async function findEventById(
 
 export async function insertProspect(input: {
   organizationId: string;
-  createdByUserId: string;
+  // Lot 44 (CRM-01, D5) : null pour un prospect créé par le formulaire de contact public.
+  createdByUserId: string | null;
   // Lot 36a : les contacts des clients, déjà résolus chez le hub, dans l'ordre.
   clientContactIds: string[];
   prospectSourceId: string;
@@ -190,6 +191,12 @@ export async function insertProspect(input: {
   eventDate?: string | null | undefined;
   venueName?: string | null | undefined;
   venueCity?: string | null | undefined;
+  // Lot 44 (CRM-01, CRM-02) : invités estimés, budget souhaité et étape du pipeline reçus du formulaire.
+  guestsEstimated?: number | null | undefined;
+  wantedBudgetCents?: number | null | undefined;
+  pipelineStageId?: string | null | undefined;
+  // Écritures de l'appelant dans la même transaction (la demande reçue et son événement interne).
+  afterInsert?: ((tx: Tx, event: EventRow) => Promise<void>) | undefined;
 }): Promise<EventRow> {
   const db = appDatabase();
   return await withOrganization(db, input.organizationId, async (tx) => {
@@ -201,6 +208,9 @@ export async function insertProspect(input: {
         eventDate: input.eventDate ?? null,
         prospectSourceId: input.prospectSourceId,
         eventTypeId: input.eventTypeId ?? null,
+        guestsEstimated: input.guestsEstimated ?? null,
+        wantedBudgetCents: input.wantedBudgetCents ?? null,
+        pipelineStageId: input.pipelineStageId ?? null,
       })
       .returning();
     if (!event) throw new Error("création de l'événement échouée");
@@ -241,6 +251,7 @@ export async function insertProspect(input: {
       version: EVT_EVENT_CREATED_VERSION,
       payload: { eventId: event.id, status: event.status },
     });
+    if (input.afterInsert) await input.afterInsert(tx, event);
 
     return event;
   });

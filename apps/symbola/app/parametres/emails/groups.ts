@@ -7,10 +7,12 @@ import { isAppointmentsModuleEnabled } from "@/modules/appointments/service";
 
 type TemplateModule = "events" | "quotes" | "appointments";
 
-export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "signatures" | "appointments" | "vendors"; module: TemplateModule; kinds: EmailTemplateKind[] }[] = [
+export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "prospects" | "signatures" | "appointments" | "vendors"; module: TemplateModule; kinds: EmailTemplateKind[] }[] = [
   { key: "links", module: "events", kinds: ["client_link", "client_link_renewed", "vendor_link", "vendor_link_renewed"] },
   { key: "reminders", module: "events", kinds: ["task_reminder"] },
   { key: "program", module: "events", kinds: ["program_published"] },
+  // Lot 44 (CRM-01, D7) : « Nouvelle demande de contact », à la titulaire.
+  { key: "prospects", module: "events", kinds: ["prospect_form_received"] },
   // Lot 47 (PRE-03, PAR-05) : brief aux prestataires, sa relance, feuille de route.
   { key: "vendors", module: "events", kinds: ["vendor_brief", "vendor_brief_reminder", "vendor_roadmap"] },
   { key: "signatures", module: "quotes", kinds: ["quote_signature", "contract_signature", "order_first", "signed_copy"] },

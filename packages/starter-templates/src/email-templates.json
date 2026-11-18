@@ -67,6 +67,10 @@
         "subject": "Petit rappel : {{clients}} attendent votre réponse",
         "body": "Bonjour {{prénom}},\n\nVous n'avez pas encore répondu à l'invitation de {{clients}} pour leur {{évènement}}, le {{date_évènement}}. Les réponses sont attendues jusqu'au {{valable_jusqu_au}} inclus ; une minute suffit, avec votre lien personnel :\n\n{{lien}}\n\nCe lien vous est réservé : ne le transférez pas.\n\nÀ bientôt,\n{{organisation}}"
       },
+      "prospect_form_received": {
+        "subject": "Nouvelle demande de contact",
+        "body": "Bonjour,\n\nUne nouvelle demande est arrivée pour {{organisation}} par votre formulaire de contact.\n\nPour la lire et y répondre, ouvrez-la dans Symbola :\n\n{{lien}}\n\nCet e-mail ne contient ni le message ni les coordonnées de la personne : ils restent dans Symbola."
+      },
       "vendor_brief": {
         "subject": "Demande de devis : {{poste}} — {{organisation}}",
         "body": "Bonjour {{prénom}},\n\n{{organisation}} prépare {{évènement}} et cherche un prestataire pour ce poste : {{poste}}. Le besoin, la date, le lieu et les inspirations vous attendent dans votre espace, sans compte ni mot de passe. Êtes-vous disponible ? Merci de répondre avant le {{date_limite}} inclus :\n\n{{lien_disponible}}\n\n{{lien_indisponible}}\n\nSi vous êtes disponible, vous pourrez joindre votre devis depuis votre téléphone (photo ou PDF). Ce lien vous est réservé : ne le transférez pas. Si vous ne l'attendiez pas, ignorez ce message.\n\nÀ bientôt,\n{{organisation}}"
@@ -144,6 +148,10 @@
       "guest_reminder": {
         "subject": "Friendly reminder: {{clients}} are waiting for your reply",
         "body": "Hello {{first_name}},\n\nYou have not yet replied to the invitation from {{clients}} to their {{event}}, on {{event_date}}. Replies are expected until {{valid_until}} included; one minute is enough, with your personal link:\n\n{{link}}\n\nThis link is for you only: please do not forward it.\n\nSee you soon,\n{{organization}}"
+      },
+      "prospect_form_received": {
+        "subject": "New contact request",
+        "body": "Hello,\n\nA new request has arrived for {{organization}} through your contact form.\n\nTo read it and reply, open it in Symbola:\n\n{{link}}\n\nThis email contains neither the message nor the person's contact details: they stay in Symbola."
       },
       "vendor_brief": {
         "subject": "Quote request: {{slot}} — {{organization}}",

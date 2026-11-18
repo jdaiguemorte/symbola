@@ -22,6 +22,9 @@ import {
   eventPlaces,
   keyMoments,
   events,
+  contactForms,
+  pipelineStages,
+  prospectRequests,
   eventStatusHistory,
   eventTaskAttachments,
   eventTaskComments,
@@ -56,6 +59,10 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: eventTypes },
   { table: prospectSources },
   { table: lossReasons },
+  // Lot 44 (CRM-01, CRM-02) : étapes du pipeline (avant les évènements qui s'y rangent), formulaire de
+  // contact.
+  { table: pipelineStages },
+  { table: contactForms },
   { table: taskTemplates },
   { table: taskTemplateItems, parents: { templateId: "task_templates" } },
   { table: programTemplates },
@@ -66,6 +73,8 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: eventClients, ...ofEvent },
   { table: eventStatusHistory, ...ofEvent },
   { table: eventPlaces, ...ofEvent },
+  // Lot 44 (CRM-01) : demandes du formulaire de contact (une demande « à vérifier » n'a pas d'évènement).
+  { table: prospectRequests, ...ofEvent },
   // Lot 49 (D2) : temps forts de l'évènement.
   { table: keyMoments, ...ofEvent },
   { table: eventDayContacts, ...ofEvent },

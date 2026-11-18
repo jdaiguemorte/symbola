@@ -709,7 +709,7 @@ export async function findPendingDeclarationRows(organizationId: string): Promis
 
 // Lot 47 (PAR-05, D6 ; ADR 0085) — un prestataire n'est plus retenu : l'engagé de la ligne redevient
 // vide, seulement s'il vaut encore le montant attendu (relu verrouillé, dans la transaction) ; le
-// passage est historisé (nouvelle valeur vide, migration 0161). false : rien n'a été touché.
+// passage est historisé (nouvelle valeur vide, migration 0164). false : rien n'a été touché.
 export async function releaseCommittedAmount(input: { organizationId: string; lineId: string; expectedCents: number; changedByUserId: string }): Promise<boolean> {
   const db = appDatabase();
   return await withOrganization(db, input.organizationId, async (tx) => {

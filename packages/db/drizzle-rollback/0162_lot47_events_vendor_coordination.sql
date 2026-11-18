@@ -1,4 +1,4 @@
--- Annulation de 0159 (lot 47) : briefs, scénarios, avis du client, feuilles de route, réglages et
+-- Annulation de 0162 (lot 47) : briefs, scénarios, avis du client, feuilles de route, réglages et
 -- colonnes de réponse des prestataires consultés. Les réponses, scénarios et feuilles de route sont
 -- perdus. Refusée tant qu'une facture déposée par un prestataire existe (son document n'aurait plus
 -- d'auteur) ou qu'une réponse, une facture ou une confirmation est au fil d'activité (le type

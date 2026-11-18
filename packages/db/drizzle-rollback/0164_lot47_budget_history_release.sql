@@ -1,4 +1,4 @@
--- Annulation de 0161 (lot 47) : new_value_cents redevient obligatoire. Refusée tant qu'un engagé
+-- Annulation de 0164 (lot 47) : new_value_cents redevient obligatoire. Refusée tant qu'un engagé
 -- libéré est à l'historique (une ligne sans nouvelle valeur serait perdue sans qu'on le sache).
 DO $$
 BEGIN

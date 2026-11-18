@@ -1327,6 +1327,48 @@ fields:
       Lot 46 (D2) : hôte de l'adresse et ses quatre derniers caractères, pour reconnaître l'agenda. Même durée que l'adresse.
     anonymization: >-
       Supprimé avec l'agenda.
+  # Lot 44 (CRM-01 ; D4, D5 ; ADR 0084) : demandes reçues par le formulaire de contact public. Le nom,
+  # l'e-mail et le téléphone du prospect vont dans sa fiche de contact (hub.contacts, déjà déclarée) ;
+  # la demande garde ce qui n'a pas sa place dans la fiche. Une demande « à vérifier » (message à liens)
+  # garde ses champs reçus dans pending jusqu'à son acceptation, ou au plus 30 jours. Rien de
+  # personnel dans le réglage du formulaire (events.contact_forms) ni dans les étapes du pipeline.
+  - schema: events
+    table: prospect_requests
+    field: message
+    category: contenu_libre
+    retention: >-
+      Lot 44 (CRM-01) : message libre écrit par le prospect, affiché tel quel sur la fiche de
+      l'évènement ; suit la durée des prospects de l'organisation (purge avec l'évènement, RGPD-05).
+      Demande « à vérifier » non traitée : effacée après 30 jours (contact-form.json).
+    anonymization: >-
+      Supprimée avec la demande lors d'une demande d'oubli (RGPD-03) ou de la purge de l'évènement.
+  - schema: events
+    table: prospect_requests
+    field: period
+    category: contenu_libre
+    retention: >-
+      Lot 44 (CRM-01) : période souhaitée en texte court (« au printemps 2028 »), comme le message.
+    anonymization: >-
+      Supprimée avec la demande (RGPD-03, RGPD-05).
+  - schema: events
+    table: prospect_requests
+    field: budget_range
+    category: contenu_libre
+    retention: >-
+      Lot 44 (CRM-01) : tranche de budget en texte court, quand le prospect ne donne pas un montant ;
+      comme le message.
+    anonymization: >-
+      Supprimée avec la demande (RGPD-03, RGPD-05).
+  - schema: events
+    table: prospect_requests
+    field: pending
+    category: contact
+    retention: >-
+      Lot 44 (CRM-01, D4) : demande « à vérifier » seulement — prénom, nom, e-mail, téléphone, date,
+      lieu, budget et invités reçus, en attente. Vidé à l'acceptation (ils passent au contact et à
+      l'évènement) ; demande effacée après 30 jours si elle n'est pas traitée.
+    anonymization: >-
+      Supprimée avec la demande lors d'une demande d'oubli (RGPD-03).
   - schema: core
     table: rate_limit_events
     field: key_hash
@@ -1580,6 +1622,53 @@ fields:
       des personnes) ; le journal d'audit n'en garde que la date. Supprimé à la purge du reste.
     anonymization: >-
       Supprimé à la purge de l'évènement ou avec la liste des invités (RGPD-03).
+  # Lot 50 (plan de table et synthèse pour le traiteur ; INV-05, INV-06 ; ADR 0086). Même base légale
+  # que la liste des invités (lot 49) ; tout suit la purge des invités (30 jours après le dernier jour
+  # de l'évènement) et l'effacement d'une personne. La synthèse pour le traiteur n'est jamais rangée
+  # dans Symbola (D8) : calculée à la demande, nominative pour la titulaire seule (DPO-7) ; la copie
+  # envoyée au traiteur sort de Symbola.
+  - schema: guests
+    table: seat_assignments
+    field: guest_id
+    category: identifiant
+    retention: >-
+      Lot 50 (INV-05) : place d'un invité à une table, par temps fort (une par invité et par plan) ;
+      après un désistement, la ligne garde la date et le nom de la table jusqu'à ce que la planner
+      efface l'alerte. Purgée avec les invités, 30 jours après l'évènement.
+    anonymization: >-
+      Supprimée avec la personne (cascade : effacement RGPD-03, purge RGP-08), avec sa table ou son
+      plan, ou quand la planner retire l'invité de la table.
+  - schema: guests
+    table: seating_constraint_members
+    field: guest_id
+    category: identifiant
+    retention: >-
+      Lot 50 (INV-05, D4) : personne d'une contrainte de placement « ensemble » ou « séparés ». Donnée
+      interne de l'organisation (un « séparés » dit souvent quelque chose de la famille) : jamais
+      montrée au client, jamais dans une synthèse ni dans l'export complet de l'organisation. Purgée
+      avec les invités, 30 jours après l'évènement (DPO-8 : durée plus courte à confirmer).
+    anonymization: >-
+      Supprimée avec la personne (cascade) ; une contrainte réduite à moins de deux personnes
+      disparaît ; tout le plan part à la purge (RGP-08).
+  - schema: guests
+    table: guests
+    field: meal_type_id
+    category: identifiant
+    retention: >-
+      Lot 50 (INV-06, D5) : type de repas choisi pour un invité par la planner (vide : la valeur par
+      défaut tirée de l'âge). Purgé avec la personne, 30 jours après l'évènement.
+    anonymization: >-
+      Supprimé avec la personne (RGPD-03, RGP-08).
+  - schema: guests
+    table: caterer_summary_downloads
+    field: downloaded_by
+    category: identifiant
+    retention: >-
+      Lot 50 (INV-06, D8) : membre de l'équipe qui a téléchargé la synthèse pour le traiteur, avec le
+      temps fort, la version (nominative ou sans nom), le format et la date ; jamais le contenu. Le
+      journal d'audit garde la même trace. Supprimée à la purge des invités de l'évènement (J+30).
+    anonymization: >-
+      Supprimée à la purge de l'évènement ou avec la liste des invités (RGPD-03).
   - schema: guests
     table: module_settings
     field: privacy_notice

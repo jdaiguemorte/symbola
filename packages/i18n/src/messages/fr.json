@@ -1180,6 +1180,28 @@
       "title": "Vos invités",
       "body": "Ajoutez vos invités par foyer, ou importez votre tableur : les doublons vous sont signalés avant tout enregistrement. Pour un invité sans e-mail, obtenez son lien personnel ou son QR code et envoyez-le par SMS. Vous suivez les réponses par moment ; les régimes s'affichent en nombres, jamais nominatifs."
     },
+    "seatingPlan": {
+      "title": "Plan de table",
+      "body": "Un plan par temps fort à table (le dîner, le brunch). Ajoutez les tables en série (« 12 tables rondes de 10 »), ou copiez le plan d'un autre temps fort. Placez un invité ou tout un foyer avec le bouton « Déplacer », au clavier ou au doigt, ou glissez-le à la souris. Seuls les présents et ceux qui n'ont pas répondu se placent ; les non placés restent visibles avec leur nombre. Les contraintes « ensemble » et « séparés » et les tables trop pleines sont signalées, jamais bloquées.",
+      "faq": [
+        {
+          "q": "Un invité se désiste après avoir été placé : que se passe-t-il ?",
+          "a": "Il quitte sa table aussitôt et une alerte vous prévient sur le plan ; effacez-la quand vous l'avez vue."
+        },
+        {
+          "q": "Le client voit-il le plan ou les contraintes ?",
+          "a": "Non. Le plan se compose dans l'équipe ; les contraintes ne sortent jamais, ni vers le client ni dans une synthèse."
+        }
+      ]
+    },
+    "catererSummary": {
+      "title": "Envoyer la synthèse au traiteur",
+      "body": "Depuis le plan de table, « Synthèse pour le traiteur » donne le PDF ou le tableur : couverts et repas par type, régimes et allergènes, par table ; les repas des prestataires et les personnes en attente de réponse à part. La titulaire obtient la version nominative ; un membre de l'équipe, la version sans nom, exacte par table. Rien n'est gardé dans Symbola : la copie envoyée sort de Symbola, demandez au traiteur de la supprimer après l'évènement."
+    },
+    "mealTypes": {
+      "title": "Types de repas",
+      "body": "Les types de repas de la synthèse pour le traiteur : adulte, enfant, bébé (sans repas), prestataire au départ. Renommez, masquez ou ajoutez un type ; le type d'un invité suit son âge, sauf si vous le changez sur le plan de table."
+    },
     "appointmentsList": {
       "title": "Rendez-vous",
       "body": "Les rendez-vous pris sur votre page de réservation, et ceux saisis par l'équipe (téléphone, salon). Les nouveaux, reportés ou annulés apparaissent aussi dans « Aujourd'hui ». Commencez par créer un type de rendez-vous (un nom et une durée), puis choisissez l'adresse de votre page et donnez-la à vos futurs clients. Personne n'a besoin de compte : chaque personne reçoit une confirmation avec l'invitation pour son agenda, et un lien pour reporter ou annuler."
@@ -1203,6 +1225,44 @@
     "appointmentAvailability": {
       "title": "Mes disponibilités",
       "body": "Vos plages de la semaine (deux par jour au plus), vos jours fermés et vos agendas. Reliez votre agenda Google, Apple ou Outlook par son adresse secrète iCal : seules les heures occupées sont lues, toutes les quinze minutes, jamais le contenu. Si un agenda ne se lit plus, aucun créneau n'est proposé jusqu'à ce qu'il soit relu : mieux vaut ne rien proposer qu'une heure déjà prise."
+    },
+    "eventsPipeline": {
+      "title": "Suivre vos demandes en colonnes",
+      "body": "Chaque carte est un évènement au statut Option, rangé à son étape. Pour déplacer une carte, faites-la glisser à la souris, ou utilisez son bouton « Déplacer » puis choisissez l'étape (au clavier comme au doigt). Déposer sur « Gagné » confirme l'évènement après votre accord ; sur « Perdu », l'annule avec son motif. Dans une colonne, la carte qui attend depuis le plus longtemps est en haut. Sur téléphone, choisissez l'étape dans les onglets.",
+      "faq": [
+        {
+          "q": "Une étape change-t-elle le statut de l'évènement ?",
+          "a": "Non : les étapes ne sont que des repères à l'intérieur du statut Option. Seuls « Gagné » et « Perdu » changent le statut (Confirmé, Annulé)."
+        },
+        {
+          "q": "Qu'est-ce qu'une demande « à vérifier » ?",
+          "a": "Une demande du formulaire de contact dont le message contient plusieurs liens : elle peut venir d'un robot. Acceptez-la pour créer le prospect, ou effacez-la. Sans réponse, elle est effacée au bout de 30 jours."
+        }
+      ]
+    },
+    "eventsPipelineStages": {
+      "title": "Étapes du pipeline",
+      "body": "Renommez les étapes, ajoutez-en (dix au plus), changez leur ordre, retirez celles qui ne vous servent pas. Une étape qui contient des cartes se vide d'abord : choisissez l'étape où elles passent.",
+      "faq": [
+        {
+          "q": "Puis-je ajouter « Gagné » comme étape ?",
+          "a": "Inutile : « Gagné » et « Perdu » sont toujours au bout du pipeline ; ils confirment ou annulent l'évènement."
+        }
+      ]
+    },
+    "eventsContactForm": {
+      "title": "Mettre le formulaire sur votre site",
+      "body": "Ouvrez le formulaire, choisissez son adresse et donnez l'adresse de votre politique de confidentialité (obligatoire). Partagez le lien, ou copiez le code dans votre site après avoir déclaré son adresse dans « Sites autorisés » : le formulaire ne s'affiche que dans ces sites. Chaque demande crée un prospect au statut Option, à la première étape du pipeline, et apparaît dans « Aujourd'hui ». La personne ne reçoit pas d'e-mail automatique : la réponse vient de vous.",
+      "faq": [
+        {
+          "q": "Et le spam ?",
+          "a": "Le formulaire se protège sans captcha : un champ piège invisible, un délai minimal de remplissage, un nombre d'envois limité. Une demande dont le message contient plusieurs liens est mise de côté « à vérifier » dans le pipeline."
+        },
+        {
+          "q": "Une personne déjà connue remplit le formulaire ?",
+          "a": "Elle est retrouvée par son e-mail, et sa fiche n'est pas modifiée : ce qu'elle a écrit va dans la demande."
+        }
+      ]
     },
     "vendorCoordination": {
       "title": "Demander des devis à plusieurs prestataires",
@@ -1886,7 +1946,14 @@
       "time": "L'heure n'est pas valable (HH:MM).",
       "place": "Ce lieu n'est pas un lieu de l'évènement.",
       "too_many": "Un évènement compte au plus 20 temps forts."
-    }
+    },
+    "activityStageChanged": "Passé à l'étape « {task} ».",
+    "prospectRequestTitle": "Demande reçue par le formulaire de contact",
+    "prospectRequestReceived": "Reçue le {date}",
+    "prospectRequestPeriod": "Période souhaitée : {period}",
+    "prospectRequestBudget": "Budget indiqué : {budget}",
+    "prospectRequestNoMessage": "Sans message.",
+    "pipelineView": "Vue en colonnes"
   },
   "Budget": {
     "title": "Budget",
@@ -4832,9 +4899,12 @@
     "messageTemplates": "Modèles de messages",
     "trash": "Corbeille",
     "dietaryOptions": "Régimes et allergies",
+    "mealTypes": "Types de repas",
     "groupAppointments": "Rendez-vous",
     "appointmentTypes": "Types et page de réservation",
     "appointmentAvailability": "Mes disponibilités et agendas",
+    "pipelineStages": "Étapes du pipeline",
+    "contactForm": "Formulaire de contact",
     "vendorCoordination": "Prestataires par lien"
   },
   "Common": {
@@ -5107,6 +5177,10 @@
       "guests_purge_executed": "Données des invités purgées",
       "guests_import_applied": "Liste d'invités importée",
       "guests_import_undone": "Import d'invités annulé",
+      "guests_caterer_summary_downloaded": "Synthèse pour le traiteur téléchargée",
+      "events_contact_form_updated": "Formulaire de contact réglé",
+      "events_prospect_request_received": "Demande reçue par le formulaire de contact",
+      "events_prospect_request_to_review": "Demande mise de côté « à vérifier »",
       "events_vendor_brief_sent": "Demande de devis envoyée à des prestataires",
       "events_vendor_brief_reminded": "Prestataire relancé la veille de la date limite",
       "events_vendor_answered": "Réponse d'un prestataire à une demande de devis",
@@ -5240,6 +5314,17 @@
       "guests_diet_consents": "preuve d'accord aux régimes",
       "guests_guest_links": "lien personnel d'invité",
       "guests_purge_postponements": "report de purge des invités",
+      "guests_meal_types": "type de repas",
+      "guests_seating_plans": "plan de table",
+      "guests_seating_tables": "table du plan",
+      "guests_seat_assignments": "place au plan de table",
+      "guests_seating_constraints": "contrainte de placement",
+      "guests_seating_constraint_members": "personne d'une contrainte de placement",
+      "guests_vendor_meal_counts": "repas des prestataires",
+      "guests_caterer_summary_downloads": "téléchargement de la synthèse pour le traiteur",
+      "events_contact_forms": "formulaire de contact",
+      "events_pipeline_stages": "étape du pipeline",
+      "events_prospect_requests": "demande de contact",
       "events_vendor_briefs": "brief d'une demande de devis",
       "events_vendor_brief_documents": "inspiration d'un brief",
       "events_vendor_scenarios": "scénario d'options",
@@ -6037,6 +6122,10 @@
         "cancelled": "Rendez-vous annulé : {type} avec {person}, du {time}"
       },
       "calendarSourceError": "L'agenda « {label} » ne se lit plus : aucun créneau n'est proposé tant qu'il n'est pas relu",
+      "prospectRequest": "Nouvelle demande : {names}, {when}",
+      "prospectRequestNoDate": "Nouvelle demande : {names}",
+      "prospectRequestDateTaken": "Date déjà prise",
+      "prospectToReview": "{count, plural, one {Une demande à vérifier} other {# demandes à vérifier}} (formulaire de contact)",
       "vendorAnswer": {
         "available": "{vendor} est disponible ({slot}), devis à venir",
         "quote": "{vendor} a envoyé son devis ({slot})",
@@ -6355,6 +6444,7 @@
       "sign": "Signer en ligne",
       "answer": "Répondre",
       "manage": "Reporter ou annuler",
+      "request": "Voir la demande",
       "available": "Je suis disponible",
       "unavailable": "Je ne suis pas disponible",
       "roadmap": "Voir ma feuille de route"
@@ -6444,6 +6534,7 @@
       "signatures": "Devis et contrats",
       "program": "Programme",
       "appointments": "Rendez-vous",
+      "prospects": "Demandes de contact",
       "vendors": "Prestataires"
     },
     "kinds": {
@@ -6502,6 +6593,10 @@
       "appointment_cancelled": {
         "title": "Rendez-vous annulé",
         "description": "Part quand vous annulez un rendez-vous, ou que la personne l'annule."
+      },
+      "prospect_form_received": {
+        "title": "Nouvelle demande de contact",
+        "description": "Part à la titulaire à chaque demande reçue par le formulaire de contact, sans le message ni les coordonnées de la personne."
       },
       "vendor_brief": {
         "title": "Demande de devis à un prestataire",
@@ -7355,7 +7450,19 @@
         "no_date": "L'évènement n'a pas encore de date : il n'y a pas de purge à reporter."
       },
       "importFile": "Choisissez un fichier (CSV ou XLSX).",
-      "importTooLarge": "Le fichier dépasse 1 Mo : enregistrez la liste en CSV, ou découpez-la."
+      "importTooLarge": "Le fichier dépasse 1 Mo : enregistrez la liste en CSV, ou découpez-la.",
+      "seating": {
+        "table_name": "Le nom d'une table compte de 1 à 60 caractères.",
+        "capacity": "Le nombre de places d'une table va de 1 à 60.",
+        "count": "Ajoutez de 1 à 50 tables à la fois.",
+        "too_many_tables": "Un plan compte au plus 150 tables.",
+        "constraint_members": "Une contrainte réunit de deux à vingt personnes.",
+        "target_not_empty": "Ce temps fort a déjà des tables : la copie ne remplace pas un plan commencé.",
+        "same_moment": "Choisissez un autre temps fort à copier.",
+        "vendor_count": "Le nombre de repas des prestataires va de 0 à 1000.",
+        "not_eligible": "Cette personne a décliné ce temps fort ou n'y est pas invitée : elle ne se place pas.",
+        "meal_label": "Le libellé compte de 1 à 60 caractères."
+      }
     },
     "activation": {
       "assessmentLink": "Lire l'analyse d'impact « socle » fournie par Symbola",
@@ -7549,7 +7656,8 @@
       },
       "revoke": "Retirer les liens de {name}",
       "edit": "Modifier {name}",
-      "remove": "Supprimer le foyer {name}"
+      "remove": "Supprimer le foyer {name}",
+      "planLink": "Plan de table et synthèse pour le traiteur"
     },
     "portal": {
       "title": "Vos invités",
@@ -7573,6 +7681,175 @@
       "kindAllergen": "Allergie",
       "add": "Ajouter",
       "added": "Entrée ajoutée."
+    },
+    "caterer": {
+      "title": "Synthèse pour le traiteur",
+      "heading": "{moment} — {date}",
+      "generatedAt": "Arrêtée au {date} : les réponses peuvent encore changer.",
+      "versionNominative": "Version nominative : nom, table, type de repas, régimes et allergies de chaque personne.",
+      "versionAggregate": "Version sans nom : nombres exacts par table.",
+      "noPlan": "Plan de table non composé : les totaux seulement.",
+      "dietsPurged": "Les régimes et allergies ont été effacés après l'évènement : la synthèse n'en contient plus.",
+      "totalsTitle": "Totaux",
+      "coversLabel": "Couverts (personnes présentes)",
+      "covers": "{count, plural, =0 {Aucun couvert} one {# couvert} other {# couverts}}",
+      "mealsTitle": "Repas par type",
+      "dietsTitle": "Régimes et allergènes",
+      "noDiets": "Aucun régime ni allergène déclaré.",
+      "vendorMeals": "Repas prestataires",
+      "pendingTitle": "En attente de réponse",
+      "pendingNone": "Aucune personne en attente de réponse.",
+      "tablesTitle": "Par table",
+      "unplaced": "Sans table",
+      "tableLine": "{name} — {shape}, {capacity} places",
+      "person": "{name} — {meal}",
+      "personWithDiets": "{name} — {meal} — {diets}",
+      "footerNominative": "Données transmises pour le service du repas ; à supprimer après l'évènement.",
+      "footerAggregate": "Nombres par table, sans nom.",
+      "page": "Page {page} sur {total}",
+      "fileNominative": "synthese-traiteur-nominative",
+      "fileAggregate": "synthese-traiteur",
+      "shape": {
+        "round": "table ronde",
+        "rectangular": "table rectangulaire",
+        "head": "table d'honneur"
+      },
+      "csv": {
+        "table": "Table",
+        "name": "Nom",
+        "mealType": "Type de repas",
+        "diets": "Régimes et allergies",
+        "count": "Nombre",
+        "response": "Réponse",
+        "covers": "Couverts",
+        "total": "Total",
+        "present": "Présent"
+      }
+    },
+    "plan": {
+      "title": "Plan de table",
+      "back": "Retour aux invités",
+      "unavailable": "Le plan de table est indisponible : le module Invités n'est pas ouvert pour votre organisation.",
+      "notReady": "Le plan de table s'ouvre une fois l'analyse d'impact confirmée par la titulaire, dans l'onglet Invités.",
+      "notReadyLink": "Aller à l'onglet Invités",
+      "noKeyMoments": "Ajoutez d'abord les temps forts de l'évènement (le dîner, le brunch) : un plan se compose par temps fort.",
+      "noKeyMomentsLink": "Ajouter des temps forts",
+      "momentsNav": "Temps forts",
+      "momentLink": "{name}, {date}",
+      "momentPlanned": "{placed} placés sur {present}",
+      "momentNoPlan": "sans plan",
+      "createPlan": "Composer le plan de « {moment} »",
+      "noPlan": "Ce temps fort n'a pas encore de plan : {present} présents, {pending} en attente de réponse.",
+      "counts": "{unplaced, plural, =0 {Tous les présents sont placés} one {# présent non placé} other {# présents non placés}} · {pending, plural, =0 {personne en attente de réponse} one {# en attente de réponse} other {# en attente de réponse}}",
+      "viewSwitch": "Afficher",
+      "showTables": "Tables",
+      "showUnplaced": "Non placés ({count})",
+      "unplacedTitle": "Non placés ({count})",
+      "unplacedEmpty": "Tous les présents sont placés.",
+      "pendingTitle": "En attente de réponse ({count})",
+      "pendingHelp": "Pas encore de réponse : vous pouvez les placer ; ils restent marqués et ne comptent pas dans les couverts.",
+      "pendingMark": "en attente de réponse",
+      "child": "enfant",
+      "householdItem": "tout le foyer {name}",
+      "householdHeading": "{name} ({count})",
+      "householdMoved": "Foyer {name} : {count, plural, =0 {personne n'a été placé} one {# personne placée} other {# personnes placées}} à « {group} ».",
+      "householdMoveFailed": "Le foyer {name} n'a pas pu être placé : la page montre l'état enregistré.",
+      "unplacedTarget": "Non placés",
+      "tableTarget": "{name} ({occupied}/{capacity})",
+      "tablesTitle": "Tables ({count})",
+      "noTables": "Aucune table : ajoutez-en ci-dessous.",
+      "occupancy": "{occupied} sur {capacity} places",
+      "children": "{count, plural, one {dont # enfant} other {dont # enfants}}",
+      "tableDiets": "Régimes : {list}",
+      "dietCount": "{label} : {count}",
+      "dietFewer": "{label} : moins de {threshold}",
+      "tableEmpty": "Personne à cette table.",
+      "overCapacity": "Au-delà de sa capacité",
+      "constraintAlert": "Contrainte non tenue",
+      "shape": {
+        "round": "Ronde",
+        "rectangular": "Rectangulaire",
+        "head": "Table d'honneur"
+      },
+      "mealOf": "Repas : {meal}",
+      "mealDefault": "{meal} (par défaut)",
+      "mealChange": "Repas de {name}",
+      "mealSelect": "Type de repas",
+      "mealDefaultOption": "Valeur par défaut (selon l'âge)",
+      "mealSave": "Enregistrer le repas",
+      "alertsTitle": "Alertes ({count})",
+      "alertTogether": "« Ensemble » non tenu : {names} sont à {tables}.",
+      "alertApart": "« Séparés » non tenu : {names} sont ensemble à {table}.",
+      "alertCapacity": "{table} : {occupied} personnes pour {capacity} places.",
+      "alertReleased": "{name} s'est désisté et a quitté {table}.",
+      "alertReleasedNoTable": "{name} s'est désisté et a quitté sa table.",
+      "alertReleasedDismiss": "Effacer l'alerte de {name}",
+      "alertNotInvited": "{name} n'est plus attendu à ce temps fort mais reste placé à {table}.",
+      "alertNotInvitedRemove": "Retirer {name} de sa table",
+      "addTablesTitle": "Ajouter des tables",
+      "addCount": "Nombre de tables",
+      "addShape": "Forme",
+      "addCapacity": "Places par table",
+      "addSubmit": "Ajouter les tables",
+      "namePrefix": "Table",
+      "tablesAdded": "Tables ajoutées.",
+      "editTable": "Modifier {name}",
+      "tableName": "Nom ou numéro",
+      "tableShape": "Forme",
+      "tableCapacity": "Places",
+      "saveTable": "Enregistrer la table",
+      "tableSaved": "Table enregistrée.",
+      "removeTable": "Supprimer {name}",
+      "removeTableHelp": "Ses invités reviennent dans « Non placés ».",
+      "copyTitle": "Copier un plan",
+      "copyHelp": "Reprendre les tables d'un autre temps fort, et les places de ceux qui viennent aussi à celui-ci.",
+      "copyFrom": "Copier depuis",
+      "copySubmit": "Copier le plan",
+      "copied": "{tables, plural, one {# table copiée} other {# tables copiées}}, {seats, plural, =0 {aucune place} one {# place} other {# places}}.",
+      "constraintsTitle": "Contraintes de placement",
+      "constraintsHelp": "Internes à votre équipe : jamais montrées au client, jamais dans une synthèse ni un export. Une contrainte non tenue est signalée, sans bloquer.",
+      "constraintKind": {
+        "together": "Ensemble",
+        "apart": "Séparés"
+      },
+      "constraintLine": "{kind} : {names}",
+      "removeConstraint": "Supprimer la contrainte « {kind} » : {names}",
+      "constraintsNone": "Aucune contrainte.",
+      "addConstraint": "Ajouter une contrainte",
+      "constraintKindLabel": "Nature",
+      "constraintMembers": "Personnes concernées (deux ou plus)",
+      "constraintSubmit": "Ajouter la contrainte",
+      "constraintAdded": "Contrainte ajoutée.",
+      "catererTitle": "Synthèse pour le traiteur",
+      "catererHelp": "Calculée au moment du téléchargement, car les réponses bougent : repas par type, régimes et allergènes, par table. Rien n'est gardé dans Symbola ; chaque téléchargement est noté au journal.",
+      "catererOutside": "La copie envoyée au traiteur sort de Symbola : demandez-lui de la supprimer après l'évènement.",
+      "catererNominativePdf": "PDF nominatif",
+      "catererNominativeCsv": "Tableur nominatif",
+      "catererAggregatePdf": "PDF sans nom",
+      "catererAggregateCsv": "Tableur sans nom",
+      "catererMember": "Vous obtenez la version sans nom, exacte par table ; la version nominative est réservée à la titulaire.",
+      "vendorTitle": "Repas des prestataires",
+      "vendorHelp": "Photographe, DJ… : un nombre pour ce temps fort, sans table.",
+      "vendorCount": "Nombre de repas",
+      "vendorSave": "Enregistrer",
+      "vendorSaved": "Nombre enregistré.",
+      "mealTypesLink": "Types de repas"
+    },
+    "mealTypes": {
+      "title": "Types de repas",
+      "intro": "Les types de repas de la synthèse pour le traiteur. Par défaut, un adulte est servi « Adulte », un enfant « Enfant », un enfant de moins de 3 ans « Bébé » ; changez le type d'un invité sur le plan de table. Masquer n'efface rien.",
+      "unavailable": "Les types de repas sont indisponibles : le module Invités n'est pas ouvert pour votre organisation.",
+      "hidden": "masqué",
+      "show": "Afficher {label}",
+      "hide": "Masquer {label}",
+      "rename": "Renommer {label}",
+      "label": "Libellé",
+      "save": "Enregistrer",
+      "saved": "Libellé enregistré.",
+      "reset": "Reprendre le libellé de départ",
+      "addTitle": "Ajouter un type",
+      "add": "Ajouter",
+      "added": "Type ajouté."
     }
   },
   "MoveToGroup": {
@@ -7581,6 +7858,166 @@
     "destinations": "Où déplacer {item}",
     "moved": "{item} déplacé vers « {group} ».",
     "moveFailed": "{item} n'a pas pu être déplacé : la page montre l'état enregistré."
+  },
+  "ContactForm": {
+    "public": {
+      "title": "Contacter {organization}",
+      "intro": "Parlez-nous de votre projet : nous revenons vers vous rapidement.",
+      "required": "Les champs marqués d'un astérisque (*) sont obligatoires, ainsi que votre e-mail ou votre téléphone.",
+      "sentTitle": "Merci, votre demande est envoyée",
+      "sentBody": "{organization} l'a bien reçue et vous répondra personnellement. Vous pouvez fermer cette page.",
+      "unavailable": "Ce formulaire n'est plus disponible.",
+      "error": {
+        "name": "Indiquez votre prénom et votre nom.",
+        "contact": "Indiquez votre e-mail ou votre téléphone, pour que nous puissions vous répondre.",
+        "email": "Cette adresse e-mail ne semble pas valide.",
+        "phone": "Ce numéro de téléphone ne semble pas valide.",
+        "date": "Cette date ne semble pas valide.",
+        "guests": "Indiquez un nombre d'invités entier, sans lettres.",
+        "budget": "Ce budget est trop long : 100 caractères au plus.",
+        "message": "Votre message est trop long : 5 000 caractères au plus.",
+        "period": "Cette période est trop longue : 100 caractères au plus.",
+        "place": "Ce lieu est trop long : 200 caractères au plus."
+      },
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "contactLegend": "Pour vous répondre (l'un des deux au moins)",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "eventType": "Type d'évènement",
+      "noChoice": "Je ne sais pas encore",
+      "eventDate": "Date souhaitée",
+      "period": "Ou une période",
+      "periodExample": "Au printemps 2028",
+      "place": "Lieu ou ville",
+      "budget": "Budget",
+      "budgetExample": "25 000 € ou « entre 20 et 30 k€ »",
+      "guests": "Nombre d'invités",
+      "source": "Comment nous avez-vous connus ?",
+      "message": "Votre message",
+      "noticeTitle": "Vos informations",
+      "policyLink": "Politique de confidentialité de {organization}",
+      "sending": "Envoi…",
+      "send": "Envoyer ma demande"
+    },
+    "fields": {
+      "phone": "Téléphone",
+      "date": "Date souhaitée ou période",
+      "place": "Lieu ou ville",
+      "budget": "Budget",
+      "guests": "Nombre d'invités",
+      "eventType": "Type d'évènement",
+      "source": "« Comment m'avez-vous connue ? »",
+      "message": "Message"
+    },
+    "settings": {
+      "title": "Formulaire de contact",
+      "ownerOnly": "Le formulaire de contact se règle par la titulaire du compte.",
+      "moduleUnavailable": "Le formulaire de contact fait partie du module Évènements, qui n'est pas ouvert pour votre organisation.",
+      "intro": "Un formulaire à mettre sur votre site ou à partager par lien. Chaque demande crée un prospect au statut Option, à la première étape de votre pipeline.",
+      "stateOpen": "Ouvert",
+      "stateClosed": "Fermé",
+      "saved": "Réglages enregistrés.",
+      "active": "Ouvrir le formulaire",
+      "slug": "Adresse du formulaire",
+      "slugHelp": "Lettres minuscules, chiffres et tirets. Si vous la changez, l'ancienne adresse cesse de répondre.",
+      "privacyPolicyUrl": "Adresse de votre politique de confidentialité",
+      "privacyPolicyHelp": "Obligatoire pour ouvrir le formulaire : la mention d'information y renvoie. Adresse en https://.",
+      "shownFields": "Champs proposés",
+      "shownFieldsHelp": "Le prénom, le nom et l'e-mail sont toujours demandés. Décochez les champs facultatifs que vous ne voulez pas.",
+      "allowedOrigins": "Sites autorisés à afficher le formulaire",
+      "allowedOriginsHelp": "Une adresse par ligne, en https://, cinq au plus (par exemple https://www.monsite.fr). Sans site, seul le lien fonctionne.",
+      "notifyOwner": "M'envoyer un e-mail à chaque nouvelle demande (sans le message ni les coordonnées de la personne)",
+      "locale": "Langue des textes de départ",
+      "localeFr": "Français",
+      "localeEn": "Anglais",
+      "save": "Enregistrer",
+      "slugTaken": "Cette adresse est déjà prise : choisissez-en une autre.",
+      "invalid": {
+        "slug": "L'adresse doit compter de 3 à 60 caractères : lettres minuscules, chiffres et tirets.",
+        "privacyPolicyUrl": "Indiquez l'adresse de votre politique de confidentialité, en https://, pour ouvrir le formulaire.",
+        "allowedOrigins": "Chaque site doit commencer par https:// ; cinq sites au plus.",
+        "hiddenFields": "Un champ demandé n'existe pas."
+      },
+      "shareTitle": "Partager le formulaire",
+      "shareLink": "Le lien à donner (site, réseaux, signature d'e-mail) :",
+      "embedCode": "Le code à copier dans votre site",
+      "embedTitle": "Formulaire de contact",
+      "embedSites": "Le formulaire peut s'afficher sur : {sites}.",
+      "embedNoSite": "Aucun site déclaré : le code ne s'affichera dans aucun site tant que vous n'en ajoutez pas un.",
+      "preview": "Aperçu",
+      "previewTitle": "Aperçu du formulaire de contact"
+    }
+  },
+  "Pipeline": {
+    "title": "Pipeline",
+    "unnamed": "Sans nom",
+    "viewsLabel": "Vues et réglages",
+    "listView": "Liste des évènements",
+    "stagesSettings": "Régler les étapes",
+    "contactSettings": "Formulaire de contact",
+    "toReviewTitle": "{count, plural, =0 {Aucune demande à vérifier} one {Une demande à vérifier} other {# demandes à vérifier}}",
+    "toReviewIntro": "Les demandes dont le message contient plusieurs liens sont mises de côté : elles peuvent venir d'un robot. Acceptez-les pour créer le prospect, ou effacez-les. Sans réponse, elles sont effacées au bout de 30 jours.",
+    "toReviewEmpty": "Rien à vérifier.",
+    "acceptRequestLabel": "Accepter la demande de {name}",
+    "acceptRequest": "Accepter",
+    "discardRequestLabel": "Effacer la demande de {name}",
+    "discardRequest": "Effacer",
+    "refused": "Ce déplacement n'est pas possible : l'évènement a peut-être changé entre-temps.",
+    "lossReasonRequired": "Choisissez le motif de perte.",
+    "lossNoteRequired": "Précisez le motif « Autre ».",
+    "won": "Gagné",
+    "lost": "Perdu",
+    "wonHint": "Déposez ici une option gagnée : elle sera confirmée.",
+    "lostHint": "Déposez ici une option perdue : elle sera annulée, avec son motif.",
+    "emptyStage": "Aucune carte.",
+    "noDate": "Date à définir",
+    "dateTaken": "Date déjà prise",
+    "demo": "Essai",
+    "guests": "Invités",
+    "budget": "Budget",
+    "source": "Source",
+    "inStage": "Dans l'étape",
+    "days": "{count, plural, =0 {depuis aujourd'hui} one {depuis # jour} other {depuis # jours}}",
+    "stagesLabel": "Étapes",
+    "wonTitle": "Confirmer l'évènement de {name} ?",
+    "lostTitle": "Annuler l'option de {name} ?",
+    "wonBody": "L'évènement passe au statut Confirmé et quitte le pipeline. Le rétroplanning et le reste suivent, comme lorsque vous le confirmez depuis sa fiche.",
+    "lostBody": "L'évènement passe au statut Annulé et quitte le pipeline. Le motif de perte est demandé ; les données restent.",
+    "lossReason": "Motif de perte",
+    "chooseReason": "Choisir un motif",
+    "lossNoteRequiredLabel": "Précision (obligatoire pour ce motif)",
+    "lossNote": "Précision (facultative)",
+    "cancel": "Annuler",
+    "confirmWon": "Confirmer l'évènement",
+    "confirmLost": "Annuler l'option",
+    "settings": {
+      "title": "Étapes du pipeline",
+      "ownerOnly": "Les étapes du pipeline se règlent par la titulaire du compte.",
+      "moduleUnavailable": "Le pipeline fait partie du module Évènements, qui n'est pas ouvert pour votre organisation.",
+      "intro": "Les étapes de votre démarche commerciale, pour les évènements au statut Option : entre {min} et {max}. « Gagné » et « Perdu » n'en sont pas : ils confirment ou annulent l'évènement.",
+      "back": "Revenir au pipeline",
+      "refusal": {
+        "label": "Le nom d'une étape compte de 1 à 60 caractères.",
+        "too_many": "Dix étapes au plus.",
+        "too_few": "Il faut garder au moins une étape.",
+        "not_found": "Cette étape n'existe plus.",
+        "not_empty": "Cette étape contient des cartes : choisissez l'étape où elles passent.",
+        "destination": "L'étape choisie pour les cartes n'existe plus."
+      },
+      "stageLabel": "Étape {position}",
+      "rename": "Renommer",
+      "cards": "{count, plural, =0 {Aucune carte} one {Une carte} other {# cartes}}",
+      "up": "Monter",
+      "upLabel": "Monter l'étape {stage}",
+      "down": "Descendre",
+      "downLabel": "Descendre l'étape {stage}",
+      "destination": "Ses cartes passent à",
+      "remove": "Retirer",
+      "removeLabel": "Retirer l'étape {stage}",
+      "newStage": "Nouvelle étape",
+      "add": "Ajouter"
+    }
   },
   "VendorCoordination": {
     "title": "Demander des devis",

@@ -87,6 +87,10 @@ const PUBLIC_ENTRIES: Record<string, string> = {
   // Lot 37a (DOC-04, D7 ; ADR 0070) : lien de partage d'un document, pour une personne sans lien personnel.
   "partage/page.tsx#default": "arrivée d'un lien de partage : le jeton reste dans le navigateur, la page n'affiche rien d'autre",
   "partage/actions.ts#describeShareLinkAction": "jeton du lien de partage, vérifié haché sous RLS, limité en débit ; l'intitulé seul, même réponse pour un lien inconnu, expiré ou révoqué",
+  // Lot 44 (CRM-01 ; D1, D2, D4 ; ADR 0084) : formulaire de contact public, sans compte.
+  "contact/[adresse]/page.tsx#default": "formulaire de contact public : l'adresse désigne un formulaire ouvert (sinon « introuvable »), rien de personnel n'est affiché",
+  "contact/[adresse]/cadre/page.tsx#default": "même formulaire, encadrable par les seuls sites déclarés (frame-ancestors) ; « introuvable » sinon",
+  "contact/[adresse]/actions.ts#submitContactAction": "envoi du formulaire public : adresse d'un formulaire ouvert, piège à robots, délai scellé, débit limité par adresse IP et par organisation ; même réponse qu'un succès si la garde refuse",
   // Lot 49 (INV-03, SEC-14 à SEC-17 ; ADR 0053, 0081) : page de réponse d'un invité, sans compte.
   "rsvp/page.tsx#default": "arrivée d'un lien d'invité : le jeton reste dans le navigateur, la page n'affiche rien avant l'échange",
   "rsvp/actions.ts#openRsvpAction": "jeton du lien de l'invité, vérifié haché sous RLS, module ouvert, limité en débit ; « lien inconnu » sinon",

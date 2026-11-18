@@ -7,6 +7,9 @@ import { canSetStatus, eventPhase } from "./lifecycle";
 import { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } from "./errors";
 export { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } from "./errors";
 // Lot 34a (EVT-05) : les règles du cycle de vie, pour les écrans et lib/.
+import { getPipeline as getPipelineOf } from "./pipeline";
+import { countRequestsToReview, findNewRequestRows } from "./prospects-repository";
+import type { Pipeline } from "@symbola/contracts";
 export { canPostpone, canSetStatus, closingDue, eventPhase, FINISHED_STATUSES, FIRM_STATUSES, IN_PROGRESS_STATUSES, isInProgress, MANUAL_STATUSES, TENTATIVE_STATUSES, TIMELINE_PHASES } from "./lifecycle";
 import type { EventStatus as LifecycleStatus } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
@@ -3090,6 +3093,103 @@ export async function getEventIdentityState(
 // Lot 49 (EVT-04 premier pas, INV-03 ; D2) — temps forts de l'évènement, et ce que le module Invités
 // lit d'un évènement (clients, dates, statut, temps forts), par cette porte d'entrée (ADR 0011).
 export { addKeyMoment, guestEventContexts, KEY_MOMENTS_MAX, KeyMomentInvalidError, KeyMomentNotFoundError, listKeyMoments, listRealEventIds, removeKeyMoment, updateKeyMoment } from "./key-moments";
+
+// Lot 44 (CRM-01, CRM-02 ; ADR 0084) — formulaire de contact public et pipeline en colonnes.
+export {
+  acceptProspectRequest,
+  ContactFormInvalidError,
+  ContactFormSlugTakenError,
+  ContactSubmissionInvalidError,
+  contactFormNotice,
+  countLinks,
+  discardProspectRequest,
+  getContactFormSettings,
+  getEventProspectRequest,
+  isFormTimingValid,
+  isValidContactSlug,
+  listProspectRequestsToReview,
+  normalizeOrigin,
+  notifyOwnerOfRequest,
+  parseBudget,
+  parseContactSubmission,
+  ProspectRequestNotFoundError,
+  purgeStaleProspectRequests,
+  resolvePublicContactForm,
+  saveContactFormSettings,
+  sealFormOpening,
+  submitContactForm,
+  suggestContactFormSlug,
+  type PublicContactFormView,
+  type RawContactSubmission,
+  type SubmitOptions,
+} from "./contact-form";
+export { contactFrameOrigins } from "./contact-frame";
+export {
+  addPipelineStage,
+  listPipelineStages,
+  movePipelineCard,
+  movePipelineStage,
+  PIPELINE_MAX_STAGES,
+  PIPELINE_MIN_STAGES,
+  PipelineMoveRefusedError,
+  PipelineStageInvalidError,
+  removePipelineStage,
+  renamePipelineStage,
+} from "./pipeline";
+
+// Le pipeline, avec le nom des prospects (premier client de chaque option).
+export async function getEventsPipeline(organizationId: string, locale: "fr" | "en"): Promise<Pipeline> {
+  const options = await listEvents({ organizationId, statusIn: ["option"] });
+  return getPipelineOf(organizationId, locale, new Map(options.map((event) => [event.id, eventNames(event.clients)])));
+}
+
+// « Gagné » (CRM-02, D9) : l'évènement est confirmé, avec les effets de la confirmation (EVT-05).
+export async function winPipelineCard(input: { organizationId: string; eventId: string; userId: string }): Promise<void> {
+  const event = await getEvent(input.organizationId, input.eventId);
+  if (!event) throw new EventNotFoundError();
+  if (event.status !== "option") throw new EventStatusTransitionError();
+  await changeEventStatus({ organizationId: input.organizationId, eventId: input.eventId, changedByUserId: input.userId, toStatus: "confirmed" });
+}
+
+export class LossReasonRequiredError extends Error {
+  constructor(readonly field: "reason" | "note") {
+    super(field === "reason" ? "motif de perte obligatoire" : "précision du motif obligatoire");
+    this.name = "LossReasonRequiredError";
+  }
+}
+
+// « Perdu » (CRM-02, D9) : l'évènement est annulé ; le motif de perte est obligatoire, la note aussi
+// pour le motif « Autre ».
+export async function losePipelineCard(input: { organizationId: string; eventId: string; userId: string; lossReasonId: string | null; lossReasonNote: string | null }): Promise<void> {
+  const reason = input.lossReasonId ? (await listLossReasons(input.organizationId)).find((candidate) => candidate.id === input.lossReasonId) : undefined;
+  if (!reason) throw new LossReasonRequiredError("reason");
+  const note = input.lossReasonNote?.trim().slice(0, 1000) || null;
+  if (reason.isFreeText && !note) throw new LossReasonRequiredError("note");
+  const event = await getEvent(input.organizationId, input.eventId);
+  if (!event) throw new EventNotFoundError();
+  if (event.status !== "option") throw new EventStatusTransitionError();
+  await cancelEvent({ organizationId: input.organizationId, eventId: input.eventId, changedByUserId: input.userId, lossReasonId: reason.id, lossReasonNote: note });
+}
+
+// « Aujourd'hui » (PAR-02, étape 1) : les prospects du formulaire encore à la première étape, avec
+// l'alerte de date prise (CRM-04) ; et le nombre de demandes « à vérifier ».
+export type NewProspectRequest = { eventId: string; names: string; eventDate: string | null; period: string | null; receivedAt: string; dateTaken: boolean };
+
+export async function listNewProspectRequests(organizationId: string, locale: "fr" | "en"): Promise<NewProspectRequest[]> {
+  const pipeline = await getEventsPipeline(organizationId, locale);
+  const firstStageId = pipeline.stages[0]?.id;
+  const rows = firstStageId ? await findNewRequestRows(organizationId, firstStageId) : [];
+  const cards = new Map(pipeline.cards.map((card) => [card.eventId, card]));
+  return rows.flatMap((row) => {
+    const card = cards.get(row.eventId);
+    return card ? [{ eventId: row.eventId, names: card.names, eventDate: row.eventDate, period: row.period, receivedAt: row.receivedAt.toISOString(), dateTaken: card.dateTaken }] : [];
+  });
+}
+
+export async function countProspectRequestsToReview(organizationId: string): Promise<{ count: number; oldest: string | null }> {
+  const result = await countRequestsToReview(organizationId);
+  return { count: result.count, oldest: result.oldest ? result.oldest.toISOString() : null };
+}
 
 // --- Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; ADR 0085) : prestataires par lien. ---
 // Le brief d'un poste envoyé à plusieurs prestataires, leur réponse par leur lien, le comparatif et

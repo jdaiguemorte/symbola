@@ -720,6 +720,7 @@ export type ClientEventView = {
 // Lot 32a (D6) : « vendor_reminded », un prestataire relancé depuis le cockpit (taskLabel : son nom).
 // Lot 37a (DOC-04, D7) : « document_link_opened », un lien de partage ouvert (taskLabel : l'intitulé
 // du document à l'ouverture).
+// Lot 44 (CRM-02) : « stage_changed », passage à une autre étape du pipeline (taskLabel : l'étape).
 // Lot 47 (PAR-05, PRE-04) : réponse à un brief, facture déposée, feuille de route confirmée.
 export type EventActivityKind =
   | "task_done"
@@ -727,6 +728,7 @@ export type EventActivityKind =
   | "decision_made"
   | "vendor_reminded"
   | "document_link_opened"
+  | "stage_changed"
   | "vendor_answered"
   | "vendor_invoice_received"
   | "vendor_roadmap_confirmed";

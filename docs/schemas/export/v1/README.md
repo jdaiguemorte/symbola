@@ -57,15 +57,18 @@ Tables non exportées :
 | `event_types` | `id`, `label`, `audience`, `position`, `starterKey`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_types.schema.json](events/event_types.schema.json) |
 | `prospect_sources` | `id`, `label`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [prospect_sources.schema.json](events/prospect_sources.schema.json) |
 | `loss_reasons` | `id`, `label`, `isFreeText`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [loss_reasons.schema.json](events/loss_reasons.schema.json) |
+| `pipeline_stages` | `id`, `label`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [pipeline_stages.schema.json](events/pipeline_stages.schema.json) |
+| `contact_forms` | `id`, `active`, `slug`, `hiddenFields`, `privacyPolicyUrl`, `allowedOrigins`, `notifyOwner`, `locale`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [contact_forms.schema.json](events/contact_forms.schema.json) |
 | `task_templates` | `id`, `name`, `eventTypeId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [task_templates.schema.json](events/task_templates.schema.json) |
 | `task_template_items` | `id`, `templateId`, `label`, `offsetDays`, `responsible`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [task_template_items.schema.json](events/task_template_items.schema.json) |
 | `program_templates` | `id`, `name`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [program_templates.schema.json](events/program_templates.schema.json) |
 | `program_template_items` | `id`, `templateId`, `startTime`, `endTime`, `label`, `location`, `participantLabels`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [program_template_items.schema.json](events/program_template_items.schema.json) |
 | `vendor_coordination_settings` | `briefDeadlineDays`, `briefReminder`, `roadmapMonth`, `roadmapWeek`, `roadmapAlertDays`, `followUpTasks`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_coordination_settings.schema.json](events/vendor_coordination_settings.schema.json) |
-| `events` | `id`, `status`, `eventDate`, `timeZone`, `postponedFromDate`, `postponedFromStatus`, `guestsEstimated`, `guestsConfirmed`, `style`, `notes`, `importedFields`, `wantedBudgetCents`, `prospectSourceId`, `eventTypeId`, `lossReasonId`, `lossReasonNote`, `tasksScheduledFor`, `programUpdatedAt`, `demoExpiresAt`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy` | [events.schema.json](events/events.schema.json) |
+| `events` | `id`, `status`, `eventDate`, `timeZone`, `postponedFromDate`, `postponedFromStatus`, `guestsEstimated`, `guestsConfirmed`, `style`, `notes`, `importedFields`, `wantedBudgetCents`, `prospectSourceId`, `eventTypeId`, `lossReasonId`, `lossReasonNote`, `pipelineStageId`, `tasksScheduledFor`, `programUpdatedAt`, `demoExpiresAt`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy` | [events.schema.json](events/events.schema.json) |
 | `event_clients` | `id`, `eventId`, `contactId`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_clients.schema.json](events/event_clients.schema.json) |
 | `event_status_history` | `id`, `eventId`, `fromStatus`, `toStatus`, `changedByUserId`, `changedAt`, `createdBy` | [event_status_history.schema.json](events/event_status_history.schema.json) |
 | `event_places` | `id`, `eventId`, `label`, `address`, `city`, `startTime`, `endTime`, `contactName`, `contactPhone`, `contactEmail`, `vendorId`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [event_places.schema.json](events/event_places.schema.json) |
+| `prospect_requests` | `id`, `eventId`, `state`, `message`, `period`, `budgetRange`, `pending`, `receivedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [prospect_requests.schema.json](events/prospect_requests.schema.json) |
 | `key_moments` | `id`, `eventId`, `name`, `date`, `startTime`, `placeId`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [key_moments.schema.json](events/key_moments.schema.json) |
 | `event_day_contacts` | `id`, `eventId`, `name`, `role`, `phone`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_day_contacts.schema.json](events/event_day_contacts.schema.json) |
 | `event_document_folders` | `id`, `eventId`, `name`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_document_folders.schema.json](events/event_document_folders.schema.json) |
@@ -175,19 +178,27 @@ Toutes les tables du module sont exportées.
 | --- | --- | --- |
 | `module_settings` | `impactAssessmentConfirmedAt`, `impactAssessmentConfirmedBy`, `privacyNotice`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [module_settings.schema.json](guests/module_settings.schema.json) |
 | `dietary_options` | `id`, `kind`, `starterKey`, `label`, `hidden`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [dietary_options.schema.json](guests/dietary_options.schema.json) |
+| `meal_types` | `id`, `starterKey`, `label`, `hidden`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [meal_types.schema.json](guests/meal_types.schema.json) |
 | `event_settings` | `id`, `eventId`, `responsesCloseOn`, `askDiet`, `askAccommodation`, `askTransport`, `reminderDays`, `invitationsSentAt`, `dietPurgeNoticeAt`, `purgeNoticeAt`, `dietsPurgedAt`, `purgedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_settings.schema.json](guests/event_settings.schema.json) |
 | `household_groups` | `id`, `eventId`, `label`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [household_groups.schema.json](guests/household_groups.schema.json) |
 | `guest_imports` | `id`, `eventId`, `channel`, `householdCount`, `guestCount`, `undoneAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [guest_imports.schema.json](guests/guest_imports.schema.json) |
 | `households` | `id`, `eventId`, `displayName`, `sideKind`, `sideClientId`, `groupId`, `language`, `respondentGuestId`, `keyMomentIds`, `needsAccommodation`, `needsTransport`, `answeredAt`, `invitedAt`, `importId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [households.schema.json](guests/households.schema.json) |
-| `guests` | `id`, `eventId`, `householdId`, `kind`, `firstName`, `lastName`, `email`, `phone`, `ageRange`, `position`, `opposedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [guests.schema.json](guests/guests.schema.json) |
+| `guests` | `id`, `eventId`, `householdId`, `kind`, `firstName`, `lastName`, `email`, `phone`, `ageRange`, `position`, `opposedAt`, `mealTypeId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [guests.schema.json](guests/guests.schema.json) |
 | `rsvp_answers` | `id`, `guestId`, `keyMomentId`, `attending`, `channel`, `answeredAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [rsvp_answers.schema.json](guests/rsvp_answers.schema.json) |
 | `diet_consents` | `id`, `eventId`, `guestId`, `givenByGuestId`, `textVersion`, `channel`, `legalGuardian`, `grantedAt`, `withdrawnAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [diet_consents.schema.json](guests/diet_consents.schema.json) |
 | `purge_postponements` | `id`, `eventId`, `reason`, `postponedUntil`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [purge_postponements.schema.json](guests/purge_postponements.schema.json) |
+| `seating_plans` | `id`, `eventId`, `keyMomentId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [seating_plans.schema.json](guests/seating_plans.schema.json) |
+| `seating_tables` | `id`, `planId`, `name`, `shape`, `capacity`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [seating_tables.schema.json](guests/seating_tables.schema.json) |
+| `seat_assignments` | `id`, `planId`, `tableId`, `guestId`, `releasedAt`, `releasedTableName`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [seat_assignments.schema.json](guests/seat_assignments.schema.json) |
+| `vendor_meal_counts` | `id`, `eventId`, `keyMomentId`, `mealCount`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_meal_counts.schema.json](guests/vendor_meal_counts.schema.json) |
+| `caterer_summary_downloads` | `id`, `eventId`, `keyMomentId`, `version`, `format`, `downloadedBy`, `downloadedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [caterer_summary_downloads.schema.json](guests/caterer_summary_downloads.schema.json) |
 
 Tables non exportées :
 
 - `diets` — régimes et allergies des invités, chiffrés au niveau du champ (données de santé, article 9) : ils restent dans Symbola, réservés à la titulaire, et sont purgés sept jours après l'évènement
 - `guest_links` — empreintes des jetons des liens personnels des invités : sans usage hors de Symbola
+- `seating_constraints` — contraintes de placement « ensemble » et « séparés » : données internes de l'organisation, jamais exportées (lot 50, D4)
+- `seating_constraint_members` — personnes d'une contrainte de placement : données internes de l'organisation, jamais exportées (lot 50, D4)
 
 ## Module `appointments`
 

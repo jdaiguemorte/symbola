@@ -46,6 +46,7 @@
         "decision_made",
         "vendor_reminded",
         "document_link_opened",
+        "stage_changed",
         "vendor_answered",
         "vendor_invoice_received",
         "vendor_roadmap_confirmed"

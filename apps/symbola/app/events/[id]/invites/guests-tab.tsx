@@ -111,6 +111,12 @@ export async function GuestsTab({
   return (
     <div className="stack">
       <ScreenHelp title={tHelp("guests.title")} body={tHelp("guests.body")} />
+      {/* Lot 50 (INV-05, INV-06) : plan de table par temps fort et synthèse pour le traiteur. */}
+      <p>
+        <Link href={`/events/${eventId}/invites/plan`} className="button-link">
+          {t("planLink")}
+        </Link>
+      </p>
 
       <section aria-labelledby="guests-summary-title" className="stack">
         <h2 id="guests-summary-title">{t("summaryTitle")}</h2>

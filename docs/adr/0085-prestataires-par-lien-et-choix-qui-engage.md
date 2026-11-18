@@ -73,7 +73,7 @@ puis une feuille de route à J-30 et J-7 confirmée par le prestataire.
    jeton** : l'ancien bouton cesse de valoir.
 9. **E-mails** (D9) : trois natures, `vendor_brief`, `vendor_brief_reminder`, `vendor_roadmap`,
    modifiables par l'organisation ; la contrainte `hub.email_templates_kind_check` est élargie
-   par une migration `hub` à part (0160), annulable, avec la réunion des natures de `main`.
+   par une migration `hub` à part (0163), annulable, avec la réunion des natures de `main`.
 10. **Facture du prestataire** : rangée dans les documents de l'évènement (non partagée), avec le
     lien qui l'a déposée (`uploaded_by_link_id`) ; `uploaded_by_user_id` devient facultatif. Elle
     ne crée rien dans la facturation de la planner.
@@ -83,9 +83,10 @@ puis une feuille de route à J-30 et J-7 confirmée par le prestataire.
 
 ## Conséquences
 
-- Migrations 0159 (`events`), 0160 (`hub`) et **0161 (`budget`, accord de Julien du 18/11/2026,
+- Migrations 0162 (`events`), 0163 (`hub`) et **0164 (`budget`, accord de Julien du 18/11/2026,
   option a)**, chacune annulable et à part ; elles suivent la règle de renumérotation (numéro et
-  `when`) si une autre PR fusionne avant. 0161 rend `budget.budget_line_history.new_value_cents`
+  `when`) si une autre PR fusionne avant (renumérotées le 18/11 après les lots 50 et 44, qui ont
+  pris 0159 à 0161). 0164 rend `budget.budget_line_history.new_value_cents`
   facultative : la libération d'un engagé est historisée (nouvelle valeur vide). Les annulations
   sont refusées tant qu'une facture déposée par un prestataire, une réponse au fil d'activité, un
   modèle réécrit ou un engagé libéré à l'historique existent.

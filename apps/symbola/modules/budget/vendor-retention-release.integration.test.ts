@@ -1,4 +1,4 @@
-// Lot 47 (PAR-05, D6 ; ADR 0085 ; migration 0161, accord de Julien du 18/11/2026) — quand la planner
+// Lot 47 (PAR-05, D6 ; ADR 0085 ; migration 0164, accord de Julien du 18/11/2026) — quand la planner
 // ne retient plus un prestataire, le module Budget libère l'engagé de ses lignes, par son propre
 // service, sur l'événement events.vendor_retention.released : seulement si l'engagé vaut encore ce
 // que la retenue avait engagé ; sûr au rejeu ; jamais dans une autre organisation. PostgreSQL réel.
