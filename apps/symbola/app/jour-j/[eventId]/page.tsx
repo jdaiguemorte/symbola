@@ -35,6 +35,7 @@ import { eventDays } from "@/lib/day-of/rules";
 import { DayChecklistsPrep } from "./day-checklists-prep";
 import { getVendorContacts } from "@/modules/vendors/service";
 import { resolveDayOfViewer } from "@/lib/day-of/viewer";
+import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
 import { EventVocabulary } from "@/app/event-vocabulary";
@@ -59,6 +60,7 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
   if ("refused" in resolved) {
     if (resolved.refused === "signed_out") redirect("/login");
     if (resolved.refused === "mfa") redirect("/securite");
+    if (resolved.refused === "not_planner") await requirePlanner();
     notFound();
   }
   const viewer = resolved.viewer;

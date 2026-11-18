@@ -5,7 +5,7 @@
 // n'ouvre ni un autre évènement, ni une autre organisation, ni aucun autre écran.
 import { getLinkSessionToken } from "@/lib/link-session";
 import { getPlannerAuthContext } from "@/lib/auth-context";
-import { canViewEvent, dayHelperAccess } from "@/modules/events/service";
+import { canViewEvent, dayHelperAccess, resolveLinkSession } from "@/modules/events/service";
 import { getEventVisibility } from "@/modules/hub/service";
 import { appDatabase } from "@symbola/db/client";
 
@@ -13,7 +13,7 @@ export type DayOfViewer =
   | { kind: "team"; organizationId: string; userId: string; actorId: string }
   | { kind: "helper"; organizationId: string; linkId: string; personName: string; actorId: string };
 
-export type DayOfViewerResult = { viewer: DayOfViewer } | { refused: "signed_out" | "mfa" | "not_found" | "link" };
+export type DayOfViewerResult = { viewer: DayOfViewer } | { refused: "signed_out" | "mfa" | "not_planner" | "not_found" | "link" };
 
 export async function resolveDayOfViewer(eventId: string): Promise<DayOfViewerResult> {
   const auth = await getPlannerAuthContext();
@@ -24,10 +24,17 @@ export async function resolveDayOfViewer(eventId: string): Promise<DayOfViewerRe
     if (!(await canViewEvent(organizationId, { userId: auth.user.id, role: auth.user.role, allPlannersSeeAll }, eventId))) return { refused: "not_found" };
     return { viewer: { kind: "team", organizationId, userId: auth.user.id, actorId: auth.user.id } };
   }
-  if (auth.status === "authenticated" || auth.status === "forbidden") return { refused: "not_found" };
+  // Un compte qui n'est pas de l'équipe d'une organisation (Exploitation, Comptable) : renvoyé à ses
+  // écrans, comme avant le lot 52 ; les routes répondent 401.
+  if (auth.status === "authenticated" || auth.status === "forbidden") return { refused: "not_planner" };
   const token = await getLinkSessionToken();
   if (!token) return { refused: "signed_out" };
   const access = await dayHelperAccess(token, eventId);
-  if (!access) return { refused: "link" };
+  if (!access) {
+    // Le lien d'un client, d'un prestataire ou d'un invité n'est pas une entrée du jour J : comme sans
+    // session, la connexion (la réponse d'avant le lot 52). Un lien de renfort retiré ou expiré : « link ».
+    const other = await resolveLinkSession(token);
+    return { refused: other && other.audience !== "day_helper" ? "signed_out" : "link" };
+  }
   return { viewer: { kind: "helper", organizationId: access.organizationId, linkId: access.linkId, personName: access.personName, actorId: access.linkId } };
 }
