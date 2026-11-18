@@ -52,6 +52,7 @@ import {
 } from "@/modules/quotes/service";
 import { unarchiveVendor } from "@/modules/vendors/service";
 import { removeEventGuestsData } from "@/modules/guests/service";
+import { isAppointmentsObjectTrashed, listTrashedAppointmentsRows, purgeTrashedAppointmentsObjects, restoreAppointment, restoreAppointmentType } from "@/modules/appointments/service";
 
 const PURGE_INTERVAL_MS = 60 * 60 * 1000; // toutes les heures
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -108,18 +109,20 @@ export async function deleteContact(organizationId: string, contactId: string): 
 // montre rien (ARC-06).
 export async function listTrash(organizationId: string): Promise<TrashedObject[]> {
   const db = appDatabase();
-  const [eventsEnabled, quotesEnabled] = await Promise.all([isModuleEnabled(db, organizationId, "events"), isModuleEnabled(db, organizationId, "quotes")]);
-  const [eventRows, hubRows, quotesRows] = await Promise.all([
+  const [eventsEnabled, quotesEnabled, appointmentsEnabled] = await Promise.all([isModuleEnabled(db, organizationId, "events"), isModuleEnabled(db, organizationId, "quotes"), isModuleEnabled(db, organizationId, "appointments")]);
+  const [eventRows, hubRows, quotesRows, appointmentRows] = await Promise.all([
     eventsEnabled ? listTrashedEventObjects(organizationId) : Promise.resolve([]),
     listTrashedHubRows(organizationId),
     quotesEnabled ? listTrashedQuotesRows(organizationId) : Promise.resolve([]),
+    appointmentsEnabled ? listTrashedAppointmentsRows(organizationId) : Promise.resolve([]),
   ]);
-  return [...eventRows, ...hubRows.filter((row) => row.kind === "contact" || eventsEnabled), ...quotesRows].sort((a, b) => b.deletedAt.getTime() - a.deletedAt.getTime());
+  return [...eventRows, ...hubRows.filter((row) => row.kind === "contact" || eventsEnabled), ...quotesRows, ...appointmentRows].sort((a, b) => b.deletedAt.getTime() - a.deletedAt.getTime());
 }
 
 async function isTrashed(organizationId: string, kind: TrashKind, id: string): Promise<boolean> {
   if (kind === "contact" || kind === "messageTemplate") return isHubObjectTrashed(organizationId, kind, id);
   if (kind === "quoteTemplate" || kind === "contractTemplate") return isQuotesObjectTrashed(organizationId, kind, id);
+  if (kind === "appointmentType" || kind === "appointment") return isAppointmentsObjectTrashed(organizationId, kind, id);
   return isEventObjectTrashed(organizationId, kind, id);
 }
 
@@ -157,6 +160,12 @@ export async function restoreFromTrash(organizationId: string, kind: TrashKind, 
       break;
     case "messageTemplate":
       restored = await restoreMessageTemplate(organizationId, id);
+      break;
+    case "appointmentType":
+      restored = await restoreAppointmentType(organizationId, id);
+      break;
+    case "appointment":
+      restored = await restoreAppointment(organizationId, id);
       break;
   }
   if (!restored) throw new TrashItemNotFoundError();
@@ -208,6 +217,7 @@ export async function deleteForGood(organizationId: string, kind: TrashKind, id:
   if (kind === "event") return purgeEvents(organizationId, [id]);
   if (kind === "contact" || kind === "messageTemplate") await purgeTrashedHubObjects(organizationId, { kind, id });
   else if (kind === "quoteTemplate" || kind === "contractTemplate") await purgeTrashedQuotesObjects(organizationId, { kind, id });
+  else if (kind === "appointmentType" || kind === "appointment") await purgeTrashedAppointmentsObjects(organizationId, { kind, id });
   else await purgeTrashedEventObjects(organizationId, { kind, id });
 }
 
@@ -241,6 +251,7 @@ export async function purgeOrganizationTrash(organizationId: string, now: Date =
   objects += await purgeTrashedEventObjects(organizationId, { before: objectsBefore });
   objects += await purgeTrashedHubObjects(organizationId, { before: objectsBefore });
   objects += await purgeTrashedQuotesObjects(organizationId, { before: objectsBefore });
+  objects += await purgeTrashedAppointmentsObjects(organizationId, { before: objectsBefore });
   // Lot 39b (UX-09, ADR 0074) : brouillons de formulaires laissés en l'état depuis 30 jours.
   await purgeFormDrafts(organizationId, new Date(now.getTime() - FORM_DRAFT_RETENTION_DAYS * DAY_MS));
   return { elements, objects };

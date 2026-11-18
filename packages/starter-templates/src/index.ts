@@ -50,6 +50,7 @@ import agencyVendorTagsFile from "./vendor-tags.event-agency.json";
 import allocationFile from "./allocation.json";
 import eventTypesFile from "./event-types.json";
 import onboardingFile from "./onboarding.json";
+import appointmentTypesFileJson from "./appointment-types.json";
 
 export type StarterLocale = "fr" | "en";
 
@@ -1288,5 +1289,84 @@ export function starterMessageTemplates(locale: StarterLocale): StarterMessageTe
 // Lot 49 (module Invités) : liste des régimes, règles, textes de la page de réponse, colonnes
 // d'import (guests.ts).
 export * from "./guests";
+
+// Lot 46 (RDV-01, HUB-20 ; D6, D10 ; ADR 0082) — module Rendez-vous : trois types de départ, plages
+// hebdomadaires par défaut, réglages par défaut d'un type créé avec son seul nom et sa durée, et
+// mention d'information de la page de réservation (à faire relire, question DPO-3).
+const appointmentLocationKindSchema = z.enum(["place", "video", "phone"]);
+const appointmentTypesFileSchema = z.object({
+  version: z.literal(1),
+  defaults: z.object({
+    locationKind: appointmentLocationKindSchema,
+    bufferBeforeMinutes: z.number().int().min(0).max(240),
+    bufferAfterMinutes: z.number().int().min(0).max(240),
+    minNoticeMinutes: z.number().int().min(0).max(43200),
+    horizonDays: z.number().int().min(1).max(365),
+    reminders: z.enum(["none", "24h", "24h_2h"]),
+    allowEventDays: z.boolean(),
+  }),
+  availability: z.array(z.object({ weekday: z.number().int().min(1).max(7), startTime: z.string().regex(/^\d{2}:\d{2}$/), endTime: z.string().regex(/^\d{2}:\d{2}$/) })).min(1),
+  types: z
+    .array(
+      z.object({
+        key: z.string().min(1),
+        name: translatedLabelSchema,
+        durationMinutes: z.number().int().min(15).max(480),
+        locationKind: appointmentLocationKindSchema,
+        bufferBeforeMinutes: z.number().int().min(0).max(240).optional(),
+        bufferAfterMinutes: z.number().int().min(0).max(240).optional(),
+        questions: z
+          .array(
+            z.object({
+              id: z.string().min(1),
+              kind: z.enum(["choice", "text"]),
+              label: translatedLabelSchema,
+              choices: z.union([z.array(z.string()).length(0), z.object({ fr: z.array(z.string().min(1)), en: z.array(z.string().min(1)) })]),
+            }),
+          )
+          .max(5),
+      }),
+    )
+    .min(1),
+  privacyNotice: translatedLabelSchema,
+});
+const appointmentTypesFile = appointmentTypesFileSchema.parse(appointmentTypesFileJson);
+
+export type StarterAppointmentDefaults = z.infer<typeof appointmentTypesFileSchema>["defaults"];
+export type StarterAppointmentType = {
+  key: string;
+  name: string;
+  durationMinutes: number;
+  locationKind: "place" | "video" | "phone";
+  bufferBeforeMinutes: number;
+  bufferAfterMinutes: number;
+  questions: { id: string; kind: "choice" | "text"; label: string; choices: string[] }[];
+};
+
+export function starterAppointmentDefaults(): StarterAppointmentDefaults {
+  return { ...appointmentTypesFile.defaults };
+}
+
+export function starterAvailability(): { weekday: number; startTime: string; endTime: string }[] {
+  return appointmentTypesFile.availability.map((rule) => ({ ...rule }));
+}
+
+export function starterAppointmentTypes(locale: StarterLocale): StarterAppointmentType[] {
+  const defaults = appointmentTypesFile.defaults;
+  return appointmentTypesFile.types.map((type) => ({
+    key: type.key,
+    name: type.name[locale],
+    durationMinutes: type.durationMinutes,
+    locationKind: type.locationKind,
+    bufferBeforeMinutes: type.bufferBeforeMinutes ?? defaults.bufferBeforeMinutes,
+    bufferAfterMinutes: type.bufferAfterMinutes ?? defaults.bufferAfterMinutes,
+    questions: type.questions.map((question) => ({ id: question.id, kind: question.kind, label: question.label[locale], choices: Array.isArray(question.choices) ? [] : question.choices[locale] })),
+  }));
+}
+
+export function starterBookingPrivacyNotice(locale: StarterLocale): string {
+  return appointmentTypesFile.privacyNotice[locale];
+}
+
 // Lot 47 (PAR-05 ; ADR 0085) : délais et tâches de suivi des prestataires par lien.
 export * from "./vendor-coordination";

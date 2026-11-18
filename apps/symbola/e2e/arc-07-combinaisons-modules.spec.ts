@@ -152,3 +152,58 @@ test("ARC-07 — chaque combinaison de modules s'affiche sans erreur, et un modu
     }
   }
 });
+
+// Lot 46 (RDV-04, ARC-07 ; ADR 0062, ADR 0082) : le module Rendez-vous rejoint la preuve. Pour ne pas
+// doubler la durée du parcours (32 combinaisons), il est joué fermé avec les 16 combinaisons
+// ci-dessus (fermé par défaut, ADR 0079), puis dans les deux cas qui comptent : seul, et avec les
+// quatre autres. Ses écrans répondent sans erreur, sans écran vide ; fermé, il est « indisponible ».
+const APPOINTMENT_SCREENS = ["/rendez-vous", "/rendez-vous/reglages", "/rendez-vous/disponibilites", "/rendez-vous/nouveau"];
+const APPOINTMENTS_UNAVAILABLE = "Le module Rendez-vous n'est pas activé pour votre organisation.";
+
+test("ARC-07 / RDV-04 — le module Rendez-vous s'utilise seul ou avec tous les autres, et fermé il est indisponible", async ({ page }) => {
+  test.setTimeout(120_000);
+  const organization = await organizationWithObjects();
+  await loginAndSetupMfa(page, organization.email, organization.password);
+  const setAppointments = async (enabled: boolean) => {
+    const { sql, db } = createAppConnection();
+    try {
+      await setModuleEnabled(db, { adminUserId: randomUUID(), organizationId: organization.organizationId, moduleKey: "appointments", enabled });
+    } finally {
+      await sql.end();
+    }
+  };
+
+  // Fermé (par défaut) : pas au menu, ses écrans disent « indisponible ».
+  await subscribe(organization.organizationId, new Set(MODULE_KEYS));
+  await page.goto("/");
+  await expect(mainMenu(page).locator('a[href="/rendez-vous"]')).toHaveCount(0);
+  for (const screen of APPOINTMENT_SCREENS) {
+    const { status, html } = await fetchPage(page, screen);
+    expect(status, screen).toBeLessThan(500);
+    expect(html.includes(APPOINTMENTS_UNAVAILABLE) || html.includes(NOT_FOUND), `${screen} : indisponible`).toBe(true);
+  }
+
+  for (const others of [new Set<ModuleKey>(), new Set(MODULE_KEYS)]) {
+    const combination = others.size === 0 ? "[rendez-vous seul]" : "[tous les modules]";
+    await subscribe(organization.organizationId, others);
+    await setAppointments(true);
+    const home = await page.goto("/");
+    expect(home!.status(), combination).toBe(200);
+    await expect(page.getByRole("heading", { level: 1 }), combination).toBeVisible();
+    await expect(mainMenu(page).locator('a[href="/rendez-vous"]'), combination).toHaveCount(1);
+    for (const screen of [...APPOINTMENT_SCREENS, "/recherche?q=rendez"]) {
+      const { status, html } = await fetchPage(page, screen);
+      expect(status, `${combination} ${screen}`).toBeLessThan(500);
+      expect(html.includes(APPOINTMENTS_UNAVAILABLE), `${combination} ${screen} : disponible`).toBe(false);
+      expect(html.length, `${combination} ${screen} : pas d'écran vide`).toBeGreaterThan(200);
+      // Seul, aucun lien ne mène vers un module absent sans dire « indisponible ».
+      for (const link of linksOf(html)) {
+        const target = moduleOf(link);
+        if (!target || others.has(target)) continue;
+        const reached = await fetchPage(page, link);
+        expect(reached.status, `${combination} lien ${link}`).toBeLessThan(500);
+        expect(UNAVAILABLE.test(reached.html) || reached.html.includes(NOT_FOUND), `${combination} lien ${link} : indisponible`).toBe(true);
+      }
+    }
+  }
+});

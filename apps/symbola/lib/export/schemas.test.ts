@@ -19,12 +19,14 @@ import * as hubSchema from "@symbola/db/schema/hub";
 import * as quotesSchema from "@symbola/db/schema/quotes";
 import * as vendorsSchema from "@symbola/db/schema/vendors";
 import * as guestsSchema from "@symbola/db/schema/guests";
+import * as appointmentsSchema from "@symbola/db/schema/appointments";
 import { BUDGET_EXPORT_EXCLUSIONS } from "@/modules/budget/service";
 import { EVENTS_EXPORT_EXCLUSIONS } from "@/modules/events/service";
 import { HUB_EXPORT_EXCLUSIONS } from "@/modules/hub/service";
 import { QUOTES_EXPORT_EXCLUSIONS } from "@/modules/quotes/service";
 import { VENDORS_EXPORT_EXCLUSIONS } from "@/modules/vendors/service";
 import { GUESTS_EXPORT_EXCLUSIONS } from "@/modules/guests/service";
+import { APPOINTMENTS_EXPORT_EXCLUSIONS } from "@/modules/appointments/service";
 import { entityJsonSchemaText, exportEntitySchemas } from "./schemas";
 
 const PUBLISHED = fileURLToPath(new URL("../../../../docs/schemas/export/v1", import.meta.url));
@@ -40,6 +42,7 @@ const EXCLUSIONS: Record<string, Readonly<Record<string, string>>> = {
   quotes: QUOTES_EXPORT_EXCLUSIONS,
   vendors: VENDORS_EXPORT_EXCLUSIONS,
   guests: GUESTS_EXPORT_EXCLUSIONS,
+  appointments: APPOINTMENTS_EXPORT_EXCLUSIONS,
 };
 
 function publishedFiles(dir: string): string[] {
@@ -98,7 +101,7 @@ describe("DAT-13 — Chaque entité a un format d'export stable et documenté", 
   });
 
   it("chaque table de la base est exportée, ou exclue avec sa raison écrite", () => {
-    const tables = [hubSchema, coreSchema, eventsSchema, budgetSchema, quotesSchema, vendorsSchema, guestsSchema].flatMap((schema) =>
+    const tables = [hubSchema, coreSchema, eventsSchema, budgetSchema, quotesSchema, vendorsSchema, guestsSchema, appointmentsSchema].flatMap((schema) =>
       Object.values(schema).filter((value): value is PgTable => value instanceof PgTable).map((table) => getTableName(table)),
     );
     const exported = exportEntitySchemas().map((entity) => {

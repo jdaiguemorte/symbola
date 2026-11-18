@@ -1,9 +1,1480 @@
 {
-  "id": "a4a91f22-d537-4a38-beac-1ecebc462f99",
-  "prevId": "7379afc1-fc61-4084-94b9-16b46c2334b4",
+  "id": "73beb3ac-0d9c-47d2-8bc9-c2555c10fcef",
+  "prevId": "9b3e7963-ef0c-4ed0-a232-565b54c4a209",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "appointments.appointment_report_actions": {
+      "name": "appointment_report_actions",
+      "schema": "appointments",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "report_id": {
+          "name": "report_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "due_on": {
+          "name": "due_on",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "responsible": {
+          "name": "responsible",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'planner'"
+        },
+        "task_id": {
+          "name": "task_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "task_event_id": {
+          "name": "task_event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "appointment_report_actions_organization_idx": {
+          "name": "appointment_report_actions_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "appointment_report_actions_report_idx": {
+          "name": "appointment_report_actions_report_idx",
+          "columns": [
+            {
+              "expression": "report_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "appointment_report_actions_report_id_appointment_reports_id_fk": {
+          "name": "appointment_report_actions_report_id_appointment_reports_id_fk",
+          "tableFrom": "appointment_report_actions",
+          "tableTo": "appointment_reports",
+          "schemaTo": "appointments",
+          "columnsFrom": [
+            "report_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "appointment_report_actions_label_check": {
+          "name": "appointment_report_actions_label_check",
+          "value": "char_length(\"appointments\".\"appointment_report_actions\".\"label\") between 1 and 200"
+        },
+        "appointment_report_actions_responsible_check": {
+          "name": "appointment_report_actions_responsible_check",
+          "value": "\"appointments\".\"appointment_report_actions\".\"responsible\" in ('planner', 'clients')"
+        },
+        "appointment_report_actions_task_check": {
+          "name": "appointment_report_actions_task_check",
+          "value": "(\"appointments\".\"appointment_report_actions\".\"task_id\" is null) = (\"appointments\".\"appointment_report_actions\".\"task_event_id\" is null)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "appointments.appointment_reports": {
+      "name": "appointment_reports",
+      "schema": "appointments",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "appointment_id": {
+          "name": "appointment_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "appointment_reports_organization_idx": {
+          "name": "appointment_reports_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "appointment_reports_appointment_idx": {
+          "name": "appointment_reports_appointment_idx",
+          "columns": [
+            {
+              "expression": "appointment_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "appointment_reports_appointment_id_appointments_id_fk": {
+          "name": "appointment_reports_appointment_id_appointments_id_fk",
+          "tableFrom": "appointment_reports",
+          "tableTo": "appointments",
+          "schemaTo": "appointments",
+          "columnsFrom": [
+            "appointment_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "appointment_reports_notes_check": {
+          "name": "appointment_reports_notes_check",
+          "value": "\"appointments\".\"appointment_reports\".\"notes\" is null or char_length(\"appointments\".\"appointment_reports\".\"notes\") <= 10000"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "appointments.appointment_types": {
+      "name": "appointment_types",
+      "schema": "appointments",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "duration_minutes": {
+          "name": "duration_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "location_kind": {
+          "name": "location_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'video'"
+        },
+        "location": {
+          "name": "location",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "buffer_before_minutes": {
+          "name": "buffer_before_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "buffer_after_minutes": {
+          "name": "buffer_after_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "min_notice_minutes": {
+          "name": "min_notice_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1440
+        },
+        "horizon_days": {
+          "name": "horizon_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 60
+        },
+        "reminders": {
+          "name": "reminders",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'24h'"
+        },
+        "questions": {
+          "name": "questions",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "host_user_id": {
+          "name": "host_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "allow_event_days": {
+          "name": "allow_event_days",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deleted_by": {
+          "name": "deleted_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "appointment_types_organization_idx": {
+          "name": "appointment_types_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "appointment_types_name_check": {
+          "name": "appointment_types_name_check",
+          "value": "char_length(\"appointments\".\"appointment_types\".\"name\") between 1 and 120"
+        },
+        "appointment_types_location_kind_check": {
+          "name": "appointment_types_location_kind_check",
+          "value": "\"appointments\".\"appointment_types\".\"location_kind\" in ('place', 'video', 'phone')"
+        },
+        "appointment_types_reminders_check": {
+          "name": "appointment_types_reminders_check",
+          "value": "\"appointments\".\"appointment_types\".\"reminders\" in ('none', '24h', '24h_2h')"
+        },
+        "appointment_types_duration_check": {
+          "name": "appointment_types_duration_check",
+          "value": "\"appointments\".\"appointment_types\".\"duration_minutes\" between 15 and 480"
+        },
+        "appointment_types_location_check": {
+          "name": "appointment_types_location_check",
+          "value": "\"appointments\".\"appointment_types\".\"location\" is null or char_length(\"appointments\".\"appointment_types\".\"location\") between 1 and 500"
+        },
+        "appointment_types_buffers_check": {
+          "name": "appointment_types_buffers_check",
+          "value": "\"appointments\".\"appointment_types\".\"buffer_before_minutes\" between 0 and 240 and \"appointments\".\"appointment_types\".\"buffer_after_minutes\" between 0 and 240"
+        },
+        "appointment_types_notice_check": {
+          "name": "appointment_types_notice_check",
+          "value": "\"appointments\".\"appointment_types\".\"min_notice_minutes\" between 0 and 43200"
+        },
+        "appointment_types_horizon_check": {
+          "name": "appointment_types_horizon_check",
+          "value": "\"appointments\".\"appointment_types\".\"horizon_days\" between 1 and 365"
+        },
+        "appointment_types_questions_check": {
+          "name": "appointment_types_questions_check",
+          "value": "jsonb_typeof(\"appointments\".\"appointment_types\".\"questions\") = 'array' and jsonb_array_length(\"appointments\".\"appointment_types\".\"questions\") <= 5"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "appointments.appointments": {
+      "name": "appointments",
+      "schema": "appointments",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type_id": {
+          "name": "type_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "type_name": {
+          "name": "type_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "host_user_id": {
+          "name": "host_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "starts_at": {
+          "name": "starts_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ends_at": {
+          "name": "ends_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "buffer_before_minutes": {
+          "name": "buffer_before_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "buffer_after_minutes": {
+          "name": "buffer_after_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "location_kind": {
+          "name": "location_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "location": {
+          "name": "location",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reminders": {
+          "name": "reminders",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'24h'"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'booked'"
+        },
+        "origin": {
+          "name": "origin",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "person_name": {
+          "name": "person_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "person_email": {
+          "name": "person_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "person_phone": {
+          "name": "person_phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "locale": {
+          "name": "locale",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'fr'"
+        },
+        "answers": {
+          "name": "answers",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "contact_id": {
+          "name": "contact_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "manage_token_hash": {
+          "name": "manage_token_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "manage_token_sealed": {
+          "name": "manage_token_sealed",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rescheduled_at": {
+          "name": "rescheduled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancelled_at": {
+          "name": "cancelled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancelled_by": {
+          "name": "cancelled_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancel_reason": {
+          "name": "cancel_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_demo": {
+          "name": "is_demo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deleted_by": {
+          "name": "deleted_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "appointments_organization_idx": {
+          "name": "appointments_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "appointments_host_start_idx": {
+          "name": "appointments_host_start_idx",
+          "columns": [
+            {
+              "expression": "host_user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "starts_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "appointments_event_idx": {
+          "name": "appointments_event_idx",
+          "columns": [
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "appointments_contact_idx": {
+          "name": "appointments_contact_idx",
+          "columns": [
+            {
+              "expression": "contact_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "appointments_manage_token_idx": {
+          "name": "appointments_manage_token_idx",
+          "columns": [
+            {
+              "expression": "manage_token_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "appointments_type_id_appointment_types_id_fk": {
+          "name": "appointments_type_id_appointment_types_id_fk",
+          "tableFrom": "appointments",
+          "tableTo": "appointment_types",
+          "schemaTo": "appointments",
+          "columnsFrom": [
+            "type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "appointments_range_check": {
+          "name": "appointments_range_check",
+          "value": "\"appointments\".\"appointments\".\"ends_at\" > \"appointments\".\"appointments\".\"starts_at\""
+        },
+        "appointments_location_kind_check": {
+          "name": "appointments_location_kind_check",
+          "value": "\"appointments\".\"appointments\".\"location_kind\" in ('place', 'video', 'phone')"
+        },
+        "appointments_reminders_check": {
+          "name": "appointments_reminders_check",
+          "value": "\"appointments\".\"appointments\".\"reminders\" in ('none', '24h', '24h_2h')"
+        },
+        "appointments_status_check": {
+          "name": "appointments_status_check",
+          "value": "\"appointments\".\"appointments\".\"status\" in ('booked', 'cancelled')"
+        },
+        "appointments_origin_check": {
+          "name": "appointments_origin_check",
+          "value": "\"appointments\".\"appointments\".\"origin\" in ('public', 'manual')"
+        },
+        "appointments_locale_check": {
+          "name": "appointments_locale_check",
+          "value": "\"appointments\".\"appointments\".\"locale\" in ('fr', 'en')"
+        },
+        "appointments_cancelled_by_check": {
+          "name": "appointments_cancelled_by_check",
+          "value": "\"appointments\".\"appointments\".\"cancelled_by\" is null or \"appointments\".\"appointments\".\"cancelled_by\" in ('person', 'planner')"
+        },
+        "appointments_type_name_check": {
+          "name": "appointments_type_name_check",
+          "value": "char_length(\"appointments\".\"appointments\".\"type_name\") between 1 and 120"
+        },
+        "appointments_person_name_check": {
+          "name": "appointments_person_name_check",
+          "value": "char_length(\"appointments\".\"appointments\".\"person_name\") between 1 and 200"
+        },
+        "appointments_email_check": {
+          "name": "appointments_email_check",
+          "value": "\"appointments\".\"appointments\".\"person_email\" is null or (\"appointments\".\"appointments\".\"person_email\" = lower(btrim(\"appointments\".\"appointments\".\"person_email\")) and char_length(\"appointments\".\"appointments\".\"person_email\") between 3 and 254)"
+        },
+        "appointments_phone_check": {
+          "name": "appointments_phone_check",
+          "value": "\"appointments\".\"appointments\".\"person_phone\" is null or char_length(\"appointments\".\"appointments\".\"person_phone\") between 1 and 40"
+        },
+        "appointments_buffers_check": {
+          "name": "appointments_buffers_check",
+          "value": "\"appointments\".\"appointments\".\"buffer_before_minutes\" between 0 and 240 and \"appointments\".\"appointments\".\"buffer_after_minutes\" between 0 and 240"
+        },
+        "appointments_location_check": {
+          "name": "appointments_location_check",
+          "value": "\"appointments\".\"appointments\".\"location\" is null or char_length(\"appointments\".\"appointments\".\"location\") between 1 and 500"
+        },
+        "appointments_token_check": {
+          "name": "appointments_token_check",
+          "value": "\"appointments\".\"appointments\".\"manage_token_hash\" is null or \"appointments\".\"appointments\".\"manage_token_hash\" ~ '^[0-9a-f]{64}$'"
+        },
+        "appointments_token_sealed_check": {
+          "name": "appointments_token_sealed_check",
+          "value": "(\"appointments\".\"appointments\".\"manage_token_sealed\" is null or \"appointments\".\"appointments\".\"manage_token_sealed\" like 'f1:%') and (\"appointments\".\"appointments\".\"manage_token_sealed\" is null) = (\"appointments\".\"appointments\".\"manage_token_hash\" is null)"
+        },
+        "appointments_cancel_check": {
+          "name": "appointments_cancel_check",
+          "value": "(\"appointments\".\"appointments\".\"status\" = 'cancelled') = (\"appointments\".\"appointments\".\"cancelled_at\" is not null)"
+        },
+        "appointments_cancel_reason_check": {
+          "name": "appointments_cancel_reason_check",
+          "value": "\"appointments\".\"appointments\".\"cancel_reason\" is null or \"appointments\".\"appointments\".\"cancel_reason\" in ('schedule', 'other_provider', 'project_changed', 'other')"
+        },
+        "appointments_answers_check": {
+          "name": "appointments_answers_check",
+          "value": "jsonb_typeof(\"appointments\".\"appointments\".\"answers\") = 'array' and jsonb_array_length(\"appointments\".\"appointments\".\"answers\") <= 5"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "appointments.availability_closures": {
+      "name": "availability_closures",
+      "schema": "appointments",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "starts_on": {
+          "name": "starts_on",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ends_on": {
+          "name": "ends_on",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "availability_closures_organization_idx": {
+          "name": "availability_closures_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "availability_closures_dates_check": {
+          "name": "availability_closures_dates_check",
+          "value": "\"appointments\".\"availability_closures\".\"ends_on\" >= \"appointments\".\"availability_closures\".\"starts_on\""
+        },
+        "availability_closures_reason_check": {
+          "name": "availability_closures_reason_check",
+          "value": "\"appointments\".\"availability_closures\".\"reason\" is null or char_length(\"appointments\".\"availability_closures\".\"reason\") between 1 and 80"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "appointments.availability_rules": {
+      "name": "availability_rules",
+      "schema": "appointments",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "weekday": {
+          "name": "weekday",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_time": {
+          "name": "start_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_time": {
+          "name": "end_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "availability_rules_organization_idx": {
+          "name": "availability_rules_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "availability_rules_user_idx": {
+          "name": "availability_rules_user_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "availability_rules_weekday_check": {
+          "name": "availability_rules_weekday_check",
+          "value": "\"appointments\".\"availability_rules\".\"weekday\" between 1 and 7"
+        },
+        "availability_rules_time_check": {
+          "name": "availability_rules_time_check",
+          "value": "\"appointments\".\"availability_rules\".\"end_time\" > \"appointments\".\"availability_rules\".\"start_time\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "appointments.booking_pages": {
+      "name": "booking_pages",
+      "schema": "appointments",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "privacy_notice": {
+          "name": "privacy_notice",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "booking_pages_organization_idx": {
+          "name": "booking_pages_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "booking_pages_slug_idx": {
+          "name": "booking_pages_slug_idx",
+          "columns": [
+            {
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "booking_pages_slug_check": {
+          "name": "booking_pages_slug_check",
+          "value": "\"appointments\".\"booking_pages\".\"slug\" ~ '^[a-z0-9]+(-[a-z0-9]+)*$' and char_length(\"appointments\".\"booking_pages\".\"slug\") between 3 and 60"
+        },
+        "booking_pages_notice_check": {
+          "name": "booking_pages_notice_check",
+          "value": "\"appointments\".\"booking_pages\".\"privacy_notice\" is null or char_length(\"appointments\".\"booking_pages\".\"privacy_notice\") between 1 and 3000"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "appointments.busy_intervals": {
+      "name": "busy_intervals",
+      "schema": "appointments",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_id": {
+          "name": "source_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "starts_at": {
+          "name": "starts_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ends_at": {
+          "name": "ends_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "busy_intervals_organization_idx": {
+          "name": "busy_intervals_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "busy_intervals_source_idx": {
+          "name": "busy_intervals_source_idx",
+          "columns": [
+            {
+              "expression": "source_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "starts_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "busy_intervals_source_id_calendar_sources_id_fk": {
+          "name": "busy_intervals_source_id_calendar_sources_id_fk",
+          "tableFrom": "busy_intervals",
+          "tableTo": "calendar_sources",
+          "schemaTo": "appointments",
+          "columnsFrom": [
+            "source_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "busy_intervals_range_check": {
+          "name": "busy_intervals_range_check",
+          "value": "\"appointments\".\"busy_intervals\".\"ends_at\" > \"appointments\".\"busy_intervals\".\"starts_at\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "appointments.calendar_sources": {
+      "name": "calendar_sources",
+      "schema": "appointments",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "url_sealed": {
+          "name": "url_sealed",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "url_hint": {
+          "name": "url_hint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "failures": {
+          "name": "failures",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "last_error_kind": {
+          "name": "last_error_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_read_at": {
+          "name": "last_read_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_success_at": {
+          "name": "last_success_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "calendar_sources_organization_idx": {
+          "name": "calendar_sources_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "calendar_sources_user_idx": {
+          "name": "calendar_sources_user_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "calendar_sources_label_check": {
+          "name": "calendar_sources_label_check",
+          "value": "char_length(\"appointments\".\"calendar_sources\".\"label\") between 1 and 80"
+        },
+        "calendar_sources_state_check": {
+          "name": "calendar_sources_state_check",
+          "value": "\"appointments\".\"calendar_sources\".\"state\" in ('pending', 'ok', 'error')"
+        },
+        "calendar_sources_sealed_check": {
+          "name": "calendar_sources_sealed_check",
+          "value": "\"appointments\".\"calendar_sources\".\"url_sealed\" like 'f1:%'"
+        },
+        "calendar_sources_hint_check": {
+          "name": "calendar_sources_hint_check",
+          "value": "char_length(\"appointments\".\"calendar_sources\".\"url_hint\") between 1 and 120"
+        },
+        "calendar_sources_failures_check": {
+          "name": "calendar_sources_failures_check",
+          "value": "\"appointments\".\"calendar_sources\".\"failures\" between 0 and 1000"
+        },
+        "calendar_sources_error_check": {
+          "name": "calendar_sources_error_check",
+          "value": "\"appointments\".\"calendar_sources\".\"last_error_kind\" is null or \"appointments\".\"calendar_sources\".\"last_error_kind\" in ('blocked', 'too_large', 'timeout', 'http', 'parse')"
+        }
+      },
+      "isRLSEnabled": false
+    },
     "budget.alert_thresholds": {
       "name": "alert_thresholds",
       "schema": "budget",
@@ -9989,7 +11460,7 @@
       "checkConstraints": {
         "email_templates_kind_check": {
           "name": "email_templates_kind_check",
-          "value": "\"hub\".\"email_templates\".\"kind\" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap')"
+          "value": "\"hub\".\"email_templates\".\"kind\" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap')"
         },
         "email_templates_locale_check": {
           "name": "email_templates_locale_check",
@@ -18961,6 +20432,7 @@
     }
   },
   "schemas": {
+    "appointments": "appointments",
     "budget": "budget",
     "core": "core",
     "events": "events",

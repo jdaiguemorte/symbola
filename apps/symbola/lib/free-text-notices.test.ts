@@ -24,6 +24,8 @@ const NOTICED: Record<string, { file: string; name: string }> = {
   "quotes.payment_entries.reason": { file: "app/devis/[quoteId]/schedule-forms.tsx", name: "reason" },
   // Lot 49 (RGP-08, D9) : motif du report de la purge des invités.
   "guests.purge_postponements.reason": { file: "app/events/[id]/invites/guest-forms.tsx", name: "reason" },
+  // Lot 46 (EVT-10) : le compte rendu d'un rendez-vous.
+  "appointments.appointment_reports.notes": { file: "app/rendez-vous/[id]/page.tsx", name: "notes" },
   // Lot 47 (PRE-03, D1) : le besoin du brief d'un poste.
   "events.vendor_briefs.need": { file: "app/events/[id]/consultation/consultation-forms.tsx", name: "need" },
 };
@@ -70,6 +72,10 @@ const WITHOUT_ENTRY: Record<string, string> = {
   "guests.household_groups.label": "libellé court d'un groupe d'invités (« Amis du lycée »)",
   "guests.rsvp_answers.attending": "réponse oui ou non à un temps fort, sans texte",
   "guests.module_settings.privacy_notice": "mention d'information écrite par la titulaire, lue par les invités (texte juridique)",
+  // Lot 46 (RDV-01, RGP-04).
+  "appointments.appointments.answers": "réponses de la personne sur la page publique de réservation : sa propre mise en garde (Appointments.public.freeTextNotice) suit les questions",
+  "appointments.appointment_report_actions.label": "libellé court d'une action du compte rendu (« Envoyer trois lieux »)",
+  "appointments.availability_closures.reason": "motif court d'un jour fermé (80 caractères)",
 };
 
 function freeTextFields(): string[] {

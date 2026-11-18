@@ -90,7 +90,7 @@ function layoutOf(input: { kind: EmailTemplateKind; locale: EmailLocale; identit
   const rendered = renderEmailTemplate(input.kind, input.template, values);
   const t = translator(input.locale);
   const button = EMAIL_TEMPLATE_RULES[input.kind].button;
-  const label = button === "sign" ? t("button.sign") : button === "answer" ? t("button.answer") : button === "roadmap" ? t("button.roadmap") : t("button.space");
+  const label = button === "sign" ? t("button.sign") : button === "answer" ? t("button.answer") : button === "manage" ? t("button.manage") : button === "roadmap" ? t("button.roadmap") : t("button.space");
   // Lot 47 (D4) : les deux réponses d'un brief ont leur propre libellé.
   const labelOf = (variable: EmailVariable) => (variable === "link_available" ? t("button.available") : variable === "link_unavailable" ? t("button.unavailable") : label);
   const blocks: MailBlock[] = rendered.blocks.map((block) => (block.kind === "button" ? { kind: "button", url: block.url, label: labelOf(block.variable) } : block));
@@ -182,6 +182,9 @@ function sampleValues(locale: EmailLocale): EmailValues {
     tasks: t("sample.tasks"),
     quote_number: t("sample.quoteNumber"),
     version: t("sample.version"),
+    place: t("sample.place"),
+    appointment: t("sample.appointment"),
+    appointment_date: t("sample.appointmentDate"),
     slot: t("sample.slot"),
     deadline: t("sample.deadline"),
     link_available: t("sample.link"),

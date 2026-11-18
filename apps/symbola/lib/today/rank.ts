@@ -31,7 +31,12 @@ export type TodayItemKind =
   // Lot 49 (RGP-08) : préavis de purge des invités, opposition d'un invité.
   | "guest_purge"
   | "guest_opposition"
-  // Lot 47 (PAR-05 ; D3, D6, D8) : réponse d'un prestataire à un brief, choix du client engagé (annulable),
+  // Lot 46 (HUB-08) : rendez-vous du jour, rendez-vous pris, reportés ou annulés depuis la veille,
+  // agenda extérieur en erreur.
+  | "appointment"
+  | "appointment_change"
+  | "calendar_source_error"
+  // Lot 47 (PAR-05 ; D3, D6, D8) : réponse d'un prestataire à un brief, choix du client engagé,
   // feuille de route non confirmée.
   | "vendor_answer"
   | "vendor_choice"

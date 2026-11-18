@@ -7,7 +7,7 @@ import { GENERIC_ILLUSTRATION, HELP_SCREENS, screensFor, tileImage } from "./scr
 import { TOUR_TARGETS } from "./tours";
 
 type HelpEntry = { title: string; body: string; faq?: { q: string; a: string }[] };
-const all = { hub: true, events: true, budget: true, quotes: true, vendors: true, guests: true };
+const all = { hub: true, events: true, budget: true, quotes: true, vendors: true, guests: true, appointments: true };
 
 describe("AIDE-12 — Centre d'aide par écran, avec captures réelles", () => {
   it("chaque écran a son titre et son texte en français et en anglais, et ses questions dans les deux langues", () => {
@@ -86,7 +86,9 @@ describe("AIDE-14 — Chaque écran a son aide", () => {
     // personnel, qui ne fait qu'ouvrir le portail) et les adresses qui redirigent.
     // Lot 33 : « Sécurisez votre compte » est une étape de passage, hors session complète.
     // Lot 37a : arrivée d'un lien de partage, qui n'ouvre qu'un document, sans session.
-    const exempt = [/^aide\//, /^securite\/page\.tsx$/, /^signature-fictive\//, /^lien\/page\.tsx$/, /^partage\/page\.tsx$/];
+    // Lot 46 : page publique de réservation et arrivée d'un lien de gestion, sans session ; leurs
+    // textes disent eux-mêmes ce qu'il faut faire.
+    const exempt = [/^aide\//, /^securite\/page\.tsx$/, /^signature-fictive\//, /^lien\/page\.tsx$/, /^partage\/page\.tsx$/, /^reserver\//, /^rdv\/page\.tsx$/];
     const missing = pages(appDirectory)
       .map((path) => ({ path: relative(appDirectory, path), source: readFileSync(path, "utf-8") }))
       .filter(({ path }) => !exempt.some((pattern) => pattern.test(path)))

@@ -1,9 +1,9 @@
 // Lot 47 (PRE-03, BUD-05, PRE-09, PAR-05 ; D1 à D7, D10 ; ADR 0085) — « Demander des devis » pour un
 // poste : le brief, les destinataires (un e-mail et un lien chacun, après l'écran de contrôle), le
 // comparatif des réponses (tableau sur ordinateur, une carte par prestataire sur téléphone), la
-// sélection montrée au client et l'annulation de son choix engagé (7 jours). Un membre de l'équipe
-// y accède comme à la fiche de l'évènement ; sans le module Prestataires, les noms et e-mails se
-// saisissent (ARC-07).
+// sélection montrée au client, et le prestataire retenu, modifiable à tout moment (D6 révisée : aucun
+// délai). Un membre de l'équipe y accède comme à la fiche de l'évènement ; sans le module
+// Prestataires, les noms et e-mails se saisissent (ARC-07).
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
