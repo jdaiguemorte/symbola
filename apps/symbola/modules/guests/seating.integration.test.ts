@@ -283,7 +283,6 @@ async function sc07() {
   const options = await listDietaryOptions(w.organizationId, "fr");
   const option = (key: string) => options.find((candidate) => candidate.starterKey === key)!.id;
   const dietCycle = [[option("vegetarian")], [option("gluten_free")], [option("allergen_nuts")], [option("vegan"), option("allergen_eggs")], [], [], [], []];
-  const people: { name: string; kind: "adult" | "child"; ageRange: string | null }[] = [];
   const views: HouseholdView[] = [];
   let children = 0;
   for (let index = 0; index < 52; index += 1) {

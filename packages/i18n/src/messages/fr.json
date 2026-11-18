@@ -1176,6 +1176,28 @@
     "portalGuests": {
       "title": "Vos invités",
       "body": "Ajoutez vos invités par foyer, ou importez votre tableur : les doublons vous sont signalés avant tout enregistrement. Pour un invité sans e-mail, obtenez son lien personnel ou son QR code et envoyez-le par SMS. Vous suivez les réponses par moment ; les régimes s'affichent en nombres, jamais nominatifs."
+    },
+    "seatingPlan": {
+      "title": "Plan de table",
+      "body": "Un plan par temps fort à table (le dîner, le brunch). Ajoutez les tables en série (« 12 tables rondes de 10 »), ou copiez le plan d'un autre temps fort. Placez un invité ou tout un foyer avec le bouton « Déplacer », au clavier ou au doigt, ou glissez-le à la souris. Seuls les présents et ceux qui n'ont pas répondu se placent ; les non placés restent visibles avec leur nombre. Les contraintes « ensemble » et « séparés » et les tables trop pleines sont signalées, jamais bloquées.",
+      "faq": [
+        {
+          "q": "Un invité se désiste après avoir été placé : que se passe-t-il ?",
+          "a": "Il quitte sa table aussitôt et une alerte vous prévient sur le plan ; effacez-la quand vous l'avez vue."
+        },
+        {
+          "q": "Le client voit-il le plan ou les contraintes ?",
+          "a": "Non. Le plan se compose dans l'équipe ; les contraintes ne sortent jamais, ni vers le client ni dans une synthèse."
+        }
+      ]
+    },
+    "catererSummary": {
+      "title": "Envoyer la synthèse au traiteur",
+      "body": "Depuis le plan de table, « Synthèse pour le traiteur » donne le PDF ou le tableur : couverts et repas par type, régimes et allergènes, par table ; les repas des prestataires et les personnes en attente de réponse à part. La titulaire obtient la version nominative ; un membre de l'équipe, la version sans nom, exacte par table. Rien n'est gardé dans Symbola : la copie envoyée sort de Symbola, demandez au traiteur de la supprimer après l'évènement."
+    },
+    "mealTypes": {
+      "title": "Types de repas",
+      "body": "Les types de repas de la synthèse pour le traiteur : adulte, enfant, bébé (sans repas), prestataire au départ. Renommez, masquez ou ajoutez un type ; le type d'un invité suit son âge, sauf si vous le changez sur le plan de table."
     }
   },
   "Aide": {
@@ -4791,7 +4813,8 @@
     "emailTemplates": "Modèles d'e-mails",
     "messageTemplates": "Modèles de messages",
     "trash": "Corbeille",
-    "dietaryOptions": "Régimes et allergies"
+    "dietaryOptions": "Régimes et allergies",
+    "mealTypes": "Types de repas"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -5188,7 +5211,15 @@
       "guests_diets": "régimes d'invité",
       "guests_diet_consents": "preuve d'accord aux régimes",
       "guests_guest_links": "lien personnel d'invité",
-      "guests_purge_postponements": "report de purge des invités"
+      "guests_purge_postponements": "report de purge des invités",
+      "guests_meal_types": "type de repas",
+      "guests_seating_plans": "plan de table",
+      "guests_seating_tables": "table du plan",
+      "guests_seat_assignments": "place au plan de table",
+      "guests_seating_constraints": "contrainte de placement",
+      "guests_seating_constraint_members": "personne d'une contrainte de placement",
+      "guests_vendor_meal_counts": "repas des prestataires",
+      "guests_caterer_summary_downloads": "téléchargement de la synthèse pour le traiteur"
     },
     "modules": {
       "events": "Événements",
@@ -6861,7 +6892,19 @@
         "no_date": "L'évènement n'a pas encore de date : il n'y a pas de purge à reporter."
       },
       "importFile": "Choisissez un fichier (CSV ou XLSX).",
-      "importTooLarge": "Le fichier dépasse 1 Mo : enregistrez la liste en CSV, ou découpez-la."
+      "importTooLarge": "Le fichier dépasse 1 Mo : enregistrez la liste en CSV, ou découpez-la.",
+      "seating": {
+        "table_name": "Le nom d'une table compte de 1 à 60 caractères.",
+        "capacity": "Le nombre de places d'une table va de 1 à 60.",
+        "count": "Ajoutez de 1 à 50 tables à la fois.",
+        "too_many_tables": "Un plan compte au plus 150 tables.",
+        "constraint_members": "Une contrainte réunit de deux à vingt personnes.",
+        "target_not_empty": "Ce temps fort a déjà des tables : la copie ne remplace pas un plan commencé.",
+        "same_moment": "Choisissez un autre temps fort à copier.",
+        "vendor_count": "Le nombre de repas des prestataires va de 0 à 1000.",
+        "not_eligible": "Cette personne a décliné ce temps fort ou n'y est pas invitée : elle ne se place pas.",
+        "meal_label": "Le libellé compte de 1 à 60 caractères."
+      }
     },
     "activation": {
       "assessmentLink": "Lire l'analyse d'impact « socle » fournie par Symbola",
@@ -7055,7 +7098,8 @@
       },
       "revoke": "Retirer les liens de {name}",
       "edit": "Modifier {name}",
-      "remove": "Supprimer le foyer {name}"
+      "remove": "Supprimer le foyer {name}",
+      "planLink": "Plan de table et synthèse pour le traiteur"
     },
     "portal": {
       "title": "Vos invités",
@@ -7079,6 +7123,175 @@
       "kindAllergen": "Allergie",
       "add": "Ajouter",
       "added": "Entrée ajoutée."
+    },
+    "caterer": {
+      "title": "Synthèse pour le traiteur",
+      "heading": "{moment} — {date}",
+      "generatedAt": "Arrêtée au {date} : les réponses peuvent encore changer.",
+      "versionNominative": "Version nominative : nom, table, type de repas, régimes et allergies de chaque personne.",
+      "versionAggregate": "Version sans nom : nombres exacts par table.",
+      "noPlan": "Plan de table non composé : les totaux seulement.",
+      "dietsPurged": "Les régimes et allergies ont été effacés après l'évènement : la synthèse n'en contient plus.",
+      "totalsTitle": "Totaux",
+      "coversLabel": "Couverts (personnes présentes)",
+      "covers": "{count, plural, =0 {Aucun couvert} one {# couvert} other {# couverts}}",
+      "mealsTitle": "Repas par type",
+      "dietsTitle": "Régimes et allergènes",
+      "noDiets": "Aucun régime ni allergène déclaré.",
+      "vendorMeals": "Repas prestataires",
+      "pendingTitle": "En attente de réponse",
+      "pendingNone": "Aucune personne en attente de réponse.",
+      "tablesTitle": "Par table",
+      "unplaced": "Sans table",
+      "tableLine": "{name} — {shape}, {capacity} places",
+      "person": "{name} — {meal}",
+      "personWithDiets": "{name} — {meal} — {diets}",
+      "footerNominative": "Données transmises pour le service du repas ; à supprimer après l'évènement.",
+      "footerAggregate": "Nombres par table, sans nom.",
+      "page": "Page {page} sur {total}",
+      "fileNominative": "synthese-traiteur-nominative",
+      "fileAggregate": "synthese-traiteur",
+      "shape": {
+        "round": "table ronde",
+        "rectangular": "table rectangulaire",
+        "head": "table d'honneur"
+      },
+      "csv": {
+        "table": "Table",
+        "name": "Nom",
+        "mealType": "Type de repas",
+        "diets": "Régimes et allergies",
+        "count": "Nombre",
+        "response": "Réponse",
+        "covers": "Couverts",
+        "total": "Total",
+        "present": "Présent"
+      }
+    },
+    "plan": {
+      "title": "Plan de table",
+      "back": "Retour aux invités",
+      "unavailable": "Le plan de table est indisponible : le module Invités n'est pas ouvert pour votre organisation.",
+      "notReady": "Le plan de table s'ouvre une fois l'analyse d'impact confirmée par la titulaire, dans l'onglet Invités.",
+      "notReadyLink": "Aller à l'onglet Invités",
+      "noKeyMoments": "Ajoutez d'abord les temps forts de l'évènement (le dîner, le brunch) : un plan se compose par temps fort.",
+      "noKeyMomentsLink": "Ajouter des temps forts",
+      "momentsNav": "Temps forts",
+      "momentLink": "{name}, {date}",
+      "momentPlanned": "{placed} placés sur {present}",
+      "momentNoPlan": "sans plan",
+      "createPlan": "Composer le plan de « {moment} »",
+      "noPlan": "Ce temps fort n'a pas encore de plan : {present} présents, {pending} en attente de réponse.",
+      "counts": "{unplaced, plural, =0 {Tous les présents sont placés} one {# présent non placé} other {# présents non placés}} · {pending, plural, =0 {personne en attente de réponse} one {# en attente de réponse} other {# en attente de réponse}}",
+      "viewSwitch": "Afficher",
+      "showTables": "Tables",
+      "showUnplaced": "Non placés ({count})",
+      "unplacedTitle": "Non placés ({count})",
+      "unplacedEmpty": "Tous les présents sont placés.",
+      "pendingTitle": "En attente de réponse ({count})",
+      "pendingHelp": "Pas encore de réponse : vous pouvez les placer ; ils restent marqués et ne comptent pas dans les couverts.",
+      "pendingMark": "en attente de réponse",
+      "child": "enfant",
+      "householdItem": "tout le foyer {name}",
+      "householdHeading": "{name} ({count})",
+      "householdMoved": "Foyer {name} : {count, plural, =0 {personne n'a été placé} one {# personne placée} other {# personnes placées}} à « {group} ».",
+      "householdMoveFailed": "Le foyer {name} n'a pas pu être placé : la page montre l'état enregistré.",
+      "unplacedTarget": "Non placés",
+      "tableTarget": "{name} ({occupied}/{capacity})",
+      "tablesTitle": "Tables ({count})",
+      "noTables": "Aucune table : ajoutez-en ci-dessous.",
+      "occupancy": "{occupied} sur {capacity} places",
+      "children": "{count, plural, one {dont # enfant} other {dont # enfants}}",
+      "tableDiets": "Régimes : {list}",
+      "dietCount": "{label} : {count}",
+      "dietFewer": "{label} : moins de {threshold}",
+      "tableEmpty": "Personne à cette table.",
+      "overCapacity": "Au-delà de sa capacité",
+      "constraintAlert": "Contrainte non tenue",
+      "shape": {
+        "round": "Ronde",
+        "rectangular": "Rectangulaire",
+        "head": "Table d'honneur"
+      },
+      "mealOf": "Repas : {meal}",
+      "mealDefault": "{meal} (par défaut)",
+      "mealChange": "Repas de {name}",
+      "mealSelect": "Type de repas",
+      "mealDefaultOption": "Valeur par défaut (selon l'âge)",
+      "mealSave": "Enregistrer le repas",
+      "alertsTitle": "Alertes ({count})",
+      "alertTogether": "« Ensemble » non tenu : {names} sont à {tables}.",
+      "alertApart": "« Séparés » non tenu : {names} sont ensemble à {table}.",
+      "alertCapacity": "{table} : {occupied} personnes pour {capacity} places.",
+      "alertReleased": "{name} s'est désisté et a quitté {table}.",
+      "alertReleasedNoTable": "{name} s'est désisté et a quitté sa table.",
+      "alertReleasedDismiss": "Effacer l'alerte de {name}",
+      "alertNotInvited": "{name} n'est plus attendu à ce temps fort mais reste placé à {table}.",
+      "alertNotInvitedRemove": "Retirer {name} de sa table",
+      "addTablesTitle": "Ajouter des tables",
+      "addCount": "Nombre de tables",
+      "addShape": "Forme",
+      "addCapacity": "Places par table",
+      "addSubmit": "Ajouter les tables",
+      "namePrefix": "Table",
+      "tablesAdded": "Tables ajoutées.",
+      "editTable": "Modifier {name}",
+      "tableName": "Nom ou numéro",
+      "tableShape": "Forme",
+      "tableCapacity": "Places",
+      "saveTable": "Enregistrer la table",
+      "tableSaved": "Table enregistrée.",
+      "removeTable": "Supprimer {name}",
+      "removeTableHelp": "Ses invités reviennent dans « Non placés ».",
+      "copyTitle": "Copier un plan",
+      "copyHelp": "Reprendre les tables d'un autre temps fort, et les places de ceux qui viennent aussi à celui-ci.",
+      "copyFrom": "Copier depuis",
+      "copySubmit": "Copier le plan",
+      "copied": "{tables, plural, one {# table copiée} other {# tables copiées}}, {seats, plural, =0 {aucune place} one {# place} other {# places}}.",
+      "constraintsTitle": "Contraintes de placement",
+      "constraintsHelp": "Internes à votre équipe : jamais montrées au client, jamais dans une synthèse ni un export. Une contrainte non tenue est signalée, sans bloquer.",
+      "constraintKind": {
+        "together": "Ensemble",
+        "apart": "Séparés"
+      },
+      "constraintLine": "{kind} : {names}",
+      "removeConstraint": "Supprimer la contrainte « {kind} » : {names}",
+      "constraintsNone": "Aucune contrainte.",
+      "addConstraint": "Ajouter une contrainte",
+      "constraintKindLabel": "Nature",
+      "constraintMembers": "Personnes concernées (deux ou plus)",
+      "constraintSubmit": "Ajouter la contrainte",
+      "constraintAdded": "Contrainte ajoutée.",
+      "catererTitle": "Synthèse pour le traiteur",
+      "catererHelp": "Calculée au moment du téléchargement, car les réponses bougent : repas par type, régimes et allergènes, par table. Rien n'est gardé dans Symbola ; chaque téléchargement est noté au journal.",
+      "catererOutside": "La copie envoyée au traiteur sort de Symbola : demandez-lui de la supprimer après l'évènement.",
+      "catererNominativePdf": "PDF nominatif",
+      "catererNominativeCsv": "Tableur nominatif",
+      "catererAggregatePdf": "PDF sans nom",
+      "catererAggregateCsv": "Tableur sans nom",
+      "catererMember": "Vous obtenez la version sans nom, exacte par table ; la version nominative est réservée à la titulaire.",
+      "vendorTitle": "Repas des prestataires",
+      "vendorHelp": "Photographe, DJ… : un nombre pour ce temps fort, sans table.",
+      "vendorCount": "Nombre de repas",
+      "vendorSave": "Enregistrer",
+      "vendorSaved": "Nombre enregistré.",
+      "mealTypesLink": "Types de repas"
+    },
+    "mealTypes": {
+      "title": "Types de repas",
+      "intro": "Les types de repas de la synthèse pour le traiteur. Par défaut, un adulte est servi « Adulte », un enfant « Enfant », un enfant de moins de 3 ans « Bébé » ; changez le type d'un invité sur le plan de table. Masquer n'efface rien.",
+      "unavailable": "Les types de repas sont indisponibles : le module Invités n'est pas ouvert pour votre organisation.",
+      "hidden": "masqué",
+      "show": "Afficher {label}",
+      "hide": "Masquer {label}",
+      "rename": "Renommer {label}",
+      "label": "Libellé",
+      "save": "Enregistrer",
+      "saved": "Libellé enregistré.",
+      "reset": "Reprendre le libellé de départ",
+      "addTitle": "Ajouter un type",
+      "add": "Ajouter",
+      "added": "Type ajouté."
     }
   },
   "MoveToGroup": {

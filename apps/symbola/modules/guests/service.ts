@@ -67,3 +67,4 @@ export {
 export { addMealType, listMealTypes, renameMealType, setGuestMealType, setMealTypeHidden } from "./meal-types";
 export { SeatingInvalidError, SeatingNotFoundError, type SeatingProblem } from "./seating-errors";
 export { buildCatererSummary, catererCsvTable, type CatererCsvLabels } from "./caterer-summary";
+export { renderCatererSummary, type CatererSummaryFile } from "./caterer-summary-render";
