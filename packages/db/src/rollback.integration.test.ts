@@ -235,6 +235,8 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
       await target`insert into events.program_items (organization_id, event_id, start_time, label) values (${organizationId}, ${eventId}, '16:00', 'Cérémonie'), (${organizationId}, ${eventId}, '20:00', 'Dîner')`;
     }
     await migrateAll();
+    // Lot 43 : ses migrations, réappliquées par migrateAll, s'annulent d'abord.
+    for (const tag of LOT_43) await rollback(tag);
     const moments = await target<{ event_id: string; name: string; date: string; auto_created: boolean }[]>`select event_id, name, date::text, auto_created from events.key_moments where organization_id = ${organizationId} order by event_id, date`;
     // Le mariage d'un jour : un temps fort unique créé de lui-même, dans la langue de l'organisation.
     expect(moments.filter((moment) => moment.event_id === single!.id)).toEqual([{ event_id: single!.id, name: "Event day", date: "2027-06-12", auto_created: true }]);
