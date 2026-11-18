@@ -114,7 +114,9 @@ afterAll(async () => {
   await admin.end();
 });
 
-describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", () => {
+// Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
+// défaut (5 s) ne suffit plus sur un poste chargé.
+describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
   it("seule la dernière migration appliquée s'annule", async () => {
     await expect(rollback("0070_lot14_import_vendors")).rejects.toBeInstanceOf(RollbackRefusedError);
     await expect(rollback("0074_lot15_grant_import_jobs")).rejects.toBeInstanceOf(RollbackRefusedError);
