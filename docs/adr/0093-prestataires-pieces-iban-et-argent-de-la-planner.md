@@ -77,6 +77,47 @@ honoraires de la planner, ses commissions et son rôle (intermédiaire ou revend
 7. **Annulation** : 0173 à 0175 refusent tant qu'une pièce, un changement d'IBAN tracé, un IBAN ou
    une note chiffrés existent (rien ne se perd) ; 0176 remet l'IBAN de la planner en clair.
 
+## Décision — 48b (argent et mandat)
+
+8. **Honoraires** (BUD-08, D6) : `quotes.planner_fees`, un réglage par évènement (forfait, pourcentage
+   du budget estimé ou engagé, ou les deux, taux de TVA). Le montant se calcule à la demande
+   (`lib/money/planner-fees.ts`, orchestration budget → devis) et s'ajoute au devis comme une ligne
+   de la planner. Dans le budget du client (écran de la planner et portail), une ligne à part, jamais
+   dans une catégorie ni dans les dépenses. Écart avec la prévision de la spécification : aucune
+   colonne n'est ajoutée au schéma `budget` (le budget lit les honoraires, il ne les stocke pas).
+9. **Commissions** (PRE-07, D6) : `quotes.vendor_commissions` par évènement et prestataire (nature
+   commission ou apport d'affaires, montant ou pourcentage d'une base, statut attendue, facturée,
+   reçue). **Affichées d'office** à un client particulier (et, par prudence, à un non-professionnel)
+   sur le devis, son PDF, le mandat et le portail, sans case pour les masquer ; au choix pour un
+   professionnel. Écart assumé avec le texte de PRE-07 (réponse 4 de l'avocat).
+10. **Facture de commission au prestataire** (D8, réponse 9 de l'expert-comptable) : une ligne de
+    `quotes.invoices` sans devis (`quote_id` et `version_id` vides, `commission_id`), même série et
+    même numéro continu en transaction, même chaîne des pièces (déclencheurs du lot 23b), original
+    Factur-X conservé, destinataire professionnel relu sur la fiche du carnet (raison sociale, SIREN
+    du SIRET, adresse : sinon les mentions manquantes sont nommées). Une seule facture par commission
+    (index unique) ; une commission facturée ne se supprime plus. Limite : l'avoir d'une facture de
+    commission n'est pas encore proposé (à faire avec le lot de la plateforme agréée). Une image
+    antérieure remise par `rollback.sh` après l'émission d'une facture de commission ne la lirait
+    pas : annuler 0177 d'abord est refusé tant qu'elle existe (pièce immuable).
+11. **Intermédiaire ou revendeur** (JUR-10, réponse 4) : `quote_lines.supply_mode`. Une ligne
+    « intermédiaire » n'entre ni dans le total, ni dans la TVA, ni dans les factures de la planner :
+    elle est montrée pour information (écran, PDF, variable du mandat). Revendeur par défaut.
+12. **Seuil de franchise** (JUR-10) : en franchise en base, le chiffre d'affaires facturé de l'année
+    (HT, lignes revendeur comprises) plus le devis non facturé est comparé au seuil des services
+    réglé par l'Admin (`hub.platform_settings`, HUB-23, jamais en dur) ; l'alerte part à la part
+    fixée dans `planner-money.json` (80 %), et signale un dépassement. Question EC-8.
+13. **Forfait touristique** (D7, AV-10) : `quote_lines.tourism_kind` ; règle en données
+    (`planner-money.json` : en revendeur, transport ou hébergement et une autre nature). Le devis
+    l'annonce ; la génération d'un contrat refuse tout modèle qui n'est pas de nature
+    `package_travel` (`contract_templates.kind`), modèle absent des données de départ.
+14. **Mandat et conditions générales** (DOC-02, HUB-26, D7) : deux modèles de départ « à adapter »
+    (`contract-templates.json`, nature `mandate` et `general_terms`), versionnés, datés, avec
+    l'avertissement ; leurs clauses de fond sont des emplacements « [À rédiger avec votre conseil…] »
+    qui bloquent la génération tant qu'ils restent. Le mandat se génère depuis le devis comme le
+    contrat (lot 31b), avec trois variables nouvelles (`devis.honoraires`, `devis.commissions`,
+    `devis.prestations_intermediaires`), listées si elles manquent ; il se signe comme le contrat.
+    Les clauses types de l'avocat attendent son accord (AV-11).
+
 ## Conséquences
 
 - `DATA_ENCRYPTION_KEY` protège désormais aussi les IBAN et les notes confidentielles : perdue, ils

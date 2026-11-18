@@ -338,8 +338,10 @@ prestataire lui est facturée par la planner, dans la même série de factures, 
 - À quelles conditions une dépense refacturée peut-elle sortir de la base de TVA comme **débours**
   (mandat exprès, refacturation au centime près, compte de passage) ?
 - Quelle mention porter alors sur la facture, et faut-il une ligne distincte ?
-- Le chiffre d'affaires refacturé compté pour la franchise est-il bien la somme hors taxes des lignes
-  « revendeur » des factures émises dans l'année civile ?
+- Pour l'alerte au seuil de franchise, Symbola compte le chiffre d'affaires facturé de l'année civile
+  (hors taxes, lignes « revendeur » comprises, intermédiaires exclues) plus le devis non encore
+  facturé, comparé au seuil des prestations de services. Est-ce la bonne assiette, et faut-il le
+  seuil des ventes pour les biens revendus ?
 
 > En attendant : aucun débours ; toute ligne « revendeur » entre dans la base de TVA et dans le
 > chiffre d'affaires compté pour l'alerte.
