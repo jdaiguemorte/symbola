@@ -383,9 +383,10 @@ réglé par Symbola (aucune ne bloque le développement).
 
 ## Question du 18 novembre 2026 (lot 45)
 
-### 21. Relances d'un prospect qui a fait une demande (AV-9)
+### 21. Relances d'un prospect qui a fait une demande (AV-9, tranché)
 
-Numéro à la suite de ceux des lots 44, 47 et 43 (fusionnés avant le lot 45).
+Numéro à la suite de ceux des lots 44, 47 et 43 (fusionnés avant le lot 45). Pour information, sans
+question ouverte.
 
 Après une demande (formulaire de contact, e-mail, téléphone), la planner répond depuis Symbola. Sans
 retour, une relance est préparée à J+3 puis à J+7 (réglable, trois au plus) ; par défaut, la planner
@@ -394,14 +395,11 @@ s'arrêtent dès que la personne répond (geste de la planner), que l'évènemen
 que la personne agit dans Symbola. Chaque relance porte : « Vous ne souhaitez plus de nouvelles ?
 Répondez simplement à ce message. », et la planner a un geste « Ne plus relancer ».
 
-Ces relances sont-elles de la prospection commerciale (consentement préalable, lien de
-désinscription : exigence RGP-17), ou la suite de la demande de la personne, sans ces obligations ?
-La DPO, interrogée le 13/11 sur les relances de devis, y voit de la prospection (accord préalable
-d'un particulier, par une case non précochée au formulaire de demande, et liste d'opposition) ; nous
-souhaitons votre avis sur le cas précis d'une personne qui vient d'écrire pour demander une
-prestation (`docs/QUESTIONS.md`, Q39).
+**Décision de Julien (18/11/2026)** : ces relances ne sont pas de la prospection commerciale. Le
+consentement préalable ne s'impose que si la démarche émane de la planner ; ici, la première approche
+vient toujours des mariés, qui écrivent pour demander une prestation : les relances sont la suite de
+leur demande (RGP-17 reste « Sans objet »). Cette décision s'écarte de l'avis de la DPO (sa réponse
+10), qui y voyait de la prospection (`docs/QUESTIONS.md`, Q39 ; ADR 0090).
 
-> En attendant : la suite de sa demande (RGP-17 reste « Sans objet ») ; la phrase « Répondez
-> simplement » et le geste « Ne plus relancer » sont en place.
-
-Besoin : une réponse **avant la première relance réelle** (elle ne bloque pas le développement).
+Si cette lecture vous semble appeler une réserve, dites-le-nous ; elle n'attend pas de réponse pour
+être mise en œuvre.

@@ -86,9 +86,20 @@ gardait aucun historique et ne pouvait donc pas relancer.
 - La fusion ne se défait pas automatiquement ; la trace permet de la reprendre à la main.
 - Les relances à un prospect qui a fait une demande sont traitées comme la suite de sa demande, pas
   comme de la prospection (RGP-17 « Sans objet ») ; chaque relance porte « Répondez simplement » et la
-  planner peut arrêter les relances. À confirmer par l'avocat (AV-9) : la DPO (sa question 10) y voit
-  de la prospection (accord préalable d'un particulier) ; la contradiction est écrite en Q39, à
-  trancher par Julien avant la première relance réelle.
+  planner peut arrêter les relances. Décision de Julien du 18/11/2026 (Q39) : voir « Écart assumé avec
+  l'avis de la DPO ».
+
+## Écart assumé avec l'avis de la DPO (Q39)
+
+La DPO (réponse 10 du 13/11) classe les relances de devis comme de la prospection : accord préalable
+d'un particulier par une case au formulaire, liste d'opposition par planner. **Julien a décidé le
+18/11/2026 de ne pas suivre cet avis** : le consentement n'est requis que si la démarche émane de la
+planner ; dans le cas d'usage de Symbola, la première approche commerciale vient toujours des mariés,
+qui écrivent pour demander une prestation. Les relances sont donc la suite de leur demande : ni case
+d'accord au formulaire de contact, ni liste d'opposition ; RGP-17 reste « Sans objet ». Le produit
+garde ses garde-fous : relances préparées et validées par la planner (envoi automatique seulement en
+réglage), « Vous ne souhaitez plus de nouvelles ? Répondez simplement. » dans chaque relance, geste
+« Ne plus relancer ». AV-9 passe à l'avocat pour information.
 
 ## Options écartées
 

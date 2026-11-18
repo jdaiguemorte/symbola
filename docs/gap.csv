@@ -311,7 +311,7 @@ RGP-13,RGP,13,P0,Hébergement et sous-traitants dans l'Union européenne,Partiel
 RGP-14,RGP,13,P2,Accord de diffusion des images,Absent,—,—,M,Faible,V2,
 RGP-15,RGP,13,P2,IA sans entraînement ni données sensibles,Sans objet,—,,,,V2,Aucune fonction d'IA
 RGP-16,RGP,13,P0,Mesure d'audience sans traceur,Conforme,apps/symbola/lib/auth-context.ts (cookie de session) ; apps/symbola/app/profil/actions.ts (cookie de langue) ; aucun outil de mesure tiers,,,,,
-RGP-17,RGP,13,P1,Prospection par e-mail conforme,Sans objet,—,,,,45,Aucun envoi commercial aujourd'hui ; s'appliquera avec les relances de prospects
+RGP-17,RGP,13,P1,Prospection par e-mail conforme,Sans objet,—,,,,45,"Lot 45 (Q39 ; ADR 0090) : décision de Julien du 18/11/2026, écart assumé avec la réponse 10 de la DPO. Les relances d'un prospect sont la suite de sa demande (la première approche vient toujours des mariés), pas de la prospection : ni case d'accord au formulaire, ni liste d'opposition. Garde-fous : relances validées par la planner (envoi automatique en réglage), « Répondez simplement » dans chaque relance, geste « Ne plus relancer »."
 RGP-18,RGP,13,P1,Données des enfants invités limitées,Conforme,packages/db/src/schema/guests.ts ; apps/symbola/modules/guests/rsvp.ts ; apps/symbola/modules/guests/guests.integration.test.ts,,S,Moyen,49,"Lot 49 : enfant = prénom et tranche d'âge, aucun contact (contrainte en base), aucun lien (référence composée en base), régime seulement avec la déclaration du représentant légal."
 RGP-19,RGP,13,P1,Analyse d'impact,Absent,—,Pas d'analyse d'impact dans docs/conformite/,M,Moyen,57,Fiche docs/conformite/fiche-dpo.md
 RGP-20,RGP,13,P2,Écran « Mes obligations »,Absent,—,—,M,Faible,V2,
