@@ -5,7 +5,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { answerLinkDecision, DecisionInvalidError } from "@/modules/events/service";
+import { answerLinkDecision, DecisionInvalidError, setLinkOptionFeedback, VendorBriefInvalidError } from "@/modules/events/service";
 import { cancelLinkVendorPaymentDeclaration, declareLinkVendorPayment, LinkBudgetAccessDeniedError, VendorPaymentDeclarationError } from "@/modules/budget/service";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { declarablePaymentMethods } from "./payment-methods";
@@ -181,6 +181,37 @@ export async function setOrderReferenceAction(_prev: OrderReferenceState, formDa
   } catch (error) {
     if (error instanceof InvalidReferenceError) return { error: t("orderReferenceInvalid") };
     if (error instanceof QuoteNotFoundError) return { error: t("orderReferenceError") };
+    throw error;
+  }
+  revalidatePath("/portail");
+  return { success: true };
+}
+
+// Lot 47 (PRE-09 ; D7) — l'avis du client sur une option, avant de choisir : « J'aime », « Pas pour
+// nous », un commentaire court. Session du lien et module vérifiés ; le service revérifie que la
+// décision est de son évènement, ouverte à son lien, et que l'option est dans la sélection figée.
+export type OptionFeedbackState = { error?: string; success?: boolean };
+
+export async function optionFeedbackAction(_prev: OptionFeedbackState, formData: FormData): Promise<OptionFeedbackState> {
+  const t = await getTranslations("Decisions");
+  const access = await currentLinkAccess();
+  if (!access || !(await isEventsModuleEnabled(access.organizationId))) return { error: t("answerGone") };
+  const decisionId = String(formData.get("decisionId") ?? "");
+  const candidateId = String(formData.get("candidateId") ?? "");
+  const opinion = String(formData.get("opinion") ?? "");
+  if (!isValidId(decisionId) || !isValidId(candidateId)) return { error: t("answerGone") };
+  try {
+    await setLinkOptionFeedback({
+      organizationId: access.organizationId,
+      linkId: access.linkId,
+      decisionId,
+      candidateId,
+      opinion: opinion === "like" || opinion === "dislike" ? opinion : null,
+      comment: String(formData.get("comment") ?? ""),
+    });
+  } catch (error) {
+    if (error instanceof VendorBriefInvalidError) return { error: t("answerCommentTooLong") };
+    if (error instanceof LinkAccessDeniedError) return { error: t("answerGone") };
     throw error;
   }
   revalidatePath("/portail");

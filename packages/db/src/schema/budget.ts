@@ -123,7 +123,8 @@ export const budgetLineHistory = budgetSchema.table("budget_line_history", {
     .references(() => budgetLines.id),
   field: budgetLineFieldEnum("field").notNull(),
   oldValueCents: integer("old_value_cents"),
-  newValueCents: integer("new_value_cents").notNull(),
+  // Lot 47 (PAR-05, D6 ; ADR 0085) : nulle quand un engagé est libéré (le prestataire n'est plus retenu).
+  newValueCents: integer("new_value_cents"),
   // Toujours renseigné : l'auteur direct pour un ajustement à la main, ou
   // bookedByUserId (payload events.vendor_slot.booked) pour une mise à
   // jour automatique.

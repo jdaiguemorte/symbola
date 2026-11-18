@@ -4,6 +4,8 @@
 import { z } from "zod";
 import { formatCalendarDate, isTimeZone, parisDaysSince, parisToday } from "@symbola/i18n";
 import { canSetStatus, eventPhase } from "./lifecycle";
+import { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } from "./errors";
+export { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } from "./errors";
 // Lot 34a (EVT-05) : les règles du cycle de vie, pour les écrans et lib/.
 import { getPipeline as getPipelineOf } from "./pipeline";
 import { countRequestsToReview, findNewRequestRows } from "./prospects-repository";
@@ -173,6 +175,7 @@ import type { EmailTemplateKind, EmailValues, TrashedObject } from "@symbola/con
 import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import { answerDecisionRow, findDecisionRow, findDecisionRows, insertDecisionRow, replacementsOf, withdrawDecisionRow, type EventDecisionRow } from "./decisions-repository";
+import { engageOptionChoice, engagementContext } from "./vendor-coordination";
 import { findPendingDecisions, findUncontractedVendors, insertVendorReminder } from "./today-sources";
 import { VendorCandidateNotFoundError as CandidateNotFoundError } from "./vendor-candidates";
 import { answerProblem, DECISION_NOTE_MAX, decisionOpenTo, programChangedSince } from "./decisions";
@@ -745,14 +748,6 @@ export class VendorNameRequiredError extends Error {
   }
 }
 
-// Identifiant inconnu ou appartenant à une autre organisation (masqué
-// par la RLS) : l'appelant affiche « introuvable » plutôt qu'une erreur.
-export class EventNotFoundError extends Error {
-  constructor() {
-    super("événement introuvable");
-    this.name = "EventNotFoundError";
-  }
-}
 
 // Lot 14 (décision I) — coordonnées d'un client : e-mail vérifié, valeurs
 // vides enregistrées comme absentes.
@@ -1886,14 +1881,6 @@ export class EventLinkNotFoundError extends Error {
   }
 }
 
-// Lien absent, retiré ou expiré, rubrique fermée, objet d'un autre événement :
-// même réponse dans tous les cas, sans dire ce qui existe (SEC-13).
-export class LinkAccessDeniedError extends Error {
-  constructor() {
-    super("accès refusé");
-    this.name = "LinkAccessDeniedError";
-  }
-}
 
 const emailSchema = z.email();
 const LINK_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -2440,7 +2427,8 @@ export async function sendClientTaskReminders(organizationId: string, now: Date 
 // Lot 27b (POR-03, BUD-07, EVT-09 ; décisions D9 et D10) — décisions demandées
 // au client. La planner les demande (contenu figé), le client y répond depuis
 // son portail (première réponse), la décision répondue ne se modifie plus : une
-// nouvelle la remplace. Une décision n'engage rien d'elle-même (D9).
+// nouvelle la remplace. Une décision n'engage rien d'elle-même (D9), sauf depuis
+// le lot 47 (D6, ADR 0085) le choix d'une décision « options », qui engage.
 
 export class DecisionInvalidError extends Error {
   constructor(readonly reason: "options" | "expense" | "program" | "date" | "note" | "replace" | "pending" | "choice" | "comment" | "answered") {
@@ -2478,6 +2466,7 @@ function toDecision(row: EventDecisionRow, replacedBy: Map<string, string>, curr
     replacedById: replacedBy.get(row.id) ?? null,
     requestedAt: row.requestedAt.toISOString(),
     programChanged: row.status === "approved" && programChangedSince(snapshot, currentProgram),
+    engagedAt: row.engagedAt?.toISOString() ?? null,
   };
 }
 
@@ -2605,8 +2594,23 @@ export async function answerLinkDecision(input: AnswerDecisionInput): Promise<Ev
   const choiceId = input.choiceId || null;
   const problem = answerProblem(row.snapshot as DecisionSnapshot, { answer: input.answer, choiceId, comment });
   if (problem) throw new DecisionInvalidError(problem);
+  // Lot 47 (PAR-05, PRE-09 ; D6, ADR 0085) : le choix d'une option engage (Retenu, autres Écartés,
+  // tâches de suivi), dans la même transaction que la réponse ; la planner modifie ensuite le prestataire
+  // retenu quand elle veut. Remplace, pour les décisions « options » seulement, la règle D9 du lot 28.
+  const now = new Date();
+  const engaging = row.kind === "option" && input.answer === "approved" && choiceId !== null ? await engagementContext(input.organizationId, row, access.linkId) : null;
   const answered = await withActor({ kind: "link", id: access.linkId }, () =>
-    answerDecisionRow({ organizationId: input.organizationId, decisionId: row.id, status: input.answer, choiceId, comment, linkId: access.linkId, personName: access.personName, now: new Date() }),
+    answerDecisionRow({
+      organizationId: input.organizationId,
+      decisionId: row.id,
+      status: input.answer,
+      choiceId,
+      comment,
+      linkId: access.linkId,
+      personName: access.personName,
+      now,
+      engage: engaging && choiceId ? (tx, answeredRow) => engageOptionChoice(tx, { organizationId: input.organizationId, decision: answeredRow, choiceId, linkId: access.linkId, now, ...engaging }) : undefined,
+    }),
   );
   if (!answered) throw new DecisionInvalidError("answered");
   const [decision] = await decisionsWithContext(input.organizationId, access.eventId, [answered], await findDecisionRows(input.organizationId, access.eventId));
@@ -2646,14 +2650,6 @@ export async function listEventActivity(organizationId: string, eventId: string)
 
 const TRIAL_DURATION_MS = 24 * 60 * 60 * 1000; // essai abandonné supprimé après 24 h (PRD, proposé)
 
-// Action impossible sur un événement d'essai (ex. inviter un marié : jamais
-// d'e-mail à un tiers depuis un essai).
-export class DemoEventRestrictionError extends Error {
-  constructor() {
-    super("action indisponible pendant l'essai");
-    this.name = "DemoEventRestrictionError";
-  }
-}
 
 function toTrial(event: EventRow): EventsTrial {
   return { eventId: event.id, expiresAt: event.demoExpiresAt!.toISOString() };
@@ -3194,3 +3190,51 @@ export async function countProspectRequestsToReview(organizationId: string): Pro
   const result = await countRequestsToReview(organizationId);
   return { count: result.count, oldest: result.oldest ? result.oldest.toISOString() : null };
 }
+
+// --- Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; ADR 0085) : prestataires par lien. ---
+// Le brief d'un poste envoyé à plusieurs prestataires, leur réponse par leur lien, le comparatif et
+// les scénarios, l'avis et le choix du client qui engage, la feuille de route (vendor-coordination.ts).
+export {
+  answerBrief as answerVendorBrief,
+  answerNotices as listVendorAnswerNotices,
+  attachInvoiceByLink as attachVendorInvoiceByLink,
+  attachQuoteByLink as attachVendorQuoteByLink,
+  briefDocumentFile as getLinkVendorBriefDocumentFile,
+  comparison as getVendorComparison,
+  compareScenarios as compareVendorScenarios,
+  confirmRoadmap as confirmVendorRoadmap,
+  consultationView as getVendorConsultationView,
+  createScenario as createVendorScenario,
+  defaultBriefDeadline as getDefaultVendorBriefDeadline,
+  engagedChoiceNotices as listEngagedChoiceNotices,
+  followUps as listVendorFollowUps,
+  getBrief as getVendorBrief,
+  getSettings as getVendorCoordinationSettings,
+  linkOptionFeedback as listLinkOptionFeedback,
+  listScenarios as listVendorScenarios,
+  removeScenario as removeVendorScenario,
+  renameScenario as renameVendorScenario,
+  roadmapAlerts as listVendorRoadmapAlerts,
+  roadmapView as getVendorRoadmapView,
+  saveBrief as saveVendorBrief,
+  saveSettings as saveVendorCoordinationSettings,
+  sendBrief as sendVendorBrief,
+  sendBriefReminders as sendVendorBriefReminders,
+  sendRoadmaps as sendVendorRoadmaps,
+  setOptionFeedback as setLinkOptionFeedback,
+  setScenarioChoice as setVendorScenarioChoice,
+  showScenarioToClients as showVendorScenarioToClients,
+  changeRetained as changeRetainedVendor,
+  VendorBriefInvalidError,
+} from "./vendor-coordination";
+export type {
+  ScenarioComparison,
+  VendorBrief,
+  VendorComparison,
+  VendorComparisonRow,
+  VendorConsultationView,
+  VendorCoordinationSettings,
+  VendorFollowUpStatus,
+  VendorRoadmapView,
+  VendorScenario,
+} from "@symbola/contracts";

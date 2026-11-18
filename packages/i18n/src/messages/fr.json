@@ -1263,6 +1263,18 @@
           "a": "Elle est retrouvée par son e-mail, et sa fiche n'est pas modifiée : ce qu'elle a écrit va dans la demande."
         }
       ]
+    },
+    "vendorCoordination": {
+      "title": "Demander des devis à plusieurs prestataires",
+      "body": "Écrivez le brief du poste (le besoin, le nombre d'invités, un budget indicatif que vous montrez ou non, la date limite, des inspirations), cochez les prestataires, vérifiez la liste, puis envoyez : chacun reçoit son propre e-mail et son lien, sans compte, et ne voit jamais les autres. Ceux qui n'ont pas répondu sont relancés la veille de la date limite. Les réponses arrivent dans le comparatif ; cochez ensuite les propositions à montrer au client et demandez-lui de choisir. Son choix retient le prestataire, écarte les autres et crée les tâches de suivi. Vous modifiez le prestataire retenu quand vous voulez."
+    },
+    "vendorScenarios": {
+      "title": "Comparer des scénarios d'options",
+      "body": "Un scénario choisit au plus un prestataire par poste. Comparez deux scénarios côte à côte : postes en lignes, totaux au centime, écarts en évidence, face à l'enveloppe du client et au budget estimé. Un devis sans montant compte « à préciser ». Montrez un scénario au client : ses prestataires apparaissent dans ses options."
+    },
+    "vendorCoordinationSettings": {
+      "title": "La feuille de route des prestataires",
+      "body": "Réglez la date limite par défaut d'un brief, la relance de la veille, les feuilles de route envoyées à J-30 et à J-7 aux prestataires retenus (chacun confirme d'un toucher), le délai après lequel une feuille non confirmée vous est signalée, et les tâches de suivi créées quand le client choisit un prestataire."
     }
   },
   "Aide": {
@@ -4892,7 +4904,8 @@
     "appointmentTypes": "Types et page de réservation",
     "appointmentAvailability": "Mes disponibilités et agendas",
     "pipelineStages": "Étapes du pipeline",
-    "contactForm": "Formulaire de contact"
+    "contactForm": "Formulaire de contact",
+    "vendorCoordination": "Prestataires par lien"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -5167,7 +5180,15 @@
       "guests_caterer_summary_downloaded": "Synthèse pour le traiteur téléchargée",
       "events_contact_form_updated": "Formulaire de contact réglé",
       "events_prospect_request_received": "Demande reçue par le formulaire de contact",
-      "events_prospect_request_to_review": "Demande mise de côté « à vérifier »"
+      "events_prospect_request_to_review": "Demande mise de côté « à vérifier »",
+      "events_vendor_brief_sent": "Demande de devis envoyée à des prestataires",
+      "events_vendor_brief_reminded": "Prestataire relancé la veille de la date limite",
+      "events_vendor_answered": "Réponse d'un prestataire à une demande de devis",
+      "events_vendor_invoice_received": "Facture déposée par un prestataire",
+      "events_vendor_roadmap_sent": "Feuille de route envoyée à un prestataire",
+      "events_vendor_roadmap_confirmed": "Feuille de route confirmée par un prestataire",
+      "events_decision_engaged": "Choix du client engagé (prestataire retenu, tâches de suivi)",
+      "events_vendor_retention_changed": "Prestataire retenu modifié par l'équipe"
     },
     "categories": {
       "connexion": "Connexions",
@@ -5303,7 +5324,14 @@
       "guests_caterer_summary_downloads": "téléchargement de la synthèse pour le traiteur",
       "events_contact_forms": "formulaire de contact",
       "events_pipeline_stages": "étape du pipeline",
-      "events_prospect_requests": "demande de contact"
+      "events_prospect_requests": "demande de contact",
+      "events_vendor_briefs": "brief d'une demande de devis",
+      "events_vendor_brief_documents": "inspiration d'un brief",
+      "events_vendor_scenarios": "scénario d'options",
+      "events_vendor_scenario_choices": "choix d'un scénario d'options",
+      "events_event_decision_option_feedback": "avis du client sur une option",
+      "events_vendor_roadmaps": "feuille de route d'un prestataire",
+      "events_vendor_coordination_settings": "réglages des prestataires par lien"
     },
     "modules": {
       "events": "Événements",
@@ -5591,7 +5619,15 @@
       "demo": "Pas de décision sur un événement d'essai.",
       "gone": "Cet événement n'est plus disponible.",
       "subject": "Choisissez ce que le client doit décider."
-    }
+    },
+    "engageNotice": "Votre choix est transmis à {planner} ; le contrat se signe directement avec le prestataire.",
+    "feedbackTitle": "Votre avis sur les options : {label}",
+    "feedbackOn": "Votre avis sur {vendor}",
+    "feedbackLike": "J'aime",
+    "feedbackDislike": "Pas pour nous",
+    "feedbackComment": "Un mot sur {vendor} (facultatif)",
+    "feedbackSave": "Enregistrer mon avis sur {vendor}",
+    "feedbackSaved": "Avis enregistré."
   },
   "DayOf": {
     "backToEvent": "Retour à la fiche de l'événement",
@@ -6089,7 +6125,14 @@
       "prospectRequest": "Nouvelle demande : {names}, {when}",
       "prospectRequestNoDate": "Nouvelle demande : {names}",
       "prospectRequestDateTaken": "Date déjà prise",
-      "prospectToReview": "{count, plural, one {Une demande à vérifier} other {# demandes à vérifier}} (formulaire de contact)"
+      "prospectToReview": "{count, plural, one {Une demande à vérifier} other {# demandes à vérifier}} (formulaire de contact)",
+      "vendorAnswer": {
+        "available": "{vendor} est disponible ({slot}), devis à venir",
+        "quote": "{vendor} a envoyé son devis ({slot})",
+        "unavailable": "{vendor} n'est pas disponible ({slot})"
+      },
+      "vendorChoice": "Le client a choisi {vendor} ({slot}) : vérifiez",
+      "vendorRoadmap": "{vendor} n'a pas confirmé sa feuille de route"
     },
     "myEventsTitle": "Mes évènements",
     "myEventsEmpty": "Aucun évènement en cours.",
@@ -6401,7 +6444,10 @@
       "sign": "Signer en ligne",
       "answer": "Répondre",
       "manage": "Reporter ou annuler",
-      "request": "Voir la demande"
+      "request": "Voir la demande",
+      "available": "Je suis disponible",
+      "unavailable": "Je ne suis pas disponible",
+      "roadmap": "Voir ma feuille de route"
     },
     "footerNote": "Envoyé avec Symbola",
     "symbolaFooter": "Symbola — la suite des organisateurs d'évènements",
@@ -6419,7 +6465,9 @@
       "version": "3",
       "place": "en visio : https://visio.exemple.fr/atelier",
       "appointment": "Premier rendez-vous découverte",
-      "appointmentDate": "2 mars 2027 à 10:00"
+      "appointmentDate": "2 mars 2027 à 10:00",
+      "slot": "Fleurs",
+      "deadline": "10 mars 2027"
     },
     "event": {
       "coupleClient": "votre mariage",
@@ -6486,7 +6534,8 @@
       "signatures": "Devis et contrats",
       "program": "Programme",
       "appointments": "Rendez-vous",
-      "prospects": "Demandes de contact"
+      "prospects": "Demandes de contact",
+      "vendors": "Prestataires"
     },
     "kinds": {
       "client_link": {
@@ -6548,6 +6597,18 @@
       "prospect_form_received": {
         "title": "Nouvelle demande de contact",
         "description": "Part à la titulaire à chaque demande reçue par le formulaire de contact, sans le message ni les coordonnées de la personne."
+      },
+      "vendor_brief": {
+        "title": "Demande de devis à un prestataire",
+        "description": "Part à chaque prestataire du brief, avec deux boutons : « Je suis disponible » et « Je ne suis pas disponible »."
+      },
+      "vendor_brief_reminder": {
+        "title": "Relance d'une demande de devis",
+        "description": "Part toute seule la veille de la date limite, aux prestataires qui n'ont pas répondu."
+      },
+      "vendor_roadmap": {
+        "title": "Feuille de route d'un prestataire",
+        "description": "Part toute seule à J-30 et à J-7 à chaque prestataire retenu, avec son lien pour confirmer."
       }
     },
     "variables": {
@@ -6563,7 +6624,11 @@
       "version": "Le numéro de la version du programme",
       "place": "Le lieu : adresse, lien de visio ou téléphone",
       "appointment": "Le type de rendez-vous",
-      "appointment_date": "Le jour et l'heure du rendez-vous"
+      "appointment_date": "Le jour et l'heure du rendez-vous",
+      "slot": "Le poste concerné (« Fleurs », « Photographe »…)",
+      "deadline": "La date limite de réponse du brief",
+      "link_available": "Le lien qui présélectionne « disponible » ; seul sur sa ligne, il devient le bouton « Je suis disponible »",
+      "link_unavailable": "Le lien qui présélectionne « indisponible » ; seul sur sa ligne, il devient le bouton « Je ne suis pas disponible »"
     },
     "back": "Tous les modèles d'e-mails",
     "editorTitle": "{title} ({language})",
@@ -7952,6 +8017,223 @@
       "removeLabel": "Retirer l'étape {stage}",
       "newStage": "Nouvelle étape",
       "add": "Ajouter"
+    }
+  },
+  "VendorCoordination": {
+    "title": "Demander des devis",
+    "pageTitle": "Demander des devis : {slot}",
+    "unavailable": "Cette fonction est indisponible : le module Évènements n'est pas activé.",
+    "back": "Retour à la fiche de l'évènement",
+    "askQuotes": "Demander des devis et comparer",
+    "scenariosLink": "Scénarios d'options",
+    "demoNotice": "Évènement d'essai : aucun e-mail ne part vers un prestataire.",
+    "brief": {
+      "title": "1. Le brief",
+      "need": "Le besoin",
+      "guestCount": "Nombre d'invités (facultatif)",
+      "budget": "Budget indicatif TTC (facultatif)",
+      "showBudget": "Montrer ce budget aux prestataires",
+      "budgetHint": "Masqué par défaut : donner un budget oriente les devis.",
+      "deadline": "Date limite de réponse",
+      "inspirations": "Inspirations (documents de l'évènement)",
+      "noDocuments": "Ajoutez des photos ou documents dans l'onglet Documents pour les joindre comme inspirations.",
+      "save": "Enregistrer le brief",
+      "saved": "Brief enregistré.",
+      "sentAt": "Envoyé le {date}",
+      "fromEvent": "La date ({date}) et les lieux de l'évènement sont repris dans le brief.",
+      "noDate": "date à fixer"
+    },
+    "recipients": {
+      "title": "2. Les prestataires",
+      "intro": "Chacun reçoit son propre e-mail et son lien personnel ; personne ne voit les autres.",
+      "none": "Aucun prestataire à consulter pour ce poste : ajoutez-en un.",
+      "name": "Nom de la personne chez {vendor}",
+      "email": "E-mail de {vendor}",
+      "alreadySent": "Déjà consulté : un nouvel envoi remplace son lien.",
+      "review": "Vérifier les destinataires",
+      "reviewTitle": "{count, plural, one {Le brief part à # prestataire} other {Le brief part à # prestataires}}",
+      "reviewIntro": "Vérifiez la liste : un e-mail par prestataire, sans copie.",
+      "send": "{count, plural, one {Envoyer à # prestataire} other {Envoyer aux # prestataires}}",
+      "sent": "{count, plural, one {Brief envoyé à # prestataire.} other {Brief envoyé à # prestataires.}}",
+      "saveBriefFirst": "Enregistrez d'abord le brief.",
+      "addTitle": "Ajouter un prestataire à consulter",
+      "addFromBookHint": "Ajouter un prestataire à consulter (ou depuis le carnet, onglet Budget)",
+      "addName": "Nom du prestataire",
+      "add": "Ajouter",
+      "added": "Prestataire ajouté."
+    },
+    "compare": {
+      "title": "3. Le comparatif",
+      "empty": "Les réponses des prestataires apparaîtront ici.",
+      "caption": "Réponses des prestataires pour {slot}",
+      "vendor": "Prestataire",
+      "answer": "Réponse",
+      "amount": "Montant TTC",
+      "quote": "Devis",
+      "message": "Message",
+      "answeredAt": "Répondu le",
+      "notes": "Notes et avis",
+      "available": "Disponible",
+      "unavailable": "Indisponible",
+      "waiting": "En attente",
+      "reminded": "Relancé, en attente",
+      "otherChosen": "Écarté (un autre choisi)",
+      "toBeSpecified": "à préciser",
+      "openQuote": "Ouvrir le devis de {vendor}",
+      "feedbackLike": "{name} aime {comment}",
+      "feedbackDislike": "{name} : pas pour nous {comment}",
+      "feedbackComment": "{name} : {comment}"
+    },
+    "share": {
+      "title": "4. Proposer au client",
+      "intro": "Cochez les propositions à montrer : le client les voit dans son espace (jamais votre carnet ni les autres), donne son avis et choisit.",
+      "needTwo": "Il faut au moins deux propositions pour demander un choix.",
+      "legend": "Propositions montrées au client",
+      "note": "Un mot pour le client (facultatif)",
+      "dueOn": "Réponse souhaitée avant le (facultatif)",
+      "submit": "Demander un choix au client",
+      "sent": "Demande envoyée au client.",
+      "pending": "Choix demandé le {date}, en attente de réponse."
+    },
+    "engaged": {
+      "someone": "Le client",
+      "body": "{name} a choisi {vendor} le {date} : le prestataire est retenu, les autres sont écartés (sans e-mail) et les tâches de suivi sont créées."
+    },
+    "followUp": {
+      "stage": {
+        "j30": "J-30",
+        "j7": "J-7"
+      },
+      "sent": "Feuille de route {stage} envoyée le {date}, pas encore confirmée",
+      "confirmed": "Feuille de route {stage} confirmée le {date}",
+      "invoice": "Facture déposée par {vendor}",
+      "noLink": "Pas de lien prestataire : la feuille de route ne peut pas lui être envoyée."
+    },
+    "scenarios": {
+      "title": "Scénarios d'options",
+      "intro": "Composez des scénarios (au plus un prestataire par poste) et comparez-en deux côte à côte.",
+      "compareTitle": "Deux scénarios côte à côte",
+      "left": "Scénario de gauche",
+      "right": "Scénario de droite",
+      "compare": "Comparer",
+      "slot": "Poste",
+      "total": "Total TTC",
+      "gap": "Écart",
+      "pending": "{count, plural, one {# devis à préciser} other {# devis à préciser}}",
+      "envelope": "Enveloppe du client : {amount}",
+      "noEnvelope": "Pas d'enveloppe du client",
+      "estimated": "budget estimé : {amount}",
+      "needTwo": "Créez deux scénarios pour les comparer.",
+      "noCandidates": "Ajoutez d'abord des prestataires consultés aux postes.",
+      "choiceFor": "{slot} dans « {scenario} »",
+      "none": "Aucun",
+      "choose": "Choisir",
+      "show": "Montrer « {scenario} » au client",
+      "remove": "Supprimer « {scenario} »",
+      "newTitle": "Nouveau scénario",
+      "name": "Nom du scénario",
+      "create": "Créer le scénario",
+      "created": "Scénario créé.",
+      "tableLabel": "Totaux des scénarios, poste par poste"
+    },
+    "settings": {
+      "title": "Prestataires par lien",
+      "intro": "Les délais des demandes de devis, des relances et des feuilles de route, et les tâches créées quand le client choisit un prestataire.",
+      "deadlineDays": "Date limite par défaut d'un brief (jours)",
+      "reminder": "Relancer la veille de la date limite ceux qui n'ont pas répondu",
+      "roadmapMonth": "Envoyer la feuille de route à J-30",
+      "roadmapWeek": "Envoyer la feuille de route à J-7",
+      "alertDays": "Me prévenir sans confirmation après J-7 (jours)",
+      "tasksTitle": "Tâches de suivi créées au choix du client",
+      "tasksHint": "« '{{prestataire}}' » est remplacé par le nom du prestataire choisi ; l'échéance compte en jours après le choix. Laissez un nom vide pour retirer une tâche.",
+      "taskLabel": "Tâche {index}",
+      "taskDays": "Échéance de la tâche {index} (jours)",
+      "resetTasks": "Revenir à la liste de départ",
+      "save": "Enregistrer",
+      "saved": "Réglages enregistrés.",
+      "ownerOnly": "Seule la titulaire du compte peut changer ces réglages."
+    },
+    "errors": {
+      "unauthorized": "Action impossible : rechargez la page.",
+      "need": "Décrivez le besoin (4 000 caractères au plus).",
+      "deadline": "Indiquez une date limite valable.",
+      "guests": "Le nombre d'invités doit être un nombre entier.",
+      "budget": "Le montant n'est pas lisible.",
+      "documents": "Une inspiration n'appartient pas à cet évènement.",
+      "slot": "Ce poste n'existe plus.",
+      "recipients": "Choisissez au moins un prestataire de ce poste.",
+      "missing": "Enregistrez d'abord le brief.",
+      "email": "Indiquez un nom et une adresse e-mail valable pour chaque prestataire coché.",
+      "settings": "Vérifiez les réglages (délais et tâches).",
+      "name": "Indiquez un nom.",
+      "changed": "La liste a changé : vérifiez-la de nouveau avant d'envoyer.",
+      "demo": "Évènement d'essai : aucun e-mail ne part vers un prestataire.",
+      "quota": "Le plafond d'e-mails de l'heure est atteint : réessayez plus tard.",
+      "scenarioName": "Donnez un nom au scénario (120 caractères au plus).",
+      "shareTwo": "Cochez au moins deux propositions.",
+      "sharePending": "Un choix est déjà demandé pour ce poste."
+    },
+    "retained": {
+      "title": "Le prestataire retenu",
+      "current": "Retenu : {vendors}",
+      "none": "Aucun prestataire retenu pour ce poste.",
+      "label": "Prestataire retenu",
+      "nobody": "Personne",
+      "submit": "Modifier le prestataire retenu",
+      "hint": "Modifiable à tout moment. L'engagé du budget suit le nouveau devis (ou est libéré) ; les tâches de suivi non commencées de l'ancien prestataire sont retirées, celles commencées restent. Pour redemander un choix au client, ne retenez personne puis proposez de nouveau."
+    }
+  },
+  "VendorAnswer": {
+    "title": "Demande de devis : {slot}",
+    "helpTitle": "Votre réponse en une minute",
+    "helpBody": "Lisez le besoin, puis répondez d'un toucher. Si vous êtes disponible, joignez la photo ou le PDF de votre devis. Aucun compte, aucun mot de passe : ce lien vous est réservé.",
+    "briefTitle": "Le brief",
+    "eventOf": "Évènement de {clients}",
+    "eventUnnamed": "Évènement",
+    "dateUnset": "date à fixer",
+    "guests": "{count, plural, one {# invité} other {# invités}}",
+    "budget": "Budget indicatif : {amount} TTC",
+    "deadline": "Réponse attendue avant le {date}",
+    "inspirations": "Inspirations",
+    "question": "Êtes-vous disponible ?",
+    "available": "Je suis disponible",
+    "unavailable": "Je ne suis pas disponible",
+    "confirmAvailable": "Confirmer : je suis disponible",
+    "confirmUnavailable": "Confirmer : je ne suis pas disponible",
+    "preselectedAvailable": "Vous avez choisi « disponible » dans l'e-mail : confirmez d'un toucher.",
+    "preselectedUnavailable": "Vous avez choisi « pas disponible » dans l'e-mail : confirmez d'un toucher.",
+    "closed": "Le choix a été fait : la réponse n'est plus possible.",
+    "depositTitle": "Votre devis",
+    "depositIntro": "Prenez votre devis en photo ou joignez le PDF.",
+    "quoteFile": "Photo ou PDF du devis",
+    "amount": "Montant TTC (facultatif)",
+    "message": "Un message court (facultatif)",
+    "sendQuote": "Envoyer mon devis",
+    "depositLater": "Vous pouvez revenir plus tard avec le même lien.",
+    "thanksQuote": "Merci, votre devis est transmis.",
+    "thanksUnavailable": "Merci de votre réponse : vous n'êtes pas disponible.",
+    "changeMind": "Changer ma réponse",
+    "declinedTitle": "Merci",
+    "declinedBody": "Merci de votre réponse : un autre choix a été fait pour cet évènement.",
+    "invoiceTitle": "Votre facture",
+    "invoiceIntro": "Déposez votre facture ici (photo ou PDF).",
+    "invoiceReceived": "Facture reçue le {date}. Vous pouvez en déposer une nouvelle.",
+    "invoiceFile": "Photo ou PDF de la facture",
+    "sendInvoice": "Envoyer ma facture",
+    "invoiceSent": "Merci, votre facture est transmise.",
+    "invoiceLabel": "Facture de {name}",
+    "roadmapTitle": "Votre feuille de route",
+    "onSiteContacts": "Contacts sur place",
+    "confirmRoadmap": "J'ai bien reçu",
+    "roadmapConfirmed": "Reçue, confirmé le {date}.",
+    "errors": {
+      "closed": "Ce lien ne permet plus cette action.",
+      "fileMissing": "Choisissez un fichier.",
+      "amount": "Le montant n'est pas lisible.",
+      "message": "Le message est trop long (1 000 caractères au plus).",
+      "tooLarge": "Le fichier est trop lourd (20 Mo au plus).",
+      "infected": "Le fichier a été refusé par l'antivirus.",
+      "unsupported": "Seules une photo ou un PDF sont acceptés."
     }
   }
 }
