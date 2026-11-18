@@ -246,7 +246,8 @@
     "success": "Préférences enregistrées.",
     "securityTitle": "Sécurité du compte",
     "securityBody": "Votre mot de passe, vos clés d'accès et votre double authentification se gèrent dans votre espace de connexion.",
-    "securityLink": "Ouvrir mon espace de connexion"
+    "securityLink": "Ouvrir mon espace de connexion",
+    "sessionsLink": "Mes sessions : les appareils connectés à mon compte"
   },
   "Settings": {
     "title": "Paramètres",

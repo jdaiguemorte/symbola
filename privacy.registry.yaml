@@ -1892,3 +1892,44 @@ fields:
       par la titulaire (elle peut nommer la planner). Tant que l'organisation existe.
     anonymization: >-
       Remplacée par le texte de départ quand la titulaire la vide.
+  # Lot 52 (HUB-04, HUB-05, EVT-06, SEC-08 ; ADR 0094).
+  - schema: events
+    table: event_links
+    field: phone
+    category: contact
+    retention: >-
+      Lot 52 (EVT-06, D3) : téléphone facultatif du renfort du jour J, montré dans l'annuaire du jour à
+      l'équipe et au renfort ; gardé avec le lien, purgé avec l'évènement.
+    anonymization: >-
+      Le lien du renfort est supprimé avec l'évènement (purge, oubli) ; son nom et son e-mail suivent les
+      règles des liens personnels (person_name, email).
+  - schema: hub
+    table: sessions
+    field: device_label
+    category: securite
+    retention: >-
+      Lot 52 (HUB-05, D4) : navigateur et système de l'appareil (deux clés, sans version), montrés dans
+      « Mes sessions » ; gardés tant que la session vit (huit heures sans activité). Ni adresse IP ni
+      ville.
+    anonymization: >-
+      Supprimé avec la session (expiration, fermeture, révocation, suppression du compte).
+  - schema: hub
+    table: known_devices
+    field: device_label
+    category: securite
+    retention: >-
+      Lot 52 (SEC-08) : appareil déjà vu pour un compte (identifiant aléatoire du cookie, navigateur et
+      système), pour reconnaître une connexion depuis un nouvel appareil ; oublié 30 jours après sa
+      dernière activité (purge horaire).
+    anonymization: >-
+      Supprimé avec le compte (cascade) ou par la purge des 30 jours.
+  - schema: hub
+    table: identity_change_alerts
+    field: previous_email
+    category: contact
+    retention: >-
+      Lot 52 (SEC-08, D6) : ancienne adresse d'un compte dont l'adresse a changé chez le fournisseur
+      d'identité, gardée seulement jusqu'à l'envoi de l'alerte qui part vers elle ; la ligne reste 30
+      jours sans adresse.
+    anonymization: >-
+      Effacée à l'envoi de l'alerte ; la ligne est supprimée après 30 jours, ou avec le compte (cascade).

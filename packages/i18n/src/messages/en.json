@@ -246,7 +246,8 @@
     "success": "Preferences saved.",
     "securityTitle": "Account security",
     "securityBody": "Your password, passkeys and two-step verification are managed in your sign-in space.",
-    "securityLink": "Open my sign-in space"
+    "securityLink": "Open my sign-in space",
+    "sessionsLink": "My sessions: the devices signed in to my account"
   },
   "Settings": {
     "title": "Settings",

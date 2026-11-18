@@ -137,9 +137,9 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await migrateAll();
     const organizationId = randomUUID();
     await target`insert into hub.organizations (id, name) values (${organizationId}, 'Atelier')`;
-    const [{ all_planners_see_all_events: seeAll }] = await target<{ all_planners_see_all_events: boolean }[]>`select all_planners_see_all_events from hub.organizations where id = ${organizationId}`;
+    const [visibility] = await target<{ all_planners_see_all_events: boolean }[]>`select all_planners_see_all_events from hub.organizations where id = ${organizationId}`;
     // D2 : activé par défaut, rien ne change pour la pilote.
-    expect(seeAll).toBe(true);
+    expect(visibility!.all_planners_see_all_events).toBe(true);
     const [owner] = await target<{ id: string }[]>`insert into hub.users (email) values (${`p-${organizationId}@example.test`}) returning id`;
     const [accountant] = await target<{ id: string }[]>`insert into hub.users (email) values (${`c-${organizationId}@example.test`}) returning id`;
     await target`insert into hub.memberships (user_id, organization_id, role) values (${owner!.id}, ${organizationId}, 'owner'), (${accountant!.id}, ${organizationId}, 'accountant')`;
