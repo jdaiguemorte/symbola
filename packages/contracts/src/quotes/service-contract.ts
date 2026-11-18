@@ -267,6 +267,11 @@ export type SellerSnapshot = {
   postalCode?: string | null;
   city?: string | null;
   countryCode?: string | null;
+  // Lot 41 (JUR-02, JUR-12 ; D10, D11) : sur le devis d'un professionnel, son délai et son escompte ;
+  // option pour la TVA sur les débits active au jour de l'envoi (assujetti), figés à l'envoi.
+  // discountTerms null : l'escompte de départ des données (« Néant »), dans la langue du document.
+  professionalTerms?: { paymentTermDays: number; endOfMonth: boolean; discountTerms: string | null } | null;
+  vatOnDebits?: boolean | null;
 };
 
 export type QuoteVersionView = {

@@ -43,6 +43,8 @@ type Plan = {
   // Ce que l'exécution modifie (fiches anonymisées seulement).
   signerIds: string[];
   lineIds: string[];
+  // Lot 41 (JUR-02, JUR-13) : devis dont l'adresse de livraison et les références d'achat s'effacent.
+  buyerQuoteIds: string[];
   // Lot 31a : versions dont le nom de qui a choisi les options s'efface.
   choiceVersionIds: string[];
   // Lot 31b : contrats dont le texte s'efface, actes dont le nom s'efface.
@@ -63,7 +65,7 @@ async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise
 }
 
 async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
-  const plan: Plan = { items: [], signerIds: [], lineIds: [], choiceVersionIds: [], contractIds: [], actIds: [], catalogItemIds: [], invoiceIds: [], creditNoteIds: [], receiptIds: [], expiredRequestIds: [] };
+  const plan: Plan = { items: [], signerIds: [], lineIds: [], buyerQuoteIds: [], choiceVersionIds: [], contractIds: [], actIds: [], catalogItemIds: [], invoiceIds: [], creditNoteIds: [], receiptIds: [], expiredRequestIds: [] };
   const anonymized = (kind: string, recordId: string) => plan.items.push({ kind, recordId, fate: "anonymized", legalBasis: null, keptUntil: null });
 
   // Factures et avoirs réels : conservés dix ans (réglage) à compter de l'émission.
@@ -156,7 +158,10 @@ async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
     for (const quoteId of designatedQuotes) {
       const until = quoteProofUntil(quoteId);
       if (until) plan.items.push({ kind: "quote", recordId: quoteId, fate: "kept", legalBasis: "contract_proof", keptUntil: until });
-      else anonymized("quote", quoteId);
+      else {
+        anonymized("quote", quoteId);
+        plan.buyerQuoteIds.push(quoteId);
+      }
     }
     for (const signer of signers) {
       if (!signerIds.includes(signer.id) && !quoteRequestIds.includes(signer.requestId)) continue;
@@ -238,6 +243,9 @@ export async function eraseQuotesData(input: ErasureInput): Promise<ErasurePlanI
       await tx.update(quoteSigners).set({ name: ANONYMIZED, email: anonymizedEmail(), billingAddress: ANONYMIZED, signingUrl: "" }).where(eq(quoteSigners.id, signerId));
     }
     if (plan.lineIds.length > 0) await tx.update(quoteLines).set({ description: ANONYMIZED }).where(inArray(quoteLines.id, plan.lineIds));
+    if (plan.buyerQuoteIds.length > 0) {
+      await tx.update(quotes).set({ deliveryAddress: null, clientOrderReference: null, buyerReference: null }).where(inArray(quotes.id, plan.buyerQuoteIds));
+    }
     if (plan.choiceVersionIds.length > 0) {
       await tx
         .update(quoteVersions)
@@ -258,13 +266,21 @@ export async function eraseQuotesData(input: ErasureInput): Promise<ErasurePlanI
     // l'acheteur change, dans une transaction qui le déclare (ADR 0024).
     if (plan.invoiceIds.length + plan.creditNoteIds.length + plan.receiptIds.length > 0) {
       await tx.execute(rawSql`SET LOCAL app.retention_anonymization = 'on'`);
+      // Lot 41 : l'acheteur entreprise perd aussi ses identifiants et son adresse ; la copie de la
+      // réforme, son adresse de livraison (seule exception permise par le déclencheur).
       const anonymizedBuyers = (snapshot: unknown) =>
-        (Array.isArray(snapshot) ? (snapshot as InvoiceBuyer[]) : []).map((buyer) => ({ ...buyer, name: ANONYMIZED, billingAddress: ANONYMIZED }));
+        (Array.isArray(snapshot) ? (snapshot as InvoiceBuyer[]) : []).map((buyer) => ({
+          ...buyer,
+          name: ANONYMIZED,
+          billingAddress: ANONYMIZED,
+          ...(buyer.kind === "company" ? { siren: null, vatNumber: null, address: null } : {}),
+        }));
+      const withoutDelivery = (reform: unknown) => (reform && typeof reform === "object" ? { ...(reform as Record<string, unknown>), deliveryAddress: null } : reform);
       for (const invoice of plan.invoiceIds.length > 0 ? await tx.select().from(invoices).where(inArray(invoices.id, plan.invoiceIds)) : []) {
-        await tx.update(invoices).set({ buyerSnapshot: anonymizedBuyers(invoice.buyerSnapshot) }).where(eq(invoices.id, invoice.id));
+        await tx.update(invoices).set({ buyerSnapshot: anonymizedBuyers(invoice.buyerSnapshot), reformSnapshot: withoutDelivery(invoice.reformSnapshot) }).where(eq(invoices.id, invoice.id));
       }
       for (const note of plan.creditNoteIds.length > 0 ? await tx.select().from(creditNotes).where(inArray(creditNotes.id, plan.creditNoteIds)) : []) {
-        await tx.update(creditNotes).set({ buyerSnapshot: anonymizedBuyers(note.buyerSnapshot) }).where(eq(creditNotes.id, note.id));
+        await tx.update(creditNotes).set({ buyerSnapshot: anonymizedBuyers(note.buyerSnapshot), reformSnapshot: withoutDelivery(note.reformSnapshot) }).where(eq(creditNotes.id, note.id));
       }
       for (const receipt of plan.receiptIds.length > 0 ? await tx.select().from(earnestReceipts).where(inArray(earnestReceipts.id, plan.receiptIds)) : []) {
         await tx.update(earnestReceipts).set({ buyerSnapshot: anonymizedBuyers(receipt.buyerSnapshot) }).where(eq(earnestReceipts.id, receipt.id));

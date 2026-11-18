@@ -2479,7 +2479,11 @@
     "pdfPaymentTermEndOfMonth": "Payment term: {days} days end of month.",
     "pdfDiscountTerms": "Early payment discount: {terms}.",
     "facturxLineDiscount": "Line discount",
-    "facturxFranchiseReason": "VAT not applicable, art. 293 B of the French General Tax Code"
+    "facturxFranchiseReason": "VAT not applicable, art. 293 B of the French General Tax Code",
+    "pdfOrderReference": "Purchase order",
+    "pdfBuyerReference": "Buyer reference",
+    "pdfDeliveryAddress": "Delivery: {address}",
+    "pdfOperationCategory": "Category of the transaction: {category}."
   },
   "ClientSpace": {
     "title": "My wedding",

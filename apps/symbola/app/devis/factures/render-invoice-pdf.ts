@@ -8,7 +8,7 @@ import { createTranslator } from "next-intl";
 import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import type { Locale } from "@symbola/i18n";
-import { starterDocumentStyle } from "@symbola/starter-templates";
+import { starterDocumentStyle, starterLatePenalty } from "@symbola/starter-templates";
 import type { CreditNoteView, InvoiceView } from "@/modules/quotes/service";
 import { loadDocumentLogo } from "@/lib/document-logo";
 import { pdfSafe } from "@/lib/pdf-text";
@@ -45,6 +45,7 @@ export async function renderInvoicePdf(organizationId: string, invoice: InvoiceV
       defaultColor,
       logo: await loadDocumentLogo(organizationId, invoice.seller.logoKey),
       watermark: invoice.isDemo ? watermark : null,
+      latePenalty: starterLatePenalty(),
     }),
   );
 }

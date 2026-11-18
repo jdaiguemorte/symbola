@@ -2479,7 +2479,11 @@
     "pdfPaymentTermEndOfMonth": "Délai de paiement : {days} jours fin de mois.",
     "pdfDiscountTerms": "Escompte pour paiement anticipé : {terms}.",
     "facturxLineDiscount": "Remise sur la ligne",
-    "facturxFranchiseReason": "TVA non applicable, art. 293 B du CGI"
+    "facturxFranchiseReason": "TVA non applicable, art. 293 B du CGI",
+    "pdfOrderReference": "Bon de commande",
+    "pdfBuyerReference": "Référence de l'acheteur",
+    "pdfDeliveryAddress": "Livraison : {address}",
+    "pdfOperationCategory": "Catégorie de l'opération : {category}."
   },
   "ClientSpace": {
     "title": "Mon mariage",

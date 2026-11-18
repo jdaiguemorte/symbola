@@ -348,6 +348,8 @@ export { EventNotFoundError };
 export { latePenaltySentence, professionalTermsText } from "./payment-terms";
 // Lot 17 : numéros des documents d'exemple de l'écran Documents (aucun rang consommé).
 export { formatDocumentNumber } from "./amounts";
+// Lot 41 (JUR-02, D9) : catégorie de l'opération déduite des natures des lignes (PDF du devis).
+export { operationCategory } from "./reform";
 // Lot 37b (DOC-12, ADR 0071) : la part du module au relevé de stockage (tailles manquantes lues une fois).
 export { measureQuotesStorage } from "./storage-usage";
 export {
@@ -829,15 +831,28 @@ async function currentSeller(organizationId: string, settings: QuoteSettingsRow 
 // En-tête et apparence courants d'un devis en brouillon (PDF, aperçu) : ce
 // que figera son envoi.
 // Lot 31c (D18) : pour un client professionnel, ses conditions de paiement et le taux des pénalités.
-export async function currentQuoteSeller(organizationId: string, clientKind?: ClientKind): Promise<SellerSnapshot> {
+// Lot 41 (JUR-02, JUR-12 ; D10, D11) : l'option sur les débits du jour et, face à un professionnel,
+// son délai et son escompte.
+export async function currentQuoteSeller(organizationId: string, clientKind?: ClientKind, now: Date = new Date()): Promise<SellerSnapshot> {
   const settings = await findQuoteSettings(organizationId);
-  return withPaymentTerms(await currentSeller(organizationId, settings, "quote"), settings, clientKind);
+  const profile = await withDb((db) => getOrganizationProfile(db, organizationId));
+  const seller = withPaymentTerms(await currentSeller(organizationId, settings, "quote"), settings, clientKind);
+  return { ...seller, vatOnDebits: vatOnDebitsOn(profile, parisDate(now)) === true };
 }
 
 function withPaymentTerms(seller: SellerSnapshot, settings: QuoteSettingsRow | null, clientKind: ClientKind | undefined): SellerSnapshot {
   if (clientKind !== "professional") return seller;
   const terms = paymentTermsFor(termsSettings(settings), clientKind);
-  return { ...seller, paymentTerms: terms.text, latePenaltyRate: terms.latePenaltyRate };
+  return {
+    ...seller,
+    paymentTerms: terms.text,
+    latePenaltyRate: terms.latePenaltyRate,
+    professionalTerms: {
+      paymentTermDays: settings?.professionalPaymentTermDays ?? DEFAULT_SETTINGS.professionalPaymentTermDays!,
+      endOfMonth: settings?.professionalPaymentTermEndOfMonth ?? false,
+      discountTerms: settings?.professionalDiscountTerms ?? null,
+    },
+  };
 }
 
 // Exemple de facture de l'écran Documents : vendeur et apparence courants.
@@ -1637,7 +1652,7 @@ export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
   const aggregate = await findQuoteAggregate(input.organizationId, input.quoteId);
   if (!aggregate) throw new QuoteNotFoundError();
   // Lot 31c (D18) : le devis d'un professionnel fige ses conditions de paiement et le taux choisi.
-  const seller = await currentQuoteSeller(input.organizationId, aggregate.quote.clientKind);
+  const seller = await currentQuoteSeller(input.organizationId, aggregate.quote.clientKind, now);
   // Lot 31a (FAC-07, JUR-01, JUR-08 ; D4, D5) : mentions requises et acompte ou arrhes, nommés.
   const missing = await quoteMissingMentions(input.organizationId, input.quoteId);
   if (missing.length > 0) throw new RequiredMentionsMissingError(missing);
