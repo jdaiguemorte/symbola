@@ -5,7 +5,7 @@
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { getEventProgram, listEventPlaces, listEvents, listEventTasks, listVendorCandidates } from "@/modules/events/service";
+import { getEventProgram, listEventPlaces, listKeyMoments, listEvents, listEventTasks, listVendorCandidates } from "@/modules/events/service";
 import { findVendors } from "@/modules/vendors/service";
 import { addMinutes, loadRecette, percentages, recetteEmail, RecetteRefusedError } from "./load";
 
@@ -50,11 +50,16 @@ describe("DAT-10 — Jeu fictif chargeable en une commande", { timeout: 120_000 
     const florists = (await listVendorCandidates(ids["ORG-01"], wedding.id)).filter((candidate) => ["Élodie Perrin Fleurs", "Atelier Verveine", "Les Fleurs du Causse"].includes(candidate.vendorName));
     expect(florists.map((candidate) => candidate.status).sort()).toEqual(["dismissed", "quote_received", "quote_received"]);
     expect((await findVendors({ organizationId: ids["ORG-01"] })).map((vendor) => vendor.name)).toContain("Domaine des Tilleuls");
-    // Lot 29a (rejeu de SC-08) : le déroulé du 12 juin devient le programme (24 séquences ;
-    // le brunch du lendemain n'en est pas), avec le lieu, l'e-mail des mariés et les
-    // prestataires consultés rattachés à leur fiche (coordonnées du jour J).
+    // Lot 29a (rejeu de SC-08) : le déroulé devient le programme, avec le lieu, l'e-mail des
+    // mariés et les prestataires consultés rattachés à leur fiche (coordonnées du jour J). Lot 51
+    // (EVT-04) : 28 séquences sur deux jours, rangées sous les trois temps forts du jeu (24 le 12 juin,
+    // 4 le 13 : navette de la nuit, brunch, démontage).
     const program = await getEventProgram(ids["ORG-01"], wedding.id);
-    expect(program.items).toHaveLength(24);
+    expect(program.items).toHaveLength(28);
+    const moments = await listKeyMoments(ids["ORG-01"], wedding.id);
+    expect(moments.map((moment) => [moment.name, moment.date])).toEqual([["Cérémonie laïque", "2027-06-12"], ["Dîner", "2027-06-12"], ["Brunch", "2027-06-13"]]);
+    const momentName = (label: string) => moments.find((moment) => moment.id === program.items.find((item) => item.label === label)!.keyMomentId)!.name;
+    expect([momentName("Accès du domaine, livraison du mobilier"), momentName("Cérémonie laïque"), momentName("Plat"), momentName("Démontage et restitution du domaine")]).toEqual(["Cérémonie laïque", "Cérémonie laïque", "Dîner", "Brunch"]);
     expect(program.items.find((item) => item.label === "Cérémonie laïque")).toMatchObject({ startTime: "15:30" });
     expect((await listEventPlaces(ids["ORG-01"], wedding.id)).map((place) => place.label)).toEqual(["Domaine des Tilleuls"]);
     expect(wedding.clients.map((client) => client.email)).toEqual([expect.stringMatching(/^lea\.martin\+.+@exemple\.test$/), expect.stringMatching(/^maxime\.dubois\+.+@exemple\.test$/)]);

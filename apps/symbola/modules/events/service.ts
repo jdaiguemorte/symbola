@@ -2327,7 +2327,8 @@ export async function getVendorLinkView(organizationId: string, linkId: string):
     version: published.version ? { number: published.version.number, publishedAt: published.version.publishedAt } : null,
     ...vendorProgramOf(published.version?.items ?? [], vendor.vendorSlotId),
     isNew: published.isNew,
-    dayShift: dayShift && published.version && dayShift.programVersion === published.version.number ? { minutes: dayShift.minutes, validatedAt: dayShift.validatedAt } : null,
+    // Présent seulement quand un décalage du jour J concerne la version affichée.
+    ...(dayShift && published.version && dayShift.programVersion === published.version.number ? { dayShift: { minutes: dayShift.minutes, validatedAt: dayShift.validatedAt } } : {}),
   };
   return {
     vendorName: vendor.vendorName,
