@@ -227,3 +227,53 @@ CREATE POLICY organization_isolation ON "guests"."caterer_summary_downloads"
   WITH CHECK (organization_id = current_setting('app.organization_id', true)::uuid);
 --> statement-breakpoint
 GRANT SELECT, INSERT, UPDATE, DELETE ON "guests"."caterer_summary_downloads" TO symbola_app;
+--> statement-breakpoint
+-- DAT-06 et SEC-19 (lot 23a) : auteur de chaque ligne, suppressions journalisées (une purge en
+-- masse écrit sa ligne de synthèse, app.audit_bulk).
+CREATE TRIGGER "meal_types_stamp" BEFORE INSERT OR UPDATE ON "guests"."meal_types"
+  FOR EACH ROW EXECUTE FUNCTION "core"."stamp_row"();
+--> statement-breakpoint
+CREATE TRIGGER "meal_types_journal_deletion" BEFORE DELETE ON "guests"."meal_types"
+  FOR EACH ROW EXECUTE FUNCTION "core"."journal_deletion"();
+--> statement-breakpoint
+CREATE TRIGGER "seating_plans_stamp" BEFORE INSERT OR UPDATE ON "guests"."seating_plans"
+  FOR EACH ROW EXECUTE FUNCTION "core"."stamp_row"();
+--> statement-breakpoint
+CREATE TRIGGER "seating_plans_journal_deletion" BEFORE DELETE ON "guests"."seating_plans"
+  FOR EACH ROW EXECUTE FUNCTION "core"."journal_deletion"();
+--> statement-breakpoint
+CREATE TRIGGER "seating_tables_stamp" BEFORE INSERT OR UPDATE ON "guests"."seating_tables"
+  FOR EACH ROW EXECUTE FUNCTION "core"."stamp_row"();
+--> statement-breakpoint
+CREATE TRIGGER "seating_tables_journal_deletion" BEFORE DELETE ON "guests"."seating_tables"
+  FOR EACH ROW EXECUTE FUNCTION "core"."journal_deletion"();
+--> statement-breakpoint
+CREATE TRIGGER "seat_assignments_stamp" BEFORE INSERT OR UPDATE ON "guests"."seat_assignments"
+  FOR EACH ROW EXECUTE FUNCTION "core"."stamp_row"();
+--> statement-breakpoint
+CREATE TRIGGER "seat_assignments_journal_deletion" BEFORE DELETE ON "guests"."seat_assignments"
+  FOR EACH ROW EXECUTE FUNCTION "core"."journal_deletion"();
+--> statement-breakpoint
+CREATE TRIGGER "seating_constraints_stamp" BEFORE INSERT OR UPDATE ON "guests"."seating_constraints"
+  FOR EACH ROW EXECUTE FUNCTION "core"."stamp_row"();
+--> statement-breakpoint
+CREATE TRIGGER "seating_constraints_journal_deletion" BEFORE DELETE ON "guests"."seating_constraints"
+  FOR EACH ROW EXECUTE FUNCTION "core"."journal_deletion"();
+--> statement-breakpoint
+CREATE TRIGGER "seating_constraint_members_stamp" BEFORE INSERT OR UPDATE ON "guests"."seating_constraint_members"
+  FOR EACH ROW EXECUTE FUNCTION "core"."stamp_row"();
+--> statement-breakpoint
+CREATE TRIGGER "seating_constraint_members_journal_deletion" BEFORE DELETE ON "guests"."seating_constraint_members"
+  FOR EACH ROW EXECUTE FUNCTION "core"."journal_deletion"();
+--> statement-breakpoint
+CREATE TRIGGER "vendor_meal_counts_stamp" BEFORE INSERT OR UPDATE ON "guests"."vendor_meal_counts"
+  FOR EACH ROW EXECUTE FUNCTION "core"."stamp_row"();
+--> statement-breakpoint
+CREATE TRIGGER "vendor_meal_counts_journal_deletion" BEFORE DELETE ON "guests"."vendor_meal_counts"
+  FOR EACH ROW EXECUTE FUNCTION "core"."journal_deletion"();
+--> statement-breakpoint
+CREATE TRIGGER "caterer_summary_downloads_stamp" BEFORE INSERT OR UPDATE ON "guests"."caterer_summary_downloads"
+  FOR EACH ROW EXECUTE FUNCTION "core"."stamp_row"();
+--> statement-breakpoint
+CREATE TRIGGER "caterer_summary_downloads_journal_deletion" BEFORE DELETE ON "guests"."caterer_summary_downloads"
+  FOR EACH ROW EXECUTE FUNCTION "core"."journal_deletion"();
