@@ -1263,6 +1263,7 @@ export const vendorCoordinationSettings = eventsSchema.table("vendor_coordinatio
   check("vendor_coordination_settings_deadline_check", sql`${table.briefDeadlineDays} between 1 and 60`),
   check("vendor_coordination_settings_alert_check", sql`${table.roadmapAlertDays} between 1 and 6`),
 ]);
+
 // Lot 45 (CRM-05, CRM-06, CRM-03 ; D1 à D3 ; ADR 0090) — les messages échangés avec le contact d'un
 // évènement, rangés dans son historique : une réponse de la planner (« reply », depuis un modèle),
 // une relance (« follow_up »), un questionnaire envoyé (« questionnaire ») ; et deux faits notés par

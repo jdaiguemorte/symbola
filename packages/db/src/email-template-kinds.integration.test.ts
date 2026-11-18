@@ -53,6 +53,9 @@ describe("PAR-05 (lot 47) — Natures des modèles d'e-mails des prestataires", 
 
   it("une nature voisine inconnue reste refusée", async () => {
     expect(await refusal("vendor_briefs")).toBe("email_templates_kind_check");
+  });
+});
+
 describe("MSG-01 (lot 45, D9) — Natures « réponse », « relance » et « questionnaire envoyé »", () => {
   it("prospect_reply, prospect_follow_up et questionnaire_sent sont admises ; une nature voisine reste refusée", async () => {
     expect(await refusal("prospect_reply")).toBe("accepté");

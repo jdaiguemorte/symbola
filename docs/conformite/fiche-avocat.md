@@ -342,6 +342,7 @@ contrat se signe directement avec le prestataire. »
 
 Si cette lecture vous semble appeler une réserve, dites-le-nous ; elle n'attend pas de réponse
 pour être mise en œuvre.
+
 ## Question du 18 novembre 2026 (lot 45)
 
 ### 19. Relances d'un prospect qui a fait une demande (AV-9)
