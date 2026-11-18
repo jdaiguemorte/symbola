@@ -21,6 +21,8 @@ export const BUSINESS_RULE_FILES = [
   "modules/events/task-reminders.ts",
   "modules/events/lifecycle.ts",
   "modules/events/decisions.ts",
+  // Lot 46 (RDV-02) : calcul des créneaux libres.
+  "modules/appointments/slots.ts",
 ];
 
 export default defineConfig({

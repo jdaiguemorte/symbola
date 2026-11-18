@@ -23,5 +23,10 @@
     "paquet": "lightningcss-<plateforme>",
     "licence": "MPL-2.0",
     "usage": "Binaire natif de lightningcss pour la plateforme de construction, employé sans modification."
+  },
+  {
+    "paquet": "ical.js",
+    "licence": "MPL-2.0",
+    "usage": "Lecture des agendas extérieurs au format iCalendar (lot 46, ADR 0080) : répétitions, exceptions et fuseaux ; employée sans modification, telle que publiée."
   }
 ]

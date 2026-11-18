@@ -66,6 +66,9 @@ importers:
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4(gel@2.2.1)(postgres@3.4.9)
+      ical.js:
+        specifier: 2.2.1
+        version: 2.2.1
       lucide-react:
         specifier: ^1.67.0
         version: 1.67.0(@types/react@19.3.0)(react@19.0.0)
@@ -2352,6 +2355,9 @@ packages:
 
   hyphen@1.6.6:
     resolution: {integrity: sha512-XtqmnT+b9n5MX+MsqluFAVTIenbtC25iskW0Z+jLd+awfhA+ZbWKWQMIvLJccGoa2bM1R6juWJ27cZxIFOmkWw==}
+
+  ical.js@2.2.1:
+    resolution: {integrity: sha512-yK/UlPbEs316igb/tjRgbFA8ZV75rCsBJp/hWOatpyaPNlgw0dGDmU+FoicOcwX4xXkeXOkYiOmCqNPFpNPkQg==}
 
   icu-minify@4.14.9:
     resolution: {integrity: sha512-PmO+fNnC3K3mfPKTnm3RrPERrhQZnjm1AlpyZQ0ShbXi8Y/kYZ3YOde8TEjCLz9k3P2DmzkBn8lykGrCAi1Ajw==}
@@ -4778,6 +4784,8 @@ snapshots:
   html-escaper@2.0.2: {}
 
   hyphen@1.6.6: {}
+
+  ical.js@2.2.1: {}
 
   icu-minify@4.14.9:
     dependencies:

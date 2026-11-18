@@ -55,6 +55,10 @@ async function startScheduledTasks() {
     // Lot 27a (CHR-04) : rappels par e-mail des tâches confiées au client.
     const { scheduleClientTaskReminders } = await import("./lib/client-task-reminders");
     scheduleClientTaskReminders();
+    // Lot 46 (RDV-02, RDV-03 ; D2, D10 ; ADR 0080) : agendas extérieurs relus toutes les quinze minutes,
+    // rappels des rendez-vous.
+    const { scheduleAppointmentJobs } = await import("./lib/appointment-jobs");
+    scheduleAppointmentJobs();
     // Lot 31b (FAC-05, D6) : factures d'acompte émises d'elles-mêmes (fin du délai de rétractation).
     const { scheduleDepositInvoiceIssuance } = await import("./lib/deposit-invoices");
     scheduleDepositInvoiceIssuance();

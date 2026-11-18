@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_source": "Lot 38a (MSG-01, D3, D5, D6 ; ADR 0072) : textes de départ des e-mails que l'organisation adresse aux tiers. Variables entre doubles accolades, en français ({{prénom}}) ou en anglais ({{first_name}}) ; un paragraphe fait du seul lien devient un bouton. La planner les remplace dans Paramètres › Modèles d'e-mails. Les textes de départ n'emploient que des variables toujours renseignées (aucun e-mail ne part avec une variable vide). Repris des textes des lots 26 à 31 ; l'exemplaire signé garde le sens validé par l'avocat (réponse 1, lot 31b).",
+  "_source": "Lot 38a (MSG-01, D3, D5, D6 ; ADR 0072) : textes de départ des e-mails que l'organisation adresse aux tiers. Variables entre doubles accolades, en français ({{prénom}}) ou en anglais ({{first_name}}) ; un paragraphe fait du seul lien devient un bouton. La planner les remplace dans Paramètres › Modèles d'e-mails. Les textes de départ n'emploient que des variables toujours renseignées (aucun e-mail ne part avec une variable vide). Repris des textes des lots 26 à 31 ; l'exemplaire signé garde le sens validé par l'avocat (réponse 1, lot 31b). Lot 46 (RDV-03, D10 ; ADR 0080) : confirmation (avec l'invitation .ics), rappel, report et annulation d'un rendez-vous, côté personne qui a pris rendez-vous.",
   "templates": {
     "fr": {
       "client_link": {
@@ -22,6 +22,22 @@
       "task_reminder": {
         "subject": "Vos prochaines tâches pour {{évènement}}",
         "body": "Bonjour {{prénom}},\n\nVoici ce qui vous attend pour {{évènement}} :\n{{tâches}}\n\nPour cocher une tâche, ouvrez votre espace avec le lien personnel reçu par e-mail. Vous ne le retrouvez pas ? Demandez-en un nouveau à {{organisation}}.\n\nVous ne souhaitez plus recevoir ces rappels ? Dites-le à {{organisation}}.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "appointment_confirmed": {
+        "subject": "Rendez-vous confirmé : {{rendez_vous}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\nVotre rendez-vous « {{rendez_vous}} » est confirmé le {{date_rendez_vous}}.\n\nLieu : {{lieu}}\n\nL'invitation est jointe à cet e-mail pour votre agenda. Pour reporter ou annuler, sans compte, ouvrez votre lien :\n\n{{lien}}\n\nCe lien vous est réservé : ne le transférez pas.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "appointment_reminder": {
+        "subject": "Rappel : {{rendez_vous}} le {{date_rendez_vous}}",
+        "body": "Bonjour {{prénom}},\n\nPetit rappel : votre rendez-vous « {{rendez_vous}} » avec {{organisation}} a lieu le {{date_rendez_vous}}.\n\nLieu : {{lieu}}\n\nUn empêchement ? Reportez ou annulez depuis votre lien :\n\n{{lien}}\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "appointment_rescheduled": {
+        "subject": "Rendez-vous déplacé : {{rendez_vous}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\nVotre rendez-vous « {{rendez_vous}} » a lieu désormais le {{date_rendez_vous}}.\n\nLieu : {{lieu}}\n\nLa nouvelle invitation est jointe à cet e-mail. Pour reporter de nouveau ou annuler :\n\n{{lien}}\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "appointment_cancelled": {
+        "subject": "Rendez-vous annulé : {{rendez_vous}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\nVotre rendez-vous « {{rendez_vous}} » du {{date_rendez_vous}} est annulé.\n\nPour en prendre un autre, répondez à cet e-mail ou écrivez à {{organisation}}.\n\nÀ bientôt,\n{{organisation}}"
       },
       "quote_signature": {
         "subject": "Devis {{numéro_devis}} à signer — {{organisation}}",
@@ -64,6 +80,22 @@
       "task_reminder": {
         "subject": "Your next tasks for {{event}}",
         "body": "Hello {{first_name}},\n\nHere is what is coming up for {{event}}:\n{{tasks}}\n\nTo tick a task, open your space with the personal link you received by e-mail. Can't find it? Ask {{organization}} for a new one.\n\nYou no longer wish to receive these reminders? Just tell {{organization}}.\n\nSee you soon,\n{{organization}}"
+      },
+      "appointment_confirmed": {
+        "subject": "Appointment confirmed: {{appointment}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\nYour appointment “{{appointment}}” is confirmed for {{appointment_date}}.\n\nWhere: {{place}}\n\nThe invitation for your calendar is attached to this email. To reschedule or cancel, with no account needed, open your link:\n\n{{link}}\n\nThis link is for you only: please do not forward it.\n\nSee you soon,\n{{organization}}"
+      },
+      "appointment_reminder": {
+        "subject": "Reminder: {{appointment}} on {{appointment_date}}",
+        "body": "Hello {{first_name}},\n\nA quick reminder: your appointment “{{appointment}}” with {{organization}} is on {{appointment_date}}.\n\nWhere: {{place}}\n\nSomething came up? Reschedule or cancel from your link:\n\n{{link}}\n\nSee you soon,\n{{organization}}"
+      },
+      "appointment_rescheduled": {
+        "subject": "Appointment moved: {{appointment}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\nYour appointment “{{appointment}}” now takes place on {{appointment_date}}.\n\nWhere: {{place}}\n\nThe new invitation is attached to this email. To reschedule again or cancel:\n\n{{link}}\n\nSee you soon,\n{{organization}}"
+      },
+      "appointment_cancelled": {
+        "subject": "Appointment cancelled: {{appointment}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\nYour appointment “{{appointment}}” on {{appointment_date}} is cancelled.\n\nTo book another one, reply to this email or write to {{organization}}.\n\nSee you soon,\n{{organization}}"
       },
       "quote_signature": {
         "subject": "Quote {{quote_number}} to sign — {{organization}}",

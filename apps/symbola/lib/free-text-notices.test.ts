@@ -22,6 +22,8 @@ const NOTICED: Record<string, { file: string; name: string }> = {
   "events.event_task_comments.body": { file: "app/events/[id]/task-extra-forms.tsx", name: "body" },
   "hub.privacy_requests.extension_reason": { file: "app/rgpd/demandes/request-forms.tsx", name: "reason" },
   "quotes.payment_entries.reason": { file: "app/devis/[quoteId]/schedule-forms.tsx", name: "reason" },
+  // Lot 46 (EVT-10) : le compte rendu d'un rendez-vous.
+  "appointments.appointment_reports.notes": { file: "app/rendez-vous/[id]/page.tsx", name: "notes" },
 };
 
 // Aussi mis en garde, bien que rangés autrement au registre : la note d'un contact, le motif d'une perte.
@@ -58,6 +60,10 @@ const WITHOUT_ENTRY: Record<string, string> = {
   "vendors.vendors.indicative_prices": "tarifs indicatifs du prestataire",
   "vendors.vendors.field_values": "valeurs des champs propres au type de prestataire",
   "events.event_decisions.comment": "réponse du client sur son portail ; la mise en garde s'adresse à l'équipe",
+  // Lot 46 (RDV-01, RGP-04).
+  "appointments.appointments.answers": "réponses de la personne sur la page publique de réservation : sa propre mise en garde (Appointments.public.freeTextNotice) suit les questions",
+  "appointments.appointment_report_actions.label": "libellé court d'une action du compte rendu (« Envoyer trois lieux »)",
+  "appointments.availability_closures.reason": "motif court d'un jour fermé (80 caractères)",
 };
 
 function freeTextFields(): string[] {
