@@ -22,6 +22,9 @@ import {
   eventDocuments,
   eventDocumentVersions,
   programVersions,
+  contactForms,
+  pipelineStages,
+  prospectRequests,
   eventLinkSharedSlots,
   eventClients,
   events,
@@ -621,6 +624,53 @@ describe("PRD-EVT-01/02 — Isolation entre organisations (module events, Postgr
         return { affectedRows: updated.length };
       },
     });
+  });
+
+  it("SEC-10, lot 44 — une organisation ne voit, ne renomme ni ne supprime jamais les étapes du pipeline d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [row] = await tx.insert(pipelineStages).values({ organizationId, label: "Nouvelle demande" }).returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(pipelineStages)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) => tx.update(pipelineStages).set({ label: "falsifiée" }).where(eq(pipelineStages.id, targetRow.id)).returning());
+        const deleted = await withOrganization(db, organizationId, (tx) => tx.delete(pipelineStages).where(eq(pipelineStages.id, targetRow.id)).returning());
+        return { affectedRows: updated.length + deleted.length };
+      },
+    });
+  });
+
+  it("SEC-10, lot 44 — une organisation ne voit, ne modifie ni ne supprime jamais les demandes de contact d'une autre", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [row] = await tx.insert(prospectRequests).values({ organizationId, state: "to_review", message: "Bonjour", pending: { firstName: "Léa" } }).returning();
+          if (!row) throw new Error("insertion attendue, aucune ligne renvoyée");
+          return row;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(prospectRequests)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) => tx.update(prospectRequests).set({ message: "falsifié" }).where(eq(prospectRequests.id, targetRow.id)).returning());
+        const deleted = await withOrganization(db, organizationId, (tx) => tx.delete(prospectRequests).where(eq(prospectRequests.id, targetRow.id)).returning());
+        return { affectedRows: updated.length + deleted.length };
+      },
+    });
+  });
+
+  it("SEC-10, lot 44 — le formulaire de contact se lit par son adresse publique, mais ne se modifie ni ne se supprime par une autre organisation, ni ne s'écrit en son nom", async () => {
+    const a = randomUUID();
+    const b = randomUUID();
+    const [form] = await withOrganization(db, a, (tx) => tx.insert(contactForms).values({ organizationId: a, slug: `atelier-${a.slice(0, 8)}` }).returning());
+    const fromB = await withOrganization(db, b, (tx) => tx.select({ id: contactForms.id }).from(contactForms).where(eq(contactForms.id, form!.id)));
+    // Exception écrite (migration 0159) : la ligne, sans donnée personnelle, se lit pour retrouver l'adresse.
+    expect(fromB).toHaveLength(1);
+    const updated = await withOrganization(db, b, (tx) => tx.update(contactForms).set({ active: true, allowedOrigins: ["https://pirate.test"] }).where(eq(contactForms.id, form!.id)).returning());
+    const deleted = await withOrganization(db, b, (tx) => tx.delete(contactForms).where(eq(contactForms.id, form!.id)).returning());
+    expect(updated.length + deleted.length).toBe(0);
+    await expect(withOrganization(db, b, (tx) => tx.insert(contactForms).values({ organizationId: a, slug: `pirate-${b.slice(0, 8)}` }))).rejects.toThrow();
   });
 
   it("SEC-10, lot 37b — une organisation ne voit ni ne supprime jamais les versions diffusées du programme d'une autre ; une version ne se modifie pas", async () => {

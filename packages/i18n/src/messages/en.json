@@ -6268,7 +6268,8 @@
     "button": {
       "space": "Open my space",
       "sign": "Sign online",
-      "answer": "Reply"
+      "answer": "Reply",
+      "request": "View the request"
     },
     "footerNote": "Sent with Symbola",
     "symbolaFooter": "Symbola — the suite for event organisers",

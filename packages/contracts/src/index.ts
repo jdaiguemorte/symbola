@@ -403,3 +403,5 @@ export {
 } from "./trash";
 // Lot 49 (module Invités, ADR 0083) : contrat interne du module.
 export * from "./guests/service-contract";
+// Lot 44 (CRM-01, CRM-02 ; ADR 0084) : formulaire de contact public et pipeline en colonnes.
+export * from "./events/pipeline";

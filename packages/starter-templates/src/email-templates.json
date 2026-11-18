@@ -50,6 +50,10 @@
       "guest_reminder": {
         "subject": "Petit rappel : {{clients}} attendent votre réponse",
         "body": "Bonjour {{prénom}},\n\nVous n'avez pas encore répondu à l'invitation de {{clients}} pour leur {{évènement}}, le {{date_évènement}}. Les réponses sont attendues jusqu'au {{valable_jusqu_au}} inclus ; une minute suffit, avec votre lien personnel :\n\n{{lien}}\n\nCe lien vous est réservé : ne le transférez pas.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "prospect_form_received": {
+        "subject": "Nouvelle demande de contact",
+        "body": "Bonjour,\n\nUne nouvelle demande vient d'arriver par le formulaire de contact de {{organisation}}.\n\nPour la lire et y répondre, ouvrez-la dans Symbola :\n\n{{lien}}\n\nCet e-mail ne contient ni le message ni les coordonnées de la personne : ils restent dans Symbola."
       }
     },
     "en": {
@@ -100,6 +104,10 @@
       "guest_reminder": {
         "subject": "Friendly reminder: {{clients}} are waiting for your reply",
         "body": "Hello {{first_name}},\n\nYou have not yet replied to the invitation from {{clients}} to their {{event}}, on {{event_date}}. Replies are expected until {{valid_until}} included; one minute is enough, with your personal link:\n\n{{link}}\n\nThis link is for you only: please do not forward it.\n\nSee you soon,\n{{organization}}"
+      },
+      "prospect_form_received": {
+        "subject": "New contact request",
+        "body": "Hello,\n\nA new request has just arrived through the contact form of {{organization}}.\n\nTo read it and reply, open it in Symbola:\n\n{{link}}\n\nThis email contains neither the message nor the person's contact details: they stay in Symbola."
       }
     }
   }

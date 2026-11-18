@@ -836,6 +836,9 @@ export const EMAIL_TEMPLATE_KINDS = [
   // Lot 49 (INV-03, INV-04 ; D4, D10) : invitation à répondre et relance des invités.
   "guest_invitation",
   "guest_reminder",
+  // Lot 44 (CRM-01 ; D7) : « Nouvelle demande de contact », à la titulaire, sans le message ni les
+  // coordonnées du prospect.
+  "prospect_form_received",
 ] as const;
 
 export const emailTemplates = hubSchema.table(
@@ -856,7 +859,7 @@ export const emailTemplates = hubSchema.table(
   (table) => [
     index("email_templates_organization_idx").on(table.organizationId),
     unique("email_templates_kind_locale_unique").on(table.organizationId, table.kind, table.locale),
-    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder')`),
+    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'prospect_form_received')`),
     check("email_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
     check("email_templates_subject_check", sql`char_length(${table.subject}) between 1 and 200`),
     check("email_templates_body_check", sql`char_length(${table.body}) between 1 and 5000`),

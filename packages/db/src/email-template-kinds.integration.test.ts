@@ -35,3 +35,10 @@ describe("MSG-01 (lot 49) — Natures des modèles d'e-mails", () => {
     expect(await refusal("guest_invitations")).toBe("email_templates_kind_check");
   });
 });
+
+describe("MSG-01 (lot 44, D7) — Nature « Nouvelle demande de contact »", () => {
+  it("prospect_form_received est admise ; une nature voisine reste refusée", async () => {
+    expect(await refusal("prospect_form_received")).toBe("accepté");
+    expect(await refusal("prospect_form")).toBe("email_templates_kind_check");
+  });
+});
