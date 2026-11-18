@@ -1065,6 +1065,13 @@
       "when": 1794980285584,
       "tag": "0151_lot46_grant_appointments",
       "breakpoints": true
+    },
+    {
+      "idx": 152,
+      "version": "7",
+      "when": 1794982349328,
+      "tag": "0152_lot46_hub_email_template_kinds",
+      "breakpoints": true
     }
   ]
 }

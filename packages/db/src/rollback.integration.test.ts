@@ -51,7 +51,7 @@ const rollback = async (tag: string) => {
 };
 
 // Lots 26a à 29b : migrations au-dessus de celles du 28, annulées pour revenir à 0108.
-const LOT_46 = ["0151_lot46_grant_appointments", "0150_lot46_appointments"];
+const LOT_46 = ["0152_lot46_hub_email_template_kinds", "0151_lot46_grant_appointments", "0150_lot46_appointments"];
 const LOT_40B = ["0149_lot40b_hub_jobs"];
 const LOT_39B = ["0148_lot39b_hub_form_drafts"];
 const LOT_39A = ["0147_lot39a_budget_soft_delete", "0146_lot39a_quotes_soft_delete", "0145_lot39a_hub_soft_delete", "0144_lot39a_events_soft_delete"];
@@ -121,11 +121,27 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     const [appointment] = await target<{ id: string }[]>`insert into appointments.appointments (organization_id, type_name, host_user_id, starts_at, ends_at, location_kind, origin, person_name) values (${organizationId}, 'Découverte', ${randomUUID()}, '2027-03-02T09:00:00Z', '2027-03-02T10:00:00Z', 'video', 'manual', 'Léa') returning id`;
     await expect(target`update appointments.appointments set status = 'cancelled' where id = ${appointment!.id}`).rejects.toThrow(/appointments_cancel_check/);
     await rollback(LOT_46[0]!);
-    await expect(rollback(LOT_46[1]!)).rejects.toThrow(/des rendez-vous existent/);
-    await target`update appointments.appointments set is_demo = true where id = ${appointment!.id}`;
     await rollback(LOT_46[1]!);
+    await expect(rollback(LOT_46[2]!)).rejects.toThrow(/des rendez-vous existent/);
+    await target`update appointments.appointments set is_demo = true where id = ${appointment!.id}`;
+    await rollback(LOT_46[2]!);
     const [schema] = await target<{ name: string | null }[]>`select to_regnamespace('appointments')::text as name`;
     expect(schema!.name).toBeNull();
+    await migrateAll();
+  });
+
+  it("lot 46 (RDV-03 ; ADR 0080) — 0152 : les natures des e-mails de rendez-vous sont acceptées, une nature inconnue reste refusée ; l'annulation est refusée tant qu'un modèle de rendez-vous existe, puis revient à la liste d'avant", async () => {
+    await migrateAll();
+    const organizationId = randomUUID();
+    const template = (kind: string) => target`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, ${kind}, 'fr', 'Objet', 'Texte')`;
+    await template("appointment_confirmed");
+    await template("client_link");
+    await expect(template("appointment_inconnu")).rejects.toThrow(/email_templates_kind_check/);
+    await expect(template("guest_invitation")).rejects.toThrow(/email_templates_kind_check/);
+    await expect(rollback(LOT_46[0]!)).rejects.toThrow(/modèles d'e-mails de rendez-vous personnalisés/);
+    await target`delete from hub.email_templates where organization_id = ${organizationId} and kind = 'appointment_confirmed'`;
+    await rollback(LOT_46[0]!);
+    await expect(template("appointment_reminder")).rejects.toThrow(/email_templates_kind_check/);
     await migrateAll();
   });
 

@@ -12,7 +12,7 @@ import { eventTasks } from "@symbola/db/schema/events";
 import { jobs } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 import { createProspect, createProspectSource } from "@/modules/events/service";
-import { findContactByEmail, setModuleEnabled } from "@/modules/hub/service";
+import { findContactByEmail, saveEmailTemplate, setModuleEnabled } from "@/modules/hub/service";
 import type { Transport } from "./ics-reader";
 import {
   addAppointmentReportAction,
@@ -212,6 +212,16 @@ describe("RDV-03 — Confirmation, rappels, report et annulation par lien", () =
     expect(mail!.Subject).toContain("Rendez-vous confirmé");
     expect(mail!.Text).toContain("/rdv#");
     expect(mail!.Attachments.map((attachment) => attachment.FileName)).toContain("invitation.ics");
+  });
+
+  it("un modèle de confirmation réécrit par l'organisation (migration 0152) s'enregistre et sert à la confirmation", async () => {
+    const context = await organization();
+    await saveEmailTemplate({ organizationId: context.organizationId, kind: "appointment_confirmed", locale: "fr", subject: "C'est réservé : {{rendez_vous}}", body: "Bonjour {{prénom}},\n\nÀ très vite le {{date_rendez_vous}}.\n\n{{lien}}" });
+    const who = person();
+    await book(context, TEN, who);
+    const [mail] = await mailsTo(who.email);
+    expect(mail!.Subject).toBe("C'est réservé : Découverte");
+    expect(mail!.Text).toContain("À très vite le 1 mars 2027 à 10:00");
   });
 
   it("report et annulation sans compte depuis le lien ; un autre lien ou une autre organisation : la même réponse qu'un lien inconnu", async () => {

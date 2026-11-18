@@ -12,17 +12,9 @@ export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "
   { key: "reminders", module: "events", kinds: ["task_reminder"] },
   { key: "program", module: "events", kinds: ["program_published"] },
   { key: "signatures", module: "quotes", kinds: ["quote_signature", "contract_signature", "order_first", "signed_copy"] },
+  // Lot 46 (RDV-03, D10 ; migration 0152) : e-mails d'un rendez-vous, côté personne qui l'a pris.
+  { key: "appointments", module: "appointments", kinds: ["appointment_confirmed", "appointment_reminder", "appointment_rescheduled", "appointment_cancelled"] },
 ];
-
-// Lot 46 (RDV-03, D10) : les e-mails d'un rendez-vous (confirmé, rappel, déplacé, annulé) partent de
-// leur texte de départ. Ils ne sont pas encore proposés ici : la contrainte de la table
-// hub.email_templates (migration 0142) ne connaît pas leurs natures, et la modifier touche le schéma
-// du hub (accord demandé). Il suffira d'ajouter ce groupe à la liste ci-dessus avec la migration.
-export const APPOINTMENT_EMAIL_TEMPLATE_GROUP = { key: "appointments", module: "appointments", kinds: ["appointment_confirmed", "appointment_reminder", "appointment_rescheduled", "appointment_cancelled"] } as const satisfies {
-  key: string;
-  module: TemplateModule;
-  kinds: EmailTemplateKind[];
-};
 
 // La langue du modèle affiché : celle demandée (?langue=), sinon celle de l'écran.
 export function templateLocale(requested: string | undefined, interfaceLocale: string): EmailLocale {

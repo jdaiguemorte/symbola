@@ -836,7 +836,8 @@ export const emailTemplates = hubSchema.table(
   (table) => [
     index("email_templates_organization_idx").on(table.organizationId),
     unique("email_templates_kind_locale_unique").on(table.organizationId, table.kind, table.locale),
-    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published')`),
+    // Lot 46 (migration 0152, accord de Julien du 18/11) : natures des e-mails de rendez-vous.
+    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published')`),
     check("email_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
     check("email_templates_subject_check", sql`char_length(${table.subject}) between 1 and 200`),
     check("email_templates_body_check", sql`char_length(${table.body}) between 1 and 5000`),
