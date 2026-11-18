@@ -1892,3 +1892,55 @@ fields:
       par la titulaire (elle peut nommer la planner). Tant que l'organisation existe.
     anonymization: >-
       Remplacée par le texte de départ quand la titulaire la vide.
+  # Lot 53 (HUB-15, UX-16, ARC-09 ; D3, D4 ; ADR 0095, ADR 0096 ; DPO-10) : notifications de l'équipe et
+  # abonnements push. Les services de push des navigateurs (Apple, Google, Mozilla) ne reçoivent qu'un
+  # message chiffré (la sorte en mots et un chemin de l'app), son heure et sa durée de vie : destinataires
+  # techniques (docs/conformite/sous-traitants.md).
+  - schema: hub
+    table: notifications
+    field: user_id
+    category: identifiant
+    retention: >-
+      Lot 53 (HUB-15) : la personne de l'équipe destinataire (identifiant). Effacée avec la notification,
+      90 jours après sa création (notifications.json), ou avec le compte.
+    anonymization: >-
+      Supprimée avec la notification ou le compte (clé étrangère, suppression en cascade).
+  - schema: hub
+    table: notifications
+    field: params
+    category: contenu_libre
+    retention: >-
+      Lot 53 (HUB-15, UX-16) : libellés courts de la notification (numéro de devis, intitulé de tâche ou de
+      décision, montant) ; jamais d'adresse, de téléphone ni de message. Montrés dans l'application et le
+      corps d'un e-mail à l'équipe seulement ; jamais dans un push ni dans l'objet d'un e-mail (SEC-20).
+      Effacés 90 jours après la création de la notification.
+    anonymization: >-
+      Supprimés avec la notification (purge quotidienne) ou avec le compte destinataire.
+  - schema: hub
+    table: push_subscriptions
+    field: endpoint
+    category: identifiant
+    retention: >-
+      Lot 53 (ARC-09, D4 ; DPO-10) : adresse du service de push du navigateur d'un appareil (donnée
+      technique). Supprimée à la désactivation du push sur l'appareil, quand le service répond qu'elle
+      n'existe plus, ou après 90 jours sans usage ; jamais dans un écran ni un journal.
+    anonymization: >-
+      Supprimée (purge quotidienne, désactivation, compte supprimé).
+  - schema: hub
+    table: push_subscriptions
+    field: p256dh
+    category: securite
+    retention: >-
+      Lot 53 (ARC-09, D4) : clés publiques de l'abonnement push (p256dh, auth), qui servent à chiffrer le
+      message jusqu'au navigateur. Mêmes durée et effacement que l'adresse de l'abonnement.
+    anonymization: >-
+      Supprimées avec l'abonnement.
+  - schema: hub
+    table: push_subscriptions
+    field: device_label
+    category: identifiant
+    retention: >-
+      Lot 53 (ARC-09) : nom lisible de l'appareil (navigateur et système, sans identifiant), pour que la
+      personne reconnaisse ses appareils. Mêmes durée et effacement que l'abonnement.
+    anonymization: >-
+      Supprimé avec l'abonnement.

@@ -168,6 +168,7 @@ import {
   parisStartOfDay,
 } from "./link-tokens";
 import { isSendingHour, reminderTaskLines, reminderThreshold, reminderThresholdStart, type ReminderTask } from "./task-reminders";
+import { clientTermForEvent as clientTermOf } from "./planning";
 import type { AutomationHooks } from "@symbola/contracts";
 import { recordAudit } from "@symbola/db/audit";
 import { resolveClientContacts } from "./clients";
@@ -1357,6 +1358,8 @@ function toEventTask(row: EventTaskRow): EventTask {
     done: row.doneAt !== null,
     position: row.position,
     offsetDays: row.offsetDays,
+    // Lot 53 (CHR-05).
+    isMilestone: row.isMilestone,
     fixed: row.fixedAt !== null,
     ...(row.importedFields ? { importedFields: row.importedFields } : {}),
   };
@@ -2075,6 +2078,8 @@ async function linkEmailValues(input: { organizationId: string; eventId: string;
     event_date: found?.event.eventDate ? formatCalendarDate(found.event.eventDate, input.locale) : "",
     // Avant la création du lien, son échéance n'est pas encore connue : une valeur d'attente.
     valid_until: input.expiresOn ? formatCalendarDate(input.expiresOn, input.locale) : "—",
+    // Lot 53 (HUB-24, D8) : {{terme_clients}}, le terme réglé pour le type de l'évènement.
+    client_term: (await clientTermOf(input.organizationId, input.eventId, input.locale, input.vocabulary)).term,
     ...(input.url ? { link: input.url } : {}),
   };
 }

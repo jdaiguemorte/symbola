@@ -22,6 +22,7 @@ import {
   listNewProspectRequests,
   listFinishedUnseenQuestionnaires,
   listReadyFollowUps,
+  listStandaloneTasks,
 } from "@/modules/events/service";
 import { countDuplicatePairs, getFollowUpDelays } from "@/modules/hub/service";
 import { listGuestPurgeNotices, listRecentOppositions } from "@/modules/guests/service";
@@ -70,7 +71,15 @@ export type TodayWords = {
   followUpReady?: (names: string) => string;
   questionnaireFinished?: (names: string, questionnaire: string) => string;
   contactDuplicates?: (count: number) => string;
+  // Lot 53 (CHR-10) : « Hors évènement », sous l'intitulé d'une tâche sans évènement.
+  standaloneTask?: string;
 };
+
+function addDaysTo(date: string, days: number): string {
+  const value = new Date(`${date}T00:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + days);
+  return value.toISOString().slice(0, 10);
+}
 
 // Évènements en cours : ni clôturés, ni annulés (lot 34a, EVT-05).
 export function isActiveEvent(event: Pick<EventSummary, "status">): boolean {
@@ -109,6 +118,22 @@ async function eventItems({ organizationId, words, locale, today, now, events, n
       actor: mine ? { kind: "you" } : { kind: "client" },
       href: `/events/${task.eventId}?onglet=retroplanning&tache=${task.id}`,
       action: mine ? { kind: "check_task", eventId: task.eventId, taskId: task.id } : { kind: "open" },
+    });
+  }
+  // Lot 53 (CHR-10, D6) : les tâches hors évènement (TVA, assurance…) apparaissent comme les autres.
+  for (const task of await listStandaloneTasks(organizationId, { until: addDaysTo(today, TODAY_HORIZON_DAYS) })) {
+    items.push({
+      key: `standalone-task:${task.id}`,
+      kind: "task",
+      eventId: null,
+      eventNames: null,
+      title: task.label,
+      detail: words.standaloneTask,
+      dueOn: task.dueDate,
+      since: null,
+      actor: { kind: "you" },
+      href: "/taches#hors-evenement",
+      action: { kind: "check_standalone_task", taskId: task.id },
     });
   }
   for (const decision of await listPendingDecisions(organizationId)) {

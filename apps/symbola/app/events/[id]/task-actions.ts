@@ -22,6 +22,8 @@ import {
   TaskTemplateNotFoundError,
   updateEventTask,
   type TaskResponsible,
+  PlanningInputError,
+  setTaskMilestone,
 } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
@@ -171,6 +173,22 @@ export async function toggleEventTaskAction(formData: FormData): Promise<void> {
   // PRD-HUB-02 : la même case se coche depuis l'accueil et l'écran Tâches.
   revalidatePath("/");
   revalidatePath("/taches");
+}
+
+// Lot 53 (CHR-05) : marquer une tâche comme jalon, ou ne plus la marquer.
+export async function setTaskMilestoneAction(formData: FormData): Promise<void> {
+  const t = await getTranslations("Events");
+  const access = await authorize(t);
+  if ("error" in access) return;
+  const eventId = String(formData.get("eventId") ?? "");
+  const taskId = String(formData.get("taskId") ?? "");
+  if (!isValidId(eventId) || !isValidId(taskId)) return;
+  try {
+    await setTaskMilestone(access.organizationId, eventId, taskId, formData.get("milestone") === "true");
+  } catch (error) {
+    if (!(error instanceof PlanningInputError)) throw error;
+  }
+  revalidatePath(`/events/${eventId}`);
 }
 
 export async function moveEventTaskAction(formData: FormData): Promise<void> {

@@ -54,11 +54,14 @@ async function pruneStaticAssets(remaining: DayCopy[]): Promise<void> {
   }
 }
 
-// Plus aucune copie : les caches et le service worker s'en vont.
-async function clearDevice(): Promise<void> {
+// Plus aucune copie : les caches et le service worker s'en vont. Lot 53 (ARC-09, D4) : un appareil
+// abonné au push garde son service worker (keepPush) ; la déconnexion l'efface quand même (le push de ce
+// compte s'arrête sur l'appareil ; le serveur retire l'abonnement au prochain envoi refusé).
+async function clearDevice(options: { keepPush: boolean } = { keepPush: true }): Promise<void> {
   await caches.delete(DAY_CACHE);
   await caches.delete(DAY_STATIC_CACHE);
   const registration = await navigator.serviceWorker.getRegistration("/");
+  if (options.keepPush && (await registration?.pushManager?.getSubscription().catch(() => null))) return;
   await registration?.unregister();
 }
 
@@ -99,7 +102,7 @@ export async function purgeDayCopies(input: { userId: string | null; now?: Date 
 // D4 : déconnexion depuis cet appareil. Ne bloque jamais la déconnexion.
 export async function purgeAllDayCopies(): Promise<void> {
   try {
-    if (offlineSupported()) await clearDevice();
+    if (offlineSupported()) await clearDevice({ keepPush: false });
   } catch {
     // Rien à effacer.
   }

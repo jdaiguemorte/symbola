@@ -52,6 +52,9 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "eventQuestionnaires", group: "events", audience: "team", module: "events", path: null, capture: false },
   { key: "questionnaireTemplates", group: "events", audience: "team", module: "events", path: "/events/parametres/questionnaires", capture: false },
   { key: "followUps", group: "events", audience: "team", module: "events", path: "/parametres/relances", capture: true },
+  // Lot 53 (HUB-24, CHR-10) : termes des clients par type, tâches hors évènement (écran Tâches).
+  { key: "clientTerms", group: "events", audience: "team", module: "events", path: "/events/parametres/termes", capture: false },
+  { key: "standaloneTasks", group: "events", audience: "team", module: "events", path: "/taches", capture: false },
   // Lot 49 (INV-01 à INV-04, INV-07) : onglet Invités de la fiche, liste des régimes et allergies.
   { key: "guests", group: "events", audience: "team", module: "guests", path: null, capture: false },
   { key: "dietaryOptions", group: "events", audience: "team", module: "guests", path: "/events/parametres/regimes", capture: false },
@@ -109,6 +112,11 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "home", group: "company", audience: "team", path: "/", tour: "hub", capture: true },
   { key: "settings", group: "company", audience: "team", path: "/parametres", capture: true },
   { key: "profile", group: "company", audience: "team", path: "/profil", capture: true },
+  // Lot 53 (HUB-15, UX-16, HUB-28, GC-02) : notifications, leurs réglages, automatisations, radar.
+  { key: "notifications", group: "company", audience: "team", path: "/notifications", capture: false },
+  { key: "notificationSettings", group: "company", audience: "team", path: "/parametres/notifications", capture: false },
+  { key: "automations", group: "company", audience: "team", path: "/parametres/automatisations", capture: false },
+  { key: "riskRadar", group: "company", audience: "team", path: "/parametres/radar", capture: false },
   { key: "search", group: "company", audience: "team", path: "/recherche", capture: true },
   { key: "tutorials", group: "company", audience: "team", path: "/tutoriels", capture: true },
   { key: "setup", group: "company", audience: "team", path: null, capture: false },

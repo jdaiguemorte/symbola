@@ -90,8 +90,8 @@ async function settingsOf(tx: Tx, organizationId: string, userId: string): Promi
 }
 
 export async function getNotificationSettings(organizationId: string, userId: string): Promise<NotificationSettingsView> {
-  const { digestSentOn: _sent, ...settings } = await inOrganization(organizationId, (tx) => settingsOf(tx, organizationId, userId));
-  return settings;
+  const settings = await inOrganization(organizationId, (tx) => settingsOf(tx, organizationId, userId));
+  return { digestEnabled: settings.digestEnabled, digestHour: settings.digestHour, quietEnabled: settings.quietEnabled, quietStartMinute: settings.quietStartMinute, quietEndMinute: settings.quietEndMinute, quietSundays: settings.quietSundays, dayOfOverride: settings.dayOfOverride, timeZone: settings.timeZone };
 }
 
 export async function saveNotificationSettings(organizationId: string, userId: string, input: unknown): Promise<NotificationSettingsView> {

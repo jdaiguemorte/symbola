@@ -87,7 +87,7 @@ import type {
   StartQuotesTrialInput,
 } from "@symbola/contracts";
 import { QUOTES_QUOTE_SIGNED, QUOTES_QUOTE_SIGNED_VERSION, type AutomationHooks, type QuoteSignedPayload } from "@symbola/contracts";
-import { changeEventStatus, EventNotFoundError, getEvent, listEventLinks, listEventTypes, sendLinkActionCode, verifyLinkActionCode } from "@/modules/events/service";
+import { changeEventStatus, clientTermForEvent, EventNotFoundError, getEvent, listEventLinks, listEventTypes, sendLinkActionCode, verifyLinkActionCode } from "@/modules/events/service";
 import { withActor } from "@symbola/db/actor";
 import {
   PROPOSAL_BLOCKS,
@@ -1719,6 +1719,10 @@ export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
   // texte propre au devis, celui du modèle de proposition du type d'évènement (ou de départ).
   const event = await getEvent(input.organizationId, aggregate.quote.eventId);
   const proposalTemplate = await proposalTemplateFor(input.organizationId, event?.eventTypeId ?? null, await creatorLocale(input.organizationId, aggregate.quote.createdByUserId));
+  // Lot 53 (HUB-24, D8) : le terme des clients du type se fige avec la version (un document émis garde
+  // son texte, même si le terme change ensuite).
+  const [termFr, termEn] = await Promise.all([clientTermForEvent(input.organizationId, aggregate.quote.eventId, "fr"), clientTermForEvent(input.organizationId, aggregate.quote.eventId, "en")]);
+  const clientTerm = termFr.custom || termEn.custom ? { fr: termFr.custom ? termFr.term : null, en: termEn.custom ? termEn.term : null } : null;
 
   const result = await freezeCurrentVersion(input.organizationId, input.quoteId, (version, lines, items) => {
     // Vérifié ici, après « devis vide » : un devis vide est signalé d'abord.
@@ -1732,7 +1736,7 @@ export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
       validUntil: validUntil(parisDate(now), settings.validityDays),
       vatRegime,
       legalMention: legalMention === "" ? null : legalMention,
-      sellerSnapshot: seller,
+      sellerSnapshot: clientTerm ? { ...seller, clientTerm } : seller,
       totalsSnapshot: totals,
       proposalGreeting: version.proposalGreeting ?? proposalTemplate.greeting,
       proposalTemplateId: version.proposalGreeting ? version.proposalTemplateId : proposalTemplate.id,

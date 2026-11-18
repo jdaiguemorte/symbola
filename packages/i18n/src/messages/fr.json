@@ -6432,8 +6432,7 @@
       "remindVendor": "Relancer",
       "remindVendorLabel": "Relancer {vendor}",
       "open": "Ouvrir",
-      "openLabel": "Ouvrir : {title}",
-      "checkStandaloneTask": "Fait"
+      "openLabel": "Ouvrir : {title}"
     },
     "words": {
       "clientTask": "Tâche confiée au client",
@@ -6471,7 +6470,7 @@
       "vendorChoice": "Le client a choisi {vendor} ({slot}) : vérifiez",
       "vendorRoadmap": "{vendor} n'a pas confirmé sa feuille de route",
       "transferDeclaration": "{name} déclare avoir viré {amount}",
-      "standaloneTask": "{label}"
+      "standaloneTaskTag": "Hors évènement"
     },
     "myEventsTitle": "Mes évènements",
     "myEventsEmpty": "Aucun évènement en cours.",

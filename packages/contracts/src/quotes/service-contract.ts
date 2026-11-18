@@ -237,6 +237,9 @@ export type LegalFormCode = "ei" | "eirl" | "eurl" | "sarl" | "sas" | "sasu" | "
 // En-tête vendeur figé à l'envoi (PDF : logo, coordonnées, SIREN).
 export type SellerSnapshot = {
   organizationName: string;
+  // Lot 53 (HUB-24, D8) : le terme réglé qui désigne les clients du type d'évènement, figé à l'envoi
+  // (titre du bloc du client sur le document) ; absent : le libellé « Client » de départ.
+  clientTerm?: { fr: string | null; en: string | null } | null;
   address: string | null;
   siren: string | null;
   logoKey: string | null;

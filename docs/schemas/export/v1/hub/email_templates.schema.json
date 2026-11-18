@@ -38,7 +38,10 @@
         "invoice_reminder",
         "prospect_reply",
         "prospect_follow_up",
-        "questionnaire_sent"
+        "questionnaire_sent",
+        "daily_digest",
+        "payment_due_reminder",
+        "notification_alert"
       ]
     },
     "locale": {

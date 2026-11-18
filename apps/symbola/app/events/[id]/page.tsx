@@ -18,7 +18,7 @@ import { listTeam } from "@symbola/auth";
 import { EventAppointments } from "./event-appointments";
 import { ProspectExchanges } from "./prospect-exchanges";
 import { appDatabase } from "@symbola/db/client";
-import {
+import { clientTermForEvent,
   listTaskAttachments,
   listTaskComments,
   getEvent,
@@ -91,7 +91,7 @@ import {
 } from "./program-forms";
 import { revokeCalendarAddressAction } from "../../calendar-actions";
 import { CalendarAddressForm } from "../../calendar-address-form";
-import {
+import { setTaskMilestoneAction,
   releaseEventTaskAction,
   moveEventTaskAction,
   removeEventTaskAction,
@@ -453,6 +453,8 @@ export default async function EventDetailPage({
   const activeDemo = event.isDemo || query.exemple === "proposer" ? await getActiveEventsTrial(organizationId) : null;
   const undoneTask = query.fait && query.evenement === event.id ? (tasks.find((task) => task.id === query.fait && task.done) ?? null) : null;
   const tToday = await getTranslations("Today");
+  const tHealth = await getTranslations("PlanningHealth");
+  const clientTerm = await clientTermForEvent(organizationId, event.id, locale === "en" ? "en" : "fr");
 
   // AIDE-05 : visite focus de la fiche, à la première ouverture.
   const tour = await loadPageTour(auth.user.id, "event", query.visite);
@@ -471,7 +473,8 @@ export default async function EventDetailPage({
     },
     { key: "programme", label: t("programTitle"), href: tabHref("programme") },
     ...(quotesAvailable ? [{ key: "devis" as const, label: tQuotes("eventQuotesTitle"), href: tabHref("devis"), count: String(quotes.length) }] : []),
-    { key: "maries", label: t("tabClients"), href: tabHref("maries") },
+    // Lot 53 (HUB-24, D8) : le terme réglé pour le type de l'évènement remplace « Mariés » ou « Clients ».
+    { key: "maries", label: clientTerm.custom ? clientTerm.term.charAt(0).toLocaleUpperCase(locale) + clientTerm.term.slice(1) : t("tabClients"), href: tabHref("maries") },
     { key: "documents", label: t("tabDocuments"), href: tabHref("documents"), count: String(eventDocuments.length) },
     ...(guests ? [{ key: "invites" as const, label: t("tabGuests"), href: tabHref("invites") }] : []),
   ];
@@ -1059,6 +1062,18 @@ export default async function EventDetailPage({
                   vendors={taskVendors}
                 />
                 <ImportedFields fields={selectedTask.importedFields} compact />
+                {/* Lot 53 (CHR-05) : un jalon en retard pèse plus sur la santé du planning. */}
+                {selectedTask.responsible === "planner" ? (
+                  <form action={setTaskMilestoneAction} className="row-wrap">
+                    {selectedTask.isMilestone ? <span className="badge badge-terracotta">{tHealth("milestone")}</span> : null}
+                    <input type="hidden" name="eventId" value={event.id} />
+                    <input type="hidden" name="taskId" value={selectedTask.id} />
+                    <input type="hidden" name="milestone" value={selectedTask.isMilestone ? "false" : "true"} />
+                    <button type="submit" className="button-ghost" aria-label={tHealth(selectedTask.isMilestone ? "milestoneOffLabel" : "milestoneOnLabel", { label: selectedTask.label })}>
+                      {tHealth(selectedTask.isMilestone ? "milestoneOff" : "milestoneOn")}
+                    </button>
+                  </form>
+                ) : null}
                 {/* Lot 34a (DAT-07) : déplacée à la main, la tâche est fixée ; elle peut redevenir relative. */}
                 {selectedTask.fixed && selectedTask.offsetDays !== null && event.eventDate ? (
                   <form action={releaseEventTaskAction} className="row-wrap">

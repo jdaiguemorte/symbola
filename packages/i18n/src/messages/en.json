@@ -6432,8 +6432,7 @@
       "remindVendor": "Follow up",
       "remindVendorLabel": "Follow up with {vendor}",
       "open": "Open",
-      "openLabel": "Open: {title}",
-      "checkStandaloneTask": "Done"
+      "openLabel": "Open: {title}"
     },
     "words": {
       "clientTask": "Task assigned to the client",
@@ -6471,7 +6470,7 @@
       "vendorChoice": "The client chose {vendor} ({slot}): check it",
       "vendorRoadmap": "{vendor} has not confirmed their run sheet",
       "transferDeclaration": "{name} says they transferred {amount}",
-      "standaloneTask": "{label}"
+      "standaloneTaskTag": "Outside events"
     },
     "myEventsTitle": "My events",
     "myEventsEmpty": "No event in progress.",

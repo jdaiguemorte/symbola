@@ -19,6 +19,8 @@ Le format est décrit dans `docs/export/format-v1.md`.
 | `email_templates` | `id`, `kind`, `locale`, `subject`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [email_templates.schema.json](hub/email_templates.schema.json) |
 | `message_templates` | `id`, `eventTypeId`, `name`, `locale`, `version`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [message_templates.schema.json](hub/message_templates.schema.json) |
 | `message_template_versions` | `id`, `templateId`, `version`, `subject`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [message_template_versions.schema.json](hub/message_template_versions.schema.json) |
+| `automations` | `id`, `key`, `enabled`, `days`, `resumedAt`, `lastRunOn`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [automations.schema.json](hub/automations.schema.json) |
+| `risk_rules` | `id`, `rule`, `enabled`, `thresholdDays`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [risk_rules.schema.json](hub/risk_rules.schema.json) |
 | `privacy_settings` | `requestAlertDays`, `prospectRetentionMonths`, `clientRetentionMonths`, `accountingRetentionMonths`, `inactiveAccountMonths`, `signedQuoteRetentionMonths`, `requestProofRetentionMonths`, `linkPrivacyNotice`, `guestRetentionDays`, `guestDietRetentionDays`, `guestPurgeMaxPostponeDays`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [privacy_settings.schema.json](hub/privacy_settings.schema.json) |
 | `privacy_requests` | `id`, `type`, `personLabel`, `receivedOn`, `dueOn`, `status`, `extensionReason`, `extendedAt`, `closedAt`, `actionDoneAt`, `responseSentAt`, `createdByUserId`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [privacy_requests.schema.json](hub/privacy_requests.schema.json) |
 | `privacy_exports` | `id`, `requestId`, `recordCount`, `createdByUserId`, `createdAt`, `expiresAt`, `purgedAt`, `createdBy`, `updatedAt`, `updatedBy` | [privacy_exports.schema.json](hub/privacy_exports.schema.json) |
@@ -50,6 +52,11 @@ Tables non exportées :
 - `domain_event_consumers` — technique : suivi des événements internes
 - `rate_limit_events` — exploitation : tentatives limitées
 - `usage_counters` — exploitation : compteurs d'usage de la plateforme
+- `notifications` — temporaire : notifications de l'équipe, effacées 90 jours après leur création
+- `notification_settings` — préférence : récapitulatif et plages de silence, propres à chaque compte
+- `notification_preferences` — préférence : sortes de notification gardées ou coupées, propres à chaque compte
+- `push_subscriptions` — technique : abonnements push des appareils (adresse du service de push, clés publiques), propres à chaque appareil
+- `automation_runs` — temporaire : journal des automatismes, effacé après 90 jours
 
 ## Module `events`
 
@@ -68,6 +75,8 @@ Tables non exportées :
 | `day_checklist_templates` | `id`, `starterKey`, `name`, `phase`, `items`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [day_checklist_templates.schema.json](events/day_checklist_templates.schema.json) |
 | `vendor_coordination_settings` | `briefDeadlineDays`, `briefReminder`, `roadmapMonth`, `roadmapWeek`, `roadmapAlertDays`, `followUpTasks`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_coordination_settings.schema.json](events/vendor_coordination_settings.schema.json) |
 | `prospect_follow_up_settings` | `id`, `enabled`, `autoSend`, `steps`, `brochureStorageKey`, `brochureFileName`, `brochureSizeBytes`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [prospect_follow_up_settings.schema.json](events/prospect_follow_up_settings.schema.json) |
+| `event_type_vocabulary` | `id`, `eventTypeId`, `locale`, `term`, `gender`, `number`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_type_vocabulary.schema.json](events/event_type_vocabulary.schema.json) |
+| `planning_health_settings` | `id`, `watchPoints`, `latePoints`, `milestoneWeight`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [planning_health_settings.schema.json](events/planning_health_settings.schema.json) |
 | `questionnaire_templates` | `id`, `eventTypeId`, `name`, `locale`, `starterKey`, `version`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [questionnaire_templates.schema.json](events/questionnaire_templates.schema.json) |
 | `questionnaire_template_items` | `id`, `templateId`, `version`, `position`, `itemKey`, `label`, `help`, `nature`, `choices`, `eventField`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [questionnaire_template_items.schema.json](events/questionnaire_template_items.schema.json) |
 | `events` | `id`, `status`, `eventDate`, `timeZone`, `postponedFromDate`, `postponedFromStatus`, `guestsEstimated`, `guestsConfirmed`, `style`, `notes`, `importedFields`, `wantedBudgetCents`, `prospectSourceId`, `eventTypeId`, `lossReasonId`, `lossReasonNote`, `pipelineStageId`, `tasksScheduledFor`, `programUpdatedAt`, `demoExpiresAt`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy` | [events.schema.json](events/events.schema.json) |
@@ -89,7 +98,7 @@ Tables non exportées :
 | `vendor_scenario_choices` | `id`, `scenarioId`, `vendorSlotId`, `candidateId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_scenario_choices.schema.json](events/vendor_scenario_choices.schema.json) |
 | `vendor_roadmaps` | `id`, `candidateId`, `stage`, `sentAt`, `confirmedAt`, `programVersion`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_roadmaps.schema.json](events/vendor_roadmaps.schema.json) |
 | `event_vendor_candidate_notes` | `id`, `candidateId`, `body`, `visibleToClients`, `createdByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_vendor_candidate_notes.schema.json](events/event_vendor_candidate_notes.schema.json) |
-| `event_tasks` | `id`, `eventId`, `label`, `dueDate`, `offsetDays`, `fixedAt`, `responsible`, `vendorCandidateId`, `followUpCandidateId`, `doneAt`, `position`, `importedFields`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy` | [event_tasks.schema.json](events/event_tasks.schema.json) |
+| `event_tasks` | `id`, `eventId`, `label`, `dueDate`, `offsetDays`, `fixedAt`, `responsible`, `vendorCandidateId`, `followUpCandidateId`, `doneAt`, `position`, `importedFields`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy`, `recurrence`, `recurrenceSpawnedAt`, `isMilestone` | [event_tasks.schema.json](events/event_tasks.schema.json) |
 | `event_task_comments` | `id`, `eventId`, `taskId`, `authorUserId`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [event_task_comments.schema.json](events/event_task_comments.schema.json) |
 | `event_task_attachments` | `id`, `eventId`, `taskId`, `label`, `fileKey`, `mime`, `sizeBytes`, `uploadedByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_task_attachments.schema.json](events/event_task_attachments.schema.json) |
 | `program_items` | `id`, `eventId`, `startTime`, `endTime`, `label`, `location`, `internalNote`, `responsible`, `keyMomentId`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy` | [program_items.schema.json](events/program_items.schema.json) |

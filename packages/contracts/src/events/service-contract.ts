@@ -388,6 +388,8 @@ export type EventTask = {
   fixed: boolean;
   // Lot 5 (IMP-04) : champs libres d'un import.
   importedFields?: Record<string, string>;
+  // Lot 53 (CHR-05) : jalon du rétroplanning (pèse plus sur la santé du planning).
+  isMilestone?: boolean;
 };
 
 export type EventTaskInput = {

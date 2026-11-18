@@ -215,8 +215,9 @@ export async function setEventTypeClientTerm(organizationId: string, input: { ev
 
 // Le terme qui désigne les clients d'un évènement, dans une langue : celui réglé pour son type, sinon
 // celui du vocabulaire du type (mariés ou clients), sinon celui de « fallback » (le métier).
-export async function clientTermForEvent(organizationId: string, eventId: string, locale: Locale, fallback: "couple" | "clients" = "couple"): Promise<ClientTerm> {
-  if (!UUID.test(eventId)) return starterTermFor(fallback, locale);
+// custom : un terme réglé par l'organisation (l'écran le montre à la place du vocabulaire fixe).
+export async function clientTermForEvent(organizationId: string, eventId: string, locale: Locale, fallback: "couple" | "clients" = "couple"): Promise<ClientTerm & { custom: boolean }> {
+  if (!UUID.test(eventId)) return { ...starterTermFor(fallback, locale), custom: false };
   const [row] = await inOrganization(organizationId, (tx) =>
     tx
       .select({ audience: eventTypes.audience, term: eventTypeVocabulary.term, gender: eventTypeVocabulary.gender, number: eventTypeVocabulary.number })
@@ -225,6 +226,6 @@ export async function clientTermForEvent(organizationId: string, eventId: string
       .leftJoin(eventTypeVocabulary, and(eq(eventTypeVocabulary.eventTypeId, events.eventTypeId), eq(eventTypeVocabulary.locale, locale)))
       .where(eq(events.id, eventId)),
   );
-  if (row?.term && row.gender && row.number) return { term: row.term, gender: row.gender, number: row.number };
-  return starterTermFor(row?.audience ?? fallback, locale);
+  if (row?.term && row.gender && row.number) return { term: row.term, gender: row.gender, number: row.number, custom: true };
+  return { ...starterTermFor(row?.audience ?? fallback, locale), custom: false };
 }

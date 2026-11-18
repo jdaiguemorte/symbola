@@ -9,7 +9,8 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import type { Locale } from "@symbola/i18n";
 import { starterDocumentStyle, starterLatePenalty } from "@symbola/starter-templates";
-import { getEvent } from "@/modules/events/service";
+import { clientTermForEvent, getEvent } from "@/modules/events/service";
+
 import { computeLegalMention, getContactsByIds, getOrganizationProfile } from "@/modules/hub/service";
 import { currentQuoteSeller, operationCategory, type QuoteDetail, type QuoteVersionView } from "@/modules/quotes/service";
 import { loadDocumentLogo } from "@/lib/document-logo";
@@ -69,6 +70,11 @@ export async function quotePdfModelFor(input: {
         ].filter(Boolean)
       : null;
   const included = version.lines.filter((line) => !line.isOption || line.optionChosen);
+  // Lot 53 (HUB-24, D8) : le terme des clients titre le bloc du client — celui figé à l'envoi pour un
+  // devis envoyé (un document émis garde son texte), le terme réglé pour un brouillon.
+  const labels = quotePdfLabels(t as unknown as Translate, tQuotes as unknown as Translate);
+  const term = version.sentAt ? (version.seller?.clientTerm?.[locale === "en" ? "en" : "fr"] ?? null) : await currentClientTerm(organizationId, quote.eventId, locale === "en" ? "en" : "fr");
+  const clientHeading = term ? term.charAt(0).toLocaleUpperCase(locale) + term.slice(1) : null;
 
   const model = buildQuotePdfModel({
     buyerLines,
@@ -86,7 +92,12 @@ export async function quotePdfModelFor(input: {
     defaultColor: starterDocumentStyle(locale).defaultColor,
     ...(input.signatureSlots ? { signatureSlots: input.signatureSlots } : {}),
     latePenalty: starterLatePenalty(),
-    labels: quotePdfLabels(t as unknown as Translate, tQuotes as unknown as Translate),
+    labels: { ...labels, clientHeading: clientHeading ?? labels.clientHeading },
   });
   return model;
+}
+
+async function currentClientTerm(organizationId: string, eventId: string, locale: "fr" | "en"): Promise<string | null> {
+  const term = await clientTermForEvent(organizationId, eventId, locale);
+  return term.custom ? term.term : null;
 }
