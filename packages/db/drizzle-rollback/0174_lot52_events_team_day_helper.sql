@@ -47,6 +47,10 @@ ALTER TYPE "events"."event_link_audience" RENAME TO "event_link_audience_lot52";
 --> statement-breakpoint
 CREATE TYPE "events"."event_link_audience" AS ENUM('client', 'vendor', 'guest');
 --> statement-breakpoint
+ALTER TABLE "events"."event_links" DROP CONSTRAINT "event_links_vendor_candidate_check";
+--> statement-breakpoint
 ALTER TABLE "events"."event_links" ALTER COLUMN "audience" SET DATA TYPE "events"."event_link_audience" USING "audience"::text::"events"."event_link_audience";
+--> statement-breakpoint
+ALTER TABLE "events"."event_links" ADD CONSTRAINT "event_links_vendor_candidate_check" CHECK ("events"."event_links"."audience" <> 'vendor' or "events"."event_links"."vendor_candidate_id" is not null);
 --> statement-breakpoint
 DROP TYPE "events"."event_link_audience_lot52";
