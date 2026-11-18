@@ -91,3 +91,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0089 — Proposition en page web, signer puis régler par virement, relances et payeurs](0089-proposition-signer-puis-regler-par-virement.md)
 - [0090 — Réponses depuis Symbola, relances préparées, fusion des contacts par événement, questionnaires figés dans le module Évènements](0090-relation-prospects-et-questionnaires.md)
 - [0091 — Jour J de terrain : un chrono par temps fort, pointages ajoutés, file d'actions hors ligne écrite à la main](0091-jour-j-de-terrain-et-file-hors-ligne.md)
+- [0093 — Prestataires (pièces, lieu, IBAN chiffré sous contrôle) et argent de la planner (honoraires, commissions, mandat)](0093-prestataires-pieces-iban-et-argent-de-la-planner.md)
