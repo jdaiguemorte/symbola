@@ -7,7 +7,7 @@
 // résultat, focus qui suit l'invité ; « Non placés » est une destination comme une autre (retirer
 // d'une table). Un foyer se place d'un geste. Les invités « en attente de réponse » sont marqués.
 // Le serveur fait foi : un refus ramène l'état enregistré.
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { SeatingShape } from "@symbola/contracts";
 import { MoveAnnouncement, MoveToGroupButton, useMoveToGroup, type MoveTarget } from "@/app/ui/move-to-group";
@@ -60,13 +60,33 @@ export function SeatingBoard({
   const [view, setView] = useState<"tables" | "unplaced">("tables");
   const [householdAnnouncement, setHouseholdAnnouncement] = useState("");
   const unplacedHeading = useId();
+  const tablesHeading = `${unplacedHeading}-tables`;
+  const viewRef = useRef(view);
+  viewRef.current = view;
+
+  // À 375 px, l'invité placé part dans l'onglet caché : le focus, qui l'aurait suivi, revient au titre
+  // du panneau affiché (jamais perdu). Sur ordinateur, il reste sur l'invité.
+  function keepFocus(preferred?: HTMLElement | null) {
+    requestAnimationFrame(() => {
+      if (preferred && preferred.offsetParent !== null) {
+        preferred.focus();
+        return;
+      }
+      const active = document.activeElement as HTMLElement | null;
+      if (active && active !== document.body && active.offsetParent !== null) return;
+      document.getElementById(viewRef.current === "unplaced" ? unplacedHeading : tablesHeading)?.focus();
+    });
+  }
   const items: Item[] = guests.map((guest) => ({ ...guest, groupId: guest.tableId ?? UNPLACED }));
   const targets: MoveTarget[] = [{ id: UNPLACED, label: t("unplacedTarget") }, ...tables.map((table) => ({ id: table.id, label: table.name }))];
   const tableTargets = targets.filter((target) => target.id !== UNPLACED);
   const board = useMoveToGroup({
     items,
     targets,
-    onMove: (itemId, groupId) => seatGuestAction(eventId, planId, itemId, groupId === UNPLACED ? null : groupId),
+    onMove: (itemId, groupId) => {
+      keepFocus();
+      return seatGuestAction(eventId, planId, itemId, groupId === UNPLACED ? null : groupId);
+    },
   });
 
   const unplaced = board.itemsIn(UNPLACED);
@@ -77,11 +97,8 @@ export function SeatingBoard({
     const target = targets.find((candidate) => candidate.id === groupId);
     const count = await seatHouseholdAction(eventId, planId, householdId, groupId === UNPLACED ? null : groupId).catch(() => null);
     setHouseholdAnnouncement(count === null ? t("householdMoveFailed", { name }) : t("householdMoved", { name, count, group: target?.label ?? "" }));
-    // Le focus suit le premier membre du foyer dans sa table.
-    requestAnimationFrame(() => {
-      const button = document.querySelector<HTMLElement>(`[data-move-item="${CSS.escape(firstMemberId)}"] [data-move-button]`);
-      (button ?? document.getElementById(unplacedHeading))?.focus();
-    });
+    // Le focus suit le premier membre du foyer dans sa table (ou le titre du panneau affiché).
+    keepFocus(document.querySelector<HTMLElement>(`[data-move-item="${CSS.escape(firstMemberId)}"] [data-move-button]`));
   }
 
   function guestItem(guest: Item) {
@@ -167,8 +184,10 @@ export function SeatingBoard({
           ) : null}
         </section>
 
-        <section className="seating-panel" data-active={view === "tables"} aria-labelledby={`${unplacedHeading}-tables`}>
-          <h2 id={`${unplacedHeading}-tables`}>{t("tablesTitle", { count: tables.length })}</h2>
+        <section className="seating-panel" data-active={view === "tables"} aria-labelledby={tablesHeading}>
+          <h2 id={tablesHeading} tabIndex={-1}>
+            {t("tablesTitle", { count: tables.length })}
+          </h2>
           {tables.length === 0 ? <p>{t("noTables")}</p> : null}
           <ul className="plain-list seating-tables">
             {tables.map((table) => {

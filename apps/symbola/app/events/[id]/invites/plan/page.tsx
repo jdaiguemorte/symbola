@@ -269,7 +269,7 @@ async function CatererSection({ eventId, keyMomentId, owner, vendorMeals }: { ev
     <section aria-labelledby="plan-caterer" className="card stack">
       <h2 id="plan-caterer">{t("catererTitle")}</h2>
       <p>{t("catererHelp")}</p>
-      <ul className="plain-list row-wrap">
+      <ul className="seating-downloads">
         {owner ? (
           <>
             <li>

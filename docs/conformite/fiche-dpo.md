@@ -247,3 +247,32 @@ restent ouverts ; Symbola n'en tranche aucun et applique d'ici là le réglage l
 
 Besoin : une réponse à DPO-1 et DPO-4 avant l'ouverture du module ; aux autres, avant le
 lot 50 (plan de table et synthèse pour le traiteur).
+
+## Question du 18 novembre 2026 (lot 50)
+
+### 15. Plan de table et synthèse pour le traiteur
+
+Le lot 50 ajoute au module Invités le plan de table et la synthèse pour le traiteur (repas par
+type, régimes et allergènes, par table). La synthèse n'est **jamais gardée dans Symbola** : elle
+est calculée à chaque téléchargement, et chaque téléchargement est noté (qui, quand, quelle
+version), sans son contenu. La titulaire seule obtient la version nominative ; un membre de
+l'équipe obtient des nombres exacts par table, sans aucun nom. Les contraintes de placement
+(« ensemble », « séparés ») sont internes : jamais montrées au client, jamais dans une synthèse ni
+dans un export. Tout est purgé avec les invités ; à J+7, la synthèse ne contient plus de régime.
+
+- **DPO-7 — Synthèse nominative pour le traiteur.** Nom, table, type de repas et régimes ou
+  allergies de chaque personne, exportés par la titulaire et envoyés au traiteur hors de Symbola.
+  Le texte d'accord du lot 49 nomme le traiteur parmi les destinataires et la durée de 7 jours
+  après l'évènement. Cela suffit-il, ou faut-il rappeler au traiteur une durée de conservation ?
+  Symbola applique d'ici là la recommandation de travail : une mention en pied du PDF nominatif
+  (« Données transmises pour le service du repas ; à supprimer après l'évènement ») et une phrase à
+  l'écran de téléchargement.
+- **DPO-8 — Contraintes « séparés ».** Données internes à l'organisation, jamais exportées,
+  purgées avec les invités (30 jours après l'évènement). Faut-il une durée plus courte ? Et le
+  droit d'accès d'un invité couvre-t-il ces contraintes ? Symbola montre aujourd'hui, dans la
+  recherche RGPD, la table d'une personne par temps fort, mais pas ses contraintes.
+
+> **Symbola** : rien n'est tranché ; le réglage le plus prudent s'applique en attendant (mention en
+> pied, contraintes jamais exportées). Le module reste fermé chez la pilote (question 14).
+
+Besoin : une réponse avant l'ouverture du module Invités à la pilote.
