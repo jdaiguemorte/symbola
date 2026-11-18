@@ -235,7 +235,7 @@ test("JRJ-09 / PAR-08 — la remise se pointe ; le lendemain, le bilan est prêt
   const report = page.getByRole("region", { name: "Bilan du jour J" });
   await expect(report).toContainText("Interne à votre équipe");
   await expect(report).toContainText("Cérémonie : prévu 16:00 – 16:45, réel non pointé");
-  await expect(report).toContainText(/Maison Ruche — 3 000,00 € \(Chèque\) remis à/);
+  await expect(report).toContainText(/Maison Ruche — 3\s000,00\s€ \(Chèque\) remis à/);
   await expect(report).toContainText("Tables dressées selon le plan");
   const pdf = await page.request.get(`/events/${setup.eventId}/bilan`);
   expect(pdf.status()).toBe(200);

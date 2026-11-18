@@ -1257,9 +1257,10 @@ export default async function EventDetailPage({
           {/* Lot 51 (EVT-04, CHR-08) : un chrono importé d'un tableur, avec son écran de contrôle. */}
           <ProgramImportForm eventId={event.id} />
           {programGroups.map((group) => (
-          <section key={group.id ?? "sans-temps-fort"} aria-label={group.label ?? t("programTitle")} className="program-moment">
+          // Un seul temps fort (évènement d'un jour) : la liste reste « Programme du jour J », sans titre.
+          <section key={group.id ?? "sans-temps-fort"} aria-label={programGroups.length > 1 ? (group.label ?? t("programTitle")) : undefined} className="program-moment">
           {group.label && programGroups.length > 1 ? <h3>{group.label}</h3> : null}
-          <ul aria-label={group.label ?? t("programTitle")} className="program-list">
+          <ul aria-label={programGroups.length > 1 ? (group.label ?? t("programTitle")) : t("programTitle")} className="program-list">
             {group.items.map((item) => (
               <li key={item.id} className="program-row">
                 <span className="program-time">{spanLabel(programSpanOf.get(item.id)!, spanWords)}</span>
