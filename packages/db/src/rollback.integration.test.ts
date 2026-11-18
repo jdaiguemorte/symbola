@@ -153,6 +153,8 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
 
   it("lot 46 (RDV-01 à RDV-04, EVT-10 ; ADR 0082) — 0156 et 0157 : adresse de page unique et lisible, adresse d'agenda chiffrée seulement ; l'annulation est refusée tant qu'un rendez-vous réel existe, puis retire le schéma", async () => {
     await migrateAll();
+    // Lot 50 : sa migration, plus récente, s'annule d'abord.
+    for (const tag of LOT_50) await rollback(tag);
     const organizationId = randomUUID();
     await target`insert into appointments.booking_pages (organization_id, slug) values (${organizationId}, 'atelier-camille')`;
     await expect(target`insert into appointments.booking_pages (organization_id, slug) values (${randomUUID()}, 'atelier-camille')`).rejects.toThrow(/booking_pages_slug_idx/);
@@ -172,6 +174,8 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
 
   it("lot 46 (RDV-03 ; ADR 0082) — 0158 : les natures des rendez-vous rejoignent celles du lot 49, une nature inconnue reste refusée ; l'annulation est refusée tant qu'un modèle de rendez-vous existe, puis rend exactement la liste du lot 49", async () => {
     await migrateAll();
+    // Lot 50 : sa migration, plus récente, s'annule d'abord.
+    for (const tag of LOT_50) await rollback(tag);
     const organizationId = randomUUID();
     const template = (kind: string) => target`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, ${kind}, 'fr', 'Objet', 'Texte')`;
     await template("appointment_confirmed");
