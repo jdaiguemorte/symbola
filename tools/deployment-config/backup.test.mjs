@@ -539,16 +539,19 @@ describe("NFR-10 — Sauvegarde chiffrée vers la Storage Box (lot 22, ADR 0051)
 describe("NFR-13 — Rétention, et copies instantanées hors d'atteinte du VPS (lot 22, ADR 0051)", () => {
   const SNAPSHOTS = ".zfs/snapshot/2026-11-11T05-00-00 .zfs/snapshot/2026-11-10T05-00-00";
 
-  it("garde par défaut 7 sauvegardes quotidiennes, 4 hebdomadaires et 12 mensuelles", () => {
+  it("garde par défaut les sauvegardes des 35 derniers jours, et aucune au-delà (ADR 0092)", () => {
     const { calls } = run(backupScript, ["staging"]);
-    expect(calls[indexOf(calls, "forget --tag env:staging")]).toContain("--keep-daily 7 --keep-weekly 4 --keep-monthly 12");
+    const forget = calls[indexOf(calls, "forget --tag env:staging")];
+    expect(forget).toContain("--keep-within 35d");
+    expect(forget).not.toMatch(/--keep-(daily|weekly|monthly)/);
   });
 
-  it("les modèles de configuration visent la Storage Box, épinglent l'empreinte et gardent 12 mensuelles", () => {
+  it("les modèles de configuration visent la Storage Box, épinglent l'empreinte et gardent 35 jours", () => {
     const example = read("infra/backup/backup.env.example");
     expect(example).toMatch(/^RESTIC_REPOSITORY=sftp:symbola-production:restic$/m);
     expect(example).toMatch(/^RESTIC_SSH_DIR=\/etc\/symbola\/backup\/production\.ssh$/m);
-    expect(example).toMatch(/^KEEP_MONTHLY=12$/m);
+    expect(example).toMatch(/^KEEP_WITHIN=35d$/m);
+    expect(example).not.toMatch(/^KEEP_(DAILY|WEEKLY|MONTHLY)=/m);
     const sshConfig = read("infra/backup/ssh-config.example");
     expect(sshConfig).toMatch(/^\s*Port 23$/m);
     expect(sshConfig).toMatch(/^\s*StrictHostKeyChecking yes$/m);

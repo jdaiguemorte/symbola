@@ -37,12 +37,12 @@ en stockage.
 
 ## Conséquences
 
-- `infra/backup/backup.sh` et `backup.env.example` passent à une rétention de 35 jours
-  (`--keep-within 35d`, ou 35 copies quotidiennes). Les tests de configuration du déploiement
-  suivent.
 - Les copies instantanées de la Storage Box, qui protègent contre l'effacement par le serveur,
-  passent elles aussi à 35 jours au plus. C'est un réglage chez Hetzner : un geste de Julien.
-- Sur le VPS, le changement prend effet au prochain déploiement, après la fin du gel. Julien met à
-  jour `backup.env` et la Storage Box en suivant `docs/runbooks/restauration.md`.
-- Le registre et la fiche de la DPO indiquent 35 jours.
+  sont gardées 10 jours : elles restent sous les 35 jours, rien à y changer.
+- `infra/backup/backup.sh` passe à `--keep-within "${KEEP_WITHIN:-35d}"` ;
+  `backup.env.example` porte `KEEP_WITHIN=35d` ; les tests de `tools/deployment-config` suivent.
+- Sur le VPS, le changement prend effet au prochain déploiement, après la fin du gel : Julien
+  remplace les lignes `KEEP_*` de `backup.env` (`docs/runbooks/restauration.md`). Le premier
+  passage efface les sauvegardes de plus de 35 jours, sans retour.
+- La fiche de la DPO indique 35 jours (réponse 2 suivie).
 - NFR-13 passe à « Divergent » dans `docs/gap.csv`, justifié par cet ADR.
