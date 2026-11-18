@@ -38,7 +38,12 @@ Prérequis : durcissement fait (`docs/runbooks/durcissement-serveur.md`), enviro
 - Horaires : production à 02:30, staging à 03:30 (heure de Paris), avant le redémarrage
   automatique éventuel de 05:00. Une sauvegarde manquée (VPS éteint) est rattrapée au
   démarrage suivant.
-- Rétention (NFR-13) : 7 quotidiennes, 4 hebdomadaires, **12 mensuelles**. Chaque nuit, contrôle
+- Rétention (NFR-13, ADR 0092) : **toutes les sauvegardes des 35 derniers jours, aucune au-delà**
+  (`KEEP_WITHIN=35d`). Un an de recul viendra en option, par une archive propre à l'organisation
+  (lot 54). **Au premier passage après ce changement**, restic efface d'un coup les anciennes
+  sauvegardes mensuelles de plus de 35 jours : c'est voulu, et c'est sans retour. Sur le VPS,
+  remplacer dans `backup.env` les lignes `KEEP_DAILY`, `KEEP_WEEKLY` et `KEEP_MONTHLY` par
+  `KEEP_WITHIN=35d` ; sans la ligne, la valeur par défaut est la même. Chaque nuit, contrôle
   de la structure du dépôt ; chaque dimanche, relecture de 10 % des données et relevé de la
   taille du dépôt (NFR-30). Un contrôle en échec empêche le signal de succès.
 - **Copies instantanées de la Storage Box** : Hetzner en prend une chaque jour à 05:00 UTC (6 h
