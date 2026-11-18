@@ -53,6 +53,7 @@ remplir GARAGE_RPC_SECRET "$(openssl rand -hex 32)"
 remplir GARAGE_ADMIN_TOKEN "$(openssl rand -hex 32)"
 remplir GARAGE_METRICS_TOKEN "$(openssl rand -hex 32)"
 remplir MFA_ENCRYPTION_KEY "$(openssl rand -base64 32)"
+remplir DATA_ENCRYPTION_KEY "$(openssl rand -base64 32)"
 remplir LOGTO_DB_PASSWORD "$(openssl rand -hex 24)"
 remplir LOGTO_M2M_SECRET "$(openssl rand -hex 32)"
 ```

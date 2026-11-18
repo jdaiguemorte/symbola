@@ -78,6 +78,7 @@ jobs:
       - name: Clé de l'app (liens magiques scellés, lot 33) et secret machine du fournisseur d'identité (fictif)
         run: |
           echo "MFA_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
+          echo "DATA_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
           echo "LOGTO_M2M_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
@@ -186,6 +187,7 @@ jobs:
       - name: Clé de l'app (liens magiques scellés, lot 33) et secrets du fournisseur d'identité
         run: |
           echo "MFA_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
+          echo "DATA_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
           echo "LOGTO_M2M_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
           echo "LOGTO_DB_PASSWORD=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
       - uses: pnpm/action-setup@v4

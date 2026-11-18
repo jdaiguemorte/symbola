@@ -149,7 +149,9 @@
       "events": "Événements",
       "budget": "Budget",
       "quotes": "Devis",
-      "vendors": "Prestataires"
+      "vendors": "Prestataires",
+      "appointments": "Rendez-vous",
+      "guests": "Invités"
     },
     "onboardingDone": "{done} tutoriels sur {total}",
     "notStarted": "Pas commencé",
@@ -5096,7 +5098,9 @@
       "events": "Événements",
       "budget": "Budget",
       "quotes": "Devis",
-      "vendors": "Prestataires"
+      "vendors": "Prestataires",
+      "appointments": "Rendez-vous",
+      "guests": "Invités"
     },
     "budgetExport": "{count, plural, =0 {aucune ligne} =1 {# ligne} other {# lignes}} ({format})",
     "actorLink": "Lien personnel",
