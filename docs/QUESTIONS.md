@@ -32,8 +32,8 @@ questions d'origine suivent, inchangées, pour garder le contexte.
 | Q17 Contact | (a) Table de contacts dans le hub. | Lot 36. |
 | Q18 E-mail | Envoi depuis le domaine du planner, sinon envoi par défaut depuis le domaine de Symbola. | Le service d'e-mail reste à choisir. Il doit gérer plusieurs domaines d'envoi, chacun avec son authentification (DKIM). Lots 38 et 55. |
 | Q19 Client professionnel | Aucun pendant le pilote. | Le lot 41 garde sa place. |
-| Q20 Plateforme agréée | Gardée en feuille de route. | Lot 42. |
-| Q21 Paiement | Benchmark à faire. | Avant le lot 43. Un benchmark assumé peut nommer les prestataires (Q25). |
+| Q20 Plateforme agréée | Gardée en feuille de route. **18/11/2026** : Symbola s'appuie sur **une** plateforme agréée partenaire (Euro-Information pressentie) ; le planner ne choisit pas la sienne pour les factures émises depuis Symbola. | Lot 42 ; ADR 0088 ; `docs/etudes/paiement-et-plateforme-agreee.md`. |
+| Q21 Paiement | Benchmark à faire. **18/11/2026** : règlement par **virement au RIB du planner** seulement ; aucun prestataire de paiement, aucune liaison de compte ; aucun supplément pour la carte. | Lot 43 ; ADR 0087 ; `docs/etudes/paiement-et-plateforme-agreee.md`. |
 | Q22 Mots de passe compromis | Une dépendance tenue à jour. | Je proposerai le paquet et l'ADR au lot 24. |
 | Q23 « Terminé » | La définition du nouveau document, exclusivement. | `CLAUDE.md` § 7 est remplacé. Chaque exigence n'est terminée que si son scénario passe : voir l'explication de Q24. |
 | Q24 Rejeu | Impacts à expliquer. | Voir ci-dessous. |
@@ -422,12 +422,23 @@ important, les options possibles (sans recommandation tranchée) et les lots qui
 - **Question** : ce choix est-il confirmé ? Le connecteur sera une brique derrière une interface
   (ARC-12) : la retenir tôt fixe le calendrier des lots 41 et 42.
 
+**Décision de Julien (18/11/2026)** : Symbola est d'abord une solution de facturation ; il se rend
+conforme à la facturation électronique en appelant **une** plateforme agréée partenaire, par
+exemple Euro-Information (groupe Crédit Mutuel Alliance Fédérale). Le planner ne choisit pas de
+plateforme pour les factures émises depuis Symbola. Étude :
+`docs/etudes/paiement-et-plateforme-agreee.md` (§ 6) ; ADR 0088.
+
 ### Q21 — Quel prestataire de paiement ?
 
 - **Constat** : `CLAUDE.md` dit « paiements par Stripe plus tard ». Le nouveau document demande un
   « prestataire de paiement européen avec carte et SEPA » (§ 10) et aucune commission Symbola
   (§ 3).
 - **Question** : lequel retient-on pour le lot 43 ?
+
+**Décision de Julien (18/11/2026)** : on garde le **règlement par RIB** : simple et efficace. Pas de
+prestataire de paiement, pas de liaison avec un compte du planner, pas de paiement par carte dans
+Symbola, donc aucun supplément à facturer. Écart assumé avec FAC-08 (paiement en ligne) et le § 10
+(prestataire de paiement) : ADR 0087. Étude : `docs/etudes/paiement-et-plateforme-agreee.md`.
 
 ---
 
@@ -669,6 +680,10 @@ la question 11, posée à part, a reçu sa réponse le même jour). Rien ne chan
   donnée réelle. Les sauvegardes mensuelles gardent aussi les adresses IP au-delà des 12 mois
   validés (question 11 : « un seul exemplaire »).
 
+  **Décision de Julien (18/11/2026)** : (a), **35 jours glissants de base**. Une option payante
+  permettra plus tard de remonter jusqu'à un an en arrière (lot 54, abonnement). ADR 0092 ; écart
+  assumé avec NFR-13 (12 copies mensuelles).
+
 **À vérifier sur le VPS (Julien)** : que le Caddy partagé et le service d'e-mails ne gardent pas
 les adresses IP plus de 12 mois (question 11) ; sinon, régler leurs journaux.
 
@@ -737,6 +752,15 @@ en a). Le 35a (export complet) est fusionné (PR #117).
   `docs/conformite/fiche-avocat.md` (avec la conservation des contrats signés, réponse 3) et
   question 12 de `docs/conformite/fiche-dpo.md` (avec la trace des suppressions). Elles bloquent
   le lot 35c.
+
+**Décisions de Julien (18/11/2026)** :
+
+- **D7** : (a), reprise des pièces en lecture seule, numérotation continue pour le même SIREN,
+  chaîne vérifiée puis prolongée.
+- **D8** : (a), tout effacer au 30e jour, export jusqu'au dernier jour. La clause de réversibilité
+  sera écrite à la création de la société.
+- Les lots 35b et 35c ne sont plus bloqués. **Reste ouvert** : le choix de Q35 sur la rétention des
+  sauvegardes (35 jours ou 12 mois), à prendre avant la première donnée réelle.
 
 **D9 rejoint Q35 (erratum de la spécification)** :
 

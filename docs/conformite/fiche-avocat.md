@@ -210,6 +210,11 @@ Le cahier des charges ajoute « hors obligations légales ».
 
 Besoin : une réponse **avant de développer la fermeture d'un espace** (lot 35c).
 
+**Décision de Julien (18/11/2026)** : (a). Symbola efface tout au 30e jour ; l'export reste
+proposé jusqu'au dernier jour. **La clause de réversibilité** (délai, préavis, format, sort des
+données) **sera écrite à la création officielle de la société**, avec les conditions de
+l'éditeur. Le lot 35c peut se coder.
+
 ## Question du 17 novembre 2026 (lot 40c)
 
 ### 13. Déclaration d'accessibilité du portail des mariés

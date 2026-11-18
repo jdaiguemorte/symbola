@@ -243,6 +243,10 @@ après une fermeture. Ses pièces déjà émises posent trois questions.
 
 Besoin : une réponse **avant de développer la reprise d'un export** (lot 35b).
 
+**Décision de Julien (18/11/2026)** : (a). Les pièces reprises restent des pièces comptables en
+lecture seule. Pour le même SIREN, la numérotation continue. La chaîne d'empreintes reprise est
+vérifiée, puis prolongée. Le lot 35b peut se coder.
+
 ## Questions du 18 novembre 2026 (lot 41)
 
 Les factures et les avoirs émis par Symbola deviennent des **Factur-X** : un PDF/A-3 lisible, qui

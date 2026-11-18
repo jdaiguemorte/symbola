@@ -204,6 +204,11 @@ qui suit est ce que Symbola en retient. Suites : `docs/QUESTIONS.md` (Q35).
 
 Besoin : une réponse **avant de développer la fermeture d'un espace** (lot 35c).
 
+**Décision de Julien (18/11/2026)** : (a). Symbola efface tout au 30e jour ; l'export reste
+proposé jusqu'au dernier jour. **La clause de réversibilité** (délai, préavis, format, sort des
+données) **sera écrite à la création officielle de la société**, avec les conditions de
+l'éditeur. Le lot 35c peut se coder.
+
 ## Questions du 18 novembre 2026 (lot 46, rendez-vous)
 
 ### 13. Page publique de réservation et agenda de la planner
