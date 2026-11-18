@@ -1,6 +1,6 @@
 # Lot 50 — Plan de table et synthèse pour le traiteur
 
-**Statut** : spécification proposée le 18/11/2026, **à valider par Julien**. Le lot ajoute des
+**Statut** : spécification proposée le 18/11/2026, **validée par Julien le 18/11/2026** : toutes les décisions retenues dans leur option recommandée (a), préalable commun et élargissement de la contrainte des natures d'e-mails du `hub` compris (accord donné). Le lot ajoute des
 tables au schéma `guests` (module du lot 49) : validation explicite requise (CLAUDE.md § 8).
 Aucune dépendance nouvelle.
 
