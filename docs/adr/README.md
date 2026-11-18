@@ -87,3 +87,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0083 — Module Invités : RSVP par lien sans session, régimes avec accord et chiffrés, purge automatique](0083-module-invites-donnees-sensibles-et-purge.md)
 - [0084 — Formulaire de contact public et pipeline en colonnes dans le module Évènements](0084-formulaire-de-contact-et-pipeline.md)
 - [0086 — Plan de table par temps fort et synthèse pour le traiteur calculée à la demande](0086-plan-de-table-et-synthese-traiteur.md)
+- [0091 — Jour J de terrain : un chrono par temps fort, pointages ajoutés, file d'actions hors ligne écrite à la main](0091-jour-j-de-terrain-et-file-hors-ligne.md)

@@ -42,7 +42,7 @@ import {
 } from "@symbola/contracts";
 import { addDays, daysBetween, dueDateFor } from "./schedule";
 import { shiftedTimes } from "./program";
-import { ensureMainKeyMoment, keyMomentOfEvent } from "./main-moment";
+import { ensureMainKeyMoment, followEventDate, keyMomentOfEvent } from "./main-moment";
 import { resolveClientContacts, withContacts, type EventClientLinkRow, type EventClientRow } from "./clients";
 import { searchContactIds, searchContactIdsByWord } from "@/modules/hub/service";
 
@@ -713,6 +713,7 @@ export async function updateEventDateRow(
       .where(eq(events.id, eventId))
       .returning();
     if (!updated) throw new Error("mise à jour de la date échouée");
+    await followEventDate(tx, eventId, current.eventDate, eventDate);
     return recalculationFor(updated, undoneTasks);
   });
 }
@@ -751,6 +752,7 @@ export async function postponeEventRow(input: { organizationId: string; eventId:
       .where(eq(events.id, input.eventId))
       .returning();
     if (!updated) throw new Error("report de l'événement échoué");
+    await followEventDate(tx, input.eventId, current.eventDate, input.newDate);
     await recordStatusChange(tx, current, "postponed", input.changedByUserId);
     return { status: "postponed", event: updated };
   });

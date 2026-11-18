@@ -1233,7 +1233,9 @@ export async function setVendorPaymentHandover(input: VendorPaymentHandoverInput
 export async function listDayHandovers(organizationId: string, eventId: string): Promise<DayHandover[]> {
   const rows = await findHandoverRows(organizationId, eventId);
   if (rows.length === 0) return [];
-  const view = await listBudgetLines(organizationId, eventId);
+  const [view, candidates] = await Promise.all([listBudgetLines(organizationId, eventId), listVendorCandidates(organizationId, eventId)]);
+  // Une ligne sans prestataire rattaché : le prestataire retenu de sa catégorie (module events).
+  const retainedOf = (slotId: string) => candidates.filter((candidate) => candidate.outcome === "selected" && candidate.vendorSlotId === slotId).map((candidate) => candidate.vendorName).join(", ") || null;
   const handovers: DayHandover[] = [];
   for (const category of view.categories) {
     for (const line of category.lines) {
@@ -1243,7 +1245,7 @@ export async function listDayHandovers(organizationId: string, eventId: string):
         handovers.push({
           paymentId: payment.id,
           eventId,
-          vendorName: line.vendorName,
+          vendorName: line.vendorName ?? retainedOf(line.eventVendorSlotId),
           slotLabel: category.label,
           label: payment.label,
           amountCents: payment.amountCents,

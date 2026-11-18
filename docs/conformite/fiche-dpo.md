@@ -313,3 +313,31 @@ dans un export. Tout est purgé avec les invités ; à J+7, la synthèse ne cont
 > pied, contraintes jamais exportées). Le module reste fermé chez la pilote (question 14).
 
 Besoin : une réponse avant l'ouverture du module Invités à la pilote.
+
+## Question du 18 novembre 2026 (lot 51)
+
+### 16. Jour J de terrain : photos, main courante, file sur le téléphone
+
+Le lot 51 permet à l'équipe sur place de pointer le programme, de noter des incidents (dictés par le
+clavier du téléphone, sans service de reconnaissance vocale) et de prendre des photos : incident,
+case d'une liste d'installation, reçu d'une remise. Tout se garde d'abord sur le téléphone, même
+sans réseau, puis part au serveur.
+
+- **DPO-9 — Photos prises sur un lieu de mariage.** Des invités peuvent apparaître sur une photo
+  d'incident ou de liste. Proposition appliquée en attendant votre avis : les photos restent
+  **internes à l'organisation** (jamais montrées aux clients ni aux prestataires, ni dans aucun
+  export qui sort de l'organisation, servies par l'app après contrôle des droits) ; l'écran conseille
+  de **photographier les choses plutôt que les personnes** ; elles sont **purgées avec les documents
+  de l'évènement** (corbeille, durée de conservation, demande d'oubli qui vise l'évènement). Les
+  pointages et les incidents sont des données de travail : ni nom d'invité ni donnée de santé ; un
+  malaise se note sans le nom de la personne (rappel dans l'aide et sous le champ). Faut-il une durée
+  plus courte pour les photos, ou une mention à destination des invités (affichage sur le lieu) ?
+- **File sur le téléphone.** Tant qu'elles ne sont pas envoyées, les actions (textes d'incident et
+  photos compris) restent dans le navigateur du téléphone, sans chiffrement par l'application
+  (verrouillage du téléphone), comme la copie de lecture du lot 29. Elles ne partent qu'avec la
+  session de leur auteur ; la file se vide à l'envoi.
+
+> **Symbola** : rien n'est tranché ; le réglage le plus prudent s'applique (photos internes, purge
+> avec l'évènement, conseil à l'écran).
+
+Besoin : une réponse avant le premier jour J réel avec photos chez la pilote.

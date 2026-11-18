@@ -4,7 +4,7 @@
 // sont reconnues (jour ou temps fort, début, fin, séquence, lieu, responsable, note). L'écran de
 // contrôle montre les séquences lues, les écarts expliqués ligne par ligne, les temps forts qui
 // seront créés et les cellules neutralisées ; rien n'est écrit avant « Importer ».
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { importProgramAction, type ProgramImportState } from "./program-actions";
 
@@ -12,15 +12,22 @@ export function ProgramImportForm({ eventId }: { eventId: string }) {
   const t = useTranslations("Events");
   const [state, action, pending] = useActionState(importProgramAction, {} as ProgramImportState);
   const result = state.result;
+  // React vide le champ fichier après chaque action : le fichier choisi est gardé pour « Importer ».
+  const file = useRef<File | null>(null);
+  const run = (formData: FormData) => {
+    const chosen = formData.get("file");
+    if ((!(chosen instanceof File) || chosen.size === 0) && file.current) formData.set("file", file.current);
+    return action(formData);
+  };
   return (
     <details className="program-import">
       <summary>{t("programImportTitle")}</summary>
       <p className="muted">{t("programImportHint")}</p>
-      <form action={action} className="stack">
+      <form action={run} className="stack">
         <input type="hidden" name="eventId" value={eventId} />
         <label>
           {t("programImportFileLabel")}
-          <input type="file" name="file" required accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+          <input type="file" name="file" onChange={(change) => (file.current = change.target.files?.[0] ?? null)} accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
         </label>
         {result?.status === "preview" ? (
           <>

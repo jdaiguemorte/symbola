@@ -31,3 +31,10 @@ export async function keyMomentOfEvent(tx: Tx, eventId: string, keyMomentId: str
   const [row] = await tx.select({ id: keyMoments.id }).from(keyMoments).where(and(eq(keyMoments.id, keyMomentId), eq(keyMoments.eventId, eventId)));
   return Boolean(row);
 }
+
+// Le temps fort créé de lui-même suit la date de l'évènement (changée ou reportée) : le chrono d'un
+// évènement d'un jour reste le jour de l'évènement. Les temps forts de la planner ne bougent pas.
+export async function followEventDate(tx: Tx, eventId: string, before: string | null, after: string | null): Promise<void> {
+  if (!before || !after || before === after) return;
+  await tx.update(keyMoments).set({ date: after, updatedAt: new Date() }).where(and(eq(keyMoments.eventId, eventId), eq(keyMoments.autoCreated, true), eq(keyMoments.date, before)));
+}

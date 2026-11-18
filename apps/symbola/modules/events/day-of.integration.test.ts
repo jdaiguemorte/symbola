@@ -34,6 +34,7 @@ import {
   listKeyMoments,
   receiveDayPhoto,
   removeKeyMoment,
+  changeEventDate,
 } from "./service";
 import { addVendorPayment, getLinkBudgetView, listBudgetLines, listDayHandovers, recordDayHandover, setVendorPaymentHandover, updateBudgetLine } from "@/modules/budget/service";
 
@@ -132,6 +133,9 @@ describe("EVT-04 — Évènements sur plusieurs jours et en plusieurs temps fort
     expect(first.keyMomentId).toBe(moments[0]!.id);
     expect(second.keyMomentId).toBe(moments[0]!.id);
     expect((await guestEventContexts(organizationId, [event.id]))[0]!.keyMoments).toEqual([]);
+    // La date de l'évènement change : son temps fort créé de lui-même la suit, le chrono aussi.
+    await changeEventDate(organizationId, event.id, "2027-09-11");
+    expect((await listKeyMoments(organizationId, event.id))[0]).toMatchObject({ date: "2027-09-11", autoCreated: true });
   });
 
   it("une autre organisation ne rattache pas une séquence à un temps fort qui n'est pas le sien", async () => {
