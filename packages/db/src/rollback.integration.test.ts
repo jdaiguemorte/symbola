@@ -51,8 +51,9 @@ const rollback = async (tag: string) => {
 };
 
 // Lots 26a à 29b : migrations au-dessus de celles du 28, annulées pour revenir à 0108.
-// Lot 47 : prestataires par lien (0159, events), natures d'e-mails des prestataires (0160, hub).
-const LOT_47 = ["0160_lot47_hub_vendor_email_kinds", "0159_lot47_events_vendor_coordination"];
+// Lot 47 : prestataires par lien (0159, events), natures d'e-mails des prestataires (0160, hub),
+// engagé libéré à l'historique du budget (0161, budget).
+const LOT_47 = ["0161_lot47_budget_history_release", "0160_lot47_hub_vendor_email_kinds", "0159_lot47_events_vendor_coordination"];
 // Lot 41 : Factur-X et réforme (0154, quotes), adresse du vendeur et TVA sur les débits (0155, hub).
 const LOT_41 = ["0155_lot41_hub_seller_address_vat_debits", "0154_lot41_quotes_facturx"];
 // Lot 49 : module Invités (0153), natures d'e-mails des invités (0152), durées de purge (0151),
@@ -117,7 +118,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
-  it("lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; ADR 0085) — 0159 et 0160 : réponse et feuille de route contraintes, natures d'e-mails des prestataires ; annulations refusées tant qu'un modèle réécrit, une facture déposée ou une réponse au fil existent, puis tout est retiré", async () => {
+  it("lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; ADR 0085) — 0159 à 0161 : réponse et feuille de route contraintes, natures d'e-mails des prestataires ; annulations refusées tant qu'un modèle réécrit, une facture déposée ou une réponse au fil existent, puis tout est retiré", async () => {
     await migrateAll();
     const organizationId = randomUUID();
     const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
@@ -127,20 +128,27 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(target`update events.event_vendor_candidates set availability = 'peut-être' where id = ${candidate!.id}`).rejects.toThrow(/event_vendor_candidates_availability_check/);
     await expect(target`insert into events.vendor_roadmaps (organization_id, candidate_id, stage, sent_at) values (${organizationId}, ${candidate!.id}, 'j15', now())`).rejects.toThrow(/vendor_roadmaps_stage_check/);
     await expect(target`insert into events.vendor_briefs (organization_id, event_id, vendor_slot_id, need, deadline) values (${organizationId}, ${event!.id}, ${slot!.id}, 'Autre', '2027-03-01')`).rejects.toThrow(/vendor_briefs_slot_unique/);
+    // 0161 : un engagé libéré (nouvelle valeur vide) est admis à l'historique et bloque l'annulation.
+    const [line] = await target<{ id: string }[]>`insert into budget.budget_lines (organization_id, event_id, event_vendor_slot_id, label) values (${organizationId}, ${event!.id}, ${slot!.id}, 'Fleurs') returning id`;
+    const [entry] = await target<{ id: string }[]>`insert into budget.budget_line_history (organization_id, line_id, field, old_value_cents, new_value_cents, changed_by_user_id) values (${organizationId}, ${line!.id}, 'committed', 285000, null, ${organizationId}) returning id`;
+    await expect(rollback(LOT_47[0]!)).rejects.toThrow(/engagés libérés sont à l'historique/);
+    await target`delete from budget.budget_line_history where id = ${entry!.id}`;
+    await target`delete from budget.budget_lines where id = ${line!.id}`;
+    await rollback(LOT_47[0]!);
     // 0160 : les trois natures sont admises ; un modèle réécrit bloque l'annulation.
     const [template] = await target<{ id: string }[]>`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, 'vendor_brief', 'fr', 'Brief', 'Bonjour {{lien}}') returning id`;
-    await expect(rollback(LOT_47[0]!)).rejects.toThrow(/modèles d'e-mails des prestataires ont été réécrits/);
+    await expect(rollback(LOT_47[1]!)).rejects.toThrow(/modèles d'e-mails des prestataires ont été réécrits/);
     await target`delete from hub.email_templates where id = ${template!.id}`;
-    await rollback(LOT_47[0]!);
+    await rollback(LOT_47[1]!);
     await expect(target`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, 'vendor_roadmap', 'fr', 'Feuille', 'Bonjour {{lien}}')`).rejects.toThrow(/email_templates_kind_check/);
     // 0159 : une facture déposée par un lien (sans auteur de l'équipe) ou une réponse au fil bloquent.
     const [document] = await target<{ id: string }[]>`insert into events.event_documents (organization_id, event_id, label, file_key, mime, size_bytes) values (${organizationId}, ${event!.id}, 'Facture', 'k', 'application/pdf', 10) returning id`;
-    await expect(rollback(LOT_47[1]!)).rejects.toThrow(/factures ont été déposées par des prestataires/);
+    await expect(rollback(LOT_47[2]!)).rejects.toThrow(/factures ont été déposées par des prestataires/);
     await target`delete from events.event_documents where id = ${document!.id}`;
     await target`insert into events.event_activities (organization_id, event_id, kind, task_label, vendor_candidate_id) values (${organizationId}, ${event!.id}, 'vendor_answered', '', ${candidate!.id})`;
-    await expect(rollback(LOT_47[1]!)).rejects.toThrow(/réponses de prestataires sont au fil/);
+    await expect(rollback(LOT_47[2]!)).rejects.toThrow(/réponses de prestataires sont au fil/);
     await target`delete from events.event_activities where event_id = ${event!.id}`;
-    await rollback(LOT_47[1]!);
+    await rollback(LOT_47[2]!);
     expect(await hasColumn("events", "event_vendor_candidates", "availability")).toBe(false);
     const [table] = await target<{ name: string | null }[]>`select to_regclass('events.vendor_briefs')::text as name`;
     expect(table!.name).toBeNull();

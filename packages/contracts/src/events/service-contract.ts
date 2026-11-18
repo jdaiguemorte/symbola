@@ -774,9 +774,8 @@ export type EventDecision = {
   requestedAt: string;
   // Programme approuvé puis modifié depuis la réponse (lot 37b : une version plus récente diffusée).
   programChanged: boolean;
-  // Lot 47 (D6) : le choix d'une décision « options » a engagé ; annulable jusqu'à undoUntil.
+  // Lot 47 (D6) : le choix d'une décision « options » a engagé (Retenu, autres Écartés, tâches).
   engagedAt: string | null;
-  engagementUndoneAt: string | null;
 };
 
 type RequestDecisionBase = {

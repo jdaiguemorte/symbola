@@ -101,7 +101,7 @@ export const AUDIT_ACTIONS = {
   "events.vendor_roadmap.sent": { category: "partage", objectType: "event" },
   "events.vendor_roadmap.confirmed": { category: "partage", objectType: "event" },
   "events.decision.engaged": { category: "partage", objectType: "event" },
-  "events.decision.engagement_undone": { category: "partage", objectType: "event" },
+  "events.vendor_retention.changed": { category: "partage", objectType: "event" },
   // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
   "hub.mail.quota_reached": { category: "partage", objectType: null },
   // Lot 38a (MSG-01, D5) : un e-mail automatique n'est pas parti, une variable du modèle étant vide

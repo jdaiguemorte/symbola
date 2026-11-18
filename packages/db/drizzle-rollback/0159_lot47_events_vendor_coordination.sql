@@ -66,9 +66,11 @@ DROP TABLE IF EXISTS "events"."vendor_briefs";
 --> statement-breakpoint
 ALTER TABLE "events"."event_decisions" DROP COLUMN IF EXISTS "engaged_at";
 --> statement-breakpoint
-ALTER TABLE "events"."event_decisions" DROP COLUMN IF EXISTS "engagement_undone_at";
+DROP INDEX IF EXISTS "events"."event_tasks_follow_up_candidate_idx";
 --> statement-breakpoint
-ALTER TABLE "events"."event_decisions" DROP COLUMN IF EXISTS "engagement";
+ALTER TABLE "events"."event_tasks" DROP CONSTRAINT IF EXISTS "event_tasks_follow_up_candidate_id_event_vendor_candidates_id_fk";
+--> statement-breakpoint
+ALTER TABLE "events"."event_tasks" DROP COLUMN IF EXISTS "follow_up_candidate_id";
 --> statement-breakpoint
 ALTER TABLE "events"."event_documents" DROP CONSTRAINT IF EXISTS "event_documents_uploaded_by_link_id_event_links_id_fk";
 --> statement-breakpoint

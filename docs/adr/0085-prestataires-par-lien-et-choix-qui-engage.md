@@ -1,7 +1,8 @@
 # ADR 0085 — Prestataires par lien : brief groupé et cloisonné, un lien du brief au jour J, choix du client qui engage
 
 - Statut : accepté (spécification du lot 47 validée par Julien le 18/11/2026, décisions D1 à D10
-  dans leur option a ; migration `hub` à part accordée le 18/11/2026)
+  dans leur option a ; migrations `hub` et `budget` à part accordées le 18/11/2026 ; D6 revue par
+  Julien le 18/11/2026 : plus de délai, modification du retenu à tout moment ; AV-6 tranché)
 - Date : 2026-11-18
 - Complète : [0053](0053-acces-des-tiers-par-lien-personnel.md) (liens personnels),
   [0054](0054-budget-et-prestataires-du-lot-28.md) (« Retenu » engage la ligne de budget, PRE-02),
@@ -11,7 +12,7 @@
 - **Revient sur** la décision D9 du lot 28 (« une décision n'engage rien d'elle-même »), pour les
   seules décisions « options » (voir le point 5).
 - Exigences : PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; scénario SC-05 ;
-  `docs/lots/lot-47-prestataires-par-lien.md`. Question AV-6 à l'avocat.
+  `docs/lots/lot-47-prestataires-par-lien.md`. AV-6 tranché par Julien (noté dans la fiche de l'avocat).
 
 ## Contexte
 
@@ -42,14 +43,21 @@ puis une feuille de route à J-30 et J-7 confirmée par le prestataire.
 5. **Le choix du client engage** (D6) : dans la transaction de sa réponse à une décision
    « options », le prestataire choisi passe à « Retenu » (l'événement `events.vendor_slot.booked`
    engage la ligne de budget, règle PRE-02), les autres consultés en lice passent à « Écarté »
-   (motif « un autre choisi », sans e-mail), les tâches de suivi sont créées depuis la liste de
-   l'organisation (`vendor-follow-up-tasks.json`, HUB-20), et l'état d'avant est gardé sur la
-   décision (`engagement`). La planner est prévenue (« Aujourd'hui ») et **annule le tout d'un
-   geste pendant 7 jours** : statuts d'avant, tâches non commencées retirées,
-   `events.vendor_option.undone` publié. **Cela remplace la décision D9 du lot 28 pour les seules
-   décisions « options »** ; une dépense validée ou un programme approuvé n'engagent toujours rien
-   d'eux-mêmes. Le choix ne vaut pas commande auprès du prestataire : le contrat reste à signer
-   (première tâche de suivi) ; la phrase sous le bouton attend l'avis de l'avocat (AV-6).
+   (motif « un autre choisi », sans e-mail), et les tâches de suivi sont créées depuis la liste de
+   l'organisation (`vendor-follow-up-tasks.json`, HUB-20), **rattachées au prestataire**
+   (`event_tasks.follow_up_candidate_id`). La planner est prévenue (« Aujourd'hui »). **Cela
+   remplace la décision D9 du lot 28 pour les seules décisions « options »** ; une dépense validée
+   ou un programme approuvé n'engagent toujours rien d'eux-mêmes.
+   **Pas de délai** (décision de Julien du 18/11/2026, qui remplace la fenêtre de 7 jours de la
+   spécification) : Symbola affiche un devis et met en relation, il ne porte pas la facture du
+   prestataire ; aucune rétractation n'a lieu d'être ici. La planner **modifie le prestataire
+   retenu à tout moment** : un autre consulté du poste (il passe à « Retenu », l'engagé passe à son
+   devis, ses tâches de suivi sont créées, l'ancien est écarté), ou personne (chacun revient en
+   lice). Un prestataire qui n'est plus retenu perd ses tâches de suivi non commencées (celles
+   faites restent) et l'événement `events.vendor_retention.released` est publié. Le client ne
+   change pas seul son choix ; la planner peut le lui redemander (nouvelle décision « options »).
+   Le choix **ne vaut pas commande** (AV-6, tranché par Julien) ; sous le bouton : « Votre choix
+   est transmis à <planner> ; le contrat se signe directement avec le prestataire. »
 6. **Avis du client** (D7) : « J'aime », « Pas pour nous » et un commentaire par option, avant de
    choisir (`event_decision_option_feedback`), lus par la planner dans le comparatif. Un payeur
    (catégories choisies) ne voit une décision « options » que pour un poste de son périmètre.
@@ -75,18 +83,18 @@ puis une feuille de route à J-30 et J-7 confirmée par le prestataire.
 
 ## Conséquences
 
-- Migrations 0159 (`events`) et 0160 (`hub`), annulables ; l'annulation est refusée tant qu'une
-  facture déposée par un prestataire, une réponse au fil d'activité ou un modèle réécrit existent.
+- Migrations 0159 (`events`), 0160 (`hub`) et **0161 (`budget`, accord de Julien du 18/11/2026,
+  option a)**, chacune annulable et à part ; elles suivent la règle de renumérotation (numéro et
+  `when`) si une autre PR fusionne avant. 0161 rend `budget.budget_line_history.new_value_cents`
+  facultative : la libération d'un engagé est historisée (nouvelle valeur vide). Les annulations
+  sont refusées tant qu'une facture déposée par un prestataire, une réponse au fil d'activité, un
+  modèle réécrit ou un engagé libéré à l'historique existent.
 - Nouveaux événements internes : `events.vendor.answered`, `events.vendor_option.chosen`,
-  `events.vendor_option.undone` (v1), sans nom ni montant.
+  `events.vendor_retention.released` (v1), sans nom du client.
+- Module Budget : sur `events.vendor_retention.released`, par son propre service, il libère
+  l'engagé des lignes du prestataire **seulement s'il vaut encore ce que la retenue avait engagé**
+  (son devis, ou le devisé de chaque ligne) ; un engagé modifié depuis n'est pas touché ; un rejeu
+  ne libère rien de plus ; sous RLS de l'organisation de l'événement.
 - RGPD : besoin du brief, message du prestataire, avis du client et nom d'un scénario au registre ;
   `privacy/v1` du module events les trouve et les efface. Le devis déposé suit la durée des
   documents de l'évènement.
-- Le budget engagé par un choix annulé : voir « Point ouvert ».
-
-## Point ouvert
-
-L'historique des montants du budget (`budget.budget_line_history.new_value_cents`) n'admet pas de
-valeur vide : le module Budget ne sait pas « désengager » une ligne. L'annulation sous 7 jours
-publie `events.vendor_option.undone` ; la libération de l'engagé côté Budget dépend de la réponse
-de Julien (migration `budget` à part, ou engagé laissé à corriger à la main).

@@ -1,6 +1,6 @@
 {
-  "id": "cc9e2ae1-106f-45d1-8d72-cc3b7c74db2a",
-  "prevId": "e85fbff8-5cff-4a35-a38d-7d73bf1f6553",
+  "id": "a4a91f22-d537-4a38-beac-1ecebc462f99",
+  "prevId": "7379afc1-fc61-4084-94b9-16b46c2334b4",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -2347,18 +2347,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "engagement_undone_at": {
-          "name": "engagement_undone_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "engagement": {
-          "name": "engagement",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
         "requested_at": {
           "name": "requested_at",
           "type": "timestamp with time zone",
@@ -4495,6 +4483,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "follow_up_candidate_id": {
+          "name": "follow_up_candidate_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "done_at": {
           "name": "done_at",
           "type": "timestamp with time zone",
@@ -4583,6 +4577,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "event_tasks_follow_up_candidate_idx": {
+          "name": "event_tasks_follow_up_candidate_idx",
+          "columns": [
+            {
+              "expression": "follow_up_candidate_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -4607,6 +4616,20 @@
           "schemaTo": "events",
           "columnsFrom": [
             "vendor_candidate_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "event_tasks_follow_up_candidate_id_event_vendor_candidates_id_fk": {
+          "name": "event_tasks_follow_up_candidate_id_event_vendor_candidates_id_fk",
+          "tableFrom": "event_tasks",
+          "tableTo": "event_vendor_candidates",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "follow_up_candidate_id"
           ],
           "columnsTo": [
             "id"

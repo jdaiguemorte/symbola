@@ -5,6 +5,11 @@ schéma `events` (tables et colonnes) et la contrainte des natures d'e-mails du 
 (D9) ; il revient sur une décision du lot 28 (D5) : validation explicite requise (CLAUDE.md § 8).
 Aucune dépendance nouvelle.
 
+**Mise à jour du 18/11/2026 (décisions de Julien en cours de lot)** : D6 revue (plus de délai de
+7 jours ; la planner modifie le prestataire retenu à tout moment, l'engagé du budget suit ou est
+libéré) ; migration `budget` à part accordée (option a : `budget_line_history.new_value_cents`
+facultative) ; AV-6 tranché par Julien (le choix n'est pas une commande).
+
 Branche `lot-47-prestataires-par-lien`, partie de `main` (2649e8d, après la PR #134). Aucune
 version intermédiaire n'est déployée (gel des déploiements) : le lot se rejoue en local.
 
@@ -146,10 +151,17 @@ PR.
   engage la ligne de budget, règle PRE-02 existante), les autres consultés du poste passent à
   « Écarté » (sans e-mail automatique : la planner prévient qui elle veut), et les **tâches de
   suivi** sont créées depuis la liste de l'organisation (`vendor-follow-up-tasks.json` : contrat,
-  acompte, attestation d'assurance), avec leurs échéances. La planner est prévenue et peut
-  **annuler** le tout d'un geste pendant 7 jours (retour à l'état d'avant, tâches non commencées
-  retirées). Cela remplace la décision D9 du lot 28 (« une décision n'engage rien d'elle-même »)
-  pour les seules décisions « options » ; l'ADR du lot le note.
+  acompte, attestation d'assurance), avec leurs échéances, rattachées au prestataire. La planner
+  est prévenue et **modifie le prestataire retenu à tout moment**, sans délai (décision de Julien
+  du 18/11/2026 : Symbola ne porte pas la facture du prestataire, il n'y a pas de rétractation à
+  gérer ici) : retenir un autre consulté du poste (l'engagé passe à son devis) ou personne
+  (l'engagé est libéré, par l'événement `events.vendor_retention.released` et la migration
+  `budget` accordée) ; les tâches de suivi non commencées de l'ancien prestataire sont retirées,
+  celles commencées restent. Le client ne change pas seul son choix : la planner peut lui
+  redemander un choix (nouvelle décision « options »). Sous le bouton du client : « Votre choix est
+  transmis à <planner> ; le contrat se signe directement avec le prestataire. » Cela remplace la
+  décision D9 du lot 28 (« une décision n'engage rien d'elle-même ») pour les seules décisions
+  « options » ; l'ADR du lot le note.
 - **Payeur** : un payeur qui n'a pas le poste dans son périmètre ne voit pas la décision (règle
   existante, POR-10).
 
@@ -216,14 +228,14 @@ PR.
   **Recommandation : (a).** Le critère de BUD-05 (« deux scénarios se comparent côte à côte ») ne
   tient pas avec (b).
 - **D6 — Le choix du client.** Revient sur la décision D9 du lot 28.
-  - (a) Le choix **engage** : Retenu, autres Écartés, tâches de suivi, la planner prévenue, annulable
-    7 jours.
+  - (a) Le choix **engage** : Retenu, autres Écartés, tâches de suivi, la planner prévenue ; elle
+    modifie ensuite le prestataire retenu à tout moment (révisé le 18/11 : plus de délai de 7 jours).
   - (b) Le choix reste une réponse ; la planner retient en un clic depuis la notification
     (règle du lot 28).
 
   **Recommandation : (a).** C'est le texte du cahier des charges (PAR-05 étape 4 ; SC-05 étape 5 :
   « Léa choisit. Le budget et les tâches de suivi se mettent à jour »), qui est la référence (Q2).
-  L'annulation de 7 jours garde la main à la planner. (b) reste possible si tu préfères garder la
+  La modification à tout moment garde la main à la planner. (b) reste possible si tu préfères garder la
   règle du lot 28 ; il faudrait alors un ADR d'écart.
 - **D7 — L'avis du client.**
   - (a) « J'aime » / « Pas pour nous » et un commentaire court par option, avant le choix.
@@ -255,11 +267,10 @@ PR.
 
 **Avocat** (question suivante de sa fiche, numéro donné à la fusion) :
 
-- **AV-6** — Le choix du client qui engage la ligne de budget (D6 a) : il ne vaut **pas**
-  commande auprès du prestataire (le contrat reste à signer, c'est la première tâche de suivi).
-  Faut-il le dire au client sur l'écran du choix, et en quels termes ? Recommandation de travail :
-  une phrase sous le bouton (« Votre choix est transmis à Camille ; le contrat sera signé
-  ensuite »).
+- **AV-6** — **Tranché par Julien le 18/11/2026** : le choix du client n'est pas une commande ;
+  Symbola affiche un devis et met en relation, sans porter la facture du prestataire (seulement
+  celles des planners). Phrase sous le bouton : « Votre choix est transmis à <planner> ; le contrat
+  se signe directement avec le prestataire. » Noté comme décision dans la fiche de l'avocat.
 
 **DPO** : rien de nouveau dans les catégories de données (coordonnées professionnelles des
 prestataires, déjà au registre). Le devis d'un prestataire peut contenir son nom personnel (auto-
@@ -283,11 +294,14 @@ ancienne que la dernière appliquée).
   - `event_decision_option_feedback` (décision, prestataire consulté, avis, commentaire, lien) ;
   - `vendor_roadmaps` (prestataire consulté, échéance J-30 ou J-7, envoyée le, confirmée le,
     version du programme vue) ;
-  - `event_decisions` : `engaged_at`, `engagement_undone_at` (D6) ;
+  - `event_decisions` : `engaged_at` (D6) ; `event_tasks` : `follow_up_candidate_id` (tâches de
+    suivi du prestataire retenu) ;
   - `event_activities` : natures `vendor_answered`, `vendor_roadmap_confirmed` ;
   - RLS et index sur `organization_id` partout ; droits du rôle applicatif.
 - **`hub`** (une migration à part et son annulation) : `email_templates_kind_check` élargie aux
   trois natures de D9, avec la réunion des natures alors présentes sur `main`.
+- **`budget`** (une migration à part et son annulation, accord de Julien du 18/11/2026) :
+  `budget_line_history.new_value_cents` facultative, pour historiser la libération d'un engagé.
 - Données de départ : `vendor-follow-up-tasks.json` (FR et EN, variante agence),
   `email-templates.json` (trois modèles).
 
@@ -327,8 +341,10 @@ Chaque critère devient un test ; les `describe` portent l'identifiant.
   devis sans montant compté « à préciser ».
 - **PRE-09 et D6** (intégration) : le client ne voit que la sélection figée ; son avis est
   enregistré ; son choix rend le prestataire Retenu, écarte les autres, engage la ligne de budget,
-  crée les tâches de suivi ; l'annulation sous 7 jours rétablit tout ; un payeur hors périmètre ne
-  voit pas la décision.
+  crée les tâches de suivi ; la planner modifie le retenu à tout moment, sans limite de durée
+  (l'engagé passe au nouveau devis ou est libéré, tâches commencées conservées) ; un payeur hors
+  périmètre ne voit pas la décision. Budget : libération normale, engagé modifié entre-temps non
+  touché, idempotence, isolation entre organisations.
 - **Feuille de route** (horloge simulée) : envois à J-30 et J-7 dans le fuseau de l'évènement,
   une seule fois chacun ; confirmation horodatée ; alerte à J-4 sans confirmation ; aucune
   feuille de route vers un prestataire écarté.

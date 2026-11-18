@@ -354,6 +354,9 @@ export const eventTasks = eventsSchema.table("event_tasks", {
   // Lot 34b (CHR-02, D12) : le prestataire retenu à qui la tâche est confiée (responsable
   // « vendor ») ; nul si le prestataire est retiré de l'événement.
   vendorCandidateId: uuid("vendor_candidate_id").references(() => eventVendorCandidates.id, { onDelete: "set null" }),
+  // Lot 47 (PAR-05, D6 ; ADR 0085) : tâche de suivi créée quand ce prestataire est retenu (contrat,
+  // acompte, attestation) ; retirée, si elle n'est pas faite, quand il cesse d'être retenu.
+  followUpCandidateId: uuid("follow_up_candidate_id").references((): AnyPgColumn => eventVendorCandidates.id, { onDelete: "set null" }),
   doneAt: timestamp("done_at", { withTimezone: true }),
   position: integer("position").notNull().default(0),
   // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
@@ -370,6 +373,7 @@ export const eventTasks = eventsSchema.table("event_tasks", {
 }, (table) => [
   index("event_tasks_organization_idx").on(table.organizationId),
   index("event_tasks_vendor_candidate_idx").on(table.vendorCandidateId),
+  index("event_tasks_follow_up_candidate_idx").on(table.followUpCandidateId),
 ]);
 
 // PRD-EVT-05 : programme du jour J d'un événement. Heures sans date (« HH:MM »),
@@ -649,10 +653,8 @@ export const eventDecisions = eventsSchema.table("event_decisions", {
   decidedAt: timestamp("decided_at", { withTimezone: true }),
   replacesDecisionId: uuid("replaces_decision_id"),
   // Lot 47 (PAR-05, PRE-09 ; D6, ADR 0085) : le choix d'une décision « options » engage (Retenu, autres
-  // Écartés, tâches de suivi) ; ce qu'il faut pour l'annuler sous 7 jours est gardé ici.
+  // Écartés, tâches de suivi) ; la planner modifie ensuite le prestataire retenu quand elle veut.
   engagedAt: timestamp("engaged_at", { withTimezone: true }),
-  engagementUndoneAt: timestamp("engagement_undone_at", { withTimezone: true }),
-  engagement: jsonb("engagement").$type<DecisionEngagementRecord | null>(),
   requestedAt: timestamp("requested_at", { withTimezone: true }).defaultNow().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
@@ -1003,13 +1005,6 @@ export const keyMoments = eventsSchema.table("key_moments", {
 ]);
 
 // --- Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; ADR 0085) : prestataires par lien. ---
-
-// Ce que le choix engageant d'une décision « options » a changé, pour l'annuler (D6) : le statut et
-// le motif d'écart d'avant de chaque prestataire du poste, les tâches de suivi créées.
-export type DecisionEngagementRecord = {
-  previous: { candidateId: string; status: string; dismissalReason: string | null }[];
-  taskIds: string[];
-};
 
 // D1, D10 : un brief par poste, envoyé à plusieurs prestataires. Le budget indicatif est facultatif
 // et masqué par défaut ; montré seulement si la planner le coche. Montants en centimes, EUR (TTC).

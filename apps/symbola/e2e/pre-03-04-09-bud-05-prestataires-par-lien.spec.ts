@@ -63,7 +63,7 @@ async function wedding() {
     const pivoine = await addVendorCandidate({ organizationId, eventId: event.id, vendorSlotId: flowers.id, vendorName: "Pivoine & Cie" });
     const silence = await addVendorCandidate({ organizationId, eventId: event.id, vendorSlotId: flowers.id, vendorName: "Fleurs du Silence" });
     const studio = await addVendorCandidate({ organizationId, eventId: event.id, vendorSlotId: photo.id, vendorName: "Studio Lumière" });
-    return { email, userId: user.id, organizationId, eventId: event.id, flowersId: flowers.id, photoId: photo.id, elodieId: elodie.id, pivoineId: pivoine.id, silenceId: silence.id, studioId: studio.id };
+    return { email, userId: user.id, organizationId, organizationName: organization.name, eventId: event.id, flowersId: flowers.id, photoId: photo.id, elodieId: elodie.id, pivoineId: pivoine.id, silenceId: silence.id, studioId: studio.id };
   } finally {
     await sql.end();
   }
@@ -146,7 +146,7 @@ test("SC-05 / PRE-03 / PRE-04 — brief à trois fleuristes, Élodie répond « 
   await expectNoAxeViolation(planner);
 });
 
-test("PRE-09 / PAR-05 — Léa donne son avis et choisit : le fleuriste est retenu, les autres écartés, les tâches créées ; la planner annule", async ({ page: planner, browser }) => {
+test("PRE-09 / PAR-05 — Léa donne son avis et choisit : le fleuriste est retenu, les autres écartés, les tâches créées ; la planner modifie le retenu", async ({ page: planner, browser }) => {
   test.setTimeout(150_000);
   const setup = await wedding();
   await updateVendorCandidate({ organizationId: setup.organizationId, candidateId: setup.elodieId, quoteAmountCents: 285_000, shownToClients: true });
@@ -172,7 +172,7 @@ test("PRE-09 / PAR-05 — Léa donne son avis et choisit : le fleuriste est rete
   await feedback.getByLabel("Un mot sur Atelier Élodie (facultatif)").fill("Superbe arche");
   await feedback.getByRole("button", { name: "Enregistrer mon avis sur Atelier Élodie" }).click();
   await expect(feedback.getByText("Avis enregistré.")).toBeVisible();
-  await expect(client.getByText("Votre choix est transmis à l'organisation de votre évènement ; le contrat avec le prestataire sera signé ensuite.")).toBeVisible();
+  await expect(client.getByText(`Votre choix est transmis à ${setup.organizationName} ; le contrat se signe directement avec le prestataire.`)).toBeVisible();
   await expectNoAxeViolation(client);
   await client.getByRole("radio", { name: /Atelier Élodie/ }).check();
   await client.locator("form.decision-form button[value=approved]").click();
@@ -184,13 +184,16 @@ test("PRE-09 / PAR-05 — Léa donne son avis et choisit : le fleuriste est rete
   expect(candidates.find((candidate) => candidate.id === setup.elodieId)!.status).toBe("retained");
   expect(candidates.find((candidate) => candidate.id === setup.pivoineId)!.status).toBe("dismissed");
 
-  // La planner voit le choix et son avis, puis l'annule d'un geste.
+  // La planner voit le choix, puis modifie le prestataire retenu (à tout moment) : personne.
   await signIn(planner, setup.email);
   await planner.goto(`/events/${setup.eventId}/consultation/${setup.flowersId}`);
-  await expect(planner.getByRole("region", { name: "Le choix du client" })).toContainText("Léa a choisi Atelier Élodie");
+  const retained = planner.getByRole("region", { name: "Le prestataire retenu" });
+  await expect(retained).toContainText("Léa a choisi Atelier Élodie");
+  await expect(retained).toContainText("Retenu : Atelier Élodie");
   await expectNoAxeViolation(planner);
-  await planner.getByRole("button", { name: /Annuler ce choix/ }).click();
-  await expect(planner.getByRole("region", { name: "Le choix du client" })).toHaveCount(0);
+  await retained.getByLabel("Prestataire retenu").selectOption({ label: "Personne" });
+  await retained.getByRole("button", { name: "Modifier le prestataire retenu" }).click();
+  await expect(retained).toContainText("Aucun prestataire retenu pour ce poste.");
   const after = await listVendorCandidates(setup.organizationId, setup.eventId);
   expect(after.find((candidate) => candidate.id === setup.elodieId)!.status).toBe("quote_received");
   expect(after.find((candidate) => candidate.id === setup.pivoineId)!.status).toBe("quote_received");

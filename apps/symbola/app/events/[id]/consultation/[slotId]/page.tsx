@@ -8,7 +8,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, formatDateTime, formatAmountInput, type Locale } from "@symbola/i18n";
-import { starterVendorCoordination } from "@symbola/starter-templates";
 import { ScreenHelp } from "@/app/screen-help";
 import { requirePlanner } from "@/lib/guards";
 import {
@@ -26,7 +25,7 @@ import { getVendorContacts } from "@/modules/vendors/service";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
 import { AddConsultedForm, BriefForm, RecipientsForm, ShareSelectionForm } from "../consultation-forms";
-import { undoEngagementAction } from "../actions";
+import { changeRetainedAction } from "../actions";
 
 type Translate = Awaited<ReturnType<typeof getTranslations<"VendorCoordination">>>;
 
@@ -91,9 +90,8 @@ export default async function VendorConsultationPage({ params }: { params: Promi
     });
   const slotDecisions = decisions.filter((decision) => decision.kind === "option" && decision.slotId === slotId);
   const pending = slotDecisions.find((decision) => decision.status === "pending");
-  const engaged = slotDecisions.find((decision) => decision.engagedAt && !decision.engagementUndoneAt);
-  const undoUntil = engaged?.engagedAt ? new Date(new Date(engaged.engagedAt).getTime() + starterVendorCoordination().engagementUndoDays * 86_400_000) : null;
-  const canUndo = undoUntil !== null && undoUntil.getTime() > Date.now();
+  const engaged = [...slotDecisions].reverse().find((decision) => decision.engagedAt);
+  const retained = comparison.rows.filter((row) => engagedStatuses.includes(row.status));
 
   return (
     <main className="stack">
@@ -109,25 +107,38 @@ export default async function VendorConsultationPage({ params }: { params: Promi
       <ScreenHelp title={tHelp("vendorCoordination.title")} body={tHelp("vendorCoordination.body")} />
       {event.isDemo ? <p className="notice">{t("demoNotice")}</p> : null}
 
-      {engaged && engaged.choiceId ? (
-        <section className="card stack" aria-labelledby="engaged-title">
-          <h2 id="engaged-title">{t("engaged.title")}</h2>
-          <p>
-            {t("engaged.body", {
-              vendor: comparison.rows.find((row) => row.candidateId === engaged.choiceId)?.vendorName ?? "",
-              name: engaged.decidedByName ?? t("engaged.someone"),
-              date: formatDateTime(new Date(engaged.engagedAt!), locale),
-            })}
-          </p>
-          {canUndo ? (
-            <form action={undoEngagementAction}>
-              <input type="hidden" name="eventId" value={eventId} />
-              <input type="hidden" name="vendorSlotId" value={slotId} />
-              <input type="hidden" name="decisionId" value={engaged.id} />
-              <button type="submit">{t("engaged.undo", { date: formatDateTime(undoUntil!, locale) })}</button>
-              <p className="muted">{t("engaged.undoHint")}</p>
-            </form>
+      {/* Lot 47 (D6, décision de Julien du 18/11/2026) : le prestataire retenu se modifie à tout
+          moment ; aucun délai. Le choix du client y est rappelé. */}
+      {comparison.rows.length > 0 ? (
+        <section className="card stack" aria-labelledby="retained-title">
+          <h2 id="retained-title">{t("retained.title")}</h2>
+          {engaged && engaged.choiceId ? (
+            <p>
+              {t("engaged.body", {
+                vendor: comparison.rows.find((row) => row.candidateId === engaged.choiceId)?.vendorName ?? "",
+                name: engaged.decidedByName ?? t("engaged.someone"),
+                date: formatDateTime(new Date(engaged.engagedAt!), locale),
+              })}
+            </p>
           ) : null}
+          <p>{retained.length > 0 ? t("retained.current", { vendors: retained.map((row) => row.vendorName).join(", ") }) : t("retained.none")}</p>
+          <form action={changeRetainedAction} className="stack">
+            <input type="hidden" name="eventId" value={eventId} />
+            <input type="hidden" name="vendorSlotId" value={slotId} />
+            <label>
+              {t("retained.label")}
+              <select name="candidateId" defaultValue={retained[0]?.candidateId ?? ""}>
+                <option value="">{t("retained.nobody")}</option>
+                {comparison.rows.map((row) => (
+                  <option key={row.candidateId} value={row.candidateId}>
+                    {row.vendorName} — {amountLabel(t, row, locale)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="submit">{t("retained.submit")}</button>
+            <p className="muted">{t("retained.hint")}</p>
+          </form>
         </section>
       ) : null}
 

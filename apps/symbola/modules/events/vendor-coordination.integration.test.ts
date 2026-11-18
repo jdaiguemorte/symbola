@@ -48,7 +48,8 @@ import {
   sendVendorRoadmaps,
   setLinkOptionFeedback,
   setVendorScenarioChoice,
-  undoDecisionEngagement,
+  changeRetainedVendor,
+  updateEventTask,
   updateVendorCandidate,
   VendorBriefInvalidError,
   VendorCandidateNotFoundError,
@@ -378,6 +379,14 @@ async function clientLink(organizationId: string, eventId: string, rights: { rub
   return delivery.link.id;
 }
 
+function followUpLabels(vendor: string): string[] {
+  return starterVendorFollowUpTasks("fr").map((task) => task.label.replace("{{prestataire}}", vendor));
+}
+
+async function committedOf(organizationId: string, eventId: string, candidateId: string): Promise<(number | null)[]> {
+  return (await listBudgetLines(organizationId, eventId)).lines.filter((line) => line.vendorCandidateId === candidateId).map((line) => line.committedAmountCents);
+}
+
 async function optionDecision(organizationId: string, setup: Awaited<ReturnType<typeof wedding>>) {
   await updateVendorCandidate({ organizationId, candidateId: setup.elodieId, quoteAmountCents: 285_000, shownToClients: true });
   await updateVendorCandidate({ organizationId, candidateId: setup.pivoineId, quoteAmountCents: 199_000, shownToClients: true });
@@ -400,45 +409,73 @@ describe("PRE-09 — Sélection partagée au client, avec avis et choix (D6, D7)
     expect(rows.find((row) => row.candidateId === setup.elodieId)!.feedback).toMatchObject([{ opinion: "like", comment: "Superbe arche", personName: "Léa" }]);
   });
 
-  it("le choix rend le prestataire Retenu, écarte les autres, engage la ligne de budget et crée les tâches de suivi ; l'annulation sous 7 jours rétablit tout", async () => {
+  it("le choix rend le prestataire Retenu, écarte les autres, engage la ligne de budget et crée les tâches de suivi", async () => {
     const organizationId = await organization();
     const setup = await wedding(organizationId);
     const decision = await optionDecision(organizationId, setup);
     const linkId = await clientLink(organizationId, setup.eventId, { rubrics: ["vendor_options"], budgetScope: "all", sharedSlotIds: [] });
     await answerLinkDecision({ organizationId, linkId, decisionId: decision.id, answer: "approved", choiceId: setup.elodieId, comment: null });
-    let candidates = await listVendorCandidates(organizationId, setup.eventId);
+    const candidates = await listVendorCandidates(organizationId, setup.eventId);
     expect(candidates.find((candidate) => candidate.id === setup.elodieId)!.status).toBe("retained");
     expect(candidates.find((candidate) => candidate.id === setup.pivoineId)!.status).toBe("dismissed");
     expect(candidates.find((candidate) => candidate.id === setup.silenceId)!.status).toBe("dismissed");
     expect(candidates.find((candidate) => candidate.id === setup.studioId)!.status).toBe("shortlisted");
-    const expected = starterVendorFollowUpTasks("fr").map((task) => task.label.replace("{{prestataire}}", "Atelier Élodie"));
-    expect((await listEventTasks(organizationId, setup.eventId)).map((task) => task.label).filter((label) => expected.includes(label)).sort()).toEqual([...expected].sort());
+    expect((await listEventTasks(organizationId, setup.eventId)).map((task) => task.label).filter((label) => followUpLabels("Atelier Élodie").includes(label)).sort()).toEqual([...followUpLabels("Atelier Élodie")].sort());
     await runEventWorkerOnce();
-    const committed = (await listBudgetLines(organizationId, setup.eventId)).lines.filter((line) => line.vendorCandidateId === setup.elodieId).map((line) => line.committedAmountCents);
-    expect(committed).toEqual([285_000]);
-    const engaged = (await listEventDecisions(organizationId, setup.eventId)).find((row) => row.id === decision.id)!;
-    expect(engaged.engagedAt).not.toBeNull();
-
-    await undoDecisionEngagement({ organizationId, decisionId: decision.id, userId: plannerId, now: new Date(new Date(engaged.engagedAt!).getTime() + 6 * 86_400_000) });
-    candidates = await listVendorCandidates(organizationId, setup.eventId);
-    // Retour à l'état d'avant le choix : devis reçus, le troisième pressenti.
-    expect(candidates.find((candidate) => candidate.id === setup.elodieId)!.status).toBe("quote_received");
-    expect(candidates.find((candidate) => candidate.id === setup.pivoineId)!.status).toBe("quote_received");
-    expect(candidates.find((candidate) => candidate.id === setup.silenceId)!.status).toBe("shortlisted");
-    expect((await listEventTasks(organizationId, setup.eventId)).map((task) => task.label).filter((label) => expected.includes(label))).toEqual([]);
-    await runEventWorkerOnce();
-    const released = (await listBudgetLines(organizationId, setup.eventId)).lines.filter((line) => line.vendorCandidateId === setup.elodieId).map((line) => line.committedAmountCents);
-    expect(released.every((amount) => amount === null)).toBe(true);
+    expect(await committedOf(organizationId, setup.eventId, setup.elodieId)).toEqual([285_000]);
+    expect((await listEventDecisions(organizationId, setup.eventId)).find((row) => row.id === decision.id)!.engagedAt).not.toBeNull();
   });
 
-  it("au-delà de 7 jours, l'engagement ne s'annule plus", async () => {
+  it("la planner modifie le prestataire retenu à tout moment, sans limite de durée : l'engagé passe au nouveau devis, les tâches non commencées de l'ancien partent, celles commencées restent", async () => {
     const organizationId = await organization();
     const setup = await wedding(organizationId);
     const decision = await optionDecision(organizationId, setup);
     const linkId = await clientLink(organizationId, setup.eventId, { rubrics: ["vendor_options"], budgetScope: "all", sharedSlotIds: [] });
-    await answerLinkDecision({ organizationId, linkId, decisionId: decision.id, answer: "approved", choiceId: setup.pivoineId, comment: null });
-    const engaged = (await listEventDecisions(organizationId, setup.eventId)).find((row) => row.id === decision.id)!;
-    await expect(undoDecisionEngagement({ organizationId, decisionId: decision.id, userId: plannerId, now: new Date(new Date(engaged.engagedAt!).getTime() + 7 * 86_400_000) })).rejects.toThrow(/annulation/);
+    await answerLinkDecision({ organizationId, linkId, decisionId: decision.id, answer: "approved", choiceId: setup.elodieId, comment: null });
+    await runEventWorkerOnce();
+    const elodieTasks = (await listEventTasks(organizationId, setup.eventId)).filter((task) => followUpLabels("Atelier Élodie").includes(task.label));
+    await updateEventTask({ organizationId, taskId: elodieTasks[0]!.id, done: true });
+    // Bien plus tard (aucun délai) : Pivoine est retenue à la place d'Élodie.
+    await changeRetainedVendor({ organizationId, eventId: setup.eventId, vendorSlotId: setup.flowersId, candidateId: setup.pivoineId, userId: plannerId, now: new Date(Date.now() + 90 * 86_400_000) });
+    const candidates = await listVendorCandidates(organizationId, setup.eventId);
+    expect(candidates.find((candidate) => candidate.id === setup.pivoineId)!.status).toBe("retained");
+    expect(candidates.find((candidate) => candidate.id === setup.elodieId)!.status).toBe("dismissed");
+    const labels = (await listEventTasks(organizationId, setup.eventId)).map((task) => task.label);
+    expect(labels).toContain(elodieTasks[0]!.label);
+    expect(labels.filter((label) => followUpLabels("Atelier Élodie").includes(label))).toEqual([elodieTasks[0]!.label]);
+    expect(labels.filter((label) => followUpLabels("Pivoine & Cie").includes(label)).sort()).toEqual([...followUpLabels("Pivoine & Cie")].sort());
+    await runEventWorkerOnce();
+    expect(await committedOf(organizationId, setup.eventId, setup.elodieId)).toEqual([null]);
+    expect(await committedOf(organizationId, setup.eventId, setup.pivoineId)).toEqual([199_000]);
+  });
+
+  it("ne plus retenir personne : l'engagé est libéré, chacun revient en lice ; le client ne change pas seul son choix", async () => {
+    const organizationId = await organization();
+    const setup = await wedding(organizationId);
+    const decision = await optionDecision(organizationId, setup);
+    const linkId = await clientLink(organizationId, setup.eventId, { rubrics: ["vendor_options"], budgetScope: "all", sharedSlotIds: [] });
+    await answerLinkDecision({ organizationId, linkId, decisionId: decision.id, answer: "approved", choiceId: setup.elodieId, comment: null });
+    await expect(answerLinkDecision({ organizationId, linkId, decisionId: decision.id, answer: "approved", choiceId: setup.pivoineId, comment: null })).rejects.toThrow(/décision invalide/);
+    await runEventWorkerOnce();
+    await changeRetainedVendor({ organizationId, eventId: setup.eventId, vendorSlotId: setup.flowersId, candidateId: null, userId: plannerId });
+    const candidates = await listVendorCandidates(organizationId, setup.eventId);
+    expect(candidates.find((candidate) => candidate.id === setup.elodieId)!.status).toBe("quote_received");
+    expect(candidates.find((candidate) => candidate.id === setup.pivoineId)!.status).toBe("quote_received");
+    expect(candidates.find((candidate) => candidate.id === setup.silenceId)!.status).toBe("shortlisted");
+    expect((await listEventTasks(organizationId, setup.eventId)).filter((task) => followUpLabels("Atelier Élodie").includes(task.label))).toEqual([]);
+    await runEventWorkerOnce();
+    expect(await committedOf(organizationId, setup.eventId, setup.elodieId)).toEqual([null]);
+    // La planner redemande un choix : une nouvelle décision « options ».
+    await expect(requestDecision({ organizationId, eventId: setup.eventId, requestedByUserId: plannerId, kind: "option", slotId: setup.flowersId })).resolves.toMatchObject({ status: "pending" });
+  });
+
+  it("abus : on ne retient qu'un prestataire consulté de ce poste et de cette organisation", async () => {
+    const organizationId = await organization();
+    const setup = await wedding(organizationId);
+    await expect(changeRetainedVendor({ organizationId, eventId: setup.eventId, vendorSlotId: setup.flowersId, candidateId: setup.studioId, userId: plannerId })).rejects.toBeInstanceOf(VendorCandidateNotFoundError);
+    const otherOrg = await organization();
+    await expect(changeRetainedVendor({ organizationId: otherOrg, eventId: setup.eventId, vendorSlotId: setup.flowersId, candidateId: setup.elodieId, userId: plannerId })).rejects.toBeInstanceOf(VendorCandidateNotFoundError);
+    expect((await listVendorCandidates(organizationId, setup.eventId)).find((candidate) => candidate.id === setup.elodieId)!.status).toBe("shortlisted");
   });
 
   it("abus : un payeur qui n'a pas le poste dans son périmètre ne voit pas la décision et n'y répond pas", async () => {

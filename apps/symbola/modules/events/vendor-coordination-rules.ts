@@ -6,7 +6,7 @@ import { ENGAGED_CANDIDATE_STATUSES, type VendorCandidateStatus, type VendorLink
 import type { StarterVendorCoordination } from "@symbola/starter-templates";
 import { addDays } from "./schedule";
 
-type Policy = Pick<StarterVendorCoordination, "reminderDaysBefore" | "roadmapDaysBefore" | "engagementUndoDays" | "sendingHours">;
+type Policy = Pick<StarterVendorCoordination, "reminderDaysBefore" | "roadmapDaysBefore" | "choiceNoticeDays" | "sendingHours">;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -33,14 +33,10 @@ export function roadmapAlertDue(roadmap: { stage: VendorRoadmapStage; sentAt: Da
   return roadmap.stage === "j7" && roadmap.confirmedAt === null && now.getTime() >= roadmap.sentAt.getTime() + alertDays * DAY_MS;
 }
 
-// D6 : le choix engagé s'annule d'un geste pendant 7 jours.
-export function engagementUndoUntil(engagedAt: Date, policy: Pick<Policy, "engagementUndoDays">): Date {
-  return new Date(engagedAt.getTime() + policy.engagementUndoDays * DAY_MS);
-}
-
-export function canUndoEngagement(decision: { engagedAt: Date | null; undoneAt: Date | null }, now: Date, policy: Pick<Policy, "engagementUndoDays">): boolean {
-  if (!decision.engagedAt || decision.undoneAt) return false;
-  return now.getTime() < engagementUndoUntil(decision.engagedAt, policy).getTime();
+// D6 : le choix d'un client est signalé dans « Aujourd'hui » quelques jours (simple affichage) ; la
+// planner modifie le prestataire retenu à tout moment, sans délai.
+export function choiceNoticeShown(engagedAt: Date, now: Date, policy: Pick<Policy, "choiceNoticeDays">): boolean {
+  return now.getTime() < engagedAt.getTime() + policy.choiceNoticeDays * DAY_MS;
 }
 
 // BUD-05 : total d'un scénario au centime ; un devis sans montant compte « à préciser ».

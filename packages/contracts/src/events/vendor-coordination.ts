@@ -174,8 +174,9 @@ export type SetOptionFeedbackInput = {
   comment: string | null;
 };
 
-// Engagement d'un choix : quand, et jusqu'à quand il s'annule.
-export type DecisionEngagementView = { engagedAt: string; undoUntil: string; undoneAt: string | null; taskCount: number };
+// D6 : la planner modifie le prestataire retenu d'un poste à tout moment : un autre prestataire
+// consulté du poste, ou personne (null).
+export type ChangeRetainedVendorInput = { organizationId: string; eventId: string; vendorSlotId: string; candidateId: string | null; userId: string; now?: Date | undefined };
 
 // --- Feuille de route (PAR-05 étapes 5 et 6 ; D8) ---
 
@@ -199,7 +200,7 @@ export type VendorFollowUpStatus = { candidateId: string; roadmaps: VendorRoadma
 // du client engagé (annulable).
 export type VendorAnswerNotice = { candidateId: string; eventId: string; vendorSlotId: string; vendorName: string; slotLabel: string; availability: VendorAvailability; hasQuote: boolean; answeredAt: string };
 export type VendorRoadmapAlert = { candidateId: string; eventId: string; vendorName: string; sentAt: string };
-export type EngagedChoiceNotice = { decisionId: string; eventId: string; vendorSlotId: string; vendorName: string; slotLabel: string; engagedAt: string; undoUntil: string };
+export type EngagedChoiceNotice = { decisionId: string; eventId: string; vendorSlotId: string; vendorName: string; slotLabel: string; engagedAt: string };
 
 // --- Événements internes (ARC-05, ADR 0014) ---
 
@@ -231,16 +232,16 @@ export const vendorOptionChosenPayloadSchema = z.object({
 });
 export type VendorOptionChosenPayload = z.infer<typeof vendorOptionChosenPayloadSchema>;
 
-// D6 : la planner annule l'engagement d'un choix sous 7 jours. Le module Budget libère
-// l'engagement des lignes du prestataire qu'il avait engagées, s'il n'a pas changé depuis.
-export const EVT_VENDOR_OPTION_UNDONE = "events.vendor_option.undone";
-export const EVT_VENDOR_OPTION_UNDONE_VERSION = 1;
-export const vendorOptionUndonePayloadSchema = z.object({
+// D6 : un prestataire cesse d'être retenu par le choix de la planner (un autre retenu à sa place, ou
+// personne). Le module Budget libère l'engagé des lignes de ce prestataire, s'il vaut encore ce que
+// la retenue avait engagé (amountCents : son devis à cet instant). Ni nom ni montant du client.
+export const EVT_VENDOR_RETENTION_RELEASED = "events.vendor_retention.released";
+export const EVT_VENDOR_RETENTION_RELEASED_VERSION = 1;
+export const vendorRetentionReleasedPayloadSchema = z.object({
   eventId: z.string().uuid(),
   vendorSlotId: z.string().uuid(),
-  decisionId: z.string().uuid(),
   candidateId: z.string().uuid(),
-  engagedAt: z.string().datetime(),
-  undoneByUserId: z.string().uuid(),
+  amountCents: z.number().int().nonnegative().nullable(),
+  releasedByUserId: z.string().uuid(),
 });
-export type VendorOptionUndonePayload = z.infer<typeof vendorOptionUndonePayloadSchema>;
+export type VendorRetentionReleasedPayload = z.infer<typeof vendorRetentionReleasedPayloadSchema>;

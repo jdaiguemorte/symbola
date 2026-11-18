@@ -35,7 +35,6 @@ import {
   vendorRoadmaps,
   vendorScenarioChoices,
   vendorScenarios,
-  type DecisionEngagementRecord,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { parseEnv } from "@symbola/env";
@@ -49,11 +48,12 @@ import {
   EVT_VENDOR_ANSWERED_VERSION,
   EVT_VENDOR_OPTION_CHOSEN,
   EVT_VENDOR_OPTION_CHOSEN_VERSION,
-  EVT_VENDOR_OPTION_UNDONE,
-  EVT_VENDOR_OPTION_UNDONE_VERSION,
+  EVT_VENDOR_RETENTION_RELEASED,
+  EVT_VENDOR_RETENTION_RELEASED_VERSION,
   vendorAnsweredPayloadSchema,
   vendorOptionChosenPayloadSchema,
-  vendorOptionUndonePayloadSchema,
+  vendorRetentionReleasedPayloadSchema,
+  type ChangeRetainedVendorInput,
   type AnswerVendorBriefInput,
   type DecisionSnapshot,
   type EmailValues,
@@ -92,9 +92,8 @@ import { CANDIDATE_QUOTE_MAX_SIZE_BYTES, CandidateQuoteRejectedError, publishRet
 import { findLatestProgramVersion } from "./program-versions";
 import {
   briefReminderDue,
-  canUndoEngagement,
+  choiceNoticeShown,
   compareByAmount,
-  engagementUndoUntil,
   isVendorSendingHour,
   roadmapAlertDue,
   roadmapStageDue,
@@ -119,16 +118,9 @@ const IN_THE_RUNNING: VendorCandidateStatus[] = ["shortlisted", "contacted", "qu
 const CLOSED_EVENT_STATUSES: ("cancelled" | "closed")[] = ["cancelled", "closed"];
 
 export class VendorBriefInvalidError extends Error {
-  constructor(readonly reason: "need" | "deadline" | "guests" | "budget" | "documents" | "slot" | "recipients" | "missing" | "email" | "settings" | "name" | "undo") {
+  constructor(readonly reason: "need" | "deadline" | "guests" | "budget" | "documents" | "slot" | "recipients" | "missing" | "email" | "settings" | "name") {
     super(`brief invalide : ${reason}`);
     this.name = "VendorBriefInvalidError";
-  }
-}
-
-export class EngagementUndoError extends Error {
-  constructor() {
-    super("annulation impossible : délai passé, ou rien à annuler");
-    this.name = "EngagementUndoError";
   }
 }
 
@@ -914,26 +906,74 @@ async function engagementAuthor(organizationId: string, decision: typeof eventDe
   return team.find((member) => member.role === "owner")?.id ?? team[0]?.id ?? linkId;
 }
 
-// La langue et le métier des tâches de suivi : ceux de la titulaire et de l'organisation.
-async function organizationTaskDefaults(organizationId: string): Promise<{ locale: "fr" | "en"; metier: Metier }> {
+// Les tâches de suivi : la liste de l'organisation, sinon celle de départ dans la langue de la
+// titulaire et le métier de l'organisation (HUB-20).
+async function followUpTaskList(organizationId: string): Promise<{ label: string; dueInDays: number }[]> {
+  const custom = await inOrganization(organizationId, async (tx) => (await tx.select({ followUpTasks: vendorCoordinationSettings.followUpTasks }).from(vendorCoordinationSettings).where(eq(vendorCoordinationSettings.organizationId, organizationId)))[0]?.followUpTasks ?? null);
+  if (custom) return custom;
   const db = appDatabase();
   const team = (await listTeam(db, organizationId)).filter((member) => !member.disabledAt);
   const owner = team.find((member) => member.role === "owner");
   const locale = owner ? ((await getUserContact(db, organizationId, owner.id))?.language ?? "fr") : "fr";
   const metier = (await getOrganizationProfile(db, organizationId)).metier ?? "wedding_planner";
-  return { locale, metier };
+  return starterVendorFollowUpTasks(locale, metier);
+}
+
+// Les tâches de suivi d'un prestataire retenu, rattachées à lui (follow_up_candidate_id) ; échéances
+// comptées depuis aujourd'hui, dans le fuseau de l'évènement.
+async function insertFollowUpTasks(tx: Tx, organizationId: string, candidate: CandidateRow, tasks: { label: string; dueInDays: number }[], now: Date): Promise<string[]> {
+  if (tasks.length === 0) return [];
+  const [event] = await tx.select({ timeZone: events.timeZone }).from(events).where(eq(events.id, candidate.eventId));
+  const today = dateInTimeZone(now, event?.timeZone ?? "Europe/Paris");
+  const rows = await tx
+    .insert(eventTasks)
+    .values(
+      tasks.map((task, index) => ({
+        organizationId,
+        eventId: candidate.eventId,
+        label: task.label.split("{{prestataire}}").join(candidate.vendorName).split("{{vendor}}").join(candidate.vendorName).slice(0, 200),
+        dueDate: addDays(today, task.dueInDays),
+        responsible: "planner" as const,
+        position: 10_000 + index,
+        fixedAt: now,
+        followUpCandidateId: candidate.id,
+      })),
+    )
+    .returning({ id: eventTasks.id });
+  return rows.map((row) => row.id);
+}
+
+// Un prestataire cesse d'être retenu : ses tâches de suivi non commencées sont retirées (celles
+// faites restent) ; le module Budget libère son engagé (événement interne).
+async function releaseRetained(tx: Tx, organizationId: string, candidate: CandidateRow, next: { status: VendorCandidateStatus; dismissalReason: VendorDismissalReason | null }, userId: string, now: Date): Promise<void> {
+  await tx.update(eventVendorCandidates).set({ status: next.status, dismissalReason: next.dismissalReason, updatedAt: now }).where(eq(eventVendorCandidates.id, candidate.id));
+  await tx.delete(eventTasks).where(and(eq(eventTasks.followUpCandidateId, candidate.id), isNull(eventTasks.doneAt)));
+  const [event] = await tx.select({ isDemo: events.isDemo }).from(events).where(eq(events.id, candidate.eventId));
+  if (event?.isDemo) return;
+  await emitDomainEvent(tx, {
+    organizationId,
+    name: EVT_VENDOR_RETENTION_RELEASED,
+    version: EVT_VENDOR_RETENTION_RELEASED_VERSION,
+    payload: vendorRetentionReleasedPayloadSchema.parse({ eventId: candidate.eventId, vendorSlotId: candidate.vendorSlotId, candidateId: candidate.id, amountCents: candidate.quoteAmountCents, releasedByUserId: userId }),
+  });
+}
+
+// De nouveau en lice : « Devis reçu » s'il a un devis, « Consulté » s'il a reçu le brief, sinon « Pressenti ».
+function backInTheRunning(candidate: CandidateRow): VendorCandidateStatus {
+  if (candidate.quoteAmountCents !== null || candidate.quoteFileKey !== null) return "quote_received";
+  return candidate.briefId ? "contacted" : "shortlisted";
 }
 
 // D6 : dans la transaction de la réponse du client. Le prestataire choisi passe à « Retenu » (ce qui
 // engage la ligne de budget, règle PRE-02), les autres consultés en lice du poste à « Écarté » (sans
-// e-mail), les tâches de suivi sont créées ; ce qu'il faut pour annuler est gardé sur la décision.
+// e-mail), les tâches de suivi sont créées et rattachées à lui. Le choix ne vaut pas commande : le
+// contrat se signe directement avec le prestataire (décision de Julien, AV-6).
 export async function engageOptionChoice(tx: Tx, input: { organizationId: string; decision: typeof eventDecisions.$inferSelect; choiceId: string; linkId: string; now: Date; bookedByUserId: string; tasks: { label: string; dueInDays: number }[] }): Promise<void> {
   const { decision } = input;
   if (!decision.slotId) return;
   const slotCandidates = await tx.select().from(eventVendorCandidates).where(eq(eventVendorCandidates.vendorSlotId, decision.slotId));
   const chosen = slotCandidates.find((candidate) => candidate.id === input.choiceId);
   if (!chosen) return;
-  const previous = slotCandidates.map((candidate) => ({ candidateId: candidate.id, status: candidate.status, dismissalReason: candidate.dismissalReason }));
   const others = slotCandidates.filter((candidate) => candidate.id !== chosen.id && IN_THE_RUNNING.includes(candidate.status));
   if (others.length > 0) {
     await tx.update(eventVendorCandidates).set({ status: "dismissed", dismissalReason: "other_chosen", updatedAt: input.now }).where(inArray(eventVendorCandidates.id, others.map((candidate) => candidate.id)));
@@ -941,56 +981,53 @@ export async function engageOptionChoice(tx: Tx, input: { organizationId: string
   const wasEngaged = isEngaged(chosen.status);
   const [updated] = await tx.update(eventVendorCandidates).set({ status: wasEngaged ? chosen.status : "retained", dismissalReason: null, updatedAt: input.now }).where(eq(eventVendorCandidates.id, chosen.id)).returning();
   if (updated && !wasEngaged) await publishRetention(tx, input.organizationId, updated, input.bookedByUserId);
-  const today = dateInTimeZone(input.now, (await tx.select({ timeZone: events.timeZone }).from(events).where(eq(events.id, decision.eventId)))[0]?.timeZone ?? "Europe/Paris");
-  const taskRows =
-    input.tasks.length > 0
-      ? await tx
-          .insert(eventTasks)
-          .values(input.tasks.map((task, index) => ({ organizationId: input.organizationId, eventId: decision.eventId, label: task.label.split("{{prestataire}}").join(chosen.vendorName).split("{{vendor}}").join(chosen.vendorName).slice(0, 200), dueDate: addDays(today, task.dueInDays), responsible: "planner" as const, position: 10_000 + index, fixedAt: input.now })))
-          .returning({ id: eventTasks.id })
-      : [];
-  const engagement: DecisionEngagementRecord = { previous, taskIds: taskRows.map((row) => row.id) };
-  await tx.update(eventDecisions).set({ engagedAt: input.now, engagement }).where(eq(eventDecisions.id, decision.id));
-  await appendAudit(tx, { organizationId: input.organizationId, action: "events.decision.engaged", objectId: decision.eventId, details: { decisionId: decision.id, tasks: taskRows.length } });
+  const taskIds = wasEngaged ? [] : await insertFollowUpTasks(tx, input.organizationId, chosen, input.tasks, input.now);
+  await tx.update(eventDecisions).set({ engagedAt: input.now }).where(eq(eventDecisions.id, decision.id));
+  await appendAudit(tx, { organizationId: input.organizationId, action: "events.decision.engaged", objectId: decision.eventId, details: { decisionId: decision.id, tasks: taskIds.length } });
   await emitDomainEvent(tx, {
     organizationId: input.organizationId,
     name: EVT_VENDOR_OPTION_CHOSEN,
     version: EVT_VENDOR_OPTION_CHOSEN_VERSION,
-    payload: vendorOptionChosenPayloadSchema.parse({ eventId: decision.eventId, vendorSlotId: decision.slotId, decisionId: decision.id, candidateId: chosen.id, dismissedCandidateIds: others.map((candidate) => candidate.id), taskIds: engagement.taskIds, linkId: input.linkId }),
+    payload: vendorOptionChosenPayloadSchema.parse({ eventId: decision.eventId, vendorSlotId: decision.slotId, decisionId: decision.id, candidateId: chosen.id, dismissedCandidateIds: others.map((candidate) => candidate.id), taskIds, linkId: input.linkId }),
   });
 }
 
 // Ce qu'il faut à engageOptionChoice, préparé hors de la transaction (lectures d'autres modules).
 export async function engagementContext(organizationId: string, decision: typeof eventDecisions.$inferSelect, linkId: string): Promise<{ bookedByUserId: string; tasks: { label: string; dueInDays: number }[] }> {
-  const defaults = await organizationTaskDefaults(organizationId);
-  const custom = await inOrganization(organizationId, async (tx) => (await tx.select({ followUpTasks: vendorCoordinationSettings.followUpTasks }).from(vendorCoordinationSettings).where(eq(vendorCoordinationSettings.organizationId, organizationId)))[0]?.followUpTasks ?? null);
-  return { bookedByUserId: await engagementAuthor(organizationId, decision, linkId), tasks: custom ?? starterVendorFollowUpTasks(defaults.locale, defaults.metier) };
+  return { bookedByUserId: await engagementAuthor(organizationId, decision, linkId), tasks: await followUpTaskList(organizationId) };
 }
 
-// D6 : la planner annule le tout d'un geste pendant 7 jours : statuts d'avant, tâches non commencées
-// retirées, engagement du budget libéré (événement interne pour le module Budget).
-export async function undoEngagement(input: { organizationId: string; decisionId: string; userId: string; now?: Date }): Promise<void> {
+// D6 (décision de Julien du 18/11/2026) : la planner modifie le prestataire retenu d'un poste à tout
+// moment, sans délai. Un autre consulté du poste : il passe à « Retenu » (l'engagé passe à son
+// devis), ses tâches de suivi sont créées, l'ancien retenu et les autres en lice sont écartés.
+// Personne : l'ancien retenu revient en lice, comme ceux écartés pour lui ; l'engagé est libéré.
+// Les tâches de suivi non commencées d'un prestataire qui n'est plus retenu sont retirées.
+export async function changeRetained(input: ChangeRetainedVendorInput): Promise<void> {
   const now = input.now ?? new Date();
-  if (!UUID.test(input.decisionId)) throw new EngagementUndoError();
+  if (!UUID.test(input.eventId) || !UUID.test(input.vendorSlotId) || (input.candidateId !== null && !UUID.test(input.candidateId))) throw new VendorCandidateNotFoundError();
+  const tasks = input.candidateId ? await followUpTaskList(input.organizationId) : [];
   await inOrganization(input.organizationId, async (tx) => {
-    const [decision] = await tx.select().from(eventDecisions).where(eq(eventDecisions.id, input.decisionId)).for("update");
-    if (!decision || !decision.engagement || !canUndoEngagement({ engagedAt: decision.engagedAt, undoneAt: decision.engagementUndoneAt }, now, starterVendorCoordination())) throw new EngagementUndoError();
-    const record = decision.engagement;
-    for (const previous of record.previous) {
-      await tx.update(eventVendorCandidates).set({ status: previous.status as VendorCandidateStatus, dismissalReason: previous.dismissalReason, updatedAt: now }).where(eq(eventVendorCandidates.id, previous.candidateId));
+    const [slot] = await tx.select({ id: eventVendorSlots.id }).from(eventVendorSlots).where(and(eq(eventVendorSlots.id, input.vendorSlotId), eq(eventVendorSlots.eventId, input.eventId)));
+    if (!slot) throw new VendorCandidateNotFoundError();
+    const candidates = await tx.select().from(eventVendorCandidates).where(eq(eventVendorCandidates.vendorSlotId, slot.id)).for("update");
+    const target = input.candidateId ? candidates.find((candidate) => candidate.id === input.candidateId) : null;
+    if (input.candidateId && !target) throw new VendorCandidateNotFoundError();
+    for (const previous of candidates.filter((candidate) => isEngaged(candidate.status) && candidate.id !== target?.id)) {
+      await releaseRetained(tx, input.organizationId, previous, target ? { status: "dismissed", dismissalReason: "other_chosen" } : { status: backInTheRunning(previous), dismissalReason: null }, input.userId, now);
     }
-    if (record.taskIds.length > 0) await tx.delete(eventTasks).where(and(inArray(eventTasks.id, record.taskIds), isNull(eventTasks.doneAt)));
-    await tx.update(eventDecisions).set({ engagementUndoneAt: now }).where(eq(eventDecisions.id, decision.id));
-    await appendAudit(tx, { organizationId: input.organizationId, action: "events.decision.engagement_undone", objectId: decision.eventId, details: { decisionId: decision.id } });
-    const chosen = record.previous.find((entry) => entry.candidateId === decision.choiceId);
-    if (decision.slotId && decision.choiceId && chosen && !isEngaged(chosen.status as VendorCandidateStatus)) {
-      await emitDomainEvent(tx, {
-        organizationId: input.organizationId,
-        name: EVT_VENDOR_OPTION_UNDONE,
-        version: EVT_VENDOR_OPTION_UNDONE_VERSION,
-        payload: vendorOptionUndonePayloadSchema.parse({ eventId: decision.eventId, vendorSlotId: decision.slotId, decisionId: decision.id, candidateId: decision.choiceId, engagedAt: decision.engagedAt!.toISOString(), undoneByUserId: input.userId }),
-      });
+    if (target) {
+      const others = candidates.filter((candidate) => candidate.id !== target.id && IN_THE_RUNNING.includes(candidate.status));
+      if (others.length > 0) await tx.update(eventVendorCandidates).set({ status: "dismissed", dismissalReason: "other_chosen", updatedAt: now }).where(inArray(eventVendorCandidates.id, others.map((candidate) => candidate.id)));
+      if (!isEngaged(target.status)) {
+        const [updated] = await tx.update(eventVendorCandidates).set({ status: "retained", dismissalReason: null, updatedAt: now }).where(eq(eventVendorCandidates.id, target.id)).returning();
+        if (updated) await publishRetention(tx, input.organizationId, updated, input.userId);
+        await insertFollowUpTasks(tx, input.organizationId, target, tasks, now);
+      }
+    } else {
+      const setAside = candidates.filter((candidate) => candidate.status === "dismissed" && candidate.dismissalReason === "other_chosen");
+      for (const candidate of setAside) await tx.update(eventVendorCandidates).set({ status: backInTheRunning(candidate), dismissalReason: null, updatedAt: now }).where(eq(eventVendorCandidates.id, candidate.id));
     }
+    await appendAudit(tx, { organizationId: input.organizationId, action: "events.vendor_retention.changed", objectId: input.eventId, details: { vendorSlotId: slot.id, candidateId: target?.id ?? null } });
   });
 }
 
@@ -1156,7 +1193,7 @@ export async function roadmapAlerts(organizationId: string, now: Date = new Date
   });
 }
 
-// Choix du client engagés et encore annulables, pour que la planner les voie.
+// Choix du client engagés récemment, pour que la planner les voie (simple affichage).
 export async function engagedChoiceNotices(organizationId: string, now: Date = new Date()): Promise<EngagedChoiceNotice[]> {
   const policy = starterVendorCoordination();
   const rows = await inOrganization(organizationId, (tx) =>
@@ -1165,9 +1202,9 @@ export async function engagedChoiceNotices(organizationId: string, now: Date = n
       .from(eventDecisions)
       .innerJoin(eventVendorCandidates, eq(eventVendorCandidates.id, eventDecisions.choiceId))
       .innerJoin(eventVendorSlots, eq(eventVendorSlots.id, eventVendorCandidates.vendorSlotId))
-      .where(and(isNotNull(eventDecisions.engagedAt), isNull(eventDecisions.engagementUndoneAt))),
+      .where(isNotNull(eventDecisions.engagedAt)),
   );
   return rows
-    .filter(({ decision }) => canUndoEngagement({ engagedAt: decision.engagedAt, undoneAt: decision.engagementUndoneAt }, now, policy))
-    .map(({ decision, vendorName, slotLabel }) => ({ decisionId: decision.id, eventId: decision.eventId, vendorSlotId: decision.slotId ?? "", vendorName, slotLabel, engagedAt: decision.engagedAt!.toISOString(), undoUntil: engagementUndoUntil(decision.engagedAt!, policy).toISOString() }));
+    .filter(({ decision }) => choiceNoticeShown(decision.engagedAt!, now, policy))
+    .map(({ decision, vendorName, slotLabel }) => ({ decisionId: decision.id, eventId: decision.eventId, vendorSlotId: decision.slotId ?? "", vendorName, slotLabel, engagedAt: decision.engagedAt!.toISOString() }));
 }

@@ -9,10 +9,10 @@ import { OptionFeedbackForm } from "./option-feedback-form";
 // ses rubriques, et « Vos décisions » : celles déjà répondues, avec qui et
 // quand (lisibles des deux côtés). Le programme approuvé puis modifié est signalé.
 // Lot 47 (PRE-09 ; D6, D7) : sur une décision « options », un avis par option avant de choisir ;
-// le choix engage (la phrase sous le bouton le dit, question AV-6 de l'avocat).
+// le choix engage, sans valoir commande (décision de Julien sur AV-6, phrase sous le bouton).
 type OptionFeedback = { decisionId: string; candidateId: string; opinion: "like" | "dislike" | null; comment: string | null };
 
-export async function ClientDecisions({ decisions, locale, preview = false, feedback = [] }: { decisions: EventDecision[]; locale: Locale; preview?: boolean; feedback?: OptionFeedback[] }) {
+export async function ClientDecisions({ decisions, locale, preview = false, feedback = [], plannerName = "" }: { decisions: EventDecision[]; locale: Locale; preview?: boolean; feedback?: OptionFeedback[]; plannerName?: string }) {
   const t = await getTranslations("Decisions");
   const pending = decisions.filter((decision) => decision.status === "pending");
   const answered = decisions.filter((decision) => decision.status === "approved" || decision.status === "declined").reverse();
@@ -47,6 +47,7 @@ export async function ClientDecisions({ decisions, locale, preview = false, feed
               label={label(decision)}
               amounts={Object.fromEntries(decision.snapshot.kind === "option" ? decision.snapshot.options.filter((option) => option.quoteAmountCents !== null).map((option) => [option.candidateId, formatAmount(option.quoteAmountCents!, locale)]) : [])}
               preview={preview}
+              plannerName={plannerName}
             />
           </li>
         ))}

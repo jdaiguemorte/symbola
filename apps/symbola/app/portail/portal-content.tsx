@@ -1,3 +1,5 @@
+import { appDatabase } from "@symbola/db/client";
+import { getOrganizationContact } from "@/modules/hub/service";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -243,7 +245,7 @@ export async function PortalContent({ access, preview = false, banner }: { acces
         ) : null}
       </section>
 
-      {decisions.length > 0 ? <ClientDecisions decisions={decisions} locale={locale} preview={preview} feedback={optionFeedback} /> : null}
+      {decisions.length > 0 ? <ClientDecisions decisions={decisions} locale={locale} preview={preview} feedback={optionFeedback} plannerName={decisions.some((decision) => decision.kind === "option") ? (await getOrganizationContact(appDatabase(), organizationId)).name : ""} /> : null}
 
       {view.tasks ? (
         <section aria-labelledby="portal-tasks-title" id="taches">

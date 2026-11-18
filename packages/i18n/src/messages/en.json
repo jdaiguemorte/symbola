@@ -1179,7 +1179,7 @@
     },
     "vendorCoordination": {
       "title": "Request quotes from several suppliers",
-      "body": "Write the brief for the category (the need, the number of guests, an indicative budget you show or not, the deadline, some inspiration), tick the suppliers, check the list, then send: each one gets their own email and link, with no account, and never sees the others. Those who have not answered get a reminder the day before the deadline. Answers arrive in the comparison; then tick the proposals to show the client and ask them to choose. Their choice books the supplier, sets the others aside and creates the follow-up tasks; you can undo it for 7 days."
+      "body": "Write the brief for the category (the need, the number of guests, an indicative budget you show or not, the deadline, some inspiration), tick the suppliers, check the list, then send: each one gets their own email and link, with no account, and never sees the others. Those who have not answered get a reminder the day before the deadline. Answers arrive in the comparison; then tick the proposals to show the client and ask them to choose. Their choice books the supplier, sets the others aside and creates the follow-up tasks. You change the booked supplier whenever you want."
     },
     "vendorScenarios": {
       "title": "Compare option scenarios",
@@ -5083,7 +5083,7 @@
       "events_vendor_roadmap_sent": "Run sheet sent to a supplier",
       "events_vendor_roadmap_confirmed": "Run sheet confirmed by a supplier",
       "events_decision_engaged": "Client choice committed (supplier booked, follow-up tasks)",
-      "events_decision_engagement_undone": "Client choice undone"
+      "events_vendor_retention_changed": "Booked supplier changed by the team"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -5501,7 +5501,7 @@
       "gone": "This event is no longer available.",
       "subject": "Choose what the client should decide."
     },
-    "engageNotice": "Your choice is passed on to the organisation of your event; the contract with the supplier will be signed afterwards.",
+    "engageNotice": "Your choice is passed on to {planner}; the contract is signed directly with the supplier.",
     "feedbackTitle": "Your opinion on the options: {label}",
     "feedbackOn": "Your opinion on {vendor}",
     "feedbackLike": "I like it",
@@ -6001,7 +6001,7 @@
         "quote": "{vendor} sent their quote ({slot})",
         "unavailable": "{vendor} is not available ({slot})"
       },
-      "vendorChoice": "The client chose {vendor} ({slot}): check it, can be undone for 7 days",
+      "vendorChoice": "The client chose {vendor} ({slot}): check it",
       "vendorRoadmap": "{vendor} has not confirmed their run sheet"
     },
     "myEventsTitle": "My events",
@@ -7222,11 +7222,8 @@
       "pending": "Choice requested on {date}, waiting for an answer."
     },
     "engaged": {
-      "title": "The client's choice",
-      "body": "{name} chose {vendor} on {date}: the supplier is booked, the others are set aside (no email) and the follow-up tasks are created.",
       "someone": "The client",
-      "undo": "Undo this choice (possible until {date})",
-      "undoHint": "Everything goes back as it was; follow-up tasks not started are removed."
+      "body": "{name} chose {vendor} on {date}: the supplier is booked, the others are set aside (no email) and the follow-up tasks are created."
     },
     "followUp": {
       "stage": {
@@ -7295,13 +7292,21 @@
       "email": "Enter a name and a valid email address for each ticked supplier.",
       "settings": "Check the settings (delays and tasks).",
       "name": "Enter a name.",
-      "undo": "This choice can no longer be undone.",
       "changed": "The list has changed: check it again before sending.",
       "demo": "Trial event: no email is sent to a supplier.",
       "quota": "The hourly email limit is reached: try again later.",
       "scenarioName": "Give the scenario a name (120 characters at most).",
       "shareTwo": "Tick at least two proposals.",
       "sharePending": "A choice is already requested for this category."
+    },
+    "retained": {
+      "title": "The booked supplier",
+      "current": "Booked: {vendors}",
+      "none": "No supplier booked for this category.",
+      "label": "Booked supplier",
+      "nobody": "Nobody",
+      "submit": "Change the booked supplier",
+      "hint": "Can be changed at any time. The budget commitment follows the new quote (or is released); follow-up tasks of the former supplier that are not started are removed, those started remain. To ask the client to choose again, book nobody and propose again."
     }
   },
   "VendorAnswer": {

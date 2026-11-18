@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { starterVendorCoordination } from "@symbola/starter-templates";
 import {
   briefReminderDue,
-  canUndoEngagement,
+  choiceNoticeShown,
   compareByAmount,
   isVendorSendingHour,
   roadmapAlertDue,
@@ -79,17 +79,12 @@ describe("PAR-05 (D8) — Alerte sans confirmation de la feuille de J-7", () => 
   });
 });
 
-describe("PAR-05 (D6) — Le choix du client s'annule pendant 7 jours", () => {
+describe("PAR-05 (D6) — Le choix du client signalé, sans délai de rétractation", () => {
   const engagedAt = new Date("2027-03-01T10:00:00Z");
 
-  it("annulable jusqu'au septième jour, puis plus", () => {
-    expect(canUndoEngagement({ engagedAt, undoneAt: null }, new Date("2027-03-08T09:59:00Z"), policy)).toBe(true);
-    expect(canUndoEngagement({ engagedAt, undoneAt: null }, new Date("2027-03-08T10:00:00Z"), policy)).toBe(false);
-  });
-
-  it("un engagement déjà annulé ou absent ne s'annule pas", () => {
-    expect(canUndoEngagement({ engagedAt, undoneAt: new Date("2027-03-02T10:00:00Z") }, new Date("2027-03-03T10:00:00Z"), policy)).toBe(false);
-    expect(canUndoEngagement({ engagedAt: null, undoneAt: null }, new Date("2027-03-03T10:00:00Z"), policy)).toBe(false);
+  it("le choix est signalé dans « Aujourd'hui » quelques jours, puis plus (simple affichage)", () => {
+    expect(choiceNoticeShown(engagedAt, new Date("2027-03-08T09:59:00Z"), policy)).toBe(true);
+    expect(choiceNoticeShown(engagedAt, new Date("2027-03-08T10:00:00Z"), policy)).toBe(false);
   });
 });
 

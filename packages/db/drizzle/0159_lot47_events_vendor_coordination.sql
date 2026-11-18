@@ -1,8 +1,8 @@
 -- Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; D1 à D8, D10 ; ADR 0085) : prestataires par lien.
 -- Brief par poste et ses inspirations, réponse du prestataire par son lien (disponibilité, message,
 -- relance, motif d'écart, facture déposée), scénarios d'options, avis du client sur une option,
--- engagement d'une décision « options » (annulable 7 jours), feuilles de route J-30 et J-7 et leur
--- confirmation, réglages de l'organisation. Schéma events seulement (la contrainte des natures
+-- engagement d'une décision « options », tâches de suivi rattachées au prestataire retenu,
+-- feuilles de route J-30 et J-7 et leur confirmation, réglages de l'organisation. Schéma events seulement (la contrainte des natures
 -- d'e-mails du hub a sa migration à part, 0160). Ajouts seuls, et deux colonnes d'auteur devenues
 -- facultatives (facture déposée par un lien) : compatible avec l'image précédente (ARC-14).
 ALTER TYPE "events"."event_activity_kind" ADD VALUE 'vendor_answered';--> statement-breakpoint
@@ -121,9 +121,8 @@ CREATE TABLE "events"."vendor_scenarios" (
 ALTER TABLE "events"."event_document_versions" ALTER COLUMN "uploaded_by_user_id" DROP NOT NULL;--> statement-breakpoint
 ALTER TABLE "events"."event_documents" ALTER COLUMN "uploaded_by_user_id" DROP NOT NULL;--> statement-breakpoint
 ALTER TABLE "events"."event_decisions" ADD COLUMN "engaged_at" timestamp with time zone;--> statement-breakpoint
-ALTER TABLE "events"."event_decisions" ADD COLUMN "engagement_undone_at" timestamp with time zone;--> statement-breakpoint
-ALTER TABLE "events"."event_decisions" ADD COLUMN "engagement" jsonb;--> statement-breakpoint
 ALTER TABLE "events"."event_documents" ADD COLUMN "uploaded_by_link_id" uuid;--> statement-breakpoint
+ALTER TABLE "events"."event_tasks" ADD COLUMN "follow_up_candidate_id" uuid;--> statement-breakpoint
 ALTER TABLE "events"."event_vendor_candidates" ADD COLUMN "brief_id" uuid;--> statement-breakpoint
 ALTER TABLE "events"."event_vendor_candidates" ADD COLUMN "availability" text;--> statement-breakpoint
 ALTER TABLE "events"."event_vendor_candidates" ADD COLUMN "answered_at" timestamp with time zone;--> statement-breakpoint
@@ -154,8 +153,10 @@ CREATE INDEX "vendor_scenario_choices_organization_idx" ON "events"."vendor_scen
 CREATE INDEX "vendor_scenarios_organization_idx" ON "events"."vendor_scenarios" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "vendor_scenarios_event_idx" ON "events"."vendor_scenarios" USING btree ("event_id");--> statement-breakpoint
 ALTER TABLE "events"."event_documents" ADD CONSTRAINT "event_documents_uploaded_by_link_id_event_links_id_fk" FOREIGN KEY ("uploaded_by_link_id") REFERENCES "events"."event_links"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "events"."event_tasks" ADD CONSTRAINT "event_tasks_follow_up_candidate_id_event_vendor_candidates_id_fk" FOREIGN KEY ("follow_up_candidate_id") REFERENCES "events"."event_vendor_candidates"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "events"."event_vendor_candidates" ADD CONSTRAINT "event_vendor_candidates_brief_id_vendor_briefs_id_fk" FOREIGN KEY ("brief_id") REFERENCES "events"."vendor_briefs"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "events"."event_vendor_candidates" ADD CONSTRAINT "event_vendor_candidates_invoice_document_id_event_documents_id_fk" FOREIGN KEY ("invoice_document_id") REFERENCES "events"."event_documents"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "event_tasks_follow_up_candidate_idx" ON "events"."event_tasks" USING btree ("follow_up_candidate_id");--> statement-breakpoint
 CREATE INDEX "event_vendor_candidates_brief_idx" ON "events"."event_vendor_candidates" USING btree ("brief_id");--> statement-breakpoint
 ALTER TABLE "events"."event_vendor_candidates" ADD CONSTRAINT "event_vendor_candidates_availability_check" CHECK ("events"."event_vendor_candidates"."availability" is null or "events"."event_vendor_candidates"."availability" in ('available', 'unavailable'));--> statement-breakpoint
 ALTER TABLE "events"."event_vendor_candidates" ADD CONSTRAINT "event_vendor_candidates_answer_message_check" CHECK ("events"."event_vendor_candidates"."answer_message" is null or char_length("events"."event_vendor_candidates"."answer_message") between 1 and 1000);--> statement-breakpoint

@@ -11,12 +11,12 @@ import {
   addVendorCandidate,
   DecisionInvalidError,
   DemoEventRestrictionError,
-  EngagementUndoError,
   listVendorCandidates,
   requestDecision,
   saveVendorBrief,
   sendVendorBrief,
-  undoDecisionEngagement,
+  changeRetainedVendor,
+  VendorCandidateNotFoundError,
   updateVendorCandidate,
   VendorBriefInvalidError,
 } from "@/modules/events/service";
@@ -164,17 +164,18 @@ export async function shareSelectionAction(_prev: ShareState, formData: FormData
   return { success: true };
 }
 
-// D6 : annuler d'un geste, pendant 7 jours, le choix engagé par le client.
-export async function undoEngagementAction(formData: FormData): Promise<void> {
+// D6 (décision de Julien du 18/11/2026) : la planner modifie le prestataire retenu du poste à tout
+// moment : un autre consulté (l'engagé passe à son devis), ou personne (l'engagé est libéré).
+export async function changeRetainedAction(formData: FormData): Promise<void> {
   const user = await authorize();
   const eventId = text(formData, "eventId");
   const slotId = text(formData, "vendorSlotId");
-  const decisionId = text(formData, "decisionId");
-  if (!user || !isValidId(eventId) || !isValidId(slotId) || !isValidId(decisionId)) return;
+  const candidateId = text(formData, "candidateId");
+  if (!user || !isValidId(eventId) || !isValidId(slotId)) return;
   try {
-    await undoDecisionEngagement({ organizationId: user.organizationId, decisionId, userId: user.userId });
+    await changeRetainedVendor({ organizationId: user.organizationId, eventId, vendorSlotId: slotId, candidateId: isValidId(candidateId) ? candidateId : null, userId: user.userId });
   } catch (error) {
-    if (!(error instanceof EngagementUndoError)) throw error;
+    if (!(error instanceof VendorCandidateNotFoundError)) throw error;
   }
   revalidatePath(pathOf(eventId, slotId));
 }

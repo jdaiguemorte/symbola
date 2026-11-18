@@ -2464,7 +2464,6 @@ function toDecision(row: EventDecisionRow, replacedBy: Map<string, string>, curr
     requestedAt: row.requestedAt.toISOString(),
     programChanged: row.status === "approved" && programChangedSince(snapshot, currentProgram),
     engagedAt: row.engagedAt?.toISOString() ?? null,
-    engagementUndoneAt: row.engagementUndoneAt?.toISOString() ?? null,
   };
 }
 
@@ -2593,8 +2592,8 @@ export async function answerLinkDecision(input: AnswerDecisionInput): Promise<Ev
   const problem = answerProblem(row.snapshot as DecisionSnapshot, { answer: input.answer, choiceId, comment });
   if (problem) throw new DecisionInvalidError(problem);
   // Lot 47 (PAR-05, PRE-09 ; D6, ADR 0085) : le choix d'une option engage (Retenu, autres Écartés,
-  // tâches de suivi), dans la même transaction que la réponse ; la planner l'annule sous 7 jours.
-  // Remplace, pour les décisions « options » seulement, la règle D9 du lot 28.
+  // tâches de suivi), dans la même transaction que la réponse ; la planner modifie ensuite le prestataire
+  // retenu quand elle veut. Remplace, pour les décisions « options » seulement, la règle D9 du lot 28.
   const now = new Date();
   const engaging = row.kind === "option" && input.answer === "approved" && choiceId !== null ? await engagementContext(input.organizationId, row, access.linkId) : null;
   const answered = await withActor({ kind: "link", id: access.linkId }, () =>
@@ -3108,7 +3107,6 @@ export {
   createScenario as createVendorScenario,
   defaultBriefDeadline as getDefaultVendorBriefDeadline,
   engagedChoiceNotices as listEngagedChoiceNotices,
-  EngagementUndoError,
   followUps as listVendorFollowUps,
   getBrief as getVendorBrief,
   getSettings as getVendorCoordinationSettings,
@@ -3126,7 +3124,7 @@ export {
   setOptionFeedback as setLinkOptionFeedback,
   setScenarioChoice as setVendorScenarioChoice,
   showScenarioToClients as showVendorScenarioToClients,
-  undoEngagement as undoDecisionEngagement,
+  changeRetained as changeRetainedVendor,
   VendorBriefInvalidError,
 } from "./vendor-coordination";
 export type {

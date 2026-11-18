@@ -1,6 +1,6 @@
 // Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09 ; D2, D6, D8 ; ADR 0085) — données de départ des
 // prestataires par lien : délais (date limite d'un brief, relance, feuilles de route, alerte,
-// annulation du choix, heures d'envoi) et tâches de suivi créées au choix du client, par métier.
+// signalement du choix du client, heures d'envoi) et tâches de suivi créées au choix du client, par métier.
 // Aucune de ces valeurs n'est écrite dans le code (CLAUDE.md § 2.6).
 import { z } from "zod";
 import vendorCoordinationFile from "./vendor-coordination.json";
@@ -17,7 +17,7 @@ const vendorCoordinationSchema = z
     reminderDaysBefore: days,
     roadmapDaysBefore: z.object({ month: days, week: days }),
     roadmapAlertDays: days,
-    engagementUndoDays: days,
+    choiceNoticeDays: days,
     sendingHours: z.object({ from: z.number().int().min(0).max(23), until: z.number().int().min(1).max(24) }),
   })
   .refine((value) => value.roadmapDaysBefore.week < value.roadmapDaysBefore.month && value.roadmapAlertDays < value.roadmapDaysBefore.week && value.sendingHours.from < value.sendingHours.until);
@@ -27,7 +27,8 @@ export type StarterVendorCoordination = {
   reminderDaysBefore: number;
   roadmapDaysBefore: { month: number; week: number };
   roadmapAlertDays: number;
-  engagementUndoDays: number;
+  // Durée pendant laquelle le choix d'un client est signalé dans « Aujourd'hui » (affichage seulement).
+  choiceNoticeDays: number;
   sendingHours: { from: number; until: number };
 };
 

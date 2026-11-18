@@ -1179,7 +1179,7 @@
     },
     "vendorCoordination": {
       "title": "Demander des devis à plusieurs prestataires",
-      "body": "Écrivez le brief du poste (le besoin, le nombre d'invités, un budget indicatif que vous montrez ou non, la date limite, des inspirations), cochez les prestataires, vérifiez la liste, puis envoyez : chacun reçoit son propre e-mail et son lien, sans compte, et ne voit jamais les autres. Ceux qui n'ont pas répondu sont relancés la veille de la date limite. Les réponses arrivent dans le comparatif ; cochez ensuite les propositions à montrer au client et demandez-lui de choisir. Son choix retient le prestataire, écarte les autres et crée les tâches de suivi ; vous pouvez l'annuler pendant 7 jours."
+      "body": "Écrivez le brief du poste (le besoin, le nombre d'invités, un budget indicatif que vous montrez ou non, la date limite, des inspirations), cochez les prestataires, vérifiez la liste, puis envoyez : chacun reçoit son propre e-mail et son lien, sans compte, et ne voit jamais les autres. Ceux qui n'ont pas répondu sont relancés la veille de la date limite. Les réponses arrivent dans le comparatif ; cochez ensuite les propositions à montrer au client et demandez-lui de choisir. Son choix retient le prestataire, écarte les autres et crée les tâches de suivi. Vous modifiez le prestataire retenu quand vous voulez."
     },
     "vendorScenarios": {
       "title": "Comparer des scénarios d'options",
@@ -5083,7 +5083,7 @@
       "events_vendor_roadmap_sent": "Feuille de route envoyée à un prestataire",
       "events_vendor_roadmap_confirmed": "Feuille de route confirmée par un prestataire",
       "events_decision_engaged": "Choix du client engagé (prestataire retenu, tâches de suivi)",
-      "events_decision_engagement_undone": "Choix du client annulé"
+      "events_vendor_retention_changed": "Prestataire retenu modifié par l'équipe"
     },
     "categories": {
       "connexion": "Connexions",
@@ -5501,7 +5501,7 @@
       "gone": "Cet événement n'est plus disponible.",
       "subject": "Choisissez ce que le client doit décider."
     },
-    "engageNotice": "Votre choix est transmis à l'organisation de votre évènement ; le contrat avec le prestataire sera signé ensuite.",
+    "engageNotice": "Votre choix est transmis à {planner} ; le contrat se signe directement avec le prestataire.",
     "feedbackTitle": "Votre avis sur les options : {label}",
     "feedbackOn": "Votre avis sur {vendor}",
     "feedbackLike": "J'aime",
@@ -6001,7 +6001,7 @@
         "quote": "{vendor} a envoyé son devis ({slot})",
         "unavailable": "{vendor} n'est pas disponible ({slot})"
       },
-      "vendorChoice": "Le client a choisi {vendor} ({slot}) : vérifiez, annulable 7 jours",
+      "vendorChoice": "Le client a choisi {vendor} ({slot}) : vérifiez",
       "vendorRoadmap": "{vendor} n'a pas confirmé sa feuille de route"
     },
     "myEventsTitle": "Mes évènements",
@@ -7222,11 +7222,8 @@
       "pending": "Choix demandé le {date}, en attente de réponse."
     },
     "engaged": {
-      "title": "Le choix du client",
-      "body": "{name} a choisi {vendor} le {date} : le prestataire est retenu, les autres sont écartés (sans e-mail) et les tâches de suivi sont créées.",
       "someone": "Le client",
-      "undo": "Annuler ce choix (possible jusqu'au {date})",
-      "undoHint": "Tout revient à l'état d'avant ; les tâches de suivi non commencées sont retirées."
+      "body": "{name} a choisi {vendor} le {date} : le prestataire est retenu, les autres sont écartés (sans e-mail) et les tâches de suivi sont créées."
     },
     "followUp": {
       "stage": {
@@ -7295,13 +7292,21 @@
       "email": "Indiquez un nom et une adresse e-mail valable pour chaque prestataire coché.",
       "settings": "Vérifiez les réglages (délais et tâches).",
       "name": "Indiquez un nom.",
-      "undo": "Ce choix ne peut plus être annulé.",
       "changed": "La liste a changé : vérifiez-la de nouveau avant d'envoyer.",
       "demo": "Évènement d'essai : aucun e-mail ne part vers un prestataire.",
       "quota": "Le plafond d'e-mails de l'heure est atteint : réessayez plus tard.",
       "scenarioName": "Donnez un nom au scénario (120 caractères au plus).",
       "shareTwo": "Cochez au moins deux propositions.",
       "sharePending": "Un choix est déjà demandé pour ce poste."
+    },
+    "retained": {
+      "title": "Le prestataire retenu",
+      "current": "Retenu : {vendors}",
+      "none": "Aucun prestataire retenu pour ce poste.",
+      "label": "Prestataire retenu",
+      "nobody": "Personne",
+      "submit": "Modifier le prestataire retenu",
+      "hint": "Modifiable à tout moment. L'engagé du budget suit le nouveau devis (ou est libéré) ; les tâches de suivi non commencées de l'ancien prestataire sont retirées, celles commencées restent. Pour redemander un choix au client, ne retenez personne puis proposez de nouveau."
     }
   },
   "VendorAnswer": {
