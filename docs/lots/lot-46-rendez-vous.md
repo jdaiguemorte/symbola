@@ -1,6 +1,6 @@
 # Lot 46 — Rendez-vous : types, page publique de réservation, rappels, comptes rendus
 
-**Statut** : spécification **proposée le 18/11/2026**, en attente de la validation de Julien.
+**Statut** : spécification proposée le 18/11/2026, **validée par Julien le 18/11/2026** : toutes les décisions retenues dans leur option recommandée (a), dépendances comprises (accord donné, ADR à écrire dans la PR du lot).
 Branche `lot-46-rendez-vous`, partie de `main` (85c655d, après la PR #131). Le lot crée un
 module et son schéma (`appointments`) : validation explicite requise (CLAUDE.md § 8). Il propose
 une dépendance hors pile (D3) : accord et ADR requis. Il touche l'accueil « Aujourd'hui » et
