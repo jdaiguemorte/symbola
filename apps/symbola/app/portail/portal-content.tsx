@@ -1,4 +1,6 @@
 import { bankToVerifyCandidates } from "@/lib/vendors/bank-checks";
+import { PlannerFeeLine } from "@/app/budget/[eventId]/planner-fee-line";
+import { ClientCommissions } from "./client-commissions";
 import { appDatabase } from "@symbola/db/client";
 import { getOrganizationContact } from "@/modules/hub/service";
 import type { ReactNode } from "react";
@@ -355,6 +357,8 @@ export async function PortalContent({ access, preview = false, banner }: { acces
         <section aria-labelledby="client-budget-title" id="budget">
           <h2 id="client-budget-title">{t("budgetTitle")}</h2>
           <ClientBudget view={budget} locale={locale} methods={methods} today={today} preview={preview} share={share} />
+          {/* Lot 48b (BUD-08) : les honoraires de la planner, à part du budget de l'évènement. */}
+          <PlannerFeeLine organizationId={organizationId} eventId={access.eventId} locale={locale} />
           <p>
             {preview ? <span>{tLink("cashCalendarLink")}</span> : <a href="/portail/calendrier">{tLink("cashCalendarLink")}</a>}
             {canSetPayers ? (
@@ -397,6 +401,8 @@ export async function PortalContent({ access, preview = false, banner }: { acces
             </section>
           ) : null}
           {quotesToSign.length > 0 ? <ClientQuotes quotes={quotesToSign} locale={locale} preview={preview} /> : null}
+          {/* Lot 48b (PRE-07, D6) : commissions de la planner, affichées d'office à un particulier. */}
+          {quotesEnabled && access.audience === "client" ? <ClientCommissions organizationId={organizationId} eventId={access.eventId} locale={locale} /> : null}
         </div>
       ) : null}
 

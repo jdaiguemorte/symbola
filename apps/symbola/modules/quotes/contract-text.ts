@@ -21,6 +21,11 @@ export const CONTRACT_VARIABLES = [
   "organisation.mediateur",
   "contrat.date",
   "retractation.delai",
+  // Lot 48b (DOC-02, JUR-10 ; mandat) : honoraires de la planner, commissions perçues des prestataires
+  // (toutes pour un particulier), prestations facturées par les prestataires (mode intermédiaire).
+  "devis.honoraires",
+  "devis.commissions",
+  "devis.prestations_intermediaires",
 ] as const;
 export type ContractVariable = (typeof CONTRACT_VARIABLES)[number];
 export type ContractVariableValues = Record<ContractVariable, string | null>;

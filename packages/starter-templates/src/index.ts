@@ -1089,6 +1089,8 @@ const quoteTemplatesSchema = z.object({
   items: z
     .array(
       z.object({
+        // Lot 48b (DOC-02, HUB-26) : contrat (par défaut), mandat ou conditions générales.
+        kind: z.enum(["contract", "mandate", "general_terms"]).optional(),
         metier: z.enum(["wedding_planner", "event_agency", "autre"]),
         eventTypeKey: z.string().min(1),
         name: translatedLabelSchema,
@@ -1128,6 +1130,7 @@ export function starterQuoteTemplates(locale: StarterLocale, metier: StarterMeti
     .parse(quoteTemplatesFile)
     .items.filter((item) => item.metier === metier)
     .map((item) => ({
+      kind: item.kind ?? "contract",
       eventTypeKey: item.eventTypeKey,
       name: item.name[locale],
       sections: item.sections.map((section) => ({ key: section.key, title: section.title[locale] })),
@@ -1167,6 +1170,8 @@ const contractTemplatesSchema = z.object({
   items: z
     .array(
       z.object({
+        // Lot 48b (DOC-02, HUB-26) : contrat (par défaut), mandat ou conditions générales.
+        kind: z.enum(["contract", "mandate", "general_terms"]).optional(),
         metier: z.enum(["wedding_planner", "event_agency", "autre"]),
         eventTypeKey: z.string().min(1),
         name: translatedLabelSchema,
@@ -1180,6 +1185,7 @@ const contractTemplatesSchema = z.object({
 });
 
 export type StarterContractTemplate = {
+  kind: "contract" | "mandate" | "general_terms";
   eventTypeKey: string;
   name: string;
   title: string;
@@ -1191,6 +1197,7 @@ export function starterContractTemplates(locale: StarterLocale, metier: StarterM
     .parse(contractTemplatesFile)
     .items.filter((item) => item.metier === metier)
     .map((item) => ({
+      kind: item.kind ?? "contract",
       eventTypeKey: item.eventTypeKey,
       name: item.name[locale],
       title: item.title[locale],

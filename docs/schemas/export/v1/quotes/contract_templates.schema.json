@@ -44,6 +44,15 @@
         }
       ]
     },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "contract",
+        "mandate",
+        "general_terms",
+        "package_travel"
+      ]
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
@@ -110,6 +119,7 @@
     "title",
     "version",
     "legalReviewedOn",
+    "kind",
     "createdAt",
     "createdBy",
     "updatedAt",

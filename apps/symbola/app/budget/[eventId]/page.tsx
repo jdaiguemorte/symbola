@@ -11,6 +11,7 @@ import { isBudgetModuleEnabled, isValidId } from "../module-access";
 import { BudgetSimulationForm } from "./budget-simulation-form";
 import { BudgetLinesTable, type VendorOption } from "./budget-lines-table";
 import { VendorSchedule } from "./vendor-schedule";
+import { PlannerFeeLine } from "./planner-fee-line";
 import { bankToVerifyCandidates } from "@/lib/vendors/bank-checks";
 import { EnvelopeSummary } from "./envelope-summary";
 
@@ -91,6 +92,8 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
 
       {/* Lot 28a (BUD-02) : enveloppe, part engagée et seuil d'alerte. */}
       <EnvelopeSummary eventId={eventId} envelope={linesView.envelope} committedCents={linesView.totalCommittedCents} settings={alertSettings} locale={locale} />
+      {/* Lot 48b (BUD-08) : les honoraires de la planner, à part, hors des dépenses de l'évènement. */}
+      <PlannerFeeLine organizationId={organizationId} eventId={eventId} locale={locale} />
 
       <h2>{t("linesTitle")}</h2>
       {/* Lot 28c (BUD-10) : export à la mise en forme de l'organisation. */}

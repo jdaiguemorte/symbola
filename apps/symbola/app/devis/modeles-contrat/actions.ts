@@ -48,6 +48,8 @@ function headerInput(formData: FormData) {
     title: text(formData, "title"),
     eventTypeId: isValidId(eventTypeId) ? eventTypeId : null,
     legalReviewedOn: text(formData, "legalReviewedOn") || null,
+    // Lot 48b (JUR-10, DOC-02 ; D7) : contrat, mandat, conditions générales ou forfait touristique.
+    ...(["contract", "mandate", "general_terms", "package_travel"].includes(text(formData, "kind")) ? { kind: text(formData, "kind") as "contract" | "mandate" | "general_terms" | "package_travel" } : {}),
   };
 }
 

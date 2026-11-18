@@ -159,7 +159,7 @@ export const quotesPrivacy: PrivacyContractV1 = {
           recordId: invoice.id,
           label: invoice.number,
           fields: buyerFields(buyers),
-          eventId: quoteById.get(invoice.quoteId)?.eventId ?? null,
+          eventId: invoice.quoteId ? (quoteById.get(invoice.quoteId)?.eventId ?? null) : null,
         });
       }
       const invoiceQuote = new Map(invoiceRows.map((invoice) => [invoice.id, invoice.quoteId]));
@@ -238,7 +238,7 @@ export const quotesPrivacy: PrivacyContractV1 = {
           recordId: invoice.id,
           label: invoice.number,
           fields: { number: invoice.number, issuedOn: invoice.issuedOn, amountCents: String(invoice.amountCents), ...buyerFields(buyersOf(invoice.buyerSnapshot)) },
-          eventId: quoteById.get(invoice.quoteId)?.eventId ?? null,
+          eventId: invoice.quoteId ? (quoteById.get(invoice.quoteId)?.eventId ?? null) : null,
         });
       }
       if (invoiceRows.length > 0) {

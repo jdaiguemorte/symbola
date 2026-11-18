@@ -38,6 +38,8 @@ import {
   paymentReferences,
   paymentReminders,
   proposalTemplates,
+  plannerFees,
+  vendorCommissions,
 } from "@symbola/db/schema/quotes";
 
 import { openQuoteSettings } from "./bank-details";
@@ -62,6 +64,9 @@ export const QUOTES_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   // Lot 43 (FAC-02, D2) : modèles de la page de proposition (photos dans le stockage privé).
   { table: proposalTemplates },
   { table: quotes, demoField: "isDemo", eventField: "eventId" },
+  // Lot 48b (BUD-08, PRE-07) : honoraires et commissions par évènement (avant les factures qui les citent).
+  { table: plannerFees, eventField: "eventId" },
+  { table: vendorCommissions, eventField: "eventId" },
   { table: quoteVersions, parents: { quoteId: "quotes" } },
   { table: quoteSections, parents: { versionId: "quote_versions" } },
   { table: quoteLines, parents: { versionId: "quote_versions" } },

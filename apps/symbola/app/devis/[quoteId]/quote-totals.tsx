@@ -48,6 +48,13 @@ export async function QuoteVersionTable({ version, locale, caption }: { version:
                     <span className="badge">{line.optionChosen ? t("optionChosen") : t("optionNotChosen")}</span>
                   </>
                 ) : null}
+                {/* Lot 48b (JUR-10) : facturée par le prestataire au client, hors du total. */}
+                {line.supplyMode === "intermediary" ? (
+                  <>
+                    {" "}
+                    <span className="badge">{t("lineIntermediaryBadge")}</span>
+                  </>
+                ) : null}
                 {line.description ? (
                   <>
                     <br />

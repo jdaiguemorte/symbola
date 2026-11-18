@@ -227,6 +227,7 @@ export type {
   ContractTemplateClause,
   ContractTemplateClauseInput,
   ContractTemplateHeaderInput,
+  ContractTemplateKind,
   ContractTemplateView,
   ContractView,
   GenerateContractInput,
@@ -260,6 +261,8 @@ export type {
   // Lot 41 (FAC-10, JUR-02, JUR-13, GC-03).
   InvoiceReform,
   LineNature,
+  SupplyMode,
+  TourismKind,
   OperationCategory,
   PostalAddress,
   QuoteBuyerDetails,

@@ -28,8 +28,10 @@ export function commissionAmountCents(commission: { amountCents: number | null; 
   return roundHalfUp(Math.max(0, commission.baseCents) * commission.percentBasisPoints, 10000);
 }
 
-export function isCommissionShown(clientKind: "individual" | "professional", commission: { shownToClient: boolean }): boolean {
-  return clientKind === "individual" || commission.shownToClient;
+// Seul un client professionnel laisse le choix à la planner ; un particulier (ou un non-professionnel,
+// par prudence) la voit toujours.
+export function isCommissionShown(clientKind: "individual" | "professional" | "non_professional", commission: { shownToClient: boolean }): boolean {
+  return clientKind !== "professional" || commission.shownToClient;
 }
 
 type CountedLine = { isOption: boolean; optionChosen: boolean };

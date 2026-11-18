@@ -86,6 +86,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "vendorDocuments", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/parametres/pieces", capture: false },
   // Devis et factures
   { key: "allQuotes", group: "quotes", audience: "team", module: "quotes", path: "/devis", capture: true },
+  // Lot 48b (BUD-08, PRE-07) : honoraires et commissions d'un évènement.
+  { key: "plannerMoney", group: "quotes", audience: "team", module: "quotes", path: null, capture: false },
   { key: "quotesDetail", group: "quotes", audience: "team", module: "quotes", path: null, capture: true },
   { key: "quotesCatalog", group: "quotes", audience: "team", module: "quotes", path: "/devis/catalogue", tour: "quotes", capture: true },
   // Lot 31a (FAC-01, HUB-21) : modèles de devis.

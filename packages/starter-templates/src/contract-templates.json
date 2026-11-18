@@ -186,6 +186,216 @@
           "role": null
         }
       ]
+    },
+    {
+      "kind": "mandate",
+      "metier": "wedding_planner",
+      "eventTypeKey": "wedding",
+      "name": {
+        "fr": "Mandat — mariage (à adapter)",
+        "en": "Mandate — wedding (to adapt)"
+      },
+      "title": {
+        "fr": "Mandat",
+        "en": "Mandate"
+      },
+      "clauses": [
+        {
+          "title": {
+            "fr": "Parties",
+            "en": "Parties"
+          },
+          "body": {
+            "fr": "Entre {client.noms}, ci-après « les mandants », et {organisation.nom}, {organisation.adresse}, SIREN {organisation.siren}, ci-après « le mandataire ».",
+            "en": "Between {client.noms}, hereinafter “the principals”, and {organisation.nom}, {organisation.adresse}, SIREN {organisation.siren}, hereinafter “the agent”."
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Objet du mandat",
+            "en": "Purpose of the mandate"
+          },
+          "body": {
+            "fr": "Les mandants confient au mandataire l'organisation de leur évènement du {evenement.date}, {evenement.lieu}, selon le devis {devis.numero}. Les prestations suivantes sont réservées au nom et pour le compte des mandants ; chaque prestataire les leur facture directement :\n{devis.prestations_intermediaires}",
+            "en": "The principals entrust the agent with planning their event on {evenement.date}, {evenement.lieu}, as set out in quote {devis.numero}. The following services are booked in the name and on behalf of the principals; each vendor invoices them directly:\n{devis.prestations_intermediaires}"
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Étendue des pouvoirs",
+            "en": "Scope of powers"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : pouvoirs confiés au mandataire, limites, accord préalable des mandants]",
+            "en": "[To be drafted with your counsel: powers given to the agent, limits, prior consent of the principals]"
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Honoraires",
+            "en": "Fees"
+          },
+          "body": {
+            "fr": "Honoraires du mandataire : {devis.honoraires}, selon le devis {devis.numero} (total {devis.total_ttc}).",
+            "en": "Agent's fees: {devis.honoraires}, as per quote {devis.numero} (total {devis.total_ttc})."
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Commissions des prestataires",
+            "en": "Vendor commissions"
+          },
+          "body": {
+            "fr": "Le mandataire perçoit des prestataires les commissions suivantes, portées à la connaissance des mandants :\n{devis.commissions}",
+            "en": "The agent receives the following commissions from vendors, disclosed to the principals:\n{devis.commissions}"
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Durée et fin du mandat",
+            "en": "Term and end of the mandate"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : durée, révocation, fin anticipée]",
+            "en": "[To be drafted with your counsel: term, revocation, early termination]"
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Responsabilité",
+            "en": "Liability"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : obligations et responsabilité du mandataire envers les mandants et les prestataires]",
+            "en": "[To be drafted with your counsel: agent's obligations and liability towards the principals and vendors]"
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Date",
+            "en": "Date"
+          },
+          "body": {
+            "fr": "Fait le {contrat.date}.",
+            "en": "Made on {contrat.date}."
+          },
+          "optional": false,
+          "role": null
+        }
+      ]
+    },
+    {
+      "kind": "general_terms",
+      "metier": "wedding_planner",
+      "eventTypeKey": "wedding",
+      "name": {
+        "fr": "Conditions générales de vente (à adapter)",
+        "en": "General terms and conditions (to adapt)"
+      },
+      "title": {
+        "fr": "Conditions générales de vente",
+        "en": "General terms and conditions"
+      },
+      "clauses": [
+        {
+          "title": {
+            "fr": "Prestataire",
+            "en": "Provider"
+          },
+          "body": {
+            "fr": "{organisation.nom}, {organisation.adresse}, SIREN {organisation.siren}. Assurance : {organisation.assurance}.",
+            "en": "{organisation.nom}, {organisation.adresse}, SIREN {organisation.siren}. Insurance: {organisation.assurance}."
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Champ d'application",
+            "en": "Scope"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : prestations visées, acceptation des conditions, ordre des documents]",
+            "en": "[To be drafted with your counsel: services covered, acceptance of the terms, order of documents]"
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Prix et paiement",
+            "en": "Prices and payment"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : prix, acomptes ou arrhes, échéances, retards]",
+            "en": "[To be drafted with your counsel: prices, deposits, due dates, late payment]"
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Rétractation",
+            "en": "Withdrawal"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : droit de rétractation et ses conditions ({retractation.delai})]",
+            "en": "[To be drafted with your counsel: right of withdrawal and its conditions ({retractation.delai})]"
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Annulation et report",
+            "en": "Cancellation and postponement"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : conditions d'annulation et de report par chaque partie]",
+            "en": "[To be drafted with your counsel: cancellation and postponement terms for each party]"
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Médiation",
+            "en": "Mediation"
+          },
+          "body": {
+            "fr": "Médiateur de la consommation : {organisation.mediateur}.",
+            "en": "Consumer mediator: {organisation.mediateur}."
+          },
+          "optional": false,
+          "role": null
+        },
+        {
+          "title": {
+            "fr": "Données personnelles",
+            "en": "Personal data"
+          },
+          "body": {
+            "fr": "[À rédiger avec votre conseil : information sur le traitement des données des clients]",
+            "en": "[To be drafted with your counsel: information on the processing of clients' data]"
+          },
+          "optional": false,
+          "role": null
+        }
+      ]
     }
   ]
 }
