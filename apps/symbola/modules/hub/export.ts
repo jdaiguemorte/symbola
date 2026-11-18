@@ -14,6 +14,8 @@ import {
   contactMembers,
   contactNotes,
   contacts,
+  contactDuplicates,
+  contactMerges,
   emailTemplates,
   membershipRoleEnum,
   messageTemplates,
@@ -38,6 +40,9 @@ export const HUB_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   // Lot 36a (CRM-03, ADR 0069) : le contact unique et ses notes ; les contacts d'essai sont exclus.
   { table: contacts, demoField: "isDemo" },
   { table: contactNotes, parents: { contactId: "contacts" } },
+  // Lot 45 (CRM-07) : doublons possibles et trace des fusions (identifiants et noms de champs).
+  { table: contactDuplicates, parents: { firstContactId: "contacts", secondContactId: "contacts" } },
+  { table: contactMerges },
   // Lot 36b (CRM-03, D2) : les membres des foyers et des entreprises.
   { table: contactMembers, parents: { groupContactId: "contacts", memberContactId: "contacts" } },
   // Lot 38a (MSG-01, D3) : les modèles d'e-mails que l'organisation a réécrits (les autres valent le

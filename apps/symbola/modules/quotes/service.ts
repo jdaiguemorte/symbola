@@ -4824,3 +4824,5 @@ export async function getProposalTemplatePhoto(organizationId: string, templateI
   const { data } = await readPrivateObject(createStorageClient(), photo.key);
   return { data: new Uint8Array(data), contentType: photo.mime, fileName: `photo-${index}.${photo.mime === "image/png" ? "png" : "jpg"}` };
 }
+// Lot 45 (CRM-07, CRM-06 ; ADR 0090) : références d'un contact fusionné ; dernière signature d'un prospect.
+export { countContactSignatures, latestContactSignature, repointQuotesMergedContact } from "./contact-merge";

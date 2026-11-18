@@ -58,7 +58,8 @@ test("HUB-21 — Modèles de messages : modèles de départ, une version à chaq
   await expect(page.getByRole("heading", { name: "Modèles de messages", level: 1 })).toBeVisible();
   await expect(page.getByText("Aucun modèle de message pour l'instant.")).toBeVisible();
   await page.getByRole("button", { name: "Ajouter les modèles de départ" }).click();
-  await expect(page.getByRole("status")).toContainText("2 modèles ajoutés.");
+  // Lot 45 (CRM-05) : la brochure s'ajoute aux deux modèles du lot 38b.
+  await expect(page.getByRole("status")).toContainText("3 modèles ajoutés.");
   await expectNoAxeViolation(page);
   await expectNoHorizontalScroll(page);
 
@@ -95,27 +96,32 @@ test("HUB-21 / MSG-02 — « Écrire au client » : le modèle rempli avec la fi
   await signIn(page, setup.email, /\/$/);
   await openSettingsTab(page, "Modèles de messages");
   await page.getByRole("button", { name: "Ajouter les modèles de départ" }).click();
-  await expect(page.getByRole("status")).toContainText("2 modèles ajoutés.");
+  // Lot 45 (CRM-05) : la brochure s'ajoute aux deux modèles du lot 38b.
+  await expect(page.getByRole("status")).toContainText("3 modèles ajoutés.");
 
   await page.goto(`/events/${setup.eventId}`);
   await page.getByRole("link", { name: "Écrire au client" }).first().click();
   await expect(page.getByRole("heading", { name: "Écrire au client", level: 1 })).toBeVisible();
-  const preview = page.getByRole("region", { name: "Aperçu du message" });
-  await expect(preview).toContainText("Bonjour Léa & Maxime,");
-  await expect(preview).toContainText(setup.name);
+  await page.getByLabel("Modèle", { exact: true }).selectOption({ label: "Réponse à une première demande" });
+  await page.getByRole("button", { name: "Mettre à jour l'aperçu" }).click();
+  // Lot 45 (CRM-05, D1) : le texte rempli se relit et se modifie avant l'envoi.
+  const text = page.getByRole("textbox", { name: "Texte" });
+  await expect(text).toHaveValue(/^Bonjour Léa & Maxime,/);
+  await expect(text).toHaveValue(new RegExp(setup.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   await expect(page.getByRole("heading", { name: "Ce message part à 2 personnes" })).toBeVisible();
-  const open = page.getByRole("link", { name: "Ouvrir ma messagerie pour 2 personnes" });
-  const href = (await open.getAttribute("href"))!;
-  expect(href.startsWith(`mailto:${encodeURIComponent(setup.lea)},${encodeURIComponent(setup.maxime)}?subject=`)).toBe(true);
-  expect(decodeURIComponent(href.split("body=")[1]!)).toContain("Bonjour Léa & Maxime,");
   await expectNoAxeViolation(page);
   await expectNoHorizontalScroll(page);
+  // « Ouvrir dans ma messagerie » : le texte part dans la messagerie de la planner, l'envoi est noté « préparé ».
+  await page.getByRole("button", { name: "Ouvrir dans ma messagerie" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "préparé" })).toBeVisible();
 
   // Seulement Léa : un destinataire, sans liste.
+  await page.goto(`/events/${setup.eventId}/ecrire`);
+  await page.getByLabel("Modèle", { exact: true }).selectOption({ label: "Réponse à une première demande" });
   await page.getByRole("group", { name: "Destinataires" }).getByLabel(`Maxime Durand — ${setup.maxime}`).uncheck();
   await page.getByRole("button", { name: "Mettre à jour l'aperçu" }).click();
-  await expect(preview).toContainText("Bonjour Léa,");
-  await expect(page.getByRole("link", { name: "Ouvrir ma messagerie", exact: true })).toHaveAttribute("href", new RegExp(`^mailto:${encodeURIComponent(setup.lea)}\\?subject=`));
+  await expect(page.getByRole("textbox", { name: "Texte" })).toHaveValue(/^Bonjour Léa,/);
+  await expect(page.getByRole("button", { name: "Envoyer depuis Symbola", exact: true })).toBeVisible();
 
   // Un modèle qui emploie le lieu, absent de la fiche : le message ne s'ouvre pas.
   await openSettingsTab(page, "Modèles de messages");
@@ -129,7 +135,7 @@ test("HUB-21 / MSG-02 — « Écrire au client » : le modèle rempli avec la fi
   await page.getByLabel("Modèle", { exact: true }).selectOption({ label: "Visite du lieu" });
   await page.getByRole("button", { name: "Mettre à jour l'aperçu" }).click();
   await expect(page.getByRole("alert")).toContainText("Ces variables n'ont pas de valeur : {{lieu}}.");
-  await expect(page.getByRole("link", { name: /Ouvrir ma messagerie/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Ouvrir dans ma messagerie|Envoyer depuis Symbola/ })).toHaveCount(0);
   await expectNoAxeViolation(page);
 });
 

@@ -49,6 +49,8 @@ const SHARED_ACCESS: Record<string, string> = {
   appointmentsPlanner: "app/rendez-vous/access.ts",
   // Lot 51 : le jour J de terrain (session de l'équipe, module, évènement ouvert au jour J, origine).
   dayOfAccess: "app/jour-j/[eventId]/access.ts",
+  // Lot 45 : la rubrique « Questionnaires » du portail (lien, rubrique ouverte, module Évènements).
+  portalQuestionnairesAccess: "app/portail/questionnaires/access.ts",
 };
 
 const GUARDS = new Set([...BASE_GUARDS, ...Object.keys(SHARED_ACCESS)]);

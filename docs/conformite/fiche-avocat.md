@@ -385,3 +385,26 @@ déclaration « J'ai fait le virement » est aussi refusée avant cette date, et
 
 Besoin : des réponses **avant la première relance réelle** et le premier contrat hors établissement
 réglé par Symbola (aucune ne bloque le développement).
+
+## Question du 18 novembre 2026 (lot 45)
+
+### 21. Relances d'un prospect qui a fait une demande (AV-9, tranché)
+
+Numéro à la suite de ceux des lots 44, 47 et 43 (fusionnés avant le lot 45). Pour information, sans
+question ouverte.
+
+Après une demande (formulaire de contact, e-mail, téléphone), la planner répond depuis Symbola. Sans
+retour, une relance est préparée à J+3 puis à J+7 (réglable, trois au plus) ; par défaut, la planner
+la relit et l'envoie elle-même, l'envoi automatique est un réglage qu'elle active. Les relances
+s'arrêtent dès que la personne répond (geste de la planner), que l'évènement est confirmé ou perdu, ou
+que la personne agit dans Symbola. Chaque relance porte : « Vous ne souhaitez plus de nouvelles ?
+Répondez simplement à ce message. », et la planner a un geste « Ne plus relancer ».
+
+**Décision de Julien (18/11/2026)** : ces relances ne sont pas de la prospection commerciale. Le
+consentement préalable ne s'impose que si la démarche émane de la planner ; ici, la première approche
+vient toujours des mariés, qui écrivent pour demander une prestation : les relances sont la suite de
+leur demande (RGP-17 reste « Sans objet »). Cette décision s'écarte de l'avis de la DPO (sa réponse
+10), qui y voyait de la prospection (`docs/QUESTIONS.md`, Q39 ; ADR 0090).
+
+Si cette lecture vous semble appeler une réserve, dites-le-nous ; elle n'attend pas de réponse pour
+être mise en œuvre.

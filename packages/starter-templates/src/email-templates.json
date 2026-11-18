@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_source": "Lot 38a (MSG-01, D3, D5, D6 ; ADR 0072) : textes de départ des e-mails que l'organisation adresse aux tiers. Variables entre doubles accolades, en français ({{prénom}}) ou en anglais ({{first_name}}) ; un paragraphe fait du seul lien devient un bouton. La planner les remplace dans Paramètres › Modèles d'e-mails. Les textes de départ n'emploient que des variables toujours renseignées (aucun e-mail ne part avec une variable vide). Repris des textes des lots 26 à 31 ; l'exemplaire signé garde le sens validé par l'avocat (réponse 1, lot 31b). Lot 46 (RDV-03, D10 ; ADR 0082) : confirmation (avec l'invitation .ics), rappel, report et annulation d'un rendez-vous, côté personne qui a pris rendez-vous. Lot 47 (PRE-03, PAR-05 ; D2, D4, D8 ; ADR 0085) : brief à un prestataire (deux boutons, « disponible » ou non), sa relance, feuille de route. Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10 ; ADR 0087, ADR 0089) : proposition envoyée et relance avant son expiration (lues dans l'espace du client), RIB et référence du virement envoyés au 8e jour d'un contrat hors établissement, relance d'une échéance impayée ; aucun paiement en ligne.",
+  "_source": "Lot 38a (MSG-01, D3, D5, D6 ; ADR 0072) : textes de départ des e-mails que l'organisation adresse aux tiers. Variables entre doubles accolades, en français ({{prénom}}) ou en anglais ({{first_name}}) ; un paragraphe fait du seul lien devient un bouton. La planner les remplace dans Paramètres › Modèles d'e-mails. Les textes de départ n'emploient que des variables toujours renseignées (aucun e-mail ne part avec une variable vide). Repris des textes des lots 26 à 31 ; l'exemplaire signé garde le sens validé par l'avocat (réponse 1, lot 31b). Lot 46 (RDV-03, D10 ; ADR 0082) : confirmation (avec l'invitation .ics), rappel, report et annulation d'un rendez-vous, côté personne qui a pris rendez-vous. Lot 47 (PRE-03, PAR-05 ; D2, D4, D8 ; ADR 0085) : brief à un prestataire (deux boutons, « disponible » ou non), sa relance, feuille de route. Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10 ; ADR 0087, ADR 0089) : proposition envoyée et relance avant son expiration (lues dans l'espace du client), RIB et référence du virement envoyés au 8e jour d'un contrat hors établissement, relance d'une échéance impayée ; aucun paiement en ligne. Lot 45 (CRM-05, CRM-06, POR-07 ; D9 ; ADR 0090) : réponse à un prospect et relance (le texte de la planner), questionnaire envoyé.",
   "templates": {
     "fr": {
       "client_link": {
@@ -70,6 +70,18 @@
       "prospect_form_received": {
         "subject": "Nouvelle demande de contact",
         "body": "Bonjour,\n\nUne nouvelle demande est arrivée pour {{organisation}} par votre formulaire de contact.\n\nPour la lire et y répondre, ouvrez-la dans Symbola :\n\n{{lien}}\n\nCet e-mail ne contient ni le message ni les coordonnées de la personne : ils restent dans Symbola."
+      },
+      "prospect_reply": {
+        "subject": "Merci pour votre message — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\nMerci pour votre message et toutes nos félicitations ! Ce serait un plaisir de vous accompagner pour {{évènement}}.\n\nPour bien comprendre vos envies, je vous propose d'en parler de vive voix : dites-moi quand vous seriez disponibles.\n\nÀ très bientôt,\n{{organisation}}"
+      },
+      "prospect_follow_up": {
+        "subject": "Des nouvelles de votre projet ? — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\nJe reviens vers vous au sujet de {{évènement}} : avez-vous eu le temps de réfléchir à notre échange ?\n\nJe reste disponible pour en parler quand vous le souhaitez.\n\nBelle journée,\n{{organisation}}"
+      },
+      "questionnaire_sent": {
+        "subject": "Quelques questions pour préparer {{évènement}}",
+        "body": "Bonjour {{prénom}},\n\nPour préparer {{évènement}}, voici un questionnaire « {{questionnaire}} ». Répondez à votre rythme, avec votre lien personnel, jusqu'au {{valable_jusqu_au}} inclus : chaque réponse est enregistrée aussitôt, vous pouvez vous arrêter et reprendre plus tard.\n\n{{lien}}\n\nCe lien vous est réservé : ne le transférez pas.\n\nÀ très bientôt,\n{{organisation}}"
       },
       "vendor_brief": {
         "subject": "Demande de devis : {{poste}} — {{organisation}}",
@@ -168,6 +180,18 @@
       "prospect_form_received": {
         "subject": "New contact request",
         "body": "Hello,\n\nA new request has arrived for {{organization}} through your contact form.\n\nTo read it and reply, open it in Symbola:\n\n{{link}}\n\nThis email contains neither the message nor the person's contact details: they stay in Symbola."
+      },
+      "prospect_reply": {
+        "subject": "Thank you for your message — {{organization}}",
+        "body": "Hello {{first_name}},\n\nThank you for your message, and congratulations! It would be a pleasure to help you with {{event}}.\n\nTo understand what you have in mind, let's talk: tell me when you would be available.\n\nSpeak soon,\n{{organization}}"
+      },
+      "prospect_follow_up": {
+        "subject": "Any news about your plans? — {{organization}}",
+        "body": "Hello {{first_name}},\n\nI am getting back to you about {{event}}: have you had time to think about our conversation?\n\nI remain available to talk whenever you like.\n\nHave a lovely day,\n{{organization}}"
+      },
+      "questionnaire_sent": {
+        "subject": "A few questions to prepare {{event}}",
+        "body": "Hello {{first_name}},\n\nTo prepare {{event}}, here is a questionnaire, \"{{questionnaire}}\". Answer at your own pace, with your personal link, until {{valid_until}} included: each answer is saved at once, you can stop and come back later.\n\n{{link}}\n\nThis link is for you only: please do not forward it.\n\nSpeak soon,\n{{organization}}"
       },
       "vendor_brief": {
         "subject": "Quote request: {{slot}} — {{organization}}",

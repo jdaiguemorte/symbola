@@ -12,6 +12,21 @@ import { useTranslations } from "next-intl";
 import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { MoveAnnouncement, MoveToGroupButton, useMoveToGroup, type MovableItem } from "@/app/ui/move-to-group";
 import { loseCardAction, moveCardAction, winCardAction } from "./actions";
+import { noteAnsweredAction } from "../[id]/ecrire/actions";
+
+// Lot 45 (CRM-06, D3) : « A répondu », d'un geste depuis la carte ; les relances en attente s'arrêtent.
+function AnsweredButton({ eventId, label, done }: { eventId: string; label: string; done: string }) {
+  const [noted, setNoted] = useState(false);
+  return noted ? (
+    <span role="status" className="meta">
+      {done}
+    </span>
+  ) : (
+    <button type="button" className="button-ghost" onClick={async () => setNoted(await noteAnsweredAction(eventId))}>
+      {label}
+    </button>
+  );
+}
 
 export type BoardCard = MovableItem & {
   when: string | null;
@@ -110,6 +125,15 @@ export function PipelineBoard({ stages, cards, lossReasons }: { stages: Stage[];
                     <dd>{t("days", { count: card.daysInStage })}</dd>
                   </div>
                 </dl>
+                {/* Lot 45 (CRM-05, CRM-06) : répondre en un clic depuis un modèle ; noter « a répondu ». */}
+                {!card.isDemo ? (
+                  <div className="row-wrap pipeline-card-actions">
+                    <Link href={`/events/${card.id}/ecrire`} className="button-link">
+                      {t("reply")}
+                    </Link>
+                    <AnsweredButton eventId={card.id} label={t("answered")} done={t("answeredDone")} />
+                  </div>
+                ) : null}
                 <MoveToGroupButton
                   itemLabel={card.label}
                   currentGroupId={board.groupOf(card.id)}

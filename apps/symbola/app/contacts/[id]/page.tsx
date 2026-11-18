@@ -10,7 +10,7 @@ import { ScreenHelp } from "@/app/screen-help";
 import { PageHeader } from "@/app/ui/page-header";
 import { SidePanel } from "@/app/ui/side-panel";
 import { requirePlanner } from "@/lib/guards";
-import { listEventDocuments, listEventsOfContact } from "@/modules/events/service";
+import { listContactMessages, listEventDocuments, listEventsOfContact } from "@/modules/events/service";
 import { getContact, getContactStamp, isModuleEnabled, listContactGroups, listContactMembers, listContactNotes } from "@/modules/hub/service";
 import { listEventQuotes, listQuoteInvoices } from "@/modules/quotes/service";
 import { deleteContactAction, removeContactMemberAction, removeContactNoteAction } from "../actions";
@@ -59,6 +59,9 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
     isGroup ? listContactMembers(organizationId, id) : listContactGroups(organizationId, id),
   ]);
   const events = eventsEnabled ? await listEventsOfContact(organizationId, id) : [];
+  // Lot 45 (CRM-03, CRM-05) : les messages échangés avec le contact (envoyés, préparés, notés).
+  const messages = eventsEnabled ? await listContactMessages(organizationId, id) : [];
+  const tExchanges = await getTranslations("ProspectExchanges");
   const documents = eventsEnabled ? (await Promise.all(events.map((event) => listEventDocuments(organizationId, event.id)))).flat() : [];
   const quotes = quotesEnabled ? (await Promise.all(events.map((event) => listEventQuotes(organizationId, event.id)))).flat().filter((quote) => !quote.isDemo) : [];
   const invoices = quotesEnabled ? (await Promise.all(quotes.map((quote) => listQuoteInvoices(organizationId, quote.id)))).flat().filter((invoice) => !invoice.isDemo) : [];
@@ -216,6 +219,24 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
                 {documents.map((document) => (
                   <li key={document.id}>
                     <a href={`/events/${document.eventId}/documents/${document.id}`}>{document.label}</a> · {eventLabel(document.eventId)}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        ) : null}
+        {eventsEnabled ? (
+          <>
+            <h3>{tExchanges("historyTitle")}</h3>
+            {messages.length === 0 ? (
+              <p>{tExchanges("noHistory")}</p>
+            ) : (
+              <ul className="exchange-history">
+                {messages.map((message) => (
+                  <li key={message.id}>
+                    {new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", { timeZone: "Europe/Paris", dateStyle: "medium" }).format(new Date(message.occurredAt))} — {tExchanges(`kind.${message.kind}`)}
+                    {message.delivery === "prepared" ? ` (${tExchanges("prepared")})` : ""}
+                    {message.subject ? ` : ${message.subject}` : ""} · <Link href={`/events/${message.eventId}`}>{eventLabel(message.eventId)}</Link>
                   </li>
                 ))}
               </ul>

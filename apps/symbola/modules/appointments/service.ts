@@ -1067,3 +1067,15 @@ export async function isAppointmentsModuleEnabled(organizationId: string): Promi
 // Lot 39a (ADR 0073) — corbeille du module.
 export { isAppointmentsObjectTrashed, listTrashedAppointmentsRows, purgeTrashedAppointmentsObjects, type AppointmentsTrashKind } from "./trash";
 export { deleteDemoAppointments } from "./repository";
+
+// Lot 45 (CRM-07 ; ADR 0090) : rendez-vous d'un contact fusionné.
+export { countContactAppointments, repointAppointmentsMergedContact } from "./contact-merge";
+
+// Lot 45 (CRM-06, D3) : le dernier rendez-vous pris par le prospect (sur l'évènement ou par l'un de ses
+// contacts), une action qui arrête ses relances.
+export async function latestProspectAppointment(organizationId: string, eventId: string, contactIds: string[]): Promise<Date | null> {
+  const found = [...(await listEventAppointments(organizationId, eventId)).map((entry) => entry.appointment)];
+  for (const contactId of contactIds) found.push(...(await listContactAppointments(organizationId, contactId)));
+  const dates = found.filter((appointment) => appointment.origin === "public" && appointment.status !== "cancelled").map((appointment) => new Date(appointment.createdAt).getTime());
+  return dates.length > 0 ? new Date(Math.max(...dates)) : null;
+}

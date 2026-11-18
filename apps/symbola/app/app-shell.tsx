@@ -369,6 +369,11 @@ export async function AppShell({ children }: { children: ReactNode }) {
                               { href: "/events/parametres/contact", label: tSettings("contactForm") },
                             ]
                           : []),
+                        // Lot 45 (HUB-21, POR-07) : modèles de questionnaires.
+                        {
+                          href: "/events/parametres/questionnaires",
+                          label: tSettings("questionnaires"),
+                        },
                         {
                           href: "/events/modeles",
                           label: tSettings("retroplanning"),

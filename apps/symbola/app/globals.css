@@ -4192,3 +4192,47 @@
     @apply flex flex-wrap items-center gap-2;
   }
 }
+
+@layer components {
+  /* Lot 45 (CRM-05, CRM-06, CRM-07, POR-07 ; ADR 0090) — réponses, relances, doublons, questionnaires.
+     Questionnaire du portail : à 375 px, une question par écran (« Précédente », « Suivante ») ; sur
+     ordinateur, toutes à la suite, sans boutons de navigation (NFR-19). */
+  .write-form textarea,
+  .questionnaire-answerer textarea {
+    @apply w-full;
+  }
+  .pipeline-card-actions {
+    @apply mt-1;
+  }
+  .exchange-history {
+    @apply m-0 flex list-none flex-col gap-1 p-0 text-label;
+  }
+  .questionnaire-question[data-current="false"] {
+    @apply hidden sm:flex;
+  }
+  .questionnaire-nav {
+    @apply sm:hidden;
+  }
+  .questionnaire-step-count {
+    @apply sm:hidden;
+  }
+  .questionnaire-answers {
+    @apply m-0 grid grid-cols-1 gap-2 sm:grid-cols-2;
+  }
+  .questionnaire-answers dt {
+    @apply text-label text-ink-muted;
+  }
+  .questionnaire-answers dd {
+    @apply m-0 break-words whitespace-pre-wrap;
+  }
+  .questionnaire-editor-list {
+    @apply m-0 list-none p-0;
+  }
+  .merge-table {
+    @apply w-full table-fixed border-collapse text-body;
+  }
+  .merge-table th,
+  .merge-table td {
+    @apply border-b border-line p-2 text-left align-top wrap-anywhere;
+  }
+}

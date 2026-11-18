@@ -7,7 +7,7 @@ import { PageHeader } from "@/app/ui/page-header";
 import { SidePanel } from "@/app/ui/side-panel";
 import { Pagination } from "@/app/ui/pagination";
 import { requirePlanner } from "@/lib/guards";
-import { listContacts } from "@/modules/hub/service";
+import { countDuplicatePairs, listContacts } from "@/modules/hub/service";
 import { NewContactForm } from "./contact-forms";
 
 type Query = { q?: string; page?: string; nouveau?: string };
@@ -26,6 +26,8 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
   const page = Number.parseInt(query.page ?? "1", 10);
   const result = await listContacts(auth.user.organizationId, { search, page: Number.isFinite(page) ? page : 1 });
   const pageCount = Math.max(1, Math.ceil(result.total / result.pageSize));
+  // Lot 45 (CRM-07) : les doublons possibles, jamais fusionnés sans la planner.
+  const duplicates = await countDuplicatePairs(auth.user.organizationId);
   // Lot 39c (UX-13, relevé validé le 17/11) : la création s'ouvre en panneau, comme les modèles.
   const creating = query.nouveau === "1";
   const listHref = search ? `/contacts?${new URLSearchParams({ q: search }).toString()}` : "/contacts";
@@ -48,6 +50,11 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
         }
       />
       <ScreenHelp title={tHelp("contactsList.title")} body={tHelp("contactsList.body")} />
+      {duplicates > 0 ? (
+        <p className="notice">
+          <Link href="/contacts/doublons">{t("duplicatesLink", { count: duplicates })}</Link>
+        </p>
+      ) : null}
 
       <form role="search" aria-label={t("searchLabel")} className="row-wrap">
         <label>

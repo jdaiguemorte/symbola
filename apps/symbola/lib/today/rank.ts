@@ -41,6 +41,10 @@ export type TodayItemKind =
   // Lot 44 (CRM-01) : nouvelle demande du formulaire de contact, demandes « à vérifier ».
   | "prospect_request"
   | "prospect_review"
+  // Lot 45 (CRM-06, POR-07, CRM-07) : relance prête à relire, questionnaire terminé, doublons possibles.
+  | "prospect_follow_up_ready"
+  | "questionnaire_finished"
+  | "contact_duplicates"
   // Lot 47 (PAR-05 ; D3, D6, D8) : réponse d'un prestataire à un brief, choix du client engagé,
   // feuille de route non confirmée.
   | "vendor_answer"

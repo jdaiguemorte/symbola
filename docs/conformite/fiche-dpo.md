@@ -346,3 +346,13 @@ sans réseau, puis part au serveur.
 > avec l'évènement, conseil à l'écran).
 
 Besoin : une réponse avant le premier jour J réel avec photos chez la pilote.
+
+## Pour information : relances des prospects (lot 45, 18 novembre 2026)
+
+Sans question ouverte. **Décision de Julien (18/11/2026)**, contraire à votre réponse 10 : les
+relances d'un prospect qui a fait une demande sont la suite de sa demande, pas de la prospection,
+puisque la première approche vient toujours des mariés ; ni case d'accord au formulaire de contact, ni
+liste d'opposition par planner (RGP-17 « Sans objet »). Les relances restent préparées et validées par
+la planner (envoi automatique seulement en réglage), chacune porte « Vous ne souhaitez plus de
+nouvelles ? Répondez simplement. », et la planner a un geste « Ne plus relancer »
+(`docs/QUESTIONS.md`, Q39 ; ADR 0090).

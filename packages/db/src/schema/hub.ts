@@ -772,6 +772,71 @@ export const contactNotes = hubSchema.table(
   ],
 );
 
+// Lot 45 (CRM-07 ; D4 ; ADR 0090) — paires de contacts qui se ressemblent (même adresse e-mail ou
+// même téléphone, une fois normalisés), détectées à la saisie, au formulaire de contact et chaque
+// nuit ; montrées à la planner (« Doublons possibles »), jamais fusionnées seules. « dismissed_at » :
+// la planner a dit « ce ne sont pas les mêmes ». Une paire est rangée dans l'ordre des identifiants.
+// Un contact fictif (is_demo) n'est jamais apparié à un contact réel.
+export const CONTACT_DUPLICATE_REASONS = ["email", "phone"] as const;
+
+export const contactDuplicates = hubSchema.table(
+  "contact_duplicates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    firstContactId: uuid("first_contact_id")
+      .notNull()
+      .references(() => contacts.id, { onDelete: "cascade" }),
+    secondContactId: uuid("second_contact_id")
+      .notNull()
+      .references(() => contacts.id, { onDelete: "cascade" }),
+    reason: text("reason", { enum: CONTACT_DUPLICATE_REASONS }).notNull(),
+    detectedAt: timestamp("detected_at", { withTimezone: true }).defaultNow().notNull(),
+    dismissedAt: timestamp("dismissed_at", { withTimezone: true }),
+    dismissedBy: uuid("dismissed_by"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("contact_duplicates_organization_idx").on(table.organizationId),
+    index("contact_duplicates_second_idx").on(table.secondContactId),
+    uniqueIndex("contact_duplicates_pair_idx").on(table.firstContactId, table.secondContactId),
+    check("contact_duplicates_order_check", sql`${table.firstContactId} < ${table.secondContactId}`),
+    check("contact_duplicates_reason_check", sql`${table.reason} in ('email', 'phone')`),
+  ],
+);
+
+// Lot 45 (CRM-07 ; D4, D5) — trace d'une fusion : qui, quand, quelles fiches, et les champs repris de
+// la fiche absorbée (leurs noms, jamais leurs valeurs). La fiche absorbée n'existe plus ; les modules
+// repointent leurs références à réception de hub.contact.merged. Pas de clé étrangère : la trace reste
+// après l'effacement d'une des fiches.
+export const contactMerges = hubSchema.table(
+  "contact_merges",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    keptContactId: uuid("kept_contact_id").notNull(),
+    absorbedContactId: uuid("absorbed_contact_id").notNull(),
+    fieldsFromAbsorbed: text("fields_from_absorbed").array().notNull().default(sql`'{}'::text[]`),
+    mergedByUserId: uuid("merged_by_user_id"),
+    mergedAt: timestamp("merged_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("contact_merges_organization_idx").on(table.organizationId),
+    uniqueIndex("contact_merges_absorbed_idx").on(table.absorbedContactId),
+    index("contact_merges_kept_idx").on(table.keptContactId),
+    check("contact_merges_distinct_check", sql`${table.keptContactId} <> ${table.absorbedContactId}`),
+  ],
+);
+
 // Lot 35a (HUB-13, DAT-13, ADR 0068) — exports complets de l'organisation (contrat export/v1) :
 // demandés par la Propriétaire (décision D5), préparés en arrière-plan (lib/export, décision D4),
 // gardés le temps réglé par l'Admin, puis effacés du stockage ; la ligne reste comme trace, sans
@@ -855,6 +920,11 @@ export const EMAIL_TEMPLATE_KINDS = [
   "proposal_expiry_reminder",
   "payment_details",
   "invoice_reminder",
+  // Lot 45 (CRM-05, CRM-06, POR-07 ; D9) : réponse à un prospect et relance (le texte de la planner,
+  // à l'image de l'organisation), questionnaire envoyé (son lien personnel).
+  "prospect_reply",
+  "prospect_follow_up",
+  "questionnaire_sent",
 ] as const;
 
 export const emailTemplates = hubSchema.table(
@@ -880,7 +950,8 @@ export const emailTemplates = hubSchema.table(
     // Lot 47 (migration 0163, accord de Julien du 18/11) : natures des prestataires par lien.
     // Lot 43 (migration 0169, accord de Julien du 18/11, D10) : proposition, relance avant expiration,
     // RIB du règlement, relance d'impayé.
-    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder')`),
+    // Lot 45 (migration 0172, accord de Julien du 18/11) : réponse, relance, questionnaire envoyé.
+    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent')`),
     check("email_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
     check("email_templates_subject_check", sql`char_length(${table.subject}) between 1 and 200`),
     check("email_templates_body_check", sql`char_length(${table.body}) between 1 and 5000`),

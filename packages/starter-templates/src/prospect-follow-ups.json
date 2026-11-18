@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "_source": "Lot 45 (CRM-06, CRM-05 ; D2 ; ADR 0090) : réglage de départ des relances d'un prospect, copié dans l'organisation à la première lecture (parcours PAR-02, étape 7 du cahier des charges : relances à J+3 et J+7). Chaque relance est préparée dans « Aujourd'hui » et relue par la planner ; l'envoi automatique est un réglage, désactivé par défaut. Le lien de la brochure vaut 30 jours ; la brochure est un PDF de 20 Mo au plus.",
+  "steps": [{ "days": 3 }, { "days": 7 }],
+  "autoSend": false,
+  "brochureLinkDays": 30,
+  "brochureMaxSizeBytes": 20971520
+}
