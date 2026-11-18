@@ -53,7 +53,7 @@ test("SC-03 / HUB-15 / UX-16 / GC-02 / CHR-05 / CHR-10 / HUB-24 / HUB-28 — not
   await expect(page.getByText("Déclaration de TVA").first()).toBeVisible();
   const risks = page.getByRole("region", { name: "Risques" });
   await expect(risks).toContainText("Jalon en retard");
-  await expect(risks).toContainText("Le jalon « Contrat traiteur signé » est en retard de 3 jours ; seuil : 0 jours.");
+  await expect(risks).toContainText("Le jalon « Contrat traiteur signé » est en retard de 3 jours ; seuil : 0 jour.");
   await expectNoAxeViolation(page);
 
   // HUB-15, UX-16 : la cloche compte la notification non lue et mène au centre ; la notification ouvre

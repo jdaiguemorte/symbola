@@ -314,7 +314,8 @@ export function notificationTypeLabel(type: NotificationType, locale: Locale): s
 // La phrase complète (centre, corps d'un e-mail), avec ses libellés courts.
 export function notificationText(view: Pick<NotificationView, "type" | "params">, locale: Locale): string {
   // Un montant est gardé en centimes et écrit dans la langue de la personne.
-  const params = Object.fromEntries(Object.entries(view.params).map(([key, value]) => (key === "amountCents" && typeof value === "number" ? ["amount", formatAmount(value, locale)] : [key, String(value)])));
+  // Les nombres restent des nombres (accord « jour » ou « jours »).
+  const params: Record<string, string | number> = Object.fromEntries(Object.entries(view.params).map(([key, value]) => (key === "amountCents" && typeof value === "number" ? ["amount", formatAmount(value, locale)] : [key, value])));
   if (view.type === "risk_alert" && typeof view.params.rule === "string") {
     const risk = riskTranslatorFor(locale);
     return translatorFor(locale)("types.risk_alert.text", { summary: risk(`rules.${view.params.rule}.alert` as "rules.vendor_without_contract.alert", params) });

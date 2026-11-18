@@ -9448,37 +9448,37 @@
       "vendor_without_contract": {
         "label": "Prestataire retenu sans contrat",
         "description": "Un prestataire « Retenu » sans contrat signé, à moins de N jours de l'évènement.",
-        "alert": "{vendor} ({slot}) est retenu depuis {retainedDays} jours sans contrat signé, à {daysLeft} jours de l'évènement ; seuil : {threshold} jours avant l'évènement."
+        "alert": "{vendor} ({slot}) est retenu depuis {retainedDays, plural, one {# jour} other {# jours}} sans contrat signé, à {daysLeft, plural, one {# jour} other {# jours}} de l'évènement ; seuil : {threshold, plural, one {# jour} other {# jours}} avant l'évènement."
       },
       "decision_overdue": {
         "label": "Décision du client en attente",
         "description": "Une décision demandée au client, sans réponse N jours après son échéance.",
-        "alert": "« {title} » attend la réponse du client depuis {daysLate} jours après son échéance ; seuil : {threshold} jours."
+        "alert": "« {title} » attend la réponse du client depuis {daysLate, plural, one {# jour} other {# jours}} après son échéance ; seuil : {threshold, plural, one {# jour} other {# jours}}."
       },
       "document_expired": {
         "label": "Pièce expirée",
         "description": "Une pièce d'un prestataire expirée, ou qui expire avant l'évènement (marge de N jours).",
-        "alert": "La pièce « {document} » de {vendor} expire le {expiresOn}, avant l'évènement ; marge : {threshold} jours."
+        "alert": "La pièce « {document} » de {vendor} expire le {expiresOn}, avant l'évènement ; marge : {threshold, plural, one {# jour} other {# jours}}."
       },
       "payment_overdue": {
         "label": "Échéance impayée",
         "description": "Une échéance du client impayée depuis N jours.",
-        "alert": "L'échéance du devis {quote} est impayée depuis {daysLate} jours ; seuil : {threshold} jours."
+        "alert": "L'échéance du devis {quote} est impayée depuis {daysLate, plural, one {# jour} other {# jours}} ; seuil : {threshold, plural, one {# jour} other {# jours}}."
       },
       "milestone_late": {
         "label": "Jalon en retard",
         "description": "Un jalon du rétroplanning en retard de N jours.",
-        "alert": "Le jalon « {task} » est en retard de {daysLate} jours ; seuil : {threshold} jours."
+        "alert": "Le jalon « {task} » est en retard de {daysLate, plural, one {# jour} other {# jours}} ; seuil : {threshold, plural, one {# jour} other {# jours}}."
       },
       "iban_to_verify": {
         "label": "IBAN à vérifier",
         "description": "Un IBAN de prestataire « à vérifier » depuis N jours.",
-        "alert": "L'IBAN de {vendor} est à vérifier depuis {days} jours ; seuil : {threshold} jours."
+        "alert": "L'IBAN de {vendor} est à vérifier depuis {days, plural, one {# jour} other {# jours}} ; seuil : {threshold, plural, one {# jour} other {# jours}}."
       },
       "roadmap_unconfirmed": {
         "label": "Feuille de route non confirmée",
         "description": "Une feuille de route envoyée, non confirmée N jours après son envoi.",
-        "alert": "{vendor} n'a pas confirmé sa feuille de route, envoyée il y a {days} jours ; seuil : {threshold} jours."
+        "alert": "{vendor} n'a pas confirmé sa feuille de route, envoyée il y a {days, plural, one {# jour} other {# jours}} ; seuil : {threshold, plural, one {# jour} other {# jours}}."
       }
     },
     "today": {

@@ -14,6 +14,7 @@ import { withOrganization } from "@symbola/db/with-organization";
 import { events, eventTasks, eventTypes, eventTypeVocabulary, planningHealthSettings } from "@symbola/db/schema/events";
 import { clientTermSchema, planningHealthThresholdsSchema, standaloneTaskInputSchema, type ClientTerm, type EventTypeVocabularyView, type PlanningHealthView, type StandaloneTask } from "@symbola/contracts";
 import { starterClientTerms, starterPlanningHealth } from "@symbola/starter-templates";
+import { IN_PROGRESS_STATUSES } from "./lifecycle";
 import { nextOccurrence, planningHealth, shouldSpawnNext, type HealthThresholds } from "./planning-rules";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
@@ -127,7 +128,7 @@ export async function listLatePlannerTasks(organizationId: string, today: string
       .select({ task: eventTasks, isDemo: events.isDemo, eventDate: events.eventDate })
       .from(eventTasks)
       .innerJoin(events, eq(events.id, eventTasks.eventId))
-      .where(and(isNull(eventTasks.doneAt), lt(eventTasks.dueDate, today), eq(eventTasks.responsible, "planner"), inArray(events.status, ["option", "confirmed", "postponed"]))),
+      .where(and(isNull(eventTasks.doneAt), lt(eventTasks.dueDate, today), eq(eventTasks.responsible, "planner"), inArray(events.status, [...IN_PROGRESS_STATUSES]))),
   );
   return rows.map((row) => ({ taskId: row.task.id, eventId: row.task.eventId!, label: row.task.label, dueDate: row.task.dueDate, isMilestone: row.task.isMilestone, isDemo: row.isDemo, eventDate: row.eventDate }));
 }

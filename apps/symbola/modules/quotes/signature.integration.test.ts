@@ -1,6 +1,7 @@
 // DEV-02 — signature en ligne, contre un vrai PostgreSQL (RLS), par la
 // porte d'entrée du module, avec le faux fournisseur (la même suite de
 // contrat tourne contre l'adaptateur Documenso, signature/provider-contract).
+import { deliverDueNotifications } from "@/modules/hub/service";
 import { randomUUID } from "node:crypto";
 import { eq, sql as raw } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
@@ -313,8 +314,12 @@ describe("DEV-02 — Webhook du fournisseur", () => {
     expect((await getEvent(organizationId, eventId))?.status).toBe("confirmed");
     expect(await countSignedEvents(quoteId)).toBe(1);
 
+    // Lot 53 (HUB-15, UX-16 ; D3) : « Devis signé » est une notification immédiate de la Propriétaire ;
+    // l'e-mail part par la tâche des notifications, l'objet ne dit que la sorte, le texte nomme le devis.
+    await deliverDueNotifications(organizationId);
     const [mail] = await messagesTo(plannerEmail);
-    expect(mail?.Subject).toContain(detail.number);
+    expect(mail?.Subject).toBe("Symbola : une alerte vous attend");
+    expect(mail?.Text).toContain(detail.number);
 
     const document = await getSignatureDocument(organizationId, quoteId, "signed");
     expect(document).toMatchObject({ contentType: "application/pdf", fileName: `${detail.number}-signe.pdf` });
@@ -327,6 +332,7 @@ describe("DEV-02 — Webhook du fournisseur", () => {
     const replay = await handleSignatureWebhook({ headers: fakeSignatureProvider().webhookHeaders(), rawBody: last.rawBody });
     expect(replay).toEqual({ httpStatus: 200, outcome: "duplicate" });
     expect(await countSignedEvents(quoteId)).toBe(1);
+    await deliverDueNotifications(organizationId);
     expect((await messagesTo(plannerEmail)).length).toBe(1);
   });
 

@@ -8,8 +8,8 @@ import { getAutomationGate } from "@/modules/hub/service";
 import { loadRiskRadar } from "@/lib/risk-radar/load";
 import { settleWithin } from "@/lib/today/settle";
 
-export function riskParams(alert: RiskAlert): Record<string, string> {
-  return { ...Object.fromEntries(Object.entries(alert.facts).map(([key, value]) => [key, String(value)])), threshold: String(alert.thresholdDays) };
+export function riskParams(alert: RiskAlert): Record<string, string | number> {
+  return { ...alert.facts, threshold: alert.thresholdDays };
 }
 
 export async function RiskSection({ organizationId, now }: { organizationId: string; now: Date }) {

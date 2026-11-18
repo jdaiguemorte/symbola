@@ -9448,37 +9448,37 @@
       "vendor_without_contract": {
         "label": "Retained vendor without a contract",
         "description": "A “Retained” vendor without a signed contract, less than N days before the event.",
-        "alert": "{vendor} ({slot}) has been retained for {retainedDays} days without a signed contract, {daysLeft} days before the event; threshold: {threshold} days before the event."
+        "alert": "{vendor} ({slot}) has been retained for {retainedDays, plural, one {# day} other {# days}} without a signed contract, {daysLeft, plural, one {# day} other {# days}} before the event; threshold: {threshold, plural, one {# day} other {# days}} before the event."
       },
       "decision_overdue": {
         "label": "Client decision pending",
         "description": "A decision asked of the client, unanswered N days after its due date.",
-        "alert": "“{title}” has been waiting for the client's answer for {daysLate} days after its due date; threshold: {threshold} days."
+        "alert": "“{title}” has been waiting for the client's answer for {daysLate, plural, one {# day} other {# days}} after its due date; threshold: {threshold, plural, one {# day} other {# days}}."
       },
       "document_expired": {
         "label": "Expired document",
         "description": "A vendor document that has expired, or expires before the event (N-day margin).",
-        "alert": "The document “{document}” from {vendor} expires on {expiresOn}, before the event; margin: {threshold} days."
+        "alert": "The document “{document}” from {vendor} expires on {expiresOn}, before the event; margin: {threshold, plural, one {# day} other {# days}}."
       },
       "payment_overdue": {
         "label": "Unpaid instalment",
         "description": "A client instalment unpaid for N days.",
-        "alert": "The instalment of quote {quote} has been unpaid for {daysLate} days; threshold: {threshold} days."
+        "alert": "The instalment of quote {quote} has been unpaid for {daysLate, plural, one {# day} other {# days}}; threshold: {threshold, plural, one {# day} other {# days}}."
       },
       "milestone_late": {
         "label": "Late milestone",
         "description": "A planning milestone late by N days.",
-        "alert": "The milestone “{task}” is {daysLate} days late; threshold: {threshold} days."
+        "alert": "The milestone “{task}” is {daysLate, plural, one {# day} other {# days}} late; threshold: {threshold, plural, one {# day} other {# days}}."
       },
       "iban_to_verify": {
         "label": "IBAN to check",
         "description": "A vendor IBAN “to check” for N days.",
-        "alert": "{vendor}'s IBAN has been waiting to be checked for {days} days; threshold: {threshold} days."
+        "alert": "{vendor}'s IBAN has been waiting to be checked for {days, plural, one {# day} other {# days}}; threshold: {threshold, plural, one {# day} other {# days}}."
       },
       "roadmap_unconfirmed": {
         "label": "Roadmap not confirmed",
         "description": "A roadmap sent and not confirmed N days later.",
-        "alert": "{vendor} has not confirmed the roadmap sent {days} days ago; threshold: {threshold} days."
+        "alert": "{vendor} has not confirmed the roadmap sent {days, plural, one {# day} other {# days}} ago; threshold: {threshold, plural, one {# day} other {# days}}."
       }
     },
     "today": {
