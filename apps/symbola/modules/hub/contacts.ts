@@ -128,9 +128,9 @@ async function contactIdByEmail(organizationId: string, email: string, exceptId?
 }
 
 // Contacts par identifiant, pour les modules qui les affichent (clients d'un évènement, signataires).
-// Lot 45 (CRM-07, D5) : un identifiant d'une fiche absorbée par une fusion donne la fiche gardée, le
-// temps que les modules repointent leurs références.
-export async function getContactsByIds(organizationId: string, ids: readonly string[]): Promise<Map<string, Contact>> {
+// Lot 45 (CRM-07, D5) : sur demande (followMerges, pour l'affichage), un identifiant d'une fiche
+// absorbée par une fusion donne la fiche gardée, le temps que les modules repointent leurs références.
+export async function getContactsByIds(organizationId: string, ids: readonly string[], options: { followMerges?: boolean } = {}): Promise<Map<string, Contact>> {
   const unique = [...new Set(ids)];
   if (unique.length === 0) return new Map();
   const select = (wanted: string[]) =>
@@ -143,7 +143,7 @@ export async function getContactsByIds(organizationId: string, ids: readonly str
   const rows = await select(unique);
   const found = new Map(rows.map((row) => [row.id, toContact(row)]));
   const missing = unique.filter((id) => !found.has(id));
-  if (missing.length > 0) {
+  if (options.followMerges && missing.length > 0) {
     const merged = await resolveMergedContactIds(organizationId, missing);
     if (merged.size > 0) {
       const keptRows = await select([...new Set(merged.values())]);
