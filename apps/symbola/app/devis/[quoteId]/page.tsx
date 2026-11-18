@@ -5,7 +5,7 @@ import { appDatabase } from "@symbola/db/client";
 import { formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { getEvent } from "@/modules/events/service";
-import { computeLegalMention, getOrganizationProfile } from "@/modules/hub/service";
+import { computeLegalMention, getContactsByIds, getOrganizationProfile } from "@/modules/hub/service";
 import {
   getQuote,
   getQuoteScheduledDeposit,
@@ -15,6 +15,7 @@ import {
   listQuoteReceipts,
   listQuoteTemplates,
   quoteMissingMentions,
+  quoteComplianceFindings,
   QuoteNotFoundError,
   type QuoteDetail,
 } from "@/modules/quotes/service";
@@ -42,6 +43,8 @@ import { PageHeader } from "@/app/ui/page-header";
 import { InvoicesSection } from "./invoices-section";
 import { SignatureSection } from "./signature-section";
 import { ContractSection } from "./contract-section";
+import { CompliancePanel } from "../compliance-panel";
+import { BuyerDetailsForm } from "./buyer-forms";
 
 export default async function QuotePage({ params, searchParams }: { params: Promise<{ quoteId: string }>; searchParams: Promise<{ modele?: string }> }) {
   const auth = await requirePlanner();
@@ -96,6 +99,20 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
   const missingMentions = isDraft ? await quoteMissingMentions(organizationId, quote.id) : [];
   const options = current.lines.filter((line) => line.isOption);
   const optionsOpen = quote.status === "sent" && !quote.signature && options.length > 0;
+  // Lot 41 (JUR-02, JUR-13 ; D6, D8) : entreprises parmi les clients de l'évènement (et l'acheteur
+  // déjà désigné), pour l'acheteur d'un devis professionnel.
+  const clientContacts = await getContactsByIds(organizationId, [
+    ...(event?.clients ?? []).map((client) => client.contactId).filter((id): id is string => id !== null),
+    ...(quote.buyer.buyerContactId ? [quote.buyer.buyerContactId] : []),
+  ]);
+  const companies = [...clientContacts.values()].filter((contact) => contact.kind === "company" && !contact.anonymized).map((contact) => ({ id: contact.id, name: contact.displayName }));
+  const buyerName = quote.buyer.buyerContactId ? (clientContacts.get(quote.buyer.buyerContactId)?.displayName ?? null) : null;
+  // Lot 41 (GC-03, D12) : points d'attention avant l'envoi du devis et avant l'émission.
+  const quoteCompliance =
+    quote.status === "draft" || (quote.status === "sent" && quote.signature?.status !== "completed")
+      ? await quoteComplianceFindings({ organizationId, quoteId: quote.id, document: "quote", locale })
+      : null;
+  const invoiceCompliance = quote.status === "signed" ? await quoteComplianceFindings({ organizationId, quoteId: quote.id, document: "invoice", locale }) : null;
 
   return (
     <main>
@@ -176,6 +193,20 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
         )}
       </section>
 
+      {/* Lot 41 (JUR-02, JUR-13 ; D6, D8) : acheteur, références d'achat, livraison ; modifiables jusqu'à chaque émission. */}
+      <section id="acheteur" aria-labelledby="buyer-title">
+        <h2 id="buyer-title">{t("buyerTitle")}</h2>
+        <p className="meta">{t("buyerHint")}</p>
+        {quote.clientKind === "professional" ? <p>{buyerName ? t("buyerCompanyIs", { name: buyerName }) : t("buyerCompanyMissing")}</p> : null}
+        <BuyerDetailsForm
+          quoteId={quote.id}
+          buyer={quote.buyer}
+          companies={companies}
+          professional={quote.clientKind === "professional"}
+          venue={{ name: event?.venueName ?? null, city: event?.venueCity ?? null }}
+        />
+      </section>
+
       <ScheduleSection quote={quote} methods={paymentMethods} locale={locale} today={parisTodayString()} />
       {/* Lot 31b (FAC-04, DOC-03 ; D7, D9, D11) : contrat du devis envoyé, signé avec lui. */}
       <ContractSection
@@ -186,8 +217,9 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
         selectedTemplateId={isValidId(selectedTemplate ?? "") ? (selectedTemplate ?? null) : null}
         locale={locale}
       />
+      {!isDraft && quoteCompliance ? <CompliancePanel document="quote" {...quoteCompliance} /> : null}
       <SignatureSection organizationId={organizationId} quote={quote} event={event} />
-      <InvoicesSection quote={quote} invoices={invoices} locale={locale} scheduled={scheduledDeposit} receipts={receipts} />
+      <InvoicesSection quote={quote} invoices={invoices} locale={locale} scheduled={scheduledDeposit} receipts={receipts} compliance={invoiceCompliance} />
 
       {isDraft ? (
         <>
@@ -251,6 +283,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
               <MissingMentionsList fields={missingMentions} />
             </div>
           ) : null}
+          {quoteCompliance ? <CompliancePanel document="quote" {...quoteCompliance} /> : null}
           <SendQuoteForm quoteId={quote.id} />
         </>
       ) : ((quote.status === "sent" && quote.signature?.status !== "pending") || quote.status === "declined") &&

@@ -14,7 +14,8 @@
     "test:e2e": "playwright test",
     "help:captures": "playwright test --config playwright.captures.config.ts",
     "seed:recette": "tsx scripts/seed-recette.ts",
-    "export:schemas": "EXPORT_SCHEMAS_UPDATE=1 vitest run lib/export/schemas.test.ts"
+    "export:schemas": "EXPORT_SCHEMAS_UPDATE=1 vitest run lib/export/schemas.test.ts",
+    "facturx:samples": "FACTURX_SAMPLES_DIR=${FACTURX_SAMPLES_DIR:-facturx-samples} vitest run app/devis/factures/facturx.test.ts"
   },
   "dependencies": {
     "@react-pdf/renderer": "4.9.0",

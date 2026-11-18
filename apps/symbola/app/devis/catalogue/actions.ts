@@ -30,6 +30,7 @@ function readItem(formData: FormData): CatalogItemInput | "invalid_price" | "inv
     vatRateBasisPoints,
     description: String(formData.get("description") ?? ""),
     category: String(formData.get("category") ?? ""),
+    nature: formData.get("nature") === "goods" ? "goods" : "service",
   };
 }
 

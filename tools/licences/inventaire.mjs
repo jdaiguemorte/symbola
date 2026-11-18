@@ -5,12 +5,13 @@
 // refuse une licence inconnue ou à copyleft non justifiée, et un document qui oublie l'une d'elles.
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { checkLicences, checkServices, classify, listPackages, listServiceImages, loadJson, repoRoot } from "./licences.mjs";
+import { checkFiles, checkLicences, checkServices, classify, listPackages, listServiceImages, loadJson, repoRoot } from "./licences.mjs";
 
 const packages = listPackages();
 const allowed = loadJson("autorisees.json");
 const services = loadJson("services.json");
-const problems = [...checkLicences(packages, allowed), ...checkServices(listServiceImages(), services)];
+const files = loadJson("fichiers.json");
+const problems = [...checkLicences(packages, allowed), ...checkServices(listServiceImages(), services), ...checkFiles(files)];
 if (problems.length > 0) {
   console.error(`Inventaire refusé :\n- ${problems.join("\n- ")}`);
   process.exit(1);
@@ -32,7 +33,7 @@ const lines = [
   "# Inventaire des licences (JUR-18)",
   "",
   "Généré par `pnpm --filter @symbola/tools-licences inventaire` (lot 40a, ADR 0075) depuis",
-  "`pnpm licenses list`, `tools/licences/autorisees.json` et `tools/licences/services.json` : ne pas",
+  "`pnpm licenses list`, `tools/licences/autorisees.json`, `tools/licences/services.json` et `tools/licences/fichiers.json` : ne pas",
   "le modifier à la main. Le contrôle de la CI (`tools/licences/licences.test.mjs`) refuse une licence",
   "inconnue, une licence à copyleft sans ligne justifiée, et un service sans ligne.",
   "",
@@ -63,6 +64,15 @@ const lines = [
   "| Image | Licence | Usage |",
   "| --- | --- | --- |",
   ...services.map((line) => `| \`${line.image}\` | ${line.licence} | ${cell(line.mode)} |`),
+  "",
+  "## Fichiers tiers et outils de la CI",
+  "",
+  "Fichiers rangés dans le dépôt (polices) et outils qui ne tournent qu'en intégration continue",
+  "(`tools/licences/fichiers.json`).",
+  "",
+  "| Fichier ou outil | Licence | Portée | Usage |",
+  "| --- | --- | --- | --- |",
+  ...files.map((line) => `| ${cell(line.nom)} | ${cell(line.licence)} | ${line.portee} | ${cell(line.usage)} |`),
   "",
   "## Points à faire valider par l'avocat",
   "",

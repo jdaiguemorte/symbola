@@ -7,12 +7,15 @@
 // acomptes déjà versés ; encadré de règlement avec l'IBAN s'il est renseigné.
 import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
 import type { CreditNoteView, InvoiceBuyer, InvoiceTotalsView, InvoiceView } from "@/modules/quotes/service";
+import type { LatePenaltyData } from "@symbola/starter-templates";
+import { latePenaltySentence } from "@/lib/documents/payment-terms";
 import {
   appearanceOf,
   bankLines,
   columnsFor,
   documentFooter,
   lineCells,
+  reformParts,
   sellerBlock,
   type DocumentCommonLabels,
   type QuotePdfLogo,
@@ -101,8 +104,37 @@ function balanceTotalRows(invoice: InvoiceView, vat: boolean, labels: InvoicePdf
   return [...rows, ...settlements, due];
 }
 
-function buyersBlock(buyers: InvoiceBuyer[], labels: InvoicePdfLabels): QuotePdfModel["client"] {
-  return { heading: labels.clientHeading, lines: buyers.flatMap((buyer) => [buyer.name, buyer.billingAddress]).filter(Boolean) };
+// Lot 41 (JUR-02, D6) : l'acheteur entreprise avec son SIREN et son numéro de TVA ; puis, si elle
+// diffère, l'adresse de livraison.
+function buyersBlock(buyers: InvoiceBuyer[], labels: InvoicePdfLabels, extra: string[] = []): QuotePdfModel["client"] {
+  const lines = buyers.flatMap((buyer) => [
+    buyer.name,
+    buyer.billingAddress,
+    ...(buyer.kind === "company" && buyer.siren ? [labels.legal.siren(buyer.siren)] : []),
+    ...(buyer.kind === "company" && buyer.vatNumber ? [labels.legal.vatNumber(buyer.vatNumber)] : []),
+  ]);
+  return { heading: labels.clientHeading, lines: [...lines, ...extra].filter(Boolean) };
+}
+
+// Ce que la réforme ajoute à une pièce émise à partir du lot 41 (rien pour une pièce antérieure).
+function reformOf(reform: InvoiceView["reform"], labels: InvoicePdfLabels, locale: Locale, latePenalty: LatePenaltyData | undefined, withTerms: boolean) {
+  if (!reform) return { dates: [], clientLines: [], mentions: [] as string[] };
+  const terms = withTerms ? reform.professionalTerms : null;
+  const parts = reformParts(
+    {
+      orderReference: reform.orderReference,
+      buyerReference: reform.buyerReference,
+      deliveryAddress: reform.deliveryAddress,
+      category: reform.category,
+      vatOnDebits: reform.vatOnDebits,
+      professionalTerms: terms ? { paymentTermDays: terms.paymentTermDays, endOfMonth: terms.endOfMonth, discountTerms: terms.discountTerms } : null,
+    },
+    labels,
+    locale,
+  );
+  // JUR-12 : pénalités et indemnité forfaitaire, au taux figé.
+  if (terms?.latePenaltyRate && latePenalty) parts.mentions.push(latePenaltySentence(terms.latePenaltyRate, latePenalty, locale));
+  return parts;
 }
 
 // Une seule ligne au total des acomptes et des avoirs : le taux de TVA, ou
@@ -128,8 +160,11 @@ export function buildInvoicePdfModel(input: {
   logo: QuotePdfLogo | null;
   watermark: string | null;
   defaultColor: string;
+  // Lot 41 (JUR-12) : données de la phrase des pénalités (facture à un professionnel).
+  latePenalty?: LatePenaltyData;
 }): QuotePdfModel {
   const { invoice, labels, locale } = input;
+  const reform = reformOf(invoice.reform, labels, locale, input.latePenalty, true);
   const vat = invoice.vatApplicable;
   const document = invoice.seller.document;
   const dueOn = formatCalendarDate(invoice.paymentDueOn, locale);
@@ -141,6 +176,7 @@ export function buildInvoicePdfModel(input: {
     });
   }
   dates.push({ label: labels.dates.dueOn, value: dueOn });
+  dates.push(...reform.dates);
 
   const rows =
     invoice.kind === "balance"
@@ -170,7 +206,7 @@ export function buildInvoicePdfModel(input: {
     appearance: appearanceOf(invoice.seller, input.defaultColor),
     logo: input.logo,
     seller: sellerBlock(invoice.seller, labels),
-    client: buyersBlock(invoice.buyers, labels),
+    client: buyersBlock(invoice.buyers, labels, reform.clientLines),
     dates,
     intro: document?.intro ?? null,
     columns: columnsFor(vat, labels),
@@ -179,11 +215,12 @@ export function buildInvoicePdfModel(input: {
     payment,
     legalMention: invoice.legalMention,
     terms: invoice.mentions,
-    professional: [],
+    professional: reform.mentions,
     generalTerms: null,
     footer: documentFooter(invoice.seller, labels, locale),
     watermark: input.watermark,
     signature: null,
+    embedFonts: true,
   };
 }
 
@@ -197,6 +234,7 @@ export function buildCreditNotePdfModel(input: {
   defaultColor: string;
 }): QuotePdfModel {
   const { creditNote, labels, locale, vatApplicable } = input;
+  const reform = reformOf(creditNote.reform, labels, locale, undefined, false);
   return {
     language: locale,
     title: labels.creditNoteTitle(creditNote.number),
@@ -208,8 +246,8 @@ export function buildCreditNotePdfModel(input: {
     appearance: appearanceOf(creditNote.seller, input.defaultColor),
     logo: input.logo,
     seller: sellerBlock(creditNote.seller, labels),
-    client: buyersBlock(creditNote.buyers, labels),
-    dates: [{ label: labels.dates.issuedOn, value: formatCalendarDate(creditNote.issuedOn, locale) }],
+    client: buyersBlock(creditNote.buyers, labels, reform.clientLines),
+    dates: [{ label: labels.dates.issuedOn, value: formatCalendarDate(creditNote.issuedOn, locale) }, ...reform.dates],
     intro: labels.reason(creditNote.reason),
     columns: columnsFor(vatApplicable, labels),
     rows: [singleLine(labels.creditNoteLine(creditNote.invoiceNumber), creditNote.totals, vatApplicable, locale)],
@@ -217,10 +255,11 @@ export function buildCreditNotePdfModel(input: {
     payment: null,
     legalMention: creditNote.legalMention,
     terms: null,
-    professional: [],
+    professional: reform.mentions,
     generalTerms: null,
     footer: documentFooter(creditNote.seller, labels, locale),
     watermark: input.watermark,
     signature: null,
+    embedFonts: true,
   };
 }

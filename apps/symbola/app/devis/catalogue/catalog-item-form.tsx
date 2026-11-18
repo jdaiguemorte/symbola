@@ -42,6 +42,12 @@ export function CatalogItemForm({ item, defaultVatRateBasisPoints }: { item?: Ca
       />
       <label htmlFor={`category${suffix}`}>{t("itemCategory")}</label>
       <input id={`category${suffix}`} type="text" name="category" defaultValue={item?.category ?? ""} />
+      {/* Lot 41 (JUR-02, D9) : bien ou service, repris par chaque ligne de devis. */}
+      <label htmlFor={`nature${suffix}`}>{t("lineNature")}</label>
+      <select id={`nature${suffix}`} name="nature" defaultValue={item?.nature ?? "service"}>
+        <option value="service">{t("lineNatureService")}</option>
+        <option value="goods">{t("lineNatureGoods")}</option>
+      </select>
       <button type="submit" disabled={pending}>
         {item ? t("saveItem") : t("createItem")}
       </button>

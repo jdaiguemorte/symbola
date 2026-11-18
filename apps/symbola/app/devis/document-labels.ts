@@ -40,6 +40,15 @@ export function documentCommonLabels(t: Translate, tQuotes: Translate): Document
     totalHt: tQuotes("totalHt"),
     vatAtRate: (rate) => tQuotes("vatAtRate", { rate }),
     totalTtc: tQuotes("totalTtc"),
+    // Lot 41 (JUR-02, JUR-12, JUR-13).
+    reform: {
+      orderReference: t("pdfOrderReference"),
+      buyerReference: t("pdfBuyerReference"),
+      delivery: (address) => t("pdfDeliveryAddress", { address }),
+      category: (category) => t("pdfOperationCategory", { category }),
+      paymentTerm: (days, endOfMonth) => (endOfMonth ? t("pdfPaymentTermEndOfMonth", { days }) : t("pdfPaymentTermDays", { days })),
+      discount: (terms) => t("pdfDiscountTerms", { terms }),
+    },
   };
 }
 

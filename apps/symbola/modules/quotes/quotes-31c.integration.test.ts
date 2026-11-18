@@ -49,11 +49,12 @@ import {
 import { fakeSignatureProvider, setSignatureProviderForTests } from "./signature";
 import { quotesPrivacy } from "./privacy";
 import { confirmed } from "@/lib/test-fixtures/recipients";
+import { minimalPdf } from "@/lib/test-fixtures/pdf";
 
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
 const NOW = new Date("2027-04-10T10:00:00Z");
-const renderInvoice = async () => Buffer.from("%PDF-1.4\n% facture de test\n%%EOF\n", "latin1");
-const renderCreditNote = async () => Buffer.from("%PDF-1.4\n% avoir de test\n%%EOF\n", "latin1");
+const renderInvoice = async () => minimalPdf("facture de test");
+const renderCreditNote = async () => minimalPdf("avoir de test");
 
 afterEach(() => setSignatureProviderForTests(undefined));
 

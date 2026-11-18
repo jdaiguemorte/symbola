@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "status": {
+    "fr": "Bornes de l'article L441-10 du Code de commerce données par l'avocat (réponse 7) et à faire confirmer (fiche de l'avocat, question 14, AV-1) : 60 jours après l'émission, ou 45 jours fin de mois. Escompte « Néant » par défaut (réponse 7). Lot 41, décision D11.",
+    "en": "Bounds of article L441-10 of the French Commercial Code given by the lawyer (answer 7), to be confirmed (lawyer's sheet, question 14, AV-1): 60 days after issue, or 45 days end of month. Early payment discount « None » by default (answer 7). Lot 41, decision D11."
+  },
+  "paymentTerm": {
+    "defaultDays": 30,
+    "maxDaysAfterIssue": 60,
+    "maxDaysEndOfMonth": 45
+  },
+  "discountTerms": {
+    "fr": "Néant",
+    "en": "None"
+  }
+}

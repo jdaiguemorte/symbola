@@ -1,7 +1,7 @@
 # Inventaire des licences (JUR-18)
 
 Généré par `pnpm --filter @symbola/tools-licences inventaire` (lot 40a, ADR 0075) depuis
-`pnpm licenses list`, `tools/licences/autorisees.json` et `tools/licences/services.json` : ne pas
+`pnpm licenses list`, `tools/licences/autorisees.json`, `tools/licences/services.json` et `tools/licences/fichiers.json` : ne pas
 le modifier à la main. Le contrôle de la CI (`tools/licences/licences.test.mjs`) refuse une licence
 inconnue, une licence à copyleft sans ligne justifiée, et un service sans ligne.
 
@@ -59,6 +59,19 @@ employées telles que publiées.
 | `restic/restic` | BSD-2-Clause | Sauvegardes chiffrées (ADR 0051), sans modification. |
 | `svhd/logto` | MPL-2.0 | Fournisseur d'identité (lot 33, ADR 0067) : service séparé, appelé par son API, sans modification. |
 | `traefik` | MIT | Proxy d'entrée du socle partagé du VPS, sans modification. |
+
+## Fichiers tiers et outils de la CI
+
+Fichiers rangés dans le dépôt (polices) et outils qui ne tournent qu'en intégration continue
+(`tools/licences/fichiers.json`).
+
+| Fichier ou outil | Licence | Portée | Usage |
+| --- | --- | --- | --- |
+| Liberation Sans et Liberation Serif 2.1.5 | OFL-1.1 | production | Polices incorporées aux factures et aux avoirs (lot 41, D5, ADR 0080), mêmes largeurs que Helvetica et Times ; fichiers tels que publiés (liberationfonts, version 2.1.5), licence jointe (LICENSE-Liberation.txt). |
+| Profil de couleur sRGB des PDF/A-3 | aucune (écrit par Symbola) | production | Profil ICC construit par le code de l'app à partir des valeurs publiques de sRGB (CEI 61966-2-1) ; aucun fichier tiers. |
+| veraPDF 1.30.4 (image verapdf/cli) | (GPL-3.0-or-later OR MPL-2.0) | CI | Validateur PDF/A des factures de test, dans un job de CI (lot 41, D4, ADR 0081) ; jamais dans l'app ni en production, aucune donnée réelle. |
+| Mustang 2.26.0 (Mustang-CLI, Maven Central) | Apache-2.0 | CI | Validateur Factur-X et EN 16931 des factures de test, dans un job de CI (lot 41, D4, ADR 0081) ; jamais dans l'app ni en production. |
+| Java Temurin 21 (actions/setup-java) | GPL-2.0-with-classpath-exception | CI | Environnement d'exécution de Mustang sur le runner de CI, tel que publié ; jamais dans l'app. |
 
 ## Points à faire valider par l'avocat
 

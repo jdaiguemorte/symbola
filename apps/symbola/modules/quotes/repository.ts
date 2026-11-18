@@ -94,6 +94,7 @@ export type CatalogItemData = Pick<
   | "unitPriceCents"
   | "vatRateBasisPoints"
   | "category"
+  | "nature"
 >;
 
 export async function insertCatalogItem(
@@ -1700,6 +1701,18 @@ export async function findEventSignatureContexts(
 
 // --- DEV-04 : factures et avoirs ---
 
+// Lot 41 : le devis d'une échéance (lecture de l'acheteur avant l'émission d'un acompte).
+export async function quoteIdOfScheduleItem(organizationId: string, scheduleItemId: string): Promise<string | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const [found] = await tx
+      .select({ quoteId: quoteVersions.quoteId })
+      .from(paymentScheduleItems)
+      .innerJoin(quoteVersions, eq(quoteVersions.id, paymentScheduleItems.versionId))
+      .where(eq(paymentScheduleItems.id, scheduleItemId));
+    return found?.quoteId ?? null;
+  });
+}
+
 export type InvoicingContext = {
   quote: QuoteRow;
   version: QuoteVersionRow;
@@ -2123,6 +2136,80 @@ export async function updateQuoteClientKind(
       .returning({ id: quotes.id });
     return rows.length > 0;
   });
+}
+
+// Lot 41 (JUR-02, JUR-13 ; D6, D8) — acheteur entreprise, références d'achat et adresse de livraison
+// du devis, modifiables jusqu'à chaque émission (une facture émise garde sa copie).
+export type QuoteBuyerValues = {
+  buyerContactId: string | null;
+  clientOrderReference: string | null;
+  buyerReference: string | null;
+  deliveryAddress: { line: string; postalCode: string; city: string; countryCode: string } | null;
+};
+
+export async function updateQuoteBuyerRow(organizationId: string, quoteId: string, values: Partial<QuoteBuyerValues>): Promise<boolean> {
+  return inOrganization(organizationId, async (tx) => {
+    const rows = await tx
+      .update(quotes)
+      .set({ ...values, updatedAt: new Date() })
+      .where(eq(quotes.id, quoteId))
+      .returning({ id: quotes.id });
+    return rows.length > 0;
+  });
+}
+
+// Lot 41 (JUR-13, D8, SC-11 étape 4) — le numéro de bon de commande saisi par la cliente depuis son
+// lien : seulement sur un devis professionnel de cet évènement dont elle est signataire (demande de
+// signature du devis, non refusée), tant qu'aucune facture de solde active n'est émise. Sinon, rien
+// ne change et rien n'est révélé (même réponse qu'un devis inconnu).
+export async function updateClientOrderReferenceRow(
+  organizationId: string,
+  input: { eventId: string; quoteId: string; clientEmail: string; reference: string | null },
+): Promise<boolean> {
+  return inOrganization(organizationId, async (tx) => {
+    const [quote] = await tx
+      .select()
+      .from(quotes)
+      .where(and(eq(quotes.id, input.quoteId), eq(quotes.eventId, input.eventId), eq(quotes.clientKind, "professional")));
+    if (!quote) return false;
+    const [version] = await tx
+      .select({ id: quoteVersions.id })
+      .from(quoteVersions)
+      .where(and(eq(quoteVersions.quoteId, quote.id), eq(quoteVersions.version, quote.currentVersion)));
+    if (!version) return false;
+    const [signer] = await tx
+      .select({ id: quoteSigners.id })
+      .from(quoteSigners)
+      .innerJoin(signatureRequests, eq(signatureRequests.id, quoteSigners.requestId))
+      .where(
+        and(
+          eq(signatureRequests.versionId, version.id),
+          ne(signatureRequests.kind, "contract"),
+          ne(signatureRequests.status, "declined"),
+          eq(quoteSigners.email, input.clientEmail),
+        ),
+      );
+    if (!signer) return false;
+    if (await balanceIssued(tx, quote.id)) return false;
+    const rows = await tx
+      .update(quotes)
+      .set({ clientOrderReference: input.reference, updatedAt: new Date() })
+      .where(eq(quotes.id, quote.id))
+      .returning({ id: quotes.id });
+    return rows.length > 0;
+  });
+}
+
+// Une facture de solde non entièrement annulée par ses avoirs.
+async function balanceIssued(tx: Tx, quoteId: string): Promise<boolean> {
+  const balances = await tx.select().from(invoices).where(and(eq(invoices.quoteId, quoteId), eq(invoices.kind, "balance")));
+  if (balances.length === 0) return false;
+  const notes = await tx.select().from(creditNotes).where(inArray(creditNotes.invoiceId, balances.map((invoice) => invoice.id)));
+  return balances.some((invoice) => invoice.amountCents - notes.filter((note) => note.invoiceId === invoice.id).reduce((sum, note) => sum + note.amountCents, 0) > 0);
+}
+
+export async function hasActiveBalanceInvoice(organizationId: string, quoteId: string): Promise<boolean> {
+  return inOrganization(organizationId, (tx) => balanceIssued(tx, quoteId));
 }
 
 // Lot 9 (ADR 0029) — devis réels créés et factures réelles émises, par mois

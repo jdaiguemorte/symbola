@@ -28,7 +28,7 @@ function originalKey(organizationId: string, kind: OriginalKind, documentId: str
 // L'enregistrement s'enchaîne de lui-même (déclencheur original_documents_chain).
 export async function storeOriginal(
   tx: Tx,
-  input: { organizationId: string; kind: OriginalKind; documentId: string; pdf: Uint8Array; reconstructed?: boolean },
+  input: { organizationId: string; kind: OriginalKind; documentId: string; pdf: Uint8Array; reconstructed?: boolean; format?: "pdf" | "facturx" },
 ): Promise<OriginalRow> {
   const key = originalKey(input.organizationId, input.kind, input.documentId);
   const body = Buffer.from(input.pdf);
@@ -43,6 +43,8 @@ export async function storeOriginal(
       sha256: sha256Hex(body),
       byteSize: body.byteLength,
       isReconstructed: input.reconstructed ?? false,
+      // Lot 41 (FAC-10, D1) : Factur-X (PDF/A-3 et son fichier structuré) ou PDF simple.
+      format: input.format ?? "pdf",
     })
     .returning();
   if (!row) throw new Error("enregistrement de l'original échoué");

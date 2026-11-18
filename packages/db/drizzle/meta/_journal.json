@@ -1079,6 +1079,20 @@
       "when": 1794983525054,
       "tag": "0153_lot49_guests",
       "breakpoints": true
+    },
+    {
+      "idx": 154,
+      "version": "7",
+      "when": 1794999260786,
+      "tag": "0154_lot41_quotes_facturx",
+      "breakpoints": true
+    },
+    {
+      "idx": 155,
+      "version": "7",
+      "when": 1794999261986,
+      "tag": "0155_lot41_hub_seller_address_vat_debits",
+      "breakpoints": true
     }
   ]
 }

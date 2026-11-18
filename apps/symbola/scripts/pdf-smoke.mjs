@@ -1,5 +1,6 @@
 // Vérification de l'image Docker (CI, job « Build image + Trivy ») : la sortie
-// standalone sait générer un PDF avec les polices standard (Helvetica…).
+// standalone sait générer un PDF avec les polices standard (Helvetica…) et, depuis le lot 41,
+// avec les polices incorporées des factures (Liberation).
 // Lancé depuis le dossier de server.js, dans l'image construite :
 //   docker run --rm -v "$PWD/apps/symbola/scripts/pdf-smoke.mjs:/tmp/pdf-smoke.mjs:ro" \
 //     -w /app/apps/symbola --entrypoint node <image> /tmp/pdf-smoke.mjs
@@ -12,11 +13,18 @@ const requireFromApp = createRequire(path.join(process.cwd(), "server.js"));
 const React = requireFromApp("react");
 const { renderToBuffer, Document, Page, Text } = requireFromApp("@react-pdf/renderer");
 
+// Lot 41 (FAC-10, D5) : les polices incorporées des factures (lib/documents/fonts) sont dans l'image.
+const { Font } = requireFromApp("@react-pdf/renderer");
+Font.register({ family: "LiberationSans", src: path.join(process.cwd(), "lib", "documents", "fonts", "LiberationSans-Regular.ttf") });
+Font.register({ family: "LiberationSerif-Bold", src: path.join(process.cwd(), "lib", "documents", "fonts", "LiberationSerif-Bold.ttf") });
+
 const page = React.createElement(
   Page,
   { size: "A4" },
   React.createElement(Text, { style: { fontFamily: "Helvetica" } }, "Élodie & Inès"),
   React.createElement(Text, { style: { fontFamily: "Helvetica-Bold" } }, "Total : 1 500,00 €"),
+  React.createElement(Text, { style: { fontFamily: "LiberationSans" } }, "Facture F-2027-0001"),
+  React.createElement(Text, { style: { fontFamily: "LiberationSerif-Bold" } }, "Total : 1 500,00 €"),
 );
 
 renderToBuffer(React.createElement(Document, null, page))

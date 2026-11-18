@@ -5,6 +5,10 @@ import { getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import { parseAmountToCents } from "@symbola/i18n";
 import {
+  cleanSellerAddress,
+  InvalidSellerAddressError,
+  saveVatOnDebits,
+  VatOnDebitsNotApplicableError,
   changeVatRegime,
   completeOnboarding,
   InvalidDocumentDetailsError,
@@ -24,7 +28,7 @@ async function requireOrganization() {
   return { organizationId: auth.user.organizationId, userId: auth.user.id };
 }
 
-export type ProfileFormState = { success?: boolean };
+export type ProfileFormState = { success?: boolean; error?: string };
 
 export async function saveProfileAction(
   _prevState: ProfileFormState,
@@ -33,13 +37,25 @@ export async function saveProfileAction(
   const { organizationId } = await requireOrganization();
 
   const siren = String(formData.get("siren") ?? "").trim() || null;
-  const address = String(formData.get("address") ?? "").trim() || null;
+  // Lot 41 (FAC-10, D7) : ligne, code postal, ville et pays, nettoyés et bornés par le hub.
+  let address;
+  try {
+    address = cleanSellerAddress({
+      address: String(formData.get("address") ?? ""),
+      postalCode: String(formData.get("postalCode") ?? ""),
+      city: String(formData.get("city") ?? ""),
+      countryCode: String(formData.get("countryCode") ?? ""),
+    });
+  } catch (error) {
+    if (error instanceof InvalidSellerAddressError) return { error: (await getTranslations("Settings"))(`invalidAddress_${error.field}`) };
+    throw error;
+  }
   const legalForm = (String(formData.get("legalForm") ?? "").trim() || null) as LegalForm | null;
   const metier = (String(formData.get("metier") ?? "").trim() || null) as Metier | null;
   const metierPrecision = String(formData.get("metierPrecision") ?? "").trim() || null;
 
   const db = appDatabase();
-  await saveOnboardingStep(db, organizationId, { siren, address, legalForm, metier, metierPrecision });
+  await saveOnboardingStep(db, organizationId, { siren, ...address, legalForm, metier, metierPrecision });
   // ONB-01 : se termine tout seul dès que les champs requis sont
   // réunis — pas de bouton « terminer » à part, cohérent avec un
   // questionnaire qu'on peut interrompre et reprendre par morceaux.
@@ -162,6 +178,28 @@ export async function saveProfessionalMentionsAction(_prev: ProfessionalMentions
     });
   } catch (error) {
     if (error instanceof InvalidProfessionalMentionError) return { error: t(PROFESSIONAL_ERROR_KEYS[error.field]) };
+    throw error;
+  }
+  revalidatePath("/parametres");
+  return { success: true };
+}
+
+// Lot 41 (JUR-02, D10) — option pour le paiement de la TVA d'après les débits, datée, réservée au
+// régime assujetti ; chaque facture la fige à sa date d'émission.
+export type VatOnDebitsFormState = { error?: string; success?: boolean };
+
+export async function saveVatOnDebitsAction(_prev: VatOnDebitsFormState, formData: FormData): Promise<VatOnDebitsFormState> {
+  const t = await getTranslations("Settings");
+  const { organizationId } = await requireOrganization();
+  const choice = String(formData.get("vatOnDebits") ?? "");
+  if (choice !== "yes" && choice !== "no") return { error: t("vatOnDebitsChoose") };
+  const from = String(formData.get("vatOnDebitsFrom") ?? "").trim() || null;
+  if (choice === "yes" && !from) return { error: t("missingEffectiveDate") };
+  try {
+    await saveVatOnDebits(appDatabase(), organizationId, { enabled: choice === "yes", from });
+  } catch (error) {
+    if (error instanceof VatOnDebitsNotApplicableError) return { error: t("vatOnDebitsFranchise") };
+    if (error instanceof RangeError) return { error: t("missingEffectiveDate") };
     throw error;
   }
   revalidatePath("/parametres");

@@ -62,6 +62,13 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
   latePenaltyRate: text("late_penalty_rate", { enum: LATE_PENALTY_RATES }),
   // Lot 31c (D21) : préfixe de la série des reçus d'arrhes.
   receiptPrefix: text("receipt_prefix").notNull().default("R"),
+  // Lot 41 (JUR-12, D11, réponse 7 de l'avocat) : délai de paiement d'un professionnel (30 jours par
+  // défaut), compté après l'émission ou « fin de mois », dans les bornes de
+  // packages/starter-templates/professional-terms.json ; escompte pour paiement anticipé (null : le
+  // texte de départ, « Néant »).
+  professionalPaymentTermDays: integer("professional_payment_term_days").notNull().default(30),
+  professionalPaymentTermEndOfMonth: boolean("professional_payment_term_end_of_month").notNull().default(false),
+  professionalDiscountTerms: text("professional_discount_terms"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -69,7 +76,13 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
   updatedBy: uuid("updated_by"),
 }, (table) => [
   check("quote_settings_late_penalty_rate_check", sql`${table.latePenaltyRate} is null or ${table.latePenaltyRate} in ('ecb_plus_10', 'three_times_legal')`),
+  check("quote_settings_professional_payment_term_check", sql`${table.professionalPaymentTermDays} between 0 and 120`),
+  check("quote_settings_professional_discount_terms_check", sql`${table.professionalDiscountTerms} is null or char_length(${table.professionalDiscountTerms}) <= 500`),
 ]);
+
+// Lot 41 (JUR-02, D9, réponse 7 de l'expert-comptable) : nature d'une ligne (catalogue, modèle,
+// devis) ; la facture en déduit la catégorie de l'opération.
+export const LINE_NATURES = ["service", "goods"] as const;
 
 // Lot 31c (D21) : « receipt », la série à part des reçus d'arrhes (non fiscaux).
 export const numberSeriesKindEnum = quotesSchema.enum("number_series_kind", ["quote", "invoice", "credit_note", "receipt"]);
@@ -102,6 +115,8 @@ export const catalogItems = quotesSchema.table("catalog_items", {
   unitPriceCents: integer("unit_price_cents").notNull(),
   vatRateBasisPoints: integer("vat_rate_basis_points").notNull(),
   category: text("category"),
+  // Lot 41 (JUR-02, D9).
+  nature: text("nature", { enum: LINE_NATURES }).notNull().default("service"),
   // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
   // libre (intitulé → texte), affichées en lecture seule sur la fiche.
   importedFields: jsonb("imported_fields").$type<Record<string, string> | null>(),
@@ -111,7 +126,10 @@ export const catalogItems = quotesSchema.table("catalog_items", {
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-}, (table) => [index("catalog_items_organization_idx").on(table.organizationId)]);
+}, (table) => [
+  index("catalog_items_organization_idx").on(table.organizationId),
+  check("catalog_items_nature_check", sql`${table.nature} in ('service', 'goods')`),
+]);
 
 export const quoteStatusEnum = quotesSchema.enum("quote_status", ["draft", "sent", "signed", "declined", "expired"]);
 
@@ -143,8 +161,19 @@ export const quotes = quotesSchema.table(
     // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
     deletedBy: uuid("deleted_by"),
+    // Lot 41 (JUR-02, JUR-13 ; D6, D8) : acheteur entreprise (contact « entreprise » du hub, uuid
+    // opaque, ADR 0069), numéro de bon de commande du client et référence de l'acheteur, modifiables
+    // jusqu'à chaque émission ; adresse de livraison si elle diffère (ligne, code postal, ville, pays).
+    buyerContactId: uuid("buyer_contact_id"),
+    clientOrderReference: text("client_order_reference"),
+    buyerReference: text("buyer_reference"),
+    deliveryAddress: jsonb("delivery_address").$type<{ line: string; postalCode: string; city: string; countryCode: string } | null>(),
   },
-  (table) => [unique().on(table.organizationId, table.number)],
+  (table) => [
+    unique().on(table.organizationId, table.number),
+    check("quotes_client_order_reference_check", sql`${table.clientOrderReference} is null or char_length(${table.clientOrderReference}) between 1 and 60`),
+    check("quotes_buyer_reference_check", sql`${table.buyerReference} is null or char_length(${table.buyerReference}) between 1 and 60`),
+  ],
 );
 
 export const globalDiscountKindEnum = quotesSchema.enum("global_discount_kind", ["none", "percent", "amount"]);
@@ -243,6 +272,8 @@ export const quoteLines = quotesSchema.table("quote_lines", {
   sectionId: uuid("section_id").references(() => quoteSections.id, { onDelete: "set null" }),
   isOption: boolean("is_option").notNull().default(false),
   optionChosen: boolean("option_chosen").notNull().default(false),
+  // Lot 41 (JUR-02, D9).
+  nature: text("nature", { enum: LINE_NATURES }).notNull().default("service"),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
@@ -251,7 +282,10 @@ export const quoteLines = quotesSchema.table("quote_lines", {
   // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   deletedBy: uuid("deleted_by"),
-}, (table) => [index("quote_lines_organization_idx").on(table.organizationId)]);
+}, (table) => [
+  index("quote_lines_organization_idx").on(table.organizationId),
+  check("quote_lines_nature_check", sql`${table.nature} in ('service', 'goods')`),
+]);
 
 // Lot 31a (FAC-01, HUB-21, décision D3) — modèles de devis par type d'événement (null : pour
 // tous) : sections, lignes, options, échéancier type. « Nouveau devis depuis un modèle »
@@ -326,13 +360,18 @@ export const quoteTemplateLines = quotesSchema.table(
     discountBasisPoints: integer("discount_basis_points").notNull().default(0),
     isOption: boolean("is_option").notNull().default(false),
     position: integer("position").notNull().default(0),
+    // Lot 41 (JUR-02, D9).
+    nature: text("nature", { enum: LINE_NATURES }).notNull().default("service"),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     updatedBy: uuid("updated_by"),
   },
-  (table) => [index("quote_template_lines_organization_idx").on(table.organizationId)],
+  (table) => [
+    index("quote_template_lines_organization_idx").on(table.organizationId),
+    check("quote_template_lines_nature_check", sql`${table.nature} in ('service', 'goods')`),
+  ],
 );
 
 // Échéancier type : « à la signature » ou « N jours avant l'événement ».
@@ -769,6 +808,10 @@ export const invoices = quotesSchema.table(
     totalsSnapshot: jsonb("totals_snapshot").notNull(),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdBy: uuid("created_by"),
+    // Lot 41 (FAC-10, JUR-02, JUR-12, JUR-13) : copie de la réforme (format Factur-X, catégorie,
+    // débits, bon de commande, livraison, conditions d'un professionnel). null : facture émise avant le
+    // lot 41 (PDF simple). Seule l'adresse de livraison s'anonymise à la fin de la conservation.
+    reformSnapshot: jsonb("reform_snapshot"),
   },
   (table) => [unique().on(table.organizationId, table.number)],
 );
@@ -837,6 +880,8 @@ export const creditNotes = quotesSchema.table(
     totalsSnapshot: jsonb("totals_snapshot").notNull(),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdBy: uuid("created_by"),
+    // Lot 41 (FAC-10) : copie de la réforme, reprise de la facture (null avant le lot 41).
+    reformSnapshot: jsonb("reform_snapshot"),
   },
   (table) => [unique().on(table.organizationId, table.number)],
 );
@@ -926,6 +971,7 @@ export const earnestReceipts = quotesSchema.table(
 // facture émise avant le lot 23b, rendue une fois à sa première ouverture et
 // marquée « reconstitué » (décision D6). Pas d'original pour une pièce d'essai.
 export const ORIGINAL_DOCUMENT_KINDS = ["invoice", "credit_note"] as const;
+export const ORIGINAL_DOCUMENT_FORMATS = ["pdf", "facturx"] as const;
 
 export const originalDocuments = quotesSchema.table(
   "original_documents",
@@ -940,8 +986,12 @@ export const originalDocuments = quotesSchema.table(
     isReconstructed: boolean("is_reconstructed").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
+    // Lot 41 (FAC-10, D1) : « facturx » pour une pièce émise à partir du lot 41 (PDF/A-3 qui porte son
+    // fichier structuré), « pdf » avant.
+    format: text("format", { enum: ORIGINAL_DOCUMENT_FORMATS }).notNull().default("pdf"),
   },
   (table) => [index("original_documents_organization_idx").on(table.organizationId), 
+    check("original_documents_format_check", sql`${table.format} in ('pdf', 'facturx')`),
     unique().on(table.documentKind, table.documentId),
     check("original_documents_kind_check", sql`${table.documentKind} in ('invoice', 'credit_note')`),
     check("original_documents_sha256_check", sql`${table.sha256} ~ '^[0-9a-f]{64}$'`),

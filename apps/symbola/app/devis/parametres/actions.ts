@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getLocale, getTranslations } from "next-intl/server";
 import { LATE_PENALTY_RATE_KEYS, starterPaymentMethods, type LatePenaltyRateKey } from "@symbola/starter-templates";
-import { addPaymentMethods, archivePaymentMethod, restorePaymentMethod, updateQuoteSettings } from "@/modules/quotes/service";
+import { addPaymentMethods, archivePaymentMethod, ProfessionalTermOutOfBoundsError, restorePaymentMethod, updateQuoteSettings } from "@/modules/quotes/service";
 import { isValidId } from "../module-access";
 import { authorizedPlanner } from "../planner-access";
 
@@ -39,6 +39,13 @@ export async function updateQuoteSettingsAction(
   if (rateValue !== "" && !(LATE_PENALTY_RATE_KEYS as readonly string[]).includes(rateValue)) return { error: t("invalidLatePenaltyRate") };
   const latePenaltyRate = rateValue === "" ? null : (rateValue as LatePenaltyRateKey);
 
+  // Lot 41 (JUR-12, D11) : délai d'un professionnel (bornes contrôlées par le module) et escompte.
+  const professionalText = String(formData.get("professionalPaymentTermDays") ?? "").trim();
+  const professionalPaymentTermDays = /^\d{1,3}$/.test(professionalText) ? Number(professionalText) : NaN;
+  if (!Number.isInteger(professionalPaymentTermDays)) return { error: t("invalidProfessionalPaymentTerm") };
+  const professionalPaymentTermEndOfMonth = formData.get("professionalPaymentTermEndOfMonth") === "on";
+  const professionalDiscountTerms = String(formData.get("professionalDiscountTerms") ?? "").trim() || null;
+
   const prefix = (name: string) => String(formData.get(name) ?? "").trim().toUpperCase();
   try {
     await updateQuoteSettings(planner.organizationId, {
@@ -55,8 +62,12 @@ export async function updateQuoteSettingsAction(
       invoiceMentionsProfessional,
       latePenaltyRate,
       receiptPrefix: prefix("receiptPrefix"),
+      professionalPaymentTermDays,
+      professionalPaymentTermEndOfMonth,
+      professionalDiscountTerms,
     });
   } catch (error) {
+    if (error instanceof ProfessionalTermOutOfBoundsError) return { error: t("professionalTermOutOfBounds", { max: error.maxDays }) };
     if (error instanceof RangeError) return { error: t("invalidPrefix") };
     throw error;
   }

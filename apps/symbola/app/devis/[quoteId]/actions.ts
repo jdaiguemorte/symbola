@@ -75,9 +75,15 @@ function errorState(error: unknown, t: Translate): QuoteFormState {
 }
 
 // Lot 31a (FAC-01, D2) : section de la ligne (vide : aucune) et ligne en option.
-function readPlacement(formData: FormData): { sectionId: string | null; isOption: boolean } {
+// Lot 41 (JUR-02, D9) : nature de la ligne, si le formulaire la porte (sinon celle de l'article).
+function readPlacement(formData: FormData): { sectionId: string | null; isOption: boolean; nature?: "service" | "goods" } {
   const sectionId = String(formData.get("sectionId") ?? "");
-  return { sectionId: isValidId(sectionId) ? sectionId : null, isOption: formData.get("isOption") === "on" };
+  const nature = formData.get("nature");
+  return {
+    sectionId: isValidId(sectionId) ? sectionId : null,
+    isOption: formData.get("isOption") === "on",
+    ...(nature === "goods" || nature === "service" ? { nature } : {}),
+  };
 }
 
 function readQuoteId(formData: FormData): string | null {

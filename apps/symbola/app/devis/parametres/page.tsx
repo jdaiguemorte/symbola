@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Banknote, CreditCard, Landmark, PenLine, Wallet, type LucideIcon } from "lucide-react";
-import { isPreviousStarterInvoiceMentions, starterInvoiceMentions, starterLatePenalty, starterPaymentMethodKinds, starterProfessionalPaymentTerms } from "@symbola/starter-templates";
+import { isPreviousStarterInvoiceMentions, starterInvoiceMentions, starterInvoiceReform, starterLatePenalty, starterPaymentMethodKinds, starterProfessionalPaymentTerms, starterProfessionalTerms } from "@symbola/starter-templates";
+import { formatCalendarDate } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { getQuoteSettings, listPaymentMethods } from "@/modules/quotes/service";
 import { requirePlanner } from "@/lib/guards";
@@ -42,7 +43,13 @@ export default async function QuoteSettingsPage() {
     <main>
       <h1>{t("settingsTitle")}</h1>
       <ScreenHelp title={tHelp("quotesSettings.title")} body={tHelp("quotesSettings.body")} />
+      {/* Lot 41 (FAC-10, JUR-03) : jusqu'au 1er septembre 2027, le Factur-X part par e-mail ; ensuite, vers une entreprise, par une plateforme agréée. */}
+      <p role="note">
+        {t("facturxBanner", { date: formatCalendarDate(starterInvoiceReform().electronicInvoicingFrom, locale) })}
+      </p>
       <QuoteSettingsForm
+        professionalBounds={starterProfessionalTerms().paymentTerm}
+        defaultDiscountTerms={starterProfessionalTerms().discountTerms[locale]}
         settings={settings}
         defaultMentions={starterInvoiceMentions(locale)}
         defaultProfessionalMentions={starterProfessionalPaymentTerms(locale)}

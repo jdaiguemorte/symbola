@@ -14,9 +14,11 @@ import { addLossReasons, createProspect, createProspectSource, createTaskTemplat
 import { saveOnboardingStep } from "../modules/hub/service";
 import { actOnFakeSignature, addQuoteLine, addScheduleItem, createQuote, issueDepositInvoice, sendQuote, sendQuoteForSignature } from "../modules/quotes/service";
 import { changeEventStatus, readyOrganization, signIn } from "./helpers";
+import { minimalPdf } from "../lib/test-fixtures/pdf";
 
 const PASSWORD = "mot-de-passe-cycle-e2e";
-const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
+// Lot 41 (FAC-10) : un PDF lisible, que l'émission complète en Factur-X.
+const PDF = minimalPdf("evt-05");
 
 const WEDDING = [
   { label: "Réserver le lieu", offsetDays: -365, responsible: "planner" as const },

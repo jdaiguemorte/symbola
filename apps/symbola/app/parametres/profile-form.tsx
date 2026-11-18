@@ -20,8 +20,24 @@ export function ProfileForm({ profile }: { profile: OrganizationProfile }) {
       </label>
       <label>
         {t("address")}
-        <input type="text" name="address" defaultValue={profile.address ?? ""} />
+        <input type="text" name="address" autoComplete="address-line1" defaultValue={profile.address ?? ""} />
       </label>
+      {/* Lot 41 (FAC-10, D7) : adresse structurée, exigée par la facture électronique. */}
+      <label>
+        {t("postalCode")}
+        <input type="text" name="postalCode" autoComplete="postal-code" maxLength={16} defaultValue={profile.postalCode ?? ""} />
+      </label>
+      <label>
+        {t("city")}
+        <input type="text" name="city" autoComplete="address-level2" maxLength={120} defaultValue={profile.city ?? ""} />
+      </label>
+      <label>
+        {t("countryCode")}
+        <input type="text" name="countryCode" maxLength={2} aria-describedby="country-code-hint" defaultValue={profile.countryCode ?? "FR"} />
+      </label>
+      <p id="country-code-hint" className="meta">
+        {t("addressStructuredHint")}
+      </p>
       <label>
         {t("legalForm")}
         <select name="legalForm" defaultValue={profile.legalForm ?? ""}>
@@ -48,6 +64,7 @@ export function ProfileForm({ profile }: { profile: OrganizationProfile }) {
       <button type="submit" disabled={pending}>
         {t("save")}
       </button>
+      {state.error ? <p role="alert">{state.error}</p> : null}
       {state.success ? <p role="status">{t("profileSaved")}</p> : null}
     </form>
   );

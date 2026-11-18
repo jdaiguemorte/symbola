@@ -2,8 +2,12 @@
 // (@react-pdf/renderer, ADR 0019). Le contenu vient des constructeurs de
 // modèle ; ce fichier ne fait que la mise en page, aux couleurs et dans la
 // police du document (Helvetica ou Times, incluses dans le moteur PDF).
+// Lot 41 (FAC-10, D5, ADR 0080) : factures et avoirs en Liberation Sans ou Serif, aux mêmes
+// largeurs de caractères, incorporées (PDF/A-3).
+import type { ComponentProps } from "react";
 import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { DOCUMENT_INK } from "@/lib/documents/appearance";
+import { registerEmbeddedFonts } from "@/lib/documents/embedded-fonts";
 import type { QuotePdfModel } from "./quote-pdf-model";
 
 Font.registerHyphenationCallback((word) => [word]);
@@ -16,6 +20,11 @@ const ZEBRA = "#fbf9f6";
 export const FONTS = {
   modern: { regular: "Helvetica", bold: "Helvetica-Bold", size: 9.5 },
   classic: { regular: "Times-Roman", bold: "Times-Bold", size: 10.5 },
+} as const;
+
+export const EMBEDDED_FONTS = {
+  modern: { regular: "LiberationSans", bold: "LiberationSans-Bold", size: 9.5 },
+  classic: { regular: "LiberationSerif", bold: "LiberationSerif-Bold", size: 10.5 },
 } as const;
 
 const styles = StyleSheet.create({
@@ -74,6 +83,20 @@ function columnWidths(count: number): string[] {
   return [`${100 - used}%`, ...numeric];
 }
 
+// Lot 41 (D5) : un retour à la ligne dans un texte ferait passer le moteur à sa police de secours
+// (Helvetica, non incorporée, refusée en PDF/A) ; chaque ligne devient son propre texte.
+function Paragraph({ text, style = {} }: { text: string; style?: NonNullable<ComponentProps<typeof View>["style"]> }) {
+  const lines = text.split(/\r?\n/);
+  if (lines.length === 1) return <Text style={style}>{text}</Text>;
+  return (
+    <View style={style}>
+      {lines.map((line, index) => (
+        <Text key={index}>{line === "" ? " " : line}</Text>
+      ))}
+    </View>
+  );
+}
+
 export function pageLabel(template: string, page: number, total: number): string {
   return template.replace("{page}", String(page)).replace("{total}", String(total));
 }
@@ -90,7 +113,8 @@ export function QuotePdfDocument({ model }: { model: QuotePdfModel }) {
 export function QuotePdfPage({ model }: { model: QuotePdfModel }) {
   const widths = columnWidths(model.columns.length);
   const { accent, onAccent, tint } = model.appearance;
-  const font = FONTS[model.appearance.font];
+  if (model.embedFonts) registerEmbeddedFonts();
+  const font = (model.embedFonts ? EMBEDDED_FONTS : FONTS)[model.appearance.font];
   const bold = { fontFamily: font.bold };
   const lastStrong = model.totals.map((total) => Boolean(total.strong)).lastIndexOf(true);
   const mentions = [model.legalMention, ...model.professional, model.terms].filter((text): text is string => Boolean(text));
@@ -123,9 +147,7 @@ export function QuotePdfPage({ model }: { model: QuotePdfModel }) {
               <Text style={[styles.label, bold, { color: accent }]}>{party.heading}</Text>
               {index === 0 ? <Text style={bold}>{model.seller.name}</Text> : null}
               {party.lines.map((line, lineIndex) => (
-                <Text key={`${lineIndex}-${line}`} style={index === 1 && lineIndex === 0 ? bold : {}}>
-                  {line}
-                </Text>
+                <Paragraph key={`${lineIndex}-${line}`} style={index === 1 && lineIndex === 0 ? bold : {}} text={line} />
               ))}
             </View>
           ))}
@@ -142,7 +164,7 @@ export function QuotePdfPage({ model }: { model: QuotePdfModel }) {
           </View>
         ) : null}
 
-        {model.intro ? <Text style={styles.intro}>{model.intro}</Text> : null}
+        {model.intro ? <Paragraph style={styles.intro} text={model.intro} /> : null}
 
         <View>
           <View style={[styles.headRow, { borderBottomColor: accent }]} fixed>
@@ -162,7 +184,7 @@ export function QuotePdfPage({ model }: { model: QuotePdfModel }) {
               {row.cells.map((cell, index) => (
                 <View key={index} style={{ width: widths[index]!, paddingRight: 4, paddingLeft: index === 0 ? 2 : 0 }}>
                   <Text style={{ textAlign: index === 0 ? "left" : "right" }}>{cell}</Text>
-                  {index === 0 && row.description ? <Text style={styles.description}>{row.description}</Text> : null}
+                  {index === 0 && row.description ? <Paragraph style={styles.description} text={row.description} /> : null}
                 </View>
               ))}
             </View>
@@ -203,12 +225,12 @@ export function QuotePdfPage({ model }: { model: QuotePdfModel }) {
           </View>
         </View>
 
-        {mentions.length > 0 ? <Text style={styles.mentions}>{mentions.join("\n")}</Text> : null}
+        {mentions.length > 0 ? <Paragraph style={styles.mentions} text={mentions.join("\n")} /> : null}
         {/* Lot 31a (JUR-09) : conditions générales de vente, après les mentions. */}
         {model.generalTerms ? (
           <View style={styles.mentions}>
             <Text style={[bold, { color: accent }]}>{model.generalTerms.title}</Text>
-            <Text>{model.generalTerms.text}</Text>
+            <Paragraph text={model.generalTerms.text} />
           </View>
         ) : null}
 
@@ -228,7 +250,7 @@ export function QuotePdfPage({ model }: { model: QuotePdfModel }) {
         ) : null}
 
         <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>{[model.footer.text, model.footer.legal].filter(Boolean).join("\n")}</Text>
+          <Paragraph style={styles.footerText} text={[model.footer.text, model.footer.legal].filter(Boolean).join("\n")} />
         </View>
         <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => pageLabel(model.footer.page, pageNumber, totalPages)} fixed />
       </Page>

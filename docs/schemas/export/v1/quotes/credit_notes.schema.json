@@ -61,6 +61,16 @@
           "type": "null"
         }
       ]
+    },
+    "reformSnapshot": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/__schema3"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "required": [
@@ -75,7 +85,8 @@
     "sellerSnapshot",
     "buyerSnapshot",
     "totalsSnapshot",
-    "createdBy"
+    "createdBy",
+    "reformSnapshot"
   ],
   "additionalProperties": false,
   "$defs": {
@@ -168,6 +179,37 @@
           },
           "additionalProperties": {
             "$ref": "#/$defs/__schema2"
+          }
+        }
+      ]
+    },
+    "__schema3": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema3"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema3"
           }
         }
       ]

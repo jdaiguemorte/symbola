@@ -58,6 +58,7 @@ function sampleLines(t: Translate, vatRate: number): QuoteLine[] {
     sectionId: null,
     isOption: false,
     optionChosen: false,
+    nature: "service" as const,
   });
   return [
     line(0, t("sampleLine1"), t("sampleLine1Description"), t("sampleUnitPackage"), 1000, 450000, 0),
@@ -141,6 +142,7 @@ export function sampleDocumentModel(input: SampleInput): QuotePdfModel {
       current: version,
       regimeChangedSinceSent: false,
       signature: null,
+      buyer: { buyerContactId: null, orderReference: null, buyerReference: null, deliveryAddress: null },
     };
     return buildQuotePdfModel({
       quote,
@@ -209,6 +211,8 @@ export function sampleDocumentModel(input: SampleInput): QuotePdfModel {
     },
     creditNotes: [],
     creditedCents: 0,
+    // Lot 41 (JUR-02) : l'exemple est une prestation de services, sans option sur les débits.
+    reform: { format: "facturx", category: "services", vatOnDebits: false, orderReference: null, buyerReference: null, deliveryAddress: null, professionalTerms: null },
   };
   return buildInvoicePdfModel({
     invoice,

@@ -7,7 +7,8 @@ import {
   EarnestNotInvoicedError,
   InvoiceAlreadyIssuedError,
   InvoiceNotFoundError,
-  ProfessionalInvoiceNotSupportedError,
+  RequiredMentionsMissingError,
+  FacturXTotalsMismatchError,
   QuoteNotFoundError,
   QuoteNotSignedError,
   QuoteVersionLockedError,
@@ -17,6 +18,7 @@ import {
   setQuoteClientKind,
 } from "@/modules/quotes/service";
 import { parseDecimal } from "../decimal-input";
+import { getLocale } from "next-intl/server";
 import { renderCreditNotePdf, renderInvoicePdf } from "../factures/render-invoice-pdf";
 import { isValidId } from "../module-access";
 import { authorizedPlanner } from "../planner-access";
@@ -28,7 +30,10 @@ function errorState(error: unknown, t: Translate): QuoteFormState {
   if (error instanceof QuoteNotFoundError || error instanceof InvoiceNotFoundError) return { error: t("invoiceNotFound") };
   if (error instanceof QuoteNotSignedError) return { error: t("quoteNotSigned") };
   if (error instanceof InvoiceAlreadyIssuedError || error instanceof QuoteVersionLockedError) return { error: t("invoiceAlreadyIssued") };
-  if (error instanceof ProfessionalInvoiceNotSupportedError) return { error: t("professionalInvoiceNotSupported") };
+  // Lot 41 (FAC-10, FAC-07) : mentions manquantes nommées (acheteur entreprise d'un professionnel…) ;
+  // fichier structuré différent du PDF : l'émission s'arrête, aucun numéro consommé.
+  if (error instanceof RequiredMentionsMissingError) return { error: t("mentionsMissing"), missingMentions: error.fields };
+  if (error instanceof FacturXTotalsMismatchError) return { error: t("facturxMismatch") };
   // Lot 31c (D21) : des arrhes ne se facturent pas.
   if (error instanceof EarnestNotInvoicedError) return { error: t("earnestNotInvoiced") };
   if (error instanceof CreditNoteExceedsInvoiceError) return { error: t("creditNoteExceedsInvoice") };
@@ -69,13 +74,15 @@ export async function issueDepositInvoiceAction(_prevState: QuoteFormState, form
     const scheduleItemId = String(formData.get("scheduleItemId") ?? "");
     if (!isValidId(scheduleItemId)) return { error: t("invoiceNotFound") };
     // Lot 23b (DOC-08) : le PDF rendu à l'émission est conservé comme original.
-    await issueDepositInvoice({ organizationId, scheduleItemId, renderOriginal: (invoice) => renderInvoicePdf(organizationId, invoice) });
+    const locale = (await getLocale()) === "en" ? "en" : "fr";
+    await issueDepositInvoice({ organizationId, scheduleItemId, locale, renderOriginal: (invoice) => renderInvoicePdf(organizationId, invoice) });
   });
 }
 
 export async function issueBalanceInvoiceAction(_prevState: QuoteFormState, formData: FormData): Promise<QuoteFormState> {
   return run(formData, async (organizationId, quoteId) => {
-    await issueBalanceInvoice({ organizationId, quoteId, renderOriginal: (invoice) => renderInvoicePdf(organizationId, invoice) });
+    const locale = (await getLocale()) === "en" ? "en" : "fr";
+    await issueBalanceInvoice({ organizationId, quoteId, locale, renderOriginal: (invoice) => renderInvoicePdf(organizationId, invoice) });
   });
 }
 
@@ -89,6 +96,7 @@ export async function issueCreditNoteAction(_prevState: QuoteFormState, formData
     await issueCreditNote({
       organizationId,
       invoiceId,
+      locale: (await getLocale()) === "en" ? "en" : "fr",
       amountCents,
       reason: String(formData.get("reason") ?? ""),
       renderOriginal: (creditNote, vatApplicable) => renderCreditNotePdf(organizationId, creditNote, vatApplicable),
