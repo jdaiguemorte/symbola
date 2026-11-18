@@ -680,6 +680,10 @@ la question 11, posée à part, a reçu sa réponse le même jour). Rien ne chan
   donnée réelle. Les sauvegardes mensuelles gardent aussi les adresses IP au-delà des 12 mois
   validés (question 11 : « un seul exemplaire »).
 
+  **Décision de Julien (18/11/2026)** : (a), **35 jours glissants de base**. Une option payante
+  permettra plus tard de remonter jusqu'à un an en arrière (lot 54, abonnement). ADR 0092 ; écart
+  assumé avec NFR-13 (12 copies mensuelles).
+
 **À vérifier sur le VPS (Julien)** : que le Caddy partagé et le service d'e-mails ne gardent pas
 les adresses IP plus de 12 mois (question 11) ; sinon, régler leurs journaux.
 
