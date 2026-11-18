@@ -1,6 +1,6 @@
 // Lot 51 (JRJ-06 ; ADR 0091) — « Préparer les listes » : la planner ajoute à un temps fort une liste
 // copiée d'un modèle de l'organisation (installation, démontage), ajoute ou retire une case. Les
-// modèles se règlent dans les paramètres (/parametres/listes-jour-j).
+// modèles se règlent dans les paramètres (/events/parametres/listes-jour-j).
 import { getTranslations } from "next-intl/server";
 import { addDayChecklistItemAction, createDayChecklistAction, removeDayChecklistAction, removeDayChecklistItemAction } from "./day-checklist-actions";
 
@@ -42,7 +42,7 @@ export async function DayChecklistsPrep(props: {
         <button type="submit">{t("prepAdd")}</button>
       </form>
       <p>
-        <a href="/parametres/listes-jour-j">{t("prepTemplatesLink")}</a>
+        <a href="/events/parametres/listes-jour-j">{t("prepTemplatesLink")}</a>
       </p>
       {props.lists.map((list) => (
         <div key={list.id} className="field-prep-list">

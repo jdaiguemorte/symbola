@@ -1064,7 +1064,7 @@
     },
     "dayOf": {
       "title": "Day-of",
-      "body": "The day of the event on one dark screen, readable in the sun: “Now” (the current item, in large type, with a call to its vendors) and “Next”, worked out on the phone, even without a network. The bottom bar, within thumb reach, calls the contact of the current item and leads to the schedule, the contacts (emergencies, day-of contacts, vendors, couple: call or text in one tap) and the chosen documents. “Keep on this device” copies the screen to the phone: it then opens without a network, and updates each time it is opened with a network.",
+      "body": "The day of the event on one dark screen, readable in the sun: “Now” (the current item, in large type, with a call to its vendors) and “Next”, worked out on the phone, even without a network. The bottom bar, within thumb reach, calls the contact of the current item and leads to the schedule, the contacts (emergencies, day-of contacts, vendors, couple: call or text in one tap) and the chosen documents. “Keep on this device” copies the screen to the phone: it then opens without a network, and updates each time it is opened with a network. The day is checked in: \"Started\", \"Finished\"; a delay offers to shift the rest and notify vendors after your confirmation; \"Incident\" logs a dictated fact in ten seconds; checklists tick in one tap and the day's payment handovers are recorded. Everything starts from the phone, even offline.",
       "faq": [
         {
           "q": "How do I open the day without a network?",
@@ -1089,6 +1089,34 @@
         {
           "q": "Where do I add the venue manager or a taxi?",
           "a": "In the event's “Schedule” tab, “Day-of contacts” section: name, role and phone. They appear in the day-of directory, below the emergency numbers."
+        },
+        {
+          "q": "How do I check in a sequence?",
+          "a": "On \"Now\" (or in the day's schedule), tap \"Started\", then \"Finished\". The time is your phone's, even offline. If two people check in the same sequence, both check-ins are kept and the screen shows the first time."
+        },
+        {
+          "q": "What happens when a sequence runs late?",
+          "a": "If it starts or finishes later than planned, the screen offers to shift the rest of the key moment: by the delay observed (editable), all following sequences by default (untick fixed ones, like a coach arrival), and the vendors concerned. Nothing is sent without your confirmation. Once confirmed, the schedule is shifted, a new version is published and each vendor concerned receives an email; offline, it is sent when the network is back, only once."
+        },
+        {
+          "q": "How do I log an incident in a few seconds?",
+          "a": "Tap \"Incident\" in the bottom bar: the field opens with the keyboard; tap its microphone to dictate. Severity and photo are optional; \"Save\" records the time. Write the facts without guest names; a guest feeling unwell is logged without their name (no health data)."
+        },
+        {
+          "q": "Are photos shared?",
+          "a": "No: incident, checklist and receipt photos stay within your organisation, never shown to clients or vendors. Photograph things rather than people. Reduced on the phone, they are checked on arrival (type, size, antivirus); a refused photo is flagged and the incident stays. They are deleted with the event documents."
+        },
+        {
+          "q": "What happens without network?",
+          "a": "Everything you do (check-in, shift, incident, box, handover, photo) is kept on the phone and sent in order as soon as the network is back, with the screen open. \"3 actions waiting\" then \"Up to date\" tell you. If your session has expired, nothing is lost: sign in again and sending resumes."
+        },
+        {
+          "q": "How do I record a handover on the day?",
+          "a": "In the budget, mark the instalment \"To hand over on the day\" (cheque, cash, envelope) with the person handing it over. On the day, the \"Payments handed over today\" list shows it: tap \"Handed over\" (and \"Receipt\" to photograph the receipt). The instalment becomes handed over and paid in the client's budget. Cash: cash payments are capped by law; check the limit that applies before planning a cash handover."
+        },
+        {
+          "q": "Where is the report?",
+          "a": "The day after the event's last day, in its time zone, the report is ready on the event page (Overview): planned and actual sequences, shifts, incidents and photos, unticked boxes, handovers. It exports as a PDF and stays internal to your team."
         }
       ]
     },
@@ -1263,6 +1291,14 @@
           "a": "They are found by their email, and their record is not changed: what they wrote goes into the request."
         }
       ]
+    },
+    "dayChecklists": {
+      "title": "Event-day checklists",
+      "body": "Your organisation's checklist templates (setup, teardown), copied at first from a few standard lists. Add a checklist to a key moment from the event-day screen (\"Prepare the checklists\"): it is copied, and editing the template afterwards does not change it."
+    },
+    "programImport": {
+      "title": "Import a schedule",
+      "body": "A schedule kept in a spreadsheet (CSV or XLSX) imports into the event schedule: columns day or key moment, start, end, sequence, location, responsible, note. The review screen shows the sequences read and the issues row by row; nothing is written before \"Import\". Missing key moments are created; a cell starting with =, +, - or @ stays text."
     }
   },
   "Aide": {
@@ -4938,7 +4974,8 @@
     "appointmentTypes": "Types and booking page",
     "appointmentAvailability": "My availability and calendars",
     "pipelineStages": "Pipeline stages",
-    "contactForm": "Contact form"
+    "contactForm": "Contact form",
+    "dayChecklists": "Event-day checklists"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -5213,7 +5250,10 @@
       "guests_caterer_summary_downloaded": "Caterer summary downloaded",
       "events_contact_form_updated": "Contact form set up",
       "events_prospect_request_received": "Request received through the contact form",
-      "events_prospect_request_to_review": "Request set aside “to check”"
+      "events_prospect_request_to_review": "Request set aside “to check”",
+      "events_program_imported": "Schedule imported from a spreadsheet",
+      "events_day_shift_applied": "Event-day shift confirmed and published",
+      "events_day_report_downloaded": "Event-day report downloaded"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -5349,7 +5389,15 @@
       "guests_caterer_summary_downloads": "caterer summary download",
       "events_contact_forms": "contact form",
       "events_pipeline_stages": "pipeline stage",
-      "events_prospect_requests": "contact request"
+      "events_prospect_requests": "contact request",
+      "events_day_checkpoints": "event-day check-in",
+      "events_day_shifts": "event-day shift",
+      "events_day_photos": "event-day photo",
+      "events_day_incidents": "incident log entry",
+      "events_day_checklist_templates": "event-day checklist template",
+      "events_day_checklists": "event-day checklist",
+      "events_day_checklist_items": "event-day checklist box",
+      "events_day_reports": "event-day report"
     },
     "modules": {
       "events": "Events",
@@ -5553,7 +5601,8 @@
     "programPdf": "Download your schedule (PDF)",
     "programNotPublished": "The schedule has not been shared yet.",
     "outlineTitle": "The day at a glance",
-    "outlineYours": "you"
+    "outlineYours": "you",
+    "programDayShift": "{minutes} min shift on the day: your times below are up to date."
   },
   "Decisions": {
     "decisionOptionTitle": "Choose: {slot}",
@@ -8081,6 +8130,64 @@
       "removeLabel": "Remove stage {stage}",
       "newStage": "New stage",
       "add": "Add"
+    }
+  },
+  "DayChecklists": {
+    "title": "Event-day checklists",
+    "unavailable": "The Events module is not subscribed: event-day checklists are unavailable.",
+    "intro": "The setup and teardown checklists you add to an event's key moments. A checklist already copied into an event does not change.",
+    "name": "Name",
+    "phase": "Type",
+    "setup": "Setup",
+    "teardown": "Teardown",
+    "items": "Boxes (one per line)",
+    "save": "Save",
+    "add": "Add the template",
+    "saved": "Template saved.",
+    "invalid": "Name required (100 characters), at most 100 boxes of 200 characters.",
+    "count": "{count, plural, =0 {No box} one {# box} other {# boxes}}",
+    "edit": "Edit \"{name}\"",
+    "remove": "Remove \"{name}\"",
+    "addTitle": "New template"
+  },
+  "DayReport": {
+    "title": "Event-day report",
+    "event": "Event",
+    "heading": "{event} — {date}",
+    "preparedAt": "Prepared on {date}",
+    "download": "Download the report (PDF)",
+    "internal": "Internal to your team: never shown to clients or vendors.",
+    "footer": "Internal report — do not forward",
+    "page": "Page {page} of {total}",
+    "sequence": "{label}: planned {planned}, actual {actual}{gap}",
+    "notPointed": "not checked in",
+    "gap": "{minutes, plural, =0 {} other { ({minutes, number} min gap)}}",
+    "onTime": " (on time)",
+    "shift": "{minutes} min shift confirmed at {time}: {items, plural, one {# sequence} other {# sequences}}, {notified, plural, =0 {no vendor notified} one {# vendor notified} other {# vendors notified}}",
+    "shiftRefused": "{minutes} min shift confirmed at {time}, not applied (schedule changed meanwhile)",
+    "incident": "{time} · {severity} · {body}{photos, plural, =0 {} one { (# photo)} other { (# photos)}}",
+    "severity": {
+      "none": "no severity",
+      "info": "info",
+      "follow_up": "follow up",
+      "urgent": "urgent"
+    },
+    "unchecked": "{list}: {label}",
+    "handoverDone": "{vendor} — {amount} ({method}) handed over at {time}",
+    "handoverMissing": "{vendor} — {amount} ({method}) not handed over",
+    "titles": {
+      "sequences": "Planned and actual sequences",
+      "shifts": "Confirmed shifts",
+      "incidents": "Incident log",
+      "unchecked": "Unticked boxes",
+      "handovers": "Payments handed over"
+    },
+    "empties": {
+      "sequences": "No sequence in the schedule.",
+      "shifts": "No shift.",
+      "incidents": "No incident logged.",
+      "unchecked": "All boxes are ticked.",
+      "handovers": "No payment to hand over."
     }
   }
 }

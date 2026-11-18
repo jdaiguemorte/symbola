@@ -533,6 +533,8 @@ export type VendorProgramView = {
   ownItems: { id: string; startTime: string; endTime: string | null; label: string; location: string | null; responsible: string | null }[];
   outline: { id: string; startTime: string; endTime: string | null; label: string; own: boolean }[];
   isNew: boolean;
+  // Lot 51 (JRJ-05 ; D3) : le dernier décalage du jour J validé qui concerne ce poste, affiché en tête.
+  dayShift?: { minutes: number; validatedAt: string } | null;
 };
 
 export type PublishEventProgramInput = { organizationId: string; eventId: string; userId: string; now?: Date | undefined };

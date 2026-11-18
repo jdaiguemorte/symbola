@@ -377,6 +377,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
                           href: "/events/modeles-programme",
                           label: tSettings("program"),
                         },
+                        // Lot 51 (JRJ-06) : modèles des listes de contrôle du jour J.
+                        { href: "/events/parametres/listes-jour-j", label: tSettings("dayChecklists") },
                         ...(guests
                           ? [
                               { href: "/events/parametres/regimes", label: tSettings("dietaryOptions") },

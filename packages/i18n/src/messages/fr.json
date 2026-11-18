@@ -1064,7 +1064,7 @@
     },
     "dayOf": {
       "title": "Jour J",
-      "body": "Le jour J en un écran sombre, lisible au soleil : « Maintenant » (la séquence en cours, en grand, avec l'appel de ses prestataires) et « Ensuite », calculés sur le téléphone, même sans réseau. La barre du bas, à portée du pouce, appelle le contact de la séquence en cours et mène au programme, aux contacts (urgences, contacts du jour J, prestataires, mariés : appel ou SMS en un toucher) et aux documents choisis. « Garder sur cet appareil » copie l'écran sur le téléphone : il s'ouvre ensuite sans réseau, et se met à jour à chaque ouverture avec du réseau.",
+      "body": "Le jour J en un écran sombre, lisible au soleil : « Maintenant » (la séquence en cours, en grand, avec l'appel de ses prestataires) et « Ensuite », calculés sur le téléphone, même sans réseau. La barre du bas, à portée du pouce, appelle le contact de la séquence en cours et mène au programme, aux contacts (urgences, contacts du jour J, prestataires, mariés : appel ou SMS en un toucher) et aux documents choisis. « Garder sur cet appareil » copie l'écran sur le téléphone : il s'ouvre ensuite sans réseau, et se met à jour à chaque ouverture avec du réseau. Le jour J se pointe : « Commencé », « Terminé », un retard propose de décaler la suite et de prévenir les prestataires après votre validation, « Incident » note un fait dicté en dix secondes, les listes se cochent d'un toucher et les remises du jour se pointent. Tout part du téléphone, même sans réseau.",
       "faq": [
         {
           "q": "Comment ouvrir le jour J sans réseau ?",
@@ -1089,6 +1089,34 @@
         {
           "q": "Où ajouter le régisseur du domaine ou un taxi ?",
           "a": "Dans l'onglet « Programme » de la fiche, rubrique « Contacts du jour J » : nom, rôle et téléphone. Ils s'affichent dans l'annuaire du jour J, sous les numéros d'urgence."
+        },
+        {
+          "q": "Comment pointer une séquence ?",
+          "a": "Sur « Maintenant » (ou dans le programme du jour), touchez « Commencé », puis « Terminé ». L'heure est celle de votre téléphone, même sans réseau. Si deux personnes pointent la même séquence, les deux pointages restent et l'écran retient la première heure."
+        },
+        {
+          "q": "Que se passe-t-il quand une séquence prend du retard ?",
+          "a": "Si elle commence ou finit plus tard que prévu, l'écran propose de décaler la suite de ce temps fort : du retard constaté (modifiable), toutes les séquences suivantes par défaut (décochez celles qui sont fixes, comme l'arrivée d'un bus), et les prestataires concernés. Rien n'est envoyé sans votre validation. Validé, le programme est décalé, une nouvelle version est diffusée et chaque prestataire concerné reçoit un e-mail ; hors ligne, l'envoi part au retour du réseau, une seule fois."
+        },
+        {
+          "q": "Comment noter un incident en quelques secondes ?",
+          "a": "Touchez « Incident » dans la barre du bas : le champ s'ouvre avec le clavier ; touchez son micro pour dicter. Gravité et photo sont facultatives ; « Enregistrer » note l'heure. Écrivez les faits sans nom d'invité ; un malaise se note sans le nom de la personne (pas de donnée de santé)."
+        },
+        {
+          "q": "Les photos sont-elles partagées ?",
+          "a": "Non : les photos des incidents, des listes et des reçus restent dans votre organisation, jamais montrées aux clients ni aux prestataires. Photographiez les choses plutôt que les personnes. Réduites sur le téléphone, elles sont contrôlées à l'arrivée (type, taille, antivirus) ; une photo refusée est signalée et l'incident reste. Elles sont effacées avec les documents de l'évènement."
+        },
+        {
+          "q": "Que se passe-t-il sans réseau ?",
+          "a": "Tout ce que vous faites (pointage, décalage, incident, case, remise, photo) est gardé sur le téléphone et part dans l'ordre dès que le réseau revient, écran ouvert. « 3 actions en attente » puis « À jour » vous le disent. Si votre session a expiré, rien n'est perdu : reconnectez-vous et l'envoi reprend."
+        },
+        {
+          "q": "Comment pointer une remise le jour J ?",
+          "a": "Dans le budget, marquez l'échéance « À remettre le jour J » (chèque, espèces, enveloppe) avec la personne qui remet. Le jour J, la liste « Remises du jour » la montre : touchez « Remis » (et « Reçu » pour photographier le reçu). L'échéance passe à « remise » et réglée dans le budget du client. Espèces : les paiements en espèces sont plafonnés par la loi ; vérifiez la limite qui s'applique avant de prévoir une remise en espèces."
+        },
+        {
+          "q": "Où trouver le bilan ?",
+          "a": "Le lendemain du dernier jour de l'évènement, dans son fuseau, le bilan est prêt sur la fiche (Aperçu) : séquences prévues et réelles, décalages, incidents et photos, cases non cochées, remises. Il s'exporte en PDF et reste interne à votre équipe."
         }
       ]
     },
@@ -1263,6 +1291,14 @@
           "a": "Elle est retrouvée par son e-mail, et sa fiche n'est pas modifiée : ce qu'elle a écrit va dans la demande."
         }
       ]
+    },
+    "dayChecklists": {
+      "title": "Listes du jour J",
+      "body": "Les modèles de listes de contrôle (installation, démontage) de votre organisation, copiés au départ de quelques listes types. Ajoutez une liste à un temps fort depuis l'écran du jour J (« Préparer les listes ») : elle est copiée, et modifier le modèle ensuite ne la change pas."
+    },
+    "programImport": {
+      "title": "Importer un chrono",
+      "body": "Un chrono tenu dans un tableur (CSV ou XLSX) s'importe dans le programme : colonnes jour ou temps fort, début, fin, séquence, lieu, responsable, note. L'écran de contrôle montre les séquences lues et les écarts ligne par ligne ; rien n'est écrit avant « Importer ». Les temps forts manquants sont créés ; une cellule qui commence par =, +, - ou @ reste du texte."
     }
   },
   "Aide": {
@@ -4938,7 +4974,8 @@
     "appointmentTypes": "Types et page de réservation",
     "appointmentAvailability": "Mes disponibilités et agendas",
     "pipelineStages": "Étapes du pipeline",
-    "contactForm": "Formulaire de contact"
+    "contactForm": "Formulaire de contact",
+    "dayChecklists": "Listes du jour J"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -5213,7 +5250,10 @@
       "guests_caterer_summary_downloaded": "Synthèse pour le traiteur téléchargée",
       "events_contact_form_updated": "Formulaire de contact réglé",
       "events_prospect_request_received": "Demande reçue par le formulaire de contact",
-      "events_prospect_request_to_review": "Demande mise de côté « à vérifier »"
+      "events_prospect_request_to_review": "Demande mise de côté « à vérifier »",
+      "events_program_imported": "Chrono importé d'un tableur",
+      "events_day_shift_applied": "Décalage du jour J validé et diffusé",
+      "events_day_report_downloaded": "Bilan du jour J téléchargé"
     },
     "categories": {
       "connexion": "Connexions",
@@ -5349,7 +5389,15 @@
       "guests_caterer_summary_downloads": "téléchargement de la synthèse pour le traiteur",
       "events_contact_forms": "formulaire de contact",
       "events_pipeline_stages": "étape du pipeline",
-      "events_prospect_requests": "demande de contact"
+      "events_prospect_requests": "demande de contact",
+      "events_day_checkpoints": "pointage du jour J",
+      "events_day_shifts": "décalage du jour J",
+      "events_day_photos": "photo du jour J",
+      "events_day_incidents": "incident de la main courante",
+      "events_day_checklist_templates": "modèle de liste du jour J",
+      "events_day_checklists": "liste de contrôle du jour J",
+      "events_day_checklist_items": "case d'une liste du jour J",
+      "events_day_reports": "bilan du jour J"
     },
     "modules": {
       "events": "Événements",
@@ -5553,7 +5601,8 @@
     "programPdf": "Télécharger votre programme (PDF)",
     "programNotPublished": "Le programme n'est pas encore diffusé.",
     "outlineTitle": "Le déroulé du jour",
-    "outlineYours": "vous"
+    "outlineYours": "vous",
+    "programDayShift": "Décalage de {minutes} min sur le jour J : vos horaires ci-dessous sont à jour."
   },
   "Decisions": {
     "decisionOptionTitle": "Choisir : {slot}",
@@ -8081,6 +8130,64 @@
       "removeLabel": "Retirer l'étape {stage}",
       "newStage": "Nouvelle étape",
       "add": "Ajouter"
+    }
+  },
+  "DayChecklists": {
+    "title": "Listes du jour J",
+    "unavailable": "Le module Évènements n'est pas souscrit : les listes du jour J sont indisponibles.",
+    "intro": "Les listes de contrôle d'installation et de démontage que vous ajoutez aux temps forts d'un évènement. Une liste déjà copiée dans un évènement ne change pas.",
+    "name": "Nom",
+    "phase": "Nature",
+    "setup": "Installation",
+    "teardown": "Démontage",
+    "items": "Cases (une par ligne)",
+    "save": "Enregistrer",
+    "add": "Ajouter le modèle",
+    "saved": "Modèle enregistré.",
+    "invalid": "Nom obligatoire (100 caractères), 100 cases au plus de 200 caractères.",
+    "count": "{count, plural, =0 {Aucune case} one {# case} other {# cases}}",
+    "edit": "Modifier « {name} »",
+    "remove": "Retirer « {name} »",
+    "addTitle": "Nouveau modèle"
+  },
+  "DayReport": {
+    "title": "Bilan du jour J",
+    "event": "Évènement",
+    "heading": "{event} — {date}",
+    "preparedAt": "Préparé le {date}",
+    "download": "Télécharger le bilan (PDF)",
+    "internal": "Interne à votre équipe : jamais montré aux clients ni aux prestataires.",
+    "footer": "Bilan interne — ne pas transmettre",
+    "page": "Page {page} sur {total}",
+    "sequence": "{label} : prévu {planned}, réel {actual}{gap}",
+    "notPointed": "non pointé",
+    "gap": "{minutes, plural, =0 {} other { ({minutes, number} min d'écart)}}",
+    "onTime": " (à l'heure)",
+    "shift": "Décalage de {minutes} min validé à {time} : {items, plural, one {# séquence} other {# séquences}}, {notified, plural, =0 {aucun prestataire prévenu} one {# prestataire prévenu} other {# prestataires prévenus}}",
+    "shiftRefused": "Décalage de {minutes} min validé à {time}, non appliqué (programme modifié entre-temps)",
+    "incident": "{time} · {severity} · {body}{photos, plural, =0 {} one { (# photo)} other { (# photos)}}",
+    "severity": {
+      "none": "sans gravité",
+      "info": "info",
+      "follow_up": "à suivre",
+      "urgent": "urgent"
+    },
+    "unchecked": "{list} : {label}",
+    "handoverDone": "{vendor} — {amount} ({method}) remis à {time}",
+    "handoverMissing": "{vendor} — {amount} ({method}) non remis",
+    "titles": {
+      "sequences": "Séquences prévues et réelles",
+      "shifts": "Décalages validés",
+      "incidents": "Main courante",
+      "unchecked": "Cases non cochées",
+      "handovers": "Remises"
+    },
+    "empties": {
+      "sequences": "Aucune séquence au programme.",
+      "shifts": "Aucun décalage.",
+      "incidents": "Aucun incident noté.",
+      "unchecked": "Toutes les cases sont cochées.",
+      "handovers": "Aucune remise prévue."
     }
   }
 }

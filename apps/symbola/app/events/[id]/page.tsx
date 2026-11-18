@@ -130,10 +130,14 @@ import { UndoTaskNotice } from "@/app/accueil/today-client";
 import { deleteEventAction } from "./trash-actions";
 import { SidePanel } from "@/app/ui/side-panel";
 // Lot 49 (EVT-04 premier pas, INV-01 à INV-04) : temps forts sur la synthèse, onglet « Invités ».
-import { listKeyMoments } from "@/modules/events/service";
+import { getDayReport, listKeyMoments } from "@/modules/events/service";
 import { getGuestEventSummary, getGuestModuleState } from "@/modules/guests/service";
 import { AddKeyMomentForm, EditKeyMomentForm } from "./key-moments";
 import { ProgramImportForm } from "./program-import-form";
+import { dayReportSections, reportHandovers } from "./bilan/day-report-view";
+import { dayReportWords } from "./bilan/report-words";
+import { eventDays, isReportReady } from "@/lib/day-of/rules";
+import { listDayHandovers } from "@/modules/budget/service";
 import { guestsAccess } from "./invites/access";
 import { GuestsTab } from "./invites/guests-tab";
 
@@ -271,6 +275,17 @@ export default async function EventDetailPage({
   // Lot 34b (EVT-03) : les lieux nourrissent aussi la fiche d'identité de la synthèse.
   const places = tab === "programme" || tab === "apercu" ? await listEventPlaces(organizationId, id) : [];
   const keyMoments = tab === "apercu" || tab === "programme" ? await listKeyMoments(organizationId, id) : [];
+  // Lot 51 (PAR-08, étape 7) : le bilan du lendemain, prêt après le dernier jour (fuseau de l'évènement).
+  const lastDay = eventDays(keyMoments, event.eventDate).at(-1) ?? null;
+  const dayReport =
+    tab === "apercu" && lastDay && isReportReady(lastDay, event.timeZone, new Date())
+      ? await getDayReport({ organizationId, eventId: id, handovers: (await isBudgetModuleEnabled(organizationId)) ? reportHandovers(await listDayHandovers(organizationId, id)) : [] })
+      : null;
+  const tReport = await getTranslations("DayReport");
+  const reportTime = (iso: string) => new Intl.DateTimeFormat(locale, { timeZone: event.timeZone, day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(iso));
+  const reportSections = dayReport?.ready
+    ? dayReportSections(dayReport, dayReportWords(tReport as never), { time: reportTime, amount: (cents) => new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(cents / 100) })
+    : [];
   // Lot 51 (EVT-04 ; D1) : le programme se lit par jour et par temps fort.
   const momentChoices = keyMoments.map((moment) => ({ id: moment.id, label: `${moment.name} — ${formatCalendarDate(moment.date, locale)}` }));
   const guestSummary = tab === "apercu" && guests && (await getGuestModuleState(organizationId)).impactAssessmentConfirmedAt ? await getGuestEventSummary(organizationId, id) : null;
@@ -717,6 +732,32 @@ export default async function EventDetailPage({
             </ul>
             <AddKeyMomentForm eventId={event.id} places={places} defaultDate={event.eventDate} />
           </section>
+          {/* Lot 51 (PAR-08, étape 7) : le bilan du lendemain, interne à l'organisation. */}
+          {dayReport?.ready ? (
+            <section className="card stack" aria-labelledby="day-report-title">
+              <div className="section-head">
+                <h2 id="day-report-title">{tReport("title")}</h2>
+                <a href={`/events/${event.id}/bilan`} download>
+                  {tReport("download")}
+                </a>
+              </div>
+              <p className="muted">{tReport("internal")}</p>
+              {reportSections.map((section) => (
+                <section key={section.title} aria-label={section.title}>
+                  <h3>{section.title}</h3>
+                  {section.lines.length === 0 ? (
+                    <p>{section.empty}</p>
+                  ) : (
+                    <ul>
+                      {section.lines.map((line, index) => (
+                        <li key={`${index}-${line}`}>{line}</li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              ))}
+            </section>
+          ) : null}
           {/* D5 : les formulaires de l'ancien aperçu, dans le panneau. */}
           {query.modifier === "infos" ? (
             <SidePanel title={tToday("cockpit.editInfo")} closeHref={tabHref("apercu")} closeLabel={tCommon("closePanel")}>

@@ -246,7 +246,7 @@ export async function notifyProgramAction(_prevState: ProgramNotifyState, formDa
 // écarts expliqués) d'abord, rien n'est écrit ; puis l'écriture, du même fichier, sans les lignes
 // écartées. Le fichier passe par l'action serveur (limite de 1 Mo : un chrono en pèse quelques Ko).
 export type ProgramImportState = { error?: string; result?: ProgramImportResult };
-export const PROGRAM_IMPORT_MAX_BYTES = 1024 * 1024;
+const PROGRAM_IMPORT_MAX_BYTES = 1024 * 1024;
 
 export async function importProgramAction(_prev: ProgramImportState, formData: FormData): Promise<ProgramImportState> {
   const t = await getTranslations("Events");

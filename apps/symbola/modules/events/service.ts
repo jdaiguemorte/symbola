@@ -2322,10 +2322,12 @@ export async function getVendorLinkView(organizationId: string, linkId: string):
   const [vendor, found] = await Promise.all([findLinkVendorRow(organizationId, access.vendorCandidateId), findEventById(organizationId, access.eventId)]);
   if (!vendor || vendor.eventId !== access.eventId || !found) throw new LinkAccessDeniedError();
   const [places, published] = await Promise.all([listEventPlaces(organizationId, access.eventId), linkPublishedProgram(organizationId, linkId, access.eventId)]);
+  const dayShift = await latestVendorDayShift(organizationId, access.eventId, vendor.vendorSlotId);
   const program: VendorProgramView = {
     version: published.version ? { number: published.version.number, publishedAt: published.version.publishedAt } : null,
     ...vendorProgramOf(published.version?.items ?? [], vendor.vendorSlotId),
     isNew: published.isNew,
+    dayShift: dayShift && published.version && dayShift.programVersion === published.version.number ? { minutes: dayShift.minutes, validatedAt: dayShift.validatedAt } : null,
   };
   return {
     vendorName: vendor.vendorName,
