@@ -3593,6 +3593,8 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
 
 @layer components {
   /* Lot 46 (RDV-02, RDV-03) — page publique de réservation et lien de gestion : créneaux en puces
