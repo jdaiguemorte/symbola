@@ -28,7 +28,10 @@
         "program_published",
         "guest_invitation",
         "guest_reminder",
-        "prospect_form_received"
+        "prospect_form_received",
+        "prospect_reply",
+        "prospect_follow_up",
+        "questionnaire_sent"
       ]
     },
     "locale": {

@@ -16,6 +16,7 @@ import {
 import { ENGAGED_CANDIDATE_STATUSES } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
 import { EventAppointments } from "./event-appointments";
+import { ProspectExchanges } from "./prospect-exchanges";
 import { appDatabase } from "@symbola/db/client";
 import {
   listTaskAttachments,
@@ -742,6 +743,8 @@ export default async function EventDetailPage({
               {prospectRequest.message ? <p className="pipeline-message">{prospectRequest.message}</p> : <p className="meta">{t("prospectRequestNoMessage")}</p>}
             </section>
           ) : null}
+          {/* Lot 45 (CRM-05, CRM-06, POR-07) : réponses, relances, questionnaires et historique. */}
+          <ProspectExchanges organizationId={organizationId} eventId={event.id} isOption={event.status === "option"} locale={locale === "en" ? "en" : "fr"} />
           <section className="card" aria-labelledby="activity-title">
             <h2 id="activity-title">{t("activityTitle")}</h2>
             {activity.length === 0 ? <p>{t("noActivity")}</p> : null}

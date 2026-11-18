@@ -1337,6 +1337,62 @@ fields:
       l'évènement) ; demande effacée après 30 jours si elle n'est pas traitée.
     anonymization: >-
       Supprimée avec la demande lors d'une demande d'oubli (RGPD-03).
+  # Lot 45 (CRM-05, CRM-06, CRM-07, CRM-09, POR-07 ; ADR 0090). Les messages et relances rangés dans
+  # l'historique d'un contact portent le texte envoyé ou préparé par la planner ; les réponses à un
+  # questionnaire, le texte écrit par la personne sur son lien. Les modèles de questionnaires, le
+  # réglage des relances, la copie figée des questions et la trace des fusions (identifiants et noms de
+  # champs) ne portent rien de personnel. La fusion de deux fiches est un traitement de mise à jour
+  # (hub.contacts) : aucune donnée nouvelle.
+  - schema: events
+    table: event_messages
+    field: subject
+    category: contenu_libre
+    retention: >-
+      Lot 45 (CRM-05, CRM-03) : objet d'un message envoyé ou préparé pour un contact de l'évènement,
+      gardé dans l'historique du contact ; suit l'évènement (purge des prospects, RGPD-05).
+    anonymization: >-
+      Supprimé avec le message lors d'une demande d'oubli du contact (RGPD-03) ou de la purge de
+      l'évènement.
+  - schema: events
+    table: event_messages
+    field: body
+    category: contenu_libre
+    retention: >-
+      Lot 45 (CRM-05, CRM-03) : texte d'un message, relu et modifié par la planner avant l'envoi,
+      gardé dans l'historique du contact ; suit l'évènement.
+    anonymization: >-
+      Supprimé avec le message (RGPD-03, RGPD-05).
+  - schema: events
+    table: prospect_follow_ups
+    field: subject
+    category: contenu_libre
+    retention: >-
+      Lot 45 (CRM-06) : objet d'une relance préparée, relu par la planner avant l'envoi ; suit
+      l'évènement.
+    anonymization: >-
+      Supprimé avec la relance (RGPD-03, RGPD-05).
+  - schema: events
+    table: prospect_follow_ups
+    field: body
+    category: contenu_libre
+    retention: >-
+      Lot 45 (CRM-06) : texte d'une relance préparée, relu et modifié par la planner ; suit
+      l'évènement.
+    anonymization: >-
+      Supprimé avec la relance (RGPD-03, RGPD-05).
+  - schema: events
+    table: questionnaire_answers
+    field: value
+    category: contenu_libre
+    retention: >-
+      Lot 45 (POR-07, CRM-09) : réponse d'un contact à un questionnaire (date, nombre d'invités,
+      budget, lieu, musiques, détails pratiques…), écrite sur son lien personnel ; les réponses liées
+      à un champ remplissent l'évènement. Aucune question de départ sur la santé, la religion ou les
+      opinions ; une telle question écrite par la planner reçoit un avertissement (renvoi au module
+      Invités). Suit l'évènement.
+    anonymization: >-
+      Supprimée avec le questionnaire lors d'une demande d'oubli du contact (RGPD-03) ou de la purge
+      de l'évènement.
   - schema: core
     table: rate_limit_events
     field: key_hash

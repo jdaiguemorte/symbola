@@ -35,6 +35,10 @@ export function todayWords(t: TodayTranslator): TodayWords {
     prospectRequest: (names, when) => (when ? t("words.prospectRequest", { names, when }) : t("words.prospectRequestNoDate", { names })),
     prospectRequestDateTaken: t("words.prospectRequestDateTaken"),
     prospectToReview: (count) => t("words.prospectToReview", { count }),
+    // Lot 45 (CRM-06, POR-07, CRM-07).
+    followUpReady: (names) => t("words.followUpReady", { names }),
+    questionnaireFinished: (names, questionnaire) => t("words.questionnaireFinished", { names, questionnaire }),
+    contactDuplicates: (count) => t("words.contactDuplicates", { count }),
   };
 }
 

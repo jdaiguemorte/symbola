@@ -38,7 +38,11 @@ export type TodayItemKind =
   | "calendar_source_error"
   // Lot 44 (CRM-01) : nouvelle demande du formulaire de contact, demandes « à vérifier ».
   | "prospect_request"
-  | "prospect_review";
+  | "prospect_review"
+  // Lot 45 (CRM-06, POR-07, CRM-07) : relance prête à relire, questionnaire terminé, doublons possibles.
+  | "prospect_follow_up_ready"
+  | "questionnaire_finished"
+  | "contact_duplicates";
 
 // L'action en un clic (HUB-08) : cocher une tâche, relancer un prestataire, ou ouvrir l'objet.
 export type TodayAction =
