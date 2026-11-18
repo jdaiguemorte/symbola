@@ -8,9 +8,13 @@ import { createOrganization } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import type { VendorRetentionReleasedPayload } from "@symbola/contracts";
 import { addEventVendorSlot, addVendorCandidate, createProspect, createProspectSource, updateVendorCandidate } from "@/modules/events/service";
-import { runEventWorkerOnce } from "@/lib/event-worker";
+import { CONSUMERS, runEventWorkerOnce } from "@/lib/event-worker";
 import { applyVendorRetentionReleasedToBudget, listBudgetLines, updateBudgetLine } from "./service";
 
+// Le worker ne fait tourner que le consommateur du module Budget : lancé avec tous les consommateurs,
+// il traiterait aussi les événements des autres fichiers de tests joués en parallèle (une facture
+// d'acompte émise par le consommateur « quotes » sous un test des factures, par exemple).
+const budgetWorker = () => runEventWorkerOnce({ budget: CONSUMERS.budget! });
 const plannerId = randomUUID();
 
 async function organization(): Promise<string> {
@@ -30,7 +34,7 @@ async function retainedFlorist(organizationId: string) {
   const candidate = await addVendorCandidate({ organizationId, eventId: event.id, vendorSlotId: slot.id, vendorName: "Atelier Élodie" });
   await updateVendorCandidate({ organizationId, candidateId: candidate.id, quoteAmountCents: 285_000 });
   await updateVendorCandidate({ organizationId, candidateId: candidate.id, status: "retained", changedByUserId: plannerId });
-  await runEventWorkerOnce();
+  await budgetWorker();
   const payload: VendorRetentionReleasedPayload = { eventId: event.id, vendorSlotId: slot.id, candidateId: candidate.id, amountCents: 285_000, releasedByUserId: plannerId };
   return { eventId: event.id, candidateId: candidate.id, payload };
 }

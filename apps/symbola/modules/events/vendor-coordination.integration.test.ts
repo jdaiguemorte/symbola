@@ -9,7 +9,7 @@ import { createOrganization } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { recipientsDigest } from "@/modules/hub/service";
 import { listBudgetLines } from "@/modules/budget/service";
-import { runEventWorkerOnce } from "@/lib/event-worker";
+import { CONSUMERS, runEventWorkerOnce } from "@/lib/event-worker";
 import { starterVendorFollowUpTasks } from "@symbola/starter-templates";
 import {
   addEventPlace,
@@ -55,6 +55,10 @@ import {
   VendorCandidateNotFoundError,
 } from "./service";
 
+// Le worker ne fait tourner que le consommateur du module Budget : lancé avec tous les consommateurs,
+// il traiterait aussi les événements des autres fichiers de tests joués en parallèle (une facture
+// d'acompte émise par le consommateur « quotes » sous un test des factures, par exemple).
+const budgetWorker = () => runEventWorkerOnce({ budget: CONSUMERS.budget! });
 const plannerId = randomUUID();
 const MAILPIT_API = "http://localhost:8025/api/v1";
 const TINY_PDF = new Uint8Array(Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1"));
@@ -421,7 +425,7 @@ describe("PRE-09 — Sélection partagée au client, avec avis et choix (D6, D7)
     expect(candidates.find((candidate) => candidate.id === setup.silenceId)!.status).toBe("dismissed");
     expect(candidates.find((candidate) => candidate.id === setup.studioId)!.status).toBe("shortlisted");
     expect((await listEventTasks(organizationId, setup.eventId)).map((task) => task.label).filter((label) => followUpLabels("Atelier Élodie").includes(label)).sort()).toEqual([...followUpLabels("Atelier Élodie")].sort());
-    await runEventWorkerOnce();
+    await budgetWorker();
     expect(await committedOf(organizationId, setup.eventId, setup.elodieId)).toEqual([285_000]);
     expect((await listEventDecisions(organizationId, setup.eventId)).find((row) => row.id === decision.id)!.engagedAt).not.toBeNull();
   });
@@ -432,7 +436,7 @@ describe("PRE-09 — Sélection partagée au client, avec avis et choix (D6, D7)
     const decision = await optionDecision(organizationId, setup);
     const linkId = await clientLink(organizationId, setup.eventId, { rubrics: ["vendor_options"], budgetScope: "all", sharedSlotIds: [] });
     await answerLinkDecision({ organizationId, linkId, decisionId: decision.id, answer: "approved", choiceId: setup.elodieId, comment: null });
-    await runEventWorkerOnce();
+    await budgetWorker();
     const elodieTasks = (await listEventTasks(organizationId, setup.eventId)).filter((task) => followUpLabels("Atelier Élodie").includes(task.label));
     await updateEventTask({ organizationId, taskId: elodieTasks[0]!.id, done: true });
     // Bien plus tard (aucun délai) : Pivoine est retenue à la place d'Élodie.
@@ -444,7 +448,7 @@ describe("PRE-09 — Sélection partagée au client, avec avis et choix (D6, D7)
     expect(labels).toContain(elodieTasks[0]!.label);
     expect(labels.filter((label) => followUpLabels("Atelier Élodie").includes(label))).toEqual([elodieTasks[0]!.label]);
     expect(labels.filter((label) => followUpLabels("Pivoine & Cie").includes(label)).sort()).toEqual([...followUpLabels("Pivoine & Cie")].sort());
-    await runEventWorkerOnce();
+    await budgetWorker();
     expect(await committedOf(organizationId, setup.eventId, setup.elodieId)).toEqual([null]);
     expect(await committedOf(organizationId, setup.eventId, setup.pivoineId)).toEqual([199_000]);
   });
@@ -456,14 +460,14 @@ describe("PRE-09 — Sélection partagée au client, avec avis et choix (D6, D7)
     const linkId = await clientLink(organizationId, setup.eventId, { rubrics: ["vendor_options"], budgetScope: "all", sharedSlotIds: [] });
     await answerLinkDecision({ organizationId, linkId, decisionId: decision.id, answer: "approved", choiceId: setup.elodieId, comment: null });
     await expect(answerLinkDecision({ organizationId, linkId, decisionId: decision.id, answer: "approved", choiceId: setup.pivoineId, comment: null })).rejects.toThrow(/décision invalide/);
-    await runEventWorkerOnce();
+    await budgetWorker();
     await changeRetainedVendor({ organizationId, eventId: setup.eventId, vendorSlotId: setup.flowersId, candidateId: null, userId: plannerId });
     const candidates = await listVendorCandidates(organizationId, setup.eventId);
     expect(candidates.find((candidate) => candidate.id === setup.elodieId)!.status).toBe("quote_received");
     expect(candidates.find((candidate) => candidate.id === setup.pivoineId)!.status).toBe("quote_received");
     expect(candidates.find((candidate) => candidate.id === setup.silenceId)!.status).toBe("shortlisted");
     expect((await listEventTasks(organizationId, setup.eventId)).filter((task) => followUpLabels("Atelier Élodie").includes(task.label))).toEqual([]);
-    await runEventWorkerOnce();
+    await budgetWorker();
     expect(await committedOf(organizationId, setup.eventId, setup.elodieId)).toEqual([null]);
     // La planner redemande un choix : une nouvelle décision « options ».
     await expect(requestDecision({ organizationId, eventId: setup.eventId, requestedByUserId: plannerId, kind: "option", slotId: setup.flowersId })).resolves.toMatchObject({ status: "pending" });
