@@ -4,9 +4,9 @@
 // Lot 16 (L16-HUB-21, ADR 0045) — et le vocabulaire des clients : celui du type de
 // l'événement affiché, sinon celui du métier de l'organisation
 // (lib/vocabulary.ts).
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
-import { DEFAULT_LOCALE, LOCALES, type Locale } from "@symbola/i18n";
+import { DEFAULT_LOCALE, LOCALES, localeFromAcceptLanguage, type Locale } from "@symbola/i18n";
 import { LOCALE_COOKIE } from "../middleware";
 import { getAuthContext } from "../lib/auth-context";
 import { messagesFor, requestAudience } from "../lib/vocabulary";
@@ -20,7 +20,10 @@ export default getRequestConfig(async () => {
   const accountLocale = auth.status === "authenticated" ? auth.user.language : null;
 
   const cookieLocale = (await cookies()).get(LOCALE_COOKIE)?.value;
-  const locale = isLocale(accountLocale) ? accountLocale : isLocale(cookieLocale) ? cookieLocale : DEFAULT_LOCALE;
+  // Lot 44 (CRM-01, D3) : sans cookie (premier passage, ou formulaire de contact encadré dans un autre
+  // site, où le navigateur n'envoie pas les cookies), la langue du navigateur.
+  const browserLocale = cookieLocale ? null : localeFromAcceptLanguage((await headers()).get("accept-language"));
+  const locale = isLocale(accountLocale) ? accountLocale : isLocale(cookieLocale) ? cookieLocale : isLocale(browserLocale) ? browserLocale : DEFAULT_LOCALE;
 
   const organizationId = auth.status === "authenticated" ? auth.user.organizationId : null;
   return { locale, messages: messagesFor(locale, await requestAudience(organizationId)) };

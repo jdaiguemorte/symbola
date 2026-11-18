@@ -32,6 +32,9 @@ export function todayWords(t: TodayTranslator): TodayWords {
     appointment: (time, type, person) => t("words.appointment", { time, type, person }),
     appointmentChange: (change, time, type, person) => t(`words.appointmentChange.${change}`, { time, type, person }),
     calendarSourceError: (label) => t("words.calendarSourceError", { label }),
+    prospectRequest: (names, when) => (when ? t("words.prospectRequest", { names, when }) : t("words.prospectRequestNoDate", { names })),
+    prospectRequestDateTaken: t("words.prospectRequestDateTaken"),
+    prospectToReview: (count) => t("words.prospectToReview", { count }),
   };
 }
 

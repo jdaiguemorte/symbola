@@ -290,3 +290,39 @@ RGPD de la planner ; elle n'est ni indexée ni intégrable dans un autre site.
 > par défaut ; il ne sera ouvert à la pilote qu'après votre réponse.
 
 Besoin : une réponse **avant d'ouvrir le module Rendez-vous à la pilote**.
+
+## Questions du 18 novembre 2026 (lot 44)
+
+### 17. Mention d'information du formulaire de contact (AV-4)
+
+La planner peut mettre sur son site un formulaire de contact fourni par Symbola (prénom et nom,
+e-mail ou téléphone, date ou période, lieu, budget, nombre d'invités, type d'évènement, « comment
+m'avez-vous connue ? », message). Chaque envoi crée un prospect chez elle. La planner est
+responsable du traitement, Symbola sous-traitant. Avant le bouton d'envoi, une mention
+d'information (texte de départ, que nous vous soumettons) :
+
+> « Les informations de ce formulaire sont destinées à {organisation} ({adresse}), responsable de
+> leur traitement. Elles servent à répondre à votre demande et, si vous le souhaitez, à préparer
+> votre évènement avec vous. Elles sont gardées {durée} mois après notre dernier échange si votre
+> projet ne se concrétise pas. Vous pouvez y accéder, les faire corriger ou effacer, ou vous opposer
+> à leur utilisation en écrivant à {contact}. Vous pouvez aussi adresser une réclamation à la CNIL
+> (www.cnil.fr). Pour en savoir plus : {politique de confidentialité de la planner}. »
+
+Le formulaire ne s'ouvre pas tant que la planner n'a pas donné l'adresse de sa politique de
+confidentialité. Aucun e-mail n'est envoyé à la personne. Ce texte suffit-il, ou faut-il une case à
+cocher (consentement) pour une simple demande de contact ?
+
+> En attendant : la mention sans case à cocher (base : la demande de la personne, mesures
+> précontractuelles).
+
+### 18. Formulaire encadré dans le site de la planner (AV-5)
+
+Le même formulaire peut s'afficher dans le site de la planner (cadre), sans que la personne voie
+qu'il est servi par Symbola. Faut-il nommer Symbola (sous-traitant, hébergeur) dans la mention, ou
+la politique de confidentialité de la planner, à laquelle la mention renvoie, suffit-elle ?
+
+> En attendant : Symbola n'est pas nommé dans la mention ; la planner le cite comme sous-traitant
+> dans sa politique (registre des sous-traitants, docs/conformite/sous-traitants.md).
+
+Besoin : des réponses **avant la première demande réelle** reçue par le formulaire (aucune ne
+bloque le développement).

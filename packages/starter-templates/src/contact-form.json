@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "_source": "Lot 44 (CRM-01, RGP-03 ; D1 à D6 ; ADR 0084) : réglages de départ du formulaire de contact public. La mention d'information est une proposition À FAIRE RELIRE par l'avocat (AV-4, AV-5, docs/conformite/fiche-avocat.md) avant la première donnée réelle. Variables de la mention : {organization} (nom), {address} (adresse de l'organisation, ou rien), {months} (durée de conservation des prospects, en mois), {contact} (adresse de contact), {policy} (adresse de la politique de confidentialité de la planner). Anti-spam (D4) : délai minimal de remplissage en secondes, nombre de liens au-delà duquel l'envoi est mis de côté. Une demande « à vérifier » non traitée est effacée après toReviewRetentionDays jours.",
+  "defaultSourceKey": "contact_form",
+  "minimumFillSeconds": 3,
+  "maxLinksBeforeReview": 2,
+  "toReviewRetentionDays": 30,
+  "notice": {
+    "fr": "Les informations de ce formulaire sont destinées à {organization}{address}, responsable de leur traitement. Elles servent à répondre à votre demande et, si vous le souhaitez, à préparer votre évènement avec vous. Elles sont gardées {months} mois après notre dernier échange si votre projet ne se concrétise pas. Vous pouvez y accéder, les faire corriger ou effacer, ou vous opposer à leur utilisation en écrivant à {contact}. Vous pouvez aussi adresser une réclamation à la CNIL (www.cnil.fr). Pour en savoir plus : {policy}.",
+    "en": "The information in this form is intended for {organization}{address}, who is responsible for processing it. It is used to answer your request and, if you wish, to prepare your event with you. It is kept for {months} months after our last exchange if your project does not go ahead. You can access it, have it corrected or erased, or object to its use by writing to {contact}. You can also lodge a complaint with the CNIL (www.cnil.fr). To find out more: {policy}."
+  }
+}

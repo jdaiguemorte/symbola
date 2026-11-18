@@ -1225,6 +1225,44 @@
     "appointmentAvailability": {
       "title": "My availability",
       "body": "Your weekly hours (two ranges per day at most), your closed days and your calendars. Link your Google, Apple or Outlook calendar through its secret iCal address: only busy times are read, every fifteen minutes, never the content. If a calendar can no longer be read, no slot is offered until it is read again: better offer nothing than a time already taken."
+    },
+    "eventsPipeline": {
+      "title": "Follow your requests in columns",
+      "body": "Each card is an event with the Option status, placed at its stage. To move a card, drag it with the mouse, or use its “Move” button and choose the stage (with the keyboard as with a finger). Dropping on “Won” confirms the event once you agree; on “Lost”, cancels it with its reason. In a column, the card that has been waiting the longest is at the top. On a phone, choose the stage in the tabs.",
+      "faq": [
+        {
+          "q": "Does a stage change the event's status?",
+          "a": "No: stages are only markers within the Option status. Only “Won” and “Lost” change the status (Confirmed, Cancelled)."
+        },
+        {
+          "q": "What is a request “to check”?",
+          "a": "A contact form request whose message contains several links: it may come from a robot. Accept it to create the prospect, or delete it. Without action, it is deleted after 30 days."
+        }
+      ]
+    },
+    "eventsPipelineStages": {
+      "title": "Pipeline stages",
+      "body": "Rename stages, add some (ten at most), change their order, remove those you do not use. A stage holding cards is emptied first: choose the stage they move to.",
+      "faq": [
+        {
+          "q": "Can I add “Won” as a stage?",
+          "a": "No need: “Won” and “Lost” are always at the end of the pipeline; they confirm or cancel the event."
+        }
+      ]
+    },
+    "eventsContactForm": {
+      "title": "Put the form on your website",
+      "body": "Open the form, choose its address and give the address of your privacy policy (required). Share the link, or copy the code into your website after declaring its address under “Websites allowed”: the form only shows on those websites. Each request creates a prospect with the Option status, at the first stage of the pipeline, and appears in “Today”. The person receives no automatic email: the reply comes from you.",
+      "faq": [
+        {
+          "q": "What about spam?",
+          "a": "The form protects itself without a captcha: an invisible trap field, a minimum filling time, a limited number of submissions. A request whose message contains several links is set aside “to check” in the pipeline."
+        },
+        {
+          "q": "A person you already know fills in the form?",
+          "a": "They are found by their email, and their record is not changed: what they wrote goes into the request."
+        }
+      ]
     }
   },
   "Aide": {
@@ -1896,7 +1934,14 @@
       "time": "The time is not valid (HH:MM).",
       "place": "This place is not one of the event's places.",
       "too_many": "An event has at most 20 key moments."
-    }
+    },
+    "activityStageChanged": "Moved to the “{task}” stage.",
+    "prospectRequestTitle": "Request received through the contact form",
+    "prospectRequestReceived": "Received on {date}",
+    "prospectRequestPeriod": "Preferred period: {period}",
+    "prospectRequestBudget": "Stated budget: {budget}",
+    "prospectRequestNoMessage": "No message.",
+    "pipelineView": "Column view"
   },
   "Budget": {
     "title": "Budget",
@@ -4845,7 +4890,9 @@
     "mealTypes": "Meal types",
     "groupAppointments": "Appointments",
     "appointmentTypes": "Types and booking page",
-    "appointmentAvailability": "My availability and calendars"
+    "appointmentAvailability": "My availability and calendars",
+    "pipelineStages": "Pipeline stages",
+    "contactForm": "Contact form"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -5117,7 +5164,10 @@
       "guests_purge_executed": "Guest data purged",
       "guests_import_applied": "Guest list imported",
       "guests_import_undone": "Guest import undone",
-      "guests_caterer_summary_downloaded": "Caterer summary downloaded"
+      "guests_caterer_summary_downloaded": "Caterer summary downloaded",
+      "events_contact_form_updated": "Contact form set up",
+      "events_prospect_request_received": "Request received through the contact form",
+      "events_prospect_request_to_review": "Request set aside “to check”"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -5250,7 +5300,10 @@
       "guests_seating_constraints": "seating constraint",
       "guests_seating_constraint_members": "person in a seating constraint",
       "guests_vendor_meal_counts": "vendor meals",
-      "guests_caterer_summary_downloads": "caterer summary download"
+      "guests_caterer_summary_downloads": "caterer summary download",
+      "events_contact_forms": "contact form",
+      "events_pipeline_stages": "pipeline stage",
+      "events_prospect_requests": "contact request"
     },
     "modules": {
       "events": "Events",
@@ -6032,7 +6085,11 @@
         "rescheduled": "Appointment moved: {type} with {person}, to {time}",
         "cancelled": "Appointment cancelled: {type} with {person}, on {time}"
       },
-      "calendarSourceError": "The calendar “{label}” can no longer be read: no slot is offered until it is read again"
+      "calendarSourceError": "The calendar “{label}” can no longer be read: no slot is offered until it is read again",
+      "prospectRequest": "New request: {names}, {when}",
+      "prospectRequestNoDate": "New request: {names}",
+      "prospectRequestDateTaken": "Date already taken",
+      "prospectToReview": "{count, plural, one {One request to check} other {# requests to check}} (contact form)"
     },
     "myEventsTitle": "My events",
     "myEventsEmpty": "No event in progress.",
@@ -6343,7 +6400,8 @@
       "space": "Open my space",
       "sign": "Sign online",
       "answer": "Reply",
-      "manage": "Reschedule or cancel"
+      "manage": "Reschedule or cancel",
+      "request": "View the request"
     },
     "footerNote": "Sent with Symbola",
     "symbolaFooter": "Symbola — the suite for event organisers",
@@ -6427,7 +6485,8 @@
       "reminders": "Reminders",
       "signatures": "Quotes and contracts",
       "program": "Schedule",
-      "appointments": "Appointments"
+      "appointments": "Appointments",
+      "prospects": "Contact requests"
     },
     "kinds": {
       "client_link": {
@@ -6485,6 +6544,10 @@
       "appointment_cancelled": {
         "title": "Appointment cancelled",
         "description": "Sent when you cancel an appointment, or when the person cancels it."
+      },
+      "prospect_form_received": {
+        "title": "New contact request",
+        "description": "Sent to the account owner at each request received through the contact form, without the person's message or contact details."
       }
     },
     "variables": {
@@ -7730,5 +7793,165 @@
     "destinations": "Where to move {item}",
     "moved": "{item} moved to “{group}”.",
     "moveFailed": "{item} could not be moved: the page shows the saved state."
+  },
+  "ContactForm": {
+    "public": {
+      "title": "Contact {organization}",
+      "intro": "Tell us about your project: we will get back to you shortly.",
+      "required": "Fields marked with an asterisk (*) are required, as well as your email or your phone number.",
+      "sentTitle": "Thank you, your request has been sent",
+      "sentBody": "{organization} has received it and will reply to you personally. You can close this page.",
+      "unavailable": "This form is no longer available.",
+      "error": {
+        "name": "Please enter your first and last name.",
+        "contact": "Please enter your email or your phone number, so that we can reply.",
+        "email": "This email address does not look valid.",
+        "phone": "This phone number does not look valid.",
+        "date": "This date does not look valid.",
+        "guests": "Please enter a whole number of guests, without letters.",
+        "budget": "This budget is too long: 100 characters at most.",
+        "message": "Your message is too long: 5,000 characters at most.",
+        "period": "This period is too long: 100 characters at most.",
+        "place": "This place is too long: 200 characters at most."
+      },
+      "firstName": "First name",
+      "lastName": "Last name",
+      "contactLegend": "So that we can reply (at least one of the two)",
+      "email": "Email",
+      "phone": "Phone",
+      "eventType": "Type of event",
+      "noChoice": "I don't know yet",
+      "eventDate": "Preferred date",
+      "period": "Or a period",
+      "periodExample": "In spring 2028",
+      "place": "Venue or town",
+      "budget": "Budget",
+      "budgetExample": "€25,000 or “between 20 and 30k”",
+      "guests": "Number of guests",
+      "source": "How did you hear about us?",
+      "message": "Your message",
+      "noticeTitle": "Your information",
+      "policyLink": "{organization}'s privacy policy",
+      "sending": "Sending…",
+      "send": "Send my request"
+    },
+    "fields": {
+      "phone": "Phone",
+      "date": "Preferred date or period",
+      "place": "Venue or town",
+      "budget": "Budget",
+      "guests": "Number of guests",
+      "eventType": "Type of event",
+      "source": "“How did you hear about me?”",
+      "message": "Message"
+    },
+    "settings": {
+      "title": "Contact form",
+      "ownerOnly": "The contact form is set up by the account owner.",
+      "moduleUnavailable": "The contact form is part of the Events module, which is not open for your organisation.",
+      "intro": "A form to put on your website or share by link. Each request creates a prospect with the Option status, at the first stage of your pipeline.",
+      "stateOpen": "Open",
+      "stateClosed": "Closed",
+      "saved": "Settings saved.",
+      "active": "Open the form",
+      "slug": "Form address",
+      "slugHelp": "Lowercase letters, digits and hyphens. If you change it, the old address stops working.",
+      "privacyPolicyUrl": "Address of your privacy policy",
+      "privacyPolicyHelp": "Required to open the form: the privacy notice links to it. Address starting with https://.",
+      "shownFields": "Fields offered",
+      "shownFieldsHelp": "First name, last name and email are always asked. Untick the optional fields you do not want.",
+      "allowedOrigins": "Websites allowed to show the form",
+      "allowedOriginsHelp": "One address per line, starting with https://, five at most (for example https://www.mysite.com). Without a website, only the link works.",
+      "notifyOwner": "Email me at each new request (without the person's message or contact details)",
+      "locale": "Language of the starter texts",
+      "localeFr": "French",
+      "localeEn": "English",
+      "save": "Save",
+      "slugTaken": "This address is already taken: please choose another one.",
+      "invalid": {
+        "slug": "The address must be 3 to 60 characters long: lowercase letters, digits and hyphens.",
+        "privacyPolicyUrl": "Enter the address of your privacy policy, starting with https://, to open the form.",
+        "allowedOrigins": "Each website must start with https://; five websites at most.",
+        "hiddenFields": "A requested field does not exist."
+      },
+      "shareTitle": "Share the form",
+      "shareLink": "The link to give (website, social networks, email signature):",
+      "embedCode": "The code to copy into your website",
+      "embedTitle": "Contact form",
+      "embedSites": "The form can be shown on: {sites}.",
+      "embedNoSite": "No website declared: the code will not show on any website until you add one.",
+      "preview": "Preview",
+      "previewTitle": "Preview of the contact form"
+    }
+  },
+  "Pipeline": {
+    "title": "Pipeline",
+    "unnamed": "No name",
+    "viewsLabel": "Views and settings",
+    "listView": "List of events",
+    "stagesSettings": "Set up stages",
+    "contactSettings": "Contact form",
+    "toReviewTitle": "{count, plural, =0 {No request to check} one {One request to check} other {# requests to check}}",
+    "toReviewIntro": "Requests whose message contains several links are set aside: they may come from a robot. Accept them to create the prospect, or delete them. Without action, they are deleted after 30 days.",
+    "toReviewEmpty": "Nothing to check.",
+    "acceptRequestLabel": "Accept the request from {name}",
+    "acceptRequest": "Accept",
+    "discardRequestLabel": "Delete the request from {name}",
+    "discardRequest": "Delete",
+    "refused": "This move is not possible: the event may have changed in the meantime.",
+    "lossReasonRequired": "Choose the reason for the loss.",
+    "lossNoteRequired": "Please detail the “Other” reason.",
+    "won": "Won",
+    "lost": "Lost",
+    "wonHint": "Drop a won option here: it will be confirmed.",
+    "lostHint": "Drop a lost option here: it will be cancelled, with its reason.",
+    "emptyStage": "No card.",
+    "noDate": "Date to be set",
+    "dateTaken": "Date already taken",
+    "demo": "Trial",
+    "guests": "Guests",
+    "budget": "Budget",
+    "source": "Source",
+    "inStage": "In this stage",
+    "days": "{count, plural, =0 {since today} one {for # day} other {for # days}}",
+    "stagesLabel": "Stages",
+    "wonTitle": "Confirm {name}'s event?",
+    "lostTitle": "Cancel {name}'s option?",
+    "wonBody": "The event moves to the Confirmed status and leaves the pipeline. The schedule and the rest follow, as when you confirm it from its page.",
+    "lostBody": "The event moves to the Cancelled status and leaves the pipeline. The reason for the loss is required; the data stays.",
+    "lossReason": "Reason for the loss",
+    "chooseReason": "Choose a reason",
+    "lossNoteRequiredLabel": "Detail (required for this reason)",
+    "lossNote": "Detail (optional)",
+    "cancel": "Cancel",
+    "confirmWon": "Confirm the event",
+    "confirmLost": "Cancel the option",
+    "settings": {
+      "title": "Pipeline stages",
+      "ownerOnly": "The pipeline stages are set up by the account owner.",
+      "moduleUnavailable": "The pipeline is part of the Events module, which is not open for your organisation.",
+      "intro": "The stages of your sales process, for events with the Option status: between {min} and {max}. “Won” and “Lost” are not stages: they confirm or cancel the event.",
+      "back": "Back to the pipeline",
+      "refusal": {
+        "label": "A stage name is 1 to 60 characters long.",
+        "too_many": "Ten stages at most.",
+        "too_few": "At least one stage must remain.",
+        "not_found": "This stage no longer exists.",
+        "not_empty": "This stage holds cards: choose the stage they move to.",
+        "destination": "The stage chosen for the cards no longer exists."
+      },
+      "stageLabel": "Stage {position}",
+      "rename": "Rename",
+      "cards": "{count, plural, =0 {No card} one {One card} other {# cards}}",
+      "up": "Move up",
+      "upLabel": "Move stage {stage} up",
+      "down": "Move down",
+      "downLabel": "Move stage {stage} down",
+      "destination": "Its cards move to",
+      "remove": "Remove",
+      "removeLabel": "Remove stage {stage}",
+      "newStage": "New stage",
+      "add": "Add"
+    }
   }
 }

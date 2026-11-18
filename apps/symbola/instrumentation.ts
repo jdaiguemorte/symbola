@@ -76,6 +76,9 @@ async function startScheduledTasks() {
     // Lot 49 (INV-04, RGP-08 ; ADR 0083) : purge des invités avec préavis, puis relances.
     const { scheduleGuestTasks } = await import("./lib/guest-tasks");
     scheduleGuestTasks();
+    // Lot 44 (CRM-01, D4) : demandes « à vérifier » du formulaire de contact non traitées, à 30 jours.
+    const { scheduleProspectRequestPurge } = await import("./lib/prospect-request-purge");
+    scheduleProspectRequestPurge();
   }
 }
 

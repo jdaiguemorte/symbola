@@ -3832,3 +3832,94 @@
     }
   }
 }
+
+@layer components {
+  /* Lot 44 (CRM-01 ; D1, D2) — le formulaire de contact public, en page ou encadré dans le site de la
+     planner (sans fond ni bordure, la hauteur suit le contenu). */
+  .contact-shell {
+    @apply bg-ground;
+  }
+  .contact-shell-framed {
+    @apply min-h-0 bg-surface p-0;
+  }
+  .contact-page.link-page {
+    @apply max-w-xl;
+  }
+  .contact-page-framed {
+    @apply w-full bg-surface p-4;
+  }
+  .contact-form .field-row {
+    @apply grid gap-4 sm:grid-cols-2;
+  }
+  .contact-notice {
+    @apply mt-2 border-t border-line pt-4;
+  }
+  .contact-notice h2 {
+    @apply text-label text-ink;
+  }
+  .code-block {
+    @apply font-mono text-label;
+  }
+  .contact-preview {
+    @apply h-[36rem] w-full rounded-md border border-line bg-surface;
+  }
+
+  /* Lot 44 (CRM-02 ; D10, D11) — le pipeline : colonnes qui passent à la ligne plutôt que de défiler à
+     l'horizontale (NFR-19) ; à 375 px, une étape à la fois, choisie par ses onglets. Les deux sorties
+     (Gagné, Perdu) servent au glisser-déposer ; au doigt, le menu « Déplacer » les propose. */
+  .pipeline-tabs {
+    @apply my-3 flex flex-wrap gap-2 sm:hidden;
+  }
+  .pipeline-tabs button {
+    @apply inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-surface px-3 text-body text-ink-muted;
+  }
+  .pipeline-tabs button[aria-pressed="true"] {
+    @apply border-primary bg-primary-soft font-semibold text-primary-strong;
+  }
+  .contact-form .required-mark {
+    @apply text-critical;
+  }
+  .pipeline-board {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(15rem,1fr))];
+  }
+  .pipeline-column {
+    @apply flex min-w-0 flex-col gap-2 rounded-md border border-line bg-ground p-3;
+  }
+  .pipeline-column[data-active="false"] {
+    @apply hidden sm:flex;
+  }
+  .pipeline-exit {
+    @apply hidden border-dashed sm:flex;
+  }
+  .pipeline-column-title {
+    @apply flex items-center justify-between gap-2 text-heading;
+  }
+  .pipeline-cards {
+    @apply m-0 flex list-none flex-col gap-2 p-0;
+  }
+  .pipeline-card {
+    @apply flex flex-col gap-1 rounded-md border border-line bg-surface p-3;
+  }
+  .pipeline-card-title {
+    @apply text-body-strong;
+  }
+  .pipeline-card-details {
+    @apply m-0 grid grid-cols-2 gap-x-3 gap-y-1 text-label;
+  }
+  .pipeline-card-details dt {
+    @apply text-ink-muted;
+  }
+  .pipeline-card-details dd {
+    @apply m-0;
+  }
+  .pipeline-review {
+    @apply mt-8;
+  }
+  .pipeline-review-list,
+  .pipeline-stage-list {
+    @apply m-0 flex list-none flex-col gap-3 p-0;
+  }
+  .pipeline-message {
+    @apply break-words whitespace-pre-wrap;
+  }
+}

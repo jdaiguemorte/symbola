@@ -720,7 +720,8 @@ export type ClientEventView = {
 // Lot 32a (D6) : « vendor_reminded », un prestataire relancé depuis le cockpit (taskLabel : son nom).
 // Lot 37a (DOC-04, D7) : « document_link_opened », un lien de partage ouvert (taskLabel : l'intitulé
 // du document à l'ouverture).
-export type EventActivityKind = "task_done" | "task_undone" | "decision_made" | "vendor_reminded" | "document_link_opened";
+// Lot 44 (CRM-02) : « stage_changed », passage à une autre étape du pipeline (taskLabel : l'étape).
+export type EventActivityKind = "task_done" | "task_undone" | "decision_made" | "vendor_reminded" | "document_link_opened" | "stage_changed";
 
 // Lot 32a (HUB-08, UX-06) — décision du client sans réponse, pour la liste des urgences.
 export type PendingDecision = { id: string; eventId: string; kind: DecisionKind; title: string; dueOn: string | null; requestedAt: string };

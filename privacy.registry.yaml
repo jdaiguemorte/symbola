@@ -1295,6 +1295,48 @@ fields:
       Lot 46 (D2) : hôte de l'adresse et ses quatre derniers caractères, pour reconnaître l'agenda. Même durée que l'adresse.
     anonymization: >-
       Supprimé avec l'agenda.
+  # Lot 44 (CRM-01 ; D4, D5 ; ADR 0084) : demandes reçues par le formulaire de contact public. Le nom,
+  # l'e-mail et le téléphone du prospect vont dans sa fiche de contact (hub.contacts, déjà déclarée) ;
+  # la demande garde ce qui n'a pas sa place dans la fiche. Une demande « à vérifier » (message à liens)
+  # garde ses champs reçus dans pending jusqu'à son acceptation, ou au plus 30 jours. Rien de
+  # personnel dans le réglage du formulaire (events.contact_forms) ni dans les étapes du pipeline.
+  - schema: events
+    table: prospect_requests
+    field: message
+    category: contenu_libre
+    retention: >-
+      Lot 44 (CRM-01) : message libre écrit par le prospect, affiché tel quel sur la fiche de
+      l'évènement ; suit la durée des prospects de l'organisation (purge avec l'évènement, RGPD-05).
+      Demande « à vérifier » non traitée : effacée après 30 jours (contact-form.json).
+    anonymization: >-
+      Supprimée avec la demande lors d'une demande d'oubli (RGPD-03) ou de la purge de l'évènement.
+  - schema: events
+    table: prospect_requests
+    field: period
+    category: contenu_libre
+    retention: >-
+      Lot 44 (CRM-01) : période souhaitée en texte court (« au printemps 2028 »), comme le message.
+    anonymization: >-
+      Supprimée avec la demande (RGPD-03, RGPD-05).
+  - schema: events
+    table: prospect_requests
+    field: budget_range
+    category: contenu_libre
+    retention: >-
+      Lot 44 (CRM-01) : tranche de budget en texte court, quand le prospect ne donne pas un montant ;
+      comme le message.
+    anonymization: >-
+      Supprimée avec la demande (RGPD-03, RGPD-05).
+  - schema: events
+    table: prospect_requests
+    field: pending
+    category: contact
+    retention: >-
+      Lot 44 (CRM-01, D4) : demande « à vérifier » seulement — prénom, nom, e-mail, téléphone, date,
+      lieu, budget et invités reçus, en attente. Vidé à l'acceptation (ils passent au contact et à
+      l'évènement) ; demande effacée après 30 jours si elle n'est pas traitée.
+    anonymization: >-
+      Supprimée avec la demande lors d'une demande d'oubli (RGPD-03).
   - schema: core
     table: rate_limit_events
     field: key_hash

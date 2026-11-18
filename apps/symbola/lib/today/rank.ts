@@ -35,7 +35,10 @@ export type TodayItemKind =
   // agenda extérieur en erreur.
   | "appointment"
   | "appointment_change"
-  | "calendar_source_error";
+  | "calendar_source_error"
+  // Lot 44 (CRM-01) : nouvelle demande du formulaire de contact, demandes « à vérifier ».
+  | "prospect_request"
+  | "prospect_review";
 
 // L'action en un clic (HUB-08) : cocher une tâche, relancer un prestataire, ou ouvrir l'objet.
 export type TodayAction =

@@ -42,6 +42,11 @@ import {
   starterPrivacySettings,
   starterProgram,
   starterProspectSources,
+  starterEmailTemplate,
+  starterContactFormNotice,
+  starterContactForm,
+  starterPipelineStages,
+  starterProspectSourceLabels,
   starterQuoteTemplates,
   starterContractTemplates,
   starterContractRules,
@@ -655,5 +660,39 @@ describe("Lot 50 — Données de départ du plan de table et de la synthèse pou
     expect(rules.maxTablesPerSeries).toBeGreaterThanOrEqual(12);
     expect(rules.maxTablesPerPlan).toBeGreaterThanOrEqual(rules.maxTablesPerSeries);
     expect(rules.maxCapacity).toBeGreaterThanOrEqual(rules.defaultCapacity.round);
+  });
+});
+
+describe("CRM-01 / CRM-02 — Données de départ du formulaire de contact et du pipeline (lot 44)", () => {
+  it("quatre étapes de départ, en français et en anglais", () => {
+    expect(starterPipelineStages("fr")).toEqual(["Nouvelle demande", "Premier échange", "Rendez-vous", "Devis envoyé"]);
+    expect(starterPipelineStages("en")).toHaveLength(4);
+  });
+
+  it("la source « Formulaire de contact » existe dans les deux listes de départ et se retrouve par sa clé", () => {
+    const labels = starterProspectSourceLabels(starterContactForm().defaultSourceKey);
+    expect(labels).toEqual({ fr: "Formulaire de contact", en: "Contact form" });
+    expect(starterProspectSources("fr")).toContain(labels!.fr);
+    expect(starterProspectSources("en", "event_agency")).toContain(labels!.en);
+  });
+
+  it("seuils de l'anti-spam (D4) et garde des demandes « à vérifier » (30 jours) en données", () => {
+    expect(starterContactForm()).toEqual({ defaultSourceKey: "contact_form", minimumFillSeconds: 3, maxLinksBeforeReview: 2, toReviewRetentionDays: 30 });
+  });
+
+  it("RGP-03 — la mention d'information nomme le responsable, la durée, les droits et la politique, dans les deux langues", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const notice = starterContactFormNotice(locale);
+      for (const variable of ["{organization}", "{address}", "{months}", "{contact}", "{policy}"]) expect(notice).toContain(variable);
+      expect(notice).toContain("CNIL");
+    }
+  });
+
+  it("D7 — modèle de départ de l'e-mail « Nouvelle demande de contact », sans coordonnées du prospect", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const template = starterEmailTemplate("prospect_form_received", locale);
+      expect(template.body).toMatch(locale === "fr" ? /\{\{lien\}\}/ : /\{\{link\}\}/);
+      expect(template.body).not.toMatch(/prénom|first_name|e-mail du|téléphone/);
+    }
   });
 });

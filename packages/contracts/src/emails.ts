@@ -20,6 +20,9 @@ export const EMAIL_TEMPLATE_KINDS = [
   // Lot 49 (INV-03, INV-04 ; D4, D10) : invitation à répondre et relance des invités.
   "guest_invitation",
   "guest_reminder",
+  // Lot 44 (CRM-01 ; D7) : « Nouvelle demande de contact », à la titulaire, sans le message ni les
+  // coordonnées du prospect.
+  "prospect_form_received",
 ] as const;
 export type EmailTemplateKind = (typeof EMAIL_TEMPLATE_KINDS)[number];
 

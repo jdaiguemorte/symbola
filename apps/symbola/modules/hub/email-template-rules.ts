@@ -32,7 +32,7 @@ const BY_TOKEN = new Map<string, EmailVariable>(
   ]),
 );
 
-type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | null };
+type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | "request" | null };
 
 export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   client_link: { variables: ["first_name", "organization", "event", "link", "valid_until"], required: ["link"], button: "space" },
@@ -53,6 +53,9 @@ export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   // Lot 49 (INV-03, INV-04 ; D4, D10) : le lien personnel de l'invité devient le bouton « Répondre ».
   guest_invitation: { variables: ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until"], required: ["link"], button: "answer" },
   guest_reminder: { variables: ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until"], required: ["link"], button: "answer" },
+  // Lot 44 (CRM-01 ; D7) : à la titulaire, le lien vers la fiche du prospect devient « Voir la demande » ;
+  // ni le nom, ni les coordonnées, ni le message du prospect (SEC-20).
+  prospect_form_received: { variables: ["organization", "event_date", "link"], required: ["link"], button: "request" },
 };
 
 const TOKEN_PATTERN = /\{\{\s*([^{}\s]+)\s*\}\}/g;

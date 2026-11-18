@@ -70,6 +70,11 @@ const WITHOUT_ENTRY: Record<string, string> = {
   "appointments.appointments.answers": "réponses de la personne sur la page publique de réservation : sa propre mise en garde (Appointments.public.freeTextNotice) suit les questions",
   "appointments.appointment_report_actions.label": "libellé court d'une action du compte rendu (« Envoyer trois lieux »)",
   "appointments.availability_closures.reason": "motif court d'un jour fermé (80 caractères)",
+  // Lot 44 (CRM-01) : ce qu'écrit le prospect sur le formulaire public ; la mention d'information est
+  // au-dessus du bouton d'envoi, la mise en garde s'adresse à l'équipe.
+  "events.prospect_requests.message": "message du prospect sur le formulaire de contact public ; la mention d'information est affichée avant l'envoi",
+  "events.prospect_requests.period": "période en texte court écrite par le prospect sur le formulaire public",
+  "events.prospect_requests.budget_range": "tranche de budget en texte court écrite par le prospect sur le formulaire public",
 };
 
 function freeTextFields(): string[] {

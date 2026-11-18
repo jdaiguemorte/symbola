@@ -439,3 +439,5 @@ export {
   appointmentBookedPayloadSchema,
   type AppointmentBookedPayload,
 } from "./appointments/events";
+// Lot 44 (CRM-01, CRM-02 ; ADR 0084) : formulaire de contact public et pipeline en colonnes.
+export * from "./events/pipeline";

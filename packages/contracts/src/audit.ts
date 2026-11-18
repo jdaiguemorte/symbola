@@ -92,6 +92,11 @@ export const AUDIT_ACTIONS = {
   "events.decision.requested": { category: "partage", objectType: "event" },
   "events.decision.answered": { category: "partage", objectType: "event" },
   "events.decision.withdrawn": { category: "partage", objectType: "event" },
+  // Lot 44 (CRM-01 ; D1, D4, D5) : formulaire de contact public réglé (ouvert ou fermé), demande reçue
+  // (prospect créé) ou mise de côté (« à vérifier ») ; identifiants seulement (SEC-20).
+  "events.contact_form.updated": { category: "partage", objectType: null },
+  "events.prospect_request.received": { category: "partage", objectType: "event" },
+  "events.prospect_request.to_review": { category: "partage", objectType: null },
   // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
   "hub.mail.quota_reached": { category: "partage", objectType: null },
   // Lot 38a (MSG-01, D5) : un e-mail automatique n'est pas parti, une variable du modèle étant vide
