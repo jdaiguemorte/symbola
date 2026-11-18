@@ -242,3 +242,79 @@ après une fermeture. Ses pièces déjà émises posent trois questions.
 > Nous proposons (a). La reprise des pièces ne sera développée qu'après votre réponse.
 
 Besoin : une réponse **avant de développer la reprise d'un export** (lot 35b).
+
+## Questions du 18 novembre 2026 (lot 41)
+
+Les factures et les avoirs émis par Symbola deviennent des **Factur-X** : un PDF/A-3 lisible, qui
+porte le fichier structuré de la facture électronique (profil EN 16931, syntaxe CII), avec les
+mêmes totaux au centime (votre réponse 10). Pour livrer sans attendre, Symbola applique les choix
+indiqués « en attendant » ; seules les pièces émises après votre réponse changeront.
+
+### 12. Profil et types de pièce (EC-1)
+
+Le profil EN 16931 (anciennement « Comfort ») suffit-il pour toutes nos factures et tous nos
+avoirs, vers une plateforme agréée ? Codes de type de pièce : facture (380), facture d'acompte
+(386), avoir (381) ?
+
+> En attendant : EN 16931 ; 380, 386 et 381.
+
+### 13. Catégorie de l'opération (EC-2)
+
+Vous avez demandé la catégorie imprimée sur toutes les factures (réponse 2). Symbola la déduit des
+lignes (chacune « service » ou « bien ») et imprime « Prestations de services », « Livraisons de
+biens » ou « Opération mixte (livraisons de biens et prestations de services) ». Dans le fichier,
+elle va dans le cadre de facturation : S1, B1 ou M1. Ces libellés et ces codes conviennent-ils ?
+
+> En attendant : ces libellés et ces codes.
+
+### 14. Option pour la TVA sur les débits (EC-3)
+
+Texte de la mention imprimée quand l'entreprise a opté : « Option pour le paiement de la taxe
+d'après les débits » ? Dans le fichier, Symbola porte l'exigibilité à la date de la facture
+(code 5) et une note réglementaire avec le même texte. Est-ce la bonne place ? L'option est
+datée : une facture émise avant la date d'effet ne la porte pas.
+
+> En attendant : ce texte, le code 5 et la note.
+
+### 15. Facture de solde après acomptes (EC-4)
+
+Depuis le lot 31c, le PDF retire chaque acompte facturé en HT et en TVA, taux par taux. Dans le
+fichier, Symbola fait de même par des **lignes négatives** (une par acompte et par taux). L'autre
+façon est le « montant déjà payé » : mêmes totaux à payer, mais une ventilation de TVA différente
+(celle du devis entier). Laquelle attendez-vous ? Les arrhes reçues (devis à arrhes) vont, elles,
+en « montant déjà payé ».
+
+> En attendant : les lignes négatives, comme le PDF.
+
+Nous joignons à cette question la liste des vérifications de l'assistant de conformité (voir la
+fiche de l'avocat, question 15) : celles qui touchent la facturation (bon de commande, adresse de
+livraison des biens, facture de solde alors qu'un acompte n'est pas facturé, option sur les débits
+non renseignée, date de la prestation) vous semblent-elles justes et suffisantes ?
+
+### 16. Factur-X pour les particuliers aussi (EC-5)
+
+Symbola émet aussi les factures aux particuliers en Factur-X (un seul chemin d'émission, et un
+PDF/A-3 pour la conservation de dix ans). Y voyez-vous un inconvénient ? Pour un particulier, le
+fichier porte le nom des clients et leur adresse de facturation en une seule ligne, pays France.
+
+> En attendant : Factur-X pour toutes les factures.
+
+### 17. Franchise en base de TVA (EC-6)
+
+Dans le fichier, une facture en franchise porte la catégorie de TVA « exonérée » (E), le motif
+« VATEX-FR-FRANCHISE » et le texte de la mention de l'article 293 B, qui reste imprimée. Les règles
+européennes demandent alors un identifiant fiscal du vendeur : à défaut de numéro de TVA, Symbola
+porte le SIREN comme identifiant fiscal. Est-ce correct ?
+
+> En attendant : E, VATEX-FR-FRANCHISE, et le SIREN à défaut de numéro de TVA.
+
+### 18. Envoi par e-mail jusqu'au 1er septembre 2027 (EC-7)
+
+Jusqu'au 1er septembre 2027, l'envoi du Factur-X par e-mail à un client entreprise reste-t-il
+admis ? Ensuite, il passera par la plateforme agréée (lot 42). Un bandeau le dit sur l'écran des
+réglages de facturation.
+
+> En attendant : envoi par e-mail jusqu'à cette date.
+
+Besoin : des réponses **avant la mise en service des factures Factur-X auprès de la pilote** et
+avant le connecteur de plateforme agréée (lot 42).

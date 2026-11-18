@@ -2840,7 +2840,7 @@ function creditNoteReform(invoice: InvoiceRow, profile: OrganizationProfile): In
   };
 }
 
-// Lot 41 (FAC-10 ; D1 à D3, ADR 0078) — le Factur-X d'une pièce émise à partir du lot 41 : son
+// Lot 41 (FAC-10 ; D1 à D3, ADR 0080) — le Factur-X d'une pièce émise à partir du lot 41 : son
 // fichier structuré, écrit depuis les mêmes copies figées que le PDF, relu et comparé au centime
 // aux montants imprimés (réponse 10), puis joint au PDF devenu PDF/A-3. Une différence lève
 // FacturXTotalsMismatchError : dans la transaction de l'émission, le numéro n'est pas consommé.

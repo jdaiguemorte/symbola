@@ -453,3 +453,47 @@ les lots 46 et 49 :
   fichiers différents, sauf `portal-content.tsx` si le lot 41 y passe (à éviter).
 - **Menu** : aucun ajout au menu principal ; une rubrique de réglages déjà existante
   (« Devis et factures »).
+
+## Bilan du lot 41 (18/11/2026)
+
+Fait (ADR 0080 et 0081 ; 0078 était déjà pris deux fois, par le lot 40c et le socle des lots 46
+et 49) :
+
+- **FAC-10 (partie 1)** : toutes les factures, factures d'acompte, de solde et tous les avoirs
+  émis sont des Factur-X EN 16931 : PDF/A-3 B par mise à jour incrémentale, sans dépendance (le
+  repli `pdf-lib` n'a pas servi), fichier CII écrit par l'app, relu et comparé au centime aux
+  montants du PDF ; une différence arrête l'émission sans consommer de numéro. L'original gardé et
+  chaîné est le Factur-X (`original_documents.format`). Le refus « Factur-X pas encore disponible »
+  disparaît : un professionnel exige l'acheteur entreprise du devis, nommé s'il manque. Polices
+  Liberation incorporées aux factures et avoirs (D5).
+- **D4** : job « Factur-X » de la CI : 22 fichiers (onze cas, français et anglais) contrôlés par
+  veraPDF (22 PASS) et Mustang (22 valides) ; mêmes résultats en local.
+- **JUR-02** : SIREN de l'acheteur figé (un SIRET donne son SIREN), adresse de livraison si elle
+  diffère, catégorie de l'opération sur toutes les factures (nature par ligne : catalogue, modèles,
+  devis), option sur les débits datée (`hub`), adresse structurée du vendeur (`hub`).
+- **JUR-12** : délai des professionnels (30 jours, bornes 60 jours et 45 jours fin de mois en
+  données), escompte « Néant » par défaut, pénalités et indemnité, sur le devis, la facture et le
+  XML (notes PMD, PMT, AAB).
+- **JUR-13** : bon de commande et référence de l'acheteur sur le devis, modifiables jusqu'à chaque
+  émission, saisis aussi par le signataire depuis son lien ; figés sur chaque facture et avoir.
+- **GC-03** : panneau « Vérifications avant envoi » non bloquant sur le devis, le contrat et la
+  facture ; huit règles en données (FR, EN), désactivables par l'Admin ; points vus au journal
+  d'audit par leurs clés.
+- Migrations `0150` (quotes) et `0151` (hub), annulables, ajouts seulement ; registre RGPD,
+  anonymisation de l'adresse de livraison à la fin de la conservation ; inventaire des licences
+  (polices, outils de la CI) ; questions EC-1 à EC-7 (fiche de l'expert-comptable, 12 à 18) et AV-1,
+  AV-2 (fiche de l'avocat, 14 et 15), défauts prudents appliqués en attendant.
+
+Constats faits en route :
+
+- Un retour à la ligne dans un texte faisait passer le moteur PDF à sa police de secours
+  (Helvetica, non incorporée) : chaque ligne devient son propre texte.
+- La spécification française (flux 2) que Mustang applique demande les adresses électroniques de
+  facturation (BT-34, BT-49) : elles viennent de l'annuaire, au lot 42 (avertissements, pas
+  d'erreurs).
+- Un formulaire du portail envoyé avant l'hydratation part avec `Origin: null` (politique
+  `no-referrer` des pages à lien) et Next.js le refuse : tous les formulaires du portail sont
+  concernés ; laissé en l'état, noté dans `docs/recette/SC-11.md`.
+
+Reste, hors de ce lot : connecteur de plateforme agréée, annuaire, e-reporting (lot 42) ; réponses
+de l'expert-comptable et de l'avocat ; recette au staging après le gel.

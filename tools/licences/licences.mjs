@@ -4,14 +4,15 @@
 // ligne justifiée dans autorisees.json ; une licence inconnue est refusée. Ces fonctions
 // décrivent des faits (licence, usage) et ne tranchent aucun point juridique.
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 export const repoRoot = resolve(import.meta.dirname, "..", "..");
 
 // Licences permissives (mention de l'auteur et du texte de la licence, sans autre obligation).
 // CC-BY-4.0 : données de caniuse-lite, attribution demandée. Python-2.0 : licence de la PSF.
-export const PERMISSIVE = new Set(["MIT", "MIT-0", "ISC", "BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "0BSD", "Unlicense", "BlueOak-1.0.0", "CC0-1.0", "CC-BY-4.0", "Python-2.0", "PostgreSQL", "Zlib"]);
+// Lot 41 : OFL-1.1, licence des polices, qui permet de les incorporer dans un document.
+export const PERMISSIVE = new Set(["MIT", "MIT-0", "ISC", "BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "0BSD", "Unlicense", "BlueOak-1.0.0", "CC0-1.0", "CC-BY-4.0", "Python-2.0", "PostgreSQL", "Zlib", "OFL-1.1"]);
 const COPYLEFT = /^(?:AGPL|GPL|LGPL|MPL|EPL|CDDL|EUPL|OSL|CPAL|SSPL)-/;
 
 function classifyOne(licence) {
@@ -127,6 +128,18 @@ export function checkServices(images, services) {
   }
   for (const line of services) {
     if (!images.includes(line.image)) problems.push(`${line.image} : dans services.json, mais plus employé`);
+  }
+  return problems;
+}
+
+// Lot 41 (ADR 0080, 0081) — fichiers tiers rangés dans le dépôt (polices) et outils de la seule CI
+// (validateurs) : chaque ligne a sa licence connue (ou « écrit par Symbola ») et son chemin existe.
+export function checkFiles(files) {
+  const problems = [];
+  for (const line of files) {
+    const own = String(line.licence).startsWith("aucune");
+    if (!own && classify(line.licence) === "inconnue" && !/GPL-2\.0-with-classpath-exception/.test(line.licence)) problems.push(`${line.nom} : licence inconnue (« ${line.licence} »)`);
+    if (line.chemin && !existsSync(resolve(repoRoot, line.chemin))) problems.push(`${line.nom} : ${line.chemin} introuvable`);
   }
   return problems;
 }

@@ -50,7 +50,8 @@ const nextConfig: NextConfig = {
   // Docker ne sait générer aucun PDF (constaté au déploiement du staging,
   // lot 6). Le CI vérifie leur présence dans l'image construite.
   outputFileTracingIncludes: {
-    "/**": ["../../node_modules/.pnpm/pdfkit@*/node_modules/pdfkit/js/standard-fonts/**"],
+    // Lot 41 (FAC-10, D5) : polices Liberation incorporées aux factures et avoirs (PDF/A-3).
+    "/**": ["../../node_modules/.pnpm/pdfkit@*/node_modules/pdfkit/js/standard-fonts/**", "./lib/documents/fonts/**"],
   },
   // Lot 16 (L16-SEC-02, ADR 0044) : les actions serveur gardent la limite par
   // défaut de Next.js (1 Mo). Les fichiers (devis, plaquettes, imports, 20 Mo)

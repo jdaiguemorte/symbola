@@ -58,6 +58,8 @@ export function invoiceFacturXTexts(invoice: InvoiceView, locale: DocumentLocale
   return { ...common(invoice.reform, invoice.legalMention, locale), paymentTerms: paymentTerms || null };
 }
 
+// L'avoir d'une facture à un professionnel reprend ses notes de pénalités, d'indemnité et d'escompte
+// (règle BR-FR-05 de la spécification française) ; aucune condition de paiement propre.
 export function creditNoteFacturXTexts(creditNote: CreditNoteView, locale: DocumentLocale): FacturXTexts {
-  return { ...common(creditNote.reform, creditNote.legalMention, locale), paymentTerms: null, penalties: null, recovery: null, discount: null };
+  return { ...common(creditNote.reform, creditNote.legalMention, locale), paymentTerms: null };
 }

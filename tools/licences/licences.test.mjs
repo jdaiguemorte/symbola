@@ -4,10 +4,11 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { checkLicences, checkServices, classify, listPackages, listServiceImages, loadJson, normalizeName, repoRoot } from "./licences.mjs";
+import { checkFiles, checkLicences, checkServices, classify, listPackages, listServiceImages, loadJson, normalizeName, repoRoot } from "./licences.mjs";
 
 const allowed = loadJson("autorisees.json");
 const services = loadJson("services.json");
+const files = loadJson("fichiers.json");
 
 describe("JUR-18 — Inventaire et respect des licences", () => {
   it("chaque bibliothèque installée a une licence permissive, ou à copyleft justifiée dans autorisees.json", () => {
@@ -66,6 +67,16 @@ describe("JUR-18 — Inventaire et respect des licences", () => {
     expect(normalizeName("@esbuild/darwin-arm64")).toBe("@esbuild/<plateforme>");
     expect(normalizeName("lightningcss")).toBe("lightningcss");
     expect(normalizeName("next")).toBe("next");
+  });
+
+  it("lot 41 : chaque fichier tiers du dépôt et chaque outil de la CI a sa licence et son usage, cités dans le document", () => {
+    expect(checkFiles(files)).toEqual([]);
+    const document = readFileSync(resolve(repoRoot, "docs/conformite/licences.md"), "utf8");
+    for (const line of files) expect(document, line.nom).toContain(line.nom);
+    expect(checkFiles([{ nom: "Police maison", licence: "Propriétaire", chemin: "absent/police.ttf" }])).toEqual([
+      "Police maison : licence inconnue (« Propriétaire »)",
+      "Police maison : absent/police.ttf introuvable",
+    ]);
   });
 
   it("refuse un service sans ligne, de licence inconnue, ou une ligne qui ne sert plus", () => {

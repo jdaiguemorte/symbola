@@ -1,8 +1,8 @@
-// Lot 41 (FAC-10, D2, ADR 0078) — le fichier structuré d'un Factur-X : syntaxe CII
+// Lot 41 (FAC-10, D2, ADR 0080) — le fichier structuré d'un Factur-X : syntaxe CII
 // (CrossIndustryInvoice D16B), profil EN 16931. Écrit sans bibliothèque, par gabarits, chaque texte
 // échappé ; une seconde fonction relit les montants du XML produit pour les comparer, au centime, à
 // ceux du PDF (réponse 10 de l'expert-comptable). Fonctions pures, testées ; l'ordre des éléments
-// suit le schéma XSD du profil, que Mustang contrôle en CI (D4, ADR 0079).
+// suit le schéma XSD du profil, que Mustang contrôle en CI (D4, ADR 0081).
 //
 // Montants en centimes entiers, écrits avec deux décimales ; quantités en millièmes, trois
 // décimales ; taux en points de base, deux décimales. Jamais de nombre à virgule flottante.

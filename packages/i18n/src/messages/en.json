@@ -302,7 +302,7 @@
     "postalCode": "Postal code",
     "city": "City",
     "countryCode": "Country (code)",
-    "addressStructuredHint": "Postal code, city and country are required before your first invoice: the electronic invoice needs them. Two letters for the country (FR).",
+    "addressStructuredHint": "The address keeps only the number and street; postal code, city and country go in their own fields. They are required before your first invoice: the electronic invoice needs them. Two letters for the country (FR).",
     "invalidAddress_address": "Address too long.",
     "invalidAddress_postalCode": "Invalid postal code.",
     "invalidAddress_city": "City name too long.",

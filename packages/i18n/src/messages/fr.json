@@ -302,7 +302,7 @@
     "postalCode": "Code postal",
     "city": "Ville",
     "countryCode": "Pays (code)",
-    "addressStructuredHint": "Code postal, ville et pays sont demandés avant votre première facture : la facture électronique les exige. Deux lettres pour le pays (FR).",
+    "addressStructuredHint": "L'adresse ne garde que le numéro et la rue ; code postal, ville et pays vont dans leurs champs. Ils sont demandés avant votre première facture : la facture électronique les exige. Deux lettres pour le pays (FR).",
     "invalidAddress_address": "Adresse trop longue.",
     "invalidAddress_postalCode": "Code postal invalide.",
     "invalidAddress_city": "Ville trop longue.",

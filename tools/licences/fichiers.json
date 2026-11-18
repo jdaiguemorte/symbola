@@ -1,0 +1,34 @@
+[
+  {
+    "nom": "Liberation Sans et Liberation Serif 2.1.5",
+    "chemin": "apps/symbola/lib/documents/fonts",
+    "licence": "OFL-1.1",
+    "portee": "production",
+    "usage": "Polices incorporées aux factures et aux avoirs (lot 41, D5, ADR 0080), mêmes largeurs que Helvetica et Times ; fichiers tels que publiés (liberationfonts, version 2.1.5), licence jointe (LICENSE-Liberation.txt)."
+  },
+  {
+    "nom": "Profil de couleur sRGB des PDF/A-3",
+    "chemin": "apps/symbola/modules/quotes/facturx/icc.ts",
+    "licence": "aucune (écrit par Symbola)",
+    "portee": "production",
+    "usage": "Profil ICC construit par le code de l'app à partir des valeurs publiques de sRGB (CEI 61966-2-1) ; aucun fichier tiers."
+  },
+  {
+    "nom": "veraPDF 1.30.4 (image verapdf/cli)",
+    "licence": "(GPL-3.0-or-later OR MPL-2.0)",
+    "portee": "CI",
+    "usage": "Validateur PDF/A des factures de test, dans un job de CI (lot 41, D4, ADR 0081) ; jamais dans l'app ni en production, aucune donnée réelle."
+  },
+  {
+    "nom": "Mustang 2.26.0 (Mustang-CLI, Maven Central)",
+    "licence": "Apache-2.0",
+    "portee": "CI",
+    "usage": "Validateur Factur-X et EN 16931 des factures de test, dans un job de CI (lot 41, D4, ADR 0081) ; jamais dans l'app ni en production."
+  },
+  {
+    "nom": "Java Temurin 21 (actions/setup-java)",
+    "licence": "GPL-2.0-with-classpath-exception",
+    "portee": "CI",
+    "usage": "Environnement d'exécution de Mustang sur le runner de CI, tel que publié ; jamais dans l'app."
+  }
+]

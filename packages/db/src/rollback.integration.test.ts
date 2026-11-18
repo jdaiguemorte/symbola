@@ -111,7 +111,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
-  it("lot 41 (FAC-10, JUR-02, JUR-13 ; ADR 0078) — 0150 et 0151 : nature « service » par défaut, bornes du bon de commande ; annulation refusée tant qu'une pièce Factur-X est émise, puis retire les colonnes", async () => {
+  it("lot 41 (FAC-10, JUR-02, JUR-13 ; ADR 0080) — 0150 et 0151 : nature « service » par défaut, bornes du bon de commande ; annulation refusée tant qu'une pièce Factur-X est émise, puis retire les colonnes", async () => {
     await migrateAll();
     const organizationId = randomUUID();
     const [item] = await target<{ nature: string }[]>`insert into quotes.catalog_items (organization_id, label, unit, unit_price_cents, vat_rate_basis_points) values (${organizationId}, 'Coordination', 'forfait', 100000, 2000) returning nature`;

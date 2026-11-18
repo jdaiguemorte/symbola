@@ -2,13 +2,16 @@
 // de commande, contre un vrai PostgreSQL (RLS, déclencheurs) et le stockage, par la porte d'entrée
 // du module. Les devis sont signés par le faux fournisseur (DEV-02), comme dans l'essai guidé.
 import { randomUUID } from "node:crypto";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { auditEntries } from "@symbola/db/schema/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection, type AppDatabase } from "@symbola/db/client";
 import { withOrganization } from "@symbola/db/with-organization";
 import { eq } from "drizzle-orm";
 import { invoices, originalDocuments } from "@symbola/db/schema/quotes";
-import { createContact, saveOnboardingStep, saveVatOnDebits, VatOnDebitsNotApplicableError } from "@/modules/hub/service";
+import { createContact, saveOnboardingStep, saveVatOnDebits, setDisabledComplianceChecks, VatOnDebitsNotApplicableError } from "@/modules/hub/service";
 import { createProspect, createProspectSource } from "@/modules/events/service";
 import { fakeSignatureProvider, setSignatureProviderForTests } from "./signature";
 import { readCiiTotals } from "./facturx/cii";
@@ -40,10 +43,12 @@ import {
   getQuoteSettings,
   ProfessionalTermOutOfBoundsError,
   verifyLedger,
+  quoteComplianceFindings,
 } from "./service";
 import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
 import { confirmed } from "@/lib/test-fixtures/recipients";
 import { minimalPdf } from "@/lib/test-fixtures/pdf";
+import { renderInvoicePdf } from "@/app/devis/factures/render-invoice-pdf";
 
 const renderInvoice = async () => minimalPdf("facture de test");
 const renderCreditNote = async () => minimalPdf("avoir de test");
@@ -311,5 +316,90 @@ describe("FAC-10 — Isolation et abus", () => {
     await expect(setQuoteBuyerDetails(a.organizationId, a.quoteId, { buyerContactId: randomUUID(), orderReference: null, buyerReference: null, deliveryAddress: null })).rejects.toBeInstanceOf(QuoteBuyerNotFoundError);
     await setQuoteBuyerDetails(a.organizationId, a.quoteId, { buyerContactId: company.id, orderReference: null, buyerReference: null, deliveryAddress: null });
     await expect(setClientOrderReference({ organizationId: b.organizationId, eventId: a.eventId, linkId: randomUUID(), quoteId: a.quoteId, clientEmail: a.email, reference: "B" })).rejects.toBeInstanceOf(QuoteNotFoundError);
+  });
+});
+
+describe("GC-03 — Assistant de conformité", () => {
+  it("les points s'affichent dans leur cas, ne bloquent rien, sont notés au journal sans donnée personnelle ; une vérification désactivée par l'Admin disparaît", async () => {
+    const { organizationId, quoteId, items } = await signedQuote({ professional: true });
+    const company = await novalea(organizationId);
+    await setQuoteBuyerDetails(organizationId, quoteId, { buyerContactId: company.id, orderReference: null, buyerReference: null, deliveryAddress: null });
+    const before = await quoteComplianceFindings({ organizationId, quoteId, document: "invoice", locale: "fr", now: NOW });
+    expect(before.findings.map((finding) => finding.key)).toEqual(["orderReferenceMissing", "deliveryAddressMissing", "depositNotInvoiced", "vatOnDebitsUnset"]);
+    expect(before.disclaimer).toContain("ne remplacent pas le conseil");
+    // Rien ne bloque : l'émission part malgré les points d'attention.
+    expect((await issueDepositInvoice({ renderOriginal: renderInvoice, organizationId, scheduleItemId: items[0]!.id, now: NOW })).number).toBe("F-2027-0001");
+    const journal = await withDb((db) => withOrganization(db, organizationId, (tx) => tx.select().from(auditEntries).where(eq(auditEntries.action, "quotes.compliance.shown"))));
+    expect(journal[0]?.details).toEqual({ document: "invoice", checks: "orderReferenceMissing,deliveryAddressMissing,depositNotInvoiced,vatOnDebitsUnset" });
+    expect(JSON.stringify(journal)).not.toContain("Novaléa");
+
+    await withDb((db) => setDisabledComplianceChecks(db, { adminUserId: randomUUID(), disabled: ["vatOnDebitsUnset"] }));
+    try {
+      const after = await quoteComplianceFindings({ organizationId, quoteId, document: "invoice", locale: "en", now: NOW, record: false });
+      expect(after.findings.map((finding) => finding.key)).toEqual(["orderReferenceMissing", "deliveryAddressMissing"]);
+      expect(after.findings[0]!.title).toBe("Business client without a purchase order number");
+    } finally {
+      await withDb((db) => setDisabledComplianceChecks(db, { adminUserId: randomUUID(), disabled: [] }));
+    }
+  });
+});
+
+// Rejeu SC-11 étapes 4 et 5 (docs/recette/SC-11.md) : le séminaire de Novaléa SAS du jeu fictif,
+// signé par Claire, qui indique son bon de commande ; les factures portent le SIREN, le bon de
+// commande et l'adresse de facturation. Avec REJEU_FACTURX_DIR, les originaux émis (Factur-X) sont
+// écrits pour veraPDF et Mustang.
+describe("SC-11 — Rejeu des étapes 4 et 5 (lot 41)", () => {
+  it("Claire signe et indique son bon de commande ; la facture porte le SIREN, le bon de commande et l'adresse de facturation", async () => {
+    const dataset = JSON.parse(readFileSync(resolve(__dirname, "../../../../docs/recette/symbola-synthetic-users.json"), "utf8")) as {
+      evenements: { id: string; dates: string[]; lieu: { nom: string; commune: string }; client: { raison_sociale: string; siren: string; adresse_facturation: string; bon_de_commande: string }; budget: { taux_tva_pct: number; postes: { poste: string; ht_centimes: number }[] } }[];
+    };
+    const seminar = dataset.evenements.find((event) => event.id === "EV-REF-02")!;
+    const [line, town] = seminar.client.adresse_facturation.split(", ") as [string, string];
+    const [postalCode, ...city] = town.split(" ");
+    const org = await organization("assujetti");
+    const { organizationId, plannerId } = org;
+    const novaleaSas = await createContact(organizationId, { kind: "company", name: seminar.client.raison_sociale, companyIdNumber: seminar.client.siren, addressLine: line, postalCode: postalCode!, city: city.join(" "), country: "France" });
+    const source = await createProspectSource(organizationId, "Recommandation");
+    const eventId = (await createProspect({ organizationId, createdByUserId: plannerId, prospectSourceId: source.id, eventDate: seminar.dates[0]!, clients: [{ firstName: "Claire", lastName: "Fontaine" }, { contactId: novaleaSas.id, firstName: seminar.client.raison_sociale }] })).id;
+    const quote = await createQuote({ organizationId, eventId, createdByUserId: plannerId, now: NOW });
+    await setQuoteClientKind(organizationId, quote.id, "professional");
+    for (const item of seminar.budget.postes) {
+      await addQuoteLine(organizationId, quote.id, { label: item.poste, unit: "forfait", quantityMilli: 1000, unitPriceCents: item.ht_centimes, vatRateBasisPoints: seminar.budget.taux_tva_pct * 100 });
+    }
+    await addScheduleItem(organizationId, quote.id, { label: "Acompte à la commande", dueDate: "2027-04-15", percentageBasisPoints: 3000 });
+    await setQuoteBuyerDetails(organizationId, quote.id, {
+      buyerContactId: novaleaSas.id,
+      orderReference: null,
+      buyerReference: null,
+      deliveryAddress: { line: seminar.lieu.nom, postalCode: "44000", city: seminar.lieu.commune, countryCode: "FR" },
+    });
+    await sendQuote({ organizationId, quoteId: quote.id, now: NOW });
+    setSignatureProviderForTests(fakeSignatureProvider());
+    const claire = `claire-${randomUUID()}@example.test`;
+    const sent = await sendQuoteForSignature(confirmed({ organizationId, quoteId: quote.id, signers: [{ name: "Claire Fontaine", email: claire, billingAddress: seminar.client.adresse_facturation }], documentPdf: PDF, locale: "fr" }));
+    // Étape 4 : depuis son lien, Claire indique son numéro, puis signe.
+    await setClientOrderReference({ organizationId, eventId, linkId: randomUUID(), quoteId: quote.id, clientEmail: claire, reference: seminar.client.bon_de_commande });
+    for (const signer of sent.signature!.signers) await actOnFakeSignature(signer.signingUrl.split("/").pop()!, "sign");
+    // Étape 5 : les factures.
+    // Le PDF de l'app (polices incorporées), comme à l'émission réelle.
+    const render = async (invoice: Parameters<typeof renderInvoicePdf>[1]) => renderInvoicePdf(organizationId, invoice, "fr");
+    const deposit = await issueDepositInvoice({ renderOriginal: render, organizationId, scheduleItemId: sent.current.schedule.items[0]!.id, now: NOW });
+    const balance = await issueBalanceInvoice({ renderOriginal: render, organizationId, quoteId: quote.id, now: NOW });
+    expect(balance.totals.totalTtcCents + deposit.totals.totalTtcCents).toBe(5760000);
+    for (const invoice of [deposit, balance]) {
+      const xml = await storedXml(organizationId, invoice.id);
+      expect(xml).toContain(`<ram:ID schemeID="0002">${seminar.client.siren}</ram:ID>`);
+      expect(xml).toContain(`<ram:IssuerAssignedID>${seminar.client.bon_de_commande}</ram:IssuerAssignedID>`);
+      expect(xml).toContain(`<ram:LineOne>${line}</ram:LineOne>`);
+      expect(invoice.buyers[0]).toMatchObject({ kind: "company", siren: seminar.client.siren, billingAddress: seminar.client.adresse_facturation });
+    }
+    const out = process.env.REJEU_FACTURX_DIR;
+    if (out) {
+      mkdirSync(out, { recursive: true });
+      for (const invoice of [deposit, balance]) {
+        const served = await getInvoicePdf(organizationId, invoice.id, render);
+        writeFileSync(join(out, `sc-11-${invoice.number}.pdf`), served.pdf);
+      }
+    }
   });
 });
