@@ -20,10 +20,10 @@ export default async function TutorialsPage() {
   const tHelp = await getTranslations("Help");
   const tCenter = await getTranslations("HelpCenter");
   const db = appDatabase();
-  const [events, budget, quotes, vendors] = await Promise.all(
-    (["events", "budget", "quotes", "vendors"] as const).map((module) => isModuleEnabled(db, organizationId, module)),
+  const [events, budget, quotes, vendors, appointments] = await Promise.all(
+    (["events", "budget", "quotes", "vendors", "appointments"] as const).map((module) => isModuleEnabled(db, organizationId, module)),
   );
-  const modules: Record<HelpModule, boolean> = { hub: true, events: events!, budget: budget!, quotes: quotes!, vendors: vendors! };
+  const modules: Record<HelpModule, boolean> = { hub: true, events: events!, budget: budget!, quotes: quotes!, vendors: vendors!, appointments: appointments! };
   const progress = await getHelpProgress(db, auth.user.id);
   const available = TUTORIALS.filter((tutorial) => modules[tutorial.module]);
   const states = journeyStates(available, progress);

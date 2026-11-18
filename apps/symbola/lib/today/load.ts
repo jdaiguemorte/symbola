@@ -4,7 +4,7 @@
 // est « indisponible » et les autres restent (ARC-07, settle.ts). Le tri est dans rank.ts ; les
 // mots viennent de l'appelant (traductions), pour que l'assemblage se teste sans écran.
 import { appDatabase } from "@symbola/db/client";
-import { formatAmount, parisToday, type Locale } from "@symbola/i18n";
+import { formatAmount, formatDateTime, parisToday, type Locale } from "@symbola/i18n";
 import type { EventSummary } from "@symbola/contracts";
 import { listPendingPaymentDeclarations, listUpcomingVendorPayments } from "@/modules/budget/service";
 import {
@@ -17,10 +17,12 @@ import {
   listUncontractedVendors, isInProgress } from "@/modules/events/service";
 import { getFollowUpDelays } from "@/modules/hub/service";
 import { listEventIdsWithSentQuote, listOpenScheduledDeposits, listQuotesAwaitingAnswer, listUnpaidPayments } from "@/modules/quotes/service";
+import { listCalendarSourcesInError, listTodayAppointments } from "@/modules/appointments/service";
 import { TODAY_HORIZON_DAYS, type TodayItem } from "./rank";
 import { settleWithin, TODAY_SOURCE_TIMEOUT_MS } from "./settle";
 
-export type TodayModules = { events: boolean; quotes: boolean; budget: boolean };
+// Lot 46 (HUB-08) : appointments, le module Rendez-vous (absent = fermé).
+export type TodayModules = { events: boolean; quotes: boolean; budget: boolean; appointments?: boolean };
 export type TodaySource = keyof TodayModules;
 
 export type TodayWords = {
@@ -34,6 +36,10 @@ export type TodayWords = {
   vendorContract: (vendorName: string, slotLabel: string) => string;
   dateConflict: (count: number) => string;
   linkRenewal: (personName: string) => string;
+  // Lot 46 (HUB-08) : « 10:00 · Découverte avec Léa Martin », et ses changements.
+  appointment?: (time: string, type: string, person: string) => string;
+  appointmentChange?: (change: "new" | "rescheduled" | "cancelled", time: string, type: string, person: string) => string;
+  calendarSourceError?: (label: string) => string;
 };
 
 // Évènements en cours : ni clôturés, ni annulés (lot 34a, EVT-05).
@@ -53,6 +59,7 @@ type Context = {
   events: EventSummary[];
   names: (eventId: string | null) => string | null;
   money: (cents: number) => string;
+  locale: Locale;
   delays: { prospectFollowUpDays: number; quoteFollowUpDays: number };
 };
 
@@ -237,6 +244,46 @@ async function budgetItems({ organizationId, words, today, names, money }: Conte
   return items;
 }
 
+// Lot 46 (HUB-08, D2) — les rendez-vous du jour, ceux pris, reportés ou annulés depuis la veille, et
+// les agendas extérieurs en erreur (aucun créneau proposé tant qu'ils ne sont pas relus).
+async function appointmentItems({ organizationId, words, today, now, names, locale }: Context): Promise<TodayItem[]> {
+  const items: TodayItem[] = [];
+  const time = (iso: string) => new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" }).format(new Date(iso));
+  for (const appointment of await listTodayAppointments(organizationId, now)) {
+    const when = time(appointment.startsAt);
+    const isToday = appointment.change === "today";
+    items.push({
+      key: `appointment:${appointment.id}`,
+      kind: isToday ? "appointment" : "appointment_change",
+      eventId: appointment.eventId,
+      eventNames: names(appointment.eventId),
+      title: isToday
+        ? (words.appointment?.(when, appointment.typeName, appointment.personName) ?? appointment.typeName)
+        : (words.appointmentChange?.(appointment.change as "new" | "rescheduled" | "cancelled", formatDateTime(new Date(appointment.startsAt), locale), appointment.typeName, appointment.personName) ?? appointment.typeName),
+      dueOn: isToday ? today : null,
+      since: appointment.changedAt ? day(appointment.changedAt) : null,
+      actor: { kind: "you" },
+      href: `/rendez-vous/${appointment.id}`,
+      action: { kind: "open" },
+    });
+  }
+  for (const source of await listCalendarSourcesInError(organizationId)) {
+    items.push({
+      key: `calendar-source:${source.id}`,
+      kind: "calendar_source_error",
+      eventId: null,
+      eventNames: null,
+      title: words.calendarSourceError?.(source.label) ?? source.label,
+      dueOn: null,
+      since: source.lastSuccessAt ? day(source.lastSuccessAt) : null,
+      actor: { kind: "you" },
+      href: "/rendez-vous/disponibilites#agendas",
+      action: { kind: "open" },
+    });
+  }
+  return items;
+}
+
 export async function loadTodayItems(
   organizationId: string,
   modules: TodayModules,
@@ -259,12 +306,14 @@ export async function loadTodayItems(
     events,
     names: (eventId) => (eventId ? (namesOf.get(eventId) ?? null) : null),
     money: (cents) => formatAmount(cents, locale),
+    locale,
     delays: await getFollowUpDelays(appDatabase(), organizationId),
   };
   const sources: [TodaySource, boolean, (context: Context) => Promise<TodayItem[]>][] = [
     ["events", modules.events && listed.ok, eventItems],
     ["quotes", modules.quotes, quoteItems],
     ["budget", modules.budget, budgetItems],
+    ["appointments", modules.appointments === true, appointmentItems],
   ];
   const settled = await Promise.all(
     sources.map(async ([source, enabled, collect]) => [source, enabled ? await settleWithin(() => collect(context), timeoutMs, source) : { ok: true as const, value: [] }] as const),

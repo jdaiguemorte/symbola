@@ -3,15 +3,26 @@
 import type { EmailLocale, EmailTemplateKind } from "@symbola/contracts";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
+import { isAppointmentsModuleEnabled } from "@/modules/appointments/service";
 
-type TemplateModule = "events" | "quotes";
+type TemplateModule = "events" | "quotes" | "appointments";
 
-export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "signatures"; module: TemplateModule; kinds: EmailTemplateKind[] }[] = [
+export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "signatures" | "appointments"; module: TemplateModule; kinds: EmailTemplateKind[] }[] = [
   { key: "links", module: "events", kinds: ["client_link", "client_link_renewed", "vendor_link", "vendor_link_renewed"] },
   { key: "reminders", module: "events", kinds: ["task_reminder"] },
   { key: "program", module: "events", kinds: ["program_published"] },
   { key: "signatures", module: "quotes", kinds: ["quote_signature", "contract_signature", "order_first", "signed_copy"] },
 ];
+
+// Lot 46 (RDV-03, D10) : les e-mails d'un rendez-vous (confirmé, rappel, déplacé, annulé) partent de
+// leur texte de départ. Ils ne sont pas encore proposés ici : la contrainte de la table
+// hub.email_templates (migration 0142) ne connaît pas leurs natures, et la modifier touche le schéma
+// du hub (accord demandé). Il suffira d'ajouter ce groupe à la liste ci-dessus avec la migration.
+export const APPOINTMENT_EMAIL_TEMPLATE_GROUP = { key: "appointments", module: "appointments", kinds: ["appointment_confirmed", "appointment_reminder", "appointment_rescheduled", "appointment_cancelled"] } as const satisfies {
+  key: string;
+  module: TemplateModule;
+  kinds: EmailTemplateKind[];
+};
 
 // La langue du modèle affiché : celle demandée (?langue=), sinon celle de l'écran.
 export function templateLocale(requested: string | undefined, interfaceLocale: string): EmailLocale {
@@ -20,10 +31,11 @@ export function templateLocale(requested: string | undefined, interfaceLocale: s
 }
 
 export async function enabledTemplateModules(organizationId: string): Promise<Set<TemplateModule>> {
-  const [events, quotes] = await Promise.all([isEventsModuleEnabled(organizationId), isQuotesModuleEnabled(organizationId)]);
+  const [events, quotes, appointments] = await Promise.all([isEventsModuleEnabled(organizationId), isQuotesModuleEnabled(organizationId), isAppointmentsModuleEnabled(organizationId)]);
   const enabled = new Set<TemplateModule>();
   if (events) enabled.add("events");
   if (quotes) enabled.add("quotes");
+  if (appointments) enabled.add("appointments");
   return enabled;
 }
 

@@ -27,7 +27,12 @@ export type TodayItemKind =
   | "deposit_blocked"
   | "vendor_contract"
   | "date_conflict"
-  | "link_renewal";
+  | "link_renewal"
+  // Lot 46 (HUB-08) : rendez-vous du jour, rendez-vous pris, reportés ou annulés depuis la veille,
+  // agenda extérieur en erreur.
+  | "appointment"
+  | "appointment_change"
+  | "calendar_source_error";
 
 // L'action en un clic (HUB-08) : cocher une tâche, relancer un prestataire, ou ouvrir l'objet.
 export type TodayAction =

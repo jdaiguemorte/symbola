@@ -3593,5 +3593,47 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+
+@layer components {
+  /* Lot 46 (RDV-02, RDV-03) — page publique de réservation et lien de gestion : créneaux en puces
+     de 44 px au moins (doigt, 375 px), radio visible pour le clavier et les lecteurs d'écran ;
+     listes des rendez-vous et de leurs types. */
+  .slot-chips {
+    @apply flex flex-wrap gap-2;
+  }
+  .slot-chip {
+    @apply relative inline-flex min-h-11 min-w-20 cursor-pointer items-center justify-center gap-2 rounded-md border border-line-strong bg-surface px-3 py-2;
+  }
+  .slot-chip:has(input:checked) {
+    @apply border-primary bg-primary-soft text-primary;
+  }
+  .slot-chip:has(input:focus-visible) {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+  /* Les jours et la liste des créneaux, sans cadre ni retrait : toute la largeur pour les puces. */
+  .booking-day,
+  .booking-slots {
+    @apply m-0 mb-3 flex min-w-0 flex-col gap-2 border-0 p-0;
+  }
+  .booking-day > legend,
+  .booking-slots > legend {
+    @apply mb-1 p-0 font-semibold;
+  }
+  .availability-day {
+    @apply mb-3 flex flex-col gap-2;
+  }
+  .booking-types,
+  .appointment-list,
+  .appointment-types,
+  .calendar-sources,
+  .report-actions,
+  .event-appointments {
+    @apply flex flex-col gap-2;
+  }
+  .appointment-types .highlight {
+    @apply font-semibold;
+  }
+  .input-prefix {
+    @apply flex items-center gap-1;
   }
 }

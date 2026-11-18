@@ -27,6 +27,9 @@ export function todayWords(t: TodayTranslator): TodayWords {
     vendorContract: (vendor, slot) => t("words.vendorContract", { vendor, slot }),
     dateConflict: (count) => t("words.dateConflict", { count }),
     linkRenewal: (name) => t("words.linkRenewal", { name }),
+    appointment: (time, type, person) => t("words.appointment", { time, type, person }),
+    appointmentChange: (change, time, type, person) => t(`words.appointmentChange.${change}`, { time, type, person }),
+    calendarSourceError: (label) => t("words.calendarSourceError", { label }),
   };
 }
 

@@ -6,6 +6,7 @@ import { ScreenHelp } from "@/app/screen-help";
 import { getLinkEventView, getLinkVendorOptions, LinkAccessDeniedError, listLinkDecisions, listLinkSharedDocuments, markLinkProgramSeen, monthKey, type EventDecision, type EventTask, type LinkAccess } from "@/modules/events/service";
 import { getLinkBudgetView, LinkBudgetAccessDeniedError } from "@/modules/budget/service";
 import { listClientQuoteOptions, listClientQuotesToSign, listEventInvoices } from "@/modules/quotes/service";
+import { listUpcomingAppointmentsForPerson } from "@/modules/appointments/service";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
@@ -106,6 +107,9 @@ export async function PortalContent({ access, preview = false, banner }: { acces
   }
   const invoices = (await isQuotesModuleEnabled(organizationId)) ? await listEventInvoices(organizationId, access.eventId) : [];
   const hasDocuments = sharedDocuments.length > 0 || invoices.length > 0;
+  // Lot 46 (POR-02, POR-10) : les prochains rendez-vous de l'évènement auxquels la personne du lien
+  // participe (reconnue par son adresse e-mail), seulement les siens ; rien si le module est fermé.
+  const upcomingAppointments = access.audience === "client" ? await listUpcomingAppointmentsForPerson(organizationId, access.eventId, access.email) : [];
 
   const tasksByMonth = new Map<string, EventTask[]>();
   for (const task of view.tasks ?? []) {
@@ -217,6 +221,21 @@ export async function PortalContent({ access, preview = false, banner }: { acces
             </ol>
           </>
         )}
+        {upcomingAppointments.length > 0 ? (
+          <>
+            <h3>{tLink("appointmentsTitle")}</h3>
+            <ul className="portal-appointments">
+              {upcomingAppointments.map((appointment) => (
+                <li key={appointment.id}>
+                  <strong>{appointment.typeName}</strong> — {formatDateTime(new Date(appointment.startsAt), locale)}
+                  {appointment.locationKind === "place" && appointment.location ? ` · ${appointment.location}` : ""}
+                  {appointment.locationKind === "video" ? ` · ${tLink("appointmentVideo")}` : ""}
+                  {appointment.locationKind === "phone" ? ` · ${tLink("appointmentPhone")}` : ""}
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
         {sections.length > 1 ? (
           <nav aria-label={tLink("contentsLabel")} className="portal-contents">
             <ul>

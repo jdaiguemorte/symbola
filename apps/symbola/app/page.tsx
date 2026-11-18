@@ -57,6 +57,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     events: await isModuleEnabled(db, organizationId, "events"),
     quotes: await isModuleEnabled(db, organizationId, "quotes"),
     budget: await isModuleEnabled(db, organizationId, "budget"),
+    // Lot 46 (HUB-08) : les rendez-vous du jour.
+    appointments: await isModuleEnabled(db, organizationId, "appointments"),
   };
   // Lot 33b (HUB-09, PAR-01) : le questionnaire d'accueil se reprend d'ici tant qu'il n'est pas
   // fini (Propriétaire), puis la liste de prise en main guide les premiers pas de l'équipe.

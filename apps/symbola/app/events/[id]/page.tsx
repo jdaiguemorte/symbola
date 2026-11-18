@@ -15,6 +15,7 @@ import {
 } from "@symbola/i18n";
 import { ENGAGED_CANDIDATE_STATUSES } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
+import { EventAppointments } from "./event-appointments";
 import { appDatabase } from "@symbola/db/client";
 import {
   listTaskAttachments,
@@ -698,6 +699,8 @@ export default async function EventDetailPage({
               </form>
             </section>
           ) : null}
+          {/* Lot 46 (EVT-10, D8) : rendez-vous et comptes rendus, si le module Rendez-vous est ouvert. */}
+          <EventAppointments organizationId={organizationId} eventId={event.id} locale={locale} />
           <section className="card" aria-labelledby="activity-title">
             <h2 id="activity-title">{t("activityTitle")}</h2>
             {activity.length === 0 ? <p>{t("noActivity")}</p> : null}
