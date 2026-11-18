@@ -9,6 +9,8 @@ import { getPlannerAuthContext } from "@/lib/auth-context";
 import type { OrganizationUser } from "@/lib/guards";
 import { checkRateLimit, rateLimitedResponse } from "@/lib/rate-limit";
 import type { UploadState } from "./state";
+import { currentLinkAccess } from "@/lib/link-session";
+import type { LinkAccess } from "@/modules/events/service";
 
 // Un fichier de 20 Mo (devis, fiche, export) et la place des autres champs :
 // la limite qu'avaient toutes les actions serveur jusqu'au lot 16.
@@ -75,6 +77,44 @@ export async function receiveUpload(request: Request, maxBytes: number = UPLOAD_
     } as RequestInit & { duplex: "half" });
     const formData = await bounded.formData();
     return { ok: true, user: { ...auth.user, organizationId: auth.user.organizationId }, formData };
+  } catch {
+    return exceeded ? tooLarge() : refuse({ error: t("failed") }, 400);
+  }
+}
+
+// Lot 47 (PRE-04, SEC-21 ; ADR 0085) — envoi d'un fichier par le lien personnel d'un prestataire
+// (devis depuis son téléphone, facture une fois retenu), sans compte. Mêmes contrôles, dans le même
+// ordre : même origine, session du lien (au public attendu), limite de débit (par lien et par
+// adresse IP), taille annoncée puis lue en flux. Le contenu (type, antivirus) est contrôlé ensuite
+// par @symbola/files.
+export type ReceivedLinkUpload = { ok: true; access: LinkAccess; formData: FormData } | { ok: false; response: Response };
+
+export async function receiveLinkUpload(request: Request, audience: LinkAccess["audience"], maxBytes: number = UPLOAD_BODY_MAX_BYTES): Promise<ReceivedLinkUpload> {
+  const t = await getTranslations("Upload");
+  const refuse = (state: UploadState, status: number): ReceivedLinkUpload => ({ ok: false, response: uploadResponse(state, status) });
+  if (!isSameOrigin(request.headers)) return refuse({ error: t("refused") }, 403);
+
+  const access = await currentLinkAccess();
+  if (!access || access.audience !== audience) return refuse({ error: t("unauthenticated") }, 401);
+
+  const limited = await checkRateLimit("upload", { account: access.linkId, headers: request.headers });
+  if (!limited.allowed) return { ok: false, response: await rateLimitedResponse(limited) };
+
+  const tooLarge = async () => refuse({ error: t("tooLarge", { max: formatFileSize(maxBytes, (await getLocale()) as Locale) }) }, 413);
+  if (Number(request.headers.get("content-length") ?? "0") > maxBytes) return tooLarge();
+  if (!request.body) return refuse({ error: t("failed") }, 400);
+
+  let exceeded = false;
+  try {
+    const bounded = new Request(request.url, {
+      method: "POST",
+      headers: request.headers,
+      body: boundedBody(request.body, maxBytes, () => {
+        exceeded = true;
+      }),
+      duplex: "half",
+    } as RequestInit & { duplex: "half" });
+    return { ok: true, access, formData: await bounded.formData() };
   } catch {
     return exceeded ? tooLarge() : refuse({ error: t("failed") }, 400);
   }

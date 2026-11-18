@@ -1408,3 +1408,6 @@ export function starterAppointmentTypes(locale: StarterLocale): StarterAppointme
 export function starterBookingPrivacyNotice(locale: StarterLocale): string {
   return appointmentTypesFile.privacyNotice[locale];
 }
+
+// Lot 47 (PAR-05 ; ADR 0085) : délais et tâches de suivi des prestataires par lien.
+export * from "./vendor-coordination";

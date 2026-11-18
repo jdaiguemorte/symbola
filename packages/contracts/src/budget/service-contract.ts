@@ -365,7 +365,8 @@ export type UpdateBudgetLineInput = {
 export type BudgetLineHistoryEntry = {
   field: BudgetAmountField;
   oldValueCents: number | null;
-  newValueCents: number;
+  // Lot 47 (D6) : nulle quand l'engagé d'un prestataire qui n'est plus retenu est libéré.
+  newValueCents: number | null;
   changedByUserId: string;
   changedAt: string;
 };

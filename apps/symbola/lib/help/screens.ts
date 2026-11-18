@@ -66,6 +66,11 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "appointmentSettings", group: "appointments", audience: "team", module: "appointments", path: "/rendez-vous/reglages", capture: false },
   { key: "appointmentType", group: "appointments", audience: "team", module: "appointments", path: null, capture: false },
   { key: "appointmentAvailability", group: "appointments", audience: "team", module: "appointments", path: "/rendez-vous/disponibilites", capture: false },
+  // Lot 47 (PAR-05, PRE-03, BUD-05) : demander des devis à plusieurs prestataires et comparer, les
+  // scénarios d'options, les réglages des prestataires par lien.
+  { key: "vendorCoordination", group: "events", audience: "team", module: "events", path: null, capture: false },
+  { key: "vendorScenarios", group: "events", audience: "team", module: "events", path: null, capture: false },
+  { key: "vendorCoordinationSettings", group: "events", audience: "team", module: "events", path: "/events/parametres/prestataires-par-lien", capture: false },
   // Prestataires
   { key: "vendorBook", group: "vendors", audience: "team", module: "vendors", path: "/prestataires", tour: "vendors", capture: true },
   { key: "vendorDetail", group: "vendors", audience: "team", module: "vendors", path: null, capture: true },

@@ -35,6 +35,9 @@ export function todayWords(t: TodayTranslator): TodayWords {
     prospectRequest: (names, when) => (when ? t("words.prospectRequest", { names, when }) : t("words.prospectRequestNoDate", { names })),
     prospectRequestDateTaken: t("words.prospectRequestDateTaken"),
     prospectToReview: (count) => t("words.prospectToReview", { count }),
+    vendorAnswer: (vendor, slot, answer) => t(`words.vendorAnswer.${answer}`, { vendor, slot }),
+    vendorChoice: (vendor, slot) => t("words.vendorChoice", { vendor, slot }),
+    vendorRoadmap: (vendor) => t("words.vendorRoadmap", { vendor }),
   };
 }
 

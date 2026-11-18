@@ -8,7 +8,13 @@ import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { listBudgetLines, updateBudgetLine } from "@/modules/budget/service";
 import { addEventVendorSlot, createProspect, createProspectSource, updateEventVendorSlot } from "@/modules/events/service";
-import { runEventWorkerOnce } from "./event-worker";
+import { CONSUMERS, runEventWorkerOnce } from "./event-worker";
+
+// Lot 47 : ce test vérifie le consommateur du module Budget ; le worker ne fait tourner que lui. Avec
+// tous les consommateurs, il traitait aussi les événements des autres fichiers joués en parallèle
+// (le consommateur « quotes » émettait la facture d'acompte d'un test des factures, qui échouait sur
+// « facture déjà émise »).
+const budgetWorker = () => runEventWorkerOnce({ budget: CONSUMERS.budget! });
 
 const { sql, db } = createAppConnection();
 
@@ -40,10 +46,10 @@ describe("Worker continu — prestataire retenu → engagé du budget (PRE-02 �
     // Rien tant que le worker n'est pas passé : la publication est découplée.
     expect(await actual(booked.organizationId, booked.eventId)).toBeNull();
 
-    await runEventWorkerOnce();
+    await budgetWorker();
     expect(await actual(booked.organizationId, booked.eventId)).toBe(480000);
     // Rejeu : rien de plus.
-    await runEventWorkerOnce();
+    await budgetWorker();
     expect(await actual(booked.organizationId, booked.eventId)).toBe(480000);
   });
 
@@ -54,7 +60,7 @@ describe("Worker continu — prestataire retenu → engagé du budget (PRE-02 �
     await new Promise((resolve) => setTimeout(resolve, 20));
     await updateBudgetLine({ organizationId: booked.organizationId, eventId: booked.eventId, eventVendorSlotId: booked.slotId, field: "committed", amountCents: 495000, changedByUserId: booked.userId });
 
-    await runEventWorkerOnce();
+    await budgetWorker();
     expect(await actual(booked.organizationId, booked.eventId)).toBe(495000);
   });
 });

@@ -446,3 +446,5 @@ export {
 export * from "./events/pipeline";
 // Lot 51 (EVT-04, CHR-08, JRJ-05 à JRJ-09, ARC-09) : le jour J de terrain.
 export * from "./events/day-of";
+// Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; ADR 0085) : prestataires par lien.
+export * from "./events/vendor-coordination";

@@ -1,6 +1,6 @@
 {
-  "id": "291576d1-618e-446c-ba33-a7e8baed9eb2",
-  "prevId": "6839dfbb-2b25-46c4-8b0b-04d9957a86cf",
+  "id": "9a20014b-fcf5-4e92-9af8-f03693a98bca",
+  "prevId": "85e511f2-515e-40b6-9ab2-d4f6d531f691",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1905,7 +1905,7 @@
           "name": "new_value_cents",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "changed_by_user_id": {
           "name": "changed_by_user_id",
@@ -5105,6 +5105,185 @@
       },
       "isRLSEnabled": false
     },
+    "events.event_decision_option_feedback": {
+      "name": "event_decision_option_feedback",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "decision_id": {
+          "name": "decision_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "candidate_id": {
+          "name": "candidate_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "link_id": {
+          "name": "link_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "opinion": {
+          "name": "opinion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "comment": {
+          "name": "comment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "event_decision_option_feedback_organization_idx": {
+          "name": "event_decision_option_feedback_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "event_decision_option_feedback_decision_idx": {
+          "name": "event_decision_option_feedback_decision_idx",
+          "columns": [
+            {
+              "expression": "decision_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "event_decision_option_feedback_decision_id_event_decisions_id_fk": {
+          "name": "event_decision_option_feedback_decision_id_event_decisions_id_fk",
+          "tableFrom": "event_decision_option_feedback",
+          "tableTo": "event_decisions",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "decision_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "event_decision_option_feedback_candidate_id_event_vendor_candidates_id_fk": {
+          "name": "event_decision_option_feedback_candidate_id_event_vendor_candidates_id_fk",
+          "tableFrom": "event_decision_option_feedback",
+          "tableTo": "event_vendor_candidates",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "candidate_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "event_decision_option_feedback_link_id_event_links_id_fk": {
+          "name": "event_decision_option_feedback_link_id_event_links_id_fk",
+          "tableFrom": "event_decision_option_feedback",
+          "tableTo": "event_links",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "link_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "event_decision_option_feedback_unique": {
+          "name": "event_decision_option_feedback_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "decision_id",
+            "candidate_id",
+            "link_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "event_decision_option_feedback_opinion_check": {
+          "name": "event_decision_option_feedback_opinion_check",
+          "value": "\"events\".\"event_decision_option_feedback\".\"opinion\" is null or \"events\".\"event_decision_option_feedback\".\"opinion\" in ('like', 'dislike')"
+        },
+        "event_decision_option_feedback_comment_check": {
+          "name": "event_decision_option_feedback_comment_check",
+          "value": "\"events\".\"event_decision_option_feedback\".\"comment\" is null or char_length(\"events\".\"event_decision_option_feedback\".\"comment\") between 1 and 500"
+        },
+        "event_decision_option_feedback_content_check": {
+          "name": "event_decision_option_feedback_content_check",
+          "value": "\"events\".\"event_decision_option_feedback\".\"opinion\" is not null or \"events\".\"event_decision_option_feedback\".\"comment\" is not null"
+        }
+      },
+      "isRLSEnabled": false
+    },
     "events.event_decisions": {
       "name": "event_decisions",
       "schema": "events",
@@ -5210,6 +5389,12 @@
         "replaces_decision_id": {
           "name": "replaces_decision_id",
           "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "engaged_at": {
+          "name": "engaged_at",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
@@ -5668,7 +5853,7 @@
           "name": "uploaded_by_user_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -5805,7 +5990,13 @@
           "name": "uploaded_by_user_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "uploaded_by_link_id": {
+          "name": "uploaded_by_link_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         },
         "folder_id": {
           "name": "folder_id",
@@ -5911,6 +6102,20 @@
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "event_documents_uploaded_by_link_id_event_links_id_fk": {
+          "name": "event_documents_uploaded_by_link_id_event_links_id_fk",
+          "tableFrom": "event_documents",
+          "tableTo": "event_links",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "uploaded_by_link_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         },
         "event_documents_folder_id_event_document_folders_id_fk": {
@@ -7329,6 +7534,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "follow_up_candidate_id": {
+          "name": "follow_up_candidate_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "done_at": {
           "name": "done_at",
           "type": "timestamp with time zone",
@@ -7417,6 +7628,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "event_tasks_follow_up_candidate_idx": {
+          "name": "event_tasks_follow_up_candidate_idx",
+          "columns": [
+            {
+              "expression": "follow_up_candidate_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -7441,6 +7667,20 @@
           "schemaTo": "events",
           "columnsFrom": [
             "vendor_candidate_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "event_tasks_follow_up_candidate_id_event_vendor_candidates_id_fk": {
+          "name": "event_tasks_follow_up_candidate_id_event_vendor_candidates_id_fk",
+          "tableFrom": "event_tasks",
+          "tableTo": "event_vendor_candidates",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "follow_up_candidate_id"
           ],
           "columnsTo": [
             "id"
@@ -7758,6 +7998,48 @@
           "notNull": true,
           "default": 0
         },
+        "brief_id": {
+          "name": "brief_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "availability": {
+          "name": "availability",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "answered_at": {
+          "name": "answered_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "answer_message": {
+          "name": "answer_message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reminded_at": {
+          "name": "reminded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dismissal_reason": {
+          "name": "dismissal_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "invoice_document_id": {
+          "name": "invoice_document_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -7800,6 +8082,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "event_vendor_candidates_brief_idx": {
+          "name": "event_vendor_candidates_brief_idx",
+          "columns": [
+            {
+              "expression": "brief_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -7830,12 +8127,53 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
+        },
+        "event_vendor_candidates_brief_id_vendor_briefs_id_fk": {
+          "name": "event_vendor_candidates_brief_id_vendor_briefs_id_fk",
+          "tableFrom": "event_vendor_candidates",
+          "tableTo": "vendor_briefs",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "brief_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "event_vendor_candidates_invoice_document_id_event_documents_id_fk": {
+          "name": "event_vendor_candidates_invoice_document_id_event_documents_id_fk",
+          "tableFrom": "event_vendor_candidates",
+          "tableTo": "event_documents",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "invoice_document_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "event_vendor_candidates_availability_check": {
+          "name": "event_vendor_candidates_availability_check",
+          "value": "\"events\".\"event_vendor_candidates\".\"availability\" is null or \"events\".\"event_vendor_candidates\".\"availability\" in ('available', 'unavailable')"
+        },
+        "event_vendor_candidates_answer_message_check": {
+          "name": "event_vendor_candidates_answer_message_check",
+          "value": "\"events\".\"event_vendor_candidates\".\"answer_message\" is null or char_length(\"events\".\"event_vendor_candidates\".\"answer_message\") between 1 and 1000"
+        },
+        "event_vendor_candidates_dismissal_reason_check": {
+          "name": "event_vendor_candidates_dismissal_reason_check",
+          "value": "\"events\".\"event_vendor_candidates\".\"dismissal_reason\" is null or \"events\".\"event_vendor_candidates\".\"dismissal_reason\" in ('unavailable', 'other_chosen')"
+        }
+      },
       "isRLSEnabled": false
     },
     "events.event_vendor_slots": {
@@ -9695,6 +10033,809 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "events.vendor_brief_documents": {
+      "name": "vendor_brief_documents",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "brief_id": {
+          "name": "brief_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "document_id": {
+          "name": "document_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "vendor_brief_documents_organization_idx": {
+          "name": "vendor_brief_documents_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "vendor_brief_documents_brief_id_vendor_briefs_id_fk": {
+          "name": "vendor_brief_documents_brief_id_vendor_briefs_id_fk",
+          "tableFrom": "vendor_brief_documents",
+          "tableTo": "vendor_briefs",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "brief_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "vendor_brief_documents_document_id_event_documents_id_fk": {
+          "name": "vendor_brief_documents_document_id_event_documents_id_fk",
+          "tableFrom": "vendor_brief_documents",
+          "tableTo": "event_documents",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "document_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "vendor_brief_documents_unique": {
+          "name": "vendor_brief_documents_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "brief_id",
+            "document_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "events.vendor_briefs": {
+      "name": "vendor_briefs",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vendor_slot_id": {
+          "name": "vendor_slot_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "need": {
+          "name": "need",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "guest_count": {
+          "name": "guest_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "indicative_budget_cents": {
+          "name": "indicative_budget_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "show_budget": {
+          "name": "show_budget",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "deadline": {
+          "name": "deadline",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sent_at": {
+          "name": "sent_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sent_by_user_id": {
+          "name": "sent_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "vendor_briefs_organization_idx": {
+          "name": "vendor_briefs_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "vendor_briefs_event_idx": {
+          "name": "vendor_briefs_event_idx",
+          "columns": [
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "vendor_briefs_event_id_events_id_fk": {
+          "name": "vendor_briefs_event_id_events_id_fk",
+          "tableFrom": "vendor_briefs",
+          "tableTo": "events",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "vendor_briefs_vendor_slot_id_event_vendor_slots_id_fk": {
+          "name": "vendor_briefs_vendor_slot_id_event_vendor_slots_id_fk",
+          "tableFrom": "vendor_briefs",
+          "tableTo": "event_vendor_slots",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "vendor_slot_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "vendor_briefs_slot_unique": {
+          "name": "vendor_briefs_slot_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "vendor_slot_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "vendor_briefs_need_check": {
+          "name": "vendor_briefs_need_check",
+          "value": "char_length(\"events\".\"vendor_briefs\".\"need\") between 1 and 4000"
+        },
+        "vendor_briefs_guest_count_check": {
+          "name": "vendor_briefs_guest_count_check",
+          "value": "\"events\".\"vendor_briefs\".\"guest_count\" is null or \"events\".\"vendor_briefs\".\"guest_count\" between 0 and 100000"
+        },
+        "vendor_briefs_budget_check": {
+          "name": "vendor_briefs_budget_check",
+          "value": "\"events\".\"vendor_briefs\".\"indicative_budget_cents\" is null or \"events\".\"vendor_briefs\".\"indicative_budget_cents\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "events.vendor_coordination_settings": {
+      "name": "vendor_coordination_settings",
+      "schema": "events",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "brief_deadline_days": {
+          "name": "brief_deadline_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 7
+        },
+        "brief_reminder": {
+          "name": "brief_reminder",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "roadmap_month": {
+          "name": "roadmap_month",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "roadmap_week": {
+          "name": "roadmap_week",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "roadmap_alert_days": {
+          "name": "roadmap_alert_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 3
+        },
+        "follow_up_tasks": {
+          "name": "follow_up_tasks",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "vendor_coordination_settings_deadline_check": {
+          "name": "vendor_coordination_settings_deadline_check",
+          "value": "\"events\".\"vendor_coordination_settings\".\"brief_deadline_days\" between 1 and 60"
+        },
+        "vendor_coordination_settings_alert_check": {
+          "name": "vendor_coordination_settings_alert_check",
+          "value": "\"events\".\"vendor_coordination_settings\".\"roadmap_alert_days\" between 1 and 6"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "events.vendor_roadmaps": {
+      "name": "vendor_roadmaps",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "candidate_id": {
+          "name": "candidate_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "stage": {
+          "name": "stage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sent_at": {
+          "name": "sent_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "confirmed_at": {
+          "name": "confirmed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "program_version": {
+          "name": "program_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "vendor_roadmaps_organization_idx": {
+          "name": "vendor_roadmaps_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "vendor_roadmaps_candidate_idx": {
+          "name": "vendor_roadmaps_candidate_idx",
+          "columns": [
+            {
+              "expression": "candidate_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "vendor_roadmaps_candidate_id_event_vendor_candidates_id_fk": {
+          "name": "vendor_roadmaps_candidate_id_event_vendor_candidates_id_fk",
+          "tableFrom": "vendor_roadmaps",
+          "tableTo": "event_vendor_candidates",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "candidate_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "vendor_roadmaps_stage_unique": {
+          "name": "vendor_roadmaps_stage_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "candidate_id",
+            "stage"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "vendor_roadmaps_stage_check": {
+          "name": "vendor_roadmaps_stage_check",
+          "value": "\"events\".\"vendor_roadmaps\".\"stage\" in ('j30', 'j7')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "events.vendor_scenario_choices": {
+      "name": "vendor_scenario_choices",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scenario_id": {
+          "name": "scenario_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vendor_slot_id": {
+          "name": "vendor_slot_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "candidate_id": {
+          "name": "candidate_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "vendor_scenario_choices_organization_idx": {
+          "name": "vendor_scenario_choices_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "vendor_scenario_choices_scenario_id_vendor_scenarios_id_fk": {
+          "name": "vendor_scenario_choices_scenario_id_vendor_scenarios_id_fk",
+          "tableFrom": "vendor_scenario_choices",
+          "tableTo": "vendor_scenarios",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "scenario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "vendor_scenario_choices_vendor_slot_id_event_vendor_slots_id_fk": {
+          "name": "vendor_scenario_choices_vendor_slot_id_event_vendor_slots_id_fk",
+          "tableFrom": "vendor_scenario_choices",
+          "tableTo": "event_vendor_slots",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "vendor_slot_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "vendor_scenario_choices_candidate_id_event_vendor_candidates_id_fk": {
+          "name": "vendor_scenario_choices_candidate_id_event_vendor_candidates_id_fk",
+          "tableFrom": "vendor_scenario_choices",
+          "tableTo": "event_vendor_candidates",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "candidate_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "vendor_scenario_choices_slot_unique": {
+          "name": "vendor_scenario_choices_slot_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "scenario_id",
+            "vendor_slot_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "events.vendor_scenarios": {
+      "name": "vendor_scenarios",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "vendor_scenarios_organization_idx": {
+          "name": "vendor_scenarios_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "vendor_scenarios_event_idx": {
+          "name": "vendor_scenarios_event_idx",
+          "columns": [
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "vendor_scenarios_event_id_events_id_fk": {
+          "name": "vendor_scenarios_event_id_events_id_fk",
+          "tableFrom": "vendor_scenarios",
+          "tableTo": "events",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "vendor_scenarios_name_check": {
+          "name": "vendor_scenarios_name_check",
+          "value": "char_length(\"events\".\"vendor_scenarios\".\"name\") between 1 and 120"
+        }
+      },
       "isRLSEnabled": false
     },
     "guests.caterer_summary_downloads": {
@@ -13271,7 +14412,7 @@
       "checkConstraints": {
         "email_templates_kind_check": {
           "name": "email_templates_kind_check",
-          "value": "\"hub\".\"email_templates\".\"kind\" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received')"
+          "value": "\"hub\".\"email_templates\".\"kind\" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap')"
         },
         "email_templates_locale_check": {
           "name": "email_templates_locale_check",
@@ -21921,7 +23062,10 @@
         "decision_made",
         "vendor_reminded",
         "document_link_opened",
-        "stage_changed"
+        "stage_changed",
+        "vendor_answered",
+        "vendor_invoice_received",
+        "vendor_roadmap_confirmed"
       ]
     },
     "events.event_link_audience": {

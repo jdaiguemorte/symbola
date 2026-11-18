@@ -42,3 +42,16 @@ describe("MSG-01 (lot 44, D7) — Nature « Nouvelle demande de contact »", () 
     expect(await refusal("prospect_form")).toBe("email_templates_kind_check");
   });
 });
+
+// Lot 47 (PRE-03, PAR-05 ; D9 ; migration 0163, accord de Julien du 18/11/2026).
+describe("PAR-05 (lot 47) — Natures des modèles d'e-mails des prestataires", () => {
+  it("le brief, sa relance et la feuille de route sont des natures admises", async () => {
+    expect(await refusal("vendor_brief")).toBe("accepté");
+    expect(await refusal("vendor_brief_reminder")).toBe("accepté");
+    expect(await refusal("vendor_roadmap")).toBe("accepté");
+  });
+
+  it("une nature voisine inconnue reste refusée", async () => {
+    expect(await refusal("vendor_briefs")).toBe("email_templates_kind_check");
+  });
+});
