@@ -68,7 +68,6 @@ function day(instant: Date | string): string {
 type Context = {
   organizationId: string;
   words: TodayWords;
-  locale: Locale;
   today: string;
   now: Date;
   events: EventSummary[];
@@ -388,7 +387,6 @@ export async function loadTodayItems(
   const context: Context = {
     organizationId,
     words,
-    locale,
     today,
     now,
     events,
