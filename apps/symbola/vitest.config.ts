@@ -40,6 +40,11 @@ export const BUSINESS_RULE_FILES = [
   "modules/quotes/payment-reminders.ts",
   "modules/budget/payers.ts",
   "modules/budget/cash-calendar.ts",
+  // Lot 53 : récapitulatif, plages de silence et plan d'envoi des notifications ; tâches récurrentes et
+  // santé du planning ; radar des risques.
+  "modules/hub/notification-rules.ts",
+  "modules/events/planning-rules.ts",
+  "lib/risk-radar/rules.ts",
 ];
 
 export default defineConfig({

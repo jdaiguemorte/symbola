@@ -10,18 +10,18 @@ Il ne tranche aucun point juridique ; les questions pour l'avocat sont à la fin
 
 ## Bibliothèques
 
-380 paquets installés, dont 364 dans les dépendances de l'app livrée (« production ») ; les autres
+394 paquets installés, dont 377 dans les dépendances de l'app livrée (« production ») ; les autres
 servent à construire et à tester (« développement »). Les paquets propres à une plateforme
 (macOS, Linux) comptent pour un.
 
 | Licence | Type | Production | Développement |
 | --- | --- | ---: | ---: |
-| MIT | permissive | 252 | 12 |
-| Apache-2.0 | permissive | 52 | 1 |
-| ISC | permissive | 29 | 0 |
-| BSD-3-Clause | permissive | 10 | 1 |
+| MIT | permissive | 261 | 13 |
+| Apache-2.0 | permissive | 53 | 1 |
+| ISC | permissive | 30 | 0 |
+| BSD-3-Clause | permissive | 11 | 1 |
 | BSD-2-Clause | permissive | 8 | 0 |
-| MPL-2.0 | copyleft | 3 | 2 |
+| MPL-2.0 | copyleft | 4 | 2 |
 | BlueOak-1.0.0 | permissive | 2 | 0 |
 | (MIT OR Apache-2.0) | permissive | 1 | 0 |
 | 0BSD | permissive | 1 | 0 |
@@ -42,6 +42,7 @@ servent à construire et à tester (« développement »). Les paquets propres �
 | `lightningcss` | MPL-2.0 | production | Transformation du CSS (Tailwind CSS) à la construction de l'app, employée sans modification. |
 | `lightningcss-<plateforme>` | MPL-2.0 | production | Binaire natif de lightningcss pour la plateforme de construction, employé sans modification. |
 | `ical.js` | MPL-2.0 | production | Lecture des agendas extérieurs au format iCalendar (lot 46, ADR 0082) : répétitions, exceptions et fuseaux ; employée sans modification, telle que publiée. |
+| `web-push` | MPL-2.0 | production | Chiffrement et signature des notifications push (norme Web Push, RFC 8291 et 8292 ; lot 53, ADR 0096) ; employée sans modification, telle que publiée. |
 
 ## Services (images Docker)
 

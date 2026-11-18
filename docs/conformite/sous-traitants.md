@@ -25,6 +25,19 @@ la documentation ou le contrat du fournisseur avant la première donnée réelle
 | ntfy.sh | Alertes d'exploitation sur le téléphone de l'éditeur (lot 22) | Nom de la sonde et état (« DOWN », « Disque / à 85 % ») | À vérifier | Aucune donnée personnelle par construction |
 | Bureau d'enregistrement de `symbola.fr` | Nom de domaine | Données de l'éditeur seulement | À compléter | — |
 
+## Destinataires techniques des notifications push (lot 53, ADR 0095 et 0096, DPO-10)
+
+Quand un membre de l'équipe active le push sur un appareil, chaque notification passe par le service
+de push de son navigateur. Ce service ne reçoit qu'un **message chiffré** jusqu'au navigateur (norme
+Web Push : la sorte de notification et l'écran à ouvrir, jamais de nom, d'adresse ni de montant), son
+heure et sa durée de vie. Il ne peut pas lire le message.
+
+| Service | Navigateurs | Données reçues | Lieu | Remarque |
+| --- | --- | --- | --- | --- |
+| Apple Push Notification service | Safari (macOS, iOS 16.4 et plus, application ajoutée à l'écran d'accueil) | Message chiffré, heure, durée de vie ; adresse de l'abonnement | À vérifier | Destinataire technique, choisi par le navigateur de la personne |
+| Firebase Cloud Messaging (Google) | Chrome, Edge, navigateurs Chromium | Les mêmes | À vérifier | Destinataire technique, choisi par le navigateur de la personne |
+| Mozilla Push Service | Firefox | Les mêmes | À vérifier | Destinataire technique, choisi par le navigateur de la personne |
+
 ## Briques hébergées sur le serveur de Symbola (pas de sous-traitant)
 
 PostgreSQL, Garage (fichiers), ClamAV (antivirus : seules ses bases de signatures sont
