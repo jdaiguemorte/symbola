@@ -26,6 +26,9 @@ const NOTICED: Record<string, { file: string; name: string }> = {
   "guests.purge_postponements.reason": { file: "app/events/[id]/invites/guest-forms.tsx", name: "reason" },
   // Lot 46 (EVT-10) : le compte rendu d'un rendez-vous.
   "appointments.appointment_reports.notes": { file: "app/rendez-vous/[id]/page.tsx", name: "notes" },
+  // Lot 45 (CRM-05, CRM-06) : le texte d'un message au contact, d'une relance relue.
+  "events.event_messages.body": { file: "app/events/[id]/ecrire/write-form.tsx", name: "body" },
+  "events.prospect_follow_ups.body": { file: "app/events/[id]/relances/[followUpId]/follow-up-form.tsx", name: "body" },
 };
 
 // Aussi mis en garde, bien que rangés autrement au registre : la note d'un contact, le motif d'une perte.
@@ -72,6 +75,9 @@ const WITHOUT_ENTRY: Record<string, string> = {
   "appointments.availability_closures.reason": "motif court d'un jour fermé (80 caractères)",
   // Lot 44 (CRM-01) : ce qu'écrit le prospect sur le formulaire public ; la mention d'information est
   // au-dessus du bouton d'envoi, la mise en garde s'adresse à l'équipe.
+  "events.event_messages.subject": "objet du message, saisi avec son texte : la mise en garde suit le texte, juste en dessous",
+  "events.prospect_follow_ups.subject": "objet de la relance, saisi avec son texte : la mise en garde suit le texte, juste en dessous",
+  "events.questionnaire_answers.value": "réponse écrite par la personne sur son lien personnel ; la mention d'information du lien est affichée sur la page",
   "events.prospect_requests.message": "message du prospect sur le formulaire de contact public ; la mention d'information est affichée avant l'envoi",
   "events.prospect_requests.period": "période en texte court écrite par le prospect sur le formulaire public",
   "events.prospect_requests.budget_range": "tranche de budget en texte court écrite par le prospect sur le formulaire public",

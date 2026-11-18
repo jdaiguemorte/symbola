@@ -45,6 +45,8 @@ const SHARED_ACCESS: Record<string, string> = {
   portalGuestsAccess: "app/portail/invites/access.ts",
   // Lot 46 : la planner connectée, et le module Rendez-vous ouvert.
   appointmentsPlanner: "app/rendez-vous/access.ts",
+  // Lot 45 : la rubrique « Questionnaires » du portail (lien, rubrique ouverte, module Évènements).
+  portalQuestionnairesAccess: "app/portail/questionnaires/access.ts",
 };
 
 const GUARDS = new Set([...BASE_GUARDS, ...Object.keys(SHARED_ACCESS)]);
