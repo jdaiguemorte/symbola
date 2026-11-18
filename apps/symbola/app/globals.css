@@ -3960,10 +3960,10 @@
     @apply m-0 list-none p-0;
   }
   .merge-table {
-    @apply w-full border-collapse text-body;
+    @apply w-full table-fixed border-collapse text-body;
   }
   .merge-table th,
   .merge-table td {
-    @apply border-b border-line p-2 text-left align-top break-words;
+    @apply border-b border-line p-2 text-left align-top wrap-anywhere;
   }
 }

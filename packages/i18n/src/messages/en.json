@@ -8096,7 +8096,7 @@
     "sentDeferred": "Follow-up filed in the history; the mail server is not answering, it will go out as soon as possible.",
     "withdrawn": "Follow-up withdrawn: it will not go out.",
     "already": "This follow-up has already gone out.",
-    "alreadySent": "This follow-up has already gone out.",
+    "alreadySent": "Follow-up sent: it is filed in the contact's history.",
     "missing": "A variable has no value: complete the text before sending.",
     "noBrochure": "The text joins the brochure, but no brochure is saved.",
     "empty": "The subject and the text are required.",

@@ -140,7 +140,7 @@ test("CRM-07 (SU-01, SC-10) — deux fiches au même téléphone : Camille compa
   await page.goto("/contacts");
   await page.getByRole("link", { name: "Un doublon possible à vérifier" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Doublons possibles" })).toBeVisible();
-  await expect(page.getByText("Même téléphone")).toBeVisible();
+  await expect(page.getByText("Même téléphone", { exact: true })).toBeVisible();
   await expectAccessible(page);
   await page.getByRole("link", { name: "Comparer et fusionner" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Fusionner deux fiches" })).toBeVisible();

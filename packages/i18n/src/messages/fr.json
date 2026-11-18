@@ -8096,7 +8096,7 @@
     "sentDeferred": "Relance rangée dans l'historique ; la messagerie ne répond pas, elle partira dès que possible.",
     "withdrawn": "Relance retirée : elle ne partira pas.",
     "already": "Cette relance est déjà partie.",
-    "alreadySent": "Cette relance est déjà partie.",
+    "alreadySent": "Relance envoyée : elle est rangée dans l'historique du contact.",
     "missing": "Une variable n'a pas de valeur : complétez le texte avant l'envoi.",
     "noBrochure": "Le texte joint la brochure, mais aucune brochure n'est enregistrée.",
     "empty": "L'objet et le texte sont obligatoires.",
