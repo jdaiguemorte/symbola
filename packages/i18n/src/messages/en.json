@@ -149,7 +149,9 @@
       "events": "Events",
       "budget": "Budget",
       "quotes": "Quotes",
-      "vendors": "Vendors"
+      "vendors": "Vendors",
+      "appointments": "Appointments",
+      "guests": "Guests"
     },
     "onboardingDone": "{done} of {total} tutorials",
     "notStarted": "Not started",
@@ -5006,7 +5008,9 @@
       "events": "Events",
       "budget": "Budget",
       "quotes": "Quotes",
-      "vendors": "Vendors"
+      "vendors": "Vendors",
+      "appointments": "Appointments",
+      "guests": "Guests"
     },
     "budgetExport": "{count, plural, =0 {no lines} =1 {# line} other {# lines}} ({format})",
     "actorLink": "Personal link",

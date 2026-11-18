@@ -8,6 +8,7 @@ import { createHash, randomBytes } from "node:crypto";
 import type { MonthlyCount } from "@symbola/contracts";
 import { recordAudit } from "@symbola/db/audit";
 import type { AppDatabase } from "@symbola/db/client";
+import { moduleEnabledByDefault } from "./module-registry";
 import {
   countAccountsByOrganization,
   findTeamAccountOrganization,
@@ -266,9 +267,9 @@ export async function listTeamHelpProgress(db: AppDatabase): Promise<TeamHelpPro
     findAllHelpProgress(db),
     findAllOrganizationModules(db),
   ]);
-  // Absence de ligne = activé (même règle que isModuleEnabled du hub).
+  // Absence de ligne = état par défaut du module (même règle que isModuleEnabled du hub).
   const enabled = (organizationId: string, moduleKey: string) =>
-    moduleRows.find((row) => row.organizationId === organizationId && row.moduleKey === moduleKey)?.enabled ?? true;
+    moduleRows.find((row) => row.organizationId === organizationId && row.moduleKey === moduleKey)?.enabled ?? moduleEnabledByDefault(moduleKey);
   const result: TeamHelpProgress[] = [];
   for (const organization of organizationRows) {
     const teamAccounts = accounts.filter((account) => account.organizationId === organization.id);
