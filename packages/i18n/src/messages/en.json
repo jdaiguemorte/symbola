@@ -3055,7 +3055,8 @@
       "events": "Events",
       "budget": "Budget",
       "quotes": "Quotes and invoices",
-      "hub": "Accounts, imports and GDPR requests"
+      "hub": "Accounts, imports and GDPR requests",
+      "guests": "Guests"
     },
     "kind": {
       "event": "Event",
@@ -3094,7 +3095,9 @@
       "vendor_candidate": "Consulted vendor",
       "vendor_payment": "Vendor payment",
       "form_draft": "Unsaved draft",
-      "email_job": "Email waiting to be sent"
+      "email_job": "Email waiting to be sent",
+      "guest": "Guest",
+      "guest_list": "Guest list of the event"
     },
     "field": {
       "firstName": "First name",
@@ -3144,7 +3147,14 @@
       "companyIdNumber": "SIREN or SIRET",
       "vatNumber": "VAT number",
       "noteN": "Note {n}",
-      "linkN": "Household or company {n}"
+      "linkN": "Household or company {n}",
+      "ageRange": "Age range",
+      "household": "Household",
+      "answers": "Replies per key moment",
+      "diet": "Diets and allergies",
+      "dietConsent": "Consent to diets (version, date, withdrawal)",
+      "opposedAt": "Objected on",
+      "people": "Invited people"
     },
     "requestsLink": "Requests from individuals",
     "settingsLink": "GDPR settings",
@@ -5770,7 +5780,10 @@
       "depositBlocked": "Deposit invoice blocked ({number})",
       "vendorContract": "Contract from {vendor} ({slot}) to be signed",
       "dateConflict": "{count} events on the same day",
-      "linkRenewal": "{name} is asking for a new link"
+      "linkRenewal": "{name} is asking for a new link",
+      "guestPurgeDiets": "Guests' diets will be erased: postpone if needed",
+      "guestPurgeAll": "Guest data will be erased: postpone if needed",
+      "guestOpposition": "{count, plural, one {A guest objected} other {# guests objected}} to their data being kept"
     },
     "myEventsTitle": "My events",
     "myEventsEmpty": "No event in progress.",
@@ -5830,7 +5843,8 @@
     "source": {
       "events": "events",
       "quotes": "quotes and payments",
-      "budget": "budget"
+      "budget": "budget",
+      "guests": "guests"
     }
   },
   "QuickCreate": {
@@ -6560,6 +6574,10 @@
       "noticeAllBody": "Hello,\n\nThe guest data of one of your events (households, people, replies, links) will be erased on {date}, as your privacy settings provide. Stored exports containing it will be deleted with it. You can postpone this purge once, with a reason, from the Guests tab of the event.\n\nSymbola",
       "exportsSubject": "Exports deleted with the guest data",
       "exportsBody": "Hello,\n\nThe guest purge of one of your events deleted {count, plural, one {# stored export} other {# stored exports}} that could contain them (full organisation export, privacy export). A file you had already downloaded remains your responsibility.\n\nSymbola"
+    },
+    "emailWords": {
+      "wedding": "wedding",
+      "event": "event"
     }
   }
 }

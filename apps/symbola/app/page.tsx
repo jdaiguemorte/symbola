@@ -57,6 +57,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     events: await isModuleEnabled(db, organizationId, "events"),
     quotes: await isModuleEnabled(db, organizationId, "quotes"),
     budget: await isModuleEnabled(db, organizationId, "budget"),
+    // Lot 49 (RGP-08) : préavis de purge et oppositions des invités.
+    guests: await isModuleEnabled(db, organizationId, "guests"),
   };
   // Lot 33b (HUB-09, PAR-01) : le questionnaire d'accueil se reprend d'ici tant qu'il n'est pas
   // fini (Propriétaire), puis la liste de prise en main guide les premiers pas de l'équipe.

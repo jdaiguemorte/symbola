@@ -3055,7 +3055,8 @@
       "events": "Événements",
       "budget": "Budget",
       "quotes": "Devis et factures",
-      "hub": "Comptes, imports et demandes RGPD"
+      "hub": "Comptes, imports et demandes RGPD",
+      "guests": "Invités"
     },
     "kind": {
       "event": "Événement",
@@ -3094,7 +3095,9 @@
       "vendor_candidate": "Prestataire consulté",
       "vendor_payment": "Paiement d'un prestataire",
       "form_draft": "Brouillon de saisie",
-      "email_job": "E-mail en attente d'envoi"
+      "email_job": "E-mail en attente d'envoi",
+      "guest": "Invité",
+      "guest_list": "Liste des invités de l'évènement"
     },
     "field": {
       "firstName": "Prénom",
@@ -3144,7 +3147,14 @@
       "companyIdNumber": "SIREN ou SIRET",
       "vatNumber": "Numéro de TVA",
       "noteN": "Note {n}",
-      "linkN": "Foyer ou entreprise {n}"
+      "linkN": "Foyer ou entreprise {n}",
+      "ageRange": "Tranche d'âge",
+      "household": "Foyer",
+      "answers": "Réponses par temps fort",
+      "diet": "Régimes et allergies",
+      "dietConsent": "Accord aux régimes (version, date, retrait)",
+      "opposedAt": "Opposition le",
+      "people": "Personnes invitées"
     },
     "requestsLink": "Demandes des personnes",
     "settingsLink": "Réglages RGPD",
@@ -5770,7 +5780,10 @@
       "depositBlocked": "Facture d'acompte bloquée ({number})",
       "vendorContract": "Contrat de {vendor} ({slot}) à faire signer",
       "dateConflict": "{count} évènements le même jour",
-      "linkRenewal": "{name} demande un nouveau lien"
+      "linkRenewal": "{name} demande un nouveau lien",
+      "guestPurgeDiets": "Les régimes des invités seront effacés : reporter si besoin",
+      "guestPurgeAll": "Les données des invités seront effacées : reporter si besoin",
+      "guestOpposition": "{count, plural, one {Un invité s'est opposé} other {# invités se sont opposés}} à la conservation de ses données"
     },
     "myEventsTitle": "Mes évènements",
     "myEventsEmpty": "Aucun évènement en cours.",
@@ -5830,7 +5843,8 @@
     "source": {
       "events": "évènements",
       "quotes": "devis et encaissements",
-      "budget": "budget"
+      "budget": "budget",
+      "guests": "invités"
     }
   },
   "QuickCreate": {
@@ -6560,6 +6574,10 @@
       "noticeAllBody": "Bonjour,\n\nLes données des invités d'un de vos évènements (foyers, personnes, réponses, liens) seront effacées le {date}, comme le prévoient vos réglages RGPD. Les exports stockés qui les contiennent seront supprimés avec elles. Vous pouvez reporter cette purge une fois, avec un motif, depuis l'onglet Invités de l'évènement.\n\nSymbola",
       "exportsSubject": "Exports supprimés avec les données des invités",
       "exportsBody": "Bonjour,\n\nLa purge des invités d'un de vos évènements a supprimé {count, plural, one {# export stocké} other {# exports stockés}} qui pouvaient les contenir (export complet de l'organisation, export RGPD). Un fichier que vous aviez déjà téléchargé reste sous votre responsabilité.\n\nSymbola"
+    },
+    "emailWords": {
+      "wedding": "mariage",
+      "event": "évènement"
     }
   }
 }

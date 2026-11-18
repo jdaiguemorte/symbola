@@ -21,7 +21,9 @@
         "contract_signature",
         "order_first",
         "signed_copy",
-        "program_published"
+        "program_published",
+        "guest_invitation",
+        "guest_reminder"
       ]
     },
     "locale": {

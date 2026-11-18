@@ -10,9 +10,10 @@ import { describeEventsExport } from "@/modules/events/service";
 import { describeHubExport } from "@/modules/hub/service";
 import { describeQuotesExport } from "@/modules/quotes/service";
 import { describeVendorsExport } from "@/modules/vendors/service";
+import { describeGuestsExport } from "@/modules/guests/service";
 
 export function exportEntitySchemas(): ExportEntitySchema[] {
-  return [...describeHubExport(), ...describeEventsExport(), ...describeBudgetExport(), ...describeQuotesExport(), ...describeVendorsExport()];
+  return [...describeHubExport(), ...describeEventsExport(), ...describeBudgetExport(), ...describeQuotesExport(), ...describeVendorsExport(), ...describeGuestsExport()];
 }
 
 export function entitySchemaPath(entity: Pick<ExportEntitySchema, "module" | "name">): string {
