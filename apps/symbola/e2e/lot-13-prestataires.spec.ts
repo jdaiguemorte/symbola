@@ -2,7 +2,7 @@
 // nombre, liste et carte côte à côte (bascule sur téléphone), fiche dans le
 // panneau latéral. Géocodeur simulé, pas de fond de carte installé.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";

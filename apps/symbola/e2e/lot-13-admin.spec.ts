@@ -3,7 +3,7 @@
 // sauvegarde signalée par le script de sauvegarde, page Santé détaillée.
 // Toujours aucune donnée métier (ADR 0029). Ordinateur et 375 px, axe-core.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import postgres from "postgres";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";

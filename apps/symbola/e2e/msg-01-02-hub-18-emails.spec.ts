@@ -4,7 +4,7 @@
 // e-mail » une version diffusée du programme, par l'écran du garde-fou ; le rappel arrêté par une
 // variable vide, signalé dans « Aujourd'hui ». En taille ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { expect, test, type Page } from "@playwright/test";
 import { createUser } from "@symbola/auth";
 import { SYSTEM_ACTOR } from "@symbola/db/actor";

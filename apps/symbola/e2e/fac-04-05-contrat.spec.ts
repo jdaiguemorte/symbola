@@ -6,7 +6,7 @@
 // anticipée, puis signent. La facture d'acompte existe sans autre saisie, le dossier de preuve
 // se télécharge. En taille ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";

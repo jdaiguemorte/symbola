@@ -274,7 +274,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
       {olderVersions.length > 0 ? (
         <section aria-labelledby="versions-title">
           <h2 id="versions-title">{t("previousVersions")}</h2>
-          <ul>
+          <ul className="quote-versions">
             {olderVersions.map((version) => (
               <li key={version.id}>
                 <details>

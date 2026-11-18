@@ -3,7 +3,7 @@
 // cette langue. » « Un test en CI échoue si une clé manque » est couvert
 // par packages/i18n (pnpm check:messages), pas ici.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test } from "@playwright/test";

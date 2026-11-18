@@ -17,6 +17,7 @@ import { findSessionActor, isPlannerRole, requireUser, type AuthResult } from "@
 // Lot 24b (SEC-05) : nom et réglages du cookie partagés avec le middleware.
 export { SESSION_COOKIE_NAME } from "./session-cookie";
 import { SESSION_COOKIE_NAME, sessionCookieOptions } from "./session-cookie";
+import { secureCookies } from "./cookie-security";
 // L16-SEC-03 (lot 16, ADR 0038) : appareil de confiance, dispensé du code de double
 // authentification pendant 90 jours ; seul son hachage est en base.
 export const TRUSTED_DEVICE_COOKIE_NAME = "symbola_appareil";
@@ -89,7 +90,7 @@ export async function setTrustedDeviceCookie(token: string): Promise<void> {
   cookieStore.set(TRUSTED_DEVICE_COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: secureCookies(),
     path: "/",
     maxAge: TRUSTED_DEVICE_MAX_AGE_S,
   });

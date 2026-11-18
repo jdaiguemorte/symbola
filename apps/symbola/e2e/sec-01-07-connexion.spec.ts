@@ -3,7 +3,7 @@
 // usage unique, double authentification de la titulaire, plusieurs organisations. Ordinateur et
 // 375 px, axe-core sur chaque écran de Symbola.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { expect, test, type Page } from "@playwright/test";
 import { addMembership, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";

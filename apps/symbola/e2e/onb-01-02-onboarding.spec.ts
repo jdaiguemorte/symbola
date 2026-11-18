@@ -1,7 +1,7 @@
 // ONB-01/02 — questionnaire d'onboarding interruptible/reprenable,
 // changement de régime de TVA daté, seuils de franchise Admin.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";

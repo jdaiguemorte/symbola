@@ -4,7 +4,7 @@
 // axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { readImportFile } from "@symbola/import-engine";

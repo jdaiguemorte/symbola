@@ -183,14 +183,35 @@ export async function latestMagicLink(email: string, after: number): Promise<str
   throw new Error("aucun lien de connexion reçu");
 }
 
+// Lot 40c (NFR-18) : le WebKit de Playwright sous Linux (CI) n'a pas WebAuthn, que Safari a ; Logto
+// y remplace la proposition de clé d'accès (« Passer ») par un refus sans issue. On donne à la page
+// l'interface que Safari expose (PublicKeyCredential, navigator.credentials), sans authentificateur,
+// puis on la recharge : la proposition redevient passable. Sans effet là où WebAuthn existe.
+async function offerSafariWebAuthn(page: Page): Promise<void> {
+  if (await page.evaluate(() => typeof window.PublicKeyCredential === "function" && !!navigator.credentials)) return;
+  await page.context().addInitScript(() => {
+    if (typeof window.PublicKeyCredential === "function" && navigator.credentials) return;
+    const refuse = () => Promise.reject(new DOMException("Aucun authentificateur", "NotAllowedError"));
+    const credential = Object.assign(function PublicKeyCredential() {}, {
+      isUserVerifyingPlatformAuthenticatorAvailable: async () => false,
+      isConditionalMediationAvailable: async () => false,
+    });
+    Object.defineProperty(window, "PublicKeyCredential", { value: credential, configurable: true });
+    Object.defineProperty(navigator, "credentials", { value: { create: refuse, get: refuse, store: refuse, preventSilentAccess: async () => undefined }, configurable: true });
+  });
+  await page.reload();
+}
+
 // Écrans du fournisseur entre le lien et le retour dans l'app.
 export async function crossIdentityProvider(page: Page, secret: string | null): Promise<void> {
   for (let step = 0; step < 8; step += 1) {
     await page.waitForURL((url) => url.origin === APP_ORIGIN ? !url.pathname.startsWith("/auth/") : /\/(create-passkey|mfa-verification|mfa-binding)/.test(url.pathname), { timeout: 30_000 });
     const url = new URL(page.url());
     if (url.origin === APP_ORIGIN) return;
-    if (url.pathname.includes("/create-passkey")) await page.getByRole("button", { name: "Passer" }).click();
-    else if (url.pathname.includes("/mfa-binding/BackupCode")) await page.getByRole("button", { name: "Continuer" }).click();
+    if (url.pathname.includes("/create-passkey")) {
+      await offerSafariWebAuthn(page);
+      await page.getByRole("button", { name: "Passer" }).click();
+    } else if (url.pathname.includes("/mfa-binding/BackupCode")) await page.getByRole("button", { name: "Continuer" }).click();
     else if (url.pathname.includes("/mfa-verification")) {
       if (!secret) throw new Error("double authentification demandée sans secret connu");
       await page.locator("input").first().click();

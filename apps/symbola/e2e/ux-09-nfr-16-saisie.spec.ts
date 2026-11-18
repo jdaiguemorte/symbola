@@ -5,7 +5,7 @@
 // - sans réseau, l'envoi n'a pas lieu, la saisie reste, et le retour de la connexion est annoncé.
 // axe-core sur les écrans du brouillon et du conflit.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { expect, test, type Page } from "@playwright/test";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";

@@ -209,3 +209,23 @@ Le cahier des charges ajoute « hors obligations légales ».
 > qu'après votre réponse.
 
 Besoin : une réponse **avant de développer la fermeture d'un espace** (lot 35c).
+
+## Question du 17 novembre 2026 (lot 40c)
+
+### 13. Déclaration d'accessibilité du portail des mariés
+
+Suite à votre réponse 9, un brouillon de déclaration d'accessibilité volontaire pour le portail des
+mariés est prêt : `docs/conformite/declaration-accessibilite.md`. Il suit le modèle public de
+déclaration (état de conformité, résultats des tests, contenus non accessibles, contact). Il annonce
+une conformité partielle à WCAG 2.2 AA, faute d'audit complet par un tiers.
+
+- **Le texte.** Pouvez-vous le relire ? En particulier « partiellement conforme », et la mention
+  des documents déposés par la planner ou un prestataire, fournis tels quels.
+- **L'analyse d'exemption.** Vous nous avez conseillé de la consigner : pouvez-vous la rédiger, ou
+  nous dire ce qu'elle doit contenir ?
+- **Les voies de recours.** Quelle mention faut-il pour un éditeur privé dont la déclaration est
+  volontaire ?
+- **L'éditeur et le contact.** Sous quel nom la déclaration doit-elle paraître tant que la société
+  n'existe pas (question 8) ?
+
+Besoin : une réponse **avant de publier la page `/accessibilite`** (lot 40c, JUR-17).

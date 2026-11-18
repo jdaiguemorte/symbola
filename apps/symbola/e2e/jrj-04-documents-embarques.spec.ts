@@ -5,7 +5,7 @@
 // événement glissée dans le formulaire du choix. En taille ordinateur et en 375 px,
 // axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { parisToday } from "@symbola/i18n";
@@ -51,7 +51,7 @@ async function organization() {
   }
 }
 
-test("JRJ-04 / SC-08 étape 3 — le plan de table envoyé, embarqué, s'ouvre en mode avion", async ({ page, context }) => {
+test("JRJ-04 / SC-08 étape 3 — le plan de table envoyé, embarqué, s'ouvre en mode avion", async ({ page, context, browserName }) => {
   test.setTimeout(120_000);
   const org = await organization();
   const eventId = await org.wedding("Léa");
@@ -85,11 +85,22 @@ test("JRJ-04 / SC-08 étape 3 — le plan de table envoyé, embarqué, s'ouvre e
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByRole("status").first()).toContainText("Sans réseau");
-  const [download] = await Promise.all([
-    page.waitForEvent("download"),
-    page.getByRole("region", { name: "Documents" }).getByRole("link", { name: "Plan de table", exact: true }).click(),
-  ]);
-  expect(download.suggestedFilename()).toBe("Plan-de-table.pdf");
+  const planLink = page.getByRole("region", { name: "Documents" }).getByRole("link", { name: "Plan de table", exact: true });
+  if (browserName === "webkit") {
+    // Lot 40c (NFR-18) : le document est servi « inline » ; WebKit sous Playwright l'affiche au lieu
+    // de le télécharger et n'en signale rien. On vérifie la pièce gardée sur l'appareil, telle que le
+    // service worker la sert ; l'ouverture dans Safari se rejoue sur un vrai iPhone.
+    const path = new URL((await planLink.getAttribute("href"))!, page.url()).pathname;
+    const kept = await page.evaluate(async (documentPath) => {
+      const response = await (await caches.open("symbola-jour-j-v1")).match(documentPath);
+      return response ? { status: response.status, disposition: response.headers.get("content-disposition") ?? "" } : null;
+    }, path);
+    expect(kept?.status).toBe(200);
+    expect(kept?.disposition).toContain("Plan-de-table.pdf");
+  } else {
+    const [download] = await Promise.all([page.waitForEvent("download"), planLink.click()]);
+    expect(download.suggestedFilename()).toBe("Plan-de-table.pdf");
+  }
   await context.setOffline(false);
 });
 

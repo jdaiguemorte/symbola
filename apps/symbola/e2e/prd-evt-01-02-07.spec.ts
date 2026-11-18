@@ -2,7 +2,7 @@
 // prospect : parcours complet d'une planner, en taille ordinateur et en
 // 375 px (les deux projets Playwright), avec contrôle axe-core par écran.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";

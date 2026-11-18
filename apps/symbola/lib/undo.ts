@@ -6,6 +6,7 @@
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { isUndoKind, UNDO_SECONDS, type UndoKind } from "@symbola/contracts";
+import { secureCookies } from "./cookie-security";
 
 export const UNDO_COOKIE = "symbola_undo";
 // Un peu plus que les dix secondes affichées : le temps de la redirection et de l'affichage.
@@ -26,7 +27,7 @@ export async function offerUndo(offer: { kind: UndoKind; id: string }): Promise<
   (await cookies()).set(UNDO_COOKIE, JSON.stringify(value), {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: secureCookies(),
     path: "/",
     maxAge: COOKIE_SECONDS,
   });
@@ -39,7 +40,7 @@ export async function markUndone(offer: { kind: UndoKind; id: string }): Promise
   const current = await readUndo();
   const at = current && current.kind === offer.kind && current.id === offer.id ? current.at : Date.now();
   const value: UndoOffer = { kind: offer.kind, id: offer.id, at, done: true };
-  store.set(UNDO_COOKIE, JSON.stringify(value), { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: COOKIE_SECONDS });
+  store.set(UNDO_COOKIE, JSON.stringify(value), { httpOnly: true, sameSite: "lax", secure: secureCookies(), path: "/", maxAge: COOKIE_SECONDS });
 }
 
 // L'offre en cours et le temps qu'il lui reste (dix secondes depuis la suppression), ou rien.

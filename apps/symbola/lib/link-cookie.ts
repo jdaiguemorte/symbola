@@ -4,6 +4,9 @@
 // SameSite=Lax, Secure en production. 30 jours sans visite ; la base refuse de
 // toute façon une session au-delà de l'expiration de son lien. Sans dépendance
 // Node : le middleware s'exécute hors de Node.
+// Lot 40c : « Secure » selon lib/cookie-security.ts.
+import { secureCookies } from "./cookie-security";
+
 export const LINK_COOKIE_NAME = "symbola_lien";
 export const LINK_COOKIE_IDLE_SECONDS = 30 * 24 * 60 * 60;
 
@@ -21,6 +24,6 @@ export function linkHomePath(audience: "client" | "vendor" | "guest"): "/portail
   return audience === "vendor" ? "/prestataire" : "/portail";
 }
 
-export function linkCookieOptions(maxAge: number = LINK_COOKIE_IDLE_SECONDS, nodeEnv: string | undefined = process.env.NODE_ENV): LinkCookieOptions {
-  return { httpOnly: true, sameSite: "lax", secure: nodeEnv === "production", path: "/", maxAge: Math.min(maxAge, LINK_COOKIE_IDLE_SECONDS) };
+export function linkCookieOptions(maxAge: number = LINK_COOKIE_IDLE_SECONDS, nodeEnv: string | undefined = process.env.NODE_ENV, appPublicUrl: string | undefined = process.env.APP_PUBLIC_URL): LinkCookieOptions {
+  return { httpOnly: true, sameSite: "lax", secure: secureCookies(nodeEnv, appPublicUrl), path: "/", maxAge: Math.min(maxAge, LINK_COOKIE_IDLE_SECONDS) };
 }

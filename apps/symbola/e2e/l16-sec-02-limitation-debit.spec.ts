@@ -4,7 +4,7 @@
 // et 375 px, axe-core. L'adresse du client est celle que le proxy pose dans X-Forwarded-For ; le
 // test la choisit, propre à chaque passage.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { expect, test } from "@playwright/test";
 
 test("L16-SEC-02 — au-delà de 20 demandes de lien par adresse IP en un quart d'heure, un message dit combien de minutes attendre", async ({ page }) => {
