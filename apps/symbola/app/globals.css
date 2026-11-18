@@ -403,6 +403,16 @@
     @apply mx-auto w-full max-w-content min-w-0 flex-1 px-4 pt-6 pb-12 sm:px-8 md:pt-8;
   }
 
+  /* Lot 40c (NFR-17, WCAG 2.4.1) : lien d'évitement, caché jusqu'au premier Tab ; sa cible ne prend
+     pas de place. */
+  .skip-link {
+    @apply absolute top-2 left-2 z-50 -translate-y-24 rounded-md border border-line-strong bg-surface px-4 py-2 font-medium text-ink focus:translate-y-0;
+  }
+
+  .skip-target {
+    @apply block h-0 outline-none;
+  }
+
   /* Écrans sans menu : connexion, double authentification, invitation. */
   .auth-shell {
     @apply flex min-h-screen flex-col items-center justify-start gap-6 px-4 pt-12 pb-12;
@@ -1416,8 +1426,11 @@
   .segmented a[aria-current="page"] {
     @apply bg-primary text-on-primary;
   }
+  /* Lot 40c (NFR-19) : « relative » fait du cadre la référence des textes réservés aux lecteurs
+     d'écran (position absolue) ; sans lui, ils sortaient du cadre qui défile et élargissaient la
+     page (budget à 200 % de zoom). */
   .list-table-wrap {
-    @apply overflow-x-auto rounded-lg border border-line bg-surface;
+    @apply relative overflow-x-auto rounded-lg border border-line bg-surface;
   }
   .list-table {
     @apply w-full min-w-[560px] border-collapse text-body;
@@ -3564,5 +3577,30 @@
   /* Le squelette prend la place de l'écran courant tant que l'écran visé tarde. */
   .app-main:has(> main.navigation-skeleton) > main:not(.navigation-skeleton) {
     @apply hidden;
+  }
+}
+
+/* Lot 40c (NFR-17, WCAG 2.5.8) : des cibles d'au moins 24 px. Un lien seul sur sa ligne n'est pas
+   un lien dans une phrase : il lui faut la hauteur d'une cible. */
+@layer components {
+  .quote-versions li {
+    @apply flex flex-col items-start gap-2;
+  }
+  .quote-versions li > a,
+  .quote-versions summary {
+    @apply inline-flex min-h-11 items-center;
+  }
+}
+
+/* Lot 40c (UX-14, WCAG 2.3.3) : animations réductibles. Quand la personne a demandé moins de
+   mouvement à son système, transitions et animations s'arrêtent presque aussitôt. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

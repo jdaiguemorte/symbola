@@ -2,7 +2,7 @@
 // questions, une par écran, « Votre espace est prêt », exemple étiqueté puis supprimé au premier
 // évènement réel, liste de prise en main de l'accueil. En taille ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { expect, test, type Page } from "@playwright/test";

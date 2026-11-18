@@ -4,7 +4,7 @@
 // SC-S3 depuis le lot 26b (liens personnels des prestataires). En taille
 // ordinateur et en 375 px, axe-core sur les écrans touchés.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { consumeOrganizationMailQuota } from "@symbola/db/mail-quota";

@@ -3,7 +3,7 @@
 // ne recouvre pas le contenu (ordinateur) ; fermée, elle rend le focus au « ? ».
 // En taille ordinateur et en 375 px, avec axe-core. Un compte neuf par exécution.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";

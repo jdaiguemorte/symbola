@@ -3,7 +3,7 @@
 // carnet, puis renomme, fusionne, scinde « Beauté et tenues » et supprime un
 // type en déplaçant ses fiches. Ordinateur et 375 px, axe-core.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";

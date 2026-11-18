@@ -3,7 +3,7 @@
 // valide, en refuse, et en rapproche une à la main. En taille ordinateur et
 // en 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { catalogItems } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";

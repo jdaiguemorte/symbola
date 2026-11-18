@@ -109,3 +109,25 @@ describe("SOC-09 — Image Docker de l'app", () => {
     expect(dockerfile).toContain(`COPY packages/${name}/package.json packages/${name}/package.json`);
   });
 });
+
+describe("NFR-18, NFR-19 — Scénarios sous trois navigateurs, de 360 à 1 920 px, SC-10 à 150 % (lot 40c)", () => {
+  const playwrightConfig = readFileSync(resolve(repoRoot, "apps/symbola/playwright.config.ts"), "utf8");
+
+  it("déclare les projets Firefox, WebKit, 360 px, 1 920 px et zoom à 150 % sur les parcours des scénarios", () => {
+    expect(playwrightConfig).toMatch(/name: "firefox", testMatch: SCENARIO_SPECS, use: \{ \.\.\.devices\["Desktop Firefox"\] \}/);
+    expect(playwrightConfig).toMatch(/name: "webkit", testMatch: SCENARIO_SPECS, use: \{ \.\.\.devices\["Desktop Safari"\] \}/);
+    expect(playwrightConfig).toMatch(/name: "mobile-360", testMatch: SCENARIO_SPECS, use: \{ viewport: \{ width: 360, /);
+    expect(playwrightConfig).toMatch(/name: "desktop-1920", testMatch: SCENARIO_SPECS, .*viewport: \{ width: 1920, /);
+    expect(playwrightConfig).toMatch(/name: "zoom-150", testMatch: SC10_SPECS, .*viewport: \{ width: 853, height: 533 \}/);
+  });
+
+  it("joue les deux volets en CI : Chromium d'un côté, Firefox, WebKit, 360, 1 920 px et 150 % de l'autre", () => {
+    expect(ciWorkflow).toMatch(/projets: --project=desktop --project=mobile-375\n/);
+    expect(ciWorkflow).toMatch(/navigateurs: chromium firefox webkit\n\s*projets: --project=firefox --project=webkit --project=mobile-360 --project=desktop-1920 --project=zoom-150\n/);
+    expect(ciWorkflow).toMatch(/playwright install --with-deps \$\{\{ matrix\.navigateurs \}\}/);
+    expect(ciWorkflow).toMatch(/run: pnpm --filter @symbola\/app test:e2e \$\{\{ matrix\.projets \}\}/);
+    // Le banc d'essai déclare son adresse : sans elle, les cookies partent en « Secure » et WebKit
+    // les refuse sur http://localhost (lib/cookie-security.ts).
+    expect(ciWorkflow).toMatch(/\n      APP_PUBLIC_URL: http:\/\/localhost:3000\n/);
+  });
+});

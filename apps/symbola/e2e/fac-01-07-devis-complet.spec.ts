@@ -5,7 +5,7 @@
 // le champ nommé, avec le lien pour le remplir. Modèles de devis « à adapter ». En taille
 // ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
