@@ -11,7 +11,8 @@ import { useTranslations } from "next-intl";
 import { useUploadAction } from "@/app/ui/use-upload";
 import { formatAmount, formatAmountInput, type Locale } from "@symbola/i18n";
 import { ENGAGED_CANDIDATE_STATUSES, VENDOR_CANDIDATE_STATUSES, type VendorCandidateStatus } from "@symbola/contracts";
-import type { EventVendorSlot, VendorCandidate } from "@/modules/events/service";
+import type { EventVendorSlot, VendorCandidate, VendorFollowUpStatus } from "@/modules/events/service";
+import { formatDateTime } from "@symbola/i18n";
 import {
   addCandidateAction,
   addCandidateNoteAction,
@@ -130,13 +131,16 @@ function CandidateCard({
   candidate,
   vendorsAvailable,
   locale,
+  followUp,
 }: {
   eventId: string;
   candidate: VendorCandidate;
   vendorsAvailable: boolean;
   locale: Locale;
+  followUp: VendorFollowUpStatus | undefined;
 }) {
   const t = useTranslations("VendorCandidates");
+  const tCoordination = useTranslations("VendorCoordination");
   const [state, action, pending] = useActionState(updateCandidateAction, {});
   const [quoteState, quoteAction, quotePending] = useUploadAction<CandidateFormState>(`/events/${eventId}/consultes/${candidate.id}/devis`);
   const [noteState, noteAction, notePending] = useActionState(addCandidateNoteAction, {});
@@ -158,6 +162,18 @@ function CandidateCard({
         <span className={STATUS_CLASSES[candidate.status]}>{t(`status.${candidate.status}`)}</span>
       </div>
       {candidate.quoteAmountCents !== null ? <p className="strong">{t("quoteOf", { amount: formatAmount(candidate.quoteAmountCents, locale) })}</p> : null}
+      {/* Lot 47 (PAR-05 ; D8) : feuilles de route envoyées, confirmées ou non ; facture déposée. */}
+      {followUp
+        ? followUp.roadmaps.map((roadmap) => (
+            <p key={roadmap.stage} className="muted">
+              {roadmap.confirmedAt
+                ? tCoordination("followUp.confirmed", { stage: tCoordination(`followUp.stage.${roadmap.stage}`), date: formatDateTime(new Date(roadmap.confirmedAt), locale) })
+                : tCoordination("followUp.sent", { stage: tCoordination(`followUp.stage.${roadmap.stage}`), date: formatDateTime(new Date(roadmap.sentAt), locale) })}
+            </p>
+          ))
+        : null}
+      {followUp?.invoiceDocumentId ? <a href={`/events/${eventId}/documents/${followUp.invoiceDocumentId}`}>{tCoordination("followUp.invoice", { vendor: name })}</a> : null}
+      {followUp && !followUp.hasLink ? <p className="muted">{tCoordination("followUp.noLink")}</p> : null}
 
       <form action={action} className="candidate-form">
         <input type="hidden" name="eventId" value={eventId} />
@@ -296,6 +312,7 @@ export function VendorCandidates({
   bookOptions,
   vendorsAvailable,
   locale,
+  followUps = [],
 }: {
   eventId: string;
   slot: EventVendorSlot;
@@ -303,8 +320,10 @@ export function VendorCandidates({
   bookOptions: BookOption[];
   vendorsAvailable: boolean;
   locale: Locale;
+  followUps?: VendorFollowUpStatus[];
 }) {
   const t = useTranslations("VendorCandidates");
+  const tCoordination = useTranslations("VendorCoordination");
   const withQuote = candidates.filter((candidate) => candidate.quoteAmountCents !== null || candidate.hasQuoteFile).length;
   return (
     <section className="card candidates" aria-labelledby="candidates-title" data-tour="vendor-candidates">
@@ -313,11 +332,20 @@ export function VendorCandidates({
         {candidates.length > 0 ? <span className="badge badge-bleu">{t("quotesReceived", { received: withQuote, total: candidates.length })}</span> : null}
         {vendorsAvailable ? <Link href={`/prestataires?evenement=${eventId}&poste=${slot.id}`}>{t("findOnMap")}</Link> : null}
       </div>
+      {/* Lot 47 (PRE-03, BUD-05) : le brief à plusieurs prestataires, le comparatif, les scénarios. */}
+      <p className="link-actions">
+        <Link href={`/events/${eventId}/consultation/${slot.id}`} className="button-link button-link-primary">
+          {tCoordination("askQuotes")}
+        </Link>
+        <Link href={`/events/${eventId}/scenarios`} className="button-link">
+          {tCoordination("scenariosLink")}
+        </Link>
+      </p>
       <SlotBriefForm key={`brief-${slot.id}`} eventId={eventId} slot={slot} />
       {candidates.length === 0 ? <p>{t("empty")}</p> : null}
       <ul className="candidate-list">
         {candidates.map((candidate) => (
-          <CandidateCard key={`${candidate.id}-${candidate.status}-${candidate.quoteAmountCents}-${candidate.shownToClients}-${candidate.shareRibWithClients}`} eventId={eventId} candidate={candidate} vendorsAvailable={vendorsAvailable} locale={locale} />
+          <CandidateCard key={`${candidate.id}-${candidate.status}-${candidate.quoteAmountCents}-${candidate.shownToClients}-${candidate.shareRibWithClients}`} eventId={eventId} candidate={candidate} vendorsAvailable={vendorsAvailable} locale={locale} followUp={followUps.find((entry) => entry.candidateId === candidate.id)} />
         ))}
       </ul>
       <p className="muted">{t("selectHint")}</p>

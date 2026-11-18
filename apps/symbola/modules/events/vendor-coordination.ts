@@ -1132,6 +1132,7 @@ export async function answerNotices(organizationId: string, now: Date = new Date
   return rows.map(({ candidate, slotLabel }) => ({
     candidateId: candidate.id,
     eventId: candidate.eventId,
+    vendorSlotId: candidate.vendorSlotId,
     vendorName: candidate.vendorName,
     slotLabel,
     availability: (candidate.availability as VendorAvailability | null) ?? "available",
@@ -1168,5 +1169,5 @@ export async function engagedChoiceNotices(organizationId: string, now: Date = n
   );
   return rows
     .filter(({ decision }) => canUndoEngagement({ engagedAt: decision.engagedAt, undoneAt: decision.engagementUndoneAt }, now, policy))
-    .map(({ decision, vendorName, slotLabel }) => ({ decisionId: decision.id, eventId: decision.eventId, vendorName, slotLabel, engagedAt: decision.engagedAt!.toISOString(), undoUntil: engagementUndoUntil(decision.engagedAt!, policy).toISOString() }));
+    .map(({ decision, vendorName, slotLabel }) => ({ decisionId: decision.id, eventId: decision.eventId, vendorSlotId: decision.slotId ?? "", vendorName, slotLabel, engagedAt: decision.engagedAt!.toISOString(), undoUntil: engagementUndoUntil(decision.engagedAt!, policy).toISOString() }));
 }

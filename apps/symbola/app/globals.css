@@ -3667,4 +3667,27 @@
   .guest-tally {
     @apply grid grid-cols-1 gap-3 sm:grid-cols-3;
   }
+  /* Lot 47 (PRE-03, BUD-05) : le comparatif d'un poste, tableau sur ordinateur, une carte par
+     prestataire sur téléphone ; les scénarios côte à côte. */
+  .vendor-compare-cards {
+    display: none;
+  }
+  @media (width < 640px) {
+    .vendor-compare-table {
+      display: none;
+    }
+    .vendor-compare-cards {
+      display: flex;
+    }
+  }
+  .scenario-compare .delta {
+    @apply font-semibold text-primary;
+  }
+  /* Lot 47 (PRE-04 ; D3, D4) : la page de consultation d'un prestataire, pensée pour le téléphone. */
+  .vendor-answer {
+    @apply flex flex-col gap-3;
+  }
+  .vendor-answer .choice {
+    @apply flex flex-col gap-2 sm:flex-row;
+  }
 }

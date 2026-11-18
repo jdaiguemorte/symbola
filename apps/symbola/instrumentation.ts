@@ -72,6 +72,9 @@ async function startScheduledTasks() {
     // Lot 49 (INV-04, RGP-08 ; ADR 0083) : purge des invités avec préavis, puis relances.
     const { scheduleGuestTasks } = await import("./lib/guest-tasks");
     scheduleGuestTasks();
+    // Lot 47 (PAR-05 ; D2, D8 ; ADR 0085) : relance des briefs la veille, feuilles de route J-30 et J-7.
+    const { scheduleVendorCoordinationTasks } = await import("./lib/vendor-coordination-tasks");
+    scheduleVendorCoordinationTasks();
   }
 }
 

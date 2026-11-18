@@ -43,6 +43,9 @@ export function DecisionAnswerForm({ decisionId, snapshot, label, amounts, previ
           <span className="sr-only">{t(`declineFull.${snapshot.kind}`, { label })}</span>
         </button>
       </div>
+      {/* Lot 47 (D6 ; AV-6, en attente de l'avocat) : le choix est transmis et engage ; il ne vaut pas
+          commande auprès du prestataire. */}
+      {snapshot.kind === "option" ? <p className="muted">{t("engageNotice")}</p> : null}
       {state.error ? <p role="alert">{state.error}</p> : null}
     </form>
   );

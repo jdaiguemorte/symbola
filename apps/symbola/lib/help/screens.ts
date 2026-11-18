@@ -46,6 +46,11 @@ export const HELP_SCREENS: HelpScreen[] = [
   // Lot 49 (INV-01 à INV-04, INV-07) : onglet Invités de la fiche, liste des régimes et allergies.
   { key: "guests", group: "events", audience: "team", module: "guests", path: null, capture: false },
   { key: "dietaryOptions", group: "events", audience: "team", module: "guests", path: "/events/parametres/regimes", capture: false },
+  // Lot 47 (PAR-05, PRE-03, BUD-05) : demander des devis à plusieurs prestataires et comparer, les
+  // scénarios d'options, les réglages des prestataires par lien.
+  { key: "vendorCoordination", group: "events", audience: "team", module: "events", path: null, capture: false },
+  { key: "vendorScenarios", group: "events", audience: "team", module: "events", path: null, capture: false },
+  { key: "vendorCoordinationSettings", group: "events", audience: "team", module: "events", path: "/events/parametres/prestataires-par-lien", capture: false },
   // Prestataires
   { key: "vendorBook", group: "vendors", audience: "team", module: "vendors", path: "/prestataires", tour: "vendors", capture: true },
   { key: "vendorDetail", group: "vendors", audience: "team", module: "vendors", path: null, capture: true },

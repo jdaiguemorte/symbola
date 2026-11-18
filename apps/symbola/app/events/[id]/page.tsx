@@ -40,6 +40,7 @@ import {
   listEventTasks,
   listEventVendorSlots,
   listVendorCandidates,
+  listVendorFollowUps,
   listEventPlaces,
   listTaskTemplates,
   listLossReasons,
@@ -890,6 +891,7 @@ export default async function EventDetailPage({
           bookOptions={bookOptions}
           vendorsAvailable={vendorsAvailable}
           locale={locale}
+          followUps={await listVendorFollowUps(organizationId, event.id)}
         />
       ) : null}
 

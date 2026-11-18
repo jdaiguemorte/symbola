@@ -354,6 +354,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
                           label: tSettings("program"),
                         },
                         ...(guests ? [{ href: "/events/parametres/regimes", label: tSettings("dietaryOptions") }] : []),
+                        // Lot 47 (partie F) : prestataires par lien (brief, relance, feuilles de route, tâches de suivi).
+                        { href: "/events/parametres/prestataires-par-lien", label: tSettings("vendorCoordination") },
                       ]
                     : []),
                   ...(budget

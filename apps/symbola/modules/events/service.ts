@@ -3129,3 +3129,14 @@ export {
   undoEngagement as undoDecisionEngagement,
   VendorBriefInvalidError,
 } from "./vendor-coordination";
+export type {
+  ScenarioComparison,
+  VendorBrief,
+  VendorComparison,
+  VendorComparisonRow,
+  VendorConsultationView,
+  VendorCoordinationSettings,
+  VendorFollowUpStatus,
+  VendorRoadmapView,
+  VendorScenario,
+} from "@symbola/contracts";

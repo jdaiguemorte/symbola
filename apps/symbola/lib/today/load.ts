@@ -14,6 +14,9 @@ import {
   listPendingDecisions,
   listPendingLinkRenewals,
   listStaleProspects,
+  listEngagedChoiceNotices,
+  listVendorAnswerNotices,
+  listVendorRoadmapAlerts,
   listUncontractedVendors, isInProgress } from "@/modules/events/service";
 import { getFollowUpDelays } from "@/modules/hub/service";
 import { listGuestPurgeNotices, listRecentOppositions } from "@/modules/guests/service";
@@ -40,6 +43,10 @@ export type TodayWords = {
   // Lot 49 (RGP-08) : préavis de purge (« régimes » ou « tout ») et oppositions des invités.
   guestPurge?: (stage: "diets" | "all") => string;
   guestOpposition?: (count: number) => string;
+  // Lot 47 (PAR-05) : réponse d'un prestataire, choix du client engagé, feuille de route non confirmée.
+  vendorAnswer?: (vendor: string, slot: string, answer: "available" | "quote" | "unavailable") => string;
+  vendorChoice?: (vendor: string, slot: string) => string;
+  vendorRoadmap?: (vendor: string) => string;
 };
 
 // Évènements en cours : ni clôturés, ni annulés (lot 34a, EVT-05).
@@ -107,6 +114,55 @@ async function eventItems({ organizationId, words, today, now, events, names, de
       href: `/events/${vendor.eventId}`,
       action: { kind: "remind_vendor", eventId: vendor.eventId, candidateId: vendor.candidateId },
     });
+  }
+  // Lot 47 (PAR-05 ; D3, D6, D8) : ce qu'ont fait les prestataires et les clients par leur lien.
+  if (words.vendorAnswer) {
+    for (const notice of await listVendorAnswerNotices(organizationId, now)) {
+      items.push({
+        key: `vendor-answer:${notice.candidateId}`,
+        kind: "vendor_answer",
+        eventId: notice.eventId,
+        eventNames: names(notice.eventId),
+        title: words.vendorAnswer(notice.vendorName, notice.slotLabel, notice.availability === "unavailable" ? "unavailable" : notice.hasQuote ? "quote" : "available"),
+        dueOn: null,
+        since: day(notice.answeredAt),
+        actor: { kind: "you" },
+        href: `/events/${notice.eventId}/consultation/${notice.vendorSlotId}`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  if (words.vendorChoice) {
+    for (const notice of await listEngagedChoiceNotices(organizationId, now)) {
+      items.push({
+        key: `vendor-choice:${notice.decisionId}`,
+        kind: "vendor_choice",
+        eventId: notice.eventId,
+        eventNames: names(notice.eventId),
+        title: words.vendorChoice(notice.vendorName, notice.slotLabel),
+        dueOn: null,
+        since: day(notice.engagedAt),
+        actor: { kind: "you" },
+        href: `/events/${notice.eventId}/consultation/${notice.vendorSlotId}`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  if (words.vendorRoadmap) {
+    for (const alert of await listVendorRoadmapAlerts(organizationId, now)) {
+      items.push({
+        key: `vendor-roadmap:${alert.candidateId}`,
+        kind: "vendor_roadmap",
+        eventId: alert.eventId,
+        eventNames: names(alert.eventId),
+        title: words.vendorRoadmap(alert.vendorName),
+        dueOn: null,
+        since: day(alert.sentAt),
+        actor: { kind: "vendor", name: alert.vendorName },
+        href: `/events/${alert.eventId}?onglet=budget`,
+        action: { kind: "open" },
+      });
+    }
   }
   // Deux évènements en cours le même jour (EVT-07) : signalés à l'approche de la date.
   const byDate = new Map<string, EventSummary[]>();

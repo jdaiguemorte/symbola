@@ -197,9 +197,9 @@ export type VendorFollowUpStatus = { candidateId: string; roadmaps: VendorRoadma
 
 // « Aujourd'hui » de la planner : réponse d'un prestataire, feuille de route non confirmée, choix
 // du client engagé (annulable).
-export type VendorAnswerNotice = { candidateId: string; eventId: string; vendorName: string; slotLabel: string; availability: VendorAvailability; hasQuote: boolean; answeredAt: string };
+export type VendorAnswerNotice = { candidateId: string; eventId: string; vendorSlotId: string; vendorName: string; slotLabel: string; availability: VendorAvailability; hasQuote: boolean; answeredAt: string };
 export type VendorRoadmapAlert = { candidateId: string; eventId: string; vendorName: string; sentAt: string };
-export type EngagedChoiceNotice = { decisionId: string; eventId: string; vendorName: string; slotLabel: string; engagedAt: string; undoUntil: string };
+export type EngagedChoiceNotice = { decisionId: string; eventId: string; vendorSlotId: string; vendorName: string; slotLabel: string; engagedAt: string; undoUntil: string };
 
 // --- Événements internes (ARC-05, ADR 0014) ---
 

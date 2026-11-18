@@ -1176,6 +1176,18 @@
     "portalGuests": {
       "title": "Your guests",
       "body": "Add your guests by household, or import your spreadsheet: duplicates are flagged before anything is saved. For a guest without email, get their personal link or QR code and send it by text. You follow replies per moment; diets show as numbers, never by name."
+    },
+    "vendorCoordination": {
+      "title": "Request quotes from several suppliers",
+      "body": "Write the brief for the category (the need, the number of guests, an indicative budget you show or not, the deadline, some inspiration), tick the suppliers, check the list, then send: each one gets their own email and link, with no account, and never sees the others. Those who have not answered get a reminder the day before the deadline. Answers arrive in the comparison; then tick the proposals to show the client and ask them to choose. Their choice books the supplier, sets the others aside and creates the follow-up tasks; you can undo it for 7 days."
+    },
+    "vendorScenarios": {
+      "title": "Compare option scenarios",
+      "body": "A scenario picks at most one supplier per category. Compare two scenarios side by side: categories in rows, totals to the cent, differences highlighted, against the client's envelope and the estimated budget. A quote without an amount counts as “to be specified”. Show a scenario to the client: its suppliers appear in their options."
+    },
+    "vendorCoordinationSettings": {
+      "title": "Supplier run sheets",
+      "body": "Set the default deadline of a brief, the reminder the day before, the run sheets sent 30 and 7 days before to booked suppliers (each confirms with one tap), the delay after which an unconfirmed run sheet is flagged to you, and the follow-up tasks created when the client chooses a supplier."
     }
   },
   "Aide": {
@@ -4791,7 +4803,8 @@
     "emailTemplates": "Email templates",
     "messageTemplates": "Message templates",
     "trash": "Trash",
-    "dietaryOptions": "Diets and allergies"
+    "dietaryOptions": "Diets and allergies",
+    "vendorCoordination": "Suppliers by link"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -5195,7 +5208,14 @@
       "guests_diets": "guest's diets",
       "guests_diet_consents": "proof of consent to diets",
       "guests_guest_links": "guest personal link",
-      "guests_purge_postponements": "guest purge postponement"
+      "guests_purge_postponements": "guest purge postponement",
+      "events_vendor_briefs": "quote request brief",
+      "events_vendor_brief_documents": "brief inspiration",
+      "events_vendor_scenarios": "option scenario",
+      "events_vendor_scenario_choices": "option scenario choice",
+      "events_event_decision_option_feedback": "client opinion on an option",
+      "events_vendor_roadmaps": "supplier run sheet",
+      "events_vendor_coordination_settings": "suppliers by link settings"
     },
     "modules": {
       "events": "Events",
@@ -5480,7 +5500,15 @@
       "demo": "No decision on a trial event.",
       "gone": "This event is no longer available.",
       "subject": "Choose what the client should decide."
-    }
+    },
+    "engageNotice": "Your choice is passed on to the organisation of your event; the contract with the supplier will be signed afterwards.",
+    "feedbackTitle": "Your opinion on the options: {label}",
+    "feedbackOn": "Your opinion on {vendor}",
+    "feedbackLike": "I like it",
+    "feedbackDislike": "Not for us",
+    "feedbackComment": "A word about {vendor} (optional)",
+    "feedbackSave": "Save my opinion on {vendor}",
+    "feedbackSaved": "Opinion saved."
   },
   "DayOf": {
     "backToEvent": "Back to the event",
@@ -5967,7 +5995,14 @@
       "linkRenewal": "{name} is asking for a new link",
       "guestPurgeDiets": "Guests' diets will be erased: postpone if needed",
       "guestPurgeAll": "Guest data will be erased: postpone if needed",
-      "guestOpposition": "{count, plural, one {A guest objected} other {# guests objected}} to their data being kept"
+      "guestOpposition": "{count, plural, one {A guest objected} other {# guests objected}} to their data being kept",
+      "vendorAnswer": {
+        "available": "{vendor} is available ({slot}), quote to come",
+        "quote": "{vendor} sent their quote ({slot})",
+        "unavailable": "{vendor} is not available ({slot})"
+      },
+      "vendorChoice": "The client chose {vendor} ({slot}): check it, can be undone for 7 days",
+      "vendorRoadmap": "{vendor} has not confirmed their run sheet"
     },
     "myEventsTitle": "My events",
     "myEventsEmpty": "No event in progress.",
@@ -7108,6 +7143,217 @@
       "kindAllergen": "Allergy",
       "add": "Add",
       "added": "Entry added."
+    }
+  },
+  "VendorCoordination": {
+    "title": "Request quotes",
+    "pageTitle": "Request quotes: {slot}",
+    "unavailable": "This feature is unavailable: the Events module is not enabled.",
+    "back": "Back to the event",
+    "askQuotes": "Request quotes and compare",
+    "scenariosLink": "Option scenarios",
+    "demoNotice": "Trial event: no email is sent to a supplier.",
+    "brief": {
+      "title": "1. The brief",
+      "need": "The need",
+      "guestCount": "Number of guests (optional)",
+      "budget": "Indicative budget incl. VAT (optional)",
+      "showBudget": "Show this budget to suppliers",
+      "budgetHint": "Hidden by default: giving a budget steers the quotes.",
+      "deadline": "Answer deadline",
+      "inspirations": "Inspiration (event documents)",
+      "noDocuments": "Add photos or documents in the Documents tab to attach them as inspiration.",
+      "save": "Save the brief",
+      "saved": "Brief saved.",
+      "sentAt": "Sent on {date}",
+      "fromEvent": "The date ({date}) and venues of the event are included in the brief.",
+      "noDate": "date to be set"
+    },
+    "recipients": {
+      "title": "2. The suppliers",
+      "intro": "Each one gets their own email and personal link; nobody sees the others.",
+      "none": "No supplier to consult for this category: add one.",
+      "name": "Contact name at {vendor}",
+      "email": "Email of {vendor}",
+      "alreadySent": "Already consulted: sending again replaces their link.",
+      "review": "Check the recipients",
+      "reviewTitle": "{count, plural, one {The brief goes to # supplier} other {The brief goes to # suppliers}}",
+      "reviewIntro": "Check the list: one email per supplier, no copy.",
+      "send": "{count, plural, one {Send to # supplier} other {Send to the # suppliers}}",
+      "sent": "{count, plural, one {Brief sent to # supplier.} other {Brief sent to # suppliers.}}",
+      "saveBriefFirst": "Save the brief first.",
+      "addTitle": "Add a supplier to consult",
+      "addFromBookHint": "Add a supplier to consult (or from the book, Budget tab)",
+      "addName": "Supplier name",
+      "add": "Add",
+      "added": "Supplier added."
+    },
+    "compare": {
+      "title": "3. The comparison",
+      "empty": "The suppliers' answers will appear here.",
+      "caption": "Supplier answers for {slot}",
+      "vendor": "Supplier",
+      "answer": "Answer",
+      "amount": "Amount incl. VAT",
+      "quote": "Quote",
+      "message": "Message",
+      "answeredAt": "Answered on",
+      "notes": "Notes and opinions",
+      "available": "Available",
+      "unavailable": "Not available",
+      "waiting": "Waiting",
+      "reminded": "Reminded, waiting",
+      "otherChosen": "Set aside (another chosen)",
+      "toBeSpecified": "to be specified",
+      "openQuote": "Open {vendor}'s quote",
+      "feedbackLike": "{name} likes it {comment}",
+      "feedbackDislike": "{name}: not for us {comment}",
+      "feedbackComment": "{name}: {comment}"
+    },
+    "share": {
+      "title": "4. Propose to the client",
+      "intro": "Tick the proposals to show: the client sees them in their space (never your book nor the others), gives an opinion and chooses.",
+      "needTwo": "At least two proposals are needed to ask for a choice.",
+      "legend": "Proposals shown to the client",
+      "note": "A word for the client (optional)",
+      "dueOn": "Answer wanted by (optional)",
+      "submit": "Ask the client to choose",
+      "sent": "Request sent to the client.",
+      "pending": "Choice requested on {date}, waiting for an answer."
+    },
+    "engaged": {
+      "title": "The client's choice",
+      "body": "{name} chose {vendor} on {date}: the supplier is booked, the others are set aside (no email) and the follow-up tasks are created.",
+      "someone": "The client",
+      "undo": "Undo this choice (possible until {date})",
+      "undoHint": "Everything goes back as it was; follow-up tasks not started are removed."
+    },
+    "followUp": {
+      "stage": {
+        "j30": "D-30",
+        "j7": "D-7"
+      },
+      "sent": "{stage} run sheet sent on {date}, not confirmed yet",
+      "confirmed": "{stage} run sheet confirmed on {date}",
+      "invoice": "Invoice uploaded by {vendor}",
+      "noLink": "No supplier link: the run sheet cannot be sent to them."
+    },
+    "scenarios": {
+      "title": "Option scenarios",
+      "intro": "Build scenarios (at most one supplier per category) and compare two side by side.",
+      "compareTitle": "Two scenarios side by side",
+      "left": "Left scenario",
+      "right": "Right scenario",
+      "compare": "Compare",
+      "slot": "Category",
+      "total": "Total incl. VAT",
+      "gap": "Difference",
+      "pending": "{count, plural, one {# quote to be specified} other {# quotes to be specified}}",
+      "envelope": "Client's envelope: {amount}",
+      "noEnvelope": "No client envelope",
+      "estimated": "estimated budget: {amount}",
+      "needTwo": "Create two scenarios to compare them.",
+      "noCandidates": "First add consulted suppliers to the categories.",
+      "choiceFor": "{slot} in “{scenario}”",
+      "none": "None",
+      "choose": "Choose",
+      "show": "Show “{scenario}” to the client",
+      "remove": "Delete “{scenario}”",
+      "newTitle": "New scenario",
+      "name": "Scenario name",
+      "create": "Create the scenario",
+      "created": "Scenario created."
+    },
+    "settings": {
+      "title": "Suppliers by link",
+      "intro": "The delays of quote requests, reminders and run sheets, and the tasks created when the client chooses a supplier.",
+      "deadlineDays": "Default deadline of a brief (days)",
+      "reminder": "Remind those who have not answered the day before the deadline",
+      "roadmapMonth": "Send the run sheet 30 days before",
+      "roadmapWeek": "Send the run sheet 7 days before",
+      "alertDays": "Warn me without confirmation after D-7 (days)",
+      "tasksTitle": "Follow-up tasks created on the client's choice",
+      "tasksHint": "“'{{vendor}}'” is replaced by the chosen supplier's name; the due date counts in days after the choice. Leave a name empty to remove a task.",
+      "taskLabel": "Task {index}",
+      "taskDays": "Due date of task {index} (days)",
+      "resetTasks": "Go back to the starter list",
+      "save": "Save",
+      "saved": "Settings saved.",
+      "ownerOnly": "Only the account owner can change these settings."
+    },
+    "errors": {
+      "unauthorized": "Action not possible: reload the page.",
+      "need": "Describe the need (4,000 characters at most).",
+      "deadline": "Enter a valid deadline.",
+      "guests": "The number of guests must be a whole number.",
+      "budget": "The amount cannot be read.",
+      "documents": "An inspiration does not belong to this event.",
+      "slot": "This category no longer exists.",
+      "recipients": "Choose at least one supplier of this category.",
+      "missing": "Save the brief first.",
+      "email": "Enter a name and a valid email address for each ticked supplier.",
+      "settings": "Check the settings (delays and tasks).",
+      "name": "Enter a name.",
+      "undo": "This choice can no longer be undone.",
+      "changed": "The list has changed: check it again before sending.",
+      "demo": "Trial event: no email is sent to a supplier.",
+      "quota": "The hourly email limit is reached: try again later.",
+      "scenarioName": "Give the scenario a name (120 characters at most).",
+      "shareTwo": "Tick at least two proposals.",
+      "sharePending": "A choice is already requested for this category."
+    }
+  },
+  "VendorAnswer": {
+    "title": "Quote request: {slot}",
+    "helpTitle": "Your answer in one minute",
+    "helpBody": "Read the need, then answer with one tap. If you are available, attach the photo or PDF of your quote. No account, no password: this link is for you only.",
+    "briefTitle": "The brief",
+    "eventOf": "Event of {clients}",
+    "eventUnnamed": "Event",
+    "dateUnset": "date to be set",
+    "guests": "{count, plural, one {# guest} other {# guests}}",
+    "budget": "Indicative budget: {amount} incl. VAT",
+    "deadline": "Answer expected by {date}",
+    "inspirations": "Inspiration",
+    "question": "Are you available?",
+    "available": "I am available",
+    "unavailable": "I am not available",
+    "confirmAvailable": "Confirm: I am available",
+    "confirmUnavailable": "Confirm: I am not available",
+    "preselectedAvailable": "You chose “available” in the email: confirm with one tap.",
+    "preselectedUnavailable": "You chose “not available” in the email: confirm with one tap.",
+    "closed": "The choice has been made: answering is no longer possible.",
+    "depositTitle": "Your quote",
+    "depositIntro": "Take a photo of your quote or attach the PDF.",
+    "quoteFile": "Photo or PDF of the quote",
+    "amount": "Amount incl. VAT (optional)",
+    "message": "A short message (optional)",
+    "sendQuote": "Send my quote",
+    "depositLater": "You can come back later with the same link.",
+    "thanksQuote": "Thank you, your quote has been passed on.",
+    "thanksUnavailable": "Thank you for your answer: you are not available.",
+    "changeMind": "Change my answer",
+    "declinedTitle": "Thank you",
+    "declinedBody": "Thank you for your answer: another choice has been made for this event.",
+    "invoiceTitle": "Your invoice",
+    "invoiceIntro": "Upload your invoice here (photo or PDF).",
+    "invoiceReceived": "Invoice received on {date}. You can upload a new one.",
+    "invoiceFile": "Photo or PDF of the invoice",
+    "sendInvoice": "Send my invoice",
+    "invoiceSent": "Thank you, your invoice has been passed on.",
+    "invoiceLabel": "Invoice from {name}",
+    "roadmapTitle": "Your run sheet",
+    "onSiteContacts": "On-site contacts",
+    "confirmRoadmap": "I have received it",
+    "roadmapConfirmed": "Received, confirmed on {date}.",
+    "errors": {
+      "closed": "This link no longer allows this action.",
+      "fileMissing": "Choose a file.",
+      "amount": "The amount cannot be read.",
+      "message": "The message is too long (1,000 characters at most).",
+      "tooLarge": "The file is too large (20 MB at most).",
+      "infected": "The file was refused by the antivirus.",
+      "unsupported": "Only a photo or a PDF is accepted."
     }
   }
 }
