@@ -8,7 +8,12 @@ import { createOrganization, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { listBudgetLines, updateBudgetLine } from "@/modules/budget/service";
 import { addEventVendorSlot, createProspect, createProspectSource, updateEventVendorSlot } from "@/modules/events/service";
-import { runEventWorkerOnce } from "./event-worker";
+import { EVT_VENDOR_SLOT_BOOKED } from "@symbola/contracts";
+import { CONSUMERS, runEventWorkerOnce as runAll } from "./event-worker";
+
+// Lot 45 : le worker du test ne fait tourner que le consommateur testé (budget, poste réservé) ; les
+// autres (fusion de contacts, acomptes) ont leurs propres tests et se gêneraient en parallèle.
+const runEventWorkerOnce = () => runAll({ budget: { [EVT_VENDOR_SLOT_BOOKED]: CONSUMERS.budget![EVT_VENDOR_SLOT_BOOKED]! } });
 
 const { sql, db } = createAppConnection();
 
