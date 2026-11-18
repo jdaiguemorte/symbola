@@ -2225,6 +2225,46 @@ export async function verifyLinkCode(token: string, code: string, now: Date = ne
   return await startLinkSession(found.organizationId, found.context, now);
 }
 
+// Lot 43 (SEC-16 ; D4 ; avenant de l'ADR 0053, ADR 0089) — code à usage unique avant une action
+// sensible depuis un lien déjà ouvert (signer) : les mêmes codes que l'ouverture (six chiffres, dix
+// minutes, cinq essais, un seul usage, cinq codes par heure), envoyés à l'e-mail du lien, sans ouvrir
+// de nouvelle session. Le lien est relu : retiré, expiré ou d'un évènement perdu, rien ne part.
+export type LinkActionCodeResult = { sent: boolean; emailHint: string };
+export type LinkActionCodeCheck = { outcome: "accepted" } | { outcome: "wrong_code"; attemptsLeft: number } | { outcome: "code_expired" } | { outcome: "invalid" };
+
+export async function sendLinkActionCode(organizationId: string, linkId: string, now: Date = new Date(), locale: "fr" | "en" = "fr"): Promise<LinkActionCodeResult> {
+  const context = await findLinkRow(organizationId, linkId);
+  if (!context || !usableLink(context, now)) return { sent: false, emailHint: "•••" };
+  const { link } = context;
+  const emailHint = maskEmail(link.email);
+  try {
+    await reserveOrganizationMail(organizationId);
+  } catch (error) {
+    if (error instanceof MailQuotaExceededError) return { sent: false, emailHint };
+    throw error;
+  }
+  const code = newLinkCode();
+  const issued = await withActor({ kind: "link", id: link.id }, () =>
+    issueLinkCodeRow({ organizationId, linkId: link.id, eventId: link.eventId, codeHash: hashLinkCode(link.id, code), expiresAt: linkCodeExpiresAt(now), now, maxPerHour: LINK_CODES_PER_HOUR }),
+  );
+  if (issued === "throttled") return { sent: false, emailHint };
+  const t = emailTranslator(locale);
+  await sendSymbolaEmail({ to: link.email, locale, subject: t("fixed.actionCode.subject", { code }), body: t("fixed.actionCode.body", { name: link.personName, code, minutes: Math.round(LINK_CODE_TTL_MS / 60_000) }), organizationId });
+  return { sent: true, emailHint };
+}
+
+export async function verifyLinkActionCode(organizationId: string, linkId: string, code: string, now: Date = new Date()): Promise<LinkActionCodeCheck> {
+  const context = await findLinkRow(organizationId, linkId);
+  if (!context || !usableLink(context, now)) return { outcome: "invalid" };
+  const typed = normalizeLinkCode(code);
+  const attempt = await withActor({ kind: "link", id: linkId }, () =>
+    attemptLinkCodeRow({ organizationId, linkId, eventId: context.link.eventId, codeHash: hashLinkCode(linkId, typed ?? ""), now }),
+  );
+  if (attempt.status === "expired") return { outcome: "code_expired" };
+  if (attempt.status === "wrong") return attempt.attemptsLeft > 0 ? { outcome: "wrong_code", attemptsLeft: attempt.attemptsLeft } : { outcome: "code_expired" };
+  return { outcome: "accepted" };
+}
+
 // Décision D7 : à chaque requête, la session et son lien sont relus ; une
 // session expirée, ou d'un lien qui ne vaut plus, est supprimée.
 export async function resolveLinkSession(sessionToken: string, now: Date = new Date()): Promise<LinkAccess | null> {

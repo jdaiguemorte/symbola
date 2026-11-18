@@ -1170,6 +1170,27 @@
       "when": 1795025871339,
       "tag": "0166_lot51_budget_handovers",
       "breakpoints": true
+    },
+    {
+      "idx": 167,
+      "version": "7",
+      "when": 1795025931339,
+      "tag": "0167_lot43_quotes_proposal_settlement",
+      "breakpoints": true
+    },
+    {
+      "idx": 168,
+      "version": "7",
+      "when": 1795025932839,
+      "tag": "0168_lot43_budget_payers",
+      "breakpoints": true
+    },
+    {
+      "idx": 169,
+      "version": "7",
+      "when": 1795025934339,
+      "tag": "0169_lot43_hub_settlement_email_kinds",
+      "breakpoints": true
     }
   ]
 }

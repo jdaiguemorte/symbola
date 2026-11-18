@@ -428,6 +428,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
                   // Lot 31a/31b (HUB-21) : modèles de devis et de contrat.
                   { href: "/devis/modeles", label: tSettings("quoteTemplates") },
                   { href: "/devis/modeles-contrat", label: tSettings("contractTemplates") },
+                  // Lot 43 (FAC-02, FAC-09, FAC-15) : page de proposition et relances.
+                  { href: "/devis/modeles-proposition", label: tSettings("proposalTemplates") },
+                  { href: "/devis/relances", label: tSettings("paymentReminders") },
                   { href: "/devis/parametres", label: tSettings("quotes") },
                   {
                     href: "/devis/parametres/documents",

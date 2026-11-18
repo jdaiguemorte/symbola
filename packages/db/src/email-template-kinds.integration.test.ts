@@ -55,3 +55,11 @@ describe("PAR-05 (lot 47) — Natures des modèles d'e-mails des prestataires", 
     expect(await refusal("vendor_briefs")).toBe("email_templates_kind_check");
   });
 });
+
+describe("MSG-01 (lot 43, D10) — Natures de la proposition et du règlement", () => {
+  it("proposition envoyée, relance avant expiration, RIB du règlement et relance d'impayé sont admises ; une nature voisine reste refusée", async () => {
+    for (const kind of ["proposal_sent", "proposal_expiry_reminder", "payment_details", "invoice_reminder"]) expect(await refusal(kind)).toBe("accepté");
+    expect(await refusal("invoice_reminders")).toBe("email_templates_kind_check");
+    expect(await refusal("payment_link")).toBe("email_templates_kind_check");
+  });
+});

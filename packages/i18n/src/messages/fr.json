@@ -1311,6 +1311,38 @@
     "programImport": {
       "title": "Importer un chrono",
       "body": "Un chrono tenu dans un tableur (CSV ou XLSX) s'importe dans le programme : colonnes jour ou temps fort, début, fin, séquence, lieu, responsable, note. L'écran de contrôle montre les séquences lues et les écarts ligne par ligne ; rien n'est écrit avant « Importer ». Les temps forts manquants sont créés ; une cellule qui commence par =, +, - ou @ reste du texte."
+    },
+    "settlement": {
+      "title": "Régler l'acompte",
+      "body": "Le règlement se fait par virement, depuis votre banque : copiez l'IBAN et la référence, ou lisez le QR code avec votre application bancaire. Une fois le virement fait, appuyez sur « J'ai fait le virement » ; votre organisateur confirmera sa réception. Aucune carte ni aucun paiement ne passe par cette page."
+    },
+    "cashCalendar": {
+      "title": "Calendrier des sorties d'argent",
+      "body": "Mois par mois, ce qu'il reste à régler : à votre organisateur et à vos prestataires, avec qui paie chaque échéance et où elle en est (à venir, déclarée, réglée)."
+    },
+    "portalPayers": {
+      "title": "Ce que voit chaque payeur",
+      "body": "Vos familles ou une entreprise participent ? Pour chacune, choisissez si elle ne voit que sa part (le montant qui lui revient et ses échéances) ou tout le budget."
+    },
+    "proposalTemplates": {
+      "title": "Modèles de proposition",
+      "body": "La page que reçoit le client quand vous envoyez un devis : votre mot d'accueil, votre présentation, le devis et ses options, l'échéancier, la validité, puis « Accepter et signer ». Un modèle pour tous les évènements, et un par type si besoin ; chaque devis reprend le mot d'accueil et peut le changer avant l'envoi."
+    },
+    "reminderSettings": {
+      "title": "Relances",
+      "body": "Quand Symbola relance vos clients : quelques jours avant l'expiration d'une proposition, puis après une échéance impayée. Chaque relance part une seule fois, s'arrête dès que le client déclare son virement, et se suspend sur la fiche du devis."
+    },
+    "proposalPreview": {
+      "title": "Aperçu de la proposition",
+      "body": "La page exacte que voit votre client, sans rien enregistrer : vérifiez le mot d'accueil, les options et les montants avant de le prévenir."
+    },
+    "budgetPayers": {
+      "title": "Payeurs et répartition",
+      "body": "Les mariés paient tout par défaut. Ajoutez une famille ou une entreprise, puis partagez chaque ligne en pourcentage ou en montant : les totaux tombent juste au centime. Désignez qui règle chaque échéance, et ce que chaque payeur voit (sa part seule, par défaut)."
+    },
+    "budgetCashCalendar": {
+      "title": "Calendrier des sorties d'argent",
+      "body": "Mois par mois, les échéances du client envers vous et envers ses prestataires, avec leur payeur et leur statut : la réponse à « qu'est-ce qu'on doit payer en mai ? »."
     }
   },
   "Aide": {
@@ -2223,7 +2255,10 @@
     "handoverSave": "Enregistrer la remise",
     "handoverMarked": "À remettre le jour J : {method}, par {by}",
     "handoverDone": "Remis le jour J ({method})",
-    "handoverCashHint": "Espèces : les paiements en espèces sont plafonnés par la loi (voir l'aide)."
+    "handoverCashHint": "Espèces : les paiements en espèces sont plafonnés par la loi (voir l'aide).",
+    "payersNav": "Payeurs et calendrier",
+    "payersLink": "Payeurs et répartition",
+    "cashCalendarLink": "Calendrier des sorties d'argent"
   },
   "Quotes": {
     "title": "Devis",
@@ -2851,7 +2886,8 @@
     "orderReferenceSaved": "Numéro enregistré.",
     "orderReferenceInvalid": "Le numéro tient sur une ligne de 60 caractères au plus.",
     "orderReferenceError": "Ce numéro ne peut pas être enregistré ici.",
-    "orderReferenceIs": "Bon de commande : {reference}"
+    "orderReferenceIs": "Bon de commande : {reference}",
+    "acceptAndSign": "Accepter et signer le devis {number}"
   },
   "NotFound": {
     "title": "Page introuvable",
@@ -2865,7 +2901,8 @@
     "sign": "Signer le devis",
     "decline": "Refuser le devis",
     "signed": "Vous avez signé ce devis.",
-    "declined": "Vous avez refusé ce devis."
+    "declined": "Vous avez refusé ce devis.",
+    "backToSpace": "Revenir à mon espace"
   },
   "Import": {
     "title": "Importer des données",
@@ -4988,7 +5025,9 @@
     "pipelineStages": "Étapes du pipeline",
     "contactForm": "Formulaire de contact",
     "vendorCoordination": "Prestataires par lien",
-    "dayChecklists": "Listes du jour J"
+    "dayChecklists": "Listes du jour J",
+    "proposalTemplates": "Modèles de proposition",
+    "paymentReminders": "Relances"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -5274,7 +5313,14 @@
       "events_vendor_retention_changed": "Prestataire retenu modifié par l'équipe",
       "events_program_imported": "Chrono importé d'un tableur",
       "events_day_shift_applied": "Décalage du jour J validé et diffusé",
-      "events_day_report_downloaded": "Bilan du jour J téléchargé"
+      "events_day_report_downloaded": "Bilan du jour J téléchargé",
+      "quotes_transfer_declared": "Virement déclaré par le payeur",
+      "quotes_reminders_suspended": "Relances d'une échéance suspendues",
+      "quotes_reminders_resumed": "Relances d'une échéance reprises",
+      "quotes_validity_extended": "Validité d'un devis prolongée",
+      "quotes_signing_code_verified": "Code vérifié avant la signature",
+      "budget_payers_changed": "Payeurs ou parts modifiés",
+      "budget_payer_visibility_changed": "Ce que voit un payeur, modifié"
     },
     "categories": {
       "connexion": "Connexions",
@@ -5425,7 +5471,13 @@
       "events_day_checklist_templates": "modèle de liste du jour J",
       "events_day_checklists": "liste de contrôle du jour J",
       "events_day_checklist_items": "case d'une liste du jour J",
-      "events_day_reports": "bilan du jour J"
+      "events_day_reports": "bilan du jour J",
+      "quotes_proposal_templates": "Modèle de proposition",
+      "quotes_payment_references": "Référence de virement",
+      "quotes_payment_reminders": "Relance d'impayé",
+      "budget_event_payers": "Payeur",
+      "budget_budget_line_payer_shares": "Part d'un payeur",
+      "budget_planner_instalment_payers": "Payeur d'une échéance"
     },
     "modules": {
       "events": "Événements",
@@ -5609,7 +5661,18 @@
     "guestsLink": "Vos invités : liste, import et réponses",
     "appointmentsTitle": "Vos prochains rendez-vous",
     "appointmentVideo": "en visio",
-    "appointmentPhone": "par téléphone"
+    "appointmentPhone": "par téléphone",
+    "cashCalendarLink": "Calendrier des sorties d'argent",
+    "payersLink": "Ce que voit chaque payeur",
+    "proposalsTitle": "Vos propositions",
+    "proposalLink": "Proposition {number} (version {version})",
+    "proposalValidUntil": "valable jusqu'au {date}",
+    "proposalStatus": {
+      "expired": "expirée",
+      "signed": "signée",
+      "declined": "refusée",
+      "superseded": "remplacée"
+    }
   },
   "VendorSpace": {
     "title": "Votre espace prestataire",
@@ -6310,7 +6373,8 @@
         "unavailable": "{vendor} n'est pas disponible ({slot})"
       },
       "vendorChoice": "Le client a choisi {vendor} ({slot}) : vérifiez",
-      "vendorRoadmap": "{vendor} n'a pas confirmé sa feuille de route"
+      "vendorRoadmap": "{vendor} n'a pas confirmé sa feuille de route",
+      "transferDeclaration": "{name} déclare avoir viré {amount}"
     },
     "myEventsTitle": "Mes évènements",
     "myEventsEmpty": "Aucun évènement en cours.",
@@ -6645,7 +6709,13 @@
       "appointment": "Premier rendez-vous découverte",
       "appointmentDate": "2 mars 2027 à 10:00",
       "slot": "Fleurs",
-      "deadline": "10 mars 2027"
+      "deadline": "10 mars 2027",
+      "amount": "1 620,00 €",
+      "dueDate": "20 janvier 2027",
+      "reference": "SYM-2027-7KQ4XM",
+      "iban": "FR76 3000 6000 0112 3456 7890 189",
+      "bic": "AGRIFRPP",
+      "penalties": "Merci de régulariser dès que possible."
     },
     "event": {
       "coupleClient": "votre mariage",
@@ -6686,6 +6756,10 @@
         "subject": "Votre invitation Symbola",
         "body": "Bonjour,\n\nVous avez été invité·e à rejoindre « {organization} » sur Symbola. Ce lien est valable 7 jours :\n\n{url}",
         "button": "Accepter l'invitation"
+      },
+      "actionCode": {
+        "subject": "Votre code pour signer : {code}",
+        "body": "Bonjour {name},\n\nVotre code pour accepter et signer votre proposition sur Symbola : {code}\n\nIl est valable {minutes} minutes et ne sert qu'une fois. Si vous ne l'avez pas demandé, ignorez ce message et prévenez votre interlocuteur."
       }
     }
   },
@@ -6713,7 +6787,8 @@
       "program": "Programme",
       "appointments": "Rendez-vous",
       "prospects": "Demandes de contact",
-      "vendors": "Prestataires"
+      "vendors": "Prestataires",
+      "settlement": "Proposition et règlement"
     },
     "kinds": {
       "client_link": {
@@ -6787,6 +6862,22 @@
       "vendor_roadmap": {
         "title": "Feuille de route d'un prestataire",
         "description": "Part toute seule à J-30 et à J-7 à chaque prestataire retenu, avec son lien pour confirmer."
+      },
+      "proposal_sent": {
+        "title": "Proposition envoyée",
+        "description": "Part aux clients de l'évènement quand vous envoyez la proposition, s'ils ont un espace où la lire."
+      },
+      "proposal_expiry_reminder": {
+        "title": "Proposition bientôt expirée",
+        "description": "Part tout seul quelques jours avant la fin de validité d'une proposition ni signée ni refusée."
+      },
+      "payment_details": {
+        "title": "RIB pour régler l'acompte",
+        "description": "Part tout seul au 8e jour d'un contrat signé hors établissement, avec le RIB et la référence du virement."
+      },
+      "invoice_reminder": {
+        "title": "Relance d'une échéance impayée",
+        "description": "Part tout seul après une échéance non réglée, selon vos réglages ; s'arrête dès que le client déclare son virement."
       }
     },
     "variables": {
@@ -6806,7 +6897,13 @@
       "slot": "Le poste concerné (« Fleurs », « Photographe »…)",
       "deadline": "La date limite de réponse du brief",
       "link_available": "Le lien qui présélectionne « disponible » ; seul sur sa ligne, il devient le bouton « Je suis disponible »",
-      "link_unavailable": "Le lien qui présélectionne « indisponible » ; seul sur sa ligne, il devient le bouton « Je ne suis pas disponible »"
+      "link_unavailable": "Le lien qui présélectionne « indisponible » ; seul sur sa ligne, il devient le bouton « Je ne suis pas disponible »",
+      "amount": "Le montant de l'échéance",
+      "due_date": "La date de l'échéance",
+      "reference": "La référence à indiquer sur le virement",
+      "iban": "Votre IBAN",
+      "bic": "Votre BIC",
+      "penalties": "La phrase des pénalités de retard, selon le client et vos réglages"
     },
     "back": "Tous les modèles d'e-mails",
     "editorTitle": "{title} ({language})",
@@ -8471,5 +8568,314 @@
       "unchecked": "Toutes les cases sont cochées.",
       "handovers": "Aucune remise prévue."
     }
+  },
+  "Proposal": {
+    "title": "Proposition de {organization}",
+    "sentOn": "Envoyée le {date}",
+    "greetingLabel": "Mot d'accueil",
+    "photosLabel": "Photos",
+    "photoAlt": "Photo {number} de la proposition",
+    "quoteTitle": "Devis {number} — version {version}",
+    "linesLabel": "Prestations",
+    "optionChosen": "option choisie",
+    "optionNotChosen": "option, hors du total tant qu'elle n'est pas choisie",
+    "subtotal": "Sous-total {title} : {amount}",
+    "totalHt": "Total HT",
+    "totalVat": "TVA",
+    "totalTtc": "Total TTC",
+    "total": "Total",
+    "scheduleDeposit": "Échéancier des acomptes",
+    "scheduleEarnest": "Échéancier des arrhes",
+    "scheduleLine": "{label} : {amount}, le {date}",
+    "balance": "Solde : {amount}",
+    "validityLabel": "Validité",
+    "validUntil": "Proposition valable jusqu'au {date} inclus.",
+    "expired": "Proposition expirée : contactez {organization}.",
+    "signed": "Proposition signée.",
+    "superseded": "Une nouvelle version de cette proposition existe.",
+    "declined": "Proposition refusée.",
+    "downloadPdf": "Télécharger la proposition (PDF)",
+    "versionsTitle": "Versions de la proposition",
+    "versionLine": "Version {version}, envoyée le {date}",
+    "versionCurrent": "en cours",
+    "backToSpace": "Revenir à mon espace",
+    "flow": {
+      "title": "Accepter et signer",
+      "stepsLabel": "Étapes pour accepter et signer",
+      "stateDone": "fait",
+      "stateCurrent": "en cours",
+      "steps": {
+        "options": "Vos options",
+        "code": "Votre code",
+        "order": "Votre commande",
+        "sign": "Votre signature",
+        "settle": "Régler l'acompte"
+      },
+      "optionsFirst": "Choisissez d'abord vos options, puis enregistrez votre choix.",
+      "goOptions": "Aller aux options",
+      "waitingDocument": "Votre choix est enregistré. {organization} prépare le document à signer : vous recevrez un e-mail dès qu'il est prêt.",
+      "expired": "Cette proposition a expiré : contactez {organization} pour la prolonger.",
+      "declined": "Cette proposition a été refusée.",
+      "notSigner": "Vous n'êtes pas signataire de cette proposition : seuls les signataires prévus peuvent l'accepter.",
+      "codeHint": "Pour signer, confirmez que c'est bien vous : un code à six chiffres va partir à l'adresse de votre lien. Il est valable 10 minutes.",
+      "codeRequest": "Recevoir mon code par e-mail",
+      "codeResend": "Recevoir un nouveau code",
+      "codeSent": "Code envoyé à {email}.",
+      "codeLabel": "Code reçu par e-mail",
+      "codeConfirm": "Valider le code",
+      "codeError": "Ce code ne peut pas être demandé ici. Rouvrez votre lien.",
+      "codeNotSent": "Le code n'a pas pu partir (trop de demandes). Réessayez dans une heure.",
+      "codeWrong": "Code incorrect. Il vous reste {attempts, plural, one {# essai} other {# essais}}.",
+      "codeExpired": "Ce code a expiré ou a déjà servi. Demandez-en un nouveau.",
+      "orderHint": "Avant de signer, confirmez votre commande.",
+      "orderWithdrawal": "Avant de signer, confirmez votre commande. Vous gardez votre droit de rétractation, décrit dans votre contrat.",
+      "signHint": "Le document à signer s'ouvre chez notre service de signature. Une fois signé, revenez ici pour régler l'acompte.",
+      "signButton": "Signer le devis {number}",
+      "signedAll": "Tous les signataires ont signé. Il reste à régler l'acompte.",
+      "signedWaiting": "Votre signature est enregistrée. En attente de la signature de {names}.",
+      "settleButton": "Régler l'acompte",
+      "done": "C'est signé : il n'y a rien à régler maintenant."
+    }
+  },
+  "Settlement": {
+    "title": "Régler : {label}",
+    "quoteLine": "Devis {number}",
+    "dueOn": "échéance le {date}",
+    "awaitingSignatures": "Le règlement s'ouvrira quand tous les signataires auront signé.",
+    "paid": "Réglé le {date}. Merci !",
+    "declared": "Vous avez indiqué un virement fait le {date} (déclaré le {when}). La réception sera confirmée par votre organisateur.",
+    "declaredNow": "C'est noté : votre organisateur confirmera la réception du virement.",
+    "bankDetailsMissing": "Les coordonnées bancaires ne sont pas encore renseignées : contactez votre organisateur.",
+    "transferTitle": "Virement à faire",
+    "beneficiary": "Bénéficiaire",
+    "iban": "IBAN",
+    "bic": "BIC",
+    "reference": "Référence",
+    "referenceHint": "Indiquez cette référence dans le libellé du virement : elle permet de le reconnaître.",
+    "qrLabel": "QR code de virement, avec le montant et la référence",
+    "qrHint": "Votre application bancaire peut lire ce QR code : il remplit le bénéficiaire, l'IBAN, le montant et la référence.",
+    "copy": "Copier",
+    "copyLabel": "Copier {label}",
+    "copied": "{label} copié.",
+    "declareTitle": "J'ai fait le virement",
+    "declareDate": "Date du virement",
+    "declareButton": "J'ai fait le virement",
+    "declareError": "Ce règlement ne peut pas être déclaré ici. Rouvrez votre lien.",
+    "declareRefused": {
+      "not_open": "Ce règlement n'est pas encore ouvert.",
+      "not_payer": "Ce règlement est attendu d'un autre payeur.",
+      "date": "La date du virement ne peut être ni future ni antérieure à la signature.",
+      "already": "Un virement a déjà été déclaré pour ce règlement.",
+      "paid": "Ce règlement est déjà réglé."
+    },
+    "otherPayer": "Ce règlement est attendu d'un autre payeur de votre évènement.",
+    "demo": "Essai : aucun virement n'est attendu.",
+    "backToSpace": "Revenir à mon espace"
+  },
+  "CashCalendar": {
+    "title": "Calendrier des sorties d'argent",
+    "empty": "Aucune échéance à venir pour l'instant.",
+    "monthTotals": "Total du mois : {total} · reste à sortir : {remaining}",
+    "payer": "payé par {name}",
+    "status": {
+      "upcoming": "à venir",
+      "declared": "déclaré",
+      "paid": "réglé"
+    },
+    "settle": "Régler",
+    "settleLabel": "Régler : {label}",
+    "backToSpace": "Revenir à mon espace",
+    "moduleUnavailable": "Le module Budget n'est pas disponible pour votre organisation.",
+    "backToBudget": "Revenir au budget",
+    "filterLabel": "Filtrer le calendrier",
+    "filterPayer": "Payeur",
+    "allPayers": "Tous les payeurs",
+    "filterSubmit": "Afficher"
+  },
+  "Payers": {
+    "title": "Payeurs et répartition",
+    "moduleUnavailable": "Le module Budget n'est pas disponible pour votre organisation.",
+    "backToBudget": "Revenir au budget",
+    "listTitle": "Payeurs de l'évènement",
+    "kinds": {
+      "couple": "Les mariés",
+      "family_one": "Famille de l'un",
+      "family_two": "Famille de l'autre",
+      "company": "Entreprise",
+      "other": "Autre payeur"
+    },
+    "totalShare": "sa part : {amount}",
+    "coupleHint": "Ce qui n'est attribué à personne revient aux mariés.",
+    "remove": "Retirer {name}",
+    "addSummary": "Ajouter un payeur",
+    "addForm": "Ajouter un payeur",
+    "name": "Nom",
+    "kind": "Qui est-ce ?",
+    "link": "Lien personnel (facultatif)",
+    "noLink": "Sans lien",
+    "addSubmit": "Ajouter le payeur",
+    "added": "Payeur ajouté.",
+    "visibilityFor": "Ce que voit {name}",
+    "visibilityShare": "Seulement sa part",
+    "visibilityAll": "Tout le budget",
+    "visibilitySave": "Enregistrer",
+    "visibilitySaved": "Réglage enregistré.",
+    "visibilityError": "Ce réglage ne peut pas être modifié ici.",
+    "linesTitle": "Répartition par ligne",
+    "noLines": "Aucune ligne de budget pour l'instant.",
+    "splitEntry": "{name} : {amount}",
+    "sharesFor": "Parts de « {label} »",
+    "shareMode": "Pourcentage ou montant pour {name}",
+    "percent": "%",
+    "amount": "€",
+    "sharesHint": "Un pourcentage ou un montant par payeur ; laissé vide, rien. Le reste revient aux mariés.",
+    "sharesSave": "Enregistrer",
+    "sharesSaveFor": "Enregistrer les parts de « {label} »",
+    "sharesSaved": "Parts enregistrées.",
+    "paymentsTitle": "Payeur de chaque échéance",
+    "payerOf": "Payeur de « {label} »",
+    "payerSave": "Enregistrer",
+    "payerSaveFor": "Enregistrer le payeur de « {label} »",
+    "payerSaved": "Payeur enregistré.",
+    "portalTitle": "Ce que voit chaque payeur",
+    "portalIntro": "Pour chaque payeur de votre évènement, choisissez s'il ne voit que sa part, ou tout le budget.",
+    "noOtherPayer": "Votre organisateur n'a pas encore ajouté d'autre payeur.",
+    "backToSpace": "Revenir à mon espace",
+    "shareTitle": "Votre part",
+    "shareIntro": "Le montant qui vous revient sur chaque prestation, d'après la répartition décidée avec les mariés.",
+    "shareEmpty": "Aucune part ne vous est encore attribuée.",
+    "shareTotal": "Total de votre part : {amount}",
+    "errors": {
+      "unauthenticated": "Votre session a expiré. Reconnectez-vous.",
+      "notFound": "Payeur ou évènement introuvable.",
+      "name": "Le nom fait de 1 à 120 caractères.",
+      "kind": "Choisissez qui est ce payeur.",
+      "link": "Ce lien n'est pas un lien client de cet évènement, ou il est déjà rattaché à un payeur.",
+      "couple": "Les mariés restent toujours payeurs.",
+      "shares_invalid": "Chaque part est un pourcentage de 0,01 à 100 ou un montant positif.",
+      "shares_duplicate": "Un payeur ne peut avoir qu'une part par ligne.",
+      "shares_over_100": "Les pourcentages d'une ligne ne dépassent pas 100 %.",
+      "line": "Cette ligne n'existe plus.",
+      "payment": "Cette échéance n'existe plus.",
+      "instalment": "Cette échéance n'est pas un échéancier de l'évènement."
+    }
+  },
+  "QuoteProposal": {
+    "title": "Page de proposition",
+    "draftHint": "À l'envoi, le client reçoit une page de proposition : votre mot d'accueil, votre présentation, le devis et ses options, l'échéancier et la validité, puis « Accepter et signer ».",
+    "greetingForm": "Mot d'accueil de la proposition",
+    "greetingLabel": "Mot d'accueil (vide : celui du modèle de proposition)",
+    "greetingHint": "Il se fige à l'envoi, avec le devis.",
+    "greetingSave": "Enregistrer le mot d'accueil",
+    "greetingSaved": "Mot d'accueil enregistré.",
+    "templatesLink": "Modifier les modèles de proposition",
+    "previewLink": "Voir la proposition comme le client",
+    "expired": "Proposition expirée depuis le {date} : le client ne peut plus la signer. Prolongez-la ou envoyez une nouvelle version.",
+    "notifyForm": "Prévenir le client par e-mail",
+    "notifySubmit": "Prévenir le client par e-mail",
+    "notified": "E-mail envoyé aux clients qui ont un espace.",
+    "extendSummary": "Prolonger la validité",
+    "extendForm": "Prolonger la validité",
+    "extendLabel": "Nouvelle date de validité",
+    "extendSubmit": "Prolonger",
+    "extended": "Validité prolongée.",
+    "settlementTitle": "Règlement par virement",
+    "settlementHint": "Le client règle par virement, avec la référence de l'échéance ; vous confirmez l'encaissement dans l'échéancier. Les relances partent selon vos réglages et s'arrêtent dès qu'il déclare son virement.",
+    "reference": "référence {reference}",
+    "noReference": "référence créée à l'ouverture du règlement",
+    "declared": "{name} déclare avoir viré le {date}.",
+    "confirmLink": "Confirmer l'encaissement",
+    "remindersSent": "Relances envoyées : {list}",
+    "reminderEntry": "n° {rank} le {date}",
+    "suspendSummary": "Suspendre les relances de « {label} »",
+    "suspendForm": "Suspendre les relances de « {label} »",
+    "suspendReason": "Motif (par exemple : arrangement avec le client)",
+    "suspendSubmit": "Suspendre les relances",
+    "suspended": "Relances suspendues.",
+    "suspendedSince": "Relances suspendues depuis le {date} : {reason}",
+    "resumeForm": "Reprendre les relances de « {label} »",
+    "resumeSubmit": "Reprendre les relances",
+    "resumed": "Relances reprises.",
+    "previewBanner": "Aperçu : la proposition telle que la voit le client. Rien ne s'enregistre.",
+    "previewBack": "Revenir au devis",
+    "errors": {
+      "unauthenticated": "Votre session a expiré. Reconnectez-vous.",
+      "notFound": "Devis introuvable.",
+      "locked": "Le devis est envoyé : son mot d'accueil est figé.",
+      "greeting": "Le mot d'accueil fait au plus 4 000 caractères.",
+      "validityDate": "Choisissez une date à partir d'aujourd'hui.",
+      "validityClosed": "Seule une proposition envoyée, ni signée ni refusée, se prolonge.",
+      "reason": "Indiquez un motif.",
+      "noRecipient": "Aucun client n'a d'espace avec la rubrique Devis : créez-lui un lien d'abord."
+    }
+  },
+  "ProposalTemplates": {
+    "title": "Modèles de proposition",
+    "moduleUnavailable": "Le module Devis n'est pas disponible pour votre organisation.",
+    "forAll": "Pour tous les évènements",
+    "forType": "Pour : {type}",
+    "starterHint": "Modèle de départ, à adapter : enregistrez-le pour le faire vôtre.",
+    "version": "Version {version}",
+    "editForm": "Modifier le modèle de proposition",
+    "newForm": "Nouveau modèle de proposition",
+    "newTitle": "Un modèle pour un type d'évènement",
+    "eventType": "Type d'évènement",
+    "greeting": "Mot d'accueil",
+    "blocksLegend": "Ordre des blocs",
+    "blocksHint": "Choisissez la place de chaque bloc sur la page, ou masquez-le. Le devis est toujours présent ; le bouton « Accepter et signer » vient toujours à la fin.",
+    "blocks": {
+      "greeting": "Mot d'accueil",
+      "organization": "Votre présentation",
+      "photos": "Photos",
+      "quote": "Le devis et ses options",
+      "schedule": "Échéancier et conditions",
+      "validity": "Validité"
+    },
+    "hidden": "Masqué",
+    "place": "Place {place}",
+    "save": "Enregistrer le modèle",
+    "saved": "Modèle enregistré.",
+    "remove": "Supprimer le modèle « {type} »",
+    "errorUnauthenticated": "Votre session a expiré. Reconnectez-vous.",
+    "errorGreeting": "Le mot d'accueil fait de 1 à 4 000 caractères.",
+    "errorBlocks": "Le devis doit figurer sur la page, chaque bloc une seule fois.",
+    "photosSummary": "Photos ({count} sur 3)",
+    "photosNone": "Aucune photo pour l'instant.",
+    "photoAlt": "Photo {number} du modèle",
+    "photoRemove": "Retirer la photo {number}",
+    "photoField": "Ajouter une photo (PNG ou JPEG, 3 Mo au plus)",
+    "photoSubmit": "Envoyer la photo",
+    "photoAdded": "Photo ajoutée.",
+    "photosHint": "Trois photos au plus : vos plus belles réalisations, montrées sur la page de proposition.",
+    "photoErrors": {
+      "missing": "Choisissez une photo.",
+      "too_large": "La photo dépasse 3 Mo.",
+      "unsupported_type": "Seules les photos PNG ou JPEG sont acceptées.",
+      "infected": "Ce fichier a été refusé par l'antivirus.",
+      "full": "Ce modèle a déjà trois photos.",
+      "not_found": "Modèle introuvable : enregistrez-le d'abord."
+    }
+  },
+  "ReminderSettings": {
+    "title": "Relances",
+    "moduleUnavailable": "Le module Devis n'est pas disponible pour votre organisation.",
+    "intro": "Symbola relance pour vous, par e-mail, aux heures ouvrées : une fois avant l'expiration d'une proposition, puis après une échéance non réglée. Une relance s'arrête dès que le client déclare son virement ou que vous confirmez l'encaissement.",
+    "formLabel": "Réglages des relances",
+    "expiryDays": "Relance avant l'expiration d'une proposition (jours avant)",
+    "expiryHint": "Une seule relance, aux clients qui n'ont ni signé ni refusé.",
+    "paymentDays": "Relances d'une échéance impayée (jours après l'échéance)",
+    "paymentHint": "Jusqu'à cinq nombres, séparés par des virgules (par exemple : 3, 10, 20).",
+    "consumerRate": "Taux annuel de la clause de pénalités d'un particulier (%)",
+    "consumerRateHint": "À remplir seulement si votre contrat prévoit une clause de pénalités ; vide, aucune pénalité n'est mentionnée à un particulier. Face à un professionnel, les pénalités de vos conditions s'appliquent.",
+    "save": "Enregistrer les réglages",
+    "saved": "Réglages enregistrés.",
+    "errorUnauthenticated": "Votre session a expiré. Reconnectez-vous.",
+    "errorRate": "Saisissez un taux comme 3,5.",
+    "errors": {
+      "expiryReminderDays": "La relance avant expiration part de 1 à 30 jours avant.",
+      "paymentReminderDays": "De une à cinq relances, chacune entre 1 et 120 jours après l'échéance.",
+      "consumerLatePenaltyBasisPoints": "Le taux est compris entre 0,01 et 100 %."
+    },
+    "lawyerNote": "Pénalités d'un particulier : question posée à l'avocat (taux maximal, mentions). En attendant, rien n'est mentionné sans clause au contrat."
   }
 }

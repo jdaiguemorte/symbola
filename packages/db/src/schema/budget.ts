@@ -8,7 +8,7 @@
 // couplage direct aux données internes d'un autre module. C'est un uuid
 // opaque, validé à la couche service via
 // eventsService.listDefaultVendorSlots(organizationId).
-import { boolean, check, date, integer, pgSchema, text, timestamp, unique, uniqueIndex, uuid, index } from "drizzle-orm/pg-core";
+import { boolean, check, date, integer, pgSchema, text, timestamp, unique, uniqueIndex, uuid, index, type AnyPgColumn } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 export const budgetSchema = pgSchema("budget");
@@ -219,6 +219,8 @@ export const vendorPayments = budgetSchema.table(
     handedOverBy: uuid("handed_over_by"),
     handoverActionId: uuid("handover_action_id"),
     handoverReceiptPhotoId: uuid("handover_receipt_photo_id"),
+    // Lot 43 (BUD-06, D8) : payeur désigné de l'échéance (null : les mariés).
+    payerId: uuid("payer_id").references((): AnyPgColumn => eventPayers.id, { onDelete: "set null" }),
     position: integer("position").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
@@ -244,5 +246,89 @@ export const vendorPayments = budgetSchema.table(
       "vendor_payments_declaration_check",
       sql`(${table.declaredPaidOn} is null and ${table.declaredMethod} is null and ${table.declaredByLinkId} is null and ${table.declaredAt} is null) or (${table.declaredPaidOn} is not null and ${table.declaredMethod} is not null and ${table.declaredByLinkId} is not null and ${table.declaredAt} is not null)`,
     ),
+  ],
+);
+
+// Lot 43 (BUD-06, BUD-11 ; D8, D9 ; ADR 0089) — les payeurs d'un évènement : les mariés, la famille
+// de l'un, celle de l'autre, une entreprise, ou un autre. Tirés d'un lien personnel du client
+// (link_id, uuid opaque du module events) ou ajoutés sans lien. « Sa part seule » (oui par défaut) :
+// le client décide si ce payeur ne voit que sa part ou tout le budget ; contrôlé côté serveur.
+export const EVENT_PAYER_KINDS = ["couple", "family_one", "family_two", "company", "other"] as const;
+
+export const eventPayers = budgetSchema.table(
+  "event_payers",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id").notNull(),
+    name: text("name").notNull(),
+    kind: text("kind", { enum: EVENT_PAYER_KINDS }).notNull(),
+    linkId: uuid("link_id"),
+    ownShareOnly: boolean("own_share_only").notNull().default(true),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("event_payers_organization_idx").on(table.organizationId),
+    index("event_payers_event_idx").on(table.eventId),
+    unique("event_payers_event_link_unique").on(table.eventId, table.linkId),
+    check("event_payers_name_check", sql`char_length(trim(${table.name})) between 1 and 120`),
+    check("event_payers_kind_check", sql`${table.kind} in ('couple', 'family_one', 'family_two', 'company', 'other')`),
+  ],
+);
+
+// Lot 43 (BUD-06, D8) — part d'un payeur sur une ligne du budget : un pourcentage ou un montant. Ce
+// qui n'est attribué à personne revient aux mariés (par défaut : 100 % aux mariés).
+export const budgetLinePayerShares = budgetSchema.table(
+  "budget_line_payer_shares",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    lineId: uuid("line_id")
+      .notNull()
+      .references(() => budgetLines.id, { onDelete: "cascade" }),
+    payerId: uuid("payer_id")
+      .notNull()
+      .references(() => eventPayers.id, { onDelete: "cascade" }),
+    percentageBasisPoints: integer("percentage_basis_points"),
+    amountCents: integer("amount_cents"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("budget_line_payer_shares_organization_idx").on(table.organizationId),
+    unique("budget_line_payer_shares_line_payer_unique").on(table.lineId, table.payerId),
+    check(
+      "budget_line_payer_shares_value_check",
+      sql`(${table.percentageBasisPoints} between 1 and 10000 and ${table.amountCents} is null) or (${table.percentageBasisPoints} is null and ${table.amountCents} > 0)`,
+    ),
+  ],
+);
+
+// Lot 43 (BUD-06, BUD-11 ; D8) — payeur désigné d'une échéance de la planner (échéancier d'un devis,
+// module quotes : uuid opaque, ADR 0011). Sans ligne : les mariés.
+export const plannerInstalmentPayers = budgetSchema.table(
+  "planner_instalment_payers",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id").notNull(),
+    scheduleItemId: uuid("schedule_item_id").notNull(),
+    payerId: uuid("payer_id")
+      .notNull()
+      .references(() => eventPayers.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("planner_instalment_payers_organization_idx").on(table.organizationId),
+    unique("planner_instalment_payers_schedule_item_unique").on(table.scheduleItemId),
   ],
 );

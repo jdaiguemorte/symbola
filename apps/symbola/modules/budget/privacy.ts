@@ -7,7 +7,7 @@
 import { asc, inArray } from "drizzle-orm";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import { appDatabase } from "@symbola/db/client";
-import { budgetLineAttachments, budgetLines, eventBudgets, vendorPayments } from "@symbola/db/schema/budget";
+import { budgetLineAttachments, budgetLines, eventBudgets, eventPayers, vendorPayments } from "@symbola/db/schema/budget";
 import { withOrganization } from "@symbola/db/with-organization";
 import { ANONYMIZED, hasTerms, idsOfKind, prepareTerms, recordMatches, type ErasureInput, type ErasurePlanItem, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
 import { getEvent, listEventVendorSlots } from "@/modules/events/service";
@@ -40,6 +40,13 @@ async function erasurePlan(tx: Tx, input: ErasureInput): Promise<{ plan: Erasure
       plan.push({ kind: "vendor_payment", recordId: row.id, fate: "anonymized", legalBasis: null, keptUntil: null });
     }
   }
+  // Lot 43 (BUD-06) : le nom d'un payeur (« Famille Martin ») ; ses parts restent, sans nom.
+  const payerIds = idsOfKind(input.records, "event_payer");
+  if (payerIds.length > 0) {
+    for (const row of await tx.select({ id: eventPayers.id }).from(eventPayers).where(inArray(eventPayers.id, payerIds))) {
+      plan.push({ kind: "event_payer", recordId: row.id, fate: "anonymized", legalBasis: null, keptUntil: null });
+    }
+  }
   const attachmentKeys = new Map<string, string>();
   if (attachmentIds.length > 0) {
     for (const row of await tx.select({ id: budgetLineAttachments.id, fileKey: budgetLineAttachments.fileKey }).from(budgetLineAttachments).where(inArray(budgetLineAttachments.id, attachmentIds))) {
@@ -67,6 +74,8 @@ export const budgetPrivacy: PrivacyContractV1 = {
     // Lot 28b : les montants restent (totaux) ; les libellés libres sont anonymisés.
     const lineIds = plan.filter((item) => item.kind === "budget_line").map((item) => item.recordId);
     const paymentIds = plan.filter((item) => item.kind === "vendor_payment").map((item) => item.recordId);
+    const payerIds = plan.filter((item) => item.kind === "event_payer").map((item) => item.recordId);
+    if (payerIds.length > 0) await inOrganization(input.organizationId, (tx) => tx.update(eventPayers).set({ name: ANONYMIZED, updatedAt: new Date() }).where(inArray(eventPayers.id, payerIds)));
     if (lineIds.length > 0 || paymentIds.length > 0) {
       await inOrganization(input.organizationId, async (tx) => {
         if (lineIds.length > 0) await tx.update(budgetLines).set({ label: ANONYMIZED, updatedAt: new Date() }).where(inArray(budgetLines.id, lineIds));
@@ -88,13 +97,14 @@ export const budgetPrivacy: PrivacyContractV1 = {
   async find({ organizationId, terms: rawTerms }) {
     const terms = prepareTerms(rawTerms);
     if (!hasTerms(terms)) return [];
-    const { lines, payments } = await inOrganization(organizationId, async (tx) => {
+    const { lines, payments, payers } = await inOrganization(organizationId, async (tx) => {
       const lines = await tx.select().from(budgetLines);
       const payments = await tx.select().from(vendorPayments);
-      return { lines: lines.filter((line) => recordMatches([line.label], terms)), payments: payments.filter((payment) => recordMatches([payment.label], terms)) };
+      const payers = await tx.select().from(eventPayers);
+      return { lines: lines.filter((line) => recordMatches([line.label], terms)), payments: payments.filter((payment) => recordMatches([payment.label], terms)), payers: payers.filter((payer) => recordMatches([payer.name], terms)) };
     });
     const realEvent = new Map<string, boolean>();
-    for (const eventId of new Set([...lines.map((line) => line.eventId), ...payments.map((payment) => payment.eventId)])) {
+    for (const eventId of new Set([...lines.map((line) => line.eventId), ...payments.map((payment) => payment.eventId), ...payers.map((payer) => payer.eventId)])) {
       realEvent.set(eventId, (await getEvent(organizationId, eventId))?.isDemo === false);
     }
     return [
@@ -113,6 +123,15 @@ export const budgetPrivacy: PrivacyContractV1 = {
         label: payment.label,
         fields: { paymentLabel: payment.label },
         eventId: payment.eventId,
+      })),
+      // Lot 43 (BUD-06) : un payeur de l'évènement, nommé.
+      ...payers.filter((payer) => realEvent.get(payer.eventId)).map((payer): PrivacyRecord => ({
+        module: MODULE,
+        kind: "event_payer",
+        recordId: payer.id,
+        label: payer.name,
+        fields: { payerName: payer.name, payerKind: payer.kind },
+        eventId: payer.eventId,
       })),
     ];
   },

@@ -3,6 +3,7 @@ import { formatAmount, formatDateTime, type Locale } from "@symbola/i18n";
 import { starterContractRules } from "@symbola/starter-templates";
 import type { ClientQuoteToSign } from "@/modules/quotes/service";
 import { EarlyExecutionForm, OrderContractForm, OrderReferenceForm } from "./client-contract-forms";
+import { SigningCodeForm } from "./proposition/signing-code-form";
 
 const OWN_STATUS_KEYS = { pending: "quoteToSign", signed: "quoteSignedByYou", declined: "quoteDeclinedByYou" } as const;
 
@@ -40,6 +41,18 @@ export async function ClientQuotes({ quotes, locale, preview = false }: { quotes
                   </a>
                 )}
               </>
+            ) : quote.status === "pending" && quote.ownStatus === "pending" ? (
+              quote.kind === "contract" ? (
+                // Lot 43 (SEC-16) : le contrat signé seul demande aussi le code, ici même.
+                (!quote.contract || !quote.contract.orderRequired || quote.contract.orderedAt) ? <SigningCodeForm quoteId={quote.quoteId} preview={preview} /> : null
+              ) : (
+                <>
+                  {/* Lot 43 (SEC-16, GC-01) : le lien de signature s'obtient dans l'enchaînement, après le code. */}
+                  {" "}
+                  —{" "}
+                  {preview ? <span>{t("acceptAndSign", { number: quote.number })}</span> : <a href={`/portail/proposition/${quote.versionId}#signer`}>{t("acceptAndSign", { number: quote.number })}</a>}
+                </>
+              )
             ) : null}
             {/* Lot 41 (JUR-13, D8) : devis professionnel, le numéro de bon de commande de l'entreprise. */}
             {quote.professional && quote.kind !== "contract" ? (

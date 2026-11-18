@@ -3,6 +3,7 @@
 // /v1/quotes si ce module est extrait en app autonome.
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
+import { starterLatePenalty, starterPaymentReminders, starterProposalTemplate } from "@symbola/starter-templates";
 import { LATE_PENALTY_RATE_KEYS, starterComplianceChecks, starterProfessionalTerms, starterContractRules, starterContractTemplates, starterDemoQuote, starterEventTypes, starterInvoiceMentions, starterProfessionalPaymentTerms, starterQuoteTemplates } from "@symbola/starter-templates";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
@@ -87,7 +88,53 @@ import type {
   StartQuotesTrialInput,
 } from "@symbola/contracts";
 import { QUOTES_QUOTE_SIGNED, QUOTES_QUOTE_SIGNED_VERSION, type QuoteSignedPayload } from "@symbola/contracts";
-import { changeEventStatus, EventNotFoundError, getEvent, listEventLinks, listEventTypes } from "@/modules/events/service";
+import { changeEventStatus, EventNotFoundError, getEvent, listEventLinks, listEventTypes, sendLinkActionCode, verifyLinkActionCode } from "@/modules/events/service";
+import { withActor } from "@symbola/db/actor";
+import {
+  PROPOSAL_BLOCKS,
+  type ProposalBlock,
+  type ProposalLine,
+  type ProposalStatus,
+  type ProposalTemplateInput,
+  type ProposalTemplateView,
+  type ProposalView,
+  type ReminderSettings,
+  type ScheduleItemSettlement,
+  type SettlementView,
+  type SigningFlowStep,
+  type SigningFlowView,
+  type TransferDeclarationView,
+  type PlannerInstalment,
+} from "@symbola/contracts";
+import { latePenaltySentence as latePenaltySentenceOf } from "@/lib/documents/payment-terms";
+import { epcQrSvg, isValidIban, newPaymentReference, normalizeIban } from "./payment-references";
+import { settlementState } from "./settlement";
+import { dueInvoiceReminder, expiryReminderDue, isProposalExpired, penaltySentence, reminderSendWindow } from "./payment-reminders";
+import {
+  claimInvoiceReminder,
+  declareTransferRow,
+  deleteProposalTemplateRow,
+  ensurePaymentReference,
+  extendCurrentVersionValidity,
+  findOpenSentVersions,
+  findPaymentReferences,
+  findPaymentReminders,
+  findPendingTransferDeclarations,
+  findProposalTemplate,
+  findProposalTemplateFor,
+  findProposalTemplates,
+  findReminderSettingsRow,
+  markDetailsMailed,
+  markExpiryReminded,
+  markSignerCodeVerified,
+  quoteIdOfVersion,
+  saveProposalTemplateRow,
+  saveReminderSettingsRow,
+  setDraftProposalGreeting,
+  setProposalTemplatePhotos,
+  setRemindersSuspension,
+  type ProposalTemplateRow,
+} from "./settlement-repository";
 import {
   assertOrganizationEmailReady,
   assertRecipientsConfirmed,
@@ -1290,6 +1337,11 @@ export async function chooseQuoteOptions(input: {
   now?: Date;
 }): Promise<QuoteDetail> {
   const chosenBy = requireText(input.chosenBy, "auteur du choix").slice(0, 200);
+  // Lot 43 (FAC-15, D1) : sur une proposition expirée, le client ne choisit plus (la planner la prolonge).
+  if (input.byKind === "client") {
+    const current = await loadDetail(input.organizationId, input.quoteId).catch(() => null);
+    if (current && current.status === "sent" && isProposalExpired(current.current.validUntil, parisDate(input.now ?? new Date()))) throw new QuoteExpiredError();
+  }
   const result = await chooseOptionsRow(
     input.organizationId,
     { quoteId: input.quoteId, ...(input.eventId ? { eventId: input.eventId } : {}), chosenLineIds: [...new Set(input.chosenLineIds)], chosenBy, byKind: input.byKind, now: input.now ?? new Date() },
@@ -1660,6 +1712,10 @@ export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
   const missing = await quoteMissingMentions(input.organizationId, input.quoteId);
   if (missing.length > 0) throw new RequiredMentionsMissingError(missing);
   const legalMention = computeLegalMention(profile);
+  // Lot 43 (FAC-02, D2) : le mot d'accueil de la page de proposition se fige avec la version ; sans
+  // texte propre au devis, celui du modèle de proposition du type d'évènement (ou de départ).
+  const event = await getEvent(input.organizationId, aggregate.quote.eventId);
+  const proposalTemplate = await proposalTemplateFor(input.organizationId, event?.eventTypeId ?? null, await creatorLocale(input.organizationId, aggregate.quote.createdByUserId));
 
   const result = await freezeCurrentVersion(input.organizationId, input.quoteId, (version, lines, items) => {
     // Vérifié ici, après « devis vide » : un devis vide est signalé d'abord.
@@ -1675,6 +1731,9 @@ export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
       legalMention: legalMention === "" ? null : legalMention,
       sellerSnapshot: seller,
       totalsSnapshot: totals,
+      proposalGreeting: version.proposalGreeting ?? proposalTemplate.greeting,
+      proposalTemplateId: version.proposalGreeting ? version.proposalTemplateId : proposalTemplate.id,
+      proposalTemplateVersion: version.proposalGreeting ? version.proposalTemplateVersion : proposalTemplate.id ? proposalTemplate.version : null,
     };
   });
   if (result.status === "empty") throw new QuoteEmptyError();
@@ -1975,6 +2034,8 @@ export async function sendQuoteForSignature(input: SendForSignatureInput): Promi
   const quote = await loadDetail(input.organizationId, input.quoteId);
   if (quote.status !== "sent" || quote.current.sentAt === null) throw new QuoteNotSentError();
   if (quote.signature) throw new SignatureAlreadyRequestedError();
+  // Lot 43 (FAC-15, D1) : une proposition expirée ne se signe plus ; la planner la prolonge d'abord.
+  if (isProposalExpired(quote.current.validUntil, parisDate(new Date()))) throw new QuoteExpiredError();
   const provider = signatureProviderFor(quote.isDemo);
   if (!provider) throw new SignatureUnavailableError();
   // Lot 31b (DOC-03, D9) : le contrat signé avec le devis doit être celui de la version courante,
@@ -2301,7 +2362,7 @@ export async function getSignatureDocument(organizationId: string, quoteId: stri
 // DEV-02 — espace du marié (accès à l'événement vérifié par l'appelant,
 // PRD-EVT-06) : les devis à signer et le seul lien de ce marié, reconnu par
 // l'e-mail de son compte.
-export async function listClientQuotesToSign(organizationId: string, eventId: string, clientEmail: string): Promise<ClientQuoteToSign[]> {
+export async function listClientQuotesToSign(organizationId: string, eventId: string, clientEmail: string, now: Date = new Date()): Promise<ClientQuoteToSign[]> {
   const email = clientEmail.trim().toLowerCase();
   const contexts = (await findEventSignatureContexts(organizationId, eventId)).filter((context) => context.request.status !== "declined");
   const result: ClientQuoteToSign[] = [];
@@ -2312,13 +2373,18 @@ export async function listClientQuotesToSign(organizationId: string, eventId: st
     const contract = context.request.contractId ? await clientContract(organizationId, context.request.contractId, own?.id ?? null, open) : null;
     // Lot 31b (D13) : à distance, le lien de signature suit la commande avec obligation de paiement.
     const ordered = !contract || !contract.orderRequired || contract.orderedAt !== null;
+    // Lot 43 (SEC-16, FAC-15 ; D1, D4) : le lien de signature ne s'affiche qu'après le code à usage unique
+    // vérifié depuis ce lien (trente minutes), et jamais pour une proposition expirée.
+    const codeVerified = own !== null && codeStillValid(own.signingCodeVerifiedAt, now);
+    const expired = context.quote.status === "sent" && isProposalExpired(context.version.validUntil, parisDate(now));
     result.push({
       quoteId: context.quote.id,
+      versionId: context.version.id,
       number: context.quote.number,
       version: context.version.version,
       totalTtcCents: totals?.totalTtcCents ?? 0,
       status: context.request.status,
-      ownSigningUrl: own && open && ordered ? own.signingUrl : null,
+      ownSigningUrl: own && open && ordered && codeVerified && !expired ? own.signingUrl : null,
       ownStatus: own?.status ?? null,
       advanceKind: context.version.advanceKind,
       kind: context.request.kind,
@@ -4009,4 +4075,752 @@ export async function quoteComplianceFindings(input: {
     );
   }
   return { findings, disclaimer };
+}
+
+// =====================================================================================================
+// Lot 43 (FAC-02, FAC-08 Divergent, FAC-09, FAC-15, GC-01, SEC-16 ; D1 à D7, D10 ; ADR 0087, ADR 0089)
+// — la proposition en page web, l'enchaînement « Accepter et signer », le règlement par virement au RIB
+// (référence, QR code EPC, déclaration du payeur, confirmation de la planner), les relances avant
+// expiration et d'impayés. Aucun paiement en ligne ni rapprochement automatique (ADR 0087).
+// =====================================================================================================
+
+export { epcQrPayload, isPaymentReference, isValidIban, normalizeIban } from "./payment-references";
+export { settlementState } from "./settlement";
+
+// SEC-16 (D4) : un code vérifié ouvre le lien de signature pendant trente minutes.
+export const SIGNING_CODE_VALIDITY_MS = 30 * 60 * 1000;
+
+export class QuoteExpiredError extends Error {
+  constructor() {
+    super("devis expiré : il ne se signe plus");
+    this.name = "QuoteExpiredError";
+  }
+}
+
+export class ProposalTemplateInvalidError extends Error {
+  constructor(readonly reason: "greeting" | "blocks") {
+    super("modèle de proposition invalide");
+    this.name = "ProposalTemplateInvalidError";
+  }
+}
+
+export class ReminderSettingsInvalidError extends Error {
+  constructor(readonly field: "expiryReminderDays" | "paymentReminderDays" | "consumerLatePenaltyBasisPoints") {
+    super("réglage des relances invalide");
+    this.name = "ReminderSettingsInvalidError";
+  }
+}
+
+export class TransferDeclarationError extends Error {
+  constructor(readonly reason: "not_open" | "not_payer" | "date" | "already" | "paid") {
+    super("déclaration de virement refusée");
+    this.name = "TransferDeclarationError";
+  }
+}
+
+export class ValidityExtensionError extends Error {
+  constructor(readonly reason: "date" | "not_open") {
+    super("prolongation refusée");
+    this.name = "ValidityExtensionError";
+  }
+}
+
+// --- Réglages des relances (FAC-09, FAC-15 ; D1, D7) ---
+
+export async function getReminderSettings(organizationId: string): Promise<ReminderSettings> {
+  const row = await findReminderSettingsRow(organizationId);
+  const starter = starterPaymentReminders();
+  return {
+    expiryReminderDays: row?.expiryReminderDays ?? starter.expiryReminderDays,
+    paymentReminderDays: row?.paymentReminderDays && row.paymentReminderDays.length > 0 ? [...row.paymentReminderDays] : [...starter.paymentReminderDays],
+    consumerLatePenaltyBasisPoints: row?.consumerLatePenaltyBasisPoints ?? null,
+  };
+}
+
+export async function updateReminderSettings(organizationId: string, input: ReminderSettings): Promise<ReminderSettings> {
+  if (!Number.isInteger(input.expiryReminderDays) || input.expiryReminderDays < 1 || input.expiryReminderDays > 30) throw new ReminderSettingsInvalidError("expiryReminderDays");
+  const days = [...new Set(input.paymentReminderDays)].sort((a, b) => a - b);
+  if (days.length < 1 || days.length > 5 || days.some((day) => !Number.isInteger(day) || day < 1 || day > 120)) throw new ReminderSettingsInvalidError("paymentReminderDays");
+  const rate = input.consumerLatePenaltyBasisPoints;
+  if (rate !== null && (!Number.isInteger(rate) || rate < 1 || rate > 10000)) throw new ReminderSettingsInvalidError("consumerLatePenaltyBasisPoints");
+  await saveReminderSettingsRow(organizationId, { expiryReminderDays: input.expiryReminderDays, paymentReminderDays: days, consumerLatePenaltyBasisPoints: rate });
+  return getReminderSettings(organizationId);
+}
+
+// --- Modèles de proposition (FAC-02, HUB-21 ; D2) ---
+
+function toProposalTemplateView(row: ProposalTemplateRow): ProposalTemplateView {
+  return { id: row.id, eventTypeId: row.eventTypeId, greeting: row.greeting, blocks: row.blocks.filter((block): block is ProposalBlock => (PROPOSAL_BLOCKS as readonly string[]).includes(block)), photoCount: row.photos.length, version: row.version, starter: false };
+}
+
+function starterProposalTemplateView(locale: "fr" | "en"): ProposalTemplateView {
+  const starter = starterProposalTemplate(locale);
+  return { id: null, eventTypeId: null, greeting: starter.greeting, blocks: starter.blocks, photoCount: 0, version: 1, starter: true };
+}
+
+// Les modèles de l'organisation ; sans aucun, celui de départ (pour tous), à enregistrer.
+export async function listProposalTemplates(organizationId: string, locale: "fr" | "en"): Promise<ProposalTemplateView[]> {
+  const rows = await findProposalTemplates(organizationId);
+  const views = rows.map(toProposalTemplateView);
+  return views.some((view) => view.eventTypeId === null) ? views : [starterProposalTemplateView(locale), ...views];
+}
+
+export async function proposalTemplateFor(organizationId: string, eventTypeId: string | null, locale: "fr" | "en"): Promise<ProposalTemplateView> {
+  const row = await findProposalTemplateFor(organizationId, eventTypeId);
+  return row ? toProposalTemplateView(row) : starterProposalTemplateView(locale);
+}
+
+export async function saveProposalTemplate(organizationId: string, input: ProposalTemplateInput): Promise<ProposalTemplateView> {
+  const greeting = input.greeting.replace(/\r\n/g, "\n").trim();
+  if (greeting.length < 1 || greeting.length > 4000) throw new ProposalTemplateInvalidError("greeting");
+  const blocks = input.blocks;
+  if (blocks.length === 0 || !blocks.includes("quote") || new Set(blocks).size !== blocks.length || blocks.some((block) => !(PROPOSAL_BLOCKS as readonly string[]).includes(block))) {
+    throw new ProposalTemplateInvalidError("blocks");
+  }
+  if (input.eventTypeId !== null && !(await listEventTypes(organizationId)).some((type) => type.id === input.eventTypeId)) throw new ProposalTemplateInvalidError("blocks");
+  return toProposalTemplateView(await saveProposalTemplateRow(organizationId, { eventTypeId: input.eventTypeId, greeting, blocks }));
+}
+
+export async function removeProposalTemplate(organizationId: string, templateId: string): Promise<void> {
+  const row = await deleteProposalTemplateRow(organizationId, templateId);
+  if (!row) return;
+  const storage = createStorageClient();
+  for (const photo of row.photos) {
+    try {
+      await deletePrivateObject(storage, photo.key);
+    } catch (error) {
+      if (!(error instanceof PrivateObjectNotFoundError)) throw error;
+    }
+  }
+}
+
+// Le mot d'accueil d'un brouillon : repris du modèle, modifiable par devis ; vide, celui du modèle à l'envoi.
+export async function setQuoteProposalGreeting(organizationId: string, quoteId: string, greeting: string | null): Promise<QuoteDetail> {
+  const text = greeting?.replace(/\r\n/g, "\n").trim() || null;
+  if (text && text.length > 4000) throw new ProposalTemplateInvalidError("greeting");
+  const result = await setDraftProposalGreeting(organizationId, quoteId, { greeting: text, templateId: null, templateVersion: null });
+  if (result === "not_found") throw new QuoteNotFoundError();
+  if (result === "locked") throw new QuoteVersionLockedError();
+  return loadDetail(organizationId, quoteId);
+}
+
+export async function getQuoteProposalGreeting(organizationId: string, quoteId: string): Promise<{ greeting: string | null; templateGreeting: string }> {
+  const aggregate = await findQuoteAggregate(organizationId, quoteId);
+  if (!aggregate) throw new QuoteNotFoundError();
+  const version = aggregate.versions.find((candidate) => candidate.version === aggregate.quote.currentVersion);
+  const event = await getEvent(organizationId, aggregate.quote.eventId);
+  const template = await proposalTemplateFor(organizationId, event?.eventTypeId ?? null, await creatorLocale(organizationId, aggregate.quote.createdByUserId));
+  return { greeting: version?.proposalGreeting ?? null, templateGreeting: template.greeting };
+}
+
+// --- La page de proposition (FAC-02, FAC-15) ---
+
+function proposalStatusOf(quote: QuoteDetail, version: QuoteVersionView, today: string): ProposalStatus {
+  if (version.id !== quote.current.id) return "superseded";
+  if (quote.status === "signed") return "signed";
+  if (quote.status === "declined" || quote.signature?.status === "declined") return "declined";
+  return isProposalExpired(version.validUntil, today) ? "expired" : "open";
+}
+
+function lineAmountForClient(line: QuoteLine, vatApplicable: boolean): number {
+  return vatApplicable ? line.netCents + Math.round((line.netCents * line.vatRateBasisPoints) / 10000) : line.netCents;
+}
+
+async function proposalView(organizationId: string, quote: QuoteDetail, version: QuoteVersionView, now: Date): Promise<ProposalView> {
+  const today = parisDate(now);
+  const aggregate = await findQuoteAggregate(organizationId, quote.id);
+  const row = aggregate?.versions.find((candidate) => candidate.id === version.id);
+  const template = row?.proposalTemplateId ? await findProposalTemplate(organizationId, row.proposalTemplateId) : null;
+  const seller = version.seller ?? (await currentQuoteSeller(organizationId, quote.clientKind, now));
+  const bySection = new Map<string | null, QuoteLine[]>();
+  for (const line of [...version.lines].sort((a, b) => a.position - b.position)) bySection.set(line.sectionId, [...(bySection.get(line.sectionId) ?? []), line]);
+  const sections = [
+    ...(bySection.has(null) ? [{ title: null as string | null, id: null as string | null, subtotal: null as number | null }] : []),
+    ...[...version.sections].sort((a, b) => a.position - b.position).map((section) => ({ title: section.title as string | null, id: section.id as string | null, subtotal: section.subtotalCents as number | null })),
+  ].map((section) => {
+    const lines = (bySection.get(section.id) ?? []).map(
+      (line): ProposalLine => ({ id: line.id, label: line.label, description: line.description, quantityMilli: line.quantityMilli, unit: line.unit, amountCents: lineAmountForClient(line, version.vatApplicable), isOption: line.isOption, chosen: line.optionChosen }),
+    );
+    return { title: section.title, lines, subtotalCents: lines.filter((line) => !line.isOption || line.chosen).reduce((sum, line) => sum + line.amountCents, 0) };
+  });
+  const options = version.id === quote.current.id ? ((await listClientQuoteOptions(organizationId, quote.eventId)).find((candidate) => candidate.quoteId === quote.id) ?? null) : null;
+  return {
+    quoteId: quote.id,
+    versionId: version.id,
+    number: quote.number,
+    version: version.version,
+    status: proposalStatusOf(quote, version, today),
+    sentAt: version.sentAt!,
+    validUntil: version.validUntil,
+    greeting: row?.proposalGreeting ?? null,
+    blocks: template ? toProposalTemplateView(template).blocks : starterProposalTemplate("fr").blocks,
+    photoCount: template?.photos.length ?? 0,
+    organization: {
+      name: seller.organizationName,
+      email: seller.contactEmail ?? null,
+      phone: seller.contactPhone ?? null,
+      website: seller.website ?? null,
+      hasLogo: Boolean(seller.logoKey),
+      color: seller.document?.color ?? null,
+    },
+    sections: sections.filter((section) => section.lines.length > 0),
+    totals: version.totals,
+    vatApplicable: version.vatApplicable,
+    legalMention: version.legalMention,
+    schedule: version.schedule.items.map((item) => ({ id: item.id, label: item.label, dueDate: item.dueDate, amountCents: item.amountCents })),
+    balanceCents: version.schedule.balanceCents,
+    advanceKind: version.advanceKind,
+    options,
+    versions: quote.versions
+      .filter((candidate) => candidate.sentAt !== null)
+      .sort((a, b) => b.version - a.version)
+      .map((candidate) => ({ versionId: candidate.id, version: candidate.version, sentAt: candidate.sentAt!, current: candidate.id === quote.current.id })),
+  };
+}
+
+// La proposition d'une version envoyée, pour le lien d'un client de l'évènement (l'accès est relu par
+// l'appelant) ou pour l'aperçu « vu par » de la planner. Une version d'un autre évènement, un brouillon
+// ou un identifiant inconnu : introuvable, sans dire pourquoi (SEC-13).
+export async function getEventProposal(organizationId: string, input: { eventId: string; versionId: string; now?: Date }): Promise<ProposalView> {
+  if (!/^[0-9a-f-]{36}$/i.test(input.versionId)) throw new QuoteNotFoundError();
+  const quoteId = await quoteIdOfVersion(organizationId, input.versionId);
+  if (!quoteId) throw new QuoteNotFoundError();
+  const quote = await loadDetail(organizationId, quoteId);
+  const version = quote.versions.find((candidate) => candidate.id === input.versionId);
+  if (quote.eventId !== input.eventId || !version?.sentAt) throw new QuoteNotFoundError();
+  return proposalView(organizationId, quote, version, input.now ?? new Date());
+}
+
+// Les propositions de l'évènement (version courante envoyée de chaque devis), pour le portail.
+export async function listEventProposals(organizationId: string, eventId: string, now: Date = new Date()): Promise<{ quoteId: string; versionId: string; number: string; version: number; status: ProposalStatus; validUntil: string | null }[]> {
+  const today = parisDate(now);
+  const summaries = (await findEventQuotes(organizationId, eventId)).filter((quote) => quote.status === "sent" || quote.status === "signed");
+  const result = [];
+  for (const summary of summaries) {
+    const quote = await loadDetail(organizationId, summary.id);
+    if (!quote.current.sentAt) continue;
+    result.push({ quoteId: quote.id, versionId: quote.current.id, number: quote.number, version: quote.current.version, status: proposalStatusOf(quote, quote.current, today), validUntil: quote.current.validUntil });
+  }
+  return result;
+}
+
+// FAC-15 : la planner prolonge une proposition envoyée (la relance avant expiration repartira).
+export async function extendQuoteValidity(organizationId: string, quoteId: string, validUntil: string, now: Date = new Date()): Promise<QuoteDetail> {
+  if (!DATE_PATTERN.test(validUntil) || validUntil < parisDate(now)) throw new ValidityExtensionError("date");
+  const result = await extendCurrentVersionValidity(organizationId, quoteId, requireDate(validUntil, "validité"));
+  if (result === "not_found") throw new QuoteNotFoundError();
+  if (result === "not_open") throw new ValidityExtensionError("not_open");
+  return loadDetail(organizationId, quoteId);
+}
+
+// FAC-02 : prévenir les clients de l'évènement (liens ouverts avec la rubrique « Devis ») qu'une
+// proposition les attend. Un devis d'essai n'envoie rien. Renvoie le nombre d'e-mails partis.
+export async function notifyProposalSent(organizationId: string, quoteId: string, locale: "fr" | "en"): Promise<number> {
+  const quote = await loadDetail(organizationId, quoteId);
+  if (quote.isDemo || quote.status !== "sent" || !quote.current.sentAt) return 0;
+  const links = (await listEventLinks(organizationId, quote.eventId)).filter((link) => link.audience === "client" && link.status === "active" && link.rights.rubrics.includes("quotes"));
+  let sent = 0;
+  for (const link of links) {
+    try {
+      await sendOrganizationEmail({
+        organizationId,
+        to: link.email,
+        kind: "proposal_sent",
+        locale,
+        values: { first_name: link.personName, quote_number: quote.number, valid_until: quote.current.validUntil ? formatCalendarDate(quote.current.validUntil, locale) : "" },
+        idempotencyKey: `proposal-sent:${quote.current.id}:${link.id}`,
+      });
+      sent += 1;
+    } catch (error) {
+      console.error(`proposition non annoncée (lien ${link.id})`, error instanceof Error ? error.name : error);
+    }
+  }
+  return sent;
+}
+
+// FAC-15 (D1) : relance avant l'expiration, une seule fois, aux clients qui n'ont ni signé ni refusé.
+export async function sendProposalExpiryReminders(organizationId: string, now: Date = new Date()): Promise<number> {
+  if (!reminderSendWindow(now)) return 0;
+  const today = parisDate(now);
+  const { expiryReminderDays } = await getReminderSettings(organizationId);
+  let sent = 0;
+  for (const { quote, version } of await findOpenSentVersions(organizationId)) {
+    const detail = await loadDetail(organizationId, quote.id);
+    const due = expiryReminderDue({ status: quote.status, validUntil: version.validUntil, remindedAt: version.expiryRemindedAt, daysBefore: expiryReminderDays, signatureStarted: detail.signature !== null && detail.signature.status !== "declined" }, today);
+    if (!due) continue;
+    const links = (await listEventLinks(organizationId, quote.eventId)).filter((link) => link.audience === "client" && link.status === "active" && link.rights.rubrics.includes("quotes"));
+    if (links.length === 0) continue;
+    if (!(await markExpiryReminded(organizationId, version.id, now))) continue;
+    const locale = await creatorLocale(organizationId, quote.createdByUserId);
+    for (const link of links) {
+      try {
+        await sendOrganizationEmail({
+          organizationId,
+          to: link.email,
+          kind: "proposal_expiry_reminder",
+          locale,
+          values: { first_name: link.personName, quote_number: quote.number, valid_until: formatCalendarDate(version.validUntil!, locale) },
+          idempotencyKey: `proposal-expiry:${version.id}:${link.id}`,
+        });
+        sent += 1;
+      } catch (error) {
+        console.error(`relance avant expiration non envoyée (lien ${link.id})`, error instanceof Error ? error.name : error);
+      }
+    }
+  }
+  return sent;
+}
+
+// --- L'enchaînement « Accepter et signer » (GC-01, SEC-16, JUR-07) ---
+
+function codeStillValid(verifiedAt: Date | null, now: Date): boolean {
+  return verifiedAt !== null && now.getTime() - verifiedAt.getTime() < SIGNING_CODE_VALIDITY_MS;
+}
+
+export async function getSigningFlow(organizationId: string, input: { eventId: string; email: string; quoteId: string; now?: Date }): Promise<SigningFlowView> {
+  const now = input.now ?? new Date();
+  const email = input.email.trim().toLowerCase();
+  const quote = await loadDetail(organizationId, input.quoteId);
+  if (quote.eventId !== input.eventId || !quote.current.sentAt) throw new QuoteNotFoundError();
+  const aggregate = (await findQuoteAggregate(organizationId, quote.id))!;
+  const options = (await listClientQuoteOptions(organizationId, quote.eventId)).find((candidate) => candidate.quoteId === quote.id) ?? null;
+  const signature = quote.signature && quote.signature.status !== "declined" ? quote.signature : null;
+  const ownRow = signature ? (aggregate.signers.find((signer) => signer.requestId === signature.id && signer.email === email) ?? null) : null;
+  const contract = signature?.contractId ? await clientContract(organizationId, signature.contractId, ownRow?.id ?? null, ownRow?.status === "pending" && signature.status === "pending") : null;
+  const expired = quote.status === "sent" && isProposalExpired(quote.current.validUntil, parisDate(now));
+  const codeVerified = codeStillValid(ownRow?.signingCodeVerifiedAt ?? null, now);
+  const ordered = !contract || !contract.orderRequired || contract.orderedAt !== null;
+  const ownSigned = ownRow?.status === "signed";
+  const allSigned = signature?.status === "completed";
+  const settleItem = quote.current.schedule.items[0] ?? null;
+  const base: SigningFlowView = {
+    step: "done",
+    optionsLocked: options?.locked ?? true,
+    codeVerified,
+    orderRequired: contract?.orderRequired ?? false,
+    ordered: contract?.orderedAt !== null && contract?.orderedAt !== undefined,
+    contractId: contract?.contractId ?? null,
+    earlyExecutionText: contract?.open ? contract.earlyExecutionText : null,
+    earlyExecutionRequested: Boolean(contract?.earlyExecutionRequestedAt),
+    withdrawalApplies: contract?.withdrawalApplies ?? false,
+    signingUrl: ownRow && ownRow.status === "pending" && signature?.status === "pending" && codeVerified && ordered && !expired ? ownRow.signingUrl : null,
+    ownSigned,
+    allSigned,
+    waitingFor: signature ? aggregate.signers.filter((signer) => signer.requestId === signature.id && signer.status === "pending" && signer.email !== email).map((signer) => signer.name.split(" ")[0] ?? signer.name) : [],
+    settleScheduleItemId: settleItem?.id ?? null,
+  };
+  const step = ((): SigningFlowStep => {
+    if (quote.status === "declined" || quote.signature?.status === "declined") return "declined";
+    if (ownSigned || allSigned) return settleItem ? "settle" : "done";
+    if (expired) return "expired";
+    if (options && !options.locked && options.choice === null) return "options";
+    if (!signature) return "waiting_document";
+    if (!ownRow) return "not_signer";
+    if (!codeVerified) return "code";
+    if (!ordered) return "order";
+    return "sign";
+  })();
+  return { ...base, step };
+}
+
+// SEC-16 (D4) : le code part à l'e-mail du lien, seulement pour un signataire en attente de ce devis.
+// Les signataires de cette adresse encore en attente, sur une demande en cours du devis (devis, devis
+// et contrat, ou contrat seul) ; aucun si la proposition a expiré. Le devis doit être de l'évènement.
+async function pendingSignersOf(organizationId: string, input: { eventId: string; email: string; quoteId: string; now: Date }): Promise<{ ids: string[]; isDemo: boolean }> {
+  const aggregate = await findQuoteAggregate(organizationId, input.quoteId);
+  if (!aggregate || aggregate.quote.eventId !== input.eventId) throw new QuoteNotFoundError();
+  const version = aggregate.versions.find((candidate) => candidate.version === aggregate.quote.currentVersion);
+  if (aggregate.quote.status === "sent" && isProposalExpired(version?.validUntil ?? null, parisDate(input.now))) return { ids: [], isDemo: aggregate.quote.isDemo };
+  const email = input.email.trim().toLowerCase();
+  const pending = new Set(aggregate.signatureRequests.filter((request) => request.status === "pending").map((request) => request.id));
+  return { ids: aggregate.signers.filter((signer) => pending.has(signer.requestId) && signer.email === email && signer.status === "pending").map((signer) => signer.id), isDemo: aggregate.quote.isDemo };
+}
+
+export async function requestSigningCode(organizationId: string, input: { eventId: string; linkId: string; email: string; quoteId: string; locale: "fr" | "en"; now?: Date }): Promise<{ sent: boolean; emailHint: string }> {
+  const now = input.now ?? new Date();
+  if ((await pendingSignersOf(organizationId, { ...input, now })).ids.length === 0) return { sent: false, emailHint: "•••" };
+  return sendLinkActionCode(organizationId, input.linkId, now, input.locale);
+}
+
+export async function confirmSigningCode(
+  organizationId: string,
+  input: { eventId: string; linkId: string; email: string; quoteId: string; code: string; now?: Date },
+): Promise<{ outcome: "accepted" } | { outcome: "wrong_code"; attemptsLeft: number } | { outcome: "code_expired" } | { outcome: "invalid" }> {
+  const now = input.now ?? new Date();
+  const signers = await pendingSignersOf(organizationId, { ...input, now });
+  if (signers.ids.length === 0) return { outcome: "invalid" };
+  const result = await verifyLinkActionCode(organizationId, input.linkId, input.code, now);
+  if (result.outcome !== "accepted") return result;
+  await markSignerCodeVerified(organizationId, { signerIds: signers.ids, quoteId: input.quoteId, now, isDemo: signers.isDemo });
+  return result;
+}
+
+// --- Régler par virement (FAC-08 Divergent, GC-01, JUR-07 ; ADR 0087) ---
+
+async function settlementContext(organizationId: string, eventId: string, scheduleItemId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(scheduleItemId)) return null;
+  const quoteId = await quoteIdOfScheduleItem(organizationId, scheduleItemId);
+  if (!quoteId) return null;
+  const quote = await loadDetail(organizationId, quoteId);
+  const item = quote.current.schedule.items.find((candidate) => candidate.id === scheduleItemId);
+  if (quote.eventId !== eventId || !item || (quote.status !== "sent" && quote.status !== "signed")) return null;
+  const signature = quote.signature;
+  const contract = signature?.contractId ? (await listQuoteContracts(organizationId, quote.id)).find((candidate) => candidate.id === signature.contractId) ?? null : null;
+  const [reference] = await findPaymentReferences(organizationId, [scheduleItemId]);
+  const facts = {
+    completedOn: signature?.status === "completed" && signature.completedAt ? parisDate(new Date(signature.completedAt)) : null,
+    channel: contract && contract.conclusionChannel !== "fair" ? contract.conclusionChannel : null,
+    withdrawalApplies: contract?.regime.withdrawalApplies ?? false,
+    noPaymentDays: contract?.regime.noPaymentDays ?? null,
+    declared: Boolean(reference?.declaredAt),
+    paid: item.paidOn !== null,
+  };
+  return { quote, item, reference: reference ?? null, facts };
+}
+
+function settlementNotice(state: SettlementView["state"], locale: "fr" | "en"): string | null {
+  const rules = starterContractRules();
+  const days = String(rules.withdrawal.periodDays);
+  if (state.kind === "not_before") return rules.settlement.offPremisesWaiting[locale].replace("{date}", formatCalendarDate(state.date, locale));
+  if (state.kind === "open" && state.notice === "distance") return rules.settlement.distance[locale].replace("{jours}", days);
+  if (state.kind === "open" && state.notice === "off_premises") return rules.settlement.offPremisesOpen[locale].replace("{jours}", days);
+  return null;
+}
+
+// L'écran « Régler l'acompte » d'une échéance de l'évènement du lien. designatedLinkId : le lien du
+// payeur désigné de l'échéance (module budget, lu par l'appelant), null si personne n'est désigné.
+export async function getSettlement(
+  organizationId: string,
+  input: { eventId: string; linkId: string; scheduleItemId: string; designatedLinkId: string | null; locale: "fr" | "en"; now?: Date },
+): Promise<SettlementView> {
+  const now = input.now ?? new Date();
+  const context = await settlementContext(organizationId, input.eventId, input.scheduleItemId);
+  if (!context) throw new QuoteNotFoundError();
+  const { quote, item, facts } = context;
+  const pure = settlementState(facts, parisDate(now));
+  let reference = context.reference;
+  const open = pure.kind === "open" || pure.kind === "declared";
+  if (open && !reference) reference = await ensurePaymentReference(organizationId, { scheduleItemId: item.id, isDemo: quote.isDemo, draw: () => newPaymentReference(Number(parisDate(now).slice(0, 4))) });
+  const state: SettlementView["state"] =
+    pure.kind === "paid"
+      ? { kind: "paid", paidOn: item.paidOn! }
+      : pure.kind === "declared"
+        ? { kind: "declared", paidOn: reference!.declaredPaidOn!, declaredAt: reference!.declaredAt!.toISOString(), byName: reference!.declaredByName! }
+        : pure;
+  const documents = await getDocumentSettings(organizationId);
+  const bankDetailsMissing = !documents.iban || !isValidIban(documents.iban);
+  let transfer: SettlementView["transfer"] = null;
+  if (pure.kind === "open" && reference && !bankDetailsMissing) {
+    const seller = quote.current.seller ?? (await currentQuoteSeller(organizationId, quote.clientKind, now));
+    const beneficiary = sellerDisplayName(seller, soleTraderWords(input.locale));
+    const base = { beneficiary, iban: normalizeIban(documents.iban!), bic: documents.bic, reference: reference.reference };
+    let qrSvg: string | null = null;
+    try {
+      qrSvg = await epcQrSvg({ ...base, amountCents: item.amountCents });
+    } catch (error) {
+      if (!(error instanceof RangeError)) throw error;
+    }
+    transfer = { ...base, qrSvg };
+  }
+  return {
+    scheduleItemId: item.id,
+    quoteId: quote.id,
+    quoteNumber: quote.number,
+    label: item.label,
+    dueDate: item.dueDate,
+    amountCents: item.amountCents,
+    state,
+    transfer,
+    notice: settlementNotice(state, input.locale),
+    canDeclare: pure.kind === "open" && !bankDetailsMissing && (input.designatedLinkId === null || input.designatedLinkId === input.linkId),
+    bankDetailsMissing,
+    isDemo: quote.isDemo,
+  };
+}
+
+// « J'ai fait le virement » : la déclaration du payeur, horodatée, une fois. Refusée avant l'ouverture
+// du règlement (hors établissement : avant le 8e jour), à un autre payeur que celui désigné, à une date
+// future ou antérieure à la signature.
+export async function declareTransfer(
+  organizationId: string,
+  input: { eventId: string; linkId: string; personName: string; scheduleItemId: string; paidOn: string; designatedLinkId: string | null; now?: Date },
+): Promise<void> {
+  const now = input.now ?? new Date();
+  const context = await settlementContext(organizationId, input.eventId, input.scheduleItemId);
+  if (!context) throw new QuoteNotFoundError();
+  const today = parisDate(now);
+  const pure = settlementState(context.facts, today);
+  if (pure.kind === "paid") throw new TransferDeclarationError("paid");
+  if (pure.kind === "declared") throw new TransferDeclarationError("already");
+  if (pure.kind !== "open") throw new TransferDeclarationError("not_open");
+  if (input.designatedLinkId !== null && input.designatedLinkId !== input.linkId) throw new TransferDeclarationError("not_payer");
+  if (!DATE_PATTERN.test(input.paidOn) || input.paidOn > today || (context.facts.completedOn !== null && input.paidOn < context.facts.completedOn)) throw new TransferDeclarationError("date");
+  await ensurePaymentReference(organizationId, { scheduleItemId: input.scheduleItemId, isDemo: context.quote.isDemo, draw: () => newPaymentReference(Number(today.slice(0, 4))) });
+  const name = requireText(input.personName, "nom du payeur").slice(0, 200);
+  const result = await withActor({ kind: "link", id: input.linkId }, () =>
+    declareTransferRow(organizationId, { scheduleItemId: input.scheduleItemId, linkId: input.linkId, name, paidOn: input.paidOn, now, quoteId: context.quote.id }),
+  );
+  if (result === "already") throw new TransferDeclarationError("already");
+  if (result === "paid") throw new TransferDeclarationError("paid");
+}
+
+// Côté planner : les virements déclarés, à confirmer (« Aujourd'hui »).
+export async function listTransferDeclarations(organizationId: string): Promise<TransferDeclarationView[]> {
+  const rows = await findPendingTransferDeclarations(organizationId);
+  const result: TransferDeclarationView[] = [];
+  const details = new Map<string, QuoteDetail>();
+  for (const row of rows) {
+    if (row.quote.isDemo || row.quote.deletedAt) continue;
+    const detail = details.get(row.quote.id) ?? (await loadDetail(organizationId, row.quote.id));
+    details.set(row.quote.id, detail);
+    const item = detail.versions.flatMap((version) => version.schedule.items).find((candidate) => candidate.id === row.item.id);
+    if (!item) continue;
+    result.push({
+      scheduleItemId: item.id,
+      quoteId: detail.id,
+      quoteNumber: detail.number,
+      eventId: detail.eventId,
+      label: item.label,
+      amountCents: item.amountCents,
+      reference: row.reference.reference,
+      declaredPaidOn: row.reference.declaredPaidOn!,
+      declaredAt: row.reference.declaredAt!.toISOString(),
+      byName: row.reference.declaredByName!,
+    });
+  }
+  return result;
+}
+
+// Sur la fiche du devis : la référence, la déclaration, les relances envoyées ou suspendues.
+export async function getQuoteSettlements(organizationId: string, quoteId: string): Promise<ScheduleItemSettlement[]> {
+  const quote = await loadDetail(organizationId, quoteId);
+  const ids = quote.current.schedule.items.map((item) => item.id);
+  const [references, reminders] = await Promise.all([findPaymentReferences(organizationId, ids), findPaymentReminders(organizationId, ids)]);
+  return ids.map((id) => {
+    const reference = references.find((row) => row.scheduleItemId === id) ?? null;
+    return {
+      scheduleItemId: id,
+      reference: reference?.reference ?? null,
+      declaration: reference?.declaredAt ? { paidOn: reference.declaredPaidOn!, declaredAt: reference.declaredAt.toISOString(), byName: reference.declaredByName! } : null,
+      remindersSuspended: reference?.remindersSuspendedAt ? { at: reference.remindersSuspendedAt.toISOString(), reason: reference.remindersSuspensionReason! } : null,
+      remindersSent: reminders.filter((row) => row.scheduleItemId === id).map((row) => ({ rank: row.rank, sentAt: row.sentAt.toISOString() })),
+    };
+  });
+}
+
+// FAC-09 : « arrangement avec le client » — la planner suspend les relances d'une échéance, avec un motif.
+export async function suspendPaymentReminders(organizationId: string, input: { scheduleItemId: string; reason: string; userId: string; now?: Date }): Promise<void> {
+  const now = input.now ?? new Date();
+  const quoteId = await quoteIdOfScheduleItem(organizationId, input.scheduleItemId);
+  if (!quoteId) throw new QuoteNotFoundError();
+  const quote = await loadDetail(organizationId, quoteId);
+  const reason = requireText(input.reason, "motif").slice(0, 500);
+  await ensurePaymentReference(organizationId, { scheduleItemId: input.scheduleItemId, isDemo: quote.isDemo, draw: () => newPaymentReference(Number(parisDate(now).slice(0, 4))) });
+  await setRemindersSuspension(organizationId, { scheduleItemId: input.scheduleItemId, suspend: { reason, userId: input.userId }, now });
+}
+
+export async function resumePaymentReminders(organizationId: string, scheduleItemId: string, now: Date = new Date()): Promise<void> {
+  if (!(await setRemindersSuspension(organizationId, { scheduleItemId, suspend: null, now }))) throw new QuoteNotFoundError();
+}
+
+// --- Relances d'impayés (FAC-09 ; D7) ---
+
+export type PlannedInvoiceReminder = { scheduleItemId: string; quoteId: string; rank: number; dueOn: string };
+
+// La liste des relances à envoyer maintenant : échéances d'un devis signé, non réglées, dont le
+// règlement est ouvert (jamais avant le 8e jour hors établissement), ni déclarées ni suspendues.
+export async function planInvoiceReminders(organizationId: string, now: Date = new Date()): Promise<PlannedInvoiceReminder[]> {
+  const today = parisDate(now);
+  const { paymentReminderDays } = await getReminderSettings(organizationId);
+  const rows = (await findUnpaidScheduleItems(organizationId)).filter((row) => row.quote.status === "signed" && !row.quote.deletedAt);
+  if (rows.length === 0) return [];
+  const ids = rows.map((row) => row.item.id);
+  const [references, reminders] = await Promise.all([findPaymentReferences(organizationId, ids), findPaymentReminders(organizationId, ids)]);
+  const planned: PlannedInvoiceReminder[] = [];
+  for (const row of rows) {
+    const reference = references.find((candidate) => candidate.scheduleItemId === row.item.id);
+    if (reference?.declaredAt || reference?.remindersSuspendedAt) continue;
+    const due = dueInvoiceReminder({ dueDate: row.item.dueDate, offsets: paymentReminderDays, sentRanks: reminders.filter((reminder) => reminder.scheduleItemId === row.item.id).map((reminder) => reminder.rank), today });
+    if (!due) continue;
+    const context = await settlementContext(organizationId, row.quote.eventId, row.item.id);
+    if (!context || settlementState(context.facts, today).kind !== "open") continue;
+    planned.push({ scheduleItemId: row.item.id, quoteId: row.quote.id, ...due });
+  }
+  return planned;
+}
+
+// Juste avant l'envoi, l'échéance est relue sous verrou (claimInvoiceReminder) : une déclaration ou une
+// confirmation arrivée entre la liste et l'envoi arrête la relance. true : la relance est partie.
+export async function sendPlannedInvoiceReminder(organizationId: string, planned: PlannedInvoiceReminder, now: Date = new Date()): Promise<boolean> {
+  if (!(await claimInvoiceReminder(organizationId, { scheduleItemId: planned.scheduleItemId, rank: planned.rank, dueOn: planned.dueOn, now }))) return false;
+  const quote = await loadDetail(organizationId, planned.quoteId);
+  const createdByUserId = (await findQuoteAggregate(organizationId, planned.quoteId))!.quote.createdByUserId;
+  const item = quote.current.schedule.items.find((candidate) => candidate.id === planned.scheduleItemId);
+  const signature = quote.signature;
+  if (!item || !signature) return false;
+  const [reference] = await findPaymentReferences(organizationId, [planned.scheduleItemId]);
+  const ensured = reference ?? (await ensurePaymentReference(organizationId, { scheduleItemId: planned.scheduleItemId, isDemo: quote.isDemo, draw: () => newPaymentReference(Number(parisDate(now).slice(0, 4))) }));
+  const locale = await creatorLocale(organizationId, createdByUserId);
+  const settings = await getReminderSettings(organizationId);
+  const documents = await getDocumentSettings(organizationId);
+  const starter = starterPaymentReminders();
+  const rate = quote.current.seller?.latePenaltyRate ?? (await findQuoteSettings(organizationId))?.latePenaltyRate ?? null;
+  const sentences = rate ? latePenaltySentenceOf(rate, starterLatePenalty(), locale) : null;
+  const penalties = penaltySentence(
+    { clientKind: quote.clientKind, consumerRateBasisPoints: settings.consumerLatePenaltyBasisPoints, locale },
+    { noPenalty: starter.noPenaltySentence[locale], consumerClause: starter.consumerClauseSentence[locale], professional: sentences ?? starter.noPenaltySentence[locale] },
+  );
+  for (const signer of signature.signers) {
+    await sendOrganizationEmail({
+      organizationId,
+      to: signer.email,
+      kind: "invoice_reminder",
+      locale,
+      values: {
+        first_name: signer.name,
+        quote_number: quote.number,
+        amount: formatAmount(item.amountCents, locale),
+        due_date: formatCalendarDate(item.dueDate, locale),
+        reference: ensured.reference,
+        iban: documents.iban ? normalizeIban(documents.iban).replace(/(.{4})/g, "$1 ").trim() : "",
+        penalties,
+      },
+      idempotencyKey: `invoice-reminder:${planned.scheduleItemId}:${planned.rank}:${signer.id}`,
+    });
+  }
+  return true;
+}
+
+export async function sendInvoiceReminders(organizationId: string, now: Date = new Date()): Promise<number> {
+  if (!reminderSendWindow(now)) return 0;
+  let sent = 0;
+  for (const planned of await planInvoiceReminders(organizationId, now)) {
+    try {
+      if (await sendPlannedInvoiceReminder(organizationId, planned, now)) sent += 1;
+    } catch (error) {
+      console.error(`relance d'impayé non envoyée (échéance ${planned.scheduleItemId})`, error instanceof Error ? error.name : error);
+    }
+  }
+  return sent;
+}
+
+// JUR-07 (hors établissement) : le jour où un paiement peut être demandé, le RIB et la référence
+// partent par e-mail aux signataires, une seule fois, pour la première échéance non réglée.
+export async function sendDueSettlementDetails(organizationId: string, now: Date = new Date()): Promise<number> {
+  if (!reminderSendWindow(now)) return 0;
+  const today = parisDate(now);
+  const rows = (await findUnpaidScheduleItems(organizationId)).filter((row) => row.quote.status === "signed" && !row.quote.deletedAt);
+  const firstByVersion = new Map<string, (typeof rows)[number]>();
+  for (const row of rows) if (!firstByVersion.has(row.version.id)) firstByVersion.set(row.version.id, row);
+  const documents = await getDocumentSettings(organizationId);
+  if (!documents.iban || !isValidIban(documents.iban)) return 0;
+  let sent = 0;
+  for (const row of firstByVersion.values()) {
+    const context = await settlementContext(organizationId, row.quote.eventId, row.item.id);
+    if (!context || context.facts.noPaymentDays === null || context.reference?.detailsMailedAt) continue;
+    if (settlementState(context.facts, today).kind !== "open") continue;
+    const reference = await ensurePaymentReference(organizationId, { scheduleItemId: row.item.id, isDemo: context.quote.isDemo, draw: () => newPaymentReference(Number(today.slice(0, 4))) });
+    if (!(await markDetailsMailed(organizationId, row.item.id, now))) continue;
+    const locale = await creatorLocale(organizationId, row.quote.createdByUserId);
+    for (const signer of context.quote.signature?.signers ?? []) {
+      try {
+        await sendOrganizationEmail({
+          organizationId,
+          to: signer.email,
+          kind: "payment_details",
+          locale,
+          values: { first_name: signer.name, quote_number: context.quote.number, amount: formatAmount(context.item.amountCents, locale), reference: reference.reference, iban: normalizeIban(documents.iban).replace(/(.{4})/g, "$1 ").trim(), bic: documents.bic ?? "—" },
+          idempotencyKey: `payment-details:${row.item.id}:${signer.id}`,
+        });
+        sent += 1;
+      } catch (error) {
+        console.error(`RIB non envoyé (échéance ${row.item.id})`, error instanceof Error ? error.name : error);
+      }
+    }
+  }
+  return sent;
+}
+
+// BUD-11 (D9) : les échéances de la planner pour l'évènement, avec leur statut (à venir, déclarée,
+// réglée), pour le calendrier des sorties d'argent du client et du budget.
+export async function listEventInstalments(organizationId: string, eventId: string): Promise<PlannerInstalment[]> {
+  const summaries = (await findEventQuotes(organizationId, eventId)).filter((quote) => quote.status === "sent" || quote.status === "signed");
+  const result: PlannerInstalment[] = [];
+  for (const summary of summaries) {
+    const quote = await loadDetail(organizationId, summary.id);
+    if (!quote.current.sentAt) continue;
+    const references = await findPaymentReferences(organizationId, quote.current.schedule.items.map((item) => item.id));
+    const organizationName = quote.current.seller?.organizationName ?? "";
+    for (const item of quote.current.schedule.items) {
+      const declared = references.some((reference) => reference.scheduleItemId === item.id && reference.declaredAt !== null);
+      result.push({ scheduleItemId: item.id, quoteId: quote.id, quoteNumber: quote.number, label: item.label, dueDate: item.dueDate, amountCents: item.amountCents, status: item.paidOn ? "paid" : declared ? "declared" : "upcoming", organizationName });
+    }
+  }
+  return result;
+}
+
+// --- Photos du modèle de proposition (FAC-02, D2 ; SEC-21) ---
+
+export const PROPOSAL_PHOTO_MAX_BYTES = 3 * 1024 * 1024;
+export const PROPOSAL_PHOTOS_MAX = 3;
+const PROPOSAL_PHOTO_TYPES = new Set(["image/png", "image/jpeg"]);
+
+export class ProposalPhotoError extends Error {
+  constructor(readonly reason: "too_large" | "unsupported_type" | "infected" | "full" | "not_found") {
+    super("photo de la proposition refusée");
+    this.name = "ProposalPhotoError";
+  }
+}
+
+// Une photo (PNG ou JPEG, type lu dans le contenu, antivirus) rejoint le modèle enregistré, trois au plus.
+export async function addProposalTemplatePhoto(organizationId: string, templateId: string, content: Uint8Array): Promise<ProposalTemplateView> {
+  const template = await findProposalTemplate(organizationId, templateId);
+  if (!template) throw new ProposalPhotoError("not_found");
+  if (template.photos.length >= PROPOSAL_PHOTOS_MAX) throw new ProposalPhotoError("full");
+  const upload = await uploadFile({ organizationId, buffer: Buffer.from(content), maxSizeBytes: PROPOSAL_PHOTO_MAX_BYTES });
+  if (upload.status === "rejected") throw new ProposalPhotoError(upload.reason === "too_large" ? "too_large" : upload.reason === "infected" ? "infected" : "unsupported_type");
+  if (!PROPOSAL_PHOTO_TYPES.has(upload.mime)) {
+    await deletePrivateObject(createStorageClient(), upload.key);
+    throw new ProposalPhotoError("unsupported_type");
+  }
+  const updated = await setProposalTemplatePhotos(organizationId, templateId, [...template.photos, { key: upload.key, mime: upload.mime, sizeBytes: upload.size }]);
+  return toProposalTemplateView(updated!);
+}
+
+export async function removeProposalTemplatePhoto(organizationId: string, templateId: string, index: number): Promise<void> {
+  const template = await findProposalTemplate(organizationId, templateId);
+  const photo = template?.photos[index];
+  if (!template || !photo) throw new ProposalPhotoError("not_found");
+  await setProposalTemplatePhotos(organizationId, templateId, template.photos.filter((_, position) => position !== index));
+  try {
+    await deletePrivateObject(createStorageClient(), photo.key);
+  } catch (error) {
+    if (!(error instanceof PrivateObjectNotFoundError)) throw error;
+  }
+}
+
+// La n-ième photo (1 à 3) du modèle d'une version envoyée de l'évènement ; introuvable sinon (SEC-13).
+export async function getProposalPhoto(organizationId: string, input: { eventId: string; versionId: string; index: number }): Promise<FileDownload> {
+  const proposal = await getEventProposal(organizationId, { eventId: input.eventId, versionId: input.versionId });
+  const aggregate = await findQuoteAggregate(organizationId, proposal.quoteId);
+  const templateId = aggregate?.versions.find((version) => version.id === input.versionId)?.proposalTemplateId ?? null;
+  const template = templateId ? await findProposalTemplate(organizationId, templateId) : null;
+  const photo = template?.photos[input.index - 1];
+  if (!photo) throw new QuoteNotFoundError();
+  try {
+    const { data } = await readPrivateObject(createStorageClient(), photo.key);
+    return { data: new Uint8Array(data), contentType: photo.mime, fileName: `photo-${input.index}.${photo.mime === "image/png" ? "png" : "jpg"}` };
+  } catch (error) {
+    if (error instanceof PrivateObjectNotFoundError) throw new QuoteNotFoundError();
+    throw error;
+  }
+}
+
+// L'aperçu d'une photo d'un modèle, côté planner.
+export async function getProposalTemplatePhoto(organizationId: string, templateId: string, index: number): Promise<FileDownload> {
+  const template = await findProposalTemplate(organizationId, templateId);
+  const photo = template?.photos[index - 1];
+  if (!photo) throw new ProposalPhotoError("not_found");
+  const { data } = await readPrivateObject(createStorageClient(), photo.key);
+  return { data: new Uint8Array(data), contentType: photo.mime, fileName: `photo-${index}.${photo.mime === "image/png" ? "png" : "jpg"}` };
 }

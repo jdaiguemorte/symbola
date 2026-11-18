@@ -139,6 +139,45 @@
         "null"
       ]
     },
+    "expiryReminderDays": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "paymentReminderDays": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "consumerLatePenaltyBasisPoints": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "updatedAt": {
       "type": "string",
       "format": "date-time",
@@ -198,6 +237,9 @@
     "professionalPaymentTermDays",
     "professionalPaymentTermEndOfMonth",
     "professionalDiscountTerms",
+    "expiryReminderDays",
+    "paymentReminderDays",
+    "consumerLatePenaltyBasisPoints",
     "updatedAt",
     "createdAt",
     "createdBy",

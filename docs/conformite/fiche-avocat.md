@@ -342,3 +342,41 @@ contrat se signe directement avec le prestataire. »
 
 Si cette lecture vous semble appeler une réserve, dites-le-nous ; elle n'attend pas de réponse
 pour être mise en œuvre.
+
+## Questions du 18 novembre 2026 (lot 43, proposition et règlement)
+
+Numéros à la suite de ceux des lots 44 et 47 (fusionnés avant le lot 43).
+
+### 19. Relances d'impayés à un particulier (AV-7)
+
+Symbola relance par e-mail une échéance non réglée d'un devis signé (par défaut trois jours, dix
+jours et vingt jours après l'échéance ; la planner règle ces délais et peut suspendre les relances).
+La relance s'arrête dès que le client déclare son virement ou que la planner confirme l'encaissement.
+Face à un professionnel, la relance reprend les pénalités et l'indemnité de 40 € (réponse 7 de votre
+fiche, lot 41). Face à un **particulier**, nous ne mentionnons une pénalité que si la planner a
+renseigné le taux d'une clause de son contrat ; sinon, la relance dit seulement « Merci de régulariser
+dès que possible ».
+
+- Une pénalité de retard est-elle possible face à un particulier si le contrat la prévoit, et à quel
+  taux maximal ?
+- Quelles mentions la relance doit-elle porter (et lesquelles ne doit-elle pas porter) ?
+- Faut-il un délai minimal avant la première relance ?
+
+> En attendant : aucune pénalité mentionnée à un particulier sans clause ; le taux de la clause est
+> laissé vide par défaut.
+
+### 20. Hors établissement : « aucun paiement avant sept jours » (AV-8)
+
+Pour un contrat conclu hors établissement (réponse 1 de votre fiche), l'écran « Régler l'acompte » ne
+montre pas le RIB avant le 8e jour suivant la signature et dit « Aucun paiement ne peut vous être
+demandé avant le <date> » ; un e-mail apporte le RIB et la référence du virement ce jour-là. La
+déclaration « J'ai fait le virement » est aussi refusée avant cette date, et aucune relance ne part.
+
+- Suffit-il de ne pas afficher le RIB avant le 8e jour et de l'envoyer ce jour-là, ou faut-il aussi
+  bloquer la déclaration de virement avant cette date (ce que nous faisons) ? Un client qui vire
+  spontanément plus tôt pose-t-il un problème à la planner ?
+
+> En attendant : ni RIB, ni déclaration, ni relance avant le 8e jour (option la plus protectrice).
+
+Besoin : des réponses **avant la première relance réelle** et le premier contrat hors établissement
+réglé par Symbola (aucune ne bloque le développement).

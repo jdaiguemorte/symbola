@@ -828,6 +828,17 @@ fields:
       l'échéance existe.
     anonymization: >-
       Gardé (preuve du règlement) ; l'identifiant d'un compte supprimé ne désigne plus personne.
+  - schema: budget
+    table: event_payers
+    field: name
+    category: identifiant
+    retention: >-
+      Lot 43 (BUD-06, D8) : nom d'un payeur de l'évènement (« Famille Martin », « Société Durand »),
+      saisi par la planner, tant que l'évènement existe. Après suppression ou demande d'oubli : voir
+      RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ; ses parts et ses échéances
+      restent, sans nom.
   - schema: events
     table: event_day_contacts
     field: name
@@ -1007,6 +1018,45 @@ fields:
       L'adresse est remplacée par « [anonymisé] » lors d'une demande
       d'oubli de l'organisation (RGPD-03), sauf obligation légale de
       conservation (factures, lot 4).
+  - schema: quotes
+    table: payment_references
+    field: declared_by_name
+    category: identifiant
+    retention: >-
+      Lot 43 (FAC-08, ADR 0087) : nom copié de la personne qui déclare, depuis son lien, avoir fait le
+      virement d'une échéance, montré à la planner jusqu'à sa confirmation, gardé ensuite avec
+      l'échéance. Voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03) ; la date déclarée et
+      l'encaissement confirmé restent, sans nom.
+  - schema: quotes
+    table: payment_references
+    field: reminders_suspension_reason
+    category: contenu_libre
+    retention: >-
+      Lot 43 (FAC-09, D7) : motif libre écrit par la planner quand elle suspend les relances d'une
+      échéance (« arrangement avec le client »), tant que l'échéance existe. Voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Remplacé par « [anonymisé] » lors d'une demande d'oubli (RGPD-03).
+  - schema: quotes
+    table: quote_versions
+    field: proposal_greeting
+    category: contenu_libre
+    retention: >-
+      Lot 43 (FAC-02, D2) : mot d'accueil de la page de proposition, écrit par la planner (il peut
+      nommer le client), figé avec la version envoyée, tant que le devis existe.
+    anonymization: >-
+      Suit le devis : effacé avec lui ; sur un devis signé, gardé comme le reste de la version
+      (preuve du contrat), puis effacé avec le devis.
+  - schema: quotes
+    table: proposal_templates
+    field: greeting
+    category: contenu_libre
+    retention: >-
+      Lot 43 (FAC-02, D2) : mot d'accueil du modèle de proposition de l'organisation, sans donnée d'un
+      client attendue, tant que le modèle existe.
+    anonymization: >-
+      Supprimé avec le modèle.
   - schema: quotes
     table: quote_signers
     field: name

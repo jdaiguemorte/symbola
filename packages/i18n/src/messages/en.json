@@ -1311,6 +1311,38 @@
     "programImport": {
       "title": "Import a schedule",
       "body": "A schedule kept in a spreadsheet (CSV or XLSX) imports into the event schedule: columns day or key moment, start, end, sequence, location, responsible, note. The review screen shows the sequences read and the issues row by row; nothing is written before \"Import\". Missing key moments are created; a cell starting with =, +, - or @ stays text."
+    },
+    "settlement": {
+      "title": "Pay the deposit",
+      "body": "Payment is made by bank transfer, from your bank: copy the IBAN and the reference, or read the QR code with your banking app. Once the transfer is made, press “I have made the transfer”; your planner will confirm its receipt. No card and no payment goes through this page."
+    },
+    "cashCalendar": {
+      "title": "Cash-out calendar",
+      "body": "Month by month, what remains to be paid: to your planner and to your vendors, with who pays each instalment and where it stands (upcoming, reported, paid)."
+    },
+    "portalPayers": {
+      "title": "What each payer sees",
+      "body": "Your families or a company are contributing? For each of them, choose whether they see only their share (the amount that falls to them and their instalments) or the whole budget."
+    },
+    "proposalTemplates": {
+      "title": "Proposal templates",
+      "body": "The page your client receives when you send a quote: your welcome note, your presentation, the quote and its options, the schedule, the validity, then “Accept and sign”. One template for all events, and one per type if needed; each quote reuses the welcome note and can change it before sending."
+    },
+    "reminderSettings": {
+      "title": "Reminders",
+      "body": "When Symbola reminds your clients: a few days before a proposal expires, then after an unpaid instalment. Each reminder goes out once, stops as soon as the client reports their transfer, and can be suspended on the quote."
+    },
+    "proposalPreview": {
+      "title": "Proposal preview",
+      "body": "The exact page your client sees, without saving anything: check the welcome note, options and amounts before notifying them."
+    },
+    "budgetPayers": {
+      "title": "Payers and split",
+      "body": "The couple pay for everything by default. Add a family or a company, then split each line by percentage or amount: totals add up to the cent. Choose who pays each instalment, and what each payer sees (only their share, by default)."
+    },
+    "budgetCashCalendar": {
+      "title": "Cash-out calendar",
+      "body": "Month by month, the client's instalments to you and to their vendors, with their payer and status: the answer to “what do we have to pay in May?”."
     }
   },
   "Aide": {
@@ -2223,7 +2255,10 @@
     "handoverSave": "Save the handover",
     "handoverMarked": "To hand over on the day: {method}, by {by}",
     "handoverDone": "Handed over on the day ({method})",
-    "handoverCashHint": "Cash: cash payments are capped by law (see the help)."
+    "handoverCashHint": "Cash: cash payments are capped by law (see the help).",
+    "payersNav": "Payers and calendar",
+    "payersLink": "Payers and split",
+    "cashCalendarLink": "Cash-out calendar"
   },
   "Quotes": {
     "title": "Quotes",
@@ -2851,7 +2886,8 @@
     "orderReferenceSaved": "Number saved.",
     "orderReferenceInvalid": "The number fits on one line of 60 characters at most.",
     "orderReferenceError": "This number cannot be saved here.",
-    "orderReferenceIs": "Purchase order: {reference}"
+    "orderReferenceIs": "Purchase order: {reference}",
+    "acceptAndSign": "Accept and sign quote {number}"
   },
   "NotFound": {
     "title": "Page not found",
@@ -2865,7 +2901,8 @@
     "sign": "Sign the quote",
     "decline": "Decline the quote",
     "signed": "You have signed this quote.",
-    "declined": "You have declined this quote."
+    "declined": "You have declined this quote.",
+    "backToSpace": "Back to my space"
   },
   "Import": {
     "title": "Import data",
@@ -4988,7 +5025,9 @@
     "pipelineStages": "Pipeline stages",
     "contactForm": "Contact form",
     "vendorCoordination": "Suppliers by link",
-    "dayChecklists": "Event-day checklists"
+    "dayChecklists": "Event-day checklists",
+    "proposalTemplates": "Proposal templates",
+    "paymentReminders": "Reminders"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -5274,7 +5313,14 @@
       "events_vendor_retention_changed": "Booked supplier changed by the team",
       "events_program_imported": "Schedule imported from a spreadsheet",
       "events_day_shift_applied": "Event-day shift confirmed and published",
-      "events_day_report_downloaded": "Event-day report downloaded"
+      "events_day_report_downloaded": "Event-day report downloaded",
+      "quotes_transfer_declared": "Transfer declared by the payer",
+      "quotes_reminders_suspended": "Payment reminders suspended",
+      "quotes_reminders_resumed": "Payment reminders resumed",
+      "quotes_validity_extended": "Quote validity extended",
+      "quotes_signing_code_verified": "Code checked before signing",
+      "budget_payers_changed": "Payers or shares changed",
+      "budget_payer_visibility_changed": "What a payer sees, changed"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -5425,7 +5471,13 @@
       "events_day_checklist_templates": "event-day checklist template",
       "events_day_checklists": "event-day checklist",
       "events_day_checklist_items": "event-day checklist box",
-      "events_day_reports": "event-day report"
+      "events_day_reports": "event-day report",
+      "quotes_proposal_templates": "Proposal template",
+      "quotes_payment_references": "Transfer reference",
+      "quotes_payment_reminders": "Payment reminder",
+      "budget_event_payers": "Payer",
+      "budget_budget_line_payer_shares": "Payer's share",
+      "budget_planner_instalment_payers": "Payer of an instalment"
     },
     "modules": {
       "events": "Events",
@@ -5609,7 +5661,18 @@
     "guestsLink": "Your guests: list, import and replies",
     "appointmentsTitle": "Your next appointments",
     "appointmentVideo": "video call",
-    "appointmentPhone": "phone call"
+    "appointmentPhone": "phone call",
+    "cashCalendarLink": "Cash-out calendar",
+    "payersLink": "What each payer sees",
+    "proposalsTitle": "Your proposals",
+    "proposalLink": "Proposal {number} (version {version})",
+    "proposalValidUntil": "valid until {date}",
+    "proposalStatus": {
+      "expired": "expired",
+      "signed": "signed",
+      "declined": "declined",
+      "superseded": "replaced"
+    }
   },
   "VendorSpace": {
     "title": "Your vendor space",
@@ -6310,7 +6373,8 @@
         "unavailable": "{vendor} is not available ({slot})"
       },
       "vendorChoice": "The client chose {vendor} ({slot}): check it",
-      "vendorRoadmap": "{vendor} has not confirmed their run sheet"
+      "vendorRoadmap": "{vendor} has not confirmed their run sheet",
+      "transferDeclaration": "{name} says they transferred {amount}"
     },
     "myEventsTitle": "My events",
     "myEventsEmpty": "No event in progress.",
@@ -6645,7 +6709,13 @@
       "appointment": "First discovery call",
       "appointmentDate": "2 March 2027 at 10:00",
       "slot": "Flowers",
-      "deadline": "10 March 2027"
+      "deadline": "10 March 2027",
+      "amount": "€1,620.00",
+      "dueDate": "20 January 2027",
+      "reference": "SYM-2027-7KQ4XM",
+      "iban": "FR76 3000 6000 0112 3456 7890 189",
+      "bic": "AGRIFRPP",
+      "penalties": "Thank you for settling it as soon as possible."
     },
     "event": {
       "coupleClient": "your wedding",
@@ -6686,6 +6756,10 @@
         "subject": "Your Symbola invitation",
         "body": "Hello,\n\nYou have been invited to join \"{organization}\" on Symbola. This link is valid for 7 days:\n\n{url}",
         "button": "Accept the invitation"
+      },
+      "actionCode": {
+        "subject": "Your code to sign: {code}",
+        "body": "Hello {name},\n\nYour code to accept and sign your proposal on Symbola: {code}\n\nIt is valid for {minutes} minutes and can be used only once. If you did not ask for it, ignore this message and let your contact know."
       }
     }
   },
@@ -6713,7 +6787,8 @@
       "program": "Schedule",
       "appointments": "Appointments",
       "prospects": "Contact requests",
-      "vendors": "Suppliers"
+      "vendors": "Suppliers",
+      "settlement": "Proposal and payment"
     },
     "kinds": {
       "client_link": {
@@ -6787,6 +6862,22 @@
       "vendor_roadmap": {
         "title": "Supplier run sheet",
         "description": "Sent automatically 30 and 7 days before the event to each booked supplier, with their link to confirm."
+      },
+      "proposal_sent": {
+        "title": "Proposal sent",
+        "description": "Sent to the event's clients when you send the proposal, if they have a space to read it in."
+      },
+      "proposal_expiry_reminder": {
+        "title": "Proposal expiring soon",
+        "description": "Sent automatically a few days before the end of validity of a proposal neither signed nor declined."
+      },
+      "payment_details": {
+        "title": "Bank details for the deposit",
+        "description": "Sent automatically on the 8th day of a contract signed off-premises, with the bank details and the transfer reference."
+      },
+      "invoice_reminder": {
+        "title": "Unpaid instalment reminder",
+        "description": "Sent automatically after an unpaid instalment, according to your settings; stops as soon as the client declares their transfer."
       }
     },
     "variables": {
@@ -6806,7 +6897,13 @@
       "slot": "The supplier category (“Flowers”, “Photographer”…)",
       "deadline": "The answer deadline of the brief",
       "link_available": "The link that preselects “available”; alone on its line, it becomes the “I am available” button",
-      "link_unavailable": "The link that preselects “not available”; alone on its line, it becomes the “I am not available” button"
+      "link_unavailable": "The link that preselects “not available”; alone on its line, it becomes the “I am not available” button",
+      "amount": "The instalment amount",
+      "due_date": "The instalment due date",
+      "reference": "The reference to put on the transfer",
+      "iban": "Your IBAN",
+      "bic": "Your BIC",
+      "penalties": "The late payment penalty sentence, depending on the client and your settings"
     },
     "back": "All email templates",
     "editorTitle": "{title} ({language})",
@@ -8471,5 +8568,314 @@
       "unchecked": "All boxes are ticked.",
       "handovers": "No payment to hand over."
     }
+  },
+  "Proposal": {
+    "title": "Proposal from {organization}",
+    "sentOn": "Sent on {date}",
+    "greetingLabel": "Welcome note",
+    "photosLabel": "Photos",
+    "photoAlt": "Proposal photo {number}",
+    "quoteTitle": "Quote {number} — version {version}",
+    "linesLabel": "Services",
+    "optionChosen": "chosen option",
+    "optionNotChosen": "option, not in the total until chosen",
+    "subtotal": "Subtotal {title}: {amount}",
+    "totalHt": "Total excl. VAT",
+    "totalVat": "VAT",
+    "totalTtc": "Total incl. VAT",
+    "total": "Total",
+    "scheduleDeposit": "Deposit schedule",
+    "scheduleEarnest": "Earnest money schedule",
+    "scheduleLine": "{label}: {amount}, on {date}",
+    "balance": "Balance: {amount}",
+    "validityLabel": "Validity",
+    "validUntil": "Proposal valid until {date} included.",
+    "expired": "Proposal expired: please contact {organization}.",
+    "signed": "Proposal signed.",
+    "superseded": "A newer version of this proposal exists.",
+    "declined": "Proposal declined.",
+    "downloadPdf": "Download the proposal (PDF)",
+    "versionsTitle": "Proposal versions",
+    "versionLine": "Version {version}, sent on {date}",
+    "versionCurrent": "current",
+    "backToSpace": "Back to my space",
+    "flow": {
+      "title": "Accept and sign",
+      "stepsLabel": "Steps to accept and sign",
+      "stateDone": "done",
+      "stateCurrent": "in progress",
+      "steps": {
+        "options": "Your options",
+        "code": "Your code",
+        "order": "Your order",
+        "sign": "Your signature",
+        "settle": "Pay the deposit"
+      },
+      "optionsFirst": "First choose your options, then save your choice.",
+      "goOptions": "Go to the options",
+      "waitingDocument": "Your choice is saved. {organization} is preparing the document to sign: you will receive an email as soon as it is ready.",
+      "expired": "This proposal has expired: contact {organization} to extend it.",
+      "declined": "This proposal was declined.",
+      "notSigner": "You are not a signatory of this proposal: only the planned signatories can accept it.",
+      "codeHint": "To sign, confirm it is really you: a six-digit code will be sent to your link's address. It is valid for 10 minutes.",
+      "codeRequest": "Email me my code",
+      "codeResend": "Send a new code",
+      "codeSent": "Code sent to {email}.",
+      "codeLabel": "Code received by email",
+      "codeConfirm": "Confirm the code",
+      "codeError": "This code cannot be requested here. Open your link again.",
+      "codeNotSent": "The code could not be sent (too many requests). Try again in an hour.",
+      "codeWrong": "Wrong code. {attempts, plural, one {# attempt} other {# attempts}} left.",
+      "codeExpired": "This code has expired or was already used. Request a new one.",
+      "orderHint": "Before signing, confirm your order.",
+      "orderWithdrawal": "Before signing, confirm your order. You keep your right of withdrawal, described in your contract.",
+      "signHint": "The document opens at our e-signature service. Once signed, come back here to pay the deposit.",
+      "signButton": "Sign quote {number}",
+      "signedAll": "Everyone has signed. The deposit remains to be paid.",
+      "signedWaiting": "Your signature is recorded. Waiting for {names} to sign.",
+      "settleButton": "Pay the deposit",
+      "done": "It is signed: there is nothing to pay right now."
+    }
+  },
+  "Settlement": {
+    "title": "Pay: {label}",
+    "quoteLine": "Quote {number}",
+    "dueOn": "due on {date}",
+    "awaitingSignatures": "Payment opens once every signatory has signed.",
+    "paid": "Paid on {date}. Thank you!",
+    "declared": "You reported a transfer made on {date} (reported on {when}). Your planner will confirm its receipt.",
+    "declaredNow": "Noted: your planner will confirm receipt of the transfer.",
+    "bankDetailsMissing": "The bank details are not filled in yet: please contact your planner.",
+    "transferTitle": "Transfer to make",
+    "beneficiary": "Beneficiary",
+    "iban": "IBAN",
+    "bic": "BIC",
+    "reference": "Reference",
+    "referenceHint": "Put this reference in the transfer description: it lets us recognise it.",
+    "qrLabel": "Transfer QR code, with the amount and the reference",
+    "qrHint": "Your banking app can read this QR code: it fills in the beneficiary, IBAN, amount and reference.",
+    "copy": "Copy",
+    "copyLabel": "Copy {label}",
+    "copied": "{label} copied.",
+    "declareTitle": "I have made the transfer",
+    "declareDate": "Transfer date",
+    "declareButton": "I have made the transfer",
+    "declareError": "This payment cannot be reported here. Open your link again.",
+    "declareRefused": {
+      "not_open": "This payment is not open yet.",
+      "not_payer": "This payment is expected from another payer.",
+      "date": "The transfer date can be neither in the future nor before the signature.",
+      "already": "A transfer has already been reported for this payment.",
+      "paid": "This payment is already settled."
+    },
+    "otherPayer": "This payment is expected from another payer of your event.",
+    "demo": "Trial: no transfer is expected.",
+    "backToSpace": "Back to my space"
+  },
+  "CashCalendar": {
+    "title": "Cash-out calendar",
+    "empty": "No upcoming payment for now.",
+    "monthTotals": "Month total: {total} · still to pay: {remaining}",
+    "payer": "paid by {name}",
+    "status": {
+      "upcoming": "upcoming",
+      "declared": "reported",
+      "paid": "paid"
+    },
+    "settle": "Pay",
+    "settleLabel": "Pay: {label}",
+    "backToSpace": "Back to my space",
+    "moduleUnavailable": "The Budget module is not available for your organisation.",
+    "backToBudget": "Back to the budget",
+    "filterLabel": "Filter the calendar",
+    "filterPayer": "Payer",
+    "allPayers": "All payers",
+    "filterSubmit": "Show"
+  },
+  "Payers": {
+    "title": "Payers and split",
+    "moduleUnavailable": "The Budget module is not available for your organisation.",
+    "backToBudget": "Back to the budget",
+    "listTitle": "Payers of the event",
+    "kinds": {
+      "couple": "The couple",
+      "family_one": "One partner's family",
+      "family_two": "The other partner's family",
+      "company": "Company",
+      "other": "Other payer"
+    },
+    "totalShare": "their share: {amount}",
+    "coupleHint": "Anything not assigned to someone falls to the couple.",
+    "remove": "Remove {name}",
+    "addSummary": "Add a payer",
+    "addForm": "Add a payer",
+    "name": "Name",
+    "kind": "Who is it?",
+    "link": "Personal link (optional)",
+    "noLink": "No link",
+    "addSubmit": "Add the payer",
+    "added": "Payer added.",
+    "visibilityFor": "What {name} sees",
+    "visibilityShare": "Only their share",
+    "visibilityAll": "The whole budget",
+    "visibilitySave": "Save",
+    "visibilitySaved": "Setting saved.",
+    "visibilityError": "This setting cannot be changed here.",
+    "linesTitle": "Split by line",
+    "noLines": "No budget line yet.",
+    "splitEntry": "{name}: {amount}",
+    "sharesFor": "Shares of “{label}”",
+    "shareMode": "Percentage or amount for {name}",
+    "percent": "%",
+    "amount": "€",
+    "sharesHint": "One percentage or amount per payer; left empty, nothing. The rest falls to the couple.",
+    "sharesSave": "Save",
+    "sharesSaveFor": "Save the shares of “{label}”",
+    "sharesSaved": "Shares saved.",
+    "paymentsTitle": "Payer of each instalment",
+    "payerOf": "Payer of “{label}”",
+    "payerSave": "Save",
+    "payerSaveFor": "Save the payer of “{label}”",
+    "payerSaved": "Payer saved.",
+    "portalTitle": "What each payer sees",
+    "portalIntro": "For each payer of your event, choose whether they see only their share, or the whole budget.",
+    "noOtherPayer": "Your planner has not added any other payer yet.",
+    "backToSpace": "Back to my space",
+    "shareTitle": "Your share",
+    "shareIntro": "The amount that falls to you for each service, according to the split agreed with the couple.",
+    "shareEmpty": "No share is assigned to you yet.",
+    "shareTotal": "Total of your share: {amount}",
+    "errors": {
+      "unauthenticated": "Your session has expired. Sign in again.",
+      "notFound": "Payer or event not found.",
+      "name": "The name is 1 to 120 characters long.",
+      "kind": "Choose who this payer is.",
+      "link": "This link is not a client link of this event, or it is already attached to a payer.",
+      "couple": "The couple always remain payers.",
+      "shares_invalid": "Each share is a percentage from 0.01 to 100 or a positive amount.",
+      "shares_duplicate": "A payer can have only one share per line.",
+      "shares_over_100": "The percentages of a line cannot exceed 100%.",
+      "line": "This line no longer exists.",
+      "payment": "This instalment no longer exists.",
+      "instalment": "This instalment is not part of the event's schedule."
+    }
+  },
+  "QuoteProposal": {
+    "title": "Proposal page",
+    "draftHint": "When you send it, the client receives a proposal page: your welcome note, your presentation, the quote and its options, the schedule and validity, then “Accept and sign”.",
+    "greetingForm": "Proposal welcome note",
+    "greetingLabel": "Welcome note (empty: the proposal template's)",
+    "greetingHint": "It is frozen when you send, with the quote.",
+    "greetingSave": "Save the welcome note",
+    "greetingSaved": "Welcome note saved.",
+    "templatesLink": "Edit the proposal templates",
+    "previewLink": "See the proposal as the client does",
+    "expired": "Proposal expired since {date}: the client can no longer sign it. Extend it or send a new version.",
+    "notifyForm": "Notify the client by email",
+    "notifySubmit": "Notify the client by email",
+    "notified": "Email sent to the clients who have a space.",
+    "extendSummary": "Extend the validity",
+    "extendForm": "Extend the validity",
+    "extendLabel": "New validity date",
+    "extendSubmit": "Extend",
+    "extended": "Validity extended.",
+    "settlementTitle": "Payment by bank transfer",
+    "settlementHint": "The client pays by transfer, with the instalment's reference; you confirm receipt in the schedule. Reminders follow your settings and stop as soon as the client reports their transfer.",
+    "reference": "reference {reference}",
+    "noReference": "reference created when payment opens",
+    "declared": "{name} reports a transfer made on {date}.",
+    "confirmLink": "Confirm receipt",
+    "remindersSent": "Reminders sent: {list}",
+    "reminderEntry": "no. {rank} on {date}",
+    "suspendSummary": "Suspend reminders for “{label}”",
+    "suspendForm": "Suspend reminders for “{label}”",
+    "suspendReason": "Reason (for example: arrangement with the client)",
+    "suspendSubmit": "Suspend reminders",
+    "suspended": "Reminders suspended.",
+    "suspendedSince": "Reminders suspended since {date}: {reason}",
+    "resumeForm": "Resume reminders for “{label}”",
+    "resumeSubmit": "Resume reminders",
+    "resumed": "Reminders resumed.",
+    "previewBanner": "Preview: the proposal as the client sees it. Nothing is saved.",
+    "previewBack": "Back to the quote",
+    "errors": {
+      "unauthenticated": "Your session has expired. Sign in again.",
+      "notFound": "Quote not found.",
+      "locked": "The quote is sent: its welcome note is frozen.",
+      "greeting": "The welcome note is at most 4,000 characters long.",
+      "validityDate": "Choose a date from today.",
+      "validityClosed": "Only a sent proposal, neither signed nor declined, can be extended.",
+      "reason": "Give a reason.",
+      "noRecipient": "No client has a space with the Quotes section: create a link for them first."
+    }
+  },
+  "ProposalTemplates": {
+    "title": "Proposal templates",
+    "moduleUnavailable": "The Quotes module is not available for your organisation.",
+    "forAll": "For all events",
+    "forType": "For: {type}",
+    "starterHint": "Starting template, to adapt: save it to make it yours.",
+    "version": "Version {version}",
+    "editForm": "Edit the proposal template",
+    "newForm": "New proposal template",
+    "newTitle": "A template for an event type",
+    "eventType": "Event type",
+    "greeting": "Welcome note",
+    "blocksLegend": "Order of the blocks",
+    "blocksHint": "Choose each block's place on the page, or hide it. The quote is always present; the “Accept and sign” button always comes last.",
+    "blocks": {
+      "greeting": "Welcome note",
+      "organization": "Your presentation",
+      "photos": "Photos",
+      "quote": "The quote and its options",
+      "schedule": "Schedule and terms",
+      "validity": "Validity"
+    },
+    "hidden": "Hidden",
+    "place": "Place {place}",
+    "save": "Save the template",
+    "saved": "Template saved.",
+    "remove": "Delete the “{type}” template",
+    "errorUnauthenticated": "Your session has expired. Sign in again.",
+    "errorGreeting": "The welcome note is 1 to 4,000 characters long.",
+    "errorBlocks": "The quote must be on the page, each block only once.",
+    "photosSummary": "Photos ({count} of 3)",
+    "photosNone": "No photo yet.",
+    "photoAlt": "Template photo {number}",
+    "photoRemove": "Remove photo {number}",
+    "photoField": "Add a photo (PNG or JPEG, 3 MB at most)",
+    "photoSubmit": "Upload the photo",
+    "photoAdded": "Photo added.",
+    "photosHint": "Three photos at most: your finest work, shown on the proposal page.",
+    "photoErrors": {
+      "missing": "Choose a photo.",
+      "too_large": "The photo exceeds 3 MB.",
+      "unsupported_type": "Only PNG or JPEG photos are accepted.",
+      "infected": "This file was rejected by the antivirus.",
+      "full": "This template already has three photos.",
+      "not_found": "Template not found: save it first."
+    }
+  },
+  "ReminderSettings": {
+    "title": "Reminders",
+    "moduleUnavailable": "The Quotes module is not available for your organisation.",
+    "intro": "Symbola reminds your clients for you, by email, during business hours: once before a proposal expires, then after an unpaid instalment. A reminder stops as soon as the client reports their transfer or you confirm receipt.",
+    "formLabel": "Reminder settings",
+    "expiryDays": "Reminder before a proposal expires (days before)",
+    "expiryHint": "A single reminder, to clients who have neither signed nor declined.",
+    "paymentDays": "Unpaid instalment reminders (days after the due date)",
+    "paymentHint": "Up to five numbers, separated by commas (for example: 3, 10, 20).",
+    "consumerRate": "Annual rate of the penalty clause for a consumer (%)",
+    "consumerRateHint": "Fill in only if your contract has a penalty clause; empty, no penalty is mentioned to a consumer. For a business client, the penalties of your terms apply.",
+    "save": "Save the settings",
+    "saved": "Settings saved.",
+    "errorUnauthenticated": "Your session has expired. Sign in again.",
+    "errorRate": "Enter a rate such as 3.5.",
+    "errors": {
+      "expiryReminderDays": "The pre-expiry reminder goes 1 to 30 days before.",
+      "paymentReminderDays": "One to five reminders, each between 1 and 120 days after the due date.",
+      "consumerLatePenaltyBasisPoints": "The rate is between 0.01 and 100%."
+    },
+    "lawyerNote": "Consumer penalties: question asked to the lawyer (maximum rate, wording). Until then, nothing is mentioned without a contract clause."
   }
 }

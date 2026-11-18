@@ -22,6 +22,8 @@ export type TodayItemKind =
   | "vendor_payment"
   | "decision"
   | "payment_declaration"
+  // Lot 43 (FAC-08) : virement déclaré par le payeur d'une échéance de la planner.
+  | "transfer_declaration"
   | "quote_follow_up"
   | "prospect_follow_up"
   | "deposit_blocked"

@@ -31,7 +31,11 @@
         "prospect_form_received",
         "vendor_brief",
         "vendor_brief_reminder",
-        "vendor_roadmap"
+        "vendor_roadmap",
+        "proposal_sent",
+        "proposal_expiry_reminder",
+        "payment_details",
+        "invoice_reminder"
       ]
     },
     "locale": {
