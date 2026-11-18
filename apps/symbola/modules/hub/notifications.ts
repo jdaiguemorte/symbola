@@ -472,7 +472,7 @@ export async function purgeNotifications(organizationId: string, now: Date = new
     const idleSince = new Date(now.getTime() - retention.pushSubscriptionIdleDays * day);
     const devices = await tx
       .delete(pushSubscriptions)
-      .where(and(eq(pushSubscriptions.organizationId, organizationId), lt(sql`coalesce(${pushSubscriptions.lastUsedAt}, ${pushSubscriptions.createdAt})`, idleSince)))
+      .where(and(eq(pushSubscriptions.organizationId, organizationId), sql`coalesce(${pushSubscriptions.lastUsedAt}, ${pushSubscriptions.createdAt}) < ${idleSince.toISOString()}::timestamptz`))
       .returning({ id: pushSubscriptions.id });
     return { notifications: removed.length, devices: devices.length };
   });
