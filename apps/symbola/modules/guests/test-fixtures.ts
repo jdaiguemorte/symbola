@@ -22,14 +22,15 @@ export async function readyOrganization(options: { confirm?: boolean; enabled?: 
   return { organizationId, ownerId: owner.id };
 }
 
-// Mariage de référence : cérémonie et dîner le 12 juin 2027, brunch le lendemain.
+// Mariage de référence : deux temps forts le 12 juin 2027, un troisième le lendemain. Noms neutres :
+// aucun libellé de référentiel écrit en dur hors des données de départ (HUB-20).
 export async function weddingEvent(organizationId: string, ownerId: string, eventDate = "2027-06-12") {
   const source = await createProspectSource(organizationId, "Salon");
   const event = await createProspect({ organizationId, createdByUserId: ownerId, prospectSourceId: source.id, clients: [{ firstName: "Léa", lastName: "Martin" }, { firstName: "Hugo", lastName: "Bernard" }], eventDate });
-  const ceremony = await addKeyMoment(organizationId, event.id, { name: "Cérémonie laïque", date: eventDate, startTime: "15:00" });
-  const dinner = await addKeyMoment(organizationId, event.id, { name: "Dîner", date: eventDate, startTime: "20:00" });
+  const ceremony = await addKeyMoment(organizationId, event.id, { name: "Temps fort 1", date: eventDate, startTime: "15:00" });
+  const dinner = await addKeyMoment(organizationId, event.id, { name: "Temps fort 2", date: eventDate, startTime: "20:00" });
   const next = new Date(Date.parse(`${eventDate}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
-  const brunch = await addKeyMoment(organizationId, event.id, { name: "Brunch", date: next, startTime: "11:00" });
+  const brunch = await addKeyMoment(organizationId, event.id, { name: "Temps fort 3", date: next, startTime: "11:00" });
   return { eventId: event.id, moments: { ceremony: ceremony.id, dinner: dinner.id, brunch: brunch.id } };
 }
 

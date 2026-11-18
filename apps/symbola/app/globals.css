@@ -3596,6 +3596,8 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
 
 @layer components {
   /* Lot 49 (INV-03, NFR-17, UX-14 ; SU-10, SU-11) — la page de réponse des invités : une seule
