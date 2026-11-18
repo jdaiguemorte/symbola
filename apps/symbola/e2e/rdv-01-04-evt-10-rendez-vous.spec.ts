@@ -55,7 +55,8 @@ test("RDV-01 à RDV-04, EVT-10 — un type en moins d'une minute, une réservati
   await expectNoAxeViolation(page);
   await page.getByRole("link", { name: "Commencer" }).click();
   await page.getByLabel("Nom", { exact: true }).fill("Premier rendez-vous");
-  await page.getByLabel("Durée", { exact: true }).selectOption("60");
+  // Le libellé englobe la liste : son texte comprend celui des options ; le nom accessible, non.
+  await page.getByRole("combobox", { name: "Durée" }).selectOption("60");
   await page.getByRole("button", { name: "Créer le type" }).click();
   await expect(page.getByRole("status")).toContainText("Type créé");
   expect(Date.now() - started).toBeLessThan(60_000);
