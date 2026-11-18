@@ -1125,6 +1125,32 @@
       "title": "Corbeille",
       "body": "Ce que vous supprimez reste ici 30 jours : un évènement avec tout son contenu, un contact, un document, un modèle. « Restaurer » le remet tel qu'il était. Passé 30 jours, il est effacé pour de bon, fichiers compris ; seule la titulaire du compte peut l'effacer plus tôt. Les éléments d'une fiche (tâche, ligne, séquence, note…) ne passent pas par ici : ils s'annulent pendant dix secondes après leur suppression."
     },
+    "guests": {
+      "title": "Invités",
+      "body": "La liste des invités de l'évènement, par foyers : pour chacun, un nom et un moyen de contact (e-mail ou téléphone d'un adulte) ; un enfant n'a que son prénom et sa tranche d'âge. Réglez d'abord la date de clôture des réponses et les questions, puis envoyez les invitations : l'écran de contrôle montre la liste et le calendrier des relances. Chaque adulte reçoit son lien personnel ; pour un invité sans e-mail, remettez un lien à copier ou un QR code. Les réponses arrivent par temps fort. Les régimes ne sont enregistrés qu'avec l'accord de l'invité ; vous voyez des nombres, et la titulaire seule voit les noms. Tout est effacé après l'évènement, avec préavis.",
+      "faq": [
+        {
+          "q": "Pourquoi ne puis-je pas saisir le régime d'un invité ?",
+          "a": "Les régimes et allergies sont des données de santé : seul l'invité les donne, avec son accord, sur sa page de réponse (ou le parent pour son enfant). Une colonne de régime dans un fichier importé est ignorée."
+        },
+        {
+          "q": "Une relance part-elle vers un foyer qui a répondu ?",
+          "a": "Non : la réponse est revérifiée au moment de chaque envoi. Un foyer sans adresse e-mail apparaît dans « À relancer à la main »."
+        },
+        {
+          "q": "Quand les données des invités sont-elles effacées ?",
+          "a": "Les régimes 7 jours après le dernier jour de l'évènement, le reste 30 jours après (durées des réglages RGPD). Vous êtes prévenue sept jours avant ; un seul report motivé est possible."
+        }
+      ]
+    },
+    "dietaryOptions": {
+      "title": "Régimes et allergies",
+      "body": "La liste fermée que vos invités cochent, après leur accord, sur leur page de réponse : des régimes courants et les quatorze allergènes à déclaration obligatoire. Masquez une entrée inutile, ou ajoutez-en une avec un libellé court. Aucun régime à caractère religieux n'est proposé par défaut : il révèle une conviction religieuse."
+    },
+    "portalGuests": {
+      "title": "Vos invités",
+      "body": "Ajoutez vos invités par foyer, ou importez votre tableur : les doublons vous sont signalés avant tout enregistrement. Pour un invité sans e-mail, obtenez son lien personnel ou son QR code et envoyez-le par SMS. Vous suivez les réponses par moment ; les régimes s'affichent en nombres, jamais nominatifs."
+    },
     "appointmentsList": {
       "title": "Rendez-vous",
       "body": "Les rendez-vous pris sur votre page de réservation, et ceux saisis par l'équipe (téléphone, salon). Les nouveaux, reportés ou annulés apparaissent aussi dans « Aujourd'hui ». Commencez par créer un type de rendez-vous (un nom et une durée), puis choisissez l'adresse de votre page et donnez-la à vos futurs clients. Personne n'a besoin de compte : chaque personne reçoit une confirmation avec l'invitation pour son agenda, et un lien pour reporter ou annuler."
@@ -1624,7 +1650,8 @@
       "program": "Programme",
       "vendor_options": "Options de prestataires",
       "budget": "Budget",
-      "quotes": "Devis à signer"
+      "quotes": "Devis à signer",
+      "guests": "Invités (saisie, import, suivi des réponses ; jamais les régimes nominatifs)"
     },
     "createLinkTitle": "Créer un lien",
     "linkPerson": "Personne",
@@ -1795,7 +1822,30 @@
     "programNotifyAlready": "Cette version est déjà partie par e-mail.",
     "programNotifyNoRecipients": "Personne à prévenir par e-mail : aucun lien actif de client avec la rubrique Programme, ni de prestataire.",
     "programNotifyTrial": "Pendant l'essai, aucun e-mail ne part.",
-    "programNotifyFailed": "Les e-mails n'ont pas pu partir : la messagerie ne répond pas. Réessayez plus tard."
+    "programNotifyFailed": "Les e-mails n'ont pas pu partir : la messagerie ne répond pas. Réessayez plus tard.",
+    "tabGuests": "Invités",
+    "keyMomentsTitle": "Temps forts",
+    "keyMomentsHelp": "Les grands moments de l'évènement (cérémonie, dîner, brunch du lendemain) : les invités répondent pour chacun.",
+    "keyMomentsEmpty": "Aucun temps fort pour l'instant.",
+    "keyMomentName": "Nom du temps fort",
+    "keyMomentNamePlaceholder": "Cérémonie, dîner, brunch…",
+    "keyMomentDate": "Date",
+    "keyMomentTime": "Heure de début (facultative)",
+    "keyMomentPlace": "Lieu (facultatif)",
+    "keyMomentNoPlace": "Aucun",
+    "keyMomentAdd": "Ajouter un temps fort",
+    "keyMomentAdded": "Temps fort ajouté.",
+    "keyMomentEdit": "Modifier « {name} »",
+    "keyMomentSave": "Enregistrer",
+    "keyMomentSaved": "Temps fort enregistré.",
+    "keyMomentRemove": "Supprimer « {name} »",
+    "keyMomentInvalid": {
+      "name": "Le nom est obligatoire (100 caractères au plus).",
+      "date": "La date n'est pas valable.",
+      "time": "L'heure n'est pas valable (HH:MM).",
+      "place": "Ce lieu n'est pas un lieu de l'évènement.",
+      "too_many": "Un évènement compte au plus 20 temps forts."
+    }
   },
   "Budget": {
     "title": "Budget",
@@ -3083,7 +3133,8 @@
       "events": "Événements",
       "budget": "Budget",
       "quotes": "Devis et factures",
-      "hub": "Comptes, imports et demandes RGPD"
+      "hub": "Comptes, imports et demandes RGPD",
+      "guests": "Invités"
     },
     "kind": {
       "event": "Événement",
@@ -3122,7 +3173,9 @@
       "vendor_candidate": "Prestataire consulté",
       "vendor_payment": "Paiement d'un prestataire",
       "form_draft": "Brouillon de saisie",
-      "email_job": "E-mail en attente d'envoi"
+      "email_job": "E-mail en attente d'envoi",
+      "guest": "Invité",
+      "guest_list": "Liste des invités de l'évènement"
     },
     "field": {
       "firstName": "Prénom",
@@ -3172,7 +3225,14 @@
       "companyIdNumber": "SIREN ou SIRET",
       "vatNumber": "Numéro de TVA",
       "noteN": "Note {n}",
-      "linkN": "Foyer ou entreprise {n}"
+      "linkN": "Foyer ou entreprise {n}",
+      "ageRange": "Tranche d'âge",
+      "household": "Foyer",
+      "answers": "Réponses par temps fort",
+      "diet": "Régimes et allergies",
+      "dietConsent": "Accord aux régimes (version, date, retrait)",
+      "opposedAt": "Opposition le",
+      "people": "Personnes invitées"
     },
     "requestsLink": "Demandes des personnes",
     "settingsLink": "Réglages RGPD",
@@ -3232,7 +3292,10 @@
       "accountingRetentionMonths": "Factures, avoirs et devis signés : conservation (mois)",
       "inactiveAccountMonths": "Compte d'un marié sans connexion : suppression après (mois)",
       "signedQuoteRetentionMonths": "Devis signé (preuve du contrat) : conservation (mois)",
-      "requestProofRetentionMonths": "Demande close : nom de la personne gardé comme preuve après la clôture (mois)"
+      "requestProofRetentionMonths": "Demande close : nom de la personne gardé comme preuve après la clôture (mois)",
+      "guestDietRetentionDays": "Régimes et allergies des invités (jours après l'évènement)",
+      "guestRetentionDays": "Autres données des invités : foyers, réponses, liens (jours après l'évènement)",
+      "guestPurgeMaxPostponeDays": "Report de la purge des invités, au plus (jours)"
     },
     "saveSettings": "Enregistrer les réglages",
     "settingsSaved": "Réglages enregistrés.",
@@ -3473,7 +3536,13 @@
     "linkNoticeReset": "Revenir au texte de départ",
     "linkNoticeSaved": "Mention enregistrée.",
     "linkNoticeInvalid": "La mention est trop longue (4 000 caractères au plus).",
-    "signedQuoteRetentionTooShort": "Les devis signés et leurs contrats se conservent dix ans au moins (120 mois) : c'est la durée légale d'un contrat conclu en ligne."
+    "signedQuoteRetentionTooShort": "Les devis signés et leurs contrats se conservent dix ans au moins (120 mois) : c'est la durée légale d'un contrat conclu en ligne.",
+    "guestRetentionTooLong": "Les données d'invités ne peuvent pas être gardées plus longtemps que la durée de départ plus un report (régimes : 7 + 90 jours ; le reste : 30 + 90 jours ; report : 90 jours au plus), et les régimes pas plus longtemps que le reste.",
+    "guestRetentionLegend": "Invités (module Invités)",
+    "guestRetentionIntro": "Comptées depuis le dernier jour de l'évènement, ou son annulation. Préavis de sept jours avant chaque purge, un seul report motivé possible. Valeurs de départ : réponses de la DPO.",
+    "guestNoticeTitle": "Mention d'information de la page de réponse des invités",
+    "guestNoticeIntro": "Affichée en tête et en pied de la page où les invités répondent, au nom de votre organisation et des mariés : qui traite, pourquoi, combien de temps, leurs droits et leur opposition. Variables : {organization}, {clients}, {contact}, {dietDays}, {days}.",
+    "guestNoticeLabel": "Texte de la mention"
   },
   "AdminAccounts": {
     "title": "Comptes et assistance",
@@ -4663,6 +4732,7 @@
     "emailTemplates": "Modèles d'e-mails",
     "messageTemplates": "Modèles de messages",
     "trash": "Corbeille",
+    "dietaryOptions": "Régimes et allergies",
     "groupAppointments": "Rendez-vous",
     "appointmentTypes": "Types et page de réservation",
     "appointmentAvailability": "Mes disponibilités et agendas"
@@ -4921,7 +4991,19 @@
       "hub_organization_export_requested": "Export complet demandé",
       "hub_organization_export_ready": "Export complet préparé",
       "hub_organization_export_downloaded": "Export complet téléchargé",
-      "hub_mail_variable_missing": "E-mail automatique non envoyé : variable du modèle sans valeur"
+      "hub_mail_variable_missing": "E-mail automatique non envoyé : variable du modèle sans valeur",
+      "guests_impact_assessment_confirmed": "Analyse d'impact des invités confirmée",
+      "guests_link_created": "Lien personnel d'un invité créé",
+      "guests_link_revoked": "Liens d'un invité retirés",
+      "guests_invitations_sent": "Invitations envoyées aux invités",
+      "guests_link_opened": "Page de réponse d'un invité ouverte",
+      "guests_diet_consent_granted": "Accord d'un invité à ses régimes donné",
+      "guests_diet_consent_withdrawn": "Accord d'un invité à ses régimes retiré",
+      "guests_guest_opposed": "Opposition d'un invité à la conservation de ses données",
+      "guests_purge_postponed": "Purge des invités reportée",
+      "guests_purge_executed": "Données des invités purgées",
+      "guests_import_applied": "Liste d'invités importée",
+      "guests_import_undone": "Import d'invités annulé"
     },
     "categories": {
       "connexion": "Connexions",
@@ -5033,7 +5115,20 @@
       "hub_email_templates": "modèle d'e-mail",
       "hub_message_templates": "modèle de message",
       "hub_message_template_versions": "version d'un modèle de message",
-      "hub_calendar_feeds": "adresse de calendrier"
+      "hub_calendar_feeds": "adresse de calendrier",
+      "events_key_moments": "temps fort",
+      "guests_module_settings": "réglages du module Invités",
+      "guests_event_settings": "réglages des réponses",
+      "guests_household_groups": "groupe d'invités",
+      "guests_guest_imports": "import d'invités",
+      "guests_households": "foyer d'invités",
+      "guests_guests": "invité",
+      "guests_rsvp_answers": "réponse d'invité",
+      "guests_dietary_options": "entrée de la liste des régimes",
+      "guests_diets": "régimes d'invité",
+      "guests_diet_consents": "preuve d'accord aux régimes",
+      "guests_guest_links": "lien personnel d'invité",
+      "guests_purge_postponements": "report de purge des invités"
     },
     "modules": {
       "events": "Événements",
@@ -5214,6 +5309,7 @@
     "navDecisions": "À décider",
     "actionGoDecision": "Répondre",
     "navDocuments": "Documents",
+    "guestsLink": "Vos invités : liste, import et réponses",
     "appointmentsTitle": "Vos prochains rendez-vous",
     "appointmentVideo": "en visio",
     "appointmentPhone": "par téléphone"
@@ -5797,6 +5893,9 @@
       "vendorContract": "Contrat de {vendor} ({slot}) à faire signer",
       "dateConflict": "{count} évènements le même jour",
       "linkRenewal": "{name} demande un nouveau lien",
+      "guestPurgeDiets": "Les régimes des invités seront effacés : reporter si besoin",
+      "guestPurgeAll": "Les données des invités seront effacées : reporter si besoin",
+      "guestOpposition": "{count, plural, one {Un invité s'est opposé} other {# invités se sont opposés}} à la conservation de ses données",
       "appointment": "{time} · {type} avec {person}",
       "appointmentChange": {
         "new": "Nouveau rendez-vous : {type} avec {person}, le {time}",
@@ -5864,6 +5963,7 @@
       "events": "évènements",
       "quotes": "devis et encaissements",
       "budget": "budget",
+      "guests": "invités",
       "appointments": "rendez-vous"
     }
   },
@@ -6112,6 +6212,7 @@
     "button": {
       "space": "Ouvrir mon espace",
       "sign": "Signer en ligne",
+      "answer": "Répondre",
       "manage": "Reporter ou annuler"
     },
     "footerNote": "Envoyé avec Symbola",
@@ -6972,5 +7073,343 @@
     "create": "N : créer (évènement, tâche, dépense, devis), depuis n'importe quel écran.",
     "close": "Échap : fermer le panneau ou la fenêtre ouverte.",
     "help": "? : ouvrir l'aide de l'écran."
+  },
+  "Guests": {
+    "purgeEmail": {
+      "noticeDietsSubject": "Préavis : les régimes des invités seront effacés",
+      "noticeDietsBody": "Bonjour,\n\nLes régimes et allergies des invités d'un de vos évènements seront effacés le {date}, comme le prévoient vos réglages RGPD. Vous pouvez reporter cette purge une fois, avec un motif, depuis l'onglet Invités de l'évènement.\n\nSymbola",
+      "noticeAllSubject": "Préavis : les données des invités seront effacées",
+      "noticeAllBody": "Bonjour,\n\nLes données des invités d'un de vos évènements (foyers, personnes, réponses, liens) seront effacées le {date}, comme le prévoient vos réglages RGPD. Les exports stockés qui les contiennent seront supprimés avec elles. Vous pouvez reporter cette purge une fois, avec un motif, depuis l'onglet Invités de l'évènement.\n\nSymbola",
+      "exportsSubject": "Exports supprimés avec les données des invités",
+      "exportsBody": "Bonjour,\n\nLa purge des invités d'un de vos évènements a supprimé {count, plural, one {# export stocké} other {# exports stockés}} qui pouvaient les contenir (export complet de l'organisation, export RGPD). Un fichier que vous aviez déjà téléchargé reste sous votre responsabilité.\n\nSymbola"
+    },
+    "emailWords": {
+      "wedding": "mariage",
+      "event": "évènement"
+    },
+    "rsvp": {
+      "openingTitle": "Ouverture de votre invitation",
+      "openingBody": "Un instant…",
+      "noScript": "Cette page a besoin de JavaScript pour lire votre lien personnel.",
+      "invalidTitle": "Lien inconnu",
+      "invalidBody": "Ce lien ne permet pas, ou plus, de répondre. Si vous pensez qu'il s'agit d'une erreur, demandez un nouveau lien aux personnes qui vous ont invité.",
+      "retryLater": "Trop d'essais : réessayez dans {minutes, plural, one {# minute} other {# minutes}}.",
+      "title": {
+        "wedding": "{clients} vous invitent à leur mariage",
+        "event": "{clients} vous invitent"
+      },
+      "intro": "Dites-nous qui sera là. Vous pouvez répondre, puis modifier votre réponse, jusqu'au {date}.",
+      "noticeShort": "{organization} prépare cet évènement et reçoit votre réponse.",
+      "noticeLink": "Ce qui est fait de vos données",
+      "presenceTitle": "Qui sera présent ?",
+      "presenceSelf": "{moment} — {name} (vous)",
+      "presenceOther": "{moment} — {name}",
+      "yes": "Oui, présent",
+      "no": "Non, absent",
+      "noAnswer": "sans réponse",
+      "presenceMissing": "Répondez par oui ou non pour chaque personne et chaque moment.",
+      "dietTitle": "Régimes et allergies",
+      "dietIntro": "Facultatif. Pour le repas : cochez seulement ce qui vous concerne. Rien n'est enregistré sans votre accord.",
+      "dietSelf": "Pour {name} (vous)",
+      "dietChild": "Pour {name}",
+      "stayTitle": "Hébergement et transport",
+      "accommodationQuestion": "Avez-vous besoin d'une chambre ?",
+      "transportQuestion": "Avez-vous besoin d'une navette ?",
+      "submit": "Envoyer ma réponse",
+      "sending": "Envoi…",
+      "help": "Aucun compte, aucun mot de passe. Votre lien vous est personnel : ne le transférez pas.",
+      "thanksTitle": "Merci, votre réponse est enregistrée",
+      "thanksBody": "Voici ce que vous avez répondu.",
+      "recapTitle": "Votre réponse",
+      "recapDiet": "Régime de {name} : {diet}",
+      "recapAccommodationYes": "Chambre : oui",
+      "recapAccommodationNo": "Chambre : non",
+      "recapTransportYes": "Navette : oui",
+      "recapTransportNo": "Navette : non",
+      "nextTitle": "Et après ?",
+      "nextBody": "Vous pouvez modifier votre réponse jusqu'au {date}, avec ce même lien. Après cette date, les réponses sont closes.",
+      "edit": "Modifier ma réponse",
+      "closedNow": "Les réponses sont closes : votre modification n'a pas été enregistrée.",
+      "closedTitle": "L'invitation de {clients}",
+      "closedBody": "Les réponses sont closes depuis le {date}. Voici votre réponse ; pour toute question, écrivez à l'organisatrice ci-dessous.",
+      "noticeTitle": "Vos données",
+      "contact": "Contact : {name}",
+      "opposeTitle": "Vous ne souhaitez pas que vos données soient conservées ?",
+      "oppose": "Je ne souhaite pas que mes données soient conservées",
+      "opposeConfirmBody": "Vos coordonnées et vos régimes seront effacés tout de suite, et vous ne recevrez plus rien. Votre présence déjà donnée reste, sous votre seul nom, jusqu'à l'effacement prévu après l'évènement. Confirmez-vous ?",
+      "opposeConfirm": "Oui, effacer mes données",
+      "opposeCancel": "Non, revenir",
+      "opposedTitle": "C'est fait",
+      "opposedBody": "Vos coordonnées et vos régimes sont effacés ; ce lien ne fonctionne plus. Les organisateurs en sont prévenus."
+    },
+    "errors": {
+      "generic": "L'enregistrement n'a pas abouti. Vérifiez les champs et réessayez.",
+      "denied": "Vous n'avez pas accès à cette liste d'invités.",
+      "confirmRequired": "Cochez la case pour confirmer l'analyse d'impact.",
+      "notReady": "Le module Invités attend la confirmation de l'analyse d'impact par la titulaire.",
+      "eventNotFound": "Évènement introuvable.",
+      "notFound": "Introuvable : la liste a peut-être changé. Rechargez la page.",
+      "household": {
+        "no_adult": "Un foyer compte au moins un adulte.",
+        "person_name_missing": "Chaque personne a un prénom.",
+        "contact_missing": "Indiquez un moyen de contact pour le foyer : l'e-mail ou le téléphone d'un adulte.",
+        "child_contact": "Un enfant n'a ni e-mail, ni téléphone, ni nom de famille : seulement son prénom et sa tranche d'âge.",
+        "adult_age_range": "La tranche d'âge ne concerne que les enfants.",
+        "email_invalid": "Une adresse e-mail n'est pas valable.",
+        "phone_invalid": "Un numéro de téléphone n'est pas valable.",
+        "respondent_not_adult": "La personne qui répond pour le foyer est un adulte.",
+        "too_many_people": "Un foyer compte au plus 20 personnes.",
+        "name_too_long": "Un prénom ou un nom est trop long (100 caractères au plus).",
+        "group_too_long": "Le nom du groupe est trop long (100 caractères au plus).",
+        "side_unknown": "Ce côté n'est pas un client de l'évènement.",
+        "key_moment_unknown": "Un temps fort choisi n'existe plus.",
+        "display_name_too_long": "Le nom du foyer est trop long (200 caractères au plus)."
+      },
+      "link": {
+        "child": "Un enfant n'a pas de lien personnel.",
+        "no_contact": "Ajoutez d'abord l'e-mail ou le téléphone de cette personne.",
+        "opposed": "Cette personne s'est opposée à la conservation de ses données.",
+        "no_close_date": "Choisissez d'abord la date de clôture des réponses.",
+        "closed": "Les réponses sont closes : repoussez la date de clôture pour remettre un lien."
+      },
+      "invitations": {
+        "no_close_date": "Choisissez d'abord la date de clôture des réponses (réglages des réponses).",
+        "closed": "Les réponses sont closes : repoussez la date de clôture pour inviter.",
+        "no_key_moment": "Ajoutez d'abord les temps forts de l'évènement, sur sa synthèse."
+      },
+      "settings": {
+        "close_date": "La date de clôture n'est pas valable (elle ne peut pas être passée).",
+        "reminders": "Les relances : trois au plus, entre 1 et 90 jours avant la clôture.",
+        "notice_too_long": "Le texte est trop long (4 000 caractères au plus).",
+        "option_label": "Le libellé est obligatoire (60 caractères au plus)."
+      },
+      "postpone": {
+        "already_postponed": "La purge a déjà été reportée une fois : un seul report est possible.",
+        "already_purged": "Les données des invités sont déjà effacées.",
+        "reason_missing": "Le motif du report est obligatoire.",
+        "too_early": "La nouvelle date doit tomber après la prochaine purge prévue.",
+        "too_late": "Le report est de 90 jours au plus après la purge prévue.",
+        "no_date": "L'évènement n'a pas encore de date : il n'y a pas de purge à reporter."
+      },
+      "importFile": "Choisissez un fichier (CSV ou XLSX).",
+      "importTooLarge": "Le fichier dépasse 1 Mo : enregistrez la liste en CSV, ou découpez-la."
+    },
+    "activation": {
+      "assessmentLink": "Lire l'analyse d'impact « socle » fournie par Symbola",
+      "assessmentProvided": "L'analyse d'impact « socle » vous est remise par Symbola ; complétez-la avec votre DPO.",
+      "confirmLabel": "Je confirme avoir complété l'analyse d'impact de mon activité pour les données des invités.",
+      "confirm": "Ouvrir le module Invités"
+    },
+    "settings": {
+      "closeOn": "Clôture des réponses (les liens expirent à la fin de ce jour)",
+      "closeOnSuggested": "Date proposée : 30 jours avant le premier temps fort. Enregistrez pour la retenir.",
+      "questions": "Questions posées aux invités",
+      "presenceAlways": "La présence par temps fort est toujours demandée. Aucun champ libre.",
+      "askDiet": "Régimes et allergies (avec l'accord de l'invité)",
+      "askAccommodation": "Besoin d'une chambre",
+      "askTransport": "Besoin d'une navette",
+      "reminders": "Relances automatiques par e-mail",
+      "remindersHelp": "Jours avant la clôture ; seulement aux foyers sans réponse qui ont une adresse e-mail. Laissez vide pour moins de relances.",
+      "reminderN": "Relance {n} (jours avant la clôture)",
+      "save": "Enregistrer les réglages",
+      "saved": "Réglages enregistrés."
+    },
+    "household": {
+      "required": "Seuls le prénom de chacun et un moyen de contact pour le foyer sont obligatoires.",
+      "adultN": "Personne {n} : adulte",
+      "childN": "Personne {n} : enfant",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "respondent": "Répond pour le foyer",
+      "ageRange": "Tranche d'âge",
+      "ageUnknown": "Non précisée",
+      "age": {
+        "0-2": "0 à 2 ans",
+        "3-5": "3 à 5 ans",
+        "6-11": "6 à 11 ans",
+        "12-17": "12 à 17 ans"
+      },
+      "childNoContact": "Aucun contact n'est demandé pour un enfant.",
+      "removePerson": "Retirer {name}",
+      "thisPerson": "cette personne",
+      "addAdult": "Ajouter un adulte",
+      "addChild": "Ajouter un enfant",
+      "displayName": "Nom du foyer",
+      "displayNamePlaceholder": "Par défaut : les prénoms des adultes",
+      "side": "Côté",
+      "sideNone": "Non précisé",
+      "sideOf": "Côté {name}",
+      "sideBoth": "Les deux",
+      "group": "Groupe",
+      "language": "Langue des messages",
+      "languageFr": "Français",
+      "languageEn": "Anglais",
+      "moments": "Invités aux temps forts",
+      "save": "Enregistrer le foyer",
+      "add": "Ajouter le foyer",
+      "saved": "Foyer enregistré.",
+      "added": "Foyer ajouté."
+    },
+    "link": {
+      "issue": "Lien et QR code de {name}",
+      "issued": "Voici un lien personnel, à envoyer par SMS ou messagerie, ou à imprimer en QR code. Il n'est montré qu'une fois et expire à la clôture des réponses.",
+      "url": "Lien personnel",
+      "copy": "Copier le lien",
+      "copied": "Lien copié",
+      "qrAlt": "QR code du lien personnel de {name}",
+      "qrDownload": "Télécharger le QR code (PNG)"
+    },
+    "invitations": {
+      "schedule": "Relances prévues, aux foyers sans réponse qui ont une adresse e-mail : {dates}.",
+      "noReminders": "Aucune relance automatique n'est prévue.",
+      "prepare": "{count, plural, =0 {Aucune invitation à envoyer} one {Préparer l'envoi de # invitation} other {Préparer l'envoi de # invitations}}",
+      "sent": "{count, plural, =0 {Aucune invitation envoyée.} one {# invitation envoyée.} other {# invitations envoyées.}}",
+      "notSent": "{count, plural, one {# n'est pas partie (plafond d'envois atteint) : réessayez plus tard.} other {# ne sont pas parties (plafond d'envois atteint) : réessayez plus tard.}}"
+    },
+    "import": {
+      "file": "Liste d'invités (CSV ou XLSX)",
+      "help": "Une ligne par personne. Colonnes reconnues : foyer, prénom, nom, e-mail, téléphone, enfant, âge, côté, groupe, langue. Une colonne de régime est ignorée : seul l'invité donne son régime.",
+      "preview": "Voir l'aperçu",
+      "rejected": {
+        "empty": "Le fichier est vide.",
+        "too_large": "Le fichier est trop volumineux.",
+        "too_many_rows": "Le fichier compte trop de lignes.",
+        "too_many_columns": "Le fichier compte trop de colonnes.",
+        "unsupported_format": "Format non pris en charge : enregistrez le fichier en .xlsx ou .csv.",
+        "malformed": "Le fichier est illisible.",
+        "infected": "Le fichier a été refusé par l'antivirus.",
+        "no_name_column": "Aucune colonne de prénom n'a été reconnue (« Prénom », « First name »)."
+      },
+      "applied": "Import terminé : {households, plural, one {# foyer} other {# foyers}}, {people, plural, one {# personne} other {# personnes}} ; {skipped, plural, =0 {aucune ligne écartée} one {# ligne écartée} other {# lignes écartées}}.",
+      "previewTitle": "Aperçu : {rows, plural, one {# ligne} other {# lignes}}, {households, plural, one {# foyer} other {# foyers}}",
+      "nothingWritten": "Rien n'est encore enregistré : vérifiez, puis importez.",
+      "dietIgnored": "Colonne ignorée : {columns}. Les régimes et allergies sont donnés par chaque invité, avec son accord, sur sa page de réponse.",
+      "neutralized": "{count, plural, one {# cellule commençant par une formule a été neutralisée.} other {# cellules commençant par une formule ont été neutralisées.}}",
+      "duplicates": "{count, plural, one {# doublon possible : coché, il n'est pas importé} other {# doublons possibles : cochés, ils ne sont pas importés}}",
+      "duplicateOfLine": "Ligne {line} ({name}) : même personne que la ligne {other}",
+      "duplicateInEvent": "Ligne {line} : déjà dans la liste ({name})",
+      "noDuplicates": "Aucun doublon trouvé.",
+      "problem": {
+        "name_missing": "Ligne {line} : sans prénom, elle n'est pas importée.",
+        "child_contact_dropped": "Ligne {line} : enfant, son e-mail, son téléphone et son nom ne sont pas importés.",
+        "household_without_contact": "Ligne {line} : son foyer n'a aucun moyen de contact ; il n'est pas importé."
+      },
+      "apply": "{count, plural, one {Importer # ligne} other {Importer # lignes}}"
+    },
+    "answers": {
+      "record": "Noter une réponse reçue autrement",
+      "personAt": "{name} — {moment}",
+      "noAnswer": "Sans réponse",
+      "yes": "Présent",
+      "no": "Absent",
+      "save": "Enregistrer les réponses",
+      "saved": "Réponses enregistrées."
+    },
+    "purge": {
+      "postpone": "Reporter la purge (une seule fois)",
+      "postponeHelp": "Un seul report, motivé, de 90 jours au plus. Le motif reste ici ; le journal n'en garde que la date.",
+      "until": "Nouvelle date de la purge",
+      "reason": "Motif du report",
+      "postponeConfirm": "Reporter la purge",
+      "postponed": "Purge reportée."
+    },
+    "tab": {
+      "activationTitle": "Ouvrir le module Invités",
+      "activationBody": "Le module Invités garde les données de personnes qui n'ont rien demandé : avant la première donnée réelle, la titulaire confirme avoir complété l'analyse d'impact de son activité (demande de la DPO).",
+      "activationData": "Foyers et personnes, réponses par temps fort ; un moyen de contact par foyer, aucun pour un enfant.",
+      "activationDiets": "Régimes et allergies : seulement avec l'accord de l'invité, chiffrés, visibles en clair par la titulaire seule.",
+      "activationPurge": "Effacement automatique : régimes 7 jours après l'évènement, le reste 30 jours après, avec préavis.",
+      "activationOwnerOnly": "La titulaire de l'organisation ouvre le module, après l'analyse d'impact.",
+      "summaryTitle": "Réponses",
+      "summaryLine": "{households, plural, =0 {Aucun foyer} one {# foyer} other {# foyers}}, {people, plural, one {# personne} other {# personnes}} ; {answered, plural, =0 {aucun foyer n'a répondu} one {# foyer a répondu} other {# foyers ont répondu}} ; {confirmed, plural, =0 {aucun invité confirmé} one {# invité confirmé} other {# invités confirmés}}.",
+      "noKeyMoments": "Ajoutez les temps forts de l'évènement (cérémonie, dîner…) : les invités répondent pour chacun.",
+      "noKeyMomentsLink": "Aller à la synthèse",
+      "tally": "{yes} oui · {no} non · {pending} en attente",
+      "dietsTitle": "Régimes et allergies",
+      "dietsOwner": "Des nombres par temps fort ; en tant que titulaire, vous voyez aussi le détail par personne dans la liste.",
+      "dietsMember": "Des nombres par temps fort, jamais de nom ; « moins de 3 » protège un régime porté par une ou deux personnes.",
+      "dietsNone": "Aucun régime déclaré pour l'instant.",
+      "dietCount": "{label} : {count}",
+      "dietFewer": "{label} : moins de {threshold}",
+      "settingsTitle": "Réglages des réponses (clôture, questions, relances)",
+      "invitationsTitle": "Invitations",
+      "closesOn": "Réponses ouvertes jusqu'au {date} inclus.",
+      "closeOnRequired": "Choisissez la date de clôture des réponses avant d'envoyer les invitations.",
+      "manualTitle": "À relancer à la main",
+      "manualHelp": "Ces foyers n'ont pas d'adresse e-mail : appelez-les, ou envoyez-leur leur lien par SMS.",
+      "listTitle": "Foyers",
+      "filters": "Filtrer les foyers",
+      "filterAll": "Tous",
+      "filterUnanswered": "Sans réponse",
+      "filterSide": "Côté {name}",
+      "filterBoth": "Les deux côtés",
+      "addHousehold": "Ajouter un foyer",
+      "empty": "Aucun foyer pour l'instant : ajoutez-en un, ou importez une liste.",
+      "importTitle": "Importer une liste",
+      "importEntry": "{date} : {households, plural, one {# foyer} other {# foyers}}, {people, plural, one {# personne} other {# personnes}} ({channel, select, client {par le client} other {par l'équipe}})",
+      "importUndone": "annulé",
+      "importUndo": "Annuler cet import",
+      "purgeTitle": "Conservation des données des invités",
+      "purged": "Données des invités effacées le {date}.",
+      "dietsPurged": "Régimes et allergies effacés.",
+      "dietsDue": "Régimes et allergies effacés le {date}.",
+      "allDue": "Autres données des invités effacées le {date} (foyers, réponses, liens).",
+      "postponed": "Purge reportée au {date} : {reason}",
+      "purgeNoDate": "L'évènement n'a pas de date : la purge se calcule depuis son dernier jour.",
+      "purgeHelp": "Préavis sept jours avant chaque purge, dans « Aujourd'hui » et par e-mail à la titulaire. Les exports stockés qui contiennent ces invités sont supprimés avec eux.",
+      "sideBoth": "Les deux côtés",
+      "sideOf": "Côté {name}",
+      "answered": "a répondu le {date}",
+      "answeredShort": "a répondu",
+      "notAnswered": "sans réponse",
+      "child": "enfant",
+      "age": {
+        "0-2": "0 à 2 ans",
+        "3-5": "3 à 5 ans",
+        "6-11": "6 à 11 ans",
+        "12-17": "12 à 17 ans"
+      },
+      "respondent": "répond pour le foyer",
+      "opposed": "s'est opposé à la conservation de ses données",
+      "yes": "oui",
+      "no": "non",
+      "pending": "en attente",
+      "diet": "Régimes : {diet}",
+      "noContact": "sans coordonnées",
+      "linkStatus": {
+        "none": "Aucun lien remis",
+        "active": "Lien personnel valable",
+        "revoked": "Lien retiré",
+        "expired": "Lien expiré (réponses closes)"
+      },
+      "revoke": "Retirer les liens de {name}",
+      "edit": "Modifier {name}",
+      "remove": "Supprimer le foyer {name}"
+    },
+    "portal": {
+      "title": "Vos invités",
+      "unavailable": "Cette rubrique n'est pas ouverte pour votre espace.",
+      "back": "Retour à votre espace"
+    },
+    "options": {
+      "title": "Régimes et allergies",
+      "unavailable": "Le module Invités n'est pas activé pour votre organisation.",
+      "intro": "La liste que vos invités cochent sur leur page de réponse, après leur accord. Aucun champ libre : masquez une entrée inutile, ou ajoutez-en une avec un libellé court.",
+      "diets": "Régimes",
+      "allergens": "Allergènes à déclaration obligatoire (règlement européen INCO)",
+      "hidden": "masqué",
+      "show": "Proposer « {label} »",
+      "hide": "Masquer « {label} »",
+      "addTitle": "Ajouter une entrée",
+      "religiousWarning": "Un régime à caractère religieux (halal, casher, sans porc…) révèle une conviction religieuse, donnée protégée par le RGPD : il n'est pas proposé par défaut. Ne l'ajoutez que sous votre responsabilité, après avis de votre DPO.",
+      "label": "Libellé (court)",
+      "kind": "Nature",
+      "kindDiet": "Régime",
+      "kindAllergen": "Allergie",
+      "add": "Ajouter",
+      "added": "Entrée ajoutée."
+    }
   }
 }

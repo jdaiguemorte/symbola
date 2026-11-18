@@ -2,7 +2,7 @@
 -- schéma (appointments) : page publique de réservation, types, disponibilités, agendas extérieurs
 -- (adresse chiffrée, plages occupées seulement), rendez-vous, comptes rendus et actions. Schéma
 -- appointments seulement ; les autres modules n'y sont connus que par un identifiant opaque.
--- Ajout seul : compatible avec la version précédente du code (ARC-14). Droits et RLS : 0151.
+-- Ajout seul : compatible avec la version précédente du code (ARC-14). Droits et RLS : 0157.
 CREATE SCHEMA "appointments";
 --> statement-breakpoint
 CREATE TABLE "appointments"."appointment_report_actions" (

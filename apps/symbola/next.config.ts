@@ -28,8 +28,9 @@ const securityHeaders = [
 ];
 
 // Lot 37a (DOC-04, ADR 0070) : la page d'un lien de partage de document, comme celles des liens personnels.
+// Lot 49 (INV-03, SEC-17) : la page de réponse des invités.
 // Lot 46 (RDV-02, RDV-03, D11) : la page publique de réservation et le lien de gestion d'un rendez-vous.
-const LINK_PAGES = ["/lien", "/lien/:path*", "/portail", "/portail/:path*", "/prestataire", "/prestataire/:path*", "/partage", "/partage/:path*", "/reserver/:path*", "/rdv", "/rdv/:path*"];
+const LINK_PAGES = ["/lien", "/lien/:path*", "/portail", "/portail/:path*", "/prestataire", "/prestataire/:path*", "/partage", "/partage/:path*", "/rsvp", "/rsvp/:path*", "/reserver/:path*", "/rdv", "/rdv/:path*"];
 const linkPageHeaders = [
   { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
   { key: "Referrer-Policy", value: "no-referrer" },

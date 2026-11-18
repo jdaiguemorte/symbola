@@ -11,6 +11,7 @@ import { eventsPrivacy } from "@/modules/events/service";
 import { hubPrivacy, isModuleEnabled, type ModuleKey } from "@/modules/hub/service";
 import { quotesPrivacy } from "@/modules/quotes/service";
 import { vendorsPrivacy } from "@/modules/vendors/service";
+import { guestsPrivacy } from "@/modules/guests/service";
 import { appointmentsPrivacy } from "@/modules/appointments/service";
 
 // Modules interrogés, et la clé de souscription de chacun (le hub l'est toujours).
@@ -22,6 +23,8 @@ export const PARTICIPANTS: Participant[] = [
   { contract: budgetPrivacy, moduleKey: "budget" },
   { contract: quotesPrivacy, moduleKey: "quotes" },
   { contract: vendorsPrivacy, moduleKey: "vendors" },
+  // Lot 49 (RGP-05, RGP-08) : invités, foyers, réponses, régimes, preuves d'accord.
+  { contract: guestsPrivacy, moduleKey: "guests" },
   // Lot 46 (ADR 0082) : les personnes qui ont pris rendez-vous.
   { contract: appointmentsPrivacy, moduleKey: "appointments" },
 ];

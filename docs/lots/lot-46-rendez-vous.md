@@ -452,7 +452,7 @@ par le lot 49.
 
 Fait, dans une seule PR (ADR 0082) :
 
-- Module `appointments` (schéma et migrations 0150, 0151, annulables ; RLS forcée sur les neuf
+- Module `appointments` (schéma et migrations 0156, 0157, annulables ; RLS forcée sur les neuf
   tables, lecture publique de la seule adresse de page) ; contrat et évènement interne
   `appointments.appointment.booked` (v1) dans `packages/contracts`.
 - RDV-01 : types en deux champs, trois types de départ (`appointment-types.json`), réglages par
@@ -472,7 +472,7 @@ Fait, dans une seule PR (ADR 0082) :
 Reste ou écart :
 
 - **Modèles d'e-mails de rendez-vous** : personnalisables dans Paramètres › Modèles d'e-mails grâce
-  à la migration **0152**, dans le schéma `hub` (accord de Julien du 18/11 : seule la contrainte
+  à la migration **0158**, dans le schéma `hub` (accord de Julien du 18/11 : seule la contrainte
   `email_templates_kind_check` est élargie ; une nature inconnue reste refusée). Le lot 49 élargit
   la même contrainte pour ses natures : la seconde PR fusionnée réunit les deux listes.
 - **Agenda de l'app** (`app/agenda`, calendrier des mois de l'écran Évènements) : les rendez-vous
@@ -480,5 +480,5 @@ Reste ou écart :
   dans « Aujourd'hui » et dans la liste du module.
 - **Parcours Playwright** non joués en local (port et fournisseur d'identité pris par les sessions
   des lots 41 et 49) : ils tournent en CI.
-- Déploiement : migrations 0150 à 0152, compatibles avec la version précédente (sans arrêt de
+- Déploiement : migrations 0156 à 0158 (0150 à 0153 : lot 49 ; 0154 et 0155 : lot 41), compatibles avec la version précédente (sans arrêt de
   l'app, `migrate:plan`) ; le module reste fermé tant que l'Exploitation ne l'ouvre pas.

@@ -1055,22 +1055,50 @@
     {
       "idx": 150,
       "version": "7",
-      "when": 1794980284429,
-      "tag": "0150_lot46_appointments",
+      "when": 1794983521425,
+      "tag": "0150_lot49_events_key_moments",
       "breakpoints": true
     },
     {
       "idx": 151,
       "version": "7",
-      "when": 1794980285584,
-      "tag": "0151_lot46_grant_appointments",
+      "when": 1794983522671,
+      "tag": "0151_lot49_hub_guest_retention",
       "breakpoints": true
     },
     {
       "idx": 152,
       "version": "7",
-      "when": 1794982349328,
-      "tag": "0152_lot46_hub_email_template_kinds",
+      "when": 1794983523836,
+      "tag": "0152_lot49_hub_guest_email_kinds",
+      "breakpoints": true
+    },
+    {
+      "idx": 153,
+      "version": "7",
+      "when": 1794983525054,
+      "tag": "0153_lot49_guests",
+      "breakpoints": true
+    },
+    {
+      "idx": 156,
+      "version": "7",
+      "when": 1794999300595,
+      "tag": "0156_lot46_appointments",
+      "breakpoints": true
+    },
+    {
+      "idx": 157,
+      "version": "7",
+      "when": 1794999310105,
+      "tag": "0157_lot46_grant_appointments",
+      "breakpoints": true
+    },
+    {
+      "idx": 158,
+      "version": "7",
+      "when": 1794999316668,
+      "tag": "0158_lot46_hub_email_template_kinds",
       "breakpoints": true
     }
   ]

@@ -17,7 +17,7 @@ Le format est décrit dans `docs/export/format-v1.md`.
 | `email_templates` | `id`, `kind`, `locale`, `subject`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [email_templates.schema.json](hub/email_templates.schema.json) |
 | `message_templates` | `id`, `eventTypeId`, `name`, `locale`, `version`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [message_templates.schema.json](hub/message_templates.schema.json) |
 | `message_template_versions` | `id`, `templateId`, `version`, `subject`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [message_template_versions.schema.json](hub/message_template_versions.schema.json) |
-| `privacy_settings` | `requestAlertDays`, `prospectRetentionMonths`, `clientRetentionMonths`, `accountingRetentionMonths`, `inactiveAccountMonths`, `signedQuoteRetentionMonths`, `requestProofRetentionMonths`, `linkPrivacyNotice`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [privacy_settings.schema.json](hub/privacy_settings.schema.json) |
+| `privacy_settings` | `requestAlertDays`, `prospectRetentionMonths`, `clientRetentionMonths`, `accountingRetentionMonths`, `inactiveAccountMonths`, `signedQuoteRetentionMonths`, `requestProofRetentionMonths`, `linkPrivacyNotice`, `guestRetentionDays`, `guestDietRetentionDays`, `guestPurgeMaxPostponeDays`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [privacy_settings.schema.json](hub/privacy_settings.schema.json) |
 | `privacy_requests` | `id`, `type`, `personLabel`, `receivedOn`, `dueOn`, `status`, `extensionReason`, `extendedAt`, `closedAt`, `actionDoneAt`, `responseSentAt`, `createdByUserId`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [privacy_requests.schema.json](hub/privacy_requests.schema.json) |
 | `privacy_exports` | `id`, `requestId`, `recordCount`, `createdByUserId`, `createdAt`, `expiresAt`, `purgedAt`, `createdBy`, `updatedAt`, `updatedBy` | [privacy_exports.schema.json](hub/privacy_exports.schema.json) |
 | `privacy_erasures` | `id`, `requestId`, `status`, `items`, `acks`, `createdByUserId`, `createdAt`, `completedAt`, `createdBy` | [privacy_erasures.schema.json](hub/privacy_erasures.schema.json) |
@@ -65,6 +65,7 @@ Tables non exportées :
 | `event_clients` | `id`, `eventId`, `contactId`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_clients.schema.json](events/event_clients.schema.json) |
 | `event_status_history` | `id`, `eventId`, `fromStatus`, `toStatus`, `changedByUserId`, `changedAt`, `createdBy` | [event_status_history.schema.json](events/event_status_history.schema.json) |
 | `event_places` | `id`, `eventId`, `label`, `address`, `city`, `startTime`, `endTime`, `contactName`, `contactPhone`, `contactEmail`, `vendorId`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [event_places.schema.json](events/event_places.schema.json) |
+| `key_moments` | `id`, `eventId`, `name`, `date`, `startTime`, `placeId`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [key_moments.schema.json](events/key_moments.schema.json) |
 | `event_day_contacts` | `id`, `eventId`, `name`, `role`, `phone`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_day_contacts.schema.json](events/event_day_contacts.schema.json) |
 | `event_document_folders` | `id`, `eventId`, `name`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_document_folders.schema.json](events/event_document_folders.schema.json) |
 | `event_documents` | `id`, `eventId`, `label`, `fileKey`, `mime`, `sizeBytes`, `uploadedByUserId`, `folderId`, `sharedWithClients`, `sharedWithVendors`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [event_documents.schema.json](events/event_documents.schema.json) |
@@ -160,6 +161,26 @@ Tables non exportées :
 
 Toutes les tables du module sont exportées.
 
+
+## Module `guests`
+
+| Entité | Champs | Schéma |
+| --- | --- | --- |
+| `module_settings` | `impactAssessmentConfirmedAt`, `impactAssessmentConfirmedBy`, `privacyNotice`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [module_settings.schema.json](guests/module_settings.schema.json) |
+| `dietary_options` | `id`, `kind`, `starterKey`, `label`, `hidden`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [dietary_options.schema.json](guests/dietary_options.schema.json) |
+| `event_settings` | `id`, `eventId`, `responsesCloseOn`, `askDiet`, `askAccommodation`, `askTransport`, `reminderDays`, `invitationsSentAt`, `dietPurgeNoticeAt`, `purgeNoticeAt`, `dietsPurgedAt`, `purgedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_settings.schema.json](guests/event_settings.schema.json) |
+| `household_groups` | `id`, `eventId`, `label`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [household_groups.schema.json](guests/household_groups.schema.json) |
+| `guest_imports` | `id`, `eventId`, `channel`, `householdCount`, `guestCount`, `undoneAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [guest_imports.schema.json](guests/guest_imports.schema.json) |
+| `households` | `id`, `eventId`, `displayName`, `sideKind`, `sideClientId`, `groupId`, `language`, `respondentGuestId`, `keyMomentIds`, `needsAccommodation`, `needsTransport`, `answeredAt`, `invitedAt`, `importId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [households.schema.json](guests/households.schema.json) |
+| `guests` | `id`, `eventId`, `householdId`, `kind`, `firstName`, `lastName`, `email`, `phone`, `ageRange`, `position`, `opposedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [guests.schema.json](guests/guests.schema.json) |
+| `rsvp_answers` | `id`, `guestId`, `keyMomentId`, `attending`, `channel`, `answeredAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [rsvp_answers.schema.json](guests/rsvp_answers.schema.json) |
+| `diet_consents` | `id`, `eventId`, `guestId`, `givenByGuestId`, `textVersion`, `channel`, `legalGuardian`, `grantedAt`, `withdrawnAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [diet_consents.schema.json](guests/diet_consents.schema.json) |
+| `purge_postponements` | `id`, `eventId`, `reason`, `postponedUntil`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [purge_postponements.schema.json](guests/purge_postponements.schema.json) |
+
+Tables non exportées :
+
+- `diets` — régimes et allergies des invités, chiffrés au niveau du champ (données de santé, article 9) : ils restent dans Symbola, réservés à la titulaire, et sont purgés sept jours après l'évènement
+- `guest_links` — empreintes des jetons des liens personnels des invités : sans usage hors de Symbola
 
 ## Module `appointments`
 

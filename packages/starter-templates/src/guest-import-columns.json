@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "_source": "Lot 49 (INV-02 ; D12) : intitulés reconnus des colonnes d'une liste d'invités (CSV, XLSX), comparés sans accents, casse ni espaces. Une colonne de régime ou d'allergie est ignorée et signalée : seul l'invité donne son régime, avec son accord (réponse 3 de la DPO). Liste à part de import-synonyms.json : ses intitulés courts (« prénom », « nom ») y désignent les clients d'un évènement.",
+  "columns": {
+    "household": { "fr": ["foyer", "famille", "invitation", "nom du foyer", "groupe familial"], "en": ["household", "family", "party", "invitation"] },
+    "firstName": { "fr": ["prénom", "prenom", "prénom invité"], "en": ["first name", "firstname", "given name"] },
+    "lastName": { "fr": ["nom", "nom de famille", "nom invité"], "en": ["last name", "lastname", "surname", "family name"] },
+    "email": { "fr": ["e-mail", "email", "courriel", "adresse e-mail", "mail"], "en": ["email", "e-mail", "email address", "mail"] },
+    "phone": { "fr": ["téléphone", "telephone", "portable", "mobile", "tél", "tel"], "en": ["phone", "mobile", "phone number", "cell"] },
+    "kind": { "fr": ["adulte ou enfant", "type", "catégorie", "enfant"], "en": ["adult or child", "type", "category", "child"] },
+    "ageRange": { "fr": ["tranche d'âge", "âge", "age"], "en": ["age range", "age"] },
+    "side": { "fr": ["côté", "cote"], "en": ["side"] },
+    "group": { "fr": ["groupe", "cercle"], "en": ["group", "circle"] },
+    "language": { "fr": ["langue"], "en": ["language"] }
+  },
+  "ignored": {
+    "diet": { "fr": ["régime", "regime", "régime alimentaire", "allergie", "allergies", "intolérance"], "en": ["diet", "dietary", "dietary requirements", "allergy", "allergies", "intolerance"] }
+  },
+  "values": {
+    "child": { "fr": ["enfant", "e", "oui"], "en": ["child", "kid", "yes"] },
+    "both": { "fr": ["les deux", "commun", "deux"], "en": ["both", "shared"] },
+    "en": { "fr": ["anglais", "en"], "en": ["english", "en"] }
+  }
+}

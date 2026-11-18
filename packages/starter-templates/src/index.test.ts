@@ -3,6 +3,10 @@ import retroplanningFile from "./retroplanning.json";
 import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
 import {
+  starterDietaryOptions,
+  starterDietConsent,
+  starterGuestPrivacyNotice,
+  starterGuestRules,
   BUDGET_LINE_ICONS,
   MENTION_FIELDS,
   ONBOARDING_CHECKLIST_KEYS,
@@ -211,7 +215,34 @@ describe("RGPD-04/05 — Réglages RGPD de départ", () => {
       signedQuoteRetentionMonths: 120,
       // RGPD-09 : preuve d'une demande close gardée 5 ans (décision de Julien du 09/11/2026).
       requestProofRetentionMonths: 60,
+      // Lot 49 (RGP-08, D9 ; réponses 2 et 3 de la DPO) : invités, en jours après l'évènement.
+      guestRetentionDays: 30,
+      guestDietRetentionDays: 7,
+      guestPurgeMaxPostponeDays: 90,
     });
+  });
+});
+
+describe("Lot 49 — Données de départ du module Invités", () => {
+  it("INV-07, D6 : quatorze allergènes INCO, des régimes courants, aucun régime religieux, en français et en anglais", () => {
+    const fr = starterDietaryOptions("fr");
+    const en = starterDietaryOptions("en");
+    expect(fr.filter((option) => option.kind === "allergen")).toHaveLength(14);
+    expect(en.map((option) => option.key)).toEqual(fr.map((option) => option.key));
+    expect(fr.map((option) => option.label.toLowerCase()).join(" ")).not.toMatch(/halal|casher|kasher|porc/);
+  });
+
+  it("D8 à D13 : clôture 30 jours avant, relances J-21 et J-7, préavis 7 jours, seuil « moins de 3 »", () => {
+    expect(starterGuestRules()).toMatchObject({ closingDaysBeforeFirstMoment: 30, reminderDaysBeforeClosing: [21, 7], maxReminders: 3, purgeNoticeDays: 7, aggregateThreshold: 3 });
+  });
+
+  it("RGP-03, RGP-06 : mention d'information et accord versionné, dans les deux langues", () => {
+    for (const locale of ["fr", "en"] as const) {
+      expect(starterGuestPrivacyNotice(locale)).toContain("{organization}");
+      const consent = starterDietConsent(locale);
+      expect(consent.version).toMatch(/^\d{4}-\d{2}-\d{2}/);
+      expect(consent.guardian).toContain("{name}");
+    }
   });
 });
 

@@ -7,5 +7,9 @@
   "accountingRetentionMonths": 120,
   "inactiveAccountMonths": 24,
   "signedQuoteRetentionMonths": 120,
-  "requestProofRetentionMonths": 60
+  "requestProofRetentionMonths": 60,
+  "_guests": "Lot 49 (RGP-08, D9 ; réponses 2 et 3 de la DPO) : données d'invités purgées après le dernier jour de l'évènement (ou son annulation) : régimes et allergies à 7 jours, le reste à 30 jours ; préavis de 7 jours ; un seul report, de 90 jours au plus. Une durée réglée ne dépasse jamais la valeur de départ plus un report.",
+  "guestRetentionDays": 30,
+  "guestDietRetentionDays": 7,
+  "guestPurgeMaxPostponeDays": 90
 }

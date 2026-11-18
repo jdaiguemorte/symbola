@@ -9,7 +9,7 @@ du mariage. Le devis de l'étape 3 est rejoué au lot 31a (`SC-02.md`).
 ## Lot 46 — 18/11/2026
 
 - En local, par Claude Code : app de développement (`next dev`, port 3046), base dédiée
-  `symbola_lot46` (migrations jusqu'à 0151), Mailpit. Chromium du panneau de navigation de
+  `symbola_lot46` (migrations jusqu'à 0151, numérotées depuis 0156 à 0158), Mailpit. Chromium du panneau de navigation de
   Claude Code : Camille sur ordinateur, Léa en 375 px, sans session (cookie retiré).
 - Personnes fictives équivalentes à SU-01 et SU-05 : l'organisation « Atelier Camille » (fiche
   entreprise remplie) et sa titulaire, créées par la fabrique de test ; Léa Martin réserve avec

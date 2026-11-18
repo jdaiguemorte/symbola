@@ -1,5 +1,5 @@
--- Annulation de 0151 (lot 46) : le schéma appointments perd ses politiques, ses déclencheurs et les
--- droits du rôle applicatif ; ses tables restent (0150 les retire).
+-- Annulation de 0157 (lot 46) : le schéma appointments perd ses politiques, ses déclencheurs et les
+-- droits du rôle applicatif ; ses tables restent (0156 les retire).
 DROP TRIGGER IF EXISTS "booking_pages_stamp" ON "appointments"."booking_pages";
 --> statement-breakpoint
 DROP TRIGGER IF EXISTS "booking_pages_journal_deletion" ON "appointments"."booking_pages";

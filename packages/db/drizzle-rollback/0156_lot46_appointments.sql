@@ -1,4 +1,4 @@
--- Annulation de 0150 (lot 46) : le module Rendez-vous disparaît avec son schéma. Refusée tant qu'un
+-- Annulation de 0156 (lot 46) : le module Rendez-vous disparaît avec son schéma. Refusée tant qu'un
 -- rendez-vous réel (hors essai) existe : il serait perdu sans trace pour la planner ni pour la personne.
 DO $$
 BEGIN

@@ -73,6 +73,9 @@ async function startScheduledTasks() {
     // Lot 40b (ARC-10, ADR 0076) : e-mails repris quand le serveur d'envoi n'a pas répondu.
     const { scheduleJobs } = await import("./lib/jobs");
     scheduleJobs();
+    // Lot 49 (INV-04, RGP-08 ; ADR 0083) : purge des invités avec préavis, puis relances.
+    const { scheduleGuestTasks } = await import("./lib/guest-tasks");
+    scheduleGuestTasks();
   }
 }
 

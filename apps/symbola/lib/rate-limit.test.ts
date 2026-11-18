@@ -28,7 +28,7 @@ describe("L16-SEC-02 — Limitation de débit : règles et adresse du client", (
   });
 
   it("demande de lien de connexion, recherche, envoi de fichier, liens personnels et invitations ont chacun leurs limites", () => {
-    expect(Object.keys(RATE_LIMITS).sort()).toEqual(["appointmentBooking", "appointmentManage", "calendarFeed", "errorReport", "linkCode", "linkOpen", "linkRenewal", "login", "organizationExport", "search", "teamInvite", "upload"]);
+    expect(Object.keys(RATE_LIMITS).sort()).toEqual(["appointmentBooking", "appointmentManage", "calendarFeed", "errorReport", "linkCode", "linkOpen", "linkRenewal", "login", "organizationExport", "rsvpAnswer", "rsvpOpen", "search", "teamInvite", "upload"]);
     // Lot 46 (RDV-02, D5) : chaque réservation envoie des e-mails ; cinq par heure et par adresse e-mail.
     expect(RATE_LIMITS.appointmentBooking).toEqual({ ip: { limit: 10, windowMs: 60 * 60 * 1000 }, account: { limit: 5, windowMs: 60 * 60 * 1000 } });
     // Lot 33b (HUB-03) : chaque invitation envoie un e-mail, dix par heure et par organisation.

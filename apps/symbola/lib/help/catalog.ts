@@ -4,8 +4,9 @@
 // élément dont le module n'est pas souscrit n'est pas proposé (CLAUDE.md §2.3).
 import type { TourKey } from "./tours";
 
-// Lot 46 : appointments, le module Rendez-vous.
-export type HelpModule = "events" | "quotes" | "budget" | "vendors" | "hub" | "appointments";
+// Lot 49 : « guests », le module Invités (ses écrans demandent aussi le module Évènements).
+// Lot 46 : « appointments », le module Rendez-vous.
+export type HelpModule = "events" | "quotes" | "budget" | "vendors" | "hub" | "guests" | "appointments";
 
 export type TutorialKey =
   | "event-page"

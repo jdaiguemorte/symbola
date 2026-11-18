@@ -240,3 +240,47 @@ lu toutes les quinze minutes par son adresse secrète.
 > Aucune donnée réelle avant votre relecture de DPO-3.
 
 Besoin : une réponse **avant d'ouvrir le module Rendez-vous à la pilote**.
+
+## Question du 18 novembre 2026 (lot 49)
+
+### 14. Module Invités : six points avant l'ouverture à la pilote
+
+Le module Invités applique vos réponses 2 à 5 (13 novembre) : intérêt légitime et information au
+premier contact, accord de l'invité lui-même pour les régimes (preuve gardée : horodatage, version
+du texte, canal), aucun lien ni contact pour un enfant, purge des régimes 7 jours après
+l'évènement et du reste 30 jours après, avec préavis et un seul report de 90 jours au plus. Le
+module reste fermé chez la pilote tant que l'analyse d'impact n'est pas faite. Six points
+restent ouverts ; Symbola n'en tranche aucun et applique d'ici là le réglage le plus prudent.
+
+- **DPO-1 — Régimes à caractère religieux.** Halal, casher, sans porc… révèlent une conviction
+  religieuse (autre catégorie de l'article 9). Ils sont **absents de la liste de départ** ; la
+  planner peut en ajouter un, sous sa responsabilité, après un avertissement à l'écran. Faut-il
+  les proposer, et à quelle condition (texte d'accord distinct, information renforcée) ?
+- **DPO-2 — Accompagnant adulte sans moyen de contact.** Un adulte sans e-mail ni téléphone n'a
+  pas de lien personnel : son régime reste vide. Le répondant du foyer peut-il le donner pour lui,
+  avec une déclaration (« il m'a demandé de répondre pour lui ») ? Sinon, la règle actuelle reste.
+- **DPO-3 — Opposition d'un invité.** Au clic sur « Je ne souhaite pas que mes données soient
+  conservées », ses coordonnées et ses régimes sont effacés aussitôt et il ne reçoit plus rien ;
+  sa **présence déjà donnée reste, sous son seul nom**, jusqu'à la purge (le plan de table et le
+  traiteur en dépendent). Faut-il effacer aussi cette présence ?
+- **DPO-4 — Textes de départ.** La mention d'information de la page de réponse (en tête et en
+  pied, au nom de la planner et des mariés : qui traite, pourquoi, combien de temps, droits,
+  opposition), le passage d'information de l'e-mail d'invitation, et le texte de l'accord aux
+  régimes (version « 2026-11-18 », gardée avec chaque preuve) sont dans
+  `packages/starter-templates/src/guest-texts.json` et `email-templates.json`. Pouvez-vous les
+  relire ? La planner peut remplacer la mention (réglages RGPD) ; le texte de l'accord ne change
+  qu'avec une nouvelle version.
+- **DPO-5 — Seuil d'agrégation.** Hors titulaire, les régimes s'affichent en nombres par temps
+  fort ; un régime porté par une ou deux personnes s'affiche « moins de 3 ». Ce seuil suffit-il,
+  y compris pour le client au portail et pour un petit évènement ?
+- **DPO-6 — Exports stockés à la purge.** À la purge du reste (J+30), Symbola supprime les archives
+  de l'export complet de l'organisation qui comptent des foyers d'invités, et les exports RGPD
+  encore gardés, préparés depuis l'ajout du premier foyer ; la titulaire en est prévenue par
+  e-mail. Un fichier déjà téléchargé reste sous sa responsabilité (l'écran le rappelle). Est-ce la
+  bonne lecture de « la purge efface aussi les exports stockés » ?
+
+> **Symbola** : DPO-1 et DPO-4 sont à trancher **avant d'ouvrir le module à la pilote**, avec
+> l'analyse d'impact « socle » que Julien prépare avec vous. Les autres peuvent suivre.
+
+Besoin : une réponse à DPO-1 et DPO-4 avant l'ouverture du module ; aux autres, avant le
+lot 50 (plan de table et synthèse pour le traiteur).

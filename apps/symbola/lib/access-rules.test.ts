@@ -40,6 +40,9 @@ const SHARED_ACCESS: Record<string, string> = {
   receiveUpload: "lib/uploads/receive.ts",
   importStepContext: "app/import/step-context.ts",
   vendorSettingsAccess: "app/prestataires/parametres/guard.ts",
+  // Lot 49 : module Invités, côté équipe (session, modules) et au portail (lien, rubrique, modules).
+  guestsAccess: "app/events/[id]/invites/access.ts",
+  portalGuestsAccess: "app/portail/invites/access.ts",
   // Lot 46 : la planner connectée, et le module Rendez-vous ouvert.
   appointmentsPlanner: "app/rendez-vous/access.ts",
 };
@@ -82,6 +85,11 @@ const PUBLIC_ENTRIES: Record<string, string> = {
   // Lot 37a (DOC-04, D7 ; ADR 0070) : lien de partage d'un document, pour une personne sans lien personnel.
   "partage/page.tsx#default": "arrivée d'un lien de partage : le jeton reste dans le navigateur, la page n'affiche rien d'autre",
   "partage/actions.ts#describeShareLinkAction": "jeton du lien de partage, vérifié haché sous RLS, limité en débit ; l'intitulé seul, même réponse pour un lien inconnu, expiré ou révoqué",
+  // Lot 49 (INV-03, SEC-14 à SEC-17 ; ADR 0053, 0081) : page de réponse d'un invité, sans compte.
+  "rsvp/page.tsx#default": "arrivée d'un lien d'invité : le jeton reste dans le navigateur, la page n'affiche rien avant l'échange",
+  "rsvp/actions.ts#openRsvpAction": "jeton du lien de l'invité, vérifié haché sous RLS, module ouvert, limité en débit ; « lien inconnu » sinon",
+  "rsvp/actions.ts#answerRsvpAction": "jeton du lien de l'invité, relu à chaque envoi ; seuls son foyer et ses droits (répondant, régimes avec accord), limité en débit",
+  "rsvp/actions.ts#opposeRsvpAction": "jeton du lien de l'invité : efface ses propres coordonnées et régimes, limité en débit",
   "partage/fichier/route.ts#POST": "jeton du lien de partage en POST du même site, vérifié haché sous RLS, limité en débit ; son document seul, l'ouverture journalisée",
   // Lot 46 (RDV-02, RDV-03 ; D5, D11 ; ADR 0082) : page publique de réservation et lien de gestion d'un rendez-vous.
   "reserver/[adresse]/page.tsx#default": "page publique de réservation : adresse lisible choisie par la planner, page active et module ouvert, sinon introuvable ; créneaux libres seulement, aucune donnée personnelle",

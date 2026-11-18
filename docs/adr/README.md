@@ -82,3 +82,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0078 — Le temps de réponse mesuré et l'accessibilité contrôlée à chaque version](0078-mesures-et-accessibilite.md)
 - [0079 — Socle des modules Rendez-vous et Invités : modules fermés par défaut, chiffrement au niveau du champ, jeton de lien commun](0079-socle-des-modules-rendez-vous-et-invites.md)
 - [0082 — Module Rendez-vous : page publique sur les disponibilités réelles, agendas connectés par adresse ICS (ical.js), lien de gestion sans compte](0082-module-rendez-vous-et-agendas-connectes.md)
+- [0083 — Module Invités : RSVP par lien sans session, régimes avec accord et chiffrés, purge automatique](0083-module-invites-donnees-sensibles-et-purge.md)

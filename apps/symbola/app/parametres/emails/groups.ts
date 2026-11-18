@@ -12,7 +12,7 @@ export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "
   { key: "reminders", module: "events", kinds: ["task_reminder"] },
   { key: "program", module: "events", kinds: ["program_published"] },
   { key: "signatures", module: "quotes", kinds: ["quote_signature", "contract_signature", "order_first", "signed_copy"] },
-  // Lot 46 (RDV-03, D10 ; migration 0152) : e-mails d'un rendez-vous, côté personne qui l'a pris.
+  // Lot 46 (RDV-03, D10 ; migration 0158) : e-mails d'un rendez-vous, côté personne qui l'a pris.
   { key: "appointments", module: "appointments", kinds: ["appointment_confirmed", "appointment_reminder", "appointment_rescheduled", "appointment_cancelled"] },
 ];
 

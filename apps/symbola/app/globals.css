@@ -59,6 +59,9 @@
   --text-body-strong: 15px;
   --text-body-strong--line-height: 1.5;
   --text-body-strong--font-weight: 600;
+  --text-reading: 18px;
+  --text-reading--line-height: 1.55;
+  --text-reading--font-weight: 400;
   --text-label: 13px;
   --text-label--line-height: 1.35;
   --text-label--font-weight: 500;
@@ -3593,6 +3596,67 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@layer components {
+  /* Lot 49 (INV-03, NFR-17, UX-14 ; SU-10, SU-11) — la page de réponse des invités : une seule
+     colonne, corps de 18 px au moins, cibles de 44 px, un titre par question, sans animation. */
+  .rsvp {
+    @apply w-full max-w-xl rounded-lg border border-line bg-surface p-4 text-reading sm:p-8;
+  }
+  .rsvp h1 {
+    @apply text-title;
+  }
+  .rsvp h2 {
+    @apply mt-6 text-heading;
+  }
+  .rsvp fieldset {
+    @apply mt-3 flex flex-col gap-2 rounded-md border border-line p-3;
+  }
+  .rsvp legend {
+    @apply px-1 text-reading font-semibold;
+  }
+  .rsvp label,
+  .rsvp p,
+  .rsvp li,
+  .rsvp h3,
+  .rsvp h3 .muted {
+    @apply text-reading;
+  }
+  .rsvp h3 {
+    @apply mt-4 font-semibold;
+  }
+  .rsvp .rsvp-choice {
+    @apply flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-line-strong px-3;
+  }
+  .rsvp .rsvp-choice input {
+    @apply h-6 w-6 shrink-0;
+  }
+  .rsvp .rsvp-choices {
+    @apply grid grid-cols-2 gap-2;
+  }
+  .rsvp button {
+    @apply min-h-11 text-reading;
+  }
+  .rsvp .rsvp-notice {
+    @apply text-ink-muted;
+  }
+  .rsvp input:disabled + span {
+    @apply text-ink-muted;
+  }
+  /* Lot 49 — l'onglet Invités de la fiche et la rubrique du portail. */
+  .guest-household {
+    @apply flex flex-col gap-2 rounded-md border border-line p-3;
+  }
+  .guest-people {
+    @apply flex flex-col gap-1;
+  }
+  .guest-qr {
+    @apply h-48 w-48 rounded-md border border-line bg-surface p-2;
+  }
+  .guest-tally {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-3;
   }
 }
 

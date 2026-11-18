@@ -214,7 +214,7 @@ describe("RDV-03 — Confirmation, rappels, report et annulation par lien", () =
     expect(mail!.Attachments.map((attachment) => attachment.FileName)).toContain("invitation.ics");
   });
 
-  it("un modèle de confirmation réécrit par l'organisation (migration 0152) s'enregistre et sert à la confirmation", async () => {
+  it("un modèle de confirmation réécrit par l'organisation (migration 0158) s'enregistre et sert à la confirmation", async () => {
     const context = await organization();
     await saveEmailTemplate({ organizationId: context.organizationId, kind: "appointment_confirmed", locale: "fr", subject: "C'est réservé : {{rendez_vous}}", body: "Bonjour {{prénom}},\n\nÀ très vite le {{date_rendez_vous}}.\n\n{{lien}}" });
     const who = person();

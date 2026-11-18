@@ -1,9 +1,10 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import { ScreenHelp } from "@/app/screen-help";
-import { getLinkPrivacyNotice, getPrivacySettings, linkPrivacyNoticeTemplate, type PrivacySettings } from "@/modules/hub/service";
+import { getLinkPrivacyNotice, getPrivacySettings, isModuleEnabled, linkPrivacyNoticeTemplate, type PrivacySettings } from "@/modules/hub/service";
+import { getGuestPrivacyNotice, guestPrivacyNoticeTemplate } from "@/modules/guests/service";
 import { requireOwner } from "@/lib/guards";
-import { LinkNoticeForm, PrivacySettingsForm } from "./settings-form";
+import { GuestNoticeForm, LinkNoticeForm, PrivacySettingsForm } from "./settings-form";
 import { PrivacyTabs } from "../privacy-tabs";
 
 // RGPD-04/05 — réglages RGPD de l'organisation : seuil d'alerte des demandes
@@ -25,6 +26,9 @@ export default async function PrivacySettingsPage() {
   const settings: PrivacySettings = await getPrivacySettings(db, auth.user.organizationId);
   const notice = await getLinkPrivacyNotice(db, auth.user.organizationId);
   const locale = (await getLocale()) === "en" ? "en" : "fr";
+  // Lot 49 (RGP-03, RGP-08) : réglages des invités, si le module est ouvert (ARC-06).
+  const guestsEnabled = (await isModuleEnabled(db, auth.user.organizationId, "guests")) && (await isModuleEnabled(db, auth.user.organizationId, "events"));
+  const guestNotice = guestsEnabled ? await getGuestPrivacyNotice(auth.user.organizationId) : null;
   return (
     <main>
       <h1>{t("settingsTitle")}</h1>
@@ -32,9 +36,10 @@ export default async function PrivacySettingsPage() {
       {/* Lot 18 (RGPD-07, décision A) : onglets de Données personnelles. */}
       <PrivacyTabs />
       <p>{t("settingsIntro")}</p>
-      <PrivacySettingsForm settings={settings} />
+      <PrivacySettingsForm settings={settings} guestsEnabled={guestsEnabled} />
       {/* Lot 26a (RGP-03) : mention d'information des pages à lien personnel. */}
       <LinkNoticeForm text={notice ?? linkPrivacyNoticeTemplate(locale)} custom={notice !== null} />
+      {guestsEnabled ? <GuestNoticeForm text={guestNotice ?? guestPrivacyNoticeTemplate(locale)} custom={guestNotice !== null} /> : null}
     </main>
   );
 }

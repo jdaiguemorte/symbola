@@ -43,6 +43,9 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "eventsSources", group: "events", audience: "team", module: "events", path: "/events/parametres/sources", capture: true },
   { key: "eventTypes", group: "events", audience: "team", module: "events", path: "/events/parametres/types", capture: true },
   { key: "followUps", group: "events", audience: "team", module: "events", path: "/parametres/relances", capture: true },
+  // Lot 49 (INV-01 à INV-04, INV-07) : onglet Invités de la fiche, liste des régimes et allergies.
+  { key: "guests", group: "events", audience: "team", module: "guests", path: null, capture: false },
+  { key: "dietaryOptions", group: "events", audience: "team", module: "guests", path: "/events/parametres/regimes", capture: false },
   // Lot 46 (RDV-01 à RDV-04, EVT-10) : rendez-vous.
   { key: "appointmentsList", group: "appointments", audience: "team", module: "appointments", path: "/rendez-vous", capture: false },
   { key: "appointmentDetail", group: "appointments", audience: "team", module: "appointments", path: null, capture: false },

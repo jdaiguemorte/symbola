@@ -128,6 +128,12 @@ import { countdownLabel, EventCockpit } from "./cockpit";
 import { UndoTaskNotice } from "@/app/accueil/today-client";
 import { deleteEventAction } from "./trash-actions";
 import { SidePanel } from "@/app/ui/side-panel";
+// Lot 49 (EVT-04 premier pas, INV-01 à INV-04) : temps forts sur la synthèse, onglet « Invités ».
+import { listKeyMoments } from "@/modules/events/service";
+import { getGuestEventSummary, getGuestModuleState } from "@/modules/guests/service";
+import { AddKeyMomentForm, EditKeyMomentForm } from "./key-moments";
+import { guestsAccess } from "./invites/access";
+import { GuestsTab } from "./invites/guests-tab";
 
 // Lot 26a (SEC-15) : état d'un lien personnel.
 const LINK_STATUS_KEYS = {
@@ -139,10 +145,11 @@ const LINK_STATUS_KEYS = {
 // Onglets de la fiche (maquette validée) : un écran par sujet plutôt
 // qu'une longue page ; l'onglet actif est dans l'adresse (?onglet=).
 // Lot 29b (JRJ-04) : onglet « Documents » (plan de table, plans, plan B).
-const TABS = ["apercu", "budget", "retroplanning", "programme", "devis", "maries", "documents"] as const;
+// Lot 49 (INV-01 à INV-04) : onglet « Invités », si le module est ouvert (ARC-06).
+const TABS = ["apercu", "budget", "retroplanning", "programme", "devis", "maries", "documents", "invites"] as const;
 type Tab = (typeof TABS)[number];
 
-type SearchParams = { suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string };
+type SearchParams = { cote?: string; groupe?: string; sansReponse?: string; suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string };
 
 // Lot 28a (PRE-02) : postes pourvus (un prestataire retenu) ou non requis.
 const SETTLED_SLOT_STATUSES = new Set<string>(["retained", "contract_signed", "paid_off", "not_required"]);
@@ -249,7 +256,9 @@ export default async function EventDetailPage({
   };
   // Lot 12 (L12-EVT-17) : l'ancien onglet « prestataires » est devenu « budget ».
   const asked = query.onglet === "prestataires" ? "budget" : query.onglet;
-  const tab: Tab = TABS.includes(asked as Tab) && (asked !== "devis" || quotesAvailable) ? (asked as Tab) : "apercu";
+  // Lot 49 : le module Invités (et l'analyse d'impact) ; sans lui, pas d'onglet ni de chiffre.
+  const guests = await guestsAccess();
+  const tab: Tab = TABS.includes(asked as Tab) && (asked !== "devis" || quotesAvailable) && (asked !== "invites" || guests !== null) ? (asked as Tab) : "apercu";
   const tabHref = (key: Tab, extra: Record<string, string> = {}) =>
     `/events/${event.id}?${new URLSearchParams({ onglet: key, ...extra }).toString()}`;
   const overdueCount = tasks.filter((task) => !task.done && task.dueDate < today).length;
@@ -257,6 +266,8 @@ export default async function EventDetailPage({
   const slotIconOf = new Map(vendorSlots.map((slot) => [slot.id, slot.icon]));
   // Lot 34b (EVT-03) : les lieux nourrissent aussi la fiche d'identité de la synthèse.
   const places = tab === "programme" || tab === "apercu" ? await listEventPlaces(organizationId, id) : [];
+  const keyMoments = tab === "apercu" ? await listKeyMoments(organizationId, id) : [];
+  const guestSummary = tab === "apercu" && guests && (await getGuestModuleState(organizationId)).impactAssessmentConfirmedAt ? await getGuestEventSummary(organizationId, id) : null;
   // Lot 30a (JRJ-03, D4) : contacts du jour J, dans l'annuaire de l'écran du jour J.
   const dayContacts = tab === "programme" ? await listEventDayContacts(organizationId, id) : [];
   const tDayContacts = await getTranslations("DayContacts");
@@ -432,6 +443,7 @@ export default async function EventDetailPage({
     ...(quotesAvailable ? [{ key: "devis" as const, label: tQuotes("eventQuotesTitle"), href: tabHref("devis"), count: String(quotes.length) }] : []),
     { key: "maries", label: t("tabClients"), href: tabHref("maries") },
     { key: "documents", label: t("tabDocuments"), href: tabHref("documents"), count: String(eventDocuments.length) },
+    ...(guests ? [{ key: "invites" as const, label: t("tabGuests"), href: tabHref("invites") }] : []),
   ];
 
   // Lot 32a (UX-01, D5) : sur la synthèse, la prochaine action vient d'abord ; le bandeau de la
@@ -658,7 +670,8 @@ export default async function EventDetailPage({
             </div>
             <dl className="identity-facts">
               <dt>{t("guestsLabel")}</dt>
-              <dd>{t("guestsSummary", { estimated: event.guestsEstimated === null ? "—" : String(event.guestsEstimated), confirmed: event.guestsConfirmed === null ? "—" : String(event.guestsConfirmed) })}</dd>
+              {/* Lot 49 (EVT-03) : avec le module Invités, le nombre confirmé vient des réponses. */}
+              <dd>{t("guestsSummary", { estimated: event.guestsEstimated === null ? "—" : String(event.guestsEstimated), confirmed: guestSummary ? String(guestSummary.confirmed) : event.guestsConfirmed === null ? "—" : String(event.guestsConfirmed) })}</dd>
               <dt>{t("placesTitle")}</dt>
               <dd>
                 {places.length === 0 ? t("noPlaces") : places.map((place) => (place.startTime ? `${place.label} (${place.startTime})` : place.label)).join(" · ")}{" "}
@@ -676,6 +689,21 @@ export default async function EventDetailPage({
               <dt>{t("eventNotes")}</dt>
               <dd className="task-comment-body">{event.notes ?? "—"}</dd>
             </dl>
+          </section>
+          {/* Lot 49 (EVT-04 premier pas, D2) : temps forts de l'évènement ; le RSVP les reprend. */}
+          <section className="card stack" aria-labelledby="key-moments-title">
+            <h2 id="key-moments-title">{t("keyMomentsTitle")}</h2>
+            <p className="muted">{t("keyMomentsHelp")}</p>
+            {keyMoments.length === 0 ? <p>{t("keyMomentsEmpty")}</p> : null}
+            <ul className="plain-list stack">
+              {keyMoments.map((moment) => (
+                <li key={moment.id}>
+                  <strong>{moment.name}</strong> — {[formatCalendarDate(moment.date, locale), moment.startTime, moment.placeLabel].filter(Boolean).join(" · ")}
+                  <EditKeyMomentForm eventId={event.id} moment={moment} places={places} />
+                </li>
+              ))}
+            </ul>
+            <AddKeyMomentForm eventId={event.id} places={places} defaultDate={event.eventDate} />
           </section>
           {/* D5 : les formulaires de l'ancien aperçu, dans le panneau. */}
           {query.modifier === "infos" ? (
@@ -1389,6 +1417,7 @@ export default async function EventDetailPage({
                           }}
                           clients={linkClients}
                           slots={linkSlots}
+                          guestsRubric={guests !== null}
                         />
                       </details>
                       <details>
@@ -1489,6 +1518,18 @@ export default async function EventDetailPage({
       {/* Lot 29b (JRJ-04, D8) ; lot 37a (DOC-01, DOC-04, POR-10) : l'espace documents de l'évènement. */}
       {tab === "documents" ? (
         <DocumentsTab eventId={event.id} organizationId={organizationId} locale={locale} documents={eventDocuments} embeddedDocumentIds={embeddedDocumentIds} dayOfOpen={isDayOfOpen(event)} />
+      ) : null}
+
+      {/* Lot 49 (INV-01 à INV-04, INV-07, RGP-06 à RGP-08) : l'onglet « Invités ». */}
+      {tab === "invites" && guests ? (
+        <GuestsTab
+          access={guests}
+          eventId={event.id}
+          clients={event.clients.map((client) => ({ id: client.id, name: [client.firstName, client.lastName].filter(Boolean).join(" ") }))}
+          locale={locale}
+          query={{ cote: query.cote, groupe: query.groupe, sansReponse: query.sansReponse }}
+          hrefFor={(extra) => (extra.onglet === "apercu" ? tabHref("apercu") : tabHref("invites", extra))}
+        />
       ) : null}
 
       {/* Lot 39a (HUB-17, D4 ; ADR 0073) : supprimer l'évènement le met à la corbeille avec tout son contenu ; refusé s'il porte une pièce à conserver. */}

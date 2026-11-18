@@ -498,6 +498,11 @@ const privacySettingsSchema = z.object({
   // personne), gardée 5 ans après la clôture puis anonymisée par la purge
   // (prescription civile, décision de Julien du 09/11/2026, à valider par un juriste).
   requestProofRetentionMonths: z.number().int().positive(),
+  // Lot 49 (RGP-08, D9) : purge des données d'invités, en jours après le dernier jour de
+  // l'évènement (réponses 2 et 3 de la DPO).
+  guestRetentionDays: z.number().int().positive(),
+  guestDietRetentionDays: z.number().int().positive(),
+  guestPurgeMaxPostponeDays: z.number().int().positive(),
 });
 
 export type StarterPrivacySettings = Omit<z.infer<typeof privacySettingsSchema>, "version">;
@@ -512,6 +517,9 @@ export function starterPrivacySettings(): StarterPrivacySettings {
     inactiveAccountMonths: parsed.inactiveAccountMonths,
     signedQuoteRetentionMonths: parsed.signedQuoteRetentionMonths,
     requestProofRetentionMonths: parsed.requestProofRetentionMonths,
+    guestRetentionDays: parsed.guestRetentionDays,
+    guestDietRetentionDays: parsed.guestDietRetentionDays,
+    guestPurgeMaxPostponeDays: parsed.guestPurgeMaxPostponeDays,
   };
 }
 
@@ -1190,6 +1198,9 @@ export function starterMessageTemplates(locale: StarterLocale): StarterMessageTe
   return messageTemplates[locale].map((template) => ({ ...template }));
 }
 
+// Lot 49 (module Invités) : liste des régimes, règles, textes de la page de réponse, colonnes
+// d'import (guests.ts).
+export * from "./guests";
 
 // Lot 46 (RDV-01, HUB-20 ; D6, D10 ; ADR 0082) — module Rendez-vous : trois types de départ, plages
 // hebdomadaires par défaut, réglages par défaut d'un type créé avec son seul nom et sa durée, et

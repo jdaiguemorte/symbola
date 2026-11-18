@@ -19,7 +19,8 @@ afterAll(async () => {
   await sql.end();
 });
 
-const SCHEMAS = ["core", "hub", "events", "budget", "quotes", "vendors"];
+// Lot 49 : « guests », le module Invités.
+const SCHEMAS = ["core", "hub", "events", "budget", "quotes", "vendors", "guests"];
 
 async function tables(): Promise<Map<string, Set<string>>> {
   const rows = await sql<{ name: string; column: string }[]>`

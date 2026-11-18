@@ -3090,3 +3090,7 @@ export async function getEventIdentityState(
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventId)) return null;
   return findEventIdentityState(organizationId, eventId);
 }
+
+// Lot 49 (EVT-04 premier pas, INV-03 ; D2) — temps forts de l'évènement, et ce que le module Invités
+// lit d'un évènement (clients, dates, statut, temps forts), par cette porte d'entrée (ADR 0011).
+export { addKeyMoment, guestEventContexts, KEY_MOMENTS_MAX, KeyMomentInvalidError, KeyMomentNotFoundError, listKeyMoments, listRealEventIds, removeKeyMoment, updateKeyMoment } from "./key-moments";

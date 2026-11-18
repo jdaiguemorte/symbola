@@ -30,8 +30,8 @@ critère est « aucun créneau proposé sur une plage occupée » (RDV-02), un r
    clé `appointments`, fermé par défaut (ADR 0079). Neuf tables, chacune avec `organization_id` et
    RLS forcée ; auteur et dates (DAT-06) ; suppression logique des types et des rendez-vous
    (ADR 0073). Les autres modules ne sont connus que par un identifiant opaque (compte qui reçoit,
-   contact, évènement, tâche), sans clé étrangère entre schémas. Migrations 0150 (création) et 0151
-   (droits, RLS, déclencheurs), annulables ; 0152 dans `hub`, voir « Conséquences », E-mails.
+   contact, évènement, tâche), sans clé étrangère entre schémas. Migrations 0156 (création) et 0157
+   (droits, RLS, déclencheurs), annulables ; 0158 dans `hub`, voir « Conséquences », E-mails.
 2. **Exception écrite à la RLS** : la page de réservation (`booking_pages`) a une politique de
    lecture ouverte (`public_lookup`) pour retrouver l'organisation d'une adresse publique ;
    l'écriture reste à la seule organisation. La table ne porte que l'adresse, son état et la
@@ -92,11 +92,11 @@ critère est « aucun créneau proposé sur une plage occupée » (RDV-02), un r
 - **E-mails** : les quatre natures d'e-mails de rendez-vous (confirmé, rappel, déplacé, annulé)
   ont leur texte de départ et se personnalisent dans Paramètres › Modèles d'e-mails (groupe
   « Rendez-vous »). **Exception écrite** à « une migration ne touche que le schéma de son module »
-  (DAT-09, ADR 0036), accordée par Julien le 18/11/2026 : la migration **0152** remplace la seule
-  contrainte `hub.email_templates_kind_check` par la liste élargie, rien d'autre dans `hub` ; une
-  nature inconnue reste refusée par la base ; l'annulation est refusée tant qu'un modèle de
-  rendez-vous personnalisé existe. Le lot 49 a le même accord pour ses natures : la seconde PR
-  fusionnée réunit les deux listes en renumérotant sa migration.
+  (DAT-09, ADR 0036), accordée par Julien le 18/11/2026 : la migration **0158** remplace la seule
+  contrainte `hub.email_templates_kind_check` par la réunion des natures laissées par le lot 49
+  (migration 0152 : invitations et relances des invités) et des quatre natures `appointment_*`, rien
+  d'autre dans `hub` ; une nature inconnue reste refusée par la base ; l'annulation est refusée tant
+  qu'un modèle de rendez-vous personnalisé existe, puis rend exactement la liste du lot 49.
 - **Fuseaux** : les disponibilités sont à l'heure de Paris (ARC-17) ; le fuseau de chaque
   participant relève de RDV-05 (P2).
 - **Hors périmètre** : synchronisation dans les deux sens et OAuth (V2), SMS (D10), intégration de

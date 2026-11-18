@@ -1,7 +1,7 @@
 // Schéma du module appointments (lot 46 : RDV-01 à RDV-04, EVT-10 ; décisions D1 à D11 ; ADR 0082).
 // Le module Rendez-vous : types, disponibilités, agendas extérieurs lus (plages occupées seulement),
 // rendez-vous, comptes rendus et leurs actions. Chaque table a organization_id (CLAUDE.md § 2.3),
-// protégé par Row-Level Security forcée (migration 0151). Les autres modules n'y sont connus que par
+// protégé par Row-Level Security forcée (migration 0157). Les autres modules n'y sont connus que par
 // un identifiant opaque : la personne qui reçoit (compte du hub), le contact (hub), l'évènement et la
 // tâche (events) ; aucune clé étrangère entre schémas (avenant de l'ADR 0012).
 import { sql } from "drizzle-orm";

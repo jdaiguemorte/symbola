@@ -28,6 +28,9 @@ export type TodayItemKind =
   | "vendor_contract"
   | "date_conflict"
   | "link_renewal"
+  // Lot 49 (RGP-08) : préavis de purge des invités, opposition d'un invité.
+  | "guest_purge"
+  | "guest_opposition"
   // Lot 46 (HUB-08) : rendez-vous du jour, rendez-vous pris, reportés ou annulés depuis la veille,
   // agenda extérieur en erreur.
   | "appointment"
