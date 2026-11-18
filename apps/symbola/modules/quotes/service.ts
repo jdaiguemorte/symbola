@@ -41,7 +41,6 @@ import type {
   CatalogItemInput,
   LineNature,
   SupplyMode,
-  PostalAddress as PostalAddressType,
   CreateQuoteInput,
   GlobalDiscountInput,
   MarkScheduleItemPaidInput,
