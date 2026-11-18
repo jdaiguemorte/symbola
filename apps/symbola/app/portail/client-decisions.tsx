@@ -3,11 +3,16 @@ import { formatAmount, formatCalendarDate, formatDateTime, type Locale } from "@
 import type { EventDecision } from "@/modules/events/service";
 import { choiceName, decisionLabel } from "./decision-label";
 import { DecisionAnswerForm } from "./decision-answer-form";
+import { OptionFeedbackForm } from "./option-feedback-form";
 
 // Lot 27b (POR-03, BUD-07, EVT-09) — « À décider » : les décisions en attente de
 // ses rubriques, et « Vos décisions » : celles déjà répondues, avec qui et
 // quand (lisibles des deux côtés). Le programme approuvé puis modifié est signalé.
-export async function ClientDecisions({ decisions, locale, preview = false }: { decisions: EventDecision[]; locale: Locale; preview?: boolean }) {
+// Lot 47 (PRE-09 ; D6, D7) : sur une décision « options », un avis par option avant de choisir ;
+// le choix engage, sans valoir commande (décision de Julien sur AV-6, phrase sous le bouton).
+type OptionFeedback = { decisionId: string; candidateId: string; opinion: "like" | "dislike" | null; comment: string | null };
+
+export async function ClientDecisions({ decisions, locale, preview = false, feedback = [], plannerName = "" }: { decisions: EventDecision[]; locale: Locale; preview?: boolean; feedback?: OptionFeedback[]; plannerName?: string }) {
   const t = await getTranslations("Decisions");
   const pending = decisions.filter((decision) => decision.status === "pending");
   const answered = decisions.filter((decision) => decision.status === "approved" || decision.status === "declined").reverse();
@@ -24,12 +29,25 @@ export async function ClientDecisions({ decisions, locale, preview = false }: { 
             </p>
             {decision.dueOn ? <p className="muted">{t("dueOn", { date: formatCalendarDate(decision.dueOn, locale) })}</p> : null}
             {decision.note ? <p>{decision.note}</p> : null}
+            {decision.snapshot.kind === "option" ? (
+              <ul className="plain-list stack" aria-label={t("feedbackTitle", { label: label(decision) })}>
+                {decision.snapshot.options.map((option) => {
+                  const mine = feedback.find((entry) => entry.decisionId === decision.id && entry.candidateId === option.candidateId);
+                  return (
+                    <li key={option.candidateId}>
+                      <OptionFeedbackForm decisionId={decision.id} candidateId={option.candidateId} vendorName={option.vendorName} opinion={mine?.opinion ?? null} comment={mine?.comment ?? ""} preview={preview} />
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
             <DecisionAnswerForm
               decisionId={decision.id}
               snapshot={decision.snapshot}
               label={label(decision)}
               amounts={Object.fromEntries(decision.snapshot.kind === "option" ? decision.snapshot.options.filter((option) => option.quoteAmountCents !== null).map((option) => [option.candidateId, formatAmount(option.quoteAmountCents!, locale)]) : [])}
               preview={preview}
+              plannerName={plannerName}
             />
           </li>
         ))}

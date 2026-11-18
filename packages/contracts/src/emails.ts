@@ -23,6 +23,11 @@ export const EMAIL_TEMPLATE_KINDS = [
   // Lot 44 (CRM-01 ; D7) : « Nouvelle demande de contact », à la titulaire, sans le message ni les
   // coordonnées du prospect.
   "prospect_form_received",
+  // Lot 47 (PRE-03, PAR-05 ; D2, D4, D8, D9 ; ADR 0085) : brief à un prestataire, sa relance la veille
+  // de la date limite, feuille de route à J-30 et J-7.
+  "vendor_brief",
+  "vendor_brief_reminder",
+  "vendor_roadmap",
   // Lot 45 (CRM-05, CRM-06, POR-07 ; D9 ; ADR 0090) : réponse de la planner à un prospect et relance
   // (le texte relu et modifié par la planner, à l'image de l'organisation) ; questionnaire envoyé (le
   // lien personnel devient « Répondre »).
@@ -39,10 +44,12 @@ export type EmailLocale = (typeof EMAIL_LOCALES)[number];
 // modèle (« {{prénom}} », « {{first_name}} »).
 // Lot 38b : « place » (le lieu de réception) sert aux modèles de messages de la planner.
 // Lot 46 : « appointment » (le type de rendez-vous) et « appointment_date » (jour et heure, à Paris).
+// Lot 47 (PRE-03 ; D4) : « slot » (le poste), « deadline » (date limite du brief), et deux liens qui
+// deviennent les boutons « Je suis disponible » et « Je ne suis pas disponible ».
 // Lot 45 : « brochure » (le lien sécurisé de la brochure de l'organisation, valable 30 jours),
 // « booking_link » (la page de réservation des rendez-vous, ou des créneaux à compléter sans elle) et
 // « questionnaire » (le nom du questionnaire envoyé).
-export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "brochure", "booking_link", "questionnaire"] as const;
+export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "slot", "deadline", "link_available", "link_unavailable", "brochure", "booking_link", "questionnaire"] as const;
 export type EmailVariable = (typeof EMAIL_VARIABLES)[number];
 export type EmailValues = Partial<Record<EmailVariable, string>>;
 

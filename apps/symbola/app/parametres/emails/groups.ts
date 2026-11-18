@@ -7,13 +7,15 @@ import { isAppointmentsModuleEnabled } from "@/modules/appointments/service";
 
 type TemplateModule = "events" | "quotes" | "appointments";
 
-export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "prospects" | "signatures" | "appointments"; module: TemplateModule; kinds: EmailTemplateKind[] }[] = [
+export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "prospects" | "signatures" | "appointments" | "vendors"; module: TemplateModule; kinds: EmailTemplateKind[] }[] = [
   { key: "links", module: "events", kinds: ["client_link", "client_link_renewed", "vendor_link", "vendor_link_renewed"] },
   { key: "reminders", module: "events", kinds: ["task_reminder"] },
   { key: "program", module: "events", kinds: ["program_published"] },
   // Lot 44 (CRM-01, D7) : « Nouvelle demande de contact », à la titulaire.
   // Lot 45 (CRM-05, CRM-06, POR-07 ; D9) : réponse et relance d'un prospect, questionnaire envoyé.
   { key: "prospects", module: "events", kinds: ["prospect_form_received", "prospect_reply", "prospect_follow_up", "questionnaire_sent"] },
+  // Lot 47 (PRE-03, PAR-05) : brief aux prestataires, sa relance, feuille de route.
+  { key: "vendors", module: "events", kinds: ["vendor_brief", "vendor_brief_reminder", "vendor_roadmap"] },
   { key: "signatures", module: "quotes", kinds: ["quote_signature", "contract_signature", "order_first", "signed_copy"] },
   // Lot 46 (RDV-03, D10 ; migration 0158) : e-mails d'un rendez-vous, côté personne qui l'a pris.
   { key: "appointments", module: "appointments", kinds: ["appointment_confirmed", "appointment_reminder", "appointment_rescheduled", "appointment_cancelled"] },

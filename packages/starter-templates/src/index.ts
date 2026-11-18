@@ -1409,6 +1409,8 @@ export function starterBookingPrivacyNotice(locale: StarterLocale): string {
   return appointmentTypesFile.privacyNotice[locale];
 }
 
+// Lot 47 (PAR-05 ; ADR 0085) : délais et tâches de suivi des prestataires par lien.
+export * from "./vendor-coordination";
 // Lot 45 (CRM-06, CRM-05 ; D2 ; ADR 0090) — réglage de départ des relances d'un prospect (J+3 et J+7,
 // envoi automatique désactivé), durée du lien de la brochure et sa taille maximale.
 const prospectFollowUpsSchema = z.object({

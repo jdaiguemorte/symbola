@@ -351,7 +351,7 @@ const AMOUNT_COLUMN = {
   paid: "paidAmountCents",
 } as const satisfies Record<BudgetAmountField, keyof BudgetLineRow>;
 
-async function writeLineAmount(tx: Tx, organizationId: string, line: BudgetLineRow, field: BudgetAmountField, amountCents: number, changedByUserId: string): Promise<BudgetLineRow> {
+async function writeLineAmount(tx: Tx, organizationId: string, line: BudgetLineRow, field: BudgetAmountField, amountCents: number | null, changedByUserId: string): Promise<BudgetLineRow> {
   const column = AMOUNT_COLUMN[field];
   const [updated] = await tx
     .update(budgetLines)
@@ -704,5 +704,18 @@ export async function findPendingDeclarationRows(organizationId: string): Promis
     const eventIds = [...new Set(payments.map((payment) => payment.eventId))];
     const lines = eventIds.length > 0 ? await tx.select().from(budgetLines).where(inArray(budgetLines.eventId, eventIds)) : [];
     return { payments, lines };
+  });
+}
+
+// Lot 47 (PAR-05, D6 ; ADR 0085) — un prestataire n'est plus retenu : l'engagé de la ligne redevient
+// vide, seulement s'il vaut encore le montant attendu (relu verrouillé, dans la transaction) ; le
+// passage est historisé (nouvelle valeur vide, migration 0164). false : rien n'a été touché.
+export async function releaseCommittedAmount(input: { organizationId: string; lineId: string; expectedCents: number; changedByUserId: string }): Promise<boolean> {
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx) => {
+    const [line] = await tx.select().from(budgetLines).where(eq(budgetLines.id, input.lineId)).for("update");
+    if (!line || line.committedAmountCents === null || line.committedAmountCents !== input.expectedCents) return false;
+    await writeLineAmount(tx, input.organizationId, line, "committed", null, input.changedByUserId);
+    return true;
   });
 }

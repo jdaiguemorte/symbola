@@ -1137,23 +1137,44 @@
       "breakpoints": true
     },
     {
+      "idx": 162,
+      "version": "7",
+      "when": 1795017100267,
+      "tag": "0162_lot47_events_vendor_coordination",
+      "breakpoints": true
+    },
+    {
+      "idx": 163,
+      "version": "7",
+      "when": 1795017101667,
+      "tag": "0163_lot47_hub_vendor_email_kinds",
+      "breakpoints": true
+    },
+    {
+      "idx": 164,
+      "version": "7",
+      "when": 1795017103042,
+      "tag": "0164_lot47_budget_history_release",
+      "breakpoints": true
+    },
+    {
       "idx": 165,
       "version": "7",
-      "when": 1795019433680,
+      "when": 1795025930142,
       "tag": "0165_lot45_events_relation_prospects",
       "breakpoints": true
     },
     {
       "idx": 166,
       "version": "7",
-      "when": 1795019441007,
+      "when": 1795025931647,
       "tag": "0166_lot45_hub_contact_duplicates",
       "breakpoints": true
     },
     {
       "idx": 167,
       "version": "7",
-      "when": 1795019442517,
+      "when": 1795025933101,
       "tag": "0167_lot45_hub_prospect_email_kinds",
       "breakpoints": true
     }

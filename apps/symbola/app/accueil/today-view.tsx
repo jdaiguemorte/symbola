@@ -39,6 +39,9 @@ export function todayWords(t: TodayTranslator): TodayWords {
     followUpReady: (names) => t("words.followUpReady", { names }),
     questionnaireFinished: (names, questionnaire) => t("words.questionnaireFinished", { names, questionnaire }),
     contactDuplicates: (count) => t("words.contactDuplicates", { count }),
+    vendorAnswer: (vendor, slot, answer) => t(`words.vendorAnswer.${answer}`, { vendor, slot }),
+    vendorChoice: (vendor, slot) => t("words.vendorChoice", { vendor, slot }),
+    vendorRoadmap: (vendor) => t("words.vendorRoadmap", { vendor }),
   };
 }
 

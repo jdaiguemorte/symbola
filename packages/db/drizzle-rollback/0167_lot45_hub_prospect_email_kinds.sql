@@ -1,6 +1,6 @@
 -- Annulation de 0167 (lot 45) : la contrainte des natures d'e-mails revient exactement à la liste
--- de main (migration 0161 du lot 44 : natures d'origine, invités, rendez-vous, « Nouvelle demande de
--- contact »).
+-- de main (migration 0163 du lot 47 : natures d'origine, invités, rendez-vous, « Nouvelle demande de
+-- contact », brief, relance et feuille de route des prestataires).
 -- Refusée tant qu'un modèle personnalisé de réponse, de relance ou de questionnaire existe : il serait
 -- perdu ; la planner le remet au texte de départ (« Revenir au texte de départ ») avant l'annulation.
 DO $$
@@ -13,4 +13,4 @@ $$;
 --> statement-breakpoint
 ALTER TABLE "hub"."email_templates" DROP CONSTRAINT "email_templates_kind_check";
 --> statement-breakpoint
-ALTER TABLE "hub"."email_templates" ADD CONSTRAINT "email_templates_kind_check" CHECK ("hub"."email_templates"."kind" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received'));
+ALTER TABLE "hub"."email_templates" ADD CONSTRAINT "email_templates_kind_check" CHECK ("hub"."email_templates"."kind" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap'));

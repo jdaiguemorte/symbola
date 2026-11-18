@@ -42,6 +42,13 @@ import {
   prospectSources,
   taskTemplateItems,
   taskTemplates,
+  eventDecisionOptionFeedback,
+  vendorBriefDocuments,
+  vendorBriefs,
+  vendorCoordinationSettings,
+  vendorRoadmaps,
+  vendorScenarioChoices,
+  vendorScenarios,
   eventMessages,
   eventQuestionnaires,
   prospectFollowUps,
@@ -67,6 +74,8 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: taskTemplateItems, parents: { templateId: "task_templates" } },
   { table: programTemplates },
   { table: programTemplateItems, parents: { templateId: "program_templates" } },
+  // Lot 47 (partie F) : réglages des prestataires par lien.
+  { table: vendorCoordinationSettings, idField: "organizationId" },
   // Lot 45 (CRM-06, POR-07, HUB-21) : réglage des relances (avec la brochure), modèles de questionnaires
   // et leurs versions.
   { table: prospectFollowUpSettings, files: ["brochureStorageKey"] },
@@ -87,7 +96,14 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: eventDocumentVersions, parents: { documentId: "event_documents" }, files: ["fileKey"] },
   { table: eventDayDocuments, ...ofEvent },
   { table: eventVendorSlots, ...ofEvent },
+  // Lot 47 (D1) : le brief d'un poste et ses inspirations, avant les prestataires qui le reçoivent.
+  { table: vendorBriefs, ...ofEvent },
+  { table: vendorBriefDocuments, parents: { briefId: "vendor_briefs" } },
   { table: eventVendorCandidates, ...ofEvent, files: ["quoteFileKey"] },
+  // Lot 47 (D5, D8) : scénarios d'options et feuilles de route.
+  { table: vendorScenarios, ...ofEvent },
+  { table: vendorScenarioChoices, parents: { scenarioId: "vendor_scenarios" } },
+  { table: vendorRoadmaps, parents: { candidateId: "event_vendor_candidates" } },
   { table: eventVendorCandidateNotes, parents: { candidateId: "event_vendor_candidates" } },
   { table: eventTasks, ...ofEvent },
   { table: eventTaskComments, ...ofEvent },
@@ -102,6 +118,8 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   // Lot 37a (D7) : liens de partage d'un document, pour mémoire, sans leur jeton (haché).
   { table: eventDocumentLinks, ...ofEvent, omit: ["tokenHash"] },
   { table: eventDecisions, ...ofEvent },
+  // Lot 47 (D7) : avis des clients sur les options d'une décision.
+  { table: eventDecisionOptionFeedback, parents: { decisionId: "event_decisions" } },
   { table: eventActivities, ...ofEvent },
   // Lot 45 (CRM-05, CRM-06, POR-07) : messages au contact (sans le jeton haché de la brochure),
   // relances, questionnaires envoyés et leurs réponses.

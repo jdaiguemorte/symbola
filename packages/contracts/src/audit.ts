@@ -97,6 +97,16 @@ export const AUDIT_ACTIONS = {
   "events.contact_form.updated": { category: "partage", objectType: null },
   "events.prospect_request.received": { category: "partage", objectType: "event" },
   "events.prospect_request.to_review": { category: "partage", objectType: null },
+  // Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09 ; ADR 0085) : prestataires par lien (identifiants, nombres,
+  // étape ; jamais un nom, un e-mail ni un montant).
+  "events.vendor_brief.sent": { category: "partage", objectType: "event" },
+  "events.vendor_brief.reminded": { category: "partage", objectType: "event" },
+  "events.vendor.answered": { category: "partage", objectType: "event" },
+  "events.vendor.invoice_received": { category: "partage", objectType: "event" },
+  "events.vendor_roadmap.sent": { category: "partage", objectType: "event" },
+  "events.vendor_roadmap.confirmed": { category: "partage", objectType: "event" },
+  "events.decision.engaged": { category: "partage", objectType: "event" },
+  "events.vendor_retention.changed": { category: "partage", objectType: "event" },
   // Lot 45 (CRM-05, CRM-06, POR-07 ; D1, D2) : réponse envoyée à un prospect depuis Symbola, relance
   // envoyée (par la planner ou d'elle-même), questionnaire envoyé ; identifiants seulement (SEC-20).
   "events.prospect_message.sent": { category: "partage", objectType: "event" },

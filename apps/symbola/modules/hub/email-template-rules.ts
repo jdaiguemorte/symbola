@@ -21,6 +21,10 @@ const TOKENS: Record<EmailVariable, Record<EmailLocale, string>> = {
   quote_number: { fr: "numéro_devis", en: "quote_number" },
   version: { fr: "version", en: "version" },
   place: { fr: "lieu", en: "place" },
+  slot: { fr: "poste", en: "slot" },
+  deadline: { fr: "date_limite", en: "deadline" },
+  link_available: { fr: "lien_disponible", en: "link_available" },
+  link_unavailable: { fr: "lien_indisponible", en: "link_unavailable" },
   appointment: { fr: "rendez_vous", en: "appointment" },
   appointment_date: { fr: "date_rendez_vous", en: "appointment_date" },
   // Lot 45 (CRM-05, POR-07) : brochure, page de réservation, nom du questionnaire.
@@ -29,6 +33,9 @@ const TOKENS: Record<EmailVariable, Record<EmailLocale, string>> = {
   questionnaire: { fr: "questionnaire", en: "questionnaire" },
 };
 
+// Variables dont la valeur est une adresse : seules dans leur paragraphe, elles deviennent un bouton.
+const LINK_VARIABLES: ReadonlySet<EmailVariable> = new Set(["link", "link_available", "link_unavailable"]);
+
 const BY_TOKEN = new Map<string, EmailVariable>(
   (Object.entries(TOKENS) as [EmailVariable, Record<EmailLocale, string>][]).flatMap(([key, names]) => [
     [names.fr, key],
@@ -36,7 +43,7 @@ const BY_TOKEN = new Map<string, EmailVariable>(
   ]),
 );
 
-type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | "request" | "questionnaire" | null };
+type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | "request" | "roadmap" | "questionnaire" | null };
 
 export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   client_link: { variables: ["first_name", "organization", "event", "link", "valid_until"], required: ["link"], button: "space" },
@@ -60,6 +67,12 @@ export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   // Lot 44 (CRM-01 ; D7) : à la titulaire, le lien vers la fiche du prospect devient « Voir la demande » ;
   // ni le nom, ni les coordonnées, ni le message du prospect (SEC-20).
   prospect_form_received: { variables: ["organization", "event_date", "link"], required: ["link"], button: "request" },
+  // Lot 47 (PRE-03, PAR-05 ; D2, D4, D8) : le brief et sa relance portent deux boutons, « Je suis
+  // disponible » et « Je ne suis pas disponible », qui ouvrent la page avec le choix présélectionné ;
+  // la feuille de route, un bouton vers la page où le prestataire confirme l'avoir reçue.
+  vendor_brief: { variables: ["first_name", "organization", "event", "clients", "event_date", "slot", "deadline", "link", "link_available", "link_unavailable"], required: ["link_available", "link_unavailable"], button: "space" },
+  vendor_brief_reminder: { variables: ["first_name", "organization", "event", "clients", "event_date", "slot", "deadline", "link", "link_available", "link_unavailable"], required: ["link_available", "link_unavailable"], button: "space" },
+  vendor_roadmap: { variables: ["first_name", "organization", "event", "clients", "event_date", "link"], required: ["link"], button: "roadmap" },
   // Lot 45 (CRM-05, CRM-06 ; D1, D2) : le texte de la planner (un modèle de message relu et modifié),
   // à l'image de l'organisation ; la brochure et la page de réservation sont des liens dans le texte.
   prospect_reply: { variables: ["first_name", "organization", "event", "event_date", "clients", "place", "brochure", "booking_link"], required: [], button: null },
@@ -105,7 +118,8 @@ export function validateEmailTemplate(kind: EmailTemplateKind, text: EmailTempla
   return { unknown, missingRequired, tooLong };
 }
 
-export type EmailBlock = { kind: "paragraph"; text: string } | { kind: "button"; url: string };
+// variable : celle dont vient le bouton (son libellé en dépend).
+export type EmailBlock = { kind: "paragraph"; text: string } | { kind: "button"; url: string; variable: EmailVariable };
 export type RenderedEmail = { subject: string; blocks: EmailBlock[]; text: string; missing: EmailVariable[] };
 
 // Remplace chaque variable permise par sa valeur ; une variable sans valeur, ou étrangère, reste
@@ -138,9 +152,10 @@ export function renderEmailTemplate(kind: EmailTemplateKind, template: EmailTemp
     .filter(Boolean)
     .map((paragraph): EmailBlock => {
       const only = /^\{\{\s*([^{}\s]+)\s*\}\}$/.exec(paragraph);
-      if (only && BY_TOKEN.get(only[1]!) === "link") {
+      const variable = only ? BY_TOKEN.get(only[1]!) : undefined;
+      if (variable && LINK_VARIABLES.has(variable)) {
         const url = fill(paragraph);
-        return /^https?:\/\//.test(url) ? { kind: "button", url } : { kind: "paragraph", text: url };
+        return /^https?:\/\//.test(url) ? { kind: "button", url, variable } : { kind: "paragraph", text: url };
       }
       return { kind: "paragraph", text: fill(paragraph) };
     });

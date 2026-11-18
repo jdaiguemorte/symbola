@@ -3,10 +3,10 @@
 // service.ts, de façon idempotente (packages/db/src/events/worker.ts). Lancé
 // au démarrage du serveur (instrumentation.ts) ; jusqu'au lot 6 il n'était
 // appelé que par les tests (limite connue des lots 2 à 4).
-import { contactMergedPayloadSchema, EVT_VENDOR_SLOT_BOOKED, HUB_CONTACT_MERGED, QUOTES_QUOTE_SIGNED, quoteSignedPayloadSchema, vendorSlotBookedPayloadSchema } from "@symbola/contracts";
+import { contactMergedPayloadSchema, EVT_VENDOR_RETENTION_RELEASED, EVT_VENDOR_SLOT_BOOKED, HUB_CONTACT_MERGED, QUOTES_QUOTE_SIGNED, quoteSignedPayloadSchema, vendorRetentionReleasedPayloadSchema, vendorSlotBookedPayloadSchema } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import { processPendingEvents, type DomainEventRecord, type EventHandler } from "@symbola/db/events/worker";
-import { applyVendorSlotBookedToBudget } from "@/modules/budget/service";
+import { applyVendorRetentionReleasedToBudget, applyVendorSlotBookedToBudget } from "@/modules/budget/service";
 import { repointAppointmentsMergedContact } from "@/modules/appointments/service";
 import { repointMergedContact } from "@/modules/events/service";
 import { repointQuotesMergedContact } from "@/modules/quotes/service";
@@ -22,6 +22,10 @@ export const CONSUMERS: Record<string, Record<string, EventHandler>> = {
     [EVT_VENDOR_SLOT_BOOKED]: async (event: DomainEventRecord) => {
       const payload = vendorSlotBookedPayloadSchema.parse(event.payload);
       await applyVendorSlotBookedToBudget(event.organizationId, payload, event.occurredAt);
+    },
+    // Lot 47 (PAR-05, D6) : prestataire qui n'est plus retenu → engagé de ses lignes libéré.
+    [EVT_VENDOR_RETENTION_RELEASED]: async (event: DomainEventRecord) => {
+      await applyVendorRetentionReleasedToBudget(event.organizationId, vendorRetentionReleasedPayloadSchema.parse(event.payload));
     },
   },
   // Lot 31b (FAC-05, D6) : devis signé → facture d'acompte émise d'elle-même, si elle est due.

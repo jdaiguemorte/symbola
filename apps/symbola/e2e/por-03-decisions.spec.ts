@@ -1,15 +1,17 @@
 // Lot 27b (POR-03, BUD-07, EVT-09 ; décisions D9 et D10) — la planner demande au
 // client de choisir entre deux traiteurs ; le marié répond depuis son portail
 // (trois prochaines actions, « À décider ») ; la réponse est horodatée et à son
-// nom, des deux côtés ; la planner retient le prestataire d'un geste et la
-// décision passe au fil d'activité. En taille ordinateur et en 375 px (360 px
-// vérifié), axe-core sur chaque écran.
+// nom, des deux côtés, et la décision passe au fil d'activité. Lot 47 (D6
+// révisée, ADR 0085) : le choix du client retient le prestataire de lui-même ;
+// la planner le modifie à tout moment, ou redemande un choix. En taille
+// ordinateur et en 375 px (360 px vérifié), axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { addEventVendorSlot, addProgramItem, addVendorCandidate, createEventLink, createProspect, createProspectSource, updateVendorCandidate } from "../modules/events/service";
+import { formatAmount } from "@symbola/i18n";
 import { openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
 
 const PASSWORD = "mot-de-passe-por03-e2e";
@@ -53,7 +55,7 @@ async function wedding() {
   }
 }
 
-test("POR-03 / EVT-09 — la planner demande un choix ; le marié répond depuis son portail ; réponse horodatée, nominative, des deux côtés ; la planner retient le prestataire", async ({ page: planner, browser }) => {
+test("POR-03 / EVT-09 — la planner demande un choix ; le marié répond depuis son portail ; réponse horodatée, nominative, des deux côtés ; le choix retient le prestataire, que la planner peut modifier", async ({ page: planner, browser }) => {
   test.setTimeout(120_000);
   const setup = await wedding();
   await loginAndSetupMfa(planner, setup.email);
@@ -91,13 +93,23 @@ test("POR-03 / EVT-09 — la planner demande un choix ; le marié répond depuis
   expect(await couple.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await expectNoAxeViolation(couple);
 
-  // La planner : la même réponse, puis « Retenir Maison Haddad » ; au fil d'activité.
+  // La planner : la même réponse ; le choix a déjà retenu Maison Haddad (lot 47, D6 révisée), sans
+  // geste de sa part ; elle peut redemander un choix, ou modifier le prestataire retenu.
   await planner.reload();
   await expect(decisions).toContainText(/Maison Haddad, choisi par Inès le .*/);
   await expect(decisions).toContainText("Commentaire : Le menu du sud-ouest");
-  await decisions.getByRole("button", { name: "Retenir Maison Haddad" }).click();
   await expect(decisions.getByRole("button", { name: "Retenir Maison Haddad" })).toHaveCount(0);
   await expect(decisions.getByRole("button", { name: "Demander une nouvelle décision : Choisir : Traiteur" })).toBeVisible();
+  await expectNoAxeViolation(planner);
+  await decisions.getByRole("link", { name: "Modifier le prestataire retenu" }).click();
+  const retained = planner.getByRole("region", { name: "Le prestataire retenu" });
+  await expect(retained).toContainText("Inès a choisi Maison Haddad");
+  await expect(retained).toContainText("Retenu : Maison Haddad");
+  await retained.getByLabel("Prestataire retenu").selectOption({ label: `Saveurs du Sud — ${formatAmount(880000, "fr")}` });
+  await retained.getByRole("button", { name: "Modifier le prestataire retenu" }).click();
+  await expect(retained).toContainText("Retenu : Saveurs du Sud");
+  await expectNoAxeViolation(planner);
+  await planner.goto(`/events/${setup.eventId}`);
   await openEventTab(planner, "Synthèse");
   await expect(planner.getByRole("list", { name: "Fil d'activité" })).toContainText("Inès a répondu : « Traiteur ».");
   await expectNoAxeViolation(planner);

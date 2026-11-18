@@ -29,6 +29,9 @@
         "guest_invitation",
         "guest_reminder",
         "prospect_form_received",
+        "vendor_brief",
+        "vendor_brief_reminder",
+        "vendor_roadmap",
         "prospect_reply",
         "prospect_follow_up",
         "questionnaire_sent"

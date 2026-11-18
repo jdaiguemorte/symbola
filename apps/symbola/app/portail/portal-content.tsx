@@ -1,10 +1,12 @@
+import { appDatabase } from "@symbola/db/client";
+import { getOrganizationContact } from "@/modules/hub/service";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, formatDateTime, formatMonth, parisToday, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
-import { getLinkEventView, getLinkVendorOptions, LinkAccessDeniedError, listLinkDecisions, listLinkSharedDocuments, markLinkProgramSeen, monthKey, type EventDecision, type EventTask, type LinkAccess } from "@/modules/events/service";
+import { getLinkEventView, getLinkVendorOptions, LinkAccessDeniedError, listLinkDecisions, listLinkOptionFeedback, listLinkSharedDocuments, markLinkProgramSeen, monthKey, type EventDecision, type EventTask, type LinkAccess } from "@/modules/events/service";
 import { getLinkBudgetView, LinkBudgetAccessDeniedError } from "@/modules/budget/service";
 import { listClientQuoteOptions, listClientQuotesToSign, listEventInvoices } from "@/modules/quotes/service";
 import { listUpcomingAppointmentsForPerson } from "@/modules/appointments/service";
@@ -93,9 +95,12 @@ export async function PortalContent({ access, preview = false, banner }: { acces
 
   // Lot 27b (POR-03, D10) : décisions de ses rubriques (options, budget, programme).
   let decisions: EventDecision[] = [];
+  // Lot 47 (PRE-09, D7) : les avis de ce lien sur les options proposées.
+  let optionFeedback: Awaited<ReturnType<typeof listLinkOptionFeedback>> = [];
   if (rubrics.some((rubric) => rubric === "vendor_options" || rubric === "budget" || rubric === "program")) {
     try {
       decisions = await listLinkDecisions(organizationId, linkId);
+      if (decisions.some((decision) => decision.kind === "option" && decision.status === "pending")) optionFeedback = await listLinkOptionFeedback(organizationId, linkId);
     } catch (error) {
       if (!(error instanceof LinkAccessDeniedError)) throw error;
     }
@@ -266,7 +271,7 @@ export async function PortalContent({ access, preview = false, banner }: { acces
         ) : null}
       </section>
 
-      {decisions.length > 0 ? <ClientDecisions decisions={decisions} locale={locale} preview={preview} /> : null}
+      {decisions.length > 0 ? <ClientDecisions decisions={decisions} locale={locale} preview={preview} feedback={optionFeedback} plannerName={decisions.some((decision) => decision.kind === "option") ? (await getOrganizationContact(appDatabase(), organizationId)).name : ""} /> : null}
 
       {view.tasks ? (
         <section aria-labelledby="portal-tasks-title" id="taches">

@@ -38,6 +38,8 @@ const SHARED_ACCESS: Record<string, string> = {
   authorizedPlanner: "app/devis/planner-access.ts",
   ownerContext: "app/rgpd/owner-access.ts",
   receiveUpload: "lib/uploads/receive.ts",
+  // Lot 47 (PRE-04) : envoi d'un fichier par le lien d'un prestataire (session du lien, débit, taille).
+  receiveLinkUpload: "lib/uploads/receive.ts",
   importStepContext: "app/import/step-context.ts",
   vendorSettingsAccess: "app/prestataires/parametres/guard.ts",
   // Lot 49 : module Invités, côté équipe (session, modules) et au portail (lien, rubrique, modules).

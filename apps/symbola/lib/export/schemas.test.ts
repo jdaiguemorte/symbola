@@ -134,6 +134,8 @@ describe("DAT-13 — Chaque entité a un format d'export stable et documenté", 
       fixedAt: null,
       responsible: "vendor",
       vendorCandidateId: null,
+      // Lot 47 (D6) : tâche de suivi d'un prestataire retenu (nul ici).
+      followUpCandidateId: null,
       doneAt: null,
       position: 0,
       importedFields: null,

@@ -42,7 +42,12 @@ export type TodayItemKind =
   // Lot 45 (CRM-06, POR-07, CRM-07) : relance prête à relire, questionnaire terminé, doublons possibles.
   | "prospect_follow_up_ready"
   | "questionnaire_finished"
-  | "contact_duplicates";
+  | "contact_duplicates"
+  // Lot 47 (PAR-05 ; D3, D6, D8) : réponse d'un prestataire à un brief, choix du client engagé,
+  // feuille de route non confirmée.
+  | "vendor_answer"
+  | "vendor_choice"
+  | "vendor_roadmap";
 
 // L'action en un clic (HUB-08) : cocher une tâche, relancer un prestataire, ou ouvrir l'objet.
 export type TodayAction =

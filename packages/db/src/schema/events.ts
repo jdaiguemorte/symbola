@@ -3,7 +3,7 @@
 // Security activée par une migration dédiée (même patron que hello,
 // packages/db/drizzle).
 import { sql } from "drizzle-orm";
-import { boolean, check, date, integer, pgSchema, text, time, timestamp, unique, uniqueIndex, uuid, jsonb, index } from "drizzle-orm/pg-core";
+import { boolean, check, date, integer, pgSchema, text, time, timestamp, unique, uniqueIndex, uuid, jsonb, index, type AnyPgColumn } from "drizzle-orm/pg-core";
 
 export const eventsSchema = pgSchema("events");
 
@@ -274,12 +274,28 @@ export const eventVendorCandidates = eventsSchema.table("event_vendor_candidates
   // Lot 12 (L12-EVT-16) : RIB de la fiche du carnet partagé aux clients de l'événement.
   shareRibWithClients: boolean("share_rib_with_clients").notNull().default(false),
   position: integer("position").notNull().default(0),
+  // Lot 47 (PRE-03, PRE-04, PAR-05 ; ADR 0085) : le brief reçu, la réponse du prestataire par son
+  // lien (disponible ou non, date, message court), la relance de la veille, le motif d'un écart et
+  // la facture déposée une fois retenu (un document de l'évènement).
+  briefId: uuid("brief_id").references((): AnyPgColumn => vendorBriefs.id, { onDelete: "set null" }),
+  availability: text("availability"),
+  answeredAt: timestamp("answered_at", { withTimezone: true }),
+  answerMessage: text("answer_message"),
+  remindedAt: timestamp("reminded_at", { withTimezone: true }),
+  dismissalReason: text("dismissal_reason"),
+  invoiceDocumentId: uuid("invoice_document_id").references((): AnyPgColumn => eventDocuments.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-}, (table) => [index("event_vendor_candidates_organization_idx").on(table.organizationId)]);
+}, (table) => [
+  index("event_vendor_candidates_organization_idx").on(table.organizationId),
+  index("event_vendor_candidates_brief_idx").on(table.briefId),
+  check("event_vendor_candidates_availability_check", sql`${table.availability} is null or ${table.availability} in ('available', 'unavailable')`),
+  check("event_vendor_candidates_answer_message_check", sql`${table.answerMessage} is null or char_length(${table.answerMessage}) between 1 and 1000`),
+  check("event_vendor_candidates_dismissal_reason_check", sql`${table.dismissalReason} is null or ${table.dismissalReason} in ('unavailable', 'other_chosen')`),
+]);
 
 // Lot 11 (L11-EVT-11) — notes sur un prestataire consulté : internes par
 // défaut, visibles par les clients note par note.
@@ -361,6 +377,9 @@ export const eventTasks = eventsSchema.table("event_tasks", {
   // Lot 34b (CHR-02, D12) : le prestataire retenu à qui la tâche est confiée (responsable
   // « vendor ») ; nul si le prestataire est retiré de l'événement.
   vendorCandidateId: uuid("vendor_candidate_id").references(() => eventVendorCandidates.id, { onDelete: "set null" }),
+  // Lot 47 (PAR-05, D6 ; ADR 0085) : tâche de suivi créée quand ce prestataire est retenu (contrat,
+  // acompte, attestation) ; retirée, si elle n'est pas faite, quand il cesse d'être retenu.
+  followUpCandidateId: uuid("follow_up_candidate_id").references((): AnyPgColumn => eventVendorCandidates.id, { onDelete: "set null" }),
   doneAt: timestamp("done_at", { withTimezone: true }),
   position: integer("position").notNull().default(0),
   // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
@@ -377,6 +396,7 @@ export const eventTasks = eventsSchema.table("event_tasks", {
 }, (table) => [
   index("event_tasks_organization_idx").on(table.organizationId),
   index("event_tasks_vendor_candidate_idx").on(table.vendorCandidateId),
+  index("event_tasks_follow_up_candidate_idx").on(table.followUpCandidateId),
 ]);
 
 // PRD-EVT-05 : programme du jour J d'un événement. Heures sans date (« HH:MM »),
@@ -656,6 +676,9 @@ export const eventDecisions = eventsSchema.table("event_decisions", {
   decidedByName: text("decided_by_name"),
   decidedAt: timestamp("decided_at", { withTimezone: true }),
   replacesDecisionId: uuid("replaces_decision_id"),
+  // Lot 47 (PAR-05, PRE-09 ; D6, ADR 0085) : le choix d'une décision « options » engage (Retenu, autres
+  // Écartés, tâches de suivi) ; la planner modifie ensuite le prestataire retenu quand elle veut.
+  engagedAt: timestamp("engaged_at", { withTimezone: true }),
   requestedAt: timestamp("requested_at", { withTimezone: true }).defaultNow().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
@@ -695,7 +718,20 @@ export const eventLinkSessions = eventsSchema.table("event_link_sessions", {
 // task_label porte l'intitulé du document.
 // Lot 44 (CRM-02) : « stage_changed », une carte passée à une autre étape du pipeline ; task_label
 // porte le nom de l'étape au moment du déplacement.
-export const eventActivityKindEnum = eventsSchema.enum("event_activity_kind", ["task_done", "task_undone", "decision_made", "vendor_reminded", "document_link_opened", "stage_changed"]);
+// Lot 47 (PAR-05, PRE-04) : « vendor_answered » (réponse d'un prestataire à un brief),
+// « vendor_invoice_received » (facture déposée), « vendor_roadmap_confirmed » (feuille de route
+// reçue) ; task_label reste vide, le nom se lit sur le prestataire (RGP-05).
+export const eventActivityKindEnum = eventsSchema.enum("event_activity_kind", [
+  "task_done",
+  "task_undone",
+  "decision_made",
+  "vendor_reminded",
+  "document_link_opened",
+  "stage_changed",
+  "vendor_answered",
+  "vendor_invoice_received",
+  "vendor_roadmap_confirmed",
+]);
 
 export const eventActivities = eventsSchema.table("event_activities", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -790,7 +826,10 @@ export const eventDocuments = eventsSchema.table("event_documents", {
   fileKey: text("file_key").notNull(),
   mime: text("mime").notNull(),
   sizeBytes: integer("size_bytes").notNull(),
-  uploadedByUserId: uuid("uploaded_by_user_id").notNull(),
+  // Lot 47 (PRE-04) : une facture déposée par un prestataire retenu, par son lien, n'a pas d'auteur
+  // dans l'équipe ; le lien qui l'a déposée est gardé (nul s'il est effacé depuis).
+  uploadedByUserId: uuid("uploaded_by_user_id"),
+  uploadedByLinkId: uuid("uploaded_by_link_id").references((): AnyPgColumn => eventLinks.id, { onDelete: "set null" }),
   folderId: uuid("folder_id").references(() => eventDocumentFolders.id, { onDelete: "set null" }),
   sharedWithClients: boolean("shared_with_clients").notNull().default(false),
   sharedWithVendors: boolean("shared_with_vendors").notNull().default(false),
@@ -820,7 +859,8 @@ export const eventDocumentVersions = eventsSchema.table("event_document_versions
   fileKey: text("file_key").notNull(),
   mime: text("mime").notNull(),
   sizeBytes: integer("size_bytes").notNull(),
-  uploadedByUserId: uuid("uploaded_by_user_id").notNull(),
+  // Lot 47 : nul pour une facture déposée par un prestataire (voir event_documents).
+  uploadedByUserId: uuid("uploaded_by_user_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -1061,6 +1101,168 @@ export const prospectRequests = eventsSchema.table(
   ],
 );
 
+// --- Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; ADR 0085) : prestataires par lien. ---
+
+// D1, D10 : un brief par poste, envoyé à plusieurs prestataires. Le budget indicatif est facultatif
+// et masqué par défaut ; montré seulement si la planner le coche. Montants en centimes, EUR (TTC).
+export const vendorBriefs = eventsSchema.table("vendor_briefs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  vendorSlotId: uuid("vendor_slot_id")
+    .notNull()
+    .references(() => eventVendorSlots.id, { onDelete: "cascade" }),
+  need: text("need").notNull(),
+  guestCount: integer("guest_count"),
+  indicativeBudgetCents: integer("indicative_budget_cents"),
+  showBudget: boolean("show_budget").notNull().default(false),
+  // Date limite de réponse, sans heure, dans le fuseau de l'évènement.
+  deadline: date("deadline").notNull(),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  sentByUserId: uuid("sent_by_user_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("vendor_briefs_organization_idx").on(table.organizationId),
+  index("vendor_briefs_event_idx").on(table.eventId),
+  unique("vendor_briefs_slot_unique").on(table.vendorSlotId),
+  check("vendor_briefs_need_check", sql`char_length(${table.need}) between 1 and 4000`),
+  check("vendor_briefs_guest_count_check", sql`${table.guestCount} is null or ${table.guestCount} between 0 and 100000`),
+  check("vendor_briefs_budget_check", sql`${table.indicativeBudgetCents} is null or ${table.indicativeBudgetCents} >= 0`),
+]);
+
+// Les inspirations d'un brief : des documents de l'évènement, choisis un par un.
+export const vendorBriefDocuments = eventsSchema.table("vendor_brief_documents", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  briefId: uuid("brief_id")
+    .notNull()
+    .references(() => vendorBriefs.id, { onDelete: "cascade" }),
+  documentId: uuid("document_id")
+    .notNull()
+    .references(() => eventDocuments.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("vendor_brief_documents_organization_idx").on(table.organizationId),
+  unique("vendor_brief_documents_unique").on(table.briefId, table.documentId),
+]);
+
+// D5 (BUD-05) : scénarios d'options d'un évènement ; au plus un prestataire consulté par poste.
+export const vendorScenarios = eventsSchema.table("vendor_scenarios", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  eventId: uuid("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("vendor_scenarios_organization_idx").on(table.organizationId),
+  index("vendor_scenarios_event_idx").on(table.eventId),
+  check("vendor_scenarios_name_check", sql`char_length(${table.name}) between 1 and 120`),
+]);
+
+export const vendorScenarioChoices = eventsSchema.table("vendor_scenario_choices", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  scenarioId: uuid("scenario_id")
+    .notNull()
+    .references(() => vendorScenarios.id, { onDelete: "cascade" }),
+  vendorSlotId: uuid("vendor_slot_id")
+    .notNull()
+    .references(() => eventVendorSlots.id, { onDelete: "cascade" }),
+  candidateId: uuid("candidate_id")
+    .notNull()
+    .references(() => eventVendorCandidates.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("vendor_scenario_choices_organization_idx").on(table.organizationId),
+  unique("vendor_scenario_choices_slot_unique").on(table.scenarioId, table.vendorSlotId),
+]);
+
+// D7 (PRE-09) : l'avis d'un client sur une option d'une décision, avant de choisir (« J'aime »,
+// « Pas pour nous », un commentaire court). Un avis par lien et par option ; le lien effacé, l'avis
+// reste sans auteur.
+export const eventDecisionOptionFeedback = eventsSchema.table("event_decision_option_feedback", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  decisionId: uuid("decision_id")
+    .notNull()
+    .references(() => eventDecisions.id, { onDelete: "cascade" }),
+  candidateId: uuid("candidate_id")
+    .notNull()
+    .references(() => eventVendorCandidates.id, { onDelete: "cascade" }),
+  linkId: uuid("link_id").references(() => eventLinks.id, { onDelete: "set null" }),
+  opinion: text("opinion"),
+  comment: text("comment"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("event_decision_option_feedback_organization_idx").on(table.organizationId),
+  index("event_decision_option_feedback_decision_idx").on(table.decisionId),
+  unique("event_decision_option_feedback_unique").on(table.decisionId, table.candidateId, table.linkId),
+  check("event_decision_option_feedback_opinion_check", sql`${table.opinion} is null or ${table.opinion} in ('like', 'dislike')`),
+  check("event_decision_option_feedback_comment_check", sql`${table.comment} is null or char_length(${table.comment}) between 1 and 500`),
+  check("event_decision_option_feedback_content_check", sql`${table.opinion} is not null or ${table.comment} is not null`),
+]);
+
+// D8 (PAR-05 étapes 5 et 6) : feuille de route d'un prestataire retenu, envoyée à J-30 et à J-7
+// (une fois chacune) ; sa confirmation de réception, horodatée, et la version du programme vue.
+export const vendorRoadmaps = eventsSchema.table("vendor_roadmaps", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  candidateId: uuid("candidate_id")
+    .notNull()
+    .references(() => eventVendorCandidates.id, { onDelete: "cascade" }),
+  stage: text("stage").notNull(),
+  sentAt: timestamp("sent_at", { withTimezone: true }).notNull(),
+  confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+  programVersion: integer("program_version"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("vendor_roadmaps_organization_idx").on(table.organizationId),
+  index("vendor_roadmaps_candidate_idx").on(table.candidateId),
+  unique("vendor_roadmaps_stage_unique").on(table.candidateId, table.stage),
+  check("vendor_roadmaps_stage_check", sql`${table.stage} in ('j30', 'j7')`),
+]);
+
+// Partie F : réglages de l'organisation (titulaire). Sans ligne, les valeurs par défaut valent ;
+// follow_up_tasks nul : la liste de départ (vendor-follow-up-tasks.json, HUB-20).
+export const vendorCoordinationSettings = eventsSchema.table("vendor_coordination_settings", {
+  organizationId: uuid("organization_id").primaryKey(),
+  briefDeadlineDays: integer("brief_deadline_days").notNull().default(7),
+  briefReminder: boolean("brief_reminder").notNull().default(true),
+  roadmapMonth: boolean("roadmap_month").notNull().default(true),
+  roadmapWeek: boolean("roadmap_week").notNull().default(true),
+  roadmapAlertDays: integer("roadmap_alert_days").notNull().default(3),
+  followUpTasks: jsonb("follow_up_tasks").$type<{ label: string; dueInDays: number }[] | null>(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  check("vendor_coordination_settings_deadline_check", sql`${table.briefDeadlineDays} between 1 and 60`),
+  check("vendor_coordination_settings_alert_check", sql`${table.roadmapAlertDays} between 1 and 6`),
+]);
 // Lot 45 (CRM-05, CRM-06, CRM-03 ; D1 à D3 ; ADR 0090) — les messages échangés avec le contact d'un
 // évènement, rangés dans son historique : une réponse de la planner (« reply », depuis un modèle),
 // une relance (« follow_up »), un questionnaire envoyé (« questionnaire ») ; et deux faits notés par
