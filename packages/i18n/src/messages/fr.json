@@ -7262,7 +7262,8 @@
       "newTitle": "Nouveau scénario",
       "name": "Nom du scénario",
       "create": "Créer le scénario",
-      "created": "Scénario créé."
+      "created": "Scénario créé.",
+      "tableLabel": "Totaux des scénarios, poste par poste"
     },
     "settings": {
       "title": "Prestataires par lien",

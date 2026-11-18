@@ -80,7 +80,7 @@ export default async function VendorScenariosPage({ params, searchParams }: { pa
               <button type="submit">{t("scenarios.compare")}</button>
             </form>
           ) : null}
-          <div className="list-table-wrap">
+          <div className="list-table-wrap" role="region" aria-label={t("scenarios.tableLabel")} tabIndex={0}>
             <table className="data-table">
               <caption className="sr-only">{t("scenarios.compareTitle")}</caption>
               <thead>

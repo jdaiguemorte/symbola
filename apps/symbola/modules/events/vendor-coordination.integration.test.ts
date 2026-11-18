@@ -7,7 +7,7 @@ import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createOrganization } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
-import { recipientsDigest } from "@/modules/hub/email-template-rules";
+import { recipientsDigest } from "@/modules/hub/service";
 import { listBudgetLines } from "@/modules/budget/service";
 import { runEventWorkerOnce } from "@/lib/event-worker";
 import { starterVendorFollowUpTasks } from "@symbola/starter-templates";

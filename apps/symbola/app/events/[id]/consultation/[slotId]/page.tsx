@@ -168,7 +168,7 @@ export default async function VendorConsultationPage({ params }: { params: Promi
           <p>{t("compare.empty")}</p>
         ) : (
           <>
-            <div className="list-table-wrap vendor-compare-table">
+            <div className="list-table-wrap vendor-compare-table" role="region" aria-label={t("compare.caption", { slot: slot.label })} tabIndex={0}>
               <table className="data-table">
                 <caption className="sr-only">{t("compare.caption", { slot: slot.label })}</caption>
                 <thead>

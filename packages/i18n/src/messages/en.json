@@ -7262,7 +7262,8 @@
       "newTitle": "New scenario",
       "name": "Scenario name",
       "create": "Create the scenario",
-      "created": "Scenario created."
+      "created": "Scenario created.",
+      "tableLabel": "Scenario totals, category by category"
     },
     "settings": {
       "title": "Suppliers by link",
