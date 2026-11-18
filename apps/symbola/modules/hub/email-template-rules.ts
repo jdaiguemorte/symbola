@@ -23,6 +23,10 @@ const TOKENS: Record<EmailVariable, Record<EmailLocale, string>> = {
   place: { fr: "lieu", en: "place" },
   appointment: { fr: "rendez_vous", en: "appointment" },
   appointment_date: { fr: "date_rendez_vous", en: "appointment_date" },
+  // Lot 45 (CRM-05, POR-07) : brochure, page de réservation, nom du questionnaire.
+  brochure: { fr: "brochure", en: "brochure" },
+  booking_link: { fr: "lien_rendez_vous", en: "booking_link" },
+  questionnaire: { fr: "questionnaire", en: "questionnaire" },
 };
 
 const BY_TOKEN = new Map<string, EmailVariable>(
@@ -32,7 +36,7 @@ const BY_TOKEN = new Map<string, EmailVariable>(
   ]),
 );
 
-type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | "request" | null };
+type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | "request" | "questionnaire" | null };
 
 export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   client_link: { variables: ["first_name", "organization", "event", "link", "valid_until"], required: ["link"], button: "space" },
@@ -56,6 +60,12 @@ export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   // Lot 44 (CRM-01 ; D7) : à la titulaire, le lien vers la fiche du prospect devient « Voir la demande » ;
   // ni le nom, ni les coordonnées, ni le message du prospect (SEC-20).
   prospect_form_received: { variables: ["organization", "event_date", "link"], required: ["link"], button: "request" },
+  // Lot 45 (CRM-05, CRM-06 ; D1, D2) : le texte de la planner (un modèle de message relu et modifié),
+  // à l'image de l'organisation ; la brochure et la page de réservation sont des liens dans le texte.
+  prospect_reply: { variables: ["first_name", "organization", "event", "event_date", "clients", "place", "brochure", "booking_link"], required: [], button: null },
+  prospect_follow_up: { variables: ["first_name", "organization", "event", "event_date", "clients", "place", "brochure", "booking_link"], required: [], button: null },
+  // Lot 45 (POR-07, CRM-09) : le lien personnel devient « Répondre au questionnaire ».
+  questionnaire_sent: { variables: ["first_name", "organization", "event", "questionnaire", "link", "valid_until"], required: ["link"], button: "questionnaire" },
 };
 
 const TOKEN_PATTERN = /\{\{\s*([^{}\s]+)\s*\}\}/g;

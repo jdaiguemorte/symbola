@@ -6401,7 +6401,8 @@
       "sign": "Sign online",
       "answer": "Reply",
       "manage": "Reschedule or cancel",
-      "request": "View the request"
+      "request": "View the request",
+      "questionnaire": "Answer the questionnaire"
     },
     "footerNote": "Sent with Symbola",
     "symbolaFooter": "Symbola — the suite for event organisers",
@@ -6419,7 +6420,10 @@
       "version": "3",
       "place": "video call: https://video.example.com/studio",
       "appointment": "First discovery call",
-      "appointmentDate": "2 March 2027 at 10:00"
+      "appointmentDate": "2 March 2027 at 10:00",
+      "brochure": "https://symbola.fr/brochure/example",
+      "bookingLink": "https://symbola.fr/reserver/example-studio",
+      "questionnaire": "Discovery"
     },
     "event": {
       "coupleClient": "your wedding",
@@ -6461,7 +6465,8 @@
         "body": "Hello,\n\nYou have been invited to join \"{organization}\" on Symbola. This link is valid for 7 days:\n\n{url}",
         "button": "Accept the invitation"
       }
-    }
+    },
+    "followUpOptOut": "You would rather not hear from us again? Simply reply to this message."
   },
   "RecipientsGuard": {
     "title": "This sending goes to {count} people",
@@ -6548,6 +6553,18 @@
       "prospect_form_received": {
         "title": "New contact request",
         "description": "Sent to the account owner at each request received through the contact form, without the person's message or contact details."
+      },
+      "prospect_reply": {
+        "title": "Reply to a prospect",
+        "description": "The text offered by \"Reply\" when no message template fits; the planner reviews and edits it before sending."
+      },
+      "prospect_follow_up": {
+        "title": "Prospect follow-up",
+        "description": "The text of a follow-up with no message template chosen (Settings, Follow-ups); prepared in \"Today\", reviewed before sending."
+      },
+      "questionnaire_sent": {
+        "title": "Questionnaire sent",
+        "description": "Sent with a questionnaire to the event's contact: their personal link becomes the \"Answer the questionnaire\" button."
       }
     },
     "variables": {
@@ -6563,7 +6580,10 @@
       "version": "The schedule version number",
       "place": "The place: address, video link or phone",
       "appointment": "The appointment type",
-      "appointment_date": "The day and time of the appointment"
+      "appointment_date": "The day and time of the appointment",
+      "brochure": "The link to your brochure, valid for 30 days; added when sending",
+      "booking_link": "Your appointment booking page, or time slots to fill in if it is not open",
+      "questionnaire": "The name of the questionnaire sent"
     },
     "back": "All email templates",
     "editorTitle": "{title} ({language})",

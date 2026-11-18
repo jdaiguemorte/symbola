@@ -6401,7 +6401,8 @@
       "sign": "Signer en ligne",
       "answer": "Répondre",
       "manage": "Reporter ou annuler",
-      "request": "Voir la demande"
+      "request": "Voir la demande",
+      "questionnaire": "Répondre au questionnaire"
     },
     "footerNote": "Envoyé avec Symbola",
     "symbolaFooter": "Symbola — la suite des organisateurs d'évènements",
@@ -6419,7 +6420,10 @@
       "version": "3",
       "place": "en visio : https://visio.exemple.fr/atelier",
       "appointment": "Premier rendez-vous découverte",
-      "appointmentDate": "2 mars 2027 à 10:00"
+      "appointmentDate": "2 mars 2027 à 10:00",
+      "brochure": "https://symbola.fr/brochure/exemple",
+      "bookingLink": "https://symbola.fr/reserver/atelier-exemple",
+      "questionnaire": "Découverte"
     },
     "event": {
       "coupleClient": "votre mariage",
@@ -6461,7 +6465,8 @@
         "body": "Bonjour,\n\nVous avez été invité·e à rejoindre « {organization} » sur Symbola. Ce lien est valable 7 jours :\n\n{url}",
         "button": "Accepter l'invitation"
       }
-    }
+    },
+    "followUpOptOut": "Vous ne souhaitez plus de nouvelles ? Répondez simplement à ce message."
   },
   "RecipientsGuard": {
     "title": "Cet envoi part à {count} personnes",
@@ -6548,6 +6553,18 @@
       "prospect_form_received": {
         "title": "Nouvelle demande de contact",
         "description": "Part à la titulaire à chaque demande reçue par le formulaire de contact, sans le message ni les coordonnées de la personne."
+      },
+      "prospect_reply": {
+        "title": "Réponse à un prospect",
+        "description": "Le texte proposé par « Répondre » quand aucun modèle de message ne convient ; la planner le relit et le modifie avant l'envoi."
+      },
+      "prospect_follow_up": {
+        "title": "Relance d'un prospect",
+        "description": "Le texte d'une relance sans modèle de message choisi (Paramètres, Relances) ; préparée dans « Aujourd'hui », relue avant l'envoi."
+      },
+      "questionnaire_sent": {
+        "title": "Questionnaire envoyé",
+        "description": "Part avec un questionnaire, au contact de l'évènement : son lien personnel devient le bouton « Répondre au questionnaire »."
       }
     },
     "variables": {
@@ -6563,7 +6580,10 @@
       "version": "Le numéro de la version du programme",
       "place": "Le lieu : adresse, lien de visio ou téléphone",
       "appointment": "Le type de rendez-vous",
-      "appointment_date": "Le jour et l'heure du rendez-vous"
+      "appointment_date": "Le jour et l'heure du rendez-vous",
+      "brochure": "Le lien de votre brochure, valable 30 jours ; ajouté à l'envoi",
+      "booking_link": "Votre page de réservation de rendez-vous, ou des créneaux à compléter si elle n'est pas ouverte",
+      "questionnaire": "Le nom du questionnaire envoyé"
     },
     "back": "Tous les modèles d'e-mails",
     "editorTitle": "{title} ({language})",
