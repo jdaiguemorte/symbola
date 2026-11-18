@@ -5062,7 +5062,15 @@
       "guests_purge_postponed": "Purge des invités reportée",
       "guests_purge_executed": "Données des invités purgées",
       "guests_import_applied": "Liste d'invités importée",
-      "guests_import_undone": "Import d'invités annulé"
+      "guests_import_undone": "Import d'invités annulé",
+      "events_vendor_brief_sent": "Demande de devis envoyée à des prestataires",
+      "events_vendor_brief_reminded": "Prestataire relancé la veille de la date limite",
+      "events_vendor_answered": "Réponse d'un prestataire à une demande de devis",
+      "events_vendor_invoice_received": "Facture déposée par un prestataire",
+      "events_vendor_roadmap_sent": "Feuille de route envoyée à un prestataire",
+      "events_vendor_roadmap_confirmed": "Feuille de route confirmée par un prestataire",
+      "events_decision_engaged": "Choix du client engagé (prestataire retenu, tâches de suivi)",
+      "events_decision_engagement_undone": "Choix du client annulé"
     },
     "categories": {
       "connexion": "Connexions",
@@ -6268,7 +6276,10 @@
     "button": {
       "space": "Ouvrir mon espace",
       "sign": "Signer en ligne",
-      "answer": "Répondre"
+      "answer": "Répondre",
+      "available": "Je suis disponible",
+      "unavailable": "Je ne suis pas disponible",
+      "roadmap": "Voir ma feuille de route"
     },
     "footerNote": "Envoyé avec Symbola",
     "symbolaFooter": "Symbola — la suite des organisateurs d'évènements",
@@ -6283,7 +6294,9 @@
       "validUntil": "19 juin 2027",
       "tasks": "- Choisir les alliances : avant le 10 mars 2027 (dans 7 jours)\n- Valider le menu : avant le 15 mars 2027 (dans 12 jours)",
       "quoteNumber": "D-2027-0042",
-      "version": "3"
+      "version": "3",
+      "slot": "Fleurs",
+      "deadline": "10 mars 2027"
     },
     "event": {
       "coupleClient": "votre mariage",
@@ -6348,7 +6361,8 @@
       "links": "Liens personnels",
       "reminders": "Rappels",
       "signatures": "Devis et contrats",
-      "program": "Programme"
+      "program": "Programme",
+      "vendors": "Prestataires"
     },
     "kinds": {
       "client_link": {
@@ -6390,6 +6404,18 @@
       "program_published": {
         "title": "Nouvelle version du programme",
         "description": "Part quand vous prévenez par e-mail d'une version diffusée, avec le programme en PDF."
+      },
+      "vendor_brief": {
+        "title": "Demande de devis à un prestataire",
+        "description": "Part à chaque prestataire du brief, avec deux boutons : « Je suis disponible » et « Je ne suis pas disponible »."
+      },
+      "vendor_brief_reminder": {
+        "title": "Relance d'une demande de devis",
+        "description": "Part toute seule la veille de la date limite, aux prestataires qui n'ont pas répondu."
+      },
+      "vendor_roadmap": {
+        "title": "Feuille de route d'un prestataire",
+        "description": "Part toute seule à J-30 et à J-7 à chaque prestataire retenu, avec son lien pour confirmer."
       }
     },
     "variables": {
@@ -6402,7 +6428,11 @@
       "valid_until": "La date de fin de validité du lien",
       "tasks": "La liste des tâches à faire, avec leur échéance",
       "quote_number": "Le numéro du devis",
-      "version": "Le numéro de la version du programme"
+      "version": "Le numéro de la version du programme",
+      "slot": "Le poste concerné (« Fleurs », « Photographe »…)",
+      "deadline": "La date limite de réponse du brief",
+      "link_available": "Le lien qui présélectionne « disponible » ; seul sur sa ligne, il devient le bouton « Je suis disponible »",
+      "link_unavailable": "Le lien qui présélectionne « indisponible » ; seul sur sa ligne, il devient le bouton « Je ne suis pas disponible »"
     },
     "back": "Tous les modèles d'e-mails",
     "editorTitle": "{title} ({language})",

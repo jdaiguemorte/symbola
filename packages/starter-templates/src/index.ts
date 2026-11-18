@@ -1288,3 +1288,5 @@ export function starterMessageTemplates(locale: StarterLocale): StarterMessageTe
 // Lot 49 (module Invités) : liste des régimes, règles, textes de la page de réponse, colonnes
 // d'import (guests.ts).
 export * from "./guests";
+// Lot 47 (PAR-05 ; ADR 0085) : délais et tâches de suivi des prestataires par lien.
+export * from "./vendor-coordination";

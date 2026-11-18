@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "_source": "Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09 ; D2, D6, D8 ; ADR 0085), spécification validée par Julien le 18/11/2026 : date limite d'un brief à 7 jours par défaut, relance la veille de la date limite (rattrapée le jour même), feuilles de route à J-30 et à J-7 dans le fuseau de l'évènement (chacune rattrapée jusqu'à la suivante), alerte 3 jours après l'envoi de J-7 sans confirmation, choix du client annulable 7 jours, envois entre 9 h et 19 h. Chaque organisation règle les siens (Paramètres › Prestataires par lien).",
+  "briefDeadlineDays": 7,
+  "reminderDaysBefore": 1,
+  "roadmapDaysBefore": {
+    "month": 30,
+    "week": 7
+  },
+  "roadmapAlertDays": 3,
+  "engagementUndoDays": 7,
+  "sendingHours": {
+    "from": 9,
+    "until": 19
+  }
+}

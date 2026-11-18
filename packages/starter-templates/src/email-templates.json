@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_source": "Lot 38a (MSG-01, D3, D5, D6 ; ADR 0072) : textes de départ des e-mails que l'organisation adresse aux tiers. Variables entre doubles accolades, en français ({{prénom}}) ou en anglais ({{first_name}}) ; un paragraphe fait du seul lien devient un bouton. La planner les remplace dans Paramètres › Modèles d'e-mails. Les textes de départ n'emploient que des variables toujours renseignées (aucun e-mail ne part avec une variable vide). Repris des textes des lots 26 à 31 ; l'exemplaire signé garde le sens validé par l'avocat (réponse 1, lot 31b).",
+  "_source": "Lot 38a (MSG-01, D3, D5, D6 ; ADR 0072) : textes de départ des e-mails que l'organisation adresse aux tiers. Variables entre doubles accolades, en français ({{prénom}}) ou en anglais ({{first_name}}) ; un paragraphe fait du seul lien devient un bouton. La planner les remplace dans Paramètres › Modèles d'e-mails. Les textes de départ n'emploient que des variables toujours renseignées (aucun e-mail ne part avec une variable vide). Repris des textes des lots 26 à 31 ; l'exemplaire signé garde le sens validé par l'avocat (réponse 1, lot 31b). Lot 47 (PRE-03, PAR-05 ; D2, D4, D8 ; ADR 0085) : brief à un prestataire (deux boutons, « disponible » ou non), sa relance, feuille de route.",
   "templates": {
     "fr": {
       "client_link": {
@@ -50,6 +50,18 @@
       "guest_reminder": {
         "subject": "Petit rappel : {{clients}} attendent votre réponse",
         "body": "Bonjour {{prénom}},\n\nVous n'avez pas encore répondu à l'invitation de {{clients}} pour leur {{évènement}}, le {{date_évènement}}. Les réponses sont attendues jusqu'au {{valable_jusqu_au}} inclus ; une minute suffit, avec votre lien personnel :\n\n{{lien}}\n\nCe lien vous est réservé : ne le transférez pas.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "vendor_brief": {
+        "subject": "Demande de devis : {{poste}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\n{{organisation}} prépare {{évènement}} et cherche un prestataire pour ce poste : {{poste}}. Le besoin, la date, le lieu et les inspirations vous attendent dans votre espace, sans compte ni mot de passe. Êtes-vous disponible ? Merci de répondre avant le {{date_limite}} inclus :\n\n{{lien_disponible}}\n\n{{lien_indisponible}}\n\nSi vous êtes disponible, vous pourrez joindre votre devis depuis votre téléphone (photo ou PDF). Ce lien vous est réservé : ne le transférez pas. Si vous ne l'attendiez pas, ignorez ce message.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "vendor_brief_reminder": {
+        "subject": "Petit rappel : demande de devis {{poste}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\n{{organisation}} attend votre réponse pour {{évènement}} (poste : {{poste}}) avant le {{date_limite}} inclus. Une minute suffit :\n\n{{lien_disponible}}\n\n{{lien_indisponible}}\n\nCe lien vous est réservé : ne le transférez pas.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "vendor_roadmap": {
+        "subject": "Votre feuille de route pour {{évènement}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\nVoici votre feuille de route pour {{évènement}}, le {{date_évènement}} : vos horaires, les lieux et leurs accès, le contact sur place et vos tâches. Merci de confirmer d'un toucher que vous l'avez bien reçue :\n\n{{lien}}\n\nCe lien vous est réservé : ne le transférez pas.\n\nÀ bientôt,\n{{organisation}}"
       }
     },
     "en": {
@@ -100,6 +112,18 @@
       "guest_reminder": {
         "subject": "Friendly reminder: {{clients}} are waiting for your reply",
         "body": "Hello {{first_name}},\n\nYou have not yet replied to the invitation from {{clients}} to their {{event}}, on {{event_date}}. Replies are expected until {{valid_until}} included; one minute is enough, with your personal link:\n\n{{link}}\n\nThis link is for you only: please do not forward it.\n\nSee you soon,\n{{organization}}"
+      },
+      "vendor_brief": {
+        "subject": "Quote request: {{slot}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\n{{organization}} is preparing {{event}} and is looking for a supplier for: {{slot}}. The brief, the date, the venue and the inspiration are waiting in your space, with no account or password. Are you available? Please answer by {{deadline}} included:\n\n{{link_available}}\n\n{{link_unavailable}}\n\nIf you are available, you can attach your quote from your phone (photo or PDF). This link is for you only: please do not forward it. If you were not expecting it, ignore this message.\n\nSee you soon,\n{{organization}}"
+      },
+      "vendor_brief_reminder": {
+        "subject": "Friendly reminder: quote request {{slot}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\n{{organization}} is waiting for your answer for {{event}} ({{slot}}) by {{deadline}} included. It takes one minute:\n\n{{link_available}}\n\n{{link_unavailable}}\n\nThis link is for you only: please do not forward it.\n\nSee you soon,\n{{organization}}"
+      },
+      "vendor_roadmap": {
+        "subject": "Your run sheet for {{event}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\nHere is your run sheet for {{event}}, on {{event_date}}: your times, the venues and how to get there, the on-site contact and your tasks. Please confirm with one tap that you have received it:\n\n{{link}}\n\nThis link is for you only: please do not forward it.\n\nSee you soon,\n{{organization}}"
       }
     }
   }

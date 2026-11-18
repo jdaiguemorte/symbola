@@ -5062,7 +5062,15 @@
       "guests_purge_postponed": "Guest purge postponed",
       "guests_purge_executed": "Guest data purged",
       "guests_import_applied": "Guest list imported",
-      "guests_import_undone": "Guest import undone"
+      "guests_import_undone": "Guest import undone",
+      "events_vendor_brief_sent": "Quote request sent to suppliers",
+      "events_vendor_brief_reminded": "Supplier reminded the day before the deadline",
+      "events_vendor_answered": "Supplier answered a quote request",
+      "events_vendor_invoice_received": "Invoice uploaded by a supplier",
+      "events_vendor_roadmap_sent": "Run sheet sent to a supplier",
+      "events_vendor_roadmap_confirmed": "Run sheet confirmed by a supplier",
+      "events_decision_engaged": "Client choice committed (supplier booked, follow-up tasks)",
+      "events_decision_engagement_undone": "Client choice undone"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -6268,7 +6276,10 @@
     "button": {
       "space": "Open my space",
       "sign": "Sign online",
-      "answer": "Reply"
+      "answer": "Reply",
+      "available": "I am available",
+      "unavailable": "I am not available",
+      "roadmap": "See my run sheet"
     },
     "footerNote": "Sent with Symbola",
     "symbolaFooter": "Symbola — the suite for event organisers",
@@ -6283,7 +6294,9 @@
       "validUntil": "June 19, 2027",
       "tasks": "- Choose the rings: due March 10, 2027 (in 7 days)\n- Confirm the menu: due March 15, 2027 (in 12 days)",
       "quoteNumber": "D-2027-0042",
-      "version": "3"
+      "version": "3",
+      "slot": "Flowers",
+      "deadline": "10 March 2027"
     },
     "event": {
       "coupleClient": "your wedding",
@@ -6348,7 +6361,8 @@
       "links": "Personal links",
       "reminders": "Reminders",
       "signatures": "Quotes and contracts",
-      "program": "Schedule"
+      "program": "Schedule",
+      "vendors": "Suppliers"
     },
     "kinds": {
       "client_link": {
@@ -6390,6 +6404,18 @@
       "program_published": {
         "title": "New schedule version",
         "description": "Sent when you notify a shared version by email, with the schedule as a PDF."
+      },
+      "vendor_brief": {
+        "title": "Quote request to a supplier",
+        "description": "Sent to each supplier of the brief, with two buttons: “I am available” and “I am not available”."
+      },
+      "vendor_brief_reminder": {
+        "title": "Quote request reminder",
+        "description": "Sent automatically the day before the deadline, to suppliers who have not answered."
+      },
+      "vendor_roadmap": {
+        "title": "Supplier run sheet",
+        "description": "Sent automatically 30 and 7 days before the event to each booked supplier, with their link to confirm."
       }
     },
     "variables": {
@@ -6402,7 +6428,11 @@
       "valid_until": "The link's expiry date",
       "tasks": "The list of tasks to do, with their due dates",
       "quote_number": "The quote number",
-      "version": "The schedule version number"
+      "version": "The schedule version number",
+      "slot": "The supplier category (“Flowers”, “Photographer”…)",
+      "deadline": "The answer deadline of the brief",
+      "link_available": "The link that preselects “available”; alone on its line, it becomes the “I am available” button",
+      "link_unavailable": "The link that preselects “not available”; alone on its line, it becomes the “I am not available” button"
     },
     "back": "All email templates",
     "editorTitle": "{title} ({language})",

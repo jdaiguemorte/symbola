@@ -3,7 +3,7 @@
 // Security activée par une migration dédiée (même patron que hello,
 // packages/db/drizzle).
 import { sql } from "drizzle-orm";
-import { boolean, check, date, integer, pgSchema, text, time, timestamp, unique, uuid, jsonb, index } from "drizzle-orm/pg-core";
+import { boolean, check, date, integer, pgSchema, text, time, timestamp, unique, uuid, jsonb, index, type AnyPgColumn } from "drizzle-orm/pg-core";
 
 export const eventsSchema = pgSchema("events");
 
@@ -254,13 +254,13 @@ export const eventVendorCandidates = eventsSchema.table("event_vendor_candidates
   // Lot 47 (PRE-03, PRE-04, PAR-05 ; ADR 0085) : le brief reçu, la réponse du prestataire par son
   // lien (disponible ou non, date, message court), la relance de la veille, le motif d'un écart et
   // la facture déposée une fois retenu (un document de l'évènement).
-  briefId: uuid("brief_id").references(() => vendorBriefs.id, { onDelete: "set null" }),
+  briefId: uuid("brief_id").references((): AnyPgColumn => vendorBriefs.id, { onDelete: "set null" }),
   availability: text("availability"),
   answeredAt: timestamp("answered_at", { withTimezone: true }),
   answerMessage: text("answer_message"),
   remindedAt: timestamp("reminded_at", { withTimezone: true }),
   dismissalReason: text("dismissal_reason"),
-  invoiceDocumentId: uuid("invoice_document_id").references(() => eventDocuments.id, { onDelete: "set null" }),
+  invoiceDocumentId: uuid("invoice_document_id").references((): AnyPgColumn => eventDocuments.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
@@ -800,7 +800,7 @@ export const eventDocuments = eventsSchema.table("event_documents", {
   // Lot 47 (PRE-04) : une facture déposée par un prestataire retenu, par son lien, n'a pas d'auteur
   // dans l'équipe ; le lien qui l'a déposée est gardé (nul s'il est effacé depuis).
   uploadedByUserId: uuid("uploaded_by_user_id"),
-  uploadedByLinkId: uuid("uploaded_by_link_id").references(() => eventLinks.id, { onDelete: "set null" }),
+  uploadedByLinkId: uuid("uploaded_by_link_id").references((): AnyPgColumn => eventLinks.id, { onDelete: "set null" }),
   folderId: uuid("folder_id").references(() => eventDocumentFolders.id, { onDelete: "set null" }),
   sharedWithClients: boolean("shared_with_clients").notNull().default(false),
   sharedWithVendors: boolean("shared_with_vendors").notNull().default(false),

@@ -403,3 +403,5 @@ export {
 } from "./trash";
 // Lot 49 (module Invités, ADR 0083) : contrat interne du module.
 export * from "./guests/service-contract";
+// Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; ADR 0085) : prestataires par lien.
+export * from "./events/vendor-coordination";

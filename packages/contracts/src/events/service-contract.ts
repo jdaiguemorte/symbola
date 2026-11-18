@@ -720,7 +720,16 @@ export type ClientEventView = {
 // Lot 32a (D6) : « vendor_reminded », un prestataire relancé depuis le cockpit (taskLabel : son nom).
 // Lot 37a (DOC-04, D7) : « document_link_opened », un lien de partage ouvert (taskLabel : l'intitulé
 // du document à l'ouverture).
-export type EventActivityKind = "task_done" | "task_undone" | "decision_made" | "vendor_reminded" | "document_link_opened";
+// Lot 47 (PAR-05, PRE-04) : réponse à un brief, facture déposée, feuille de route confirmée.
+export type EventActivityKind =
+  | "task_done"
+  | "task_undone"
+  | "decision_made"
+  | "vendor_reminded"
+  | "document_link_opened"
+  | "vendor_answered"
+  | "vendor_invoice_received"
+  | "vendor_roadmap_confirmed";
 
 // Lot 32a (HUB-08, UX-06) — décision du client sans réponse, pour la liste des urgences.
 export type PendingDecision = { id: string; eventId: string; kind: DecisionKind; title: string; dueOn: string | null; requestedAt: string };
@@ -765,6 +774,9 @@ export type EventDecision = {
   requestedAt: string;
   // Programme approuvé puis modifié depuis la réponse (lot 37b : une version plus récente diffusée).
   programChanged: boolean;
+  // Lot 47 (D6) : le choix d'une décision « options » a engagé ; annulable jusqu'à undoUntil.
+  engagedAt: string | null;
+  engagementUndoneAt: string | null;
 };
 
 type RequestDecisionBase = {

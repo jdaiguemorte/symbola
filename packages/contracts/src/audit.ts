@@ -92,6 +92,16 @@ export const AUDIT_ACTIONS = {
   "events.decision.requested": { category: "partage", objectType: "event" },
   "events.decision.answered": { category: "partage", objectType: "event" },
   "events.decision.withdrawn": { category: "partage", objectType: "event" },
+  // Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09 ; ADR 0085) : prestataires par lien (identifiants, nombres,
+  // étape ; jamais un nom, un e-mail ni un montant).
+  "events.vendor_brief.sent": { category: "partage", objectType: "event" },
+  "events.vendor_brief.reminded": { category: "partage", objectType: "event" },
+  "events.vendor.answered": { category: "partage", objectType: "event" },
+  "events.vendor.invoice_received": { category: "partage", objectType: "event" },
+  "events.vendor_roadmap.sent": { category: "partage", objectType: "event" },
+  "events.vendor_roadmap.confirmed": { category: "partage", objectType: "event" },
+  "events.decision.engaged": { category: "partage", objectType: "event" },
+  "events.decision.engagement_undone": { category: "partage", objectType: "event" },
   // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
   "hub.mail.quota_reached": { category: "partage", objectType: null },
   // Lot 38a (MSG-01, D5) : un e-mail automatique n'est pas parti, une variable du modèle étant vide

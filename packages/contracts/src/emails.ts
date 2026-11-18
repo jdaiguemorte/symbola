@@ -29,7 +29,9 @@ export type EmailLocale = (typeof EMAIL_LOCALES)[number];
 // Les variables, désignées par une clé stable ; chacune s'écrit en français ou en anglais dans un
 // modèle (« {{prénom}} », « {{first_name}} »).
 // Lot 38b : « place » (le lieu de réception) sert aux modèles de messages de la planner.
-export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place"] as const;
+// Lot 47 (PRE-03 ; D4) : « slot » (le poste), « deadline » (date limite du brief), et deux liens qui
+// deviennent les boutons « Je suis disponible » et « Je ne suis pas disponible ».
+export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "slot", "deadline", "link_available", "link_unavailable"] as const;
 export type EmailVariable = (typeof EMAIL_VARIABLES)[number];
 export type EmailValues = Partial<Record<EmailVariable, string>>;
 
