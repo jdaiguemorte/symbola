@@ -229,3 +229,23 @@ une conformité partielle à WCAG 2.2 AA, faute d'audit complet par un tiers.
   n'existe pas (question 8) ?
 
 Besoin : une réponse **avant de publier la page `/accessibilite`** (lot 40c, JUR-17).
+
+## Question du 18 novembre 2026 (lot 46, rendez-vous)
+
+### 15. Mentions légales de la page publique de réservation
+
+Le module Rendez-vous publie, pour chaque planner qui l'ouvre, une page publique de réservation
+(`/reserver/<adresse-choisie>`), à son nom, sur le domaine de Symbola. On y choisit un créneau et on
+y laisse son nom, son e-mail et, si on veut, son téléphone. La page porte la mention d'information
+RGPD de la planner ; elle n'est ni indexée ni intégrable dans un autre site.
+
+- **AV-3** : faut-il y faire figurer les mentions légales de la planner (identité, forme et
+  immatriculation, adresse, hébergeur), comme sur un site de l'éditeur ? Ou un lien vers ses
+  mentions, ou rien de plus que la mention d'information, la page n'étant qu'un formulaire de
+  prise de contact ? Et Symbola, comme hébergeur, doit-il y apparaître ?
+
+> **Symbola** : la page montre aujourd'hui le nom de la planner, la mention d'information (avec son
+> adresse de contact) et « Symbola héberge ces données pour le compte de … ». Le module reste fermé
+> par défaut ; il ne sera ouvert à la pilote qu'après votre réponse.
+
+Besoin : une réponse **avant d'ouvrir le module Rendez-vous à la pilote**.

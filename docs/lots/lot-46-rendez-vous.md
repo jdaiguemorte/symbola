@@ -447,3 +447,38 @@ Le lot 41 ne touche aucun de ces fichiers. Sans D0, s'y ajoutent `modules/hub/se
 (clés des modules), `starter-kit.ts`, l'écran de l'Exploitation, `packages/env`, `.env.example`
 et `packages/auth` : conflits sur les mêmes lignes, et le lot 46 dépendrait du chiffrement écrit
 par le lot 49.
+
+## Bilan (18/11/2026)
+
+Fait, dans une seule PR (ADR 0080) :
+
+- Module `appointments` (schéma et migrations 0150, 0151, annulables ; RLS forcée sur les neuf
+  tables, lecture publique de la seule adresse de page) ; contrat et évènement interne
+  `appointments.appointment.booked` (v1) dans `packages/contracts`.
+- RDV-01 : types en deux champs, trois types de départ (`appointment-types.json`), réglages par
+  type. RDV-02 : page publique `/reserver/<adresse>`, créneaux calculés (`slots.ts`, test par
+  propriétés, heure d'été et d'hiver), agendas ICS chiffrés et lus par `ical.js` avec garde réseau,
+  verrou à la réservation, plafond de trois rendez-vous, débit limité. RDV-03 : confirmation avec
+  `.ics`, lien de gestion `/rdv#…`, report et annulation sans compte, rappels par la file des tâches.
+  RDV-04 : app autonome (combinaisons ARC-07), contact rattaché, rattachement à un évènement ou
+  option sans ressaisie. EVT-10 : comptes rendus, action devenue tâche en un geste, section de la
+  synthèse de l'évènement, historique du contact. HUB-08 et POR-02 : rendez-vous dans
+  « Aujourd'hui » et sur l'accueil du portail.
+- RGPD : registre, `privacy/v1`, purge selon la règle des prospects (DPO-2, défaut prudent),
+  export complet (sans l'adresse secrète ni le jeton), corbeille ; questions DPO-1 à DPO-3 et AV-3
+  versées aux fiches des conseils.
+- Aide de six écrans, menu (après Contacts), réglages, palette, recherche ; textes FR et EN.
+
+Reste ou écart :
+
+- **Modèles d'e-mails de rendez-vous** : ils partent de leur texte de départ mais ne sont pas encore
+  modifiables dans Paramètres › Modèles d'e-mails : la contrainte `hub.email_templates_kind_check`
+  ne connaît pas leurs natures, et la réécrire touche le schéma du hub (accord demandé à Julien ;
+  le lot 49 la réécrit pour ses natures, la seconde PR fusionnée portera l'union).
+- **Agenda de l'app** (`app/agenda`, calendrier des mois de l'écran Évènements) : les rendez-vous
+  n'y sont pas dessinés ; ils sont dans le flux ICS de la personne qui reçoit (HUB-29),
+  dans « Aujourd'hui » et dans la liste du module.
+- **Parcours Playwright** non joués en local (port et fournisseur d'identité pris par les sessions
+  des lots 41 et 49) : ils tournent en CI.
+- Déploiement : migrations 0150 et 0151, ajouts seuls (compatibles avec la version précédente) ;
+  le module reste fermé tant que l'Exploitation ne l'ouvre pas.
