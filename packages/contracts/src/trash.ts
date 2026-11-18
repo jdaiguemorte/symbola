@@ -7,7 +7,8 @@ export const ELEMENT_PURGE_MINUTES = 10;
 // Lot 39b (UX-09, D7, ADR 0074) : un brouillon de formulaire laissé en l'état est purgé après 30 jours.
 export const FORM_DRAFT_RETENTION_DAYS = 30;
 
-export const TRASH_KINDS = ["event", "contact", "document", "taskTemplate", "programTemplate", "quoteTemplate", "contractTemplate", "messageTemplate"] as const;
+// Lot 46 (ADR 0080) : types de rendez-vous et rendez-vous.
+export const TRASH_KINDS = ["event", "contact", "document", "taskTemplate", "programTemplate", "quoteTemplate", "contractTemplate", "messageTemplate", "appointmentType", "appointment"] as const;
 export type TrashKind = (typeof TRASH_KINDS)[number];
 
 // « vendor » : l'archivage d'un prestataire s'annule aussi (D6), sans passer par la corbeille.
