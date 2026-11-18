@@ -7,6 +7,7 @@ import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import type { VendorDocumentKind } from "@symbola/contracts";
 import { useUploadAction } from "@/app/ui/use-upload";
+import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { requestVendorDocumentAction, saveVendorNoteAction, setVendorBankAction, setVendorDocumentValidityAction, type RecordFormState } from "./records-actions";
 
 export function VendorBankForm({ vendorId, hasIban }: { vendorId: string; hasIban: boolean }) {
@@ -119,6 +120,7 @@ export function VendorNoteForm({ vendorId, note, confidential }: { vendorId: str
         {t("note")}
         <textarea name="note" rows={4} maxLength={10000} defaultValue={note ?? ""} />
       </label>
+      <FreeTextNotice />
       <label className="checkbox">
         <input type="checkbox" name="confidential" defaultChecked={confidential} />
         {t("noteConfidential")}

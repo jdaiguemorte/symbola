@@ -173,6 +173,7 @@ export function EventNotesForm({ eventId, notes, confidential }: { eventId: stri
         {t("eventNotes")}
         <textarea name="notes" maxLength={10000} rows={4} defaultValue={notes ?? ""} />
       </label>
+      <FreeTextNotice />
       <label className="checkbox">
         <input type="checkbox" name="confidential" defaultChecked={confidential} />
         {t("eventNotesConfidential")}
