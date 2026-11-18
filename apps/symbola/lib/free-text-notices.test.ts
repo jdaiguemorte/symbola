@@ -97,6 +97,8 @@ const WITHOUT_ENTRY: Record<string, string> = {
   "events.prospect_requests.message": "message du prospect sur le formulaire de contact public ; la mention d'information est affichée avant l'envoi",
   "events.prospect_requests.period": "période en texte court écrite par le prospect sur le formulaire public",
   "events.prospect_requests.budget_range": "tranche de budget en texte court écrite par le prospect sur le formulaire public",
+  // Lot 53 (HUB-15) : jamais saisi par une personne ; recopié par Symbola (numéro, intitulé, montant).
+  "hub.notifications.params": "libellés courts recopiés par Symbola depuis l'objet de la notification (numéro de devis, intitulé de tâche) ; aucune saisie",
 };
 
 function freeTextFields(): string[] {
