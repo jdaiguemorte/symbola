@@ -79,7 +79,7 @@ describe("SEC-10 — Isolation entre organisations du module Invités (PostgreSQ
       const idColumn = (table as unknown as { id: Parameters<typeof eq>[0] }).id;
       await assertOrganizationIsolation({
         seed: (organizationId) => withOrganization(db, organizationId, async (tx) => (await seedAll(tx, organizationId))[key] as { id: string }),
-        listVisible: (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(table) as Promise<{ id: string }[]>),
+        listVisible: (organizationId) => withOrganization(db, organizationId, async (tx) => (await tx.select().from(table)) as unknown as { id: string }[]),
         attemptCrossOrganizationUpdate: async (organizationId, target) => ({
           affectedRows: (await withOrganization(db, organizationId, (tx) => tx.delete(table).where(eq(idColumn, target.id)).returning())).length,
         }),
