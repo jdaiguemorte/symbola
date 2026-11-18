@@ -22,7 +22,8 @@ export const CHOICE_MAX = 120;
 export const SHORT_ANSWER_MAX = 300;
 export const LONG_ANSWER_MAX = 5000;
 export const GUESTS_MAX = 100_000;
-export const AMOUNT_MAX_CENTS = 100_000_000_00;
+// 20 millions d'euros : le budget souhaité de l'évènement est un entier de 32 bits, en centimes.
+export const AMOUNT_MAX_CENTS = 2_000_000_000;
 
 // La nature qu'un champ de l'évènement attend.
 const FIELD_NATURES: Record<QuestionEventField, QuestionNature[]> = {

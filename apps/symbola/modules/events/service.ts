@@ -3408,7 +3408,11 @@ export async function applyQuestionnairePrefill(organizationId: string, eventId:
   const state = await eventPrefillState(organizationId, eventId, values);
   let filled = 0;
   for (const fill of state.work.fill) {
-    const written = await writeEventField(organizationId, eventId, fill.eventField, fill.value);
+    // Une valeur que la fiche refuse (hors bornes) ne bloque pas « Terminer » : la fiche reste.
+    const written = await writeEventField(organizationId, eventId, fill.eventField, fill.value).catch((error: unknown) => {
+      if (error instanceof RangeError) return false;
+      throw error;
+    });
     await markAnswersResolved(organizationId, [fill], written ? "filled" : "kept");
     if (written) filled += 1;
   }

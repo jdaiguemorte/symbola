@@ -49,6 +49,9 @@ describe("POR-07 — Questionnaires : questions et réponses", () => {
     expect(parseAmountCents("0,1")).toBe(10);
     expect(parseAmountCents("12,345")).toBeNull();
     expect(parseAmountCents("-5")).toBeNull();
+    // Au-delà de 20 millions d'euros : refusé (le budget souhaité tient dans un entier de 32 bits).
+    expect(parseAmountCents("20000000")).toBe(2_000_000_000);
+    expect(parseAmountCents("20000001")).toBeNull();
   });
 
   it("DPO : une question sur la santé ou la religion est signalée", () => {
