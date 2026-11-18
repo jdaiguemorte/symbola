@@ -469,6 +469,11 @@ export async function AppShell({ children }: { children: ReactNode }) {
                     href: "/prestataires/parametres/trajet",
                     label: tSettings("vendorTravel"),
                   },
+                  // Lot 48a (PRE-05) : délai d'alerte et natures des pièces des prestataires.
+                  {
+                    href: "/prestataires/parametres/pieces",
+                    label: tSettings("vendorDocuments"),
+                  },
                 ]
               : []),
             ...(events || budget || quotes

@@ -54,7 +54,8 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
   const [eventsEnabled, quotesEnabled, notes, team, memberships] = await Promise.all([
     isModuleEnabled(db, organizationId, "events"),
     isModuleEnabled(db, organizationId, "quotes"),
-    listContactNotes(organizationId, id),
+    // Lot 48a (DAT-08) : une note confidentielle n'est lue que par son auteur et la titulaire.
+    listContactNotes(organizationId, id, { userId: auth.user.id, role: auth.user.role }),
     listTeam(db, organizationId),
     isGroup ? listContactMembers(organizationId, id) : listContactGroups(organizationId, id),
   ]);
@@ -256,7 +257,8 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
             {notes.map((note) => (
               <li key={note.id}>
                 <span>
-                  <span className="task-comment-body">{note.body}</span>
+                  {note.confidential ? <span className="badge">{t("noteConfidentialBadge")}</span> : null}{" "}
+                  {note.readable ? <span className="task-comment-body">{note.body}</span> : <span className="muted">{t("noteConfidentialHidden")}</span>}
                   <span className="meta"> — {t("noteMeta", { author: author(note.authorUserId), date: formatDateTime(note.createdAt, locale) })}</span>
                 </span>
                 {note.authorUserId === auth.user.id ? (

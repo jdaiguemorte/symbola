@@ -82,6 +82,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "vendorTypes", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/parametres", capture: true },
   { key: "vendorTags", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/parametres/etiquettes", capture: true },
   { key: "vendorTravel", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/parametres/trajet", capture: true },
+  // Lot 48a (PRE-05) : réglages des pièces des prestataires.
+  { key: "vendorDocuments", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/parametres/pieces", capture: false },
   // Devis et factures
   { key: "allQuotes", group: "quotes", audience: "team", module: "quotes", path: "/devis", capture: true },
   { key: "quotesDetail", group: "quotes", audience: "team", module: "quotes", path: null, capture: true },

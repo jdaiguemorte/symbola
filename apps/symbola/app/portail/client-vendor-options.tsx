@@ -6,7 +6,9 @@ import type { ClientVendorSlotOptions } from "@/modules/events/service";
 // consultés que la planner a montrés et les notes cochées « Clients ».
 // Lot 26a : fichiers servis par le portail, pour l'événement du lien.
 // Lot 27a (POR-09) : dans l'aperçu de la planner, les fichiers ne s'ouvrent pas.
-export async function ClientVendorOptions({ groups, locale, preview = false }: { groups: ClientVendorSlotOptions[]; locale: Locale; preview?: boolean }) {
+// Lot 48a (PRE-10, SEC-27) : un RIB dont l'IBAN a changé sans être vérifié n'est jamais montré
+// (ribHidden : prestataires concernés) ; la route du RIB le refuse aussi.
+export async function ClientVendorOptions({ groups, locale, preview = false, ribHidden = new Set() }: { groups: ClientVendorSlotOptions[]; locale: Locale; preview?: boolean; ribHidden?: Set<string> }) {
   const t = await getTranslations("ClientSpace");
   return (
     <section aria-labelledby="client-options-title">
@@ -30,7 +32,7 @@ export async function ClientVendorOptions({ groups, locale, preview = false }: {
                     <a href={`/portail/options/${option.candidateId}/devis`}>{t("vendorOptionOpenQuote", { vendor: option.vendorName })}</a>
                   )
                 ) : null}
-                {option.ribShared ? (
+                {option.ribShared && !ribHidden.has(option.candidateId) ? (
                   preview ? (
                     <span>{t("vendorOptionOpenRib", { vendor: option.vendorName })}</span>
                   ) : (

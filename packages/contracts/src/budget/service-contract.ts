@@ -202,6 +202,8 @@ export type DayHandover = {
   paymentId: string;
   eventId: string;
   vendorName: string | null;
+  // Lot 48a (PRE-10, SEC-27) : fiches du carnet du prestataire (pour signaler un IBAN « à vérifier »).
+  vendorIds?: string[];
   slotLabel: string;
   label: string;
   amountCents: number;

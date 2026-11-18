@@ -189,6 +189,11 @@ export function NoteForm({ contactId }: { contactId: string }) {
         <textarea name="body" rows={3} maxLength={2000} required />
       </label>
       <FreeTextNotice />
+      {/* Lot 48a (DAT-08) : une note confidentielle est chiffrée, réservée à son auteur et à la titulaire. */}
+      <label className="checkbox">
+        <input type="checkbox" name="confidential" />
+        {t("noteConfidential")}
+      </label>
       <button type="submit" disabled={pending}>
         {t("noteAdd")}
       </button>

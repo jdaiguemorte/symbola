@@ -1,3 +1,4 @@
+import { bankToVerifyCandidates } from "@/lib/vendors/bank-checks";
 import { appDatabase } from "@symbola/db/client";
 import { getOrganizationContact } from "@/modules/hub/service";
 import type { ReactNode } from "react";
@@ -346,7 +347,7 @@ export async function PortalContent({ access, preview = false, banner }: { acces
 
       {vendorOptions.length > 0 ? (
         <div id="options">
-          <ClientVendorOptions groups={vendorOptions} locale={locale} preview={preview} />
+          <ClientVendorOptions groups={vendorOptions} locale={locale} preview={preview} ribHidden={await bankToVerifyCandidates(access.organizationId, access.eventId)} />
         </div>
       ) : null}
 

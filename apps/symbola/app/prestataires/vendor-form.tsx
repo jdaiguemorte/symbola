@@ -237,12 +237,19 @@ export function VendorForm({
         <textarea name="indicativePrices" rows={2} defaultValue={vendor?.indicativePrices ?? ""} />
       </label>
       <p className="muted">{t("indicativePricesHint")}</p>
-      <label>
-        {t("internalNote")}
-        <textarea name="internalNote" rows={3} defaultValue={vendor?.internalNote ?? ""} />
-      </label>
-      <FreeTextNotice />
-      <p className="muted">{t("internalNoteHint")}</p>
+      {/* Lot 48a (DAT-08) : une note confidentielle se change dans sa section, jamais ici. */}
+      {vendor?.internalNoteConfidential ? (
+        <p className="muted">{t("internalNoteConfidentialElsewhere")}</p>
+      ) : (
+        <>
+          <label>
+            {t("internalNote")}
+            <textarea name="internalNote" rows={3} defaultValue={vendor?.internalNote ?? ""} />
+          </label>
+          <FreeTextNotice />
+          <p className="muted">{t("internalNoteHint")}</p>
+        </>
+      )}
       <button type="submit" disabled={pending}>
         {vendor ? t("save") : t("create")}
       </button>
