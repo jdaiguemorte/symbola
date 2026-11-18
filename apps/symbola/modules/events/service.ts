@@ -13,6 +13,7 @@ import type { EventStatus as LifecycleStatus } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
 import { includingDeleted, SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
+import { randomUUID } from "node:crypto";
 import { parseEnv } from "@symbola/env";
 import { MailQuotaExceededError, reserveOrganizationMail } from "@symbola/mail";
 import { starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, starterDayOfSettings, type StarterLinkProfile } from "@symbola/starter-templates";
@@ -181,7 +182,7 @@ import { addPlace, listPlaces, makeReceptionPlace, removePlace, restorePlace, up
 import { attachFile, getAttachmentFile, listAttachments, listEventAttachments, removeAttachment } from "./task-attachments";
 import { addComment, listComments, removeComment, restoreComment } from "./task-comments";
 import { listTrashedEventRows, restoreDocumentRow, restoreEventRow, restoreProgramTemplateRow, restoreTaskTemplateRow, trashEventRow } from "./trash";
-import { createStorageClient, deletePrivateObject, detectFileType, uploadFile } from "@symbola/files";
+import { createStorageClient, deletePrivateObject, detectFileType, scanBuffer, uploadPrivateObject } from "@symbola/files";
 import {
   addCandidate,
   addCandidateNote,
@@ -3408,14 +3409,19 @@ export async function receiveDayPhoto(input: {
   if (!target) return { status: "rejected", reason: "subject" };
   let stored: { key: string; contentType: string; sizeBytes: number } | null = null;
   let rejection: DayPhotoRejection | null = null;
+  // Dans l'ordre : taille, antivirus, type par le contenu (une image), puis stockage privé.
   if (!input.bytes || input.bytes.length === 0) rejection = "unavailable";
+  else if (input.bytes.length > input.maxBytes) rejection = "size";
   else {
-    const isImage = detectFileType(input.bytes)?.mime.startsWith("image/") ?? false;
-    if (!isImage && input.bytes.length <= input.maxBytes) rejection = "type";
+    const buffer = Buffer.from(input.bytes);
+    const env = parseEnv(process.env);
+    const detected = detectFileType(input.bytes);
+    if ((await scanBuffer(buffer, { host: env.CLAMAV_HOST, port: env.CLAMAV_PORT })).infected) rejection = "virus";
+    else if (!detected || !detected.mime.startsWith("image/")) rejection = "type";
     else {
-      const upload = await uploadFile({ organizationId: input.organizationId, buffer: Buffer.from(input.bytes), maxSizeBytes: input.maxBytes });
-      if (upload.status === "uploaded") stored = { key: upload.key, contentType: upload.mime, sizeBytes: upload.size };
-      else rejection = upload.reason === "too_large" ? "size" : upload.reason === "infected" ? "virus" : "type";
+      const key = `${input.organizationId}/${randomUUID()}.${detected.extension}`;
+      await uploadPrivateObject(createStorageClient(), { key, body: buffer, contentType: detected.mime });
+      stored = { key, contentType: detected.mime, sizeBytes: buffer.length };
     }
   }
   const { photo, duplicate } = await insertDayPhoto({ organizationId: input.organizationId, eventId: input.eventId, userId: input.userId, actionId: input.meta.actionId, takenAt, target, stored, rejection });
