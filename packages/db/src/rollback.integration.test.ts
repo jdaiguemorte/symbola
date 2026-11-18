@@ -148,6 +148,9 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await target`delete from guests.households where id = ${household!.id}`;
     await target`delete from events.key_moments where id = ${moment!.id}`;
     await target`delete from events.events where id = ${event!.id}`;
+    await migrateAll();
+  });
+
   it("lot 46 (RDV-01 à RDV-04, EVT-10 ; ADR 0082) — 0156 et 0157 : adresse de page unique et lisible, adresse d'agenda chiffrée seulement ; l'annulation est refusée tant qu'un rendez-vous réel existe, puis retire le schéma", async () => {
     await migrateAll();
     const organizationId = randomUUID();
