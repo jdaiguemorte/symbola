@@ -14,6 +14,7 @@ import {
   eventBudgetItems,
   eventBudgets,
   vendorPayments,
+  eventPayers,
 } from "@symbola/db/schema/budget";
 import { withOrganization } from "@symbola/db/with-organization";
 import { appendAudit } from "@symbola/db/audit";
@@ -474,6 +475,8 @@ export async function deleteEventBudgetRows(organizationId: string, eventIds: st
       await tx.delete(budgetLineHistory).where(inArray(budgetLineHistory.lineId, lineIds));
       await tx.delete(budgetLines).where(inArray(budgetLines.id, lineIds));
     }
+    // Lot 43 (BUD-06) : les payeurs de l'évènement (leurs parts et désignations partent avec eux).
+    await tx.delete(eventPayers).where(inArray(eventPayers.eventId, eventIds));
     const budgets = await tx
       .select({ id: eventBudgets.id })
       .from(eventBudgets)

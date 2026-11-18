@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
 import type { LinkBudgetView, LinkVendorPayment } from "@/modules/budget/service";
+import type { PayerShareView } from "@symbola/contracts";
 import { cancelPaymentDeclarationAction } from "./actions";
 import { PaymentDeclarationForm } from "./payment-declaration-form";
 
@@ -17,12 +18,15 @@ export async function ClientBudget({
   methods,
   today,
   preview = false,
+  share = null,
 }: {
   view: LinkBudgetView;
   locale: Locale;
   methods: string[];
   today: string;
   preview?: boolean;
+  // Lot 43 (BUD-06, D8) : un payeur à qui le client ne montre que sa part : elle seule, ligne par ligne.
+  share?: PayerShareView | null;
 }) {
   const t = await getTranslations("LinkPortal");
   const tBudget = await getTranslations("Budget");
@@ -48,13 +52,31 @@ export async function ClientBudget({
     </dl>
   );
 
-  if (view.categories.length === 0) return <p>{tClient("noBudgetYet")}</p>;
+  if (view.categories.length === 0 && view.scope !== "share") return <p>{tClient("noBudgetYet")}</p>;
   const upcoming = view.payments.filter((payment) => payment.status !== "paid");
   const paid = view.payments.filter((payment) => payment.status === "paid");
+  const tPayers = await getTranslations("Payers");
 
   return (
     <>
-      {view.scope === "selected" ? (
+      {view.scope === "share" ? (
+        <section aria-labelledby="client-share-title" className="card payer-share">
+          <h3 id="client-share-title">{tPayers("shareTitle")}</h3>
+          <p className="meta">{tPayers("shareIntro")}</p>
+          {share && share.lines.length > 0 ? (
+            <ul>
+              {share.lines.map((line) => (
+                <li key={line.lineId}>
+                  {[line.slotLabel, line.label].filter(Boolean).join(" — ")} : <strong>{formatAmount(line.amountCents, locale)}</strong>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>{tPayers("shareEmpty")}</p>
+          )}
+          {share ? <p>{tPayers("shareTotal", { amount: formatAmount(share.totalCents, locale) })}</p> : null}
+        </section>
+      ) : view.scope === "selected" ? (
         <p>{t("budgetSelectedIntro")}</p>
       ) : (
         figures({
@@ -64,7 +86,7 @@ export async function ClientBudget({
           ht: { planned: view.totalHt.estimatedCents, committed: view.totalHt.committedCents, remaining: view.totalHt.remainingCents },
         })
       )}
-      <ul className="budget-cards" aria-label={t("budgetCategoriesTitle")}>
+      <ul className="budget-cards" aria-label={t("budgetCategoriesTitle")} hidden={view.categories.length === 0}>
         {view.categories.map((category) => (
           <li key={category.eventVendorSlotId} className="card">
             <h3>{category.label}</h3>

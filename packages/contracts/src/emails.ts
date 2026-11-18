@@ -23,6 +23,12 @@ export const EMAIL_TEMPLATE_KINDS = [
   // Lot 44 (CRM-01 ; D7) : « Nouvelle demande de contact », à la titulaire, sans le message ni les
   // coordonnées du prospect.
   "prospect_form_received",
+  // Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10 ; ADR 0089) : proposition envoyée, relance avant
+  // l'expiration, RIB et référence du virement (8e jour hors établissement), relance d'impayé.
+  "proposal_sent",
+  "proposal_expiry_reminder",
+  "payment_details",
+  "invoice_reminder",
 ] as const;
 export type EmailTemplateKind = (typeof EMAIL_TEMPLATE_KINDS)[number];
 
@@ -33,7 +39,10 @@ export type EmailLocale = (typeof EMAIL_LOCALES)[number];
 // modèle (« {{prénom}} », « {{first_name}} »).
 // Lot 38b : « place » (le lieu de réception) sert aux modèles de messages de la planner.
 // Lot 46 : « appointment » (le type de rendez-vous) et « appointment_date » (jour et heure, à Paris).
-export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date"] as const;
+// Lot 43 : « amount » (montant de l'échéance), « due_date » (son échéance), « reference » (référence du
+// virement), « iban » et « bic » (RIB de l'organisation), « penalties » (phrase des pénalités de retard,
+// toujours renseignée : texte de départ de payment-reminders.json quand il n'y en a pas).
+export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "amount", "due_date", "reference", "iban", "bic", "penalties"] as const;
 export type EmailVariable = (typeof EMAIL_VARIABLES)[number];
 export type EmailValues = Partial<Record<EmailVariable, string>>;
 

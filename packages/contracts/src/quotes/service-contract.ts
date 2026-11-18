@@ -573,6 +573,8 @@ export type SignatureWebhookResult = { httpStatus: 200 | 401; outcome: string };
 // propre lien, jamais celui d'un autre signataire.
 export type ClientQuoteToSign = {
   quoteId: string;
+  // Lot 43 (FAC-02) : la version envoyée, dont la page de proposition porte l'enchaînement « Accepter et signer ».
+  versionId: string;
   number: string;
   version: number;
   totalTtcCents: number;

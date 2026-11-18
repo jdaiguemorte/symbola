@@ -20,7 +20,7 @@ import {
 } from "@/modules/events/service";
 import { getFollowUpDelays } from "@/modules/hub/service";
 import { listGuestPurgeNotices, listRecentOppositions } from "@/modules/guests/service";
-import { listEventIdsWithSentQuote, listOpenScheduledDeposits, listQuotesAwaitingAnswer, listUnpaidPayments } from "@/modules/quotes/service";
+import { listEventIdsWithSentQuote, listOpenScheduledDeposits, listQuotesAwaitingAnswer, listTransferDeclarations, listUnpaidPayments } from "@/modules/quotes/service";
 import { listCalendarSourcesInError, listTodayAppointments } from "@/modules/appointments/service";
 import { TODAY_HORIZON_DAYS, type TodayItem } from "./rank";
 import { settleWithin, TODAY_SOURCE_TIMEOUT_MS } from "./settle";
@@ -54,6 +54,8 @@ export type TodayWords = {
   prospectRequest?: (names: string, when: string | null) => string;
   prospectRequestDateTaken?: string;
   prospectToReview?: (count: number) => string;
+  // Lot 43 (FAC-08, ADR 0087) : « Léa déclare avoir viré 1 200 € ».
+  transferDeclaration?: (name: string, amount: string) => string;
 };
 
 // Évènements en cours : ni clôturés, ni annulés (lot 34a, EVT-05).
@@ -276,6 +278,22 @@ async function quoteItems({ organizationId, words, now, names, money, delays }: 
       since: day(quote.sentAt),
       actor: { kind: "client" },
       href: `/devis/${quote.quoteId}`,
+      action: { kind: "open" },
+    });
+  }
+  // Lot 43 (FAC-08, ADR 0087) : virement déclaré par le payeur, à confirmer par l'encaissement existant.
+  for (const declaration of await listTransferDeclarations(organizationId)) {
+    items.push({
+      key: `transfer:${declaration.scheduleItemId}`,
+      kind: "transfer_declaration",
+      eventId: declaration.eventId,
+      eventNames: names(declaration.eventId),
+      title: words.transferDeclaration ? words.transferDeclaration(declaration.byName, money(declaration.amountCents)) : words.paymentDeclaration(declaration.label, money(declaration.amountCents)),
+      detail: `${declaration.quoteNumber} · ${declaration.reference}`,
+      dueOn: null,
+      since: day(declaration.declaredAt),
+      actor: { kind: "you" },
+      href: `/devis/${declaration.quoteId}#reglement-${declaration.scheduleItemId}`,
       action: { kind: "open" },
     });
   }

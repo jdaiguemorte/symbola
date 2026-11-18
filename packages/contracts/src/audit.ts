@@ -132,6 +132,17 @@ export const AUDIT_ACTIONS = {
   "budget.vendor_payment.declaration_cancelled": { category: "encaissement", objectType: "event" },
   "budget.vendor_payment.declaration_confirmed": { category: "encaissement", objectType: "event" },
   "budget.vendor_payment.declaration_refused": { category: "encaissement", objectType: "event" },
+  // Lot 43 (FAC-08 Divergent, FAC-09, FAC-15, SEC-16, BUD-06 ; ADR 0087, ADR 0089) : virement déclaré
+  // par le payeur depuis son lien, relances d'une échéance suspendues ou reprises par la planner,
+  // validité d'un devis prolongée, code demandé avant de signer, payeurs et leurs parts (identifiants
+  // seulement, jamais le nom ni l'IBAN).
+  "quotes.transfer.declared": { category: "encaissement", objectType: "payment_schedule_item" },
+  "quotes.reminders.suspended": { category: "encaissement", objectType: "payment_schedule_item" },
+  "quotes.reminders.resumed": { category: "encaissement", objectType: "payment_schedule_item" },
+  "quotes.validity.extended": { category: "partage", objectType: "quote" },
+  "quotes.signing_code.verified": { category: "partage", objectType: "quote" },
+  "budget.payers.changed": { category: "partage", objectType: "event" },
+  "budget.payer_visibility.changed": { category: "partage", objectType: "event" },
   // Suppressions en masse (une ligne de synthèse, pas une par ligne effacée).
   "hub.privacy_erasure.executed": { category: "suppression", objectType: "privacy_erasure" },
   "hub.privacy_purge.executed": { category: "suppression", objectType: "privacy_purge" },

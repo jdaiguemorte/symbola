@@ -23,6 +23,13 @@ const TOKENS: Record<EmailVariable, Record<EmailLocale, string>> = {
   place: { fr: "lieu", en: "place" },
   appointment: { fr: "rendez_vous", en: "appointment" },
   appointment_date: { fr: "date_rendez_vous", en: "appointment_date" },
+  // Lot 43 (FAC-08, FAC-09 ; D10).
+  amount: { fr: "montant", en: "amount" },
+  due_date: { fr: "échéance", en: "due_date" },
+  reference: { fr: "référence", en: "reference" },
+  iban: { fr: "iban", en: "iban" },
+  bic: { fr: "bic", en: "bic" },
+  penalties: { fr: "pénalités", en: "penalties" },
 };
 
 const BY_TOKEN = new Map<string, EmailVariable>(
@@ -56,6 +63,13 @@ export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   // Lot 44 (CRM-01 ; D7) : à la titulaire, le lien vers la fiche du prospect devient « Voir la demande » ;
   // ni le nom, ni les coordonnées, ni le message du prospect (SEC-20).
   prospect_form_received: { variables: ["organization", "event_date", "link"], required: ["link"], button: "request" },
+  // Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10) : la proposition se lit dans l'espace du client (son
+  // lien personnel n'est gardé que haché : pas de bouton) ; le RIB et la relance portent le montant et
+  // la référence du virement, jamais de donnée de carte (ADR 0087).
+  proposal_sent: { variables: ["first_name", "organization", "quote_number", "valid_until"], required: ["quote_number"], button: null },
+  proposal_expiry_reminder: { variables: ["first_name", "organization", "quote_number", "valid_until"], required: ["valid_until"], button: null },
+  payment_details: { variables: ["first_name", "organization", "quote_number", "amount", "reference", "iban", "bic"], required: ["amount", "reference", "iban"], button: null },
+  invoice_reminder: { variables: ["first_name", "organization", "quote_number", "amount", "due_date", "reference", "iban", "penalties"], required: ["amount", "due_date", "reference"], button: null },
 };
 
 const TOKEN_PATTERN = /\{\{\s*([^{}\s]+)\s*\}\}/g;

@@ -14,6 +14,9 @@ import {
   eventBudgetItems,
   eventBudgets,
   vendorPayments,
+  eventPayers,
+  budgetLinePayerShares,
+  plannerInstalmentPayers,
 } from "@symbola/db/schema/budget";
 
 const ofEvent = { eventField: "eventId" } as const;
@@ -26,9 +29,13 @@ export const BUDGET_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: eventBudgets, ...ofEvent },
   { table: eventBudgetItems, parents: { eventBudgetId: "event_budgets" } },
   { table: budgetLines, ...ofEvent },
+  // Lot 43 (BUD-06, D8) : payeurs de l'évènement et leurs parts ; payeur désigné des échéances.
+  { table: eventPayers, ...ofEvent },
+  { table: budgetLinePayerShares, parents: { lineId: "budget_lines", payerId: "event_payers" } },
+  { table: plannerInstalmentPayers, ...ofEvent, parents: { payerId: "event_payers" } },
   { table: budgetLineHistory, parents: { lineId: "budget_lines" } },
   { table: budgetLineAttachments, parents: { lineId: "budget_lines" }, files: ["fileKey"] },
-  { table: vendorPayments, ...ofEvent, parents: { lineId: "budget_lines" } },
+  { table: vendorPayments, ...ofEvent, parents: { lineId: "budget_lines", payerId: "event_payers" } },
 ];
 
 // Toutes les tables du module sont exportées.

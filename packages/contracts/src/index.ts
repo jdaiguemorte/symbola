@@ -441,3 +441,6 @@ export {
 } from "./appointments/events";
 // Lot 44 (CRM-01, CRM-02 ; ADR 0084) : formulaire de contact public et pipeline en colonnes.
 export * from "./events/pipeline";
+// Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15, GC-01, SEC-16, BUD-06, BUD-11 ; ADR 0089) : proposition,
+// règlement par virement, relances, payeurs et calendrier des sorties d'argent.
+export * from "./quotes/settlement";

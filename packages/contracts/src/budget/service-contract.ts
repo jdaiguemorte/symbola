@@ -181,6 +181,8 @@ export type VendorPayment = {
   // confirmé (il reste après la confirmation) ; motif d'un refus.
   declaration: VendorPaymentDeclaration | null;
   refusalReason: string | null;
+  // Lot 43 (BUD-06, D8) : payeur désigné (null : les mariés).
+  payerId: string | null;
 };
 
 export type VendorPaymentDeclaration = { paidOn: string; method: string; linkId: string; declaredAt: string };
@@ -283,7 +285,8 @@ export type BudgetLinesView = {
 // totaux, sans lignes ; en « catégories choisies », ni enveloppe ni total
 // général (les totaux sont ceux des seules catégories partagées).
 export type LinkBudgetView = BudgetLinesView & {
-  scope: LinkBudgetScope;
+  // Lot 43 (BUD-06, D8) : « share », un payeur à qui le client ne montre que sa part (ni catégorie ni total).
+  scope: LinkBudgetScope | "share";
   // Lot 27a (POR-05) : échéances de ses catégories, non payées, et payées
   // depuis moins de trois mois.
   payments: LinkVendorPayment[];

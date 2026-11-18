@@ -716,7 +716,7 @@ export type FrozenFields = Pick<
   | "legalMention"
   | "sellerSnapshot"
   | "totalsSnapshot"
-> & { sentAt: Date };
+> & { sentAt: Date } & Partial<Pick<QuoteVersionRow, "proposalGreeting" | "proposalTemplateId" | "proposalTemplateVersion">>;
 
 export async function freezeCurrentVersion(
   organizationId: string,
@@ -1365,7 +1365,7 @@ export async function findUnpaidScheduleItems(
 
 export type NewSigner = Omit<
   QuoteSignerRow,
-  "organizationId" | "requestId" | "status" | "signedAt" | RowStampColumns
+  "organizationId" | "requestId" | "status" | "signedAt" | "signingCodeVerifiedAt" | RowStampColumns
 >;
 
 // Enregistre la demande créée chez le fournisseur, pour la version courante

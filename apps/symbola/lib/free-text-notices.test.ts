@@ -26,6 +26,10 @@ const NOTICED: Record<string, { file: string; name: string }> = {
   "guests.purge_postponements.reason": { file: "app/events/[id]/invites/guest-forms.tsx", name: "reason" },
   // Lot 46 (EVT-10) : le compte rendu d'un rendez-vous.
   "appointments.appointment_reports.notes": { file: "app/rendez-vous/[id]/page.tsx", name: "notes" },
+  // Lot 43 (FAC-02, FAC-09) : mot d'accueil de la proposition (devis, modèle), motif d'une suspension des relances.
+  "quotes.quote_versions.proposal_greeting": { file: "app/devis/[quoteId]/proposal-forms.tsx", name: "greeting" },
+  "quotes.proposal_templates.greeting": { file: "app/devis/modeles-proposition/proposal-template-forms.tsx", name: "greeting" },
+  "quotes.payment_references.reminders_suspension_reason": { file: "app/devis/[quoteId]/proposal-forms.tsx", name: "reason" },
 };
 
 // Aussi mis en garde, bien que rangés autrement au registre : la note d'un contact, le motif d'une perte.

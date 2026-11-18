@@ -3923,3 +3923,126 @@
     @apply break-words whitespace-pre-wrap;
   }
 }
+
+/* Lot 43 (FAC-02, FAC-08, GC-01, BUD-06, BUD-11) — page de proposition, enchaînement « Accepter et
+   signer », écran « Régler l'acompte », calendrier des sorties d'argent, payeurs. Une colonne, lisible
+   à 375 px : aucune table large, les montants passent sous le libellé quand la place manque. */
+@layer components {
+  .proposal {
+    @apply flex flex-col gap-4;
+  }
+  .proposal-greeting {
+    @apply whitespace-pre-line;
+  }
+  .proposal-greeting-preview {
+    @apply my-3 border-l-4 border-line-strong pl-3 whitespace-pre-line;
+  }
+  .proposal-organization {
+    @apply flex flex-col gap-1;
+  }
+  .proposal-logo {
+    @apply h-16 w-auto max-w-full self-start object-contain;
+  }
+  .proposal-photos {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-3;
+  }
+  .proposal-photos img {
+    @apply h-48 w-full rounded-md object-cover;
+  }
+  .proposal-lines {
+    @apply m-0 flex list-none flex-col gap-2 p-0;
+  }
+  .proposal-line {
+    @apply flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line pb-2;
+  }
+  .proposal-line-option {
+    @apply text-ink-muted;
+  }
+  .proposal-line-label {
+    @apply min-w-0 flex-1 break-words;
+  }
+  .proposal-line-amount {
+    @apply shrink-0 font-semibold tabular-nums;
+  }
+  .proposal-subtotal {
+    @apply text-right text-label;
+  }
+  .proposal-totals {
+    @apply m-0 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1;
+  }
+  .proposal-totals dd {
+    @apply m-0 text-right tabular-nums;
+  }
+  .signing-flow {
+    @apply flex flex-col gap-3;
+  }
+  .signing-code {
+    @apply flex flex-col gap-3;
+  }
+  .signing-code input[name="code"] {
+    @apply max-w-48 text-heading tracking-widest;
+  }
+  .settlement {
+    @apply flex flex-col gap-3;
+  }
+  .settlement-amount {
+    @apply text-heading;
+  }
+  .settlement-notice {
+    @apply rounded-md bg-primary-soft px-4 py-3 text-body text-primary;
+  }
+  .settlement-transfer {
+    @apply flex flex-col gap-3;
+  }
+  .settlement-details {
+    @apply m-0 grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-[auto_1fr];
+  }
+  .settlement-details dt {
+    @apply text-label text-ink-muted;
+  }
+  .settlement-details dd {
+    @apply m-0 flex flex-wrap items-center gap-2 break-all;
+  }
+  .settlement-qr {
+    @apply m-0 flex flex-col items-start gap-2;
+  }
+  .settlement-qr img {
+    @apply h-48 w-48 rounded-md bg-surface;
+  }
+  .button-small {
+    @apply min-h-11 px-3 text-label;
+  }
+  .transfer-declaration {
+    @apply flex flex-col items-start gap-2;
+  }
+  .cash-calendar {
+    @apply flex flex-col gap-4;
+  }
+  .cash-month {
+    @apply flex flex-col gap-2;
+  }
+  .cash-entries {
+    @apply m-0 flex list-none flex-col gap-3 p-0;
+  }
+  .cash-entry {
+    @apply flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line pb-2;
+  }
+  .cash-entry[data-status="paid"] {
+    @apply text-ink-muted;
+  }
+  .cash-entry-main {
+    @apply min-w-0 flex-1 break-words;
+  }
+  .cash-entry-amount {
+    @apply shrink-0 font-semibold tabular-nums;
+  }
+  .payer-list {
+    @apply m-0 flex list-none flex-col gap-3 p-0;
+  }
+  .payer-share ul {
+    @apply m-0 flex list-none flex-col gap-1 p-0;
+  }
+  .payer-share-row {
+    @apply flex flex-wrap items-center gap-2;
+  }
+}

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_source": "Lot 38a (MSG-01, D3, D5, D6 ; ADR 0072) : textes de départ des e-mails que l'organisation adresse aux tiers. Variables entre doubles accolades, en français ({{prénom}}) ou en anglais ({{first_name}}) ; un paragraphe fait du seul lien devient un bouton. La planner les remplace dans Paramètres › Modèles d'e-mails. Les textes de départ n'emploient que des variables toujours renseignées (aucun e-mail ne part avec une variable vide). Repris des textes des lots 26 à 31 ; l'exemplaire signé garde le sens validé par l'avocat (réponse 1, lot 31b). Lot 46 (RDV-03, D10 ; ADR 0082) : confirmation (avec l'invitation .ics), rappel, report et annulation d'un rendez-vous, côté personne qui a pris rendez-vous.",
+  "_source": "Lot 38a (MSG-01, D3, D5, D6 ; ADR 0072) : textes de départ des e-mails que l'organisation adresse aux tiers. Variables entre doubles accolades, en français ({{prénom}}) ou en anglais ({{first_name}}) ; un paragraphe fait du seul lien devient un bouton. La planner les remplace dans Paramètres › Modèles d'e-mails. Les textes de départ n'emploient que des variables toujours renseignées (aucun e-mail ne part avec une variable vide). Repris des textes des lots 26 à 31 ; l'exemplaire signé garde le sens validé par l'avocat (réponse 1, lot 31b). Lot 46 (RDV-03, D10 ; ADR 0082) : confirmation (avec l'invitation .ics), rappel, report et annulation d'un rendez-vous, côté personne qui a pris rendez-vous. Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10 ; ADR 0087, ADR 0089) : proposition envoyée et relance avant son expiration (lues dans l'espace du client), RIB et référence du virement envoyés au 8e jour d'un contrat hors établissement, relance d'une échéance impayée ; aucun paiement en ligne.",
   "templates": {
     "fr": {
       "client_link": {
@@ -70,6 +70,22 @@
       "prospect_form_received": {
         "subject": "Nouvelle demande de contact",
         "body": "Bonjour,\n\nUne nouvelle demande est arrivée pour {{organisation}} par votre formulaire de contact.\n\nPour la lire et y répondre, ouvrez-la dans Symbola :\n\n{{lien}}\n\nCet e-mail ne contient ni le message ni les coordonnées de la personne : ils restent dans Symbola."
+      },
+      "proposal_sent": {
+        "subject": "Votre proposition {{numéro_devis}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\n{{organisation}} vous a préparé une proposition : le devis {{numéro_devis}}, valable jusqu'au {{valable_jusqu_au}} inclus.\n\nVous la trouverez dans votre espace, avec le lien personnel que vous avez reçu : vous pourrez y choisir vos options, puis l'accepter et la signer.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "proposal_expiry_reminder": {
+        "subject": "Votre proposition {{numéro_devis}} expire bientôt",
+        "body": "Bonjour {{prénom}},\n\nLa proposition {{numéro_devis}} de {{organisation}} est valable jusqu'au {{valable_jusqu_au}} inclus.\n\nVous la retrouvez dans votre espace, avec votre lien personnel. Pour toute question, répondez simplement à cet e-mail.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "payment_details": {
+        "subject": "Règlement de l'acompte — devis {{numéro_devis}}",
+        "body": "Bonjour {{prénom}},\n\nVous pouvez désormais régler l'acompte du devis {{numéro_devis}} par virement :\n\nMontant : {{montant}}\nIBAN : {{iban}}\nBIC : {{bic}}\nRéférence à indiquer : {{référence}}\n\nUne fois le virement fait, indiquez-le dans votre espace (« J'ai fait le virement ») : {{organisation}} confirmera sa réception.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "invoice_reminder": {
+        "subject": "Rappel : échéance du {{échéance}} — devis {{numéro_devis}}",
+        "body": "Bonjour {{prénom}},\n\nSauf erreur de notre part, l'échéance de {{montant}} du {{échéance}} (devis {{numéro_devis}}) n'est pas encore réglée.\n\nVous pouvez la régler par virement sur l'IBAN {{iban}}, avec la référence {{référence}}, puis l'indiquer dans votre espace (« J'ai fait le virement »). Si le virement est déjà parti, ne tenez pas compte de ce message.\n\n{{pénalités}}\n\nÀ bientôt,\n{{organisation}}"
       }
     },
     "en": {
@@ -140,6 +156,22 @@
       "prospect_form_received": {
         "subject": "New contact request",
         "body": "Hello,\n\nA new request has arrived for {{organization}} through your contact form.\n\nTo read it and reply, open it in Symbola:\n\n{{link}}\n\nThis email contains neither the message nor the person's contact details: they stay in Symbola."
+      },
+      "proposal_sent": {
+        "subject": "Your proposal {{quote_number}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\n{{organization}} has prepared a proposal for you: quote {{quote_number}}, valid until {{valid_until}} included.\n\nYou will find it in your space, through the personal link you received: you can choose your options there, then accept and sign it.\n\nSee you soon,\n{{organization}}"
+      },
+      "proposal_expiry_reminder": {
+        "subject": "Your proposal {{quote_number}} expires soon",
+        "body": "Hello {{first_name}},\n\nProposal {{quote_number}} from {{organization}} is valid until {{valid_until}} included.\n\nYou will find it in your space, through your personal link. For any question, simply reply to this email.\n\nSee you soon,\n{{organization}}"
+      },
+      "payment_details": {
+        "subject": "Deposit payment — quote {{quote_number}}",
+        "body": "Hello {{first_name}},\n\nYou can now pay the deposit for quote {{quote_number}} by bank transfer:\n\nAmount: {{amount}}\nIBAN: {{iban}}\nBIC: {{bic}}\nReference to include: {{reference}}\n\nOnce the transfer is made, tell us in your space (“I have made the transfer”): {{organization}} will confirm its receipt.\n\nSee you soon,\n{{organization}}"
+      },
+      "invoice_reminder": {
+        "subject": "Reminder: payment due on {{due_date}} — quote {{quote_number}}",
+        "body": "Hello {{first_name}},\n\nUnless we are mistaken, the payment of {{amount}} due on {{due_date}} (quote {{quote_number}}) has not been settled yet.\n\nYou can pay it by bank transfer to IBAN {{iban}}, with the reference {{reference}}, then tell us in your space (“I have made the transfer”). If the transfer has already left, please disregard this message.\n\n{{penalties}}\n\nSee you soon,\n{{organization}}"
       }
     }
   }

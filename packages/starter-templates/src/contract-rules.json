@@ -59,5 +59,20 @@
     "[To be drafted",
     "[À compléter",
     "[To be completed"
-  ]
+  ],
+  "settlement": {
+    "_source": "Lot 43 (GC-01, JUR-07 ; ADR 0087, ADR 0089) : textes de l'écran « Régler l'acompte » selon le canal de conclusion, repris des règles du lot 31b (réponse 1 de l'avocat). Hors établissement : ni RIB ni déclaration avant le 8e jour (AV-8 en attente).",
+    "distance": {
+      "fr": "Vous disposez d'un délai de rétractation de {jours} jours après la signature ; le formulaire de rétractation figure dans votre contrat. La prestation ne commence avant la fin de ce délai que si vous l'avez demandé.",
+      "en": "You have a {jours}-day withdrawal period after signing; the withdrawal form is in your contract. The service only starts before the end of this period if you have asked for it."
+    },
+    "offPremisesWaiting": {
+      "fr": "Aucun paiement ne peut vous être demandé avant le {date}. Ce jour-là, vous recevrez par e-mail le RIB et la référence du virement, qui s'afficheront aussi ici.",
+      "en": "No payment can be requested from you before {date}. On that day, you will receive the bank details and the transfer reference by email; they will also appear here."
+    },
+    "offPremisesOpen": {
+      "fr": "Vous disposez d'un délai de rétractation de {jours} jours après la signature ; le formulaire de rétractation figure dans votre contrat.",
+      "en": "You have a {jours}-day withdrawal period after signing; the withdrawal form is in your contract."
+    }
+  }
 }

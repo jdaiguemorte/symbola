@@ -35,6 +35,7 @@ export function todayWords(t: TodayTranslator): TodayWords {
     prospectRequest: (names, when) => (when ? t("words.prospectRequest", { names, when }) : t("words.prospectRequestNoDate", { names })),
     prospectRequestDateTaken: t("words.prospectRequestDateTaken"),
     prospectToReview: (count) => t("words.prospectToReview", { count }),
+    transferDeclaration: (name, amount) => t("words.transferDeclaration", { name, amount }),
   };
 }
 

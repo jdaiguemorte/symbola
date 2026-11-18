@@ -103,6 +103,15 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
           </a>
         </nav>
       ) : null}
+      {/* Lot 43 (BUD-06, BUD-11 ; D8, D9) : qui paie quoi, et le calendrier des sorties d'argent. */}
+      <nav aria-label={t("payersNav")} className="page-actions">
+        <Link href={`/budget/${eventId}/payeurs`} className="button-link">
+          {t("payersLink")}
+        </Link>
+        <Link href={`/budget/${eventId}/calendrier`} className="button-link">
+          {t("cashCalendarLink")}
+        </Link>
+      </nav>
       <BudgetLinesTable eventId={eventId} view={linesView} canConfirm={budget !== null} vendorOptions={vendorOptions} locale={locale} />
       {/* Lot 28b (BUD-03) : échéancier par prestataire. */}
       {linesView.lines.length > 0 ? <VendorSchedule view={linesView} locale={locale} organizationId={organizationId} /> : null}

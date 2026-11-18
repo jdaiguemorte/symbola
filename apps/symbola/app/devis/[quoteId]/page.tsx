@@ -45,6 +45,7 @@ import { SignatureSection } from "./signature-section";
 import { ContractSection } from "./contract-section";
 import { CompliancePanel } from "../compliance-panel";
 import { BuyerDetailsForm } from "./buyer-forms";
+import { ProposalSection, SettlementSection } from "./proposal-section";
 
 export default async function QuotePage({ params, searchParams }: { params: Promise<{ quoteId: string }>; searchParams: Promise<{ modele?: string }> }) {
   const auth = await requirePlanner();
@@ -149,6 +150,8 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
         </p>
       ) : null}
       {current.validUntil ? <p>{t("validUntil", { date: formatCalendarDate(current.validUntil, locale) })}</p> : null}
+      {/* Lot 43 (FAC-02, FAC-15 ; D1, D2) : la page de proposition, son aperçu et sa validité. */}
+      <ProposalSection organizationId={organizationId} quote={quote} locale={locale} />
 
       {/* ONB-02 : le régime a changé depuis l'envoi, le devis n'est pas signé. */}
       {quote.regimeChangedSinceSent ? (
@@ -208,6 +211,8 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
       </section>
 
       <ScheduleSection quote={quote} methods={paymentMethods} locale={locale} today={parisTodayString()} />
+      {/* Lot 43 (FAC-08, FAC-09 ; ADR 0087) : référence, déclaration du payeur, relances de chaque échéance. */}
+      <SettlementSection organizationId={organizationId} quote={quote} locale={locale} />
       {/* Lot 31b (FAC-04, DOC-03 ; D7, D9, D11) : contrat du devis envoyé, signé avec lui. */}
       <ContractSection
         organizationId={organizationId}

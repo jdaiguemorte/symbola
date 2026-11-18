@@ -183,6 +183,13 @@ function sampleValues(locale: EmailLocale): EmailValues {
     place: t("sample.place"),
     appointment: t("sample.appointment"),
     appointment_date: t("sample.appointmentDate"),
+    // Lot 43 (FAC-08, FAC-09) : un RIB, un montant et une référence fictifs.
+    amount: t("sample.amount"),
+    due_date: t("sample.dueDate"),
+    reference: t("sample.reference"),
+    iban: t("sample.iban"),
+    bic: t("sample.bic"),
+    penalties: t("sample.penalties"),
   };
 }
 

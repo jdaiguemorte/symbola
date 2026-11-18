@@ -30,6 +30,7 @@ import {
   quoteSigners,
   quoteVersions,
   signatureRequests,
+  paymentReferences,
 } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
 import type { InvoiceBuyer } from "@symbola/contracts";
@@ -57,6 +58,8 @@ type Plan = {
   // Lot 31c (D21) : reçus d'arrhes, gardés comme les pièces comptables.
   receiptIds: string[];
   expiredRequestIds: string[];
+  // Lot 43 (FAC-08) : déclarations de virement dont le nom du payeur et le motif d'une suspension s'effacent.
+  declarationIds: string[];
 };
 
 async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
@@ -65,7 +68,7 @@ async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise
 }
 
 async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
-  const plan: Plan = { items: [], signerIds: [], lineIds: [], buyerQuoteIds: [], choiceVersionIds: [], contractIds: [], actIds: [], catalogItemIds: [], invoiceIds: [], creditNoteIds: [], receiptIds: [], expiredRequestIds: [] };
+  const plan: Plan = { items: [], signerIds: [], lineIds: [], buyerQuoteIds: [], choiceVersionIds: [], contractIds: [], actIds: [], catalogItemIds: [], invoiceIds: [], creditNoteIds: [], receiptIds: [], expiredRequestIds: [], declarationIds: [] };
   const anonymized = (kind: string, recordId: string) => plan.items.push({ kind, recordId, fate: "anonymized", legalBasis: null, keptUntil: null });
 
   // Factures et avoirs réels : conservés dix ans (réglage) à compter de l'émission.
@@ -221,6 +224,15 @@ async function buildPlan(tx: Tx, input: ErasureInput): Promise<Plan> {
     }
   }
 
+  // Lot 43 (FAC-08) : le nom de qui a déclaré un virement (l'encaissement confirmé reste, sans nom).
+  const declarationIds = idsOfKind(input.records, "transfer_declaration");
+  if (declarationIds.length > 0) {
+    for (const row of await tx.select({ id: paymentReferences.id }).from(paymentReferences).where(and(inArray(paymentReferences.id, declarationIds), eq(paymentReferences.isDemo, false)))) {
+      plan.declarationIds.push(row.id);
+      anonymized("transfer_declaration", row.id);
+    }
+  }
+
   const catalogIds = idsOfKind(input.records, "catalog_item");
   if (catalogIds.length > 0) {
     for (const item of await tx.select({ id: catalogItems.id }).from(catalogItems).where(inArray(catalogItems.id, catalogIds))) {
@@ -253,6 +265,12 @@ export async function eraseQuotesData(input: ErasureInput): Promise<ErasurePlanI
         .where(and(inArray(quoteVersions.id, plan.choiceVersionIds), isNotNull(quoteVersions.optionsChosenBy)));
     }
     if (plan.catalogItemIds.length > 0) await tx.update(catalogItems).set({ importedFields: null }).where(inArray(catalogItems.id, plan.catalogItemIds));
+    for (const row of plan.declarationIds.length > 0 ? await tx.select().from(paymentReferences).where(inArray(paymentReferences.id, plan.declarationIds)) : []) {
+      await tx
+        .update(paymentReferences)
+        .set({ ...(row.declaredByName ? { declaredByName: ANONYMIZED } : {}), ...(row.remindersSuspensionReason ? { remindersSuspensionReason: ANONYMIZED } : {}) })
+        .where(eq(paymentReferences.id, row.id));
+    }
     // Lot 31b : le texte du contrat nomme les clients ; ses clauses gardent leur titre et leur rôle.
     for (const contract of plan.contractIds.length > 0 ? await tx.select().from(contracts).where(inArray(contracts.id, plan.contractIds)) : []) {
       await tx

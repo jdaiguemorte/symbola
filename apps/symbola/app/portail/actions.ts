@@ -25,7 +25,7 @@ export async function toggleLinkTaskAction(formData: FormData): Promise<void> {
   } catch (error) {
     if (!(error instanceof LinkAccessDeniedError)) throw error;
   }
-  revalidatePath("/portail");
+  revalidatePath("/portail", "layout");
 }
 
 // Lot 27a (SC-06 étape 5, décision D6) — « Je l'ai réglée » sur une échéance de
@@ -48,7 +48,7 @@ export async function declarePaymentAction(_prev: DeclarationState, formData: Fo
     if (error instanceof LinkBudgetAccessDeniedError) return { error: t("declareErrorState") };
     throw error;
   }
-  revalidatePath("/portail");
+  revalidatePath("/portail", "layout");
   return { success: true };
 }
 
@@ -62,7 +62,7 @@ export async function cancelPaymentDeclarationAction(formData: FormData): Promis
   } catch (error) {
     if (!(error instanceof VendorPaymentDeclarationError) && !(error instanceof LinkBudgetAccessDeniedError)) throw error;
   }
-  revalidatePath("/portail");
+  revalidatePath("/portail", "layout");
 }
 
 // Lot 27b (POR-03, BUD-07, décision D10) — réponse à une décision : la première
@@ -92,7 +92,7 @@ export async function answerDecisionAction(_prev: DecisionAnswerState, formData:
     if (error instanceof LinkAccessDeniedError) return { error: t("answerGone") };
     throw error;
   }
-  revalidatePath("/portail");
+  revalidatePath("/portail", "layout");
   return { success: true };
 }
 
@@ -125,7 +125,7 @@ export async function chooseLinkQuoteOptionsAction(_prev: QuoteOptionsState, for
     if (error instanceof QuoteNotFoundError) return { error: t("optionsError") };
     throw error;
   }
-  revalidatePath("/portail");
+  revalidatePath("/portail", "layout");
   return { success: true };
 }
 
@@ -150,7 +150,7 @@ async function contractAct(formData: FormData, kind: "order" | "early_execution"
     if (error instanceof ContractNotFoundError || error instanceof ContractActNotAllowedError) return { error: t("contractActError") };
     throw error;
   }
-  revalidatePath("/portail");
+  revalidatePath("/portail", "layout");
   return { success: true };
 }
 
@@ -183,6 +183,6 @@ export async function setOrderReferenceAction(_prev: OrderReferenceState, formDa
     if (error instanceof QuoteNotFoundError) return { error: t("orderReferenceError") };
     throw error;
   }
-  revalidatePath("/portail");
+  revalidatePath("/portail", "layout");
   return { success: true };
 }
