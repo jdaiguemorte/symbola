@@ -384,7 +384,7 @@ export type {
   MessageTemplateVersionView,
   RecipientsReview,
 } from "./emails";
-export { EMAIL_LOCALES, EMAIL_TEMPLATE_KINDS, EMAIL_VARIABLES, MESSAGE_VARIABLES } from "./emails";
+export { EMAIL_LOCALES, EMAIL_TEMPLATE_KINDS, EMAIL_VARIABLES, MESSAGE_SEND_TIME_VARIABLES, MESSAGE_VARIABLES } from "./emails";
 // Lot 39a (DAT-03, HUB-17, UX-07 ; ADR 0073) — corbeille et « Annuler ».
 export {
   ELEMENT_KINDS,

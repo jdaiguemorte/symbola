@@ -5167,7 +5167,11 @@
       "guests_caterer_summary_downloaded": "Caterer summary downloaded",
       "events_contact_form_updated": "Contact form set up",
       "events_prospect_request_received": "Request received through the contact form",
-      "events_prospect_request_to_review": "Request set aside “to check”"
+      "events_prospect_request_to_review": "Request set aside “to check”",
+      "events_prospect_message_sent": "Reply sent to a prospect",
+      "events_follow_up_sent": "Follow-up sent to a prospect",
+      "events_questionnaire_sent": "Questionnaire sent",
+      "hub_contact_merged": "Contact records merged"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -5303,7 +5307,16 @@
       "guests_caterer_summary_downloads": "caterer summary download",
       "events_contact_forms": "contact form",
       "events_pipeline_stages": "pipeline stage",
-      "events_prospect_requests": "contact request"
+      "events_prospect_requests": "contact request",
+      "events_event_messages": "message to a contact",
+      "events_prospect_follow_up_settings": "follow-up settings",
+      "events_prospect_follow_ups": "prospect follow-up",
+      "events_questionnaire_templates": "questionnaire template",
+      "events_questionnaire_template_items": "question of a questionnaire template",
+      "events_event_questionnaires": "questionnaire sent",
+      "events_questionnaire_answers": "questionnaire answer",
+      "hub_contact_duplicates": "possible duplicate",
+      "hub_contact_merges": "record of a contact merge"
     },
     "modules": {
       "events": "Events",
@@ -6466,7 +6479,11 @@
         "button": "Accept the invitation"
       }
     },
-    "followUpOptOut": "You would rather not hear from us again? Simply reply to this message."
+    "followUpOptOut": "You would rather not hear from us again? Simply reply to this message.",
+    "booking": {
+      "withPage": "Pick the time that suits you on my booking page: {url}",
+      "manual": "Here are a few possible times:\n- on … at …\n- or on … at …\nLet me know what suits you best."
+    }
   },
   "RecipientsGuard": {
     "title": "This sending goes to {count} people",

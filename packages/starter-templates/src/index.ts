@@ -35,6 +35,8 @@ import pipelineStagesFile from "./pipeline-stages.json";
 import contactFormFile from "./contact-form.json";
 import emailTemplatesFile from "./email-templates.json";
 import messageTemplatesFile from "./message-templates.json";
+import prospectFollowUpsFile from "./prospect-follow-ups.json";
+import questionnairesFile from "./questionnaires.json";
 import programFile from "./program.json";
 import prospectSourcesFile from "./prospect-sources.json";
 import retroplanningFile from "./retroplanning.json";
@@ -1406,3 +1408,77 @@ export function starterAppointmentTypes(locale: StarterLocale): StarterAppointme
 export function starterBookingPrivacyNotice(locale: StarterLocale): string {
   return appointmentTypesFile.privacyNotice[locale];
 }
+
+// Lot 45 (CRM-06, CRM-05 ; D2 ; ADR 0090) — réglage de départ des relances d'un prospect (J+3 et J+7,
+// envoi automatique désactivé), durée du lien de la brochure et sa taille maximale.
+const prospectFollowUpsSchema = z.object({
+  version: z.literal(1),
+  steps: z.array(z.object({ days: z.number().int().min(1).max(60) })).max(3),
+  autoSend: z.boolean(),
+  brochureLinkDays: z.number().int().min(1).max(90),
+  brochureMaxSizeBytes: z.number().int().min(1024).max(50 * 1024 * 1024),
+});
+
+export type StarterProspectFollowUps = { steps: { days: number }[]; autoSend: boolean; brochureLinkDays: number; brochureMaxSizeBytes: number };
+
+export function starterProspectFollowUps(): StarterProspectFollowUps {
+  const parsed = prospectFollowUpsSchema.parse(prospectFollowUpsFile);
+  return { steps: parsed.steps.map((step) => ({ days: step.days })), autoSend: parsed.autoSend, brochureLinkDays: parsed.brochureLinkDays, brochureMaxSizeBytes: parsed.brochureMaxSizeBytes };
+}
+
+// Lot 45 (POR-07, CRM-09, HUB-21 ; D6 à D8 ; ADR 0090) — questionnaires de départ (découverte,
+// cérémonie, musiques, détails pratiques), traduits ; et les mots qui font avertir la planner d'une
+// question sensible (santé, religion, opinions).
+const questionnaireNatureSchema = z.enum(["short_text", "long_text", "single_choice", "multiple_choice", "date", "number", "amount"]);
+const questionnaireFieldSchema = z.enum(["event_date", "guests", "budget", "venue", "city", "style", "event_type"]);
+const questionnairesSchema = z.object({
+  version: z.literal(1),
+  sensitiveWords: z.object({ fr: z.array(z.string().min(2)).min(1), en: z.array(z.string().min(2)).min(1) }),
+  templates: z
+    .array(
+      z.object({
+        key: z.string().regex(/^[a-z0-9_-]{1,60}$/),
+        name: translatedLabelSchema,
+        questions: z
+          .array(
+            z.object({
+              key: z.string().regex(/^[a-z0-9_-]{1,60}$/),
+              label: translatedLabelSchema,
+              help: translatedLabelSchema.optional(),
+              nature: questionnaireNatureSchema,
+              choices: z.object({ fr: z.array(z.string().min(1).max(120)).min(2).max(30), en: z.array(z.string().min(1).max(120)).min(2).max(30) }).optional(),
+              eventField: questionnaireFieldSchema.optional(),
+            }),
+          )
+          .min(1)
+          .max(100),
+      }),
+    )
+    .min(1),
+});
+
+export type StarterQuestionnaire = {
+  key: string;
+  name: string;
+  questions: { key: string; label: string; help: string | null; nature: z.infer<typeof questionnaireNatureSchema>; choices: string[]; eventField: z.infer<typeof questionnaireFieldSchema> | null }[];
+};
+
+export function starterQuestionnaires(locale: StarterLocale): StarterQuestionnaire[] {
+  return questionnairesSchema.parse(questionnairesFile).templates.map((template) => ({
+    key: template.key,
+    name: template.name[locale],
+    questions: template.questions.map((question) => ({
+      key: question.key,
+      label: question.label[locale],
+      help: question.help?.[locale] ?? null,
+      nature: question.nature,
+      choices: question.choices?.[locale] ?? [],
+      eventField: question.eventField ?? null,
+    })),
+  }));
+}
+
+export function questionnaireSensitiveWords(locale: StarterLocale): string[] {
+  return [...questionnairesSchema.parse(questionnairesFile).sensitiveWords[locale]];
+}
+

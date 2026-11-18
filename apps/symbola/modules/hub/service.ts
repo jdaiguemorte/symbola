@@ -53,6 +53,7 @@ export {
   RecipientsNotConfirmedError,
   reviewRecipients,
   messageTemplateVariables,
+  renderMessageTemplate,
   validateEmailTemplate,
   variableToken,
   type EmailBlock,
@@ -1256,3 +1257,24 @@ export { jobKeyExists } from "./jobs";
 // Lot 49 (RGP-08, D9) : la purge des invités efface les exports stockés qui peuvent les contenir.
 export { purgeOrganizationExportsWithGuests } from "./organization-exports";
 export { purgePrivacyExportsSince } from "./privacy-exports";
+
+// Lot 45 (CRM-07 ; D4, D5 ; ADR 0090) : doublons de contacts et fusion champ par champ.
+export {
+  countDuplicatePairs,
+  detectAllDuplicates,
+  detectDuplicatesOf,
+  dismissDuplicatePair,
+  DuplicatePairNotFoundError,
+  getDuplicatePair,
+  listContactMerges,
+  mergeContacts,
+  resolveMergedContactIds,
+  type DuplicatePairView,
+} from "./contact-duplicates";
+export { ContactMergeRefusedError, MERGEABLE_FIELDS, normalizeEmail, normalizePhone, type MergeableField, type MergeChoices } from "./contact-duplicate-rules";
+import { listDuplicatePairs as listPairs } from "./contact-duplicates";
+import { getContactsByIds as contactsByIds } from "./contacts";
+
+export async function listDuplicatePairs(organizationId: string) {
+  return listPairs(organizationId, (ids) => contactsByIds(organizationId, ids));
+}

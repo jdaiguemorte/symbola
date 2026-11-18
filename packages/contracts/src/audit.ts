@@ -97,6 +97,14 @@ export const AUDIT_ACTIONS = {
   "events.contact_form.updated": { category: "partage", objectType: null },
   "events.prospect_request.received": { category: "partage", objectType: "event" },
   "events.prospect_request.to_review": { category: "partage", objectType: null },
+  // Lot 45 (CRM-05, CRM-06, POR-07 ; D1, D2) : réponse envoyée à un prospect depuis Symbola, relance
+  // envoyée (par la planner ou d'elle-même), questionnaire envoyé ; identifiants seulement (SEC-20).
+  "events.prospect_message.sent": { category: "partage", objectType: "event" },
+  "events.follow_up.sent": { category: "partage", objectType: "event" },
+  "events.questionnaire.sent": { category: "partage", objectType: "event" },
+  // Lot 45 (CRM-07 ; D4, D5) : deux fiches de contact réunies par la planner (la fiche absorbée
+  // disparaît) ; identifiants et noms des champs repris seulement.
+  "hub.contact.merged": { category: "suppression", objectType: "contact" },
   // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
   "hub.mail.quota_reached": { category: "partage", objectType: null },
   // Lot 38a (MSG-01, D5) : un e-mail automatique n'est pas parti, une variable du modèle étant vide

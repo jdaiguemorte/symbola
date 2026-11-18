@@ -65,11 +65,11 @@ export type RecipientsReview = { count: number; recipients: EmailRecipient[]; di
 // Lot 38b (HUB-21 ; D10 ; ADR 0072) — modèles de messages de la planner : pour tous les évènements
 // ou pour un type (eventTypeId), dans une langue, versionnés. « Écrire au client » en remplit les
 // variables, puis ouvre sa messagerie (Symbola n'envoie rien).
-// Lot 45 (CRM-05) : « brochure » et « booking_link », remplis à l'envoi (le lien de la brochure n'existe
-// qu'une fois le message envoyé ou préparé).
+// Lot 45 (CRM-05) : « brochure » (remplie à l'envoi : son lien n'existe qu'une fois le message envoyé ou
+// préparé) et « booking_link » (la page de réservation, ou des créneaux à compléter dans le texte).
 export const MESSAGE_VARIABLES = ["first_name", "clients", "event", "event_date", "place", "organization", "brochure", "booking_link"] as const satisfies readonly EmailVariable[];
 // Les variables qu'un message garde telles quelles jusqu'à l'envoi.
-export const MESSAGE_SEND_TIME_VARIABLES = ["brochure", "booking_link"] as const satisfies readonly EmailVariable[];
+export const MESSAGE_SEND_TIME_VARIABLES = ["brochure"] as const satisfies readonly EmailVariable[];
 
 export type MessageTemplateSummary = {
   id: string;

@@ -147,6 +147,8 @@ export async function sendOrganizationEmail(input: {
   kind: EmailTemplateKind;
   locale: EmailLocale;
   values: EmailValues;
+  // Lot 45 (CRM-05, CRM-06) : le texte relu et modifié par la planner, à la place du modèle.
+  template?: EmailTemplateText;
   attachments?: Attachment[];
   reserve?: boolean;
   idempotencyKey?: string;

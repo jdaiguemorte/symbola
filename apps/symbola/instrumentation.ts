@@ -59,6 +59,10 @@ async function startScheduledTasks() {
     // rappels des rendez-vous.
     const { scheduleAppointmentJobs } = await import("./lib/appointment-jobs");
     scheduleAppointmentJobs();
+    // Lot 45 (CRM-06, CRM-07 ; D2 ; ADR 0090) : relances des prospects préparées chaque heure (envoyées
+    // seules si l'organisation l'a réglé), doublons de contacts cherchés chaque nuit.
+    const { scheduleProspectTasks } = await import("./lib/prospect-follow-ups");
+    scheduleProspectTasks();
     // Lot 31b (FAC-05, D6) : factures d'acompte émises d'elles-mêmes (fin du délai de rétractation).
     const { scheduleDepositInvoiceIssuance } = await import("./lib/deposit-invoices");
     scheduleDepositInvoiceIssuance();

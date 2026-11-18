@@ -5167,7 +5167,11 @@
       "guests_caterer_summary_downloaded": "Synthèse pour le traiteur téléchargée",
       "events_contact_form_updated": "Formulaire de contact réglé",
       "events_prospect_request_received": "Demande reçue par le formulaire de contact",
-      "events_prospect_request_to_review": "Demande mise de côté « à vérifier »"
+      "events_prospect_request_to_review": "Demande mise de côté « à vérifier »",
+      "events_prospect_message_sent": "Réponse envoyée à un prospect",
+      "events_follow_up_sent": "Relance envoyée à un prospect",
+      "events_questionnaire_sent": "Questionnaire envoyé",
+      "hub_contact_merged": "Fiches de contact fusionnées"
     },
     "categories": {
       "connexion": "Connexions",
@@ -5303,7 +5307,16 @@
       "guests_caterer_summary_downloads": "téléchargement de la synthèse pour le traiteur",
       "events_contact_forms": "formulaire de contact",
       "events_pipeline_stages": "étape du pipeline",
-      "events_prospect_requests": "demande de contact"
+      "events_prospect_requests": "demande de contact",
+      "events_event_messages": "message à un contact",
+      "events_prospect_follow_up_settings": "réglage des relances",
+      "events_prospect_follow_ups": "relance d'un prospect",
+      "events_questionnaire_templates": "modèle de questionnaire",
+      "events_questionnaire_template_items": "question d'un modèle de questionnaire",
+      "events_event_questionnaires": "questionnaire envoyé",
+      "events_questionnaire_answers": "réponse à un questionnaire",
+      "hub_contact_duplicates": "doublon possible",
+      "hub_contact_merges": "trace d'une fusion de contacts"
     },
     "modules": {
       "events": "Événements",
@@ -6466,7 +6479,11 @@
         "button": "Accepter l'invitation"
       }
     },
-    "followUpOptOut": "Vous ne souhaitez plus de nouvelles ? Répondez simplement à ce message."
+    "followUpOptOut": "Vous ne souhaitez plus de nouvelles ? Répondez simplement à ce message.",
+    "booking": {
+      "withPage": "Choisissez le moment qui vous convient sur ma page de rendez-vous : {url}",
+      "manual": "Voici quelques créneaux possibles :\n- le … à …\n- ou le … à …\nDites-moi ce qui vous convient le mieux."
+    }
   },
   "RecipientsGuard": {
     "title": "Cet envoi part à {count} personnes",

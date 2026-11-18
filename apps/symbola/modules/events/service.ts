@@ -207,6 +207,23 @@ import {
   updateCandidate,
 } from "./vendor-candidates";
 import { addDayContact, listDayContacts, removeDayContact } from "./day-contacts";
+import { describeBrochureLink, openBrochureLink, prospectMessageValues, recordQuestionnaireSent, type ProspectRecipient } from "./prospect-messages";
+import {
+  eventPrefillState,
+  findResolvableAnswer,
+  finishLinkQuestionnaire,
+  freezeQuestionnaire as freezeQuestionnaireOf,
+  getPortalQuestionnaire,
+  insertEventQuestionnaire,
+  listLinkQuestionnaires,
+  markAnswersResolved,
+  openQuestionnaireRubric,
+  QuestionnaireNotFoundError as QuestionnaireMissingError,
+  saveLinkAnswer,
+  type PortalQuestionnaireView,
+} from "./questionnaires";
+import type { EventFieldValues } from "./questionnaire-rules";
+import type { EventQuestionnaire, PrefillDifference, QuestionEventField, QuestionnaireAnswerValue } from "@symbola/contracts";
 import {
   addDocumentVersion,
   attachDocument,
@@ -1181,12 +1198,13 @@ export async function revokeEventDocumentLink(organizationId: string, linkId: st
   await revokeDocumentLink(organizationId, linkId, now);
 }
 
+// Lot 45 (CRM-05, D1) : la page /partage ouvre aussi le lien de la brochure envoyée à un prospect.
 export async function describeEventDocumentLink(token: string, now?: Date): Promise<{ label: string; mime: string; sizeBytes: number } | null> {
-  return peekDocumentLink(token, now);
+  return (await peekDocumentLink(token, now)) ?? (await describeBrochureLink(token, now));
 }
 
 export async function openEventDocumentLink(token: string, now?: Date): Promise<OpenedEventDocumentLink | null> {
-  return openDocumentLink(token, now);
+  return (await openDocumentLink(token, now)) ?? (await openBrochureLink(token, now));
 }
 
 export async function listDayDocumentChoices(organizationId: string, eventId: string): Promise<DayDocumentChoice[]> {
@@ -3193,4 +3211,247 @@ export async function listNewProspectRequests(organizationId: string, locale: "f
 export async function countProspectRequestsToReview(organizationId: string): Promise<{ count: number; oldest: string | null }> {
   const result = await countRequestsToReview(organizationId);
   return { count: result.count, oldest: result.oldest ? result.oldest.toISOString() : null };
+}
+
+// —— Lot 45 (CRM-05, CRM-06, CRM-07, CRM-09, POR-07, HUB-21 ; ADR 0090) ——————————————————————
+// Réponses en un clic, relances des prospects, questionnaires ; références d'un contact fusionné.
+export {
+  BrochureRejectedError,
+  getProspectFollowUp,
+  getProspectFollowUpSettings,
+  lastPlannerMessages,
+  listContactMessages,
+  listEventFollowUps,
+  listEventMessages,
+  listReadyFollowUps,
+  noteProspectAnswered,
+  prepareDueFollowUps,
+  PROSPECT_BODY_MAX,
+  PROSPECT_SUBJECT_MAX,
+  ProspectMessageInvalidError,
+  prospectMessageValues,
+  removeProspectBrochure,
+  renderProspectText,
+  saveProspectBrochure,
+  saveProspectFollowUpSettings,
+  sendProspectFollowUp,
+  sendProspectMessage,
+  stopProspectFollowUps,
+  withdrawProspectFollowUp,
+  type ExternalProspectActivity,
+  type FollowUpSendOutcome,
+  type ProspectContext,
+  type ProspectRecipient,
+  type ProspectSendResult,
+} from "./prospect-messages";
+export { FollowUpSettingsInvalidError, FOLLOW_UP_DAYS_MAX, FOLLOW_UP_DAYS_MIN } from "./follow-up-rules";
+export {
+  addStarterQuestionnaires,
+  createQuestionnaireTemplate,
+  deleteQuestionnaireTemplate,
+  duplicateQuestionnaireTemplate,
+  getQuestionnaireTemplate,
+  listEventQuestionnaires,
+  listFinishedUnseenQuestionnaires,
+  listQuestionnaireTemplates,
+  markEventQuestionnairesSeen,
+  QUESTIONNAIRE_NAME_MAX,
+  QuestionnaireClosedError,
+  QuestionnaireNotFoundError,
+  QuestionnaireTemplateInvalidError,
+  questionnaireTemplatesForEventType,
+  saveQuestionnaireTemplate,
+  sensitiveQuestionKeys,
+  type PortalQuestionnaireView,
+} from "./questionnaires";
+export { AnswerInvalidError, naturesForField, QuestionInvalidError, type QuestionInput } from "./questionnaire-rules";
+export { countEventsContactReferences, repointMergedContact } from "./contact-merge";
+
+// Les destinataires d'un message à un prospect : les clients de l'évènement qui ont une adresse et
+// une fiche de contact (la liste demandée, sinon tous).
+export async function prospectRecipients(organizationId: string, eventId: string, contactIds?: string[]): Promise<ProspectRecipient[]> {
+  const event = await getEvent(organizationId, eventId);
+  if (!event) return [];
+  const wanted = contactIds ? new Set(contactIds) : null;
+  return event.clients.flatMap((client) => (client.contactId && client.email && (!wanted || wanted.has(client.contactId)) ? [{ contactId: client.contactId, firstName: client.firstName, email: client.email }] : []));
+}
+
+// Destinataires et valeurs des variables d'un message (CRM-05) ; bookingUrl : la page de réservation
+// du module Rendez-vous, s'il est ouvert (donnée par l'appelant, ARC-07).
+export async function prospectMessageContext(input: { organizationId: string; eventId: string; locale: "fr" | "en"; contactIds?: string[]; bookingUrl: string | null }): Promise<{ recipients: ProspectRecipient[]; values: EmailValues } | null> {
+  const event = await getEvent(input.organizationId, input.eventId);
+  if (!event) return null;
+  const recipients = await prospectRecipients(input.organizationId, input.eventId, input.contactIds);
+  const couple = ((await getEventAudience(input.organizationId, input.eventId)) ?? "couple") === "couple";
+  const values = await prospectMessageValues({
+    organizationId: input.organizationId,
+    locale: input.locale,
+    couple,
+    firstNames: recipients.map((recipient) => recipient.firstName),
+    clientNames: event.clients.map((client) => client.firstName),
+    eventDate: event.eventDate,
+    place: event.venueName,
+    bookingUrl: input.bookingUrl,
+  });
+  return { recipients, values };
+}
+
+// —— Questionnaires envoyés par le lien du client (POR-07, CRM-09) ——————————————————————————
+
+// Envoyer un questionnaire à un client de l'évènement : la copie figée du modèle, la rubrique
+// « Questionnaires » ouverte sur son lien personnel (créé si besoin ; s'il existe, son jeton est
+// renouvelé : le nouveau lien part avec le questionnaire), l'e-mail « Questionnaire envoyé ».
+export async function sendEventQuestionnaire(input: { organizationId: string; eventId: string; eventClientId: string; templateId: string; userId: string; locale: "fr" | "en"; now?: Date }): Promise<{ questionnaireId: string; linkId: string }> {
+  const now = input.now ?? new Date();
+  const found = await findEventById(input.organizationId, input.eventId);
+  if (!found) throw new EventNotFoundError();
+  if (found.event.isDemo) throw new DemoEventRestrictionError();
+  const event = await getEvent(input.organizationId, input.eventId);
+  const client = event?.clients.find((candidate) => candidate.id === input.eventClientId);
+  if (!client?.email) throw new EventLinkInvalidError("client");
+  const frozen = await freezeQuestionnaireOf(input.organizationId, input.templateId);
+  const vocabulary = (await findEventAudience(input.organizationId, input.eventId)) ?? "couple";
+  const base = { organizationId: input.organizationId, eventId: input.eventId, audience: "client" as const, personName: client.firstName, locale: input.locale, vocabulary };
+  const valuesFor = async (expiresOn: string | null, url?: string): Promise<EmailValues> => ({ ...(await linkEmailValues({ ...base, expiresOn, ...(url ? { url } : {}) })), questionnaire: frozen.name });
+  await assertOrganizationEmailReady({ organizationId: input.organizationId, kind: "questionnaire_sent", locale: input.locale, values: await valuesFor(null) });
+  await reserveOrganizationMail(input.organizationId);
+  const secret = newLinkSecret();
+  const existing = (await findEventLinkRows(input.organizationId, input.eventId)).find((context) => context.link.audience === "client" && context.link.eventClientId === client.id && !context.link.revokedAt);
+  let context: LinkWithContext;
+  if (existing) {
+    await openQuestionnaireRubric(input.organizationId, existing.link.id);
+    const extendTo = isLinkExpired(expiresOnOf(existing), now) ? addDays(parisToday(now), starterLinkExpiry().daysAfterEvent.client) : undefined;
+    const replaced = await replaceLinkTokenRow(input.organizationId, existing.link.id, hashLinkSecret(secret), extendTo, input.locale);
+    if (!replaced) throw new EventLinkNotFoundError();
+    context = replaced;
+  } else {
+    const result = await insertLinkRow({
+      personName: [client.firstName, client.lastName].filter(Boolean).join(" ").slice(0, PERSON_NAME_MAX),
+      email: client.email,
+      eventClientId: client.id,
+      rights: { rubrics: ["questionnaires"], budgetScope: "all", sharedSlotIds: [] },
+      customExpiresOn: null,
+      otpRequired: false,
+      taskReminders: true,
+      organizationId: input.organizationId,
+      eventId: input.eventId,
+      audience: "client",
+      vendorCandidateId: null,
+      locale: input.locale,
+      tokenHash: hashLinkSecret(secret),
+    });
+    if (result.status !== "saved") throw linkWriteError(result.status);
+    context = result.context;
+  }
+  const link = toEventLink(context, now);
+  const url = linkUrl(formatLinkToken(input.organizationId, secret));
+  const questionnaireId = await insertEventQuestionnaire({ organizationId: input.organizationId, eventId: input.eventId, contactId: client.contactId, linkId: link.id, frozen, now });
+  await sendOrganizationEmail({ organizationId: input.organizationId, to: link.email, kind: "questionnaire_sent", locale: input.locale, values: await valuesFor(link.expiresOn, url), reserve: false });
+  await recordQuestionnaireSent({ organizationId: input.organizationId, eventId: input.eventId, contactId: client.contactId, userId: input.userId, name: frozen.name, now });
+  return { questionnaireId, linkId: link.id };
+}
+
+// Les champs de l'évènement qu'un questionnaire peut alimenter, tels qu'ils sont (D7).
+export async function eventFieldValues(organizationId: string, eventId: string): Promise<EventFieldValues | null> {
+  const event = await getEvent(organizationId, eventId);
+  if (!event) return null;
+  const typeLabel = event.eventTypeId ? ((await listEventTypes(organizationId)).find((type) => type.id === event.eventTypeId)?.label ?? null) : null;
+  return {
+    event_date: event.eventDate,
+    guests: event.guestsEstimated,
+    budget: event.wantedBudgetCents,
+    venue: event.venueName,
+    city: event.venueCity,
+    style: event.style,
+    event_type: typeLabel,
+  };
+}
+
+// Écrit une réponse dans le champ de l'évènement ; false : elle ne s'y écrit pas (un type inconnu).
+async function writeEventField(organizationId: string, eventId: string, field: QuestionEventField, value: QuestionnaireAnswerValue): Promise<boolean> {
+  const event = await getEvent(organizationId, eventId);
+  if (!event) return false;
+  const text = Array.isArray(value) ? value.join(", ") : String(value);
+  switch (field) {
+    case "event_date":
+      await changeEventDate(organizationId, eventId, text);
+      return true;
+    case "guests":
+      await setEventIdentity(organizationId, eventId, { guestsEstimated: Number(value), guestsConfirmed: event.guestsConfirmed, style: event.style, notes: event.notes });
+      return true;
+    case "style":
+      await setEventIdentity(organizationId, eventId, { guestsEstimated: event.guestsEstimated, guestsConfirmed: event.guestsConfirmed, style: text.slice(0, 2000), notes: event.notes });
+      return true;
+    case "budget":
+      await setEventWantedBudget(organizationId, eventId, Number(value));
+      return true;
+    case "venue":
+      await setEventVenue(organizationId, eventId, { venueName: text.slice(0, 200), venueCity: event.venueCity });
+      return true;
+    case "city":
+      await setEventVenue(organizationId, eventId, { venueName: event.venueName, venueCity: text.slice(0, 200) });
+      return true;
+    case "event_type": {
+      const type = (await listEventTypes(organizationId)).find((candidate) => candidate.label.trim().toLocaleLowerCase("fr") === text.trim().toLocaleLowerCase("fr"));
+      if (!type) return false;
+      await setEventType(organizationId, eventId, type.id);
+      return true;
+    }
+  }
+}
+
+// CRM-09, D7 — après « Terminer » : les champs vides se remplissent, les réponses égales à la fiche
+// se règlent d'office ; les écarts restent à la planner.
+export async function applyQuestionnairePrefill(organizationId: string, eventId: string): Promise<{ filled: number; differences: PrefillDifference[] }> {
+  const values = await eventFieldValues(organizationId, eventId);
+  if (!values) throw new EventNotFoundError();
+  const state = await eventPrefillState(organizationId, eventId, values);
+  let filled = 0;
+  for (const fill of state.work.fill) {
+    const written = await writeEventField(organizationId, eventId, fill.eventField, fill.value);
+    await markAnswersResolved(organizationId, [fill], written ? "filled" : "kept");
+    if (written) filled += 1;
+  }
+  await markAnswersResolved(organizationId, state.work.same, "kept");
+  return { filled, differences: (await eventPrefillState(organizationId, eventId, (await eventFieldValues(organizationId, eventId))!)).differences };
+}
+
+export async function listQuestionnaireDifferences(organizationId: string, eventId: string): Promise<PrefillDifference[]> {
+  const values = await eventFieldValues(organizationId, eventId);
+  return values ? (await eventPrefillState(organizationId, eventId, values)).differences : [];
+}
+
+// D7 — la planner choisit : la réponse remplace la fiche (« answer »), ou la fiche reste (« event »).
+export async function resolveQuestionnaireDifference(input: { organizationId: string; eventId: string; questionnaireId: string; key: string; choice: "answer" | "event" }): Promise<void> {
+  const answer = await findResolvableAnswer(input.organizationId, input.questionnaireId, input.key);
+  if (!answer || answer.eventId !== input.eventId) throw new QuestionnaireMissingError();
+  if (input.choice === "answer" && (await writeEventField(input.organizationId, input.eventId, answer.eventField, answer.value))) {
+    await markAnswersResolved(input.organizationId, [{ questionnaireId: input.questionnaireId, key: input.key }], "applied");
+    return;
+  }
+  await markAnswersResolved(input.organizationId, [{ questionnaireId: input.questionnaireId, key: input.key }], "kept");
+}
+
+// Côté lien (rubrique « Questionnaires » ouverte) : les questionnaires du lien, un questionnaire,
+// une réponse, « Terminer ». Toujours l'évènement et le lien de la session, jamais un autre.
+export type LinkQuestionnaireScope = { organizationId: string; eventId: string; linkId: string };
+
+export async function listQuestionnairesOfLink(scope: LinkQuestionnaireScope): Promise<EventQuestionnaire[]> {
+  return listLinkQuestionnaires(scope.organizationId, scope.eventId, scope.linkId);
+}
+
+export async function getQuestionnaireOfLink(scope: LinkQuestionnaireScope, questionnaireId: string): Promise<PortalQuestionnaireView> {
+  const values = await eventFieldValues(scope.organizationId, scope.eventId);
+  if (!values) throw new QuestionnaireMissingError();
+  return getPortalQuestionnaire({ ...scope, questionnaireId, eventValues: values });
+}
+
+export async function answerQuestionnaireOfLink(scope: LinkQuestionnaireScope, questionnaireId: string, key: string, value: string | string[] | null, now?: Date): Promise<QuestionnaireAnswerValue | null> {
+  return saveLinkAnswer({ ...scope, questionnaireId, key, value, ...(now ? { now } : {}) });
+}
+
+export async function finishQuestionnaireOfLink(scope: LinkQuestionnaireScope, questionnaireId: string, now?: Date): Promise<{ filled: number; differences: number }> {
+  await finishLinkQuestionnaire({ ...scope, questionnaireId, ...(now ? { now } : {}) });
+  const result = await applyQuestionnairePrefill(scope.organizationId, scope.eventId);
+  return { filled: result.filled, differences: result.differences.length };
 }
