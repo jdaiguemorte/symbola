@@ -471,14 +471,14 @@ Fait, dans une seule PR (ADR 0080) :
 
 Reste ou écart :
 
-- **Modèles d'e-mails de rendez-vous** : ils partent de leur texte de départ mais ne sont pas encore
-  modifiables dans Paramètres › Modèles d'e-mails : la contrainte `hub.email_templates_kind_check`
-  ne connaît pas leurs natures, et la réécrire touche le schéma du hub (accord demandé à Julien ;
-  le lot 49 la réécrit pour ses natures, la seconde PR fusionnée portera l'union).
+- **Modèles d'e-mails de rendez-vous** : personnalisables dans Paramètres › Modèles d'e-mails grâce
+  à la migration **0152**, dans le schéma `hub` (accord de Julien du 18/11 : seule la contrainte
+  `email_templates_kind_check` est élargie ; une nature inconnue reste refusée). Le lot 49 élargit
+  la même contrainte pour ses natures : la seconde PR fusionnée réunit les deux listes.
 - **Agenda de l'app** (`app/agenda`, calendrier des mois de l'écran Évènements) : les rendez-vous
   n'y sont pas dessinés ; ils sont dans le flux ICS de la personne qui reçoit (HUB-29),
   dans « Aujourd'hui » et dans la liste du module.
 - **Parcours Playwright** non joués en local (port et fournisseur d'identité pris par les sessions
   des lots 41 et 49) : ils tournent en CI.
-- Déploiement : migrations 0150 et 0151, ajouts seuls (compatibles avec la version précédente) ;
-  le module reste fermé tant que l'Exploitation ne l'ouvre pas.
+- Déploiement : migrations 0150 à 0152, compatibles avec la version précédente (sans arrêt de
+  l'app, `migrate:plan`) ; le module reste fermé tant que l'Exploitation ne l'ouvre pas.

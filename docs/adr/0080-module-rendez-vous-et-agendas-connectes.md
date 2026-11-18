@@ -31,7 +31,7 @@ critère est « aucun créneau proposé sur une plage occupée » (RDV-02), un r
    RLS forcée ; auteur et dates (DAT-06) ; suppression logique des types et des rendez-vous
    (ADR 0073). Les autres modules ne sont connus que par un identifiant opaque (compte qui reçoit,
    contact, évènement, tâche), sans clé étrangère entre schémas. Migrations 0150 (création) et 0151
-   (droits, RLS, déclencheurs), annulables.
+   (droits, RLS, déclencheurs), annulables ; 0152 dans `hub`, voir « Conséquences », E-mails.
 2. **Exception écrite à la RLS** : la page de réservation (`booking_pages`) a une politique de
    lecture ouverte (`public_lookup`) pour retrouver l'organisation d'une adresse publique ;
    l'écriture reste à la seule organisation. La table ne porte que l'adresse, son état et la
@@ -90,10 +90,13 @@ critère est « aucun créneau proposé sur une plage occupée » (RDV-02), un r
   la page publique et dans l'aide.
 - **Dépendance** : `ical.js` entre à l'inventaire des licences (`docs/conformite/licences.md`).
 - **E-mails** : les quatre natures d'e-mails de rendez-vous (confirmé, rappel, déplacé, annulé)
-  partent de leur texte de départ. Elles ne sont pas encore proposées dans l'écran des modèles :
-  la contrainte `hub.email_templates_kind_check` (migration 0142) ne les connaît pas, et la
-  réécrire touche le schéma du hub (accord demandé). Le lot 49 la réécrit pour ses natures ; la
-  seconde PR fusionnée portera l'union des listes.
+  ont leur texte de départ et se personnalisent dans Paramètres › Modèles d'e-mails (groupe
+  « Rendez-vous »). **Exception écrite** à « une migration ne touche que le schéma de son module »
+  (DAT-09, ADR 0036), accordée par Julien le 18/11/2026 : la migration **0152** remplace la seule
+  contrainte `hub.email_templates_kind_check` par la liste élargie, rien d'autre dans `hub` ; une
+  nature inconnue reste refusée par la base ; l'annulation est refusée tant qu'un modèle de
+  rendez-vous personnalisé existe. Le lot 49 a le même accord pour ses natures : la seconde PR
+  fusionnée réunit les deux listes en renumérotant sa migration.
 - **Fuseaux** : les disponibilités sont à l'heure de Paris (ARC-17) ; le fuseau de chaque
   participant relève de RDV-05 (P2).
 - **Hors périmètre** : synchronisation dans les deux sens et OAuth (V2), SMS (D10), intégration de
