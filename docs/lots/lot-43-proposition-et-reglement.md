@@ -1,6 +1,6 @@
 # Lot 43 — Proposition en page web, signer puis régler, relances, répartition par payeur
 
-**Statut** : spécification proposée le 18/11/2026, **à valider par Julien**. Le lot change les
+**Statut** : spécification proposée le 18/11/2026, **validée par Julien le 18/11/2026** : toutes les décisions retenues dans leur option recommandée (a), changements de schéma et élargissement de la contrainte des natures d'e-mails du `hub` compris (accord donné). Le lot change les
 schémas `quotes` et `budget` (tables et colonnes) et la contrainte des natures d'e-mails du `hub`
 (D10) : validation explicite requise (CLAUDE.md § 8). Aucune dépendance nouvelle.
 
