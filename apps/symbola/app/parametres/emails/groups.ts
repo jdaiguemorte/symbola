@@ -5,9 +5,9 @@ import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 import { isAppointmentsModuleEnabled } from "@/modules/appointments/service";
 
-type TemplateModule = "events" | "quotes" | "appointments";
+type TemplateModule = "events" | "quotes" | "appointments" | "hub";
 
-export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "prospects" | "signatures" | "settlement" | "appointments" | "vendors"; module: TemplateModule; kinds: EmailTemplateKind[] }[] = [
+export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "prospects" | "signatures" | "settlement" | "appointments" | "vendors" | "team"; module: TemplateModule; kinds: EmailTemplateKind[] }[] = [
   { key: "links", module: "events", kinds: ["client_link", "client_link_renewed", "vendor_link", "vendor_link_renewed"] },
   { key: "reminders", module: "events", kinds: ["task_reminder"] },
   { key: "program", module: "events", kinds: ["program_published"] },
@@ -18,9 +18,12 @@ export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "
   { key: "vendors", module: "events", kinds: ["vendor_brief", "vendor_brief_reminder", "vendor_roadmap"] },
   { key: "signatures", module: "quotes", kinds: ["quote_signature", "contract_signature", "order_first", "signed_copy"] },
   // Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10 ; migration 0169) : proposition et règlement par virement.
-  { key: "settlement", module: "quotes", kinds: ["proposal_sent", "proposal_expiry_reminder", "payment_details", "invoice_reminder"] },
+  { key: "settlement", module: "quotes", kinds: ["proposal_sent", "proposal_expiry_reminder", "payment_details", "invoice_reminder", "payment_due_reminder"] },
   // Lot 46 (RDV-03, D10 ; migration 0158) : e-mails d'un rendez-vous, côté personne qui l'a pris.
   { key: "appointments", module: "appointments", kinds: ["appointment_confirmed", "appointment_reminder", "appointment_rescheduled", "appointment_cancelled"] },
+  // Lot 53 (HUB-15, UX-16 ; D1 ; migration 0175) : récapitulatif du matin et alerte, à l'équipe (le hub,
+  // toujours ouvert).
+  { key: "team", module: "hub", kinds: ["daily_digest", "notification_alert"] },
 ];
 
 // La langue du modèle affiché : celle demandée (?langue=), sinon celle de l'écran.
@@ -31,7 +34,7 @@ export function templateLocale(requested: string | undefined, interfaceLocale: s
 
 export async function enabledTemplateModules(organizationId: string): Promise<Set<TemplateModule>> {
   const [events, quotes, appointments] = await Promise.all([isEventsModuleEnabled(organizationId), isQuotesModuleEnabled(organizationId), isAppointmentsModuleEnabled(organizationId)]);
-  const enabled = new Set<TemplateModule>();
+  const enabled = new Set<TemplateModule>(["hub"]);
   if (events) enabled.add("events");
   if (quotes) enabled.add("quotes");
   if (appointments) enabled.add("appointments");

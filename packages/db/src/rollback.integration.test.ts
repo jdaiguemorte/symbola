@@ -67,6 +67,7 @@ const LOT_44 = ["0161_lot44_hub_prospect_email_kind", "0160_lot44_events_pipelin
 // Lot 45 : messages, relances et questionnaires (0170, events), doublons et fusions de contacts (0171,
 // hub), natures d'e-mails de réponse, de relance et de questionnaire (0172, hub) ; les plus récentes de
 // toutes, elles s'annulent d'abord.
+const LOT_53 = ["0175_lot53_hub_notification_email_kinds", "0174_lot53_events_tasks_vocabulary", "0173_lot53_hub_notifications"];
 const LOT_45 = ["0172_lot45_hub_prospect_email_kinds", "0171_lot45_hub_contact_duplicates", "0170_lot45_events_relation_prospects"];
 const LOT_51 = ["0166_lot51_budget_handovers", "0165_lot51_events_day_of"];
 const LOT_50 = ["0159_lot50_guests_seating"];
@@ -87,7 +88,7 @@ const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
 // 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
+const LOT_36 = [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
 const LOT_35A = ["0134_lot35a_hub_organization_exports"];
 const LOT_34B = ["0133_lot34b_events_fiche_tasks"];
 const LOT_34A = ["0132_lot34a_events_lifecycle"];
@@ -132,8 +133,55 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
+  it("lot 53 (HUB-15, HUB-28, GC-02, CHR-10, CHR-05, HUB-24 ; ADR 0095) — 0173 à 0175 : notifications, push, automatismes, radar, tâches hors évènement, termes des clients et natures d'e-mails ; annulation refusée tant que des données en dépendent, puis tout est retiré", async () => {
+    await migrateAll();
+    const organizationId = randomUUID();
+    const [user] = await target<{ id: string }[]>`insert into hub.users (email) values (${`lot53-${organizationId}@example.test`}) returning id`;
+    // Une notification ne mène qu'à un écran de l'app ; une sorte inconnue est refusée.
+    await expect(target`insert into hub.notifications (organization_id, user_id, type, object_key, href) values (${organizationId}, ${user!.id}, 'quote_signed', 'q1', 'https://ailleurs.test')`).rejects.toThrow(/notifications_href_check/);
+    await expect(target`insert into hub.notifications (organization_id, user_id, type, object_key, href) values (${organizationId}, ${user!.id}, 'inconnue', 'q1', '/accueil')`).rejects.toThrow(/notifications_type_check/);
+    await target`insert into hub.notifications (organization_id, user_id, type, object_key, href) values (${organizationId}, ${user!.id}, 'quote_signed', 'q1', '/devis')`;
+    await expect(target`insert into hub.notifications (organization_id, user_id, type, object_key, href) values (${organizationId}, ${user!.id}, 'quote_signed', 'q1', '/devis')`).rejects.toThrow(/notifications_object_idx/);
+    await expect(target`insert into hub.push_subscriptions (organization_id, user_id, endpoint, p256dh, auth, device_label) values (${organizationId}, ${user!.id}, 'http://push.example.test/1', ${"a".repeat(87)}, ${"b".repeat(22)}, 'Mac')`).rejects.toThrow(/push_subscriptions_endpoint_check/);
+    await target`insert into hub.automations (organization_id, key, enabled) values (${organizationId}, 'rsvp_reminder', false)`;
+    await target`insert into hub.risk_rules (organization_id, rule, enabled, threshold_days) values (${organizationId}, 'vendor_without_contract', true, 30)`;
+    // Une tâche hors évènement : ni date relative, ni jalon ; une répétition, seulement hors évènement.
+    const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+    await expect(target`insert into events.event_tasks (organization_id, event_id, label, due_date, recurrence) values (${organizationId}, ${event!.id}, 'Acompte', '2027-01-10', 'monthly')`).rejects.toThrow(/event_tasks_recurrence_check/);
+    await expect(target`insert into events.event_tasks (organization_id, label, due_date, offset_days) values (${organizationId}, 'TVA', '2027-01-10', -30)`).rejects.toThrow(/event_tasks_standalone_check/);
+    const [task] = await target<{ id: string }[]>`insert into events.event_tasks (organization_id, label, due_date, recurrence) values (${organizationId}, 'Déclaration de TVA', '2027-01-10', 'monthly') returning id`;
+    const [eventType] = await target<{ id: string }[]>`insert into events.event_types (organization_id, label) values (${organizationId}, 'Séminaire') returning id`;
+    await expect(target`insert into events.event_type_vocabulary (organization_id, event_type_id, locale, term, gender, number) values (${organizationId}, ${eventType!.id}, 'fr', '  ', 'masculine', 'singular')`).rejects.toThrow(/event_type_vocabulary_term_check/);
+    await target`insert into events.event_type_vocabulary (organization_id, event_type_id, locale, term, gender, number) values (${organizationId}, ${eventType!.id}, 'fr', 'le commanditaire', 'masculine', 'singular')`;
+    const [template] = await target<{ id: string }[]>`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, 'payment_due_reminder', 'fr', 'Rappel', 'Montant {{montant}}') returning id`;
+    await expect(rollback(LOT_53[0]!)).rejects.toThrow(/récapitulatif, de rappel J-7 ou d'alerte/);
+    await target`delete from hub.email_templates where id = ${template!.id}`;
+    await rollback(LOT_53[0]!);
+    await expect(target`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, 'daily_digest', 'fr', 'Objet', 'Texte')`).rejects.toThrow(/email_templates_kind_check/);
+    await target`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, 'questionnaire_sent', 'fr', 'Objet', 'Voir {{lien}}')`;
+    await target`delete from hub.email_templates where organization_id = ${organizationId}`;
+    await expect(rollback(LOT_53[1]!)).rejects.toThrow(/tâches hors évènement/);
+    await target`delete from events.event_tasks where id = ${task!.id}`;
+    await expect(rollback(LOT_53[1]!)).rejects.toThrow(/termes des clients/);
+    await target`delete from events.event_type_vocabulary where organization_id = ${organizationId}`;
+    await rollback(LOT_53[1]!);
+    await expect(target`insert into events.event_tasks (organization_id, label, due_date) values (${organizationId}, 'TVA', '2027-01-10')`).rejects.toThrow(/event_id/);
+    await expect(rollback(LOT_53[2]!)).rejects.toThrow(/automatismes sont coupés/);
+    await target`update hub.automations set enabled = true where organization_id = ${organizationId}`;
+    await rollback(LOT_53[2]!);
+    for (const name of ["hub.notifications", "hub.notification_settings", "hub.notification_preferences", "hub.push_subscriptions", "hub.automations", "hub.automation_runs", "hub.risk_rules", "events.event_type_vocabulary", "events.planning_health_settings"]) {
+      const [table] = await target<{ name: string | null }[]>`select to_regclass(${name})::text as name`;
+      expect(table!.name, name).toBeNull();
+    }
+    await target`delete from events.event_types where organization_id = ${organizationId}`;
+    await target`delete from events.events where id = ${event!.id}`;
+    await target`delete from hub.users where id = ${user!.id}`;
+    await migrateAll();
+  });
+
   it("lot 45 (CRM-05 à CRM-09, POR-07 ; ADR 0090) — 0170 à 0172 : messages, relances, questionnaires, doublons, fusions et natures d'e-mails ; annulation refusée tant que des données en dépendent, puis tout est retiré", async () => {
     await migrateAll();
+    for (const tag of LOT_53) await rollback(tag);
     const organizationId = randomUUID();
     const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
     const [first] = await target<{ id: string }[]>`insert into hub.contacts (organization_id, first_name, phone) values (${organizationId}, 'Léa', '0612345678') returning id`;
@@ -179,7 +227,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
 
   it("lot 44 (CRM-01, CRM-02 ; ADR 0084) — 0160 et 0161 : étapes, formulaire, demandes et nature d'e-mail ; annulation refusée tant que des demandes, des passages d'étape, un historique sans auteur ou un modèle personnalisé existent, puis tout est retiré", async () => {
     await migrateAll();
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47]) await rollback(tag);
     const organizationId = randomUUID();
     const [stage] = await target<{ id: string }[]>`insert into events.pipeline_stages (organization_id, label) values (${organizationId}, 'Nouvelle demande') returning id`;
     const [event] = await target<{ id: string }[]>`insert into events.events (organization_id, pipeline_stage_id) values (${organizationId}, ${stage!.id}) returning id`;
@@ -216,7 +264,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
   it("lot 43 (FAC-02, FAC-08, FAC-09, FAC-15, BUD-06 ; ADR 0089) — 0167 à 0169 : références sans donnée personnelle, une relance par rang, parts en pourcentage ou en montant, quatre natures d'e-mails ; annulation refusée tant qu'un modèle personnalisé existe, puis tout est retiré", async () => {
     await migrateAll();
     // Lot 45 : ses migrations, plus récentes, s'annulent d'abord.
-    for (const tag of LOT_45) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45]) await rollback(tag);
     const organizationId = randomUUID();
     const [quote] = await target<{ id: string }[]>`insert into quotes.quotes (organization_id, event_id, number, created_by_user_id) values (${organizationId}, ${randomUUID()}, 'D-2027-0001', ${randomUUID()}) returning id`;
     const [version] = await target<{ id: string }[]>`insert into quotes.quote_versions (organization_id, quote_id, version) values (${organizationId}, ${quote!.id}, 1) returning id`;
@@ -270,7 +318,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
 
   it("lot 51 (EVT-04, JRJ-05 à JRJ-09 ; ADR 0091) — 0165 et 0166 : chaque évènement daté qui a un programme garde son chrono le jour de l'évènement, dans un temps fort existant ou créé de lui-même ; l'annulation est refusée tant que le jour J a laissé une trace, puis retire tout", async () => {
     await migrateAll();
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51]) await rollback(tag);
     expect(await hasColumn("events", "program_items", "key_moment_id")).toBe(false);
     const organizationId = randomUUID();
     await target`insert into hub.organizations (id, name, language) values (${organizationId}, 'Atelier', 'en')`;
@@ -287,7 +335,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     }
     await migrateAll();
     // Lot 43 : ses migrations, réappliquées par migrateAll, s'annulent d'abord.
-    for (const tag of [...LOT_45, ...LOT_43]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43]) await rollback(tag);
     const moments = await target<{ event_id: string; name: string; date: string; auto_created: boolean }[]>`select event_id, name, date::text, auto_created from events.key_moments where organization_id = ${organizationId} order by event_id, date`;
     // Le mariage d'un jour : un temps fort unique créé de lui-même, dans la langue de l'organisation.
     expect(moments.filter((moment) => moment.event_id === single!.id)).toEqual([{ event_id: single!.id, name: "Event day", date: "2027-06-12", auto_created: true }]);
@@ -350,7 +398,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
   it("lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; ADR 0085) — 0162 à 0164 : réponse et feuille de route contraintes, natures d'e-mails des prestataires ; annulations refusées tant qu'un modèle réécrit, une facture déposée ou une réponse au fil existent, puis tout est retiré", async () => {
     await migrateAll();
     // Lot 43 : ses migrations, plus récentes, s'annulent d'abord.
-    for (const tag of [...LOT_45, ...LOT_43]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43]) await rollback(tag);
     const organizationId = randomUUID();
     const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
     const [slot] = await target<{ id: string }[]>`insert into events.event_vendor_slots (organization_id, event_id, label) values (${organizationId}, ${event!.id}, 'Fleurs') returning id`;
@@ -408,7 +456,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(target`insert into guests.seat_assignments (organization_id, plan_id, table_id, guest_id) values (${organizationId}, ${plan!.id}, ${table!.id}, ${guest!.id})`).rejects.toThrow(/seat_assignments_plan_guest_unique/);
     const [mealType] = await target<{ id: string }[]>`insert into guests.meal_types (organization_id, starter_key) values (${organizationId}, 'adult') returning id`;
     await target`update guests.guests set meal_type_id = ${mealType!.id} where id = ${guest!.id}`;
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44]) await rollback(tag);
     await expect(rollback(LOT_50[0]!)).rejects.toThrow(/plans de table existent encore/);
     await target`delete from guests.seating_plans where organization_id = ${organizationId}`;
     await expect(rollback(LOT_50[0]!)).rejects.toThrow(/type de repas choisi/);
@@ -426,7 +474,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
   it("lot 46 (RDV-01 à RDV-04, EVT-10 ; ADR 0082) — 0156 et 0157 : adresse de page unique et lisible, adresse d'agenda chiffrée seulement ; l'annulation est refusée tant qu'un rendez-vous réel existe, puis retire le schéma", async () => {
     await migrateAll();
     // Lots 47, 44 et 50 : leurs migrations, plus récentes, s'annulent d'abord.
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50]) await rollback(tag);
     const organizationId = randomUUID();
     await target`insert into appointments.booking_pages (organization_id, slug) values (${organizationId}, 'atelier-camille')`;
     await expect(target`insert into appointments.booking_pages (organization_id, slug) values (${randomUUID()}, 'atelier-camille')`).rejects.toThrow(/booking_pages_slug_idx/);
@@ -447,7 +495,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
   it("lot 46 (RDV-03 ; ADR 0082) — 0158 : les natures des rendez-vous rejoignent celles du lot 49, une nature inconnue reste refusée ; l'annulation est refusée tant qu'un modèle de rendez-vous existe, puis rend exactement la liste du lot 49", async () => {
     await migrateAll();
     // Lots 47, 44 et 50 : leurs migrations, plus récentes, s'annulent d'abord.
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50]) await rollback(tag);
     const organizationId = randomUUID();
     const template = (kind: string) => target`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, ${kind}, 'fr', 'Objet', 'Texte')`;
     await template("appointment_confirmed");
@@ -474,7 +522,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(target`insert into quotes.catalog_items (organization_id, label, unit, unit_price_cents, vat_rate_basis_points, nature) values (${organizationId}, 'X', 'u', 1, 0, 'autre')`).rejects.toThrow(/catalog_items_nature_check/);
     await target`delete from quotes.catalog_items where organization_id = ${organizationId}`;
     // Lots 50 et 46 : leurs migrations, plus récentes, s'annulent d'abord.
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41]) await rollback(tag);
     const [column] = await target<{ name: string | null }[]>`select column_name as name from information_schema.columns where table_schema = 'quotes' and table_name = 'invoices' and column_name = 'reform_snapshot'`;
     expect(column).toBeUndefined();
     await migrateAll();
@@ -483,7 +531,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
   it("lot 49 (D2, D9 ; ADR 0083) — 0150 à 0153 : un enfant n'a ni contact ni lien ; annulation refusée tant que des invités ou des temps forts existent, puis tout est retiré", async () => {
     await migrateAll();
     // Lots 50, 46 et 41 : leurs migrations, plus récentes, s'annulent d'abord.
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41]) await rollback(tag);
     const organizationId = randomUUID();
     const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
     const [moment] = await target<{ id: string }[]>`insert into events.key_moments (organization_id, event_id, name, date) values (${organizationId}, ${event!.id}, 'Dîner', '2027-06-12') returning id`;
@@ -520,7 +568,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     const [job] = await target<{ id: string }[]>`insert into hub.jobs (organization_id, kind, idempotency_key, payload) values (${organizationId}, 'email', 'invitation:1', '{"to":"x"}'::jsonb) returning id`;
     await expect(target`insert into hub.jobs (organization_id, kind, idempotency_key, payload) values (${organizationId}, 'email', 'invitation:1', '{"to":"y"}'::jsonb)`).rejects.toThrow(/jobs_organization_key_idx/);
     await expect(target`insert into hub.jobs (organization_id, kind, idempotency_key, state, payload) values (${organizationId}, 'email', 'fini', 'done', '{"to":"z"}'::jsonb)`).rejects.toThrow(/jobs_payload_check/);
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49]) await rollback(tag);
     await expect(rollback(LOT_40B[0]!)).rejects.toThrow(/des e-mails attendent encore/);
     await target`update hub.jobs set state = 'done', payload = null, finished_at = now() where id = ${job!.id}`;
     for (const tag of LOT_40B) await rollback(tag);
@@ -535,7 +583,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     const [user] = await target<{ id: string }[]>`insert into hub.users (email) values (${`brouillon-${randomUUID()}@example.test`}) returning id`;
     await target`insert into hub.form_drafts (organization_id, user_id, form_key, content) values (${organizationId}, ${user!.id}, 'event-new', '{"clientFirstName1":"Léa"}'::jsonb)`;
     await expect(target`insert into hub.form_drafts (organization_id, user_id, form_key, content) values (${organizationId}, ${user!.id}, 'event-new', '{}'::jsonb)`).rejects.toThrow(/form_drafts_person_form_idx/);
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B]) await rollback(tag);
     const [table] = await target<{ name: string | null }[]>`select to_regclass('hub.form_drafts')::text as name`;
     expect(table!.name).toBeNull();
     await target`delete from hub.users where id = ${user!.id}`;
@@ -547,7 +595,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     const organizationId = randomUUID();
     const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
     const [task] = await target<{ id: string }[]>`insert into events.event_tasks (organization_id, event_id, label, due_date, deleted_at) values (${organizationId}, ${event!.id}, 'Envoyer les faire-part', '2027-03-01', now()) returning id`;
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A.slice(0, 3)]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A.slice(0, 3)]) await rollback(tag);
     await expect(rollback("0144_lot39a_events_soft_delete")).rejects.toThrow(/events\.event_tasks sont à la corbeille/);
     await target`update events.event_tasks set deleted_at = null where id = ${task!.id}`;
     await rollback("0144_lot39a_events_soft_delete");
@@ -584,7 +632,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await inOrganization((tx) => tx`insert into hub.calendar_feeds (organization_id, user_id, event_id, token_hash) values (${organizationId}, ${user!.id}, ${eventId}, ${hash("c")})`);
     await expect(inOrganization((tx) => tx`insert into hub.calendar_feeds (organization_id, user_id, event_id, token_hash) values (${organizationId}, ${user!.id}, ${eventId}, ${hash("d")})`)).rejects.toThrow(/calendar_feeds_event_active_idx/);
 
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B]) await rollback(tag);
     for (const name of ["hub.message_templates", "hub.message_template_versions", "hub.calendar_feeds"]) {
       const [table] = await target<{ name: string | null }[]>`select to_regclass(${name})::text as name`;
       expect(table!.name).toBeNull();
@@ -608,7 +656,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(inOrganization((tx) => tx`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, 'client_link', 'de', 'Ihr Bereich', 'Text')`)).rejects.toThrow(/email_templates_locale_check/);
     expect(await hasColumn("events", "program_versions", "notified_at")).toBe(true);
 
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A]) await rollback(tag);
     const [table] = await target<{ name: string | null }[]>`select to_regclass('hub.email_templates')::text as name`;
     expect(table!.name).toBeNull();
     expect(await hasColumn("events", "program_versions", "notified_at")).toBe(false);
@@ -618,7 +666,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
 
   it("lot 37b (CHR-07, DAT-14, DOC-12 ; D8, D11, D13) — 0138 à 0140 : le programme existant devient sa version 1, sans note interne, déjà vue par ses liens ; numéros uniques ; relevé au premier du mois ; l'annulation retire versions, relevés et tailles", async () => {
     await migrateAll();
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B]) await rollback(tag);
     const organizationId = randomUUID();
     const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
       target.begin(async (tx) => {
@@ -655,7 +703,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await inOrganization((tx) => tx`insert into hub.storage_snapshots (organization_id, month, nature, file_count, total_bytes) values (${organizationId}, '2026-11-01', 'uploads', 3, 4096)`);
     await expect(inOrganization((tx) => tx`insert into hub.storage_snapshots (organization_id, month, nature, file_count, total_bytes) values (${organizationId}, '2026-11-01', 'uploads', 4, 5000)`)).rejects.toThrow(/storage_snapshots_month_nature_unique/);
 
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B]) await rollback(tag);
     for (const name of ["events.program_versions", "hub.storage_snapshots"]) {
       const [table] = await target<{ name: string | null }[]>`select to_regclass(${name})::text as name`;
       expect(table!.name).toBeNull();
@@ -669,7 +717,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
 
   it("lot 37a (DOC-01, DOC-04 ; D3, D4, D7) — 0137 : chaque document déjà déposé devient sa version 1, sans dossier, non partagé ; versions uniques ; une ouverture de lien au fil bloque l'annulation, qui rend la liste plate", async () => {
     await migrateAll();
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A]) await rollback(tag);
     const organizationId = randomUUID();
     const inOrganization = <T>(work: (tx: postgres.TransactionSql) => Promise<T>) =>
       target.begin(async (tx) => {
@@ -691,7 +739,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(inOrganization((tx) => tx`insert into events.event_document_folders (organization_id, event_id, name) values (${organizationId}, ${ids.event}, '')`)).rejects.toThrow(/event_document_folders_name_check/);
 
     const [activity] = await inOrganization((tx) => tx<{ id: string }[]>`insert into events.event_activities (organization_id, event_id, kind, task_label) values (${organizationId}, ${ids.event}, 'document_link_opened', 'Plan de table') returning id`);
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B]) await rollback(tag);
     await expect(rollback(LOT_37A[0]!)).rejects.toThrow(/ouvertures de liens de partage/);
     await target`delete from events.event_activities where id = ${activity!.id}`;
     await rollback(LOT_37A[0]!);
@@ -730,7 +778,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
       insert into hub.imports (organization_id, created_by_user_id, entity_type, file_name, file_format, file_size_bytes, header_row_index, headers, row_count, expires_at)
       values (${organizationId}, ${randomUUID()}, 'contacts', 'contacts.csv', 'csv', 1, 0, '[]'::jsonb, 0, now())
       returning id`;
-    for (const tag of [...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A]) await rollback(tag);
+    for (const tag of [...LOT_53, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A]) await rollback(tag);
     await expect(rollback(LOT_36B[0]!)).rejects.toThrow(/imports de contacts/);
     expect(await entityTypes()).toContain("contacts");
     await target`delete from hub.imports where id = ${row!.id}`;

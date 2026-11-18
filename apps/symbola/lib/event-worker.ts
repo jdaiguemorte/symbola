@@ -11,6 +11,7 @@ import { repointAppointmentsMergedContact } from "@/modules/appointments/service
 import { repointMergedContact } from "@/modules/events/service";
 import { repointQuotesMergedContact } from "@/modules/quotes/service";
 import { issueDueDepositInvoices } from "./deposit-invoices";
+import { NOTIFICATION_CONSUMERS } from "./notification-sources";
 
 const POLL_INTERVAL_MS = 15_000;
 
@@ -54,6 +55,9 @@ export const CONSUMERS: Record<string, Record<string, EventHandler>> = {
       await repointAppointmentsMergedContact(event.organizationId, payload.absorbedContactId, payload.keptContactId);
     },
   },
+  // Lot 53 (HUB-15, UX-16 ; D3) : les faits publiés par les modules deviennent des notifications de
+  // l'équipe, une seule fois par objet (rejouer l'événement ne crée rien de plus).
+  notifications: NOTIFICATION_CONSUMERS,
 };
 
 export async function runEventWorkerOnce(consumers: Record<string, Record<string, EventHandler>> = CONSUMERS): Promise<{ processed: number; failed: number }> {

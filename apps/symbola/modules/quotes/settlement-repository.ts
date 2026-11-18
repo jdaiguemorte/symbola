@@ -3,7 +3,7 @@
 // aux références de virement (déclaration du payeur, suspension des relances, RIB envoyé au 8e jour)
 // et aux relances d'impayés. Chaque écriture se fait sous la RLS de l'organisation ; jamais importé
 // hors de modules/quotes/ (ADR 0011).
-import { and, asc, eq, inArray, isNotNull, isNull, sql as raw } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, isNotNull, isNull, lte, sql as raw } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { appendAudit } from "@symbola/db/audit";
 import { paymentReferences, paymentReminders, paymentScheduleItems, proposalTemplates, quoteSigners, quotes, quoteSettings, quoteVersions, type ProposalPhoto } from "@symbola/db/schema/quotes";
@@ -124,6 +124,17 @@ export async function findOpenSentVersions(organizationId: string): Promise<{ qu
       .from(quotes)
       .innerJoin(quoteVersions, and(eq(quoteVersions.quoteId, quotes.id), eq(quoteVersions.version, quotes.currentVersion)))
       .where(and(eq(quotes.status, "sent"), eq(quotes.isDemo, false), isNotNull(quoteVersions.sentAt), isNull(quoteVersions.expiryRemindedAt))),
+  );
+}
+
+// Lot 53 (HUB-15) : les devis envoyés, sans réponse, dont la validité finit entre deux jours (inclus).
+export async function findSentVersionsEndingBetween(organizationId: string, from: string, to: string): Promise<{ quote: typeof quotes.$inferSelect; version: typeof quoteVersions.$inferSelect }[]> {
+  return inOrganization(organizationId, (tx) =>
+    tx
+      .select({ quote: quotes, version: quoteVersions })
+      .from(quotes)
+      .innerJoin(quoteVersions, and(eq(quoteVersions.quoteId, quotes.id), eq(quoteVersions.version, quotes.currentVersion)))
+      .where(and(eq(quotes.status, "sent"), eq(quotes.isDemo, false), isNotNull(quoteVersions.sentAt), gte(quoteVersions.validUntil, from), lte(quoteVersions.validUntil, to))),
   );
 }
 

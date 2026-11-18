@@ -359,12 +359,16 @@ export const taskTemplateItems = eventsSchema.table("task_template_items", {
 }, (table) => [index("task_template_items_organization_idx").on(table.organizationId)]);
 
 // PRD-EVT-04 : tâches du rétroplanning d'un événement.
+// Lot 53 (CHR-10, CHR-05 ; D6 ; ADR 0095) : une tâche peut n'avoir aucun évènement (déclaration de TVA,
+// assurance) et se répéter ; une tâche du rétroplanning peut être un jalon.
+export const TASK_RECURRENCES = ["weekly", "monthly", "quarterly", "yearly"] as const;
+export type TaskRecurrence = (typeof TASK_RECURRENCES)[number];
+
 export const eventTasks = eventsSchema.table("event_tasks", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
-  eventId: uuid("event_id")
-    .notNull()
-    .references(() => events.id),
+  // Lot 53 (CHR-10, D6) : nul pour une tâche hors évènement.
+  eventId: uuid("event_id").references(() => events.id),
   label: text("label").notNull(),
   // Échéance, date sans heure (CLAUDE.md §5).
   dueDate: date("due_date").notNull(),
@@ -393,10 +397,19 @@ export const eventTasks = eventsSchema.table("event_tasks", {
   // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   deletedBy: uuid("deleted_by"),
+  // Lot 53 (CHR-10, D6) : répétition d'une tâche hors évènement ; l'occurrence suivante est créée
+  // quand celle-ci est faite, ou à sa date (recurrenceSpawnedAt : déjà créée, une seule fois).
+  recurrence: text("recurrence", { enum: TASK_RECURRENCES }),
+  recurrenceSpawnedAt: timestamp("recurrence_spawned_at", { withTimezone: true }),
+  // Lot 53 (CHR-05) : jalon du rétroplanning ; en retard, il pèse plus sur la santé du planning.
+  isMilestone: boolean("is_milestone").notNull().default(false),
 }, (table) => [
   index("event_tasks_organization_idx").on(table.organizationId),
   index("event_tasks_vendor_candidate_idx").on(table.vendorCandidateId),
   index("event_tasks_follow_up_candidate_idx").on(table.followUpCandidateId),
+  index("event_tasks_event_idx").on(table.eventId),
+  check("event_tasks_recurrence_check", sql`${table.recurrence} is null or (${table.recurrence} in ('weekly', 'monthly', 'quarterly', 'yearly') and ${table.eventId} is null)`),
+  check("event_tasks_standalone_check", sql`${table.eventId} is not null or (${table.offsetDays} is null and ${table.vendorCandidateId} is null and ${table.followUpCandidateId} is null and ${table.isMilestone} = false and ${table.responsible} = 'planner')`),
 ]);
 
 // PRD-EVT-05 : programme du jour J d'un événement. Heures sans date (« HH:MM »),
@@ -1810,5 +1823,66 @@ export const questionnaireAnswers = eventsSchema.table(
     uniqueIndex("questionnaire_answers_item_idx").on(table.questionnaireId, table.itemKey),
     check("questionnaire_answers_value_check", sql`jsonb_typeof(${table.value}) in ('string', 'array', 'number') and octet_length(${table.value}::text) <= 6000`),
     check("questionnaire_answers_resolution_check", sql`${table.resolution} is null or ${table.resolution} in ('filled', 'applied', 'kept')`),
+  ],
+);
+
+// Lot 53 (HUB-24 ; D8 ; ADR 0095) — le terme qui désigne les clients d'un type d'évènement, dans une
+// langue, avec son genre et son nombre (« les mariés », masculin pluriel ; « le commanditaire »,
+// masculin singulier). Il remplace, pour ce type, le vocabulaire fixe de l'ADR 0045 là où l'app nomme
+// les clients, et remplit la variable {{terme_clients}} des e-mails et des documents à venir ; un
+// document déjà émis garde son texte. Sans ligne, le vocabulaire du type (mariés ou clients) vaut.
+export const VOCABULARY_GENDERS = ["masculine", "feminine", "neuter"] as const;
+export const VOCABULARY_NUMBERS = ["singular", "plural"] as const;
+
+export const eventTypeVocabulary = eventsSchema.table(
+  "event_type_vocabulary",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventTypeId: uuid("event_type_id")
+      .notNull()
+      .references(() => eventTypes.id, { onDelete: "cascade" }),
+    locale: text("locale").notNull(),
+    term: text("term").notNull(),
+    gender: text("gender", { enum: VOCABULARY_GENDERS }).notNull(),
+    number: text("number", { enum: VOCABULARY_NUMBERS }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("event_type_vocabulary_organization_idx").on(table.organizationId),
+    uniqueIndex("event_type_vocabulary_type_locale_idx").on(table.eventTypeId, table.locale),
+    check("event_type_vocabulary_locale_check", sql`${table.locale} in ('fr', 'en')`),
+    check("event_type_vocabulary_term_check", sql`char_length(btrim(${table.term})) between 1 and 40`),
+    check("event_type_vocabulary_gender_check", sql`${table.gender} in ('masculine', 'feminine', 'neuter')`),
+    check("event_type_vocabulary_number_check", sql`${table.number} in ('singular', 'plural')`),
+  ],
+);
+
+// Lot 53 (CHR-05) — seuils de l'indicateur de santé du planning, par organisation : une tâche en retard
+// compte un point, un jalon en retard milestone_weight points ; « à surveiller » à partir de
+// watch_points, « en retard » à partir de late_points. Sans ligne, les valeurs de départ
+// (planning-health.json).
+export const planningHealthSettings = eventsSchema.table(
+  "planning_health_settings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    watchPoints: integer("watch_points").notNull(),
+    latePoints: integer("late_points").notNull(),
+    milestoneWeight: integer("milestone_weight").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    uniqueIndex("planning_health_settings_organization_idx").on(table.organizationId),
+    check("planning_health_settings_points_check", sql`${table.watchPoints} between 1 and 100 and ${table.latePoints} between 1 and 100 and ${table.watchPoints} <= ${table.latePoints}`),
+    check("planning_health_settings_weight_check", sql`${table.milestoneWeight} between 1 and 10`),
   ],
 );

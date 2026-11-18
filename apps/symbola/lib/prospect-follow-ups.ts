@@ -11,6 +11,7 @@ import { parseEnv } from "@symbola/env";
 import { getBookingPage, latestProspectAppointment } from "@/modules/appointments/service";
 import { prepareDueFollowUps, prospectMessageContext, sendProspectFollowUp, type ExternalProspectActivity, type FollowUpSendOutcome } from "@/modules/events/service";
 import { detectAllDuplicates, isModuleEnabled, listOrganizations } from "@/modules/hub/service";
+import { automationHooks } from "./automation-gates";
 import { latestContactSignature } from "@/modules/quotes/service";
 
 const INTERVAL_MS = 60 * 60 * 1000; // toutes les heures
@@ -41,11 +42,15 @@ export function prospectExternalActivity(): ExternalProspectActivity {
 }
 
 export async function prepareFollowUpsFor(organizationId: string, locale: "fr" | "en", now: Date = new Date()) {
+  // Lot 53 (HUB-28, D5) : coupé, l'automatisme ne prépare rien ; remis en route, il ne rattrape rien.
+  const hooks = await automationHooks(organizationId, "prospect_follow_up", now);
+  if (!hooks) return { prepared: 0, stopped: 0, sent: 0 };
   const bookingUrl = await bookingPageUrl(organizationId);
   return prepareDueFollowUps({
     organizationId,
     now,
     locale,
+    hooks,
     external: prospectExternalActivity(),
     context: ({ eventId, contactIds }) => prospectMessageContext({ organizationId, eventId, locale, contactIds, bookingUrl }),
   });

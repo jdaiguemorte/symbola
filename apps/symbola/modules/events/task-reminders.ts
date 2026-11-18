@@ -27,6 +27,15 @@ export function reminderThreshold(dueDate: string, today: string, policy: Starte
   return null;
 }
 
+// Lot 53 (HUB-28, D5) : premier jour d'un palier (« AAAA-MM-JJ ») : avant une remise en route de
+// l'automatisme, le palier est passé et son rappel n'est pas rattrapé.
+export function reminderThresholdStart(dueDate: string, threshold: ReminderThreshold, policy: StarterClientTaskReminders): string {
+  const shift = threshold === "week" ? -policy.daysBefore.week : threshold === "eve" ? -policy.daysBefore.eve : policy.overdue.after;
+  const date = new Date(`${dueDate}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + shift);
+  return date.toISOString().slice(0, 10);
+}
+
 // Heure (0 à 23) à Paris, changements d'heure compris.
 export function parisHour(now: Date): number {
   const hour = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Paris", hour: "2-digit", hourCycle: "h23" }).format(now);

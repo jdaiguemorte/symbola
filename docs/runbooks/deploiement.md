@@ -395,6 +395,24 @@ lots 46 et 49 : sans cette clé, l'app refuse de démarrer.
    ```
 4. Suivre ensuite « Mise à jour » comme d'habitude.
 
+## Lot 53 : clés VAPID des notifications push (ARC-09, ADR 0095 et 0096)
+
+À faire **une fois par environnement, avant** le premier déploiement qui contient le lot 53 : sans
+ces deux clés, l'app refuse de démarrer.
+
+1. Tirer une paire propre à l'environnement (depuis le dépôt, Node seul suffit) :
+   ```bash
+   node /opt/symbola/apps/symbola/scripts/generate-vapid-keys.mjs
+   ```
+2. La ranger dans le gestionnaire de mots de passe (« Symbola — clés VAPID — staging »). Perdue ou
+   changée, rien n'est perdu, mais chaque appareil doit réactiver le push dans ses réglages.
+3. Ajouter les deux lignes affichées (`VAPID_PUBLIC_KEY=…`, `VAPID_PRIVATE_KEY=…`) dans
+   `infra/compose/.env.staging` (puis `.env.production`, avec sa propre paire), et vérifier :
+   ```bash
+   sudo grep -c '^VAPID_P\(UBLIC\|RIVATE\)_KEY=.\+' infra/compose/.env.staging   # attendu : 2
+   ```
+4. Suivre ensuite « Mise à jour » comme d'habitude.
+
 ## Mise à jour (nouvelle version) : une commande (lot 40a, ADR 0075)
 
 1. La CI publie l'image de chaque commit fusionné sur `main`, taguée par son

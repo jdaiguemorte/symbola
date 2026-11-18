@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "_comment": "Lot 53 (GC-02 ; D7) — règles du radar des risques et leurs seuils de départ, en jours. vendor_without_contract : prestataire retenu sans contrat signé à moins de N jours de l'évènement ; decision_overdue : décision du client en attente N jours après son échéance ; document_expired : pièce expirée ou qui expire dans les N jours avant l'évènement (lot 48) ; payment_overdue : échéance impayée depuis N jours ; milestone_late : jalon en retard de N jours ; iban_to_verify : IBAN « à vérifier » depuis N jours (lot 48) ; roadmap_unconfirmed : feuille de route non confirmée N jours après son envoi. runHour : heure (Paris) à partir de laquelle le radar passe chaque matin, avant le récapitulatif.",
+  "rules": {
+    "vendor_without_contract": {
+      "enabled": true,
+      "thresholdDays": 60
+    },
+    "decision_overdue": {
+      "enabled": true,
+      "thresholdDays": 0
+    },
+    "document_expired": {
+      "enabled": true,
+      "thresholdDays": 0
+    },
+    "payment_overdue": {
+      "enabled": true,
+      "thresholdDays": 1
+    },
+    "milestone_late": {
+      "enabled": true,
+      "thresholdDays": 0
+    },
+    "iban_to_verify": {
+      "enabled": true,
+      "thresholdDays": 0
+    },
+    "roadmap_unconfirmed": {
+      "enabled": true,
+      "thresholdDays": 3
+    }
+  },
+  "runHour": 6
+}

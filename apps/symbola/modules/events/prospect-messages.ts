@@ -12,6 +12,7 @@
 //   automatique est un réglage, désactivé par défaut. Les faits qui les arrêtent (« a répondu »,
 //   étape, confirmation, refus, action du prospect, nouvel envoi) sont revérifiés juste avant
 //   l'envoi. Symbola ne lit aucune boîte e-mail (D3).
+import type { AutomationHooks } from "@symbola/contracts";
 import { and, desc, eq, inArray, isNull, lte, max } from "drizzle-orm";
 import { createTranslator } from "next-intl";
 import frMessages from "@symbola/i18n/messages/fr.json";
@@ -469,6 +470,8 @@ export async function prepareDueFollowUps(input: {
   // lit la fiche (getEvent, contacts du hub).
   context: ProspectContext;
   locale: "fr" | "en";
+  // Lot 53 (HUB-28, D5) : sans rattrapage après une remise en route, et la trace de chaque relance.
+  hooks?: AutomationHooks;
 }): Promise<PrepareFollowUpsResult> {
   const now = input.now ?? new Date();
   const external = input.external ?? noExternalActivity;
@@ -499,6 +502,7 @@ export async function prepareDueFollowUps(input: {
     });
     if (!plan) continue;
     if (plan.anchor.contactIds.length === 0) continue;
+    if (input.hooks?.notBefore && plan.next.readyAt.toISOString().slice(0, 10) < input.hooks.notBefore) continue;
     const step = settings.steps[plan.next.rank - 1]!;
     const context = await input.context({ eventId, contactIds: plan.anchor.contactIds });
     if (!context) continue;
@@ -526,7 +530,10 @@ export async function prepareDueFollowUps(input: {
       if (text.missing.length > 0) continue;
       const outcome = await sendProspectFollowUp({ organizationId: input.organizationId, followUpId: inserted[0]!.id, userId: null, locale: input.locale, now, external, recipients: context.recipients, values: context.values }).catch(() => null);
       if (outcome?.status === "sent") result.sent += 1;
+      await input.hooks?.onRun?.({ objectKey: inserted[0]!.id, href: `/events/${eventId}`, result: outcome?.status === "sent" ? "sent" : "failed" });
+      continue;
     }
+    await input.hooks?.onRun?.({ objectKey: inserted[0]!.id, href: `/events/${eventId}`, result: "done" });
   }
   return result;
 }

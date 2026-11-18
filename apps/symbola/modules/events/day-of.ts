@@ -83,13 +83,24 @@ export async function recordDayCheckpoint(input: { organizationId: string; event
 
 // —— Main courante (JRJ-07) ———————————————————————————————————————————————————————————————
 
-export async function recordDayIncident(input: { organizationId: string; eventId: string; userId: string; action: DayIncidentAction; now?: Date }): Promise<DayActionResult> {
+// Lot 53 (HUB-15, UX-16 ; D2) : un incident noté sur le terrain part en « Alerte du jour J » aux autres
+// destinataires (pas à celui qui l'a noté) ; le jour de l'évènement, elle passe outre les plages de
+// silence. Le texte de l'incident reste dans l'app (ni push ni objet d'e-mail).
+export async function recordDayIncident(input: { organizationId: string; eventId: string; userId: string; action: DayIncidentAction; now?: Date; notify?: (incident: { incidentId: string; eventDate: string | null; isDemo: boolean }) => Promise<void> }): Promise<DayActionResult> {
+  const result = await recordDayIncidentRow(input);
+  if (result.status === "applied" && input.notify && result.incidentId) await input.notify({ incidentId: result.incidentId, eventDate: result.eventDate, isDemo: result.isDemo }).catch(() => undefined);
+  return result.outcome;
+}
+
+async function recordDayIncidentRow(input: { organizationId: string; eventId: string; userId: string; action: DayIncidentAction; now?: Date }): Promise<{ status: "applied" | "other"; outcome: DayActionResult; incidentId: string | null; eventDate: string | null; isDemo: boolean }> {
+  const wrap = (outcome: DayActionResult) => ({ status: "other" as const, outcome, incidentId: null, eventDate: null, isDemo: false });
   const deviceAt = deviceInstant(input.action.deviceAt, input.now ?? new Date());
-  if (!deviceAt) return rejected("time");
+  if (!deviceAt) return wrap(rejected("time"));
   const body = input.action.body.trim();
-  if (body.length === 0 || body.length > DAY_INCIDENT_MAX) return rejected("body");
+  if (body.length === 0 || body.length > DAY_INCIDENT_MAX) return wrap(rejected("body"));
   return inOrganization(input.organizationId, async (tx) => {
-    if (!(await eventExists(tx, input.eventId))) return rejected("event");
+    const [event] = await tx.select({ eventDate: events.eventDate, isDemo: events.isDemo }).from(events).where(eq(events.id, input.eventId));
+    if (!event) return wrap(rejected("event"));
     let keyMomentId: string | null = null;
     if (input.action.keyMomentId) {
       const [moment] = await tx.select({ id: keyMoments.id }).from(keyMoments).where(and(eq(keyMoments.id, input.action.keyMomentId), eq(keyMoments.eventId, input.eventId)));
@@ -100,7 +111,7 @@ export async function recordDayIncident(input: { organizationId: string; eventId
       .values({ organizationId: input.organizationId, eventId: input.eventId, keyMomentId, body, severity: input.action.severity, deviceAt, userId: input.userId, actionId: input.action.actionId })
       .onConflictDoNothing({ target: [dayIncidents.organizationId, dayIncidents.actionId] })
       .returning({ id: dayIncidents.id });
-    return inserted.length > 0 ? APPLIED : DUPLICATE;
+    return inserted.length > 0 ? { status: "applied" as const, outcome: APPLIED, incidentId: inserted[0]!.id, eventDate: event.eventDate, isDemo: event.isDemo } : wrap(DUPLICATE);
   });
 }
 

@@ -1337,6 +1337,8 @@ export function starterMessageTemplates(locale: StarterLocale): StarterMessageTe
 export * from "./guests";
 // Lot 51 (EVT-04, CHR-08, JRJ-05, JRJ-06) : données de départ du jour J de terrain.
 export * from "./day-of";
+// Lot 53 (HUB-15, HUB-28, GC-02, CHR-05, HUB-24 ; ADR 0095).
+export * from "./notifications";
 
 // Lot 46 (RDV-01, HUB-20 ; D6, D10 ; ADR 0082) — module Rendez-vous : trois types de départ, plages
 // hebdomadaires par défaut, réglages par défaut d'un type créé avec son seul nom et sa durée, et

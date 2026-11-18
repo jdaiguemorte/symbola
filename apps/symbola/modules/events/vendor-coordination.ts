@@ -5,6 +5,7 @@
 // feuille de route à J-30 et J-7 et sa confirmation. Fichier interne au module events : exposé aux
 // autres modules seulement par service.ts (ADR 0011). Tout se lit et s'écrit sous RLS, dans
 // l'organisation ; un lien ne voit que son prestataire (PRE-03 : les consultés ne se voient pas).
+import type { AutomationHooks } from "@symbola/contracts";
 import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, notInArray, or, sql } from "drizzle-orm";
 import { createTranslator } from "next-intl";
 import frMessages from "@symbola/i18n/messages/fr.json";
@@ -1033,7 +1034,9 @@ export async function changeRetained(input: ChangeRetainedVendorInput): Promise<
 
 // --- Feuille de route (PAR-05 étapes 5 et 6 ; D8) ---
 
-export async function sendRoadmaps(organizationId: string, now: Date): Promise<number> {
+// Lot 53 (HUB-28, D5) : hooks.notBefore — une feuille de route dont le jour d'envoi précède la remise en
+// route ne part pas ; hooks.onRun, la trace de chaque envoi.
+export async function sendRoadmaps(organizationId: string, now: Date, hooks: AutomationHooks = {}): Promise<number> {
   const policy = await inOrganization(organizationId, (tx) => policyOf(tx, organizationId));
   if ((!policy.roadmapMonth && !policy.roadmapWeek) || !isVendorSendingHour(now, policy)) return 0;
   const retained = await inOrganization(organizationId, (tx) =>
@@ -1047,6 +1050,7 @@ export async function sendRoadmaps(organizationId: string, now: Date): Promise<n
   for (const row of retained) {
     const stage = roadmapStageDue(row.eventDate!, dateInTimeZone(now, row.timeZone), { month: policy.roadmapMonth, week: policy.roadmapWeek }, policy);
     if (!stage) continue;
+    if (hooks.notBefore && addDays(row.eventDate!, -(stage === "j7" ? policy.roadmapDaysBefore.week : policy.roadmapDaysBefore.month)) < hooks.notBefore) continue;
     const hasLink = await inOrganization(organizationId, async (tx) => (await tx.select({ id: eventLinks.id }).from(eventLinks).where(and(eq(eventLinks.vendorCandidateId, row.candidate.id), isNull(eventLinks.revokedAt))).limit(1)).length > 0);
     if (!hasLink) continue;
     // Une fois chacune : la ligne est réservée avant l'envoi (contrainte d'unicité).
@@ -1075,6 +1079,7 @@ export async function sendRoadmaps(organizationId: string, now: Date): Promise<n
     }
     await inOrganization(organizationId, (tx) => appendAudit(tx, { organizationId, action: "events.vendor_roadmap.sent", objectId: row.candidate.eventId, details: { linkId: link.linkId, stage } }));
     sent += 1;
+    await hooks.onRun?.({ objectKey: `${row.candidate.id}:${stage}`, href: `/events/${row.candidate.eventId}?onglet=prestataires`, result: "sent" });
   }
   return sent;
 }

@@ -1284,3 +1284,51 @@ import { getContactsByIds as contactsByIds } from "./contacts";
 export async function listDuplicatePairs(organizationId: string) {
   return listPairs(organizationId, (ids) => contactsByIds(organizationId, ids));
 }
+
+// Lot 53 (HUB-15, UX-16, ARC-09 ; D1 à D4 ; ADR 0095, ADR 0096) : notifications de l'équipe, réglages par
+// sorte et par canal, récapitulatif, plages de silence, abonnements push.
+export {
+  countUnreadNotifications,
+  deliverDueNotifications,
+  getNotificationPreferences,
+  getNotificationSettings,
+  listNotifications,
+  listPushDevices,
+  markAllNotificationsRead,
+  markNotificationRead,
+  notificationActionLabel,
+  notificationRecipients,
+  notificationText,
+  notificationTypeLabel,
+  notify,
+  NotificationInputError,
+  purgeNotifications,
+  pushPublicKey,
+  pushToUser,
+  removePushDevice,
+  saveNotificationSettings,
+  savePushSubscription,
+  sendDueDigests,
+  setNotificationPreference,
+  type NotifyInput,
+} from "./notifications";
+export { localClock } from "./notification-rules";
+export { setPushSender, type PushOutcome, type PushSender, type PushTarget } from "./push";
+// Lot 53 (HUB-28, GC-02 ; D5, D7) : automatismes prêts à activer, leur journal, règles du radar.
+export {
+  automationCovers,
+  AutomationInputError,
+  claimDailyAutomationRun,
+  getAutomationGate,
+  getRiskRules,
+  listAutomationGates,
+  listAutomationRuns,
+  purgeAutomationRuns,
+  recordAutomationRun,
+  setAutomationDays,
+  setAutomationEnabled,
+  setRiskRule,
+  type AutomationGate,
+  type AutomationRunInput,
+  type RiskRuleSetting,
+} from "./automations";

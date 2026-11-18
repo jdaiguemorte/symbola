@@ -38,6 +38,10 @@ const TOKENS: Record<EmailVariable, Record<EmailLocale, string>> = {
   brochure: { fr: "brochure", en: "brochure" },
   booking_link: { fr: "lien_rendez_vous", en: "booking_link" },
   questionnaire: { fr: "questionnaire", en: "questionnaire" },
+  // Lot 53 (HUB-24, HUB-15) : le terme des clients du type d'évènement, le récapitulatif, l'alerte.
+  client_term: { fr: "terme_clients", en: "client_term" },
+  digest: { fr: "récapitulatif", en: "digest" },
+  alert: { fr: "alerte", en: "alert" },
 };
 
 // Variables dont la valeur est une adresse : seules dans leur paragraphe, elles deviennent un bouton.
@@ -50,13 +54,13 @@ const BY_TOKEN = new Map<string, EmailVariable>(
   ]),
 );
 
-type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | "request" | "roadmap" | "questionnaire" | null };
+type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | "request" | "roadmap" | "questionnaire" | "open" | null };
 
 export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
-  client_link: { variables: ["first_name", "organization", "event", "link", "valid_until"], required: ["link"], button: "space" },
-  client_link_renewed: { variables: ["first_name", "organization", "event", "link", "valid_until"], required: ["link"], button: "space" },
-  vendor_link: { variables: ["first_name", "organization", "event", "clients", "event_date", "link", "valid_until"], required: ["link"], button: "space" },
-  vendor_link_renewed: { variables: ["first_name", "organization", "event", "clients", "event_date", "link", "valid_until"], required: ["link"], button: "space" },
+  client_link: { variables: ["first_name", "organization", "event", "client_term", "link", "valid_until"], required: ["link"], button: "space" },
+  client_link_renewed: { variables: ["first_name", "organization", "event", "client_term", "link", "valid_until"], required: ["link"], button: "space" },
+  vendor_link: { variables: ["first_name", "organization", "event", "clients", "client_term", "event_date", "link", "valid_until"], required: ["link"], button: "space" },
+  vendor_link_renewed: { variables: ["first_name", "organization", "event", "clients", "client_term", "event_date", "link", "valid_until"], required: ["link"], button: "space" },
   task_reminder: { variables: ["first_name", "organization", "event", "event_date", "tasks"], required: ["tasks"], button: null },
   // Lot 46 (RDV-03, D10) : le lien de gestion du rendez-vous (report, annulation, sans compte).
   appointment_confirmed: { variables: ["first_name", "organization", "appointment", "appointment_date", "place", "link"], required: ["link"], button: "manage" },
@@ -93,6 +97,12 @@ export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   prospect_follow_up: { variables: ["first_name", "organization", "event", "event_date", "clients", "place", "brochure", "booking_link"], required: [], button: null },
   // Lot 45 (POR-07, CRM-09) : le lien personnel devient « Répondre au questionnaire ».
   questionnaire_sent: { variables: ["first_name", "organization", "event", "questionnaire", "link", "valid_until"], required: ["link"], button: "questionnaire" },
+  // Lot 53 (HUB-15, UX-16 ; D1) : à l'équipe ; l'objet ne dit que la sorte, le texte mène à Symbola.
+  daily_digest: { variables: ["organization", "digest", "link"], required: ["digest", "link"], button: "open" },
+  notification_alert: { variables: ["organization", "alert", "link"], required: ["alert", "link"], button: "open" },
+  // Lot 53 (HUB-28, D5) : au payeur désigné (lot 43), sept jours avant l'échéance, avec le RIB et la
+  // référence ; jamais après un virement déclaré.
+  payment_due_reminder: { variables: ["first_name", "organization", "client_term", "quote_number", "amount", "due_date", "reference", "iban"], required: ["amount", "due_date", "reference"], button: null },
 };
 
 const TOKEN_PATTERN = /\{\{\s*([^{}\s]+)\s*\}\}/g;

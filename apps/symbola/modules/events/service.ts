@@ -167,10 +167,11 @@ import {
   parseLinkToken,
   parisStartOfDay,
 } from "./link-tokens";
-import { isSendingHour, reminderTaskLines, reminderThreshold, type ReminderTask } from "./task-reminders";
+import { isSendingHour, reminderTaskLines, reminderThreshold, reminderThresholdStart, type ReminderTask } from "./task-reminders";
+import type { AutomationHooks } from "@symbola/contracts";
 import { recordAudit } from "@symbola/db/audit";
 import { resolveClientContacts } from "./clients";
-import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, getOrganizationLanguage, getUserContact, sendOrganizationEmail, sendSymbolaEmail, updateContact } from "@/modules/hub/service";
+import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, getOrganizationLanguage, getUserContact, notificationRecipients, notify, sendOrganizationEmail, sendSymbolaEmail, updateContact } from "@/modules/hub/service";
 import { createTranslator } from "next-intl";
 import type { EmailTemplateKind, EmailValues, TrashedObject } from "@symbola/contracts";
 import frMessages from "@symbola/i18n/messages/fr.json";
@@ -1346,7 +1347,9 @@ function toTaskTemplate(template: TaskTemplateRow, items: TaskTemplateItemRow[])
 function toEventTask(row: EventTaskRow): EventTask {
   return {
     id: row.id,
-    eventId: row.eventId,
+    // Lot 53 (CHR-10) : les écrans d'un évènement ne lisent que ses tâches ; une tâche hors évènement
+    // passe par listStandaloneTasks (son propre type).
+    eventId: row.eventId ?? "",
     label: row.label,
     dueDate: row.dueDate,
     responsible: row.responsible,
@@ -1477,7 +1480,7 @@ export async function listOrganizationTasks(input: ListOrganizationTasksInput): 
   if (rows.length === 0) return [];
   const eventsById = new Map((await listEvents({ organizationId: input.organizationId })).map((event) => [event.id, event]));
   return rows.flatMap((row) => {
-    const event = eventsById.get(row.eventId);
+    const event = row.eventId ? eventsById.get(row.eventId) : undefined;
     if (!event) return [];
     const task = toEventTask(row);
     return [
@@ -2483,7 +2486,9 @@ export async function getLinkNamesByIds(organizationId: string, linkIds: string[
 // personne et par jour, regroupant les tâches qui atteignent un seuil (sept
 // jours avant, la veille, le lendemain d'un retard), jamais deux fois le même
 // rappel ; liens valables seulement ; plafond d'envois de l'organisation.
-export async function sendClientTaskReminders(organizationId: string, now: Date = new Date()): Promise<number> {
+// Lot 53 (HUB-28, D5) : hooks.notBefore — un rappel dont le palier a commencé avant la remise en route ne
+// part pas ; hooks.onRun, la trace de chaque rappel envoyé.
+export async function sendClientTaskReminders(organizationId: string, now: Date = new Date(), hooks: AutomationHooks = {}): Promise<number> {
   const policy = starterClientTaskReminders();
   if (!isSendingHour(now, policy)) return 0;
   const today = parisToday(now);
@@ -2498,6 +2503,7 @@ export async function sendClientTaskReminders(organizationId: string, now: Date 
     if (candidate.sentToday || !usableLink(candidate.context, now)) continue;
     const due: (ReminderTask & { taskId: string })[] = candidate.tasks.flatMap((task) => {
       const threshold = reminderThreshold(task.dueDate, today, policy);
+      if (threshold && hooks.notBefore && reminderThresholdStart(task.dueDate, threshold, policy) < hooks.notBefore) return [];
       return threshold && !candidate.sent.has(`${task.id}:${threshold}`) ? [{ taskId: task.id, label: task.label, dueDate: task.dueDate, threshold }] : [];
     });
     if (due.length === 0) continue;
@@ -2529,6 +2535,7 @@ export async function sendClientTaskReminders(organizationId: string, now: Date 
     if (recorded === 0) continue;
     await sendOrganizationEmail({ organizationId, to: link.email, kind: "task_reminder", locale, values, reserve: false });
     sent += 1;
+    await hooks.onRun?.({ objectKey: link.id, href: `/events/${link.eventId}?onglet=retroplanning`, result: "sent" });
   }
   return sent;
 }
@@ -2723,6 +2730,11 @@ export async function answerLinkDecision(input: AnswerDecisionInput): Promise<Ev
   );
   if (!answered) throw new DecisionInvalidError("answered");
   const [decision] = await decisionsWithContext(input.organizationId, access.eventId, [answered], await findDecisionRows(input.organizationId, access.eventId));
+  // Lot 53 (HUB-15, UX-16) : « Décision du client » mène à l'onglet des clients de l'évènement.
+  const found = await findEventById(input.organizationId, access.eventId);
+  await notify({ organizationId: input.organizationId, type: "client_decision", eventId: access.eventId, objectKey: row.id, params: { title: decision!.title.slice(0, 200) }, href: `/events/${access.eventId}?onglet=maries`, eventDate: found?.event.eventDate ?? null, isDemo: found?.event.isDemo ?? false, now }).catch((error: unknown) => {
+    console.error(`notification de la décision non créée (décision ${row.id})`, error instanceof Error ? error.name : "inconnue");
+  });
   return decision!;
 }
 
@@ -3366,7 +3378,15 @@ export async function applyDayAction(input: {
     case "checkpoint":
       return recordDayCheckpoint({ ...base, action: input.action });
     case "incident":
-      return recordDayIncident({ ...base, action: input.action });
+      return recordDayIncident({
+        ...base,
+        action: input.action,
+        // Lot 53 (HUB-15 ; D2, D3) : « Alerte du jour J » aux destinataires, sauf à qui l'a notée.
+        notify: async (incident) => {
+          const userIds = (await notificationRecipients(input.organizationId)).filter((userId) => userId !== input.userId);
+          await notify({ organizationId: input.organizationId, type: "day_of_alert", eventId: input.eventId, objectKey: incident.incidentId, href: `/jour-j/${input.eventId}`, eventDate: incident.eventDate, isDemo: incident.isDemo, userIds, ...(input.now ? { now: input.now } : {}) });
+        },
+      });
     case "check":
       return recordDayCheck({ ...base, action: input.action });
     case "shift": {
@@ -3804,3 +3824,24 @@ export async function finishQuestionnaireOfLink(scope: LinkQuestionnaireScope, q
   const result = await applyQuestionnairePrefill(scope.organizationId, scope.eventId);
   return { filled: result.filled, differences: result.differences.length };
 }
+
+// Lot 53 (CHR-10, CHR-05, HUB-24 ; D6, D8 ; ADR 0095) : tâches hors évènement et récurrentes, jalons, santé
+// du planning qui s'explique, terme des clients par type d'évènement.
+export {
+  addStandaloneTask,
+  clientTermForEvent,
+  deleteStandaloneTask,
+  getPlanningHealth,
+  getPlanningHealthThresholds,
+  listEventTypeVocabulary,
+  listLatePlannerTasks,
+  listStandaloneTasks,
+  PlanningInputError,
+  setEventTypeClientTerm,
+  setPlanningHealthThresholds,
+  setStandaloneTaskDone,
+  setTaskMilestone,
+  spawnDueRecurringTasks,
+  suggestedClientTerms,
+  type LateTask,
+} from "./planning";

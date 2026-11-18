@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "_comment": "Lot 53 (HUB-15, UX-16 ; D1, D2) — réglages de départ des notifications de l'équipe : canaux gardés par sorte, sortes « immédiates » (elles partent tout de suite au lieu d'attendre le récapitulatif) et sortes « jour J » (elles passent outre les plages de silence le jour d'un évènement). Récapitulatif chaque matin, plages de silence coupées au départ.",
+  "types": {
+    "prospect_request": { "immediate": false, "dayOf": false, "channels": { "app": true, "email": true, "push": true } },
+    "quote_signed": { "immediate": true, "dayOf": false, "channels": { "app": true, "email": true, "push": true } },
+    "quote_expired": { "immediate": false, "dayOf": false, "channels": { "app": true, "email": true, "push": false } },
+    "transfer_declared": { "immediate": true, "dayOf": false, "channels": { "app": true, "email": true, "push": true } },
+    "client_decision": { "immediate": false, "dayOf": false, "channels": { "app": true, "email": true, "push": true } },
+    "vendor_answer": { "immediate": false, "dayOf": false, "channels": { "app": true, "email": true, "push": true } },
+    "iban_to_verify": { "immediate": true, "dayOf": false, "channels": { "app": true, "email": true, "push": true } },
+    "document_expiring": { "immediate": false, "dayOf": false, "channels": { "app": true, "email": true, "push": false } },
+    "task_overdue": { "immediate": false, "dayOf": false, "channels": { "app": true, "email": true, "push": false } },
+    "milestone_late": { "immediate": false, "dayOf": false, "channels": { "app": true, "email": true, "push": true } },
+    "risk_alert": { "immediate": false, "dayOf": false, "channels": { "app": true, "email": true, "push": false } },
+    "day_of_alert": { "immediate": true, "dayOf": true, "channels": { "app": true, "email": true, "push": true } }
+  },
+  "settings": {
+    "digestEnabled": true,
+    "digestHour": 7,
+    "quietEnabled": false,
+    "quietStartMinute": 1260,
+    "quietEndMinute": 480,
+    "quietSundays": false,
+    "dayOfOverride": true,
+    "timeZone": "Europe/Paris"
+  },
+  "retention": { "notificationDays": 90, "pushSubscriptionIdleDays": 90, "automationRunDays": 90 }
+}

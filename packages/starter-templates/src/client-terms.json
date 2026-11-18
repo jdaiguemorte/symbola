@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "_comment": "Lot 53 (HUB-24 ; D8) — termes proposés pour désigner les clients d'un type d'évènement, avec leur genre et leur nombre. La planner peut aussi écrire un terme court à elle. Les phrases de l'app sont écrites pour rester justes quel que soit le terme, sans accord deviné.",
+  "terms": [
+    { "key": "couple", "fr": { "term": "les mariés", "gender": "masculine", "number": "plural" }, "en": { "term": "the couple", "gender": "neuter", "number": "singular" } },
+    { "key": "clients", "fr": { "term": "les clients", "gender": "masculine", "number": "plural" }, "en": { "term": "the clients", "gender": "neuter", "number": "plural" } },
+    { "key": "sponsor", "fr": { "term": "le commanditaire", "gender": "masculine", "number": "singular" }, "en": { "term": "the sponsor", "gender": "neuter", "number": "singular" } }
+  ]
+}

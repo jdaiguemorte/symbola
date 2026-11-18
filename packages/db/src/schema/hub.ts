@@ -925,6 +925,10 @@ export const EMAIL_TEMPLATE_KINDS = [
   "prospect_reply",
   "prospect_follow_up",
   "questionnaire_sent",
+  // Lot 53 (HUB-15, UX-16, HUB-28 ; D1, D5) : récapitulatif du matin, rappel au payeur à J-7, alerte.
+  "daily_digest",
+  "payment_due_reminder",
+  "notification_alert",
 ] as const;
 
 export const emailTemplates = hubSchema.table(
@@ -951,7 +955,8 @@ export const emailTemplates = hubSchema.table(
     // Lot 43 (migration 0169, accord de Julien du 18/11, D10) : proposition, relance avant expiration,
     // RIB du règlement, relance d'impayé.
     // Lot 45 (migration 0172, accord de Julien du 18/11) : réponse, relance, questionnaire envoyé.
-    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent')`),
+    // Lot 53 (migration 0175, accord de Julien du 18/11) : récapitulatif, rappel J-7, alerte.
+    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent', 'daily_digest', 'payment_due_reminder', 'notification_alert')`),
     check("email_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
     check("email_templates_subject_check", sql`char_length(${table.subject}) between 1 and 200`),
     check("email_templates_body_check", sql`char_length(${table.body}) between 1 and 5000`),
@@ -1224,3 +1229,259 @@ export const backupRuns = hubSchema.table("backup_runs", {
   // Taille ajoutée au dépôt restic par cette sauvegarde, en octets.
   sizeBytes: bigint("size_bytes", { mode: "number" }),
 });
+
+// —— Lot 53 (HUB-15, UX-16, ARC-09, HUB-28, GC-02 ; D1 à D5, D7 ; ADR 0095) ——————————————————————
+// Notifications de l'équipe, abonnements push, automatismes et radar des risques. Données d'une
+// organisation : RLS forcée. Les sortes, canaux, automatismes et règles sont des catalogues fermés
+// (packages/contracts, hub/notifications.ts) ; leurs valeurs de départ sont des données
+// (packages/starter-templates). Une notification ou un réglage appartient à une personne : le
+// service ne lit jamais que ceux du compte connecté.
+export const NOTIFICATION_TYPE_KEYS = [
+  "prospect_request",
+  "quote_signed",
+  "quote_expired",
+  "transfer_declared",
+  "client_decision",
+  "vendor_answer",
+  "iban_to_verify",
+  "document_expiring",
+  "task_overdue",
+  "milestone_late",
+  "risk_alert",
+  "day_of_alert",
+] as const;
+const NOTIFICATION_TYPES_SQL = sql.raw(NOTIFICATION_TYPE_KEYS.map((key) => `'${key}'`).join(", "));
+export const NOTIFICATION_CHANNEL_KEYS = ["app", "email", "push"] as const;
+// État d'un envoi : rien à faire, à faire (à partir de due_at), dans le récapitulatif, envoyé,
+// abandonné (canal coupé entre-temps, notification lue, abonnement disparu).
+export const NOTIFICATION_DELIVERY_STATES = ["none", "pending", "digest", "sent", "skipped"] as const;
+
+// Récapitulatif, plages de silence et jour J d'une personne dans une organisation. Sans ligne, les
+// valeurs de départ (notifications.json). digest_sent_on : jour (dans le fuseau) du dernier
+// récapitulatif, pour n'en envoyer qu'un par jour.
+export const notificationSettings = hubSchema.table(
+  "notification_settings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    digestEnabled: boolean("digest_enabled").notNull(),
+    digestHour: integer("digest_hour").notNull(),
+    quietEnabled: boolean("quiet_enabled").notNull(),
+    quietStartMinute: integer("quiet_start_minute").notNull(),
+    quietEndMinute: integer("quiet_end_minute").notNull(),
+    quietSundays: boolean("quiet_sundays").notNull(),
+    dayOfOverride: boolean("day_of_override").notNull(),
+    timeZone: text("time_zone").notNull().default("Europe/Paris"),
+    digestSentOn: date("digest_sent_on"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("notification_settings_organization_idx").on(table.organizationId),
+    uniqueIndex("notification_settings_user_idx").on(table.organizationId, table.userId),
+    check("notification_settings_hours_check", sql`${table.digestHour} between 0 and 23 and ${table.quietStartMinute} between 0 and 1439 and ${table.quietEndMinute} between 0 and 1439`),
+    check("notification_settings_time_zone_check", sql`char_length(${table.timeZone}) between 1 and 64`),
+  ],
+);
+
+// Une sorte coupée ou gardée sur un canal, pour une personne (HUB-15 : chaque sorte se coupe
+// séparément). Sans ligne, le réglage de départ de la sorte.
+export const notificationPreferences = hubSchema.table(
+  "notification_preferences",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type", { enum: NOTIFICATION_TYPE_KEYS }).notNull(),
+    channel: text("channel", { enum: NOTIFICATION_CHANNEL_KEYS }).notNull(),
+    enabled: boolean("enabled").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("notification_preferences_organization_idx").on(table.organizationId),
+    uniqueIndex("notification_preferences_user_type_channel_idx").on(table.organizationId, table.userId, table.type, table.channel),
+    check("notification_preferences_type_check", sql`${table.type} in (${NOTIFICATION_TYPES_SQL})`),
+    check("notification_preferences_channel_check", sql`${table.channel} in ('app', 'email', 'push')`),
+  ],
+);
+
+// Une notification d'une personne : sa sorte, son objet (object_key, une seule fois par objet),
+// l'écran où agir, et l'état de chaque envoi. Les paramètres sont des libellés courts (numéro de devis,
+// intitulé de tâche, nom d'un prestataire), jamais une adresse ni un téléphone ; ils ne sortent ni dans
+// un push ni dans l'objet d'un e-mail. Effacée 90 jours après sa création (notifications.json).
+export const notifications = hubSchema.table(
+  "notifications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type", { enum: NOTIFICATION_TYPE_KEYS }).notNull(),
+    eventId: uuid("event_id"),
+    objectKey: text("object_key").notNull(),
+    params: jsonb("params").$type<Record<string, string | number>>().notNull().default({}),
+    href: text("href").notNull(),
+    inApp: boolean("in_app").notNull().default(true),
+    emailState: text("email_state", { enum: NOTIFICATION_DELIVERY_STATES }).notNull().default("none"),
+    emailDueAt: timestamp("email_due_at", { withTimezone: true }),
+    pushState: text("push_state", { enum: NOTIFICATION_DELIVERY_STATES }).notNull().default("none"),
+    pushDueAt: timestamp("push_due_at", { withTimezone: true }),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    isDemo: boolean("is_demo").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("notifications_organization_idx").on(table.organizationId),
+    index("notifications_user_idx").on(table.userId, table.createdAt),
+    index("notifications_event_idx").on(table.eventId),
+    uniqueIndex("notifications_object_idx").on(table.organizationId, table.userId, table.type, table.objectKey),
+    index("notifications_email_due_idx").on(table.emailState, table.emailDueAt),
+    index("notifications_push_due_idx").on(table.pushState, table.pushDueAt),
+    check("notifications_type_check", sql`${table.type} in (${NOTIFICATION_TYPES_SQL})`),
+    check("notifications_object_key_check", sql`char_length(${table.objectKey}) between 1 and 200`),
+    check("notifications_href_check", sql`${table.href} ~ '^/[^/]' and char_length(${table.href}) <= 500`),
+    check("notifications_params_check", sql`jsonb_typeof(${table.params}) = 'object' and octet_length(${table.params}::text) <= 2000`),
+    check("notifications_email_state_check", sql`${table.emailState} in ('none', 'pending', 'digest', 'sent', 'skipped')`),
+    check("notifications_push_state_check", sql`${table.pushState} in ('none', 'pending', 'digest', 'sent', 'skipped')`),
+  ],
+);
+
+// Un appareil abonné au push (ARC-09, D4) : l'adresse du service de push du navigateur et ses clés
+// publiques (données techniques). Supprimé à la désactivation, quand le service répond qu'il n'existe
+// plus, ou après 90 jours sans usage (notifications.json).
+export const pushSubscriptions = hubSchema.table(
+  "push_subscriptions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    deviceLabel: text("device_label").notNull(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("push_subscriptions_organization_idx").on(table.organizationId),
+    index("push_subscriptions_user_idx").on(table.userId),
+    uniqueIndex("push_subscriptions_endpoint_idx").on(table.organizationId, table.endpoint),
+    check("push_subscriptions_endpoint_check", sql`${table.endpoint} ~ '^https://' and char_length(${table.endpoint}) <= 1000`),
+    check("push_subscriptions_keys_check", sql`char_length(${table.p256dh}) between 80 and 100 and char_length(${table.auth}) between 16 and 32`),
+    check("push_subscriptions_label_check", sql`char_length(${table.deviceLabel}) between 1 and 80`),
+  ],
+);
+
+// Un automatisme prêt à activer (HUB-28, D5) : actif ou coupé, son délai en jours s'il en a un.
+// resumed_at : dernière remise en route ; ce qui était dû avant n'est jamais rattrapé. Sans ligne, les
+// valeurs de départ (automations.json).
+export const AUTOMATION_KEY_VALUES = [
+  "quote_signed_confirm_event",
+  "payment_due_reminder",
+  "rsvp_reminder",
+  "client_task_reminder",
+  "invoice_reminder",
+  "proposal_expiry_reminder",
+  "prospect_follow_up",
+  "vendor_roadmap",
+  "risk_radar",
+] as const;
+const AUTOMATION_KEYS_SQL = sql.raw(AUTOMATION_KEY_VALUES.map((key) => `'${key}'`).join(", "));
+
+export const automations = hubSchema.table(
+  "automations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    key: text("key", { enum: AUTOMATION_KEY_VALUES }).notNull(),
+    enabled: boolean("enabled").notNull(),
+    days: integer("days"),
+    resumedAt: timestamp("resumed_at", { withTimezone: true }),
+    // Lot 53 (GC-02) : jour (Paris) du dernier passage du radar, une fois par matin.
+    lastRunOn: date("last_run_on"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("automations_organization_idx").on(table.organizationId),
+    uniqueIndex("automations_key_idx").on(table.organizationId, table.key),
+    check("automations_key_check", sql`${table.key} in (${AUTOMATION_KEYS_SQL})`),
+    check("automations_days_check", sql`${table.days} is null or ${table.days} between 1 and 60`),
+  ],
+);
+
+// Le journal d'un automatisme (HUB-28 : chaque automatisation laisse une trace) : quand, sur quoi (un
+// libellé court et l'écran de l'objet), avec quel résultat. Effacé après 90 jours.
+export const AUTOMATION_RUN_RESULTS = ["sent", "skipped", "failed", "done"] as const;
+export const automationRuns = hubSchema.table(
+  "automation_runs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    key: text("key", { enum: AUTOMATION_KEY_VALUES }).notNull(),
+    objectKey: text("object_key"),
+    objectLabel: text("object_label"),
+    href: text("href"),
+    result: text("result", { enum: AUTOMATION_RUN_RESULTS }).notNull(),
+    ranAt: timestamp("ran_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("automation_runs_organization_idx").on(table.organizationId),
+    index("automation_runs_key_idx").on(table.organizationId, table.key, table.ranAt),
+    check("automation_runs_key_check", sql`${table.key} in (${AUTOMATION_KEYS_SQL})`),
+    check("automation_runs_result_check", sql`${table.result} in ('sent', 'skipped', 'failed', 'done')`),
+    check("automation_runs_label_check", sql`${table.objectLabel} is null or char_length(${table.objectLabel}) <= 200`),
+    check("automation_runs_href_check", sql`${table.href} is null or (${table.href} ~ '^/[^/]' and char_length(${table.href}) <= 500)`),
+  ],
+);
+
+// Une règle du radar des risques (GC-02, D7) : active ou non, son seuil en jours. Sans ligne, les
+// valeurs de départ (risk-radar.json).
+export const RISK_RULE_KEYS = ["vendor_without_contract", "decision_overdue", "document_expired", "payment_overdue", "milestone_late", "iban_to_verify", "roadmap_unconfirmed"] as const;
+const RISK_RULES_SQL = sql.raw(RISK_RULE_KEYS.map((key) => `'${key}'`).join(", "));
+
+export const riskRules = hubSchema.table(
+  "risk_rules",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    rule: text("rule", { enum: RISK_RULE_KEYS }).notNull(),
+    enabled: boolean("enabled").notNull(),
+    thresholdDays: integer("threshold_days").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("risk_rules_organization_idx").on(table.organizationId),
+    uniqueIndex("risk_rules_rule_idx").on(table.organizationId, table.rule),
+    check("risk_rules_rule_check", sql`${table.rule} in (${RISK_RULES_SQL})`),
+    check("risk_rules_threshold_check", sql`${table.thresholdDays} between 0 and 365`),
+  ],
+);
