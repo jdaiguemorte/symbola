@@ -4801,7 +4801,8 @@
     "editRecord": "Edit the record",
     "fieldYes": "Yes",
     "fieldNo": "No",
-    "internalNoteConfidentialElsewhere": "The internal note is confidential: edit it in its own section of the record."
+    "internalNoteConfidentialElsewhere": "The internal note is confidential: edit it in its own section of the record.",
+    "historyTable": "Table of the history with you"
   },
   "Onboarding": {
     "title": "Let's set up your workspace",

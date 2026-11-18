@@ -89,7 +89,8 @@ test("PRE-05 / PRE-10 / SEC-27 — le fleuriste dépose sa pièce et change son 
   await records.getByLabel(`Fichier : ${setup.insuranceLabel}`).setInputFiles({ name: "rc-2027.pdf", mimeType: "application/pdf", buffer: TINY_PDF });
   await records.getByLabel("Valable jusqu'au (facultatif)").fill("2027-06-30");
   await records.getByRole("button", { name: "Envoyer la pièce" }).click();
-  await expect(records.getByText("Pièce envoyée : l'organisatrice la vérifiera.")).toBeVisible();
+  // La page se met à jour : la pièce n'est plus « demandée », elle est reçue.
+  await expect(records.getByText("reçue, en cours de vérification")).toBeVisible();
   await records.getByLabel("IBAN", { exact: true }).fill("FR76 3000 6000 0112 3456 7890 189");
   await records.getByRole("button", { name: "Envoyer l'IBAN" }).click();
   await expect(records.getByText("IBAN envoyé : l'organisatrice vous appellera pour le vérifier.")).toBeVisible();
@@ -102,7 +103,7 @@ test("PRE-05 / PRE-10 / SEC-27 — le fleuriste dépose sa pièce et change son 
   const banner = page.getByRole("alert").filter({ hasText: "IBAN changé : à vérifier par un autre canal" });
   await expect(banner).toContainText("Le prestataire a changé son IBAN par son lien");
   await expect(banner).toContainText("06 12 34 56 78");
-  await expect(page.getByText("FR76 •••• •••• 0189")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Coordonnées bancaires" }).getByText("FR76 •••• •••• 0189").first()).toBeVisible();
   await expect(page.getByText("FR7630006000011234567890189")).toHaveCount(0);
   const documents = page.getByRole("region", { name: "Pièces" });
   await expect(documents).toContainText("déposée par le prestataire, à vérifier");

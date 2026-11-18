@@ -135,7 +135,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
         </div>
         {history.entries.length === 0 ? <p>{t("historyEmpty")}</p> : null}
         {history.entries.length > 0 ? (
-          <div role="region" aria-label={t("historyTitle")} tabIndex={0}>
+          <div role="region" aria-label={t("historyTable")} tabIndex={0}>
             <table className="data-table">
               <thead>
                 <tr>

@@ -491,7 +491,9 @@ async function vendorItems({ organizationId, words, today, now, events }: Contex
       eventId: null,
       eventNames: null,
       title: words.vendorDocument(notice.vendorName, notice.kindLabel, notice.reason),
-      dueOn: notice.reason === "to_verify" ? null : notice.validUntil,
+      // Une pièce expirée est en retard ; proche de sa fin ou à vérifier, elle est à traiter maintenant
+      // (l'horizon de quatorze jours ne la cacherait pas, l'alerte part à trente jours).
+      dueOn: notice.reason === "expired" ? notice.validUntil : null,
       since: null,
       actor: { kind: "you" },
       href: `/prestataires/${notice.vendorId}`,
@@ -509,7 +511,8 @@ async function vendorItems({ organizationId, words, today, now, events }: Contex
         eventId: event.id,
         eventNames: eventNames(event.clients),
         title: words.vendorDocument(notice.vendorName, notice.kindLabel, notice.reason),
-        dueOn: event.eventDate,
+        // À traiter maintenant : demander la pièce à jour avant le jour J, aussi lointain soit-il.
+        dueOn: null,
         since: null,
         actor: { kind: "vendor", name: notice.vendorName },
         href: `/prestataires/${notice.vendorId}`,

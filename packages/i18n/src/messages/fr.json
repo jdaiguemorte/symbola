@@ -4801,7 +4801,8 @@
     "editRecord": "Modifier la fiche",
     "fieldYes": "Oui",
     "fieldNo": "Non",
-    "internalNoteConfidentialElsewhere": "La note interne est confidentielle : elle se modifie dans sa section de la fiche."
+    "internalNoteConfidentialElsewhere": "La note interne est confidentielle : elle se modifie dans sa section de la fiche.",
+    "historyTable": "Tableau de l'historique avec vous"
   },
   "Onboarding": {
     "title": "Préparons votre espace",

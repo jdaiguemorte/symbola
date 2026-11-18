@@ -67,3 +67,23 @@ describe("PRE-05 / PRE-10 — Aujourd'hui : pièces et IBAN des prestataires (lo
     expect(after.items.some((item) => item.kind === "vendor_bank_check")).toBe(false);
   });
 });
+
+describe("PRE-05 — la pièce qui expire avant un évènement lointain reste visible dans « Aujourd'hui »", () => {
+  it("elle est à traiter maintenant, pas cachée au-delà de l'horizon de quatorze jours", async () => {
+    const { rankToday } = await import("./rank");
+    const db = appDatabase();
+    const organization = await createOrganization(db, `Org ${randomUUID()}`);
+    const planner = await createUser(db, { organizationId: organization.id, email: `p-${randomUUID()}@symbola.test`, password: "mot-de-passe", role: "owner" });
+    const organizationId = organization.id;
+    const source = await createProspectSource(organizationId, "Salon");
+    const eventId = (await createProspect({ organizationId, createdByUserId: planner.id, prospectSourceId: source.id, clients: [{ firstName: "Inès" }], eventDate: plusDays(300) })).id;
+    const { vendor } = await createVendor(organizationId, { name: "DJ Nova", typeId: null });
+    const slot = await addEventVendorSlot(organizationId, eventId, "Musique");
+    const candidate = await addVendorCandidate({ organizationId, eventId, vendorSlotId: slot.id, vendorName: vendor.name, vendorId: vendor.id });
+    await updateVendorCandidate({ organizationId, candidateId: candidate.id, status: "retained", changedByUserId: planner.id });
+    const [insurance] = await listVendorDocumentKinds(organizationId, "fr");
+    await addVendorDocument({ organizationId, vendorId: vendor.id, kindId: insurance!.id, fileName: "rc.pdf", content: PDF, validUntil: plusDays(200), userId: planner.id });
+    const { items, today } = await loadTodayItems(organizationId, { events: true, quotes: false, budget: false, vendors: true }, words, "fr");
+    expect(rankToday(items, today).all.map((item) => item.title)).toContain(`${insurance!.label} de DJ Nova : lapses_before_event`);
+  });
+});
