@@ -16,7 +16,12 @@ export function QuoteSettingsForm({
   defaultProfessionalMentions,
   rates,
   previousStarterText,
+  professionalBounds,
+  defaultDiscountTerms,
 }: {
+  // Lot 41 (JUR-12, D11) : bornes légales des données, escompte de départ (« Néant »).
+  professionalBounds: { maxDaysAfterIssue: number; maxDaysEndOfMonth: number };
+  defaultDiscountTerms: string;
   settings: QuoteSettings;
   defaultMentions: string;
   defaultProfessionalMentions: string;
@@ -86,6 +91,33 @@ export function QuoteSettingsForm({
         ))}
       </select>
       <p id="late-penalty-rate-hint">{t("latePenaltyRateHint")}</p>
+      {/* Lot 41 (JUR-12, D11, réponse 7 de l'avocat) : délai et escompte d'un professionnel, dans les bornes légales. */}
+      <label htmlFor="professionalPaymentTermDays">{t("professionalPaymentTermDays")}</label>
+      <input
+        id="professionalPaymentTermDays"
+        type="number"
+        min={0}
+        max={professionalBounds.maxDaysAfterIssue}
+        name="professionalPaymentTermDays"
+        required
+        aria-describedby="professional-term-hint"
+        defaultValue={settings.professionalPaymentTermDays ?? 30}
+      />
+      <label className="checkbox-label">
+        <input type="checkbox" name="professionalPaymentTermEndOfMonth" defaultChecked={settings.professionalPaymentTermEndOfMonth ?? false} aria-describedby="professional-term-hint" />
+        {t("professionalPaymentTermEndOfMonth")}
+      </label>
+      <p id="professional-term-hint">{t("professionalPaymentTermHint", { afterIssue: professionalBounds.maxDaysAfterIssue, endOfMonth: professionalBounds.maxDaysEndOfMonth })}</p>
+      <label htmlFor="professionalDiscountTerms">{t("professionalDiscountTerms")}</label>
+      <input
+        id="professionalDiscountTerms"
+        type="text"
+        name="professionalDiscountTerms"
+        maxLength={500}
+        aria-describedby="professional-discount-hint"
+        defaultValue={settings.professionalDiscountTerms ?? defaultDiscountTerms}
+      />
+      <p id="professional-discount-hint">{t("professionalDiscountTermsHint")}</p>
       {/* Lot 31a (JUR-08, D5) : acompte ou arrhes proposé pour chaque nouveau devis. */}
       <label htmlFor="advanceKindDefault">{t("advanceKindDefault")}</label>
       <select id="advanceKindDefault" name="advanceKindDefault" aria-describedby="advance-default-hint" defaultValue={settings.advanceKindDefault ?? ""}>

@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
-import type { InvoiceView, MissingMention, QuoteDetail, ReceiptView, ScheduledDepositView } from "@/modules/quotes/service";
+import type { ComplianceFinding, InvoiceView, MissingMention, QuoteDetail, ReceiptView, ScheduledDepositView } from "@/modules/quotes/service";
+import { CompliancePanel } from "../compliance-panel";
 import { MissingMentionsList } from "../missing-mentions";
 import { ClientKindForm, CreditNoteForm, IssueBalanceInvoiceForm, IssueDepositInvoiceForm } from "./invoice-forms";
 
@@ -13,7 +14,10 @@ export async function InvoicesSection({
   locale,
   scheduled = null,
   receipts = [],
+  compliance = null,
 }: {
+  // Lot 41 (GC-03, D12) : points d'attention avant l'émission (non bloquants).
+  compliance?: { findings: ComplianceFinding[]; disclaimer: string } | null;
   quote: QuoteDetail;
   invoices: InvoiceView[];
   locale: Locale;
@@ -32,7 +36,7 @@ export async function InvoicesSection({
   const pendingItems = balanceIssued || earnest ? [] : quote.current.schedule.items.filter((item) => !invoicedItems.has(item.id));
 
   return (
-    <section aria-labelledby="invoices-title">
+    <section id="factures" aria-labelledby="invoices-title">
       <h2 id="invoices-title">{t("invoicesTitle")}</h2>
       {scheduled && scheduled.status === "waiting" ? (
         <p role="status">{tContracts("depositWaiting", { label: scheduled.scheduleItemLabel, date: formatCalendarDate(scheduled.issueOn, locale) })}</p>
@@ -55,6 +59,7 @@ export async function InvoicesSection({
           {pendingItems.map((item) => (
             <IssueDepositInvoiceForm key={item.id} quoteId={quote.id} scheduleItemId={item.id} label={item.label} />
           ))}
+          {!balanceIssued && compliance ? <CompliancePanel document="invoice" {...compliance} /> : null}
           {!balanceIssued ? <IssueBalanceInvoiceForm quoteId={quote.id} /> : null}
         </>
       ) : null}

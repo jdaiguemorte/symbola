@@ -12,7 +12,7 @@ import { declarablePaymentMethods } from "./payment-methods";
 import { closeLinkSession, LinkAccessDeniedError, setLinkTaskDone } from "@/modules/events/service";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
 import { clearLinkSessionCookie, currentLinkAccess, getLinkSessionToken } from "@/lib/link-session";
-import { chooseQuoteOptions, ContractActNotAllowedError, ContractNotFoundError, QuoteNotFoundError, QuoteOptionsLockedError, recordSignerAct } from "@/modules/quotes/service";
+import { chooseQuoteOptions, ContractActNotAllowedError, ContractNotFoundError, InvalidReferenceError, QuoteNotFoundError, QuoteOptionsLockedError, recordSignerAct, setClientOrderReference } from "@/modules/quotes/service";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 
 export async function toggleLinkTaskAction(formData: FormData): Promise<void> {
@@ -160,4 +160,29 @@ export async function orderContractAction(_prev: ContractActState, formData: For
 
 export async function requestEarlyExecutionAction(_prev: ContractActState, formData: FormData): Promise<ContractActState> {
   return contractAct(formData, "early_execution");
+}
+
+// Lot 41 (JUR-13, D8, SC-11 étape 4) — au moment de signer un devis professionnel, le signataire
+// indique le numéro de bon de commande de son entreprise. Seulement un lien client qui ouvre la
+// rubrique devis, pour un devis de son évènement dont il est signataire (portée vérifiée par le
+// module) ; numéro borné, neutralisé dans le XML. La planner le voit et le corrige avant l'émission.
+export type OrderReferenceState = { error?: string; success?: boolean };
+
+export async function setOrderReferenceAction(_prev: OrderReferenceState, formData: FormData): Promise<OrderReferenceState> {
+  const t = await getTranslations("ClientSpace");
+  const access = await currentLinkAccess();
+  if (!access || access.audience !== "client" || !access.rights.rubrics.includes("quotes") || !(await isQuotesModuleEnabled(access.organizationId))) {
+    return { error: t("orderReferenceError") };
+  }
+  const quoteId = String(formData.get("quoteId") ?? "");
+  if (!isValidId(quoteId)) return { error: t("orderReferenceError") };
+  try {
+    await setClientOrderReference({ organizationId: access.organizationId, eventId: access.eventId, linkId: access.linkId, quoteId, clientEmail: access.email, reference: String(formData.get("orderReference") ?? "") });
+  } catch (error) {
+    if (error instanceof InvalidReferenceError) return { error: t("orderReferenceInvalid") };
+    if (error instanceof QuoteNotFoundError) return { error: t("orderReferenceError") };
+    throw error;
+  }
+  revalidatePath("/portail");
+  return { success: true };
 }

@@ -37,7 +37,6 @@ import {
   removeEventQuotesData,
   sendQuote,
   sendQuoteForSignature,
-  setQuoteClientKind,
   updateQuoteSettings,
   OriginalAlteredError,
   getCreditNotePdf,

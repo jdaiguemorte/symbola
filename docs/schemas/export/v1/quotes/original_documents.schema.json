@@ -51,6 +51,13 @@
           "type": "null"
         }
       ]
+    },
+    "format": {
+      "type": "string",
+      "enum": [
+        "pdf",
+        "facturx"
+      ]
     }
   },
   "required": [
@@ -62,7 +69,8 @@
     "byteSize",
     "isReconstructed",
     "createdAt",
-    "createdBy"
+    "createdBy",
+    "format"
   ],
   "additionalProperties": false
 }

@@ -298,7 +298,25 @@
     "errorInsuranceCoverage": "Couverture : 200 caractères au plus.",
     "errorMediatorName": "Médiateur : 160 caractères au plus.",
     "errorMediatorUrl": "Site du médiateur : une adresse web, par exemple https://mediateur.example.",
-    "errorGeneralTerms": "Conditions générales : 20 000 caractères au plus."
+    "errorGeneralTerms": "Conditions générales : 20 000 caractères au plus.",
+    "postalCode": "Code postal",
+    "city": "Ville",
+    "countryCode": "Pays (code)",
+    "addressStructuredHint": "Code postal, ville et pays sont demandés avant votre première facture : la facture électronique les exige. Deux lettres pour le pays (FR).",
+    "invalidAddress_address": "Adresse trop longue.",
+    "invalidAddress_postalCode": "Code postal invalide.",
+    "invalidAddress_city": "Ville trop longue.",
+    "invalidAddress_countryCode": "Code pays invalide : deux lettres, comme FR.",
+    "vatOnDebitsTitle": "Option pour la TVA sur les débits",
+    "vatOnDebitsHint": "Pour des prestations de services, la TVA est due à l'encaissement, sauf si vous avez opté pour les débits auprès de l'administration fiscale. Depuis la réforme, la facture le mentionne. Demandez à votre comptable si vous avez fait ce choix.",
+    "vatOnDebitsQuestion": "Avez-vous opté pour le paiement de la TVA d'après les débits ?",
+    "vatOnDebitsNo": "Non",
+    "vatOnDebitsYes": "Oui, à partir de la date ci-dessous",
+    "vatOnDebitsFrom": "Date d'effet",
+    "vatOnDebitsSave": "Enregistrer l'option",
+    "vatOnDebitsSaved": "Option enregistrée.",
+    "vatOnDebitsChoose": "Choisissez oui ou non.",
+    "vatOnDebitsFranchise": "Sans objet en franchise en base de TVA."
   },
   "AdminSettings": {
     "title": "Paramètres de la plateforme",
@@ -347,12 +365,23 @@
       "generalTerms": "Conditions générales de vente",
       "paymentTerms": "Conditions de paiement des factures",
       "professionalPaymentTerms": "Conditions de paiement (professionnels)",
-      "latePenaltyRate": "Taux des pénalités de retard (professionnels)"
+      "latePenaltyRate": "Taux des pénalités de retard (professionnels)",
+      "postalCode": "Code postal de l'entreprise",
+      "city": "Ville de l'entreprise",
+      "buyerCompany": "Acheteur entreprise (client professionnel)",
+      "buyerSiren": "SIREN de l'acheteur",
+      "buyerAddress": "Adresse structurée de l'acheteur",
+      "professionalDiscountTerms": "Escompte pour paiement anticipé"
     },
     "requiredMentionsCheckbox": "{field} exigé sur : {document}",
     "requiredMentionsSave": "Enregistrer la liste",
     "requiredMentionsSaved": "Liste enregistrée.",
-    "requiredMentionsEmpty": "Cochez au moins une mention."
+    "requiredMentionsEmpty": "Cochez au moins une mention.",
+    "complianceChecksTitle": "Vérifications avant envoi (assistant de conformité)",
+    "complianceChecksHint": "Elles informent les planners avant l'envoi d'un devis, d'un contrat ou d'une facture, sans jamais bloquer. Décochez celles qui ne doivent plus s'afficher.",
+    "complianceChecksLegend": "Vérifications affichées",
+    "complianceChecksSave": "Enregistrer les vérifications",
+    "complianceChecksSaved": "Vérifications enregistrées."
   },
   "Tour": {
     "hub": [
@@ -489,7 +518,7 @@
     },
     "settings": {
       "title": "Entreprise et TVA",
-      "body": "La fiche de votre entreprise (SIREN, adresse, forme juridique, métier) et votre régime de TVA : ils figurent sur vos devis et factures. Le métier règle le vocabulaire et les modèles de départ. Les autres réglages sont rangés par rubrique dans le menu de gauche.",
+      "body": "La fiche de votre entreprise (SIREN, adresse, forme juridique, métier) et votre régime de TVA : ils figurent sur vos devis et factures. Le métier règle le vocabulaire et les modèles de départ. Les autres réglages sont rangés par rubrique dans le menu de gauche. Complétez le code postal et la ville avant votre première facture, et, si vous êtes assujettie, dites si vous avez opté pour la TVA sur les débits.",
       "faq": [
         {
           "q": "Je passe de la franchise à la TVA : que faire ?",
@@ -513,7 +542,7 @@
     },
     "adminSettings": {
       "title": "Réglages de la suite",
-      "body": "Les valeurs réglementaires communes à toutes les organisations, comme les seuils de franchise en base de TVA. Mettez-les à jour quand la réglementation change."
+      "body": "Les valeurs réglementaires communes à toutes les organisations, comme les seuils de franchise en base de TVA. Mettez-les à jour quand la réglementation change. Vous y choisissez aussi les vérifications de l'assistant de conformité affichées aux planners."
     },
     "adminHealth": {
       "title": "Santé",
@@ -655,7 +684,7 @@
     },
     "clientEvent": {
       "title": "Votre espace",
-      "body": "Votre organisateur vous a ouvert cet espace par un lien personnel, sans compte ni mot de passe. En haut, vos trois prochaines actions et ce qu'il vous demande de décider ; plus bas, ce qu'il a partagé avec vous : vos tâches à cocher, le programme du jour J dans la dernière version diffusée, le budget en trois chiffres et ses échéances, les documents qu'il vous a partagés et vos factures, à ouvrir ou à télécharger. Une échéance réglée ? Déclarez-la : votre organisateur la confirmera. Ce lien vous est réservé : ne le transférez pas."
+      "body": "Votre organisateur vous a ouvert cet espace par un lien personnel, sans compte ni mot de passe. En haut, vos trois prochaines actions et ce qu'il vous demande de décider ; plus bas, ce qu'il a partagé avec vous : vos tâches à cocher, le programme du jour J dans la dernière version diffusée, le budget en trois chiffres et ses échéances, les documents qu'il vous a partagés et vos factures, à ouvrir ou à télécharger. Une échéance réglée ? Déclarez-la : votre organisateur la confirmera. Ce lien vous est réservé : ne le transférez pas. Pour une entreprise, vous pouvez indiquer le numéro de bon de commande en signant le devis."
     },
     "vendorSpace": {
       "title": "Votre espace prestataire",
@@ -691,7 +720,7 @@
     },
     "quotesCatalog": {
       "title": "Catalogue des prestations",
-      "body": "Vos prestations réutilisables : intitulé, unité, prix HT, TVA et catégorie. Ajoutez un article en bas de page ; il est aussitôt proposé dans vos devis. Archivé, il n'est plus proposé mais reste sur les devis qui l'utilisent.",
+      "body": "Vos prestations réutilisables : intitulé, unité, prix HT, TVA et catégorie. Ajoutez un article en bas de page ; il est aussitôt proposé dans vos devis. Archivé, il n'est plus proposé mais reste sur les devis qui l'utilisent. Indiquez si l'article est une prestation de services ou une livraison de biens : la facture en déduit la catégorie de l'opération.",
       "faq": [
         {
           "q": "Changer un prix modifie-t-il les devis envoyés ?",
@@ -701,7 +730,7 @@
     },
     "quotesSettings": {
       "title": "Devis et factures",
-      "body": "La durée de validité par défaut de vos devis, les préfixes des séries de numérotation (devis, factures, avoirs, reçus d'arrhes), vos conditions de paiement et les modes de paiement que vous acceptez. Les conditions de paiement ont deux textes : l'un pour les particuliers et les non-professionnels, l'autre pour les professionnels, avec le taux des pénalités de retard que vous choisissez. Les numéros sont attribués par année, sans trou. Un mode désactivé n'est plus proposé quand vous enregistrez un paiement ; les paiements déjà enregistrés gardent le leur.",
+      "body": "La durée de validité par défaut de vos devis, les préfixes des séries de numérotation (devis, factures, avoirs, reçus d'arrhes), vos conditions de paiement et les modes de paiement que vous acceptez. Les conditions de paiement ont deux textes : l'un pour les particuliers et les non-professionnels, l'autre pour les professionnels, avec le taux des pénalités de retard que vous choisissez. Les numéros sont attribués par année, sans trou. Un mode désactivé n'est plus proposé quand vous enregistrez un paiement ; les paiements déjà enregistrés gardent le leur. Face à un professionnel, le délai de paiement (dans les limites légales) et l'escompte s'impriment sur le devis et la facture.",
       "faq": [
         {
           "q": "Puis-je reprendre ma numérotation actuelle ?",
@@ -715,7 +744,7 @@
     },
     "quotesDetail": {
       "title": "Composer un devis",
-      "body": "Composez le devis à partir du catalogue ou de lignes libres ; les totaux se recalculent. Prévoyez les acomptes, puis envoyez-le en signature : à la signature, une option passe en « Confirmé ». Une version envoyée est figée ; pour la changer, créez une nouvelle version. Les signataires reprennent le nom, l'e-mail et l'adresse de facturation de la fiche du contact ; une adresse corrigée à l'envoi y est gardée si la case reste cochée.",
+      "body": "Composez le devis à partir du catalogue ou de lignes libres ; les totaux se recalculent. Prévoyez les acomptes, puis envoyez-le en signature : à la signature, une option passe en « Confirmé ». Une version envoyée est figée ; pour la changer, créez une nouvelle version. Les signataires reprennent le nom, l'e-mail et l'adresse de facturation de la fiche du contact ; une adresse corrigée à l'envoi y est gardée si la case reste cochée. Pour un client professionnel, choisissez l'entreprise acheteuse et notez son bon de commande ; adresse de livraison seulement si des biens sont livrés ailleurs. Avant chaque envoi, un panneau « Vérifications avant envoi » signale ce qui mérite un regard, sans rien bloquer. Chaque facture et chaque avoir est un Factur-X : un PDF qui porte aussi le fichier de la facture électronique.",
       "faq": [
         {
           "q": "Comment facturer un acompte ?",
@@ -2359,7 +2388,41 @@
     "pdfReceiptCancelled": "Encaissement annulé",
     "signerSaveAddress": "Garder cette adresse sur la fiche du contact",
     "professionalInvoiceFacturX": "Client professionnel : la facture est un Factur-X adressé à l'acheteur entreprise du devis (raison sociale, SIREN, adresse), avec son bon de commande s'il en émet un.",
-    "facturxMismatch": "La facture n'a pas été émise : son fichier structuré ne donne pas les mêmes totaux que le PDF. Aucun numéro n'a été consommé ; signalez-le au support avec la référence de l'erreur."
+    "facturxMismatch": "La facture n'a pas été émise : son fichier structuré ne donne pas les mêmes totaux que le PDF. Aucun numéro n'a été consommé ; signalez-le au support avec la référence de l'erreur.",
+    "lineNature": "Nature",
+    "lineNatureService": "Prestation de services",
+    "lineNatureGoods": "Livraison de biens",
+    "buyerTitle": "Acheteur, bon de commande et livraison",
+    "buyerHint": "Modifiables jusqu'à chaque facture, même après la signature : chaque facture garde les valeurs du jour de son émission.",
+    "buyerCompanyIs": "Acheteur de la facture : {name}.",
+    "buyerCompanyMissing": "Client professionnel : choisissez l'entreprise acheteuse, sans quoi la facture ne peut pas être émise.",
+    "buyerCompany": "Entreprise acheteuse",
+    "buyerCompanyNone": "Aucune",
+    "buyerCompanyHint": "Les entreprises parmi les clients de l'évènement. Sa fiche donne la raison sociale, le SIREN (ou SIRET), le numéro de TVA et l'adresse imprimés sur la facture.",
+    "saveBuyer": "Enregistrer",
+    "buyerSaved": "Acheteur et références enregistrés.",
+    "orderReference": "Numéro de bon de commande du client",
+    "orderReferenceHint": "Si le client en émet un. Il peut aussi l'indiquer en signant, depuis son lien.",
+    "buyerReference": "Référence de l'acheteur (facultative)",
+    "deliveryAddress": "Adresse de livraison",
+    "deliveryAddressHint": "Seulement si des biens sont livrés ailleurs qu'à l'adresse de facturation ; elle n'est imprimée que si elle diffère.",
+    "deliveryLine": "Adresse",
+    "deliveryPostalCode": "Code postal",
+    "deliveryCity": "Ville",
+    "deliveryCountry": "Pays (code)",
+    "deliveryCountryHint": "Deux lettres : FR pour la France.",
+    "deliveryUseVenue": "Reprendre le lieu de réception ({venue})",
+    "buyerNotFound": "Cette entreprise est introuvable parmi vos contacts.",
+    "invalidReference": "Le numéro ou la référence tient sur une ligne de 60 caractères au plus.",
+    "invalidDeliveryAddress": "Adresse de livraison incomplète : adresse, code postal et ville, ou rien.",
+    "facturxBanner": "Vos factures et avoirs sont des Factur-X : un PDF lisible qui porte aussi le fichier de la facture électronique. Jusqu'au {date}, vous pouvez les envoyer par e-mail ; ensuite, vers une entreprise, ils passeront par une plateforme agréée.",
+    "professionalPaymentTermDays": "Délai de paiement des clients professionnels (jours)",
+    "professionalPaymentTermEndOfMonth": "Compté « fin de mois »",
+    "professionalPaymentTermHint": "Imprimé sur le devis et la facture d'un professionnel. Le délai légal est de {afterIssue} jours après l'émission, ou {endOfMonth} jours fin de mois.",
+    "professionalDiscountTerms": "Escompte pour paiement anticipé (clients professionnels)",
+    "professionalDiscountTermsHint": "« Néant » si vous n'en accordez pas : cette mention est obligatoire face à un professionnel.",
+    "invalidProfessionalPaymentTerm": "Indiquez un délai en jours.",
+    "professionalTermOutOfBounds": "Délai hors des limites légales : {max} jours au plus."
   },
   "Documents": {
     "pdfSellerHeading": "De",
@@ -2539,7 +2602,15 @@
     "responsibleVendor": "Confiée à un prestataire",
     "programNew": "Nouvelle version du programme : version {number}, diffusée le {date}.",
     "programVersion": "Programme diffusé : version {number} du {date}.",
-    "programNotPublished": "Votre organisateur n'a pas encore diffusé le programme."
+    "programNotPublished": "Votre organisateur n'a pas encore diffusé le programme.",
+    "orderReferenceTitle": "Bon de commande",
+    "orderReferenceLabel": "Numéro de bon de commande de votre entreprise",
+    "orderReferenceHint": "Si votre service achats en émet un : il figurera sur les factures.",
+    "orderReferenceSave": "Enregistrer le numéro",
+    "orderReferenceSaved": "Numéro enregistré.",
+    "orderReferenceInvalid": "Le numéro tient sur une ligne de 60 caractères au plus.",
+    "orderReferenceError": "Ce numéro ne peut pas être enregistré ici.",
+    "orderReferenceIs": "Bon de commande : {reference}"
   },
   "NotFound": {
     "title": "Page introuvable",
@@ -5734,6 +5805,12 @@
     "signersWithoutPortal": "À distance, chaque signataire commande sur son espace personnel avant de signer. Créez d'abord le lien personnel de : {names}.",
     "signingLinkOnPortal": "lien de signature sur son espace personnel, après sa commande",
     "orderFirstHint": "Contrat à distance : chaque signataire lit le contrat et commande sur son espace personnel ; son lien de signature s'y affiche ensuite. L'e-mail envoyé l'y invite, sans lien direct."
+  },
+  "Compliance": {
+    "title": "Vérifications avant envoi",
+    "nothing": "Rien à signaler.",
+    "intro": "{count, plural, one {Un point à regarder ; il ne bloque pas l'envoi.} other {# points à regarder ; ils ne bloquent pas l'envoi.}}",
+    "goTo": "Y aller"
   },
   "Today": {
     "title": "Aujourd'hui",

@@ -5,9 +5,10 @@
 // quand il est généré après le devis.
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { CompliancePanel } from "../compliance-panel";
 import { formatAmount, formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
 import { contractTemplateWarning, starterContractRules } from "@symbola/starter-templates";
-import { checkContract, listContractTemplates, listQuoteContracts, type ContractView, type QuoteDetail } from "@/modules/quotes/service";
+import { checkContract, listContractTemplates, listQuoteContracts, quoteComplianceFindings, type ContractView, type QuoteDetail } from "@/modules/quotes/service";
 import { addStarterContractTemplatesAction } from "../modeles-contrat/actions";
 import { ClientKindForm } from "./invoice-forms";
 import { ContractProblems, GenerateContractForm, SendContractAloneForm } from "./contract-forms";
@@ -52,6 +53,10 @@ export async function ContractSection({
       {!sent ? <p>{t("sendQuoteFirst")}</p> : null}
 
       {current ? <CurrentContract quote={quote} contract={current} locale={locale} /> : null}
+      {/* Lot 41 (GC-03, D12) : avant d'envoyer le contrat, les points d'attention (non bloquants). */}
+      {current && !current.outdated && current.signature?.status !== "completed" && current.signature?.status !== "pending" ? (
+        <CompliancePanel document="contract" {...(await quoteComplianceFindings({ organizationId, quoteId: quote.id, document: "contract", locale }))} />
+      ) : null}
 
       {sent && !quoteLocked ? (
         <>

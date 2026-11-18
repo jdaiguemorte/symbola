@@ -3,7 +3,7 @@
 // /v1/quotes si ce module est extrait en app autonome.
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { LATE_PENALTY_RATE_KEYS, starterComplianceChecks, starterInvoiceReform, starterProfessionalTerms, starterContractRules, starterContractTemplates, starterDemoQuote, starterEventTypes, starterInvoiceMentions, starterProfessionalPaymentTerms, starterQuoteTemplates } from "@symbola/starter-templates";
+import { LATE_PENALTY_RATE_KEYS, starterComplianceChecks, starterProfessionalTerms, starterContractRules, starterContractTemplates, starterDemoQuote, starterEventTypes, starterInvoiceMentions, starterProfessionalPaymentTerms, starterQuoteTemplates } from "@symbola/starter-templates";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile, uploadPrivateObject } from "@symbola/files";
@@ -69,7 +69,6 @@ import type {
   EReportingView,
   InvoiceBuyer,
   InvoiceReform,
-  QuoteBuyerDetails,
   QuoteBuyerDetailsInput,
   ComplianceDocument,
   ComplianceFinding,
@@ -99,6 +98,7 @@ import {
   getSellerDetails,
   getContactsByIds,
   vatOnDebitsOn,
+  getDisabledComplianceChecks,
   getUserContact,
   sendOrganizationEmail,
   sendSymbolaEmail,
@@ -119,6 +119,7 @@ import { creditNoteFacturXTexts, invoiceFacturXTexts, type DocumentLocale } from
 import { recordAudit } from "@symbola/db/audit";
 import { cleanDocumentSettings, documentSnapshot, EMPTY_DOCUMENT_SETTINGS } from "./document-settings";
 import { missingMentions, type MentionValues } from "./mentions";
+import { complianceFindings } from "./compliance";
 import { cleanPostalAddress, cleanReference, companyBuyerOf, formatPostalAddress, operationCategory, type BuyerMention } from "./reform";
 import {
   advanceClauseProblem,
@@ -348,8 +349,10 @@ export { EventNotFoundError };
 export { latePenaltySentence, professionalTermsText } from "./payment-terms";
 // Lot 17 : numéros des documents d'exemple de l'écran Documents (aucun rang consommé).
 export { formatDocumentNumber } from "./amounts";
-// Lot 41 (JUR-02, D9) : catégorie de l'opération déduite des natures des lignes (PDF du devis).
-export { operationCategory } from "./reform";
+// Lot 41 (JUR-02, D9) : catégorie de l'opération déduite des natures des lignes (PDF du devis) ;
+// refus nommés d'une référence d'achat ou d'une adresse de livraison invalide.
+export { InvalidPostalAddressError, InvalidReferenceError, operationCategory, REFERENCE_MAX_LENGTH } from "./reform";
+export type { OperationCategory, PostalAddress } from "@symbola/contracts";
 // Lot 37b (DOC-12, ADR 0071) : la part du module au relevé de stockage (tailles manquantes lues une fois).
 export { measureQuotesStorage } from "./storage-usage";
 export {
@@ -3941,4 +3944,69 @@ export {
 export async function restoreQuoteLine(organizationId: string, lineId: string): Promise<QuoteDetail> {
   const quoteId = unwrap(await restoreQuoteLineRow(organizationId, lineId));
   return loadDetail(organizationId, quoteId);
+}
+
+// --- Lot 41 (GC-03, D12) : assistant de conformité ---
+
+// Les points d'attention d'un devis, de son contrat ou de ses factures, avant l'envoi : ils
+// informent, ne bloquent jamais. Le contrat regardé est le dernier généré (à jour). Chaque point vu
+// est noté au journal d'audit par ses clés seulement (aucune donnée personnelle), pour savoir ce
+// qui sert ; une pièce d'essai n'est pas contrôlée (document fictif).
+export async function quoteComplianceFindings(input: {
+  organizationId: string;
+  quoteId: string;
+  document: ComplianceDocument;
+  locale: "fr" | "en";
+  now?: Date;
+  record?: boolean;
+}): Promise<{ findings: ComplianceFinding[]; disclaimer: string }> {
+  const data = starterComplianceChecks();
+  const disclaimer = data.disclaimer[input.locale];
+  const quote = await loadDetail(input.organizationId, input.quoteId);
+  if (quote.isDemo) return { findings: [], disclaimer };
+  const [profile, disabled, event, contracts, invoices] = await Promise.all([
+    withDb((db) => getOrganizationProfile(db, input.organizationId)),
+    withDb((db) => getDisabledComplianceChecks(db)),
+    getEvent(input.organizationId, quote.eventId),
+    listQuoteContracts(input.organizationId, input.quoteId),
+    listQuoteInvoices(input.organizationId, input.quoteId),
+  ]);
+  const rules = starterContractRules();
+  const contract = contracts.filter((candidate) => !candidate.outdated).at(-1) ?? null;
+  const included = quote.current.lines.filter((line) => !line.isOption || line.optionChosen);
+  const active = invoices.filter((invoice) => invoice.amountCents - invoice.creditedCents > 0);
+  const balanceIssued = active.some((invoice) => invoice.kind === "balance");
+  const invoicedItems = new Set(active.flatMap((invoice) => (invoice.scheduleItemId ? [invoice.scheduleItemId] : [])));
+  const findings = complianceFindings(
+    data.checks,
+    disabled,
+    {
+      document: input.document,
+      professional: quote.clientKind === "professional",
+      orderReference: Boolean(quote.buyer.orderReference),
+      hasGoods: included.some((line) => line.nature === "goods"),
+      deliveryAddress: quote.buyer.deliveryAddress !== null,
+      withdrawalClauseMissing: Boolean(contract && contract.regime.withdrawalApplies && missingRoles(["withdrawal_period"], contract.clauses.map((clause) => clause.role)).length > 0),
+      clausesToDraft: contract ? contract.clauses.filter((clause) => rules.placeholderMarkers.some((marker) => clause.body.includes(marker) || clause.title.includes(marker))).length : 0,
+      advancedSignatureRecommended: Boolean(contract) && recommendedSignatureLevel(quote.current.totals.totalTtcCents) === "advanced" && rules.signature.availableLevel === "simple",
+      depositsNotInvoiced:
+        balanceIssued || quote.current.advanceKind === "earnest" ? 0 : quote.current.schedule.items.filter((item) => !invoicedItems.has(item.id)).length,
+      vatOnDebitsUnset: profile.vatRegime === "assujetti" && profile.vatOnDebits === null,
+      serviceDate: event?.eventDate ?? null,
+      today: parisDate(input.now ?? new Date()),
+    },
+    input.locale,
+  );
+  if (input.record !== false && findings.length > 0) {
+    await withDb((db) =>
+      recordAudit(db, {
+        organizationId: input.organizationId,
+        action: "quotes.compliance.shown",
+        objectType: "quote",
+        objectId: input.quoteId,
+        details: { document: input.document, checks: findings.map((finding) => finding.key).join(",") },
+      }),
+    );
+  }
+  return { findings, disclaimer };
 }

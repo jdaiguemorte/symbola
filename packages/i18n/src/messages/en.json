@@ -298,7 +298,25 @@
     "errorInsuranceCoverage": "Coverage: 200 characters at most.",
     "errorMediatorName": "Mediator: 160 characters at most.",
     "errorMediatorUrl": "Mediator website: a web address, for example https://mediator.example.",
-    "errorGeneralTerms": "General terms: 20,000 characters at most."
+    "errorGeneralTerms": "General terms: 20,000 characters at most.",
+    "postalCode": "Postal code",
+    "city": "City",
+    "countryCode": "Country (code)",
+    "addressStructuredHint": "Postal code, city and country are required before your first invoice: the electronic invoice needs them. Two letters for the country (FR).",
+    "invalidAddress_address": "Address too long.",
+    "invalidAddress_postalCode": "Invalid postal code.",
+    "invalidAddress_city": "City name too long.",
+    "invalidAddress_countryCode": "Invalid country code: two letters, such as FR.",
+    "vatOnDebitsTitle": "Option for VAT on an accrual basis",
+    "vatOnDebitsHint": "For services, VAT is due on payment unless you opted for the accrual basis with the tax office. Since the reform, the invoice says so. Ask your accountant whether you made this choice.",
+    "vatOnDebitsQuestion": "Did you opt to pay VAT on an accrual basis?",
+    "vatOnDebitsNo": "No",
+    "vatOnDebitsYes": "Yes, from the date below",
+    "vatOnDebitsFrom": "Effective date",
+    "vatOnDebitsSave": "Save the option",
+    "vatOnDebitsSaved": "Option saved.",
+    "vatOnDebitsChoose": "Choose yes or no.",
+    "vatOnDebitsFranchise": "Not applicable under the VAT exemption scheme."
   },
   "AdminSettings": {
     "title": "Platform settings",
@@ -347,12 +365,23 @@
       "generalTerms": "General terms of sale",
       "paymentTerms": "Invoice payment terms",
       "professionalPaymentTerms": "Payment terms (business clients)",
-      "latePenaltyRate": "Late payment penalty rate (business clients)"
+      "latePenaltyRate": "Late payment penalty rate (business clients)",
+      "postalCode": "Company postal code",
+      "city": "Company city",
+      "buyerCompany": "Business buyer (business client)",
+      "buyerSiren": "Buyer's SIREN",
+      "buyerAddress": "Buyer's structured address",
+      "professionalDiscountTerms": "Early payment discount"
     },
     "requiredMentionsCheckbox": "{field} required on: {document}",
     "requiredMentionsSave": "Save the list",
     "requiredMentionsSaved": "List saved.",
-    "requiredMentionsEmpty": "Tick at least one mention."
+    "requiredMentionsEmpty": "Tick at least one mention.",
+    "complianceChecksTitle": "Pre-send checks (compliance assistant)",
+    "complianceChecksHint": "They inform planners before a quote, contract or invoice is sent, without ever blocking. Untick those that should no longer be shown.",
+    "complianceChecksLegend": "Checks shown",
+    "complianceChecksSave": "Save the checks",
+    "complianceChecksSaved": "Checks saved."
   },
   "Tour": {
     "hub": [
@@ -489,7 +518,7 @@
     },
     "settings": {
       "title": "Company and VAT",
-      "body": "Your company record (SIREN, address, legal form, trade) and your VAT regime: they appear on your quotes and invoices. The trade sets the vocabulary and starter templates. Other settings are filed by section in the left menu.",
+      "body": "Your company record (SIREN, address, legal form, trade) and your VAT regime: they appear on your quotes and invoices. The trade sets the vocabulary and starter templates. Other settings are filed by section in the left menu. Fill in the postal code and city before your first invoice and, if you are VAT-registered, say whether you opted for VAT on an accrual basis.",
       "faq": [
         {
           "q": "I am moving from the VAT exemption to charging VAT: what do I do?",
@@ -513,7 +542,7 @@
     },
     "adminSettings": {
       "title": "Suite settings",
-      "body": "Regulatory values shared by all organisations, such as the VAT exemption thresholds. Update them when the regulations change."
+      "body": "Regulatory values shared by all organisations, such as the VAT exemption thresholds. Update them when the regulations change. You also choose here which compliance assistant checks planners see."
     },
     "adminHealth": {
       "title": "Health",
@@ -655,7 +684,7 @@
     },
     "clientEvent": {
       "title": "Your space",
-      "body": "Your organiser has opened this space for you with a personal link, with no account or password. At the top, your next three actions and what you are asked to decide; further down, what they have shared with you: your tasks to tick, the schedule of the day in its latest shared version, the budget in three figures and its instalments, the documents shared with you and your invoices, to open or download. Paid an instalment? Declare it: your organiser will confirm it. This link is for you only: please do not forward it."
+      "body": "Your organiser has opened this space for you with a personal link, with no account or password. At the top, your next three actions and what you are asked to decide; further down, what they have shared with you: your tasks to tick, the schedule of the day in its latest shared version, the budget in three figures and its instalments, the documents shared with you and your invoices, to open or download. Paid an instalment? Declare it: your organiser will confirm it. This link is for you only: please do not forward it. For a company, you can enter the purchase order number when signing the quote."
     },
     "vendorSpace": {
       "title": "Your vendor space",
@@ -691,7 +720,7 @@
     },
     "quotesCatalog": {
       "title": "Services catalogue",
-      "body": "Your reusable services: label, unit, price excl. VAT, VAT rate and category. Add an item at the bottom of the page; it is offered in your quotes right away. Once archived, it is no longer offered but stays on the quotes that use it.",
+      "body": "Your reusable services: label, unit, price excl. VAT, VAT rate and category. Add an item at the bottom of the page; it is offered in your quotes right away. Once archived, it is no longer offered but stays on the quotes that use it. State whether the item is a service or goods: the invoice derives the category of the transaction from it.",
       "faq": [
         {
           "q": "Does changing a price affect quotes already sent?",
@@ -701,7 +730,7 @@
     },
     "quotesSettings": {
       "title": "Quotes and invoices",
-      "body": "The default validity of your quotes, the numbering series prefixes (quotes, invoices, credit notes, earnest money receipts), your payment terms and the payment methods you accept. Payment terms have two texts: one for individuals and non-professionals, one for business clients, with the late payment penalty rate you choose. Numbers are assigned per year, without gaps. A method you turn off is no longer offered when you record a payment; payments already recorded keep theirs.",
+      "body": "The default validity of your quotes, the numbering series prefixes (quotes, invoices, credit notes, earnest money receipts), your payment terms and the payment methods you accept. Payment terms have two texts: one for individuals and non-professionals, one for business clients, with the late payment penalty rate you choose. Numbers are assigned per year, without gaps. A method you turn off is no longer offered when you record a payment; payments already recorded keep theirs. For a business client, the payment term (within the legal limits) and the discount are printed on the quote and the invoice.",
       "faq": [
         {
           "q": "Can I keep my current numbering?",
@@ -715,7 +744,7 @@
     },
     "quotesDetail": {
       "title": "Composing a quote",
-      "body": "Build the quote from the catalogue or free lines; totals update as you go. Plan the deposits, then send it for signature: once signed, an option becomes « Confirmed ». A sent version is frozen; to change it, create a new version. Signers take the name, e-mail and billing address from the contact's record; an address corrected when sending is kept there if the box stays ticked.",
+      "body": "Build the quote from the catalogue or free lines; totals update as you go. Plan the deposits, then send it for signature: once signed, an option becomes « Confirmed ». A sent version is frozen; to change it, create a new version. Signers take the name, e-mail and billing address from the contact's record; an address corrected when sending is kept there if the box stays ticked. For a business client, choose the buying company and note its purchase order; a delivery address only if goods are delivered elsewhere. Before each sending, a \"Pre-send checks\" panel points out what deserves a look, without blocking anything. Every invoice and credit note is a Factur-X: a PDF that also carries the electronic invoice file.",
       "faq": [
         {
           "q": "How do I invoice a deposit?",
@@ -2359,7 +2388,41 @@
     "pdfReceiptCancelled": "Payment cancelled",
     "signerSaveAddress": "Keep this address on the contact's record",
     "professionalInvoiceFacturX": "Business client: the invoice is a Factur-X addressed to the quote's business buyer (company name, SIREN, address), with its purchase order number if it issues one.",
-    "facturxMismatch": "The invoice was not issued: its structured file does not give the same totals as the PDF. No number was used; report it to support with the error reference."
+    "facturxMismatch": "The invoice was not issued: its structured file does not give the same totals as the PDF. No number was used; report it to support with the error reference.",
+    "lineNature": "Type",
+    "lineNatureService": "Service",
+    "lineNatureGoods": "Goods",
+    "buyerTitle": "Buyer, purchase order and delivery",
+    "buyerHint": "Editable until each invoice, even after signing: each invoice keeps the values of the day it is issued.",
+    "buyerCompanyIs": "Invoice buyer: {name}.",
+    "buyerCompanyMissing": "Business client: choose the buying company, otherwise the invoice cannot be issued.",
+    "buyerCompany": "Buying company",
+    "buyerCompanyNone": "None",
+    "buyerCompanyHint": "The companies among the event's clients. Its record gives the company name, SIREN (or SIRET), VAT number and address printed on the invoice.",
+    "saveBuyer": "Save",
+    "buyerSaved": "Buyer and references saved.",
+    "orderReference": "Client's purchase order number",
+    "orderReferenceHint": "If the client issues one. They can also enter it when signing, from their link.",
+    "buyerReference": "Buyer reference (optional)",
+    "deliveryAddress": "Delivery address",
+    "deliveryAddressHint": "Only if goods are delivered somewhere other than the billing address; it is printed only if it differs.",
+    "deliveryLine": "Address",
+    "deliveryPostalCode": "Postal code",
+    "deliveryCity": "City",
+    "deliveryCountry": "Country (code)",
+    "deliveryCountryHint": "Two letters: FR for France.",
+    "deliveryUseVenue": "Use the venue ({venue})",
+    "buyerNotFound": "This company cannot be found among your contacts.",
+    "invalidReference": "The number or reference fits on one line of 60 characters at most.",
+    "invalidDeliveryAddress": "Incomplete delivery address: address, postal code and city, or nothing.",
+    "facturxBanner": "Your invoices and credit notes are Factur-X files: a readable PDF that also carries the electronic invoice file. Until {date}, you can send them by e-mail; after that, invoices to a business will go through an approved platform.",
+    "professionalPaymentTermDays": "Payment term for business clients (days)",
+    "professionalPaymentTermEndOfMonth": "Counted \"end of month\"",
+    "professionalPaymentTermHint": "Printed on a business client's quote and invoice. The legal limit is {afterIssue} days after issue, or {endOfMonth} days end of month.",
+    "professionalDiscountTerms": "Early payment discount (business clients)",
+    "professionalDiscountTermsHint": "\"None\" if you do not grant one: this mention is mandatory for a business client.",
+    "invalidProfessionalPaymentTerm": "Enter a term in days.",
+    "professionalTermOutOfBounds": "Term beyond the legal limit: {max} days at most."
   },
   "Documents": {
     "pdfSellerHeading": "From",
@@ -2539,7 +2602,15 @@
     "responsibleVendor": "Given to a vendor",
     "programNew": "New version of the schedule: version {number}, shared on {date}.",
     "programVersion": "Shared schedule: version {number} of {date}.",
-    "programNotPublished": "Your organiser has not shared the schedule yet."
+    "programNotPublished": "Your organiser has not shared the schedule yet.",
+    "orderReferenceTitle": "Purchase order",
+    "orderReferenceLabel": "Your company's purchase order number",
+    "orderReferenceHint": "If your purchasing department issues one: it will appear on the invoices.",
+    "orderReferenceSave": "Save the number",
+    "orderReferenceSaved": "Number saved.",
+    "orderReferenceInvalid": "The number fits on one line of 60 characters at most.",
+    "orderReferenceError": "This number cannot be saved here.",
+    "orderReferenceIs": "Purchase order: {reference}"
   },
   "NotFound": {
     "title": "Page not found",
@@ -5734,6 +5805,12 @@
     "signersWithoutPortal": "At a distance, each signer orders on their personal space before signing. First create the personal link for: {names}.",
     "signingLinkOnPortal": "signing link on their personal space, after their order",
     "orderFirstHint": "Distance contract: each signer reads the contract and orders on their personal space; their signing link then appears there. The e-mail sent invites them there, without a direct link."
+  },
+  "Compliance": {
+    "title": "Pre-send checks",
+    "nothing": "Nothing to report.",
+    "intro": "{count, plural, one {One point to look at; it does not block sending.} other {# points to look at; they do not block sending.}}",
+    "goTo": "Go there"
   },
   "Today": {
     "title": "Today",

@@ -3184,6 +3184,15 @@
 /* Lot 31a (FAC-01, FAC-07, HUB-26) — devis complet : mentions manquantes nommées, sections
    et options du devis, modèles « à adapter ». */
 @layer components {
+  /* Lot 41 (GC-03, D12) : panneau « Vérifications avant envoi », informatif (jamais bloquant). */
+  .compliance-panel {
+    @apply my-4 rounded-md border border-line bg-ground px-4 py-3;
+  }
+
+  .compliance-panel li + li {
+    @apply mt-2;
+  }
+
   .missing-mentions-panel {
     @apply my-3 rounded-md border border-attention bg-attention-soft px-4 py-3;
   }

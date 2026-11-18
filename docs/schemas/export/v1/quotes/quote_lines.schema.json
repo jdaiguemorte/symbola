@@ -81,6 +81,13 @@
     "optionChosen": {
       "type": "boolean"
     },
+    "nature": {
+      "type": "string",
+      "enum": [
+        "service",
+        "goods"
+      ]
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
@@ -155,6 +162,7 @@
     "sectionId",
     "isOption",
     "optionChosen",
+    "nature",
     "createdAt",
     "createdBy",
     "updatedAt",
