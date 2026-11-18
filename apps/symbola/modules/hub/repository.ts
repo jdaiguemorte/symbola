@@ -78,6 +78,12 @@ export async function upsertOrganizationModule(
     });
 }
 
+// Lot 51 (EVT-04) : langue de l'organisation (nom du temps fort créé de lui-même).
+export async function findOrganizationLanguage(db: AppDatabase, organizationId: string): Promise<"fr" | "en"> {
+  const [row] = await db.select({ language: organizations.language }).from(organizations).where(eq(organizations.id, organizationId));
+  return row?.language === "en" ? "en" : "fr";
+}
+
 export async function findOrganizationProfile(db: AppDatabase, organizationId: string) {
   const [row] = await db.select().from(organizationProfiles).where(eq(organizationProfiles.organizationId, organizationId));
   return row ?? null;

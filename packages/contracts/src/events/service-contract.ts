@@ -453,6 +453,8 @@ export type ProgramItem = {
   // Lot 30b (CHR-06, décision D6) : responsable de la séquence, texte court.
   responsible: string | null;
   participants: ProgramParticipant[];
+  // Lot 51 (EVT-04 ; D1) : le temps fort de la séquence, donc son jour (null : évènement sans date).
+  keyMomentId: string | null;
 };
 
 export type ProgramItemInput = {
@@ -466,6 +468,9 @@ export type ProgramItemInput = {
   responsible?: string | null | undefined;
   vendorSlotIds: string[];
   freeParticipants: string[];
+  // Lot 51 (EVT-04) : absent ou null, la séquence rejoint le premier temps fort du jour de
+  // l'évènement (créé de lui-même s'il n'y en a pas).
+  keyMomentId?: string | null | undefined;
 };
 
 // Lot 30b (CHR-06, décision D8) : décaler les séquences suivantes d'autant que la
@@ -484,7 +489,7 @@ export type EventProgram = {
 
 // Lot 37b (CHR-07, DAT-14 ; D8, ADR 0071) — une séquence d'une version diffusée : la copie figée,
 // jamais de note interne.
-export type PublishedProgramItem = Omit<ProgramItem, "eventId" | "internalNote">;
+export type PublishedProgramItem = Omit<ProgramItem, "eventId" | "internalNote" | "keyMomentId">;
 
 export type ProgramVersionSummary = {
   number: number;
@@ -528,6 +533,8 @@ export type VendorProgramView = {
   ownItems: { id: string; startTime: string; endTime: string | null; label: string; location: string | null; responsible: string | null }[];
   outline: { id: string; startTime: string; endTime: string | null; label: string; own: boolean }[];
   isNew: boolean;
+  // Lot 51 (JRJ-05 ; D3) : le dernier décalage du jour J validé qui concerne ce poste, affiché en tête.
+  dayShift?: { minutes: number; validatedAt: string } | null;
 };
 
 export type PublishEventProgramInput = { organizationId: string; eventId: string; userId: string; now?: Date | undefined };
@@ -565,6 +572,10 @@ export type ProgramTemplateItem = {
   location: string | null;
   participantLabels: string[];
   position: number;
+  // Lot 51 (CHR-08, EVT-04) : temps fort de la ligne (null : celui du jour de l'évènement) et son
+  // jour, compté depuis le jour de l'évènement.
+  momentName: string | null;
+  dayOffset: number;
 };
 
 export type ProgramTemplate = { id: string; name: string; items: ProgramTemplateItem[] };
@@ -575,6 +586,8 @@ export type ProgramTemplateItemInput = {
   label: string;
   location?: string | null | undefined;
   participantLabels: string[];
+  momentName?: string | null | undefined;
+  dayOffset?: number | undefined;
 };
 
 // Lot 26a (UX-11, POR-01, POR-10, SEC-14, SEC-15 ; ADR 0053) — liens personnels
@@ -1017,6 +1030,8 @@ export type KeyMoment = {
   placeId: string | null;
   placeLabel: string | null;
   position: number;
+  // Lot 51 (EVT-04 ; D1) : créé de lui-même pour porter le chrono, pas encore proposé aux invités.
+  autoCreated: boolean;
 };
 
 export type KeyMomentInput = {

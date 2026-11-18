@@ -16,6 +16,7 @@ import {
   type DayDocument,
   type SyncOutcome,
 } from "@/lib/offline/device-copies";
+import { DAY_SENT_EVENT } from "./use-day-sync";
 
 type Phase = "checking" | "unsupported" | "absent" | "working" | "ready" | "offline" | "session" | "space" | "unavailable" | "removed";
 
@@ -84,6 +85,17 @@ export function DayCopyPanel(props: {
     };
     // Une seule fois à l'ouverture de l'écran.
   }, []);
+
+  // Lot 51 (ARC-09) : après chaque envoi réussi de la file, la copie gardée se met à jour, pour qu'un
+  // téléphone repassé hors ligne voie au moins ses propres actions.
+  useEffect(() => {
+    const onSent = (event: Event) => {
+      if ((event as CustomEvent<{ eventId: string }>).detail?.eventId !== eventId) return;
+      void readDayCopy(eventId).then((existing) => (existing ? sync(false) : undefined));
+    };
+    window.addEventListener(DAY_SENT_EVENT, onSent);
+    return () => window.removeEventListener(DAY_SENT_EVENT, onSent);
+  }, [eventId, sync]);
 
   async function remove() {
     setPhase("working");

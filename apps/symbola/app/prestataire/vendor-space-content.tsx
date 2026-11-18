@@ -137,6 +137,12 @@ export async function VendorSpaceContent({ access, preview = false, banner, pres
         <h2 id="vendor-program-title">{t("programTitle")}</h2>
         {program.version ? (
           <>
+            {/* Lot 51 (JRJ-05 ; D3) : un décalage du jour J validé par la planner, en tête. */}
+            {program.dayShift ? (
+              <p role="status" className="badge-warning">
+                {t("programDayShift", { minutes: program.dayShift.minutes })}
+              </p>
+            ) : null}
             {program.isNew ? (
               <p role="status" className="badge-warning">
                 {t("programNew", { number: program.version.number, date: formatDateTime(new Date(program.version.publishedAt), locale) })}

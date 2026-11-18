@@ -18,6 +18,7 @@ import {
   addDefaultVendorSlots,
   addEventPlace,
   addEventTask,
+  addKeyMoment,
   addProgramItem,
   addVendorCandidate,
   changeEventStatus,
@@ -71,6 +72,8 @@ const datasetSchema = z.object({
       clients: z.array(z.object({ nom: z.string(), email: z.string(), role: z.string() })).optional(),
       client: z.object({ contact: z.string(), email: z.string() }).optional(),
       lieux: z.array(z.object({ nom: z.string(), commune: z.string().optional() })).optional(),
+      // Lot 51 (EVT-04) : temps forts de l'évènement (nom, début), sur un ou plusieurs jours.
+      temps_forts: z.array(z.object({ id: z.string(), nom: z.string(), debut: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/) })).optional(),
       // Lot 29a (rejeu de SC-08) : déroulé du jour J, chargé comme programme.
       chrono: z
         .array(
@@ -506,19 +509,32 @@ async function loadBudgetLines(
   }
 }
 
-// Lot 29a (JRJ-02, rejeu de SC-08) : le déroulé du jour de l'événement devient son
-// programme (les autres jours, comme le brunch du lendemain, n'ont pas de place dans un
-// programme d'un jour). Un prestataire y participe par son poste, sinon par son nom.
+// Lot 29a (JRJ-02, rejeu de SC-08) : le déroulé de l'évènement devient son programme. Un
+// prestataire y participe par son poste, sinon par son nom. Lot 51 (EVT-04) : les temps forts du jeu
+// (cérémonie, dîner, brunch du lendemain) sont créés, et chaque séquence rejoint le dernier temps fort
+// de son jour commencé à son heure (le premier du jour sinon) ; les jours sans temps fort gardent le
+// temps fort du jour de l'évènement.
 async function loadProgram(organizationId: string, eventId: string, event: RecetteDataset["evenements"][number]): Promise<void> {
-  const day = event.date ?? event.dates?.[0];
-  const sequences = (event.chrono ?? []).filter((sequence) => sequence.jour === day);
+  const sequences = event.chrono ?? [];
   if (sequences.length === 0) return;
+  const moments: { id: string; date: string; time: string }[] = [];
+  for (const moment of event.temps_forts ?? []) {
+    const [date, time] = moment.debut.split("T") as [string, string];
+    const created = await addKeyMoment(organizationId, eventId, { name: moment.nom, date, startTime: time });
+    moments.push({ id: created.id, date, time });
+  }
+  const momentOf = (day: string, time: string): string | null => {
+    const sameDay = moments.filter((moment) => moment.date === day).sort((a, b) => a.time.localeCompare(b.time));
+    if (sameDay.length === 0) return null;
+    return [...sameDay].reverse().find((moment) => moment.time <= time)?.id ?? sameDay[0]!.id;
+  };
   const slotOf = new Map((await listEventVendorSlots(organizationId, eventId)).map((slot) => [slot.label, slot.id]));
   const vendorOf = new Map((event.prestataires ?? []).flatMap((vendor) => (vendor.id ? [[vendor.id, vendor]] : [])));
   for (const sequence of sequences) {
     const vendor = sequence.prestataire ? vendorOf.get(sequence.prestataire) : undefined;
     const slotId = vendor ? slotOf.get(vendor.categorie) : undefined;
     await addProgramItem(organizationId, eventId, {
+      keyMomentId: momentOf(sequence.jour, sequence.heure),
       startTime: sequence.heure,
       endTime: sequence.duree_min ? addMinutes(sequence.heure, sequence.duree_min) : null,
       label: sequence.titre,

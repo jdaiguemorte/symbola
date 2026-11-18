@@ -181,6 +181,33 @@ export type VendorPayment = {
   // confirmé (il reste après la confirmation) ; motif d'un refus.
   declaration: VendorPaymentDeclaration | null;
   refusalReason: string | null;
+  // Lot 51 (JRJ-09 ; D8) : à remettre le jour J (moyen, personne qui remet), puis remise pointée.
+  handover: VendorPaymentHandover | null;
+};
+
+export type VendorPaymentHandover = {
+  method: string | null;
+  by: string | null;
+  handedOverAt: string | null;
+  handedOverBy: string | null;
+  receiptPhotoId: string | null;
+};
+
+export type VendorPaymentHandoverInput = { organizationId: string; eventId: string; paymentId: string; onDay: boolean; method: string | null; by: string | null; changedByUserId: string };
+
+// Lot 51 (JRJ-09) — une remise du jour J, telle que le mode Jour J la montre.
+export type DayHandover = {
+  paymentId: string;
+  eventId: string;
+  vendorName: string | null;
+  slotLabel: string;
+  label: string;
+  amountCents: number;
+  method: string | null;
+  by: string | null;
+  handedOverAt: string | null;
+  handedOverBy: string | null;
+  receiptPhotoId: string | null;
 };
 
 export type VendorPaymentDeclaration = { paidOn: string; method: string; linkId: string; declaredAt: string };
@@ -201,6 +228,8 @@ export type LinkVendorPayment = {
   declaredMethod: string | null;
   // La déclaration en attente vient de ce lien (il peut l'annuler).
   declaredByThisLink: boolean;
+  // Lot 51 (JRJ-09) : remise le jour J (« remise » dans le budget du client).
+  handedOverAt: string | null;
   refusalReason: string | null;
 };
 

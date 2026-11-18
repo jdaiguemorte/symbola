@@ -37,6 +37,12 @@ const ALSO_NOTICED = [
 ];
 
 const WITHOUT_ENTRY: Record<string, string> = {
+  // Lot 51 (JRJ-06, JRJ-07, JRJ-09 ; DPO-9) : le jour J de terrain.
+  "events.day_incidents.body": "main courante dictée sur le terrain : la feuille « Incident » porte sa propre mise en garde (ni nom d'invité ni donnée de santé), sous le champ",
+  "events.day_photos.storage_key": "photo prise sur le lieu, sans champ de texte ; la mise en garde (photographier les choses plutôt que les personnes) est sous le bouton",
+  "events.day_checklist_items.label": "intitulé court d'une case de liste de contrôle (200 caractères)",
+  "events.day_reports.summary": "bilan écrit par l'app, sans saisie",
+  "budget.vendor_payments.handover_by": "nom court de la personne qui remet un paiement (120 caractères)",
   "hub.privacy_purges.lines": "relevé écrit par l'app à la purge, sans saisie",
   "events.events.imported_fields": "valeurs reprises d'un fichier importé, sans saisie à l'écran",
   "events.event_tasks.imported_fields": "valeurs reprises d'un fichier importé, sans saisie à l'écran",

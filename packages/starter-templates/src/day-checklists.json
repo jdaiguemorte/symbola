@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "_source": "Lot 51 (JRJ-06 ; ADR 0091) : listes de contrôle de départ du jour J, installation et démontage, copiées dans chaque organisation à la première lecture ; la planner les modifie, en ajoute ou en retire. « eventTypes » : types d'évènement (event-types.json) pour lesquels la liste est proposée en premier (vide : tous).",
+  "templates": [
+    {
+      "key": "ceremony_setup",
+      "phase": "setup",
+      "eventTypes": ["wedding", "christening"],
+      "name": { "fr": "Installation de la cérémonie", "en": "Ceremony setup" },
+      "items": {
+        "fr": ["Chaises installées et alignées", "Allée et arche décorées", "Sonorisation et micro testés", "Livret de cérémonie distribué", "Alliances confiées au témoin", "Plan B pluie prêt"],
+        "en": ["Chairs set out and aligned", "Aisle and arch decorated", "Sound system and microphone tested", "Ceremony booklets handed out", "Rings entrusted to the best man", "Rain plan ready"]
+      }
+    },
+    {
+      "key": "reception_setup",
+      "phase": "setup",
+      "eventTypes": [],
+      "name": { "fr": "Installation de la réception", "en": "Reception setup" },
+      "items": {
+        "fr": ["Tables dressées selon le plan", "Plan de table affiché", "Marque-places posés", "Centres de table installés", "Éclairage et ambiance testés", "Espace prestataires prêt", "Issues de secours dégagées"],
+        "en": ["Tables laid out as planned", "Seating chart displayed", "Place cards set", "Centrepieces in place", "Lighting and ambience tested", "Vendor area ready", "Emergency exits clear"]
+      }
+    },
+    {
+      "key": "teardown",
+      "phase": "teardown",
+      "eventTypes": [],
+      "name": { "fr": "Démontage", "en": "Teardown" },
+      "items": {
+        "fr": ["Décoration démontée et rangée", "Objets des clients rassemblés", "Cadeaux et urne remis", "Matériel loué rendu ou prêt à rendre", "Salle vérifiée avec le domaine", "Objets oubliés notés"],
+        "en": ["Decoration taken down and packed", "Clients' belongings gathered", "Gifts and card box handed over", "Rented equipment returned or ready", "Venue checked with the owner", "Lost property noted"]
+      }
+    }
+  ]
+}

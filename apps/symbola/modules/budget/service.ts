@@ -62,6 +62,7 @@ import {
 } from "./allocation";
 import { QUOTE_MAX_SIZE_BYTES, quoteUploadError } from "./attachments";
 import { addDaysTo, paymentAmountCents, paymentBaseCents, paymentStatus } from "./payments";
+import { attachHandoverReceiptRow, findHandoverRows, handoverPaymentOfEvent, handoverValues, recordHandoverRow, setHandoverRow } from "./handovers";
 import {
   getEvent,
   getEventNamesByIds,
@@ -81,6 +82,8 @@ import { budgetClientKind, htFromTtcCents, htTotalByRate } from "./vat";
 import type {
   AddBudgetLineInput,
   AdjustEventBudgetItemInput,
+  DayHandover,
+  VendorPaymentHandoverInput,
   AllocationModel,
   AttachBudgetLineQuoteInput,
   BudgetAlertSettings,
@@ -114,6 +117,8 @@ import { BUDGET_DOCUMENT_KINDS } from "@symbola/contracts";
 
 export type {
   AdjustEventBudgetItemInput,
+  DayHandover,
+  VendorPaymentHandoverInput,
   AllocationModel,
   AllocationModelItem,
   AllocationModelItemInput,
@@ -393,6 +398,9 @@ function toVendorPayment(row: VendorPaymentRow, line: BudgetLineRow, lines: Budg
         ? { paidOn: row.declaredPaidOn, method: row.declaredMethod, linkId: row.declaredByLinkId, declaredAt: row.declaredAt.toISOString() }
         : null,
     refusalReason: row.refusalReason,
+    handover: row.handoverOnDay
+      ? { method: row.handoverMethod, by: row.handoverBy, handedOverAt: row.handedOverAt?.toISOString() ?? null, handedOverBy: row.handedOverBy, receiptPhotoId: row.handoverReceiptPhotoId }
+      : null,
   };
 }
 
@@ -983,6 +991,7 @@ function linkPayments(categories: BudgetCategory[], linkId: string, today: strin
             declaredMethod: payment.declaration?.method ?? null,
             declaredByThisLink: payment.status !== "paid" && payment.declaration?.linkId === linkId,
             refusalReason: payment.status === "paid" || payment.declaration ? null : payment.refusalReason,
+            handedOverAt: payment.handover?.handedOverAt ?? null,
           })),
       ),
     )
@@ -1226,3 +1235,66 @@ void _contractCheck;
 
 // Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
 export { BUDGET_EXPORT_EXCLUSIONS, describeBudgetExport, exportBudgetData } from "./export";
+
+// Lot 51 (JRJ-09 ; D8, ADR 0091) — paiements à remettre le jour J.
+export { VendorPaymentHandoverInvalidError } from "./handovers";
+
+// Marquer une échéance « à remettre le jour J » (moyen, personne qui remet), ou retirer la marque.
+export async function setVendorPaymentHandover(input: VendorPaymentHandoverInput): Promise<BudgetLinesView> {
+  await ownPayment(input.organizationId, input.eventId, input.paymentId);
+  const values = handoverValues({ method: input.method, by: input.by });
+  const row = await setHandoverRow({ organizationId: input.organizationId, eventId: input.eventId, paymentId: input.paymentId, onDay: input.onDay, ...values });
+  if (!row) throw new VendorPaymentNotFoundError();
+  return listBudgetLines(input.organizationId, input.eventId);
+}
+
+// Les remises du jour J d'un évènement : prestataire, montant, moyen, à qui ; remises ou non.
+export async function listDayHandovers(organizationId: string, eventId: string): Promise<DayHandover[]> {
+  const rows = await findHandoverRows(organizationId, eventId);
+  if (rows.length === 0) return [];
+  const [view, candidates] = await Promise.all([listBudgetLines(organizationId, eventId), listVendorCandidates(organizationId, eventId)]);
+  // Une ligne sans prestataire rattaché : le prestataire retenu de sa catégorie (module events).
+  const retainedOf = (slotId: string) => candidates.filter((candidate) => candidate.outcome === "selected" && candidate.vendorSlotId === slotId).map((candidate) => candidate.vendorName).join(", ") || null;
+  const handovers: DayHandover[] = [];
+  for (const category of view.categories) {
+    for (const line of category.lines) {
+      for (const payment of line.payments) {
+        const row = rows.find((entry) => entry.id === payment.id);
+        if (!row) continue;
+        handovers.push({
+          paymentId: payment.id,
+          eventId,
+          vendorName: line.vendorName ?? retainedOf(line.eventVendorSlotId),
+          slotLabel: category.label,
+          label: payment.label,
+          amountCents: payment.amountCents,
+          method: row.handoverMethod,
+          by: row.handoverBy,
+          handedOverAt: row.handedOverAt?.toISOString() ?? null,
+          handedOverBy: row.handedOverBy,
+          receiptPhotoId: row.handoverReceiptPhotoId,
+        });
+      }
+    }
+  }
+  return handovers.sort((a, b) => a.slotLabel.localeCompare(b.slotLabel) || a.label.localeCompare(b.label));
+}
+
+// JRJ-09 : chaque remise se pointe ; elle règle l'échéance, au jour de la remise dans le fuseau de
+// l'évènement. Une seule fois : un second pointage (ou l'action rejouée) est ignoré.
+export async function recordDayHandover(input: { organizationId: string; eventId: string; paymentId: string; userId: string; actionId: string; handedOverAt: Date; timeZone: string }): Promise<"applied" | "duplicate" | "not_found"> {
+  const recorded = await recordHandoverRow(input);
+  if (recorded.status !== "applied") return recorded.status;
+  const paidOn = new Intl.DateTimeFormat("en-CA", { timeZone: input.timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(input.handedOverAt);
+  const payment = await findVendorPayment(input.organizationId, input.paymentId);
+  if (payment && !payment.paidOn) await setVendorPaymentPaid({ organizationId: input.organizationId, eventId: input.eventId, paymentId: input.paymentId, paidOn, changedByUserId: input.userId });
+  return "applied";
+}
+
+export async function attachDayHandoverReceipt(input: { organizationId: string; eventId: string; paymentId: string; photoId: string }): Promise<boolean> {
+  return attachHandoverReceiptRow(input);
+}
+
+export async function isDayHandoverPayment(organizationId: string, eventId: string, paymentId: string): Promise<boolean> {
+  return handoverPaymentOfEvent(organizationId, eventId, paymentId);
+}

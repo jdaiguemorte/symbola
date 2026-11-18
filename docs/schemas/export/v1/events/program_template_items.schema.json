@@ -49,6 +49,17 @@
       "minimum": -9007199254740991,
       "maximum": 9007199254740991
     },
+    "momentName": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "dayOffset": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
@@ -93,6 +104,8 @@
     "location",
     "participantLabels",
     "position",
+    "momentName",
+    "dayOffset",
     "createdAt",
     "createdBy",
     "updatedAt",
