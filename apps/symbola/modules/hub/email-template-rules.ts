@@ -30,7 +30,7 @@ const BY_TOKEN = new Map<string, EmailVariable>(
   ]),
 );
 
-type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | null };
+type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | null };
 
 export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   client_link: { variables: ["first_name", "organization", "event", "link", "valid_until"], required: ["link"], button: "space" },
@@ -43,6 +43,9 @@ export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   order_first: { variables: ["first_name", "organization", "quote_number"], required: [], button: null },
   signed_copy: { variables: ["first_name", "organization", "quote_number"], required: [], button: null },
   program_published: { variables: ["first_name", "organization", "event", "event_date", "clients", "version"], required: ["version"], button: null },
+  // Lot 49 (INV-03, INV-04 ; D4, D10) : le lien personnel de l'invité devient le bouton « Répondre ».
+  guest_invitation: { variables: ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until"], required: ["link"], button: "answer" },
+  guest_reminder: { variables: ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until"], required: ["link"], button: "answer" },
 };
 
 const TOKEN_PATTERN = /\{\{\s*([^{}\s]+)\s*\}\}/g;

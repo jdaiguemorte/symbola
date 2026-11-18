@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "_source": "Lot 49 (INV-03, INV-04, RGP-07, RGP-08 ; D8 à D10, D13 ; réponses 2 et 3 de la DPO). Clôture des réponses proposée 30 jours avant le premier temps fort ; deux relances par défaut, 21 et 7 jours avant la clôture (zéro à trois) ; préavis de purge de 7 jours ; un nombre de régimes inférieur au seuil s'affiche « moins de 3 », pour ne pas dévoiler un régime unique dans un petit groupe (DPO-5 : seuil à confirmer) ; heures d'envoi des relances (Paris).",
+  "closingDaysBeforeFirstMoment": 30,
+  "reminderDaysBeforeClosing": [21, 7],
+  "maxReminders": 3,
+  "purgeNoticeDays": 7,
+  "aggregateThreshold": 3,
+  "reminderHours": { "from": 9, "until": 20 }
+}

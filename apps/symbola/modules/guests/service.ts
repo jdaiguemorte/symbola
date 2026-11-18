@@ -1,0 +1,47 @@
+// Porte d'entrée publique du module guests (lot 49, ADR 0011 et 0081) — seul fichier que les autres
+// modules, lib/ et les écrans peuvent importer. Pensé comme le futur contrat HTTP /v1/guests si le
+// module est extrait. Le module est fermé par défaut (ADR 0078) ; sans l'analyse d'impact confirmée,
+// aucune saisie (partie G). Les régimes nominatifs ne sortent que vers la titulaire (D8).
+export {
+  addDietaryOption,
+  assertGuestsReady,
+  confirmImpactAssessment,
+  getDietTallies,
+  getGuestEventSettings,
+  getGuestEventSummary,
+  getGuestModuleState,
+  getGuestPrivacyNotice,
+  guestPrivacyNoticeTemplate,
+  GuestEventNotFoundError,
+  GuestSettingsInvalidError,
+  GuestsNotReadyError,
+  HouseholdInvalidError,
+  HouseholdNotFoundError,
+  listDietaryOptions,
+  listHouseholdGroups,
+  listHouseholds,
+  recordHouseholdAnswers,
+  removeEventGuestRows as removeEventGuestsData,
+  removeHousehold,
+  saveGuestEventSettings,
+  saveHousehold,
+  setDietaryOptionHidden,
+  updateGuestPrivacyNotice,
+} from "./households";
+export {
+  GuestLinkUnavailableError,
+  GuestNotFoundError,
+  InvitationsNotReadyError,
+  issueGuestLink,
+  listInvitationRecipients,
+  listManualFollowUps,
+  revokeGuestLinks,
+  sendGuestInvitations,
+  sendGuestReminders,
+  type InvitationWords,
+} from "./links";
+export { answerRsvp, openRsvp, opposeAsGuest, type OpenRsvpResult } from "./rsvp-page";
+export { getGuestPurgeSchedule, listGuestPurgeNotices, listRecentOppositions, postponeGuestPurge, PostponementInvalidError, runGuestPurge, type GuestPurgePass } from "./purge";
+export { GuestImportNotFoundError, importGuests, listGuestImports, undoGuestImport } from "./import";
+export { guestsPrivacy } from "./privacy";
+export { describeGuestsExport, exportGuestsData, GUESTS_EXPORT_EXCLUSIONS } from "./export";

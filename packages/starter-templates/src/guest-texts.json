@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "_source": "Lot 49 (RGP-03, RGP-06 ; article 14 du RGPD ; réponse 3 de la DPO). Textes de départ À FAIRE RELIRE par la DPO avant l'ouverture du module à la pilote (DPO-4). La mention d'information s'affiche en tête et en pied de la page de réponse, au nom de l'organisation et des mariés ; la titulaire peut la remplacer dans ses réglages RGPD. Le texte de l'accord aux régimes n'est pas modifiable : sa version est gardée avec chaque preuve d'accord. Variables : {organization}, {clients}, {contact}, {dietDays}, {days}.",
+  "notice": {
+    "fr": "{clients} et {organization}, qui prépare leur évènement, utilisent votre nom, vos coordonnées et vos réponses pour organiser l'accueil des invités. Cette page vous concerne parce que {clients} vous ont invité. Vos régimes et allergies ne sont enregistrés qu'avec votre accord, servent au repas de l'évènement et sont effacés {dietDays} jours après ; le reste est effacé {days} jours après l'évènement. Vous pouvez accéder à vos données, les faire corriger ou effacer, ou vous opposer à leur conservation (lien en bas de cette page) ; écrivez à {contact}. Vous pouvez aussi adresser une réclamation à la CNIL (www.cnil.fr). Symbola héberge ces données pour le compte de {organization}.",
+    "en": "{clients} and {organization}, who is preparing their event, use your name, contact details and answers to organise the welcome of guests. This page concerns you because {clients} invited you. Your diets and allergies are recorded only with your consent, are used for the event meal and are erased {dietDays} days after it; everything else is erased {days} days after the event. You can access your data, have it corrected or erased, or object to it being kept (link at the bottom of this page); write to {contact}. You can also lodge a complaint with the CNIL (www.cnil.fr). Symbola hosts this data on behalf of {organization}."
+  },
+  "consent": {
+    "version": "2026-11-18",
+    "text": {
+      "fr": "J'accepte que mes régimes et allergies cochés ci-dessous soient enregistrés pour préparer le repas de l'évènement. Seuls {organization} et le traiteur en auront connaissance ; ils sont effacés {dietDays} jours après l'évènement. Je peux retirer mon accord à tout moment en décochant cette case.",
+      "en": "I agree that the diets and allergies I tick below are recorded to prepare the event meal. Only {organization} and the caterer will know them; they are erased {dietDays} days after the event. I can withdraw my consent at any time by unticking this box."
+    },
+    "guardian": {
+      "fr": "Je déclare être le représentant légal de {name} et donner cet accord pour lui ou elle.",
+      "en": "I declare that I am the legal guardian of {name} and give this consent on their behalf."
+    }
+  }
+}

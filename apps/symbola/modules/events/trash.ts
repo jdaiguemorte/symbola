@@ -13,6 +13,7 @@ import {
   eventTaskAttachments,
   eventTaskComments,
   eventTasks,
+  keyMoments,
   programItems,
   programTemplates,
   taskTemplateItems,
@@ -145,8 +146,10 @@ export async function purgeEventElements(organizationId: string, before: Date): 
       const comments = await tx.delete(eventTaskComments).where(and(isNotNull(eventTaskComments.deletedAt), lt(eventTaskComments.deletedAt, before))).returning({ id: eventTaskComments.id });
       const items = await tx.delete(programItems).where(and(isNotNull(programItems.deletedAt), lt(programItems.deletedAt, before))).returning({ id: programItems.id });
       const places = await tx.delete(eventPlaces).where(and(isNotNull(eventPlaces.deletedAt), lt(eventPlaces.deletedAt, before))).returning({ id: eventPlaces.id });
+      // Lot 49 (D2) : temps forts supprimés de la fiche.
+      const moments = await tx.delete(keyMoments).where(and(isNotNull(keyMoments.deletedAt), lt(keyMoments.deletedAt, before))).returning({ id: keyMoments.id });
       if (taskIds.length > 0) await tx.delete(eventTasks).where(inArray(eventTasks.id, taskIds));
-      return { count: comments.length + items.length + places.length + taskIds.length, keys: attachments.map((row) => row.key) };
+      return { count: comments.length + items.length + places.length + moments.length + taskIds.length, keys: attachments.map((row) => row.key) };
     });
     await deleteFiles(result.keys);
     return result.count;

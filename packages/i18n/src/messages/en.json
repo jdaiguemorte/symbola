@@ -3204,7 +3204,10 @@
       "accountingRetentionMonths": "Invoices, credit notes and signed quotes: kept for (months)",
       "inactiveAccountMonths": "Couple account without login: deleted after (months)",
       "signedQuoteRetentionMonths": "Signed quote (proof of contract): retention (months)",
-      "requestProofRetentionMonths": "Closed request: name of the person kept as proof after closing (months)"
+      "requestProofRetentionMonths": "Closed request: name of the person kept as proof after closing (months)",
+      "guestDietRetentionDays": "Guests' diets and allergies (days after the event)",
+      "guestRetentionDays": "Other guest data: households, replies, links (days after the event)",
+      "guestPurgeMaxPostponeDays": "Postponement of the guest purge, at most (days)"
     },
     "saveSettings": "Save settings",
     "settingsSaved": "Settings saved.",
@@ -3445,7 +3448,13 @@
     "linkNoticeReset": "Back to the starting text",
     "linkNoticeSaved": "Notice saved.",
     "linkNoticeInvalid": "The notice is too long (4,000 characters at most).",
-    "signedQuoteRetentionTooShort": "Signed quotes and their contracts must be kept for at least ten years (120 months): the legal period for a contract concluded online."
+    "signedQuoteRetentionTooShort": "Signed quotes and their contracts must be kept for at least ten years (120 months): the legal period for a contract concluded online.",
+    "guestRetentionTooLong": "Guest data cannot be kept longer than the starting duration plus one postponement (diets: 7 + 90 days; the rest: 30 + 90 days; postponement: 90 days at most), and diets no longer than the rest.",
+    "guestRetentionLegend": "Guests (Guests module)",
+    "guestRetentionIntro": "Counted from the last day of the event, or its cancellation. Seven days' notice before each purge, one justified postponement possible. Starting values: the DPO's answers.",
+    "guestNoticeTitle": "Privacy notice of the guests' reply page",
+    "guestNoticeIntro": "Shown at the top and bottom of the page where guests reply, on behalf of your organisation and the couple: who processes, why, for how long, their rights and their objection. Variables: {organization}, {clients}, {contact}, {dietDays}, {days}.",
+    "guestNoticeLabel": "Notice text"
   },
   "AdminAccounts": {
     "title": "Accounts and support",
@@ -6068,7 +6077,8 @@
   "Emails": {
     "button": {
       "space": "Open my space",
-      "sign": "Sign online"
+      "sign": "Sign online",
+      "answer": "Reply"
     },
     "footerNote": "Sent with Symbola",
     "symbolaFooter": "Symbola — the suite for event organisers",
@@ -6541,5 +6551,15 @@
     "create": "N: create (event, task, expense, quote), from any screen.",
     "close": "Esc: close the open panel or window.",
     "help": "?: open the screen's help."
+  },
+  "Guests": {
+    "purgeEmail": {
+      "noticeDietsSubject": "Notice: guests' diets will be erased",
+      "noticeDietsBody": "Hello,\n\nThe diets and allergies of the guests of one of your events will be erased on {date}, as your privacy settings provide. You can postpone this purge once, with a reason, from the Guests tab of the event.\n\nSymbola",
+      "noticeAllSubject": "Notice: guest data will be erased",
+      "noticeAllBody": "Hello,\n\nThe guest data of one of your events (households, people, replies, links) will be erased on {date}, as your privacy settings provide. Stored exports containing it will be deleted with it. You can postpone this purge once, with a reason, from the Guests tab of the event.\n\nSymbola",
+      "exportsSubject": "Exports deleted with the guest data",
+      "exportsBody": "Hello,\n\nThe guest purge of one of your events deleted {count, plural, one {# stored export} other {# stored exports}} that could contain them (full organisation export, privacy export). A file you had already downloaded remains your responsibility.\n\nSymbola"
+    }
   }
 }

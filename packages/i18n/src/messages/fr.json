@@ -3204,7 +3204,10 @@
       "accountingRetentionMonths": "Factures, avoirs et devis signés : conservation (mois)",
       "inactiveAccountMonths": "Compte d'un marié sans connexion : suppression après (mois)",
       "signedQuoteRetentionMonths": "Devis signé (preuve du contrat) : conservation (mois)",
-      "requestProofRetentionMonths": "Demande close : nom de la personne gardé comme preuve après la clôture (mois)"
+      "requestProofRetentionMonths": "Demande close : nom de la personne gardé comme preuve après la clôture (mois)",
+      "guestDietRetentionDays": "Régimes et allergies des invités (jours après l'évènement)",
+      "guestRetentionDays": "Autres données des invités : foyers, réponses, liens (jours après l'évènement)",
+      "guestPurgeMaxPostponeDays": "Report de la purge des invités, au plus (jours)"
     },
     "saveSettings": "Enregistrer les réglages",
     "settingsSaved": "Réglages enregistrés.",
@@ -3445,7 +3448,13 @@
     "linkNoticeReset": "Revenir au texte de départ",
     "linkNoticeSaved": "Mention enregistrée.",
     "linkNoticeInvalid": "La mention est trop longue (4 000 caractères au plus).",
-    "signedQuoteRetentionTooShort": "Les devis signés et leurs contrats se conservent dix ans au moins (120 mois) : c'est la durée légale d'un contrat conclu en ligne."
+    "signedQuoteRetentionTooShort": "Les devis signés et leurs contrats se conservent dix ans au moins (120 mois) : c'est la durée légale d'un contrat conclu en ligne.",
+    "guestRetentionTooLong": "Les données d'invités ne peuvent pas être gardées plus longtemps que la durée de départ plus un report (régimes : 7 + 90 jours ; le reste : 30 + 90 jours ; report : 90 jours au plus), et les régimes pas plus longtemps que le reste.",
+    "guestRetentionLegend": "Invités (module Invités)",
+    "guestRetentionIntro": "Comptées depuis le dernier jour de l'évènement, ou son annulation. Préavis de sept jours avant chaque purge, un seul report motivé possible. Valeurs de départ : réponses de la DPO.",
+    "guestNoticeTitle": "Mention d'information de la page de réponse des invités",
+    "guestNoticeIntro": "Affichée en tête et en pied de la page où les invités répondent, au nom de votre organisation et des mariés : qui traite, pourquoi, combien de temps, leurs droits et leur opposition. Variables : {organization}, {clients}, {contact}, {dietDays}, {days}.",
+    "guestNoticeLabel": "Texte de la mention"
   },
   "AdminAccounts": {
     "title": "Comptes et assistance",
@@ -6068,7 +6077,8 @@
   "Emails": {
     "button": {
       "space": "Ouvrir mon espace",
-      "sign": "Signer en ligne"
+      "sign": "Signer en ligne",
+      "answer": "Répondre"
     },
     "footerNote": "Envoyé avec Symbola",
     "symbolaFooter": "Symbola — la suite des organisateurs d'évènements",
@@ -6541,5 +6551,15 @@
     "create": "N : créer (évènement, tâche, dépense, devis), depuis n'importe quel écran.",
     "close": "Échap : fermer le panneau ou la fenêtre ouverte.",
     "help": "? : ouvrir l'aide de l'écran."
+  },
+  "Guests": {
+    "purgeEmail": {
+      "noticeDietsSubject": "Préavis : les régimes des invités seront effacés",
+      "noticeDietsBody": "Bonjour,\n\nLes régimes et allergies des invités d'un de vos évènements seront effacés le {date}, comme le prévoient vos réglages RGPD. Vous pouvez reporter cette purge une fois, avec un motif, depuis l'onglet Invités de l'évènement.\n\nSymbola",
+      "noticeAllSubject": "Préavis : les données des invités seront effacées",
+      "noticeAllBody": "Bonjour,\n\nLes données des invités d'un de vos évènements (foyers, personnes, réponses, liens) seront effacées le {date}, comme le prévoient vos réglages RGPD. Les exports stockés qui les contiennent seront supprimés avec elles. Vous pouvez reporter cette purge une fois, avec un motif, depuis l'onglet Invités de l'évènement.\n\nSymbola",
+      "exportsSubject": "Exports supprimés avec les données des invités",
+      "exportsBody": "Bonjour,\n\nLa purge des invités d'un de vos évènements a supprimé {count, plural, one {# export stocké} other {# exports stockés}} qui pouvaient les contenir (export complet de l'organisation, export RGPD). Un fichier que vous aviez déjà téléchargé reste sous votre responsabilité.\n\nSymbola"
+    }
   }
 }

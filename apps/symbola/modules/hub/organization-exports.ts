@@ -4,7 +4,7 @@
 // dans le stockage privé, servie par l'app après contrôle des droits (ADR 0027) pendant la durée
 // réglée par l'Admin, puis effacée par la purge horaire ; la ligne reste comme trace, sans donnée
 // personnelle. Demande, mise à disposition et téléchargement vont au journal (SEC-19).
-import { and, asc, desc, eq, isNull, lt, lte, or } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNull, lt, lte, or } from "drizzle-orm";
 import { listTeam } from "@symbola/auth";
 import { SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
 import { appendAudit, recordAudit } from "@symbola/db/audit";
@@ -364,4 +364,25 @@ async function notifyExportReady(db: AppDatabase, row: ExportRow): Promise<void>
   const url = `${env.APP_PUBLIC_URL}/parametres/export`;
   // Lot 40b (ARC-10) : un seul e-mail par export, même si la notification est rejouée.
   await sendSymbolaEmail({ to: requester.email, locale, subject: mail.subject, body: mail.text, button: { label: mail.button, url }, organizationId: row.organizationId, idempotencyKey: `export-ready:${row.id}` });
+}
+
+// Lot 49 (RGP-08, D9 ; DPO-6) — la purge des invités efface aussi les exports stockés qui les
+// contiennent : les archives prêtes, non encore purgées, préparées depuis la date donnée et où des
+// foyers d'invités ont été comptés. Renvoie le nombre d'archives supprimées (la titulaire en est
+// prévenue par l'appelant).
+export async function purgeOrganizationExportsWithGuests(db: AppDatabase, organizationId: string, since: Date, now: Date = new Date()): Promise<number> {
+  const rows = await withOrganization(db, organizationId, (tx) =>
+    tx
+      .select()
+      .from(organizationExports)
+      .where(and(eq(organizationExports.organizationId, organizationId), eq(organizationExports.status, "ready"), isNull(organizationExports.purgedAt), gte(organizationExports.createdAt, since))),
+  );
+  const withGuests = rows.filter((row) => (row.entityCounts["guests/households"] ?? 0) > 0);
+  if (withGuests.length === 0) return 0;
+  const storage = createStorageClient();
+  for (const row of withGuests) {
+    if (row.archiveKey) await deletePrivateObject(storage, row.archiveKey);
+    await withActor(SYSTEM_ACTOR, () => withOrganization(db, organizationId, (tx) => tx.update(organizationExports).set({ purgedAt: now, archiveKey: null }).where(eq(organizationExports.id, row.id))));
+  }
+  return withGuests.length;
 }

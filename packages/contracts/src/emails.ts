@@ -12,6 +12,9 @@ export const EMAIL_TEMPLATE_KINDS = [
   "order_first",
   "signed_copy",
   "program_published",
+  // Lot 49 (INV-03, INV-04 ; D4, D10) : invitation à répondre et relance des invités.
+  "guest_invitation",
+  "guest_reminder",
 ] as const;
 export type EmailTemplateKind = (typeof EMAIL_TEMPLATE_KINDS)[number];
 

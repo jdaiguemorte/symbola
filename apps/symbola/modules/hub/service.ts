@@ -1163,3 +1163,8 @@ export {
 
 // Lot 40b (ARC-10 ; D9 ; ADR 0076) — file des tâches de fond (e-mails tentés aussitôt, puis repris).
 export { JOB_MAX_ATTEMPTS, JOB_RETENTION_DAYS, runDueJobs, type JobsPass } from "./jobs";
+// Lot 49 (INV-04, D10) : une relance déjà inscrite dans la file ne prépare pas un second lien.
+export { jobKeyExists } from "./jobs";
+// Lot 49 (RGP-08, D9) : la purge des invités efface les exports stockés qui peuvent les contenir.
+export { purgeOrganizationExportsWithGuests } from "./organization-exports";
+export { purgePrivacyExportsSince } from "./privacy-exports";

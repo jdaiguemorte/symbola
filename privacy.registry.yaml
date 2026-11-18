@@ -1241,3 +1241,152 @@ fields:
     anonymization: >-
       Supprimé lors d'une demande d'oubli qui le vise (l'e-mail ne part pas), ou à la fin de la
       tâche.
+  # Lot 49 (module Invités ; INV-01 à INV-04, INV-07, RGP-06 à RGP-08, RGP-18 ; ADR 0081). Base
+  # légale : intérêt légitime du planner et du couple (réponse 2 de la DPO), information de l'invité
+  # au premier contact (article 14) et droit d'opposition ; régimes et allergies : accord de
+  # l'invité lui-même (article 9, réponse 3). Purge automatique après le dernier jour de
+  # l'évènement (ou son annulation) : régimes à 7 jours, le reste à 30 jours (hub.privacy_settings),
+  # préavis de 7 jours, un seul report motivé de 90 jours au plus. Les invités ne sont pas des
+  # contacts du hub (CRM-03). Aucune donnée d'invité dans les copies hors ligne du jour J (lot 29).
+  - schema: guests
+    table: guests
+    field: first_name
+    category: identifiant
+    retention: >-
+      Lot 49 (INV-01, RGP-18) : prénom d'un invité (adulte ou enfant), saisi par la planner, par le
+      client à son portail ou importé d'un tableur. Purgé 30 jours après le dernier jour de
+      l'évènement (RGP-08) ; gardé, avec le nom, en cas d'opposition jusqu'à la purge (DPO-3).
+    anonymization: >-
+      Supprimé avec la personne : effacement demandé à la planner (RGPD-03), purge de l'évènement,
+      annulation de l'import qui l'a créé.
+  - schema: guests
+    table: guests
+    field: last_name
+    category: identifiant
+    retention: >-
+      Lot 49 (INV-01) : nom de famille d'un adulte invité (jamais d'un enfant : contrainte en base,
+      RGP-18). Même durée que le prénom.
+    anonymization: >-
+      Supprimé avec la personne (RGPD-03, purge RGP-08).
+  - schema: guests
+    table: guests
+    field: email
+    category: contact
+    retention: >-
+      Lot 49 (INV-01, INV-03, INV-04) : adresse e-mail d'un adulte invité (jamais d'un enfant :
+      contrainte en base, RGP-18), pour l'invitation et les relances. Effacée aussitôt à
+      l'opposition de l'invité ; sinon purgée 30 jours après l'évènement.
+    anonymization: >-
+      Mise à null à l'opposition (lien « Je ne souhaite pas que mes données soient conservées ») ;
+      supprimée avec la personne (RGPD-03, RGP-08).
+  - schema: guests
+    table: guests
+    field: phone
+    category: contact
+    retention: >-
+      Lot 49 (INV-01) : téléphone d'un adulte invité (jamais d'un enfant), pour une relance à la
+      main ou un lien envoyé par SMS par le client. Même règle que l'adresse e-mail.
+    anonymization: >-
+      Mis à null à l'opposition ; supprimé avec la personne (RGPD-03, RGP-08).
+  - schema: guests
+    table: guests
+    field: age_range
+    category: identifiant
+    retention: >-
+      Lot 49 (RGP-18) : tranche d'âge d'un enfant (0-2, 3-5, 6-11, 12-17), jamais sa date de
+      naissance. Purgée avec la personne, 30 jours après l'évènement.
+    anonymization: >-
+      Supprimée avec la personne (RGPD-03, RGP-08).
+  - schema: guests
+    table: households
+    field: display_name
+    category: identifiant
+    retention: >-
+      Lot 49 (INV-01) : nom affiché d'un foyer (« Jeanne et Paul Durand »), avec ses réponses
+      d'ensemble (hébergement, transport, si la planner pose ces questions). Purgé 30 jours après
+      l'évènement.
+    anonymization: >-
+      Supprimé avec le foyer : purge RGP-08, effacement de la liste des invités de l'évènement
+      (RGPD-03), annulation de l'import ; un foyer vidé de ses personnes est supprimé.
+  - schema: guests
+    table: household_groups
+    field: label
+    category: contenu_libre
+    retention: >-
+      Lot 49 (INV-01) : groupe d'invités créé à la volée (« Amis du lycée »), qui peut nommer des
+      personnes. Purgé avec les foyers, 30 jours après l'évènement.
+    anonymization: >-
+      Supprimé à la purge de l'évènement (RGP-08) ou avec la liste des invités (RGPD-03).
+  - schema: guests
+    table: rsvp_answers
+    field: attending
+    category: contenu_libre
+    retention: >-
+      Lot 49 (INV-03) : présence d'une personne à un temps fort (oui ou non), donnée par son lien,
+      par le répondant du foyer ou notée par la planner. Gardée après une opposition (sous le seul
+      nom de la personne, DPO-3) ; purgée 30 jours après l'évènement.
+    anonymization: >-
+      Supprimée avec la personne (RGPD-03, RGP-08).
+  - schema: guests
+    table: diets
+    field: options_sealed
+    category: sensible
+    retention: >-
+      Lot 49 (INV-07, RGP-06, RGP-07, DAT-08) : régimes et allergies cochés dans la liste fermée de
+      l'organisation (article 9), enregistrés seulement avec l'accord de l'invité lui-même (ou du
+      représentant légal d'un enfant), chiffrés au niveau du champ (AES-256-GCM, clé
+      DATA_ENCRYPTION_KEY, ADR 0078) ; nominatifs pour la titulaire seule, comptés ailleurs (« moins
+      de 3 »). Ne sortent ni dans l'export complet de l'organisation, ni dans les copies hors ligne.
+      Purgés 7 jours après le dernier jour de l'évènement.
+    anonymization: >-
+      Supprimés aussitôt au retrait de l'accord ou à l'opposition ; à la purge des régimes (J+7) ;
+      avec la personne (RGPD-03).
+  - schema: guests
+    table: diet_consents
+    field: guest_id
+    category: identifiant
+    retention: >-
+      Lot 49 (RGP-06 ; réponse 3 de la DPO) : preuve de l'accord aux régimes, gardée pour la
+      planner : personne concernée, personne qui a donné l'accord (given_by_guest_id), version du
+      texte, canal, horodatages de l'accord et du retrait, déclaration de représentant légal.
+      Rattachée à la personne jusqu'à la purge du reste (J+30).
+    anonymization: >-
+      À la purge (J+30) ou à l'effacement de la personne, la ligne perd la personne (guest_id et
+      given_by_guest_id à null) : seul l'horodatage anonymisé reste, avec l'évènement.
+  - schema: guests
+    table: diet_consents
+    field: given_by_guest_id
+    category: identifiant
+    retention: >-
+      Lot 49 (RGP-06) : adulte qui a donné l'accord (lui-même, ou le représentant légal d'un
+      enfant). Même règle que guest_id.
+    anonymization: >-
+      Mis à null avec guest_id (purge RGP-08, effacement RGPD-03).
+  - schema: guests
+    table: guest_links
+    field: token_hash
+    category: securite
+    retention: >-
+      Lot 49 (INV-03, SEC-14 à SEC-17) : empreinte SHA-256 du jeton du lien personnel d'un adulte
+      invité (jamais d'un enfant : référence composée en base). Le lien expire à la fin du jour de
+      clôture des réponses ; il est retiré à l'opposition. Purgé avec la personne (J+30).
+    anonymization: >-
+      Supprimé avec la personne (cascade) ; jamais exporté.
+  - schema: guests
+    table: purge_postponements
+    field: reason
+    category: contenu_libre
+    retention: >-
+      Lot 49 (RGP-08, D9) : motif du report unique de la purge, écrit par la planner (il peut nommer
+      des personnes) ; le journal d'audit n'en garde que la date. Supprimé à la purge du reste.
+    anonymization: >-
+      Supprimé à la purge de l'évènement ou avec la liste des invités (RGPD-03).
+  - schema: guests
+    table: module_settings
+    field: privacy_notice
+    category: contenu_libre
+    retention: >-
+      Lot 49 (RGP-03, article 14) : mention d'information de la page de réponse des invités, écrite
+      par la titulaire (elle peut nommer la planner). Tant que l'organisation existe.
+    anonymization: >-
+      Remplacée par le texte de départ quand la titulaire la vide.
