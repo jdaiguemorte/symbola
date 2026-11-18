@@ -42,3 +42,15 @@ describe("MSG-01 (lot 44, D7) — Nature « Nouvelle demande de contact »", () 
     expect(await refusal("prospect_form")).toBe("email_templates_kind_check");
   });
 });
+
+describe("MSG-01 (lot 45, D9) — Natures « réponse », « relance » et « questionnaire envoyé »", () => {
+  it("prospect_reply, prospect_follow_up et questionnaire_sent sont admises ; une nature voisine reste refusée", async () => {
+    expect(await refusal("prospect_reply")).toBe("accepté");
+    expect(await refusal("prospect_follow_up")).toBe("accepté");
+    expect(await refusal("questionnaire_sent")).toBe("accepté");
+    expect(await refusal("questionnaire")).toBe("email_templates_kind_check");
+    // Les natures de main restent admises (réunion des listes).
+    expect(await refusal("prospect_form_received")).toBe("accepté");
+    expect(await refusal("appointment_confirmed")).toBe("accepté");
+  });
+});

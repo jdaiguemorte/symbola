@@ -441,3 +441,7 @@ export {
 } from "./appointments/events";
 // Lot 44 (CRM-01, CRM-02 ; ADR 0084) : formulaire de contact public et pipeline en colonnes.
 export * from "./events/pipeline";
+// Lot 45 (CRM-05 à CRM-09, POR-07, HUB-21 ; ADR 0090) : messages, relances, questionnaires ; fusion
+// de contacts (hub.contact.merged).
+export * from "./events/relation";
+export * from "./hub/contact-events";

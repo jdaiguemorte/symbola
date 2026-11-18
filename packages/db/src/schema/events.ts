@@ -560,7 +560,8 @@ export const eventLinks = eventsSchema.table("event_links", {
   index("event_links_vendor_candidate_idx").on(table.vendorCandidateId),
   index("event_links_contact_idx").on(table.contactId),
   // Lot 49 (INV-02, D5) : rubrique « Invités », fermée par défaut comme les autres (POR-10).
-  check("event_links_rubrics_check", sql`${table.rubrics} <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes', 'guests']::text[]`),
+  // Lot 45 (POR-07, D6) : rubrique « Questionnaires », fermée par défaut puis ouverte à l'envoi d'un questionnaire.
+  check("event_links_rubrics_check", sql`${table.rubrics} <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes', 'guests', 'questionnaires']::text[]`),
   check("event_links_budget_scope_check", sql`${table.budgetScope} in ('all', 'selected')`),
   check("event_links_vendor_candidate_check", sql`${table.audience} <> 'vendor' or ${table.vendorCandidateId} is not null`),
   check("event_links_locale_check", sql`${table.locale} in ('fr', 'en')`),
@@ -1057,5 +1058,289 @@ export const prospectRequests = eventsSchema.table(
       "prospect_requests_text_check",
       sql`(${table.message} is null or char_length(${table.message}) <= 5000) and (${table.period} is null or char_length(${table.period}) <= 100) and (${table.budgetRange} is null or char_length(${table.budgetRange}) <= 100)`,
     ),
+  ],
+);
+
+// Lot 45 (CRM-05, CRM-06, CRM-03 ; D1 à D3 ; ADR 0090) — les messages échangés avec le contact d'un
+// évènement, rangés dans son historique : une réponse de la planner (« reply », depuis un modèle),
+// une relance (« follow_up »), un questionnaire envoyé (« questionnaire ») ; et deux faits notés par
+// la planner d'un geste : « a répondu » (« answered ») et « ne plus relancer » (« stop »). Un message
+// part de Symbola (« sent ») ou s'ouvre dans la messagerie de la planner (« prepared ») ; un fait noté
+// est « noted ». Le lien de la brochure n'est gardé que haché, et expire (30 jours, données de départ).
+export const EVENT_MESSAGE_KINDS = ["reply", "follow_up", "questionnaire", "answered", "stop"] as const;
+export const EVENT_MESSAGE_DELIVERIES = ["sent", "prepared", "noted"] as const;
+
+export const eventMessages = eventsSchema.table(
+  "event_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    // Le contact du hub (sans clé étrangère entre schémas, avenant de l'ADR 0012) ; vide quand le RGPD
+    // l'a retiré, ou pour un fait noté sans destinataire.
+    contactId: uuid("contact_id"),
+    kind: text("kind", { enum: EVENT_MESSAGE_KINDS }).notNull(),
+    delivery: text("delivery", { enum: EVENT_MESSAGE_DELIVERIES }).notNull(),
+    // Le modèle de message (hub.message_templates) et sa version, pour mémoire ; vides sans modèle.
+    templateId: uuid("template_id"),
+    templateVersion: integer("template_version"),
+    subject: text("subject"),
+    body: text("body"),
+    brochureTokenHash: text("brochure_token_hash").unique(),
+    brochureExpiresAt: timestamp("brochure_expires_at", { withTimezone: true }),
+    sentByUserId: uuid("sent_by_user_id"),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("event_messages_organization_idx").on(table.organizationId),
+    index("event_messages_event_idx").on(table.eventId, table.occurredAt),
+    index("event_messages_contact_idx").on(table.contactId),
+    check("event_messages_kind_check", sql`${table.kind} in ('reply', 'follow_up', 'questionnaire', 'answered', 'stop')`),
+    check(
+      "event_messages_delivery_check",
+      sql`(${table.kind} in ('answered', 'stop') and ${table.delivery} = 'noted') or (${table.kind} not in ('answered', 'stop') and ${table.delivery} in ('sent', 'prepared'))`,
+    ),
+    check("event_messages_text_check", sql`(${table.subject} is null or char_length(${table.subject}) <= 200) and (${table.body} is null or char_length(${table.body}) <= 5000)`),
+    check("event_messages_brochure_check", sql`(${table.brochureTokenHash} is null) = (${table.brochureExpiresAt} is null)`),
+  ],
+);
+
+// Lot 45 (CRM-06 ; D2) — le réglage des relances d'une organisation, copié des données de départ
+// (prospect-follow-ups.json) à la première lecture : jusqu'à trois relances, chacune à son nombre de
+// jours après le dernier envoi de la planner et avec son modèle de message (vide : le texte de la
+// nature « prospect_follow_up ») ; envoi automatique désactivé par défaut. La brochure (PDF) de
+// l'organisation y est rangée : sa clé dans le stockage privé, son nom et sa taille.
+export type ProspectFollowUpStep = { days: number; messageTemplateId: string | null };
+
+export const prospectFollowUpSettings = eventsSchema.table(
+  "prospect_follow_up_settings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    autoSend: boolean("auto_send").notNull().default(false),
+    steps: jsonb("steps").$type<ProspectFollowUpStep[]>().notNull().default(sql`'[]'::jsonb`),
+    brochureStorageKey: text("brochure_storage_key"),
+    brochureFileName: text("brochure_file_name"),
+    brochureSizeBytes: integer("brochure_size_bytes"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    uniqueIndex("prospect_follow_up_settings_organization_idx").on(table.organizationId),
+    check("prospect_follow_up_settings_steps_check", sql`jsonb_typeof(${table.steps}) = 'array' and jsonb_array_length(${table.steps}) <= 3`),
+    check(
+      "prospect_follow_up_settings_brochure_check",
+      sql`(${table.brochureStorageKey} is null) = (${table.brochureFileName} is null) and (${table.brochureFileName} is null or char_length(${table.brochureFileName}) between 1 and 200)`,
+    ),
+  ],
+);
+
+// Lot 45 (CRM-06 ; D2, D3) — une relance d'un prospect, préparée à son jour (« prête ») après le
+// dernier envoi de la planner (« anchor ») : la planner la relit et l'envoie d'un geste, ou la retire ;
+// l'envoi automatique, s'il est réglé, l'envoie seul. Elle s'arrête (stopped_at, stop_reason) dès qu'un
+// fait le dit : « a répondu », changement d'étape, confirmation, refus, action du prospect, nouvel
+// envoi de la planner, « ne plus relancer » ; c'est revérifié juste avant l'envoi. Une seule relance
+// par rang et par envoi de la planner.
+export const PROSPECT_FOLLOW_UP_STOP_REASONS = ["answered", "stage_changed", "confirmed", "lost", "prospect_action", "new_message", "stopped", "withdrawn", "no_recipient"] as const;
+
+export const prospectFollowUps = eventsSchema.table(
+  "prospect_follow_ups",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    contactId: uuid("contact_id"),
+    anchorMessageId: uuid("anchor_message_id")
+      .notNull()
+      .references(() => eventMessages.id, { onDelete: "cascade" }),
+    rank: integer("rank").notNull(),
+    readyAt: timestamp("ready_at", { withTimezone: true }).notNull(),
+    subject: text("subject").notNull(),
+    body: text("body").notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    sentMessageId: uuid("sent_message_id").references(() => eventMessages.id, { onDelete: "set null" }),
+    stoppedAt: timestamp("stopped_at", { withTimezone: true }),
+    stopReason: text("stop_reason", { enum: PROSPECT_FOLLOW_UP_STOP_REASONS }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("prospect_follow_ups_organization_idx").on(table.organizationId),
+    index("prospect_follow_ups_event_idx").on(table.eventId),
+    uniqueIndex("prospect_follow_ups_anchor_rank_idx").on(table.anchorMessageId, table.rank),
+    check("prospect_follow_ups_rank_check", sql`${table.rank} between 1 and 3`),
+    check("prospect_follow_ups_text_check", sql`char_length(${table.subject}) between 1 and 200 and char_length(${table.body}) between 1 and 5000`),
+    check(
+      "prospect_follow_ups_state_check",
+      sql`(${table.stoppedAt} is null) = (${table.stopReason} is null) and not (${table.sentAt} is not null and ${table.stoppedAt} is not null)`,
+    ),
+    check("prospect_follow_ups_stop_reason_check", sql`${table.stopReason} is null or ${table.stopReason} in ('answered', 'stage_changed', 'confirmed', 'lost', 'prospect_action', 'new_message', 'stopped', 'withdrawn', 'no_recipient')`),
+  ],
+);
+
+// Lot 45 (POR-07, CRM-09, HUB-21 ; D6 à D8 ; ADR 0090) — modèles de questionnaires (découverte,
+// cérémonie, musiques, détails pratiques…), pour tous les évènements ou pour un type, dans une langue,
+// duplicables et versionnés : un enregistrement des questions fait une version (les questions d'une
+// version restent telles quelles). Un questionnaire envoyé garde ses questions (copie figée).
+export const questionnaireTemplates = eventsSchema.table(
+  "questionnaire_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventTypeId: uuid("event_type_id").references(() => eventTypes.id, { onDelete: "set null" }),
+    name: text("name").notNull(),
+    locale: text("locale").notNull(),
+    // Clé du modèle de départ (questionnaires.json), nulle pour un modèle de l'organisation.
+    starterKey: text("starter_key"),
+    // Numéro de la version en cours (la plus récente).
+    version: integer("version").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("questionnaire_templates_organization_idx").on(table.organizationId),
+    check("questionnaire_templates_name_check", sql`char_length(${table.name}) between 1 and 120`),
+    check("questionnaire_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
+    check("questionnaire_templates_version_check", sql`${table.version} >= 1`),
+  ],
+);
+
+// Une question d'une version d'un modèle. « item_key » la désigne d'une version à l'autre (et d'un
+// questionnaire à l'autre pour les modèles de départ) ; « event_field » : le champ de l'évènement
+// qu'elle alimente. Pas de question « fichier » (D8).
+export const QUESTION_NATURES = ["short_text", "long_text", "single_choice", "multiple_choice", "date", "number", "amount"] as const;
+export const QUESTION_EVENT_FIELDS = ["event_date", "guests", "budget", "venue", "city", "style", "event_type"] as const;
+
+export const questionnaireTemplateItems = eventsSchema.table(
+  "questionnaire_template_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    templateId: uuid("template_id")
+      .notNull()
+      .references(() => questionnaireTemplates.id, { onDelete: "cascade" }),
+    version: integer("version").notNull(),
+    position: integer("position").notNull().default(0),
+    itemKey: text("item_key").notNull(),
+    label: text("label").notNull(),
+    help: text("help"),
+    nature: text("nature", { enum: QUESTION_NATURES }).notNull(),
+    choices: text("choices").array().notNull().default(sql`'{}'::text[]`),
+    eventField: text("event_field", { enum: QUESTION_EVENT_FIELDS }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("questionnaire_template_items_organization_idx").on(table.organizationId),
+    uniqueIndex("questionnaire_template_items_key_idx").on(table.templateId, table.version, table.itemKey),
+    check("questionnaire_template_items_label_check", sql`char_length(${table.label}) between 1 and 300 and (${table.help} is null or char_length(${table.help}) <= 500)`),
+    check("questionnaire_template_items_key_check", sql`${table.itemKey} ~ '^[a-z0-9_-]{1,60}$'`),
+    check("questionnaire_template_items_nature_check", sql`${table.nature} in ('short_text', 'long_text', 'single_choice', 'multiple_choice', 'date', 'number', 'amount')`),
+    check(
+      "questionnaire_template_items_choices_check",
+      sql`(${table.nature} in ('single_choice', 'multiple_choice')) = (coalesce(array_length(${table.choices}, 1), 0) between 2 and 30)`,
+    ),
+    check("questionnaire_template_items_event_field_check", sql`${table.eventField} is null or ${table.eventField} in ('event_date', 'guests', 'budget', 'venue', 'city', 'style', 'event_type')`),
+  ],
+);
+
+// Lot 45 (POR-07, CRM-09 ; D7) — un questionnaire envoyé à un contact de l'évènement, par son lien
+// personnel (rubrique « Questionnaires »). Ses questions sont une copie figée de la version du modèle
+// (HUB-21) ; « finished_at » : « Terminer », qui prévient la planner et préremplit l'évènement.
+export type FrozenQuestion = {
+  key: string;
+  label: string;
+  help: string | null;
+  nature: (typeof QUESTION_NATURES)[number];
+  choices: string[];
+  eventField: (typeof QUESTION_EVENT_FIELDS)[number] | null;
+};
+
+export const eventQuestionnaires = eventsSchema.table(
+  "event_questionnaires",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    contactId: uuid("contact_id"),
+    linkId: uuid("link_id").references(() => eventLinks.id, { onDelete: "set null" }),
+    templateId: uuid("template_id").references(() => questionnaireTemplates.id, { onDelete: "set null" }),
+    templateVersion: integer("template_version").notNull(),
+    name: text("name").notNull(),
+    locale: text("locale").notNull(),
+    questions: jsonb("questions").$type<FrozenQuestion[]>().notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }).defaultNow().notNull(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    // La planner a vu « Questionnaire terminé » (Aujourd'hui).
+    seenAt: timestamp("seen_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("event_questionnaires_organization_idx").on(table.organizationId),
+    index("event_questionnaires_event_idx").on(table.eventId),
+    index("event_questionnaires_link_idx").on(table.linkId),
+    index("event_questionnaires_contact_idx").on(table.contactId),
+    check("event_questionnaires_name_check", sql`char_length(${table.name}) between 1 and 120`),
+    check("event_questionnaires_locale_check", sql`${table.locale} in ('fr', 'en')`),
+    check("event_questionnaires_questions_check", sql`jsonb_typeof(${table.questions}) = 'array' and jsonb_array_length(${table.questions}) between 1 and 100`),
+  ],
+);
+
+// Une réponse, enregistrée à chaque question (reprise possible). « resolution » : pour une réponse qui
+// alimente un champ déjà rempli autrement, le choix de la planner (« applied » : la réponse remplace la
+// fiche ; « kept » : la fiche reste) ; « filled » : le champ était vide et a été rempli.
+export const QUESTIONNAIRE_ANSWER_RESOLUTIONS = ["filled", "applied", "kept"] as const;
+
+export const questionnaireAnswers = eventsSchema.table(
+  "questionnaire_answers",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    questionnaireId: uuid("questionnaire_id")
+      .notNull()
+      .references(() => eventQuestionnaires.id, { onDelete: "cascade" }),
+    itemKey: text("item_key").notNull(),
+    value: jsonb("value").$type<string | string[] | number>().notNull(),
+    answeredAt: timestamp("answered_at", { withTimezone: true }).defaultNow().notNull(),
+    resolution: text("resolution", { enum: QUESTIONNAIRE_ANSWER_RESOLUTIONS }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("questionnaire_answers_organization_idx").on(table.organizationId),
+    uniqueIndex("questionnaire_answers_item_idx").on(table.questionnaireId, table.itemKey),
+    check("questionnaire_answers_value_check", sql`jsonb_typeof(${table.value}) in ('string', 'array', 'number') and octet_length(${table.value}::text) <= 6000`),
+    check("questionnaire_answers_resolution_check", sql`${table.resolution} is null or ${table.resolution} in ('filled', 'applied', 'kept')`),
   ],
 );
