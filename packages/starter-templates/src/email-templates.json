@@ -53,7 +53,7 @@
       },
       "prospect_form_received": {
         "subject": "Nouvelle demande de contact",
-        "body": "Bonjour,\n\nUne nouvelle demande vient d'arriver par le formulaire de contact de {{organisation}}.\n\nPour la lire et y répondre, ouvrez-la dans Symbola :\n\n{{lien}}\n\nCet e-mail ne contient ni le message ni les coordonnées de la personne : ils restent dans Symbola."
+        "body": "Bonjour,\n\nUne nouvelle demande est arrivée pour {{organisation}} par votre formulaire de contact.\n\nPour la lire et y répondre, ouvrez-la dans Symbola :\n\n{{lien}}\n\nCet e-mail ne contient ni le message ni les coordonnées de la personne : ils restent dans Symbola."
       }
     },
     "en": {
@@ -107,7 +107,7 @@
       },
       "prospect_form_received": {
         "subject": "New contact request",
-        "body": "Hello,\n\nA new request has just arrived through the contact form of {{organization}}.\n\nTo read it and reply, open it in Symbola:\n\n{{link}}\n\nThis email contains neither the message nor the person's contact details: they stay in Symbola."
+        "body": "Hello,\n\nA new request has arrived for {{organization}} through your contact form.\n\nTo read it and reply, open it in Symbola:\n\n{{link}}\n\nThis email contains neither the message nor the person's contact details: they stay in Symbola."
       }
     }
   }

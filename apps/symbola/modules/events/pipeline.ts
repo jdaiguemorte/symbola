@@ -4,7 +4,8 @@
 // la liste de l'organisation (une à dix), copiées des données de départ à la première ouverture.
 // Ordre des cartes dans une colonne : la plus ancienne activité en haut (D11).
 import { starterPipelineStages } from "@symbola/starter-templates";
-import type { Pipeline, PipelineCard, PipelineStage } from "@symbola/contracts";
+import type { Pipeline, PipelineStage } from "@symbola/contracts";
+import { buildCards, cleanStageLabel, PIPELINE_MAX_STAGES, PIPELINE_MIN_STAGES, PipelineStageInvalidError, sortCards } from "./pipeline-rules";
 import {
   countOptionsByStage,
   deletePipelineStage,
@@ -16,33 +17,18 @@ import {
   reorderPipelineStageRows,
   seedPipelineStages,
   updatePipelineStageLabel,
-  type CardRow,
   type PipelineStageRow,
 } from "./prospects-repository";
 
-export const PIPELINE_MIN_STAGES = 1;
-export const PIPELINE_MAX_STAGES = 10;
-const LABEL_MAX = 60;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export class PipelineStageInvalidError extends Error {
-  constructor(readonly reason: "label" | "too_many" | "too_few" | "not_found" | "not_empty" | "destination") {
-    super(`étape du pipeline refusée : ${reason}`);
-    this.name = "PipelineStageInvalidError";
-  }
-}
+export { buildCards, cleanStageLabel, PIPELINE_MAX_STAGES, PIPELINE_MIN_STAGES, PipelineStageInvalidError, sortCards } from "./pipeline-rules";
 
 export class PipelineMoveRefusedError extends Error {
   constructor(readonly reason: "not_found" | "not_option" | "stage_not_found") {
     super(`déplacement refusé : ${reason}`);
     this.name = "PipelineMoveRefusedError";
   }
-}
-
-function cleanLabel(label: string): string {
-  const value = label.replace(/\s+/g, " ").trim();
-  if (!value || value.length > LABEL_MAX) throw new PipelineStageInvalidError("label");
-  return value;
 }
 
 async function stagesOf(organizationId: string, locale: "fr" | "en"): Promise<PipelineStageRow[]> {
@@ -65,7 +51,7 @@ export async function firstPipelineStageId(organizationId: string, locale: "fr" 
 }
 
 export async function addPipelineStage(organizationId: string, label: string, locale: "fr" | "en"): Promise<PipelineStage> {
-  const value = cleanLabel(label);
+  const value = cleanStageLabel(label);
   const stages = await stagesOf(organizationId, locale);
   if (stages.length >= PIPELINE_MAX_STAGES) throw new PipelineStageInvalidError("too_many");
   const row = await insertPipelineStage(organizationId, value);
@@ -73,7 +59,7 @@ export async function addPipelineStage(organizationId: string, label: string, lo
 }
 
 export async function renamePipelineStage(organizationId: string, stageId: string, label: string): Promise<void> {
-  const value = cleanLabel(label);
+  const value = cleanStageLabel(label);
   if (!UUID.test(stageId) || !(await updatePipelineStageLabel(organizationId, stageId, value))) throw new PipelineStageInvalidError("not_found");
 }
 
@@ -103,32 +89,6 @@ export async function removePipelineStage(input: { organizationId: string; stage
   const moved = await deletePipelineStage(input.organizationId, input.stageId, destination ? { id: destination.id, label: destination.label } : null, input.userId, index === 0);
   if (moved === null) throw new PipelineStageInvalidError("not_found");
   return { moved };
-}
-
-// D11 : la plus ancienne activité en haut ; à égalité, la plus ancienne demande.
-export function sortCards(cards: PipelineCard[]): PipelineCard[] {
-  return [...cards].sort((a, b) => a.lastActivityAt.localeCompare(b.lastActivityAt) || a.eventId.localeCompare(b.eventId));
-}
-
-export function buildCards(rows: CardRow[], input: { firstStageId: string; stageIds: Set<string>; names: Map<string, string>; busy: { eventId: string; eventDate: string }[] }): PipelineCard[] {
-  return rows.map(({ event, request, sourceLabel, stageSince }) => {
-    const stageId = event.pipelineStageId && input.stageIds.has(event.pipelineStageId) ? event.pipelineStageId : input.firstStageId;
-    return {
-      eventId: event.id,
-      names: input.names.get(event.id) ?? "",
-      eventDate: event.eventDate,
-      period: request?.period ?? null,
-      guestsEstimated: event.guestsEstimated,
-      wantedBudgetCents: event.wantedBudgetCents,
-      budgetRange: request?.budgetRange ?? null,
-      sourceLabel,
-      stageId,
-      stageSince: (stageSince ?? event.createdAt).toISOString(),
-      lastActivityAt: event.updatedAt.toISOString(),
-      dateTaken: event.eventDate !== null && !event.isDemo && input.busy.some((other) => other.eventId !== event.id && other.eventDate === event.eventDate),
-      isDemo: event.isDemo,
-    };
-  });
 }
 
 // Le pipeline : les étapes, et les options (essai guidé compris, jamais compté ailleurs).
