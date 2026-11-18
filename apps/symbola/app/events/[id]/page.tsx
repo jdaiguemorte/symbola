@@ -373,6 +373,7 @@ export default async function EventDetailPage({
   // chiffrées, programme non vide).
   const decisions = tab === "maries" ? await listEventDecisions(organizationId, id) : [];
   const tDecisions = await getTranslations("Decisions");
+  const tCoordination = await getTranslations("VendorCoordination");
   const decisionSlots = vendorSlots
     .map((slot) => ({ id: slot.id, label: slot.label, options: linkCandidates.filter((candidate) => candidate.vendorSlotId === slot.id && candidate.shownToClients).length }))
     .filter((slot) => slot.options >= 2);
@@ -1492,6 +1493,13 @@ export default async function EventDetailPage({
                             {tDecisions("retainChoice", { vendor: choiceName(decision) ?? "" })}
                           </button>
                         </form>
+                      ) : null}
+                      {/* Lot 47 (D6 révisée) : le choix du client a retenu le prestataire ; la planner le
+                          modifie à tout moment depuis l'écran du poste. */}
+                      {decision.status === "approved" && decision.kind === "option" && decision.engagedAt && decision.slotId ? (
+                        <Link href={`/events/${event.id}/consultation/${decision.slotId}`} className="button-link">
+                          {tCoordination("retained.submit")}
+                        </Link>
                       ) : null}
                       {decision.status === "approved" && decision.snapshot.kind === "expense" ? (
                         <form action={commitDecisionExpenseAction}>
