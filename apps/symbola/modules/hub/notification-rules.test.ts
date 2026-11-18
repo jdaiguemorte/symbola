@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { NOTIFICATION_TYPES, type NotificationSettingsView } from "@symbola/contracts";
 import { starterNotifications } from "@symbola/starter-templates";
+import { notificationText } from "./notifications";
 import { deliveryPlan, digestDue, isQuiet, localClock, quietEndsAt, typeDefaults } from "./notification-rules";
 
 const PARIS = "Europe/Paris";
@@ -98,5 +99,13 @@ describe("HUB-15 — Chaque sorte se coupe séparément, par canal (lot 53)", ()
     expect(notToday.push.dueAt).toEqual(end);
     const noOverride = deliveryPlan({ defaults: typeDefaults("day_of_alert"), preferences: [], settings: settings({ dayOfOverride: false }), now: night, eventIsToday: true });
     expect(noOverride.push.dueAt).toEqual(end);
+  });
+});
+
+describe("UX-16 — Un texte de notification ne casse jamais (lot 53)", () => {
+  it("un paramètre manquant fait retomber le texte sur la sorte ; présent, la phrase complète", () => {
+    expect(notificationText({ type: "quote_signed", params: {} }, "fr")).toBe("Devis signé");
+    expect(notificationText({ type: "quote_signed", params: { number: "D-1" } }, "fr")).toBe("Le devis D-1 est signé.");
+    expect(notificationText({ type: "transfer_declared", params: { amountCents: 120000, number: "D-1" } }, "en")).toContain("€1,200.00");
   });
 });

@@ -298,12 +298,15 @@ export function pushPublicKey(): string {
 
 // --- Mots des notifications ---
 
+// Un paramètre manquant (notification d'avant un changement de texte) ne casse ni l'écran ni l'envoi :
+// le texte retombe sur la sorte.
+const MISSING = "\u0000";
 function translatorFor(locale: Locale) {
-  return createTranslator({ locale, messages: locale === "en" ? enMessages : frMessages, namespace: "Notifications" });
+  return createTranslator({ locale, messages: locale === "en" ? enMessages : frMessages, namespace: "Notifications", onError: () => undefined, getMessageFallback: () => MISSING });
 }
 
 function riskTranslatorFor(locale: Locale) {
-  return createTranslator({ locale, messages: locale === "en" ? enMessages : frMessages, namespace: "RiskRadar" });
+  return createTranslator({ locale, messages: locale === "en" ? enMessages : frMessages, namespace: "RiskRadar", onError: () => undefined, getMessageFallback: () => MISSING });
 }
 
 // La sorte seule (objet d'un e-mail, titre d'un push) : jamais de donnée personnelle.
@@ -318,9 +321,11 @@ export function notificationText(view: Pick<NotificationView, "type" | "params">
   const params: Record<string, string | number> = Object.fromEntries(Object.entries(view.params).map(([key, value]) => (key === "amountCents" && typeof value === "number" ? ["amount", formatAmount(value, locale)] : [key, value])));
   if (view.type === "risk_alert" && typeof view.params.rule === "string") {
     const risk = riskTranslatorFor(locale);
-    return translatorFor(locale)("types.risk_alert.text", { summary: risk(`rules.${view.params.rule}.alert` as "rules.vendor_without_contract.alert", params) });
+    const summary = risk(`rules.${view.params.rule}.alert` as "rules.vendor_without_contract.alert", params);
+    return summary === MISSING ? notificationTypeLabel(view.type, locale) : translatorFor(locale)("types.risk_alert.text", { summary });
   }
-  return translatorFor(locale)(`types.${view.type}.text`, params);
+  const text = translatorFor(locale)(`types.${view.type}.text`, params);
+  return text === MISSING ? notificationTypeLabel(view.type, locale) : text;
 }
 
 export function notificationActionLabel(type: NotificationType, locale: Locale): string {

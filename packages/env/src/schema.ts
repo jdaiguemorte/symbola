@@ -10,7 +10,6 @@
 // validés séparément dans packages/db (voir packages/db/src/admin-env.ts) :
 // ils n'ont pas besoin d'être présents dans l'environnement de l'app
 // déployée.
-import { createECDH } from "node:crypto";
 import { z } from "zod";
 
 // z.coerce.boolean() utilise Boolean(valeur) — "false" (chaîne non vide)
@@ -24,9 +23,13 @@ const booleanFromEnv = z.preprocess((value) => {
 
 // Lot 53 (ADR 0096) : la clé publique est bien celle de la clé privée (une paire mêlée ferait refuser
 // chaque envoi par les services de push).
+// Le schéma est aussi compilé pour le runtime edge (instrumentation) : pas d'import de node:crypto ; la
+// vérification ne se fait que là où Node la fournit (le serveur, les scripts, les tests).
 function vapidKeysMatch(publicKey: string, privateKey: string): boolean {
+  const nodeCrypto = (globalThis.process as { getBuiltinModule?: (name: string) => unknown } | undefined)?.getBuiltinModule?.("node:crypto") as typeof import("node:crypto") | undefined;
+  if (!nodeCrypto) return true;
   try {
-    const ecdh = createECDH("prime256v1");
+    const ecdh = nodeCrypto.createECDH("prime256v1");
     ecdh.setPrivateKey(Buffer.from(privateKey, "base64url"));
     return ecdh.getPublicKey().equals(Buffer.from(publicKey, "base64url"));
   } catch {
