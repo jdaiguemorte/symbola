@@ -45,3 +45,26 @@ export { getGuestPurgeSchedule, listGuestPurgeNotices, listRecentOppositions, po
 export { GuestImportNotFoundError, importGuests, listGuestImports, undoGuestImport } from "./import";
 export { guestsPrivacy } from "./privacy";
 export { describeGuestsExport, exportGuestsData, GUESTS_EXPORT_EXCLUSIONS } from "./export";
+// Lot 50 (INV-05, INV-06 ; ADR 0086) : plan de table, types de repas, synthèse pour le traiteur.
+export {
+  addSeatingConstraint,
+  addSeatingTables,
+  copySeatingPlan,
+  createSeatingPlan,
+  dismissSeatRelease,
+  downloadCatererSummary,
+  getSeatingPlan,
+  listSeatingMoments,
+  removeSeatingConstraint,
+  removeSeatingPlan,
+  removeSeatingTable,
+  seatGuest,
+  seatHousehold,
+  setVendorMealCount,
+  updateSeatingTable,
+  type CatererSummaryRequest,
+} from "./seating";
+export { addMealType, listMealTypes, renameMealType, setGuestMealType, setMealTypeHidden } from "./meal-types";
+export { SeatingInvalidError, SeatingNotFoundError, type SeatingProblem } from "./seating-errors";
+export { buildCatererSummary, catererCsvTable, type CatererCsvLabels } from "./caterer-summary";
+export { renderCatererSummary, type CatererSummaryFile } from "./caterer-summary-render";

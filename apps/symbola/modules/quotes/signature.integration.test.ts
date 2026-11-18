@@ -35,6 +35,7 @@ import {
   sendQuoteForSignature,
   type QuoteDetail,
 } from "./service";
+import { markSigningCodeVerified } from "@/lib/test-fixtures/signing-code";
 import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
 import { confirmed } from "@/lib/test-fixtures/recipients";
 import { recipientsDigest, RecipientsNotConfirmedError } from "@/modules/hub/service";
@@ -431,10 +432,14 @@ describe("DEV-02 — Espace du marié", () => {
     const { organizationId, quoteId, eventId } = await setup();
     const { detail, people } = await sendForSignature(organizationId, quoteId);
 
+    // Lot 43 (SEC-16, D4) : sans le code à usage unique vérifié depuis son lien, pas de lien de signature.
+    expect((await listClientQuotesToSign(organizationId, eventId, people[0]!.email))[0]).toMatchObject({ ownSigningUrl: null, ownStatus: "pending" });
+    await markSigningCodeVerified(organizationId, people[0]!.email);
     const own = await listClientQuotesToSign(organizationId, eventId, people[0]!.email.toUpperCase());
     expect(own).toEqual([
       {
         quoteId,
+        versionId: detail.current.id,
         number: detail.number,
         version: 1,
         totalTtcCents: 120000,

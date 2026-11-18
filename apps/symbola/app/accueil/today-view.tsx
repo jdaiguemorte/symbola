@@ -29,6 +29,16 @@ export function todayWords(t: TodayTranslator): TodayWords {
     linkRenewal: (name) => t("words.linkRenewal", { name }),
     guestPurge: (stage) => t(stage === "diets" ? "words.guestPurgeDiets" : "words.guestPurgeAll"),
     guestOpposition: (count) => t("words.guestOpposition", { count }),
+    appointment: (time, type, person) => t("words.appointment", { time, type, person }),
+    appointmentChange: (change, time, type, person) => t(`words.appointmentChange.${change}`, { time, type, person }),
+    calendarSourceError: (label) => t("words.calendarSourceError", { label }),
+    prospectRequest: (names, when) => (when ? t("words.prospectRequest", { names, when }) : t("words.prospectRequestNoDate", { names })),
+    prospectRequestDateTaken: t("words.prospectRequestDateTaken"),
+    prospectToReview: (count) => t("words.prospectToReview", { count }),
+    vendorAnswer: (vendor, slot, answer) => t(`words.vendorAnswer.${answer}`, { vendor, slot }),
+    vendorChoice: (vendor, slot) => t("words.vendorChoice", { vendor, slot }),
+    vendorRoadmap: (vendor) => t("words.vendorRoadmap", { vendor }),
+    transferDeclaration: (name, amount) => t("words.transferDeclaration", { name, amount }),
   };
 }
 

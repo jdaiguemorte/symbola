@@ -165,6 +165,18 @@
         "null"
       ]
     },
+    "pipelineStageId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "tasksScheduledFor": {
       "anyOf": [
         {
@@ -277,6 +289,7 @@
     "eventTypeId",
     "lossReasonId",
     "lossReasonNote",
+    "pipelineStageId",
     "tasksScheduledFor",
     "programUpdatedAt",
     "demoExpiresAt",

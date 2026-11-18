@@ -1,12 +1,15 @@
+import { appDatabase } from "@symbola/db/client";
+import { getOrganizationContact } from "@/modules/hub/service";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, formatDateTime, formatMonth, parisToday, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
-import { getLinkEventView, getLinkVendorOptions, LinkAccessDeniedError, listLinkDecisions, listLinkSharedDocuments, markLinkProgramSeen, monthKey, type EventDecision, type EventTask, type LinkAccess } from "@/modules/events/service";
-import { getLinkBudgetView, LinkBudgetAccessDeniedError } from "@/modules/budget/service";
-import { listClientQuoteOptions, listClientQuotesToSign, listEventInvoices } from "@/modules/quotes/service";
+import { getLinkEventView, getLinkVendorOptions, LinkAccessDeniedError, listLinkDecisions, listLinkOptionFeedback, listLinkSharedDocuments, markLinkProgramSeen, monthKey, type EventDecision, type EventTask, type LinkAccess } from "@/modules/events/service";
+import { getLinkBudgetView, getLinkPayerShare, LinkBudgetAccessDeniedError, listLinkPayers } from "@/modules/budget/service";
+import { listClientQuoteOptions, listClientQuotesToSign, listEventInvoices, listEventProposals } from "@/modules/quotes/service";
+import { listUpcomingAppointmentsForPerson } from "@/modules/appointments/service";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
@@ -75,11 +78,24 @@ export async function PortalContent({ access, preview = false, banner }: { acces
     }
   }
   const methods = budget ? await declarablePaymentMethods(organizationId) : [];
+  // Lot 43 (BUD-06, BUD-11 ; D8, D9) : la part d'un payeur « part seule » ; le réglage des payeurs, pour
+  // un des mariés ; le calendrier des sorties d'argent.
+  const share = budget?.scope === "share" ? ((await getLinkPayerShare(organizationId, linkId))?.share ?? null) : null;
+  let canSetPayers = false;
+  if (budget && !preview) {
+    try {
+      canSetPayers = (await listLinkPayers(organizationId, linkId)).length > 0;
+    } catch (error) {
+      if (!(error instanceof LinkBudgetAccessDeniedError)) throw error;
+    }
+  }
   // DEV-02 : devis à signer, reconnus par l'e-mail du lien.
   const quotesEnabled = rubrics.includes("quotes") && (await isQuotesModuleEnabled(organizationId));
   const quotesToSign = quotesEnabled ? await listClientQuotesToSign(organizationId, access.eventId, access.email) : [];
   // Lot 31a (FAC-01, D2 ; SC-02 étape 5) : options des devis envoyés, à cocher avant de signer.
   const quoteOptions = quotesEnabled && access.audience === "client" ? await listClientQuoteOptions(organizationId, access.eventId) : [];
+  // Lot 43 (FAC-02, D3) : chaque proposition envoyée se lit en page web (version courante).
+  const proposals = quotesEnabled && access.audience === "client" ? await listEventProposals(organizationId, access.eventId) : [];
   let vendorOptions: Awaited<ReturnType<typeof getLinkVendorOptions>> = [];
   if (rubrics.includes("vendor_options")) {
     try {
@@ -91,9 +107,12 @@ export async function PortalContent({ access, preview = false, banner }: { acces
 
   // Lot 27b (POR-03, D10) : décisions de ses rubriques (options, budget, programme).
   let decisions: EventDecision[] = [];
+  // Lot 47 (PRE-09, D7) : les avis de ce lien sur les options proposées.
+  let optionFeedback: Awaited<ReturnType<typeof listLinkOptionFeedback>> = [];
   if (rubrics.some((rubric) => rubric === "vendor_options" || rubric === "budget" || rubric === "program")) {
     try {
       decisions = await listLinkDecisions(organizationId, linkId);
+      if (decisions.some((decision) => decision.kind === "option" && decision.status === "pending")) optionFeedback = await listLinkOptionFeedback(organizationId, linkId);
     } catch (error) {
       if (!(error instanceof LinkAccessDeniedError)) throw error;
     }
@@ -110,6 +129,9 @@ export async function PortalContent({ access, preview = false, banner }: { acces
   }
   const invoices = (await isQuotesModuleEnabled(organizationId)) ? await listEventInvoices(organizationId, access.eventId) : [];
   const hasDocuments = sharedDocuments.length > 0 || invoices.length > 0;
+  // Lot 46 (POR-02, POR-10) : les prochains rendez-vous de l'évènement auxquels la personne du lien
+  // participe (reconnue par son adresse e-mail), seulement les siens ; rien si le module est fermé.
+  const upcomingAppointments = access.audience === "client" ? await listUpcomingAppointmentsForPerson(organizationId, access.eventId, access.email) : [];
 
   const tasksByMonth = new Map<string, EventTask[]>();
   for (const task of view.tasks ?? []) {
@@ -126,7 +148,7 @@ export async function PortalContent({ access, preview = false, banner }: { acces
     view.program ? ["programme", tLink("navProgram")] : null,
     vendorOptions.length > 0 ? ["options", tLink("navOptions")] : null,
     budget ? ["budget", tLink("navBudget")] : null,
-    quotesToSign.length > 0 || quoteOptions.length > 0 ? ["devis", tLink("navQuotes")] : null,
+    quotesToSign.length > 0 || quoteOptions.length > 0 || proposals.length > 0 ? ["devis", tLink("navQuotes")] : null,
     hasDocuments ? ["documents", tLink("navDocuments")] : null,
   ].filter((entry): entry is [string, string] => entry !== null);
 
@@ -227,6 +249,21 @@ export async function PortalContent({ access, preview = false, banner }: { acces
             </ol>
           </>
         )}
+        {upcomingAppointments.length > 0 ? (
+          <>
+            <h3>{tLink("appointmentsTitle")}</h3>
+            <ul className="portal-appointments">
+              {upcomingAppointments.map((appointment) => (
+                <li key={appointment.id}>
+                  <strong>{appointment.typeName}</strong> — {formatDateTime(new Date(appointment.startsAt), locale)}
+                  {appointment.locationKind === "place" && appointment.location ? ` · ${appointment.location}` : ""}
+                  {appointment.locationKind === "video" ? ` · ${tLink("appointmentVideo")}` : ""}
+                  {appointment.locationKind === "phone" ? ` · ${tLink("appointmentPhone")}` : ""}
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
         {sections.length > 1 ? (
           <nav aria-label={tLink("contentsLabel")} className="portal-contents">
             <ul>
@@ -240,7 +277,7 @@ export async function PortalContent({ access, preview = false, banner }: { acces
         ) : null}
       </section>
 
-      {decisions.length > 0 ? <ClientDecisions decisions={decisions} locale={locale} preview={preview} /> : null}
+      {decisions.length > 0 ? <ClientDecisions decisions={decisions} locale={locale} preview={preview} feedback={optionFeedback} plannerName={decisions.some((decision) => decision.kind === "option") ? (await getOrganizationContact(appDatabase(), organizationId)).name : ""} /> : null}
 
       {view.tasks ? (
         <section aria-labelledby="portal-tasks-title" id="taches">
@@ -309,12 +346,39 @@ export async function PortalContent({ access, preview = false, banner }: { acces
       {budget ? (
         <section aria-labelledby="client-budget-title" id="budget">
           <h2 id="client-budget-title">{t("budgetTitle")}</h2>
-          <ClientBudget view={budget} locale={locale} methods={methods} today={today} preview={preview} />
+          <ClientBudget view={budget} locale={locale} methods={methods} today={today} preview={preview} share={share} />
+          <p>
+            {preview ? <span>{tLink("cashCalendarLink")}</span> : <a href="/portail/calendrier">{tLink("cashCalendarLink")}</a>}
+            {canSetPayers ? (
+              <>
+                {" · "}
+                <a href="/portail/payeurs">{tLink("payersLink")}</a>
+              </>
+            ) : null}
+          </p>
         </section>
       ) : null}
 
-      {quotesToSign.length > 0 || quoteOptions.length > 0 ? (
+      {quotesToSign.length > 0 || quoteOptions.length > 0 || proposals.length > 0 ? (
         <div id="devis">
+          {proposals.length > 0 ? (
+            <section aria-labelledby="client-proposals-title">
+              <h2 id="client-proposals-title">{tLink("proposalsTitle")}</h2>
+              <ul>
+                {proposals.map((proposal) => (
+                  <li key={proposal.versionId}>
+                    {preview ? (
+                      <span>{tLink("proposalLink", { number: proposal.number, version: proposal.version })}</span>
+                    ) : (
+                      <a href={`/portail/proposition/${proposal.versionId}`}>{tLink("proposalLink", { number: proposal.number, version: proposal.version })}</a>
+                    )}
+                    {proposal.status === "open" && proposal.validUntil ? ` — ${tLink("proposalValidUntil", { date: formatCalendarDate(proposal.validUntil, locale) })}` : ""}
+                    {proposal.status !== "open" ? ` — ${tLink(`proposalStatus.${proposal.status}`)}` : ""}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
           {quoteOptions.length > 0 ? (
             <section aria-labelledby="client-options-title">
               <h2 id="client-options-title">{t("optionsTitle")}</h2>

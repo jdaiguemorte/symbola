@@ -81,10 +81,10 @@ test("JRJ-04 / SC-08 étape 3 — le plan de table envoyé, embarqué, s'ouvre e
 
   // Garder sur l'appareil, puis le mode avion.
   await page.getByRole("button", { name: "Garder sur cet appareil" }).click();
-  await expect(page.getByRole("status").first()).toContainText("Prêt hors ligne");
+  await expect(page.getByRole("region", { name: "Sur cet appareil" }).getByRole("status")).toContainText("Prêt hors ligne");
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole("status").first()).toContainText("Sans réseau");
+  await expect(page.getByRole("region", { name: "Sur cet appareil" }).getByRole("status")).toContainText("Sans réseau");
   const planLink = page.getByRole("region", { name: "Documents" }).getByRole("link", { name: "Plan de table", exact: true });
   if (browserName === "webkit") {
     // Lot 40c (NFR-18) : le document est servi « inline » ; WebKit sous Playwright l'affiche au lieu

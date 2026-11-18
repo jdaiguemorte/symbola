@@ -50,6 +50,9 @@
       "minimum": -9007199254740991,
       "maximum": 9007199254740991
     },
+    "autoCreated": {
+      "type": "boolean"
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
@@ -117,6 +120,7 @@
     "startTime",
     "placeId",
     "position",
+    "autoCreated",
     "createdAt",
     "createdBy",
     "updatedAt",

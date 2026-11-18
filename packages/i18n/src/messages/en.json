@@ -125,7 +125,10 @@
     "followUpDepositBlocked": "Deposit invoice for quote {number} blocked: a mention is missing",
     "followUpDepositOn": "on {date}",
     "followUpDepositBlockedBadge": "to issue",
-    "contacts": "Contacts"
+    "contacts": "Contacts",
+    "appointments": "Appointments",
+    "settingsAppointments": "Types and booking page",
+    "appointmentAvailability": "My availability"
   },
   "Admin": {
     "createOrganizationTitle": "Create an organization",
@@ -1061,7 +1064,7 @@
     },
     "dayOf": {
       "title": "Day-of",
-      "body": "The day of the event on one dark screen, readable in the sun: “Now” (the current item, in large type, with a call to its vendors) and “Next”, worked out on the phone, even without a network. The bottom bar, within thumb reach, calls the contact of the current item and leads to the schedule, the contacts (emergencies, day-of contacts, vendors, couple: call or text in one tap) and the chosen documents. “Keep on this device” copies the screen to the phone: it then opens without a network, and updates each time it is opened with a network.",
+      "body": "The day of the event on one dark screen, readable in the sun: “Now” (the current item, in large type, with a call to its vendors) and “Next”, worked out on the phone, even without a network. The bottom bar, within thumb reach, calls the contact of the current item and leads to the schedule, the contacts (emergencies, day-of contacts, vendors, couple: call or text in one tap) and the chosen documents. “Keep on this device” copies the screen to the phone: it then opens without a network, and updates each time it is opened with a network. The day is checked in: \"Started\", \"Finished\"; a delay offers to shift the rest and notify vendors after your confirmation; \"Incident\" logs a dictated fact in ten seconds; checklists tick in one tap and the day's payment handovers are recorded. Everything starts from the phone, even offline.",
       "faq": [
         {
           "q": "How do I open the day without a network?",
@@ -1086,6 +1089,34 @@
         {
           "q": "Where do I add the venue manager or a taxi?",
           "a": "In the event's “Schedule” tab, “Day-of contacts” section: name, role and phone. They appear in the day-of directory, below the emergency numbers."
+        },
+        {
+          "q": "How do I check in a sequence?",
+          "a": "On \"Now\" (or in the day's schedule), tap \"Started\", then \"Finished\". The time is your phone's, even offline. If two people check in the same sequence, both check-ins are kept and the screen shows the first time."
+        },
+        {
+          "q": "What happens when a sequence runs late?",
+          "a": "If it starts or finishes later than planned, the screen offers to shift the rest of the key moment: by the delay observed (editable), all following sequences by default (untick fixed ones, like a coach arrival), and the vendors concerned. Nothing is sent without your confirmation. Once confirmed, the schedule is shifted, a new version is published and each vendor concerned receives an email; offline, it is sent when the network is back, only once."
+        },
+        {
+          "q": "How do I log an incident in a few seconds?",
+          "a": "Tap \"Incident\" in the bottom bar: the field opens with the keyboard; tap its microphone to dictate. Severity and photo are optional; \"Save\" records the time. Write the facts without guest names; a guest feeling unwell is logged without their name (no health data)."
+        },
+        {
+          "q": "Are photos shared?",
+          "a": "No: incident, checklist and receipt photos stay within your organisation, never shown to clients or vendors. Photograph things rather than people. Reduced on the phone, they are checked on arrival (type, size, antivirus); a refused photo is flagged and the incident stays. They are deleted with the event documents."
+        },
+        {
+          "q": "What happens without network?",
+          "a": "Everything you do (check-in, shift, incident, box, handover, photo) is kept on the phone and sent in order as soon as the network is back, with the screen open. \"3 actions waiting\" then \"Up to date\" tell you. If your session has expired, nothing is lost: sign in again and sending resumes."
+        },
+        {
+          "q": "How do I record a handover on the day?",
+          "a": "In the budget, mark the instalment \"To hand over on the day\" (cheque, cash, envelope) with the person handing it over. On the day, the \"Payments handed over today\" list shows it: tap \"Handed over\" (and \"Receipt\" to photograph the receipt). The instalment becomes handed over and paid in the client's budget. Cash: cash payments are capped by law; check the limit that applies before planning a cash handover."
+        },
+        {
+          "q": "Where is the report?",
+          "a": "The day after the event's last day, in its time zone, the report is ready on the event page (Overview): planned and actual sequences, shifts, incidents and photos, unticked boxes, handovers. It exports as a PDF and stays internal to your team."
         }
       ]
     },
@@ -1176,6 +1207,142 @@
     "portalGuests": {
       "title": "Your guests",
       "body": "Add your guests by household, or import your spreadsheet: duplicates are flagged before anything is saved. For a guest without email, get their personal link or QR code and send it by text. You follow replies per moment; diets show as numbers, never by name."
+    },
+    "seatingPlan": {
+      "title": "Seating plan",
+      "body": "One plan per key moment with tables (dinner, brunch). Add tables in series (“12 round tables of 10”), or copy the plan of another key moment. Seat a guest or a whole household with the “Move” button, from the keyboard or by touch, or drag them with the mouse. Only attending guests and those who have not answered can be seated; guests not seated stay visible with their number. “Together” and “apart” constraints and overfull tables are flagged, never blocked.",
+      "faq": [
+        {
+          "q": "A guest declines after being seated: what happens?",
+          "a": "They leave their table at once and an alert tells you on the plan; clear it once you have seen it."
+        },
+        {
+          "q": "Does the client see the plan or the constraints?",
+          "a": "No. The plan is built by the team; constraints never leave it, neither to the client nor in a summary."
+        }
+      ]
+    },
+    "catererSummary": {
+      "title": "Send the summary to the caterer",
+      "body": "From the seating plan, “Caterer summary” gives the PDF or the spreadsheet: covers and meals by type, diets and allergens, by table; vendor meals and guests awaiting an answer apart. The owner gets the named version; a team member, the version without names, exact per table. Nothing is kept in Symbola: the copy you send leaves Symbola, ask the caterer to delete it after the event."
+    },
+    "mealTypes": {
+      "title": "Meal types",
+      "body": "The meal types of the caterer summary: adult, child, baby (no meal), vendor to start with. Rename, hide or add a type; a guest's type follows their age, unless you change it on the seating plan."
+    },
+    "appointmentsList": {
+      "title": "Appointments",
+      "body": "Appointments booked on your booking page, and those entered by the team (phone, fair). New, moved or cancelled ones also show in “Today”. Start by creating an appointment type (a name and a duration), then choose your page address and give it to your future clients. Nobody needs an account: each person gets a confirmation with the invitation for their calendar, and a link to reschedule or cancel."
+    },
+    "appointmentDetail": {
+      "title": "An appointment",
+      "body": "Move or cancel the appointment: the person is told by email if you tick the box. With the Events module, link it to an event, or create an option from it with nothing to type again. After the appointment, write the report (team only) and its actions: “Make it a task” puts the action in the event's planning, with its due date and owner."
+    },
+    "appointmentNew": {
+      "title": "Enter an appointment",
+      "body": "For an appointment agreed by phone or in person: choose the type, the day and time (Paris time), then the person. Their contact card is created, or found by their email address. Tick “Notify” to send them the confirmation and their management link."
+    },
+    "appointmentSettings": {
+      "title": "Types and booking page",
+      "body": "A type is created with its name and duration; everything else has a default value (video call, 24 hours' notice, bookable 60 days ahead, reminder 24 hours before). The page address is yours (/reserver/your-name); changing it stops the old one. The privacy notice is shown under the form, in your name."
+    },
+    "appointmentType": {
+      "title": "Type settings",
+      "body": "Location (address, video link or phone), buffers before and after (travel or preparation time, never offered to another appointment), minimum notice, booking horizon, reminders, questions before booking (five at most) and the team member who hosts. By default, no appointment is offered on a confirmed event day."
+    },
+    "appointmentAvailability": {
+      "title": "My availability",
+      "body": "Your weekly hours (two ranges per day at most), your closed days and your calendars. Link your Google, Apple or Outlook calendar through its secret iCal address: only busy times are read, every fifteen minutes, never the content. If a calendar can no longer be read, no slot is offered until it is read again: better offer nothing than a time already taken."
+    },
+    "eventsPipeline": {
+      "title": "Follow your requests in columns",
+      "body": "Each card is an event with the Option status, placed at its stage. To move a card, drag it with the mouse, or use its “Move” button and choose the stage (with the keyboard as with a finger). Dropping on “Won” confirms the event once you agree; on “Lost”, cancels it with its reason. In a column, the card that has been waiting the longest is at the top. On a phone, choose the stage in the tabs.",
+      "faq": [
+        {
+          "q": "Does a stage change the event's status?",
+          "a": "No: stages are only markers within the Option status. Only “Won” and “Lost” change the status (Confirmed, Cancelled)."
+        },
+        {
+          "q": "What is a request “to check”?",
+          "a": "A contact form request whose message contains several links: it may come from a robot. Accept it to create the prospect, or delete it. Without action, it is deleted after 30 days."
+        }
+      ]
+    },
+    "eventsPipelineStages": {
+      "title": "Pipeline stages",
+      "body": "Rename stages, add some (ten at most), change their order, remove those you do not use. A stage holding cards is emptied first: choose the stage they move to.",
+      "faq": [
+        {
+          "q": "Can I add “Won” as a stage?",
+          "a": "No need: “Won” and “Lost” are always at the end of the pipeline; they confirm or cancel the event."
+        }
+      ]
+    },
+    "eventsContactForm": {
+      "title": "Put the form on your website",
+      "body": "Open the form, choose its address and give the address of your privacy policy (required). Share the link, or copy the code into your website after declaring its address under “Websites allowed”: the form only shows on those websites. Each request creates a prospect with the Option status, at the first stage of the pipeline, and appears in “Today”. The person receives no automatic email: the reply comes from you.",
+      "faq": [
+        {
+          "q": "What about spam?",
+          "a": "The form protects itself without a captcha: an invisible trap field, a minimum filling time, a limited number of submissions. A request whose message contains several links is set aside “to check” in the pipeline."
+        },
+        {
+          "q": "A person you already know fills in the form?",
+          "a": "They are found by their email, and their record is not changed: what they wrote goes into the request."
+        }
+      ]
+    },
+    "vendorCoordination": {
+      "title": "Request quotes from several suppliers",
+      "body": "Write the brief for the category (the need, the number of guests, an indicative budget you show or not, the deadline, some inspiration), tick the suppliers, check the list, then send: each one gets their own email and link, with no account, and never sees the others. Those who have not answered get a reminder the day before the deadline. Answers arrive in the comparison; then tick the proposals to show the client and ask them to choose. Their choice books the supplier, sets the others aside and creates the follow-up tasks. You change the booked supplier whenever you want."
+    },
+    "vendorScenarios": {
+      "title": "Compare option scenarios",
+      "body": "A scenario picks at most one supplier per category. Compare two scenarios side by side: categories in rows, totals to the cent, differences highlighted, against the client's envelope and the estimated budget. A quote without an amount counts as “to be specified”. Show a scenario to the client: its suppliers appear in their options."
+    },
+    "vendorCoordinationSettings": {
+      "title": "Supplier run sheets",
+      "body": "Set the default deadline of a brief, the reminder the day before, the run sheets sent 30 and 7 days before to booked suppliers (each confirms with one tap), the delay after which an unconfirmed run sheet is flagged to you, and the follow-up tasks created when the client chooses a supplier."
+    },
+    "dayChecklists": {
+      "title": "Event-day checklists",
+      "body": "Your organisation's checklist templates (setup, teardown), copied at first from a few standard lists. Add a checklist to a key moment from the event-day screen (\"Prepare the checklists\"): it is copied, and editing the template afterwards does not change it."
+    },
+    "programImport": {
+      "title": "Import a schedule",
+      "body": "A schedule kept in a spreadsheet (CSV or XLSX) imports into the event schedule: columns day or key moment, start, end, sequence, location, responsible, note. The review screen shows the sequences read and the issues row by row; nothing is written before \"Import\". Missing key moments are created; a cell starting with =, +, - or @ stays text."
+    },
+    "settlement": {
+      "title": "Pay the deposit",
+      "body": "Payment is made by bank transfer, from your bank: copy the IBAN and the reference, or read the QR code with your banking app. Once the transfer is made, press “I have made the transfer”; your planner will confirm its receipt. No card and no payment goes through this page."
+    },
+    "cashCalendar": {
+      "title": "Cash-out calendar",
+      "body": "Month by month, what remains to be paid: to your planner and to your vendors, with who pays each instalment and where it stands (upcoming, reported, paid)."
+    },
+    "portalPayers": {
+      "title": "What each payer sees",
+      "body": "Your families or a company are contributing? For each of them, choose whether they see only their share (the amount that falls to them and their instalments) or the whole budget."
+    },
+    "proposalTemplates": {
+      "title": "Proposal templates",
+      "body": "The page your client receives when you send a quote: your welcome note, your presentation, the quote and its options, the schedule, the validity, then “Accept and sign”. One template for all events, and one per type if needed; each quote reuses the welcome note and can change it before sending."
+    },
+    "reminderSettings": {
+      "title": "Reminders",
+      "body": "When Symbola reminds your clients: a few days before a proposal expires, then after an unpaid instalment. Each reminder goes out once, stops as soon as the client reports their transfer, and can be suspended on the quote."
+    },
+    "proposalPreview": {
+      "title": "Proposal preview",
+      "body": "The exact page your client sees, without saving anything: check the welcome note, options and amounts before notifying them."
+    },
+    "budgetPayers": {
+      "title": "Payers and split",
+      "body": "The couple pay for everything by default. Add a family or a company, then split each line by percentage or amount: totals add up to the cent. Choose who pays each instalment, and what each payer sees (only their share, by default)."
+    },
+    "budgetCashCalendar": {
+      "title": "Cash-out calendar",
+      "body": "Month by month, the client's instalments to you and to their vendors, with their payer and status: the answer to “what do we have to pay in May?”."
     }
   },
   "Aide": {
@@ -1846,7 +2013,52 @@
       "date": "The date is not valid.",
       "time": "The time is not valid (HH:MM).",
       "place": "This place is not one of the event's places.",
-      "too_many": "An event has at most 20 key moments."
+      "too_many": "An event has at most 20 key moments.",
+      "has_items": "This key moment holds schedule sequences."
+    },
+    "activityStageChanged": "Moved to the “{task}” stage.",
+    "prospectRequestTitle": "Request received through the contact form",
+    "prospectRequestReceived": "Received on {date}",
+    "prospectRequestPeriod": "Preferred period: {period}",
+    "prospectRequestBudget": "Stated budget: {budget}",
+    "prospectRequestNoMessage": "No message.",
+    "pipelineView": "Column view",
+    "programKeyMoment": "Key moment",
+    "programKeyMomentDefault": "Event day",
+    "programMomentInvalid": "This key moment does not belong to the event.",
+    "keyMomentHasItems": "{count, plural, one {This key moment holds # schedule sequence: move or delete it to remove the key moment.} other {This key moment holds # schedule sequences: move or delete them to remove the key moment.}}",
+    "programImportTitle": "Import a schedule (spreadsheet)",
+    "programImportHint": "Recognised columns: day or key moment, date, start, end, sequence, location, responsible, note. Nothing is written before you agree; missing key moments are created.",
+    "programImportFileLabel": "CSV or XLSX file",
+    "programImportFile": "Choose a CSV or XLSX file.",
+    "programImportTooLarge": "This file is over 1 MB: a schedule weighs a few KB.",
+    "programImportPreview": "Preview before importing",
+    "programImportPreviewTitle": "{count, plural, =0 {No sequence read} one {# sequence read} other {# sequences read}}",
+    "programImportNeutralized": "{count, plural, one {# cell starting with =, +, - or @ was kept as text.} other {# cells starting with =, +, - or @ were kept as text.}}",
+    "programImportUnknownColumns": "Ignored columns: {columns}.",
+    "programImportNewMoments": "Key moments created: {moments}.",
+    "programImportProblems": "Rows set aside",
+    "programImportProblem": "Row {line}: {problem}",
+    "programImportProblems_": {
+      "start": "unreadable start time",
+      "end": "unreadable end time",
+      "label": "empty sequence",
+      "moment_date": "key moment without a date (the event has no date)",
+      "too_long": "text too long"
+    },
+    "programImportLine": "Row",
+    "programImportSkip": "Set aside",
+    "programImportSkipLine": "Set aside row {line}",
+    "programImportApply": "{count, plural, one {Import # sequence} other {Import # sequences}}",
+    "programImportApplied": "{items, plural, one {# sequence imported} other {# sequences imported}}, {moments, plural, =0 {no key moment created} one {# key moment created} other {# key moments created}}.",
+    "programImportRejected": {
+      "empty": "The file is empty.",
+      "too_large": "The file is too large.",
+      "infected": "The file was refused by the antivirus.",
+      "no_start_column": "No start time column recognised (start, time…).",
+      "no_label_column": "No sequence column recognised (sequence, item…).",
+      "unsupported_format": "Unread format: save the file as .xlsx or .csv.",
+      "malformed": "The file could not be read."
     }
   },
   "Budget": {
@@ -2035,7 +2247,18 @@
     "declarationRefusedNote": "Declaration refused: {reason}",
     "declarationsTitle": "Declared payments to confirm",
     "declarationLine": "{name} paid {label} ({amount}) — {event}",
-    "declarationLineMeta": "on {date}, {method}"
+    "declarationLineMeta": "on {date}, {method}",
+    "handoverOpen": "Handed over on the day: {label}",
+    "handoverOnDay": "To hand over on the day",
+    "handoverMethod": "Method (cheque, cash, envelope…)",
+    "handoverBy": "Handed over by",
+    "handoverSave": "Save the handover",
+    "handoverMarked": "To hand over on the day: {method}, by {by}",
+    "handoverDone": "Handed over on the day ({method})",
+    "handoverCashHint": "Cash: cash payments are capped by law (see the help).",
+    "payersNav": "Payers and calendar",
+    "payersLink": "Payers and split",
+    "cashCalendarLink": "Cash-out calendar"
   },
   "Quotes": {
     "title": "Quotes",
@@ -2663,7 +2886,8 @@
     "orderReferenceSaved": "Number saved.",
     "orderReferenceInvalid": "The number fits on one line of 60 characters at most.",
     "orderReferenceError": "This number cannot be saved here.",
-    "orderReferenceIs": "Purchase order: {reference}"
+    "orderReferenceIs": "Purchase order: {reference}",
+    "acceptAndSign": "Accept and sign quote {number}"
   },
   "NotFound": {
     "title": "Page not found",
@@ -2677,7 +2901,8 @@
     "sign": "Sign the quote",
     "decline": "Decline the quote",
     "signed": "You have signed this quote.",
-    "declined": "You have declined this quote."
+    "declined": "You have declined this quote.",
+    "backToSpace": "Back to my space"
   },
   "Import": {
     "title": "Import data",
@@ -3735,7 +3960,8 @@
       "company": "My company and account",
       "data": "Import and personal data",
       "admin": "Suite operations",
-      "clients": "Your space"
+      "clients": "Your space",
+      "appointments": "Appointments"
     },
     "screenTitle": "Help: {title}",
     "back": "Back to the help centre",
@@ -4791,7 +5017,17 @@
     "emailTemplates": "Email templates",
     "messageTemplates": "Message templates",
     "trash": "Trash",
-    "dietaryOptions": "Diets and allergies"
+    "dietaryOptions": "Diets and allergies",
+    "mealTypes": "Meal types",
+    "groupAppointments": "Appointments",
+    "appointmentTypes": "Types and booking page",
+    "appointmentAvailability": "My availability and calendars",
+    "pipelineStages": "Pipeline stages",
+    "contactForm": "Contact form",
+    "vendorCoordination": "Suppliers by link",
+    "dayChecklists": "Event-day checklists",
+    "proposalTemplates": "Proposal templates",
+    "paymentReminders": "Reminders"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -5062,7 +5298,29 @@
       "guests_purge_postponed": "Guest purge postponed",
       "guests_purge_executed": "Guest data purged",
       "guests_import_applied": "Guest list imported",
-      "guests_import_undone": "Guest import undone"
+      "guests_import_undone": "Guest import undone",
+      "guests_caterer_summary_downloaded": "Caterer summary downloaded",
+      "events_contact_form_updated": "Contact form set up",
+      "events_prospect_request_received": "Request received through the contact form",
+      "events_prospect_request_to_review": "Request set aside “to check”",
+      "events_vendor_brief_sent": "Quote request sent to suppliers",
+      "events_vendor_brief_reminded": "Supplier reminded the day before the deadline",
+      "events_vendor_answered": "Supplier answered a quote request",
+      "events_vendor_invoice_received": "Invoice uploaded by a supplier",
+      "events_vendor_roadmap_sent": "Run sheet sent to a supplier",
+      "events_vendor_roadmap_confirmed": "Run sheet confirmed by a supplier",
+      "events_decision_engaged": "Client choice committed (supplier booked, follow-up tasks)",
+      "events_vendor_retention_changed": "Booked supplier changed by the team",
+      "events_program_imported": "Schedule imported from a spreadsheet",
+      "events_day_shift_applied": "Event-day shift confirmed and published",
+      "events_day_report_downloaded": "Event-day report downloaded",
+      "quotes_transfer_declared": "Transfer declared by the payer",
+      "quotes_reminders_suspended": "Payment reminders suspended",
+      "quotes_reminders_resumed": "Payment reminders resumed",
+      "quotes_validity_extended": "Quote validity extended",
+      "quotes_signing_code_verified": "Code checked before signing",
+      "budget_payers_changed": "Payers or shares changed",
+      "budget_payer_visibility_changed": "What a payer sees, changed"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -5187,7 +5445,39 @@
       "guests_diets": "guest's diets",
       "guests_diet_consents": "proof of consent to diets",
       "guests_guest_links": "guest personal link",
-      "guests_purge_postponements": "guest purge postponement"
+      "guests_purge_postponements": "guest purge postponement",
+      "guests_meal_types": "meal type",
+      "guests_seating_plans": "seating plan",
+      "guests_seating_tables": "seating plan table",
+      "guests_seat_assignments": "seat on the seating plan",
+      "guests_seating_constraints": "seating constraint",
+      "guests_seating_constraint_members": "person in a seating constraint",
+      "guests_vendor_meal_counts": "vendor meals",
+      "guests_caterer_summary_downloads": "caterer summary download",
+      "events_contact_forms": "contact form",
+      "events_pipeline_stages": "pipeline stage",
+      "events_prospect_requests": "contact request",
+      "events_vendor_briefs": "quote request brief",
+      "events_vendor_brief_documents": "brief inspiration",
+      "events_vendor_scenarios": "option scenario",
+      "events_vendor_scenario_choices": "option scenario choice",
+      "events_event_decision_option_feedback": "client opinion on an option",
+      "events_vendor_roadmaps": "supplier run sheet",
+      "events_vendor_coordination_settings": "suppliers by link settings",
+      "events_day_checkpoints": "event-day check-in",
+      "events_day_shifts": "event-day shift",
+      "events_day_photos": "event-day photo",
+      "events_day_incidents": "incident log entry",
+      "events_day_checklist_templates": "event-day checklist template",
+      "events_day_checklists": "event-day checklist",
+      "events_day_checklist_items": "event-day checklist box",
+      "events_day_reports": "event-day report",
+      "quotes_proposal_templates": "Proposal template",
+      "quotes_payment_references": "Transfer reference",
+      "quotes_payment_reminders": "Payment reminder",
+      "budget_event_payers": "Payer",
+      "budget_budget_line_payer_shares": "Payer's share",
+      "budget_planner_instalment_payers": "Payer of an instalment"
     },
     "modules": {
       "events": "Events",
@@ -5368,7 +5658,21 @@
     "navDecisions": "To decide",
     "actionGoDecision": "Answer",
     "navDocuments": "Documents",
-    "guestsLink": "Your guests: list, import and replies"
+    "guestsLink": "Your guests: list, import and replies",
+    "appointmentsTitle": "Your next appointments",
+    "appointmentVideo": "video call",
+    "appointmentPhone": "phone call",
+    "cashCalendarLink": "Cash-out calendar",
+    "payersLink": "What each payer sees",
+    "proposalsTitle": "Your proposals",
+    "proposalLink": "Proposal {number} (version {version})",
+    "proposalValidUntil": "valid until {date}",
+    "proposalStatus": {
+      "expired": "expired",
+      "signed": "signed",
+      "declined": "declined",
+      "superseded": "replaced"
+    }
   },
   "VendorSpace": {
     "title": "Your vendor space",
@@ -5388,7 +5692,8 @@
     "programPdf": "Download your schedule (PDF)",
     "programNotPublished": "The schedule has not been shared yet.",
     "outlineTitle": "The day at a glance",
-    "outlineYours": "you"
+    "outlineYours": "you",
+    "programDayShift": "{minutes} min shift on the day: your times below are up to date."
   },
   "Decisions": {
     "decisionOptionTitle": "Choose: {slot}",
@@ -5472,7 +5777,15 @@
       "demo": "No decision on a trial event.",
       "gone": "This event is no longer available.",
       "subject": "Choose what the client should decide."
-    }
+    },
+    "engageNotice": "Your choice is passed on to {planner}; the contract is signed directly with the supplier.",
+    "feedbackTitle": "Your opinion on the options: {label}",
+    "feedbackOn": "Your opinion on {vendor}",
+    "feedbackLike": "I like it",
+    "feedbackDislike": "Not for us",
+    "feedbackComment": "A word about {vendor} (optional)",
+    "feedbackSave": "Save my opinion on {vendor}",
+    "feedbackSaved": "Opinion saved."
   },
   "DayOf": {
     "backToEvent": "Back to the event",
@@ -5565,7 +5878,90 @@
     "sms": "Text",
     "mail": "Email",
     "smsLabel": "Text {name} on {phone}",
-    "responsible": "In charge: {name}"
+    "responsible": "In charge: {name}",
+    "you": "you",
+    "teammate": "a team member",
+    "daysLabel": "Event days",
+    "started": "Started",
+    "finished": "Finished",
+    "startLabel": "Started: {label}",
+    "finishLabel": "Finished: {label}",
+    "startedAt": "Started at {time} ({name})",
+    "finishedAt": "Finished at {time} ({name})",
+    "pendingMark": "— waiting to be sent",
+    "present": "{count, plural, =0 {No guests expected} one {# guest expected} other {# guests expected}}",
+    "shiftTitle": "{minutes} min late",
+    "shiftIntro": "\"{label}\" is {minutes} min late. Shift the rest of this key moment?",
+    "shiftMinutes": "Shift by (minutes)",
+    "shiftItems": "Sequences to shift",
+    "shiftFixedHint": "Untick those that do not move (a coach arrival, for instance).",
+    "shiftVendors": "Vendors notified by email",
+    "shiftNoVendor": "No vendor on these sequences.",
+    "shiftNoLink": "{name}: no link, call them.",
+    "vendorUnknown": "Vendor not booked",
+    "shiftValidate": "{count, plural, =0 {Confirm the shift} one {Confirm and notify # vendor} other {Confirm and notify # vendors}}",
+    "shiftRefuse": "Do not shift",
+    "shiftQueued": "{count, plural, =0 {Shift confirmed: it will apply as soon as the network is back.} one {Shift confirmed: # vendor will be notified as soon as the network is back.} other {Shift confirmed: # vendors will be notified as soon as the network is back.}}",
+    "shiftSent": "{count, plural, =0 {{minutes} min shift confirmed.} one {{minutes} min shift confirmed: # vendor notified.} other {{minutes} min shift confirmed: # vendors notified.}}",
+    "syncDone": "Up to date",
+    "syncPending": "{count, plural, one {# action waiting to be sent} other {# actions waiting to be sent}}",
+    "syncOffline": "{count, plural, one {Offline: # action waiting, sent when the network is back.} other {Offline: # actions waiting, sent when the network is back.}}",
+    "syncSession": "{count, plural, =0 {Your session has expired.} one {Your session has expired: # action is waiting on this phone. Sign in again to send it.} other {Your session has expired: # actions are waiting on this phone. Sign in again to send them.}}",
+    "syncRejected": "{count, plural, one {One action could not be saved (sequence or box deleted, or wrong phone time).} other {# actions could not be saved (sequence or box deleted, or wrong phone time).}}",
+    "photoRefused": "Photo refused ({reason}): everything else is saved.",
+    "photoRejection": {
+      "type": "not an image",
+      "size": "too large",
+      "virus": "refused by the antivirus",
+      "unavailable": "not received"
+    },
+    "photo": "Photo",
+    "photoAdded": "Photo attached",
+    "photoOf": "Photo of: {label}",
+    "photoHint": "Photograph things rather than people.",
+    "incidentButton": "Incident",
+    "incidentTitle": "Log an incident",
+    "incidentLabel": "What is happening",
+    "incidentHint": "Tap the keyboard microphone to dictate. Write the facts, without guest names or health data.",
+    "incidentPhoto": "Attach a photo to the incident",
+    "severityLegend": "Severity (optional)",
+    "severity": {
+      "info": "Info",
+      "follow_up": "Follow up",
+      "urgent": "Urgent"
+    },
+    "save": "Save",
+    "close": "Close",
+    "incidentSaved": "Incident logged at {time}.",
+    "logTitle": "Incident log",
+    "logEmpty": "No incident logged.",
+    "logPhoto": "See the photo",
+    "checklistsTitle": "Checklists",
+    "checklistsEmpty": "No checklist for this day. Prepare them below.",
+    "phase": {
+      "setup": "setup",
+      "teardown": "teardown"
+    },
+    "checkedAt": "Ticked at {time} ({name})",
+    "handoversTitle": "Payments handed over today",
+    "handoversEmpty": "No payment to hand over this day.",
+    "handoverBy": "handed over by {name}",
+    "handoverDone": "Handed over",
+    "handoverLabel": "Handed over: {vendor}",
+    "handedOverAt": "Handed over at {time} ({name})",
+    "receipt": "Receipt",
+    "receiptOf": "Receipt photo: {vendor}",
+    "prepTitle": "Prepare the checklists",
+    "prepHint": "Add to a key moment a checklist copied from a template; it goes to the team's phones.",
+    "prepTemplate": "Template",
+    "prepMoment": "Key moment",
+    "prepAdd": "Add the checklist",
+    "prepTemplatesLink": "Edit the checklist templates",
+    "prepNewItem": "New box",
+    "prepAddItem": "Add the box",
+    "prepRemove": "Remove",
+    "prepRemoveItem": "Remove the box {label}",
+    "prepRemoveList": "Remove the checklist \"{name}\""
   },
   "Offline": {
     "title": "Offline",
@@ -5959,7 +6355,26 @@
       "linkRenewal": "{name} is asking for a new link",
       "guestPurgeDiets": "Guests' diets will be erased: postpone if needed",
       "guestPurgeAll": "Guest data will be erased: postpone if needed",
-      "guestOpposition": "{count, plural, one {A guest objected} other {# guests objected}} to their data being kept"
+      "guestOpposition": "{count, plural, one {A guest objected} other {# guests objected}} to their data being kept",
+      "appointment": "{time} · {type} with {person}",
+      "appointmentChange": {
+        "new": "New appointment: {type} with {person}, on {time}",
+        "rescheduled": "Appointment moved: {type} with {person}, to {time}",
+        "cancelled": "Appointment cancelled: {type} with {person}, on {time}"
+      },
+      "calendarSourceError": "The calendar “{label}” can no longer be read: no slot is offered until it is read again",
+      "prospectRequest": "New request: {names}, {when}",
+      "prospectRequestNoDate": "New request: {names}",
+      "prospectRequestDateTaken": "Date already taken",
+      "prospectToReview": "{count, plural, one {One request to check} other {# requests to check}} (contact form)",
+      "vendorAnswer": {
+        "available": "{vendor} is available ({slot}), quote to come",
+        "quote": "{vendor} sent their quote ({slot})",
+        "unavailable": "{vendor} is not available ({slot})"
+      },
+      "vendorChoice": "The client chose {vendor} ({slot}): check it",
+      "vendorRoadmap": "{vendor} has not confirmed their run sheet",
+      "transferDeclaration": "{name} says they transferred {amount}"
     },
     "myEventsTitle": "My events",
     "myEventsEmpty": "No event in progress.",
@@ -6020,7 +6435,8 @@
       "events": "events",
       "quotes": "quotes and payments",
       "budget": "budget",
-      "guests": "guests"
+      "guests": "guests",
+      "appointments": "appointments"
     }
   },
   "QuickCreate": {
@@ -6268,7 +6684,12 @@
     "button": {
       "space": "Open my space",
       "sign": "Sign online",
-      "answer": "Reply"
+      "answer": "Reply",
+      "manage": "Reschedule or cancel",
+      "request": "View the request",
+      "available": "I am available",
+      "unavailable": "I am not available",
+      "roadmap": "See my run sheet"
     },
     "footerNote": "Sent with Symbola",
     "symbolaFooter": "Symbola — the suite for event organisers",
@@ -6283,7 +6704,18 @@
       "validUntil": "June 19, 2027",
       "tasks": "- Choose the rings: due March 10, 2027 (in 7 days)\n- Confirm the menu: due March 15, 2027 (in 12 days)",
       "quoteNumber": "D-2027-0042",
-      "version": "3"
+      "version": "3",
+      "place": "video call: https://video.example.com/studio",
+      "appointment": "First discovery call",
+      "appointmentDate": "2 March 2027 at 10:00",
+      "slot": "Flowers",
+      "deadline": "10 March 2027",
+      "amount": "€1,620.00",
+      "dueDate": "20 January 2027",
+      "reference": "SYM-2027-7KQ4XM",
+      "iban": "FR76 3000 6000 0112 3456 7890 189",
+      "bic": "AGRIFRPP",
+      "penalties": "Thank you for settling it as soon as possible."
     },
     "event": {
       "coupleClient": "your wedding",
@@ -6324,6 +6756,10 @@
         "subject": "Your Symbola invitation",
         "body": "Hello,\n\nYou have been invited to join \"{organization}\" on Symbola. This link is valid for 7 days:\n\n{url}",
         "button": "Accept the invitation"
+      },
+      "actionCode": {
+        "subject": "Your code to sign: {code}",
+        "body": "Hello {name},\n\nYour code to accept and sign your proposal on Symbola: {code}\n\nIt is valid for {minutes} minutes and can be used only once. If you did not ask for it, ignore this message and let your contact know."
       }
     }
   },
@@ -6348,7 +6784,11 @@
       "links": "Personal links",
       "reminders": "Reminders",
       "signatures": "Quotes and contracts",
-      "program": "Schedule"
+      "program": "Schedule",
+      "appointments": "Appointments",
+      "prospects": "Contact requests",
+      "vendors": "Suppliers",
+      "settlement": "Proposal and payment"
     },
     "kinds": {
       "client_link": {
@@ -6390,6 +6830,54 @@
       "program_published": {
         "title": "New schedule version",
         "description": "Sent when you notify a shared version by email, with the schedule as a PDF."
+      },
+      "appointment_confirmed": {
+        "title": "Appointment confirmed",
+        "description": "Sent as soon as an appointment is booked, with the calendar invitation and the link to reschedule or cancel."
+      },
+      "appointment_reminder": {
+        "title": "Appointment reminder",
+        "description": "Sent automatically before the appointment, according to the type's reminders."
+      },
+      "appointment_rescheduled": {
+        "title": "Appointment moved",
+        "description": "Sent when the appointment changes time, with the new invitation."
+      },
+      "appointment_cancelled": {
+        "title": "Appointment cancelled",
+        "description": "Sent when you cancel an appointment, or when the person cancels it."
+      },
+      "prospect_form_received": {
+        "title": "New contact request",
+        "description": "Sent to the account owner at each request received through the contact form, without the person's message or contact details."
+      },
+      "vendor_brief": {
+        "title": "Quote request to a supplier",
+        "description": "Sent to each supplier of the brief, with two buttons: “I am available” and “I am not available”."
+      },
+      "vendor_brief_reminder": {
+        "title": "Quote request reminder",
+        "description": "Sent automatically the day before the deadline, to suppliers who have not answered."
+      },
+      "vendor_roadmap": {
+        "title": "Supplier run sheet",
+        "description": "Sent automatically 30 and 7 days before the event to each booked supplier, with their link to confirm."
+      },
+      "proposal_sent": {
+        "title": "Proposal sent",
+        "description": "Sent to the event's clients when you send the proposal, if they have a space to read it in."
+      },
+      "proposal_expiry_reminder": {
+        "title": "Proposal expiring soon",
+        "description": "Sent automatically a few days before the end of validity of a proposal neither signed nor declined."
+      },
+      "payment_details": {
+        "title": "Bank details for the deposit",
+        "description": "Sent automatically on the 8th day of a contract signed off-premises, with the bank details and the transfer reference."
+      },
+      "invoice_reminder": {
+        "title": "Unpaid instalment reminder",
+        "description": "Sent automatically after an unpaid instalment, according to your settings; stops as soon as the client declares their transfer."
       }
     },
     "variables": {
@@ -6402,7 +6890,20 @@
       "valid_until": "The link's expiry date",
       "tasks": "The list of tasks to do, with their due dates",
       "quote_number": "The quote number",
-      "version": "The schedule version number"
+      "version": "The schedule version number",
+      "place": "The place: address, video link or phone",
+      "appointment": "The appointment type",
+      "appointment_date": "The day and time of the appointment",
+      "slot": "The supplier category (“Flowers”, “Photographer”…)",
+      "deadline": "The answer deadline of the brief",
+      "link_available": "The link that preselects “available”; alone on its line, it becomes the “I am available” button",
+      "link_unavailable": "The link that preselects “not available”; alone on its line, it becomes the “I am not available” button",
+      "amount": "The instalment amount",
+      "due_date": "The instalment due date",
+      "reference": "The reference to put on the transfer",
+      "iban": "Your IBAN",
+      "bic": "Your BIC",
+      "penalties": "The late payment penalty sentence, depending on the client and your settings"
     },
     "back": "All email templates",
     "editorTitle": "{title} ({language})",
@@ -6447,7 +6948,7 @@
     "title": "My calendar",
     "intro": "Subscribe your calendar (Google, Apple, Outlook…) to your events: it refreshes on its own. Each address is secret and personal: do not share it.",
     "personTitle": "My events",
-    "personHint": "The business's dated events, as all-day events, with a link to their record. No trial, lost or cancelled event.",
+    "personHint": "The business's dated events, as all-day events, with a link to their record, and the appointments you host. No trial, lost or cancelled event.",
     "create": "Create my address",
     "regenerate": "New address",
     "regenerateHint": "A new address replaces the old one, which stops responding at once.",
@@ -6471,7 +6972,366 @@
     "programFollowed": "This schedule is in your calendar (address created on {date}).",
     "programRenew": "New schedule address",
     "programRevoke": "Remove the schedule from my calendar",
-    "unavailable": "The calendar follows events: it needs the Events module."
+    "unavailable": "The calendar follows events: it needs the Events module.",
+    "appointment": "{type} — {name}"
+  },
+  "Appointments": {
+    "title": "Appointments",
+    "subtitle": "Appointments booked on your booking page or entered by the team.",
+    "moduleUnavailable": "The Appointments module is not enabled for your organization.",
+    "availabilityLink": "My availability",
+    "settingsLink": "Types and booking page",
+    "newManual": "Enter an appointment",
+    "status": {
+      "booked": "Confirmed",
+      "cancelled": "Cancelled"
+    },
+    "origin": {
+      "public": "booked on the page",
+      "manual": "entered by the team"
+    },
+    "originLabel": "Origin",
+    "start": {
+      "title": "Open your booking page in three steps",
+      "types": "Create an appointment type (a name and a duration are enough), or add the three starter types.",
+      "page": "Choose the address of your booking page.",
+      "share": "Give this address to your future clients: email signature, website, social media.",
+      "action": "Get started",
+      "help": "See help"
+    },
+    "pageAddress": "Your booking page:",
+    "pageInactive": "closed for now",
+    "upcomingTitle": "Upcoming",
+    "upcomingEmpty": "No upcoming appointment.",
+    "pastTitle": "Past",
+    "pastEmpty": "No past appointment.",
+    "showPast": "See the last thirty past appointments",
+    "ok": {
+      "pageSaved": "Booking page saved.",
+      "typeCreated": "Type created: adjust it if needed, it is already offered on your page.",
+      "startersAdded": "The starter types have been added.",
+      "typeSaved": "Type saved.",
+      "typeTrashed": "Type moved to the bin.",
+      "availabilitySaved": "Availability saved.",
+      "closureAdded": "Closed days added.",
+      "closureRemoved": "Closed days removed.",
+      "sourceAdded": "Calendar added.",
+      "sourceRefreshed": "Calendar read again.",
+      "sourceRemoved": "Calendar removed: its busy times are deleted.",
+      "created": "Appointment saved.",
+      "cancelled": "Appointment cancelled.",
+      "moved": "Appointment moved.",
+      "trashed": "Appointment moved to the bin.",
+      "linked": "Appointment linked to the event.",
+      "unlinked": "Appointment detached from the event.",
+      "optionCreated": "Option created and linked to this appointment.",
+      "reportSaved": "Report saved.",
+      "actionAdded": "Action added.",
+      "actionRemoved": "Action removed.",
+      "taskCreated": "Task created in the event's planning."
+    },
+    "errors": {
+      "slugTaken": "This address is already taken: choose another one.",
+      "calendarUrl": "This calendar address can't be used: paste the secret address in iCal format (https:// or webcal://) given by your calendar.",
+      "notLinked": "Link this appointment to an event first: the task will go into its planning.",
+      "notFound": "Not found: it may have been deleted already.",
+      "unexpected": "The action did not go through. Try again in a moment.",
+      "invalid": {
+        "slug": "The address must have 3 to 60 characters: lowercase letters, digits and hyphens.",
+        "privacyNotice": "The privacy notice must not exceed 3,000 characters.",
+        "name": "The name is required (at most 120 characters for a type, 200 for a person).",
+        "durationMinutes": "The duration ranges from 15 minutes to 8 hours.",
+        "location": "The location is too long, or the video link does not start with https://.",
+        "locationKind": "Choose a place, a video call or a phone call.",
+        "questions": "Five questions at most; a choice question needs at least two choices.",
+        "rules": "Each time range must end after it starts.",
+        "closure": "Closed days must end after their first day.",
+        "reason": "The reason must not exceed 80 characters.",
+        "label": "The name is required (at most 200 characters).",
+        "sources": "Five calendars at most per person.",
+        "calendarUrl": "Paste the secret address of your calendar.",
+        "startsAt": "Choose the day and time.",
+        "email": "The email address is not valid.",
+        "phone": "The phone number is not valid.",
+        "eventId": "This event cannot be found.",
+        "status": "This appointment is already cancelled.",
+        "prospectSourceId": "Choose the lead source.",
+        "notes": "The report must not exceed 10,000 characters.",
+        "dueOn": "The action date is not valid.",
+        "host": "Choose a team member."
+      }
+    },
+    "settingsTitle": "Types and booking page",
+    "settingsSubtitle": "What your future clients can book, and at which address.",
+    "backToList": "Back to appointments",
+    "backToSettings": "Back to types",
+    "typesTitle": "Appointment types",
+    "typesEmpty": "No type yet. Create one below, or start from the three starter types (discovery video call, venue visit, tasting).",
+    "addStarters": "Add the starter types",
+    "typeSummary": "{minutes} min · {place}",
+    "locationKind": {
+      "place": "in person",
+      "video": "video call",
+      "phone": "phone call"
+    },
+    "typeInactive": "not offered",
+    "trashType": "Delete",
+    "trashTypeLabel": "Delete the type {name}",
+    "newTypeTitle": "New type",
+    "typeName": "Name",
+    "typeNamePlaceholder": "First meeting",
+    "typeDuration": "Duration",
+    "minutes": "{minutes, plural, =60 {1 hour} =90 {1.5 hours} =120 {2 hours} =180 {3 hours} =240 {4 hours} other {# minutes}}",
+    "createType": "Create the type",
+    "pageTitle": "Booking page",
+    "pageHint": "A public page, with no account, where your future clients pick a free slot. It only shows slots, never your calendar.",
+    "pageSlug": "Page address",
+    "pageSlugHint": "Lowercase letters, digits and hyphens. Changing the address stops the old one.",
+    "pageActive": "Page open to bookings",
+    "pageNotice": "Privacy notice (GDPR)",
+    "pageNoticeHint": "Shown under the form, in your name. Leave empty for the suggested text (in grey), to be reviewed before the first real booking.",
+    "pageSave": "Save the page",
+    "pageOpen": "See my booking page",
+    "typeEditSubtitle": "Type settings; each setting has its default value.",
+    "typeDurationMinutes": "Duration (minutes)",
+    "typeLocation": "Location",
+    "typeLocationDetail": "Address, video link or number",
+    "typeLocationHint": "For a video call, paste the link to your room (https://…). It is sent with the confirmation.",
+    "bufferBefore": "Buffer before (minutes)",
+    "bufferAfter": "Buffer after (minutes)",
+    "minNoticeHours": "Minimum notice (hours)",
+    "horizonDays": "Bookable up to (days)",
+    "reminders": "Email reminders",
+    "reminderPlan": {
+      "none": "None",
+      "24h": "24 hours before",
+      "24h_2h": "24 hours and 2 hours before"
+    },
+    "host": "Team member who hosts",
+    "allowEventDays": "Accept these appointments on event days",
+    "typeActive": "Offered on the booking page",
+    "questionsTitle": "Questions before booking",
+    "questionsHint": "Zero to five questions, asked when booking. A choice question: one choice per line. Only ask what helps prepare the appointment.",
+    "questionLabel": "Question {number}",
+    "questionKind": "Answer",
+    "questionKindText": "Short answer",
+    "questionKindChoice": "Choice from a list",
+    "questionChoices": "Choices (one per line)",
+    "typeSave": "Save the type",
+    "availabilityTitle": "My availability",
+    "availabilitySubtitle": "When you take appointments, and the calendars that say when you are already busy.",
+    "weekTitle": "My week",
+    "weekDefault": "Starter hours: Monday to Friday, 9 am to 6 pm. Change them and save.",
+    "weekday": {
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday",
+      "7": "Sunday"
+    },
+    "from": "From",
+    "to": "to",
+    "weekSave": "Save my week",
+    "closuresTitle": "Closed days",
+    "closuresEmpty": "No closed day.",
+    "closureRange": "from {from} to {to}",
+    "remove": "Remove",
+    "closureFrom": "From",
+    "closureTo": "To (optional)",
+    "closureReason": "Reason (optional)",
+    "closureAdd": "Add",
+    "sourcesTitle": "My calendars",
+    "sourcesHint": "Paste the secret iCal address of your Google, Apple or Outlook calendar: Symbola reads it every fifteen minutes and only keeps busy times, never the title, location or attendees. The address is encrypted and never shown again. An appointment booked elsewhere less than fifteen minutes ago may still look free.",
+    "sourcesEmpty": "No calendar linked.",
+    "sourceOk": "Read on {date}.",
+    "sourcePending": "Not read yet: no slot is offered until it has been read.",
+    "sourceError": "Failing ({reason}): no slot is offered until it is read again.",
+    "sourceErrorKind": {
+      "blocked": "address refused",
+      "too_large": "calendar too large",
+      "timeout": "no answer in time",
+      "http": "address unreachable or removed",
+      "parse": "unreadable file"
+    },
+    "sourceRefresh": "Read now",
+    "sourceRemoveLabel": "Remove the calendar {label}",
+    "sourceLabel": "Calendar name",
+    "sourceLabelPlaceholder": "Personal calendar",
+    "sourceUrl": "Secret address (iCal)",
+    "sourceUrlHint": "Google: calendar settings › Secret address in iCal format. Apple: share the calendar › Public calendar. Outlook: Share › Publish a calendar (ICS).",
+    "sourceAdd": "Link this calendar",
+    "newManualSubtitle": "An appointment agreed by phone, at a fair or in person.",
+    "noActiveType": "No appointment type is offered yet.",
+    "type": "Type",
+    "typeOption": "{name} ({minutes} min)",
+    "startsAt": "Day and time",
+    "personName": "Name",
+    "personEmail": "Email",
+    "personPhone": "Phone",
+    "linkedEvent": "Event",
+    "noEvent": "None for now",
+    "notifyPerson": "Notify the person by email",
+    "createManual": "Save the appointment",
+    "detailsTitle": "The appointment",
+    "cancelledOn": "Cancelled on",
+    "cancelledBy": {
+      "person": "by the person",
+      "planner": "by the team"
+    },
+    "cancelReason": {
+      "schedule": "Unavailable",
+      "other_provider": "Chose another provider",
+      "project_changed": "Project changed or postponed",
+      "other": "Another reason"
+    },
+    "answersTitle": "Answers to the questions",
+    "changeTitle": "Move or cancel",
+    "newStartsAt": "New day and time",
+    "move": "Move",
+    "cancelReasonLabel": "Reason (optional)",
+    "cancelReasonNone": "No reason",
+    "cancel": "Cancel the appointment",
+    "eventTitle": "Event",
+    "unlinkEvent": "Detach from the event",
+    "eventHint": "Link this appointment to an existing event, or create an option from it: the contact is reused, nothing to type again.",
+    "linkEvent": "Link",
+    "optionSource": "Lead source",
+    "optionDate": "Wanted date (optional)",
+    "createOption": "Create an option",
+    "reportTitle": "Report",
+    "reportPrivate": "Team only: never shown to the client.",
+    "reportNotes": "Notes",
+    "reportSave": "Save the report",
+    "actionsTitle": "Actions",
+    "responsible": {
+      "planner": "you",
+      "clients": "the client"
+    },
+    "isTask": "Task created",
+    "makeTask": "Make it a task",
+    "makeTaskLabel": "Make “{label}” a task of the event",
+    "linkFirst": "Link to an event first",
+    "removeActionLabel": "Remove the action “{label}”",
+    "actionsEmpty": "No action yet.",
+    "actionLabel": "What",
+    "actionDue": "By when",
+    "actionWho": "Who",
+    "actionAdd": "Add the action",
+    "trash": "Delete this appointment",
+    "emails": {
+      "place": {
+        "videoLink": "video call: {link}",
+        "video": "video call, the link will be sent to you",
+        "phoneNumber": "phone call, at {phone}",
+        "phone": "phone call",
+        "toBeConfirmed": "the place will be confirmed"
+      },
+      "host": {
+        "open": "Open the appointment",
+        "booked": {
+          "subject": "New appointment: {type} with {name}",
+          "body": "{name} booked an appointment on your page: {type}, on {date}."
+        },
+        "rescheduled": {
+          "subject": "Appointment moved: {type} with {name}",
+          "body": "{name} moved their {type} appointment to {date}."
+        },
+        "cancelled": {
+          "subject": "Appointment cancelled: {type} with {name}",
+          "body": "{name} cancelled their {type} appointment on {date}."
+        }
+      }
+    },
+    "public": {
+      "title": "Book an appointment with {organization}",
+      "noType": "No appointment is offered for now.",
+      "chooseType": "Choose your appointment:",
+      "typeMeta": "{minutes} min · {place}",
+      "place": {
+        "place": "in person",
+        "video": "video call",
+        "phone": "phone call"
+      },
+      "otherTypes": "See the other appointments",
+      "noSlot": "No free slot for now. Write to {organization} to agree on one.",
+      "weeksLabel": "Weeks",
+      "previousWeek": "Previous week",
+      "nextWeek": "Next week",
+      "delayNotice": "Slots take into account your host's calendar, updated every fifteen minutes.",
+      "bookedTitle": "Your appointment is confirmed",
+      "bookedBody": "Appointment on {date} with {organization}. A confirmation email is on its way, with the invitation for your calendar.",
+      "bookedFallback": "Your request has been recorded.",
+      "manageLink": "Reschedule or cancel this appointment",
+      "refused": "This booking could not be recorded. Try again later, or write to {organization}.",
+      "unavailable": "This appointment is no longer offered.",
+      "taken": "This slot has just been taken. Here are the nearest free slots:",
+      "takenNone": "This slot has just been taken, and no other one is free for now.",
+      "error": {
+        "invalid": "The form is not complete.",
+        "name": "Enter your name.",
+        "email": "Enter a valid email address: the confirmation will be sent there.",
+        "phone": "The phone number is not valid.",
+        "answer": "An answer is not valid.",
+        "slot": "Choose a slot."
+      },
+      "chooseSlot": "Choose a slot",
+      "alternatives": "Suggested slots",
+      "dayFull": "No slot on that day.",
+      "name": "Your name",
+      "email": "Your email",
+      "phone": "Your phone (optional)",
+      "noAnswer": "Choose…",
+      "booking": "Booking…",
+      "book": "Book this appointment",
+      "freeTextNotice": "Do not give any health data, opinion or religion here: your answer is read by {organization}."
+    },
+    "manage": {
+      "pageNotice": "This page collects no new information. The link is personal and stops working at the end of the appointment.",
+      "openingTitle": "Your appointment",
+      "openingBody": "Opening your appointment…",
+      "noScript": "This page needs JavaScript to open your link.",
+      "invalidTitle": "This link is not valid",
+      "invalidBody": "This link no longer opens an appointment: it may have expired. Write to your host to reschedule or cancel.",
+      "retryLater": "Too many attempts: try again in {minutes, plural, one {# minute} other {# minutes}}.",
+      "message": {
+        "rescheduled": "Done: your appointment is moved. A confirmation email is on its way.",
+        "cancelled": "Done: your appointment is cancelled.",
+        "taken": "This slot has just been taken. Choose another one."
+      },
+      "cancelledBadge": "cancelled",
+      "reschedule": "Reschedule",
+      "cancel": "Cancel",
+      "chooseSlot": "Choose a new slot",
+      "noSlot": "No other free slot for now. Write to {organization}.",
+      "confirmReschedule": "Confirm the new time",
+      "back": "Back",
+      "reasonLabel": "Why are you cancelling? (optional)",
+      "reasonNone": "I'd rather not say",
+      "reason": {
+        "schedule": "Something came up",
+        "other_provider": "I chose another provider",
+        "project_changed": "My project changed",
+        "other": "Another reason"
+      },
+      "confirmCancel": "Confirm the cancellation"
+    },
+    "event": {
+      "title": "Appointments and reports",
+      "add": "Enter an appointment",
+      "empty": "No appointment linked to this event.",
+      "cancelled": "cancelled",
+      "actionsLabel": "Report actions",
+      "isTask": "task created"
+    },
+    "contact": {
+      "title": "Appointments",
+      "empty": "No appointment.",
+      "cancelled": "cancelled"
+    },
+    "optionNeedsSource": "To create an option, first add a lead source.",
+    "optionSourcesLink": "Lead sources"
   },
   "MessageTemplates": {
     "title": "Message templates",
@@ -6558,7 +7418,9 @@
       "programTemplate": "Programme template",
       "quoteTemplate": "Quote template",
       "contractTemplate": "Contract template",
-      "messageTemplate": "Message template"
+      "messageTemplate": "Message template",
+      "appointmentType": "Appointment type",
+      "appointment": "Appointment"
     },
     "deletedBy": "Deleted on {date} by {author}",
     "deletedOn": "Deleted on {date}",
@@ -6602,7 +7464,9 @@
       "quoteTemplate": "Template moved to the trash.",
       "contractTemplate": "Template moved to the trash.",
       "messageTemplate": "Template moved to the trash.",
-      "vendor": "Supplier archived."
+      "vendor": "Supplier archived.",
+      "appointmentType": "Appointment type moved to the bin.",
+      "appointment": "Appointment moved to the bin."
     }
   },
   "Drafts": {
@@ -6732,7 +7596,8 @@
       "settings": "Go to Settings",
       "trash": "Open the trash",
       "help": "Open the help",
-      "import": "Import a file"
+      "import": "Import a file",
+      "appointments": "See appointments"
     }
   },
   "Shortcuts": {
@@ -6860,7 +7725,19 @@
         "no_date": "The event has no date yet: there is no purge to postpone."
       },
       "importFile": "Choose a file (CSV or XLSX).",
-      "importTooLarge": "The file exceeds 1 MB: save the list as CSV, or split it."
+      "importTooLarge": "The file exceeds 1 MB: save the list as CSV, or split it.",
+      "seating": {
+        "table_name": "A table name has 1 to 60 characters.",
+        "capacity": "A table has 1 to 60 seats.",
+        "count": "Add 1 to 50 tables at a time.",
+        "too_many_tables": "A plan has at most 150 tables.",
+        "constraint_members": "A constraint brings together two to twenty people.",
+        "target_not_empty": "This key moment already has tables: copying does not replace a plan in progress.",
+        "same_moment": "Choose another key moment to copy.",
+        "vendor_count": "The number of vendor meals ranges from 0 to 1000.",
+        "not_eligible": "This person declined this key moment or is not invited to it: they cannot be seated.",
+        "meal_label": "A label has 1 to 60 characters."
+      }
     },
     "activation": {
       "assessmentLink": "Read the baseline impact assessment provided by Symbola",
@@ -7054,7 +7931,8 @@
       },
       "revoke": "Withdraw {name}'s links",
       "edit": "Edit {name}",
-      "remove": "Delete the household {name}"
+      "remove": "Delete the household {name}",
+      "planLink": "Seating plan and caterer summary"
     },
     "portal": {
       "title": "Your guests",
@@ -7078,6 +7956,926 @@
       "kindAllergen": "Allergy",
       "add": "Add",
       "added": "Entry added."
+    },
+    "caterer": {
+      "title": "Caterer summary",
+      "heading": "{moment} — {date}",
+      "generatedAt": "As of {date}: answers may still change.",
+      "versionNominative": "Named version: name, table, meal type, diets and allergies of each person.",
+      "versionAggregate": "Version without names: exact numbers per table.",
+      "noPlan": "No seating plan yet: totals only.",
+      "dietsPurged": "Diets and allergies were erased after the event: the summary no longer contains any.",
+      "totalsTitle": "Totals",
+      "coversLabel": "Covers (attending guests)",
+      "covers": "{count, plural, =0 {No cover} one {# cover} other {# covers}}",
+      "mealsTitle": "Meals by type",
+      "dietsTitle": "Diets and allergens",
+      "noDiets": "No diet or allergen declared.",
+      "vendorMeals": "Vendor meals",
+      "pendingTitle": "Awaiting an answer",
+      "pendingNone": "Nobody is awaiting an answer.",
+      "tablesTitle": "By table",
+      "unplaced": "No table",
+      "tableLine": "{name} — {shape}, {capacity} seats",
+      "person": "{name} — {meal}",
+      "personWithDiets": "{name} — {meal} — {diets}",
+      "footerNominative": "Data shared for meal service only; delete after the event.",
+      "footerAggregate": "Numbers per table, without names.",
+      "page": "Page {page} of {total}",
+      "fileNominative": "caterer-summary-named",
+      "fileAggregate": "caterer-summary",
+      "shape": {
+        "round": "round table",
+        "rectangular": "rectangular table",
+        "head": "head table"
+      },
+      "csv": {
+        "table": "Table",
+        "name": "Name",
+        "mealType": "Meal type",
+        "diets": "Diets and allergies",
+        "count": "Count",
+        "response": "Answer",
+        "covers": "Covers",
+        "total": "Total",
+        "present": "Attending"
+      }
+    },
+    "plan": {
+      "title": "Seating plan",
+      "back": "Back to guests",
+      "unavailable": "The seating plan is unavailable: the Guests module is not open for your organization.",
+      "notReady": "The seating plan opens once the owner has confirmed the impact assessment, in the Guests tab.",
+      "notReadyLink": "Go to the Guests tab",
+      "noKeyMoments": "First add the event's key moments (dinner, brunch): a plan is built per key moment.",
+      "noKeyMomentsLink": "Add key moments",
+      "momentsNav": "Key moments",
+      "momentLink": "{name}, {date}",
+      "momentPlanned": "{placed} seated out of {present}",
+      "momentNoPlan": "no plan",
+      "createPlan": "Build the plan for “{moment}”",
+      "noPlan": "This key moment has no plan yet: {present} attending, {pending} awaiting an answer.",
+      "counts": "{unplaced, plural, =0 {Everyone attending is seated} one {# attending guest not seated} other {# attending guests not seated}} · {pending, plural, =0 {nobody awaiting an answer} one {# awaiting an answer} other {# awaiting an answer}}",
+      "viewSwitch": "Show",
+      "showTables": "Tables",
+      "showUnplaced": "Not seated ({count})",
+      "unplacedTitle": "Not seated ({count})",
+      "unplacedEmpty": "Everyone attending is seated.",
+      "pendingTitle": "Awaiting an answer ({count})",
+      "pendingHelp": "No answer yet: you can seat them; they stay marked and are not counted in the covers.",
+      "pendingMark": "awaiting an answer",
+      "child": "child",
+      "householdItem": "the whole {name} household",
+      "householdHeading": "{name} ({count})",
+      "householdMoved": "{name} household: {count, plural, =0 {nobody was seated} one {# person seated} other {# people seated}} at “{group}”.",
+      "householdMoveFailed": "The {name} household could not be seated: the page shows the saved state.",
+      "unplacedTarget": "Not seated",
+      "tableTarget": "{name} ({occupied}/{capacity})",
+      "tablesTitle": "Tables ({count})",
+      "noTables": "No table yet: add some below.",
+      "occupancy": "{occupied} of {capacity} seats",
+      "children": "{count, plural, one {including # child} other {including # children}}",
+      "tableDiets": "Diets: {list}",
+      "dietCount": "{label}: {count}",
+      "dietFewer": "{label}: fewer than {threshold}",
+      "tableEmpty": "Nobody at this table.",
+      "overCapacity": "Over capacity",
+      "constraintAlert": "Constraint not met",
+      "shape": {
+        "round": "Round",
+        "rectangular": "Rectangular",
+        "head": "Head table"
+      },
+      "mealOf": "Meal: {meal}",
+      "mealDefault": "{meal} (default)",
+      "mealChange": "Meal for {name}",
+      "mealSelect": "Meal type",
+      "mealDefaultOption": "Default (by age)",
+      "mealSave": "Save meal",
+      "alertsTitle": "Alerts ({count})",
+      "alertTogether": "“Together” not met: {names} are at {tables}.",
+      "alertApart": "“Apart” not met: {names} are together at {table}.",
+      "alertCapacity": "{table}: {occupied} people for {capacity} seats.",
+      "alertReleased": "{name} declined and left {table}.",
+      "alertReleasedNoTable": "{name} declined and left their table.",
+      "alertReleasedDismiss": "Clear the alert for {name}",
+      "alertNotInvited": "{name} is no longer expected at this key moment but is still seated at {table}.",
+      "alertNotInvitedRemove": "Remove {name} from their table",
+      "addTablesTitle": "Add tables",
+      "addCount": "Number of tables",
+      "addShape": "Shape",
+      "addCapacity": "Seats per table",
+      "addSubmit": "Add the tables",
+      "namePrefix": "Table",
+      "tablesAdded": "Tables added.",
+      "editTable": "Edit {name}",
+      "tableName": "Name or number",
+      "tableShape": "Shape",
+      "tableCapacity": "Seats",
+      "saveTable": "Save the table",
+      "tableSaved": "Table saved.",
+      "removeTable": "Delete {name}",
+      "removeTableHelp": "Its guests go back to “Not seated”.",
+      "copyTitle": "Copy a plan",
+      "copyHelp": "Reuse the tables of another key moment, and the seats of those who also attend this one.",
+      "copyFrom": "Copy from",
+      "copySubmit": "Copy the plan",
+      "copied": "{tables, plural, one {# table copied} other {# tables copied}}, {seats, plural, =0 {no seat} one {# seat} other {# seats}}.",
+      "constraintsTitle": "Seating constraints",
+      "constraintsHelp": "Internal to your team: never shown to the client, never in a summary or an export. A constraint that is not met is flagged, without blocking.",
+      "constraintKind": {
+        "together": "Together",
+        "apart": "Apart"
+      },
+      "constraintLine": "{kind}: {names}",
+      "removeConstraint": "Delete the “{kind}” constraint: {names}",
+      "constraintsNone": "No constraint.",
+      "addConstraint": "Add a constraint",
+      "constraintKindLabel": "Kind",
+      "constraintMembers": "People concerned (two or more)",
+      "constraintSubmit": "Add the constraint",
+      "constraintAdded": "Constraint added.",
+      "catererTitle": "Caterer summary",
+      "catererHelp": "Computed when you download it, since answers change: meals by type, diets and allergens, by table. Nothing is kept in Symbola; each download is logged.",
+      "catererOutside": "The copy sent to the caterer leaves Symbola: ask them to delete it after the event.",
+      "catererNominativePdf": "Named PDF",
+      "catererNominativeCsv": "Named spreadsheet",
+      "catererAggregatePdf": "PDF without names",
+      "catererAggregateCsv": "Spreadsheet without names",
+      "catererMember": "You get the version without names, exact per table; the named version is reserved for the owner.",
+      "vendorTitle": "Vendor meals",
+      "vendorHelp": "Photographer, DJ…: a number for this key moment, without a table.",
+      "vendorCount": "Number of meals",
+      "vendorSave": "Save",
+      "vendorSaved": "Number saved.",
+      "mealTypesLink": "Meal types"
+    },
+    "mealTypes": {
+      "title": "Meal types",
+      "intro": "The meal types of the caterer summary. By default, an adult is served “Adult”, a child “Child”, a child under 3 “Baby”; change a guest's type on the seating plan. Hiding erases nothing.",
+      "unavailable": "Meal types are unavailable: the Guests module is not open for your organization.",
+      "hidden": "hidden",
+      "show": "Show {label}",
+      "hide": "Hide {label}",
+      "rename": "Rename {label}",
+      "label": "Label",
+      "save": "Save",
+      "saved": "Label saved.",
+      "reset": "Restore the starting label",
+      "addTitle": "Add a type",
+      "add": "Add",
+      "added": "Type added."
     }
+  },
+  "MoveToGroup": {
+    "move": "Move",
+    "moveItem": "Move {item}",
+    "destinations": "Where to move {item}",
+    "moved": "{item} moved to “{group}”.",
+    "moveFailed": "{item} could not be moved: the page shows the saved state."
+  },
+  "ContactForm": {
+    "public": {
+      "title": "Contact {organization}",
+      "intro": "Tell us about your project: we will get back to you shortly.",
+      "required": "Fields marked with an asterisk (*) are required, as well as your email or your phone number.",
+      "sentTitle": "Thank you, your request has been sent",
+      "sentBody": "{organization} has received it and will reply to you personally. You can close this page.",
+      "unavailable": "This form is no longer available.",
+      "error": {
+        "name": "Please enter your first and last name.",
+        "contact": "Please enter your email or your phone number, so that we can reply.",
+        "email": "This email address does not look valid.",
+        "phone": "This phone number does not look valid.",
+        "date": "This date does not look valid.",
+        "guests": "Please enter a whole number of guests, without letters.",
+        "budget": "This budget is too long: 100 characters at most.",
+        "message": "Your message is too long: 5,000 characters at most.",
+        "period": "This period is too long: 100 characters at most.",
+        "place": "This place is too long: 200 characters at most."
+      },
+      "firstName": "First name",
+      "lastName": "Last name",
+      "contactLegend": "So that we can reply (at least one of the two)",
+      "email": "Email",
+      "phone": "Phone",
+      "eventType": "Type of event",
+      "noChoice": "I don't know yet",
+      "eventDate": "Preferred date",
+      "period": "Or a period",
+      "periodExample": "In spring 2028",
+      "place": "Venue or town",
+      "budget": "Budget",
+      "budgetExample": "€25,000 or “between 20 and 30k”",
+      "guests": "Number of guests",
+      "source": "How did you hear about us?",
+      "message": "Your message",
+      "noticeTitle": "Your information",
+      "policyLink": "{organization}'s privacy policy",
+      "sending": "Sending…",
+      "send": "Send my request"
+    },
+    "fields": {
+      "phone": "Phone",
+      "date": "Preferred date or period",
+      "place": "Venue or town",
+      "budget": "Budget",
+      "guests": "Number of guests",
+      "eventType": "Type of event",
+      "source": "“How did you hear about me?”",
+      "message": "Message"
+    },
+    "settings": {
+      "title": "Contact form",
+      "ownerOnly": "The contact form is set up by the account owner.",
+      "moduleUnavailable": "The contact form is part of the Events module, which is not open for your organisation.",
+      "intro": "A form to put on your website or share by link. Each request creates a prospect with the Option status, at the first stage of your pipeline.",
+      "stateOpen": "Open",
+      "stateClosed": "Closed",
+      "saved": "Settings saved.",
+      "active": "Open the form",
+      "slug": "Form address",
+      "slugHelp": "Lowercase letters, digits and hyphens. If you change it, the old address stops working.",
+      "privacyPolicyUrl": "Address of your privacy policy",
+      "privacyPolicyHelp": "Required to open the form: the privacy notice links to it. Address starting with https://.",
+      "shownFields": "Fields offered",
+      "shownFieldsHelp": "First name, last name and email are always asked. Untick the optional fields you do not want.",
+      "allowedOrigins": "Websites allowed to show the form",
+      "allowedOriginsHelp": "One address per line, starting with https://, five at most (for example https://www.mysite.com). Without a website, only the link works.",
+      "notifyOwner": "Email me at each new request (without the person's message or contact details)",
+      "locale": "Language of the starter texts",
+      "localeFr": "French",
+      "localeEn": "English",
+      "save": "Save",
+      "slugTaken": "This address is already taken: please choose another one.",
+      "invalid": {
+        "slug": "The address must be 3 to 60 characters long: lowercase letters, digits and hyphens.",
+        "privacyPolicyUrl": "Enter the address of your privacy policy, starting with https://, to open the form.",
+        "allowedOrigins": "Each website must start with https://; five websites at most.",
+        "hiddenFields": "A requested field does not exist."
+      },
+      "shareTitle": "Share the form",
+      "shareLink": "The link to give (website, social networks, email signature):",
+      "embedCode": "The code to copy into your website",
+      "embedTitle": "Contact form",
+      "embedSites": "The form can be shown on: {sites}.",
+      "embedNoSite": "No website declared: the code will not show on any website until you add one.",
+      "preview": "Preview",
+      "previewTitle": "Preview of the contact form"
+    }
+  },
+  "Pipeline": {
+    "title": "Pipeline",
+    "unnamed": "No name",
+    "viewsLabel": "Views and settings",
+    "listView": "List of events",
+    "stagesSettings": "Set up stages",
+    "contactSettings": "Contact form",
+    "toReviewTitle": "{count, plural, =0 {No request to check} one {One request to check} other {# requests to check}}",
+    "toReviewIntro": "Requests whose message contains several links are set aside: they may come from a robot. Accept them to create the prospect, or delete them. Without action, they are deleted after 30 days.",
+    "toReviewEmpty": "Nothing to check.",
+    "acceptRequestLabel": "Accept the request from {name}",
+    "acceptRequest": "Accept",
+    "discardRequestLabel": "Delete the request from {name}",
+    "discardRequest": "Delete",
+    "refused": "This move is not possible: the event may have changed in the meantime.",
+    "lossReasonRequired": "Choose the reason for the loss.",
+    "lossNoteRequired": "Please detail the “Other” reason.",
+    "won": "Won",
+    "lost": "Lost",
+    "wonHint": "Drop a won option here: it will be confirmed.",
+    "lostHint": "Drop a lost option here: it will be cancelled, with its reason.",
+    "emptyStage": "No card.",
+    "noDate": "Date to be set",
+    "dateTaken": "Date already taken",
+    "demo": "Trial",
+    "guests": "Guests",
+    "budget": "Budget",
+    "source": "Source",
+    "inStage": "In this stage",
+    "days": "{count, plural, =0 {since today} one {for # day} other {for # days}}",
+    "stagesLabel": "Stages",
+    "wonTitle": "Confirm {name}'s event?",
+    "lostTitle": "Cancel {name}'s option?",
+    "wonBody": "The event moves to the Confirmed status and leaves the pipeline. The schedule and the rest follow, as when you confirm it from its page.",
+    "lostBody": "The event moves to the Cancelled status and leaves the pipeline. The reason for the loss is required; the data stays.",
+    "lossReason": "Reason for the loss",
+    "chooseReason": "Choose a reason",
+    "lossNoteRequiredLabel": "Detail (required for this reason)",
+    "lossNote": "Detail (optional)",
+    "cancel": "Cancel",
+    "confirmWon": "Confirm the event",
+    "confirmLost": "Cancel the option",
+    "settings": {
+      "title": "Pipeline stages",
+      "ownerOnly": "The pipeline stages are set up by the account owner.",
+      "moduleUnavailable": "The pipeline is part of the Events module, which is not open for your organisation.",
+      "intro": "The stages of your sales process, for events with the Option status: between {min} and {max}. “Won” and “Lost” are not stages: they confirm or cancel the event.",
+      "back": "Back to the pipeline",
+      "refusal": {
+        "label": "A stage name is 1 to 60 characters long.",
+        "too_many": "Ten stages at most.",
+        "too_few": "At least one stage must remain.",
+        "not_found": "This stage no longer exists.",
+        "not_empty": "This stage holds cards: choose the stage they move to.",
+        "destination": "The stage chosen for the cards no longer exists."
+      },
+      "stageLabel": "Stage {position}",
+      "rename": "Rename",
+      "cards": "{count, plural, =0 {No card} one {One card} other {# cards}}",
+      "up": "Move up",
+      "upLabel": "Move stage {stage} up",
+      "down": "Move down",
+      "downLabel": "Move stage {stage} down",
+      "destination": "Its cards move to",
+      "remove": "Remove",
+      "removeLabel": "Remove stage {stage}",
+      "newStage": "New stage",
+      "add": "Add"
+    }
+  },
+  "VendorCoordination": {
+    "title": "Request quotes",
+    "pageTitle": "Request quotes: {slot}",
+    "unavailable": "This feature is unavailable: the Events module is not enabled.",
+    "back": "Back to the event",
+    "askQuotes": "Request quotes and compare",
+    "scenariosLink": "Option scenarios",
+    "demoNotice": "Trial event: no email is sent to a supplier.",
+    "brief": {
+      "title": "1. The brief",
+      "need": "The need",
+      "guestCount": "Number of guests (optional)",
+      "budget": "Indicative budget incl. VAT (optional)",
+      "showBudget": "Show this budget to suppliers",
+      "budgetHint": "Hidden by default: giving a budget steers the quotes.",
+      "deadline": "Answer deadline",
+      "inspirations": "Inspiration (event documents)",
+      "noDocuments": "Add photos or documents in the Documents tab to attach them as inspiration.",
+      "save": "Save the brief",
+      "saved": "Brief saved.",
+      "sentAt": "Sent on {date}",
+      "fromEvent": "The date ({date}) and venues of the event are included in the brief.",
+      "noDate": "date to be set"
+    },
+    "recipients": {
+      "title": "2. The suppliers",
+      "intro": "Each one gets their own email and personal link; nobody sees the others.",
+      "none": "No supplier to consult for this category: add one.",
+      "name": "Contact name at {vendor}",
+      "email": "Email of {vendor}",
+      "alreadySent": "Already consulted: sending again replaces their link.",
+      "review": "Check the recipients",
+      "reviewTitle": "{count, plural, one {The brief goes to # supplier} other {The brief goes to # suppliers}}",
+      "reviewIntro": "Check the list: one email per supplier, no copy.",
+      "send": "{count, plural, one {Send to # supplier} other {Send to the # suppliers}}",
+      "sent": "{count, plural, one {Brief sent to # supplier.} other {Brief sent to # suppliers.}}",
+      "saveBriefFirst": "Save the brief first.",
+      "addTitle": "Add a supplier to consult",
+      "addFromBookHint": "Add a supplier to consult (or from the book, Budget tab)",
+      "addName": "Supplier name",
+      "add": "Add",
+      "added": "Supplier added."
+    },
+    "compare": {
+      "title": "3. The comparison",
+      "empty": "The suppliers' answers will appear here.",
+      "caption": "Supplier answers for {slot}",
+      "vendor": "Supplier",
+      "answer": "Answer",
+      "amount": "Amount incl. VAT",
+      "quote": "Quote",
+      "message": "Message",
+      "answeredAt": "Answered on",
+      "notes": "Notes and opinions",
+      "available": "Available",
+      "unavailable": "Not available",
+      "waiting": "Waiting",
+      "reminded": "Reminded, waiting",
+      "otherChosen": "Set aside (another chosen)",
+      "toBeSpecified": "to be specified",
+      "openQuote": "Open {vendor}'s quote",
+      "feedbackLike": "{name} likes it {comment}",
+      "feedbackDislike": "{name}: not for us {comment}",
+      "feedbackComment": "{name}: {comment}"
+    },
+    "share": {
+      "title": "4. Propose to the client",
+      "intro": "Tick the proposals to show: the client sees them in their space (never your book nor the others), gives an opinion and chooses.",
+      "needTwo": "At least two proposals are needed to ask for a choice.",
+      "legend": "Proposals shown to the client",
+      "note": "A word for the client (optional)",
+      "dueOn": "Answer wanted by (optional)",
+      "submit": "Ask the client to choose",
+      "sent": "Request sent to the client.",
+      "pending": "Choice requested on {date}, waiting for an answer."
+    },
+    "engaged": {
+      "someone": "The client",
+      "body": "{name} chose {vendor} on {date}: the supplier is booked, the others are set aside (no email) and the follow-up tasks are created."
+    },
+    "followUp": {
+      "stage": {
+        "j30": "D-30",
+        "j7": "D-7"
+      },
+      "sent": "{stage} run sheet sent on {date}, not confirmed yet",
+      "confirmed": "{stage} run sheet confirmed on {date}",
+      "invoice": "Invoice uploaded by {vendor}",
+      "noLink": "No supplier link: the run sheet cannot be sent to them."
+    },
+    "scenarios": {
+      "title": "Option scenarios",
+      "intro": "Build scenarios (at most one supplier per category) and compare two side by side.",
+      "compareTitle": "Two scenarios side by side",
+      "left": "Left scenario",
+      "right": "Right scenario",
+      "compare": "Compare",
+      "slot": "Category",
+      "total": "Total incl. VAT",
+      "gap": "Difference",
+      "pending": "{count, plural, one {# quote to be specified} other {# quotes to be specified}}",
+      "envelope": "Client's envelope: {amount}",
+      "noEnvelope": "No client envelope",
+      "estimated": "estimated budget: {amount}",
+      "needTwo": "Create two scenarios to compare them.",
+      "noCandidates": "First add consulted suppliers to the categories.",
+      "choiceFor": "{slot} in “{scenario}”",
+      "none": "None",
+      "choose": "Choose",
+      "show": "Show “{scenario}” to the client",
+      "remove": "Delete “{scenario}”",
+      "newTitle": "New scenario",
+      "name": "Scenario name",
+      "create": "Create the scenario",
+      "created": "Scenario created.",
+      "tableLabel": "Scenario totals, category by category"
+    },
+    "settings": {
+      "title": "Suppliers by link",
+      "intro": "The delays of quote requests, reminders and run sheets, and the tasks created when the client chooses a supplier.",
+      "deadlineDays": "Default deadline of a brief (days)",
+      "reminder": "Remind those who have not answered the day before the deadline",
+      "roadmapMonth": "Send the run sheet 30 days before",
+      "roadmapWeek": "Send the run sheet 7 days before",
+      "alertDays": "Warn me without confirmation after D-7 (days)",
+      "tasksTitle": "Follow-up tasks created on the client's choice",
+      "tasksHint": "“'{{vendor}}'” is replaced by the chosen supplier's name; the due date counts in days after the choice. Leave a name empty to remove a task.",
+      "taskLabel": "Task {index}",
+      "taskDays": "Due date of task {index} (days)",
+      "resetTasks": "Go back to the starter list",
+      "save": "Save",
+      "saved": "Settings saved.",
+      "ownerOnly": "Only the account owner can change these settings."
+    },
+    "errors": {
+      "unauthorized": "Action not possible: reload the page.",
+      "need": "Describe the need (4,000 characters at most).",
+      "deadline": "Enter a valid deadline.",
+      "guests": "The number of guests must be a whole number.",
+      "budget": "The amount cannot be read.",
+      "documents": "An inspiration does not belong to this event.",
+      "slot": "This category no longer exists.",
+      "recipients": "Choose at least one supplier of this category.",
+      "missing": "Save the brief first.",
+      "email": "Enter a name and a valid email address for each ticked supplier.",
+      "settings": "Check the settings (delays and tasks).",
+      "name": "Enter a name.",
+      "changed": "The list has changed: check it again before sending.",
+      "demo": "Trial event: no email is sent to a supplier.",
+      "quota": "The hourly email limit is reached: try again later.",
+      "scenarioName": "Give the scenario a name (120 characters at most).",
+      "shareTwo": "Tick at least two proposals.",
+      "sharePending": "A choice is already requested for this category."
+    },
+    "retained": {
+      "title": "The booked supplier",
+      "current": "Booked: {vendors}",
+      "none": "No supplier booked for this category.",
+      "label": "Booked supplier",
+      "nobody": "Nobody",
+      "submit": "Change the booked supplier",
+      "hint": "Can be changed at any time. The budget commitment follows the new quote (or is released); follow-up tasks of the former supplier that are not started are removed, those started remain. To ask the client to choose again, book nobody and propose again."
+    }
+  },
+  "VendorAnswer": {
+    "title": "Quote request: {slot}",
+    "helpTitle": "Your answer in one minute",
+    "helpBody": "Read the need, then answer with one tap. If you are available, attach the photo or PDF of your quote. No account, no password: this link is for you only.",
+    "briefTitle": "The brief",
+    "eventOf": "Event of {clients}",
+    "eventUnnamed": "Event",
+    "dateUnset": "date to be set",
+    "guests": "{count, plural, one {# guest} other {# guests}}",
+    "budget": "Indicative budget: {amount} incl. VAT",
+    "deadline": "Answer expected by {date}",
+    "inspirations": "Inspiration",
+    "question": "Are you available?",
+    "available": "I am available",
+    "unavailable": "I am not available",
+    "confirmAvailable": "Confirm: I am available",
+    "confirmUnavailable": "Confirm: I am not available",
+    "preselectedAvailable": "You chose “available” in the email: confirm with one tap.",
+    "preselectedUnavailable": "You chose “not available” in the email: confirm with one tap.",
+    "closed": "The choice has been made: answering is no longer possible.",
+    "depositTitle": "Your quote",
+    "depositIntro": "Take a photo of your quote or attach the PDF.",
+    "quoteFile": "Photo or PDF of the quote",
+    "amount": "Amount incl. VAT (optional)",
+    "message": "A short message (optional)",
+    "sendQuote": "Send my quote",
+    "depositLater": "You can come back later with the same link.",
+    "thanksQuote": "Thank you, your quote has been passed on.",
+    "thanksUnavailable": "Thank you for your answer: you are not available.",
+    "changeMind": "Change my answer",
+    "declinedTitle": "Thank you",
+    "declinedBody": "Thank you for your answer: another choice has been made for this event.",
+    "invoiceTitle": "Your invoice",
+    "invoiceIntro": "Upload your invoice here (photo or PDF).",
+    "invoiceReceived": "Invoice received on {date}. You can upload a new one.",
+    "invoiceFile": "Photo or PDF of the invoice",
+    "sendInvoice": "Send my invoice",
+    "invoiceSent": "Thank you, your invoice has been passed on.",
+    "invoiceLabel": "Invoice from {name}",
+    "roadmapTitle": "Your run sheet",
+    "onSiteContacts": "On-site contacts",
+    "confirmRoadmap": "I have received it",
+    "roadmapConfirmed": "Received, confirmed on {date}.",
+    "errors": {
+      "closed": "This link no longer allows this action.",
+      "fileMissing": "Choose a file.",
+      "amount": "The amount cannot be read.",
+      "message": "The message is too long (1,000 characters at most).",
+      "tooLarge": "The file is too large (20 MB at most).",
+      "infected": "The file was refused by the antivirus.",
+      "unsupported": "Only a photo or a PDF is accepted."
+    }
+  },
+  "DayChecklists": {
+    "title": "Event-day checklists",
+    "unavailable": "The Events module is not subscribed: event-day checklists are unavailable.",
+    "intro": "The setup and teardown checklists you add to an event's key moments. A checklist already copied into an event does not change.",
+    "name": "Name",
+    "phase": "Type",
+    "setup": "Setup",
+    "teardown": "Teardown",
+    "items": "Boxes (one per line)",
+    "save": "Save",
+    "add": "Add the template",
+    "saved": "Template saved.",
+    "invalid": "Name required (100 characters), at most 100 boxes of 200 characters.",
+    "count": "{count, plural, =0 {No box} one {# box} other {# boxes}}",
+    "edit": "Edit \"{name}\"",
+    "remove": "Remove \"{name}\"",
+    "addTitle": "New template"
+  },
+  "DayReport": {
+    "title": "Event-day report",
+    "event": "Event",
+    "heading": "{event} — {date}",
+    "preparedAt": "Prepared on {date}",
+    "download": "Download the report (PDF)",
+    "internal": "Internal to your team: never shown to clients or vendors.",
+    "footer": "Internal report — do not forward",
+    "page": "Page {page} of {total}",
+    "sequence": "{label}: planned {planned}, actual {actual}{gap}",
+    "notPointed": "not checked in",
+    "gap": "{minutes, plural, =0 {} other { ({minutes, number} min gap)}}",
+    "onTime": " (on time)",
+    "shift": "{minutes} min shift confirmed at {time}: {items, plural, one {# sequence} other {# sequences}}, {notified, plural, =0 {no vendor notified} one {# vendor notified} other {# vendors notified}}",
+    "shiftRefused": "{minutes} min shift confirmed at {time}, not applied (schedule changed meanwhile)",
+    "incident": "{time} · {severity} · {body}{photos, plural, =0 {} one { (# photo)} other { (# photos)}}",
+    "severity": {
+      "none": "no severity",
+      "info": "info",
+      "follow_up": "follow up",
+      "urgent": "urgent"
+    },
+    "unchecked": "{list}: {label}",
+    "handoverDone": "{vendor} — {amount} ({method}) handed over at {time}",
+    "handoverMissing": "{vendor} — {amount} ({method}) not handed over",
+    "titles": {
+      "sequences": "Planned and actual sequences",
+      "shifts": "Confirmed shifts",
+      "incidents": "Incident log",
+      "unchecked": "Unticked boxes",
+      "handovers": "Payments handed over"
+    },
+    "empties": {
+      "sequences": "No sequence in the schedule.",
+      "shifts": "No shift.",
+      "incidents": "No incident logged.",
+      "unchecked": "All boxes are ticked.",
+      "handovers": "No payment to hand over."
+    }
+  },
+  "Proposal": {
+    "title": "Proposal from {organization}",
+    "sentOn": "Sent on {date}",
+    "greetingLabel": "Welcome note",
+    "photosLabel": "Photos",
+    "photoAlt": "Proposal photo {number}",
+    "quoteTitle": "Quote {number} — version {version}",
+    "linesLabel": "Services",
+    "optionChosen": "chosen option",
+    "optionNotChosen": "option, not in the total until chosen",
+    "subtotal": "Subtotal {title}: {amount}",
+    "totalHt": "Total excl. VAT",
+    "totalVat": "VAT",
+    "totalTtc": "Total incl. VAT",
+    "total": "Total",
+    "scheduleDeposit": "Deposit schedule",
+    "scheduleEarnest": "Earnest money schedule",
+    "scheduleLine": "{label}: {amount}, on {date}",
+    "balance": "Balance: {amount}",
+    "validityLabel": "Validity",
+    "validUntil": "Proposal valid until {date} included.",
+    "expired": "Proposal expired: please contact {organization}.",
+    "signed": "Proposal signed.",
+    "superseded": "A newer version of this proposal exists.",
+    "declined": "Proposal declined.",
+    "downloadPdf": "Download the proposal (PDF)",
+    "versionsTitle": "Proposal versions",
+    "versionLine": "Version {version}, sent on {date}",
+    "versionCurrent": "current",
+    "backToSpace": "Back to my space",
+    "flow": {
+      "title": "Accept and sign",
+      "stepsLabel": "Steps to accept and sign",
+      "stateDone": "done",
+      "stateCurrent": "in progress",
+      "steps": {
+        "options": "Your options",
+        "code": "Your code",
+        "order": "Your order",
+        "sign": "Your signature",
+        "settle": "Pay the deposit"
+      },
+      "optionsFirst": "First choose your options, then save your choice.",
+      "goOptions": "Go to the options",
+      "waitingDocument": "Your choice is saved. {organization} is preparing the document to sign: you will receive an email as soon as it is ready.",
+      "expired": "This proposal has expired: contact {organization} to extend it.",
+      "declined": "This proposal was declined.",
+      "notSigner": "You are not a signatory of this proposal: only the planned signatories can accept it.",
+      "codeHint": "To sign, confirm it is really you: a six-digit code will be sent to your link's address. It is valid for 10 minutes.",
+      "codeRequest": "Email me my code",
+      "codeResend": "Send a new code",
+      "codeSent": "Code sent to {email}.",
+      "codeLabel": "Code received by email",
+      "codeConfirm": "Confirm the code",
+      "codeError": "This code cannot be requested here. Open your link again.",
+      "codeNotSent": "The code could not be sent (too many requests). Try again in an hour.",
+      "codeWrong": "Wrong code. {attempts, plural, one {# attempt} other {# attempts}} left.",
+      "codeExpired": "This code has expired or was already used. Request a new one.",
+      "orderHint": "Before signing, confirm your order.",
+      "orderWithdrawal": "Before signing, confirm your order. You keep your right of withdrawal, described in your contract.",
+      "signHint": "The document opens at our e-signature service. Once signed, come back here to pay the deposit.",
+      "signButton": "Sign quote {number}",
+      "signedAll": "Everyone has signed. The deposit remains to be paid.",
+      "signedWaiting": "Your signature is recorded. Waiting for {names} to sign.",
+      "settleButton": "Pay the deposit",
+      "done": "It is signed: there is nothing to pay right now."
+    }
+  },
+  "Settlement": {
+    "title": "Pay: {label}",
+    "quoteLine": "Quote {number}",
+    "dueOn": "due on {date}",
+    "awaitingSignatures": "Payment opens once every signatory has signed.",
+    "paid": "Paid on {date}. Thank you!",
+    "declared": "You reported a transfer made on {date} (reported on {when}). Your planner will confirm its receipt.",
+    "declaredNow": "Noted: your planner will confirm receipt of the transfer.",
+    "bankDetailsMissing": "The bank details are not filled in yet: please contact your planner.",
+    "transferTitle": "Transfer to make",
+    "beneficiary": "Beneficiary",
+    "iban": "IBAN",
+    "bic": "BIC",
+    "reference": "Reference",
+    "referenceHint": "Put this reference in the transfer description: it lets us recognise it.",
+    "qrLabel": "Transfer QR code, with the amount and the reference",
+    "qrHint": "Your banking app can read this QR code: it fills in the beneficiary, IBAN, amount and reference.",
+    "copy": "Copy",
+    "copyLabel": "Copy {label}",
+    "copied": "{label} copied.",
+    "declareTitle": "I have made the transfer",
+    "declareDate": "Transfer date",
+    "declareButton": "I have made the transfer",
+    "declareError": "This payment cannot be reported here. Open your link again.",
+    "declareRefused": {
+      "not_open": "This payment is not open yet.",
+      "not_payer": "This payment is expected from another payer.",
+      "date": "The transfer date can be neither in the future nor before the signature.",
+      "already": "A transfer has already been reported for this payment.",
+      "paid": "This payment is already settled."
+    },
+    "otherPayer": "This payment is expected from another payer of your event.",
+    "demo": "Trial: no transfer is expected.",
+    "backToSpace": "Back to my space"
+  },
+  "CashCalendar": {
+    "title": "Cash-out calendar",
+    "empty": "No upcoming payment for now.",
+    "monthTotals": "Month total: {total} · still to pay: {remaining}",
+    "payer": "paid by {name}",
+    "status": {
+      "upcoming": "upcoming",
+      "declared": "reported",
+      "paid": "paid"
+    },
+    "settle": "Pay",
+    "settleLabel": "Pay: {label}",
+    "backToSpace": "Back to my space",
+    "moduleUnavailable": "The Budget module is not available for your organisation.",
+    "backToBudget": "Back to the budget",
+    "filterLabel": "Filter the calendar",
+    "filterPayer": "Payer",
+    "allPayers": "All payers",
+    "filterSubmit": "Show"
+  },
+  "Payers": {
+    "title": "Payers and split",
+    "moduleUnavailable": "The Budget module is not available for your organisation.",
+    "backToBudget": "Back to the budget",
+    "listTitle": "Payers of the event",
+    "kinds": {
+      "couple": "The couple",
+      "family_one": "One partner's family",
+      "family_two": "The other partner's family",
+      "company": "Company",
+      "other": "Other payer"
+    },
+    "totalShare": "their share: {amount}",
+    "coupleHint": "Anything not assigned to someone falls to the couple.",
+    "remove": "Remove {name}",
+    "addSummary": "Add a payer",
+    "addForm": "Add a payer",
+    "name": "Name",
+    "kind": "Who is it?",
+    "link": "Personal link (optional)",
+    "noLink": "No link",
+    "addSubmit": "Add the payer",
+    "added": "Payer added.",
+    "visibilityFor": "What {name} sees",
+    "visibilityShare": "Only their share",
+    "visibilityAll": "The whole budget",
+    "visibilitySave": "Save",
+    "visibilitySaved": "Setting saved.",
+    "visibilityError": "This setting cannot be changed here.",
+    "linesTitle": "Split by line",
+    "noLines": "No budget line yet.",
+    "splitEntry": "{name}: {amount}",
+    "sharesFor": "Shares of “{label}”",
+    "shareMode": "Percentage or amount for {name}",
+    "percent": "%",
+    "amount": "€",
+    "sharesHint": "One percentage or amount per payer; left empty, nothing. The rest falls to the couple.",
+    "sharesSave": "Save",
+    "sharesSaveFor": "Save the shares of “{label}”",
+    "sharesSaved": "Shares saved.",
+    "paymentsTitle": "Payer of each instalment",
+    "payerOf": "Payer of “{label}”",
+    "payerSave": "Save",
+    "payerSaveFor": "Save the payer of “{label}”",
+    "payerSaved": "Payer saved.",
+    "portalTitle": "What each payer sees",
+    "portalIntro": "For each payer of your event, choose whether they see only their share, or the whole budget.",
+    "noOtherPayer": "Your planner has not added any other payer yet.",
+    "backToSpace": "Back to my space",
+    "shareTitle": "Your share",
+    "shareIntro": "The amount that falls to you for each service, according to the split agreed with the couple.",
+    "shareEmpty": "No share is assigned to you yet.",
+    "shareTotal": "Total of your share: {amount}",
+    "errors": {
+      "unauthenticated": "Your session has expired. Sign in again.",
+      "notFound": "Payer or event not found.",
+      "name": "The name is 1 to 120 characters long.",
+      "kind": "Choose who this payer is.",
+      "link": "This link is not a client link of this event, or it is already attached to a payer.",
+      "couple": "The couple always remain payers.",
+      "shares_invalid": "Each share is a percentage from 0.01 to 100 or a positive amount.",
+      "shares_duplicate": "A payer can have only one share per line.",
+      "shares_over_100": "The percentages of a line cannot exceed 100%.",
+      "line": "This line no longer exists.",
+      "payment": "This instalment no longer exists.",
+      "instalment": "This instalment is not part of the event's schedule."
+    }
+  },
+  "QuoteProposal": {
+    "title": "Proposal page",
+    "draftHint": "When you send it, the client receives a proposal page: your welcome note, your presentation, the quote and its options, the schedule and validity, then “Accept and sign”.",
+    "greetingForm": "Proposal welcome note",
+    "greetingLabel": "Welcome note (empty: the proposal template's)",
+    "greetingHint": "It is frozen when you send, with the quote.",
+    "greetingSave": "Save the welcome note",
+    "greetingSaved": "Welcome note saved.",
+    "templatesLink": "Edit the proposal templates",
+    "previewLink": "See the proposal as the client does",
+    "expired": "Proposal expired since {date}: the client can no longer sign it. Extend it or send a new version.",
+    "notifyForm": "Notify the client by email",
+    "notifySubmit": "Notify the client by email",
+    "notified": "Email sent to the clients who have a space.",
+    "extendSummary": "Extend the validity",
+    "extendForm": "Extend the validity",
+    "extendLabel": "New validity date",
+    "extendSubmit": "Extend",
+    "extended": "Validity extended.",
+    "settlementTitle": "Payment by bank transfer",
+    "settlementHint": "The client pays by transfer, with the instalment's reference; you confirm receipt in the schedule. Reminders follow your settings and stop as soon as the client reports their transfer.",
+    "reference": "reference {reference}",
+    "noReference": "reference created when payment opens",
+    "declared": "{name} reports a transfer made on {date}.",
+    "confirmLink": "Confirm receipt",
+    "remindersSent": "Reminders sent: {list}",
+    "reminderEntry": "no. {rank} on {date}",
+    "suspendSummary": "Suspend reminders for “{label}”",
+    "suspendForm": "Suspend reminders for “{label}”",
+    "suspendReason": "Reason (for example: arrangement with the client)",
+    "suspendSubmit": "Suspend reminders",
+    "suspended": "Reminders suspended.",
+    "suspendedSince": "Reminders suspended since {date}: {reason}",
+    "resumeForm": "Resume reminders for “{label}”",
+    "resumeSubmit": "Resume reminders",
+    "resumed": "Reminders resumed.",
+    "previewBanner": "Preview: the proposal as the client sees it. Nothing is saved.",
+    "previewBack": "Back to the quote",
+    "errors": {
+      "unauthenticated": "Your session has expired. Sign in again.",
+      "notFound": "Quote not found.",
+      "locked": "The quote is sent: its welcome note is frozen.",
+      "greeting": "The welcome note is at most 4,000 characters long.",
+      "validityDate": "Choose a date from today.",
+      "validityClosed": "Only a sent proposal, neither signed nor declined, can be extended.",
+      "reason": "Give a reason.",
+      "noRecipient": "No client has a space with the Quotes section: create a link for them first."
+    }
+  },
+  "ProposalTemplates": {
+    "title": "Proposal templates",
+    "moduleUnavailable": "The Quotes module is not available for your organisation.",
+    "forAll": "For all events",
+    "forType": "For: {type}",
+    "starterHint": "Starting template, to adapt: save it to make it yours.",
+    "version": "Version {version}",
+    "editForm": "Edit the proposal template",
+    "newForm": "New proposal template",
+    "newTitle": "A template for an event type",
+    "eventType": "Event type",
+    "greeting": "Welcome note",
+    "blocksLegend": "Order of the blocks",
+    "blocksHint": "Choose each block's place on the page, or hide it. The quote is always present; the “Accept and sign” button always comes last.",
+    "blocks": {
+      "greeting": "Welcome note",
+      "organization": "Your presentation",
+      "photos": "Photos",
+      "quote": "The quote and its options",
+      "schedule": "Schedule and terms",
+      "validity": "Validity"
+    },
+    "hidden": "Hidden",
+    "place": "Place {place}",
+    "save": "Save the template",
+    "saved": "Template saved.",
+    "remove": "Delete the “{type}” template",
+    "errorUnauthenticated": "Your session has expired. Sign in again.",
+    "errorGreeting": "The welcome note is 1 to 4,000 characters long.",
+    "errorBlocks": "The quote must be on the page, each block only once.",
+    "photosSummary": "Photos ({count} of 3)",
+    "photosNone": "No photo yet.",
+    "photoAlt": "Template photo {number}",
+    "photoRemove": "Remove photo {number}",
+    "photoField": "Add a photo (PNG or JPEG, 3 MB at most)",
+    "photoSubmit": "Upload the photo",
+    "photoAdded": "Photo added.",
+    "photosHint": "Three photos at most: your finest work, shown on the proposal page.",
+    "photoErrors": {
+      "missing": "Choose a photo.",
+      "too_large": "The photo exceeds 3 MB.",
+      "unsupported_type": "Only PNG or JPEG photos are accepted.",
+      "infected": "This file was rejected by the antivirus.",
+      "full": "This template already has three photos.",
+      "not_found": "Template not found: save it first."
+    }
+  },
+  "ReminderSettings": {
+    "title": "Reminders",
+    "moduleUnavailable": "The Quotes module is not available for your organisation.",
+    "intro": "Symbola reminds your clients for you, by email, during business hours: once before a proposal expires, then after an unpaid instalment. A reminder stops as soon as the client reports their transfer or you confirm receipt.",
+    "formLabel": "Reminder settings",
+    "expiryDays": "Reminder before a proposal expires (days before)",
+    "expiryHint": "A single reminder, to clients who have neither signed nor declined.",
+    "paymentDays": "Unpaid instalment reminders (days after the due date)",
+    "paymentHint": "Up to five numbers, separated by commas (for example: 3, 10, 20).",
+    "consumerRate": "Annual rate of the penalty clause for a consumer (%)",
+    "consumerRateHint": "Fill in only if your contract has a penalty clause; empty, no penalty is mentioned to a consumer. For a business client, the penalties of your terms apply.",
+    "save": "Save the settings",
+    "saved": "Settings saved.",
+    "errorUnauthenticated": "Your session has expired. Sign in again.",
+    "errorRate": "Enter a rate such as 3.5.",
+    "errors": {
+      "expiryReminderDays": "The pre-expiry reminder goes 1 to 30 days before.",
+      "paymentReminderDays": "One to five reminders, each between 1 and 120 days after the due date.",
+      "consumerLatePenaltyBasisPoints": "The rate is between 0.01 and 100%."
+    },
+    "lawyerNote": "Consumer penalties: question asked to the lawyer (maximum rate, wording). Until then, nothing is mentioned without a contract clause."
   }
 }

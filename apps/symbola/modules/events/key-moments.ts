@@ -4,7 +4,7 @@
 // seulement par service.ts (ADR 0011), avec ce que le module Invités lit d'un évènement.
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
-import { eventClients, eventPlaces, events, eventStatusHistory, keyMoments } from "@symbola/db/schema/events";
+import { eventClients, eventPlaces, events, eventStatusHistory, keyMoments, programItems } from "@symbola/db/schema/events";
 import { inTrash, markDeleted } from "@symbola/db/soft-delete";
 import { withOrganization } from "@symbola/db/with-organization";
 import { parisToday } from "@symbola/i18n";
@@ -20,7 +20,8 @@ const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 export const KEY_MOMENTS_MAX = 20;
 
 export class KeyMomentInvalidError extends Error {
-  constructor(readonly problem: "name" | "date" | "time" | "place" | "too_many") {
+  // Lot 51 (EVT-04) : « has_items », le temps fort porte encore des séquences du programme.
+  constructor(readonly problem: "name" | "date" | "time" | "place" | "too_many" | "has_items") {
     super(`temps fort invalide : ${problem}`);
     this.name = "KeyMomentInvalidError";
   }
@@ -66,6 +67,7 @@ async function rowsOf(tx: Tx, eventIds: string[]): Promise<KeyMoment[]> {
     placeId: moment.placeId,
     placeLabel: placeLabel ?? null,
     position: moment.position,
+    autoCreated: moment.autoCreated,
   }));
 }
 
@@ -106,7 +108,9 @@ export async function updateKeyMoment(organizationId: string, eventId: string, k
     await assertPlace(tx, eventId, clean.placeId);
     const updated = await tx
       .update(keyMoments)
-      .set({ ...clean, updatedAt: new Date() })
+      // Lot 51 (D1) : modifié par la planner, le temps fort créé de lui-même devient le sien (proposé
+      // aux invités).
+      .set({ ...clean, autoCreated: false, updatedAt: new Date() })
       .where(and(eq(keyMoments.id, keyMomentId), eq(keyMoments.eventId, eventId)))
       .returning({ id: keyMoments.id });
     if (updated.length === 0) throw new KeyMomentNotFoundError();
@@ -118,6 +122,12 @@ export async function updateKeyMoment(organizationId: string, eventId: string, k
 // les réponses des invités à ce temps fort ne s'affichent plus.
 export async function removeKeyMoment(organizationId: string, eventId: string, keyMomentId: string): Promise<void> {
   if (!UUID.test(eventId) || !UUID.test(keyMomentId)) throw new KeyMomentNotFoundError();
+  // Lot 51 (EVT-04) : un temps fort qui porte des séquences ne se supprime pas (elles perdraient leur
+  // jour) : les déplacer ou les supprimer d'abord.
+  const [item] = await inOrganization(organizationId, (tx) =>
+    tx.select({ id: programItems.id }).from(programItems).where(and(eq(programItems.keyMomentId, keyMomentId), eq(programItems.eventId, eventId))).limit(1),
+  );
+  if (item) throw new KeyMomentInvalidError("has_items");
   // Marquer se fait dans une transaction qui voit la corbeille (ADR 0073).
   const removed = await inTrash(organizationId, (tx) =>
     tx
@@ -160,7 +170,8 @@ export async function guestEventContexts(organizationId: string, eventIds: strin
       cancelledOn: row.status === "cancelled" ? (cancelledAt ? parisToday(new Date(cancelledAt)) : parisToday(row.updatedAt)) : null,
       clients: clients.filter((client) => client.eventId === row.id).map((client) => ({ id: client.id, firstName: client.firstName, lastName: client.lastName })),
       vocabulary: audiences.get(row.id) ?? "couple",
-      keyMoments: found.moments.filter((moment) => moment.eventId === row.id),
+      // Lot 51 (D1) : le temps fort créé de lui-même pour le chrono n'est pas proposé aux invités.
+      keyMoments: found.moments.filter((moment) => moment.eventId === row.id && !moment.autoCreated),
     };
   });
 }

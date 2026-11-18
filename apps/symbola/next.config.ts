@@ -29,7 +29,16 @@ const securityHeaders = [
 
 // Lot 37a (DOC-04, ADR 0070) : la page d'un lien de partage de document, comme celles des liens personnels.
 // Lot 49 (INV-03, SEC-17) : la page de réponse des invités.
-const LINK_PAGES = ["/lien", "/lien/:path*", "/portail", "/portail/:path*", "/prestataire", "/prestataire/:path*", "/partage", "/partage/:path*", "/rsvp", "/rsvp/:path*"];
+// Lot 46 (RDV-02, RDV-03, D11) : la page publique de réservation et le lien de gestion d'un rendez-vous.
+// Lot 44 (CRM-01 ; D2 ; ADR 0084) : le formulaire de contact public et sa page encadrée.
+const LINK_PAGES = ["/lien", "/lien/:path*", "/portail", "/portail/:path*", "/prestataire", "/prestataire/:path*", "/partage", "/partage/:path*", "/rsvp", "/rsvp/:path*", "/reserver/:path*", "/rdv", "/rdv/:path*", "/contact/:path*"];
+
+// Lot 44 (CRM-01, D1 ; ADR 0084) : la page encadrée du formulaire de contact
+// (/contact/<adresse>/cadre) est la seule qui n'a pas X-Frame-Options: DENY ; ses parents
+// autorisés (les sites déclarés par la planner) sont dans la directive frame-ancestors de sa
+// CSP (middleware.ts). Partout ailleurs, DENY reste.
+export const CONTACT_FRAME_PAGE = "/contact/:adresse/cadre";
+export const FRAMEABLE_EXCLUDED = "/:path((?!contact/[^/]+/cadre/?$).*)";
 const linkPageHeaders = [
   { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
   { key: "Referrer-Policy", value: "no-referrer" },
@@ -60,7 +69,8 @@ const nextConfig: NextConfig = {
   // débit avant de lire le corps (lib/uploads/receive.ts).
   async headers() {
     return [
-      { source: "/:path*", headers: securityHeaders },
+      { source: FRAMEABLE_EXCLUDED, headers: securityHeaders },
+      { source: CONTACT_FRAME_PAGE, headers: securityHeaders.filter((header) => header.key !== "X-Frame-Options") },
       // Lot 26a (SEC-17, ADR 0053) : pages à lien personnel jamais indexées ni
       // mises en cache, sans référent vers un autre site ; ces en-têtes,
       // déclarés après, remplacent ceux du dessus.

@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 import type { DecisionSnapshot } from "@symbola/contracts";
 import { answerDecisionAction, type DecisionAnswerState } from "./actions";
 
-export function DecisionAnswerForm({ decisionId, snapshot, label, amounts, preview = false }: { decisionId: string; snapshot: DecisionSnapshot; label: string; amounts: Record<string, string>; preview?: boolean }) {
+export function DecisionAnswerForm({ decisionId, snapshot, label, amounts, preview = false, plannerName = "" }: { decisionId: string; snapshot: DecisionSnapshot; label: string; amounts: Record<string, string>; preview?: boolean; plannerName?: string }) {
   const t = useTranslations("Decisions");
   const [state, formAction, pending] = useActionState(answerDecisionAction, {} as DecisionAnswerState);
   const commentId = useId();
@@ -43,6 +43,9 @@ export function DecisionAnswerForm({ decisionId, snapshot, label, amounts, previ
           <span className="sr-only">{t(`declineFull.${snapshot.kind}`, { label })}</span>
         </button>
       </div>
+      {/* Lot 47 (D6 ; AV-6 tranché par Julien le 18/11/2026) : le choix est transmis à la planner ; il ne
+          vaut pas commande, le contrat se signe directement avec le prestataire. */}
+      {snapshot.kind === "option" ? <p className="muted">{t("engageNotice", { planner: plannerName })}</p> : null}
       {state.error ? <p role="alert">{state.error}</p> : null}
     </form>
   );

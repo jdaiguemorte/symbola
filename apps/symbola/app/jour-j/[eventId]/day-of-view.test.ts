@@ -36,6 +36,7 @@ const program: EventProgram = {
         { vendorSlotId: "s-fleurs", label: "Fleurs et décoration" },
         { vendorSlotId: null, label: "Officiante" },
       ],
+      keyMomentId: null,
     },
   ],
   overlaps: [],

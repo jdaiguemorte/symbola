@@ -4,15 +4,21 @@
 import { z } from "zod";
 import { formatCalendarDate, isTimeZone, parisDaysSince, parisToday } from "@symbola/i18n";
 import { canSetStatus, eventPhase } from "./lifecycle";
+import { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } from "./errors";
+export { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } from "./errors";
 // Lot 34a (EVT-05) : les règles du cycle de vie, pour les écrans et lib/.
+import { getPipeline as getPipelineOf } from "./pipeline";
+import { countRequestsToReview, findNewRequestRows } from "./prospects-repository";
+import type { Pipeline } from "@symbola/contracts";
 export { canPostpone, canSetStatus, closingDue, eventPhase, FINISHED_STATUSES, FIRM_STATUSES, IN_PROGRESS_STATUSES, isInProgress, MANUAL_STATUSES, TENTATIVE_STATUSES, TIMELINE_PHASES } from "./lifecycle";
 import type { EventStatus as LifecycleStatus } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
 import { includingDeleted, SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
+import { randomUUID } from "node:crypto";
 import { parseEnv } from "@symbola/env";
 import { MailQuotaExceededError, reserveOrganizationMail } from "@symbola/mail";
-import { starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, type StarterLinkProfile } from "@symbola/starter-templates";
+import { starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, starterDayOfSettings, type StarterLinkProfile } from "@symbola/starter-templates";
 import {
   postponeEventRow,
   confirmPostponementRow,
@@ -164,12 +170,13 @@ import {
 import { isSendingHour, reminderTaskLines, reminderThreshold, type ReminderTask } from "./task-reminders";
 import { recordAudit } from "@symbola/db/audit";
 import { resolveClientContacts } from "./clients";
-import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, getUserContact, sendOrganizationEmail, sendSymbolaEmail, updateContact } from "@/modules/hub/service";
+import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, getOrganizationLanguage, getUserContact, sendOrganizationEmail, sendSymbolaEmail, updateContact } from "@/modules/hub/service";
 import { createTranslator } from "next-intl";
 import type { EmailTemplateKind, EmailValues, TrashedObject } from "@symbola/contracts";
 import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import { answerDecisionRow, findDecisionRow, findDecisionRows, insertDecisionRow, replacementsOf, withdrawDecisionRow, type EventDecisionRow } from "./decisions-repository";
+import { engageOptionChoice, engagementContext } from "./vendor-coordination";
 import { findPendingDecisions, findUncontractedVendors, insertVendorReminder } from "./today-sources";
 import { VendorCandidateNotFoundError as CandidateNotFoundError } from "./vendor-candidates";
 import { answerProblem, DECISION_NOTE_MAX, decisionOpenTo, programChangedSince } from "./decisions";
@@ -178,7 +185,7 @@ import { addPlace, listPlaces, makeReceptionPlace, removePlace, restorePlace, up
 import { attachFile, getAttachmentFile, listAttachments, listEventAttachments, removeAttachment } from "./task-attachments";
 import { addComment, listComments, removeComment, restoreComment } from "./task-comments";
 import { listTrashedEventRows, restoreDocumentRow, restoreEventRow, restoreProgramTemplateRow, restoreTaskTemplateRow, trashEventRow } from "./trash";
-import { createStorageClient, deletePrivateObject } from "@symbola/files";
+import { createStorageClient, deletePrivateObject, detectFileType, PrivateObjectNotFoundError, readPrivateObject, scanBuffer, uploadPrivateObject } from "@symbola/files";
 import {
   addCandidate,
   addCandidateNote,
@@ -204,6 +211,28 @@ import {
   updateCandidate,
 } from "./vendor-candidates";
 import { addDayContact, listDayContacts, removeDayContact } from "./day-contacts";
+import { KeyMomentNotFoundError, listKeyMoments as listKeyMomentsOf } from "./key-moments";
+import {
+  actualsOf,
+  claimDayShiftNotification,
+  dayPhotoActionExists,
+  deviceInstant,
+  findDayRecords,
+  insertDayPhoto,
+  recordDayCheck,
+  recordDayCheckpoint,
+  recordDayIncident,
+  recordDayShift,
+  recordDayShiftNotification,
+  findDayPhotoFile,
+  resolveDayPhotoSubject,
+  setDayShiftVersion,
+  type DayActionResult,
+} from "./day-of";
+import { buildDayReport, saveDayReport } from "./day-report";
+import { importProgram } from "./program-import";
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 import {
   addDocumentVersion,
   attachDocument,
@@ -323,6 +352,15 @@ import type {
   ProgramRecipient,
   ProgramRecipientDocument,
   NotifyProgramVersionInput,
+  DayAction,
+  DayActionStatus,
+  DayPhoto,
+  DayPhotoMeta,
+  DayPhotoRejection,
+  DayReport,
+  DayReportHandover,
+  DayState,
+  ProgramImportResult,
   ProgramNotification,
   CalendarEvent,
   PublishedProgramView,
@@ -742,14 +780,6 @@ export class VendorNameRequiredError extends Error {
   }
 }
 
-// Identifiant inconnu ou appartenant à une autre organisation (masqué
-// par la RLS) : l'appelant affiche « introuvable » plutôt qu'une erreur.
-export class EventNotFoundError extends Error {
-  constructor() {
-    super("événement introuvable");
-    this.name = "EventNotFoundError";
-  }
-}
 
 // Lot 14 (décision I) — coordonnées d'un client : e-mail vérifié, valeurs
 // vides enregistrées comme absentes.
@@ -1504,7 +1534,7 @@ export class ProgramTemplateNotFoundError extends Error {
 
 // Lot 30b (CHR-06, décisions D6 et D7) : responsable trop long, durée hors d'une journée.
 export class ProgramItemInvalidError extends Error {
-  constructor(readonly reason: "responsible" | "duration") {
+  constructor(readonly reason: "responsible" | "duration" | "moment") {
     super(`ligne du programme invalide : ${reason}`);
     this.name = "ProgramItemInvalidError";
   }
@@ -1555,6 +1585,7 @@ function normalizeProgramItem(input: ProgramItemInput): ProgramItemData {
     location: optionalText(input.location),
     internalNote: optionalText(input.internalNote),
     responsible,
+    keyMomentId: input.keyMomentId && UUID_PATTERN.test(input.keyMomentId) ? input.keyMomentId : null,
   };
 }
 
@@ -1568,6 +1599,7 @@ function toProgramItem({ item, participants }: ProgramItemWithParticipants): Pro
     location: item.location,
     internalNote: item.internalNote,
     responsible: item.responsible,
+    keyMomentId: item.keyMomentId,
     participants: participants.map(
       ({ row, vendorSlotLabel }): ProgramParticipant => ({
         vendorSlotId: row.vendorSlotId,
@@ -1587,7 +1619,14 @@ function savedProgramItem(result: ProgramWriteResult): ProgramItem {
       throw new ProgramItemNotFoundError();
     case "participant_not_found":
       throw new ProgramParticipantNotFoundError();
+    case "moment_not_found":
+      throw new KeyMomentNotFoundError();
   }
+}
+
+// Lot 51 (EVT-04 ; D1) : nom du temps fort créé de lui-même, dans la langue de l'organisation.
+async function mainMomentName(organizationId: string): Promise<string> {
+  return starterDayOfSettings(await getOrganizationLanguage(appDatabase(), organizationId)).mainMomentName;
 }
 
 export async function getEventProgram(organizationId: string, eventId: string): Promise<EventProgram> {
@@ -1746,6 +1785,7 @@ export async function addProgramItem(organizationId: string, eventId: string, it
       normalizeProgramItem(item),
       item.vendorSlotIds,
       cleanLabels(item.freeParticipants),
+      await mainMomentName(organizationId),
     ),
   );
 }
@@ -1793,6 +1833,8 @@ function toProgramTemplateItem(row: ProgramTemplateItemRow): ProgramTemplateItem
     location: row.location,
     participantLabels: row.participantLabels,
     position: row.position,
+    momentName: row.momentName,
+    dayOffset: row.dayOffset,
   };
 }
 
@@ -1803,7 +1845,11 @@ function toProgramTemplate(template: ProgramTemplateRow, items: ProgramTemplateI
 function normalizeProgramTemplateItem(item: ProgramTemplateItemInput) {
   // Un modèle n'a pas de note interne : elle est propre à chaque événement.
   const { startTime, endTime, label, location } = normalizeProgramItem({ ...item, vendorSlotIds: [], freeParticipants: [] });
-  return { startTime, endTime, label, location, participantLabels: cleanLabels(item.participantLabels) };
+  // Lot 51 (CHR-08, EVT-04) : temps fort nommé (100 caractères) et jour (de la veille à J+6).
+  const momentName = optionalText(item.momentName)?.replace(/\s+/g, " ") ?? null;
+  const dayOffset = item.dayOffset ?? 0;
+  if ((momentName !== null && momentName.length > 100) || !Number.isInteger(dayOffset) || dayOffset < -3 || dayOffset > 6) throw new ProgramItemInvalidError("moment");
+  return { startTime, endTime, label, location, participantLabels: cleanLabels(item.participantLabels), momentName, dayOffset };
 }
 
 export async function listProgramTemplates(organizationId: string): Promise<ProgramTemplate[]> {
@@ -1857,7 +1903,7 @@ export async function applyProgramTemplate(
   eventId: string,
   templateId: string,
 ): Promise<ProgramItem[]> {
-  const result = await applyProgramTemplateRows(organizationId, eventId, templateId);
+  const result = await applyProgramTemplateRows(organizationId, eventId, templateId, await mainMomentName(organizationId));
   if (result.status !== "applied") {
     throw result.status === "event_not_found" ? new EventNotFoundError() : new ProgramTemplateNotFoundError();
   }
@@ -1883,14 +1929,6 @@ export class EventLinkNotFoundError extends Error {
   }
 }
 
-// Lien absent, retiré ou expiré, rubrique fermée, objet d'un autre événement :
-// même réponse dans tous les cas, sans dire ce qui existe (SEC-13).
-export class LinkAccessDeniedError extends Error {
-  constructor() {
-    super("accès refusé");
-    this.name = "LinkAccessDeniedError";
-  }
-}
 
 const emailSchema = z.email();
 const LINK_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -2187,6 +2225,46 @@ export async function verifyLinkCode(token: string, code: string, now: Date = ne
   return await startLinkSession(found.organizationId, found.context, now);
 }
 
+// Lot 43 (SEC-16 ; D4 ; avenant de l'ADR 0053, ADR 0089) — code à usage unique avant une action
+// sensible depuis un lien déjà ouvert (signer) : les mêmes codes que l'ouverture (six chiffres, dix
+// minutes, cinq essais, un seul usage, cinq codes par heure), envoyés à l'e-mail du lien, sans ouvrir
+// de nouvelle session. Le lien est relu : retiré, expiré ou d'un évènement perdu, rien ne part.
+export type LinkActionCodeResult = { sent: boolean; emailHint: string };
+export type LinkActionCodeCheck = { outcome: "accepted" } | { outcome: "wrong_code"; attemptsLeft: number } | { outcome: "code_expired" } | { outcome: "invalid" };
+
+export async function sendLinkActionCode(organizationId: string, linkId: string, now: Date = new Date(), locale: "fr" | "en" = "fr"): Promise<LinkActionCodeResult> {
+  const context = await findLinkRow(organizationId, linkId);
+  if (!context || !usableLink(context, now)) return { sent: false, emailHint: "•••" };
+  const { link } = context;
+  const emailHint = maskEmail(link.email);
+  try {
+    await reserveOrganizationMail(organizationId);
+  } catch (error) {
+    if (error instanceof MailQuotaExceededError) return { sent: false, emailHint };
+    throw error;
+  }
+  const code = newLinkCode();
+  const issued = await withActor({ kind: "link", id: link.id }, () =>
+    issueLinkCodeRow({ organizationId, linkId: link.id, eventId: link.eventId, codeHash: hashLinkCode(link.id, code), expiresAt: linkCodeExpiresAt(now), now, maxPerHour: LINK_CODES_PER_HOUR }),
+  );
+  if (issued === "throttled") return { sent: false, emailHint };
+  const t = emailTranslator(locale);
+  await sendSymbolaEmail({ to: link.email, locale, subject: t("fixed.actionCode.subject", { code }), body: t("fixed.actionCode.body", { name: link.personName, code, minutes: Math.round(LINK_CODE_TTL_MS / 60_000) }), organizationId });
+  return { sent: true, emailHint };
+}
+
+export async function verifyLinkActionCode(organizationId: string, linkId: string, code: string, now: Date = new Date()): Promise<LinkActionCodeCheck> {
+  const context = await findLinkRow(organizationId, linkId);
+  if (!context || !usableLink(context, now)) return { outcome: "invalid" };
+  const typed = normalizeLinkCode(code);
+  const attempt = await withActor({ kind: "link", id: linkId }, () =>
+    attemptLinkCodeRow({ organizationId, linkId, eventId: context.link.eventId, codeHash: hashLinkCode(linkId, typed ?? ""), now }),
+  );
+  if (attempt.status === "expired") return { outcome: "code_expired" };
+  if (attempt.status === "wrong") return attempt.attemptsLeft > 0 ? { outcome: "wrong_code", attemptsLeft: attempt.attemptsLeft } : { outcome: "code_expired" };
+  return { outcome: "accepted" };
+}
+
 // Décision D7 : à chaque requête, la session et son lien sont relus ; une
 // session expirée, ou d'un lien qui ne vaut plus, est supprimée.
 export async function resolveLinkSession(sessionToken: string, now: Date = new Date()): Promise<LinkAccess | null> {
@@ -2271,10 +2349,13 @@ export async function getVendorLinkView(organizationId: string, linkId: string):
   const [vendor, found] = await Promise.all([findLinkVendorRow(organizationId, access.vendorCandidateId), findEventById(organizationId, access.eventId)]);
   if (!vendor || vendor.eventId !== access.eventId || !found) throw new LinkAccessDeniedError();
   const [places, published] = await Promise.all([listEventPlaces(organizationId, access.eventId), linkPublishedProgram(organizationId, linkId, access.eventId)]);
+  const dayShift = await latestVendorDayShift(organizationId, access.eventId, vendor.vendorSlotId);
   const program: VendorProgramView = {
     version: published.version ? { number: published.version.number, publishedAt: published.version.publishedAt } : null,
     ...vendorProgramOf(published.version?.items ?? [], vendor.vendorSlotId),
     isNew: published.isNew,
+    // Présent seulement quand un décalage du jour J concerne la version affichée.
+    ...(dayShift && published.version && dayShift.programVersion === published.version.number ? { dayShift: { minutes: dayShift.minutes, validatedAt: dayShift.validatedAt } } : {}),
   };
   return {
     vendorName: vendor.vendorName,
@@ -2437,7 +2518,8 @@ export async function sendClientTaskReminders(organizationId: string, now: Date 
 // Lot 27b (POR-03, BUD-07, EVT-09 ; décisions D9 et D10) — décisions demandées
 // au client. La planner les demande (contenu figé), le client y répond depuis
 // son portail (première réponse), la décision répondue ne se modifie plus : une
-// nouvelle la remplace. Une décision n'engage rien d'elle-même (D9).
+// nouvelle la remplace. Une décision n'engage rien d'elle-même (D9), sauf depuis
+// le lot 47 (D6, ADR 0085) le choix d'une décision « options », qui engage.
 
 export class DecisionInvalidError extends Error {
   constructor(readonly reason: "options" | "expense" | "program" | "date" | "note" | "replace" | "pending" | "choice" | "comment" | "answered") {
@@ -2475,6 +2557,7 @@ function toDecision(row: EventDecisionRow, replacedBy: Map<string, string>, curr
     replacedById: replacedBy.get(row.id) ?? null,
     requestedAt: row.requestedAt.toISOString(),
     programChanged: row.status === "approved" && programChangedSince(snapshot, currentProgram),
+    engagedAt: row.engagedAt?.toISOString() ?? null,
   };
 }
 
@@ -2602,8 +2685,23 @@ export async function answerLinkDecision(input: AnswerDecisionInput): Promise<Ev
   const choiceId = input.choiceId || null;
   const problem = answerProblem(row.snapshot as DecisionSnapshot, { answer: input.answer, choiceId, comment });
   if (problem) throw new DecisionInvalidError(problem);
+  // Lot 47 (PAR-05, PRE-09 ; D6, ADR 0085) : le choix d'une option engage (Retenu, autres Écartés,
+  // tâches de suivi), dans la même transaction que la réponse ; la planner modifie ensuite le prestataire
+  // retenu quand elle veut. Remplace, pour les décisions « options » seulement, la règle D9 du lot 28.
+  const now = new Date();
+  const engaging = row.kind === "option" && input.answer === "approved" && choiceId !== null ? await engagementContext(input.organizationId, row, access.linkId) : null;
   const answered = await withActor({ kind: "link", id: access.linkId }, () =>
-    answerDecisionRow({ organizationId: input.organizationId, decisionId: row.id, status: input.answer, choiceId, comment, linkId: access.linkId, personName: access.personName, now: new Date() }),
+    answerDecisionRow({
+      organizationId: input.organizationId,
+      decisionId: row.id,
+      status: input.answer,
+      choiceId,
+      comment,
+      linkId: access.linkId,
+      personName: access.personName,
+      now,
+      engage: engaging && choiceId ? (tx, answeredRow) => engageOptionChoice(tx, { organizationId: input.organizationId, decision: answeredRow, choiceId, linkId: access.linkId, now, ...engaging }) : undefined,
+    }),
   );
   if (!answered) throw new DecisionInvalidError("answered");
   const [decision] = await decisionsWithContext(input.organizationId, access.eventId, [answered], await findDecisionRows(input.organizationId, access.eventId));
@@ -2643,14 +2741,6 @@ export async function listEventActivity(organizationId: string, eventId: string)
 
 const TRIAL_DURATION_MS = 24 * 60 * 60 * 1000; // essai abandonné supprimé après 24 h (PRD, proposé)
 
-// Action impossible sur un événement d'essai (ex. inviter un marié : jamais
-// d'e-mail à un tiers depuis un essai).
-export class DemoEventRestrictionError extends Error {
-  constructor() {
-    super("action indisponible pendant l'essai");
-    this.name = "DemoEventRestrictionError";
-  }
-}
 
 function toTrial(event: EventRow): EventsTrial {
   return { eventId: event.id, expiresAt: event.demoExpiresAt!.toISOString() };
@@ -3094,3 +3184,359 @@ export async function getEventIdentityState(
 // Lot 49 (EVT-04 premier pas, INV-03 ; D2) — temps forts de l'évènement, et ce que le module Invités
 // lit d'un évènement (clients, dates, statut, temps forts), par cette porte d'entrée (ADR 0011).
 export { addKeyMoment, guestEventContexts, KEY_MOMENTS_MAX, KeyMomentInvalidError, KeyMomentNotFoundError, listKeyMoments, listRealEventIds, removeKeyMoment, updateKeyMoment } from "./key-moments";
+
+// Lot 44 (CRM-01, CRM-02 ; ADR 0084) — formulaire de contact public et pipeline en colonnes.
+export {
+  acceptProspectRequest,
+  ContactFormInvalidError,
+  ContactFormSlugTakenError,
+  ContactSubmissionInvalidError,
+  contactFormNotice,
+  countLinks,
+  discardProspectRequest,
+  getContactFormSettings,
+  getEventProspectRequest,
+  isFormTimingValid,
+  isValidContactSlug,
+  listProspectRequestsToReview,
+  normalizeOrigin,
+  notifyOwnerOfRequest,
+  parseBudget,
+  parseContactSubmission,
+  ProspectRequestNotFoundError,
+  purgeStaleProspectRequests,
+  resolvePublicContactForm,
+  saveContactFormSettings,
+  sealFormOpening,
+  submitContactForm,
+  suggestContactFormSlug,
+  type PublicContactFormView,
+  type RawContactSubmission,
+  type SubmitOptions,
+} from "./contact-form";
+export { contactFrameOrigins } from "./contact-frame";
+export {
+  addPipelineStage,
+  listPipelineStages,
+  movePipelineCard,
+  movePipelineStage,
+  PIPELINE_MAX_STAGES,
+  PIPELINE_MIN_STAGES,
+  PipelineMoveRefusedError,
+  PipelineStageInvalidError,
+  removePipelineStage,
+  renamePipelineStage,
+} from "./pipeline";
+
+// Le pipeline, avec le nom des prospects (premier client de chaque option).
+export async function getEventsPipeline(organizationId: string, locale: "fr" | "en"): Promise<Pipeline> {
+  const options = await listEvents({ organizationId, statusIn: ["option"] });
+  return getPipelineOf(organizationId, locale, new Map(options.map((event) => [event.id, eventNames(event.clients)])));
+}
+
+// « Gagné » (CRM-02, D9) : l'évènement est confirmé, avec les effets de la confirmation (EVT-05).
+export async function winPipelineCard(input: { organizationId: string; eventId: string; userId: string }): Promise<void> {
+  const event = await getEvent(input.organizationId, input.eventId);
+  if (!event) throw new EventNotFoundError();
+  if (event.status !== "option") throw new EventStatusTransitionError();
+  await changeEventStatus({ organizationId: input.organizationId, eventId: input.eventId, changedByUserId: input.userId, toStatus: "confirmed" });
+}
+
+export class LossReasonRequiredError extends Error {
+  constructor(readonly field: "reason" | "note") {
+    super(field === "reason" ? "motif de perte obligatoire" : "précision du motif obligatoire");
+    this.name = "LossReasonRequiredError";
+  }
+}
+
+// « Perdu » (CRM-02, D9) : l'évènement est annulé ; le motif de perte est obligatoire, la note aussi
+// pour le motif « Autre ».
+export async function losePipelineCard(input: { organizationId: string; eventId: string; userId: string; lossReasonId: string | null; lossReasonNote: string | null }): Promise<void> {
+  const reason = input.lossReasonId ? (await listLossReasons(input.organizationId)).find((candidate) => candidate.id === input.lossReasonId) : undefined;
+  if (!reason) throw new LossReasonRequiredError("reason");
+  const note = input.lossReasonNote?.trim().slice(0, 1000) || null;
+  if (reason.isFreeText && !note) throw new LossReasonRequiredError("note");
+  const event = await getEvent(input.organizationId, input.eventId);
+  if (!event) throw new EventNotFoundError();
+  if (event.status !== "option") throw new EventStatusTransitionError();
+  await cancelEvent({ organizationId: input.organizationId, eventId: input.eventId, changedByUserId: input.userId, lossReasonId: reason.id, lossReasonNote: note });
+}
+
+// « Aujourd'hui » (PAR-02, étape 1) : les prospects du formulaire encore à la première étape, avec
+// l'alerte de date prise (CRM-04) ; et le nombre de demandes « à vérifier ».
+export type NewProspectRequest = { eventId: string; names: string; eventDate: string | null; period: string | null; receivedAt: string; dateTaken: boolean };
+
+export async function listNewProspectRequests(organizationId: string, locale: "fr" | "en"): Promise<NewProspectRequest[]> {
+  const pipeline = await getEventsPipeline(organizationId, locale);
+  const firstStageId = pipeline.stages[0]?.id;
+  const rows = firstStageId ? await findNewRequestRows(organizationId, firstStageId) : [];
+  const cards = new Map(pipeline.cards.map((card) => [card.eventId, card]));
+  return rows.flatMap((row) => {
+    const card = cards.get(row.eventId);
+    return card ? [{ eventId: row.eventId, names: card.names, eventDate: row.eventDate, period: row.period, receivedAt: row.receivedAt.toISOString(), dateTaken: card.dateTaken }] : [];
+  });
+}
+
+export async function countProspectRequestsToReview(organizationId: string): Promise<{ count: number; oldest: string | null }> {
+  const result = await countRequestsToReview(organizationId);
+  return { count: result.count, oldest: result.oldest ? result.oldest.toISOString() : null };
+}
+
+// —— Lot 51 (EVT-04, CHR-08, JRJ-05 à JRJ-09, ARC-09, PAR-08 ; D1 à D8, ADR 0091) : jour J de terrain ——
+
+export { DayChecklistInvalidError, DayChecklistNotFoundError } from "./day-checklists";
+export {
+  addDayChecklistItem,
+  createDayChecklist,
+  listDayChecklistTemplates,
+  removeDayChecklist,
+  removeDayChecklistItem,
+  removeDayChecklistTemplate,
+  saveDayChecklistTemplate,
+} from "./day-checklists";
+export { deviceInstant } from "./day-of";
+
+// Réglages de départ du jour J (seuil de retard, photos, rafraîchissement), dans une langue.
+export function dayOfSettings(locale: "fr" | "en") {
+  return starterDayOfSettings(locale);
+}
+
+// CHR-08 : aperçu, puis écriture, d'un chrono importé d'un tableur.
+export async function importEventProgram(input: { organizationId: string; eventId: string; bytes: Uint8Array; apply: { skipLines: number[] } | null }): Promise<ProgramImportResult> {
+  const result = await importProgram({ ...input, mainMomentName: await mainMomentName(input.organizationId) });
+  if (!result) throw new EventNotFoundError();
+  return result;
+}
+
+// JRJ-08 : l'état partagé du jour J (pointages, première heure retenue, décalages, incidents, listes),
+// avec le nom affiché (l'adresse du compte) des membres cités.
+export async function getDayState(organizationId: string, eventId: string): Promise<DayState | null> {
+  const records = await findDayRecords(organizationId, eventId);
+  if (!records) return null;
+  const cited = new Set<string>([
+    ...records.checkpoints.map((checkpoint) => checkpoint.userId),
+    ...records.shifts.map((shift) => shift.validatedBy),
+    ...records.incidents.map((incident) => incident.userId),
+    ...records.checklists.flatMap((list) => list.items.flatMap((item) => (item.checkedBy ? [item.checkedBy] : []))),
+  ]);
+  const team = cited.size > 0 ? await listTeam(appDatabase(), organizationId) : [];
+  return {
+    eventId,
+    checkpoints: records.checkpoints,
+    actuals: actualsOf(records),
+    shifts: records.shifts,
+    incidents: records.incidents,
+    checklists: records.checklists,
+    people: team.filter((member) => cited.has(member.id)).map((member) => ({ id: member.id, name: member.email })),
+  };
+}
+
+export type DayEventAction = Exclude<DayAction, { kind: "handover" }>;
+
+// Une action de la file (hors remise, tenue par le module budget). Un décalage appliqué diffuse une
+// nouvelle version du programme (CHR-07) et prévient les prestataires concernés, une seule fois.
+export async function applyDayAction(input: {
+  organizationId: string;
+  eventId: string;
+  userId: string;
+  action: DayEventAction;
+  renderDocument: NotifyProgramVersionInput["renderDocument"];
+  now?: Date;
+}): Promise<DayActionResult> {
+  const base = { organizationId: input.organizationId, eventId: input.eventId, userId: input.userId, now: input.now ?? new Date() };
+  switch (input.action.kind) {
+    case "checkpoint":
+      return recordDayCheckpoint({ ...base, action: input.action });
+    case "incident":
+      return recordDayIncident({ ...base, action: input.action });
+    case "check":
+      return recordDayCheck({ ...base, action: input.action });
+    case "shift": {
+      const recorded = await recordDayShift({ ...base, action: input.action });
+      if (recorded.status === "applied" && recorded.shiftId) {
+        await recordAudit(appDatabase(), { organizationId: input.organizationId, action: "events.day_shift.applied", objectId: input.eventId, details: { minutes: input.action.minutes, items: input.action.itemIds.length } });
+        await publishAndNotifyDayShift({ organizationId: input.organizationId, eventId: input.eventId, shiftId: recorded.shiftId, userId: input.userId, renderDocument: input.renderDocument, now: input.now ?? new Date() });
+      }
+      return { status: recorded.status, ...(recorded.reason ? { reason: recorded.reason } : {}) };
+    }
+  }
+}
+
+// D3 : après validation, une nouvelle version du programme est diffusée, puis chaque prestataire
+// concerné (lien actif d'un poste des séquences décalées, retenu par la planner) reçoit un e-mail avec
+// le programme de son poste à jour. Réservé avant l'envoi : un rejeu ne renvoie rien ; la clé de chaque
+// e-mail le dédoublonne aussi dans la file des tâches. Un évènement d'essai n'envoie rien.
+export async function publishAndNotifyDayShift(input: {
+  organizationId: string;
+  eventId: string;
+  shiftId: string;
+  userId: string;
+  renderDocument: NotifyProgramVersionInput["renderDocument"];
+  now: Date;
+}): Promise<{ sent: number; notSent: number }> {
+  const { organizationId, eventId } = input;
+  const program = await getEventProgram(organizationId, eventId);
+  const published = await insertProgramVersion({ organizationId, eventId, userId: input.userId, items: publishedProgramItems(program.items), now: input.now });
+  const version = published.status === "published" ? published.version.number : ((await findLatestProgramVersion(organizationId, eventId))?.number ?? null);
+  if (version !== null) await setDayShiftVersion(organizationId, input.shiftId, version);
+  const found = await findEventById(organizationId, eventId);
+  if (!found || found.event.isDemo) return { sent: 0, notSent: 0 };
+  const shift = await claimDayShiftNotification(organizationId, input.shiftId, input.now);
+  if (!shift) return { sent: 0, notSent: 0 };
+  const latest = await findLatestProgramVersion(organizationId, eventId);
+  if (!latest) return { sent: 0, notSent: 0 };
+  const slots = new Set(shift.vendorSlotIds);
+  const rows = (await programRecipientRows(organizationId, eventId, input.now)).filter((row) => row.vendor && slots.has(row.vendor.vendorSlotId));
+  const vocabulary = (await findEventAudience(organizationId, eventId)) ?? "couple";
+  let sent = 0;
+  for (const row of rows) {
+    try {
+      const values: EmailValues = {
+        ...(await linkEmailValues({ organizationId, eventId, audience: row.audience, personName: row.name, locale: row.locale, vocabulary, expiresOn: null })),
+        version: String(latest.number),
+      };
+      const pdf = await input.renderDocument(programDocumentOf(row, found, latest));
+      await sendOrganizationEmail({
+        organizationId,
+        to: row.email,
+        kind: "program_published",
+        locale: row.locale,
+        values,
+        attachments: [{ filename: pdf.filename, content: Buffer.from(pdf.content), contentType: "application/pdf" }],
+        idempotencyKey: `day-shift:${shift.id}:${row.linkId}`,
+      });
+      sent += 1;
+    } catch (error) {
+      if (error instanceof MailQuotaExceededError) break;
+      // Nom de l'erreur seulement au journal : jamais d'adresse (SEC-20).
+      console.error("e-mail du décalage non parti", error instanceof Error ? error.name : "erreur");
+    }
+  }
+  await recordDayShiftNotification(organizationId, shift.id, sent);
+  return { sent, notSent: rows.length - sent };
+}
+
+// Les liens de prestataires qu'un décalage peut prévenir : les postes qui ont un lien actif.
+export async function listNotifiableVendorSlots(organizationId: string, eventId: string, now: Date = new Date()): Promise<string[]> {
+  return [...new Set((await programRecipientRows(organizationId, eventId, now)).flatMap((row) => (row.vendor ? [row.vendor.vendorSlotId] : [])))];
+}
+
+// D3 : l'espace du prestataire affiche en tête le dernier décalage appliqué qui concerne son poste.
+export async function latestVendorDayShift(organizationId: string, eventId: string, vendorSlotId: string): Promise<{ minutes: number; validatedAt: string; programVersion: number | null } | null> {
+  const records = await findDayRecords(organizationId, eventId);
+  const shift = [...(records?.shifts ?? [])].reverse().find((entry) => entry.outcome === "applied" && entry.vendorSlotIds.includes(vendorSlotId));
+  return shift ? { minutes: shift.minutes, validatedAt: shift.validatedAt, programVersion: shift.programVersion } : null;
+}
+
+// JRJ-06, JRJ-07, JRJ-09 : une photo reçue de la file. Le sujet est vérifié (une case ou un incident
+// de cet évènement ; une échéance l'est par le module budget avant l'appel), puis le fichier est
+// contrôlé à l'arrivée (taille, type par le contenu, antivirus, ADR 0027) : refusé, il garde une ligne
+// sans fichier (l'écran le dit) et l'incident ou la case restent. Une action rejouée est ignorée.
+export async function receiveDayPhoto(input: {
+  organizationId: string;
+  eventId: string;
+  userId: string;
+  meta: DayPhotoMeta;
+  bytes: Uint8Array | null;
+  maxBytes: number;
+  now?: Date;
+}): Promise<{ status: DayActionStatus; reason?: string; photo?: DayPhoto }> {
+  const already = await dayPhotoActionExists(input.organizationId, input.meta.actionId);
+  if (already) return { status: "duplicate", photo: already };
+  const takenAt = deviceInstant(input.meta.deviceAt, input.now ?? new Date());
+  if (!takenAt) return { status: "rejected", reason: "time" };
+  const target = await resolveDayPhotoSubject({ organizationId: input.organizationId, eventId: input.eventId, subject: input.meta.subject, subjectId: input.meta.subjectId, subjectActionId: input.meta.subjectActionId });
+  if (!target) return { status: "rejected", reason: "subject" };
+  let stored: { key: string; contentType: string; sizeBytes: number } | null = null;
+  let rejection: DayPhotoRejection | null = null;
+  // Dans l'ordre : taille, antivirus, type par le contenu (une image), puis stockage privé.
+  if (!input.bytes || input.bytes.length === 0) rejection = "unavailable";
+  else if (input.bytes.length > input.maxBytes) rejection = "size";
+  else {
+    const buffer = Buffer.from(input.bytes);
+    const env = parseEnv(process.env);
+    const detected = detectFileType(input.bytes);
+    if ((await scanBuffer(buffer, { host: env.CLAMAV_HOST, port: env.CLAMAV_PORT })).infected) rejection = "virus";
+    else if (!detected || !detected.mime.startsWith("image/")) rejection = "type";
+    else {
+      const key = `${input.organizationId}/${randomUUID()}.${detected.extension}`;
+      await uploadPrivateObject(createStorageClient(), { key, body: buffer, contentType: detected.mime });
+      stored = { key, contentType: detected.mime, sizeBytes: buffer.length };
+    }
+  }
+  const { photo, duplicate } = await insertDayPhoto({ organizationId: input.organizationId, eventId: input.eventId, userId: input.userId, actionId: input.meta.actionId, takenAt, target, stored, rejection });
+  if (duplicate && stored) await deletePrivateObject(createStorageClient(), stored.key).catch(() => undefined);
+  return { status: duplicate ? "duplicate" : "applied", photo };
+}
+
+// PAR-08, étape 7 : le bilan du lendemain ; la synthèse se garde dès qu'il est prêt.
+export async function getDayReport(input: { organizationId: string; eventId: string; handovers: DayReportHandover[]; now?: Date }): Promise<DayReport | null> {
+  const now = input.now ?? new Date();
+  const [event, records, moments] = await Promise.all([findEventById(input.organizationId, input.eventId), findDayRecords(input.organizationId, input.eventId), listKeyMomentsOf(input.organizationId, input.eventId)]);
+  if (!event || !records) return null;
+  const program = await getEventProgram(input.organizationId, input.eventId);
+  const report = buildDayReport({ eventId: input.eventId, eventDate: event.event.eventDate, timeZone: event.event.timeZone, moments, items: program.items, records, handovers: input.handovers, now });
+  if (!report.ready) return report;
+  return { ...report, preparedAt: await saveDayReport(input.organizationId, input.eventId, report, now) };
+}
+
+// Le fichier d'une photo du jour J de cet évènement, servi par l'app après le contrôle des droits
+// (ADR 0027) ; null si elle n'existe pas, a été refusée, ou n'est pas de cet évènement.
+export async function readDayPhoto(organizationId: string, eventId: string, photoId: string): Promise<FileDownload | null> {
+  const file = await findDayPhotoFile(organizationId, eventId, photoId);
+  if (!file) return null;
+  try {
+    const object = await readPrivateObject(createStorageClient(), file.key);
+    return { data: object.data, contentType: file.contentType, fileName: `photo-${photoId}.${file.contentType.split("/")[1] ?? "jpg"}` };
+  } catch (error) {
+    if (error instanceof PrivateObjectNotFoundError) return null;
+    throw error;
+  }
+}
+// --- Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; ADR 0085) : prestataires par lien. ---
+// Le brief d'un poste envoyé à plusieurs prestataires, leur réponse par leur lien, le comparatif et
+// les scénarios, l'avis et le choix du client qui engage, la feuille de route (vendor-coordination.ts).
+export {
+  answerBrief as answerVendorBrief,
+  answerNotices as listVendorAnswerNotices,
+  attachInvoiceByLink as attachVendorInvoiceByLink,
+  attachQuoteByLink as attachVendorQuoteByLink,
+  briefDocumentFile as getLinkVendorBriefDocumentFile,
+  comparison as getVendorComparison,
+  compareScenarios as compareVendorScenarios,
+  confirmRoadmap as confirmVendorRoadmap,
+  consultationView as getVendorConsultationView,
+  createScenario as createVendorScenario,
+  defaultBriefDeadline as getDefaultVendorBriefDeadline,
+  engagedChoiceNotices as listEngagedChoiceNotices,
+  followUps as listVendorFollowUps,
+  getBrief as getVendorBrief,
+  getSettings as getVendorCoordinationSettings,
+  linkOptionFeedback as listLinkOptionFeedback,
+  listScenarios as listVendorScenarios,
+  removeScenario as removeVendorScenario,
+  renameScenario as renameVendorScenario,
+  roadmapAlerts as listVendorRoadmapAlerts,
+  roadmapView as getVendorRoadmapView,
+  saveBrief as saveVendorBrief,
+  saveSettings as saveVendorCoordinationSettings,
+  sendBrief as sendVendorBrief,
+  sendBriefReminders as sendVendorBriefReminders,
+  sendRoadmaps as sendVendorRoadmaps,
+  setOptionFeedback as setLinkOptionFeedback,
+  setScenarioChoice as setVendorScenarioChoice,
+  showScenarioToClients as showVendorScenarioToClients,
+  changeRetained as changeRetainedVendor,
+  VendorBriefInvalidError,
+} from "./vendor-coordination";
+export type {
+  ScenarioComparison,
+  VendorBrief,
+  VendorComparison,
+  VendorComparisonRow,
+  VendorConsultationView,
+  VendorCoordinationSettings,
+  VendorFollowUpStatus,
+  VendorRoadmapView,
+  VendorScenario,
+} from "@symbola/contracts";

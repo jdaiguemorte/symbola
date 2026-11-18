@@ -49,6 +49,13 @@
         "fr": "Ancien client",
         "en": "Former client"
       }
+    },
+    {
+      "key": "contact_form",
+      "label": {
+        "fr": "Formulaire de contact",
+        "en": "Contact form"
+      }
     }
   ]
 }

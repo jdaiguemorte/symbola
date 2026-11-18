@@ -828,6 +828,11 @@ export const EMAIL_TEMPLATE_KINDS = [
   "vendor_link",
   "vendor_link_renewed",
   "task_reminder",
+  // Lot 46 (RDV-03, ADR 0082) : rendez-vous, côté personne qui l'a pris.
+  "appointment_confirmed",
+  "appointment_reminder",
+  "appointment_rescheduled",
+  "appointment_cancelled",
   "quote_signature",
   "contract_signature",
   "order_first",
@@ -836,6 +841,20 @@ export const EMAIL_TEMPLATE_KINDS = [
   // Lot 49 (INV-03, INV-04 ; D4, D10) : invitation à répondre et relance des invités.
   "guest_invitation",
   "guest_reminder",
+  // Lot 44 (CRM-01 ; D7) : « Nouvelle demande de contact », à la titulaire, sans le message ni les
+  // coordonnées du prospect.
+  "prospect_form_received",
+  // Lot 47 (PRE-03, PAR-05 ; D2, D4, D8, D9 ; ADR 0085) : brief à un prestataire, sa relance la veille
+  // de la date limite, feuille de route à J-30 et J-7.
+  "vendor_brief",
+  "vendor_brief_reminder",
+  "vendor_roadmap",
+  // Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10) : proposition, relance avant expiration, RIB du
+  // règlement, relance d'impayé.
+  "proposal_sent",
+  "proposal_expiry_reminder",
+  "payment_details",
+  "invoice_reminder",
 ] as const;
 
 export const emailTemplates = hubSchema.table(
@@ -856,7 +875,12 @@ export const emailTemplates = hubSchema.table(
   (table) => [
     index("email_templates_organization_idx").on(table.organizationId),
     unique("email_templates_kind_locale_unique").on(table.organizationId, table.kind, table.locale),
-    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder')`),
+    // Lot 46 (migration 0158, accord de Julien du 18/11) : natures des e-mails de rendez-vous, après celles du lot 49.
+    // Lot 44 (migration 0161, accord de Julien du 18/11) : « Nouvelle demande de contact ».
+    // Lot 47 (migration 0163, accord de Julien du 18/11) : natures des prestataires par lien.
+    // Lot 43 (migration 0169, accord de Julien du 18/11, D10) : proposition, relance avant expiration,
+    // RIB du règlement, relance d'impayé.
+    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder')`),
     check("email_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
     check("email_templates_subject_check", sql`char_length(${table.subject}) between 1 and 200`),
     check("email_templates_body_check", sql`char_length(${table.body}) between 1 and 5000`),

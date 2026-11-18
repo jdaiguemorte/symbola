@@ -24,6 +24,14 @@ const NOTICED: Record<string, { file: string; name: string }> = {
   "quotes.payment_entries.reason": { file: "app/devis/[quoteId]/schedule-forms.tsx", name: "reason" },
   // Lot 49 (RGP-08, D9) : motif du report de la purge des invités.
   "guests.purge_postponements.reason": { file: "app/events/[id]/invites/guest-forms.tsx", name: "reason" },
+  // Lot 46 (EVT-10) : le compte rendu d'un rendez-vous.
+  "appointments.appointment_reports.notes": { file: "app/rendez-vous/[id]/page.tsx", name: "notes" },
+  // Lot 47 (PRE-03, D1) : le besoin du brief d'un poste.
+  "events.vendor_briefs.need": { file: "app/events/[id]/consultation/consultation-forms.tsx", name: "need" },
+  // Lot 43 (FAC-02, FAC-09) : mot d'accueil de la proposition (devis, modèle), motif d'une suspension des relances.
+  "quotes.quote_versions.proposal_greeting": { file: "app/devis/[quoteId]/proposal-forms.tsx", name: "greeting" },
+  "quotes.proposal_templates.greeting": { file: "app/devis/modeles-proposition/proposal-template-forms.tsx", name: "greeting" },
+  "quotes.payment_references.reminders_suspension_reason": { file: "app/devis/[quoteId]/proposal-forms.tsx", name: "reason" },
 };
 
 // Aussi mis en garde, bien que rangés autrement au registre : la note d'un contact, le motif d'une perte.
@@ -33,6 +41,12 @@ const ALSO_NOTICED = [
 ];
 
 const WITHOUT_ENTRY: Record<string, string> = {
+  // Lot 51 (JRJ-06, JRJ-07, JRJ-09 ; DPO-9) : le jour J de terrain.
+  "events.day_incidents.body": "main courante dictée sur le terrain : la feuille « Incident » porte sa propre mise en garde (ni nom d'invité ni donnée de santé), sous le champ",
+  "events.day_photos.storage_key": "photo prise sur le lieu, sans champ de texte ; la mise en garde (photographier les choses plutôt que les personnes) est sous le bouton",
+  "events.day_checklist_items.label": "intitulé court d'une case de liste de contrôle (200 caractères)",
+  "events.day_reports.summary": "bilan écrit par l'app, sans saisie",
+  "budget.vendor_payments.handover_by": "nom court de la personne qui remet un paiement (120 caractères)",
   "hub.privacy_purges.lines": "relevé écrit par l'app à la purge, sans saisie",
   "events.events.imported_fields": "valeurs reprises d'un fichier importé, sans saisie à l'écran",
   "events.event_tasks.imported_fields": "valeurs reprises d'un fichier importé, sans saisie à l'écran",
@@ -60,10 +74,23 @@ const WITHOUT_ENTRY: Record<string, string> = {
   "vendors.vendors.indicative_prices": "tarifs indicatifs du prestataire",
   "vendors.vendors.field_values": "valeurs des champs propres au type de prestataire",
   "events.event_decisions.comment": "réponse du client sur son portail ; la mise en garde s'adresse à l'équipe",
+  // Lot 47 (prestataires par lien).
+  "events.event_vendor_candidates.answer_message": "message du prestataire par son lien ; la mise en garde s'adresse à l'équipe",
+  "events.event_decision_option_feedback.comment": "avis du client sur son portail ; la mise en garde s'adresse à l'équipe",
+  "events.vendor_scenarios.name": "nom court d'un scénario d'options",
   // Lot 49 (module Invités).
   "guests.household_groups.label": "libellé court d'un groupe d'invités (« Amis du lycée »)",
   "guests.rsvp_answers.attending": "réponse oui ou non à un temps fort, sans texte",
   "guests.module_settings.privacy_notice": "mention d'information écrite par la titulaire, lue par les invités (texte juridique)",
+  // Lot 46 (RDV-01, RGP-04).
+  "appointments.appointments.answers": "réponses de la personne sur la page publique de réservation : sa propre mise en garde (Appointments.public.freeTextNotice) suit les questions",
+  "appointments.appointment_report_actions.label": "libellé court d'une action du compte rendu (« Envoyer trois lieux »)",
+  "appointments.availability_closures.reason": "motif court d'un jour fermé (80 caractères)",
+  // Lot 44 (CRM-01) : ce qu'écrit le prospect sur le formulaire public ; la mention d'information est
+  // au-dessus du bouton d'envoi, la mise en garde s'adresse à l'équipe.
+  "events.prospect_requests.message": "message du prospect sur le formulaire de contact public ; la mention d'information est affichée avant l'envoi",
+  "events.prospect_requests.period": "période en texte court écrite par le prospect sur le formulaire public",
+  "events.prospect_requests.budget_range": "tranche de budget en texte court écrite par le prospect sur le formulaire public",
 };
 
 function freeTextFields(): string[] {

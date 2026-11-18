@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "_source": "Lot 44 (CRM-02, D9 ; ADR 0084) : étapes de départ du pipeline commercial, copiées dans l'organisation à la première ouverture du pipeline ; la planner les renomme, en ajoute, en retire, les réordonne (une à dix). Une étape n'est qu'un repère à l'intérieur du statut Option : « Gagné » et « Perdu » sont les statuts Confirmé et Annulé.",
+  "items": [
+    { "key": "new_request", "label": { "fr": "Nouvelle demande", "en": "New request" } },
+    { "key": "first_exchange", "label": { "fr": "Premier échange", "en": "First exchange" } },
+    { "key": "meeting", "label": { "fr": "Rendez-vous", "en": "Meeting" } },
+    { "key": "quote_sent", "label": { "fr": "Devis envoyé", "en": "Quote sent" } }
+  ]
+}

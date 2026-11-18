@@ -270,3 +270,113 @@ développement.
 
 Besoin : des réponses **avant la mise en service auprès de la pilote** (aucune ne bloque le
 développement).
+
+## Question du 18 novembre 2026 (lot 46, rendez-vous)
+
+### 16. Mentions légales de la page publique de réservation
+
+Le module Rendez-vous publie, pour chaque planner qui l'ouvre, une page publique de réservation
+(`/reserver/<adresse-choisie>`), à son nom, sur le domaine de Symbola. On y choisit un créneau et on
+y laisse son nom, son e-mail et, si on veut, son téléphone. La page porte la mention d'information
+RGPD de la planner ; elle n'est ni indexée ni intégrable dans un autre site.
+
+- **AV-3** : faut-il y faire figurer les mentions légales de la planner (identité, forme et
+  immatriculation, adresse, hébergeur), comme sur un site de l'éditeur ? Ou un lien vers ses
+  mentions, ou rien de plus que la mention d'information, la page n'étant qu'un formulaire de
+  prise de contact ? Et Symbola, comme hébergeur, doit-il y apparaître ?
+
+> **Symbola** : la page montre aujourd'hui le nom de la planner, la mention d'information (avec son
+> adresse de contact) et « Symbola héberge ces données pour le compte de … ». Le module reste fermé
+> par défaut ; il ne sera ouvert à la pilote qu'après votre réponse.
+
+Besoin : une réponse **avant d'ouvrir le module Rendez-vous à la pilote**.
+
+## Questions du 18 novembre 2026 (lot 44)
+
+### 17. Mention d'information du formulaire de contact (AV-4)
+
+La planner peut mettre sur son site un formulaire de contact fourni par Symbola (prénom et nom,
+e-mail ou téléphone, date ou période, lieu, budget, nombre d'invités, type d'évènement, « comment
+m'avez-vous connue ? », message). Chaque envoi crée un prospect chez elle. La planner est
+responsable du traitement, Symbola sous-traitant. Avant le bouton d'envoi, une mention
+d'information (texte de départ, que nous vous soumettons) :
+
+> « Les informations de ce formulaire sont destinées à {organisation} ({adresse}), responsable de
+> leur traitement. Elles servent à répondre à votre demande et, si vous le souhaitez, à préparer
+> votre évènement avec vous. Elles sont gardées {durée} mois après notre dernier échange si votre
+> projet ne se concrétise pas. Vous pouvez y accéder, les faire corriger ou effacer, ou vous opposer
+> à leur utilisation en écrivant à {contact}. Vous pouvez aussi adresser une réclamation à la CNIL
+> (www.cnil.fr). Pour en savoir plus : {politique de confidentialité de la planner}. »
+
+Le formulaire ne s'ouvre pas tant que la planner n'a pas donné l'adresse de sa politique de
+confidentialité. Aucun e-mail n'est envoyé à la personne. Ce texte suffit-il, ou faut-il une case à
+cocher (consentement) pour une simple demande de contact ?
+
+> En attendant : la mention sans case à cocher (base : la demande de la personne, mesures
+> précontractuelles).
+
+### 18. Formulaire encadré dans le site de la planner (AV-5)
+
+Le même formulaire peut s'afficher dans le site de la planner (cadre), sans que la personne voie
+qu'il est servi par Symbola. Faut-il nommer Symbola (sous-traitant, hébergeur) dans la mention, ou
+la politique de confidentialité de la planner, à laquelle la mention renvoie, suffit-elle ?
+
+> En attendant : Symbola n'est pas nommé dans la mention ; la planner le cite comme sous-traitant
+> dans sa politique (registre des sous-traitants, docs/conformite/sous-traitants.md).
+
+Besoin : des réponses **avant la première demande réelle** reçue par le formulaire (aucune ne
+bloque le développement).
+
+## Décision du 18 novembre 2026 (lot 47)
+
+### 18. Choix du client sur son portail : pas une commande (AV-6, tranché)
+
+Pour information, sans question ouverte : sur son portail, le client choisit entre les
+propositions de prestataires que la planner lui montre. Son choix retient le prestataire dans
+Symbola (la ligne de budget est engagée de son devis, des tâches de suivi sont créées) ; la planner
+peut ensuite modifier le prestataire retenu à tout moment. **Décision de Julien (18/11/2026)** : ce
+choix n'est pas une commande ; Symbola affiche un devis et met en relation, il ne porte pas la
+facture du prestataire (seulement celles des planners). Aucun délai de rétractation n'est géré à
+cet endroit. Sous le bouton, le client lit : « Votre choix est transmis à <nom de la planner> ; le
+contrat se signe directement avec le prestataire. »
+
+Si cette lecture vous semble appeler une réserve, dites-le-nous ; elle n'attend pas de réponse
+pour être mise en œuvre.
+
+## Questions du 18 novembre 2026 (lot 43, proposition et règlement)
+
+Numéros à la suite de ceux des lots 44 et 47 (fusionnés avant le lot 43).
+
+### 19. Relances d'impayés à un particulier (AV-7)
+
+Symbola relance par e-mail une échéance non réglée d'un devis signé (par défaut trois jours, dix
+jours et vingt jours après l'échéance ; la planner règle ces délais et peut suspendre les relances).
+La relance s'arrête dès que le client déclare son virement ou que la planner confirme l'encaissement.
+Face à un professionnel, la relance reprend les pénalités et l'indemnité de 40 € (réponse 7 de votre
+fiche, lot 41). Face à un **particulier**, nous ne mentionnons une pénalité que si la planner a
+renseigné le taux d'une clause de son contrat ; sinon, la relance dit seulement « Merci de régulariser
+dès que possible ».
+
+- Une pénalité de retard est-elle possible face à un particulier si le contrat la prévoit, et à quel
+  taux maximal ?
+- Quelles mentions la relance doit-elle porter (et lesquelles ne doit-elle pas porter) ?
+- Faut-il un délai minimal avant la première relance ?
+
+> En attendant : aucune pénalité mentionnée à un particulier sans clause ; le taux de la clause est
+> laissé vide par défaut.
+
+### 20. Hors établissement : « aucun paiement avant sept jours » (AV-8)
+
+Pour un contrat conclu hors établissement (réponse 1 de votre fiche), l'écran « Régler l'acompte » ne
+montre pas le RIB avant le 8e jour suivant la signature et dit « Aucun paiement ne peut vous être
+demandé avant le <date> » ; un e-mail apporte le RIB et la référence du virement ce jour-là. La
+déclaration « J'ai fait le virement » est aussi refusée avant cette date, et aucune relance ne part.
+
+- Suffit-il de ne pas afficher le RIB avant le 8e jour et de l'envoyer ce jour-là, ou faut-il aussi
+  bloquer la déclaration de virement avant cette date (ce que nous faisons) ? Un client qui vire
+  spontanément plus tôt pose-t-il un problème à la planner ?
+
+> En attendant : ni RIB, ni déclaration, ni relance avant le 8e jour (option la plus protectrice).
+
+Besoin : des réponses **avant la première relance réelle** et le premier contrat hors établissement
+réglé par Symbola (aucune ne bloque le développement).

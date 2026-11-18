@@ -55,6 +55,10 @@ async function startScheduledTasks() {
     // Lot 27a (CHR-04) : rappels par e-mail des tâches confiées au client.
     const { scheduleClientTaskReminders } = await import("./lib/client-task-reminders");
     scheduleClientTaskReminders();
+    // Lot 46 (RDV-02, RDV-03 ; D2, D10 ; ADR 0082) : agendas extérieurs relus toutes les quinze minutes,
+    // rappels des rendez-vous.
+    const { scheduleAppointmentJobs } = await import("./lib/appointment-jobs");
+    scheduleAppointmentJobs();
     // Lot 31b (FAC-05, D6) : factures d'acompte émises d'elles-mêmes (fin du délai de rétractation).
     const { scheduleDepositInvoiceIssuance } = await import("./lib/deposit-invoices");
     scheduleDepositInvoiceIssuance();
@@ -72,6 +76,16 @@ async function startScheduledTasks() {
     // Lot 49 (INV-04, RGP-08 ; ADR 0083) : purge des invités avec préavis, puis relances.
     const { scheduleGuestTasks } = await import("./lib/guest-tasks");
     scheduleGuestTasks();
+    // Lot 44 (CRM-01, D4) : demandes « à vérifier » du formulaire de contact non traitées, à 30 jours.
+    const { scheduleProspectRequestPurge } = await import("./lib/prospect-request-purge");
+    scheduleProspectRequestPurge();
+    // Lot 47 (PAR-05 ; D2, D8 ; ADR 0085) : relance des briefs la veille, feuilles de route J-30 et J-7.
+    const { scheduleVendorCoordinationTasks } = await import("./lib/vendor-coordination-tasks");
+    scheduleVendorCoordinationTasks();
+    // Lot 43 (FAC-09, FAC-15, JUR-07 ; ADR 0089) : relance avant expiration, RIB du 8e jour hors
+    // établissement, relances d'impayés.
+    const { scheduleSettlementJobs } = await import("./lib/settlement-jobs");
+    scheduleSettlementJobs();
   }
 }
 

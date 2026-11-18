@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_source": "Lot 38a (MSG-01, D3, D5, D6 ; ADR 0072) : textes de départ des e-mails que l'organisation adresse aux tiers. Variables entre doubles accolades, en français ({{prénom}}) ou en anglais ({{first_name}}) ; un paragraphe fait du seul lien devient un bouton. La planner les remplace dans Paramètres › Modèles d'e-mails. Les textes de départ n'emploient que des variables toujours renseignées (aucun e-mail ne part avec une variable vide). Repris des textes des lots 26 à 31 ; l'exemplaire signé garde le sens validé par l'avocat (réponse 1, lot 31b).",
+  "_source": "Lot 38a (MSG-01, D3, D5, D6 ; ADR 0072) : textes de départ des e-mails que l'organisation adresse aux tiers. Variables entre doubles accolades, en français ({{prénom}}) ou en anglais ({{first_name}}) ; un paragraphe fait du seul lien devient un bouton. La planner les remplace dans Paramètres › Modèles d'e-mails. Les textes de départ n'emploient que des variables toujours renseignées (aucun e-mail ne part avec une variable vide). Repris des textes des lots 26 à 31 ; l'exemplaire signé garde le sens validé par l'avocat (réponse 1, lot 31b). Lot 46 (RDV-03, D10 ; ADR 0082) : confirmation (avec l'invitation .ics), rappel, report et annulation d'un rendez-vous, côté personne qui a pris rendez-vous. Lot 47 (PRE-03, PAR-05 ; D2, D4, D8 ; ADR 0085) : brief à un prestataire (deux boutons, « disponible » ou non), sa relance, feuille de route. Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10 ; ADR 0087, ADR 0089) : proposition envoyée et relance avant son expiration (lues dans l'espace du client), RIB et référence du virement envoyés au 8e jour d'un contrat hors établissement, relance d'une échéance impayée ; aucun paiement en ligne.",
   "templates": {
     "fr": {
       "client_link": {
@@ -22,6 +22,22 @@
       "task_reminder": {
         "subject": "Vos prochaines tâches pour {{évènement}}",
         "body": "Bonjour {{prénom}},\n\nVoici ce qui vous attend pour {{évènement}} :\n{{tâches}}\n\nPour cocher une tâche, ouvrez votre espace avec le lien personnel reçu par e-mail. Vous ne le retrouvez pas ? Demandez-en un nouveau à {{organisation}}.\n\nVous ne souhaitez plus recevoir ces rappels ? Dites-le à {{organisation}}.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "appointment_confirmed": {
+        "subject": "Rendez-vous confirmé : {{rendez_vous}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\nVotre rendez-vous « {{rendez_vous}} » est confirmé le {{date_rendez_vous}}.\n\nLieu : {{lieu}}\n\nL'invitation est jointe à cet e-mail pour votre agenda. Pour reporter ou annuler, sans compte, ouvrez votre lien :\n\n{{lien}}\n\nCe lien vous est réservé : ne le transférez pas.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "appointment_reminder": {
+        "subject": "Rappel : {{rendez_vous}} le {{date_rendez_vous}}",
+        "body": "Bonjour {{prénom}},\n\nPetit rappel : votre rendez-vous « {{rendez_vous}} » avec {{organisation}} a lieu le {{date_rendez_vous}}.\n\nLieu : {{lieu}}\n\nUn empêchement ? Reportez ou annulez depuis votre lien :\n\n{{lien}}\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "appointment_rescheduled": {
+        "subject": "Rendez-vous déplacé : {{rendez_vous}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\nVotre rendez-vous « {{rendez_vous}} » a lieu désormais le {{date_rendez_vous}}.\n\nLieu : {{lieu}}\n\nLa nouvelle invitation est jointe à cet e-mail. Pour reporter de nouveau ou annuler :\n\n{{lien}}\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "appointment_cancelled": {
+        "subject": "Rendez-vous annulé : {{rendez_vous}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\nVotre rendez-vous « {{rendez_vous}} » du {{date_rendez_vous}} est annulé.\n\nPour en prendre un autre, répondez à cet e-mail ou écrivez à {{organisation}}.\n\nÀ bientôt,\n{{organisation}}"
       },
       "quote_signature": {
         "subject": "Devis {{numéro_devis}} à signer — {{organisation}}",
@@ -50,6 +66,38 @@
       "guest_reminder": {
         "subject": "Petit rappel : {{clients}} attendent votre réponse",
         "body": "Bonjour {{prénom}},\n\nVous n'avez pas encore répondu à l'invitation de {{clients}} pour leur {{évènement}}, le {{date_évènement}}. Les réponses sont attendues jusqu'au {{valable_jusqu_au}} inclus ; une minute suffit, avec votre lien personnel :\n\n{{lien}}\n\nCe lien vous est réservé : ne le transférez pas.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "prospect_form_received": {
+        "subject": "Nouvelle demande de contact",
+        "body": "Bonjour,\n\nUne nouvelle demande est arrivée pour {{organisation}} par votre formulaire de contact.\n\nPour la lire et y répondre, ouvrez-la dans Symbola :\n\n{{lien}}\n\nCet e-mail ne contient ni le message ni les coordonnées de la personne : ils restent dans Symbola."
+      },
+      "vendor_brief": {
+        "subject": "Demande de devis : {{poste}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\n{{organisation}} prépare {{évènement}} et cherche un prestataire pour ce poste : {{poste}}. Le besoin, la date, le lieu et les inspirations vous attendent dans votre espace, sans compte ni mot de passe. Êtes-vous disponible ? Merci de répondre avant le {{date_limite}} inclus :\n\n{{lien_disponible}}\n\n{{lien_indisponible}}\n\nSi vous êtes disponible, vous pourrez joindre votre devis depuis votre téléphone (photo ou PDF). Ce lien vous est réservé : ne le transférez pas. Si vous ne l'attendiez pas, ignorez ce message.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "vendor_brief_reminder": {
+        "subject": "Petit rappel : demande de devis {{poste}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\n{{organisation}} attend votre réponse pour {{évènement}} (poste : {{poste}}) avant le {{date_limite}} inclus. Une minute suffit :\n\n{{lien_disponible}}\n\n{{lien_indisponible}}\n\nCe lien vous est réservé : ne le transférez pas.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "vendor_roadmap": {
+        "subject": "Votre feuille de route pour {{évènement}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\nVoici votre feuille de route pour {{évènement}}, le {{date_évènement}} : vos horaires, les lieux et leurs accès, le contact sur place et vos tâches. Merci de confirmer d'un toucher que vous l'avez bien reçue :\n\n{{lien}}\n\nCe lien vous est réservé : ne le transférez pas.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "proposal_sent": {
+        "subject": "Votre proposition {{numéro_devis}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\n{{organisation}} vous a préparé une proposition : le devis {{numéro_devis}}, valable jusqu'au {{valable_jusqu_au}} inclus.\n\nVous la trouverez dans votre espace, avec le lien personnel que vous avez reçu : vous pourrez y choisir vos options, puis l'accepter et la signer.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "proposal_expiry_reminder": {
+        "subject": "Votre proposition {{numéro_devis}} expire bientôt",
+        "body": "Bonjour {{prénom}},\n\nLa proposition {{numéro_devis}} de {{organisation}} est valable jusqu'au {{valable_jusqu_au}} inclus.\n\nVous la retrouvez dans votre espace, avec votre lien personnel. Pour toute question, répondez simplement à cet e-mail.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "payment_details": {
+        "subject": "Règlement de l'acompte — devis {{numéro_devis}}",
+        "body": "Bonjour {{prénom}},\n\nVous pouvez désormais régler l'acompte du devis {{numéro_devis}} par virement :\n\nMontant : {{montant}}\nIBAN : {{iban}}\nBIC : {{bic}}\nRéférence à indiquer : {{référence}}\n\nUne fois le virement fait, indiquez-le dans votre espace (« J'ai fait le virement ») : {{organisation}} confirmera sa réception.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "invoice_reminder": {
+        "subject": "Rappel : échéance du {{échéance}} — devis {{numéro_devis}}",
+        "body": "Bonjour {{prénom}},\n\nSauf erreur de notre part, l'échéance de {{montant}} du {{échéance}} (devis {{numéro_devis}}) n'est pas encore réglée.\n\nVous pouvez la régler par virement sur l'IBAN {{iban}}, avec la référence {{référence}}, puis l'indiquer dans votre espace (« J'ai fait le virement »). Si le virement est déjà parti, ne tenez pas compte de ce message.\n\n{{pénalités}}\n\nÀ bientôt,\n{{organisation}}"
       }
     },
     "en": {
@@ -72,6 +120,22 @@
       "task_reminder": {
         "subject": "Your next tasks for {{event}}",
         "body": "Hello {{first_name}},\n\nHere is what is coming up for {{event}}:\n{{tasks}}\n\nTo tick a task, open your space with the personal link you received by e-mail. Can't find it? Ask {{organization}} for a new one.\n\nYou no longer wish to receive these reminders? Just tell {{organization}}.\n\nSee you soon,\n{{organization}}"
+      },
+      "appointment_confirmed": {
+        "subject": "Appointment confirmed: {{appointment}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\nYour appointment “{{appointment}}” is confirmed for {{appointment_date}}.\n\nWhere: {{place}}\n\nThe invitation for your calendar is attached to this email. To reschedule or cancel, with no account needed, open your link:\n\n{{link}}\n\nThis link is for you only: please do not forward it.\n\nSee you soon,\n{{organization}}"
+      },
+      "appointment_reminder": {
+        "subject": "Reminder: {{appointment}} on {{appointment_date}}",
+        "body": "Hello {{first_name}},\n\nA quick reminder: your appointment “{{appointment}}” with {{organization}} is on {{appointment_date}}.\n\nWhere: {{place}}\n\nSomething came up? Reschedule or cancel from your link:\n\n{{link}}\n\nSee you soon,\n{{organization}}"
+      },
+      "appointment_rescheduled": {
+        "subject": "Appointment moved: {{appointment}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\nYour appointment “{{appointment}}” now takes place on {{appointment_date}}.\n\nWhere: {{place}}\n\nThe new invitation is attached to this email. To reschedule again or cancel:\n\n{{link}}\n\nSee you soon,\n{{organization}}"
+      },
+      "appointment_cancelled": {
+        "subject": "Appointment cancelled: {{appointment}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\nYour appointment “{{appointment}}” on {{appointment_date}} is cancelled.\n\nTo book another one, reply to this email or write to {{organization}}.\n\nSee you soon,\n{{organization}}"
       },
       "quote_signature": {
         "subject": "Quote {{quote_number}} to sign — {{organization}}",
@@ -100,6 +164,38 @@
       "guest_reminder": {
         "subject": "Friendly reminder: {{clients}} are waiting for your reply",
         "body": "Hello {{first_name}},\n\nYou have not yet replied to the invitation from {{clients}} to their {{event}}, on {{event_date}}. Replies are expected until {{valid_until}} included; one minute is enough, with your personal link:\n\n{{link}}\n\nThis link is for you only: please do not forward it.\n\nSee you soon,\n{{organization}}"
+      },
+      "prospect_form_received": {
+        "subject": "New contact request",
+        "body": "Hello,\n\nA new request has arrived for {{organization}} through your contact form.\n\nTo read it and reply, open it in Symbola:\n\n{{link}}\n\nThis email contains neither the message nor the person's contact details: they stay in Symbola."
+      },
+      "vendor_brief": {
+        "subject": "Quote request: {{slot}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\n{{organization}} is preparing {{event}} and is looking for a supplier for: {{slot}}. The brief, the date, the venue and the inspiration are waiting in your space, with no account or password. Are you available? Please answer by {{deadline}} included:\n\n{{link_available}}\n\n{{link_unavailable}}\n\nIf you are available, you can attach your quote from your phone (photo or PDF). This link is for you only: please do not forward it. If you were not expecting it, ignore this message.\n\nSee you soon,\n{{organization}}"
+      },
+      "vendor_brief_reminder": {
+        "subject": "Friendly reminder: quote request {{slot}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\n{{organization}} is waiting for your answer for {{event}} ({{slot}}) by {{deadline}} included. It takes one minute:\n\n{{link_available}}\n\n{{link_unavailable}}\n\nThis link is for you only: please do not forward it.\n\nSee you soon,\n{{organization}}"
+      },
+      "vendor_roadmap": {
+        "subject": "Your run sheet for {{event}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\nHere is your run sheet for {{event}}, on {{event_date}}: your times, the venues and how to get there, the on-site contact and your tasks. Please confirm with one tap that you have received it:\n\n{{link}}\n\nThis link is for you only: please do not forward it.\n\nSee you soon,\n{{organization}}"
+      },
+      "proposal_sent": {
+        "subject": "Your proposal {{quote_number}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\n{{organization}} has prepared a proposal for you: quote {{quote_number}}, valid until {{valid_until}} included.\n\nYou will find it in your space, through the personal link you received: you can choose your options there, then accept and sign it.\n\nSee you soon,\n{{organization}}"
+      },
+      "proposal_expiry_reminder": {
+        "subject": "Your proposal {{quote_number}} expires soon",
+        "body": "Hello {{first_name}},\n\nProposal {{quote_number}} from {{organization}} is valid until {{valid_until}} included.\n\nYou will find it in your space, through your personal link. For any question, simply reply to this email.\n\nSee you soon,\n{{organization}}"
+      },
+      "payment_details": {
+        "subject": "Deposit payment — quote {{quote_number}}",
+        "body": "Hello {{first_name}},\n\nYou can now pay the deposit for quote {{quote_number}} by bank transfer:\n\nAmount: {{amount}}\nIBAN: {{iban}}\nBIC: {{bic}}\nReference to include: {{reference}}\n\nOnce the transfer is made, tell us in your space (“I have made the transfer”): {{organization}} will confirm its receipt.\n\nSee you soon,\n{{organization}}"
+      },
+      "invoice_reminder": {
+        "subject": "Reminder: payment due on {{due_date}} — quote {{quote_number}}",
+        "body": "Hello {{first_name}},\n\nUnless we are mistaken, the payment of {{amount}} due on {{due_date}} (quote {{quote_number}}) has not been settled yet.\n\nYou can pay it by bank transfer to IBAN {{iban}}, with the reference {{reference}}, then tell us in your space (“I have made the transfer”). If the transfer has already left, please disregard this message.\n\n{{penalties}}\n\nSee you soon,\n{{organization}}"
       }
     }
   }

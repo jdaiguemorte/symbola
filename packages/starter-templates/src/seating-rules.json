@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "_source": "Lot 50 (INV-05 ; D2) : capacité proposée selon la forme de la table (ronde, rectangulaire, table d'honneur), modifiable table par table ; bornes de l'ajout en série et d'un plan. La forme ne dessine pas la salle.",
+  "defaultCapacity": { "round": 10, "rectangular": 8, "head": 8 },
+  "maxCapacity": 60,
+  "maxTablesPerSeries": 50,
+  "maxTablesPerPlan": 150
+}

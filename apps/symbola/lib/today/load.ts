@@ -4,7 +4,7 @@
 // est « indisponible » et les autres restent (ARC-07, settle.ts). Le tri est dans rank.ts ; les
 // mots viennent de l'appelant (traductions), pour que l'assemblage se teste sans écran.
 import { appDatabase } from "@symbola/db/client";
-import { formatAmount, parisToday, type Locale } from "@symbola/i18n";
+import { formatAmount, formatDateTime, parisToday, type Locale } from "@symbola/i18n";
 import type { EventSummary } from "@symbola/contracts";
 import { listPendingPaymentDeclarations, listUpcomingVendorPayments } from "@/modules/budget/service";
 import {
@@ -14,16 +14,24 @@ import {
   listPendingDecisions,
   listPendingLinkRenewals,
   listStaleProspects,
-  listUncontractedVendors, isInProgress } from "@/modules/events/service";
+  listEngagedChoiceNotices,
+  listVendorAnswerNotices,
+  listVendorRoadmapAlerts,
+  listUncontractedVendors, isInProgress,
+  countProspectRequestsToReview,
+  listNewProspectRequests,
+} from "@/modules/events/service";
 import { getFollowUpDelays } from "@/modules/hub/service";
 import { listGuestPurgeNotices, listRecentOppositions } from "@/modules/guests/service";
-import { listEventIdsWithSentQuote, listOpenScheduledDeposits, listQuotesAwaitingAnswer, listUnpaidPayments } from "@/modules/quotes/service";
+import { listEventIdsWithSentQuote, listOpenScheduledDeposits, listQuotesAwaitingAnswer, listTransferDeclarations, listUnpaidPayments } from "@/modules/quotes/service";
+import { listCalendarSourcesInError, listTodayAppointments } from "@/modules/appointments/service";
 import { TODAY_HORIZON_DAYS, type TodayItem } from "./rank";
 import { settleWithin, TODAY_SOURCE_TIMEOUT_MS } from "./settle";
 
 // Lot 49 : « guests » (préavis de purge des invités, oppositions), facultatif pour les écrans qui ne
 // le demandent pas.
-export type TodayModules = { events: boolean; quotes: boolean; budget: boolean; guests?: boolean };
+// Lot 46 (HUB-08) : « appointments », le module Rendez-vous (absent = fermé).
+export type TodayModules = { events: boolean; quotes: boolean; budget: boolean; guests?: boolean; appointments?: boolean };
 export type TodaySource = keyof TodayModules;
 
 export type TodayWords = {
@@ -40,6 +48,21 @@ export type TodayWords = {
   // Lot 49 (RGP-08) : préavis de purge (« régimes » ou « tout ») et oppositions des invités.
   guestPurge?: (stage: "diets" | "all") => string;
   guestOpposition?: (count: number) => string;
+  // Lot 46 (HUB-08) : « 10:00 · Découverte avec Léa Martin », et ses changements.
+  appointment?: (time: string, type: string, person: string) => string;
+  appointmentChange?: (change: "new" | "rescheduled" | "cancelled", time: string, type: string, person: string) => string;
+  calendarSourceError?: (label: string) => string;
+  // Lot 44 (CRM-01, PAR-02) : nouvelle demande du formulaire (« Léa M., 12 juin 2027 »), date déjà
+  // prise, demandes « à vérifier ».
+  prospectRequest?: (names: string, when: string | null) => string;
+  prospectRequestDateTaken?: string;
+  prospectToReview?: (count: number) => string;
+  // Lot 47 (PAR-05) : réponse d'un prestataire, choix du client engagé, feuille de route non confirmée.
+  vendorAnswer?: (vendor: string, slot: string, answer: "available" | "quote" | "unavailable") => string;
+  vendorChoice?: (vendor: string, slot: string) => string;
+  vendorRoadmap?: (vendor: string) => string;
+  // Lot 43 (FAC-08, ADR 0087) : « Léa déclare avoir viré 1 200 € ».
+  transferDeclaration?: (name: string, amount: string) => string;
 };
 
 // Évènements en cours : ni clôturés, ni annulés (lot 34a, EVT-05).
@@ -59,10 +82,11 @@ type Context = {
   events: EventSummary[];
   names: (eventId: string | null) => string | null;
   money: (cents: number) => string;
+  locale: Locale;
   delays: { prospectFollowUpDays: number; quoteFollowUpDays: number };
 };
 
-async function eventItems({ organizationId, words, today, now, events, names, delays }: Context): Promise<TodayItem[]> {
+async function eventItems({ organizationId, words, locale, today, now, events, names, delays }: Context): Promise<TodayItem[]> {
   const items: TodayItem[] = [];
   for (const task of await listOrganizationTasks({ organizationId, today, horizonDays: TODAY_HORIZON_DAYS })) {
     const mine = task.responsible === "planner";
@@ -108,6 +132,55 @@ async function eventItems({ organizationId, words, today, now, events, names, de
       action: { kind: "remind_vendor", eventId: vendor.eventId, candidateId: vendor.candidateId },
     });
   }
+  // Lot 47 (PAR-05 ; D3, D6, D8) : ce qu'ont fait les prestataires et les clients par leur lien.
+  if (words.vendorAnswer) {
+    for (const notice of await listVendorAnswerNotices(organizationId, now)) {
+      items.push({
+        key: `vendor-answer:${notice.candidateId}`,
+        kind: "vendor_answer",
+        eventId: notice.eventId,
+        eventNames: names(notice.eventId),
+        title: words.vendorAnswer(notice.vendorName, notice.slotLabel, notice.availability === "unavailable" ? "unavailable" : notice.hasQuote ? "quote" : "available"),
+        dueOn: null,
+        since: day(notice.answeredAt),
+        actor: { kind: "you" },
+        href: `/events/${notice.eventId}/consultation/${notice.vendorSlotId}`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  if (words.vendorChoice) {
+    for (const notice of await listEngagedChoiceNotices(organizationId, now)) {
+      items.push({
+        key: `vendor-choice:${notice.decisionId}`,
+        kind: "vendor_choice",
+        eventId: notice.eventId,
+        eventNames: names(notice.eventId),
+        title: words.vendorChoice(notice.vendorName, notice.slotLabel),
+        dueOn: null,
+        since: day(notice.engagedAt),
+        actor: { kind: "you" },
+        href: `/events/${notice.eventId}/consultation/${notice.vendorSlotId}`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  if (words.vendorRoadmap) {
+    for (const alert of await listVendorRoadmapAlerts(organizationId, now)) {
+      items.push({
+        key: `vendor-roadmap:${alert.candidateId}`,
+        kind: "vendor_roadmap",
+        eventId: alert.eventId,
+        eventNames: names(alert.eventId),
+        title: words.vendorRoadmap(alert.vendorName),
+        dueOn: null,
+        since: day(alert.sentAt),
+        actor: { kind: "vendor", name: alert.vendorName },
+        href: `/events/${alert.eventId}?onglet=budget`,
+        action: { kind: "open" },
+      });
+    }
+  }
   // Deux évènements en cours le même jour (EVT-07) : signalés à l'approche de la date.
   const byDate = new Map<string, EventSummary[]>();
   for (const event of events) {
@@ -142,6 +215,43 @@ async function eventItems({ organizationId, words, today, now, events, names, de
       href: `/events/${prospect.eventId}`,
       action: { kind: "open" },
     });
+  }
+  // Lot 44 (CRM-01, PAR-02 étape 1) : la demande du formulaire, tant qu'elle est à la première étape du
+  // pipeline, avec le contrôle de disponibilité de la date (CRM-04) ; les demandes « à vérifier ».
+  if (words.prospectRequest) {
+    const dateFormat = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+    for (const request of await listNewProspectRequests(organizationId, locale === "en" ? "en" : "fr")) {
+      items.push({
+        key: `prospect-request:${request.eventId}`,
+        kind: "prospect_request",
+        eventId: request.eventId,
+        eventNames: request.names,
+        title: words.prospectRequest(request.names, request.eventDate ? dateFormat.format(new Date(`${request.eventDate}T12:00:00Z`)) : request.period),
+        detail: request.dateTaken ? words.prospectRequestDateTaken : undefined,
+        dueOn: null,
+        since: day(request.receivedAt),
+        actor: { kind: "you" },
+        href: `/events/${request.eventId}`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  if (words.prospectToReview) {
+    const review = await countProspectRequestsToReview(organizationId);
+    if (review.count > 0) {
+      items.push({
+        key: "prospect-review",
+        kind: "prospect_review",
+        eventId: null,
+        eventNames: null,
+        title: words.prospectToReview(review.count),
+        dueOn: null,
+        since: review.oldest ? day(review.oldest) : null,
+        actor: { kind: "you" },
+        href: "/events/pipeline#a-verifier",
+        action: { kind: "open" },
+      });
+    }
   }
   for (const renewal of await listPendingLinkRenewals(organizationId)) {
     items.push({
@@ -227,6 +337,22 @@ async function quoteItems({ organizationId, words, now, names, money, delays }: 
       action: { kind: "open" },
     });
   }
+  // Lot 43 (FAC-08, ADR 0087) : virement déclaré par le payeur, à confirmer par l'encaissement existant.
+  for (const declaration of await listTransferDeclarations(organizationId)) {
+    items.push({
+      key: `transfer:${declaration.scheduleItemId}`,
+      kind: "transfer_declaration",
+      eventId: declaration.eventId,
+      eventNames: names(declaration.eventId),
+      title: words.transferDeclaration ? words.transferDeclaration(declaration.byName, money(declaration.amountCents)) : words.paymentDeclaration(declaration.label, money(declaration.amountCents)),
+      detail: `${declaration.quoteNumber} · ${declaration.reference}`,
+      dueOn: null,
+      since: day(declaration.declaredAt),
+      actor: { kind: "you" },
+      href: `/devis/${declaration.quoteId}#reglement-${declaration.scheduleItemId}`,
+      action: { kind: "open" },
+    });
+  }
   for (const deposit of await listOpenScheduledDeposits(organizationId)) {
     if (deposit.status !== "blocked") continue;
     items.push({
@@ -278,6 +404,46 @@ async function budgetItems({ organizationId, words, today, names, money }: Conte
   return items;
 }
 
+// Lot 46 (HUB-08, D2) — les rendez-vous du jour, ceux pris, reportés ou annulés depuis la veille, et
+// les agendas extérieurs en erreur (aucun créneau proposé tant qu'ils ne sont pas relus).
+async function appointmentItems({ organizationId, words, today, now, names, locale }: Context): Promise<TodayItem[]> {
+  const items: TodayItem[] = [];
+  const time = (iso: string) => new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" }).format(new Date(iso));
+  for (const appointment of await listTodayAppointments(organizationId, now)) {
+    const when = time(appointment.startsAt);
+    const isToday = appointment.change === "today";
+    items.push({
+      key: `appointment:${appointment.id}`,
+      kind: isToday ? "appointment" : "appointment_change",
+      eventId: appointment.eventId,
+      eventNames: names(appointment.eventId),
+      title: isToday
+        ? (words.appointment?.(when, appointment.typeName, appointment.personName) ?? appointment.typeName)
+        : (words.appointmentChange?.(appointment.change as "new" | "rescheduled" | "cancelled", formatDateTime(new Date(appointment.startsAt), locale), appointment.typeName, appointment.personName) ?? appointment.typeName),
+      dueOn: isToday ? today : null,
+      since: appointment.changedAt ? day(appointment.changedAt) : null,
+      actor: { kind: "you" },
+      href: `/rendez-vous/${appointment.id}`,
+      action: { kind: "open" },
+    });
+  }
+  for (const source of await listCalendarSourcesInError(organizationId)) {
+    items.push({
+      key: `calendar-source:${source.id}`,
+      kind: "calendar_source_error",
+      eventId: null,
+      eventNames: null,
+      title: words.calendarSourceError?.(source.label) ?? source.label,
+      dueOn: null,
+      since: source.lastSuccessAt ? day(source.lastSuccessAt) : null,
+      actor: { kind: "you" },
+      href: "/rendez-vous/disponibilites#agendas",
+      action: { kind: "open" },
+    });
+  }
+  return items;
+}
+
 export async function loadTodayItems(
   organizationId: string,
   modules: TodayModules,
@@ -300,6 +466,7 @@ export async function loadTodayItems(
     events,
     names: (eventId) => (eventId ? (namesOf.get(eventId) ?? null) : null),
     money: (cents) => formatAmount(cents, locale),
+    locale,
     delays: await getFollowUpDelays(appDatabase(), organizationId),
   };
   const sources: [TodaySource, boolean, (context: Context) => Promise<TodayItem[]>][] = [
@@ -307,6 +474,7 @@ export async function loadTodayItems(
     ["quotes", modules.quotes, quoteItems],
     ["budget", modules.budget, budgetItems],
     ["guests", Boolean(modules.guests) && modules.events && listed.ok, guestItems],
+    ["appointments", modules.appointments === true, appointmentItems],
   ];
   const settled = await Promise.all(
     sources.map(async ([source, enabled, collect]) => [source, enabled ? await settleWithin(() => collect(context), timeoutMs, source) : { ok: true as const, value: [] }] as const),

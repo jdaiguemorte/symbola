@@ -204,6 +204,43 @@ qui suit est ce que Symbola en retient. Suites : `docs/QUESTIONS.md` (Q35).
 
 Besoin : une réponse **avant de développer la fermeture d'un espace** (lot 35c).
 
+## Questions du 18 novembre 2026 (lot 46, rendez-vous)
+
+### 13. Page publique de réservation et agenda de la planner
+
+Le module Rendez-vous ouvre une page publique où un futur client choisit un créneau libre, sans
+compte. Les créneaux tiennent compte de l'agenda personnel de la planner (Google, Apple, Outlook),
+lu toutes les quinze minutes par son adresse secrète.
+
+- **DPO-1 — Lecture de l'agenda de la planner.** Symbola ne garde de cet agenda que les heures
+  occupées (début et fin), de la veille à l'horizon de réservation, remplacées à chaque lecture :
+  ni titre, ni lieu, ni participants. L'adresse est chiffrée et ne se réaffiche jamais. Faut-il une
+  information particulière pour la planner elle-même (ou pour chaque personne de son équipe qui
+  relie son agenda) ? Rien sur les tiers de son agenda n'est gardé.
+- **DPO-2 — Durée de conservation d'une personne qui a seulement pris rendez-vous**, sans suite (ni
+  évènement, ni devis). Nous appliquons la règle des prospects : trois ans après son dernier
+  échange (le plus récent de ses rendez-vous), puis la ligne entre dans la purge mensuelle, validée
+  par la titulaire. Cette règle convient-elle, ou faut-il plus court ?
+- **DPO-3 — Mention d'information de la page de réservation**, au nom de la planner. Texte de départ
+  proposé (la planner peut le remplacer) :
+
+  > {organisation} utilise les informations de ce formulaire (votre nom, votre adresse e-mail,
+  > votre téléphone si vous le donnez et vos réponses) pour organiser ce rendez-vous et vous
+  > recontacter à son sujet, à votre demande. Elles sont gardées trois ans après votre dernier
+  > échange avec {organisation} si aucun projet ne suit, puis supprimées. Vous pouvez y accéder,
+  > les faire corriger ou effacer, ou vous opposer à leur utilisation en écrivant à {contact}. Vous
+  > pouvez aussi adresser une réclamation à la CNIL (www.cnil.fr). Symbola héberge ces données pour
+  > le compte de {organisation}.
+
+  Convient-il (finalité, base, durée, droits, réclamation) ? Faut-il nommer la base légale
+  (mesures précontractuelles prises à la demande de la personne) ?
+
+> **Symbola** : en attendant vos réponses, le module reste fermé par défaut (seule l'Exploitation
+> l'ouvre), le texte ci-dessus s'affiche à titre provisoire et la règle des prospects s'applique.
+> Aucune donnée réelle avant votre relecture de DPO-3.
+
+Besoin : une réponse **avant d'ouvrir le module Rendez-vous à la pilote**.
+
 ## Question du 18 novembre 2026 (lot 49)
 
 ### 14. Module Invités : six points avant l'ouverture à la pilote
@@ -247,3 +284,60 @@ restent ouverts ; Symbola n'en tranche aucun et applique d'ici là le réglage l
 
 Besoin : une réponse à DPO-1 et DPO-4 avant l'ouverture du module ; aux autres, avant le
 lot 50 (plan de table et synthèse pour le traiteur).
+
+## Question du 18 novembre 2026 (lot 50)
+
+### 15. Plan de table et synthèse pour le traiteur
+
+Le lot 50 ajoute au module Invités le plan de table et la synthèse pour le traiteur (repas par
+type, régimes et allergènes, par table). La synthèse n'est **jamais gardée dans Symbola** : elle
+est calculée à chaque téléchargement, et chaque téléchargement est noté (qui, quand, quelle
+version), sans son contenu. La titulaire seule obtient la version nominative ; un membre de
+l'équipe obtient des nombres exacts par table, sans aucun nom. Les contraintes de placement
+(« ensemble », « séparés ») sont internes : jamais montrées au client, jamais dans une synthèse ni
+dans un export. Tout est purgé avec les invités ; à J+7, la synthèse ne contient plus de régime.
+
+- **DPO-7 — Synthèse nominative pour le traiteur.** Nom, table, type de repas et régimes ou
+  allergies de chaque personne, exportés par la titulaire et envoyés au traiteur hors de Symbola.
+  Le texte d'accord du lot 49 nomme le traiteur parmi les destinataires et la durée de 7 jours
+  après l'évènement. Cela suffit-il, ou faut-il rappeler au traiteur une durée de conservation ?
+  Symbola applique d'ici là la recommandation de travail : une mention en pied du PDF nominatif
+  (« Données transmises pour le service du repas ; à supprimer après l'évènement ») et une phrase à
+  l'écran de téléchargement.
+- **DPO-8 — Contraintes « séparés ».** Données internes à l'organisation, jamais exportées,
+  purgées avec les invités (30 jours après l'évènement). Faut-il une durée plus courte ? Et le
+  droit d'accès d'un invité couvre-t-il ces contraintes ? Symbola montre aujourd'hui, dans la
+  recherche RGPD, la table d'une personne par temps fort, mais pas ses contraintes.
+
+> **Symbola** : rien n'est tranché ; le réglage le plus prudent s'applique en attendant (mention en
+> pied, contraintes jamais exportées). Le module reste fermé chez la pilote (question 14).
+
+Besoin : une réponse avant l'ouverture du module Invités à la pilote.
+
+## Question du 18 novembre 2026 (lot 51)
+
+### 16. Jour J de terrain : photos, main courante, file sur le téléphone
+
+Le lot 51 permet à l'équipe sur place de pointer le programme, de noter des incidents (dictés par le
+clavier du téléphone, sans service de reconnaissance vocale) et de prendre des photos : incident,
+case d'une liste d'installation, reçu d'une remise. Tout se garde d'abord sur le téléphone, même
+sans réseau, puis part au serveur.
+
+- **DPO-9 — Photos prises sur un lieu de mariage.** Des invités peuvent apparaître sur une photo
+  d'incident ou de liste. Proposition appliquée en attendant votre avis : les photos restent
+  **internes à l'organisation** (jamais montrées aux clients ni aux prestataires, ni dans aucun
+  export qui sort de l'organisation, servies par l'app après contrôle des droits) ; l'écran conseille
+  de **photographier les choses plutôt que les personnes** ; elles sont **purgées avec les documents
+  de l'évènement** (corbeille, durée de conservation, demande d'oubli qui vise l'évènement). Les
+  pointages et les incidents sont des données de travail : ni nom d'invité ni donnée de santé ; un
+  malaise se note sans le nom de la personne (rappel dans l'aide et sous le champ). Faut-il une durée
+  plus courte pour les photos, ou une mention à destination des invités (affichage sur le lieu) ?
+- **File sur le téléphone.** Tant qu'elles ne sont pas envoyées, les actions (textes d'incident et
+  photos compris) restent dans le navigateur du téléphone, sans chiffrement par l'application
+  (verrouillage du téléphone), comme la copie de lecture du lot 29. Elles ne partent qu'avec la
+  session de leur auteur ; la file se vide à l'envoi.
+
+> **Symbola** : rien n'est tranché ; le réglage le plus prudent s'applique (photos internes, purge
+> avec l'évènement, conseil à l'écran).
+
+Besoin : une réponse avant le premier jour J réel avec photos chez la pilote.

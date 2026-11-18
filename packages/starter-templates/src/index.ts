@@ -10,6 +10,8 @@ import importSynonymsFile from "./import-synonyms.json";
 import importProfilesFile from "./import-profiles.json";
 import invoiceMentionsFile from "./invoice-mentions.json";
 import latePenaltyFile from "./late-penalty.json";
+import paymentRemindersFile from "./payment-reminders.json";
+import proposalTemplatesFile from "./proposal-templates.json";
 import professionalTermsFile from "./professional-terms.json";
 import invoiceReformFile from "./invoice-reform.json";
 import complianceChecksFile from "./compliance-checks.json";
@@ -31,6 +33,8 @@ import quoteTemplatesFile from "./quote-templates.json";
 import contractTemplatesFile from "./contract-templates.json";
 import contractRulesFile from "./contract-rules.json";
 import linkPrivacyNoticeFile from "./link-privacy-notice.json";
+import pipelineStagesFile from "./pipeline-stages.json";
+import contactFormFile from "./contact-form.json";
 import emailTemplatesFile from "./email-templates.json";
 import messageTemplatesFile from "./message-templates.json";
 import programFile from "./program.json";
@@ -50,6 +54,7 @@ import agencyVendorTagsFile from "./vendor-tags.event-agency.json";
 import allocationFile from "./allocation.json";
 import eventTypesFile from "./event-types.json";
 import onboardingFile from "./onboarding.json";
+import appointmentTypesFileJson from "./appointment-types.json";
 
 export type StarterLocale = "fr" | "en";
 
@@ -114,6 +119,43 @@ const agencyProspectSources = vendorSlotsSchema.parse(agencyProspectSourcesFile)
 
 export function starterProspectSources(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): string[] {
   return (isWedding(metier) ? prospectSources : agencyProspectSources).items.map((item) => item.label[locale]);
+}
+
+// Lot 44 (CRM-01, D5) : libellé d'une source de départ par sa clé (« Formulaire de contact »), dans les
+// deux langues, pour la retrouver dans la liste de l'organisation quelle que soit la langue.
+export function starterProspectSourceLabels(key: string): { fr: string; en: string } | null {
+  const item = [...prospectSources.items, ...agencyProspectSources.items].find((candidate) => candidate.key === key);
+  return item ? { fr: item.label.fr, en: item.label.en } : null;
+}
+
+// Lot 44 (CRM-02, D9 ; ADR 0084) — étapes de départ du pipeline, copiées dans l'organisation.
+const pipelineStagesSchema = z.object({ version: z.literal(1), items: z.array(z.object({ key: z.string().min(1), label: translatedLabelSchema })).min(1).max(10) });
+
+export function starterPipelineStages(locale: StarterLocale): string[] {
+  return pipelineStagesSchema.parse(pipelineStagesFile).items.map((item) => item.label[locale]);
+}
+
+// Lot 44 (CRM-01, RGP-03 ; D1 à D6 ; ADR 0084) — réglages de départ du formulaire de contact : mention
+// d'information (à faire relire par l'avocat, AV-4 et AV-5), source par défaut, seuils de l'anti-spam,
+// durée de garde d'une demande « à vérifier ».
+const contactFormSchema = z.object({
+  version: z.literal(1),
+  defaultSourceKey: z.string().min(1),
+  minimumFillSeconds: z.number().int().min(1).max(60),
+  maxLinksBeforeReview: z.number().int().min(0).max(20),
+  toReviewRetentionDays: z.number().int().min(1).max(365),
+  notice: translatedLabelSchema,
+});
+
+export type StarterContactForm = { defaultSourceKey: string; minimumFillSeconds: number; maxLinksBeforeReview: number; toReviewRetentionDays: number };
+
+export function starterContactForm(): StarterContactForm {
+  const parsed = contactFormSchema.parse(contactFormFile);
+  return { defaultSourceKey: parsed.defaultSourceKey, minimumFillSeconds: parsed.minimumFillSeconds, maxLinksBeforeReview: parsed.maxLinksBeforeReview, toReviewRetentionDays: parsed.toReviewRetentionDays };
+}
+
+export function starterContactFormNotice(locale: StarterLocale): string {
+  return contactFormSchema.parse(contactFormFile).notice[locale];
 }
 
 // PRD-EVT-07 : motifs de perte de départ ; « Autre » demande une précision.
@@ -1174,6 +1216,9 @@ const contractRulesSchema = z.object({
   // Réponse 3 de l'avocat (D16) : contrat électronique de 120 € et plus, conservé dix ans.
   retention: z.object({ signedContractMinimumMonths: z.number().int().min(1).max(1200) }),
   placeholderMarkers: z.array(z.string().min(2)).min(1),
+  // Lot 43 (GC-01, JUR-07 ; ADR 0089) : textes de l'écran « Régler l'acompte » selon le canal ({jours},
+  // {date}) ; aucun n'est écrit dans le code.
+  settlement: z.object({ _source: z.string().min(1), distance: translatedLabelSchema, offPremisesWaiting: translatedLabelSchema, offPremisesOpen: translatedLabelSchema }),
 });
 
 export type ContractRules = Omit<z.infer<typeof contractRulesSchema>, "version" | "status">;
@@ -1288,3 +1333,124 @@ export function starterMessageTemplates(locale: StarterLocale): StarterMessageTe
 // Lot 49 (module Invités) : liste des régimes, règles, textes de la page de réponse, colonnes
 // d'import (guests.ts).
 export * from "./guests";
+// Lot 51 (EVT-04, CHR-08, JRJ-05, JRJ-06) : données de départ du jour J de terrain.
+export * from "./day-of";
+
+// Lot 46 (RDV-01, HUB-20 ; D6, D10 ; ADR 0082) — module Rendez-vous : trois types de départ, plages
+// hebdomadaires par défaut, réglages par défaut d'un type créé avec son seul nom et sa durée, et
+// mention d'information de la page de réservation (à faire relire, question DPO-3).
+const appointmentLocationKindSchema = z.enum(["place", "video", "phone"]);
+const appointmentTypesFileSchema = z.object({
+  version: z.literal(1),
+  defaults: z.object({
+    locationKind: appointmentLocationKindSchema,
+    bufferBeforeMinutes: z.number().int().min(0).max(240),
+    bufferAfterMinutes: z.number().int().min(0).max(240),
+    minNoticeMinutes: z.number().int().min(0).max(43200),
+    horizonDays: z.number().int().min(1).max(365),
+    reminders: z.enum(["none", "24h", "24h_2h"]),
+    allowEventDays: z.boolean(),
+  }),
+  availability: z.array(z.object({ weekday: z.number().int().min(1).max(7), startTime: z.string().regex(/^\d{2}:\d{2}$/), endTime: z.string().regex(/^\d{2}:\d{2}$/) })).min(1),
+  types: z
+    .array(
+      z.object({
+        key: z.string().min(1),
+        name: translatedLabelSchema,
+        durationMinutes: z.number().int().min(15).max(480),
+        locationKind: appointmentLocationKindSchema,
+        bufferBeforeMinutes: z.number().int().min(0).max(240).optional(),
+        bufferAfterMinutes: z.number().int().min(0).max(240).optional(),
+        questions: z
+          .array(
+            z.object({
+              id: z.string().min(1),
+              kind: z.enum(["choice", "text"]),
+              label: translatedLabelSchema,
+              choices: z.union([z.array(z.string()).length(0), z.object({ fr: z.array(z.string().min(1)), en: z.array(z.string().min(1)) })]),
+            }),
+          )
+          .max(5),
+      }),
+    )
+    .min(1),
+  privacyNotice: translatedLabelSchema,
+});
+const appointmentTypesFile = appointmentTypesFileSchema.parse(appointmentTypesFileJson);
+
+export type StarterAppointmentDefaults = z.infer<typeof appointmentTypesFileSchema>["defaults"];
+export type StarterAppointmentType = {
+  key: string;
+  name: string;
+  durationMinutes: number;
+  locationKind: "place" | "video" | "phone";
+  bufferBeforeMinutes: number;
+  bufferAfterMinutes: number;
+  questions: { id: string; kind: "choice" | "text"; label: string; choices: string[] }[];
+};
+
+export function starterAppointmentDefaults(): StarterAppointmentDefaults {
+  return { ...appointmentTypesFile.defaults };
+}
+
+export function starterAvailability(): { weekday: number; startTime: string; endTime: string }[] {
+  return appointmentTypesFile.availability.map((rule) => ({ ...rule }));
+}
+
+export function starterAppointmentTypes(locale: StarterLocale): StarterAppointmentType[] {
+  const defaults = appointmentTypesFile.defaults;
+  return appointmentTypesFile.types.map((type) => ({
+    key: type.key,
+    name: type.name[locale],
+    durationMinutes: type.durationMinutes,
+    locationKind: type.locationKind,
+    bufferBeforeMinutes: type.bufferBeforeMinutes ?? defaults.bufferBeforeMinutes,
+    bufferAfterMinutes: type.bufferAfterMinutes ?? defaults.bufferAfterMinutes,
+    questions: type.questions.map((question) => ({ id: question.id, kind: question.kind, label: question.label[locale], choices: Array.isArray(question.choices) ? [] : question.choices[locale] })),
+  }));
+}
+
+export function starterBookingPrivacyNotice(locale: StarterLocale): string {
+  return appointmentTypesFile.privacyNotice[locale];
+}
+
+// Lot 47 (PAR-05 ; ADR 0085) : délais et tâches de suivi des prestataires par lien.
+export * from "./vendor-coordination";
+// Lot 43 (FAC-09, FAC-15 ; D1, D7) — relances de départ : jours avant l'expiration d'un devis, jours
+// après une échéance impayée, phrase d'une relance sans pénalité et phrase de la clause de pénalités
+// d'un particulier ({taux}). L'organisation les règle ; rien n'est écrit dans le code.
+const paymentRemindersSchema = z.object({
+  version: z.literal(1),
+  status: translatedLabelSchema,
+  expiryReminderDays: z.number().int().min(1).max(30),
+  paymentReminderDays: z.array(z.number().int().min(1).max(120)).min(1).max(5),
+  noPenaltySentence: translatedLabelSchema,
+  consumerClauseSentence: translatedLabelSchema,
+});
+
+export type PaymentReminderDefaults = Omit<z.infer<typeof paymentRemindersSchema>, "version" | "status">;
+
+export function starterPaymentReminders(): PaymentReminderDefaults {
+  const { version: _version, status: _status, ...rest } = paymentRemindersSchema.parse(paymentRemindersFile);
+  return structuredClone(rest);
+}
+
+// Lot 43 (FAC-02, D2) — modèle de départ de la page de proposition : ordre des blocs (le devis
+// toujours présent) et mot d'accueil.
+export const PROPOSAL_BLOCK_KEYS = ["greeting", "organization", "photos", "quote", "schedule", "validity"] as const;
+export type ProposalBlockKey = (typeof PROPOSAL_BLOCK_KEYS)[number];
+
+const proposalTemplatesSchema = z.object({
+  version: z.literal(1),
+  status: translatedLabelSchema,
+  blocks: z
+    .array(z.enum(PROPOSAL_BLOCK_KEYS))
+    .min(1)
+    .refine((blocks) => blocks.includes("quote") && new Set(blocks).size === blocks.length),
+  greeting: translatedLabelSchema,
+});
+
+export function starterProposalTemplate(locale: StarterLocale): { blocks: ProposalBlockKey[]; greeting: string } {
+  const parsed = proposalTemplatesSchema.parse(proposalTemplatesFile);
+  return { blocks: [...parsed.blocks], greeting: parsed.greeting[locale] };
+}

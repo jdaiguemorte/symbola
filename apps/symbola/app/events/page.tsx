@@ -136,6 +136,10 @@ export default async function EventsListPage({
         <Link href="/events/new" className="button-link button-link-primary" data-tour="new-prospect">
           {t("newProspect")}
         </Link>
+        {/* Lot 44 (CRM-02) : la vue en colonnes des options, et retour. */}
+        <Link href="/events/pipeline" className="button-link">
+          {t("pipelineView")}
+        </Link>
       </nav>
 
       {calendarView ? null : (

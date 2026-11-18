@@ -3,6 +3,10 @@ import type { NextRequest } from "next/server";
 import { localeFromAcceptLanguage } from "@symbola/i18n";
 import { SESSION_COOKIE_NAME, sessionCookieOptions } from "./lib/session-cookie";
 import { LINK_COOKIE_NAME, linkCookieOptions } from "./lib/link-cookie";
+import { contactFrameSlug, contentSecurityPolicy } from "./lib/csp";
+// Lot 44 (ADR 0084) : la seule lecture en base du middleware, la liste des sites autorisés d'un
+// formulaire ouvert ; importée du module sans son service, pour garder le middleware léger.
+import { contactFrameOrigins } from "./modules/events/contact-frame";
 
 export const LOCALE_COOKIE = "symbola_locale";
 
@@ -15,7 +19,7 @@ export const LOCALE_COOKIE = "symbola_locale";
 // par requête, posé à la fois sur l'en-tête de requête (que Next.js lit
 // pour ses propres scripts) et sur l'en-tête de réponse, évite d'ouvrir
 // script-src à 'unsafe-inline'.
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   // Le Fast Refresh du serveur de dev de Next.js a besoin d'eval() pour
   // recharger les modules à chaud ; une CSP qui le bloque casse en
@@ -23,20 +27,11 @@ export function middleware(request: NextRequest) {
   // AIDE-01 : les boutons de la visite guidée ne répondaient plus).
   // 'unsafe-eval' n'est donc ajouté qu'hors production — jamais envoyé
   // aux utilisateurs réels (pattern documenté par Next.js pour la CSP).
-  const scriptSrc = [`'self'`, `'nonce-${nonce}'`, `'strict-dynamic'`];
-  if (process.env.NODE_ENV !== "production") scriptSrc.push("'unsafe-eval'");
-  const csp = [
-    "default-src 'self'",
-    `script-src ${scriptSrc.join(" ")}`,
-    `style-src 'self' 'nonce-${nonce}'`,
-    // Lot 11 (ADR 0031) : la carte décode ses tuiles dans un worker servi
-    // par l'app, et dessine ses images en mémoire (blob:, data:).
-    "worker-src 'self' blob:",
-    "img-src 'self' data: blob:",
-    "frame-ancestors 'none'",
-    "base-uri 'self'",
-    "object-src 'none'",
-  ].join("; ");
+  // Lot 44 (CRM-01, D1 ; ADR 0084) : la page encadrée du formulaire de contact accepte comme parents
+  // les sites déclarés par la planner ; toute autre page garde frame-ancestors 'none'.
+  const frameSlug = contactFrameSlug(request.nextUrl.pathname);
+  const ancestors = frameSlug ? await contactFrameOrigins(frameSlug).catch(() => null) : null;
+  const csp = contentSecurityPolicy({ nonce, production: process.env.NODE_ENV === "production", frameAncestors: ancestors });
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
@@ -75,4 +70,7 @@ export const config = {
   // Exclut les assets statiques et images : inutile d'y poser un nonce,
   // et ça évite de recalculer la CSP sur chaque fichier servi.
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Lot 44 (ADR 0084) : le middleware lit la base pour la page encadrée (environnement Node.js,
+  // stable depuis Next.js 15.5).
+  runtime: "nodejs",
 };

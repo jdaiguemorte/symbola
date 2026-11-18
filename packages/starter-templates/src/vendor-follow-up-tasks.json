@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "_source": "Lot 47 (PAR-05 étape 4 ; D6 ; ADR 0085) : tâches de suivi créées quand le client choisit un prestataire (contrat, acompte, attestation d'assurance), avec leur échéance en jours après le choix. Liste de départ de l'organisation (HUB-20), modifiable dans Paramètres › Prestataires par lien. « {{prestataire}} » / « {{vendor}} » : le nom du prestataire choisi.",
+  "wedding_planner": [
+    { "label": { "fr": "Faire signer le contrat de {{prestataire}}", "en": "Get {{vendor}}'s contract signed" }, "dueInDays": 7 },
+    { "label": { "fr": "Régler l'acompte de {{prestataire}}", "en": "Pay {{vendor}}'s deposit" }, "dueInDays": 14 },
+    { "label": { "fr": "Recevoir l'attestation d'assurance de {{prestataire}}", "en": "Get {{vendor}}'s insurance certificate" }, "dueInDays": 30 }
+  ],
+  "event_agency": [
+    { "label": { "fr": "Faire signer le contrat de {{prestataire}}", "en": "Get {{vendor}}'s contract signed" }, "dueInDays": 7 },
+    { "label": { "fr": "Émettre le bon de commande de {{prestataire}}", "en": "Issue {{vendor}}'s purchase order" }, "dueInDays": 7 },
+    { "label": { "fr": "Régler l'acompte de {{prestataire}}", "en": "Pay {{vendor}}'s deposit" }, "dueInDays": 14 },
+    { "label": { "fr": "Recevoir l'attestation d'assurance de {{prestataire}}", "en": "Get {{vendor}}'s insurance certificate" }, "dueInDays": 30 }
+  ]
+}

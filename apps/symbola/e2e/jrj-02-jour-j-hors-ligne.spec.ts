@@ -131,12 +131,12 @@ test("JRJ-02 / ARC-09 — gardé la veille, le jour J s'ouvre sans réseau : pro
   await expect(contacts).not.toContainText("Studio Lumière");
   await expect(contacts.getByRole("link", { name: "Appeler Léa Martin au 07 00 00 00 01" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Lieux" })).toContainText("1 allée des Tilleuls, Lyon");
-  await expect(page.getByRole("status")).toHaveText("Ce jour J n'est pas encore gardé sur cet appareil.");
+  await expect(page.getByRole("region", { name: "Sur cet appareil" }).getByRole("status")).toHaveText("Ce jour J n'est pas encore gardé sur cet appareil.");
   await expectNoAxeViolation(page);
 
   // Garder sur cet appareil.
   await page.getByRole("button", { name: "Garder sur cet appareil" }).click();
-  await expect(page.getByRole("status")).toContainText("Prêt hors ligne. Mis à jour le");
+  await expect(page.getByRole("region", { name: "Sur cet appareil" }).getByRole("status")).toContainText("Prêt hors ligne. Mis à jour le");
   expect((await deviceState(page)).workers).toBe(1);
 
   // Mode avion : l'écran se recharge depuis la copie.
@@ -144,7 +144,7 @@ test("JRJ-02 / ARC-09 — gardé la veille, le jour J s'ouvre sans réseau : pro
   await page.reload();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Léa & Hugo");
   await expect(page.getByRole("region", { name: "Programme du jour" })).toContainText("Prévoir les parapluies");
-  await expect(page.getByRole("status")).toContainText("Sans réseau : vous lisez la copie du");
+  await expect(page.getByRole("region", { name: "Sur cet appareil" }).getByRole("status")).toContainText("Sans réseau : vous lisez la copie du");
   await expectNoAxeViolation(page);
 
   // Le PDF du programme s'ouvre sans réseau.
@@ -180,13 +180,13 @@ test("NFR-09 — serveur injoignable, puis session expirée : la copie s'ouvre e
   await login(page, setup.email);
   await page.goto(`/jour-j/${setup.eventId}`);
   await page.getByRole("button", { name: "Garder sur cet appareil" }).click();
-  await expect(page.getByRole("status")).toContainText("Prêt hors ligne");
+  await expect(page.getByRole("region", { name: "Sur cet appareil" }).getByRole("status")).toContainText("Prêt hors ligne");
 
   // Le réseau répond, le serveur non (erreur 502 du frontal) : la copie.
   await context.route(`**/jour-j/${setup.eventId}`, (route) => route.fulfill({ status: 502, body: "Bad Gateway" }));
   await page.reload();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Léa & Hugo");
-  await expect(page.getByRole("status")).toContainText("Sans réseau : vous lisez la copie du");
+  await expect(page.getByRole("region", { name: "Sur cet appareil" }).getByRole("status")).toContainText("Sans réseau : vous lisez la copie du");
   await context.unroute(`**/jour-j/${setup.eventId}`);
 
   // Session expirée (8 h sans activité) : la copie, et l'invitation à se reconnecter.
@@ -194,7 +194,7 @@ test("NFR-09 — serveur injoignable, puis session expirée : la copie s'ouvre e
   await page.reload();
   await expect(page).toHaveURL(`/jour-j/${setup.eventId}`);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Léa & Hugo");
-  await expect(page.getByRole("status")).toContainText("Votre session a expiré : vous lisez la copie du");
+  await expect(page.getByRole("region", { name: "Sur cet appareil" }).getByRole("status")).toContainText("Votre session a expiré : vous lisez la copie du");
   await expect(page.getByRole("link", { name: "Se reconnecter" })).toHaveAttribute("href", "/login");
 });
 
@@ -205,12 +205,12 @@ test("ARC-09 (D4) — « Retirer de cet appareil », un autre compte et le lende
   const keep = async () => {
     await page.goto(`/jour-j/${setup.eventId}`);
     await page.getByRole("button", { name: "Garder sur cet appareil" }).click();
-    await expect(page.getByRole("status")).toContainText("Prêt hors ligne");
+    await expect(page.getByRole("region", { name: "Sur cet appareil" }).getByRole("status")).toContainText("Prêt hors ligne");
   };
 
   await keep();
   await page.getByRole("button", { name: "Retirer de cet appareil" }).click();
-  await expect(page.getByRole("status")).toHaveText("Le jour J est retiré de cet appareil.");
+  await expect(page.getByRole("region", { name: "Sur cet appareil" }).getByRole("status")).toHaveText("Le jour J est retiré de cet appareil.");
   expect(await deviceState(page)).toEqual({ caches: [], workers: 0 });
 
   // La session expire (cookie perdu) : la copie reste ; un autre compte se connecte, elle s'efface.

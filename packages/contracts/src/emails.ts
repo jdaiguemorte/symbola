@@ -7,6 +7,11 @@ export const EMAIL_TEMPLATE_KINDS = [
   "vendor_link",
   "vendor_link_renewed",
   "task_reminder",
+  // Lot 46 (RDV-03, D10 ; ADR 0082) : rendez-vous, côté personne qui l'a pris.
+  "appointment_confirmed",
+  "appointment_reminder",
+  "appointment_rescheduled",
+  "appointment_cancelled",
   "quote_signature",
   "contract_signature",
   "order_first",
@@ -15,6 +20,20 @@ export const EMAIL_TEMPLATE_KINDS = [
   // Lot 49 (INV-03, INV-04 ; D4, D10) : invitation à répondre et relance des invités.
   "guest_invitation",
   "guest_reminder",
+  // Lot 44 (CRM-01 ; D7) : « Nouvelle demande de contact », à la titulaire, sans le message ni les
+  // coordonnées du prospect.
+  "prospect_form_received",
+  // Lot 47 (PRE-03, PAR-05 ; D2, D4, D8, D9 ; ADR 0085) : brief à un prestataire, sa relance la veille
+  // de la date limite, feuille de route à J-30 et J-7.
+  "vendor_brief",
+  "vendor_brief_reminder",
+  "vendor_roadmap",
+  // Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10 ; ADR 0089) : proposition envoyée, relance avant
+  // l'expiration, RIB et référence du virement (8e jour hors établissement), relance d'impayé.
+  "proposal_sent",
+  "proposal_expiry_reminder",
+  "payment_details",
+  "invoice_reminder",
 ] as const;
 export type EmailTemplateKind = (typeof EMAIL_TEMPLATE_KINDS)[number];
 
@@ -24,7 +43,13 @@ export type EmailLocale = (typeof EMAIL_LOCALES)[number];
 // Les variables, désignées par une clé stable ; chacune s'écrit en français ou en anglais dans un
 // modèle (« {{prénom}} », « {{first_name}} »).
 // Lot 38b : « place » (le lieu de réception) sert aux modèles de messages de la planner.
-export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place"] as const;
+// Lot 46 : « appointment » (le type de rendez-vous) et « appointment_date » (jour et heure, à Paris).
+// Lot 47 (PRE-03 ; D4) : « slot » (le poste), « deadline » (date limite du brief), et deux liens qui
+// deviennent les boutons « Je suis disponible » et « Je ne suis pas disponible ».
+// Lot 43 : « amount » (montant de l'échéance), « due_date » (son échéance), « reference » (référence du
+// virement), « iban » et « bic » (RIB de l'organisation), « penalties » (phrase des pénalités de retard,
+// toujours renseignée : texte de départ de payment-reminders.json quand il n'y en a pas).
+export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "slot", "deadline", "link_available", "link_unavailable", "amount", "due_date", "reference", "iban", "bic", "penalties"] as const;
 export type EmailVariable = (typeof EMAIL_VARIABLES)[number];
 export type EmailValues = Partial<Record<EmailVariable, string>>;
 

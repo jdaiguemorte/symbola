@@ -14,6 +14,7 @@ import {
   findBudgetLineAttachment,
   findBudgetLineAttachments,
   findBudgetLinesOfSlot,
+  releaseCommittedAmount,
   findDueVendorPayments,
   findFirstBudgetLineOfSlot,
   findVendorPayment,
@@ -61,25 +62,45 @@ import {
 } from "./allocation";
 import { QUOTE_MAX_SIZE_BYTES, quoteUploadError } from "./attachments";
 import { addDaysTo, paymentAmountCents, paymentBaseCents, paymentStatus } from "./payments";
+import { attachHandoverReceiptRow, findHandoverRows, handoverPaymentOfEvent, handoverValues, recordHandoverRow, setHandoverRow } from "./handovers";
 import {
   getEvent,
   getEventNamesByIds,
   getVendorCandidate,
   getLinkAccess,
+  listEventLinks,
   listDefaultVendorSlots,
   listEventVendorSlots,
   listVendorCandidates,
   EventNotFoundError,
   type EventVendorSlot,
 } from "@/modules/events/service";
-import { listEventQuotes } from "@/modules/quotes/service";
+import { listEventInstalments, listEventQuotes } from "@/modules/quotes/service";
 import { parisToday } from "@symbola/i18n";
 import { withActor } from "@symbola/db/actor";
 import { starterBudgetAlertThreshold, starterBudgetVatRateBasisPoints } from "@symbola/starter-templates";
 import { budgetClientKind, htFromTtcCents, htTotalByRate } from "./vat";
+import { lineReferenceAmount, splitAmongPayers, validateShares } from "./payers";
+import { buildCashCalendar, type CashEntry } from "./cash-calendar";
+import {
+  deleteEventPayerRow,
+  ensureCouplePayer,
+  findEventPayers,
+  findInstalmentPayers,
+  findPayerShares,
+  insertEventPayer,
+  replaceLinePayerShares,
+  setInstalmentPayerRow,
+  setVendorPaymentPayerRow,
+  updateEventPayerRow,
+  type EventPayerRow,
+} from "./payers-repository";
+import { EVENT_PAYER_KINDS, type CashCalendarMonth, type EventPayer, type EventPayerKind, type PayerShareInput, type PayerShareView } from "@symbola/contracts";
 import type {
   AddBudgetLineInput,
   AdjustEventBudgetItemInput,
+  DayHandover,
+  VendorPaymentHandoverInput,
   AllocationModel,
   AttachBudgetLineQuoteInput,
   BudgetAlertSettings,
@@ -107,11 +128,14 @@ import type {
   VendorPayment,
   VendorPaymentInput,
   VendorSlotBookedPayload,
+  VendorRetentionReleasedPayload,
 } from "@symbola/contracts";
 import { BUDGET_DOCUMENT_KINDS } from "@symbola/contracts";
 
 export type {
   AdjustEventBudgetItemInput,
+  DayHandover,
+  VendorPaymentHandoverInput,
   AllocationModel,
   AllocationModelItem,
   AllocationModelItemInput,
@@ -391,6 +415,10 @@ function toVendorPayment(row: VendorPaymentRow, line: BudgetLineRow, lines: Budg
         ? { paidOn: row.declaredPaidOn, method: row.declaredMethod, linkId: row.declaredByLinkId, declaredAt: row.declaredAt.toISOString() }
         : null,
     refusalReason: row.refusalReason,
+    handover: row.handoverOnDay
+      ? { method: row.handoverMethod, by: row.handoverBy, handedOverAt: row.handedOverAt?.toISOString() ?? null, handedOverBy: row.handedOverBy, receiptPhotoId: row.handoverReceiptPhotoId }
+      : null,
+    payerId: row.payerId,
   };
 }
 
@@ -842,6 +870,23 @@ export async function applyVendorSlotBookedToBudget(
   }
 }
 
+// Lot 47 (PAR-05, D6 ; ADR 0085) : gestionnaire de events.vendor_retention.released (un prestataire
+// n'est plus retenu, par le choix de la planner). L'engagé des lignes de ce prestataire est libéré,
+// seulement s'il vaut encore ce que la retenue avait engagé : son devis (une seule ligne), ou le
+// devisé de chaque ligne (plusieurs lignes). Un engagé modifié depuis, à la main ou par un autre
+// événement, n'est pas touché ; un rejeu ne trouve plus rien à libérer. Sous RLS, dans
+// l'organisation de l'événement.
+export async function applyVendorRetentionReleasedToBudget(organizationId: string, payload: VendorRetentionReleasedPayload): Promise<number> {
+  const linked = (await findBudgetLinesOfSlot(organizationId, payload.vendorSlotId)).filter((line) => line.vendorCandidateId === payload.candidateId && line.eventId === payload.eventId);
+  let released = 0;
+  for (const line of linked) {
+    const expected = linked.length === 1 ? (payload.amountCents ?? line.quotedAmountCents) : line.quotedAmountCents;
+    if (expected === null) continue;
+    if (await releaseCommittedAmount({ organizationId, lineId: line.id, expectedCents: expected, changedByUserId: payload.releasedByUserId })) released += 1;
+  }
+  return released;
+}
+
 async function committedChangedSince(organizationId: string, lineIds: string[], occurredAt: Date): Promise<boolean> {
   const history = await findBudgetLineHistory(organizationId, lineIds);
   return history.some((row) => row.field === "committed" && row.changedAt.getTime() > occurredAt.getTime());
@@ -916,6 +961,13 @@ export async function getLinkBudgetView(organizationId: string, linkId: string):
   const view = await listBudgetLines(organizationId, access.eventId);
   const withoutLines = (categories: BudgetCategory[]) => categories.map((category) => ({ ...category, lines: [] }));
   const today = parisToday();
+  // Lot 43 (BUD-06, D8) : un payeur à qui le client ne montre que sa part ne reçoit ni catégorie, ni
+  // total, ni la part d'un autre : seulement ses échéances (sa part se lit par getLinkPayerShare).
+  const payer = (await findEventPayers(organizationId, access.eventId)).find((candidate) => candidate.linkId === linkId) ?? null;
+  if (payer && payer.ownShareOnly && payer.kind !== "couple") {
+    const own = view.categories.map((category) => ({ ...category, lines: category.lines.map((line) => ({ ...line, payments: line.payments.filter((payment) => payment.payerId === payer.id) })) }));
+    return { ...emptyTotals(view), payments: linkPayments(own, linkId, today), scope: "share" };
+  }
   if (access.rights.budgetScope === "all") {
     return { ...view, lines: [], categories: withoutLines(view.categories), scope: "all", payments: linkPayments(view.categories, linkId, today) };
   }
@@ -964,6 +1016,7 @@ function linkPayments(categories: BudgetCategory[], linkId: string, today: strin
             declaredMethod: payment.declaration?.method ?? null,
             declaredByThisLink: payment.status !== "paid" && payment.declaration?.linkId === linkId,
             refusalReason: payment.status === "paid" || payment.declaration ? null : payment.refusalReason,
+            handedOverAt: payment.handover?.handedOverAt ?? null,
           })),
       ),
     )
@@ -1207,3 +1260,293 @@ void _contractCheck;
 
 // Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
 export { BUDGET_EXPORT_EXCLUSIONS, describeBudgetExport, exportBudgetData } from "./export";
+
+// Lot 51 (JRJ-09 ; D8, ADR 0091) — paiements à remettre le jour J.
+export { VendorPaymentHandoverInvalidError } from "./handovers";
+
+// Marquer une échéance « à remettre le jour J » (moyen, personne qui remet), ou retirer la marque.
+export async function setVendorPaymentHandover(input: VendorPaymentHandoverInput): Promise<BudgetLinesView> {
+  await ownPayment(input.organizationId, input.eventId, input.paymentId);
+  const values = handoverValues({ method: input.method, by: input.by });
+  const row = await setHandoverRow({ organizationId: input.organizationId, eventId: input.eventId, paymentId: input.paymentId, onDay: input.onDay, ...values });
+  if (!row) throw new VendorPaymentNotFoundError();
+  return listBudgetLines(input.organizationId, input.eventId);
+}
+
+// Les remises du jour J d'un évènement : prestataire, montant, moyen, à qui ; remises ou non.
+export async function listDayHandovers(organizationId: string, eventId: string): Promise<DayHandover[]> {
+  const rows = await findHandoverRows(organizationId, eventId);
+  if (rows.length === 0) return [];
+  const [view, candidates] = await Promise.all([listBudgetLines(organizationId, eventId), listVendorCandidates(organizationId, eventId)]);
+  // Une ligne sans prestataire rattaché : le prestataire retenu de sa catégorie (module events).
+  const retainedOf = (slotId: string) => candidates.filter((candidate) => candidate.outcome === "selected" && candidate.vendorSlotId === slotId).map((candidate) => candidate.vendorName).join(", ") || null;
+  const handovers: DayHandover[] = [];
+  for (const category of view.categories) {
+    for (const line of category.lines) {
+      for (const payment of line.payments) {
+        const row = rows.find((entry) => entry.id === payment.id);
+        if (!row) continue;
+        handovers.push({
+          paymentId: payment.id,
+          eventId,
+          vendorName: line.vendorName ?? retainedOf(line.eventVendorSlotId),
+          slotLabel: category.label,
+          label: payment.label,
+          amountCents: payment.amountCents,
+          method: row.handoverMethod,
+          by: row.handoverBy,
+          handedOverAt: row.handedOverAt?.toISOString() ?? null,
+          handedOverBy: row.handedOverBy,
+          receiptPhotoId: row.handoverReceiptPhotoId,
+        });
+      }
+    }
+  }
+  return handovers.sort((a, b) => a.slotLabel.localeCompare(b.slotLabel) || a.label.localeCompare(b.label));
+}
+
+// JRJ-09 : chaque remise se pointe ; elle règle l'échéance, au jour de la remise dans le fuseau de
+// l'évènement. Une seule fois : un second pointage (ou l'action rejouée) est ignoré.
+export async function recordDayHandover(input: { organizationId: string; eventId: string; paymentId: string; userId: string; actionId: string; handedOverAt: Date; timeZone: string }): Promise<"applied" | "duplicate" | "not_found"> {
+  const recorded = await recordHandoverRow(input);
+  if (recorded.status !== "applied") return recorded.status;
+  const paidOn = new Intl.DateTimeFormat("en-CA", { timeZone: input.timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(input.handedOverAt);
+  const payment = await findVendorPayment(input.organizationId, input.paymentId);
+  if (payment && !payment.paidOn) await setVendorPaymentPaid({ organizationId: input.organizationId, eventId: input.eventId, paymentId: input.paymentId, paidOn, changedByUserId: input.userId });
+  return "applied";
+}
+
+export async function attachDayHandoverReceipt(input: { organizationId: string; eventId: string; paymentId: string; photoId: string }): Promise<boolean> {
+  return attachHandoverReceiptRow(input);
+}
+
+export async function isDayHandoverPayment(organizationId: string, eventId: string, paymentId: string): Promise<boolean> {
+  return handoverPaymentOfEvent(organizationId, eventId, paymentId);
+}
+
+// =====================================================================================================
+// Lot 43 (BUD-06, BUD-11 ; D8, D9 ; ADR 0089) — payeurs de l'évènement (les mariés, une famille, une
+// entreprise), leur part sur chaque ligne (pourcentage ou montant ; le reste aux mariés), le payeur
+// désigné de chaque échéance, ce que chaque payeur voit (sa part seule, par défaut, ou tout le budget :
+// le client le décide) et le calendrier des sorties d'argent, mois par mois. Contrôles côté serveur.
+// =====================================================================================================
+
+export class EventPayerNotFoundError extends Error {
+  constructor() {
+    super("payeur introuvable");
+    this.name = "EventPayerNotFoundError";
+  }
+}
+
+export class EventPayerInvalidError extends Error {
+  constructor(readonly reason: "name" | "kind" | "link" | "couple" | "shares_invalid" | "shares_duplicate" | "shares_over_100" | "line" | "payment" | "instalment") {
+    super("payeur ou part invalide");
+    this.name = "EventPayerInvalidError";
+  }
+}
+
+function emptyTotals(view: BudgetLinesView): BudgetLinesView {
+  return { eventId: view.eventId, categories: [], lines: [], totalEstimatedCents: 0, totalQuotedCents: 0, totalCommittedCents: 0, totalPaidCents: 0, totalRemainingCents: 0, totalVarianceCents: 0, clientKind: view.clientKind, totalHt: htTotalsOf([]), envelope: null };
+}
+
+function toEventPayer(row: EventPayerRow): EventPayer {
+  return { id: row.id, eventId: row.eventId, name: row.name, kind: row.kind, linkId: row.linkId, ownShareOnly: row.ownShareOnly };
+}
+
+const PAYER_KINDS = new Set<string>(EVENT_PAYER_KINDS);
+
+// Les payeurs de l'évènement ; les mariés existent toujours (créés à la première lecture).
+export async function listEventPayers(organizationId: string, eventId: string): Promise<EventPayer[]> {
+  const event = await getEvent(organizationId, eventId);
+  if (!event) throw new EventNotFoundError();
+  const names = event.clients.map((client) => client.firstName.trim()).filter(Boolean).join(" & ") || "—";
+  await ensureCouplePayer(organizationId, eventId, names.slice(0, 120));
+  return (await findEventPayers(organizationId, eventId)).map(toEventPayer);
+}
+
+async function ownPayer(organizationId: string, eventId: string, payerId: string): Promise<EventPayer> {
+  const payer = (await listEventPayers(organizationId, eventId)).find((candidate) => candidate.id === payerId);
+  if (!payer) throw new EventPayerNotFoundError();
+  return payer;
+}
+
+// Un lien rattaché à un payeur : un lien « client » de cet évènement, encore valable.
+async function validPayerLink(organizationId: string, eventId: string, linkId: string | null): Promise<string | null> {
+  if (linkId === null) return null;
+  const link = (await listEventLinks(organizationId, eventId)).find((candidate) => candidate.id === linkId);
+  if (!link || link.audience !== "client" || link.status === "revoked") throw new EventPayerInvalidError("link");
+  return link.id;
+}
+
+function payerName(name: string): string {
+  const clean = name.replace(/\s+/g, " ").trim();
+  if (clean.length < 1 || clean.length > 120) throw new EventPayerInvalidError("name");
+  return clean;
+}
+
+export async function addEventPayer(organizationId: string, input: { eventId: string; name: string; kind: EventPayerKind; linkId: string | null }): Promise<EventPayer> {
+  await listEventPayers(organizationId, input.eventId);
+  if (!PAYER_KINDS.has(input.kind) || input.kind === "couple") throw new EventPayerInvalidError("kind");
+  const linkId = await validPayerLink(organizationId, input.eventId, input.linkId);
+  try {
+    return toEventPayer(await insertEventPayer(organizationId, { eventId: input.eventId, name: payerName(input.name), kind: input.kind, linkId }));
+  } catch (error) {
+    const cause = (error as { cause?: { code?: string } }).cause;
+    if (cause?.code === "23505") throw new EventPayerInvalidError("link");
+    throw error;
+  }
+}
+
+export async function updateEventPayer(organizationId: string, input: { eventId: string; payerId: string; name: string; kind: EventPayerKind; linkId: string | null }): Promise<EventPayer> {
+  const payer = await ownPayer(organizationId, input.eventId, input.payerId);
+  if (!PAYER_KINDS.has(input.kind) || (payer.kind === "couple") !== (input.kind === "couple")) throw new EventPayerInvalidError("kind");
+  const linkId = await validPayerLink(organizationId, input.eventId, input.linkId);
+  return toEventPayer((await updateEventPayerRow(organizationId, payer.id, { name: payerName(input.name), kind: input.kind, linkId }))!);
+}
+
+export async function removeEventPayer(organizationId: string, eventId: string, payerId: string): Promise<void> {
+  const payer = await ownPayer(organizationId, eventId, payerId);
+  if (payer.kind === "couple") throw new EventPayerInvalidError("couple");
+  await deleteEventPayerRow(organizationId, payer.id);
+}
+
+// La planner règle pour le client ce que voit un payeur.
+export async function setPayerVisibility(organizationId: string, input: { eventId: string; payerId: string; ownShareOnly: boolean }): Promise<EventPayer> {
+  const payer = await ownPayer(organizationId, input.eventId, input.payerId);
+  if (payer.kind === "couple") throw new EventPayerInvalidError("couple");
+  return toEventPayer((await updateEventPayerRow(organizationId, payer.id, { ownShareOnly: input.ownShareOnly }))!);
+}
+
+// Le lien d'un des mariés (rattaché à un client de l'évènement, rubrique « Budget ») ; sinon refusé.
+async function coupleLinkAccess(organizationId: string, linkId: string) {
+  const access = await getLinkAccess(organizationId, linkId);
+  if (!access || access.audience !== "client" || !access.rights.rubrics.includes("budget")) throw new LinkBudgetAccessDeniedError();
+  const link = (await listEventLinks(organizationId, access.eventId)).find((candidate) => candidate.id === linkId);
+  if (!link?.eventClientId) throw new LinkBudgetAccessDeniedError();
+  return access;
+}
+
+export async function listLinkPayers(organizationId: string, linkId: string): Promise<EventPayer[]> {
+  const access = await coupleLinkAccess(organizationId, linkId);
+  return listEventPayers(organizationId, access.eventId);
+}
+
+// BUD-06 : « si le client le décide » — un des mariés, depuis son portail, choisit ce que voit chaque payeur.
+export async function setLinkPayerVisibility(organizationId: string, input: { linkId: string; payerId: string; ownShareOnly: boolean }): Promise<EventPayer> {
+  const access = await coupleLinkAccess(organizationId, input.linkId);
+  return withActor({ kind: "link", id: input.linkId }, () => setPayerVisibility(organizationId, { eventId: access.eventId, payerId: input.payerId, ownShareOnly: input.ownShareOnly }));
+}
+
+export async function setLinePayerShares(organizationId: string, input: { eventId: string; lineId: string; shares: PayerShareInput[] }): Promise<void> {
+  const payers = await listEventPayers(organizationId, input.eventId);
+  const couple = payers.find((payer) => payer.kind === "couple")!;
+  // Ce qui revient aux mariés n'a pas besoin d'être écrit : le reste leur revient.
+  const shares = input.shares.filter((share) => share.payerId !== couple.id);
+  const problem = validateShares(shares);
+  if (problem) throw new EventPayerInvalidError(problem === "invalid" ? "shares_invalid" : problem === "duplicate" ? "shares_duplicate" : "shares_over_100");
+  if (shares.some((share) => !payers.some((payer) => payer.id === share.payerId))) throw new EventPayerNotFoundError();
+  if (!(await replaceLinePayerShares(organizationId, { eventId: input.eventId, lineId: input.lineId, shares }))) throw new EventPayerInvalidError("line");
+}
+
+export async function setVendorPaymentPayer(organizationId: string, input: { eventId: string; paymentId: string; payerId: string | null }): Promise<void> {
+  const payers = await listEventPayers(organizationId, input.eventId);
+  const payer = input.payerId === null ? null : (payers.find((candidate) => candidate.id === input.payerId) ?? null);
+  if (input.payerId !== null && !payer) throw new EventPayerNotFoundError();
+  if (!(await setVendorPaymentPayerRow(organizationId, { eventId: input.eventId, paymentId: input.paymentId, payerId: payer && payer.kind !== "couple" ? payer.id : null }))) throw new EventPayerInvalidError("payment");
+}
+
+export async function setInstalmentPayer(organizationId: string, input: { eventId: string; scheduleItemId: string; payerId: string | null }): Promise<void> {
+  const payers = await listEventPayers(organizationId, input.eventId);
+  const payer = input.payerId === null ? null : (payers.find((candidate) => candidate.id === input.payerId) ?? null);
+  if (input.payerId !== null && !payer) throw new EventPayerNotFoundError();
+  if (!(await listEventInstalments(organizationId, input.eventId)).some((instalment) => instalment.scheduleItemId === input.scheduleItemId)) throw new EventPayerInvalidError("instalment");
+  await setInstalmentPayerRow(organizationId, { eventId: input.eventId, scheduleItemId: input.scheduleItemId, payerId: payer && payer.kind !== "couple" ? payer.id : null });
+}
+
+// Le lien du payeur désigné d'une échéance de la planner : lui seul la déclare (null : personne).
+export async function getInstalmentPayerLinkId(organizationId: string, eventId: string, scheduleItemId: string): Promise<string | null> {
+  const designated = (await findInstalmentPayers(organizationId, eventId)).find((row) => row.scheduleItemId === scheduleItemId);
+  if (!designated) return null;
+  return (await findEventPayers(organizationId, eventId)).find((payer) => payer.id === designated.payerId)?.linkId ?? null;
+}
+
+export type PayerSharesView = {
+  payers: EventPayer[];
+  lines: { lineId: string; slotLabel: string; label: string; referenceCents: number; shares: PayerShareInput[]; split: { payerId: string; amountCents: number }[] }[];
+  byPayer: PayerShareView[];
+  instalmentPayers: { scheduleItemId: string; payerId: string }[];
+};
+
+// Côté planner : chaque ligne, sa part par payeur au centime, et le total de chacun.
+export async function getPayerShares(organizationId: string, eventId: string): Promise<PayerSharesView> {
+  const payers = await listEventPayers(organizationId, eventId);
+  const couple = payers.find((payer) => payer.kind === "couple")!;
+  const view = await listBudgetLines(organizationId, eventId);
+  const rows = await findPayerShares(organizationId, view.lines.map((line) => line.id));
+  const lines = view.categories.flatMap((category) =>
+    category.lines.map((line) => {
+      const shares = rows.filter((row) => row.lineId === line.id).map((row) => ({ payerId: row.payerId, percentageBasisPoints: row.percentageBasisPoints, amountCents: row.amountCents }));
+      const referenceCents = lineReferenceAmount(line);
+      const split = [...splitAmongPayers(referenceCents, shares, couple.id).entries()].map(([payerId, amountCents]) => ({ payerId, amountCents }));
+      return { lineId: line.id, slotLabel: category.label, label: line.label, referenceCents, shares, split };
+    }),
+  );
+  const byPayer = payers.map((payer) => {
+    const own = lines.map((line) => ({ lineId: line.lineId, slotLabel: line.slotLabel, label: line.label, amountCents: line.split.find((entry) => entry.payerId === payer.id)?.amountCents ?? 0 })).filter((line) => line.amountCents > 0);
+    return { payerId: payer.id, lines: own, totalCents: own.reduce((sum, line) => sum + line.amountCents, 0) };
+  });
+  const instalmentPayers = (await findInstalmentPayers(organizationId, eventId)).map((row) => ({ scheduleItemId: row.scheduleItemId, payerId: row.payerId }));
+  return { payers, lines, byPayer, instalmentPayers };
+}
+
+// La part d'un payeur, vue par son propre lien (quel que soit son réglage) ; null sans payeur.
+export async function getLinkPayerShare(organizationId: string, linkId: string): Promise<{ payer: EventPayer; share: PayerShareView } | null> {
+  const access = await getLinkAccess(organizationId, linkId);
+  if (!access || access.audience !== "client" || !access.rights.rubrics.includes("budget")) throw new LinkBudgetAccessDeniedError();
+  const payer = (await listEventPayers(organizationId, access.eventId)).find((candidate) => candidate.linkId === linkId);
+  if (!payer || payer.kind === "couple") return null;
+  const shares = await getPayerShares(organizationId, access.eventId);
+  return { payer, share: shares.byPayer.find((entry) => entry.payerId === payer.id)! };
+}
+
+// BUD-11 (D9) — calendrier des sorties d'argent : échéances de la planner et des prestataires, mois par
+// mois, avec leur payeur et leur statut. payerId : seulement les siennes.
+export async function getCashCalendar(organizationId: string, eventId: string, filter: { payerId: string | null; slotIds?: Set<string> | null; withInstalments?: boolean } = { payerId: null }): Promise<CashCalendarMonth[]> {
+  const payers = await listEventPayers(organizationId, eventId);
+  const couple = payers.find((payer) => payer.kind === "couple")!;
+  const nameOf = new Map(payers.map((payer) => [payer.id, payer.name]));
+  const view = await listBudgetLines(organizationId, eventId);
+  const entries: CashEntry[] = [];
+  for (const category of view.categories) {
+    if (filter.slotIds && !filter.slotIds.has(category.eventVendorSlotId)) continue;
+    for (const line of category.lines) {
+      for (const payment of line.payments) {
+        entries.push({ id: payment.id, source: "vendor", label: payment.label, counterpart: line.vendorName ?? line.label ?? category.label, amountCents: payment.amountCents, dueOn: payment.dueOn, payerId: payment.payerId ?? couple.id, status: payment.status === "paid" ? "paid" : payment.declaration ? "declared" : "upcoming" });
+      }
+    }
+  }
+  const settleIds = new Set<string>();
+  if (filter.withInstalments !== false) {
+    const designated = new Map((await findInstalmentPayers(organizationId, eventId)).map((row) => [row.scheduleItemId, row.payerId]));
+    for (const instalment of await listEventInstalments(organizationId, eventId)) {
+      settleIds.add(instalment.scheduleItemId);
+      entries.push({ id: instalment.scheduleItemId, source: "planner", label: `${instalment.label} · ${instalment.quoteNumber}`, counterpart: instalment.organizationName, amountCents: instalment.amountCents, dueOn: instalment.dueDate, payerId: designated.get(instalment.scheduleItemId) ?? couple.id, status: instalment.status });
+    }
+  }
+  return buildCashCalendar(entries, { payerId: filter.payerId }).map((month) => ({
+    ...month,
+    entries: month.entries.map((entry) => ({ ...entry, payerName: nameOf.get(entry.payerId) ?? "", settleScheduleItemId: entry.source === "planner" && settleIds.has(entry.id) && entry.status !== "paid" ? entry.id : null })),
+  }));
+}
+
+// Le calendrier vu par un lien : un payeur « part seule » ne voit que ses échéances ; en « catégories
+// choisies », les seules échéances de ses catégories ; celles de la planner, avec la rubrique « Devis ».
+export async function getLinkCashCalendar(organizationId: string, linkId: string): Promise<CashCalendarMonth[]> {
+  const access = await getLinkAccess(organizationId, linkId);
+  if (!access || access.audience !== "client" || !access.rights.rubrics.includes("budget")) throw new LinkBudgetAccessDeniedError();
+  const payer = (await listEventPayers(organizationId, access.eventId)).find((candidate) => candidate.linkId === linkId) ?? null;
+  const withInstalments = access.rights.rubrics.includes("quotes");
+  if (payer && payer.kind !== "couple" && payer.ownShareOnly) return getCashCalendar(organizationId, access.eventId, { payerId: payer.id, withInstalments });
+  const slotIds = access.rights.budgetScope === "selected" ? new Set(access.rights.sharedSlotIds) : null;
+  return getCashCalendar(organizationId, access.eventId, { payerId: null, slotIds, withInstalments });
+}

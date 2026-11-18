@@ -22,6 +22,8 @@ export type TodayItemKind =
   | "vendor_payment"
   | "decision"
   | "payment_declaration"
+  // Lot 43 (FAC-08) : virement déclaré par le payeur d'une échéance de la planner.
+  | "transfer_declaration"
   | "quote_follow_up"
   | "prospect_follow_up"
   | "deposit_blocked"
@@ -30,7 +32,20 @@ export type TodayItemKind =
   | "link_renewal"
   // Lot 49 (RGP-08) : préavis de purge des invités, opposition d'un invité.
   | "guest_purge"
-  | "guest_opposition";
+  | "guest_opposition"
+  // Lot 46 (HUB-08) : rendez-vous du jour, rendez-vous pris, reportés ou annulés depuis la veille,
+  // agenda extérieur en erreur.
+  | "appointment"
+  | "appointment_change"
+  | "calendar_source_error"
+  // Lot 44 (CRM-01) : nouvelle demande du formulaire de contact, demandes « à vérifier ».
+  | "prospect_request"
+  | "prospect_review"
+  // Lot 47 (PAR-05 ; D3, D6, D8) : réponse d'un prestataire à un brief, choix du client engagé,
+  // feuille de route non confirmée.
+  | "vendor_answer"
+  | "vendor_choice"
+  | "vendor_roadmap";
 
 // L'action en un clic (HUB-08) : cocher une tâche, relancer un prestataire, ou ouvrir l'objet.
 export type TodayAction =

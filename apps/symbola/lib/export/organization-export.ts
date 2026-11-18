@@ -27,6 +27,7 @@ import { exportHubData } from "@/modules/hub/service";
 import { exportQuotesData } from "@/modules/quotes/service";
 import { exportVendorsData } from "@/modules/vendors/service";
 import { exportGuestsData } from "@/modules/guests/service";
+import { exportAppointmentsData } from "@/modules/appointments/service";
 import { exportReadme } from "./readme";
 import { entitySchemaPath, entityJsonSchemaText, exportEntitySchemas } from "./schemas";
 
@@ -39,6 +40,7 @@ const MODULE_EXPORTERS: ((organizationId: string, context: ModuleExportContext) 
   exportVendorsData,
   // Lot 49 : module Invités (sans les régimes ni les empreintes des liens).
   exportGuestsData,
+  exportAppointmentsData,
 ];
 
 // Formats déjà compressés : rangés tels quels (compresser n'y gagne rien et coûte du temps).

@@ -17,13 +17,25 @@
         "vendor_link",
         "vendor_link_renewed",
         "task_reminder",
+        "appointment_confirmed",
+        "appointment_reminder",
+        "appointment_rescheduled",
+        "appointment_cancelled",
         "quote_signature",
         "contract_signature",
         "order_first",
         "signed_copy",
         "program_published",
         "guest_invitation",
-        "guest_reminder"
+        "guest_reminder",
+        "prospect_form_received",
+        "vendor_brief",
+        "vendor_brief_reminder",
+        "vendor_roadmap",
+        "proposal_sent",
+        "proposal_expiry_reminder",
+        "payment_details",
+        "invoice_reminder"
       ]
     },
     "locale": {

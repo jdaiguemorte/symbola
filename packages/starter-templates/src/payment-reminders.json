@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "status": {
+    "fr": "Valeurs de départ du lot 43 (FAC-09, FAC-15 ; D1, D7) : à régler par l'organisation. Les pénalités d'un particulier attendent la réponse de l'avocat (AV-7) : aucune par défaut.",
+    "en": "Starting values of lot 43 (FAC-09, FAC-15; D1, D7): to be set by the organisation. Penalties for a consumer await the lawyer's answer (AV-7): none by default."
+  },
+  "expiryReminderDays": 3,
+  "paymentReminderDays": [3, 10, 20],
+  "noPenaltySentence": {
+    "fr": "Merci de régulariser dès que possible.",
+    "en": "Thank you for settling it as soon as possible."
+  },
+  "consumerClauseSentence": {
+    "fr": "Comme le prévoit le contrat, une pénalité de retard au taux annuel de {taux} peut s'appliquer.",
+    "en": "As provided for in the contract, a late payment penalty at the annual rate of {taux} may apply."
+  }
+}

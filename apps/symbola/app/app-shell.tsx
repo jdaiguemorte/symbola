@@ -13,6 +13,7 @@ import {
   UserCog,
   Users,
   BookUser,
+  CalendarClock,
   CalendarDays,
   CalendarHeart,
   Contact,
@@ -103,7 +104,8 @@ const iconProps = { size: 20, "aria-hidden": true as const, strokeWidth: 1.5 };
 // ont leur propre cadre, sans menu ni recherche ni compte : le logo de
 // l'organisation du lien (servi par /portail/logo), sinon son nom.
 // Lot 37a (DOC-04) : /partage, la page d'un lien de partage de document.
-const LINK_PAGE = /^\/(?:lien|portail|prestataire|partage)(?:\/|$)/;
+// Lot 46 (RDV-02, RDV-03) : page publique de réservation et lien de gestion d'un rendez-vous, sans menu.
+const LINK_PAGE = /^\/(?:lien|portail|prestataire|partage|reserver|rdv)(?:\/|$)/;
 
 async function LinkShell({ children }: { children: ReactNode }) {
   const access = await currentLinkAccess();
@@ -146,8 +148,18 @@ function DayShell({ children }: { children: ReactNode }) {
   );
 }
 
+// Lot 44 (CRM-01 ; D1, D2 ; ADR 0084) : le formulaire de contact public (/contact/<adresse>) et sa page
+// encadrée, sans menu, sans recherche ni compte, même pour une personne connectée (aperçu des réglages) ;
+// le nom de l'organisation est le titre de la page.
+const CONTACT_PAGE = /^\/contact\/[^/]+(?:\/cadre)?\/?$/;
+
+function ContactShell({ children, framed }: { children: ReactNode; framed: boolean }) {
+  return <div className={framed ? "contact-shell contact-shell-framed" : "link-shell contact-shell"}>{children}</div>;
+}
+
 export async function AppShell({ children }: { children: ReactNode }) {
   const requestPath = (await headers()).get("x-pathname") ?? "";
+  if (CONTACT_PAGE.test(requestPath)) return <ContactShell framed={requestPath.replace(/\/$/, "").endsWith("/cadre")}>{children}</ContactShell>;
   if (LINK_PAGE.test(requestPath)) return <LinkShell>{children}</LinkShell>;
   if (DAY_PAGE.test(requestPath)) return <DayShell>{children}</DayShell>;
   const auth = await getAuthContext();
@@ -184,6 +196,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
   let vendors = false;
   // Lot 49 : module Invités (réglage de la liste des régimes, dans le groupe Évènements).
   let guests = false;
+  let appointments = false;
   if (organizationId) {
     const db = appDatabase();
     events = await isModuleEnabled(db, organizationId, "events");
@@ -191,6 +204,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
     quotes = await isModuleEnabled(db, organizationId, "quotes");
     vendors = await isModuleEnabled(db, organizationId, "vendors");
     guests = await isModuleEnabled(db, organizationId, "guests");
+    appointments = await isModuleEnabled(db, organizationId, "appointments");
   }
   const isOwner = auth.user.role === "owner" && Boolean(organizationId);
   // Lot 39c (HUB-12, D12) : les actions de la palette ⌘K, selon les modules souscrits.
@@ -198,6 +212,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const paletteActions = [
     ...(events ? [{ label: tPalette("actions.newEvent"), href: "/events/new" }, { label: tPalette("actions.tasks"), href: "/taches" }] : []),
     { label: tPalette("actions.contacts"), href: "/contacts?nouveau=1" },
+    ...(appointments ? [{ label: tPalette("actions.appointments"), href: "/rendez-vous" }] : []),
     ...(vendors ? [{ label: tPalette("actions.newVendor"), href: "/prestataires/nouveau" }] : []),
     ...(quotes ? [{ label: tPalette("actions.quotes"), href: "/devis" }] : []),
     { label: tPalette("actions.today"), href: "/" },
@@ -233,6 +248,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
       quotes,
       vendors,
       guests: guests && events,
+      appointments,
     };
     const available = TUTORIALS.filter(
       (tutorial) => subscribed[tutorial.module],
@@ -345,6 +361,14 @@ export async function AppShell({ children }: { children: ReactNode }) {
                           href: "/events/parametres/types",
                           label: tSettings("eventTypes"),
                         },
+                        // Lot 44 (CRM-01, CRM-02) : étapes du pipeline et formulaire de contact, réglés par la
+                        // titulaire.
+                        ...(isOwner
+                          ? [
+                              { href: "/events/parametres/etapes", label: tSettings("pipelineStages") },
+                              { href: "/events/parametres/contact", label: tSettings("contactForm") },
+                            ]
+                          : []),
                         {
                           href: "/events/modeles",
                           label: tSettings("retroplanning"),
@@ -353,7 +377,16 @@ export async function AppShell({ children }: { children: ReactNode }) {
                           href: "/events/modeles-programme",
                           label: tSettings("program"),
                         },
-                        ...(guests ? [{ href: "/events/parametres/regimes", label: tSettings("dietaryOptions") }] : []),
+                        // Lot 51 (JRJ-06) : modèles des listes de contrôle du jour J.
+                        { href: "/events/parametres/listes-jour-j", label: tSettings("dayChecklists") },
+                        ...(guests
+                          ? [
+                              { href: "/events/parametres/regimes", label: tSettings("dietaryOptions") },
+                              { href: "/events/parametres/repas", label: tSettings("mealTypes") },
+                            ]
+                          : []),
+                        // Lot 47 (partie F) : prestataires par lien (brief, relance, feuilles de route, tâches de suivi).
+                        { href: "/events/parametres/prestataires-par-lien", label: tSettings("vendorCoordination") },
                       ]
                     : []),
                   ...(budget
@@ -372,6 +405,19 @@ export async function AppShell({ children }: { children: ReactNode }) {
               },
             ]
           : []),
+        // Lot 46 (RDV-01, D11) : la page de réservation, les types et les disponibilités.
+        ...(appointments
+          ? [
+              {
+                label: tSettings("groupAppointments"),
+                icon: "appointments" as const,
+                items: [
+                  { href: "/rendez-vous/reglages", label: tSettings("appointmentTypes") },
+                  { href: "/rendez-vous/disponibilites", label: tSettings("appointmentAvailability") },
+                ],
+              },
+            ]
+          : []),
         ...(quotes
           ? [
               {
@@ -382,6 +428,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
                   // Lot 31a/31b (HUB-21) : modèles de devis et de contrat.
                   { href: "/devis/modeles", label: tSettings("quoteTemplates") },
                   { href: "/devis/modeles-contrat", label: tSettings("contractTemplates") },
+                  // Lot 43 (FAC-02, FAC-09, FAC-15) : page de proposition et relances.
+                  { href: "/devis/modeles-proposition", label: tSettings("proposalTemplates") },
+                  { href: "/devis/relances", label: tSettings("paymentReminders") },
                   { href: "/devis/parametres", label: tSettings("quotes") },
                   {
                     href: "/devis/parametres/documents",
@@ -595,6 +644,15 @@ export async function AppShell({ children }: { children: ReactNode }) {
                   <AppNavLink href="/contacts">
                     <Contact {...iconProps} />
                     {t("contacts")}
+                  </AppNavLink>
+                </li>
+              ) : null}
+              {/* Lot 46 (RDV-01 à RDV-04, ADR 0082) : les rendez-vous, juste après les contacts. */}
+              {appointments ? (
+                <li>
+                  <AppNavLink href="/rendez-vous" except={["/rendez-vous/reglages", "/rendez-vous/disponibilites"]}>
+                    <CalendarClock {...iconProps} />
+                    {t("appointments")}
                   </AppNavLink>
                 </li>
               ) : null}

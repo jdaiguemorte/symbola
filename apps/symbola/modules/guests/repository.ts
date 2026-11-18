@@ -2,9 +2,9 @@
 // écriture passe par withOrganization (RLS, SEC-10) ; aucune requête ne lit une autre organisation.
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
-import { dietaryOptions, diets, eventSettings, guestLinks, guests, householdGroups, households, moduleSettings, purgePostponements, rsvpAnswers } from "@symbola/db/schema/guests";
+import { dietaryOptions, diets, eventSettings, guestLinks, guests, householdGroups, households, mealTypes, moduleSettings, purgePostponements, rsvpAnswers } from "@symbola/db/schema/guests";
 import { withOrganization } from "@symbola/db/with-organization";
-import { starterDietaryOptions } from "@symbola/starter-templates";
+import { starterDietaryOptions, starterMealTypes } from "@symbola/starter-templates";
 
 export type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -14,6 +14,7 @@ export type GuestRow = typeof guests.$inferSelect;
 export type EventSettingsRow = typeof eventSettings.$inferSelect;
 export type GuestLinkRow = typeof guestLinks.$inferSelect;
 export type DietaryOptionRow = typeof dietaryOptions.$inferSelect;
+export type MealTypeRow = typeof mealTypes.$inferSelect;
 
 export function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
   return withOrganization(appDatabase(), organizationId, fn);
@@ -83,4 +84,18 @@ export async function findPostponement(tx: Tx, eventId: string) {
 export async function activeLinksOf(tx: Tx, guestIds: string[]): Promise<GuestLinkRow[]> {
   if (guestIds.length === 0) return [];
   return tx.select().from(guestLinks).where(and(inArray(guestLinks.guestId, guestIds), isNull(guestLinks.revokedAt)));
+}
+
+// Lot 50 (D5) : types de repas de l'organisation, copiés des données de départ à la première lecture.
+export async function ensureMealTypes(tx: Tx, organizationId: string): Promise<MealTypeRow[]> {
+  const rows = await tx.select().from(mealTypes).orderBy(asc(mealTypes.position), asc(mealTypes.createdAt));
+  const known = new Set(rows.map((row) => row.starterKey).filter((key): key is string => key !== null));
+  const missing = starterMealTypes("fr").filter((type) => !known.has(type.key));
+  if (missing.length === 0) return rows;
+  const start = rows.reduce((max, row) => Math.max(max, row.position + 1), 0);
+  await tx
+    .insert(mealTypes)
+    .values(missing.map((type, index) => ({ organizationId, starterKey: type.key, label: null, position: start + index })))
+    .onConflictDoNothing();
+  return tx.select().from(mealTypes).orderBy(asc(mealTypes.position), asc(mealTypes.createdAt));
 }

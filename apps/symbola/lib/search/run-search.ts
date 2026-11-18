@@ -36,13 +36,14 @@ export async function runSearch(input: { organizationId: string; role: string; t
   const locale = (await getLocale()) as Locale;
 
   const db = appDatabase();
-  const [events, budget, quotes, vendors] = await Promise.all([
+  const [events, budget, quotes, vendors, appointments] = await Promise.all([
     isModuleEnabled(db, input.organizationId, "events"),
     isModuleEnabled(db, input.organizationId, "budget"),
     isModuleEnabled(db, input.organizationId, "quotes"),
     isModuleEnabled(db, input.organizationId, "vendors"),
+    isModuleEnabled(db, input.organizationId, "appointments"),
   ]);
-  const modules = { events, budget, quotes, vendors };
+  const modules = { events, budget, quotes, vendors, appointments };
   const found = await globalSearch({ organizationId: input.organizationId, term: input.term, modules: { events: modules.events, quotes: modules.quotes, vendors: modules.vendors } });
   const names = (eventId: string) => found.eventNames[eventId] || t("noClientName");
 
