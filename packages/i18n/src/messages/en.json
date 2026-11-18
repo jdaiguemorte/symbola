@@ -33,7 +33,30 @@
     "setUp": "Manage my sign-in methods",
     "signInAgain": "Send me a sign-in link",
     "signOut": "Sign out",
-    "linkSent": "A sign-in link has just been sent to your address. Open it: your two-step verification will be asked for, or set up if missing."
+    "linkSent": "A sign-in link has just been sent to your address. Open it: your two-step verification will be asked for, or set up if missing.",
+    "accountantBody": "As the organization's accountant, you read its invoices and ledgers: two-step verification is required at every sign-in. Get a sign-in link: you will set up an authenticator app or a passkey, then it will be asked for.",
+    "sessionsTitle": "My sessions",
+    "sessionsSubtitle": "The devices where your account is signed in.",
+    "thisDevice": "This device",
+    "lastSeen": "Last activity: {date}",
+    "closeOne": "Close",
+    "closeOneLabel": "Close the {device} session",
+    "closeOthers": "{count, plural, one {Close the other session} other {Close the # other sessions}}",
+    "onlyThisOne": "Your account is signed in on this device only.",
+    "sessionClosed": "The session is closed: that device will have to sign in again.",
+    "sessionsClosed": "{count, plural, =0 {No other session was open.} one {One session closed.} other {# sessions closed.}}",
+    "noLocation": "Symbola keeps neither the IP address nor the city of your sign-ins: only the device and the time.",
+    "manageFactors": "Manage my email address, passkey and two-step verification",
+    "promptLabel": "Two-step verification",
+    "promptBody": "Secure your account: a passkey or an authenticator app protects your events even if your email is hacked.",
+    "promptAction": "Secure my account",
+    "promptLater": "Later",
+    "notMeTitle": "Wasn't it you?",
+    "notMeBody": "Close every session of your account, on all devices. You can then sign in again and secure your account.",
+    "notMeConfirm": "Close all my sessions",
+    "notMeDone": "All your sessions are closed. Now check your email address, your passkey and your two-step verification.",
+    "notMeSecure": "Secure my account",
+    "notMeInvalid": "This link is no longer valid: it was already used or is more than seven days old. Sign in, then close your other sessions from “My sessions”."
   },
   "Organizations": {
     "label": "Organization",
@@ -1385,6 +1408,14 @@
     "budgetCashCalendar": {
       "title": "Cash-out calendar",
       "body": "Month by month, the client's instalments to you and to their vendors, with their payer and status: the answer to “what do we have to pay in May?”."
+    },
+    "sessions": {
+      "title": "My sessions",
+      "body": "Each line is a device where your account is signed in, with its last activity (updated at most once an hour). Close a session you don't recognize: it is refused at its next request. Lost a phone? “Close the other sessions”."
+    },
+    "accounting": {
+      "title": "Accountant access",
+      "body": "The Owner gave you read-only access: invoices, credit notes, payments, ledgers, exports and e-reporting. You see neither events, nor guests, nor settings. Two-step verification is asked at every sign-in."
     }
   },
   "Aide": {
@@ -5599,7 +5630,7 @@
   },
   "Team": {
     "title": "Team",
-    "subtitle": "Your organization's accounts: invite a planner, remove access.",
+    "subtitle": "Your organization's accounts: invite a Planner or an Accountant, remove an access, transfer ownership.",
     "ownerOnly": "The team is managed by the account owner.",
     "listTitle": "Team accounts",
     "columnEmail": "Email",
@@ -5609,17 +5640,18 @@
     "columnActions": "Actions",
     "roles": {
       "owner": "Owner",
-      "member": "Planner"
+      "member": "Planner",
+      "accountant": "Accountant"
     },
     "accessActive": "Active",
     "accessRemoved": "Removed on {date}",
     "remove": "Remove access for {email}",
     "confirmTitle": "Remove access for {email}?",
-    "confirmBody": "Their sessions are closed right away, on all their devices, and this account can no longer sign in. Their work stays in the organization.",
+    "confirmBody": "Their sessions are closed right away, on all their devices, and this account can no longer sign in to your organization. Their work stays; they leave your events' teams.",
     "confirmRemove": "Remove access",
     "cancel": "Cancel",
     "removed": "Access removed. This account's sessions are closed.",
-    "inviteTitle": "Invite a planner",
+    "inviteTitle": "Invite someone",
     "inviteEmail": "Planner's e-mail address",
     "inviteHint": "They receive a link valid for seven days, single use. They will have access to every module; the team, activity log, GDPR and settings stay with you.",
     "inviteSubmit": "Send the invitation",
@@ -5631,7 +5663,31 @@
     "inviteMailSubject": "\"{organization}\" invites you to Symbola",
     "inviteMailBody": "Hello,\n\n\"{organization}\" invites you to join their team on Symbola, as a planner. This link is valid until {date} and works only once:\n{url}\n\nSee you soon,\nThe Symbola team",
     "pendingTitle": "Pending invitations",
-    "pendingUntil": "{email}, valid until {date}"
+    "pendingUntil": "{email} ({role}), valid until {date}",
+    "inviteEmailAny": "Email address",
+    "inviteRole": "Their role",
+    "inviteHintAccountant": "An Accountant only reads invoices, credit notes, payments, ledgers, exports and e-reporting; two-step verification is required.",
+    "inviteMailBodyAccountant": "Hello,\n\n“{organization}” invites you to Symbola as its Accountant: you will read its invoices, credit notes, payments, ledgers, exports and e-reporting, without being able to change anything. Two-step verification will be asked at every sign-in. This link is valid until {date} and works once:\n{url}\n\nSee you soon,\nThe Symbola team",
+    "transfer": "Transfer ownership to {email}",
+    "transferConfirmTitle": "Transfer ownership to {email}?",
+    "transferConfirmBody": "She must have two-step verification. She gets a link valid for seven days; when she confirms, she becomes the Owner and you become a Planner. You will both get an email.",
+    "transferConfirm": "Send the transfer request",
+    "transferPendingTitle": "Ownership transfer pending",
+    "transferPendingBody": "{email} has until {date} to confirm. Until then, you remain the Owner.",
+    "transferCancel": "Cancel the transfer",
+    "transferOutcome": {
+      "sent": "Request sent: the Planner confirms with the link she received by email.",
+      "cancelled": "Transfer cancelled: nothing changes.",
+      "mfa_missing": "This Planner has no two-step verification yet: ask her to set it up (passkey or app), then try again.",
+      "not_planner": "Only an active Planner of the team can become the Owner.",
+      "not_owner": "Only the Owner transfers ownership.",
+      "send_failed": "The request could not be sent: nothing changes. Try again in a few minutes."
+    },
+    "visibilityTitle": "Who sees the events",
+    "visibilityLabel": "All Planners see all events",
+    "visibilityHint": "Unchecked, a Planner only sees the events whose team she belongs to (lead planner or assistant). You always see everything.",
+    "visibilitySave": "Save",
+    "visibilitySaved": "Setting saved."
   },
   "SignOutEverywhere": {
     "title": "Signed-in devices",
@@ -6752,7 +6808,11 @@
       "questionnaire": "Answer the questionnaire",
       "available": "I am available",
       "unavailable": "I am not available",
-      "roadmap": "See my run sheet"
+      "roadmap": "See my run sheet",
+      "dayOf": "Open the big day",
+      "confirm": "Confirm the transfer",
+      "notMe": "This wasn't me",
+      "account": "Check my account"
     },
     "footerNote": "Sent with Symbola",
     "symbolaFooter": "Symbola — the suite for event organisers",
@@ -6781,7 +6841,11 @@
       "reference": "SYM-2027-7KQ4XM",
       "iban": "FR76 3000 6000 0112 3456 7890 189",
       "bic": "AGRIFRPP",
-      "penalties": "Thank you for settling it as soon as possible."
+      "penalties": "Thank you for settling it as soon as possible.",
+      "validFrom": "June 11, 2027",
+      "device": "Safari on iPhone",
+      "dateTime": "November 18, 2026 at 9:04 PM",
+      "change": "The email address of your account was changed"
     },
     "event": {
       "coupleClient": "your wedding",
@@ -6826,12 +6890,29 @@
       "actionCode": {
         "subject": "Your code to sign: {code}",
         "body": "Hello {name},\n\nYour code to accept and sign your proposal on Symbola: {code}\n\nIt is valid for {minutes} minutes and can be used only once. If you did not ask for it, ignore this message and let your contact know."
+      },
+      "accountAlert": {
+        "newDeviceSubject": "New sign-in to Symbola",
+        "newDeviceBody": "Hello,\n\nYour Symbola account was just signed in from a new device: {device}, on {date}.\n\nIf this was you, there is nothing to do. Otherwise, close all your sessions and check your account:\n\n{link}",
+        "identitySubject": "Your Symbola account was changed",
+        "identityBody": "Hello,\n\n{change} on {date}.\n\nIf this was you, there is nothing to do. Otherwise, open your account and secure it right away:\n\n{link}",
+        "notMe": "This wasn't me",
+        "account": "Check my account"
+      },
+      "ownershipDone": {
+        "subject": "Ownership of {organization} transferred",
+        "body": "Hello,\n\nThe ownership transfer of {organization} is done: {owner} is now the Owner, and the former Owner becomes a Planner. If you did not expect this, reply to the Owner or write to Symbola support."
       }
     },
     "followUpOptOut": "You would rather not hear from us again? Simply reply to this message.",
     "booking": {
       "withPage": "Pick the time that suits you on my booking page: {url}",
       "manual": "Here are a few possible times:\n- on … at …\n- or on … at …\nLet me know what suits you best."
+    },
+    "identityChange": {
+      "email": "The email address of your Symbola account was changed",
+      "mfa": "A two-step verification factor of your Symbola account was added or removed",
+      "password": "The password of your Symbola account was reset"
     }
   },
   "RecipientsGuard": {
@@ -6859,7 +6940,8 @@
       "appointments": "Appointments",
       "prospects": "Contact requests",
       "vendors": "Suppliers",
-      "settlement": "Proposal and payment"
+      "settlement": "Proposal and payment",
+      "team": "Team and account security"
     },
     "kinds": {
       "client_link": {
@@ -6961,6 +7043,22 @@
       "invoice_reminder": {
         "title": "Unpaid instalment reminder",
         "description": "Sent automatically after an unpaid instalment, according to your settings; stops as soon as the client declares their transfer."
+      },
+      "day_helper_link": {
+        "title": "Big day helper link",
+        "description": "Sent when you add a helper to an event: their personal link becomes the “Open the big day” button, valid from the day before to the day after."
+      },
+      "ownership_transfer": {
+        "title": "Ownership transfer",
+        "description": "Sent to the Planner you name as the new Owner: the link becomes the “Confirm the transfer” button, valid for seven days."
+      },
+      "new_device_login": {
+        "title": "New sign-in",
+        "description": "Sent to a team member who signs in from an unknown device: the link becomes the “This wasn't me” button, which closes all their sessions."
+      },
+      "identity_changed": {
+        "title": "Account changed",
+        "description": "Sent when the email address, two-step verification or password of an account changes: to the former address when the address changes."
       }
     },
     "variables": {
@@ -9261,5 +9359,75 @@
       "consumerLatePenaltyBasisPoints": "The rate is between 0.01 and 100%."
     },
     "lawyerNote": "Consumer penalties: question asked to the lawyer (maximum rate, wording). Until then, nothing is mentioned without a contract clause."
+  },
+  "Devices": {
+    "label": "{browser} on {system}",
+    "browser": {
+      "edge": "Edge",
+      "opera": "Opera",
+      "samsung": "Samsung Internet",
+      "firefox": "Firefox",
+      "chrome": "Chrome",
+      "safari": "Safari",
+      "other": "A browser"
+    },
+    "system": {
+      "iphone": "iPhone",
+      "ipad": "iPad",
+      "android": "Android",
+      "mac": "Mac",
+      "windows": "Windows",
+      "linux": "Linux",
+      "other": "an unknown device"
+    }
+  },
+  "Accounting": {
+    "menuLabel": "Accounting",
+    "menu": {
+      "documents": "Invoices and credit notes",
+      "payments": "Payments",
+      "eReporting": "E-reporting",
+      "ledger": "Ledgers and exports",
+      "sessions": "My sessions",
+      "account": "My account"
+    },
+    "title": "Accounting of {organization}",
+    "subtitle": "Your access is read-only: you view and download, nothing can be changed from here.",
+    "readOnly": "Read-only",
+    "documentsTitle": "Invoices and credit notes",
+    "noDocuments": "No invoice or credit note for this year.",
+    "year": "Year",
+    "number": "Number",
+    "kind": "Document",
+    "date": "Date",
+    "amount": "Amount incl. VAT",
+    "download": "Download",
+    "downloadLabel": "Download {number}",
+    "kinds": {
+      "invoice": "Invoice",
+      "credit_note": "Credit note"
+    },
+    "linksTitle": "Ledgers, payments and e-reporting",
+    "links": {
+      "payments": "Payments",
+      "ledger": "Ledgers and entries (CSV)",
+      "eReporting": "E-reporting"
+    },
+    "moduleUnavailable": "The organization does not subscribe to the Quotes and invoices module: nothing to view yet."
+  },
+  "Ownership": {
+    "title": "Become the Owner",
+    "body": "The organization's Owner offers to hand over to you: you will manage the team, the subscription, GDPR and the settings; she will become a Planner.",
+    "confirm": "I become the Owner",
+    "done": "Done: you are now the organization's Owner.",
+    "openTeam": "See the team",
+    "signInFirst": "Sign in first with your two-step verification, then open the link from the email again.",
+    "signIn": "Sign in",
+    "mfaRequired": "To confirm, sign in again with your two-step verification (passkey or app), then open the link from the email again.",
+    "outcome": {
+      "invalid": "This link is no longer valid: it was already used, cancelled, or is more than seven days old.",
+      "not_recipient": "This link is meant for another team member.",
+      "mfa_required": "To confirm, sign in again with your two-step verification, then open the link again."
+    }
   }
 }

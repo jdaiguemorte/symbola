@@ -4,12 +4,13 @@ import { getTranslations } from "next-intl/server";
 import { recordAudit } from "@symbola/db/audit";
 import { appDatabase } from "@symbola/db/client";
 import { getEReporting } from "@/modules/quotes/service";
-import { authorizedPlanner } from "../../planner-access";
+import { authorizedAccountingReader } from "../../planner-access";
 import { eReportingCsv } from "../csv";
 import { requestedPeriod } from "../period";
 
 export async function GET(request: Request): Promise<Response> {
-  const planner = await authorizedPlanner();
+  // Lot 52 : aussi le Comptable, en lecture.
+  const planner = await authorizedAccountingReader();
   if (!planner) return new Response(null, { status: 401 });
   const params = new URL(request.url).searchParams;
   const period = requestedPeriod({ from: params.get("from") ?? undefined, to: params.get("to") ?? undefined });

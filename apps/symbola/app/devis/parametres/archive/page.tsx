@@ -3,7 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, formatDateTime, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { PageHeader } from "@/app/ui/page-header";
-import { requireOwner } from "@/lib/guards";
+import { requireAccountingReader } from "@/lib/guards";
 import { listLedgerEntries, listLedgerYears, verifyLedger } from "@/modules/quotes/service";
 import { isQuotesModuleEnabled } from "../../module-access";
 
@@ -13,7 +13,8 @@ type Query = { annee?: string; verifier?: string };
 // année, les écritures de la chaîne des pièces (CSV), la liste des originaux
 // et la vérification de l'intégrité. Titulaire seulement.
 export default async function LedgerArchivePage({ searchParams }: { searchParams: Promise<Query> }) {
-  const auth = await requireOwner();
+  // Lot 52 : la Propriétaire et le Comptable (lecture seule).
+  const auth = await requireAccountingReader({ ownerOnly: true });
   const t = await getTranslations("LedgerArchive");
   const tHelp = await getTranslations("Help");
   if (!auth) {

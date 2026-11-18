@@ -29,6 +29,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const auth = await requireSignedIn();
   // Lot 13 (L13-HUB-17) : l'Admin arrive sur la console, pas sur un accueil vide.
   if (auth.user.role === "admin") redirect("/exploitation");
+  // Lot 52 : le Comptable a son accueil de lecture comptable.
+  if (auth.user.role === "accountant") redirect("/comptable");
   const organizationId = auth.user.organizationId;
 
   // SOC-13, ADR 0016 : collecte brute des compteurs d'usage, au niveau de cette page plutôt que

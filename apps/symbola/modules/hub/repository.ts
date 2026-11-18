@@ -17,7 +17,7 @@ export async function insertOrganization(
 
 export async function insertInvitation(
   db: AppDatabase,
-  input: { organizationId: string; email: string; tokenHash: string; expiresAt: Date; role?: "owner" | "member"; createdBy?: string },
+  input: { organizationId: string; email: string; tokenHash: string; expiresAt: Date; role?: "owner" | "member" | "accountant"; createdBy?: string },
 ) {
   const [invitation] = await db.insert(invitations).values(input).returning();
   if (!invitation) throw new Error("création de l'invitation échouée");
@@ -34,7 +34,7 @@ export async function markInvitationAccepted(db: AppDatabase, invitationId: stri
 }
 
 // Lot 33b (HUB-03) : invitations d'un rôle encore valables, pas encore acceptées.
-export async function findPendingRoleInvitations(db: AppDatabase, organizationId: string, role: "owner" | "member", now: Date) {
+export async function findPendingRoleInvitations(db: AppDatabase, organizationId: string, role: "owner" | "member" | "accountant", now: Date) {
   return db
     .select({ id: invitations.id, email: invitations.email, expiresAt: invitations.expiresAt, createdAt: invitations.createdAt })
     .from(invitations)

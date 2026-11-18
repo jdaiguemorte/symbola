@@ -172,7 +172,8 @@ import { recordAudit } from "@symbola/db/audit";
 import { resolveClientContacts } from "./clients";
 import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, getOrganizationLanguage, getUserContact, sendOrganizationEmail, sendSymbolaEmail, updateContact } from "@/modules/hub/service";
 import { createTranslator } from "next-intl";
-import type { EmailTemplateKind, EmailValues, TrashedObject } from "@symbola/contracts";
+import type { DayHelper, DayHelperInput, EmailTemplateKind, EmailValues, EventTeamMember, EventTeamRole, TrashedObject } from "@symbola/contracts";
+import { EVENT_TEAM_ROLES } from "@symbola/contracts";
 import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import { answerDecisionRow, findDecisionRow, findDecisionRows, insertDecisionRow, replacementsOf, withdrawDecisionRow, type EventDecisionRow } from "./decisions-repository";
@@ -247,6 +248,7 @@ import {
   type DayActionResult,
 } from "./day-of";
 import { buildDayReport, saveDayReport } from "./day-report";
+import { deleteEventTeamMember, deleteMemberFromAllTeams, findEventLeads, findEventTeam, findTeamEventIds, findTeamRole, seesAllEvents, upsertEventTeamMember, type EventViewer } from "./team";
 import { importProgram } from "./program-import";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -1934,7 +1936,7 @@ export async function applyProgramTemplate(
 // renouvellement : seul son haché reste en base.
 
 export class EventLinkInvalidError extends Error {
-  constructor(readonly reason: "name" | "email" | "expiry" | "client" | "slot" | "audience" | "vendor") {
+  constructor(readonly reason: "name" | "email" | "expiry" | "client" | "slot" | "audience" | "vendor" | "phone" | "date") {
     super(`lien personnel invalide : ${reason}`);
     this.name = "EventLinkInvalidError";
   }
@@ -2018,8 +2020,17 @@ function toEventLink(context: LinkWithContext, now = new Date()): EventLink {
 
 // Un lien vaut s'il n'est ni retiré ni expiré, et si son événement n'est ni
 // perdu ni un essai.
+// Lot 52 (EVT-06, D3) : le lien d'un renfort du jour J ne vaut qu'à partir du matin de la veille de son
+// évènement daté (heure de Paris), jusqu'à la fin du lendemain.
 function usableLink(context: LinkWithContext, now: Date): boolean {
-  return !context.link.revokedAt && !isLinkExpired(expiresOnOf(context), now) && context.event.status !== "cancelled" && !context.event.isDemo;
+  if (context.link.revokedAt || isLinkExpired(expiresOnOf(context), now) || context.event.status === "cancelled" || context.event.isDemo) return false;
+  if (context.link.audience !== "day_helper") return true;
+  return context.event.eventDate !== null && now.getTime() >= dayHelperValidFrom(context.event.eventDate).getTime();
+}
+
+// Premier instant où le lien d'un renfort vaut : minuit (Paris) du jour qui précède l'évènement.
+export function dayHelperValidFrom(eventDate: string): Date {
+  return parisStartOfDay(addDays(eventDate, -starterLinkExpiry().dayHelperDaysBefore));
 }
 
 function toLinkAccess(context: LinkWithContext): LinkAccess {
@@ -2050,6 +2061,7 @@ function emailTranslator(locale: "fr" | "en") {
 }
 
 function linkEmailKind(audience: LinkAudience, renewed: boolean): EmailTemplateKind {
+  if (audience === "day_helper") return "day_helper_link";
   if (audience === "vendor") return renewed ? "vendor_link_renewed" : "vendor_link";
   return renewed ? "client_link_renewed" : "client_link";
 }
@@ -2108,12 +2120,15 @@ export async function createEventLink(input: CreateEventLinkInput): Promise<Even
   return { link, url };
 }
 
+// Les liens du portail et des prestataires ; les renforts du jour J ont leur liste (listDayHelpers).
 export async function listEventLinks(organizationId: string, eventId: string): Promise<EventLink[]> {
   const now = new Date();
-  return (await findEventLinkRows(organizationId, eventId)).map((context) => toEventLink(context, now));
+  return (await findEventLinkRows(organizationId, eventId)).filter((context) => context.link.audience !== "day_helper").map((context) => toEventLink(context, now));
 }
 
 export async function updateEventLink(organizationId: string, linkId: string, input: EventLinkInput): Promise<EventLink> {
+  const current = await findLinkRow(organizationId, linkId);
+  if (!current || current.link.audience === "day_helper") throw new EventLinkNotFoundError();
   const result = await updateLinkRow(organizationId, linkId, validLinkFields(input));
   if (result.status !== "saved") throw linkWriteError(result.status);
   return toEventLink(result.context);
@@ -2124,7 +2139,8 @@ export async function updateEventLink(organizationId: string, linkId: string, in
 // choisir une autre date en modifiant le lien).
 export async function renewEventLink(input: RenewEventLinkInput): Promise<EventLinkDelivery> {
   const current = await findLinkRow(input.organizationId, input.linkId);
-  if (!current || current.link.revokedAt) throw new EventLinkNotFoundError();
+  // Lot 52 : un renfort du jour J reçoit un nouveau lien en étant ajouté de nouveau.
+  if (!current || current.link.revokedAt || current.link.audience === "day_helper") throw new EventLinkNotFoundError();
   if (current.event.isDemo) throw new DemoEventRestrictionError();
   const now = new Date();
   const extendTo = isLinkExpired(expiresOnOf(current), now) ? addDays(parisToday(now), starterLinkExpiry().daysAfterEvent[current.link.audience]) : undefined;
@@ -2146,6 +2162,132 @@ export async function renewEventLink(input: RenewEventLinkInput): Promise<EventL
 // Retirer coupe aussitôt les sessions ouvertes ; retirer deux fois ne fait rien.
 export async function revokeEventLink(organizationId: string, linkId: string): Promise<void> {
   await revokeLinkRow(organizationId, linkId);
+}
+
+// —— Lot 52 (EVT-06 ; D2, D3 ; ADR 0094) : équipe de l'évènement et renfort du jour J ——————————————————
+
+export class EventTeamMemberInvalidError extends Error {
+  constructor() {
+    super("membre de l'équipe invalide");
+    this.name = "EventTeamMemberInvalidError";
+  }
+}
+
+export async function listEventTeam(organizationId: string, eventId: string): Promise<EventTeamMember[]> {
+  return findEventTeam(organizationId, eventId);
+}
+
+// Planner principal ou assistant : une personne active de l'équipe de l'organisation (Propriétaire ou
+// Planner ; jamais le Comptable).
+export async function setEventTeamMember(input: { organizationId: string; eventId: string; userId: string; role: EventTeamRole; byUserId: string }): Promise<void> {
+  if (!EVENT_TEAM_ROLES.includes(input.role)) throw new EventTeamMemberInvalidError();
+  const team = await listTeam(appDatabase(), input.organizationId);
+  const member = team.find((entry) => entry.id === input.userId && !entry.disabledAt);
+  if (!member || (member.role !== "owner" && member.role !== "member")) throw new EventTeamMemberInvalidError();
+  if ((await upsertEventTeamMember(input)) === "not_found") throw new EventNotFoundError();
+}
+
+export async function removeEventTeamMember(input: { organizationId: string; eventId: string; userId: string; byUserId: string }): Promise<boolean> {
+  return deleteEventTeamMember(input);
+}
+
+// HUB-04 : un membre retiré de l'organisation n'est plus dans aucune équipe d'évènement.
+export async function removeMemberFromEvents(organizationId: string, userId: string): Promise<number> {
+  return deleteMemberFromAllTeams(organizationId, userId);
+}
+
+export async function eventTeamRole(organizationId: string, eventId: string, userId: string): Promise<EventTeamRole | null> {
+  return findTeamRole(organizationId, eventId, userId);
+}
+
+// Lot 53 : le planner principal de chaque évènement, pour lui adresser ses alertes.
+export async function listEventLeads(organizationId: string, eventIds: string[]): Promise<Map<string, string>> {
+  return findEventLeads(organizationId, eventIds);
+}
+
+// D2 : les évènements visibles d'une personne de l'équipe ; null = tous.
+export async function visibleEventIds(organizationId: string, viewer: EventViewer): Promise<Set<string> | null> {
+  return seesAllEvents(viewer) ? null : findTeamEventIds(organizationId, viewer.userId);
+}
+
+export async function canViewEvent(organizationId: string, viewer: EventViewer, eventId: string): Promise<boolean> {
+  if (seesAllEvents(viewer)) return true;
+  return (await findTeamRole(organizationId, eventId, viewer.userId)) !== null;
+}
+
+const PHONE_PATTERN = /^[0-9+()./\s-]{6,40}$/;
+
+function validDayHelper(input: DayHelperInput): LinkFields {
+  const personName = input.personName.trim().slice(0, PERSON_NAME_MAX);
+  if (!personName) throw new EventLinkInvalidError("name");
+  const email = input.email.trim();
+  if (!emailSchema.safeParse(email).success) throw new EventLinkInvalidError("email");
+  const phone = input.phone?.trim() || null;
+  if (phone && !PHONE_PATTERN.test(phone)) throw new EventLinkInvalidError("phone");
+  return { personName, email, phone, eventClientId: null, rights: { rubrics: [], budgetScope: "all", sharedSlotIds: [] }, customExpiresOn: null, otpRequired: true, taskReminders: false };
+}
+
+function toDayHelper(context: LinkWithContext, now: Date): DayHelper {
+  const expiresOn = expiresOnOf(context);
+  return {
+    linkId: context.link.id,
+    personName: context.link.personName,
+    email: context.link.email,
+    phone: context.link.phone,
+    validFrom: context.event.eventDate ? dayHelperValidFrom(context.event.eventDate).toISOString() : "",
+    expiresOn,
+    status: linkStatus({ revokedAt: context.link.revokedAt, expiresOn }, now),
+    lastOpenedAt: context.link.lastOpenedAt?.toISOString() ?? null,
+  };
+}
+
+export async function listDayHelpers(organizationId: string, eventId: string, now: Date = new Date()): Promise<DayHelper[]> {
+  return (await findEventLinkRows(organizationId, eventId)).filter((context) => context.link.audience === "day_helper").map((context) => toDayHelper(context, now));
+}
+
+// D3 : le renfort reçoit par e-mail son lien personnel, valable de la veille au lendemain de
+// l'évènement daté ; il demande un code à l'ouverture. Un évènement sans date ou d'essai n'en a pas.
+export async function createDayHelper(input: { organizationId: string; eventId: string; helper: DayHelperInput; locale: "fr" | "en"; byUserId: string }): Promise<{ helper: DayHelper; url: string }> {
+  const fields = validDayHelper(input.helper);
+  const found = await findEventById(input.organizationId, input.eventId);
+  if (!found) throw new EventNotFoundError();
+  if (found.event.isDemo) throw new DemoEventRestrictionError();
+  if (!found.event.eventDate) throw new EventLinkInvalidError("date");
+  const vocabulary = (await findEventAudience(input.organizationId, input.eventId)) ?? "couple";
+  const base = { organizationId: input.organizationId, eventId: input.eventId, audience: "day_helper" as const, personName: fields.personName, locale: input.locale, vocabulary };
+  await assertOrganizationEmailReady({ organizationId: input.organizationId, kind: "day_helper_link", locale: input.locale, values: await linkEmailValues({ ...base, expiresOn: null }) });
+  await reserveOrganizationMail(input.organizationId);
+  const secret = newLinkSecret();
+  const result = await insertLinkRow({ ...fields, organizationId: input.organizationId, eventId: input.eventId, audience: "day_helper", vendorCandidateId: null, locale: input.locale, tokenHash: hashLinkSecret(secret) });
+  if (result.status !== "saved") throw linkWriteError(result.status);
+  const helper = toDayHelper(result.context, new Date());
+  const url = linkUrl(formatLinkToken(input.organizationId, secret));
+  await sendOrganizationEmail({
+    organizationId: input.organizationId,
+    to: helper.email,
+    kind: "day_helper_link",
+    locale: input.locale,
+    values: { ...(await linkEmailValues({ ...base, expiresOn: helper.expiresOn, url })), valid_from: formatCalendarDate(addDays(found.event.eventDate, -starterLinkExpiry().dayHelperDaysBefore), input.locale) },
+    reserve: false,
+  });
+  return { helper, url };
+}
+
+// Retirer le renfort : son lien et ses sessions cessent aussitôt ; ses actions en file sont refusées.
+export async function revokeDayHelper(organizationId: string, eventId: string, linkId: string): Promise<boolean> {
+  const current = await findLinkRow(organizationId, linkId);
+  if (!current || current.link.audience !== "day_helper" || current.link.eventId !== eventId) return false;
+  await revokeLinkRow(organizationId, linkId);
+  return true;
+}
+
+// L'accès d'un renfort au mode Jour J d'un évènement : sa session de lien, son évènement, ses dates.
+// Toute autre combinaison répond null, comme une page inexistante (SEC-13).
+export async function dayHelperAccess(sessionToken: string | undefined, eventId: string, now: Date = new Date()): Promise<LinkAccess | null> {
+  if (!sessionToken) return null;
+  const access = await resolveLinkSession(sessionToken, now);
+  if (!access || access.audience !== "day_helper" || access.eventId !== eventId) return null;
+  return access;
 }
 
 // SEC-17, décision D2 : la page /lien échange le jeton (reçu en POST, jamais
@@ -2185,6 +2327,7 @@ async function startLinkSession(organizationId: string, context: LinkWithContext
     sessionToken: formatLinkToken(organizationId, sessionSecret),
     maxAgeSeconds: Math.max(1, Math.floor((expiresAt.getTime() - now.getTime()) / 1000)),
     audience: context.link.audience,
+    eventId: context.link.eventId,
   };
 }
 
@@ -3328,7 +3471,10 @@ export async function importEventProgram(input: { organizationId: string; eventI
 
 // JRJ-08 : l'état partagé du jour J (pointages, première heure retenue, décalages, incidents, listes),
 // avec le nom affiché (l'adresse du compte) des membres cités.
-export async function getDayState(organizationId: string, eventId: string): Promise<DayState | null> {
+// Lot 52 (EVT-06, D3) : les auteurs sont les comptes de l'équipe et les renforts du jour J (nommés
+// « Hugo, renfort ») ; vu par un renfort, un compte de l'équipe n'est pas nommé (son adresse ne sort
+// pas de l'équipe).
+export async function getDayState(organizationId: string, eventId: string, options: { forHelper?: boolean } = {}): Promise<DayState | null> {
   const records = await findDayRecords(organizationId, eventId);
   if (!records) return null;
   const cited = new Set<string>([
@@ -3338,6 +3484,7 @@ export async function getDayState(organizationId: string, eventId: string): Prom
     ...records.checklists.flatMap((list) => list.items.flatMap((item) => (item.checkedBy ? [item.checkedBy] : []))),
   ]);
   const team = cited.size > 0 ? await listTeam(appDatabase(), organizationId) : [];
+  const helpers = cited.size > 0 ? (await findEventLinkRows(organizationId, eventId)).filter((context) => context.link.audience === "day_helper") : [];
   return {
     eventId,
     checkpoints: records.checkpoints,
@@ -3345,7 +3492,10 @@ export async function getDayState(organizationId: string, eventId: string): Prom
     shifts: records.shifts,
     incidents: records.incidents,
     checklists: records.checklists,
-    people: team.filter((member) => cited.has(member.id)).map((member) => ({ id: member.id, name: member.email })),
+    people: [
+      ...team.filter((member) => cited.has(member.id)).map((member) => ({ id: member.id, name: options.forHelper ? "" : member.email })),
+      ...helpers.filter((helper) => cited.has(helper.link.id)).map((helper) => ({ id: helper.link.id, name: helper.link.personName, helper: true })),
+    ],
   };
 }
 
@@ -3356,12 +3506,16 @@ export type DayEventAction = Exclude<DayAction, { kind: "handover" }>;
 export async function applyDayAction(input: {
   organizationId: string;
   eventId: string;
-  userId: string;
+  userId: string | null;
+  // Lot 52 (EVT-06, D3) : l'action vient du lien d'un renfort du jour J.
+  linkId?: string | null;
   action: DayEventAction;
   renderDocument: NotifyProgramVersionInput["renderDocument"];
   now?: Date;
 }): Promise<DayActionResult> {
-  const base = { organizationId: input.organizationId, eventId: input.eventId, userId: input.userId, now: input.now ?? new Date() };
+  const base = { organizationId: input.organizationId, eventId: input.eventId, userId: input.userId, linkId: input.linkId ?? null, now: input.now ?? new Date() };
+  // D3 : un renfort pointe, coche, note et photographie ; il ne valide pas de décalage du programme.
+  if (input.linkId && input.action.kind === "shift") return { status: "rejected", reason: "scope" };
   switch (input.action.kind) {
     case "checkpoint":
       return recordDayCheckpoint({ ...base, action: input.action });
@@ -3370,10 +3524,11 @@ export async function applyDayAction(input: {
     case "check":
       return recordDayCheck({ ...base, action: input.action });
     case "shift": {
-      const recorded = await recordDayShift({ ...base, action: input.action });
+      if (!input.userId) return { status: "rejected", reason: "scope" };
+      const recorded = await recordDayShift({ ...base, userId: input.userId, action: input.action });
       if (recorded.status === "applied" && recorded.shiftId) {
         await recordAudit(appDatabase(), { organizationId: input.organizationId, action: "events.day_shift.applied", objectId: input.eventId, details: { minutes: input.action.minutes, items: input.action.itemIds.length } });
-        await publishAndNotifyDayShift({ organizationId: input.organizationId, eventId: input.eventId, shiftId: recorded.shiftId, userId: input.userId, renderDocument: input.renderDocument, now: input.now ?? new Date() });
+        await publishAndNotifyDayShift({ organizationId: input.organizationId, eventId: input.eventId, shiftId: recorded.shiftId, userId: input.userId!, renderDocument: input.renderDocument, now: input.now ?? new Date() });
       }
       return { status: recorded.status, ...(recorded.reason ? { reason: recorded.reason } : {}) };
     }

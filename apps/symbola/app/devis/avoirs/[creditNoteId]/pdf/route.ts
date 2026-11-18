@@ -5,11 +5,12 @@ import { refusedResponse } from "@/lib/access-refusals";
 import { wantsPreview } from "@/lib/file-response";
 import { getCreditNotePdf, InvoiceNotFoundError, OriginalAlteredError } from "@/modules/quotes/service";
 import { isValidId } from "../../../module-access";
-import { authorizedPlanner } from "../../../planner-access";
+import { authorizedAccountingReader } from "../../../planner-access";
 import { renderCreditNotePdf } from "../../../factures/render-invoice-pdf";
 
 export async function GET(request: Request, { params }: { params: Promise<{ creditNoteId: string }> }): Promise<Response> {
-  const planner = await authorizedPlanner();
+  // Lot 52 : aussi le Comptable, en lecture.
+  const planner = await authorizedAccountingReader();
   if (!planner) return new Response(null, { status: 401 });
   const { creditNoteId } = await params;
   if (!isValidId(creditNoteId)) return new Response(null, { status: 404 });

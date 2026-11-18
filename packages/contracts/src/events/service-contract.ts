@@ -592,7 +592,9 @@ export type ProgramTemplateItemInput = {
 
 // Lot 26a (UX-11, POR-01, POR-10, SEC-14, SEC-15 ; ADR 0053) — liens personnels
 // des tiers : une personne, un événement, des droits ; ni compte ni mot de passe.
-export const LINK_AUDIENCES = ["client", "vendor", "guest"] as const;
+// Lot 52 (EVT-06, D3 ; ADR 0094) : « day_helper », le renfort du jour J ; son lien n'ouvre que le mode
+// Jour J de son évènement, de la veille au lendemain, avec un code à usage unique.
+export const LINK_AUDIENCES = ["client", "vendor", "guest", "day_helper"] as const;
 export type LinkAudience = (typeof LINK_AUDIENCES)[number];
 
 // Rubriques du portail qu'un lien peut ouvrir (POR-10 : rien par défaut).
@@ -693,8 +695,17 @@ export type LinkAccess = {
   vendorCandidateId: string | null;
 };
 
+// Lot 52 (EVT-06, D2 ; ADR 0094) — équipe d'un évènement : planner principal (un seul) et assistants.
+export const EVENT_TEAM_ROLES = ["lead", "assistant"] as const;
+export type EventTeamRole = (typeof EVENT_TEAM_ROLES)[number];
+export type EventTeamMember = { userId: string; role: EventTeamRole };
+
+// Lot 52 (EVT-06, D3) — renfort du jour J : nom, e-mail (pour le code à l'ouverture), téléphone facultatif.
+export type DayHelperInput = { personName: string; email: string; phone?: string | null | undefined };
+export type DayHelper = { linkId: string; personName: string; email: string; phone: string | null; validFrom: string; expiresOn: string; status: EventLinkStatus; lastOpenedAt: string | null };
+
 export type OpenEventLinkResult =
-  | { outcome: "opened"; sessionToken: string; maxAgeSeconds: number; audience: LinkAudience }
+  | { outcome: "opened"; sessionToken: string; maxAgeSeconds: number; audience: LinkAudience; eventId: string }
   // Lot 26b (POR-01, D6) : le lien demande un code, envoyé à son e-mail
   // (montré masqué) ; codeSent faux si trop de codes ont été demandés.
   | { outcome: "code_required"; emailHint: string; codeSent: boolean }

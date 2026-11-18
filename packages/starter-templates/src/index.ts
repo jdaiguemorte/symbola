@@ -971,18 +971,21 @@ export function starterLinkProfiles(locale: StarterLocale, vocabulary: "couple" 
 // Lot 26a (SEC-15, décision D4) — expiration d'un lien personnel.
 const linkExpirySchema = z.object({
   version: z.literal(1),
-  daysAfterEvent: z.object({ client: z.number().int().min(0), vendor: z.number().int().min(0), guest: z.number().int().min(0) }),
+  daysAfterEvent: z.object({ client: z.number().int().min(0), vendor: z.number().int().min(0), guest: z.number().int().min(0), day_helper: z.number().int().min(0).max(7) }),
   daysWithoutEventDate: z.number().int().min(1),
+  // Lot 52 (EVT-06, D3) : le lien du renfort du jour J s'ouvre ce nombre de jours avant l'évènement.
+  dayHelperDaysBefore: z.number().int().min(0).max(7),
 });
 
 export type StarterLinkExpiry = {
-  daysAfterEvent: { client: number; vendor: number; guest: number };
+  daysAfterEvent: { client: number; vendor: number; guest: number; day_helper: number };
   daysWithoutEventDate: number;
+  dayHelperDaysBefore: number;
 };
 
 export function starterLinkExpiry(): StarterLinkExpiry {
-  const { daysAfterEvent, daysWithoutEventDate } = linkExpirySchema.parse(linkExpiryFile);
-  return { daysAfterEvent: { ...daysAfterEvent }, daysWithoutEventDate };
+  const { daysAfterEvent, daysWithoutEventDate, dayHelperDaysBefore } = linkExpirySchema.parse(linkExpiryFile);
+  return { daysAfterEvent: { ...daysAfterEvent }, daysWithoutEventDate, dayHelperDaysBefore };
 }
 
 // Lot 26a (RGP-03) — mention d'information des pages à lien personnel, à faire
