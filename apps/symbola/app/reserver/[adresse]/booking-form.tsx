@@ -4,7 +4,7 @@
 // groupés par jour, au clavier), puis nom, e-mail, téléphone facultatif et questions préalables.
 // Créneau pris entre-temps : les créneaux voisins sont proposés. Réservé : la confirmation, et le
 // lien pour reporter ou annuler sans compte.
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import type { AppointmentQuestion } from "@symbola/contracts";
 import { HoneypotField } from "@/app/ui/honeypot-field";
@@ -23,14 +23,22 @@ export function BookingForm({ slug, typeId, days, questions, locale, organizatio
   const longDay = formatter(locale, { weekday: "long", day: "numeric", month: "long" });
   const full = formatter(locale, { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
   const dayLabel = (date: string) => longDay.format(new Date(`${date}T12:00:00Z`));
+  // Le formulaire disparaît à la réservation : le focus passe au titre de la confirmation, sinon il
+  // retomberait au début de la page (WCAG 2.4.3).
+  const bookedTitle = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (state.step === "booked") bookedTitle.current?.focus();
+  }, [state.step]);
 
   if (state.step === "booked") {
     return (
       <section aria-labelledby="booked-title" className="card">
-        <h2 id="booked-title" role="status">
-          {t("bookedTitle")}
-        </h2>
-        <p>{state.startsAt ? t("bookedBody", { date: full.format(new Date(state.startsAt)), organization: organizationName }) : t("bookedFallback")}</p>
+        <div role="status">
+          <h2 id="booked-title" ref={bookedTitle} tabIndex={-1}>
+            {t("bookedTitle")}
+          </h2>
+          <p>{state.startsAt ? t("bookedBody", { date: full.format(new Date(state.startsAt)), organization: organizationName }) : t("bookedFallback")}</p>
+        </div>
         {state.manageUrl ? (
           <p>
             <a href={state.manageUrl}>{t("manageLink")}</a>
