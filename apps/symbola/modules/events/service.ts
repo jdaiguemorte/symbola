@@ -2259,7 +2259,8 @@ export async function createDayHelper(input: { organizationId: string; eventId: 
   if (!found.event.eventDate) throw new EventLinkInvalidError("date");
   const vocabulary = (await findEventAudience(input.organizationId, input.eventId)) ?? "couple";
   const base = { organizationId: input.organizationId, eventId: input.eventId, audience: "day_helper" as const, personName: fields.personName, locale: input.locale, vocabulary };
-  await assertOrganizationEmailReady({ organizationId: input.organizationId, kind: "day_helper_link", locale: input.locale, values: await linkEmailValues({ ...base, expiresOn: null }) });
+  const validFrom = formatCalendarDate(addDays(found.event.eventDate, -starterLinkExpiry().dayHelperDaysBefore), input.locale);
+  await assertOrganizationEmailReady({ organizationId: input.organizationId, kind: "day_helper_link", locale: input.locale, values: { ...(await linkEmailValues({ ...base, expiresOn: null })), valid_from: validFrom } });
   await reserveOrganizationMail(input.organizationId);
   const secret = newLinkSecret();
   const result = await insertLinkRow({ ...fields, organizationId: input.organizationId, eventId: input.eventId, audience: "day_helper", vendorCandidateId: null, locale: input.locale, tokenHash: hashLinkSecret(secret) });
@@ -2271,7 +2272,7 @@ export async function createDayHelper(input: { organizationId: string; eventId: 
     to: helper.email,
     kind: "day_helper_link",
     locale: input.locale,
-    values: { ...(await linkEmailValues({ ...base, expiresOn: helper.expiresOn, url })), valid_from: formatCalendarDate(addDays(found.event.eventDate, -starterLinkExpiry().dayHelperDaysBefore), input.locale) },
+    values: { ...(await linkEmailValues({ ...base, expiresOn: helper.expiresOn, url })), valid_from: validFrom },
     reserve: false,
   });
   return { helper, url };
