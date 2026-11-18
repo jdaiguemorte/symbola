@@ -25,6 +25,7 @@ import { declarablePaymentMethods } from "./payment-methods";
 import { countdown, nextActions, progress } from "./portal-home";
 import { closeLinkSessionAction, toggleLinkTaskAction } from "./actions";
 import { guestsRubricOpen } from "./invites/access";
+import { questionnairesRubricOpen } from "./questionnaires/access";
 import { isGuestsAvailable } from "@/app/events/[id]/invites/access";
 
 // PRD-EVT-06, lot 26a (UX-11, POR-01, POR-10 ; ADR 0053) — le portail d'un tiers,
@@ -172,6 +173,12 @@ export async function PortalContent({ access, preview = false, banner }: { acces
       {guestsOpen ? (
         <p>
           <Link href="/portail/invites">{tLink("guestsLink")}</Link>
+        </p>
+      ) : null}
+      {/* Lot 45 (POR-07, D6) : la rubrique « Questionnaires », ouverte à l'envoi d'un questionnaire. */}
+      {!preview && questionnairesRubricOpen(access) ? (
+        <p>
+          <Link href="/portail/questionnaires">{tLink("questionnairesLink")}</Link>
         </p>
       ) : null}
 

@@ -1292,6 +1292,48 @@
         }
       ]
     },
+    "followUpReview": {
+      "title": "Relire une relance",
+      "body": "La relance est prête : relisez et modifiez le texte, puis envoyez-la d'un geste, ou retirez-la. Juste avant l'envoi, Symbola vérifie encore qu'aucun fait ne l'arrête (réponse notée, changement d'étape, confirmation, refus, action du contact).",
+      "faq": [
+        {
+          "q": "Symbola lit-il mes e-mails pour savoir si le couple a répondu ?",
+          "a": "Non. Quand le couple vous répond (e-mail, téléphone, WhatsApp), cliquez sur « A répondu » : les relances en attente s'arrêtent."
+        }
+      ]
+    },
+    "eventQuestionnaires": {
+      "title": "Questionnaires de l'évènement",
+      "body": "Envoyez un questionnaire à un client : il le reçoit avec son lien personnel, répond à son rythme, chaque réponse est enregistrée. Quand il termine, les champs vides de la fiche se remplissent ; si une réponse contredit la fiche, vous choisissez.",
+      "faq": [
+        {
+          "q": "Une question déjà posée l'est-elle de nouveau ?",
+          "a": "Non : une question déjà répondue (dans ce questionnaire ou un autre) n'est pas reposée ; une question dont la fiche connaît déjà la réponse est proposée pré-remplie, à confirmer."
+        }
+      ]
+    },
+    "questionnaireTemplates": {
+      "title": "Vos questionnaires",
+      "body": "Créez vos questionnaires ou partez de ceux de Symbola (découverte, cérémonie, musiques, détails pratiques). Une question peut remplir un champ de l'évènement (date, invités, budget, lieu, ville, style, type). Chaque enregistrement des questions fait une version ; les questionnaires déjà envoyés gardent la leur.",
+      "faq": [
+        {
+          "q": "Puis-je demander les régimes alimentaires ?",
+          "a": "Passez par le module Invités : il recueille l'accord de chaque personne. Une question sur la santé, la religion ou les opinions reçoit un avertissement."
+        }
+      ]
+    },
+    "contactDuplicates": {
+      "title": "Doublons possibles",
+      "body": "Symbola repère les fiches qui ont la même adresse e-mail ou le même téléphone, à la saisie et chaque nuit. Comparez-les et fusionnez-les, ou dites « ce ne sont pas les mêmes » : rien n'est fusionné sans vous."
+    },
+    "contactMerge": {
+      "title": "Fusionner deux fiches",
+      "body": "Choisissez la fiche gardée puis, champ par champ, la valeur à garder. La fiche absorbée disparaît ; son historique (évènements, notes, messages, rendez-vous, liens, signatures) passe à la fiche gardée. La fusion est tracée au journal."
+    },
+    "portalQuestionnaires": {
+      "title": "Vos questionnaires",
+      "body": "Répondez à votre rythme : chaque réponse est enregistrée aussitôt, vous pouvez vous arrêter et reprendre plus tard. Cliquez sur « Terminer » quand c'est fini."
+    },
     "vendorCoordination": {
       "title": "Demander des devis à plusieurs prestataires",
       "body": "Écrivez le brief du poste (le besoin, le nombre d'invités, un budget indicatif que vous montrez ou non, la date limite, des inspirations), cochez les prestataires, vérifiez la liste, puis envoyez : chacun reçoit son propre e-mail et son lien, sans compte, et ne voit jamais les autres. Ceux qui n'ont pas répondu sont relancés la veille de la date limite. Les réponses arrivent dans le comparatif ; cochez ensuite les propositions à montrer au client et demandez-lui de choisir. Son choix retient le prestataire, écarte les autres et crée les tâches de suivi. Vous modifiez le prestataire retenu quand vous voulez."
@@ -1820,7 +1862,8 @@
       "vendor_options": "Options de prestataires",
       "budget": "Budget",
       "quotes": "Devis à signer",
-      "guests": "Invités (saisie, import, suivi des réponses ; jamais les régimes nominatifs)"
+      "guests": "Invités (saisie, import, suivi des réponses ; jamais les régimes nominatifs)",
+      "questionnaires": "Questionnaires"
     },
     "createLinkTitle": "Créer un lien",
     "linkPerson": "Personne",
@@ -5024,6 +5067,7 @@
     "appointmentAvailability": "Mes disponibilités et agendas",
     "pipelineStages": "Étapes du pipeline",
     "contactForm": "Formulaire de contact",
+    "questionnaires": "Questionnaires",
     "vendorCoordination": "Prestataires par lien",
     "dayChecklists": "Listes du jour J",
     "proposalTemplates": "Modèles de proposition",
@@ -5303,6 +5347,10 @@
       "events_contact_form_updated": "Formulaire de contact réglé",
       "events_prospect_request_received": "Demande reçue par le formulaire de contact",
       "events_prospect_request_to_review": "Demande mise de côté « à vérifier »",
+      "events_prospect_message_sent": "Réponse envoyée à un prospect",
+      "events_follow_up_sent": "Relance envoyée à un prospect",
+      "events_questionnaire_sent": "Questionnaire envoyé",
+      "hub_contact_merged": "Fiches de contact fusionnées",
       "events_vendor_brief_sent": "Demande de devis envoyée à des prestataires",
       "events_vendor_brief_reminded": "Prestataire relancé la veille de la date limite",
       "events_vendor_answered": "Réponse d'un prestataire à une demande de devis",
@@ -5457,6 +5505,15 @@
       "events_contact_forms": "formulaire de contact",
       "events_pipeline_stages": "étape du pipeline",
       "events_prospect_requests": "demande de contact",
+      "events_event_messages": "message à un contact",
+      "events_prospect_follow_up_settings": "réglage des relances",
+      "events_prospect_follow_ups": "relance d'un prospect",
+      "events_questionnaire_templates": "modèle de questionnaire",
+      "events_questionnaire_template_items": "question d'un modèle de questionnaire",
+      "events_event_questionnaires": "questionnaire envoyé",
+      "events_questionnaire_answers": "réponse à un questionnaire",
+      "hub_contact_duplicates": "doublon possible",
+      "hub_contact_merges": "trace d'une fusion de contacts",
       "events_vendor_briefs": "brief d'une demande de devis",
       "events_vendor_brief_documents": "inspiration d'un brief",
       "events_vendor_scenarios": "scénario d'options",
@@ -5662,6 +5719,7 @@
     "appointmentsTitle": "Vos prochains rendez-vous",
     "appointmentVideo": "en visio",
     "appointmentPhone": "par téléphone",
+    "questionnairesLink": "Mes questionnaires",
     "cashCalendarLink": "Calendrier des sorties d'argent",
     "payersLink": "Ce que voit chaque payeur",
     "proposalsTitle": "Vos propositions",
@@ -6367,6 +6425,9 @@
       "prospectRequestNoDate": "Nouvelle demande : {names}",
       "prospectRequestDateTaken": "Date déjà prise",
       "prospectToReview": "{count, plural, one {Une demande à vérifier} other {# demandes à vérifier}} (formulaire de contact)",
+      "followUpReady": "Relancer {names} : prête, à relire",
+      "questionnaireFinished": "{names} : questionnaire « {questionnaire} » terminé",
+      "contactDuplicates": "{count, plural, one {Un doublon possible à vérifier} other {# doublons possibles à vérifier}}",
       "vendorAnswer": {
         "available": "{vendor} est disponible ({slot}), devis à venir",
         "quote": "{vendor} a envoyé son devis ({slot})",
@@ -6629,7 +6690,8 @@
     "groupsTitle": "Foyers et entreprises",
     "memberSearch": "Cherchez la personne par son nom, son e-mail ou son téléphone",
     "pickerNoneAlone": "Aucun contact trouvé : ajoutez-le d'abord à vos contacts.",
-    "editRecord": "Modifier la fiche"
+    "editRecord": "Modifier la fiche",
+    "duplicatesLink": "{count, plural, one {Un doublon possible à vérifier} other {# doublons possibles à vérifier}}"
   },
   "SharedDocuments": {
     "title": "Documents",
@@ -6687,6 +6749,7 @@
       "answer": "Répondre",
       "manage": "Reporter ou annuler",
       "request": "Voir la demande",
+      "questionnaire": "Répondre au questionnaire",
       "available": "Je suis disponible",
       "unavailable": "Je ne suis pas disponible",
       "roadmap": "Voir ma feuille de route"
@@ -6708,6 +6771,9 @@
       "place": "en visio : https://visio.exemple.fr/atelier",
       "appointment": "Premier rendez-vous découverte",
       "appointmentDate": "2 mars 2027 à 10:00",
+      "brochure": "https://symbola.fr/brochure/exemple",
+      "bookingLink": "https://symbola.fr/reserver/atelier-exemple",
+      "questionnaire": "Découverte",
       "slot": "Fleurs",
       "deadline": "10 mars 2027",
       "amount": "1 620,00 €",
@@ -6761,6 +6827,11 @@
         "subject": "Votre code pour signer : {code}",
         "body": "Bonjour {name},\n\nVotre code pour accepter et signer votre proposition sur Symbola : {code}\n\nIl est valable {minutes} minutes et ne sert qu'une fois. Si vous ne l'avez pas demandé, ignorez ce message et prévenez votre interlocuteur."
       }
+    },
+    "followUpOptOut": "Vous ne souhaitez plus de nouvelles ? Répondez simplement à ce message.",
+    "booking": {
+      "withPage": "Choisissez le moment qui vous convient sur ma page de rendez-vous : {url}",
+      "manual": "Voici quelques créneaux possibles :\n- le … à …\n- ou le … à …\nDites-moi ce qui vous convient le mieux."
     }
   },
   "RecipientsGuard": {
@@ -6851,6 +6922,18 @@
         "title": "Nouvelle demande de contact",
         "description": "Part à la titulaire à chaque demande reçue par le formulaire de contact, sans le message ni les coordonnées de la personne."
       },
+      "prospect_reply": {
+        "title": "Réponse à un prospect",
+        "description": "Le texte proposé par « Répondre » quand aucun modèle de message ne convient ; la planner le relit et le modifie avant l'envoi."
+      },
+      "prospect_follow_up": {
+        "title": "Relance d'un prospect",
+        "description": "Le texte d'une relance sans modèle de message choisi (Paramètres, Relances) ; préparée dans « Aujourd'hui », relue avant l'envoi."
+      },
+      "questionnaire_sent": {
+        "title": "Questionnaire envoyé",
+        "description": "Part avec un questionnaire, au contact de l'évènement : son lien personnel devient le bouton « Répondre au questionnaire »."
+      },
       "vendor_brief": {
         "title": "Demande de devis à un prestataire",
         "description": "Part à chaque prestataire du brief, avec deux boutons : « Je suis disponible » et « Je ne suis pas disponible »."
@@ -6894,6 +6977,9 @@
       "place": "Le lieu : adresse, lien de visio ou téléphone",
       "appointment": "Le type de rendez-vous",
       "appointment_date": "Le jour et l'heure du rendez-vous",
+      "brochure": "Le lien de votre brochure, valable 30 jours ; ajouté à l'envoi",
+      "booking_link": "Votre page de réservation de rendez-vous, ou des créneaux à compléter si elle n'est pas ouverte",
+      "questionnaire": "Le nom du questionnaire envoyé",
       "slot": "Le poste concerné (« Fleurs », « Photographe »…)",
       "deadline": "La date limite de réponse du brief",
       "link_available": "Le lien qui présélectionne « disponible » ; seul sur sa ligne, il devient le bouton « Je suis disponible »",
@@ -7387,7 +7473,7 @@
   "WriteToClient": {
     "title": "Écrire au client",
     "template": "Modèle",
-    "noTemplate": "Aucun modèle de message pour ce type d'évènement.",
+    "noTemplate": "Aucun modèle de message pour ce type d'évènement : voici le texte de départ de la réponse.",
     "createTemplates": "Créer des modèles de messages",
     "withoutTemplate": "Écrire sans modèle",
     "recipients": "Destinataires",
@@ -7403,7 +7489,24 @@
     "copy": "Copier le texte",
     "copied": "Texte copié.",
     "noRecipient": "Choisissez au moins un destinataire qui a une adresse e-mail.",
-    "back": "Retour à la fiche"
+    "back": "Retour à la fiche",
+    "choiceLabel": "Modèle et destinataires",
+    "editTitle": "Votre message",
+    "editHint": "Relisez et modifiez le texte avant l'envoi. La brochure reste « {{brochure}} » : son lien sécurisé est créé à l'envoi.",
+    "subjectLabel": "Objet",
+    "bodyLabel": "Texte",
+    "sendFromSymbola": "{count, plural, one {Envoyer depuis Symbola} other {Envoyer depuis Symbola à # personnes}}",
+    "openInMail": "Ouvrir dans ma messagerie",
+    "sendHint": "« Envoyer depuis Symbola » : l'e-mail part à l'image de votre entreprise, les réponses arrivent à votre adresse, et il est rangé dans l'historique du contact ; les relances partent de cet envoi. « Ouvrir dans ma messagerie » : vous l'envoyez vous-même, il est noté « préparé ».",
+    "sent": "{count, plural, one {Message envoyé et rangé dans l'historique.} other {Message envoyé à # personnes et rangé dans l'historique.}}",
+    "sentDeferred": "Message rangé dans l'historique ; la messagerie ne répond pas, il partira dès que possible.",
+    "prepared": "Message noté « préparé » ; votre messagerie s'ouvre.",
+    "brochureHint": "La brochure « {name} » sera jointe par un lien sécurisé, valable 30 jours.",
+    "noBrochure": "Ce modèle joint la brochure, mais aucune brochure n'est enregistrée : ajoutez-la dans Paramètres, Relances.",
+    "empty": "L'objet et le texte sont obligatoires.",
+    "tooLong": "L'objet ou le texte est trop long.",
+    "quota": "Le plafond d'e-mails de l'heure est atteint : réessayez un peu plus tard.",
+    "refused": "Action impossible sur cet évènement."
   },
   "Trash": {
     "title": "Corbeille",
@@ -8292,6 +8395,287 @@
       "removeLabel": "Retirer l'étape {stage}",
       "newStage": "Nouvelle étape",
       "add": "Ajouter"
+    },
+    "reply": "Répondre",
+    "answered": "A répondu",
+    "answeredDone": "Noté"
+  },
+  "ProspectExchanges": {
+    "title": "Échanges avec le contact",
+    "reply": "Répondre",
+    "questionnaires": "Questionnaires",
+    "answered": "A répondu",
+    "stop": "Ne plus relancer",
+    "gesturesHint": "Symbola ne lit pas vos e-mails : quand la personne vous a répondu (e-mail, téléphone, WhatsApp), dites-le d'un geste ; les relances en attente s'arrêtent.",
+    "answeredNoted": "Noté : les relances en attente s'arrêtent.",
+    "stoppedNoted": "Noté : plus aucune relance pour ce contact.",
+    "refused": "Action impossible.",
+    "readyFollowUp": "Relance {rank} : prête, à relire",
+    "upcomingFollowUp": "Relance {rank} prévue le {date}",
+    "historyTitle": "Messages",
+    "noHistory": "Aucun message pour l'instant.",
+    "prepared": "préparé",
+    "kind": {
+      "reply": "Réponse",
+      "follow_up": "Relance",
+      "questionnaire": "Questionnaire envoyé",
+      "answered": "A répondu (noté)",
+      "stop": "Relances arrêtées"
+    }
+  },
+  "FollowUpReview": {
+    "title": "Relance {rank}",
+    "back": "Retour à la fiche",
+    "editTitle": "Relire la relance",
+    "subjectLabel": "Objet",
+    "bodyLabel": "Texte",
+    "optOutHint": "La phrase « Vous ne souhaitez plus de nouvelles ? Répondez simplement à ce message. » est ajoutée à chaque relance.",
+    "send": "Envoyer la relance",
+    "withdraw": "Retirer cette relance",
+    "sent": "Relance envoyée et rangée dans l'historique.",
+    "sentDeferred": "Relance rangée dans l'historique ; la messagerie ne répond pas, elle partira dès que possible.",
+    "withdrawn": "Relance retirée : elle ne partira pas.",
+    "already": "Cette relance est déjà partie.",
+    "alreadySent": "Relance envoyée : elle est rangée dans l'historique du contact.",
+    "missing": "Une variable n'a pas de valeur : complétez le texte avant l'envoi.",
+    "noBrochure": "Le texte joint la brochure, mais aucune brochure n'est enregistrée.",
+    "empty": "L'objet et le texte sont obligatoires.",
+    "quota": "Le plafond d'e-mails de l'heure est atteint : réessayez un peu plus tard.",
+    "refused": "Action impossible sur cette relance.",
+    "stopped": {
+      "answered": "Pas d'envoi : le contact a répondu.",
+      "stage_changed": "Pas d'envoi : la carte a changé d'étape.",
+      "confirmed": "Pas d'envoi : l'évènement est confirmé.",
+      "lost": "Pas d'envoi : l'évènement est perdu.",
+      "prospect_action": "Pas d'envoi : le contact a agi dans Symbola (espace ouvert, questionnaire, rendez-vous ou signature).",
+      "new_message": "Pas d'envoi : un message plus récent est parti ; les relances repartent de lui.",
+      "stopped": "Pas d'envoi : vous avez demandé de ne plus relancer ce contact.",
+      "withdrawn": "Relance retirée : elle ne partira pas.",
+      "no_recipient": "Pas d'envoi : le contact n'a plus d'adresse e-mail."
+    }
+  },
+  "EventQuestionnaires": {
+    "title": "Questionnaires",
+    "back": "Retour à la fiche",
+    "sendTitle": "Envoyer un questionnaire",
+    "template": "Questionnaire",
+    "recipient": "À",
+    "noEmailOption": "{name} (pas d'adresse e-mail)",
+    "sendHint": "La personne le reçoit par e-mail, avec son lien personnel (sans compte). Ses réponses s'enregistrent à chaque question ; elle peut reprendre plus tard. Si elle a déjà un lien, un nouveau lien part avec le questionnaire et remplace l'ancien.",
+    "send": "Envoyer",
+    "sent": "Questionnaire envoyé.",
+    "demo": "Un évènement d'essai n'envoie rien à personne.",
+    "noEmail": "Ce client n'a pas d'adresse e-mail.",
+    "missing": "Le modèle d'e-mail a une variable sans valeur : {tokens}.",
+    "quota": "Le plafond d'e-mails de l'heure est atteint : réessayez un peu plus tard.",
+    "refused": "Action impossible.",
+    "noTemplate": "Aucun modèle de questionnaire.",
+    "createTemplates": "Ajouter les questionnaires de départ",
+    "sentTitle": "Questionnaires envoyés",
+    "noneSent": "Aucun questionnaire envoyé.",
+    "finished": "terminé",
+    "progress": "{answered} réponses sur {total}",
+    "frozen": "Version {version} du modèle, figée à l'envoi.",
+    "someone": "Le contact",
+    "differencesTitle": "Réponses à trancher",
+    "difference": "{name} indique {answer} pour « {field} » ; la fiche dit {current}.",
+    "takeAnswer": "Prendre la réponse ({answer})",
+    "keepEvent": "Garder la fiche ({current})",
+    "resolved": "C'est réglé.",
+    "field": {
+      "event_date": "Date",
+      "guests": "Invités",
+      "budget": "Budget souhaité",
+      "venue": "Lieu",
+      "city": "Ville",
+      "style": "Style",
+      "event_type": "Type d'évènement"
+    }
+  },
+  "QuestionnaireTemplates": {
+    "title": "Questionnaires",
+    "intro": "Vos questionnaires (découverte, cérémonie, musiques, détails pratiques…), pour tous les évènements ou pour un type. Une question peut remplir un champ de l'évènement. Modifier un modèle ne change pas les questionnaires déjà envoyés.",
+    "addStarters": "Ajouter les questionnaires de départ",
+    "startersAdded": "{count, plural, =0 {Les questionnaires de départ sont déjà là.} one {Un questionnaire ajouté.} other {# questionnaires ajoutés.}}",
+    "listTitle": "Vos modèles",
+    "empty": "Aucun modèle pour l'instant.",
+    "summary": "{questions, plural, one {# question} other {# questions}} · version {version} · {type}",
+    "allEvents": "Tous les évènements",
+    "createTitle": "Nouveau questionnaire",
+    "name": "Nom",
+    "create": "Créer",
+    "firstQuestion": "Votre première question",
+    "nameInvalid": "Le nom est obligatoire (120 caractères au plus).",
+    "refused": "Action impossible.",
+    "duplicate": "Dupliquer",
+    "copyName": "{name} (copie)",
+    "duplicated": "Modèle dupliqué.",
+    "delete": "Retirer",
+    "deleteConfirm": "Retirer le modèle « {name} » ? Les questionnaires déjà envoyés le gardent.",
+    "deleted": "Modèle retiré.",
+    "back": "Tous les questionnaires",
+    "versionLabel": "Version {version}",
+    "versionsLabel": "Versions",
+    "oldVersionTitle": "Questions de la version {version}",
+    "eventType": "Pour",
+    "questionNumber": "Question {number}",
+    "questionLabel": "Question",
+    "questionHelp": "Aide (facultative)",
+    "questionNature": "Réponse attendue",
+    "questionChoices": "Choix (un par ligne)",
+    "questionField": "Remplit le champ de l'évènement",
+    "noField": "Aucun",
+    "up": "Monter",
+    "down": "Descendre",
+    "moveUp": "Monter la question {number}",
+    "moveDown": "Descendre la question {number}",
+    "removeQuestion": "Retirer la question",
+    "addQuestion": "Ajouter une question",
+    "versionHint": "Enregistrer des questions changées crée une nouvelle version ; les questionnaires déjà envoyés gardent la leur.",
+    "save": "Enregistrer",
+    "saved": "Modèle enregistré (version {version}).",
+    "sensitiveWarning": "Cette question semble toucher à la santé, à la religion ou aux opinions : ce sont des données sensibles. Pour les régimes et allergies, passez par le module Invités, qui recueille l'accord de chaque personne.",
+    "nature": {
+      "short_text": "Texte court",
+      "long_text": "Texte long",
+      "single_choice": "Un choix",
+      "multiple_choice": "Plusieurs choix",
+      "date": "Date",
+      "number": "Nombre",
+      "amount": "Montant (€)"
+    },
+    "field": {
+      "event_date": "Date",
+      "guests": "Invités",
+      "budget": "Budget souhaité",
+      "venue": "Lieu",
+      "city": "Ville",
+      "style": "Style",
+      "event_type": "Type d'évènement"
+    },
+    "questionInvalid": {
+      "label": "Chaque question a un intitulé (300 caractères au plus).",
+      "help": "L'aide fait 500 caractères au plus.",
+      "nature": "Réponse attendue inconnue.",
+      "choices": "Une question à choix a de 2 à 30 choix.",
+      "field": "Ce champ de l'évènement ne va pas avec cette réponse.",
+      "too_many": "Un questionnaire a 100 questions au plus.",
+      "empty": "Un questionnaire a au moins une question."
+    }
+  },
+  "PortalQuestionnaires": {
+    "title": "Questionnaires",
+    "back": "Retour à mon espace",
+    "backToList": "Tous mes questionnaires",
+    "unavailable": "Cette rubrique n'est pas disponible.",
+    "none": "Aucun questionnaire pour l'instant.",
+    "finished": "terminé, merci",
+    "progress": "{answered} réponses sur {total}",
+    "stepOf": "Question {step} sur {total}",
+    "saved": "Réponse enregistrée.",
+    "suggested": "Réponse déjà connue, pré-remplie :",
+    "confirm": "Confirmer",
+    "alreadyAnswered": "{count, plural, one {Une question déjà répondue ailleurs n'est pas reposée.} other {# questions déjà répondues ailleurs ne sont pas reposées.}}",
+    "previous": "Précédente",
+    "next": "Suivante",
+    "remaining": "{count, plural, one {Il reste une question.} other {Il reste # questions.}} Vous pouvez vous arrêter et reprendre plus tard : tout est enregistré.",
+    "complete": "Toutes les questions ont une réponse.",
+    "finish": "Terminer",
+    "thanks": "Merci ! Vos réponses sont transmises.",
+    "closed": "Ce questionnaire est terminé.",
+    "denied": "Cette rubrique n'est pas disponible.",
+    "invalid": {
+      "empty": "Réponse vide.",
+      "too_long": "Réponse trop longue.",
+      "choice": "Choisissez parmi les réponses proposées.",
+      "date": "Date non valable.",
+      "number": "Indiquez un nombre entier.",
+      "amount": "Indiquez un montant en euros (par exemple 25 000)."
+    }
+  },
+  "ContactDuplicates": {
+    "title": "Doublons possibles",
+    "subtitle": "Des fiches qui ont la même adresse e-mail ou le même téléphone. Rien n'est fusionné sans vous.",
+    "back": "Contacts",
+    "backToList": "Doublons possibles",
+    "none": "Aucun doublon possible.",
+    "reason": {
+      "email": "Même adresse e-mail",
+      "phone": "Même téléphone"
+    },
+    "compare": "Comparer et fusionner",
+    "dismiss": "Ce ne sont pas les mêmes",
+    "dismissed": "Écarté : cette paire ne reviendra pas.",
+    "refused": "Action impossible.",
+    "mergeTitle": "Fusionner deux fiches",
+    "keptLegend": "Fiche gardée",
+    "fieldsCaption": "Valeur à garder, champ par champ",
+    "field": "Champ",
+    "keepValue": "Garder {value} pour {field}",
+    "confirmTitle": "Ce qui sera réuni",
+    "confirmBody": "La fiche « {absorbed} » disparaît ; tout son historique passe à « {kept} ».",
+    "confirmCheck": "J'ai vérifié : ces deux fiches sont la même personne.",
+    "confirmRequired": "Cochez la confirmation pour fusionner.",
+    "merge": "Fusionner",
+    "gathered": {
+      "notes": "{name} : {count, plural, =0 {aucune note} one {une note} other {# notes}}",
+      "events": "{name} : {events, plural, =0 {aucun évènement} one {un évènement} other {# évènements}}, {messages, plural, =0 {aucun message} one {un message} other {# messages}}, {links, plural, =0 {aucun lien} one {un lien} other {# liens}}, {questionnaires, plural, =0 {aucun questionnaire} one {un questionnaire} other {# questionnaires}}",
+      "appointments": "{name} : {count, plural, =0 {aucun rendez-vous} one {un rendez-vous} other {# rendez-vous}}",
+      "signatures": "{name} : {count, plural, =0 {aucune signature} one {une signature} other {# signatures}}"
+    },
+    "refusedReason": {
+      "same": "Une fiche ne se fusionne pas avec elle-même.",
+      "demo": "Une fiche d'essai ne se fusionne jamais avec une fiche réelle.",
+      "kind": "Une personne ne se fusionne pas avec un foyer ou une entreprise.",
+      "not_found": "Une des fiches n'existe plus.",
+      "anonymized": "Une fiche retirée par le RGPD ne se fusionne pas."
+    },
+    "fields": {
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "name": "Nom",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "addressLine": "Adresse",
+      "postalCode": "Code postal",
+      "city": "Ville",
+      "country": "Pays",
+      "billingAddress": "Adresse de facturation",
+      "companyIdNumber": "SIREN ou SIRET",
+      "vatNumber": "Numéro de TVA"
+    }
+  },
+  "FollowUpSettings": {
+    "title": "Relances des prospects",
+    "intro": "Après votre réponse à un prospect, sans retour de sa part, une relance se prépare à son jour dans « Aujourd'hui » : vous la relisez et l'envoyez d'un geste. Elle s'arrête dès qu'il répond (dites-le d'un geste), que la carte change d'étape, que l'évènement est confirmé ou perdu, ou qu'il agit dans Symbola.",
+    "enabled": "Préparer les relances",
+    "step": "Relance {rank}",
+    "days": "Jours après votre dernier envoi",
+    "template": "Modèle",
+    "defaultText": "Texte de la relance (Paramètres, Modèles d'e-mails)",
+    "autoSend": "Envoyer les relances sans relecture",
+    "autoSendHint": "Désactivé par défaut : vous savez souvent, par téléphone ou WhatsApp, que le couple a déjà répondu. Activé, chaque relance part seule à son jour, après une dernière vérification.",
+    "save": "Enregistrer",
+    "saved": "Réglage enregistré.",
+    "refused": "Action impossible.",
+    "invalid": {
+      "too_many": "Trois relances au plus.",
+      "days": "Entre 1 et 60 jours.",
+      "order": "Chaque relance vient après la précédente."
+    },
+    "brochureTitle": "Brochure",
+    "brochureCurrent": "Brochure enregistrée : {name}",
+    "brochureNone": "Aucune brochure.",
+    "brochureField": "Fichier PDF (20 Mo au plus)",
+    "brochureSubmit": "Enregistrer la brochure",
+    "brochureRemove": "Retirer la brochure",
+    "brochureHint": "Le modèle « Envoyer la brochure » la joint par un lien sécurisé, valable 30 jours, jamais en pièce jointe.",
+    "brochureMissing": "Choisissez un fichier PDF.",
+    "brochureRejected": {
+      "too_large": "Le fichier dépasse 20 Mo.",
+      "unsupported_type": "Seul un PDF est accepté.",
+      "infected": "Le fichier a été refusé par l'antivirus.",
+      "name": "Nom de fichier non valable."
     }
   },
   "VendorCoordination": {

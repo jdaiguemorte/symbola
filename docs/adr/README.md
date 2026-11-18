@@ -89,4 +89,5 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0085 — Prestataires par lien : brief groupé et cloisonné, un lien du brief au jour J, choix du client qui engage](0085-prestataires-par-lien-et-choix-qui-engage.md)
 - [0086 — Plan de table par temps fort et synthèse pour le traiteur calculée à la demande](0086-plan-de-table-et-synthese-traiteur.md)
 - [0089 — Proposition en page web, signer puis régler par virement, relances et payeurs](0089-proposition-signer-puis-regler-par-virement.md)
+- [0090 — Réponses depuis Symbola, relances préparées, fusion des contacts par événement, questionnaires figés dans le module Évènements](0090-relation-prospects-et-questionnaires.md)
 - [0091 — Jour J de terrain : un chrono par temps fort, pointages ajoutés, file d'actions hors ligne écrite à la main](0091-jour-j-de-terrain-et-file-hors-ligne.md)

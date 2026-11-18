@@ -387,7 +387,7 @@ export type {
   MessageTemplateVersionView,
   RecipientsReview,
 } from "./emails";
-export { EMAIL_LOCALES, EMAIL_TEMPLATE_KINDS, EMAIL_VARIABLES, MESSAGE_VARIABLES } from "./emails";
+export { EMAIL_LOCALES, EMAIL_TEMPLATE_KINDS, EMAIL_VARIABLES, MESSAGE_SEND_TIME_VARIABLES, MESSAGE_VARIABLES } from "./emails";
 // Lot 39a (DAT-03, HUB-17, UX-07 ; ADR 0073) — corbeille et « Annuler ».
 export {
   ELEMENT_KINDS,
@@ -451,3 +451,7 @@ export * from "./events/vendor-coordination";
 // Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15, GC-01, SEC-16, BUD-06, BUD-11 ; ADR 0089) : proposition,
 // règlement par virement, relances, payeurs et calendrier des sorties d'argent.
 export * from "./quotes/settlement";
+// Lot 45 (CRM-05 à CRM-09, POR-07, HUB-21 ; ADR 0090) : messages, relances, questionnaires ; fusion
+// de contacts (hub.contact.merged).
+export * from "./events/relation";
+export * from "./hub/contact-events";

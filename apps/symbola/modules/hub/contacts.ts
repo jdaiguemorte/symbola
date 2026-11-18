@@ -12,6 +12,7 @@ import { foldedContains } from "@symbola/db/search";
 import { inTrash, markDeleted, UNMARKED } from "@symbola/db/soft-delete";
 import { withOrganization } from "@symbola/db/with-organization";
 import { ANONYMIZED, prepareTerms, recordMatches, type PersonTerms } from "@symbola/privacy";
+import { detectDuplicatesOf, resolveMergedContactIds } from "./contact-duplicates";
 
 type ContactRow = typeof contacts.$inferSelect;
 
@@ -127,16 +128,32 @@ async function contactIdByEmail(organizationId: string, email: string, exceptId?
 }
 
 // Contacts par identifiant, pour les modules qui les affichent (clients d'un évènement, signataires).
-export async function getContactsByIds(organizationId: string, ids: readonly string[]): Promise<Map<string, Contact>> {
+// Lot 45 (CRM-07, D5) : sur demande (followMerges, pour l'affichage), un identifiant d'une fiche
+// absorbée par une fusion donne la fiche gardée, le temps que les modules repointent leurs références.
+export async function getContactsByIds(organizationId: string, ids: readonly string[], options: { followMerges?: boolean } = {}): Promise<Map<string, Contact>> {
   const unique = [...new Set(ids)];
   if (unique.length === 0) return new Map();
-  const rows = await withOrganization(appDatabase(), organizationId, (tx) =>
-    tx
-      .select()
-      .from(contacts)
-      .where(and(eq(contacts.organizationId, organizationId), inArray(contacts.id, unique))),
-  );
-  return new Map(rows.map((row) => [row.id, toContact(row)]));
+  const select = (wanted: string[]) =>
+    withOrganization(appDatabase(), organizationId, (tx) =>
+      tx
+        .select()
+        .from(contacts)
+        .where(and(eq(contacts.organizationId, organizationId), inArray(contacts.id, wanted))),
+    );
+  const rows = await select(unique);
+  const found = new Map(rows.map((row) => [row.id, toContact(row)]));
+  const missing = unique.filter((id) => !found.has(id));
+  if (options.followMerges && missing.length > 0) {
+    const merged = await resolveMergedContactIds(organizationId, missing);
+    if (merged.size > 0) {
+      const keptRows = await select([...new Set(merged.values())]);
+      for (const [absorbed, kept] of merged) {
+        const row = keptRows.find((candidate) => candidate.id === kept);
+        if (row) found.set(absorbed, toContact(row));
+      }
+    }
+  }
+  return found;
 }
 
 export async function getContact(organizationId: string, id: string): Promise<Contact | null> {
@@ -165,6 +182,8 @@ export async function createContact(organizationId: string, input: ContactInput,
         .returning(),
     );
     if (!row) throw new Error("création du contact échouée");
+    // Lot 45 (CRM-07) : détection des doublons à la saisie (jamais bloquante).
+    if (!row.isDemo) await detectDuplicatesOf(organizationId, row.id).catch(() => undefined);
     return toContact(row);
   } catch (error) {
     // Deux créations simultanées de la même adresse : l'index unique n'en garde qu'une.
@@ -233,6 +252,7 @@ export async function updateContact(organizationId: string, id: string, patch: C
       .returning(),
   );
   if (!row) throw new ContactNotFoundError();
+  if (!row.isDemo && (values.email !== current.email || values.phone !== current.phone)) await detectDuplicatesOf(organizationId, row.id).catch(() => undefined);
   return toContact(row);
 }
 

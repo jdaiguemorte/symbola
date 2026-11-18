@@ -1191,6 +1191,27 @@
       "when": 1795025934339,
       "tag": "0169_lot43_hub_settlement_email_kinds",
       "breakpoints": true
+    },
+    {
+      "idx": 170,
+      "version": "7",
+      "when": 1795030920074,
+      "tag": "0170_lot45_events_relation_prospects",
+      "breakpoints": true
+    },
+    {
+      "idx": 171,
+      "version": "7",
+      "when": 1795030933814,
+      "tag": "0171_lot45_hub_contact_duplicates",
+      "breakpoints": true
+    },
+    {
+      "idx": 172,
+      "version": "7",
+      "when": 1795030935335,
+      "tag": "0172_lot45_hub_prospect_email_kinds",
+      "breakpoints": true
     }
   ]
 }

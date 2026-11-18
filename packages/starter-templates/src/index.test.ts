@@ -61,8 +61,7 @@ import {
   starterVendorSlots,
   starterVendorTags,
   starterVendorTypes,
-  starterVendorTypeSynonymGroups,
-} from "./index";
+  starterVendorTypeSynonymGroups, starterProspectFollowUps, starterQuestionnaires, questionnaireSensitiveWords, starterMessageTemplates } from "./index";
 
 describe("PRD-EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -738,5 +737,41 @@ describe("FAC-09 / FAC-15 / FAC-02 / GC-01 — Données de départ de la proposi
     }
     expect(starterEmailTemplate("payment_details", "fr").body).toContain("{{référence}}");
     expect(starterEmailTemplate("invoice_reminder", "en").body).toContain("{{penalties}}");
+  });
+});
+
+describe("CRM-05, CRM-06, POR-07 (lot 45) — Données de départ des relances et des questionnaires", () => {
+  it("CRM-06 : deux relances à J+3 et J+7, envoi automatique désactivé (D2), lien de brochure de 30 jours", () => {
+    expect(starterProspectFollowUps()).toEqual({ steps: [{ days: 3 }, { days: 7 }], autoSend: false, brochureLinkDays: 30, brochureMaxSizeBytes: 20 * 1024 * 1024 });
+  });
+
+  it("CRM-05 : les modèles de messages de départ comptent la brochure (avec son lien) et le rendez-vous (avec la page de réservation), en français et en anglais", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const templates = starterMessageTemplates(locale);
+      expect(templates.map((template) => template.key)).toEqual(["first_request", "meeting", "brochure"]);
+      expect(templates.find((template) => template.key === "brochure")!.body).toContain("{{brochure}}");
+      expect(templates.find((template) => template.key === "meeting")!.body).toContain(locale === "fr" ? "{{lien_rendez_vous}}" : "{{booking_link}}");
+    }
+  });
+
+  it("POR-07 : quatre questionnaires de départ (découverte, cérémonie, musiques, détails pratiques), mêmes questions dans les deux langues", () => {
+    const fr = starterQuestionnaires("fr");
+    const en = starterQuestionnaires("en");
+    expect(fr.map((template) => template.key)).toEqual(["discovery", "ceremony", "music", "practical"]);
+    expect(en.map((template) => template.questions.map((question) => question.key))).toEqual(fr.map((template) => template.questions.map((question) => question.key)));
+    const discovery = fr[0]!;
+    expect(discovery.questions.filter((question) => question.eventField).map((question) => question.eventField)).toEqual(["event_date", "city", "venue", "guests", "budget", "style"]);
+  });
+
+  it("DPO : aucune question de départ ne touche à la santé, à la religion ou aux opinions", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const words = questionnaireSensitiveWords(locale).map((word) => word.toLowerCase());
+      for (const template of starterQuestionnaires(locale)) {
+        for (const question of template.questions) {
+          const text = `${question.label} ${question.help ?? ""} ${question.choices.join(" ")}`.toLowerCase();
+          expect(words.filter((word) => text.includes(word)), `${template.key}/${question.key}`).toEqual([]);
+        }
+      }
+    }
   });
 });

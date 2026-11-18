@@ -1292,6 +1292,48 @@
         }
       ]
     },
+    "followUpReview": {
+      "title": "Review a follow-up",
+      "body": "The follow-up is ready: review and edit the text, then send it with one click, or withdraw it. Just before sending, Symbola checks again that nothing stops it (reply recorded, stage change, confirmation, refusal, action by the contact).",
+      "faq": [
+        {
+          "q": "Does Symbola read my emails to know whether the couple has replied?",
+          "a": "No. When the couple replies (email, phone, WhatsApp), click \"Has replied\": pending follow-ups stop."
+        }
+      ]
+    },
+    "eventQuestionnaires": {
+      "title": "Event questionnaires",
+      "body": "Send a questionnaire to a client: they receive it with their personal link, answer at their own pace, each answer is saved. When they finish, empty fields of the record are filled; if an answer contradicts the record, you choose.",
+      "faq": [
+        {
+          "q": "Is a question already asked asked again?",
+          "a": "No: a question already answered (in this questionnaire or another) is not asked again; a question whose answer the record already knows is offered pre-filled, to confirm."
+        }
+      ]
+    },
+    "questionnaireTemplates": {
+      "title": "Your questionnaires",
+      "body": "Create your questionnaires or start from Symbola's (discovery, ceremony, music, practical details). A question can fill an event field (date, guests, budget, venue, town, style, type). Each save of the questions makes a version; questionnaires already sent keep theirs.",
+      "faq": [
+        {
+          "q": "Can I ask about dietary requirements?",
+          "a": "Use the Guests module: it collects each person's consent. A question about health, religion or opinions gets a warning."
+        }
+      ]
+    },
+    "contactDuplicates": {
+      "title": "Possible duplicates",
+      "body": "Symbola spots records with the same email address or the same phone number, when you enter them and every night. Compare and merge them, or say \"these are not the same\": nothing is merged without you."
+    },
+    "contactMerge": {
+      "title": "Merge two records",
+      "body": "Choose the record kept then, field by field, the value to keep. The absorbed record disappears; its history (events, notes, messages, appointments, links, signatures) moves to the record kept. The merge is recorded in the log."
+    },
+    "portalQuestionnaires": {
+      "title": "Your questionnaires",
+      "body": "Answer at your own pace: each answer is saved at once, you can stop and come back later. Click \"Finish\" when you are done."
+    },
     "vendorCoordination": {
       "title": "Request quotes from several suppliers",
       "body": "Write the brief for the category (the need, the number of guests, an indicative budget you show or not, the deadline, some inspiration), tick the suppliers, check the list, then send: each one gets their own email and link, with no account, and never sees the others. Those who have not answered get a reminder the day before the deadline. Answers arrive in the comparison; then tick the proposals to show the client and ask them to choose. Their choice books the supplier, sets the others aside and creates the follow-up tasks. You change the booked supplier whenever you want."
@@ -1820,7 +1862,8 @@
       "vendor_options": "Vendor options",
       "budget": "Budget",
       "quotes": "Quotes to sign",
-      "guests": "Guests (entry, import, reply tracking; never named diets)"
+      "guests": "Guests (entry, import, reply tracking; never named diets)",
+      "questionnaires": "Questionnaires"
     },
     "createLinkTitle": "Create a link",
     "linkPerson": "Person",
@@ -5024,6 +5067,7 @@
     "appointmentAvailability": "My availability and calendars",
     "pipelineStages": "Pipeline stages",
     "contactForm": "Contact form",
+    "questionnaires": "Questionnaires",
     "vendorCoordination": "Suppliers by link",
     "dayChecklists": "Event-day checklists",
     "proposalTemplates": "Proposal templates",
@@ -5303,6 +5347,10 @@
       "events_contact_form_updated": "Contact form set up",
       "events_prospect_request_received": "Request received through the contact form",
       "events_prospect_request_to_review": "Request set aside “to check”",
+      "events_prospect_message_sent": "Reply sent to a prospect",
+      "events_follow_up_sent": "Follow-up sent to a prospect",
+      "events_questionnaire_sent": "Questionnaire sent",
+      "hub_contact_merged": "Contact records merged",
       "events_vendor_brief_sent": "Quote request sent to suppliers",
       "events_vendor_brief_reminded": "Supplier reminded the day before the deadline",
       "events_vendor_answered": "Supplier answered a quote request",
@@ -5457,6 +5505,15 @@
       "events_contact_forms": "contact form",
       "events_pipeline_stages": "pipeline stage",
       "events_prospect_requests": "contact request",
+      "events_event_messages": "message to a contact",
+      "events_prospect_follow_up_settings": "follow-up settings",
+      "events_prospect_follow_ups": "prospect follow-up",
+      "events_questionnaire_templates": "questionnaire template",
+      "events_questionnaire_template_items": "question of a questionnaire template",
+      "events_event_questionnaires": "questionnaire sent",
+      "events_questionnaire_answers": "questionnaire answer",
+      "hub_contact_duplicates": "possible duplicate",
+      "hub_contact_merges": "record of a contact merge",
       "events_vendor_briefs": "quote request brief",
       "events_vendor_brief_documents": "brief inspiration",
       "events_vendor_scenarios": "option scenario",
@@ -5662,6 +5719,7 @@
     "appointmentsTitle": "Your next appointments",
     "appointmentVideo": "video call",
     "appointmentPhone": "phone call",
+    "questionnairesLink": "My questionnaires",
     "cashCalendarLink": "Cash-out calendar",
     "payersLink": "What each payer sees",
     "proposalsTitle": "Your proposals",
@@ -6367,6 +6425,9 @@
       "prospectRequestNoDate": "New request: {names}",
       "prospectRequestDateTaken": "Date already taken",
       "prospectToReview": "{count, plural, one {One request to check} other {# requests to check}} (contact form)",
+      "followUpReady": "Follow up {names}: ready, to review",
+      "questionnaireFinished": "{names}: questionnaire \"{questionnaire}\" finished",
+      "contactDuplicates": "{count, plural, one {One possible duplicate to check} other {# possible duplicates to check}}",
       "vendorAnswer": {
         "available": "{vendor} is available ({slot}), quote to come",
         "quote": "{vendor} sent their quote ({slot})",
@@ -6629,7 +6690,8 @@
     "groupsTitle": "Households and companies",
     "memberSearch": "Search for the person by name, email or phone",
     "pickerNoneAlone": "No contact found: add them to your contacts first.",
-    "editRecord": "Edit the record"
+    "editRecord": "Edit the record",
+    "duplicatesLink": "{count, plural, one {One possible duplicate to check} other {# possible duplicates to check}}"
   },
   "SharedDocuments": {
     "title": "Documents",
@@ -6687,6 +6749,7 @@
       "answer": "Reply",
       "manage": "Reschedule or cancel",
       "request": "View the request",
+      "questionnaire": "Answer the questionnaire",
       "available": "I am available",
       "unavailable": "I am not available",
       "roadmap": "See my run sheet"
@@ -6708,6 +6771,9 @@
       "place": "video call: https://video.example.com/studio",
       "appointment": "First discovery call",
       "appointmentDate": "2 March 2027 at 10:00",
+      "brochure": "https://symbola.fr/brochure/example",
+      "bookingLink": "https://symbola.fr/reserver/example-studio",
+      "questionnaire": "Discovery",
       "slot": "Flowers",
       "deadline": "10 March 2027",
       "amount": "€1,620.00",
@@ -6761,6 +6827,11 @@
         "subject": "Your code to sign: {code}",
         "body": "Hello {name},\n\nYour code to accept and sign your proposal on Symbola: {code}\n\nIt is valid for {minutes} minutes and can be used only once. If you did not ask for it, ignore this message and let your contact know."
       }
+    },
+    "followUpOptOut": "You would rather not hear from us again? Simply reply to this message.",
+    "booking": {
+      "withPage": "Pick the time that suits you on my booking page: {url}",
+      "manual": "Here are a few possible times:\n- on … at …\n- or on … at …\nLet me know what suits you best."
     }
   },
   "RecipientsGuard": {
@@ -6851,6 +6922,18 @@
         "title": "New contact request",
         "description": "Sent to the account owner at each request received through the contact form, without the person's message or contact details."
       },
+      "prospect_reply": {
+        "title": "Reply to a prospect",
+        "description": "The text offered by \"Reply\" when no message template fits; the planner reviews and edits it before sending."
+      },
+      "prospect_follow_up": {
+        "title": "Prospect follow-up",
+        "description": "The text of a follow-up with no message template chosen (Settings, Follow-ups); prepared in \"Today\", reviewed before sending."
+      },
+      "questionnaire_sent": {
+        "title": "Questionnaire sent",
+        "description": "Sent with a questionnaire to the event's contact: their personal link becomes the \"Answer the questionnaire\" button."
+      },
       "vendor_brief": {
         "title": "Quote request to a supplier",
         "description": "Sent to each supplier of the brief, with two buttons: “I am available” and “I am not available”."
@@ -6894,6 +6977,9 @@
       "place": "The place: address, video link or phone",
       "appointment": "The appointment type",
       "appointment_date": "The day and time of the appointment",
+      "brochure": "The link to your brochure, valid for 30 days; added when sending",
+      "booking_link": "Your appointment booking page, or time slots to fill in if it is not open",
+      "questionnaire": "The name of the questionnaire sent",
       "slot": "The supplier category (“Flowers”, “Photographer”…)",
       "deadline": "The answer deadline of the brief",
       "link_available": "The link that preselects “available”; alone on its line, it becomes the “I am available” button",
@@ -7387,7 +7473,7 @@
   "WriteToClient": {
     "title": "Write to the client",
     "template": "Template",
-    "noTemplate": "No message template for this event type.",
+    "noTemplate": "No message template for this event type: here is the starter text of the reply.",
     "createTemplates": "Create message templates",
     "withoutTemplate": "Write without a template",
     "recipients": "Recipients",
@@ -7403,7 +7489,24 @@
     "copy": "Copy the text",
     "copied": "Text copied.",
     "noRecipient": "Choose at least one recipient with an email address.",
-    "back": "Back to the record"
+    "back": "Back to the record",
+    "choiceLabel": "Template and recipients",
+    "editTitle": "Your message",
+    "editHint": "Review and edit the text before sending. The brochure stays \"{{brochure}}\": its secure link is created when sending.",
+    "subjectLabel": "Subject",
+    "bodyLabel": "Text",
+    "sendFromSymbola": "{count, plural, one {Send from Symbola} other {Send from Symbola to # people}}",
+    "openInMail": "Open in my mail app",
+    "sendHint": "\"Send from Symbola\": the email goes out in your company's style, replies reach your address, and it is filed in the contact's history; follow-ups count from this message. \"Open in my mail app\": you send it yourself, it is recorded as \"prepared\".",
+    "sent": "{count, plural, one {Message sent and filed in the history.} other {Message sent to # people and filed in the history.}}",
+    "sentDeferred": "Message filed in the history; the mail server is not answering, it will go out as soon as possible.",
+    "prepared": "Message recorded as \"prepared\"; your mail app opens.",
+    "brochureHint": "The brochure \"{name}\" will be joined by a secure link, valid for 30 days.",
+    "noBrochure": "This template joins the brochure, but no brochure is saved: add it in Settings, Follow-ups.",
+    "empty": "The subject and the text are required.",
+    "tooLong": "The subject or the text is too long.",
+    "quota": "The hourly email limit is reached: try again a little later.",
+    "refused": "Not possible on this event."
   },
   "Trash": {
     "title": "Trash",
@@ -8292,6 +8395,287 @@
       "removeLabel": "Remove stage {stage}",
       "newStage": "New stage",
       "add": "Add"
+    },
+    "reply": "Reply",
+    "answered": "Has replied",
+    "answeredDone": "Recorded"
+  },
+  "ProspectExchanges": {
+    "title": "Exchanges with the contact",
+    "reply": "Reply",
+    "questionnaires": "Questionnaires",
+    "answered": "Has replied",
+    "stop": "Stop follow-ups",
+    "gesturesHint": "Symbola does not read your emails: when the person has replied (email, phone, WhatsApp), say so with one click; pending follow-ups stop.",
+    "answeredNoted": "Recorded: pending follow-ups stop.",
+    "stoppedNoted": "Recorded: no more follow-ups for this contact.",
+    "refused": "Not possible.",
+    "readyFollowUp": "Follow-up {rank}: ready, to review",
+    "upcomingFollowUp": "Follow-up {rank} planned on {date}",
+    "historyTitle": "Messages",
+    "noHistory": "No message yet.",
+    "prepared": "prepared",
+    "kind": {
+      "reply": "Reply",
+      "follow_up": "Follow-up",
+      "questionnaire": "Questionnaire sent",
+      "answered": "Has replied (recorded)",
+      "stop": "Follow-ups stopped"
+    }
+  },
+  "FollowUpReview": {
+    "title": "Follow-up {rank}",
+    "back": "Back to the event",
+    "editTitle": "Review the follow-up",
+    "subjectLabel": "Subject",
+    "bodyLabel": "Text",
+    "optOutHint": "The sentence \"You would rather not hear from us again? Simply reply to this message.\" is added to every follow-up.",
+    "send": "Send the follow-up",
+    "withdraw": "Withdraw this follow-up",
+    "sent": "Follow-up sent and filed in the history.",
+    "sentDeferred": "Follow-up filed in the history; the mail server is not answering, it will go out as soon as possible.",
+    "withdrawn": "Follow-up withdrawn: it will not go out.",
+    "already": "This follow-up has already gone out.",
+    "alreadySent": "Follow-up sent: it is filed in the contact's history.",
+    "missing": "A variable has no value: complete the text before sending.",
+    "noBrochure": "The text joins the brochure, but no brochure is saved.",
+    "empty": "The subject and the text are required.",
+    "quota": "The hourly email limit is reached: try again a little later.",
+    "refused": "Not possible on this follow-up.",
+    "stopped": {
+      "answered": "Not sent: the contact has replied.",
+      "stage_changed": "Not sent: the card moved to another stage.",
+      "confirmed": "Not sent: the event is confirmed.",
+      "lost": "Not sent: the event is lost.",
+      "prospect_action": "Not sent: the contact acted in Symbola (space opened, questionnaire, appointment or signature).",
+      "new_message": "Not sent: a more recent message went out; follow-ups count from it.",
+      "stopped": "Not sent: you asked to stop following up this contact.",
+      "withdrawn": "Follow-up withdrawn: it will not go out.",
+      "no_recipient": "Not sent: the contact no longer has an email address."
+    }
+  },
+  "EventQuestionnaires": {
+    "title": "Questionnaires",
+    "back": "Back to the event",
+    "sendTitle": "Send a questionnaire",
+    "template": "Questionnaire",
+    "recipient": "To",
+    "noEmailOption": "{name} (no email address)",
+    "sendHint": "The person receives it by email, with their personal link (no account). Their answers are saved at each question; they can come back later. If they already have a link, a new link goes out with the questionnaire and replaces the old one.",
+    "send": "Send",
+    "sent": "Questionnaire sent.",
+    "demo": "A trial event never sends anything to anyone.",
+    "noEmail": "This client has no email address.",
+    "missing": "The email template has a variable with no value: {tokens}.",
+    "quota": "The hourly email limit is reached: try again a little later.",
+    "refused": "Not possible.",
+    "noTemplate": "No questionnaire template.",
+    "createTemplates": "Add the starter questionnaires",
+    "sentTitle": "Questionnaires sent",
+    "noneSent": "No questionnaire sent.",
+    "finished": "finished",
+    "progress": "{answered} answers out of {total}",
+    "frozen": "Version {version} of the template, frozen when sent.",
+    "someone": "The contact",
+    "differencesTitle": "Answers to settle",
+    "difference": "{name} says {answer} for \"{field}\"; the record says {current}.",
+    "takeAnswer": "Take the answer ({answer})",
+    "keepEvent": "Keep the record ({current})",
+    "resolved": "Settled.",
+    "field": {
+      "event_date": "Date",
+      "guests": "Guests",
+      "budget": "Wanted budget",
+      "venue": "Venue",
+      "city": "Town",
+      "style": "Style",
+      "event_type": "Event type"
+    }
+  },
+  "QuestionnaireTemplates": {
+    "title": "Questionnaires",
+    "intro": "Your questionnaires (discovery, ceremony, music, practical details…), for all events or for one type. A question can fill a field of the event. Editing a template does not change questionnaires already sent.",
+    "addStarters": "Add the starter questionnaires",
+    "startersAdded": "{count, plural, =0 {The starter questionnaires are already there.} one {One questionnaire added.} other {# questionnaires added.}}",
+    "listTitle": "Your templates",
+    "empty": "No template yet.",
+    "summary": "{questions, plural, one {# question} other {# questions}} · version {version} · {type}",
+    "allEvents": "All events",
+    "createTitle": "New questionnaire",
+    "name": "Name",
+    "create": "Create",
+    "firstQuestion": "Your first question",
+    "nameInvalid": "The name is required (120 characters at most).",
+    "refused": "Not possible.",
+    "duplicate": "Duplicate",
+    "copyName": "{name} (copy)",
+    "duplicated": "Template duplicated.",
+    "delete": "Remove",
+    "deleteConfirm": "Remove the template \"{name}\"? Questionnaires already sent keep it.",
+    "deleted": "Template removed.",
+    "back": "All questionnaires",
+    "versionLabel": "Version {version}",
+    "versionsLabel": "Versions",
+    "oldVersionTitle": "Questions of version {version}",
+    "eventType": "For",
+    "questionNumber": "Question {number}",
+    "questionLabel": "Question",
+    "questionHelp": "Help (optional)",
+    "questionNature": "Expected answer",
+    "questionChoices": "Choices (one per line)",
+    "questionField": "Fills the event field",
+    "noField": "None",
+    "up": "Up",
+    "down": "Down",
+    "moveUp": "Move question {number} up",
+    "moveDown": "Move question {number} down",
+    "removeQuestion": "Remove the question",
+    "addQuestion": "Add a question",
+    "versionHint": "Saving changed questions creates a new version; questionnaires already sent keep theirs.",
+    "save": "Save",
+    "saved": "Template saved (version {version}).",
+    "sensitiveWarning": "This question seems to touch on health, religion or opinions: these are sensitive data. For diets and allergies, use the Guests module, which collects each person's consent.",
+    "nature": {
+      "short_text": "Short text",
+      "long_text": "Long text",
+      "single_choice": "One choice",
+      "multiple_choice": "Several choices",
+      "date": "Date",
+      "number": "Number",
+      "amount": "Amount (€)"
+    },
+    "field": {
+      "event_date": "Date",
+      "guests": "Guests",
+      "budget": "Wanted budget",
+      "venue": "Venue",
+      "city": "Town",
+      "style": "Style",
+      "event_type": "Event type"
+    },
+    "questionInvalid": {
+      "label": "Each question has a wording (300 characters at most).",
+      "help": "Help is 500 characters at most.",
+      "nature": "Unknown expected answer.",
+      "choices": "A choice question has 2 to 30 choices.",
+      "field": "This event field does not fit this answer.",
+      "too_many": "A questionnaire has 100 questions at most.",
+      "empty": "A questionnaire has at least one question."
+    }
+  },
+  "PortalQuestionnaires": {
+    "title": "Questionnaires",
+    "back": "Back to my space",
+    "backToList": "All my questionnaires",
+    "unavailable": "This section is not available.",
+    "none": "No questionnaire yet.",
+    "finished": "finished, thank you",
+    "progress": "{answered} answers out of {total}",
+    "stepOf": "Question {step} of {total}",
+    "saved": "Answer saved.",
+    "suggested": "Answer already known, pre-filled:",
+    "confirm": "Confirm",
+    "alreadyAnswered": "{count, plural, one {One question already answered elsewhere is not asked again.} other {# questions already answered elsewhere are not asked again.}}",
+    "previous": "Previous",
+    "next": "Next",
+    "remaining": "{count, plural, one {One question left.} other {# questions left.}} You can stop and come back later: everything is saved.",
+    "complete": "All questions have an answer.",
+    "finish": "Finish",
+    "thanks": "Thank you! Your answers have been sent.",
+    "closed": "This questionnaire is finished.",
+    "denied": "This section is not available.",
+    "invalid": {
+      "empty": "Empty answer.",
+      "too_long": "Answer too long.",
+      "choice": "Choose among the answers offered.",
+      "date": "Invalid date.",
+      "number": "Enter a whole number.",
+      "amount": "Enter an amount in euros (for example 25,000)."
+    }
+  },
+  "ContactDuplicates": {
+    "title": "Possible duplicates",
+    "subtitle": "Records with the same email address or the same phone number. Nothing is merged without you.",
+    "back": "Contacts",
+    "backToList": "Possible duplicates",
+    "none": "No possible duplicate.",
+    "reason": {
+      "email": "Same email address",
+      "phone": "Same phone number"
+    },
+    "compare": "Compare and merge",
+    "dismiss": "These are not the same",
+    "dismissed": "Dismissed: this pair will not come back.",
+    "refused": "Not possible.",
+    "mergeTitle": "Merge two records",
+    "keptLegend": "Record kept",
+    "fieldsCaption": "Value to keep, field by field",
+    "field": "Field",
+    "keepValue": "Keep {value} for {field}",
+    "confirmTitle": "What will be gathered",
+    "confirmBody": "The record \"{absorbed}\" disappears; all its history moves to \"{kept}\".",
+    "confirmCheck": "I have checked: these two records are the same person.",
+    "confirmRequired": "Tick the confirmation to merge.",
+    "merge": "Merge",
+    "gathered": {
+      "notes": "{name}: {count, plural, =0 {no note} one {one note} other {# notes}}",
+      "events": "{name}: {events, plural, =0 {no event} one {one event} other {# events}}, {messages, plural, =0 {no message} one {one message} other {# messages}}, {links, plural, =0 {no link} one {one link} other {# links}}, {questionnaires, plural, =0 {no questionnaire} one {one questionnaire} other {# questionnaires}}",
+      "appointments": "{name}: {count, plural, =0 {no appointment} one {one appointment} other {# appointments}}",
+      "signatures": "{name}: {count, plural, =0 {no signature} one {one signature} other {# signatures}}"
+    },
+    "refusedReason": {
+      "same": "A record is not merged with itself.",
+      "demo": "A trial record is never merged with a real one.",
+      "kind": "A person is not merged with a household or a company.",
+      "not_found": "One of the records no longer exists.",
+      "anonymized": "A record removed under the GDPR is not merged."
+    },
+    "fields": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "addressLine": "Address",
+      "postalCode": "Postcode",
+      "city": "Town",
+      "country": "Country",
+      "billingAddress": "Billing address",
+      "companyIdNumber": "SIREN or SIRET",
+      "vatNumber": "VAT number"
+    }
+  },
+  "FollowUpSettings": {
+    "title": "Prospect follow-ups",
+    "intro": "After your reply to a prospect, with no answer from them, a follow-up is prepared on its day in \"Today\": you review it and send it with one click. It stops as soon as they reply (say so with one click), the card changes stage, the event is confirmed or lost, or they act in Symbola.",
+    "enabled": "Prepare follow-ups",
+    "step": "Follow-up {rank}",
+    "days": "Days after your last message",
+    "template": "Template",
+    "defaultText": "Follow-up text (Settings, Email templates)",
+    "autoSend": "Send follow-ups without review",
+    "autoSendHint": "Off by default: you often know, by phone or WhatsApp, that the couple has already replied. When on, each follow-up goes out by itself on its day, after a last check.",
+    "save": "Save",
+    "saved": "Settings saved.",
+    "refused": "Not possible.",
+    "invalid": {
+      "too_many": "Three follow-ups at most.",
+      "days": "Between 1 and 60 days.",
+      "order": "Each follow-up comes after the previous one."
+    },
+    "brochureTitle": "Brochure",
+    "brochureCurrent": "Brochure saved: {name}",
+    "brochureNone": "No brochure.",
+    "brochureField": "PDF file (20 MB at most)",
+    "brochureSubmit": "Save the brochure",
+    "brochureRemove": "Remove the brochure",
+    "brochureHint": "The \"Send the brochure\" template joins it by a secure link, valid for 30 days, never as an attachment.",
+    "brochureMissing": "Choose a PDF file.",
+    "brochureRejected": {
+      "too_large": "The file is larger than 20 MB.",
+      "unsupported_type": "Only a PDF is accepted.",
+      "infected": "The file was rejected by the antivirus.",
+      "name": "Invalid file name."
     }
   },
   "VendorCoordination": {

@@ -47,6 +47,10 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "eventsPipeline", group: "events", audience: "team", module: "events", path: "/events/pipeline", capture: false },
   { key: "eventsContactForm", group: "events", audience: "team", module: "events", ownerOnly: true, path: "/events/parametres/contact", capture: false },
   { key: "eventsPipelineStages", group: "events", audience: "team", module: "events", ownerOnly: true, path: "/events/parametres/etapes", capture: false },
+  // Lot 45 (CRM-06, POR-07, HUB-21) : relire une relance, questionnaires d'un évènement, modèles.
+  { key: "followUpReview", group: "events", audience: "team", module: "events", path: null, capture: false },
+  { key: "eventQuestionnaires", group: "events", audience: "team", module: "events", path: null, capture: false },
+  { key: "questionnaireTemplates", group: "events", audience: "team", module: "events", path: "/events/parametres/questionnaires", capture: false },
   { key: "followUps", group: "events", audience: "team", module: "events", path: "/parametres/relances", capture: true },
   // Lot 49 (INV-01 à INV-04, INV-07) : onglet Invités de la fiche, liste des régimes et allergies.
   { key: "guests", group: "events", audience: "team", module: "guests", path: null, capture: false },
@@ -132,6 +136,9 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "activityLog", group: "data", audience: "team", ownerOnly: true, path: "/parametres/journal", capture: true },
   // Lot 36a (CRM-03) : les contacts de l'organisation et la fiche d'un contact.
   { key: "contactsList", group: "company", audience: "team", path: "/contacts", capture: true },
+  // Lot 45 (CRM-07) : doublons possibles et fusion de deux fiches.
+  { key: "contactDuplicates", group: "company", audience: "team", path: "/contacts/doublons", capture: false },
+  { key: "contactMerge", group: "company", audience: "team", path: null, capture: false },
   { key: "contactDetail", group: "company", audience: "team", path: null, capture: false },
   // Lot 38a (MSG-01, D3, D7) : modèles des e-mails envoyés au nom de l'organisation.
   { key: "emailTemplates", group: "company", audience: "team", path: "/parametres/emails", capture: false },

@@ -34,6 +34,10 @@ const TOKENS: Record<EmailVariable, Record<EmailLocale, string>> = {
   iban: { fr: "iban", en: "iban" },
   bic: { fr: "bic", en: "bic" },
   penalties: { fr: "pénalités", en: "penalties" },
+  // Lot 45 (CRM-05, POR-07) : brochure, page de réservation, nom du questionnaire.
+  brochure: { fr: "brochure", en: "brochure" },
+  booking_link: { fr: "lien_rendez_vous", en: "booking_link" },
+  questionnaire: { fr: "questionnaire", en: "questionnaire" },
 };
 
 // Variables dont la valeur est une adresse : seules dans leur paragraphe, elles deviennent un bouton.
@@ -46,7 +50,7 @@ const BY_TOKEN = new Map<string, EmailVariable>(
   ]),
 );
 
-type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | "request" | "roadmap" | null };
+type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | "request" | "roadmap" | "questionnaire" | null };
 
 export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   client_link: { variables: ["first_name", "organization", "event", "link", "valid_until"], required: ["link"], button: "space" },
@@ -83,6 +87,12 @@ export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   proposal_expiry_reminder: { variables: ["first_name", "organization", "quote_number", "valid_until"], required: ["valid_until"], button: null },
   payment_details: { variables: ["first_name", "organization", "quote_number", "amount", "reference", "iban", "bic"], required: ["amount", "reference", "iban"], button: null },
   invoice_reminder: { variables: ["first_name", "organization", "quote_number", "amount", "due_date", "reference", "iban", "penalties"], required: ["amount", "due_date", "reference"], button: null },
+  // Lot 45 (CRM-05, CRM-06 ; D1, D2) : le texte de la planner (un modèle de message relu et modifié),
+  // à l'image de l'organisation ; la brochure et la page de réservation sont des liens dans le texte.
+  prospect_reply: { variables: ["first_name", "organization", "event", "event_date", "clients", "place", "brochure", "booking_link"], required: [], button: null },
+  prospect_follow_up: { variables: ["first_name", "organization", "event", "event_date", "clients", "place", "brochure", "booking_link"], required: [], button: null },
+  // Lot 45 (POR-07, CRM-09) : le lien personnel devient « Répondre au questionnaire ».
+  questionnaire_sent: { variables: ["first_name", "organization", "event", "questionnaire", "link", "valid_until"], required: ["link"], button: "questionnaire" },
 };
 
 const TOKEN_PATTERN = /\{\{\s*([^{}\s]+)\s*\}\}/g;

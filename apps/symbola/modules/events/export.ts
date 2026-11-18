@@ -57,6 +57,13 @@ import {
   vendorRoadmaps,
   vendorScenarioChoices,
   vendorScenarios,
+  eventMessages,
+  eventQuestionnaires,
+  prospectFollowUps,
+  prospectFollowUpSettings,
+  questionnaireAnswers,
+  questionnaireTemplateItems,
+  questionnaireTemplates,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 
@@ -79,6 +86,11 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: dayChecklistTemplates },
   // Lot 47 (partie F) : réglages des prestataires par lien.
   { table: vendorCoordinationSettings, idField: "organizationId" },
+  // Lot 45 (CRM-06, POR-07, HUB-21) : réglage des relances (avec la brochure), modèles de questionnaires
+  // et leurs versions.
+  { table: prospectFollowUpSettings, files: ["brochureStorageKey"] },
+  { table: questionnaireTemplates },
+  { table: questionnaireTemplateItems, parents: { templateId: "questionnaire_templates" } },
   { table: events, demoField: "isDemo" },
   { table: eventClients, ...ofEvent },
   { table: eventStatusHistory, ...ofEvent },
@@ -128,6 +140,12 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   // Lot 47 (D7) : avis des clients sur les options d'une décision.
   { table: eventDecisionOptionFeedback, parents: { decisionId: "event_decisions" } },
   { table: eventActivities, ...ofEvent },
+  // Lot 45 (CRM-05, CRM-06, POR-07) : messages au contact (sans le jeton haché de la brochure),
+  // relances, questionnaires envoyés et leurs réponses.
+  { table: eventMessages, ...ofEvent, omit: ["brochureTokenHash"] },
+  { table: prospectFollowUps, ...ofEvent },
+  { table: eventQuestionnaires, ...ofEvent },
+  { table: questionnaireAnswers, parents: { questionnaireId: "event_questionnaires" } },
 ];
 
 // Tables du module qui ne sont pas exportées, et pourquoi (docs/export/format-v1.md).

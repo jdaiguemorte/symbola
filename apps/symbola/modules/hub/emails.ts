@@ -90,7 +90,7 @@ function layoutOf(input: { kind: EmailTemplateKind; locale: EmailLocale; identit
   const rendered = renderEmailTemplate(input.kind, input.template, values);
   const t = translator(input.locale);
   const button = EMAIL_TEMPLATE_RULES[input.kind].button;
-  const label = button === "sign" ? t("button.sign") : button === "answer" ? t("button.answer") : button === "manage" ? t("button.manage") : button === "request" ? t("button.request") : button === "roadmap" ? t("button.roadmap") : t("button.space");
+  const label = button === "sign" ? t("button.sign") : button === "answer" ? t("button.answer") : button === "manage" ? t("button.manage") : button === "request" ? t("button.request") : button === "roadmap" ? t("button.roadmap") : button === "questionnaire" ? t("button.questionnaire") : t("button.space");
   // Lot 47 (D4) : les deux réponses d'un brief ont leur propre libellé.
   const labelOf = (variable: EmailVariable) => (variable === "link_available" ? t("button.available") : variable === "link_unavailable" ? t("button.unavailable") : label);
   const blocks: MailBlock[] = rendered.blocks.map((block) => (block.kind === "button" ? { kind: "button", url: block.url, label: labelOf(block.variable) } : block));
@@ -149,6 +149,8 @@ export async function sendOrganizationEmail(input: {
   kind: EmailTemplateKind;
   locale: EmailLocale;
   values: EmailValues;
+  // Lot 45 (CRM-05, CRM-06) : le texte relu et modifié par la planner, à la place du modèle.
+  template?: EmailTemplateText;
   attachments?: Attachment[];
   reserve?: boolean;
   idempotencyKey?: string;
@@ -196,6 +198,9 @@ function sampleValues(locale: EmailLocale): EmailValues {
     iban: t("sample.iban"),
     bic: t("sample.bic"),
     penalties: t("sample.penalties"),
+    brochure: t("sample.brochure"),
+    booking_link: t("sample.bookingLink"),
+    questionnaire: t("sample.questionnaire"),
   };
 }
 

@@ -20,8 +20,10 @@ import {
   listUncontractedVendors, isInProgress,
   countProspectRequestsToReview,
   listNewProspectRequests,
+  listFinishedUnseenQuestionnaires,
+  listReadyFollowUps,
 } from "@/modules/events/service";
-import { getFollowUpDelays } from "@/modules/hub/service";
+import { countDuplicatePairs, getFollowUpDelays } from "@/modules/hub/service";
 import { listGuestPurgeNotices, listRecentOppositions } from "@/modules/guests/service";
 import { listEventIdsWithSentQuote, listOpenScheduledDeposits, listQuotesAwaitingAnswer, listTransferDeclarations, listUnpaidPayments } from "@/modules/quotes/service";
 import { listCalendarSourcesInError, listTodayAppointments } from "@/modules/appointments/service";
@@ -63,6 +65,11 @@ export type TodayWords = {
   vendorRoadmap?: (vendor: string) => string;
   // Lot 43 (FAC-08, ADR 0087) : « Léa déclare avoir viré 1 200 € ».
   transferDeclaration?: (name: string, amount: string) => string;
+  // Lot 45 (CRM-06, POR-07, CRM-07) : « Relancer Léa M. : prête, à relire », « Léa a terminé le
+  // questionnaire Découverte », « 2 doublons possibles ».
+  followUpReady?: (names: string) => string;
+  questionnaireFinished?: (names: string, questionnaire: string) => string;
+  contactDuplicates?: (count: number) => string;
 };
 
 // Évènements en cours : ni clôturés, ni annulés (lot 34a, EVT-05).
@@ -251,6 +258,49 @@ async function eventItems({ organizationId, words, locale, today, now, events, n
         href: "/events/pipeline#a-verifier",
         action: { kind: "open" },
       });
+    }
+  }
+  // Lot 45 (CRM-06, D2) : les relances prêtes, à relire puis envoyer d'un geste.
+  if (words.followUpReady) {
+    for (const followUp of await listReadyFollowUps(organizationId, now)) {
+      const label = names(followUp.eventId) ?? "";
+      items.push({
+        key: `follow-up:${followUp.id}`,
+        kind: "prospect_follow_up_ready",
+        eventId: followUp.eventId,
+        eventNames: label,
+        title: words.followUpReady(label),
+        dueOn: null,
+        since: day(followUp.readyAt),
+        actor: { kind: "you" },
+        href: `/events/${followUp.eventId}/relances/${followUp.id}`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  // Lot 45 (POR-07, CRM-09) : un questionnaire terminé, à lire (et ses écarts avec la fiche).
+  if (words.questionnaireFinished) {
+    for (const finished of await listFinishedUnseenQuestionnaires(organizationId)) {
+      const label = names(finished.eventId) ?? "";
+      items.push({
+        key: `questionnaire:${finished.id}`,
+        kind: "questionnaire_finished",
+        eventId: finished.eventId,
+        eventNames: label,
+        title: words.questionnaireFinished(label, finished.name),
+        dueOn: null,
+        since: day(finished.finishedAt),
+        actor: { kind: "you" },
+        href: `/events/${finished.eventId}/questionnaires`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  // Lot 45 (CRM-07, D4) : des doublons possibles, jamais fusionnés sans la planner.
+  if (words.contactDuplicates) {
+    const duplicates = await countDuplicatePairs(organizationId);
+    if (duplicates > 0) {
+      items.push({ key: "contact-duplicates", kind: "contact_duplicates", eventId: null, eventNames: null, title: words.contactDuplicates(duplicates), dueOn: null, since: null, actor: { kind: "you" }, href: "/contacts/doublons", action: { kind: "open" } });
     }
   }
   for (const renewal of await listPendingLinkRenewals(organizationId)) {

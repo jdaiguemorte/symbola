@@ -5,6 +5,10 @@ import { getFollowUpDelays } from "@/modules/hub/service";
 import { requirePlanner } from "@/lib/guards";
 import { FollowUpForm } from "./follow-up-form";
 import { ScreenHelp } from "@/app/screen-help";
+import { isEventsModuleEnabled } from "@/app/events/module-access";
+import { getProspectFollowUpSettings } from "@/modules/events/service";
+import { listMessageTemplates } from "@/modules/hub/service";
+import { BrochureForm, ProspectFollowUpForm } from "./prospect-follow-up-form";
 
 export default async function FollowUpSettingsPage() {
   const auth = await requirePlanner();
@@ -14,12 +18,26 @@ export default async function FollowUpSettingsPage() {
   const tHelp = await getTranslations("Help");
   const db = appDatabase();
   const delays = await getFollowUpDelays(db, auth.user.organizationId);
+  // Lot 45 (CRM-06, CRM-05 ; D2) : relances envoyées aux prospects et brochure, si le module Évènements
+  // est ouvert (ARC-07).
+  const eventsOn = await isEventsModuleEnabled(auth.user.organizationId);
+  const [prospectSettings, messageTemplates] = eventsOn ? await Promise.all([getProspectFollowUpSettings(auth.user.organizationId), listMessageTemplates(auth.user.organizationId)]) : [null, []];
   return (
     <main>
       <h1>{t("followUpTitle")}</h1>
       <ScreenHelp title={tHelp("followUps.title")} body={tHelp("followUps.body")} />
       <p>{t("followUpIntro")}</p>
       <FollowUpForm quoteDays={delays.quoteFollowUpDays} prospectDays={delays.prospectFollowUpDays} />
+      {prospectSettings ? (
+        <>
+          <section className="card">
+            <ProspectFollowUpForm settings={prospectSettings} templates={messageTemplates.map((template) => ({ id: template.id, name: template.name }))} />
+          </section>
+          <section className="card">
+            <BrochureForm brochure={prospectSettings.brochure} />
+          </section>
+        </>
+      ) : null}
     </main>
   );
 }

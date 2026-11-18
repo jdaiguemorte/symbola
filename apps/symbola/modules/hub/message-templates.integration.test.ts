@@ -89,17 +89,19 @@ describe("HUB-21 — Modèles par type d'évènement, duplicables et versionnés
     expect(await listMessageTemplates(organizationId)).toEqual([]);
   });
 
-  it("les deux modèles de départ s'ajoutent une fois ; le rendu remplit les variables et nomme celles qui manquent", async () => {
+  // Lot 45 (CRM-05) : trois modèles de départ, la brochure en plus ; le rendez-vous emploie la page de
+  // réservation (ou des créneaux à compléter).
+  it("les modèles de départ s'ajoutent une fois ; le rendu remplit les variables et nomme celles qui manquent", async () => {
     const organizationId = await organization();
-    expect(await addStarterMessageTemplates(organizationId, "fr")).toBe(2);
+    expect(await addStarterMessageTemplates(organizationId, "fr")).toBe(3);
     expect(await addStarterMessageTemplates(organizationId, "fr")).toBe(0);
     const templates = await listMessageTemplates(organizationId);
     expect(templates.map((template) => template.name).sort()).toEqual(starterMessageTemplates("fr").map((starter) => starter.name).sort());
     const meeting = templates.find((template) => template.name === "Proposer un rendez-vous")!;
-    const rendered = await renderMessageForTemplate(organizationId, meeting.id, { first_name: "Léa & Maxime", event: "votre mariage", organization: "Atelier Camille R." });
+    const rendered = await renderMessageForTemplate(organizationId, meeting.id, { first_name: "Léa & Maxime", event: "votre mariage", organization: "Atelier Camille R.", booking_link: "Voici quelques créneaux possibles." });
     expect(rendered).toMatchObject({ subject: "Rendez-vous pour votre mariage", missing: [] });
     expect(rendered!.body.startsWith("Bonjour Léa & Maxime,\n\n")).toBe(true);
-    expect((await renderMessageForTemplate(organizationId, meeting.id, { first_name: "Léa" }))!.missing).toEqual(["event", "organization"]);
+    expect((await renderMessageForTemplate(organizationId, meeting.id, { first_name: "Léa" }))!.missing).toEqual(["event", "booking_link", "organization"]);
   });
 
   it("isolation : le modèle de A ne se lit, ne se modifie, ne se restaure ni ne se supprime depuis B", async () => {

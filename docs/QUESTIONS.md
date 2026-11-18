@@ -770,6 +770,34 @@ lot, qui applique d'ici là le réglage le plus prudent (ADR 0083) :
 « socle » remise (réponse 5 de la DPO) ; puis l'Exploitation ouvre le module (fermé par défaut,
 ADR 0079) et la titulaire confirme l'analyse dans l'onglet Invités.
 
+### Q39 — Lot 45 : les relances des prospects, prospection ou suite de la demande ? (18 novembre 2026)
+
+Contradiction relevée en codant le lot 45 :
+
+- la spécification validée (D2, D3 ; `docs/lots/lot-45-relation-prospects-questionnaires.md`) traite
+  les relances comme la suite de la demande de la personne (RGP-17 « Sans objet »), à confirmer par
+  l'avocat (AV-9, question 21 de sa fiche) ;
+- la DPO a répondu le 13/11 (sa question 10, tableau de `docs/conformite/fiche-dpo.md`) que les
+  relances automatiques de devis sont de la **prospection** : pour un particulier, accord préalable
+  (case non précochée au formulaire de demande, preuve gardée), expéditeur identifié, information à
+  la collecte, liste d'opposition par planner.
+
+Ce que le lot 45 fait d'ici là (le réglage le plus prudent sans trancher) : aucune relance ne part
+sans la planner (envoi automatique désactivé par défaut), chaque relance porte « Vous ne souhaitez
+plus de nouvelles ? Répondez simplement. », et le geste « Ne plus relancer » vaut pour toujours. Ni
+case d'accord au formulaire de contact ni liste d'opposition par planner ne sont construites.
+
+**Décision de Julien (18/11/2026)** : « on va à l'encontre de la DPO qui s'est trompée : cela
+nécessite le consentement que si la démarche émane de la Wedding Planner : ça ne sera pas le cas dans
+notre cas d'usage : la première approche commerciale est toujours initiée par les prospects mariés. »
+
+Conséquence : les relances sont la suite d'une demande faite par le prospect, pas de la prospection.
+Ni case d'accord au formulaire de contact, ni liste d'opposition par planner ; RGP-17 reste « Sans
+objet ». C'est un **écart assumé** avec la réponse 10 de la DPO, décidé par Julien (ADR 0090). Le
+produit ne change pas : relances préparées et validées par la planner (envoi automatique seulement
+en réglage), phrase « Vous ne souhaitez plus de nouvelles ? Répondez simplement. », geste « Ne plus
+relancer ».
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que

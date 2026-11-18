@@ -37,7 +37,15 @@ import {
   programTemplates,
   taskTemplateItems,
   taskTemplates,
+  eventMessages,
+  eventQuestionnaires,
+  prospectFollowUps,
+  prospectFollowUpSettings,
+  questionnaireAnswers,
+  questionnaireTemplateItems,
+  questionnaireTemplates,
 } from "./schema/events";
+import { contactDuplicates, contactMerges, contacts } from "./schema/hub";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -702,5 +710,81 @@ describe("PRD-EVT-01/02 — Isolation entre organisations (module events, Postgr
     // Lot 38a (D9) : seules la date et le nombre d'envois d'une version se modifient.
     const notified = await withOrganization(db, organizationId, (tx) => tx.update(programVersions).set({ notifiedAt: new Date(), notifiedCount: 3 }).where(eq(programVersions.id, version.id)).returning());
     expect(notified[0]).toMatchObject({ notifiedCount: 3, number: 1 });
+  });
+
+  // Lot 45 (CRM-05 à CRM-09, POR-07, HUB-21 ; SEC-10, SEC-36) : chaque table nouvelle, lue, modifiée et
+  // supprimée depuis une autre organisation.
+  async function eventOf(organizationId: string): Promise<string> {
+    const [event] = await withOrganization(db, organizationId, (tx) => tx.insert(events).values({ organizationId }).returning({ id: events.id }));
+    return event!.id;
+  }
+
+  // Une table quelconque du lot (types de Drizzle trop étroits pour une fonction commune).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function isolate<Row extends { id: string }>(table: any, seed: (organizationId: string) => Promise<Row>, patch: Record<string, unknown>) {
+    return assertOrganizationIsolation<Row>({
+      seed,
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(table)) as Promise<Row[]>,
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => {
+        const updated = await withOrganization(db, organizationId, (tx) => tx.update(table).set(patch).where(eq(table.id, targetRow.id)).returning());
+        const deleted = await withOrganization(db, organizationId, (tx) => tx.delete(table).where(eq(table.id, targetRow.id)).returning());
+        return { affectedRows: (updated as unknown[]).length + (deleted as unknown[]).length };
+      },
+    });
+  }
+
+  it("SEC-10, lot 45 — messages, relances et réglage des relances : invisibles et intouchables depuis une autre organisation", async () => {
+    await isolate(eventMessages, async (organizationId) => {
+      const eventId = await eventOf(organizationId);
+      const [row] = await withOrganization(db, organizationId, (tx) => tx.insert(eventMessages).values({ organizationId, eventId, kind: "reply", delivery: "sent", subject: "Bonjour", body: "Merci" }).returning());
+      return row!;
+    }, { body: "falsifié" });
+    await isolate(prospectFollowUps, async (organizationId) => {
+      const eventId = await eventOf(organizationId);
+      const [anchor] = await withOrganization(db, organizationId, (tx) => tx.insert(eventMessages).values({ organizationId, eventId, kind: "reply", delivery: "sent" }).returning());
+      const [row] = await withOrganization(db, organizationId, (tx) => tx.insert(prospectFollowUps).values({ organizationId, eventId, anchorMessageId: anchor!.id, rank: 1, readyAt: new Date(), subject: "Relance", body: "Texte" }).returning());
+      return row!;
+    }, { body: "falsifié" });
+    await isolate(prospectFollowUpSettings, async (organizationId) => {
+      const [row] = await withOrganization(db, organizationId, (tx) => tx.insert(prospectFollowUpSettings).values({ organizationId }).returning());
+      return row!;
+    }, { autoSend: true });
+  });
+
+  it("SEC-10, lot 45 — modèles de questionnaires, questionnaires envoyés et réponses : invisibles et intouchables depuis une autre organisation", async () => {
+    const template = async (organizationId: string) => {
+      const [row] = await withOrganization(db, organizationId, (tx) => tx.insert(questionnaireTemplates).values({ organizationId, name: "Découverte", locale: "fr" }).returning());
+      return row!;
+    };
+    await isolate(questionnaireTemplates, template, { name: "volé" });
+    await isolate(questionnaireTemplateItems, async (organizationId) => {
+      const parent = await template(organizationId);
+      const [row] = await withOrganization(db, organizationId, (tx) => tx.insert(questionnaireTemplateItems).values({ organizationId, templateId: parent.id, version: 1, itemKey: "guests", label: "Invités ?", nature: "number" }).returning());
+      return row!;
+    }, { label: "falsifiée" });
+    const questionnaire = async (organizationId: string) => {
+      const eventId = await eventOf(organizationId);
+      const [row] = await withOrganization(db, organizationId, (tx) => tx.insert(eventQuestionnaires).values({ organizationId, eventId, templateVersion: 1, name: "Découverte", locale: "fr", questions: [{ key: "guests", label: "Invités ?", help: null, nature: "number", choices: [], eventField: "guests" }] }).returning());
+      return row!;
+    };
+    await isolate(eventQuestionnaires, questionnaire, { name: "volé" });
+    await isolate(questionnaireAnswers, async (organizationId) => {
+      const parent = await questionnaire(organizationId);
+      const [row] = await withOrganization(db, organizationId, (tx) => tx.insert(questionnaireAnswers).values({ organizationId, questionnaireId: parent.id, itemKey: "guests", value: 140 }).returning());
+      return row!;
+    }, { value: 1 });
+  });
+
+  it("SEC-10, lot 45 — doublons possibles et trace des fusions : invisibles et intouchables depuis une autre organisation", async () => {
+    await isolate(contactDuplicates, async (organizationId) => {
+      const rows = await withOrganization(db, organizationId, (tx) => tx.insert(contacts).values([{ organizationId, firstName: "Léa" }, { organizationId, firstName: "Lea" }]).returning({ id: contacts.id }));
+      const [first, second] = rows.map((row) => row.id).sort();
+      const [row] = await withOrganization(db, organizationId, (tx) => tx.insert(contactDuplicates).values({ organizationId, firstContactId: first!, secondContactId: second!, reason: "phone" }).returning());
+      return row!;
+    }, { dismissedAt: new Date() });
+    await isolate(contactMerges, async (organizationId) => {
+      const [row] = await withOrganization(db, organizationId, (tx) => tx.insert(contactMerges).values({ organizationId, keptContactId: randomUUID(), absorbedContactId: randomUUID() }).returning());
+      return row!;
+    }, { fieldsFromAbsorbed: ["email"] });
   });
 });

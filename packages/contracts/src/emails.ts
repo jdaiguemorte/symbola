@@ -34,6 +34,12 @@ export const EMAIL_TEMPLATE_KINDS = [
   "proposal_expiry_reminder",
   "payment_details",
   "invoice_reminder",
+  // Lot 45 (CRM-05, CRM-06, POR-07 ; D9 ; ADR 0090) : réponse de la planner à un prospect et relance
+  // (le texte relu et modifié par la planner, à l'image de l'organisation) ; questionnaire envoyé (le
+  // lien personnel devient « Répondre »).
+  "prospect_reply",
+  "prospect_follow_up",
+  "questionnaire_sent",
 ] as const;
 export type EmailTemplateKind = (typeof EMAIL_TEMPLATE_KINDS)[number];
 
@@ -49,7 +55,10 @@ export type EmailLocale = (typeof EMAIL_LOCALES)[number];
 // Lot 43 : « amount » (montant de l'échéance), « due_date » (son échéance), « reference » (référence du
 // virement), « iban » et « bic » (RIB de l'organisation), « penalties » (phrase des pénalités de retard,
 // toujours renseignée : texte de départ de payment-reminders.json quand il n'y en a pas).
-export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "slot", "deadline", "link_available", "link_unavailable", "amount", "due_date", "reference", "iban", "bic", "penalties"] as const;
+// Lot 45 : « brochure » (le lien sécurisé de la brochure de l'organisation, valable 30 jours),
+// « booking_link » (la page de réservation des rendez-vous, ou des créneaux à compléter sans elle) et
+// « questionnaire » (le nom du questionnaire envoyé).
+export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "slot", "deadline", "link_available", "link_unavailable", "amount", "due_date", "reference", "iban", "bic", "penalties", "brochure", "booking_link", "questionnaire"] as const;
 export type EmailVariable = (typeof EMAIL_VARIABLES)[number];
 export type EmailValues = Partial<Record<EmailVariable, string>>;
 
@@ -72,7 +81,11 @@ export type RecipientsReview = { count: number; recipients: EmailRecipient[]; di
 // Lot 38b (HUB-21 ; D10 ; ADR 0072) — modèles de messages de la planner : pour tous les évènements
 // ou pour un type (eventTypeId), dans une langue, versionnés. « Écrire au client » en remplit les
 // variables, puis ouvre sa messagerie (Symbola n'envoie rien).
-export const MESSAGE_VARIABLES = ["first_name", "clients", "event", "event_date", "place", "organization"] as const satisfies readonly EmailVariable[];
+// Lot 45 (CRM-05) : « brochure » (remplie à l'envoi : son lien n'existe qu'une fois le message envoyé ou
+// préparé) et « booking_link » (la page de réservation, ou des créneaux à compléter dans le texte).
+export const MESSAGE_VARIABLES = ["first_name", "clients", "event", "event_date", "place", "organization", "brochure", "booking_link"] as const satisfies readonly EmailVariable[];
+// Les variables qu'un message garde telles quelles jusqu'à l'envoi.
+export const MESSAGE_SEND_TIME_VARIABLES = ["brochure"] as const satisfies readonly EmailVariable[];
 
 export type MessageTemplateSummary = {
   id: string;

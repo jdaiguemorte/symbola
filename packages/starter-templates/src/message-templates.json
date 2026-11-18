@@ -12,7 +12,13 @@
         "key": "meeting",
         "name": "Proposer un rendez-vous",
         "subject": "Rendez-vous pour {{évènement}}",
-        "body": "Bonjour {{prénom}},\n\nJe vous propose de nous rencontrer pour parler de {{évènement}} :\n- le … à …\n- ou le … à …\n\nNous pouvons nous voir à l'atelier ou en visio, comme vous préférez. Dites-moi ce qui vous convient le mieux.\n\nÀ bientôt,\n{{organisation}}"
+        "body": "Bonjour {{prénom}},\n\nJe vous propose de nous rencontrer pour parler de {{évènement}}.\n\n{{lien_rendez_vous}}\n\nNous pouvons nous voir à l'atelier ou en visio, comme vous préférez.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      {
+        "key": "brochure",
+        "name": "Envoyer la brochure",
+        "subject": "Notre brochure — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\nMerci pour votre intérêt ! Voici notre brochure, avec nos formules et quelques réalisations :\n\n{{brochure}}\n\nCe lien reste valable 30 jours. Dites-moi ce qui vous plaît, et parlons-en de vive voix.\n\nÀ très bientôt,\n{{organisation}}"
       }
     ],
     "en": [
@@ -26,7 +32,13 @@
         "key": "meeting",
         "name": "Suggest a meeting",
         "subject": "Meeting about {{event}}",
-        "body": "Hello {{first_name}},\n\nI suggest we meet to talk about {{event}}:\n- on … at …\n- or on … at …\n\nWe can meet at the studio or by video call, as you prefer. Let me know what suits you best.\n\nSee you soon,\n{{organization}}"
+        "body": "Hello {{first_name}},\n\nI suggest we meet to talk about {{event}}.\n\n{{booking_link}}\n\nWe can meet at the studio or by video call, as you prefer.\n\nSee you soon,\n{{organization}}"
+      },
+      {
+        "key": "brochure",
+        "name": "Send the brochure",
+        "subject": "Our brochure — {{organization}}",
+        "body": "Hello {{first_name}},\n\nThank you for your interest! Here is our brochure, with our packages and a few past events:\n\n{{brochure}}\n\nThis link remains valid for 30 days. Tell me what you like, and let's talk about it.\n\nSpeak soon,\n{{organization}}"
       }
     ]
   }
