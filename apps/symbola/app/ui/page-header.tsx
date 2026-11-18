@@ -25,7 +25,10 @@ export function PageHeader({
         ) : (
           <h1>{title}</h1>
         )}
-        {subtitle ? <p className="meta">{subtitle}</p> : null}
+        {/* Lot 40c : un bloc, pas un paragraphe. Un sous-titre peut porter un formulaire (le type de
+            l'évènement), interdit dans un <p> : le navigateur corrigeait le HTML et React
+            reconstruisait l'écran (erreur d'hydratation #418). */}
+        {subtitle ? <div className="meta">{subtitle}</div> : null}
       </div>
       {actions ? <div className="page-actions">{actions}</div> : null}
     </div>

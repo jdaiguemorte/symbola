@@ -6,7 +6,7 @@
 // « Voir comme » montre la même page, actions inactives. En taille ordinateur
 // et en 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { parisToday } from "@symbola/i18n";
@@ -33,8 +33,10 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
+// Lot 40c (NFR-18) : Firefox donne parfois une largeur périmée juste après un rechargement ; la page
+// se stabilise d'abord. Un vrai débordement, qui dure, fait toujours échouer.
 async function expectNoHorizontalScroll(page: Page) {
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 }
 
 // Mariage d'Inès dans 200 jours : deux tâches du client, une de la planner ;

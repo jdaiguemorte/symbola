@@ -2,7 +2,7 @@
 // e-mail (lien valable 7 jours) ; la titulaire accepte et reçoit un lien de connexion
 // (lot 33). Un compte d'organisation n'accède pas à /exploitation.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";

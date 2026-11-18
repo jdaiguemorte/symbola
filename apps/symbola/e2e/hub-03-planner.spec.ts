@@ -2,7 +2,7 @@
 // sans mot de passe, connexion par lien ; la Planner a les modules, pas l'équipe. En taille
 // ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { expect, test, type Page } from "@playwright/test";

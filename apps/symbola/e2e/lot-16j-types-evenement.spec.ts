@@ -3,7 +3,7 @@
 // organiser un séminaire, une agence un mariage. Ordinateur et 375 px,
 // axe-core.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { eq } from "drizzle-orm";
 import { createAppConnection } from "@symbola/db/client";
 import { organizationProfiles } from "@symbola/db/schema/hub";

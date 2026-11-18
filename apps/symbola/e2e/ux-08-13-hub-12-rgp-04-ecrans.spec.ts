@@ -2,7 +2,7 @@
 // enseigne (action, exemple, aide) ; ⌘K propose aussi des actions ; « ? » ouvre l'aide de l'écran ; un
 // champ libre porte sa mise en garde. Ordinateur et 375 px, axe-core.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { expect, test, type Page } from "@playwright/test";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";

@@ -3,7 +3,7 @@
 // clic sur « ? ». AIDE-03 — l'aide est consultable et cherchable depuis le
 // hub. (AIDE-04, liste des premiers pas : retirée au lot 13, L13-HUB-15.)
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";

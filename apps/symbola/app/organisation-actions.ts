@@ -10,13 +10,14 @@ import { addMembership, createOrganization, PROVISIONAL_ORGANIZATION_NAME, switc
 import { appDatabase } from "@symbola/db/client";
 import { ORGANIZATION_COOKIE_MAX_AGE_S, ORGANIZATION_COOKIE_NAME } from "@/lib/active-organization";
 import { getSessionToken } from "@/lib/auth-context";
+import { secureCookies } from "@/lib/cookie-security";
 import { requireSignedIn } from "@/lib/guards";
 
 async function rememberOrganization(organizationId: string): Promise<void> {
   (await cookies()).set(ORGANIZATION_COOKIE_NAME, organizationId, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: secureCookies(),
     path: "/",
     maxAge: ORGANIZATION_COOKIE_MAX_AGE_S,
   });

@@ -4,6 +4,9 @@
 // HTTPS en production (Secure), expiré après 8 heures sans activité, comme la
 // session en base (packages/auth, requireUser). Sans dépendance Node : le
 // middleware s'exécute hors de Node.
+// Lot 40c : « Secure » selon lib/cookie-security.ts.
+import { secureCookies } from "./cookie-security";
+
 export const SESSION_COOKIE_NAME = "symbola_session";
 export const SESSION_IDLE_SECONDS = 8 * 60 * 60;
 
@@ -15,6 +18,6 @@ export type SessionCookieOptions = {
   maxAge: number;
 };
 
-export function sessionCookieOptions(nodeEnv: string | undefined = process.env.NODE_ENV): SessionCookieOptions {
-  return { httpOnly: true, sameSite: "lax", secure: nodeEnv === "production", path: "/", maxAge: SESSION_IDLE_SECONDS };
+export function sessionCookieOptions(nodeEnv: string | undefined = process.env.NODE_ENV, appPublicUrl: string | undefined = process.env.APP_PUBLIC_URL): SessionCookieOptions {
+  return { httpOnly: true, sameSite: "lax", secure: secureCookies(nodeEnv, appPublicUrl), path: "/", maxAge: SESSION_IDLE_SECONDS };
 }

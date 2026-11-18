@@ -375,7 +375,7 @@ sans cette clé, l'app refuse de démarrer.
    journal de l'app indique `double authentification : n secret(s) chiffré(s) au repos (L16-SEC-01)`
    (aucune ligne si tout était déjà chiffré).
 
-## Socle des lots 46 et 49 : clé du chiffrement au niveau du champ (DAT-08, ADR 0078)
+## Socle des lots 46 et 49 : clé du chiffrement au niveau du champ (DAT-08, ADR 0079)
 
 À faire **une fois par environnement, avant** le premier déploiement qui contient le socle des
 lots 46 et 49 : sans cette clé, l'app refuse de démarrer.

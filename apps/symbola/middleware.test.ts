@@ -66,6 +66,7 @@ describe("SEC-05 — Cookie de session HttpOnly, Secure, SameSite, expiré à l'
 
   it("chaque navigation prolonge le cookie de 8 heures, avec HttpOnly, SameSite=Lax et Secure en production", async () => {
     vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("APP_PUBLIC_URL", "https://symbola.fr");
     const setCookie = (await navigate("GET", "symbola_session=jeton-de-session")).headers.get("set-cookie") ?? "";
     expect(setCookie).toContain("symbola_session=jeton-de-session");
     expect(setCookie).toMatch(/HttpOnly/i);

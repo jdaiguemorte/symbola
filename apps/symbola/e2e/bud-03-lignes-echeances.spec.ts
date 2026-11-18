@@ -2,7 +2,7 @@
 // prestataires et rappels dans « Aujourd'hui » (BUD-03, D7, D12, D13). En taille
 // ordinateur et en 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { parisToday } from "@symbola/i18n";

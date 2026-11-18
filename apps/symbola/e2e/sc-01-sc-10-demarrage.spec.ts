@@ -4,7 +4,7 @@
 // - SC-10, étape 1, à 150 % de zoom (1 280 × 800 vu à 150 %) : inscription et questionnaire lus en
 //   entier, sans défilement horizontal, sans fonction perdue.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { expect, test, type Page } from "@playwright/test";
 import { crossIdentityProvider, latestMagicLink, signIn } from "./helpers";
 

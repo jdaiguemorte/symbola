@@ -3,7 +3,7 @@
 // Paramètres › Corbeille et le restaurer avec son contenu ; supprimer définitivement (la titulaire,
 // confirmation qui nomme l'objet). En taille ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { expect, test, type Page } from "@playwright/test";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";

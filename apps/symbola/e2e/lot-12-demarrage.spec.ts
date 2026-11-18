@@ -2,7 +2,7 @@
 // ordinateur et en 375 px, axe-core. Le premier démarrage (ONB-03/04) est devenu le questionnaire
 // d'accueil du lot 33b : e2e/hub-09-10-demarrage.spec.ts.
 import { randomUUID } from "node:crypto";
-import AxeBuilder from "@axe-core/playwright";
+import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createOrganization, createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
@@ -94,8 +94,13 @@ test("L12-HUB-13 — un clic sur une date libre de l'agenda crée un événement
   await page.keyboard.press("Escape");
   await expect(day).not.toHaveAttribute("open");
   await expect(day.getByRole("link", { name: "Créer un prospect à cette date" })).toBeHidden();
-  await day.locator("summary").click();
   await expectNoAxeViolation(page);
+  await day.locator("summary").click();
+  // Lot 40c (WCAG 2.5.8) : le menu ouvert recouvre des dates voisines, que l'on rejoint en le
+  // refermant (Échap, clic ailleurs) : exception « équivalent ». axe-core contrôle la page menus
+  // fermés (ci-dessus), puis le menu lui-même.
+  const menu = await new AxeBuilder({ page }).include("details.agenda-create[open] > ul").analyze();
+  expect(menu.violations, JSON.stringify(menu.violations, null, 2)).toEqual([]);
   await day.getByRole("link", { name: "Créer un événement à cette date" }).click();
   await expect(page).toHaveURL(/\/events\/new\?date=\d{4}-\d{2}-\d{2}&type=evenement$/);
   const date = new URL(page.url()).searchParams.get("date")!;

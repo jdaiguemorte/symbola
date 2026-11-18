@@ -7,6 +7,7 @@ import { getTranslations } from "next-intl/server";
 import { createManagementClient, createOidcClient, identityConnectionFromEnv, MAGIC_LINK_TTL_SECONDS, readMfaEncryptionKey, sealMagicLink, type ManagementClient, type OidcClient, type PendingAuthorization } from "@symbola/auth";
 import { parseEnv } from "@symbola/env";
 import { sendSymbolaEmail } from "@/modules/hub/service";
+import { secureCookies } from "./cookie-security";
 
 type Identity = { management: ManagementClient; oidc: OidcClient; appPublicUrl: string };
 let identityClients: Identity | null = null;
@@ -31,7 +32,7 @@ export async function rememberPendingAuthorization(pending: PendingAuthorization
   (await cookies()).set(PENDING_COOKIE, Buffer.from(JSON.stringify(pending), "utf8").toString("base64url"), {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: secureCookies(),
     path: "/auth",
     maxAge: PENDING_MAX_AGE_S,
   });

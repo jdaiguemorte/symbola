@@ -1,4 +1,4 @@
-// Socle des lots 46 et 49 (ADR 0078 ; RGP-05, ARC-07) — registre des modules : les
+// Socle des lots 46 et 49 (ADR 0079 ; RGP-05, ARC-07) — registre des modules : les
 // quatre modules du pilote restent ouverts par défaut, les nouveaux sont fermés.
 import { describe, expect, it } from "vitest";
 import { isModuleKey, MODULE_ENABLED_BY_DEFAULT, MODULE_KEYS, moduleEnabledByDefault } from "./module-registry";
