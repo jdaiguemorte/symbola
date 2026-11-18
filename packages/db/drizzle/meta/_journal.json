@@ -1055,22 +1055,29 @@
     {
       "idx": 150,
       "version": "7",
-      "when": 1794979578684,
+      "when": 1794983521425,
       "tag": "0150_lot49_events_key_moments",
       "breakpoints": true
     },
     {
       "idx": 151,
       "version": "7",
-      "when": 1794979579951,
+      "when": 1794983522671,
       "tag": "0151_lot49_hub_guest_retention",
       "breakpoints": true
     },
     {
       "idx": 152,
       "version": "7",
-      "when": 1794979581209,
-      "tag": "0152_lot49_guests",
+      "when": 1794983523836,
+      "tag": "0152_lot49_hub_guest_email_kinds",
+      "breakpoints": true
+    },
+    {
+      "idx": 153,
+      "version": "7",
+      "when": 1794983525054,
+      "tag": "0153_lot49_guests",
       "breakpoints": true
     }
   ]

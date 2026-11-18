@@ -69,11 +69,12 @@ RGP-08 doivent tenir dès l'activation du module.
 - **Temps forts restreints par foyer**, pas par personne : `households.key_moment_ids` (null =
   tous) au lieu d'une table `guest_invitations`. Le cas courant (« le brunch pour la famille
   proche ») est un choix de foyer ; une restriction par personne pourra s'ajouter au lot 50.
-- **Contrainte des natures d'e-mails** : la migration hub (0151) réécrit aussi
-  `hub.email_templates_kind_check` pour les deux nouvelles natures, sans quoi un modèle réécrit
-  par la planner serait refusé. C'est une modification du schéma `hub` au-delà des colonnes de
-  conservation : signalée dans la PR. Le lot 46 qui ajoute ses natures réécrira la contrainte avec
-  l'union des deux listes.
+- **Contrainte des natures d'e-mails** : une migration hub à part, réversible (0152), remplace
+  seulement `hub.email_templates_kind_check` par la liste élargie aux deux natures des invités,
+  sans quoi un modèle réécrit par la planner serait refusé ; une nature inconnue reste refusée
+  (test). Modification du schéma `hub` au-delà des colonnes de conservation, **autorisée par
+  Julien le 18/11/2026** pour les lots 46 et 49 ; signalée dans la PR. La seconde PR fusionnée
+  réunit les deux listes et renumérote sa migration.
 - **Intitulés des colonnes d'import** dans `guest-import-columns.json`, à part de
   `import-synonyms.json`, dont les intitulés courts (« prénom », « nom ») désignent les clients
   d'un évènement dans l'assistant d'import.
@@ -88,7 +89,7 @@ RGP-08 doivent tenir dès l'activation du module.
 - Avant d'ouvrir le module à la pilote : DPO-1 et DPO-4 tranchés, analyse d'impact remise, puis
   l'Exploitation ouvre le module et la titulaire confirme l'analyse. Rien d'autre à configurer :
   `DATA_ENCRYPTION_KEY` est déjà exigée par le socle (ADR 0078).
-- Migrations 0150 à 0152 : ajouts seuls, compatibles avec la version précédente du code (pas
+- Migrations 0150 à 0153 : ajouts seuls, compatibles avec la version précédente du code (pas
   d'arrêt de l'app) ; leurs annulations refusent tant que des invités ou des temps forts existent.
 - La synthèse pour le traiteur et son export (lot 50) suivront la règle de l'accès : nominatif
   pour la titulaire seule, agrégé ailleurs. Les copies hors ligne du jour J n'emportent aucune

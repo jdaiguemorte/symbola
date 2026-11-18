@@ -489,9 +489,9 @@ lire le résultat :
    des brouillons de formulaires (vide au départ), purgée avec la corbeille. Les erreurs du serveur
    s'écrivent dans le journal du conteneur `symbola` sous la forme `erreur serveur {"reference":…}` :
    la référence est celle que l'écran d'erreur montre à la personne.
-   Les migrations 0150 à 0152 (lot 49, ADR 0082) passent sans arrêter `symbola` : temps forts des
-   évènements (`events.key_moments`), durées de la purge des invités et deux natures d'e-mails
-   (`hub`), schéma `guests` (vide). Le module Invités reste **fermé** chez chaque organisation tant
+   Les migrations 0150 à 0153 (lot 49, ADR 0082) passent sans arrêter `symbola` : temps forts des
+   évènements (`events.key_moments`), durées de la purge des invités (0151) et contrainte des
+   natures d'e-mails élargie à l'invitation et à la relance (0152, `hub`), schéma `guests` (vide). Le module Invités reste **fermé** chez chaque organisation tant
    que l'Exploitation ne l'ouvre pas (après l'analyse d'impact, Q38) ; la page `/rsvp` est publique
    (jeton après « # », débit limité) : rien à ouvrir de plus dans Caddy. La tâche horaire des
    invités (purge avec préavis, relances) démarre avec l'app. Leurs annulations sont refusées tant

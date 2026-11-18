@@ -1,6 +1,6 @@
 {
-  "id": "67f7aaae-4379-4c71-8aaa-5af1879ccb5a",
-  "prevId": "600bb2df-0c51-4e63-ba42-893de008e1f1",
+  "id": "45055483-5639-476c-9821-353cb95b7d5e",
+  "prevId": "1c32b101-0851-4819-9280-f25908e6c78d",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -7208,7 +7208,7 @@
       "checkConstraints": {
         "email_templates_kind_check": {
           "name": "email_templates_kind_check",
-          "value": "\"hub\".\"email_templates\".\"kind\" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder')"
+          "value": "\"hub\".\"email_templates\".\"kind\" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published')"
         },
         "email_templates_locale_check": {
           "name": "email_templates_locale_check",

@@ -51,8 +51,9 @@ const rollback = async (tag: string) => {
 };
 
 // Lots 26a à 29b : migrations au-dessus de celles du 28, annulées pour revenir à 0108.
-// Lot 49 : module Invités (0152), durées de purge et modèles d'e-mails (0151), temps forts (0150).
-const LOT_49 = ["0152_lot49_guests", "0151_lot49_hub_guest_retention", "0150_lot49_events_key_moments"];
+// Lot 49 : module Invités (0153), natures d'e-mails des invités (0152), durées de purge (0151),
+// temps forts (0150).
+const LOT_49 = ["0153_lot49_guests", "0152_lot49_hub_guest_email_kinds", "0151_lot49_hub_guest_retention", "0150_lot49_events_key_moments"];
 const LOT_40B = ["0149_lot40b_hub_jobs"];
 const LOT_39B = ["0148_lot39b_hub_form_drafts"];
 const LOT_39A = ["0147_lot39a_budget_soft_delete", "0146_lot39a_quotes_soft_delete", "0145_lot39a_hub_soft_delete", "0144_lot39a_events_soft_delete"];
@@ -112,7 +113,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(rollback("0099_inconnue")).rejects.toBeInstanceOf(RollbackRefusedError);
   });
 
-  it("lot 49 (D2, D9 ; ADR 0082) — 0150 à 0152 : un enfant n'a ni contact ni lien ; annulation refusée tant que des invités ou des temps forts existent, puis tout est retiré", async () => {
+  it("lot 49 (D2, D9 ; ADR 0082) — 0150 à 0153 : un enfant n'a ni contact ni lien ; annulation refusée tant que des invités ou des temps forts existent, puis tout est retiré", async () => {
     await migrateAll();
     const organizationId = randomUUID();
     const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
@@ -126,11 +127,18 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await rollback(LOT_49[0]!);
     const [schema] = await target<{ name: string | null }[]>`select to_regnamespace('guests')::text as name`;
     expect(schema!.name).toBeNull();
+    // 0152 : nature d'un modèle réécrit ; une nature inconnue reste refusée.
+    const [template] = await target<{ id: string }[]>`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, 'guest_invitation', 'fr', 'Invitation', 'Bonjour {{prénom}} {{lien}}') returning id`;
+    await expect(target`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, 'nature_inconnue', 'fr', 'Objet', 'Texte')`).rejects.toThrow(/email_templates_kind_check/);
+    await expect(rollback(LOT_49[1]!)).rejects.toThrow(/modèles d'e-mails des invités ont été réécrits/);
+    await target`delete from hub.email_templates where id = ${template!.id}`;
     await rollback(LOT_49[1]!);
-    expect(await hasColumn("hub", "privacy_settings", "guest_retention_days")).toBe(false);
-    await expect(rollback(LOT_49[2]!)).rejects.toThrow(/temps forts existent encore/);
-    await target`delete from events.key_moments where id = ${moment!.id}`;
+    await expect(target`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, 'guest_reminder', 'fr', 'Relance', 'Bonjour {{lien}}')`).rejects.toThrow(/email_templates_kind_check/);
     await rollback(LOT_49[2]!);
+    expect(await hasColumn("hub", "privacy_settings", "guest_retention_days")).toBe(false);
+    await expect(rollback(LOT_49[3]!)).rejects.toThrow(/temps forts existent encore/);
+    await target`delete from events.key_moments where id = ${moment!.id}`;
+    await rollback(LOT_49[3]!);
     const [table] = await target<{ name: string | null }[]>`select to_regclass('events.key_moments')::text as name`;
     expect(table!.name).toBeNull();
     await target`delete from events.events where id = ${event!.id}`;

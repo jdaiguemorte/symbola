@@ -1,4 +1,4 @@
--- Annulation de 0152 (lot 49) : le module Invités disparaît avec son schéma. Refusée tant qu'un
+-- Annulation de 0153 (lot 49) : le module Invités disparaît avec son schéma. Refusée tant qu'un
 -- foyer, un régime ou une preuve d'accord existe encore : ce sont des données de personnes (purgez
 -- ou effacez-les d'abord, RGP-08). Les réglages, la liste des régimes et les traces d'import sans
 -- donnée personnelle partent avec le schéma.

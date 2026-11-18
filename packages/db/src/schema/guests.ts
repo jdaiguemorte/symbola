@@ -1,7 +1,7 @@
 // Schéma du module guests (lot 49, ADR 0011, 0012 et 0082 ; décision D1) : foyers et personnes
 // invités à un évènement, leurs réponses par temps fort, leurs régimes (chiffrés, avec l'accord de
 // l'invité), leurs liens personnels et la purge de tout cela après l'évènement. Chaque table a
-// organization_id, protégée par Row-Level Security (migration 0151). Les invités ne sont pas des
+// organization_id, protégée par Row-Level Security (migration 0153). Les invités ne sont pas des
 // contacts du hub (CRM-03) : ils appartiennent à l'évènement, dont l'identifiant est gardé sans clé
 // étrangère entre schémas (avenant de l'ADR 0012) ; même chose pour les temps forts
 // (events.key_moments) et le côté (un client de l'évènement).
