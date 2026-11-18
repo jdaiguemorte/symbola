@@ -1473,7 +1473,7 @@ fields:
   - schema: guests
     table: seating_constraint_members
     field: guest_id
-    category: contenu_libre
+    category: identifiant
     retention: >-
       Lot 50 (INV-05, D4) : personne d'une contrainte de placement « ensemble » ou « séparés ». Donnée
       interne de l'organisation (un « séparés » dit souvent quelque chose de la famille) : jamais
@@ -1485,7 +1485,7 @@ fields:
   - schema: guests
     table: guests
     field: meal_type_id
-    category: contenu_libre
+    category: identifiant
     retention: >-
       Lot 50 (INV-06, D5) : type de repas choisi pour un invité par la planner (vide : la valeur par
       défaut tirée de l'âge). Purgé avec la personne, 30 jours après l'évènement.
