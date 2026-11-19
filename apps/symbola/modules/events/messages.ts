@@ -1,4 +1,4 @@
-// Lot 55 (MSG-03, POR-06 ; D3 ; ADR 0101) — sujets de discussion d'un évènement et leurs fils : accès à
+// Lot 55 (MSG-03, POR-06 ; D3 ; ADR 0102) — sujets de discussion d'un évènement et leurs fils : accès à
 // la base du module. Les contrôles d'accès (équipe, lien, rubrique, prestataire du sujet) sont dans
 // service.ts, qui seul expose ces fonctions (ADR 0011).
 //

@@ -1,4 +1,4 @@
-// Lot 55 (POR-06, POR-10 ; ADR 0101) — la rubrique « Messages » du portail : fermée par défaut, ouverte
+// Lot 55 (POR-06, POR-10 ; ADR 0102) — la rubrique « Messages » du portail : fermée par défaut, ouverte
 // par la planner sur le lien d'un client, et seulement si le module Évènements est ouvert. Le service
 // relit le lien à chaque appel (valable, rubrique ouverte).
 import type { LinkAccess } from "@/modules/events/service";

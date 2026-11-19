@@ -1,4 +1,4 @@
-// Lot 55 (MSG-03, POR-06 ; ADR 0101) — lecture d'un message envoyé avec ses pièces jointes (route
+// Lot 55 (MSG-03, POR-06 ; ADR 0102) — lecture d'un message envoyé avec ses pièces jointes (route
 // dédiée, lib/uploads/receive.ts) et traduction des refus en messages de l'écran.
 import { getTranslations } from "next-intl/server";
 import { MESSAGE_ATTACHMENTS_MAX, type MessageFileInput } from "@symbola/contracts";

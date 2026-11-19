@@ -1,4 +1,4 @@
-// Lot 55 (POR-06, POR-10 ; ADR 0101) — la rubrique « Messages » du portail : les sujets partagés de
+// Lot 55 (POR-06, POR-10 ; ADR 0102) — la rubrique « Messages » du portail : les sujets partagés de
 // l'évènement, un nouveau sujet, et le réglage des notifications de l'appareil (facultatif). Fermée
 // par défaut ; sans elle, « indisponible ».
 import Link from "next/link";

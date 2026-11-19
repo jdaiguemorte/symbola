@@ -55,13 +55,16 @@ describe("@symbola/mail — sendMail (Mailpit réel)", () => {
   it("MSG-04, MSG-05 (lot 55) — l'adresse d'expédition de l'organisation et l'identifiant du message arrivent tels quels", async () => {
     const to = `destinataire-${randomUUID()}@symbola.test`;
     const reference = `${randomUUID()}.${randomUUID()}@envoi.symbola.test`;
-    await sendMail({ to, subject: `Expéditeur ${randomUUID()}`, text: "Texte.", fromName: "Atelier Camille", fromAddress: "atelier-camille@envoi.symbola.test", replyTo: "contact@atelier.test", messageId: `<${reference}>` });
+    await sendMail({ to, subject: `Expéditeur ${randomUUID()}`, text: "Texte.", fromName: "Atelier Camille", fromAddress: "atelier-camille@envoi.symbola.test", replyTo: "contact@atelier.test", messageId: `<${reference}>`, headers: { "X-Symbola-Delivery": reference } });
     const search = await fetch(`${MAILPIT_API}/search?query=${encodeURIComponent(`to:${to}`)}`);
     const { messages } = (await search.json()) as { messages: Array<{ ID: string; MessageID: string }> };
     const message = (await (await fetch(`${MAILPIT_API}/message/${messages[0]!.ID}`)).json()) as { From: { Name: string; Address: string }; ReplyTo: { Address: string }[]; MessageID: string };
     expect(message.From).toEqual({ Name: "Atelier Camille", Address: "atelier-camille@envoi.symbola.test" });
     expect(message.ReplyTo.map((entry) => entry.Address)).toEqual(["contact@atelier.test"]);
     expect(message.MessageID).toBe(reference);
+    // Lot 55 (Scaleway) : l'en-tête recopié dans les évènements de TEM, par lequel le webhook retrouve l'envoi.
+    const headers = (await (await fetch(`${MAILPIT_API}/message/${messages[0]!.ID}/headers`)).json()) as Record<string, string[]>;
+    expect(headers["X-Symbola-Delivery"]).toEqual([reference]);
   });
 });
 

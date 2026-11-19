@@ -1,4 +1,4 @@
-// Lot 55 (MSG-03, POR-06 ; D3 ; ADR 0101) — fils de discussion par évènement et par sujet. Un message
+// Lot 55 (MSG-03, POR-06 ; D3 ; ADR 0102) — fils de discussion par évènement et par sujet. Un message
 // est « interne » (l'équipe seulement) ou « partagé » (les clients dont le lien ouvre la rubrique
 // « Messages », et les prestataires que la planner ajoute au sujet). Un message interne n'a aucun
 // chemin vers un destinataire extérieur : il n'est écrit que par l'équipe, depuis sa propre zone, et

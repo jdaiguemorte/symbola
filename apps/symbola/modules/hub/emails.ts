@@ -23,6 +23,7 @@ import { randomUUID } from "node:crypto";
 import { parseEnv } from "@symbola/env";
 import { organizationFromAddress } from "./email-deliveries";
 import { deliveryReference, messageIdDomain } from "./sender-address-rules";
+import { DELIVERY_HEADER } from "./scaleway-webhook";
 import { findOrganizationById, findOrganizationProfile, findUserContact } from "./repository";
 
 const LOGO_CID = "logo@symbola";
@@ -182,6 +183,8 @@ export async function sendOrganizationEmail(input: {
     fromName: mail.fromName,
     ...(mail.fromAddress ? { fromAddress: mail.fromAddress } : {}),
     messageId: `<${reference}>`,
+    // Recopié par Scaleway dans ses évènements (email_headers) : le webhook retrouve la ligne du journal.
+    headers: { [DELIVERY_HEADER]: reference },
     ...(mail.replyTo ? { replyTo: mail.replyTo } : {}),
     attachments: [...mail.attachments, ...(input.attachments ?? [])],
   }, input.idempotencyKey, { id: deliveryId, reference, kind: input.kind, eventId: input.eventId ?? null });

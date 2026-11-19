@@ -1,4 +1,4 @@
-// Lot 55 (MSG-03 ; D3 ; ADR 0101) — le fil d'un sujet, pour l'équipe : messages partagés et notes
+// Lot 55 (MSG-03 ; D3 ; ADR 0102) — le fil d'un sujet, pour l'équipe : messages partagés et notes
 // internes (fond et étiquette « Interne »), puis les deux zones d'écriture, distinctes. La zone
 // partagée nomme ses destinataires sur son bouton ; sans destinataire, elle explique comment en avoir.
 import Link from "next/link";

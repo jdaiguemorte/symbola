@@ -1,4 +1,4 @@
-// Lot 55 (MSG-03 ; D3 ; ADR 0101) — les sujets de discussion d'un évènement (« Traiteur »,
+// Lot 55 (MSG-03 ; D3 ; ADR 0102) — les sujets de discussion d'un évènement (« Traiteur »,
 // « Cérémonie »), chacun avec son fil ; un nouveau sujet. Le journal des envois de l'évènement est à
 // un clic.
 import Link from "next/link";

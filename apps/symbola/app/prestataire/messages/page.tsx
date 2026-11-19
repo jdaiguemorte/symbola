@@ -1,4 +1,4 @@
-// Lot 55 (MSG-03 ; ADR 0101) — les sujets où la planner a ajouté ce prestataire (messages partagés
+// Lot 55 (MSG-03 ; ADR 0102) — les sujets où la planner a ajouté ce prestataire (messages partagés
 // seulement). Un prestataire n'ouvre pas de sujet : il répond dans les siens.
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";

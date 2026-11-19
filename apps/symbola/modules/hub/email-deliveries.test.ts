@@ -50,33 +50,37 @@ describe("SEC-19 — Signature du webhook simulé (HMAC-SHA256 horodaté)", () =
   const secret = "s".repeat(40);
   const body = JSON.stringify({ events: [{ reference: "x", status: "delivered", occurred_at: "2027-06-01T10:00:00Z" }] });
   const now = new Date("2027-06-01T10:00:00Z");
-  const verify = (header: string | null, raw = body, at = now) => simulatedWebhookAdapter(secret).verify(new Headers(header ? { [SIMULATED_SIGNATURE_HEADER]: header } : {}), raw, at);
+  const verify = async (header: string | null, raw = body, at = now) => simulatedWebhookAdapter(secret).verify(new Headers(header ? { [SIMULATED_SIGNATURE_HEADER]: header } : {}), raw, at);
 
-  it("accepte la signature du bon secret, dans la fenêtre de cinq minutes", () => {
-    expect(verify(signSimulatedWebhook(secret, body, now))).toMatchObject({ ok: true, events: [{ reference: "x", status: "delivered", reason: null }] });
-    expect(verify(signSimulatedWebhook(secret, body, new Date(now.getTime() - 299_000)))).toMatchObject({ ok: true });
+  it("accepte la signature du bon secret, dans la fenêtre de cinq minutes", async () => {
+    expect(await verify(signSimulatedWebhook(secret, body, now))).toMatchObject({ ok: true, events: [{ reference: "x", status: "delivered", reason: null }] });
+    expect(await verify(signSimulatedWebhook(secret, body, new Date(now.getTime() - 299_000)))).toMatchObject({ ok: true });
   });
 
-  it("refuse : sans en-tête, autre secret, corps modifié, hors fenêtre, en-tête mal formé", () => {
-    expect(verify(null)).toEqual({ ok: false, reason: "signature_missing" });
-    expect(verify(signSimulatedWebhook("t".repeat(40), body, now))).toEqual({ ok: false, reason: "signature_invalid" });
-    expect(verify(signSimulatedWebhook(secret, body, now), body.replace("delivered", "bounced"))).toEqual({ ok: false, reason: "signature_invalid" });
-    expect(verify(signSimulatedWebhook(secret, body, new Date(now.getTime() - 301_000)))).toEqual({ ok: false, reason: "signature_expired" });
-    expect(verify("t=abc,v1=zz")).toEqual({ ok: false, reason: "signature_invalid" });
+  it("refuse : sans en-tête, autre secret, corps modifié, hors fenêtre, en-tête mal formé", async () => {
+    expect(await verify(null)).toEqual({ ok: false, reason: "signature_missing" });
+    expect(await verify(signSimulatedWebhook("t".repeat(40), body, now))).toEqual({ ok: false, reason: "signature_invalid" });
+    expect(await verify(signSimulatedWebhook(secret, body, now), body.replace("delivered", "bounced"))).toEqual({ ok: false, reason: "signature_invalid" });
+    expect(await verify(signSimulatedWebhook(secret, body, new Date(now.getTime() - 301_000)))).toEqual({ ok: false, reason: "signature_expired" });
+    expect(await verify("t=abc,v1=zz")).toEqual({ ok: false, reason: "signature_invalid" });
     // Bien signé, mais illisible ou hors du format attendu.
-    expect(verify(signSimulatedWebhook(secret, "pas du json", now), "pas du json")).toEqual({ ok: false, reason: "payload_invalid" });
+    expect(await verify(signSimulatedWebhook(secret, "pas du json", now), "pas du json")).toEqual({ ok: false, reason: "payload_invalid" });
     const empty = JSON.stringify({ events: [] });
-    expect(verify(signSimulatedWebhook(secret, empty, now), empty)).toEqual({ ok: false, reason: "payload_invalid" });
+    expect(await verify(signSimulatedWebhook(secret, empty, now), empty)).toEqual({ ok: false, reason: "payload_invalid" });
   });
 
-  it("un rejet sans motif devient « autre motif » ; une plainte, « signalé comme indésirable »", () => {
+  it("un rejet sans motif devient « autre motif » ; une plainte, « signalé comme indésirable »", async () => {
     const raw = JSON.stringify({ events: [{ reference: "a", status: "bounced", occurred_at: "2027-06-01T10:00:00Z" }, { reference: "b", status: "complained", occurred_at: "2027-06-01T10:00:00Z" }] });
-    expect(verify(signSimulatedWebhook(secret, raw, now), raw)).toMatchObject({ ok: true, events: [{ reason: "other" }, { reason: "spam_complaint" }] });
+    expect(await verify(signSimulatedWebhook(secret, raw, now), raw)).toMatchObject({ ok: true, events: [{ reason: "other" }, { reason: "spam_complaint" }] });
   });
 
   it("l'adaptateur suit EMAIL_DELIVERY_WEBHOOK ; un test peut en poser un autre", () => {
-    expect(adapterFromEnv({ EMAIL_DELIVERY_WEBHOOK: "none", EMAIL_DELIVERY_WEBHOOK_SECRET: "" })).toBeNull();
-    expect(adapterFromEnv({ EMAIL_DELIVERY_WEBHOOK: "simulated", EMAIL_DELIVERY_WEBHOOK_SECRET: secret })?.name).toBe("simulated");
+    expect(adapterFromEnv({ EMAIL_DELIVERY_WEBHOOK: "none", EMAIL_DELIVERY_WEBHOOK_SECRET: "", EMAIL_DELIVERY_WEBHOOK_TOPIC_ARN: [] })).toBeNull();
+    expect(adapterFromEnv({ EMAIL_DELIVERY_WEBHOOK: "simulated", EMAIL_DELIVERY_WEBHOOK_SECRET: secret, EMAIL_DELIVERY_WEBHOOK_TOPIC_ARN: [] })?.name).toBe("simulated");
+    const scaleway = adapterFromEnv({ EMAIL_DELIVERY_WEBHOOK: "scaleway", EMAIL_DELIVERY_WEBHOOK_SECRET: "", EMAIL_DELIVERY_WEBHOOK_TOPIC_ARN: ["arn:scw:sns:fr-par:project-1:tem"] });
+    expect(scaleway?.name).toBe("scaleway");
+    // Le même adaptateur d'un appel à l'autre (cache des certificats).
+    expect(adapterFromEnv({ EMAIL_DELIVERY_WEBHOOK: "scaleway", EMAIL_DELIVERY_WEBHOOK_SECRET: "", EMAIL_DELIVERY_WEBHOOK_TOPIC_ARN: ["arn:scw:sns:fr-par:project-1:tem"] })).toBe(scaleway);
     try {
       configureDeliveryWebhookAdapter(null);
       expect(currentDeliveryWebhookAdapter()).toBeNull();

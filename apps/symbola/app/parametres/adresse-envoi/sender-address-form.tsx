@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 55 (MSG-04 révisée ; ADR 0101) — la partie locale de l'adresse d'expédition, avant le domaine
+// Lot 55 (MSG-04 révisée ; ADR 0102) — la partie locale de l'adresse d'expédition, avant le domaine
 // d'envoi de Symbola.
 import { useActionState, useId } from "react";
 import { useTranslations } from "next-intl";

@@ -1,4 +1,4 @@
-// Lot 55 (POR-06, MSG-03 ; ADR 0101, ADR 0027) — routes de la messagerie d'un lien (portail du client,
+// Lot 55 (POR-06, MSG-03 ; ADR 0102, ADR 0027) — routes de la messagerie d'un lien (portail du client,
 // espace du prestataire) : origine, session du lien au public attendu, débit et taille avant la
 // lecture (receiveLinkUpload) ; puis le service relit le lien et ses droits. Un lien n'écrit que des
 // messages partagés : aucun champ ne choisit la visibilité.

@@ -1,4 +1,4 @@
-// Lot 55 (MSG-05 ; D2 ; ADR 0101) — « Journal des envois » : chaque e-mail de l'organisation, son objet
+// Lot 55 (MSG-05 ; D2 ; ADR 0102) — « Journal des envois » : chaque e-mail de l'organisation, son objet
 // et son statut (envoyé, remis, rejeté, plainte), filtrable par évènement (?evenement=) et par contact
 // (?contact=). Gardé 13 mois, jamais le contenu.
 import Link from "next/link";

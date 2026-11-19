@@ -1,4 +1,4 @@
-// Lot 55 (POR-11 ; ADR 0101) — quand proposer « Ajouter à l'écran d'accueil » : jamais à la première
+// Lot 55 (POR-11 ; ADR 0102) — quand proposer « Ajouter à l'écran d'accueil » : jamais à la première
 // visite, seulement à partir de la deuxième ; une fois refusée, plus rien pendant 30 jours ; jamais
 // si le portail est déjà installé. Une visite = une session du navigateur (pas chaque page).
 // Fonctions pures ; l'état vit dans le navigateur (localStorage), rien n'est envoyé au serveur.

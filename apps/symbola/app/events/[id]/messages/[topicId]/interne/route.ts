@@ -1,4 +1,4 @@
-// Lot 55 (MSG-03 ; D3 ; ADR 0101) — zone « Note interne » : l'équipe seulement. Cette route n'appelle
+// Lot 55 (MSG-03 ; D3 ; ADR 0102) — zone « Note interne » : l'équipe seulement. Cette route n'appelle
 // que postInternalNote, qui ne prévient personne au-dehors ; aucun champ ne choisit la visibilité (un
 // champ « visibility » glissé dans la requête est ignoré).
 import { revalidatePath } from "next/cache";

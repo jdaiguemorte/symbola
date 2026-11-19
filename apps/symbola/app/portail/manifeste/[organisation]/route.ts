@@ -1,4 +1,4 @@
-// Lot 55 (POR-11, POR-08 ; ADR 0101) — manifeste du portail installable, aux couleurs et au nom de
+// Lot 55 (POR-11, POR-08 ; ADR 0102) — manifeste du portail installable, aux couleurs et au nom de
 // l'organisation, logo en icône. Public (un navigateur le lit sans les cookies de la page) :
 // l'organisation est désignée par son identifiant, non devinable ; rien de personnel n'y figure (le
 // nom et la couleur de l'entreprise, comme sur ses documents). Un identifiant inconnu reçoit le

@@ -1,4 +1,4 @@
-// Lot 55 (POR-11 ; ADR 0101) — icône du portail installé : le logo de l'organisation (celui de ses
+// Lot 55 (POR-11 ; ADR 0102) — icône du portail installé : le logo de l'organisation (celui de ses
 // documents et de ses e-mails), désignée par son identifiant non devinable ; sinon l'icône de Symbola.
 import { isValidId } from "@/app/events/module-access";
 import { organizationLogoResponse } from "@/app/logo/logo-response";

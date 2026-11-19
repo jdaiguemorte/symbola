@@ -1,4 +1,4 @@
-// Lot 55 (MSG-03 ; D3 ; ADR 0101) — zone « Message partagé » : part aux destinataires nommés sur le
+// Lot 55 (MSG-03 ; D3 ; ADR 0102) — zone « Message partagé » : part aux destinataires nommés sur le
 // bouton (empreinte comparée par le service ; refus s'ils ont changé). Route dédiée pour les pièces
 // jointes (L16-SEC-02) : origine, session de l'équipe, débit et taille avant la lecture du fichier.
 import { revalidatePath } from "next/cache";

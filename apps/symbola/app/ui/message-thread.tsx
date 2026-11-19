@@ -1,4 +1,4 @@
-// Lot 55 (MSG-03, POR-06 ; D3 ; ADR 0101) — un fil de messages, pour l'équipe et pour un lien. Un
+// Lot 55 (MSG-03, POR-06 ; D3 ; ADR 0102) — un fil de messages, pour l'équipe et pour un lien. Un
 // message interne (que seule l'équipe reçoit) a son fond et son étiquette « Interne » : la
 // distinction ne repose pas sur la couleur seule. Les pièces jointes s'ouvrent par une route de l'app
 // qui contrôle les droits (ADR 0027).

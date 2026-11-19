@@ -1,4 +1,4 @@
-// Lot 55 (MSG-04 révisée, MSG-05 ; D1, D2 ; ADR 0101) — l'adresse d'expédition de l'organisation et le
+// Lot 55 (MSG-04 révisée, MSG-05 ; D1, D2 ; ADR 0102) — l'adresse d'expédition de l'organisation et le
 // journal des envois. Exposé seulement par service.ts (ADR 0011).
 //
 // - Adresse d'expédition : « <partie locale>@<SMTP_FROM_DOMAIN> », proposée depuis le nom, unique
@@ -170,7 +170,7 @@ export async function handleEmailDeliveryWebhook(input: { headers: Headers; rawB
     console.warn("webhook d'envoi rejeté : unavailable");
     return { httpStatus: 404, outcome: "unavailable", changes: [] };
   }
-  const verification = adapter.verify(input.headers, input.rawBody, input.now ?? new Date());
+  const verification = await adapter.verify(input.headers, input.rawBody, input.now ?? new Date());
   if (!verification.ok) {
     console.warn(`webhook d'envoi rejeté : ${verification.reason}`);
     return { httpStatus: 401, outcome: verification.reason, changes: [] };
@@ -180,7 +180,7 @@ export async function handleEmailDeliveryWebhook(input: { headers: Headers; rawB
     const change = await applyDeliveryStatus(event);
     if (change) changes.push(change);
   }
-  return { httpStatus: 200, outcome: "accepted", changes };
+  return { httpStatus: 200, outcome: verification.note ?? "accepted", changes };
 }
 
 // Le contact dont c'est l'adresse (la fiche où porter l'alerte), s'il existe.

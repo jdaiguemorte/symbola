@@ -166,7 +166,7 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: questionnaireAnswers, parents: { questionnaireId: "event_questionnaires" } },
   // Lot 52 (EVT-06, D2) : l'équipe de chaque évènement (planner principal, assistants).
   { table: eventTeamMembers, ...ofEvent },
-  // Lot 55 (MSG-03, POR-06 ; ADR 0101) : sujets, messages (internes et partagés) et pièces jointes ; les
+  // Lot 55 (MSG-03, POR-06 ; ADR 0102) : sujets, messages (internes et partagés) et pièces jointes ; les
   // prestataires d'un sujet sont des liens, recréés à la reprise (comme les liens) ; l'auteur d'un
   // message écrit par un lien garde son nom, sans le lien.
   { table: messageTopics, ...ofEvent },

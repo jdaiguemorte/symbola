@@ -46,7 +46,7 @@ export const organizations = hubSchema.table(
     closedByUserId: uuid("closed_by_user_id"),
     deletionDueAt: timestamp("deletion_due_at", { withTimezone: true }),
     closureNoticeSentAt: timestamp("closure_notice_sent_at", { withTimezone: true }),
-    // Lot 55 (MSG-04 révisée, D1 ; ADR 0101) : partie locale de l'adresse d'expédition de
+    // Lot 55 (MSG-04 révisée, D1 ; ADR 0102) : partie locale de l'adresse d'expédition de
     // l'organisation, « <partie locale>@<domaine d'envoi de Symbola> » ; unique, en minuscules. Nulle
     // tant qu'elle n'est pas choisie : elle est alors proposée depuis le nom.
     senderLocalPart: text("sender_local_part"),
@@ -1715,7 +1715,7 @@ export const organizationClosures = hubSchema.table(
   ],
 );
 
-// Lot 55 (MSG-05 ; D2 ; ADR 0101) — journal des envois : chaque e-mail d'une organisation, son objet et
+// Lot 55 (MSG-05 ; D2 ; ADR 0102) — journal des envois : chaque e-mail d'une organisation, son objet et
 // son statut (envoyé, remis, rejeté, plainte), mis à jour par le webhook signé du service d'envoi.
 // Jamais le corps. reference : l'identifiant du message (en-tête Message-ID, sans donnée
 // personnelle), par lequel le webhook retrouve la ligne. recipient_hash : SHA-256 de l'adresse en

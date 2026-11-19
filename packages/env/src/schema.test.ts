@@ -148,7 +148,7 @@ describe("ARC-09 — Clés VAPID des notifications push (lot 53, ADR 0096)", () 
   });
 });
 
-describe("MSG-04 — Domaine d'envoi et adresse d'expédition des organisations (lot 55, ADR 0101)", () => {
+describe("MSG-04 — Domaine d'envoi et adresse d'expédition des organisations (lot 55, ADR 0102)", () => {
   it("par défaut, le sous-domaine dédié envoi.symbola.fr, et l'expéditeur partagé (SMTP_FROM) tant que le service n'est pas choisi", () => {
     const env = parseEnv(validEnv);
     expect(env.SMTP_FROM_DOMAIN).toBe("envoi.symbola.fr");
@@ -171,6 +171,15 @@ describe("MSG-05 — Webhook de remise du service d'envoi (lot 55, SEC-19)", () 
     expect(() => parseEnv({ ...validEnv, EMAIL_DELIVERY_WEBHOOK: "simulated" })).toThrow(/EMAIL_DELIVERY_WEBHOOK_SECRET/);
     expect(() => parseEnv({ ...validEnv, EMAIL_DELIVERY_WEBHOOK: "simulated", EMAIL_DELIVERY_WEBHOOK_SECRET: "court" })).toThrow(/EMAIL_DELIVERY_WEBHOOK_SECRET/);
     expect(parseEnv({ ...validEnv, EMAIL_DELIVERY_WEBHOOK: "simulated", EMAIL_DELIVERY_WEBHOOK_SECRET: "s".repeat(32) }).EMAIL_DELIVERY_WEBHOOK).toBe("simulated");
+  });
+
+  it("Scaleway (choix du 19/11/2026) : l'ARN du sujet est requis, bien formé, une liste séparée par des virgules", () => {
+    expect(() => parseEnv({ ...validEnv, EMAIL_DELIVERY_WEBHOOK: "scaleway" })).toThrow(/EMAIL_DELIVERY_WEBHOOK_TOPIC_ARN/);
+    expect(() => parseEnv({ ...validEnv, EMAIL_DELIVERY_WEBHOOK: "scaleway", EMAIL_DELIVERY_WEBHOOK_TOPIC_ARN: "https://exemple.test" })).toThrow(/EMAIL_DELIVERY_WEBHOOK_TOPIC_ARN/);
+    const env = parseEnv({ ...validEnv, EMAIL_DELIVERY_WEBHOOK: "scaleway", EMAIL_DELIVERY_WEBHOOK_TOPIC_ARN: " arn:scw:sns:fr-par:project-1234:tem-envois , arn:scw:sns:fr-par:project-1234:tem-staging" });
+    expect(env.EMAIL_DELIVERY_WEBHOOK_TOPIC_ARN).toEqual(["arn:scw:sns:fr-par:project-1234:tem-envois", "arn:scw:sns:fr-par:project-1234:tem-staging"]);
+    // Pas de secret partagé : la signature vient du certificat de Scaleway.
+    expect(env.EMAIL_DELIVERY_WEBHOOK_SECRET).toBe("");
   });
 
   it("le webhook simulé est interdit en production", () => {

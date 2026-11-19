@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 55 (POR-11 ; ADR 0101) — « Ajouter à l'écran d'accueil » : à partir de la deuxième visite, jamais
+// Lot 55 (POR-11 ; ADR 0102) — « Ajouter à l'écran d'accueil » : à partir de la deuxième visite, jamais
 // avant ; refusée, elle se tait 30 jours ; rien une fois installé. Sur Android et sur ordinateur, le
 // bouton ouvre la proposition du navigateur (beforeinstallprompt) ; sur iPhone, qui n'en a pas, les
 // étapes à suivre. L'état reste dans le navigateur.

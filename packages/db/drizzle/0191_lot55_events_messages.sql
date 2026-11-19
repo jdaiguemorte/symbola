@@ -1,4 +1,4 @@
--- Lot 55 (MSG-03, POR-06, POR-11 ; D3 ; ADR 0101) : sujets de discussion d'un évènement, leurs
+-- Lot 55 (MSG-03, POR-06, POR-11 ; D3 ; ADR 0102) : sujets de discussion d'un évènement, leurs
 -- prestataires, leurs messages (internes ou partagés) et pièces jointes ; abonnements push des
 -- appareils des clients ; rubrique « Messages » du portail. Schéma events seulement. Ajout seul :
 -- compatible avec la version précédente du code (ARC-14), qui ignore ces tables et la nouvelle valeur

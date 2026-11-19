@@ -1,4 +1,4 @@
-// Lot 55 (MSG-03, POR-06, POR-11 ; D3 ; ADR 0101) — fils de discussion par sujet, contre un vrai
+// Lot 55 (MSG-03, POR-06, POR-11 ; D3 ; ADR 0102) — fils de discussion par sujet, contre un vrai
 // PostgreSQL (RLS), le stockage privé et l'antivirus (pièces jointes, ADR 0027), un double de l'envoi
 // des e-mails et un faux envoyeur Web Push. Tests d'abus (CLAUDE.md § 2.11) : un message interne
 // n'atteint jamais un client ni un prestataire, même par une requête forgée ; un lien n'ouvre que les

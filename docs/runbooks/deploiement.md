@@ -414,30 +414,71 @@ ces deux clés, l'app refuse de démarrer.
    ```
 4. Suivre ensuite « Mise à jour » comme d'habitude.
 
-## Lot 55 : adresse d'envoi des organisations et journal des envois (MSG-04, MSG-05, ADR 0101)
+## Lot 55 : envoi par Scaleway Transactional Email, adresse d'envoi des organisations et journal des envois (MSG-04, MSG-05, ADR 0102)
 
-Rien à faire au déploiement du lot : `SMTP_SENDER_MODE=shared` (défaut) garde l'expéditeur commun
-`SMTP_FROM`, et sans `EMAIL_DELIVERY_WEBHOOK` le journal des envois reste à « envoyé ». Les
-migrations 0191 (events) et 0192 (hub) sont en ajout seul.
+Service retenu par Julien le 19/11/2026 : **Scaleway Transactional Email**, formule **Essential**,
+région **fr-par** (comparatif : `docs/etudes/service-envoi-emails.md`). Domaine d'envoi :
+**`envoi.symbola.fr`** (réglable par `SMTP_FROM_DOMAIN`).
 
-**Activation, une fois le service d'envoi choisi par Julien** (D2, `docs/etudes/service-envoi-emails.md`) :
+Rien à faire au déploiement du lot lui-même : `SMTP_SENDER_MODE=shared` (défaut) garde l'expéditeur
+commun et, sans `EMAIL_DELIVERY_WEBHOOK`, le journal reste à « envoyé ». Migrations 0191 (events) et
+0192 (hub), en ajout seul. Tant que les étapes ci-dessous ne sont pas faites, garder dans
+`.env.<environnement>` les réglages IONOS actuels (`SMTP_HOST=smtp.ionos.fr`, `SMTP_PORT=465`).
 
-1. Signer le contrat de sous-traitance du service, l'ajouter à `docs/conformite/sous-traitants.md`
-   (DPO).
-2. Chez le registraire de `symbola.fr` : créer le sous-domaine d'envoi (`envoi.symbola.fr`, ou le
-   domaine choisi en D1) avec les enregistrements SPF, DKIM et DMARC donnés par le service, et le MX
-   de retour s'il en demande un ; attendre que le service le dise vérifié.
-3. Dans `.env.<environnement>` : `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` du service ;
-   `SMTP_FROM` sur le même domaine (e-mails de Symbola : codes, comptes) ; `SMTP_FROM_DOMAIN` ;
-   `SMTP_SENDER_MODE=organization`.
-4. Créer le webhook de remise vers `https://<environnement>/api/webhooks/envois` (types : remis,
-   rejeté, plainte), puis `EMAIL_DELIVERY_WEBHOOK=<adaptateur du service>` et son secret
-   (`EMAIL_DELIVERY_WEBHOOK_SECRET`, 32 caractères au moins) ; l'adaptateur du service est livré avec
-   le lot qui l'ajoute (le simulé est refusé en production).
-5. Redémarrer l'app, envoyer un essai depuis Paramètres › Modèles d'e-mails, vérifier l'expéditeur
-   et, dans Paramètres › Journal des envois, le statut « Remis ».
+### Gestes de Julien (une fois par environnement, production d'abord)
 
-Retour arrière : `SMTP_SENDER_MODE=shared` et redémarrage.
+1. **Compte et contrat** (console Scaleway) : créer un projet dédié (« symbola-production », puis
+   « symbola-staging ») ; accepter le contrat de sous-traitance (DPA) et les conditions propres à
+   Transactional Email ; vérifier la formule Essential.
+2. **Domaine chez Scaleway** : Transactional Email › Ajouter un domaine › `envoi.symbola.fr` (staging :
+   `envoi-staging.symbola.fr`, pour garder les réputations séparées), région fr-par. Scaleway affiche
+   les enregistrements DNS à créer.
+3. **Enregistrements chez le registraire de `symbola.fr`** (zone DNS, sous-domaine d'envoi) :
+   - **SPF** : un enregistrement TXT sur `envoi.symbola.fr`, valeur donnée par Scaleway
+     (`v=spf1 include:… -all`) ;
+   - **DKIM** : l'enregistrement TXT `<sélecteur>._domainkey.envoi.symbola.fr` donné par Scaleway ;
+   - **MX** : celui que Scaleway demande pour le domaine, s'il en demande un ;
+   - **DMARC** : un TXT sur `_dmarc.envoi.symbola.fr`, d'abord en observation, par exemple
+     `v=DMARC1; p=none; rua=mailto:<adresse de Julien>`, puis `p=quarantine` après deux semaines sans
+     anomalie dans les rapports.
+   Attendre que Scaleway marque le domaine **vérifié** (« checked »), puis **prêt à envoyer**.
+4. **Clé d'accès SMTP** : IAM › Clés d'API › une clé pour une application dédiée « symbola-smtp », avec
+   la seule permission `TransactionalEmailEmailApiCreate` (envoi). Noter l'identifiant du projet
+   (Project ID) et la clé secrète (gestionnaire de mots de passe).
+5. **Webhook de remise** :
+   - Topics and Events : créer un sujet (par exemple `tem-envois`), noter son ARN
+     (`arn:scw:sns:fr-par:project-…:tem-envois`) ;
+   - créer un abonnement HTTPS du sujet vers `https://<adresse de l'environnement>/api/webhooks/envois` ;
+     l'app confirme l'abonnement d'elle-même, à la réception (message signé) ;
+   - Transactional Email › Webhooks : créer un webhook sur le domaine, relié au sujet, avec les types
+     `email_delivered`, `email_dropped`, `email_mailbox_not_found`, `email_blocklisted` et `email_spam`.
+6. **Remplir `.env.<environnement>`** (voir `infra/compose/.env.production.example`) :
+   ```
+   SMTP_HOST=smtp.tem.scaleway.com
+   SMTP_PORT=587
+   SMTP_USER=<Project ID>
+   SMTP_PASSWORD=<clé secrète de l'étape 4>
+   SMTP_FROM="Symbola <notifications@envoi.symbola.fr>"
+   SMTP_FROM_DOMAIN=envoi.symbola.fr
+   SMTP_SENDER_MODE=organization
+   EMAIL_DELIVERY_WEBHOOK=scaleway
+   EMAIL_DELIVERY_WEBHOOK_TOPIC_ARN=<ARN du sujet de l'étape 5>
+   DOCUMENSO_SMTP_FROM_ADDRESS=notifications@envoi.symbola.fr
+   DOCUMENSO_SMTP_SECURE=false
+   ```
+   L'app refuse de démarrer si une valeur est mal formée (domaine, ARN). Sur le port 587, elle exige
+   le chiffrement STARTTLS ; si 587 est bloqué, `SMTP_PORT=2587`.
+7. **Redémarrer l'app**, puis vérifier :
+   - Paramètres › Modèles d'e-mails › « Envoyer un essai » : l'e-mail arrive de
+     `<organisation>@envoi.symbola.fr`, au nom de l'organisation, avec réponse vers son adresse de
+     contact ;
+   - Paramètres › Journal des envois : l'essai n'y figure pas (envois aux tiers seulement) ; envoyer un
+     lien de test à une adresse de Julien, puis voir son statut passer à « Remis » ;
+   - le journal du serveur ne montre aucun « webhook d'envoi rejeté » ; un refus y donne son motif
+     (`topic_unknown`, `certificate_invalid`, `signature_invalid`…), jamais le corps.
+
+**Retour arrière** : `SMTP_SENDER_MODE=shared`, ou les réglages IONOS, puis redémarrage. Le webhook
+peut rester : il ne change que des statuts.
 
 ## Mise à jour (nouvelle version) : une commande (lot 40a, ADR 0075)
 

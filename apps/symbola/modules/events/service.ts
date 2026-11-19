@@ -4150,7 +4150,7 @@ export async function createEventFromStructure(input: { organizationId: string; 
   return { eventId: id, slotIds };
 }
 
-// --- Lot 55 (MSG-03, POR-06, POR-11 ; D3 ; ADR 0101) — fils de discussion par sujet ---
+// --- Lot 55 (MSG-03, POR-06, POR-11 ; D3 ; ADR 0102) — fils de discussion par sujet ---
 //
 // L'équipe lit tout ; un lien ne lit que les messages partagés des sujets qu'il voit : client dont le
 // lien ouvre la rubrique « Messages » (POR-10 : fermée par défaut), ou prestataire ajouté au sujet. Un

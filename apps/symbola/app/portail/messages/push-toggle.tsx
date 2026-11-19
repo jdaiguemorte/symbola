@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 55 (POR-11 ; ADR 0101) — notifications du portail, facultatives et désactivées par défaut : le
+// Lot 55 (POR-11 ; ADR 0102) — notifications du portail, facultatives et désactivées par défaut : le
 // client les active sur cet appareil pour être prévenu d'un nouveau message ou d'une décision demandée
 // (la sorte seulement, jamais le contenu). Sur iPhone, le push ne marche qu'une fois le portail ajouté
 // à l'écran d'accueil : l'écran l'explique.

@@ -1,6 +1,6 @@
 "use server";
 
-// Lot 55 (MSG-03 ; D3 ; ADR 0101) — sujets de discussion d'un évènement : créer un sujet, choisir ses
+// Lot 55 (MSG-03 ; D3 ; ADR 0102) — sujets de discussion d'un évènement : créer un sujet, choisir ses
 // prestataires. Contrôles côté serveur : session de l'équipe, évènement visible, module Évènements ;
 // la RLS borne le sujet à l'organisation. Les messages passent par les routes partage/ et interne/
 // (pièces jointes).

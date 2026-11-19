@@ -1,6 +1,6 @@
 "use server";
 
-// Lot 55 (MSG-04 révisée, D1 ; ADR 0101) — choisir la partie locale de l'adresse d'expédition :
+// Lot 55 (MSG-04 révisée, D1 ; ADR 0102) — choisir la partie locale de l'adresse d'expédition :
 // Propriétaire seulement (elle engage l'image de l'organisation) ; unique, refusée sans dire à qui
 // elle est.
 import { revalidatePath } from "next/cache";

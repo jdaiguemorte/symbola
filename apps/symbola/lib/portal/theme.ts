@@ -1,4 +1,4 @@
-// Lot 55 (POR-08, UX-14 ; D4 ; ADR 0101) — couleurs du portail : celles que l'organisation a réglées
+// Lot 55 (POR-08, UX-14 ; D4 ; ADR 0102) — couleurs du portail : celles que l'organisation a réglées
 // pour ses documents (lot 17), contrôlées. La couleur principale sert aux titres, liens et boutons :
 // trop claire, elle est assombrie jusqu'à 4,5:1 sur le blanc (UX-14) ; le texte posé dessus (blanc
 // ou encre) garde le même seuil ; la teinte claire sert de fond aux blocs. Fonctions pures.

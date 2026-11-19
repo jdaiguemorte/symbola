@@ -1,4 +1,4 @@
--- Lot 55 (MSG-04 révisée, MSG-05, MSG-03 ; D1, D2 ; ADR 0101) : adresse d'expédition de
+-- Lot 55 (MSG-04 révisée, MSG-05, MSG-03 ; D1, D2 ; ADR 0102) : adresse d'expédition de
 -- l'organisation (partie locale unique sur le domaine d'envoi de Symbola), journal des envois (statut
 -- par le webhook signé du service d'envoi, purgé à 13 mois), nature d'e-mail « new_message » et deux
 -- sortes de notification (message d'un client, e-mail rejeté). Schéma hub seulement : les contraintes

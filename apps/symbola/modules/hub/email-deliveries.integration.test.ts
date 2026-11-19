@@ -1,4 +1,4 @@
-// Lot 55 (MSG-04 révisée, MSG-05 ; D1, D2 ; ADR 0101) — adresse d'expédition de l'organisation, journal
+// Lot 55 (MSG-04 révisée, MSG-05 ; D1, D2 ; ADR 0102) — adresse d'expédition de l'organisation, journal
 // des envois et webhook du service d'envoi, contre un vrai PostgreSQL (RLS), un double de l'envoi des
 // e-mails et l'adaptateur de webhook simulé (HMAC-SHA256 horodaté). Tests d'abus : webhook mal signé,
 // ancien ou rejoué ; référence d'une autre organisation ; isolation du journal.

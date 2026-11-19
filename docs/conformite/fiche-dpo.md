@@ -374,13 +374,20 @@ Sans question ouverte (DPO-10, pour information).
 
 ## Question du 19 novembre 2026 (lot 55, messagerie et journal des envois)
 
-- **DPO-11 — Nouveau service d'envoi des e-mails (à choisir).** Pour envoyer chaque organisation
-  depuis sa propre adresse sur un sous-domaine de Symbola (`atelier-camille@envoi.symbola.fr`) et
-  recevoir les rapports de remise, Symbola remplacera IONOS par un service d'envoi transactionnel
-  européen (comparatif : Scaleway, Brevo, Mailjet, Lettermint ; recommandation : Scaleway, hébergé à
-  Paris, sans sous-traitant dédié). Il recevra l'adresse du destinataire et le contenu des e-mails,
-  comme IONOS aujourd'hui. Question : quelles vérifications attendez-vous avant la signature de son
-  contrat de sous-traitance (lieu d'hébergement, liste de ses sous-traitants, transferts) ?
+- **DPO-11 — Nouveau sous-traitant : Scaleway Transactional Email (pour information).** Julien a
+  retenu le 19/11/2026 **Scaleway Transactional Email** (Scaleway SAS, France), formule Essential, après
+  un comparatif (Scaleway, Brevo, Mailjet, Lettermint). Il remplacera IONOS pour envoyer chaque
+  organisation depuis sa propre adresse sur un sous-domaine de Symbola (`atelier-camille@envoi.symbola.fr`)
+  et rendre compte de la remise. Il reçoit l'adresse du destinataire et le contenu des e-mails, comme
+  IONOS aujourd'hui ; il garde les métadonnées d'envoi (destinataire, statut) tant que le domaine
+  d'envoi est actif. Hébergement à **Paris (région fr-par)**, rien répliqué hors de l'Union européenne,
+  **aucun sous-traitant dédié** au contenu des e-mails, selon la documentation « Data privacy » du
+  service. Garanties contractuelles : le **contrat de sous-traitance (DPA) général de Scaleway** et les
+  **conditions propres à Transactional Email**, acceptés dans la console avant l'activation. Les
+  rapports de remise arrivent par le service Topics and Events de Scaleway (même hébergement), signés
+  par un certificat de Scaleway que Symbola vérifie. Déclaré dans `docs/conformite/sous-traitants.md`.
+  Si vous voyez une vérification à faire avant l'activation (liste des sous-traitants de Scaleway,
+  transferts), dites-le-nous.
 - **DPO-12 — Journal des envois gardé 13 mois.** Pour chaque e-mail envoyé au nom d'une organisation,
   Symbola garde l'adresse du destinataire (et son empreinte), l'objet, la nature et le statut
   (envoyé, remis, rejeté, plainte), jamais le corps, **13 mois** après l'envoi, puis l'efface. Il

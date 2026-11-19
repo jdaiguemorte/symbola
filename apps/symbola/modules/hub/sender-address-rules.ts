@@ -1,4 +1,4 @@
-// Lot 55 (MSG-04 révisée, D1 ; ADR 0101) — règles de l'adresse d'expédition d'une organisation :
+// Lot 55 (MSG-04 révisée, D1 ; ADR 0102) — règles de l'adresse d'expédition d'une organisation :
 // « <partie locale>@<domaine d'envoi de Symbola> ». Fonctions pures, testées sans base.
 import { SENDER_LOCAL_PART_PATTERN } from "@symbola/contracts";
 

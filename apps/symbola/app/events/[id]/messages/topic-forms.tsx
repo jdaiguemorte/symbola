@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 55 (MSG-03 ; D3 ; ADR 0101) — formulaires de l'équipe : nouveau sujet, prestataires du sujet, et
+// Lot 55 (MSG-03 ; D3 ; ADR 0102) — formulaires de l'équipe : nouveau sujet, prestataires du sujet, et
 // les deux zones d'écriture distinctes. La zone partagée nomme ses destinataires sur son bouton
 // (« Envoyer à Léa et Maxime ») ; la zone interne dit qu'elle reste dans l'équipe. Elles postent vers
 // deux routes différentes : rien ne choisit la visibilité dans un champ.

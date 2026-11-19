@@ -2137,7 +2137,7 @@ fields:
     anonymization: >-
       Lors d'une demande d'oubli visant le prestataire (RGPD-03) : effacé ; la note et les critères
       restent, rattachés à la fiche anonymisée.
-  # Lot 55 (MSG-03, POR-06, MSG-04, MSG-05, POR-11 ; ADR 0101) : messagerie par sujet, journal des
+  # Lot 55 (MSG-03, POR-06, MSG-04, MSG-05, POR-11 ; ADR 0102) : messagerie par sujet, journal des
   # envois, abonnements push des clients. L'adresse d'expédition d'une organisation
   # (hub.organizations.sender_local_part) est celle d'une entreprise, pas d'une personne.
   - schema: events

@@ -99,4 +99,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0097 — Clôture d'un évènement, évaluation des prestataires, modèle d'évènement et exports comptables](0097-cloture-modele-et-exports-comptables.md)
 - [0098 — Reprise d'un export Symbola dans un espace vide : écriture générique, une transaction, chaîne des pièces prolongée](0098-reprise-d-un-export-dans-un-espace-vide.md)
 - [0100 — Fermeture d'un espace : 30 jours d'export, effacement contrôlé par la base, trace rejouable](0100-fermeture-d-un-espace-et-effacement-au-30e-jour.md)
-- [0101 — Messagerie par sujet, adresse d'expédition sur le domaine de Symbola, journal des envois, portail aux couleurs et installable](0101-messagerie-adresse-d-expedition-et-journal-des-envois.md)
+- [0102 — Messagerie par sujet, adresse d'expédition sur le domaine de Symbola, journal des envois, portail aux couleurs et installable](0102-messagerie-adresse-d-expedition-et-journal-des-envois.md)

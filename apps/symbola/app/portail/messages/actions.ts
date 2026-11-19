@@ -1,6 +1,6 @@
 "use server";
 
-// Lot 55 (POR-11 ; ADR 0101) — le push du portail, facultatif : le client l'active sur son appareil
+// Lot 55 (POR-11 ; ADR 0102) — le push du portail, facultatif : le client l'active sur son appareil
 // (nouveaux messages, décisions demandées) et le coupe. Session du lien d'un client, relue en base ;
 // l'abonnement (adresse du service de push et clés publiques) est validé par le service.
 import { currentLinkAccess } from "@/lib/link-session";

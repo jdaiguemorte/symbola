@@ -1,4 +1,4 @@
-// Lot 55 (MSG-03 ; ADR 0027, ADR 0101) — pièce jointe d'un message, ouverte par l'équipe : session de
+// Lot 55 (MSG-03 ; ADR 0027, ADR 0102) — pièce jointe d'un message, ouverte par l'équipe : session de
 // la planner, organisation (RLS), module et évènement visible, puis fichier servi par l'app depuis le
 // stockage privé. « ?apercu=1 » l'affiche dans le navigateur.
 import { refusedResponse } from "@/lib/access-refusals";

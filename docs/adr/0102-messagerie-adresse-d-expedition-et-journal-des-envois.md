@@ -1,7 +1,7 @@
-# ADR 0101 — Messagerie par sujet, adresse d'expédition sur le domaine de Symbola, journal des envois, portail aux couleurs et installable
+# ADR 0102 — Messagerie par sujet, adresse d'expédition sur le domaine de Symbola, journal des envois, portail aux couleurs et installable
 
-- Statut : accepté pour la messagerie, l'adresse d'expédition et le portail ; **proposé** pour le
-  service d'envoi (D2), en attente du choix de Julien (comparatif `docs/etudes/service-envoi-emails.md`).
+- Statut : accepté. Service d'envoi (D2) : **Scaleway Transactional Email**, formule Essential,
+  **choix de Julien du 19/11/2026** (comparatif `docs/etudes/service-envoi-emails.md`).
 - Date : 2026-11-19
 - Remplace, pour MSG-04 : la décision Q18 du 11/11/2026 (envoi depuis le domaine du planner).
 - Complète : [0072](0072-emails-a-l-image-de-l-organisation.md) (e-mails à l'image de l'organisation),
@@ -43,7 +43,11 @@ organisation envoie depuis **`<partie locale>@<domaine d'envoi de Symbola>`** :
   `SMTP_FROM`, comme avant le lot) ; il passe à `organization` une fois le service d'envoi choisi et
   le sous-domaine vérifié (SPF, DKIM, DMARC). En dev, Mailpit accepte tout.
 
-### 2. Le service d'envoi derrière deux interfaces (D2)
+### 2. Le service d'envoi : Scaleway Transactional Email, derrière deux interfaces (D2)
+
+Choix de Julien du **19/11/2026** : **Scaleway Transactional Email**, formule Essential, région fr-par
+(Paris, aucun sous-traitant dédié, webhooks signés, SMTP). Domaine d'envoi : `envoi.symbola.fr` par
+défaut (`envoi-staging.symbola.fr` en staging), Julien n'ayant pas indiqué posséder `symbola.com`.
 
 - **Envoi** : toujours en SMTP par l'adaptateur du lot 40b ; `SendMailInput` gagne `fromAddress`
   (l'adresse de l'organisation) et `messageId`. Aucune dépendance de code nouvelle.
@@ -51,8 +55,28 @@ organisation envoie depuis **`<partie locale>@<domaine d'envoi de Symbola>`** :
   signature et traduit l'appel en statuts **remis**, **rejeté** (adresse inexistante, boîte pleine,
   refus) ou **plainte**. Le lot livre l'adaptateur **simulé** (HMAC-SHA256 de « horodatage.corps »,
   fenêtre de cinq minutes, comparaison en temps constant, `node:crypto`), interdit en production.
-  L'adaptateur du service retenu par Julien (recommandation : Scaleway Transactional Email, webhooks
-  signés au format SNS) s'écrira en un fichier, sans toucher au reste.
+- **Adaptateur Scaleway** (`scaleway-webhook.ts`, `EMAIL_DELIVERY_WEBHOOK=scaleway`) : TEM publie ses
+  évènements dans un sujet de Topics and Events (compatible SNS), poussé en HTTPS. Sans dépendance
+  (`node:crypto`) :
+  - enveloppe SNS validée ; sujet (`TopicArn`) dans la liste `EMAIL_DELIVERY_WEBHOOK_TOPIC_ARN` ;
+    message de moins de 6 heures et pas plus de 5 minutes dans le futur ;
+  - certificat de signature pris seulement sur `messaging.s3.<région>.scw.cloud/<région>/sns/`, au nom
+    `sns.mnq.<région>.scaleway.com`, en cours de validité, signé par un intermédiaire de la chaîne
+    publiée par Scaleway sur le même hôte, lui-même signé par la **racine épinglée** dans le code
+    (« Scaleway MnQ Root », valable jusqu'en 2032, empreinte vérifiée par un test) ; certificats gardés
+    en mémoire, dix au plus ;
+  - signature RSA de la chaîne canonique SNS (SHA-1 en version 1, SHA-256 en version 2) ;
+  - une demande d'abonnement signée est confirmée (GET de `SubscribeURL`, seulement sur
+    `sns.mnq.<région>.scaleway.com`) ;
+  - l'e-mail est retrouvé par l'en-tête `X-Symbola-Delivery` qu'il porte (TEM recopie les en-têtes dans
+    `email_headers`), sinon par son Message-ID. Évènements : `email_delivered` → remis ;
+    `email_mailbox_not_found`, `email_blocklisted`, `email_dropped` → rejeté (motif) ; `email_spam` →
+    plainte ; mise en file et report ignorés.
+  Pas de secret partagé avec Scaleway : la signature fait foi. Les tests fabriquent une autorité de
+  test avec openssl, sans clé privée dans le dépôt.
+- **SMTP** : `smtp.tem.scaleway.com`, port 587 ; avec une authentification, l'app exige STARTTLS
+  (`requireTLS`). Utilisateur : l'identifiant du projet Scaleway ; mot de passe : une clé d'API IAM
+  réservée à l'envoi.
 - Route `/api/webhooks/envois` : corps brut limité à 256 Ko ; signature absente, fausse ou trop
   ancienne → **401** et journal (le motif seulement, jamais le corps ni un en-tête) ; référence
   inconnue ou d'une autre organisation → ignorée (200), sans dire si elle existe.
@@ -125,12 +149,14 @@ organisation envoie depuis **`<partie locale>@<domaine d'envoi de Symbola>`** :
 
 - Migrations **0191** (`events`) et **0192** (`hub`), ajout seul, annulables ; l'annulation est
   refusée tant qu'un message ou un modèle « Nouveau message » personnalisé existe.
-- Variables d'environnement : `SMTP_FROM_DOMAIN`, `SMTP_SENDER_MODE`, `EMAIL_DELIVERY_WEBHOOK`,
-  `EMAIL_DELIVERY_WEBHOOK_SECRET` (validées au démarrage ; le webhook simulé est interdit en
-  production, un webhook exige un secret de 32 caractères).
-- **À faire par Julien** avant `SMTP_SENDER_MODE=organization` : choisir le service (D2), signer son
-  contrat de sous-traitance et le déclarer (DPO, `docs/conformite/sous-traitants.md`), créer le
-  sous-domaine d'envoi chez le registraire (SPF, DKIM, DMARC), créer le webhook et poser son secret ;
-  dire si `symbola.com` existe (D1).
+- Variables d'environnement : `SMTP_FROM_DOMAIN`, `SMTP_SENDER_MODE`, `EMAIL_DELIVERY_WEBHOOK`
+  (`none`, `scaleway`, `simulated`), `EMAIL_DELIVERY_WEBHOOK_TOPIC_ARN` (requis avec Scaleway),
+  `EMAIL_DELIVERY_WEBHOOK_SECRET` (webhook simulé seulement, interdit en production), et, pour
+  Documenso, `DOCUMENSO_SMTP_FROM_ADDRESS` (avec Scaleway, `SMTP_USER` n'est plus une adresse).
+- **Nouveau sous-traitant** : Scaleway SAS, déclaré dans `docs/conformite/sous-traitants.md` et pour
+  information à la DPO (DPO-11), avec son DPA et les conditions propres à Transactional Email.
+- **À faire par Julien** avant `SMTP_SENDER_MODE=organization` (runbook de déploiement, § Lot 55) :
+  créer le domaine chez Scaleway, poser SPF, DKIM et DMARC du sous-domaine chez le registraire, créer
+  le sujet, l'abonnement et le webhook, remplir le `.env` ; dire un jour si `symbola.com` existe (D1).
 - Le registre RGPD déclare les nouveaux champs ; le journal des envois garde des adresses 13 mois
   (point DPO).

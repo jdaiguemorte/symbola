@@ -34,7 +34,7 @@ describe("ARC-12 — Adaptateur en service", () => {
   });
 });
 
-describe("MSG-04 — Expéditeur d'un e-mail (lot 55, ADR 0101)", () => {
+describe("MSG-04 — Expéditeur d'un e-mail (lot 55, ADR 0102)", () => {
   it("l'adresse de l'organisation remplace celle de SMTP_FROM, avec son nom affiché", () => {
     expect(fromHeader({ fromName: "Atelier Camille", fromAddress: "atelier-camille@envoi.symbola.fr" }, "Symbola <no-reply@symbola.fr>")).toEqual({ name: "Atelier Camille", address: "atelier-camille@envoi.symbola.fr" });
   });

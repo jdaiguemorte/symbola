@@ -19,12 +19,14 @@ export type SendMailInput = {
   html?: string;
   fromName?: string;
   replyTo?: string;
-  // Lot 55 (MSG-04 révisée, MSG-05 ; ADR 0101) : l'adresse d'expédition de l'organisation
+  // Lot 55 (MSG-04 révisée, MSG-05 ; ADR 0102) : l'adresse d'expédition de l'organisation
   // (« <partie locale>@<domaine d'envoi> », à la place de celle de SMTP_FROM) et l'identifiant du
   // message (en-tête Message-ID, « <référence> »), par lequel le webhook du service d'envoi retrouve
   // la ligne du journal des envois.
   fromAddress?: string;
   messageId?: string;
+  // Lot 55 (MSG-05) : en-têtes de plus (X-Symbola-Delivery, que Scaleway recopie dans ses évènements).
+  headers?: Record<string, string>;
 };
 
 export interface MailTransport {
@@ -53,6 +55,9 @@ export function buildTransportOptions(env: Env) {
     host: env.SMTP_HOST,
     port: env.SMTP_PORT,
     secure: env.SMTP_PORT === 465,
+    // Lot 55 (Scaleway TEM, 587) : avec une authentification, le chiffrement STARTTLS est exigé (jamais
+    // d'identifiants en clair) ; Mailpit, sans authentification, n'est pas concerné.
+    requireTLS: Boolean(env.SMTP_USER) && env.SMTP_PORT !== 465,
     auth: env.SMTP_USER ? { user: env.SMTP_USER, pass: env.SMTP_PASSWORD } : undefined,
   };
 }
@@ -67,6 +72,7 @@ export function smtpTransport(options: { env?: Env } = {}): MailTransport {
       await transport.sendMail({
         from: fromHeader(message, env.SMTP_FROM),
         ...(message.messageId ? { messageId: message.messageId } : {}),
+        ...(message.headers ? { headers: message.headers } : {}),
         to: message.to,
         subject: message.subject,
         text: message.text,

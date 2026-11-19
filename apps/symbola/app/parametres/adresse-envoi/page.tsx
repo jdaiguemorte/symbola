@@ -1,4 +1,4 @@
-// Lot 55 (MSG-04 révisée, D1 ; ADR 0101) — « Adresse d'envoi » : l'adresse d'où partent les e-mails de
+// Lot 55 (MSG-04 révisée, D1 ; ADR 0102) — « Adresse d'envoi » : l'adresse d'où partent les e-mails de
 // l'organisation, sur le domaine d'envoi de Symbola (proposée depuis son nom, modifiable par la
 // Propriétaire), et l'adresse où arrivent les réponses (son adresse de contact).
 import Link from "next/link";

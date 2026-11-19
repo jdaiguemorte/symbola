@@ -1,4 +1,4 @@
-// Lot 55 (POR-06 ; ADR 0101) — le fil d'un sujet partagé, vu par le client : seulement les messages
+// Lot 55 (POR-06 ; ADR 0102) — le fil d'un sujet partagé, vu par le client : seulement les messages
 // partagés (le service ne lit jamais une note interne pour un lien), puis sa réponse, avec pièces
 // jointes. Un sujet qu'il ne voit pas répond comme absent.
 import Link from "next/link";

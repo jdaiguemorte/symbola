@@ -1,6 +1,6 @@
 "use client";
 
-// Lot 55 (POR-06 ; ADR 0101) — écrire depuis un lien (client ou prestataire) : une seule zone, toujours
+// Lot 55 (POR-06 ; ADR 0102) — écrire depuis un lien (client ou prestataire) : une seule zone, toujours
 // partagée avec la planner ; le bouton dit à qui le message part. Pièces jointes contrôlées par la
 // route (ADR 0027).
 import { useEffect, useId, useRef } from "react";

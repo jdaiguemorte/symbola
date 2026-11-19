@@ -1,6 +1,7 @@
 # Étude — Le service d'envoi des e-mails (lot 55, D2)
 
-**Date** : 19/11/2026. **Pour** : Julien, qui choisit. **Contexte** : décision du 19/11 (chaque
+**Date** : 19/11/2026. **Pour** : Julien, qui choisit. **Décision de Julien (19/11/2026) : Scaleway
+Transactional Email, formule Essential** (ADR 0102). **Contexte** : décision du 19/11 (chaque
 organisation envoie depuis `<partie locale>@<domaine d'envoi de Symbola>`) et MSG-05 (journal
 des envois : remis, rejeté, plainte). IONOS, utilisé aujourd'hui, demande une boîte ou un alias
 par adresse d'expédition et ne rend pas compte de la remise : MSG-05 est impossible avec lui.

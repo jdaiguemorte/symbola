@@ -49,6 +49,7 @@ export const BUSINESS_RULE_FILES = [
   // simulé, couleurs du portail, proposition d'installation.
   "modules/hub/sender-address-rules.ts",
   "modules/hub/delivery-webhooks.ts",
+  "modules/hub/scaleway-webhook.ts",
   "lib/portal/theme.ts",
   "lib/portal/install-prompt.ts",
 ];

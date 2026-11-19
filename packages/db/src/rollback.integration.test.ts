@@ -156,7 +156,7 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
-  it("lot 55 (MSG-03, POR-06, MSG-04, MSG-05 ; ADR 0101) — 0191 et 0192 : un lien n'écrit jamais de message interne, la rubrique « Messages », l'adresse d'expédition unique, le journal des envois ; annulation refusée tant que des messages ou un modèle « Nouveau message » existent, puis tout est retiré", async () => {
+  it("lot 55 (MSG-03, POR-06, MSG-04, MSG-05 ; ADR 0102) — 0191 et 0192 : un lien n'écrit jamais de message interne, la rubrique « Messages », l'adresse d'expédition unique, le journal des envois ; annulation refusée tant que des messages ou un modèle « Nouveau message » existent, puis tout est retiré", async () => {
     await migrateAll();
     const organizationId = randomUUID();
     const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;

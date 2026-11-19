@@ -2041,7 +2041,7 @@ export const eventTemplates = eventsSchema.table(
   ],
 );
 
-// Lot 55 (MSG-03, POR-06 ; D3 ; ADR 0101) — sujets de discussion d'un évènement (« Traiteur »,
+// Lot 55 (MSG-03, POR-06 ; D3 ; ADR 0102) — sujets de discussion d'un évènement (« Traiteur »,
 // « Cérémonie »), chacun avec son fil.
 export const messageTopics = eventsSchema.table(
   "message_topics",
@@ -2159,7 +2159,7 @@ export const messageAttachments = eventsSchema.table(
   ],
 );
 
-// Lot 55 (POR-11 ; ADR 0101) — un appareil d'un client abonné au push du portail (facultatif,
+// Lot 55 (POR-11 ; ADR 0102) — un appareil d'un client abonné au push du portail (facultatif,
 // désactivé par défaut) : nouveaux messages et décisions demandées. Données techniques.
 export const linkPushSubscriptions = eventsSchema.table(
   "link_push_subscriptions",

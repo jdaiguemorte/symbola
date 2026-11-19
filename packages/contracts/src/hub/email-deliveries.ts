@@ -1,4 +1,4 @@
-// Lot 55 (MSG-04 révisée, MSG-05 ; D1, D2 ; ADR 0101) — l'adresse d'expédition de l'organisation et
+// Lot 55 (MSG-04 révisée, MSG-05 ; D1, D2 ; ADR 0102) — l'adresse d'expédition de l'organisation et
 // le journal des envois. Le statut arrive par le webhook signé du service d'envoi (SEC-19), traduit
 // par un adaptateur ; le journal ne garde ni le contenu ni le corps, seulement l'objet et le statut,
 // 13 mois.

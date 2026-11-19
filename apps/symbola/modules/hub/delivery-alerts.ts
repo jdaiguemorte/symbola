@@ -1,4 +1,4 @@
-// Lot 55 (MSG-05 ; ADR 0101) — le webhook du service d'envoi, puis l'alerte : un e-mail rejeté ou
+// Lot 55 (MSG-05 ; ADR 0102) — le webhook du service d'envoi, puis l'alerte : un e-mail rejeté ou
 // signalé comme indésirable crée la notification « e-mail rejeté » (lot 53) pour l'équipe, qui mène à
 // la fiche du contact (où l'alerte s'affiche) ou, sans contact, au journal des envois. La notification
 // ne porte jamais l'adresse (SEC-20) : le nom du contact seulement.
