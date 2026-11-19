@@ -42,10 +42,32 @@ export const HELP_SCREENS: HelpScreen[] = [
   // Lot 20 (AIDE-14) : chaque écran de réglage a sa fiche.
   { key: "eventsSources", group: "events", audience: "team", module: "events", path: "/events/parametres/sources", capture: true },
   { key: "eventTypes", group: "events", audience: "team", module: "events", path: "/events/parametres/types", capture: true },
+  // Lot 44 (CRM-01, CRM-02) : « Suivre vos demandes en colonnes », « Mettre le formulaire sur votre
+  // site », et les étapes du pipeline.
+  { key: "eventsPipeline", group: "events", audience: "team", module: "events", path: "/events/pipeline", capture: false },
+  { key: "eventsContactForm", group: "events", audience: "team", module: "events", ownerOnly: true, path: "/events/parametres/contact", capture: false },
+  { key: "eventsPipelineStages", group: "events", audience: "team", module: "events", ownerOnly: true, path: "/events/parametres/etapes", capture: false },
+  // Lot 45 (CRM-06, POR-07, HUB-21) : relire une relance, questionnaires d'un évènement, modèles.
+  { key: "followUpReview", group: "events", audience: "team", module: "events", path: null, capture: false },
+  { key: "eventQuestionnaires", group: "events", audience: "team", module: "events", path: null, capture: false },
+  { key: "questionnaireTemplates", group: "events", audience: "team", module: "events", path: "/events/parametres/questionnaires", capture: false },
   { key: "followUps", group: "events", audience: "team", module: "events", path: "/parametres/relances", capture: true },
+  // Lot 53 (HUB-24, CHR-10) : termes des clients par type, tâches hors évènement (écran Tâches).
+  { key: "clientTerms", group: "events", audience: "team", module: "events", path: "/events/parametres/termes", capture: false },
+  { key: "standaloneTasks", group: "events", audience: "team", module: "events", path: "/taches", capture: false },
   // Lot 49 (INV-01 à INV-04, INV-07) : onglet Invités de la fiche, liste des régimes et allergies.
   { key: "guests", group: "events", audience: "team", module: "guests", path: null, capture: false },
   { key: "dietaryOptions", group: "events", audience: "team", module: "guests", path: "/events/parametres/regimes", capture: false },
+  // Lot 50 (INV-05, INV-06) : plan de table (depuis l'onglet Invités d'une fiche), synthèse pour le
+  // traiteur (sur le plan), types de repas.
+  { key: "seatingPlan", group: "events", audience: "team", module: "guests", path: null, capture: false },
+  { key: "catererSummary", group: "events", audience: "team", module: "guests", path: null, capture: false },
+  { key: "mealTypes", group: "events", audience: "team", module: "guests", path: "/events/parametres/repas", capture: false },
+  // Lot 51 (JRJ-06, CHR-08) : modèles des listes du jour J ; import d'un chrono (onglet Programme).
+  { key: "dayChecklists", group: "events", audience: "team", module: "events", path: "/events/parametres/listes-jour-j", capture: false },
+  // Lot 52 (EVT-06) : l'équipe de l'évènement et ses renforts du jour J (adresse d'un évènement : pas de capture).
+  { key: "eventTeam", group: "events", audience: "team", module: "events", path: "/events", capture: false },
+  { key: "programImport", group: "events", audience: "team", module: "events", path: null, capture: false },
   // Lot 46 (RDV-01 à RDV-04, EVT-10) : rendez-vous.
   { key: "appointmentsList", group: "appointments", audience: "team", module: "appointments", path: "/rendez-vous", capture: false },
   { key: "appointmentDetail", group: "appointments", audience: "team", module: "appointments", path: null, capture: false },
@@ -53,6 +75,11 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "appointmentSettings", group: "appointments", audience: "team", module: "appointments", path: "/rendez-vous/reglages", capture: false },
   { key: "appointmentType", group: "appointments", audience: "team", module: "appointments", path: null, capture: false },
   { key: "appointmentAvailability", group: "appointments", audience: "team", module: "appointments", path: "/rendez-vous/disponibilites", capture: false },
+  // Lot 47 (PAR-05, PRE-03, BUD-05) : demander des devis à plusieurs prestataires et comparer, les
+  // scénarios d'options, les réglages des prestataires par lien.
+  { key: "vendorCoordination", group: "events", audience: "team", module: "events", path: null, capture: false },
+  { key: "vendorScenarios", group: "events", audience: "team", module: "events", path: null, capture: false },
+  { key: "vendorCoordinationSettings", group: "events", audience: "team", module: "events", path: "/events/parametres/prestataires-par-lien", capture: false },
   // Prestataires
   { key: "vendorBook", group: "vendors", audience: "team", module: "vendors", path: "/prestataires", tour: "vendors", capture: true },
   { key: "vendorDetail", group: "vendors", audience: "team", module: "vendors", path: null, capture: true },
@@ -60,14 +87,22 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "vendorTypes", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/parametres", capture: true },
   { key: "vendorTags", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/parametres/etiquettes", capture: true },
   { key: "vendorTravel", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/parametres/trajet", capture: true },
+  // Lot 48a (PRE-05) : réglages des pièces des prestataires.
+  { key: "vendorDocuments", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/parametres/pieces", capture: false },
   // Devis et factures
   { key: "allQuotes", group: "quotes", audience: "team", module: "quotes", path: "/devis", capture: true },
+  // Lot 48b (BUD-08, PRE-07) : honoraires et commissions d'un évènement.
+  { key: "plannerMoney", group: "quotes", audience: "team", module: "quotes", path: null, capture: false },
   { key: "quotesDetail", group: "quotes", audience: "team", module: "quotes", path: null, capture: true },
   { key: "quotesCatalog", group: "quotes", audience: "team", module: "quotes", path: "/devis/catalogue", tour: "quotes", capture: true },
   // Lot 31a (FAC-01, HUB-21) : modèles de devis.
   { key: "quotesTemplates", group: "quotes", audience: "team", module: "quotes", path: "/devis/modeles", capture: false },
   // Lot 31b (FAC-04, HUB-21, JUR-20) : modèles de contrat.
   { key: "contractTemplates", group: "quotes", audience: "team", module: "quotes", path: "/devis/modeles-contrat", capture: false },
+  // Lot 43 (FAC-02, FAC-09, FAC-15 ; ADR 0089) : modèles de proposition, relances, aperçu « vu par le client ».
+  { key: "proposalTemplates", group: "quotes", audience: "team", module: "quotes", path: "/devis/modeles-proposition", capture: false },
+  { key: "reminderSettings", group: "quotes", audience: "team", module: "quotes", path: "/devis/relances", capture: false },
+  { key: "proposalPreview", group: "quotes", audience: "team", module: "quotes", path: null, capture: false },
   { key: "quotesPayments", group: "quotes", audience: "team", module: "quotes", path: "/devis/encaissements", capture: true },
   { key: "quotesEReporting", group: "quotes", audience: "team", module: "quotes", path: "/devis/e-reporting", capture: true },
   { key: "quotesSettings", group: "quotes", audience: "team", module: "quotes", path: "/devis/parametres", capture: true },
@@ -76,10 +111,20 @@ export const HELP_SCREENS: HelpScreen[] = [
   // Budget
   { key: "budgetDetail", group: "budget", audience: "team", module: "budget", path: null, capture: true },
   { key: "budgetSettings", group: "budget", audience: "team", module: "budget", path: "/budget/parametres", tour: "budget", capture: true },
+  // Lot 43 (BUD-06, BUD-11 ; D8, D9) : payeurs et calendrier des sorties d'argent d'un évènement.
+  { key: "budgetPayers", group: "budget", audience: "team", module: "budget", path: null, capture: false },
+  { key: "budgetCashCalendar", group: "budget", audience: "team", module: "budget", path: null, capture: false },
   // Mon entreprise et mon compte
   { key: "home", group: "company", audience: "team", path: "/", tour: "hub", capture: true },
   { key: "settings", group: "company", audience: "team", path: "/parametres", capture: true },
   { key: "profile", group: "company", audience: "team", path: "/profil", capture: true },
+  // Lot 52 (HUB-05) : « Mes sessions » (appareils du compte : pas de capture).
+  { key: "sessions", group: "company", audience: "team", path: "/securite", capture: false },
+  // Lot 53 (HUB-15, UX-16, HUB-28, GC-02) : notifications, leurs réglages, automatisations, radar.
+  { key: "notifications", group: "company", audience: "team", path: "/notifications", capture: false },
+  { key: "notificationSettings", group: "company", audience: "team", path: "/parametres/notifications", capture: false },
+  { key: "automations", group: "company", audience: "team", path: "/parametres/automatisations", capture: false },
+  { key: "riskRadar", group: "company", audience: "team", path: "/parametres/radar", capture: false },
   { key: "search", group: "company", audience: "team", path: "/recherche", capture: true },
   { key: "tutorials", group: "company", audience: "team", path: "/tutoriels", capture: true },
   { key: "setup", group: "company", audience: "team", path: null, capture: false },
@@ -107,6 +152,9 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "activityLog", group: "data", audience: "team", ownerOnly: true, path: "/parametres/journal", capture: true },
   // Lot 36a (CRM-03) : les contacts de l'organisation et la fiche d'un contact.
   { key: "contactsList", group: "company", audience: "team", path: "/contacts", capture: true },
+  // Lot 45 (CRM-07) : doublons possibles et fusion de deux fiches.
+  { key: "contactDuplicates", group: "company", audience: "team", path: "/contacts/doublons", capture: false },
+  { key: "contactMerge", group: "company", audience: "team", path: null, capture: false },
   { key: "contactDetail", group: "company", audience: "team", path: null, capture: false },
   // Lot 38a (MSG-01, D3, D7) : modèles des e-mails envoyés au nom de l'organisation.
   { key: "emailTemplates", group: "company", audience: "team", path: "/parametres/emails", capture: false },

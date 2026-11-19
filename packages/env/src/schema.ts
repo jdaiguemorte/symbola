@@ -21,6 +21,22 @@ const booleanFromEnv = z.preprocess((value) => {
   return !["false", "0", ""].includes(value.toLowerCase());
 }, z.boolean());
 
+// Lot 53 (ADR 0096) : la clé publique est bien celle de la clé privée (une paire mêlée ferait refuser
+// chaque envoi par les services de push).
+// Le schéma est aussi compilé pour le runtime edge (instrumentation) : pas d'import de node:crypto ; la
+// vérification ne se fait que là où Node la fournit (le serveur, les scripts, les tests).
+function vapidKeysMatch(publicKey: string, privateKey: string): boolean {
+  const nodeCrypto = (globalThis.process as { getBuiltinModule?: (name: string) => unknown } | undefined)?.getBuiltinModule?.("node:crypto") as typeof import("node:crypto") | undefined;
+  if (!nodeCrypto) return true;
+  try {
+    const ecdh = nodeCrypto.createECDH("prime256v1");
+    ecdh.setPrivateKey(Buffer.from(privateKey, "base64url"));
+    return ecdh.getPublicKey().equals(Buffer.from(publicKey, "base64url"));
+  } catch {
+    return false;
+  }
+}
+
 export const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   APP_PORT: z.coerce.number().int().positive().default(3000),
@@ -122,7 +138,26 @@ export const envSchema = z.object({
   LOGTO_ENDPOINT: z.string().url().default("http://localhost:3001"),
   LOGTO_M2M_APP_ID: z.string().min(1).default("symbola-bootstrap"),
   LOGTO_M2M_SECRET: z.string().min(32, "32 caractères au moins (openssl rand -hex 32)"),
+  // Lot 53 (ARC-09, HUB-15 ; D4 ; ADR 0095, ADR 0096) : clés VAPID des notifications push, P-256, en
+  // base64url (node apps/symbola/scripts/generate-vapid-keys.mjs). La clé publique (point non
+  // compressé, 65 octets) est donnée aux navigateurs ; la clé privée (32 octets) signe chaque envoi.
+  // Requises partout. Perdues ou changées, chaque appareil doit réactiver le push.
+  VAPID_PUBLIC_KEY: z
+    .string()
+    .trim()
+    .refine((value) => /^[A-Za-z0-9_-]+$/.test(value) && Buffer.from(value, "base64url").length === 65 && Buffer.from(value, "base64url")[0] === 4, {
+      message: "clé publique P-256 non compressée (65 octets) en base64url (generate-vapid-keys.mjs)",
+    }),
+  VAPID_PRIVATE_KEY: z
+    .string()
+    .trim()
+    .refine((value) => /^[A-Za-z0-9_-]+$/.test(value) && Buffer.from(value, "base64url").length === 32, {
+      message: "clé privée P-256 (32 octets) en base64url (generate-vapid-keys.mjs)",
+    }),
 }).superRefine((env, context) => {
+  if (!vapidKeysMatch(env.VAPID_PUBLIC_KEY, env.VAPID_PRIVATE_KEY)) {
+    context.addIssue({ code: "custom", path: ["VAPID_PUBLIC_KEY"], message: "ne correspond pas à VAPID_PRIVATE_KEY" });
+  }
   if (env.DATA_ENCRYPTION_KEY === env.MFA_ENCRYPTION_KEY) {
     context.addIssue({ code: "custom", path: ["DATA_ENCRYPTION_KEY"], message: "doit différer de MFA_ENCRYPTION_KEY" });
   }

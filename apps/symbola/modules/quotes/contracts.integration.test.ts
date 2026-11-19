@@ -60,6 +60,7 @@ import { quotesPrivacy } from "./privacy";
 import { confirmed } from "@/lib/test-fixtures/recipients";
 import { recipientsDigest } from "@/modules/hub/service";
 import { minimalPdf } from "@/lib/test-fixtures/pdf";
+import { markSigningCodeVerified } from "@/lib/test-fixtures/signing-code";
 
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
 const render = async () => new Uint8Array(minimalPdf("facture de test"));
@@ -202,7 +203,9 @@ describe("FAC-04 / HUB-21 — Modèles de contrat datés et versionnés (lot 31b
   it("un modèle se duplique, ses clauses s'ajoutent, se déplacent et se suppriment ; une autre organisation n'y a pas accès", async () => {
     const context = await organization();
     const other = await organization();
-    const [template] = await addStarterContractTemplates(context.organizationId, "fr");
+    // Lot 48b (HUB-26) : contrat, mandat et conditions générales de départ ; le contrat d'abord.
+    const starters = await addStarterContractTemplates(context.organizationId, "fr");
+    const template = starters[0];
     const copy = await duplicateContractTemplate({ organizationId: context.organizationId, templateId: template!.id, name: "Mariage à l'étranger" });
     expect(copy.clauses.map((clause) => clause.title)).toEqual(template!.clauses.map((clause) => clause.title));
     const added = await addContractClause(context.organizationId, copy.id, { title: "Hébergement", body: "Hébergement des mariés.", optional: true, role: null });
@@ -216,7 +219,7 @@ describe("FAC-04 / HUB-21 — Modèles de contrat datés et versionnés (lot 31b
     await expect(removeContractTemplate(other.organizationId, copy.id)).rejects.toBeInstanceOf(ContractTemplateNotFoundError);
     expect((await listContractTemplates(other.organizationId)).map((entry) => entry.id)).not.toContain(copy.id);
     await removeContractTemplate(context.organizationId, copy.id);
-    expect((await listContractTemplates(context.organizationId)).map((entry) => entry.id)).toEqual([template!.id]);
+    expect((await listContractTemplates(context.organizationId)).map((entry) => entry.id).sort()).toEqual(starters.map((entry) => entry.id).sort());
   });
 });
 
@@ -361,6 +364,9 @@ describe("DOC-03 / JUR-07 — Devis et contrat signés ensemble, actes du client
       await act(person.email, "order");
       await act(person.email, "early_execution");
     }
+    // Lot 43 (SEC-16, D4) : commandé, le lien de signature attend encore le code à usage unique.
+    expect((await portal(people[0]!.email)).ownSigningUrl).toBeNull();
+    await markSigningCodeVerified(context.organizationId, people[0]!.email);
     const after = await portal(people[0]!.email);
     expect(after.ownSigningUrl).not.toBeNull();
     expect(after.contract!.orderedAt).not.toBeNull();
@@ -406,6 +412,7 @@ describe("DOC-03 / JUR-07 — Devis et contrat signés ensemble, actes du client
     const alone = await sendContractForSignature({ organizationId: context.organizationId, quoteId: sent.id, contractId: contract.id, documentPdf: PDF, locale: "fr", confirmedRecipients: recipientsDigest(signing.signature!.signers) });
     expect(alone.signature).toMatchObject({ kind: "contract", status: "pending" });
     for (const signer of signing.signature!.signers) {
+      await markSigningCodeVerified(context.organizationId, signer.email);
       const entry = (await listClientQuotesToSign(context.organizationId, context.eventId, signer.email)).find((candidate) => candidate.kind === "contract")!;
       expect(entry.contract).toMatchObject({ orderRequired: false, earlyExecutionText: null });
       expect(await actOnFakeSignature(entry.ownSigningUrl!.split("/").pop()!, "sign")).toBe(true);

@@ -101,6 +101,18 @@
         "null"
       ]
     },
+    "notesConfidentialBy": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "importedFields": {
       "anyOf": [
         {
@@ -163,6 +175,18 @@
       "type": [
         "string",
         "null"
+      ]
+    },
+    "pipelineStageId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+        },
+        {
+          "type": "null"
+        }
       ]
     },
     "tasksScheduledFor": {
@@ -271,12 +295,14 @@
     "guestsConfirmed",
     "style",
     "notes",
+    "notesConfidentialBy",
     "importedFields",
     "wantedBudgetCents",
     "prospectSourceId",
     "eventTypeId",
     "lossReasonId",
     "lossReasonNote",
+    "pipelineStageId",
     "tasksScheduledFor",
     "programUpdatedAt",
     "demoExpiresAt",

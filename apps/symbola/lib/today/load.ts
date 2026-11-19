@@ -9,23 +9,34 @@ import type { EventSummary } from "@symbola/contracts";
 import { listPendingPaymentDeclarations, listUpcomingVendorPayments } from "@/modules/budget/service";
 import {
   eventNames,
+  listVendorCandidates,
   listEvents,
   listOrganizationTasks,
   listPendingDecisions,
   listPendingLinkRenewals,
   listStaleProspects,
-  listUncontractedVendors, isInProgress } from "@/modules/events/service";
-import { getFollowUpDelays } from "@/modules/hub/service";
+  listEngagedChoiceNotices,
+  listVendorAnswerNotices,
+  listVendorRoadmapAlerts,
+  listUncontractedVendors, isInProgress,
+  countProspectRequestsToReview,
+  listNewProspectRequests,
+  listFinishedUnseenQuestionnaires,
+  listReadyFollowUps,
+  listStandaloneTasks,
+} from "@/modules/events/service";
+import { countDuplicatePairs, getFollowUpDelays } from "@/modules/hub/service";
 import { listGuestPurgeNotices, listRecentOppositions } from "@/modules/guests/service";
-import { listEventIdsWithSentQuote, listOpenScheduledDeposits, listQuotesAwaitingAnswer, listUnpaidPayments } from "@/modules/quotes/service";
+import { listEventIdsWithSentQuote, listOpenScheduledDeposits, listQuotesAwaitingAnswer, listTransferDeclarations, listUnpaidPayments } from "@/modules/quotes/service";
 import { listCalendarSourcesInError, listTodayAppointments } from "@/modules/appointments/service";
+import { getVendorsByIds, listPendingBankChecks, listVendorDocumentNotices } from "@/modules/vendors/service";
 import { TODAY_HORIZON_DAYS, type TodayItem } from "./rank";
 import { settleWithin, TODAY_SOURCE_TIMEOUT_MS } from "./settle";
 
 // Lot 49 : « guests » (préavis de purge des invités, oppositions), facultatif pour les écrans qui ne
 // le demandent pas.
 // Lot 46 (HUB-08) : « appointments », le module Rendez-vous (absent = fermé).
-export type TodayModules = { events: boolean; quotes: boolean; budget: boolean; guests?: boolean; appointments?: boolean };
+export type TodayModules = { events: boolean; quotes: boolean; budget: boolean; guests?: boolean; appointments?: boolean; vendors?: boolean };
 export type TodaySource = keyof TodayModules;
 
 export type TodayWords = {
@@ -46,7 +57,35 @@ export type TodayWords = {
   appointment?: (time: string, type: string, person: string) => string;
   appointmentChange?: (change: "new" | "rescheduled" | "cancelled", time: string, type: string, person: string) => string;
   calendarSourceError?: (label: string) => string;
+  // Lot 44 (CRM-01, PAR-02) : nouvelle demande du formulaire (« Léa M., 12 juin 2027 »), date déjà
+  // prise, demandes « à vérifier ».
+  prospectRequest?: (names: string, when: string | null) => string;
+  prospectRequestDateTaken?: string;
+  prospectToReview?: (count: number) => string;
+  // Lot 47 (PAR-05) : réponse d'un prestataire, choix du client engagé, feuille de route non confirmée.
+  vendorAnswer?: (vendor: string, slot: string, answer: "available" | "quote" | "unavailable") => string;
+  vendorChoice?: (vendor: string, slot: string) => string;
+  vendorRoadmap?: (vendor: string) => string;
+  // Lot 43 (FAC-08, ADR 0087) : « Léa déclare avoir viré 1 200 € ».
+  transferDeclaration?: (name: string, amount: string) => string;
+  // Lot 45 (CRM-06, POR-07, CRM-07) : « Relancer Léa M. : prête, à relire », « Léa a terminé le
+  // questionnaire Découverte », « 2 doublons possibles ».
+  followUpReady?: (names: string) => string;
+  questionnaireFinished?: (names: string, questionnaire: string) => string;
+  contactDuplicates?: (count: number) => string;
+  // Lot 48a (PRE-05, PRE-10, SEC-27) : pièce expirée, proche de sa fin, expirant avant un évènement
+  // où le prestataire est retenu, déposée « à vérifier » ; IBAN changé « à vérifier par un autre canal ».
+  vendorDocument?: (vendor: string, document: string, reason: "expired" | "expiring" | "lapses_before_event" | "to_verify") => string;
+  vendorBankCheck?: (vendor: string) => string;
+  // Lot 53 (CHR-10) : « Hors évènement », sous l'intitulé d'une tâche sans évènement.
+  standaloneTask?: string;
 };
+
+function addDaysTo(date: string, days: number): string {
+  const value = new Date(`${date}T00:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + days);
+  return value.toISOString().slice(0, 10);
+}
 
 // Évènements en cours : ni clôturés, ni annulés (lot 34a, EVT-05).
 export function isActiveEvent(event: Pick<EventSummary, "status">): boolean {
@@ -69,7 +108,7 @@ type Context = {
   delays: { prospectFollowUpDays: number; quoteFollowUpDays: number };
 };
 
-async function eventItems({ organizationId, words, today, now, events, names, delays }: Context): Promise<TodayItem[]> {
+async function eventItems({ organizationId, words, locale, today, now, events, names, delays }: Context): Promise<TodayItem[]> {
   const items: TodayItem[] = [];
   for (const task of await listOrganizationTasks({ organizationId, today, horizonDays: TODAY_HORIZON_DAYS })) {
     const mine = task.responsible === "planner";
@@ -85,6 +124,22 @@ async function eventItems({ organizationId, words, today, now, events, names, de
       actor: mine ? { kind: "you" } : { kind: "client" },
       href: `/events/${task.eventId}?onglet=retroplanning&tache=${task.id}`,
       action: mine ? { kind: "check_task", eventId: task.eventId, taskId: task.id } : { kind: "open" },
+    });
+  }
+  // Lot 53 (CHR-10, D6) : les tâches hors évènement (TVA, assurance…) apparaissent comme les autres.
+  for (const task of await listStandaloneTasks(organizationId, { until: addDaysTo(today, TODAY_HORIZON_DAYS) })) {
+    items.push({
+      key: `standalone-task:${task.id}`,
+      kind: "task",
+      eventId: null,
+      eventNames: null,
+      title: task.label,
+      detail: words.standaloneTask,
+      dueOn: task.dueDate,
+      since: null,
+      actor: { kind: "you" },
+      href: "/taches#hors-evenement",
+      action: { kind: "check_standalone_task", taskId: task.id },
     });
   }
   for (const decision of await listPendingDecisions(organizationId)) {
@@ -114,6 +169,55 @@ async function eventItems({ organizationId, words, today, now, events, names, de
       href: `/events/${vendor.eventId}`,
       action: { kind: "remind_vendor", eventId: vendor.eventId, candidateId: vendor.candidateId },
     });
+  }
+  // Lot 47 (PAR-05 ; D3, D6, D8) : ce qu'ont fait les prestataires et les clients par leur lien.
+  if (words.vendorAnswer) {
+    for (const notice of await listVendorAnswerNotices(organizationId, now)) {
+      items.push({
+        key: `vendor-answer:${notice.candidateId}`,
+        kind: "vendor_answer",
+        eventId: notice.eventId,
+        eventNames: names(notice.eventId),
+        title: words.vendorAnswer(notice.vendorName, notice.slotLabel, notice.availability === "unavailable" ? "unavailable" : notice.hasQuote ? "quote" : "available"),
+        dueOn: null,
+        since: day(notice.answeredAt),
+        actor: { kind: "you" },
+        href: `/events/${notice.eventId}/consultation/${notice.vendorSlotId}`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  if (words.vendorChoice) {
+    for (const notice of await listEngagedChoiceNotices(organizationId, now)) {
+      items.push({
+        key: `vendor-choice:${notice.decisionId}`,
+        kind: "vendor_choice",
+        eventId: notice.eventId,
+        eventNames: names(notice.eventId),
+        title: words.vendorChoice(notice.vendorName, notice.slotLabel),
+        dueOn: null,
+        since: day(notice.engagedAt),
+        actor: { kind: "you" },
+        href: `/events/${notice.eventId}/consultation/${notice.vendorSlotId}`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  if (words.vendorRoadmap) {
+    for (const alert of await listVendorRoadmapAlerts(organizationId, now)) {
+      items.push({
+        key: `vendor-roadmap:${alert.candidateId}`,
+        kind: "vendor_roadmap",
+        eventId: alert.eventId,
+        eventNames: names(alert.eventId),
+        title: words.vendorRoadmap(alert.vendorName),
+        dueOn: null,
+        since: day(alert.sentAt),
+        actor: { kind: "vendor", name: alert.vendorName },
+        href: `/events/${alert.eventId}?onglet=budget`,
+        action: { kind: "open" },
+      });
+    }
   }
   // Deux évènements en cours le même jour (EVT-07) : signalés à l'approche de la date.
   const byDate = new Map<string, EventSummary[]>();
@@ -149,6 +253,86 @@ async function eventItems({ organizationId, words, today, now, events, names, de
       href: `/events/${prospect.eventId}`,
       action: { kind: "open" },
     });
+  }
+  // Lot 44 (CRM-01, PAR-02 étape 1) : la demande du formulaire, tant qu'elle est à la première étape du
+  // pipeline, avec le contrôle de disponibilité de la date (CRM-04) ; les demandes « à vérifier ».
+  if (words.prospectRequest) {
+    const dateFormat = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+    for (const request of await listNewProspectRequests(organizationId, locale === "en" ? "en" : "fr")) {
+      items.push({
+        key: `prospect-request:${request.eventId}`,
+        kind: "prospect_request",
+        eventId: request.eventId,
+        eventNames: request.names,
+        title: words.prospectRequest(request.names, request.eventDate ? dateFormat.format(new Date(`${request.eventDate}T12:00:00Z`)) : request.period),
+        detail: request.dateTaken ? words.prospectRequestDateTaken : undefined,
+        dueOn: null,
+        since: day(request.receivedAt),
+        actor: { kind: "you" },
+        href: `/events/${request.eventId}`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  if (words.prospectToReview) {
+    const review = await countProspectRequestsToReview(organizationId);
+    if (review.count > 0) {
+      items.push({
+        key: "prospect-review",
+        kind: "prospect_review",
+        eventId: null,
+        eventNames: null,
+        title: words.prospectToReview(review.count),
+        dueOn: null,
+        since: review.oldest ? day(review.oldest) : null,
+        actor: { kind: "you" },
+        href: "/events/pipeline#a-verifier",
+        action: { kind: "open" },
+      });
+    }
+  }
+  // Lot 45 (CRM-06, D2) : les relances prêtes, à relire puis envoyer d'un geste.
+  if (words.followUpReady) {
+    for (const followUp of await listReadyFollowUps(organizationId, now)) {
+      const label = names(followUp.eventId) ?? "";
+      items.push({
+        key: `follow-up:${followUp.id}`,
+        kind: "prospect_follow_up_ready",
+        eventId: followUp.eventId,
+        eventNames: label,
+        title: words.followUpReady(label),
+        dueOn: null,
+        since: day(followUp.readyAt),
+        actor: { kind: "you" },
+        href: `/events/${followUp.eventId}/relances/${followUp.id}`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  // Lot 45 (POR-07, CRM-09) : un questionnaire terminé, à lire (et ses écarts avec la fiche).
+  if (words.questionnaireFinished) {
+    for (const finished of await listFinishedUnseenQuestionnaires(organizationId)) {
+      const label = names(finished.eventId) ?? "";
+      items.push({
+        key: `questionnaire:${finished.id}`,
+        kind: "questionnaire_finished",
+        eventId: finished.eventId,
+        eventNames: label,
+        title: words.questionnaireFinished(label, finished.name),
+        dueOn: null,
+        since: day(finished.finishedAt),
+        actor: { kind: "you" },
+        href: `/events/${finished.eventId}/questionnaires`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  // Lot 45 (CRM-07, D4) : des doublons possibles, jamais fusionnés sans la planner.
+  if (words.contactDuplicates) {
+    const duplicates = await countDuplicatePairs(organizationId);
+    if (duplicates > 0) {
+      items.push({ key: "contact-duplicates", kind: "contact_duplicates", eventId: null, eventNames: null, title: words.contactDuplicates(duplicates), dueOn: null, since: null, actor: { kind: "you" }, href: "/contacts/doublons", action: { kind: "open" } });
+    }
   }
   for (const renewal of await listPendingLinkRenewals(organizationId)) {
     items.push({
@@ -234,6 +418,22 @@ async function quoteItems({ organizationId, words, now, names, money, delays }: 
       action: { kind: "open" },
     });
   }
+  // Lot 43 (FAC-08, ADR 0087) : virement déclaré par le payeur, à confirmer par l'encaissement existant.
+  for (const declaration of await listTransferDeclarations(organizationId)) {
+    items.push({
+      key: `transfer:${declaration.scheduleItemId}`,
+      kind: "transfer_declaration",
+      eventId: declaration.eventId,
+      eventNames: names(declaration.eventId),
+      title: words.transferDeclaration ? words.transferDeclaration(declaration.byName, money(declaration.amountCents)) : words.paymentDeclaration(declaration.label, money(declaration.amountCents)),
+      detail: `${declaration.quoteNumber} · ${declaration.reference}`,
+      dueOn: null,
+      since: day(declaration.declaredAt),
+      actor: { kind: "you" },
+      href: `/devis/${declaration.quoteId}#reglement-${declaration.scheduleItemId}`,
+      action: { kind: "open" },
+    });
+  }
   for (const deposit of await listOpenScheduledDeposits(organizationId)) {
     if (deposit.status !== "blocked") continue;
     items.push({
@@ -287,6 +487,67 @@ async function budgetItems({ organizationId, words, today, names, money }: Conte
 
 // Lot 46 (HUB-08, D2) — les rendez-vous du jour, ceux pris, reportés ou annulés depuis la veille, et
 // les agendas extérieurs en erreur (aucun créneau proposé tant qu'ils ne sont pas relus).
+// Lot 48a (PRE-05, PRE-10, SEC-27 ; ADR 0093) : les pièces et les IBAN des prestataires.
+async function vendorItems({ organizationId, words, today, now, events }: Context): Promise<TodayItem[]> {
+  if (!words.vendorDocument || !words.vendorBankCheck) return [];
+  const items: TodayItem[] = [];
+  const pending = await listPendingBankChecks(organizationId);
+  const named = new Map((await getVendorsByIds(organizationId, [...pending.keys()])).map((vendor) => [vendor.id, vendor.name]));
+  for (const check of pending.values()) {
+    const name = named.get(check.vendorId);
+    if (!name) continue;
+    items.push({
+      key: `vendor-bank:${check.vendorId}`,
+      kind: "vendor_bank_check",
+      eventId: null,
+      eventNames: null,
+      title: words.vendorBankCheck(name),
+      dueOn: null,
+      since: day(check.changedAt),
+      actor: { kind: "you" },
+      href: `/prestataires/${check.vendorId}`,
+      action: { kind: "open" },
+    });
+  }
+  for (const notice of await listVendorDocumentNotices(organizationId, { now })) {
+    items.push({
+      key: `vendor-document:${notice.documentId}`,
+      kind: "vendor_document",
+      eventId: null,
+      eventNames: null,
+      title: words.vendorDocument(notice.vendorName, notice.kindLabel, notice.reason),
+      // Une pièce expirée est en retard ; proche de sa fin ou à vérifier, elle est à traiter maintenant
+      // (l'horizon de quatorze jours ne la cacherait pas, l'alerte part à trente jours).
+      dueOn: notice.reason === "expired" ? notice.validUntil : null,
+      since: null,
+      actor: { kind: "you" },
+      href: `/prestataires/${notice.vendorId}`,
+      action: { kind: "open" },
+    });
+  }
+  // Critère de PRE-05 : la pièce d'un prestataire retenu qui expire avant la date de l'évènement.
+  for (const event of events.filter((candidate) => isActiveEvent(candidate) && !candidate.isDemo && candidate.eventDate !== null && candidate.eventDate >= today)) {
+    const vendorIds = (await listVendorCandidates(organizationId, event.id)).filter((candidate) => candidate.outcome === "selected" && candidate.vendorId).map((candidate) => candidate.vendorId!);
+    if (vendorIds.length === 0) continue;
+    for (const notice of (await listVendorDocumentNotices(organizationId, { vendorIds, eventDate: event.eventDate, now })).filter((candidate) => candidate.reason === "lapses_before_event")) {
+      items.push({
+        key: `vendor-document:${notice.documentId}:${event.id}`,
+        kind: "vendor_document",
+        eventId: event.id,
+        eventNames: eventNames(event.clients),
+        title: words.vendorDocument(notice.vendorName, notice.kindLabel, notice.reason),
+        // À traiter maintenant : demander la pièce à jour avant le jour J, aussi lointain soit-il.
+        dueOn: null,
+        since: null,
+        actor: { kind: "vendor", name: notice.vendorName },
+        href: `/prestataires/${notice.vendorId}`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  return items;
+}
+
 async function appointmentItems({ organizationId, words, today, now, names, locale }: Context): Promise<TodayItem[]> {
   const items: TodayItem[] = [];
   const time = (iso: string) => new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" }).format(new Date(iso));
@@ -356,6 +617,7 @@ export async function loadTodayItems(
     ["budget", modules.budget, budgetItems],
     ["guests", Boolean(modules.guests) && modules.events && listed.ok, guestItems],
     ["appointments", modules.appointments === true, appointmentItems],
+    ["vendors", modules.vendors === true && modules.events && listed.ok, vendorItems],
   ];
   const settled = await Promise.all(
     sources.map(async ([source, enabled, collect]) => [source, enabled ? await settleWithin(() => collect(context), timeoutMs, source) : { ok: true as const, value: [] }] as const),

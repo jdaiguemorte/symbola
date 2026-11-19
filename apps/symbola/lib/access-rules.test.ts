@@ -31,6 +31,13 @@ const BASE_GUARDS = [
   "getPlannerAuthContext",
   // @symbola/auth : connexion en cours, avant la double authentification
   "requireUser",
+  // Lot 52 (HUB-04, HUB-05, EVT-06 ; ADR 0094) : lecture comptable, Comptable, « Mes sessions », page
+  // publique qui s'adapte à une personne connectée, et qui ouvre le mode Jour J (équipe ou renfort).
+  "requireAccountingReader",
+  "requireAccountant",
+  "requireAccountSession",
+  "optionalSignedIn",
+  "resolveDayOfViewer",
 ];
 
 // Accès communs (fichier où chacun est défini) : ils appellent eux-mêmes une garde.
@@ -38,6 +45,8 @@ const SHARED_ACCESS: Record<string, string> = {
   authorizedPlanner: "app/devis/planner-access.ts",
   ownerContext: "app/rgpd/owner-access.ts",
   receiveUpload: "lib/uploads/receive.ts",
+  // Lot 47 (PRE-04) : envoi d'un fichier par le lien d'un prestataire (session du lien, débit, taille).
+  receiveLinkUpload: "lib/uploads/receive.ts",
   importStepContext: "app/import/step-context.ts",
   vendorSettingsAccess: "app/prestataires/parametres/guard.ts",
   // Lot 49 : module Invités, côté équipe (session, modules) et au portail (lien, rubrique, modules).
@@ -45,6 +54,12 @@ const SHARED_ACCESS: Record<string, string> = {
   portalGuestsAccess: "app/portail/invites/access.ts",
   // Lot 46 : la planner connectée, et le module Rendez-vous ouvert.
   appointmentsPlanner: "app/rendez-vous/access.ts",
+  // Lot 51 : le jour J de terrain (session de l'équipe, module, évènement ouvert au jour J, origine).
+  dayOfAccess: "app/jour-j/[eventId]/access.ts",
+  // Lot 45 : la rubrique « Questionnaires » du portail (lien, rubrique ouverte, module Évènements).
+  portalQuestionnairesAccess: "app/portail/questionnaires/access.ts",
+  // Lot 52 : PDF des factures et avoirs, e-reporting, écritures, aussi pour le Comptable (lecture).
+  authorizedAccountingReader: "app/devis/planner-access.ts",
 };
 
 const GUARDS = new Set([...BASE_GUARDS, ...Object.keys(SHARED_ACCESS)]);
@@ -85,6 +100,10 @@ const PUBLIC_ENTRIES: Record<string, string> = {
   // Lot 37a (DOC-04, D7 ; ADR 0070) : lien de partage d'un document, pour une personne sans lien personnel.
   "partage/page.tsx#default": "arrivée d'un lien de partage : le jeton reste dans le navigateur, la page n'affiche rien d'autre",
   "partage/actions.ts#describeShareLinkAction": "jeton du lien de partage, vérifié haché sous RLS, limité en débit ; l'intitulé seul, même réponse pour un lien inconnu, expiré ou révoqué",
+  // Lot 44 (CRM-01 ; D1, D2, D4 ; ADR 0084) : formulaire de contact public, sans compte.
+  "contact/[adresse]/page.tsx#default": "formulaire de contact public : l'adresse désigne un formulaire ouvert (sinon « introuvable »), rien de personnel n'est affiché",
+  "contact/[adresse]/cadre/page.tsx#default": "même formulaire, encadrable par les seuls sites déclarés (frame-ancestors) ; « introuvable » sinon",
+  "contact/[adresse]/actions.ts#submitContactAction": "envoi du formulaire public : adresse d'un formulaire ouvert, piège à robots, délai scellé, débit limité par adresse IP et par organisation ; même réponse qu'un succès si la garde refuse",
   // Lot 49 (INV-03, SEC-14 à SEC-17 ; ADR 0053, 0081) : page de réponse d'un invité, sans compte.
   "rsvp/page.tsx#default": "arrivée d'un lien d'invité : le jeton reste dans le navigateur, la page n'affiche rien avant l'échange",
   "rsvp/actions.ts#openRsvpAction": "jeton du lien de l'invité, vérifié haché sous RLS, module ouvert, limité en débit ; « lien inconnu » sinon",
@@ -98,6 +117,10 @@ const PUBLIC_ENTRIES: Record<string, string> = {
   "rdv/actions.ts#describeAppointmentLinkAction": "jeton du lien de gestion, vérifié haché sous RLS, valable jusqu'à la fin du rendez-vous, limité en débit ; même réponse pour un lien inconnu, expiré ou retiré",
   "rdv/actions.ts#appointmentLinkSlotsAction": "jeton du lien de gestion : créneaux libres du même type seulement, limité en débit",
   "rdv/actions.ts#rescheduleAppointmentAction": "jeton du lien de gestion : report sur un créneau libre recalculé sous verrou, limité en débit",
+  // Lot 52 (SEC-08, D6 ; ADR 0094).
+  "api/webhooks/identite/route.ts#POST": "webhook du fournisseur d'identité, authentifié par la signature HMAC de son corps (clé lue par l'API d'administration), refusé et journalisé sinon",
+  "securite/pas-moi/page.tsx#default": "« Ce n'est pas moi » : le jeton reste dans le navigateur, la page n'affiche rien d'autre",
+  "securite/actions.ts#disownDeviceAction": "jeton « Ce n'est pas moi » en POST, vérifié haché, usage unique, sept jours, limité en débit ; ferme seulement les sessions du compte de l'alerte",
   "rdv/actions.ts#cancelAppointmentByLinkAction": "jeton du lien de gestion : annulation de ce rendez-vous seul, motif choisi dans une liste, limité en débit",
 };
 
@@ -214,7 +237,10 @@ describe("SEC-12 — Chaque route a sa règle d'accès, vérifiée côté serveu
     expect([...guardedFunctions(parsed, GUARDS)].sort()).toEqual(["arrowAction", "context", "guardedAction"]);
   });
 
-  it("l'analyse voit chaque page, chaque route et chaque action exportée", () => {
+  // Lot 53 : délai explicite. Le test lit et analyse toutes les sources de l'app ; sa durée croît avec
+  // chaque lot et a dépassé les 5 s par défaut en CI (5 057 ms, PR #148). Rien de ce qu'il vérifie ne
+  // change.
+  it("l'analyse voit chaque page, chaque route et chaque action exportée", { timeout: 30_000 }, () => {
     const files = sourceFiles(APP_DIR).map((path) => ({ name: path.split("/").pop()!, text: readFileSync(path, "utf8") }));
     const entries = appEntries();
     const count = (kind: Entry["kind"]) => entries.filter((entry) => entry.kind === kind).length;

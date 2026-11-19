@@ -22,6 +22,8 @@ export type TodayItemKind =
   | "vendor_payment"
   | "decision"
   | "payment_declaration"
+  // Lot 43 (FAC-08) : virement déclaré par le payeur d'une échéance de la planner.
+  | "transfer_declaration"
   | "quote_follow_up"
   | "prospect_follow_up"
   | "deposit_blocked"
@@ -35,12 +37,29 @@ export type TodayItemKind =
   // agenda extérieur en erreur.
   | "appointment"
   | "appointment_change"
-  | "calendar_source_error";
+  | "calendar_source_error"
+  // Lot 44 (CRM-01) : nouvelle demande du formulaire de contact, demandes « à vérifier ».
+  | "prospect_request"
+  | "prospect_review"
+  // Lot 45 (CRM-06, POR-07, CRM-07) : relance prête à relire, questionnaire terminé, doublons possibles.
+  | "prospect_follow_up_ready"
+  | "questionnaire_finished"
+  | "contact_duplicates"
+  // Lot 47 (PAR-05 ; D3, D6, D8) : réponse d'un prestataire à un brief, choix du client engagé,
+  // feuille de route non confirmée.
+  | "vendor_answer"
+  | "vendor_choice"
+  | "vendor_roadmap"
+  // Lot 48a (PRE-05, PRE-10, SEC-27) : pièce d'un prestataire à surveiller, IBAN « à vérifier ».
+  | "vendor_document"
+  | "vendor_bank_check";
 
 // L'action en un clic (HUB-08) : cocher une tâche, relancer un prestataire, ou ouvrir l'objet.
 export type TodayAction =
   | { kind: "check_task"; eventId: string; taskId: string }
   | { kind: "remind_vendor"; eventId: string; candidateId: string }
+  // Lot 53 (CHR-10) : cocher une tâche hors évènement.
+  | { kind: "check_standalone_task"; taskId: string }
   | { kind: "open" };
 
 export type TodayItem = {

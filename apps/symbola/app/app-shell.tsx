@@ -22,11 +22,14 @@ import {
   LifeBuoy,
   ListChecks,
   Settings,
+  ShieldCheck,
   Wallet,
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { parisToday } from "@symbola/i18n";
-import { listOrganizations } from "@symbola/auth";
+import { isMfaPromptDue, listOrganizations, mfaPromptDismissedAt } from "@symbola/auth";
+import { accountCenterUrl } from "@/lib/identity";
+import { MfaPromptBanner } from "./securite/mfa-prompt";
 import { appDatabase } from "@symbola/db/client";
 import {
   getDocumentHeader,
@@ -52,6 +55,7 @@ import { NetworkStatus } from "./ui/network-status";
 import { NavigationSkeleton } from "./ui/navigation-skeleton";
 import { TaskUndoProvider } from "./taches/task-undo";
 import { HelpButton } from "./help-button";
+import { NotificationBell } from "./notification-bell";
 import { OrganizationSwitcher } from "./organization-switcher";
 import { getHelpProgress } from "@/modules/hub/service";
 import { type HelpModule, TUTORIALS, tutorialHref } from "@/lib/help/catalog";
@@ -148,8 +152,18 @@ function DayShell({ children }: { children: ReactNode }) {
   );
 }
 
+// Lot 44 (CRM-01 ; D1, D2 ; ADR 0084) : le formulaire de contact public (/contact/<adresse>) et sa page
+// encadrée, sans menu, sans recherche ni compte, même pour une personne connectée (aperçu des réglages) ;
+// le nom de l'organisation est le titre de la page.
+const CONTACT_PAGE = /^\/contact\/[^/]+(?:\/cadre)?\/?$/;
+
+function ContactShell({ children, framed }: { children: ReactNode; framed: boolean }) {
+  return <div className={framed ? "contact-shell contact-shell-framed" : "link-shell contact-shell"}>{children}</div>;
+}
+
 export async function AppShell({ children }: { children: ReactNode }) {
   const requestPath = (await headers()).get("x-pathname") ?? "";
+  if (CONTACT_PAGE.test(requestPath)) return <ContactShell framed={requestPath.replace(/\/$/, "").endsWith("/cadre")}>{children}</ContactShell>;
   if (LINK_PAGE.test(requestPath)) return <LinkShell>{children}</LinkShell>;
   if (DAY_PAGE.test(requestPath)) return <DayShell>{children}</DayShell>;
   const auth = await getAuthContext();
@@ -321,6 +335,10 @@ export async function AppShell({ children }: { children: ReactNode }) {
           items: [
             { href: "/parametres", label: tSettings("company") },
             { href: "/profil", label: tSettings("account") },
+            // Lot 53 (HUB-15, UX-16) : les notifications de chacun ; HUB-28, GC-02 : automatismes et radar.
+            { href: "/parametres/notifications", label: tSettings("notifications") },
+            { href: "/parametres/automatisations", label: tSettings("automations") },
+            { href: "/parametres/radar", label: tSettings("riskRadar") },
             // Lot 24b (SEC-06, décision D3) : équipe, titulaire seulement.
             ...(isOwner ? [{ href: "/parametres/equipe", label: tSettings("team") }] : []),
             // Lot 38a (MSG-01, D3) : les e-mails envoyés au nom de l'organisation (liens, rappels, signatures, programme).
@@ -351,6 +369,21 @@ export async function AppShell({ children }: { children: ReactNode }) {
                           href: "/events/parametres/types",
                           label: tSettings("eventTypes"),
                         },
+                        // Lot 53 (HUB-24, D8) : le terme qui désigne les clients de chaque type.
+                        { href: "/events/parametres/termes", label: tSettings("clientTerms") },
+                        // Lot 44 (CRM-01, CRM-02) : étapes du pipeline et formulaire de contact, réglés par la
+                        // titulaire.
+                        ...(isOwner
+                          ? [
+                              { href: "/events/parametres/etapes", label: tSettings("pipelineStages") },
+                              { href: "/events/parametres/contact", label: tSettings("contactForm") },
+                            ]
+                          : []),
+                        // Lot 45 (HUB-21, POR-07) : modèles de questionnaires.
+                        {
+                          href: "/events/parametres/questionnaires",
+                          label: tSettings("questionnaires"),
+                        },
                         {
                           href: "/events/modeles",
                           label: tSettings("retroplanning"),
@@ -359,7 +392,16 @@ export async function AppShell({ children }: { children: ReactNode }) {
                           href: "/events/modeles-programme",
                           label: tSettings("program"),
                         },
-                        ...(guests ? [{ href: "/events/parametres/regimes", label: tSettings("dietaryOptions") }] : []),
+                        // Lot 51 (JRJ-06) : modèles des listes de contrôle du jour J.
+                        { href: "/events/parametres/listes-jour-j", label: tSettings("dayChecklists") },
+                        ...(guests
+                          ? [
+                              { href: "/events/parametres/regimes", label: tSettings("dietaryOptions") },
+                              { href: "/events/parametres/repas", label: tSettings("mealTypes") },
+                            ]
+                          : []),
+                        // Lot 47 (partie F) : prestataires par lien (brief, relance, feuilles de route, tâches de suivi).
+                        { href: "/events/parametres/prestataires-par-lien", label: tSettings("vendorCoordination") },
                       ]
                     : []),
                   ...(budget
@@ -401,6 +443,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
                   // Lot 31a/31b (HUB-21) : modèles de devis et de contrat.
                   { href: "/devis/modeles", label: tSettings("quoteTemplates") },
                   { href: "/devis/modeles-contrat", label: tSettings("contractTemplates") },
+                  // Lot 43 (FAC-02, FAC-09, FAC-15) : page de proposition et relances.
+                  { href: "/devis/modeles-proposition", label: tSettings("proposalTemplates") },
+                  { href: "/devis/relances", label: tSettings("paymentReminders") },
                   { href: "/devis/parametres", label: tSettings("quotes") },
                   {
                     href: "/devis/parametres/documents",
@@ -433,6 +478,11 @@ export async function AppShell({ children }: { children: ReactNode }) {
                   {
                     href: "/prestataires/parametres/trajet",
                     label: tSettings("vendorTravel"),
+                  },
+                  // Lot 48a (PRE-05) : délai d'alerte et natures des pièces des prestataires.
+                  {
+                    href: "/prestataires/parametres/pieces",
+                    label: tSettings("vendorDocuments"),
                   },
                 ]
               : []),
@@ -467,6 +517,81 @@ export async function AppShell({ children }: { children: ReactNode }) {
         },
       ].filter((group) => group.items.length > 0)
     : [];
+
+  // Lot 52 (HUB-04 ; ADR 0094) — le Comptable : un menu réduit à ses écrans de lecture comptable.
+  if (auth.user.role === "accountant") {
+    const tAccounting = await getTranslations("Accounting");
+    return (
+      <div className="app-shell">
+        <a className="skip-link" href="#contenu">
+          {t("skipToContent")}
+        </a>
+        <AppSidebar brand={<Brand href="/comptable" />} menuLabel={t("menuOpen")} closeLabel={t("menuClose")}>
+          <nav aria-label={tAccounting("menuLabel")}>
+            <ul className="app-nav">
+              <li>
+                <AppNavLink href="/comptable" exact>
+                  <FileText {...iconProps} />
+                  {tAccounting("menu.documents")}
+                </AppNavLink>
+              </li>
+              {quotes ? (
+                <>
+                  <li>
+                    <AppNavLink href="/devis/encaissements">
+                      <Wallet {...iconProps} />
+                      {tAccounting("menu.payments")}
+                    </AppNavLink>
+                  </li>
+                  <li>
+                    <AppNavLink href="/devis/e-reporting">
+                      <Activity {...iconProps} />
+                      {tAccounting("menu.eReporting")}
+                    </AppNavLink>
+                  </li>
+                  <li>
+                    <AppNavLink href="/devis/parametres/archive">
+                      <BookUser {...iconProps} />
+                      {tAccounting("menu.ledger")}
+                    </AppNavLink>
+                  </li>
+                </>
+              ) : null}
+            </ul>
+            <ul className="app-nav app-nav-secondary">
+              <li>
+                <AppNavLink href="/securite">
+                  <ShieldCheck {...iconProps} />
+                  {tAccounting("menu.sessions")}
+                </AppNavLink>
+              </li>
+              <li>
+                <AppNavLink href="/profil">
+                  <UserCog {...iconProps} />
+                  {tAccounting("menu.account")}
+                </AppNavLink>
+              </li>
+            </ul>
+          </nav>
+          <div className="app-user">
+            <span>{t("connectedAs", { email: auth.user.email })}</span>
+            {logout}
+          </div>
+        </AppSidebar>
+        <HelpProvider>
+          <div className="app-main">
+            <NetworkStatus />
+            <NavigationSkeleton label={tLoading("label")} />
+            <span id="contenu" className="skip-target" tabIndex={-1} />
+            {children}
+          </div>
+        </HelpProvider>
+      </div>
+    );
+  }
+
+  // Lot 52 (SEC-02, D5) : la double authentification proposée à une Planner qui ne l'a pas.
+  const showMfaPrompt = isMfaPromptDue({ role: auth.user.role, mfaEnabled: auth.user.mfaEnabled, dismissedAt: auth.user.role === "member" && !auth.user.mfaEnabled ? await mfaPromptDismissedAt(appDatabase(), auth.user.id) : null, now: new Date() });
 
   if (isAdmin) {
     // Lot 13 (L13-HUB-17, ADR 0033) — console d'Administration : son propre menu,
@@ -714,6 +839,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
             {isTeam ? <SearchBox actions={paletteActions} /> : null}
             {/* Lot 32b (HUB-07, D9) : création rapide, touche N ; ses entrées suivent les modules. */}
             {isTeam ? <QuickCreate modules={{ events, quotes, budget }} /> : null}
+            {/* Lot 53 (HUB-15, UX-16) : la cloche des notifications, avant le « ? ». */}
+            {isTeam && organizationId ? <NotificationBell organizationId={organizationId} userId={auth.user.id} /> : null}
             <HelpButton />
           </section>
           {settingsSections.length > 0 ? (
@@ -727,6 +854,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             <HelpBar tutorial={helpBar.tutorial} invites={helpBar.invites} />
           ) : null}
           <NetworkStatus />
+          {showMfaPrompt ? <MfaPromptBanner accountCenter={accountCenterUrl()} /> : null}
           {/* Lot 39a (UX-07) : « Annuler » pendant dix secondes après une suppression. */}
           <UndoNotice />
           {/* Lot 39c (UX-15) : squelette d'écran au passage d'un écran à l'autre. */}

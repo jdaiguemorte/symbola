@@ -1,6 +1,7 @@
 // DEV-02 — signature en ligne, contre un vrai PostgreSQL (RLS), par la
 // porte d'entrée du module, avec le faux fournisseur (la même suite de
 // contrat tourne contre l'adaptateur Documenso, signature/provider-contract).
+import { deliverDueNotifications } from "@/modules/hub/service";
 import { randomUUID } from "node:crypto";
 import { eq, sql as raw } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
@@ -35,6 +36,7 @@ import {
   sendQuoteForSignature,
   type QuoteDetail,
 } from "./service";
+import { markSigningCodeVerified } from "@/lib/test-fixtures/signing-code";
 import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
 import { confirmed } from "@/lib/test-fixtures/recipients";
 import { recipientsDigest, RecipientsNotConfirmedError } from "@/modules/hub/service";
@@ -312,8 +314,12 @@ describe("DEV-02 — Webhook du fournisseur", () => {
     expect((await getEvent(organizationId, eventId))?.status).toBe("confirmed");
     expect(await countSignedEvents(quoteId)).toBe(1);
 
+    // Lot 53 (HUB-15, UX-16 ; D3) : « Devis signé » est une notification immédiate de la Propriétaire ;
+    // l'e-mail part par la tâche des notifications, l'objet ne dit que la sorte, le texte nomme le devis.
+    await deliverDueNotifications(organizationId);
     const [mail] = await messagesTo(plannerEmail);
-    expect(mail?.Subject).toContain(detail.number);
+    expect(mail?.Subject).toBe("Symbola : une alerte vous attend");
+    expect(mail?.Text).toContain(detail.number);
 
     const document = await getSignatureDocument(organizationId, quoteId, "signed");
     expect(document).toMatchObject({ contentType: "application/pdf", fileName: `${detail.number}-signe.pdf` });
@@ -326,6 +332,7 @@ describe("DEV-02 — Webhook du fournisseur", () => {
     const replay = await handleSignatureWebhook({ headers: fakeSignatureProvider().webhookHeaders(), rawBody: last.rawBody });
     expect(replay).toEqual({ httpStatus: 200, outcome: "duplicate" });
     expect(await countSignedEvents(quoteId)).toBe(1);
+    await deliverDueNotifications(organizationId);
     expect((await messagesTo(plannerEmail)).length).toBe(1);
   });
 
@@ -431,10 +438,14 @@ describe("DEV-02 — Espace du marié", () => {
     const { organizationId, quoteId, eventId } = await setup();
     const { detail, people } = await sendForSignature(organizationId, quoteId);
 
+    // Lot 43 (SEC-16, D4) : sans le code à usage unique vérifié depuis son lien, pas de lien de signature.
+    expect((await listClientQuotesToSign(organizationId, eventId, people[0]!.email))[0]).toMatchObject({ ownSigningUrl: null, ownStatus: "pending" });
+    await markSigningCodeVerified(organizationId, people[0]!.email);
     const own = await listClientQuotesToSign(organizationId, eventId, people[0]!.email.toUpperCase());
     expect(own).toEqual([
       {
         quoteId,
+        versionId: detail.current.id,
         number: detail.number,
         version: 1,
         totalTtcCents: 120000,

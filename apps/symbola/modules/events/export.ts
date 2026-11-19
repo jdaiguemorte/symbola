@@ -7,6 +7,15 @@ import type { ExportEntitySchema, ModuleExport, ModuleExportContext } from "@sym
 import { appDatabase } from "@symbola/db/client";
 import { describeModuleEntities, exportModuleEntities, type ExportEntitySpec } from "@symbola/db/export";
 import {
+  dayChecklistItems,
+  dayChecklists,
+  dayChecklistTemplates,
+  dayCheckpoints,
+  eventTeamMembers,
+  dayIncidents,
+  dayPhotos,
+  dayReports,
+  dayShifts,
   defaultVendorSlots,
   eventActivities,
   eventClients,
@@ -22,6 +31,9 @@ import {
   eventPlaces,
   keyMoments,
   events,
+  contactForms,
+  pipelineStages,
+  prospectRequests,
   eventStatusHistory,
   eventTaskAttachments,
   eventTaskComments,
@@ -39,6 +51,22 @@ import {
   prospectSources,
   taskTemplateItems,
   taskTemplates,
+  eventDecisionOptionFeedback,
+  vendorBriefDocuments,
+  vendorBriefs,
+  vendorCoordinationSettings,
+  vendorRoadmaps,
+  vendorScenarioChoices,
+  vendorScenarios,
+  eventMessages,
+  eventQuestionnaires,
+  prospectFollowUps,
+  prospectFollowUpSettings,
+  eventTypeVocabulary,
+  planningHealthSettings,
+  questionnaireAnswers,
+  questionnaireTemplateItems,
+  questionnaireTemplates,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 
@@ -49,14 +77,33 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: eventTypes },
   { table: prospectSources },
   { table: lossReasons },
+  // Lot 44 (CRM-01, CRM-02) : étapes du pipeline (avant les évènements qui s'y rangent), formulaire de
+  // contact.
+  { table: pipelineStages },
+  { table: contactForms },
   { table: taskTemplates },
   { table: taskTemplateItems, parents: { templateId: "task_templates" } },
   { table: programTemplates },
   { table: programTemplateItems, parents: { templateId: "program_templates" } },
-  { table: events, demoField: "isDemo" },
+  // Lot 51 (JRJ-06) : modèles des listes de contrôle du jour J.
+  { table: dayChecklistTemplates },
+  // Lot 47 (partie F) : réglages des prestataires par lien.
+  { table: vendorCoordinationSettings, idField: "organizationId" },
+  // Lot 45 (CRM-06, POR-07, HUB-21) : réglage des relances (avec la brochure), modèles de questionnaires
+  // et leurs versions.
+  { table: prospectFollowUpSettings, files: ["brochureStorageKey"] },
+  // Lot 53 (HUB-24, CHR-05) : le terme des clients de chaque type, les seuils de la santé du planning.
+  { table: eventTypeVocabulary, parents: { eventTypeId: "event_types" } },
+  { table: planningHealthSettings },
+  { table: questionnaireTemplates },
+  { table: questionnaireTemplateItems, parents: { templateId: "questionnaire_templates" } },
+  // Lot 48a (DAT-08) : des notes confidentielles ne sortent pas (chiffrées, elles restent dans Symbola).
+  { table: events, demoField: "isDemo", omit: ["notesSealed"] },
   { table: eventClients, ...ofEvent },
   { table: eventStatusHistory, ...ofEvent },
   { table: eventPlaces, ...ofEvent },
+  // Lot 44 (CRM-01) : demandes du formulaire de contact (une demande « à vérifier » n'a pas d'évènement).
+  { table: prospectRequests, ...ofEvent },
   // Lot 49 (D2) : temps forts de l'évènement.
   { table: keyMoments, ...ofEvent },
   { table: eventDayContacts, ...ofEvent },
@@ -66,7 +113,14 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: eventDocumentVersions, parents: { documentId: "event_documents" }, files: ["fileKey"] },
   { table: eventDayDocuments, ...ofEvent },
   { table: eventVendorSlots, ...ofEvent },
+  // Lot 47 (D1) : le brief d'un poste et ses inspirations, avant les prestataires qui le reçoivent.
+  { table: vendorBriefs, ...ofEvent },
+  { table: vendorBriefDocuments, parents: { briefId: "vendor_briefs" } },
   { table: eventVendorCandidates, ...ofEvent, files: ["quoteFileKey"] },
+  // Lot 47 (D5, D8) : scénarios d'options et feuilles de route.
+  { table: vendorScenarios, ...ofEvent },
+  { table: vendorScenarioChoices, parents: { scenarioId: "vendor_scenarios" } },
+  { table: vendorRoadmaps, parents: { candidateId: "event_vendor_candidates" } },
   { table: eventVendorCandidateNotes, parents: { candidateId: "event_vendor_candidates" } },
   { table: eventTasks, ...ofEvent },
   { table: eventTaskComments, ...ofEvent },
@@ -75,13 +129,32 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: programItemParticipants, parents: { programItemId: "program_items" } },
   // Lot 37b (DAT-14) : versions diffusées du programme.
   { table: programVersions, ...ofEvent },
+  // Lot 51 (JRJ-05 à JRJ-08, PAR-08) : le jour J de terrain — pointages, décalages validés, main
+  // courante, listes et cases, photos (fichiers compris ; une photo refusée n'en a pas), bilan.
+  { table: dayCheckpoints, ...ofEvent },
+  { table: dayShifts, ...ofEvent },
+  { table: dayIncidents, ...ofEvent },
+  { table: dayChecklists, ...ofEvent },
+  { table: dayChecklistItems, parents: { checklistId: "day_checklists" } },
+  { table: dayPhotos, ...ofEvent, files: ["storageKey"] },
+  { table: dayReports, ...ofEvent },
   // Liens personnels des tiers, pour mémoire : jamais leur jeton (haché) ; ils se recréent.
   { table: eventLinks, ...ofEvent, omit: ["tokenHash"] },
   { table: eventLinkSharedSlots, parents: { linkId: "event_links" } },
   // Lot 37a (D7) : liens de partage d'un document, pour mémoire, sans leur jeton (haché).
   { table: eventDocumentLinks, ...ofEvent, omit: ["tokenHash"] },
   { table: eventDecisions, ...ofEvent },
+  // Lot 47 (D7) : avis des clients sur les options d'une décision.
+  { table: eventDecisionOptionFeedback, parents: { decisionId: "event_decisions" } },
   { table: eventActivities, ...ofEvent },
+  // Lot 45 (CRM-05, CRM-06, POR-07) : messages au contact (sans le jeton haché de la brochure),
+  // relances, questionnaires envoyés et leurs réponses.
+  { table: eventMessages, ...ofEvent, omit: ["brochureTokenHash"] },
+  { table: prospectFollowUps, ...ofEvent },
+  { table: eventQuestionnaires, ...ofEvent },
+  { table: questionnaireAnswers, parents: { questionnaireId: "event_questionnaires" } },
+  // Lot 52 (EVT-06, D2) : l'équipe de chaque évènement (planner principal, assistants).
+  { table: eventTeamMembers, ...ofEvent },
 ];
 
 // Tables du module qui ne sont pas exportées, et pourquoi (docs/export/format-v1.md).

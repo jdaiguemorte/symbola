@@ -65,6 +65,8 @@ function version(overrides: Partial<QuoteVersionView> = {}): QuoteVersionView {
         isOption: false,
         optionChosen: false,
         nature: "service",
+        supplyMode: "resale",
+        tourismKind: null,
       },
     ],
     globalDiscount: { kind: "none" },

@@ -1,6 +1,6 @@
 // Lot 33 (HUB-01, SEC-03, ADR 0067) — réglages appliqués au fournisseur d'identité.
 import { describe, expect, it } from "vitest";
-import { accountCenter, forbiddenPasswordWords, signInExperience, smtpConnector, webApplication } from "./settings";
+import { accountCenter, forbiddenPasswordWords, identityWebhookUrl, signInExperience, smtpConnector, webApplication } from "./settings";
 
 describe("HUB-01 — Expérience de connexion du fournisseur d'identité", () => {
   const settings = signInExperience(["azerty"]);
@@ -65,8 +65,19 @@ describe("SEC-01 — Centre de compte du fournisseur (D4)", () => {
   it("mot de passe, clé d'accès et double authentification modifiables ; adresse en lecture seule ; le reste coupé", () => {
     const { enabled, fields } = accountCenter();
     expect(enabled).toBe(true);
-    expect(fields).toMatchObject({ password: "Edit", mfa: "Edit", passkey: "Edit", email: "ReadOnly" });
+    expect(fields).toMatchObject({ password: "Edit", mfa: "Edit", passkey: "Edit", email: "Edit" });
     const others = Object.entries(fields).filter(([key]) => !["password", "mfa", "passkey", "email"].includes(key));
     for (const [, value] of others) expect(value).toBe("Off");
+  });
+});
+
+describe("SEC-08 (lot 52, D6) — Changement d'adresse dans le centre de compte, annoncé par webhook", () => {
+  it("l'adresse se modifie dans le centre de compte (l'alerte part à l'ancienne adresse)", () => {
+    expect(accountCenter().fields.email).toBe("Edit");
+  });
+
+  it("le webhook appelle l'app sur /api/webhooks/identite, sauf adresse donnée", () => {
+    expect(identityWebhookUrl("https://app.symbola.test/")).toBe("https://app.symbola.test/api/webhooks/identite");
+    expect(identityWebhookUrl("http://localhost:3000", "http://host.docker.internal:3000/api/webhooks/identite")).toBe("http://host.docker.internal:3000/api/webhooks/identite");
   });
 });

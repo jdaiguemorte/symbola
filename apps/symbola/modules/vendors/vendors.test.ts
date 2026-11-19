@@ -14,6 +14,7 @@ const field = (id: string, kind: VendorTypeField["kind"], extra: Partial<VendorT
   choices: [],
   isFilter: true,
   position: 0,
+  ruleKey: null,
   ...extra,
 });
 

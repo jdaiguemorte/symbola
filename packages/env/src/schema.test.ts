@@ -1,3 +1,4 @@
+import { createECDH } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { parseEnv } from "./parse";
 import { geocoderOf, signatureProviderOf } from "./schema";
@@ -10,7 +11,15 @@ const validEnv = {
   DATA_ENCRYPTION_KEY: Buffer.alloc(32, 9).toString("base64"),
   LOGTO_M2M_SECRET: "s".repeat(64),
   LOGTO_ENDPOINT: "https://connexion.symbola.test",
+  // Lot 53 (ADR 0096) : une paire VAPID valide, tirée à chaque passage.
+  ...vapidPair(),
 };
+
+function vapidPair(): { VAPID_PUBLIC_KEY: string; VAPID_PRIVATE_KEY: string } {
+  const ecdh = createECDH("prime256v1");
+  ecdh.generateKeys();
+  return { VAPID_PUBLIC_KEY: ecdh.getPublicKey().toString("base64url"), VAPID_PRIVATE_KEY: ecdh.getPrivateKey().toString("base64url") };
+}
 
 describe("SOC-03 — Validation des variables d'environnement (Zod)", () => {
   it("accepte un environnement valide et applique les valeurs par défaut", () => {
@@ -124,5 +133,17 @@ describe("DAT-08 — Clé du chiffrement au niveau du champ (socle des lots 46 e
     expect(() => parseEnv({ ...validEnv, DATA_ENCRYPTION_KEY: Buffer.alloc(16, 9).toString("base64") })).toThrow(/DATA_ENCRYPTION_KEY/);
     expect(() => parseEnv({ ...validEnv, DATA_ENCRYPTION_KEY: "pas-une-clé" })).toThrow(/DATA_ENCRYPTION_KEY/);
     expect(() => parseEnv({ ...validEnv, DATA_ENCRYPTION_KEY: validEnv.MFA_ENCRYPTION_KEY })).toThrow(/DATA_ENCRYPTION_KEY/);
+  });
+});
+
+describe("ARC-09 — Clés VAPID des notifications push (lot 53, ADR 0096)", () => {
+  it("refuse un démarrage sans clé, avec une clé mal formée, ou avec une clé publique qui n'est pas celle de la clé privée", () => {
+    const { VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, ...rest } = validEnv;
+    expect(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY).toBeTruthy();
+    expect(() => parseEnv(rest)).toThrow(/VAPID_PUBLIC_KEY/);
+    expect(() => parseEnv({ ...validEnv, VAPID_PUBLIC_KEY: "pas-une-clé" })).toThrow(/VAPID_PUBLIC_KEY/);
+    expect(() => parseEnv({ ...validEnv, VAPID_PRIVATE_KEY: Buffer.alloc(16, 1).toString("base64url") })).toThrow(/VAPID_PRIVATE_KEY/);
+    expect(() => parseEnv({ ...validEnv, VAPID_PUBLIC_KEY: vapidPair().VAPID_PUBLIC_KEY })).toThrow(/VAPID_PUBLIC_KEY/);
+    expect(parseEnv(validEnv).VAPID_PUBLIC_KEY).toBe(validEnv.VAPID_PUBLIC_KEY);
   });
 });

@@ -35,13 +35,22 @@ import {
   quoteVersions,
   scheduledDepositInvoices,
   signatureRequests,
+  paymentReferences,
+  paymentReminders,
+  proposalTemplates,
+  plannerFees,
+  vendorCommissions,
 } from "@symbola/db/schema/quotes";
+
+import { openQuoteSettings } from "./bank-details";
 
 // Original d'une pièce : celle d'une facture ou d'un avoir (lot 23b).
 const ORIGINAL_PARENTS: Record<string, string> = { invoice: "invoices", credit_note: "credit_notes" };
 
 export const QUOTES_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
-  { table: quoteSettings },
+  // Lot 48a (DAT-08) : l'IBAN et le BIC de la planner sortent en clair dans leurs champs d'origine
+  // (contrat export/v1 inchangé) ; leurs colonnes chiffrées n'en sortent pas.
+  { table: quoteSettings, omit: ["ibanSealed", "bicSealed"], transform: (row) => openQuoteSettings(row as Parameters<typeof openQuoteSettings>[0]) },
   { table: numberSeries, demoField: "isDemo" },
   { table: paymentMethods },
   { table: catalogItems },
@@ -52,7 +61,12 @@ export const QUOTES_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: quoteTemplateSections, parents: { templateId: "quote_templates" } },
   { table: quoteTemplateLines, parents: { templateId: "quote_templates" } },
   { table: quoteTemplateScheduleItems, parents: { templateId: "quote_templates" } },
+  // Lot 43 (FAC-02, D2) : modèles de la page de proposition (photos dans le stockage privé).
+  { table: proposalTemplates },
   { table: quotes, demoField: "isDemo", eventField: "eventId" },
+  // Lot 48b (BUD-08, PRE-07) : honoraires et commissions par évènement (avant les factures qui les citent).
+  { table: plannerFees, eventField: "eventId" },
+  { table: vendorCommissions, eventField: "eventId" },
   { table: quoteVersions, parents: { quoteId: "quotes" } },
   { table: quoteSections, parents: { versionId: "quote_versions" } },
   { table: quoteLines, parents: { versionId: "quote_versions" } },
@@ -68,6 +82,9 @@ export const QUOTES_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: creditNotes, demoField: "isDemo", parents: { invoiceId: "invoices" } },
   { table: paymentEntries, demoField: "isDemo", parents: { scheduleItemId: "payment_schedule_items" } },
   { table: earnestReceipts, demoField: "isDemo", parents: { quoteId: "quotes" } },
+  // Lot 43 (FAC-08, FAC-09) : référence de virement et déclaration du payeur, relances envoyées.
+  { table: paymentReferences, demoField: "isDemo", parents: { scheduleItemId: "payment_schedule_items" } },
+  { table: paymentReminders, parents: { scheduleItemId: "payment_schedule_items" } },
   {
     table: originalDocuments,
     parents: (row) => {

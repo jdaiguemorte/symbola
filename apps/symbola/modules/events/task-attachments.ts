@@ -48,14 +48,16 @@ export async function attachFile(input: AttachTaskFileInput): Promise<EventTaskA
   const label = documentLabel(input.label);
   if (!UUID.test(input.taskId)) return null;
   const task = await inOrganization(input.organizationId, async (tx) => (await tx.select({ id: eventTasks.id, eventId: eventTasks.eventId }).from(eventTasks).where(eq(eventTasks.id, input.taskId)))[0]);
-  if (!task) return null;
+  // Lot 53 (CHR-10) : une tâche hors évènement n'a pas de pièce jointe.
+  if (!task?.eventId) return null;
+  const eventId = task.eventId;
   const upload = await uploadFile({ organizationId: input.organizationId, buffer: Buffer.from(input.content), maxSizeBytes: EVENT_DOCUMENT_MAX_SIZE_BYTES });
   if (upload.status === "rejected") throw new EventDocumentRejectedError(upload.reason);
   try {
     const [row] = await inOrganization(input.organizationId, (tx) =>
       tx
         .insert(eventTaskAttachments)
-        .values({ organizationId: input.organizationId, eventId: task.eventId, taskId: task.id, label, fileKey: upload.key, mime: upload.mime, sizeBytes: upload.size, uploadedByUserId: input.uploadedByUserId })
+        .values({ organizationId: input.organizationId, eventId, taskId: task.id, label, fileKey: upload.key, mime: upload.mime, sizeBytes: upload.size, uploadedByUserId: input.uploadedByUserId })
         .returning(),
     );
     return toAttachment(row!);

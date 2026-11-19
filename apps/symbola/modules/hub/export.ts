@@ -14,7 +14,11 @@ import {
   contactMembers,
   contactNotes,
   contacts,
+  contactDuplicates,
+  contactMerges,
   emailTemplates,
+  automations,
+  riskRules,
   membershipRoleEnum,
   messageTemplates,
   messageTemplateVersions,
@@ -37,7 +41,11 @@ export const HUB_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: vatRegimeChanges },
   // Lot 36a (CRM-03, ADR 0069) : le contact unique et ses notes ; les contacts d'essai sont exclus.
   { table: contacts, demoField: "isDemo" },
-  { table: contactNotes, parents: { contactId: "contacts" } },
+  // Lot 48a (DAT-08) : le texte chiffré d'une note confidentielle ne sort pas.
+  { table: contactNotes, parents: { contactId: "contacts" }, omit: ["bodySealed"] },
+  // Lot 45 (CRM-07) : doublons possibles et trace des fusions (identifiants et noms de champs).
+  { table: contactDuplicates, parents: { firstContactId: "contacts", secondContactId: "contacts" } },
+  { table: contactMerges },
   // Lot 36b (CRM-03, D2) : les membres des foyers et des entreprises.
   { table: contactMembers, parents: { groupContactId: "contacts", memberContactId: "contacts" } },
   // Lot 38a (MSG-01, D3) : les modèles d'e-mails que l'organisation a réécrits (les autres valent le
@@ -46,6 +54,10 @@ export const HUB_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   // Lot 38b (HUB-21, D10) : les modèles de messages de la planner et toutes leurs versions.
   { table: messageTemplates },
   { table: messageTemplateVersions, parents: { templateId: "message_templates" } },
+  // Lot 53 (HUB-28, GC-02) : les automatismes réglés (actif, délai) et les règles du radar ; leur journal
+  // et les notifications ne sont que des traces de 90 jours.
+  { table: automations },
+  { table: riskRules },
   { table: privacySettings, idField: "organizationId" },
   { table: privacyRequests },
   // Trace des exports RGPD : leurs fichiers, effacés à l'expiration, ne sont pas repris.
@@ -70,6 +82,10 @@ const teamMemberSchema = z.strictObject({
 // (docs/export/format-v1.md).
 export const HUB_EXPORT_EXCLUSIONS: Readonly<Record<string, string>> = {
   sessions: "secret : sessions ouvertes (jetons hachés)",
+  // Lot 52 (HUB-05, SEC-08, HUB-04 ; ADR 0094).
+  known_devices: "sécurité : appareils déjà vus d'un compte, sans donnée métier ; oubliés après 30 jours",
+  ownership_transfers: "secret : demandes de transfert de propriété (jetons hachés) ; le transfert est au journal d'activité",
+  identity_change_alerts: "sécurité : alertes de changement d'identité d'un compte, gardées 30 jours",
   invitations: "secret : invitations en attente (jetons hachés) ; une invitation se renvoie",
   users: "identité : les comptes sont listés dans team_members ; leurs identifiants de connexion restent chez le fournisseur d'identité",
   memberships: "identité : listées dans team_members",
@@ -94,6 +110,12 @@ export const HUB_EXPORT_EXCLUSIONS: Readonly<Record<string, string>> = {
   domain_event_consumers: "technique : suivi des événements internes",
   rate_limit_events: "exploitation : tentatives limitées",
   usage_counters: "exploitation : compteurs d'usage de la plateforme",
+  // Lot 53 (HUB-15, ARC-09, HUB-28 ; DPO-10).
+  notifications: "temporaire : notifications de l'équipe, effacées 90 jours après leur création",
+  notification_settings: "préférence : récapitulatif et plages de silence, propres à chaque compte",
+  notification_preferences: "préférence : sortes de notification gardées ou coupées, propres à chaque compte",
+  push_subscriptions: "technique : abonnements push des appareils (adresse du service de push, clés publiques), propres à chaque appareil",
+  automation_runs: "temporaire : journal des automatismes, effacé après 90 jours",
 };
 
 export async function exportHubData(organizationId: string, context: ModuleExportContext): Promise<ModuleExport> {

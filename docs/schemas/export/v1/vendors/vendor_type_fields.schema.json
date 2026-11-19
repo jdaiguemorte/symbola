@@ -39,6 +39,12 @@
       "minimum": -9007199254740991,
       "maximum": 9007199254740991
     },
+    "ruleKey": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
@@ -82,6 +88,7 @@
     "choices",
     "isFilter",
     "position",
+    "ruleKey",
     "createdAt",
     "createdBy",
     "updatedAt",

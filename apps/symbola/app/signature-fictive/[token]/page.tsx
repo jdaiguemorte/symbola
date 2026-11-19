@@ -30,7 +30,13 @@ export default async function FakeSignaturePage({ params }: { params: Promise<{ 
           </button>
         </form>
       ) : (
-        <p role="status">{signature.status === "signed" ? t("signed") : t("declined")}</p>
+        <>
+          <p role="status">{signature.status === "signed" ? t("signed") : t("declined")}</p>
+          {/* Lot 43 (GC-01) : retour à l'espace du client, où l'enchaînement continue (régler l'acompte). */}
+          <p>
+            <a href="/portail">{t("backToSpace")}</a>
+          </p>
+        </>
       )}
     </main>
   );

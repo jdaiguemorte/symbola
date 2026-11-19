@@ -38,6 +38,10 @@ export const AUDIT_ACTIONS = {
   "hub.trusted_devices.forgotten": { category: "connexion", objectType: "user" },
   // Lot 24b (SEC-06) : « Déconnecter tous mes appareils ».
   "hub.sessions.revoked": { category: "connexion", objectType: "user" },
+  // Lot 52 (SEC-08, D6) : changement d'adresse, de facteur ou de mot de passe annoncé par le webhook signé
+  // du fournisseur d'identité ; appel refusé (signature absente ou fausse). Aucune adresse au journal.
+  "hub.identity.changed": { category: "connexion", objectType: "user" },
+  "hub.identity_webhook.refused": { category: "connexion", objectType: null },
   // Lot 26a (SEC-17) : un tiers ouvre son lien personnel (objet : l'événement).
   "events.link.opened": { category: "connexion", objectType: "event" },
   // Lot 26b (POR-01) : code à usage unique envoyé, puis bloqué après cinq essais.
@@ -56,6 +60,12 @@ export const AUDIT_ACTIONS = {
   "hub.access.refused": { category: "droits", objectType: null },
   // Lot 24b (SEC-06, décision D3) : la titulaire retire l'accès d'un collaborateur.
   "hub.member.removed": { category: "droits", objectType: "user" },
+  // Lot 52 (HUB-04, D1, D2) : transfert de propriété demandé puis confirmé (rôles échangés) ; réglage
+  // « toutes les Planners voient tous les évènements ».
+  "hub.ownership.transfer_requested": { category: "droits", objectType: "user" },
+  "hub.ownership.transferred": { category: "droits", objectType: "user" },
+  "hub.ownership.transfer_cancelled": { category: "droits", objectType: "user" },
+  "hub.organization.visibility_changed": { category: "droits", objectType: "organization" },
   // Administration de la plateforme (sans organisation).
   "hub.platform_settings.updated": { category: "administration", objectType: null },
   // Lot 31a (FAC-07, décision D4) : liste des mentions requises réglée par l'Admin.
@@ -85,6 +95,8 @@ export const AUDIT_ACTIONS = {
   "events.link.updated": { category: "partage", objectType: "event" },
   "events.link.renewed": { category: "partage", objectType: "event" },
   "events.link.revoked": { category: "partage", objectType: "event" },
+  // Lot 52 (EVT-06, D2) : équipe d'un évènement (planner principal, assistant).
+  "events.team.changed": { category: "droits", objectType: "event" },
   "events.link.renewal_requested": { category: "partage", objectType: "event" },
   // Lot 27a (CHR-04, D7) : rappel des tâches envoyé au client (nombre de tâches).
   "events.link.reminder_sent": { category: "partage", objectType: "event" },
@@ -92,6 +104,29 @@ export const AUDIT_ACTIONS = {
   "events.decision.requested": { category: "partage", objectType: "event" },
   "events.decision.answered": { category: "partage", objectType: "event" },
   "events.decision.withdrawn": { category: "partage", objectType: "event" },
+  // Lot 44 (CRM-01 ; D1, D4, D5) : formulaire de contact public réglé (ouvert ou fermé), demande reçue
+  // (prospect créé) ou mise de côté (« à vérifier ») ; identifiants seulement (SEC-20).
+  "events.contact_form.updated": { category: "partage", objectType: null },
+  "events.prospect_request.received": { category: "partage", objectType: "event" },
+  "events.prospect_request.to_review": { category: "partage", objectType: null },
+  // Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09 ; ADR 0085) : prestataires par lien (identifiants, nombres,
+  // étape ; jamais un nom, un e-mail ni un montant).
+  "events.vendor_brief.sent": { category: "partage", objectType: "event" },
+  "events.vendor_brief.reminded": { category: "partage", objectType: "event" },
+  "events.vendor.answered": { category: "partage", objectType: "event" },
+  "events.vendor.invoice_received": { category: "partage", objectType: "event" },
+  "events.vendor_roadmap.sent": { category: "partage", objectType: "event" },
+  "events.vendor_roadmap.confirmed": { category: "partage", objectType: "event" },
+  "events.decision.engaged": { category: "partage", objectType: "event" },
+  "events.vendor_retention.changed": { category: "partage", objectType: "event" },
+  // Lot 45 (CRM-05, CRM-06, POR-07 ; D1, D2) : réponse envoyée à un prospect depuis Symbola, relance
+  // envoyée (par la planner ou d'elle-même), questionnaire envoyé ; identifiants seulement (SEC-20).
+  "events.prospect_message.sent": { category: "partage", objectType: "event" },
+  "events.follow_up.sent": { category: "partage", objectType: "event" },
+  "events.questionnaire.sent": { category: "partage", objectType: "event" },
+  // Lot 45 (CRM-07 ; D4, D5) : deux fiches de contact réunies par la planner (la fiche absorbée
+  // disparaît) ; identifiants et noms des champs repris seulement.
+  "hub.contact.merged": { category: "suppression", objectType: "contact" },
   // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
   "hub.mail.quota_reached": { category: "partage", objectType: null },
   // Lot 38a (MSG-01, D5) : un e-mail automatique n'est pas parti, une variable du modèle étant vide
@@ -127,6 +162,17 @@ export const AUDIT_ACTIONS = {
   "budget.vendor_payment.declaration_cancelled": { category: "encaissement", objectType: "event" },
   "budget.vendor_payment.declaration_confirmed": { category: "encaissement", objectType: "event" },
   "budget.vendor_payment.declaration_refused": { category: "encaissement", objectType: "event" },
+  // Lot 43 (FAC-08 Divergent, FAC-09, FAC-15, SEC-16, BUD-06 ; ADR 0087, ADR 0089) : virement déclaré
+  // par le payeur depuis son lien, relances d'une échéance suspendues ou reprises par la planner,
+  // validité d'un devis prolongée, code demandé avant de signer, payeurs et leurs parts (identifiants
+  // seulement, jamais le nom ni l'IBAN).
+  "quotes.transfer.declared": { category: "encaissement", objectType: "payment_schedule_item" },
+  "quotes.reminders.suspended": { category: "encaissement", objectType: "payment_schedule_item" },
+  "quotes.reminders.resumed": { category: "encaissement", objectType: "payment_schedule_item" },
+  "quotes.validity.extended": { category: "partage", objectType: "quote" },
+  "quotes.signing_code.verified": { category: "partage", objectType: "quote" },
+  "budget.payers.changed": { category: "partage", objectType: "event" },
+  "budget.payer_visibility.changed": { category: "partage", objectType: "event" },
   // Suppressions en masse (une ligne de synthèse, pas une par ligne effacée).
   "hub.privacy_erasure.executed": { category: "suppression", objectType: "privacy_erasure" },
   "hub.privacy_purge.executed": { category: "suppression", objectType: "privacy_purge" },
@@ -156,6 +202,23 @@ export const AUDIT_ACTIONS = {
   // INV-02 : liste importée, import annulé.
   "guests.import.applied": { category: "emission", objectType: "event" },
   "guests.import.undone": { category: "suppression", objectType: "event" },
+  // Lot 50 (INV-06, D8) : synthèse pour le traiteur téléchargée (temps fort, version, format ;
+  // jamais son contenu, jamais un nom) ; elle n'est rangée nulle part dans Symbola.
+  "guests.caterer_summary.downloaded": { category: "export", objectType: "event" },
+  // Lot 51 (CHR-08) : chrono importé d'un tableur (nombre de séquences et de temps forts créés).
+  "events.program.imported": { category: "emission", objectType: "event" },
+  // Lot 51 (JRJ-05) : décalage du jour J validé par la planner, appliqué et diffusé aux prestataires.
+  "events.day_shift.applied": { category: "partage", objectType: "event" },
+  // Lot 51 (PAR-08, étape 7) : bilan du lendemain exporté en PDF (jamais son contenu).
+  "events.day_report.downloaded": { category: "export", objectType: "event" },
+  // Lot 48a (PRE-10, SEC-27 ; ADR 0093) : IBAN d'un prestataire changé (par la planner ou par son lien)
+  // puis vérifié par un autre canal ; identifiants seulement, jamais l'IBAN, même masqué (SEC-20).
+  "vendors.bank_details.changed": { category: "encaissement", objectType: "vendor" },
+  "vendors.bank_details.verified": { category: "encaissement", objectType: "vendor" },
+  // Lot 48a (PRE-05, D3) : pièce demandée au prestataire, déposée par son lien, vérifiée par la planner.
+  "vendors.document.requested": { category: "partage", objectType: "vendor" },
+  "vendors.document.received": { category: "partage", objectType: "vendor" },
+  "vendors.document.verified": { category: "partage", objectType: "vendor" },
 } as const satisfies Record<string, ActionSpec>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;

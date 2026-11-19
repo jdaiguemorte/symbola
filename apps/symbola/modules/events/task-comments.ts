@@ -46,7 +46,8 @@ export async function addComment(input: { organizationId: string; taskId: string
   if (!UUID.test(input.taskId)) return null;
   return inOrganization(input.organizationId, async (tx) => {
     const [task] = await tx.select({ id: eventTasks.id, eventId: eventTasks.eventId }).from(eventTasks).where(eq(eventTasks.id, input.taskId));
-    if (!task) return null;
+    // Lot 53 (CHR-10) : une tâche hors évènement n'a pas de commentaires.
+    if (!task?.eventId) return null;
     const [row] = await tx.insert(eventTaskComments).values({ organizationId: input.organizationId, eventId: task.eventId, taskId: task.id, authorUserId: input.authorUserId, body }).returning();
     return toComment(row!);
   });

@@ -162,7 +162,15 @@ export type QuoteLineInput = {
   isOption?: boolean | undefined;
   // Lot 41 (JUR-02, D9) : bien ou service ; absente, celle de l'article du catalogue, sinon « service ».
   nature?: LineNature | undefined;
+  // Lot 48b (JUR-10, D7) : revendeur (par défaut) ou intermédiaire ; nature touristique (ou aucune).
+  supplyMode?: SupplyMode | undefined;
+  tourismKind?: TourismKind | null | undefined;
 };
+
+// Lot 48b (JUR-10 ; réponse 4 de l'avocat, ADR 0093) : « revendeur » (dans le total et la TVA de la
+// planner) ou « intermédiaire » (facturée par le prestataire au client, montrée pour information).
+export type SupplyMode = "resale" | "intermediary";
+export type TourismKind = "transport" | "lodging" | "other";
 
 export type QuoteLine = {
   id: string;
@@ -182,6 +190,9 @@ export type QuoteLine = {
   optionChosen: boolean;
   // Lot 41 (JUR-02, D9).
   nature: LineNature;
+  // Lot 48b (JUR-10, D7).
+  supplyMode: SupplyMode;
+  tourismKind: TourismKind | null;
 };
 
 // Lot 31a (FAC-01) : section titrée d'une version, avec le sous-total de ses lignes au total.
@@ -237,6 +248,9 @@ export type LegalFormCode = "ei" | "eirl" | "eurl" | "sarl" | "sas" | "sasu" | "
 // En-tête vendeur figé à l'envoi (PDF : logo, coordonnées, SIREN).
 export type SellerSnapshot = {
   organizationName: string;
+  // Lot 53 (HUB-24, D8) : le terme réglé qui désigne les clients du type d'évènement, figé à l'envoi
+  // (titre du bloc du client sur le document) ; absent : le libellé « Client » de départ.
+  clientTerm?: { fr: string | null; en: string | null } | null;
   address: string | null;
   siren: string | null;
   logoKey: string | null;
@@ -573,6 +587,8 @@ export type SignatureWebhookResult = { httpStatus: 200 | 401; outcome: string };
 // propre lien, jamais celui d'un autre signataire.
 export type ClientQuoteToSign = {
   quoteId: string;
+  // Lot 43 (FAC-02) : la version envoyée, dont la page de proposition porte l'enchaînement « Accepter et signer ».
+  versionId: string;
   number: string;
   version: number;
   totalTtcCents: number;
@@ -681,7 +697,10 @@ export type ConclusionChannel = "on_premises" | "distance" | "off_premises" | "f
 export type ContractTemplateClauseInput = { title: string; body: string; optional: boolean; role: ContractClauseRole | null };
 export type ContractTemplateClause = ContractTemplateClauseInput & { id: string; position: number };
 
-export type ContractTemplateHeaderInput = { name: string; title: string; eventTypeId: string | null; legalReviewedOn: string | null };
+// Lot 48b (JUR-10, DOC-02, HUB-26 ; D7) : contrat, mandat, conditions générales, ou modèle dédié au
+// forfait touristique (seul permis quand le devis en réunit un).
+export type ContractTemplateKind = "contract" | "mandate" | "general_terms" | "package_travel";
+export type ContractTemplateHeaderInput = { name: string; title: string; eventTypeId: string | null; legalReviewedOn: string | null; kind?: ContractTemplateKind };
 
 export type ContractTemplateView = ContractTemplateHeaderInput & {
   id: string;
@@ -700,7 +719,9 @@ export type ContractProblem =
   | { kind: "channel_blocked" }
   | { kind: "payment_too_soon"; firstAllowed: string }
   | { kind: "warning_not_accepted" }
-  | { kind: "quote_not_sent" };
+  | { kind: "quote_not_sent" }
+  // Lot 48b (JUR-10, D7 ; réponse 4 de l'avocat, AV-10) : le devis réunit un forfait touristique.
+  | { kind: "package_travel_template_required" };
 
 export type ContractRegimeView = {
   withdrawalApplies: boolean;

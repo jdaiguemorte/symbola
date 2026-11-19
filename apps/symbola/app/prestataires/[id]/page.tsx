@@ -5,7 +5,24 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
-import { getVendor, getVendorHistory, listVendorFamilies, listVendorTagGroups, listVendorTags, listVendorTypes } from "@/modules/vendors/service";
+import {
+  ConfidentialNoteForbiddenError,
+  ensureVenueRuleFields,
+  getVendor,
+  getVendorHistory,
+  listVendorBankChanges,
+  listVendorDocumentKinds,
+  listVendorDocuments,
+  listVendorFamilies,
+  listVendorTagGroups,
+  listVendorTags,
+  listVendorTypes,
+  readVendorConfidentialNote,
+} from "@/modules/vendors/service";
+import { listTeam } from "@symbola/auth";
+import { appDatabase } from "@symbola/db/client";
+import { VendorBankForm, VendorDocumentRequestForm, VendorDocumentUploadForm, VendorDocumentValidityForm, VendorNoteForm } from "./vendor-records";
+import { removeVendorDocumentAction, verifyVendorBankAction, verifyVendorDocumentAction } from "./records-actions";
 import { requirePlanner } from "@/lib/guards";
 import { mapAssets } from "@/lib/map/tiles";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
@@ -38,8 +55,29 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
   }
   const { id } = await params;
   if (!isValidId(id)) notFound();
+  const locale = (await getLocale()) as Locale;
+  // Lot 48a (PRE-06) : les champs de lieu porteurs d'une règle, posés une fois.
+  await ensureVenueRuleFields(organizationId, locale === "en" ? "en" : "fr");
   const vendor = await getVendor(organizationId, id);
   if (!vendor) notFound();
+  const tRecords = await getTranslations("VendorRecords");
+  const viewer = { userId: auth.user.id, role: auth.user.role };
+  const [documents, documentKinds, bankChanges, team, confidentialNote] = await Promise.all([
+    listVendorDocuments(organizationId, id),
+    listVendorDocumentKinds(organizationId, locale === "en" ? "en" : "fr"),
+    listVendorBankChanges(organizationId, id),
+    listTeam(appDatabase(), organizationId),
+    vendor.internalNoteConfidential
+      ? readVendorConfidentialNote(organizationId, id, viewer).catch((error: unknown) => {
+          if (error instanceof ConfidentialNoteForbiddenError) return null;
+          throw error;
+        })
+      : Promise.resolve(null),
+  ]);
+  const noteReadable = !vendor.internalNoteConfidential || confidentialNote !== null;
+  // Le journal nomme sans donnée personnelle : vous, la titulaire, ou un membre de l'équipe.
+  const memberName = (userId: string | null) =>
+    userId === auth.user.id ? tRecords("byYou") : team.find((member) => member.id === userId)?.role === "owner" ? tRecords("byOwner") : tRecords("byMember");
   const [types, tags, history, assets, budget, families, tagGroups] = await Promise.all([
     listVendorTypes(organizationId),
     listVendorTags(organizationId),
@@ -49,7 +87,6 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
     listVendorFamilies(organizationId),
     listVendorTagGroups(organizationId),
   ]);
-  const locale = (await getLocale()) as Locale;
   const tCommon = await getTranslations("Common");
   const query = await searchParams;
   const placement = query.placement;
@@ -98,7 +135,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
         </div>
         {history.entries.length === 0 ? <p>{t("historyEmpty")}</p> : null}
         {history.entries.length > 0 ? (
-          <div role="region" aria-label={t("historyTitle")} tabIndex={0}>
+          <div role="region" aria-label={t("historyTable")} tabIndex={0}>
             <table className="data-table">
               <thead>
                 <tr>
@@ -201,12 +238,114 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
             <dt>{t("indicativePrices")}</dt>
             <dd className="vendor-prices">{vendor.indicativePrices ?? "—"}</dd>
           </div>
-          <div>
-            <dt>{t("internalNote")}</dt>
-            <dd className="task-comment-body">{vendor.internalNote ?? "—"}</dd>
-          </div>
+
         </dl>
         <ImportedFields fields={vendor.importedFields ?? undefined} />
+      </section>
+
+      {/* Lot 48a (PRE-10, SEC-27) : IBAN masqué, bandeau « à vérifier par un autre canal » tant que la
+          planner ne l'a pas levé, journal des changements. */}
+      <section className="card" aria-labelledby="bank-title">
+        <h2 id="bank-title">{tRecords("bankTitle")}</h2>
+        {vendor.bank.pendingCheck ? (
+          <div className="bank-check-banner" role="alert">
+            <p>
+              <strong>{tRecords("bankCheckTitle")}</strong>
+            </p>
+            <p>
+              {tRecords(vendor.bank.pendingCheck.changedBy === "vendor" ? "bankCheckByVendor" : "bankCheckByPlanner", {
+                date: formatCalendarDate(vendor.bank.pendingCheck.changedAt.slice(0, 10), locale),
+              })}
+            </p>
+            <p>{vendor.phone ? tRecords("bankCheckCall", { phone: vendor.phone }) : tRecords("bankCheckCallNoPhone")}</p>
+            <form action={verifyVendorBankAction}>
+              <input type="hidden" name="vendorId" value={vendor.id} />
+              <button type="submit">{tRecords("bankCheckLift")}</button>
+            </form>
+          </div>
+        ) : null}
+        <dl className="vendor-summary">
+          <div>
+            <dt>{tRecords("iban")}</dt>
+            <dd>
+              {vendor.bank.ibanMasked ?? "—"}
+              {vendor.bank.pendingCheck ? <span className="badge badge-warning">{tRecords("toVerify")}</span> : null}
+            </dd>
+          </div>
+          <div>
+            <dt>{tRecords("bic")}</dt>
+            <dd>{vendor.bank.hasBic ? tRecords("bicSet") : "—"}</dd>
+          </div>
+        </dl>
+        <VendorBankForm vendorId={vendor.id} hasIban={vendor.bank.ibanMasked !== null} />
+        {bankChanges.length > 0 ? (
+          <details>
+            <summary>{tRecords("bankHistory", { count: bankChanges.length })}</summary>
+            <ul>
+              {bankChanges.map((change) => (
+                <li key={change.id}>
+                  {tRecords("bankHistoryLine", {
+                    date: formatCalendarDate(change.changedAt.slice(0, 10), locale),
+                    who: change.changedBy.kind === "vendor" ? tRecords("byVendorLink") : memberName(change.changedBy.userId),
+                    before: change.previousMasked ?? "—",
+                    after: change.nextMasked ?? "—",
+                  })}{" "}
+                  {change.verifiedAt
+                    ? tRecords("bankHistoryVerified", { date: formatCalendarDate(change.verifiedAt.slice(0, 10), locale), who: memberName(change.verifiedByUserId) })
+                    : tRecords("bankHistoryPending")}
+                </li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
+      </section>
+
+      {/* Lot 48a (PRE-05, D3) : pièces à échéance, déposées par la planner ou demandées au prestataire. */}
+      <section className="card" aria-labelledby="documents-title">
+        <h2 id="documents-title">{tRecords("documentsTitle")}</h2>
+        {documents.length === 0 ? <p>{tRecords("documentsEmpty")}</p> : null}
+        {documents.length > 0 ? (
+          <ul className="vendor-documents">
+            {documents.map((document) => (
+              <li key={document.id}>
+                <span className="badge">{document.kindLabel}</span>{" "}
+                {document.fileName ? <a href={`/prestataires/${vendor.id}/pieces/${document.id}`}>{document.fileName}</a> : <span>{tRecords("documentRequested")}</span>}{" "}
+                {document.status === "to_verify" ? <span className="badge badge-warning">{tRecords("documentToVerify")}</span> : null}
+                {document.alert === "expired" ? <span className="badge badge-terracotta">{tRecords("documentExpired")}</span> : null}
+                {document.alert === "expiring" ? <span className="badge badge-ambre">{tRecords("documentExpiring")}</span> : null}
+                {document.validUntil ? <span className="meta"> {tRecords("validUntilShort", { date: formatCalendarDate(document.validUntil, locale) })}</span> : null}
+                {document.status !== "requested" ? (
+                  <VendorDocumentValidityForm vendorId={vendor.id} documentId={document.id} validUntil={document.validUntil} label={document.kindLabel} />
+                ) : null}
+                {document.status === "to_verify" ? (
+                  <form action={verifyVendorDocumentAction} className="inline-form">
+                    <input type="hidden" name="vendorId" value={vendor.id} />
+                    <input type="hidden" name="documentId" value={document.id} />
+                    <button type="submit">{tRecords("documentVerify", { document: document.kindLabel })}</button>
+                  </form>
+                ) : null}
+                <form action={removeVendorDocumentAction} className="inline-form">
+                  <input type="hidden" name="vendorId" value={vendor.id} />
+                  <input type="hidden" name="documentId" value={document.id} />
+                  <button type="submit">{tRecords("documentRemove", { document: document.kindLabel })}</button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <VendorDocumentUploadForm vendorId={vendor.id} kinds={documentKinds} />
+        <p className="muted">{tRecords("requestHint")}</p>
+        <VendorDocumentRequestForm vendorId={vendor.id} kinds={documentKinds} />
+      </section>
+
+      {/* Lot 48a (DAT-08) : note interne, éventuellement confidentielle (chiffrée). */}
+      <section className="card" aria-labelledby="note-title">
+        <h2 id="note-title">{tRecords("noteTitle")}</h2>
+        {noteReadable ? (
+          <VendorNoteForm vendorId={vendor.id} note={vendor.internalNoteConfidential ? confidentialNote : vendor.internalNote} confidential={vendor.internalNoteConfidential !== null} />
+        ) : (
+          <p className="muted">{tRecords("noteHidden")}</p>
+        )}
       </section>
 
       <section className="card" aria-labelledby="files-title">

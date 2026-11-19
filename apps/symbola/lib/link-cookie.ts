@@ -19,8 +19,10 @@ export type LinkCookieOptions = {
 };
 
 // Lot 26b (D9) : l'espace d'un lien dépend de son public ; le portail est
-// celui du client, /prestataire celui du prestataire.
-export function linkHomePath(audience: "client" | "vendor" | "guest"): "/portail" | "/prestataire" {
+// celui du client, /prestataire celui du prestataire. Lot 52 (EVT-06, D3) : le
+// renfort du jour J n'a que le mode Jour J de son évènement.
+export function linkHomePath(audience: "client" | "vendor" | "guest" | "day_helper", eventId?: string): string {
+  if (audience === "day_helper") return eventId ? `/jour-j/${eventId}` : "/lien";
   return audience === "vendor" ? "/prestataire" : "/portail";
 }
 

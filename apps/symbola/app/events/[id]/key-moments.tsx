@@ -59,7 +59,7 @@ export function AddKeyMomentForm({ eventId, places, defaultDate }: { eventId: st
   );
 }
 
-export function EditKeyMomentForm({ eventId, moment, places }: { eventId: string; moment: KeyMoment; places: Pick<EventPlace, "id" | "label">[] }) {
+export function EditKeyMomentForm({ eventId, moment, places, itemCount = 0 }: { eventId: string; moment: KeyMoment; places: Pick<EventPlace, "id" | "label">[]; itemCount?: number }) {
   const t = useTranslations("Events");
   const [state, action, pending] = useActionState(updateKeyMomentAction, {} as KeyMomentFormState);
   return (
@@ -75,13 +75,18 @@ export function EditKeyMomentForm({ eventId, moment, places }: { eventId: string
         {state.error ? <p role="alert">{state.error}</p> : null}
         {state.success ? <p role="status">{t("keyMomentSaved")}</p> : null}
       </form>
-      <form action={removeKeyMomentAction}>
-        <input type="hidden" name="eventId" value={eventId} />
-        <input type="hidden" name="keyMomentId" value={moment.id} />
-        <button type="submit" className="button-ghost">
-          {t("keyMomentRemove", { name: moment.name })}
-        </button>
-      </form>
+      {/* Lot 51 (EVT-04) : un temps fort qui porte des séquences du programme ne se retire pas. */}
+      {itemCount > 0 ? (
+        <p className="muted">{t("keyMomentHasItems", { count: itemCount })}</p>
+      ) : (
+        <form action={removeKeyMomentAction}>
+          <input type="hidden" name="eventId" value={eventId} />
+          <input type="hidden" name="keyMomentId" value={moment.id} />
+          <button type="submit" className="button-ghost">
+            {t("keyMomentRemove", { name: moment.name })}
+          </button>
+        </form>
+      )}
     </details>
   );
 }

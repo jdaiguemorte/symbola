@@ -243,6 +243,10 @@ après une fermeture. Ses pièces déjà émises posent trois questions.
 
 Besoin : une réponse **avant de développer la reprise d'un export** (lot 35b).
 
+**Décision de Julien (18/11/2026)** : (a). Les pièces reprises restent des pièces comptables en
+lecture seule. Pour le même SIREN, la numérotation continue. La chaîne d'empreintes reprise est
+vérifiée, puis prolongée. Le lot 35b peut se coder.
+
 ## Questions du 18 novembre 2026 (lot 41)
 
 Les factures et les avoirs émis par Symbola deviennent des **Factur-X** : un PDF/A-3 lisible, qui
@@ -318,3 +322,28 @@ réglages de facturation.
 
 Besoin : des réponses **avant la mise en service des factures Factur-X auprès de la pilote** et
 avant le connecteur de plateforme agréée (lot 42).
+
+## Question du 18 novembre 2026 (lot 48)
+
+Numéro provisoire, donné à la fusion.
+
+### 19. Débours en mode revendeur (EC-8)
+
+Suite à votre réponse 9 : en mode **revendeur**, la planner achète une prestation et la refacture ;
+Symbola la compte dans son total, donc dans sa base de TVA, et dans le chiffre d'affaires refacturé de
+l'année (alerte à l'approche du seuil de franchise, seuil fixé par l'Admin). En mode
+**intermédiaire**, la ligne est montrée pour information, hors de son total. La commission perçue d'un
+prestataire lui est facturée par la planner, dans la même série de factures, en Factur-X.
+
+- À quelles conditions une dépense refacturée peut-elle sortir de la base de TVA comme **débours**
+  (mandat exprès, refacturation au centime près, compte de passage) ?
+- Quelle mention porter alors sur la facture, et faut-il une ligne distincte ?
+- Pour l'alerte au seuil de franchise, Symbola compte le chiffre d'affaires facturé de l'année civile
+  (hors taxes, lignes « revendeur » comprises, intermédiaires exclues) plus le devis non encore
+  facturé, comparé au seuil des prestations de services. Est-ce la bonne assiette, et faut-il le
+  seuil des ventes pour les biens revendus ?
+
+> En attendant : aucun débours ; toute ligne « revendeur » entre dans la base de TVA et dans le
+> chiffre d'affaires compté pour l'alerte.
+
+Besoin : une réponse **avant la première facture d'une organisation qui revend des prestations**.

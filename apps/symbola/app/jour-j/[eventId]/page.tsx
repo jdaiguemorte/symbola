@@ -7,20 +7,37 @@
 // toucher), documents embarqués (lot 29b).
 // Accès : titulaire et membres de l'organisation, évènement confirmé (ou réalisé) et daté ;
 // sinon la page est introuvable, sans dire si l'évènement existe.
-import { notFound } from "next/navigation";
+// Lot 51 (EVT-04, JRJ-05 à JRJ-09, ARC-09 ; ADR 0091) : jours et temps forts, pointage, décalage,
+// main courante, listes de contrôle et remises du jour (field-day.tsx) ; préparation des listes.
+import { notFound, redirect } from "next/navigation";
+import { venueChecksFor } from "@/lib/events/venue-checks";
+import { bankToVerifyVendors } from "@/lib/vendors/bank-checks";
+import { VenueFindings } from "@/app/events/[id]/venue-findings";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, formatFileSize, type Locale } from "@symbola/i18n";
 import { starterEmergencyNumbers } from "@symbola/starter-templates";
 import {
+  dayOfSettings,
   eventNames,
+  getDayState,
   getEvent,
   getEventProgram,
+  listDayChecklistTemplates,
   listEventDayContacts,
   listEventPlaces,
   listEventVendorSlots,
+  listKeyMoments,
+  listNotifiableVendorSlots,
   listVendorCandidates,
 } from "@/modules/events/service";
+import { listDayHandovers } from "@/modules/budget/service";
+import { getGuestEventSummary } from "@/modules/guests/service";
+import { isBudgetModuleEnabled } from "@/app/budget/module-access";
+import { isGuestsAvailable } from "@/app/events/[id]/invites/access";
+import { eventDays } from "@/lib/day-of/rules";
+import { DayChecklistsPrep } from "./day-checklists-prep";
 import { getVendorContacts } from "@/modules/vendors/service";
+import { resolveDayOfViewer } from "@/lib/day-of/viewer";
 import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
@@ -31,55 +48,84 @@ import { buildDayOfView, isDayOfOpen, telHref } from "./day-of-view";
 import { DayCopyPanel } from "./day-copy-panel";
 import { dayDocumentKey, listDayDocumentCandidates } from "./day-documents";
 import { DayDocumentsForm } from "./day-documents-form";
-import { durationParts } from "./day-timeline";
-import { programSpans } from "@/lib/program-spans";
 import { FieldDay } from "./field-day";
 
 type Translate = Awaited<ReturnType<typeof getTranslations<"DayOf">>>;
 
-function clock(minutes: number): string {
-  const wrapped = ((minutes % 1440) + 1440) % 1440;
-  return `${String(Math.floor(wrapped / 60)).padStart(2, "0")}:${String(wrapped % 60).padStart(2, "0")}`;
-}
-
-function duration(t: Translate, minutes: number): string {
-  const { hours, minutes: rest } = durationParts(minutes);
-  return hours === 0 ? t("durationMinutes", { minutes: rest }) : rest === 0 ? t("durationHours", { hours }) : t("durationHoursMinutes", { hours, minutes: rest });
-}
-
+// Lot 52 (EVT-06 ; D2, D3 ; ADR 0094) : aussi le renfort du jour J, par la session de son lien, pour
+// son seul évènement et ses dates : « Maintenant », annuaire, documents gardés, pointage, main courante,
+// listes ; ni remises d'argent, ni réglages (listes, documents), ni décalage du programme. Tout autre
+// cas répond comme une page inexistante (SEC-13) ; sans session ni lien, la connexion.
 export default async function DayOfPage({ params }: { params: Promise<{ eventId: string }> }) {
-  const auth = await requirePlanner();
-  const organizationId = auth.user.organizationId;
   const { eventId } = await params;
-  if (!isValidId(eventId) || !(await isEventsModuleEnabled(organizationId))) notFound();
+  if (!isValidId(eventId)) notFound();
+  const resolved = await resolveDayOfViewer(eventId);
+  if ("refused" in resolved) {
+    if (resolved.refused === "signed_out") redirect("/login");
+    if (resolved.refused === "mfa") redirect("/securite");
+    if (resolved.refused === "not_planner") await requirePlanner();
+    notFound();
+  }
+  const viewer = resolved.viewer;
+  const helper = viewer.kind === "helper";
+  const organizationId = viewer.organizationId;
+  if (!(await isEventsModuleEnabled(organizationId))) notFound();
   const event = await getEvent(organizationId, eventId);
   if (!event || !isDayOfOpen(event)) notFound();
   const eventDate = event.eventDate as string;
 
-  const [program, places, slots, candidates, dayContacts] = await Promise.all([
+  const locale = (await getLocale()) as Locale;
+  const budgetEnabled = !helper && (await isBudgetModuleEnabled(organizationId));
+  const [program, places, slots, candidates, dayContacts, moments, dayState, handovers, notifiable, templates] = await Promise.all([
     getEventProgram(organizationId, eventId),
     listEventPlaces(organizationId, eventId),
     listEventVendorSlots(organizationId, eventId),
     listVendorCandidates(organizationId, eventId),
     listEventDayContacts(organizationId, eventId),
+    listKeyMoments(organizationId, eventId),
+    getDayState(organizationId, eventId, { forHelper: helper }),
+    budgetEnabled ? listDayHandovers(organizationId, eventId) : Promise.resolve(null),
+    listNotifiableVendorSlots(organizationId, eventId),
+    listDayChecklistTemplates(organizationId, locale),
   ]);
+  if (!dayState) notFound();
+  // Lot 48a (PRE-06, PRE-10) : contrôles du lieu, IBAN « à vérifier » des prestataires des remises.
+  // Lot 52 (D3) : les contrôles du lieu sont ceux de la planner ; le renfort ne les voit pas.
+  const venueFindings = helper ? [] : (await venueChecksFor(organizationId, eventId, program, event.guestsConfirmed ?? event.guestsEstimated)).findings;
+  const bankVendors = await bankToVerifyVendors(organizationId, [...new Set((handovers ?? []).flatMap((handover) => handover.vendorIds ?? []))]);
+  // EVT-04 : le nombre de présents du temps fort en cours, sans noms (règle du lot 49).
+  const presentByMoment: Record<string, number> = {};
+  if (await isGuestsAvailable(organizationId)) {
+    try {
+      const summary = await getGuestEventSummary(organizationId, eventId);
+      for (const tally of summary.tallies) presentByMoment[tally.keyMomentId] = tally.yes;
+      const auto = moments.find((entry) => entry.autoCreated);
+      if (auto && moments.length === 1) presentByMoment[auto.id] = summary.confirmed;
+    } catch {
+      // Module Invités pas prêt (analyse d'impact) : pas de nombre.
+    }
+  }
   const vendorIds = candidates.filter((candidate) => candidate.outcome === "selected" && candidate.vendorId).map((candidate) => candidate.vendorId as string);
   const contacts = (await isVendorsModuleEnabled(organizationId)) ? await getVendorContacts(organizationId, vendorIds) : null;
   const view = buildDayOfView({ event, program, places, slots, candidates, contacts });
 
   const t = await getTranslations("DayOf");
   const tHelp = await getTranslations("Help");
-  const locale = (await getLocale()) as Locale;
   const title = eventNames(event.clients) || t("noClient");
   const venue = [event.venueName, event.venueCity].filter(Boolean).join(", ");
   const expiresAt = dayCopyExpiresAt(eventDate);
   // Lot 29b (JRJ-04, D8) : le PDF du programme, toujours ; puis les pièces choisies pour l'événement.
   const dayDocuments = await listDayDocumentCandidates(organizationId, eventId);
   const embedded = dayDocuments.filter((candidate) => candidate.embedded);
+  // Lot 52 (D3) : le renfort ne voit que les documents gardés, sans le choix des pièces.
   const documents = [{ path: dayProgramPath(eventId), label: t("programPdf"), origin: null as string | null }, ...embedded.map((candidate) => ({ path: candidate.path, label: candidate.label, origin: candidate.origin }))];
   const embeddedBytes = embedded.reduce((sum, candidate) => sum + (candidate.sizeBytes ?? 0), 0);
-  // Lot 30a (CHR-06 en partie, D2) : durée et fin de chaque séquence (fin absente : la suivante).
-  const spans = new Map(programSpans(view.items).map((span) => [span.id, span]));
+  const settings = dayOfSettings(locale);
+  const programById = new Map(program.items.map((item) => [item.id, item]));
+  const dayFormat = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+  const days = eventDays(moments, eventDate).map((date) => ({ date, label: dayFormat.format(new Date(`${date}T12:00:00Z`)) }));
+  const retainedBySlot = new Map<string, string[]>();
+  for (const candidate of candidates.filter((entry) => entry.outcome === "selected")) retainedBySlot.set(candidate.vendorSlotId, [...(retainedBySlot.get(candidate.vendorSlotId) ?? []), candidate.vendorName]);
   const participantsOf = (item: (typeof view.items)[number]) =>
     item.participants.map((participant) => (participant.vendors.length > 0 ? `${participant.label} (${participant.vendors.join(", ")})` : participant.label)).join(" · ");
   const emergencies = starterEmergencyNumbers(locale);
@@ -89,9 +135,13 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
       <main className="day-of field-screen">
         {/* Lot 30a : retour et aide sur une ligne, pour garder « Maintenant » et « Ensuite » en vue. */}
         <div className="field-top">
-          <p className="day-of-back">
-            <a href={`/events/${eventId}`}>{t("backToEvent")}</a>
-          </p>
+          {helper ? (
+            <p className="day-of-back">{t("helperWelcome", { name: viewer.personName })}</p>
+          ) : (
+            <p className="day-of-back">
+              <a href={`/events/${eventId}`}>{t("backToEvent")}</a>
+            </p>
+          )}
           <ScreenHelp title={tHelp("dayOf.title")} body={tHelp("dayOf.body")} />
         </div>
         <h1>{title}</h1>
@@ -101,9 +151,22 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
         </p>
 
         <FieldDay
+          eventId={eventId}
+          userId={viewer.actorId}
+          helper={helper}
           eventDate={eventDate}
           timeZone={event.timeZone}
+          moments={moments.map((entry) => ({ id: entry.id, name: entry.name, date: entry.date }))}
+          days={days}
+          vendors={slots.map((slot) => ({ slotId: slot.id, names: retainedBySlot.get(slot.id) ?? [], notifiable: notifiable.includes(slot.id) }))}
+          presentByMoment={presentByMoment}
+          settings={{ shiftThresholdMinutes: settings.shiftThresholdMinutes, photoMaxSide: settings.photoMaxSide, refreshSeconds: settings.refreshSeconds }}
+          showHandovers={budgetEnabled}
+          bankToVerify={(handovers ?? []).filter((handover) => (handover.vendorIds ?? []).some((vendorId) => bankVendors.has(vendorId))).map((handover) => handover.paymentId)}
+          initial={{ state: dayState, items: program.items.map((item) => ({ id: item.id, startTime: item.startTime, endTime: item.endTime, keyMomentId: item.keyMomentId })), handovers }}
           items={view.items.map((item) => ({
+            keyMomentId: programById.get(item.id)?.keyMomentId ?? null,
+            vendorSlotIds: (programById.get(item.id)?.participants ?? []).flatMap((participant) => (participant.vendorSlotId ? [participant.vendorSlotId] : [])),
             id: item.id,
             startTime: item.startTime,
             endTime: item.endTime,
@@ -119,42 +182,21 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
           }))}
         />
 
-        <section id="programme" className="card" aria-labelledby="day-program-title">
-          <h2 id="day-program-title">{t("programTitle")}</h2>
-          {view.items.length === 0 ? (
-            <p>{t("programEmpty")}</p>
-          ) : (
-            <ol className="day-program">
-              {view.items.map((item) => {
-                const span = spans.get(item.id)!;
-                return (
-                  <li key={item.id}>
-                    {/* Lot 30b : la dernière séquence sans fin, son seul début. */}
-                    <p className="day-program-time">
-                      {span.openEnded ? item.startTime : t("timeRange", { start: item.startTime, end: clock(span.end) })}
-                      {span.openEnded ? null : <span className="meta">{duration(t, span.end - span.start)}</span>}
-                    </p>
-                    <div>
-                      <p className="day-program-label">{item.label}</p>
-                      {item.location ? <p>{item.location}</p> : null}
-                      {item.responsible ? <p>{t("responsible", { name: item.responsible })}</p> : null}
-                      {item.participants.length > 0 ? (
-                        <p>
-                          {t("participants")} {participantsOf(item)}
-                        </p>
-                      ) : null}
-                      {item.note ? (
-                        <p className="day-program-note">
-                          {t("note")} {item.note}
-                        </p>
-                      ) : null}
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          )}
-        </section>
+        {helper ? null : (
+        <DayChecklistsPrep
+          eventId={eventId}
+          moments={moments.map((entry) => ({ id: entry.id, name: entry.name }))}
+          templates={templates.map((template) => ({ id: template.id, name: template.name, phase: template.phase }))}
+          lists={dayState.checklists.map((list) => ({ id: list.id, name: list.name, items: list.items.map((item) => ({ id: item.id, label: item.label, checked: item.checkedAt !== null })) }))}
+        />
+        )}
+
+        {/* Lot 48a (PRE-06, D4) : contraintes du lieu, signalées, jamais bloquantes. */}
+        {venueFindings.length > 0 ? (
+          <div className="card">
+            <VenueFindings findings={venueFindings} labels={new Map(program.items.map((item) => [item.id, item.label]))} headingId="day-venue-title" />
+          </div>
+        ) : null}
 
         <section id="lieux" className="card" aria-labelledby="day-places-title">
           <h2 id="day-places-title">{t("placesTitle")}</h2>
@@ -250,7 +292,7 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
             ))}
           </ul>
           <p className="meta">{t("documentsHint")}</p>
-          {dayDocuments.length > 0 ? (
+          {helper ? null : dayDocuments.length > 0 ? (
             <details className="day-documents-choice">
               <summary>{t("chooseTitle")}</summary>
               <p>{t("chooseHint")}</p>
@@ -278,7 +320,7 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
 
         <DayCopyPanel
           eventId={eventId}
-          userId={auth.user.id}
+          userId={viewer.actorId}
           title={title}
           eventDate={eventDate}
           expiresAt={expiresAt.toISOString()}

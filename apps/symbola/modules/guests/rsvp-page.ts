@@ -18,6 +18,7 @@ import { dietPlace, openDietOptions, sealDietOptions } from "./diets";
 import { eventContext, getGuestPrivacyNotice, guestPrivacyNoticeTemplate, refreshAnswered } from "./households";
 import { plannerContact } from "./links";
 import { ensureDietaryOptions, findEventSettings, inOrganization, type EventSettingsRow, type GuestLinkRow, type GuestRow, type HouseholdRow, type Tx } from "./repository";
+import { releaseDeclinedSeats } from "./seating-release";
 import { invitedMoments, rsvpOpen, sanitizeRsvpAnswer } from "./rsvp";
 
 type Resolved = {
@@ -220,6 +221,8 @@ export async function answerRsvp(token: unknown, input: RsvpAnswerInput, locale:
       if (answer.accommodation !== undefined && household.respondentGuestId === self.id) householdUpdate.needsAccommodation = answer.accommodation;
       if (answer.transport !== undefined && household.respondentGuestId === self.id) householdUpdate.needsTransport = answer.transport;
       if (Object.keys(householdUpdate).length > 0) await tx.update(households).set({ ...householdUpdate, updatedAt: now }).where(eq(households.id, household.id));
+      // Lot 50 (INV-05) : un désistement libère la place au plan de table.
+      await releaseDeclinedSeats(tx, answer.presence.map((presence) => presence.guestId), now);
       await refreshAnswered(tx, context, household.id, now);
     });
     for (const event of new Set(events)) await recordAudit(appDatabase(), { organizationId, action: event === "granted" ? "guests.diet_consent.granted" : "guests.diet_consent.withdrawn", objectId: context.eventId });

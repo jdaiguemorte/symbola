@@ -49,6 +49,10 @@ export default async function ProfilePage() {
         <p>
           <a href={accountCenter}>{t("securityLink")}</a>
         </p>
+        {/* Lot 52 (HUB-05) : chaque session ouverte du compte, et sa déconnexion à distance. */}
+        <p>
+          <a href="/securite">{t("sessionsLink")}</a>
+        </p>
       </section>
       {calendar ? (
         <section aria-labelledby="profile-calendar-title" className="stack">

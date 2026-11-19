@@ -25,6 +25,8 @@ import {
   quotes,
   quoteVersions,
   scheduledDepositInvoices,
+  plannerFees,
+  vendorCommissions,
 } from "@symbola/db/schema/quotes";
 import { appendAudit } from "@symbola/db/audit";
 import { emitDomainEvent } from "@symbola/db/events/emit";
@@ -33,7 +35,9 @@ import { foldedContains } from "@symbola/db/search";
 import { resolveSchedule } from "./schedule";
 
 export type CatalogItemRow = typeof catalogItems.$inferSelect;
-export type QuoteSettingsRow = typeof quoteSettings.$inferSelect;
+// Lot 48a (DAT-08, ADR 0093) : réglages lus avec l'IBAN et le BIC déchiffrés (bank-details.ts).
+export type QuoteSettingsRow = OpenQuoteSettings;
+import { newSettingsId, openQuoteSettings, sealedBankColumns, type OpenQuoteSettings } from "./bank-details";
 export type QuoteRow = typeof quotes.$inferSelect;
 export type QuoteVersionRow = typeof quoteVersions.$inferSelect;
 export type QuoteLineRow = typeof quoteLines.$inferSelect;
@@ -144,7 +148,7 @@ export async function findQuoteSettings(
 ): Promise<QuoteSettingsRow | null> {
   return inOrganization(organizationId, async (tx) => {
     const [row] = await tx.select().from(quoteSettings);
-    return row ?? null;
+    return row ? openQuoteSettings(row) : null;
   });
 }
 
@@ -174,7 +178,7 @@ export async function upsertQuoteSettings(
       })
       .returning();
     if (!row) throw new Error("enregistrement des réglages échoué");
-    return row;
+    return openQuoteSettings(row);
   });
 }
 
@@ -187,13 +191,17 @@ export async function upsertDocumentSettings(
   >,
 ): Promise<QuoteSettingsRow> {
   return inOrganization(organizationId, async (tx) => {
+    // Lot 48a (DAT-08) : l'IBAN et le BIC sont chiffrés à leur place (la ligne des réglages).
+    const [existing] = await tx.select({ id: quoteSettings.id }).from(quoteSettings).for("update");
+    const id = existing?.id ?? newSettingsId();
+    const values = { ...data, ...sealedBankColumns(organizationId, id, { iban: data.iban, bic: data.bic }) };
     const [row] = await tx
       .insert(quoteSettings)
-      .values({ organizationId, ...data })
-      .onConflictDoUpdate({ target: quoteSettings.organizationId, set: { ...data, updatedAt: new Date() } })
+      .values({ id, organizationId, ...values })
+      .onConflictDoUpdate({ target: quoteSettings.organizationId, set: { ...values, updatedAt: new Date() } })
       .returning();
     if (!row) throw new Error("enregistrement des réglages de documents échoué");
-    return row;
+    return openQuoteSettings(row);
   });
 }
 
@@ -716,7 +724,7 @@ export type FrozenFields = Pick<
   | "legalMention"
   | "sellerSnapshot"
   | "totalsSnapshot"
-> & { sentAt: Date };
+> & { sentAt: Date } & Partial<Pick<QuoteVersionRow, "proposalGreeting" | "proposalTemplateId" | "proposalTemplateVersion">>;
 
 export async function freezeCurrentVersion(
   organizationId: string,
@@ -1365,7 +1373,7 @@ export async function findUnpaidScheduleItems(
 
 export type NewSigner = Omit<
   QuoteSignerRow,
-  "organizationId" | "requestId" | "status" | "signedAt" | RowStampColumns
+  "organizationId" | "requestId" | "status" | "signedAt" | "signingCodeVerifiedAt" | RowStampColumns
 >;
 
 // Enregistre la demande créée chez le fournisseur, pour la version courante
@@ -1788,7 +1796,8 @@ async function invoicingContext(
         .where(eq(quoteSigners.requestId, request.id))
         .orderBy(asc(quoteSigners.position))
     : [];
-  const [settings] = await tx.select().from(quoteSettings);
+  const [rawSettings] = await tx.select().from(quoteSettings);
+  const settings = rawSettings ? openQuoteSettings(rawSettings) : undefined;
   const payments =
     scheduleItems.length > 0
       ? await tx
@@ -1901,7 +1910,8 @@ export async function insertCreditNote(
       .select({ quoteId: invoices.quoteId })
       .from(invoices)
       .where(eq(invoices.id, invoiceId));
-    if (!found) return null;
+    // Lot 48b : une facture de commission (sans devis) ne prend pas d'avoir par ce chemin.
+    if (!found?.quoteId) return null;
     const context = await invoicingContext(tx, found.quoteId);
     const invoice = context?.invoices.find(
       (candidate) => candidate.id === invoiceId,
@@ -1989,7 +1999,7 @@ export async function findInvoiceById(
       .select()
       .from(invoices)
       .where(eq(invoices.id, invoiceId));
-    if (!invoice) return null;
+    if (!invoice?.quoteId) return null;
     const [quote] = await tx
       .select()
       .from(quotes)
@@ -2257,7 +2267,7 @@ export async function countQuotesAndInvoicesByMonth(
 // numéro contient le terme, ou qui appartiennent aux événements trouvés par
 // le module events (identifiants fournis par l'orchestrateur du hub).
 export type QuoteSearchRow = { id: string; number: string; eventId: string; status: string };
-export type InvoiceSearchRow = { id: string; number: string; quoteId: string; eventId: string; kind: string; issuedOn: string };
+export type InvoiceSearchRow = { id: string; number: string; quoteId: string | null; eventId: string; kind: string; issuedOn: string };
 
 export async function searchQuoteRows(
   organizationId: string,
@@ -2286,7 +2296,7 @@ export async function searchQuoteRows(
       .select({ id: invoices.id, number: invoices.number, quoteId: invoices.quoteId, eventId: quotes.eventId, kind: invoices.kind, issuedOn: invoices.issuedOn })
       .from(invoices)
       .innerJoin(quotes, eq(quotes.id, invoices.quoteId))
-      .where(and(eq(invoices.isDemo, false), invoiceMatch))
+      .where(and(eq(invoices.isDemo, false), invoiceMatch, isNotNull(invoices.quoteId)))
       .orderBy(desc(invoices.issuedAt))
       .limit(limit);
     return { quotes: quoteRows, invoices: invoiceRows };
@@ -2310,4 +2320,108 @@ export async function shiftScheduleItemDueDatesRows(organizationId: string, upda
       await tx.update(paymentScheduleItems).set({ dueDate: update.dueDate }).where(eq(paymentScheduleItems.id, update.id));
     }
   });
+}
+
+// Lot 48b (BUD-08, PRE-07, JUR-10 ; D6, D8 ; ADR 0093) — honoraires, commissions, facture de commission.
+
+export type PlannerFeeRow = typeof plannerFees.$inferSelect;
+export type VendorCommissionRow = typeof vendorCommissions.$inferSelect;
+
+export async function findPlannerFeeRow(organizationId: string, eventId: string): Promise<PlannerFeeRow | null> {
+  return inOrganization(organizationId, async (tx) => (await tx.select().from(plannerFees).where(eq(plannerFees.eventId, eventId)))[0] ?? null);
+}
+
+export async function upsertPlannerFeeRow(organizationId: string, eventId: string, values: Pick<PlannerFeeRow, "kind" | "flatCents" | "percentBasisPoints" | "base" | "vatRateBasisPoints">): Promise<PlannerFeeRow> {
+  return inOrganization(organizationId, async (tx) => {
+    const [row] = await tx
+      .insert(plannerFees)
+      .values({ organizationId, eventId, ...values })
+      .onConflictDoUpdate({ target: [plannerFees.organizationId, plannerFees.eventId], set: { ...values, updatedAt: new Date() } })
+      .returning();
+    return row!;
+  });
+}
+
+export async function deletePlannerFeeRow(organizationId: string, eventId: string): Promise<void> {
+  await inOrganization(organizationId, (tx) => tx.delete(plannerFees).where(eq(plannerFees.eventId, eventId)));
+}
+
+export async function findCommissionRows(organizationId: string, filter: { eventId?: string; commissionId?: string }): Promise<{ commission: VendorCommissionRow; invoiceId: string | null; invoiceNumber: string | null }[]> {
+  return inOrganization(organizationId, async (tx) =>
+    tx
+      .select({ commission: vendorCommissions, invoiceId: invoices.id, invoiceNumber: invoices.number })
+      .from(vendorCommissions)
+      .leftJoin(invoices, eq(invoices.commissionId, vendorCommissions.id))
+      .where(and(...(filter.eventId ? [eq(vendorCommissions.eventId, filter.eventId)] : []), ...(filter.commissionId ? [eq(vendorCommissions.id, filter.commissionId)] : [])))
+      .orderBy(asc(vendorCommissions.createdAt)),
+  );
+}
+
+export async function insertCommissionRow(organizationId: string, values: Omit<typeof vendorCommissions.$inferInsert, "organizationId" | "id">): Promise<VendorCommissionRow> {
+  return inOrganization(organizationId, async (tx) => (await tx.insert(vendorCommissions).values({ organizationId, ...values }).returning())[0]!);
+}
+
+export async function updateCommissionRow(organizationId: string, commissionId: string, values: Partial<Pick<VendorCommissionRow, "status" | "receivedOn" | "shownToClient">>): Promise<VendorCommissionRow | null> {
+  return inOrganization(organizationId, async (tx) => (await tx.update(vendorCommissions).set({ ...values, updatedAt: new Date() }).where(eq(vendorCommissions.id, commissionId)).returning())[0] ?? null);
+}
+
+// Une commission facturée ne se supprime plus (sa facture la cite).
+export async function deleteCommissionRow(organizationId: string, commissionId: string): Promise<boolean> {
+  return inOrganization(organizationId, async (tx) => {
+    const [invoiced] = await tx.select({ id: invoices.id }).from(invoices).where(eq(invoices.commissionId, commissionId));
+    if (invoiced) return false;
+    return (await tx.delete(vendorCommissions).where(eq(vendorCommissions.id, commissionId)).returning({ id: vendorCommissions.id })).length > 0;
+  });
+}
+
+// JUR-10 : chiffre d'affaires facturé de l'année civile (HT, hors essai), lignes revendeur comprises ;
+// les lignes « intermédiaire » n'entrent jamais dans une facture de la planner.
+export async function sumYearInvoicedHtCents(organizationId: string, year: number): Promise<number> {
+  return inOrganization(organizationId, async (tx) => {
+    const [row] = await tx
+      .select({ total: raw<number>`coalesce(sum(((${invoices.totalsSnapshot} -> 'totals' ->> 'totalHtCents'))::bigint), 0)::bigint` })
+      .from(invoices)
+      .where(and(eq(invoices.isDemo, false), gte(invoices.issuedOn, `${year}-01-01`), raw`${invoices.issuedOn} <= ${`${year}-12-31`}`));
+    return Number(row?.total ?? 0);
+  });
+}
+
+// PRE-07 (D8) : la facture de commission au prestataire, dans la même série que les autres factures,
+// numérotée dans la transaction (sans trou) ; la commission passe à « facturée ». Une commission ne
+// se facture qu'une fois (index unique).
+export async function insertCommissionInvoice(
+  organizationId: string,
+  commissionId: string,
+  prepare: (commission: VendorCommissionRow) => { year: number; formatNumber: (rank: number) => string; values: Omit<typeof invoices.$inferInsert, "organizationId" | "number" | "isDemo" | "commissionId" | "quoteId" | "versionId"> },
+  afterInsert?: (tx: Tx, row: InvoiceRow) => Promise<void>,
+): Promise<InvoiceRow | null> {
+  return inOrganization(organizationId, async (tx) => {
+    const [commission] = await tx.select().from(vendorCommissions).where(eq(vendorCommissions.id, commissionId)).for("update");
+    if (!commission) return null;
+    const [already] = await tx.select({ id: invoices.id }).from(invoices).where(eq(invoices.commissionId, commissionId));
+    if (already) return null;
+    const prepared = prepare(commission);
+    const rank = await nextSeriesRank(tx, organizationId, "invoice", false, prepared.year);
+    const [row] = await tx
+      .insert(invoices)
+      .values({ ...prepared.values, organizationId, isDemo: false, commissionId, quoteId: null, versionId: null, number: prepared.formatNumber(rank) })
+      .returning();
+    if (!row) throw new Error("émission de la facture de commission échouée");
+    await appendAudit(tx, { organizationId, action: "quotes.invoice.issued", objectId: row.id, details: { number: row.number, kind: "commission", amountCents: row.amountCents } });
+    if (commission.status === "expected") await tx.update(vendorCommissions).set({ status: "invoiced", updatedAt: new Date() }).where(eq(vendorCommissions.id, commissionId));
+    if (afterInsert) await afterInsert(tx, row);
+    return row;
+  });
+}
+
+// Lot 52 (HUB-04) : parmi des factures, celles qui facturent une commission (sans devis).
+export async function findCommissionInvoiceIds(organizationId: string, invoiceIds: string[]): Promise<string[]> {
+  if (invoiceIds.length === 0) return [];
+  return inOrganization(organizationId, async (tx) =>
+    (await tx.select({ id: invoices.id }).from(invoices).where(and(eq(invoices.organizationId, organizationId), inArray(invoices.id, invoiceIds), isNotNull(invoices.commissionId)))).map((row) => row.id),
+  );
+}
+
+export async function findCommissionInvoiceRow(organizationId: string, invoiceId: string): Promise<InvoiceRow | null> {
+  return inOrganization(organizationId, async (tx) => (await tx.select().from(invoices).where(and(eq(invoices.id, invoiceId), isNotNull(invoices.commissionId))))[0] ?? null);
 }

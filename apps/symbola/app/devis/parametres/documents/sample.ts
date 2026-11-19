@@ -59,6 +59,8 @@ function sampleLines(t: Translate, vatRate: number): QuoteLine[] {
     isOption: false,
     optionChosen: false,
     nature: "service" as const,
+    supplyMode: "resale" as const,
+    tourismKind: null,
   });
   return [
     line(0, t("sampleLine1"), t("sampleLine1Description"), t("sampleUnitPackage"), 1000, 450000, 0),

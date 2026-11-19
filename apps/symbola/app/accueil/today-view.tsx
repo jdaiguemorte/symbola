@@ -11,6 +11,7 @@ import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "@/app/events/event-stat
 import { daysUntil, TODAY_GROUPS, type RankedItem, type RankedToday, type TodayGroup } from "@/lib/today/rank";
 import { isActiveEvent, type TodaySource, type TodayWords } from "@/lib/today/load";
 import { completeTaskAction } from "./actions";
+import { completeStandaloneTaskAction } from "@/app/taches/standalone-actions";
 import { RemindVendorButton } from "./today-client";
 
 type TodayTranslator = Awaited<ReturnType<typeof getTranslations<"Today">>>;
@@ -32,6 +33,21 @@ export function todayWords(t: TodayTranslator): TodayWords {
     appointment: (time, type, person) => t("words.appointment", { time, type, person }),
     appointmentChange: (change, time, type, person) => t(`words.appointmentChange.${change}`, { time, type, person }),
     calendarSourceError: (label) => t("words.calendarSourceError", { label }),
+    prospectRequest: (names, when) => (when ? t("words.prospectRequest", { names, when }) : t("words.prospectRequestNoDate", { names })),
+    prospectRequestDateTaken: t("words.prospectRequestDateTaken"),
+    prospectToReview: (count) => t("words.prospectToReview", { count }),
+    // Lot 45 (CRM-06, POR-07, CRM-07).
+    followUpReady: (names) => t("words.followUpReady", { names }),
+    questionnaireFinished: (names, questionnaire) => t("words.questionnaireFinished", { names, questionnaire }),
+    contactDuplicates: (count) => t("words.contactDuplicates", { count }),
+    vendorAnswer: (vendor, slot, answer) => t(`words.vendorAnswer.${answer}`, { vendor, slot }),
+    vendorChoice: (vendor, slot) => t("words.vendorChoice", { vendor, slot }),
+    vendorRoadmap: (vendor) => t("words.vendorRoadmap", { vendor }),
+    transferDeclaration: (name, amount) => t("words.transferDeclaration", { name, amount }),
+    // Lot 48a (PRE-05, PRE-10, SEC-27).
+    vendorDocument: (vendor, document, reason) => t(`words.vendorDocument.${reason}`, { vendor, document }),
+    vendorBankCheck: (vendor) => t("words.vendorBankCheck", { vendor }),
+    standaloneTask: t("words.standaloneTaskTag"),
   };
 }
 
@@ -76,6 +92,13 @@ export async function TodayItemLine({ item, locale, returnTo }: { item: RankedIt
           <input type="hidden" name="eventId" value={item.action.eventId} />
           <input type="hidden" name="taskId" value={item.action.taskId} />
           <input type="hidden" name="returnTo" value={returnTo} />
+          <button type="submit" aria-label={t("action.checkTaskLabel", { label: item.title })}>
+            {t("action.checkTask")}
+          </button>
+        </form>
+      ) : item.action?.kind === "check_standalone_task" ? (
+        <form action={completeStandaloneTaskAction} className="today-action">
+          <input type="hidden" name="taskId" value={item.action.taskId} />
           <button type="submit" aria-label={t("action.checkTaskLabel", { label: item.title })}>
             {t("action.checkTask")}
           </button>

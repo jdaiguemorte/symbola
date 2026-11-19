@@ -33,6 +33,9 @@ export const organizations = hubSchema.table("organizations", {
   // Facultatif (PRD PRD-HUB-03) : une organisation peut être créée avant
   // d'avoir un SIRET (prospect, structure en cours de création).
   siret: text("siret"),
+  // Lot 52 (EVT-06, D2) : toutes les Planners voient tous les évènements (comportement de la pilote) ;
+  // coupé, une Planner ne voit que ceux de son équipe. La Propriétaire voit tout.
+  allPlannersSeeAllEvents: boolean("all_planners_see_all_events").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
@@ -41,7 +44,9 @@ export const organizations = hubSchema.table("organizations", {
 });
 
 // Lot 33 (HUB-02, HUB-03) : rôle d'une adhésion, et de l'invitation qui la crée (lot 33b, D12).
-export const membershipRoleEnum = hubSchema.enum("membership_role", ["owner", "member"]);
+// Lot 52 (réponse de Julien du 18/11 au lot 58) : « accountant », le comptable en lecture, invité par la
+// Propriétaire, avec double authentification exigée.
+export const membershipRoleEnum = hubSchema.enum("membership_role", ["owner", "member", "accountant"]);
 
 // Invitation du titulaire par l'Admin (PRD PRD-HUB-03) : valable 7 jours
 // (proposé), un seul usage (acceptedAt posé à la première utilisation).
@@ -83,6 +88,12 @@ export const users = hubSchema.table("users", {
   // Lot 24b (SEC-06, décision D3) : accès retiré par la titulaire. Le compte ne
   // se connecte plus ; ses sessions et appareils de confiance sont supprimés.
   disabledAt: timestamp("disabled_at", { withTimezone: true }),
+  // Lot 52 (SEC-02, D5) : bandeau « Sécurisez votre compte » fermé par la Planner ; il revient au plus
+  // une fois par mois tant que ses sessions s'ouvrent sans double authentification.
+  mfaPromptDismissedAt: timestamp("mfa_prompt_dismissed_at", { withTimezone: true }),
+  // Lot 52 (SEC-08, D6) : empreinte des facteurs d'authentification connus chez le fournisseur
+  // (identifiants et natures, hachés), pour reconnaître un changement de facteur annoncé par le webhook.
+  mfaFactorsFingerprint: text("mfa_factors_fingerprint"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
@@ -175,7 +186,89 @@ export const sessions = hubSchema.table("sessions", {
   mfaVerified: boolean("mfa_verified").notNull().default(false),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-}, (table) => [index("sessions_organization_idx").on(table.organizationId)]);
+  // Lot 52 (HUB-05, D4) : l'appareil lu dans l'en-tête du navigateur (« Safari sur iPhone »),
+  // l'identifiant d'appareil aléatoire du cookie, et la dernière activité (au plus une écriture par
+  // heure). Aucune adresse IP ni ville.
+  deviceLabel: text("device_label"),
+  deviceId: text("device_id"),
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
+}, (table) => [index("sessions_organization_idx").on(table.organizationId), index("sessions_user_idx").on(table.userId)]);
+
+// Lot 52 (SEC-08) — appareils déjà vus pour un compte : une connexion depuis un identifiant d'appareil
+// inconnu envoie « Nouvelle connexion à Symbola ». Le lien « Ce n'est pas moi » de l'alerte porte un
+// jeton dont seul le haché est gardé (sept jours). Table d'identité, comme hub.sessions : pas de RLS,
+// accès par packages/auth seulement (ADR 0013). Gardée tant que le compte vit ; un appareil inactif
+// depuis 30 jours est oublié (donnée de sécurité, DPO).
+export const knownDevices = hubSchema.table(
+  "known_devices",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    deviceId: text("device_id").notNull(),
+    deviceLabel: text("device_label"),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).defaultNow().notNull(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).defaultNow().notNull(),
+    alertTokenHash: text("alert_token_hash").unique(),
+    alertExpiresAt: timestamp("alert_expires_at", { withTimezone: true }),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.deviceId] }), index("known_devices_last_seen_idx").on(table.lastSeenAt)],
+);
+
+// Lot 52 (HUB-04, D1) — transfert de propriété : la Propriétaire désigne une Planner qui a la double
+// authentification ; la Planner confirme par le lien de l'e-mail (usage unique, 7 jours), puis les rôles
+// s'échangent. Une seule demande en cours par organisation. Table d'identité (adhésions) : pas de RLS,
+// accès par packages/auth seulement (ADR 0013, ADR 0094).
+export const ownershipTransfers = hubSchema.table(
+  "ownership_transfers",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    fromUserId: uuid("from_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    toUserId: uuid("to_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    requestedAt: timestamp("requested_at", { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("ownership_transfers_organization_idx").on(table.organizationId),
+    uniqueIndex("ownership_transfers_pending_unique").on(table.organizationId).where(sql`${table.confirmedAt} is null and ${table.cancelledAt} is null`),
+  ],
+);
+
+// Lot 52 (SEC-08, D6) — alertes de changement d'identité annoncées par le webhook signé du fournisseur
+// (adresse e-mail, facteur d'authentification, mot de passe). L'ancienne adresse n'est gardée que
+// jusqu'à l'envoi de l'alerte, qui part vers elle (critère) ; la ligne reste 30 jours sans adresse.
+// L'identifiant de l'appel du fournisseur rend la réception idempotente (il rejoue un appel en échec).
+export const IDENTITY_CHANGE_KINDS = ["email", "mfa", "password"] as const;
+
+export const identityChangeAlerts = hubSchema.table(
+  "identity_change_alerts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind", { enum: IDENTITY_CHANGE_KINDS }).notNull(),
+    deliveryKey: text("delivery_key").notNull().unique(),
+    previousEmail: text("previous_email"),
+    receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("identity_change_alerts_user_idx").on(table.userId),
+    index("identity_change_alerts_received_idx").on(table.receivedAt),
+    check("identity_change_alerts_kind_check", sql`${table.kind} in ('email', 'mfa', 'password')`),
+  ],
+);
 
 // Activation d'un module par organisation (PRD PRD-HUB-03). Pas de ligne =
 // activé par défaut (absence = « jamais désactivé »), pour qu'un nouveau
@@ -756,7 +849,11 @@ export const contactNotes = hubSchema.table(
       .notNull()
       .references(() => contacts.id, { onDelete: "cascade" }),
     authorUserId: uuid("author_user_id"),
-    body: text("body").notNull(),
+    // Lot 48 (DAT-08 ; D5, ADR 0093) : une note confidentielle est chiffrée au niveau du champ
+    // (body_sealed, field-box) et body est vide ; lue par la titulaire et son auteur seuls.
+    body: text("body"),
+    bodySealed: text("body_sealed"),
+    isConfidential: boolean("is_confidential").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -768,7 +865,75 @@ export const contactNotes = hubSchema.table(
   (table) => [
     index("contact_notes_organization_idx").on(table.organizationId),
     index("contact_notes_contact_idx").on(table.contactId),
-    check("contact_notes_body_check", sql`char_length(${table.body}) between 1 and 2000`),
+    check(
+      "contact_notes_body_check",
+      sql`(not ${table.isConfidential} and ${table.bodySealed} is null and ${table.body} is not null and char_length(${table.body}) between 1 and 2000) or (${table.isConfidential} and ${table.body} is null and ${table.bodySealed} like 'f1:%' and ${table.authorUserId} is not null)`,
+    ),
+  ],
+);
+
+// Lot 45 (CRM-07 ; D4 ; ADR 0090) — paires de contacts qui se ressemblent (même adresse e-mail ou
+// même téléphone, une fois normalisés), détectées à la saisie, au formulaire de contact et chaque
+// nuit ; montrées à la planner (« Doublons possibles »), jamais fusionnées seules. « dismissed_at » :
+// la planner a dit « ce ne sont pas les mêmes ». Une paire est rangée dans l'ordre des identifiants.
+// Un contact fictif (is_demo) n'est jamais apparié à un contact réel.
+export const CONTACT_DUPLICATE_REASONS = ["email", "phone"] as const;
+
+export const contactDuplicates = hubSchema.table(
+  "contact_duplicates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    firstContactId: uuid("first_contact_id")
+      .notNull()
+      .references(() => contacts.id, { onDelete: "cascade" }),
+    secondContactId: uuid("second_contact_id")
+      .notNull()
+      .references(() => contacts.id, { onDelete: "cascade" }),
+    reason: text("reason", { enum: CONTACT_DUPLICATE_REASONS }).notNull(),
+    detectedAt: timestamp("detected_at", { withTimezone: true }).defaultNow().notNull(),
+    dismissedAt: timestamp("dismissed_at", { withTimezone: true }),
+    dismissedBy: uuid("dismissed_by"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("contact_duplicates_organization_idx").on(table.organizationId),
+    index("contact_duplicates_second_idx").on(table.secondContactId),
+    uniqueIndex("contact_duplicates_pair_idx").on(table.firstContactId, table.secondContactId),
+    check("contact_duplicates_order_check", sql`${table.firstContactId} < ${table.secondContactId}`),
+    check("contact_duplicates_reason_check", sql`${table.reason} in ('email', 'phone')`),
+  ],
+);
+
+// Lot 45 (CRM-07 ; D4, D5) — trace d'une fusion : qui, quand, quelles fiches, et les champs repris de
+// la fiche absorbée (leurs noms, jamais leurs valeurs). La fiche absorbée n'existe plus ; les modules
+// repointent leurs références à réception de hub.contact.merged. Pas de clé étrangère : la trace reste
+// après l'effacement d'une des fiches.
+export const contactMerges = hubSchema.table(
+  "contact_merges",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    keptContactId: uuid("kept_contact_id").notNull(),
+    absorbedContactId: uuid("absorbed_contact_id").notNull(),
+    fieldsFromAbsorbed: text("fields_from_absorbed").array().notNull().default(sql`'{}'::text[]`),
+    mergedByUserId: uuid("merged_by_user_id"),
+    mergedAt: timestamp("merged_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("contact_merges_organization_idx").on(table.organizationId),
+    uniqueIndex("contact_merges_absorbed_idx").on(table.absorbedContactId),
+    index("contact_merges_kept_idx").on(table.keptContactId),
+    check("contact_merges_distinct_check", sql`${table.keptContactId} <> ${table.absorbedContactId}`),
   ],
 );
 
@@ -841,6 +1006,35 @@ export const EMAIL_TEMPLATE_KINDS = [
   // Lot 49 (INV-03, INV-04 ; D4, D10) : invitation à répondre et relance des invités.
   "guest_invitation",
   "guest_reminder",
+  // Lot 44 (CRM-01 ; D7) : « Nouvelle demande de contact », à la titulaire, sans le message ni les
+  // coordonnées du prospect.
+  "prospect_form_received",
+  // Lot 47 (PRE-03, PAR-05 ; D2, D4, D8, D9 ; ADR 0085) : brief à un prestataire, sa relance la veille
+  // de la date limite, feuille de route à J-30 et J-7.
+  "vendor_brief",
+  "vendor_brief_reminder",
+  "vendor_roadmap",
+  // Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10) : proposition, relance avant expiration, RIB du
+  // règlement, relance d'impayé.
+  "proposal_sent",
+  "proposal_expiry_reminder",
+  "payment_details",
+  "invoice_reminder",
+  // Lot 45 (CRM-05, CRM-06, POR-07 ; D9) : réponse à un prospect et relance (le texte de la planner,
+  // à l'image de l'organisation), questionnaire envoyé (son lien personnel).
+  "prospect_reply",
+  "prospect_follow_up",
+  "questionnaire_sent",
+  // Lot 52 (HUB-04, EVT-06, SEC-08 ; D1, D3, D6 ; ADR 0094) : nouvelle connexion, changement d'identité
+  // (à l'ancienne adresse), confirmation du transfert de propriété, lien du renfort du jour J.
+  "new_device_login",
+  "identity_changed",
+  "ownership_transfer",
+  "day_helper_link",
+  // Lot 53 (HUB-15, UX-16, HUB-28 ; D1, D5) : récapitulatif du matin, rappel au payeur à J-7, alerte.
+  "daily_digest",
+  "payment_due_reminder",
+  "notification_alert",
 ] as const;
 
 export const emailTemplates = hubSchema.table(
@@ -862,7 +1056,14 @@ export const emailTemplates = hubSchema.table(
     index("email_templates_organization_idx").on(table.organizationId),
     unique("email_templates_kind_locale_unique").on(table.organizationId, table.kind, table.locale),
     // Lot 46 (migration 0158, accord de Julien du 18/11) : natures des e-mails de rendez-vous, après celles du lot 49.
-    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled')`),
+    // Lot 44 (migration 0161, accord de Julien du 18/11) : « Nouvelle demande de contact ».
+    // Lot 47 (migration 0163, accord de Julien du 18/11) : natures des prestataires par lien.
+    // Lot 43 (migration 0169, accord de Julien du 18/11, D10) : proposition, relance avant expiration,
+    // RIB du règlement, relance d'impayé.
+    // Lot 45 (migration 0172, accord de Julien du 18/11) : réponse, relance, questionnaire envoyé.
+    // Lot 52 (migration 0180, spécification validée par Julien le 18/11) : sécurité, transfert, renfort.
+    // Lot 53 (migration 0183, accord de Julien du 18/11) : récapitulatif, rappel J-7, alerte.
+    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent', 'new_device_login', 'identity_changed', 'ownership_transfer', 'day_helper_link', 'daily_digest', 'payment_due_reminder', 'notification_alert')`),
     check("email_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
     check("email_templates_subject_check", sql`char_length(${table.subject}) between 1 and 200`),
     check("email_templates_body_check", sql`char_length(${table.body}) between 1 and 5000`),
@@ -1135,3 +1336,259 @@ export const backupRuns = hubSchema.table("backup_runs", {
   // Taille ajoutée au dépôt restic par cette sauvegarde, en octets.
   sizeBytes: bigint("size_bytes", { mode: "number" }),
 });
+
+// —— Lot 53 (HUB-15, UX-16, ARC-09, HUB-28, GC-02 ; D1 à D5, D7 ; ADR 0095) ——————————————————————
+// Notifications de l'équipe, abonnements push, automatismes et radar des risques. Données d'une
+// organisation : RLS forcée. Les sortes, canaux, automatismes et règles sont des catalogues fermés
+// (packages/contracts, hub/notifications.ts) ; leurs valeurs de départ sont des données
+// (packages/starter-templates). Une notification ou un réglage appartient à une personne : le
+// service ne lit jamais que ceux du compte connecté.
+export const NOTIFICATION_TYPE_KEYS = [
+  "prospect_request",
+  "quote_signed",
+  "quote_expired",
+  "transfer_declared",
+  "client_decision",
+  "vendor_answer",
+  "iban_to_verify",
+  "document_expiring",
+  "task_overdue",
+  "milestone_late",
+  "risk_alert",
+  "day_of_alert",
+] as const;
+const NOTIFICATION_TYPES_SQL = sql.raw(NOTIFICATION_TYPE_KEYS.map((key) => `'${key}'`).join(", "));
+export const NOTIFICATION_CHANNEL_KEYS = ["app", "email", "push"] as const;
+// État d'un envoi : rien à faire, à faire (à partir de due_at), dans le récapitulatif, envoyé,
+// abandonné (canal coupé entre-temps, notification lue, abonnement disparu).
+export const NOTIFICATION_DELIVERY_STATES = ["none", "pending", "digest", "sent", "skipped"] as const;
+
+// Récapitulatif, plages de silence et jour J d'une personne dans une organisation. Sans ligne, les
+// valeurs de départ (notifications.json). digest_sent_on : jour (dans le fuseau) du dernier
+// récapitulatif, pour n'en envoyer qu'un par jour.
+export const notificationSettings = hubSchema.table(
+  "notification_settings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    digestEnabled: boolean("digest_enabled").notNull(),
+    digestHour: integer("digest_hour").notNull(),
+    quietEnabled: boolean("quiet_enabled").notNull(),
+    quietStartMinute: integer("quiet_start_minute").notNull(),
+    quietEndMinute: integer("quiet_end_minute").notNull(),
+    quietSundays: boolean("quiet_sundays").notNull(),
+    dayOfOverride: boolean("day_of_override").notNull(),
+    timeZone: text("time_zone").notNull().default("Europe/Paris"),
+    digestSentOn: date("digest_sent_on"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("notification_settings_organization_idx").on(table.organizationId),
+    uniqueIndex("notification_settings_user_idx").on(table.organizationId, table.userId),
+    check("notification_settings_hours_check", sql`${table.digestHour} between 0 and 23 and ${table.quietStartMinute} between 0 and 1439 and ${table.quietEndMinute} between 0 and 1439`),
+    check("notification_settings_time_zone_check", sql`char_length(${table.timeZone}) between 1 and 64`),
+  ],
+);
+
+// Une sorte coupée ou gardée sur un canal, pour une personne (HUB-15 : chaque sorte se coupe
+// séparément). Sans ligne, le réglage de départ de la sorte.
+export const notificationPreferences = hubSchema.table(
+  "notification_preferences",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type", { enum: NOTIFICATION_TYPE_KEYS }).notNull(),
+    channel: text("channel", { enum: NOTIFICATION_CHANNEL_KEYS }).notNull(),
+    enabled: boolean("enabled").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("notification_preferences_organization_idx").on(table.organizationId),
+    uniqueIndex("notification_preferences_user_type_channel_idx").on(table.organizationId, table.userId, table.type, table.channel),
+    check("notification_preferences_type_check", sql`${table.type} in (${NOTIFICATION_TYPES_SQL})`),
+    check("notification_preferences_channel_check", sql`${table.channel} in ('app', 'email', 'push')`),
+  ],
+);
+
+// Une notification d'une personne : sa sorte, son objet (object_key, une seule fois par objet),
+// l'écran où agir, et l'état de chaque envoi. Les paramètres sont des libellés courts (numéro de devis,
+// intitulé de tâche, nom d'un prestataire), jamais une adresse ni un téléphone ; ils ne sortent ni dans
+// un push ni dans l'objet d'un e-mail. Effacée 90 jours après sa création (notifications.json).
+export const notifications = hubSchema.table(
+  "notifications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type", { enum: NOTIFICATION_TYPE_KEYS }).notNull(),
+    eventId: uuid("event_id"),
+    objectKey: text("object_key").notNull(),
+    params: jsonb("params").$type<Record<string, string | number>>().notNull().default({}),
+    href: text("href").notNull(),
+    inApp: boolean("in_app").notNull().default(true),
+    emailState: text("email_state", { enum: NOTIFICATION_DELIVERY_STATES }).notNull().default("none"),
+    emailDueAt: timestamp("email_due_at", { withTimezone: true }),
+    pushState: text("push_state", { enum: NOTIFICATION_DELIVERY_STATES }).notNull().default("none"),
+    pushDueAt: timestamp("push_due_at", { withTimezone: true }),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    isDemo: boolean("is_demo").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("notifications_organization_idx").on(table.organizationId),
+    index("notifications_user_idx").on(table.userId, table.createdAt),
+    index("notifications_event_idx").on(table.eventId),
+    uniqueIndex("notifications_object_idx").on(table.organizationId, table.userId, table.type, table.objectKey),
+    index("notifications_email_due_idx").on(table.emailState, table.emailDueAt),
+    index("notifications_push_due_idx").on(table.pushState, table.pushDueAt),
+    check("notifications_type_check", sql`${table.type} in (${NOTIFICATION_TYPES_SQL})`),
+    check("notifications_object_key_check", sql`char_length(${table.objectKey}) between 1 and 200`),
+    check("notifications_href_check", sql`${table.href} ~ '^/[^/]' and char_length(${table.href}) <= 500`),
+    check("notifications_params_check", sql`jsonb_typeof(${table.params}) = 'object' and octet_length(${table.params}::text) <= 2000`),
+    check("notifications_email_state_check", sql`${table.emailState} in ('none', 'pending', 'digest', 'sent', 'skipped')`),
+    check("notifications_push_state_check", sql`${table.pushState} in ('none', 'pending', 'digest', 'sent', 'skipped')`),
+  ],
+);
+
+// Un appareil abonné au push (ARC-09, D4) : l'adresse du service de push du navigateur et ses clés
+// publiques (données techniques). Supprimé à la désactivation, quand le service répond qu'il n'existe
+// plus, ou après 90 jours sans usage (notifications.json).
+export const pushSubscriptions = hubSchema.table(
+  "push_subscriptions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    deviceLabel: text("device_label").notNull(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("push_subscriptions_organization_idx").on(table.organizationId),
+    index("push_subscriptions_user_idx").on(table.userId),
+    uniqueIndex("push_subscriptions_endpoint_idx").on(table.organizationId, table.endpoint),
+    check("push_subscriptions_endpoint_check", sql`${table.endpoint} ~ '^https://' and char_length(${table.endpoint}) <= 1000`),
+    check("push_subscriptions_keys_check", sql`char_length(${table.p256dh}) between 80 and 100 and char_length(${table.auth}) between 16 and 32`),
+    check("push_subscriptions_label_check", sql`char_length(${table.deviceLabel}) between 1 and 80`),
+  ],
+);
+
+// Un automatisme prêt à activer (HUB-28, D5) : actif ou coupé, son délai en jours s'il en a un.
+// resumed_at : dernière remise en route ; ce qui était dû avant n'est jamais rattrapé. Sans ligne, les
+// valeurs de départ (automations.json).
+export const AUTOMATION_KEY_VALUES = [
+  "quote_signed_confirm_event",
+  "payment_due_reminder",
+  "rsvp_reminder",
+  "client_task_reminder",
+  "invoice_reminder",
+  "proposal_expiry_reminder",
+  "prospect_follow_up",
+  "vendor_roadmap",
+  "risk_radar",
+] as const;
+const AUTOMATION_KEYS_SQL = sql.raw(AUTOMATION_KEY_VALUES.map((key) => `'${key}'`).join(", "));
+
+export const automations = hubSchema.table(
+  "automations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    key: text("key", { enum: AUTOMATION_KEY_VALUES }).notNull(),
+    enabled: boolean("enabled").notNull(),
+    days: integer("days"),
+    resumedAt: timestamp("resumed_at", { withTimezone: true }),
+    // Lot 53 (GC-02) : jour (Paris) du dernier passage du radar, une fois par matin.
+    lastRunOn: date("last_run_on"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("automations_organization_idx").on(table.organizationId),
+    uniqueIndex("automations_key_idx").on(table.organizationId, table.key),
+    check("automations_key_check", sql`${table.key} in (${AUTOMATION_KEYS_SQL})`),
+    check("automations_days_check", sql`${table.days} is null or ${table.days} between 1 and 60`),
+  ],
+);
+
+// Le journal d'un automatisme (HUB-28 : chaque automatisation laisse une trace) : quand, sur quoi (un
+// libellé court et l'écran de l'objet), avec quel résultat. Effacé après 90 jours.
+export const AUTOMATION_RUN_RESULTS = ["sent", "skipped", "failed", "done"] as const;
+export const automationRuns = hubSchema.table(
+  "automation_runs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    key: text("key", { enum: AUTOMATION_KEY_VALUES }).notNull(),
+    objectKey: text("object_key"),
+    objectLabel: text("object_label"),
+    href: text("href"),
+    result: text("result", { enum: AUTOMATION_RUN_RESULTS }).notNull(),
+    ranAt: timestamp("ran_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("automation_runs_organization_idx").on(table.organizationId),
+    index("automation_runs_key_idx").on(table.organizationId, table.key, table.ranAt),
+    check("automation_runs_key_check", sql`${table.key} in (${AUTOMATION_KEYS_SQL})`),
+    check("automation_runs_result_check", sql`${table.result} in ('sent', 'skipped', 'failed', 'done')`),
+    check("automation_runs_label_check", sql`${table.objectLabel} is null or char_length(${table.objectLabel}) <= 200`),
+    check("automation_runs_href_check", sql`${table.href} is null or (${table.href} ~ '^/[^/]' and char_length(${table.href}) <= 500)`),
+  ],
+);
+
+// Une règle du radar des risques (GC-02, D7) : active ou non, son seuil en jours. Sans ligne, les
+// valeurs de départ (risk-radar.json).
+export const RISK_RULE_KEYS = ["vendor_without_contract", "decision_overdue", "document_expired", "payment_overdue", "milestone_late", "iban_to_verify", "roadmap_unconfirmed"] as const;
+const RISK_RULES_SQL = sql.raw(RISK_RULE_KEYS.map((key) => `'${key}'`).join(", "));
+
+export const riskRules = hubSchema.table(
+  "risk_rules",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    rule: text("rule", { enum: RISK_RULE_KEYS }).notNull(),
+    enabled: boolean("enabled").notNull(),
+    thresholdDays: integer("threshold_days").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("risk_rules_organization_idx").on(table.organizationId),
+    uniqueIndex("risk_rules_rule_idx").on(table.organizationId, table.rule),
+    check("risk_rules_rule_check", sql`${table.rule} in (${RISK_RULES_SQL})`),
+    check("risk_rules_threshold_check", sql`${table.thresholdDays} between 0 and 365`),
+  ],
+);

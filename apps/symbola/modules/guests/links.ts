@@ -5,6 +5,7 @@
 // un faire-part déjà imprimé reste valable. Les invitations partent après l'écran de contrôle des
 // destinataires (MSG-02) ; les relances, par la file hub.jobs avec une clé par foyer et par relance,
 // revérifiées au moment de l'envoi.
+import type { AutomationHooks } from "@symbola/contracts";
 import QRCode from "qrcode";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { formatLinkToken, hashLinkSecret, newLinkSecret } from "@symbola/auth";
@@ -226,7 +227,9 @@ function reminderTarget(household: HouseholdRow, people: GuestRow[]): GuestRow |
 // invitations envoyées et aux réponses ouvertes, la relance la plus récente échue part vers les
 // foyers invités sans réponse qui ont une adresse e-mail ; la réponse est relue juste avant chaque
 // envoi (une réponse arrivée entre-temps annule la relance), la clé de la file empêche un double.
-export async function sendGuestReminders(organizationId: string, words: InvitationWords, now: Date = new Date()): Promise<number> {
+// Lot 53 (HUB-28, D5) : hooks.notBefore, le jour de la remise en route de l'automatisme — une relance
+// prévue avant ne part pas ; hooks.onRun, la trace de chaque envoi.
+export async function sendGuestReminders(organizationId: string, words: InvitationWords, now: Date = new Date(), hooks: AutomationHooks = {}): Promise<number> {
   const rules = starterGuestRules();
   if (!withinSendingHours(now, rules.reminderHours)) return 0;
   const today = parisToday(now);
@@ -236,6 +239,7 @@ export async function sendGuestReminders(organizationId: string, words: Invitati
     if (!settings.invitationsSentAt || settings.purgedAt) continue;
     const reminder = currentReminder(settings.responsesCloseOn, settings.reminderDays, today);
     if (!reminder || !settings.responsesCloseOn) continue;
+    if (hooks.notBefore && reminder.date < hooks.notBefore) continue;
     let context: GuestEventContext;
     try {
       context = await eventContext(organizationId, settings.eventId);
@@ -267,6 +271,7 @@ export async function sendGuestReminders(organizationId: string, words: Invitati
           idempotencyKey: key,
         });
         sent += 1;
+        await hooks.onRun?.({ objectKey: candidate.id, href: `/events/${settings.eventId}/invites`, result: "sent" });
       } catch (error) {
         await inOrganization(organizationId, (tx) => tx.delete(guestLinks).where(eq(guestLinks.tokenHash, hashOf(fresh.token))));
         if (error instanceof MailQuotaExceededError) return sent;

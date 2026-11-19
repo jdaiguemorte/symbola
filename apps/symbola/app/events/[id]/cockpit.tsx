@@ -4,10 +4,11 @@
 // Les urgences sont celles de « Aujourd'hui », restreintes à l'évènement.
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
 import { getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, parisToday, type Locale } from "@symbola/i18n";
 import type { EventTask } from "@symbola/contracts";
-import { listEventDecisions } from "@/modules/events/service";
+import { getPlanningHealth, listEventDecisions } from "@/modules/events/service";
 import { listBudgetLines } from "@/modules/budget/service";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { loadTodayItems } from "@/lib/today/load";
@@ -16,6 +17,7 @@ import { TodayItemLine, todayWords, UnavailableNotice } from "@/app/accueil/toda
 import { PostponeTaskForm } from "@/app/accueil/today-client";
 
 const FOLLOWING_COUNT = 2;
+const HEALTH_BADGES = { good: "badge badge-sauge", watch: "badge badge-ambre", late: "badge badge-terracotta" } as const;
 
 function plusDays(date: string, days: number): string {
   const next = new Date(`${date}T12:00:00Z`);
@@ -51,8 +53,12 @@ export async function EventCockpit({
 }) {
   const t = await getTranslations("Today");
   const tEvents = await getTranslations("Events");
+  const tHealth = await getTranslations("PlanningHealth");
+  const health = await getPlanningHealth(organizationId, eventId, today);
   const budgetAvailable = await isBudgetModuleEnabled(organizationId);
-  const { items, unavailable } = await loadTodayItems(organizationId, { events: true, quotes: quotesAvailable, budget: budgetAvailable }, todayWords(t), locale);
+  // Lot 48a (PRE-05, critère) : une pièce d'un prestataire retenu qui expire avant l'évènement y est signalée.
+  const vendorsAvailable = await isVendorsModuleEnabled(organizationId);
+  const { items, unavailable } = await loadTodayItems(organizationId, { events: true, quotes: quotesAvailable, budget: budgetAvailable, vendors: vendorsAvailable }, todayWords(t), locale);
   const ranked = rankToday(
     items.filter((item) => item.eventId === eventId),
     today,
@@ -123,6 +129,30 @@ export async function EventCockpit({
             <dt>{t("cockpit.planningTitle")}</dt>
             <dd>{t("cockpit.planningValue", { done: doneCount, total: tasks.length })}</dd>
             <dd className={overdueCount > 0 ? "health-detail text-overdue" : "health-detail"}>{t("cockpit.planningOverdue", { count: overdueCount })}</dd>
+            {/* Lot 53 (CHR-05) : l'indicateur s'explique — les tâches qui le dégradent, jalons d'abord. */}
+            <dd>
+              <span className={HEALTH_BADGES[health.state]} data-health={health.state}>
+                {tHealth(`state.${health.state}`)}
+              </span>
+            </dd>
+            <dd className="health-detail">
+              <details className="health-why">
+                <summary>{tHealth("why")}</summary>
+                <p>{tHealth("explain", { points: health.points, watch: health.thresholds.watchPoints, late: health.thresholds.latePoints })}</p>
+                {health.contributors.length === 0 ? (
+                  <p>{tHealth("none")}</p>
+                ) : (
+                  <ul className="health-contributors">
+                    {health.contributors.map((contributor) => (
+                      <li key={contributor.taskId}>
+                        <Link href={`/events/${eventId}?onglet=retroplanning&tache=${contributor.taskId}`}>{tHealth("contributor", { label: contributor.label, days: contributor.daysLate })}</Link>
+                        {contributor.isMilestone ? <span className="badge badge-terracotta">{tHealth("milestone")}</span> : null}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </details>
+            </dd>
           </div>
           {budget ? (
             <div>

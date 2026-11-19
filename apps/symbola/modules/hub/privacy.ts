@@ -133,7 +133,8 @@ export const hubPrivacy: PrivacyContractV1 = {
     // Lot 36a (CRM-03) : la fiche du contact, ses coordonnées et ses notes. Lot 36b : ses
     // identifiants d'entreprise, et les foyers ou entreprises qu'elle relie (avec les rôles).
     for (const contact of await findContactsByTerms(organizationId, rawTerms)) {
-      const notes = await listContactNotes(organizationId, contact.id);
+      // Lot 48a (DAT-08) : droit d'accès de la personne, notes confidentielles comprises.
+      const notes = await listContactNotes(organizationId, contact.id, "reveal");
       const links = contact.kind === "person" ? await listContactGroups(organizationId, contact.id) : await listContactMembers(organizationId, contact.id);
       const fields: Record<string, string> = {};
       for (const [key, value] of Object.entries({

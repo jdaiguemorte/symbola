@@ -204,6 +204,11 @@ qui suit est ce que Symbola en retient. Suites : `docs/QUESTIONS.md` (Q35).
 
 Besoin : une réponse **avant de développer la fermeture d'un espace** (lot 35c).
 
+**Décision de Julien (18/11/2026)** : (a). Symbola efface tout au 30e jour ; l'export reste
+proposé jusqu'au dernier jour. **La clause de réversibilité** (délai, préavis, format, sort des
+données) **sera écrite à la création officielle de la société**, avec les conditions de
+l'éditeur. Le lot 35c peut se coder.
+
 ## Questions du 18 novembre 2026 (lot 46, rendez-vous)
 
 ### 13. Page publique de réservation et agenda de la planner
@@ -284,3 +289,86 @@ restent ouverts ; Symbola n'en tranche aucun et applique d'ici là le réglage l
 
 Besoin : une réponse à DPO-1 et DPO-4 avant l'ouverture du module ; aux autres, avant le
 lot 50 (plan de table et synthèse pour le traiteur).
+
+## Question du 18 novembre 2026 (lot 50)
+
+### 15. Plan de table et synthèse pour le traiteur
+
+Le lot 50 ajoute au module Invités le plan de table et la synthèse pour le traiteur (repas par
+type, régimes et allergènes, par table). La synthèse n'est **jamais gardée dans Symbola** : elle
+est calculée à chaque téléchargement, et chaque téléchargement est noté (qui, quand, quelle
+version), sans son contenu. La titulaire seule obtient la version nominative ; un membre de
+l'équipe obtient des nombres exacts par table, sans aucun nom. Les contraintes de placement
+(« ensemble », « séparés ») sont internes : jamais montrées au client, jamais dans une synthèse ni
+dans un export. Tout est purgé avec les invités ; à J+7, la synthèse ne contient plus de régime.
+
+- **DPO-7 — Synthèse nominative pour le traiteur.** Nom, table, type de repas et régimes ou
+  allergies de chaque personne, exportés par la titulaire et envoyés au traiteur hors de Symbola.
+  Le texte d'accord du lot 49 nomme le traiteur parmi les destinataires et la durée de 7 jours
+  après l'évènement. Cela suffit-il, ou faut-il rappeler au traiteur une durée de conservation ?
+  Symbola applique d'ici là la recommandation de travail : une mention en pied du PDF nominatif
+  (« Données transmises pour le service du repas ; à supprimer après l'évènement ») et une phrase à
+  l'écran de téléchargement.
+- **DPO-8 — Contraintes « séparés ».** Données internes à l'organisation, jamais exportées,
+  purgées avec les invités (30 jours après l'évènement). Faut-il une durée plus courte ? Et le
+  droit d'accès d'un invité couvre-t-il ces contraintes ? Symbola montre aujourd'hui, dans la
+  recherche RGPD, la table d'une personne par temps fort, mais pas ses contraintes.
+
+> **Symbola** : rien n'est tranché ; le réglage le plus prudent s'applique en attendant (mention en
+> pied, contraintes jamais exportées). Le module reste fermé chez la pilote (question 14).
+
+Besoin : une réponse avant l'ouverture du module Invités à la pilote.
+
+## Question du 18 novembre 2026 (lot 51)
+
+### 16. Jour J de terrain : photos, main courante, file sur le téléphone
+
+Le lot 51 permet à l'équipe sur place de pointer le programme, de noter des incidents (dictés par le
+clavier du téléphone, sans service de reconnaissance vocale) et de prendre des photos : incident,
+case d'une liste d'installation, reçu d'une remise. Tout se garde d'abord sur le téléphone, même
+sans réseau, puis part au serveur.
+
+- **DPO-9 — Photos prises sur un lieu de mariage.** Des invités peuvent apparaître sur une photo
+  d'incident ou de liste. Proposition appliquée en attendant votre avis : les photos restent
+  **internes à l'organisation** (jamais montrées aux clients ni aux prestataires, ni dans aucun
+  export qui sort de l'organisation, servies par l'app après contrôle des droits) ; l'écran conseille
+  de **photographier les choses plutôt que les personnes** ; elles sont **purgées avec les documents
+  de l'évènement** (corbeille, durée de conservation, demande d'oubli qui vise l'évènement). Les
+  pointages et les incidents sont des données de travail : ni nom d'invité ni donnée de santé ; un
+  malaise se note sans le nom de la personne (rappel dans l'aide et sous le champ). Faut-il une durée
+  plus courte pour les photos, ou une mention à destination des invités (affichage sur le lieu) ?
+- **File sur le téléphone.** Tant qu'elles ne sont pas envoyées, les actions (textes d'incident et
+  photos compris) restent dans le navigateur du téléphone, sans chiffrement par l'application
+  (verrouillage du téléphone), comme la copie de lecture du lot 29. Elles ne partent qu'avec la
+  session de leur auteur ; la file se vide à l'envoi.
+
+> **Symbola** : rien n'est tranché ; le réglage le plus prudent s'applique (photos internes, purge
+> avec l'évènement, conseil à l'écran).
+
+Besoin : une réponse avant le premier jour J réel avec photos chez la pilote.
+
+## Pour information : notifications push (lot 53, 18 novembre 2026)
+
+Sans question ouverte (DPO-10, pour information).
+
+- **DPO-10 — Abonnements push et services de push des navigateurs.** Chaque membre de l'équipe peut
+  activer, appareil par appareil, les notifications push. Symbola garde alors l'**abonnement** de
+  l'appareil : l'adresse du service de push de son navigateur, deux clés publiques et un nom lisible
+  (« Safari · iOS »), sans autre identifiant. Ce sont des **données techniques**, déclarées au
+  registre : supprimées quand la personne désactive le push, quand le service répond que l'abonnement
+  n'existe plus, ou après **90 jours sans usage**. Les services de push des navigateurs (Apple, Google,
+  Mozilla) reçoivent seulement un **message chiffré** jusqu'au navigateur (norme Web Push), son heure
+  et sa durée de vie (six heures) : la sorte de notification en mots et l'écran à ouvrir, **jamais de
+  nom, d'adresse, de téléphone ni de montant**. Ils sont notés comme **destinataires techniques** dans
+  la liste des sous-traitants. Les notifications elles-mêmes (centre de l'application, e-mails à
+  l'équipe) sont effacées 90 jours après leur création ; l'objet d'un e-mail ne dit que la sorte.
+
+## Pour information : relances des prospects (lot 45, 18 novembre 2026)
+
+Sans question ouverte. **Décision de Julien (18/11/2026)**, contraire à votre réponse 10 : les
+relances d'un prospect qui a fait une demande sont la suite de sa demande, pas de la prospection,
+puisque la première approche vient toujours des mariés ; ni case d'accord au formulaire de contact, ni
+liste d'opposition par planner (RGP-17 « Sans objet »). Les relances restent préparées et validées par
+la planner (envoi automatique seulement en réglage), chacune porte « Vous ne souhaitez plus de
+nouvelles ? Répondez simplement. », et la planner a un geste « Ne plus relancer »
+(`docs/QUESTIONS.md`, Q39 ; ADR 0090).

@@ -27,7 +27,25 @@
         "signed_copy",
         "program_published",
         "guest_invitation",
-        "guest_reminder"
+        "guest_reminder",
+        "prospect_form_received",
+        "vendor_brief",
+        "vendor_brief_reminder",
+        "vendor_roadmap",
+        "proposal_sent",
+        "proposal_expiry_reminder",
+        "payment_details",
+        "invoice_reminder",
+        "prospect_reply",
+        "prospect_follow_up",
+        "questionnaire_sent",
+        "new_device_login",
+        "identity_changed",
+        "ownership_transfer",
+        "day_helper_link",
+        "daily_digest",
+        "payment_due_reminder",
+        "notification_alert"
       ]
     },
     "locale": {

@@ -17,7 +17,7 @@ export async function insertOrganization(
 
 export async function insertInvitation(
   db: AppDatabase,
-  input: { organizationId: string; email: string; tokenHash: string; expiresAt: Date; role?: "owner" | "member"; createdBy?: string },
+  input: { organizationId: string; email: string; tokenHash: string; expiresAt: Date; role?: "owner" | "member" | "accountant"; createdBy?: string },
 ) {
   const [invitation] = await db.insert(invitations).values(input).returning();
   if (!invitation) throw new Error("création de l'invitation échouée");
@@ -34,7 +34,7 @@ export async function markInvitationAccepted(db: AppDatabase, invitationId: stri
 }
 
 // Lot 33b (HUB-03) : invitations d'un rôle encore valables, pas encore acceptées.
-export async function findPendingRoleInvitations(db: AppDatabase, organizationId: string, role: "owner" | "member", now: Date) {
+export async function findPendingRoleInvitations(db: AppDatabase, organizationId: string, role: "owner" | "member" | "accountant", now: Date) {
   return db
     .select({ id: invitations.id, email: invitations.email, expiresAt: invitations.expiresAt, createdAt: invitations.createdAt })
     .from(invitations)
@@ -76,6 +76,12 @@ export async function upsertOrganizationModule(
       target: [organizationModules.organizationId, organizationModules.moduleKey],
       set: { enabled: input.enabled, updatedAt: new Date() },
     });
+}
+
+// Lot 51 (EVT-04) : langue de l'organisation (nom du temps fort créé de lui-même).
+export async function findOrganizationLanguage(db: AppDatabase, organizationId: string): Promise<"fr" | "en"> {
+  const [row] = await db.select({ language: organizations.language }).from(organizations).where(eq(organizations.id, organizationId));
+  return row?.language === "en" ? "en" : "fr";
 }
 
 export async function findOrganizationProfile(db: AppDatabase, organizationId: string) {

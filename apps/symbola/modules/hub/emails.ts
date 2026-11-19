@@ -90,8 +90,10 @@ function layoutOf(input: { kind: EmailTemplateKind; locale: EmailLocale; identit
   const rendered = renderEmailTemplate(input.kind, input.template, values);
   const t = translator(input.locale);
   const button = EMAIL_TEMPLATE_RULES[input.kind].button;
-  const label = button === "sign" ? t("button.sign") : button === "answer" ? t("button.answer") : button === "manage" ? t("button.manage") : t("button.space");
-  const blocks: MailBlock[] = rendered.blocks.map((block) => (block.kind === "button" ? { kind: "button", url: block.url, label } : block));
+  const label = button === "sign" ? t("button.sign") : button === "answer" ? t("button.answer") : button === "manage" ? t("button.manage") : button === "request" ? t("button.request") : button === "roadmap" ? t("button.roadmap") : button === "questionnaire" ? t("button.questionnaire") : button === "open" ? t("button.open") : button === "dayOf" ? t("button.dayOf") : button === "confirm" ? t("button.confirm") : button === "notMe" ? t("button.notMe") : button === "account" ? t("button.account") : t("button.space");
+  // Lot 47 (D4) : les deux réponses d'un brief ont leur propre libellé.
+  const labelOf = (variable: EmailVariable) => (variable === "link_available" ? t("button.available") : variable === "link_unavailable" ? t("button.unavailable") : label);
+  const blocks: MailBlock[] = rendered.blocks.map((block) => (block.kind === "button" ? { kind: "button", url: block.url, label: labelOf(block.variable) } : block));
   const layout: MailLayout = {
     lang: input.locale,
     subject: rendered.subject,
@@ -147,6 +149,8 @@ export async function sendOrganizationEmail(input: {
   kind: EmailTemplateKind;
   locale: EmailLocale;
   values: EmailValues;
+  // Lot 45 (CRM-05, CRM-06) : le texte relu et modifié par la planner, à la place du modèle.
+  template?: EmailTemplateText;
   attachments?: Attachment[];
   reserve?: boolean;
   idempotencyKey?: string;
@@ -183,6 +187,28 @@ function sampleValues(locale: EmailLocale): EmailValues {
     place: t("sample.place"),
     appointment: t("sample.appointment"),
     appointment_date: t("sample.appointmentDate"),
+    slot: t("sample.slot"),
+    deadline: t("sample.deadline"),
+    link_available: t("sample.link"),
+    link_unavailable: t("sample.link"),
+    // Lot 43 (FAC-08, FAC-09) : un RIB, un montant et une référence fictifs.
+    amount: t("sample.amount"),
+    due_date: t("sample.dueDate"),
+    reference: t("sample.reference"),
+    iban: t("sample.iban"),
+    bic: t("sample.bic"),
+    penalties: t("sample.penalties"),
+    brochure: t("sample.brochure"),
+    booking_link: t("sample.bookingLink"),
+    questionnaire: t("sample.questionnaire"),
+    valid_from: t("sample.validFrom"),
+    device: t("sample.device"),
+    date_time: t("sample.dateTime"),
+    change: t("sample.change"),
+    // Lot 53 (HUB-24, HUB-15).
+    client_term: t("sample.clientTerm"),
+    digest: t("sample.digest"),
+    alert: t("sample.alert"),
   };
 }
 

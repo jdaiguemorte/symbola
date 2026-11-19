@@ -20,6 +20,7 @@ import {
   type QuoteDetail,
 } from "@/modules/quotes/service";
 import { MissingMentionsList } from "../missing-mentions";
+import { PlannerMoneySection } from "./planner-money-section";
 import { requirePlanner } from "@/lib/guards";
 import { isQuotesModuleEnabled, isValidId } from "../module-access";
 import { parisTodayString, QUOTE_STATUS_LABEL_KEYS } from "../quote-display";
@@ -45,6 +46,7 @@ import { SignatureSection } from "./signature-section";
 import { ContractSection } from "./contract-section";
 import { CompliancePanel } from "../compliance-panel";
 import { BuyerDetailsForm } from "./buyer-forms";
+import { ProposalSection, SettlementSection } from "./proposal-section";
 
 export default async function QuotePage({ params, searchParams }: { params: Promise<{ quoteId: string }>; searchParams: Promise<{ modele?: string }> }) {
   const auth = await requirePlanner();
@@ -149,6 +151,8 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
         </p>
       ) : null}
       {current.validUntil ? <p>{t("validUntil", { date: formatCalendarDate(current.validUntil, locale) })}</p> : null}
+      {/* Lot 43 (FAC-02, FAC-15 ; D1, D2) : la page de proposition, son aperçu et sa validité. */}
+      <ProposalSection organizationId={organizationId} quote={quote} locale={locale} />
 
       {/* ONB-02 : le régime a changé depuis l'envoi, le devis n'est pas signé. */}
       {quote.regimeChangedSinceSent ? (
@@ -160,6 +164,8 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
       ) : null}
 
       <QuoteVersionTable version={current} locale={locale} caption={t("linesCaption", { version: current.version })} />
+      {/* Lot 48b (BUD-08, PRE-07, JUR-10) : modes, commissions, honoraires, forfait touristique, franchise. */}
+      <PlannerMoneySection organizationId={organizationId} quote={quote} locale={locale} />
       {current.lines.length === 0 ? <p>{t("noLines")}</p> : null}
       {legalMention ? <p>{legalMention}</p> : null}
       {current.template ? <p className="meta">{t("fromTemplateVersion", { version: current.template.version })}</p> : null}
@@ -208,6 +214,8 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
       </section>
 
       <ScheduleSection quote={quote} methods={paymentMethods} locale={locale} today={parisTodayString()} />
+      {/* Lot 43 (FAC-08, FAC-09 ; ADR 0087) : référence, déclaration du payeur, relances de chaque échéance. */}
+      <SettlementSection organizationId={organizationId} quote={quote} locale={locale} />
       {/* Lot 31b (FAC-04, DOC-03 ; D7, D9, D11) : contrat du devis envoyé, signé avec lui. */}
       <ContractSection
         organizationId={organizationId}

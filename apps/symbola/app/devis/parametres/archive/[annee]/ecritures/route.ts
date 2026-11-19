@@ -5,15 +5,14 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { recordAudit } from "@symbola/db/audit";
 import { appDatabase } from "@symbola/db/client";
 import type { Locale } from "@symbola/i18n";
-import { ownerContext } from "@/app/rgpd/owner-access";
 import { listLedgerEntries } from "@/modules/quotes/service";
-import { isQuotesModuleEnabled } from "../../../../module-access";
+import { authorizedAccountingReader } from "../../../../planner-access";
 import { ledgerCsv } from "../../archive-csv";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ annee: string }> }): Promise<Response> {
-  const owner = await ownerContext();
+  // Lot 52 : la Propriétaire et le Comptable (lecture seule) ; une Planner n'y a pas accès.
+  const owner = await authorizedAccountingReader({ ownerOnly: true });
   if (!owner) return new Response(null, { status: 403 });
-  if (!(await isQuotesModuleEnabled(owner.organizationId))) return new Response(null, { status: 404 });
   const { annee } = await params;
   if (!/^\d{4}$/.test(annee)) return new Response(null, { status: 404 });
   const year = Number(annee);

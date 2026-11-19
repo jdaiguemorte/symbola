@@ -88,6 +88,9 @@ export type EventDetail = EventSummary & {
   guestsConfirmed: number | null;
   style: string | null;
   notes: string | null;
+  // Lot 48a (DAT-08, ADR 0093) : notes confidentielles (chiffrées ; notes est alors null), lues par
+  // readEventConfidentialNotes pour la titulaire et leur auteur seuls.
+  notesConfidential?: { authorUserId: string } | null;
 };
 
 // Lot 34b (EVT-03, D11) : fiche d'identité de l'événement.
@@ -388,6 +391,8 @@ export type EventTask = {
   fixed: boolean;
   // Lot 5 (IMP-04) : champs libres d'un import.
   importedFields?: Record<string, string>;
+  // Lot 53 (CHR-05) : jalon du rétroplanning (pèse plus sur la santé du planning).
+  isMilestone?: boolean;
 };
 
 export type EventTaskInput = {
@@ -453,6 +458,8 @@ export type ProgramItem = {
   // Lot 30b (CHR-06, décision D6) : responsable de la séquence, texte court.
   responsible: string | null;
   participants: ProgramParticipant[];
+  // Lot 51 (EVT-04 ; D1) : le temps fort de la séquence, donc son jour (null : évènement sans date).
+  keyMomentId: string | null;
 };
 
 export type ProgramItemInput = {
@@ -466,6 +473,9 @@ export type ProgramItemInput = {
   responsible?: string | null | undefined;
   vendorSlotIds: string[];
   freeParticipants: string[];
+  // Lot 51 (EVT-04) : absent ou null, la séquence rejoint le premier temps fort du jour de
+  // l'évènement (créé de lui-même s'il n'y en a pas).
+  keyMomentId?: string | null | undefined;
 };
 
 // Lot 30b (CHR-06, décision D8) : décaler les séquences suivantes d'autant que la
@@ -484,7 +494,7 @@ export type EventProgram = {
 
 // Lot 37b (CHR-07, DAT-14 ; D8, ADR 0071) — une séquence d'une version diffusée : la copie figée,
 // jamais de note interne.
-export type PublishedProgramItem = Omit<ProgramItem, "eventId" | "internalNote">;
+export type PublishedProgramItem = Omit<ProgramItem, "eventId" | "internalNote" | "keyMomentId">;
 
 export type ProgramVersionSummary = {
   number: number;
@@ -528,6 +538,8 @@ export type VendorProgramView = {
   ownItems: { id: string; startTime: string; endTime: string | null; label: string; location: string | null; responsible: string | null }[];
   outline: { id: string; startTime: string; endTime: string | null; label: string; own: boolean }[];
   isNew: boolean;
+  // Lot 51 (JRJ-05 ; D3) : le dernier décalage du jour J validé qui concerne ce poste, affiché en tête.
+  dayShift?: { minutes: number; validatedAt: string } | null;
 };
 
 export type PublishEventProgramInput = { organizationId: string; eventId: string; userId: string; now?: Date | undefined };
@@ -565,6 +577,10 @@ export type ProgramTemplateItem = {
   location: string | null;
   participantLabels: string[];
   position: number;
+  // Lot 51 (CHR-08, EVT-04) : temps fort de la ligne (null : celui du jour de l'évènement) et son
+  // jour, compté depuis le jour de l'évènement.
+  momentName: string | null;
+  dayOffset: number;
 };
 
 export type ProgramTemplate = { id: string; name: string; items: ProgramTemplateItem[] };
@@ -575,16 +591,21 @@ export type ProgramTemplateItemInput = {
   label: string;
   location?: string | null | undefined;
   participantLabels: string[];
+  momentName?: string | null | undefined;
+  dayOffset?: number | undefined;
 };
 
 // Lot 26a (UX-11, POR-01, POR-10, SEC-14, SEC-15 ; ADR 0053) — liens personnels
 // des tiers : une personne, un événement, des droits ; ni compte ni mot de passe.
-export const LINK_AUDIENCES = ["client", "vendor", "guest"] as const;
+// Lot 52 (EVT-06, D3 ; ADR 0094) : « day_helper », le renfort du jour J ; son lien n'ouvre que le mode
+// Jour J de son évènement, de la veille au lendemain, avec un code à usage unique.
+export const LINK_AUDIENCES = ["client", "vendor", "guest", "day_helper"] as const;
 export type LinkAudience = (typeof LINK_AUDIENCES)[number];
 
 // Rubriques du portail qu'un lien peut ouvrir (POR-10 : rien par défaut).
 // Lot 49 (INV-02, D5) : « guests », la liste des invités et le suivi des réponses (module Invités).
-export const LINK_RUBRICS = ["tasks", "program", "vendor_options", "budget", "quotes", "guests"] as const;
+// Lot 45 (POR-07, D6) : « questionnaires », ouverte à l'envoi d'un questionnaire.
+export const LINK_RUBRICS = ["tasks", "program", "vendor_options", "budget", "quotes", "guests", "questionnaires"] as const;
 export type LinkRubric = (typeof LINK_RUBRICS)[number];
 
 // Budget entier, ou seulement les catégories choisies (sans total général).
@@ -679,8 +700,17 @@ export type LinkAccess = {
   vendorCandidateId: string | null;
 };
 
+// Lot 52 (EVT-06, D2 ; ADR 0094) — équipe d'un évènement : planner principal (un seul) et assistants.
+export const EVENT_TEAM_ROLES = ["lead", "assistant"] as const;
+export type EventTeamRole = (typeof EVENT_TEAM_ROLES)[number];
+export type EventTeamMember = { userId: string; role: EventTeamRole };
+
+// Lot 52 (EVT-06, D3) — renfort du jour J : nom, e-mail (pour le code à l'ouverture), téléphone facultatif.
+export type DayHelperInput = { personName: string; email: string; phone?: string | null | undefined };
+export type DayHelper = { linkId: string; personName: string; email: string; phone: string | null; validFrom: string; expiresOn: string; status: EventLinkStatus; lastOpenedAt: string | null };
+
 export type OpenEventLinkResult =
-  | { outcome: "opened"; sessionToken: string; maxAgeSeconds: number; audience: LinkAudience }
+  | { outcome: "opened"; sessionToken: string; maxAgeSeconds: number; audience: LinkAudience; eventId: string }
   // Lot 26b (POR-01, D6) : le lien demande un code, envoyé à son e-mail
   // (montré masqué) ; codeSent faux si trop de codes ont été demandés.
   | { outcome: "code_required"; emailHint: string; codeSent: boolean }
@@ -720,7 +750,18 @@ export type ClientEventView = {
 // Lot 32a (D6) : « vendor_reminded », un prestataire relancé depuis le cockpit (taskLabel : son nom).
 // Lot 37a (DOC-04, D7) : « document_link_opened », un lien de partage ouvert (taskLabel : l'intitulé
 // du document à l'ouverture).
-export type EventActivityKind = "task_done" | "task_undone" | "decision_made" | "vendor_reminded" | "document_link_opened";
+// Lot 44 (CRM-02) : « stage_changed », passage à une autre étape du pipeline (taskLabel : l'étape).
+// Lot 47 (PAR-05, PRE-04) : réponse à un brief, facture déposée, feuille de route confirmée.
+export type EventActivityKind =
+  | "task_done"
+  | "task_undone"
+  | "decision_made"
+  | "vendor_reminded"
+  | "document_link_opened"
+  | "stage_changed"
+  | "vendor_answered"
+  | "vendor_invoice_received"
+  | "vendor_roadmap_confirmed";
 
 // Lot 32a (HUB-08, UX-06) — décision du client sans réponse, pour la liste des urgences.
 export type PendingDecision = { id: string; eventId: string; kind: DecisionKind; title: string; dueOn: string | null; requestedAt: string };
@@ -765,6 +806,8 @@ export type EventDecision = {
   requestedAt: string;
   // Programme approuvé puis modifié depuis la réponse (lot 37b : une version plus récente diffusée).
   programChanged: boolean;
+  // Lot 47 (D6) : le choix d'une décision « options » a engagé (Retenu, autres Écartés, tâches).
+  engagedAt: string | null;
 };
 
 type RequestDecisionBase = {
@@ -1004,6 +1047,8 @@ export type KeyMoment = {
   placeId: string | null;
   placeLabel: string | null;
   position: number;
+  // Lot 51 (EVT-04 ; D1) : créé de lui-même pour porter le chrono, pas encore proposé aux invités.
+  autoCreated: boolean;
 };
 
 export type KeyMomentInput = {

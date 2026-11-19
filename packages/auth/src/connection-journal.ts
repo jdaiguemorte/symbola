@@ -24,11 +24,12 @@ type ConnectionAction = Extract<
   | "hub.mfa.configured"
   | "hub.trusted_devices.forgotten"
   | "hub.sessions.revoked"
+  | "hub.identity.changed"
 >;
 
 // Un échec ou un verrouillage n'est pas le fait du titulaire du compte (ce
 // peut être quelqu'un d'autre) : son auteur est « system ».
-const NOT_BY_ACCOUNT: ReadonlySet<ConnectionAction> = new Set(["hub.session.failed", "hub.account.locked"]);
+const NOT_BY_ACCOUNT: ReadonlySet<ConnectionAction> = new Set(["hub.session.failed", "hub.account.locked", "hub.identity.changed"]);
 
 export async function journalConnection(
   db: AppDatabase,

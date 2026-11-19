@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "_source": "Lot 51 (CHR-08 ; ADR 0091) : intitulés reconnus des colonnes d'un chrono importé (CSV, XLSX), comparés sans accents, casse ni espaces. « moment » : le jour (date) ou le temps fort (nom) de la séquence ; « date » : son jour, si le temps fort a sa colonne.",
+  "columns": {
+    "moment": { "fr": ["temps fort", "moment", "partie", "jour", "journée"], "en": ["key moment", "moment", "part", "day"] },
+    "date": { "fr": ["date"], "en": ["date"] },
+    "start": { "fr": ["début", "debut", "heure", "heure de début", "de"], "en": ["start", "time", "start time", "from"] },
+    "end": { "fr": ["fin", "heure de fin", "à", "jusqu'à"], "en": ["end", "end time", "to", "until"] },
+    "label": { "fr": ["séquence", "sequence", "intitulé", "quoi", "déroulé", "étape"], "en": ["sequence", "item", "what", "activity", "step"] },
+    "location": { "fr": ["lieu", "où", "salle"], "en": ["location", "place", "where", "room"] },
+    "responsible": { "fr": ["responsable", "qui", "référent"], "en": ["responsible", "who", "owner", "lead"] },
+    "note": { "fr": ["note", "notes", "remarque", "commentaire"], "en": ["note", "notes", "comment", "remarks"] }
+  }
+}

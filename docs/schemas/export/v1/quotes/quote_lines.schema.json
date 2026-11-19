@@ -88,6 +88,28 @@
         "goods"
       ]
     },
+    "supplyMode": {
+      "type": "string",
+      "enum": [
+        "resale",
+        "intermediary"
+      ]
+    },
+    "tourismKind": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "transport",
+            "lodging",
+            "other"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
@@ -163,6 +185,8 @@
     "isOption",
     "optionChosen",
     "nature",
+    "supplyMode",
+    "tourismKind",
     "createdAt",
     "createdBy",
     "updatedAt",

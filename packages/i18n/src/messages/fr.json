@@ -33,7 +33,30 @@
     "setUp": "Gérer mes moyens de connexion",
     "signInAgain": "Recevoir un lien de connexion",
     "signOut": "Me déconnecter",
-    "linkSent": "Un lien de connexion vient de partir à votre adresse. Ouvrez-le : votre double authentification vous sera demandée, ou installée si elle manque."
+    "linkSent": "Un lien de connexion vient de partir à votre adresse. Ouvrez-le : votre double authentification vous sera demandée, ou installée si elle manque.",
+    "accountantBody": "Comme comptable de l'organisation, vous lisez ses factures et ses journaux : une double authentification est demandée à chaque connexion. Recevez un lien de connexion : vous installerez une application d'authentification ou une clé d'accès, puis elle vous sera demandée.",
+    "sessionsTitle": "Mes sessions",
+    "sessionsSubtitle": "Les appareils où votre compte est connecté.",
+    "thisDevice": "Cet appareil",
+    "lastSeen": "Dernière activité : {date}",
+    "closeOne": "Fermer",
+    "closeOneLabel": "Fermer la session {device}",
+    "closeOthers": "{count, plural, one {Fermer l'autre session} other {Fermer les # autres sessions}}",
+    "onlyThisOne": "Votre compte n'est connecté que sur cet appareil.",
+    "sessionClosed": "La session est fermée : cet appareil devra se reconnecter.",
+    "sessionsClosed": "{count, plural, =0 {Aucune autre session n'était ouverte.} one {Une session fermée.} other {# sessions fermées.}}",
+    "noLocation": "Symbola ne garde ni l'adresse IP ni la ville de vos connexions : seulement l'appareil et l'heure.",
+    "manageFactors": "Gérer mon adresse, ma clé d'accès et ma double authentification",
+    "promptLabel": "Double authentification",
+    "promptBody": "Sécurisez votre compte : une clé d'accès ou une application d'authentification protège vos évènements même si votre adresse e-mail est piratée.",
+    "promptAction": "Sécuriser mon compte",
+    "promptLater": "Plus tard",
+    "notMeTitle": "Ce n'est pas vous ?",
+    "notMeBody": "Fermez toutes les sessions de votre compte, sur tous les appareils. Vous pourrez ensuite vous reconnecter et sécuriser votre compte.",
+    "notMeConfirm": "Fermer toutes mes sessions",
+    "notMeDone": "Toutes vos sessions sont fermées. Vérifiez maintenant votre adresse e-mail, votre clé d'accès et votre double authentification.",
+    "notMeSecure": "Sécuriser mon compte",
+    "notMeInvalid": "Ce lien n'est plus valable : il a déjà servi ou il a plus de sept jours. Connectez-vous puis fermez vos autres sessions depuis « Mes sessions »."
   },
   "Organizations": {
     "label": "Organisation",
@@ -223,7 +246,8 @@
     "success": "Préférences enregistrées.",
     "securityTitle": "Sécurité du compte",
     "securityBody": "Votre mot de passe, vos clés d'accès et votre double authentification se gèrent dans votre espace de connexion.",
-    "securityLink": "Ouvrir mon espace de connexion"
+    "securityLink": "Ouvrir mon espace de connexion",
+    "sessionsLink": "Mes sessions : les appareils connectés à mon compte"
   },
   "Settings": {
     "title": "Paramètres",
@@ -1018,7 +1042,7 @@
     },
     "vendorDetail": {
       "title": "Fiche d'un prestataire",
-      "body": "Tout ce que vous savez d'un prestataire : coordonnées, caractéristiques de son type, étiquettes, évaluation (de 1 à 5) et tarifs indicatifs, documents, note interne. « Modifier la fiche » ouvre tout cela dans un panneau ; cliquez une pastille pour choisir une étiquette ; seules celles de sa famille s'affichent. « Historique avec vous » liste ses prestations, prix devisé et prix final.",
+      "body": "La fiche réunit tout ce que vous savez du prestataire : coordonnées, caractéristiques de son type, évaluation, tarifs indicatifs, historique avec vous. Les pièces (assurance, Kbis) ont une fin de validité et peuvent être demandées au prestataire. L'IBAN est chiffré et n'apparaît que masqué : s'il change, un bandeau vous demande d'appeler le prestataire au numéro déjà connu, jamais à celui du message qui annonce le changement, avant tout paiement. Une note marquée confidentielle est chiffrée et réservée à vous et à la titulaire. Pour un lieu, les contraintes (fin de la musique, accès des prestataires, capacité) contrôlent le programme de l'évènement, sans jamais rien bloquer.",
       "faq": [
         {
           "q": "Archiver efface-t-il son historique ?",
@@ -1064,7 +1088,7 @@
     },
     "dayOf": {
       "title": "Jour J",
-      "body": "Le jour J en un écran sombre, lisible au soleil : « Maintenant » (la séquence en cours, en grand, avec l'appel de ses prestataires) et « Ensuite », calculés sur le téléphone, même sans réseau. La barre du bas, à portée du pouce, appelle le contact de la séquence en cours et mène au programme, aux contacts (urgences, contacts du jour J, prestataires, mariés : appel ou SMS en un toucher) et aux documents choisis. « Garder sur cet appareil » copie l'écran sur le téléphone : il s'ouvre ensuite sans réseau, et se met à jour à chaque ouverture avec du réseau.",
+      "body": "Le jour J en un écran sombre, lisible au soleil : « Maintenant » (la séquence en cours, en grand, avec l'appel de ses prestataires) et « Ensuite », calculés sur le téléphone, même sans réseau. La barre du bas, à portée du pouce, appelle le contact de la séquence en cours et mène au programme, aux contacts (urgences, contacts du jour J, prestataires, mariés : appel ou SMS en un toucher) et aux documents choisis. « Garder sur cet appareil » copie l'écran sur le téléphone : il s'ouvre ensuite sans réseau, et se met à jour à chaque ouverture avec du réseau. Le jour J se pointe : « Commencé », « Terminé », un retard propose de décaler la suite et de prévenir les prestataires après votre validation, « Incident » note un fait dicté en dix secondes, les listes se cochent d'un toucher et les remises du jour se pointent. Tout part du téléphone, même sans réseau.",
       "faq": [
         {
           "q": "Comment ouvrir le jour J sans réseau ?",
@@ -1089,6 +1113,34 @@
         {
           "q": "Où ajouter le régisseur du domaine ou un taxi ?",
           "a": "Dans l'onglet « Programme » de la fiche, rubrique « Contacts du jour J » : nom, rôle et téléphone. Ils s'affichent dans l'annuaire du jour J, sous les numéros d'urgence."
+        },
+        {
+          "q": "Comment pointer une séquence ?",
+          "a": "Sur « Maintenant » (ou dans le programme du jour), touchez « Commencé », puis « Terminé ». L'heure est celle de votre téléphone, même sans réseau. Si deux personnes pointent la même séquence, les deux pointages restent et l'écran retient la première heure."
+        },
+        {
+          "q": "Que se passe-t-il quand une séquence prend du retard ?",
+          "a": "Si elle commence ou finit plus tard que prévu, l'écran propose de décaler la suite de ce temps fort : du retard constaté (modifiable), toutes les séquences suivantes par défaut (décochez celles qui sont fixes, comme l'arrivée d'un bus), et les prestataires concernés. Rien n'est envoyé sans votre validation. Validé, le programme est décalé, une nouvelle version est diffusée et chaque prestataire concerné reçoit un e-mail ; hors ligne, l'envoi part au retour du réseau, une seule fois."
+        },
+        {
+          "q": "Comment noter un incident en quelques secondes ?",
+          "a": "Touchez « Incident » dans la barre du bas : le champ s'ouvre avec le clavier ; touchez son micro pour dicter. Gravité et photo sont facultatives ; « Enregistrer » note l'heure. Écrivez les faits sans nom d'invité ; un malaise se note sans le nom de la personne (pas de donnée de santé)."
+        },
+        {
+          "q": "Les photos sont-elles partagées ?",
+          "a": "Non : les photos des incidents, des listes et des reçus restent dans votre organisation, jamais montrées aux clients ni aux prestataires. Photographiez les choses plutôt que les personnes. Réduites sur le téléphone, elles sont contrôlées à l'arrivée (type, taille, antivirus) ; une photo refusée est signalée et l'incident reste. Elles sont effacées avec les documents de l'évènement."
+        },
+        {
+          "q": "Que se passe-t-il sans réseau ?",
+          "a": "Tout ce que vous faites (pointage, décalage, incident, case, remise, photo) est gardé sur le téléphone et part dans l'ordre dès que le réseau revient, écran ouvert. « 3 actions en attente » puis « À jour » vous le disent. Si votre session a expiré, rien n'est perdu : reconnectez-vous et l'envoi reprend."
+        },
+        {
+          "q": "Comment pointer une remise le jour J ?",
+          "a": "Dans le budget, marquez l'échéance « À remettre le jour J » (chèque, espèces, enveloppe) avec la personne qui remet. Le jour J, la liste « Remises du jour » la montre : touchez « Remis » (et « Reçu » pour photographier le reçu). L'échéance passe à « remise » et réglée dans le budget du client. Espèces : les paiements en espèces sont plafonnés par la loi ; vérifiez la limite qui s'applique avant de prévoir une remise en espèces."
+        },
+        {
+          "q": "Où trouver le bilan ?",
+          "a": "Le lendemain du dernier jour de l'évènement, dans son fuseau, le bilan est prêt sur la fiche (Aperçu) : séquences prévues et réelles, décalages, incidents et photos, cases non cochées, remises. Il s'exporte en PDF et reste interne à votre équipe."
         }
       ]
     },
@@ -1180,6 +1232,28 @@
       "title": "Vos invités",
       "body": "Ajoutez vos invités par foyer, ou importez votre tableur : les doublons vous sont signalés avant tout enregistrement. Pour un invité sans e-mail, obtenez son lien personnel ou son QR code et envoyez-le par SMS. Vous suivez les réponses par moment ; les régimes s'affichent en nombres, jamais nominatifs."
     },
+    "seatingPlan": {
+      "title": "Plan de table",
+      "body": "Un plan par temps fort à table (le dîner, le brunch). Ajoutez les tables en série (« 12 tables rondes de 10 »), ou copiez le plan d'un autre temps fort. Placez un invité ou tout un foyer avec le bouton « Déplacer », au clavier ou au doigt, ou glissez-le à la souris. Seuls les présents et ceux qui n'ont pas répondu se placent ; les non placés restent visibles avec leur nombre. Les contraintes « ensemble » et « séparés » et les tables trop pleines sont signalées, jamais bloquées.",
+      "faq": [
+        {
+          "q": "Un invité se désiste après avoir été placé : que se passe-t-il ?",
+          "a": "Il quitte sa table aussitôt et une alerte vous prévient sur le plan ; effacez-la quand vous l'avez vue."
+        },
+        {
+          "q": "Le client voit-il le plan ou les contraintes ?",
+          "a": "Non. Le plan se compose dans l'équipe ; les contraintes ne sortent jamais, ni vers le client ni dans une synthèse."
+        }
+      ]
+    },
+    "catererSummary": {
+      "title": "Envoyer la synthèse au traiteur",
+      "body": "Depuis le plan de table, « Synthèse pour le traiteur » donne le PDF ou le tableur : couverts et repas par type, régimes et allergènes, par table ; les repas des prestataires et les personnes en attente de réponse à part. La titulaire obtient la version nominative ; un membre de l'équipe, la version sans nom, exacte par table. Rien n'est gardé dans Symbola : la copie envoyée sort de Symbola, demandez au traiteur de la supprimer après l'évènement."
+    },
+    "mealTypes": {
+      "title": "Types de repas",
+      "body": "Les types de repas de la synthèse pour le traiteur : adulte, enfant, bébé (sans repas), prestataire au départ. Renommez, masquez ou ajoutez un type ; le type d'un invité suit son âge, sauf si vous le changez sur le plan de table."
+    },
     "appointmentsList": {
       "title": "Rendez-vous",
       "body": "Les rendez-vous pris sur votre page de réservation, et ceux saisis par l'équipe (téléphone, salon). Les nouveaux, reportés ou annulés apparaissent aussi dans « Aujourd'hui ». Commencez par créer un type de rendez-vous (un nom et une durée), puis choisissez l'adresse de votre page et donnez-la à vos futurs clients. Personne n'a besoin de compte : chaque personne reçoit une confirmation avec l'invitation pour son agenda, et un lien pour reporter ou annuler."
@@ -1203,6 +1277,190 @@
     "appointmentAvailability": {
       "title": "Mes disponibilités",
       "body": "Vos plages de la semaine (deux par jour au plus), vos jours fermés et vos agendas. Reliez votre agenda Google, Apple ou Outlook par son adresse secrète iCal : seules les heures occupées sont lues, toutes les quinze minutes, jamais le contenu. Si un agenda ne se lit plus, aucun créneau n'est proposé jusqu'à ce qu'il soit relu : mieux vaut ne rien proposer qu'une heure déjà prise."
+    },
+    "eventsPipeline": {
+      "title": "Suivre vos demandes en colonnes",
+      "body": "Chaque carte est un évènement au statut Option, rangé à son étape. Pour déplacer une carte, faites-la glisser à la souris, ou utilisez son bouton « Déplacer » puis choisissez l'étape (au clavier comme au doigt). Déposer sur « Gagné » confirme l'évènement après votre accord ; sur « Perdu », l'annule avec son motif. Dans une colonne, la carte qui attend depuis le plus longtemps est en haut. Sur téléphone, choisissez l'étape dans les onglets.",
+      "faq": [
+        {
+          "q": "Une étape change-t-elle le statut de l'évènement ?",
+          "a": "Non : les étapes ne sont que des repères à l'intérieur du statut Option. Seuls « Gagné » et « Perdu » changent le statut (Confirmé, Annulé)."
+        },
+        {
+          "q": "Qu'est-ce qu'une demande « à vérifier » ?",
+          "a": "Une demande du formulaire de contact dont le message contient plusieurs liens : elle peut venir d'un robot. Acceptez-la pour créer le prospect, ou effacez-la. Sans réponse, elle est effacée au bout de 30 jours."
+        }
+      ]
+    },
+    "eventsPipelineStages": {
+      "title": "Étapes du pipeline",
+      "body": "Renommez les étapes, ajoutez-en (dix au plus), changez leur ordre, retirez celles qui ne vous servent pas. Une étape qui contient des cartes se vide d'abord : choisissez l'étape où elles passent.",
+      "faq": [
+        {
+          "q": "Puis-je ajouter « Gagné » comme étape ?",
+          "a": "Inutile : « Gagné » et « Perdu » sont toujours au bout du pipeline ; ils confirment ou annulent l'évènement."
+        }
+      ]
+    },
+    "eventsContactForm": {
+      "title": "Mettre le formulaire sur votre site",
+      "body": "Ouvrez le formulaire, choisissez son adresse et donnez l'adresse de votre politique de confidentialité (obligatoire). Partagez le lien, ou copiez le code dans votre site après avoir déclaré son adresse dans « Sites autorisés » : le formulaire ne s'affiche que dans ces sites. Chaque demande crée un prospect au statut Option, à la première étape du pipeline, et apparaît dans « Aujourd'hui ». La personne ne reçoit pas d'e-mail automatique : la réponse vient de vous.",
+      "faq": [
+        {
+          "q": "Et le spam ?",
+          "a": "Le formulaire se protège sans captcha : un champ piège invisible, un délai minimal de remplissage, un nombre d'envois limité. Une demande dont le message contient plusieurs liens est mise de côté « à vérifier » dans le pipeline."
+        },
+        {
+          "q": "Une personne déjà connue remplit le formulaire ?",
+          "a": "Elle est retrouvée par son e-mail, et sa fiche n'est pas modifiée : ce qu'elle a écrit va dans la demande."
+        }
+      ]
+    },
+    "followUpReview": {
+      "title": "Relire une relance",
+      "body": "La relance est prête : relisez et modifiez le texte, puis envoyez-la d'un geste, ou retirez-la. Juste avant l'envoi, Symbola vérifie encore qu'aucun fait ne l'arrête (réponse notée, changement d'étape, confirmation, refus, action du contact).",
+      "faq": [
+        {
+          "q": "Symbola lit-il mes e-mails pour savoir si le couple a répondu ?",
+          "a": "Non. Quand le couple vous répond (e-mail, téléphone, WhatsApp), cliquez sur « A répondu » : les relances en attente s'arrêtent."
+        }
+      ]
+    },
+    "eventQuestionnaires": {
+      "title": "Questionnaires de l'évènement",
+      "body": "Envoyez un questionnaire à un client : il le reçoit avec son lien personnel, répond à son rythme, chaque réponse est enregistrée. Quand il termine, les champs vides de la fiche se remplissent ; si une réponse contredit la fiche, vous choisissez.",
+      "faq": [
+        {
+          "q": "Une question déjà posée l'est-elle de nouveau ?",
+          "a": "Non : une question déjà répondue (dans ce questionnaire ou un autre) n'est pas reposée ; une question dont la fiche connaît déjà la réponse est proposée pré-remplie, à confirmer."
+        }
+      ]
+    },
+    "questionnaireTemplates": {
+      "title": "Vos questionnaires",
+      "body": "Créez vos questionnaires ou partez de ceux de Symbola (découverte, cérémonie, musiques, détails pratiques). Une question peut remplir un champ de l'évènement (date, invités, budget, lieu, ville, style, type). Chaque enregistrement des questions fait une version ; les questionnaires déjà envoyés gardent la leur.",
+      "faq": [
+        {
+          "q": "Puis-je demander les régimes alimentaires ?",
+          "a": "Passez par le module Invités : il recueille l'accord de chaque personne. Une question sur la santé, la religion ou les opinions reçoit un avertissement."
+        }
+      ]
+    },
+    "contactDuplicates": {
+      "title": "Doublons possibles",
+      "body": "Symbola repère les fiches qui ont la même adresse e-mail ou le même téléphone, à la saisie et chaque nuit. Comparez-les et fusionnez-les, ou dites « ce ne sont pas les mêmes » : rien n'est fusionné sans vous."
+    },
+    "contactMerge": {
+      "title": "Fusionner deux fiches",
+      "body": "Choisissez la fiche gardée puis, champ par champ, la valeur à garder. La fiche absorbée disparaît ; son historique (évènements, notes, messages, rendez-vous, liens, signatures) passe à la fiche gardée. La fusion est tracée au journal."
+    },
+    "portalQuestionnaires": {
+      "title": "Vos questionnaires",
+      "body": "Répondez à votre rythme : chaque réponse est enregistrée aussitôt, vous pouvez vous arrêter et reprendre plus tard. Cliquez sur « Terminer » quand c'est fini."
+    },
+    "vendorCoordination": {
+      "title": "Demander des devis à plusieurs prestataires",
+      "body": "Écrivez le brief du poste (le besoin, le nombre d'invités, un budget indicatif que vous montrez ou non, la date limite, des inspirations), cochez les prestataires, vérifiez la liste, puis envoyez : chacun reçoit son propre e-mail et son lien, sans compte, et ne voit jamais les autres. Ceux qui n'ont pas répondu sont relancés la veille de la date limite. Les réponses arrivent dans le comparatif ; cochez ensuite les propositions à montrer au client et demandez-lui de choisir. Son choix retient le prestataire, écarte les autres et crée les tâches de suivi. Vous modifiez le prestataire retenu quand vous voulez."
+    },
+    "vendorScenarios": {
+      "title": "Comparer des scénarios d'options",
+      "body": "Un scénario choisit au plus un prestataire par poste. Comparez deux scénarios côte à côte : postes en lignes, totaux au centime, écarts en évidence, face à l'enveloppe du client et au budget estimé. Un devis sans montant compte « à préciser ». Montrez un scénario au client : ses prestataires apparaissent dans ses options."
+    },
+    "vendorCoordinationSettings": {
+      "title": "La feuille de route des prestataires",
+      "body": "Réglez la date limite par défaut d'un brief, la relance de la veille, les feuilles de route envoyées à J-30 et à J-7 aux prestataires retenus (chacun confirme d'un toucher), le délai après lequel une feuille non confirmée vous est signalée, et les tâches de suivi créées quand le client choisit un prestataire."
+    },
+    "dayChecklists": {
+      "title": "Listes du jour J",
+      "body": "Les modèles de listes de contrôle (installation, démontage) de votre organisation, copiés au départ de quelques listes types. Ajoutez une liste à un temps fort depuis l'écran du jour J (« Préparer les listes ») : elle est copiée, et modifier le modèle ensuite ne la change pas."
+    },
+    "programImport": {
+      "title": "Importer un chrono",
+      "body": "Un chrono tenu dans un tableur (CSV ou XLSX) s'importe dans le programme : colonnes jour ou temps fort, début, fin, séquence, lieu, responsable, note. L'écran de contrôle montre les séquences lues et les écarts ligne par ligne ; rien n'est écrit avant « Importer ». Les temps forts manquants sont créés ; une cellule qui commence par =, +, - ou @ reste du texte."
+    },
+    "settlement": {
+      "title": "Régler l'acompte",
+      "body": "Le règlement se fait par virement, depuis votre banque : copiez l'IBAN et la référence, ou lisez le QR code avec votre application bancaire. Une fois le virement fait, appuyez sur « J'ai fait le virement » ; votre organisateur confirmera sa réception. Aucune carte ni aucun paiement ne passe par cette page."
+    },
+    "cashCalendar": {
+      "title": "Calendrier des sorties d'argent",
+      "body": "Mois par mois, ce qu'il reste à régler : à votre organisateur et à vos prestataires, avec qui paie chaque échéance et où elle en est (à venir, déclarée, réglée)."
+    },
+    "portalPayers": {
+      "title": "Ce que voit chaque payeur",
+      "body": "Vos familles ou une entreprise participent ? Pour chacune, choisissez si elle ne voit que sa part (le montant qui lui revient et ses échéances) ou tout le budget."
+    },
+    "proposalTemplates": {
+      "title": "Modèles de proposition",
+      "body": "La page que reçoit le client quand vous envoyez un devis : votre mot d'accueil, votre présentation, le devis et ses options, l'échéancier, la validité, puis « Accepter et signer ». Un modèle pour tous les évènements, et un par type si besoin ; chaque devis reprend le mot d'accueil et peut le changer avant l'envoi."
+    },
+    "reminderSettings": {
+      "title": "Relances",
+      "body": "Quand Symbola relance vos clients : quelques jours avant l'expiration d'une proposition, puis après une échéance impayée. Chaque relance part une seule fois, s'arrête dès que le client déclare son virement, et se suspend sur la fiche du devis."
+    },
+    "proposalPreview": {
+      "title": "Aperçu de la proposition",
+      "body": "La page exacte que voit votre client, sans rien enregistrer : vérifiez le mot d'accueil, les options et les montants avant de le prévenir."
+    },
+    "budgetPayers": {
+      "title": "Payeurs et répartition",
+      "body": "Les mariés paient tout par défaut. Ajoutez une famille ou une entreprise, puis partagez chaque ligne en pourcentage ou en montant : les totaux tombent juste au centime. Désignez qui règle chaque échéance, et ce que chaque payeur voit (sa part seule, par défaut)."
+    },
+    "budgetCashCalendar": {
+      "title": "Calendrier des sorties d'argent",
+      "body": "Mois par mois, les échéances du client envers vous et envers ses prestataires, avec leur payeur et leur statut : la réponse à « qu'est-ce qu'on doit payer en mai ? »."
+    },
+    "vendorDocuments": {
+      "title": "Pièces des prestataires",
+      "body": "Attestation d'assurance, extrait Kbis, plan du lieu : chaque fiche du carnet range ses pièces avec leur fin de validité. Symbola vous prévient quelques jours avant (le délai se règle ici) et signale, sur l'évènement et dans « Aujourd'hui », une pièce qui expire avant le jour J d'un prestataire retenu. Vous pouvez aussi demander une pièce au prestataire : il la dépose par son lien personnel, et elle arrive « à vérifier »."
+    },
+    "plannerMoney": {
+      "title": "Honoraires et commissions",
+      "body": "Réglez vos honoraires (forfait, pourcentage du budget estimé ou engagé, ou les deux) : ils vont sur votre devis et restent à part du budget du client. Tracez les commissions et apports d'affaires que vous versent les prestataires : un client particulier les voit toutes, sur le devis et dans son portail ; pour un professionnel, vous choisissez. Une commission se facture au prestataire, dans votre série de factures, en Factur-X."
+    },
+    "sessions": {
+      "title": "Mes sessions",
+      "body": "Chaque ligne est un appareil où votre compte est connecté, avec sa dernière activité (mise à jour au plus une fois par heure). Fermez une session que vous ne reconnaissez pas : elle est refusée dès sa requête suivante. Un téléphone perdu ? « Fermer les autres sessions »."
+    },
+    "accounting": {
+      "title": "Accès comptable",
+      "body": "La Propriétaire vous a ouvert un accès en lecture seule : factures (dont les factures de commission aux prestataires), avoirs, encaissements, journaux, exports et e-reporting. Vous ne voyez ni les évènements, ni les invités, ni les réglages. La double authentification vous est demandée à chaque connexion."
+    },
+    "eventTeam": {
+      "title": "Équipe de l'évènement",
+      "body": "Nommez un planner principal (il reçoit les alertes et les récapitulatifs de l'évènement) et des assistants. Quand « Toutes les Planners voient tous les évènements » est coupé (Réglages, Équipe), une Planner ne voit que les évènements de son équipe. Un renfort du jour J vient sans compte : son lien n'ouvre que le mode Jour J de cet évènement, de la veille au lendemain."
+    },
+    "ownership": {
+      "title": "Transfert de propriété",
+      "body": "La Propriétaire vous propose de prendre sa place. Connectez-vous avec votre double authentification, puis confirmez : les rôles s'échangent et vous recevez toutes les deux un e-mail. Le lien vaut sept jours et ne sert qu'une fois."
+    },
+    "notMe": {
+      "title": "Ce n'est pas moi",
+      "body": "Une connexion à votre compte a eu lieu depuis un appareil que Symbola ne connaissait pas. Si ce n'était pas vous, fermez toutes vos sessions ici, puis changez votre adresse, votre mot de passe et votre double authentification dans votre compte."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "body": "Ce qui s'est passé et ce qui vous attend, une ligne par fait. Cliquez une notification : elle s'ouvre sur l'écran où agir et passe en « lue »."
+    },
+    "notificationSettings": {
+      "title": "Régler mes notifications",
+      "body": "Coupez une sorte sur un canal sans toucher aux autres. Le récapitulatif part chaque matin à l'heure choisie ; pendant les plages de silence, rien ne sonne, sauf les alertes du jour J le jour d'un évènement si vous le gardez."
+    },
+    "automations": {
+      "title": "Automatisations",
+      "body": "Chaque ligne est un automatisme : ce qu'il fait, son interrupteur et son journal. Couper arrête les prochains envois ; rien n'est rattrapé à la remise en route. La purge RGPD et le contrôle des pièces ne se coupent pas."
+    },
+    "riskRadar": {
+      "title": "Radar des risques",
+      "body": "Le radar passe chaque matin. Chaque règle a un seuil en jours ; une alerte dit la règle qui l'a déclenchée et mène à l'écran où agir. La santé du planning se règle ici aussi."
+    },
+    "clientTerms": {
+      "title": "Termes des clients",
+      "body": "Le terme choisi pour un type remplace « les mariés » ou « les clients » là où Symbola nomme vos clients, et remplit '{{terme_clients}}' dans vos e-mails et vos documents à venir."
+    },
+    "standaloneTasks": {
+      "title": "Tâches hors évènement",
+      "body": "Une tâche sans évènement apparaît dans « Aujourd'hui » à son échéance. Cochée, une tâche qui se répète fait naître la suivante."
     }
   },
   "Aide": {
@@ -1680,7 +1938,8 @@
       "vendor_options": "Options de prestataires",
       "budget": "Budget",
       "quotes": "Devis à signer",
-      "guests": "Invités (saisie, import, suivi des réponses ; jamais les régimes nominatifs)"
+      "guests": "Invités (saisie, import, suivi des réponses ; jamais les régimes nominatifs)",
+      "questionnaires": "Questionnaires"
     },
     "createLinkTitle": "Créer un lien",
     "linkPerson": "Personne",
@@ -1873,8 +2132,61 @@
       "date": "La date n'est pas valable.",
       "time": "L'heure n'est pas valable (HH:MM).",
       "place": "Ce lieu n'est pas un lieu de l'évènement.",
-      "too_many": "Un évènement compte au plus 20 temps forts."
-    }
+      "too_many": "Un évènement compte au plus 20 temps forts.",
+      "has_items": "Ce temps fort porte des séquences du programme."
+    },
+    "activityStageChanged": "Passé à l'étape « {task} ».",
+    "prospectRequestTitle": "Demande reçue par le formulaire de contact",
+    "prospectRequestReceived": "Reçue le {date}",
+    "prospectRequestPeriod": "Période souhaitée : {period}",
+    "prospectRequestBudget": "Budget indiqué : {budget}",
+    "prospectRequestNoMessage": "Sans message.",
+    "pipelineView": "Vue en colonnes",
+    "programKeyMoment": "Temps fort",
+    "programKeyMomentDefault": "Jour de l'évènement",
+    "programMomentInvalid": "Ce temps fort n'est pas un temps fort de l'évènement.",
+    "keyMomentHasItems": "{count, plural, one {Ce temps fort porte # séquence du programme : déplacez-la ou supprimez-la pour le retirer.} other {Ce temps fort porte # séquences du programme : déplacez-les ou supprimez-les pour le retirer.}}",
+    "programImportTitle": "Importer un chrono (tableur)",
+    "programImportHint": "Colonnes reconnues : jour ou temps fort, date, début, fin, séquence, lieu, responsable, note. Rien n'est écrit avant votre accord ; les temps forts manquants sont créés.",
+    "programImportFileLabel": "Fichier CSV ou XLSX",
+    "programImportFile": "Choisissez un fichier CSV ou XLSX.",
+    "programImportTooLarge": "Ce fichier dépasse 1 Mo : un chrono en pèse quelques Ko.",
+    "programImportPreview": "Voir avant d'importer",
+    "programImportPreviewTitle": "{count, plural, =0 {Aucune séquence lue} one {# séquence lue} other {# séquences lues}}",
+    "programImportNeutralized": "{count, plural, one {# cellule commençant par =, +, - ou @ a été gardée en texte.} other {# cellules commençant par =, +, - ou @ ont été gardées en texte.}}",
+    "programImportUnknownColumns": "Colonnes ignorées : {columns}.",
+    "programImportNewMoments": "Temps forts créés : {moments}.",
+    "programImportProblems": "Lignes écartées",
+    "programImportProblem": "Ligne {line} : {problem}",
+    "programImportProblems_": {
+      "start": "heure de début illisible",
+      "end": "heure de fin illisible",
+      "label": "séquence vide",
+      "moment_date": "temps fort sans date (l'évènement n'est pas daté)",
+      "too_long": "texte trop long"
+    },
+    "programImportLine": "Ligne",
+    "programImportSkip": "Écarter",
+    "programImportSkipLine": "Écarter la ligne {line}",
+    "programImportApply": "{count, plural, one {Importer # séquence} other {Importer # séquences}}",
+    "programImportApplied": "{items, plural, one {# séquence importée} other {# séquences importées}}, {moments, plural, =0 {aucun temps fort créé} one {# temps fort créé} other {# temps forts créés}}.",
+    "programImportRejected": {
+      "empty": "Le fichier est vide.",
+      "too_large": "Le fichier est trop lourd.",
+      "infected": "Le fichier a été refusé par l'antivirus.",
+      "no_start_column": "Aucune colonne d'heure de début reconnue (début, heure…).",
+      "no_label_column": "Aucune colonne de séquence reconnue (séquence, intitulé…).",
+      "unsupported_format": "Format non lu : enregistrez le fichier en .xlsx ou .csv.",
+      "malformed": "Le fichier n'a pas pu être lu."
+    },
+    "eventNotesConfidentialElsewhere": "Les notes sont confidentielles : elles se modifient juste en dessous.",
+    "eventNotesConfidentialTitle": "Notes et confidentialité",
+    "eventNotesConfidential": "Confidentielles",
+    "eventNotesConfidentialHint": "Des notes confidentielles sont chiffrées, absentes des recherches et des exports, et lisibles seulement par leur auteur et la titulaire du compte.",
+    "eventNotesSave": "Enregistrer les notes",
+    "eventNotesSaved": "Notes enregistrées.",
+    "eventNotesForbidden": "Ces notes confidentielles sont réservées à leur auteur et à la titulaire.",
+    "eventNotesConfidentialHidden": "Des notes confidentielles existent : elles sont réservées à leur auteur et à la titulaire."
   },
   "Budget": {
     "title": "Budget",
@@ -2062,7 +2374,19 @@
     "declarationRefusedNote": "Déclaration refusée : {reason}",
     "declarationsTitle": "Règlements déclarés à confirmer",
     "declarationLine": "{name} a réglé {label} ({amount}) — {event}",
-    "declarationLineMeta": "le {date}, {method}"
+    "declarationLineMeta": "le {date}, {method}",
+    "handoverOpen": "Remise le jour J : {label}",
+    "handoverOnDay": "À remettre le jour J",
+    "handoverMethod": "Moyen (chèque, espèces, enveloppe…)",
+    "handoverBy": "Remis par",
+    "handoverSave": "Enregistrer la remise",
+    "handoverMarked": "À remettre le jour J : {method}, par {by}",
+    "handoverDone": "Remis le jour J ({method})",
+    "handoverCashHint": "Espèces : les paiements en espèces sont plafonnés par la loi (voir l'aide).",
+    "payersNav": "Payeurs et calendrier",
+    "payersLink": "Payeurs et répartition",
+    "cashCalendarLink": "Calendrier des sorties d'argent",
+    "bankToVerify": "IBAN à vérifier"
   },
   "Quotes": {
     "title": "Devis",
@@ -2502,7 +2826,16 @@
     "professionalDiscountTerms": "Escompte pour paiement anticipé (clients professionnels)",
     "professionalDiscountTermsHint": "« Néant » si vous n'en accordez pas : cette mention est obligatoire face à un professionnel.",
     "invalidProfessionalPaymentTerm": "Indiquez un délai en jours.",
-    "professionalTermOutOfBounds": "Délai hors des limites légales : {max} jours au plus."
+    "professionalTermOutOfBounds": "Délai hors des limites légales : {max} jours au plus.",
+    "lineSupplyMode": "Mode",
+    "lineSupplyResale": "Revendeur : vous achetez et refacturez (dans votre total)",
+    "lineSupplyIntermediary": "Intermédiaire : le prestataire facture le client (pour information)",
+    "lineTourismKind": "Nature touristique",
+    "lineTourismNone": "Aucune",
+    "lineTourismTransport": "Transport",
+    "lineTourismLodging": "Hébergement",
+    "lineTourismOther": "Autre prestation touristique",
+    "lineIntermediaryBadge": "facturée par le prestataire, hors total"
   },
   "Documents": {
     "pdfSellerHeading": "De",
@@ -2690,7 +3023,8 @@
     "orderReferenceSaved": "Numéro enregistré.",
     "orderReferenceInvalid": "Le numéro tient sur une ligne de 60 caractères au plus.",
     "orderReferenceError": "Ce numéro ne peut pas être enregistré ici.",
-    "orderReferenceIs": "Bon de commande : {reference}"
+    "orderReferenceIs": "Bon de commande : {reference}",
+    "acceptAndSign": "Accepter et signer le devis {number}"
   },
   "NotFound": {
     "title": "Page introuvable",
@@ -2704,7 +3038,8 @@
     "sign": "Signer le devis",
     "decline": "Refuser le devis",
     "signed": "Vous avez signé ce devis.",
-    "declined": "Vous avez refusé ce devis."
+    "declined": "Vous avez refusé ce devis.",
+    "backToSpace": "Revenir à mon espace"
   },
   "Import": {
     "title": "Importer des données",
@@ -4546,7 +4881,9 @@
     "filterRatingAtLeast": "{rating, plural, =5 {5 sur 5} other {Au moins # sur 5}}",
     "editRecord": "Modifier la fiche",
     "fieldYes": "Oui",
-    "fieldNo": "Non"
+    "fieldNo": "Non",
+    "internalNoteConfidentialElsewhere": "La note interne est confidentielle : elle se modifie dans sa section de la fiche.",
+    "historyTable": "Tableau de l'historique avec vous"
   },
   "Onboarding": {
     "title": "Préparons votre espace",
@@ -4820,9 +5157,22 @@
     "messageTemplates": "Modèles de messages",
     "trash": "Corbeille",
     "dietaryOptions": "Régimes et allergies",
+    "mealTypes": "Types de repas",
     "groupAppointments": "Rendez-vous",
     "appointmentTypes": "Types et page de réservation",
-    "appointmentAvailability": "Mes disponibilités et agendas"
+    "appointmentAvailability": "Mes disponibilités et agendas",
+    "pipelineStages": "Étapes du pipeline",
+    "contactForm": "Formulaire de contact",
+    "questionnaires": "Questionnaires",
+    "vendorCoordination": "Prestataires par lien",
+    "dayChecklists": "Listes du jour J",
+    "proposalTemplates": "Modèles de proposition",
+    "paymentReminders": "Relances",
+    "vendorDocuments": "Pièces des prestataires",
+    "notifications": "Notifications",
+    "automations": "Automatisations",
+    "riskRadar": "Radar des risques",
+    "clientTerms": "Termes des clients"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -5093,7 +5443,45 @@
       "guests_purge_postponed": "Purge des invités reportée",
       "guests_purge_executed": "Données des invités purgées",
       "guests_import_applied": "Liste d'invités importée",
-      "guests_import_undone": "Import d'invités annulé"
+      "guests_import_undone": "Import d'invités annulé",
+      "guests_caterer_summary_downloaded": "Synthèse pour le traiteur téléchargée",
+      "events_contact_form_updated": "Formulaire de contact réglé",
+      "events_prospect_request_received": "Demande reçue par le formulaire de contact",
+      "events_prospect_request_to_review": "Demande mise de côté « à vérifier »",
+      "events_prospect_message_sent": "Réponse envoyée à un prospect",
+      "events_follow_up_sent": "Relance envoyée à un prospect",
+      "events_questionnaire_sent": "Questionnaire envoyé",
+      "hub_contact_merged": "Fiches de contact fusionnées",
+      "events_vendor_brief_sent": "Demande de devis envoyée à des prestataires",
+      "events_vendor_brief_reminded": "Prestataire relancé la veille de la date limite",
+      "events_vendor_answered": "Réponse d'un prestataire à une demande de devis",
+      "events_vendor_invoice_received": "Facture déposée par un prestataire",
+      "events_vendor_roadmap_sent": "Feuille de route envoyée à un prestataire",
+      "events_vendor_roadmap_confirmed": "Feuille de route confirmée par un prestataire",
+      "events_decision_engaged": "Choix du client engagé (prestataire retenu, tâches de suivi)",
+      "events_vendor_retention_changed": "Prestataire retenu modifié par l'équipe",
+      "events_program_imported": "Chrono importé d'un tableur",
+      "events_day_shift_applied": "Décalage du jour J validé et diffusé",
+      "events_day_report_downloaded": "Bilan du jour J téléchargé",
+      "quotes_transfer_declared": "Virement déclaré par le payeur",
+      "quotes_reminders_suspended": "Relances d'une échéance suspendues",
+      "quotes_reminders_resumed": "Relances d'une échéance reprises",
+      "quotes_validity_extended": "Validité d'un devis prolongée",
+      "quotes_signing_code_verified": "Code vérifié avant la signature",
+      "budget_payers_changed": "Payeurs ou parts modifiés",
+      "budget_payer_visibility_changed": "Ce que voit un payeur, modifié",
+      "vendors_bank_details_changed": "IBAN d'un prestataire changé",
+      "vendors_bank_details_verified": "IBAN d'un prestataire vérifié par téléphone",
+      "vendors_document_requested": "Pièce demandée à un prestataire",
+      "vendors_document_received": "Pièce déposée par un prestataire",
+      "vendors_document_verified": "Pièce d'un prestataire vérifiée",
+      "hub_identity_changed": "Compte modifié chez le fournisseur d'identité",
+      "hub_identity_webhook_refused": "Appel du fournisseur d'identité refusé",
+      "hub_ownership_transfer_requested": "Transfert de propriété demandé",
+      "hub_ownership_transferred": "Propriété transférée",
+      "hub_ownership_transfer_cancelled": "Transfert de propriété annulé",
+      "hub_organization_visibility_changed": "Visibilité des évènements modifiée",
+      "events_team_changed": "Équipe de l'évènement modifiée"
     },
     "categories": {
       "connexion": "Connexions",
@@ -5218,7 +5606,60 @@
       "guests_diets": "régimes d'invité",
       "guests_diet_consents": "preuve d'accord aux régimes",
       "guests_guest_links": "lien personnel d'invité",
-      "guests_purge_postponements": "report de purge des invités"
+      "guests_purge_postponements": "report de purge des invités",
+      "guests_meal_types": "type de repas",
+      "guests_seating_plans": "plan de table",
+      "guests_seating_tables": "table du plan",
+      "guests_seat_assignments": "place au plan de table",
+      "guests_seating_constraints": "contrainte de placement",
+      "guests_seating_constraint_members": "personne d'une contrainte de placement",
+      "guests_vendor_meal_counts": "repas des prestataires",
+      "guests_caterer_summary_downloads": "téléchargement de la synthèse pour le traiteur",
+      "events_contact_forms": "formulaire de contact",
+      "events_pipeline_stages": "étape du pipeline",
+      "events_prospect_requests": "demande de contact",
+      "events_event_messages": "message à un contact",
+      "events_prospect_follow_up_settings": "réglage des relances",
+      "events_prospect_follow_ups": "relance d'un prospect",
+      "events_questionnaire_templates": "modèle de questionnaire",
+      "events_questionnaire_template_items": "question d'un modèle de questionnaire",
+      "events_event_questionnaires": "questionnaire envoyé",
+      "events_questionnaire_answers": "réponse à un questionnaire",
+      "hub_contact_duplicates": "doublon possible",
+      "hub_contact_merges": "trace d'une fusion de contacts",
+      "events_vendor_briefs": "brief d'une demande de devis",
+      "events_vendor_brief_documents": "inspiration d'un brief",
+      "events_vendor_scenarios": "scénario d'options",
+      "events_vendor_scenario_choices": "choix d'un scénario d'options",
+      "events_event_decision_option_feedback": "avis du client sur une option",
+      "events_vendor_roadmaps": "feuille de route d'un prestataire",
+      "events_vendor_coordination_settings": "réglages des prestataires par lien",
+      "events_day_checkpoints": "pointage du jour J",
+      "events_day_shifts": "décalage du jour J",
+      "events_day_photos": "photo du jour J",
+      "events_day_incidents": "incident de la main courante",
+      "events_day_checklist_templates": "modèle de liste du jour J",
+      "events_day_checklists": "liste de contrôle du jour J",
+      "events_day_checklist_items": "case d'une liste du jour J",
+      "events_day_reports": "bilan du jour J",
+      "quotes_proposal_templates": "Modèle de proposition",
+      "quotes_payment_references": "Référence de virement",
+      "quotes_payment_reminders": "Relance d'impayé",
+      "budget_event_payers": "Payeur",
+      "budget_budget_line_payer_shares": "Part d'un payeur",
+      "budget_planner_instalment_payers": "Payeur d'une échéance",
+      "vendors_vendor_documents": "une pièce de prestataire",
+      "vendors_vendor_document_kinds": "une nature de pièce",
+      "vendors_vendor_bank_changes": "un changement d'IBAN",
+      "quotes_planner_fees": "des honoraires",
+      "quotes_vendor_commissions": "une commission",
+      "events_event_team_members": "équipe d'un évènement",
+      "hub_notification_settings": "réglages des notifications",
+      "hub_notification_preferences": "réglage d'une sorte de notification",
+      "hub_automations": "réglage d'un automatisme",
+      "hub_risk_rules": "règle du radar des risques",
+      "events_event_type_vocabulary": "terme des clients d'un type",
+      "events_planning_health_settings": "seuils de la santé du planning"
     },
     "modules": {
       "events": "Événements",
@@ -5283,7 +5724,7 @@
   },
   "Team": {
     "title": "Équipe",
-    "subtitle": "Les comptes de votre organisation : inviter une Planner, retirer un accès.",
+    "subtitle": "Les comptes de votre organisation : inviter une Planner ou un Comptable, retirer un accès, transférer la propriété.",
     "ownerOnly": "L'équipe se gère par la Propriétaire du compte.",
     "listTitle": "Comptes de l'équipe",
     "columnEmail": "E-mail",
@@ -5293,18 +5734,18 @@
     "columnActions": "Actions",
     "roles": {
       "owner": "Propriétaire",
-      "member": "Planner"
+      "member": "Planner",
+      "accountant": "Comptable"
     },
     "accessActive": "Actif",
     "accessRemoved": "Retiré le {date}",
     "remove": "Retirer l'accès de {email}",
     "confirmTitle": "Retirer l'accès de {email} ?",
-    "confirmBody": "Ses sessions sont fermées tout de suite, sur tous ses appareils, et ce compte ne pourra plus se connecter. Ses travaux restent dans l'organisation.",
+    "confirmBody": "Ses sessions sont fermées tout de suite, sur tous ses appareils, et ce compte ne pourra plus se connecter à votre organisation. Ses travaux restent ; il quitte les équipes de vos évènements.",
     "confirmRemove": "Retirer l'accès",
     "cancel": "Annuler",
     "removed": "Accès retiré. Les sessions de ce compte sont fermées.",
-    "inviteTitle": "Inviter une Planner",
-    "inviteEmail": "Adresse e-mail de la Planner",
+    "inviteTitle": "Inviter une personne",
     "inviteHint": "Elle reçoit un lien valable sept jours, à usage unique. Elle aura accès à tous les modules ; l'équipe, le journal, le RGPD et les réglages restent à vous.",
     "inviteSubmit": "Envoyer l'invitation",
     "inviteSent": "Invitation envoyée. Elle apparaît ci-dessous jusqu'à ce qu'elle soit acceptée.",
@@ -5315,7 +5756,31 @@
     "inviteMailSubject": "« {organization} » vous invite sur Symbola",
     "inviteMailBody": "Bonjour,\n\n« {organization} » vous invite à rejoindre son équipe sur Symbola, comme Planner. Ce lien est valable jusqu'au {date} et ne sert qu'une fois :\n{url}\n\nÀ bientôt,\nL'équipe Symbola",
     "pendingTitle": "Invitations en attente",
-    "pendingUntil": "{email}, valable jusqu'au {date}"
+    "pendingUntil": "{email} ({role}), valable jusqu'au {date}",
+    "inviteEmailAny": "Adresse e-mail",
+    "inviteRole": "Son rôle",
+    "inviteHintAccountant": "Un Comptable lit seulement les factures, avoirs, encaissements, journaux, exports et e-reporting ; la double authentification lui est exigée.",
+    "inviteMailBodyAccountant": "Bonjour,\n\n« {organization} » vous invite sur Symbola comme Comptable : vous lirez ses factures, avoirs, encaissements, journaux, exports et e-reporting, sans rien pouvoir modifier. Une double authentification vous sera demandée à chaque connexion. Ce lien est valable jusqu'au {date} et ne sert qu'une fois :\n{url}\n\nÀ bientôt,\nL'équipe Symbola",
+    "transfer": "Transférer la propriété à {email}",
+    "transferConfirmTitle": "Transférer la propriété à {email} ?",
+    "transferConfirmBody": "Elle doit avoir la double authentification. Elle reçoit un lien valable sept jours ; quand elle confirme, elle devient Propriétaire et vous devenez Planner. Vous recevrez toutes les deux un e-mail.",
+    "transferConfirm": "Envoyer la demande de transfert",
+    "transferPendingTitle": "Transfert de propriété en attente",
+    "transferPendingBody": "{email} a jusqu'au {date} pour confirmer. D'ici là, vous restez Propriétaire.",
+    "transferCancel": "Annuler le transfert",
+    "transferOutcome": {
+      "sent": "Demande envoyée : la Planner confirme par le lien reçu par e-mail.",
+      "cancelled": "Transfert annulé : rien ne change.",
+      "mfa_missing": "Cette Planner n'a pas encore de double authentification : demandez-lui de l'installer (clé d'accès ou application), puis recommencez.",
+      "not_planner": "Seule une Planner active de l'équipe peut devenir Propriétaire.",
+      "not_owner": "Seule la Propriétaire transfère la propriété.",
+      "send_failed": "La demande n'a pas pu partir : rien ne change. Réessayez dans quelques minutes."
+    },
+    "visibilityTitle": "Qui voit les évènements",
+    "visibilityLabel": "Toutes les Planners voient tous les évènements",
+    "visibilityHint": "Décoché, une Planner ne voit que les évènements dont elle fait partie de l'équipe (planner principal ou assistant). Vous voyez toujours tout.",
+    "visibilitySave": "Enregistrer",
+    "visibilitySaved": "Réglage enregistré."
   },
   "SignOutEverywhere": {
     "title": "Appareils connectés",
@@ -5402,7 +5867,19 @@
     "guestsLink": "Vos invités : liste, import et réponses",
     "appointmentsTitle": "Vos prochains rendez-vous",
     "appointmentVideo": "en visio",
-    "appointmentPhone": "par téléphone"
+    "appointmentPhone": "par téléphone",
+    "questionnairesLink": "Mes questionnaires",
+    "cashCalendarLink": "Calendrier des sorties d'argent",
+    "payersLink": "Ce que voit chaque payeur",
+    "proposalsTitle": "Vos propositions",
+    "proposalLink": "Proposition {number} (version {version})",
+    "proposalValidUntil": "valable jusqu'au {date}",
+    "proposalStatus": {
+      "expired": "expirée",
+      "signed": "signée",
+      "declined": "refusée",
+      "superseded": "remplacée"
+    }
   },
   "VendorSpace": {
     "title": "Votre espace prestataire",
@@ -5422,7 +5899,31 @@
     "programPdf": "Télécharger votre programme (PDF)",
     "programNotPublished": "Le programme n'est pas encore diffusé.",
     "outlineTitle": "Le déroulé du jour",
-    "outlineYours": "vous"
+    "outlineYours": "vous",
+    "programDayShift": "Décalage de {minutes} min sur le jour J : vos horaires ci-dessous sont à jour.",
+    "documentsTitle": "Vos pièces et vos coordonnées bancaires",
+    "documentsNone": "Aucune pièce ne vous est demandée pour l'instant.",
+    "documentsFile": "Fichier : {document}",
+    "documentsValidUntil": "Valable jusqu'au (facultatif)",
+    "documentsSend": "Envoyer la pièce",
+    "documentsSent": "Pièce envoyée : l'organisatrice la vérifiera.",
+    "documentsReceived": "reçue, en cours de vérification",
+    "documentsClosed": "Cette demande n'est plus ouverte.",
+    "documentsFileMissing": "Choisissez un fichier.",
+    "documentsTooLarge": "Fichier trop lourd (20 Mo au plus).",
+    "documentsInfected": "Fichier refusé par l'antivirus.",
+    "documentsUnsupported": "Format non accepté : PDF ou image.",
+    "documentsDateInvalid": "Date de fin de validité non valable.",
+    "bankTitle": "Vos coordonnées bancaires",
+    "bankCurrent": "IBAN enregistré : {iban}",
+    "bankNone": "Aucun IBAN enregistré.",
+    "bankHint": "Pour votre sécurité, tout changement d'IBAN sera vérifié par téléphone par l'organisatrice avant le moindre paiement.",
+    "bankIban": "IBAN",
+    "bankBic": "BIC (facultatif)",
+    "bankSend": "Envoyer l'IBAN",
+    "bankSent": "IBAN envoyé : l'organisatrice vous appellera pour le vérifier.",
+    "bankIbanInvalid": "Cet IBAN n'est pas valide : vérifiez les chiffres.",
+    "bankBicInvalid": "Ce BIC n'est pas valide."
   },
   "Decisions": {
     "decisionOptionTitle": "Choisir : {slot}",
@@ -5506,7 +6007,15 @@
       "demo": "Pas de décision sur un événement d'essai.",
       "gone": "Cet événement n'est plus disponible.",
       "subject": "Choisissez ce que le client doit décider."
-    }
+    },
+    "engageNotice": "Votre choix est transmis à {planner} ; le contrat se signe directement avec le prestataire.",
+    "feedbackTitle": "Votre avis sur les options : {label}",
+    "feedbackOn": "Votre avis sur {vendor}",
+    "feedbackLike": "J'aime",
+    "feedbackDislike": "Pas pour nous",
+    "feedbackComment": "Un mot sur {vendor} (facultatif)",
+    "feedbackSave": "Enregistrer mon avis sur {vendor}",
+    "feedbackSaved": "Avis enregistré."
   },
   "DayOf": {
     "backToEvent": "Retour à la fiche de l'événement",
@@ -5599,7 +6108,94 @@
     "sms": "Écrire",
     "mail": "E-mail",
     "smsLabel": "Écrire à {name} au {phone}",
-    "responsible": "Responsable : {name}"
+    "responsible": "Responsable : {name}",
+    "you": "vous",
+    "teammate": "un membre de l'équipe",
+    "daysLabel": "Jours de l'évènement",
+    "started": "Commencé",
+    "finished": "Terminé",
+    "startLabel": "Commencé : {label}",
+    "finishLabel": "Terminé : {label}",
+    "startedAt": "Commencé à {time} ({name})",
+    "finishedAt": "Terminé à {time} ({name})",
+    "pendingMark": "— en attente d'envoi",
+    "present": "{count, plural, =0 {Aucun présent attendu} one {# présent attendu} other {# présents attendus}}",
+    "shiftTitle": "Retard de {minutes} min",
+    "shiftIntro": "« {label} » a {minutes} min de retard. Décaler la suite de ce temps fort ?",
+    "shiftMinutes": "Décaler de (minutes)",
+    "shiftItems": "Séquences à décaler",
+    "shiftFixedHint": "Décochez celles qui ne bougent pas (l'arrivée d'un bus, par exemple).",
+    "shiftVendors": "Prestataires prévenus par e-mail",
+    "shiftNoVendor": "Aucun prestataire sur ces séquences.",
+    "shiftNoLink": "{name} : pas de lien, appelez-le.",
+    "vendorUnknown": "Prestataire non retenu",
+    "shiftValidate": "{count, plural, =0 {Valider le décalage} one {Valider et prévenir # prestataire} other {Valider et prévenir # prestataires}}",
+    "shiftRefuse": "Ne pas décaler",
+    "shiftQueued": "{count, plural, =0 {Décalage validé : il s'appliquera dès que le réseau revient.} one {Décalage validé : # prestataire sera prévenu dès que le réseau revient.} other {Décalage validé : # prestataires seront prévenus dès que le réseau revient.}}",
+    "shiftSent": "{count, plural, =0 {Décalage de {minutes} min validé.} one {Décalage de {minutes} min validé : # prestataire prévenu.} other {Décalage de {minutes} min validé : # prestataires prévenus.}}",
+    "syncDone": "À jour",
+    "syncPending": "{count, plural, one {# action en attente d'envoi} other {# actions en attente d'envoi}}",
+    "syncOffline": "{count, plural, one {Hors ligne : # action en attente, envoyée au retour du réseau.} other {Hors ligne : # actions en attente, envoyées au retour du réseau.}}",
+    "syncSession": "{count, plural, =0 {Votre session a expiré.} one {Votre session a expiré : # action attend sur ce téléphone. Reconnectez-vous pour l'envoyer.} other {Votre session a expiré : # actions attendent sur ce téléphone. Reconnectez-vous pour les envoyer.}}",
+    "syncRejected": "{count, plural, one {Une action n'a pas pu être enregistrée (séquence ou case supprimée, ou heure du téléphone erronée).} other {# actions n'ont pas pu être enregistrées (séquence ou case supprimée, ou heure du téléphone erronée).}}",
+    "photoRefused": "Photo refusée ({reason}) : le reste est enregistré.",
+    "photoRejection": {
+      "type": "ce n'est pas une image",
+      "size": "trop lourde",
+      "virus": "refusée par l'antivirus",
+      "unavailable": "non reçue"
+    },
+    "photo": "Photo",
+    "photoAdded": "Photo jointe",
+    "photoOf": "Photo de : {label}",
+    "photoHint": "Photographiez les choses plutôt que les personnes.",
+    "incidentButton": "Incident",
+    "incidentTitle": "Noter un incident",
+    "incidentLabel": "Ce qui se passe",
+    "incidentHint": "Touchez le micro du clavier pour dicter. Notez les faits, sans nom d'invité ni donnée de santé.",
+    "incidentPhoto": "Joindre une photo à l'incident",
+    "severityLegend": "Gravité (facultatif)",
+    "severity": {
+      "info": "Info",
+      "follow_up": "À suivre",
+      "urgent": "Urgent"
+    },
+    "save": "Enregistrer",
+    "close": "Fermer",
+    "incidentSaved": "Incident noté à {time}.",
+    "logTitle": "Main courante",
+    "logEmpty": "Aucun incident noté.",
+    "logPhoto": "Voir la photo",
+    "checklistsTitle": "Listes de contrôle",
+    "checklistsEmpty": "Aucune liste pour ce jour. Préparez-les plus bas.",
+    "phase": {
+      "setup": "installation",
+      "teardown": "démontage"
+    },
+    "checkedAt": "Coché à {time} ({name})",
+    "handoversTitle": "Remises du jour",
+    "handoversEmpty": "Aucun paiement à remettre ce jour.",
+    "handoverBy": "remis par {name}",
+    "handoverDone": "Remis",
+    "handoverLabel": "Remis : {vendor}",
+    "handedOverAt": "Remis à {time} ({name})",
+    "receipt": "Reçu",
+    "receiptOf": "Photo du reçu : {vendor}",
+    "prepTitle": "Préparer les listes de contrôle",
+    "prepHint": "Ajoutez à un temps fort une liste copiée d'un modèle ; elle part sur les téléphones de l'équipe.",
+    "prepTemplate": "Modèle",
+    "prepMoment": "Temps fort",
+    "prepAdd": "Ajouter la liste",
+    "prepTemplatesLink": "Modifier les modèles de listes",
+    "prepNewItem": "Nouvelle case",
+    "prepAddItem": "Ajouter la case",
+    "prepRemove": "Retirer",
+    "prepRemoveItem": "Retirer la case {label}",
+    "prepRemoveList": "Retirer la liste « {name} »",
+    "bankToVerify": "IBAN à vérifier",
+    "helperWelcome": "Bonjour {name} : voici le jour J, en renfort.",
+    "byHelper": "{name}, renfort",
+    "syncLinkRevoked": "{count, plural, =0 {Votre lien de renfort a été retiré ou a expiré.} one {Votre lien de renfort a été retiré ou a expiré : # action reste sur ce téléphone, elle ne sera pas envoyée. Prévenez la planner.} other {Votre lien de renfort a été retiré ou a expiré : # actions restent sur ce téléphone, elles ne seront pas envoyées. Prévenez la planner.}}"
   },
   "Offline": {
     "title": "Hors ligne",
@@ -5739,7 +6335,16 @@
       "earnest": "arrhes",
       "namesJoin": " et ",
       "days": "{days} jours",
-      "scheduleLine": "{label} : {amount}, le {date}"
+      "scheduleLine": "{label} : {amount}, le {date}",
+      "feeFlat": "{amount} (forfait)",
+      "feePercent": "{percent} du budget {base}",
+      "feeMixed": "{amount} et {percent} du budget {base}",
+      "feeBaseEstimated": "estimé",
+      "feeBaseCommitted": "engagé",
+      "commissionLine": "{vendor} : {amount} ({nature})",
+      "natureCommission": "commission",
+      "natureReferral": "apport d'affaires",
+      "intermediaryLine": "{label} : {amount}"
     },
     "unauthenticated": "Votre session a expiré. Reconnectez-vous puis recommencez.",
     "templateNotFound": "Modèle de contrat introuvable.",
@@ -5939,7 +6544,13 @@
     "evidencePresented": "Texte présenté : {text}",
     "signersWithoutPortal": "À distance, chaque signataire commande sur son espace personnel avant de signer. Créez d'abord le lien personnel de : {names}.",
     "signingLinkOnPortal": "lien de signature sur son espace personnel, après sa commande",
-    "orderFirstHint": "Contrat à distance : chaque signataire lit le contrat et commande sur son espace personnel ; son lien de signature s'y affiche ensuite. L'e-mail envoyé l'y invite, sans lien direct."
+    "orderFirstHint": "Contrat à distance : chaque signataire lit le contrat et commande sur son espace personnel ; son lien de signature s'y affiche ensuite. L'e-mail envoyé l'y invite, sans lien direct.",
+    "problem_package_travel_template_required": "Ce devis réunit un forfait touristique : le modèle standard est bloqué, choisissez un modèle dédié au forfait touristique.",
+    "templateKind": "Nature du modèle",
+    "templateKindContract": "Contrat de prestation",
+    "templateKindMandate": "Mandat (mode intermédiaire)",
+    "templateKindGeneralTerms": "Conditions générales",
+    "templateKindPackageTravel": "Forfait touristique (modèle dédié)"
   },
   "Compliance": {
     "nothing": "Rien à signaler.",
@@ -6000,7 +6611,30 @@
         "rescheduled": "Rendez-vous déplacé : {type} avec {person}, au {time}",
         "cancelled": "Rendez-vous annulé : {type} avec {person}, du {time}"
       },
-      "calendarSourceError": "L'agenda « {label} » ne se lit plus : aucun créneau n'est proposé tant qu'il n'est pas relu"
+      "calendarSourceError": "L'agenda « {label} » ne se lit plus : aucun créneau n'est proposé tant qu'il n'est pas relu",
+      "prospectRequest": "Nouvelle demande : {names}, {when}",
+      "prospectRequestNoDate": "Nouvelle demande : {names}",
+      "prospectRequestDateTaken": "Date déjà prise",
+      "prospectToReview": "{count, plural, one {Une demande à vérifier} other {# demandes à vérifier}} (formulaire de contact)",
+      "followUpReady": "Relancer {names} : prête, à relire",
+      "questionnaireFinished": "{names} : questionnaire « {questionnaire} » terminé",
+      "contactDuplicates": "{count, plural, one {Un doublon possible à vérifier} other {# doublons possibles à vérifier}}",
+      "vendorAnswer": {
+        "available": "{vendor} est disponible ({slot}), devis à venir",
+        "quote": "{vendor} a envoyé son devis ({slot})",
+        "unavailable": "{vendor} n'est pas disponible ({slot})"
+      },
+      "vendorChoice": "Le client a choisi {vendor} ({slot}) : vérifiez",
+      "vendorRoadmap": "{vendor} n'a pas confirmé sa feuille de route",
+      "transferDeclaration": "{name} déclare avoir viré {amount}",
+      "vendorDocument": {
+        "expired": "{document} de {vendor} : expirée",
+        "expiring": "{document} de {vendor} : expire bientôt",
+        "lapses_before_event": "{document} de {vendor} : expire avant l'évènement",
+        "to_verify": "{document} de {vendor} : déposée, à vérifier"
+      },
+      "vendorBankCheck": "IBAN de {vendor} changé : à vérifier par téléphone avant tout paiement",
+      "standaloneTaskTag": "Hors évènement"
     },
     "myEventsTitle": "Mes évènements",
     "myEventsEmpty": "Aucun évènement en cours.",
@@ -6255,7 +6889,11 @@
     "groupsTitle": "Foyers et entreprises",
     "memberSearch": "Cherchez la personne par son nom, son e-mail ou son téléphone",
     "pickerNoneAlone": "Aucun contact trouvé : ajoutez-le d'abord à vos contacts.",
-    "editRecord": "Modifier la fiche"
+    "editRecord": "Modifier la fiche",
+    "duplicatesLink": "{count, plural, one {Un doublon possible à vérifier} other {# doublons possibles à vérifier}}",
+    "noteConfidential": "Confidentielle (chiffrée, lisible par vous et la titulaire seulement)",
+    "noteConfidentialBadge": "confidentielle",
+    "noteConfidentialHidden": "Note confidentielle, réservée à son auteur et à la titulaire."
   },
   "SharedDocuments": {
     "title": "Documents",
@@ -6311,7 +6949,17 @@
       "space": "Ouvrir mon espace",
       "sign": "Signer en ligne",
       "answer": "Répondre",
-      "manage": "Reporter ou annuler"
+      "manage": "Reporter ou annuler",
+      "request": "Voir la demande",
+      "questionnaire": "Répondre au questionnaire",
+      "available": "Je suis disponible",
+      "unavailable": "Je ne suis pas disponible",
+      "roadmap": "Voir ma feuille de route",
+      "dayOf": "Ouvrir le jour J",
+      "confirm": "Confirmer le transfert",
+      "notMe": "Ce n'est pas moi",
+      "account": "Vérifier mon compte",
+      "open": "Ouvrir Symbola"
     },
     "footerNote": "Envoyé avec Symbola",
     "symbolaFooter": "Symbola — la suite des organisateurs d'évènements",
@@ -6329,7 +6977,25 @@
       "version": "3",
       "place": "en visio : https://visio.exemple.fr/atelier",
       "appointment": "Premier rendez-vous découverte",
-      "appointmentDate": "2 mars 2027 à 10:00"
+      "appointmentDate": "2 mars 2027 à 10:00",
+      "brochure": "https://symbola.fr/brochure/exemple",
+      "bookingLink": "https://symbola.fr/reserver/atelier-exemple",
+      "questionnaire": "Découverte",
+      "slot": "Fleurs",
+      "deadline": "10 mars 2027",
+      "amount": "1 620,00 €",
+      "dueDate": "20 janvier 2027",
+      "reference": "SYM-2027-7KQ4XM",
+      "iban": "FR76 3000 6000 0112 3456 7890 189",
+      "bic": "AGRIFRPP",
+      "penalties": "Merci de régulariser dès que possible.",
+      "validFrom": "11 juin 2027",
+      "device": "Safari sur iPhone",
+      "dateTime": "18 novembre 2026 à 21:04",
+      "change": "L'adresse e-mail de votre compte a été modifiée",
+      "clientTerm": "les mariés",
+      "digest": "- Le devis D-2027-0042 est signé.\n- 3 tâches à faire aujourd'hui, dont 1 en retard.",
+      "alert": "Un virement de 1 620,00 € est déclaré (devis D-2027-0042)."
     },
     "event": {
       "coupleClient": "votre mariage",
@@ -6370,7 +7036,33 @@
         "subject": "Votre invitation Symbola",
         "body": "Bonjour,\n\nVous avez été invité·e à rejoindre « {organization} » sur Symbola. Ce lien est valable 7 jours :\n\n{url}",
         "button": "Accepter l'invitation"
+      },
+      "actionCode": {
+        "subject": "Votre code pour signer : {code}",
+        "body": "Bonjour {name},\n\nVotre code pour accepter et signer votre proposition sur Symbola : {code}\n\nIl est valable {minutes} minutes et ne sert qu'une fois. Si vous ne l'avez pas demandé, ignorez ce message et prévenez votre interlocuteur."
+      },
+      "accountAlert": {
+        "newDeviceSubject": "Nouvelle connexion à Symbola",
+        "newDeviceBody": "Bonjour,\n\nUne connexion à votre compte Symbola vient d'avoir lieu depuis un nouvel appareil : {device}, le {date}.\n\nSi c'était vous, il n'y a rien à faire. Sinon, fermez toutes vos sessions et vérifiez votre compte :\n\n{link}",
+        "identitySubject": "Votre compte Symbola a été modifié",
+        "identityBody": "Bonjour,\n\n{change} le {date}.\n\nSi c'était vous, il n'y a rien à faire. Sinon, ouvrez votre compte et sécurisez-le sans attendre :\n\n{link}",
+        "notMe": "Ce n'est pas moi",
+        "account": "Vérifier mon compte"
+      },
+      "ownershipDone": {
+        "subject": "Transfert de propriété de {organization} effectué",
+        "body": "Bonjour,\n\nLe transfert de propriété de {organization} est fait : {owner} en est désormais la Propriétaire, et l'ancienne Propriétaire devient Planner. Si vous ne l'attendiez pas, répondez à la Propriétaire ou écrivez au support de Symbola."
       }
+    },
+    "followUpOptOut": "Vous ne souhaitez plus de nouvelles ? Répondez simplement à ce message.",
+    "booking": {
+      "withPage": "Choisissez le moment qui vous convient sur ma page de rendez-vous : {url}",
+      "manual": "Voici quelques créneaux possibles :\n- le … à …\n- ou le … à …\nDites-moi ce qui vous convient le mieux."
+    },
+    "identityChange": {
+      "email": "L'adresse e-mail de votre compte Symbola a été modifiée",
+      "mfa": "Un facteur de double authentification de votre compte Symbola a été ajouté ou retiré",
+      "password": "Le mot de passe de votre compte Symbola a été réinitialisé"
     }
   },
   "RecipientsGuard": {
@@ -6395,7 +7087,11 @@
       "reminders": "Rappels",
       "signatures": "Devis et contrats",
       "program": "Programme",
-      "appointments": "Rendez-vous"
+      "appointments": "Rendez-vous",
+      "prospects": "Demandes de contact",
+      "vendors": "Prestataires",
+      "settlement": "Proposition et règlement",
+      "team": "Équipe et sécurité du compte"
     },
     "kinds": {
       "client_link": {
@@ -6453,6 +7149,78 @@
       "appointment_cancelled": {
         "title": "Rendez-vous annulé",
         "description": "Part quand vous annulez un rendez-vous, ou que la personne l'annule."
+      },
+      "prospect_form_received": {
+        "title": "Nouvelle demande de contact",
+        "description": "Part à la titulaire à chaque demande reçue par le formulaire de contact, sans le message ni les coordonnées de la personne."
+      },
+      "prospect_reply": {
+        "title": "Réponse à un prospect",
+        "description": "Le texte proposé par « Répondre » quand aucun modèle de message ne convient ; la planner le relit et le modifie avant l'envoi."
+      },
+      "prospect_follow_up": {
+        "title": "Relance d'un prospect",
+        "description": "Le texte d'une relance sans modèle de message choisi (Paramètres, Relances) ; préparée dans « Aujourd'hui », relue avant l'envoi."
+      },
+      "questionnaire_sent": {
+        "title": "Questionnaire envoyé",
+        "description": "Part avec un questionnaire, au contact de l'évènement : son lien personnel devient le bouton « Répondre au questionnaire »."
+      },
+      "vendor_brief": {
+        "title": "Demande de devis à un prestataire",
+        "description": "Part à chaque prestataire du brief, avec deux boutons : « Je suis disponible » et « Je ne suis pas disponible »."
+      },
+      "vendor_brief_reminder": {
+        "title": "Relance d'une demande de devis",
+        "description": "Part toute seule la veille de la date limite, aux prestataires qui n'ont pas répondu."
+      },
+      "vendor_roadmap": {
+        "title": "Feuille de route d'un prestataire",
+        "description": "Part toute seule à J-30 et à J-7 à chaque prestataire retenu, avec son lien pour confirmer."
+      },
+      "proposal_sent": {
+        "title": "Proposition envoyée",
+        "description": "Part aux clients de l'évènement quand vous envoyez la proposition, s'ils ont un espace où la lire."
+      },
+      "proposal_expiry_reminder": {
+        "title": "Proposition bientôt expirée",
+        "description": "Part tout seul quelques jours avant la fin de validité d'une proposition ni signée ni refusée."
+      },
+      "payment_details": {
+        "title": "RIB pour régler l'acompte",
+        "description": "Part tout seul au 8e jour d'un contrat signé hors établissement, avec le RIB et la référence du virement."
+      },
+      "invoice_reminder": {
+        "title": "Relance d'une échéance impayée",
+        "description": "Part tout seul après une échéance non réglée, selon vos réglages ; s'arrête dès que le client déclare son virement."
+      },
+      "day_helper_link": {
+        "title": "Lien du renfort du jour J",
+        "description": "Part quand vous ajoutez un renfort à un évènement : son lien personnel devient le bouton « Ouvrir le jour J », valable de la veille au lendemain."
+      },
+      "ownership_transfer": {
+        "title": "Transfert de propriété",
+        "description": "Part à la Planner que vous désignez comme nouvelle Propriétaire : le lien devient le bouton « Confirmer le transfert », valable sept jours."
+      },
+      "new_device_login": {
+        "title": "Nouvelle connexion",
+        "description": "Part à une personne de l'équipe qui se connecte depuis un appareil inconnu : le lien devient le bouton « Ce n'est pas moi », qui ferme toutes ses sessions."
+      },
+      "identity_changed": {
+        "title": "Compte modifié",
+        "description": "Part quand l'adresse e-mail, la double authentification ou le mot de passe d'un compte change : à l'ancienne adresse en cas de changement d'adresse."
+      },
+      "daily_digest": {
+        "title": "Récapitulatif du matin",
+        "description": "Part chaque matin à chaque membre de l'équipe qui le garde : ce qui est nouveau et ce qui attend. L'objet ne contient aucune donnée personnelle."
+      },
+      "notification_alert": {
+        "title": "Alerte immédiate",
+        "description": "Part tout de suite pour une notification « immédiate » (virement déclaré, devis signé, alerte du jour J), hors plages de silence. L'objet ne dit que la sorte."
+      },
+      "payment_due_reminder": {
+        "title": "Rappel avant l'échéance",
+        "description": "Part au payeur désigné (sinon aux signataires) quelques jours avant une échéance, avec le montant, la référence et le RIB ; jamais après un virement déclaré."
       }
     },
     "variables": {
@@ -6468,7 +7236,20 @@
       "version": "Le numéro de la version du programme",
       "place": "Le lieu : adresse, lien de visio ou téléphone",
       "appointment": "Le type de rendez-vous",
-      "appointment_date": "Le jour et l'heure du rendez-vous"
+      "appointment_date": "Le jour et l'heure du rendez-vous",
+      "brochure": "Le lien de votre brochure, valable 30 jours ; ajouté à l'envoi",
+      "booking_link": "Votre page de réservation de rendez-vous, ou des créneaux à compléter si elle n'est pas ouverte",
+      "questionnaire": "Le nom du questionnaire envoyé",
+      "slot": "Le poste concerné (« Fleurs », « Photographe »…)",
+      "deadline": "La date limite de réponse du brief",
+      "link_available": "Le lien qui présélectionne « disponible » ; seul sur sa ligne, il devient le bouton « Je suis disponible »",
+      "link_unavailable": "Le lien qui présélectionne « indisponible » ; seul sur sa ligne, il devient le bouton « Je ne suis pas disponible »",
+      "amount": "Le montant de l'échéance",
+      "due_date": "La date de l'échéance",
+      "reference": "La référence à indiquer sur le virement",
+      "iban": "Votre IBAN",
+      "bic": "Votre BIC",
+      "penalties": "La phrase des pénalités de retard, selon le client et vos réglages"
     },
     "back": "Tous les modèles d'e-mails",
     "editorTitle": "{title} ({language})",
@@ -6952,7 +7733,7 @@
   "WriteToClient": {
     "title": "Écrire au client",
     "template": "Modèle",
-    "noTemplate": "Aucun modèle de message pour ce type d'évènement.",
+    "noTemplate": "Aucun modèle de message pour ce type d'évènement : voici le texte de départ de la réponse.",
     "createTemplates": "Créer des modèles de messages",
     "withoutTemplate": "Écrire sans modèle",
     "recipients": "Destinataires",
@@ -6968,7 +7749,24 @@
     "copy": "Copier le texte",
     "copied": "Texte copié.",
     "noRecipient": "Choisissez au moins un destinataire qui a une adresse e-mail.",
-    "back": "Retour à la fiche"
+    "back": "Retour à la fiche",
+    "choiceLabel": "Modèle et destinataires",
+    "editTitle": "Votre message",
+    "editHint": "Relisez et modifiez le texte avant l'envoi. La brochure reste « {{brochure}} » : son lien sécurisé est créé à l'envoi.",
+    "subjectLabel": "Objet",
+    "bodyLabel": "Texte",
+    "sendFromSymbola": "{count, plural, one {Envoyer depuis Symbola} other {Envoyer depuis Symbola à # personnes}}",
+    "openInMail": "Ouvrir dans ma messagerie",
+    "sendHint": "« Envoyer depuis Symbola » : l'e-mail part à l'image de votre entreprise, les réponses arrivent à votre adresse, et il est rangé dans l'historique du contact ; les relances partent de cet envoi. « Ouvrir dans ma messagerie » : vous l'envoyez vous-même, il est noté « préparé ».",
+    "sent": "{count, plural, one {Message envoyé et rangé dans l'historique.} other {Message envoyé à # personnes et rangé dans l'historique.}}",
+    "sentDeferred": "Message rangé dans l'historique ; la messagerie ne répond pas, il partira dès que possible.",
+    "prepared": "Message noté « préparé » ; votre messagerie s'ouvre.",
+    "brochureHint": "La brochure « {name} » sera jointe par un lien sécurisé, valable 30 jours.",
+    "noBrochure": "Ce modèle joint la brochure, mais aucune brochure n'est enregistrée : ajoutez-la dans Paramètres, Relances.",
+    "empty": "L'objet et le texte sont obligatoires.",
+    "tooLong": "L'objet ou le texte est trop long.",
+    "quota": "Le plafond d'e-mails de l'heure est atteint : réessayez un peu plus tard.",
+    "refused": "Action impossible sur cet évènement."
   },
   "Trash": {
     "title": "Corbeille",
@@ -7032,7 +7830,8 @@
       "vendor": "Prestataire archivé.",
       "appointmentType": "Type de rendez-vous mis à la corbeille.",
       "appointment": "Rendez-vous mis à la corbeille."
-    }
+    },
+    "eventAssistant": "Comme assistant de cet évènement, vous ne pouvez pas le supprimer : demandez à son planner principal ou à la Propriétaire."
   },
   "Drafts": {
     "found": "Brouillon du {date} retrouvé.",
@@ -7290,7 +8089,19 @@
         "no_date": "L'évènement n'a pas encore de date : il n'y a pas de purge à reporter."
       },
       "importFile": "Choisissez un fichier (CSV ou XLSX).",
-      "importTooLarge": "Le fichier dépasse 1 Mo : enregistrez la liste en CSV, ou découpez-la."
+      "importTooLarge": "Le fichier dépasse 1 Mo : enregistrez la liste en CSV, ou découpez-la.",
+      "seating": {
+        "table_name": "Le nom d'une table compte de 1 à 60 caractères.",
+        "capacity": "Le nombre de places d'une table va de 1 à 60.",
+        "count": "Ajoutez de 1 à 50 tables à la fois.",
+        "too_many_tables": "Un plan compte au plus 150 tables.",
+        "constraint_members": "Une contrainte réunit de deux à vingt personnes.",
+        "target_not_empty": "Ce temps fort a déjà des tables : la copie ne remplace pas un plan commencé.",
+        "same_moment": "Choisissez un autre temps fort à copier.",
+        "vendor_count": "Le nombre de repas des prestataires va de 0 à 1000.",
+        "not_eligible": "Cette personne a décliné ce temps fort ou n'y est pas invitée : elle ne se place pas.",
+        "meal_label": "Le libellé compte de 1 à 60 caractères."
+      }
     },
     "activation": {
       "assessmentLink": "Lire l'analyse d'impact « socle » fournie par Symbola",
@@ -7484,7 +8295,8 @@
       },
       "revoke": "Retirer les liens de {name}",
       "edit": "Modifier {name}",
-      "remove": "Supprimer le foyer {name}"
+      "remove": "Supprimer le foyer {name}",
+      "planLink": "Plan de table et synthèse pour le traiteur"
     },
     "portal": {
       "title": "Vos invités",
@@ -7508,6 +8320,1853 @@
       "kindAllergen": "Allergie",
       "add": "Ajouter",
       "added": "Entrée ajoutée."
+    },
+    "caterer": {
+      "title": "Synthèse pour le traiteur",
+      "heading": "{moment} — {date}",
+      "generatedAt": "Arrêtée au {date} : les réponses peuvent encore changer.",
+      "versionNominative": "Version nominative : nom, table, type de repas, régimes et allergies de chaque personne.",
+      "versionAggregate": "Version sans nom : nombres exacts par table.",
+      "noPlan": "Plan de table non composé : les totaux seulement.",
+      "dietsPurged": "Les régimes et allergies ont été effacés après l'évènement : la synthèse n'en contient plus.",
+      "totalsTitle": "Totaux",
+      "coversLabel": "Couverts (personnes présentes)",
+      "covers": "{count, plural, =0 {Aucun couvert} one {# couvert} other {# couverts}}",
+      "mealsTitle": "Repas par type",
+      "dietsTitle": "Régimes et allergènes",
+      "noDiets": "Aucun régime ni allergène déclaré.",
+      "vendorMeals": "Repas prestataires",
+      "pendingTitle": "En attente de réponse",
+      "pendingNone": "Aucune personne en attente de réponse.",
+      "tablesTitle": "Par table",
+      "unplaced": "Sans table",
+      "tableLine": "{name} — {shape}, {capacity} places",
+      "person": "{name} — {meal}",
+      "personWithDiets": "{name} — {meal} — {diets}",
+      "footerNominative": "Données transmises pour le service du repas ; à supprimer après l'évènement.",
+      "footerAggregate": "Nombres par table, sans nom.",
+      "page": "Page {page} sur {total}",
+      "fileNominative": "synthese-traiteur-nominative",
+      "fileAggregate": "synthese-traiteur",
+      "shape": {
+        "round": "table ronde",
+        "rectangular": "table rectangulaire",
+        "head": "table d'honneur"
+      },
+      "csv": {
+        "table": "Table",
+        "name": "Nom",
+        "mealType": "Type de repas",
+        "diets": "Régimes et allergies",
+        "count": "Nombre",
+        "response": "Réponse",
+        "covers": "Couverts",
+        "total": "Total",
+        "present": "Présent"
+      }
+    },
+    "plan": {
+      "title": "Plan de table",
+      "back": "Retour aux invités",
+      "unavailable": "Le plan de table est indisponible : le module Invités n'est pas ouvert pour votre organisation.",
+      "notReady": "Le plan de table s'ouvre une fois l'analyse d'impact confirmée par la titulaire, dans l'onglet Invités.",
+      "notReadyLink": "Aller à l'onglet Invités",
+      "noKeyMoments": "Ajoutez d'abord les temps forts de l'évènement (le dîner, le brunch) : un plan se compose par temps fort.",
+      "noKeyMomentsLink": "Ajouter des temps forts",
+      "momentsNav": "Temps forts",
+      "momentLink": "{name}, {date}",
+      "momentPlanned": "{placed} placés sur {present}",
+      "momentNoPlan": "sans plan",
+      "createPlan": "Composer le plan de « {moment} »",
+      "noPlan": "Ce temps fort n'a pas encore de plan : {present} présents, {pending} en attente de réponse.",
+      "counts": "{unplaced, plural, =0 {Tous les présents sont placés} one {# présent non placé} other {# présents non placés}} · {pending, plural, =0 {personne en attente de réponse} one {# en attente de réponse} other {# en attente de réponse}}",
+      "viewSwitch": "Afficher",
+      "showTables": "Tables",
+      "showUnplaced": "Non placés ({count})",
+      "unplacedTitle": "Non placés ({count})",
+      "unplacedEmpty": "Tous les présents sont placés.",
+      "pendingTitle": "En attente de réponse ({count})",
+      "pendingHelp": "Pas encore de réponse : vous pouvez les placer ; ils restent marqués et ne comptent pas dans les couverts.",
+      "pendingMark": "en attente de réponse",
+      "child": "enfant",
+      "householdItem": "tout le foyer {name}",
+      "householdHeading": "{name} ({count})",
+      "householdMoved": "Foyer {name} : {count, plural, =0 {personne n'a été placé} one {# personne placée} other {# personnes placées}} à « {group} ».",
+      "householdMoveFailed": "Le foyer {name} n'a pas pu être placé : la page montre l'état enregistré.",
+      "unplacedTarget": "Non placés",
+      "tableTarget": "{name} ({occupied}/{capacity})",
+      "tablesTitle": "Tables ({count})",
+      "noTables": "Aucune table : ajoutez-en ci-dessous.",
+      "occupancy": "{occupied} sur {capacity} places",
+      "children": "{count, plural, one {dont # enfant} other {dont # enfants}}",
+      "tableDiets": "Régimes : {list}",
+      "dietCount": "{label} : {count}",
+      "dietFewer": "{label} : moins de {threshold}",
+      "tableEmpty": "Personne à cette table.",
+      "overCapacity": "Au-delà de sa capacité",
+      "constraintAlert": "Contrainte non tenue",
+      "shape": {
+        "round": "Ronde",
+        "rectangular": "Rectangulaire",
+        "head": "Table d'honneur"
+      },
+      "mealOf": "Repas : {meal}",
+      "mealDefault": "{meal} (par défaut)",
+      "mealChange": "Repas de {name}",
+      "mealSelect": "Type de repas",
+      "mealDefaultOption": "Valeur par défaut (selon l'âge)",
+      "mealSave": "Enregistrer le repas",
+      "alertsTitle": "Alertes ({count})",
+      "alertTogether": "« Ensemble » non tenu : {names} sont à {tables}.",
+      "alertApart": "« Séparés » non tenu : {names} sont ensemble à {table}.",
+      "alertCapacity": "{table} : {occupied} personnes pour {capacity} places.",
+      "alertReleased": "{name} s'est désisté et a quitté {table}.",
+      "alertReleasedNoTable": "{name} s'est désisté et a quitté sa table.",
+      "alertReleasedDismiss": "Effacer l'alerte de {name}",
+      "alertNotInvited": "{name} n'est plus attendu à ce temps fort mais reste placé à {table}.",
+      "alertNotInvitedRemove": "Retirer {name} de sa table",
+      "addTablesTitle": "Ajouter des tables",
+      "addCount": "Nombre de tables",
+      "addShape": "Forme",
+      "addCapacity": "Places par table",
+      "addSubmit": "Ajouter les tables",
+      "namePrefix": "Table",
+      "tablesAdded": "Tables ajoutées.",
+      "editTable": "Modifier {name}",
+      "tableName": "Nom ou numéro",
+      "tableShape": "Forme",
+      "tableCapacity": "Places",
+      "saveTable": "Enregistrer la table",
+      "tableSaved": "Table enregistrée.",
+      "removeTable": "Supprimer {name}",
+      "removeTableHelp": "Ses invités reviennent dans « Non placés ».",
+      "copyTitle": "Copier un plan",
+      "copyHelp": "Reprendre les tables d'un autre temps fort, et les places de ceux qui viennent aussi à celui-ci.",
+      "copyFrom": "Copier depuis",
+      "copySubmit": "Copier le plan",
+      "copied": "{tables, plural, one {# table copiée} other {# tables copiées}}, {seats, plural, =0 {aucune place} one {# place} other {# places}}.",
+      "constraintsTitle": "Contraintes de placement",
+      "constraintsHelp": "Internes à votre équipe : jamais montrées au client, jamais dans une synthèse ni un export. Une contrainte non tenue est signalée, sans bloquer.",
+      "constraintKind": {
+        "together": "Ensemble",
+        "apart": "Séparés"
+      },
+      "constraintLine": "{kind} : {names}",
+      "removeConstraint": "Supprimer la contrainte « {kind} » : {names}",
+      "constraintsNone": "Aucune contrainte.",
+      "addConstraint": "Ajouter une contrainte",
+      "constraintKindLabel": "Nature",
+      "constraintMembers": "Personnes concernées (deux ou plus)",
+      "constraintSubmit": "Ajouter la contrainte",
+      "constraintAdded": "Contrainte ajoutée.",
+      "catererTitle": "Synthèse pour le traiteur",
+      "catererHelp": "Calculée au moment du téléchargement, car les réponses bougent : repas par type, régimes et allergènes, par table. Rien n'est gardé dans Symbola ; chaque téléchargement est noté au journal.",
+      "catererOutside": "La copie envoyée au traiteur sort de Symbola : demandez-lui de la supprimer après l'évènement.",
+      "catererNominativePdf": "PDF nominatif",
+      "catererNominativeCsv": "Tableur nominatif",
+      "catererAggregatePdf": "PDF sans nom",
+      "catererAggregateCsv": "Tableur sans nom",
+      "catererMember": "Vous obtenez la version sans nom, exacte par table ; la version nominative est réservée à la titulaire.",
+      "vendorTitle": "Repas des prestataires",
+      "vendorHelp": "Photographe, DJ… : un nombre pour ce temps fort, sans table.",
+      "vendorCount": "Nombre de repas",
+      "vendorSave": "Enregistrer",
+      "vendorSaved": "Nombre enregistré.",
+      "mealTypesLink": "Types de repas"
+    },
+    "mealTypes": {
+      "title": "Types de repas",
+      "intro": "Les types de repas de la synthèse pour le traiteur. Par défaut, un adulte est servi « Adulte », un enfant « Enfant », un enfant de moins de 3 ans « Bébé » ; changez le type d'un invité sur le plan de table. Masquer n'efface rien.",
+      "unavailable": "Les types de repas sont indisponibles : le module Invités n'est pas ouvert pour votre organisation.",
+      "hidden": "masqué",
+      "show": "Afficher {label}",
+      "hide": "Masquer {label}",
+      "rename": "Renommer {label}",
+      "label": "Libellé",
+      "save": "Enregistrer",
+      "saved": "Libellé enregistré.",
+      "reset": "Reprendre le libellé de départ",
+      "addTitle": "Ajouter un type",
+      "add": "Ajouter",
+      "added": "Type ajouté."
     }
+  },
+  "MoveToGroup": {
+    "move": "Déplacer",
+    "moveItem": "Déplacer {item}",
+    "destinations": "Où déplacer {item}",
+    "moved": "{item} déplacé vers « {group} ».",
+    "moveFailed": "{item} n'a pas pu être déplacé : la page montre l'état enregistré."
+  },
+  "ContactForm": {
+    "public": {
+      "title": "Contacter {organization}",
+      "intro": "Parlez-nous de votre projet : nous revenons vers vous rapidement.",
+      "required": "Les champs marqués d'un astérisque (*) sont obligatoires, ainsi que votre e-mail ou votre téléphone.",
+      "sentTitle": "Merci, votre demande est envoyée",
+      "sentBody": "{organization} l'a bien reçue et vous répondra personnellement. Vous pouvez fermer cette page.",
+      "unavailable": "Ce formulaire n'est plus disponible.",
+      "error": {
+        "name": "Indiquez votre prénom et votre nom.",
+        "contact": "Indiquez votre e-mail ou votre téléphone, pour que nous puissions vous répondre.",
+        "email": "Cette adresse e-mail ne semble pas valide.",
+        "phone": "Ce numéro de téléphone ne semble pas valide.",
+        "date": "Cette date ne semble pas valide.",
+        "guests": "Indiquez un nombre d'invités entier, sans lettres.",
+        "budget": "Ce budget est trop long : 100 caractères au plus.",
+        "message": "Votre message est trop long : 5 000 caractères au plus.",
+        "period": "Cette période est trop longue : 100 caractères au plus.",
+        "place": "Ce lieu est trop long : 200 caractères au plus."
+      },
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "contactLegend": "Pour vous répondre (l'un des deux au moins)",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "eventType": "Type d'évènement",
+      "noChoice": "Je ne sais pas encore",
+      "eventDate": "Date souhaitée",
+      "period": "Ou une période",
+      "periodExample": "Au printemps 2028",
+      "place": "Lieu ou ville",
+      "budget": "Budget",
+      "budgetExample": "25 000 € ou « entre 20 et 30 k€ »",
+      "guests": "Nombre d'invités",
+      "source": "Comment nous avez-vous connus ?",
+      "message": "Votre message",
+      "noticeTitle": "Vos informations",
+      "policyLink": "Politique de confidentialité de {organization}",
+      "sending": "Envoi…",
+      "send": "Envoyer ma demande"
+    },
+    "fields": {
+      "phone": "Téléphone",
+      "date": "Date souhaitée ou période",
+      "place": "Lieu ou ville",
+      "budget": "Budget",
+      "guests": "Nombre d'invités",
+      "eventType": "Type d'évènement",
+      "source": "« Comment m'avez-vous connue ? »",
+      "message": "Message"
+    },
+    "settings": {
+      "title": "Formulaire de contact",
+      "ownerOnly": "Le formulaire de contact se règle par la titulaire du compte.",
+      "moduleUnavailable": "Le formulaire de contact fait partie du module Évènements, qui n'est pas ouvert pour votre organisation.",
+      "intro": "Un formulaire à mettre sur votre site ou à partager par lien. Chaque demande crée un prospect au statut Option, à la première étape de votre pipeline.",
+      "stateOpen": "Ouvert",
+      "stateClosed": "Fermé",
+      "saved": "Réglages enregistrés.",
+      "active": "Ouvrir le formulaire",
+      "slug": "Adresse du formulaire",
+      "slugHelp": "Lettres minuscules, chiffres et tirets. Si vous la changez, l'ancienne adresse cesse de répondre.",
+      "privacyPolicyUrl": "Adresse de votre politique de confidentialité",
+      "privacyPolicyHelp": "Obligatoire pour ouvrir le formulaire : la mention d'information y renvoie. Adresse en https://.",
+      "shownFields": "Champs proposés",
+      "shownFieldsHelp": "Le prénom, le nom et l'e-mail sont toujours demandés. Décochez les champs facultatifs que vous ne voulez pas.",
+      "allowedOrigins": "Sites autorisés à afficher le formulaire",
+      "allowedOriginsHelp": "Une adresse par ligne, en https://, cinq au plus (par exemple https://www.monsite.fr). Sans site, seul le lien fonctionne.",
+      "notifyOwner": "M'envoyer un e-mail à chaque nouvelle demande (sans le message ni les coordonnées de la personne)",
+      "locale": "Langue des textes de départ",
+      "localeFr": "Français",
+      "localeEn": "Anglais",
+      "save": "Enregistrer",
+      "slugTaken": "Cette adresse est déjà prise : choisissez-en une autre.",
+      "invalid": {
+        "slug": "L'adresse doit compter de 3 à 60 caractères : lettres minuscules, chiffres et tirets.",
+        "privacyPolicyUrl": "Indiquez l'adresse de votre politique de confidentialité, en https://, pour ouvrir le formulaire.",
+        "allowedOrigins": "Chaque site doit commencer par https:// ; cinq sites au plus.",
+        "hiddenFields": "Un champ demandé n'existe pas."
+      },
+      "shareTitle": "Partager le formulaire",
+      "shareLink": "Le lien à donner (site, réseaux, signature d'e-mail) :",
+      "embedCode": "Le code à copier dans votre site",
+      "embedTitle": "Formulaire de contact",
+      "embedSites": "Le formulaire peut s'afficher sur : {sites}.",
+      "embedNoSite": "Aucun site déclaré : le code ne s'affichera dans aucun site tant que vous n'en ajoutez pas un.",
+      "preview": "Aperçu",
+      "previewTitle": "Aperçu du formulaire de contact"
+    }
+  },
+  "Pipeline": {
+    "title": "Pipeline",
+    "unnamed": "Sans nom",
+    "viewsLabel": "Vues et réglages",
+    "listView": "Liste des évènements",
+    "stagesSettings": "Régler les étapes",
+    "contactSettings": "Formulaire de contact",
+    "toReviewTitle": "{count, plural, =0 {Aucune demande à vérifier} one {Une demande à vérifier} other {# demandes à vérifier}}",
+    "toReviewIntro": "Les demandes dont le message contient plusieurs liens sont mises de côté : elles peuvent venir d'un robot. Acceptez-les pour créer le prospect, ou effacez-les. Sans réponse, elles sont effacées au bout de 30 jours.",
+    "toReviewEmpty": "Rien à vérifier.",
+    "acceptRequestLabel": "Accepter la demande de {name}",
+    "acceptRequest": "Accepter",
+    "discardRequestLabel": "Effacer la demande de {name}",
+    "discardRequest": "Effacer",
+    "refused": "Ce déplacement n'est pas possible : l'évènement a peut-être changé entre-temps.",
+    "lossReasonRequired": "Choisissez le motif de perte.",
+    "lossNoteRequired": "Précisez le motif « Autre ».",
+    "won": "Gagné",
+    "lost": "Perdu",
+    "wonHint": "Déposez ici une option gagnée : elle sera confirmée.",
+    "lostHint": "Déposez ici une option perdue : elle sera annulée, avec son motif.",
+    "emptyStage": "Aucune carte.",
+    "noDate": "Date à définir",
+    "dateTaken": "Date déjà prise",
+    "demo": "Essai",
+    "guests": "Invités",
+    "budget": "Budget",
+    "source": "Source",
+    "inStage": "Dans l'étape",
+    "days": "{count, plural, =0 {depuis aujourd'hui} one {depuis # jour} other {depuis # jours}}",
+    "stagesLabel": "Étapes",
+    "wonTitle": "Confirmer l'évènement de {name} ?",
+    "lostTitle": "Annuler l'option de {name} ?",
+    "wonBody": "L'évènement passe au statut Confirmé et quitte le pipeline. Le rétroplanning et le reste suivent, comme lorsque vous le confirmez depuis sa fiche.",
+    "lostBody": "L'évènement passe au statut Annulé et quitte le pipeline. Le motif de perte est demandé ; les données restent.",
+    "lossReason": "Motif de perte",
+    "chooseReason": "Choisir un motif",
+    "lossNoteRequiredLabel": "Précision (obligatoire pour ce motif)",
+    "lossNote": "Précision (facultative)",
+    "cancel": "Annuler",
+    "confirmWon": "Confirmer l'évènement",
+    "confirmLost": "Annuler l'option",
+    "settings": {
+      "title": "Étapes du pipeline",
+      "ownerOnly": "Les étapes du pipeline se règlent par la titulaire du compte.",
+      "moduleUnavailable": "Le pipeline fait partie du module Évènements, qui n'est pas ouvert pour votre organisation.",
+      "intro": "Les étapes de votre démarche commerciale, pour les évènements au statut Option : entre {min} et {max}. « Gagné » et « Perdu » n'en sont pas : ils confirment ou annulent l'évènement.",
+      "back": "Revenir au pipeline",
+      "refusal": {
+        "label": "Le nom d'une étape compte de 1 à 60 caractères.",
+        "too_many": "Dix étapes au plus.",
+        "too_few": "Il faut garder au moins une étape.",
+        "not_found": "Cette étape n'existe plus.",
+        "not_empty": "Cette étape contient des cartes : choisissez l'étape où elles passent.",
+        "destination": "L'étape choisie pour les cartes n'existe plus."
+      },
+      "stageLabel": "Étape {position}",
+      "rename": "Renommer",
+      "cards": "{count, plural, =0 {Aucune carte} one {Une carte} other {# cartes}}",
+      "up": "Monter",
+      "upLabel": "Monter l'étape {stage}",
+      "down": "Descendre",
+      "downLabel": "Descendre l'étape {stage}",
+      "destination": "Ses cartes passent à",
+      "remove": "Retirer",
+      "removeLabel": "Retirer l'étape {stage}",
+      "newStage": "Nouvelle étape",
+      "add": "Ajouter"
+    },
+    "reply": "Répondre",
+    "answered": "A répondu",
+    "answeredDone": "Noté"
+  },
+  "ProspectExchanges": {
+    "title": "Échanges avec le contact",
+    "reply": "Répondre",
+    "questionnaires": "Questionnaires",
+    "answered": "A répondu",
+    "stop": "Ne plus relancer",
+    "gesturesHint": "Symbola ne lit pas vos e-mails : quand la personne vous a répondu (e-mail, téléphone, WhatsApp), dites-le d'un geste ; les relances en attente s'arrêtent.",
+    "answeredNoted": "Noté : les relances en attente s'arrêtent.",
+    "stoppedNoted": "Noté : plus aucune relance pour ce contact.",
+    "refused": "Action impossible.",
+    "readyFollowUp": "Relance {rank} : prête, à relire",
+    "upcomingFollowUp": "Relance {rank} prévue le {date}",
+    "historyTitle": "Messages",
+    "noHistory": "Aucun message pour l'instant.",
+    "prepared": "préparé",
+    "kind": {
+      "reply": "Réponse",
+      "follow_up": "Relance",
+      "questionnaire": "Questionnaire envoyé",
+      "answered": "A répondu (noté)",
+      "stop": "Relances arrêtées"
+    }
+  },
+  "FollowUpReview": {
+    "title": "Relance {rank}",
+    "back": "Retour à la fiche",
+    "editTitle": "Relire la relance",
+    "subjectLabel": "Objet",
+    "bodyLabel": "Texte",
+    "optOutHint": "La phrase « Vous ne souhaitez plus de nouvelles ? Répondez simplement à ce message. » est ajoutée à chaque relance.",
+    "send": "Envoyer la relance",
+    "withdraw": "Retirer cette relance",
+    "sent": "Relance envoyée et rangée dans l'historique.",
+    "sentDeferred": "Relance rangée dans l'historique ; la messagerie ne répond pas, elle partira dès que possible.",
+    "withdrawn": "Relance retirée : elle ne partira pas.",
+    "already": "Cette relance est déjà partie.",
+    "alreadySent": "Relance envoyée : elle est rangée dans l'historique du contact.",
+    "missing": "Une variable n'a pas de valeur : complétez le texte avant l'envoi.",
+    "noBrochure": "Le texte joint la brochure, mais aucune brochure n'est enregistrée.",
+    "empty": "L'objet et le texte sont obligatoires.",
+    "quota": "Le plafond d'e-mails de l'heure est atteint : réessayez un peu plus tard.",
+    "refused": "Action impossible sur cette relance.",
+    "stopped": {
+      "answered": "Pas d'envoi : le contact a répondu.",
+      "stage_changed": "Pas d'envoi : la carte a changé d'étape.",
+      "confirmed": "Pas d'envoi : l'évènement est confirmé.",
+      "lost": "Pas d'envoi : l'évènement est perdu.",
+      "prospect_action": "Pas d'envoi : le contact a agi dans Symbola (espace ouvert, questionnaire, rendez-vous ou signature).",
+      "new_message": "Pas d'envoi : un message plus récent est parti ; les relances repartent de lui.",
+      "stopped": "Pas d'envoi : vous avez demandé de ne plus relancer ce contact.",
+      "withdrawn": "Relance retirée : elle ne partira pas.",
+      "no_recipient": "Pas d'envoi : le contact n'a plus d'adresse e-mail."
+    }
+  },
+  "EventQuestionnaires": {
+    "title": "Questionnaires",
+    "back": "Retour à la fiche",
+    "sendTitle": "Envoyer un questionnaire",
+    "template": "Questionnaire",
+    "recipient": "À",
+    "noEmailOption": "{name} (pas d'adresse e-mail)",
+    "sendHint": "La personne le reçoit par e-mail, avec son lien personnel (sans compte). Ses réponses s'enregistrent à chaque question ; elle peut reprendre plus tard. Si elle a déjà un lien, un nouveau lien part avec le questionnaire et remplace l'ancien.",
+    "send": "Envoyer",
+    "sent": "Questionnaire envoyé.",
+    "demo": "Un évènement d'essai n'envoie rien à personne.",
+    "noEmail": "Ce client n'a pas d'adresse e-mail.",
+    "missing": "Le modèle d'e-mail a une variable sans valeur : {tokens}.",
+    "quota": "Le plafond d'e-mails de l'heure est atteint : réessayez un peu plus tard.",
+    "refused": "Action impossible.",
+    "noTemplate": "Aucun modèle de questionnaire.",
+    "createTemplates": "Ajouter les questionnaires de départ",
+    "sentTitle": "Questionnaires envoyés",
+    "noneSent": "Aucun questionnaire envoyé.",
+    "finished": "terminé",
+    "progress": "{answered} réponses sur {total}",
+    "frozen": "Version {version} du modèle, figée à l'envoi.",
+    "someone": "Le contact",
+    "differencesTitle": "Réponses à trancher",
+    "difference": "{name} indique {answer} pour « {field} » ; la fiche dit {current}.",
+    "takeAnswer": "Prendre la réponse ({answer})",
+    "keepEvent": "Garder la fiche ({current})",
+    "resolved": "C'est réglé.",
+    "field": {
+      "event_date": "Date",
+      "guests": "Invités",
+      "budget": "Budget souhaité",
+      "venue": "Lieu",
+      "city": "Ville",
+      "style": "Style",
+      "event_type": "Type d'évènement"
+    }
+  },
+  "QuestionnaireTemplates": {
+    "title": "Questionnaires",
+    "intro": "Vos questionnaires (découverte, cérémonie, musiques, détails pratiques…), pour tous les évènements ou pour un type. Une question peut remplir un champ de l'évènement. Modifier un modèle ne change pas les questionnaires déjà envoyés.",
+    "addStarters": "Ajouter les questionnaires de départ",
+    "startersAdded": "{count, plural, =0 {Les questionnaires de départ sont déjà là.} one {Un questionnaire ajouté.} other {# questionnaires ajoutés.}}",
+    "listTitle": "Vos modèles",
+    "empty": "Aucun modèle pour l'instant.",
+    "summary": "{questions, plural, one {# question} other {# questions}} · version {version} · {type}",
+    "allEvents": "Tous les évènements",
+    "createTitle": "Nouveau questionnaire",
+    "name": "Nom",
+    "create": "Créer",
+    "firstQuestion": "Votre première question",
+    "nameInvalid": "Le nom est obligatoire (120 caractères au plus).",
+    "refused": "Action impossible.",
+    "duplicate": "Dupliquer",
+    "copyName": "{name} (copie)",
+    "duplicated": "Modèle dupliqué.",
+    "delete": "Retirer",
+    "deleteConfirm": "Retirer le modèle « {name} » ? Les questionnaires déjà envoyés le gardent.",
+    "deleted": "Modèle retiré.",
+    "back": "Tous les questionnaires",
+    "versionLabel": "Version {version}",
+    "versionsLabel": "Versions",
+    "oldVersionTitle": "Questions de la version {version}",
+    "eventType": "Pour",
+    "questionNumber": "Question {number}",
+    "questionLabel": "Question",
+    "questionHelp": "Aide (facultative)",
+    "questionNature": "Réponse attendue",
+    "questionChoices": "Choix (un par ligne)",
+    "questionField": "Remplit le champ de l'évènement",
+    "noField": "Aucun",
+    "up": "Monter",
+    "down": "Descendre",
+    "moveUp": "Monter la question {number}",
+    "moveDown": "Descendre la question {number}",
+    "removeQuestion": "Retirer la question",
+    "addQuestion": "Ajouter une question",
+    "versionHint": "Enregistrer des questions changées crée une nouvelle version ; les questionnaires déjà envoyés gardent la leur.",
+    "save": "Enregistrer",
+    "saved": "Modèle enregistré (version {version}).",
+    "sensitiveWarning": "Cette question semble toucher à la santé, à la religion ou aux opinions : ce sont des données sensibles. Pour les régimes et allergies, passez par le module Invités, qui recueille l'accord de chaque personne.",
+    "nature": {
+      "short_text": "Texte court",
+      "long_text": "Texte long",
+      "single_choice": "Un choix",
+      "multiple_choice": "Plusieurs choix",
+      "date": "Date",
+      "number": "Nombre",
+      "amount": "Montant (€)"
+    },
+    "field": {
+      "event_date": "Date",
+      "guests": "Invités",
+      "budget": "Budget souhaité",
+      "venue": "Lieu",
+      "city": "Ville",
+      "style": "Style",
+      "event_type": "Type d'évènement"
+    },
+    "questionInvalid": {
+      "label": "Chaque question a un intitulé (300 caractères au plus).",
+      "help": "L'aide fait 500 caractères au plus.",
+      "nature": "Réponse attendue inconnue.",
+      "choices": "Une question à choix a de 2 à 30 choix.",
+      "field": "Ce champ de l'évènement ne va pas avec cette réponse.",
+      "too_many": "Un questionnaire a 100 questions au plus.",
+      "empty": "Un questionnaire a au moins une question."
+    }
+  },
+  "PortalQuestionnaires": {
+    "title": "Questionnaires",
+    "back": "Retour à mon espace",
+    "backToList": "Tous mes questionnaires",
+    "unavailable": "Cette rubrique n'est pas disponible.",
+    "none": "Aucun questionnaire pour l'instant.",
+    "finished": "terminé, merci",
+    "progress": "{answered} réponses sur {total}",
+    "stepOf": "Question {step} sur {total}",
+    "saved": "Réponse enregistrée.",
+    "suggested": "Réponse déjà connue, pré-remplie :",
+    "confirm": "Confirmer",
+    "alreadyAnswered": "{count, plural, one {Une question déjà répondue ailleurs n'est pas reposée.} other {# questions déjà répondues ailleurs ne sont pas reposées.}}",
+    "previous": "Précédente",
+    "next": "Suivante",
+    "remaining": "{count, plural, one {Il reste une question.} other {Il reste # questions.}} Vous pouvez vous arrêter et reprendre plus tard : tout est enregistré.",
+    "complete": "Toutes les questions ont une réponse.",
+    "finish": "Terminer",
+    "thanks": "Merci ! Vos réponses sont transmises.",
+    "closed": "Ce questionnaire est terminé.",
+    "denied": "Cette rubrique n'est pas disponible.",
+    "invalid": {
+      "empty": "Réponse vide.",
+      "too_long": "Réponse trop longue.",
+      "choice": "Choisissez parmi les réponses proposées.",
+      "date": "Date non valable.",
+      "number": "Indiquez un nombre entier.",
+      "amount": "Indiquez un montant en euros (par exemple 25 000)."
+    }
+  },
+  "ContactDuplicates": {
+    "title": "Doublons possibles",
+    "subtitle": "Des fiches qui ont la même adresse e-mail ou le même téléphone. Rien n'est fusionné sans vous.",
+    "back": "Contacts",
+    "backToList": "Doublons possibles",
+    "none": "Aucun doublon possible.",
+    "reason": {
+      "email": "Même adresse e-mail",
+      "phone": "Même téléphone"
+    },
+    "compare": "Comparer et fusionner",
+    "dismiss": "Ce ne sont pas les mêmes",
+    "dismissed": "Écarté : cette paire ne reviendra pas.",
+    "refused": "Action impossible.",
+    "mergeTitle": "Fusionner deux fiches",
+    "keptLegend": "Fiche gardée",
+    "fieldsCaption": "Valeur à garder, champ par champ",
+    "field": "Champ",
+    "keepValue": "Garder {value} pour {field}",
+    "confirmTitle": "Ce qui sera réuni",
+    "confirmBody": "La fiche « {absorbed} » disparaît ; tout son historique passe à « {kept} ».",
+    "confirmCheck": "J'ai vérifié : ces deux fiches sont la même personne.",
+    "confirmRequired": "Cochez la confirmation pour fusionner.",
+    "merge": "Fusionner",
+    "gathered": {
+      "notes": "{name} : {count, plural, =0 {aucune note} one {une note} other {# notes}}",
+      "events": "{name} : {events, plural, =0 {aucun évènement} one {un évènement} other {# évènements}}, {messages, plural, =0 {aucun message} one {un message} other {# messages}}, {links, plural, =0 {aucun lien} one {un lien} other {# liens}}, {questionnaires, plural, =0 {aucun questionnaire} one {un questionnaire} other {# questionnaires}}",
+      "appointments": "{name} : {count, plural, =0 {aucun rendez-vous} one {un rendez-vous} other {# rendez-vous}}",
+      "signatures": "{name} : {count, plural, =0 {aucune signature} one {une signature} other {# signatures}}"
+    },
+    "refusedReason": {
+      "same": "Une fiche ne se fusionne pas avec elle-même.",
+      "demo": "Une fiche d'essai ne se fusionne jamais avec une fiche réelle.",
+      "kind": "Une personne ne se fusionne pas avec un foyer ou une entreprise.",
+      "not_found": "Une des fiches n'existe plus.",
+      "anonymized": "Une fiche retirée par le RGPD ne se fusionne pas."
+    },
+    "fields": {
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "name": "Nom",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "addressLine": "Adresse",
+      "postalCode": "Code postal",
+      "city": "Ville",
+      "country": "Pays",
+      "billingAddress": "Adresse de facturation",
+      "companyIdNumber": "SIREN ou SIRET",
+      "vatNumber": "Numéro de TVA"
+    }
+  },
+  "FollowUpSettings": {
+    "title": "Relances des prospects",
+    "intro": "Après votre réponse à un prospect, sans retour de sa part, une relance se prépare à son jour dans « Aujourd'hui » : vous la relisez et l'envoyez d'un geste. Elle s'arrête dès qu'il répond (dites-le d'un geste), que la carte change d'étape, que l'évènement est confirmé ou perdu, ou qu'il agit dans Symbola.",
+    "enabled": "Préparer les relances",
+    "step": "Relance {rank}",
+    "days": "Jours après votre dernier envoi",
+    "template": "Modèle",
+    "defaultText": "Texte de la relance (Paramètres, Modèles d'e-mails)",
+    "autoSend": "Envoyer les relances sans relecture",
+    "autoSendHint": "Désactivé par défaut : vous savez souvent, par téléphone ou WhatsApp, que le couple a déjà répondu. Activé, chaque relance part seule à son jour, après une dernière vérification.",
+    "save": "Enregistrer",
+    "saved": "Réglage enregistré.",
+    "refused": "Action impossible.",
+    "invalid": {
+      "too_many": "Trois relances au plus.",
+      "days": "Entre 1 et 60 jours.",
+      "order": "Chaque relance vient après la précédente."
+    },
+    "brochureTitle": "Brochure",
+    "brochureCurrent": "Brochure enregistrée : {name}",
+    "brochureNone": "Aucune brochure.",
+    "brochureField": "Fichier PDF (20 Mo au plus)",
+    "brochureSubmit": "Enregistrer la brochure",
+    "brochureRemove": "Retirer la brochure",
+    "brochureHint": "Le modèle « Envoyer la brochure » la joint par un lien sécurisé, valable 30 jours, jamais en pièce jointe.",
+    "brochureMissing": "Choisissez un fichier PDF.",
+    "brochureRejected": {
+      "too_large": "Le fichier dépasse 20 Mo.",
+      "unsupported_type": "Seul un PDF est accepté.",
+      "infected": "Le fichier a été refusé par l'antivirus.",
+      "name": "Nom de fichier non valable."
+    }
+  },
+  "VendorCoordination": {
+    "title": "Demander des devis",
+    "pageTitle": "Demander des devis : {slot}",
+    "unavailable": "Cette fonction est indisponible : le module Évènements n'est pas activé.",
+    "back": "Retour à la fiche de l'évènement",
+    "askQuotes": "Demander des devis et comparer",
+    "scenariosLink": "Scénarios d'options",
+    "demoNotice": "Évènement d'essai : aucun e-mail ne part vers un prestataire.",
+    "brief": {
+      "title": "1. Le brief",
+      "need": "Le besoin",
+      "guestCount": "Nombre d'invités (facultatif)",
+      "budget": "Budget indicatif TTC (facultatif)",
+      "showBudget": "Montrer ce budget aux prestataires",
+      "budgetHint": "Masqué par défaut : donner un budget oriente les devis.",
+      "deadline": "Date limite de réponse",
+      "inspirations": "Inspirations (documents de l'évènement)",
+      "noDocuments": "Ajoutez des photos ou documents dans l'onglet Documents pour les joindre comme inspirations.",
+      "save": "Enregistrer le brief",
+      "saved": "Brief enregistré.",
+      "sentAt": "Envoyé le {date}",
+      "fromEvent": "La date ({date}) et les lieux de l'évènement sont repris dans le brief.",
+      "noDate": "date à fixer"
+    },
+    "recipients": {
+      "title": "2. Les prestataires",
+      "intro": "Chacun reçoit son propre e-mail et son lien personnel ; personne ne voit les autres.",
+      "none": "Aucun prestataire à consulter pour ce poste : ajoutez-en un.",
+      "name": "Nom de la personne chez {vendor}",
+      "email": "E-mail de {vendor}",
+      "alreadySent": "Déjà consulté : un nouvel envoi remplace son lien.",
+      "review": "Vérifier les destinataires",
+      "reviewTitle": "{count, plural, one {Le brief part à # prestataire} other {Le brief part à # prestataires}}",
+      "reviewIntro": "Vérifiez la liste : un e-mail par prestataire, sans copie.",
+      "send": "{count, plural, one {Envoyer à # prestataire} other {Envoyer aux # prestataires}}",
+      "sent": "{count, plural, one {Brief envoyé à # prestataire.} other {Brief envoyé à # prestataires.}}",
+      "saveBriefFirst": "Enregistrez d'abord le brief.",
+      "addTitle": "Ajouter un prestataire à consulter",
+      "addFromBookHint": "Ajouter un prestataire à consulter (ou depuis le carnet, onglet Budget)",
+      "addName": "Nom du prestataire",
+      "add": "Ajouter",
+      "added": "Prestataire ajouté."
+    },
+    "compare": {
+      "title": "3. Le comparatif",
+      "empty": "Les réponses des prestataires apparaîtront ici.",
+      "caption": "Réponses des prestataires pour {slot}",
+      "vendor": "Prestataire",
+      "answer": "Réponse",
+      "amount": "Montant TTC",
+      "quote": "Devis",
+      "message": "Message",
+      "answeredAt": "Répondu le",
+      "notes": "Notes et avis",
+      "available": "Disponible",
+      "unavailable": "Indisponible",
+      "waiting": "En attente",
+      "reminded": "Relancé, en attente",
+      "otherChosen": "Écarté (un autre choisi)",
+      "toBeSpecified": "à préciser",
+      "openQuote": "Ouvrir le devis de {vendor}",
+      "feedbackLike": "{name} aime {comment}",
+      "feedbackDislike": "{name} : pas pour nous {comment}",
+      "feedbackComment": "{name} : {comment}"
+    },
+    "share": {
+      "title": "4. Proposer au client",
+      "intro": "Cochez les propositions à montrer : le client les voit dans son espace (jamais votre carnet ni les autres), donne son avis et choisit.",
+      "needTwo": "Il faut au moins deux propositions pour demander un choix.",
+      "legend": "Propositions montrées au client",
+      "note": "Un mot pour le client (facultatif)",
+      "dueOn": "Réponse souhaitée avant le (facultatif)",
+      "submit": "Demander un choix au client",
+      "sent": "Demande envoyée au client.",
+      "pending": "Choix demandé le {date}, en attente de réponse."
+    },
+    "engaged": {
+      "someone": "Le client",
+      "body": "{name} a choisi {vendor} le {date} : le prestataire est retenu, les autres sont écartés (sans e-mail) et les tâches de suivi sont créées."
+    },
+    "followUp": {
+      "stage": {
+        "j30": "J-30",
+        "j7": "J-7"
+      },
+      "sent": "Feuille de route {stage} envoyée le {date}, pas encore confirmée",
+      "confirmed": "Feuille de route {stage} confirmée le {date}",
+      "invoice": "Facture déposée par {vendor}",
+      "noLink": "Pas de lien prestataire : la feuille de route ne peut pas lui être envoyée."
+    },
+    "scenarios": {
+      "title": "Scénarios d'options",
+      "intro": "Composez des scénarios (au plus un prestataire par poste) et comparez-en deux côte à côte.",
+      "compareTitle": "Deux scénarios côte à côte",
+      "left": "Scénario de gauche",
+      "right": "Scénario de droite",
+      "compare": "Comparer",
+      "slot": "Poste",
+      "total": "Total TTC",
+      "gap": "Écart",
+      "pending": "{count, plural, one {# devis à préciser} other {# devis à préciser}}",
+      "envelope": "Enveloppe du client : {amount}",
+      "noEnvelope": "Pas d'enveloppe du client",
+      "estimated": "budget estimé : {amount}",
+      "needTwo": "Créez deux scénarios pour les comparer.",
+      "noCandidates": "Ajoutez d'abord des prestataires consultés aux postes.",
+      "choiceFor": "{slot} dans « {scenario} »",
+      "none": "Aucun",
+      "choose": "Choisir",
+      "show": "Montrer « {scenario} » au client",
+      "remove": "Supprimer « {scenario} »",
+      "newTitle": "Nouveau scénario",
+      "name": "Nom du scénario",
+      "create": "Créer le scénario",
+      "created": "Scénario créé.",
+      "tableLabel": "Totaux des scénarios, poste par poste"
+    },
+    "settings": {
+      "title": "Prestataires par lien",
+      "intro": "Les délais des demandes de devis, des relances et des feuilles de route, et les tâches créées quand le client choisit un prestataire.",
+      "deadlineDays": "Date limite par défaut d'un brief (jours)",
+      "reminder": "Relancer la veille de la date limite ceux qui n'ont pas répondu",
+      "roadmapMonth": "Envoyer la feuille de route à J-30",
+      "roadmapWeek": "Envoyer la feuille de route à J-7",
+      "alertDays": "Me prévenir sans confirmation après J-7 (jours)",
+      "tasksTitle": "Tâches de suivi créées au choix du client",
+      "tasksHint": "« '{{prestataire}}' » est remplacé par le nom du prestataire choisi ; l'échéance compte en jours après le choix. Laissez un nom vide pour retirer une tâche.",
+      "taskLabel": "Tâche {index}",
+      "taskDays": "Échéance de la tâche {index} (jours)",
+      "resetTasks": "Revenir à la liste de départ",
+      "save": "Enregistrer",
+      "saved": "Réglages enregistrés.",
+      "ownerOnly": "Seule la titulaire du compte peut changer ces réglages."
+    },
+    "errors": {
+      "unauthorized": "Action impossible : rechargez la page.",
+      "need": "Décrivez le besoin (4 000 caractères au plus).",
+      "deadline": "Indiquez une date limite valable.",
+      "guests": "Le nombre d'invités doit être un nombre entier.",
+      "budget": "Le montant n'est pas lisible.",
+      "documents": "Une inspiration n'appartient pas à cet évènement.",
+      "slot": "Ce poste n'existe plus.",
+      "recipients": "Choisissez au moins un prestataire de ce poste.",
+      "missing": "Enregistrez d'abord le brief.",
+      "email": "Indiquez un nom et une adresse e-mail valable pour chaque prestataire coché.",
+      "settings": "Vérifiez les réglages (délais et tâches).",
+      "name": "Indiquez un nom.",
+      "changed": "La liste a changé : vérifiez-la de nouveau avant d'envoyer.",
+      "demo": "Évènement d'essai : aucun e-mail ne part vers un prestataire.",
+      "quota": "Le plafond d'e-mails de l'heure est atteint : réessayez plus tard.",
+      "scenarioName": "Donnez un nom au scénario (120 caractères au plus).",
+      "shareTwo": "Cochez au moins deux propositions.",
+      "sharePending": "Un choix est déjà demandé pour ce poste."
+    },
+    "retained": {
+      "title": "Le prestataire retenu",
+      "current": "Retenu : {vendors}",
+      "none": "Aucun prestataire retenu pour ce poste.",
+      "label": "Prestataire retenu",
+      "nobody": "Personne",
+      "submit": "Modifier le prestataire retenu",
+      "hint": "Modifiable à tout moment. L'engagé du budget suit le nouveau devis (ou est libéré) ; les tâches de suivi non commencées de l'ancien prestataire sont retirées, celles commencées restent. Pour redemander un choix au client, ne retenez personne puis proposez de nouveau."
+    }
+  },
+  "VendorAnswer": {
+    "title": "Demande de devis : {slot}",
+    "helpTitle": "Votre réponse en une minute",
+    "helpBody": "Lisez le besoin, puis répondez d'un toucher. Si vous êtes disponible, joignez la photo ou le PDF de votre devis. Aucun compte, aucun mot de passe : ce lien vous est réservé.",
+    "briefTitle": "Le brief",
+    "eventOf": "Évènement de {clients}",
+    "eventUnnamed": "Évènement",
+    "dateUnset": "date à fixer",
+    "guests": "{count, plural, one {# invité} other {# invités}}",
+    "budget": "Budget indicatif : {amount} TTC",
+    "deadline": "Réponse attendue avant le {date}",
+    "inspirations": "Inspirations",
+    "question": "Êtes-vous disponible ?",
+    "available": "Je suis disponible",
+    "unavailable": "Je ne suis pas disponible",
+    "confirmAvailable": "Confirmer : je suis disponible",
+    "confirmUnavailable": "Confirmer : je ne suis pas disponible",
+    "preselectedAvailable": "Vous avez choisi « disponible » dans l'e-mail : confirmez d'un toucher.",
+    "preselectedUnavailable": "Vous avez choisi « pas disponible » dans l'e-mail : confirmez d'un toucher.",
+    "closed": "Le choix a été fait : la réponse n'est plus possible.",
+    "depositTitle": "Votre devis",
+    "depositIntro": "Prenez votre devis en photo ou joignez le PDF.",
+    "quoteFile": "Photo ou PDF du devis",
+    "amount": "Montant TTC (facultatif)",
+    "message": "Un message court (facultatif)",
+    "sendQuote": "Envoyer mon devis",
+    "depositLater": "Vous pouvez revenir plus tard avec le même lien.",
+    "thanksQuote": "Merci, votre devis est transmis.",
+    "thanksUnavailable": "Merci de votre réponse : vous n'êtes pas disponible.",
+    "changeMind": "Changer ma réponse",
+    "declinedTitle": "Merci",
+    "declinedBody": "Merci de votre réponse : un autre choix a été fait pour cet évènement.",
+    "invoiceTitle": "Votre facture",
+    "invoiceIntro": "Déposez votre facture ici (photo ou PDF).",
+    "invoiceReceived": "Facture reçue le {date}. Vous pouvez en déposer une nouvelle.",
+    "invoiceFile": "Photo ou PDF de la facture",
+    "sendInvoice": "Envoyer ma facture",
+    "invoiceSent": "Merci, votre facture est transmise.",
+    "invoiceLabel": "Facture de {name}",
+    "roadmapTitle": "Votre feuille de route",
+    "onSiteContacts": "Contacts sur place",
+    "confirmRoadmap": "J'ai bien reçu",
+    "roadmapConfirmed": "Reçue, confirmé le {date}.",
+    "errors": {
+      "closed": "Ce lien ne permet plus cette action.",
+      "fileMissing": "Choisissez un fichier.",
+      "amount": "Le montant n'est pas lisible.",
+      "message": "Le message est trop long (1 000 caractères au plus).",
+      "tooLarge": "Le fichier est trop lourd (20 Mo au plus).",
+      "infected": "Le fichier a été refusé par l'antivirus.",
+      "unsupported": "Seules une photo ou un PDF sont acceptés."
+    }
+  },
+  "DayChecklists": {
+    "title": "Listes du jour J",
+    "unavailable": "Le module Évènements n'est pas souscrit : les listes du jour J sont indisponibles.",
+    "intro": "Les listes de contrôle d'installation et de démontage que vous ajoutez aux temps forts d'un évènement. Une liste déjà copiée dans un évènement ne change pas.",
+    "name": "Nom",
+    "phase": "Nature",
+    "setup": "Installation",
+    "teardown": "Démontage",
+    "items": "Cases (une par ligne)",
+    "save": "Enregistrer",
+    "add": "Ajouter le modèle",
+    "saved": "Modèle enregistré.",
+    "invalid": "Nom obligatoire (100 caractères), 100 cases au plus de 200 caractères.",
+    "count": "{count, plural, =0 {Aucune case} one {# case} other {# cases}}",
+    "edit": "Modifier « {name} »",
+    "remove": "Retirer « {name} »",
+    "addTitle": "Nouveau modèle"
+  },
+  "DayReport": {
+    "title": "Bilan du jour J",
+    "event": "Évènement",
+    "heading": "{event} — {date}",
+    "preparedAt": "Préparé le {date}",
+    "download": "Télécharger le bilan (PDF)",
+    "internal": "Interne à votre équipe : jamais montré aux clients ni aux prestataires.",
+    "footer": "Bilan interne — ne pas transmettre",
+    "page": "Page {page} sur {total}",
+    "sequence": "{label} : prévu {planned}, réel {actual}{gap}",
+    "notPointed": "non pointé",
+    "gap": "{minutes, plural, =0 {} other { ({minutes, number} min d'écart)}}",
+    "onTime": " (à l'heure)",
+    "shift": "Décalage de {minutes} min validé à {time} : {items, plural, one {# séquence} other {# séquences}}, {notified, plural, =0 {aucun prestataire prévenu} one {# prestataire prévenu} other {# prestataires prévenus}}",
+    "shiftRefused": "Décalage de {minutes} min validé à {time}, non appliqué (programme modifié entre-temps)",
+    "incident": "{time} · {severity} · {body}{photos, plural, =0 {} one { (# photo)} other { (# photos)}}",
+    "severity": {
+      "none": "sans gravité",
+      "info": "info",
+      "follow_up": "à suivre",
+      "urgent": "urgent"
+    },
+    "unchecked": "{list} : {label}",
+    "handoverDone": "{vendor} — {amount} ({method}) remis à {time}",
+    "handoverMissing": "{vendor} — {amount} ({method}) non remis",
+    "titles": {
+      "sequences": "Séquences prévues et réelles",
+      "shifts": "Décalages validés",
+      "incidents": "Main courante",
+      "unchecked": "Cases non cochées",
+      "handovers": "Remises"
+    },
+    "empties": {
+      "sequences": "Aucune séquence au programme.",
+      "shifts": "Aucun décalage.",
+      "incidents": "Aucun incident noté.",
+      "unchecked": "Toutes les cases sont cochées.",
+      "handovers": "Aucune remise prévue."
+    }
+  },
+  "Proposal": {
+    "title": "Proposition de {organization}",
+    "sentOn": "Envoyée le {date}",
+    "greetingLabel": "Mot d'accueil",
+    "photosLabel": "Photos",
+    "photoAlt": "Photo {number} de la proposition",
+    "quoteTitle": "Devis {number} — version {version}",
+    "linesLabel": "Prestations",
+    "optionChosen": "option choisie",
+    "optionNotChosen": "option, hors du total tant qu'elle n'est pas choisie",
+    "subtotal": "Sous-total {title} : {amount}",
+    "totalHt": "Total HT",
+    "totalVat": "TVA",
+    "totalTtc": "Total TTC",
+    "total": "Total",
+    "scheduleDeposit": "Échéancier des acomptes",
+    "scheduleEarnest": "Échéancier des arrhes",
+    "scheduleLine": "{label} : {amount}, le {date}",
+    "balance": "Solde : {amount}",
+    "validityLabel": "Validité",
+    "validUntil": "Proposition valable jusqu'au {date} inclus.",
+    "expired": "Proposition expirée : contactez {organization}.",
+    "signed": "Proposition signée.",
+    "superseded": "Une nouvelle version de cette proposition existe.",
+    "declined": "Proposition refusée.",
+    "downloadPdf": "Télécharger la proposition (PDF)",
+    "versionsTitle": "Versions de la proposition",
+    "versionLine": "Version {version}, envoyée le {date}",
+    "versionCurrent": "en cours",
+    "backToSpace": "Revenir à mon espace",
+    "flow": {
+      "title": "Accepter et signer",
+      "stepsLabel": "Étapes pour accepter et signer",
+      "stateDone": "fait",
+      "stateCurrent": "en cours",
+      "steps": {
+        "options": "Vos options",
+        "code": "Votre code",
+        "order": "Votre commande",
+        "sign": "Votre signature",
+        "settle": "Régler l'acompte"
+      },
+      "optionsFirst": "Choisissez d'abord vos options, puis enregistrez votre choix.",
+      "goOptions": "Aller aux options",
+      "waitingDocument": "Votre choix est enregistré. {organization} prépare le document à signer : vous recevrez un e-mail dès qu'il est prêt.",
+      "expired": "Cette proposition a expiré : contactez {organization} pour la prolonger.",
+      "declined": "Cette proposition a été refusée.",
+      "notSigner": "Vous n'êtes pas signataire de cette proposition : seuls les signataires prévus peuvent l'accepter.",
+      "codeHint": "Pour signer, confirmez que c'est bien vous : un code à six chiffres va partir à l'adresse de votre lien. Il est valable 10 minutes.",
+      "codeRequest": "Recevoir mon code par e-mail",
+      "codeResend": "Recevoir un nouveau code",
+      "codeSent": "Code envoyé à {email}.",
+      "codeLabel": "Code reçu par e-mail",
+      "codeConfirm": "Valider le code",
+      "codeError": "Ce code ne peut pas être demandé ici. Rouvrez votre lien.",
+      "codeNotSent": "Le code n'a pas pu partir (trop de demandes). Réessayez dans une heure.",
+      "codeWrong": "Code incorrect. Il vous reste {attempts, plural, one {# essai} other {# essais}}.",
+      "codeExpired": "Ce code a expiré ou a déjà servi. Demandez-en un nouveau.",
+      "orderHint": "Avant de signer, confirmez votre commande.",
+      "orderWithdrawal": "Avant de signer, confirmez votre commande. Vous gardez votre droit de rétractation, décrit dans votre contrat.",
+      "signHint": "Le document à signer s'ouvre chez notre service de signature. Une fois signé, revenez ici pour régler l'acompte.",
+      "signButton": "Signer le devis {number}",
+      "signedAll": "Tous les signataires ont signé. Il reste à régler l'acompte.",
+      "signedWaiting": "Votre signature est enregistrée. En attente de la signature de {names}.",
+      "settleButton": "Régler l'acompte",
+      "done": "C'est signé : il n'y a rien à régler maintenant."
+    }
+  },
+  "Settlement": {
+    "title": "Régler : {label}",
+    "quoteLine": "Devis {number}",
+    "dueOn": "échéance le {date}",
+    "awaitingSignatures": "Le règlement s'ouvrira quand tous les signataires auront signé.",
+    "paid": "Réglé le {date}. Merci !",
+    "declared": "Vous avez indiqué un virement fait le {date} (déclaré le {when}). La réception sera confirmée par votre organisateur.",
+    "declaredNow": "C'est noté : votre organisateur confirmera la réception du virement.",
+    "bankDetailsMissing": "Les coordonnées bancaires ne sont pas encore renseignées : contactez votre organisateur.",
+    "transferTitle": "Virement à faire",
+    "beneficiary": "Bénéficiaire",
+    "iban": "IBAN",
+    "bic": "BIC",
+    "reference": "Référence",
+    "referenceHint": "Indiquez cette référence dans le libellé du virement : elle permet de le reconnaître.",
+    "qrLabel": "QR code de virement, avec le montant et la référence",
+    "qrHint": "Votre application bancaire peut lire ce QR code : il remplit le bénéficiaire, l'IBAN, le montant et la référence.",
+    "copy": "Copier",
+    "copyLabel": "Copier {label}",
+    "copied": "{label} copié.",
+    "declareTitle": "J'ai fait le virement",
+    "declareDate": "Date du virement",
+    "declareButton": "J'ai fait le virement",
+    "declareError": "Ce règlement ne peut pas être déclaré ici. Rouvrez votre lien.",
+    "declareRefused": {
+      "not_open": "Ce règlement n'est pas encore ouvert.",
+      "not_payer": "Ce règlement est attendu d'un autre payeur.",
+      "date": "La date du virement ne peut être ni future ni antérieure à la signature.",
+      "already": "Un virement a déjà été déclaré pour ce règlement.",
+      "paid": "Ce règlement est déjà réglé."
+    },
+    "otherPayer": "Ce règlement est attendu d'un autre payeur de votre évènement.",
+    "demo": "Essai : aucun virement n'est attendu.",
+    "backToSpace": "Revenir à mon espace"
+  },
+  "CashCalendar": {
+    "title": "Calendrier des sorties d'argent",
+    "empty": "Aucune échéance à venir pour l'instant.",
+    "monthTotals": "Total du mois : {total} · reste à sortir : {remaining}",
+    "payer": "payé par {name}",
+    "status": {
+      "upcoming": "à venir",
+      "declared": "déclaré",
+      "paid": "réglé"
+    },
+    "settle": "Régler",
+    "settleLabel": "Régler : {label}",
+    "backToSpace": "Revenir à mon espace",
+    "moduleUnavailable": "Le module Budget n'est pas disponible pour votre organisation.",
+    "backToBudget": "Revenir au budget",
+    "filterLabel": "Filtrer le calendrier",
+    "filterPayer": "Payeur",
+    "allPayers": "Tous les payeurs",
+    "filterSubmit": "Afficher"
+  },
+  "Payers": {
+    "title": "Payeurs et répartition",
+    "moduleUnavailable": "Le module Budget n'est pas disponible pour votre organisation.",
+    "backToBudget": "Revenir au budget",
+    "listTitle": "Payeurs de l'évènement",
+    "kinds": {
+      "couple": "Les mariés",
+      "family_one": "Famille de l'un",
+      "family_two": "Famille de l'autre",
+      "company": "Entreprise",
+      "other": "Autre payeur"
+    },
+    "totalShare": "sa part : {amount}",
+    "coupleHint": "Ce qui n'est attribué à personne revient aux mariés.",
+    "remove": "Retirer {name}",
+    "addSummary": "Ajouter un payeur",
+    "addForm": "Ajouter un payeur",
+    "name": "Nom",
+    "kind": "Qui est-ce ?",
+    "link": "Lien personnel (facultatif)",
+    "noLink": "Sans lien",
+    "addSubmit": "Ajouter le payeur",
+    "added": "Payeur ajouté.",
+    "visibilityFor": "Ce que voit {name}",
+    "visibilityShare": "Seulement sa part",
+    "visibilityAll": "Tout le budget",
+    "visibilitySave": "Enregistrer",
+    "visibilitySaved": "Réglage enregistré.",
+    "visibilityError": "Ce réglage ne peut pas être modifié ici.",
+    "linesTitle": "Répartition par ligne",
+    "noLines": "Aucune ligne de budget pour l'instant.",
+    "splitEntry": "{name} : {amount}",
+    "sharesFor": "Parts de « {label} »",
+    "shareMode": "Pourcentage ou montant pour {name}",
+    "percent": "%",
+    "amount": "€",
+    "sharesHint": "Un pourcentage ou un montant par payeur ; laissé vide, rien. Le reste revient aux mariés.",
+    "sharesSave": "Enregistrer",
+    "sharesSaveFor": "Enregistrer les parts de « {label} »",
+    "sharesSaved": "Parts enregistrées.",
+    "paymentsTitle": "Payeur de chaque échéance",
+    "payerOf": "Payeur de « {label} »",
+    "payerSave": "Enregistrer",
+    "payerSaveFor": "Enregistrer le payeur de « {label} »",
+    "payerSaved": "Payeur enregistré.",
+    "portalTitle": "Ce que voit chaque payeur",
+    "portalIntro": "Pour chaque payeur de votre évènement, choisissez s'il ne voit que sa part, ou tout le budget.",
+    "noOtherPayer": "Votre organisateur n'a pas encore ajouté d'autre payeur.",
+    "backToSpace": "Revenir à mon espace",
+    "shareTitle": "Votre part",
+    "shareIntro": "Le montant qui vous revient sur chaque prestation, d'après la répartition décidée avec les mariés.",
+    "shareEmpty": "Aucune part ne vous est encore attribuée.",
+    "shareTotal": "Total de votre part : {amount}",
+    "errors": {
+      "unauthenticated": "Votre session a expiré. Reconnectez-vous.",
+      "notFound": "Payeur ou évènement introuvable.",
+      "name": "Le nom fait de 1 à 120 caractères.",
+      "kind": "Choisissez qui est ce payeur.",
+      "link": "Ce lien n'est pas un lien client de cet évènement, ou il est déjà rattaché à un payeur.",
+      "couple": "Les mariés restent toujours payeurs.",
+      "shares_invalid": "Chaque part est un pourcentage de 0,01 à 100 ou un montant positif.",
+      "shares_duplicate": "Un payeur ne peut avoir qu'une part par ligne.",
+      "shares_over_100": "Les pourcentages d'une ligne ne dépassent pas 100 %.",
+      "line": "Cette ligne n'existe plus.",
+      "payment": "Cette échéance n'existe plus.",
+      "instalment": "Cette échéance n'est pas un échéancier de l'évènement."
+    }
+  },
+  "QuoteProposal": {
+    "title": "Page de proposition",
+    "draftHint": "À l'envoi, le client reçoit une page de proposition : votre mot d'accueil, votre présentation, le devis et ses options, l'échéancier et la validité, puis « Accepter et signer ».",
+    "greetingForm": "Mot d'accueil de la proposition",
+    "greetingLabel": "Mot d'accueil (vide : celui du modèle de proposition)",
+    "greetingHint": "Il se fige à l'envoi, avec le devis.",
+    "greetingSave": "Enregistrer le mot d'accueil",
+    "greetingSaved": "Mot d'accueil enregistré.",
+    "templatesLink": "Modifier les modèles de proposition",
+    "previewLink": "Voir la proposition comme le client",
+    "expired": "Proposition expirée depuis le {date} : le client ne peut plus la signer. Prolongez-la ou envoyez une nouvelle version.",
+    "notifyForm": "Prévenir le client par e-mail",
+    "notifySubmit": "Prévenir le client par e-mail",
+    "notified": "E-mail envoyé aux clients qui ont un espace.",
+    "extendSummary": "Prolonger la validité",
+    "extendForm": "Prolonger la validité",
+    "extendLabel": "Nouvelle date de validité",
+    "extendSubmit": "Prolonger",
+    "extended": "Validité prolongée.",
+    "settlementTitle": "Règlement par virement",
+    "settlementHint": "Le client règle par virement, avec la référence de l'échéance ; vous confirmez l'encaissement dans l'échéancier. Les relances partent selon vos réglages et s'arrêtent dès qu'il déclare son virement.",
+    "reference": "référence {reference}",
+    "noReference": "référence créée à l'ouverture du règlement",
+    "declared": "{name} déclare avoir viré le {date}.",
+    "confirmLink": "Confirmer l'encaissement",
+    "remindersSent": "Relances envoyées : {list}",
+    "reminderEntry": "n° {rank} le {date}",
+    "suspendSummary": "Suspendre les relances de « {label} »",
+    "suspendForm": "Suspendre les relances de « {label} »",
+    "suspendReason": "Motif (par exemple : arrangement avec le client)",
+    "suspendSubmit": "Suspendre les relances",
+    "suspended": "Relances suspendues.",
+    "suspendedSince": "Relances suspendues depuis le {date} : {reason}",
+    "resumeForm": "Reprendre les relances de « {label} »",
+    "resumeSubmit": "Reprendre les relances",
+    "resumed": "Relances reprises.",
+    "previewBanner": "Aperçu : la proposition telle que la voit le client. Rien ne s'enregistre.",
+    "previewBack": "Revenir au devis",
+    "errors": {
+      "unauthenticated": "Votre session a expiré. Reconnectez-vous.",
+      "notFound": "Devis introuvable.",
+      "locked": "Le devis est envoyé : son mot d'accueil est figé.",
+      "greeting": "Le mot d'accueil fait au plus 4 000 caractères.",
+      "validityDate": "Choisissez une date à partir d'aujourd'hui.",
+      "validityClosed": "Seule une proposition envoyée, ni signée ni refusée, se prolonge.",
+      "reason": "Indiquez un motif.",
+      "noRecipient": "Aucun client n'a d'espace avec la rubrique Devis : créez-lui un lien d'abord."
+    }
+  },
+  "ProposalTemplates": {
+    "title": "Modèles de proposition",
+    "moduleUnavailable": "Le module Devis n'est pas disponible pour votre organisation.",
+    "forAll": "Pour tous les évènements",
+    "forType": "Pour : {type}",
+    "starterHint": "Modèle de départ, à adapter : enregistrez-le pour le faire vôtre.",
+    "version": "Version {version}",
+    "editForm": "Modifier le modèle de proposition",
+    "newForm": "Nouveau modèle de proposition",
+    "newTitle": "Un modèle pour un type d'évènement",
+    "eventType": "Type d'évènement",
+    "greeting": "Mot d'accueil",
+    "blocksLegend": "Ordre des blocs",
+    "blocksHint": "Choisissez la place de chaque bloc sur la page, ou masquez-le. Le devis est toujours présent ; le bouton « Accepter et signer » vient toujours à la fin.",
+    "blocks": {
+      "greeting": "Mot d'accueil",
+      "organization": "Votre présentation",
+      "photos": "Photos",
+      "quote": "Le devis et ses options",
+      "schedule": "Échéancier et conditions",
+      "validity": "Validité"
+    },
+    "hidden": "Masqué",
+    "place": "Place {place}",
+    "save": "Enregistrer le modèle",
+    "saved": "Modèle enregistré.",
+    "remove": "Supprimer le modèle « {type} »",
+    "errorUnauthenticated": "Votre session a expiré. Reconnectez-vous.",
+    "errorGreeting": "Le mot d'accueil fait de 1 à 4 000 caractères.",
+    "errorBlocks": "Le devis doit figurer sur la page, chaque bloc une seule fois.",
+    "photosSummary": "Photos ({count} sur 3)",
+    "photosNone": "Aucune photo pour l'instant.",
+    "photoAlt": "Photo {number} du modèle",
+    "photoRemove": "Retirer la photo {number}",
+    "photoField": "Ajouter une photo (PNG ou JPEG, 3 Mo au plus)",
+    "photoSubmit": "Envoyer la photo",
+    "photoAdded": "Photo ajoutée.",
+    "photosHint": "Trois photos au plus : vos plus belles réalisations, montrées sur la page de proposition.",
+    "photoErrors": {
+      "missing": "Choisissez une photo.",
+      "too_large": "La photo dépasse 3 Mo.",
+      "unsupported_type": "Seules les photos PNG ou JPEG sont acceptées.",
+      "infected": "Ce fichier a été refusé par l'antivirus.",
+      "full": "Ce modèle a déjà trois photos.",
+      "not_found": "Modèle introuvable : enregistrez-le d'abord."
+    }
+  },
+  "ReminderSettings": {
+    "title": "Relances",
+    "moduleUnavailable": "Le module Devis n'est pas disponible pour votre organisation.",
+    "intro": "Symbola relance pour vous, par e-mail, aux heures ouvrées : une fois avant l'expiration d'une proposition, puis après une échéance non réglée. Une relance s'arrête dès que le client déclare son virement ou que vous confirmez l'encaissement.",
+    "formLabel": "Réglages des relances",
+    "expiryDays": "Relance avant l'expiration d'une proposition (jours avant)",
+    "expiryHint": "Une seule relance, aux clients qui n'ont ni signé ni refusé.",
+    "paymentDays": "Relances d'une échéance impayée (jours après l'échéance)",
+    "paymentHint": "Jusqu'à cinq nombres, séparés par des virgules (par exemple : 3, 10, 20).",
+    "consumerRate": "Taux annuel de la clause de pénalités d'un particulier (%)",
+    "consumerRateHint": "À remplir seulement si votre contrat prévoit une clause de pénalités ; vide, aucune pénalité n'est mentionnée à un particulier. Face à un professionnel, les pénalités de vos conditions s'appliquent.",
+    "save": "Enregistrer les réglages",
+    "saved": "Réglages enregistrés.",
+    "errorUnauthenticated": "Votre session a expiré. Reconnectez-vous.",
+    "errorRate": "Saisissez un taux comme 3,5.",
+    "errors": {
+      "expiryReminderDays": "La relance avant expiration part de 1 à 30 jours avant.",
+      "paymentReminderDays": "De une à cinq relances, chacune entre 1 et 120 jours après l'échéance.",
+      "consumerLatePenaltyBasisPoints": "Le taux est compris entre 0,01 et 100 %."
+    },
+    "lawyerNote": "Pénalités d'un particulier : question posée à l'avocat (taux maximal, mentions). En attendant, rien n'est mentionné sans clause au contrat."
+  },
+  "VendorRecords": {
+    "unauthorized": "Action non autorisée.",
+    "notFound": "Fiche ou pièce introuvable.",
+    "someone": "un membre de l'équipe",
+    "byYou": "vous",
+    "byOwner": "la titulaire",
+    "byMember": "un membre de l'équipe",
+    "byVendorLink": "le prestataire, par son lien",
+    "bankTitle": "Coordonnées bancaires",
+    "iban": "IBAN",
+    "ibanNew": "Nouvel IBAN",
+    "bic": "BIC",
+    "bicSet": "renseigné",
+    "ibanHint": "L'IBAN est chiffré et n'apparaît que masqué. Tout changement est noté et reste « à vérifier » jusqu'à votre appel au prestataire.",
+    "ibanSave": "Enregistrer l'IBAN",
+    "ibanSaved": "IBAN enregistré.",
+    "ibanInvalid": "Cet IBAN n'est pas valide : vérifiez les chiffres.",
+    "bicInvalid": "Ce BIC n'est pas valide, ou l'IBAN manque.",
+    "toVerify": "à vérifier",
+    "bankCheckTitle": "IBAN changé : à vérifier par un autre canal avant tout paiement",
+    "bankCheckByVendor": "Le prestataire a changé son IBAN par son lien le {date}.",
+    "bankCheckByPlanner": "L'IBAN a été changé dans Symbola le {date}.",
+    "bankCheckCall": "Appelez le prestataire au numéro que vous connaissez déjà ({phone}), jamais à celui du message qui annonce le changement.",
+    "bankCheckCallNoPhone": "Appelez le prestataire au numéro que vous connaissez déjà, jamais à celui du message qui annonce le changement.",
+    "bankCheckLift": "J'ai vérifié par téléphone",
+    "bankHistory": "Changements d'IBAN ({count})",
+    "bankHistoryLine": "{date}, par {who} : {before} → {after}.",
+    "bankHistoryVerified": "Vérifié le {date} par {who}.",
+    "bankHistoryPending": "À vérifier.",
+    "documentsTitle": "Pièces",
+    "documentsEmpty": "Aucune pièce pour l'instant.",
+    "documentKind": "Nature de la pièce",
+    "documentFile": "Fichier (PDF ou image)",
+    "validUntil": "Valable jusqu'au (facultatif)",
+    "validUntilShort": "valable jusqu'au {date}",
+    "validUntilFor": "Fin de validité : {document}",
+    "validUntilSave": "Changer la date",
+    "validUntilInvalid": "Date de fin de validité non valable.",
+    "documentAdd": "Ajouter la pièce",
+    "documentAdded": "Pièce ajoutée.",
+    "documentRequested": "demandée au prestataire",
+    "documentToVerify": "déposée par le prestataire, à vérifier",
+    "documentExpired": "expirée",
+    "documentExpiring": "expire bientôt",
+    "documentVerify": "Marquer « {document} » comme vérifiée",
+    "documentRemove": "Retirer « {document} »",
+    "fileMissing": "Choisissez un fichier.",
+    "fileTooLarge": "Fichier trop lourd (20 Mo au plus).",
+    "fileInfected": "Fichier refusé par l'antivirus.",
+    "fileUnsupported": "Format non accepté : PDF ou image.",
+    "requestHint": "Le prestataire a sa pièce à jour ? Demandez-la : il la déposera par son lien personnel, et elle arrivera « à vérifier ».",
+    "requestKind": "Pièce à demander",
+    "requestSubmit": "Demander au prestataire",
+    "requestSent": "Demande notée : elle apparaît dans l'espace du prestataire.",
+    "noteTitle": "Note interne",
+    "note": "Note",
+    "noteConfidential": "Confidentielle",
+    "noteConfidentialHint": "Une note confidentielle est chiffrée, absente des recherches et des exports, et lisible seulement par vous et la titulaire du compte.",
+    "noteSave": "Enregistrer la note",
+    "noteSaved": "Note enregistrée.",
+    "noteForbidden": "Cette note confidentielle est réservée à son auteur et à la titulaire.",
+    "noteHidden": "Une note confidentielle existe : elle est réservée à son auteur et à la titulaire du compte."
+  },
+  "VenueChecks": {
+    "title": "Contraintes du lieu",
+    "rule": {
+      "music_end": "{venue} demande la fin de la musique à {time} : « {item} » finit plus tard.",
+      "volume_down": "{venue} demande de baisser le volume à {time} : « {item} » finit plus tard.",
+      "guests_departure": "{venue} demande le départ des invités à {time} : « {item} » finit plus tard.",
+      "vendor_access_start": "{venue} ouvre aux prestataires à {time} : « {item} » commence plus tôt.",
+      "vendor_access_end": "{venue} ferme aux prestataires à {time} : « {item} » finit plus tard."
+    },
+    "ruleOther": "« {item} » dépasse une contrainte de {venue}.",
+    "notBlocking": "Un signalement, rien n'est bloqué : une dérogation négociée avec le lieu reste possible.",
+    "capacitySeated": "{venue} accueille {limit} personnes assises : {guests} invités sont prévus.",
+    "capacityStanding": "{venue} accueille {limit} personnes debout : {guests} invités sont prévus."
+  },
+  "VendorDocumentSettings": {
+    "title": "Pièces des prestataires",
+    "unavailable": "Le carnet de prestataires n'est pas ouvert pour votre organisation.",
+    "unauthorized": "Action non autorisée.",
+    "alertTitle": "Alerte avant la fin de validité",
+    "alertIntro": "Une pièce est signalée dans « Aujourd'hui » ce nombre de jours avant son dernier jour de validité.",
+    "days": "Jours avant la fin",
+    "daysInvalid": "Entre 1 et 180 jours.",
+    "save": "Enregistrer",
+    "saved": "Délai enregistré.",
+    "kindsTitle": "Natures de pièces",
+    "kindWithExpiry": "avec fin de validité",
+    "kindRemove": "Retirer « {kind} »",
+    "kindLabel": "Nouvelle nature",
+    "kindExpires": "A une fin de validité",
+    "kindAdd": "Ajouter",
+    "kindAdded": "Nature ajoutée.",
+    "labelInvalid": "Un libellé de 1 à 120 caractères."
+  },
+  "PlannerMoney": {
+    "pageTitle": "Honoraires et commissions",
+    "unavailable": "Le module des devis n'est pas ouvert pour votre organisation.",
+    "unauthorized": "Action non autorisée.",
+    "backToEvent": "Retour à l'évènement de {names}",
+    "quoteTitle": "Vos honoraires, vos commissions et vos modes",
+    "packageTravelTitle": "Forfait touristique : le contrat standard est bloqué",
+    "packageTravelBody": "Ce devis vend ensemble, en revendeur, un transport ou un hébergement et une autre prestation touristique. C'est un forfait touristique, soumis à des règles particulières : choisissez un modèle de contrat dédié, relu par votre conseil.",
+    "franchiseApproaching": "Franchise en base : avec ce devis, votre chiffre d'affaires de l'année atteindrait {total}, près du seuil de {threshold}.",
+    "franchiseExceeded": "Franchise en base : avec ce devis, votre chiffre d'affaires de l'année atteindrait {total}, au-delà du seuil de {threshold}. Parlez-en à votre expert-comptable.",
+    "resaleTotal": "Votre part (revendeur, dans votre total)",
+    "intermediaryTotal": "Facturé par les prestataires (pour information)",
+    "modesHint": "Chaque ligne a son mode : en revendeur, vous achetez et refacturez, la ligne entre dans votre total et votre TVA ; en intermédiaire, le prestataire facture le client, la ligne est montrée pour information.",
+    "commissionsTitle": "Commissions et apports d'affaires",
+    "commissionsNone": "Aucune commission tracée pour cet évènement.",
+    "commissionsIndividual": "Client particulier : chaque commission lui est montrée, sur le devis et dans son portail.",
+    "commissionsProfessional": "Client professionnel : vous choisissez les commissions qui lui sont montrées.",
+    "commissionsNoVendor": "Retenez d'abord un prestataire pour cet évènement.",
+    "commissionLine": "{vendor} : {amount} ({nature})",
+    "natureCommission": "commission",
+    "natureReferral": "apport d'affaires",
+    "manageLink": "Gérer les honoraires et les commissions de l'évènement",
+    "addFeeLine": "Ajouter les honoraires au devis ({amount} HT)",
+    "feeLineLabel": "Honoraires de coordination",
+    "feesTitle": "Vos honoraires",
+    "feeAmount": "Honoraires : {amount} HT, calculés depuis le budget de l'évènement.",
+    "feeNone": "Aucun honoraire réglé pour cet évènement.",
+    "feesHint": "Vos honoraires vont sur votre devis ; dans le budget du client, ils forment une ligne à part, jamais dans les dépenses de l'évènement.",
+    "feeKind": "Forme",
+    "feeKindNone": "Aucun",
+    "feeKindFlat": "Forfait",
+    "feeKindPercent": "Pourcentage du budget",
+    "feeKindMixed": "Forfait et pourcentage",
+    "feeFlat": "Forfait (€ HT)",
+    "feePercent": "Pourcentage (%)",
+    "feeBase": "Base du pourcentage",
+    "feeBaseEstimated": "Budget estimé",
+    "feeBaseCommitted": "Budget engagé",
+    "feeSave": "Enregistrer les honoraires",
+    "feeSaved": "Honoraires enregistrés.",
+    "feeInvalid": "Honoraires non valables : un montant positif et un pourcentage entre 0,01 et 100.",
+    "commissionVendor": "Prestataire",
+    "commissionNature": "Nature",
+    "commissionMode": "Calcul",
+    "commissionModeAmount": "Montant",
+    "commissionModePercent": "Pourcentage d'un montant",
+    "commissionAmount": "Montant (€ HT)",
+    "commissionPercent": "Pourcentage (%)",
+    "commissionBase": "Montant de base (€)",
+    "commissionShown": "Montrer au client",
+    "commissionAdd": "Tracer la commission",
+    "commissionAdded": "Commission tracée.",
+    "commissionInvalid": "Commission non valable : un montant positif, ou un pourcentage et sa base.",
+    "status_expected": "attendue",
+    "status_invoiced": "facturée",
+    "status_received": "reçue",
+    "receivedOn": "le {date}",
+    "shownToClient": "montrée au client",
+    "hiddenFromClient": "non montrée au client",
+    "markReceived": "Marquer reçue — {vendor}",
+    "show": "Montrer au client — {vendor}",
+    "hide": "Ne plus montrer — {vendor}",
+    "remove": "Retirer — {vendor}",
+    "invoiceIssue": "Facturer la commission à {vendor}",
+    "invoiceIssued": "Facture émise.",
+    "invoiceDownload": "Facture {number}",
+    "invoiceAlready": "Cette commission est déjà facturée.",
+    "invoiceVendorMissing": "Rattachez la commission à une fiche du carnet (raison sociale, SIRET, adresse) pour la facturer.",
+    "invoiceMentionsMissing": "La fiche du prestataire doit porter son SIRET et son adresse complète.",
+    "invoiceLineCommission": "Commission — évènement de {event}",
+    "invoiceLineReferral": "Apport d'affaires — évènement de {event}",
+    "budgetFeeTitle": "Honoraires de la planner",
+    "budgetFeeHt": "HT",
+    "budgetFeeHint": "À part : ils ne comptent dans aucune catégorie ni dans les dépenses de l'évènement.",
+    "portalTitle": "Commissions perçues par votre organisatrice",
+    "portalIntro": "Votre organisatrice reçoit des prestataires de votre évènement les commissions suivantes :",
+    "pdfIntermediaryTitle": "Prestations facturées directement par les prestataires (pour information, hors du total) :",
+    "pdfCommissionsTitle": "Commissions perçues par l'organisatrice :",
+    "pdfLine": "{label} : {amount}"
+  },
+  "Devices": {
+    "label": "{browser} sur {system}",
+    "browser": {
+      "edge": "Edge",
+      "opera": "Opera",
+      "samsung": "Samsung Internet",
+      "firefox": "Firefox",
+      "chrome": "Chrome",
+      "safari": "Safari",
+      "other": "Un navigateur"
+    },
+    "system": {
+      "iphone": "iPhone",
+      "ipad": "iPad",
+      "android": "Android",
+      "mac": "Mac",
+      "windows": "Windows",
+      "linux": "Linux",
+      "other": "un appareil inconnu"
+    }
+  },
+  "Accounting": {
+    "menuLabel": "Comptabilité",
+    "menu": {
+      "documents": "Factures et avoirs",
+      "payments": "Encaissements",
+      "eReporting": "E-reporting",
+      "ledger": "Journaux et exports",
+      "sessions": "Mes sessions",
+      "account": "Mon compte"
+    },
+    "title": "Comptabilité de {organization}",
+    "subtitle": "Votre accès est en lecture seule : vous consultez et téléchargez, rien ne se modifie d'ici.",
+    "readOnly": "Lecture seule",
+    "documentsTitle": "Factures et avoirs",
+    "noDocuments": "Aucune facture ni aucun avoir pour cette année.",
+    "year": "Année",
+    "number": "Numéro",
+    "kind": "Pièce",
+    "date": "Date",
+    "amount": "Montant TTC",
+    "download": "Télécharger",
+    "downloadLabel": "Télécharger {number}",
+    "kinds": {
+      "invoice": "Facture",
+      "credit_note": "Avoir",
+      "commission_invoice": "Facture de commission"
+    },
+    "linksTitle": "Journaux, encaissements et e-reporting",
+    "links": {
+      "payments": "Encaissements",
+      "ledger": "Journaux et écritures (CSV)",
+      "eReporting": "E-reporting"
+    },
+    "moduleUnavailable": "Le module Devis et factures n'est pas souscrit par l'organisation : rien à consulter pour l'instant.",
+    "documentsTable": "Tableau des factures et avoirs"
+  },
+  "Ownership": {
+    "title": "Devenir Propriétaire",
+    "body": "La Propriétaire de l'organisation vous propose de prendre sa place : vous gérerez l'équipe, l'abonnement, le RGPD et les réglages ; elle deviendra Planner.",
+    "confirm": "Je deviens Propriétaire",
+    "done": "C'est fait : vous êtes la Propriétaire de l'organisation.",
+    "openTeam": "Voir l'équipe",
+    "signInFirst": "Connectez-vous d'abord avec votre double authentification, puis rouvrez le lien reçu par e-mail.",
+    "signIn": "Se connecter",
+    "mfaRequired": "Pour confirmer, reconnectez-vous avec votre double authentification (clé d'accès ou application), puis rouvrez le lien reçu par e-mail.",
+    "outcome": {
+      "invalid": "Ce lien n'est plus valable : il a déjà servi, il a été annulé ou il a plus de sept jours.",
+      "not_recipient": "Ce lien est destiné à une autre personne de l'équipe.",
+      "mfa_required": "Pour confirmer, reconnectez-vous avec votre double authentification, puis rouvrez le lien."
+    }
+  },
+  "EventTeam": {
+    "title": "Équipe de l'évènement",
+    "subtitle": "Le planner principal reçoit les alertes et récapitulatifs ; les assistants travaillent sur tout l'évènement, sauf sa suppression.",
+    "back": "Retour à {event}",
+    "untitled": "l'évènement",
+    "manage": "Gérer l'équipe",
+    "lead": "Planner principal",
+    "assistants": "Assistants",
+    "helpers": "Renforts du jour J",
+    "noLead": "Aucun",
+    "noAssistant": "Aucun",
+    "noHelper": "Aucun renfort pour l'instant.",
+    "membersTitle": "Planners de l'évènement",
+    "roles": {
+      "lead": "Planner principal",
+      "assistant": "Assistant"
+    },
+    "notInTeam": "Pas dans l'équipe",
+    "makeLead": "Nommer planner principal",
+    "makeLeadLabel": "Nommer {email} planner principal",
+    "addAssistant": "Ajouter comme assistant",
+    "addAssistantLabel": "Ajouter {email} comme assistant",
+    "remove": "Retirer de l'équipe",
+    "removeLabel": "Retirer {email} de l'équipe",
+    "formerMembers": "Une personne dont l'accès a été retiré n'apparaît plus.",
+    "helpersTitle": "Renforts du jour J",
+    "helpersIntro": "Un renfort reçoit un lien personnel, sans compte : il ouvre seulement le mode Jour J de cet évènement (programme en direct, annuaire, documents gardés, pointage, main courante, listes), de la veille au lendemain, avec un code envoyé par e-mail. Ni budget, ni devis, ni invités, ni réglages.",
+    "helperName": "Nom du renfort",
+    "helperEmail": "Son e-mail (le code d'ouverture y part)",
+    "helperPhone": "Son téléphone (facultatif, pour l'annuaire)",
+    "helperHint": "Le lien part aussitôt par e-mail. Vous pouvez le retirer à tout moment : ses actions encore en attente seront refusées.",
+    "helperAdd": "Ajouter le renfort",
+    "helperSent": "Renfort ajouté : son lien est parti par e-mail.",
+    "helperValid": "Lien valable du {from} au {until} inclus",
+    "helperStatus": {
+      "expired": "Lien expiré",
+      "revoked": "Lien retiré"
+    },
+    "helperRevoke": "Retirer le lien",
+    "helperRevokeLabel": "Retirer le lien de {name}",
+    "helperNeedsDate": "Donnez une date à l'évènement pour ajouter un renfort : son lien suit cette date.",
+    "helperError": {
+      "name": "Indiquez le nom du renfort.",
+      "email": "Cette adresse e-mail n'est pas valide.",
+      "phone": "Ce numéro de téléphone n'est pas valide.",
+      "date": "L'évènement n'a pas encore de date.",
+      "demo": "Un essai n'envoie jamais d'e-mail à un tiers.",
+      "quota": "Le plafond d'envois de l'heure est atteint : réessayez un peu plus tard.",
+      "template": "Le modèle de l'e-mail du renfort a une variable sans valeur : corrigez-le dans les réglages des e-mails.",
+      "failed": "Le renfort n'a pas pu être ajouté. Réessayez dans quelques minutes."
+    },
+    "outcome": {
+      "saved": "Équipe enregistrée.",
+      "removed": "Retiré de l'équipe.",
+      "helper_revoked": "Lien retiré : le renfort n'a plus accès, ses actions en attente seront refusées.",
+      "invalid": "Cette personne ne peut pas rejoindre l'équipe de l'évènement."
+    }
+  },
+  "Notifications": {
+    "types": {
+      "prospect_request": {
+        "label": "Nouvelle demande",
+        "text": "Une nouvelle demande de contact est arrivée.",
+        "action": "Voir la demande"
+      },
+      "quote_signed": {
+        "label": "Devis signé",
+        "text": "Le devis {number} est signé.",
+        "action": "Voir le devis"
+      },
+      "quote_expired": {
+        "label": "Devis expiré",
+        "text": "Le devis {number} a expiré sans réponse.",
+        "action": "Voir le devis"
+      },
+      "transfer_declared": {
+        "label": "Virement déclaré",
+        "text": "Un virement de {amount} est déclaré (devis {number}).",
+        "action": "Confirmer la réception"
+      },
+      "client_decision": {
+        "label": "Décision du client",
+        "text": "Le client a répondu : « {title} ».",
+        "action": "Voir la décision"
+      },
+      "vendor_answer": {
+        "label": "Réponse d'un prestataire",
+        "text": "Un prestataire a répondu à votre demande.",
+        "action": "Voir la réponse"
+      },
+      "iban_to_verify": {
+        "label": "IBAN à vérifier",
+        "text": "L'IBAN de {vendor} a changé : à vérifier avant tout virement.",
+        "action": "Vérifier l'IBAN"
+      },
+      "document_expiring": {
+        "label": "Pièce qui expire",
+        "text": "La pièce « {document} » de {vendor} expire bientôt, ou a expiré.",
+        "action": "Voir les pièces"
+      },
+      "task_overdue": {
+        "label": "Tâche en retard",
+        "text": "La tâche « {label} » est en retard.",
+        "action": "Ouvrir la tâche"
+      },
+      "milestone_late": {
+        "label": "Jalon en retard",
+        "text": "Le jalon « {label} » est en retard.",
+        "action": "Ouvrir le jalon"
+      },
+      "risk_alert": {
+        "label": "Alerte du radar",
+        "text": "{summary}",
+        "action": "Voir le risque"
+      },
+      "day_of_alert": {
+        "label": "Alerte du jour J",
+        "text": "Un incident est signalé sur le terrain.",
+        "action": "Ouvrir le jour J"
+      }
+    },
+    "center": {
+      "title": "Notifications",
+      "intro": "Ce qui s'est passé et ce qui vous attend. Chaque notification mène à l'écran où agir.",
+      "empty": "Aucune notification pour l'instant.",
+      "markAll": "Tout marquer comme lu",
+      "unread": "Non lue",
+      "settings": "Régler mes notifications",
+      "listLabel": "Notifications"
+    },
+    "bell": {
+      "label": "Notifications",
+      "unread": "Notifications, {count, plural, =0 {aucune non lue} one {# non lue} other {# non lues}}"
+    },
+    "digest": {
+      "tasks": "{count, plural, one {# tâche} other {# tâches}} à faire aujourd'hui, dont {late} en retard.",
+      "risks": "{count, plural, one {# risque détecté} other {# risques détectés}} par le radar."
+    },
+    "settings": {
+      "title": "Notifications",
+      "intro": "Choisissez ce qui vous est envoyé, par où et quand. Ces réglages sont les vôtres : chaque membre de l'équipe a les siens.",
+      "typesTitle": "Par sorte et par canal",
+      "typesHint": "Chaque sorte se coupe séparément. « Immédiat » : elle part tout de suite par e-mail ; les autres attendent le récapitulatif.",
+      "columnType": "Sorte",
+      "channel": {
+        "app": "Dans l'application",
+        "email": "E-mail",
+        "push": "Push"
+      },
+      "immediate": "Immédiat",
+      "digestTitle": "Récapitulatif du matin",
+      "digestEnabled": "Recevoir chaque matin le récapitulatif par e-mail",
+      "digestHour": "Heure du récapitulatif",
+      "quietTitle": "Plages de silence",
+      "quietHint": "Pendant le silence, ni push ni e-mail immédiat : ce qui arrive attend la fin de la plage, ou le récapitulatif.",
+      "quietEnabled": "Silence la nuit",
+      "quietStart": "De",
+      "quietEnd": "À",
+      "quietSundays": "Silence le dimanche",
+      "dayOfOverride": "Le jour d'un évènement, les alertes du jour J passent outre le silence",
+      "timeZone": "Heures du fuseau {zone}.",
+      "save": "Enregistrer",
+      "saved": "Réglages enregistrés.",
+      "invalid": "Ces réglages ne sont pas valables."
+    },
+    "push": {
+      "title": "Notifications push sur cet appareil",
+      "intro": "Le push s'active appareil par appareil. Le message est chiffré jusqu'à votre navigateur ; il ne dit que la sorte de notification, jamais un nom ni un montant.",
+      "ios": "Sur iPhone et iPad (iOS 16.4 et plus), ajoutez d'abord Symbola à l'écran d'accueil (Partager, puis « Sur l'écran d'accueil »), puis ouvrez-le depuis l'écran d'accueil pour activer le push.",
+      "enable": "Activer le push sur cet appareil",
+      "disable": "Désactiver le push sur cet appareil",
+      "enabled": "Le push est actif sur cet appareil.",
+      "unsupported": "Ce navigateur ne permet pas le push.",
+      "denied": "Le navigateur a refusé les notifications : autorisez-les dans ses réglages, puis réessayez.",
+      "failed": "Le push n'a pas pu être activé. Réessayez plus tard.",
+      "devicesTitle": "Appareils abonnés",
+      "devicesEmpty": "Aucun appareil abonné.",
+      "deviceSince": "Depuis le {date}",
+      "remove": "Retirer",
+      "removeLabel": "Retirer {device}",
+      "test": "Envoyer un essai",
+      "testSent": "Essai envoyé.",
+      "testTitle": "Symbola",
+      "testBody": "Le push fonctionne sur cet appareil.",
+      "deviceUnknown": "Appareil"
+    }
+  },
+  "RiskRadar": {
+    "rules": {
+      "vendor_without_contract": {
+        "label": "Prestataire retenu sans contrat",
+        "description": "Un prestataire « Retenu » sans contrat signé, à moins de N jours de l'évènement.",
+        "alert": "{vendor} ({slot}) est retenu depuis {retainedDays, plural, one {# jour} other {# jours}} sans contrat signé, à {daysLeft, plural, one {# jour} other {# jours}} de l'évènement ; seuil : {threshold, plural, one {# jour} other {# jours}} avant l'évènement."
+      },
+      "decision_overdue": {
+        "label": "Décision du client en attente",
+        "description": "Une décision demandée au client, sans réponse N jours après son échéance.",
+        "alert": "« {title} » attend la réponse du client depuis {daysLate, plural, one {# jour} other {# jours}} après son échéance ; seuil : {threshold, plural, one {# jour} other {# jours}}."
+      },
+      "document_expired": {
+        "label": "Pièce expirée",
+        "description": "Une pièce d'un prestataire expirée, ou qui expire avant l'évènement (marge de N jours).",
+        "alert": "La pièce « {document} » de {vendor} expire le {expiresOn}, avant l'évènement ; marge : {threshold, plural, one {# jour} other {# jours}}."
+      },
+      "payment_overdue": {
+        "label": "Échéance impayée",
+        "description": "Une échéance du client impayée depuis N jours.",
+        "alert": "L'échéance du devis {quote} est impayée depuis {daysLate, plural, one {# jour} other {# jours}} ; seuil : {threshold, plural, one {# jour} other {# jours}}."
+      },
+      "milestone_late": {
+        "label": "Jalon en retard",
+        "description": "Un jalon du rétroplanning en retard de N jours.",
+        "alert": "Le jalon « {task} » est en retard de {daysLate, plural, one {# jour} other {# jours}} ; seuil : {threshold, plural, one {# jour} other {# jours}}."
+      },
+      "iban_to_verify": {
+        "label": "IBAN à vérifier",
+        "description": "Un IBAN de prestataire « à vérifier » depuis N jours.",
+        "alert": "L'IBAN de {vendor} est à vérifier depuis {days, plural, one {# jour} other {# jours}} ; seuil : {threshold, plural, one {# jour} other {# jours}}."
+      },
+      "roadmap_unconfirmed": {
+        "label": "Feuille de route non confirmée",
+        "description": "Une feuille de route envoyée, non confirmée N jours après son envoi.",
+        "alert": "{vendor} n'a pas confirmé sa feuille de route, envoyée il y a {days, plural, one {# jour} other {# jours}} ; seuil : {threshold, plural, one {# jour} other {# jours}}."
+      }
+    },
+    "today": {
+      "title": "Risques",
+      "intro": "Le radar passe chaque matin sur les évènements à venir. Chaque alerte dit sa règle.",
+      "empty": "Aucun risque détecté ce matin.",
+      "off": "Le radar des risques est coupé.",
+      "open": "Agir",
+      "openLabel": "Agir : {label}"
+    },
+    "settings": {
+      "title": "Radar des risques et santé du planning",
+      "intro": "Le radar passe chaque matin, avant le récapitulatif. Réglez ses règles et leurs seuils ; chaque alerte dira la règle qui l'a déclenchée.",
+      "ownerOnly": "Seule la Propriétaire modifie ces réglages.",
+      "enabled": "Règle active",
+      "threshold": "Seuil (jours)",
+      "unavailable": "Indisponible : le module dont elle dépend ne donne pas encore ces informations.",
+      "save": "Enregistrer",
+      "saved": "Règle enregistrée.",
+      "invalid": "Ce seuil n'est pas valable (0 à 365 jours)."
+    },
+    "health": {
+      "title": "Santé du planning",
+      "intro": "Une tâche en retard compte 1 point, un jalon en retard compte davantage. « À surveiller » et « En retard » partent de ces seuils.",
+      "watchPoints": "« À surveiller » à partir de (points)",
+      "latePoints": "« En retard » à partir de (points)",
+      "milestoneWeight": "Poids d'un jalon en retard (points)",
+      "saved": "Seuils enregistrés.",
+      "invalid": "Ces seuils ne sont pas valables."
+    }
+  },
+  "Automations": {
+    "keys": {
+      "quote_signed_confirm_event": {
+        "title": "Contrat signé, puis évènement confirmé",
+        "description": "Quand le client signe le devis, l'option devient un évènement confirmé (rétroplanning, facture d'acompte)."
+      },
+      "payment_due_reminder": {
+        "title": "Échéance à J-7, puis rappel au payeur",
+        "description": "Un e-mail court au payeur désigné, quelques jours avant l'échéance, avec le montant, la référence et le RIB. Jamais après un virement déclaré."
+      },
+      "rsvp_reminder": {
+        "title": "RSVP manquant, puis relance",
+        "description": "Les invités sans réponse reçoivent une relance avant la clôture des réponses."
+      },
+      "client_task_reminder": {
+        "title": "Rappels des tâches du client",
+        "description": "Les tâches confiées au client lui sont rappelées avant leur échéance, et le lendemain d'un retard."
+      },
+      "invoice_reminder": {
+        "title": "Relances d'impayés",
+        "description": "Après l'échéance, les relances du règlement partent selon vos délais."
+      },
+      "proposal_expiry_reminder": {
+        "title": "Relance avant expiration de la proposition",
+        "description": "Une relance au client avant la fin de validité d'une proposition sans réponse."
+      },
+      "prospect_follow_up": {
+        "title": "Relances préparées des prospects",
+        "description": "Les relances des prospects sans nouvelle sont préparées dans « Aujourd'hui » (envoyées seules si vous l'avez réglé)."
+      },
+      "vendor_roadmap": {
+        "title": "Feuilles de route des prestataires",
+        "description": "À J-30 et J-7, chaque prestataire retenu reçoit sa feuille de route."
+      },
+      "risk_radar": {
+        "title": "Radar des risques",
+        "description": "Chaque matin, le radar cherche les risques des évènements à venir et vous prévient."
+      }
+    },
+    "alwaysOn": {
+      "privacy_purge": {
+        "title": "Purge des données personnelles",
+        "reason": "Le RGPD impose d'effacer les données personnelles à leur échéance, avec préavis : elle ne se coupe pas."
+      },
+      "ledger_check": {
+        "title": "Contrôle de la chaîne des pièces",
+        "reason": "Les factures et avoirs émis doivent rester inaltérables : leur chaîne est vérifiée chaque jour, sans interrupteur."
+      }
+    },
+    "title": "Automatisations",
+    "intro": "Ce que Symbola fait seul pour vous. Chaque automatisme s'active, se coupe et garde la trace de ce qu'il a fait.",
+    "noCatchUp": "Couper un automatisme arrête ses prochains envois. À la remise en route, rien de ce qui aurait dû partir entre-temps n'est rattrapé.",
+    "ownerOnly": "Seule la Propriétaire active ou coupe les automatismes.",
+    "on": "Actif",
+    "off": "Coupé",
+    "turnOn": "Activer",
+    "turnOff": "Couper",
+    "turnOnLabel": "Activer : {title}",
+    "turnOffLabel": "Couper : {title}",
+    "unavailable": "Indisponible : le module dont il dépend n'est pas ouvert.",
+    "days": "Jours avant l'échéance",
+    "saveDays": "Enregistrer",
+    "resumedAt": "Remis en route le {date}.",
+    "journal": "Journal",
+    "journalEmpty": "Rien encore.",
+    "result": {
+      "sent": "Envoyé",
+      "done": "Fait",
+      "skipped": "Laissé de côté",
+      "failed": "Échec"
+    },
+    "radarCount": "{count, plural, =0 {aucune alerte} one {# alerte} other {# alertes}}",
+    "open": "Ouvrir",
+    "alwaysOnTitle": "Toujours actifs",
+    "alwaysOnBadge": "Toujours actif",
+    "saved": "Automatisme enregistré.",
+    "invalid": "Ce réglage n'est pas valable."
+  },
+  "StandaloneTasks": {
+    "title": "Tâches hors évènement",
+    "intro": "Déclaration de TVA, assurance, comptabilité : ce qui ne dépend d'aucun évènement. Une tâche peut se répéter ; la suivante se crée quand celle-ci est faite, ou à sa date.",
+    "label": "Tâche",
+    "dueDate": "Échéance",
+    "recurrence": "Répétition",
+    "recurrenceNone": "Une seule fois",
+    "recurrenceValue": {
+      "weekly": "Chaque semaine",
+      "monthly": "Chaque mois",
+      "quarterly": "Chaque trimestre",
+      "yearly": "Chaque année"
+    },
+    "add": "Ajouter la tâche",
+    "added": "Tâche ajoutée.",
+    "invalid": "Indiquez un intitulé et une échéance valables.",
+    "empty": "Aucune tâche hors évènement.",
+    "done": "Fait",
+    "doneLabel": "Marquer « {label} » comme faite",
+    "remove": "Supprimer",
+    "removeLabel": "Supprimer « {label} »",
+    "listLabel": "Tâches hors évènement",
+    "todayTag": "Hors évènement"
+  },
+  "PlanningHealth": {
+    "state": {
+      "good": "Bon",
+      "watch": "À surveiller",
+      "late": "En retard"
+    },
+    "why": "Pourquoi ?",
+    "explain": "{points, plural, =0 {Aucune tâche en retard.} one {# point : } other {# points : }}seuils {watch} (à surveiller) et {late} (en retard).",
+    "contributor": "{label} — {days, plural, one {# jour} other {# jours}} de retard",
+    "milestone": "Jalon",
+    "milestoneToggle": "Jalon",
+    "milestoneOn": "Marquer comme jalon",
+    "milestoneOff": "Ne plus marquer comme jalon",
+    "milestoneOnLabel": "Marquer « {label} » comme jalon",
+    "milestoneOffLabel": "Ne plus marquer « {label} » comme jalon",
+    "none": "Aucune tâche ne le dégrade."
+  },
+  "ClientTerms": {
+    "title": "Termes pour désigner les clients",
+    "intro": "Pour chaque type d'évènement, choisissez le mot qui désigne vos clients (« les mariés », « les clients », « le commanditaire »…), avec son genre et son nombre. Il s'emploie dans les écrans, dans les e-mails ('{{terme_clients}}') et dans les documents à venir ; un document déjà émis garde son texte.",
+    "type": "Type",
+    "locale": "Langue",
+    "term": "Terme",
+    "gender": "Genre",
+    "number": "Nombre",
+    "genderValue": {
+      "masculine": "Masculin",
+      "feminine": "Féminin",
+      "neuter": "Neutre"
+    },
+    "numberValue": {
+      "singular": "Singulier",
+      "plural": "Pluriel"
+    },
+    "suggested": "Termes proposés",
+    "default": "Par défaut : {term}",
+    "save": "Enregistrer",
+    "reset": "Revenir au terme du type",
+    "saved": "Terme enregistré.",
+    "invalid": "Indiquez un terme court (40 caractères au plus).",
+    "clientsHeading": "Clients : {term}"
   }
 }

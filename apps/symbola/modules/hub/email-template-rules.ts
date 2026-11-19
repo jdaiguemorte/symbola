@@ -21,9 +21,36 @@ const TOKENS: Record<EmailVariable, Record<EmailLocale, string>> = {
   quote_number: { fr: "numéro_devis", en: "quote_number" },
   version: { fr: "version", en: "version" },
   place: { fr: "lieu", en: "place" },
+  slot: { fr: "poste", en: "slot" },
+  deadline: { fr: "date_limite", en: "deadline" },
+  link_available: { fr: "lien_disponible", en: "link_available" },
+  link_unavailable: { fr: "lien_indisponible", en: "link_unavailable" },
   appointment: { fr: "rendez_vous", en: "appointment" },
   appointment_date: { fr: "date_rendez_vous", en: "appointment_date" },
+  // Lot 43 (FAC-08, FAC-09 ; D10).
+  amount: { fr: "montant", en: "amount" },
+  due_date: { fr: "échéance", en: "due_date" },
+  reference: { fr: "référence", en: "reference" },
+  iban: { fr: "iban", en: "iban" },
+  bic: { fr: "bic", en: "bic" },
+  penalties: { fr: "pénalités", en: "penalties" },
+  // Lot 45 (CRM-05, POR-07) : brochure, page de réservation, nom du questionnaire.
+  brochure: { fr: "brochure", en: "brochure" },
+  booking_link: { fr: "lien_rendez_vous", en: "booking_link" },
+  questionnaire: { fr: "questionnaire", en: "questionnaire" },
+  // Lot 52 (EVT-06, SEC-08) : renfort du jour J, alertes de sécurité.
+  valid_from: { fr: "valable_à_partir_du", en: "valid_from" },
+  device: { fr: "appareil", en: "device" },
+  date_time: { fr: "date_heure", en: "date_time" },
+  change: { fr: "changement", en: "change" },
+  // Lot 53 (HUB-24, HUB-15) : le terme des clients du type d'évènement, le récapitulatif, l'alerte.
+  client_term: { fr: "terme_clients", en: "client_term" },
+  digest: { fr: "récapitulatif", en: "digest" },
+  alert: { fr: "alerte", en: "alert" },
 };
+
+// Variables dont la valeur est une adresse : seules dans leur paragraphe, elles deviennent un bouton.
+const LINK_VARIABLES: ReadonlySet<EmailVariable> = new Set(["link", "link_available", "link_unavailable"]);
 
 const BY_TOKEN = new Map<string, EmailVariable>(
   (Object.entries(TOKENS) as [EmailVariable, Record<EmailLocale, string>][]).flatMap(([key, names]) => [
@@ -32,13 +59,13 @@ const BY_TOKEN = new Map<string, EmailVariable>(
   ]),
 );
 
-type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | null };
+type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | "request" | "roadmap" | "questionnaire" | "open" | "dayOf" | "confirm" | "notMe" | "account" | null };
 
 export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
-  client_link: { variables: ["first_name", "organization", "event", "link", "valid_until"], required: ["link"], button: "space" },
-  client_link_renewed: { variables: ["first_name", "organization", "event", "link", "valid_until"], required: ["link"], button: "space" },
-  vendor_link: { variables: ["first_name", "organization", "event", "clients", "event_date", "link", "valid_until"], required: ["link"], button: "space" },
-  vendor_link_renewed: { variables: ["first_name", "organization", "event", "clients", "event_date", "link", "valid_until"], required: ["link"], button: "space" },
+  client_link: { variables: ["first_name", "organization", "event", "client_term", "link", "valid_until"], required: ["link"], button: "space" },
+  client_link_renewed: { variables: ["first_name", "organization", "event", "client_term", "link", "valid_until"], required: ["link"], button: "space" },
+  vendor_link: { variables: ["first_name", "organization", "event", "clients", "client_term", "event_date", "link", "valid_until"], required: ["link"], button: "space" },
+  vendor_link_renewed: { variables: ["first_name", "organization", "event", "clients", "client_term", "event_date", "link", "valid_until"], required: ["link"], button: "space" },
   task_reminder: { variables: ["first_name", "organization", "event", "event_date", "tasks"], required: ["tasks"], button: null },
   // Lot 46 (RDV-03, D10) : le lien de gestion du rendez-vous (report, annulation, sans compte).
   appointment_confirmed: { variables: ["first_name", "organization", "appointment", "appointment_date", "place", "link"], required: ["link"], button: "manage" },
@@ -53,6 +80,42 @@ export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   // Lot 49 (INV-03, INV-04 ; D4, D10) : le lien personnel de l'invité devient le bouton « Répondre ».
   guest_invitation: { variables: ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until"], required: ["link"], button: "answer" },
   guest_reminder: { variables: ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until"], required: ["link"], button: "answer" },
+  // Lot 44 (CRM-01 ; D7) : à la titulaire, le lien vers la fiche du prospect devient « Voir la demande » ;
+  // ni le nom, ni les coordonnées, ni le message du prospect (SEC-20).
+  prospect_form_received: { variables: ["organization", "event_date", "link"], required: ["link"], button: "request" },
+  // Lot 47 (PRE-03, PAR-05 ; D2, D4, D8) : le brief et sa relance portent deux boutons, « Je suis
+  // disponible » et « Je ne suis pas disponible », qui ouvrent la page avec le choix présélectionné ;
+  // la feuille de route, un bouton vers la page où le prestataire confirme l'avoir reçue.
+  vendor_brief: { variables: ["first_name", "organization", "event", "clients", "event_date", "slot", "deadline", "link", "link_available", "link_unavailable"], required: ["link_available", "link_unavailable"], button: "space" },
+  vendor_brief_reminder: { variables: ["first_name", "organization", "event", "clients", "event_date", "slot", "deadline", "link", "link_available", "link_unavailable"], required: ["link_available", "link_unavailable"], button: "space" },
+  vendor_roadmap: { variables: ["first_name", "organization", "event", "clients", "event_date", "link"], required: ["link"], button: "roadmap" },
+  // Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10) : la proposition se lit dans l'espace du client (son
+  // lien personnel n'est gardé que haché : pas de bouton) ; le RIB et la relance portent le montant et
+  // la référence du virement, jamais de donnée de carte (ADR 0087).
+  proposal_sent: { variables: ["first_name", "organization", "quote_number", "valid_until"], required: ["quote_number"], button: null },
+  proposal_expiry_reminder: { variables: ["first_name", "organization", "quote_number", "valid_until"], required: ["valid_until"], button: null },
+  payment_details: { variables: ["first_name", "organization", "quote_number", "amount", "reference", "iban", "bic"], required: ["amount", "reference", "iban"], button: null },
+  invoice_reminder: { variables: ["first_name", "organization", "quote_number", "amount", "due_date", "reference", "iban", "penalties"], required: ["amount", "due_date", "reference"], button: null },
+  // Lot 45 (CRM-05, CRM-06 ; D1, D2) : le texte de la planner (un modèle de message relu et modifié),
+  // à l'image de l'organisation ; la brochure et la page de réservation sont des liens dans le texte.
+  prospect_reply: { variables: ["first_name", "organization", "event", "event_date", "clients", "place", "brochure", "booking_link"], required: [], button: null },
+  prospect_follow_up: { variables: ["first_name", "organization", "event", "event_date", "clients", "place", "brochure", "booking_link"], required: [], button: null },
+  // Lot 45 (POR-07, CRM-09) : le lien personnel devient « Répondre au questionnaire ».
+  questionnaire_sent: { variables: ["first_name", "organization", "event", "questionnaire", "link", "valid_until"], required: ["link"], button: "questionnaire" },
+  // Lot 52 (SEC-08 ; D6) : le lien « Ce n'est pas moi » ferme toutes les sessions ; l'alerte de changement
+  // part à l'ancienne adresse, avec le lien du centre de compte.
+  new_device_login: { variables: ["organization", "device", "date_time", "link"], required: ["link", "device"], button: "notMe" },
+  identity_changed: { variables: ["organization", "change", "date_time", "link"], required: ["change", "link"], button: "account" },
+  // Lot 52 (HUB-04 ; D1) : la Planner désignée confirme par ce lien (usage unique, sept jours).
+  ownership_transfer: { variables: ["organization", "link", "valid_until"], required: ["link"], button: "confirm" },
+  // Lot 52 (EVT-06 ; D3) : le lien personnel du renfort ouvre le mode Jour J, de la veille au lendemain.
+  day_helper_link: { variables: ["first_name", "organization", "event", "event_date", "link", "valid_from", "valid_until"], required: ["link"], button: "dayOf" },
+  // Lot 53 (HUB-15, UX-16 ; D1) : à l'équipe ; l'objet ne dit que la sorte, le texte mène à Symbola.
+  daily_digest: { variables: ["organization", "digest", "link"], required: ["digest", "link"], button: "open" },
+  notification_alert: { variables: ["organization", "alert", "link"], required: ["alert", "link"], button: "open" },
+  // Lot 53 (HUB-28, D5) : au payeur désigné (lot 43), sept jours avant l'échéance, avec le RIB et la
+  // référence ; jamais après un virement déclaré.
+  payment_due_reminder: { variables: ["first_name", "organization", "client_term", "quote_number", "amount", "due_date", "reference", "iban"], required: ["amount", "due_date", "reference"], button: null },
 };
 
 const TOKEN_PATTERN = /\{\{\s*([^{}\s]+)\s*\}\}/g;
@@ -92,7 +155,8 @@ export function validateEmailTemplate(kind: EmailTemplateKind, text: EmailTempla
   return { unknown, missingRequired, tooLong };
 }
 
-export type EmailBlock = { kind: "paragraph"; text: string } | { kind: "button"; url: string };
+// variable : celle dont vient le bouton (son libellé en dépend).
+export type EmailBlock = { kind: "paragraph"; text: string } | { kind: "button"; url: string; variable: EmailVariable };
 export type RenderedEmail = { subject: string; blocks: EmailBlock[]; text: string; missing: EmailVariable[] };
 
 // Remplace chaque variable permise par sa valeur ; une variable sans valeur, ou étrangère, reste
@@ -125,9 +189,10 @@ export function renderEmailTemplate(kind: EmailTemplateKind, template: EmailTemp
     .filter(Boolean)
     .map((paragraph): EmailBlock => {
       const only = /^\{\{\s*([^{}\s]+)\s*\}\}$/.exec(paragraph);
-      if (only && BY_TOKEN.get(only[1]!) === "link") {
+      const variable = only ? BY_TOKEN.get(only[1]!) : undefined;
+      if (variable && LINK_VARIABLES.has(variable)) {
         const url = fill(paragraph);
-        return /^https?:\/\//.test(url) ? { kind: "button", url } : { kind: "paragraph", text: url };
+        return /^https?:\/\//.test(url) ? { kind: "button", url, variable } : { kind: "paragraph", text: url };
       }
       return { kind: "paragraph", text: fill(paragraph) };
     });

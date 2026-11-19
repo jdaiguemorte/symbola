@@ -5,7 +5,7 @@
 // (guards.test.ts) vérifie que chaque page hors des écrans publics en appelle
 // une.
 import { notFound, redirect } from "next/navigation";
-import type { AuthenticatedUser } from "@symbola/auth";
+import { isAccountingReaderRole, type AuthenticatedUser, type AuthResult, type Role } from "@symbola/auth";
 import type { LinkAccess, LinkAudience } from "@/modules/events/service";
 import { getAuthContext, getPlannerAuthContext } from "./auth-context";
 import { currentLinkAccess } from "./link-session";
@@ -25,7 +25,7 @@ export async function requireSignedIn(): Promise<SignedIn> {
 // Lot 33 (D4) — page « Sécurisez votre compte » : seulement pour une session qui attend la double
 // authentification (Propriétaire, Exploitation). Sans session, la connexion ; session complète,
 // l'accueil.
-export async function requirePendingMfa(): Promise<{ userId: string; role: "owner" | "member" | "admin" }> {
+export async function requirePendingMfa(): Promise<{ userId: string; role: Role }> {
   const auth = await getAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "authenticated") redirect("/");
@@ -38,7 +38,8 @@ export async function requirePlanner(): Promise<InOrganization> {
   const auth = await getPlannerAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "mfa_required") redirect("/securite");
-  if (auth.status === "forbidden") redirect("/");
+  // Lot 52 : le Comptable retourne à ses écrans de lecture.
+  if (auth.status === "forbidden") redirect(auth.role === "accountant" ? "/comptable" : "/");
   const { organizationId } = auth.user;
   if (!organizationId) redirect("/");
   return { status: "authenticated", user: { ...auth.user, organizationId } };
@@ -73,4 +74,41 @@ export async function requireOperator(): Promise<{ userId: string; email: string
   if (auth.status === "mfa_required") redirect("/securite");
   if (auth.user.role !== "admin") redirect("/");
   return { userId: auth.user.id, email: auth.user.email };
+}
+
+// Lot 52 (HUB-04 ; ADR 0094) — écrans de lecture comptable (factures et avoirs, encaissements,
+// e-reporting, journaux) : la Propriétaire, les Planners et le Comptable (lecture seule). ownerOnly :
+// une Planner reçoit null (l'écran lui dit qu'il est réservé), comme requireOwner. L'Exploitation va
+// à sa console.
+export async function requireAccountingReader(options: { ownerOnly?: boolean } = {}): Promise<(InOrganization & { readOnly: boolean }) | null> {
+  const auth = await getAuthContext();
+  if (auth.status === "unauthenticated") redirect("/login");
+  if (auth.status === "mfa_required") redirect("/securite");
+  if (!isAccountingReaderRole(auth.user.role) || !auth.user.organizationId) redirect("/");
+  if (options.ownerOnly && auth.user.role === "member") return null;
+  return { status: "authenticated", user: { ...auth.user, organizationId: auth.user.organizationId }, readOnly: auth.user.role === "accountant" };
+}
+
+// Lot 52 : le Comptable n'a que ses écrans ; son accueil est /comptable.
+export async function requireAccountant(): Promise<InOrganization> {
+  const auth = await getAuthContext();
+  if (auth.status === "unauthenticated") redirect("/login");
+  if (auth.status === "mfa_required") redirect("/securite");
+  if (auth.user.role !== "accountant" || !auth.user.organizationId) redirect("/");
+  return { status: "authenticated", user: { ...auth.user, organizationId: auth.user.organizationId } };
+}
+
+// Lot 52 (HUB-05, D4) — « Mes sessions » (/securite) : toute session de compte, qu'elle attende ou non
+// la double authentification (la page le lui demande alors) ; sans session, la connexion.
+export async function requireAccountSession(): Promise<Exclude<AuthResult, { status: "unauthenticated" }>> {
+  const auth = await getAuthContext();
+  if (auth.status === "unauthenticated") redirect("/login");
+  return auth;
+}
+
+// Lot 52 (HUB-04, D1) — page publique qui s'adapte à une personne connectée (confirmation du transfert
+// de propriété) : la session complète, sinon null.
+export async function optionalSignedIn(): Promise<SignedIn | null> {
+  const auth = await getAuthContext();
+  return auth.status === "authenticated" ? auth : null;
 }

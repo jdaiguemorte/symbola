@@ -105,7 +105,7 @@ export async function addContactNoteAction(_previous: NoteFormState, formData: F
   const id = String(formData.get("contactId") ?? "");
   if (!UUID.test(id)) return { error: t("notFound") };
   try {
-    await addContactNote(auth.user.organizationId, { contactId: id, authorUserId: auth.user.id, body: String(formData.get("body") ?? "") });
+    await addContactNote(auth.user.organizationId, { contactId: id, authorUserId: auth.user.id, body: String(formData.get("body") ?? ""), confidential: formData.get("confidential") === "on" });
   } catch (error) {
     if (error instanceof ContactInvalidError) return { error: t("noteInvalid") };
     if (error instanceof ContactNotFoundError) return { error: t("notFound") };

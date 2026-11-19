@@ -387,11 +387,30 @@ lots 46 et 49 : sans cette clé, l'app refuse de démarrer.
    ```
 2. La ranger dans le gestionnaire de mots de passe (« Symbola — clé des données chiffrées —
    staging »). **Perdue, les valeurs chiffrées sont perdues** (adresses d'agendas extérieurs,
-   régimes des invités) : la sauvegarde restic contient les données, pas cette clé.
+   régimes des invités ; depuis le lot 48a, IBAN des prestataires et de la planner, notes
+   confidentielles) : la sauvegarde restic contient les données, pas cette clé.
 3. L'ajouter dans `infra/compose/.env.staging` (puis `.env.production`) :
    `DATA_ENCRYPTION_KEY=<la clé>`, et vérifier :
    ```bash
    sudo grep -c '^DATA_ENCRYPTION_KEY=.\+' infra/compose/.env.staging   # attendu : 1
+   ```
+4. Suivre ensuite « Mise à jour » comme d'habitude.
+
+## Lot 53 : clés VAPID des notifications push (ARC-09, ADR 0095 et 0096)
+
+À faire **une fois par environnement, avant** le premier déploiement qui contient le lot 53 : sans
+ces deux clés, l'app refuse de démarrer.
+
+1. Tirer une paire propre à l'environnement (depuis le dépôt, Node seul suffit) :
+   ```bash
+   node /opt/symbola/apps/symbola/scripts/generate-vapid-keys.mjs
+   ```
+2. La ranger dans le gestionnaire de mots de passe (« Symbola — clés VAPID — staging »). Perdue ou
+   changée, rien n'est perdu, mais chaque appareil doit réactiver le push dans ses réglages.
+3. Ajouter les deux lignes affichées (`VAPID_PUBLIC_KEY=…`, `VAPID_PRIVATE_KEY=…`) dans
+   `infra/compose/.env.staging` (puis `.env.production`, avec sa propre paire), et vérifier :
+   ```bash
+   sudo grep -c '^VAPID_P\(UBLIC\|RIVATE\)_KEY=.\+' infra/compose/.env.staging   # attendu : 2
    ```
 4. Suivre ensuite « Mise à jour » comme d'habitude.
 
@@ -435,7 +454,17 @@ lots 46 et 49 : sans cette clé, l'app refuse de démarrer.
 Une nouvelle migration qui retire, renomme ou change le type d'une colonne
 porte le marqueur `-- symbola: arret-requis <raison>`, et son paragraphe ici
 cite son tag (contrôle de la CI, `packages/db/src/migration-compatibility.test.ts`).
-Aucune pour l'instant.
+
+- **`0176_lot48a_quotes_sealed_bank_details`** (lot 48a, DAT-08, ADR 0093) : l'IBAN et le BIC de
+  la planner passent chiffrés au niveau du champ. La migration ajoute les colonnes chiffrées ;
+  l'étape de données qui la suit (`packages/db/scripts/data-steps.ts`, lancée par `migrate`)
+  chiffre les valeurs en clair avec `DATA_ENCRYPTION_KEY` et vide `iban` et `bic`. L'ancienne
+  version de l'app ne lirait plus l'IBAN (écran « Régler l'acompte », documents) : `deploy.sh`
+  arrête `symbola` le temps de la migration. Le fichier d'environnement doit contenir
+  `DATA_ENCRYPTION_KEY` (§ « Socle des lots 46 et 49 ») : sans elle, l'étape s'arrête en erreur
+  sans rien perdre. **Retour arrière** : `pnpm --filter @symbola/db rollback --
+  0176_lot48a_quotes_sealed_bank_details`, avec la même clé dans l'environnement, remet l'IBAN et
+  le BIC en clair dans la même transaction (refusé sans la clé), puis l'image précédente.
 
 ### Migrations livrées avant le lot 40a (déploiement d'ensemble)
 

@@ -52,6 +52,9 @@ async function startScheduledTasks() {
     // Lot 23 (décision D5) : adresses IP des connexions oubliées après la durée réglée.
     const { scheduleConnectionTracePurge } = await import("./lib/connection-traces-purge");
     scheduleConnectionTracePurge();
+    // Lot 52 (HUB-05, SEC-08) : alertes de changement d'identité en attente, purge des appareils connus.
+    const { scheduleAccountSecurityJobs } = await import("./lib/account-security-jobs");
+    scheduleAccountSecurityJobs();
     // Lot 27a (CHR-04) : rappels par e-mail des tâches confiées au client.
     const { scheduleClientTaskReminders } = await import("./lib/client-task-reminders");
     scheduleClientTaskReminders();
@@ -59,6 +62,10 @@ async function startScheduledTasks() {
     // rappels des rendez-vous.
     const { scheduleAppointmentJobs } = await import("./lib/appointment-jobs");
     scheduleAppointmentJobs();
+    // Lot 45 (CRM-06, CRM-07 ; D2 ; ADR 0090) : relances des prospects préparées chaque heure (envoyées
+    // seules si l'organisation l'a réglé), doublons de contacts cherchés chaque nuit.
+    const { scheduleProspectTasks } = await import("./lib/prospect-follow-ups");
+    scheduleProspectTasks();
     // Lot 31b (FAC-05, D6) : factures d'acompte émises d'elles-mêmes (fin du délai de rétractation).
     const { scheduleDepositInvoiceIssuance } = await import("./lib/deposit-invoices");
     scheduleDepositInvoiceIssuance();
@@ -76,6 +83,20 @@ async function startScheduledTasks() {
     // Lot 49 (INV-04, RGP-08 ; ADR 0083) : purge des invités avec préavis, puis relances.
     const { scheduleGuestTasks } = await import("./lib/guest-tasks");
     scheduleGuestTasks();
+    // Lot 44 (CRM-01, D4) : demandes « à vérifier » du formulaire de contact non traitées, à 30 jours.
+    const { scheduleProspectRequestPurge } = await import("./lib/prospect-request-purge");
+    scheduleProspectRequestPurge();
+    // Lot 47 (PAR-05 ; D2, D8 ; ADR 0085) : relance des briefs la veille, feuilles de route J-30 et J-7.
+    const { scheduleVendorCoordinationTasks } = await import("./lib/vendor-coordination-tasks");
+    scheduleVendorCoordinationTasks();
+    // Lot 43 (FAC-09, FAC-15, JUR-07 ; ADR 0089) : relance avant expiration, RIB du 8e jour hors
+    // établissement, relances d'impayés.
+    const { scheduleSettlementJobs } = await import("./lib/settlement-jobs");
+    scheduleSettlementJobs();
+    // Lot 53 (HUB-15, UX-16, ARC-09, GC-02, CHR-05, CHR-10 ; ADR 0095) : notifications toutes les cinq
+    // minutes (envois dus, passage du matin et radar des risques, récapitulatif à l'heure de chacun).
+    const { scheduleNotificationJobs } = await import("./lib/notification-jobs");
+    scheduleNotificationJobs();
   }
 }
 

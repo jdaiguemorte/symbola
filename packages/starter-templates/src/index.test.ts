@@ -4,6 +4,9 @@ import vendorSlotsFile from "./vendor-slots.json";
 import programFile from "./program.json";
 import {
   starterDietaryOptions,
+  starterMealTypes,
+  starterMealTypeLabel,
+  starterSeatingRules,
   starterDietConsent,
   starterGuestPrivacyNotice,
   starterGuestRules,
@@ -39,9 +42,16 @@ import {
   starterPrivacySettings,
   starterProgram,
   starterProspectSources,
+  starterEmailTemplate,
+  starterContactFormNotice,
+  starterContactForm,
+  starterPipelineStages,
+  starterProspectSourceLabels,
   starterQuoteTemplates,
   starterContractTemplates,
   starterContractRules,
+  starterPaymentReminders,
+  starterProposalTemplate,
   contractTemplateWarning,
   starterQuoteTerms,
   starterRequestResponse,
@@ -51,8 +61,7 @@ import {
   starterVendorSlots,
   starterVendorTags,
   starterVendorTypes,
-  starterVendorTypeSynonymGroups,
-} from "./index";
+  starterVendorTypeSynonymGroups, starterProspectFollowUps, starterQuestionnaires, questionnaireSensitiveWords, starterMessageTemplates } from "./index";
 
 describe("PRD-EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -451,7 +460,7 @@ describe("L26 — Données de départ des liens personnels (POR-01, SEC-15, RGP-
   });
 
   it("expiration de départ : 30 jours (client), 7 jours (prestataire), 180 jours sans date", () => {
-    expect(starterLinkExpiry()).toEqual({ daysAfterEvent: { client: 30, vendor: 7, guest: 30 }, daysWithoutEventDate: 180 });
+    expect(starterLinkExpiry()).toEqual({ daysAfterEvent: { client: 30, vendor: 7, guest: 30, day_helper: 1 }, daysWithoutEventDate: 180, dayHelperDaysBefore: 1 });
   });
 
   it("CHR-04, lot 27a — rappels de départ : 7 jours avant, la veille, retard rappelé dans la semaine, de 9 h à 19 h", () => {
@@ -631,5 +640,138 @@ describe("HUB-10 — L'exemple du démarrage (lot 33b, D10)", () => {
     expect(starterExampleEvent("en").clients.every((client) => client.lastName.includes("(example)"))).toBe(true);
     expect(starterExampleEvent("fr").venueName).toContain("fictif");
     expect(starterExampleEvent("fr").daysFromToday).toBeGreaterThan(180);
+  });
+});
+
+describe("Lot 50 — Données de départ du plan de table et de la synthèse pour le traiteur", () => {
+  it("INV-06, D5 : quatre types de repas (adulte, enfant, bébé sans repas, prestataire), en français et en anglais", () => {
+    const fr = starterMealTypes("fr");
+    const en = starterMealTypes("en");
+    expect(fr.map((type) => type.key)).toEqual(["adult", "child", "baby", "vendor"]);
+    expect(en.map((type) => type.key)).toEqual(fr.map((type) => type.key));
+    expect(fr.every((type) => type.label.length > 0)).toBe(true);
+    expect(starterMealTypeLabel("baby", "en")).toBeTruthy();
+    expect(starterMealTypeLabel("inconnu", "fr")).toBeNull();
+  });
+
+  it("INV-05, D2 : la forme donne la capacité proposée ; ajout en série et plan bornés", () => {
+    const rules = starterSeatingRules();
+    expect(Object.keys(rules.defaultCapacity).sort()).toEqual(["head", "rectangular", "round"]);
+    for (const capacity of Object.values(rules.defaultCapacity)) expect(capacity).toBeGreaterThan(0);
+    expect(rules.maxTablesPerSeries).toBeGreaterThanOrEqual(12);
+    expect(rules.maxTablesPerPlan).toBeGreaterThanOrEqual(rules.maxTablesPerSeries);
+    expect(rules.maxCapacity).toBeGreaterThanOrEqual(rules.defaultCapacity.round);
+  });
+});
+
+describe("CRM-01 / CRM-02 — Données de départ du formulaire de contact et du pipeline (lot 44)", () => {
+  it("quatre étapes de départ, en français et en anglais", () => {
+    expect(starterPipelineStages("fr")).toEqual(["Nouvelle demande", "Premier échange", "Rendez-vous", "Devis envoyé"]);
+    expect(starterPipelineStages("en")).toHaveLength(4);
+  });
+
+  it("la source « Formulaire de contact » existe dans les deux listes de départ et se retrouve par sa clé", () => {
+    const labels = starterProspectSourceLabels(starterContactForm().defaultSourceKey);
+    expect(labels).toEqual({ fr: "Formulaire de contact", en: "Contact form" });
+    expect(starterProspectSources("fr")).toContain(labels!.fr);
+    expect(starterProspectSources("en", "event_agency")).toContain(labels!.en);
+  });
+
+  it("seuils de l'anti-spam (D4) et garde des demandes « à vérifier » (30 jours) en données", () => {
+    expect(starterContactForm()).toEqual({ defaultSourceKey: "contact_form", minimumFillSeconds: 3, maxLinksBeforeReview: 2, toReviewRetentionDays: 30 });
+  });
+
+  it("RGP-03 — la mention d'information nomme le responsable, la durée, les droits et la politique, dans les deux langues", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const notice = starterContactFormNotice(locale);
+      for (const variable of ["{organization}", "{address}", "{months}", "{contact}", "{policy}"]) expect(notice).toContain(variable);
+      expect(notice).toContain("CNIL");
+    }
+  });
+
+  it("D7 — modèle de départ de l'e-mail « Nouvelle demande de contact », sans coordonnées du prospect", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const template = starterEmailTemplate("prospect_form_received", locale);
+      expect(template.body).toMatch(locale === "fr" ? /\{\{lien\}\}/ : /\{\{link\}\}/);
+      expect(template.body).not.toMatch(/prénom|first_name|e-mail du|téléphone/);
+    }
+  });
+});
+
+describe("FAC-09 / FAC-15 / FAC-02 / GC-01 — Données de départ de la proposition et du règlement (lot 43)", () => {
+  it("relances de départ : J-3 avant l'expiration, puis J+3, J+10 et J+20 après l'échéance ; aucune pénalité d'un particulier par défaut", () => {
+    const reminders = starterPaymentReminders();
+    expect(reminders.expiryReminderDays).toBe(3);
+    expect(reminders.paymentReminderDays).toEqual([3, 10, 20]);
+    expect(reminders.consumerClauseSentence.fr).toContain("{taux}");
+    expect(reminders.noPenaltySentence.en.length).toBeGreaterThan(0);
+  });
+
+  it("le modèle de proposition de départ place le devis, et chaque bloc une seule fois, en français et en anglais", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const template = starterProposalTemplate(locale);
+      expect(template.blocks).toContain("quote");
+      expect(new Set(template.blocks).size).toBe(template.blocks.length);
+      expect(template.greeting.length).toBeGreaterThan(20);
+    }
+  });
+
+  it("les textes de l'écran de règlement viennent des règles du contrat, avec le délai et la date en variables", () => {
+    const { settlement, withdrawal, regime } = starterContractRules();
+    expect(regime.noPaymentDays.off_premises).toBe(7);
+    expect(withdrawal.periodDays).toBe(14);
+    for (const locale of ["fr", "en"] as const) {
+      expect(settlement.distance[locale]).toContain("{jours}");
+      expect(settlement.offPremisesOpen[locale]).toContain("{jours}");
+      expect(settlement.offPremisesWaiting[locale]).toContain("{date}");
+    }
+  });
+
+  it("les quatre e-mails de départ existent dans les deux langues, sans lien ni donnée de carte", () => {
+    for (const kind of ["proposal_sent", "proposal_expiry_reminder", "payment_details", "invoice_reminder"]) {
+      for (const locale of ["fr", "en"] as const) {
+        const template = starterEmailTemplate(kind, locale);
+        expect(template.subject.length).toBeGreaterThan(0);
+        expect(template.body).not.toMatch(/\{\{(lien|link)\}\}|carte|card/i);
+      }
+    }
+    expect(starterEmailTemplate("payment_details", "fr").body).toContain("{{référence}}");
+    expect(starterEmailTemplate("invoice_reminder", "en").body).toContain("{{penalties}}");
+  });
+});
+
+describe("CRM-05, CRM-06, POR-07 (lot 45) — Données de départ des relances et des questionnaires", () => {
+  it("CRM-06 : deux relances à J+3 et J+7, envoi automatique désactivé (D2), lien de brochure de 30 jours", () => {
+    expect(starterProspectFollowUps()).toEqual({ steps: [{ days: 3 }, { days: 7 }], autoSend: false, brochureLinkDays: 30, brochureMaxSizeBytes: 20 * 1024 * 1024 });
+  });
+
+  it("CRM-05 : les modèles de messages de départ comptent la brochure (avec son lien) et le rendez-vous (avec la page de réservation), en français et en anglais", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const templates = starterMessageTemplates(locale);
+      expect(templates.map((template) => template.key)).toEqual(["first_request", "meeting", "brochure"]);
+      expect(templates.find((template) => template.key === "brochure")!.body).toContain("{{brochure}}");
+      expect(templates.find((template) => template.key === "meeting")!.body).toContain(locale === "fr" ? "{{lien_rendez_vous}}" : "{{booking_link}}");
+    }
+  });
+
+  it("POR-07 : quatre questionnaires de départ (découverte, cérémonie, musiques, détails pratiques), mêmes questions dans les deux langues", () => {
+    const fr = starterQuestionnaires("fr");
+    const en = starterQuestionnaires("en");
+    expect(fr.map((template) => template.key)).toEqual(["discovery", "ceremony", "music", "practical"]);
+    expect(en.map((template) => template.questions.map((question) => question.key))).toEqual(fr.map((template) => template.questions.map((question) => question.key)));
+    const discovery = fr[0]!;
+    expect(discovery.questions.filter((question) => question.eventField).map((question) => question.eventField)).toEqual(["event_date", "city", "venue", "guests", "budget", "style"]);
+  });
+
+  it("DPO : aucune question de départ ne touche à la santé, à la religion ou aux opinions", () => {
+    for (const locale of ["fr", "en"] as const) {
+      const words = questionnaireSensitiveWords(locale).map((word) => word.toLowerCase());
+      for (const template of starterQuestionnaires(locale)) {
+        for (const question of template.questions) {
+          const text = `${question.label} ${question.help ?? ""} ${question.choices.join(" ")}`.toLowerCase();
+          expect(words.filter((word) => text.includes(word)), `${template.key}/${question.key}`).toEqual([]);
+        }
+      }
+    }
   });
 });

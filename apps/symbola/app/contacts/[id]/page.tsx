@@ -10,7 +10,7 @@ import { ScreenHelp } from "@/app/screen-help";
 import { PageHeader } from "@/app/ui/page-header";
 import { SidePanel } from "@/app/ui/side-panel";
 import { requirePlanner } from "@/lib/guards";
-import { listEventDocuments, listEventsOfContact } from "@/modules/events/service";
+import { listContactMessages, listEventDocuments, listEventsOfContact } from "@/modules/events/service";
 import { getContact, getContactStamp, isModuleEnabled, listContactGroups, listContactMembers, listContactNotes } from "@/modules/hub/service";
 import { listEventQuotes, listQuoteInvoices } from "@/modules/quotes/service";
 import { deleteContactAction, removeContactMemberAction, removeContactNoteAction } from "../actions";
@@ -54,11 +54,15 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
   const [eventsEnabled, quotesEnabled, notes, team, memberships] = await Promise.all([
     isModuleEnabled(db, organizationId, "events"),
     isModuleEnabled(db, organizationId, "quotes"),
-    listContactNotes(organizationId, id),
+    // Lot 48a (DAT-08) : une note confidentielle n'est lue que par son auteur et la titulaire.
+    listContactNotes(organizationId, id, { userId: auth.user.id, role: auth.user.role }),
     listTeam(db, organizationId),
     isGroup ? listContactMembers(organizationId, id) : listContactGroups(organizationId, id),
   ]);
   const events = eventsEnabled ? await listEventsOfContact(organizationId, id) : [];
+  // Lot 45 (CRM-03, CRM-05) : les messages échangés avec le contact (envoyés, préparés, notés).
+  const messages = eventsEnabled ? await listContactMessages(organizationId, id) : [];
+  const tExchanges = await getTranslations("ProspectExchanges");
   const documents = eventsEnabled ? (await Promise.all(events.map((event) => listEventDocuments(organizationId, event.id)))).flat() : [];
   const quotes = quotesEnabled ? (await Promise.all(events.map((event) => listEventQuotes(organizationId, event.id)))).flat().filter((quote) => !quote.isDemo) : [];
   const invoices = quotesEnabled ? (await Promise.all(quotes.map((quote) => listQuoteInvoices(organizationId, quote.id)))).flat().filter((invoice) => !invoice.isDemo) : [];
@@ -222,6 +226,24 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
             )}
           </>
         ) : null}
+        {eventsEnabled ? (
+          <>
+            <h3>{tExchanges("historyTitle")}</h3>
+            {messages.length === 0 ? (
+              <p>{tExchanges("noHistory")}</p>
+            ) : (
+              <ul className="exchange-history">
+                {messages.map((message) => (
+                  <li key={message.id}>
+                    {new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", { timeZone: "Europe/Paris", dateStyle: "medium" }).format(new Date(message.occurredAt))} — {tExchanges(`kind.${message.kind}`)}
+                    {message.delivery === "prepared" ? ` (${tExchanges("prepared")})` : ""}
+                    {message.subject ? ` : ${message.subject}` : ""} · <Link href={`/events/${message.eventId}`}>{eventLabel(message.eventId)}</Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        ) : null}
         {/* Lot 46 (CRM-03) : ses rendez-vous, si le module Rendez-vous est ouvert. */}
         <ContactAppointments organizationId={organizationId} contactId={contact.id} locale={locale} />
       </section>
@@ -235,7 +257,8 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
             {notes.map((note) => (
               <li key={note.id}>
                 <span>
-                  <span className="task-comment-body">{note.body}</span>
+                  {note.confidential ? <span className="badge">{t("noteConfidentialBadge")}</span> : null}{" "}
+                  {note.readable ? <span className="task-comment-body">{note.body}</span> : <span className="muted">{t("noteConfidentialHidden")}</span>}
                   <span className="meta"> — {t("noteMeta", { author: author(note.authorUserId), date: formatDateTime(note.createdAt, locale) })}</span>
                 </span>
                 {note.authorUserId === auth.user.id ? (

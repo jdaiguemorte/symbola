@@ -245,3 +245,118 @@ export type GuestPurgeSchedule = {
 };
 
 export type GuestPurgeNotice = { eventId: string; stage: GuestPurgeStage; dueOn: string };
+
+// —— Plan de table (INV-05 ; lot 50, D1 à D4) ————————————————————————————————————————————
+
+export const SEATING_SHAPES = ["round", "rectangular", "head"] as const;
+export type SeatingShape = (typeof SEATING_SHAPES)[number];
+
+export const SEATING_CONSTRAINT_KINDS = ["together", "apart"] as const;
+export type SeatingConstraintKind = (typeof SEATING_CONSTRAINT_KINDS)[number];
+
+// D5 : type de repas de l'organisation (copié des données de départ, renommé, ajouté ou masqué).
+export type MealTypeView = { id: string; starterKey: string | null; label: string; hidden: boolean };
+
+// Qui se place : les présents au temps fort, et ceux qui n'ont pas encore répondu (marqués) ; ceux
+// qui ont décliné n'y sont pas.
+export type SeatingGuestStatus = "present" | "pending";
+
+export type SeatingGuest = {
+  id: string;
+  name: string;
+  householdId: string;
+  householdName: string;
+  kind: GuestKind;
+  ageRange: GuestAgeRange | null;
+  mealTypeId: string | null;
+  mealTypeLabel: string;
+  // Le type est celui de la personne (true) ou la valeur par défaut tirée de l'âge (false).
+  mealTypeChosen: boolean;
+  status: SeatingGuestStatus;
+  tableId: string | null;
+};
+
+export type SeatingTableView = {
+  id: string;
+  name: string;
+  shape: SeatingShape;
+  capacity: number;
+  position: number;
+  occupied: number;
+  children: number;
+  // Règle du lot 49 : nombres, « moins de N » pour un membre de l'équipe.
+  diets: DietCount[];
+};
+
+// D4 : signalé, jamais bloquant. Désistement : l'invité a quitté sa table, la planner est prévenue.
+export type SeatingAlert =
+  | { kind: "together"; constraintId: string; tableIds: string[]; guestNames: string[] }
+  | { kind: "apart"; constraintId: string; tableId: string; guestNames: string[] }
+  | { kind: "capacity"; tableId: string; occupied: number; capacity: number }
+  | { kind: "released"; guestId: string; guestName: string; tableName: string | null }
+  | { kind: "notInvited"; guestId: string; guestName: string; tableId: string };
+
+export type SeatingConstraintView = { id: string; kind: SeatingConstraintKind; members: { id: string; name: string }[] };
+
+export type SeatingMoment = { id: string; name: string; date: string; startTime: string | null };
+
+export type SeatingMomentSummary = SeatingMoment & { planId: string | null; tables: number; placed: number; present: number; pending: number };
+
+export type SeatingPlanView = {
+  eventId: string;
+  keyMoment: SeatingMoment;
+  planId: string | null;
+  tables: SeatingTableView[];
+  guests: SeatingGuest[];
+  unplacedCount: number;
+  constraints: SeatingConstraintView[];
+  alerts: SeatingAlert[];
+  vendorMeals: number;
+};
+
+export type SeatingTablesInput = { count: number; shape: SeatingShape; capacity: number; namePrefix: string };
+export type SeatingTableInput = { name: string; shape: SeatingShape; capacity: number };
+
+// —— Synthèse pour le traiteur (INV-06 ; lot 50, D6 à D8) —————————————————————————————————
+
+// D6 : nominative pour la titulaire seule ; agrégée exacte par table pour un membre.
+export const CATERER_SUMMARY_VERSIONS = ["nominative", "aggregate"] as const;
+export type CatererSummaryVersion = (typeof CATERER_SUMMARY_VERSIONS)[number];
+export const CATERER_SUMMARY_FORMATS = ["pdf", "csv"] as const;
+export type CatererSummaryFormat = (typeof CATERER_SUMMARY_FORMATS)[number];
+
+export type CatererCount = { id: string; label: string; count: number };
+export type CatererPerson = { name: string; mealType: string; diets: string[] };
+
+// Une table du plan ; id null : les présents encore sans table.
+export type CatererTable = {
+  id: string | null;
+  name: string;
+  shape: SeatingShape | null;
+  capacity: number | null;
+  covers: number;
+  meals: CatererCount[];
+  diets: CatererCount[];
+  // Version nominative seulement (sinon null).
+  people: CatererPerson[] | null;
+};
+
+export type CatererGroup = { covers: number; meals: CatererCount[]; diets: CatererCount[]; people: CatererPerson[] | null };
+
+export type CatererSummary = {
+  version: CatererSummaryVersion;
+  eventId: string;
+  keyMoment: SeatingMoment;
+  generatedAt: string;
+  planComposed: boolean;
+  dietsPurged: boolean;
+  // Colonnes : types de repas (ordre de la liste), régimes et allergènes présents (ordre de la liste).
+  mealTypes: { id: string; label: string }[];
+  dietOptions: { id: string; label: string; kind: "diet" | "allergen" }[];
+  // Présents au temps fort : couverts, repas par type, régimes et allergènes.
+  totals: CatererGroup;
+  tables: CatererTable[];
+  vendorMeals: { count: number; label: string; mealTypeId: string | null };
+  // En attente de réponse : comptés à part, jamais dans les couverts.
+  pending: CatererGroup;
+};

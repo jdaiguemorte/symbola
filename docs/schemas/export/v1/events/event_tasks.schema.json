@@ -10,9 +10,16 @@
       "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
     },
     "eventId": {
-      "type": "string",
-      "format": "uuid",
-      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "label": {
       "type": "string"
@@ -55,6 +62,18 @@
       ]
     },
     "vendorCandidateId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "followUpCandidateId": {
       "anyOf": [
         {
           "type": "string",
@@ -150,6 +169,37 @@
           "type": "null"
         }
       ]
+    },
+    "recurrence": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "weekly",
+            "monthly",
+            "quarterly",
+            "yearly"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "recurrenceSpawnedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "isMilestone": {
+      "type": "boolean"
     }
   },
   "required": [
@@ -161,6 +211,7 @@
     "fixedAt",
     "responsible",
     "vendorCandidateId",
+    "followUpCandidateId",
     "doneAt",
     "position",
     "importedFields",
@@ -169,7 +220,10 @@
     "createdBy",
     "updatedBy",
     "deletedAt",
-    "deletedBy"
+    "deletedBy",
+    "recurrence",
+    "recurrenceSpawnedAt",
+    "isMilestone"
   ],
   "additionalProperties": false,
   "$defs": {

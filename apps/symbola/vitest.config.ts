@@ -29,6 +29,22 @@ export const BUSINESS_RULE_FILES = [
   "modules/guests/import-rules.ts",
   // Lot 46 (RDV-02) : calcul des créneaux libres.
   "modules/appointments/slots.ts",
+  // Lot 44 : formulaire de contact (validation, budget, liens, sites autorisés) et pipeline (cartes, ordre).
+  "modules/events/contact-form-rules.ts",
+  "modules/events/pipeline-rules.ts",
+  "lib/csp.ts",
+  // Lot 43 : référence et QR code du virement, écran de règlement selon le canal, relances, parts des
+  // payeurs et calendrier des sorties d'argent.
+  "modules/quotes/payment-references.ts",
+  "modules/quotes/settlement.ts",
+  "modules/quotes/payment-reminders.ts",
+  "modules/budget/payers.ts",
+  "modules/budget/cash-calendar.ts",
+  // Lot 53 : récapitulatif, plages de silence et plan d'envoi des notifications ; tâches récurrentes et
+  // santé du planning ; radar des risques.
+  "modules/hub/notification-rules.ts",
+  "modules/events/planning-rules.ts",
+  "lib/risk-radar/rules.ts",
 ];
 
 export default defineConfig({

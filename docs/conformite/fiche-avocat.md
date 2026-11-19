@@ -210,6 +210,11 @@ Le cahier des charges ajoute « hors obligations légales ».
 
 Besoin : une réponse **avant de développer la fermeture d'un espace** (lot 35c).
 
+**Décision de Julien (18/11/2026)** : (a). Symbola efface tout au 30e jour ; l'export reste
+proposé jusqu'au dernier jour. **La clause de réversibilité** (délai, préavis, format, sort des
+données) **sera écrite à la création officielle de la société**, avec les conditions de
+l'éditeur. Le lot 35c peut se coder.
+
 ## Question du 17 novembre 2026 (lot 40c)
 
 ### 13. Déclaration d'accessibilité du portail des mariés
@@ -290,3 +295,161 @@ RGPD de la planner ; elle n'est ni indexée ni intégrable dans un autre site.
 > par défaut ; il ne sera ouvert à la pilote qu'après votre réponse.
 
 Besoin : une réponse **avant d'ouvrir le module Rendez-vous à la pilote**.
+
+## Questions du 18 novembre 2026 (lot 44)
+
+### 17. Mention d'information du formulaire de contact (AV-4)
+
+La planner peut mettre sur son site un formulaire de contact fourni par Symbola (prénom et nom,
+e-mail ou téléphone, date ou période, lieu, budget, nombre d'invités, type d'évènement, « comment
+m'avez-vous connue ? », message). Chaque envoi crée un prospect chez elle. La planner est
+responsable du traitement, Symbola sous-traitant. Avant le bouton d'envoi, une mention
+d'information (texte de départ, que nous vous soumettons) :
+
+> « Les informations de ce formulaire sont destinées à {organisation} ({adresse}), responsable de
+> leur traitement. Elles servent à répondre à votre demande et, si vous le souhaitez, à préparer
+> votre évènement avec vous. Elles sont gardées {durée} mois après notre dernier échange si votre
+> projet ne se concrétise pas. Vous pouvez y accéder, les faire corriger ou effacer, ou vous opposer
+> à leur utilisation en écrivant à {contact}. Vous pouvez aussi adresser une réclamation à la CNIL
+> (www.cnil.fr). Pour en savoir plus : {politique de confidentialité de la planner}. »
+
+Le formulaire ne s'ouvre pas tant que la planner n'a pas donné l'adresse de sa politique de
+confidentialité. Aucun e-mail n'est envoyé à la personne. Ce texte suffit-il, ou faut-il une case à
+cocher (consentement) pour une simple demande de contact ?
+
+> En attendant : la mention sans case à cocher (base : la demande de la personne, mesures
+> précontractuelles).
+
+### 18. Formulaire encadré dans le site de la planner (AV-5)
+
+Le même formulaire peut s'afficher dans le site de la planner (cadre), sans que la personne voie
+qu'il est servi par Symbola. Faut-il nommer Symbola (sous-traitant, hébergeur) dans la mention, ou
+la politique de confidentialité de la planner, à laquelle la mention renvoie, suffit-elle ?
+
+> En attendant : Symbola n'est pas nommé dans la mention ; la planner le cite comme sous-traitant
+> dans sa politique (registre des sous-traitants, docs/conformite/sous-traitants.md).
+
+Besoin : des réponses **avant la première demande réelle** reçue par le formulaire (aucune ne
+bloque le développement).
+
+## Décision du 18 novembre 2026 (lot 47)
+
+### 18. Choix du client sur son portail : pas une commande (AV-6, tranché)
+
+Pour information, sans question ouverte : sur son portail, le client choisit entre les
+propositions de prestataires que la planner lui montre. Son choix retient le prestataire dans
+Symbola (la ligne de budget est engagée de son devis, des tâches de suivi sont créées) ; la planner
+peut ensuite modifier le prestataire retenu à tout moment. **Décision de Julien (18/11/2026)** : ce
+choix n'est pas une commande ; Symbola affiche un devis et met en relation, il ne porte pas la
+facture du prestataire (seulement celles des planners). Aucun délai de rétractation n'est géré à
+cet endroit. Sous le bouton, le client lit : « Votre choix est transmis à <nom de la planner> ; le
+contrat se signe directement avec le prestataire. »
+
+Si cette lecture vous semble appeler une réserve, dites-le-nous ; elle n'attend pas de réponse
+pour être mise en œuvre.
+
+## Questions du 18 novembre 2026 (lot 43, proposition et règlement)
+
+Numéros à la suite de ceux des lots 44 et 47 (fusionnés avant le lot 43).
+
+### 19. Relances d'impayés à un particulier (AV-7)
+
+Symbola relance par e-mail une échéance non réglée d'un devis signé (par défaut trois jours, dix
+jours et vingt jours après l'échéance ; la planner règle ces délais et peut suspendre les relances).
+La relance s'arrête dès que le client déclare son virement ou que la planner confirme l'encaissement.
+Face à un professionnel, la relance reprend les pénalités et l'indemnité de 40 € (réponse 7 de votre
+fiche, lot 41). Face à un **particulier**, nous ne mentionnons une pénalité que si la planner a
+renseigné le taux d'une clause de son contrat ; sinon, la relance dit seulement « Merci de régulariser
+dès que possible ».
+
+- Une pénalité de retard est-elle possible face à un particulier si le contrat la prévoit, et à quel
+  taux maximal ?
+- Quelles mentions la relance doit-elle porter (et lesquelles ne doit-elle pas porter) ?
+- Faut-il un délai minimal avant la première relance ?
+
+> En attendant : aucune pénalité mentionnée à un particulier sans clause ; le taux de la clause est
+> laissé vide par défaut.
+
+### 20. Hors établissement : « aucun paiement avant sept jours » (AV-8)
+
+Pour un contrat conclu hors établissement (réponse 1 de votre fiche), l'écran « Régler l'acompte » ne
+montre pas le RIB avant le 8e jour suivant la signature et dit « Aucun paiement ne peut vous être
+demandé avant le <date> » ; un e-mail apporte le RIB et la référence du virement ce jour-là. La
+déclaration « J'ai fait le virement » est aussi refusée avant cette date, et aucune relance ne part.
+
+- Suffit-il de ne pas afficher le RIB avant le 8e jour et de l'envoyer ce jour-là, ou faut-il aussi
+  bloquer la déclaration de virement avant cette date (ce que nous faisons) ? Un client qui vire
+  spontanément plus tôt pose-t-il un problème à la planner ?
+
+> En attendant : ni RIB, ni déclaration, ni relance avant le 8e jour (option la plus protectrice).
+
+Besoin : des réponses **avant la première relance réelle** et le premier contrat hors établissement
+réglé par Symbola (aucune ne bloque le développement).
+
+## Question du 18 novembre 2026 (lot 45)
+
+### 21. Relances d'un prospect qui a fait une demande (AV-9, tranché)
+
+Numéro à la suite de ceux des lots 44, 47 et 43 (fusionnés avant le lot 45). Pour information, sans
+question ouverte.
+
+Après une demande (formulaire de contact, e-mail, téléphone), la planner répond depuis Symbola. Sans
+retour, une relance est préparée à J+3 puis à J+7 (réglable, trois au plus) ; par défaut, la planner
+la relit et l'envoie elle-même, l'envoi automatique est un réglage qu'elle active. Les relances
+s'arrêtent dès que la personne répond (geste de la planner), que l'évènement est confirmé ou perdu, ou
+que la personne agit dans Symbola. Chaque relance porte : « Vous ne souhaitez plus de nouvelles ?
+Répondez simplement à ce message. », et la planner a un geste « Ne plus relancer ».
+
+**Décision de Julien (18/11/2026)** : ces relances ne sont pas de la prospection commerciale. Le
+consentement préalable ne s'impose que si la démarche émane de la planner ; ici, la première approche
+vient toujours des mariés, qui écrivent pour demander une prestation : les relances sont la suite de
+leur demande (RGP-17 reste « Sans objet »). Cette décision s'écarte de l'avis de la DPO (sa réponse
+10), qui y voyait de la prospection (`docs/QUESTIONS.md`, Q39 ; ADR 0090).
+
+Si cette lecture vous semble appeler une réserve, dites-le-nous ; elle n'attend pas de réponse pour
+être mise en œuvre.
+
+## Questions du 18 novembre 2026 (lot 48)
+
+Numéros provisoires, à la suite de ceux des lots 44, 47, 43 et 45 ; ils seront donnés à la fusion.
+
+### 22. Règle de détection du forfait touristique (AV-10)
+
+Suite à votre réponse 4 : sur un devis, chaque ligne porte un mode (« intermédiaire » : le prestataire
+facture le client ; « revendeur » : la planner achète et refacture) et, si besoin, une nature
+touristique (transport, hébergement, autre prestation touristique). Symbola considère qu'un devis
+réunit un **forfait touristique** quand, parmi ses lignes vendues par la planner **en revendeur**, il
+y a un transport ou un hébergement **et** au moins une autre nature touristique (transport et
+hébergement ensemble, ou l'un des deux avec une autre prestation touristique). Une option non choisie
+ne compte pas. Le devis montre alors une alerte qui explique le risque, et **le modèle de contrat
+standard est bloqué** : la planner doit choisir un modèle dédié au forfait touristique, absent des
+données de départ.
+
+- Cette règle est-elle suffisante ? Faut-il tenir compte de la durée (plus de 24 heures, une nuit),
+  d'un prix global, ou des lignes en mode intermédiaire vendues ensemble par la planner ?
+- Faut-il ajouter d'autres conséquences (garantie financière, immatriculation au registre des
+  opérateurs de voyages et de séjours) au texte de l'alerte ?
+
+> En attendant : la règle ci-dessus (en données, modifiable sans code), alerte et blocage du modèle
+> standard.
+
+### 23. Publication de vos clauses types : mandat et conditions générales (AV-11)
+
+Votre accord de publication de clauses types (D14 du lot 31) est toujours en attente. Le lot 48
+ajoute à la bibliothèque de départ deux modèles « à adapter » : un **mandat** (mode intermédiaire :
+la planner agit pour les mariés auprès des prestataires et facture ses honoraires ; commissions
+tracées et affichées à un client particulier) et des **conditions générales**. Leurs clauses de fond
+sont des emplacements « [À rédiger avec votre conseil : …] » ; seules les parties, l'objet, les
+honoraires et la liste des commissions sont remplis par des variables du devis. Chaque modèle porte sa
+version, sa date de revue juridique et l'avertissement « à faire relire par un professionnel du
+droit ».
+
+- Acceptez-vous que vos clauses types remplacent ces emplacements dans les données de départ, livrées
+  à toutes les organisations ?
+- La signature électronique simple suffit-elle pour le mandat en attendant la signature avancée
+  (votre réponse 5, lot de la signature renforcée) ?
+
+> En attendant : modèles de Symbola marqués « à adapter », signés comme le contrat.
+
+Besoin : des réponses **avant le premier mandat ou forfait touristique réel** de la pilote (aucune ne
+bloque le développement).

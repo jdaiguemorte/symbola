@@ -1,3 +1,4 @@
+import { RiskSection } from "./accueil/risk-section";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
@@ -8,6 +9,7 @@ import { appDatabase } from "@symbola/db/client";
 import { getOrganizationProfile, getSetupState, isModuleEnabled, recentEmailVariableProblems, SETUP_STEPS } from "@/modules/hub/service";
 import { listEventTasks } from "@/modules/events/service";
 import { requireSignedIn } from "@/lib/guards";
+import { visibleEventScope, withinScope } from "@/lib/event-visibility";
 import { recordUsage } from "@/lib/usage";
 import { isActiveEvent, loadTodayItems } from "@/lib/today/load";
 import { rankToday } from "@/lib/today/rank";
@@ -29,6 +31,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const auth = await requireSignedIn();
   // Lot 13 (L13-HUB-17) : l'Admin arrive sur la console, pas sur un accueil vide.
   if (auth.user.role === "admin") redirect("/exploitation");
+  // Lot 52 : le Comptable a son accueil de lecture comptable.
+  if (auth.user.role === "accountant") redirect("/comptable");
   const organizationId = auth.user.organizationId;
 
   // SOC-13, ADR 0016 : collecte brute des compteurs d'usage, au niveau de cette page plutôt que
@@ -61,6 +65,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     guests: await isModuleEnabled(db, organizationId, "guests"),
     // Lot 46 (HUB-08) : les rendez-vous du jour.
     appointments: await isModuleEnabled(db, organizationId, "appointments"),
+    // Lot 48a (PRE-05, PRE-10) : pièces et IBAN des prestataires.
+    vendors: await isModuleEnabled(db, organizationId, "vendors"),
   };
   // Lot 33b (HUB-09, PAR-01) : le questionnaire d'accueil se reprend d'ici tant qu'il n'est pas
   // fini (Propriétaire), puis la liste de prise en main guide les premiers pas de l'équipe.
@@ -78,7 +84,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const tTemplates = await getTranslations("EmailTemplates");
 
   const now = new Date();
-  const { items, today, events, unavailable } = await loadTodayItems(organizationId, modules, todayWords(t), locale, now);
+  const loaded = await loadTodayItems(organizationId, modules, todayWords(t), locale, now);
+  // Lot 52 (EVT-06, D2) : seulement les évènements visibles de la personne (réglage de visibilité).
+  const scope = auth.user.role === "member" ? await visibleEventScope({ user: { id: auth.user.id, role: auth.user.role, organizationId } }) : null;
+  const { today, unavailable } = loaded;
+  const items = withinScope(scope, loaded.items, (item) => item.eventId);
+  const events = withinScope(scope, loaded.events, (event) => event.id);
   const ranked = rankToday(items, today);
   const activeEvents = events.filter((event) => isActiveEvent(event) && !event.isDemo).length;
 
@@ -125,6 +136,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       ) : null}
       <UnavailableNotice sources={unavailable} />
       <TodayList ranked={ranked} locale={locale} />
+      {/* Lot 53 (GC-02) : le radar des risques du matin, après ce qui demande une action. */}
+      {modules.events ? <RiskSection organizationId={organizationId} now={now} /> : null}
       {/* Lot 33b (PAR-01, étape 6) : après ce qui demande une action (UX-01 : la prochaine action d'abord). */}
       {checklist ? <OnboardingChecklist items={checklist} /> : null}
       {modules.events ? <MyEvents events={events} ranked={ranked} today={today} locale={locale} /> : null}

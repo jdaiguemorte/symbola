@@ -11,6 +11,8 @@ import { isBudgetModuleEnabled, isValidId } from "../module-access";
 import { BudgetSimulationForm } from "./budget-simulation-form";
 import { BudgetLinesTable, type VendorOption } from "./budget-lines-table";
 import { VendorSchedule } from "./vendor-schedule";
+import { PlannerFeeLine } from "./planner-fee-line";
+import { bankToVerifyCandidates } from "@/lib/vendors/bank-checks";
 import { EnvelopeSummary } from "./envelope-summary";
 
 export default async function EventBudgetPage({ params }: { params: Promise<{ eventId: string }> }) {
@@ -90,6 +92,8 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
 
       {/* Lot 28a (BUD-02) : enveloppe, part engagée et seuil d'alerte. */}
       <EnvelopeSummary eventId={eventId} envelope={linesView.envelope} committedCents={linesView.totalCommittedCents} settings={alertSettings} locale={locale} />
+      {/* Lot 48b (BUD-08) : les honoraires de la planner, à part, hors des dépenses de l'évènement. */}
+      <PlannerFeeLine organizationId={organizationId} eventId={eventId} locale={locale} />
 
       <h2>{t("linesTitle")}</h2>
       {/* Lot 28c (BUD-10) : export à la mise en forme de l'organisation. */}
@@ -103,9 +107,19 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
           </a>
         </nav>
       ) : null}
+      {/* Lot 43 (BUD-06, BUD-11 ; D8, D9) : qui paie quoi, et le calendrier des sorties d'argent. */}
+      <nav aria-label={t("payersNav")} className="page-actions">
+        <Link href={`/budget/${eventId}/payeurs`} className="button-link">
+          {t("payersLink")}
+        </Link>
+        <Link href={`/budget/${eventId}/calendrier`} className="button-link">
+          {t("cashCalendarLink")}
+        </Link>
+      </nav>
       <BudgetLinesTable eventId={eventId} view={linesView} canConfirm={budget !== null} vendorOptions={vendorOptions} locale={locale} />
       {/* Lot 28b (BUD-03) : échéancier par prestataire. */}
-      {linesView.lines.length > 0 ? <VendorSchedule view={linesView} locale={locale} organizationId={organizationId} /> : null}
+      {/* Lot 48a (PRE-10, SEC-27) : un IBAN changé et pas encore vérifié est signalé sur ses échéances. */}
+      {linesView.lines.length > 0 ? <VendorSchedule view={linesView} locale={locale} organizationId={organizationId} bankToVerify={await bankToVerifyCandidates(organizationId, eventId)} /> : null}
     </main>
   );
 }

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "status": {
+    "fr": "Modèle de départ de la page de proposition (lot 43, FAC-02, D2) : à adapter par l'organisation, par type d'évènement.",
+    "en": "Starting template for the proposal page (lot 43, FAC-02, D2): to be adapted by the organisation, per event type."
+  },
+  "blocks": ["greeting", "organization", "photos", "quote", "schedule", "validity"],
+  "greeting": {
+    "fr": "Bonjour,\n\nMerci pour notre échange. Voici la proposition que nous avons préparée pour vous : choisissez vos options, puis acceptez-la en ligne. Nous restons à votre écoute pour toute question.",
+    "en": "Hello,\n\nThank you for our conversation. Here is the proposal we have prepared for you: choose your options, then accept it online. We remain available for any question."
+  }
+}

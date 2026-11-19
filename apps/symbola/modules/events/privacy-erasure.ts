@@ -7,8 +7,14 @@ import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import {
+  dayChecklists,
+  dayIncidents,
+  dayPhotos,
+  dayReports,
   eventActivities,
   eventDecisions,
+  eventDecisionOptionFeedback,
+  vendorBriefs,
   eventLinks,
   eventClients,
   eventDayContacts,
@@ -28,6 +34,10 @@ import {
   programItemParticipants,
   programItems,
   programVersions,
+  prospectRequests,
+  eventMessages,
+  eventQuestionnaires,
+  prospectFollowUps,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { ANONYMIZED, idsOfKind, monthStart, type ErasureFate, type ErasureInput, type ErasurePlanItem } from "@symbola/privacy";
@@ -63,6 +73,16 @@ const FATES: Record<string, ErasureFate> = {
   // supprimés, fichier compris.
   task_comment: "deleted",
   task_attachment: "deleted",
+  // Lot 44 (CRM-01) : une demande du formulaire de contact (message libre, champs reçus) : supprimée.
+  prospect_request: "deleted",
+  // Lot 51 (JRJ-07, DPO-9) : un incident de la main courante peut nommer la personne : supprimé, ses
+  // photos (fichiers compris) avec lui.
+  day_incident: "deleted",
+  // Lot 45 (CRM-05, CRM-06, POR-07) : un message ou une relance (texte libre), un questionnaire et ses
+  // réponses : supprimés.
+  event_message: "deleted",
+  follow_up: "deleted",
+  questionnaire: "deleted",
 };
 
 type Found = { kind: string; ids: string[] };
@@ -126,6 +146,23 @@ async function existing(tx: Tx, input: ErasureInput): Promise<Found[]> {
     add("task_comment", keep(await tx.select({ id: eventTaskComments.id, eventId: eventTaskComments.eventId }).from(eventTaskComments).where(inArray(eventTaskComments.id, ids("task_comment")))));
   if (ids("task_attachment").length > 0)
     add("task_attachment", keep(await tx.select({ id: eventTaskAttachments.id, eventId: eventTaskAttachments.eventId }).from(eventTaskAttachments).where(inArray(eventTaskAttachments.id, ids("task_attachment")))));
+  // Lot 44 : une demande « à vérifier » n'a pas encore d'évènement ; elle est de l'organisation (RLS).
+  if (ids("day_incident").length > 0)
+    add("day_incident", keep(await tx.select({ id: dayIncidents.id, eventId: dayIncidents.eventId }).from(dayIncidents).where(inArray(dayIncidents.id, ids("day_incident")))));
+  if (ids("prospect_request").length > 0)
+    add(
+      "prospect_request",
+      (await tx.select({ id: prospectRequests.id, eventId: prospectRequests.eventId }).from(prospectRequests).where(inArray(prospectRequests.id, ids("prospect_request"))))
+        .filter((row) => row.eventId === null || realEventIds.has(row.eventId))
+        .map((row) => row.id),
+    );
+  // Lot 45 : messages, relances et questionnaires d'un évènement réel.
+  if (ids("event_message").length > 0)
+    add("event_message", keep(await tx.select({ id: eventMessages.id, eventId: eventMessages.eventId }).from(eventMessages).where(inArray(eventMessages.id, ids("event_message")))));
+  if (ids("follow_up").length > 0)
+    add("follow_up", keep(await tx.select({ id: prospectFollowUps.id, eventId: prospectFollowUps.eventId }).from(prospectFollowUps).where(inArray(prospectFollowUps.id, ids("follow_up")))));
+  if (ids("questionnaire").length > 0)
+    add("questionnaire", keep(await tx.select({ id: eventQuestionnaires.id, eventId: eventQuestionnaires.eventId }).from(eventQuestionnaires).where(inArray(eventQuestionnaires.id, ids("questionnaire")))));
   if (ids("status_change").length > 0)
     add(
       "status_change",
@@ -169,6 +206,9 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
             // Lot 34b (EVT-03) : style et notes libres effacés ; les nombres d'invités restent.
             style: null,
             notes: null,
+            // Lot 48a (DAT-08) : notes confidentielles comprises.
+            notesSealed: null,
+            notesConfidentialBy: null,
             importedFields: null,
             updatedAt: now,
           })
@@ -176,6 +216,19 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       }
       // Fil d'activité des mariés (qui a coché quelle tâche) : données sur eux.
       await tx.delete(eventActivities).where(inArray(eventActivities.eventId, eventIds));
+      // Lot 44 (CRM-01) : la demande du formulaire de contact (message libre de la personne).
+      await tx.delete(prospectRequests).where(inArray(prospectRequests.eventId, eventIds));
+      // Lot 51 (JRJ-07, DPO-9) : la main courante, ses photos (fichiers compris), les listes et le bilan
+      // du jour J (qui recopie les incidents) ; les pointages et décalages (heures, identifiants) restent.
+      await tx.delete(dayIncidents).where(inArray(dayIncidents.eventId, eventIds));
+      const photos = await tx.delete(dayPhotos).where(inArray(dayPhotos.eventId, eventIds)).returning({ key: dayPhotos.storageKey });
+      fileKeys.push(...photos.map((photo) => photo.key).filter((key): key is string => key !== null));
+      await tx.delete(dayChecklists).where(inArray(dayChecklists.eventId, eventIds));
+      await tx.delete(dayReports).where(inArray(dayReports.eventId, eventIds));
+      // Lot 45 (CRM-05, CRM-06, POR-07) : messages, relances, questionnaires et réponses (texte libre).
+      await tx.delete(prospectFollowUps).where(inArray(prospectFollowUps.eventId, eventIds));
+      await tx.delete(eventMessages).where(inArray(eventMessages.eventId, eventIds));
+      await tx.delete(eventQuestionnaires).where(inArray(eventQuestionnaires.eventId, eventIds));
       // Lot 12 : lieux de l'événement (adresse possiblement privée), réception comprise (lot 34b).
       await tx.delete(eventPlaces).where(inArray(eventPlaces.eventId, eventIds));
       // Lot 34b (CHR-02) : commentaires et pièces jointes des tâches de l'événement.
@@ -192,6 +245,13 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
         .from(eventClients)
         .where(and(inArray(eventClients.id, idsFor("event_client")), isNotNull(eventClients.contactId)));
       await tx.update(eventClients).set({ contactId: null }).where(inArray(eventClients.id, idsFor("event_client")));
+      // Lot 45 : les messages, relances et questionnaires adressés à la personne partent avec elle.
+      const erasedContacts = linked.map((row) => row.contactId).filter((id): id is string => id !== null);
+      if (erasedContacts.length > 0) {
+        await tx.delete(prospectFollowUps).where(inArray(prospectFollowUps.contactId, erasedContacts));
+        await tx.delete(eventMessages).where(inArray(eventMessages.contactId, erasedContacts));
+        await tx.delete(eventQuestionnaires).where(inArray(eventQuestionnaires.contactId, erasedContacts));
+      }
       unlinkedContacts.push(...linked.map((row) => row.contactId).filter((id): id is string => id !== null));
     }
     if (idsFor("event_vendor_slot").length > 0) {
@@ -199,6 +259,8 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       // Le poste reste (statistiques) ; lot 28b : le nom de ses prestataires est
       // porté par les prestataires rattachés, anonymisés plus bas.
       await tx.update(eventVendorSlots).set({ importedFields: null, brief: null }).where(inArray(eventVendorSlots.id, slotIds));
+      // Lot 47 (D1) : le besoin du brief du poste.
+      await tx.update(vendorBriefs).set({ need: ANONYMIZED, updatedAt: now }).where(inArray(vendorBriefs.vendorSlotId, slotIds));
     }
     // Lot 11 : le consulté reste (statistiques, retenu ou non) sans nom ni
     // notes ; son devis, qui le nomme, est supprimé (fichier compris).
@@ -212,12 +274,14 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       fileKeys.push(...withFiles.map((row) => row.key).filter((key): key is string => key !== null));
       await tx
         .update(eventVendorCandidates)
-        .set({ vendorName: ANONYMIZED, vendorId: null, quoteFileKey: null, quoteMime: null, quoteSizeBytes: null, updatedAt: now })
+        .set({ vendorName: ANONYMIZED, vendorId: null, quoteFileKey: null, quoteMime: null, quoteSizeBytes: null, answerMessage: null, updatedAt: now })
         .where(inArray(eventVendorCandidates.id, candidateIds));
     }
     if (idsFor("link").length > 0) {
       // Lot 27b (EVT-09) : la décision reste, sans le nom ni le commentaire de la personne.
       await tx.update(eventDecisions).set({ decidedByName: ANONYMIZED, comment: sql`case when ${eventDecisions.comment} is null then null else ${ANONYMIZED} end` }).where(inArray(eventDecisions.decidedByLinkId, idsFor("link")));
+      // Lot 47 (D7) : ses avis sur les options partent avec lui.
+      await tx.delete(eventDecisionOptionFeedback).where(inArray(eventDecisionOptionFeedback.linkId, idsFor("link")));
       await tx.delete(eventLinks).where(inArray(eventLinks.id, idsFor("link")));
     }
     if (idsFor("event_day_contact").length > 0) await tx.delete(eventDayContacts).where(inArray(eventDayContacts.id, idsFor("event_day_contact")));
@@ -236,7 +300,16 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       }
       await tx.delete(eventDayDocuments).where(and(eq(eventDayDocuments.source, "event_document"), inArray(eventDayDocuments.sourceId, documentIds)));
     }
+    if (idsFor("prospect_request").length > 0) await tx.delete(prospectRequests).where(inArray(prospectRequests.id, idsFor("prospect_request")));
+    if (idsFor("follow_up").length > 0) await tx.delete(prospectFollowUps).where(inArray(prospectFollowUps.id, idsFor("follow_up")));
+    if (idsFor("event_message").length > 0) await tx.delete(eventMessages).where(inArray(eventMessages.id, idsFor("event_message")));
+    if (idsFor("questionnaire").length > 0) await tx.delete(eventQuestionnaires).where(inArray(eventQuestionnaires.id, idsFor("questionnaire")));
     if (idsFor("event_document_folder").length > 0) await tx.delete(eventDocumentFolders).where(inArray(eventDocumentFolders.id, idsFor("event_document_folder")));
+    if (idsFor("day_incident").length > 0) {
+      const photos = await tx.delete(dayPhotos).where(and(eq(dayPhotos.subject, "incident"), inArray(dayPhotos.subjectId, idsFor("day_incident")))).returning({ key: dayPhotos.storageKey });
+      fileKeys.push(...photos.map((photo) => photo.key).filter((key): key is string => key !== null));
+      await tx.delete(dayIncidents).where(inArray(dayIncidents.id, idsFor("day_incident")));
+    }
     if (idsFor("task_comment").length > 0) await tx.delete(eventTaskComments).where(inArray(eventTaskComments.id, idsFor("task_comment")));
     if (idsFor("task_attachment").length > 0) {
       const removed = await tx.delete(eventTaskAttachments).where(inArray(eventTaskAttachments.id, idsFor("task_attachment"))).returning({ key: eventTaskAttachments.fileKey });

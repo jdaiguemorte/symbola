@@ -21,9 +21,11 @@ export type EventClientRow = EventClientLinkRow & {
 };
 
 export async function withContacts(organizationId: string, links: readonly EventClientLinkRow[]): Promise<EventClientRow[]> {
+  // Lot 45 (CRM-07, D5) : juste après une fusion, la fiche gardée s'affiche à la place de l'absorbée.
   const contacts = await getContactsByIds(
     organizationId,
     links.map((link) => link.contactId).filter((id): id is string => id !== null),
+    { followMerges: true },
   );
   return links.map((link) => {
     const contact = link.contactId ? contacts.get(link.contactId) : undefined;

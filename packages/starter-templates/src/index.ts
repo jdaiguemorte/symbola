@@ -10,6 +10,8 @@ import importSynonymsFile from "./import-synonyms.json";
 import importProfilesFile from "./import-profiles.json";
 import invoiceMentionsFile from "./invoice-mentions.json";
 import latePenaltyFile from "./late-penalty.json";
+import paymentRemindersFile from "./payment-reminders.json";
+import proposalTemplatesFile from "./proposal-templates.json";
 import professionalTermsFile from "./professional-terms.json";
 import invoiceReformFile from "./invoice-reform.json";
 import complianceChecksFile from "./compliance-checks.json";
@@ -31,8 +33,12 @@ import quoteTemplatesFile from "./quote-templates.json";
 import contractTemplatesFile from "./contract-templates.json";
 import contractRulesFile from "./contract-rules.json";
 import linkPrivacyNoticeFile from "./link-privacy-notice.json";
+import pipelineStagesFile from "./pipeline-stages.json";
+import contactFormFile from "./contact-form.json";
 import emailTemplatesFile from "./email-templates.json";
 import messageTemplatesFile from "./message-templates.json";
+import prospectFollowUpsFile from "./prospect-follow-ups.json";
+import questionnairesFile from "./questionnaires.json";
 import programFile from "./program.json";
 import prospectSourcesFile from "./prospect-sources.json";
 import retroplanningFile from "./retroplanning.json";
@@ -115,6 +121,43 @@ const agencyProspectSources = vendorSlotsSchema.parse(agencyProspectSourcesFile)
 
 export function starterProspectSources(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): string[] {
   return (isWedding(metier) ? prospectSources : agencyProspectSources).items.map((item) => item.label[locale]);
+}
+
+// Lot 44 (CRM-01, D5) : libellé d'une source de départ par sa clé (« Formulaire de contact »), dans les
+// deux langues, pour la retrouver dans la liste de l'organisation quelle que soit la langue.
+export function starterProspectSourceLabels(key: string): { fr: string; en: string } | null {
+  const item = [...prospectSources.items, ...agencyProspectSources.items].find((candidate) => candidate.key === key);
+  return item ? { fr: item.label.fr, en: item.label.en } : null;
+}
+
+// Lot 44 (CRM-02, D9 ; ADR 0084) — étapes de départ du pipeline, copiées dans l'organisation.
+const pipelineStagesSchema = z.object({ version: z.literal(1), items: z.array(z.object({ key: z.string().min(1), label: translatedLabelSchema })).min(1).max(10) });
+
+export function starterPipelineStages(locale: StarterLocale): string[] {
+  return pipelineStagesSchema.parse(pipelineStagesFile).items.map((item) => item.label[locale]);
+}
+
+// Lot 44 (CRM-01, RGP-03 ; D1 à D6 ; ADR 0084) — réglages de départ du formulaire de contact : mention
+// d'information (à faire relire par l'avocat, AV-4 et AV-5), source par défaut, seuils de l'anti-spam,
+// durée de garde d'une demande « à vérifier ».
+const contactFormSchema = z.object({
+  version: z.literal(1),
+  defaultSourceKey: z.string().min(1),
+  minimumFillSeconds: z.number().int().min(1).max(60),
+  maxLinksBeforeReview: z.number().int().min(0).max(20),
+  toReviewRetentionDays: z.number().int().min(1).max(365),
+  notice: translatedLabelSchema,
+});
+
+export type StarterContactForm = { defaultSourceKey: string; minimumFillSeconds: number; maxLinksBeforeReview: number; toReviewRetentionDays: number };
+
+export function starterContactForm(): StarterContactForm {
+  const parsed = contactFormSchema.parse(contactFormFile);
+  return { defaultSourceKey: parsed.defaultSourceKey, minimumFillSeconds: parsed.minimumFillSeconds, maxLinksBeforeReview: parsed.maxLinksBeforeReview, toReviewRetentionDays: parsed.toReviewRetentionDays };
+}
+
+export function starterContactFormNotice(locale: StarterLocale): string {
+  return contactFormSchema.parse(contactFormFile).notice[locale];
 }
 
 // PRD-EVT-07 : motifs de perte de départ ; « Autre » demande une précision.
@@ -698,6 +741,8 @@ const vendorTypesSchema = z.object({
             kind: z.enum(["number", "text", "time", "amount", "choice", "boolean"]),
             choices: z.object({ fr: z.array(z.string().min(1)), en: z.array(z.string().min(1)) }).optional(),
             isFilter: z.boolean(),
+            // Lot 48a (PRE-06) : sens du champ pour les contrôles du chrono (venue-rules.json).
+            rule: z.string().regex(/^[a-z][a-z_]{1,40}$/).optional(),
           }),
         ),
       }),
@@ -707,7 +752,7 @@ const vendorTypesSchema = z.object({
 
 const vendorTypes = vendorTypesSchema.parse(vendorTypesFile);
 
-export type StarterVendorTypeField = { label: string; kind: "number" | "text" | "time" | "amount" | "choice" | "boolean"; choices?: string[]; isFilter: boolean };
+export type StarterVendorTypeField = { label: string; kind: "number" | "text" | "time" | "amount" | "choice" | "boolean"; choices?: string[]; isFilter: boolean; ruleKey?: string };
 
 export type StarterVendorType = { key: string; label: string; fields: StarterVendorTypeField[] };
 
@@ -720,6 +765,7 @@ export function starterVendorTypes(locale: StarterLocale): StarterVendorType[] {
       kind: field.kind,
       ...(field.choices ? { choices: field.choices[locale] } : {}),
       isFilter: field.isFilter,
+      ...(field.rule ? { ruleKey: field.rule } : {}),
     })),
   }));
 }
@@ -928,18 +974,21 @@ export function starterLinkProfiles(locale: StarterLocale, vocabulary: "couple" 
 // Lot 26a (SEC-15, décision D4) — expiration d'un lien personnel.
 const linkExpirySchema = z.object({
   version: z.literal(1),
-  daysAfterEvent: z.object({ client: z.number().int().min(0), vendor: z.number().int().min(0), guest: z.number().int().min(0) }),
+  daysAfterEvent: z.object({ client: z.number().int().min(0), vendor: z.number().int().min(0), guest: z.number().int().min(0), day_helper: z.number().int().min(0).max(7) }),
   daysWithoutEventDate: z.number().int().min(1),
+  // Lot 52 (EVT-06, D3) : le lien du renfort du jour J s'ouvre ce nombre de jours avant l'évènement.
+  dayHelperDaysBefore: z.number().int().min(0).max(7),
 });
 
 export type StarterLinkExpiry = {
-  daysAfterEvent: { client: number; vendor: number; guest: number };
+  daysAfterEvent: { client: number; vendor: number; guest: number; day_helper: number };
   daysWithoutEventDate: number;
+  dayHelperDaysBefore: number;
 };
 
 export function starterLinkExpiry(): StarterLinkExpiry {
-  const { daysAfterEvent, daysWithoutEventDate } = linkExpirySchema.parse(linkExpiryFile);
-  return { daysAfterEvent: { ...daysAfterEvent }, daysWithoutEventDate };
+  const { daysAfterEvent, daysWithoutEventDate, dayHelperDaysBefore } = linkExpirySchema.parse(linkExpiryFile);
+  return { daysAfterEvent: { ...daysAfterEvent }, daysWithoutEventDate, dayHelperDaysBefore };
 }
 
 // Lot 26a (RGP-03) — mention d'information des pages à lien personnel, à faire
@@ -1043,6 +1092,8 @@ const quoteTemplatesSchema = z.object({
   items: z
     .array(
       z.object({
+        // Lot 48b (DOC-02, HUB-26) : contrat (par défaut), mandat ou conditions générales.
+        kind: z.enum(["contract", "mandate", "general_terms"]).optional(),
         metier: z.enum(["wedding_planner", "event_agency", "autre"]),
         eventTypeKey: z.string().min(1),
         name: translatedLabelSchema,
@@ -1082,6 +1133,7 @@ export function starterQuoteTemplates(locale: StarterLocale, metier: StarterMeti
     .parse(quoteTemplatesFile)
     .items.filter((item) => item.metier === metier)
     .map((item) => ({
+      kind: item.kind ?? "contract",
       eventTypeKey: item.eventTypeKey,
       name: item.name[locale],
       sections: item.sections.map((section) => ({ key: section.key, title: section.title[locale] })),
@@ -1121,6 +1173,8 @@ const contractTemplatesSchema = z.object({
   items: z
     .array(
       z.object({
+        // Lot 48b (DOC-02, HUB-26) : contrat (par défaut), mandat ou conditions générales.
+        kind: z.enum(["contract", "mandate", "general_terms"]).optional(),
         metier: z.enum(["wedding_planner", "event_agency", "autre"]),
         eventTypeKey: z.string().min(1),
         name: translatedLabelSchema,
@@ -1134,6 +1188,7 @@ const contractTemplatesSchema = z.object({
 });
 
 export type StarterContractTemplate = {
+  kind: "contract" | "mandate" | "general_terms";
   eventTypeKey: string;
   name: string;
   title: string;
@@ -1145,6 +1200,7 @@ export function starterContractTemplates(locale: StarterLocale, metier: StarterM
     .parse(contractTemplatesFile)
     .items.filter((item) => item.metier === metier)
     .map((item) => ({
+      kind: item.kind ?? "contract",
       eventTypeKey: item.eventTypeKey,
       name: item.name[locale],
       title: item.title[locale],
@@ -1175,6 +1231,9 @@ const contractRulesSchema = z.object({
   // Réponse 3 de l'avocat (D16) : contrat électronique de 120 € et plus, conservé dix ans.
   retention: z.object({ signedContractMinimumMonths: z.number().int().min(1).max(1200) }),
   placeholderMarkers: z.array(z.string().min(2)).min(1),
+  // Lot 43 (GC-01, JUR-07 ; ADR 0089) : textes de l'écran « Régler l'acompte » selon le canal ({jours},
+  // {date}) ; aucun n'est écrit dans le code.
+  settlement: z.object({ _source: z.string().min(1), distance: translatedLabelSchema, offPremisesWaiting: translatedLabelSchema, offPremisesOpen: translatedLabelSchema }),
 });
 
 export type ContractRules = Omit<z.infer<typeof contractRulesSchema>, "version" | "status">;
@@ -1289,6 +1348,10 @@ export function starterMessageTemplates(locale: StarterLocale): StarterMessageTe
 // Lot 49 (module Invités) : liste des régimes, règles, textes de la page de réponse, colonnes
 // d'import (guests.ts).
 export * from "./guests";
+// Lot 51 (EVT-04, CHR-08, JRJ-05, JRJ-06) : données de départ du jour J de terrain.
+export * from "./day-of";
+// Lot 53 (HUB-15, HUB-28, GC-02, CHR-05, HUB-24 ; ADR 0095).
+export * from "./notifications";
 
 // Lot 46 (RDV-01, HUB-20 ; D6, D10 ; ADR 0082) — module Rendez-vous : trois types de départ, plages
 // hebdomadaires par défaut, réglages par défaut d'un type créé avec son seul nom et sa durée, et
@@ -1367,3 +1430,121 @@ export function starterAppointmentTypes(locale: StarterLocale): StarterAppointme
 export function starterBookingPrivacyNotice(locale: StarterLocale): string {
   return appointmentTypesFile.privacyNotice[locale];
 }
+
+// Lot 47 (PAR-05 ; ADR 0085) : délais et tâches de suivi des prestataires par lien.
+export * from "./vendor-coordination";
+export * from "./vendor-records";
+export * from "./planner-money";
+// Lot 43 (FAC-09, FAC-15 ; D1, D7) — relances de départ : jours avant l'expiration d'un devis, jours
+// après une échéance impayée, phrase d'une relance sans pénalité et phrase de la clause de pénalités
+// d'un particulier ({taux}). L'organisation les règle ; rien n'est écrit dans le code.
+const paymentRemindersSchema = z.object({
+  version: z.literal(1),
+  status: translatedLabelSchema,
+  expiryReminderDays: z.number().int().min(1).max(30),
+  paymentReminderDays: z.array(z.number().int().min(1).max(120)).min(1).max(5),
+  noPenaltySentence: translatedLabelSchema,
+  consumerClauseSentence: translatedLabelSchema,
+});
+
+export type PaymentReminderDefaults = Omit<z.infer<typeof paymentRemindersSchema>, "version" | "status">;
+
+export function starterPaymentReminders(): PaymentReminderDefaults {
+  const { version: _version, status: _status, ...rest } = paymentRemindersSchema.parse(paymentRemindersFile);
+  return structuredClone(rest);
+}
+
+// Lot 43 (FAC-02, D2) — modèle de départ de la page de proposition : ordre des blocs (le devis
+// toujours présent) et mot d'accueil.
+export const PROPOSAL_BLOCK_KEYS = ["greeting", "organization", "photos", "quote", "schedule", "validity"] as const;
+export type ProposalBlockKey = (typeof PROPOSAL_BLOCK_KEYS)[number];
+
+const proposalTemplatesSchema = z.object({
+  version: z.literal(1),
+  status: translatedLabelSchema,
+  blocks: z
+    .array(z.enum(PROPOSAL_BLOCK_KEYS))
+    .min(1)
+    .refine((blocks) => blocks.includes("quote") && new Set(blocks).size === blocks.length),
+  greeting: translatedLabelSchema,
+});
+
+export function starterProposalTemplate(locale: StarterLocale): { blocks: ProposalBlockKey[]; greeting: string } {
+  const parsed = proposalTemplatesSchema.parse(proposalTemplatesFile);
+  return { blocks: [...parsed.blocks], greeting: parsed.greeting[locale] };
+}
+
+
+// Lot 45 (CRM-06, CRM-05 ; D2 ; ADR 0090) — réglage de départ des relances d'un prospect (J+3 et J+7,
+// envoi automatique désactivé), durée du lien de la brochure et sa taille maximale.
+const prospectFollowUpsSchema = z.object({
+  version: z.literal(1),
+  steps: z.array(z.object({ days: z.number().int().min(1).max(60) })).max(3),
+  autoSend: z.boolean(),
+  brochureLinkDays: z.number().int().min(1).max(90),
+  brochureMaxSizeBytes: z.number().int().min(1024).max(50 * 1024 * 1024),
+});
+
+export type StarterProspectFollowUps = { steps: { days: number }[]; autoSend: boolean; brochureLinkDays: number; brochureMaxSizeBytes: number };
+
+export function starterProspectFollowUps(): StarterProspectFollowUps {
+  const parsed = prospectFollowUpsSchema.parse(prospectFollowUpsFile);
+  return { steps: parsed.steps.map((step) => ({ days: step.days })), autoSend: parsed.autoSend, brochureLinkDays: parsed.brochureLinkDays, brochureMaxSizeBytes: parsed.brochureMaxSizeBytes };
+}
+
+// Lot 45 (POR-07, CRM-09, HUB-21 ; D6 à D8 ; ADR 0090) — questionnaires de départ (découverte,
+// cérémonie, musiques, détails pratiques), traduits ; et les mots qui font avertir la planner d'une
+// question sensible (santé, religion, opinions).
+const questionnaireNatureSchema = z.enum(["short_text", "long_text", "single_choice", "multiple_choice", "date", "number", "amount"]);
+const questionnaireFieldSchema = z.enum(["event_date", "guests", "budget", "venue", "city", "style", "event_type"]);
+const questionnairesSchema = z.object({
+  version: z.literal(1),
+  sensitiveWords: z.object({ fr: z.array(z.string().min(2)).min(1), en: z.array(z.string().min(2)).min(1) }),
+  templates: z
+    .array(
+      z.object({
+        key: z.string().regex(/^[a-z0-9_-]{1,60}$/),
+        name: translatedLabelSchema,
+        questions: z
+          .array(
+            z.object({
+              key: z.string().regex(/^[a-z0-9_-]{1,60}$/),
+              label: translatedLabelSchema,
+              help: translatedLabelSchema.optional(),
+              nature: questionnaireNatureSchema,
+              choices: z.object({ fr: z.array(z.string().min(1).max(120)).min(2).max(30), en: z.array(z.string().min(1).max(120)).min(2).max(30) }).optional(),
+              eventField: questionnaireFieldSchema.optional(),
+            }),
+          )
+          .min(1)
+          .max(100),
+      }),
+    )
+    .min(1),
+});
+
+export type StarterQuestionnaire = {
+  key: string;
+  name: string;
+  questions: { key: string; label: string; help: string | null; nature: z.infer<typeof questionnaireNatureSchema>; choices: string[]; eventField: z.infer<typeof questionnaireFieldSchema> | null }[];
+};
+
+export function starterQuestionnaires(locale: StarterLocale): StarterQuestionnaire[] {
+  return questionnairesSchema.parse(questionnairesFile).templates.map((template) => ({
+    key: template.key,
+    name: template.name[locale],
+    questions: template.questions.map((question) => ({
+      key: question.key,
+      label: question.label[locale],
+      help: question.help?.[locale] ?? null,
+      nature: question.nature,
+      choices: question.choices?.[locale] ?? [],
+      eventField: question.eventField ?? null,
+    })),
+  }));
+}
+
+export function questionnaireSensitiveWords(locale: StarterLocale): string[] {
+  return [...questionnairesSchema.parse(questionnairesFile).sensitiveWords[locale]];
+}
+

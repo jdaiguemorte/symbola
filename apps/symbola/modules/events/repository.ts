@@ -19,6 +19,7 @@ import {
   programItemParticipants,
   programItems,
   programTemplateItems,
+  keyMoments,
   programTemplates,
   prospectSources,
   taskTemplateItems,
@@ -41,6 +42,7 @@ import {
 } from "@symbola/contracts";
 import { addDays, daysBetween, dueDateFor } from "./schedule";
 import { shiftedTimes } from "./program";
+import { ensureMainKeyMoment, followEventDate, keyMomentOfEvent } from "./main-moment";
 import { resolveClientContacts, withContacts, type EventClientLinkRow, type EventClientRow } from "./clients";
 import { searchContactIds, searchContactIdsByWord } from "@/modules/hub/service";
 
@@ -182,7 +184,8 @@ export async function findEventById(
 
 export async function insertProspect(input: {
   organizationId: string;
-  createdByUserId: string;
+  // Lot 44 (CRM-01, D5) : null pour un prospect créé par le formulaire de contact public.
+  createdByUserId: string | null;
   // Lot 36a : les contacts des clients, déjà résolus chez le hub, dans l'ordre.
   clientContactIds: string[];
   prospectSourceId: string;
@@ -190,6 +193,12 @@ export async function insertProspect(input: {
   eventDate?: string | null | undefined;
   venueName?: string | null | undefined;
   venueCity?: string | null | undefined;
+  // Lot 44 (CRM-01, CRM-02) : invités estimés, budget souhaité et étape du pipeline reçus du formulaire.
+  guestsEstimated?: number | null | undefined;
+  wantedBudgetCents?: number | null | undefined;
+  pipelineStageId?: string | null | undefined;
+  // Écritures de l'appelant dans la même transaction (la demande reçue et son événement interne).
+  afterInsert?: ((tx: Tx, event: EventRow) => Promise<void>) | undefined;
 }): Promise<EventRow> {
   const db = appDatabase();
   return await withOrganization(db, input.organizationId, async (tx) => {
@@ -201,6 +210,9 @@ export async function insertProspect(input: {
         eventDate: input.eventDate ?? null,
         prospectSourceId: input.prospectSourceId,
         eventTypeId: input.eventTypeId ?? null,
+        guestsEstimated: input.guestsEstimated ?? null,
+        wantedBudgetCents: input.wantedBudgetCents ?? null,
+        pipelineStageId: input.pipelineStageId ?? null,
       })
       .returning();
     if (!event) throw new Error("création de l'événement échouée");
@@ -241,6 +253,7 @@ export async function insertProspect(input: {
       version: EVT_EVENT_CREATED_VERSION,
       payload: { eventId: event.id, status: event.status },
     });
+    if (input.afterInsert) await input.afterInsert(tx, event);
 
     return event;
   });
@@ -700,6 +713,7 @@ export async function updateEventDateRow(
       .where(eq(events.id, eventId))
       .returning();
     if (!updated) throw new Error("mise à jour de la date échouée");
+    await followEventDate(tx, eventId, current.eventDate, eventDate);
     return recalculationFor(updated, undoneTasks);
   });
 }
@@ -738,6 +752,7 @@ export async function postponeEventRow(input: { organizationId: string; eventId:
       .where(eq(events.id, input.eventId))
       .returning();
     if (!updated) throw new Error("report de l'événement échoué");
+    await followEventDate(tx, input.eventId, current.eventDate, input.newDate);
     await recordStatusChange(tx, current, "postponed", input.changedByUserId);
     return { status: "postponed", event: updated };
   });
@@ -968,7 +983,7 @@ export async function updateEventTaskRow(input: {
     const responsible = input.responsible ?? current.responsible;
     const vendorCandidateId = responsible === "vendor" ? (input.vendorCandidateId !== undefined ? input.vendorCandidateId : current.vendorCandidateId) : null;
     const vendorChanged = responsible === "vendor" && (responsible !== current.responsible || vendorCandidateId !== current.vendorCandidateId);
-    if (vendorChanged && !(await isEngagedCandidate(tx, current.eventId, vendorCandidateId))) return "invalid_vendor";
+    if (vendorChanged && (current.eventId === null || !(await isEngagedCandidate(tx, current.eventId, vendorCandidateId)))) return "invalid_vendor";
     const doneAt = input.done === undefined ? current.doneAt : input.done ? (current.doneAt ?? new Date()) : null;
     // Lot 34a (DAT-07) : déplacée à la main, la tâche est fixée ; le report ne la bouge plus.
     const moved = input.dueDate !== undefined && input.dueDate !== current.dueDate;
@@ -996,6 +1011,8 @@ export async function releaseEventTaskRow(organizationId: string, taskId: string
   return await withOrganization(db, organizationId, async (tx) => {
     const [task] = await tx.select().from(eventTasks).where(eq(eventTasks.id, taskId));
     if (!task) return null;
+    // Lot 53 (CHR-10) : une tâche hors évènement n'a pas de date relative.
+    if (!task.eventId) return task;
     const [event] = await tx.select().from(events).where(eq(events.id, task.eventId));
     if (!event?.eventDate || task.offsetDays === null) return task;
     const [updated] = await tx
@@ -1023,7 +1040,7 @@ export async function moveEventTaskRow(
       .from(eventTasks)
       .where(
         and(
-          eq(eventTasks.eventId, task.eventId),
+          task.eventId ? eq(eventTasks.eventId, task.eventId) : isNull(eventTasks.eventId),
           sql`date_trunc('month', ${eventTasks.dueDate}) = date_trunc('month', ${task.dueDate}::date)`,
         ),
       )
@@ -1070,6 +1087,9 @@ export type ProgramItemData = {
   internalNote: string | null;
   // Lot 30b (CHR-06, décision D6).
   responsible: string | null;
+  // Lot 51 (EVT-04 ; D1) : le temps fort de la séquence ; absent à l'ajout, le premier temps fort du
+  // jour de l'évènement (créé de lui-même au besoin) ; absent à la modification, inchangé.
+  keyMomentId?: string | null;
 };
 
 export type ProgramItemWithParticipants = {
@@ -1147,7 +1167,7 @@ export async function findEventProgram(
 
 export type ProgramWriteResult =
   | { status: "saved"; item: ProgramItemWithParticipants }
-  | { status: "event_not_found" | "item_not_found" | "participant_not_found" };
+  | { status: "event_not_found" | "item_not_found" | "participant_not_found" | "moment_not_found" };
 
 export async function insertProgramItem(
   organizationId: string,
@@ -1155,13 +1175,17 @@ export async function insertProgramItem(
   data: ProgramItemData,
   vendorSlotIds: string[],
   freeLabels: string[],
+  // Lot 51 (D1) : nom du temps fort créé de lui-même, dans la langue de l'organisation.
+  mainMomentName: string,
 ): Promise<ProgramWriteResult> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
     const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
     if (!event) return { status: "event_not_found" };
     if (!(await vendorSlotsBelongToEvent(tx, eventId, vendorSlotIds))) return { status: "participant_not_found" };
-    const [item] = await tx.insert(programItems).values({ organizationId, eventId, ...data }).returning();
+    if (data.keyMomentId && !(await keyMomentOfEvent(tx, eventId, data.keyMomentId))) return { status: "moment_not_found" };
+    const keyMomentId = data.keyMomentId || (await ensureMainKeyMoment(tx, organizationId, eventId, mainMomentName));
+    const [item] = await tx.insert(programItems).values({ organizationId, eventId, ...data, keyMomentId }).returning();
     if (!item) throw new Error("ajout de la ligne du programme échoué");
     await insertParticipants(tx, organizationId, item.id, vendorSlotIds, freeLabels);
     await touchProgram(tx, eventId);
@@ -1184,9 +1208,11 @@ export async function updateProgramItemRow(
     if (!(await vendorSlotsBelongToEvent(tx, current.eventId, vendorSlotIds))) {
       return { status: "participant_not_found" };
     }
+    if (data.keyMomentId && !(await keyMomentOfEvent(tx, current.eventId, data.keyMomentId))) return { status: "moment_not_found" };
+    const { keyMomentId, ...fields } = data;
     const [item] = await tx
       .update(programItems)
-      .set({ ...data, updatedAt: new Date() })
+      .set({ ...fields, ...(keyMomentId ? { keyMomentId } : {}), updatedAt: new Date() })
       .where(eq(programItems.id, itemId))
       .returning();
     if (!item) throw new Error("mise à jour de la ligne du programme échouée");
@@ -1272,7 +1298,12 @@ export async function findProgramTemplates(
   });
 }
 
-export type ProgramTemplateItemData = Omit<ProgramItemData, "internalNote" | "responsible"> & { participantLabels: string[] };
+export type ProgramTemplateItemData = Omit<ProgramItemData, "internalNote" | "responsible" | "keyMomentId"> & {
+  participantLabels: string[];
+  // Lot 51 (CHR-08, EVT-04) : temps fort de la ligne et son jour depuis le jour de l'évènement.
+  momentName: string | null;
+  dayOffset: number;
+};
 
 export async function insertProgramTemplate(
   organizationId: string,
@@ -1364,14 +1395,24 @@ export type ApplyProgramTemplateResult =
 // Copie les lignes du modèle à la suite du programme. Un intervenant du
 // modèle devient le poste de l'événement de même libellé (sans tenir
 // compte de la casse), sinon un intervenant libre.
+function shiftDate(date: string, days: number): string {
+  const value = new Date(`${date}T12:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + days);
+  return value.toISOString().slice(0, 10);
+}
+
+// Lot 51 (CHR-08, EVT-04) : une ligne qui nomme un temps fort rejoint celui de même nom au jour dit
+// (créé s'il manque) ; sans nom, le premier temps fort du jour de l'évènement. Le modèle est copié tel
+// qu'il est à l'application (HUB-21) : le modifier ensuite ne change pas l'évènement.
 export async function applyProgramTemplateRows(
   organizationId: string,
   eventId: string,
   templateId: string,
+  mainMomentName: string,
 ): Promise<ApplyProgramTemplateResult> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
-    const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
+    const [event] = await tx.select({ id: events.id, eventDate: events.eventDate }).from(events).where(eq(events.id, eventId));
     if (!event) return { status: "event_not_found" };
     const [template] = await tx.select().from(programTemplates).where(eq(programTemplates.id, templateId));
     if (!template) return { status: "template_not_found" };
@@ -1385,6 +1426,20 @@ export async function applyProgramTemplateRows(
     const slotByLabel = new Map(slots.map((slot) => [slot.label.trim().toLowerCase(), slot.id]));
 
     const created: ProgramItemRow[] = [];
+    const momentIds = new Map<string, string | null>();
+    const momentFor = async (name: string | null, dayOffset: number): Promise<string | null> => {
+      if (!event.eventDate) return null;
+      if (name === null && dayOffset === 0) return ensureMainKeyMoment(tx, organizationId, eventId, mainMomentName);
+      const date = shiftDate(event.eventDate, dayOffset);
+      const wanted = name ?? mainMomentName;
+      const key = `${date}|${wanted.trim().toLowerCase()}`;
+      if (momentIds.has(key)) return momentIds.get(key)!;
+      const existing = await tx.select({ id: keyMoments.id, name: keyMoments.name }).from(keyMoments).where(and(eq(keyMoments.eventId, eventId), eq(keyMoments.date, date)));
+      const found = existing.find((moment) => moment.name.trim().toLowerCase() === wanted.trim().toLowerCase());
+      const id = found?.id ?? (await tx.insert(keyMoments).values({ organizationId, eventId, name: wanted, date, position: existing.length }).returning({ id: keyMoments.id }))[0]?.id ?? null;
+      momentIds.set(key, id);
+      return id;
+    };
     for (const templateItem of templateItems) {
       const [item] = await tx
         .insert(programItems)
@@ -1395,6 +1450,7 @@ export async function applyProgramTemplateRows(
           endTime: templateItem.endTime,
           label: templateItem.label,
           location: templateItem.location,
+          keyMomentId: await momentFor(templateItem.momentName, templateItem.dayOffset),
         })
         .returning();
       if (!item) throw new Error("copie de la ligne du modèle échouée");
@@ -1753,10 +1809,12 @@ export async function searchEventRows(
 
     return { events: eventRows, tasks: taskRows, vendors: vendorRows };
   });
-  const names = await eventNamesOf(organizationId, [...found.events.map((row) => row.id), ...found.tasks.map((row) => row.eventId), ...found.vendors.map((row) => row.eventId)]);
+  // Lot 53 (CHR-10) : la recherche ne trouve que les tâches d'un évènement (jointure).
+  const eventTaskRows = found.tasks.flatMap((row) => (row.eventId ? [{ ...row, eventId: row.eventId }] : []));
+  const names = await eventNamesOf(organizationId, [...found.events.map((row) => row.id), ...eventTaskRows.map((row) => row.eventId), ...found.vendors.map((row) => row.eventId)]);
   return {
     events: found.events.map((row) => ({ ...row, names: names.get(row.id) ?? "" })),
-    tasks: found.tasks.map((row) => ({ ...row, eventNames: names.get(row.eventId) ?? "" })),
+    tasks: eventTaskRows.map((row) => ({ ...row, eventNames: names.get(row.eventId) ?? "" })),
     vendors: found.vendors.map((row) => ({ ...row, eventNames: names.get(row.eventId) ?? "" })),
   };
 }
@@ -1848,7 +1906,12 @@ export async function updateVenueRow(organizationId: string, eventId: string, ve
 // Lot 34b (EVT-03, D11) — invités estimés et confirmés, style et notes.
 export async function updateEventIdentityRow(organizationId: string, eventId: string, identity: { guestsEstimated: number | null; guestsConfirmed: number | null; style: string | null; notes: string | null }): Promise<boolean> {
   return withOrganization(appDatabase(), organizationId, async (tx) => {
-    const rows = await tx.update(events).set({ ...identity, updatedAt: new Date() }).where(eq(events.id, eventId)).returning({ id: events.id });
+    // Lot 48a (DAT-08) : des notes confidentielles ne changent que par saveEventNotes.
+    const rows = await tx
+      .update(events)
+      .set({ ...identity, notes: sql`case when ${events.notesSealed} is null then ${identity.notes} else null end`, updatedAt: new Date() })
+      .where(eq(events.id, eventId))
+      .returning({ id: events.id });
     return rows.length > 0;
   });
 }
@@ -1884,4 +1947,29 @@ export async function findEventIdentityState(organizationId: string, eventId: st
       .where(eq(events.id, eventId)),
   );
   return row ?? null;
+}
+
+// Lot 48a (DAT-08 ; ADR 0093) — notes d'évènement, en clair ou chiffrées.
+export async function findEventNotesRow(organizationId: string, eventId: string): Promise<{ notes: string | null; notesSealed: string | null; notesConfidentialBy: string | null } | null> {
+  return withOrganization(appDatabase(), organizationId, async (tx) => {
+    const [row] = await tx.select({ notes: events.notes, notesSealed: events.notesSealed, notesConfidentialBy: events.notesConfidentialBy }).from(events).where(eq(events.id, eventId));
+    return row ?? null;
+  });
+}
+
+export async function writeEventNotesRow(organizationId: string, eventId: string, values: { notes: string | null; notesSealed: string | null; notesConfidentialBy: string | null }): Promise<boolean> {
+  return withOrganization(appDatabase(), organizationId, async (tx) => (await tx.update(events).set({ ...values, updatedAt: new Date() }).where(eq(events.id, eventId)).returning({ id: events.id })).length > 0);
+}
+
+// Lot 48a (PRE-05, PRE-10 ; D3) : la fiche du carnet derrière le lien d'un prestataire (null : saisie
+// libre ou lien d'un autre public). Le lien a déjà été vérifié par l'appelant (session de lien).
+export async function findLinkVendorRecordId(organizationId: string, linkId: string): Promise<string | null> {
+  return withOrganization(appDatabase(), organizationId, async (tx) => {
+    const [row] = await tx
+      .select({ vendorId: eventVendorCandidates.vendorId })
+      .from(eventLinks)
+      .innerJoin(eventVendorCandidates, eq(eventVendorCandidates.id, eventLinks.vendorCandidateId))
+      .where(and(eq(eventLinks.id, linkId), eq(eventLinks.audience, "vendor")));
+    return row?.vendorId ?? null;
+  });
 }

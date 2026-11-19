@@ -46,8 +46,14 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
   // Couleur #RRGGBB (null : gris ardoise de départ).
   documentColor: text("document_color"),
   documentFont: documentFontEnum("document_font").notNull().default("modern"),
+  // Lot 48 (DAT-08 ; D5, ADR 0093) : IBAN et BIC de la planner chiffrés au niveau du champ
+  // (field-box, ADR 0079), par la migration 0176 et son étape de données (annulable) ; les
+  // colonnes en clair iban et bic restent vides, gardées pour l'annulation (et pour le nom des champs
+  // de l'export, qui livre la valeur déchiffrée).
   iban: text("iban"),
   bic: text("bic"),
+  ibanSealed: text("iban_sealed"),
+  bicSealed: text("bic_sealed"),
   quoteIntro: text("quote_intro"),
   quoteTerms: text("quote_terms"),
   invoiceIntro: text("invoice_intro"),
@@ -69,6 +75,13 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
   professionalPaymentTermDays: integer("professional_payment_term_days").notNull().default(30),
   professionalPaymentTermEndOfMonth: boolean("professional_payment_term_end_of_month").notNull().default(false),
   professionalDiscountTerms: text("professional_discount_terms"),
+  // Lot 43 (FAC-15, FAC-09 ; D1, D7) : relance avant l'expiration d'un devis (jours avant), relances
+  // d'une échéance impayée (jours après), et taux de la clause de pénalités prévue au contrat d'un
+  // particulier (points de base). null : les valeurs de départ (payment-reminders.json) ; pour le
+  // taux, aucune pénalité (D7, sous réserve de l'avocat, AV-7).
+  expiryReminderDays: integer("expiry_reminder_days"),
+  paymentReminderDays: integer("payment_reminder_days").array(),
+  consumerLatePenaltyBasisPoints: integer("consumer_late_penalty_basis_points"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -78,11 +91,25 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
   check("quote_settings_late_penalty_rate_check", sql`${table.latePenaltyRate} is null or ${table.latePenaltyRate} in ('ecb_plus_10', 'three_times_legal')`),
   check("quote_settings_professional_payment_term_check", sql`${table.professionalPaymentTermDays} between 0 and 120`),
   check("quote_settings_professional_discount_terms_check", sql`${table.professionalDiscountTerms} is null or char_length(${table.professionalDiscountTerms}) <= 500`),
+  check("quote_settings_expiry_reminder_days_check", sql`${table.expiryReminderDays} is null or ${table.expiryReminderDays} between 1 and 30`),
+  check(
+    "quote_settings_payment_reminder_days_check",
+    sql`${table.paymentReminderDays} is null or (cardinality(${table.paymentReminderDays}) between 1 and 5 and 1 <= all(${table.paymentReminderDays}) and 120 >= all(${table.paymentReminderDays}))`,
+  ),
+  check("quote_settings_consumer_late_penalty_check", sql`${table.consumerLatePenaltyBasisPoints} is null or ${table.consumerLatePenaltyBasisPoints} between 1 and 10000`),
+  check(
+    "quote_settings_sealed_bank_check",
+    sql`(${table.ibanSealed} is null or (${table.ibanSealed} like 'f1:%' and ${table.iban} is null)) and (${table.bicSealed} is null or (${table.bicSealed} like 'f1:%' and ${table.bic} is null))`,
+  ),
 ]);
 
 // Lot 41 (JUR-02, D9, réponse 7 de l'expert-comptable) : nature d'une ligne (catalogue, modèle,
 // devis) ; la facture en déduit la catégorie de l'opération.
 export const LINE_NATURES = ["service", "goods"] as const;
+// Lot 48b (JUR-10, D7) : mode d'une ligne du devis et nature touristique.
+export const SUPPLY_MODES = ["resale", "intermediary"] as const;
+export const CONTRACT_TEMPLATE_KINDS = ["contract", "mandate", "general_terms", "package_travel"] as const;
+export const TOURISM_KINDS = ["transport", "lodging", "other"] as const;
 
 // Lot 31c (D21) : « receipt », la série à part des reçus d'arrhes (non fiscaux).
 export const numberSeriesKindEnum = quotesSchema.enum("number_series_kind", ["quote", "invoice", "credit_note", "receipt"]);
@@ -210,6 +237,14 @@ export const quoteVersions = quotesSchema.table(
     // Lot 31a (HUB-21, décision D3) : modèle d'origine et sa version.
     templateId: uuid("template_id").references((): AnyPgColumn => quoteTemplates.id, { onDelete: "set null" }),
     templateVersion: integer("template_version"),
+    // Lot 43 (FAC-02, FAC-15 ; D1, D2) : mot d'accueil de la page de proposition (repris du modèle
+    // de proposition, modifiable tant que la version est un brouillon, figé à l'envoi), modèle et
+    // version d'origine ; date de la relance avant expiration (une seule fois). La date
+    // d'expiration est valid_until, figée à l'envoi (ADR 0089).
+    proposalGreeting: text("proposal_greeting"),
+    proposalTemplateId: uuid("proposal_template_id").references((): AnyPgColumn => proposalTemplates.id, { onDelete: "set null" }),
+    proposalTemplateVersion: integer("proposal_template_version"),
+    expiryRemindedAt: timestamp("expiry_reminded_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdBy: uuid("created_by"),
@@ -219,6 +254,7 @@ export const quoteVersions = quotesSchema.table(
   (table) => [
     index("quote_versions_organization_idx").on(table.organizationId),
     unique().on(table.quoteId, table.version),
+    check("quote_versions_proposal_greeting_check", sql`${table.proposalGreeting} is null or char_length(${table.proposalGreeting}) between 1 and 4000`),
     check(
       "quote_versions_options_chosen_check",
       sql`(${table.optionsChosenAt} is null and ${table.optionsChosenBy} is null and ${table.optionsChosenByKind} is null) or (${table.optionsChosenAt} is not null and ${table.optionsChosenBy} is not null and ${table.optionsChosenByKind} is not null and char_length(${table.optionsChosenBy}) between 1 and 200 and ${table.optionsChosenByKind} in ('client', 'planner'))`,
@@ -274,6 +310,11 @@ export const quoteLines = quotesSchema.table("quote_lines", {
   optionChosen: boolean("option_chosen").notNull().default(false),
   // Lot 41 (JUR-02, D9).
   nature: text("nature", { enum: LINE_NATURES }).notNull().default("service"),
+  // Lot 48b (JUR-10 ; réponse 4 de l'avocat, ADR 0093) : « revendeur » (la planner achète et refacture :
+  // dans son total et sa TVA) ou « intermédiaire » (le prestataire facture le client : montrée pour
+  // information, hors du total) ; nature touristique pour la détection du forfait touristique (D7).
+  supplyMode: text("supply_mode", { enum: SUPPLY_MODES }).notNull().default("resale"),
+  tourismKind: text("tourism_kind", { enum: TOURISM_KINDS }),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
@@ -285,6 +326,8 @@ export const quoteLines = quotesSchema.table("quote_lines", {
 }, (table) => [
   index("quote_lines_organization_idx").on(table.organizationId),
   check("quote_lines_nature_check", sql`${table.nature} in ('service', 'goods')`),
+  check("quote_lines_supply_mode_check", sql`${table.supplyMode} in ('resale', 'intermediary')`),
+  check("quote_lines_tourism_kind_check", sql`${table.tourismKind} is null or ${table.tourismKind} in ('transport', 'lodging', 'other')`),
 ]);
 
 // Lot 31a (FAC-01, HUB-21, décision D3) — modèles de devis par type d'événement (null : pour
@@ -440,6 +483,9 @@ export const contractTemplates = quotesSchema.table(
     // Réponse 6 de l'avocat (D11, partie N) : date de la dernière revue juridique, saisie par la
     // planner ; copiée dans chaque contrat.
     legalReviewedOn: date("legal_reviewed_on"),
+    // Lot 48b (JUR-10, DOC-02, HUB-26 ; D7) : contrat, mandat (mode intermédiaire), conditions
+    // générales, ou modèle dédié au forfait touristique (seul permis quand le devis en réunit un).
+    kind: text("kind", { enum: CONTRACT_TEMPLATE_KINDS }).notNull().default("contract"),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
@@ -451,6 +497,7 @@ export const contractTemplates = quotesSchema.table(
   },
   (table) => [
     index("contract_templates_organization_idx").on(table.organizationId),
+    check("contract_templates_kind_check", sql`${table.kind} in ('contract', 'mandate', 'general_terms', 'package_travel')`),
     check("contract_templates_name_check", sql`char_length(${table.name}) between 1 and 120`),
     check("contract_templates_title_check", sql`char_length(${table.title}) between 1 and 200`),
     check("contract_templates_version_check", sql`${table.version} >= 1`),
@@ -682,6 +729,9 @@ export const quoteSigners = quotesSchema.table("quote_signers", {
   externalId: text("external_id"),
   status: quoteSignerStatusEnum("status").notNull().default("pending"),
   signedAt: timestamp("signed_at", { withTimezone: true }),
+  // Lot 43 (SEC-16, D4) : code à usage unique vérifié par ce signataire, depuis son lien, avant que son
+  // lien de signature ne s'affiche sur son portail (valable trente minutes).
+  signingCodeVerifiedAt: timestamp("signing_code_verified_at", { withTimezone: true }),
   position: integer("position").notNull().default(0),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -783,13 +833,14 @@ export const invoices = quotesSchema.table(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     organizationId: uuid("organization_id").notNull(),
-    quoteId: uuid("quote_id")
-      .notNull()
-      .references(() => quotes.id),
-    versionId: uuid("version_id")
-      .notNull()
-      .references(() => quoteVersions.id),
+    // Lot 48b (PRE-07, D8) : vides pour une facture de commission au prestataire (commission_id).
+    quoteId: uuid("quote_id").references(() => quotes.id),
+    versionId: uuid("version_id").references(() => quoteVersions.id),
     scheduleItemId: uuid("schedule_item_id").references(() => paymentScheduleItems.id),
+    // Lot 48b (PRE-07 ; D8, réponse 9 de l'expert-comptable) : facture de la commission adressée au
+    // prestataire, même série et mêmes règles que les autres factures (numérotation, chaîne des
+    // pièces, Factur-X).
+    commissionId: uuid("commission_id").references((): AnyPgColumn => vendorCommissions.id),
     kind: invoiceKindEnum("kind").notNull(),
     number: text("number").notNull(),
     isDemo: boolean("is_demo").notNull().default(false),
@@ -813,7 +864,14 @@ export const invoices = quotesSchema.table(
     // lot 41 (PDF simple). Seule l'adresse de livraison s'anonymise à la fin de la conservation.
     reformSnapshot: jsonb("reform_snapshot"),
   },
-  (table) => [unique().on(table.organizationId, table.number)],
+  (table) => [
+    unique().on(table.organizationId, table.number),
+    uniqueIndex("invoices_commission_idx").on(table.commissionId),
+    check(
+      "invoices_subject_check",
+      sql`(${table.quoteId} is null) = (${table.versionId} is null) and (${table.quoteId} is null) = (${table.commissionId} is not null) and (${table.commissionId} is null or (${table.kind} = 'balance' and ${table.scheduleItemId} is null))`,
+    ),
+  ],
 );
 
 // Lot 31b (FAC-05, décision D6) — facture d'acompte de la première échéance, émise d'elle-même
@@ -1033,3 +1091,183 @@ export const ledgerEntries = quotesSchema.table(
   ],
 );
 
+
+// Lot 43 (FAC-02, HUB-21 ; D2, ADR 0089) — modèle de la page de proposition, par type d'évènement
+// (null : pour tous ; un seul par type) : mot d'accueil, ordre des blocs, jusqu'à trois photos
+// (stockage privé, servies par l'app après contrôle du lien). Le devis reste le cœur de la page.
+// Données de départ : packages/starter-templates/src/proposal-templates.json.
+export const PROPOSAL_BLOCKS = ["greeting", "organization", "photos", "quote", "schedule", "validity"] as const;
+export type ProposalPhoto = { key: string; mime: string; sizeBytes: number };
+
+export const proposalTemplates = quotesSchema.table(
+  "proposal_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventTypeId: uuid("event_type_id"),
+    greeting: text("greeting").notNull(),
+    blocks: text("blocks").array().notNull(),
+    photos: jsonb("photos").$type<ProposalPhoto[]>().notNull().default(sql`'[]'::jsonb`),
+    version: integer("version").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("proposal_templates_organization_idx").on(table.organizationId),
+    unique("proposal_templates_organization_event_type_unique").on(table.organizationId, table.eventTypeId).nullsNotDistinct(),
+    check("proposal_templates_greeting_check", sql`char_length(${table.greeting}) between 1 and 4000`),
+    check(
+      "proposal_templates_blocks_check",
+      sql`cardinality(${table.blocks}) between 1 and 6 and ${table.blocks} <@ array['greeting', 'organization', 'photos', 'quote', 'schedule', 'validity']::text[] and 'quote' = any(${table.blocks})`,
+    ),
+    check("proposal_templates_photos_check", sql`jsonb_typeof(${table.photos}) = 'array' and jsonb_array_length(${table.photos}) <= 3`),
+    check("proposal_templates_version_check", sql`${table.version} >= 1`),
+  ],
+);
+
+// Lot 43 (FAC-08 Divergent, GC-01, FAC-09 ; D5, ADR 0087, ADR 0089) — règlement d'une échéance par
+// virement au RIB : référence unique dans l'organisation (« SYM-<année>-<numéro court> », sans
+// donnée personnelle, elle passe par les banques), déclaration du payeur (date, lien, nom copié),
+// suspension des relances par la planner (motif), RIB envoyé au 8e jour hors établissement. La
+// planner confirme l'encaissement par le rapprochement existant (payment_entries) : aucun
+// rapprochement automatique.
+export const paymentReferences = quotesSchema.table(
+  "payment_references",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    scheduleItemId: uuid("schedule_item_id")
+      .notNull()
+      .unique()
+      .references(() => paymentScheduleItems.id, { onDelete: "cascade" }),
+    reference: text("reference").notNull(),
+    isDemo: boolean("is_demo").notNull().default(false),
+    declaredAt: timestamp("declared_at", { withTimezone: true }),
+    declaredPaidOn: date("declared_paid_on"),
+    declaredByLinkId: uuid("declared_by_link_id"),
+    declaredByName: text("declared_by_name"),
+    remindersSuspendedAt: timestamp("reminders_suspended_at", { withTimezone: true }),
+    remindersSuspensionReason: text("reminders_suspension_reason"),
+    remindersSuspendedBy: uuid("reminders_suspended_by"),
+    detailsMailedAt: timestamp("details_mailed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("payment_references_organization_idx").on(table.organizationId),
+    unique("payment_references_organization_reference_unique").on(table.organizationId, table.reference),
+    check("payment_references_reference_check", sql`${table.reference} ~ '^SYM-[0-9]{4}-[0-9A-HJKMNP-TV-Z]{6}$'`),
+    check(
+      "payment_references_declaration_check",
+      sql`(${table.declaredAt} is null and ${table.declaredPaidOn} is null and ${table.declaredByLinkId} is null and ${table.declaredByName} is null) or (${table.declaredAt} is not null and ${table.declaredPaidOn} is not null and ${table.declaredByLinkId} is not null and char_length(${table.declaredByName}) between 1 and 200)`,
+    ),
+    check(
+      "payment_references_suspension_check",
+      sql`(${table.remindersSuspendedAt} is null and ${table.remindersSuspensionReason} is null) or (${table.remindersSuspendedAt} is not null and char_length(trim(${table.remindersSuspensionReason})) between 1 and 500)`,
+    ),
+  ],
+);
+
+// Lot 43 (FAC-09 ; D7) — relances d'une échéance impayée : une ligne par rang (J+3, J+10, J+20…),
+// écrite juste avant l'envoi, après avoir revérifié que l'échéance n'est ni réglée, ni déclarée, ni
+// suspendue. L'unicité (échéance, rang) garantit une seule relance par rang, même rejouée.
+export const paymentReminders = quotesSchema.table(
+  "payment_reminders",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    scheduleItemId: uuid("schedule_item_id")
+      .notNull()
+      .references(() => paymentScheduleItems.id, { onDelete: "cascade" }),
+    rank: integer("rank").notNull(),
+    // Jour (Paris) où la relance était prévue ; envoyée le (instant réel).
+    dueOn: date("due_on").notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("payment_reminders_organization_idx").on(table.organizationId),
+    unique("payment_reminders_item_rank_unique").on(table.scheduleItemId, table.rank),
+    check("payment_reminders_rank_check", sql`${table.rank} between 1 and 5`),
+  ],
+);
+
+// Lot 48b (BUD-08 ; D6, ADR 0093) — honoraires de la planner pour un évènement : forfait, pourcentage
+// du budget (estimé ou engagé, lu au module Budget), ou les deux. Ils vont sur son devis ; dans le
+// budget du client, une ligne à part, jamais dans les dépenses de l'évènement.
+export const PLANNER_FEE_KINDS = ["flat", "percent", "mixed"] as const;
+export const PLANNER_FEE_BASES = ["estimated", "committed"] as const;
+export const plannerFees = quotesSchema.table(
+  "planner_fees",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    // Évènement du module events (uuid opaque, ADR 0011).
+    eventId: uuid("event_id").notNull(),
+    kind: text("kind", { enum: PLANNER_FEE_KINDS }).notNull(),
+    flatCents: integer("flat_cents"),
+    percentBasisPoints: integer("percent_basis_points"),
+    base: text("base", { enum: PLANNER_FEE_BASES }).notNull().default("estimated"),
+    vatRateBasisPoints: integer("vat_rate_basis_points").notNull().default(2000),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("planner_fees_organization_idx").on(table.organizationId),
+    uniqueIndex("planner_fees_event_idx").on(table.organizationId, table.eventId),
+    check(
+      "planner_fees_terms_check",
+      sql`${table.kind} in ('flat', 'percent', 'mixed') and ${table.base} in ('estimated', 'committed') and (${table.flatCents} is null or ${table.flatCents} > 0) and (${table.percentBasisPoints} is null or ${table.percentBasisPoints} between 1 and 10000) and ((${table.kind} = 'flat') = (${table.percentBasisPoints} is null)) and ((${table.kind} = 'percent') = (${table.flatCents} is null))`,
+    ),
+    check("planner_fees_vat_rate_check", sql`${table.vatRateBasisPoints} between 0 and 10000`),
+  ],
+);
+
+// Lot 48b (PRE-07, JUR-10 ; D6, D8) — commissions et apports d'affaires reçus d'un prestataire pour un
+// évènement : montant ou pourcentage d'une base, statut (attendue, facturée, reçue). Affichées d'office
+// à un client particulier (réponse 4 de l'avocat) ; au choix pour un professionnel.
+export const COMMISSION_NATURES = ["commission", "referral"] as const;
+export const COMMISSION_STATUSES = ["expected", "invoiced", "received"] as const;
+export const vendorCommissions = quotesSchema.table(
+  "vendor_commissions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id").notNull(),
+    // Fiche du carnet (module vendors, uuid opaque) et son nom copié (la facture le fige).
+    vendorId: uuid("vendor_id"),
+    vendorName: text("vendor_name").notNull(),
+    nature: text("nature", { enum: COMMISSION_NATURES }).notNull().default("commission"),
+    amountCents: integer("amount_cents"),
+    percentBasisPoints: integer("percent_basis_points"),
+    baseCents: integer("base_cents"),
+    vatRateBasisPoints: integer("vat_rate_basis_points").notNull().default(2000),
+    status: text("status", { enum: COMMISSION_STATUSES }).notNull().default("expected"),
+    receivedOn: date("received_on"),
+    shownToClient: boolean("shown_to_client").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("vendor_commissions_organization_idx").on(table.organizationId),
+    index("vendor_commissions_event_idx").on(table.eventId),
+    check("vendor_commissions_name_check", sql`char_length(${table.vendorName}) between 1 and 200`),
+    check(
+      "vendor_commissions_amount_check",
+      sql`(${table.amountCents} is not null and ${table.amountCents} > 0 and ${table.percentBasisPoints} is null and ${table.baseCents} is null) or (${table.amountCents} is null and ${table.percentBasisPoints} between 1 and 10000 and ${table.baseCents} is not null and ${table.baseCents} > 0)`,
+    ),
+    check("vendor_commissions_status_check", sql`${table.nature} in ('commission', 'referral') and ${table.status} in ('expected', 'invoiced', 'received') and ((${table.status} = 'received') = (${table.receivedOn} is not null))`),
+    check("vendor_commissions_vat_rate_check", sql`${table.vatRateBasisPoints} between 0 and 10000`),
+  ],
+);

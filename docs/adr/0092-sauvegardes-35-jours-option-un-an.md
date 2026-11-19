@@ -1,0 +1,48 @@
+# ADR 0092 — Sauvegardes : 35 jours glissants de base, un an en option payante
+
+- Statut : accepté (décision de Julien du 18/11/2026, réponse à Q35)
+- Date : 2026-11-18
+- Écart assumé avec : NFR-13 (« 7 quotidiennes, 4 hebdomadaires, 12 mensuelles »). Le second
+  critère de NFR-13 (« le serveur ne peut pas effacer ses propres sauvegardes ») est inchangé.
+- Complète : ADR 0051 (sauvegarde restic vers la Storage Box), ADR 0056 (purge automatique).
+
+## Contexte
+
+Aujourd'hui, `infra/backup/backup.sh` garde 7 copies quotidiennes, 4 hebdomadaires et
+12 mensuelles. Une donnée effacée dans Symbola survit donc jusqu'à un an dans les sauvegardes :
+- effacement demandé par une personne (RGPD) ;
+- purge des invités à J+30 ;
+- fermeture d'un espace.
+
+La DPO demande une rotation de 35 jours au plus, et un journal des effacements rejoué après toute
+restauration (réponse du 13/11, Q35).
+
+Garder un an servirait surtout à retrouver une erreur découverte tard : une suppression remarquée
+des mois après, ou une corruption lente. Ce besoin est rare. Les pièces comptables, elles, restent
+dans l'application dix ans : elles n'ont pas besoin des sauvegardes. Un an de copies coûte aussi
+en stockage.
+
+## Décision
+
+1. **Base : 35 jours glissants.** Les sauvegardes permettent de remonter à n'importe quel jour des
+   35 derniers jours, puis disparaissent.
+2. **Option payante, plus tard : remonter jusqu'à un an.** Une sauvegarde est une copie de toute la
+   base, toutes organisations mêlées : on ne peut pas garder un an pour une seule organisation
+   sans garder les données des autres. L'option prendra donc la forme d'une **archive mensuelle
+   propre à l'organisation qui la souscrit**, faite à partir de l'export complet du lot 35, gardée
+   un an. Elle relève du lot 54 (abonnement, options). Son contrat dira qu'une donnée effacée peut
+   y rester jusqu'à un an, au choix de la planner.
+3. Le **journal des effacements** est rejoué après toute restauration (lot 35c), pour qu'une
+   restauration ne fasse pas revenir une donnée effacée.
+
+## Conséquences
+
+- Les copies instantanées de la Storage Box, qui protègent contre l'effacement par le serveur,
+  sont gardées 10 jours : elles restent sous les 35 jours, rien à y changer.
+- `infra/backup/backup.sh` passe à `--keep-within "${KEEP_WITHIN:-35d}"` ;
+  `backup.env.example` porte `KEEP_WITHIN=35d` ; les tests de `tools/deployment-config` suivent.
+- Sur le VPS, le changement prend effet au prochain déploiement, après la fin du gel : Julien
+  remplace les lignes `KEEP_*` de `backup.env` (`docs/runbooks/restauration.md`). Le premier
+  passage efface les sauvegardes de plus de 35 jours, sans retour.
+- La fiche de la DPO indique 35 jours (réponse 2 suivie).
+- NFR-13 passe à « Divergent » dans `docs/gap.csv`, justifié par cet ADR.

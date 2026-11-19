@@ -1,18 +1,25 @@
 // Porte d'entrée publique du module events — seul fichier que les autres
 // modules peuvent importer (ADR 0011). Pensé comme le futur contrat HTTP
 // /v1/events si ce module est extrait en app autonome.
+import { findLinkVendorRecordId } from "./repository";
 import { z } from "zod";
 import { formatCalendarDate, isTimeZone, parisDaysSince, parisToday } from "@symbola/i18n";
 import { canSetStatus, eventPhase } from "./lifecycle";
+import { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } from "./errors";
+export { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } from "./errors";
 // Lot 34a (EVT-05) : les règles du cycle de vie, pour les écrans et lib/.
+import { getPipeline as getPipelineOf } from "./pipeline";
+import { countRequestsToReview, findNewRequestRows } from "./prospects-repository";
+import type { Pipeline } from "@symbola/contracts";
 export { canPostpone, canSetStatus, closingDue, eventPhase, FINISHED_STATUSES, FIRM_STATUSES, IN_PROGRESS_STATUSES, isInProgress, MANUAL_STATUSES, TENTATIVE_STATUSES, TIMELINE_PHASES } from "./lifecycle";
 import type { EventStatus as LifecycleStatus } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
 import { includingDeleted, SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
+import { randomUUID } from "node:crypto";
 import { parseEnv } from "@symbola/env";
 import { MailQuotaExceededError, reserveOrganizationMail } from "@symbola/mail";
-import { starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, type StarterLinkProfile } from "@symbola/starter-templates";
+import { starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, starterDayOfSettings, type StarterLinkProfile } from "@symbola/starter-templates";
 import {
   postponeEventRow,
   confirmPostponementRow,
@@ -161,15 +168,19 @@ import {
   parseLinkToken,
   parisStartOfDay,
 } from "./link-tokens";
-import { isSendingHour, reminderTaskLines, reminderThreshold, type ReminderTask } from "./task-reminders";
+import { isSendingHour, reminderTaskLines, reminderThreshold, reminderThresholdStart, type ReminderTask } from "./task-reminders";
+import { clientTermForEvent as clientTermOf } from "./planning";
+import type { AutomationHooks } from "@symbola/contracts";
 import { recordAudit } from "@symbola/db/audit";
 import { resolveClientContacts } from "./clients";
-import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, getUserContact, sendOrganizationEmail, sendSymbolaEmail, updateContact } from "@/modules/hub/service";
+import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, getOrganizationLanguage, getUserContact, notificationRecipients, notify, sendOrganizationEmail, sendSymbolaEmail, updateContact } from "@/modules/hub/service";
 import { createTranslator } from "next-intl";
-import type { EmailTemplateKind, EmailValues, TrashedObject } from "@symbola/contracts";
+import type { DayHelper, DayHelperInput, EmailTemplateKind, EmailValues, EventTeamMember, EventTeamRole, TrashedObject } from "@symbola/contracts";
+import { EVENT_TEAM_ROLES } from "@symbola/contracts";
 import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import { answerDecisionRow, findDecisionRow, findDecisionRows, insertDecisionRow, replacementsOf, withdrawDecisionRow, type EventDecisionRow } from "./decisions-repository";
+import { engageOptionChoice, engagementContext } from "./vendor-coordination";
 import { findPendingDecisions, findUncontractedVendors, insertVendorReminder } from "./today-sources";
 import { VendorCandidateNotFoundError as CandidateNotFoundError } from "./vendor-candidates";
 import { answerProblem, DECISION_NOTE_MAX, decisionOpenTo, programChangedSince } from "./decisions";
@@ -178,7 +189,7 @@ import { addPlace, listPlaces, makeReceptionPlace, removePlace, restorePlace, up
 import { attachFile, getAttachmentFile, listAttachments, listEventAttachments, removeAttachment } from "./task-attachments";
 import { addComment, listComments, removeComment, restoreComment } from "./task-comments";
 import { listTrashedEventRows, restoreDocumentRow, restoreEventRow, restoreProgramTemplateRow, restoreTaskTemplateRow, trashEventRow } from "./trash";
-import { createStorageClient, deletePrivateObject } from "@symbola/files";
+import { createStorageClient, deletePrivateObject, detectFileType, PrivateObjectNotFoundError, readPrivateObject, scanBuffer, uploadPrivateObject } from "@symbola/files";
 import {
   addCandidate,
   addCandidateNote,
@@ -204,6 +215,46 @@ import {
   updateCandidate,
 } from "./vendor-candidates";
 import { addDayContact, listDayContacts, removeDayContact } from "./day-contacts";
+import { describeBrochureLink, openBrochureLink, prospectMessageValues, recordQuestionnaireSent, type ProspectRecipient } from "./prospect-messages";
+import {
+  eventPrefillState,
+  findResolvableAnswer,
+  finishLinkQuestionnaire,
+  freezeQuestionnaire as freezeQuestionnaireOf,
+  getPortalQuestionnaire,
+  insertEventQuestionnaire,
+  listLinkQuestionnaires,
+  markAnswersResolved,
+  openQuestionnaireRubric,
+  QuestionnaireNotFoundError as QuestionnaireMissingError,
+  saveLinkAnswer,
+  type PortalQuestionnaireView,
+} from "./questionnaires";
+import type { EventFieldValues } from "./questionnaire-rules";
+import type { EventQuestionnaire, PrefillDifference, QuestionEventField, QuestionnaireAnswerValue } from "@symbola/contracts";
+import { KeyMomentNotFoundError, listKeyMoments as listKeyMomentsOf } from "./key-moments";
+import {
+  actualsOf,
+  claimDayShiftNotification,
+  dayPhotoActionExists,
+  deviceInstant,
+  findDayRecords,
+  insertDayPhoto,
+  recordDayCheck,
+  recordDayCheckpoint,
+  recordDayIncident,
+  recordDayShift,
+  recordDayShiftNotification,
+  findDayPhotoFile,
+  resolveDayPhotoSubject,
+  setDayShiftVersion,
+  type DayActionResult,
+} from "./day-of";
+import { buildDayReport, saveDayReport } from "./day-report";
+import { insertLeadIfNone, deleteEventTeamMember, deleteMemberFromAllTeams, findEventLeads, findEventTeam, findTeamEventIds, findTeamRole, seesAllEvents, upsertEventTeamMember, type EventViewer } from "./team";
+import { importProgram } from "./program-import";
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 import {
   addDocumentVersion,
   attachDocument,
@@ -323,6 +374,15 @@ import type {
   ProgramRecipient,
   ProgramRecipientDocument,
   NotifyProgramVersionInput,
+  DayAction,
+  DayActionStatus,
+  DayPhoto,
+  DayPhotoMeta,
+  DayPhotoRejection,
+  DayReport,
+  DayReportHandover,
+  DayState,
+  ProgramImportResult,
   ProgramNotification,
   CalendarEvent,
   PublishedProgramView,
@@ -506,7 +566,8 @@ function toEventDetail(event: EventRecord, clients: EventClientRow[]): EventDeta
     guestsEstimated: event.guestsEstimated,
     guestsConfirmed: event.guestsConfirmed,
     style: event.style,
-    notes: event.notes,
+    notes: event.notesSealed ? null : event.notes,
+    notesConfidential: event.notesSealed && event.notesConfidentialBy ? { authorUserId: event.notesConfidentialBy } : null,
     ...(event.importedFields ? { importedFields: event.importedFields } : {}),
   };
 }
@@ -742,14 +803,6 @@ export class VendorNameRequiredError extends Error {
   }
 }
 
-// Identifiant inconnu ou appartenant à une autre organisation (masqué
-// par la RLS) : l'appelant affiche « introuvable » plutôt qu'une erreur.
-export class EventNotFoundError extends Error {
-  constructor() {
-    super("événement introuvable");
-    this.name = "EventNotFoundError";
-  }
-}
 
 // Lot 14 (décision I) — coordonnées d'un client : e-mail vérifié, valeurs
 // vides enregistrées comme absentes.
@@ -1178,12 +1231,13 @@ export async function revokeEventDocumentLink(organizationId: string, linkId: st
   await revokeDocumentLink(organizationId, linkId, now);
 }
 
+// Lot 45 (CRM-05, D1) : la page /partage ouvre aussi le lien de la brochure envoyée à un prospect.
 export async function describeEventDocumentLink(token: string, now?: Date): Promise<{ label: string; mime: string; sizeBytes: number } | null> {
-  return peekDocumentLink(token, now);
+  return (await peekDocumentLink(token, now)) ?? (await describeBrochureLink(token, now));
 }
 
 export async function openEventDocumentLink(token: string, now?: Date): Promise<OpenedEventDocumentLink | null> {
-  return openDocumentLink(token, now);
+  return (await openDocumentLink(token, now)) ?? (await openBrochureLink(token, now));
 }
 
 export async function listDayDocumentChoices(organizationId: string, eventId: string): Promise<DayDocumentChoice[]> {
@@ -1298,7 +1352,9 @@ function toTaskTemplate(template: TaskTemplateRow, items: TaskTemplateItemRow[])
 function toEventTask(row: EventTaskRow): EventTask {
   return {
     id: row.id,
-    eventId: row.eventId,
+    // Lot 53 (CHR-10) : les écrans d'un évènement ne lisent que ses tâches ; une tâche hors évènement
+    // passe par listStandaloneTasks (son propre type).
+    eventId: row.eventId ?? "",
     label: row.label,
     dueDate: row.dueDate,
     responsible: row.responsible,
@@ -1306,6 +1362,8 @@ function toEventTask(row: EventTaskRow): EventTask {
     done: row.doneAt !== null,
     position: row.position,
     offsetDays: row.offsetDays,
+    // Lot 53 (CHR-05).
+    isMilestone: row.isMilestone,
     fixed: row.fixedAt !== null,
     ...(row.importedFields ? { importedFields: row.importedFields } : {}),
   };
@@ -1429,7 +1487,7 @@ export async function listOrganizationTasks(input: ListOrganizationTasksInput): 
   if (rows.length === 0) return [];
   const eventsById = new Map((await listEvents({ organizationId: input.organizationId })).map((event) => [event.id, event]));
   return rows.flatMap((row) => {
-    const event = eventsById.get(row.eventId);
+    const event = row.eventId ? eventsById.get(row.eventId) : undefined;
     if (!event) return [];
     const task = toEventTask(row);
     return [
@@ -1504,7 +1562,7 @@ export class ProgramTemplateNotFoundError extends Error {
 
 // Lot 30b (CHR-06, décisions D6 et D7) : responsable trop long, durée hors d'une journée.
 export class ProgramItemInvalidError extends Error {
-  constructor(readonly reason: "responsible" | "duration") {
+  constructor(readonly reason: "responsible" | "duration" | "moment") {
     super(`ligne du programme invalide : ${reason}`);
     this.name = "ProgramItemInvalidError";
   }
@@ -1555,6 +1613,7 @@ function normalizeProgramItem(input: ProgramItemInput): ProgramItemData {
     location: optionalText(input.location),
     internalNote: optionalText(input.internalNote),
     responsible,
+    keyMomentId: input.keyMomentId && UUID_PATTERN.test(input.keyMomentId) ? input.keyMomentId : null,
   };
 }
 
@@ -1568,6 +1627,7 @@ function toProgramItem({ item, participants }: ProgramItemWithParticipants): Pro
     location: item.location,
     internalNote: item.internalNote,
     responsible: item.responsible,
+    keyMomentId: item.keyMomentId,
     participants: participants.map(
       ({ row, vendorSlotLabel }): ProgramParticipant => ({
         vendorSlotId: row.vendorSlotId,
@@ -1587,7 +1647,14 @@ function savedProgramItem(result: ProgramWriteResult): ProgramItem {
       throw new ProgramItemNotFoundError();
     case "participant_not_found":
       throw new ProgramParticipantNotFoundError();
+    case "moment_not_found":
+      throw new KeyMomentNotFoundError();
   }
+}
+
+// Lot 51 (EVT-04 ; D1) : nom du temps fort créé de lui-même, dans la langue de l'organisation.
+async function mainMomentName(organizationId: string): Promise<string> {
+  return starterDayOfSettings(await getOrganizationLanguage(appDatabase(), organizationId)).mainMomentName;
 }
 
 export async function getEventProgram(organizationId: string, eventId: string): Promise<EventProgram> {
@@ -1746,6 +1813,7 @@ export async function addProgramItem(organizationId: string, eventId: string, it
       normalizeProgramItem(item),
       item.vendorSlotIds,
       cleanLabels(item.freeParticipants),
+      await mainMomentName(organizationId),
     ),
   );
 }
@@ -1793,6 +1861,8 @@ function toProgramTemplateItem(row: ProgramTemplateItemRow): ProgramTemplateItem
     location: row.location,
     participantLabels: row.participantLabels,
     position: row.position,
+    momentName: row.momentName,
+    dayOffset: row.dayOffset,
   };
 }
 
@@ -1803,7 +1873,11 @@ function toProgramTemplate(template: ProgramTemplateRow, items: ProgramTemplateI
 function normalizeProgramTemplateItem(item: ProgramTemplateItemInput) {
   // Un modèle n'a pas de note interne : elle est propre à chaque événement.
   const { startTime, endTime, label, location } = normalizeProgramItem({ ...item, vendorSlotIds: [], freeParticipants: [] });
-  return { startTime, endTime, label, location, participantLabels: cleanLabels(item.participantLabels) };
+  // Lot 51 (CHR-08, EVT-04) : temps fort nommé (100 caractères) et jour (de la veille à J+6).
+  const momentName = optionalText(item.momentName)?.replace(/\s+/g, " ") ?? null;
+  const dayOffset = item.dayOffset ?? 0;
+  if ((momentName !== null && momentName.length > 100) || !Number.isInteger(dayOffset) || dayOffset < -3 || dayOffset > 6) throw new ProgramItemInvalidError("moment");
+  return { startTime, endTime, label, location, participantLabels: cleanLabels(item.participantLabels), momentName, dayOffset };
 }
 
 export async function listProgramTemplates(organizationId: string): Promise<ProgramTemplate[]> {
@@ -1857,7 +1931,7 @@ export async function applyProgramTemplate(
   eventId: string,
   templateId: string,
 ): Promise<ProgramItem[]> {
-  const result = await applyProgramTemplateRows(organizationId, eventId, templateId);
+  const result = await applyProgramTemplateRows(organizationId, eventId, templateId, await mainMomentName(organizationId));
   if (result.status !== "applied") {
     throw result.status === "event_not_found" ? new EventNotFoundError() : new ProgramTemplateNotFoundError();
   }
@@ -1870,7 +1944,7 @@ export async function applyProgramTemplate(
 // renouvellement : seul son haché reste en base.
 
 export class EventLinkInvalidError extends Error {
-  constructor(readonly reason: "name" | "email" | "expiry" | "client" | "slot" | "audience" | "vendor") {
+  constructor(readonly reason: "name" | "email" | "expiry" | "client" | "slot" | "audience" | "vendor" | "phone" | "date") {
     super(`lien personnel invalide : ${reason}`);
     this.name = "EventLinkInvalidError";
   }
@@ -1883,14 +1957,6 @@ export class EventLinkNotFoundError extends Error {
   }
 }
 
-// Lien absent, retiré ou expiré, rubrique fermée, objet d'un autre événement :
-// même réponse dans tous les cas, sans dire ce qui existe (SEC-13).
-export class LinkAccessDeniedError extends Error {
-  constructor() {
-    super("accès refusé");
-    this.name = "LinkAccessDeniedError";
-  }
-}
 
 const emailSchema = z.email();
 const LINK_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -1962,8 +2028,17 @@ function toEventLink(context: LinkWithContext, now = new Date()): EventLink {
 
 // Un lien vaut s'il n'est ni retiré ni expiré, et si son événement n'est ni
 // perdu ni un essai.
+// Lot 52 (EVT-06, D3) : le lien d'un renfort du jour J ne vaut qu'à partir du matin de la veille de son
+// évènement daté (heure de Paris), jusqu'à la fin du lendemain.
 function usableLink(context: LinkWithContext, now: Date): boolean {
-  return !context.link.revokedAt && !isLinkExpired(expiresOnOf(context), now) && context.event.status !== "cancelled" && !context.event.isDemo;
+  if (context.link.revokedAt || isLinkExpired(expiresOnOf(context), now) || context.event.status === "cancelled" || context.event.isDemo) return false;
+  if (context.link.audience !== "day_helper") return true;
+  return context.event.eventDate !== null && now.getTime() >= dayHelperValidFrom(context.event.eventDate).getTime();
+}
+
+// Premier instant où le lien d'un renfort vaut : minuit (Paris) du jour qui précède l'évènement.
+export function dayHelperValidFrom(eventDate: string): Date {
+  return parisStartOfDay(addDays(eventDate, -starterLinkExpiry().dayHelperDaysBefore));
 }
 
 function toLinkAccess(context: LinkWithContext): LinkAccess {
@@ -1994,6 +2069,7 @@ function emailTranslator(locale: "fr" | "en") {
 }
 
 function linkEmailKind(audience: LinkAudience, renewed: boolean): EmailTemplateKind {
+  if (audience === "day_helper") return "day_helper_link";
   if (audience === "vendor") return renewed ? "vendor_link_renewed" : "vendor_link";
   return renewed ? "client_link_renewed" : "client_link";
 }
@@ -2016,6 +2092,8 @@ async function linkEmailValues(input: { organizationId: string; eventId: string;
     event_date: found?.event.eventDate ? formatCalendarDate(found.event.eventDate, input.locale) : "",
     // Avant la création du lien, son échéance n'est pas encore connue : une valeur d'attente.
     valid_until: input.expiresOn ? formatCalendarDate(input.expiresOn, input.locale) : "—",
+    // Lot 53 (HUB-24, D8) : {{terme_clients}}, le terme réglé pour le type de l'évènement.
+    client_term: (await clientTermOf(input.organizationId, input.eventId, input.locale, input.vocabulary)).term,
     ...(input.url ? { link: input.url } : {}),
   };
 }
@@ -2052,12 +2130,15 @@ export async function createEventLink(input: CreateEventLinkInput): Promise<Even
   return { link, url };
 }
 
+// Les liens du portail et des prestataires ; les renforts du jour J ont leur liste (listDayHelpers).
 export async function listEventLinks(organizationId: string, eventId: string): Promise<EventLink[]> {
   const now = new Date();
-  return (await findEventLinkRows(organizationId, eventId)).map((context) => toEventLink(context, now));
+  return (await findEventLinkRows(organizationId, eventId)).filter((context) => context.link.audience !== "day_helper").map((context) => toEventLink(context, now));
 }
 
 export async function updateEventLink(organizationId: string, linkId: string, input: EventLinkInput): Promise<EventLink> {
+  const current = await findLinkRow(organizationId, linkId);
+  if (!current || current.link.audience === "day_helper") throw new EventLinkNotFoundError();
   const result = await updateLinkRow(organizationId, linkId, validLinkFields(input));
   if (result.status !== "saved") throw linkWriteError(result.status);
   return toEventLink(result.context);
@@ -2068,7 +2149,8 @@ export async function updateEventLink(organizationId: string, linkId: string, in
 // choisir une autre date en modifiant le lien).
 export async function renewEventLink(input: RenewEventLinkInput): Promise<EventLinkDelivery> {
   const current = await findLinkRow(input.organizationId, input.linkId);
-  if (!current || current.link.revokedAt) throw new EventLinkNotFoundError();
+  // Lot 52 : un renfort du jour J reçoit un nouveau lien en étant ajouté de nouveau.
+  if (!current || current.link.revokedAt || current.link.audience === "day_helper") throw new EventLinkNotFoundError();
   if (current.event.isDemo) throw new DemoEventRestrictionError();
   const now = new Date();
   const extendTo = isLinkExpired(expiresOnOf(current), now) ? addDays(parisToday(now), starterLinkExpiry().daysAfterEvent[current.link.audience]) : undefined;
@@ -2090,6 +2172,137 @@ export async function renewEventLink(input: RenewEventLinkInput): Promise<EventL
 // Retirer coupe aussitôt les sessions ouvertes ; retirer deux fois ne fait rien.
 export async function revokeEventLink(organizationId: string, linkId: string): Promise<void> {
   await revokeLinkRow(organizationId, linkId);
+}
+
+// —— Lot 52 (EVT-06 ; D2, D3 ; ADR 0094) : équipe de l'évènement et renfort du jour J ——————————————————
+
+export class EventTeamMemberInvalidError extends Error {
+  constructor() {
+    super("membre de l'équipe invalide");
+    this.name = "EventTeamMemberInvalidError";
+  }
+}
+
+export async function listEventTeam(organizationId: string, eventId: string): Promise<EventTeamMember[]> {
+  return findEventTeam(organizationId, eventId);
+}
+
+// Planner principal ou assistant : une personne active de l'équipe de l'organisation (Propriétaire ou
+// Planner ; jamais le Comptable).
+export async function setEventTeamMember(input: { organizationId: string; eventId: string; userId: string; role: EventTeamRole; byUserId: string }): Promise<void> {
+  if (!EVENT_TEAM_ROLES.includes(input.role)) throw new EventTeamMemberInvalidError();
+  const team = await listTeam(appDatabase(), input.organizationId);
+  const member = team.find((entry) => entry.id === input.userId && !entry.disabledAt);
+  if (!member || (member.role !== "owner" && member.role !== "member")) throw new EventTeamMemberInvalidError();
+  if ((await upsertEventTeamMember(input)) === "not_found") throw new EventNotFoundError();
+}
+
+export async function removeEventTeamMember(input: { organizationId: string; eventId: string; userId: string; byUserId: string }): Promise<boolean> {
+  return deleteEventTeamMember(input);
+}
+
+export async function makeCreatorLead(organizationId: string, eventId: string, userId: string): Promise<void> {
+  await insertLeadIfNone(organizationId, eventId, userId);
+}
+
+// HUB-04 : un membre retiré de l'organisation n'est plus dans aucune équipe d'évènement.
+export async function removeMemberFromEvents(organizationId: string, userId: string): Promise<number> {
+  return deleteMemberFromAllTeams(organizationId, userId);
+}
+
+export async function eventTeamRole(organizationId: string, eventId: string, userId: string): Promise<EventTeamRole | null> {
+  return findTeamRole(organizationId, eventId, userId);
+}
+
+// Lot 53 : le planner principal de chaque évènement, pour lui adresser ses alertes.
+export async function listEventLeads(organizationId: string, eventIds: string[]): Promise<Map<string, string>> {
+  return findEventLeads(organizationId, eventIds);
+}
+
+// D2 : les évènements visibles d'une personne de l'équipe ; null = tous.
+export async function visibleEventIds(organizationId: string, viewer: EventViewer): Promise<Set<string> | null> {
+  return seesAllEvents(viewer) ? null : findTeamEventIds(organizationId, viewer.userId);
+}
+
+export async function canViewEvent(organizationId: string, viewer: EventViewer, eventId: string): Promise<boolean> {
+  if (seesAllEvents(viewer)) return true;
+  return (await findTeamRole(organizationId, eventId, viewer.userId)) !== null;
+}
+
+const PHONE_PATTERN = /^[0-9+()./\s-]{6,40}$/;
+
+function validDayHelper(input: DayHelperInput): LinkFields {
+  const personName = input.personName.trim().slice(0, PERSON_NAME_MAX);
+  if (!personName) throw new EventLinkInvalidError("name");
+  const email = input.email.trim();
+  if (!emailSchema.safeParse(email).success) throw new EventLinkInvalidError("email");
+  const phone = input.phone?.trim() || null;
+  if (phone && !PHONE_PATTERN.test(phone)) throw new EventLinkInvalidError("phone");
+  return { personName, email, phone, eventClientId: null, rights: { rubrics: [], budgetScope: "all", sharedSlotIds: [] }, customExpiresOn: null, otpRequired: true, taskReminders: false };
+}
+
+function toDayHelper(context: LinkWithContext, now: Date): DayHelper {
+  const expiresOn = expiresOnOf(context);
+  return {
+    linkId: context.link.id,
+    personName: context.link.personName,
+    email: context.link.email,
+    phone: context.link.phone,
+    validFrom: context.event.eventDate ? dayHelperValidFrom(context.event.eventDate).toISOString() : "",
+    expiresOn,
+    status: linkStatus({ revokedAt: context.link.revokedAt, expiresOn }, now),
+    lastOpenedAt: context.link.lastOpenedAt?.toISOString() ?? null,
+  };
+}
+
+export async function listDayHelpers(organizationId: string, eventId: string, now: Date = new Date()): Promise<DayHelper[]> {
+  return (await findEventLinkRows(organizationId, eventId)).filter((context) => context.link.audience === "day_helper").map((context) => toDayHelper(context, now));
+}
+
+// D3 : le renfort reçoit par e-mail son lien personnel, valable de la veille au lendemain de
+// l'évènement daté ; il demande un code à l'ouverture. Un évènement sans date ou d'essai n'en a pas.
+export async function createDayHelper(input: { organizationId: string; eventId: string; helper: DayHelperInput; locale: "fr" | "en"; byUserId: string }): Promise<{ helper: DayHelper; url: string }> {
+  const fields = validDayHelper(input.helper);
+  const found = await findEventById(input.organizationId, input.eventId);
+  if (!found) throw new EventNotFoundError();
+  if (found.event.isDemo) throw new DemoEventRestrictionError();
+  if (!found.event.eventDate) throw new EventLinkInvalidError("date");
+  const vocabulary = (await findEventAudience(input.organizationId, input.eventId)) ?? "couple";
+  const base = { organizationId: input.organizationId, eventId: input.eventId, audience: "day_helper" as const, personName: fields.personName, locale: input.locale, vocabulary };
+  const validFrom = formatCalendarDate(addDays(found.event.eventDate, -starterLinkExpiry().dayHelperDaysBefore), input.locale);
+  await assertOrganizationEmailReady({ organizationId: input.organizationId, kind: "day_helper_link", locale: input.locale, values: { ...(await linkEmailValues({ ...base, expiresOn: null })), valid_from: validFrom } });
+  await reserveOrganizationMail(input.organizationId);
+  const secret = newLinkSecret();
+  const result = await insertLinkRow({ ...fields, organizationId: input.organizationId, eventId: input.eventId, audience: "day_helper", vendorCandidateId: null, locale: input.locale, tokenHash: hashLinkSecret(secret) });
+  if (result.status !== "saved") throw linkWriteError(result.status);
+  const helper = toDayHelper(result.context, new Date());
+  const url = linkUrl(formatLinkToken(input.organizationId, secret));
+  await sendOrganizationEmail({
+    organizationId: input.organizationId,
+    to: helper.email,
+    kind: "day_helper_link",
+    locale: input.locale,
+    values: { ...(await linkEmailValues({ ...base, expiresOn: helper.expiresOn, url })), valid_from: validFrom },
+    reserve: false,
+  });
+  return { helper, url };
+}
+
+// Retirer le renfort : son lien et ses sessions cessent aussitôt ; ses actions en file sont refusées.
+export async function revokeDayHelper(organizationId: string, eventId: string, linkId: string): Promise<boolean> {
+  const current = await findLinkRow(organizationId, linkId);
+  if (!current || current.link.audience !== "day_helper" || current.link.eventId !== eventId) return false;
+  await revokeLinkRow(organizationId, linkId);
+  return true;
+}
+
+// L'accès d'un renfort au mode Jour J d'un évènement : sa session de lien, son évènement, ses dates.
+// Toute autre combinaison répond null, comme une page inexistante (SEC-13).
+export async function dayHelperAccess(sessionToken: string | undefined, eventId: string, now: Date = new Date()): Promise<LinkAccess | null> {
+  if (!sessionToken) return null;
+  const access = await resolveLinkSession(sessionToken, now);
+  if (!access || access.audience !== "day_helper" || access.eventId !== eventId) return null;
+  return access;
 }
 
 // SEC-17, décision D2 : la page /lien échange le jeton (reçu en POST, jamais
@@ -2129,6 +2342,7 @@ async function startLinkSession(organizationId: string, context: LinkWithContext
     sessionToken: formatLinkToken(organizationId, sessionSecret),
     maxAgeSeconds: Math.max(1, Math.floor((expiresAt.getTime() - now.getTime()) / 1000)),
     audience: context.link.audience,
+    eventId: context.link.eventId,
   };
 }
 
@@ -2185,6 +2399,46 @@ export async function verifyLinkCode(token: string, code: string, now: Date = ne
   if (attempt.status === "expired") return { outcome: "code_expired" };
   if (attempt.status === "wrong") return attempt.attemptsLeft > 0 ? { outcome: "wrong_code", attemptsLeft: attempt.attemptsLeft } : { outcome: "code_expired" };
   return await startLinkSession(found.organizationId, found.context, now);
+}
+
+// Lot 43 (SEC-16 ; D4 ; avenant de l'ADR 0053, ADR 0089) — code à usage unique avant une action
+// sensible depuis un lien déjà ouvert (signer) : les mêmes codes que l'ouverture (six chiffres, dix
+// minutes, cinq essais, un seul usage, cinq codes par heure), envoyés à l'e-mail du lien, sans ouvrir
+// de nouvelle session. Le lien est relu : retiré, expiré ou d'un évènement perdu, rien ne part.
+export type LinkActionCodeResult = { sent: boolean; emailHint: string };
+export type LinkActionCodeCheck = { outcome: "accepted" } | { outcome: "wrong_code"; attemptsLeft: number } | { outcome: "code_expired" } | { outcome: "invalid" };
+
+export async function sendLinkActionCode(organizationId: string, linkId: string, now: Date = new Date(), locale: "fr" | "en" = "fr"): Promise<LinkActionCodeResult> {
+  const context = await findLinkRow(organizationId, linkId);
+  if (!context || !usableLink(context, now)) return { sent: false, emailHint: "•••" };
+  const { link } = context;
+  const emailHint = maskEmail(link.email);
+  try {
+    await reserveOrganizationMail(organizationId);
+  } catch (error) {
+    if (error instanceof MailQuotaExceededError) return { sent: false, emailHint };
+    throw error;
+  }
+  const code = newLinkCode();
+  const issued = await withActor({ kind: "link", id: link.id }, () =>
+    issueLinkCodeRow({ organizationId, linkId: link.id, eventId: link.eventId, codeHash: hashLinkCode(link.id, code), expiresAt: linkCodeExpiresAt(now), now, maxPerHour: LINK_CODES_PER_HOUR }),
+  );
+  if (issued === "throttled") return { sent: false, emailHint };
+  const t = emailTranslator(locale);
+  await sendSymbolaEmail({ to: link.email, locale, subject: t("fixed.actionCode.subject", { code }), body: t("fixed.actionCode.body", { name: link.personName, code, minutes: Math.round(LINK_CODE_TTL_MS / 60_000) }), organizationId });
+  return { sent: true, emailHint };
+}
+
+export async function verifyLinkActionCode(organizationId: string, linkId: string, code: string, now: Date = new Date()): Promise<LinkActionCodeCheck> {
+  const context = await findLinkRow(organizationId, linkId);
+  if (!context || !usableLink(context, now)) return { outcome: "invalid" };
+  const typed = normalizeLinkCode(code);
+  const attempt = await withActor({ kind: "link", id: linkId }, () =>
+    attemptLinkCodeRow({ organizationId, linkId, eventId: context.link.eventId, codeHash: hashLinkCode(linkId, typed ?? ""), now }),
+  );
+  if (attempt.status === "expired") return { outcome: "code_expired" };
+  if (attempt.status === "wrong") return attempt.attemptsLeft > 0 ? { outcome: "wrong_code", attemptsLeft: attempt.attemptsLeft } : { outcome: "code_expired" };
+  return { outcome: "accepted" };
 }
 
 // Décision D7 : à chaque requête, la session et son lien sont relus ; une
@@ -2271,10 +2525,13 @@ export async function getVendorLinkView(organizationId: string, linkId: string):
   const [vendor, found] = await Promise.all([findLinkVendorRow(organizationId, access.vendorCandidateId), findEventById(organizationId, access.eventId)]);
   if (!vendor || vendor.eventId !== access.eventId || !found) throw new LinkAccessDeniedError();
   const [places, published] = await Promise.all([listEventPlaces(organizationId, access.eventId), linkPublishedProgram(organizationId, linkId, access.eventId)]);
+  const dayShift = await latestVendorDayShift(organizationId, access.eventId, vendor.vendorSlotId);
   const program: VendorProgramView = {
     version: published.version ? { number: published.version.number, publishedAt: published.version.publishedAt } : null,
     ...vendorProgramOf(published.version?.items ?? [], vendor.vendorSlotId),
     isNew: published.isNew,
+    // Présent seulement quand un décalage du jour J concerne la version affichée.
+    ...(dayShift && published.version && dayShift.programVersion === published.version.number ? { dayShift: { minutes: dayShift.minutes, validatedAt: dayShift.validatedAt } } : {}),
   };
   return {
     vendorName: vendor.vendorName,
@@ -2384,7 +2641,9 @@ export async function getLinkNamesByIds(organizationId: string, linkIds: string[
 // personne et par jour, regroupant les tâches qui atteignent un seuil (sept
 // jours avant, la veille, le lendemain d'un retard), jamais deux fois le même
 // rappel ; liens valables seulement ; plafond d'envois de l'organisation.
-export async function sendClientTaskReminders(organizationId: string, now: Date = new Date()): Promise<number> {
+// Lot 53 (HUB-28, D5) : hooks.notBefore — un rappel dont le palier a commencé avant la remise en route ne
+// part pas ; hooks.onRun, la trace de chaque rappel envoyé.
+export async function sendClientTaskReminders(organizationId: string, now: Date = new Date(), hooks: AutomationHooks = {}): Promise<number> {
   const policy = starterClientTaskReminders();
   if (!isSendingHour(now, policy)) return 0;
   const today = parisToday(now);
@@ -2399,6 +2658,7 @@ export async function sendClientTaskReminders(organizationId: string, now: Date 
     if (candidate.sentToday || !usableLink(candidate.context, now)) continue;
     const due: (ReminderTask & { taskId: string })[] = candidate.tasks.flatMap((task) => {
       const threshold = reminderThreshold(task.dueDate, today, policy);
+      if (threshold && hooks.notBefore && reminderThresholdStart(task.dueDate, threshold, policy) < hooks.notBefore) return [];
       return threshold && !candidate.sent.has(`${task.id}:${threshold}`) ? [{ taskId: task.id, label: task.label, dueDate: task.dueDate, threshold }] : [];
     });
     if (due.length === 0) continue;
@@ -2430,6 +2690,7 @@ export async function sendClientTaskReminders(organizationId: string, now: Date 
     if (recorded === 0) continue;
     await sendOrganizationEmail({ organizationId, to: link.email, kind: "task_reminder", locale, values, reserve: false });
     sent += 1;
+    await hooks.onRun?.({ objectKey: link.id, href: `/events/${link.eventId}?onglet=retroplanning`, result: "sent" });
   }
   return sent;
 }
@@ -2437,7 +2698,8 @@ export async function sendClientTaskReminders(organizationId: string, now: Date 
 // Lot 27b (POR-03, BUD-07, EVT-09 ; décisions D9 et D10) — décisions demandées
 // au client. La planner les demande (contenu figé), le client y répond depuis
 // son portail (première réponse), la décision répondue ne se modifie plus : une
-// nouvelle la remplace. Une décision n'engage rien d'elle-même (D9).
+// nouvelle la remplace. Une décision n'engage rien d'elle-même (D9), sauf depuis
+// le lot 47 (D6, ADR 0085) le choix d'une décision « options », qui engage.
 
 export class DecisionInvalidError extends Error {
   constructor(readonly reason: "options" | "expense" | "program" | "date" | "note" | "replace" | "pending" | "choice" | "comment" | "answered") {
@@ -2475,6 +2737,7 @@ function toDecision(row: EventDecisionRow, replacedBy: Map<string, string>, curr
     replacedById: replacedBy.get(row.id) ?? null,
     requestedAt: row.requestedAt.toISOString(),
     programChanged: row.status === "approved" && programChangedSince(snapshot, currentProgram),
+    engagedAt: row.engagedAt?.toISOString() ?? null,
   };
 }
 
@@ -2602,11 +2865,31 @@ export async function answerLinkDecision(input: AnswerDecisionInput): Promise<Ev
   const choiceId = input.choiceId || null;
   const problem = answerProblem(row.snapshot as DecisionSnapshot, { answer: input.answer, choiceId, comment });
   if (problem) throw new DecisionInvalidError(problem);
+  // Lot 47 (PAR-05, PRE-09 ; D6, ADR 0085) : le choix d'une option engage (Retenu, autres Écartés,
+  // tâches de suivi), dans la même transaction que la réponse ; la planner modifie ensuite le prestataire
+  // retenu quand elle veut. Remplace, pour les décisions « options » seulement, la règle D9 du lot 28.
+  const now = new Date();
+  const engaging = row.kind === "option" && input.answer === "approved" && choiceId !== null ? await engagementContext(input.organizationId, row, access.linkId) : null;
   const answered = await withActor({ kind: "link", id: access.linkId }, () =>
-    answerDecisionRow({ organizationId: input.organizationId, decisionId: row.id, status: input.answer, choiceId, comment, linkId: access.linkId, personName: access.personName, now: new Date() }),
+    answerDecisionRow({
+      organizationId: input.organizationId,
+      decisionId: row.id,
+      status: input.answer,
+      choiceId,
+      comment,
+      linkId: access.linkId,
+      personName: access.personName,
+      now,
+      engage: engaging && choiceId ? (tx, answeredRow) => engageOptionChoice(tx, { organizationId: input.organizationId, decision: answeredRow, choiceId, linkId: access.linkId, now, ...engaging }) : undefined,
+    }),
   );
   if (!answered) throw new DecisionInvalidError("answered");
   const [decision] = await decisionsWithContext(input.organizationId, access.eventId, [answered], await findDecisionRows(input.organizationId, access.eventId));
+  // Lot 53 (HUB-15, UX-16) : « Décision du client » mène à l'onglet des clients de l'évènement.
+  const found = await findEventById(input.organizationId, access.eventId);
+  await notify({ organizationId: input.organizationId, type: "client_decision", eventId: access.eventId, objectKey: row.id, params: { title: decision!.title.slice(0, 200) }, href: `/events/${access.eventId}?onglet=maries`, eventDate: found?.event.eventDate ?? null, isDemo: found?.event.isDemo ?? false, now }).catch((error: unknown) => {
+    console.error(`notification de la décision non créée (décision ${row.id})`, error instanceof Error ? error.name : "inconnue");
+  });
   return decision!;
 }
 
@@ -2643,14 +2926,6 @@ export async function listEventActivity(organizationId: string, eventId: string)
 
 const TRIAL_DURATION_MS = 24 * 60 * 60 * 1000; // essai abandonné supprimé après 24 h (PRD, proposé)
 
-// Action impossible sur un événement d'essai (ex. inviter un marié : jamais
-// d'e-mail à un tiers depuis un essai).
-export class DemoEventRestrictionError extends Error {
-  constructor() {
-    super("action indisponible pendant l'essai");
-    this.name = "DemoEventRestrictionError";
-  }
-}
 
 function toTrial(event: EventRow): EventsTrial {
   return { eventId: event.id, expiresAt: event.demoExpiresAt!.toISOString() };
@@ -3094,3 +3369,658 @@ export async function getEventIdentityState(
 // Lot 49 (EVT-04 premier pas, INV-03 ; D2) — temps forts de l'évènement, et ce que le module Invités
 // lit d'un évènement (clients, dates, statut, temps forts), par cette porte d'entrée (ADR 0011).
 export { addKeyMoment, guestEventContexts, KEY_MOMENTS_MAX, KeyMomentInvalidError, KeyMomentNotFoundError, listKeyMoments, listRealEventIds, removeKeyMoment, updateKeyMoment } from "./key-moments";
+
+// Lot 44 (CRM-01, CRM-02 ; ADR 0084) — formulaire de contact public et pipeline en colonnes.
+export {
+  acceptProspectRequest,
+  ContactFormInvalidError,
+  ContactFormSlugTakenError,
+  ContactSubmissionInvalidError,
+  contactFormNotice,
+  countLinks,
+  discardProspectRequest,
+  getContactFormSettings,
+  getEventProspectRequest,
+  isFormTimingValid,
+  isValidContactSlug,
+  listProspectRequestsToReview,
+  normalizeOrigin,
+  notifyOwnerOfRequest,
+  parseBudget,
+  parseContactSubmission,
+  ProspectRequestNotFoundError,
+  purgeStaleProspectRequests,
+  resolvePublicContactForm,
+  saveContactFormSettings,
+  sealFormOpening,
+  submitContactForm,
+  suggestContactFormSlug,
+  type PublicContactFormView,
+  type RawContactSubmission,
+  type SubmitOptions,
+} from "./contact-form";
+export { contactFrameOrigins } from "./contact-frame";
+export {
+  addPipelineStage,
+  listPipelineStages,
+  movePipelineCard,
+  movePipelineStage,
+  PIPELINE_MAX_STAGES,
+  PIPELINE_MIN_STAGES,
+  PipelineMoveRefusedError,
+  PipelineStageInvalidError,
+  removePipelineStage,
+  renamePipelineStage,
+} from "./pipeline";
+
+// Le pipeline, avec le nom des prospects (premier client de chaque option).
+export async function getEventsPipeline(organizationId: string, locale: "fr" | "en"): Promise<Pipeline> {
+  const options = await listEvents({ organizationId, statusIn: ["option"] });
+  return getPipelineOf(organizationId, locale, new Map(options.map((event) => [event.id, eventNames(event.clients)])));
+}
+
+// « Gagné » (CRM-02, D9) : l'évènement est confirmé, avec les effets de la confirmation (EVT-05).
+export async function winPipelineCard(input: { organizationId: string; eventId: string; userId: string }): Promise<void> {
+  const event = await getEvent(input.organizationId, input.eventId);
+  if (!event) throw new EventNotFoundError();
+  if (event.status !== "option") throw new EventStatusTransitionError();
+  await changeEventStatus({ organizationId: input.organizationId, eventId: input.eventId, changedByUserId: input.userId, toStatus: "confirmed" });
+}
+
+export class LossReasonRequiredError extends Error {
+  constructor(readonly field: "reason" | "note") {
+    super(field === "reason" ? "motif de perte obligatoire" : "précision du motif obligatoire");
+    this.name = "LossReasonRequiredError";
+  }
+}
+
+// « Perdu » (CRM-02, D9) : l'évènement est annulé ; le motif de perte est obligatoire, la note aussi
+// pour le motif « Autre ».
+export async function losePipelineCard(input: { organizationId: string; eventId: string; userId: string; lossReasonId: string | null; lossReasonNote: string | null }): Promise<void> {
+  const reason = input.lossReasonId ? (await listLossReasons(input.organizationId)).find((candidate) => candidate.id === input.lossReasonId) : undefined;
+  if (!reason) throw new LossReasonRequiredError("reason");
+  const note = input.lossReasonNote?.trim().slice(0, 1000) || null;
+  if (reason.isFreeText && !note) throw new LossReasonRequiredError("note");
+  const event = await getEvent(input.organizationId, input.eventId);
+  if (!event) throw new EventNotFoundError();
+  if (event.status !== "option") throw new EventStatusTransitionError();
+  await cancelEvent({ organizationId: input.organizationId, eventId: input.eventId, changedByUserId: input.userId, lossReasonId: reason.id, lossReasonNote: note });
+}
+
+// « Aujourd'hui » (PAR-02, étape 1) : les prospects du formulaire encore à la première étape, avec
+// l'alerte de date prise (CRM-04) ; et le nombre de demandes « à vérifier ».
+export type NewProspectRequest = { eventId: string; names: string; eventDate: string | null; period: string | null; receivedAt: string; dateTaken: boolean };
+
+export async function listNewProspectRequests(organizationId: string, locale: "fr" | "en"): Promise<NewProspectRequest[]> {
+  const pipeline = await getEventsPipeline(organizationId, locale);
+  const firstStageId = pipeline.stages[0]?.id;
+  const rows = firstStageId ? await findNewRequestRows(organizationId, firstStageId) : [];
+  const cards = new Map(pipeline.cards.map((card) => [card.eventId, card]));
+  return rows.flatMap((row) => {
+    const card = cards.get(row.eventId);
+    return card ? [{ eventId: row.eventId, names: card.names, eventDate: row.eventDate, period: row.period, receivedAt: row.receivedAt.toISOString(), dateTaken: card.dateTaken }] : [];
+  });
+}
+
+export async function countProspectRequestsToReview(organizationId: string): Promise<{ count: number; oldest: string | null }> {
+  const result = await countRequestsToReview(organizationId);
+  return { count: result.count, oldest: result.oldest ? result.oldest.toISOString() : null };
+}
+
+// —— Lot 51 (EVT-04, CHR-08, JRJ-05 à JRJ-09, ARC-09, PAR-08 ; D1 à D8, ADR 0091) : jour J de terrain ——
+
+export { DayChecklistInvalidError, DayChecklistNotFoundError } from "./day-checklists";
+export {
+  addDayChecklistItem,
+  createDayChecklist,
+  listDayChecklistTemplates,
+  removeDayChecklist,
+  removeDayChecklistItem,
+  removeDayChecklistTemplate,
+  saveDayChecklistTemplate,
+} from "./day-checklists";
+export { deviceInstant } from "./day-of";
+
+// Réglages de départ du jour J (seuil de retard, photos, rafraîchissement), dans une langue.
+export function dayOfSettings(locale: "fr" | "en") {
+  return starterDayOfSettings(locale);
+}
+
+// CHR-08 : aperçu, puis écriture, d'un chrono importé d'un tableur.
+export async function importEventProgram(input: { organizationId: string; eventId: string; bytes: Uint8Array; apply: { skipLines: number[] } | null }): Promise<ProgramImportResult> {
+  const result = await importProgram({ ...input, mainMomentName: await mainMomentName(input.organizationId) });
+  if (!result) throw new EventNotFoundError();
+  return result;
+}
+
+// JRJ-08 : l'état partagé du jour J (pointages, première heure retenue, décalages, incidents, listes),
+// avec le nom affiché (l'adresse du compte) des membres cités.
+// Lot 52 (EVT-06, D3) : les auteurs sont les comptes de l'équipe et les renforts du jour J (nommés
+// « Hugo, renfort ») ; vu par un renfort, un compte de l'équipe n'est pas nommé (son adresse ne sort
+// pas de l'équipe).
+export async function getDayState(organizationId: string, eventId: string, options: { forHelper?: boolean } = {}): Promise<DayState | null> {
+  const records = await findDayRecords(organizationId, eventId);
+  if (!records) return null;
+  const cited = new Set<string>([
+    ...records.checkpoints.map((checkpoint) => checkpoint.userId),
+    ...records.shifts.map((shift) => shift.validatedBy),
+    ...records.incidents.map((incident) => incident.userId),
+    ...records.checklists.flatMap((list) => list.items.flatMap((item) => (item.checkedBy ? [item.checkedBy] : []))),
+  ]);
+  const team = cited.size > 0 ? await listTeam(appDatabase(), organizationId) : [];
+  const helpers = cited.size > 0 ? (await findEventLinkRows(organizationId, eventId)).filter((context) => context.link.audience === "day_helper") : [];
+  return {
+    eventId,
+    checkpoints: records.checkpoints,
+    actuals: actualsOf(records),
+    shifts: records.shifts,
+    incidents: records.incidents,
+    checklists: records.checklists,
+    people: [
+      ...team.filter((member) => cited.has(member.id)).map((member) => ({ id: member.id, name: options.forHelper ? "" : member.email })),
+      ...helpers.filter((helper) => cited.has(helper.link.id)).map((helper) => ({ id: helper.link.id, name: helper.link.personName, helper: true })),
+    ],
+  };
+}
+
+export type DayEventAction = Exclude<DayAction, { kind: "handover" }>;
+
+// Une action de la file (hors remise, tenue par le module budget). Un décalage appliqué diffuse une
+// nouvelle version du programme (CHR-07) et prévient les prestataires concernés, une seule fois.
+export async function applyDayAction(input: {
+  organizationId: string;
+  eventId: string;
+  userId: string | null;
+  // Lot 52 (EVT-06, D3) : l'action vient du lien d'un renfort du jour J.
+  linkId?: string | null;
+  action: DayEventAction;
+  renderDocument: NotifyProgramVersionInput["renderDocument"];
+  now?: Date;
+}): Promise<DayActionResult> {
+  const base = { organizationId: input.organizationId, eventId: input.eventId, userId: input.userId, linkId: input.linkId ?? null, now: input.now ?? new Date() };
+  // D3 : un renfort pointe, coche, note et photographie ; il ne valide pas de décalage du programme.
+  if (input.linkId && input.action.kind === "shift") return { status: "rejected", reason: "scope" };
+  switch (input.action.kind) {
+    case "checkpoint":
+      return recordDayCheckpoint({ ...base, action: input.action });
+    case "incident":
+      return recordDayIncident({
+        ...base,
+        action: input.action,
+        // Lot 53 (HUB-15 ; D2, D3) : « Alerte du jour J » aux destinataires, sauf à qui l'a notée.
+        notify: async (incident) => {
+          // Noté par le planner principal lui-même : la Propriétaire est prévenue.
+          let userIds = (await notificationRecipients(input.organizationId, input.eventId)).filter((userId) => userId !== input.userId);
+          if (userIds.length === 0) userIds = (await notificationRecipients(input.organizationId)).filter((userId) => userId !== input.userId);
+          await notify({ organizationId: input.organizationId, type: "day_of_alert", eventId: input.eventId, objectKey: incident.incidentId, href: `/jour-j/${input.eventId}`, eventDate: incident.eventDate, isDemo: incident.isDemo, userIds, ...(input.now ? { now: input.now } : {}) });
+        },
+      });
+    case "check":
+      return recordDayCheck({ ...base, action: input.action });
+    case "shift": {
+      if (!input.userId) return { status: "rejected", reason: "scope" };
+      const recorded = await recordDayShift({ ...base, userId: input.userId, action: input.action });
+      if (recorded.status === "applied" && recorded.shiftId) {
+        await recordAudit(appDatabase(), { organizationId: input.organizationId, action: "events.day_shift.applied", objectId: input.eventId, details: { minutes: input.action.minutes, items: input.action.itemIds.length } });
+        await publishAndNotifyDayShift({ organizationId: input.organizationId, eventId: input.eventId, shiftId: recorded.shiftId, userId: input.userId!, renderDocument: input.renderDocument, now: input.now ?? new Date() });
+      }
+      return { status: recorded.status, ...(recorded.reason ? { reason: recorded.reason } : {}) };
+    }
+  }
+}
+
+// D3 : après validation, une nouvelle version du programme est diffusée, puis chaque prestataire
+// concerné (lien actif d'un poste des séquences décalées, retenu par la planner) reçoit un e-mail avec
+// le programme de son poste à jour. Réservé avant l'envoi : un rejeu ne renvoie rien ; la clé de chaque
+// e-mail le dédoublonne aussi dans la file des tâches. Un évènement d'essai n'envoie rien.
+export async function publishAndNotifyDayShift(input: {
+  organizationId: string;
+  eventId: string;
+  shiftId: string;
+  userId: string;
+  renderDocument: NotifyProgramVersionInput["renderDocument"];
+  now: Date;
+}): Promise<{ sent: number; notSent: number }> {
+  const { organizationId, eventId } = input;
+  const program = await getEventProgram(organizationId, eventId);
+  const published = await insertProgramVersion({ organizationId, eventId, userId: input.userId, items: publishedProgramItems(program.items), now: input.now });
+  const version = published.status === "published" ? published.version.number : ((await findLatestProgramVersion(organizationId, eventId))?.number ?? null);
+  if (version !== null) await setDayShiftVersion(organizationId, input.shiftId, version);
+  const found = await findEventById(organizationId, eventId);
+  if (!found || found.event.isDemo) return { sent: 0, notSent: 0 };
+  const shift = await claimDayShiftNotification(organizationId, input.shiftId, input.now);
+  if (!shift) return { sent: 0, notSent: 0 };
+  const latest = await findLatestProgramVersion(organizationId, eventId);
+  if (!latest) return { sent: 0, notSent: 0 };
+  const slots = new Set(shift.vendorSlotIds);
+  const rows = (await programRecipientRows(organizationId, eventId, input.now)).filter((row) => row.vendor && slots.has(row.vendor.vendorSlotId));
+  const vocabulary = (await findEventAudience(organizationId, eventId)) ?? "couple";
+  let sent = 0;
+  for (const row of rows) {
+    try {
+      const values: EmailValues = {
+        ...(await linkEmailValues({ organizationId, eventId, audience: row.audience, personName: row.name, locale: row.locale, vocabulary, expiresOn: null })),
+        version: String(latest.number),
+      };
+      const pdf = await input.renderDocument(programDocumentOf(row, found, latest));
+      await sendOrganizationEmail({
+        organizationId,
+        to: row.email,
+        kind: "program_published",
+        locale: row.locale,
+        values,
+        attachments: [{ filename: pdf.filename, content: Buffer.from(pdf.content), contentType: "application/pdf" }],
+        idempotencyKey: `day-shift:${shift.id}:${row.linkId}`,
+      });
+      sent += 1;
+    } catch (error) {
+      if (error instanceof MailQuotaExceededError) break;
+      // Nom de l'erreur seulement au journal : jamais d'adresse (SEC-20).
+      console.error("e-mail du décalage non parti", error instanceof Error ? error.name : "erreur");
+    }
+  }
+  await recordDayShiftNotification(organizationId, shift.id, sent);
+  return { sent, notSent: rows.length - sent };
+}
+
+// Les liens de prestataires qu'un décalage peut prévenir : les postes qui ont un lien actif.
+export async function listNotifiableVendorSlots(organizationId: string, eventId: string, now: Date = new Date()): Promise<string[]> {
+  return [...new Set((await programRecipientRows(organizationId, eventId, now)).flatMap((row) => (row.vendor ? [row.vendor.vendorSlotId] : [])))];
+}
+
+// D3 : l'espace du prestataire affiche en tête le dernier décalage appliqué qui concerne son poste.
+export async function latestVendorDayShift(organizationId: string, eventId: string, vendorSlotId: string): Promise<{ minutes: number; validatedAt: string; programVersion: number | null } | null> {
+  const records = await findDayRecords(organizationId, eventId);
+  const shift = [...(records?.shifts ?? [])].reverse().find((entry) => entry.outcome === "applied" && entry.vendorSlotIds.includes(vendorSlotId));
+  return shift ? { minutes: shift.minutes, validatedAt: shift.validatedAt, programVersion: shift.programVersion } : null;
+}
+
+// JRJ-06, JRJ-07, JRJ-09 : une photo reçue de la file. Le sujet est vérifié (une case ou un incident
+// de cet évènement ; une échéance l'est par le module budget avant l'appel), puis le fichier est
+// contrôlé à l'arrivée (taille, type par le contenu, antivirus, ADR 0027) : refusé, il garde une ligne
+// sans fichier (l'écran le dit) et l'incident ou la case restent. Une action rejouée est ignorée.
+export async function receiveDayPhoto(input: {
+  organizationId: string;
+  eventId: string;
+  userId: string | null;
+  // Lot 52 (D3) : la photo vient du lien d'un renfort du jour J.
+  linkId?: string | null;
+  meta: DayPhotoMeta;
+  bytes: Uint8Array | null;
+  maxBytes: number;
+  now?: Date;
+}): Promise<{ status: DayActionStatus; reason?: string; photo?: DayPhoto }> {
+  const already = await dayPhotoActionExists(input.organizationId, input.meta.actionId);
+  if (already) return { status: "duplicate", photo: already };
+  const takenAt = deviceInstant(input.meta.deviceAt, input.now ?? new Date());
+  if (!takenAt) return { status: "rejected", reason: "time" };
+  const target = await resolveDayPhotoSubject({ organizationId: input.organizationId, eventId: input.eventId, subject: input.meta.subject, subjectId: input.meta.subjectId, subjectActionId: input.meta.subjectActionId });
+  if (!target) return { status: "rejected", reason: "subject" };
+  let stored: { key: string; contentType: string; sizeBytes: number } | null = null;
+  let rejection: DayPhotoRejection | null = null;
+  // Dans l'ordre : taille, antivirus, type par le contenu (une image), puis stockage privé.
+  if (!input.bytes || input.bytes.length === 0) rejection = "unavailable";
+  else if (input.bytes.length > input.maxBytes) rejection = "size";
+  else {
+    const buffer = Buffer.from(input.bytes);
+    const env = parseEnv(process.env);
+    const detected = detectFileType(input.bytes);
+    if ((await scanBuffer(buffer, { host: env.CLAMAV_HOST, port: env.CLAMAV_PORT })).infected) rejection = "virus";
+    else if (!detected || !detected.mime.startsWith("image/")) rejection = "type";
+    else {
+      const key = `${input.organizationId}/${randomUUID()}.${detected.extension}`;
+      await uploadPrivateObject(createStorageClient(), { key, body: buffer, contentType: detected.mime });
+      stored = { key, contentType: detected.mime, sizeBytes: buffer.length };
+    }
+  }
+  const { photo, duplicate } = await insertDayPhoto({ organizationId: input.organizationId, eventId: input.eventId, userId: input.userId, linkId: input.linkId ?? null, actionId: input.meta.actionId, takenAt, target, stored, rejection });
+  if (duplicate && stored) await deletePrivateObject(createStorageClient(), stored.key).catch(() => undefined);
+  return { status: duplicate ? "duplicate" : "applied", photo };
+}
+
+// PAR-08, étape 7 : le bilan du lendemain ; la synthèse se garde dès qu'il est prêt.
+export async function getDayReport(input: { organizationId: string; eventId: string; handovers: DayReportHandover[]; now?: Date }): Promise<DayReport | null> {
+  const now = input.now ?? new Date();
+  const [event, records, moments] = await Promise.all([findEventById(input.organizationId, input.eventId), findDayRecords(input.organizationId, input.eventId), listKeyMomentsOf(input.organizationId, input.eventId)]);
+  if (!event || !records) return null;
+  const program = await getEventProgram(input.organizationId, input.eventId);
+  const report = buildDayReport({ eventId: input.eventId, eventDate: event.event.eventDate, timeZone: event.event.timeZone, moments, items: program.items, records, handovers: input.handovers, now });
+  if (!report.ready) return report;
+  return { ...report, preparedAt: await saveDayReport(input.organizationId, input.eventId, report, now) };
+}
+
+// Le fichier d'une photo du jour J de cet évènement, servi par l'app après le contrôle des droits
+// (ADR 0027) ; null si elle n'existe pas, a été refusée, ou n'est pas de cet évènement.
+// Lot 52 (D3) : withoutHandovers, pour un renfort : le reçu d'une remise d'argent (budget) lui reste fermé.
+export async function readDayPhoto(organizationId: string, eventId: string, photoId: string, options: { withoutHandovers?: boolean } = {}): Promise<FileDownload | null> {
+  const file = await findDayPhotoFile(organizationId, eventId, photoId, options);
+  if (!file) return null;
+  try {
+    const object = await readPrivateObject(createStorageClient(), file.key);
+    return { data: object.data, contentType: file.contentType, fileName: `photo-${photoId}.${file.contentType.split("/")[1] ?? "jpg"}` };
+  } catch (error) {
+    if (error instanceof PrivateObjectNotFoundError) return null;
+    throw error;
+  }
+}
+// --- Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; ADR 0085) : prestataires par lien. ---
+// Le brief d'un poste envoyé à plusieurs prestataires, leur réponse par leur lien, le comparatif et
+// les scénarios, l'avis et le choix du client qui engage, la feuille de route (vendor-coordination.ts).
+export {
+  answerBrief as answerVendorBrief,
+  answerNotices as listVendorAnswerNotices,
+  attachInvoiceByLink as attachVendorInvoiceByLink,
+  attachQuoteByLink as attachVendorQuoteByLink,
+  briefDocumentFile as getLinkVendorBriefDocumentFile,
+  comparison as getVendorComparison,
+  compareScenarios as compareVendorScenarios,
+  confirmRoadmap as confirmVendorRoadmap,
+  consultationView as getVendorConsultationView,
+  createScenario as createVendorScenario,
+  defaultBriefDeadline as getDefaultVendorBriefDeadline,
+  engagedChoiceNotices as listEngagedChoiceNotices,
+  followUps as listVendorFollowUps,
+  getBrief as getVendorBrief,
+  getSettings as getVendorCoordinationSettings,
+  linkOptionFeedback as listLinkOptionFeedback,
+  listScenarios as listVendorScenarios,
+  removeScenario as removeVendorScenario,
+  renameScenario as renameVendorScenario,
+  roadmapAlerts as listVendorRoadmapAlerts,
+  roadmapView as getVendorRoadmapView,
+  saveBrief as saveVendorBrief,
+  saveSettings as saveVendorCoordinationSettings,
+  sendBrief as sendVendorBrief,
+  sendBriefReminders as sendVendorBriefReminders,
+  sendRoadmaps as sendVendorRoadmaps,
+  setOptionFeedback as setLinkOptionFeedback,
+  setScenarioChoice as setVendorScenarioChoice,
+  showScenarioToClients as showVendorScenarioToClients,
+  changeRetained as changeRetainedVendor,
+  VendorBriefInvalidError,
+} from "./vendor-coordination";
+export type {
+  ScenarioComparison,
+  VendorBrief,
+  VendorComparison,
+  VendorComparisonRow,
+  VendorConsultationView,
+  VendorCoordinationSettings,
+  VendorFollowUpStatus,
+  VendorRoadmapView,
+  VendorScenario,
+} from "@symbola/contracts";
+// —— Lot 45 (CRM-05, CRM-06, CRM-07, CRM-09, POR-07, HUB-21 ; ADR 0090) ——————————————————————
+// Réponses en un clic, relances des prospects, questionnaires ; références d'un contact fusionné.
+export {
+  BrochureRejectedError,
+  getProspectFollowUp,
+  getProspectFollowUpSettings,
+  lastPlannerMessages,
+  listContactMessages,
+  listEventFollowUps,
+  listEventMessages,
+  listReadyFollowUps,
+  noteProspectAnswered,
+  prepareDueFollowUps,
+  PROSPECT_BODY_MAX,
+  PROSPECT_SUBJECT_MAX,
+  ProspectMessageInvalidError,
+  prospectMessageValues,
+  removeProspectBrochure,
+  renderProspectText,
+  saveProspectBrochure,
+  saveProspectFollowUpSettings,
+  sendProspectFollowUp,
+  sendProspectMessage,
+  stopProspectFollowUps,
+  withdrawProspectFollowUp,
+  type ExternalProspectActivity,
+  type FollowUpSendOutcome,
+  type ProspectContext,
+  type ProspectRecipient,
+  type ProspectSendResult,
+} from "./prospect-messages";
+export { FollowUpSettingsInvalidError, FOLLOW_UP_DAYS_MAX, FOLLOW_UP_DAYS_MIN } from "./follow-up-rules";
+export {
+  addStarterQuestionnaires,
+  createQuestionnaireTemplate,
+  deleteQuestionnaireTemplate,
+  duplicateQuestionnaireTemplate,
+  getQuestionnaireTemplate,
+  listEventQuestionnaires,
+  listFinishedUnseenQuestionnaires,
+  listQuestionnaireTemplates,
+  markEventQuestionnairesSeen,
+  QUESTIONNAIRE_NAME_MAX,
+  QuestionnaireClosedError,
+  QuestionnaireNotFoundError,
+  QuestionnaireTemplateInvalidError,
+  questionnaireTemplatesForEventType,
+  saveQuestionnaireTemplate,
+  sensitiveQuestionKeys,
+  type PortalQuestionnaireView,
+} from "./questionnaires";
+export { AnswerInvalidError, naturesForField, QuestionInvalidError, type QuestionInput } from "./questionnaire-rules";
+export { countEventsContactReferences, repointMergedContact } from "./contact-merge";
+
+// Les destinataires d'un message à un prospect : les clients de l'évènement qui ont une adresse et
+// une fiche de contact (la liste demandée, sinon tous).
+export async function prospectRecipients(organizationId: string, eventId: string, contactIds?: string[]): Promise<ProspectRecipient[]> {
+  const event = await getEvent(organizationId, eventId);
+  if (!event) return [];
+  const wanted = contactIds ? new Set(contactIds) : null;
+  return event.clients.flatMap((client) => (client.contactId && client.email && (!wanted || wanted.has(client.contactId)) ? [{ contactId: client.contactId, firstName: client.firstName, email: client.email }] : []));
+}
+
+// Destinataires et valeurs des variables d'un message (CRM-05) ; bookingUrl : la page de réservation
+// du module Rendez-vous, s'il est ouvert (donnée par l'appelant, ARC-07).
+export async function prospectMessageContext(input: { organizationId: string; eventId: string; locale: "fr" | "en"; contactIds?: string[]; bookingUrl: string | null }): Promise<{ recipients: ProspectRecipient[]; values: EmailValues } | null> {
+  const event = await getEvent(input.organizationId, input.eventId);
+  if (!event) return null;
+  const recipients = await prospectRecipients(input.organizationId, input.eventId, input.contactIds);
+  const couple = ((await getEventAudience(input.organizationId, input.eventId)) ?? "couple") === "couple";
+  const values = await prospectMessageValues({
+    organizationId: input.organizationId,
+    locale: input.locale,
+    couple,
+    firstNames: recipients.map((recipient) => recipient.firstName),
+    clientNames: event.clients.map((client) => client.firstName),
+    eventDate: event.eventDate,
+    place: event.venueName,
+    bookingUrl: input.bookingUrl,
+  });
+  return { recipients, values };
+}
+
+// —— Questionnaires envoyés par le lien du client (POR-07, CRM-09) ——————————————————————————
+
+// Envoyer un questionnaire à un client de l'évènement : la copie figée du modèle, la rubrique
+// « Questionnaires » ouverte sur son lien personnel (créé si besoin ; s'il existe, son jeton est
+// renouvelé : le nouveau lien part avec le questionnaire), l'e-mail « Questionnaire envoyé ».
+export async function sendEventQuestionnaire(input: { organizationId: string; eventId: string; eventClientId: string; templateId: string; userId: string; locale: "fr" | "en"; now?: Date }): Promise<{ questionnaireId: string; linkId: string; url: string }> {
+  const now = input.now ?? new Date();
+  const found = await findEventById(input.organizationId, input.eventId);
+  if (!found) throw new EventNotFoundError();
+  if (found.event.isDemo) throw new DemoEventRestrictionError();
+  const event = await getEvent(input.organizationId, input.eventId);
+  const client = event?.clients.find((candidate) => candidate.id === input.eventClientId);
+  if (!client?.email) throw new EventLinkInvalidError("client");
+  const frozen = await freezeQuestionnaireOf(input.organizationId, input.templateId);
+  const vocabulary = (await findEventAudience(input.organizationId, input.eventId)) ?? "couple";
+  const base = { organizationId: input.organizationId, eventId: input.eventId, audience: "client" as const, personName: client.firstName, locale: input.locale, vocabulary };
+  const valuesFor = async (expiresOn: string | null, url?: string): Promise<EmailValues> => ({ ...(await linkEmailValues({ ...base, expiresOn, ...(url ? { url } : {}) })), questionnaire: frozen.name });
+  await assertOrganizationEmailReady({ organizationId: input.organizationId, kind: "questionnaire_sent", locale: input.locale, values: await valuesFor(null) });
+  await reserveOrganizationMail(input.organizationId);
+  const secret = newLinkSecret();
+  const existing = (await findEventLinkRows(input.organizationId, input.eventId)).find((context) => context.link.audience === "client" && context.link.eventClientId === client.id && !context.link.revokedAt);
+  let context: LinkWithContext;
+  if (existing) {
+    await openQuestionnaireRubric(input.organizationId, existing.link.id);
+    const extendTo = isLinkExpired(expiresOnOf(existing), now) ? addDays(parisToday(now), starterLinkExpiry().daysAfterEvent.client) : undefined;
+    const replaced = await replaceLinkTokenRow(input.organizationId, existing.link.id, hashLinkSecret(secret), extendTo, input.locale);
+    if (!replaced) throw new EventLinkNotFoundError();
+    context = replaced;
+  } else {
+    const result = await insertLinkRow({
+      personName: [client.firstName, client.lastName].filter(Boolean).join(" ").slice(0, PERSON_NAME_MAX),
+      email: client.email,
+      eventClientId: client.id,
+      rights: { rubrics: ["questionnaires"], budgetScope: "all", sharedSlotIds: [] },
+      customExpiresOn: null,
+      otpRequired: false,
+      taskReminders: true,
+      organizationId: input.organizationId,
+      eventId: input.eventId,
+      audience: "client",
+      vendorCandidateId: null,
+      locale: input.locale,
+      tokenHash: hashLinkSecret(secret),
+    });
+    if (result.status !== "saved") throw linkWriteError(result.status);
+    context = result.context;
+  }
+  const link = toEventLink(context, now);
+  const url = linkUrl(formatLinkToken(input.organizationId, secret));
+  const questionnaireId = await insertEventQuestionnaire({ organizationId: input.organizationId, eventId: input.eventId, contactId: client.contactId, linkId: link.id, frozen, now });
+  await sendOrganizationEmail({ organizationId: input.organizationId, to: link.email, kind: "questionnaire_sent", locale: input.locale, values: await valuesFor(link.expiresOn, url), reserve: false });
+  await recordQuestionnaireSent({ organizationId: input.organizationId, eventId: input.eventId, contactId: client.contactId, userId: input.userId, name: frozen.name, now });
+  return { questionnaireId, linkId: link.id, url };
+}
+
+// Les champs de l'évènement qu'un questionnaire peut alimenter, tels qu'ils sont (D7).
+export async function eventFieldValues(organizationId: string, eventId: string): Promise<EventFieldValues | null> {
+  const event = await getEvent(organizationId, eventId);
+  if (!event) return null;
+  const typeLabel = event.eventTypeId ? ((await listEventTypes(organizationId)).find((type) => type.id === event.eventTypeId)?.label ?? null) : null;
+  return {
+    event_date: event.eventDate,
+    guests: event.guestsEstimated,
+    budget: event.wantedBudgetCents,
+    venue: event.venueName,
+    city: event.venueCity,
+    style: event.style,
+    event_type: typeLabel,
+  };
+}
+
+// Écrit une réponse dans le champ de l'évènement ; false : elle ne s'y écrit pas (un type inconnu).
+async function writeEventField(organizationId: string, eventId: string, field: QuestionEventField, value: QuestionnaireAnswerValue): Promise<boolean> {
+  const event = await getEvent(organizationId, eventId);
+  if (!event) return false;
+  const text = Array.isArray(value) ? value.join(", ") : String(value);
+  switch (field) {
+    case "event_date":
+      await changeEventDate(organizationId, eventId, text);
+      return true;
+    case "guests":
+      await setEventIdentity(organizationId, eventId, { guestsEstimated: Number(value), guestsConfirmed: event.guestsConfirmed, style: event.style, notes: event.notes });
+      return true;
+    case "style":
+      await setEventIdentity(organizationId, eventId, { guestsEstimated: event.guestsEstimated, guestsConfirmed: event.guestsConfirmed, style: text.slice(0, 2000), notes: event.notes });
+      return true;
+    case "budget":
+      await setEventWantedBudget(organizationId, eventId, Number(value));
+      return true;
+    case "venue":
+      await setEventVenue(organizationId, eventId, { venueName: text.slice(0, 200), venueCity: event.venueCity });
+      return true;
+    case "city":
+      await setEventVenue(organizationId, eventId, { venueName: event.venueName, venueCity: text.slice(0, 200) });
+      return true;
+    case "event_type": {
+      const type = (await listEventTypes(organizationId)).find((candidate) => candidate.label.trim().toLocaleLowerCase("fr") === text.trim().toLocaleLowerCase("fr"));
+      if (!type) return false;
+      await setEventType(organizationId, eventId, type.id);
+      return true;
+    }
+  }
+}
+
+// CRM-09, D7 — après « Terminer » : les champs vides se remplissent, les réponses égales à la fiche
+// se règlent d'office ; les écarts restent à la planner.
+export async function applyQuestionnairePrefill(organizationId: string, eventId: string): Promise<{ filled: number; differences: PrefillDifference[] }> {
+  const values = await eventFieldValues(organizationId, eventId);
+  if (!values) throw new EventNotFoundError();
+  const state = await eventPrefillState(organizationId, eventId, values);
+  let filled = 0;
+  for (const fill of state.work.fill) {
+    // Une valeur que la fiche refuse (hors bornes) ne bloque pas « Terminer » : la fiche reste.
+    const written = await writeEventField(organizationId, eventId, fill.eventField, fill.value).catch((error: unknown) => {
+      if (error instanceof RangeError) return false;
+      throw error;
+    });
+    await markAnswersResolved(organizationId, [fill], written ? "filled" : "kept");
+    if (written) filled += 1;
+  }
+  await markAnswersResolved(organizationId, state.work.same, "kept");
+  return { filled, differences: (await eventPrefillState(organizationId, eventId, (await eventFieldValues(organizationId, eventId))!)).differences };
+}
+
+export async function listQuestionnaireDifferences(organizationId: string, eventId: string): Promise<PrefillDifference[]> {
+  const values = await eventFieldValues(organizationId, eventId);
+  return values ? (await eventPrefillState(organizationId, eventId, values)).differences : [];
+}
+
+// D7 — la planner choisit : la réponse remplace la fiche (« answer »), ou la fiche reste (« event »).
+export async function resolveQuestionnaireDifference(input: { organizationId: string; eventId: string; questionnaireId: string; key: string; choice: "answer" | "event" }): Promise<void> {
+  const answer = await findResolvableAnswer(input.organizationId, input.questionnaireId, input.key);
+  if (!answer || answer.eventId !== input.eventId) throw new QuestionnaireMissingError();
+  if (input.choice === "answer" && (await writeEventField(input.organizationId, input.eventId, answer.eventField, answer.value))) {
+    await markAnswersResolved(input.organizationId, [{ questionnaireId: input.questionnaireId, key: input.key }], "applied");
+    return;
+  }
+  await markAnswersResolved(input.organizationId, [{ questionnaireId: input.questionnaireId, key: input.key }], "kept");
+}
+
+// Côté lien (rubrique « Questionnaires » ouverte) : les questionnaires du lien, un questionnaire,
+// une réponse, « Terminer ». Toujours l'évènement et le lien de la session, jamais un autre.
+export type LinkQuestionnaireScope = { organizationId: string; eventId: string; linkId: string };
+
+export async function listQuestionnairesOfLink(scope: LinkQuestionnaireScope): Promise<EventQuestionnaire[]> {
+  return listLinkQuestionnaires(scope.organizationId, scope.eventId, scope.linkId);
+}
+
+export async function getQuestionnaireOfLink(scope: LinkQuestionnaireScope, questionnaireId: string): Promise<PortalQuestionnaireView> {
+  const values = await eventFieldValues(scope.organizationId, scope.eventId);
+  if (!values) throw new QuestionnaireMissingError();
+  return getPortalQuestionnaire({ ...scope, questionnaireId, eventValues: values });
+}
+
+export async function answerQuestionnaireOfLink(scope: LinkQuestionnaireScope, questionnaireId: string, key: string, value: string | string[] | null, now?: Date): Promise<QuestionnaireAnswerValue | null> {
+  return saveLinkAnswer({ ...scope, questionnaireId, key, value, ...(now ? { now } : {}) });
+}
+
+export async function finishQuestionnaireOfLink(scope: LinkQuestionnaireScope, questionnaireId: string, now?: Date): Promise<{ filled: number; differences: number }> {
+  await finishLinkQuestionnaire({ ...scope, questionnaireId, ...(now ? { now } : {}) });
+  const result = await applyQuestionnairePrefill(scope.organizationId, scope.eventId);
+  return { filled: result.filled, differences: result.differences.length };
+}
+
+// Lot 48a (DAT-08 ; D5, ADR 0093) : notes d'évènement confidentielles.
+export { readEventConfidentialNotes, saveEventNotes, EventNotesForbiddenError, type EventNotesViewer } from "./confidential-notes";
+
+// Lot 48a (PRE-05, PRE-10 ; D3) : fiche du carnet d'un lien de prestataire (pièces demandées, IBAN).
+export async function linkVendorRecordId(organizationId: string, linkId: string): Promise<string | null> {
+  return /^[0-9a-f-]{36}$/i.test(linkId) ? findLinkVendorRecordId(organizationId, linkId) : null;
+}
+// Lot 53 (CHR-10, CHR-05, HUB-24 ; D6, D8 ; ADR 0095) : tâches hors évènement et récurrentes, jalons, santé
+// du planning qui s'explique, terme des clients par type d'évènement.
+export {
+  addStandaloneTask,
+  clientTermForEvent,
+  deleteStandaloneTask,
+  getPlanningHealth,
+  getPlanningHealthThresholds,
+  listEventTypeVocabulary,
+  listLatePlannerTasks,
+  listStandaloneTasks,
+  PlanningInputError,
+  setEventTypeClientTerm,
+  setPlanningHealthThresholds,
+  setStandaloneTaskDone,
+  setTaskMilestone,
+  spawnDueRecurringTasks,
+  suggestedClientTerms,
+  type LateTask,
+} from "./planning";

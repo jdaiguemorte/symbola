@@ -115,8 +115,11 @@ restart_stopped
 RESTIC_MOUNTS=()
 
 log "$ENVIRONMENT_NAME : rétention"
+# ADR 0092 (Q35) : 35 jours glissants, avis de la DPO. Les anciens réglages KEEP_DAILY,
+# KEEP_WEEKLY et KEEP_MONTHLY ne servent plus. Un an de recul viendra en option, par une archive
+# propre à l'organisation (lot 54), jamais en gardant toute la base.
 restic_run forget --tag "env:$ENVIRONMENT_NAME" \
-  --keep-daily "${KEEP_DAILY:-7}" --keep-weekly "${KEEP_WEEKLY:-4}" --keep-monthly "${KEEP_MONTHLY:-12}" \
+  --keep-within "${KEEP_WITHIN:-35d}" \
   --prune
 
 # NFR-10 (lot 22) : la sauvegarde de la nuit doit se relire. Chaque nuit, contrôle de la

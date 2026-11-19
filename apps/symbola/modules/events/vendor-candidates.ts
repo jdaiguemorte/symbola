@@ -84,7 +84,7 @@ const IN_THE_RUNNING: VendorCandidateStatus[] = ["shortlisted", "contacted", "qu
 // Lot 28b (PRE-02, D11) : un prestataire devient « Retenu », ou le devis d'un
 // prestataire retenu change ; le module Budget engage ses lignes. Dans la même
 // transaction que l'écriture (outbox), jamais pour un événement d'essai.
-async function publishRetention(tx: Tx, organizationId: string, candidate: CandidateRow, changedByUserId: string): Promise<void> {
+export async function publishRetention(tx: Tx, organizationId: string, candidate: CandidateRow, changedByUserId: string): Promise<void> {
   const [parent] = await tx.select({ isDemo: events.isDemo }).from(events).where(eq(events.id, candidate.eventId));
   const [slot] = await tx.select({ label: eventVendorSlots.label }).from(eventVendorSlots).where(eq(eventVendorSlots.id, candidate.vendorSlotId));
   if (!slot || !parent || parent.isDemo) return;

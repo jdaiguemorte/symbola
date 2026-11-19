@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "_source": "Lot 51 (EVT-04, JRJ-05, JRJ-06, ARC-09 ; D1, ADR 0091) : réglages de départ du jour J de terrain. « mainMomentName » : nom du temps fort unique créé de lui-même pour porter le chrono d'un évènement d'un jour (la migration 0165 reprend les mêmes noms). « shiftThresholdMinutes » : retard à partir duquel un décalage de la suite est proposé. « photoMaxSide » et « photoMaxBytes » : photo réduite sur le téléphone, puis refusée à l'arrivée au-delà. « refreshSeconds » : rafraîchissement de l'état partagé en ligne (D4).",
+  "mainMomentName": { "fr": "Jour J", "en": "Event day" },
+  "shiftThresholdMinutes": 5,
+  "photoMaxSide": 2000,
+  "photoMaxBytes": 5242880,
+  "refreshSeconds": 15
+}

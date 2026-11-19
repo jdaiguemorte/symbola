@@ -152,6 +152,9 @@ services:
       # Socle des lots 46 et 49 (DAT-08, ADR 0079) : clé du chiffrement au niveau du champ,
       # sans valeur par défaut (refus de démarrer si elle manque).
       DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY}
+      # Lot 53 (ARC-09, ADR 0096) : clés VAPID des notifications push, sans valeur par défaut.
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
       # Lot 33 (ADR 0067) : fournisseur d'identité. Adresse publique (émetteur des jetons) et
       # application machine à machine créée par l'amorçage ; l'app retrouve son application
       # web par l'API d'administration. Sans valeur par défaut : refus de démarrer.

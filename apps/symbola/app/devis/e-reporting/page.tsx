@@ -3,7 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { getEReporting, type EReportingView } from "@/modules/quotes/service";
-import { requirePlanner } from "@/lib/guards";
+import { requireAccountingReader } from "@/lib/guards";
 import { isQuotesModuleEnabled } from "../module-access";
 import { bimonthlyPeriods } from "./csv";
 import { requestedPeriod } from "./period";
@@ -12,7 +12,8 @@ import { requestedPeriod } from "./period";
 // plateforme agréée, période par période (export seulement au lot 4, pas de
 // transmission automatique). Jamais de donnée d'essai.
 export default async function EReportingPage({ searchParams }: { searchParams: Promise<{ from?: string; to?: string }> }) {
-  const auth = await requirePlanner();
+  // Lot 52 : aussi le Comptable, en lecture.
+  const auth = (await requireAccountingReader())!;
   const organizationId = auth.user.organizationId;
 
   const t = await getTranslations("Quotes");

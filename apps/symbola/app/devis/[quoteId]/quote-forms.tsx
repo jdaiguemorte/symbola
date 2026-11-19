@@ -80,7 +80,7 @@ export function QuoteActionForm({
 
 // Lot 31a (FAC-01, D2) : section de la ligne et ligne en option.
 // Lot 41 (JUR-02, D9) : bien ou service (« service » par défaut) ; la facture en déduit la catégorie.
-export function NatureField({ idPrefix, value }: { idPrefix: string; value?: "service" | "goods" | undefined }) {
+export function NatureField({ idPrefix, value, line }: { idPrefix: string; value?: "service" | "goods" | undefined; line?: QuoteLine }) {
   const t = useTranslations("Quotes");
   return (
     <>
@@ -88,6 +88,19 @@ export function NatureField({ idPrefix, value }: { idPrefix: string; value?: "se
       <select id={`${idPrefix}-nature`} name="nature" defaultValue={value ?? "service"}>
         <option value="service">{t("lineNatureService")}</option>
         <option value="goods">{t("lineNatureGoods")}</option>
+      </select>
+      {/* Lot 48b (JUR-10, D7) : revendeur (dans votre total) ou intermédiaire (facturée par le prestataire). */}
+      <label htmlFor={`${idPrefix}-supply`}>{t("lineSupplyMode")}</label>
+      <select id={`${idPrefix}-supply`} name="supplyMode" defaultValue={line?.supplyMode ?? "resale"}>
+        <option value="resale">{t("lineSupplyResale")}</option>
+        <option value="intermediary">{t("lineSupplyIntermediary")}</option>
+      </select>
+      <label htmlFor={`${idPrefix}-tourism`}>{t("lineTourismKind")}</label>
+      <select id={`${idPrefix}-tourism`} name="tourismKind" defaultValue={line?.tourismKind ?? ""}>
+        <option value="">{t("lineTourismNone")}</option>
+        <option value="transport">{t("lineTourismTransport")}</option>
+        <option value="lodging">{t("lineTourismLodging")}</option>
+        <option value="other">{t("lineTourismOther")}</option>
       </select>
     </>
   );
@@ -225,7 +238,7 @@ export function EditLineForm({ quoteId, line, vatApplicable, sections = [] }: { 
           <input id={id("vatRate")} type="text" inputMode="decimal" name="vatRate" defaultValue={formatDecimal(line.vatRateBasisPoints, 2, locale)} />
         </>
       ) : null}
-      <NatureField idPrefix={`edit-${line.id}`} value={line.nature} />
+      <NatureField idPrefix={`edit-${line.id}`} value={line.nature} line={line} />
       <PlacementFields idPrefix={`edit-${line.id}`} sections={sections} line={line} />
     </QuoteActionForm>
   );

@@ -25,7 +25,7 @@ describe("MSG-01 — E-mails de service depuis des modèles à variables, avec a
 
   it("les variables s'écrivent en français ou en anglais, avec ou sans espaces dans les accolades", () => {
     expect(validateEmailTemplate("client_link", { subject: "Hello {{first_name}}", body: "{{ prénom }} : {{link}}" })).toEqual({ unknown: [], missingRequired: [], tooLong: [] });
-    expect(emailTemplateVariables("client_link", "fr").map((variable) => variable.token)).toEqual(["{{prénom}}", "{{organisation}}", "{{évènement}}", "{{lien}}", "{{valable_jusqu_au}}"]);
+    expect(emailTemplateVariables("client_link", "fr").map((variable) => variable.token)).toEqual(["{{prénom}}", "{{organisation}}", "{{évènement}}", "{{terme_clients}}", "{{lien}}", "{{valable_jusqu_au}}"]);
     expect(emailTemplateVariables("client_link", "en").find((variable) => variable.key === "link")).toEqual({ key: "link", token: "{{link}}", required: true });
   });
 
@@ -49,7 +49,7 @@ describe("MSG-01 — E-mails de service depuis des modèles à variables, avec a
     const link = renderEmailTemplate("client_link", { subject: "Votre espace", body: "Votre lien :\n\n{{ lien }}\n\nÀ bientôt" }, { link: "https://symbola.test/lien#abc" });
     expect(link.blocks).toEqual([
       { kind: "paragraph", text: "Votre lien :" },
-      { kind: "button", url: "https://symbola.test/lien#abc" },
+      { kind: "button", url: "https://symbola.test/lien#abc", variable: "link" },
       { kind: "paragraph", text: "À bientôt" },
     ]);
     expect(link.text).toBe("Votre lien :\n\nhttps://symbola.test/lien#abc\n\nÀ bientôt");
@@ -88,14 +88,16 @@ describe("HUB-21 — Modèles de messages de la planner (lot 38b, D10)", () => {
   it("les modèles de départ, en français et en anglais, n'emploient que les variables des messages", () => {
     for (const locale of EMAIL_LOCALES) {
       const starters = starterMessageTemplates(locale);
-      expect(starters.map((starter) => starter.key)).toEqual(["first_request", "meeting"]);
+      // Lot 45 (CRM-05) : la brochure s'ajoute aux deux modèles de départ.
+      expect(starters.map((starter) => starter.key)).toEqual(["first_request", "meeting", "brochure"]);
       for (const starter of starters) expect(validateMessageTemplate(starter)).toEqual({ unknown: [], missingRequired: [], tooLong: [] });
     }
   });
 
   it("une variable inconnue, ou propre aux e-mails de service (le lien), est refusée ; le lieu s'écrit {{lieu}} ou {{place}}", () => {
     expect(validateMessageTemplate({ subject: "RDV", body: "Bonjour {{prénom}}, au {{lieu}} ou {{place}} : {{lien}} {{inconnue}}" }).unknown).toEqual(["lien", "inconnue"]);
-    expect(messageTemplateVariables("fr").map((variable) => variable.token)).toEqual(["{{prénom}}", "{{clients}}", "{{évènement}}", "{{date_évènement}}", "{{lieu}}", "{{organisation}}"]);
+    // Lot 45 (CRM-05) : la brochure et la page de réservation.
+    expect(messageTemplateVariables("fr").map((variable) => variable.token)).toEqual(["{{prénom}}", "{{clients}}", "{{évènement}}", "{{date_évènement}}", "{{lieu}}", "{{organisation}}", "{{brochure}}", "{{lien_rendez_vous}}"]);
   });
 
   it("le rendu remplit chaque variable et garde les retours à la ligne ; aucune variable vide : chacune est nommée", () => {

@@ -3,11 +3,15 @@
 // service.ts, de façon idempotente (packages/db/src/events/worker.ts). Lancé
 // au démarrage du serveur (instrumentation.ts) ; jusqu'au lot 6 il n'était
 // appelé que par les tests (limite connue des lots 2 à 4).
-import { EVT_VENDOR_SLOT_BOOKED, QUOTES_QUOTE_SIGNED, quoteSignedPayloadSchema, vendorSlotBookedPayloadSchema } from "@symbola/contracts";
+import { contactMergedPayloadSchema, EVT_VENDOR_RETENTION_RELEASED, EVT_VENDOR_SLOT_BOOKED, HUB_CONTACT_MERGED, QUOTES_QUOTE_SIGNED, quoteSignedPayloadSchema, vendorRetentionReleasedPayloadSchema, vendorSlotBookedPayloadSchema } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import { processPendingEvents, type DomainEventRecord, type EventHandler } from "@symbola/db/events/worker";
-import { applyVendorSlotBookedToBudget } from "@/modules/budget/service";
+import { applyVendorRetentionReleasedToBudget, applyVendorSlotBookedToBudget } from "@/modules/budget/service";
+import { repointAppointmentsMergedContact } from "@/modules/appointments/service";
+import { repointMergedContact } from "@/modules/events/service";
+import { repointQuotesMergedContact } from "@/modules/quotes/service";
 import { issueDueDepositInvoices } from "./deposit-invoices";
+import { NOTIFICATION_CONSUMERS } from "./notification-sources";
 
 const POLL_INTERVAL_MS = 15_000;
 
@@ -20,6 +24,10 @@ export const CONSUMERS: Record<string, Record<string, EventHandler>> = {
       const payload = vendorSlotBookedPayloadSchema.parse(event.payload);
       await applyVendorSlotBookedToBudget(event.organizationId, payload, event.occurredAt);
     },
+    // Lot 47 (PAR-05, D6) : prestataire qui n'est plus retenu → engagé de ses lignes libéré.
+    [EVT_VENDOR_RETENTION_RELEASED]: async (event: DomainEventRecord) => {
+      await applyVendorRetentionReleasedToBudget(event.organizationId, vendorRetentionReleasedPayloadSchema.parse(event.payload));
+    },
   },
   // Lot 31b (FAC-05, D6) : devis signé → facture d'acompte émise d'elle-même, si elle est due.
   quotes: {
@@ -27,7 +35,29 @@ export const CONSUMERS: Record<string, Record<string, EventHandler>> = {
       const payload = quoteSignedPayloadSchema.parse(event.payload);
       await issueDueDepositInvoices({ organizationIds: [event.organizationId], quoteId: payload.quoteId });
     },
+    // Lot 45 (CRM-07, D5) : fiches de contact réunies → signataires et acheteurs repointés.
+    [HUB_CONTACT_MERGED]: async (event: DomainEventRecord) => {
+      const payload = contactMergedPayloadSchema.parse(event.payload);
+      await repointQuotesMergedContact(event.organizationId, payload.absorbedContactId, payload.keptContactId);
+    },
   },
+  // Lot 45 (CRM-07, D5) : chaque module repointe ses références par son propre service, de façon
+  // idempotente (rejouer l'événement ne change rien).
+  events: {
+    [HUB_CONTACT_MERGED]: async (event: DomainEventRecord) => {
+      const payload = contactMergedPayloadSchema.parse(event.payload);
+      await repointMergedContact(event.organizationId, payload.absorbedContactId, payload.keptContactId);
+    },
+  },
+  appointments: {
+    [HUB_CONTACT_MERGED]: async (event: DomainEventRecord) => {
+      const payload = contactMergedPayloadSchema.parse(event.payload);
+      await repointAppointmentsMergedContact(event.organizationId, payload.absorbedContactId, payload.keptContactId);
+    },
+  },
+  // Lot 53 (HUB-15, UX-16 ; D3) : les faits publiés par les modules deviennent des notifications de
+  // l'équipe, une seule fois par objet (rejouer l'événement ne crée rien de plus).
+  notifications: NOTIFICATION_CONSUMERS,
 };
 
 export async function runEventWorkerOnce(consumers: Record<string, Record<string, EventHandler>> = CONSUMERS): Promise<{ processed: number; failed: number }> {

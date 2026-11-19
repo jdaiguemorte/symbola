@@ -1,0 +1,393 @@
+{
+  "version": 1,
+  "_source": "Lot 45 (POR-07, CRM-09, HUB-21 ; D6 à D8 ; ADR 0090) : questionnaires de départ (découverte, cérémonie, musiques, détails pratiques), que la planner ajoute à ses modèles puis adapte. Une question peut alimenter un champ de l'évènement (date, invités, budget, lieu, ville, style, type) : un champ vide se remplit, un écart est montré à la planner. Aucune question sur la santé, la religion ou les opinions (article 9 du RGPD) : les régimes passent par le module Invités, avec accord (lot 49). Les mots de « sensitiveWords » font afficher un avertissement à la planner qui écrit une telle question (DPO).",
+  "sensitiveWords": {
+    "fr": [
+      "santé",
+      "médical",
+      "médicale",
+      "maladie",
+      "handicap",
+      "allergie",
+      "intolérance",
+      "régime alimentaire",
+      "religion",
+      "religieux",
+      "religieuse",
+      "confession",
+      "croyance",
+      "culte",
+      "politique",
+      "opinion",
+      "syndicat",
+      "orientation sexuelle",
+      "ethnique",
+      "origine ethnique",
+      "grossesse",
+      "enceinte"
+    ],
+    "en": [
+      "health",
+      "medical",
+      "illness",
+      "disability",
+      "allergy",
+      "intolerance",
+      "dietary",
+      "religion",
+      "religious",
+      "faith",
+      "belief",
+      "worship",
+      "political",
+      "opinion",
+      "trade union",
+      "sexual orientation",
+      "ethnic",
+      "pregnancy",
+      "pregnant"
+    ]
+  },
+  "templates": [
+    {
+      "key": "discovery",
+      "name": {
+        "fr": "Découverte",
+        "en": "Discovery"
+      },
+      "questions": [
+        {
+          "key": "event_date",
+          "label": {
+            "fr": "À quelle date pensez-vous ?",
+            "en": "Which date do you have in mind?"
+          },
+          "nature": "date",
+          "help": {
+            "fr": "Une date approchée suffit ; vous pourrez la changer.",
+            "en": "An approximate date is enough; you can change it."
+          },
+          "eventField": "event_date"
+        },
+        {
+          "key": "city",
+          "label": {
+            "fr": "Dans quelle ville ou quelle région ?",
+            "en": "In which town or area?"
+          },
+          "nature": "short_text",
+          "eventField": "city"
+        },
+        {
+          "key": "venue",
+          "label": {
+            "fr": "Avez-vous déjà un lieu de réception ?",
+            "en": "Do you already have a reception venue?"
+          },
+          "nature": "short_text",
+          "help": {
+            "fr": "Son nom, ou « pas encore ».",
+            "en": "Its name, or \"not yet\"."
+          },
+          "eventField": "venue"
+        },
+        {
+          "key": "guests",
+          "label": {
+            "fr": "Combien d'invités environ ?",
+            "en": "About how many guests?"
+          },
+          "nature": "number",
+          "eventField": "guests"
+        },
+        {
+          "key": "budget",
+          "label": {
+            "fr": "Quel budget envisagez-vous pour l'ensemble ?",
+            "en": "What overall budget do you have in mind?"
+          },
+          "nature": "amount",
+          "help": {
+            "fr": "En euros, une fourchette haute suffit.",
+            "en": "In euros; an upper estimate is enough."
+          },
+          "eventField": "budget"
+        },
+        {
+          "key": "style",
+          "label": {
+            "fr": "Quel style vous ressemble ?",
+            "en": "Which style suits you?"
+          },
+          "nature": "single_choice",
+          "choices": {
+            "fr": [
+              "Bohème",
+              "Champêtre",
+              "Chic et élégant",
+              "Moderne et épuré",
+              "Classique",
+              "Autre"
+            ],
+            "en": [
+              "Boho",
+              "Country",
+              "Chic and elegant",
+              "Modern and minimal",
+              "Classic",
+              "Other"
+            ]
+          },
+          "eventField": "style"
+        },
+        {
+          "key": "priorities",
+          "label": {
+            "fr": "Qu'est-ce qui compte le plus pour vous ce jour-là ?",
+            "en": "What matters most to you on that day?"
+          },
+          "nature": "long_text"
+        },
+        {
+          "key": "help_needed",
+          "label": {
+            "fr": "Sur quoi aimeriez-vous être accompagnés ?",
+            "en": "What would you like help with?"
+          },
+          "nature": "multiple_choice",
+          "choices": {
+            "fr": [
+              "Trouver le lieu",
+              "Choisir les prestataires",
+              "La décoration",
+              "Le jour J",
+              "Tout l'ensemble"
+            ],
+            "en": [
+              "Finding the venue",
+              "Choosing suppliers",
+              "Decoration",
+              "The day itself",
+              "Everything"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "key": "ceremony",
+      "name": {
+        "fr": "Cérémonie",
+        "en": "Ceremony"
+      },
+      "questions": [
+        {
+          "key": "ceremony_place",
+          "label": {
+            "fr": "Où aura lieu la cérémonie ?",
+            "en": "Where will the ceremony take place?"
+          },
+          "nature": "short_text"
+        },
+        {
+          "key": "ceremony_time",
+          "label": {
+            "fr": "À quelle heure souhaitez-vous la commencer ?",
+            "en": "What time would you like it to start?"
+          },
+          "nature": "short_text"
+        },
+        {
+          "key": "ceremony_officiant",
+          "label": {
+            "fr": "Qui l'animera ?",
+            "en": "Who will lead it?"
+          },
+          "nature": "short_text",
+          "help": {
+            "fr": "Un officiant, un proche…",
+            "en": "An officiant, a relative…"
+          }
+        },
+        {
+          "key": "ceremony_moments",
+          "label": {
+            "fr": "Quels moments souhaitez-vous (lectures, échange des vœux, entrée…) ?",
+            "en": "Which moments would you like (readings, exchange of vows, entrance…)?"
+          },
+          "nature": "long_text"
+        },
+        {
+          "key": "ceremony_speakers",
+          "label": {
+            "fr": "Qui prendra la parole ?",
+            "en": "Who will speak?"
+          },
+          "nature": "long_text"
+        },
+        {
+          "key": "ceremony_witnesses",
+          "label": {
+            "fr": "Combien de témoins ?",
+            "en": "How many witnesses?"
+          },
+          "nature": "number"
+        }
+      ]
+    },
+    {
+      "key": "music",
+      "name": {
+        "fr": "Musiques",
+        "en": "Music"
+      },
+      "questions": [
+        {
+          "key": "music_entrance",
+          "label": {
+            "fr": "Titre de votre entrée",
+            "en": "Song for your entrance"
+          },
+          "nature": "short_text"
+        },
+        {
+          "key": "music_first_dance",
+          "label": {
+            "fr": "Titre de la première danse",
+            "en": "First dance song"
+          },
+          "nature": "short_text"
+        },
+        {
+          "key": "music_mood",
+          "label": {
+            "fr": "Quelles ambiances pour la soirée ?",
+            "en": "Which moods for the evening?"
+          },
+          "nature": "multiple_choice",
+          "choices": {
+            "fr": [
+              "Années 80",
+              "Pop",
+              "Rock",
+              "Électro",
+              "Latino",
+              "Jazz et soul",
+              "Variété française"
+            ],
+            "en": [
+              "80s",
+              "Pop",
+              "Rock",
+              "Electro",
+              "Latin",
+              "Jazz and soul",
+              "French songs"
+            ]
+          }
+        },
+        {
+          "key": "music_must",
+          "label": {
+            "fr": "Les titres à ne pas manquer",
+            "en": "Songs not to miss"
+          },
+          "nature": "long_text",
+          "help": {
+            "fr": "Un titre par ligne.",
+            "en": "One song per line."
+          }
+        },
+        {
+          "key": "music_never",
+          "label": {
+            "fr": "Les titres à ne jamais passer",
+            "en": "Songs never to play"
+          },
+          "nature": "long_text",
+          "help": {
+            "fr": "Un titre par ligne.",
+            "en": "One song per line."
+          }
+        }
+      ]
+    },
+    {
+      "key": "practical",
+      "name": {
+        "fr": "Détails pratiques",
+        "en": "Practical details"
+      },
+      "questions": [
+        {
+          "key": "practical_accommodation",
+          "label": {
+            "fr": "Faut-il prévoir des hébergements pour vos invités ?",
+            "en": "Should accommodation be arranged for your guests?"
+          },
+          "nature": "single_choice",
+          "choices": {
+            "fr": [
+              "Oui",
+              "Non",
+              "À voir"
+            ],
+            "en": [
+              "Yes",
+              "No",
+              "Not sure yet"
+            ]
+          }
+        },
+        {
+          "key": "practical_transport",
+          "label": {
+            "fr": "Comment vos invités se déplaceront-ils ?",
+            "en": "How will your guests get around?"
+          },
+          "nature": "long_text"
+        },
+        {
+          "key": "practical_children",
+          "label": {
+            "fr": "Y aura-t-il des enfants ?",
+            "en": "Will there be children?"
+          },
+          "nature": "single_choice",
+          "choices": {
+            "fr": [
+              "Oui",
+              "Non",
+              "Quelques-uns"
+            ],
+            "en": [
+              "Yes",
+              "No",
+              "A few"
+            ]
+          }
+        },
+        {
+          "key": "practical_timing",
+          "label": {
+            "fr": "Des contraintes d'horaires à connaître ?",
+            "en": "Any timing constraints we should know about?"
+          },
+          "nature": "long_text"
+        },
+        {
+          "key": "practical_day_contact",
+          "label": {
+            "fr": "Qui contacter le jour J, à part vous ?",
+            "en": "Who should we contact on the day, besides you?"
+          },
+          "nature": "short_text",
+          "help": {
+            "fr": "Un prénom et un numéro de téléphone.",
+            "en": "A first name and a phone number."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -7,7 +7,7 @@ import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import type { EventClient, EventDetail } from "@/modules/events/service";
-import { autosaveEventIdentityAction, setWantedBudgetAction, updateClientContactAction, type ClientContactFormState, setVenueAction } from "./client-contact-actions";
+import { autosaveEventIdentityAction, saveEventNotesAction, setWantedBudgetAction, updateClientContactAction, type ClientContactFormState, setVenueAction } from "./client-contact-actions";
 import { AutoSaveForm } from "@/app/ui/autosave-form";
 
 export function ClientContactForm({ eventId, client }: { eventId: string; client: EventClient }) {
@@ -106,7 +106,17 @@ export function VenueForm({ eventId, venueName, venueCity }: { eventId: string; 
 // saisit à la main jusqu'au module Invités), style, notes.
 // Lot 39b (UX-09 ; D7, D8) : la fiche s'enregistre toute seule ; une modification faite entre-temps
 // est fusionnée ou montrée en conflit (AutoSaveForm).
-export function EventIdentityForm({ eventId, identity, version }: { eventId: string; identity: Pick<EventDetail, "guestsEstimated" | "guestsConfirmed" | "style" | "notes">; version: string }) {
+export function EventIdentityForm({
+  eventId,
+  identity,
+  version,
+  confidentialNotes = false,
+}: {
+  eventId: string;
+  identity: Pick<EventDetail, "guestsEstimated" | "guestsConfirmed" | "style" | "notes">;
+  version: string;
+  confidentialNotes?: boolean;
+}) {
   const t = useTranslations("Events");
   return (
     <AutoSaveForm
@@ -135,11 +145,45 @@ export function EventIdentityForm({ eventId, identity, version }: { eventId: str
         <input type="text" name="style" maxLength={2000} defaultValue={identity.style ?? ""} />
       </label>
       <FreeTextNotice />
+      {/* Lot 48a (DAT-08) : des notes confidentielles se changent dans leur propre formulaire. */}
+      {confidentialNotes ? (
+        <p className="muted">{t("eventNotesConfidentialElsewhere")}</p>
+      ) : (
+        <>
+          <label>
+            {t("eventNotes")}
+            <textarea name="notes" maxLength={10000} rows={4} defaultValue={identity.notes ?? ""} />
+          </label>
+          <FreeTextNotice />
+        </>
+      )}
+    </AutoSaveForm>
+  );
+}
+
+// Lot 48a (DAT-08 ; D5, ADR 0093) — notes de l'évènement et leur case « confidentielle » : chiffrées,
+// absentes des recherches et des exports, lues par leur auteur et la titulaire seuls.
+export function EventNotesForm({ eventId, notes, confidential }: { eventId: string; notes: string | null; confidential: boolean }) {
+  const t = useTranslations("Events");
+  const [state, action, pending] = useActionState<ClientContactFormState, FormData>(saveEventNotesAction, {});
+  return (
+    <form action={action} className="stack" aria-label={t("eventNotesConfidentialTitle")}>
+      <input type="hidden" name="eventId" value={eventId} />
       <label>
         {t("eventNotes")}
-        <textarea name="notes" maxLength={10000} rows={4} defaultValue={identity.notes ?? ""} />
+        <textarea name="notes" maxLength={10000} rows={4} defaultValue={notes ?? ""} />
       </label>
       <FreeTextNotice />
-    </AutoSaveForm>
+      <label className="checkbox">
+        <input type="checkbox" name="confidential" defaultChecked={confidential} />
+        {t("eventNotesConfidential")}
+      </label>
+      <p className="muted">{t("eventNotesConfidentialHint")}</p>
+      <button type="submit" disabled={pending}>
+        {t("eventNotesSave")}
+      </button>
+      {state.error ? <p role="alert">{state.error}</p> : null}
+      {state.success ? <p role="status">{t("eventNotesSaved")}</p> : null}
+    </form>
   );
 }

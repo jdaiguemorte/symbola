@@ -5,6 +5,7 @@
 import { and, eq, inArray, isNotNull, isNull, lt } from "drizzle-orm";
 import { includingDeleted } from "@symbola/db/actor";
 import {
+  dayPhotos,
   eventClients,
   eventDocuments,
   eventLinks,
@@ -174,7 +175,8 @@ export async function purgeTrashedEvents(organizationId: string, eventIds: strin
       (await tx.select({ id: events.id }).from(events).where(and(inArray(events.id, ids), isNotNull(events.deletedAt)))).map((row) => row.id),
     );
     if (trashed.length === 0) return;
-    const keys = [...(await candidateQuoteKeys(organizationId, trashed)), ...(await documentKeys(organizationId, trashed))];
+    // Lot 51 (DPO-9) : les photos du jour J partent avec les documents de l'évènement.
+    const keys = [...(await candidateQuoteKeys(organizationId, trashed)), ...(await documentKeys(organizationId, trashed)), ...(await inTrash(organizationId, async (tx) => (await tx.select({ key: dayPhotos.storageKey }).from(dayPhotos).where(inArray(dayPhotos.eventId, trashed))).flatMap((row) => (row.key ? [row.key] : []))))];
     await purgeEventRows(organizationId, trashed);
     await deleteFiles(keys);
   });

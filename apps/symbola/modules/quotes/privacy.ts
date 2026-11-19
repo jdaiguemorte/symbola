@@ -8,7 +8,7 @@
 import { and, asc, eq, inArray } from "drizzle-orm";
 import type { InvoiceBuyer } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
-import { catalogItems, contracts, contractSignerActs, creditNotes, earnestReceipts, invoices, quoteLines, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
+import { catalogItems, contracts, contractSignerActs, creditNotes, earnestReceipts, invoices, paymentReferences, paymentScheduleItems, quoteLines, quotes, quoteSigners, quoteVersions, signatureRequests } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
 import { hasTerms, prepareTerms, recordMatches, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
 import { eraseQuotesData, planQuotesErasure } from "./privacy-erasure";
@@ -117,6 +117,24 @@ export const quotesPrivacy: PrivacyContractV1 = {
             });
           }
         }
+        // Lot 43 (FAC-08, FAC-09) : qui a déclaré un virement, et le motif d'une suspension des relances.
+        const references = await tx
+          .select({ reference: paymentReferences, versionId: paymentScheduleItems.versionId })
+          .from(paymentReferences)
+          .innerJoin(paymentScheduleItems, eq(paymentScheduleItems.id, paymentReferences.scheduleItemId))
+          .where(and(inArray(paymentScheduleItems.versionId, [...versionQuote.keys()]), eq(paymentReferences.isDemo, false)));
+        for (const { reference, versionId } of references) {
+          if (!recordMatches([reference.declaredByName, reference.remindersSuspensionReason], terms)) continue;
+          const quote = versionQuote.get(versionId);
+          records.push({
+            module: MODULE,
+            kind: "transfer_declaration",
+            recordId: reference.id,
+            label: `${quote?.number ?? ""} — ${reference.reference}`,
+            fields: { ...(reference.declaredByName ? { declaredBy: reference.declaredByName } : {}), ...(reference.remindersSuspensionReason ? { suspensionReason: reference.remindersSuspensionReason } : {}) },
+            eventId: quote?.eventId ?? null,
+          });
+        }
         for (const line of await tx.select().from(quoteLines).where(inArray(quoteLines.versionId, [...versionQuote.keys()]))) {
           if (!recordMatches([line.description], terms)) continue;
           const quote = versionQuote.get(line.versionId);
@@ -141,7 +159,7 @@ export const quotesPrivacy: PrivacyContractV1 = {
           recordId: invoice.id,
           label: invoice.number,
           fields: buyerFields(buyers),
-          eventId: quoteById.get(invoice.quoteId)?.eventId ?? null,
+          eventId: invoice.quoteId ? (quoteById.get(invoice.quoteId)?.eventId ?? null) : null,
         });
       }
       const invoiceQuote = new Map(invoiceRows.map((invoice) => [invoice.id, invoice.quoteId]));
@@ -220,7 +238,7 @@ export const quotesPrivacy: PrivacyContractV1 = {
           recordId: invoice.id,
           label: invoice.number,
           fields: { number: invoice.number, issuedOn: invoice.issuedOn, amountCents: String(invoice.amountCents), ...buyerFields(buyersOf(invoice.buyerSnapshot)) },
-          eventId: quoteById.get(invoice.quoteId)?.eventId ?? null,
+          eventId: invoice.quoteId ? (quoteById.get(invoice.quoteId)?.eventId ?? null) : null,
         });
       }
       if (invoiceRows.length > 0) {

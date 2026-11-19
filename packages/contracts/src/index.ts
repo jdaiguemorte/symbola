@@ -156,7 +156,8 @@ export type {
   KeyMomentInput,
   GuestEventContext,
 } from "./events/service-contract";
-export { DAY_DOCUMENT_SOURCES, DECISION_KINDS, ENGAGED_CANDIDATE_STATUSES, LINK_AUDIENCES, LINK_BUDGET_SCOPES, LINK_RUBRICS, VENDOR_CANDIDATE_STATUSES } from "./events/service-contract";
+export type { DayHelper, DayHelperInput, EventTeamMember, EventTeamRole } from "./events/service-contract";
+export { DAY_DOCUMENT_SOURCES, DECISION_KINDS, ENGAGED_CANDIDATE_STATUSES, EVENT_TEAM_ROLES, LINK_AUDIENCES, LINK_BUDGET_SCOPES, LINK_RUBRICS, VENDOR_CANDIDATE_STATUSES } from "./events/service-contract";
 export type {
   AdjustEventBudgetItemInput,
   AllocationModel,
@@ -194,6 +195,9 @@ export type {
   LinkVendorPayment,
   LinkVendorPaymentStatus,
   PendingPaymentDeclaration,
+  DayHandover,
+  VendorPaymentHandover,
+  VendorPaymentHandoverInput,
 } from "./budget/service-contract";
 export { BUDGET_AMOUNT_FIELDS, BUDGET_DOCUMENT_KINDS } from "./budget/service-contract";
 export type {
@@ -224,6 +228,7 @@ export type {
   ContractTemplateClause,
   ContractTemplateClauseInput,
   ContractTemplateHeaderInput,
+  ContractTemplateKind,
   ContractTemplateView,
   ContractView,
   GenerateContractInput,
@@ -257,6 +262,8 @@ export type {
   // Lot 41 (FAC-10, JUR-02, JUR-13, GC-03).
   InvoiceReform,
   LineNature,
+  SupplyMode,
+  TourismKind,
   OperationCategory,
   PostalAddress,
   QuoteBuyerDetails,
@@ -344,6 +351,18 @@ export type {
   VendorFamily,
   VendorFamilyInput,
   StarterVendorCatalogInput,
+  // Lot 48a (PRE-05, PRE-06, PRE-10, SEC-27, DAT-08).
+  VendorDocumentKind,
+  VendorDocumentStatus,
+  VendorDocumentAlert,
+  VendorDocument,
+  VendorDocumentNotice,
+  VendorBankCheck,
+  VendorBankSummary,
+  VendorBankChange,
+  VenueConstraintSet,
+  VenueProgramFinding,
+  VenueCapacityFinding,
 } from "./vendors/service-contract";
 export {
   VENDORS_VENDOR_TYPE_MERGED,
@@ -368,7 +387,7 @@ export {
   type OrganizationExportModule,
 } from "./export/organization-export";
 // Lot 36a (CRM-03, DAT-12, ADR 0069) : le contact unique du hub.
-export type { Contact, ContactCompanyIds, ContactCoordinates, ContactInput, ContactKind, ContactMembership, ContactNote } from "./contacts";
+export type { Contact, ContactCompanyIds, ContactCoordinates, ContactInput, ContactKind, ContactMembership, ContactNote, ContactNoteViewer } from "./contacts";
 // Lot 38a (MSG-01, MSG-02, HUB-18 ; ADR 0072) : modèles d'e-mails et garde-fou d'envoi groupé.
 export type {
   EmailLocale,
@@ -384,7 +403,7 @@ export type {
   MessageTemplateVersionView,
   RecipientsReview,
 } from "./emails";
-export { EMAIL_LOCALES, EMAIL_TEMPLATE_KINDS, EMAIL_VARIABLES, MESSAGE_VARIABLES } from "./emails";
+export { EMAIL_LOCALES, EMAIL_TEMPLATE_KINDS, EMAIL_VARIABLES, MESSAGE_SEND_TIME_VARIABLES, MESSAGE_VARIABLES } from "./emails";
 // Lot 39a (DAT-03, HUB-17, UX-07 ; ADR 0073) — corbeille et « Annuler ».
 export {
   ELEMENT_KINDS,
@@ -439,3 +458,20 @@ export {
   appointmentBookedPayloadSchema,
   type AppointmentBookedPayload,
 } from "./appointments/events";
+// Lot 44 (CRM-01, CRM-02 ; ADR 0084) : formulaire de contact public et pipeline en colonnes.
+export * from "./events/pipeline";
+// Lot 51 (EVT-04, CHR-08, JRJ-05 à JRJ-09, ARC-09) : le jour J de terrain.
+export * from "./events/day-of";
+// Lot 47 (PAR-05, PRE-03, PRE-04, PRE-09, BUD-05 ; ADR 0085) : prestataires par lien.
+export * from "./events/vendor-coordination";
+// Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15, GC-01, SEC-16, BUD-06, BUD-11 ; ADR 0089) : proposition,
+// règlement par virement, relances, payeurs et calendrier des sorties d'argent.
+export * from "./quotes/settlement";
+// Lot 45 (CRM-05 à CRM-09, POR-07, HUB-21 ; ADR 0090) : messages, relances, questionnaires ; fusion
+// de contacts (hub.contact.merged).
+export * from "./events/relation";
+export * from "./hub/contact-events";
+// Lot 53 (HUB-15, UX-16, ARC-09, HUB-28, GC-02 ; ADR 0095) : notifications, automatismes, radar.
+export * from "./hub/notifications";
+// Lot 53 (CHR-10, CHR-05, HUB-24 ; ADR 0095) : tâches hors évènement, santé du planning, terme des clients.
+export * from "./events/planning";

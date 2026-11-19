@@ -6,6 +6,8 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import { parseAdminEnv } from "./admin-env";
+import { runDataSteps } from "./data-steps";
+import { readJournal } from "./rollback-migration";
 
 async function main() {
   const env = parseAdminEnv(process.env);
@@ -22,7 +24,10 @@ async function main() {
   const db = drizzle(sql);
 
   try {
-    await migrate(db, { migrationsFolder: new URL("../drizzle", import.meta.url).pathname });
+    const migrationsFolder = new URL("../drizzle", import.meta.url).pathname;
+    await migrate(db, { migrationsFolder });
+    // Lot 48a (ADR 0093) : étapes de données des migrations appliquées (chiffrement au niveau du champ).
+    await runDataSteps(sql, process.env, readJournal(migrationsFolder));
     console.log("Migrations appliquées.");
   } finally {
     await sql.end();

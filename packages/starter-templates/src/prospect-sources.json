@@ -7,6 +7,7 @@
     { "key": "wedding_directory", "label": { "fr": "Site d'annonces de mariage", "en": "Wedding directory website" } },
     { "key": "website", "label": { "fr": "Mon site internet", "en": "My website" } },
     { "key": "vendor_referral", "label": { "fr": "Recommandation d'un prestataire", "en": "Vendor referral" } },
-    { "key": "former_client", "label": { "fr": "Ancien client", "en": "Former client" } }
+    { "key": "former_client", "label": { "fr": "Ancien client", "en": "Former client" } },
+    { "key": "contact_form", "label": { "fr": "Formulaire de contact", "en": "Contact form" } }
   ]
 }

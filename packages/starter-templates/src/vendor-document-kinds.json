@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "alertDaysBefore": 30,
+  "items": [
+    { "key": "insurance", "label": { "fr": "Attestation d'assurance responsabilité civile", "en": "Liability insurance certificate" }, "expires": true },
+    { "key": "registration", "label": { "fr": "Extrait Kbis ou avis de situation Insee", "en": "Company registration extract" }, "expires": true },
+    { "key": "venue_plan", "label": { "fr": "Plan du lieu", "en": "Venue plan" }, "expires": false },
+    { "key": "other", "label": { "fr": "Autre pièce", "en": "Other document" }, "expires": false }
+  ]
+}

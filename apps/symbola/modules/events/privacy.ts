@@ -8,14 +8,18 @@
 // l'événement (« Plan de table Martin ») ; le fichier lui-même peut nommer des
 // personnes, il est supprimé à l'oubli. Les données d'un essai guidé (ADR 0008)
 // ne sont jamais trouvées.
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { revealEventNotes } from "./confidential-notes";
+import { and, asc, eq, inArray, isNotNull } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import {
   eventLinks,
+  eventDecisionOptionFeedback,
+  vendorBriefs,
   eventClients,
   eventDayContacts,
   eventDocumentFolders,
   eventDocuments,
+  dayIncidents,
   eventPlaces,
   eventTaskAttachments,
   eventTaskComments,
@@ -28,6 +32,11 @@ import {
   programItemParticipants,
   programItems,
   programVersions,
+  prospectRequests,
+  eventMessages,
+  eventQuestionnaires,
+  prospectFollowUps,
+  questionnaireAnswers,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { hasTerms, prepareTerms, recordMatches, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
@@ -85,13 +94,14 @@ async function candidateRecords(tx: Tx, eventIds: string[], matches: ((values: (
   const records: PrivacyRecord[] = [];
   for (const candidate of candidates) {
     const bodies = notes.filter((note) => note.candidateId === candidate.id).map((note) => note.body);
-    if (matches && !matches([candidate.vendorName, ...bodies])) continue;
+    // Lot 47 (PRE-04) : le message du prestataire avec sa réponse au brief.
+    if (matches && !matches([candidate.vendorName, candidate.answerMessage, ...bodies])) continue;
     records.push({
       module: MODULE,
       kind: "vendor_candidate",
       recordId: candidate.id,
       label: candidate.vendorName,
-      fields: compact({ vendorName: candidate.vendorName, notes: bodies.join(" · ") || null }),
+      fields: compact({ vendorName: candidate.vendorName, answerMessage: candidate.answerMessage, notes: bodies.join(" · ") || null }),
       eventId: candidate.eventId,
     });
   }
@@ -119,12 +129,52 @@ function placeRecord(place: typeof eventPlaces.$inferSelect): PrivacyRecord {
   return { module: MODULE, kind: "event_place", recordId: place.id, label: place.label, fields: compact({ address: place.address, city: place.city, contactName: place.contactName, contactPhone: place.contactPhone, contactEmail: place.contactEmail }), eventId: place.eventId };
 }
 
+// Lot 51 (JRJ-07) : un incident du jour J (texte noté, gravité, heure du téléphone).
+function incidentRecord(incident: typeof dayIncidents.$inferSelect): PrivacyRecord {
+  return { module: MODULE, kind: "day_incident", recordId: incident.id, label: incident.deviceAt.toISOString().slice(0, 16), fields: compact({ body: incident.body, severity: incident.severity }), eventId: incident.eventId };
+}
+
 function commentRecord(comment: typeof eventTaskComments.$inferSelect): PrivacyRecord {
   return { module: MODULE, kind: "task_comment", recordId: comment.id, label: comment.createdAt.toISOString().slice(0, 10), fields: { body: comment.body }, eventId: comment.eventId };
 }
 
 function attachmentRecord(attachment: typeof eventTaskAttachments.$inferSelect): PrivacyRecord {
   return { module: MODULE, kind: "task_attachment", recordId: attachment.id, label: attachment.label, fields: { label: attachment.label, mime: attachment.mime }, eventId: attachment.eventId };
+}
+
+// Lot 44 (CRM-01) : demande reçue par le formulaire de contact (message, période, tranche de budget ;
+// pour une demande « à vérifier », les champs reçus en attente : nom, e-mail, téléphone…).
+function prospectRequestRecord(request: typeof prospectRequests.$inferSelect): PrivacyRecord {
+  return {
+    module: MODULE,
+    kind: "prospect_request",
+    recordId: request.id,
+    label: request.receivedAt.toISOString().slice(0, 10),
+    fields: compact({ message: request.message, period: request.period, budgetRange: request.budgetRange, ...(request.pending ?? {}) }),
+    eventId: request.eventId,
+  };
+}
+
+function prospectRequestValues(request: typeof prospectRequests.$inferSelect): (string | null)[] {
+  return [request.message, request.period, request.budgetRange, ...Object.values(request.pending ?? {})];
+}
+
+// Lot 45 (CRM-05, CRM-06, POR-07) : message ou relance (objet et texte), questionnaire et ses réponses.
+function messageRecord(message: typeof eventMessages.$inferSelect): PrivacyRecord {
+  return { module: MODULE, kind: "event_message", recordId: message.id, label: `${message.occurredAt.toISOString().slice(0, 10)} ${message.subject ?? message.kind}`, fields: compact({ kind: message.kind, delivery: message.delivery, subject: message.subject, body: message.body }), eventId: message.eventId };
+}
+
+function followUpRecord(followUp: typeof prospectFollowUps.$inferSelect): PrivacyRecord {
+  return { module: MODULE, kind: "follow_up", recordId: followUp.id, label: followUp.subject, fields: compact({ subject: followUp.subject, body: followUp.body, readyAt: followUp.readyAt.toISOString() }), eventId: followUp.eventId };
+}
+
+function questionnaireRecord(questionnaire: typeof eventQuestionnaires.$inferSelect, answers: (typeof questionnaireAnswers.$inferSelect)[]): PrivacyRecord {
+  const fields: Record<string, string> = {};
+  for (const answer of answers) {
+    const label = questionnaire.questions.find((question) => question.key === answer.itemKey)?.label ?? answer.itemKey;
+    fields[label] = Array.isArray(answer.value) ? answer.value.join(", ") : String(answer.value);
+  }
+  return { module: MODULE, kind: "questionnaire", recordId: questionnaire.id, label: questionnaire.name, fields, eventId: questionnaire.eventId };
 }
 
 function dayContactRecord(contact: typeof eventDayContacts.$inferSelect): PrivacyRecord {
@@ -187,14 +237,18 @@ export const eventsPrivacy: PrivacyContractV1 = {
         });
       }
       // Lot 26a : lien personnel d'un tiers (nom et e-mail de la personne).
+      // Lot 47 (D7) : les avis du client sur les options sont rattachés à son lien.
+      const linkFeedback = await tx.select({ linkId: eventDecisionOptionFeedback.linkId, comment: eventDecisionOptionFeedback.comment }).from(eventDecisionOptionFeedback).where(isNotNull(eventDecisionOptionFeedback.linkId));
       for (const link of await tx.select().from(eventLinks).where(inArray(eventLinks.eventId, eventIds))) {
-        if (recordMatches([link.email, link.personName], terms)) {
+        if (recordMatches([link.email, link.personName, ...linkFeedback.filter((entry) => entry.linkId === link.id).map((entry) => entry.comment)], terms)) {
           records.push({ module: MODULE, kind: "link", recordId: link.id, label: link.personName, fields: { name: link.personName, email: link.email }, eventId: link.eventId });
         }
       }
+      const briefs = await tx.select({ vendorSlotId: vendorBriefs.vendorSlotId, need: vendorBriefs.need }).from(vendorBriefs).where(inArray(vendorBriefs.eventId, eventIds));
       for (const slot of await tx.select().from(eventVendorSlots).where(inArray(eventVendorSlots.eventId, eventIds))) {
-        // Lot 28b : le nom des prestataires est porté par les prestataires rattachés.
-        if (recordMatches(importedValues(slot.importedFields), terms)) {
+        // Lot 28b : le nom des prestataires est porté par les prestataires rattachés. Lot 47 (D1) :
+        // le besoin du brief du poste peut nommer la personne.
+        if (recordMatches([...importedValues(slot.importedFields), slot.brief, ...briefs.filter((brief) => brief.vendorSlotId === slot.id).map((brief) => brief.need)], terms)) {
           records.push({
             module: MODULE,
             kind: "event_vendor_slot",
@@ -233,6 +287,10 @@ export const eventsPrivacy: PrivacyContractV1 = {
       for (const contact of await tx.select().from(eventDayContacts).where(inArray(eventDayContacts.eventId, eventIds))) {
         if (recordMatches([contact.name, contact.role, contact.phone], terms)) records.push(dayContactRecord(contact));
       }
+      // Lot 51 (JRJ-07, DPO-9) : un incident de la main courante peut nommer la personne.
+      for (const incident of await tx.select().from(dayIncidents).where(inArray(dayIncidents.eventId, eventIds))) {
+        if (recordMatches([incident.body], terms)) records.push(incidentRecord(incident));
+      }
       // Lot 29b : documents de l'événement, par leur intitulé.
       for (const document of await tx.select().from(eventDocuments).where(inArray(eventDocuments.eventId, eventIds))) {
         if (recordMatches([document.label], terms)) records.push(documentRecord(document));
@@ -259,6 +317,20 @@ export const eventsPrivacy: PrivacyContractV1 = {
             });
           }
         }
+      }
+      // Lot 45 : les messages et questionnaires adressés aux contacts qui correspondent.
+      const matchingIds = [...matchingContacts.keys()];
+      if (matchingIds.length > 0) {
+        for (const message of await tx.select().from(eventMessages).where(and(inArray(eventMessages.contactId, matchingIds), inArray(eventMessages.eventId, eventIds)))) records.push(messageRecord(message));
+        const questionnaires = await tx.select().from(eventQuestionnaires).where(and(inArray(eventQuestionnaires.contactId, matchingIds), inArray(eventQuestionnaires.eventId, eventIds)));
+        const answers = questionnaires.length > 0 ? await tx.select().from(questionnaireAnswers).where(inArray(questionnaireAnswers.questionnaireId, questionnaires.map((row) => row.id))) : [];
+        for (const questionnaire of questionnaires) records.push(questionnaireRecord(questionnaire, answers.filter((answer) => answer.questionnaireId === questionnaire.id)));
+      }
+      // Lot 44 (CRM-01) : demandes du formulaire de contact, dont celles « à vérifier » (sans évènement).
+      const demoIds = new Set((await tx.select({ id: events.id }).from(events).where(eq(events.isDemo, true))).map((event) => event.id));
+      for (const request of await tx.select().from(prospectRequests)) {
+        if (request.eventId && demoIds.has(request.eventId)) continue;
+        if (recordMatches(prospectRequestValues(request), terms)) records.push(prospectRequestRecord(request));
       }
       return records;
     });
@@ -291,7 +363,8 @@ export const eventsPrivacy: PrivacyContractV1 = {
             guestsEstimated: event.guestsEstimated === null ? null : String(event.guestsEstimated),
             guestsConfirmed: event.guestsConfirmed === null ? null : String(event.guestsConfirmed),
             style: event.style,
-            notes: event.notes,
+            // Lot 48a (DAT-08) : droit d'accès de la personne, notes confidentielles comprises.
+            notes: revealEventNotes(organizationId, event),
             ...importedFieldsOf(event.importedFields),
           }),
           eventId: event.id,
@@ -335,6 +408,15 @@ export const eventsPrivacy: PrivacyContractV1 = {
         records.push(documentRecord(document));
       }
       for (const folder of await tx.select().from(eventDocumentFolders).where(inArray(eventDocumentFolders.eventId, ids)).orderBy(asc(eventDocumentFolders.name))) records.push(folderRecord(folder));
+      // Lot 51 (JRJ-07) : la main courante de l'évènement (le texte ; les photos restent internes).
+      for (const incident of await tx.select().from(dayIncidents).where(inArray(dayIncidents.eventId, ids)).orderBy(asc(dayIncidents.deviceAt))) records.push(incidentRecord(incident));
+      for (const request of await tx.select().from(prospectRequests).where(inArray(prospectRequests.eventId, ids)).orderBy(asc(prospectRequests.receivedAt))) records.push(prospectRequestRecord(request));
+      // Lot 45 : messages, relances, questionnaires et réponses de l'évènement.
+      for (const message of await tx.select().from(eventMessages).where(inArray(eventMessages.eventId, ids)).orderBy(asc(eventMessages.occurredAt))) records.push(messageRecord(message));
+      for (const followUp of await tx.select().from(prospectFollowUps).where(inArray(prospectFollowUps.eventId, ids)).orderBy(asc(prospectFollowUps.readyAt))) records.push(followUpRecord(followUp));
+      const questionnaires = await tx.select().from(eventQuestionnaires).where(inArray(eventQuestionnaires.eventId, ids)).orderBy(asc(eventQuestionnaires.sentAt));
+      const questionnaireAnswerRows = questionnaires.length > 0 ? await tx.select().from(questionnaireAnswers).where(inArray(questionnaireAnswers.questionnaireId, questionnaires.map((row) => row.id))) : [];
+      for (const questionnaire of questionnaires) records.push(questionnaireRecord(questionnaire, questionnaireAnswerRows.filter((answer) => answer.questionnaireId === questionnaire.id)));
       for (const change of await tx.select().from(eventStatusHistory).where(inArray(eventStatusHistory.eventId, ids)).orderBy(asc(eventStatusHistory.changedAt))) {
         records.push({
           module: MODULE,

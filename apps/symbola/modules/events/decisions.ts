@@ -11,7 +11,9 @@ export const DECISION_NOTE_MAX = 500;
 export function decisionOpenTo(decision: { kind: DecisionKind; slotId: string | null }, access: Pick<LinkAccess, "audience" | "rights">): boolean {
   if (access.audience !== "client") return false;
   const { rubrics, budgetScope, sharedSlotIds } = access.rights;
-  if (decision.kind === "option") return rubrics.includes("vendor_options");
+  // Lot 47 (PRE-09, POR-10) : un payeur (catégories choisies) ne voit une option que pour un poste
+  // de son périmètre.
+  if (decision.kind === "option") return rubrics.includes("vendor_options") && (budgetScope === "all" || (decision.slotId !== null && sharedSlotIds.includes(decision.slotId)));
   if (decision.kind === "program") return rubrics.includes("program");
   return rubrics.includes("budget") && (budgetScope === "all" || (decision.slotId !== null && sharedSlotIds.includes(decision.slotId)));
 }

@@ -17,6 +17,7 @@ import {
   findInvitationByTokenHash,
   findOrganizationById,
   findOrganizationModule,
+  findOrganizationLanguage,
   findOrganizationProfile,
   findPlatformSettings,
   findHelpProgress,
@@ -53,6 +54,7 @@ export {
   RecipientsNotConfirmedError,
   reviewRecipients,
   messageTemplateVariables,
+  renderMessageTemplate,
   validateEmailTemplate,
   variableToken,
   type EmailBlock,
@@ -399,10 +401,14 @@ export type CreateTeamInvitationResult =
   | { outcome: "already_member" }
   | { outcome: "invalid_email" };
 
+// Lot 52 (HUB-04) : la Propriétaire choisit le rôle, Planner (« member ») ou Comptable (« accountant »).
+export type TeamInvitationRole = "member" | "accountant";
+
 export async function createTeamInvitation(
   db: AppDatabase,
-  input: { organizationId: string; email: string; invitedByUserId: string; now?: Date },
+  input: { organizationId: string; email: string; invitedByUserId: string; role?: TeamInvitationRole; now?: Date },
 ): Promise<CreateTeamInvitationResult> {
+  const role: TeamInvitationRole = input.role === "accountant" ? "accountant" : "member";
   const email = input.email.trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return { outcome: "invalid_email" };
   const team = await listTeam(db, input.organizationId);
@@ -414,24 +420,26 @@ export async function createTeamInvitation(
     email,
     tokenHash: hashInvitationToken(token),
     expiresAt,
-    role: "member",
+    role,
     createdBy: input.invitedByUserId,
   });
   await recordAudit(db, {
     organizationId: input.organizationId,
     action: "hub.invitation.sent",
     objectId: input.organizationId,
-    details: { role: "member" },
+    details: { role },
     actor: { kind: "member", id: input.invitedByUserId },
   });
   return { outcome: "invited", invitationId: invitation.id, token, expiresAt };
 }
 
-export type PendingTeamInvitation = { id: string; email: string; expiresAt: Date; createdAt: Date };
+export type PendingTeamInvitation = { id: string; email: string; expiresAt: Date; createdAt: Date; role: TeamInvitationRole };
 
-// Invitations de Planner encore valables et pas encore acceptées, les plus récentes d'abord.
+// Invitations de Planner (et, lot 52, de Comptable) encore valables et pas encore acceptées, les plus
+// récentes d'abord.
 export async function listPendingTeamInvitations(db: AppDatabase, organizationId: string, now: Date = new Date()): Promise<PendingTeamInvitation[]> {
-  return findPendingRoleInvitations(db, organizationId, "member", now);
+  const [planners, accountants] = await Promise.all([findPendingRoleInvitations(db, organizationId, "member", now), findPendingRoleInvitations(db, organizationId, "accountant", now)]);
+  return [...planners.map((row) => ({ ...row, role: "member" as const })), ...accountants.map((row) => ({ ...row, role: "accountant" as const }))].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
 
 // Absence de ligne = état par défaut du module (ADR 0079) : ouvert pour les quatre
@@ -525,6 +533,11 @@ const EMPTY_PROFILE: OrganizationProfile = {
 
 // ONB-01 — Pas encore de ligne = questionnaire jamais commencé : toutes
 // les réponses sont nulles plutôt que de bloquer l'accès à l'app.
+// Lot 51 (EVT-04) : langue de l'organisation, pour les données de départ écrites sans écran.
+export async function getOrganizationLanguage(db: AppDatabase, organizationId: string): Promise<"fr" | "en"> {
+  return findOrganizationLanguage(db, organizationId);
+}
+
 export async function getOrganizationProfile(db: AppDatabase, organizationId: string): Promise<OrganizationProfile> {
   const row = await findOrganizationProfile(db, organizationId);
   return row ?? EMPTY_PROFILE;
@@ -1256,3 +1269,74 @@ export { jobKeyExists } from "./jobs";
 // Lot 49 (RGP-08, D9) : la purge des invités efface les exports stockés qui peuvent les contenir.
 export { purgeOrganizationExportsWithGuests } from "./organization-exports";
 export { purgePrivacyExportsSince } from "./privacy-exports";
+
+// Lot 45 (CRM-07 ; D4, D5 ; ADR 0090) : doublons de contacts et fusion champ par champ.
+export {
+  countDuplicatePairs,
+  detectAllDuplicates,
+  detectDuplicatesOf,
+  dismissDuplicatePair,
+  DuplicatePairNotFoundError,
+  getDuplicatePair,
+  listContactMerges,
+  mergeContacts,
+  resolveMergedContactIds,
+  type DuplicatePairView,
+} from "./contact-duplicates";
+export { ContactMergeRefusedError, MERGEABLE_FIELDS, normalizeEmail, normalizePhone, type MergeableField, type MergeChoices } from "./contact-duplicate-rules";
+import { listDuplicatePairs as listPairs } from "./contact-duplicates";
+import { getContactsByIds as contactsByIds } from "./contacts";
+
+export async function listDuplicatePairs(organizationId: string) {
+  return listPairs(organizationId, (ids) => contactsByIds(organizationId, ids));
+}
+
+// Lot 52 (HUB-04, EVT-06, SEC-08 ; ADR 0094) : visibilité des évènements, e-mails de sécurité du compte.
+export { accountEmailContext, getEventVisibility, sendAccountEmail, setEventVisibility, type AccountEmailContext } from "./team-access";
+// Lot 53 (HUB-15, UX-16, ARC-09 ; D1 à D4 ; ADR 0095, ADR 0096) : notifications de l'équipe, réglages par
+// sorte et par canal, récapitulatif, plages de silence, abonnements push.
+export {
+  countUnreadNotifications,
+  deliverDueNotifications,
+  getNotificationPreferences,
+  getNotificationSettings,
+  listNotifications,
+  listPushDevices,
+  markAllNotificationsRead,
+  markNotificationRead,
+  notificationActionLabel,
+  notificationRecipients,
+  notificationText,
+  notificationTypeLabel,
+  notify,
+  NotificationInputError,
+  purgeNotifications,
+  pushPublicKey,
+  pushToUser,
+  removePushDevice,
+  saveNotificationSettings,
+  savePushSubscription,
+  sendDueDigests,
+  setNotificationPreference,
+  type NotifyInput,
+} from "./notifications";
+export { localClock } from "./notification-rules";
+export { setPushSender, type PushOutcome, type PushSender, type PushTarget } from "./push";
+// Lot 53 (HUB-28, GC-02 ; D5, D7) : automatismes prêts à activer, leur journal, règles du radar.
+export {
+  automationCovers,
+  AutomationInputError,
+  claimDailyAutomationRun,
+  getAutomationGate,
+  getRiskRules,
+  listAutomationGates,
+  listAutomationRuns,
+  purgeAutomationRuns,
+  recordAutomationRun,
+  setAutomationDays,
+  setAutomationEnabled,
+  setRiskRule,
+  type AutomationGate,
+  type AutomationRunInput,
+  type RiskRuleSetting,
+} from "./automations";

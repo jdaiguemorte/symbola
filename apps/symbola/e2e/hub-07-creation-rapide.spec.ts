@@ -127,11 +127,13 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   await expect(page.locator("main")).toContainText(/9\s600,00\s€/);
 
   // UX-03 : « Écrire au client » ouvre la messagerie, à l'adresse du client ; lot 38b (HUB-21) : par
-  // la page du message, qui propose un modèle et garde l'envoi sans modèle.
+  // la page du message. Lot 45 (CRM-05) : sans modèle de message, le texte de départ de la réponse,
+  // à relire, part de Symbola ou s'ouvre dans la messagerie.
   await page.goto(`/events/${setup.lea}`);
   await page.getByRole("link", { name: "Écrire au client" }).click();
   await expect(page.getByRole("heading", { name: "Écrire au client", level: 1 })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Écrire sans modèle" })).toHaveAttribute("href", /^mailto:lea-/);
+  await expect(page.getByRole("textbox", { name: "Texte" })).toHaveValue(/^Bonjour /);
+  await expect(page.getByRole("button", { name: "Ouvrir dans ma messagerie" })).toBeVisible();
   await page.goto(`/events/${setup.lea}`);
 
   // CRM-04 sur la fiche : la date de l'évènement annonce les autres évènements de ce jour.

@@ -11,6 +11,11 @@
 //   copie si le réseau, le serveur (NFR-09) ou la session ne répondent pas ;
 // - toute autre navigation : le réseau, et la page « Hors ligne » s'il ne répond pas.
 //
+// Lot 53 (ARC-09, HUB-15 ; D4 ; ADR 0095, ADR 0096) : il affiche aussi les notifications push et ouvre,
+// au clic, l'écran où agir. Le message arrive chiffré (le navigateur le déchiffre) ; il ne contient que
+// la sorte en mots et un chemin de l'app. Sa portée hors ligne ne change pas : le jour J seulement. Un
+// appareil abonné au push garde le service worker même sans jour J gardé.
+//
 // Interrupteur d'arrêt : docs/runbooks/deploiement.md (§ Service worker).
 // Les quatre noms ci-dessous sont aussi dans lib/offline/day-copy.ts (un test les compare).
 "use strict";
@@ -134,4 +139,55 @@ function withTimeout(promise, milliseconds) {
       },
     );
   });
+}
+
+// —— Notifications push (lot 53) ——————————————————————————————————————————————————————————————
+
+const PUSH_ICON = "/icons/192.png";
+const PUSH_FALLBACK_PATH = "/notifications";
+
+// Un chemin de l'app (« /devis/… »), jamais une adresse d'ailleurs.
+function safePath(value) {
+  return typeof value === "string" && /^\/[^/\\]/.test(value) && value.length <= 500 ? value : PUSH_FALLBACK_PATH;
+}
+
+function shortText(value, max) {
+  return typeof value === "string" && value.trim() ? value.trim().slice(0, max) : "";
+}
+
+function pushContent(data) {
+  const source = data && typeof data === "object" ? data : {};
+  return {
+    title: shortText(source.title, 100) || "Symbola",
+    body: shortText(source.body, 200),
+    tag: shortText(source.tag, 100) || undefined,
+    url: safePath(source.url),
+  };
+}
+
+self.addEventListener("push", (event) => {
+  let data = null;
+  try {
+    data = event.data ? event.data.json() : null;
+  } catch {
+    data = null;
+  }
+  const content = pushContent(data);
+  event.waitUntil(self.registration.showNotification(content.title, { body: content.body, tag: content.tag, icon: PUSH_ICON, badge: PUSH_ICON, data: { url: content.url } }));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = safePath(event.notification.data && event.notification.data.url);
+  event.waitUntil(openTarget(target));
+});
+
+// Une fenêtre de Symbola déjà sur cet écran prend la main ; sinon, l'écran s'ouvre.
+async function openTarget(path) {
+  const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  for (const client of windows) {
+    const url = new URL(client.url);
+    if (url.origin === self.location.origin && url.pathname + url.search === path && "focus" in client) return client.focus();
+  }
+  return self.clients.openWindow(path);
 }

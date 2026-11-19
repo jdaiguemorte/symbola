@@ -4,27 +4,24 @@
 // ou réalisé et daté), puis la pièce doit figurer parmi les candidats de
 // l'événement, donnés par chaque module (day-documents.ts) ; sinon introuvable.
 import { DAY_DOCUMENT_SOURCES, type DayDocumentSource } from "@symbola/contracts";
-import { getEvent } from "@/modules/events/service";
-import { getPlannerAuthContext } from "@/lib/auth-context";
+// Lot 52 (EVT-06, D3) : le renfort du jour J n'ouvre que les documents gardés pour le jour J (choisis
+// par la planner), jamais les autres pièces de l'évènement.
 import { fileDownloadResponse } from "@/lib/file-response";
-import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
-import { isDayOfOpen } from "../../../day-of-view";
+import { isValidId } from "@/app/events/module-access";
+import { dayOfAccess } from "../../../access";
 import { listDayDocumentCandidates, readDayDocument } from "../../../day-documents";
 
 const NOT_FOUND_ERRORS = new Set(["EventDocumentNotFoundError", "SignatureDocumentNotFoundError", "BudgetLineAttachmentNotFoundError", "VendorCandidateNotFoundError", "QuoteNotFoundError"]);
 
-export async function GET(_request: Request, { params }: { params: Promise<{ eventId: string; source: string; documentId: string }> }): Promise<Response> {
-  const auth = await getPlannerAuthContext();
-  if (auth.status !== "authenticated" || !auth.user.organizationId) return new Response(null, { status: 401 });
-  const organizationId = auth.user.organizationId;
+export async function GET(request: Request, { params }: { params: Promise<{ eventId: string; source: string; documentId: string }> }): Promise<Response> {
   const { eventId, source, documentId } = await params;
-  if (!isValidId(eventId) || !isValidId(documentId) || !(DAY_DOCUMENT_SOURCES as readonly string[]).includes(source)) return new Response(null, { status: 404 });
-  if (!(await isEventsModuleEnabled(organizationId))) return new Response(null, { status: 404 });
-  const event = await getEvent(organizationId, eventId);
-  if (!event || !isDayOfOpen(event)) return new Response(null, { status: 404 });
-
+  if (!isValidId(documentId) || !(DAY_DOCUMENT_SOURCES as readonly string[]).includes(source)) return new Response(null, { status: 404 });
+  const access = await dayOfAccess(request, eventId, { write: false });
+  if (!access.ok) return new Response(null, { status: access.response.status });
+  const { organizationId } = access;
+  const helper = access.viewer.kind === "helper";
   const candidates = await listDayDocumentCandidates(organizationId, eventId);
-  if (!candidates.some((candidate) => candidate.source === source && candidate.sourceId === documentId)) return new Response(null, { status: 404 });
+  if (!candidates.some((candidate) => candidate.source === source && candidate.sourceId === documentId && (!helper || candidate.embedded))) return new Response(null, { status: 404 });
   try {
     return fileDownloadResponse(await readDayDocument(organizationId, source as DayDocumentSource, documentId), { inline: true });
   } catch (error) {
