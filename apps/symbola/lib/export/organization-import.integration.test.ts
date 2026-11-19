@@ -209,7 +209,8 @@ describe("HUB-13 — Reprise d'un export Symbola dans un espace vide (lot 35b)",
   beforeAll(async () => {
     source = await seedSource();
     firstExport = await exportOf(source.organizationId);
-  });
+    // Le jeu fictif complet et son export : plus que les 10 s par défaut, surtout en CI.
+  }, 120_000);
 
   it("réversibilité : exporté, repris dans un espace vide puis réexporté, l'export est le même, identifiants et dates de création mis à part ; chaque fichier garde son empreinte", async () => {
     const target = await emptySpace();
