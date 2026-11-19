@@ -11,6 +11,7 @@ import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "@/app/events/event-stat
 import { daysUntil, TODAY_GROUPS, type RankedItem, type RankedToday, type TodayGroup } from "@/lib/today/rank";
 import { isActiveEvent, type TodaySource, type TodayWords } from "@/lib/today/load";
 import { completeTaskAction } from "./actions";
+import { completeStandaloneTaskAction } from "@/app/taches/standalone-actions";
 import { RemindVendorButton } from "./today-client";
 
 type TodayTranslator = Awaited<ReturnType<typeof getTranslations<"Today">>>;
@@ -46,6 +47,7 @@ export function todayWords(t: TodayTranslator): TodayWords {
     // Lot 48a (PRE-05, PRE-10, SEC-27).
     vendorDocument: (vendor, document, reason) => t(`words.vendorDocument.${reason}`, { vendor, document }),
     vendorBankCheck: (vendor) => t("words.vendorBankCheck", { vendor }),
+    standaloneTask: t("words.standaloneTaskTag"),
   };
 }
 
@@ -90,6 +92,13 @@ export async function TodayItemLine({ item, locale, returnTo }: { item: RankedIt
           <input type="hidden" name="eventId" value={item.action.eventId} />
           <input type="hidden" name="taskId" value={item.action.taskId} />
           <input type="hidden" name="returnTo" value={returnTo} />
+          <button type="submit" aria-label={t("action.checkTaskLabel", { label: item.title })}>
+            {t("action.checkTask")}
+          </button>
+        </form>
+      ) : item.action?.kind === "check_standalone_task" ? (
+        <form action={completeStandaloneTaskAction} className="today-action">
+          <input type="hidden" name="taskId" value={item.action.taskId} />
           <button type="submit" aria-label={t("action.checkTaskLabel", { label: item.title })}>
             {t("action.checkTask")}
           </button>

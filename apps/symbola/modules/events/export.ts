@@ -62,6 +62,8 @@ import {
   eventQuestionnaires,
   prospectFollowUps,
   prospectFollowUpSettings,
+  eventTypeVocabulary,
+  planningHealthSettings,
   questionnaireAnswers,
   questionnaireTemplateItems,
   questionnaireTemplates,
@@ -90,6 +92,9 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   // Lot 45 (CRM-06, POR-07, HUB-21) : réglage des relances (avec la brochure), modèles de questionnaires
   // et leurs versions.
   { table: prospectFollowUpSettings, files: ["brochureStorageKey"] },
+  // Lot 53 (HUB-24, CHR-05) : le terme des clients de chaque type, les seuils de la santé du planning.
+  { table: eventTypeVocabulary, parents: { eventTypeId: "event_types" } },
+  { table: planningHealthSettings },
   { table: questionnaireTemplates },
   { table: questionnaireTemplateItems, parents: { templateId: "questionnaire_templates" } },
   // Lot 48a (DAT-08) : des notes confidentielles ne sortent pas (chiffrées, elles restent dans Symbola).

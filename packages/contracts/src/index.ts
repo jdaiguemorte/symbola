@@ -471,3 +471,7 @@ export * from "./quotes/settlement";
 // de contacts (hub.contact.merged).
 export * from "./events/relation";
 export * from "./hub/contact-events";
+// Lot 53 (HUB-15, UX-16, ARC-09, HUB-28, GC-02 ; ADR 0095) : notifications, automatismes, radar.
+export * from "./hub/notifications";
+// Lot 53 (CHR-10, CHR-05, HUB-24 ; ADR 0095) : tâches hors évènement, santé du planning, terme des clients.
+export * from "./events/planning";

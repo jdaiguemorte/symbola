@@ -58,6 +58,8 @@ export type TodayItemKind =
 export type TodayAction =
   | { kind: "check_task"; eventId: string; taskId: string }
   | { kind: "remind_vendor"; eventId: string; candidateId: string }
+  // Lot 53 (CHR-10) : cocher une tâche hors évènement.
+  | { kind: "check_standalone_task"; taskId: string }
   | { kind: "open" };
 
 export type TodayItem = {

@@ -1437,6 +1437,30 @@
     "notMe": {
       "title": "This wasn't me",
       "body": "Your account was signed in from a device Symbola did not know. If it wasn't you, close all your sessions here, then change your address, password and two-step verification in your account."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "body": "What happened and what is waiting for you, one line per fact. Click a notification: it opens the screen where you can act and becomes “read”."
+    },
+    "notificationSettings": {
+      "title": "My notification settings",
+      "body": "Turn a kind off on one channel without touching the others. The summary is sent every morning at the chosen time; during quiet hours nothing rings, except day-of alerts on the day of an event if you keep that option."
+    },
+    "automations": {
+      "title": "Automations",
+      "body": "Each line is an automation: what it does, its switch and its log. Turning off stops the next sends; nothing is caught up when you turn it back on. The GDPR purge and the document check cannot be turned off."
+    },
+    "riskRadar": {
+      "title": "Risk radar",
+      "body": "The radar runs every morning. Each rule has a threshold in days; an alert states the rule that triggered it and leads to the screen where you can act. Planning health is set here too."
+    },
+    "clientTerms": {
+      "title": "Client terms",
+      "body": "The term chosen for a type replaces “the couple” or “the clients” where Symbola names your clients, and fills '{{client_term}}' in your e-mails and future documents."
+    },
+    "standaloneTasks": {
+      "title": "Tasks outside events",
+      "body": "A task without an event appears in “Today” when due. Once checked, a repeating task creates the next one."
     }
   },
   "Aide": {
@@ -5144,7 +5168,11 @@
     "dayChecklists": "Event-day checklists",
     "proposalTemplates": "Proposal templates",
     "paymentReminders": "Reminders",
-    "vendorDocuments": "Vendor documents"
+    "vendorDocuments": "Vendor documents",
+    "notifications": "Notifications",
+    "automations": "Automations",
+    "riskRadar": "Risk radar",
+    "clientTerms": "Client terms"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -5625,7 +5653,13 @@
       "vendors_vendor_bank_changes": "an IBAN change",
       "quotes_planner_fees": "fees",
       "quotes_vendor_commissions": "a commission",
-      "events_event_team_members": "event team"
+      "events_event_team_members": "event team",
+      "hub_notification_settings": "notification settings",
+      "hub_notification_preferences": "notification kind setting",
+      "hub_automations": "automation setting",
+      "hub_risk_rules": "risk radar rule",
+      "events_event_type_vocabulary": "client term of a type",
+      "events_planning_health_settings": "planning health thresholds"
     },
     "modules": {
       "events": "Events",
@@ -6599,7 +6633,8 @@
         "lapses_before_event": "{vendor}'s {document}: expires before the event",
         "to_verify": "{vendor}'s {document}: uploaded, to check"
       },
-      "vendorBankCheck": "{vendor}'s IBAN changed: check it by phone before any payment"
+      "vendorBankCheck": "{vendor}'s IBAN changed: check it by phone before any payment",
+      "standaloneTaskTag": "Outside events"
     },
     "myEventsTitle": "My events",
     "myEventsEmpty": "No event in progress.",
@@ -6923,7 +6958,8 @@
       "dayOf": "Open the big day",
       "confirm": "Confirm the transfer",
       "notMe": "This wasn't me",
-      "account": "Check my account"
+      "account": "Check my account",
+      "open": "Open Symbola"
     },
     "footerNote": "Sent with Symbola",
     "symbolaFooter": "Symbola — the suite for event organisers",
@@ -6956,7 +6992,10 @@
       "validFrom": "June 11, 2027",
       "device": "Safari on iPhone",
       "dateTime": "November 18, 2026 at 9:04 PM",
-      "change": "The email address of your account was changed"
+      "change": "The email address of your account was changed",
+      "clientTerm": "the couple",
+      "digest": "- Quote D-2027-0042 has been signed.\n- 3 tasks to do today, 1 of them overdue.",
+      "alert": "A transfer of €1,620.00 has been declared (quote D-2027-0042)."
     },
     "event": {
       "coupleClient": "your wedding",
@@ -7170,6 +7209,18 @@
       "identity_changed": {
         "title": "Account changed",
         "description": "Sent when the email address, two-step verification or password of an account changes: to the former address when the address changes."
+      },
+      "daily_digest": {
+        "title": "Morning summary",
+        "description": "Sent every morning to each team member who keeps it: what is new and what is waiting. The subject contains no personal data."
+      },
+      "notification_alert": {
+        "title": "Immediate alert",
+        "description": "Sent straight away for an “immediate” notification (declared transfer, signed quote, day-of alert), outside quiet hours. The subject only says the kind."
+      },
+      "payment_due_reminder": {
+        "title": "Reminder before the due date",
+        "description": "Sent to the designated payer (otherwise the signers) a few days before a due date, with the amount, the reference and the bank details; never after a declared transfer."
       }
     },
     "variables": {
@@ -9777,5 +9828,345 @@
       "helper_revoked": "Link removed: the helper no longer has access, their pending actions will be refused.",
       "invalid": "This person cannot join the event team."
     }
+  },
+  "Notifications": {
+    "types": {
+      "prospect_request": {
+        "label": "New request",
+        "text": "A new contact request has arrived.",
+        "action": "See the request"
+      },
+      "quote_signed": {
+        "label": "Quote signed",
+        "text": "Quote {number} has been signed.",
+        "action": "See the quote"
+      },
+      "quote_expired": {
+        "label": "Quote expired",
+        "text": "Quote {number} expired without an answer.",
+        "action": "See the quote"
+      },
+      "transfer_declared": {
+        "label": "Transfer declared",
+        "text": "A transfer of {amount} has been declared (quote {number}).",
+        "action": "Confirm receipt"
+      },
+      "client_decision": {
+        "label": "Client decision",
+        "text": "The client has answered: “{title}”.",
+        "action": "See the decision"
+      },
+      "vendor_answer": {
+        "label": "Vendor answer",
+        "text": "A vendor has answered your request.",
+        "action": "See the answer"
+      },
+      "iban_to_verify": {
+        "label": "IBAN to check",
+        "text": "{vendor}'s IBAN has changed: check it before any transfer.",
+        "action": "Check the IBAN"
+      },
+      "document_expiring": {
+        "label": "Document expiring",
+        "text": "The document “{document}” from {vendor} expires soon, or has expired.",
+        "action": "See the documents"
+      },
+      "task_overdue": {
+        "label": "Overdue task",
+        "text": "The task “{label}” is overdue.",
+        "action": "Open the task"
+      },
+      "milestone_late": {
+        "label": "Late milestone",
+        "text": "The milestone “{label}” is late.",
+        "action": "Open the milestone"
+      },
+      "risk_alert": {
+        "label": "Radar alert",
+        "text": "{summary}",
+        "action": "See the risk"
+      },
+      "day_of_alert": {
+        "label": "Day-of alert",
+        "text": "An incident has been reported on site.",
+        "action": "Open the day-of screen"
+      }
+    },
+    "center": {
+      "title": "Notifications",
+      "intro": "What happened and what is waiting for you. Each notification leads to the screen where you can act.",
+      "empty": "No notifications yet.",
+      "markAll": "Mark all as read",
+      "unread": "Unread",
+      "settings": "Notification settings",
+      "listLabel": "Notifications"
+    },
+    "bell": {
+      "label": "Notifications",
+      "unread": "Notifications, {count, plural, =0 {none unread} one {# unread} other {# unread}}"
+    },
+    "digest": {
+      "tasks": "{count, plural, one {# task} other {# tasks}} to do today, {late} of them overdue.",
+      "risks": "{count, plural, one {# risk} other {# risks}} detected by the radar."
+    },
+    "settings": {
+      "title": "Notifications",
+      "intro": "Choose what is sent to you, how and when. These settings are yours: each team member has their own.",
+      "typesTitle": "By kind and channel",
+      "typesHint": "Each kind can be turned off on its own. “Immediate”: it is e-mailed straight away; the others wait for the daily summary.",
+      "columnType": "Kind",
+      "channel": {
+        "app": "In the app",
+        "email": "E-mail",
+        "push": "Push"
+      },
+      "immediate": "Immediate",
+      "digestTitle": "Morning summary",
+      "digestEnabled": "Receive the summary by e-mail every morning",
+      "digestHour": "Summary time",
+      "quietTitle": "Quiet hours",
+      "quietHint": "During quiet hours, no push and no immediate e-mail: what arrives waits for the end of the period, or for the summary.",
+      "quietEnabled": "Quiet at night",
+      "quietStart": "From",
+      "quietEnd": "To",
+      "quietSundays": "Quiet on Sundays",
+      "dayOfOverride": "On the day of an event, day-of alerts override quiet hours",
+      "timeZone": "Times in the {zone} time zone.",
+      "save": "Save",
+      "saved": "Settings saved.",
+      "invalid": "These settings are not valid."
+    },
+    "push": {
+      "title": "Push notifications on this device",
+      "intro": "Push is turned on device by device. The message is encrypted all the way to your browser; it only says the kind of notification, never a name or an amount.",
+      "ios": "On iPhone and iPad (iOS 16.4 and later), first add Symbola to the home screen (Share, then “Add to Home Screen”), then open it from the home screen to turn on push.",
+      "enable": "Turn on push on this device",
+      "disable": "Turn off push on this device",
+      "enabled": "Push is on for this device.",
+      "unsupported": "This browser does not support push.",
+      "denied": "The browser refused notifications: allow them in its settings, then try again.",
+      "failed": "Push could not be turned on. Please try again later.",
+      "devicesTitle": "Subscribed devices",
+      "devicesEmpty": "No subscribed device.",
+      "deviceSince": "Since {date}",
+      "remove": "Remove",
+      "removeLabel": "Remove {device}",
+      "test": "Send a test",
+      "testSent": "Test sent.",
+      "testTitle": "Symbola",
+      "testBody": "Push works on this device.",
+      "deviceUnknown": "Device"
+    }
+  },
+  "RiskRadar": {
+    "rules": {
+      "vendor_without_contract": {
+        "label": "Retained vendor without a contract",
+        "description": "A “Retained” vendor without a signed contract, less than N days before the event.",
+        "alert": "{vendor} ({slot}) has been retained for {retainedDays, plural, one {# day} other {# days}} without a signed contract, {daysLeft, plural, one {# day} other {# days}} before the event; threshold: {threshold, plural, one {# day} other {# days}} before the event."
+      },
+      "decision_overdue": {
+        "label": "Client decision pending",
+        "description": "A decision asked of the client, unanswered N days after its due date.",
+        "alert": "“{title}” has been waiting for the client's answer for {daysLate, plural, one {# day} other {# days}} after its due date; threshold: {threshold, plural, one {# day} other {# days}}."
+      },
+      "document_expired": {
+        "label": "Expired document",
+        "description": "A vendor document that has expired, or expires before the event (N-day margin).",
+        "alert": "The document “{document}” from {vendor} expires on {expiresOn}, before the event; margin: {threshold, plural, one {# day} other {# days}}."
+      },
+      "payment_overdue": {
+        "label": "Unpaid instalment",
+        "description": "A client instalment unpaid for N days.",
+        "alert": "The instalment of quote {quote} has been unpaid for {daysLate, plural, one {# day} other {# days}}; threshold: {threshold, plural, one {# day} other {# days}}."
+      },
+      "milestone_late": {
+        "label": "Late milestone",
+        "description": "A planning milestone late by N days.",
+        "alert": "The milestone “{task}” is {daysLate, plural, one {# day} other {# days}} late; threshold: {threshold, plural, one {# day} other {# days}}."
+      },
+      "iban_to_verify": {
+        "label": "IBAN to check",
+        "description": "A vendor IBAN “to check” for N days.",
+        "alert": "{vendor}'s IBAN has been waiting to be checked for {days, plural, one {# day} other {# days}}; threshold: {threshold, plural, one {# day} other {# days}}."
+      },
+      "roadmap_unconfirmed": {
+        "label": "Roadmap not confirmed",
+        "description": "A roadmap sent and not confirmed N days later.",
+        "alert": "{vendor} has not confirmed the roadmap sent {days, plural, one {# day} other {# days}} ago; threshold: {threshold, plural, one {# day} other {# days}}."
+      }
+    },
+    "today": {
+      "title": "Risks",
+      "intro": "The radar checks upcoming events every morning. Each alert explains its rule.",
+      "empty": "No risk detected this morning.",
+      "off": "The risk radar is turned off.",
+      "open": "Act",
+      "openLabel": "Act: {label}"
+    },
+    "settings": {
+      "title": "Risk radar and planning health",
+      "intro": "The radar runs every morning, before the summary. Set its rules and thresholds; each alert will state the rule that triggered it.",
+      "ownerOnly": "Only the Owner can change these settings.",
+      "enabled": "Rule on",
+      "threshold": "Threshold (days)",
+      "unavailable": "Unavailable: the module it depends on does not provide this information yet.",
+      "save": "Save",
+      "saved": "Rule saved.",
+      "invalid": "This threshold is not valid (0 to 365 days)."
+    },
+    "health": {
+      "title": "Planning health",
+      "intro": "An overdue task counts 1 point, a late milestone counts more. “To watch” and “Late” start from these thresholds.",
+      "watchPoints": "“To watch” from (points)",
+      "latePoints": "“Late” from (points)",
+      "milestoneWeight": "Weight of a late milestone (points)",
+      "saved": "Thresholds saved.",
+      "invalid": "These thresholds are not valid."
+    }
+  },
+  "Automations": {
+    "keys": {
+      "quote_signed_confirm_event": {
+        "title": "Contract signed, then event confirmed",
+        "description": "When the client signs the quote, the option becomes a confirmed event (planning, deposit invoice)."
+      },
+      "payment_due_reminder": {
+        "title": "Due date at D-7, then reminder to the payer",
+        "description": "A short e-mail to the designated payer, a few days before the due date, with the amount, the reference and the bank details. Never after a declared transfer."
+      },
+      "rsvp_reminder": {
+        "title": "Missing RSVP, then reminder",
+        "description": "Guests who have not answered receive a reminder before answers close."
+      },
+      "client_task_reminder": {
+        "title": "Client task reminders",
+        "description": "Tasks assigned to the client are reminded before their due date, and the day after they become overdue."
+      },
+      "invoice_reminder": {
+        "title": "Unpaid instalment reminders",
+        "description": "After the due date, payment reminders are sent according to your delays."
+      },
+      "proposal_expiry_reminder": {
+        "title": "Reminder before the proposal expires",
+        "description": "A reminder to the client before an unanswered proposal expires."
+      },
+      "prospect_follow_up": {
+        "title": "Prepared prospect follow-ups",
+        "description": "Follow-ups for prospects without news are prepared in “Today” (sent automatically if you set it)."
+      },
+      "vendor_roadmap": {
+        "title": "Vendor roadmaps",
+        "description": "At D-30 and D-7, each retained vendor receives their roadmap."
+      },
+      "risk_radar": {
+        "title": "Risk radar",
+        "description": "Every morning, the radar looks for risks in upcoming events and lets you know."
+      }
+    },
+    "alwaysOn": {
+      "privacy_purge": {
+        "title": "Personal data purge",
+        "reason": "The GDPR requires personal data to be erased when due, with notice: it cannot be turned off."
+      },
+      "ledger_check": {
+        "title": "Document chain check",
+        "reason": "Issued invoices and credit notes must stay unalterable: their chain is checked every day, with no switch."
+      }
+    },
+    "title": "Automations",
+    "intro": "What Symbola does on its own for you. Each automation can be turned on or off and keeps a log of what it did.",
+    "noCatchUp": "Turning an automation off stops its next sends. When you turn it back on, nothing that should have been sent in the meantime is caught up.",
+    "ownerOnly": "Only the Owner can turn automations on or off.",
+    "on": "On",
+    "off": "Off",
+    "turnOn": "Turn on",
+    "turnOff": "Turn off",
+    "turnOnLabel": "Turn on: {title}",
+    "turnOffLabel": "Turn off: {title}",
+    "unavailable": "Unavailable: the module it depends on is not open.",
+    "days": "Days before the due date",
+    "saveDays": "Save",
+    "resumedAt": "Turned back on on {date}.",
+    "journal": "Log",
+    "journalEmpty": "Nothing yet.",
+    "result": {
+      "sent": "Sent",
+      "done": "Done",
+      "skipped": "Skipped",
+      "failed": "Failed"
+    },
+    "radarCount": "{count, plural, =0 {no alert} one {# alert} other {# alerts}}",
+    "open": "Open",
+    "alwaysOnTitle": "Always on",
+    "alwaysOnBadge": "Always on",
+    "saved": "Automation saved.",
+    "invalid": "This setting is not valid."
+  },
+  "StandaloneTasks": {
+    "title": "Tasks outside events",
+    "intro": "VAT return, insurance, bookkeeping: what does not depend on any event. A task can repeat; the next one is created when this one is done, or on its date.",
+    "label": "Task",
+    "dueDate": "Due date",
+    "recurrence": "Repeat",
+    "recurrenceNone": "Once",
+    "recurrenceValue": {
+      "weekly": "Every week",
+      "monthly": "Every month",
+      "quarterly": "Every quarter",
+      "yearly": "Every year"
+    },
+    "add": "Add the task",
+    "added": "Task added.",
+    "invalid": "Enter a valid label and due date.",
+    "empty": "No task outside events.",
+    "done": "Done",
+    "doneLabel": "Mark “{label}” as done",
+    "remove": "Delete",
+    "removeLabel": "Delete “{label}”",
+    "listLabel": "Tasks outside events",
+    "todayTag": "Outside events"
+  },
+  "PlanningHealth": {
+    "state": {
+      "good": "Good",
+      "watch": "To watch",
+      "late": "Late"
+    },
+    "why": "Why?",
+    "explain": "{points, plural, =0 {No overdue task.} one {# point: } other {# points: }}thresholds {watch} (to watch) and {late} (late).",
+    "contributor": "{label} — {days, plural, one {# day} other {# days}} late",
+    "milestone": "Milestone",
+    "milestoneToggle": "Milestone",
+    "milestoneOn": "Mark as milestone",
+    "milestoneOff": "Unmark as milestone",
+    "milestoneOnLabel": "Mark “{label}” as a milestone",
+    "milestoneOffLabel": "Unmark “{label}” as a milestone",
+    "none": "No task brings it down."
+  },
+  "ClientTerms": {
+    "title": "Terms for the clients",
+    "intro": "For each event type, choose the word for your clients (“the couple”, “the clients”, “the sponsor”…), with its gender and number. It is used on screens, in e-mails ('{{client_term}}') and in future documents; a document already issued keeps its text.",
+    "type": "Type",
+    "locale": "Language",
+    "term": "Term",
+    "gender": "Gender",
+    "number": "Number",
+    "genderValue": {
+      "masculine": "Masculine",
+      "feminine": "Feminine",
+      "neuter": "Neutral"
+    },
+    "numberValue": {
+      "singular": "Singular",
+      "plural": "Plural"
+    },
+    "suggested": "Suggested terms",
+    "default": "Default: {term}",
+    "save": "Save",
+    "reset": "Back to the type's term",
+    "saved": "Term saved.",
+    "invalid": "Enter a short term (40 characters at most).",
+    "clientsHeading": "Clients: {term}"
   }
 }

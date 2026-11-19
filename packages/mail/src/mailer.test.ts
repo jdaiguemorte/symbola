@@ -1,7 +1,12 @@
+import { createECDH } from "node:crypto";
 import { parseEnv } from "@symbola/env";
 import { describe, expect, it } from "vitest";
 import { buildTransportOptions, senderAddress } from "./mailer";
 import { renderMailHtml, renderMailText, type MailLayout } from "./layout";
+
+const vapid = createECDH("prime256v1");
+vapid.setPrivateKey(Buffer.alloc(32, 3));
+const VAPID = { VAPID_PUBLIC_KEY: vapid.getPublicKey().toString("base64url"), VAPID_PRIVATE_KEY: vapid.getPrivateKey().toString("base64url") };
 
 function envWith(overrides: Record<string, string>) {
   return parseEnv({
@@ -10,6 +15,8 @@ function envWith(overrides: Record<string, string>) {
     S3_SECRET_KEY: "x",
     MFA_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString("base64"),
     DATA_ENCRYPTION_KEY: Buffer.alloc(32, 9).toString("base64"),
+    // Lot 53 (ADR 0096) : paire VAPID de test (P-256, clé privée fixe).
+    ...VAPID,
     LOGTO_M2M_SECRET: "secret-machine-a-machine-de-test-32c",
     ...overrides,
   });

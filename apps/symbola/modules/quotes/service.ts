@@ -9,7 +9,6 @@ import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
 import { createStorageClient, deletePrivateObject, PrivateObjectNotFoundError, readPrivateObject, uploadFile, uploadPrivateObject } from "@symbola/files";
 import { formatAmount, formatCalendarDate, parisDaysSince } from "@symbola/i18n";
-import { createTranslator } from "next-intl";
 import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import type {
@@ -88,8 +87,8 @@ import type {
   SignerInput,
   StartQuotesTrialInput,
 } from "@symbola/contracts";
-import { QUOTES_QUOTE_SIGNED, QUOTES_QUOTE_SIGNED_VERSION, type QuoteSignedPayload } from "@symbola/contracts";
-import { changeEventStatus, EventNotFoundError, getEvent, listEventLinks, listEventTypes, sendLinkActionCode, verifyLinkActionCode } from "@/modules/events/service";
+import { QUOTES_QUOTE_SIGNED, QUOTES_QUOTE_SIGNED_VERSION, type AutomationHooks, type QuoteSignedPayload } from "@symbola/contracts";
+import { changeEventStatus, clientTermForEvent, EventNotFoundError, getEvent, listEventLinks, listEventTypes, sendLinkActionCode, verifyLinkActionCode } from "@/modules/events/service";
 import { withActor } from "@symbola/db/actor";
 import {
   PROPOSAL_BLOCKS,
@@ -110,7 +109,7 @@ import {
 import { latePenaltySentence as latePenaltySentenceOf } from "@/lib/documents/payment-terms";
 import { epcQrSvg, isValidIban, newPaymentReference, normalizeIban } from "./payment-references";
 import { settlementState } from "./settlement";
-import { dueInvoiceReminder, expiryReminderDue, isProposalExpired, penaltySentence, reminderSendWindow } from "./payment-reminders";
+import { dueInvoiceReminder, expiryReminderDue, isProposalExpired, paymentDueReminderDay, penaltySentence, reminderSendWindow } from "./payment-reminders";
 import {
   claimInvoiceReminder,
   declareTransferRow,
@@ -135,6 +134,7 @@ import {
   setProposalTemplatePhotos,
   setRemindersSuspension,
   type ProposalTemplateRow,
+  findSentVersionsEndingBetween,
 } from "./settlement-repository";
 import {
   assertOrganizationEmailReady,
@@ -150,8 +150,11 @@ import {
   getDisabledComplianceChecks,
   getUserContact,
   sendOrganizationEmail,
-  sendSymbolaEmail,
   updateContact,
+  getAutomationGate,
+  jobKeyExists,
+  notify,
+  recordAutomationRun,
   type OrganizationProfile,
 } from "@/modules/hub/service";
 import { fakeSignatureProvider, realSignatureProvider, signatureProviderFor } from "./signature";
@@ -1742,6 +1745,10 @@ export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
   // texte propre au devis, celui du modèle de proposition du type d'évènement (ou de départ).
   const event = await getEvent(input.organizationId, aggregate.quote.eventId);
   const proposalTemplate = await proposalTemplateFor(input.organizationId, event?.eventTypeId ?? null, await creatorLocale(input.organizationId, aggregate.quote.createdByUserId));
+  // Lot 53 (HUB-24, D8) : le terme des clients du type se fige avec la version (un document émis garde
+  // son texte, même si le terme change ensuite).
+  const [termFr, termEn] = await Promise.all([clientTermForEvent(input.organizationId, aggregate.quote.eventId, "fr"), clientTermForEvent(input.organizationId, aggregate.quote.eventId, "en")]);
+  const clientTerm = termFr.custom || termEn.custom ? { fr: termFr.custom ? termFr.term : null, en: termEn.custom ? termEn.term : null } : null;
 
   const result = await freezeCurrentVersion(input.organizationId, input.quoteId, (version, lines, items) => {
     // Vérifié ici, après « devis vide » : un devis vide est signalé d'abord.
@@ -1755,7 +1762,7 @@ export async function sendQuote(input: SendQuoteInput): Promise<QuoteDetail> {
       validUntil: validUntil(parisDate(now), settings.validityDays),
       vatRegime,
       legalMention: legalMention === "" ? null : legalMention,
-      sellerSnapshot: seller,
+      sellerSnapshot: clientTerm ? { ...seller, clientTerm } : seller,
       totalsSnapshot: totals,
       proposalGreeting: version.proposalGreeting ?? proposalTemplate.greeting,
       proposalTemplateId: version.proposalGreeting ? version.proposalTemplateId : proposalTemplate.id,
@@ -2340,18 +2347,18 @@ async function confirmSignedQuote(organizationId: string, quoteId: string): Prom
   const event = await getEvent(organizationId, quote.eventId);
   // Lot 34a (EVT-05) : la signature confirme une option ; un événement déjà confirmé, reporté,
   // clôturé ou annulé garde son statut (une signature tardive ne réveille pas un annulé).
-  if (event && createdByUserId && event.status === "option") {
+  // Lot 53 (HUB-28, D5) : l'automatisme « Contrat signé, puis évènement confirmé » se coupe ; coupé, la
+  // planner confirme elle-même. Chaque confirmation laisse une trace dans son journal.
+  const gate = await getAutomationGate(organizationId, "quote_signed_confirm_event");
+  if (event && createdByUserId && event.status === "option" && gate.enabled) {
     await changeEventStatus({ organizationId, eventId: quote.eventId, changedByUserId: createdByUserId, toStatus: "confirmed" });
+    await recordAutomationRun(organizationId, "quote_signed_confirm_event", { objectKey: quoteId, objectLabel: quote.number, href: `/events/${quote.eventId}`, result: "done" });
   }
-  if (quote.isDemo || !createdByUserId) return;
-  const contact = await withDb((db) => getUserContact(db, organizationId, createdByUserId));
-  if (!contact) return;
-  const env = parseEnv(process.env);
-  const link = `${env.APP_PUBLIC_URL}/devis/${quoteId}`;
-  // Lot 38a (D3) : texte fixe de Symbola, dans la langue de la personne, mis en page.
-  const t = createTranslator({ locale: contact.language, messages: contact.language === "en" ? enMessages : frMessages, namespace: "Emails.fixed.quoteSigned" });
-  // Lot 40b (ARC-10) : la signature peut être constatée deux fois (webhook, rapprochement) ; un seul e-mail.
-  await sendSymbolaEmail({ to: contact.email, locale: contact.language, subject: t("subject", { number: quote.number }), body: t("body", { number: quote.number, url: link }), button: { label: t("button"), url: link }, organizationId, idempotencyKey: `quote-signed:${quoteId}` });
+  if (quote.isDemo) return;
+  // Lot 53 (HUB-15, UX-16 ; D3) : « Devis signé » part par les notifications (application, e-mail
+  // immédiat, push), au planner principal ou à la Propriétaire, une seule fois par devis ; elle remplace
+  // l'e-mail fixe du lot 38a. La notification mène au devis.
+  await notify({ organizationId, type: "quote_signed", eventId: quote.eventId, objectKey: quoteId, params: { number: quote.number }, href: `/devis/${quoteId}`, eventDate: event?.eventDate ?? null });
 }
 
 // Document signé ou certificat de preuve de la version courante, lu dans le
@@ -4380,7 +4387,9 @@ export async function notifyProposalSent(organizationId: string, quoteId: string
 }
 
 // FAC-15 (D1) : relance avant l'expiration, une seule fois, aux clients qui n'ont ni signé ni refusé.
-export async function sendProposalExpiryReminders(organizationId: string, now: Date = new Date()): Promise<number> {
+// Lot 53 (HUB-28, D5) : hooks.notBefore, le jour de la remise en route — une relance prévue avant ne
+// part pas ; hooks.onRun, la trace de chaque devis relancé.
+export async function sendProposalExpiryReminders(organizationId: string, now: Date = new Date(), hooks: AutomationHooks = {}): Promise<number> {
   if (!reminderSendWindow(now)) return 0;
   const today = parisDate(now);
   const { expiryReminderDays } = await getReminderSettings(organizationId);
@@ -4389,6 +4398,7 @@ export async function sendProposalExpiryReminders(organizationId: string, now: D
     const detail = await loadDetail(organizationId, quote.id);
     const due = expiryReminderDue({ status: quote.status, validUntil: version.validUntil, remindedAt: version.expiryRemindedAt, daysBefore: expiryReminderDays, signatureStarted: detail.signature !== null && detail.signature.status !== "declined" }, today);
     if (!due) continue;
+    if (hooks.notBefore && addCalendarDays(version.validUntil!, -expiryReminderDays) < hooks.notBefore) continue;
     const links = (await listEventLinks(organizationId, quote.eventId)).filter((link) => link.audience === "client" && link.status === "active" && link.rights.rubrics.includes("quotes"));
     if (links.length === 0) continue;
     if (!(await markExpiryReminded(organizationId, version.id, now))) continue;
@@ -4408,6 +4418,7 @@ export async function sendProposalExpiryReminders(organizationId: string, now: D
         console.error(`relance avant expiration non envoyée (lien ${link.id})`, error instanceof Error ? error.name : error);
       }
     }
+    await hooks.onRun?.({ objectKey: version.id, objectLabel: quote.number, href: `/devis/${quote.id}`, result: "sent" });
   }
   return sent;
 }
@@ -4603,6 +4614,12 @@ export async function declareTransfer(
   );
   if (result === "already") throw new TransferDeclarationError("already");
   if (result === "paid") throw new TransferDeclarationError("paid");
+  // Lot 53 (HUB-15, UX-16) : « Virement déclaré » part tout de suite (sorte immédiate) ; la notification
+  // mène au devis, où la planner confirme la réception. Une panne de notification n'annule rien.
+  const event = await getEvent(organizationId, input.eventId).catch(() => null);
+  await notify({ organizationId, type: "transfer_declared", eventId: input.eventId, objectKey: input.scheduleItemId, params: { amountCents: context.item.amountCents, number: context.quote.number }, href: `/devis/${context.quote.id}`, eventDate: event?.eventDate ?? null, isDemo: context.quote.isDemo, now }).catch((error: unknown) => {
+    console.error(`notification du virement non créée (échéance ${input.scheduleItemId})`, error instanceof Error ? error.name : "inconnue");
+  });
 }
 
 // Côté planner : les virements déclarés, à confirmer (« Aujourd'hui »).
@@ -4732,14 +4749,96 @@ export async function sendPlannedInvoiceReminder(organizationId: string, planned
   return true;
 }
 
-export async function sendInvoiceReminders(organizationId: string, now: Date = new Date()): Promise<number> {
+// Lot 53 (HUB-28, D5) : comme les relances avant expiration, sans rattrapage après une remise en route.
+export async function sendInvoiceReminders(organizationId: string, now: Date = new Date(), hooks: AutomationHooks = {}): Promise<number> {
   if (!reminderSendWindow(now)) return 0;
   let sent = 0;
   for (const planned of await planInvoiceReminders(organizationId, now)) {
+    if (hooks.notBefore && planned.dueOn < hooks.notBefore) continue;
     try {
-      if (await sendPlannedInvoiceReminder(organizationId, planned, now)) sent += 1;
+      if (await sendPlannedInvoiceReminder(organizationId, planned, now)) {
+        sent += 1;
+        await hooks.onRun?.({ objectKey: `${planned.scheduleItemId}:${planned.rank}`, href: `/devis/${planned.quoteId}`, result: "sent" });
+      }
     } catch (error) {
       console.error(`relance d'impayé non envoyée (échéance ${planned.scheduleItemId})`, error instanceof Error ? error.name : error);
+    }
+  }
+  return sent;
+}
+
+// Lot 53 (HUB-15) — les propositions arrivées à expiration sans réponse ces derniers jours (« Devis
+// expiré »), pour la notification du matin ; une seule fois par devis (la notification le garantit).
+export async function listRecentlyExpiredProposals(organizationId: string, today: string, withinDays = 7): Promise<{ quoteId: string; number: string; eventId: string; validUntil: string }[]> {
+  const rows = await findSentVersionsEndingBetween(organizationId, addCalendarDays(today, -withinDays), addCalendarDays(today, -1));
+  return rows.filter((row) => !row.quote.deletedAt && row.version.validUntil !== null).map((row) => ({ quoteId: row.quote.id, number: row.quote.number, eventId: row.quote.eventId, validUntil: row.version.validUntil! }));
+}
+
+// Lot 53 (HUB-28 ; D5 ; ADR 0095) — rappel au payeur N jours avant l'échéance (J-7 au départ) : un e-mail
+// court avec le montant, la référence et le RIB, une seule fois par échéance et par destinataire (clé de
+// la file des e-mails), jamais après un virement déclaré ou un paiement noté. Distinct des relances
+// d'impayés, qui partent après l'échéance. Le destinataire (payeur désigné, sinon les signataires) est
+// choisi par l'appelant, qui lit les modules Budget et Évènements par leur service.
+export type PlannedPaymentDueReminder = { scheduleItemId: string; quoteId: string; quoteNumber: string; eventId: string; dueDate: string; sendOn: string };
+
+export async function planPaymentDueReminders(organizationId: string, daysBefore: number, now: Date = new Date()): Promise<PlannedPaymentDueReminder[]> {
+  const today = parisDate(now);
+  const rows = (await findUnpaidScheduleItems(organizationId)).filter((row) => row.quote.status === "signed" && !row.quote.deletedAt);
+  if (rows.length === 0) return [];
+  const references = await findPaymentReferences(organizationId, rows.map((row) => row.item.id));
+  const planned: PlannedPaymentDueReminder[] = [];
+  for (const row of rows) {
+    const reference = references.find((candidate) => candidate.scheduleItemId === row.item.id);
+    const sendOn = paymentDueReminderDay({ dueDate: row.item.dueDate, daysBefore, today, paid: row.item.paidOn !== null, declared: Boolean(reference?.declaredAt) });
+    if (!sendOn) continue;
+    const context = await settlementContext(organizationId, row.quote.eventId, row.item.id);
+    if (!context || settlementState(context.facts, today).kind !== "open") continue;
+    planned.push({ scheduleItemId: row.item.id, quoteId: row.quote.id, quoteNumber: row.quote.number, eventId: row.quote.eventId, dueDate: row.item.dueDate, sendOn });
+  }
+  return planned;
+}
+
+// recipients : le payeur désigné ; vide, les signataires du devis. clientTerm : le terme des clients du
+// type d'évènement (HUB-24). Revérifie juste avant l'envoi qu'aucun virement n'est déclaré entre-temps.
+export async function sendPaymentDueReminder(
+  organizationId: string,
+  planned: PlannedPaymentDueReminder,
+  input: { recipients: { key: string; name: string; email: string }[]; clientTerm: (locale: "fr" | "en") => string; now?: Date },
+): Promise<number> {
+  const now = input.now ?? new Date();
+  if (!reminderSendWindow(now)) return 0;
+  const context = await settlementContext(organizationId, planned.eventId, planned.scheduleItemId);
+  if (!context || context.facts.declared || context.facts.paid) return 0;
+  const documents = await getDocumentSettings(organizationId);
+  if (!documents.iban || !isValidIban(documents.iban)) return 0;
+  const reference = context.reference ?? (await ensurePaymentReference(organizationId, { scheduleItemId: planned.scheduleItemId, isDemo: context.quote.isDemo, draw: () => newPaymentReference(Number(parisDate(now).slice(0, 4))) }));
+  const locale = await creatorLocale(organizationId, (await findQuoteAggregate(organizationId, planned.quoteId))!.quote.createdByUserId);
+  const recipients = input.recipients.length > 0 ? input.recipients : (context.quote.signature?.signers ?? []).map((signer) => ({ key: signer.id, name: signer.name, email: signer.email }));
+  let sent = 0;
+  for (const recipient of recipients) {
+    const idempotencyKey = `payment-due:${planned.scheduleItemId}:${recipient.key}`;
+    // Une seule fois : déjà parti (ou en file), il ne compte plus.
+    if (await jobKeyExists(organizationId, idempotencyKey)) continue;
+    try {
+      await sendOrganizationEmail({
+        organizationId,
+        to: recipient.email,
+        kind: "payment_due_reminder",
+        locale,
+        values: {
+          first_name: recipient.name,
+          client_term: input.clientTerm(locale),
+          quote_number: context.quote.number,
+          amount: formatAmount(context.item.amountCents, locale),
+          due_date: formatCalendarDate(context.item.dueDate, locale),
+          reference: reference.reference,
+          iban: normalizeIban(documents.iban).replace(/(.{4})/g, "$1 ").trim(),
+        },
+        idempotencyKey,
+      });
+      sent += 1;
+    } catch (error) {
+      console.error(`rappel avant échéance non envoyé (échéance ${planned.scheduleItemId})`, error instanceof Error ? error.name : error);
     }
   }
   return sent;

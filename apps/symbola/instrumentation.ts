@@ -93,6 +93,10 @@ async function startScheduledTasks() {
     // établissement, relances d'impayés.
     const { scheduleSettlementJobs } = await import("./lib/settlement-jobs");
     scheduleSettlementJobs();
+    // Lot 53 (HUB-15, UX-16, ARC-09, GC-02, CHR-05, CHR-10 ; ADR 0095) : notifications toutes les cinq
+    // minutes (envois dus, passage du matin et radar des risques, récapitulatif à l'heure de chacun).
+    const { scheduleNotificationJobs } = await import("./lib/notification-jobs");
+    scheduleNotificationJobs();
   }
 }
 

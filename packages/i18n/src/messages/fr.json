@@ -1437,6 +1437,30 @@
     "notMe": {
       "title": "Ce n'est pas moi",
       "body": "Une connexion à votre compte a eu lieu depuis un appareil que Symbola ne connaissait pas. Si ce n'était pas vous, fermez toutes vos sessions ici, puis changez votre adresse, votre mot de passe et votre double authentification dans votre compte."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "body": "Ce qui s'est passé et ce qui vous attend, une ligne par fait. Cliquez une notification : elle s'ouvre sur l'écran où agir et passe en « lue »."
+    },
+    "notificationSettings": {
+      "title": "Régler mes notifications",
+      "body": "Coupez une sorte sur un canal sans toucher aux autres. Le récapitulatif part chaque matin à l'heure choisie ; pendant les plages de silence, rien ne sonne, sauf les alertes du jour J le jour d'un évènement si vous le gardez."
+    },
+    "automations": {
+      "title": "Automatisations",
+      "body": "Chaque ligne est un automatisme : ce qu'il fait, son interrupteur et son journal. Couper arrête les prochains envois ; rien n'est rattrapé à la remise en route. La purge RGPD et le contrôle des pièces ne se coupent pas."
+    },
+    "riskRadar": {
+      "title": "Radar des risques",
+      "body": "Le radar passe chaque matin. Chaque règle a un seuil en jours ; une alerte dit la règle qui l'a déclenchée et mène à l'écran où agir. La santé du planning se règle ici aussi."
+    },
+    "clientTerms": {
+      "title": "Termes des clients",
+      "body": "Le terme choisi pour un type remplace « les mariés » ou « les clients » là où Symbola nomme vos clients, et remplit '{{terme_clients}}' dans vos e-mails et vos documents à venir."
+    },
+    "standaloneTasks": {
+      "title": "Tâches hors évènement",
+      "body": "Une tâche sans évènement apparaît dans « Aujourd'hui » à son échéance. Cochée, une tâche qui se répète fait naître la suivante."
     }
   },
   "Aide": {
@@ -5144,7 +5168,11 @@
     "dayChecklists": "Listes du jour J",
     "proposalTemplates": "Modèles de proposition",
     "paymentReminders": "Relances",
-    "vendorDocuments": "Pièces des prestataires"
+    "vendorDocuments": "Pièces des prestataires",
+    "notifications": "Notifications",
+    "automations": "Automatisations",
+    "riskRadar": "Radar des risques",
+    "clientTerms": "Termes des clients"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -5625,7 +5653,13 @@
       "vendors_vendor_bank_changes": "un changement d'IBAN",
       "quotes_planner_fees": "des honoraires",
       "quotes_vendor_commissions": "une commission",
-      "events_event_team_members": "équipe d'un évènement"
+      "events_event_team_members": "équipe d'un évènement",
+      "hub_notification_settings": "réglages des notifications",
+      "hub_notification_preferences": "réglage d'une sorte de notification",
+      "hub_automations": "réglage d'un automatisme",
+      "hub_risk_rules": "règle du radar des risques",
+      "events_event_type_vocabulary": "terme des clients d'un type",
+      "events_planning_health_settings": "seuils de la santé du planning"
     },
     "modules": {
       "events": "Événements",
@@ -6599,7 +6633,8 @@
         "lapses_before_event": "{document} de {vendor} : expire avant l'évènement",
         "to_verify": "{document} de {vendor} : déposée, à vérifier"
       },
-      "vendorBankCheck": "IBAN de {vendor} changé : à vérifier par téléphone avant tout paiement"
+      "vendorBankCheck": "IBAN de {vendor} changé : à vérifier par téléphone avant tout paiement",
+      "standaloneTaskTag": "Hors évènement"
     },
     "myEventsTitle": "Mes évènements",
     "myEventsEmpty": "Aucun évènement en cours.",
@@ -6923,7 +6958,8 @@
       "dayOf": "Ouvrir le jour J",
       "confirm": "Confirmer le transfert",
       "notMe": "Ce n'est pas moi",
-      "account": "Vérifier mon compte"
+      "account": "Vérifier mon compte",
+      "open": "Ouvrir Symbola"
     },
     "footerNote": "Envoyé avec Symbola",
     "symbolaFooter": "Symbola — la suite des organisateurs d'évènements",
@@ -6956,7 +6992,10 @@
       "validFrom": "11 juin 2027",
       "device": "Safari sur iPhone",
       "dateTime": "18 novembre 2026 à 21:04",
-      "change": "L'adresse e-mail de votre compte a été modifiée"
+      "change": "L'adresse e-mail de votre compte a été modifiée",
+      "clientTerm": "les mariés",
+      "digest": "- Le devis D-2027-0042 est signé.\n- 3 tâches à faire aujourd'hui, dont 1 en retard.",
+      "alert": "Un virement de 1 620,00 € est déclaré (devis D-2027-0042)."
     },
     "event": {
       "coupleClient": "votre mariage",
@@ -7170,6 +7209,18 @@
       "identity_changed": {
         "title": "Compte modifié",
         "description": "Part quand l'adresse e-mail, la double authentification ou le mot de passe d'un compte change : à l'ancienne adresse en cas de changement d'adresse."
+      },
+      "daily_digest": {
+        "title": "Récapitulatif du matin",
+        "description": "Part chaque matin à chaque membre de l'équipe qui le garde : ce qui est nouveau et ce qui attend. L'objet ne contient aucune donnée personnelle."
+      },
+      "notification_alert": {
+        "title": "Alerte immédiate",
+        "description": "Part tout de suite pour une notification « immédiate » (virement déclaré, devis signé, alerte du jour J), hors plages de silence. L'objet ne dit que la sorte."
+      },
+      "payment_due_reminder": {
+        "title": "Rappel avant l'échéance",
+        "description": "Part au payeur désigné (sinon aux signataires) quelques jours avant une échéance, avec le montant, la référence et le RIB ; jamais après un virement déclaré."
       }
     },
     "variables": {
@@ -9777,5 +9828,345 @@
       "helper_revoked": "Lien retiré : le renfort n'a plus accès, ses actions en attente seront refusées.",
       "invalid": "Cette personne ne peut pas rejoindre l'équipe de l'évènement."
     }
+  },
+  "Notifications": {
+    "types": {
+      "prospect_request": {
+        "label": "Nouvelle demande",
+        "text": "Une nouvelle demande de contact est arrivée.",
+        "action": "Voir la demande"
+      },
+      "quote_signed": {
+        "label": "Devis signé",
+        "text": "Le devis {number} est signé.",
+        "action": "Voir le devis"
+      },
+      "quote_expired": {
+        "label": "Devis expiré",
+        "text": "Le devis {number} a expiré sans réponse.",
+        "action": "Voir le devis"
+      },
+      "transfer_declared": {
+        "label": "Virement déclaré",
+        "text": "Un virement de {amount} est déclaré (devis {number}).",
+        "action": "Confirmer la réception"
+      },
+      "client_decision": {
+        "label": "Décision du client",
+        "text": "Le client a répondu : « {title} ».",
+        "action": "Voir la décision"
+      },
+      "vendor_answer": {
+        "label": "Réponse d'un prestataire",
+        "text": "Un prestataire a répondu à votre demande.",
+        "action": "Voir la réponse"
+      },
+      "iban_to_verify": {
+        "label": "IBAN à vérifier",
+        "text": "L'IBAN de {vendor} a changé : à vérifier avant tout virement.",
+        "action": "Vérifier l'IBAN"
+      },
+      "document_expiring": {
+        "label": "Pièce qui expire",
+        "text": "La pièce « {document} » de {vendor} expire bientôt, ou a expiré.",
+        "action": "Voir les pièces"
+      },
+      "task_overdue": {
+        "label": "Tâche en retard",
+        "text": "La tâche « {label} » est en retard.",
+        "action": "Ouvrir la tâche"
+      },
+      "milestone_late": {
+        "label": "Jalon en retard",
+        "text": "Le jalon « {label} » est en retard.",
+        "action": "Ouvrir le jalon"
+      },
+      "risk_alert": {
+        "label": "Alerte du radar",
+        "text": "{summary}",
+        "action": "Voir le risque"
+      },
+      "day_of_alert": {
+        "label": "Alerte du jour J",
+        "text": "Un incident est signalé sur le terrain.",
+        "action": "Ouvrir le jour J"
+      }
+    },
+    "center": {
+      "title": "Notifications",
+      "intro": "Ce qui s'est passé et ce qui vous attend. Chaque notification mène à l'écran où agir.",
+      "empty": "Aucune notification pour l'instant.",
+      "markAll": "Tout marquer comme lu",
+      "unread": "Non lue",
+      "settings": "Régler mes notifications",
+      "listLabel": "Notifications"
+    },
+    "bell": {
+      "label": "Notifications",
+      "unread": "Notifications, {count, plural, =0 {aucune non lue} one {# non lue} other {# non lues}}"
+    },
+    "digest": {
+      "tasks": "{count, plural, one {# tâche} other {# tâches}} à faire aujourd'hui, dont {late} en retard.",
+      "risks": "{count, plural, one {# risque détecté} other {# risques détectés}} par le radar."
+    },
+    "settings": {
+      "title": "Notifications",
+      "intro": "Choisissez ce qui vous est envoyé, par où et quand. Ces réglages sont les vôtres : chaque membre de l'équipe a les siens.",
+      "typesTitle": "Par sorte et par canal",
+      "typesHint": "Chaque sorte se coupe séparément. « Immédiat » : elle part tout de suite par e-mail ; les autres attendent le récapitulatif.",
+      "columnType": "Sorte",
+      "channel": {
+        "app": "Dans l'application",
+        "email": "E-mail",
+        "push": "Push"
+      },
+      "immediate": "Immédiat",
+      "digestTitle": "Récapitulatif du matin",
+      "digestEnabled": "Recevoir chaque matin le récapitulatif par e-mail",
+      "digestHour": "Heure du récapitulatif",
+      "quietTitle": "Plages de silence",
+      "quietHint": "Pendant le silence, ni push ni e-mail immédiat : ce qui arrive attend la fin de la plage, ou le récapitulatif.",
+      "quietEnabled": "Silence la nuit",
+      "quietStart": "De",
+      "quietEnd": "À",
+      "quietSundays": "Silence le dimanche",
+      "dayOfOverride": "Le jour d'un évènement, les alertes du jour J passent outre le silence",
+      "timeZone": "Heures du fuseau {zone}.",
+      "save": "Enregistrer",
+      "saved": "Réglages enregistrés.",
+      "invalid": "Ces réglages ne sont pas valables."
+    },
+    "push": {
+      "title": "Notifications push sur cet appareil",
+      "intro": "Le push s'active appareil par appareil. Le message est chiffré jusqu'à votre navigateur ; il ne dit que la sorte de notification, jamais un nom ni un montant.",
+      "ios": "Sur iPhone et iPad (iOS 16.4 et plus), ajoutez d'abord Symbola à l'écran d'accueil (Partager, puis « Sur l'écran d'accueil »), puis ouvrez-le depuis l'écran d'accueil pour activer le push.",
+      "enable": "Activer le push sur cet appareil",
+      "disable": "Désactiver le push sur cet appareil",
+      "enabled": "Le push est actif sur cet appareil.",
+      "unsupported": "Ce navigateur ne permet pas le push.",
+      "denied": "Le navigateur a refusé les notifications : autorisez-les dans ses réglages, puis réessayez.",
+      "failed": "Le push n'a pas pu être activé. Réessayez plus tard.",
+      "devicesTitle": "Appareils abonnés",
+      "devicesEmpty": "Aucun appareil abonné.",
+      "deviceSince": "Depuis le {date}",
+      "remove": "Retirer",
+      "removeLabel": "Retirer {device}",
+      "test": "Envoyer un essai",
+      "testSent": "Essai envoyé.",
+      "testTitle": "Symbola",
+      "testBody": "Le push fonctionne sur cet appareil.",
+      "deviceUnknown": "Appareil"
+    }
+  },
+  "RiskRadar": {
+    "rules": {
+      "vendor_without_contract": {
+        "label": "Prestataire retenu sans contrat",
+        "description": "Un prestataire « Retenu » sans contrat signé, à moins de N jours de l'évènement.",
+        "alert": "{vendor} ({slot}) est retenu depuis {retainedDays, plural, one {# jour} other {# jours}} sans contrat signé, à {daysLeft, plural, one {# jour} other {# jours}} de l'évènement ; seuil : {threshold, plural, one {# jour} other {# jours}} avant l'évènement."
+      },
+      "decision_overdue": {
+        "label": "Décision du client en attente",
+        "description": "Une décision demandée au client, sans réponse N jours après son échéance.",
+        "alert": "« {title} » attend la réponse du client depuis {daysLate, plural, one {# jour} other {# jours}} après son échéance ; seuil : {threshold, plural, one {# jour} other {# jours}}."
+      },
+      "document_expired": {
+        "label": "Pièce expirée",
+        "description": "Une pièce d'un prestataire expirée, ou qui expire avant l'évènement (marge de N jours).",
+        "alert": "La pièce « {document} » de {vendor} expire le {expiresOn}, avant l'évènement ; marge : {threshold, plural, one {# jour} other {# jours}}."
+      },
+      "payment_overdue": {
+        "label": "Échéance impayée",
+        "description": "Une échéance du client impayée depuis N jours.",
+        "alert": "L'échéance du devis {quote} est impayée depuis {daysLate, plural, one {# jour} other {# jours}} ; seuil : {threshold, plural, one {# jour} other {# jours}}."
+      },
+      "milestone_late": {
+        "label": "Jalon en retard",
+        "description": "Un jalon du rétroplanning en retard de N jours.",
+        "alert": "Le jalon « {task} » est en retard de {daysLate, plural, one {# jour} other {# jours}} ; seuil : {threshold, plural, one {# jour} other {# jours}}."
+      },
+      "iban_to_verify": {
+        "label": "IBAN à vérifier",
+        "description": "Un IBAN de prestataire « à vérifier » depuis N jours.",
+        "alert": "L'IBAN de {vendor} est à vérifier depuis {days, plural, one {# jour} other {# jours}} ; seuil : {threshold, plural, one {# jour} other {# jours}}."
+      },
+      "roadmap_unconfirmed": {
+        "label": "Feuille de route non confirmée",
+        "description": "Une feuille de route envoyée, non confirmée N jours après son envoi.",
+        "alert": "{vendor} n'a pas confirmé sa feuille de route, envoyée il y a {days, plural, one {# jour} other {# jours}} ; seuil : {threshold, plural, one {# jour} other {# jours}}."
+      }
+    },
+    "today": {
+      "title": "Risques",
+      "intro": "Le radar passe chaque matin sur les évènements à venir. Chaque alerte dit sa règle.",
+      "empty": "Aucun risque détecté ce matin.",
+      "off": "Le radar des risques est coupé.",
+      "open": "Agir",
+      "openLabel": "Agir : {label}"
+    },
+    "settings": {
+      "title": "Radar des risques et santé du planning",
+      "intro": "Le radar passe chaque matin, avant le récapitulatif. Réglez ses règles et leurs seuils ; chaque alerte dira la règle qui l'a déclenchée.",
+      "ownerOnly": "Seule la Propriétaire modifie ces réglages.",
+      "enabled": "Règle active",
+      "threshold": "Seuil (jours)",
+      "unavailable": "Indisponible : le module dont elle dépend ne donne pas encore ces informations.",
+      "save": "Enregistrer",
+      "saved": "Règle enregistrée.",
+      "invalid": "Ce seuil n'est pas valable (0 à 365 jours)."
+    },
+    "health": {
+      "title": "Santé du planning",
+      "intro": "Une tâche en retard compte 1 point, un jalon en retard compte davantage. « À surveiller » et « En retard » partent de ces seuils.",
+      "watchPoints": "« À surveiller » à partir de (points)",
+      "latePoints": "« En retard » à partir de (points)",
+      "milestoneWeight": "Poids d'un jalon en retard (points)",
+      "saved": "Seuils enregistrés.",
+      "invalid": "Ces seuils ne sont pas valables."
+    }
+  },
+  "Automations": {
+    "keys": {
+      "quote_signed_confirm_event": {
+        "title": "Contrat signé, puis évènement confirmé",
+        "description": "Quand le client signe le devis, l'option devient un évènement confirmé (rétroplanning, facture d'acompte)."
+      },
+      "payment_due_reminder": {
+        "title": "Échéance à J-7, puis rappel au payeur",
+        "description": "Un e-mail court au payeur désigné, quelques jours avant l'échéance, avec le montant, la référence et le RIB. Jamais après un virement déclaré."
+      },
+      "rsvp_reminder": {
+        "title": "RSVP manquant, puis relance",
+        "description": "Les invités sans réponse reçoivent une relance avant la clôture des réponses."
+      },
+      "client_task_reminder": {
+        "title": "Rappels des tâches du client",
+        "description": "Les tâches confiées au client lui sont rappelées avant leur échéance, et le lendemain d'un retard."
+      },
+      "invoice_reminder": {
+        "title": "Relances d'impayés",
+        "description": "Après l'échéance, les relances du règlement partent selon vos délais."
+      },
+      "proposal_expiry_reminder": {
+        "title": "Relance avant expiration de la proposition",
+        "description": "Une relance au client avant la fin de validité d'une proposition sans réponse."
+      },
+      "prospect_follow_up": {
+        "title": "Relances préparées des prospects",
+        "description": "Les relances des prospects sans nouvelle sont préparées dans « Aujourd'hui » (envoyées seules si vous l'avez réglé)."
+      },
+      "vendor_roadmap": {
+        "title": "Feuilles de route des prestataires",
+        "description": "À J-30 et J-7, chaque prestataire retenu reçoit sa feuille de route."
+      },
+      "risk_radar": {
+        "title": "Radar des risques",
+        "description": "Chaque matin, le radar cherche les risques des évènements à venir et vous prévient."
+      }
+    },
+    "alwaysOn": {
+      "privacy_purge": {
+        "title": "Purge des données personnelles",
+        "reason": "Le RGPD impose d'effacer les données personnelles à leur échéance, avec préavis : elle ne se coupe pas."
+      },
+      "ledger_check": {
+        "title": "Contrôle de la chaîne des pièces",
+        "reason": "Les factures et avoirs émis doivent rester inaltérables : leur chaîne est vérifiée chaque jour, sans interrupteur."
+      }
+    },
+    "title": "Automatisations",
+    "intro": "Ce que Symbola fait seul pour vous. Chaque automatisme s'active, se coupe et garde la trace de ce qu'il a fait.",
+    "noCatchUp": "Couper un automatisme arrête ses prochains envois. À la remise en route, rien de ce qui aurait dû partir entre-temps n'est rattrapé.",
+    "ownerOnly": "Seule la Propriétaire active ou coupe les automatismes.",
+    "on": "Actif",
+    "off": "Coupé",
+    "turnOn": "Activer",
+    "turnOff": "Couper",
+    "turnOnLabel": "Activer : {title}",
+    "turnOffLabel": "Couper : {title}",
+    "unavailable": "Indisponible : le module dont il dépend n'est pas ouvert.",
+    "days": "Jours avant l'échéance",
+    "saveDays": "Enregistrer",
+    "resumedAt": "Remis en route le {date}.",
+    "journal": "Journal",
+    "journalEmpty": "Rien encore.",
+    "result": {
+      "sent": "Envoyé",
+      "done": "Fait",
+      "skipped": "Laissé de côté",
+      "failed": "Échec"
+    },
+    "radarCount": "{count, plural, =0 {aucune alerte} one {# alerte} other {# alertes}}",
+    "open": "Ouvrir",
+    "alwaysOnTitle": "Toujours actifs",
+    "alwaysOnBadge": "Toujours actif",
+    "saved": "Automatisme enregistré.",
+    "invalid": "Ce réglage n'est pas valable."
+  },
+  "StandaloneTasks": {
+    "title": "Tâches hors évènement",
+    "intro": "Déclaration de TVA, assurance, comptabilité : ce qui ne dépend d'aucun évènement. Une tâche peut se répéter ; la suivante se crée quand celle-ci est faite, ou à sa date.",
+    "label": "Tâche",
+    "dueDate": "Échéance",
+    "recurrence": "Répétition",
+    "recurrenceNone": "Une seule fois",
+    "recurrenceValue": {
+      "weekly": "Chaque semaine",
+      "monthly": "Chaque mois",
+      "quarterly": "Chaque trimestre",
+      "yearly": "Chaque année"
+    },
+    "add": "Ajouter la tâche",
+    "added": "Tâche ajoutée.",
+    "invalid": "Indiquez un intitulé et une échéance valables.",
+    "empty": "Aucune tâche hors évènement.",
+    "done": "Fait",
+    "doneLabel": "Marquer « {label} » comme faite",
+    "remove": "Supprimer",
+    "removeLabel": "Supprimer « {label} »",
+    "listLabel": "Tâches hors évènement",
+    "todayTag": "Hors évènement"
+  },
+  "PlanningHealth": {
+    "state": {
+      "good": "Bon",
+      "watch": "À surveiller",
+      "late": "En retard"
+    },
+    "why": "Pourquoi ?",
+    "explain": "{points, plural, =0 {Aucune tâche en retard.} one {# point : } other {# points : }}seuils {watch} (à surveiller) et {late} (en retard).",
+    "contributor": "{label} — {days, plural, one {# jour} other {# jours}} de retard",
+    "milestone": "Jalon",
+    "milestoneToggle": "Jalon",
+    "milestoneOn": "Marquer comme jalon",
+    "milestoneOff": "Ne plus marquer comme jalon",
+    "milestoneOnLabel": "Marquer « {label} » comme jalon",
+    "milestoneOffLabel": "Ne plus marquer « {label} » comme jalon",
+    "none": "Aucune tâche ne le dégrade."
+  },
+  "ClientTerms": {
+    "title": "Termes pour désigner les clients",
+    "intro": "Pour chaque type d'évènement, choisissez le mot qui désigne vos clients (« les mariés », « les clients », « le commanditaire »…), avec son genre et son nombre. Il s'emploie dans les écrans, dans les e-mails ('{{terme_clients}}') et dans les documents à venir ; un document déjà émis garde son texte.",
+    "type": "Type",
+    "locale": "Langue",
+    "term": "Terme",
+    "gender": "Genre",
+    "number": "Nombre",
+    "genderValue": {
+      "masculine": "Masculin",
+      "feminine": "Féminin",
+      "neuter": "Neutre"
+    },
+    "numberValue": {
+      "singular": "Singulier",
+      "plural": "Pluriel"
+    },
+    "suggested": "Termes proposés",
+    "default": "Par défaut : {term}",
+    "save": "Enregistrer",
+    "reset": "Revenir au terme du type",
+    "saved": "Terme enregistré.",
+    "invalid": "Indiquez un terme court (40 caractères au plus).",
+    "clientsHeading": "Clients : {term}"
   }
 }

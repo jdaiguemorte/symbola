@@ -1,3 +1,4 @@
+import { RiskSection } from "./accueil/risk-section";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
@@ -135,6 +136,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       ) : null}
       <UnavailableNotice sources={unavailable} />
       <TodayList ranked={ranked} locale={locale} />
+      {/* Lot 53 (GC-02) : le radar des risques du matin, après ce qui demande une action. */}
+      {modules.events ? <RiskSection organizationId={organizationId} now={now} /> : null}
       {/* Lot 33b (PAR-01, étape 6) : après ce qui demande une action (UX-01 : la prochaine action d'abord). */}
       {checklist ? <OnboardingChecklist items={checklist} /> : null}
       {modules.events ? <MyEvents events={events} ranked={ranked} today={today} locale={locale} /> : null}

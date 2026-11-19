@@ -146,6 +146,10 @@ describe("DAT-13 — Chaque entité a un format d'export stable et documenté", 
       // Lot 39a (ADR 0073) : une ligne à la corbeille porte sa date de suppression et son auteur.
       deletedAt: null,
       deletedBy: null,
+      // Lot 53 (CHR-10, CHR-05) : répétition (hors évènement seulement) et jalon.
+      recurrence: null,
+      recurrenceSpawnedAt: null,
+      isMilestone: false,
     };
     expect(tasks.safeParse(task).success).toBe(true);
     expect(tasks.safeParse({ ...task, deletedAt: "2026-11-16T10:00:00.000Z", deletedBy: task.eventId }).success).toBe(true);

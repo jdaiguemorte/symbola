@@ -25,7 +25,7 @@ describe("MSG-01 — E-mails de service depuis des modèles à variables, avec a
 
   it("les variables s'écrivent en français ou en anglais, avec ou sans espaces dans les accolades", () => {
     expect(validateEmailTemplate("client_link", { subject: "Hello {{first_name}}", body: "{{ prénom }} : {{link}}" })).toEqual({ unknown: [], missingRequired: [], tooLong: [] });
-    expect(emailTemplateVariables("client_link", "fr").map((variable) => variable.token)).toEqual(["{{prénom}}", "{{organisation}}", "{{évènement}}", "{{lien}}", "{{valable_jusqu_au}}"]);
+    expect(emailTemplateVariables("client_link", "fr").map((variable) => variable.token)).toEqual(["{{prénom}}", "{{organisation}}", "{{évènement}}", "{{terme_clients}}", "{{lien}}", "{{valable_jusqu_au}}"]);
     expect(emailTemplateVariables("client_link", "en").find((variable) => variable.key === "link")).toEqual({ key: "link", token: "{{link}}", required: true });
   });
 

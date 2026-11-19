@@ -252,6 +252,21 @@ describe("DAT-08 — Clé du chiffrement au niveau du champ (socle des lots 46 e
   });
 });
 
+describe("ARC-09 — Clés VAPID des notifications push (lot 53, ADR 0095 et 0096)", () => {
+  it("l'app reçoit les deux clés de son environnement, sans valeur par défaut (refus de démarrer si elles manquent)", () => {
+    const app = serviceBlock(prodCompose, "symbola");
+    expect(app).toContain("VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}");
+    expect(app).toContain("VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}");
+  });
+
+  it("les modèles staging et production prévoient les clés, sans aucune valeur commitée", () => {
+    for (const name of ["staging", "production"]) {
+      expect(envExample(name)).toMatch(/^VAPID_PUBLIC_KEY=$/m);
+      expect(envExample(name)).toMatch(/^VAPID_PRIVATE_KEY=$/m);
+    }
+  });
+});
+
 describe("L16-SEC-01 — Clé de chiffrement de la double authentification (lot 16, ADR 0037)", () => {
   it("l'app reçoit la clé de son environnement, sans valeur par défaut (refus de démarrer si elle manque)", () => {
     expect(serviceBlock(prodCompose, "symbola")).toContain("MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY}");

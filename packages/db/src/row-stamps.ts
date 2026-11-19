@@ -59,4 +59,8 @@ export const APPEND_ONLY_TABLES: Record<string, { createdAtColumn: string }> = {
 export const DELETION_NOT_JOURNALED: Record<string, string> = {
   "hub.organizations": "une organisation n'est jamais supprimée par l'app",
   "hub.platform_settings": "réglages de la plateforme, une seule ligne",
+  // Lot 53 (HUB-15, HUB-28, ARC-09 ; ADR 0095) : traces techniques purgées d'elles-mêmes.
+  "hub.notifications": "notification de l'équipe, effacée 90 jours après sa création",
+  "hub.automation_runs": "journal des automatismes, effacé après 90 jours",
+  "hub.push_subscriptions": "abonnement push d'un appareil (donnée technique), supprimé à la désactivation ou après 90 jours sans usage",
 };

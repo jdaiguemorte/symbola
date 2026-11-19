@@ -55,6 +55,7 @@ import { NetworkStatus } from "./ui/network-status";
 import { NavigationSkeleton } from "./ui/navigation-skeleton";
 import { TaskUndoProvider } from "./taches/task-undo";
 import { HelpButton } from "./help-button";
+import { NotificationBell } from "./notification-bell";
 import { OrganizationSwitcher } from "./organization-switcher";
 import { getHelpProgress } from "@/modules/hub/service";
 import { type HelpModule, TUTORIALS, tutorialHref } from "@/lib/help/catalog";
@@ -334,6 +335,10 @@ export async function AppShell({ children }: { children: ReactNode }) {
           items: [
             { href: "/parametres", label: tSettings("company") },
             { href: "/profil", label: tSettings("account") },
+            // Lot 53 (HUB-15, UX-16) : les notifications de chacun ; HUB-28, GC-02 : automatismes et radar.
+            { href: "/parametres/notifications", label: tSettings("notifications") },
+            { href: "/parametres/automatisations", label: tSettings("automations") },
+            { href: "/parametres/radar", label: tSettings("riskRadar") },
             // Lot 24b (SEC-06, décision D3) : équipe, titulaire seulement.
             ...(isOwner ? [{ href: "/parametres/equipe", label: tSettings("team") }] : []),
             // Lot 38a (MSG-01, D3) : les e-mails envoyés au nom de l'organisation (liens, rappels, signatures, programme).
@@ -364,6 +369,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
                           href: "/events/parametres/types",
                           label: tSettings("eventTypes"),
                         },
+                        // Lot 53 (HUB-24, D8) : le terme qui désigne les clients de chaque type.
+                        { href: "/events/parametres/termes", label: tSettings("clientTerms") },
                         // Lot 44 (CRM-01, CRM-02) : étapes du pipeline et formulaire de contact, réglés par la
                         // titulaire.
                         ...(isOwner
@@ -832,6 +839,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
             {isTeam ? <SearchBox actions={paletteActions} /> : null}
             {/* Lot 32b (HUB-07, D9) : création rapide, touche N ; ses entrées suivent les modules. */}
             {isTeam ? <QuickCreate modules={{ events, quotes, budget }} /> : null}
+            {/* Lot 53 (HUB-15, UX-16) : la cloche des notifications, avant le « ? ». */}
+            {isTeam && organizationId ? <NotificationBell organizationId={organizationId} userId={auth.user.id} /> : null}
             <HelpButton />
           </section>
           {settingsSections.length > 0 ? (

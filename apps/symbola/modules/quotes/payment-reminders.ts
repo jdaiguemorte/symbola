@@ -47,3 +47,13 @@ export function penaltySentence(input: { clientKind: "individual" | "professiona
   const rate = new Intl.NumberFormat(input.locale === "en" ? "en-GB" : "fr-FR", { style: "percent", maximumFractionDigits: 2 }).format(input.consumerRateBasisPoints / 10000);
   return words.consumerClause.replace("{taux}", rate);
 }
+
+// Lot 53 (HUB-28 ; D5 ; ADR 0095) — rappel au payeur avant l'échéance : à partir de N jours avant (7 au
+// départ, automations.json), jusqu'au jour de l'échéance compris ; ni avant, ni après (les relances
+// d'impayés du lot 43 prennent le relais). Jamais pour une échéance réglée ou dont le virement est
+// déclaré. Retourne le jour où le rappel devait partir, ou null.
+export function paymentDueReminderDay(input: { dueDate: string; daysBefore: number; today: string; paid: boolean; declared: boolean }): string | null {
+  if (input.paid || input.declared) return null;
+  const day = addCalendarDays(input.dueDate, -input.daysBefore);
+  return input.today >= day && input.today <= input.dueDate ? day : null;
+}

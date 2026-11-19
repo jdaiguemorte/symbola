@@ -47,6 +47,11 @@ export const EMAIL_TEMPLATE_KINDS = [
   "identity_changed",
   "ownership_transfer",
   "day_helper_link",
+  // Lot 53 (HUB-15, UX-16, HUB-28 ; D1, D5 ; ADR 0095) : récapitulatif du matin et alerte immédiate, à
+  // l'équipe (la sorte en objet, rien de personnel) ; rappel au payeur sept jours avant l'échéance.
+  "daily_digest",
+  "payment_due_reminder",
+  "notification_alert",
 ] as const;
 export type EmailTemplateKind = (typeof EMAIL_TEMPLATE_KINDS)[number];
 
@@ -67,7 +72,9 @@ export type EmailLocale = (typeof EMAIL_LOCALES)[number];
 // « questionnaire » (le nom du questionnaire envoyé).
 // Lot 52 : « valid_from » (premier jour du lien du renfort), « device » (l'appareil de la connexion),
 // « date_time » (jour et heure, à Paris) et « change » (ce qui a changé dans le compte).
-export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "slot", "deadline", "link_available", "link_unavailable", "amount", "due_date", "reference", "iban", "bic", "penalties", "brochure", "booking_link", "questionnaire", "valid_from", "device", "date_time", "change"] as const;
+// Lot 53 (HUB-24, HUB-15) : « client_term » (le terme qui désigne les clients du type d'évènement),
+// « digest » (les lignes du récapitulatif) et « alert » (la phrase d'une alerte).
+export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "slot", "deadline", "link_available", "link_unavailable", "amount", "due_date", "reference", "iban", "bic", "penalties", "brochure", "booking_link", "questionnaire", "valid_from", "device", "date_time", "change", "client_term", "digest", "alert"] as const;
 export type EmailVariable = (typeof EMAIL_VARIABLES)[number];
 export type EmailValues = Partial<Record<EmailVariable, string>>;
 

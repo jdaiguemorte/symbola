@@ -9,6 +9,7 @@ import { SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
 import { sendVendorBriefReminders, sendVendorRoadmaps } from "@/modules/events/service";
 import { isModuleEnabled, listOrganizations } from "@/modules/hub/service";
+import { automationHooks } from "./automation-gates";
 
 const INTERVAL_MS = 60 * 60 * 1000; // toutes les heures
 
@@ -21,7 +22,9 @@ export async function runVendorCoordinationTasks(now: Date = new Date()): Promis
     try {
       await withActor(SYSTEM_ACTOR, async () => {
         reminders += await sendVendorBriefReminders(organization.id, now);
-        roadmaps += await sendVendorRoadmaps(organization.id, now);
+        // Lot 53 (HUB-28, D5) : les feuilles de route ont leur interrupteur.
+        const hooks = await automationHooks(organization.id, "vendor_roadmap", now);
+        if (hooks) roadmaps += await sendVendorRoadmaps(organization.id, now, hooks);
       });
     } catch (error) {
       console.error("tâches des prestataires échouées", organization.id, error instanceof Error ? error.name : "inconnue");

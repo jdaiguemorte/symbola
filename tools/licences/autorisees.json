@@ -28,5 +28,10 @@
     "paquet": "ical.js",
     "licence": "MPL-2.0",
     "usage": "Lecture des agendas extérieurs au format iCalendar (lot 46, ADR 0082) : répétitions, exceptions et fuseaux ; employée sans modification, telle que publiée."
+  },
+  {
+    "paquet": "web-push",
+    "licence": "MPL-2.0",
+    "usage": "Chiffrement et signature des notifications push (norme Web Push, RFC 8291 et 8292 ; lot 53, ADR 0096) ; employée sans modification, telle que publiée."
   }
 ]

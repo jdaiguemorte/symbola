@@ -126,6 +126,18 @@
       "day_helper_link": {
         "subject": "Votre accès au jour J de {{évènement}}",
         "body": "Bonjour {{prénom}},\n\n{{organisation}} vous ouvre le mode Jour J de {{évènement}} : le programme en direct, l'annuaire du jour, les documents utiles, le pointage, la main courante et les listes. Votre lien personnel vaut du {{valable_à_partir_du}} au {{valable_jusqu_au}} inclus ; un code vous sera envoyé à chaque ouverture :\n\n{{lien}}\n\nCe lien vous est réservé : ne le transférez pas.\n\nÀ très vite,\n{{organisation}}"
+      },
+      "daily_digest": {
+        "subject": "Votre récapitulatif du jour",
+        "body": "Bonjour,\n\nVoici ce qui est nouveau et ce qui vous attend aujourd'hui pour {{organisation}} :\n\n{{récapitulatif}}\n\nPour tout voir et agir, ouvrez Symbola :\n\n{{lien}}"
+      },
+      "notification_alert": {
+        "subject": "Symbola : une alerte vous attend",
+        "body": "Bonjour,\n\n{{alerte}}\n\nPour voir et agir, ouvrez Symbola :\n\n{{lien}}"
+      },
+      "payment_due_reminder": {
+        "subject": "Rappel : échéance du {{échéance}} — devis {{numéro_devis}}",
+        "body": "Bonjour {{prénom}},\n\nPetit rappel : une échéance de {{montant}} arrive le {{échéance}} (devis {{numéro_devis}}).\n\nVous pouvez la régler par virement sur l'IBAN {{iban}}, avec la référence {{référence}}, puis l'indiquer dans votre espace (« J'ai fait le virement »). Si le virement est déjà parti, ne tenez pas compte de ce message.\n\nÀ bientôt,\n{{organisation}}"
       }
     },
     "en": {
@@ -252,6 +264,18 @@
       "day_helper_link": {
         "subject": "Your access to the big day of {{event}}",
         "body": "Hello {{first_name}},\n\n{{organization}} opens the Big day mode of {{event}} for you: the live schedule, the day's contacts, the useful documents, check-ins, the log and the checklists. Your personal link is valid from {{valid_from}} to {{valid_until}} included; a code will be sent to you each time you open it:\n\n{{link}}\n\nThis link is yours only: do not forward it.\n\nSee you soon,\n{{organization}}"
+      },
+      "daily_digest": {
+        "subject": "Your daily summary",
+        "body": "Hello,\n\nHere is what is new and what is waiting for you today at {{organization}}:\n\n{{digest}}\n\nTo see everything and act, open Symbola:\n\n{{link}}"
+      },
+      "notification_alert": {
+        "subject": "Symbola: an alert is waiting for you",
+        "body": "Hello,\n\n{{alert}}\n\nTo see it and act, open Symbola:\n\n{{link}}"
+      },
+      "payment_due_reminder": {
+        "subject": "Reminder: payment due on {{due_date}} — quote {{quote_number}}",
+        "body": "Hello {{first_name}},\n\nA quick reminder: a payment of {{amount}} is due on {{due_date}} (quote {{quote_number}}).\n\nYou can pay it by bank transfer to the IBAN {{iban}}, with the reference {{reference}}, then let us know in your space (\"I made the transfer\"). If the transfer has already been made, please disregard this message.\n\nSee you soon,\n{{organization}}"
       }
     }
   }

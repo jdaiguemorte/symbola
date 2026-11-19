@@ -42,7 +42,10 @@
         "new_device_login",
         "identity_changed",
         "ownership_transfer",
-        "day_helper_link"
+        "day_helper_link",
+        "daily_digest",
+        "payment_due_reminder",
+        "notification_alert"
       ]
     },
     "locale": {

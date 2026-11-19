@@ -6,6 +6,7 @@
 import { appDatabase } from "@symbola/db/client";
 import { sendClientTaskReminders } from "@/modules/events/service";
 import { isModuleEnabled, listOrganizations } from "@/modules/hub/service";
+import { automationHooks } from "./automation-gates";
 
 const REMINDER_INTERVAL_MS = 60 * 60 * 1000; // toutes les heures
 
@@ -15,7 +16,10 @@ export async function sendAllClientTaskReminders(now: Date = new Date()): Promis
   for (const organization of await listOrganizations(db)) {
     if (!(await isModuleEnabled(db, organization.id, "events"))) continue;
     try {
-      sent += await sendClientTaskReminders(organization.id, now);
+      // Lot 53 (HUB-28, D5) : coupé, l'automatisme n'envoie rien ; remis en route, il ne rattrape rien.
+      const hooks = await automationHooks(organization.id, "client_task_reminder", now);
+      if (!hooks) continue;
+      sent += await sendClientTaskReminders(organization.id, now, hooks);
     } catch (error) {
       console.error(`rappels des tâches échoués (organisation ${organization.id})`, error instanceof Error ? error.message : error);
     }

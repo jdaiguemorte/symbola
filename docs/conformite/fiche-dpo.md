@@ -347,6 +347,22 @@ sans réseau, puis part au serveur.
 
 Besoin : une réponse avant le premier jour J réel avec photos chez la pilote.
 
+## Pour information : notifications push (lot 53, 18 novembre 2026)
+
+Sans question ouverte (DPO-10, pour information).
+
+- **DPO-10 — Abonnements push et services de push des navigateurs.** Chaque membre de l'équipe peut
+  activer, appareil par appareil, les notifications push. Symbola garde alors l'**abonnement** de
+  l'appareil : l'adresse du service de push de son navigateur, deux clés publiques et un nom lisible
+  (« Safari · iOS »), sans autre identifiant. Ce sont des **données techniques**, déclarées au
+  registre : supprimées quand la personne désactive le push, quand le service répond que l'abonnement
+  n'existe plus, ou après **90 jours sans usage**. Les services de push des navigateurs (Apple, Google,
+  Mozilla) reçoivent seulement un **message chiffré** jusqu'au navigateur (norme Web Push), son heure
+  et sa durée de vie (six heures) : la sorte de notification en mots et l'écran à ouvrir, **jamais de
+  nom, d'adresse, de téléphone ni de montant**. Ils sont notés comme **destinataires techniques** dans
+  la liste des sous-traitants. Les notifications elles-mêmes (centre de l'application, e-mails à
+  l'équipe) sont effacées 90 jours après leur création ; l'objet d'un e-mail ne dit que la sorte.
+
 ## Pour information : relances des prospects (lot 45, 18 novembre 2026)
 
 Sans question ouverte. **Décision de Julien (18/11/2026)**, contraire à votre réponse 10 : les

@@ -10,6 +10,7 @@ import { SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
 import { runGuestPurge, sendGuestReminders, type InvitationWords } from "@/modules/guests/service";
 import { isModuleEnabled, listOrganizations } from "@/modules/hub/service";
+import { automationHooks } from "./automation-gates";
 
 const INTERVAL_MS = 60 * 60 * 1000; // toutes les heures
 
@@ -31,7 +32,9 @@ export async function runGuestTasks(now: Date = new Date()): Promise<{ purged: n
       await withActor(SYSTEM_ACTOR, async () => {
         const pass = await runGuestPurge(organization.id, now);
         purged += pass.dietsPurged + pass.purged;
-        reminders += await sendGuestReminders(organization.id, words, now);
+        // Lot 53 (HUB-28, D5) : la purge ne se coupe pas ; les relances, si.
+        const hooks = await automationHooks(organization.id, "rsvp_reminder", now);
+        if (hooks) reminders += await sendGuestReminders(organization.id, words, now, hooks);
       });
     } catch (error) {
       console.error("tâches des invités échouées", organization.id, error instanceof Error ? error.name : "inconnue");

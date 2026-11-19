@@ -5,9 +5,11 @@ import { PageHeader } from "@/app/ui/page-header";
 import { EmptyState } from "@/app/ui/empty-state";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { parisToday, type Locale } from "@symbola/i18n";
+import { formatCalendarDate, parisToday, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
-import { listOrganizationTasks } from "@/modules/events/service";
+import { listOrganizationTasks, listStandaloneTasks } from "@/modules/events/service";
+import { AddStandaloneTaskForm } from "./standalone-tasks";
+import { completeStandaloneTaskAction, deleteStandaloneTaskAction } from "./standalone-actions";
 import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 import { SettingsLink } from "@/app/settings-link";
@@ -46,6 +48,9 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const href = (changes: Record<string, string>) =>
     `/taches?${new URLSearchParams({ vue: view, qui: owner, ...(calendar ? { affichage: "calendrier", mois: month } : {}), ...changes }).toString()}`;
   const overdue = all.filter((task) => task.overdue).length;
+  // Lot 53 (CHR-10, D6) : les tâches hors évènement (TVA, assurance…), avec leur répétition.
+  const standalone = await listStandaloneTasks(organizationId, { includeDone: view === "toutes" });
+  const tStandalone = await getTranslations("StandaloneTasks");
 
   return (
     <main>
@@ -97,6 +102,43 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             responsibleLabel={(task) => labelOf(task.eventId, task.responsible)}
           />
         ) : null}
+      </section>
+      <section className="card" aria-labelledby="standalone-tasks-title" id="hors-evenement">
+        <h2 id="standalone-tasks-title">{tStandalone("title")}</h2>
+        <ScreenHelp title={tHelp("standaloneTasks.title")} body={tHelp("standaloneTasks.body")} />
+        <p>{tStandalone("intro")}</p>
+        <AddStandaloneTaskForm today={today} />
+        {standalone.length === 0 ? (
+          <p>{tStandalone("empty")}</p>
+        ) : (
+          <ul className="standalone-task-list" aria-label={tStandalone("listLabel")}>
+            {standalone.map((task) => (
+              <li key={task.id} className="standalone-task" data-overdue={!task.done && task.dueDate < today ? "true" : undefined}>
+                <span className="standalone-task-label">{task.label}</span>
+                <span className="standalone-task-meta">
+                  {formatCalendarDate(task.dueDate, locale)}
+                  {task.recurrence ? ` · ${tStandalone(`recurrenceValue.${task.recurrence}`)}` : ""}
+                </span>
+                {task.done ? (
+                  <span className="badge badge-sauge">{tStandalone("done")}</span>
+                ) : (
+                  <form action={completeStandaloneTaskAction}>
+                    <input type="hidden" name="taskId" value={task.id} />
+                    <button type="submit" aria-label={tStandalone("doneLabel", { label: task.label })}>
+                      {tStandalone("done")}
+                    </button>
+                  </form>
+                )}
+                <form action={deleteStandaloneTaskAction}>
+                  <input type="hidden" name="taskId" value={task.id} />
+                  <button type="submit" className="button-secondary" aria-label={tStandalone("removeLabel", { label: task.label })}>
+                    {tStandalone("remove")}
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </main>
   );

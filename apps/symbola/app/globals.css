@@ -4294,3 +4294,102 @@
     @apply text-label text-attention;
   }
 }
+
+/* Lot 53 (HUB-15, UX-16, ARC-09, HUB-28, GC-02, CHR-05, CHR-10, HUB-24) : cloche et centre de
+   notifications, réglages, automatisations, radar des risques, tâches hors évènement, santé expliquée. */
+@layer components {
+  .notification-bell {
+    @apply relative ml-auto inline-flex h-10 w-10 flex-none items-center justify-center rounded-full text-ink hover:bg-ground;
+  }
+  .app-topbar > .notification-bell + .help-button {
+    @apply ml-0;
+  }
+  .notification-count {
+    @apply absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-full bg-critical px-1 text-label font-semibold text-on-primary;
+  }
+  .notification-list,
+  .automation-list,
+  .device-list,
+  .standalone-task-list,
+  .today-risk-list,
+  .health-contributors,
+  .automation-journal {
+    @apply m-0 list-none p-0;
+  }
+  .notification-item {
+    @apply grid items-center gap-x-3 gap-y-1 border-b border-line py-3;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .notification-item[data-unread="true"] .notification-text {
+    @apply font-medium;
+  }
+  .notification-body {
+    @apply flex min-w-0 flex-col gap-1;
+  }
+  .notification-kind {
+    @apply m-0 flex flex-wrap items-center gap-2 text-label text-ink-muted;
+  }
+  .notification-text {
+    @apply m-0 text-body wrap-anywhere;
+  }
+  .notification-meta {
+    @apply m-0 text-label text-ink-muted;
+  }
+  .notification-matrix {
+    @apply w-full border-collapse text-body;
+  }
+  .notification-matrix caption {
+    @apply pb-2 text-left text-label text-ink-muted;
+  }
+  .notification-matrix th,
+  .notification-matrix td {
+    @apply border-b border-line p-2 text-left align-middle;
+  }
+  .notification-matrix td {
+    @apply text-center;
+  }
+  .notification-matrix th .badge {
+    @apply ml-2;
+  }
+  .table-scroll {
+    @apply overflow-x-auto;
+  }
+  .checkbox-row {
+    @apply flex items-center gap-2;
+  }
+  .field-hint {
+    @apply text-label text-ink-muted;
+  }
+  .button-row,
+  .form-inline {
+    @apply flex flex-wrap items-end gap-3;
+  }
+  .device-list li,
+  .standalone-task {
+    @apply flex flex-wrap items-center gap-3 border-b border-line py-2;
+  }
+  .automation-item {
+    @apply flex flex-col gap-2;
+  }
+  .automation-head {
+    @apply flex flex-wrap items-center justify-between gap-2;
+  }
+  .automation-journal li {
+    @apply py-1 text-label;
+  }
+  .standalone-task-label {
+    @apply min-w-0 flex-1 font-medium wrap-anywhere;
+  }
+  .standalone-task-meta {
+    @apply text-label text-ink-muted;
+  }
+  .standalone-task[data-overdue="true"] .standalone-task-meta {
+    @apply text-critical;
+  }
+  .health-why summary {
+    @apply cursor-pointer text-primary;
+  }
+  .health-contributors li {
+    @apply flex flex-wrap items-center gap-2 py-1;
+  }
+}

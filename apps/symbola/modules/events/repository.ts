@@ -983,7 +983,7 @@ export async function updateEventTaskRow(input: {
     const responsible = input.responsible ?? current.responsible;
     const vendorCandidateId = responsible === "vendor" ? (input.vendorCandidateId !== undefined ? input.vendorCandidateId : current.vendorCandidateId) : null;
     const vendorChanged = responsible === "vendor" && (responsible !== current.responsible || vendorCandidateId !== current.vendorCandidateId);
-    if (vendorChanged && !(await isEngagedCandidate(tx, current.eventId, vendorCandidateId))) return "invalid_vendor";
+    if (vendorChanged && (current.eventId === null || !(await isEngagedCandidate(tx, current.eventId, vendorCandidateId)))) return "invalid_vendor";
     const doneAt = input.done === undefined ? current.doneAt : input.done ? (current.doneAt ?? new Date()) : null;
     // Lot 34a (DAT-07) : déplacée à la main, la tâche est fixée ; le report ne la bouge plus.
     const moved = input.dueDate !== undefined && input.dueDate !== current.dueDate;
@@ -1011,6 +1011,8 @@ export async function releaseEventTaskRow(organizationId: string, taskId: string
   return await withOrganization(db, organizationId, async (tx) => {
     const [task] = await tx.select().from(eventTasks).where(eq(eventTasks.id, taskId));
     if (!task) return null;
+    // Lot 53 (CHR-10) : une tâche hors évènement n'a pas de date relative.
+    if (!task.eventId) return task;
     const [event] = await tx.select().from(events).where(eq(events.id, task.eventId));
     if (!event?.eventDate || task.offsetDays === null) return task;
     const [updated] = await tx
@@ -1038,7 +1040,7 @@ export async function moveEventTaskRow(
       .from(eventTasks)
       .where(
         and(
-          eq(eventTasks.eventId, task.eventId),
+          task.eventId ? eq(eventTasks.eventId, task.eventId) : isNull(eventTasks.eventId),
           sql`date_trunc('month', ${eventTasks.dueDate}) = date_trunc('month', ${task.dueDate}::date)`,
         ),
       )
@@ -1807,10 +1809,12 @@ export async function searchEventRows(
 
     return { events: eventRows, tasks: taskRows, vendors: vendorRows };
   });
-  const names = await eventNamesOf(organizationId, [...found.events.map((row) => row.id), ...found.tasks.map((row) => row.eventId), ...found.vendors.map((row) => row.eventId)]);
+  // Lot 53 (CHR-10) : la recherche ne trouve que les tâches d'un évènement (jointure).
+  const eventTaskRows = found.tasks.flatMap((row) => (row.eventId ? [{ ...row, eventId: row.eventId }] : []));
+  const names = await eventNamesOf(organizationId, [...found.events.map((row) => row.id), ...eventTaskRows.map((row) => row.eventId), ...found.vendors.map((row) => row.eventId)]);
   return {
     events: found.events.map((row) => ({ ...row, names: names.get(row.id) ?? "" })),
-    tasks: found.tasks.map((row) => ({ ...row, eventNames: names.get(row.eventId) ?? "" })),
+    tasks: eventTaskRows.map((row) => ({ ...row, eventNames: names.get(row.eventId) ?? "" })),
     vendors: found.vendors.map((row) => ({ ...row, eventNames: names.get(row.eventId) ?? "" })),
   };
 }
