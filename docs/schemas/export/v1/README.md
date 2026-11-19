@@ -84,7 +84,7 @@ Tables non exportées :
 | `planning_health_settings` | `id`, `watchPoints`, `latePoints`, `milestoneWeight`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [planning_health_settings.schema.json](events/planning_health_settings.schema.json) |
 | `questionnaire_templates` | `id`, `eventTypeId`, `name`, `locale`, `starterKey`, `version`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [questionnaire_templates.schema.json](events/questionnaire_templates.schema.json) |
 | `questionnaire_template_items` | `id`, `templateId`, `version`, `position`, `itemKey`, `label`, `help`, `nature`, `choices`, `eventField`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [questionnaire_template_items.schema.json](events/questionnaire_template_items.schema.json) |
-| `events` | `id`, `status`, `eventDate`, `timeZone`, `postponedFromDate`, `postponedFromStatus`, `guestsEstimated`, `guestsConfirmed`, `style`, `notes`, `notesConfidentialBy`, `importedFields`, `wantedBudgetCents`, `prospectSourceId`, `eventTypeId`, `lossReasonId`, `lossReasonNote`, `pipelineStageId`, `tasksScheduledFor`, `programUpdatedAt`, `demoExpiresAt`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy` | [events.schema.json](events/events.schema.json) |
+| `events` | `id`, `status`, `eventDate`, `timeZone`, `postponedFromDate`, `postponedFromStatus`, `guestsEstimated`, `guestsConfirmed`, `style`, `notes`, `notesConfidentialBy`, `importedFields`, `wantedBudgetCents`, `prospectSourceId`, `eventTypeId`, `lossReasonId`, `lossReasonNote`, `pipelineStageId`, `tasksScheduledFor`, `programUpdatedAt`, `demoExpiresAt`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy`, `archivedAt`, `archivedBy` | [events.schema.json](events/events.schema.json) |
 | `event_clients` | `id`, `eventId`, `contactId`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_clients.schema.json](events/event_clients.schema.json) |
 | `event_status_history` | `id`, `eventId`, `fromStatus`, `toStatus`, `changedByUserId`, `changedAt`, `createdBy` | [event_status_history.schema.json](events/event_status_history.schema.json) |
 | `event_places` | `id`, `eventId`, `label`, `address`, `city`, `startTime`, `endTime`, `contactName`, `contactPhone`, `contactEmail`, `vendorId`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [event_places.schema.json](events/event_places.schema.json) |
@@ -127,6 +127,9 @@ Tables non exportées :
 | `event_questionnaires` | `id`, `eventId`, `contactId`, `linkId`, `templateId`, `templateVersion`, `name`, `locale`, `questions`, `sentAt`, `finishedAt`, `seenAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_questionnaires.schema.json](events/event_questionnaires.schema.json) |
 | `questionnaire_answers` | `id`, `questionnaireId`, `itemKey`, `value`, `answeredAt`, `resolution`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [questionnaire_answers.schema.json](events/questionnaire_answers.schema.json) |
 | `event_team_members` | `id`, `eventId`, `userId`, `role`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_team_members.schema.json](events/event_team_members.schema.json) |
+| `event_closings` | `id`, `eventId`, `checkedSteps`, `timeSpentMinutes`, `lessons`, `ownExpenses`, `budgetSnapshot`, `closedAt`, `closedBy`, `reviewRequestedAt`, `reviewRequestKind`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_closings.schema.json](events/event_closings.schema.json) |
+| `closing_settings` | `id`, `reviewUrl`, `reviewLabel`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [closing_settings.schema.json](events/closing_settings.schema.json) |
+| `event_templates` | `id`, `name`, `eventTypeId`, `sourceEventId`, `includesVendors`, `content`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_templates.schema.json](events/event_templates.schema.json) |
 
 Tables non exportées :
 
@@ -192,6 +195,8 @@ Toutes les tables du module sont exportées.
 | `original_documents` | `id`, `documentKind`, `documentId`, `storageKey`, `sha256`, `byteSize`, `isReconstructed`, `createdAt`, `createdBy`, `format` | [original_documents.schema.json](quotes/original_documents.schema.json) |
 | `ledger_entries` | `id`, `sequence`, `entryKind`, `objectId`, `payload`, `previousHash`, `hash`, `isBackfill`, `recordedAt`, `createdBy` | [ledger_entries.schema.json](quotes/ledger_entries.schema.json) |
 | `ledger_anchors` | `previousHash`, `sourceOrganizationId`, `sourceLastSequence`, `sourceEntries`, `createdAt`, `createdBy` | [ledger_anchors.schema.json](quotes/ledger_anchors.schema.json) |
+| `accounting_export_settings` | `id`, `fiscalYearStartMonth`, `accounts`, `journals`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [accounting_export_settings.schema.json](quotes/accounting_export_settings.schema.json) |
+| `accounting_exports` | `id`, `format`, `periodKind`, `periodStart`, `periodEnd`, `status`, `invoicedCents`, `creditedCents`, `receivedCents`, `documentCount`, `issues`, `createdAt`, `createdBy` | [accounting_exports.schema.json](quotes/accounting_exports.schema.json) |
 
 Tables non exportées :
 
@@ -212,6 +217,7 @@ Tables non exportées :
 | `vendor_document_kinds` | `id`, `label`, `expires`, `starterKey`, `position`, `archivedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_document_kinds.schema.json](vendors/vendor_document_kinds.schema.json) |
 | `vendor_documents` | `id`, `vendorId`, `kindId`, `status`, `fileName`, `fileKey`, `mime`, `sizeBytes`, `validUntil`, `uploadedByUserId`, `uploadedByLinkId`, `uploadedAt`, `requestedAt`, `verifiedAt`, `verifiedByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_documents.schema.json](vendors/vendor_documents.schema.json) |
 | `vendor_bank_changes` | `id`, `vendorId`, `previousMasked`, `nextMasked`, `changedByUserId`, `changedByLinkId`, `changedAt`, `verifiedAt`, `verifiedByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_bank_changes.schema.json](vendors/vendor_bank_changes.schema.json) |
+| `vendor_evaluations` | `id`, `vendorId`, `eventId`, `rating`, `punctuality`, `quality`, `value`, `comment`, `evaluatedBy`, `evaluatedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_evaluations.schema.json](vendors/vendor_evaluations.schema.json) |
 
 Toutes les tables du module sont exportées.
 

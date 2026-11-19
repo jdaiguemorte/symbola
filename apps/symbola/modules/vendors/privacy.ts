@@ -6,7 +6,7 @@
 // rien. Les fiches d'exemple (essais, tutoriels) ne sont jamais trouvées.
 import { and, eq, inArray } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
-import { vendorBankChanges, vendorDocuments, vendorFiles, vendors } from "@symbola/db/schema/vendors";
+import { vendorBankChanges, vendorDocuments, vendorEvaluations, vendorFiles, vendors } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import { ANONYMIZED, hasTerms, idsOfKind, prepareTerms, recordMatches, type ErasurePlanItem, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
@@ -88,6 +88,8 @@ export const vendorsPrivacy: PrivacyContractV1 = {
       const documents = await tx.select({ key: vendorDocuments.fileKey }).from(vendorDocuments).where(inArray(vendorDocuments.vendorId, ids));
       await tx.delete(vendorDocuments).where(inArray(vendorDocuments.vendorId, ids));
       await tx.delete(vendorBankChanges).where(inArray(vendorBankChanges.vendorId, ids));
+      // Lot 58 (PRE-08) : les commentaires des évaluations (texte libre) ; les notes chiffrées restent.
+      await tx.update(vendorEvaluations).set({ comment: null, updatedAt: new Date() }).where(inArray(vendorEvaluations.vendorId, ids));
       files.push(...documents.flatMap((document) => (document.key ? [{ key: document.key }] : [])));
       await tx
         .update(vendors)

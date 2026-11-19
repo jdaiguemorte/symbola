@@ -550,6 +550,7 @@ function toEventSummary(event: EventRecord, clients: EventClientRow[]): EventSum
     venueCity: event.venueCity,
     clients: clients.map(toEventClient),
     isDemo: event.isDemo,
+    archivedAt: event.archivedAt?.toISOString() ?? null,
   };
 }
 
@@ -580,7 +581,11 @@ export async function listEvents(input: ListEventsInput): Promise<EventSummary[]
     search: input.search,
     prospectSourceId: input.prospectSourceId,
   });
-  return rows.map(({ event, clients }) => toEventSummary(event, clients));
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé sort des listes courantes, reste consultable.
+  const archived = input.archived ?? "include";
+  return rows
+    .filter(({ event }) => (archived === "include" ? true : archived === "only" ? event.archivedAt !== null : event.archivedAt === null))
+    .map(({ event, clients }) => toEventSummary(event, clients));
 }
 
 // Lot 38b (HUB-29 ; D11) — les évènements du flux de calendrier de l'équipe : datés, ni essai, ni
@@ -659,6 +664,8 @@ async function currentStatus(organizationId: string, eventId: string): Promise<L
 }
 
 export async function changeEventStatus(input: ChangeEventStatusInput): Promise<void> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(input.organizationId, input.eventId);
   const from = await currentStatus(input.organizationId, input.eventId);
   if (input.toStatus === "cancelled") {
     if (from === "cancelled") throw new EventStatusTransitionError();
@@ -677,6 +684,8 @@ export async function reactivateEvent(input: { organizationId: string; eventId: 
 }
 
 export async function postponeEvent(input: { organizationId: string; eventId: string; changedByUserId: string; newDate: string | null }): Promise<void> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(input.organizationId, input.eventId);
   if (input.newDate !== null) assertDate(input.newDate);
   const result = await postponeEventRow(input);
   if (result.status === "not_found") throw new EventNotFoundError();
@@ -686,6 +695,8 @@ export async function postponeEvent(input: { organizationId: string; eventId: st
 // Confirmer le report : les échéances relatives suivent la nouvelle date, puis l'événement
 // retrouve son statut d'avant. Renvoie la date d'avant (pour le devis signé, D7).
 export async function confirmPostponement(input: { organizationId: string; eventId: string; changedByUserId: string }): Promise<{ previousDate: string | null; eventDate: string }> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(input.organizationId, input.eventId);
   const result = await confirmPostponementRow(input);
   if (result.status !== "confirmed") {
     if (result.status === "not_found") throw new EventNotFoundError();
@@ -707,6 +718,8 @@ export async function previewTaskRecalculation(organizationId: string, eventId: 
 
 // ARC-17, D9 : fuseau IANA de l'événement.
 export async function setEventTimeZone(organizationId: string, eventId: string, timeZone: string): Promise<void> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   if (!isTimeZone(timeZone)) throw new RangeError("fuseau inconnu");
   if (!(await updateEventTimeZoneRow(organizationId, eventId, timeZone))) throw new EventNotFoundError();
 }
@@ -725,6 +738,8 @@ export {
 };
 
 export async function setEventType(organizationId: string, eventId: string, eventTypeId: string): Promise<void> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   if (!(await setEventTypeOfEvent(organizationId, eventId, eventTypeId))) throw new EventNotFoundError();
 }
 
@@ -825,6 +840,8 @@ export async function updateEventClientContact(input: {
   clientId: string;
   contact: Partial<Record<"email" | "phone" | "addressLine" | "postalCode" | "city", string | null>>;
 }): Promise<void> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(input.organizationId, input.eventId);
   const link = await findEventClientLink(input.organizationId, input.eventId, input.clientId);
   if (!link?.contactId) throw new EventNotFoundError();
   try {
@@ -847,6 +864,8 @@ export async function updateEventClientContact(input: {
 // Lot 34b (EVT-03, D11) — fiche d'identité : invités estimés et confirmés (0 à 100 000), style
 // (2 000 caractères) et notes (10 000 caractères) ; un champ vide vaut nul.
 export async function setEventIdentity(organizationId: string, eventId: string, input: EventIdentityInput): Promise<void> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   const count = (value: number | null) => {
     if (value === null) return null;
     if (!Number.isInteger(value) || value < 0 || value > 100_000) throw new RangeError("nombre d'invités invalide");
@@ -862,6 +881,8 @@ export async function setEventIdentity(organizationId: string, eventId: string, 
 }
 
 export async function setEventWantedBudget(organizationId: string, eventId: string, wantedBudgetCents: number | null): Promise<void> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   if (wantedBudgetCents !== null && (!Number.isInteger(wantedBudgetCents) || wantedBudgetCents < 0)) throw new RangeError("montant invalide");
   if (!(await updateWantedBudgetRow(organizationId, eventId, wantedBudgetCents))) throw new EventNotFoundError();
 }
@@ -869,6 +890,8 @@ export async function setEventWantedBudget(organizationId: string, eventId: stri
 // Lot 31b (FAC-04, DOC-02) — lieu de l'événement (nom, ville), pour que la variable
 // {evenement.lieu} d'un contrat se comble ; vide : effacé.
 export async function setEventVenue(organizationId: string, eventId: string, venue: { venueName: string | null; venueCity: string | null }): Promise<void> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   const clean = (value: string | null) => {
     const text = value?.trim() ?? "";
     if (text.length > 200) throw new RangeError("lieu trop long");
@@ -972,6 +995,8 @@ export async function listEventVendorSlots(organizationId: string, eventId: stri
 }
 
 export async function addEventVendorSlot(organizationId: string, eventId: string, label: string): Promise<EventVendorSlot> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   const row = await insertEventVendorSlot(organizationId, eventId, label.trim());
   if (!row) throw new EventNotFoundError();
   return toEventVendorSlot(row);
@@ -1011,10 +1036,14 @@ export async function listEventPlaces(organizationId: string, eventId: string): 
 }
 
 export async function addEventPlace(organizationId: string, eventId: string, input: EventPlaceInput): Promise<EventPlace> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   return addPlace(organizationId, eventId, input);
 }
 
 export async function updateEventPlace(organizationId: string, eventId: string, placeId: string, input: EventPlaceInput): Promise<EventPlace> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   return updatePlace(organizationId, eventId, placeId, input);
 }
 
@@ -1023,6 +1052,8 @@ export async function makeEventReceptionPlace(organizationId: string, eventId: s
 }
 
 export async function removeEventPlace(organizationId: string, eventId: string, placeId: string): Promise<void> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   await removePlace(organizationId, eventId, placeId);
 }
 
@@ -1050,6 +1081,8 @@ export async function listVendorCandidates(organizationId: string, eventId: stri
 }
 
 export async function addVendorCandidate(input: AddVendorCandidateInput): Promise<VendorCandidate> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(input.organizationId, input.eventId);
   return addCandidate(input);
 }
 
@@ -1155,6 +1188,8 @@ export async function listEventDocumentFolders(organizationId: string, eventId: 
 }
 
 export async function createEventDocumentFolder(organizationId: string, eventId: string, name: string): Promise<EventDocumentFolder> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   const folder = await createDocumentFolder(organizationId, eventId, name);
   if (!folder) throw new EventNotFoundError();
   return folder;
@@ -1255,6 +1290,8 @@ export async function listEventDayContacts(organizationId: string, eventId: stri
 }
 
 export async function addEventDayContact(organizationId: string, eventId: string, input: EventDayContactInput): Promise<EventDayContact> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   const contact = await addDayContact(organizationId, eventId, input);
   if (!contact) throw new EventNotFoundError();
   return contact;
@@ -1446,10 +1483,14 @@ export async function getTaskRecalculation(organizationId: string, eventId: stri
 }
 
 export async function resolveTaskRecalculation(organizationId: string, eventId: string, accept: boolean): Promise<void> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   if (!(await resolveTaskRecalculationRow(organizationId, eventId, accept))) throw new EventNotFoundError();
 }
 
 export async function applyTaskTemplate(organizationId: string, eventId: string, templateId: string): Promise<EventTask[]> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   const result = await applyTaskTemplateRows(organizationId, eventId, templateId);
   switch (result.status) {
     case "applied":
@@ -1502,6 +1543,8 @@ export async function listOrganizationTasks(input: ListOrganizationTasksInput): 
 }
 
 export async function addEventTask(organizationId: string, eventId: string, task: EventTaskInput): Promise<EventTask> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   assertDate(task.dueDate);
   if (!TASK_RESPONSIBLES.includes(task.responsible)) throw new RangeError("responsable inconnu");
   const row = await insertEventTask(organizationId, eventId, { ...task, label: normalizeLabel(task.label) });
@@ -1673,6 +1716,8 @@ export async function getEventProgram(organizationId: string, eventId: string): 
 // sans note interne, avec sa date et son auteur ; refusé si le programme est vide ou déjà diffusé
 // tel quel. Clients et prestataires lisent la dernière version diffusée.
 export async function publishEventProgram(input: PublishEventProgramInput): Promise<ProgramVersionSummary> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(input.organizationId, input.eventId);
   const program = await getEventProgram(input.organizationId, input.eventId);
   const items = publishedProgramItems(program.items);
   if (items.length === 0) throw new ProgramPublishError("empty");
@@ -1807,6 +1852,8 @@ async function linkPublishedProgram(organizationId: string, linkId: string, even
 }
 
 export async function addProgramItem(organizationId: string, eventId: string, item: ProgramItemInput): Promise<ProgramItem> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   return savedProgramItem(
     await insertProgramItem(
       organizationId,
@@ -1838,6 +1885,8 @@ export async function removeProgramItem(organizationId: string, itemId: string):
 // Lot 30b (CHR-06, décision D8) : décale des séquences de l'événement, début et fin ;
 // sert aussi à annuler (décalage opposé). Tout ou rien.
 export async function shiftProgramItems(organizationId: string, eventId: string, itemIds: string[], minutes: number): Promise<ProgramItem[]> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
   const ids = [...new Set(itemIds)];
   if (!Number.isInteger(minutes) || minutes === 0 || Math.abs(minutes) > MAX_SHIFT_MINUTES || ids.length === 0) throw new RangeError("décalage invalide");
   const result = await shiftProgramItemRows(organizationId, eventId, ids, minutes);
@@ -2100,6 +2149,8 @@ async function linkEmailValues(input: { organizationId: string; eventId: string;
 }
 
 export async function createEventLink(input: CreateEventLinkInput): Promise<EventLinkDelivery> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(input.organizationId, input.eventId);
   if (!CREATABLE_AUDIENCES.includes(input.audience)) throw new EventLinkInvalidError("audience");
   const fields = validLinkFields(input.link);
   const vocabulary = input.vocabulary ?? (await findEventAudience(input.organizationId, input.eventId)) ?? "couple";
@@ -2263,6 +2314,8 @@ export async function listDayHelpers(organizationId: string, eventId: string, no
 // D3 : le renfort reçoit par e-mail son lien personnel, valable de la veille au lendemain de
 // l'évènement daté ; il demande un code à l'ouverture. Un évènement sans date ou d'essai n'en a pas.
 export async function createDayHelper(input: { organizationId: string; eventId: string; helper: DayHelperInput; locale: "fr" | "en"; byUserId: string }): Promise<{ helper: DayHelper; url: string }> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(input.organizationId, input.eventId);
   const fields = validDayHelper(input.helper);
   const found = await findEventById(input.organizationId, input.eventId);
   if (!found) throw new EventNotFoundError();
@@ -2751,6 +2804,8 @@ async function decisionsWithContext(organizationId: string, eventId: string, row
 }
 
 export async function requestDecision(input: RequestDecisionInput): Promise<EventDecision> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(input.organizationId, input.eventId);
   const { organizationId, eventId } = input;
   const found = await findEventById(organizationId, eventId);
   if (!found) throw new EventNotFoundError();
@@ -4025,3 +4080,70 @@ export {
   suggestedClientTerms,
   type LateTask,
 } from "./planning";
+
+// —— Lot 58 (PAR-09, EVT-08 ; D4, D5 ; ADR 0097) — clôture, archivage, modèles et duplication ——————————
+
+import { closeEvent as closeEventRow, assertEventWritable as assertEventWritableRow } from "./closing";
+import { applyTemplateStructures, readEventStructure } from "./event-templates";
+import type { EventTemplateContent } from "./template-rules";
+import type { ClosingBudgetSnapshot } from "@symbola/db/schema/events";
+
+export {
+  archiveEvent,
+  archivedEventIds,
+  assertEventWritable,
+  ClosingInputError,
+  ClosingSettingsError,
+  draftReviewRequest,
+  EventArchivedError,
+  EventNotClosableError,
+  getClosingSettings,
+  getEventClosing,
+  isEventArchived,
+  listClosingCandidates,
+  listEventClosings,
+  ReviewRequestError,
+  saveClosingNotes,
+  saveClosingSettings,
+  sendReviewRequest,
+  unarchiveEvent,
+  type ClosingDigest,
+  type ClosingNotesInput,
+  type ClosingSettingsView,
+  type ClosingView,
+  type ReviewRecipient,
+} from "./closing";
+export { CLOSING_STEPS, closingChecklist, closingComplete, parseHours, type ClosingFacts, type ClosingItem, type ClosingStep, type ClosingStepStatus } from "./closing-rules";
+export { EventTemplateNotFoundError, getEventTemplate, listEventTemplates, removeEventTemplate, saveEventTemplate, type EventTemplateDetail, type EventTemplateSummary } from "./event-templates";
+export { EventTemplateInvalidError, eventTemplateContentSchema, findTemplatePersonalData, type EventTemplateContent, type TemplateFinding } from "./template-rules";
+export type { ClosingBudgetSnapshot } from "@symbola/db/schema/events";
+
+// Clôturer : « Clôturé » (historisé) s'il ne l'est pas déjà, puis le budget final se fige.
+export async function closeEventWithBudget(input: { organizationId: string; eventId: string; userId: string; budget: ClosingBudgetSnapshot; now?: Date }) {
+  await assertEventWritableRow(input.organizationId, input.eventId);
+  const event = await getEvent(input.organizationId, input.eventId);
+  if (!event) throw new EventNotFoundError();
+  if (event.status === "confirmed" || event.status === "in_preparation") await changeEventStatus({ organizationId: input.organizationId, eventId: input.eventId, changedByUserId: input.userId, toStatus: "closed" });
+  return closeEventRow(input);
+}
+
+// Les structures d'un évènement (modèle ou duplication), sans les lignes du budget.
+export async function readEventStructureOf(organizationId: string, eventId: string, includeVendors: boolean) {
+  return readEventStructure(organizationId, eventId, { includeVendors });
+}
+
+// EVT-08 : un évènement neuf, en Option, sans client, invité, devis ni facture, à la date donnée ; les
+// structures s'y posent (dates recalculées). Renvoie l'évènement et ses postes (par libellé).
+export async function createEventFromStructure(input: { organizationId: string; userId: string; eventDate: string; eventTypeId: string | null; prospectSourceId: string | null; content: EventTemplateContent; locale: "fr" | "en" }): Promise<{ eventId: string; slotIds: Map<string, string> }> {
+  assertDate(input.eventDate);
+  const sources = await listProspectSources(input.organizationId);
+  const prospectSourceId = sources.some((source) => source.id === input.prospectSourceId) ? input.prospectSourceId! : sources[0]?.id;
+  if (!prospectSourceId) throw new EventNotFoundError();
+  const eventTypeId = input.eventTypeId && (await listEventTypes(input.organizationId)).some((type) => type.id === input.eventTypeId) ? input.eventTypeId : null;
+  const { id } = await createProspect({ organizationId: input.organizationId, createdByUserId: input.userId, clients: [], prospectSourceId, eventTypeId, eventDate: input.eventDate, applyTemplate: false });
+  const slotIds = await applyTemplateStructures({ organizationId: input.organizationId, eventId: id, eventDate: input.eventDate, content: input.content, locale: input.locale });
+  for (const item of input.content.program) {
+    await addProgramItem(input.organizationId, id, { startTime: item.startTime, endTime: item.endTime, label: item.label, location: item.location, vendorSlotIds: [], freeParticipants: [] });
+  }
+  return { eventId: id, slotIds };
+}

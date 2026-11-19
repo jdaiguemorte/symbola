@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "_source": "Lot 58 (FAC-11 ; D1, D2 ; ADR 0097 ; réponse 8 de l'expert-comptable, à relire : EC-9) : famille d'export proposée selon la forme juridique du profil (modifiable à chaque export), plan de comptes et codes des journaux de départ (réglables par l'organisation), libellés des journaux. Rien de ces valeurs n'est écrit dans le code (CLAUDE.md § 2.6).",
+  "familyByLegalForm": {
+    "auto_entrepreneur": "micro",
+    "ei": "real",
+    "eirl": "real",
+    "eurl": "real",
+    "sarl": "real",
+    "sas": "real",
+    "sasu": "real",
+    "sa": "real",
+    "autre": "real"
+  },
+  "familyWithoutLegalForm": "micro",
+  "accounts": {
+    "sales": { "number": "706", "label": { "fr": "Prestations de services", "en": "Services rendered" } },
+    "vatCollected": { "number": "44571", "label": { "fr": "TVA collectée", "en": "Output VAT" } },
+    "clients": { "number": "411", "label": { "fr": "Clients", "en": "Customers" } },
+    "bank": { "number": "512", "label": { "fr": "Banque", "en": "Bank" } },
+    "clientAdvances": { "number": "4191", "label": { "fr": "Clients, avances et acomptes reçus", "en": "Customer advances received" } }
+  },
+  "journals": {
+    "sales": { "code": "VE", "label": { "fr": "Journal des ventes", "en": "Sales journal" } },
+    "bank": { "code": "BQ", "label": { "fr": "Journal de banque", "en": "Bank journal" } }
+  }
+}

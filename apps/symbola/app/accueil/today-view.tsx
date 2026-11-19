@@ -27,6 +27,8 @@ export function todayWords(t: TodayTranslator): TodayWords {
     depositBlocked: (number) => t("words.depositBlocked", { number }),
     vendorContract: (vendor, slot) => t("words.vendorContract", { vendor, slot }),
     dateConflict: (count) => t("words.dateConflict", { count }),
+    // Lot 58 (PAR-09) : l'évènement passé dont la liste de clôture attend.
+    closingDue: t("words.closingDue"),
     linkRenewal: (name) => t("words.linkRenewal", { name }),
     guestPurge: (stage) => t(stage === "diets" ? "words.guestPurgeDiets" : "words.guestPurgeAll"),
     guestOpposition: (count) => t("words.guestOpposition", { count }),

@@ -226,6 +226,15 @@ export const AUDIT_ACTIONS = {
   "vendors.document.requested": { category: "partage", objectType: "vendor" },
   "vendors.document.received": { category: "partage", objectType: "vendor" },
   "vendors.document.verified": { category: "partage", objectType: "vendor" },
+  // Lot 58 (PAR-09, FAC-11 ; ADR 0097) : évènement clôturé (budget figé), archivé ou désarchivé ;
+  // remerciement et demande d'avis envoyés (nombre de destinataires, jamais d'adresse) ; export
+  // comptable téléchargé ou bloqué par le contrôle (format, période, totaux ; aucune donnée personnelle).
+  "events.event.closed": { category: "emission", objectType: "event" },
+  "events.event.archived": { category: "administration", objectType: "event" },
+  "events.event.unarchived": { category: "administration", objectType: "event" },
+  "events.review_request.sent": { category: "partage", objectType: "event" },
+  "quotes.accounting.exported": { category: "export", objectType: null },
+  "quotes.accounting.blocked": { category: "export", objectType: null },
 } as const satisfies Record<string, ActionSpec>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;

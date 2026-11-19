@@ -7,6 +7,7 @@ import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import {
+  eventClosings,
   dayChecklists,
   dayIncidents,
   dayPhotos,
@@ -216,6 +217,12 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       }
       // Fil d'activité des mariés (qui a coché quelle tâche) : données sur eux.
       await tx.delete(eventActivities).where(inArray(eventActivities.eventId, eventIds));
+      // Lot 58 (PAR-09) : les leçons et les libellés des frais propres de la clôture (texte libre) ; les
+      // montants, le temps passé et le budget figé restent.
+      await tx
+        .update(eventClosings)
+        .set({ lessons: [], ownExpenses: sql`coalesce((select jsonb_agg(jsonb_build_object('label', ${ANONYMIZED}::text, 'amountCents', e -> 'amountCents')) from jsonb_array_elements(${eventClosings.ownExpenses}) e), '[]'::jsonb)`, updatedAt: now })
+        .where(inArray(eventClosings.eventId, eventIds));
       // Lot 44 (CRM-01) : la demande du formulaire de contact (message libre de la personne).
       await tx.delete(prospectRequests).where(inArray(prospectRequests.eventId, eventIds));
       // Lot 51 (JRJ-07, DPO-9) : la main courante, ses photos (fichiers compris), les listes et le bilan

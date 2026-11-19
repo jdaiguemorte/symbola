@@ -19,6 +19,7 @@ import {
   vendorTags,
   vendorTypeFields,
   vendorTypes,
+  vendorEvaluations,
 } from "@symbola/db/schema/vendors";
 
 export const VENDORS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
@@ -36,6 +37,8 @@ export const VENDORS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: vendorDocumentKinds },
   { table: vendorDocuments, parents: { vendorId: "vendors", kindId: "vendor_document_kinds" }, files: ["fileKey"] },
   { table: vendorBankChanges, parents: { vendorId: "vendors" } },
+  // Lot 58 (PRE-08) : évaluations après les évènements, internes ; l'export de l'organisation lui revient.
+  { table: vendorEvaluations, parents: { vendorId: "vendors" } },
 ];
 
 // Toutes les tables du module sont exportées.

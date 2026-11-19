@@ -102,6 +102,9 @@ export default async function AccountingPage({ searchParams }: { searchParams: P
             <Link href="/devis/encaissements">{t("links.payments")}</Link>
           </li>
           <li>
+            <Link href="/devis/exports-comptables">{t("links.exports")}</Link>
+          </li>
+          <li>
             <Link href="/devis/parametres/archive">{t("links.ledger")}</Link>
           </li>
           <li>

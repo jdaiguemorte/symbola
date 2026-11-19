@@ -347,3 +347,44 @@ prestataire lui est facturée par la planner, dans la même série de factures, 
 > chiffre d'affaires compté pour l'alerte.
 
 Besoin : une réponse **avant la première facture d'une organisation qui revend des prestations**.
+
+## Question du 19 novembre 2026 (lot 58)
+
+Numéro provisoire, donné à la fusion.
+
+### 20. Le FEC et les journaux produits par Symbola (EC-9)
+
+Suite à votre réponse 8 : Symbola propose l'export d'après la forme juridique du profil (modifiable à
+chaque export). Pour une **micro-entreprise**, le journal des recettes (CSV) : date d'encaissement,
+mode, numéro de facture, client, montant. Pour une **société ou une EI au réel**, le journal des
+ventes et le journal des encaissements (CSV) et, sur une année ou un exercice, le **FEC** (18 colonnes
+dans l'ordre réglementaire, séparateur « | », dates AAAAMMJJ, montants à virgule, nom
+SIREN + « FEC » + date de clôture). Les PDF d'origine des factures et avoirs partent dans une archive
+ZIP à part. Chaque export est contrôlé : totaux au centime, numérotation continue avec les avoirs ; un
+écart bloque l'export.
+
+Écritures produites aujourd'hui :
+
+- une facture : **411** Clients au débit (TTC), **706** Prestations de services au crédit (HT), **44571**
+  TVA collectée au crédit, une ligne par taux ; un avoir, l'inverse ; une facture de commission au
+  prestataire, de même (706) ;
+- un encaissement : **512** Banque au débit, **411** au crédit ; une annulation d'encaissement, l'inverse ;
+  les arrhes reçues (non facturées) passent de même ;
+- le compte **4191** (avances et acomptes reçus) est dans le plan de départ, mais pas encore employé : les
+  factures d'acompte passent en 706 comme la facture de solde, qui ne porte que le reste dû.
+
+Questions :
+
+- Ce plan de comptes par défaut (706, 44571, 411, 512, 4191), les libellés et les codes de journaux
+  (VE, BQ) conviennent-ils ? La planner peut les changer, mais le départ doit être juste.
+- Les factures d'acompte doivent-elles passer en **4191**, puis être soldées par la facture de solde ?
+- Faut-il un **compte client par client** (comptes auxiliaires, colonnes CompAuxNum et CompAuxLib du
+  FEC), ou le 411 collectif suffit-il pour vos clients planners ?
+- Le FEC en UTF-8 avec le séparateur « | » vous convient-il, ou préférez-vous la tabulation ou un autre
+  encodage ?
+- Les arrhes (indemnité de dédit, hors TVA) doivent-elles aller dans un autre compte que 411 ?
+
+> En attendant : le plan et les écritures ci-dessus, réglables par la planner ; aucun compte
+> auxiliaire ; le FEC est proposé, à relire par vous avant tout dépôt.
+
+Besoin : une réponse **avant le premier export d'une société cliente**.

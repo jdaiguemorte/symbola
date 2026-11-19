@@ -1473,6 +1473,22 @@
     "standaloneTasks": {
       "title": "Tasks outside events",
       "body": "A task without an event appears in “Today” when due. Once checked, a repeating task creates the next one."
+    },
+    "eventClosing": {
+      "title": "Event closing",
+      "body": "From the day after the event, the closing checklist gathers what is left: the balance invoice, vendor payments, commissions, vendor evaluations (internal), your three lessons and the thank-you to the client with your review link. The review shows the final budget, your fees, commissions, own expenses and margin. Time spent is optional. Close, then archive: the event becomes read-only and leaves your lists."
+    },
+    "eventTemplatesList": {
+      "title": "Event templates",
+      "body": "An event saved as a template keeps its timeline, programme, budget structure (without amounts), questionnaires and, if you chose so, its vendors. Never any client data: Symbola refuses a template that contains some. Create an event from a template by choosing its date."
+    },
+    "closingDashboard": {
+      "title": "Your reviews",
+      "body": "The closed events for which you entered the time spent, with the margin and the margin per hour. Without time entered, nothing appears: it is optional."
+    },
+    "accountingExports": {
+      "title": "Accounting exports",
+      "body": "Choose the period (month, quarter, year or financial year). Symbola suggests the format from your legal form: receipts journal for a micro-business; sales and payments journals and FEC for a company or a sole trader under the real regime; original PDFs in a ZIP archive. Each export is checked: totals to the cent, continuous numbering including credit notes; a discrepancy blocks the export and is explained. Trial data is never included."
     }
   },
   "Aide": {
@@ -2198,7 +2214,11 @@
     "eventNotesSave": "Save the notes",
     "eventNotesSaved": "Notes saved.",
     "eventNotesForbidden": "These confidential notes are reserved for their author and the account owner.",
-    "eventNotesConfidentialHidden": "Confidential notes exist: they are reserved for their author and the account owner."
+    "eventNotesConfidentialHidden": "Confidential notes exist: they are reserved for their author and the account owner.",
+    "archivedFilter": "Archived",
+    "currentFilter": "Current and past",
+    "archivedTag": "Archived",
+    "archivedEmpty": "No archived event."
   },
   "Budget": {
     "title": "Budget",
@@ -4895,7 +4915,15 @@
     "fieldYes": "Yes",
     "fieldNo": "No",
     "internalNoteConfidentialElsewhere": "The internal note is confidential: edit it in its own section of the record.",
-    "historyTable": "Table of the history with you"
+    "historyTable": "Table of the history with you",
+    "evaluationsTitle": "Collaboration history",
+    "evaluationsHelp": "Your evaluations after each event, internal to your organization.",
+    "evaluationsEmpty": "No evaluation yet.",
+    "evaluationsAverage": "Average {average} out of 5 · {count, plural, one {# evaluation} other {# evaluations}} · last on {date}",
+    "evaluationsEntry": "{event}: {rating} out of 5",
+    "evaluationsCriteria": "Punctuality {punctuality} · quality {quality} · relationship {value}",
+    "evaluationsCardRating": "Overall rating on the card: {rating} out of 5",
+    "evaluationsUnknownEvent": "Removed event"
   },
   "Onboarding": {
     "title": "Let's set up your workspace",
@@ -5186,7 +5214,9 @@
     "notifications": "Notifications",
     "automations": "Automations",
     "riskRadar": "Risk radar",
-    "clientTerms": "Client terms"
+    "clientTerms": "Client terms",
+    "accountingExports": "Accounting exports",
+    "eventTemplates": "Event templates"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -5501,7 +5531,13 @@
       "hub_ownership_transferred": "Ownership transferred",
       "hub_ownership_transfer_cancelled": "Ownership transfer cancelled",
       "hub_organization_visibility_changed": "Event visibility changed",
-      "events_team_changed": "Event team changed"
+      "events_team_changed": "Event team changed",
+      "events_event_closed": "Event closed, budget frozen",
+      "events_event_archived": "Event archived",
+      "events_event_unarchived": "Event unarchived",
+      "events_review_request_sent": "Thank-you and review request sent",
+      "quotes_accounting_exported": "Accounting export downloaded",
+      "quotes_accounting_blocked": "Accounting export blocked by the check"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -5682,7 +5718,13 @@
       "hub_automations": "automation setting",
       "hub_risk_rules": "risk radar rule",
       "events_event_type_vocabulary": "client term of a type",
-      "events_planning_health_settings": "planning health thresholds"
+      "events_planning_health_settings": "planning health thresholds",
+      "events_event_closings": "event closing",
+      "events_closing_settings": "review request setting",
+      "events_event_templates": "event template",
+      "vendors_vendor_evaluations": "vendor evaluation",
+      "quotes_accounting_export_settings": "accounting export setting",
+      "quotes_accounting_exports": "accounting export"
     },
     "modules": {
       "events": "Events",
@@ -6658,7 +6700,8 @@
         "to_verify": "{vendor}'s {document}: uploaded, to check"
       },
       "vendorBankCheck": "{vendor}'s IBAN changed: check it by phone before any payment",
-      "standaloneTaskTag": "Outside events"
+      "standaloneTaskTag": "Outside events",
+      "closingDue": "To close"
     },
     "myEventsTitle": "My events",
     "myEventsEmpty": "No event in progress.",
@@ -9871,7 +9914,8 @@
       "eReporting": "E-reporting",
       "ledger": "Ledgers and exports",
       "sessions": "My sessions",
-      "account": "My account"
+      "account": "My account",
+      "exports": "Accounting exports"
     },
     "title": "Accounting of {organization}",
     "subtitle": "Your access is read-only: you view and download, nothing can be changed from here.",
@@ -9894,7 +9938,8 @@
     "links": {
       "payments": "Payments",
       "ledger": "Ledgers and entries (CSV)",
-      "eReporting": "E-reporting"
+      "eReporting": "E-reporting",
+      "exports": "Accounting exports (journals, FEC, original PDFs)"
     },
     "moduleUnavailable": "The organization does not subscribe to the Quotes and invoices module: nothing to view yet.",
     "documentsTable": "Table of invoices and credit notes"
@@ -10311,5 +10356,316 @@
     "saved": "Term saved.",
     "invalid": "Enter a short term (40 characters at most).",
     "clientsHeading": "Clients: {term}"
+  },
+  "Closing": {
+    "title": "Event closing",
+    "subtitle": "Invoice the balance, settle what is left, rate your vendors and see what the event earned you.",
+    "back": "Back to the event",
+    "openChecklist": "Open the closing checklist",
+    "closingLink": "Closing and review",
+    "dueBanner": "The event is over: its closing checklist is waiting for you.",
+    "checklistTitle": "Closing checklist",
+    "checklistLabel": "Closing steps",
+    "steps": {
+      "balance_invoice": "Balance invoice",
+      "vendor_payments": "Vendor payments",
+      "commissions": "Commissions to invoice",
+      "evaluations": "Vendor evaluations",
+      "time_spent": "Time spent (optional)",
+      "lessons": "Three lessons",
+      "review_request": "Thank-you and review request"
+    },
+    "status": {
+      "done": "Done",
+      "todo": "To do",
+      "optional": "Optional",
+      "unavailable": "Unavailable"
+    },
+    "stepCount": "{count, plural, one {# left} other {# left}}",
+    "stepOpen": "Open",
+    "markDone": "Mark as done",
+    "markTodo": "Mark as to do",
+    "unavailableHelp": "This module is not part of your subscription.",
+    "evaluationsTitle": "Rate your vendors",
+    "evaluationsHelp": "Your evaluation stays internal: neither the client, the vendor nor your accountant ever see it.",
+    "noRetainedVendors": "No vendor was booked for this event.",
+    "vendorNotLinked": "This vendor is not linked to your vendor book: link it to rate it.",
+    "rating": "Rating",
+    "ratingOption": "{value} out of 5",
+    "criteriaNone": "—",
+    "criteria": {
+      "punctuality": "Punctuality",
+      "quality": "Quality",
+      "value": "Relationship or value for money"
+    },
+    "comment": "Comment",
+    "evaluate": "Save the evaluation",
+    "evaluated": "Evaluation saved.",
+    "evaluatedOn": "Rated {rating} out of 5",
+    "notesTitle": "Time spent and lessons",
+    "timeSpent": "Time spent (hours)",
+    "timeSpentHelp": "Optional: enter it if you want to know your margin per hour (“12.5” or “12:30”).",
+    "lesson": "Lesson {index}",
+    "saveNotes": "Save",
+    "notesSaved": "Saved.",
+    "expensesTitle": "Your own expenses",
+    "expensesHelp": "Travel, subcontracting… They count in your margin and never go into the client's budget. Amounts before tax.",
+    "expenseLabel": "Label",
+    "expenseAmount": "Amount before tax (€)",
+    "addExpense": "Add",
+    "removeExpense": "Remove {label}",
+    "noExpenses": "No expense entered.",
+    "summaryTitle": "Financial review",
+    "summaryHelp": "Internal: never shown to the client or the accountant.",
+    "budgetTitle": "Client's final budget",
+    "budgetFrozen": "Frozen at closing, on {date}.",
+    "budgetLive": "It will be frozen at closing.",
+    "budgetUnavailable": "Budget module not subscribed.",
+    "budget": {
+      "estimated": "Estimated",
+      "committed": "Committed",
+      "paid": "Paid",
+      "remaining": "Remaining",
+      "variance": "Variance to the envelope"
+    },
+    "fees": "Fees",
+    "commissions": "Commissions",
+    "ownExpenses": "Own expenses",
+    "margin": "Margin",
+    "marginPerHour": "Margin per hour",
+    "dashboardLink": "See all your reviews",
+    "closeTitle": "Close",
+    "closeHelp": "Closing freezes the final budget and marks the event “Closed”.",
+    "closeButton": "Close the event",
+    "closedOn": "Closed on {date}.",
+    "incomplete": "Some steps are still to do; you can close anyway.",
+    "archiveTitle": "Archive",
+    "archiveHelp": "The event becomes read-only and leaves your lists; it stays available with the “Archived” filter. Scheduled purges keep their calendar.",
+    "archiveButton": "Archive the event",
+    "archivedBanner": "Archived event: read-only.",
+    "unarchiveButton": "Unarchive",
+    "templateTitle": "Save as a template",
+    "templateHelp": "The template keeps the timeline, the programme, the budget structure (without amounts) and the questionnaires. No data about your clients.",
+    "templateName": "Template name",
+    "includeVendors": "Keep the booked vendors (professional contacts)",
+    "saveTemplate": "Save the template",
+    "templateSaved": "Template saved.",
+    "personalDataFound": "The template contains personal data; remove it first:",
+    "findingPlace": {
+      "name": "Template name",
+      "task": "Task",
+      "program": "Programme",
+      "slot": "Category",
+      "budget_line": "Budget line",
+      "questionnaire": "Questionnaire",
+      "vendor": "Vendor"
+    },
+    "findingKind": {
+      "email": "email",
+      "phone": "phone number",
+      "client_name": "client's name"
+    },
+    "finding": "{place} “{label}”: {kind}",
+    "duplicateTitle": "Duplicate",
+    "duplicateHelp": "A copy at a new date: timeline recalculated, programme, budget structure. No client, guest, quote or invoice.",
+    "duplicateDate": "New date",
+    "duplicateButton": "Duplicate the event",
+    "templatesLink": "Your event templates",
+    "reviewTitle": "Thank-you and review request",
+    "reviewHelp": "Read and edit the message before sending it. It is sent from Symbola to each client's address.",
+    "reviewOpen": "Prepare the message",
+    "reviewSentOn": "Sent on {date}.",
+    "reviewNoLink": "No review link set: the message only thanks the client.",
+    "reviewLinkTitle": "Your review link",
+    "reviewLinkHelp": "Google, a wedding directory, your website… The link your clients will follow. No incentive, no condition.",
+    "reviewUrl": "Address (https://…)",
+    "reviewLabel": "Platform name",
+    "saveReviewLink": "Save the link",
+    "reviewLinkSaved": "Link saved.",
+    "recipients": "Recipients",
+    "noRecipients": "No client has an email address on the event: add one first.",
+    "subject": "Subject",
+    "body": "Message",
+    "send": "Send",
+    "sent": "Message sent.",
+    "errors": {
+      "unauthenticated": "Your session has expired: sign in again.",
+      "moduleUnavailable": "The Events module is not subscribed.",
+      "notFound": "Event not found.",
+      "archived": "Archived event: read-only.",
+      "notClosable": "Only a confirmed or in-preparation event can be closed.",
+      "notFinished": "Close or cancel the event before archiving it.",
+      "demo": "A trial event cannot be closed.",
+      "lessons": "Three lessons at most, 500 characters each.",
+      "expenses": "A label and a positive amount in euros are required.",
+      "timeSpent": "Invalid time: “12.5” or “12:30”.",
+      "steps": "Unknown step.",
+      "rating": "Choose a rating from 1 to 5.",
+      "comment": "Comment too long (2,000 characters at most).",
+      "notRetained": "Only a vendor booked for this event can be rated.",
+      "templateName": "Give the template a name (120 characters at most).",
+      "templateContent": "The template could not be saved.",
+      "date": "Choose a date.",
+      "reviewUrl": "Invalid address: it must start with https://.",
+      "reviewLabel": "Name too long (60 characters at most).",
+      "reviewEmpty": "The subject and the message are required.",
+      "reviewTooLong": "Message too long.",
+      "reviewPlaceholder": "A variable in braces is still in the message: replace it.",
+      "reviewNoRecipient": "No recipient.",
+      "mailQuota": "Email quota reached: try again later."
+    }
+  },
+  "EventTemplates": {
+    "title": "Event templates",
+    "subtitle": "Events turned into templates: timeline, programme, budget structure, questionnaires.",
+    "empty": "No template yet. Save an event as a template from its closing page.",
+    "listLabel": "Event templates",
+    "counts": "{tasks} tasks · {program} sequences · {slots} categories",
+    "withVendors": "with vendors",
+    "eventDate": "Event date",
+    "create": "Create an event",
+    "createLabel": "Create an event from “{name}”",
+    "remove": "Delete",
+    "removeLabel": "Delete the template “{name}”",
+    "removed": "Template deleted.",
+    "errors": {
+      "notFound": "Template not found.",
+      "date": "Choose a date.",
+      "unauthenticated": "Your session has expired: sign in again."
+    }
+  },
+  "ClosingDashboard": {
+    "title": "Your reviews",
+    "subtitle": "The closed events for which you entered the time spent.",
+    "empty": "No time entered yet.",
+    "tableLabel": "Event reviews",
+    "event": "Event",
+    "closedOn": "Closed on",
+    "hours": "Time",
+    "margin": "Margin",
+    "perHour": "Per hour",
+    "hoursValue": "{hours} h"
+  },
+  "AccountingExports": {
+    "title": "Accounting exports",
+    "subtitle": "The period's journals, checked to the cent, for your accountant.",
+    "readOnly": "Read-only",
+    "periodTitle": "Period",
+    "periodKind": "Period type",
+    "periodKinds": {
+      "month": "Month",
+      "quarter": "Quarter",
+      "year": "Calendar year",
+      "fiscal_year": "Financial year"
+    },
+    "year": "Year",
+    "month": "Month",
+    "quarter": "Quarter",
+    "quarterOption": "Q{index}",
+    "show": "Show",
+    "periodLabel": "From {start} to {end}",
+    "familyTitle": "Format",
+    "familyLabel": "Export format",
+    "families": {
+      "micro": "Micro-business: receipts journal",
+      "real": "Company or sole trader (real regime): sales and payments journals, FEC"
+    },
+    "familyDefault": "Suggested from your legal form; you can choose another one.",
+    "checkTitle": "Reconciliation check",
+    "checkOk": "Reconciled to the cent: continuous numbering, totals equal to your documents.",
+    "checkBlocked": "Export blocked: fix these discrepancies first.",
+    "invoiced": "Invoiced",
+    "credited": "Credit notes",
+    "received": "Received",
+    "documents": "Documents",
+    "issues": {
+      "missing_number": "{number} missing from the numbering.",
+      "total_mismatch": "{total} total: {exportAmount} in the export, {expectedAmount} in your documents.",
+      "unbalanced": "{number}: inconsistent totals.",
+      "missing_original": "{number}: original PDF not found."
+    },
+    "totals": {
+      "invoiced": "invoiced",
+      "credited": "credit notes",
+      "received": "received"
+    },
+    "filesTitle": "Files",
+    "formats": {
+      "receipts_journal": "Receipts journal (CSV)",
+      "sales_journal": "Sales journal (CSV)",
+      "payments_journal": "Payments journal (CSV)",
+      "fec": "FEC (accounting entries file)",
+      "originals": "Original PDFs of invoices and credit notes (ZIP)"
+    },
+    "download": "Download",
+    "downloadLabel": "Download: {format}",
+    "fecYearOnly": "The FEC is produced for a year or a financial year.",
+    "settingsTitle": "Chart of accounts",
+    "settingsHelp": "Starter accounts and journals, to review with your accountant.",
+    "fiscalYearStart": "First month of the financial year",
+    "accounts": {
+      "sales": "Sales",
+      "vatCollected": "Output VAT",
+      "clients": "Customers",
+      "bank": "Bank",
+      "clientAdvances": "Advances received"
+    },
+    "journals": {
+      "sales": "Sales journal",
+      "bank": "Bank journal"
+    },
+    "accountNumber": "{name} account",
+    "accountLabel": "{name} label",
+    "journalCode": "{name} code",
+    "journalLabel": "{name} label",
+    "saveSettings": "Save the chart",
+    "settingsSaved": "Chart saved.",
+    "historyTitle": "Latest exports",
+    "historyEmpty": "No export yet.",
+    "historyLabel": "Latest exports",
+    "historyFormat": "Format",
+    "historyPeriod": "Period",
+    "historyStatus": "Check",
+    "historyDate": "On",
+    "statusDone": "Reconciled",
+    "statusBlocked": "Blocked",
+    "moduleUnavailable": "The Quotes and invoices module is not subscribed: no accounting export.",
+    "header": {
+      "period": "Period",
+      "organization": "Organization",
+      "exportedOn": "Exported on"
+    },
+    "receiptsColumns": {
+      "date": "Payment date",
+      "method": "Method",
+      "invoice": "Invoice number",
+      "client": "Customer",
+      "amount": "Amount (EUR)"
+    },
+    "journalColumns": {
+      "journal": "Journal",
+      "date": "Date",
+      "entry": "Entry",
+      "piece": "Document",
+      "account": "Account",
+      "label": "Label",
+      "debit": "Debit",
+      "credit": "Credit"
+    },
+    "total": "Total",
+    "lines": {
+      "invoice": "Invoice",
+      "creditNote": "Credit note",
+      "payment": "Payment",
+      "reversal": "Payment reversal"
+    },
+    "errors": {
+      "period": "Invalid period.",
+      "format": "This format is not available for this period.",
+      "month": "Invalid month.",
+      "account": "Invalid account: digits and letters, 20 characters at most.",
+      "journal": "Invalid journal code: 10 characters at most.",
+      "unauthenticated": "Your session has expired: sign in again."
+    }
   }
 }

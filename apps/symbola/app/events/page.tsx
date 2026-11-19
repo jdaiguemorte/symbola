@@ -65,6 +65,9 @@ export default async function EventsListPage({
   const tour = await loadPageTour(auth.user.id, "events", visite);
 
   const isPastTab = tab === "termines";
+  // Lot 58 (PAR-09, étape 5 ; ADR 0097) : un évènement archivé sort des listes courantes et se retrouve
+  // sous le filtre « Archivés », tous statuts confondus.
+  const isArchivedTab = tab === "archives";
   const tabStatuses = isPastTab ? PAST_STATUSES : UPCOMING_STATUSES;
   const statusFilter: EventStatus[] =
     status && tabStatuses.includes(status as EventStatus)
@@ -74,13 +77,13 @@ export default async function EventsListPage({
   // (quelques centaines au plus pour une organisation).
   // Lot 52 (EVT-06, D2) : les évènements visibles de la personne (réglage de visibilité).
   const scope = await visibleEventScope(auth);
-  const allEvents = withinScope(scope, await listEvents({ organizationId }), (event) => event.id);
+  const allEvents = withinScope(scope, await listEvents({ organizationId, archived: "exclude" }), (event) => event.id);
   const years = yearOptions(allEvents.map((event) => event.eventDate), parisToday());
   const yearFilter = parseYear(year, years);
   const counts = tabCounts(allEvents.map((event) => event.status));
   // Lot 32b (EVT-07, D11) : liste ou calendrier ; charge par mois ; jours à deux évènements.
-  const calendarView = !isPastTab && affichage === "calendrier";
-  const load = isPastTab ? [] : monthlyLoad(allEvents, parisToday().slice(0, 7));
+  const calendarView = !isPastTab && !isArchivedTab && affichage === "calendrier";
+  const load = isPastTab || isArchivedTab ? [] : monthlyLoad(allEvents, parisToday().slice(0, 7));
   const shared = sharedDates(allEvents);
   const sameDayAs = (eventId: string, date: string | null) =>
     date ? (shared.get(date) ?? []).filter((id) => id !== eventId).map((id) => allEvents.find((event) => event.id === id)).filter((event) => event !== undefined) : [];
@@ -95,10 +98,11 @@ export default async function EventsListPage({
     scope,
     await listEvents({
       organizationId,
-      statusIn: statusFilter,
+      statusIn: isArchivedTab ? undefined : statusFilter,
       year: yearFilter,
       search: search || undefined,
       prospectSourceId: sourceFilter,
+      archived: isArchivedTab ? "only" : "exclude",
     }),
     (event) => event.id,
   );
@@ -151,7 +155,7 @@ export default async function EventsListPage({
 
       {calendarView ? null : (
       <div data-tour="events-filters">
-      <FilterBar label={t("filtersLabel")} applyLabel={t("filter")} preserve={isPastTab ? { tab: "termines" } : {}}>
+      <FilterBar label={t("filtersLabel")} applyLabel={t("filter")} preserve={isPastTab ? { tab: "termines" } : isArchivedTab ? { tab: "archives" } : {}}>
         <label>
           {t("searchLabel")}
           <input type="search" name="search" defaultValue={search ?? ""} />
@@ -194,14 +198,17 @@ export default async function EventsListPage({
       )}
 
       <nav aria-label={t("tabsLabel")} className="segmented">
-        <Link href="/events" aria-current={!isPastTab ? "page" : undefined}>
+        <Link href="/events" aria-current={!isPastTab && !isArchivedTab ? "page" : undefined}>
           {t("tabUpcomingCount", { count: counts.upcoming })}
         </Link>
         <Link href="/events?tab=termines" aria-current={isPastTab ? "page" : undefined}>
           {t("tabPastCount", { count: counts.past })}
         </Link>
+        <Link href="/events?tab=archives" aria-current={isArchivedTab ? "page" : undefined}>
+          {t("archivedFilter")}
+        </Link>
       </nav>
-      {isPastTab ? null : (
+      {isPastTab || isArchivedTab ? null : (
         <nav aria-label={t("viewLabel")} className="segmented" data-tour="events-views">
           <Link href="/events" aria-current={calendarView ? undefined : "page"}>
             {t("viewList")}
@@ -250,7 +257,7 @@ export default async function EventsListPage({
       {!calendarView && items.length === 0 ? counts.upcoming + counts.past === 0 ? <EmptyState screen="events" actionHref="/events/new" /> : <p>{t("noResults")}</p> : null}
       {/* Lot 32a (D3), 32b (D11) : l'agenda des mois à venir, en vue calendrier. */}
       {calendarView ? <AgendaBlock organizationId={organizationId} scope={scope} locale={locale} today={parisToday()} query={{ agenda, debut }} params={{ affichage: "calendrier" }} /> : null}
-      {isPastTab ? null : <MonthlyLoad load={load} locale={locale} />}
+      {isPastTab || isArchivedTab ? null : <MonthlyLoad load={load} locale={locale} />}
       {counts.upcoming + counts.past === 0 ? (
         <section className="card" aria-labelledby="events-empty-trial">
           <h2 id="events-empty-trial">{t("trialTitle")}</h2>

@@ -43,6 +43,8 @@ import {
   proposalTemplates,
   plannerFees,
   vendorCommissions,
+  accountingExportSettings,
+  accountingExports,
 } from "@symbola/db/schema/quotes";
 
 import { openQuoteSettings, sealedBankColumns } from "./bank-details";
@@ -119,6 +121,9 @@ export const QUOTES_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: ledgerEntries, importSkip: "rechained" },
   // Lot 35b (D7, ADR 0098) : ancre d'une chaîne elle-même reprise (sa première écriture y pointe).
   { table: ledgerAnchors, idField: "organizationId", importSkip: "rechained" },
+  // Lot 58 (FAC-11) : réglages et traces des exports comptables (périodes, totaux, contrôle).
+  { table: accountingExportSettings },
+  { table: accountingExports },
 ];
 
 // Tables du module qui ne sont pas exportées, et pourquoi (docs/export/format-v1.md).

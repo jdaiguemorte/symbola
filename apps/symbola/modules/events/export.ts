@@ -70,6 +70,9 @@ import {
   questionnaireAnswers,
   questionnaireTemplateItems,
   questionnaireTemplates,
+  closingSettings,
+  eventClosings,
+  eventTemplates,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 
@@ -159,6 +162,11 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: questionnaireAnswers, parents: { questionnaireId: "event_questionnaires" } },
   // Lot 52 (EVT-06, D2) : l'équipe de chaque évènement (planner principal, assistants).
   { table: eventTeamMembers, ...ofEvent },
+  // Lot 58 (PAR-09, EVT-08 ; ADR 0097) : clôtures (leçons, temps passé, frais propres, budget figé), réglage
+  // du lien d'avis et modèles d'évènement (des structures, sans donnée personnelle).
+  { table: eventClosings, ...ofEvent },
+  { table: closingSettings },
+  { table: eventTemplates },
 ];
 
 // Tables du module qui ne sont pas exportées, et pourquoi (docs/export/format-v1.md).

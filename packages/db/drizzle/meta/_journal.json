@@ -1317,6 +1317,27 @@
       "when": 1795092531730,
       "tag": "0187_lot35c_quotes_erasable_pieces",
       "breakpoints": true
+    },
+    {
+      "idx": 188,
+      "version": "7",
+      "when": 1795119211167,
+      "tag": "0188_lot58_events_closing_templates",
+      "breakpoints": true
+    },
+    {
+      "idx": 189,
+      "version": "7",
+      "when": 1795119213057,
+      "tag": "0189_lot58_vendors_evaluations",
+      "breakpoints": true
+    },
+    {
+      "idx": 190,
+      "version": "7",
+      "when": 1795119214922,
+      "tag": "0190_lot58_quotes_accounting_exports",
+      "breakpoints": true
     }
   ]
 }

@@ -965,3 +965,7 @@ export {
   type ProgramSequenceInput,
 } from "./records";
 export { InvalidBankDetailsError, maskIban } from "./bank-details";
+
+// Lot 58 (PRE-08 ; ADR 0097) : évaluation après l'évènement et historique des collaborations, internes.
+export { evaluateVendor, EvaluationVendorNotFoundError, getVendorCollaborationHistory, listEventEvaluations, type CollaborationHistory, type VendorEvaluation } from "./evaluations";
+export { EVALUATION_CRITERIA, InvalidEvaluationError, type EvaluationCriterion, type EvaluationInput } from "./evaluation-rules";
