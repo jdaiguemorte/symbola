@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, describe, it } from "vitest";
 import { createAppConnection } from "./client";
 import { eventPlaces, eventVendorCandidateNotes, eventVendorCandidates, events, eventVendorSlots } from "./schema/events";
-import { vendorFiles, vendors, vendorSettings, vendorTags, vendorTypeFields, vendorTypes } from "./schema/vendors";
+import { vendorBankChanges, vendorDocumentKinds, vendorDocuments, vendorFiles, vendors, vendorSettings, vendorTags, vendorTypeFields, vendorTypes } from "./schema/vendors";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -192,6 +192,55 @@ describe("L11-EVT-10 / L11-PRE-01 — Isolation entre organisations (prestataire
       attemptCrossOrganizationUpdate: async (organizationId, target) => ({
         affectedRows: (
           await withOrganization(db, organizationId, (tx) => tx.update(eventPlaces).set({ label: "falsifié" }).where(eq(eventPlaces.id, target.id)).returning())
+        ).length,
+      }),
+    });
+  });
+
+  // Lot 48a (PRE-05, PRE-10, SEC-27 ; SEC-36) : natures de pièces, pièces, journal des changements d'IBAN.
+  it("lot 48a (PRE-05) — natures de pièces", async () => {
+    await assertOrganizationIsolation({
+      seed: (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => first(await tx.insert(vendorDocumentKinds).values({ organizationId, label: "Assurance" }).returning())),
+      listVisible: (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(vendorDocumentKinds)),
+      attemptCrossOrganizationUpdate: async (organizationId, target) => ({
+        affectedRows: (
+          await withOrganization(db, organizationId, (tx) => tx.update(vendorDocumentKinds).set({ label: "falsifié" }).where(eq(vendorDocumentKinds.id, target.id)).returning())
+        ).length,
+      }),
+    });
+  });
+
+  it("lot 48a (PRE-05) — pièces d'un prestataire", async () => {
+    await assertOrganizationIsolation({
+      seed: (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const vendor = await seedVendor(tx, organizationId);
+          const kind = first(await tx.insert(vendorDocumentKinds).values({ organizationId, label: "Assurance" }).returning());
+          return first(await tx.insert(vendorDocuments).values({ organizationId, vendorId: vendor.id, kindId: kind.id, status: "requested" }).returning());
+        }),
+      listVisible: (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(vendorDocuments)),
+      attemptCrossOrganizationUpdate: async (organizationId, target) => ({
+        affectedRows: (
+          await withOrganization(db, organizationId, (tx) => tx.update(vendorDocuments).set({ validUntil: "2000-01-01" }).where(eq(vendorDocuments.id, target.id)).returning())
+        ).length,
+      }),
+    });
+  });
+
+  it("lot 48a (PRE-10, SEC-27) — journal des changements d'IBAN", async () => {
+    await assertOrganizationIsolation({
+      seed: (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const vendor = await seedVendor(tx, organizationId);
+          return first(await tx.insert(vendorBankChanges).values({ organizationId, vendorId: vendor.id, nextMasked: "FR76 •••• •••• 0189", changedByUserId: randomUUID() }).returning());
+        }),
+      listVisible: (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(vendorBankChanges)),
+      attemptCrossOrganizationUpdate: async (organizationId, target) => ({
+        affectedRows: (
+          await withOrganization(db, organizationId, (tx) =>
+            tx.update(vendorBankChanges).set({ verifiedAt: new Date(), verifiedByUserId: randomUUID() }).where(eq(vendorBankChanges.id, target.id)).returning(),
+          )
         ).length,
       }),
     });

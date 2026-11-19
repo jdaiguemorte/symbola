@@ -93,9 +93,9 @@ deux vocabulaires fixes nommaient les clients.
     (`SellerSnapshot.clientTerm`, champ facultatif d'une colonne JSON existante, sans migration du
     schéma `quotes`), un devis émis garde son texte. Les phrases de l'app sont écrites pour rester justes
     quel que soit le terme ; aucun accord n'est deviné.
-14. **Migrations** : 0173 (`hub` : notifications, réglages, abonnements, automatismes et journal, règles
-    du radar), 0174 (`events` : tâches hors évènement et récurrentes, jalons, terme des clients, seuils de
-    santé), 0175 (`hub` : natures `daily_digest`, `payment_due_reminder`, `notification_alert` ajoutées à
+14. **Migrations** : 0181 (`hub` : notifications, réglages, abonnements, automatismes et journal, règles
+    du radar), 0182 (`events` : tâches hors évènement et récurrentes, jalons, terme des clients, seuils de
+    santé), 0183 (`hub` : natures `daily_digest`, `payment_due_reminder`, `notification_alert` ajoutées à
     celles de main ; l'annulation rend la liste de main). Chaque annulation est refusée tant qu'une donnée
     en dépend (automatisme coupé, tâche hors évènement, terme réglé, modèle personnalisé).
 

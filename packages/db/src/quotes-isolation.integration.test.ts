@@ -36,6 +36,8 @@ import {
   paymentReferences,
   paymentReminders,
   proposalTemplates,
+  plannerFees,
+  vendorCommissions,
 } from "./schema/quotes";
 import { withOrganization } from "./with-organization";
 
@@ -535,6 +537,37 @@ describe("FAC-08 / FAC-09 / FAC-02 — Isolation entre organisations (lot 43, Po
         const updated = await withOrganization(db, organizationId, (tx) => tx.update(paymentReminders).set({ rank: 2 }).where(eq(paymentReminders.id, targetRow.id)).returning());
         return { affectedRows: updated.length };
       },
+    });
+  });
+
+  // Lot 48b (BUD-08, PRE-07 ; SEC-36) : honoraires et commissions d'un évènement.
+  it("lot 48b (BUD-08) — honoraires de la planner", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [row] = await tx.insert(plannerFees).values({ organizationId, eventId: randomUUID(), kind: "flat", flatCents: 100_000 }).returning();
+          if (!row) throw new Error("insertion attendue");
+          return row;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(plannerFees)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => ({
+        affectedRows: (await withOrganization(db, organizationId, (tx) => tx.update(plannerFees).set({ flatCents: 1 }).where(eq(plannerFees.id, targetRow.id)).returning())).length,
+      }),
+    });
+  });
+
+  it("lot 48b (PRE-07) — commissions des prestataires", async () => {
+    await assertOrganizationIsolation({
+      seed: async (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const [row] = await tx.insert(vendorCommissions).values({ organizationId, eventId: randomUUID(), vendorName: "Fleurs", amountCents: 45_000 }).returning();
+          if (!row) throw new Error("insertion attendue");
+          return row;
+        }),
+      listVisible: async (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(vendorCommissions)),
+      attemptCrossOrganizationUpdate: async (organizationId, targetRow) => ({
+        affectedRows: (await withOrganization(db, organizationId, (tx) => tx.update(vendorCommissions).set({ shownToClient: false }).where(eq(vendorCommissions.id, targetRow.id)).returning())).length,
+      }),
     });
   });
 });

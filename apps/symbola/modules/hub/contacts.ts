@@ -5,7 +5,9 @@
 // (DAT-12) : une adresse déjà connue reprend le contact qui la porte, ou est refusée sur un autre.
 import { and, asc, count, desc, eq, ilike, inArray, isNotNull, isNull, ne, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import type { Contact, ContactInput, ContactKind, ContactMembership, ContactNote } from "@symbola/contracts";
+import { randomUUID } from "node:crypto";
+import { openField, sealField, type FieldPlace } from "@symbola/auth";
+import type { Contact, ContactInput, ContactKind, ContactMembership, ContactNote, ContactNoteViewer } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import { contactMembers, contactNotes, contacts } from "@symbola/db/schema/hub";
 import { foldedContains } from "@symbola/db/search";
@@ -424,11 +426,21 @@ export async function listContactsUnchangedSince(organizationId: string, before:
 
 // —— Notes (CRM-03) ——————————————————————————————————————————————————————————————
 
-function toNote(row: typeof contactNotes.$inferSelect): ContactNote {
-  return { id: row.id, contactId: row.contactId, authorUserId: row.authorUserId, body: row.body, createdAt: row.createdAt };
+// Lot 48a (DAT-08, ADR 0093) : place du texte chiffré d'une note confidentielle.
+function notePlace(organizationId: string, noteId: string): FieldPlace {
+  return { organizationId, table: "hub.contact_notes", column: "body_sealed", rowId: noteId };
 }
 
-export async function listContactNotes(organizationId: string, contactId: string): Promise<ContactNote[]> {
+// Sans lecteur désigné (recherche RGPD, fusion), une note confidentielle se lit en clair seulement si
+// `reveal` le demande (droit d'accès de la personne) ; sinon son texte reste vide.
+function toNote(row: typeof contactNotes.$inferSelect, viewer: ContactNoteViewer | "reveal" | null = null): ContactNote {
+  const base = { id: row.id, contactId: row.contactId, authorUserId: row.authorUserId, createdAt: row.createdAt, confidential: row.isConfidential };
+  if (!row.isConfidential || !row.bodySealed) return { ...base, body: row.body ?? "", readable: true };
+  const readable = viewer === "reveal" || (viewer !== null && (viewer.role === "owner" || viewer.userId === row.authorUserId));
+  return { ...base, body: readable ? openField(row.bodySealed, notePlace(row.organizationId, row.id)) : "", readable };
+}
+
+export async function listContactNotes(organizationId: string, contactId: string, viewer: ContactNoteViewer | "reveal" | null = null): Promise<ContactNote[]> {
   const rows = await withOrganization(appDatabase(), organizationId, (tx) =>
     tx
       .select()
@@ -436,19 +448,23 @@ export async function listContactNotes(organizationId: string, contactId: string
       .where(and(eq(contactNotes.organizationId, organizationId), eq(contactNotes.contactId, contactId)))
       .orderBy(desc(contactNotes.createdAt)),
   );
-  return rows.map(toNote);
+  return rows.map((row) => toNote(row, viewer));
 }
 
-export async function addContactNote(organizationId: string, input: { contactId: string; authorUserId: string; body: string }): Promise<ContactNote> {
+// Lot 48a (DAT-08) : « confidentielle » chiffre le texte ; la note n'est lue que par la titulaire et
+// son auteur, et n'entre ni dans les recherches ni dans les exports.
+export async function addContactNote(organizationId: string, input: { contactId: string; authorUserId: string; body: string; confidential?: boolean }): Promise<ContactNote> {
   const body = input.body.trim();
   if (body === "" || body.length > CONTACT_NOTE_MAX) throw new ContactInvalidError("note");
   const contact = await getContact(organizationId, input.contactId);
   if (!contact || contact.anonymized) throw new ContactNotFoundError();
-  const [row] = await withOrganization(appDatabase(), organizationId, (tx) =>
-    tx.insert(contactNotes).values({ organizationId, contactId: input.contactId, authorUserId: input.authorUserId, body }).returning(),
-  );
+  const id = randomUUID();
+  const values = input.confidential
+    ? { id, organizationId, contactId: input.contactId, authorUserId: input.authorUserId, body: null, bodySealed: sealField(body, notePlace(organizationId, id)), isConfidential: true }
+    : { id, organizationId, contactId: input.contactId, authorUserId: input.authorUserId, body };
+  const [row] = await withOrganization(appDatabase(), organizationId, (tx) => tx.insert(contactNotes).values(values).returning());
   if (!row) throw new Error("note non enregistrée");
-  return toNote(row);
+  return toNote(row, { userId: input.authorUserId, role: "member" });
 }
 
 // Lot 39a (UX-07 ; ADR 0073) : la note est marquée, « Annuler » la démarque ; la purge l'efface.

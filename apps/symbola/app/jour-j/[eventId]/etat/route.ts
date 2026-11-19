@@ -11,10 +11,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ even
   const access = await dayOfAccess(request, eventId, { write: false });
   if (!access.ok) return access.response;
   const { organizationId } = access;
+  // Lot 52 (D3) : le renfort ne voit ni les remises d'argent (budget) ni l'adresse des comptes de l'équipe.
+  const helper = access.viewer.kind === "helper";
   const [state, program, handovers] = await Promise.all([
-    getDayState(organizationId, eventId),
+    getDayState(organizationId, eventId, { forHelper: helper }),
     getEventProgram(organizationId, eventId),
-    (await isBudgetModuleEnabled(organizationId)) ? listDayHandovers(organizationId, eventId) : Promise.resolve(null),
+    !helper && (await isBudgetModuleEnabled(organizationId)) ? listDayHandovers(organizationId, eventId) : Promise.resolve(null),
   ]);
   if (!state) return Response.json({ error: "not_found" }, { status: 404 });
   return Response.json(

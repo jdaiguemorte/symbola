@@ -1,6 +1,12 @@
 {
   "version": 1,
-  "_source": "Lot 26a (SEC-15), décision D4 de Julien du 12/11/2026 : un lien personnel vaut jusqu'à la fin du jour (heure de Paris) qui suit la date de l'événement de ce nombre de jours, sauf date choisie par la planner. Valeurs du cahier des charges : 30 jours pour le client, 7 jours pour un prestataire ; pour un invité, la clôture des réponses la remplacera (lot 49). Sans date d'événement : ce nombre de jours après la création, recalculé dès que la date est posée.",
-  "daysAfterEvent": { "client": 30, "vendor": 7, "guest": 30 },
-  "daysWithoutEventDate": 180
+  "_source": "Lot 26a (SEC-15), décision D4 de Julien du 12/11/2026 : un lien personnel vaut jusqu'à la fin du jour (heure de Paris) qui suit la date de l'événement de ce nombre de jours, sauf date choisie par la planner. Valeurs du cahier des charges : 30 jours pour le client, 7 jours pour un prestataire ; pour un invité, la clôture des réponses la remplacera (lot 49). Sans date d'événement : ce nombre de jours après la création, recalculé dès que la date est posée. Lot 52 (EVT-06, D3) : le lien du renfort du jour J vaut du matin de la veille (dayHelperDaysBefore) au lendemain de l'évènement (daysAfterEvent.day_helper), sans date choisie par la planner.",
+  "daysAfterEvent": {
+    "client": 30,
+    "vendor": 7,
+    "guest": 30,
+    "day_helper": 1
+  },
+  "daysWithoutEventDate": 180,
+  "dayHelperDaysBefore": 1
 }

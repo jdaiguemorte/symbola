@@ -39,6 +39,7 @@ import type {
   QuotesSearchResults,
   CatalogItemInput,
   LineNature,
+  SupplyMode,
   CreateQuoteInput,
   GlobalDiscountInput,
   MarkScheduleItemPaidInput,
@@ -142,6 +143,7 @@ import {
   ContactNotFoundError,
   getOrganizationProfile,
   getRequiredMentionRules,
+  getPlatformSettings,
   getSellerDetails,
   getContactsByIds,
   vatOnDebitsOn,
@@ -319,7 +321,23 @@ import {
   type QuoteAggregate,
   type QuoteLineRow,
   type QuoteVersionRow,
+  deleteCommissionRow,
+  deletePlannerFeeRow,
+  findCommissionInvoiceIds,
+  findCommissionInvoiceRow,
+  findCommissionRows,
+  findPlannerFeeRow,
+  insertCommissionInvoice,
+  insertCommissionRow,
+  sumYearInvoicedHtCents,
+  updateCommissionRow,
+  upsertPlannerFeeRow,
 } from "./repository";
+import { commissionAmountCents, detectPackageTravel, franchiseAlert, isCommissionShown, type FranchiseAlert, type PlannerFeeTerms } from "./planner-money";
+import { starterFranchiseAlertRatio, starterPackageTravelRule } from "@symbola/starter-templates";
+
+// Lot 48b : identifiant attendu d'une ligne (UUID).
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type {
   ClientContract,
@@ -938,12 +956,16 @@ function toLine(row: QuoteLineRow): QuoteLine {
     isOption: row.isOption,
     optionChosen: row.optionChosen,
     nature: row.nature,
+    supplyMode: row.supplyMode,
+    tourismKind: row.tourismKind,
   };
 }
 
 // Lot 31a (FAC-01, décision D2) : une option compte au total une fois choisie.
-function includedLines<T extends { isOption: boolean; optionChosen: boolean }>(lines: T[]): T[] {
-  return lines.filter((line) => !line.isOption || line.optionChosen);
+// Lot 48b (JUR-10) : une ligne « intermédiaire » (facturée par le prestataire au client) n'entre ni
+// dans le total de la planner, ni dans sa TVA, ni dans ses factures.
+function includedLines<T extends { isOption: boolean; optionChosen: boolean; supplyMode?: SupplyMode }>(lines: T[]): T[] {
+  return lines.filter((line) => (!line.isOption || line.optionChosen) && line.supplyMode !== "intermediary");
 }
 
 function totalsFor(lines: QuoteLineRow[], version: QuoteVersionRow, vatApplicable: boolean): QuoteTotalsView {
@@ -1234,6 +1256,8 @@ async function newLineData(organizationId: string, line: QuoteLineInput): Promis
     isOption: line.isOption ?? false,
     optionChosen: false,
     nature: lineNature(line.nature, base.nature),
+    supplyMode: line.supplyMode === "intermediary" ? "intermediary" : "resale",
+    tourismKind: line.tourismKind ?? null,
   };
   validateLineNumbers(data);
   return data;
@@ -1262,6 +1286,8 @@ export async function updateQuoteLine(organizationId: string, lineId: string, li
         isOption: line.isOption ?? current.isOption,
         optionChosen: (line.isOption ?? current.isOption) ? current.optionChosen : false,
         nature: lineNature(line.nature, current.nature),
+        supplyMode: line.supplyMode !== undefined ? (line.supplyMode === "intermediary" ? "intermediary" : "resale") : current.supplyMode,
+        tourismKind: line.tourismKind !== undefined ? line.tourismKind : current.tourismKind,
       };
       validateLineNumbers(data);
       return data;
@@ -2666,7 +2692,8 @@ function toInvoiceView(invoice: InvoiceRow, quoteNumber: string, notes: CreditNo
   const own = notes.filter((note) => note.invoiceId === invoice.id);
   return {
     id: invoice.id,
-    quoteId: invoice.quoteId,
+    // Lot 48b (PRE-07) : vide pour une facture de commission au prestataire (sans devis).
+    quoteId: invoice.quoteId ?? "",
     quoteNumber,
     kind: invoice.kind,
     scheduleItemId: invoice.scheduleItemId,
@@ -3299,7 +3326,15 @@ function boundedText(value: string, max: number, field: string): string {
 function templateHeader(input: ContractTemplateHeaderInput): ContractTemplateHeaderInput {
   const legalReviewedOn = input.legalReviewedOn?.trim() || null;
   if (legalReviewedOn && (!REVIEW_DATE_PATTERN.test(legalReviewedOn) || Number.isNaN(Date.parse(legalReviewedOn)))) throw new RangeError("date de revue invalide");
-  return { name: boundedText(input.name, 120, "nom du modèle"), title: boundedText(input.title, 200, "titre du contrat"), eventTypeId: input.eventTypeId || null, legalReviewedOn };
+  if (input.kind !== undefined && !["contract", "mandate", "general_terms", "package_travel"].includes(input.kind)) throw new RangeError("nature de modèle inconnue");
+  return {
+    name: boundedText(input.name, 120, "nom du modèle"),
+    title: boundedText(input.title, 200, "titre du contrat"),
+    eventTypeId: input.eventTypeId || null,
+    legalReviewedOn,
+    // Lot 48b (D7) : absente, la nature du modèle ne change pas.
+    ...(input.kind ? { kind: input.kind } : {}),
+  };
 }
 
 function clauseData(input: ContractTemplateClauseInput): ClauseData {
@@ -3315,6 +3350,7 @@ function toContractTemplateView({ template, clauses }: ContractTemplateWithClaus
     title: template.title,
     eventTypeId: template.eventTypeId,
     legalReviewedOn: template.legalReviewedOn,
+    kind: template.kind,
     version: template.version,
     clauses: clauses.map((clause) => ({ id: clause.id, title: clause.title, body: clause.body, optional: clause.optional, role: clause.role, position: clause.position })),
   };
@@ -3390,7 +3426,7 @@ export async function addStarterContractTemplates(organizationId: string, locale
   for (const starter of starters) {
     const label = starterTypes.find((type) => type.key === starter.eventTypeKey)?.label;
     const eventTypeId = label ? (types.find((type) => type.label.toLocaleLowerCase(locale) === label.toLocaleLowerCase(locale))?.id ?? null) : null;
-    const template = await insertContractTemplate(organizationId, { name: starter.name, title: starter.title, eventTypeId, legalReviewedOn: null }, starter.clauses);
+    const template = await insertContractTemplate(organizationId, { name: starter.name, title: starter.title, eventTypeId, legalReviewedOn: null, kind: starter.kind }, starter.clauses);
     created.push(await getContractTemplate(organizationId, template.id));
   }
   return created;
@@ -3423,6 +3459,7 @@ async function contractVariableValues(organizationId: string, quote: QuoteDetail
     "organisation.mediateur": join([seller.mediatorName, seller.mediatorUrl]),
     "contrat.date": formatCalendarDate(parisDate(now), locale),
     "retractation.delai": words.days.replace("{days}", String(rules.withdrawal.periodDays)),
+    ...(await mandateVariableValues(organizationId, quote, locale)),
   };
 }
 
@@ -3463,6 +3500,8 @@ export async function checkContract(input: ContractCheckInput): Promise<Contract
   const roles = selected.map((clause) => clause.role);
   const problems: ContractProblem[] = [];
   if (quote.current.sentAt === null) problems.push({ kind: "quote_not_sent" });
+  // Lot 48b (JUR-10, D7) : un forfait touristique bloque tout modèle qui ne lui est pas dédié.
+  if (found.template.kind !== "package_travel" && detectPackageTravel(quote.current.lines, starterPackageTravelRule())) problems.push({ kind: "package_travel_template_required" });
   if (regime.blocked) problems.push({ kind: "channel_blocked" });
   for (const variable of text.missing) problems.push({ kind: "variable_missing", variable });
   for (const variable of text.unknown) problems.push({ kind: "variable_unknown", variable });
@@ -3895,7 +3934,9 @@ export async function countQuotesAndInvoicesByMonth(
 // Lot 10 (AIDE-08) — recherche globale : devis et factures réels par numéro,
 // ou rattachés aux événements trouvés.
 export async function searchQuotes(organizationId: string, words: string[], eventIds: string[], limit: number): Promise<QuotesSearchResults> {
-  return searchQuoteRows(organizationId, words, eventIds, limit);
+  const found = await searchQuoteRows(organizationId, words, eventIds, limit);
+  // Lot 48b : les factures sans devis (commissions) n'entrent pas dans cette recherche par devis.
+  return { quotes: found.quotes, invoices: found.invoices.flatMap((invoice) => (invoice.quoteId ? [{ ...invoice, quoteId: invoice.quoteId }] : [])) };
 }
 
 const _contractCheck: QuotesServiceContract = {
@@ -4925,3 +4966,369 @@ export async function getProposalTemplatePhoto(organizationId: string, templateI
 }
 // Lot 45 (CRM-07, CRM-06 ; ADR 0090) : références d'un contact fusionné ; dernière signature d'un prospect.
 export { countContactSignatures, latestContactSignature, repointQuotesMergedContact } from "./contact-merge";
+
+// =====================================================================================================
+// Lot 48b (BUD-08, PRE-07, JUR-10, DOC-02, HUB-26 ; D6 à D8 ; ADR 0093) — l'argent de la planner :
+// honoraires, commissions et leur facture au prestataire, modes intermédiaire ou revendeur, forfait
+// touristique, alerte à l'approche du seuil de franchise. Les montants du budget (base d'un
+// pourcentage) et la fiche du prestataire (destinataire d'une facture) viennent de l'appelant : le
+// module Budget lit déjà celui-ci, et le carnet le module Budget (ADR 0011, pas de cycle).
+// =====================================================================================================
+
+export { commissionAmountCents, detectPackageTravel, franchiseAlert, isCommissionShown, plannerFeeCents, splitBySupplyMode, type FranchiseAlert, type PlannerFeeTerms } from "./planner-money";
+
+export class InvalidPlannerMoneyError extends Error {
+  constructor(readonly field: "fee" | "commission") {
+    super(field === "fee" ? "honoraires invalides" : "commission invalide");
+    this.name = "InvalidPlannerMoneyError";
+  }
+}
+
+export class CommissionNotFoundError extends Error {
+  constructor() {
+    super("commission introuvable");
+    this.name = "CommissionNotFoundError";
+  }
+}
+
+export type PlannerFeeTermsView = PlannerFeeTerms & { eventId: string; vatRateBasisPoints: number };
+
+function cleanCents(value: number | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  if (!Number.isInteger(value) || value <= 0 || value > 100_000_000) throw new InvalidPlannerMoneyError("fee");
+  return value;
+}
+
+function cleanBasisPoints(value: number | null | undefined, field: "fee" | "commission"): number | null {
+  if (value === null || value === undefined) return null;
+  if (!Number.isInteger(value) || value < 1 || value > 10000) throw new InvalidPlannerMoneyError(field);
+  return value;
+}
+
+export async function getPlannerFeeTerms(organizationId: string, eventId: string): Promise<PlannerFeeTermsView | null> {
+  if (!UUID_PATTERN.test(eventId)) return null;
+  const row = await findPlannerFeeRow(organizationId, eventId);
+  return row ? { eventId: row.eventId, kind: row.kind, flatCents: row.flatCents, percentBasisPoints: row.percentBasisPoints, base: row.base, vatRateBasisPoints: row.vatRateBasisPoints } : null;
+}
+
+export async function setPlannerFeeTerms(organizationId: string, eventId: string, input: PlannerFeeTerms & { vatRateBasisPoints?: number }): Promise<PlannerFeeTermsView> {
+  if (!UUID_PATTERN.test(eventId) || !(await getEvent(organizationId, eventId))) throw new EventNotFoundError();
+  if (!["flat", "percent", "mixed"].includes(input.kind) || !["estimated", "committed"].includes(input.base)) throw new InvalidPlannerMoneyError("fee");
+  const flatCents = input.kind === "percent" ? null : cleanCents(input.flatCents);
+  const percentBasisPoints = input.kind === "flat" ? null : cleanBasisPoints(input.percentBasisPoints, "fee");
+  if ((input.kind !== "percent" && flatCents === null) || (input.kind !== "flat" && percentBasisPoints === null)) throw new InvalidPlannerMoneyError("fee");
+  const vatRate = input.vatRateBasisPoints ?? (await withDb((db) => getOrganizationProfile(db, organizationId))).vatRateDefaultBasisPoints ?? 0;
+  if (!Number.isInteger(vatRate) || vatRate < 0 || vatRate > 10000) throw new InvalidPlannerMoneyError("fee");
+  await upsertPlannerFeeRow(organizationId, eventId, { kind: input.kind, flatCents, percentBasisPoints, base: input.base, vatRateBasisPoints: vatRate });
+  return (await getPlannerFeeTerms(organizationId, eventId))!;
+}
+
+export async function removePlannerFeeTerms(organizationId: string, eventId: string): Promise<void> {
+  if (UUID_PATTERN.test(eventId)) await deletePlannerFeeRow(organizationId, eventId);
+}
+
+// BUD-08 : les honoraires vont sur le devis de la planner, comme une ligne à elle (revendeur : dans
+// son total), au montant calculé par l'appelant depuis le budget (plannerFeeCents), hors taxes.
+export async function addPlannerFeeLine(organizationId: string, quoteId: string, input: { label: string; amountCents: number }): Promise<QuoteDetail> {
+  const quote = await loadDetail(organizationId, quoteId);
+  const terms = await getPlannerFeeTerms(organizationId, quote.eventId);
+  if (!terms || !Number.isInteger(input.amountCents) || input.amountCents <= 0) throw new InvalidPlannerMoneyError("fee");
+  return addQuoteLine(organizationId, quoteId, { label: input.label, unit: input.label, quantityMilli: 1000, unitPriceCents: input.amountCents, vatRateBasisPoints: terms.vatRateBasisPoints, supplyMode: "resale" });
+}
+
+export type CommissionView = {
+  id: string;
+  eventId: string;
+  vendorId: string | null;
+  vendorName: string;
+  nature: "commission" | "referral";
+  amountCents: number;
+  percentBasisPoints: number | null;
+  baseCents: number | null;
+  vatRateBasisPoints: number;
+  status: "expected" | "invoiced" | "received";
+  receivedOn: string | null;
+  shownToClient: boolean;
+  invoice: { id: string; number: string } | null;
+};
+
+function toCommission(row: Awaited<ReturnType<typeof findCommissionRows>>[number]): CommissionView {
+  const commission = row.commission;
+  return {
+    id: commission.id,
+    eventId: commission.eventId,
+    vendorId: commission.vendorId,
+    vendorName: commission.vendorName,
+    nature: commission.nature,
+    amountCents: commissionAmountCents(commission),
+    percentBasisPoints: commission.percentBasisPoints,
+    baseCents: commission.baseCents,
+    vatRateBasisPoints: commission.vatRateBasisPoints,
+    status: commission.status,
+    receivedOn: commission.receivedOn,
+    shownToClient: commission.shownToClient,
+    invoice: row.invoiceId && row.invoiceNumber ? { id: row.invoiceId, number: row.invoiceNumber } : null,
+  };
+}
+
+export async function listEventCommissions(organizationId: string, eventId: string): Promise<CommissionView[]> {
+  if (!UUID_PATTERN.test(eventId)) return [];
+  return (await findCommissionRows(organizationId, { eventId })).map(toCommission);
+}
+
+export async function getCommission(organizationId: string, commissionId: string): Promise<CommissionView> {
+  const [row] = UUID_PATTERN.test(commissionId) ? await findCommissionRows(organizationId, { commissionId }) : [];
+  if (!row) throw new CommissionNotFoundError();
+  return toCommission(row);
+}
+
+export type CommissionInput = {
+  eventId: string;
+  vendorId: string | null;
+  vendorName: string;
+  nature: "commission" | "referral";
+  amountCents?: number | null;
+  percentBasisPoints?: number | null;
+  baseCents?: number | null;
+  vatRateBasisPoints?: number;
+  shownToClient?: boolean;
+};
+
+export async function addCommission(organizationId: string, input: CommissionInput): Promise<CommissionView> {
+  if (!UUID_PATTERN.test(input.eventId) || !(await getEvent(organizationId, input.eventId))) throw new EventNotFoundError();
+  const vendorName = input.vendorName.trim();
+  if (vendorName.length < 1 || vendorName.length > 200 || !["commission", "referral"].includes(input.nature)) throw new InvalidPlannerMoneyError("commission");
+  const amountCents = input.amountCents ?? null;
+  const percent = cleanBasisPoints(input.percentBasisPoints, "commission");
+  const base = input.baseCents ?? null;
+  const byAmount = amountCents !== null && Number.isInteger(amountCents) && amountCents > 0 && percent === null;
+  const byPercent = amountCents === null && percent !== null && base !== null && Number.isInteger(base) && base > 0;
+  if (!byAmount && !byPercent) throw new InvalidPlannerMoneyError("commission");
+  const vatRate = input.vatRateBasisPoints ?? (await withDb((db) => getOrganizationProfile(db, organizationId))).vatRateDefaultBasisPoints ?? 0;
+  if (!Number.isInteger(vatRate) || vatRate < 0 || vatRate > 10000) throw new InvalidPlannerMoneyError("commission");
+  const row = await insertCommissionRow(organizationId, {
+    eventId: input.eventId,
+    vendorId: input.vendorId && UUID_PATTERN.test(input.vendorId) ? input.vendorId : null,
+    vendorName,
+    nature: input.nature,
+    amountCents: byAmount ? amountCents : null,
+    percentBasisPoints: byPercent ? percent : null,
+    baseCents: byPercent ? base : null,
+    vatRateBasisPoints: vatRate,
+    shownToClient: input.shownToClient ?? true,
+  });
+  return getCommission(organizationId, row.id);
+}
+
+// Statut : attendue, facturée, reçue (date de réception, jour de Paris).
+export async function setCommissionStatus(organizationId: string, commissionId: string, status: "expected" | "invoiced" | "received", receivedOn: string | null = null): Promise<CommissionView> {
+  if (!["expected", "invoiced", "received"].includes(status)) throw new InvalidPlannerMoneyError("commission");
+  if (status === "received" && (!receivedOn || !/^\d{4}-\d{2}-\d{2}$/.test(receivedOn))) throw new InvalidPlannerMoneyError("commission");
+  if (!UUID_PATTERN.test(commissionId) || !(await updateCommissionRow(organizationId, commissionId, { status, receivedOn: status === "received" ? receivedOn : null }))) throw new CommissionNotFoundError();
+  return getCommission(organizationId, commissionId);
+}
+
+// D6 : face à un professionnel, la planner choisit ; face à un particulier, la case n'a pas d'effet
+// (affichage obligatoire, isCommissionShown).
+export async function setCommissionShown(organizationId: string, commissionId: string, shown: boolean): Promise<CommissionView> {
+  if (!UUID_PATTERN.test(commissionId) || !(await updateCommissionRow(organizationId, commissionId, { shownToClient: shown }))) throw new CommissionNotFoundError();
+  return getCommission(organizationId, commissionId);
+}
+
+export async function removeCommission(organizationId: string, commissionId: string): Promise<boolean> {
+  return UUID_PATTERN.test(commissionId) ? deleteCommissionRow(organizationId, commissionId) : false;
+}
+
+// PRE-07 et D6 (réponse 4 de l'avocat) : les commissions que voit le client de l'évènement, sur le
+// devis et dans le portail ; toutes pour un particulier, celles choisies pour un professionnel.
+export async function listClientCommissions(organizationId: string, eventId: string, clientKind: ClientKind): Promise<CommissionView[]> {
+  return (await listEventCommissions(organizationId, eventId)).filter((commission) => isCommissionShown(clientKind, commission));
+}
+
+// Type de client d'un évènement : celui de son devis le plus récent (particulier sans devis).
+export async function eventClientKind(organizationId: string, eventId: string): Promise<ClientKind> {
+  const quotes = await listEventQuotes(organizationId, eventId);
+  return quotes.find((quote) => quote.clientKind === "professional") ? "professional" : "individual";
+}
+
+export class CommissionAlreadyInvoicedError extends Error {
+  constructor() {
+    super("commission déjà facturée");
+    this.name = "CommissionAlreadyInvoicedError";
+  }
+}
+
+export type CommissionBuyer = { name: string; addressLine: string | null; postalCode: string | null; city: string | null; countryCode: string; siret: string | null };
+
+// PRE-07 (D8 ; réponse 9 de l'expert-comptable) : la planner facture la commission au prestataire,
+// professionnel, dans la même série et avec les mêmes règles que ses autres factures (numéro continu
+// en transaction, chaîne des pièces, original Factur-X conservé). Le destinataire vient de la fiche du
+// carnet (fournie par l'appelant).
+export async function issueCommissionInvoice(input: {
+  organizationId: string;
+  commissionId: string;
+  buyer: CommissionBuyer;
+  label: string;
+  locale?: DocumentLocale;
+  renderOriginal: RenderInvoiceOriginal;
+  now?: Date;
+}): Promise<InvoiceView> {
+  const now = input.now ?? new Date();
+  const locale = input.locale ?? "fr";
+  const commission = await getCommission(input.organizationId, input.commissionId);
+  if (commission.invoice) throw new CommissionAlreadyInvoicedError();
+  const profile = await withDb((db) => getOrganizationProfile(db, input.organizationId));
+  if (!profile.vatRegime) throw new QuoteVatRegimeRequiredError();
+  const vatApplicable = profile.vatRegime !== "franchise";
+  const sellerDetails = await withDb((db) => getSellerDetails(db, input.organizationId));
+  const settings = await findQuoteSettings(input.organizationId);
+  const issuedOn = parisDate(now);
+  // Mêmes règles qu'une facture à un professionnel (lot 41) : raison sociale, SIREN et adresse
+  // structurée du prestataire, sinon les mentions manquantes sont nommées et rien n'est émis.
+  const { buyer: company, missing } = companyBuyerOf({
+    kind: "company",
+    name: input.buyer.name,
+    anonymized: false,
+    companyIdNumber: input.buyer.siret,
+    vatNumber: null,
+    addressLine: input.buyer.addressLine,
+    postalCode: input.buyer.postalCode,
+    city: input.buyer.city,
+    country: input.buyer.countryCode,
+  });
+  if (!company || missing.length > 0) throw new RequiredMentionsMissingError(missing.length > 0 ? missing : ["buyerCompany"]);
+  const buyer: InvoiceBuyer = { kind: "company", name: company.name, billingAddress: formatPostalAddress(company.address), siren: company.siren, vatNumber: company.vatNumber, address: company.address };
+  const line: FrozenLine = {
+    label: input.label,
+    description: null,
+    unit: input.label,
+    quantityMilli: 1000,
+    unitPriceCents: commission.amountCents,
+    vatRateBasisPoints: commission.vatRateBasisPoints,
+    discountBasisPoints: 0,
+    netCents: commission.amountCents,
+    nature: "service",
+  };
+  const quoteTotals = computeQuoteTotals([line], { kind: "none" }, vatApplicable);
+  const totals: InvoiceTotalsView = { totalHtCents: quoteTotals.totalHtCents, vatByRate: quoteTotals.vatByRate, totalVatCents: quoteTotals.totalVatCents, totalTtcCents: quoteTotals.totalTtcCents };
+  const terms = {
+    paymentTermDays: settings?.professionalPaymentTermDays ?? DEFAULT_SETTINGS.professionalPaymentTermDays!,
+    endOfMonth: settings?.professionalPaymentTermEndOfMonth ?? false,
+    discountTerms: discountOf(settings, locale),
+    latePenaltyRate: settings?.latePenaltyRate ?? null,
+  };
+  const reform: InvoiceReform = {
+    format: "facturx",
+    category: operationCategory(["service"]),
+    vatOnDebits: vatApplicable && vatOnDebitsOn(profile, issuedOn) === true,
+    orderReference: null,
+    buyerReference: null,
+    deliveryAddress: null,
+    professionalTerms: terms,
+  };
+  const mentions = settings?.invoiceMentionsProfessional ?? null;
+  const legalMention = computeLegalMention(profile);
+  const snapshot: InvoiceTotalsSnapshot = { quoteTotals, totals, deductions: [], depositLabel: null, advanceKind: null, settlements: [] };
+  const numbering = documentNumbering(settings?.invoicePrefix ?? DEFAULT_SETTINGS.invoicePrefix, false, now);
+  let row: InvoiceRow | null;
+  try {
+    row = await insertCommissionInvoice(
+      input.organizationId,
+      input.commissionId,
+      () => ({
+        ...numbering,
+        values: {
+          scheduleItemId: null,
+          kind: "balance",
+          issuedAt: now,
+          issuedOn,
+          serviceDate: issuedOn,
+          paymentDueOn: professionalDueDate(issuedOn, terms.paymentTermDays, terms.endOfMonth),
+          amountCents: totals.totalTtcCents,
+          vatRegime: profile.vatRegime!,
+          legalMention: legalMention === "" ? null : legalMention,
+          mentions,
+          sellerSnapshot: { ...sellerDetails, document: documentSnapshot(toDocumentSettings(settings), "invoice") } satisfies SellerSnapshot,
+          buyerSnapshot: [buyer],
+          linesSnapshot: [line],
+          totalsSnapshot: snapshot,
+          reformSnapshot: reform,
+        },
+      }),
+      async (tx, invoice) => {
+        const view = toInvoiceView(invoice, "", []);
+        const pdf = await input.renderOriginal(view);
+        await storeOriginal(tx, { organizationId: input.organizationId, kind: "invoice", documentId: invoice.id, pdf: invoiceFacturXFile(view, pdf, locale), format: "facturx" });
+      },
+    );
+  } catch (error) {
+    if (error instanceof Error && /duplicate key|invoices_commission_idx/.test(error.message)) throw new CommissionAlreadyInvoicedError();
+    throw error;
+  }
+  if (!row) throw new CommissionAlreadyInvoicedError();
+  return toInvoiceView(row, "", []);
+}
+
+export async function getCommissionInvoice(organizationId: string, invoiceId: string): Promise<InvoiceView> {
+  const row = UUID_PATTERN.test(invoiceId) ? await findCommissionInvoiceRow(organizationId, invoiceId) : null;
+  if (!row) throw new InvoiceNotFoundError();
+  return toInvoiceView(row, "", []);
+}
+
+// Lot 52 (HUB-04 ; décision de Julien du 19/11) : parmi les factures de la comptabilité, celles qui
+// facturent une commission au prestataire ; leur original se sert par /devis/argent/factures.
+export async function commissionInvoiceIds(organizationId: string, invoiceIds: string[]): Promise<Set<string>> {
+  return new Set(await findCommissionInvoiceIds(organizationId, invoiceIds.filter((id) => UUID_PATTERN.test(id))));
+}
+
+export async function getCommissionInvoicePdf(organizationId: string, invoiceId: string, render: RenderInvoiceOriginal, locale: DocumentLocale = "fr"): Promise<{ pdf: Buffer; number: string; reconstructed: boolean }> {
+  const invoice = await getCommissionInvoice(organizationId, invoiceId);
+  const found = await originalPdf(organizationId, "invoice", invoice, async () => invoiceFacturXFile(invoice, await render(invoice), locale));
+  return { ...found, number: invoice.number };
+}
+
+// JUR-10 (D7, réponse 4 de l'avocat ; AV-10) : le devis réunit-il un forfait touristique ?
+export async function quotePackageTravel(organizationId: string, quoteId: string): Promise<boolean> {
+  const quote = await loadDetail(organizationId, quoteId);
+  return detectPackageTravel(quote.current.lines, starterPackageTravelRule());
+}
+
+// JUR-10 : en franchise en base, alerte à l'approche du seuil (paramètre de l'Admin, jamais en dur) :
+// chiffre d'affaires facturé de l'année (HT, refacturations comprises) plus ce devis tant qu'il n'est
+// pas facturé.
+export async function quoteFranchiseAlert(organizationId: string, quoteId: string, now: Date = new Date()): Promise<{ alert: FranchiseAlert; yearCents: number; quoteCents: number; thresholdCents: number | null }> {
+  const quote = await loadDetail(organizationId, quoteId);
+  const profile = await withDb((db) => getOrganizationProfile(db, organizationId));
+  const thresholdCents = profile.vatRegime === "franchise" ? (await withDb((db) => getPlatformSettings(db))).franchiseThresholdServicesCents : null;
+  const yearCents = thresholdCents === null ? 0 : await sumYearInvoicedHtCents(organizationId, Number(parisDate(now).slice(0, 4)));
+  const invoiced = (await listQuoteInvoices(organizationId, quoteId)).some((invoice) => invoice.kind === "balance");
+  const quoteCents = invoiced ? 0 : quote.current.totals.totalHtCents;
+  return { alert: franchiseAlert({ thresholdCents, ratioBasisPoints: starterFranchiseAlertRatio(), yearResaleCents: yearCents, quoteResaleCents: quoteCents }), yearCents, quoteCents, thresholdCents };
+}
+
+// Lot 48b (DOC-02, JUR-10 ; mandat) : valeurs des variables du mandat. Sans honoraires réglés,
+// sans commission ou sans ligne en mode intermédiaire, la variable reste vide : nommée parmi les
+// variables manquantes avant la génération si le modèle l'emploie.
+async function mandateVariableValues(organizationId: string, quote: QuoteDetail, locale: "fr" | "en"): Promise<Pick<ContractVariableValues, "devis.honoraires" | "devis.commissions" | "devis.prestations_intermediaires">> {
+  const words = contractWords(locale) as Record<string, string>;
+  const percent = (basisPoints: number) => new Intl.NumberFormat(locale === "en" ? "en-GB" : "fr-FR", { style: "percent", maximumFractionDigits: 2 }).format(basisPoints / 10000);
+  const fill = (template: string, values: Record<string, string>) => Object.entries(values).reduce((text, [key, value]) => text.replace(`{${key}}`, value), template);
+  const terms = await getPlannerFeeTerms(organizationId, quote.eventId);
+  const base = terms ? (terms.base === "committed" ? words.feeBaseCommitted! : words.feeBaseEstimated!) : "";
+  const fees = !terms
+    ? null
+    : terms.kind === "flat"
+      ? fill(words.feeFlat!, { amount: formatAmount(terms.flatCents ?? 0, locale) })
+      : terms.kind === "percent"
+        ? fill(words.feePercent!, { percent: percent(terms.percentBasisPoints ?? 0), base })
+        : fill(words.feeMixed!, { amount: formatAmount(terms.flatCents ?? 0, locale), percent: percent(terms.percentBasisPoints ?? 0), base });
+  const commissions = await listClientCommissions(organizationId, quote.eventId, quote.clientKind);
+  const commissionText = commissions
+    .map((commission) => fill(words.commissionLine!, { vendor: commission.vendorName, amount: formatAmount(commission.amountCents, locale), nature: commission.nature === "referral" ? words.natureReferral! : words.natureCommission! }))
+    .join("\n");
+  const intermediary = quote.current.lines
+    .filter((line) => line.supplyMode === "intermediary" && (!line.isOption || line.optionChosen))
+    .map((line) => fill(words.intermediaryLine!, { label: line.label, amount: formatAmount(line.netCents, locale) }))
+    .join("\n");
+  return { "devis.honoraires": fees, "devis.commissions": commissionText || null, "devis.prestations_intermediaires": intermediary || null };
+}

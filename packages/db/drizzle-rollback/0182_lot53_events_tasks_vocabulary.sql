@@ -1,4 +1,4 @@
--- Annulation de 0174 (lot 53) : les tâches retrouvent un évènement obligatoire, sans répétition ni
+-- Annulation de 0182 (lot 53) : les tâches retrouvent un évènement obligatoire, sans répétition ni
 -- jalon ; les termes des clients et les seuils de santé disparaissent. Refusée tant qu'une tâche hors
 -- évènement existe (elle ne pourrait pas rester), ou qu'un terme des clients est réglé (il serait perdu) :
 -- la planner les supprime ou les note avant l'annulation. La marque de jalon et les seuils de santé

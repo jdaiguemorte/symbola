@@ -38,6 +38,10 @@ export const AUDIT_ACTIONS = {
   "hub.trusted_devices.forgotten": { category: "connexion", objectType: "user" },
   // Lot 24b (SEC-06) : « Déconnecter tous mes appareils ».
   "hub.sessions.revoked": { category: "connexion", objectType: "user" },
+  // Lot 52 (SEC-08, D6) : changement d'adresse, de facteur ou de mot de passe annoncé par le webhook signé
+  // du fournisseur d'identité ; appel refusé (signature absente ou fausse). Aucune adresse au journal.
+  "hub.identity.changed": { category: "connexion", objectType: "user" },
+  "hub.identity_webhook.refused": { category: "connexion", objectType: null },
   // Lot 26a (SEC-17) : un tiers ouvre son lien personnel (objet : l'événement).
   "events.link.opened": { category: "connexion", objectType: "event" },
   // Lot 26b (POR-01) : code à usage unique envoyé, puis bloqué après cinq essais.
@@ -56,6 +60,12 @@ export const AUDIT_ACTIONS = {
   "hub.access.refused": { category: "droits", objectType: null },
   // Lot 24b (SEC-06, décision D3) : la titulaire retire l'accès d'un collaborateur.
   "hub.member.removed": { category: "droits", objectType: "user" },
+  // Lot 52 (HUB-04, D1, D2) : transfert de propriété demandé puis confirmé (rôles échangés) ; réglage
+  // « toutes les Planners voient tous les évènements ».
+  "hub.ownership.transfer_requested": { category: "droits", objectType: "user" },
+  "hub.ownership.transferred": { category: "droits", objectType: "user" },
+  "hub.ownership.transfer_cancelled": { category: "droits", objectType: "user" },
+  "hub.organization.visibility_changed": { category: "droits", objectType: "organization" },
   // Administration de la plateforme (sans organisation).
   "hub.platform_settings.updated": { category: "administration", objectType: null },
   // Lot 31a (FAC-07, décision D4) : liste des mentions requises réglée par l'Admin.
@@ -85,6 +95,8 @@ export const AUDIT_ACTIONS = {
   "events.link.updated": { category: "partage", objectType: "event" },
   "events.link.renewed": { category: "partage", objectType: "event" },
   "events.link.revoked": { category: "partage", objectType: "event" },
+  // Lot 52 (EVT-06, D2) : équipe d'un évènement (planner principal, assistant).
+  "events.team.changed": { category: "droits", objectType: "event" },
   "events.link.renewal_requested": { category: "partage", objectType: "event" },
   // Lot 27a (CHR-04, D7) : rappel des tâches envoyé au client (nombre de tâches).
   "events.link.reminder_sent": { category: "partage", objectType: "event" },
@@ -199,6 +211,14 @@ export const AUDIT_ACTIONS = {
   "events.day_shift.applied": { category: "partage", objectType: "event" },
   // Lot 51 (PAR-08, étape 7) : bilan du lendemain exporté en PDF (jamais son contenu).
   "events.day_report.downloaded": { category: "export", objectType: "event" },
+  // Lot 48a (PRE-10, SEC-27 ; ADR 0093) : IBAN d'un prestataire changé (par la planner ou par son lien)
+  // puis vérifié par un autre canal ; identifiants seulement, jamais l'IBAN, même masqué (SEC-20).
+  "vendors.bank_details.changed": { category: "encaissement", objectType: "vendor" },
+  "vendors.bank_details.verified": { category: "encaissement", objectType: "vendor" },
+  // Lot 48a (PRE-05, D3) : pièce demandée au prestataire, déposée par son lien, vérifiée par la planner.
+  "vendors.document.requested": { category: "partage", objectType: "vendor" },
+  "vendors.document.received": { category: "partage", objectType: "vendor" },
+  "vendors.document.verified": { category: "partage", objectType: "vendor" },
 } as const satisfies Record<string, ActionSpec>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;

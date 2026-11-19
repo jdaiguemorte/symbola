@@ -37,10 +37,14 @@ export async function ContractSection({
   const older = contracts.filter((contract) => contract.id !== current?.id).reverse();
   const signing = contracts.some((contract) => contract.signature?.status === "pending");
   const quoteLocked = quote.status !== "sent" && quote.status !== "signed";
+  // Lot 48b (HUB-26) : mandat et conditions générales partagent le type d'évènement du contrat de
+  // départ ; proposé d'office, le contrat de prestation (le mandat ou les conditions se choisissent).
+  const contractsOnly = templates.filter((candidate) => (candidate.kind ?? "contract") === "contract");
   const template =
     templates.find((candidate) => candidate.id === selectedTemplateId) ??
+    contractsOnly.find((candidate) => candidate.eventTypeId !== null && candidate.eventTypeId === eventTypeId) ??
     templates.find((candidate) => candidate.eventTypeId !== null && candidate.eventTypeId === eventTypeId) ??
-    (templates.length === 1 ? templates[0] : undefined);
+    (contractsOnly.length === 1 ? contractsOnly[0] : templates.length === 1 ? templates[0] : undefined);
   const preview =
     sent && template && !signing && !quoteLocked
       ? await checkContract({ organizationId, quoteId: quote.id, templateId: template.id, optionalClauseIds: [], channel: "on_premises", smallBusinessConfirmed: false, userId, locale })

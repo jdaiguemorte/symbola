@@ -12,7 +12,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { setLinkSessionCookie } from "@/lib/link-session";
 import { linkHomePath } from "@/lib/link-cookie";
 
-type Opened = { outcome: "opened"; home: "/portail" | "/prestataire" };
+type Opened = { outcome: "opened"; home: string };
 export type OpenLinkOutcome =
   | Opened
   | { outcome: "code_required"; emailHint: string; codeSent: boolean }
@@ -43,7 +43,7 @@ export async function openLinkAction(token: unknown): Promise<OpenLinkOutcome> {
   if (result.outcome === "code_required") return result;
   if (result.outcome !== "opened") return { outcome: "invalid" };
   await setLinkSessionCookie(result.sessionToken, result.maxAgeSeconds);
-  return { outcome: "opened", home: linkHomePath(result.audience) };
+  return { outcome: "opened", home: linkHomePath(result.audience, result.eventId) };
 }
 
 // Lot 26b (POR-01, D6) : le code reçu par e-mail ouvre la session. Cinq essais
@@ -57,7 +57,7 @@ export async function verifyLinkCodeAction(token: unknown, code: unknown): Promi
   const result = await verifyLinkCode(parsedToken.data, parsedCode.data);
   if (result.outcome !== "opened") return result;
   await setLinkSessionCookie(result.sessionToken, result.maxAgeSeconds);
-  return { outcome: "opened", home: linkHomePath(result.audience) };
+  return { outcome: "opened", home: linkHomePath(result.audience, result.eventId) };
 }
 
 // Décision D5 : la même réponse, que le lien existe ou non.

@@ -203,7 +203,9 @@ describe("FAC-04 / HUB-21 — Modèles de contrat datés et versionnés (lot 31b
   it("un modèle se duplique, ses clauses s'ajoutent, se déplacent et se suppriment ; une autre organisation n'y a pas accès", async () => {
     const context = await organization();
     const other = await organization();
-    const [template] = await addStarterContractTemplates(context.organizationId, "fr");
+    // Lot 48b (HUB-26) : contrat, mandat et conditions générales de départ ; le contrat d'abord.
+    const starters = await addStarterContractTemplates(context.organizationId, "fr");
+    const template = starters[0];
     const copy = await duplicateContractTemplate({ organizationId: context.organizationId, templateId: template!.id, name: "Mariage à l'étranger" });
     expect(copy.clauses.map((clause) => clause.title)).toEqual(template!.clauses.map((clause) => clause.title));
     const added = await addContractClause(context.organizationId, copy.id, { title: "Hébergement", body: "Hébergement des mariés.", optional: true, role: null });
@@ -217,7 +219,7 @@ describe("FAC-04 / HUB-21 — Modèles de contrat datés et versionnés (lot 31b
     await expect(removeContractTemplate(other.organizationId, copy.id)).rejects.toBeInstanceOf(ContractTemplateNotFoundError);
     expect((await listContractTemplates(other.organizationId)).map((entry) => entry.id)).not.toContain(copy.id);
     await removeContractTemplate(context.organizationId, copy.id);
-    expect((await listContractTemplates(context.organizationId)).map((entry) => entry.id)).toEqual([template!.id]);
+    expect((await listContractTemplates(context.organizationId)).map((entry) => entry.id).sort()).toEqual(starters.map((entry) => entry.id).sort());
   });
 });
 

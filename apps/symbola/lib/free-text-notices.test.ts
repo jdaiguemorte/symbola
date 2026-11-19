@@ -35,6 +35,10 @@ const NOTICED: Record<string, { file: string; name: string }> = {
   "quotes.quote_versions.proposal_greeting": { file: "app/devis/[quoteId]/proposal-forms.tsx", name: "greeting" },
   "quotes.proposal_templates.greeting": { file: "app/devis/modeles-proposition/proposal-template-forms.tsx", name: "greeting" },
   "quotes.payment_references.reminders_suspension_reason": { file: "app/devis/[quoteId]/proposal-forms.tsx", name: "reason" },
+  // Lot 48a (DAT-08) : notes confidentielles (chiffrées) d'une fiche, d'un évènement, d'un contact.
+  "vendors.vendors.internal_note_sealed": { file: "app/prestataires/[id]/vendor-records.tsx", name: "note" },
+  "events.events.notes_sealed": { file: "app/events/[id]/client-contact-forms.tsx", name: "notes" },
+  "hub.contact_notes.body_sealed": { file: "app/contacts/contact-forms.tsx", name: "body" },
 };
 
 // Aussi mis en garde, bien que rangés autrement au registre : la note d'un contact, le motif d'une perte.

@@ -1,4 +1,4 @@
--- Annulation de 0173 (lot 53) : les notifications, les abonnements push, les réglages des personnes,
+-- Annulation de 0181 (lot 53) : les notifications, les abonnements push, les réglages des personnes,
 -- les automatismes, leur journal et les règles du radar disparaissent. Rien de métier n'y vit : les
 -- réglages reviennent aux valeurs de départ, les notifications et le journal sont des traces de 90 jours,
 -- les appareils se réabonnent. Les automatismes coupés repartiraient actifs : l'annulation est refusée

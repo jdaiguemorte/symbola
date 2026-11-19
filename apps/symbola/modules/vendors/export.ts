@@ -5,6 +5,9 @@ import type { ExportEntitySchema, ModuleExport, ModuleExportContext } from "@sym
 import { appDatabase } from "@symbola/db/client";
 import { describeModuleEntities, exportModuleEntities, type ExportEntitySpec } from "@symbola/db/export";
 import {
+  vendorBankChanges,
+  vendorDocumentKinds,
+  vendorDocuments,
   vendorFamilies,
   vendorFiles,
   vendors,
@@ -21,9 +24,15 @@ export const VENDORS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: vendorTypeFields, parents: { typeId: "vendor_types" } },
   { table: vendorTagGroups },
   { table: vendorTags },
-  { table: vendors, demoField: "isDemo" },
+  // Lot 48a (DAT-08, ADR 0093) : IBAN, BIC et note confidentielle chiffrés restent dans Symbola
+  // (l'IBAN masqué sort) ; comme les régimes du lot 49, ils ne voyagent pas dans un fichier.
+  { table: vendors, demoField: "isDemo", omit: ["internalNoteSealed", "ibanSealed", "bicSealed"] },
   { table: vendorFiles, parents: { vendorId: "vendors" }, files: ["fileKey"] },
   { table: vendorSettings, idField: "organizationId" },
+  // Lot 48a (PRE-05, PRE-10) : natures de pièces, pièces (fichiers compris), journal des IBAN masqués.
+  { table: vendorDocumentKinds },
+  { table: vendorDocuments, parents: { vendorId: "vendors", kindId: "vendor_document_kinds" }, files: ["fileKey"] },
+  { table: vendorBankChanges, parents: { vendorId: "vendors" } },
 ];
 
 // Toutes les tables du module sont exportées.

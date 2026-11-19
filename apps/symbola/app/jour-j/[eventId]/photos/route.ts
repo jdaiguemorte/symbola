@@ -23,15 +23,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ eve
   } catch {
     return Response.json({ error: "invalid" }, { status: 400 });
   }
-  const { organizationId, userId } = access;
+  const { organizationId, userId, linkId } = access;
   if (meta.subject === "handover") {
+    // Lot 52 (D3) : le reçu d'une remise d'argent n'est pas du ressort du renfort.
+    if (linkId) return Response.json({ actionId: meta.actionId, status: "rejected", reason: "scope" });
     if (!(await isBudgetModuleEnabled(organizationId)) || !meta.subjectId || !(await isDayHandoverPayment(organizationId, eventId, meta.subjectId))) {
       return Response.json({ actionId: meta.actionId, status: "rejected", reason: "subject" });
     }
   }
   const file = received.formData.get("photo");
   const bytes = file instanceof File ? new Uint8Array(await file.arrayBuffer()) : null;
-  const result = await receiveDayPhoto({ organizationId, eventId, userId, meta, bytes, maxBytes: settings.photoMaxBytes });
+  const result = await receiveDayPhoto({ organizationId, eventId, userId, linkId, meta, bytes, maxBytes: settings.photoMaxBytes });
   if (result.status === "applied" && result.photo?.state === "stored" && meta.subject === "handover" && meta.subjectId) {
     await attachDayHandoverReceipt({ organizationId, eventId, paymentId: meta.subjectId, photoId: result.photo.id });
   }

@@ -50,6 +50,9 @@ export type ExportEntitySpec = {
   organizationField?: string;
   // Identifiant de la ligne (id par défaut).
   idField?: string;
+  // Lot 48a (DAT-08, ADR 0093) : ligne transformée avant l'export (valeur chiffrée au niveau du champ
+  // rendue en clair dans son champ d'origine, pour garder le contrat export/v1).
+  transform?: (row: RawRow) => RawRow;
 };
 
 function entityName(spec: ExportEntitySpec): string {
@@ -193,8 +196,9 @@ export async function exportModuleEntities(
             continue;
           }
           const out: ExportRow = {};
+          const source = spec.transform ? spec.transform(row) : row;
           for (const [field] of exportedColumns(spec)) {
-            const value = row[field];
+            const value = source[field];
             if ((spec.files ?? []).includes(field) && typeof value === "string" && value !== "") {
               const path = exportFilePath(module, name, id, field, value);
               files.push({ path, storageKey: value, entity: `${module}/${name}`, rowId: id, field });

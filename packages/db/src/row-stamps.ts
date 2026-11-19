@@ -27,6 +27,10 @@ export const TECHNICAL_TABLES: Record<string, string> = {
   // Lot 39b (UX-09, ADR 0074) : brouillon de saisie, réécrit à chaque pause de frappe.
   "hub.form_drafts": "brouillon de saisie d'une personne : l'auteur est le compte ; temporaire, purgé après 30 jours",
   "hub.jobs": "tâche de fond (e-mail à envoyer) : technique, contenu effacé à la fin, ligne purgée après 30 jours",
+  // Lot 52 (HUB-04, HUB-05, SEC-08, ADR 0094) : tables de sécurité d'un compte.
+  "hub.known_devices": "appareil déjà vu pour un compte : l'auteur est le compte ; oublié après 30 jours d'inactivité",
+  "hub.ownership_transfers": "demande de transfert de propriété, tracée au journal d'audit à la demande et à la confirmation",
+  "hub.identity_change_alerts": "alerte annoncée par le webhook du fournisseur d'identité, écrite par le système",
   "quotes.number_series": "compteur de numérotation, verrouillé en transaction",
   "quotes.signature_webhook_log": "trace technique des appels du fournisseur de signature (received_at)",
 };

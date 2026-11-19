@@ -33,7 +33,30 @@
     "setUp": "Manage my sign-in methods",
     "signInAgain": "Send me a sign-in link",
     "signOut": "Sign out",
-    "linkSent": "A sign-in link has just been sent to your address. Open it: your two-step verification will be asked for, or set up if missing."
+    "linkSent": "A sign-in link has just been sent to your address. Open it: your two-step verification will be asked for, or set up if missing.",
+    "accountantBody": "As the organization's accountant, you read its invoices and ledgers: two-step verification is required at every sign-in. Get a sign-in link: you will set up an authenticator app or a passkey, then it will be asked for.",
+    "sessionsTitle": "My sessions",
+    "sessionsSubtitle": "The devices where your account is signed in.",
+    "thisDevice": "This device",
+    "lastSeen": "Last activity: {date}",
+    "closeOne": "Close",
+    "closeOneLabel": "Close the {device} session",
+    "closeOthers": "{count, plural, one {Close the other session} other {Close the # other sessions}}",
+    "onlyThisOne": "Your account is signed in on this device only.",
+    "sessionClosed": "The session is closed: that device will have to sign in again.",
+    "sessionsClosed": "{count, plural, =0 {No other session was open.} one {One session closed.} other {# sessions closed.}}",
+    "noLocation": "Symbola keeps neither the IP address nor the city of your sign-ins: only the device and the time.",
+    "manageFactors": "Manage my email address, passkey and two-step verification",
+    "promptLabel": "Two-step verification",
+    "promptBody": "Secure your account: a passkey or an authenticator app protects your events even if your email is hacked.",
+    "promptAction": "Secure my account",
+    "promptLater": "Later",
+    "notMeTitle": "Wasn't it you?",
+    "notMeBody": "Close every session of your account, on all devices. You can then sign in again and secure your account.",
+    "notMeConfirm": "Close all my sessions",
+    "notMeDone": "All your sessions are closed. Now check your email address, your passkey and your two-step verification.",
+    "notMeSecure": "Secure my account",
+    "notMeInvalid": "This link is no longer valid: it was already used or is more than seven days old. Sign in, then close your other sessions from “My sessions”."
   },
   "Organizations": {
     "label": "Organization",
@@ -223,7 +246,8 @@
     "success": "Preferences saved.",
     "securityTitle": "Account security",
     "securityBody": "Your password, passkeys and two-step verification are managed in your sign-in space.",
-    "securityLink": "Open my sign-in space"
+    "securityLink": "Open my sign-in space",
+    "sessionsLink": "My sessions: the devices signed in to my account"
   },
   "Settings": {
     "title": "Settings",
@@ -1018,7 +1042,7 @@
     },
     "vendorDetail": {
       "title": "Supplier record",
-      "body": "Everything you know about a supplier: contact details, its type's characteristics, tags, rating (1 to 5) and indicative prices, documents, internal note. « Edit the record » opens all of this in a panel; click a tag to choose it; only those of its family are shown. « History with you » lists its services, quoted and final price.",
+      "body": "The record gathers everything you know about the vendor: contact details, features of their type, rating, indicative prices, history with you. Documents (insurance, registration) have an end of validity and can be requested from the vendor. The IBAN is encrypted and only shown masked: if it changes, a banner asks you to call the vendor on the number you already know, never the one in the message announcing the change, before any payment. A note marked confidential is encrypted and reserved for you and the account owner. For a venue, its constraints (music end, vendor access, capacity) check the event program, without ever blocking anything.",
       "faq": [
         {
           "q": "Does archiving erase its history?",
@@ -1385,6 +1409,34 @@
     "budgetCashCalendar": {
       "title": "Cash-out calendar",
       "body": "Month by month, the client's instalments to you and to their vendors, with their payer and status: the answer to “what do we have to pay in May?”."
+    },
+    "vendorDocuments": {
+      "title": "Vendor documents",
+      "body": "Insurance certificate, company registration, venue plan: each record in the book keeps its documents with their end of validity. Symbola warns you a few days before (set the delay here) and flags, on the event and in \"Today\", a document that expires before the big day of a retained vendor. You can also request a document from the vendor: they upload it through their personal link, and it arrives \"to check\"."
+    },
+    "plannerMoney": {
+      "title": "Fees and commissions",
+      "body": "Set your fees (flat, percentage of the estimated or committed budget, or both): they go on your quote and stay separate from the client's budget. Record the commissions and business referrals paid by vendors: an individual client sees them all, on the quote and in their portal; for a business, you choose. A commission is invoiced to the vendor, in your invoice series, as Factur-X."
+    },
+    "sessions": {
+      "title": "My sessions",
+      "body": "Each line is a device where your account is signed in, with its last activity (updated at most once an hour). Close a session you don't recognize: it is refused at its next request. Lost a phone? “Close the other sessions”."
+    },
+    "accounting": {
+      "title": "Accountant access",
+      "body": "The Owner gave you read-only access: invoices (commission invoices to vendors included), credit notes, payments, ledgers, exports and e-reporting. You see neither events, nor guests, nor settings. Two-step verification is asked at every sign-in."
+    },
+    "eventTeam": {
+      "title": "Event team",
+      "body": "Name a lead planner (who receives the event's alerts and digests) and assistants. When “All Planners see all events” is off (Settings, Team), a Planner only sees the events of her team. A big day helper comes without an account: their link only opens this event's Big day mode, from the day before to the day after."
+    },
+    "ownership": {
+      "title": "Ownership transfer",
+      "body": "The Owner offers to hand over to you. Sign in with your two-step verification, then confirm: the roles are swapped and you both get an email. The link is valid for seven days and works once."
+    },
+    "notMe": {
+      "title": "This wasn't me",
+      "body": "Your account was signed in from a device Symbola did not know. If it wasn't you, close all your sessions here, then change your address, password and two-step verification in your account."
     },
     "notifications": {
       "title": "Notifications",
@@ -2126,7 +2178,15 @@
       "no_label_column": "No sequence column recognised (sequence, item…).",
       "unsupported_format": "Unread format: save the file as .xlsx or .csv.",
       "malformed": "The file could not be read."
-    }
+    },
+    "eventNotesConfidentialElsewhere": "The notes are confidential: edit them just below.",
+    "eventNotesConfidentialTitle": "Notes and confidentiality",
+    "eventNotesConfidential": "Confidential",
+    "eventNotesConfidentialHint": "Confidential notes are encrypted, left out of searches and exports, and readable only by their author and the account owner.",
+    "eventNotesSave": "Save the notes",
+    "eventNotesSaved": "Notes saved.",
+    "eventNotesForbidden": "These confidential notes are reserved for their author and the account owner.",
+    "eventNotesConfidentialHidden": "Confidential notes exist: they are reserved for their author and the account owner."
   },
   "Budget": {
     "title": "Budget",
@@ -2325,7 +2385,8 @@
     "handoverCashHint": "Cash: cash payments are capped by law (see the help).",
     "payersNav": "Payers and calendar",
     "payersLink": "Payers and split",
-    "cashCalendarLink": "Cash-out calendar"
+    "cashCalendarLink": "Cash-out calendar",
+    "bankToVerify": "IBAN to check"
   },
   "Quotes": {
     "title": "Quotes",
@@ -2765,7 +2826,16 @@
     "professionalDiscountTerms": "Early payment discount (business clients)",
     "professionalDiscountTermsHint": "\"None\" if you do not grant one: this mention is mandatory for a business client.",
     "invalidProfessionalPaymentTerm": "Enter a term in days.",
-    "professionalTermOutOfBounds": "Term beyond the legal limit: {max} days at most."
+    "professionalTermOutOfBounds": "Term beyond the legal limit: {max} days at most.",
+    "lineSupplyMode": "Mode",
+    "lineSupplyResale": "Reseller: you buy and re-invoice (in your total)",
+    "lineSupplyIntermediary": "Intermediary: the vendor invoices the client (for information)",
+    "lineTourismKind": "Travel kind",
+    "lineTourismNone": "None",
+    "lineTourismTransport": "Transport",
+    "lineTourismLodging": "Lodging",
+    "lineTourismOther": "Other travel service",
+    "lineIntermediaryBadge": "invoiced by the vendor, not in the total"
   },
   "Documents": {
     "pdfSellerHeading": "From",
@@ -4811,7 +4881,9 @@
     "filterRatingAtLeast": "{rating, plural, =5 {5 out of 5} other {At least # out of 5}}",
     "editRecord": "Edit the record",
     "fieldYes": "Yes",
-    "fieldNo": "No"
+    "fieldNo": "No",
+    "internalNoteConfidentialElsewhere": "The internal note is confidential: edit it in its own section of the record.",
+    "historyTable": "Table of the history with you"
   },
   "Onboarding": {
     "title": "Let's set up your workspace",
@@ -5096,6 +5168,7 @@
     "dayChecklists": "Event-day checklists",
     "proposalTemplates": "Proposal templates",
     "paymentReminders": "Reminders",
+    "vendorDocuments": "Vendor documents",
     "notifications": "Notifications",
     "automations": "Automations",
     "riskRadar": "Risk radar",
@@ -5396,7 +5469,19 @@
       "quotes_validity_extended": "Quote validity extended",
       "quotes_signing_code_verified": "Code checked before signing",
       "budget_payers_changed": "Payers or shares changed",
-      "budget_payer_visibility_changed": "What a payer sees, changed"
+      "budget_payer_visibility_changed": "What a payer sees, changed",
+      "vendors_bank_details_changed": "Vendor IBAN changed",
+      "vendors_bank_details_verified": "Vendor IBAN checked by phone",
+      "vendors_document_requested": "Document requested from a vendor",
+      "vendors_document_received": "Document uploaded by a vendor",
+      "vendors_document_verified": "Vendor document checked",
+      "hub_identity_changed": "Account changed at the identity provider",
+      "hub_identity_webhook_refused": "Identity provider call refused",
+      "hub_ownership_transfer_requested": "Ownership transfer requested",
+      "hub_ownership_transferred": "Ownership transferred",
+      "hub_ownership_transfer_cancelled": "Ownership transfer cancelled",
+      "hub_organization_visibility_changed": "Event visibility changed",
+      "events_team_changed": "Event team changed"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -5563,6 +5648,12 @@
       "budget_event_payers": "Payer",
       "budget_budget_line_payer_shares": "Payer's share",
       "budget_planner_instalment_payers": "Payer of an instalment",
+      "vendors_vendor_documents": "a vendor document",
+      "vendors_vendor_document_kinds": "a document kind",
+      "vendors_vendor_bank_changes": "an IBAN change",
+      "quotes_planner_fees": "fees",
+      "quotes_vendor_commissions": "a commission",
+      "events_event_team_members": "event team",
       "hub_notification_settings": "notification settings",
       "hub_notification_preferences": "notification kind setting",
       "hub_automations": "automation setting",
@@ -5633,7 +5724,7 @@
   },
   "Team": {
     "title": "Team",
-    "subtitle": "Your organization's accounts: invite a planner, remove access.",
+    "subtitle": "Your organization's accounts: invite a Planner or an Accountant, remove an access, transfer ownership.",
     "ownerOnly": "The team is managed by the account owner.",
     "listTitle": "Team accounts",
     "columnEmail": "Email",
@@ -5643,18 +5734,18 @@
     "columnActions": "Actions",
     "roles": {
       "owner": "Owner",
-      "member": "Planner"
+      "member": "Planner",
+      "accountant": "Accountant"
     },
     "accessActive": "Active",
     "accessRemoved": "Removed on {date}",
     "remove": "Remove access for {email}",
     "confirmTitle": "Remove access for {email}?",
-    "confirmBody": "Their sessions are closed right away, on all their devices, and this account can no longer sign in. Their work stays in the organization.",
+    "confirmBody": "Their sessions are closed right away, on all their devices, and this account can no longer sign in to your organization. Their work stays; they leave your events' teams.",
     "confirmRemove": "Remove access",
     "cancel": "Cancel",
     "removed": "Access removed. This account's sessions are closed.",
-    "inviteTitle": "Invite a planner",
-    "inviteEmail": "Planner's e-mail address",
+    "inviteTitle": "Invite someone",
     "inviteHint": "They receive a link valid for seven days, single use. They will have access to every module; the team, activity log, GDPR and settings stay with you.",
     "inviteSubmit": "Send the invitation",
     "inviteSent": "Invitation sent. It shows below until it is accepted.",
@@ -5665,7 +5756,31 @@
     "inviteMailSubject": "\"{organization}\" invites you to Symbola",
     "inviteMailBody": "Hello,\n\n\"{organization}\" invites you to join their team on Symbola, as a planner. This link is valid until {date} and works only once:\n{url}\n\nSee you soon,\nThe Symbola team",
     "pendingTitle": "Pending invitations",
-    "pendingUntil": "{email}, valid until {date}"
+    "pendingUntil": "{email} ({role}), valid until {date}",
+    "inviteEmailAny": "Email address",
+    "inviteRole": "Their role",
+    "inviteHintAccountant": "An Accountant only reads invoices, credit notes, payments, ledgers, exports and e-reporting; two-step verification is required.",
+    "inviteMailBodyAccountant": "Hello,\n\n“{organization}” invites you to Symbola as its Accountant: you will read its invoices, credit notes, payments, ledgers, exports and e-reporting, without being able to change anything. Two-step verification will be asked at every sign-in. This link is valid until {date} and works once:\n{url}\n\nSee you soon,\nThe Symbola team",
+    "transfer": "Transfer ownership to {email}",
+    "transferConfirmTitle": "Transfer ownership to {email}?",
+    "transferConfirmBody": "She must have two-step verification. She gets a link valid for seven days; when she confirms, she becomes the Owner and you become a Planner. You will both get an email.",
+    "transferConfirm": "Send the transfer request",
+    "transferPendingTitle": "Ownership transfer pending",
+    "transferPendingBody": "{email} has until {date} to confirm. Until then, you remain the Owner.",
+    "transferCancel": "Cancel the transfer",
+    "transferOutcome": {
+      "sent": "Request sent: the Planner confirms with the link she received by email.",
+      "cancelled": "Transfer cancelled: nothing changes.",
+      "mfa_missing": "This Planner has no two-step verification yet: ask her to set it up (passkey or app), then try again.",
+      "not_planner": "Only an active Planner of the team can become the Owner.",
+      "not_owner": "Only the Owner transfers ownership.",
+      "send_failed": "The request could not be sent: nothing changes. Try again in a few minutes."
+    },
+    "visibilityTitle": "Who sees the events",
+    "visibilityLabel": "All Planners see all events",
+    "visibilityHint": "Unchecked, a Planner only sees the events whose team she belongs to (lead planner or assistant). You always see everything.",
+    "visibilitySave": "Save",
+    "visibilitySaved": "Setting saved."
   },
   "SignOutEverywhere": {
     "title": "Signed-in devices",
@@ -5785,7 +5900,30 @@
     "programNotPublished": "The schedule has not been shared yet.",
     "outlineTitle": "The day at a glance",
     "outlineYours": "you",
-    "programDayShift": "{minutes} min shift on the day: your times below are up to date."
+    "programDayShift": "{minutes} min shift on the day: your times below are up to date.",
+    "documentsTitle": "Your documents and bank details",
+    "documentsNone": "No document is requested from you for now.",
+    "documentsFile": "File: {document}",
+    "documentsValidUntil": "Valid until (optional)",
+    "documentsSend": "Send the document",
+    "documentsSent": "Document sent: the organizer will check it.",
+    "documentsReceived": "received, being checked",
+    "documentsClosed": "This request is no longer open.",
+    "documentsFileMissing": "Choose a file.",
+    "documentsTooLarge": "File too large (20 MB at most).",
+    "documentsInfected": "File rejected by the antivirus.",
+    "documentsUnsupported": "Format not accepted: PDF or image.",
+    "documentsDateInvalid": "Invalid end-of-validity date.",
+    "bankTitle": "Your bank details",
+    "bankCurrent": "IBAN on file: {iban}",
+    "bankNone": "No IBAN on file.",
+    "bankHint": "For your safety, any IBAN change will be checked by phone by the organizer before any payment.",
+    "bankIban": "IBAN",
+    "bankBic": "BIC (optional)",
+    "bankSend": "Send the IBAN",
+    "bankSent": "IBAN sent: the organizer will call you to check it.",
+    "bankIbanInvalid": "This IBAN is not valid: check the digits.",
+    "bankBicInvalid": "This BIC is not valid."
   },
   "Decisions": {
     "decisionOptionTitle": "Choose: {slot}",
@@ -6053,7 +6191,11 @@
     "prepAddItem": "Add the box",
     "prepRemove": "Remove",
     "prepRemoveItem": "Remove the box {label}",
-    "prepRemoveList": "Remove the checklist \"{name}\""
+    "prepRemoveList": "Remove the checklist \"{name}\"",
+    "bankToVerify": "IBAN to check",
+    "helperWelcome": "Hello {name}: here is the big day, as a helper.",
+    "byHelper": "{name}, helper",
+    "syncLinkRevoked": "{count, plural, =0 {Your helper link was removed or has expired.} one {Your helper link was removed or has expired: # action stays on this phone and will not be sent. Let the planner know.} other {Your helper link was removed or has expired: # actions stay on this phone and will not be sent. Let the planner know.}}"
   },
   "Offline": {
     "title": "Offline",
@@ -6193,7 +6335,16 @@
       "earnest": "earnest money (arrhes)",
       "namesJoin": " and ",
       "days": "{days} days",
-      "scheduleLine": "{label}: {amount}, on {date}"
+      "scheduleLine": "{label}: {amount}, on {date}",
+      "feeFlat": "{amount} (flat fee)",
+      "feePercent": "{percent} of the {base} budget",
+      "feeMixed": "{amount} plus {percent} of the {base} budget",
+      "feeBaseEstimated": "estimated",
+      "feeBaseCommitted": "committed",
+      "commissionLine": "{vendor}: {amount} ({nature})",
+      "natureCommission": "commission",
+      "natureReferral": "business referral",
+      "intermediaryLine": "{label}: {amount}"
     },
     "unauthenticated": "Your session has expired. Sign in again, then retry.",
     "templateNotFound": "Contract template not found.",
@@ -6393,7 +6544,13 @@
     "evidencePresented": "Text shown: {text}",
     "signersWithoutPortal": "At a distance, each signer orders on their personal space before signing. First create the personal link for: {names}.",
     "signingLinkOnPortal": "signing link on their personal space, after their order",
-    "orderFirstHint": "Distance contract: each signer reads the contract and orders on their personal space; their signing link then appears there. The e-mail sent invites them there, without a direct link."
+    "orderFirstHint": "Distance contract: each signer reads the contract and orders on their personal space; their signing link then appears there. The e-mail sent invites them there, without a direct link.",
+    "problem_package_travel_template_required": "This quote combines a package travel: the standard template is blocked, choose a template dedicated to package travel.",
+    "templateKind": "Template kind",
+    "templateKindContract": "Service contract",
+    "templateKindMandate": "Mandate (intermediary mode)",
+    "templateKindGeneralTerms": "General terms",
+    "templateKindPackageTravel": "Package travel (dedicated template)"
   },
   "Compliance": {
     "nothing": "Nothing to report.",
@@ -6470,6 +6627,13 @@
       "vendorChoice": "The client chose {vendor} ({slot}): check it",
       "vendorRoadmap": "{vendor} has not confirmed their run sheet",
       "transferDeclaration": "{name} says they transferred {amount}",
+      "vendorDocument": {
+        "expired": "{vendor}'s {document}: expired",
+        "expiring": "{vendor}'s {document}: expiring soon",
+        "lapses_before_event": "{vendor}'s {document}: expires before the event",
+        "to_verify": "{vendor}'s {document}: uploaded, to check"
+      },
+      "vendorBankCheck": "{vendor}'s IBAN changed: check it by phone before any payment",
       "standaloneTaskTag": "Outside events"
     },
     "myEventsTitle": "My events",
@@ -6726,7 +6890,10 @@
     "memberSearch": "Search for the person by name, email or phone",
     "pickerNoneAlone": "No contact found: add them to your contacts first.",
     "editRecord": "Edit the record",
-    "duplicatesLink": "{count, plural, one {One possible duplicate to check} other {# possible duplicates to check}}"
+    "duplicatesLink": "{count, plural, one {One possible duplicate to check} other {# possible duplicates to check}}",
+    "noteConfidential": "Confidential (encrypted, readable only by you and the account owner)",
+    "noteConfidentialBadge": "confidential",
+    "noteConfidentialHidden": "Confidential note, reserved for its author and the account owner."
   },
   "SharedDocuments": {
     "title": "Documents",
@@ -6788,6 +6955,10 @@
       "available": "I am available",
       "unavailable": "I am not available",
       "roadmap": "See my run sheet",
+      "dayOf": "Open the big day",
+      "confirm": "Confirm the transfer",
+      "notMe": "This wasn't me",
+      "account": "Check my account",
       "open": "Open Symbola"
     },
     "footerNote": "Sent with Symbola",
@@ -6818,6 +6989,10 @@
       "iban": "FR76 3000 6000 0112 3456 7890 189",
       "bic": "AGRIFRPP",
       "penalties": "Thank you for settling it as soon as possible.",
+      "validFrom": "June 11, 2027",
+      "device": "Safari on iPhone",
+      "dateTime": "November 18, 2026 at 9:04 PM",
+      "change": "The email address of your account was changed",
       "clientTerm": "the couple",
       "digest": "- Quote D-2027-0042 has been signed.\n- 3 tasks to do today, 1 of them overdue.",
       "alert": "A transfer of €1,620.00 has been declared (quote D-2027-0042)."
@@ -6865,12 +7040,29 @@
       "actionCode": {
         "subject": "Your code to sign: {code}",
         "body": "Hello {name},\n\nYour code to accept and sign your proposal on Symbola: {code}\n\nIt is valid for {minutes} minutes and can be used only once. If you did not ask for it, ignore this message and let your contact know."
+      },
+      "accountAlert": {
+        "newDeviceSubject": "New sign-in to Symbola",
+        "newDeviceBody": "Hello,\n\nYour Symbola account was just signed in from a new device: {device}, on {date}.\n\nIf this was you, there is nothing to do. Otherwise, close all your sessions and check your account:\n\n{link}",
+        "identitySubject": "Your Symbola account was changed",
+        "identityBody": "Hello,\n\n{change} on {date}.\n\nIf this was you, there is nothing to do. Otherwise, open your account and secure it right away:\n\n{link}",
+        "notMe": "This wasn't me",
+        "account": "Check my account"
+      },
+      "ownershipDone": {
+        "subject": "Ownership of {organization} transferred",
+        "body": "Hello,\n\nThe ownership transfer of {organization} is done: {owner} is now the Owner, and the former Owner becomes a Planner. If you did not expect this, reply to the Owner or write to Symbola support."
       }
     },
     "followUpOptOut": "You would rather not hear from us again? Simply reply to this message.",
     "booking": {
       "withPage": "Pick the time that suits you on my booking page: {url}",
       "manual": "Here are a few possible times:\n- on … at …\n- or on … at …\nLet me know what suits you best."
+    },
+    "identityChange": {
+      "email": "The email address of your Symbola account was changed",
+      "mfa": "A two-step verification factor of your Symbola account was added or removed",
+      "password": "The password of your Symbola account was reset"
     }
   },
   "RecipientsGuard": {
@@ -6899,7 +7091,7 @@
       "prospects": "Contact requests",
       "vendors": "Suppliers",
       "settlement": "Proposal and payment",
-      "team": "Team"
+      "team": "Team and account security"
     },
     "kinds": {
       "client_link": {
@@ -7001,6 +7193,22 @@
       "invoice_reminder": {
         "title": "Unpaid instalment reminder",
         "description": "Sent automatically after an unpaid instalment, according to your settings; stops as soon as the client declares their transfer."
+      },
+      "day_helper_link": {
+        "title": "Big day helper link",
+        "description": "Sent when you add a helper to an event: their personal link becomes the “Open the big day” button, valid from the day before to the day after."
+      },
+      "ownership_transfer": {
+        "title": "Ownership transfer",
+        "description": "Sent to the Planner you name as the new Owner: the link becomes the “Confirm the transfer” button, valid for seven days."
+      },
+      "new_device_login": {
+        "title": "New sign-in",
+        "description": "Sent to a team member who signs in from an unknown device: the link becomes the “This wasn't me” button, which closes all their sessions."
+      },
+      "identity_changed": {
+        "title": "Account changed",
+        "description": "Sent when the email address, two-step verification or password of an account changes: to the former address when the address changes."
       },
       "daily_digest": {
         "title": "Morning summary",
@@ -7622,7 +7830,8 @@
       "vendor": "Supplier archived.",
       "appointmentType": "Appointment type moved to the bin.",
       "appointment": "Appointment moved to the bin."
-    }
+    },
+    "eventAssistant": "As an assistant on this event, you cannot delete it: ask its lead planner or the Owner."
   },
   "Drafts": {
     "found": "Draft from {date} found.",
@@ -9313,6 +9522,312 @@
       "consumerLatePenaltyBasisPoints": "The rate is between 0.01 and 100%."
     },
     "lawyerNote": "Consumer penalties: question asked to the lawyer (maximum rate, wording). Until then, nothing is mentioned without a contract clause."
+  },
+  "VendorRecords": {
+    "unauthorized": "Action not allowed.",
+    "notFound": "Record or document not found.",
+    "someone": "a team member",
+    "byYou": "you",
+    "byOwner": "the account owner",
+    "byMember": "a team member",
+    "byVendorLink": "the vendor, through their link",
+    "bankTitle": "Bank details",
+    "iban": "IBAN",
+    "ibanNew": "New IBAN",
+    "bic": "BIC",
+    "bicSet": "provided",
+    "ibanHint": "The IBAN is encrypted and only shown masked. Every change is recorded and stays \"to check\" until you call the vendor.",
+    "ibanSave": "Save the IBAN",
+    "ibanSaved": "IBAN saved.",
+    "ibanInvalid": "This IBAN is not valid: check the digits.",
+    "bicInvalid": "This BIC is not valid, or the IBAN is missing.",
+    "toVerify": "to check",
+    "bankCheckTitle": "IBAN changed: check it through another channel before any payment",
+    "bankCheckByVendor": "The vendor changed their IBAN through their link on {date}.",
+    "bankCheckByPlanner": "The IBAN was changed in Symbola on {date}.",
+    "bankCheckCall": "Call the vendor on the number you already know ({phone}), never the one in the message announcing the change.",
+    "bankCheckCallNoPhone": "Call the vendor on the number you already know, never the one in the message announcing the change.",
+    "bankCheckLift": "I checked by phone",
+    "bankHistory": "IBAN changes ({count})",
+    "bankHistoryLine": "{date}, by {who}: {before} → {after}.",
+    "bankHistoryVerified": "Checked on {date} by {who}.",
+    "bankHistoryPending": "To check.",
+    "documentsTitle": "Documents",
+    "documentsEmpty": "No documents yet.",
+    "documentKind": "Kind of document",
+    "documentFile": "File (PDF or image)",
+    "validUntil": "Valid until (optional)",
+    "validUntilShort": "valid until {date}",
+    "validUntilFor": "End of validity: {document}",
+    "validUntilSave": "Change the date",
+    "validUntilInvalid": "Invalid end-of-validity date.",
+    "documentAdd": "Add the document",
+    "documentAdded": "Document added.",
+    "documentRequested": "requested from the vendor",
+    "documentToVerify": "uploaded by the vendor, to check",
+    "documentExpired": "expired",
+    "documentExpiring": "expiring soon",
+    "documentVerify": "Mark \"{document}\" as checked",
+    "documentRemove": "Remove \"{document}\"",
+    "fileMissing": "Choose a file.",
+    "fileTooLarge": "File too large (20 MB at most).",
+    "fileInfected": "File rejected by the antivirus.",
+    "fileUnsupported": "Format not accepted: PDF or image.",
+    "requestHint": "Does the vendor have the up-to-date document? Request it: they will upload it through their personal link, and it will arrive \"to check\".",
+    "requestKind": "Document to request",
+    "requestSubmit": "Request from the vendor",
+    "requestSent": "Request recorded: it appears in the vendor's space.",
+    "noteTitle": "Internal note",
+    "note": "Note",
+    "noteConfidential": "Confidential",
+    "noteConfidentialHint": "A confidential note is encrypted, left out of searches and exports, and readable only by you and the account owner.",
+    "noteSave": "Save the note",
+    "noteSaved": "Note saved.",
+    "noteForbidden": "This confidential note is reserved for its author and the account owner.",
+    "noteHidden": "A confidential note exists: it is reserved for its author and the account owner."
+  },
+  "VenueChecks": {
+    "title": "Venue constraints",
+    "rule": {
+      "music_end": "{venue} asks for the music to end at {time}: \"{item}\" ends later.",
+      "volume_down": "{venue} asks to lower the volume at {time}: \"{item}\" ends later.",
+      "guests_departure": "{venue} asks guests to leave by {time}: \"{item}\" ends later.",
+      "vendor_access_start": "{venue} opens to vendors at {time}: \"{item}\" starts earlier.",
+      "vendor_access_end": "{venue} closes to vendors at {time}: \"{item}\" ends later."
+    },
+    "ruleOther": "\"{item}\" goes beyond a constraint of {venue}.",
+    "notBlocking": "A warning, nothing is blocked: an exception agreed with the venue remains possible.",
+    "capacitySeated": "{venue} seats {limit} people: {guests} guests are expected.",
+    "capacityStanding": "{venue} holds {limit} people standing: {guests} guests are expected."
+  },
+  "VendorDocumentSettings": {
+    "title": "Vendor documents",
+    "unavailable": "The vendor book is not enabled for your organization.",
+    "unauthorized": "Action not allowed.",
+    "alertTitle": "Alert before the end of validity",
+    "alertIntro": "A document is flagged in \"Today\" this many days before its last day of validity.",
+    "days": "Days before the end",
+    "daysInvalid": "Between 1 and 180 days.",
+    "save": "Save",
+    "saved": "Delay saved.",
+    "kindsTitle": "Kinds of documents",
+    "kindWithExpiry": "with end of validity",
+    "kindRemove": "Remove \"{kind}\"",
+    "kindLabel": "New kind",
+    "kindExpires": "Has an end of validity",
+    "kindAdd": "Add",
+    "kindAdded": "Kind added.",
+    "labelInvalid": "A label of 1 to 120 characters."
+  },
+  "PlannerMoney": {
+    "pageTitle": "Fees and commissions",
+    "unavailable": "The quotes module is not enabled for your organization.",
+    "unauthorized": "Action not allowed.",
+    "backToEvent": "Back to {names}'s event",
+    "quoteTitle": "Your fees, commissions and modes",
+    "packageTravelTitle": "Package travel: the standard contract is blocked",
+    "packageTravelBody": "This quote sells together, as a reseller, transport or lodging and another travel service. It is a package travel, subject to specific rules: choose a dedicated contract template, reviewed by your counsel.",
+    "franchiseApproaching": "VAT exemption: with this quote, your revenue for the year would reach {total}, close to the {threshold} threshold.",
+    "franchiseExceeded": "VAT exemption: with this quote, your revenue for the year would reach {total}, beyond the {threshold} threshold. Talk to your accountant.",
+    "resaleTotal": "Your part (reseller, in your total)",
+    "intermediaryTotal": "Invoiced by vendors (for information)",
+    "modesHint": "Each line has its mode: as a reseller, you buy and re-invoice, the line enters your total and VAT; as an intermediary, the vendor invoices the client, the line is shown for information.",
+    "commissionsTitle": "Commissions and business referrals",
+    "commissionsNone": "No commission recorded for this event.",
+    "commissionsIndividual": "Individual client: every commission is shown to them, on the quote and in their portal.",
+    "commissionsProfessional": "Business client: you choose which commissions are shown to them.",
+    "commissionsNoVendor": "First retain a vendor for this event.",
+    "commissionLine": "{vendor}: {amount} ({nature})",
+    "natureCommission": "commission",
+    "natureReferral": "business referral",
+    "manageLink": "Manage the event's fees and commissions",
+    "addFeeLine": "Add the fees to the quote ({amount} excl. VAT)",
+    "feeLineLabel": "Planning fees",
+    "feesTitle": "Your fees",
+    "feeAmount": "Fees: {amount} excl. VAT, computed from the event budget.",
+    "feeNone": "No fees set for this event.",
+    "feesHint": "Your fees go on your quote; in the client's budget, they are a separate line, never among the event's expenses.",
+    "feeKind": "Form",
+    "feeKindNone": "None",
+    "feeKindFlat": "Flat fee",
+    "feeKindPercent": "Percentage of the budget",
+    "feeKindMixed": "Flat fee and percentage",
+    "feeFlat": "Flat fee (€ excl. VAT)",
+    "feePercent": "Percentage (%)",
+    "feeBase": "Percentage base",
+    "feeBaseEstimated": "Estimated budget",
+    "feeBaseCommitted": "Committed budget",
+    "feeSave": "Save the fees",
+    "feeSaved": "Fees saved.",
+    "feeInvalid": "Invalid fees: a positive amount and a percentage between 0.01 and 100.",
+    "commissionVendor": "Vendor",
+    "commissionNature": "Kind",
+    "commissionMode": "Calculation",
+    "commissionModeAmount": "Amount",
+    "commissionModePercent": "Percentage of an amount",
+    "commissionAmount": "Amount (€ excl. VAT)",
+    "commissionPercent": "Percentage (%)",
+    "commissionBase": "Base amount (€)",
+    "commissionShown": "Show to the client",
+    "commissionAdd": "Record the commission",
+    "commissionAdded": "Commission recorded.",
+    "commissionInvalid": "Invalid commission: a positive amount, or a percentage and its base.",
+    "status_expected": "expected",
+    "status_invoiced": "invoiced",
+    "status_received": "received",
+    "receivedOn": "on {date}",
+    "shownToClient": "shown to the client",
+    "hiddenFromClient": "not shown to the client",
+    "markReceived": "Mark received — {vendor}",
+    "show": "Show to the client — {vendor}",
+    "hide": "Stop showing — {vendor}",
+    "remove": "Remove — {vendor}",
+    "invoiceIssue": "Invoice the commission to {vendor}",
+    "invoiceIssued": "Invoice issued.",
+    "invoiceDownload": "Invoice {number}",
+    "invoiceAlready": "This commission is already invoiced.",
+    "invoiceVendorMissing": "Link the commission to a record of the book (company name, SIRET, address) to invoice it.",
+    "invoiceMentionsMissing": "The vendor record must have its SIRET and full address.",
+    "invoiceLineCommission": "Commission — {event}'s event",
+    "invoiceLineReferral": "Business referral — {event}'s event",
+    "budgetFeeTitle": "Planner's fees",
+    "budgetFeeHt": "excl. VAT",
+    "budgetFeeHint": "Separate: they count in no category and not in the event's expenses.",
+    "portalTitle": "Commissions received by your planner",
+    "portalIntro": "Your planner receives the following commissions from your event's vendors:",
+    "pdfIntermediaryTitle": "Services invoiced directly by the vendors (for information, not in the total):",
+    "pdfCommissionsTitle": "Commissions received by the planner:",
+    "pdfLine": "{label}: {amount}"
+  },
+  "Devices": {
+    "label": "{browser} on {system}",
+    "browser": {
+      "edge": "Edge",
+      "opera": "Opera",
+      "samsung": "Samsung Internet",
+      "firefox": "Firefox",
+      "chrome": "Chrome",
+      "safari": "Safari",
+      "other": "A browser"
+    },
+    "system": {
+      "iphone": "iPhone",
+      "ipad": "iPad",
+      "android": "Android",
+      "mac": "Mac",
+      "windows": "Windows",
+      "linux": "Linux",
+      "other": "an unknown device"
+    }
+  },
+  "Accounting": {
+    "menuLabel": "Accounting",
+    "menu": {
+      "documents": "Invoices and credit notes",
+      "payments": "Payments",
+      "eReporting": "E-reporting",
+      "ledger": "Ledgers and exports",
+      "sessions": "My sessions",
+      "account": "My account"
+    },
+    "title": "Accounting of {organization}",
+    "subtitle": "Your access is read-only: you view and download, nothing can be changed from here.",
+    "readOnly": "Read-only",
+    "documentsTitle": "Invoices and credit notes",
+    "noDocuments": "No invoice or credit note for this year.",
+    "year": "Year",
+    "number": "Number",
+    "kind": "Document",
+    "date": "Date",
+    "amount": "Amount incl. VAT",
+    "download": "Download",
+    "downloadLabel": "Download {number}",
+    "kinds": {
+      "invoice": "Invoice",
+      "credit_note": "Credit note",
+      "commission_invoice": "Commission invoice"
+    },
+    "linksTitle": "Ledgers, payments and e-reporting",
+    "links": {
+      "payments": "Payments",
+      "ledger": "Ledgers and entries (CSV)",
+      "eReporting": "E-reporting"
+    },
+    "moduleUnavailable": "The organization does not subscribe to the Quotes and invoices module: nothing to view yet.",
+    "documentsTable": "Table of invoices and credit notes"
+  },
+  "Ownership": {
+    "title": "Become the Owner",
+    "body": "The organization's Owner offers to hand over to you: you will manage the team, the subscription, GDPR and the settings; she will become a Planner.",
+    "confirm": "I become the Owner",
+    "done": "Done: you are now the organization's Owner.",
+    "openTeam": "See the team",
+    "signInFirst": "Sign in first with your two-step verification, then open the link from the email again.",
+    "signIn": "Sign in",
+    "mfaRequired": "To confirm, sign in again with your two-step verification (passkey or app), then open the link from the email again.",
+    "outcome": {
+      "invalid": "This link is no longer valid: it was already used, cancelled, or is more than seven days old.",
+      "not_recipient": "This link is meant for another team member.",
+      "mfa_required": "To confirm, sign in again with your two-step verification, then open the link again."
+    }
+  },
+  "EventTeam": {
+    "title": "Event team",
+    "subtitle": "The lead planner receives the alerts and digests; assistants work on the whole event, except deleting it.",
+    "back": "Back to {event}",
+    "untitled": "the event",
+    "manage": "Manage the team",
+    "lead": "Lead planner",
+    "assistants": "Assistants",
+    "helpers": "Big day helpers",
+    "noLead": "None",
+    "noAssistant": "None",
+    "noHelper": "No helper yet.",
+    "membersTitle": "Planners of the event",
+    "roles": {
+      "lead": "Lead planner",
+      "assistant": "Assistant"
+    },
+    "notInTeam": "Not in the team",
+    "makeLead": "Make lead planner",
+    "makeLeadLabel": "Make {email} the lead planner",
+    "addAssistant": "Add as assistant",
+    "addAssistantLabel": "Add {email} as assistant",
+    "remove": "Remove from the team",
+    "removeLabel": "Remove {email} from the team",
+    "formerMembers": "A person whose access was removed no longer appears.",
+    "helpersTitle": "Big day helpers",
+    "helpersIntro": "A helper gets a personal link, with no account: it only opens this event's Big day mode (live schedule, contacts, kept documents, check-ins, log, checklists), from the day before to the day after, with a code sent by email. No budget, quotes, guests or settings.",
+    "helperName": "Helper's name",
+    "helperEmail": "Their email (the opening code is sent there)",
+    "helperPhone": "Their phone (optional, for the contact list)",
+    "helperHint": "The link is emailed right away. You can remove it at any time: their pending actions will be refused.",
+    "helperAdd": "Add the helper",
+    "helperSent": "Helper added: their link was emailed.",
+    "helperValid": "Link valid from {from} to {until} included",
+    "helperStatus": {
+      "expired": "Link expired",
+      "revoked": "Link removed"
+    },
+    "helperRevoke": "Remove the link",
+    "helperRevokeLabel": "Remove {name}'s link",
+    "helperNeedsDate": "Give the event a date to add a helper: their link follows that date.",
+    "helperError": {
+      "name": "Enter the helper's name.",
+      "email": "This email address is not valid.",
+      "phone": "This phone number is not valid.",
+      "date": "The event has no date yet.",
+      "demo": "A trial never emails a third party.",
+      "quota": "The hourly sending limit is reached: try again a bit later.",
+      "template": "The helper email template has a variable without a value: fix it in the email settings.",
+      "failed": "The helper could not be added. Try again in a few minutes."
+    },
+    "outcome": {
+      "saved": "Team saved.",
+      "removed": "Removed from the team.",
+      "helper_revoked": "Link removed: the helper no longer has access, their pending actions will be refused.",
+      "invalid": "This person cannot join the event team."
+    }
   },
   "Notifications": {
     "types": {

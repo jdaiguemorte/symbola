@@ -76,13 +76,24 @@ function errorState(error: unknown, t: Translate): QuoteFormState {
 
 // Lot 31a (FAC-01, D2) : section de la ligne (vide : aucune) et ligne en option.
 // Lot 41 (JUR-02, D9) : nature de la ligne, si le formulaire la porte (sinon celle de l'article).
-function readPlacement(formData: FormData): { sectionId: string | null; isOption: boolean; nature?: "service" | "goods" } {
+// Lot 48b (JUR-10, D7) : mode (revendeur ou intermédiaire) et nature touristique, si le formulaire les porte.
+function readPlacement(formData: FormData): {
+  sectionId: string | null;
+  isOption: boolean;
+  nature?: "service" | "goods";
+  supplyMode?: "resale" | "intermediary";
+  tourismKind?: "transport" | "lodging" | "other" | null;
+} {
   const sectionId = String(formData.get("sectionId") ?? "");
   const nature = formData.get("nature");
+  const supplyMode = formData.get("supplyMode");
+  const tourismKind = formData.get("tourismKind");
   return {
     sectionId: isValidId(sectionId) ? sectionId : null,
     isOption: formData.get("isOption") === "on",
     ...(nature === "goods" || nature === "service" ? { nature } : {}),
+    ...(supplyMode === "resale" || supplyMode === "intermediary" ? { supplyMode } : {}),
+    ...(tourismKind === null ? {} : { tourismKind: tourismKind === "transport" || tourismKind === "lodging" || tourismKind === "other" ? tourismKind : null }),
   };
 }
 

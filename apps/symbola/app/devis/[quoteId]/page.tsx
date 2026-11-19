@@ -20,6 +20,7 @@ import {
   type QuoteDetail,
 } from "@/modules/quotes/service";
 import { MissingMentionsList } from "../missing-mentions";
+import { PlannerMoneySection } from "./planner-money-section";
 import { requirePlanner } from "@/lib/guards";
 import { isQuotesModuleEnabled, isValidId } from "../module-access";
 import { parisTodayString, QUOTE_STATUS_LABEL_KEYS } from "../quote-display";
@@ -163,6 +164,8 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
       ) : null}
 
       <QuoteVersionTable version={current} locale={locale} caption={t("linesCaption", { version: current.version })} />
+      {/* Lot 48b (BUD-08, PRE-07, JUR-10) : modes, commissions, honoraires, forfait touristique, franchise. */}
+      <PlannerMoneySection organizationId={organizationId} quote={quote} locale={locale} />
       {current.lines.length === 0 ? <p>{t("noLines")}</p> : null}
       {legalMention ? <p>{legalMention}</p> : null}
       {current.template ? <p className="meta">{t("fromTemplateVersion", { version: current.template.version })}</p> : null}

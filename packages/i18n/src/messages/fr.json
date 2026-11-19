@@ -33,7 +33,30 @@
     "setUp": "Gérer mes moyens de connexion",
     "signInAgain": "Recevoir un lien de connexion",
     "signOut": "Me déconnecter",
-    "linkSent": "Un lien de connexion vient de partir à votre adresse. Ouvrez-le : votre double authentification vous sera demandée, ou installée si elle manque."
+    "linkSent": "Un lien de connexion vient de partir à votre adresse. Ouvrez-le : votre double authentification vous sera demandée, ou installée si elle manque.",
+    "accountantBody": "Comme comptable de l'organisation, vous lisez ses factures et ses journaux : une double authentification est demandée à chaque connexion. Recevez un lien de connexion : vous installerez une application d'authentification ou une clé d'accès, puis elle vous sera demandée.",
+    "sessionsTitle": "Mes sessions",
+    "sessionsSubtitle": "Les appareils où votre compte est connecté.",
+    "thisDevice": "Cet appareil",
+    "lastSeen": "Dernière activité : {date}",
+    "closeOne": "Fermer",
+    "closeOneLabel": "Fermer la session {device}",
+    "closeOthers": "{count, plural, one {Fermer l'autre session} other {Fermer les # autres sessions}}",
+    "onlyThisOne": "Votre compte n'est connecté que sur cet appareil.",
+    "sessionClosed": "La session est fermée : cet appareil devra se reconnecter.",
+    "sessionsClosed": "{count, plural, =0 {Aucune autre session n'était ouverte.} one {Une session fermée.} other {# sessions fermées.}}",
+    "noLocation": "Symbola ne garde ni l'adresse IP ni la ville de vos connexions : seulement l'appareil et l'heure.",
+    "manageFactors": "Gérer mon adresse, ma clé d'accès et ma double authentification",
+    "promptLabel": "Double authentification",
+    "promptBody": "Sécurisez votre compte : une clé d'accès ou une application d'authentification protège vos évènements même si votre adresse e-mail est piratée.",
+    "promptAction": "Sécuriser mon compte",
+    "promptLater": "Plus tard",
+    "notMeTitle": "Ce n'est pas vous ?",
+    "notMeBody": "Fermez toutes les sessions de votre compte, sur tous les appareils. Vous pourrez ensuite vous reconnecter et sécuriser votre compte.",
+    "notMeConfirm": "Fermer toutes mes sessions",
+    "notMeDone": "Toutes vos sessions sont fermées. Vérifiez maintenant votre adresse e-mail, votre clé d'accès et votre double authentification.",
+    "notMeSecure": "Sécuriser mon compte",
+    "notMeInvalid": "Ce lien n'est plus valable : il a déjà servi ou il a plus de sept jours. Connectez-vous puis fermez vos autres sessions depuis « Mes sessions »."
   },
   "Organizations": {
     "label": "Organisation",
@@ -223,7 +246,8 @@
     "success": "Préférences enregistrées.",
     "securityTitle": "Sécurité du compte",
     "securityBody": "Votre mot de passe, vos clés d'accès et votre double authentification se gèrent dans votre espace de connexion.",
-    "securityLink": "Ouvrir mon espace de connexion"
+    "securityLink": "Ouvrir mon espace de connexion",
+    "sessionsLink": "Mes sessions : les appareils connectés à mon compte"
   },
   "Settings": {
     "title": "Paramètres",
@@ -1018,7 +1042,7 @@
     },
     "vendorDetail": {
       "title": "Fiche d'un prestataire",
-      "body": "Tout ce que vous savez d'un prestataire : coordonnées, caractéristiques de son type, étiquettes, évaluation (de 1 à 5) et tarifs indicatifs, documents, note interne. « Modifier la fiche » ouvre tout cela dans un panneau ; cliquez une pastille pour choisir une étiquette ; seules celles de sa famille s'affichent. « Historique avec vous » liste ses prestations, prix devisé et prix final.",
+      "body": "La fiche réunit tout ce que vous savez du prestataire : coordonnées, caractéristiques de son type, évaluation, tarifs indicatifs, historique avec vous. Les pièces (assurance, Kbis) ont une fin de validité et peuvent être demandées au prestataire. L'IBAN est chiffré et n'apparaît que masqué : s'il change, un bandeau vous demande d'appeler le prestataire au numéro déjà connu, jamais à celui du message qui annonce le changement, avant tout paiement. Une note marquée confidentielle est chiffrée et réservée à vous et à la titulaire. Pour un lieu, les contraintes (fin de la musique, accès des prestataires, capacité) contrôlent le programme de l'évènement, sans jamais rien bloquer.",
       "faq": [
         {
           "q": "Archiver efface-t-il son historique ?",
@@ -1385,6 +1409,34 @@
     "budgetCashCalendar": {
       "title": "Calendrier des sorties d'argent",
       "body": "Mois par mois, les échéances du client envers vous et envers ses prestataires, avec leur payeur et leur statut : la réponse à « qu'est-ce qu'on doit payer en mai ? »."
+    },
+    "vendorDocuments": {
+      "title": "Pièces des prestataires",
+      "body": "Attestation d'assurance, extrait Kbis, plan du lieu : chaque fiche du carnet range ses pièces avec leur fin de validité. Symbola vous prévient quelques jours avant (le délai se règle ici) et signale, sur l'évènement et dans « Aujourd'hui », une pièce qui expire avant le jour J d'un prestataire retenu. Vous pouvez aussi demander une pièce au prestataire : il la dépose par son lien personnel, et elle arrive « à vérifier »."
+    },
+    "plannerMoney": {
+      "title": "Honoraires et commissions",
+      "body": "Réglez vos honoraires (forfait, pourcentage du budget estimé ou engagé, ou les deux) : ils vont sur votre devis et restent à part du budget du client. Tracez les commissions et apports d'affaires que vous versent les prestataires : un client particulier les voit toutes, sur le devis et dans son portail ; pour un professionnel, vous choisissez. Une commission se facture au prestataire, dans votre série de factures, en Factur-X."
+    },
+    "sessions": {
+      "title": "Mes sessions",
+      "body": "Chaque ligne est un appareil où votre compte est connecté, avec sa dernière activité (mise à jour au plus une fois par heure). Fermez une session que vous ne reconnaissez pas : elle est refusée dès sa requête suivante. Un téléphone perdu ? « Fermer les autres sessions »."
+    },
+    "accounting": {
+      "title": "Accès comptable",
+      "body": "La Propriétaire vous a ouvert un accès en lecture seule : factures (dont les factures de commission aux prestataires), avoirs, encaissements, journaux, exports et e-reporting. Vous ne voyez ni les évènements, ni les invités, ni les réglages. La double authentification vous est demandée à chaque connexion."
+    },
+    "eventTeam": {
+      "title": "Équipe de l'évènement",
+      "body": "Nommez un planner principal (il reçoit les alertes et les récapitulatifs de l'évènement) et des assistants. Quand « Toutes les Planners voient tous les évènements » est coupé (Réglages, Équipe), une Planner ne voit que les évènements de son équipe. Un renfort du jour J vient sans compte : son lien n'ouvre que le mode Jour J de cet évènement, de la veille au lendemain."
+    },
+    "ownership": {
+      "title": "Transfert de propriété",
+      "body": "La Propriétaire vous propose de prendre sa place. Connectez-vous avec votre double authentification, puis confirmez : les rôles s'échangent et vous recevez toutes les deux un e-mail. Le lien vaut sept jours et ne sert qu'une fois."
+    },
+    "notMe": {
+      "title": "Ce n'est pas moi",
+      "body": "Une connexion à votre compte a eu lieu depuis un appareil que Symbola ne connaissait pas. Si ce n'était pas vous, fermez toutes vos sessions ici, puis changez votre adresse, votre mot de passe et votre double authentification dans votre compte."
     },
     "notifications": {
       "title": "Notifications",
@@ -2126,7 +2178,15 @@
       "no_label_column": "Aucune colonne de séquence reconnue (séquence, intitulé…).",
       "unsupported_format": "Format non lu : enregistrez le fichier en .xlsx ou .csv.",
       "malformed": "Le fichier n'a pas pu être lu."
-    }
+    },
+    "eventNotesConfidentialElsewhere": "Les notes sont confidentielles : elles se modifient juste en dessous.",
+    "eventNotesConfidentialTitle": "Notes et confidentialité",
+    "eventNotesConfidential": "Confidentielles",
+    "eventNotesConfidentialHint": "Des notes confidentielles sont chiffrées, absentes des recherches et des exports, et lisibles seulement par leur auteur et la titulaire du compte.",
+    "eventNotesSave": "Enregistrer les notes",
+    "eventNotesSaved": "Notes enregistrées.",
+    "eventNotesForbidden": "Ces notes confidentielles sont réservées à leur auteur et à la titulaire.",
+    "eventNotesConfidentialHidden": "Des notes confidentielles existent : elles sont réservées à leur auteur et à la titulaire."
   },
   "Budget": {
     "title": "Budget",
@@ -2325,7 +2385,8 @@
     "handoverCashHint": "Espèces : les paiements en espèces sont plafonnés par la loi (voir l'aide).",
     "payersNav": "Payeurs et calendrier",
     "payersLink": "Payeurs et répartition",
-    "cashCalendarLink": "Calendrier des sorties d'argent"
+    "cashCalendarLink": "Calendrier des sorties d'argent",
+    "bankToVerify": "IBAN à vérifier"
   },
   "Quotes": {
     "title": "Devis",
@@ -2765,7 +2826,16 @@
     "professionalDiscountTerms": "Escompte pour paiement anticipé (clients professionnels)",
     "professionalDiscountTermsHint": "« Néant » si vous n'en accordez pas : cette mention est obligatoire face à un professionnel.",
     "invalidProfessionalPaymentTerm": "Indiquez un délai en jours.",
-    "professionalTermOutOfBounds": "Délai hors des limites légales : {max} jours au plus."
+    "professionalTermOutOfBounds": "Délai hors des limites légales : {max} jours au plus.",
+    "lineSupplyMode": "Mode",
+    "lineSupplyResale": "Revendeur : vous achetez et refacturez (dans votre total)",
+    "lineSupplyIntermediary": "Intermédiaire : le prestataire facture le client (pour information)",
+    "lineTourismKind": "Nature touristique",
+    "lineTourismNone": "Aucune",
+    "lineTourismTransport": "Transport",
+    "lineTourismLodging": "Hébergement",
+    "lineTourismOther": "Autre prestation touristique",
+    "lineIntermediaryBadge": "facturée par le prestataire, hors total"
   },
   "Documents": {
     "pdfSellerHeading": "De",
@@ -4811,7 +4881,9 @@
     "filterRatingAtLeast": "{rating, plural, =5 {5 sur 5} other {Au moins # sur 5}}",
     "editRecord": "Modifier la fiche",
     "fieldYes": "Oui",
-    "fieldNo": "Non"
+    "fieldNo": "Non",
+    "internalNoteConfidentialElsewhere": "La note interne est confidentielle : elle se modifie dans sa section de la fiche.",
+    "historyTable": "Tableau de l'historique avec vous"
   },
   "Onboarding": {
     "title": "Préparons votre espace",
@@ -5096,6 +5168,7 @@
     "dayChecklists": "Listes du jour J",
     "proposalTemplates": "Modèles de proposition",
     "paymentReminders": "Relances",
+    "vendorDocuments": "Pièces des prestataires",
     "notifications": "Notifications",
     "automations": "Automatisations",
     "riskRadar": "Radar des risques",
@@ -5396,7 +5469,19 @@
       "quotes_validity_extended": "Validité d'un devis prolongée",
       "quotes_signing_code_verified": "Code vérifié avant la signature",
       "budget_payers_changed": "Payeurs ou parts modifiés",
-      "budget_payer_visibility_changed": "Ce que voit un payeur, modifié"
+      "budget_payer_visibility_changed": "Ce que voit un payeur, modifié",
+      "vendors_bank_details_changed": "IBAN d'un prestataire changé",
+      "vendors_bank_details_verified": "IBAN d'un prestataire vérifié par téléphone",
+      "vendors_document_requested": "Pièce demandée à un prestataire",
+      "vendors_document_received": "Pièce déposée par un prestataire",
+      "vendors_document_verified": "Pièce d'un prestataire vérifiée",
+      "hub_identity_changed": "Compte modifié chez le fournisseur d'identité",
+      "hub_identity_webhook_refused": "Appel du fournisseur d'identité refusé",
+      "hub_ownership_transfer_requested": "Transfert de propriété demandé",
+      "hub_ownership_transferred": "Propriété transférée",
+      "hub_ownership_transfer_cancelled": "Transfert de propriété annulé",
+      "hub_organization_visibility_changed": "Visibilité des évènements modifiée",
+      "events_team_changed": "Équipe de l'évènement modifiée"
     },
     "categories": {
       "connexion": "Connexions",
@@ -5563,6 +5648,12 @@
       "budget_event_payers": "Payeur",
       "budget_budget_line_payer_shares": "Part d'un payeur",
       "budget_planner_instalment_payers": "Payeur d'une échéance",
+      "vendors_vendor_documents": "une pièce de prestataire",
+      "vendors_vendor_document_kinds": "une nature de pièce",
+      "vendors_vendor_bank_changes": "un changement d'IBAN",
+      "quotes_planner_fees": "des honoraires",
+      "quotes_vendor_commissions": "une commission",
+      "events_event_team_members": "équipe d'un évènement",
       "hub_notification_settings": "réglages des notifications",
       "hub_notification_preferences": "réglage d'une sorte de notification",
       "hub_automations": "réglage d'un automatisme",
@@ -5633,7 +5724,7 @@
   },
   "Team": {
     "title": "Équipe",
-    "subtitle": "Les comptes de votre organisation : inviter une Planner, retirer un accès.",
+    "subtitle": "Les comptes de votre organisation : inviter une Planner ou un Comptable, retirer un accès, transférer la propriété.",
     "ownerOnly": "L'équipe se gère par la Propriétaire du compte.",
     "listTitle": "Comptes de l'équipe",
     "columnEmail": "E-mail",
@@ -5643,18 +5734,18 @@
     "columnActions": "Actions",
     "roles": {
       "owner": "Propriétaire",
-      "member": "Planner"
+      "member": "Planner",
+      "accountant": "Comptable"
     },
     "accessActive": "Actif",
     "accessRemoved": "Retiré le {date}",
     "remove": "Retirer l'accès de {email}",
     "confirmTitle": "Retirer l'accès de {email} ?",
-    "confirmBody": "Ses sessions sont fermées tout de suite, sur tous ses appareils, et ce compte ne pourra plus se connecter. Ses travaux restent dans l'organisation.",
+    "confirmBody": "Ses sessions sont fermées tout de suite, sur tous ses appareils, et ce compte ne pourra plus se connecter à votre organisation. Ses travaux restent ; il quitte les équipes de vos évènements.",
     "confirmRemove": "Retirer l'accès",
     "cancel": "Annuler",
     "removed": "Accès retiré. Les sessions de ce compte sont fermées.",
-    "inviteTitle": "Inviter une Planner",
-    "inviteEmail": "Adresse e-mail de la Planner",
+    "inviteTitle": "Inviter une personne",
     "inviteHint": "Elle reçoit un lien valable sept jours, à usage unique. Elle aura accès à tous les modules ; l'équipe, le journal, le RGPD et les réglages restent à vous.",
     "inviteSubmit": "Envoyer l'invitation",
     "inviteSent": "Invitation envoyée. Elle apparaît ci-dessous jusqu'à ce qu'elle soit acceptée.",
@@ -5665,7 +5756,31 @@
     "inviteMailSubject": "« {organization} » vous invite sur Symbola",
     "inviteMailBody": "Bonjour,\n\n« {organization} » vous invite à rejoindre son équipe sur Symbola, comme Planner. Ce lien est valable jusqu'au {date} et ne sert qu'une fois :\n{url}\n\nÀ bientôt,\nL'équipe Symbola",
     "pendingTitle": "Invitations en attente",
-    "pendingUntil": "{email}, valable jusqu'au {date}"
+    "pendingUntil": "{email} ({role}), valable jusqu'au {date}",
+    "inviteEmailAny": "Adresse e-mail",
+    "inviteRole": "Son rôle",
+    "inviteHintAccountant": "Un Comptable lit seulement les factures, avoirs, encaissements, journaux, exports et e-reporting ; la double authentification lui est exigée.",
+    "inviteMailBodyAccountant": "Bonjour,\n\n« {organization} » vous invite sur Symbola comme Comptable : vous lirez ses factures, avoirs, encaissements, journaux, exports et e-reporting, sans rien pouvoir modifier. Une double authentification vous sera demandée à chaque connexion. Ce lien est valable jusqu'au {date} et ne sert qu'une fois :\n{url}\n\nÀ bientôt,\nL'équipe Symbola",
+    "transfer": "Transférer la propriété à {email}",
+    "transferConfirmTitle": "Transférer la propriété à {email} ?",
+    "transferConfirmBody": "Elle doit avoir la double authentification. Elle reçoit un lien valable sept jours ; quand elle confirme, elle devient Propriétaire et vous devenez Planner. Vous recevrez toutes les deux un e-mail.",
+    "transferConfirm": "Envoyer la demande de transfert",
+    "transferPendingTitle": "Transfert de propriété en attente",
+    "transferPendingBody": "{email} a jusqu'au {date} pour confirmer. D'ici là, vous restez Propriétaire.",
+    "transferCancel": "Annuler le transfert",
+    "transferOutcome": {
+      "sent": "Demande envoyée : la Planner confirme par le lien reçu par e-mail.",
+      "cancelled": "Transfert annulé : rien ne change.",
+      "mfa_missing": "Cette Planner n'a pas encore de double authentification : demandez-lui de l'installer (clé d'accès ou application), puis recommencez.",
+      "not_planner": "Seule une Planner active de l'équipe peut devenir Propriétaire.",
+      "not_owner": "Seule la Propriétaire transfère la propriété.",
+      "send_failed": "La demande n'a pas pu partir : rien ne change. Réessayez dans quelques minutes."
+    },
+    "visibilityTitle": "Qui voit les évènements",
+    "visibilityLabel": "Toutes les Planners voient tous les évènements",
+    "visibilityHint": "Décoché, une Planner ne voit que les évènements dont elle fait partie de l'équipe (planner principal ou assistant). Vous voyez toujours tout.",
+    "visibilitySave": "Enregistrer",
+    "visibilitySaved": "Réglage enregistré."
   },
   "SignOutEverywhere": {
     "title": "Appareils connectés",
@@ -5785,7 +5900,30 @@
     "programNotPublished": "Le programme n'est pas encore diffusé.",
     "outlineTitle": "Le déroulé du jour",
     "outlineYours": "vous",
-    "programDayShift": "Décalage de {minutes} min sur le jour J : vos horaires ci-dessous sont à jour."
+    "programDayShift": "Décalage de {minutes} min sur le jour J : vos horaires ci-dessous sont à jour.",
+    "documentsTitle": "Vos pièces et vos coordonnées bancaires",
+    "documentsNone": "Aucune pièce ne vous est demandée pour l'instant.",
+    "documentsFile": "Fichier : {document}",
+    "documentsValidUntil": "Valable jusqu'au (facultatif)",
+    "documentsSend": "Envoyer la pièce",
+    "documentsSent": "Pièce envoyée : l'organisatrice la vérifiera.",
+    "documentsReceived": "reçue, en cours de vérification",
+    "documentsClosed": "Cette demande n'est plus ouverte.",
+    "documentsFileMissing": "Choisissez un fichier.",
+    "documentsTooLarge": "Fichier trop lourd (20 Mo au plus).",
+    "documentsInfected": "Fichier refusé par l'antivirus.",
+    "documentsUnsupported": "Format non accepté : PDF ou image.",
+    "documentsDateInvalid": "Date de fin de validité non valable.",
+    "bankTitle": "Vos coordonnées bancaires",
+    "bankCurrent": "IBAN enregistré : {iban}",
+    "bankNone": "Aucun IBAN enregistré.",
+    "bankHint": "Pour votre sécurité, tout changement d'IBAN sera vérifié par téléphone par l'organisatrice avant le moindre paiement.",
+    "bankIban": "IBAN",
+    "bankBic": "BIC (facultatif)",
+    "bankSend": "Envoyer l'IBAN",
+    "bankSent": "IBAN envoyé : l'organisatrice vous appellera pour le vérifier.",
+    "bankIbanInvalid": "Cet IBAN n'est pas valide : vérifiez les chiffres.",
+    "bankBicInvalid": "Ce BIC n'est pas valide."
   },
   "Decisions": {
     "decisionOptionTitle": "Choisir : {slot}",
@@ -6053,7 +6191,11 @@
     "prepAddItem": "Ajouter la case",
     "prepRemove": "Retirer",
     "prepRemoveItem": "Retirer la case {label}",
-    "prepRemoveList": "Retirer la liste « {name} »"
+    "prepRemoveList": "Retirer la liste « {name} »",
+    "bankToVerify": "IBAN à vérifier",
+    "helperWelcome": "Bonjour {name} : voici le jour J, en renfort.",
+    "byHelper": "{name}, renfort",
+    "syncLinkRevoked": "{count, plural, =0 {Votre lien de renfort a été retiré ou a expiré.} one {Votre lien de renfort a été retiré ou a expiré : # action reste sur ce téléphone, elle ne sera pas envoyée. Prévenez la planner.} other {Votre lien de renfort a été retiré ou a expiré : # actions restent sur ce téléphone, elles ne seront pas envoyées. Prévenez la planner.}}"
   },
   "Offline": {
     "title": "Hors ligne",
@@ -6193,7 +6335,16 @@
       "earnest": "arrhes",
       "namesJoin": " et ",
       "days": "{days} jours",
-      "scheduleLine": "{label} : {amount}, le {date}"
+      "scheduleLine": "{label} : {amount}, le {date}",
+      "feeFlat": "{amount} (forfait)",
+      "feePercent": "{percent} du budget {base}",
+      "feeMixed": "{amount} et {percent} du budget {base}",
+      "feeBaseEstimated": "estimé",
+      "feeBaseCommitted": "engagé",
+      "commissionLine": "{vendor} : {amount} ({nature})",
+      "natureCommission": "commission",
+      "natureReferral": "apport d'affaires",
+      "intermediaryLine": "{label} : {amount}"
     },
     "unauthenticated": "Votre session a expiré. Reconnectez-vous puis recommencez.",
     "templateNotFound": "Modèle de contrat introuvable.",
@@ -6393,7 +6544,13 @@
     "evidencePresented": "Texte présenté : {text}",
     "signersWithoutPortal": "À distance, chaque signataire commande sur son espace personnel avant de signer. Créez d'abord le lien personnel de : {names}.",
     "signingLinkOnPortal": "lien de signature sur son espace personnel, après sa commande",
-    "orderFirstHint": "Contrat à distance : chaque signataire lit le contrat et commande sur son espace personnel ; son lien de signature s'y affiche ensuite. L'e-mail envoyé l'y invite, sans lien direct."
+    "orderFirstHint": "Contrat à distance : chaque signataire lit le contrat et commande sur son espace personnel ; son lien de signature s'y affiche ensuite. L'e-mail envoyé l'y invite, sans lien direct.",
+    "problem_package_travel_template_required": "Ce devis réunit un forfait touristique : le modèle standard est bloqué, choisissez un modèle dédié au forfait touristique.",
+    "templateKind": "Nature du modèle",
+    "templateKindContract": "Contrat de prestation",
+    "templateKindMandate": "Mandat (mode intermédiaire)",
+    "templateKindGeneralTerms": "Conditions générales",
+    "templateKindPackageTravel": "Forfait touristique (modèle dédié)"
   },
   "Compliance": {
     "nothing": "Rien à signaler.",
@@ -6470,6 +6627,13 @@
       "vendorChoice": "Le client a choisi {vendor} ({slot}) : vérifiez",
       "vendorRoadmap": "{vendor} n'a pas confirmé sa feuille de route",
       "transferDeclaration": "{name} déclare avoir viré {amount}",
+      "vendorDocument": {
+        "expired": "{document} de {vendor} : expirée",
+        "expiring": "{document} de {vendor} : expire bientôt",
+        "lapses_before_event": "{document} de {vendor} : expire avant l'évènement",
+        "to_verify": "{document} de {vendor} : déposée, à vérifier"
+      },
+      "vendorBankCheck": "IBAN de {vendor} changé : à vérifier par téléphone avant tout paiement",
       "standaloneTaskTag": "Hors évènement"
     },
     "myEventsTitle": "Mes évènements",
@@ -6726,7 +6890,10 @@
     "memberSearch": "Cherchez la personne par son nom, son e-mail ou son téléphone",
     "pickerNoneAlone": "Aucun contact trouvé : ajoutez-le d'abord à vos contacts.",
     "editRecord": "Modifier la fiche",
-    "duplicatesLink": "{count, plural, one {Un doublon possible à vérifier} other {# doublons possibles à vérifier}}"
+    "duplicatesLink": "{count, plural, one {Un doublon possible à vérifier} other {# doublons possibles à vérifier}}",
+    "noteConfidential": "Confidentielle (chiffrée, lisible par vous et la titulaire seulement)",
+    "noteConfidentialBadge": "confidentielle",
+    "noteConfidentialHidden": "Note confidentielle, réservée à son auteur et à la titulaire."
   },
   "SharedDocuments": {
     "title": "Documents",
@@ -6788,6 +6955,10 @@
       "available": "Je suis disponible",
       "unavailable": "Je ne suis pas disponible",
       "roadmap": "Voir ma feuille de route",
+      "dayOf": "Ouvrir le jour J",
+      "confirm": "Confirmer le transfert",
+      "notMe": "Ce n'est pas moi",
+      "account": "Vérifier mon compte",
       "open": "Ouvrir Symbola"
     },
     "footerNote": "Envoyé avec Symbola",
@@ -6818,6 +6989,10 @@
       "iban": "FR76 3000 6000 0112 3456 7890 189",
       "bic": "AGRIFRPP",
       "penalties": "Merci de régulariser dès que possible.",
+      "validFrom": "11 juin 2027",
+      "device": "Safari sur iPhone",
+      "dateTime": "18 novembre 2026 à 21:04",
+      "change": "L'adresse e-mail de votre compte a été modifiée",
       "clientTerm": "les mariés",
       "digest": "- Le devis D-2027-0042 est signé.\n- 3 tâches à faire aujourd'hui, dont 1 en retard.",
       "alert": "Un virement de 1 620,00 € est déclaré (devis D-2027-0042)."
@@ -6865,12 +7040,29 @@
       "actionCode": {
         "subject": "Votre code pour signer : {code}",
         "body": "Bonjour {name},\n\nVotre code pour accepter et signer votre proposition sur Symbola : {code}\n\nIl est valable {minutes} minutes et ne sert qu'une fois. Si vous ne l'avez pas demandé, ignorez ce message et prévenez votre interlocuteur."
+      },
+      "accountAlert": {
+        "newDeviceSubject": "Nouvelle connexion à Symbola",
+        "newDeviceBody": "Bonjour,\n\nUne connexion à votre compte Symbola vient d'avoir lieu depuis un nouvel appareil : {device}, le {date}.\n\nSi c'était vous, il n'y a rien à faire. Sinon, fermez toutes vos sessions et vérifiez votre compte :\n\n{link}",
+        "identitySubject": "Votre compte Symbola a été modifié",
+        "identityBody": "Bonjour,\n\n{change} le {date}.\n\nSi c'était vous, il n'y a rien à faire. Sinon, ouvrez votre compte et sécurisez-le sans attendre :\n\n{link}",
+        "notMe": "Ce n'est pas moi",
+        "account": "Vérifier mon compte"
+      },
+      "ownershipDone": {
+        "subject": "Transfert de propriété de {organization} effectué",
+        "body": "Bonjour,\n\nLe transfert de propriété de {organization} est fait : {owner} en est désormais la Propriétaire, et l'ancienne Propriétaire devient Planner. Si vous ne l'attendiez pas, répondez à la Propriétaire ou écrivez au support de Symbola."
       }
     },
     "followUpOptOut": "Vous ne souhaitez plus de nouvelles ? Répondez simplement à ce message.",
     "booking": {
       "withPage": "Choisissez le moment qui vous convient sur ma page de rendez-vous : {url}",
       "manual": "Voici quelques créneaux possibles :\n- le … à …\n- ou le … à …\nDites-moi ce qui vous convient le mieux."
+    },
+    "identityChange": {
+      "email": "L'adresse e-mail de votre compte Symbola a été modifiée",
+      "mfa": "Un facteur de double authentification de votre compte Symbola a été ajouté ou retiré",
+      "password": "Le mot de passe de votre compte Symbola a été réinitialisé"
     }
   },
   "RecipientsGuard": {
@@ -6899,7 +7091,7 @@
       "prospects": "Demandes de contact",
       "vendors": "Prestataires",
       "settlement": "Proposition et règlement",
-      "team": "Équipe"
+      "team": "Équipe et sécurité du compte"
     },
     "kinds": {
       "client_link": {
@@ -7001,6 +7193,22 @@
       "invoice_reminder": {
         "title": "Relance d'une échéance impayée",
         "description": "Part tout seul après une échéance non réglée, selon vos réglages ; s'arrête dès que le client déclare son virement."
+      },
+      "day_helper_link": {
+        "title": "Lien du renfort du jour J",
+        "description": "Part quand vous ajoutez un renfort à un évènement : son lien personnel devient le bouton « Ouvrir le jour J », valable de la veille au lendemain."
+      },
+      "ownership_transfer": {
+        "title": "Transfert de propriété",
+        "description": "Part à la Planner que vous désignez comme nouvelle Propriétaire : le lien devient le bouton « Confirmer le transfert », valable sept jours."
+      },
+      "new_device_login": {
+        "title": "Nouvelle connexion",
+        "description": "Part à une personne de l'équipe qui se connecte depuis un appareil inconnu : le lien devient le bouton « Ce n'est pas moi », qui ferme toutes ses sessions."
+      },
+      "identity_changed": {
+        "title": "Compte modifié",
+        "description": "Part quand l'adresse e-mail, la double authentification ou le mot de passe d'un compte change : à l'ancienne adresse en cas de changement d'adresse."
       },
       "daily_digest": {
         "title": "Récapitulatif du matin",
@@ -7622,7 +7830,8 @@
       "vendor": "Prestataire archivé.",
       "appointmentType": "Type de rendez-vous mis à la corbeille.",
       "appointment": "Rendez-vous mis à la corbeille."
-    }
+    },
+    "eventAssistant": "Comme assistant de cet évènement, vous ne pouvez pas le supprimer : demandez à son planner principal ou à la Propriétaire."
   },
   "Drafts": {
     "found": "Brouillon du {date} retrouvé.",
@@ -9313,6 +9522,312 @@
       "consumerLatePenaltyBasisPoints": "Le taux est compris entre 0,01 et 100 %."
     },
     "lawyerNote": "Pénalités d'un particulier : question posée à l'avocat (taux maximal, mentions). En attendant, rien n'est mentionné sans clause au contrat."
+  },
+  "VendorRecords": {
+    "unauthorized": "Action non autorisée.",
+    "notFound": "Fiche ou pièce introuvable.",
+    "someone": "un membre de l'équipe",
+    "byYou": "vous",
+    "byOwner": "la titulaire",
+    "byMember": "un membre de l'équipe",
+    "byVendorLink": "le prestataire, par son lien",
+    "bankTitle": "Coordonnées bancaires",
+    "iban": "IBAN",
+    "ibanNew": "Nouvel IBAN",
+    "bic": "BIC",
+    "bicSet": "renseigné",
+    "ibanHint": "L'IBAN est chiffré et n'apparaît que masqué. Tout changement est noté et reste « à vérifier » jusqu'à votre appel au prestataire.",
+    "ibanSave": "Enregistrer l'IBAN",
+    "ibanSaved": "IBAN enregistré.",
+    "ibanInvalid": "Cet IBAN n'est pas valide : vérifiez les chiffres.",
+    "bicInvalid": "Ce BIC n'est pas valide, ou l'IBAN manque.",
+    "toVerify": "à vérifier",
+    "bankCheckTitle": "IBAN changé : à vérifier par un autre canal avant tout paiement",
+    "bankCheckByVendor": "Le prestataire a changé son IBAN par son lien le {date}.",
+    "bankCheckByPlanner": "L'IBAN a été changé dans Symbola le {date}.",
+    "bankCheckCall": "Appelez le prestataire au numéro que vous connaissez déjà ({phone}), jamais à celui du message qui annonce le changement.",
+    "bankCheckCallNoPhone": "Appelez le prestataire au numéro que vous connaissez déjà, jamais à celui du message qui annonce le changement.",
+    "bankCheckLift": "J'ai vérifié par téléphone",
+    "bankHistory": "Changements d'IBAN ({count})",
+    "bankHistoryLine": "{date}, par {who} : {before} → {after}.",
+    "bankHistoryVerified": "Vérifié le {date} par {who}.",
+    "bankHistoryPending": "À vérifier.",
+    "documentsTitle": "Pièces",
+    "documentsEmpty": "Aucune pièce pour l'instant.",
+    "documentKind": "Nature de la pièce",
+    "documentFile": "Fichier (PDF ou image)",
+    "validUntil": "Valable jusqu'au (facultatif)",
+    "validUntilShort": "valable jusqu'au {date}",
+    "validUntilFor": "Fin de validité : {document}",
+    "validUntilSave": "Changer la date",
+    "validUntilInvalid": "Date de fin de validité non valable.",
+    "documentAdd": "Ajouter la pièce",
+    "documentAdded": "Pièce ajoutée.",
+    "documentRequested": "demandée au prestataire",
+    "documentToVerify": "déposée par le prestataire, à vérifier",
+    "documentExpired": "expirée",
+    "documentExpiring": "expire bientôt",
+    "documentVerify": "Marquer « {document} » comme vérifiée",
+    "documentRemove": "Retirer « {document} »",
+    "fileMissing": "Choisissez un fichier.",
+    "fileTooLarge": "Fichier trop lourd (20 Mo au plus).",
+    "fileInfected": "Fichier refusé par l'antivirus.",
+    "fileUnsupported": "Format non accepté : PDF ou image.",
+    "requestHint": "Le prestataire a sa pièce à jour ? Demandez-la : il la déposera par son lien personnel, et elle arrivera « à vérifier ».",
+    "requestKind": "Pièce à demander",
+    "requestSubmit": "Demander au prestataire",
+    "requestSent": "Demande notée : elle apparaît dans l'espace du prestataire.",
+    "noteTitle": "Note interne",
+    "note": "Note",
+    "noteConfidential": "Confidentielle",
+    "noteConfidentialHint": "Une note confidentielle est chiffrée, absente des recherches et des exports, et lisible seulement par vous et la titulaire du compte.",
+    "noteSave": "Enregistrer la note",
+    "noteSaved": "Note enregistrée.",
+    "noteForbidden": "Cette note confidentielle est réservée à son auteur et à la titulaire.",
+    "noteHidden": "Une note confidentielle existe : elle est réservée à son auteur et à la titulaire du compte."
+  },
+  "VenueChecks": {
+    "title": "Contraintes du lieu",
+    "rule": {
+      "music_end": "{venue} demande la fin de la musique à {time} : « {item} » finit plus tard.",
+      "volume_down": "{venue} demande de baisser le volume à {time} : « {item} » finit plus tard.",
+      "guests_departure": "{venue} demande le départ des invités à {time} : « {item} » finit plus tard.",
+      "vendor_access_start": "{venue} ouvre aux prestataires à {time} : « {item} » commence plus tôt.",
+      "vendor_access_end": "{venue} ferme aux prestataires à {time} : « {item} » finit plus tard."
+    },
+    "ruleOther": "« {item} » dépasse une contrainte de {venue}.",
+    "notBlocking": "Un signalement, rien n'est bloqué : une dérogation négociée avec le lieu reste possible.",
+    "capacitySeated": "{venue} accueille {limit} personnes assises : {guests} invités sont prévus.",
+    "capacityStanding": "{venue} accueille {limit} personnes debout : {guests} invités sont prévus."
+  },
+  "VendorDocumentSettings": {
+    "title": "Pièces des prestataires",
+    "unavailable": "Le carnet de prestataires n'est pas ouvert pour votre organisation.",
+    "unauthorized": "Action non autorisée.",
+    "alertTitle": "Alerte avant la fin de validité",
+    "alertIntro": "Une pièce est signalée dans « Aujourd'hui » ce nombre de jours avant son dernier jour de validité.",
+    "days": "Jours avant la fin",
+    "daysInvalid": "Entre 1 et 180 jours.",
+    "save": "Enregistrer",
+    "saved": "Délai enregistré.",
+    "kindsTitle": "Natures de pièces",
+    "kindWithExpiry": "avec fin de validité",
+    "kindRemove": "Retirer « {kind} »",
+    "kindLabel": "Nouvelle nature",
+    "kindExpires": "A une fin de validité",
+    "kindAdd": "Ajouter",
+    "kindAdded": "Nature ajoutée.",
+    "labelInvalid": "Un libellé de 1 à 120 caractères."
+  },
+  "PlannerMoney": {
+    "pageTitle": "Honoraires et commissions",
+    "unavailable": "Le module des devis n'est pas ouvert pour votre organisation.",
+    "unauthorized": "Action non autorisée.",
+    "backToEvent": "Retour à l'évènement de {names}",
+    "quoteTitle": "Vos honoraires, vos commissions et vos modes",
+    "packageTravelTitle": "Forfait touristique : le contrat standard est bloqué",
+    "packageTravelBody": "Ce devis vend ensemble, en revendeur, un transport ou un hébergement et une autre prestation touristique. C'est un forfait touristique, soumis à des règles particulières : choisissez un modèle de contrat dédié, relu par votre conseil.",
+    "franchiseApproaching": "Franchise en base : avec ce devis, votre chiffre d'affaires de l'année atteindrait {total}, près du seuil de {threshold}.",
+    "franchiseExceeded": "Franchise en base : avec ce devis, votre chiffre d'affaires de l'année atteindrait {total}, au-delà du seuil de {threshold}. Parlez-en à votre expert-comptable.",
+    "resaleTotal": "Votre part (revendeur, dans votre total)",
+    "intermediaryTotal": "Facturé par les prestataires (pour information)",
+    "modesHint": "Chaque ligne a son mode : en revendeur, vous achetez et refacturez, la ligne entre dans votre total et votre TVA ; en intermédiaire, le prestataire facture le client, la ligne est montrée pour information.",
+    "commissionsTitle": "Commissions et apports d'affaires",
+    "commissionsNone": "Aucune commission tracée pour cet évènement.",
+    "commissionsIndividual": "Client particulier : chaque commission lui est montrée, sur le devis et dans son portail.",
+    "commissionsProfessional": "Client professionnel : vous choisissez les commissions qui lui sont montrées.",
+    "commissionsNoVendor": "Retenez d'abord un prestataire pour cet évènement.",
+    "commissionLine": "{vendor} : {amount} ({nature})",
+    "natureCommission": "commission",
+    "natureReferral": "apport d'affaires",
+    "manageLink": "Gérer les honoraires et les commissions de l'évènement",
+    "addFeeLine": "Ajouter les honoraires au devis ({amount} HT)",
+    "feeLineLabel": "Honoraires de coordination",
+    "feesTitle": "Vos honoraires",
+    "feeAmount": "Honoraires : {amount} HT, calculés depuis le budget de l'évènement.",
+    "feeNone": "Aucun honoraire réglé pour cet évènement.",
+    "feesHint": "Vos honoraires vont sur votre devis ; dans le budget du client, ils forment une ligne à part, jamais dans les dépenses de l'évènement.",
+    "feeKind": "Forme",
+    "feeKindNone": "Aucun",
+    "feeKindFlat": "Forfait",
+    "feeKindPercent": "Pourcentage du budget",
+    "feeKindMixed": "Forfait et pourcentage",
+    "feeFlat": "Forfait (€ HT)",
+    "feePercent": "Pourcentage (%)",
+    "feeBase": "Base du pourcentage",
+    "feeBaseEstimated": "Budget estimé",
+    "feeBaseCommitted": "Budget engagé",
+    "feeSave": "Enregistrer les honoraires",
+    "feeSaved": "Honoraires enregistrés.",
+    "feeInvalid": "Honoraires non valables : un montant positif et un pourcentage entre 0,01 et 100.",
+    "commissionVendor": "Prestataire",
+    "commissionNature": "Nature",
+    "commissionMode": "Calcul",
+    "commissionModeAmount": "Montant",
+    "commissionModePercent": "Pourcentage d'un montant",
+    "commissionAmount": "Montant (€ HT)",
+    "commissionPercent": "Pourcentage (%)",
+    "commissionBase": "Montant de base (€)",
+    "commissionShown": "Montrer au client",
+    "commissionAdd": "Tracer la commission",
+    "commissionAdded": "Commission tracée.",
+    "commissionInvalid": "Commission non valable : un montant positif, ou un pourcentage et sa base.",
+    "status_expected": "attendue",
+    "status_invoiced": "facturée",
+    "status_received": "reçue",
+    "receivedOn": "le {date}",
+    "shownToClient": "montrée au client",
+    "hiddenFromClient": "non montrée au client",
+    "markReceived": "Marquer reçue — {vendor}",
+    "show": "Montrer au client — {vendor}",
+    "hide": "Ne plus montrer — {vendor}",
+    "remove": "Retirer — {vendor}",
+    "invoiceIssue": "Facturer la commission à {vendor}",
+    "invoiceIssued": "Facture émise.",
+    "invoiceDownload": "Facture {number}",
+    "invoiceAlready": "Cette commission est déjà facturée.",
+    "invoiceVendorMissing": "Rattachez la commission à une fiche du carnet (raison sociale, SIRET, adresse) pour la facturer.",
+    "invoiceMentionsMissing": "La fiche du prestataire doit porter son SIRET et son adresse complète.",
+    "invoiceLineCommission": "Commission — évènement de {event}",
+    "invoiceLineReferral": "Apport d'affaires — évènement de {event}",
+    "budgetFeeTitle": "Honoraires de la planner",
+    "budgetFeeHt": "HT",
+    "budgetFeeHint": "À part : ils ne comptent dans aucune catégorie ni dans les dépenses de l'évènement.",
+    "portalTitle": "Commissions perçues par votre organisatrice",
+    "portalIntro": "Votre organisatrice reçoit des prestataires de votre évènement les commissions suivantes :",
+    "pdfIntermediaryTitle": "Prestations facturées directement par les prestataires (pour information, hors du total) :",
+    "pdfCommissionsTitle": "Commissions perçues par l'organisatrice :",
+    "pdfLine": "{label} : {amount}"
+  },
+  "Devices": {
+    "label": "{browser} sur {system}",
+    "browser": {
+      "edge": "Edge",
+      "opera": "Opera",
+      "samsung": "Samsung Internet",
+      "firefox": "Firefox",
+      "chrome": "Chrome",
+      "safari": "Safari",
+      "other": "Un navigateur"
+    },
+    "system": {
+      "iphone": "iPhone",
+      "ipad": "iPad",
+      "android": "Android",
+      "mac": "Mac",
+      "windows": "Windows",
+      "linux": "Linux",
+      "other": "un appareil inconnu"
+    }
+  },
+  "Accounting": {
+    "menuLabel": "Comptabilité",
+    "menu": {
+      "documents": "Factures et avoirs",
+      "payments": "Encaissements",
+      "eReporting": "E-reporting",
+      "ledger": "Journaux et exports",
+      "sessions": "Mes sessions",
+      "account": "Mon compte"
+    },
+    "title": "Comptabilité de {organization}",
+    "subtitle": "Votre accès est en lecture seule : vous consultez et téléchargez, rien ne se modifie d'ici.",
+    "readOnly": "Lecture seule",
+    "documentsTitle": "Factures et avoirs",
+    "noDocuments": "Aucune facture ni aucun avoir pour cette année.",
+    "year": "Année",
+    "number": "Numéro",
+    "kind": "Pièce",
+    "date": "Date",
+    "amount": "Montant TTC",
+    "download": "Télécharger",
+    "downloadLabel": "Télécharger {number}",
+    "kinds": {
+      "invoice": "Facture",
+      "credit_note": "Avoir",
+      "commission_invoice": "Facture de commission"
+    },
+    "linksTitle": "Journaux, encaissements et e-reporting",
+    "links": {
+      "payments": "Encaissements",
+      "ledger": "Journaux et écritures (CSV)",
+      "eReporting": "E-reporting"
+    },
+    "moduleUnavailable": "Le module Devis et factures n'est pas souscrit par l'organisation : rien à consulter pour l'instant.",
+    "documentsTable": "Tableau des factures et avoirs"
+  },
+  "Ownership": {
+    "title": "Devenir Propriétaire",
+    "body": "La Propriétaire de l'organisation vous propose de prendre sa place : vous gérerez l'équipe, l'abonnement, le RGPD et les réglages ; elle deviendra Planner.",
+    "confirm": "Je deviens Propriétaire",
+    "done": "C'est fait : vous êtes la Propriétaire de l'organisation.",
+    "openTeam": "Voir l'équipe",
+    "signInFirst": "Connectez-vous d'abord avec votre double authentification, puis rouvrez le lien reçu par e-mail.",
+    "signIn": "Se connecter",
+    "mfaRequired": "Pour confirmer, reconnectez-vous avec votre double authentification (clé d'accès ou application), puis rouvrez le lien reçu par e-mail.",
+    "outcome": {
+      "invalid": "Ce lien n'est plus valable : il a déjà servi, il a été annulé ou il a plus de sept jours.",
+      "not_recipient": "Ce lien est destiné à une autre personne de l'équipe.",
+      "mfa_required": "Pour confirmer, reconnectez-vous avec votre double authentification, puis rouvrez le lien."
+    }
+  },
+  "EventTeam": {
+    "title": "Équipe de l'évènement",
+    "subtitle": "Le planner principal reçoit les alertes et récapitulatifs ; les assistants travaillent sur tout l'évènement, sauf sa suppression.",
+    "back": "Retour à {event}",
+    "untitled": "l'évènement",
+    "manage": "Gérer l'équipe",
+    "lead": "Planner principal",
+    "assistants": "Assistants",
+    "helpers": "Renforts du jour J",
+    "noLead": "Aucun",
+    "noAssistant": "Aucun",
+    "noHelper": "Aucun renfort pour l'instant.",
+    "membersTitle": "Planners de l'évènement",
+    "roles": {
+      "lead": "Planner principal",
+      "assistant": "Assistant"
+    },
+    "notInTeam": "Pas dans l'équipe",
+    "makeLead": "Nommer planner principal",
+    "makeLeadLabel": "Nommer {email} planner principal",
+    "addAssistant": "Ajouter comme assistant",
+    "addAssistantLabel": "Ajouter {email} comme assistant",
+    "remove": "Retirer de l'équipe",
+    "removeLabel": "Retirer {email} de l'équipe",
+    "formerMembers": "Une personne dont l'accès a été retiré n'apparaît plus.",
+    "helpersTitle": "Renforts du jour J",
+    "helpersIntro": "Un renfort reçoit un lien personnel, sans compte : il ouvre seulement le mode Jour J de cet évènement (programme en direct, annuaire, documents gardés, pointage, main courante, listes), de la veille au lendemain, avec un code envoyé par e-mail. Ni budget, ni devis, ni invités, ni réglages.",
+    "helperName": "Nom du renfort",
+    "helperEmail": "Son e-mail (le code d'ouverture y part)",
+    "helperPhone": "Son téléphone (facultatif, pour l'annuaire)",
+    "helperHint": "Le lien part aussitôt par e-mail. Vous pouvez le retirer à tout moment : ses actions encore en attente seront refusées.",
+    "helperAdd": "Ajouter le renfort",
+    "helperSent": "Renfort ajouté : son lien est parti par e-mail.",
+    "helperValid": "Lien valable du {from} au {until} inclus",
+    "helperStatus": {
+      "expired": "Lien expiré",
+      "revoked": "Lien retiré"
+    },
+    "helperRevoke": "Retirer le lien",
+    "helperRevokeLabel": "Retirer le lien de {name}",
+    "helperNeedsDate": "Donnez une date à l'évènement pour ajouter un renfort : son lien suit cette date.",
+    "helperError": {
+      "name": "Indiquez le nom du renfort.",
+      "email": "Cette adresse e-mail n'est pas valide.",
+      "phone": "Ce numéro de téléphone n'est pas valide.",
+      "date": "L'évènement n'a pas encore de date.",
+      "demo": "Un essai n'envoie jamais d'e-mail à un tiers.",
+      "quota": "Le plafond d'envois de l'heure est atteint : réessayez un peu plus tard.",
+      "template": "Le modèle de l'e-mail du renfort a une variable sans valeur : corrigez-le dans les réglages des e-mails.",
+      "failed": "Le renfort n'a pas pu être ajouté. Réessayez dans quelques minutes."
+    },
+    "outcome": {
+      "saved": "Équipe enregistrée.",
+      "removed": "Retiré de l'équipe.",
+      "helper_revoked": "Lien retiré : le renfort n'a plus accès, ses actions en attente seront refusées.",
+      "invalid": "Cette personne ne peut pas rejoindre l'équipe de l'évènement."
+    }
   },
   "Notifications": {
     "types": {

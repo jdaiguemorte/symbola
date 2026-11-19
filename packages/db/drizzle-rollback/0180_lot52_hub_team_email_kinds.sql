@@ -1,12 +1,12 @@
--- Annulation de 0175 (lot 53) : la contrainte des natures d'e-mails revient exactement à la liste de
--- main (migration 0172 du lot 45 : natures d'origine, invités, rendez-vous, « Nouvelle demande de
--- contact », prestataires, proposition et règlement, réponse, relance et questionnaire).
--- Refusée tant qu'un modèle personnalisé de récapitulatif, de rappel J-7 ou d'alerte existe : il serait
--- perdu ; la planner le remet au texte de départ (« Revenir au texte de départ ») avant l'annulation.
+-- Annulation de 0180 (lot 52) : la contrainte des natures d'e-mails revient exactement à la liste de
+-- main (migration 0172 du lot 45).
+-- Refusée tant qu'un modèle personnalisé de nouvelle connexion, de changement d'identité, de transfert
+-- de propriété ou de lien de renfort existe : il serait perdu ; la planner le remet au texte de départ
+-- (« Revenir au texte de départ ») avant l'annulation.
 DO $$
 BEGIN
-  IF EXISTS (SELECT 1 FROM "hub"."email_templates" WHERE "kind" IN ('daily_digest', 'payment_due_reminder', 'notification_alert')) THEN
-    RAISE EXCEPTION 'Annulation refusée : des modèles d''e-mails de récapitulatif, de rappel J-7 ou d''alerte personnalisés existent dans hub.email_templates.';
+  IF EXISTS (SELECT 1 FROM "hub"."email_templates" WHERE "kind" IN ('new_device_login', 'identity_changed', 'ownership_transfer', 'day_helper_link')) THEN
+    RAISE EXCEPTION 'Annulation refusée : des modèles d''e-mails de sécurité, de transfert de propriété ou de renfort du jour J personnalisés existent dans hub.email_templates.';
   END IF;
 END
 $$;

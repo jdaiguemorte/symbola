@@ -401,10 +401,14 @@ export type CreateTeamInvitationResult =
   | { outcome: "already_member" }
   | { outcome: "invalid_email" };
 
+// Lot 52 (HUB-04) : la Propriétaire choisit le rôle, Planner (« member ») ou Comptable (« accountant »).
+export type TeamInvitationRole = "member" | "accountant";
+
 export async function createTeamInvitation(
   db: AppDatabase,
-  input: { organizationId: string; email: string; invitedByUserId: string; now?: Date },
+  input: { organizationId: string; email: string; invitedByUserId: string; role?: TeamInvitationRole; now?: Date },
 ): Promise<CreateTeamInvitationResult> {
+  const role: TeamInvitationRole = input.role === "accountant" ? "accountant" : "member";
   const email = input.email.trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return { outcome: "invalid_email" };
   const team = await listTeam(db, input.organizationId);
@@ -416,24 +420,26 @@ export async function createTeamInvitation(
     email,
     tokenHash: hashInvitationToken(token),
     expiresAt,
-    role: "member",
+    role,
     createdBy: input.invitedByUserId,
   });
   await recordAudit(db, {
     organizationId: input.organizationId,
     action: "hub.invitation.sent",
     objectId: input.organizationId,
-    details: { role: "member" },
+    details: { role },
     actor: { kind: "member", id: input.invitedByUserId },
   });
   return { outcome: "invited", invitationId: invitation.id, token, expiresAt };
 }
 
-export type PendingTeamInvitation = { id: string; email: string; expiresAt: Date; createdAt: Date };
+export type PendingTeamInvitation = { id: string; email: string; expiresAt: Date; createdAt: Date; role: TeamInvitationRole };
 
-// Invitations de Planner encore valables et pas encore acceptées, les plus récentes d'abord.
+// Invitations de Planner (et, lot 52, de Comptable) encore valables et pas encore acceptées, les plus
+// récentes d'abord.
 export async function listPendingTeamInvitations(db: AppDatabase, organizationId: string, now: Date = new Date()): Promise<PendingTeamInvitation[]> {
-  return findPendingRoleInvitations(db, organizationId, "member", now);
+  const [planners, accountants] = await Promise.all([findPendingRoleInvitations(db, organizationId, "member", now), findPendingRoleInvitations(db, organizationId, "accountant", now)]);
+  return [...planners.map((row) => ({ ...row, role: "member" as const })), ...accountants.map((row) => ({ ...row, role: "accountant" as const }))].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
 
 // Absence de ligne = état par défaut du module (ADR 0079) : ouvert pour les quatre
@@ -1285,6 +1291,8 @@ export async function listDuplicatePairs(organizationId: string) {
   return listPairs(organizationId, (ids) => contactsByIds(organizationId, ids));
 }
 
+// Lot 52 (HUB-04, EVT-06, SEC-08 ; ADR 0094) : visibilité des évènements, e-mails de sécurité du compte.
+export { accountEmailContext, getEventVisibility, sendAccountEmail, setEventVisibility, type AccountEmailContext } from "./team-access";
 // Lot 53 (HUB-15, UX-16, ARC-09 ; D1 à D4 ; ADR 0095, ADR 0096) : notifications de l'équipe, réglages par
 // sorte et par canal, récapitulatif, plages de silence, abonnements push.
 export {

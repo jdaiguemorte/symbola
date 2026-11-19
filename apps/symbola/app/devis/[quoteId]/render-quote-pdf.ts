@@ -12,7 +12,8 @@ import { starterDocumentStyle, starterLatePenalty } from "@symbola/starter-templ
 import { clientTermForEvent, getEvent } from "@/modules/events/service";
 
 import { computeLegalMention, getContactsByIds, getOrganizationProfile } from "@/modules/hub/service";
-import { currentQuoteSeller, operationCategory, type QuoteDetail, type QuoteVersionView } from "@/modules/quotes/service";
+import { formatAmount } from "@symbola/i18n";
+import { currentQuoteSeller, listClientCommissions, operationCategory, type QuoteDetail, type QuoteVersionView } from "@/modules/quotes/service";
 import { loadDocumentLogo } from "@/lib/document-logo";
 import { pdfSafe } from "@/lib/pdf-text";
 import { quotePdfLabels, type Translate } from "../document-labels";
@@ -70,17 +71,29 @@ export async function quotePdfModelFor(input: {
         ].filter(Boolean)
       : null;
   const included = version.lines.filter((line) => !line.isOption || line.optionChosen);
+  // Lot 48b (JUR-10, PRE-07 ; D6) : les prestations « intermédiaire » sortent du tableau (hors du total)
+  // et se listent à part, pour information ; les commissions que voit le client (toutes pour un
+  // particulier) suivent.
+  const tMoney = await getTranslations("PlannerMoney");
+  const intermediary = included.filter((line) => line.supplyMode === "intermediary");
+  const commissions = await listClientCommissions(organizationId, quote.eventId, quote.clientKind);
+  const moneyText = [
+    intermediary.length > 0 ? [tMoney("pdfIntermediaryTitle"), ...intermediary.map((line) => tMoney("pdfLine", { label: line.label, amount: formatAmount(line.netCents, locale) }))].join("\n") : null,
+    commissions.length > 0
+      ? [tMoney("pdfCommissionsTitle"), ...commissions.map((commission) => tMoney("commissionLine", { vendor: commission.vendorName, amount: formatAmount(commission.amountCents, locale), nature: tMoney(commission.nature === "referral" ? "natureReferral" : "natureCommission") }))].join("\n")
+      : null,
+  ].filter((part): part is string => part !== null);
   // Lot 53 (HUB-24, D8) : le terme des clients titre le bloc du client — celui figé à l'envoi pour un
   // devis envoyé (un document émis garde son texte), le terme réglé pour un brouillon.
   const labels = quotePdfLabels(t as unknown as Translate, tQuotes as unknown as Translate);
   const term = version.sentAt ? (version.seller?.clientTerm?.[locale === "en" ? "en" : "fr"] ?? null) : await currentClientTerm(organizationId, quote.eventId, locale === "en" ? "en" : "fr");
   const clientHeading = term ? term.charAt(0).toLocaleUpperCase(locale) + term.slice(1) : null;
 
-  const model = buildQuotePdfModel({
+  const built = buildQuotePdfModel({
     buyerLines,
     category: operationCategory(included.map((line) => line.nature)),
     quote,
-    version,
+    version: { ...version, lines: version.lines.filter((line) => line.supplyMode !== "intermediary") },
     draftSeller,
     draftLegalMention: computeLegalMention(profile) || null,
     clientNames: event?.clients.map((client) => client.firstName).join(" & ") || tQuotes("noClient"),
@@ -94,7 +107,7 @@ export async function quotePdfModelFor(input: {
     latePenalty: starterLatePenalty(),
     labels: { ...labels, clientHeading: clientHeading ?? labels.clientHeading },
   });
-  return model;
+  return moneyText.length > 0 ? { ...built, terms: [built.terms, ...moneyText].filter(Boolean).join("\n\n") } : built;
 }
 
 async function currentClientTerm(organizationId: string, eventId: string, locale: "fr" | "en"): Promise<string | null> {

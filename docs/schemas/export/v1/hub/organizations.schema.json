@@ -25,6 +25,9 @@
         "null"
       ]
     },
+    "allPlannersSeeAllEvents": {
+      "type": "boolean"
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
@@ -65,6 +68,7 @@
     "name",
     "language",
     "siret",
+    "allPlannersSeeAllEvents",
     "createdAt",
     "createdBy",
     "updatedAt",

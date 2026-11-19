@@ -4,6 +4,7 @@
 // Les urgences sont celles de « Aujourd'hui », restreintes à l'évènement.
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
 import { getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, parisToday, type Locale } from "@symbola/i18n";
 import type { EventTask } from "@symbola/contracts";
@@ -55,7 +56,9 @@ export async function EventCockpit({
   const tHealth = await getTranslations("PlanningHealth");
   const health = await getPlanningHealth(organizationId, eventId, today);
   const budgetAvailable = await isBudgetModuleEnabled(organizationId);
-  const { items, unavailable } = await loadTodayItems(organizationId, { events: true, quotes: quotesAvailable, budget: budgetAvailable }, todayWords(t), locale);
+  // Lot 48a (PRE-05, critère) : une pièce d'un prestataire retenu qui expire avant l'évènement y est signalée.
+  const vendorsAvailable = await isVendorsModuleEnabled(organizationId);
+  const { items, unavailable } = await loadTodayItems(organizationId, { events: true, quotes: quotesAvailable, budget: budgetAvailable, vendors: vendorsAvailable }, todayWords(t), locale);
   const ranked = rankToday(
     items.filter((item) => item.eventId === eventId),
     today,

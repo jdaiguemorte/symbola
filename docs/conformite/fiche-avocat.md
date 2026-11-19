@@ -408,3 +408,48 @@ leur demande (RGP-17 reste « Sans objet »). Cette décision s'écarte de l'avi
 
 Si cette lecture vous semble appeler une réserve, dites-le-nous ; elle n'attend pas de réponse pour
 être mise en œuvre.
+
+## Questions du 18 novembre 2026 (lot 48)
+
+Numéros provisoires, à la suite de ceux des lots 44, 47, 43 et 45 ; ils seront donnés à la fusion.
+
+### 22. Règle de détection du forfait touristique (AV-10)
+
+Suite à votre réponse 4 : sur un devis, chaque ligne porte un mode (« intermédiaire » : le prestataire
+facture le client ; « revendeur » : la planner achète et refacture) et, si besoin, une nature
+touristique (transport, hébergement, autre prestation touristique). Symbola considère qu'un devis
+réunit un **forfait touristique** quand, parmi ses lignes vendues par la planner **en revendeur**, il
+y a un transport ou un hébergement **et** au moins une autre nature touristique (transport et
+hébergement ensemble, ou l'un des deux avec une autre prestation touristique). Une option non choisie
+ne compte pas. Le devis montre alors une alerte qui explique le risque, et **le modèle de contrat
+standard est bloqué** : la planner doit choisir un modèle dédié au forfait touristique, absent des
+données de départ.
+
+- Cette règle est-elle suffisante ? Faut-il tenir compte de la durée (plus de 24 heures, une nuit),
+  d'un prix global, ou des lignes en mode intermédiaire vendues ensemble par la planner ?
+- Faut-il ajouter d'autres conséquences (garantie financière, immatriculation au registre des
+  opérateurs de voyages et de séjours) au texte de l'alerte ?
+
+> En attendant : la règle ci-dessus (en données, modifiable sans code), alerte et blocage du modèle
+> standard.
+
+### 23. Publication de vos clauses types : mandat et conditions générales (AV-11)
+
+Votre accord de publication de clauses types (D14 du lot 31) est toujours en attente. Le lot 48
+ajoute à la bibliothèque de départ deux modèles « à adapter » : un **mandat** (mode intermédiaire :
+la planner agit pour les mariés auprès des prestataires et facture ses honoraires ; commissions
+tracées et affichées à un client particulier) et des **conditions générales**. Leurs clauses de fond
+sont des emplacements « [À rédiger avec votre conseil : …] » ; seules les parties, l'objet, les
+honoraires et la liste des commissions sont remplis par des variables du devis. Chaque modèle porte sa
+version, sa date de revue juridique et l'avertissement « à faire relire par un professionnel du
+droit ».
+
+- Acceptez-vous que vos clauses types remplacent ces emplacements dans les données de départ, livrées
+  à toutes les organisations ?
+- La signature électronique simple suffit-elle pour le mandat en attendant la signature avancée
+  (votre réponse 5, lot de la signature renforcée) ?
+
+> En attendant : modèles de Symbola marqués « à adapter », signés comme le contrat.
+
+Besoin : des réponses **avant le premier mandat ou forfait touristique réel** de la pilote (aucune ne
+bloque le développement).

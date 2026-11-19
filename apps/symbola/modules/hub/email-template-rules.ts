@@ -38,6 +38,11 @@ const TOKENS: Record<EmailVariable, Record<EmailLocale, string>> = {
   brochure: { fr: "brochure", en: "brochure" },
   booking_link: { fr: "lien_rendez_vous", en: "booking_link" },
   questionnaire: { fr: "questionnaire", en: "questionnaire" },
+  // Lot 52 (EVT-06, SEC-08) : renfort du jour J, alertes de sécurité.
+  valid_from: { fr: "valable_à_partir_du", en: "valid_from" },
+  device: { fr: "appareil", en: "device" },
+  date_time: { fr: "date_heure", en: "date_time" },
+  change: { fr: "changement", en: "change" },
   // Lot 53 (HUB-24, HUB-15) : le terme des clients du type d'évènement, le récapitulatif, l'alerte.
   client_term: { fr: "terme_clients", en: "client_term" },
   digest: { fr: "récapitulatif", en: "digest" },
@@ -54,7 +59,7 @@ const BY_TOKEN = new Map<string, EmailVariable>(
   ]),
 );
 
-type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | "request" | "roadmap" | "questionnaire" | "open" | null };
+type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | "request" | "roadmap" | "questionnaire" | "open" | "dayOf" | "confirm" | "notMe" | "account" | null };
 
 export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   client_link: { variables: ["first_name", "organization", "event", "client_term", "link", "valid_until"], required: ["link"], button: "space" },
@@ -97,6 +102,14 @@ export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   prospect_follow_up: { variables: ["first_name", "organization", "event", "event_date", "clients", "place", "brochure", "booking_link"], required: [], button: null },
   // Lot 45 (POR-07, CRM-09) : le lien personnel devient « Répondre au questionnaire ».
   questionnaire_sent: { variables: ["first_name", "organization", "event", "questionnaire", "link", "valid_until"], required: ["link"], button: "questionnaire" },
+  // Lot 52 (SEC-08 ; D6) : le lien « Ce n'est pas moi » ferme toutes les sessions ; l'alerte de changement
+  // part à l'ancienne adresse, avec le lien du centre de compte.
+  new_device_login: { variables: ["organization", "device", "date_time", "link"], required: ["link", "device"], button: "notMe" },
+  identity_changed: { variables: ["organization", "change", "date_time", "link"], required: ["change", "link"], button: "account" },
+  // Lot 52 (HUB-04 ; D1) : la Planner désignée confirme par ce lien (usage unique, sept jours).
+  ownership_transfer: { variables: ["organization", "link", "valid_until"], required: ["link"], button: "confirm" },
+  // Lot 52 (EVT-06 ; D3) : le lien personnel du renfort ouvre le mode Jour J, de la veille au lendemain.
+  day_helper_link: { variables: ["first_name", "organization", "event", "event_date", "link", "valid_from", "valid_until"], required: ["link"], button: "dayOf" },
   // Lot 53 (HUB-15, UX-16 ; D1) : à l'équipe ; l'objet ne dit que la sorte, le texte mène à Symbola.
   daily_digest: { variables: ["organization", "digest", "link"], required: ["digest", "link"], button: "open" },
   notification_alert: { variables: ["organization", "alert", "link"], required: ["alert", "link"], button: "open" },

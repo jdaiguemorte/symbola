@@ -7,6 +7,7 @@
 // - un script refuse de lui-même quand des données dépendent de ce qu'il retire.
 import { readFileSync, existsSync } from "node:fs";
 import type postgres from "postgres";
+import { dataStepFor } from "./data-steps";
 
 type Journal = { entries: { idx: number; tag: string; when: number }[] };
 
@@ -21,7 +22,12 @@ export function readJournal(migrationsFolder: string): Journal {
   return JSON.parse(readFileSync(`${migrationsFolder}/meta/_journal.json`, "utf8")) as Journal;
 }
 
-export async function rollbackMigration(sql: postgres.Sql, tag: string, folders: { migrations: string; rollbacks: string }): Promise<void> {
+export async function rollbackMigration(
+  sql: postgres.Sql,
+  tag: string,
+  folders: { migrations: string; rollbacks: string },
+  env: Record<string, string | undefined> = process.env,
+): Promise<void> {
   const entry = readJournal(folders.migrations).entries.find((candidate) => candidate.tag === tag);
   if (!entry) throw new RollbackRefusedError(`Migration inconnue : ${tag}.`);
   const script = `${folders.rollbacks}/${tag}.sql`;
@@ -31,7 +37,10 @@ export async function rollbackMigration(sql: postgres.Sql, tag: string, folders:
     throw new RollbackRefusedError(`${tag} n'est pas la dernière migration appliquée : annulez d'abord les plus récentes.`);
   }
   const body = readFileSync(script, "utf8");
+  const step = dataStepFor(tag);
   await sql.begin(async (tx) => {
+    // Lot 48a (ADR 0093) : l'étape de données inverse (déchiffrement) avant le script SQL.
+    if (step) await step.down(tx, env);
     await tx.unsafe(body);
     await tx`delete from drizzle.__drizzle_migrations where created_at = ${entry.when}`;
   });

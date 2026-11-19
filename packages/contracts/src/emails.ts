@@ -40,6 +40,13 @@ export const EMAIL_TEMPLATE_KINDS = [
   "prospect_reply",
   "prospect_follow_up",
   "questionnaire_sent",
+  // Lot 52 (HUB-04, EVT-06, SEC-08 ; D1, D3, D6 ; ADR 0094) : connexion depuis un nouvel appareil (« Ce
+  // n'est pas moi »), changement d'adresse ou de facteur (à l'ancienne adresse), confirmation du transfert
+  // de propriété, lien du renfort du jour J.
+  "new_device_login",
+  "identity_changed",
+  "ownership_transfer",
+  "day_helper_link",
   // Lot 53 (HUB-15, UX-16, HUB-28 ; D1, D5 ; ADR 0095) : récapitulatif du matin et alerte immédiate, à
   // l'équipe (la sorte en objet, rien de personnel) ; rappel au payeur sept jours avant l'échéance.
   "daily_digest",
@@ -63,9 +70,11 @@ export type EmailLocale = (typeof EMAIL_LOCALES)[number];
 // Lot 45 : « brochure » (le lien sécurisé de la brochure de l'organisation, valable 30 jours),
 // « booking_link » (la page de réservation des rendez-vous, ou des créneaux à compléter sans elle) et
 // « questionnaire » (le nom du questionnaire envoyé).
+// Lot 52 : « valid_from » (premier jour du lien du renfort), « device » (l'appareil de la connexion),
+// « date_time » (jour et heure, à Paris) et « change » (ce qui a changé dans le compte).
 // Lot 53 (HUB-24, HUB-15) : « client_term » (le terme qui désigne les clients du type d'évènement),
 // « digest » (les lignes du récapitulatif) et « alert » (la phrase d'une alerte).
-export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "slot", "deadline", "link_available", "link_unavailable", "amount", "due_date", "reference", "iban", "bic", "penalties", "brochure", "booking_link", "questionnaire", "client_term", "digest", "alert"] as const;
+export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "slot", "deadline", "link_available", "link_unavailable", "amount", "due_date", "reference", "iban", "bic", "penalties", "brochure", "booking_link", "questionnaire", "valid_from", "device", "date_time", "change", "client_term", "digest", "alert"] as const;
 export type EmailVariable = (typeof EMAIL_VARIABLES)[number];
 export type EmailValues = Partial<Record<EmailVariable, string>>;
 

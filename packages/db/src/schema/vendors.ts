@@ -3,7 +3,7 @@
 // (CLAUDE.md §2.4), protégée par Row-Level Security (migration dédiée).
 // Les prestataires consultés pour un poste vivent dans le module events et
 // ne connaissent qu'un identifiant opaque de fiche (ADR 0011).
-import { boolean, check, doublePrecision, integer, jsonb, pgSchema, text, timestamp, unique, uuid, type AnyPgColumn, index } from "drizzle-orm/pg-core";
+import { boolean, check, date, doublePrecision, integer, jsonb, pgSchema, text, timestamp, unique, uuid, type AnyPgColumn, index } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 export const vendorsSchema = pgSchema("vendors");
@@ -75,12 +75,19 @@ export const vendorTypeFields = vendorsSchema.table("vendor_type_fields", {
   choices: jsonb("choices").$type<string[]>().notNull().default([]),
   isFilter: boolean("is_filter").notNull().default(false),
   position: integer("position").notNull().default(0),
+  // Lot 48 (PRE-06 ; D4, ADR 0093) : sens du champ pour les contrôles du chrono (heure de fin de la
+  // musique, accès des prestataires…), tiré de packages/starter-templates/venue-rules.json ; null :
+  // un champ d'information sans contrôle. Le libellé reste celui de l'organisation.
+  ruleKey: text("rule_key"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-}, (table) => [index("vendor_type_fields_organization_idx").on(table.organizationId)]);
+}, (table) => [
+  index("vendor_type_fields_organization_idx").on(table.organizationId),
+  check("vendor_type_fields_rule_key_check", sql`${table.ruleKey} is null or ${table.ruleKey} ~ '^[a-z][a-z_]{1,40}$'`),
+]);
 
 // Lot 20 (décision 5, ADR 0049) — groupes d'étiquettes (Style, Équipements,
 // Capacité…). Un groupe « palier » (exclusive) n'accepte qu'une étiquette par
@@ -135,6 +142,16 @@ export const vendors = vendorsSchema.table("vendors", {
   longitude: doublePrecision("longitude"),
   locationSource: vendorLocationSourceEnum("location_source"),
   internalNote: text("internal_note"),
+  // Lot 48 (DAT-08 ; D5, ADR 0093) : note marquée confidentielle, chiffrée au niveau du champ
+  // (field-box, ADR 0079) ; internal_note est alors vide. Lue par la titulaire et son auteur seuls.
+  internalNoteSealed: text("internal_note_sealed"),
+  internalNoteConfidentialBy: uuid("internal_note_confidential_by"),
+  // Lot 48 (PRE-10, SEC-27, DAT-08 ; D5) : IBAN et BIC structurés, chiffrés ; l'IBAN masqué
+  // (« FR76 •••• •••• 1234 ») se montre sans déchiffrer. Chaque changement est tracé dans
+  // vendor_bank_changes, « à vérifier par un autre canal » jusqu'à la levée par la planner.
+  ibanSealed: text("iban_sealed"),
+  bicSealed: text("bic_sealed"),
+  ibanMasked: text("iban_masked"),
   // Lot 28c (PRE-01, D8) : évaluation interne (1 à 5) et tarifs indicatifs
   // (texte libre), visibles de l'organisation seule.
   rating: integer("rating"),
@@ -157,6 +174,10 @@ export const vendors = vendorsSchema.table("vendors", {
 }, (table) => [
   index("vendors_organization_idx").on(table.organizationId),
   check("vendors_rating_check", sql`${table.rating} between 1 and 5`),
+  check(
+    "vendors_sealed_fields_check",
+    sql`(${table.internalNoteSealed} is null or (${table.internalNote} is null and ${table.internalNoteSealed} like 'f1:%')) and (${table.ibanSealed} is null or ${table.ibanSealed} like 'f1:%') and (${table.bicSealed} is null or ${table.bicSealed} like 'f1:%') and ((${table.ibanSealed} is null) = (${table.ibanMasked} is null)) and (${table.bicSealed} is null or ${table.ibanSealed} is not null)`,
+  ),
 ]);
 
 export const vendorFileKindEnum = vendorsSchema.enum("vendor_file_kind", ["brochure", "rib"]);
@@ -190,9 +211,112 @@ export const vendorSettings = vendorsSchema.table("vendor_settings", {
   // Lot 16 (L16-PRE-14) : familles de départ déjà posées pour cette organisation ;
   // elles ne le sont qu'une fois, jamais rétablies d'office.
   familiesSeededAt: timestamp("families_seeded_at", { withTimezone: true }),
+  // Lot 48 (PRE-05, D3) : alerte d'une pièce N jours avant la fin de sa validité (30 proposés) ;
+  // natures de pièces et champs de lieu de départ posés une fois (jamais rétablis d'office).
+  documentAlertDays: integer("document_alert_days").notNull().default(30),
+  documentKindsSeededAt: timestamp("document_kinds_seeded_at", { withTimezone: true }),
+  venueFieldsSeededAt: timestamp("venue_fields_seeded_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [check("vendor_settings_document_alert_days_check", sql`${table.documentAlertDays} between 1 and 180`)]);
+
+// Lot 48 (PRE-05 ; D3, ADR 0093) — natures de pièces de l'organisation (attestation d'assurance,
+// extrait Kbis ou avis Insee, plan du lieu, autre), posées depuis
+// packages/starter-templates/vendor-document-kinds.json puis libres.
+export const vendorDocumentKinds = vendorsSchema.table("vendor_document_kinds", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  label: text("label").notNull(),
+  // Une pièce de cette nature a-t-elle une fin de validité ? (assurance oui, plan non)
+  expires: boolean("expires").notNull().default(true),
+  starterKey: text("starter_key"),
+  position: integer("position").notNull().default(0),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("vendor_document_kinds_organization_idx").on(table.organizationId),
+  unique("vendor_document_kinds_starter_key_unique").on(table.organizationId, table.starterKey),
+  check("vendor_document_kinds_label_check", sql`char_length(${table.label}) between 1 and 120`),
+]);
+
+export const VENDOR_DOCUMENT_STATUSES = ["requested", "to_verify", "verified"] as const;
+export type VendorDocumentStatus = (typeof VENDOR_DOCUMENT_STATUSES)[number];
+
+// Lot 48 (PRE-05 ; D3) — pièces d'un prestataire : nature, fichier privé (ADR 0027), fin de
+// validité. « requested » : demandée au prestataire, sans fichier ; « to_verify » : déposée par son
+// lien (lot 47), à vérifier par la planner ; « verified » : déposée ou vérifiée par la planner.
+export const vendorDocuments = vendorsSchema.table("vendor_documents", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  vendorId: uuid("vendor_id")
+    .notNull()
+    .references(() => vendors.id, { onDelete: "cascade" }),
+  kindId: uuid("kind_id")
+    .notNull()
+    .references(() => vendorDocumentKinds.id, { onDelete: "restrict" }),
+  status: text("status", { enum: VENDOR_DOCUMENT_STATUSES }).notNull(),
+  fileName: text("file_name"),
+  fileKey: text("file_key"),
+  mime: text("mime"),
+  sizeBytes: integer("size_bytes"),
+  // Date sans heure (CLAUDE.md § 5) : dernier jour de validité.
+  validUntil: date("valid_until"),
+  uploadedByUserId: uuid("uploaded_by_user_id"),
+  // Lien du prestataire (events.event_links, uuid opaque) qui a déposé la pièce.
+  uploadedByLinkId: uuid("uploaded_by_link_id"),
+  uploadedAt: timestamp("uploaded_at", { withTimezone: true }),
+  requestedAt: timestamp("requested_at", { withTimezone: true }),
+  verifiedAt: timestamp("verified_at", { withTimezone: true }),
+  verifiedByUserId: uuid("verified_by_user_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("vendor_documents_organization_idx").on(table.organizationId),
+  index("vendor_documents_vendor_idx").on(table.vendorId),
+  check("vendor_documents_status_check", sql`${table.status} in ('requested', 'to_verify', 'verified')`),
+  check(
+    "vendor_documents_file_check",
+    sql`((${table.fileKey} is null) = (${table.status} = 'requested')) and ((${table.fileKey} is null) = (${table.fileName} is null)) and ((${table.fileKey} is null) = (${table.mime} is null)) and ((${table.fileKey} is null) = (${table.sizeBytes} is null)) and (${table.fileName} is null or char_length(${table.fileName}) between 1 and 120)`,
+  ),
+  check("vendor_documents_verified_check", sql`(${table.status} = 'verified') = (${table.verifiedAt} is not null)`),
+]);
+
+// Lot 48 (PRE-10, SEC-27 ; D5, ADR 0093) — journal des changements d'IBAN d'un prestataire :
+// qui (membre ou lien du prestataire), quand, ancien et nouvel IBAN masqués, jamais en clair.
+// Un changement non vérifié garde le bandeau « à vérifier par un autre canal » ; la levée
+// (« J'ai vérifié par téléphone ») est horodatée et nominative. En ajout seul, sauf la levée.
+export const vendorBankChanges = vendorsSchema.table("vendor_bank_changes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull(),
+  vendorId: uuid("vendor_id")
+    .notNull()
+    .references(() => vendors.id, { onDelete: "cascade" }),
+  previousMasked: text("previous_masked"),
+  nextMasked: text("next_masked"),
+  changedByUserId: uuid("changed_by_user_id"),
+  changedByLinkId: uuid("changed_by_link_id"),
+  changedAt: timestamp("changed_at", { withTimezone: true }).defaultNow().notNull(),
+  verifiedAt: timestamp("verified_at", { withTimezone: true }),
+  verifiedByUserId: uuid("verified_by_user_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+}, (table) => [
+  index("vendor_bank_changes_organization_idx").on(table.organizationId),
+  index("vendor_bank_changes_vendor_idx").on(table.vendorId),
+  check("vendor_bank_changes_author_check", sql`(${table.changedByUserId} is null) <> (${table.changedByLinkId} is null)`),
+  check("vendor_bank_changes_verified_check", sql`(${table.verifiedAt} is null) = (${table.verifiedByUserId} is null)`),
+  check(
+    "vendor_bank_changes_masked_check",
+    sql`(${table.previousMasked} is null or ${table.previousMasked} ~ '^[A-Z]{2}[0-9]{2} [•  0-9A-Z]{4,40}$') and (${table.nextMasked} is null or ${table.nextMasked} ~ '^[A-Z]{2}[0-9]{2} [•  0-9A-Z]{4,40}$') and (${table.previousMasked} is not null or ${table.nextMasked} is not null)`,
+  ),
+]);

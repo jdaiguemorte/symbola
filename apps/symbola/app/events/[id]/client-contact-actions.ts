@@ -5,6 +5,7 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { parseAmountToCents } from "@symbola/i18n";
+import { EventNotesForbiddenError, saveEventNotes } from "@/modules/events/service";
 import { ClientEmailTakenError, EventNotFoundError, getEventIdentityState, InvalidClientContactError, setEventIdentity, setEventVenue, setEventWantedBudget, updateEventClientContact } from "@/modules/events/service";
 import { runAutosave, versionOf, type AutosaveState } from "@/lib/autosave-server";
 import { getPlannerAuthContext } from "@/lib/auth-context";
@@ -170,4 +171,24 @@ export async function autosaveEventIdentityAction(_previous: AutosaveState, form
     },
     notFound: t("eventNotFound"),
   });
+}
+
+// Lot 48a (DAT-08 ; D5, ADR 0093) — notes de l'évènement, en clair ou confidentielles (chiffrées).
+export async function saveEventNotesAction(_prev: ClientContactFormState, formData: FormData): Promise<ClientContactFormState> {
+  const t = await getTranslations("Events");
+  const auth = await getPlannerAuthContext();
+  const access = await authorize(t);
+  if ("error" in access || auth.status !== "authenticated") return { error: "error" in access ? access.error : t("eventNotFound") };
+  const eventId = field(formData, "eventId");
+  if (!isValidId(eventId)) return { error: t("eventNotFound") };
+  try {
+    await saveEventNotes(access.organizationId, eventId, { notes: String(formData.get("notes") ?? "").slice(0, 10_001), confidential: formData.get("confidential") === "on" }, { userId: auth.user.id, role: auth.user.role });
+  } catch (error) {
+    if (error instanceof EventNotesForbiddenError) return { error: t("eventNotesForbidden") };
+    if (error instanceof RangeError) return { error: t("identityInvalid") };
+    if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
+    throw error;
+  }
+  revalidatePath(`/events/${eventId}`);
+  return { success: true };
 }

@@ -9,6 +9,7 @@ import type { EventSummary } from "@symbola/contracts";
 import { listPendingPaymentDeclarations, listUpcomingVendorPayments } from "@/modules/budget/service";
 import {
   eventNames,
+  listVendorCandidates,
   listEvents,
   listOrganizationTasks,
   listPendingDecisions,
@@ -28,13 +29,14 @@ import { countDuplicatePairs, getFollowUpDelays } from "@/modules/hub/service";
 import { listGuestPurgeNotices, listRecentOppositions } from "@/modules/guests/service";
 import { listEventIdsWithSentQuote, listOpenScheduledDeposits, listQuotesAwaitingAnswer, listTransferDeclarations, listUnpaidPayments } from "@/modules/quotes/service";
 import { listCalendarSourcesInError, listTodayAppointments } from "@/modules/appointments/service";
+import { getVendorsByIds, listPendingBankChecks, listVendorDocumentNotices } from "@/modules/vendors/service";
 import { TODAY_HORIZON_DAYS, type TodayItem } from "./rank";
 import { settleWithin, TODAY_SOURCE_TIMEOUT_MS } from "./settle";
 
 // Lot 49 : « guests » (préavis de purge des invités, oppositions), facultatif pour les écrans qui ne
 // le demandent pas.
 // Lot 46 (HUB-08) : « appointments », le module Rendez-vous (absent = fermé).
-export type TodayModules = { events: boolean; quotes: boolean; budget: boolean; guests?: boolean; appointments?: boolean };
+export type TodayModules = { events: boolean; quotes: boolean; budget: boolean; guests?: boolean; appointments?: boolean; vendors?: boolean };
 export type TodaySource = keyof TodayModules;
 
 export type TodayWords = {
@@ -71,6 +73,10 @@ export type TodayWords = {
   followUpReady?: (names: string) => string;
   questionnaireFinished?: (names: string, questionnaire: string) => string;
   contactDuplicates?: (count: number) => string;
+  // Lot 48a (PRE-05, PRE-10, SEC-27) : pièce expirée, proche de sa fin, expirant avant un évènement
+  // où le prestataire est retenu, déposée « à vérifier » ; IBAN changé « à vérifier par un autre canal ».
+  vendorDocument?: (vendor: string, document: string, reason: "expired" | "expiring" | "lapses_before_event" | "to_verify") => string;
+  vendorBankCheck?: (vendor: string) => string;
   // Lot 53 (CHR-10) : « Hors évènement », sous l'intitulé d'une tâche sans évènement.
   standaloneTask?: string;
 };
@@ -481,6 +487,67 @@ async function budgetItems({ organizationId, words, today, names, money }: Conte
 
 // Lot 46 (HUB-08, D2) — les rendez-vous du jour, ceux pris, reportés ou annulés depuis la veille, et
 // les agendas extérieurs en erreur (aucun créneau proposé tant qu'ils ne sont pas relus).
+// Lot 48a (PRE-05, PRE-10, SEC-27 ; ADR 0093) : les pièces et les IBAN des prestataires.
+async function vendorItems({ organizationId, words, today, now, events }: Context): Promise<TodayItem[]> {
+  if (!words.vendorDocument || !words.vendorBankCheck) return [];
+  const items: TodayItem[] = [];
+  const pending = await listPendingBankChecks(organizationId);
+  const named = new Map((await getVendorsByIds(organizationId, [...pending.keys()])).map((vendor) => [vendor.id, vendor.name]));
+  for (const check of pending.values()) {
+    const name = named.get(check.vendorId);
+    if (!name) continue;
+    items.push({
+      key: `vendor-bank:${check.vendorId}`,
+      kind: "vendor_bank_check",
+      eventId: null,
+      eventNames: null,
+      title: words.vendorBankCheck(name),
+      dueOn: null,
+      since: day(check.changedAt),
+      actor: { kind: "you" },
+      href: `/prestataires/${check.vendorId}`,
+      action: { kind: "open" },
+    });
+  }
+  for (const notice of await listVendorDocumentNotices(organizationId, { now })) {
+    items.push({
+      key: `vendor-document:${notice.documentId}`,
+      kind: "vendor_document",
+      eventId: null,
+      eventNames: null,
+      title: words.vendorDocument(notice.vendorName, notice.kindLabel, notice.reason),
+      // Une pièce expirée est en retard ; proche de sa fin ou à vérifier, elle est à traiter maintenant
+      // (l'horizon de quatorze jours ne la cacherait pas, l'alerte part à trente jours).
+      dueOn: notice.reason === "expired" ? notice.validUntil : null,
+      since: null,
+      actor: { kind: "you" },
+      href: `/prestataires/${notice.vendorId}`,
+      action: { kind: "open" },
+    });
+  }
+  // Critère de PRE-05 : la pièce d'un prestataire retenu qui expire avant la date de l'évènement.
+  for (const event of events.filter((candidate) => isActiveEvent(candidate) && !candidate.isDemo && candidate.eventDate !== null && candidate.eventDate >= today)) {
+    const vendorIds = (await listVendorCandidates(organizationId, event.id)).filter((candidate) => candidate.outcome === "selected" && candidate.vendorId).map((candidate) => candidate.vendorId!);
+    if (vendorIds.length === 0) continue;
+    for (const notice of (await listVendorDocumentNotices(organizationId, { vendorIds, eventDate: event.eventDate, now })).filter((candidate) => candidate.reason === "lapses_before_event")) {
+      items.push({
+        key: `vendor-document:${notice.documentId}:${event.id}`,
+        kind: "vendor_document",
+        eventId: event.id,
+        eventNames: eventNames(event.clients),
+        title: words.vendorDocument(notice.vendorName, notice.kindLabel, notice.reason),
+        // À traiter maintenant : demander la pièce à jour avant le jour J, aussi lointain soit-il.
+        dueOn: null,
+        since: null,
+        actor: { kind: "vendor", name: notice.vendorName },
+        href: `/prestataires/${notice.vendorId}`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  return items;
+}
+
 async function appointmentItems({ organizationId, words, today, now, names, locale }: Context): Promise<TodayItem[]> {
   const items: TodayItem[] = [];
   const time = (iso: string) => new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" }).format(new Date(iso));
@@ -550,6 +617,7 @@ export async function loadTodayItems(
     ["budget", modules.budget, budgetItems],
     ["guests", Boolean(modules.guests) && modules.events && listed.ok, guestItems],
     ["appointments", modules.appointments === true, appointmentItems],
+    ["vendors", modules.vendors === true && modules.events && listed.ok, vendorItems],
   ];
   const settled = await Promise.all(
     sources.map(async ([source, enabled, collect]) => [source, enabled ? await settleWithin(() => collect(context), timeoutMs, source) : { ok: true as const, value: [] }] as const),

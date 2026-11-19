@@ -4237,6 +4237,64 @@
   }
 }
 
+/* Lot 52 (HUB-04, HUB-05, EVT-06, SEC-02 ; ADR 0094) — bandeau de double authentification, « Mes
+   sessions », équipe de l'évènement et accueil du Comptable. */
+@layer components {
+  .mfa-prompt {
+    @apply my-3 flex w-full max-w-3xl flex-col gap-3 rounded-lg border border-line bg-primary-soft p-4 sm:flex-row sm:items-center sm:justify-between;
+  }
+  .mfa-prompt p {
+    @apply m-0 text-body text-ink;
+  }
+  .mfa-prompt-actions {
+    @apply flex flex-wrap items-center gap-3;
+  }
+  .session-list {
+    @apply m-0 flex w-full max-w-3xl list-none flex-col gap-2 p-0;
+  }
+  .session-row {
+    @apply flex flex-col gap-2 rounded-md border border-line bg-surface p-3 sm:flex-row sm:items-center sm:justify-between;
+  }
+  .session-row p {
+    @apply m-0;
+  }
+  .session-device {
+    @apply flex flex-wrap items-center gap-2 font-medium wrap-anywhere;
+  }
+  .facts {
+    @apply m-0 grid grid-cols-1 gap-1 sm:grid-cols-[12rem_1fr];
+  }
+  .facts dt {
+    @apply text-label text-ink-muted;
+  }
+  .facts dd {
+    @apply m-0 wrap-anywhere;
+  }
+}
+
+/* Lot 48a (PRE-05, PRE-06, PRE-10, SEC-27 ; ADR 0093) : bandeau « IBAN à vérifier par un autre canal »,
+   pièces d'une fiche, contrôles du chrono par le lieu (signalés, jamais bloquants). */
+@layer components {
+  .bank-check-banner {
+    @apply my-3 flex flex-col gap-2 rounded-md border border-attention bg-attention-soft px-4 py-3 text-body text-ink;
+  }
+  .bank-check-banner p {
+    @apply m-0;
+  }
+  .vendor-documents {
+    @apply m-0 flex list-none flex-col gap-3 p-0;
+  }
+  .vendor-documents li {
+    @apply flex flex-wrap items-center gap-2 border-b border-line pb-2;
+  }
+  .venue-findings {
+    @apply my-2 flex list-none flex-col gap-1 rounded-md bg-attention-soft p-3 text-body text-ink;
+  }
+  .venue-finding {
+    @apply text-label text-attention;
+  }
+}
+
 /* Lot 53 (HUB-15, UX-16, ARC-09, HUB-28, GC-02, CHR-05, CHR-10, HUB-24) : cloche et centre de
    notifications, réglages, automatisations, radar des risques, tâches hors évènement, santé expliquée. */
 @layer components {

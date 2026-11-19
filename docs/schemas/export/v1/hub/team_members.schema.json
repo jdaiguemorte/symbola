@@ -16,7 +16,8 @@
       "type": "string",
       "enum": [
         "owner",
-        "member"
+        "member",
+        "accountant"
       ]
     },
     "disabledAt": {

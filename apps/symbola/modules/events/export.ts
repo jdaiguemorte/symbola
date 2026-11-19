@@ -11,6 +11,7 @@ import {
   dayChecklists,
   dayChecklistTemplates,
   dayCheckpoints,
+  eventTeamMembers,
   dayIncidents,
   dayPhotos,
   dayReports,
@@ -96,7 +97,8 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: planningHealthSettings },
   { table: questionnaireTemplates },
   { table: questionnaireTemplateItems, parents: { templateId: "questionnaire_templates" } },
-  { table: events, demoField: "isDemo" },
+  // Lot 48a (DAT-08) : des notes confidentielles ne sortent pas (chiffrées, elles restent dans Symbola).
+  { table: events, demoField: "isDemo", omit: ["notesSealed"] },
   { table: eventClients, ...ofEvent },
   { table: eventStatusHistory, ...ofEvent },
   { table: eventPlaces, ...ofEvent },
@@ -151,6 +153,8 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: prospectFollowUps, ...ofEvent },
   { table: eventQuestionnaires, ...ofEvent },
   { table: questionnaireAnswers, parents: { questionnaireId: "event_questionnaires" } },
+  // Lot 52 (EVT-06, D2) : l'équipe de chaque évènement (planner principal, assistants).
+  { table: eventTeamMembers, ...ofEvent },
 ];
 
 // Tables du module qui ne sont pas exportées, et pourquoi (docs/export/format-v1.md).
