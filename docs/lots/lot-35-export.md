@@ -419,3 +419,14 @@ le déploiement d'ensemble.
 - **Table de correspondance** en mémoire plutôt qu'en base (ADR 0098).
 - **Taille** : l'archive déposée est lue en mémoire par la route (512 Mio au plus).
 - **Référence de signature** : marquée `#<nouvel identifiant>` à la reprise (unicité).
+- **Réveil du traitement de fond** : dans l'app compilée, le réveil posé par la route d'envoi
+  n'atteignait pas le traitement lancé au démarrage (seul le tour complet de cinq minutes prenait la
+  reprise). La route lance donc la reprise elle-même ; le verrou de la demande empêche un double
+  traitement. L'export du 35a repose sur le même réveil : à vérifier hors du lot.
+
+### Vérifications (en local, 19/11/2026)
+
+- Lint, typecheck, unitaires de tout le dépôt, `check:boundaries`, build de production : verts.
+- Intégration sur base neuve, en séquentiel : `@symbola/db` 271, app 1 051.
+- Playwright sur l'app compilée : `hub-13-reprise-export` et `hub-13-export-complet`, ordinateur et
+  375 px, axe-core : 8/8.
