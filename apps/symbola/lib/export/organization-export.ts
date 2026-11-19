@@ -28,6 +28,7 @@ import { exportQuotesData } from "@/modules/quotes/service";
 import { exportVendorsData } from "@/modules/vendors/service";
 import { exportGuestsData } from "@/modules/guests/service";
 import { exportAppointmentsData } from "@/modules/appointments/service";
+import { exportFloorplansData } from "@/modules/floorplans/service";
 import { exportReadme } from "./readme";
 import { entitySchemaPath, entityJsonSchemaText, exportEntitySchemas } from "./schemas";
 
@@ -41,6 +42,8 @@ const MODULE_EXPORTERS: ((organizationId: string, context: ModuleExportContext) 
   // Lot 49 : module Invités (sans les régimes ni les empreintes des liens).
   exportGuestsData,
   exportAppointmentsData,
+  // Lot 60 : plans de salle (sans la trace des versions vues par un lien).
+  exportFloorplansData,
 ];
 
 // Formats déjà compressés : rangés tels quels (compresser n'y gagne rien et coûte du temps).

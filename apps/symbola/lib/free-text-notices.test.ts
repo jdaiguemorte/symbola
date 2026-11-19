@@ -39,6 +39,9 @@ const NOTICED: Record<string, { file: string; name: string }> = {
   "vendors.vendors.internal_note_sealed": { file: "app/prestataires/[id]/vendor-records.tsx", name: "note" },
   "events.events.notes_sealed": { file: "app/events/[id]/client-contact-forms.tsx", name: "notes" },
   "hub.contact_notes.body_sealed": { file: "app/contacts/contact-forms.tsx", name: "body" },
+  // Lot 60 (L60-PLA-02, L60-PLA-03) : note d'un élément d'un plan, note d'une installation (même éditeur).
+  "floorplans.layout_elements.note": { file: "app/plans-de-salle/floorplan-editor.tsx", name: "note" },
+  "floorplans.space_fixtures.note": { file: "app/plans-de-salle/floorplan-editor.tsx", name: "note" },
 };
 
 // Aussi mis en garde, bien que rangés autrement au registre : la note d'un contact, le motif d'une perte.
@@ -102,6 +105,8 @@ const WITHOUT_ENTRY: Record<string, string> = {
   "events.prospect_requests.period": "période en texte court écrite par le prospect sur le formulaire public",
   "events.prospect_requests.budget_range": "tranche de budget en texte court écrite par le prospect sur le formulaire public",
   // Lot 53 (HUB-15) : jamais saisi par une personne ; recopié par Symbola (numéro, intitulé, montant).
+  // Lot 60 (D4) : fond de plan déposé, sans champ de texte.
+  "floorplans.spaces.background_key": "fichier déposé, sans champ de texte",
   "hub.notifications.params": "libellés courts recopiés par Symbola depuis l'objet de la notification (numéro de devis, intitulé de tâche) ; aucune saisie",
 };
 
