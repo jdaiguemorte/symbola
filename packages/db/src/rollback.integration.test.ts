@@ -246,7 +246,8 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await runDataSteps(target, keyEnv, journal);
     const [again] = await target<{ iban_sealed: string | null }[]>`select iban_sealed from quotes.quote_settings where organization_id = ${organizationId}`;
     expect(again!.iban_sealed).toBe(sealed!.iban_sealed);
-    for (const tag of LOT_48B) await rollback(tag);
+    // migrateAll a remis le lot 52 et le lot 48b au-dessus : ils s'annulent d'abord.
+    for (const tag of [...LOT_52, ...LOT_48B]) await rollback(tag);
     // Sans la clé, l'annulation ne perd rien : elle est refusée.
     await expect(rollbackMigration(target, LOT_48A[0]!, folders, {})).rejects.toThrow(/DATA_ENCRYPTION_KEY/);
     await rollbackMigration(target, LOT_48A[0]!, folders, keyEnv);
