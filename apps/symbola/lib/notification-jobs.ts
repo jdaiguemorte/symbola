@@ -30,6 +30,7 @@ import {
   sendDueDigests,
 } from "@/modules/hub/service";
 import { listRecentlyExpiredProposals } from "@/modules/quotes/service";
+import { getVendorsByIds, listPendingBankChecks, listVendorDocumentNotices } from "@/modules/vendors/service";
 import { loadRiskRadar } from "./risk-radar/load";
 
 const INTERVAL_MS = 5 * 60 * 1000;
@@ -68,6 +69,20 @@ export async function runMorningPass(organizationId: string, now: Date = new Dat
     for (const quote of await listRecentlyExpiredProposals(organizationId, today)) {
       const event = eventsOpen ? await getEvent(organizationId, quote.eventId).catch(() => null) : null;
       await notify({ organizationId, type: "quote_expired", eventId: quote.eventId, objectKey: quote.quoteId, params: { number: quote.number }, href: `/devis/${quote.quoteId}`, eventDate: event?.eventDate ?? null, now });
+    }
+  }
+  // Lot 48a (PRE-05, PRE-10) : chaque IBAN changé « à vérifier » et chaque pièce expirée ou proche de sa
+  // fin, une seule fois, à la Propriétaire (le carnet n'appartient à aucun évènement).
+  if (await isModuleEnabled(db, organizationId, "vendors")) {
+    const pending = await listPendingBankChecks(organizationId);
+    const names = new Map((await getVendorsByIds(organizationId, [...pending.keys()])).map((vendor) => [vendor.id, vendor.name]));
+    for (const check of pending.values()) {
+      const vendor = names.get(check.vendorId);
+      if (vendor) await notify({ organizationId, type: "iban_to_verify", eventId: null, objectKey: check.changeId, params: { vendor: vendor.slice(0, 200) }, href: `/prestataires/${check.vendorId}`, now });
+    }
+    for (const notice of await listVendorDocumentNotices(organizationId, { now })) {
+      if (notice.reason !== "expired" && notice.reason !== "expiring") continue;
+      await notify({ organizationId, type: "document_expiring", eventId: null, objectKey: `${notice.documentId}:${notice.reason}`, params: { vendor: notice.vendorName.slice(0, 200), document: notice.kindLabel.slice(0, 200) }, href: `/prestataires/${notice.vendorId}`, now });
     }
   }
   // GC-02 : le radar, s'il est actif (HUB-28) ; chaque alerte une seule fois, avec sa règle expliquée.

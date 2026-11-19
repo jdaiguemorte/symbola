@@ -15,7 +15,7 @@ export type RiskFacts = {
   roadmaps?: { candidateId: string; eventId: string; vendorName: string; sentAt: string }[];
   // Lot 48 : pièces des prestataires (expiration) et IBAN « à vérifier » ; absents tant que le module ne
   // les donne pas (aucune alerte, ARC-07).
-  documents?: { documentId: string; eventId: string; vendorName: string; label: string; expiresOn: string }[];
+  documents?: { documentId: string; vendorId: string; eventId: string; vendorName: string; label: string; expiresOn: string }[];
   ibans?: { vendorId: string; eventId: string; vendorName: string; since: string }[];
 };
 export type RiskRuleSetting = { rule: RiskRuleKey; enabled: boolean; thresholdDays: number };
@@ -53,7 +53,7 @@ export function evaluateRisks(facts: RiskFacts, rules: RiskRuleSetting[], today:
     if (!found?.eventDate || found.eventDate < today) continue;
     // Expirée, ou qui expire avant l'évènement (plus le seuil de marge).
     if (daysBetween(document.expiresOn, found.eventDate) < -documents!.thresholdDays) continue;
-    alerts.push({ rule: "document_expired", key: `document_expired:${document.documentId}:${document.eventId}`, eventId: document.eventId, eventNames: found.names, label: `${document.vendorName} · ${document.label}`, facts: { vendor: document.vendorName, document: document.label, expiresOn: document.expiresOn }, thresholdDays: documents!.thresholdDays, href: `/events/${document.eventId}?onglet=prestataires` });
+    alerts.push({ rule: "document_expired", key: `document_expired:${document.documentId}:${document.eventId}`, eventId: document.eventId, eventNames: found.names, label: `${document.vendorName} · ${document.label}`, facts: { vendor: document.vendorName, document: document.label, expiresOn: document.expiresOn }, thresholdDays: documents!.thresholdDays, href: `/prestataires/${document.vendorId}` });
   }
 
   const payments = rule("payment_overdue");

@@ -64,11 +64,19 @@ function assertHref(href: string): void {
 
 // --- Destinataires (D3) ---
 
-// Lot 52 : le planner principal de l'évènement, quand il existera (service events), passera avant la
-// Propriétaire. D'ici là, la Propriétaire reçoit tout.
-export async function notificationRecipients(organizationId: string): Promise<string[]> {
-  const team = await listTeam(appDatabase(), organizationId);
-  return team.filter((member) => member.role === "owner" && !member.disabledAt).map((member) => member.id);
+// D3 : le planner principal de l'évènement (lot 52, lu par le service events), s'il est encore une
+// personne active de l'équipe ; sinon, et pour une notification sans évènement, la Propriétaire (chaque
+// adhésion « owner » active). Le Comptable ne reçoit aucune notification : il n'est jamais planner
+// principal, et les sortes du lot touchent la conduite des évènements (choix le plus sobre).
+export async function notificationRecipients(organizationId: string, eventId: string | null = null): Promise<string[]> {
+  const team = (await listTeam(appDatabase(), organizationId)).filter((member) => !member.disabledAt);
+  const owners = team.filter((member) => member.role === "owner").map((member) => member.id);
+  if (!eventId || !UUID.test(eventId)) return owners;
+  // Import différé : le module events emploie lui-même le service du hub.
+  const { listEventLeads } = await import("@/modules/events/service");
+  const leadId = (await listEventLeads(organizationId, [eventId]).catch(() => new Map<string, string>())).get(eventId);
+  const lead = leadId ? team.find((member) => member.id === leadId && (member.role === "owner" || member.role === "member")) : undefined;
+  return lead ? [lead.id] : owners;
 }
 
 // --- Réglages d'une personne ---
@@ -157,7 +165,7 @@ export async function notify(input: NotifyInput): Promise<number> {
   if (!params.success || input.objectKey.length < 1 || input.objectKey.length > 200) throw new NotificationInputError("params");
   if (input.eventId !== null && !UUID.test(input.eventId)) throw new NotificationInputError("params");
   const now = input.now ?? new Date();
-  const recipients = input.userIds ?? (await notificationRecipients(input.organizationId));
+  const recipients = input.userIds ?? (await notificationRecipients(input.organizationId, input.eventId));
   if (recipients.length === 0) return 0;
   return inOrganization(input.organizationId, async (tx) => {
     let created = 0;
@@ -419,7 +427,11 @@ export async function pushToUser(organizationId: string, userId: string, message
 // dans la langue de la personne. Un récapitulatif vide ne part pas ; le jour compte quand même.
 export async function sendDueDigests(organizationId: string, extraLines: (userId: string, locale: Locale) => Promise<string[]>, now: Date = new Date()): Promise<number> {
   const recipients = new Set(await notificationRecipients(organizationId));
-  const known = await inOrganization(organizationId, (tx) => tx.select({ userId: notificationSettings.userId }).from(notificationSettings).where(eq(notificationSettings.organizationId, organizationId)));
+  const known = await inOrganization(organizationId, async (tx) => [
+    ...(await tx.select({ userId: notificationSettings.userId }).from(notificationSettings).where(eq(notificationSettings.organizationId, organizationId))),
+    // Un planner principal qui a des notifications en attente du récapitulatif le reçoit aussi.
+    ...(await tx.selectDistinct({ userId: notifications.userId }).from(notifications).where(and(eq(notifications.organizationId, organizationId), eq(notifications.emailState, "digest")))),
+  ]);
   for (const row of known) recipients.add(row.userId);
   const people = await userLocales([...recipients]);
   let sent = 0;

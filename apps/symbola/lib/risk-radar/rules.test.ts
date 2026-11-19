@@ -50,7 +50,7 @@ describe("GC-02 — Radar des risques quotidien (lot 53, D7)", () => {
 
   it("les règles du lot 48 (pièces, IBAN à vérifier) restent sans alerte tant que le module ne donne rien", () => {
     expect(evaluateRisks(facts(), rules(), today)).toEqual([]);
-    const documents = [{ documentId: "doc", eventId: EVENT, vendorName: "Fleurs & Co", label: "Attestation RC Pro", expiresOn: "2027-05-01" }];
+    const documents = [{ documentId: "doc", vendorId: "v1", eventId: EVENT, vendorName: "Fleurs & Co", label: "Attestation RC Pro", expiresOn: "2027-05-01" }];
     expect(evaluateRisks(facts({ documents }), rules(), today).map((alert) => alert.rule)).toEqual(["document_expired"]);
   });
 

@@ -3549,7 +3549,9 @@ export async function applyDayAction(input: {
         action: input.action,
         // Lot 53 (HUB-15 ; D2, D3) : « Alerte du jour J » aux destinataires, sauf à qui l'a notée.
         notify: async (incident) => {
-          const userIds = (await notificationRecipients(input.organizationId)).filter((userId) => userId !== input.userId);
+          // Noté par le planner principal lui-même : la Propriétaire est prévenue.
+          let userIds = (await notificationRecipients(input.organizationId, input.eventId)).filter((userId) => userId !== input.userId);
+          if (userIds.length === 0) userIds = (await notificationRecipients(input.organizationId)).filter((userId) => userId !== input.userId);
           await notify({ organizationId: input.organizationId, type: "day_of_alert", eventId: input.eventId, objectKey: incident.incidentId, href: `/jour-j/${input.eventId}`, eventDate: incident.eventDate, isDemo: incident.isDemo, userIds, ...(input.now ? { now: input.now } : {}) });
         },
       });

@@ -9863,12 +9863,12 @@
       },
       "iban_to_verify": {
         "label": "IBAN to check",
-        "text": "A vendor's IBAN must be checked before any transfer.",
+        "text": "{vendor}'s IBAN has changed: check it before any transfer.",
         "action": "Check the IBAN"
       },
       "document_expiring": {
         "label": "Document expiring",
-        "text": "A vendor document expires soon.",
+        "text": "The document “{document}” from {vendor} expires soon, or has expired.",
         "action": "See the documents"
       },
       "task_overdue": {

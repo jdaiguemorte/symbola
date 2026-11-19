@@ -41,10 +41,15 @@ deux vocabulaires fixes nommaient les clients.
 4. **Plages de silence (D2)** : la nuit (qui peut passer minuit) et, au choix, le dimanche : ni push ni
    e-mail immédiat ; ils partent à la fin de la plage (calcul à la minute, changements d'heure compris).
    Le jour d'un évènement, une sorte « jour J » passe outre, si la personne garde ce réglage.
-5. **Destinataire (D3)** : le planner principal de l'évènement (lot 52) ; d'ici sa fusion, et pour une
-   notification sans évènement, la Propriétaire (chaque adhésion « owner » active,
-   `notificationRecipients`). Un incident noté le jour J prévient les autres destinataires, pas son
-   auteur. L'e-mail fixe « devis signé » du lot 38a devient la notification « Devis signé ».
+5. **Destinataire (D3)** : le planner principal de l'évènement (lot 52, `listEventLeads` du service
+   events), s'il est encore une personne active de l'équipe ; sinon, et pour une notification sans
+   évènement (demande mise de côté, IBAN, pièce, carnet), la Propriétaire (chaque adhésion « owner »
+   active, `notificationRecipients`). Le **Comptable** (lot 52) ne reçoit aucune notification : il n'est
+   jamais planner principal, et les sortes du lot touchent la conduite des évènements (choix le plus
+   sobre). Un incident noté le jour J prévient les autres destinataires, pas son auteur (noté par le
+   planner principal, la Propriétaire). Un planner principal reçoit aussi le récapitulatif de ses
+   notifications en attente. L'e-mail fixe « devis signé » du lot 38a devient la notification « Devis
+   signé ».
 6. **Rien de personnel dans un push ni dans l'objet d'un e-mail (SEC-20)** : le push porte la sorte en
    mots, l'action et un chemin de l'app ; l'objet de l'e-mail ne dit que la sorte. Les paramètres d'une
    notification sont des libellés courts (numéro, intitulé, montant en centimes), effacés avec elle après
@@ -82,10 +87,11 @@ deux vocabulaires fixes nommaient les clients.
 12. **Radar des risques (D7, GC-02)** : chaque matin (à partir de 6 h, Paris, `risk-radar.json`), avant
     le récapitulatif, et à l'affichage d'« Aujourd'hui » (section « Risques »). Il lit chaque module par
     son service (ARC-01) : prestataires retenus sans contrat, décisions en attente, échéances impayées,
-    jalons en retard, feuilles de route non confirmées. Chaque alerte dit sa règle et ses faits ; les seuils
-    se règlent (`hub.risk_rules`). Un module fermé ne produit aucune alerte, jamais d'erreur ; une source
-    lente est ignorée (ARC-07). Les règles du lot 48 (pièces des prestataires, IBAN « à vérifier ») sont
-    déclarées mais « indisponibles » tant que le module ne donne pas ces faits.
+    jalons en retard, feuilles de route non confirmées, et (service vendors, lot 48a) pièces des
+    prestataires retenus expirées ou qui expirent avant l'évènement, IBAN changés « à vérifier ». Chaque
+    alerte dit sa règle et ses faits ; les seuils se règlent (`hub.risk_rules`). Un module fermé ne
+    produit aucune alerte, jamais d'erreur ; une source lente est ignorée (ARC-07). Le passage du matin
+    produit aussi les notifications « IBAN à vérifier » et « Pièce qui expire » du carnet.
 13. **Terme des clients (D8, HUB-24)** : par type d'évènement et par langue, un terme (proposé ou libre,
     40 caractères), avec son genre et son nombre (`events.event_type_vocabulary`). Il remplace l'onglet
     « Mariés » ou « Clients » de l'évènement, remplit `{{terme_clients}}` des e-mails des liens et du
@@ -103,10 +109,9 @@ deux vocabulaires fixes nommaient les clients.
 
 - Une tâche périodique de plus (cinq minutes, derrière le verrou des tâches périodiques) ; chaque
   automatisme existant reçoit `AutomationHooks` sans changer sa logique d'envoi.
-- Le lot 52 doit brancher le planner principal dans `notificationRecipients` (et le réglage « recevoir
-  aussi celles des évènements où je suis assistant ») ; le lot 48 doit donner au radar ses pièces et ses
-  IBAN « à vérifier » par le service `vendors`, et produire les sortes `iban_to_verify` et
-  `document_expiring`.
+- Le planner principal (lot 52) et les pièces et IBAN du carnet (lot 48a) sont branchés à la fusion des
+  lots. Reste possible plus tard : un réglage par membre pour recevoir aussi les notifications des
+  évènements où il est assistant (recommandation de D3, non demandée par le critère).
 - Les notifications, leurs réglages, les abonnements push et le journal des automatismes ne sortent pas
   dans l'export complet (exclusions motivées) ; les automatismes, les règles du radar, les termes et les
   seuils de santé, si.

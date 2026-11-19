@@ -5,7 +5,7 @@
 // passage du matin une fois par jour. Isolation entre organisations (SEC-36).
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { createOrganization, createUser } from "@symbola/auth";
+import { createOrganization, createUser, removeMember } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import {
   addEventTask,
@@ -22,10 +22,15 @@ import {
   setEventTypeClientTerm,
   setPlanningHealthThresholds,
   setStandaloneTaskDone,
+  setEventTeamMember,
   setTaskMilestone,
   spawnDueRecurringTasks,
+  addVendorCandidate,
+  addEventVendorSlot,
+  updateVendorCandidate,
 } from "@/modules/events/service";
-import { listAutomationRuns, listNotifications, saveEmailTemplate, saveOnboardingStep, setModuleEnabled, setRiskRule } from "@/modules/hub/service";
+import { addVendorDocument, createVendor, listVendorDocumentKinds, setVendorBankDetails } from "@/modules/vendors/service";
+import { listAutomationRuns, listNotifications, notificationRecipients, notify, saveEmailTemplate, saveOnboardingStep, setModuleEnabled, setRiskRule } from "@/modules/hub/service";
 import { addQuoteLine, createQuote, getDocumentSettings, getQuote, sendQuote, updateDocumentSettings } from "@/modules/quotes/service";
 import { ensureEventTypes } from "@/lib/events/event-types";
 import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
@@ -135,14 +140,14 @@ describe("HUB-24 — Vocabulaire réglable par type d'évènement (lot 53, D8)",
 });
 
 describe("GC-02 — Radar des risques quotidien (lot 53, D7)", () => {
-  it("un jalon en retard est détecté avec sa règle expliquée ; le seuil réglé change le résultat ; les règles du lot 48 restent indisponibles", async () => {
+  it("un jalon en retard est détecté avec sa règle expliquée ; le seuil réglé change le résultat ; toutes les règles sont disponibles", async () => {
     const { organizationId, eventId } = await workspace("2027-02-20");
     const milestone = await addEventTask(organizationId, eventId, { label: "Liste d'invités close", dueDate: "2027-01-05", responsible: "planner" });
     await setTaskMilestone(organizationId, eventId, milestone.id, true);
     const now = new Date("2027-01-10T08:00:00Z");
     const radar = await loadRiskRadar(organizationId, now);
     expect(radar.alerts).toEqual([expect.objectContaining({ rule: "milestone_late", key: `milestone_late:${milestone.id}`, eventNames: expect.stringContaining("Léa"), facts: { task: "Liste d'invités close", daysLate: 5 }, href: `/events/${eventId}?onglet=retroplanning&tache=${milestone.id}` })]);
-    expect(radar.rules.filter((rule) => !rule.available).map((rule) => rule.rule).sort()).toEqual(["document_expired", "iban_to_verify"]);
+    expect(radar.rules.every((rule) => rule.available)).toBe(true);
     await setRiskRule(organizationId, { rule: "milestone_late", enabled: true, thresholdDays: 7 });
     expect((await loadRiskRadar(organizationId, now)).alerts).toEqual([]);
   });
@@ -171,5 +176,54 @@ describe("GC-02 — Radar des risques quotidien (lot 53, D7)", () => {
     // Le lendemain : rien de neuf pour les mêmes objets.
     expect(await runMorningPass(organizationId, new Date("2027-01-11T06:00:00Z"))).toBe(true);
     expect(await listNotifications(organizationId, ownerId)).toHaveLength(3);
+  });
+});
+
+describe("HUB-15 — Destinataire : le planner principal de l'évènement, sinon la Propriétaire (lot 53, D3)", () => {
+  it("le planner principal reçoit les notifications de son évènement ; retiré de l'équipe, la Propriétaire les reprend ; le Comptable ne reçoit rien", async () => {
+    const { organizationId, ownerId, eventId } = await workspace();
+    const db = appDatabase();
+    const planner = await createUser(db, { organizationId, email: `planner-${randomUUID()}@example.test`, role: "member" });
+    const accountant = await createUser(db, { organizationId, email: `comptable-${randomUUID()}@example.test`, role: "accountant" });
+    await setEventTeamMember({ organizationId, eventId, userId: planner.id, role: "lead", byUserId: ownerId });
+    expect(await notificationRecipients(organizationId, eventId)).toEqual([planner.id]);
+    expect(await notificationRecipients(organizationId, null)).toEqual([ownerId]);
+    await notify({ organizationId, type: "client_decision", eventId, objectKey: "d1", params: { title: "Choix du traiteur" }, href: `/events/${eventId}?onglet=maries` });
+    await notify({ organizationId, type: "prospect_request", eventId: null, objectKey: "r1", href: "/events/pipeline" });
+    expect((await listNotifications(organizationId, planner.id)).map((notification) => notification.type)).toEqual(["client_decision"]);
+    expect((await listNotifications(organizationId, ownerId)).map((notification) => notification.type)).toEqual(["prospect_request"]);
+    expect(await listNotifications(organizationId, accountant.id)).toEqual([]);
+    // Le planner principal retiré de l'organisation : la Propriétaire reprend ses alertes.
+    expect(await removeMember(db, { organizationId, userId: planner.id, removedByUserId: ownerId })).toBe("removed");
+    expect(await notificationRecipients(organizationId, eventId)).toEqual([ownerId]);
+  });
+});
+
+describe("GC-02 — Radar : pièces des prestataires retenus et IBAN « à vérifier » (lots 48a et 53)", () => {
+  it("une pièce d'un prestataire retenu qui expire avant l'évènement et son IBAN changé par lien sont détectés, avec leur règle ; rien sans le module Prestataires", async () => {
+    const { organizationId, ownerId, eventId } = await workspace("2027-07-15");
+    const now = new Date("2027-04-01T08:00:00Z");
+    const kinds = await listVendorDocumentKinds(organizationId, "fr");
+    const { vendor } = await createVendor(organizationId, { name: "Traiteur Saveurs", typeId: null });
+    await addVendorDocument({ organizationId, vendorId: vendor.id, kindId: kinds[0]!.id, fileName: "assurance.pdf", content: new Uint8Array(Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1")), validUntil: "2027-06-30", userId: ownerId, now });
+    await setVendorBankDetails(organizationId, vendor.id, { iban: "DE89370400440532013000", bic: null }, { kind: "link", linkId: randomUUID() });
+    const slot = await addEventVendorSlot(organizationId, eventId, "Traiteur");
+    const candidate = await addVendorCandidate({ organizationId, eventId, vendorSlotId: slot.id, vendorName: "Traiteur Saveurs", vendorId: vendor.id });
+    await updateVendorCandidate({ organizationId, candidateId: candidate.id, status: "retained", changedByUserId: ownerId });
+    const radar = await loadRiskRadar(organizationId, now);
+    expect(radar.rules.filter((rule) => !rule.available)).toEqual([]);
+    const byRule = new Map(radar.alerts.map((alert) => [alert.rule, alert]));
+    expect(byRule.get("document_expired")).toMatchObject({ eventId, facts: { vendor: "Traiteur Saveurs", document: kinds[0]!.label, expiresOn: "2027-06-30" }, href: `/prestataires/${vendor.id}` });
+    expect(byRule.get("iban_to_verify")).toMatchObject({ eventId, facts: { vendor: "Traiteur Saveurs" }, href: `/prestataires/${vendor.id}` });
+    // Le passage du matin prévient aussi : IBAN à vérifier (immédiat), alertes du radar.
+    await runMorningPass(organizationId, now);
+    const types = (await listNotifications(organizationId, ownerId)).map((notification) => notification.type);
+    expect(types).toContain("iban_to_verify");
+    expect(types.filter((type) => type === "risk_alert").length).toBeGreaterThanOrEqual(2);
+    // Module Prestataires fermé : ces règles sont indisponibles, sans alerte ni erreur.
+    await setModuleEnabled(appDatabase(), { adminUserId: randomUUID(), organizationId, moduleKey: "vendors", enabled: false });
+    const closed = await loadRiskRadar(organizationId, now);
+    expect(closed.alerts.filter((alert) => alert.rule === "document_expired" || alert.rule === "iban_to_verify")).toEqual([]);
+    expect(closed.rules.filter((rule) => !rule.available).map((rule) => rule.rule).sort()).toEqual(["document_expired", "iban_to_verify"]);
   });
 });

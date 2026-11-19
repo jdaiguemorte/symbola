@@ -9863,12 +9863,12 @@
       },
       "iban_to_verify": {
         "label": "IBAN à vérifier",
-        "text": "Un IBAN de prestataire est à vérifier avant tout virement.",
+        "text": "L'IBAN de {vendor} a changé : à vérifier avant tout virement.",
         "action": "Vérifier l'IBAN"
       },
       "document_expiring": {
         "label": "Pièce qui expire",
-        "text": "Une pièce d'un prestataire expire bientôt.",
+        "text": "La pièce « {document} » de {vendor} expire bientôt, ou a expiré.",
         "action": "Voir les pièces"
       },
       "task_overdue": {
