@@ -40,6 +40,7 @@ import {
 import { getDocumentHeader, getEmailTemplate, getMessageTemplate, renderMessageTemplate, sendOrganizationEmail, variableToken } from "@/modules/hub/service";
 import { followUpStopReason, nextFollowUpToPrepare, validateFollowUpSteps, withOptOut, type FollowUpFacts } from "./follow-up-rules";
 import { formatLinkToken, hashLinkSecret, newLinkSecret, parseLinkToken } from "./link-tokens";
+import { organizationLinksClosed } from "./closed-organization";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 type MessageRow = typeof eventMessages.$inferSelect;
@@ -172,7 +173,7 @@ export async function openBrochureLink(token: string, now: Date = new Date()): P
 // Un lien inconnu, expiré, ou dont la brochure a été retirée : null, sans rien révéler.
 async function brochureOfToken(token: string, now: Date): Promise<{ fileName: string; sizeBytes: number; storageKey: string } | null> {
   const parsed = parseLinkToken(token);
-  if (!parsed) return null;
+  if (!parsed || (await organizationLinksClosed(parsed.organizationId))) return null;
   return inOrganization(parsed.organizationId, async (tx) => {
     const [message] = await tx.select({ expiresAt: eventMessages.brochureExpiresAt }).from(eventMessages).where(eq(eventMessages.brochureTokenHash, hashLinkSecret(parsed.secret)));
     if (!message?.expiresAt || message.expiresAt.getTime() <= now.getTime()) return null;

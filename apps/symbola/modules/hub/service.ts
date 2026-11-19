@@ -386,7 +386,14 @@ export async function acceptInvitation(
   return { outcome: "success", organizationId: invitation.organizationId, email: invitation.email };
 }
 
+// Lot 35c (RGP-11, ADR 0100) : les traitements de fond ignorent un espace fermé (ni rappel, ni
+// facture programmée, ni notification) ; seuls l'export, la reprise et la fermeture elle-même le
+// visitent encore (listOrganizationsIncludingClosed).
 export async function listOrganizations(db: AppDatabase) {
+  return (await listAllOrganizations(db)).filter((organization) => !organization.closedAt);
+}
+
+export async function listOrganizationsIncludingClosed(db: AppDatabase) {
   return listAllOrganizations(db);
 }
 
@@ -1166,7 +1173,7 @@ export {
 } from "./activity-log";
 
 // Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
-export { describeHubExport, exportHubData, HUB_EXPORT_EXCLUSIONS, importHubData, registerHubImportIds, resolveImportUsers } from "./export";
+export { describeHubExport, exportHubData, HUB_EXPORT_EXCLUSIONS, eraseHubData, importHubData, registerHubImportIds, resolveImportUsers } from "./export";
 // Lot 35a (HUB-13, D4, D5, ADR 0068) : exports complets de l'organisation (demande, préparation en
 // arrière-plan, téléchargement, purge).
 export {
@@ -1209,6 +1216,30 @@ export {
   type ClaimedOrganizationImport,
   type OrganizationImportView,
 } from "./organization-imports";
+// Lot 35c (RGP-11, D8, ADR 0100) : fermeture d'un espace par sa Propriétaire.
+export { BACKUP_CYCLE_DAYS, CLOSURE_DAYS, CLOSURE_NOTICE_DAYS, closureSchedule, daysBeforeDeletion, parisCalendarDate, parisMidnight } from "./closure-schedule";
+export {
+  CLOSURE_EMAIL_KEY_PREFIX,
+  closeOrganization,
+  getOrganizationClosure,
+  getOrganizationName,
+  isOrganizationClosed,
+  listClosedOrganizations,
+  listOrganizationClosureTraces,
+  OrganizationAlreadyClosedError,
+  organizationClosureMail,
+  OrganizationClosureConfirmationError,
+  OrganizationClosureForbiddenError,
+  OrganizationClosureMfaRequiredError,
+  OrganizationNotReopenableError,
+  recordClosureFilesErased,
+  recordOrganizationErasure,
+  reopenOrganization,
+  sendClosureNotice,
+  type ClosedOrganization,
+  type OrganizationClosureTrace,
+  type OrganizationClosureView,
+} from "./organization-closures";
 // Lot 36a (CRM-03, DAT-12, UX-02, ARC-03 ; ADR 0069) : le contact unique du noyau. Lot 36b :
 // foyers et entreprises (membres, identifiants d'entreprise).
 export {
@@ -1284,7 +1315,7 @@ export {
 // Lot 40b (ARC-10 ; D9 ; ADR 0076) — file des tâches de fond (e-mails tentés aussitôt, puis repris).
 export { JOB_MAX_ATTEMPTS, JOB_RETENTION_DAYS, runDueJobs, type JobsPass } from "./jobs";
 // Lot 49 (INV-04, D10) : une relance déjà inscrite dans la file ne prépare pas un second lien.
-export { jobKeyExists } from "./jobs";
+export { enqueueEmail, jobKeyExists } from "./jobs";
 // Lot 49 (RGP-08, D9) : la purge des invités efface les exports stockés qui peuvent les contenir.
 export { purgeOrganizationExportsWithGuests } from "./organization-exports";
 export { purgePrivacyExportsSince } from "./privacy-exports";

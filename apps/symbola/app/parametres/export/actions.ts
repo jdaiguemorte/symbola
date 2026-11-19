@@ -15,7 +15,7 @@ export type RequestExportState = { error?: string; message?: string };
 
 export async function requestOrganizationExportAction(_previous: RequestExportState, _formData: FormData): Promise<RequestExportState> {
   const t = await getTranslations("OrganizationExport");
-  const owner = await requireOwner();
+  const owner = await requireOwner({ allowClosed: true });
   if (!owner) return { error: t("forbidden") };
   const organizationId = owner.user.organizationId;
   const wait = longestWait(await checkRateLimit("organizationExport", { account: organizationId }));

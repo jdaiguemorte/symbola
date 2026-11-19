@@ -936,6 +936,10 @@
       "title": "Organisation activity",
       "body": "Usage statistics: accounts, accounts active over 30 days, last login, the number of events, quotes and invoices created each month, and the latest storage reading (number of files and size). Never a name, an amount, a file name or any content; guided trials are not counted."
     },
+    "adminClosures": {
+      "title": "Closed workspaces",
+      "body": "The trace of each workspace closing: organisation identifier, closing date, deletion date, and what was erased (counts). Never a name or any workspace data. Before restoring a backup, export this trace; afterwards, replay it (restore runbook)."
+    },
     "forgotPassword": {
       "title": "Forgot password",
       "body": "Enter your account email: a link valid for 30 minutes is sent so you can choose a new password. The message is the same whether or not the address has an account. Your two-factor authentication stays as it is."
@@ -1177,6 +1181,10 @@
     "organizationImport": {
       "title": "Restore a Symbola export",
       "body": "Upload a Symbola export archive to find all your data in this workspace: to change workspace, or to come back after closing one. Only the account Owner can restore, and only into an empty workspace. Symbola checks the archive (format, fingerprints, tables, documents) before writing: a failure writes nothing. Your invoices, credit notes and payments stay read-only records; their chain is verified then extended, and numbering continues. The summary says what is left to do: invite your team, recreate personal links."
+    },
+    "organizationClosure": {
+      "title": "Close the workspace",
+      "body": "The Owner closes the workspace, with two-factor authentication and the workspace name to confirm. For 30 days, the workspace can only be exported and reopened: the team loses its screens, third-party links close, no e-mail is sent. One e-mail confirms the closing, another warns seven days before deletion. On day 30, everything is deleted, documents included; only a trace without personal data remains at Symbola."
     },
     "contactsList": {
       "title": "Contacts",
@@ -5157,6 +5165,7 @@
     "contractTemplates": "Contract templates",
     "export": "Export my data",
     "organizationImport": "Restore an export",
+    "organizationClosure": "Close the workspace",
     "storage": "Storage",
     "emailTemplates": "Email templates",
     "messageTemplates": "Message templates",
@@ -5232,6 +5241,7 @@
     "accounts": "Accounts",
     "onboarding": "Getting started",
     "activity": "Activity",
+    "closures": "Closed workspaces",
     "health": "Health",
     "settings": "Suite settings",
     "account": "My account"
@@ -5434,6 +5444,8 @@
       "hub_organization_export_ready": "Full export prepared",
       "hub_organization_export_downloaded": "Full export downloaded",
       "hub_organization_import_failed": "Export restore refused",
+      "hub_organization_reopened": "Workspace reopened",
+      "hub_organization_closed": "Workspace closed",
       "hub_organization_import_completed": "Export restored",
       "hub_organization_import_requested": "Export restore requested",
       "hub_mail_variable_missing": "Automatic e-mail not sent: template variable without a value",
@@ -5592,6 +5604,7 @@
       "hub_organization_exports": "full export",
       "quotes_ledger_anchors": "record chain anchor",
       "hub_organization_imports": "export restore",
+      "hub_organization_closures": "workspace closing",
       "hub_contacts": "contact",
       "hub_contact_notes": "contact note",
       "hub_contact_members": "household or company member",
@@ -6869,6 +6882,50 @@
       "failed": "The restore failed; nothing was written. Try again, or write to Symbola."
     }
   },
+  "OrganizationClosure": {
+    "title": "Close the workspace",
+    "subtitle": "Leave Symbola: your data is deleted 30 days after closing",
+    "ownerOnly": "Only the account Owner can close or reopen the workspace.",
+    "closedForMember": "This workspace is closed: it will be deleted on {date}. Only the account Owner can still export or reopen it.",
+    "intro": "Closing the workspace stops Symbola for your business. For 30 days, the workspace can only be exported and reopened; after that, everything is deleted: data, documents, team accounts.",
+    "exportFirstTitle": "Export your data first",
+    "exportFirst": "Keep a complete copy of your data (including your invoices: keeping them is your responsibility). Export stays available until the last day.",
+    "exportLink": "Export my data",
+    "whatTitle": "What happens",
+    "whatClosed": "From closing: the team loses access to the screens, the links of your clients, vendors and guests close, and no more e-mail is sent (reminders, follow-ups, scheduled invoices).",
+    "whatNotice": "An e-mail confirms the closing, another one warns you seven days before deletion.",
+    "whatErased": "On {date}, everything is deleted, documents included; backups forget it at the end of their cycle, {days} days at most. Only a trace of the closing remains at Symbola, without any personal data.",
+    "confirmTitle": "Close the workspace",
+    "confirmLabel": "To confirm, type the workspace name: {name}",
+    "confirmHint": "Closing requires a session opened with two-factor authentication.",
+    "submit": "Close the workspace",
+    "closed": "Workspace closed. It will be deleted on {date}.",
+    "confirmationMismatch": "The name typed is not the workspace's name.",
+    "mfaRequired": "Closing the workspace requires two-factor authentication: sign in again with your second factor.",
+    "alreadyClosed": "The workspace is already closed.",
+    "forbidden": "Only the account Owner can close or reopen the workspace.",
+    "closedTitle": "Workspace closed",
+    "closedSince": "Closed on {closed}. Deletion on {date}.",
+    "daysLeft": "{days, plural, =0 {Last day to export your data.} one {# day left to export your data or reopen the workspace.} other {# days left to export your data or reopen the workspace.}}",
+    "reopenTitle": "Reopen the workspace",
+    "reopenBody": "Reopening cancels the deletion: the team gets its screens back, links reopen, sending resumes.",
+    "reopen": "Reopen the workspace",
+    "reopened": "Workspace reopened.",
+    "notReopenable": "The deletion date has passed: the workspace can no longer be reopened."
+  },
+  "AdminClosures": {
+    "title": "Closed workspaces",
+    "intro": "Each workspace closing, without personal data: organisation identifier and dates. The trace remains after deletion; it is used to erase again, after a backup restore, a workspace already deleted (restore runbook).",
+    "organization": "Organisation",
+    "closedAt": "Closed on",
+    "deletionDueAt": "Deletion due",
+    "status": "Status",
+    "statusClosed": "Closed",
+    "statusReopened": "Reopened on {date}",
+    "statusErased": "Deleted on {date} ({rows, plural, one {# row} other {# rows}}, {files, plural, one {# file} other {# files}})",
+    "statusFilesPending": "Deleted on {date}; files pending",
+    "none": "No closed workspace."
+  },
   "Contacts": {
     "title": "Contacts",
     "subtitle": "Each person exists only once in your space.",
@@ -7107,6 +7164,16 @@
         "subject": "Your Symbola export is ready",
         "body": "Hello,\n\nThe full export of the data of \"{organization}\" is ready. Download it from Settings, Export my data, until {until}:\n\n{url}\n\nFor your security, the archive is never attached to an e-mail.",
         "button": "Open my exports"
+      },
+      "organizationClosureNotice": {
+        "subject": "Your Symbola workspace will be deleted in seven days",
+        "body": "Hello,\n\nThe closed workspace “{organization}” will be deleted on {until}, with all its data and documents. Remember to export your data by then, or reopen the workspace:\n\n{url}",
+        "button": "Open the closing page"
+      },
+      "organizationClosed": {
+        "subject": "Your Symbola workspace is closed",
+        "body": "Hello,\n\nThe workspace “{organization}” is closed. It will be deleted on {until}, with all its data and documents. Until then, you can export your data or reopen the workspace:\n\n{url}",
+        "button": "Open the closing page"
       },
       "invitation": {
         "subject": "Your Symbola invitation",

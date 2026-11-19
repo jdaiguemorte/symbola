@@ -4,6 +4,7 @@
 // d'essai sont exclus ; le jeton de gestion n'est jamais exporté. Exposé par service.ts.
 import type { ExportEntitySchema, ModuleExport, ModuleExportContext, ModuleImportContext, ModuleImportResult, ModuleImportRows } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
+import { eraseOrganizationSchema } from "@symbola/db/erase";
 import { describeModuleEntities, exportModuleEntities, type ExportEntitySpec } from "@symbola/db/export";
 import { clearModuleImportTargets, importModuleEntities, registerModuleImportIds } from "@symbola/db/import";
 import type { OrganizationTransaction } from "@symbola/db/with-organization";
@@ -52,4 +53,10 @@ export function registerAppointmentsImportIds(rows: ModuleImportRows, context: M
 export async function importAppointmentsData(tx: OrganizationTransaction, rows: ModuleImportRows, context: ModuleImportContext): Promise<ModuleImportResult> {
   await clearModuleImportTargets(tx, { organizationId: context.organizationId, specs: APPOINTMENTS_EXPORT_ENTITIES });
   return { module: "appointments", entities: await importModuleEntities(tx, { specs: APPOINTMENTS_EXPORT_ENTITIES, rows, context }) };
+}
+
+// Lot 35c (RGP-11, D8, ADR 0100) : effacement de toutes les lignes du module d'une organisation fermée,
+// à sa date de suppression (la base le refuse avant) ; fichiers effacés par l'orchestrateur.
+export function eraseAppointmentsData(tx: OrganizationTransaction, organizationId: string): Promise<number> {
+  return eraseOrganizationSchema(tx, organizationId, "appointments");
 }

@@ -4036,7 +4036,7 @@ export async function countOrganizationRealQuotes(organizationId: string): Promi
 }
 
 // Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
-export { describeQuotesExport, exportQuotesData, QUOTES_EXPORT_EXCLUSIONS } from "./export";
+export { describeQuotesExport, eraseQuotesData, exportQuotesData, QUOTES_EXPORT_EXCLUSIONS } from "./export";
 // Lot 35b (HUB-13, D7, ADR 0098) : reprise d'une archive, chaîne des pièces vérifiée puis prolongée.
 export { ImportedLedgerInvalidError, importQuotesData, registerQuotesImportIds } from "./archive-import";
 

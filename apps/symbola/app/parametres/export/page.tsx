@@ -13,7 +13,7 @@ import { RequestExportForm } from "./request-form";
 // demande, l'avancement de la préparation et les derniers exports, téléchargeables le temps
 // réglé par l'Admin. Propriétaire seulement.
 export default async function OrganizationExportPage() {
-  const auth = await requireOwner();
+  const auth = await requireOwner({ allowClosed: true });
   const t = await getTranslations("OrganizationExport");
   const tHelp = await getTranslations("Help");
   if (!auth) {

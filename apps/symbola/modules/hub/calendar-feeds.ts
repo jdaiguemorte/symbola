@@ -10,6 +10,7 @@ import { listTeam } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { calendarFeeds } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
+import { isOrganizationClosed } from "./organization-closures";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SECRET = /^[A-Za-z0-9_-]{43}$/;
@@ -65,6 +66,8 @@ export async function resolveCalendarFeed(token: string, now: Date = new Date())
   const [organizationId, secret, ...rest] = token.split(".");
   if (!organizationId || !secret || rest.length > 0 || !UUID.test(organizationId) || !SECRET.test(secret)) return null;
   const db = appDatabase();
+  // Lot 35c (RGP-11) : un espace fermé n'alimente plus les agendas.
+  if (await isOrganizationClosed(db, organizationId)) return null;
   const [row] = await withOrganization(db, organizationId, (tx) => tx.select().from(calendarFeeds).where(and(eq(calendarFeeds.tokenHash, hashSecret(secret)), isNull(calendarFeeds.revokedAt))));
   if (!row) return null;
   const member = (await listTeam(db, organizationId)).find((candidate) => candidate.id === row.userId);

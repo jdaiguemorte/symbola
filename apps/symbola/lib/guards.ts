@@ -7,6 +7,8 @@
 import { notFound, redirect } from "next/navigation";
 import { isAccountingReaderRole, type AuthenticatedUser, type AuthResult, type Role } from "@symbola/auth";
 import type { LinkAccess, LinkAudience } from "@/modules/events/service";
+import { appDatabase } from "@symbola/db/client";
+import { isOrganizationClosed } from "@/modules/hub/service";
 import { getAuthContext, getPlannerAuthContext } from "./auth-context";
 import { currentLinkAccess } from "./link-session";
 
@@ -34,7 +36,16 @@ export async function requirePendingMfa(): Promise<{ userId: string; role: Role 
 
 // Écrans de la planner (titulaire ou collaborateur, PRD-EVT-06) : l'Admin va à
 // sa console.
-export async function requirePlanner(): Promise<InOrganization> {
+// Lot 35c (RGP-11, ADR 0100) : un espace fermé ne sert plus qu'à exporter et à rouvrir. Les écrans
+// redirigent vers la fermeture ; seuls la fermeture et l'export l'acceptent (allowClosed).
+export const CLOSED_ORGANIZATION_PATH = "/parametres/fermeture";
+export type GuardOptions = { allowClosed?: boolean };
+
+async function redirectIfClosed(organizationId: string, options: GuardOptions): Promise<void> {
+  if (!options.allowClosed && (await isOrganizationClosed(appDatabase(), organizationId))) redirect(CLOSED_ORGANIZATION_PATH);
+}
+
+export async function requirePlanner(options: GuardOptions = {}): Promise<InOrganization> {
   const auth = await getPlannerAuthContext();
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "mfa_required") redirect("/securite");
@@ -42,14 +53,15 @@ export async function requirePlanner(): Promise<InOrganization> {
   if (auth.status === "forbidden") redirect(auth.role === "accountant" ? "/comptable" : "/");
   const { organizationId } = auth.user;
   if (!organizationId) redirect("/");
+  await redirectIfClosed(organizationId, options);
   return { status: "authenticated", user: { ...auth.user, organizationId } };
 }
 
 // Écrans réservés à la titulaire du compte (module RGPD, cahier des charges
 // § 6) : un collaborateur reçoit null, et l'écran lui explique qu'il n'y a
 // pas accès.
-export async function requireOwner(): Promise<InOrganization | null> {
-  const auth = await requirePlanner();
+export async function requireOwner(options: GuardOptions = {}): Promise<InOrganization | null> {
+  const auth = await requirePlanner(options);
   return auth.user.role === "owner" ? auth : null;
 }
 
@@ -86,6 +98,7 @@ export async function requireAccountingReader(options: { ownerOnly?: boolean } =
   if (auth.status === "mfa_required") redirect("/securite");
   if (!isAccountingReaderRole(auth.user.role) || !auth.user.organizationId) redirect("/");
   if (options.ownerOnly && auth.user.role === "member") return null;
+  await redirectIfClosed(auth.user.organizationId, {});
   return { status: "authenticated", user: { ...auth.user, organizationId: auth.user.organizationId }, readOnly: auth.user.role === "accountant" };
 }
 
@@ -95,6 +108,7 @@ export async function requireAccountant(): Promise<InOrganization> {
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "mfa_required") redirect("/securite");
   if (auth.user.role !== "accountant" || !auth.user.organizationId) redirect("/");
+  await redirectIfClosed(auth.user.organizationId, {});
   return { status: "authenticated", user: { ...auth.user, organizationId: auth.user.organizationId } };
 }
 
