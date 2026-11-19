@@ -14,6 +14,7 @@ import { jobs } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 import { currentMailTransport, type SendMailInput } from "@symbola/mail";
 import { hasTerms, prepareTerms, recordMatches, type PersonTerms } from "@symbola/privacy";
+import { CLOSURE_EMAIL_KEY_PREFIX, isOrganizationClosed } from "./organization-closures";
 
 export const JOB_MAX_ATTEMPTS = 5;
 // Délai avant la tentative suivante, après la 1re, 2e, 3e et 4e.
@@ -59,6 +60,8 @@ export async function jobKeyExists(organizationId: string, idempotencyKey: strin
 
 // Inscrit l'e-mail ; null si la clé est déjà inscrite (rien de plus ne part).
 export async function enqueueEmail(organizationId: string, message: SendMailInput, idempotencyKey: string = newJobKey(), now: Date = new Date()): Promise<string | null> {
+  // Lot 35c (RGP-11, ADR 0100) : un espace fermé n'envoie plus rien, sauf les e-mails de sa fermeture.
+  if (!idempotencyKey.startsWith(CLOSURE_EMAIL_KEY_PREFIX) && (await isOrganizationClosed(appDatabase(), organizationId))) return null;
   const rows = await withOrganization(appDatabase(), organizationId, (tx) =>
     tx
       .insert(jobs)
@@ -74,6 +77,11 @@ export type JobOutcome = "done" | "retry" | "failed" | "skipped";
 // Prend la tâche (si elle est due et libre), l'envoie, puis la termine ou la replanifie.
 export async function runJob(organizationId: string, jobId: string, now: Date = new Date()): Promise<JobOutcome> {
   const db = appDatabase();
+  // Lot 35c : un e-mail inscrit avant la fermeture attend (il part si l'espace est rouvert).
+  if (await isOrganizationClosed(db, organizationId)) {
+    const [pending] = await withOrganization(db, organizationId, (tx) => tx.select({ key: jobs.idempotencyKey }).from(jobs).where(eq(jobs.id, jobId)));
+    if (!pending?.key.startsWith(CLOSURE_EMAIL_KEY_PREFIX)) return "skipped";
+  }
   const [claimed] = await withOrganization(db, organizationId, (tx) =>
     tx
       .update(jobs)

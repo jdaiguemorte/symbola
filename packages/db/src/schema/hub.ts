@@ -26,22 +26,39 @@ export const legalFormEnum = hubSchema.enum("legal_form", [
 export const metierEnum = hubSchema.enum("metier", ["wedding_planner", "event_agency", "autre"]);
 export const vatRegimeEnum = hubSchema.enum("vat_regime", ["franchise", "assujetti"]);
 
-export const organizations = hubSchema.table("organizations", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull(),
-  language: languageEnum("language").notNull().default("fr"),
-  // Facultatif (PRD PRD-HUB-03) : une organisation peut être créée avant
-  // d'avoir un SIRET (prospect, structure en cours de création).
-  siret: text("siret"),
-  // Lot 52 (EVT-06, D2) : toutes les Planners voient tous les évènements (comportement de la pilote) ;
-  // coupé, une Planner ne voit que ceux de son équipe. La Propriétaire voit tout.
-  allPlannersSeeAllEvents: boolean("all_planners_see_all_events").notNull().default(true),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
-  createdBy: uuid("created_by"),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedBy: uuid("updated_by"),
-});
+export const organizations = hubSchema.table(
+  "organizations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    language: languageEnum("language").notNull().default("fr"),
+    // Facultatif (PRD PRD-HUB-03) : une organisation peut être créée avant
+    // d'avoir un SIRET (prospect, structure en cours de création).
+    siret: text("siret"),
+    // Lot 52 (EVT-06, D2) : toutes les Planners voient tous les évènements (comportement de la pilote) ;
+    // coupé, une Planner ne voit que ceux de son équipe. La Propriétaire voit tout.
+    allPlannersSeeAllEvents: boolean("all_planners_see_all_events").notNull().default(true),
+    // Lot 35c (RGP-11 ; décision D8 de Julien du 18/11/2026 ; ADR 0100) : fermeture par la Propriétaire.
+    // Pendant les 30 jours, l'espace ne sert plus qu'à exporter et à rouvrir ; à la date de suppression,
+    // tout est effacé. Préavis envoyé sept jours avant. La base refuse une fermeture antidatée et un
+    // délai plus court (déclencheur et contrainte de la migration 0186).
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    closedByUserId: uuid("closed_by_user_id"),
+    deletionDueAt: timestamp("deletion_due_at", { withTimezone: true }),
+    closureNoticeSentAt: timestamp("closure_notice_sent_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    check(
+      "organizations_closure_check",
+      sql`(${table.closedAt} is null) = (${table.deletionDueAt} is null) and (${table.deletionDueAt} is null or ${table.deletionDueAt} >= ${table.closedAt} + interval '29 days')`,
+    ),
+  ],
+);
 
 // Lot 33 (HUB-02, HUB-03) : rôle d'une adhésion, et de l'invitation qui la crée (lot 33b, D12).
 // Lot 52 (réponse de Julien du 18/11 au lot 58) : « accountant », le comptable en lecture, invité par la
@@ -1654,5 +1671,35 @@ export const organizationImports = hubSchema.table(
       "organization_imports_error_check",
       sql`${table.error} is null or ${table.error} in ('not_empty', 'unreadable', 'unknown_format', 'checksum', 'schema', 'file_refused', 'siren_mismatch', 'ledger_invalid', 'failed')`,
     ),
+  ],
+);
+
+// Lot 35c (RGP-11 ; D8 ; ADR 0100) — trace de chaque fermeture, sans donnée personnelle (l'identifiant
+// de l'organisation et des dates) : elle survit à la suppression, l'Exploitation la lit, et elle sert à
+// effacer de nouveau, après une restauration de sauvegarde, une organisation déjà supprimée. Sans RLS :
+// l'organisation n'existe plus quand la trace sert ; l'app la lit toujours avec un filtre explicite.
+export const organizationClosures = hubSchema.table(
+  "organization_closures",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    closedAt: timestamp("closed_at", { withTimezone: true }).notNull(),
+    deletionDueAt: timestamp("deletion_due_at", { withTimezone: true }).notNull(),
+    reopenedAt: timestamp("reopened_at", { withTimezone: true }),
+    erasedAt: timestamp("erased_at", { withTimezone: true }),
+    erasedRows: integer("erased_rows"),
+    filesErasedAt: timestamp("files_erased_at", { withTimezone: true }),
+    erasedFiles: integer("erased_files"),
+    // Dernier rejeu de l'effacement après une restauration.
+    replayedAt: timestamp("replayed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("organization_closures_organization_idx").on(table.organizationId),
+    uniqueIndex("organization_closures_open_idx").on(table.organizationId).where(sql`reopened_at is null and erased_at is null`),
+    check("organization_closures_dates_check", sql`${table.deletionDueAt} >= ${table.closedAt} + interval '29 days'`),
   ],
 );

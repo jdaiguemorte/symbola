@@ -11,6 +11,7 @@ export {
   statPrivateObject,
   type PrivateObject,
   getSignedDownloadUrl,
+  listPrivateObjectKeys,
   uploadPrivateFile,
   uploadPrivateObject,
 } from "./storage";

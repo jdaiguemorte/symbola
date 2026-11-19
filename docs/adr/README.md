@@ -97,3 +97,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0093 — Prestataires (pièces, lieu, IBAN chiffré sous contrôle) et argent de la planner (honoraires, commissions, mandat)](0093-prestataires-pieces-iban-et-argent-de-la-planner.md)
 - [0094 — Équipe et accès : comptable en lecture, équipe par évènement, renfort du jour J par lien, sessions et alertes](0094-equipe-et-acces.md)
 - [0098 — Reprise d'un export Symbola dans un espace vide : écriture générique, une transaction, chaîne des pièces prolongée](0098-reprise-d-un-export-dans-un-espace-vide.md)
+- [0100 — Fermeture d'un espace : 30 jours d'export, effacement contrôlé par la base, trace rejouable](0100-fermeture-d-un-espace-et-effacement-au-30e-jour.md)

@@ -5,6 +5,8 @@
 // pièces. Les pièces d'essai (série DEMO) et ce qui en dépend sont exclus. Exposé par service.ts.
 import type { ExportEntitySchema, ModuleExport, ModuleExportContext } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
+import { eraseOrganizationSchema } from "@symbola/db/erase";
+import type { OrganizationTransaction } from "@symbola/db/with-organization";
 import { describeModuleEntities, exportModuleEntities, type ExportEntitySpec } from "@symbola/db/export";
 import {
   catalogItems,
@@ -130,4 +132,10 @@ export function exportQuotesData(organizationId: string, context: ModuleExportCo
 
 export function describeQuotesExport(): ExportEntitySchema[] {
   return describeModuleEntities("quotes", QUOTES_EXPORT_ENTITIES);
+}
+
+// Lot 35c (RGP-11, D8, ADR 0100) : effacement de toutes les lignes du module d'une organisation fermée,
+// à sa date de suppression (la base le refuse avant) ; fichiers effacés par l'orchestrateur.
+export function eraseQuotesData(tx: OrganizationTransaction, organizationId: string): Promise<number> {
+  return eraseOrganizationSchema(tx, organizationId, "quotes");
 }

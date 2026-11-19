@@ -5,6 +5,7 @@
 // une demande rattachée, gardée telle quelle. Un message à liens est mis de côté (« à vérifier »,
 // D4) : rien n'est créé avant que la planner l'accepte ; non traité, il est effacé à 30 jours.
 // Les journaux ne portent que des identifiants (SEC-20).
+import { organizationLinksClosed } from "./closed-organization";
 import { appDatabase } from "@symbola/db/client";
 import { recordAudit } from "@symbola/db/audit";
 import { SYSTEM_ACTOR } from "@symbola/db/actor";
@@ -158,7 +159,7 @@ export async function resolvePublicContactForm(slug: string, locale: "fr" | "en"
   const form = await findContactFormBySlug(slug);
   if (!form || !form.active || !form.privacyPolicyUrl) return null;
   const db = appDatabase();
-  if (!(await isModuleEnabled(db, form.organizationId, "events"))) return null;
+  if (!(await isModuleEnabled(db, form.organizationId, "events")) || (await organizationLinksClosed(form.organizationId))) return null;
   const [contact, seller, privacy, types, sources] = await Promise.all([
     getOrganizationContact(db, form.organizationId),
     getSellerDetails(db, form.organizationId),

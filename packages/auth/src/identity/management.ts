@@ -116,6 +116,16 @@ export function createManagementClient(connection: IdentityConnection, fetchImpl
       await request("PATCH", `/api/users/${encodeURIComponent(userId)}/logto-configs`, { mfa: { enabled: true, required: true } });
     },
 
+    // Lot 35c (RGP-11, D8, ADR 0100) : un compte effacé avec la dernière organisation dont il était
+    // membre l'est aussi chez le fournisseur. Un compte déjà absent n'est pas une erreur.
+    async deleteUser(userId: string): Promise<void> {
+      try {
+        await request("DELETE", `/api/users/${encodeURIComponent(userId)}`);
+      } catch (error) {
+        if (!(error instanceof IdentityProviderError && error.status === 404)) throw error;
+      }
+    },
+
     async deleteMfaVerification(userId: string, verificationId: string): Promise<void> {
       await request("DELETE", `/api/users/${encodeURIComponent(userId)}/mfa-verifications/${encodeURIComponent(verificationId)}`);
     },

@@ -936,6 +936,10 @@
       "title": "Activité des organisations",
       "body": "Des statistiques d'usage : comptes, comptes connectés sur 30 jours, dernière connexion, nombre d'événements, de devis et de factures créés chaque mois, et le dernier relevé du stockage (nombre de fichiers et volume). Jamais un nom, un montant, un nom de fichier ni un contenu ; les essais guidés ne comptent pas."
     },
+    "adminClosures": {
+      "title": "Espaces fermés",
+      "body": "La trace de chaque fermeture d'un espace : identifiant de l'organisation, date de fermeture, date de suppression, et ce qui a été effacé (nombres). Jamais un nom ni une donnée de l'espace. Avant une restauration de sauvegarde, exportez cette trace ; après, rejouez-la (runbook de restauration)."
+    },
     "forgotPassword": {
       "title": "Mot de passe oublié",
       "body": "Saisissez l'adresse de votre compte : un lien valable 30 minutes vous est envoyé pour choisir un nouveau mot de passe. Le message est le même que l'adresse ait un compte ou non. Votre double authentification ne change pas."
@@ -1177,6 +1181,10 @@
     "organizationImport": {
       "title": "Reprendre un export Symbola",
       "body": "Déposez l'archive d'un export Symbola pour retrouver toutes vos données dans cet espace : changer d'espace, ou revenir après une fermeture. La reprise ne se fait que dans un espace vide, par la Propriétaire du compte. Symbola vérifie l'archive (format, empreintes, tables, documents) avant d'écrire : un échec n'écrit rien. Vos factures, avoirs et encaissements restent des pièces en lecture seule ; leur chaîne est vérifiée puis prolongée, et la numérotation continue. Le bilan dit ce qui reste à faire : inviter l'équipe, recréer les liens personnels."
+    },
+    "organizationClosure": {
+      "title": "Fermer l'espace",
+      "body": "La Propriétaire ferme l'espace, avec la double authentification et le nom de l'espace pour confirmer. Pendant 30 jours, l'espace ne sert plus qu'à exporter les données et à le rouvrir : l'équipe n'a plus ses écrans, les liens des tiers se ferment, aucun e-mail ne part. Un e-mail confirme la fermeture, un autre prévient sept jours avant la suppression. Au 30e jour, tout est supprimé, documents compris ; seule reste chez Symbola une trace sans donnée personnelle."
     },
     "contactsList": {
       "title": "Contacts",
@@ -5157,6 +5165,7 @@
     "contractTemplates": "Modèles de contrat",
     "export": "Exporter mes données",
     "organizationImport": "Reprendre un export",
+    "organizationClosure": "Fermer l'espace",
     "storage": "Stockage",
     "emailTemplates": "Modèles d'e-mails",
     "messageTemplates": "Modèles de messages",
@@ -5232,6 +5241,7 @@
     "accounts": "Comptes",
     "onboarding": "Prise en main",
     "activity": "Activité",
+    "closures": "Espaces fermés",
     "health": "Santé",
     "settings": "Réglages de la suite",
     "account": "Mon compte"
@@ -5434,6 +5444,8 @@
       "hub_organization_export_ready": "Export complet préparé",
       "hub_organization_export_downloaded": "Export complet téléchargé",
       "hub_organization_import_failed": "Reprise d'un export refusée",
+      "hub_organization_reopened": "Espace rouvert",
+      "hub_organization_closed": "Espace fermé",
       "hub_organization_import_completed": "Export repris",
       "hub_organization_import_requested": "Reprise d'un export demandée",
       "hub_mail_variable_missing": "E-mail automatique non envoyé : variable du modèle sans valeur",
@@ -5592,6 +5604,7 @@
       "hub_organization_exports": "export complet",
       "quotes_ledger_anchors": "ancre de la chaîne des pièces",
       "hub_organization_imports": "reprise d'un export",
+      "hub_organization_closures": "fermeture d'un espace",
       "hub_contacts": "contact",
       "hub_contact_notes": "note d'un contact",
       "hub_contact_members": "membre d'un foyer ou d'une entreprise",
@@ -6869,6 +6882,50 @@
       "failed": "La reprise a échoué ; rien n'a été écrit. Réessayez, ou écrivez à Symbola."
     }
   },
+  "OrganizationClosure": {
+    "title": "Fermer l'espace",
+    "subtitle": "Quitter Symbola : vos données sont supprimées 30 jours après la fermeture",
+    "ownerOnly": "Seule la Propriétaire du compte peut fermer ou rouvrir l'espace.",
+    "closedForMember": "Cet espace est fermé : il sera supprimé le {date}. Seule la Propriétaire du compte peut encore l'exporter ou le rouvrir.",
+    "intro": "Fermer l'espace arrête Symbola pour votre entreprise. Pendant 30 jours, l'espace ne sert plus qu'à exporter vos données et à le rouvrir ; ensuite, tout est supprimé : données, documents, comptes de l'équipe.",
+    "exportFirstTitle": "Exportez d'abord vos données",
+    "exportFirst": "Gardez une copie complète de vos données (vos factures comprises : leur conservation vous incombe). L'export reste possible jusqu'au dernier jour.",
+    "exportLink": "Exporter mes données",
+    "whatTitle": "Ce qui se passe",
+    "whatClosed": "Dès la fermeture : l'équipe n'a plus accès aux écrans, les liens de vos clients, prestataires et invités se ferment, et plus aucun e-mail ne part (rappels, relances, factures programmées).",
+    "whatNotice": "Un e-mail vous confirme la fermeture, un autre vous prévient sept jours avant la suppression.",
+    "whatErased": "Le {date}, tout est supprimé, documents compris ; les sauvegardes l'oublient à la fin de leur cycle, {days} jours au plus. Seule reste, chez Symbola, la trace de la fermeture, sans aucune donnée personnelle.",
+    "confirmTitle": "Fermer l'espace",
+    "confirmLabel": "Pour confirmer, écrivez le nom de l'espace : {name}",
+    "confirmHint": "La fermeture demande une session ouverte avec la double authentification.",
+    "submit": "Fermer l'espace",
+    "closed": "Espace fermé. Il sera supprimé le {date}.",
+    "confirmationMismatch": "Le nom écrit n'est pas celui de l'espace.",
+    "mfaRequired": "Fermer l'espace demande la double authentification : reconnectez-vous avec votre second facteur.",
+    "alreadyClosed": "L'espace est déjà fermé.",
+    "forbidden": "Seule la Propriétaire du compte peut fermer ou rouvrir l'espace.",
+    "closedTitle": "Espace fermé",
+    "closedSince": "Fermé le {closed}. Suppression le {date}.",
+    "daysLeft": "{days, plural, =0 {Dernier jour pour exporter vos données.} one {Encore # jour pour exporter vos données ou rouvrir l'espace.} other {Encore # jours pour exporter vos données ou rouvrir l'espace.}}",
+    "reopenTitle": "Rouvrir l'espace",
+    "reopenBody": "Rouvrir annule la suppression : l'équipe retrouve ses écrans, les liens se rouvrent, les envois reprennent.",
+    "reopen": "Rouvrir l'espace",
+    "reopened": "Espace rouvert.",
+    "notReopenable": "La date de suppression est passée : l'espace ne peut plus être rouvert."
+  },
+  "AdminClosures": {
+    "title": "Espaces fermés",
+    "intro": "Chaque fermeture d'un espace, sans donnée personnelle : identifiant de l'organisation et dates. La trace reste après la suppression ; elle sert à effacer de nouveau, après une restauration de sauvegarde, un espace déjà supprimé (runbook de restauration).",
+    "organization": "Organisation",
+    "closedAt": "Fermée le",
+    "deletionDueAt": "Suppression prévue",
+    "status": "État",
+    "statusClosed": "Fermée",
+    "statusReopened": "Rouverte le {date}",
+    "statusErased": "Supprimée le {date} ({rows, plural, one {# ligne} other {# lignes}}, {files, plural, one {# fichier} other {# fichiers}})",
+    "statusFilesPending": "Supprimée le {date} ; fichiers en attente",
+    "none": "Aucun espace fermé."
+  },
   "Contacts": {
     "title": "Contacts",
     "subtitle": "Chaque personne n'existe qu'une fois dans votre espace.",
@@ -7107,6 +7164,16 @@
         "subject": "Votre export Symbola est prêt",
         "body": "Bonjour,\n\nL'export complet des données de « {organization} » est prêt. Téléchargez-le depuis Paramètres, Exporter mes données, jusqu'au {until} :\n\n{url}\n\nPour votre sécurité, l'archive n'est jamais jointe à un e-mail.",
         "button": "Ouvrir mes exports"
+      },
+      "organizationClosureNotice": {
+        "subject": "Votre espace Symbola sera supprimé dans sept jours",
+        "body": "Bonjour,\n\nL'espace « {organization} », fermé, sera supprimé le {until}, avec toutes ses données et ses documents. Pensez à exporter vos données d'ici là, ou rouvrez l'espace :\n\n{url}",
+        "button": "Ouvrir la fermeture"
+      },
+      "organizationClosed": {
+        "subject": "Votre espace Symbola est fermé",
+        "body": "Bonjour,\n\nL'espace « {organization} » est fermé. Il sera supprimé le {until}, avec toutes ses données et ses documents. Jusque-là, vous pouvez exporter vos données ou rouvrir l'espace :\n\n{url}",
+        "button": "Ouvrir la fermeture"
       },
       "invitation": {
         "subject": "Votre invitation Symbola",

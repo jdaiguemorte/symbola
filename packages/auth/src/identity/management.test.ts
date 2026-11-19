@@ -171,3 +171,18 @@ describe("SEC-08 (lot 52, D6) — Webhook du fournisseur d'identité", () => {
     await expect(client.findWebhookSigningKey("Autre")).resolves.toBeNull();
   });
 });
+
+describe("RGP-11 (lot 35c) — Effacement d'un compte chez le fournisseur, à la suppression de son dernier espace (adaptateur)", () => {
+  it("supprime le compte ; un compte déjà absent n'est pas une erreur ; une autre erreur remonte", async () => {
+    const { impl, calls } = fakeFetch({
+      "POST /oidc/token": token,
+      "DELETE /api/users/sub-1": () => ({ status: 204, json: null }),
+      "DELETE /api/users/sub-3": () => ({ status: 500, json: { code: "oidc.internal" } }),
+    });
+    const client = createManagementClient(connection, impl);
+    await client.deleteUser("sub-1");
+    await client.deleteUser("sub-2");
+    await expect(client.deleteUser("sub-3")).rejects.toBeInstanceOf(IdentityProviderError);
+    expect(calls.filter((call) => call.method === "DELETE").map((call) => new URL(call.url).pathname)).toEqual(["/api/users/sub-1", "/api/users/sub-2", "/api/users/sub-3"]);
+  });
+});
