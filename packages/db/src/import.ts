@@ -1,4 +1,4 @@
-// Lot 35b (HUB-13, décisions D6 et D7, ADR 0097) — écriture générique des entités d'un module à la
+// Lot 35b (HUB-13, décisions D6 et D7, ADR 0098) — écriture générique des entités d'un module à la
 // reprise d'un export Symbola (contrat export/v1), symétrique de la lecture (export.ts) : chaque
 // module la déclare dans son export.ts, avec les mêmes specs, et l'appelle par son service.ts ; ce
 // fichier ne connaît aucune table.

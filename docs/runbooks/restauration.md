@@ -222,7 +222,7 @@ supprime une colonne en perd les données.
    pnpm --filter @symbola/db rollback -- 0074_lot15_grant_import_jobs
    pnpm --filter @symbola/db rollback -- 0073_lot15_import_jobs
    ```
-   Annuler 0185 (lot 35b, ADR 0097) retire l'ancre des chaînes de pièces reprises : la chaîne d'un
+   Annuler 0185 (lot 35b, ADR 0098) retire l'ancre des chaînes de pièces reprises : la chaîne d'un
    espace qui a repris un export serait alors signalée « lien rompu » à sa première écriture.
    **Ne l'annuler qu'avant toute reprise réelle.** Annuler 0184 retire le suivi des reprises ; une
    archive déposée encore présente sous `organization-imports/` dans le stockage n'a plus de ligne

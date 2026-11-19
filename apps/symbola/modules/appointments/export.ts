@@ -43,7 +43,7 @@ export function describeAppointmentsExport(): ExportEntitySchema[] {
   return describeModuleEntities("appointments", APPOINTMENTS_EXPORT_ENTITIES);
 }
 
-// Lot 35b (HUB-13, ADR 0097) : reprise d'une archive dans une organisation vide (transaction de la
+// Lot 35b (HUB-13, ADR 0098) : reprise d'une archive dans une organisation vide (transaction de la
 // reprise) ; les réglages de départ et les essais de l'organisation sont remplacés par ceux de l'archive.
 export function registerAppointmentsImportIds(rows: ModuleImportRows, context: ModuleImportContext): void {
   registerModuleImportIds(APPOINTMENTS_EXPORT_ENTITIES, rows, context);

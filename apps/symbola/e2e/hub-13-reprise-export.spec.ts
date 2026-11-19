@@ -1,4 +1,4 @@
-// Lot 35b (HUB-13 ; décisions D6 et D7 ; ADR 0097) — reprise d'un export Symbola dans un espace
+// Lot 35b (HUB-13 ; décisions D6 et D7 ; ADR 0098) — reprise d'un export Symbola dans un espace
 // vide : la Propriétaire de l'atelier exporte ses données et télécharge l'archive ; la Propriétaire
 // d'un nouvel espace vide la dépose dans « Reprendre un export », suit la reprise en arrière-plan,
 // lit le bilan et retrouve le mariage. Un espace qui a des données ne propose pas le dépôt ; une

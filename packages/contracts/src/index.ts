@@ -385,7 +385,7 @@ export {
   type ModuleExportContext,
   type ModuleExportEntity,
   type OrganizationExportModule,
-  // Lot 35b (HUB-13, ADR 0097) : la reprise d'une archive.
+  // Lot 35b (HUB-13, ADR 0098) : la reprise d'une archive.
   IMPORT_SKIP_REASONS,
   type ImportEntityResult,
   type ImportSkipReason,

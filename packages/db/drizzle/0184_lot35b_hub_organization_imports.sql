@@ -1,4 +1,4 @@
--- Lot 35b (HUB-13, décisions D6 et D7, ADR 0097) : reprises d'un export Symbola dans une organisation
+-- Lot 35b (HUB-13, décisions D6 et D7, ADR 0098) : reprises d'un export Symbola dans une organisation
 -- vide (suivi du traitement de fond et bilan, sans donnée personnelle). Compatible avec l'image
 -- précédente : une table nouvelle, qu'elle ignore.
 CREATE TABLE "hub"."organization_imports" (

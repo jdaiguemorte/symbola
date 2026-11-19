@@ -55,7 +55,7 @@ Modules, dans l'ordre de l'archive (et de la reprise) : `hub`, `events`, `budget
 La liste table par table, avec sa raison, est dans l'index généré. Un test
 (`apps/symbola/lib/export/schemas.test.ts`) refuse une table qui ne serait ni exportée ni exclue.
 
-## Reprendre une archive (lot 35b, ADR 0097)
+## Reprendre une archive (lot 35b, ADR 0098)
 
 Une archive v1 se reprend dans un **espace vide**, par sa Propriétaire : Paramètres, « Reprendre un
 export ». Avant d'écrire, Symbola vérifie le format et sa version, l'empreinte de chaque entrée et
@@ -107,5 +107,5 @@ exports RGPD, les liens personnels (à recréer) et les agendas extérieurs (à 
   langue, type d'évènement, version en cours) et `hub/message_template_versions` (chaque version de
   leur texte) s'ajoutent ; les adresses de calendrier (`hub/calendar_feeds`), secrètes et propres à
   chaque personne, ne sont pas exportées. La v1 tient.
-- **Lot 35b** (ADR 0097) : l'entité `quotes/ledger_anchors` (ancre d'une chaîne de pièces reprise :
+- **Lot 35b** (ADR 0098) : l'entité `quotes/ledger_anchors` (ancre d'une chaîne de pièces reprise :
   dernière empreinte de la chaîne d'origine) s'ajoute ; la v1 tient.

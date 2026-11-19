@@ -1,4 +1,4 @@
-// Lot 35b (HUB-13 ; décisions D6 et D7 ; ADR 0097) — traitement de fond des reprises d'un export :
+// Lot 35b (HUB-13 ; décisions D6 et D7 ; ADR 0098) — traitement de fond des reprises d'un export :
 // prend une demande en attente (ou abandonnée, battement arrêté), recopie l'archive déposée dans un
 // fichier temporaire, la reprend (lib/export/organization-import), puis efface l'archive déposée et
 // le fichier temporaire, que la reprise réussisse ou non. Un refus garde son motif. Même patron que

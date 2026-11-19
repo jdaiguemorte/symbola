@@ -81,7 +81,7 @@ export const exportManifestSchema = z.object({
 
 export type ExportManifest = z.infer<typeof exportManifestSchema>;
 
-// Lot 35b (HUB-13, décisions D6 et D7, ADR 0097) — le contrat export/v1 porte aussi la reprise :
+// Lot 35b (HUB-13, décisions D6 et D7, ADR 0098) — le contrat export/v1 porte aussi la reprise :
 // chaque module écrit, par son service.ts, les entités d'une archive dans une organisation vide,
 // toutes dans une seule transaction (un échec n'écrit rien). Chaque ligne reçoit un nouvel
 // identifiant ; la table de correspondance (ancien → nouveau), commune à tous les modules, relie

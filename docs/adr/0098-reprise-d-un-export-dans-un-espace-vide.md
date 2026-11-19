@@ -1,4 +1,4 @@
-# ADR 0097 — Reprise d'un export Symbola dans un espace vide : écriture générique, une transaction, chaîne des pièces prolongée
+# ADR 0098 — Reprise d'un export Symbola dans un espace vide : écriture générique, une transaction, chaîne des pièces prolongée
 
 - Statut : accepté (lot 35b ; décisions D6 et D7 de Julien, D7 tranchée le 18/11/2026 après l'avis
   de l'expert-comptable, Q37)

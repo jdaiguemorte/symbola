@@ -1272,7 +1272,7 @@ export const vendorCommissions = quotesSchema.table(
   ],
 );
 
-// Lot 35b (HUB-13, décision D7 de Julien du 18/11/2026, ADR 0097) — ancrage de la chaîne des pièces
+// Lot 35b (HUB-13, décision D7 de Julien du 18/11/2026, ADR 0098) — ancrage de la chaîne des pièces
 // d'une organisation qui a repris un export Symbola : la chaîne reprise, vérifiée à la reprise, se
 // termine sur cette empreinte, et la chaîne de l'organisation la prolonge (sa première écriture
 // pointe sur elle au lieu de 64 zéros). Une ligne par organisation, posée une fois, jamais modifiée.

@@ -1,4 +1,4 @@
-// Lot 35b (HUB-13 ; décisions D6 et D7 de Julien ; ADR 0097) — reprise d'une archive d'export
+// Lot 35b (HUB-13 ; décisions D6 et D7 de Julien ; ADR 0098) — reprise d'une archive d'export
 // Symbola (format symbola.export/v1) dans une organisation vide. Les modules ne se connaissent que
 // par leur service.ts (ADR 0011) : l'orchestration vit ici, symétrique de l'export.
 //

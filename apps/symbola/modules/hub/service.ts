@@ -1190,7 +1190,7 @@ export {
   type OrganizationExportView,
   type RequestOrganizationExportResult,
 } from "./organization-exports";
-// Lot 35b (HUB-13, D6, D7, ADR 0097) : reprises d'un export Symbola dans une organisation vide.
+// Lot 35b (HUB-13, D6, D7, ADR 0098) : reprises d'un export Symbola dans une organisation vide.
 export {
   assertImportOwner,
   claimOrganizationImport,

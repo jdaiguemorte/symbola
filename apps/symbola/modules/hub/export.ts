@@ -102,7 +102,7 @@ export const HUB_EXPORT_EXCLUSIONS: Readonly<Record<string, string>> = {
   backup_runs: "exploitation : sauvegardes de la plateforme",
   connection_traces: "exploitation : adresses IP des connexions, pour l'enquête de sécurité",
   organization_exports: "technique : trace des exports complets eux-mêmes",
-  // Lot 35b (HUB-13, ADR 0097).
+  // Lot 35b (HUB-13, ADR 0098).
   organization_imports: "technique : trace des reprises d'un export (état et bilan), sans donnée reprise",
   // Lot 37b (DOC-12, D12) : des nombres pris chaque mois pour l'exploitation (quotas), sans donnée métier.
   storage_snapshots: "exploitation : relevé mensuel du stockage (nombres de fichiers et volumes)",
@@ -139,7 +139,7 @@ export function describeHubExport(): ExportEntitySchema[] {
   return [...describeModuleEntities("hub", HUB_EXPORT_ENTITIES), { module: "hub", name: TEAM_ENTITY, schema: teamMemberSchema }];
 }
 
-// Lot 35b (HUB-13, ADR 0097) : reprise d'une archive dans une organisation vide. L'organisation garde
+// Lot 35b (HUB-13, ADR 0098) : reprise d'une archive dans une organisation vide. L'organisation garde
 // son nom et ses abonnements ; elle reçoit le SIRET de l'archive s'il lui manque (même SIREN contrôlé
 // avant). L'équipe n'est pas reprise : ses membres sont à inviter. Le journal d'activité repart de zéro.
 export function registerHubImportIds(rows: ModuleImportRows, context: ModuleImportContext): void {

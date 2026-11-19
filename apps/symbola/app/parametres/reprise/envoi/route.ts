@@ -1,4 +1,4 @@
-// Lot 35b (HUB-13 ; décisions D6 et D7 ; ADR 0097) — dépôt de l'archive d'un export Symbola à
+// Lot 35b (HUB-13 ; décisions D6 et D7 ; ADR 0098) — dépôt de l'archive d'un export Symbola à
 // reprendre, par la route dédiée aux fichiers (L16-SEC-02, lib/uploads) : même origine, session,
 // débit et taille contrôlés avant de lire le corps. Propriétaire seulement (vérifié ici et par le
 // service). L'archive est écrite dans un fichier temporaire, rangée dans le stockage privé, puis

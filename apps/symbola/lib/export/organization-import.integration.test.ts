@@ -1,4 +1,4 @@
-// Lot 35b (HUB-13 ; décisions D6 et D7 de Julien ; ADR 0097) — reprise d'un export Symbola dans un
+// Lot 35b (HUB-13 ; décisions D6 et D7 de Julien ; ADR 0098) — reprise d'un export Symbola dans un
 // espace vide, contre de vrais modules (PostgreSQL, stockage et antivirus réels).
 // - Réversibilité : le jeu fictif (l'atelier de Camille, ORG-01, avec ses pièces comptables) est
 //   exporté, repris dans un espace vide, puis exporté de nouveau : les deux exports sont égaux,
@@ -52,7 +52,7 @@ const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 let dir: string;
 
-// Entités qui ne reviennent pas à l'identique, et pourquoi (bilan de la reprise, ADR 0097).
+// Entités qui ne reviennent pas à l'identique, et pourquoi (bilan de la reprise, ADR 0098).
 const NOT_ROUND_TRIPPED = new Set([
   // L'espace qui reprend garde son identité, ses abonnements et son équipe ; son journal repart.
   "hub/organizations",

@@ -83,7 +83,7 @@ export const QUOTES_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: paymentScheduleItems, parents: { versionId: "quote_versions" } },
   { table: contracts, parents: { quoteId: "quotes", quoteVersionId: "quote_versions" } },
   { table: contractSignerActs, parents: { contractId: "contracts" } },
-  // Lot 35b (HUB-13, ADR 0097) : la référence chez le fournisseur reste lisible, suivie de « # » et du
+  // Lot 35b (HUB-13, ADR 0098) : la référence chez le fournisseur reste lisible, suivie de « # » et du
   // nouvel identifiant de la demande : unique, elle ne reçoit plus les notifications du fournisseur
   // (elles vont à l'espace d'origine, s'il existe encore).
   {
@@ -115,7 +115,7 @@ export const QUOTES_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   // La chaîne des pièces (FAC-14) ne porte jamais de pièce d'essai. Lot 35b (D7) : à la reprise, elle
   // est vérifiée, puis prolongée (les pièces reprises s'y enchaînent de nouveau, dans son ordre).
   { table: ledgerEntries, importSkip: "rechained" },
-  // Lot 35b (D7, ADR 0097) : ancre d'une chaîne elle-même reprise (sa première écriture y pointe).
+  // Lot 35b (D7, ADR 0098) : ancre d'une chaîne elle-même reprise (sa première écriture y pointe).
   { table: ledgerAnchors, idField: "organizationId", importSkip: "rechained" },
 ];
 

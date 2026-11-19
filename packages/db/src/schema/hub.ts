@@ -1593,7 +1593,7 @@ export const riskRules = hubSchema.table(
   ],
 );
 
-// Lot 35b (HUB-13, décisions D6 et D7, ADR 0097) — reprises d'un export Symbola dans une organisation
+// Lot 35b (HUB-13, décisions D6 et D7, ADR 0098) — reprises d'un export Symbola dans une organisation
 // vide : la Propriétaire dépose l'archive, la reprise se fait en arrière-plan (un traitement à la
 // fois, en une seule transaction : un échec ne laisse rien), puis l'archive déposée est effacée ; la
 // ligne garde l'état et le bilan, sans donnée personnelle (nombres par entité, motifs).

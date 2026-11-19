@@ -10,7 +10,7 @@ import { listOrganizationImports, type OrganizationImportView } from "@/modules/
 import { ImportArchiveForm } from "./import-form";
 import { ImportProgress } from "./import-progress";
 
-// Lot 35b (HUB-13 ; décisions D6 et D7 ; ADR 0097) — reprise d'un export Symbola dans un espace
+// Lot 35b (HUB-13 ; décisions D6 et D7 ; ADR 0098) — reprise d'un export Symbola dans un espace
 // vide : ce qui est vérifié, ce qui n'est pas repris, le dépôt de l'archive (Propriétaire, espace
 // vide), l'avancement de la reprise en arrière-plan et son bilan, entité par entité.
 export default async function OrganizationImportPage() {

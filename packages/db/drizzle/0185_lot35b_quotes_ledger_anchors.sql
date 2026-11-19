@@ -1,4 +1,4 @@
--- Lot 35b (HUB-13, décision D7 de Julien du 18/11/2026, ADR 0097) : la chaîne des pièces reprise
+-- Lot 35b (HUB-13, décision D7 de Julien du 18/11/2026, ADR 0098) : la chaîne des pièces reprise
 -- d'un export Symbola est vérifiée à la reprise, puis prolongée. L'ancre garde la dernière empreinte
 -- de la chaîne reprise : la première écriture de l'organisation pointe sur elle (au lieu de 64
 -- zéros), et la vérification (FAC-14) part d'elle. Les pièces reprises s'enchaînent, dans l'ordre

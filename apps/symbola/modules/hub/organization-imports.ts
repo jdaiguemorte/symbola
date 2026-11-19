@@ -1,4 +1,4 @@
-// Lot 35b (HUB-13 ; décisions D6 et D7 ; ADR 0097) — reprises d'un export Symbola dans une
+// Lot 35b (HUB-13 ; décisions D6 et D7 ; ADR 0098) — reprises d'un export Symbola dans une
 // organisation vide. La Propriétaire seule dépose l'archive ; elle est rangée dans le stockage privé
 // le temps de la reprise, faite en arrière-plan (lib/export : un traitement à la fois par
 // organisation, en une seule transaction), puis effacée, que la reprise réussisse ou non. La ligne

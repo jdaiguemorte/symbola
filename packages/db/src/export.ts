@@ -55,7 +55,7 @@ export type ExportEntitySpec = {
   // Lot 48a (DAT-08, ADR 0093) : ligne transformée avant l'export (valeur chiffrée au niveau du champ
   // rendue en clair dans son champ d'origine, pour garder le contrat export/v1).
   transform?: (row: RawRow) => RawRow;
-  // Lot 35b (HUB-13, ADR 0097) : entité non reprise d'une archive, et pourquoi (bilan de la reprise).
+  // Lot 35b (HUB-13, ADR 0098) : entité non reprise d'une archive, et pourquoi (bilan de la reprise).
   importSkip?: ImportSkipReason;
   // Lot 35b : ligne transformée avant d'être écrite par la reprise (identifiants déjà remplacés) ;
   // null : ligne non reprise.

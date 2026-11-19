@@ -1,5 +1,5 @@
 // Lot 35b (HUB-13 ; décision D7 de Julien du 18/11/2026, après l'avis de l'expert-comptable ;
-// ADR 0097) — reprise des entités du module Devis et factures d'un export Symbola. Les factures,
+// ADR 0098) — reprise des entités du module Devis et factures d'un export Symbola. Les factures,
 // avoirs et encaissements repris restent des pièces comptables en lecture seule (déclencheurs
 // d'immuabilité), avec leur numéro, leur original et leurs séries : la numérotation continue après
 // le dernier numéro repris (même SIREN, contrôlé par l'orchestrateur). La chaîne des pièces reprise

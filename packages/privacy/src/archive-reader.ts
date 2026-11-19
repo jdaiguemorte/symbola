@@ -1,4 +1,4 @@
-// Lot 35b (HUB-13, ADR 0097) — lecture en flux d'une archive ZIP sur le disque (l'export complet
+// Lot 35b (HUB-13, ADR 0098) — lecture en flux d'une archive ZIP sur le disque (l'export complet
 // d'une organisation, à reprendre), sans dépendance : le répertoire central est lu une fois, puis
 // chaque entrée à la demande, une à la fois (la mémoire ne tient qu'une entrée). Chaque entrée est
 // contrôlée : nom sans chemin remontant, taille annoncée respectée (pas de bombe de décompression),

@@ -397,7 +397,7 @@ le déploiement d'ensemble.
 
 ### Fait
 
-- **Reprise d'un export Symbola dans un espace vide** (HUB-13 ; D6, D7 ; ADR 0097) : Paramètres,
+- **Reprise d'un export Symbola dans un espace vide** (HUB-13 ; D6, D7 ; ADR 0098) : Paramètres,
   « Reprendre un export » (`/parametres/reprise`), Propriétaire seulement. L'archive est déposée
   par une route dédiée aux fichiers, rangée dans le stockage privé, reprise en arrière-plan, puis
   effacée ; l'écran montre l'avancement et le bilan, entité par entité.
@@ -416,6 +416,6 @@ le déploiement d'ensemble.
 ### Écarts et points ouverts
 
 - **Autre SIREN** : refusé en attendant une décision (Q40).
-- **Table de correspondance** en mémoire plutôt qu'en base (ADR 0097).
+- **Table de correspondance** en mémoire plutôt qu'en base (ADR 0098).
 - **Taille** : l'archive déposée est lue en mémoire par la route (512 Mio au plus).
 - **Référence de signature** : marquée `#<nouvel identifiant>` à la reprise (unicité).

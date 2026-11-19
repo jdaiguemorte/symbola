@@ -147,7 +147,7 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
-  it("lot 35b (HUB-13, D7 ; ADR 0097) — 0184 et 0185 : reprises d'un export et ancre de la chaîne des pièces ; la première écriture s'accroche à l'ancre, la vérification part d'elle ; l'ancre ne change plus ; annulées, tout est retiré et la chaîne repart de 64 zéros", async () => {
+  it("lot 35b (HUB-13, D7 ; ADR 0098) — 0184 et 0185 : reprises d'un export et ancre de la chaîne des pièces ; la première écriture s'accroche à l'ancre, la vérification part d'elle ; l'ancre ne change plus ; annulées, tout est retiré et la chaîne repart de 64 zéros", async () => {
     await migrateAll();
     const organizationId = randomUUID();
     const source = randomUUID();

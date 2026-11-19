@@ -1,4 +1,4 @@
-// Lot 35b (HUB-13, ADR 0097) — lecture en flux d'une archive d'export complet : elle relit ce que
+// Lot 35b (HUB-13, ADR 0098) — lecture en flux d'une archive d'export complet : elle relit ce que
 // l'écrivain a produit, et refuse une archive tronquée, une entrée altérée (CRC), un nom qui remonte
 // d'un dossier, ou une entrée plus grosse qu'annoncé.
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
