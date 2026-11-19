@@ -90,6 +90,12 @@ charges ne nomme pas cette fonction : c'est une divergence acceptée, d'où cet 
 - RGPD : aucun champ qui désigne une personne ; les notes libres et le fond de plan sont au
   registre ; les plans d'un évènement sont une fiche rattachée à l'évènement, effacée avec lui
   (corbeille, oubli). Le module entre à l'export complet (sans les versions vues par un lien).
+- Duplication d'un évènement et modèles d'évènement (lot 58, ADR 0097) : le plan de salle **ne suit
+  pas** (choix le plus sobre). Pour réutiliser un plan ajusté, la planner l'enregistre comme
+  configuration du lieu, puis la copie dans le nouvel évènement.
+- Fermeture d'un espace (lot 35c, ADR 0100) : le schéma `floorplans` rejoint la liste des schémas
+  effacés par `core.erase_organization_schema` (migration 0191, à confirmer par Julien) ; les fonds de
+  plan partent avec les fichiers de l'organisation.
 - Le module se vend ou s'ouvre à part (HUB-27, lot 54) ; les combinaisons de modules de
   l'ADR 0062 l'ajouteront à leur preuve.
 - Hors du lot : 3D, import DWG ou PDF, étude électrique, partage entre organisations ou avec le
