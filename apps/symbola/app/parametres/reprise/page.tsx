@@ -82,7 +82,7 @@ export default async function OrganizationImportPage() {
                       {report.linksToRecreate > 0 ? <p>{t("reportLinks", { count: report.linksToRecreate })}</p> : null}
                       <details>
                         <summary>{t("detailsSummary")}</summary>
-                        <div className="table-scroll">
+                        <div className="table-scroll" role="region" aria-label={t("detailsSummary")} tabIndex={0}>
                           <table>
                             <thead>
                               <tr>

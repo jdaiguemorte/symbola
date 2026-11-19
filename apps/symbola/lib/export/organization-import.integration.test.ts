@@ -27,7 +27,7 @@ import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
 import { minimalPdf } from "@/lib/test-fixtures/pdf";
 import { loadRecette } from "@/lib/recette/load";
 import { createProspect, createProspectSource, listEvents } from "@/modules/events/service";
-import { listOrganizationImports, OrganizationImportActiveError, OrganizationImportForbiddenError, requestOrganizationImport, saveOnboardingStep } from "@/modules/hub/service";
+import { getPrivacySettings, listOrganizationImports, OrganizationImportActiveError, OrganizationImportForbiddenError, requestOrganizationImport, saveOnboardingStep, updatePrivacySettings } from "@/modules/hub/service";
 import {
   actOnFakeSignature,
   addPaymentMethods,
@@ -122,11 +122,14 @@ async function seedSource() {
   return { organizationId, ownerId: ownerId[0]!.id, invoiceNumber: invoice.number };
 }
 
-async function emptySpace(siren?: string) {
+async function emptySpace(siren?: string, options: { ready?: boolean } = {}) {
   const organization = await createOrganization(db, `Nouvel atelier ${randomUUID().slice(0, 6)}`);
   const owner = await createUser(db, { organizationId: organization.id, email: `reprise-${randomUUID()}@example.test`, password: "mot-de-passe-reprise", role: "owner" });
   const planner = await createUser(db, { organizationId: organization.id, email: `planner-${randomUUID()}@example.test`, password: "mot-de-passe-reprise", role: "member" });
   if (siren) await saveOnboardingStep(db, organization.id, { siren });
+  // Un espace prêt a déjà ses réglages RGPD (une ligne que le rôle applicatif ne peut pas supprimer) :
+  // ils prennent les valeurs de l'archive.
+  if (options.ready) await updatePrivacySettings(db, organization.id, await getPrivacySettings(db, organization.id));
   return { organizationId: organization.id, ownerId: owner.id, plannerId: planner.id };
 }
 
@@ -241,7 +244,7 @@ describe("HUB-13 — Reprise d'un export Symbola dans un espace vide (lot 35b)",
   });
 
   it("D7 : pièces reprises inaltérables, chaîne vérifiée puis prolongée depuis la dernière empreinte reprise, numérotation continuée (même SIREN)", async () => {
-    const target = await emptySpace("123456789");
+    const target = await emptySpace("123456789", { ready: true });
     const result = await reprendre(target, firstExport);
     expect(result.status).toBe("done");
     const sourceTip = (await withOrganization(db, source.organizationId, (tx) =>

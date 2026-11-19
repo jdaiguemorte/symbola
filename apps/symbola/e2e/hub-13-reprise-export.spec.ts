@@ -26,7 +26,7 @@ async function ateliers() {
     const sourceEmail = `camille-${randomUUID()}@symbola.test`;
     const owner = await createUser(db, { organizationId: sourceId, email: sourceEmail, password: "mot-de-passe-reprise-e2e", role: "owner" });
     const salon = await createProspectSource(sourceId, "Salon");
-    await createProspect({ organizationId: sourceId, createdByUserId: owner.id, prospectSourceId: salon.id, clients: [{ firstName: "Léa", lastName: `Martin ${marker}` }], eventDate: "2027-06-12" });
+    await createProspect({ organizationId: sourceId, createdByUserId: owner.id, prospectSourceId: salon.id, clients: [{ firstName: `Léa ${marker}`, lastName: "Martin" }], eventDate: "2027-06-12" });
     const targetId = (await readyOrganization(db, `Nouvel atelier ${marker}`)).id;
     const targetEmail = `camille-nouvel-${randomUUID()}@symbola.test`;
     const plannerEmail = `planner-${randomUUID()}@symbola.test`;
@@ -76,8 +76,8 @@ test("HUB-13 — exporter, télécharger, puis reprendre l'archive dans un espac
   await expectNoAxeViolation(page);
 
   // 3. Le mariage est là.
-  await clickMenuLink(page, "Évènements");
-  await expect(page.getByText(`Martin ${marker}`).first()).toBeVisible();
+  await clickMenuLink(page, "Événements");
+  await expect(page.getByRole("region", { name: "Liste des événements" }).getByRole("link", { name: `Léa ${marker}` })).toBeVisible();
 });
 
 test("HUB-13 (D6) — une Planner n'a ni la rubrique, ni l'écran, ni la route d'envoi", async ({ page }) => {

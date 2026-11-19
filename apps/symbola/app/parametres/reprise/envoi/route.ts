@@ -12,6 +12,7 @@ import { getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import { receiveUpload, uploadResponse } from "@/lib/uploads/receive";
 import { ORGANIZATION_IMPORT_MAX_BYTES } from "@/lib/export/import-limits";
+import { runOrganizationImport } from "@/lib/export/organization-import-jobs";
 import { OrganizationImportActiveError, OrganizationImportForbiddenError, requestOrganizationImport } from "@/modules/hub/service";
 
 export async function POST(request: Request): Promise<Response> {
@@ -33,6 +34,12 @@ export async function POST(request: Request): Promise<Response> {
   } finally {
     await rm(path, { force: true });
   }
+  // La reprise commence aussitôt, sans attendre le passage du traitement de fond (son réveil ne
+  // traverse pas toujours les bundles de l'app compilée) ; le verrou de la demande empêche qu'elle
+  // soit prise deux fois. L'écran suit son avancement.
+  void runOrganizationImport(user.organizationId).catch((error: unknown) => {
+    console.error("reprise d'un export : lancement échoué", error instanceof Error ? error.name : "inconnue");
+  });
   revalidatePath("/parametres/reprise");
   return uploadResponse({ success: true });
 }

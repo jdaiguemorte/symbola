@@ -120,6 +120,16 @@ export function prepareImportRows(spec: ExportEntitySpec, rows: readonly ExportR
 // Écrit des lignes déjà préparées (par paquets, dans l'ordre donné).
 export async function insertImportRows(tx: OrganizationTransaction, spec: ExportEntitySpec, rows: readonly ExportRawRow[]): Promise<void> {
   if (rows.length === 0) return;
+  // Réglages à une ligne par organisation (profil, réglages RGPD…) : la ligne de l'espace qui reprend,
+  // s'il en a une, prend les valeurs de l'archive (ces tables n'accordent pas toutes la suppression).
+  if (idFieldOf(spec) === "organizationId") {
+    const target = (getTableColumns(spec.table) as Record<string, PgColumn>).organizationId!;
+    for (const row of rows) {
+      const values = Object.fromEntries(Object.entries(row).filter(([field]) => field !== "organizationId"));
+      await tx.insert(spec.table).values(row as never).onConflictDoUpdate({ target, set: values as never });
+    }
+    return;
+  }
   const width = Math.max(1, Object.keys(getTableColumns(spec.table)).length);
   const size = Math.max(1, Math.floor(MAX_PARAMETERS / width));
   for (let start = 0; start < rows.length; start += size) {
@@ -164,12 +174,13 @@ export async function importModuleEntities(
 }
 
 // Avant la reprise : l'organisation vide perd ses réglages de départ et ses essais, que l'archive
-// remplace (entités reprises seulement, dans l'ordre inverse de leurs dépendances). Suppressions
+// remplace (entités reprises seulement, dans l'ordre inverse de leurs dépendances ; les réglages à une
+// ligne par organisation sont mis à jour à l'écriture). Suppressions
 // non journalisées une à une (app.audit_bulk) : la reprise écrit sa ligne au journal.
 export async function clearModuleImportTargets(tx: OrganizationTransaction, input: { organizationId: string; specs: readonly ExportEntitySpec[] }): Promise<void> {
   await tx.execute(sql`select set_config('app.audit_bulk', 'on', true)`);
   for (const spec of [...input.specs].reverse()) {
-    if (spec.importSkip || organizationField(spec) !== "organizationId") continue;
+    if (spec.importSkip || organizationField(spec) !== "organizationId" || idFieldOf(spec) === "organizationId") continue;
     const column = (getTableColumns(spec.table) as Record<string, PgColumn>).organizationId;
     if (!column) continue;
     // Les tables en ajout seul (registre RGPD, pièces) n'accordent pas la suppression : une
