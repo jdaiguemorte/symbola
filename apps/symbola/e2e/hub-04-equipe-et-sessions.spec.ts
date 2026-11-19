@@ -8,18 +8,25 @@ import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
+import { createProspect, createProspectSource } from "../modules/events/service";
+import { addCommission, issueCommissionInvoice } from "../modules/quotes/service";
+import { saveOnboardingStep } from "../modules/hub/service";
+import { minimalPdf } from "../lib/test-fixtures/pdf";
 import { readyOrganization, signIn } from "./helpers";
 
 async function team() {
   const { sql, db } = createAppConnection();
   try {
     const organizationId = (await readyOrganization(db, `Atelier ${randomUUID().slice(0, 8)}`)).id;
+    await saveOnboardingStep(db, organizationId, { vatRegime: "assujetti", vatRateDefaultBasisPoints: 2000, siren: "123456782", metier: "wedding_planner" });
+    const ids = new Map<string, string>();
     const make = async (role: "owner" | "member" | "accountant", label: string) => {
       const email = `${label}-${randomUUID()}@symbola.test`;
-      await createUser(db, { organizationId, email, role });
+      ids.set(email, (await createUser(db, { organizationId, email, role })).id);
       return email;
     };
-    return { organizationId, owner: await make("owner", "camille"), planner: await make("member", "lea"), accountant: await make("accountant", "compta") };
+    const owner = await make("owner", "camille");
+    return { organizationId, owner, ownerId: ids.get(owner)!, planner: await make("member", "lea"), accountant: await make("accountant", "compta") };
   } finally {
     await sql.end();
   }
@@ -92,9 +99,27 @@ test.describe("HUB-04 — Le Comptable, en lecture seule", () => {
   test("se connecte avec sa double authentification, arrive sur sa comptabilité ; les écrans de la planner le renvoient", async ({ page }) => {
     test.setTimeout(90_000);
     const t = await team();
+    // Décision de Julien du 19/11 : une facture de commission au prestataire (lot 48b) se lit aussi.
+    const source = await createProspectSource(t.organizationId, "Salon");
+    const eventId = (await createProspect({ organizationId: t.organizationId, createdByUserId: t.ownerId, prospectSourceId: source.id, clients: [{ firstName: "Léa" }] })).id;
+    const commission = await addCommission(t.organizationId, { eventId, vendorId: null, vendorName: "Maison Haddad", nature: "commission", amountCents: 45_000 });
+    const invoice = await issueCommissionInvoice({
+      organizationId: t.organizationId,
+      commissionId: commission.id,
+      buyer: { name: "Maison Haddad SARL", addressLine: "12 rue du Port", postalCode: "59000", city: "Lille", countryCode: "FR", siret: "55210055400013" },
+      label: "Commission — mariage de Léa",
+      renderOriginal: async () => new Uint8Array(minimalPdf("facture de commission")),
+    });
     await signIn(page, t.accountant, /\/comptable/);
     await expect(page.getByRole("heading", { name: /Comptabilité de/ })).toBeVisible();
     await expect(page.getByText("Lecture seule", { exact: true })).toBeVisible();
+    const row = page.getByRole("row", { name: new RegExp(invoice.number) });
+    await expect(row.getByRole("cell", { name: "Facture de commission" })).toBeVisible();
+    const href = await row.getByRole("link").getAttribute("href");
+    expect(href).toBe(`/devis/argent/factures/${invoice.id}`);
+    const pdf = await page.request.get(href!);
+    expect(pdf.status()).toBe(200);
+    expect(pdf.headers()["content-type"]).toBe("application/pdf");
     await expectNoAxeViolation(page);
     // Lot 48a : ni les fiches des prestataires (IBAN, pièces), ni leurs notes confidentielles.
     for (const path of ["/events", "/contacts", "/parametres", "/parametres/equipe", "/prestataires", "/prestataires/parametres/pieces"]) {

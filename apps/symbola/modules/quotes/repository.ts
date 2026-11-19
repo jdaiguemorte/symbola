@@ -2414,6 +2414,14 @@ export async function insertCommissionInvoice(
   });
 }
 
+// Lot 52 (HUB-04) : parmi des factures, celles qui facturent une commission (sans devis).
+export async function findCommissionInvoiceIds(organizationId: string, invoiceIds: string[]): Promise<string[]> {
+  if (invoiceIds.length === 0) return [];
+  return inOrganization(organizationId, async (tx) =>
+    (await tx.select({ id: invoices.id }).from(invoices).where(and(eq(invoices.organizationId, organizationId), inArray(invoices.id, invoiceIds), isNotNull(invoices.commissionId)))).map((row) => row.id),
+  );
+}
+
 export async function findCommissionInvoiceRow(organizationId: string, invoiceId: string): Promise<InvoiceRow | null> {
   return inOrganization(organizationId, async (tx) => (await tx.select().from(invoices).where(and(eq(invoices.id, invoiceId), isNotNull(invoices.commissionId))))[0] ?? null);
 }

@@ -10,7 +10,7 @@ import { ScreenHelp } from "@/app/screen-help";
 import { PageHeader } from "@/app/ui/page-header";
 import { requireAccountant } from "@/lib/guards";
 import { getOrganizationContact } from "@/modules/hub/service";
-import { listLedgerEntries, listLedgerYears } from "@/modules/quotes/service";
+import { commissionInvoiceIds, listLedgerEntries, listLedgerYears } from "@/modules/quotes/service";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 
 type Query = { annee?: string };
@@ -35,6 +35,11 @@ export default async function AccountingPage({ searchParams }: { searchParams: P
   const years = await listLedgerYears(organizationId);
   const year = years.includes(Number(query.annee)) ? Number(query.annee) : years[0];
   const documents = year === undefined ? [] : (await listLedgerEntries(organizationId, year)).filter((entry) => entry.kind === "invoice" || entry.kind === "credit_note");
+  // Décision de Julien du 19/11 : les factures de commission au prestataire (lot 48b), lues comme les autres.
+  const commissions = await commissionInvoiceIds(organizationId, documents.filter((entry) => entry.kind === "invoice").map((entry) => entry.objectId));
+  const documentKind = (entry: (typeof documents)[number]) => (entry.kind === "credit_note" ? "credit_note" : commissions.has(entry.objectId) ? "commission_invoice" : "invoice");
+  const documentHref = (entry: (typeof documents)[number]) =>
+    entry.kind === "credit_note" ? `/devis/avoirs/${entry.objectId}/pdf` : commissions.has(entry.objectId) ? `/devis/argent/factures/${entry.objectId}` : `/devis/factures/${entry.objectId}/pdf`;
   return (
     <main>
       {header}
@@ -60,7 +65,7 @@ export default async function AccountingPage({ searchParams }: { searchParams: P
         {documents.length === 0 ? (
           <p>{t("noDocuments")}</p>
         ) : (
-          <div className="list-table-wrap" role="region" aria-labelledby="documents-title" tabIndex={0}>
+          <div className="list-table-wrap" role="region" aria-label={t("documentsTable")} tabIndex={0}>
             <table className="list-table">
               <thead>
                 <tr>
@@ -75,11 +80,11 @@ export default async function AccountingPage({ searchParams }: { searchParams: P
                 {documents.map((entry) => (
                   <tr key={entry.sequence}>
                     <th scope="row">{entry.number}</th>
-                    <td>{t(`kinds.${entry.kind as "invoice" | "credit_note"}`)}</td>
+                    <td>{t(`kinds.${documentKind(entry)}`)}</td>
                     <td className="num">{formatDateTime(entry.recordedAt, locale)}</td>
                     <td className="num">{entry.amountCents === null ? "—" : formatAmount(entry.amountCents, locale)}</td>
                     <td>
-                      <a href={entry.kind === "invoice" ? `/devis/factures/${entry.objectId}/pdf` : `/devis/avoirs/${entry.objectId}/pdf`} aria-label={t("downloadLabel", { number: entry.number ?? "" })}>
+                      <a href={documentHref(entry)} aria-label={t("downloadLabel", { number: entry.number ?? "" })}>
                         {t("download")}
                       </a>
                     </td>

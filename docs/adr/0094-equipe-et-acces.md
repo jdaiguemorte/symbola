@@ -25,6 +25,12 @@ plus de mot de passe, mais garde sa session opaque, relue à chaque requête.
    comptable (écritures CSV, originaux), par `requireAccountingReader` et
    `authorizedAccountingReader`. La double authentification lui est exigée comme à la Propriétaire et
    à l'Exploitation (`requiresMfa`, déclaration `acr`, `mfa.required` chez Logto).
+   **Factures de commission** (lot 48b) : décision de Julien du 19/11/2026, « Oui on peut ouvrir un
+   accès au comptable sur action de la Wedding Planner : elle peut ajouter un utilisateur "Comptable"
+   qui dispose d'un accès aux comptes ». Le Comptable invité par la Propriétaire les lit donc, en
+   lecture seule, comme les autres factures (original Factur-X par `/devis/argent/factures/<id>`,
+   ligne « Facture de commission » sur `/comptable`). Il ne peut ni les émettre ni modifier une
+   commission.
 2. **Révocation** (HUB-04) : supprime aussitôt les sessions Symbola du membre pour l'organisation (sa
    requête suivante est refusée : la session est relue à chaque requête), ferme ses sessions chez Logto
    par l'API d'administration (`GET /api/users/{id}/sessions` puis `DELETE …/sessions/{uid}` avec

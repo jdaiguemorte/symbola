@@ -1424,7 +1424,7 @@
     },
     "accounting": {
       "title": "Accès comptable",
-      "body": "La Propriétaire vous a ouvert un accès en lecture seule : factures, avoirs, encaissements, journaux, exports et e-reporting. Vous ne voyez ni les évènements, ni les invités, ni les réglages. La double authentification vous est demandée à chaque connexion."
+      "body": "La Propriétaire vous a ouvert un accès en lecture seule : factures (dont les factures de commission aux prestataires), avoirs, encaissements, journaux, exports et e-reporting. Vous ne voyez ni les évènements, ni les invités, ni les réglages. La double authentification vous est demandée à chaque connexion."
     },
     "eventTeam": {
       "title": "Équipe de l'évènement",
@@ -9693,7 +9693,8 @@
     "downloadLabel": "Télécharger {number}",
     "kinds": {
       "invoice": "Facture",
-      "credit_note": "Avoir"
+      "credit_note": "Avoir",
+      "commission_invoice": "Facture de commission"
     },
     "linksTitle": "Journaux, encaissements et e-reporting",
     "links": {
@@ -9701,7 +9702,8 @@
       "ledger": "Journaux et écritures (CSV)",
       "eReporting": "E-reporting"
     },
-    "moduleUnavailable": "Le module Devis et factures n'est pas souscrit par l'organisation : rien à consulter pour l'instant."
+    "moduleUnavailable": "Le module Devis et factures n'est pas souscrit par l'organisation : rien à consulter pour l'instant.",
+    "documentsTable": "Tableau des factures et avoirs"
   },
   "Ownership": {
     "title": "Devenir Propriétaire",

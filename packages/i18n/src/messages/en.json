@@ -1424,7 +1424,7 @@
     },
     "accounting": {
       "title": "Accountant access",
-      "body": "The Owner gave you read-only access: invoices, credit notes, payments, ledgers, exports and e-reporting. You see neither events, nor guests, nor settings. Two-step verification is asked at every sign-in."
+      "body": "The Owner gave you read-only access: invoices (commission invoices to vendors included), credit notes, payments, ledgers, exports and e-reporting. You see neither events, nor guests, nor settings. Two-step verification is asked at every sign-in."
     },
     "eventTeam": {
       "title": "Event team",
@@ -9693,7 +9693,8 @@
     "downloadLabel": "Download {number}",
     "kinds": {
       "invoice": "Invoice",
-      "credit_note": "Credit note"
+      "credit_note": "Credit note",
+      "commission_invoice": "Commission invoice"
     },
     "linksTitle": "Ledgers, payments and e-reporting",
     "links": {
@@ -9701,7 +9702,8 @@
       "ledger": "Ledgers and entries (CSV)",
       "eReporting": "E-reporting"
     },
-    "moduleUnavailable": "The organization does not subscribe to the Quotes and invoices module: nothing to view yet."
+    "moduleUnavailable": "The organization does not subscribe to the Quotes and invoices module: nothing to view yet.",
+    "documentsTable": "Table of invoices and credit notes"
   },
   "Ownership": {
     "title": "Become the Owner",
