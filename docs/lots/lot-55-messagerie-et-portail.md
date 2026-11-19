@@ -1,6 +1,6 @@
 # Lot 55 — Messagerie par sujet, adresse d'envoi personnalisée, journal des envois, portail aux couleurs et installable
 
-**Statut** : spécification proposée le 19/11/2026, **à valider par Julien**. Le lot change les
+**Statut** : spécification proposée le 19/11/2026, **validée par Julien le 19/11/2026** : toutes les décisions retenues dans leur option recommandée (a), changements de schéma compris (accord donné). Le lot change les
 schémas `events` et `hub`. Il **remplace la décision Q18** du 11/11 (envoi depuis le domaine du
 planner) par la décision de Julien du 19/11 : écart assumé avec MSG-04, ADR à écrire. Il demande
 peut-être un **nouveau sous-traitant d'envoi** (D2) : accord requis (CLAUDE.md § 3 et 8).
