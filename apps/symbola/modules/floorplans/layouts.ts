@@ -287,8 +287,29 @@ export async function copyVenueLayoutToEvent(organizationId: string, eventId: st
       const copies = await tx.select({ id: spaceFixtures.id, sourceFixtureId: spaceFixtures.sourceFixtureId }).from(spaceFixtures).where(and(eq(spaceFixtures.spaceId, already.id), isNotNull(spaceFixtures.sourceFixtureId)));
       for (const copy of copies) fixtureMap.set(copy.sourceFixtureId!, copy.id);
     } else {
-      const { id: _id, createdAt: _c, createdBy: _cb, updatedAt: _u, updatedBy: _ub, ...rest } = sourceSpace;
-      const [created] = await tx.insert(spaces).values({ ...rest, organizationId, eventId, eventPlaceId: placeId, sourceSpaceId: sourceSpace.id }).returning();
+      const [created] = await tx
+        .insert(spaces)
+        .values({
+          organizationId,
+          vendorId: sourceSpace.vendorId,
+          eventId,
+          eventPlaceId: placeId,
+          sourceSpaceId: sourceSpace.id,
+          name: sourceSpace.name,
+          widthCm: sourceSpace.widthCm,
+          depthCm: sourceSpace.depthCm,
+          backgroundKey: sourceSpace.backgroundKey,
+          backgroundMime: sourceSpace.backgroundMime,
+          backgroundSizeBytes: sourceSpace.backgroundSizeBytes,
+          backgroundWidthPx: sourceSpace.backgroundWidthPx,
+          backgroundHeightPx: sourceSpace.backgroundHeightPx,
+          calibrationAx: sourceSpace.calibrationAx,
+          calibrationAy: sourceSpace.calibrationAy,
+          calibrationBx: sourceSpace.calibrationBx,
+          calibrationBy: sourceSpace.calibrationBy,
+          calibrationDistanceCm: sourceSpace.calibrationDistanceCm,
+        })
+        .returning();
       target = created!;
       for (const fixture of await fixturesOf(tx, sourceSpace.id)) {
         const { id, ...values } = fixture;

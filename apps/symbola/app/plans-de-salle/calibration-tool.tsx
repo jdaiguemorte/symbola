@@ -31,7 +31,7 @@ export function CalibrationTool({ spaceId, src, widthPx, heightPx, calibration }
       <input type="hidden" name="spaceId" value={spaceId} />
       <p className="meta">{t("intro")}</p>
       <div className="plan-calibration">
-        {/* eslint-disable-next-line @next/next/no-img-element -- image privée servie par l'app après contrôle des droits */}
+        {/* Image privée servie par l'app après contrôle des droits (ADR 0027), pas par l'optimiseur d'images. */}
         <img src={src} alt={t("imageAlt")} onClick={place} />
         <svg viewBox={`0 0 ${widthPx} ${heightPx}`} aria-hidden="true">
           <line x1={points.ax} y1={points.ay} x2={points.bx} y2={points.by} className="plan-calibration-line" />

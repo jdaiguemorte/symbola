@@ -14,7 +14,7 @@ import { addEventPlace, addEventVendorSlot, addKeyMoment, addVendorCandidate, cr
 import { setModuleEnabled, type ModuleKey } from "@/modules/hub/service";
 import { createVendor } from "@/modules/vendors/service";
 import { confirmImpactAssessment, getSeatingPlan } from "@/modules/guests/service";
-import { withDb } from "@/modules/guests/test-fixtures";
+import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import {
   calibrateSpace,
   copyLayoutTablesToSeating,
@@ -45,6 +45,11 @@ import {
   setSpaceBackground,
   sharedFloorplanBackground,
 } from "./service";
+
+// La réserve partagée du processus (rendue à la fin de chaque fichier par vitest.integration.setup.ts).
+function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
+  return fn(appDatabase());
+}
 
 async function organization(modules: ModuleKey[] = ["floorplans"]) {
   const organizationId = (await withDb((db) => createOrganization(db, `Atelier ${randomUUID().slice(0, 8)}`))).id;

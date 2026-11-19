@@ -17,7 +17,7 @@ export async function SharedFloorplanView({ plan, basePath, audience }: { plan: 
   const typeOf = (element: SharedFloorplan["elements"][number]) => (element.typeStarterKey ? (starterFloorplanElementLabel(element.typeStarterKey, locale) ?? element.typeStarterKey) : (element.typeLabel ?? ""));
   const labelOf = (element: SharedFloorplan["elements"][number]) => element.name ?? typeOf(element);
   const fixtureName = (fixture: SharedFloorplan["fixtures"][number]) => fixture.label ?? t(`fixtureKinds.${fixture.kind}`);
-  const meters = (cm: number) => (cm / 100).toFixed(2);
+  const meters = (cm: number) => (cm / 100).toLocaleString(locale === "en" ? "en-GB" : "fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false });
   const mine = plan.elements.filter((element) => element.mine);
   const size = plan.space.background ? backgroundSize(plan.space.background, plan.space.calibration, plan.space.widthCm) : null;
   const access = plan.fixtures.filter((fixture) => fixture.kind === "delivery" || fixture.kind === "emergency_exit" || fixture.kind === "door");

@@ -13,7 +13,7 @@
 // Les contrôles (chevauchement, hors de l'espace, places, prises) sont signalés, jamais bloquants.
 // Rien n'est écrit avant « Enregistrer » ; le serveur relit et valide tout.
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { FloorplanColor, FloorplanElement, FloorplanElementType, FloorplanFinding, FloorplanFixture, FloorplanFixtureKind } from "@symbola/contracts";
 import { FLOORPLAN_COLORS, FLOORPLAN_FIXTURE_KINDS } from "@symbola/contracts";
 import { FreeTextNotice } from "@/app/ui/free-text-notice";
@@ -54,7 +54,12 @@ const FIXTURE_MARKS: Record<FloorplanFixtureKind, string> = { outlet: "⚡", wat
 
 let counter = 0;
 const newId = () => `new-${Date.now().toString(36)}-${(counter += 1)}`;
-const meters = (cm: number) => (cm / 100).toFixed(2);
+// Mètres à deux décimales, à la manière de la langue (« 10,50 » ou « 10.50 »), sans séparateur de
+// milliers : la même écriture se relit dans les champs.
+function metersFormat(locale: string) {
+  const format = new Intl.NumberFormat(locale === "en" ? "en-GB" : "fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false });
+  return (cm: number) => format.format(cm / 100);
+}
 const toCm = (value: string) => Math.round(Number.parseFloat(value.replace(",", ".")) * 100);
 
 function isFixture(item: Item): item is FixtureItem {
@@ -62,6 +67,7 @@ function isFixture(item: Item): item is FixtureItem {
 }
 
 export function FloorplanEditor(props: FloorplanEditorProps) {
+  const meters = metersFormat(useLocale());
   const t = useTranslations("Floorplans.editor");
   const tKinds = useTranslations("Floorplans.fixtureKinds");
   const tColors = useTranslations("Floorplans.colors");
@@ -761,6 +767,7 @@ type PropertiesProps = {
 // Panneau des propriétés : la voie du clavier, du lecteur d'écran et du téléphone. Chaque champ
 // s'applique à sa sortie (ou à son changement pour une liste), et s'annule comme un geste.
 function Properties({ item, mode, isEvent, vendors, outlets, ampChoices, typeLabel, onChange, tColors }: PropertiesProps) {
+  const meters = metersFormat(useLocale());
   const t = useTranslations("Floorplans.editor");
   const tKinds = useTranslations("Floorplans.fixtureKinds");
   const base = useId();
