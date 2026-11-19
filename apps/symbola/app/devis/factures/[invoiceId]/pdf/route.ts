@@ -7,11 +7,12 @@ import { refusedResponse } from "@/lib/access-refusals";
 import { wantsPreview } from "@/lib/file-response";
 import { getInvoicePdf, InvoiceNotFoundError, OriginalAlteredError } from "@/modules/quotes/service";
 import { isValidId } from "../../../module-access";
-import { authorizedPlanner } from "../../../planner-access";
+import { authorizedAccountingReader } from "../../../planner-access";
 import { renderInvoicePdf } from "../../render-invoice-pdf";
 
 export async function GET(request: Request, { params }: { params: Promise<{ invoiceId: string }> }): Promise<Response> {
-  const planner = await authorizedPlanner();
+  // Lot 52 : aussi le Comptable, en lecture.
+  const planner = await authorizedAccountingReader();
   if (!planner) return new Response(null, { status: 401 });
   const { invoiceId } = await params;
   if (!isValidId(invoiceId)) return new Response(null, { status: 404 });

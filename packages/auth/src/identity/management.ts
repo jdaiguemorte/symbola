@@ -32,6 +32,11 @@ const identityUser = z.object({ id: z.string().min(1), primaryEmail: z.string().
 const mfaVerification = z.object({ id: z.string(), type: z.string() });
 const application = z.object({ id: z.string().min(1), name: z.string(), type: z.string() });
 const applicationSecret = z.object({ value: z.string().min(1) });
+// Lot 52 (HUB-04, HUB-05) : sessions d'un compte chez le fournisseur ; seul l'identifiant (uid) est lu.
+const userSessions = z.object({ sessions: z.array(z.object({ payload: z.object({ uid: z.string().min(1) }) })) });
+// Lot 52 (SEC-08, D6) : webhook du fournisseur ; sa clé de signature est lue, jamais affichée.
+const hook = z.object({ id: z.string().min(1), name: z.string(), signingKey: z.string().optional() });
+export const IDENTITY_WEBHOOK_EVENTS = ["User.Data.Updated", "PostResetPassword"] as const;
 
 export type IdentityUser = z.infer<typeof identityUser>;
 
@@ -113,6 +118,44 @@ export function createManagementClient(connection: IdentityConnection, fetchImpl
 
     async deleteMfaVerification(userId: string, verificationId: string): Promise<void> {
       await request("DELETE", `/api/users/${encodeURIComponent(userId)}/mfa-verifications/${encodeURIComponent(verificationId)}`);
+    },
+
+    // Lot 52 (HUB-04 : révocation ; HUB-05 : dernière session fermée ; SEC-08 : « Ce n'est pas moi ») :
+    // ferme toutes les sessions du compte chez le fournisseur et révoque leurs autorisations. Un compte
+    // sans session ne fait rien.
+    async closeAllSessions(userId: string): Promise<number> {
+      const path = `/api/users/${encodeURIComponent(userId)}/sessions`;
+      const { sessions } = userSessions.parse(await request("GET", path));
+      for (const session of sessions) {
+        try {
+          await request("DELETE", `${path}/${encodeURIComponent(session.payload.uid)}?revokeGrantsTarget=all`);
+        } catch (error) {
+          // Une session expirée entre la liste et la fermeture : déjà fermée.
+          if (!(error instanceof IdentityProviderError && error.status === 404)) throw error;
+        }
+      }
+      return sessions.length;
+    },
+
+    // Lot 52 (SEC-08, D6) : le webhook de Symbola (créé ou mis à jour par configure-identity), et sa
+    // clé de signature, pour vérifier chaque appel reçu.
+    async upsertWebhook(input: { name: string; url: string }): Promise<{ id: string }> {
+      const hooks = z.array(hook).parse(await request("GET", "/api/hooks"));
+      const body = { name: input.name, events: [...IDENTITY_WEBHOOK_EVENTS], config: { url: input.url }, enabled: true };
+      const existing = hooks.find((candidate) => candidate.name === input.name);
+      if (existing) {
+        await request("PATCH", `/api/hooks/${encodeURIComponent(existing.id)}`, body);
+        return { id: existing.id };
+      }
+      return hook.parse(await request("POST", "/api/hooks", body));
+    },
+
+    async findWebhookSigningKey(name: string): Promise<string | null> {
+      const hooks = z.array(hook).parse(await request("GET", "/api/hooks"));
+      const found = hooks.find((candidate) => candidate.name === name);
+      if (!found) return null;
+      if (found.signingKey) return found.signingKey;
+      return hook.parse(await request("GET", `/api/hooks/${encodeURIComponent(found.id)}`)).signingKey ?? null;
     },
 
     // L'application web de Symbola, créée par configure-identity : son identifiant et son secret.

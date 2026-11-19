@@ -11,6 +11,7 @@ import {
   dayChecklists,
   dayChecklistTemplates,
   dayCheckpoints,
+  eventTeamMembers,
   dayIncidents,
   dayPhotos,
   dayReports,
@@ -147,6 +148,8 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: prospectFollowUps, ...ofEvent },
   { table: eventQuestionnaires, ...ofEvent },
   { table: questionnaireAnswers, parents: { questionnaireId: "event_questionnaires" } },
+  // Lot 52 (EVT-06, D2) : l'équipe de chaque évènement (planner principal, assistants).
+  { table: eventTeamMembers, ...ofEvent },
 ];
 
 // Tables du module qui ne sont pas exportées, et pourquoi (docs/export/format-v1.md).

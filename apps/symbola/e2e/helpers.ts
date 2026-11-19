@@ -1,7 +1,7 @@
 // Aides communes aux parcours e2e (ADR 0025).
 import { createHash } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { Secret, TOTP } from "otpauth";
 import { createManagementClient, createOrganization } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
@@ -151,7 +151,7 @@ async function needsMfa(email: string): Promise<boolean> {
     const [user] = await db.select({ id: users.id, operator: users.operator }).from(users).where(eq(users.email, email.toLowerCase()));
     if (!user) return false;
     if (user.operator) return true;
-    const owners = await db.select({ id: memberships.id }).from(memberships).where(and(eq(memberships.userId, user.id), eq(memberships.role, "owner"), isNull(memberships.disabledAt)));
+    const owners = await db.select({ id: memberships.id }).from(memberships).where(and(eq(memberships.userId, user.id), inArray(memberships.role, ["owner", "accountant"]), isNull(memberships.disabledAt)));
     return owners.length > 0;
   } finally {
     await sql.end();

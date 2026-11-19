@@ -52,6 +52,9 @@ async function startScheduledTasks() {
     // Lot 23 (décision D5) : adresses IP des connexions oubliées après la durée réglée.
     const { scheduleConnectionTracePurge } = await import("./lib/connection-traces-purge");
     scheduleConnectionTracePurge();
+    // Lot 52 (HUB-05, SEC-08) : alertes de changement d'identité en attente, purge des appareils connus.
+    const { scheduleAccountSecurityJobs } = await import("./lib/account-security-jobs");
+    scheduleAccountSecurityJobs();
     // Lot 27a (CHR-04) : rappels par e-mail des tâches confiées au client.
     const { scheduleClientTaskReminders } = await import("./lib/client-task-reminders");
     scheduleClientTaskReminders();

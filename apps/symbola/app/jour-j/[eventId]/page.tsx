@@ -9,7 +9,7 @@
 // sinon la page est introuvable, sans dire si l'évènement existe.
 // Lot 51 (EVT-04, JRJ-05 à JRJ-09, ARC-09 ; ADR 0091) : jours et temps forts, pointage, décalage,
 // main courante, listes de contrôle et remises du jour (field-day.tsx) ; préparation des listes.
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { venueChecksFor } from "@/lib/events/venue-checks";
 import { bankToVerifyVendors } from "@/lib/vendors/bank-checks";
 import { VenueFindings } from "@/app/events/[id]/venue-findings";
@@ -37,6 +37,7 @@ import { isGuestsAvailable } from "@/app/events/[id]/invites/access";
 import { eventDays } from "@/lib/day-of/rules";
 import { DayChecklistsPrep } from "./day-checklists-prep";
 import { getVendorContacts } from "@/modules/vendors/service";
+import { resolveDayOfViewer } from "@/lib/day-of/viewer";
 import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled, isValidId } from "@/app/events/module-access";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
@@ -51,17 +52,30 @@ import { FieldDay } from "./field-day";
 
 type Translate = Awaited<ReturnType<typeof getTranslations<"DayOf">>>;
 
+// Lot 52 (EVT-06 ; D2, D3 ; ADR 0094) : aussi le renfort du jour J, par la session de son lien, pour
+// son seul évènement et ses dates : « Maintenant », annuaire, documents gardés, pointage, main courante,
+// listes ; ni remises d'argent, ni réglages (listes, documents), ni décalage du programme. Tout autre
+// cas répond comme une page inexistante (SEC-13) ; sans session ni lien, la connexion.
 export default async function DayOfPage({ params }: { params: Promise<{ eventId: string }> }) {
-  const auth = await requirePlanner();
-  const organizationId = auth.user.organizationId;
   const { eventId } = await params;
-  if (!isValidId(eventId) || !(await isEventsModuleEnabled(organizationId))) notFound();
+  if (!isValidId(eventId)) notFound();
+  const resolved = await resolveDayOfViewer(eventId);
+  if ("refused" in resolved) {
+    if (resolved.refused === "signed_out") redirect("/login");
+    if (resolved.refused === "mfa") redirect("/securite");
+    if (resolved.refused === "not_planner") await requirePlanner();
+    notFound();
+  }
+  const viewer = resolved.viewer;
+  const helper = viewer.kind === "helper";
+  const organizationId = viewer.organizationId;
+  if (!(await isEventsModuleEnabled(organizationId))) notFound();
   const event = await getEvent(organizationId, eventId);
   if (!event || !isDayOfOpen(event)) notFound();
   const eventDate = event.eventDate as string;
 
   const locale = (await getLocale()) as Locale;
-  const budgetEnabled = await isBudgetModuleEnabled(organizationId);
+  const budgetEnabled = !helper && (await isBudgetModuleEnabled(organizationId));
   const [program, places, slots, candidates, dayContacts, moments, dayState, handovers, notifiable, templates] = await Promise.all([
     getEventProgram(organizationId, eventId),
     listEventPlaces(organizationId, eventId),
@@ -69,14 +83,15 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
     listVendorCandidates(organizationId, eventId),
     listEventDayContacts(organizationId, eventId),
     listKeyMoments(organizationId, eventId),
-    getDayState(organizationId, eventId),
+    getDayState(organizationId, eventId, { forHelper: helper }),
     budgetEnabled ? listDayHandovers(organizationId, eventId) : Promise.resolve(null),
     listNotifiableVendorSlots(organizationId, eventId),
     listDayChecklistTemplates(organizationId, locale),
   ]);
   if (!dayState) notFound();
   // Lot 48a (PRE-06, PRE-10) : contrôles du lieu, IBAN « à vérifier » des prestataires des remises.
-  const venueChecks = await venueChecksFor(organizationId, eventId, program, event.guestsConfirmed ?? event.guestsEstimated);
+  // Lot 52 (D3) : les contrôles du lieu sont ceux de la planner ; le renfort ne les voit pas.
+  const venueFindings = helper ? [] : (await venueChecksFor(organizationId, eventId, program, event.guestsConfirmed ?? event.guestsEstimated)).findings;
   const bankVendors = await bankToVerifyVendors(organizationId, [...new Set((handovers ?? []).flatMap((handover) => handover.vendorIds ?? []))]);
   // EVT-04 : le nombre de présents du temps fort en cours, sans noms (règle du lot 49).
   const presentByMoment: Record<string, number> = {};
@@ -102,6 +117,7 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
   // Lot 29b (JRJ-04, D8) : le PDF du programme, toujours ; puis les pièces choisies pour l'événement.
   const dayDocuments = await listDayDocumentCandidates(organizationId, eventId);
   const embedded = dayDocuments.filter((candidate) => candidate.embedded);
+  // Lot 52 (D3) : le renfort ne voit que les documents gardés, sans le choix des pièces.
   const documents = [{ path: dayProgramPath(eventId), label: t("programPdf"), origin: null as string | null }, ...embedded.map((candidate) => ({ path: candidate.path, label: candidate.label, origin: candidate.origin }))];
   const embeddedBytes = embedded.reduce((sum, candidate) => sum + (candidate.sizeBytes ?? 0), 0);
   const settings = dayOfSettings(locale);
@@ -119,9 +135,13 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
       <main className="day-of field-screen">
         {/* Lot 30a : retour et aide sur une ligne, pour garder « Maintenant » et « Ensuite » en vue. */}
         <div className="field-top">
-          <p className="day-of-back">
-            <a href={`/events/${eventId}`}>{t("backToEvent")}</a>
-          </p>
+          {helper ? (
+            <p className="day-of-back">{t("helperWelcome", { name: viewer.personName })}</p>
+          ) : (
+            <p className="day-of-back">
+              <a href={`/events/${eventId}`}>{t("backToEvent")}</a>
+            </p>
+          )}
           <ScreenHelp title={tHelp("dayOf.title")} body={tHelp("dayOf.body")} />
         </div>
         <h1>{title}</h1>
@@ -132,7 +152,8 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
 
         <FieldDay
           eventId={eventId}
-          userId={auth.user.id}
+          userId={viewer.actorId}
+          helper={helper}
           eventDate={eventDate}
           timeZone={event.timeZone}
           moments={moments.map((entry) => ({ id: entry.id, name: entry.name, date: entry.date }))}
@@ -161,17 +182,19 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
           }))}
         />
 
+        {helper ? null : (
         <DayChecklistsPrep
           eventId={eventId}
           moments={moments.map((entry) => ({ id: entry.id, name: entry.name }))}
           templates={templates.map((template) => ({ id: template.id, name: template.name, phase: template.phase }))}
           lists={dayState.checklists.map((list) => ({ id: list.id, name: list.name, items: list.items.map((item) => ({ id: item.id, label: item.label, checked: item.checkedAt !== null })) }))}
         />
+        )}
 
         {/* Lot 48a (PRE-06, D4) : contraintes du lieu, signalées, jamais bloquantes. */}
-        {venueChecks.findings.length > 0 ? (
+        {venueFindings.length > 0 ? (
           <div className="card">
-            <VenueFindings findings={venueChecks.findings} labels={new Map(program.items.map((item) => [item.id, item.label]))} headingId="day-venue-title" />
+            <VenueFindings findings={venueFindings} labels={new Map(program.items.map((item) => [item.id, item.label]))} headingId="day-venue-title" />
           </div>
         ) : null}
 
@@ -269,7 +292,7 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
             ))}
           </ul>
           <p className="meta">{t("documentsHint")}</p>
-          {dayDocuments.length > 0 ? (
+          {helper ? null : dayDocuments.length > 0 ? (
             <details className="day-documents-choice">
               <summary>{t("chooseTitle")}</summary>
               <p>{t("chooseHint")}</p>
@@ -297,7 +320,7 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
 
         <DayCopyPanel
           eventId={eventId}
-          userId={auth.user.id}
+          userId={viewer.actorId}
           title={title}
           eventDate={eventDate}
           expiresAt={expiresAt.toISOString()}

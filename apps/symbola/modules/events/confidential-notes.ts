@@ -9,7 +9,8 @@ import { findEventNotesRow, writeEventNotesRow } from "./repository";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX = 10_000;
 
-export type EventNotesViewer = { userId: string; role: "owner" | "member" | "admin" };
+// Lot 52 (HUB-04) : le Comptable n'est ni Propriétaire ni auteur ; il ne lit aucune note confidentielle.
+export type EventNotesViewer = { userId: string; role: "owner" | "member" | "admin" | "accountant" };
 
 export class EventNotesForbiddenError extends Error {
   constructor() {

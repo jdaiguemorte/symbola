@@ -4,7 +4,7 @@
 // @symbola/auth.
 import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
-import { createManagementClient, createOidcClient, identityConnectionFromEnv, MAGIC_LINK_TTL_SECONDS, readMfaEncryptionKey, sealMagicLink, type ManagementClient, type OidcClient, type PendingAuthorization } from "@symbola/auth";
+import { createManagementClient, createOidcClient, IDENTITY_WEBHOOK_NAME, identityConnectionFromEnv, MAGIC_LINK_TTL_SECONDS, mfaFactorsFingerprint, readMfaEncryptionKey, sealMagicLink, type ManagementClient, type OidcClient, type PendingAuthorization } from "@symbola/auth";
 import { parseEnv } from "@symbola/env";
 import { sendSymbolaEmail } from "@/modules/hub/service";
 import { secureCookies } from "./cookie-security";
@@ -79,4 +79,45 @@ export async function sendMagicLink(email: string, locale: "fr" | "en"): Promise
   } catch (error) {
     console.error("lien de connexion : envoi impossible", error instanceof Error ? error.name : "erreur");
   }
+}
+
+// Lot 52 (SEC-08, D6) : la clé de signature du webhook, lue chez le fournisseur et gardée en mémoire
+// cinq minutes (relue aussitôt si une signature ne correspond plus : clé changée).
+const SIGNING_KEY_CACHE_MS = 5 * 60 * 1000;
+let signingKeyCache: { key: string | null; until: number } | null = null;
+
+export async function identityWebhookSigningKey(options: { refresh: boolean }): Promise<string | null> {
+  if (!options.refresh && signingKeyCache && signingKeyCache.until > Date.now()) return signingKeyCache.key;
+  try {
+    const key = await identity().management.findWebhookSigningKey(IDENTITY_WEBHOOK_NAME);
+    signingKeyCache = { key, until: Date.now() + SIGNING_KEY_CACHE_MS };
+    return key;
+  } catch (error) {
+    console.error("webhook du fournisseur d'identité : clé de signature illisible", error instanceof Error ? error.name : "erreur");
+    return null;
+  }
+}
+
+export async function identityFactorsFingerprint(subject: string): Promise<string | null> {
+  try {
+    return mfaFactorsFingerprint(await identity().management.listMfaVerifications(subject));
+  } catch (error) {
+    console.error("webhook du fournisseur d'identité : facteurs illisibles", error instanceof Error ? error.name : "erreur");
+    return null;
+  }
+}
+
+// HUB-04, HUB-05, SEC-08 : ferme toutes les sessions d'un compte chez le fournisseur. Un échec ne
+// bloque rien (les sessions Symbola sont déjà fermées) ; le journal ne garde que le type d'erreur.
+export async function closeProviderSessions(subject: string): Promise<void> {
+  try {
+    await identity().management.closeAllSessions(subject);
+  } catch (error) {
+    console.error("sessions du fournisseur : fermeture impossible", error instanceof Error ? error.name : "erreur");
+  }
+}
+
+// Le centre de compte du fournisseur (adresse, mot de passe, clé d'accès, double authentification).
+export function accountCenterUrl(): string {
+  return `${parseEnv(process.env).LOGTO_ENDPOINT.replace(/\/+$/, "")}/account/security`;
 }

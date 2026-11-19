@@ -19,7 +19,8 @@
       "enum": [
         "client",
         "vendor",
-        "guest"
+        "guest",
+        "day_helper"
       ]
     },
     "personName": {
@@ -81,6 +82,12 @@
     },
     "locale": {
       "type": "string"
+    },
+    "phone": {
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "customExpiresOn": {
       "anyOf": [
@@ -191,6 +198,7 @@
     "otpRequired",
     "taskReminders",
     "locale",
+    "phone",
     "customExpiresOn",
     "renewalRequestedAt",
     "lastOpenedAt",

@@ -12,12 +12,13 @@
 //    interne (tables applications et applications_roles), rejoué à chaque montée de version.
 // 2. Tout le reste par l'API d'administration : application web de Symbola, expérience de
 //    connexion (e-mail, lien magique, clé d'accès, double authentification proposée par
-//    Symbola, liste locale des mots de passe interdits), e-mails envoyés par Logto.
+//    Symbola, liste locale des mots de passe interdits), e-mails envoyés par Logto, centre de compte,
+//    webhook des changements d'identité (lot 52, SEC-08).
 // Aucun secret affiché.
 import postgres from "postgres";
 import { z } from "zod";
 import { createManagementClient, identityConnectionFromEnv } from "../src/identity/management";
-import { accountCenter, forbiddenPasswordWords, signInExperience, smtpConnector, webApplication, WEB_APPLICATION_NAME } from "../src/identity/settings";
+import { accountCenter, forbiddenPasswordWords, IDENTITY_WEBHOOK_NAME, identityWebhookUrl, signInExperience, smtpConnector, webApplication, WEB_APPLICATION_NAME } from "../src/identity/settings";
 
 const env = z
   .object({
@@ -39,6 +40,9 @@ const env = z
     // « mailpit » sur le réseau Docker, alors que l'app joint « localhost »).
     LOGTO_SMTP_HOST: z.string().min(1).optional(),
     LOGTO_SMTP_PORT: z.coerce.number().int().positive().optional(),
+    // Lot 52 (SEC-08, D6) : l'adresse du webhook vue du fournisseur, si elle diffère de l'adresse
+    // publique de l'app (en dev : « http://host.docker.internal:3000/api/webhooks/identite »).
+    LOGTO_WEBHOOK_URL: z.string().url().optional(),
   })
   .parse(process.env);
 
@@ -140,7 +144,13 @@ async function main(): Promise<void> {
   console.log("Expérience de connexion réglée (e-mail, lien magique, clé d'accès, mots de passe interdits, sans appel sortant).");
 
   await client.request("PATCH", "/api/account-center", accountCenter());
-  console.log("Centre de compte activé (mot de passe, clé d'accès, double authentification).");
+  console.log("Centre de compte activé (adresse, mot de passe, clé d'accès, double authentification).");
+
+  // Lot 52 (SEC-08, D6) : changement d'adresse, de facteur ou de mot de passe annoncé à Symbola par un
+  // webhook signé ; l'app lit la clé de signature par l'API d'administration (jamais affichée).
+  const webhookUrl = identityWebhookUrl(env.APP_PUBLIC_URL, env.LOGTO_WEBHOOK_URL);
+  await client.upsertWebhook({ name: IDENTITY_WEBHOOK_NAME, url: webhookUrl });
+  console.log(`Webhook « ${IDENTITY_WEBHOOK_NAME} » : changements d'identité envoyés à ${webhookUrl}.`);
 }
 
 main().catch((error: unknown) => {

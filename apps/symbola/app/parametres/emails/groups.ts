@@ -5,10 +5,12 @@ import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 import { isAppointmentsModuleEnabled } from "@/modules/appointments/service";
 
-type TemplateModule = "events" | "quotes" | "appointments";
+// Lot 52 : « hub », les e-mails du compte et de l'équipe, toujours proposés.
+type TemplateModule = "hub" | "events" | "quotes" | "appointments";
 
-export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "prospects" | "signatures" | "settlement" | "appointments" | "vendors"; module: TemplateModule; kinds: EmailTemplateKind[] }[] = [
-  { key: "links", module: "events", kinds: ["client_link", "client_link_renewed", "vendor_link", "vendor_link_renewed"] },
+export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "prospects" | "signatures" | "settlement" | "appointments" | "vendors" | "team"; module: TemplateModule; kinds: EmailTemplateKind[] }[] = [
+  // Lot 52 (EVT-06, D3) : le lien du renfort du jour J.
+  { key: "links", module: "events", kinds: ["client_link", "client_link_renewed", "vendor_link", "vendor_link_renewed", "day_helper_link"] },
   { key: "reminders", module: "events", kinds: ["task_reminder"] },
   { key: "program", module: "events", kinds: ["program_published"] },
   // Lot 44 (CRM-01, D7) : « Nouvelle demande de contact », à la titulaire.
@@ -21,6 +23,8 @@ export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "
   { key: "settlement", module: "quotes", kinds: ["proposal_sent", "proposal_expiry_reminder", "payment_details", "invoice_reminder"] },
   // Lot 46 (RDV-03, D10 ; migration 0158) : e-mails d'un rendez-vous, côté personne qui l'a pris.
   { key: "appointments", module: "appointments", kinds: ["appointment_confirmed", "appointment_reminder", "appointment_rescheduled", "appointment_cancelled"] },
+  // Lot 52 (HUB-04, SEC-08 ; migration 0180) : transfert de propriété et alertes de sécurité du compte.
+  { key: "team", module: "hub", kinds: ["ownership_transfer", "new_device_login", "identity_changed"] },
 ];
 
 // La langue du modèle affiché : celle demandée (?langue=), sinon celle de l'écran.
@@ -31,7 +35,7 @@ export function templateLocale(requested: string | undefined, interfaceLocale: s
 
 export async function enabledTemplateModules(organizationId: string): Promise<Set<TemplateModule>> {
   const [events, quotes, appointments] = await Promise.all([isEventsModuleEnabled(organizationId), isQuotesModuleEnabled(organizationId), isAppointmentsModuleEnabled(organizationId)]);
-  const enabled = new Set<TemplateModule>();
+  const enabled = new Set<TemplateModule>(["hub"]);
   if (events) enabled.add("events");
   if (quotes) enabled.add("quotes");
   if (appointments) enabled.add("appointments");

@@ -121,14 +121,19 @@ export type LinkFields = {
   customExpiresOn: string | null;
   otpRequired: boolean;
   taskReminders: boolean;
+  // Lot 52 (EVT-06, D3) : téléphone du renfort du jour J (annuaire du jour).
+  phone?: string | null;
 };
 
 // Lot 26b (D9) : un lien de prestataire n'ouvre aucune rubrique du portail ni
 // ne représente un client ; ses droits sont ceux de l'espace du prestataire.
 const NO_RIGHTS: EventLinkRights = { rubrics: [], budgetScope: "all", sharedSlotIds: [] };
 
+// Lot 52 (D3) : le lien du renfort du jour J n'ouvre aucune rubrique du portail ; il demande un code à
+// l'ouverture, n'envoie pas de rappels de tâches et suit les dates de l'évènement (veille au lendemain).
 function fieldsForAudience(audience: LinkAudience, fields: LinkFields): LinkFields {
-  return audience === "vendor" ? { ...fields, eventClientId: null, rights: NO_RIGHTS } : fields;
+  if (audience === "day_helper") return { ...fields, eventClientId: null, rights: NO_RIGHTS, otpRequired: true, taskReminders: false, customExpiresOn: null };
+  return audience === "vendor" ? { ...fields, eventClientId: null, rights: NO_RIGHTS, phone: null } : { ...fields, phone: null };
 }
 
 export type InsertLinkResult =
@@ -167,6 +172,7 @@ export async function insertLinkRow(
         customExpiresOn: fields.customExpiresOn,
         otpRequired: fields.otpRequired,
         taskReminders: fields.taskReminders,
+        phone: fields.phone ?? null,
         locale: input.locale,
         tokenHash: input.tokenHash,
       })

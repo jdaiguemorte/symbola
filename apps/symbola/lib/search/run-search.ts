@@ -24,7 +24,9 @@ export type SearchGroupKey = "contacts" | "events" | "documents" | "tasks" | "he
 export type SearchItem = { title: string; detail: string; href: string };
 export type SearchGroup = { key: SearchGroupKey; label: string; items: SearchItem[] };
 
-export async function runSearch(input: { organizationId: string; role: string; term: string }): Promise<SearchGroup[]> {
+// Lot 52 (EVT-06, D2) : scope, les évènements visibles de la personne (null : tous) ; un résultat
+// rattaché à un évènement hors de vue n'est pas montré.
+export async function runSearch(input: { organizationId: string; role: string; term: string; scope?: Set<string> | null }): Promise<SearchGroup[]> {
   const words = searchWords(input.term);
   if (words.length === 0) return [];
   const t = await getTranslations("Search");
@@ -44,7 +46,16 @@ export async function runSearch(input: { organizationId: string; role: string; t
     isModuleEnabled(db, input.organizationId, "appointments"),
   ]);
   const modules = { events, budget, quotes, vendors, appointments };
-  const found = await globalSearch({ organizationId: input.organizationId, term: input.term, modules: { events: modules.events, quotes: modules.quotes, vendors: modules.vendors } });
+  const raw = await globalSearch({ organizationId: input.organizationId, term: input.term, modules: { events: modules.events, quotes: modules.quotes, vendors: modules.vendors } });
+  const visible = (eventId: string | null | undefined) => !input.scope || !eventId || input.scope.has(eventId);
+  const found = {
+    ...raw,
+    events: raw.events.filter((event) => visible(event.id)),
+    quotes: raw.quotes.filter((quote) => visible(quote.eventId)),
+    invoices: raw.invoices.filter((invoice) => visible(invoice.eventId)),
+    tasks: raw.tasks.filter((task) => visible(task.eventId)),
+    vendors: raw.vendors.filter((vendor) => visible(vendor.eventId)),
+  };
   const names = (eventId: string) => found.eventNames[eventId] || t("noClientName");
 
   const groups: SearchGroup[] = [

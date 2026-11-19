@@ -33,6 +33,9 @@ export const organizations = hubSchema.table("organizations", {
   // Facultatif (PRD PRD-HUB-03) : une organisation peut être créée avant
   // d'avoir un SIRET (prospect, structure en cours de création).
   siret: text("siret"),
+  // Lot 52 (EVT-06, D2) : toutes les Planners voient tous les évènements (comportement de la pilote) ;
+  // coupé, une Planner ne voit que ceux de son équipe. La Propriétaire voit tout.
+  allPlannersSeeAllEvents: boolean("all_planners_see_all_events").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
@@ -41,7 +44,9 @@ export const organizations = hubSchema.table("organizations", {
 });
 
 // Lot 33 (HUB-02, HUB-03) : rôle d'une adhésion, et de l'invitation qui la crée (lot 33b, D12).
-export const membershipRoleEnum = hubSchema.enum("membership_role", ["owner", "member"]);
+// Lot 52 (réponse de Julien du 18/11 au lot 58) : « accountant », le comptable en lecture, invité par la
+// Propriétaire, avec double authentification exigée.
+export const membershipRoleEnum = hubSchema.enum("membership_role", ["owner", "member", "accountant"]);
 
 // Invitation du titulaire par l'Admin (PRD PRD-HUB-03) : valable 7 jours
 // (proposé), un seul usage (acceptedAt posé à la première utilisation).
@@ -83,6 +88,12 @@ export const users = hubSchema.table("users", {
   // Lot 24b (SEC-06, décision D3) : accès retiré par la titulaire. Le compte ne
   // se connecte plus ; ses sessions et appareils de confiance sont supprimés.
   disabledAt: timestamp("disabled_at", { withTimezone: true }),
+  // Lot 52 (SEC-02, D5) : bandeau « Sécurisez votre compte » fermé par la Planner ; il revient au plus
+  // une fois par mois tant que ses sessions s'ouvrent sans double authentification.
+  mfaPromptDismissedAt: timestamp("mfa_prompt_dismissed_at", { withTimezone: true }),
+  // Lot 52 (SEC-08, D6) : empreinte des facteurs d'authentification connus chez le fournisseur
+  // (identifiants et natures, hachés), pour reconnaître un changement de facteur annoncé par le webhook.
+  mfaFactorsFingerprint: text("mfa_factors_fingerprint"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
@@ -175,7 +186,89 @@ export const sessions = hubSchema.table("sessions", {
   mfaVerified: boolean("mfa_verified").notNull().default(false),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-}, (table) => [index("sessions_organization_idx").on(table.organizationId)]);
+  // Lot 52 (HUB-05, D4) : l'appareil lu dans l'en-tête du navigateur (« Safari sur iPhone »),
+  // l'identifiant d'appareil aléatoire du cookie, et la dernière activité (au plus une écriture par
+  // heure). Aucune adresse IP ni ville.
+  deviceLabel: text("device_label"),
+  deviceId: text("device_id"),
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
+}, (table) => [index("sessions_organization_idx").on(table.organizationId), index("sessions_user_idx").on(table.userId)]);
+
+// Lot 52 (SEC-08) — appareils déjà vus pour un compte : une connexion depuis un identifiant d'appareil
+// inconnu envoie « Nouvelle connexion à Symbola ». Le lien « Ce n'est pas moi » de l'alerte porte un
+// jeton dont seul le haché est gardé (sept jours). Table d'identité, comme hub.sessions : pas de RLS,
+// accès par packages/auth seulement (ADR 0013). Gardée tant que le compte vit ; un appareil inactif
+// depuis 30 jours est oublié (donnée de sécurité, DPO).
+export const knownDevices = hubSchema.table(
+  "known_devices",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    deviceId: text("device_id").notNull(),
+    deviceLabel: text("device_label"),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).defaultNow().notNull(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).defaultNow().notNull(),
+    alertTokenHash: text("alert_token_hash").unique(),
+    alertExpiresAt: timestamp("alert_expires_at", { withTimezone: true }),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.deviceId] }), index("known_devices_last_seen_idx").on(table.lastSeenAt)],
+);
+
+// Lot 52 (HUB-04, D1) — transfert de propriété : la Propriétaire désigne une Planner qui a la double
+// authentification ; la Planner confirme par le lien de l'e-mail (usage unique, 7 jours), puis les rôles
+// s'échangent. Une seule demande en cours par organisation. Table d'identité (adhésions) : pas de RLS,
+// accès par packages/auth seulement (ADR 0013, ADR 0094).
+export const ownershipTransfers = hubSchema.table(
+  "ownership_transfers",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    fromUserId: uuid("from_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    toUserId: uuid("to_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    requestedAt: timestamp("requested_at", { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("ownership_transfers_organization_idx").on(table.organizationId),
+    uniqueIndex("ownership_transfers_pending_unique").on(table.organizationId).where(sql`${table.confirmedAt} is null and ${table.cancelledAt} is null`),
+  ],
+);
+
+// Lot 52 (SEC-08, D6) — alertes de changement d'identité annoncées par le webhook signé du fournisseur
+// (adresse e-mail, facteur d'authentification, mot de passe). L'ancienne adresse n'est gardée que
+// jusqu'à l'envoi de l'alerte, qui part vers elle (critère) ; la ligne reste 30 jours sans adresse.
+// L'identifiant de l'appel du fournisseur rend la réception idempotente (il rejoue un appel en échec).
+export const IDENTITY_CHANGE_KINDS = ["email", "mfa", "password"] as const;
+
+export const identityChangeAlerts = hubSchema.table(
+  "identity_change_alerts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind", { enum: IDENTITY_CHANGE_KINDS }).notNull(),
+    deliveryKey: text("delivery_key").notNull().unique(),
+    previousEmail: text("previous_email"),
+    receivedAt: timestamp("received_at", { withTimezone: true }).defaultNow().notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("identity_change_alerts_user_idx").on(table.userId),
+    index("identity_change_alerts_received_idx").on(table.receivedAt),
+    check("identity_change_alerts_kind_check", sql`${table.kind} in ('email', 'mfa', 'password')`),
+  ],
+);
 
 // Activation d'un module par organisation (PRD PRD-HUB-03). Pas de ligne =
 // activé par défaut (absence = « jamais désactivé »), pour qu'un nouveau
@@ -932,6 +1025,12 @@ export const EMAIL_TEMPLATE_KINDS = [
   "prospect_reply",
   "prospect_follow_up",
   "questionnaire_sent",
+  // Lot 52 (HUB-04, EVT-06, SEC-08 ; D1, D3, D6 ; ADR 0094) : nouvelle connexion, changement d'identité
+  // (à l'ancienne adresse), confirmation du transfert de propriété, lien du renfort du jour J.
+  "new_device_login",
+  "identity_changed",
+  "ownership_transfer",
+  "day_helper_link",
 ] as const;
 
 export const emailTemplates = hubSchema.table(
@@ -958,7 +1057,8 @@ export const emailTemplates = hubSchema.table(
     // Lot 43 (migration 0169, accord de Julien du 18/11, D10) : proposition, relance avant expiration,
     // RIB du règlement, relance d'impayé.
     // Lot 45 (migration 0172, accord de Julien du 18/11) : réponse, relance, questionnaire envoyé.
-    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent')`),
+    // Lot 52 (migration 0180, spécification validée par Julien le 18/11) : sécurité, transfert, renfort.
+    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent', 'new_device_login', 'identity_changed', 'ownership_transfer', 'day_helper_link')`),
     check("email_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
     check("email_templates_subject_check", sql`char_length(${table.subject}) between 1 and 200`),
     check("email_templates_body_check", sql`char_length(${table.body}) between 1 and 5000`),

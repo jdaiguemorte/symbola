@@ -110,6 +110,22 @@
       "invoice_reminder": {
         "subject": "Rappel : échéance du {{échéance}} — devis {{numéro_devis}}",
         "body": "Bonjour {{prénom}},\n\nSauf erreur de notre part, l'échéance de {{montant}} du {{échéance}} (devis {{numéro_devis}}) n'est pas encore réglée.\n\nVous pouvez la régler par virement sur l'IBAN {{iban}}, avec la référence {{référence}}, puis l'indiquer dans votre espace (« J'ai fait le virement »). Si le virement est déjà parti, ne tenez pas compte de ce message.\n\n{{pénalités}}\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "new_device_login": {
+        "subject": "Nouvelle connexion à Symbola",
+        "body": "Bonjour,\n\nUne connexion à votre compte Symbola vient d'avoir lieu depuis un nouvel appareil : {{appareil}}, le {{date_heure}}.\n\nSi c'était vous, il n'y a rien à faire. Sinon, fermez toutes vos sessions et vérifiez votre compte :\n\n{{lien}}\n\n{{organisation}}"
+      },
+      "identity_changed": {
+        "subject": "Votre compte Symbola a été modifié",
+        "body": "Bonjour,\n\n{{changement}} le {{date_heure}}.\n\nSi c'était vous, il n'y a rien à faire. Sinon, ouvrez votre compte et sécurisez-le sans attendre :\n\n{{lien}}\n\n{{organisation}}"
+      },
+      "ownership_transfer": {
+        "subject": "Devenir Propriétaire de {{organisation}}",
+        "body": "Bonjour,\n\nLa Propriétaire de {{organisation}} vous propose de prendre sa place : vous gérerez l'équipe, l'abonnement et les réglages, et elle deviendra Planner. Pour accepter, connectez-vous avec votre double authentification puis confirmez, avant le {{valable_jusqu_au}} inclus :\n\n{{lien}}\n\nSi vous ne l'attendiez pas, ignorez ce message : rien ne change.\n\n{{organisation}}"
+      },
+      "day_helper_link": {
+        "subject": "Votre accès au jour J de {{évènement}}",
+        "body": "Bonjour {{prénom}},\n\n{{organisation}} vous ouvre le mode Jour J de {{évènement}} : le programme en direct, l'annuaire du jour, les documents utiles, le pointage, la main courante et les listes. Votre lien personnel vaut du {{valable_à_partir_du}} au {{valable_jusqu_au}} inclus ; un code vous sera envoyé à chaque ouverture :\n\n{{lien}}\n\nCe lien vous est réservé : ne le transférez pas.\n\nÀ très vite,\n{{organisation}}"
       }
     },
     "en": {
@@ -220,6 +236,22 @@
       "invoice_reminder": {
         "subject": "Reminder: payment due on {{due_date}} — quote {{quote_number}}",
         "body": "Hello {{first_name}},\n\nUnless we are mistaken, the payment of {{amount}} due on {{due_date}} (quote {{quote_number}}) has not been settled yet.\n\nYou can pay it by bank transfer to IBAN {{iban}}, with the reference {{reference}}, then tell us in your space (“I have made the transfer”). If the transfer has already left, please disregard this message.\n\n{{penalties}}\n\nSee you soon,\n{{organization}}"
+      },
+      "new_device_login": {
+        "subject": "New sign-in to Symbola",
+        "body": "Hello,\n\nYour Symbola account was just signed in from a new device: {{device}}, on {{date_time}}.\n\nIf this was you, there is nothing to do. Otherwise, close all your sessions and check your account:\n\n{{link}}\n\n{{organization}}"
+      },
+      "identity_changed": {
+        "subject": "Your Symbola account was changed",
+        "body": "Hello,\n\n{{change}} on {{date_time}}.\n\nIf this was you, there is nothing to do. Otherwise, open your account and secure it right away:\n\n{{link}}\n\n{{organization}}"
+      },
+      "ownership_transfer": {
+        "subject": "Become the Owner of {{organization}}",
+        "body": "Hello,\n\nThe Owner of {{organization}} offers to hand over to you: you will manage the team, the subscription and the settings, and she will become a Planner. To accept, sign in with your two-step verification, then confirm, by {{valid_until}} included:\n\n{{link}}\n\nIf you did not expect this, ignore this message: nothing changes.\n\n{{organization}}"
+      },
+      "day_helper_link": {
+        "subject": "Your access to the big day of {{event}}",
+        "body": "Hello {{first_name}},\n\n{{organization}} opens the Big day mode of {{event}} for you: the live schedule, the day's contacts, the useful documents, check-ins, the log and the checklists. Your personal link is valid from {{valid_from}} to {{valid_until}} included; a code will be sent to you each time you open it:\n\n{{link}}\n\nThis link is yours only: do not forward it.\n\nSee you soon,\n{{organization}}"
       }
     }
   }

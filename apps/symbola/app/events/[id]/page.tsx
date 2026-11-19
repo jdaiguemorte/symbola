@@ -63,6 +63,7 @@ import { createQuoteAction, startQuotesTrialAction } from "@/app/devis/actions";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { QUOTE_STATUS_LABEL_KEYS } from "@/app/devis/quote-display";
 import { requirePlanner } from "@/lib/guards";
+import { EventTeamCard } from "./team-card";
 import { ensureEventTypes } from "@/lib/events/event-types";
 import { setEventTypeAction } from "./actions";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
@@ -704,6 +705,8 @@ export default async function EventDetailPage({
         <>
           {/* Lot 32a (EVT-02, UX-01, UX-06 ; D5) : prochaine action, santé, quatorze prochains jours. */}
           <EventCockpit organizationId={organizationId} eventId={event.id} tasks={tasks} quotesAvailable={quotesAvailable} today={today} locale={locale} afterNextAction={stepBanner} vendorProgress={progress} />
+          {/* Lot 52 (EVT-06 ; D2, D3) : l'équipe de l'évènement et ses renforts du jour J. */}
+          <EventTeamCard organizationId={organizationId} eventId={event.id} />
           {/* Lot 34b (EVT-03, D10, D11) : fiche d'identité — invités, lieux, interlocuteurs, style, notes. */}
           <section className="card" aria-labelledby="identity-title">
             {/* Lot 39c (UX-13, relevé validé le 17/11) : « Modifier les informations » ouvre un panneau. */}
@@ -1646,7 +1649,7 @@ export default async function EventDetailPage({
       {tab === "apercu" && !event.isDemo ? (
         <section className="card" aria-labelledby="delete-event-title">
           <h2 id="delete-event-title">{tTrash("deleteEvent")}</h2>
-          {query.suppression === "refusee" ? <p role="alert">{tTrash("eventRefused")}</p> : <p>{tTrash("deleteEventHint")}</p>}
+          {query.suppression === "refusee" ? <p role="alert">{tTrash("eventRefused")}</p> : query.suppression === "assistant" ? <p role="alert">{tTrash("eventAssistant")}</p> : <p>{tTrash("deleteEventHint")}</p>}
           <form action={deleteEventAction}>
             <input type="hidden" name="eventId" value={event.id} />
             <button type="submit" className="button-ghost">

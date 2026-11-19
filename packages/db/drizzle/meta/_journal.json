@@ -1247,6 +1247,27 @@
       "when": 1795038164730,
       "tag": "0177_lot48b_quotes_fees_commissions_modes",
       "breakpoints": true
+    },
+    {
+      "idx": 178,
+      "version": "7",
+      "when": 1795038224730,
+      "tag": "0178_lot52_hub_team_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 179,
+      "version": "7",
+      "when": 1795038284730,
+      "tag": "0179_lot52_events_team_day_helper",
+      "breakpoints": true
+    },
+    {
+      "idx": 180,
+      "version": "7",
+      "when": 1795038344730,
+      "tag": "0180_lot52_hub_team_email_kinds",
+      "breakpoints": true
     }
   ]
 }

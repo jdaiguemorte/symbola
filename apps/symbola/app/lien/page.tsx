@@ -19,7 +19,7 @@ export default async function LinkPage({ searchParams }: { searchParams: Promise
           <p role="status">{t("closedBody")}</p>
         </>
       ) : (
-        <LinkOpener home={access ? linkHomePath(access.audience) : null} />
+        <LinkOpener home={access ? linkHomePath(access.audience, access.eventId) : null} />
       )}
       {/* RGP-03 : cette page ne recueille rien. */}
       <p className="muted">{t("pageNotice")}</p>

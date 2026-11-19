@@ -33,7 +33,30 @@
     "setUp": "Gérer mes moyens de connexion",
     "signInAgain": "Recevoir un lien de connexion",
     "signOut": "Me déconnecter",
-    "linkSent": "Un lien de connexion vient de partir à votre adresse. Ouvrez-le : votre double authentification vous sera demandée, ou installée si elle manque."
+    "linkSent": "Un lien de connexion vient de partir à votre adresse. Ouvrez-le : votre double authentification vous sera demandée, ou installée si elle manque.",
+    "accountantBody": "Comme comptable de l'organisation, vous lisez ses factures et ses journaux : une double authentification est demandée à chaque connexion. Recevez un lien de connexion : vous installerez une application d'authentification ou une clé d'accès, puis elle vous sera demandée.",
+    "sessionsTitle": "Mes sessions",
+    "sessionsSubtitle": "Les appareils où votre compte est connecté.",
+    "thisDevice": "Cet appareil",
+    "lastSeen": "Dernière activité : {date}",
+    "closeOne": "Fermer",
+    "closeOneLabel": "Fermer la session {device}",
+    "closeOthers": "{count, plural, one {Fermer l'autre session} other {Fermer les # autres sessions}}",
+    "onlyThisOne": "Votre compte n'est connecté que sur cet appareil.",
+    "sessionClosed": "La session est fermée : cet appareil devra se reconnecter.",
+    "sessionsClosed": "{count, plural, =0 {Aucune autre session n'était ouverte.} one {Une session fermée.} other {# sessions fermées.}}",
+    "noLocation": "Symbola ne garde ni l'adresse IP ni la ville de vos connexions : seulement l'appareil et l'heure.",
+    "manageFactors": "Gérer mon adresse, ma clé d'accès et ma double authentification",
+    "promptLabel": "Double authentification",
+    "promptBody": "Sécurisez votre compte : une clé d'accès ou une application d'authentification protège vos évènements même si votre adresse e-mail est piratée.",
+    "promptAction": "Sécuriser mon compte",
+    "promptLater": "Plus tard",
+    "notMeTitle": "Ce n'est pas vous ?",
+    "notMeBody": "Fermez toutes les sessions de votre compte, sur tous les appareils. Vous pourrez ensuite vous reconnecter et sécuriser votre compte.",
+    "notMeConfirm": "Fermer toutes mes sessions",
+    "notMeDone": "Toutes vos sessions sont fermées. Vérifiez maintenant votre adresse e-mail, votre clé d'accès et votre double authentification.",
+    "notMeSecure": "Sécuriser mon compte",
+    "notMeInvalid": "Ce lien n'est plus valable : il a déjà servi ou il a plus de sept jours. Connectez-vous puis fermez vos autres sessions depuis « Mes sessions »."
   },
   "Organizations": {
     "label": "Organisation",
@@ -223,7 +246,8 @@
     "success": "Préférences enregistrées.",
     "securityTitle": "Sécurité du compte",
     "securityBody": "Votre mot de passe, vos clés d'accès et votre double authentification se gèrent dans votre espace de connexion.",
-    "securityLink": "Ouvrir mon espace de connexion"
+    "securityLink": "Ouvrir mon espace de connexion",
+    "sessionsLink": "Mes sessions : les appareils connectés à mon compte"
   },
   "Settings": {
     "title": "Paramètres",
@@ -1393,6 +1417,26 @@
     "plannerMoney": {
       "title": "Honoraires et commissions",
       "body": "Réglez vos honoraires (forfait, pourcentage du budget estimé ou engagé, ou les deux) : ils vont sur votre devis et restent à part du budget du client. Tracez les commissions et apports d'affaires que vous versent les prestataires : un client particulier les voit toutes, sur le devis et dans son portail ; pour un professionnel, vous choisissez. Une commission se facture au prestataire, dans votre série de factures, en Factur-X."
+    },
+    "sessions": {
+      "title": "Mes sessions",
+      "body": "Chaque ligne est un appareil où votre compte est connecté, avec sa dernière activité (mise à jour au plus une fois par heure). Fermez une session que vous ne reconnaissez pas : elle est refusée dès sa requête suivante. Un téléphone perdu ? « Fermer les autres sessions »."
+    },
+    "accounting": {
+      "title": "Accès comptable",
+      "body": "La Propriétaire vous a ouvert un accès en lecture seule : factures (dont les factures de commission aux prestataires), avoirs, encaissements, journaux, exports et e-reporting. Vous ne voyez ni les évènements, ni les invités, ni les réglages. La double authentification vous est demandée à chaque connexion."
+    },
+    "eventTeam": {
+      "title": "Équipe de l'évènement",
+      "body": "Nommez un planner principal (il reçoit les alertes et les récapitulatifs de l'évènement) et des assistants. Quand « Toutes les Planners voient tous les évènements » est coupé (Réglages, Équipe), une Planner ne voit que les évènements de son équipe. Un renfort du jour J vient sans compte : son lien n'ouvre que le mode Jour J de cet évènement, de la veille au lendemain."
+    },
+    "ownership": {
+      "title": "Transfert de propriété",
+      "body": "La Propriétaire vous propose de prendre sa place. Connectez-vous avec votre double authentification, puis confirmez : les rôles s'échangent et vous recevez toutes les deux un e-mail. Le lien vaut sept jours et ne sert qu'une fois."
+    },
+    "notMe": {
+      "title": "Ce n'est pas moi",
+      "body": "Une connexion à votre compte a eu lieu depuis un appareil que Symbola ne connaissait pas. Si ce n'était pas vous, fermez toutes vos sessions ici, puis changez votre adresse, votre mot de passe et votre double authentification dans votre compte."
     }
   },
   "Aide": {
@@ -5402,7 +5446,14 @@
       "vendors_bank_details_verified": "IBAN d'un prestataire vérifié par téléphone",
       "vendors_document_requested": "Pièce demandée à un prestataire",
       "vendors_document_received": "Pièce déposée par un prestataire",
-      "vendors_document_verified": "Pièce d'un prestataire vérifiée"
+      "vendors_document_verified": "Pièce d'un prestataire vérifiée",
+      "hub_identity_changed": "Compte modifié chez le fournisseur d'identité",
+      "hub_identity_webhook_refused": "Appel du fournisseur d'identité refusé",
+      "hub_ownership_transfer_requested": "Transfert de propriété demandé",
+      "hub_ownership_transferred": "Propriété transférée",
+      "hub_ownership_transfer_cancelled": "Transfert de propriété annulé",
+      "hub_organization_visibility_changed": "Visibilité des évènements modifiée",
+      "events_team_changed": "Équipe de l'évènement modifiée"
     },
     "categories": {
       "connexion": "Connexions",
@@ -5573,7 +5624,8 @@
       "vendors_vendor_document_kinds": "une nature de pièce",
       "vendors_vendor_bank_changes": "un changement d'IBAN",
       "quotes_planner_fees": "des honoraires",
-      "quotes_vendor_commissions": "une commission"
+      "quotes_vendor_commissions": "une commission",
+      "events_event_team_members": "équipe d'un évènement"
     },
     "modules": {
       "events": "Événements",
@@ -5638,7 +5690,7 @@
   },
   "Team": {
     "title": "Équipe",
-    "subtitle": "Les comptes de votre organisation : inviter une Planner, retirer un accès.",
+    "subtitle": "Les comptes de votre organisation : inviter une Planner ou un Comptable, retirer un accès, transférer la propriété.",
     "ownerOnly": "L'équipe se gère par la Propriétaire du compte.",
     "listTitle": "Comptes de l'équipe",
     "columnEmail": "E-mail",
@@ -5648,18 +5700,18 @@
     "columnActions": "Actions",
     "roles": {
       "owner": "Propriétaire",
-      "member": "Planner"
+      "member": "Planner",
+      "accountant": "Comptable"
     },
     "accessActive": "Actif",
     "accessRemoved": "Retiré le {date}",
     "remove": "Retirer l'accès de {email}",
     "confirmTitle": "Retirer l'accès de {email} ?",
-    "confirmBody": "Ses sessions sont fermées tout de suite, sur tous ses appareils, et ce compte ne pourra plus se connecter. Ses travaux restent dans l'organisation.",
+    "confirmBody": "Ses sessions sont fermées tout de suite, sur tous ses appareils, et ce compte ne pourra plus se connecter à votre organisation. Ses travaux restent ; il quitte les équipes de vos évènements.",
     "confirmRemove": "Retirer l'accès",
     "cancel": "Annuler",
     "removed": "Accès retiré. Les sessions de ce compte sont fermées.",
-    "inviteTitle": "Inviter une Planner",
-    "inviteEmail": "Adresse e-mail de la Planner",
+    "inviteTitle": "Inviter une personne",
     "inviteHint": "Elle reçoit un lien valable sept jours, à usage unique. Elle aura accès à tous les modules ; l'équipe, le journal, le RGPD et les réglages restent à vous.",
     "inviteSubmit": "Envoyer l'invitation",
     "inviteSent": "Invitation envoyée. Elle apparaît ci-dessous jusqu'à ce qu'elle soit acceptée.",
@@ -5670,7 +5722,31 @@
     "inviteMailSubject": "« {organization} » vous invite sur Symbola",
     "inviteMailBody": "Bonjour,\n\n« {organization} » vous invite à rejoindre son équipe sur Symbola, comme Planner. Ce lien est valable jusqu'au {date} et ne sert qu'une fois :\n{url}\n\nÀ bientôt,\nL'équipe Symbola",
     "pendingTitle": "Invitations en attente",
-    "pendingUntil": "{email}, valable jusqu'au {date}"
+    "pendingUntil": "{email} ({role}), valable jusqu'au {date}",
+    "inviteEmailAny": "Adresse e-mail",
+    "inviteRole": "Son rôle",
+    "inviteHintAccountant": "Un Comptable lit seulement les factures, avoirs, encaissements, journaux, exports et e-reporting ; la double authentification lui est exigée.",
+    "inviteMailBodyAccountant": "Bonjour,\n\n« {organization} » vous invite sur Symbola comme Comptable : vous lirez ses factures, avoirs, encaissements, journaux, exports et e-reporting, sans rien pouvoir modifier. Une double authentification vous sera demandée à chaque connexion. Ce lien est valable jusqu'au {date} et ne sert qu'une fois :\n{url}\n\nÀ bientôt,\nL'équipe Symbola",
+    "transfer": "Transférer la propriété à {email}",
+    "transferConfirmTitle": "Transférer la propriété à {email} ?",
+    "transferConfirmBody": "Elle doit avoir la double authentification. Elle reçoit un lien valable sept jours ; quand elle confirme, elle devient Propriétaire et vous devenez Planner. Vous recevrez toutes les deux un e-mail.",
+    "transferConfirm": "Envoyer la demande de transfert",
+    "transferPendingTitle": "Transfert de propriété en attente",
+    "transferPendingBody": "{email} a jusqu'au {date} pour confirmer. D'ici là, vous restez Propriétaire.",
+    "transferCancel": "Annuler le transfert",
+    "transferOutcome": {
+      "sent": "Demande envoyée : la Planner confirme par le lien reçu par e-mail.",
+      "cancelled": "Transfert annulé : rien ne change.",
+      "mfa_missing": "Cette Planner n'a pas encore de double authentification : demandez-lui de l'installer (clé d'accès ou application), puis recommencez.",
+      "not_planner": "Seule une Planner active de l'équipe peut devenir Propriétaire.",
+      "not_owner": "Seule la Propriétaire transfère la propriété.",
+      "send_failed": "La demande n'a pas pu partir : rien ne change. Réessayez dans quelques minutes."
+    },
+    "visibilityTitle": "Qui voit les évènements",
+    "visibilityLabel": "Toutes les Planners voient tous les évènements",
+    "visibilityHint": "Décoché, une Planner ne voit que les évènements dont elle fait partie de l'équipe (planner principal ou assistant). Vous voyez toujours tout.",
+    "visibilitySave": "Enregistrer",
+    "visibilitySaved": "Réglage enregistré."
   },
   "SignOutEverywhere": {
     "title": "Appareils connectés",
@@ -6082,7 +6158,10 @@
     "prepRemove": "Retirer",
     "prepRemoveItem": "Retirer la case {label}",
     "prepRemoveList": "Retirer la liste « {name} »",
-    "bankToVerify": "IBAN à vérifier"
+    "bankToVerify": "IBAN à vérifier",
+    "helperWelcome": "Bonjour {name} : voici le jour J, en renfort.",
+    "byHelper": "{name}, renfort",
+    "syncLinkRevoked": "{count, plural, =0 {Votre lien de renfort a été retiré ou a expiré.} one {Votre lien de renfort a été retiré ou a expiré : # action reste sur ce téléphone, elle ne sera pas envoyée. Prévenez la planner.} other {Votre lien de renfort a été retiré ou a expiré : # actions restent sur ce téléphone, elles ne seront pas envoyées. Prévenez la planner.}}"
   },
   "Offline": {
     "title": "Hors ligne",
@@ -6840,7 +6919,11 @@
       "questionnaire": "Répondre au questionnaire",
       "available": "Je suis disponible",
       "unavailable": "Je ne suis pas disponible",
-      "roadmap": "Voir ma feuille de route"
+      "roadmap": "Voir ma feuille de route",
+      "dayOf": "Ouvrir le jour J",
+      "confirm": "Confirmer le transfert",
+      "notMe": "Ce n'est pas moi",
+      "account": "Vérifier mon compte"
     },
     "footerNote": "Envoyé avec Symbola",
     "symbolaFooter": "Symbola — la suite des organisateurs d'évènements",
@@ -6869,7 +6952,11 @@
       "reference": "SYM-2027-7KQ4XM",
       "iban": "FR76 3000 6000 0112 3456 7890 189",
       "bic": "AGRIFRPP",
-      "penalties": "Merci de régulariser dès que possible."
+      "penalties": "Merci de régulariser dès que possible.",
+      "validFrom": "11 juin 2027",
+      "device": "Safari sur iPhone",
+      "dateTime": "18 novembre 2026 à 21:04",
+      "change": "L'adresse e-mail de votre compte a été modifiée"
     },
     "event": {
       "coupleClient": "votre mariage",
@@ -6914,12 +7001,29 @@
       "actionCode": {
         "subject": "Votre code pour signer : {code}",
         "body": "Bonjour {name},\n\nVotre code pour accepter et signer votre proposition sur Symbola : {code}\n\nIl est valable {minutes} minutes et ne sert qu'une fois. Si vous ne l'avez pas demandé, ignorez ce message et prévenez votre interlocuteur."
+      },
+      "accountAlert": {
+        "newDeviceSubject": "Nouvelle connexion à Symbola",
+        "newDeviceBody": "Bonjour,\n\nUne connexion à votre compte Symbola vient d'avoir lieu depuis un nouvel appareil : {device}, le {date}.\n\nSi c'était vous, il n'y a rien à faire. Sinon, fermez toutes vos sessions et vérifiez votre compte :\n\n{link}",
+        "identitySubject": "Votre compte Symbola a été modifié",
+        "identityBody": "Bonjour,\n\n{change} le {date}.\n\nSi c'était vous, il n'y a rien à faire. Sinon, ouvrez votre compte et sécurisez-le sans attendre :\n\n{link}",
+        "notMe": "Ce n'est pas moi",
+        "account": "Vérifier mon compte"
+      },
+      "ownershipDone": {
+        "subject": "Transfert de propriété de {organization} effectué",
+        "body": "Bonjour,\n\nLe transfert de propriété de {organization} est fait : {owner} en est désormais la Propriétaire, et l'ancienne Propriétaire devient Planner. Si vous ne l'attendiez pas, répondez à la Propriétaire ou écrivez au support de Symbola."
       }
     },
     "followUpOptOut": "Vous ne souhaitez plus de nouvelles ? Répondez simplement à ce message.",
     "booking": {
       "withPage": "Choisissez le moment qui vous convient sur ma page de rendez-vous : {url}",
       "manual": "Voici quelques créneaux possibles :\n- le … à …\n- ou le … à …\nDites-moi ce qui vous convient le mieux."
+    },
+    "identityChange": {
+      "email": "L'adresse e-mail de votre compte Symbola a été modifiée",
+      "mfa": "Un facteur de double authentification de votre compte Symbola a été ajouté ou retiré",
+      "password": "Le mot de passe de votre compte Symbola a été réinitialisé"
     }
   },
   "RecipientsGuard": {
@@ -6947,7 +7051,8 @@
       "appointments": "Rendez-vous",
       "prospects": "Demandes de contact",
       "vendors": "Prestataires",
-      "settlement": "Proposition et règlement"
+      "settlement": "Proposition et règlement",
+      "team": "Équipe et sécurité du compte"
     },
     "kinds": {
       "client_link": {
@@ -7049,6 +7154,22 @@
       "invoice_reminder": {
         "title": "Relance d'une échéance impayée",
         "description": "Part tout seul après une échéance non réglée, selon vos réglages ; s'arrête dès que le client déclare son virement."
+      },
+      "day_helper_link": {
+        "title": "Lien du renfort du jour J",
+        "description": "Part quand vous ajoutez un renfort à un évènement : son lien personnel devient le bouton « Ouvrir le jour J », valable de la veille au lendemain."
+      },
+      "ownership_transfer": {
+        "title": "Transfert de propriété",
+        "description": "Part à la Planner que vous désignez comme nouvelle Propriétaire : le lien devient le bouton « Confirmer le transfert », valable sept jours."
+      },
+      "new_device_login": {
+        "title": "Nouvelle connexion",
+        "description": "Part à une personne de l'équipe qui se connecte depuis un appareil inconnu : le lien devient le bouton « Ce n'est pas moi », qui ferme toutes ses sessions."
+      },
+      "identity_changed": {
+        "title": "Compte modifié",
+        "description": "Part quand l'adresse e-mail, la double authentification ou le mot de passe d'un compte change : à l'ancienne adresse en cas de changement d'adresse."
       }
     },
     "variables": {
@@ -7658,7 +7779,8 @@
       "vendor": "Prestataire archivé.",
       "appointmentType": "Type de rendez-vous mis à la corbeille.",
       "appointment": "Rendez-vous mis à la corbeille."
-    }
+    },
+    "eventAssistant": "Comme assistant de cet évènement, vous ne pouvez pas le supprimer : demandez à son planner principal ou à la Propriétaire."
   },
   "Drafts": {
     "found": "Brouillon du {date} retrouvé.",
@@ -9525,5 +9647,135 @@
     "pdfIntermediaryTitle": "Prestations facturées directement par les prestataires (pour information, hors du total) :",
     "pdfCommissionsTitle": "Commissions perçues par l'organisatrice :",
     "pdfLine": "{label} : {amount}"
+  },
+  "Devices": {
+    "label": "{browser} sur {system}",
+    "browser": {
+      "edge": "Edge",
+      "opera": "Opera",
+      "samsung": "Samsung Internet",
+      "firefox": "Firefox",
+      "chrome": "Chrome",
+      "safari": "Safari",
+      "other": "Un navigateur"
+    },
+    "system": {
+      "iphone": "iPhone",
+      "ipad": "iPad",
+      "android": "Android",
+      "mac": "Mac",
+      "windows": "Windows",
+      "linux": "Linux",
+      "other": "un appareil inconnu"
+    }
+  },
+  "Accounting": {
+    "menuLabel": "Comptabilité",
+    "menu": {
+      "documents": "Factures et avoirs",
+      "payments": "Encaissements",
+      "eReporting": "E-reporting",
+      "ledger": "Journaux et exports",
+      "sessions": "Mes sessions",
+      "account": "Mon compte"
+    },
+    "title": "Comptabilité de {organization}",
+    "subtitle": "Votre accès est en lecture seule : vous consultez et téléchargez, rien ne se modifie d'ici.",
+    "readOnly": "Lecture seule",
+    "documentsTitle": "Factures et avoirs",
+    "noDocuments": "Aucune facture ni aucun avoir pour cette année.",
+    "year": "Année",
+    "number": "Numéro",
+    "kind": "Pièce",
+    "date": "Date",
+    "amount": "Montant TTC",
+    "download": "Télécharger",
+    "downloadLabel": "Télécharger {number}",
+    "kinds": {
+      "invoice": "Facture",
+      "credit_note": "Avoir",
+      "commission_invoice": "Facture de commission"
+    },
+    "linksTitle": "Journaux, encaissements et e-reporting",
+    "links": {
+      "payments": "Encaissements",
+      "ledger": "Journaux et écritures (CSV)",
+      "eReporting": "E-reporting"
+    },
+    "moduleUnavailable": "Le module Devis et factures n'est pas souscrit par l'organisation : rien à consulter pour l'instant.",
+    "documentsTable": "Tableau des factures et avoirs"
+  },
+  "Ownership": {
+    "title": "Devenir Propriétaire",
+    "body": "La Propriétaire de l'organisation vous propose de prendre sa place : vous gérerez l'équipe, l'abonnement, le RGPD et les réglages ; elle deviendra Planner.",
+    "confirm": "Je deviens Propriétaire",
+    "done": "C'est fait : vous êtes la Propriétaire de l'organisation.",
+    "openTeam": "Voir l'équipe",
+    "signInFirst": "Connectez-vous d'abord avec votre double authentification, puis rouvrez le lien reçu par e-mail.",
+    "signIn": "Se connecter",
+    "mfaRequired": "Pour confirmer, reconnectez-vous avec votre double authentification (clé d'accès ou application), puis rouvrez le lien reçu par e-mail.",
+    "outcome": {
+      "invalid": "Ce lien n'est plus valable : il a déjà servi, il a été annulé ou il a plus de sept jours.",
+      "not_recipient": "Ce lien est destiné à une autre personne de l'équipe.",
+      "mfa_required": "Pour confirmer, reconnectez-vous avec votre double authentification, puis rouvrez le lien."
+    }
+  },
+  "EventTeam": {
+    "title": "Équipe de l'évènement",
+    "subtitle": "Le planner principal reçoit les alertes et récapitulatifs ; les assistants travaillent sur tout l'évènement, sauf sa suppression.",
+    "back": "Retour à {event}",
+    "untitled": "l'évènement",
+    "manage": "Gérer l'équipe",
+    "lead": "Planner principal",
+    "assistants": "Assistants",
+    "helpers": "Renforts du jour J",
+    "noLead": "Aucun",
+    "noAssistant": "Aucun",
+    "noHelper": "Aucun renfort pour l'instant.",
+    "membersTitle": "Planners de l'évènement",
+    "roles": {
+      "lead": "Planner principal",
+      "assistant": "Assistant"
+    },
+    "notInTeam": "Pas dans l'équipe",
+    "makeLead": "Nommer planner principal",
+    "makeLeadLabel": "Nommer {email} planner principal",
+    "addAssistant": "Ajouter comme assistant",
+    "addAssistantLabel": "Ajouter {email} comme assistant",
+    "remove": "Retirer de l'équipe",
+    "removeLabel": "Retirer {email} de l'équipe",
+    "formerMembers": "Une personne dont l'accès a été retiré n'apparaît plus.",
+    "helpersTitle": "Renforts du jour J",
+    "helpersIntro": "Un renfort reçoit un lien personnel, sans compte : il ouvre seulement le mode Jour J de cet évènement (programme en direct, annuaire, documents gardés, pointage, main courante, listes), de la veille au lendemain, avec un code envoyé par e-mail. Ni budget, ni devis, ni invités, ni réglages.",
+    "helperName": "Nom du renfort",
+    "helperEmail": "Son e-mail (le code d'ouverture y part)",
+    "helperPhone": "Son téléphone (facultatif, pour l'annuaire)",
+    "helperHint": "Le lien part aussitôt par e-mail. Vous pouvez le retirer à tout moment : ses actions encore en attente seront refusées.",
+    "helperAdd": "Ajouter le renfort",
+    "helperSent": "Renfort ajouté : son lien est parti par e-mail.",
+    "helperValid": "Lien valable du {from} au {until} inclus",
+    "helperStatus": {
+      "expired": "Lien expiré",
+      "revoked": "Lien retiré"
+    },
+    "helperRevoke": "Retirer le lien",
+    "helperRevokeLabel": "Retirer le lien de {name}",
+    "helperNeedsDate": "Donnez une date à l'évènement pour ajouter un renfort : son lien suit cette date.",
+    "helperError": {
+      "name": "Indiquez le nom du renfort.",
+      "email": "Cette adresse e-mail n'est pas valide.",
+      "phone": "Ce numéro de téléphone n'est pas valide.",
+      "date": "L'évènement n'a pas encore de date.",
+      "demo": "Un essai n'envoie jamais d'e-mail à un tiers.",
+      "quota": "Le plafond d'envois de l'heure est atteint : réessayez un peu plus tard.",
+      "template": "Le modèle de l'e-mail du renfort a une variable sans valeur : corrigez-le dans les réglages des e-mails.",
+      "failed": "Le renfort n'a pas pu être ajouté. Réessayez dans quelques minutes."
+    },
+    "outcome": {
+      "saved": "Équipe enregistrée.",
+      "removed": "Retiré de l'équipe.",
+      "helper_revoked": "Lien retiré : le renfort n'a plus accès, ses actions en attente seront refusées.",
+      "invalid": "Cette personne ne peut pas rejoindre l'équipe de l'évènement."
+    }
   }
 }

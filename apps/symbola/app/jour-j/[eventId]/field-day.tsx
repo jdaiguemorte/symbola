@@ -63,6 +63,9 @@ export function FieldDay(props: {
   initial: DaySnapshot;
   settings: FieldSettings;
   showHandovers: boolean;
+  // Lot 52 (EVT-06, D3) : l'écran d'un renfort du jour J (sans décalage du programme ni remise ; un lien
+  // retiré ou expiré le lui dit).
+  helper?: boolean;
   // Lot 48a (PRE-10, SEC-27) : remises dont le prestataire a un IBAN changé, pas encore vérifié.
   bankToVerify?: string[];
 }) {
@@ -100,8 +103,13 @@ export function FieldDay(props: {
   const dayItems = items.filter((item) => dateOf(item) === day);
   const dayMoments = props.moments.filter((moment) => moment.date === day);
   const actualOf = new Map(view.actuals.map((actual) => [actual.itemId, actual]));
-  const people = new Map(sync.snapshot.state.people.map((person) => [person.id, person.name]));
-  const who = (id: string | null) => (id === userId ? t("you") : (people.get(id ?? "") ?? t("teammate")));
+  const people = new Map(sync.snapshot.state.people.map((person) => [person.id, person]));
+  const who = (id: string | null) => {
+    if (id === userId) return t("you");
+    const person = people.get(id ?? "");
+    if (!person || !person.name) return t("teammate");
+    return person.helper ? t("byHelper", { name: person.name }) : person.name;
+  };
   const timeOf = (iso: string) => new Intl.DateTimeFormat(undefined, { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(iso));
 
   const spans = new Map(timelineSpans(dayItems).map((span) => [span.id, span]));
@@ -139,7 +147,7 @@ export function FieldDay(props: {
       timeZone,
       thresholdMinutes: settings.shiftThresholdMinutes,
     });
-    if (proposal) setShift({ lateItemId: item.id, keyMomentId: item.keyMomentId, label: item.label, minutes: proposal.minutes, candidates: proposal.itemIds, itemIds: new Set(proposal.itemIds), excludedSlots: new Set() });
+    if (proposal && !props.helper) setShift({ lateItemId: item.id, keyMomentId: item.keyMomentId, label: item.label, minutes: proposal.minutes, candidates: proposal.itemIds, itemIds: new Set(proposal.itemIds), excludedSlots: new Set() });
   }
 
   const shiftSlots = shift ? concernedVendorSlots(items.map((entry) => ({ id: entry.id, keyMomentId: entry.keyMomentId, startTime: entry.startTime, endTime: entry.endTime, vendorSlotIds: entry.vendorSlotIds })), [...shift.itemIds]) : [];
@@ -175,7 +183,7 @@ export function FieldDay(props: {
   const pendingCount = sync.pending.length;
   const statusText =
     sync.status === "session"
-      ? t("syncSession", { count: pendingCount })
+      ? t(props.helper ? "syncLinkRevoked" : "syncSession", { count: pendingCount })
       : pendingCount > 0
         ? sync.status === "offline" || (typeof navigator !== "undefined" && !navigator.onLine)
           ? t("syncOffline", { count: pendingCount })
@@ -214,7 +222,7 @@ export function FieldDay(props: {
     <>
       <p role="status" className={`field-sync${pendingCount > 0 ? " field-sync-pending" : ""}`} data-pending={pendingCount}>
         {statusText}
-        {sync.status === "session" ? (
+        {sync.status === "session" && !props.helper ? (
           <>
             {" "}
             <a href={`/login?retour=/jour-j/${eventId}`}>{t("copyLogin")}</a>

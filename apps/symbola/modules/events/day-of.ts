@@ -64,9 +64,14 @@ async function eventExists(tx: Tx, eventId: string): Promise<boolean> {
   return Boolean(row);
 }
 
+// Lot 52 (EVT-06, D3) : l'auteur d'une action est un compte de l'équipe, ou le lien du renfort du jour J.
+function author(input: { userId: string | null; linkId?: string | null | undefined }): { userId: string | null; linkId: string | null } {
+  return input.linkId ? { userId: null, linkId: input.linkId } : { userId: input.userId, linkId: null };
+}
+
 // —— Pointage (JRJ-05, JRJ-08) ————————————————————————————————————————————————————————————
 
-export async function recordDayCheckpoint(input: { organizationId: string; eventId: string; userId: string; action: DayCheckpointAction; now?: Date }): Promise<DayActionResult> {
+export async function recordDayCheckpoint(input: { organizationId: string; eventId: string; userId: string | null; linkId?: string | null; action: DayCheckpointAction; now?: Date }): Promise<DayActionResult> {
   const deviceAt = deviceInstant(input.action.deviceAt, input.now ?? new Date());
   if (!deviceAt) return rejected("time");
   return inOrganization(input.organizationId, async (tx) => {
@@ -74,7 +79,7 @@ export async function recordDayCheckpoint(input: { organizationId: string; event
     if (!item) return rejected("item");
     const inserted = await tx
       .insert(dayCheckpoints)
-      .values({ organizationId: input.organizationId, eventId: input.eventId, programItemId: item.id, kind: input.action.checkpoint, deviceAt, userId: input.userId, actionId: input.action.actionId })
+      .values({ organizationId: input.organizationId, eventId: input.eventId, programItemId: item.id, kind: input.action.checkpoint, deviceAt, ...author(input), actionId: input.action.actionId })
       .onConflictDoNothing({ target: [dayCheckpoints.organizationId, dayCheckpoints.actionId] })
       .returning({ id: dayCheckpoints.id });
     return inserted.length > 0 ? APPLIED : DUPLICATE;
@@ -83,7 +88,7 @@ export async function recordDayCheckpoint(input: { organizationId: string; event
 
 // —— Main courante (JRJ-07) ———————————————————————————————————————————————————————————————
 
-export async function recordDayIncident(input: { organizationId: string; eventId: string; userId: string; action: DayIncidentAction; now?: Date }): Promise<DayActionResult> {
+export async function recordDayIncident(input: { organizationId: string; eventId: string; userId: string | null; linkId?: string | null; action: DayIncidentAction; now?: Date }): Promise<DayActionResult> {
   const deviceAt = deviceInstant(input.action.deviceAt, input.now ?? new Date());
   if (!deviceAt) return rejected("time");
   const body = input.action.body.trim();
@@ -97,7 +102,7 @@ export async function recordDayIncident(input: { organizationId: string; eventId
     }
     const inserted = await tx
       .insert(dayIncidents)
-      .values({ organizationId: input.organizationId, eventId: input.eventId, keyMomentId, body, severity: input.action.severity, deviceAt, userId: input.userId, actionId: input.action.actionId })
+      .values({ organizationId: input.organizationId, eventId: input.eventId, keyMomentId, body, severity: input.action.severity, deviceAt, ...author(input), actionId: input.action.actionId })
       .onConflictDoNothing({ target: [dayIncidents.organizationId, dayIncidents.actionId] })
       .returning({ id: dayIncidents.id });
     return inserted.length > 0 ? APPLIED : DUPLICATE;
@@ -107,7 +112,7 @@ export async function recordDayIncident(input: { organizationId: string; eventId
 // —— Case d'une liste (JRJ-06) ————————————————————————————————————————————————————————————
 
 // La première coche reste (heure, personne) : une seconde coche de la même case est ignorée.
-export async function recordDayCheck(input: { organizationId: string; eventId: string; userId: string; action: DayCheckAction; now?: Date }): Promise<DayActionResult> {
+export async function recordDayCheck(input: { organizationId: string; eventId: string; userId: string | null; linkId?: string | null; action: DayCheckAction; now?: Date }): Promise<DayActionResult> {
   const deviceAt = deviceInstant(input.action.deviceAt, input.now ?? new Date());
   if (!deviceAt) return rejected("time");
   return inOrganization(input.organizationId, async (tx) => {
@@ -120,7 +125,7 @@ export async function recordDayCheck(input: { organizationId: string; eventId: s
     if (row.checkedAt) return DUPLICATE;
     const updated = await tx
       .update(dayChecklistItems)
-      .set({ checkedAt: deviceAt, checkedBy: input.userId, checkActionId: input.action.actionId, updatedAt: new Date() })
+      .set({ checkedAt: deviceAt, checkedBy: input.linkId ? null : input.userId, checkedByLinkId: input.linkId ?? null, checkActionId: input.action.actionId, updatedAt: new Date() })
       .where(and(eq(dayChecklistItems.id, row.id), isNull(dayChecklistItems.checkedAt)))
       .returning({ id: dayChecklistItems.id });
     return updated.length > 0 ? APPLIED : DUPLICATE;
@@ -249,7 +254,8 @@ export async function dayPhotoActionExists(organizationId: string, actionId: str
 export async function insertDayPhoto(input: {
   organizationId: string;
   eventId: string;
-  userId: string;
+  userId: string | null;
+  linkId?: string | null;
   actionId: string;
   takenAt: Date;
   target: DayPhotoTarget;
@@ -270,7 +276,8 @@ export async function insertDayPhoto(input: {
         contentType: input.stored?.contentType ?? null,
         sizeBytes: input.stored?.sizeBytes ?? null,
         takenAt: input.takenAt,
-        takenBy: input.userId,
+        takenBy: input.linkId ? null : input.userId,
+        takenByLinkId: input.linkId ?? null,
         actionId: input.actionId,
       })
       .onConflictDoNothing({ target: [dayPhotos.organizationId, dayPhotos.actionId] })
@@ -282,14 +289,15 @@ export async function insertDayPhoto(input: {
 }
 
 // Le fichier d'une photo de cet évènement (servi par l'app après contrôle des droits, ADR 0027).
-export async function findDayPhotoFile(organizationId: string, eventId: string, photoId: string): Promise<{ key: string; contentType: string } | null> {
+export async function findDayPhotoFile(organizationId: string, eventId: string, photoId: string, options: { withoutHandovers?: boolean } = {}): Promise<{ key: string; contentType: string } | null> {
   if (!DAY_UUID.test(photoId)) return null;
   const [row] = await inOrganization(organizationId, (tx) =>
     tx
-      .select({ key: dayPhotos.storageKey, contentType: dayPhotos.contentType })
+      .select({ key: dayPhotos.storageKey, contentType: dayPhotos.contentType, subject: dayPhotos.subject })
       .from(dayPhotos)
       .where(and(eq(dayPhotos.id, photoId), eq(dayPhotos.eventId, eventId), eq(dayPhotos.state, "stored"))),
   );
+  if (options.withoutHandovers && row?.subject === "handover") return null;
   return row?.key && row.contentType ? { key: row.key, contentType: row.contentType } : null;
 }
 
@@ -310,7 +318,8 @@ function toPhoto(row: typeof dayPhotos.$inferSelect): DayPhoto {
     state: row.state as DayPhoto["state"],
     rejection: (row.rejection as DayPhotoRejection | null) ?? null,
     takenAt: row.takenAt.toISOString(),
-    takenBy: row.takenBy,
+    // Lot 52 : un compte de l'équipe, ou le lien du renfort (nommé par l'état partagé).
+    takenBy: row.takenBy ?? row.takenByLinkId ?? "",
   };
 }
 
@@ -365,7 +374,7 @@ export async function findDayRecords(organizationId: string, eventId: string): P
     const photos = photoRows.map(toPhoto);
     const photosOf = (subject: DayPhotoSubject, id: string) => photos.filter((photo) => photo.subject === subject && photo.subjectId === id);
     return {
-      checkpoints: checkpointRows.map((row) => ({ id: row.id, itemId: row.programItemId, kind: row.kind as DayCheckpoint["kind"], deviceAt: row.deviceAt.toISOString(), userId: row.userId })),
+      checkpoints: checkpointRows.map((row) => ({ id: row.id, itemId: row.programItemId, kind: row.kind as DayCheckpoint["kind"], deviceAt: row.deviceAt.toISOString(), userId: row.userId ?? row.linkId ?? "" })),
       shifts: shiftRows.map(toShift),
       incidents: incidentRows.map((row) => ({
         id: row.id,
@@ -374,7 +383,7 @@ export async function findDayRecords(organizationId: string, eventId: string): P
         body: row.body,
         severity: (row.severity as DayIncident["severity"]) ?? null,
         deviceAt: row.deviceAt.toISOString(),
-        userId: row.userId,
+        userId: row.userId ?? row.linkId ?? "",
         photos: photosOf("incident", row.id),
       })),
       checklists: listRows.map((list) => ({
@@ -385,7 +394,7 @@ export async function findDayRecords(organizationId: string, eventId: string): P
         position: list.position,
         items: itemRows
           .filter((item) => item.checklistId === list.id)
-          .map((item) => ({ id: item.id, label: item.label, position: item.position, checkedAt: item.checkedAt?.toISOString() ?? null, checkedBy: item.checkedBy, photos: photosOf("checklist_item", item.id) })),
+          .map((item) => ({ id: item.id, label: item.label, position: item.position, checkedAt: item.checkedAt?.toISOString() ?? null, checkedBy: item.checkedBy ?? item.checkedByLinkId ?? (item.checkedAt ? "" : null), photos: photosOf("checklist_item", item.id) })),
       })),
       photos,
     };

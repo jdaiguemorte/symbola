@@ -62,6 +62,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "mealTypes", group: "events", audience: "team", module: "guests", path: "/events/parametres/repas", capture: false },
   // Lot 51 (JRJ-06, CHR-08) : modèles des listes du jour J ; import d'un chrono (onglet Programme).
   { key: "dayChecklists", group: "events", audience: "team", module: "events", path: "/events/parametres/listes-jour-j", capture: false },
+  // Lot 52 (EVT-06) : l'équipe de l'évènement et ses renforts du jour J (adresse d'un évènement : pas de capture).
+  { key: "eventTeam", group: "events", audience: "team", module: "events", path: "/events", capture: false },
   { key: "programImport", group: "events", audience: "team", module: "events", path: null, capture: false },
   // Lot 46 (RDV-01 à RDV-04, EVT-10) : rendez-vous.
   { key: "appointmentsList", group: "appointments", audience: "team", module: "appointments", path: "/rendez-vous", capture: false },
@@ -113,6 +115,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "home", group: "company", audience: "team", path: "/", tour: "hub", capture: true },
   { key: "settings", group: "company", audience: "team", path: "/parametres", capture: true },
   { key: "profile", group: "company", audience: "team", path: "/profil", capture: true },
+  // Lot 52 (HUB-05) : « Mes sessions » (appareils du compte : pas de capture).
+  { key: "sessions", group: "company", audience: "team", path: "/securite", capture: false },
   { key: "search", group: "company", audience: "team", path: "/recherche", capture: true },
   { key: "tutorials", group: "company", audience: "team", path: "/tutoriels", capture: true },
   { key: "setup", group: "company", audience: "team", path: null, capture: false },

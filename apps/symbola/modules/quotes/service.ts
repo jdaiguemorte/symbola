@@ -320,6 +320,7 @@ import {
   type QuoteVersionRow,
   deleteCommissionRow,
   deletePlannerFeeRow,
+  findCommissionInvoiceIds,
   findCommissionInvoiceRow,
   findCommissionRows,
   findPlannerFeeRow,
@@ -5173,6 +5174,12 @@ export async function getCommissionInvoice(organizationId: string, invoiceId: st
   const row = UUID_PATTERN.test(invoiceId) ? await findCommissionInvoiceRow(organizationId, invoiceId) : null;
   if (!row) throw new InvoiceNotFoundError();
   return toInvoiceView(row, "", []);
+}
+
+// Lot 52 (HUB-04 ; décision de Julien du 19/11) : parmi les factures de la comptabilité, celles qui
+// facturent une commission au prestataire ; leur original se sert par /devis/argent/factures.
+export async function commissionInvoiceIds(organizationId: string, invoiceIds: string[]): Promise<Set<string>> {
+  return new Set(await findCommissionInvoiceIds(organizationId, invoiceIds.filter((id) => UUID_PATTERN.test(id))));
 }
 
 export async function getCommissionInvoicePdf(organizationId: string, invoiceId: string, render: RenderInvoiceOriginal, locale: DocumentLocale = "fr"): Promise<{ pdf: Buffer; number: string; reconstructed: boolean }> {

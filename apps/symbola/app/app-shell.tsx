@@ -22,11 +22,14 @@ import {
   LifeBuoy,
   ListChecks,
   Settings,
+  ShieldCheck,
   Wallet,
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { parisToday } from "@symbola/i18n";
-import { listOrganizations } from "@symbola/auth";
+import { isMfaPromptDue, listOrganizations, mfaPromptDismissedAt } from "@symbola/auth";
+import { accountCenterUrl } from "@/lib/identity";
+import { MfaPromptBanner } from "./securite/mfa-prompt";
 import { appDatabase } from "@symbola/db/client";
 import {
   getDocumentHeader,
@@ -508,6 +511,81 @@ export async function AppShell({ children }: { children: ReactNode }) {
       ].filter((group) => group.items.length > 0)
     : [];
 
+  // Lot 52 (HUB-04 ; ADR 0094) — le Comptable : un menu réduit à ses écrans de lecture comptable.
+  if (auth.user.role === "accountant") {
+    const tAccounting = await getTranslations("Accounting");
+    return (
+      <div className="app-shell">
+        <a className="skip-link" href="#contenu">
+          {t("skipToContent")}
+        </a>
+        <AppSidebar brand={<Brand href="/comptable" />} menuLabel={t("menuOpen")} closeLabel={t("menuClose")}>
+          <nav aria-label={tAccounting("menuLabel")}>
+            <ul className="app-nav">
+              <li>
+                <AppNavLink href="/comptable" exact>
+                  <FileText {...iconProps} />
+                  {tAccounting("menu.documents")}
+                </AppNavLink>
+              </li>
+              {quotes ? (
+                <>
+                  <li>
+                    <AppNavLink href="/devis/encaissements">
+                      <Wallet {...iconProps} />
+                      {tAccounting("menu.payments")}
+                    </AppNavLink>
+                  </li>
+                  <li>
+                    <AppNavLink href="/devis/e-reporting">
+                      <Activity {...iconProps} />
+                      {tAccounting("menu.eReporting")}
+                    </AppNavLink>
+                  </li>
+                  <li>
+                    <AppNavLink href="/devis/parametres/archive">
+                      <BookUser {...iconProps} />
+                      {tAccounting("menu.ledger")}
+                    </AppNavLink>
+                  </li>
+                </>
+              ) : null}
+            </ul>
+            <ul className="app-nav app-nav-secondary">
+              <li>
+                <AppNavLink href="/securite">
+                  <ShieldCheck {...iconProps} />
+                  {tAccounting("menu.sessions")}
+                </AppNavLink>
+              </li>
+              <li>
+                <AppNavLink href="/profil">
+                  <UserCog {...iconProps} />
+                  {tAccounting("menu.account")}
+                </AppNavLink>
+              </li>
+            </ul>
+          </nav>
+          <div className="app-user">
+            <span>{t("connectedAs", { email: auth.user.email })}</span>
+            {logout}
+          </div>
+        </AppSidebar>
+        <HelpProvider>
+          <div className="app-main">
+            <NetworkStatus />
+            <NavigationSkeleton label={tLoading("label")} />
+            <span id="contenu" className="skip-target" tabIndex={-1} />
+            {children}
+          </div>
+        </HelpProvider>
+      </div>
+    );
+  }
+
+  // Lot 52 (SEC-02, D5) : la double authentification proposée à une Planner qui ne l'a pas.
+  const showMfaPrompt = isMfaPromptDue({ role: auth.user.role, mfaEnabled: auth.user.mfaEnabled, dismissedAt: auth.user.role === "member" && !auth.user.mfaEnabled ? await mfaPromptDismissedAt(appDatabase(), auth.user.id) : null, now: new Date() });
+
   if (isAdmin) {
     // Lot 13 (L13-HUB-17, ADR 0033) — console d'Administration : son propre menu,
     // sombre ; aucune donnée métier des organisations (ADR 0029).
@@ -767,6 +845,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             <HelpBar tutorial={helpBar.tutorial} invites={helpBar.invites} />
           ) : null}
           <NetworkStatus />
+          {showMfaPrompt ? <MfaPromptBanner accountCenter={accountCenterUrl()} /> : null}
           {/* Lot 39a (UX-07) : « Annuler » pendant dix secondes après une suppression. */}
           <UndoNotice />
           {/* Lot 39c (UX-15) : squelette d'écran au passage d'un écran à l'autre. */}

@@ -7,7 +7,7 @@ Le format est décrit dans `docs/export/format-v1.md`.
 
 | Entité | Champs | Schéma |
 | --- | --- | --- |
-| `organizations` | `id`, `name`, `language`, `siret`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [organizations.schema.json](hub/organizations.schema.json) |
+| `organizations` | `id`, `name`, `language`, `siret`, `allPlannersSeeAllEvents`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [organizations.schema.json](hub/organizations.schema.json) |
 | `organization_profiles` | `siren`, `address`, `logoKey`, `logoSizeBytes`, `legalForm`, `metier`, `metierPrecision`, `vatRegime`, `vatRateDefaultBasisPoints`, `annualEventVolume`, `replacedTools`, `completedAt`, `setupStep`, `setupCompletedAt`, `quoteFollowUpDays`, `prospectFollowUpDays`, `contactEmail`, `contactPhone`, `website`, `vatNumber`, `registration`, `shareCapitalCents`, `insurer`, `insurancePolicy`, `insuranceCoverage`, `mediatorName`, `mediatorUrl`, `generalTerms`, `postalCode`, `city`, `countryCode`, `vatOnDebits`, `vatOnDebitsFrom`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [organization_profiles.schema.json](hub/organization_profiles.schema.json) |
 | `organization_modules` | `moduleKey`, `enabled`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [organization_modules.schema.json](hub/organization_modules.schema.json) |
 | `vat_regime_changes` | `id`, `previousRegime`, `newRegime`, `effectiveDate`, `changedByUserId`, `createdAt`, `createdBy` | [vat_regime_changes.schema.json](hub/vat_regime_changes.schema.json) |
@@ -30,6 +30,9 @@ Le format est décrit dans `docs/export/format-v1.md`.
 Tables non exportées :
 
 - `sessions` — secret : sessions ouvertes (jetons hachés)
+- `known_devices` — sécurité : appareils déjà vus d'un compte, sans donnée métier ; oubliés après 30 jours
+- `ownership_transfers` — secret : demandes de transfert de propriété (jetons hachés) ; le transfert est au journal d'activité
+- `identity_change_alerts` — sécurité : alertes de changement d'identité d'un compte, gardées 30 jours
 - `invitations` — secret : invitations en attente (jetons hachés) ; une invitation se renvoie
 - `users` — identité : les comptes sont listés dans team_members ; leurs identifiants de connexion restent chez le fournisseur d'identité
 - `memberships` — identité : listées dans team_members
@@ -95,14 +98,14 @@ Tables non exportées :
 | `program_items` | `id`, `eventId`, `startTime`, `endTime`, `label`, `location`, `internalNote`, `responsible`, `keyMomentId`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy` | [program_items.schema.json](events/program_items.schema.json) |
 | `program_item_participants` | `id`, `programItemId`, `vendorSlotId`, `freeLabel`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [program_item_participants.schema.json](events/program_item_participants.schema.json) |
 | `program_versions` | `id`, `eventId`, `number`, `publishedAt`, `publishedByUserId`, `items`, `notifiedAt`, `notifiedCount`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [program_versions.schema.json](events/program_versions.schema.json) |
-| `day_checkpoints` | `id`, `eventId`, `programItemId`, `kind`, `deviceAt`, `userId`, `actionId`, `receivedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [day_checkpoints.schema.json](events/day_checkpoints.schema.json) |
+| `day_checkpoints` | `id`, `eventId`, `programItemId`, `kind`, `deviceAt`, `userId`, `linkId`, `actionId`, `receivedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [day_checkpoints.schema.json](events/day_checkpoints.schema.json) |
 | `day_shifts` | `id`, `eventId`, `keyMomentId`, `lateItemId`, `minutes`, `itemIds`, `vendorSlotIds`, `validatedAt`, `validatedBy`, `actionId`, `outcome`, `appliedAt`, `programVersion`, `notifiedAt`, `notifiedCount`, `receivedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [day_shifts.schema.json](events/day_shifts.schema.json) |
-| `day_incidents` | `id`, `eventId`, `keyMomentId`, `body`, `severity`, `deviceAt`, `userId`, `actionId`, `receivedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [day_incidents.schema.json](events/day_incidents.schema.json) |
+| `day_incidents` | `id`, `eventId`, `keyMomentId`, `body`, `severity`, `deviceAt`, `userId`, `linkId`, `actionId`, `receivedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [day_incidents.schema.json](events/day_incidents.schema.json) |
 | `day_checklists` | `id`, `eventId`, `keyMomentId`, `templateId`, `name`, `phase`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [day_checklists.schema.json](events/day_checklists.schema.json) |
-| `day_checklist_items` | `id`, `checklistId`, `label`, `position`, `checkedAt`, `checkedBy`, `checkActionId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [day_checklist_items.schema.json](events/day_checklist_items.schema.json) |
-| `day_photos` | `id`, `eventId`, `subject`, `subjectId`, `state`, `rejection`, `storageKey`, `contentType`, `sizeBytes`, `takenAt`, `takenBy`, `actionId`, `receivedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [day_photos.schema.json](events/day_photos.schema.json) |
+| `day_checklist_items` | `id`, `checklistId`, `label`, `position`, `checkedAt`, `checkedBy`, `checkedByLinkId`, `checkActionId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [day_checklist_items.schema.json](events/day_checklist_items.schema.json) |
+| `day_photos` | `id`, `eventId`, `subject`, `subjectId`, `state`, `rejection`, `storageKey`, `contentType`, `sizeBytes`, `takenAt`, `takenBy`, `takenByLinkId`, `actionId`, `receivedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [day_photos.schema.json](events/day_photos.schema.json) |
 | `day_reports` | `id`, `eventId`, `preparedAt`, `summary`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [day_reports.schema.json](events/day_reports.schema.json) |
-| `event_links` | `id`, `eventId`, `audience`, `personName`, `email`, `eventClientId`, `contactId`, `rubrics`, `budgetScope`, `vendorCandidateId`, `otpRequired`, `taskReminders`, `locale`, `customExpiresOn`, `renewalRequestedAt`, `lastOpenedAt`, `programVersionSeen`, `revokedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_links.schema.json](events/event_links.schema.json) |
+| `event_links` | `id`, `eventId`, `audience`, `personName`, `email`, `eventClientId`, `contactId`, `rubrics`, `budgetScope`, `vendorCandidateId`, `otpRequired`, `taskReminders`, `locale`, `phone`, `customExpiresOn`, `renewalRequestedAt`, `lastOpenedAt`, `programVersionSeen`, `revokedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_links.schema.json](events/event_links.schema.json) |
 | `event_link_shared_slots` | `id`, `linkId`, `vendorSlotId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_link_shared_slots.schema.json](events/event_link_shared_slots.schema.json) |
 | `event_document_links` | `id`, `eventId`, `documentId`, `expiresAt`, `revokedAt`, `createdByUserId`, `openCount`, `lastOpenedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_document_links.schema.json](events/event_document_links.schema.json) |
 | `event_decisions` | `id`, `eventId`, `kind`, `subjectId`, `slotId`, `title`, `note`, `snapshot`, `dueOn`, `status`, `choiceId`, `comment`, `decidedByLinkId`, `decidedByName`, `decidedAt`, `replacesDecisionId`, `engagedAt`, `requestedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_decisions.schema.json](events/event_decisions.schema.json) |
@@ -112,6 +115,7 @@ Tables non exportées :
 | `prospect_follow_ups` | `id`, `eventId`, `contactId`, `anchorMessageId`, `rank`, `readyAt`, `subject`, `body`, `sentAt`, `sentMessageId`, `stoppedAt`, `stopReason`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [prospect_follow_ups.schema.json](events/prospect_follow_ups.schema.json) |
 | `event_questionnaires` | `id`, `eventId`, `contactId`, `linkId`, `templateId`, `templateVersion`, `name`, `locale`, `questions`, `sentAt`, `finishedAt`, `seenAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_questionnaires.schema.json](events/event_questionnaires.schema.json) |
 | `questionnaire_answers` | `id`, `questionnaireId`, `itemKey`, `value`, `answeredAt`, `resolution`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [questionnaire_answers.schema.json](events/questionnaire_answers.schema.json) |
+| `event_team_members` | `id`, `eventId`, `userId`, `role`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_team_members.schema.json](events/event_team_members.schema.json) |
 
 Tables non exportées :
 

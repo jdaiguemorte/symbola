@@ -460,7 +460,7 @@ describe("L26 — Données de départ des liens personnels (POR-01, SEC-15, RGP-
   });
 
   it("expiration de départ : 30 jours (client), 7 jours (prestataire), 180 jours sans date", () => {
-    expect(starterLinkExpiry()).toEqual({ daysAfterEvent: { client: 30, vendor: 7, guest: 30 }, daysWithoutEventDate: 180 });
+    expect(starterLinkExpiry()).toEqual({ daysAfterEvent: { client: 30, vendor: 7, guest: 30, day_helper: 1 }, daysWithoutEventDate: 180, dayHelperDaysBefore: 1 });
   });
 
   it("CHR-04, lot 27a — rappels de départ : 7 jours avant, la veille, retard rappelé dans la semaine, de 9 h à 19 h", () => {

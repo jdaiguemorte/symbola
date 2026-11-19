@@ -1,6 +1,7 @@
 // Lot 10 (AIDE-08) — résultats de la recherche instantanée (JSON), pour la
 // boîte de recherche de l'équipe. Contrôles côté serveur : session complète,
 // rôle d'équipe, organisation ; le terme est validé par Zod.
+import { visibleEventScope } from "@/lib/event-visibility";
 import { z } from "zod";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { checkRateLimit, rateLimitedResponse } from "@/lib/rate-limit";
@@ -16,6 +17,6 @@ export async function GET(request: Request): Promise<Response> {
   if (!limited.allowed) return rateLimitedResponse(limited);
   const parsed = querySchema.safeParse(new URL(request.url).searchParams.get("q") ?? "");
   if (!parsed.success) return Response.json({ groups: [] }, { headers: { "Cache-Control": "private, no-store" } });
-  const groups = await runSearch({ organizationId: auth.user.organizationId, role: auth.user.role, term: parsed.data });
+  const groups = await runSearch({ organizationId: auth.user.organizationId, role: auth.user.role, scope: auth.user.role === "member" ? await visibleEventScope({ user: { id: auth.user.id, role: auth.user.role, organizationId: auth.user.organizationId } }) : null, term: parsed.data });
   return Response.json({ groups }, { headers: { "Cache-Control": "private, no-store" } });
 }

@@ -73,7 +73,8 @@ export class ConfidentialNoteForbiddenError extends Error {
   }
 }
 
-export type NoteViewer = { userId: string; role: "owner" | "member" | "admin" };
+// Lot 52 (HUB-04) : le Comptable n'est ni Propriétaire ni auteur ; il ne lit aucune note confidentielle.
+export type NoteViewer = { userId: string; role: "owner" | "member" | "admin" | "accountant" };
 
 export function canReadConfidentialNote(viewer: NoteViewer, authorUserId: string | null): boolean {
   return viewer.role === "owner" || (authorUserId !== null && viewer.userId === authorUserId);

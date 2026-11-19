@@ -40,6 +40,13 @@ export const EMAIL_TEMPLATE_KINDS = [
   "prospect_reply",
   "prospect_follow_up",
   "questionnaire_sent",
+  // Lot 52 (HUB-04, EVT-06, SEC-08 ; D1, D3, D6 ; ADR 0094) : connexion depuis un nouvel appareil (« Ce
+  // n'est pas moi »), changement d'adresse ou de facteur (à l'ancienne adresse), confirmation du transfert
+  // de propriété, lien du renfort du jour J.
+  "new_device_login",
+  "identity_changed",
+  "ownership_transfer",
+  "day_helper_link",
 ] as const;
 export type EmailTemplateKind = (typeof EMAIL_TEMPLATE_KINDS)[number];
 
@@ -58,7 +65,9 @@ export type EmailLocale = (typeof EMAIL_LOCALES)[number];
 // Lot 45 : « brochure » (le lien sécurisé de la brochure de l'organisation, valable 30 jours),
 // « booking_link » (la page de réservation des rendez-vous, ou des créneaux à compléter sans elle) et
 // « questionnaire » (le nom du questionnaire envoyé).
-export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "slot", "deadline", "link_available", "link_unavailable", "amount", "due_date", "reference", "iban", "bic", "penalties", "brochure", "booking_link", "questionnaire"] as const;
+// Lot 52 : « valid_from » (premier jour du lien du renfort), « device » (l'appareil de la connexion),
+// « date_time » (jour et heure, à Paris) et « change » (ce qui a changé dans le compte).
+export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "slot", "deadline", "link_available", "link_unavailable", "amount", "due_date", "reference", "iban", "bic", "penalties", "brochure", "booking_link", "questionnaire", "valid_from", "device", "date_time", "change"] as const;
 export type EmailVariable = (typeof EMAIL_VARIABLES)[number];
 export type EmailValues = Partial<Record<EmailVariable, string>>;
 
