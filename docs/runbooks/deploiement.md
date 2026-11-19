@@ -414,6 +414,31 @@ ces deux clés, l'app refuse de démarrer.
    ```
 4. Suivre ensuite « Mise à jour » comme d'habitude.
 
+## Lot 55 : adresse d'envoi des organisations et journal des envois (MSG-04, MSG-05, ADR 0101)
+
+Rien à faire au déploiement du lot : `SMTP_SENDER_MODE=shared` (défaut) garde l'expéditeur commun
+`SMTP_FROM`, et sans `EMAIL_DELIVERY_WEBHOOK` le journal des envois reste à « envoyé ». Les
+migrations 0191 (events) et 0192 (hub) sont en ajout seul.
+
+**Activation, une fois le service d'envoi choisi par Julien** (D2, `docs/etudes/service-envoi-emails.md`) :
+
+1. Signer le contrat de sous-traitance du service, l'ajouter à `docs/conformite/sous-traitants.md`
+   (DPO).
+2. Chez le registraire de `symbola.fr` : créer le sous-domaine d'envoi (`envoi.symbola.fr`, ou le
+   domaine choisi en D1) avec les enregistrements SPF, DKIM et DMARC donnés par le service, et le MX
+   de retour s'il en demande un ; attendre que le service le dise vérifié.
+3. Dans `.env.<environnement>` : `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` du service ;
+   `SMTP_FROM` sur le même domaine (e-mails de Symbola : codes, comptes) ; `SMTP_FROM_DOMAIN` ;
+   `SMTP_SENDER_MODE=organization`.
+4. Créer le webhook de remise vers `https://<environnement>/api/webhooks/envois` (types : remis,
+   rejeté, plainte), puis `EMAIL_DELIVERY_WEBHOOK=<adaptateur du service>` et son secret
+   (`EMAIL_DELIVERY_WEBHOOK_SECRET`, 32 caractères au moins) ; l'adaptateur du service est livré avec
+   le lot qui l'ajoute (le simulé est refusé en production).
+5. Redémarrer l'app, envoyer un essai depuis Paramètres › Modèles d'e-mails, vérifier l'expéditeur
+   et, dans Paramètres › Journal des envois, le statut « Remis ».
+
+Retour arrière : `SMTP_SENDER_MODE=shared` et redémarrage.
+
 ## Mise à jour (nouvelle version) : une commande (lot 40a, ADR 0075)
 
 1. La CI publie l'image de chaque commit fusionné sur `main`, taguée par son

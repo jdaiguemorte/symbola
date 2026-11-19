@@ -130,6 +130,12 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM}
+      # Lot 55 (MSG-04 révisée, MSG-05 ; ADR 0101) : adresse d'expédition des organisations et webhook
+      # de remise du service d'envoi (« shared » et vide tant que le service n'est pas choisi).
+      SMTP_FROM_DOMAIN: ${SMTP_FROM_DOMAIN:-envoi.symbola.fr}
+      SMTP_SENDER_MODE: ${SMTP_SENDER_MODE:-shared}
+      EMAIL_DELIVERY_WEBHOOK: ${EMAIL_DELIVERY_WEBHOOK:-}
+      EMAIL_DELIVERY_WEBHOOK_SECRET: ${EMAIL_DELIVERY_WEBHOOK_SECRET:-}
       # Signature en ligne (DEV-02, ADR 0026). SIGNATURE_PROVIDER vide =
       # « indisponible » en production, tant que Documenso n'est pas configuré.
       SIGNATURE_PROVIDER: ${SIGNATURE_PROVIDER:-}

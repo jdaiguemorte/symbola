@@ -372,6 +372,26 @@ Sans question ouverte (DPO-10, pour information).
   la liste des sous-traitants. Les notifications elles-mêmes (centre de l'application, e-mails à
   l'équipe) sont effacées 90 jours après leur création ; l'objet d'un e-mail ne dit que la sorte.
 
+## Question du 19 novembre 2026 (lot 55, messagerie et journal des envois)
+
+- **DPO-11 — Nouveau service d'envoi des e-mails (à choisir).** Pour envoyer chaque organisation
+  depuis sa propre adresse sur un sous-domaine de Symbola (`atelier-camille@envoi.symbola.fr`) et
+  recevoir les rapports de remise, Symbola remplacera IONOS par un service d'envoi transactionnel
+  européen (comparatif : Scaleway, Brevo, Mailjet, Lettermint ; recommandation : Scaleway, hébergé à
+  Paris, sans sous-traitant dédié). Il recevra l'adresse du destinataire et le contenu des e-mails,
+  comme IONOS aujourd'hui. Question : quelles vérifications attendez-vous avant la signature de son
+  contrat de sous-traitance (lieu d'hébergement, liste de ses sous-traitants, transferts) ?
+- **DPO-12 — Journal des envois gardé 13 mois.** Pour chaque e-mail envoyé au nom d'une organisation,
+  Symbola garde l'adresse du destinataire (et son empreinte), l'objet, la nature et le statut
+  (envoyé, remis, rejeté, plainte), jamais le corps, **13 mois** après l'envoi, puis l'efface. Il
+  sert à prévenir la planner d'une adresse rejetée (bandeau sur la fiche du contact) ; il est trouvé
+  et effacé par une demande RGPD. Question : la durée de 13 mois vous convient-elle ?
+- **Pour information — messagerie et push du portail.** Les messages d'un sujet (et leurs pièces
+  jointes) vivent avec l'évènement, déclarés au registre ; une note interne ne sort jamais vers un
+  client ou un prestataire ; l'e-mail qui annonce un message n'en reprend pas le contenu. Le push du
+  portail est facultatif et désactivé par défaut, avec les mêmes garanties que DPO-10 (message chiffré,
+  la sorte seulement, abonnement supprimé à la désactivation ou avec le lien).
+
 ## Pour information : relances des prospects (lot 45, 18 novembre 2026)
 
 Sans question ouverte. **Décision de Julien (18/11/2026)**, contraire à votre réponse 10 : les

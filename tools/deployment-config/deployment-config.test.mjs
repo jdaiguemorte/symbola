@@ -252,6 +252,23 @@ describe("DAT-08 — Clé du chiffrement au niveau du champ (socle des lots 46 e
   });
 });
 
+describe("MSG-04, MSG-05 — Adresse d'expédition et webhook de remise (lot 55, ADR 0101)", () => {
+  it("l'app reçoit le domaine d'envoi, le mode (« shared » par défaut) et le webhook (vide par défaut)", () => {
+    const app = readFileSync(new URL("../../infra/compose/docker-compose.prod.yml", import.meta.url), "utf8");
+    expect(app).toContain("SMTP_FROM_DOMAIN: ${SMTP_FROM_DOMAIN:-envoi.symbola.fr}");
+    expect(app).toContain("SMTP_SENDER_MODE: ${SMTP_SENDER_MODE:-shared}");
+    expect(app).toContain("EMAIL_DELIVERY_WEBHOOK: ${EMAIL_DELIVERY_WEBHOOK:-}");
+    expect(app).toContain("EMAIL_DELIVERY_WEBHOOK_SECRET: ${EMAIL_DELIVERY_WEBHOOK_SECRET:-}");
+  });
+
+  it("staging et production gardent l'expéditeur partagé tant que le service n'est pas choisi ; secret vide dans les exemples", () => {
+    for (const name of ["staging", "production"]) {
+      expect(envExample(name)).toMatch(/^SMTP_SENDER_MODE=shared$/m);
+      expect(envExample(name)).toMatch(/^EMAIL_DELIVERY_WEBHOOK_SECRET=$/m);
+    }
+  });
+});
+
 describe("ARC-09 — Clés VAPID des notifications push (lot 53, ADR 0095 et 0096)", () => {
   it("l'app reçoit les deux clés de son environnement, sans valeur par défaut (refus de démarrer si elles manquent)", () => {
     const app = serviceBlock(prodCompose, "symbola");
