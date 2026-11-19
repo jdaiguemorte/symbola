@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { monthsBefore, recipientHash } from "./email-deliveries";
 import { deliveryReference, messageIdDomain, parseDeliveryReference, proposeSenderLocalPart, senderLocalPartCandidates, senderLocalPartProblem } from "./sender-address-rules";
-import { configureDeliveryWebhookAdapter, currentDeliveryWebhookAdapter, signSimulatedWebhook, simulatedWebhookAdapter, SIMULATED_SIGNATURE_HEADER } from "./delivery-webhooks";
+import { adapterFromEnv, configureDeliveryWebhookAdapter, currentDeliveryWebhookAdapter, signSimulatedWebhook, simulatedWebhookAdapter, SIMULATED_SIGNATURE_HEADER } from "./delivery-webhooks";
 
 describe("MSG-05 — Échéance de la purge du journal des envois (13 mois)", () => {
   it("le même instant 13 mois plus tôt ; fin de mois ramenée au dernier jour (jamais de débordement)", () => {
@@ -74,22 +74,16 @@ describe("SEC-19 — Signature du webhook simulé (HMAC-SHA256 horodaté)", () =
     expect(verify(signSimulatedWebhook(secret, raw, now), raw)).toMatchObject({ ok: true, events: [{ reason: "other" }, { reason: "spam_complaint" }] });
   });
 
-  it("l'adaptateur en service suit EMAIL_DELIVERY_WEBHOOK ; un test peut en poser un autre", () => {
-    const saved = { kind: process.env.EMAIL_DELIVERY_WEBHOOK, secret: process.env.EMAIL_DELIVERY_WEBHOOK_SECRET };
+  it("l'adaptateur suit EMAIL_DELIVERY_WEBHOOK ; un test peut en poser un autre", () => {
+    expect(adapterFromEnv({ EMAIL_DELIVERY_WEBHOOK: "none", EMAIL_DELIVERY_WEBHOOK_SECRET: "" })).toBeNull();
+    expect(adapterFromEnv({ EMAIL_DELIVERY_WEBHOOK: "simulated", EMAIL_DELIVERY_WEBHOOK_SECRET: secret })?.name).toBe("simulated");
     try {
-      process.env.EMAIL_DELIVERY_WEBHOOK = "none";
-      expect(currentDeliveryWebhookAdapter()).toBeNull();
-      process.env.EMAIL_DELIVERY_WEBHOOK = "simulated";
-      process.env.EMAIL_DELIVERY_WEBHOOK_SECRET = secret;
-      expect(currentDeliveryWebhookAdapter()?.name).toBe("simulated");
       configureDeliveryWebhookAdapter(null);
       expect(currentDeliveryWebhookAdapter()).toBeNull();
+      configureDeliveryWebhookAdapter(simulatedWebhookAdapter(secret));
+      expect(currentDeliveryWebhookAdapter()?.name).toBe("simulated");
     } finally {
       configureDeliveryWebhookAdapter(undefined);
-      if (saved.kind === undefined) delete process.env.EMAIL_DELIVERY_WEBHOOK;
-      else process.env.EMAIL_DELIVERY_WEBHOOK = saved.kind;
-      if (saved.secret === undefined) delete process.env.EMAIL_DELIVERY_WEBHOOK_SECRET;
-      else process.env.EMAIL_DELIVERY_WEBHOOK_SECRET = saved.secret;
     }
   });
 });

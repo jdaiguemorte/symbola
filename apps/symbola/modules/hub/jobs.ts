@@ -43,7 +43,9 @@ function store(message: SendMailInput, tracking?: DeliveryTracking): StoredEmail
 }
 
 function restore(stored: StoredEmail): SendMailInput {
-  const { attachments, tracking: _tracking, ...rest } = stored;
+  const { attachments, ...rest } = stored;
+  // La ligne du journal (lot 55) ne part pas au serveur d'envoi.
+  delete (rest as { tracking?: DeliveryTracking }).tracking;
   return {
     ...rest,
     ...(attachments ? { attachments: attachments.map((attachment) => ({ filename: attachment.filename, contentType: attachment.contentType, content: Buffer.from(attachment.contentBase64, "base64"), ...(attachment.cid ? { cid: attachment.cid } : {}) })) } : {}),

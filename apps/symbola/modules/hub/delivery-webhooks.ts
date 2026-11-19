@@ -85,11 +85,14 @@ let configured: EmailDeliveryWebhookAdapter | null | undefined;
 
 // L'adaptateur en service, d'après EMAIL_DELIVERY_WEBHOOK ; null : pas de webhook (le journal reste à
 // « envoyé »). Un test peut en poser un autre (undefined : retour à l'environnement).
-export function currentDeliveryWebhookAdapter(): EmailDeliveryWebhookAdapter | null {
-  if (configured !== undefined) return configured;
-  const env = parseEnv(process.env);
+export function adapterFromEnv(env: { EMAIL_DELIVERY_WEBHOOK: "none" | "simulated"; EMAIL_DELIVERY_WEBHOOK_SECRET: string }): EmailDeliveryWebhookAdapter | null {
   if (env.EMAIL_DELIVERY_WEBHOOK === "simulated") return simulatedWebhookAdapter(env.EMAIL_DELIVERY_WEBHOOK_SECRET);
   return null;
+}
+
+export function currentDeliveryWebhookAdapter(): EmailDeliveryWebhookAdapter | null {
+  if (configured !== undefined) return configured;
+  return adapterFromEnv(parseEnv(process.env));
 }
 
 export function configureDeliveryWebhookAdapter(adapter: EmailDeliveryWebhookAdapter | null | undefined): void {
