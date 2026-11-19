@@ -3,9 +3,11 @@
 // puis chaque événement et ce qui s'y rattache. Les événements d'essai et tout ce qui en dépend
 // sont exclus. Exposé par service.ts.
 import { and, eq } from "drizzle-orm";
-import type { ExportEntitySchema, ModuleExport, ModuleExportContext } from "@symbola/contracts";
+import type { ExportEntitySchema, ModuleExport, ModuleExportContext, ModuleImportContext, ModuleImportResult, ModuleImportRows } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import { describeModuleEntities, exportModuleEntities, type ExportEntitySpec } from "@symbola/db/export";
+import { clearModuleImportTargets, importModuleEntities, registerModuleImportIds } from "@symbola/db/import";
+import type { OrganizationTransaction } from "@symbola/db/with-organization";
 import {
   dayChecklistItems,
   dayChecklists,
@@ -138,11 +140,12 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: dayChecklistItems, parents: { checklistId: "day_checklists" } },
   { table: dayPhotos, ...ofEvent, files: ["storageKey"] },
   { table: dayReports, ...ofEvent },
-  // Liens personnels des tiers, pour mémoire : jamais leur jeton (haché) ; ils se recréent.
-  { table: eventLinks, ...ofEvent, omit: ["tokenHash"] },
-  { table: eventLinkSharedSlots, parents: { linkId: "event_links" } },
+  // Liens personnels des tiers, pour mémoire : jamais leur jeton (haché) ; ils se recréent (lot 35b :
+  // la reprise ne les écrit pas, le bilan invite à les recréer).
+  { table: eventLinks, ...ofEvent, omit: ["tokenHash"], importSkip: "links" },
+  { table: eventLinkSharedSlots, parents: { linkId: "event_links" }, importSkip: "links" },
   // Lot 37a (D7) : liens de partage d'un document, pour mémoire, sans leur jeton (haché).
-  { table: eventDocumentLinks, ...ofEvent, omit: ["tokenHash"] },
+  { table: eventDocumentLinks, ...ofEvent, omit: ["tokenHash"], importSkip: "links" },
   { table: eventDecisions, ...ofEvent },
   // Lot 47 (D7) : avis des clients sur les options d'une décision.
   { table: eventDecisionOptionFeedback, parents: { decisionId: "event_decisions" } },
@@ -181,4 +184,15 @@ export async function listDemoEventIds(organizationId: string): Promise<string[]
       .where(and(eq(events.organizationId, organizationId), eq(events.isDemo, true))),
   );
   return rows.map((row) => row.id);
+}
+
+// Lot 35b (HUB-13, ADR 0097) : reprise d'une archive dans une organisation vide (transaction de la
+// reprise) ; les réglages de départ et les essais de l'organisation sont remplacés par ceux de l'archive.
+export function registerEventsImportIds(rows: ModuleImportRows, context: ModuleImportContext): void {
+  registerModuleImportIds(EVENTS_EXPORT_ENTITIES, rows, context);
+}
+
+export async function importEventsData(tx: OrganizationTransaction, rows: ModuleImportRows, context: ModuleImportContext): Promise<ModuleImportResult> {
+  await clearModuleImportTargets(tx, { organizationId: context.organizationId, specs: EVENTS_EXPORT_ENTITIES });
+  return { module: "events", entities: await importModuleEntities(tx, { specs: EVENTS_EXPORT_ENTITIES, rows, context }) };
 }

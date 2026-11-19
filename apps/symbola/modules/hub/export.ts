@@ -6,9 +6,12 @@
 // service.ts.
 import { z } from "zod";
 import { listTeam } from "@symbola/auth";
-import type { ExportEntitySchema, ModuleExport, ModuleExportContext } from "@symbola/contracts";
-import { appDatabase } from "@symbola/db/client";
+import type { ExportEntitySchema, ModuleExport, ModuleExportContext, ModuleImportContext, ModuleImportResult, ModuleImportRows } from "@symbola/contracts";
+import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import { describeModuleEntities, exportModuleEntities, type ExportEntitySpec } from "@symbola/db/export";
+import { clearModuleImportTargets, importModuleEntities, registerModuleImportIds } from "@symbola/db/import";
+import type { OrganizationTransaction } from "@symbola/db/with-organization";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { auditEntries } from "@symbola/db/schema/core";
 import {
   contactMembers,
@@ -25,6 +28,7 @@ import {
   organizationModules,
   organizationProfiles,
   organizations,
+  users,
   privacyErasures,
   privacyExports,
   privacyPurges,
@@ -35,9 +39,9 @@ import {
 
 export const HUB_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   // L'organisation elle-même : son identifiant reste (il relie l'archive à l'espace d'origine).
-  { table: organizations, organizationField: "id" },
+  { table: organizations, organizationField: "id", importSkip: "organization" },
   { table: organizationProfiles, idField: "organizationId", files: ["logoKey"] },
-  { table: organizationModules, idField: "moduleKey" },
+  { table: organizationModules, idField: "moduleKey", importSkip: "subscription" },
   { table: vatRegimeChanges },
   // Lot 36a (CRM-03, ADR 0069) : le contact unique et ses notes ; les contacts d'essai sont exclus.
   { table: contacts, demoField: "isDemo" },
@@ -61,12 +65,12 @@ export const HUB_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: privacySettings, idField: "organizationId" },
   { table: privacyRequests },
   // Trace des exports RGPD : leurs fichiers, effacés à l'expiration, ne sont pas repris.
-  { table: privacyExports, omit: ["pdfKey", "archiveKey"] },
+  { table: privacyExports, omit: ["pdfKey", "archiveKey"], importSkip: "trace" },
   { table: privacyErasures },
   { table: privacyPurges },
   // Journal d'activité (HUB-16) : les lignes de l'organisation, sans celles des essais ni celles
   // de l'exploitation de Symbola (sans organisation).
-  { table: auditEntries, name: "activity_journal", demoField: "isDemo" },
+  { table: auditEntries, name: "activity_journal", demoField: "isDemo", importSkip: "journal" },
 ];
 
 // Équipe : une ligne par adhésion, sans dernière connexion (donnée d'exploitation).
@@ -98,6 +102,8 @@ export const HUB_EXPORT_EXCLUSIONS: Readonly<Record<string, string>> = {
   backup_runs: "exploitation : sauvegardes de la plateforme",
   connection_traces: "exploitation : adresses IP des connexions, pour l'enquête de sécurité",
   organization_exports: "technique : trace des exports complets eux-mêmes",
+  // Lot 35b (HUB-13, ADR 0097).
+  organization_imports: "technique : trace des reprises d'un export (état et bilan), sans donnée reprise",
   // Lot 37b (DOC-12, D12) : des nombres pris chaque mois pour l'exploitation (quotas), sans donnée métier.
   storage_snapshots: "exploitation : relevé mensuel du stockage (nombres de fichiers et volumes)",
   // Lot 38b (HUB-29, D11) : des adresses secrètes, propres à chaque personne ; une archive ne les porte pas.
@@ -131,4 +137,43 @@ export async function exportHubData(organizationId: string, context: ModuleExpor
 
 export function describeHubExport(): ExportEntitySchema[] {
   return [...describeModuleEntities("hub", HUB_EXPORT_ENTITIES), { module: "hub", name: TEAM_ENTITY, schema: teamMemberSchema }];
+}
+
+// Lot 35b (HUB-13, ADR 0097) : reprise d'une archive dans une organisation vide. L'organisation garde
+// son nom et ses abonnements ; elle reçoit le SIRET de l'archive s'il lui manque (même SIREN contrôlé
+// avant). L'équipe n'est pas reprise : ses membres sont à inviter. Le journal d'activité repart de zéro.
+export function registerHubImportIds(rows: ModuleImportRows, context: ModuleImportContext): void {
+  registerModuleImportIds(HUB_EXPORT_ENTITIES, rows, context);
+}
+
+export async function importHubData(tx: OrganizationTransaction, rows: ModuleImportRows, context: ModuleImportContext): Promise<ModuleImportResult> {
+  await clearModuleImportTargets(tx, { organizationId: context.organizationId, specs: HUB_EXPORT_ENTITIES });
+  const entities = await importModuleEntities(tx, { specs: HUB_EXPORT_ENTITIES, rows, context });
+  const source = rows.get("organizations")?.[0];
+  if (typeof source?.siret === "string" && source.siret !== "") {
+    await tx
+      .update(organizations)
+      .set({ siret: source.siret })
+      .where(and(eq(organizations.id, context.organizationId), isNull(organizations.siret)));
+  }
+  entities.push({ entity: TEAM_ENTITY, rows: rows.get(TEAM_ENTITY)?.length ?? 0, imported: 0, reason: "team" });
+  return { module: "hub", entities };
+}
+
+// Comptes cités par l'archive (équipe d'origine) : ceux de l'équipe qui reprend, retrouvés par leur
+// adresse, prennent leur place ; un compte que Symbola ne connaît pas est remplacé par la
+// Propriétaire qui reprend ; un compte connu (même instance) reste.
+export async function resolveImportUsers(
+  db: AppDatabase,
+  input: { organizationId: string; importerUserId: string; team: readonly { userId: string; email: string }[] },
+): Promise<Map<string, string>> {
+  const here = new Map((await listTeam(db, input.organizationId)).map((member) => [member.email.toLowerCase(), member.id] as const));
+  const known = input.team.length
+    ? new Set((await db.select({ id: users.id }).from(users).where(inArray(users.id, input.team.map((member) => member.userId)))).map((row) => row.id))
+    : new Set<string>();
+  const mapped = new Map<string, string>();
+  for (const member of input.team) {
+    mapped.set(member.userId, here.get(member.email.toLowerCase()) ?? (known.has(member.userId) ? member.userId : input.importerUserId));
+  }
+  return mapped;
 }

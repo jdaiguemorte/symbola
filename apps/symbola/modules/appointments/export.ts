@@ -2,9 +2,11 @@
 // de l'organisation (contrat export/v1) : page de réservation, types, disponibilités, agendas
 // extérieurs (sans leur adresse secrète), rendez-vous, comptes rendus et actions. Les rendez-vous
 // d'essai sont exclus ; le jeton de gestion n'est jamais exporté. Exposé par service.ts.
-import type { ExportEntitySchema, ModuleExport, ModuleExportContext } from "@symbola/contracts";
+import type { ExportEntitySchema, ModuleExport, ModuleExportContext, ModuleImportContext, ModuleImportResult, ModuleImportRows } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import { describeModuleEntities, exportModuleEntities, type ExportEntitySpec } from "@symbola/db/export";
+import { clearModuleImportTargets, importModuleEntities, registerModuleImportIds } from "@symbola/db/import";
+import type { OrganizationTransaction } from "@symbola/db/with-organization";
 import {
   appointmentReportActions,
   appointmentReports,
@@ -22,7 +24,8 @@ export const APPOINTMENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: availabilityRules },
   { table: availabilityClosures },
   // L'adresse secrète est chiffrée avec la clé de Symbola : illisible ailleurs, et un justificatif.
-  { table: calendarSources, omit: ["urlSealed"] },
+  // Lot 35b : sans elle, l'agenda est à relier de nouveau après une reprise.
+  { table: calendarSources, omit: ["urlSealed"], importSkip: "secret" },
   { table: appointments, demoField: "isDemo", eventField: "eventId", omit: ["manageTokenHash"], parents: { typeId: "appointment_types" } },
   { table: appointmentReports, parents: { appointmentId: "appointments" } },
   { table: appointmentReportActions, parents: { reportId: "appointment_reports" } },
@@ -38,4 +41,15 @@ export function exportAppointmentsData(organizationId: string, context: ModuleEx
 
 export function describeAppointmentsExport(): ExportEntitySchema[] {
   return describeModuleEntities("appointments", APPOINTMENTS_EXPORT_ENTITIES);
+}
+
+// Lot 35b (HUB-13, ADR 0097) : reprise d'une archive dans une organisation vide (transaction de la
+// reprise) ; les réglages de départ et les essais de l'organisation sont remplacés par ceux de l'archive.
+export function registerAppointmentsImportIds(rows: ModuleImportRows, context: ModuleImportContext): void {
+  registerModuleImportIds(APPOINTMENTS_EXPORT_ENTITIES, rows, context);
+}
+
+export async function importAppointmentsData(tx: OrganizationTransaction, rows: ModuleImportRows, context: ModuleImportContext): Promise<ModuleImportResult> {
+  await clearModuleImportTargets(tx, { organizationId: context.organizationId, specs: APPOINTMENTS_EXPORT_ENTITIES });
+  return { module: "appointments", entities: await importModuleEntities(tx, { specs: APPOINTMENTS_EXPORT_ENTITIES, rows, context }) };
 }

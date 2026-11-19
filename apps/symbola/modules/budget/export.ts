@@ -1,9 +1,11 @@
 // Lot 35a (HUB-13, DAT-13, ADR 0068) — entités du module Budget dans l'export complet de
 // l'organisation (contrat export/v1), dans l'ordre de leurs dépendances. Ce qui se rattache à un
 // événement d'essai est exclu. Exposé par service.ts.
-import type { ExportEntitySchema, ModuleExport, ModuleExportContext } from "@symbola/contracts";
+import type { ExportEntitySchema, ModuleExport, ModuleExportContext, ModuleImportContext, ModuleImportResult, ModuleImportRows } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import { describeModuleEntities, exportModuleEntities, type ExportEntitySpec } from "@symbola/db/export";
+import { clearModuleImportTargets, importModuleEntities, registerModuleImportIds } from "@symbola/db/import";
+import type { OrganizationTransaction } from "@symbola/db/with-organization";
 import {
   alertThresholds,
   allocationModelItems,
@@ -47,4 +49,15 @@ export function exportBudgetData(organizationId: string, context: ModuleExportCo
 
 export function describeBudgetExport(): ExportEntitySchema[] {
   return describeModuleEntities("budget", BUDGET_EXPORT_ENTITIES);
+}
+
+// Lot 35b (HUB-13, ADR 0097) : reprise d'une archive dans une organisation vide (transaction de la
+// reprise) ; les réglages de départ et les essais de l'organisation sont remplacés par ceux de l'archive.
+export function registerBudgetImportIds(rows: ModuleImportRows, context: ModuleImportContext): void {
+  registerModuleImportIds(BUDGET_EXPORT_ENTITIES, rows, context);
+}
+
+export async function importBudgetData(tx: OrganizationTransaction, rows: ModuleImportRows, context: ModuleImportContext): Promise<ModuleImportResult> {
+  await clearModuleImportTargets(tx, { organizationId: context.organizationId, specs: BUDGET_EXPORT_ENTITIES });
+  return { module: "budget", entities: await importModuleEntities(tx, { specs: BUDGET_EXPORT_ENTITIES, rows, context }) };
 }

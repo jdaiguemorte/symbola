@@ -385,6 +385,13 @@ export {
   type ModuleExportContext,
   type ModuleExportEntity,
   type OrganizationExportModule,
+  // Lot 35b (HUB-13, ADR 0097) : la reprise d'une archive.
+  IMPORT_SKIP_REASONS,
+  type ImportEntityResult,
+  type ImportSkipReason,
+  type ModuleImportContext,
+  type ModuleImportResult,
+  type ModuleImportRows,
 } from "./export/organization-export";
 // Lot 36a (CRM-03, DAT-12, ADR 0069) : le contact unique du hub.
 export type { Contact, ContactCompanyIds, ContactCoordinates, ContactInput, ContactKind, ContactMembership, ContactNote, ContactNoteViewer } from "./contacts";

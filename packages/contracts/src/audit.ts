@@ -80,6 +80,10 @@ export const AUDIT_ACTIONS = {
   "hub.organization_export.requested": { category: "export", objectType: "organization_export" },
   "hub.organization_export.ready": { category: "export", objectType: "organization_export" },
   "hub.organization_export.downloaded": { category: "export", objectType: "organization_export" },
+  // Lot 35b (HUB-13, ADR 0097) : reprise d'un export Symbola dans une organisation vide.
+  "hub.organization_import.requested": { category: "export", objectType: "organization_import" },
+  "hub.organization_import.completed": { category: "export", objectType: "organization_import" },
+  "hub.organization_import.failed": { category: "export", objectType: "organization_import" },
   "vendors.vendors.exported": { category: "export", objectType: null },
   "quotes.e_reporting.exported": { category: "export", objectType: null },
   "quotes.archive.exported": { category: "export", objectType: null },
