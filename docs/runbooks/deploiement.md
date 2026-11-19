@@ -525,6 +525,12 @@ lire le résultat :
    (jeton après « # », débit limité) : rien à ouvrir de plus dans Caddy. La tâche horaire des
    invités (purge avec préavis, relances) démarre avec l'app. Leurs annulations sont refusées tant
    que des invités ou des temps forts existent.
+   Les migrations 0184 et 0185 (lot 35b, ADR 0097) passent sans arrêter `symbola` : 0184 ajoute le
+   suivi des reprises d'un export (`hub.organization_imports`, vide) ; 0185 ajoute l'ancre des
+   chaînes de pièces reprises (`quotes.ledger_anchors`, vide) et redéfinit la création des écritures
+   et `quotes.verify_ledger`, qui donnent le même résultat tant qu'aucune ancre n'existe. Le
+   traitement de fond des reprises démarre avec l'app ; les archives déposées vont dans le stockage
+   privé, sous `organization-imports/`, et sont effacées à la fin de chaque reprise.
 
 ### À la main, si le script ne peut pas servir
 

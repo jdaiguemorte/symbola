@@ -31,3 +31,27 @@ de Camille (SU-01, ORG-01), chargé du jeu fictif, comme prévu par la spécific
 | 6 | `LISEZMOI.txt` | Organisation, date de préparation (UTC), contenu, exclusions et conventions, en français puis en anglais |
 
 Résultat : **passe sans blocage.**
+
+## Lot 35b — reprendre l'archive dans un espace vide (réversibilité)
+
+- Date : 19/11/2026, en local, par Claude Code.
+- Environnement : base neuve `symbola_lot35b` (bootstrap puis migrations jusqu'à 0185), Garage,
+  ClamAV et Mailpit du socle de dev.
+- Méthode : le test d'intégration `lib/export/organization-import.integration.test.ts` charge le
+  jeu fictif complet (`docs/recette/symbola-synthetic-users.json`, sous de nouveaux identifiants),
+  puis complète l'atelier de Camille (ORG-01) de ce que le jeu ne porte pas : un devis signé, sa
+  facture d'acompte et son original Factur-X, un avoir, un encaissement annulé puis reçu de
+  nouveau, un document d'évènement dans le stockage. Le parcours e2e `hub-13-reprise-export` rejoue
+  ensuite les écrans (ordinateur et 375 px, axe-core).
+
+| Étape | Ce qui se passe | Résultat |
+| --- | --- | --- |
+| 1 | L'atelier de Camille est exporté (format v1) | Archive avec ses fichiers (documents, originaux, PDF signés) |
+| 2 | Un nouvel espace vide, même SIREN, reçoit l'archive par « Reprendre un export » | Reprise terminée en arrière-plan ; l'archive déposée est effacée |
+| 3 | Le nouvel espace est exporté à son tour | Chaque entité reprise est identique à la première archive, identifiants mis à part (dates de création et auteurs compris) ; chaque fichier garde son empreinte |
+| 4 | Bilan | Équipe à inviter, liens personnels à recréer, journal reparti de zéro, chaîne des pièces prolongée : chaque écart a son motif |
+| 5 | Pièces (D7) | Factures, avoirs, encaissements inaltérables ; la nouvelle chaîne part de la dernière empreinte reprise et `verify_ledger` ne signale rien ; un nouvel avoir prend le numéro suivant |
+| 6 | Abus | Espace non vide, Planner, Propriétaire d'une autre organisation, archive modifiée, version inconnue, fichier infecté, entité non conforme, chaîne altérée, autre SIREN, échec en cours d'écriture : refusés, rien n'est écrit ; l'organisation d'origine reste intacte |
+
+Résultat : **passe sans blocage** (intégration). Le parcours e2e : voir le bilan du lot 35b dans
+`docs/lots/lot-35-export.md`.
