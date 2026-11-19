@@ -5673,7 +5673,6 @@
     "cancel": "Annuler",
     "removed": "Accès retiré. Les sessions de ce compte sont fermées.",
     "inviteTitle": "Inviter une personne",
-    "inviteEmail": "Adresse e-mail de la Planner",
     "inviteHint": "Elle reçoit un lien valable sept jours, à usage unique. Elle aura accès à tous les modules ; l'équipe, le journal, le RGPD et les réglages restent à vous.",
     "inviteSubmit": "Envoyer l'invitation",
     "inviteSent": "Invitation envoyée. Elle apparaît ci-dessous jusqu'à ce qu'elle soit acceptée.",

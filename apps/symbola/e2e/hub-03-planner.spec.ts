@@ -41,15 +41,17 @@ test("HUB-03 — la Propriétaire invite une Planner, qui rejoint l'organisation
 
   await signIn(page, ownerEmail);
   await page.goto("/parametres/equipe");
-  await expect(page.getByRole("heading", { name: "Inviter une Planner" })).toBeVisible();
-  await page.getByLabel("Adresse e-mail de la Planner").fill(plannerEmail);
+  // Lot 52 (HUB-04) : l'écran invite une Planner ou un Comptable ; Planner est le rôle proposé.
+  await expect(page.getByRole("heading", { name: "Inviter une personne" })).toBeVisible();
+  await page.getByLabel("Adresse e-mail", { exact: true }).fill(plannerEmail);
+  await expect(page.getByLabel("Planner", { exact: true })).toBeChecked();
   await page.getByRole("button", { name: "Envoyer l'invitation" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Invitation envoyée." })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Invitations en attente" })).toBeVisible();
-  await expect(page.getByText(`${plannerEmail}, valable jusqu'au`, { exact: false })).toBeVisible();
+  await expect(page.getByText(`${plannerEmail} (Planner), valable jusqu'au`, { exact: false })).toBeVisible();
   await expectNoAxeViolation(page);
   // Une adresse déjà dans l'équipe (ici la Propriétaire elle-même) n'est pas invitée.
-  await page.getByLabel("Adresse e-mail de la Planner").fill(ownerEmail);
+  await page.getByLabel("Adresse e-mail", { exact: true }).fill(ownerEmail);
   await page.getByRole("button", { name: "Envoyer l'invitation" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Cette personne fait déjà partie de votre équipe." })).toBeVisible();
 
@@ -66,5 +68,5 @@ test("HUB-03 — la Propriétaire invite une Planner, qui rejoint l'organisation
   await expect(page).toHaveURL(/\/events$/);
   await page.goto("/parametres/equipe");
   await expect(page.getByText("L'équipe se gère par la Propriétaire du compte.")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Inviter une Planner" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Inviter une personne" })).toHaveCount(0);
 });

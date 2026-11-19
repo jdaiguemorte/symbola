@@ -5673,7 +5673,6 @@
     "cancel": "Cancel",
     "removed": "Access removed. This account's sessions are closed.",
     "inviteTitle": "Invite someone",
-    "inviteEmail": "Planner's e-mail address",
     "inviteHint": "They receive a link valid for seven days, single use. They will have access to every module; the team, activity log, GDPR and settings stay with you.",
     "inviteSubmit": "Send the invitation",
     "inviteSent": "Invitation sent. It shows below until it is accepted.",
