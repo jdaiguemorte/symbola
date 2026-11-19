@@ -1,4 +1,4 @@
--- Annulation de 0185 (lot 60) : la rubrique « Plan de salle » disparaît. Refusée tant qu'un lien l'a
+-- Annulation de 0192 (lot 60) : la rubrique « Plan de salle » disparaît. Refusée tant qu'un lien l'a
 -- ouverte (un client y lit le plan) : fermez-la d'abord sur ses liens.
 DO $$
 BEGIN

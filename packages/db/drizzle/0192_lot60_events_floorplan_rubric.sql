@@ -1,0 +1,2 @@
+-- Lot 60 (L60-PLA-05, POR-10 ; accord de Julien du 18/11/2026) : rubrique « Plan de salle » des liens,
+-- fermée par défaut comme les autres. Une contrainte élargie, rien d'autre dans le schéma events.

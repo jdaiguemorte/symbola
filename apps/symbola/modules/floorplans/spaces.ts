@@ -77,7 +77,7 @@ export async function releaseBackground(organizationId: string, key: string | nu
   const used = await inOrganization(organizationId, async (tx) => {
     const [space] = await tx.select({ id: spaces.id }).from(spaces).where(eq(spaces.backgroundKey, key)).limit(1);
     if (space) return true;
-    const [version] = await tx.select({ id: layoutVersions.id }).from(layoutVersions).where(sql`${layoutVersions.snapshot}->>'backgroundKey' = ${key}`).limit(1);
+    const [version] = await tx.select({ id: layoutVersions.id }).from(layoutVersions).where(eq(layoutVersions.backgroundKey, key)).limit(1);
     return Boolean(version);
   });
   if (!used) await deletePrivateObject(createStorageClient(), key).catch(() => undefined);

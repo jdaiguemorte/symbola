@@ -44,7 +44,7 @@ export { answerRsvp, openRsvp, opposeAsGuest, type OpenRsvpResult } from "./rsvp
 export { getGuestPurgeSchedule, listGuestPurgeNotices, listRecentOppositions, postponeGuestPurge, PostponementInvalidError, runGuestPurge, type GuestPurgePass } from "./purge";
 export { GuestImportNotFoundError, importGuests, listGuestImports, undoGuestImport } from "./import";
 export { guestsPrivacy } from "./privacy";
-export { describeGuestsExport, exportGuestsData, GUESTS_EXPORT_EXCLUSIONS } from "./export";
+export { describeGuestsExport, exportGuestsData, GUESTS_EXPORT_EXCLUSIONS, importGuestsData, registerGuestsImportIds } from "./export";
 // Lot 50 (INV-05, INV-06 ; ADR 0086) : plan de table, types de repas, synthèse pour le traiteur.
 export {
   addSeatingConstraint,

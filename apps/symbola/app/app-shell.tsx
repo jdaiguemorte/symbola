@@ -507,6 +507,11 @@ export async function AppShell({ children }: { children: ReactNode }) {
                     href: "/parametres/export",
                     label: tSettings("export"),
                   },
+                  // Lot 35b (HUB-13, D6) : reprise d'un export Symbola dans un espace vide.
+                  {
+                    href: "/parametres/reprise",
+                    label: tSettings("organizationImport"),
+                  },
                   // Lot 37b (DOC-12, décision D12) : relevé mensuel du stockage, titulaire seulement.
                   {
                     href: "/parametres/stockage",

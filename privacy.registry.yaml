@@ -2136,3 +2136,11 @@ fields:
       Lot 60 (D4) : fond de plan d'un espace (image fournie par le lieu, fichier privé, ADR 0027), qui peut montrer un nom ou une adresse. Tant que l'espace existe ou qu'une version diffusée le désigne ; voir RGPD-03/RGPD-05.
     anonymization: >-
       Le fichier est supprimé du stockage quand plus aucun espace ni aucune version diffusée ne le désigne (suppression de l'espace, oubli ou purge de l'évènement).
+  - schema: floorplans
+    table: layout_versions
+    field: background_key
+    category: contenu_libre
+    retention: >-
+      Lot 60 (L60-PLA-05) : fond de plan de la version diffusée d'un plan d'évènement (même fichier privé que celui de l'espace au moment de la diffusion). Tant que la version existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimé avec le plan de l'évènement (oubli ou purge de l'évènement) ; le fichier n'est retiré du stockage que si plus rien ne le désigne.

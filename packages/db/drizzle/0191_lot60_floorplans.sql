@@ -79,6 +79,7 @@ CREATE TABLE "floorplans"."layout_versions" (
 	"layout_id" uuid NOT NULL,
 	"version" integer NOT NULL,
 	"snapshot" jsonb NOT NULL,
+	"background_key" text,
 	"published_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"published_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,

@@ -16,8 +16,9 @@ import { elementInputSchema, layoutNameSchema, spaceInputSchema } from "./inputs
 import { elementsOf, ensureElementTypes, findLayout, fixturesOf, inOrganization, layoutSummaries, toSpace, UUID, type LayoutRow, type SpaceRow, type Tx } from "./repository";
 import { spaceOf } from "./spaces";
 
-// Version diffusée telle qu'elle est gardée : la clé du fond de plan reste côté serveur.
-export type StoredSnapshot = FloorplanSnapshot & { backgroundKey: string | null; backgroundMime: string | null };
+// Version diffusée telle qu'elle est gardée ; la clé du fond de plan est dans sa colonne
+// (layout_versions.background_key), jamais dans le document figé.
+export type StoredSnapshot = FloorplanSnapshot;
 
 function parseName(name: string): string {
   const parsed = layoutNameSchema.safeParse(name);
@@ -357,11 +358,9 @@ export async function publishEventLayout(organizationId: string, layoutId: strin
       fixtures: fixtures.map(({ note: _note, ...fixture }) => fixture),
       elements: view.elements.map(({ note: _note, elementTypeId: _type, ...element }) => element),
       showVendorNames: layout.showVendorNames,
-      backgroundKey: space.backgroundKey,
-      backgroundMime: space.backgroundMime,
     };
     const next = layout.publishedVersion + 1;
-    await tx.insert(layoutVersions).values({ organizationId, layoutId: layout.id, version: next, snapshot, publishedBy: userId });
+    await tx.insert(layoutVersions).values({ organizationId, layoutId: layout.id, version: next, snapshot, backgroundKey: space.backgroundKey, publishedBy: userId });
     await tx.update(layouts).set({ publishedVersion: next, updatedAt: new Date() }).where(eq(layouts.id, layout.id));
     return { next, eventId: layout.eventId };
   });

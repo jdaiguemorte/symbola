@@ -1,6 +1,6 @@
 // Schéma du module floorplans (lot 60, ADR 0012 et 0099 ; décision D1) : plans de salle des lieux du
 // catalogue et des évènements. Chaque table a organization_id, protégée par Row-Level Security
-// (migration 0184). Le lieu (vendors.vendors) et l'évènement (events.events) sont désignés sans clé
+// (migration 0191). Le lieu (vendors.vendors) et l'évènement (events.events) sont désignés sans clé
 // étrangère entre schémas (avenant de l'ADR 0012) ; de même le prestataire retenu
 // (events.event_vendor_candidates) et le lien qui a vu une version (events.event_links).
 // Positions et dimensions en centimètres entiers, angles en degrés entiers : jamais de flottant.
@@ -224,7 +224,8 @@ export const powerLinks = floorplansSchema.table("power_links", {
 ]);
 
 // Version diffusée du plan d'un évènement (partie D) : ce que voient le client et les prestataires,
-// figé à la diffusion, sans note interne. Un numéro par diffusion, signalé aux prestataires.
+// figé à la diffusion, sans note interne. Un numéro par diffusion, signalé aux prestataires. Le fond
+// de plan de la version est un fichier privé (backgroundKey), gardé hors du document figé.
 export const layoutVersions = floorplansSchema.table("layout_versions", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
@@ -233,6 +234,7 @@ export const layoutVersions = floorplansSchema.table("layout_versions", {
     .references(() => layouts.id, { onDelete: "cascade" }),
   version: integer("version").notNull(),
   snapshot: jsonb("snapshot").notNull(),
+  backgroundKey: text("background_key"),
   publishedAt: timestamp("published_at", { withTimezone: true }).defaultNow().notNull(),
   publishedBy: uuid("published_by"),
   ...stamps,

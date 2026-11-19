@@ -2,9 +2,11 @@
 // l'organisation (contrat export/v1). Les régimes (chiffrés, données de santé) et les empreintes des
 // liens ne sortent pas ; une archive qui contient des foyers est supprimée à la purge des invités de
 // l'évènement (RGP-08). Les lignes d'un évènement d'essai sont exclues. Exposé par service.ts.
-import type { ExportEntitySchema, ModuleExport, ModuleExportContext } from "@symbola/contracts";
+import type { ExportEntitySchema, ModuleExport, ModuleExportContext, ModuleImportContext, ModuleImportResult, ModuleImportRows } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import { describeModuleEntities, exportModuleEntities, type ExportEntitySpec } from "@symbola/db/export";
+import { clearModuleImportTargets, importModuleEntities, registerModuleImportIds } from "@symbola/db/import";
+import type { OrganizationTransaction } from "@symbola/db/with-organization";
 import { catererSummaryDownloads, dietaryOptions, dietConsents, eventSettings, guestImports, guests, householdGroups, households, mealTypes, moduleSettings, purgePostponements, rsvpAnswers, seatAssignments, seatingPlans, seatingTables, vendorMealCounts } from "@symbola/db/schema/guests";
 
 const ofEvent = { eventField: "eventId" } as const;
@@ -42,4 +44,15 @@ export function exportGuestsData(organizationId: string, context: ModuleExportCo
 
 export function describeGuestsExport(): ExportEntitySchema[] {
   return describeModuleEntities("guests", GUESTS_EXPORT_ENTITIES);
+}
+
+// Lot 35b (HUB-13, ADR 0098) : reprise d'une archive dans une organisation vide (transaction de la
+// reprise) ; les réglages de départ et les essais de l'organisation sont remplacés par ceux de l'archive.
+export function registerGuestsImportIds(rows: ModuleImportRows, context: ModuleImportContext): void {
+  registerModuleImportIds(GUESTS_EXPORT_ENTITIES, rows, context);
+}
+
+export async function importGuestsData(tx: OrganizationTransaction, rows: ModuleImportRows, context: ModuleImportContext): Promise<ModuleImportResult> {
+  await clearModuleImportTargets(tx, { organizationId: context.organizationId, specs: GUESTS_EXPORT_ENTITIES });
+  return { module: "guests", entities: await importModuleEntities(tx, { specs: GUESTS_EXPORT_ENTITIES, rows, context }) };
 }

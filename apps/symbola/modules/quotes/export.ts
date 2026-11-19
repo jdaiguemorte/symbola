@@ -17,6 +17,7 @@ import {
   creditNotes,
   earnestReceipts,
   invoices,
+  ledgerAnchors,
   ledgerEntries,
   numberSeries,
   originalDocuments,
@@ -42,7 +43,7 @@ import {
   vendorCommissions,
 } from "@symbola/db/schema/quotes";
 
-import { openQuoteSettings } from "./bank-details";
+import { openQuoteSettings, sealedBankColumns } from "./bank-details";
 
 // Original d'une pièce : celle d'une facture ou d'un avoir (lot 23b).
 const ORIGINAL_PARENTS: Record<string, string> = { invoice: "invoices", credit_note: "credit_notes" };
@@ -50,7 +51,16 @@ const ORIGINAL_PARENTS: Record<string, string> = { invoice: "invoices", credit_n
 export const QUOTES_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   // Lot 48a (DAT-08) : l'IBAN et le BIC de la planner sortent en clair dans leurs champs d'origine
   // (contrat export/v1 inchangé) ; leurs colonnes chiffrées n'en sortent pas.
-  { table: quoteSettings, omit: ["ibanSealed", "bicSealed"], transform: (row) => openQuoteSettings(row as Parameters<typeof openQuoteSettings>[0]) },
+  // Lot 35b (HUB-13) : à la reprise, ils sont chiffrés de nouveau, à leur nouvelle place.
+  {
+    table: quoteSettings,
+    omit: ["ibanSealed", "bicSealed"],
+    transform: (row) => openQuoteSettings(row as Parameters<typeof openQuoteSettings>[0]),
+    importTransform: (row) => ({
+      ...row,
+      ...sealedBankColumns(String(row.organizationId), String(row.id), { iban: (row.iban as string | null) ?? null, bic: (row.bic as string | null) ?? null }),
+    }),
+  },
   { table: numberSeries, demoField: "isDemo" },
   { table: paymentMethods },
   { table: catalogItems },
@@ -73,9 +83,18 @@ export const QUOTES_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: paymentScheduleItems, parents: { versionId: "quote_versions" } },
   { table: contracts, parents: { quoteId: "quotes", quoteVersionId: "quote_versions" } },
   { table: contractSignerActs, parents: { contractId: "contracts" } },
-  { table: signatureRequests, parents: { versionId: "quote_versions", contractId: "contracts" }, files: ["signedDocumentKey", "auditCertificateKey"] },
+  // Lot 35b (HUB-13, ADR 0098) : la référence chez le fournisseur reste lisible, suivie de « # » et du
+  // nouvel identifiant de la demande : unique, elle ne reçoit plus les notifications du fournisseur
+  // (elles vont à l'espace d'origine, s'il existe encore).
+  {
+    table: signatureRequests,
+    parents: { versionId: "quote_versions", contractId: "contracts" },
+    files: ["signedDocumentKey", "auditCertificateKey"],
+    importTransform: (row) => ({ ...row, externalId: `${String(row.externalId).split("#")[0]}#${String(row.id)}` }),
+  },
   // Le lien de signature chez le fournisseur ne sort pas : il donne accès au document à signer.
-  { table: quoteSigners, parents: { requestId: "signature_requests" }, omit: ["signingUrl"] },
+  // Lot 35b (D7) : à la reprise, une signature en cours se relance (le lien n'existe plus).
+  { table: quoteSigners, parents: { requestId: "signature_requests" }, omit: ["signingUrl"], importTransform: (row) => ({ ...row, signingUrl: "" }) },
   { table: contractEvidence, parents: { requestId: "signature_requests", contractId: "contracts" }, files: ["documentKey"] },
   { table: invoices, demoField: "isDemo", parents: { quoteId: "quotes" } },
   { table: scheduledDepositInvoices, parents: { quoteId: "quotes" } },
@@ -93,8 +112,11 @@ export const QUOTES_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
     },
     files: ["storageKey"],
   },
-  // La chaîne des pièces (FAC-14) ne porte jamais de pièce d'essai.
-  { table: ledgerEntries },
+  // La chaîne des pièces (FAC-14) ne porte jamais de pièce d'essai. Lot 35b (D7) : à la reprise, elle
+  // est vérifiée, puis prolongée (les pièces reprises s'y enchaînent de nouveau, dans son ordre).
+  { table: ledgerEntries, importSkip: "rechained" },
+  // Lot 35b (D7, ADR 0098) : ancre d'une chaîne elle-même reprise (sa première écriture y pointe).
+  { table: ledgerAnchors, idField: "organizationId", importSkip: "rechained" },
 ];
 
 // Tables du module qui ne sont pas exportées, et pourquoi (docs/export/format-v1.md).

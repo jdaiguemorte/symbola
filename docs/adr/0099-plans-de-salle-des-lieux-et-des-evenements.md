@@ -81,10 +81,12 @@ charges ne nomme pas cette fonction : c'est une divergence acceptée, d'où cet 
 
 ## Conséquences
 
-- Deux migrations : `0184_lot60_floorplans` (schéma, droits, RLS) et
-  `0185_lot60_events_floorplan_rubric` (contrainte des rubriques des liens). Annulations refusées
-  tant qu'un espace existe, ou qu'un lien a la rubrique ouverte. À renuméroter si une autre PR
-  fusionne avant (lots 35b/35c, 58).
+- Deux migrations : `0191_lot60_floorplans` (schéma, droits, RLS) et
+  `0192_lot60_events_floorplan_rubric` (contrainte des rubriques des liens). Annulations refusées
+  tant qu'un espace existe, ou qu'un lien a la rubrique ouverte. Numérotées après les lots 35b
+  (0184-0185), 35c (0186-0187) et 58 (0188-0190), fusionnés avant ce lot. Une version diffusée garde
+  son fond de plan dans une colonne de fichier (`layout_versions.background_key`) : l'export la livre
+  comme fichier et la reprise d'un export (lot 35b) lui donne sa nouvelle clé.
 - RGPD : aucun champ qui désigne une personne ; les notes libres et le fond de plan sont au
   registre ; les plans d'un évènement sont une fiche rattachée à l'évènement, effacée avec lui
   (corbeille, oubli). Le module entre à l'export complet (sans les versions vues par un lien).

@@ -107,6 +107,7 @@ const WITHOUT_ENTRY: Record<string, string> = {
   // Lot 53 (HUB-15) : jamais saisi par une personne ; recopié par Symbola (numéro, intitulé, montant).
   // Lot 60 (D4) : fond de plan déposé, sans champ de texte.
   "floorplans.spaces.background_key": "fichier déposé, sans champ de texte",
+  "floorplans.layout_versions.background_key": "fichier figé à la diffusion, sans champ de texte",
   "hub.notifications.params": "libellés courts recopiés par Symbola depuis l'objet de la notification (numéro de devis, intitulé de tâche) ; aucune saisie",
 };
 

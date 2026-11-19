@@ -22,6 +22,12 @@
     "snapshot": {
       "$ref": "#/$defs/__schema0"
     },
+    "backgroundKey": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "publishedAt": {
       "type": "string",
       "format": "date-time",
@@ -79,6 +85,7 @@
     "layoutId",
     "version",
     "snapshot",
+    "backgroundKey",
     "publishedAt",
     "publishedBy",
     "createdAt",

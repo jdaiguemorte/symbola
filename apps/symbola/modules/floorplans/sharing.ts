@@ -14,7 +14,7 @@ import { readBackground } from "./spaces";
 
 export type FloorplanLinkAccess = { organizationId: string; eventId: string; linkId: string; audience: LinkAudience; vendorCandidateId: string | null };
 
-type Published = { layoutId: string; version: number; publishedAt: Date; snapshot: StoredSnapshot };
+type Published = { layoutId: string; version: number; publishedAt: Date; snapshot: StoredSnapshot; backgroundKey: string | null };
 
 async function latestVersions(organizationId: string, eventId: string): Promise<Published[]> {
   return inOrganization(organizationId, async (tx) => {
@@ -24,7 +24,7 @@ async function latestVersions(organizationId: string, eventId: string): Promise<
     const versions = await tx.select().from(layoutVersions).where(inArray(layoutVersions.layoutId, published.map((row) => row.id))).orderBy(desc(layoutVersions.version));
     return published.flatMap((row) => {
       const latest = versions.find((version) => version.layoutId === row.id && version.version === row.publishedVersion);
-      return latest ? [{ layoutId: row.id, version: latest.version, publishedAt: latest.publishedAt, snapshot: latest.snapshot as StoredSnapshot }] : [];
+      return latest ? [{ layoutId: row.id, version: latest.version, publishedAt: latest.publishedAt, snapshot: latest.snapshot as StoredSnapshot, backgroundKey: latest.backgroundKey }] : [];
     });
   });
 }
@@ -82,8 +82,9 @@ export async function sharedFloorplanBackground(access: FloorplanLinkAccess, lay
   const views = await floorplansForLink(access, { markSeen: false });
   if (!views.some((view) => view.layoutId === layoutId)) throw new FloorplanNotFoundError();
   const entry = (await latestVersions(access.organizationId, access.eventId)).find((version) => version.layoutId === layoutId);
-  if (!entry?.snapshot.backgroundKey || !entry.snapshot.backgroundMime) throw new FloorplanNotFoundError();
-  return readBackground(entry.snapshot.backgroundKey, entry.snapshot.backgroundMime);
+  const mime = entry?.snapshot.space.background?.mime;
+  if (!entry?.backgroundKey || !mime) throw new FloorplanNotFoundError();
+  return readBackground(entry.backgroundKey, mime);
 }
 
 // Nombre de plans diffusés non encore vus par le lien (pour signaler une nouvelle version).
