@@ -70,8 +70,13 @@ export function toPlannerAuth(result: AuthResult): PlannerAuthResult {
 
 // Lot 54 (HUB-27, D2 ; ADR 0101) : une écriture d'un espace en lecture seule (fin d'essai) est refusée
 // comme « forbidden » (lib/read-only.ts).
+// Hors d'une requête (traitement de fond, test), aucune méthode : rien n'est refusé à ce titre.
 export async function requestMethod(): Promise<string | null> {
-  return (await headers()).get("x-symbola-method");
+  try {
+    return (await headers()).get("x-symbola-method");
+  } catch {
+    return null;
+  }
 }
 
 export async function getPlannerAuthContext(options: PlannerAuthOptions = {}): Promise<PlannerAuthResult> {
