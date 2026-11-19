@@ -176,8 +176,9 @@ describe("RGPD-01 — Recherche transverse", () => {
       link: { personName: "Léa Martin", email, rights: { rubrics: [], budgetScope: "all", sharedSlotIds: [] } },
     });
     const result = await searchPerson({ organizationId: planner.organizationId, terms: { email } });
-    // Trouvé directement par son e-mail ; les données de son événement suivent.
-    expect(result!.records.filter((record) => record.direct).map((record) => `${record.module}:${record.kind}`)).toEqual(["events:link"]);
+    // Trouvé directement par son e-mail ; les données de son événement suivent. Lot 55 (MSG-05) : l'e-mail
+    // du lien, parti, est aussi au journal des envois.
+    expect(result!.records.filter((record) => record.direct).map((record) => `${record.module}:${record.kind}`).sort()).toEqual(["events:link", "hub:email_delivery"]);
   });
 
   it("sans terme exploitable, aucune recherche n'est lancée", async () => {
