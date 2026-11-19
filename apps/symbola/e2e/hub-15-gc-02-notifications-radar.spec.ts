@@ -100,9 +100,11 @@ test("SC-03 / HUB-15 / UX-16 / GC-02 / CHR-05 / CHR-10 / HUB-24 / HUB-28 — not
   await expect(page.getByRole("button", { name: "Activer : Échéance à J-7, puis rappel au payeur" })).toBeVisible();
   await expectNoAxeViolation(page);
 
-  // GC-02 : les règles du radar et leurs seuils ; les règles du lot 48 sont indisponibles.
+  // GC-02 : les règles du radar et leurs seuils, celles des pièces et des IBAN du carnet comprises (lot 48a).
   await page.goto("/parametres/radar");
   await expect(page.getByRole("heading", { name: "Prestataire retenu sans contrat" })).toBeVisible();
-  await expect(page.getByText(/Indisponible/).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Pièce expirée" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "IBAN à vérifier" })).toBeVisible();
+  await expect(page.getByText(/Indisponible/)).toHaveCount(0);
   await expectNoAxeViolation(page);
 });
