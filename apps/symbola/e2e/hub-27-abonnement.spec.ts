@@ -115,12 +115,10 @@ test("HUB-27 — fin d'essai : lecture seule, rien d'effacé, export ouvert ; un
   // Écrire : refusé, retour à « Mon abonnement » avec le motif.
   await page.goto("/contacts?nouveau=1");
   await page.waitForLoadState("networkidle");
-  const dialog = page.getByRole("dialog");
-  const form = (await dialog.count()) > 0 ? dialog : page.locator("main");
-  await form.getByLabel("Prénom", { exact: true }).first().fill("Léa");
-  await form.getByRole("button", { name: /Créer|Enregistrer/ }).first().click();
+  await page.getByLabel("Prénom", { exact: true }).first().fill("Léa");
+  await page.getByRole("button", { name: "Ajouter le contact" }).click();
   await expect(page).toHaveURL(/\/parametres\/abonnement\?erreur=read_only$/);
-  await expect(page.getByRole("alert")).toContainText("Votre espace est en lecture seule");
+  await expect(page.locator("main").getByRole("alert")).toContainText("Votre espace est en lecture seule");
   await expectNoAxeViolation(page);
 
   // L'export reste ouvert.
