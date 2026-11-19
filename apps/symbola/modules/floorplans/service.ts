@@ -46,7 +46,7 @@ export {
 export { floorplansForLink, sharedFloorplanBackground, unseenFloorplanVersions, type FloorplanLinkAccess } from "./sharing";
 export { backgroundSize, capacityOf, checkLayout, powerTable, proposeSeats } from "./geometry";
 export { floorplansPrivacy } from "./privacy";
-export { describeFloorplansExport, exportFloorplansData, FLOORPLANS_EXPORT_EXCLUSIONS, importFloorplansData, registerFloorplansImportIds } from "./export";
+export { describeFloorplansExport, exportFloorplansData, FLOORPLANS_EXPORT_EXCLUSIONS, eraseFloorplansData, importFloorplansData, registerFloorplansImportIds } from "./export";
 export { removeEventFloorplansData } from "./removal";
 export type { FloorplanPdfFile };
 

@@ -163,7 +163,7 @@ describe("RGP-11 — Fermeture d'un espace et suppression au 30e jour (lot 35c)"
     const pass = await runOrganizationClosuresOnce({ eraseIdentity: fakeIdentityEraser, organizationIds: [atelier.organizationId] });
     expect(pass.erased).toBe(1);
     expect(await db.select().from(organizations).where(eq(organizations.id, atelier.organizationId))).toEqual([]);
-    for (const schema of ["hub", "events", "budget", "quotes", "vendors", "guests", "appointments", "core"]) {
+    for (const schema of ["hub", "events", "budget", "quotes", "vendors", "guests", "appointments", "floorplans", "core"]) {
       const tables = (await admin`
         select c.relname as name from pg_class c join pg_namespace n on n.oid = c.relnamespace
         join pg_attribute a on a.attrelid = c.oid and a.attname = 'organization_id' and not a.attisdropped

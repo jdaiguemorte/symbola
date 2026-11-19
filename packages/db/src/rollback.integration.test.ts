@@ -165,6 +165,9 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
       target<{ id: string }[]>`insert into events.event_links (organization_id, event_id, audience, person_name, email, rubrics) values (${organizationId}, ${event!.id}, 'client', 'Camille', ${`lot60-${randomUUID()}@example.test`}, ${rubrics}) returning id`;
     await expect(insertLink(["floorplans"])).rejects.toThrow(/event_links_rubrics_check/);
     const [link] = await insertLink(["floorplan"]);
+    // Effacement d'un espace fermé (lot 35c) : le schéma floorplans est effaçable (refusé ici parce que
+    // l'organisation n'est pas fermée, et non parce que le schéma serait inconnu).
+    await expect(target`select core.erase_organization_schema(${organizationId}::uuid, 'floorplans')`).rejects.toThrow(/non supprimable/);
     // Une prise a un nombre et un ampérage ; un fond de plan n'est qu'une image.
     const [space] = await target<{ id: string }[]>`insert into floorplans.spaces (organization_id, vendor_id, name, width_cm, depth_cm) values (${organizationId}, ${randomUUID()}, 'Salle', 2000, 1200) returning id`;
     await expect(target`insert into floorplans.space_fixtures (organization_id, space_id, kind, x_cm, y_cm, width_cm, depth_cm) values (${organizationId}, ${space!.id}, 'outlet', 0, 0, 40, 20)`).rejects.toThrow(/space_fixtures_outlet_check/);
@@ -177,6 +180,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await target`delete from floorplans.spaces where organization_id = ${organizationId}`;
     await rollback(LOT_60[1]!);
     const [schema] = await target<{ name: string | null }[]>`select to_regnamespace('floorplans')::text as name`;
+    await expect(target`select core.erase_organization_schema(${organizationId}::uuid, 'floorplans')`).rejects.toThrow(/non effaçable/);
     expect(schema!.name).toBeNull();
     await target`delete from events.event_links where event_id = ${event!.id}`;
     await target`delete from events.events where id = ${event!.id}`;

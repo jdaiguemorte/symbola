@@ -4,6 +4,7 @@
 import type { ExportEntitySchema, ModuleExport, ModuleExportContext, ModuleImportContext, ModuleImportResult, ModuleImportRows } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import { describeModuleEntities, exportModuleEntities, type ExportEntitySpec } from "@symbola/db/export";
+import { eraseOrganizationSchema } from "@symbola/db/erase";
 import { clearModuleImportTargets, importModuleEntities, registerModuleImportIds } from "@symbola/db/import";
 import type { OrganizationTransaction } from "@symbola/db/with-organization";
 import { elementTypes, layoutElements, layoutVersions, layouts, powerLinks, spaceFixtures, spaces } from "@symbola/db/schema/floorplans";
@@ -41,4 +42,10 @@ export function registerFloorplansImportIds(rows: ModuleImportRows, context: Mod
 export async function importFloorplansData(tx: OrganizationTransaction, rows: ModuleImportRows, context: ModuleImportContext): Promise<ModuleImportResult> {
   await clearModuleImportTargets(tx, { organizationId: context.organizationId, specs: FLOORPLANS_EXPORT_ENTITIES });
   return { module: "floorplans", entities: await importModuleEntities(tx, { specs: FLOORPLANS_EXPORT_ENTITIES, rows, context }) };
+}
+
+// Lot 35c (RGP-11, D8, ADR 0100) : effacement de toutes les lignes du module d'une organisation fermée,
+// à sa date de suppression (la base le refuse avant) ; fonds de plan effacés par l'orchestrateur.
+export function eraseFloorplansData(tx: OrganizationTransaction, organizationId: string): Promise<number> {
+  return eraseOrganizationSchema(tx, organizationId, "floorplans");
 }
