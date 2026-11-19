@@ -1,5 +1,5 @@
 {
-  "id": "316fac35-3abd-4275-b84f-a883caa2c0ed",
+  "id": "c855363c-40b4-4bb5-8e45-eecd589c095e",
   "prevId": "715d3ec1-8d4e-41e4-b095-9eae9c9dbbf6",
   "version": "7",
   "dialect": "postgresql",
@@ -13224,7 +13224,7 @@
       "checkConstraints": {
         "element_types_label_check": {
           "name": "element_types_label_check",
-          "value": "(\"floorplans\".\"element_types\".\"starter_key\" is not null and \"floorplans\".\"element_types\".\"label\" is null) or (\"floorplans\".\"element_types\".\"starter_key\" is null and char_length(btrim(\"floorplans\".\"element_types\".\"label\")) between 1 and 60)"
+          "value": "coalesce(((\"floorplans\".\"element_types\".\"starter_key\" is not null and \"floorplans\".\"element_types\".\"label\" is null) or (\"floorplans\".\"element_types\".\"starter_key\" is null and char_length(btrim(\"floorplans\".\"element_types\".\"label\")) between 1 and 60)), false)"
         },
         "element_types_category_check": {
           "name": "element_types_category_check",
@@ -13492,7 +13492,7 @@
       "checkConstraints": {
         "layout_elements_type_check": {
           "name": "layout_elements_type_check",
-          "value": "(\"floorplans\".\"layout_elements\".\"type_starter_key\" is not null and \"floorplans\".\"layout_elements\".\"type_label\" is null) or (\"floorplans\".\"layout_elements\".\"type_starter_key\" is null and char_length(btrim(\"floorplans\".\"layout_elements\".\"type_label\")) between 1 and 60)"
+          "value": "coalesce(((\"floorplans\".\"layout_elements\".\"type_starter_key\" is not null and \"floorplans\".\"layout_elements\".\"type_label\" is null) or (\"floorplans\".\"layout_elements\".\"type_starter_key\" is null and char_length(btrim(\"floorplans\".\"layout_elements\".\"type_label\")) between 1 and 60)), false)"
         },
         "layout_elements_category_check": {
           "name": "layout_elements_category_check",
@@ -14272,7 +14272,7 @@
         },
         "space_fixtures_outlet_check": {
           "name": "space_fixtures_outlet_check",
-          "value": "(\"floorplans\".\"space_fixtures\".\"kind\" = 'outlet' and \"floorplans\".\"space_fixtures\".\"outlet_count\" between 1 and 50 and \"floorplans\".\"space_fixtures\".\"amps\" between 1 and 125) or (\"floorplans\".\"space_fixtures\".\"kind\" <> 'outlet' and \"floorplans\".\"space_fixtures\".\"outlet_count\" is null and \"floorplans\".\"space_fixtures\".\"amps\" is null and not \"floorplans\".\"space_fixtures\".\"three_phase\")"
+          "value": "coalesce(((\"floorplans\".\"space_fixtures\".\"kind\" = 'outlet' and \"floorplans\".\"space_fixtures\".\"outlet_count\" between 1 and 50 and \"floorplans\".\"space_fixtures\".\"amps\" between 1 and 125) or (\"floorplans\".\"space_fixtures\".\"kind\" <> 'outlet' and \"floorplans\".\"space_fixtures\".\"outlet_count\" is null and \"floorplans\".\"space_fixtures\".\"amps\" is null and not \"floorplans\".\"space_fixtures\".\"three_phase\")), false)"
         }
       },
       "isRLSEnabled": false
@@ -14489,7 +14489,7 @@
         },
         "spaces_background_check": {
           "name": "spaces_background_check",
-          "value": "(\"floorplans\".\"spaces\".\"background_key\" is null and \"floorplans\".\"spaces\".\"background_mime\" is null and \"floorplans\".\"spaces\".\"background_size_bytes\" is null and \"floorplans\".\"spaces\".\"background_width_px\" is null and \"floorplans\".\"spaces\".\"background_height_px\" is null)\n      or (\"floorplans\".\"spaces\".\"background_key\" is not null and \"floorplans\".\"spaces\".\"background_mime\" in ('image/png', 'image/jpeg', 'image/webp') and \"floorplans\".\"spaces\".\"background_size_bytes\" > 0 and \"floorplans\".\"spaces\".\"background_width_px\" > 0 and \"floorplans\".\"spaces\".\"background_height_px\" > 0)"
+          "value": "coalesce(((\"floorplans\".\"spaces\".\"background_key\" is null and \"floorplans\".\"spaces\".\"background_mime\" is null and \"floorplans\".\"spaces\".\"background_size_bytes\" is null and \"floorplans\".\"spaces\".\"background_width_px\" is null and \"floorplans\".\"spaces\".\"background_height_px\" is null)\n      or (\"floorplans\".\"spaces\".\"background_key\" is not null and \"floorplans\".\"spaces\".\"background_mime\" in ('image/png', 'image/jpeg', 'image/webp') and \"floorplans\".\"spaces\".\"background_size_bytes\" > 0 and \"floorplans\".\"spaces\".\"background_width_px\" > 0 and \"floorplans\".\"spaces\".\"background_height_px\" > 0)), false)"
         },
         "spaces_calibration_check": {
           "name": "spaces_calibration_check",

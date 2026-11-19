@@ -26,7 +26,7 @@ CREATE TABLE "floorplans"."element_types" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_by" uuid,
 	CONSTRAINT "element_types_starter_unique" UNIQUE("organization_id","starter_key"),
-	CONSTRAINT "element_types_label_check" CHECK (("floorplans"."element_types"."starter_key" is not null and "floorplans"."element_types"."label" is null) or ("floorplans"."element_types"."starter_key" is null and char_length(btrim("floorplans"."element_types"."label")) between 1 and 60)),
+	CONSTRAINT "element_types_label_check" CHECK (coalesce((("floorplans"."element_types"."starter_key" is not null and "floorplans"."element_types"."label" is null) or ("floorplans"."element_types"."starter_key" is null and char_length(btrim("floorplans"."element_types"."label")) between 1 and 60)), false)),
 	CONSTRAINT "element_types_category_check" CHECK ("floorplans"."element_types"."category" in ('table', 'setup')),
 	CONSTRAINT "element_types_shape_check" CHECK ("floorplans"."element_types"."shape" in ('circle', 'rect', 'ellipse')),
 	CONSTRAINT "element_types_seat_rule_check" CHECK ("floorplans"."element_types"."seat_rule" in ('round', 'two_sides', 'one_side', 'four_sides', 'oval', 'none')),
@@ -62,7 +62,7 @@ CREATE TABLE "floorplans"."layout_elements" (
 	"created_by" uuid,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_by" uuid,
-	CONSTRAINT "layout_elements_type_check" CHECK (("floorplans"."layout_elements"."type_starter_key" is not null and "floorplans"."layout_elements"."type_label" is null) or ("floorplans"."layout_elements"."type_starter_key" is null and char_length(btrim("floorplans"."layout_elements"."type_label")) between 1 and 60)),
+	CONSTRAINT "layout_elements_type_check" CHECK (coalesce((("floorplans"."layout_elements"."type_starter_key" is not null and "floorplans"."layout_elements"."type_label" is null) or ("floorplans"."layout_elements"."type_starter_key" is null and char_length(btrim("floorplans"."layout_elements"."type_label")) between 1 and 60)), false)),
 	CONSTRAINT "layout_elements_category_check" CHECK ("floorplans"."layout_elements"."category" in ('table', 'setup')),
 	CONSTRAINT "layout_elements_shape_check" CHECK ("floorplans"."layout_elements"."shape" in ('circle', 'rect', 'ellipse')),
 	CONSTRAINT "layout_elements_name_check" CHECK ("floorplans"."layout_elements"."name" is null or char_length(btrim("floorplans"."layout_elements"."name")) between 1 and 60),
@@ -158,7 +158,7 @@ CREATE TABLE "floorplans"."space_fixtures" (
 	CONSTRAINT "space_fixtures_label_check" CHECK ("floorplans"."space_fixtures"."label" is null or char_length(btrim("floorplans"."space_fixtures"."label")) between 1 and 60),
 	CONSTRAINT "space_fixtures_note_check" CHECK ("floorplans"."space_fixtures"."note" is null or char_length("floorplans"."space_fixtures"."note") between 1 and 500),
 	CONSTRAINT "space_fixtures_geometry_check" CHECK ("floorplans"."space_fixtures"."x_cm" between -100000 and 200000 and "floorplans"."space_fixtures"."y_cm" between -100000 and 200000 and "floorplans"."space_fixtures"."width_cm" between 5 and 100000 and "floorplans"."space_fixtures"."depth_cm" between 5 and 100000 and "floorplans"."space_fixtures"."rotation_deg" between 0 and 359),
-	CONSTRAINT "space_fixtures_outlet_check" CHECK (("floorplans"."space_fixtures"."kind" = 'outlet' and "floorplans"."space_fixtures"."outlet_count" between 1 and 50 and "floorplans"."space_fixtures"."amps" between 1 and 125) or ("floorplans"."space_fixtures"."kind" <> 'outlet' and "floorplans"."space_fixtures"."outlet_count" is null and "floorplans"."space_fixtures"."amps" is null and not "floorplans"."space_fixtures"."three_phase"))
+	CONSTRAINT "space_fixtures_outlet_check" CHECK (coalesce((("floorplans"."space_fixtures"."kind" = 'outlet' and "floorplans"."space_fixtures"."outlet_count" between 1 and 50 and "floorplans"."space_fixtures"."amps" between 1 and 125) or ("floorplans"."space_fixtures"."kind" <> 'outlet' and "floorplans"."space_fixtures"."outlet_count" is null and "floorplans"."space_fixtures"."amps" is null and not "floorplans"."space_fixtures"."three_phase")), false))
 );
 --> statement-breakpoint
 CREATE TABLE "floorplans"."spaces" (
@@ -188,8 +188,8 @@ CREATE TABLE "floorplans"."spaces" (
 	CONSTRAINT "spaces_owner_check" CHECK ("floorplans"."spaces"."vendor_id" is not null or "floorplans"."spaces"."event_id" is not null),
 	CONSTRAINT "spaces_name_check" CHECK (char_length(btrim("floorplans"."spaces"."name")) between 1 and 80),
 	CONSTRAINT "spaces_size_check" CHECK ("floorplans"."spaces"."width_cm" between 100 and 100000 and "floorplans"."spaces"."depth_cm" between 100 and 100000),
-	CONSTRAINT "spaces_background_check" CHECK (("floorplans"."spaces"."background_key" is null and "floorplans"."spaces"."background_mime" is null and "floorplans"."spaces"."background_size_bytes" is null and "floorplans"."spaces"."background_width_px" is null and "floorplans"."spaces"."background_height_px" is null)
-      or ("floorplans"."spaces"."background_key" is not null and "floorplans"."spaces"."background_mime" in ('image/png', 'image/jpeg', 'image/webp') and "floorplans"."spaces"."background_size_bytes" > 0 and "floorplans"."spaces"."background_width_px" > 0 and "floorplans"."spaces"."background_height_px" > 0)),
+	CONSTRAINT "spaces_background_check" CHECK (coalesce((("floorplans"."spaces"."background_key" is null and "floorplans"."spaces"."background_mime" is null and "floorplans"."spaces"."background_size_bytes" is null and "floorplans"."spaces"."background_width_px" is null and "floorplans"."spaces"."background_height_px" is null)
+      or ("floorplans"."spaces"."background_key" is not null and "floorplans"."spaces"."background_mime" in ('image/png', 'image/jpeg', 'image/webp') and "floorplans"."spaces"."background_size_bytes" > 0 and "floorplans"."spaces"."background_width_px" > 0 and "floorplans"."spaces"."background_height_px" > 0)), false)),
 	CONSTRAINT "spaces_calibration_check" CHECK (("floorplans"."spaces"."calibration_distance_cm" is null and "floorplans"."spaces"."calibration_ax" is null and "floorplans"."spaces"."calibration_ay" is null and "floorplans"."spaces"."calibration_bx" is null and "floorplans"."spaces"."calibration_by" is null)
       or ("floorplans"."spaces"."background_key" is not null and "floorplans"."spaces"."calibration_distance_cm" between 1 and 100000 and "floorplans"."spaces"."calibration_ax" is not null and "floorplans"."spaces"."calibration_ay" is not null and "floorplans"."spaces"."calibration_bx" is not null and "floorplans"."spaces"."calibration_by" is not null
         and ("floorplans"."spaces"."calibration_ax" <> "floorplans"."spaces"."calibration_bx" or "floorplans"."spaces"."calibration_ay" <> "floorplans"."spaces"."calibration_by")))

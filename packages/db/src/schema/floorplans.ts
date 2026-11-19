@@ -49,7 +49,7 @@ export const elementTypes = floorplansSchema.table("element_types", {
 }, (table) => [
   index("element_types_organization_idx").on(table.organizationId),
   unique("element_types_starter_unique").on(table.organizationId, table.starterKey),
-  check("element_types_label_check", sql`(${table.starterKey} is not null and ${table.label} is null) or (${table.starterKey} is null and char_length(btrim(${table.label})) between 1 and 60)`),
+  check("element_types_label_check", sql`coalesce(((${table.starterKey} is not null and ${table.label} is null) or (${table.starterKey} is null and char_length(btrim(${table.label})) between 1 and 60)), false)`),
   check("element_types_category_check", sql`${table.category} in ('table', 'setup')`),
   check("element_types_shape_check", sql`${table.shape} in ('circle', 'rect', 'ellipse')`),
   check("element_types_seat_rule_check", sql`${table.seatRule} in ('round', 'two_sides', 'one_side', 'four_sides', 'oval', 'none')`),
@@ -91,8 +91,8 @@ export const spaces = floorplansSchema.table("spaces", {
   check("spaces_size_check", sql`${table.widthCm} between 100 and 100000 and ${table.depthCm} between 100 and 100000`),
   check(
     "spaces_background_check",
-    sql`(${table.backgroundKey} is null and ${table.backgroundMime} is null and ${table.backgroundSizeBytes} is null and ${table.backgroundWidthPx} is null and ${table.backgroundHeightPx} is null)
-      or (${table.backgroundKey} is not null and ${table.backgroundMime} in ('image/png', 'image/jpeg', 'image/webp') and ${table.backgroundSizeBytes} > 0 and ${table.backgroundWidthPx} > 0 and ${table.backgroundHeightPx} > 0)`,
+    sql`coalesce(((${table.backgroundKey} is null and ${table.backgroundMime} is null and ${table.backgroundSizeBytes} is null and ${table.backgroundWidthPx} is null and ${table.backgroundHeightPx} is null)
+      or (${table.backgroundKey} is not null and ${table.backgroundMime} in ('image/png', 'image/jpeg', 'image/webp') and ${table.backgroundSizeBytes} > 0 and ${table.backgroundWidthPx} > 0 and ${table.backgroundHeightPx} > 0)), false)`,
   ),
   check(
     "spaces_calibration_check",
@@ -132,7 +132,7 @@ export const spaceFixtures = floorplansSchema.table("space_fixtures", {
   check("space_fixtures_label_check", sql`${table.label} is null or char_length(btrim(${table.label})) between 1 and 60`),
   check("space_fixtures_note_check", sql`${table.note} is null or char_length(${table.note}) between 1 and 500`),
   check("space_fixtures_geometry_check", sql`${table.xCm} between -100000 and 200000 and ${table.yCm} between -100000 and 200000 and ${table.widthCm} between 5 and 100000 and ${table.depthCm} between 5 and 100000 and ${table.rotationDeg} between 0 and 359`),
-  check("space_fixtures_outlet_check", sql`(${table.kind} = 'outlet' and ${table.outletCount} between 1 and 50 and ${table.amps} between 1 and 125) or (${table.kind} <> 'outlet' and ${table.outletCount} is null and ${table.amps} is null and not ${table.threePhase})`),
+  check("space_fixtures_outlet_check", sql`coalesce(((${table.kind} = 'outlet' and ${table.outletCount} between 1 and 50 and ${table.amps} between 1 and 125) or (${table.kind} <> 'outlet' and ${table.outletCount} is null and ${table.amps} is null and not ${table.threePhase})), false)`),
 ]);
 
 // Configuration nommée d'un espace (« Dîner 120 en rondes »), ou plan d'un évènement (eventId,
@@ -194,7 +194,7 @@ export const layoutElements = floorplansSchema.table("layout_elements", {
 }, (table) => [
   index("layout_elements_organization_idx").on(table.organizationId),
   index("layout_elements_layout_idx").on(table.layoutId),
-  check("layout_elements_type_check", sql`(${table.typeStarterKey} is not null and ${table.typeLabel} is null) or (${table.typeStarterKey} is null and char_length(btrim(${table.typeLabel})) between 1 and 60)`),
+  check("layout_elements_type_check", sql`coalesce(((${table.typeStarterKey} is not null and ${table.typeLabel} is null) or (${table.typeStarterKey} is null and char_length(btrim(${table.typeLabel})) between 1 and 60)), false)`),
   check("layout_elements_category_check", sql`${table.category} in ('table', 'setup')`),
   check("layout_elements_shape_check", sql`${table.shape} in ('circle', 'rect', 'ellipse')`),
   check("layout_elements_name_check", sql`${table.name} is null or char_length(btrim(${table.name})) between 1 and 60`),
