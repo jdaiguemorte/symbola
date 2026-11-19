@@ -169,7 +169,20 @@ l'instantané. L'autre environnement n'est jamais touché.
    s'il est déployé) rempli dans `.env.<env>` : le bootstrap crée aussi le rôle `logto`. Ne
    **pas** relancer `configure-identity` : les réglages de Logto reviennent avec sa base. Si le
    volume existe déjà, les rôles existent : rien à faire.
-3. Lancer la restauration :
+3. **Lot 35c (RGP-11, ADR 0100) : exporter d'abord le journal des effacements**, si la base
+   tourne encore. La restauration ramène la base à la date de l'instantané : un espace supprimé
+   depuis y réapparaîtrait, et sa trace aussi disparaîtrait. Le fichier ne contient que des
+   identifiants d'organisation et des dates ; le garder hors du dépôt, lisible par root seul :
+   ```bash
+   cd /opt/symbola && sudo docker run --rm --network symbola-staging_default -v "$PWD":/app -w /app \
+     -v /root/symbola-effacements:/effacements \
+     --env-file infra/compose/.env.staging -e POSTGRES_HOST=postgres -e POSTGRES_PORT=5432 \
+     node:22-slim sh -c "corepack enable && pnpm install --frozen-lockfile && \
+       pnpm -s --filter @symbola/app closures:export -- --out /effacements/staging-$(date +%F).json"
+   ```
+   Si la base est perdue, sauter cette étape : le rejeu (étape 6) lit la trace de l'instantané,
+   et le traitement horaire efface de lui-même un espace fermé dont la date est passée.
+4. Lancer la restauration :
    ```bash
    /opt/symbola/infra/backup/restore.sh staging --confirm=staging
    # instantané précis : ajouter --snapshot=<id>
@@ -185,14 +198,28 @@ l'instantané. L'autre environnement n'est jamais touché.
    `ops.backup.restored` au journal d'activité de chaque organisation, avec pour motif
    l'instantané, ou celui donné par `--motif="…"` (sans donnée personnelle). Pour toute autre
    lecture de la base : `docs/runbooks/acces-exploitation.md`.
-4. Vérifier : `curl -s https://<domaine>/health` renvoie `"status":"ok"`, connexion à
+5. Vérifier : `curl -s https://<domaine>/health` renvoie `"status":"ok"`, connexion à
    l'app par un lien de connexion (la page de Logto doit s'ouvrir), téléchargement d'un
    fichier existant.
-5. **RGPD** : les effacements de données demandés **après** la date de l'instantané doivent
-   être réappliqués avant de rouvrir l'accès (une sauvegarde restaurée fait réapparaître des
-   données effacées depuis). À outiller avec le module RGPD (lot 6) ; en attendant, noter
-   chaque effacement dans le journal d'exploitation.
-6. Uptime Kuma (production, si nécessaire) : arrêter Kuma, vider le volume
+6. **RGPD : rejouer les effacements, avant de rouvrir l'accès** (une sauvegarde restaurée fait
+   réapparaître des données effacées depuis).
+   - **Espaces supprimés (lot 35c, ADR 0100)** : le rejeu lit la trace de la base restaurée et le
+     fichier de l'étape 3 ; chaque espace qu'elles disent supprimé, et qui existe de nouveau, est
+     refermé à ses dates d'origine (rôle d'administration), puis effacé comme au 30e jour, fichiers
+     et comptes compris. Il n'affiche que des nombres :
+     ```bash
+     cd /opt/symbola && sudo docker run --rm --network symbola-staging_default -v "$PWD":/app -w /app \
+       -v /root/symbola-effacements:/effacements \
+       --env-file infra/compose/.env.staging -e POSTGRES_HOST=postgres -e POSTGRES_PORT=5432 \
+       node:22-slim sh -c "corepack enable && pnpm install --frozen-lockfile && \
+         pnpm -s --filter @symbola/app closures:replay -- --traces /effacements/staging-<date>.json"
+     ```
+     L'écran de l'Exploitation « Espaces fermés » montre ensuite la date du rejeu. Un compte
+     effacé chez Symbola mais encore présent chez le fournisseur d'identité (Logto restauré) est
+     effacé aussi chez lui par le rejeu.
+   - **Effacements de personnes** (module RGPD, lot 6) : à réappliquer à la main, d'après le
+     journal d'exploitation.
+7. Uptime Kuma (production, si nécessaire) : arrêter Kuma, vider le volume
    `symbola-socle_uptime_kuma_data`, puis `restore <id> --target / --include
    /backup/uptime-kuma` avec ce volume monté sur `/backup/uptime-kuma`, et relancer Kuma.
 
@@ -222,6 +249,9 @@ supprime une colonne en perd les données.
    pnpm --filter @symbola/db rollback -- 0074_lot15_grant_import_jobs
    pnpm --filter @symbola/db rollback -- 0073_lot15_import_jobs
    ```
+   Annuler 0187 (lot 35c, ADR 0100) rend les pièces de nouveau inaltérables sans exception.
+   Annuler 0186 est refusé tant qu'un espace est fermé ; il retire la fermeture, sa trace et les
+   fonctions d'effacement : **exporter d'abord le journal des effacements** (§ 4, étape 3).
    Annuler 0185 (lot 35b, ADR 0098) retire l'ancre des chaînes de pièces reprises : la chaîne d'un
    espace qui a repris un export serait alors signalée « lien rompu » à sa première écriture.
    **Ne l'annuler qu'avant toute reprise réelle.** Annuler 0184 retire le suivi des reprises ; une

@@ -531,6 +531,12 @@ lire le résultat :
    et `quotes.verify_ledger`, qui donnent le même résultat tant qu'aucune ancre n'existe. Le
    traitement de fond des reprises démarre avec l'app ; les archives déposées vont dans le stockage
    privé, sous `organization-imports/`, et sont effacées à la fin de chaque reprise.
+   Les migrations 0186 et 0187 (lot 35c, ADR 0100) passent sans arrêter `symbola` : 0186 ajoute la
+   fermeture des espaces (colonnes facultatives de `hub.organizations`, trace
+   `hub.organization_closures`, fonctions d'effacement qui refusent tant qu'un espace n'est pas
+   fermé et à sa date) ; 0187 laisse les pièces inaltérables céder à ce seul effacement. Aucun
+   espace n'est fermé au déploiement. Le traitement horaire des fermetures (préavis, suppression au
+   30e jour) démarre avec l'app.
 
 ### À la main, si le script ne peut pas servir
 

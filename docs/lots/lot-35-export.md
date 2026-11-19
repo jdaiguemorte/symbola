@@ -430,3 +430,37 @@ le déploiement d'ensemble.
 - Intégration sur base neuve, en séquentiel : `@symbola/db` 271, app 1 051.
 - Playwright sur l'app compilée : `hub-13-reprise-export` et `hub-13-export-complet`, ordinateur et
   375 px, axe-core : 8/8.
+
+## Bilan du lot 35c (19/11/2026)
+
+### Fait
+
+- **Fermer l'espace** (RGP-11 ; D8 ; ADR 0100) : Paramètres, « Fermer l'espace »
+  (`/parametres/fermeture`), Propriétaire seulement, session avec double authentification, nom de
+  l'espace écrit pour confirmer (UX-07). L'écran rappelle l'export et donne la date de suppression.
+- **Pendant les 30 jours** : écrans renvoyés à la fermeture (sauf l'export), liens des tiers
+  refusés, aucun envoi (sauf les e-mails de la fermeture), traitements de fond qui ignorent l'espace ;
+  « Rouvrir l'espace » avant la date rétablit tout.
+- **Préavis** : e-mail à la fermeture, et sept jours avant la suppression.
+- **Au 30e jour** (minuit à Paris, changements d'heure compris) : chaque module efface ses lignes par
+  sa porte, en une transaction ; puis l'organisation, les comptes sans autre espace (chez le
+  fournisseur d'identité aussi) et les fichiers. La base refuse tout effacement avant l'heure, même
+  si l'horloge de l'app se trompe, et refuse une fermeture antidatée.
+- **Trace** sans donnée personnelle, lue par l'Exploitation (`/exploitation/fermetures`) ;
+  **rejeu** après une restauration (`closures:export`, `closures:replay`), runbook mis à jour.
+- **Migrations** 0186 (hub et socle) et 0187 (quotes), annulables, sans arrêt de l'app ; tests
+  d'annulation.
+
+### Écarts et points ouverts
+
+- **Durée de la trace** : gardée sans limite pour l'instant ; à fixer avec la clause de
+  réversibilité, à la création de la société (D8).
+- **Délai maximal** dans les sauvegardes : 35 jours (ADR 0092), soit 65 jours après la fermeture.
+- **Facture de clôture, résiliation commerciale** : hors périmètre (lot du paiement).
+
+### Vérifications (en local, 19/11/2026)
+
+- Lint, typecheck, unitaires de tout le dépôt, `check:boundaries`, build de production : verts.
+- Intégration sur base neuve, en séquentiel : `@symbola/db` 272 (annulations comprises), app 1 057.
+- Playwright sur l'app compilée : `rgp-11-fermeture`, `hub-13-reprise-export`, `hub-13-export-complet`,
+  ordinateur et 375 px, axe-core : 10/10.

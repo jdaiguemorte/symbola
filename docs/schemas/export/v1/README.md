@@ -7,7 +7,7 @@ Le format est décrit dans `docs/export/format-v1.md`.
 
 | Entité | Champs | Schéma |
 | --- | --- | --- |
-| `organizations` | `id`, `name`, `language`, `siret`, `allPlannersSeeAllEvents`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [organizations.schema.json](hub/organizations.schema.json) |
+| `organizations` | `id`, `name`, `language`, `siret`, `allPlannersSeeAllEvents`, `closedAt`, `closedByUserId`, `deletionDueAt`, `closureNoticeSentAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [organizations.schema.json](hub/organizations.schema.json) |
 | `organization_profiles` | `siren`, `address`, `logoKey`, `logoSizeBytes`, `legalForm`, `metier`, `metierPrecision`, `vatRegime`, `vatRateDefaultBasisPoints`, `annualEventVolume`, `replacedTools`, `completedAt`, `setupStep`, `setupCompletedAt`, `quoteFollowUpDays`, `prospectFollowUpDays`, `contactEmail`, `contactPhone`, `website`, `vatNumber`, `registration`, `shareCapitalCents`, `insurer`, `insurancePolicy`, `insuranceCoverage`, `mediatorName`, `mediatorUrl`, `generalTerms`, `postalCode`, `city`, `countryCode`, `vatOnDebits`, `vatOnDebitsFrom`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [organization_profiles.schema.json](hub/organization_profiles.schema.json) |
 | `organization_modules` | `moduleKey`, `enabled`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [organization_modules.schema.json](hub/organization_modules.schema.json) |
 | `vat_regime_changes` | `id`, `previousRegime`, `newRegime`, `effectiveDate`, `changedByUserId`, `createdAt`, `createdBy` | [vat_regime_changes.schema.json](hub/vat_regime_changes.schema.json) |
@@ -48,6 +48,7 @@ Tables non exportées :
 - `connection_traces` — exploitation : adresses IP des connexions, pour l'enquête de sécurité
 - `organization_exports` — technique : trace des exports complets eux-mêmes
 - `organization_imports` — technique : trace des reprises d'un export (état et bilan), sans donnée reprise
+- `organization_closures` — exploitation : trace des fermetures de l'espace (identifiant et dates), gardée après la suppression
 - `storage_snapshots` — exploitation : relevé mensuel du stockage (nombres de fichiers et volumes)
 - `calendar_feeds` — secret : adresses des flux de calendrier (jetons hachés), propres à chaque personne
 - `form_drafts` — temporaire : brouillons de saisie, effacés à l'enregistrement et purgés après 30 jours
