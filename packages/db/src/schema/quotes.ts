@@ -1271,3 +1271,25 @@ export const vendorCommissions = quotesSchema.table(
     check("vendor_commissions_vat_rate_check", sql`${table.vatRateBasisPoints} between 0 and 10000`),
   ],
 );
+
+// Lot 35b (HUB-13, décision D7 de Julien du 18/11/2026, ADR 0098) — ancrage de la chaîne des pièces
+// d'une organisation qui a repris un export Symbola : la chaîne reprise, vérifiée à la reprise, se
+// termine sur cette empreinte, et la chaîne de l'organisation la prolonge (sa première écriture
+// pointe sur elle au lieu de 64 zéros). Une ligne par organisation, posée une fois, jamais modifiée.
+export const ledgerAnchors = quotesSchema.table(
+  "ledger_anchors",
+  {
+    organizationId: uuid("organization_id").primaryKey(),
+    previousHash: text("previous_hash").notNull(),
+    // Chaîne d'origine : son organisation, son dernier rang et son nombre d'écritures.
+    sourceOrganizationId: uuid("source_organization_id").notNull(),
+    sourceLastSequence: bigint("source_last_sequence", { mode: "number" }).notNull(),
+    sourceEntries: integer("source_entries").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+  },
+  (table) => [
+    check("ledger_anchors_previous_hash_check", sql`${table.previousHash} ~ '^[0-9a-f]{64}$'`),
+    check("ledger_anchors_source_check", sql`${table.sourceEntries} >= 0 and ${table.sourceLastSequence} >= 0`),
+  ],
+);

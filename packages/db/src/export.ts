@@ -17,6 +17,8 @@ import { asc, eq, getTableColumns, getTableName, sql } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import type {
+  ImportSkipReason,
+  ModuleImportContext,
   ExportEntitySchema,
   ExportFileRef,
   ExportRow,
@@ -53,18 +55,25 @@ export type ExportEntitySpec = {
   // Lot 48a (DAT-08, ADR 0093) : ligne transformée avant l'export (valeur chiffrée au niveau du champ
   // rendue en clair dans son champ d'origine, pour garder le contrat export/v1).
   transform?: (row: RawRow) => RawRow;
+  // Lot 35b (HUB-13, ADR 0098) : entité non reprise d'une archive, et pourquoi (bilan de la reprise).
+  importSkip?: ImportSkipReason;
+  // Lot 35b : ligne transformée avant d'être écrite par la reprise (identifiants déjà remplacés) ;
+  // null : ligne non reprise.
+  importTransform?: (row: RawRow, context: ModuleImportContext) => RawRow | null;
 };
 
-function entityName(spec: ExportEntitySpec): string {
+export type ExportRawRow = RawRow;
+
+export function entityName(spec: ExportEntitySpec): string {
   return spec.name ?? getTableName(spec.table);
 }
 
-function organizationField(spec: ExportEntitySpec): string {
+export function organizationField(spec: ExportEntitySpec): string {
   return spec.organizationField ?? "organizationId";
 }
 
 // Champs de l'archive, dans l'ordre de la table.
-function exportedColumns(spec: ExportEntitySpec): [string, PgColumn][] {
+export function exportedColumns(spec: ExportEntitySpec): [string, PgColumn][] {
   const removed = new Set([...(spec.omit ?? []), ...(spec.demoField ? [spec.demoField] : [])]);
   if (organizationField(spec) === "organizationId") removed.add("organizationId");
   return Object.entries(getTableColumns(spec.table)).filter(([field]) => !removed.has(field)) as [string, PgColumn][];

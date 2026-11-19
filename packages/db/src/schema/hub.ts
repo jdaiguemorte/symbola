@@ -1592,3 +1592,67 @@ export const riskRules = hubSchema.table(
     check("risk_rules_threshold_check", sql`${table.thresholdDays} between 0 and 365`),
   ],
 );
+
+// Lot 35b (HUB-13, décisions D6 et D7, ADR 0098) — reprises d'un export Symbola dans une organisation
+// vide : la Propriétaire dépose l'archive, la reprise se fait en arrière-plan (un traitement à la
+// fois, en une seule transaction : un échec ne laisse rien), puis l'archive déposée est effacée ; la
+// ligne garde l'état et le bilan, sans donnée personnelle (nombres par entité, motifs).
+export const ORGANIZATION_IMPORT_STATUSES = ["pending", "running", "done", "failed"] as const;
+export type OrganizationImportStatus = (typeof ORGANIZATION_IMPORT_STATUSES)[number];
+export const ORGANIZATION_IMPORT_ERRORS = [
+  "not_empty",
+  "unreadable",
+  "unknown_format",
+  "checksum",
+  "schema",
+  "file_refused",
+  "siren_mismatch",
+  "ledger_invalid",
+  "failed",
+] as const;
+export type OrganizationImportError = (typeof ORGANIZATION_IMPORT_ERRORS)[number];
+
+// Bilan : par entité de l'archive, le nombre de lignes lues et reprises, ou le motif de l'écart.
+export type OrganizationImportReport = {
+  entities: { entity: string; rows: number; imported: number; reason: string | null }[];
+  files: { imported: number; missing: number };
+  teamMembersToInvite: number;
+  linksToRecreate: number;
+  ledger: { entries: number; lastSequence: number } | null;
+};
+
+export const organizationImports = hubSchema.table(
+  "organization_imports",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    status: text("status", { enum: ORGANIZATION_IMPORT_STATUSES }).notNull().default("pending"),
+    requestedByUserId: uuid("requested_by_user_id").notNull(),
+    requestedAt: timestamp("requested_at", { withTimezone: true }).defaultNow().notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    heartbeatAt: timestamp("heartbeat_at", { withTimezone: true }),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    // Archive déposée, rangée dans le stockage privé le temps de la reprise, puis effacée.
+    archiveKey: text("archive_key"),
+    archiveBytes: bigint("archive_bytes", { mode: "number" }).notNull().default(0),
+    // Date de l'export repris (manifeste), pour le bilan.
+    sourceGeneratedAt: timestamp("source_generated_at", { withTimezone: true }),
+    report: jsonb("report").$type<OrganizationImportReport>(),
+    error: text("error", { enum: ORGANIZATION_IMPORT_ERRORS }),
+    // Entité ou chemin en cause (jamais une valeur de l'archive).
+    errorDetail: text("error_detail"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("organization_imports_organization_idx").on(table.organizationId),
+    uniqueIndex("organization_imports_active_idx").on(table.organizationId).where(sql`status in ('pending', 'running')`),
+    check("organization_imports_status_check", sql`${table.status} in ('pending', 'running', 'done', 'failed')`),
+    check(
+      "organization_imports_error_check",
+      sql`${table.error} is null or ${table.error} in ('not_empty', 'unreadable', 'unknown_format', 'checksum', 'schema', 'file_refused', 'siren_mismatch', 'ledger_invalid', 'failed')`,
+    ),
+  ],
+);

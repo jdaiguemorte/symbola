@@ -1,9 +1,11 @@
 // Lot 35a (HUB-13, DAT-13, ADR 0068) — entités du carnet de prestataires dans l'export complet
 // de l'organisation (contrat export/v1) : familles, types et leurs champs, étiquettes, fiches et
 // leurs fichiers, réglages des trajets. Les fiches d'essai sont exclues. Exposé par service.ts.
-import type { ExportEntitySchema, ModuleExport, ModuleExportContext } from "@symbola/contracts";
+import type { ExportEntitySchema, ModuleExport, ModuleExportContext, ModuleImportContext, ModuleImportResult, ModuleImportRows } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import { describeModuleEntities, exportModuleEntities, type ExportEntitySpec } from "@symbola/db/export";
+import { clearModuleImportTargets, importModuleEntities, registerModuleImportIds } from "@symbola/db/import";
+import type { OrganizationTransaction } from "@symbola/db/with-organization";
 import {
   vendorBankChanges,
   vendorDocumentKinds,
@@ -44,4 +46,15 @@ export function exportVendorsData(organizationId: string, context: ModuleExportC
 
 export function describeVendorsExport(): ExportEntitySchema[] {
   return describeModuleEntities("vendors", VENDORS_EXPORT_ENTITIES);
+}
+
+// Lot 35b (HUB-13, ADR 0098) : reprise d'une archive dans une organisation vide (transaction de la
+// reprise) ; les réglages de départ et les essais de l'organisation sont remplacés par ceux de l'archive.
+export function registerVendorsImportIds(rows: ModuleImportRows, context: ModuleImportContext): void {
+  registerModuleImportIds(VENDORS_EXPORT_ENTITIES, rows, context);
+}
+
+export async function importVendorsData(tx: OrganizationTransaction, rows: ModuleImportRows, context: ModuleImportContext): Promise<ModuleImportResult> {
+  await clearModuleImportTargets(tx, { organizationId: context.organizationId, specs: VENDORS_EXPORT_ENTITIES });
+  return { module: "vendors", entities: await importModuleEntities(tx, { specs: VENDORS_EXPORT_ENTITIES, rows, context }) };
 }

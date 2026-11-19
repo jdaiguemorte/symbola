@@ -52,6 +52,8 @@ export const APPEND_ONLY_TABLES: Record<string, { createdAtColumn: string }> = {
   "quotes.ledger_entries": { createdAtColumn: "recorded_at" },
   // Lot 31c (D21) : reçus d'arrhes, immuables comme les factures.
   "quotes.earnest_receipts": { createdAtColumn: "issued_at" },
+  // Lot 35b (HUB-13, D7, ADR 0098) : ancre de la chaîne des pièces reprise, posée une fois.
+  "quotes.ledger_anchors": { createdAtColumn: "created_at" },
 };
 
 // Tables horodatées dont les suppressions ne vont pas au journal : la

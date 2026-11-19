@@ -822,6 +822,22 @@ produit ne change pas : relances préparées et validées par la planner (envoi 
 en réglage), phrase « Vous ne souhaitez plus de nouvelles ? Répondez simplement. », geste « Ne plus
 relancer ».
 
+### Q40 — Lot 35b : reprendre l'export d'une autre entreprise (autre SIREN) ? (19 novembre 2026)
+
+D7 (a) dit que, pour le **même SIREN**, la numérotation continue après le dernier numéro repris. Elle
+ne dit pas ce qu'il advient quand l'archive est celle d'une autre entreprise (cession d'activité,
+changement de forme juridique avec un nouveau SIREN).
+
+- **Ce que fait le lot 35b** : la reprise est refusée si l'espace et l'archive connaissent tous deux
+  un SIREN, et qu'ils diffèrent (motif « autre entreprise »). Rien n'est tranché.
+- **Options** :
+  - (a) garder le refus ;
+  - (b) reprendre les pièces de l'autre entreprise comme archives en lecture seule, sans
+    continuer sa numérotation (une nouvelle série pour la nouvelle entreprise) ;
+  - (c) reprendre tout sauf les pièces comptables (factures, avoirs, encaissements, chaîne).
+- **Question à l'expert-comptable**, si (b) ou (c) : une entreprise peut-elle garder dans son
+  logiciel les pièces d'une autre, et sous quelle forme ?
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que
