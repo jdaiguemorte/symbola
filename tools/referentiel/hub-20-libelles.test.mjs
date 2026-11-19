@@ -1,6 +1,6 @@
 // Lot 40b (HUB-20, décision D12) — aucun libellé métier dans le code : les listes (types
 // d'évènements, familles, types, étiquettes et postes de prestataires, sources, motifs de perte,
-// moyens de paiement) sont des référentiels de l'organisation, nés de ces modèles de départ. Le test
+// moyens de paiement ; lot 54 : offres et options du catalogue) sont des référentiels de l'organisation, nés de ces modèles de départ. Le test
 // lit leurs libellés (FR et EN) et les cherche, entre guillemets, dans les sources de l'app et des
 // paquets ; une occurrence fait échouer, avec le fichier et la ligne. Le contrôle suit les modèles :
 // un nouveau libellé de départ entre de lui-même dans la liste cherchée.
@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
 
 const repoRoot = resolve(import.meta.dirname, "..", "..");
 const templates = join(repoRoot, "packages/starter-templates/src");
-const REFERENTIALS = /^(event-types|vendor-families|vendor-types|vendor-tags|vendor-slots|prospect-sources|loss-reasons|payment-methods)(\.event-agency)?\.json$/;
+const REFERENTIALS = /^(event-types|vendor-families|vendor-types|vendor-tags|vendor-slots|prospect-sources|loss-reasons|payment-methods|plans)(\.event-agency)?\.json$/;
 // Hors du contrôle : les données de départ elles-mêmes, les tests, les parcours de bout en bout, les
 // captures de l'aide et le jeu fictif de recette (qui nomment des valeurs pour les vérifier).
 const SKIPPED_DIRECTORIES = new Set(["node_modules", ".next", ".turbo", "e2e", "captures", "recette", "starter-templates", "dist"]);

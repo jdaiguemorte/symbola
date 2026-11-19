@@ -2,6 +2,7 @@
 // image, 20 Mo) ; lot 28b (BUD-04) : devis, contrat ou facture. Lot 16 (L16-SEC-02, ADR 0044) : par cette route dédiée plutôt qu'une
 // action serveur ; origine, session, limite de débit et taille sont vérifiées
 // avant la lecture du fichier (lib/uploads/receive.ts).
+import { isStorageFullError, storageFullMessage } from "@/lib/storage-full";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import {
@@ -44,6 +45,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ eve
   } catch (error) {
     if (error instanceof QuoteFileTooLargeError) return uploadResponse({ error: t("quoteTooLarge") });
     if (error instanceof QuoteFileUnsupportedTypeError) return uploadResponse({ error: t("quoteUnsupported") });
+    // Lot 54 (DOC-06) : quota de stockage plein, préavis passé.
+    if (isStorageFullError(error)) return uploadResponse({ error: await storageFullMessage() });
     if (error instanceof QuoteFileInfectedError) return uploadResponse({ error: t("quoteInfected") });
     if (error instanceof EventNotFoundError) return uploadResponse({ error: t("eventNotFound") });
     if (error instanceof BudgetLineNotFoundError) return uploadResponse({ error: t("quoteLineNotFound") });

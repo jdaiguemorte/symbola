@@ -225,7 +225,8 @@ export async function importOrganizationArchive(input: {
     for (const file of manifest.files) {
       const data = await reader.read(file.path);
       if (!data || data.byteLength !== file.bytes || sha256(data) !== file.sha256) throw new OrganizationImportRefusedError("checksum", file.path);
-      const result = await uploadFile({ organizationId: input.organizationId, buffer: data, maxSizeBytes: MAX_FILE_BYTES });
+      // Lot 54 (DOC-06) : la reprise d'un export ne passe pas par le quota (les fichiers existaient déjà).
+      const result = await uploadFile({ organizationId: input.organizationId, buffer: data, maxSizeBytes: MAX_FILE_BYTES, quotaExempt: true });
       if (result.status !== "uploaded") throw new OrganizationImportRefusedError("file_refused", file.path);
       uploaded.push(result.key);
       files.set(file.path, result.key);

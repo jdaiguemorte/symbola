@@ -58,6 +58,10 @@ async function startScheduledTasks() {
     // Lot 27a (CHR-04) : rappels par e-mail des tâches confiées au client.
     const { scheduleClientTaskReminders } = await import("./lib/client-task-reminders");
     scheduleClientTaskReminders();
+    // Lot 54 (HUB-27, DOC-06, ADR 0101) : abonnements (essai, lecture seule, reconduction,
+    // résiliation) et quota de stockage, toutes les heures.
+    const { scheduleSubscriptions } = await import("./lib/subscriptions");
+    scheduleSubscriptions();
     // Lot 46 (RDV-02, RDV-03 ; D2, D10 ; ADR 0082) : agendas extérieurs relus toutes les quinze minutes,
     // rappels des rendez-vous.
     const { scheduleAppointmentJobs } = await import("./lib/appointment-jobs");

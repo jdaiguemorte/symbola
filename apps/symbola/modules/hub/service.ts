@@ -918,7 +918,7 @@ export async function saveDocumentDetails(db: AppDatabase, organizationId: strin
 export const LOGO_MAX_SIZE_BYTES = 2 * 1024 * 1024;
 
 export class LogoUploadError extends Error {
-  constructor(readonly reason: "too_large" | "unsupported_type" | "infected") {
+  constructor(readonly reason: "too_large" | "unsupported_type" | "infected" | "storage_full") {
     super(`logo refusé : ${reason}`);
     this.name = "LogoUploadError";
   }
@@ -1390,3 +1390,45 @@ export {
   type AutomationRunInput,
   type RiskRuleSetting,
 } from "./automations";
+
+// Lot 54 (HUB-27, ARC-06, NFR-26, DOC-06 ; ADR 0101) — abonnement en libre-service, forfaits par module,
+// interrupteurs par fonction, quota de stockage.
+export { getPlanCatalog, getPlanCatalogWithSource, InvalidPlanCatalogError, isSubscriptionBillingEnabled, savePlanCatalog, type PlanCatalogSource } from "./plan-catalog";
+export {
+  assignPlanByOperator,
+  cancelSubscription,
+  changeSubscription,
+  getSubscription,
+  isOrganizationReadOnly,
+  resumeSubscription,
+  runSubscriptionPass,
+  startTrial,
+  SubscriptionForbiddenError,
+  SubscriptionManagedError,
+  SubscriptionNotCancellableError,
+  SubscriptionNotResumableError,
+  SubscriptionSeatsError,
+  SubscriptionSelectionError,
+  type SubscriptionChange,
+  type SubscriptionPass,
+  type SubscriptionView,
+} from "./subscriptions";
+export { subscriptionMail, type SubscriptionMail } from "./subscription-mails";
+export {
+  BILLING_PERIODS,
+  entitledModules,
+  findOption,
+  findPlan,
+  prorataCents,
+  quotaPercent,
+  storageOption,
+  storageQuotaBytes,
+  subscriptionPrice,
+  validateSelection,
+  type BillingPeriod,
+  type SelectionProblem,
+  type SubscriptionSelection,
+  type SubscriptionStatus,
+} from "./subscription-rules";
+export { FEATURE_FLAG_KEYS, isFeatureEnabled, isFeatureFlagKey, listFeatureFlags, setFeatureFlagForOrganization, setFeatureFlagOpenToAll, UnknownFeatureFlagError, type FeatureFlagKey, type FeatureFlagView } from "./feature-flags";
+export { getStorageQuota, isUploadBlocked, recordStorageMeasure, refreshStorageQuota, storageMeasureIsStale, type StorageQuotaView } from "./storage-quota";

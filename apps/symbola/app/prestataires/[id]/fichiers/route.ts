@@ -2,6 +2,7 @@
 // (L16-SEC-02, ADR 0044) : par cette route dédiée plutôt qu'une action serveur ;
 // origine, session, limite de débit et taille sont vérifiées avant la lecture
 // du fichier (lib/uploads/receive.ts).
+import { isStorageFullError, storageFullMessage } from "@/lib/storage-full";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { attachVendorFile, VendorFileRejectedError, VendorNotFoundError } from "@/modules/vendors/service";
@@ -23,6 +24,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   try {
     await attachVendorFile({ organizationId: user.organizationId, vendorId, kind, fileName: file.name, content: new Uint8Array(await file.arrayBuffer()), uploadedByUserId: user.id });
   } catch (error) {
+    // Lot 54 (DOC-06) : quota de stockage plein, préavis passé.
+    if (isStorageFullError(error)) return uploadResponse({ error: await storageFullMessage() });
     if (error instanceof VendorFileRejectedError) return uploadResponse({ error: t(error.reason === "too_large" ? "fileTooLarge" : error.reason === "infected" ? "fileInfected" : "fileUnsupported") });
     if (error instanceof VendorNotFoundError) return uploadResponse({ error: t("notFound") });
     throw error;

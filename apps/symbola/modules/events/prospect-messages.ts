@@ -67,7 +67,7 @@ export class ProspectMessageInvalidError extends Error {
 }
 
 export class BrochureRejectedError extends Error {
-  constructor(readonly reason: "too_large" | "unsupported_type" | "infected" | "name") {
+  constructor(readonly reason: "too_large" | "unsupported_type" | "infected" | "storage_full" | "name") {
     super(`brochure refusée : ${reason}`);
     this.name = "BrochureRejectedError";
   }

@@ -11,6 +11,7 @@ import { identity, requireMfaAtProvider, takePendingAuthorization } from "@/lib/
 import { requestClientIp } from "@/lib/rate-limit";
 import { readDevice, rememberDeviceCookie } from "@/lib/device";
 import { sendNewDeviceAlert } from "@/lib/account-alerts";
+import { startTrialAtSignup } from "@/lib/signup-trial";
 
 export async function GET(request: Request): Promise<Response> {
   const { oidc, appPublicUrl } = identity();
@@ -30,6 +31,8 @@ export async function GET(request: Request): Promise<Response> {
     await rememberDeviceCookie(outcome.deviceId);
     // SEC-08 : connexion depuis un appareil inconnu de ce compte.
     if (outcome.newDevice) await sendNewDeviceAlert({ userId: outcome.userId, email: claims.email.toLowerCase(), alert: outcome.newDevice });
+    // Lot 54 (HUB-27) : l'essai de 30 jours commence à l'inscription, quand le libre-service est ouvert.
+    if (outcome.isNewAccount && outcome.organizationId) await startTrialAtSignup(outcome.organizationId);
     return NextResponse.redirect(`${appPublicUrl}${outcome.isNewAccount ? "/demarrage" : "/"}`, 303);
   } catch (error) {
     console.error("retour du fournisseur d'identité refusé", error instanceof Error ? error.name : "erreur");

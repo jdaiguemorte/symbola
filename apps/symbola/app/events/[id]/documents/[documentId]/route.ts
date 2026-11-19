@@ -4,6 +4,7 @@
 // Lot 37a (DOC-01 ; D4, D5 ; ADR 0070) : « ?version=N » sert une version précédente,
 // « ?apercu=1 » l'affiche dans le navigateur ; POST dépose une nouvelle version, par la même
 // réception contrôlée que le premier envoi (L16-SEC-02, ADR 0044).
+import { isStorageFullError, storageFullMessage } from "@/lib/storage-full";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
@@ -48,6 +49,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   try {
     await addEventDocumentVersion({ organizationId: user.organizationId, documentId, content: new Uint8Array(await file.arrayBuffer()), uploadedByUserId: user.id });
   } catch (error) {
+    // Lot 54 (DOC-06) : quota de stockage plein, préavis passé.
+    if (isStorageFullError(error)) return uploadResponse({ error: await storageFullMessage() });
     if (error instanceof EventDocumentRejectedError) {
       return uploadResponse({ error: t(error.reason === "too_large" ? "fileTooLarge" : error.reason === "infected" ? "fileInfected" : "fileUnsupported") });
     }

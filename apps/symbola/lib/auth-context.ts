@@ -9,10 +9,12 @@
 // ADR 0017) est câblée séparément, au niveau de chaque page protégée
 // (voir app/page.tsx), pas ici.
 import { createHash } from "node:crypto";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { registerActorResolver, type Actor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
 import { findSessionActor, isPlannerRole, requireUser, type AuthResult } from "@symbola/auth";
+import { isOrganizationReadOnly } from "@/modules/hub/service";
+import { applyReadOnly, type PlannerAuthOptions } from "./read-only";
 
 // Lot 24b (SEC-05) : nom et réglages du cookie partagés avec le middleware.
 export { SESSION_COOKIE_NAME } from "./session-cookie";
@@ -66,8 +68,14 @@ export function toPlannerAuth(result: AuthResult): PlannerAuthResult {
   return result;
 }
 
-export async function getPlannerAuthContext(): Promise<PlannerAuthResult> {
-  return toPlannerAuth(await getAuthContext());
+// Lot 54 (HUB-27, D2 ; ADR 0101) : une écriture d'un espace en lecture seule (fin d'essai) est refusée
+// comme « forbidden » (lib/read-only.ts).
+export async function requestMethod(): Promise<string | null> {
+  return (await headers()).get("x-symbola-method");
+}
+
+export async function getPlannerAuthContext(options: PlannerAuthOptions = {}): Promise<PlannerAuthResult> {
+  return applyReadOnly(toPlannerAuth(await getAuthContext()), options, await requestMethod(), (organizationId) => isOrganizationReadOnly(appDatabase(), organizationId));
 }
 
 export async function setSessionCookie(token: string): Promise<void> {

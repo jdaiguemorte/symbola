@@ -15,6 +15,6 @@ export {
   uploadPrivateFile,
   uploadPrivateObject,
 } from "./storage";
-export { uploadFile, type UploadFileInput, type UploadFileResult } from "./upload-service";
+export { registerUploadGuard, uploadFile, type UploadFileInput, type UploadFileResult, type UploadRejection } from "./upload-service";
 export { EICAR_TEST_STRING } from "./eicar";
 export { openSealedFile, sealFile, type SealedFile } from "./sealed";

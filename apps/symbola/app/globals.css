@@ -4393,3 +4393,23 @@
     @apply flex flex-wrap items-center gap-2 py-1;
   }
 }
+
+@layer components {
+  /* Lot 54 (HUB-27, DOC-06) — bandeau de l'abonnement (essai, lecture seule, résiliation, quota) et
+     jauge du stockage de « Mon abonnement ». */
+  .subscription-banner {
+    @apply my-3 flex w-full max-w-3xl flex-col gap-3 rounded-lg border border-line bg-primary-soft p-4 sm:flex-row sm:items-center sm:justify-between;
+  }
+  .subscription-banner[data-tone="attention"] {
+    @apply bg-attention-soft;
+  }
+  .subscription-banner[data-tone="critical"] {
+    @apply bg-critical-soft;
+  }
+  .subscription-banner p {
+    @apply m-0 text-body text-ink;
+  }
+  .quota-meter {
+    @apply h-3 w-full max-w-md;
+  }
+}

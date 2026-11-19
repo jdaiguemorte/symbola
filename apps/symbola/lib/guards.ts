@@ -10,6 +10,7 @@ import type { LinkAccess, LinkAudience } from "@/modules/events/service";
 import { appDatabase } from "@symbola/db/client";
 import { isOrganizationClosed } from "@/modules/hub/service";
 import { getAuthContext, getPlannerAuthContext } from "./auth-context";
+import { READ_ONLY_ROLE } from "./read-only";
 import { currentLinkAccess } from "./link-session";
 
 export type SignedIn = { status: "authenticated"; user: AuthenticatedUser };
@@ -39,16 +40,21 @@ export async function requirePendingMfa(): Promise<{ userId: string; role: Role 
 // Lot 35c (RGP-11, ADR 0100) : un espace fermé ne sert plus qu'à exporter et à rouvrir. Les écrans
 // redirigent vers la fermeture ; seuls la fermeture et l'export l'acceptent (allowClosed).
 export const CLOSED_ORGANIZATION_PATH = "/parametres/fermeture";
-export type GuardOptions = { allowClosed?: boolean };
+// Lot 54 (HUB-27, D2 ; ADR 0101) : allowReadOnly, une écriture permise à un espace en lecture seule
+// (fin d'essai) : l'abonnement, l'export, la fermeture.
+export type GuardOptions = { allowClosed?: boolean; allowReadOnly?: boolean };
+export const READ_ONLY_REDIRECT_PATH = "/parametres/abonnement";
 
 async function redirectIfClosed(organizationId: string, options: GuardOptions): Promise<void> {
   if (!options.allowClosed && (await isOrganizationClosed(appDatabase(), organizationId))) redirect(CLOSED_ORGANIZATION_PATH);
 }
 
 export async function requirePlanner(options: GuardOptions = {}): Promise<InOrganization> {
-  const auth = await getPlannerAuthContext();
+  const auth = await getPlannerAuthContext({ allowReadOnly: options.allowReadOnly ?? false });
   if (auth.status === "unauthenticated") redirect("/login");
   if (auth.status === "mfa_required") redirect("/securite");
+  // Lot 54 : une écriture refusée à un espace en lecture seule ramène à « Mon abonnement ».
+  if (auth.status === "forbidden" && auth.role === READ_ONLY_ROLE) redirect(`${READ_ONLY_REDIRECT_PATH}?erreur=read_only`);
   // Lot 52 : le Comptable retourne à ses écrans de lecture.
   if (auth.status === "forbidden") redirect(auth.role === "accountant" ? "/comptable" : "/");
   const { organizationId } = auth.user;

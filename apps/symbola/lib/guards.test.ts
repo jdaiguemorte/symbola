@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthResult } from "@symbola/auth";
 
 const auth = vi.hoisted(() => ({ current: { status: "unauthenticated" } as AuthResult }));
+const readOnlyWrite = vi.hoisted(() => ({ current: false }));
 
 vi.mock("next/navigation", () => ({
   redirect: (to: string) => {
@@ -23,7 +24,11 @@ vi.mock("./auth-context", async () => {
   };
   return {
     getAuthContext: async () => auth.current,
-    getPlannerAuthContext: forbiddenUnless((role) => isPlannerRole(role as never)),
+    getPlannerAuthContext: async (options: { allowReadOnly?: boolean } = {}) => {
+      // Lot 54 : une écriture d'un espace en lecture seule (fin d'essai), simulée.
+      if (readOnlyWrite.current && !options.allowReadOnly && auth.current.status === "authenticated") return { status: "forbidden", role: "read_only" };
+      return forbiddenUnless((role) => isPlannerRole(role as never))();
+    },
   };
 });
 
@@ -59,6 +64,17 @@ describe("L16-ARC-01 — Une garde d'accès unique", () => {
   beforeEach(() => {
     auth.current = { status: "unauthenticated" };
     closure.closed.clear();
+    readOnlyWrite.current = false;
+  });
+
+  it("HUB-27 (lot 54) — une écriture d'un espace en lecture seule ramène à « Mon abonnement », sauf là où elle reste permise", async () => {
+    readOnlyWrite.current = true;
+    auth.current = signedIn("owner");
+    await expect(requirePlanner()).rejects.toThrow("redirect:/parametres/abonnement?erreur=read_only");
+    await expect(requireOwner()).rejects.toThrow("redirect:/parametres/abonnement?erreur=read_only");
+    expect((await requireOwner({ allowClosed: true, allowReadOnly: true }))?.user.role).toBe("owner");
+    readOnlyWrite.current = false;
+    expect((await requirePlanner()).user.organizationId).toBe("org-1");
   });
 
   it("RGP-11 (lot 35c) — un espace fermé renvoie chaque écran à la fermeture, sauf ceux qui l'acceptent (fermeture, export)", async () => {

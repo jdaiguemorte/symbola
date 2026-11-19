@@ -2,6 +2,7 @@
 // session, organisation et module vérifiés, fichier servi par l'app depuis
 // le stockage privé (ADR 0027).
 // Lot 37a (DOC-01, D5) : « ?apercu=1 » l'affiche dans le navigateur (lib/file-response.ts).
+import { isStorageFullError, storageFullMessage } from "@/lib/storage-full";
 import { refusedResponse } from "@/lib/access-refusals";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
@@ -43,6 +44,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   try {
     await attachVendorCandidateQuote({ organizationId: user.organizationId, candidateId, content: new Uint8Array(await file.arrayBuffer()) });
   } catch (error) {
+    // Lot 54 (DOC-06) : quota de stockage plein, préavis passé.
+    if (isStorageFullError(error)) return uploadResponse({ error: await storageFullMessage() });
     if (error instanceof CandidateQuoteRejectedError) {
       return uploadResponse({ error: t(error.reason === "too_large" ? "quoteTooLarge" : error.reason === "infected" ? "quoteInfected" : "quoteUnsupported") });
     }
