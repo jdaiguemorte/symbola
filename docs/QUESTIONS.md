@@ -838,6 +838,21 @@ changement de forme juridique avec un nouveau SIREN).
 - **Question à l'expert-comptable**, si (b) ou (c) : une entreprise peut-elle garder dans son
   logiciel les pièces d'une autre, et sous quelle forme ?
 
+### Q41 — Lot 54 : valeurs de départ que la spécification ne chiffrait pas (19 novembre 2026)
+
+La spécification du lot 54 fixe les prix de départ, le quota de la Suite Solo (10 Go) et de la Suite
+Agence (50 Go), et le nombre d'utilisateurs de la Suite Solo (un utilisateur et un assistant). Elle
+ne dit rien de quatre valeurs que le catalogue doit porter :
+
+- **App seule** : un utilisateur, 5 Go de stockage ;
+- **Essai** : 10 Go (le quota de la Suite Solo), utilisateurs illimités ;
+- **Suite Agence à l'année** : pas de prix annuel (seule la Suite Solo en a un, 490 €) ;
+- **Forfait Pilote** : sans quota.
+
+Ce sont des hypothèses, en données (`plans.json`), modifiables dans `/exploitation/offres` sans code
+(ADR 0101). **À valider ou corriger par Julien** : c'est un choix commercial, que le lot ne tranche
+pas.
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que
