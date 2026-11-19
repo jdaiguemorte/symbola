@@ -1271,3 +1271,63 @@ export const vendorCommissions = quotesSchema.table(
     check("vendor_commissions_vat_rate_check", sql`${table.vatRateBasisPoints} between 0 and 10000`),
   ],
 );
+
+// Lot 58 (FAC-11 ; D1 à D3 ; ADR 0097) — réglages des exports comptables, un par organisation : mois
+// de début de l'exercice et plan de comptes (comptes et codes des journaux), qui remplacent ceux des
+// données de départ (accounting-exports.json, à relire par l'expert-comptable : EC-9). La famille
+// d'export se déduit de la forme juridique du profil et se choisit à chaque export (D1).
+export type AccountingAccountsOverride = Partial<Record<"sales" | "vatCollected" | "clients" | "bank" | "clientAdvances", { number: string; label: string }>>;
+export type AccountingJournalsOverride = Partial<Record<"sales" | "bank", { code: string; label: string }>>;
+export const accountingExportSettings = quotesSchema.table(
+  "accounting_export_settings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    fiscalYearStartMonth: integer("fiscal_year_start_month").notNull().default(1),
+    accounts: jsonb("accounts").$type<AccountingAccountsOverride>().notNull().default(sql`'{}'::jsonb`),
+    journals: jsonb("journals").$type<AccountingJournalsOverride>().notNull().default(sql`'{}'::jsonb`),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    uniqueIndex("accounting_export_settings_organization_idx").on(table.organizationId),
+    check("accounting_export_settings_month_check", sql`${table.fiscalYearStartMonth} between 1 and 12`),
+    check("accounting_export_settings_json_check", sql`jsonb_typeof(${table.accounts}) = 'object' and jsonb_typeof(${table.journals}) = 'object'`),
+  ],
+);
+
+// Lot 58 (FAC-11 ; D3 ; ADR 0097) — chaque export comptable demandé, en ajout seul : période, format,
+// totaux rapprochés et contrôle (« done », ou « blocked » avec les écarts expliqués). Aucune donnée
+// personnelle : des numéros de pièces et des montants. Une copie va au journal d'audit.
+export const ACCOUNTING_EXPORT_FORMATS = ["receipts_journal", "sales_journal", "payments_journal", "fec", "originals"] as const;
+export const ACCOUNTING_PERIOD_KINDS = ["month", "quarter", "year", "fiscal_year"] as const;
+export const ACCOUNTING_EXPORT_STATUSES = ["done", "blocked"] as const;
+export const accountingExports = quotesSchema.table(
+  "accounting_exports",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    format: text("format", { enum: ACCOUNTING_EXPORT_FORMATS }).notNull(),
+    periodKind: text("period_kind", { enum: ACCOUNTING_PERIOD_KINDS }).notNull(),
+    periodStart: date("period_start").notNull(),
+    periodEnd: date("period_end").notNull(),
+    status: text("status", { enum: ACCOUNTING_EXPORT_STATUSES }).notNull(),
+    invoicedCents: bigint("invoiced_cents", { mode: "number" }).notNull(),
+    creditedCents: bigint("credited_cents", { mode: "number" }).notNull(),
+    receivedCents: bigint("received_cents", { mode: "number" }).notNull(),
+    documentCount: integer("document_count").notNull(),
+    issues: jsonb("issues").notNull().default(sql`'[]'::jsonb`),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+  },
+  (table) => [
+    index("accounting_exports_organization_idx").on(table.organizationId),
+    check("accounting_exports_format_check", sql`${table.format} in ('receipts_journal', 'sales_journal', 'payments_journal', 'fec', 'originals')`),
+    check("accounting_exports_period_check", sql`${table.periodKind} in ('month', 'quarter', 'year', 'fiscal_year') and ${table.periodStart} <= ${table.periodEnd}`),
+    check("accounting_exports_status_check", sql`${table.status} in ('done', 'blocked') and jsonb_typeof(${table.issues}) = 'array'`),
+  ],
+);

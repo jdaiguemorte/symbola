@@ -5332,3 +5332,35 @@ async function mandateVariableValues(organizationId: string, quote: QuoteDetail,
     .join("\n");
   return { "devis.honoraires": fees, "devis.commissions": commissionText || null, "devis.prestations_intermediaires": intermediary || null };
 }
+
+// Lot 58 (FAC-11 ; D1 à D3 ; ADR 0097) : exports comptables (journal des recettes, journaux des ventes
+// et des encaissements, FEC, PDF d'origine), contrôle de rapprochement bloquant, réglages et traces.
+export {
+  AccountingExportFormatError,
+  accountingFamilyFor,
+  AccountingSettingsError,
+  checkAccountingPeriod,
+  getAccountingSettings,
+  listAccountingExports,
+  produceAccountingExport,
+  saveAccountingSettings,
+  type AccountingExportTrace,
+  type AccountingFile,
+  type AccountingSettingsView,
+  type ExportWords,
+  type OriginalReader,
+} from "./accounting-exports";
+export {
+  ACCOUNTING_FORMATS,
+  formatAllowedForPeriod,
+  FORMATS_BY_FAMILY,
+  InvalidPeriodError,
+  PERIOD_KINDS,
+  periodBounds,
+  type AccountingFormat,
+  type Period,
+  type PeriodKind,
+  type Reconciliation,
+  type ReconciliationIssue,
+  type SaleDocument,
+} from "./accounting-export-rules";

@@ -154,6 +154,10 @@ export const events = eventsSchema.table("events", {
   // Lot 39a (DAT-03, ADR 0073) : suppression logique, cachée par la base (RLS).
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   deletedBy: uuid("deleted_by"),
+  // Lot 58 (PAR-09, étape 5 ; ADR 0097) : évènement archivé, en lecture seule, hors des listes
+  // courantes mais consultable (filtre « Archivés », recherche). Les purges suivent leur calendrier.
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+  archivedBy: uuid("archived_by"),
 }, (table) => [
   index("events_organization_idx").on(table.organizationId),
   check("events_time_zone_check", sql`char_length(${table.timeZone}) between 1 and 64`),
@@ -1942,5 +1946,96 @@ export const planningHealthSettings = eventsSchema.table(
     uniqueIndex("planning_health_settings_organization_idx").on(table.organizationId),
     check("planning_health_settings_points_check", sql`${table.watchPoints} between 1 and 100 and ${table.latePoints} between 1 and 100 and ${table.watchPoints} <= ${table.latePoints}`),
     check("planning_health_settings_weight_check", sql`${table.milestoneWeight} between 1 and 10`),
+  ],
+);
+
+// Lot 58 (PAR-09 ; D4 ; ADR 0097) — clôture d'un évènement, une par évènement : étapes cochées à la
+// main, temps passé (déclaratif et facultatif, en minutes), trois leçons, frais propres de la planner
+// (libellé et montant HT en centimes, hors du budget du client), budget final figé à la clôture (les
+// cinq montants), demande d'avis envoyée. Interne : jamais montrée au client ni au comptable.
+export type ClosingOwnExpense = { label: string; amountCents: number };
+export type ClosingBudgetSnapshot = { estimatedCents: number; committedCents: number; paidCents: number; remainingCents: number; varianceCents: number };
+export const CLOSING_REVIEW_KINDS = ["thanks", "thanks_with_review"] as const;
+
+export const eventClosings = eventsSchema.table(
+  "event_closings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    checkedSteps: text("checked_steps").array().notNull().default(sql`'{}'::text[]`),
+    timeSpentMinutes: integer("time_spent_minutes"),
+    lessons: text("lessons").array().notNull().default(sql`'{}'::text[]`),
+    ownExpenses: jsonb("own_expenses").$type<ClosingOwnExpense[]>().notNull().default(sql`'[]'::jsonb`),
+    budgetSnapshot: jsonb("budget_snapshot").$type<ClosingBudgetSnapshot | null>(),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    closedBy: uuid("closed_by"),
+    reviewRequestedAt: timestamp("review_requested_at", { withTimezone: true }),
+    reviewRequestKind: text("review_request_kind", { enum: CLOSING_REVIEW_KINDS }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("event_closings_organization_idx").on(table.organizationId),
+    uniqueIndex("event_closings_event_idx").on(table.eventId),
+    check("event_closings_time_spent_check", sql`${table.timeSpentMinutes} is null or ${table.timeSpentMinutes} between 0 and 360000`),
+    check("event_closings_lessons_check", sql`cardinality(${table.lessons}) <= 10`),
+    check("event_closings_expenses_check", sql`jsonb_typeof(${table.ownExpenses}) = 'array' and jsonb_array_length(${table.ownExpenses}) <= 100`),
+    check("event_closings_review_check", sql`(${table.reviewRequestKind} is null or ${table.reviewRequestKind} in ('thanks', 'thanks_with_review')) and ((${table.reviewRequestedAt} is null) = (${table.reviewRequestKind} is null))`),
+    check("event_closings_closed_check", sql`(${table.closedAt} is null) = (${table.budgetSnapshot} is null)`),
+  ],
+);
+
+// Lot 58 (PAR-09 ; ADR 0097) — réglages de la clôture, un par organisation : le lien d'avis choisi par
+// la planner (Google, Mariages.net, son site) et son nom ; sans lien, la demande d'avis ne propose que
+// le remerciement.
+export const closingSettings = eventsSchema.table(
+  "closing_settings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    reviewUrl: text("review_url"),
+    reviewLabel: text("review_label"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    uniqueIndex("closing_settings_organization_idx").on(table.organizationId),
+    check("closing_settings_review_url_check", sql`${table.reviewUrl} is null or (${table.reviewUrl} like 'https://%' and char_length(${table.reviewUrl}) <= 500)`),
+    check("closing_settings_review_label_check", sql`${table.reviewLabel} is null or char_length(${table.reviewLabel}) between 1 and 60`),
+  ],
+);
+
+// Lot 58 (EVT-08 ; D5 ; ADR 0097) — modèle d'évènement : des structures seulement (rétroplanning,
+// programme, postes et lignes du budget sans montant, questionnaires) et, si la planner l'a coché, les
+// prestataires. Aucune donnée personnelle de client : contrôlé avant l'enregistrement.
+export const eventTemplates = eventsSchema.table(
+  "event_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    name: text("name").notNull(),
+    eventTypeId: uuid("event_type_id").references(() => eventTypes.id, { onDelete: "set null" }),
+    sourceEventId: uuid("source_event_id").references((): AnyPgColumn => events.id, { onDelete: "set null" }),
+    includesVendors: boolean("includes_vendors").notNull().default(false),
+    content: jsonb("content").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("event_templates_organization_idx").on(table.organizationId),
+    check("event_templates_name_check", sql`char_length(btrim(${table.name})) between 1 and 120`),
+    check("event_templates_content_check", sql`jsonb_typeof(${table.content}) = 'object'`),
   ],
 );

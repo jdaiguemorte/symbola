@@ -52,6 +52,8 @@ export const APPEND_ONLY_TABLES: Record<string, { createdAtColumn: string }> = {
   "quotes.ledger_entries": { createdAtColumn: "recorded_at" },
   // Lot 31c (D21) : reçus d'arrhes, immuables comme les factures.
   "quotes.earnest_receipts": { createdAtColumn: "issued_at" },
+  // Lot 58 (FAC-11, ADR 0097) : exports comptables demandés, tracés en ajout seul.
+  "quotes.accounting_exports": { createdAtColumn: "created_at" },
 };
 
 // Tables horodatées dont les suppressions ne vont pas au journal : la

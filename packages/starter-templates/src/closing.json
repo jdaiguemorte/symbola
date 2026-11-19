@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "_source": "Lot 58 (PAR-09, EVT-08 ; D4, D5 ; ADR 0097) : textes de départ du remerciement et de la demande d'avis (relus et modifiés par la planner avant l'envoi ; « {{link}} » est son lien d'avis), tâche ajoutée pour chaque questionnaire d'un modèle, nombre de leçons et de frais propres. Rien de ces valeurs n'est écrit dans le code (CLAUDE.md § 2.6).",
+  "thanks": {
+    "fr": {
+      "subject": "Merci, {{first_name}}",
+      "body": "Bonjour {{first_name}},\n\nMerci de nous avoir fait confiance pour votre évènement. Ce fut un plaisir de le préparer avec vous.\n\nBelle continuation,\n{{organization}}"
+    },
+    "en": {
+      "subject": "Thank you, {{first_name}}",
+      "body": "Hello {{first_name}},\n\nThank you for trusting us with your event. It was a pleasure to plan it with you.\n\nAll the best,\n{{organization}}"
+    }
+  },
+  "thanksWithReview": {
+    "fr": {
+      "subject": "Merci, {{first_name}}",
+      "body": "Bonjour {{first_name}},\n\nMerci de nous avoir fait confiance pour votre évènement. Ce fut un plaisir de le préparer avec vous.\n\nSi vous le souhaitez, vous pouvez partager votre expérience ici : {{link}}\n\nBelle continuation,\n{{organization}}"
+    },
+    "en": {
+      "subject": "Thank you, {{first_name}}",
+      "body": "Hello {{first_name}},\n\nThank you for trusting us with your event. It was a pleasure to plan it with you.\n\nIf you wish, you can share your experience here: {{link}}\n\nAll the best,\n{{organization}}"
+    }
+  },
+  "questionnaireTask": {
+    "fr": "Envoyer le questionnaire « {name} »",
+    "en": "Send the questionnaire “{name}”"
+  },
+  "lessonCount": 3,
+  "maxOwnExpenses": 30
+}
