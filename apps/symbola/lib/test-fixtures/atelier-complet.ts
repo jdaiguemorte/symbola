@@ -96,6 +96,6 @@ export async function seedFullAtelier() {
     await tx.insert(linkViews).values({ organizationId, linkId: randomUUID(), layoutId: layout!.id, seenVersion: 1 });
   });
   setSignatureProviderForTests(undefined);
-  return { organizationId, ownerId: ownerId[0]!.id, invoiceNumber: invoice.number, documentKey: key, links: loaded.links.filter((link) => link.organisation === "ORG-01") };
+  return { organizationId, ownerId: ownerId[0]!.id, invoiceNumber: invoice.number, documentKey: key, floorplanBackgroundKey: backgroundKey, links: loaded.links.filter((link) => link.organisation === "ORG-01") };
 }
 

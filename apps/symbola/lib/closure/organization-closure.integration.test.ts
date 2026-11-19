@@ -14,6 +14,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { organizationClosures, organizations, users } from "@symbola/db/schema/hub";
+import { layoutVersions, spaces as floorplanSpaces } from "@symbola/db/schema/floorplans";
 import { withOrganization } from "@symbola/db/with-organization";
 import { createStorageClient, listPrivateObjectKeys, PrivateObjectNotFoundError, readPrivateObject } from "@symbola/files";
 import { seedFullAtelier } from "@/lib/test-fixtures/atelier-complet";
@@ -185,6 +186,13 @@ describe("RGP-11 — Fermeture d'un espace et suppression au 30e jour (lot 35c)"
     expect(Object.keys(trace!).sort()).toEqual(["closedAt", "createdAt", "createdBy", "deletionDueAt", "erasedAt", "erasedFiles", "erasedRows", "filesErasedAt", "id", "organizationId", "reopenedAt", "replayedAt", "updatedAt", "updatedBy"]);
     expect(await collectOrganizationData(witness.organizationId)).toEqual(witnessBefore);
     await readPrivateObject(storage, witness.documentKey);
+    // Lot 60 (RGP-11, accord de Julien du 19/11) : plus aucun plan de salle de l'espace effacé, ni en
+    // base ni dans le stockage (fond de plan) ; ceux de l'autre organisation restent, fichier compris.
+    const plansOf = (organizationId: string) => withOrganization(db, organizationId, async (tx) => ({ spaces: (await tx.select().from(floorplanSpaces)).length, versions: (await tx.select().from(layoutVersions)).length }));
+    expect(await plansOf(atelier.organizationId)).toEqual({ spaces: 0, versions: 0 });
+    await expect(readPrivateObject(storage, atelier.floorplanBackgroundKey)).rejects.toBeInstanceOf(PrivateObjectNotFoundError);
+    expect(await plansOf(witness.organizationId)).toEqual({ spaces: 1, versions: 1 });
+    await readPrivateObject(storage, witness.floorplanBackgroundKey);
   });
 
   it("rejeu après une restauration : un espace supprimé qui revient (sauvegarde d'avant sa fermeture) est effacé de nouveau", async () => {

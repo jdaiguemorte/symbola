@@ -94,7 +94,8 @@ charges ne nomme pas cette fonction : c'est une divergence acceptée, d'où cet 
   pas** (choix le plus sobre). Pour réutiliser un plan ajusté, la planner l'enregistre comme
   configuration du lieu, puis la copie dans le nouvel évènement.
 - Fermeture d'un espace (lot 35c, ADR 0100) : le schéma `floorplans` rejoint la liste des schémas
-  effacés par `core.erase_organization_schema` (migration 0191, à confirmer par Julien) ; les fonds de
+  effacés par `core.erase_organization_schema` (migration 0191, accord de Julien du 19/11/2026 : seule la
+  liste change, l'annulation remet celle du lot 35c) ; les fonds de
   plan partent avec les fichiers de l'organisation.
 - Le module se vend ou s'ouvre à part (HUB-27, lot 54) ; les combinaisons de modules de
   l'ADR 0062 l'ajouteront à leur preuve.
