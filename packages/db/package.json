@@ -18,6 +18,7 @@
     "./schema/vendors": "./src/schema/vendors.ts",
     "./schema/guests": "./src/schema/guests.ts",
     "./schema/appointments": "./src/schema/appointments.ts",
+    "./schema/floorplans": "./src/schema/floorplans.ts",
     "./events/emit": "./src/events/emit.ts",
     "./events/worker": "./src/events/worker.ts",
     "./usage/increment": "./src/usage/increment.ts",

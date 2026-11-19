@@ -1289,6 +1289,20 @@
       "when": 1795077076286,
       "tag": "0183_lot53_hub_notification_email_kinds",
       "breakpoints": true
+    },
+    {
+      "idx": 184,
+      "version": "7",
+      "when": 1795090665323,
+      "tag": "0184_lot60_floorplans",
+      "breakpoints": true
+    },
+    {
+      "idx": 185,
+      "version": "7",
+      "when": 1795090689439,
+      "tag": "0185_lot60_events_floorplan_rubric",
+      "breakpoints": true
     }
   ]
 }
