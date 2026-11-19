@@ -53,7 +53,7 @@ export default async function EmailDeliveriesPage({ searchParams }: { searchPara
       {deliveries.length === 0 ? (
         <p>{t("none")}</p>
       ) : (
-        <div className="table-scroll">
+        <div className="table-scroll" role="region" aria-label={t("title")} tabIndex={0}>
           <table>
             <caption className="sr-only">{t("title")}</caption>
             <thead>

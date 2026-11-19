@@ -99,6 +99,7 @@ const PUBLIC_ENTRIES: Record<string, string> = {
   // Lot 29a (ARC-09, D6) : servie par le service worker sans réseau.
   "hors-ligne/page.tsx#default": "page « Hors ligne » : aucune donnée du serveur, seulement les copies gardées sur l'appareil",
   "icons/[name]/route.ts#GET": "icônes de l'application installée, sans donnée",
+  "manifest.webmanifest/route.ts#GET": "manifeste de l'application installable : nom, couleurs et icônes de la marque, sans donnée",
   "api/webhooks/signature/route.ts#POST": "webhook du fournisseur de signature, authentifié par son secret partagé",
   // Lot 40b (Q27, ADR 0077) : l'écran d'erreur peut s'afficher sans session (page publique, lien personnel).
   "api/erreurs/route.ts#POST": "relais des erreurs du navigateur vers le suivi : même origine, débit limité par adresse IP, taille bornée, champs triés, rien de gardé",

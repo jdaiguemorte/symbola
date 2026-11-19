@@ -82,13 +82,13 @@ test("MSG-03 (SU-01) — Camille écrit dans le sujet « Traiteur » : deux zone
   await expect(page.getByRole("button", { name: "Envoyer à Léa" })).toBeVisible();
   await page.getByLabel("Note pour l'équipe").fill("Karim relance demain pour le devis.");
   await page.getByRole("button", { name: "Enregistrer la note interne" }).click();
-  await expect(page.getByRole("status")).toContainText("Note interne enregistrée");
+  await expect(page.getByRole("status").filter({ hasText: "Note interne enregistrée" })).toBeVisible();
   const note = page.locator(".message-item-internal");
   await expect(note).toContainText("Karim relance demain");
   await expect(note.getByText("Interne", { exact: true })).toBeVisible();
   await page.getByLabel("Message aux destinataires").fill("Bonjour Léa, voici le menu proposé par le traiteur.");
   await page.getByRole("button", { name: "Envoyer à Léa" }).click();
-  await expect(page.getByRole("status")).toContainText("Message envoyé");
+  await expect(page.getByRole("status").filter({ hasText: "Message envoyé" })).toBeVisible();
   await expect(page.locator(".message-item:not(.message-item-internal)")).toContainText("voici le menu");
   await expectAccessible(page);
   await expectNoHorizontalScroll(page);
@@ -114,7 +114,7 @@ test("POR-06, POR-08 (SU-05) — Léa lit la réponse dans « Messages », sans 
   await page.getByLabel("Votre message").fill("Merci ! Pouvez-vous ajouter une option végétarienne ?");
   await page.getByLabel(/Pièces jointes/).setInputFiles({ name: "allergies.pdf", mimeType: "application/pdf", buffer: PDF });
   await page.getByRole("button", { name: /^Envoyer à Atelier Camille/ }).click();
-  await expect(page.getByRole("status")).toContainText("Message envoyé");
+  await expect(page.getByRole("status").filter({ hasText: "Message envoyé" })).toBeVisible();
   await expect(page.getByText("Merci ! Pouvez-vous ajouter une option végétarienne ?")).toBeVisible();
   await expect(page.getByRole("link", { name: "allergies" })).toBeVisible();
   await expectAccessible(page);
@@ -132,17 +132,21 @@ test("POR-11 (SU-05) — le manifeste porte le nom et la couleur de l'atelier ; 
   expect(manifest.name).toMatch(/^Atelier Camille .* — mon espace$/);
   expect(manifest.theme_color).not.toBe("#f5e6c8");
   // Première visite : même si le navigateur propose l'installation, rien ne s'affiche.
+  // La visite est comptée par l'écran une fois hydraté : on l'attend avant que le navigateur propose.
+  const visited = (target: Page, visits: number) => target.waitForFunction((count) => (JSON.parse(window.localStorage.getItem("symbola_portail_installation") ?? "{}") as { visits?: number }).visits === count, visits);
   const offer = (target: Page) => target.evaluate(() => {
     const event = new Event("beforeinstallprompt", { cancelable: true }) as Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
     event.prompt = async () => undefined;
     event.userChoice = Promise.resolve({ outcome: "dismissed" });
     window.dispatchEvent(event);
   });
+  await visited(page, 1);
   await offer(page);
   await expect(page.getByRole("complementary", { name: "Ajouter à l'écran d'accueil" })).toHaveCount(0);
   // Deuxième visite (nouvel onglet, nouvelle session du navigateur) : la proposition apparaît.
   const second = await context.newPage();
   await second.goto("/portail");
+  await visited(second, 2);
   await offer(second);
   const prompt = second.getByRole("complementary", { name: "Ajouter à l'écran d'accueil" });
   await expect(prompt).toBeVisible();
@@ -152,6 +156,7 @@ test("POR-11 (SU-05) — le manifeste porte le nom et la couleur de l'atelier ; 
   // Une troisième visite dans les 30 jours : rien.
   const third = await context.newPage();
   await third.goto("/portail");
+  await visited(third, 3);
   await offer(third);
   await expect(third.getByRole("complementary", { name: "Ajouter à l'écran d'accueil" })).toHaveCount(0);
 });
@@ -178,6 +183,6 @@ test("MSG-04, MSG-05 (SU-01) — l'adresse d'envoi de l'atelier, le journal des 
   await expect(page.getByRole("cell", { name: /Rejeté — adresse inexistante/ })).toBeVisible();
   await expectAccessible(page);
   await page.goto(`/contacts/${contact.id}`);
-  await expect(page.getByRole("alert")).toContainText("L'adresse de Bernard Martin est rejetée (adresse inexistante)");
+  await expect(page.getByRole("alert").filter({ hasText: "L'adresse de Bernard Martin est rejetée (adresse inexistante)" })).toBeVisible();
   await expectAccessible(page);
 });
