@@ -1303,6 +1303,20 @@
       "when": 1795090694947,
       "tag": "0185_lot35b_quotes_ledger_anchors",
       "breakpoints": true
+    },
+    {
+      "idx": 186,
+      "version": "7",
+      "when": 1795092530042,
+      "tag": "0186_lot35c_hub_organization_closures",
+      "breakpoints": true
+    },
+    {
+      "idx": 187,
+      "version": "7",
+      "when": 1795092531730,
+      "tag": "0187_lot35c_quotes_erasable_pieces",
+      "breakpoints": true
     }
   ]
 }
