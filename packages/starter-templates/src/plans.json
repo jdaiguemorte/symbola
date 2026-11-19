@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "currency": "EUR",
+  "rules": {
+    "trialDays": 30,
+    "trialReminderDays": [7, 1],
+    "quotaAlertPercents": [80, 95],
+    "quotaBlockNoticeDays": 7
+  },
+  "plans": [
+    {
+      "key": "trial",
+      "kind": "trial",
+      "labels": { "fr": "Essai", "en": "Trial" },
+      "descriptions": {
+        "fr": "La suite complète pendant 30 jours, avec des données de démonstration, sans carte.",
+        "en": "The full suite for 30 days, with demonstration data, no card required."
+      },
+      "modules": ["events", "budget", "quotes", "vendors", "appointments", "guests", "floorplans"],
+      "moduleChoice": [],
+      "monthlyPriceCents": 0,
+      "yearlyPriceCents": null,
+      "maxUsers": null,
+      "storageQuotaBytes": 10737418240,
+      "optionsAllowed": false,
+      "selfService": false
+    },
+    {
+      "key": "app",
+      "kind": "plan",
+      "labels": { "fr": "App seule", "en": "Single app" },
+      "descriptions": {
+        "fr": "Le hub et une app au choix, pour découvrir Symbola ou pour un métier voisin.",
+        "en": "The hub and one app of your choice, to discover Symbola or for a neighbouring trade."
+      },
+      "modules": [],
+      "moduleChoice": ["quotes", "appointments", "vendors"],
+      "monthlyPriceCents": 1200,
+      "yearlyPriceCents": null,
+      "maxUsers": 1,
+      "storageQuotaBytes": 5368709120,
+      "optionsAllowed": false,
+      "selfService": true
+    },
+    {
+      "key": "solo",
+      "kind": "plan",
+      "labels": { "fr": "Suite Solo", "en": "Solo suite" },
+      "descriptions": {
+        "fr": "Évènements, budget, devis et factures, prestataires, portails illimités ; un utilisateur et un assistant.",
+        "en": "Events, budget, quotes and invoices, vendors, unlimited portals; one user and one assistant."
+      },
+      "modules": ["events", "budget", "quotes", "vendors"],
+      "moduleChoice": [],
+      "monthlyPriceCents": 4900,
+      "yearlyPriceCents": 49000,
+      "maxUsers": 2,
+      "storageQuotaBytes": 10737418240,
+      "optionsAllowed": true,
+      "selfService": true
+    },
+    {
+      "key": "agency",
+      "kind": "plan",
+      "labels": { "fr": "Suite Agence", "en": "Agency suite" },
+      "descriptions": {
+        "fr": "La suite Solo, avec des utilisateurs illimités, des rôles et des équipes par évènement.",
+        "en": "The Solo suite, with unlimited users, roles and teams per event."
+      },
+      "modules": ["events", "budget", "quotes", "vendors"],
+      "moduleChoice": [],
+      "monthlyPriceCents": 9900,
+      "yearlyPriceCents": null,
+      "maxUsers": null,
+      "storageQuotaBytes": 53687091200,
+      "optionsAllowed": true,
+      "selfService": true
+    },
+    {
+      "key": "pilot",
+      "kind": "pilot",
+      "labels": { "fr": "Pilote", "en": "Pilot" },
+      "descriptions": {
+        "fr": "Tout ouvert sans payer, pendant le pilote. Réservé à l'Exploitation.",
+        "en": "Everything open free of charge during the pilot. Reserved to Operations."
+      },
+      "modules": ["events", "budget", "quotes", "vendors", "appointments", "guests", "floorplans"],
+      "moduleChoice": [],
+      "monthlyPriceCents": 0,
+      "yearlyPriceCents": null,
+      "maxUsers": null,
+      "storageQuotaBytes": null,
+      "optionsAllowed": false,
+      "selfService": false
+    }
+  ],
+  "options": [
+    {
+      "key": "guests",
+      "kind": "module",
+      "labels": { "fr": "Espaces couples (Invités et RSVP)", "en": "Couple spaces (Guests and RSVP)" },
+      "descriptions": {
+        "fr": "Le planner le paie au mois, sans compter les évènements ; le couple ne paie rien.",
+        "en": "The planner pays it monthly, whatever the number of events; the couple pays nothing."
+      },
+      "module": "guests",
+      "monthlyPriceCents": 1500,
+      "storageUnitBytes": null,
+      "selfService": true
+    },
+    {
+      "key": "appointments",
+      "kind": "module",
+      "labels": { "fr": "Rendez-vous", "en": "Appointments" },
+      "descriptions": { "fr": "Prise de rendez-vous en ligne.", "en": "Online appointment booking." },
+      "module": "appointments",
+      "monthlyPriceCents": 900,
+      "storageUnitBytes": null,
+      "selfService": true
+    },
+    {
+      "key": "floorplans",
+      "kind": "module",
+      "labels": { "fr": "Plans de salle", "en": "Floor plans" },
+      "descriptions": { "fr": "Plans des lieux et des tables.", "en": "Venue and table plans." },
+      "module": "floorplans",
+      "monthlyPriceCents": 900,
+      "storageUnitBytes": null,
+      "selfService": true
+    },
+    {
+      "key": "storage",
+      "kind": "storage",
+      "labels": { "fr": "Stockage supplémentaire", "en": "Extra storage" },
+      "descriptions": { "fr": "Par tranche, au-delà du quota de l'offre.", "en": "Per block, beyond the plan's quota." },
+      "module": null,
+      "monthlyPriceCents": 500,
+      "storageUnitBytes": 53687091200,
+      "selfService": true
+    }
+  ]
+}

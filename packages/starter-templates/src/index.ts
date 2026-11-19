@@ -1550,3 +1550,5 @@ export function questionnaireSensitiveWords(locale: StarterLocale): string[] {
   return [...questionnairesSchema.parse(questionnairesFile).sensitiveWords[locale]];
 }
 
+// Lot 54 (HUB-27, ARC-06, DOC-06 ; ADR 0101) : catalogue des offres et des options.
+export * from "./plans";
