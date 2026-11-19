@@ -60,7 +60,7 @@ export async function findContractTemplate(organizationId: string, templateId: s
   });
 }
 
-export type ContractTemplateHeader = { name: string; title: string; eventTypeId: string | null; legalReviewedOn: string | null };
+export type ContractTemplateHeader = { name: string; title: string; eventTypeId: string | null; legalReviewedOn: string | null; kind?: "contract" | "mandate" | "general_terms" | "package_travel" };
 
 export async function insertContractTemplate(
   organizationId: string,

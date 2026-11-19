@@ -2001,3 +2001,15 @@ fields:
       l'évènement existe.
     anonymization: >-
       Effacées lors d'une demande d'oubli qui vise l'évènement (RGPD-03).
+  # Lot 48b (BUD-08, PRE-07 ; ADR 0093) : commissions des prestataires (nom du prestataire copié).
+  - schema: quotes
+    table: vendor_commissions
+    field: vendor_name
+    category: identifiant
+    retention: >-
+      Lot 48b (PRE-07) : nom du prestataire qui verse la commission (un entrepreneur individuel peut
+      porter son nom), copié pour la facture de commission qui le fige. Tant que l'évènement existe ;
+      la facture émise suit la conservation des pièces comptables.
+    anonymization: >-
+      Supprimée avec l'évènement si elle n'est pas facturée ; facturée, elle suit la conservation de
+      sa facture.

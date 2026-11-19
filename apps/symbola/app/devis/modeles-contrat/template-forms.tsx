@@ -49,6 +49,16 @@ function HeaderFields({ template, eventTypes }: { template?: ContractTemplateVie
           ))}
         </select>
       </label>
+      {/* Lot 48b (JUR-10, DOC-02 ; D7) : seul un modèle « forfait touristique » sert un devis qui en réunit un. */}
+      <label>
+        {t("templateKind")}
+        <select name="kind" defaultValue={template?.kind ?? "contract"}>
+          <option value="contract">{t("templateKindContract")}</option>
+          <option value="mandate">{t("templateKindMandate")}</option>
+          <option value="general_terms">{t("templateKindGeneralTerms")}</option>
+          <option value="package_travel">{t("templateKindPackageTravel")}</option>
+        </select>
+      </label>
       <label>
         {t("templateReviewedOn")}
         <input type="date" name="legalReviewedOn" defaultValue={template?.legalReviewedOn ?? ""} aria-describedby="reviewed-on-hint" />

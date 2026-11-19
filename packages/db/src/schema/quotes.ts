@@ -106,6 +106,10 @@ export const quoteSettings = quotesSchema.table("quote_settings", {
 // Lot 41 (JUR-02, D9, réponse 7 de l'expert-comptable) : nature d'une ligne (catalogue, modèle,
 // devis) ; la facture en déduit la catégorie de l'opération.
 export const LINE_NATURES = ["service", "goods"] as const;
+// Lot 48b (JUR-10, D7) : mode d'une ligne du devis et nature touristique.
+export const SUPPLY_MODES = ["resale", "intermediary"] as const;
+export const CONTRACT_TEMPLATE_KINDS = ["contract", "mandate", "general_terms", "package_travel"] as const;
+export const TOURISM_KINDS = ["transport", "lodging", "other"] as const;
 
 // Lot 31c (D21) : « receipt », la série à part des reçus d'arrhes (non fiscaux).
 export const numberSeriesKindEnum = quotesSchema.enum("number_series_kind", ["quote", "invoice", "credit_note", "receipt"]);
@@ -306,6 +310,11 @@ export const quoteLines = quotesSchema.table("quote_lines", {
   optionChosen: boolean("option_chosen").notNull().default(false),
   // Lot 41 (JUR-02, D9).
   nature: text("nature", { enum: LINE_NATURES }).notNull().default("service"),
+  // Lot 48b (JUR-10 ; réponse 4 de l'avocat, ADR 0093) : « revendeur » (la planner achète et refacture :
+  // dans son total et sa TVA) ou « intermédiaire » (le prestataire facture le client : montrée pour
+  // information, hors du total) ; nature touristique pour la détection du forfait touristique (D7).
+  supplyMode: text("supply_mode", { enum: SUPPLY_MODES }).notNull().default("resale"),
+  tourismKind: text("tourism_kind", { enum: TOURISM_KINDS }),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: uuid("created_by"),
@@ -317,6 +326,8 @@ export const quoteLines = quotesSchema.table("quote_lines", {
 }, (table) => [
   index("quote_lines_organization_idx").on(table.organizationId),
   check("quote_lines_nature_check", sql`${table.nature} in ('service', 'goods')`),
+  check("quote_lines_supply_mode_check", sql`${table.supplyMode} in ('resale', 'intermediary')`),
+  check("quote_lines_tourism_kind_check", sql`${table.tourismKind} is null or ${table.tourismKind} in ('transport', 'lodging', 'other')`),
 ]);
 
 // Lot 31a (FAC-01, HUB-21, décision D3) — modèles de devis par type d'événement (null : pour
@@ -472,6 +483,9 @@ export const contractTemplates = quotesSchema.table(
     // Réponse 6 de l'avocat (D11, partie N) : date de la dernière revue juridique, saisie par la
     // planner ; copiée dans chaque contrat.
     legalReviewedOn: date("legal_reviewed_on"),
+    // Lot 48b (JUR-10, DOC-02, HUB-26 ; D7) : contrat, mandat (mode intermédiaire), conditions
+    // générales, ou modèle dédié au forfait touristique (seul permis quand le devis en réunit un).
+    kind: text("kind", { enum: CONTRACT_TEMPLATE_KINDS }).notNull().default("contract"),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
@@ -483,6 +497,7 @@ export const contractTemplates = quotesSchema.table(
   },
   (table) => [
     index("contract_templates_organization_idx").on(table.organizationId),
+    check("contract_templates_kind_check", sql`${table.kind} in ('contract', 'mandate', 'general_terms', 'package_travel')`),
     check("contract_templates_name_check", sql`char_length(${table.name}) between 1 and 120`),
     check("contract_templates_title_check", sql`char_length(${table.title}) between 1 and 200`),
     check("contract_templates_version_check", sql`${table.version} >= 1`),
@@ -818,13 +833,14 @@ export const invoices = quotesSchema.table(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     organizationId: uuid("organization_id").notNull(),
-    quoteId: uuid("quote_id")
-      .notNull()
-      .references(() => quotes.id),
-    versionId: uuid("version_id")
-      .notNull()
-      .references(() => quoteVersions.id),
+    // Lot 48b (PRE-07, D8) : vides pour une facture de commission au prestataire (commission_id).
+    quoteId: uuid("quote_id").references(() => quotes.id),
+    versionId: uuid("version_id").references(() => quoteVersions.id),
     scheduleItemId: uuid("schedule_item_id").references(() => paymentScheduleItems.id),
+    // Lot 48b (PRE-07 ; D8, réponse 9 de l'expert-comptable) : facture de la commission adressée au
+    // prestataire, même série et mêmes règles que les autres factures (numérotation, chaîne des
+    // pièces, Factur-X).
+    commissionId: uuid("commission_id").references((): AnyPgColumn => vendorCommissions.id),
     kind: invoiceKindEnum("kind").notNull(),
     number: text("number").notNull(),
     isDemo: boolean("is_demo").notNull().default(false),
@@ -848,7 +864,14 @@ export const invoices = quotesSchema.table(
     // lot 41 (PDF simple). Seule l'adresse de livraison s'anonymise à la fin de la conservation.
     reformSnapshot: jsonb("reform_snapshot"),
   },
-  (table) => [unique().on(table.organizationId, table.number)],
+  (table) => [
+    unique().on(table.organizationId, table.number),
+    uniqueIndex("invoices_commission_idx").on(table.commissionId),
+    check(
+      "invoices_subject_check",
+      sql`(${table.quoteId} is null) = (${table.versionId} is null) and (${table.quoteId} is null) = (${table.commissionId} is not null) and (${table.commissionId} is null or (${table.kind} = 'balance' and ${table.scheduleItemId} is null))`,
+    ),
+  ],
 );
 
 // Lot 31b (FAC-05, décision D6) — facture d'acompte de la première échéance, émise d'elle-même
@@ -1173,5 +1196,78 @@ export const paymentReminders = quotesSchema.table(
     index("payment_reminders_organization_idx").on(table.organizationId),
     unique("payment_reminders_item_rank_unique").on(table.scheduleItemId, table.rank),
     check("payment_reminders_rank_check", sql`${table.rank} between 1 and 5`),
+  ],
+);
+
+// Lot 48b (BUD-08 ; D6, ADR 0093) — honoraires de la planner pour un évènement : forfait, pourcentage
+// du budget (estimé ou engagé, lu au module Budget), ou les deux. Ils vont sur son devis ; dans le
+// budget du client, une ligne à part, jamais dans les dépenses de l'évènement.
+export const PLANNER_FEE_KINDS = ["flat", "percent", "mixed"] as const;
+export const PLANNER_FEE_BASES = ["estimated", "committed"] as const;
+export const plannerFees = quotesSchema.table(
+  "planner_fees",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    // Évènement du module events (uuid opaque, ADR 0011).
+    eventId: uuid("event_id").notNull(),
+    kind: text("kind", { enum: PLANNER_FEE_KINDS }).notNull(),
+    flatCents: integer("flat_cents"),
+    percentBasisPoints: integer("percent_basis_points"),
+    base: text("base", { enum: PLANNER_FEE_BASES }).notNull().default("estimated"),
+    vatRateBasisPoints: integer("vat_rate_basis_points").notNull().default(2000),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("planner_fees_organization_idx").on(table.organizationId),
+    uniqueIndex("planner_fees_event_idx").on(table.organizationId, table.eventId),
+    check(
+      "planner_fees_terms_check",
+      sql`${table.kind} in ('flat', 'percent', 'mixed') and ${table.base} in ('estimated', 'committed') and (${table.flatCents} is null or ${table.flatCents} > 0) and (${table.percentBasisPoints} is null or ${table.percentBasisPoints} between 1 and 10000) and ((${table.kind} = 'flat') = (${table.percentBasisPoints} is null)) and ((${table.kind} = 'percent') = (${table.flatCents} is null))`,
+    ),
+    check("planner_fees_vat_rate_check", sql`${table.vatRateBasisPoints} between 0 and 10000`),
+  ],
+);
+
+// Lot 48b (PRE-07, JUR-10 ; D6, D8) — commissions et apports d'affaires reçus d'un prestataire pour un
+// évènement : montant ou pourcentage d'une base, statut (attendue, facturée, reçue). Affichées d'office
+// à un client particulier (réponse 4 de l'avocat) ; au choix pour un professionnel.
+export const COMMISSION_NATURES = ["commission", "referral"] as const;
+export const COMMISSION_STATUSES = ["expected", "invoiced", "received"] as const;
+export const vendorCommissions = quotesSchema.table(
+  "vendor_commissions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id").notNull(),
+    // Fiche du carnet (module vendors, uuid opaque) et son nom copié (la facture le fige).
+    vendorId: uuid("vendor_id"),
+    vendorName: text("vendor_name").notNull(),
+    nature: text("nature", { enum: COMMISSION_NATURES }).notNull().default("commission"),
+    amountCents: integer("amount_cents"),
+    percentBasisPoints: integer("percent_basis_points"),
+    baseCents: integer("base_cents"),
+    vatRateBasisPoints: integer("vat_rate_basis_points").notNull().default(2000),
+    status: text("status", { enum: COMMISSION_STATUSES }).notNull().default("expected"),
+    receivedOn: date("received_on"),
+    shownToClient: boolean("shown_to_client").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("vendor_commissions_organization_idx").on(table.organizationId),
+    index("vendor_commissions_event_idx").on(table.eventId),
+    check("vendor_commissions_name_check", sql`char_length(${table.vendorName}) between 1 and 200`),
+    check(
+      "vendor_commissions_amount_check",
+      sql`(${table.amountCents} is not null and ${table.amountCents} > 0 and ${table.percentBasisPoints} is null and ${table.baseCents} is null) or (${table.amountCents} is null and ${table.percentBasisPoints} between 1 and 10000 and ${table.baseCents} is not null and ${table.baseCents} > 0)`,
+    ),
+    check("vendor_commissions_status_check", sql`${table.nature} in ('commission', 'referral') and ${table.status} in ('expected', 'invoiced', 'received') and ((${table.status} = 'received') = (${table.receivedOn} is not null))`),
+    check("vendor_commissions_vat_rate_check", sql`${table.vatRateBasisPoints} between 0 and 10000`),
   ],
 );
