@@ -756,7 +756,11 @@ export const contactNotes = hubSchema.table(
       .notNull()
       .references(() => contacts.id, { onDelete: "cascade" }),
     authorUserId: uuid("author_user_id"),
-    body: text("body").notNull(),
+    // Lot 48 (DAT-08 ; D5, ADR 0093) : une note confidentielle est chiffrée au niveau du champ
+    // (body_sealed, field-box) et body est vide ; lue par la titulaire et son auteur seuls.
+    body: text("body"),
+    bodySealed: text("body_sealed"),
+    isConfidential: boolean("is_confidential").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -768,7 +772,10 @@ export const contactNotes = hubSchema.table(
   (table) => [
     index("contact_notes_organization_idx").on(table.organizationId),
     index("contact_notes_contact_idx").on(table.contactId),
-    check("contact_notes_body_check", sql`char_length(${table.body}) between 1 and 2000`),
+    check(
+      "contact_notes_body_check",
+      sql`(not ${table.isConfidential} and ${table.bodySealed} is null and ${table.body} is not null and char_length(${table.body}) between 1 and 2000) or (${table.isConfidential} and ${table.body} is null and ${table.bodySealed} like 'f1:%' and ${table.authorUserId} is not null)`,
+    ),
   ],
 );
 

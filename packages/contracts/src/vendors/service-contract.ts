@@ -15,6 +15,8 @@ export type VendorTypeField = {
   choices: string[];
   isFilter: boolean;
   position: number;
+  // Lot 48a (PRE-06) : sens du champ pour les contrôles du chrono (venue-rules.json), ou null.
+  ruleKey: string | null;
 };
 
 // Lot 16 (L16-PRE-14, ADR 0040) — familles de types, propres à l'organisation.
@@ -43,7 +45,7 @@ export type StarterVendorCatalogInput = {
   icon: string;
   types: { key: string; label: string; synonyms: string[]; fields: VendorTypeFieldInput[] }[];
 }[];
-export type VendorTypeFieldInput = { label: string; kind: VendorFieldKind; choices?: string[]; isFilter?: boolean };
+export type VendorTypeFieldInput = { label: string; kind: VendorFieldKind; choices?: string[]; isFilter?: boolean; ruleKey?: string };
 // Lot 20 (décision 5, ADR 0049) : une étiquette appartient à un groupe (nul =
 // « Autres ») et vaut pour certaines familles de prestataires (vide = toutes).
 export type VendorTag = { id: string; label: string; groupId: string | null; familyIds: string[]; position: number };
@@ -108,6 +110,11 @@ export type Vendor = VendorSummary & {
   addressLine: string | null;
   country: string;
   internalNote: string | null;
+  // Lot 48a (DAT-08) : la note est confidentielle (chiffrée ; internalNote est alors null) ; elle se
+  // lit par readVendorConfidentialNote, pour la titulaire et son auteur seuls.
+  internalNoteConfidential: { authorUserId: string | null } | null;
+  // Lot 48a (PRE-10, SEC-27) : IBAN masqué et changement « à vérifier par un autre canal ».
+  bank: VendorBankSummary;
   // Lot 28c (PRE-01, D8) : tarifs indicatifs, en texte libre.
   indicativePrices: string | null;
   // Lot 14 (décision M) : liens et identité légale, communs à tous les types.
@@ -259,3 +266,54 @@ export type VendorsServiceContract = {
   searchVendorBook(organizationId: string, words: string[], limit: number): Promise<VendorBookSearchResult[]>;
   geocodeAddress(address: string): Promise<{ latitude: number; longitude: number } | null>;
 };
+
+// Lot 48a (PRE-05 ; D3, ADR 0093) — pièces à échéance d'un prestataire.
+export type VendorDocumentKind = { id: string; label: string; expires: boolean; starterKey: string | null; position: number };
+export type VendorDocumentStatus = "requested" | "to_verify" | "verified";
+export type VendorDocumentAlert = "valid" | "expiring" | "expired" | "no_expiry";
+export type VendorDocument = {
+  id: string;
+  vendorId: string;
+  kindId: string;
+  kindLabel: string;
+  status: VendorDocumentStatus;
+  fileName: string | null;
+  mime: string | null;
+  sizeBytes: number | null;
+  // Dernier jour de validité (AAAA-MM-JJ), ou null.
+  validUntil: string | null;
+  // Qui l'a déposée : la planner, le prestataire par son lien, ou personne encore (demandée).
+  uploadedBy: "planner" | "vendor" | null;
+  uploadedAt: string | null;
+  requestedAt: string | null;
+  verifiedAt: string | null;
+  alert: VendorDocumentAlert;
+};
+// Pièce à signaler (fiche, évènement, « Aujourd'hui »).
+export type VendorDocumentNotice = {
+  documentId: string;
+  vendorId: string;
+  vendorName: string;
+  kindLabel: string;
+  validUntil: string | null;
+  reason: "expired" | "expiring" | "lapses_before_event" | "to_verify";
+};
+
+// Lot 48a (PRE-10, SEC-27 ; D5) — IBAN d'un prestataire, toujours masqué hors du formulaire.
+export type VendorBankCheck = { changeId: string; changedAt: string; changedBy: "planner" | "vendor" };
+export type VendorBankSummary = { ibanMasked: string | null; hasBic: boolean; pendingCheck: VendorBankCheck | null };
+export type VendorBankChange = {
+  id: string;
+  previousMasked: string | null;
+  nextMasked: string | null;
+  changedBy: { kind: "user"; userId: string } | { kind: "vendor" };
+  changedAt: string;
+  verifiedAt: string | null;
+  verifiedByUserId: string | null;
+};
+
+// Lot 48a (PRE-06 ; D4) — contraintes d'un lieu (champs de sa fiche porteurs d'une règle) et ce
+// que les contrôles du chrono en disent. Jamais bloquant.
+export type VenueConstraintSet = { vendorId: string; name: string; values: Record<string, VendorFieldValue> };
+export type VenueProgramFinding = { itemId: string; ruleKey: string; venueName: string; vendorId: string; limit: string };
+export type VenueCapacityFinding = { ruleKey: string; venueName: string; vendorId: string; limit: number; guests: number };

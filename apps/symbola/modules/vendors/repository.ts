@@ -4,7 +4,7 @@
 import { and, asc, eq, gte, inArray, isNotNull, isNull, or, sql, type SQL } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { foldedColumn, likeWord } from "@symbola/db/search";
-import { vendorFiles, vendors, vendorSettings, vendorTagGroups, vendorTags, vendorTypeFields, vendorTypes } from "@symbola/db/schema/vendors";
+import { vendorDocuments, vendorFiles, vendors, vendorSettings, vendorTagGroups, vendorTags, vendorTypeFields, vendorTypes } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";
 import type { VendorAround, VendorFieldFilter, VendorFieldKind, VendorFieldValue, VendorFileKind, VendorSettings, VendorSocialLink } from "@symbola/contracts";
 import { EARTH_RADIUS_KM } from "./travel";
@@ -391,8 +391,10 @@ export function deleteDemoVendors(organizationId: string, vendorIds: string[]): 
   if (vendorIds.length === 0) return Promise.resolve([]);
   return inOrganization(organizationId, async (tx) => {
     const files = await tx.select({ fileKey: vendorFiles.fileKey }).from(vendorFiles).where(inArray(vendorFiles.vendorId, vendorIds));
+    // Lot 48a (PRE-05) : les pièces d'une fiche d'exemple partent avec elle.
+    const documents = await tx.select({ fileKey: vendorDocuments.fileKey }).from(vendorDocuments).where(inArray(vendorDocuments.vendorId, vendorIds));
     await tx.delete(vendors).where(and(inArray(vendors.id, vendorIds), eq(vendors.isDemo, true)));
-    return files.map((file) => file.fileKey);
+    return [...files.map((file) => file.fileKey), ...documents.flatMap((document) => (document.fileKey ? [document.fileKey] : []))];
   });
 }
 

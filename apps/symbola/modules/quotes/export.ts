@@ -40,11 +40,15 @@ import {
   proposalTemplates,
 } from "@symbola/db/schema/quotes";
 
+import { openQuoteSettings } from "./bank-details";
+
 // Original d'une pièce : celle d'une facture ou d'un avoir (lot 23b).
 const ORIGINAL_PARENTS: Record<string, string> = { invoice: "invoices", credit_note: "credit_notes" };
 
 export const QUOTES_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
-  { table: quoteSettings },
+  // Lot 48a (DAT-08) : l'IBAN et le BIC de la planner sortent en clair dans leurs champs d'origine
+  // (contrat export/v1 inchangé) ; leurs colonnes chiffrées n'en sortent pas.
+  { table: quoteSettings, omit: ["ibanSealed", "bicSealed"], transform: (row) => openQuoteSettings(row as Parameters<typeof openQuoteSettings>[0]) },
   { table: numberSeries, demoField: "isDemo" },
   { table: paymentMethods },
   { table: catalogItems },

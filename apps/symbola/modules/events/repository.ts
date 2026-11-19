@@ -1902,7 +1902,12 @@ export async function updateVenueRow(organizationId: string, eventId: string, ve
 // Lot 34b (EVT-03, D11) — invités estimés et confirmés, style et notes.
 export async function updateEventIdentityRow(organizationId: string, eventId: string, identity: { guestsEstimated: number | null; guestsConfirmed: number | null; style: string | null; notes: string | null }): Promise<boolean> {
   return withOrganization(appDatabase(), organizationId, async (tx) => {
-    const rows = await tx.update(events).set({ ...identity, updatedAt: new Date() }).where(eq(events.id, eventId)).returning({ id: events.id });
+    // Lot 48a (DAT-08) : des notes confidentielles ne changent que par saveEventNotes.
+    const rows = await tx
+      .update(events)
+      .set({ ...identity, notes: sql`case when ${events.notesSealed} is null then ${identity.notes} else null end`, updatedAt: new Date() })
+      .where(eq(events.id, eventId))
+      .returning({ id: events.id });
     return rows.length > 0;
   });
 }
@@ -1938,4 +1943,29 @@ export async function findEventIdentityState(organizationId: string, eventId: st
       .where(eq(events.id, eventId)),
   );
   return row ?? null;
+}
+
+// Lot 48a (DAT-08 ; ADR 0093) — notes d'évènement, en clair ou chiffrées.
+export async function findEventNotesRow(organizationId: string, eventId: string): Promise<{ notes: string | null; notesSealed: string | null; notesConfidentialBy: string | null } | null> {
+  return withOrganization(appDatabase(), organizationId, async (tx) => {
+    const [row] = await tx.select({ notes: events.notes, notesSealed: events.notesSealed, notesConfidentialBy: events.notesConfidentialBy }).from(events).where(eq(events.id, eventId));
+    return row ?? null;
+  });
+}
+
+export async function writeEventNotesRow(organizationId: string, eventId: string, values: { notes: string | null; notesSealed: string | null; notesConfidentialBy: string | null }): Promise<boolean> {
+  return withOrganization(appDatabase(), organizationId, async (tx) => (await tx.update(events).set({ ...values, updatedAt: new Date() }).where(eq(events.id, eventId)).returning({ id: events.id })).length > 0);
+}
+
+// Lot 48a (PRE-05, PRE-10 ; D3) : la fiche du carnet derrière le lien d'un prestataire (null : saisie
+// libre ou lien d'un autre public). Le lien a déjà été vérifié par l'appelant (session de lien).
+export async function findLinkVendorRecordId(organizationId: string, linkId: string): Promise<string | null> {
+  return withOrganization(appDatabase(), organizationId, async (tx) => {
+    const [row] = await tx
+      .select({ vendorId: eventVendorCandidates.vendorId })
+      .from(eventLinks)
+      .innerJoin(eventVendorCandidates, eq(eventVendorCandidates.id, eventLinks.vendorCandidateId))
+      .where(and(eq(eventLinks.id, linkId), eq(eventLinks.audience, "vendor")));
+    return row?.vendorId ?? null;
+  });
 }

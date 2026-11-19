@@ -11,6 +11,7 @@ import { isBudgetModuleEnabled, isValidId } from "../module-access";
 import { BudgetSimulationForm } from "./budget-simulation-form";
 import { BudgetLinesTable, type VendorOption } from "./budget-lines-table";
 import { VendorSchedule } from "./vendor-schedule";
+import { bankToVerifyCandidates } from "@/lib/vendors/bank-checks";
 import { EnvelopeSummary } from "./envelope-summary";
 
 export default async function EventBudgetPage({ params }: { params: Promise<{ eventId: string }> }) {
@@ -114,7 +115,8 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
       </nav>
       <BudgetLinesTable eventId={eventId} view={linesView} canConfirm={budget !== null} vendorOptions={vendorOptions} locale={locale} />
       {/* Lot 28b (BUD-03) : échéancier par prestataire. */}
-      {linesView.lines.length > 0 ? <VendorSchedule view={linesView} locale={locale} organizationId={organizationId} /> : null}
+      {/* Lot 48a (PRE-10, SEC-27) : un IBAN changé et pas encore vérifié est signalé sur ses échéances. */}
+      {linesView.lines.length > 0 ? <VendorSchedule view={linesView} locale={locale} organizationId={organizationId} bankToVerify={await bankToVerifyCandidates(organizationId, eventId)} /> : null}
     </main>
   );
 }

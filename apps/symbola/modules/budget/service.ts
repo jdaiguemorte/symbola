@@ -1286,9 +1286,14 @@ export async function listDayHandovers(organizationId: string, eventId: string):
       for (const payment of line.payments) {
         const row = rows.find((entry) => entry.id === payment.id);
         if (!row) continue;
+        // Lot 48a (PRE-10) : la fiche du prestataire de la ligne, sinon celles des retenus de la catégorie.
+        const vendorIds = candidates
+          .filter((candidate) => (line.vendorCandidateId ? candidate.id === line.vendorCandidateId : candidate.outcome === "selected" && candidate.vendorSlotId === line.eventVendorSlotId))
+          .flatMap((candidate) => (candidate.vendorId ? [candidate.vendorId] : []));
         handovers.push({
           paymentId: payment.id,
           eventId,
+          vendorIds,
           vendorName: line.vendorName ?? retainedOf(line.eventVendorSlotId),
           slotLabel: category.label,
           label: payment.label,

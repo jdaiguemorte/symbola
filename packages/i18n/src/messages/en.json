@@ -1018,7 +1018,7 @@
     },
     "vendorDetail": {
       "title": "Supplier record",
-      "body": "Everything you know about a supplier: contact details, its type's characteristics, tags, rating (1 to 5) and indicative prices, documents, internal note. « Edit the record » opens all of this in a panel; click a tag to choose it; only those of its family are shown. « History with you » lists its services, quoted and final price.",
+      "body": "The record gathers everything you know about the vendor: contact details, features of their type, rating, indicative prices, history with you. Documents (insurance, registration) have an end of validity and can be requested from the vendor. The IBAN is encrypted and only shown masked: if it changes, a banner asks you to call the vendor on the number you already know, never the one in the message announcing the change, before any payment. A note marked confidential is encrypted and reserved for you and the account owner. For a venue, its constraints (music end, vendor access, capacity) check the event program, without ever blocking anything.",
       "faq": [
         {
           "q": "Does archiving erase its history?",
@@ -1385,6 +1385,10 @@
     "budgetCashCalendar": {
       "title": "Cash-out calendar",
       "body": "Month by month, the client's instalments to you and to their vendors, with their payer and status: the answer to “what do we have to pay in May?”."
+    },
+    "vendorDocuments": {
+      "title": "Vendor documents",
+      "body": "Insurance certificate, company registration, venue plan: each record in the book keeps its documents with their end of validity. Symbola warns you a few days before (set the delay here) and flags, on the event and in \"Today\", a document that expires before the big day of a retained vendor. You can also request a document from the vendor: they upload it through their personal link, and it arrives \"to check\"."
     }
   },
   "Aide": {
@@ -2102,7 +2106,15 @@
       "no_label_column": "No sequence column recognised (sequence, item…).",
       "unsupported_format": "Unread format: save the file as .xlsx or .csv.",
       "malformed": "The file could not be read."
-    }
+    },
+    "eventNotesConfidentialElsewhere": "The notes are confidential: edit them just below.",
+    "eventNotesConfidentialTitle": "Notes and confidentiality",
+    "eventNotesConfidential": "Confidential",
+    "eventNotesConfidentialHint": "Confidential notes are encrypted, left out of searches and exports, and readable only by their author and the account owner.",
+    "eventNotesSave": "Save the notes",
+    "eventNotesSaved": "Notes saved.",
+    "eventNotesForbidden": "These confidential notes are reserved for their author and the account owner.",
+    "eventNotesConfidentialHidden": "Confidential notes exist: they are reserved for their author and the account owner."
   },
   "Budget": {
     "title": "Budget",
@@ -2301,7 +2313,8 @@
     "handoverCashHint": "Cash: cash payments are capped by law (see the help).",
     "payersNav": "Payers and calendar",
     "payersLink": "Payers and split",
-    "cashCalendarLink": "Cash-out calendar"
+    "cashCalendarLink": "Cash-out calendar",
+    "bankToVerify": "IBAN to check"
   },
   "Quotes": {
     "title": "Quotes",
@@ -4787,7 +4800,9 @@
     "filterRatingAtLeast": "{rating, plural, =5 {5 out of 5} other {At least # out of 5}}",
     "editRecord": "Edit the record",
     "fieldYes": "Yes",
-    "fieldNo": "No"
+    "fieldNo": "No",
+    "internalNoteConfidentialElsewhere": "The internal note is confidential: edit it in its own section of the record.",
+    "historyTable": "Table of the history with you"
   },
   "Onboarding": {
     "title": "Let's set up your workspace",
@@ -5071,7 +5086,8 @@
     "vendorCoordination": "Suppliers by link",
     "dayChecklists": "Event-day checklists",
     "proposalTemplates": "Proposal templates",
-    "paymentReminders": "Reminders"
+    "paymentReminders": "Reminders",
+    "vendorDocuments": "Vendor documents"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -5368,7 +5384,12 @@
       "quotes_validity_extended": "Quote validity extended",
       "quotes_signing_code_verified": "Code checked before signing",
       "budget_payers_changed": "Payers or shares changed",
-      "budget_payer_visibility_changed": "What a payer sees, changed"
+      "budget_payer_visibility_changed": "What a payer sees, changed",
+      "vendors_bank_details_changed": "Vendor IBAN changed",
+      "vendors_bank_details_verified": "Vendor IBAN checked by phone",
+      "vendors_document_requested": "Document requested from a vendor",
+      "vendors_document_received": "Document uploaded by a vendor",
+      "vendors_document_verified": "Vendor document checked"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -5534,7 +5555,10 @@
       "quotes_payment_reminders": "Payment reminder",
       "budget_event_payers": "Payer",
       "budget_budget_line_payer_shares": "Payer's share",
-      "budget_planner_instalment_payers": "Payer of an instalment"
+      "budget_planner_instalment_payers": "Payer of an instalment",
+      "vendors_vendor_documents": "a vendor document",
+      "vendors_vendor_document_kinds": "a document kind",
+      "vendors_vendor_bank_changes": "an IBAN change"
     },
     "modules": {
       "events": "Events",
@@ -5751,7 +5775,30 @@
     "programNotPublished": "The schedule has not been shared yet.",
     "outlineTitle": "The day at a glance",
     "outlineYours": "you",
-    "programDayShift": "{minutes} min shift on the day: your times below are up to date."
+    "programDayShift": "{minutes} min shift on the day: your times below are up to date.",
+    "documentsTitle": "Your documents and bank details",
+    "documentsNone": "No document is requested from you for now.",
+    "documentsFile": "File: {document}",
+    "documentsValidUntil": "Valid until (optional)",
+    "documentsSend": "Send the document",
+    "documentsSent": "Document sent: the organizer will check it.",
+    "documentsReceived": "received, being checked",
+    "documentsClosed": "This request is no longer open.",
+    "documentsFileMissing": "Choose a file.",
+    "documentsTooLarge": "File too large (20 MB at most).",
+    "documentsInfected": "File rejected by the antivirus.",
+    "documentsUnsupported": "Format not accepted: PDF or image.",
+    "documentsDateInvalid": "Invalid end-of-validity date.",
+    "bankTitle": "Your bank details",
+    "bankCurrent": "IBAN on file: {iban}",
+    "bankNone": "No IBAN on file.",
+    "bankHint": "For your safety, any IBAN change will be checked by phone by the organizer before any payment.",
+    "bankIban": "IBAN",
+    "bankBic": "BIC (optional)",
+    "bankSend": "Send the IBAN",
+    "bankSent": "IBAN sent: the organizer will call you to check it.",
+    "bankIbanInvalid": "This IBAN is not valid: check the digits.",
+    "bankBicInvalid": "This BIC is not valid."
   },
   "Decisions": {
     "decisionOptionTitle": "Choose: {slot}",
@@ -6019,7 +6066,8 @@
     "prepAddItem": "Add the box",
     "prepRemove": "Remove",
     "prepRemoveItem": "Remove the box {label}",
-    "prepRemoveList": "Remove the checklist \"{name}\""
+    "prepRemoveList": "Remove the checklist \"{name}\"",
+    "bankToVerify": "IBAN to check"
   },
   "Offline": {
     "title": "Offline",
@@ -6435,7 +6483,14 @@
       },
       "vendorChoice": "The client chose {vendor} ({slot}): check it",
       "vendorRoadmap": "{vendor} has not confirmed their run sheet",
-      "transferDeclaration": "{name} says they transferred {amount}"
+      "transferDeclaration": "{name} says they transferred {amount}",
+      "vendorDocument": {
+        "expired": "{vendor}'s {document}: expired",
+        "expiring": "{vendor}'s {document}: expiring soon",
+        "lapses_before_event": "{vendor}'s {document}: expires before the event",
+        "to_verify": "{vendor}'s {document}: uploaded, to check"
+      },
+      "vendorBankCheck": "{vendor}'s IBAN changed: check it by phone before any payment"
     },
     "myEventsTitle": "My events",
     "myEventsEmpty": "No event in progress.",
@@ -6691,7 +6746,10 @@
     "memberSearch": "Search for the person by name, email or phone",
     "pickerNoneAlone": "No contact found: add them to your contacts first.",
     "editRecord": "Edit the record",
-    "duplicatesLink": "{count, plural, one {One possible duplicate to check} other {# possible duplicates to check}}"
+    "duplicatesLink": "{count, plural, one {One possible duplicate to check} other {# possible duplicates to check}}",
+    "noteConfidential": "Confidential (encrypted, readable only by you and the account owner)",
+    "noteConfidentialBadge": "confidential",
+    "noteConfidentialHidden": "Confidential note, reserved for its author and the account owner."
   },
   "SharedDocuments": {
     "title": "Documents",
@@ -9261,5 +9319,101 @@
       "consumerLatePenaltyBasisPoints": "The rate is between 0.01 and 100%."
     },
     "lawyerNote": "Consumer penalties: question asked to the lawyer (maximum rate, wording). Until then, nothing is mentioned without a contract clause."
+  },
+  "VendorRecords": {
+    "unauthorized": "Action not allowed.",
+    "notFound": "Record or document not found.",
+    "someone": "a team member",
+    "byYou": "you",
+    "byOwner": "the account owner",
+    "byMember": "a team member",
+    "byVendorLink": "the vendor, through their link",
+    "bankTitle": "Bank details",
+    "iban": "IBAN",
+    "ibanNew": "New IBAN",
+    "bic": "BIC",
+    "bicSet": "provided",
+    "ibanHint": "The IBAN is encrypted and only shown masked. Every change is recorded and stays \"to check\" until you call the vendor.",
+    "ibanSave": "Save the IBAN",
+    "ibanSaved": "IBAN saved.",
+    "ibanInvalid": "This IBAN is not valid: check the digits.",
+    "bicInvalid": "This BIC is not valid, or the IBAN is missing.",
+    "toVerify": "to check",
+    "bankCheckTitle": "IBAN changed: check it through another channel before any payment",
+    "bankCheckByVendor": "The vendor changed their IBAN through their link on {date}.",
+    "bankCheckByPlanner": "The IBAN was changed in Symbola on {date}.",
+    "bankCheckCall": "Call the vendor on the number you already know ({phone}), never the one in the message announcing the change.",
+    "bankCheckCallNoPhone": "Call the vendor on the number you already know, never the one in the message announcing the change.",
+    "bankCheckLift": "I checked by phone",
+    "bankHistory": "IBAN changes ({count})",
+    "bankHistoryLine": "{date}, by {who}: {before} → {after}.",
+    "bankHistoryVerified": "Checked on {date} by {who}.",
+    "bankHistoryPending": "To check.",
+    "documentsTitle": "Documents",
+    "documentsEmpty": "No documents yet.",
+    "documentKind": "Kind of document",
+    "documentFile": "File (PDF or image)",
+    "validUntil": "Valid until (optional)",
+    "validUntilShort": "valid until {date}",
+    "validUntilFor": "End of validity: {document}",
+    "validUntilSave": "Change the date",
+    "validUntilInvalid": "Invalid end-of-validity date.",
+    "documentAdd": "Add the document",
+    "documentAdded": "Document added.",
+    "documentRequested": "requested from the vendor",
+    "documentToVerify": "uploaded by the vendor, to check",
+    "documentExpired": "expired",
+    "documentExpiring": "expiring soon",
+    "documentVerify": "Mark \"{document}\" as checked",
+    "documentRemove": "Remove \"{document}\"",
+    "fileMissing": "Choose a file.",
+    "fileTooLarge": "File too large (20 MB at most).",
+    "fileInfected": "File rejected by the antivirus.",
+    "fileUnsupported": "Format not accepted: PDF or image.",
+    "requestHint": "Does the vendor have the up-to-date document? Request it: they will upload it through their personal link, and it will arrive \"to check\".",
+    "requestKind": "Document to request",
+    "requestSubmit": "Request from the vendor",
+    "requestSent": "Request recorded: it appears in the vendor's space.",
+    "noteTitle": "Internal note",
+    "note": "Note",
+    "noteConfidential": "Confidential",
+    "noteConfidentialHint": "A confidential note is encrypted, left out of searches and exports, and readable only by you and the account owner.",
+    "noteSave": "Save the note",
+    "noteSaved": "Note saved.",
+    "noteForbidden": "This confidential note is reserved for its author and the account owner.",
+    "noteHidden": "A confidential note exists: it is reserved for its author and the account owner."
+  },
+  "VenueChecks": {
+    "title": "Venue constraints",
+    "rule": {
+      "music_end": "{venue} asks for the music to end at {time}: \"{item}\" ends later.",
+      "volume_down": "{venue} asks to lower the volume at {time}: \"{item}\" ends later.",
+      "guests_departure": "{venue} asks guests to leave by {time}: \"{item}\" ends later.",
+      "vendor_access_start": "{venue} opens to vendors at {time}: \"{item}\" starts earlier.",
+      "vendor_access_end": "{venue} closes to vendors at {time}: \"{item}\" ends later."
+    },
+    "ruleOther": "\"{item}\" goes beyond a constraint of {venue}.",
+    "notBlocking": "A warning, nothing is blocked: an exception agreed with the venue remains possible.",
+    "capacitySeated": "{venue} seats {limit} people: {guests} guests are expected.",
+    "capacityStanding": "{venue} holds {limit} people standing: {guests} guests are expected."
+  },
+  "VendorDocumentSettings": {
+    "title": "Vendor documents",
+    "unavailable": "The vendor book is not enabled for your organization.",
+    "unauthorized": "Action not allowed.",
+    "alertTitle": "Alert before the end of validity",
+    "alertIntro": "A document is flagged in \"Today\" this many days before its last day of validity.",
+    "days": "Days before the end",
+    "daysInvalid": "Between 1 and 180 days.",
+    "save": "Save",
+    "saved": "Delay saved.",
+    "kindsTitle": "Kinds of documents",
+    "kindWithExpiry": "with end of validity",
+    "kindRemove": "Remove \"{kind}\"",
+    "kindLabel": "New kind",
+    "kindExpires": "Has an end of validity",
+    "kindAdd": "Add",
+    "kindAdded": "Kind added.",
+    "labelInvalid": "A label of 1 to 120 characters."
   }
 }

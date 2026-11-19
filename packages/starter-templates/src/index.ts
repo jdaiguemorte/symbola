@@ -741,6 +741,8 @@ const vendorTypesSchema = z.object({
             kind: z.enum(["number", "text", "time", "amount", "choice", "boolean"]),
             choices: z.object({ fr: z.array(z.string().min(1)), en: z.array(z.string().min(1)) }).optional(),
             isFilter: z.boolean(),
+            // Lot 48a (PRE-06) : sens du champ pour les contrôles du chrono (venue-rules.json).
+            rule: z.string().regex(/^[a-z][a-z_]{1,40}$/).optional(),
           }),
         ),
       }),
@@ -750,7 +752,7 @@ const vendorTypesSchema = z.object({
 
 const vendorTypes = vendorTypesSchema.parse(vendorTypesFile);
 
-export type StarterVendorTypeField = { label: string; kind: "number" | "text" | "time" | "amount" | "choice" | "boolean"; choices?: string[]; isFilter: boolean };
+export type StarterVendorTypeField = { label: string; kind: "number" | "text" | "time" | "amount" | "choice" | "boolean"; choices?: string[]; isFilter: boolean; ruleKey?: string };
 
 export type StarterVendorType = { key: string; label: string; fields: StarterVendorTypeField[] };
 
@@ -763,6 +765,7 @@ export function starterVendorTypes(locale: StarterLocale): StarterVendorType[] {
       kind: field.kind,
       ...(field.choices ? { choices: field.choices[locale] } : {}),
       isFilter: field.isFilter,
+      ...(field.rule ? { ruleKey: field.rule } : {}),
     })),
   }));
 }
@@ -1418,6 +1421,7 @@ export function starterBookingPrivacyNotice(locale: StarterLocale): string {
 
 // Lot 47 (PAR-05 ; ADR 0085) : délais et tâches de suivi des prestataires par lien.
 export * from "./vendor-coordination";
+export * from "./vendor-records";
 // Lot 43 (FAC-09, FAC-15 ; D1, D7) — relances de départ : jours avant l'expiration d'un devis, jours
 // après une échéance impayée, phrase d'une relance sans pénalité et phrase de la clause de pénalités
 // d'un particulier ({taux}). L'organisation les règle ; rien n'est écrit dans le code.

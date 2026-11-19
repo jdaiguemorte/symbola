@@ -1212,6 +1212,34 @@
       "when": 1795030935335,
       "tag": "0172_lot45_hub_prospect_email_kinds",
       "breakpoints": true
+    },
+    {
+      "idx": 173,
+      "version": "7",
+      "when": 1795035841863,
+      "tag": "0173_lot48a_vendors_documents_bank_venue",
+      "breakpoints": true
+    },
+    {
+      "idx": 174,
+      "version": "7",
+      "when": 1795035843508,
+      "tag": "0174_lot48a_events_confidential_notes",
+      "breakpoints": true
+    },
+    {
+      "idx": 175,
+      "version": "7",
+      "when": 1795035845155,
+      "tag": "0175_lot48a_hub_confidential_contact_notes",
+      "breakpoints": true
+    },
+    {
+      "idx": 176,
+      "version": "7",
+      "when": 1795035846818,
+      "tag": "0176_lot48a_quotes_sealed_bank_details",
+      "breakpoints": true
     }
   ]
 }

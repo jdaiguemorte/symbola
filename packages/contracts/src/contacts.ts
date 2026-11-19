@@ -47,7 +47,10 @@ export type ContactInput = {
 } & Partial<ContactCoordinates> &
   Partial<ContactCompanyIds>;
 
-export type ContactNote = { id: string; contactId: string; authorUserId: string | null; body: string; createdAt: Date };
+// Lot 48a (DAT-08, ADR 0093) : une note confidentielle est chiffrée ; son texte (body) n'est rendu
+// qu'à la titulaire et à son auteur (readable), vide pour les autres.
+export type ContactNote = { id: string; contactId: string; authorUserId: string | null; body: string; createdAt: Date; confidential: boolean; readable: boolean };
+export type ContactNoteViewer = { userId: string; role: "owner" | "member" | "admin" };
 
 // Lot 36b (CRM-03, D2) : une personne membre d'un foyer (un couple, une famille) ou d'une entreprise
 // (un interlocuteur), avec un rôle libre. `contact` est l'autre bout du lien : la personne vue du

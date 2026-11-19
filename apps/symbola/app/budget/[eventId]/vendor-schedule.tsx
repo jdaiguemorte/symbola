@@ -8,11 +8,11 @@ import { getLinkNamesByIds } from "@/modules/events/service";
 import { confirmPaymentDeclarationAction } from "./actions";
 import { DeclarationRefusalForm } from "./declaration-refusal-form";
 
-type Group = { key: string; title: string; committedCents: number; paidCents: number; payments: (BudgetLinesView["lines"][number]["payments"][number] & { lineLabel: string })[] };
+type Group = { key: string; title: string; bankToVerify: boolean; committedCents: number; paidCents: number; payments: (BudgetLinesView["lines"][number]["payments"][number] & { lineLabel: string })[] };
 
 // Lot 27a (SC-06 étape 5, D6) : un règlement déclaré par un client se confirme
 // (payé à la date déclarée) ou se refuse, avec un motif montré au client.
-export async function VendorSchedule({ view, locale, organizationId }: { view: BudgetLinesView; locale: Locale; organizationId: string }) {
+export async function VendorSchedule({ view, locale, organizationId, bankToVerify = new Set() }: { view: BudgetLinesView; locale: Locale; organizationId: string; bankToVerify?: Set<string> }) {
   const t = await getTranslations("Budget");
   const declarerIds = [...new Set(view.lines.flatMap((line) => line.payments.flatMap((payment) => (payment.declaration ? [payment.declaration.linkId] : []))))];
   const declarers = declarerIds.length > 0 ? await getLinkNamesByIds(organizationId, declarerIds) : {};
@@ -24,7 +24,7 @@ export async function VendorSchedule({ view, locale, organizationId }: { view: B
   for (const line of view.lines) {
     const key = keyOf(line);
     if (!withPayments.has(key)) continue;
-    const group = groups.get(key) ?? { key, title: line.vendorName ?? line.label, committedCents: 0, paidCents: 0, payments: [] };
+    const group = groups.get(key) ?? { key, title: line.vendorName ?? line.label, bankToVerify: line.vendorCandidateId !== null && bankToVerify.has(line.vendorCandidateId), committedCents: 0, paidCents: 0, payments: [] };
     group.committedCents += line.committedAmountCents ?? 0;
     group.paidCents += line.paidAmountCents ?? 0;
     group.payments.push(...line.payments.map((payment) => ({ ...payment, lineLabel: line.label })));
@@ -36,7 +36,9 @@ export async function VendorSchedule({ view, locale, organizationId }: { view: B
       {groups.size === 0 ? <p>{t("scheduleEmpty")}</p> : null}
       {[...groups.values()].map((group) => (
         <section key={group.key} aria-label={group.title}>
-          <h3>{group.title}</h3>
+          <h3>
+            {group.title} {group.bankToVerify ? <span className="badge badge-warning">{t("bankToVerify")}</span> : null}
+          </h3>
           <p className="meta">
             {t("scheduleTotals", {
               committed: formatAmount(group.committedCents, locale),

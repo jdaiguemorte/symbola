@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "nightEndsAt": "06:00",
+  "musicTypeKeys": ["music", "sound_light", "entertainment"],
+  "rules": [
+    { "key": "music_end", "check": "end_after", "appliesTo": "music" },
+    { "key": "volume_down", "check": "end_after", "appliesTo": "music" },
+    { "key": "guests_departure", "check": "end_after", "appliesTo": "all" },
+    { "key": "vendor_access_start", "check": "start_before", "appliesTo": "vendors" },
+    { "key": "vendor_access_end", "check": "end_after", "appliesTo": "vendors" },
+    { "key": "capacity_seated", "check": "capacity", "appliesTo": "all" },
+    { "key": "capacity_standing", "check": "capacity", "appliesTo": "all" },
+    { "key": "capacity_ceremony", "check": "none", "appliesTo": "all" },
+    { "key": "decibel_limit", "check": "none", "appliesTo": "music" },
+    { "key": "imposed_caterer", "check": "none", "appliesTo": "all" },
+    { "key": "imposed_caterer_name", "check": "none", "appliesTo": "all" },
+    { "key": "access", "check": "none", "appliesTo": "all" },
+    { "key": "nearby_lodging", "check": "none", "appliesTo": "all" }
+  ]
+}
