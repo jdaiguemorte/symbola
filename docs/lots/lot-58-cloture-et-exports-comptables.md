@@ -1,6 +1,6 @@
 # Lot 58 — Clôture d'un évènement, évaluation des prestataires, modèle, exports comptables
 
-**Statut** : spécification proposée le 19/11/2026, **à valider par Julien**. Les réponses qu'il a
+**Statut** : spécification proposée le 19/11/2026, **validée par Julien le 19/11/2026** : toutes les décisions retenues dans leur option recommandée (a), changements de schéma compris (accord donné). Les réponses qu'il a
 données le 18/11 sont reprises telles quelles (notées « Julien, 18/11 »). Le lot change les schémas
 `events`, `vendors` et `quotes` : validation explicite requise (CLAUDE.md § 8). Aucune dépendance
 nouvelle.
