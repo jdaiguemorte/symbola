@@ -6,7 +6,7 @@
 - Complète : [0068](0068-export-complet-contrat-export-v1.md) (export complet),
   [0061](0061-pieces-inalterables.md) (pièces inaltérables),
   [0092](0092-sauvegardes-35-jours-option-un-an.md) (sauvegardes),
-  [0097](0097-reprise-d-un-export-dans-un-espace-vide.md) (reprise).
+  [0098](0098-reprise-d-un-export-dans-un-espace-vide.md) (reprise).
 - Exigences : RGP-11 (réversibilité, suppression dans les 30 jours suivant la résiliation ; la
   suppression couvre les sauvegardes à l'issue de leur cycle) ; spécification
   `docs/lots/lot-35-export.md`, partie F.
