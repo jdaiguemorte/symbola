@@ -16,6 +16,7 @@ import type { EventStatus as LifecycleStatus } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
 import { includingDeleted, SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
+import { organizationLinksClosed } from "./closed-organization";
 import { randomUUID } from "node:crypto";
 import { parseEnv } from "@symbola/env";
 import { MailQuotaExceededError, reserveOrganizationMail } from "@symbola/mail";
@@ -2372,7 +2373,7 @@ export async function openEventLink(token: string, now: Date = new Date(), local
 
 async function usableLinkOfToken(token: string, now: Date): Promise<{ organizationId: string; context: LinkWithContext } | null> {
   const parsed = parseLinkToken(token);
-  if (!parsed) return null;
+  if (!parsed || (await organizationLinksClosed(parsed.organizationId))) return null;
   const context = await findLinkByTokenHash(parsed.organizationId, hashLinkSecret(parsed.secret));
   return context && usableLink(context, now) ? { organizationId: parsed.organizationId, context } : null;
 }
@@ -2498,7 +2499,7 @@ export async function verifyLinkActionCode(organizationId: string, linkId: strin
 // session expirée, ou d'un lien qui ne vaut plus, est supprimée.
 export async function resolveLinkSession(sessionToken: string, now: Date = new Date()): Promise<LinkAccess | null> {
   const parsed = parseLinkToken(sessionToken);
-  if (!parsed) return null;
+  if (!parsed || (await organizationLinksClosed(parsed.organizationId))) return null;
   const tokenHash = hashLinkSecret(parsed.secret);
   const found = await findLinkSessionRow(parsed.organizationId, tokenHash);
   if (!found) return null;
@@ -3321,7 +3322,7 @@ void _contractCheck;
 export { listRetentionEvents, type RetentionEvent } from "./privacy-retention";
 
 // Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
-export { describeEventsExport, EVENTS_EXPORT_EXCLUSIONS, exportEventsData, importEventsData, listDemoEventIds, registerEventsImportIds } from "./export";
+export { describeEventsExport, EVENTS_EXPORT_EXCLUSIONS, exportEventsData, eraseEventsData, importEventsData, listDemoEventIds, registerEventsImportIds } from "./export";
 
 // Lot 36a (CRM-03, ADR 0069) : contacts des clients des évènements donnés (fin d'un essai : ses
 // contacts d'essai partent avec lui), contacts encore clients d'un évènement, et évènements d'un

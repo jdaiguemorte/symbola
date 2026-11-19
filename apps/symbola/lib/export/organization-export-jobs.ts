@@ -13,7 +13,7 @@ import {
   claimOrganizationExport,
   completeOrganizationExport,
   failOrganizationExport,
-  listOrganizations,
+  listOrganizationsIncludingClosed,
   purgeExpiredOrganizationExports,
   recordOrganizationExportProgress,
   takeAwakenedExportOrganizations,
@@ -29,7 +29,7 @@ async function organizationsToVisit(now: number): Promise<string[]> {
   const awakened = takeAwakenedExportOrganizations();
   if (lastFullScanAt !== null && now - lastFullScanAt < FULL_SCAN_INTERVAL_MS) return awakened;
   lastFullScanAt = now;
-  const all = (await listOrganizations(appDatabase())).map((organization) => organization.id);
+  const all = (await listOrganizationsIncludingClosed(appDatabase())).map((organization) => organization.id);
   return [...new Set([...awakened, ...all])];
 }
 
@@ -92,7 +92,7 @@ export function scheduleOrganizationExports(): void {
 
 export async function purgeAllExpiredOrganizationExports(now: Date = new Date()): Promise<number> {
   const db = appDatabase();
-  const organizations = await listOrganizations(db);
+  const organizations = await listOrganizationsIncludingClosed(db);
   return purgeExpiredOrganizationExports(
     db,
     organizations.map((organization) => organization.id),

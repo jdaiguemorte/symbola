@@ -1,7 +1,7 @@
 // Client de stockage objet compatible S3 (Garage, ADR 0015 — remplace
 // MinIO ; SOC-08). Bucket privé : jamais d'ACL publique, téléchargement
 // uniquement par lien signé à durée limitée.
-import { DeleteObjectCommand, GetObjectCommand, HeadBucketCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, HeadBucketCommand, HeadObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
@@ -132,4 +132,16 @@ export async function deletePrivateObject(storage: ReturnType<typeof createStora
 // bucket existe et les clés de l'app y ont accès.
 export async function checkBucket(storage: ReturnType<typeof createStorageClient>): Promise<void> {
   await storage.client.send(new HeadBucketCommand({ Bucket: storage.bucket }));
+}
+
+// Lot 35c (RGP-11, ADR 0100) : toutes les clés sous un préfixe (« <organisation>/ »), page par page.
+export async function listPrivateObjectKeys(storage: ReturnType<typeof createStorageClient>, prefix: string): Promise<string[]> {
+  const keys: string[] = [];
+  let token: string | undefined;
+  do {
+    const page = await storage.client.send(new ListObjectsV2Command({ Bucket: storage.bucket, Prefix: prefix, ContinuationToken: token }));
+    for (const item of page.Contents ?? []) if (item.Key) keys.push(item.Key);
+    token = page.IsTruncated ? page.NextContinuationToken : undefined;
+  } while (token);
+  return keys;
 }

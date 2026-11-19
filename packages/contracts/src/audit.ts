@@ -84,6 +84,9 @@ export const AUDIT_ACTIONS = {
   "hub.organization_import.requested": { category: "export", objectType: "organization_import" },
   "hub.organization_import.completed": { category: "export", objectType: "organization_import" },
   "hub.organization_import.failed": { category: "export", objectType: "organization_import" },
+  // Lot 35c (RGP-11, ADR 0100) : fermeture d'un espace, et sa réouverture avant la suppression.
+  "hub.organization.closed": { category: "droits", objectType: "organization" },
+  "hub.organization.reopened": { category: "droits", objectType: "organization" },
   "vendors.vendors.exported": { category: "export", objectType: null },
   "quotes.e_reporting.exported": { category: "export", objectType: null },
   "quotes.archive.exported": { category: "export", objectType: null },

@@ -3,12 +3,13 @@
 // des lignes terminées depuis 30 jours (modules/hub/jobs.ts). Lancé par instrumentation.ts, derrière
 // le verrou des tâches périodiques (lib/scheduler-lock.ts).
 import { appDatabase } from "@symbola/db/client";
-import { listOrganizations, runDueJobs } from "@/modules/hub/service";
+import { listOrganizationsIncludingClosed, runDueJobs } from "@/modules/hub/service";
 
 const POLL_INTERVAL_MS = 30_000;
 
 export async function runJobsOnce(now: Date = new Date()): Promise<void> {
-  for (const organization of await listOrganizations(appDatabase())) {
+  // Lot 35c : un espace fermé garde ses e-mails de fermeture (les autres attendent, runJob).
+  for (const organization of await listOrganizationsIncludingClosed(appDatabase())) {
     await runDueJobs(organization.id, now).catch((error: unknown) => {
       console.error("file des tâches : passage échoué", organization.id, error instanceof Error ? error.name : "inconnue");
     });

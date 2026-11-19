@@ -6,6 +6,7 @@
 import type { ReactNode } from "react";
 import {
   Activity,
+  Archive,
   Building2,
   HeartPulse,
   LayoutDashboard,
@@ -515,6 +516,11 @@ export async function AppShell({ children }: { children: ReactNode }) {
                     href: "/parametres/reprise",
                     label: tSettings("organizationImport"),
                   },
+                  // Lot 35c (RGP-11, D8) : fermer l'espace.
+                  {
+                    href: "/parametres/fermeture",
+                    label: tSettings("organizationClosure"),
+                  },
                   // Lot 37b (DOC-12, décision D12) : relevé mensuel du stockage, titulaire seulement.
                   {
                     href: "/parametres/stockage",
@@ -655,6 +661,13 @@ export async function AppShell({ children }: { children: ReactNode }) {
                 <AppNavLink href="/exploitation/activite">
                   <Activity {...iconProps} />
                   {tAdmin("activity")}
+                </AppNavLink>
+              </li>
+              {/* Lot 35c (RGP-11) : trace des fermetures d'espaces, sans donnée personnelle. */}
+              <li>
+                <AppNavLink href="/exploitation/fermetures">
+                  <Archive {...iconProps} />
+                  {tAdmin("closures")}
                 </AppNavLink>
               </li>
               <li>

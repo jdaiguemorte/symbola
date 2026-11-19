@@ -13,7 +13,7 @@ import { dietConsents, diets, guestLinks, guests, households, rsvpAnswers } from
 import { parisToday } from "@symbola/i18n";
 import { starterDietaryOptionLabel as starterLabel, starterDietConsent } from "@symbola/starter-templates";
 import type { GuestEventContext, GuestLocale, RsvpAnswerInput, RsvpMember, RsvpOutcome, RsvpView } from "@symbola/contracts";
-import { getPrivacySettings, isModuleEnabled } from "@/modules/hub/service";
+import { getPrivacySettings, isModuleEnabled, isOrganizationClosed } from "@/modules/hub/service";
 import { dietPlace, openDietOptions, sealDietOptions } from "./diets";
 import { eventContext, getGuestPrivacyNotice, guestPrivacyNoticeTemplate, refreshAnswered } from "./households";
 import { plannerContact } from "./links";
@@ -40,6 +40,8 @@ async function resolve(token: unknown, now: Date): Promise<Resolved | null> {
   if (!parsed) return null;
   const { organizationId } = parsed;
   const db = appDatabase();
+  // Lot 35c (RGP-11) : un espace fermé ferme les liens des invités.
+  if (await isOrganizationClosed(db, organizationId)) return null;
   if (!(await isModuleEnabled(db, organizationId, "guests")) || !(await isModuleEnabled(db, organizationId, "events"))) return null;
   const found = await inOrganization(organizationId, async (tx) => {
     const [link] = await tx.select().from(guestLinks).where(and(eq(guestLinks.tokenHash, hashLinkSecret(parsed.secret)), isNull(guestLinks.revokedAt)));

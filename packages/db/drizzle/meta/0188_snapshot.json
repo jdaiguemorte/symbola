@@ -1,6 +1,6 @@
 {
-  "id": "07a69943-fec9-4348-b115-d5692a864c32",
-  "prevId": "a0a6c3c1-3e05-4f0f-b228-05c4ae76de41",
+  "id": "f0086625-3076-453b-941f-3d58467519c3",
+  "prevId": "c5056f39-a105-4bf0-bb8d-ffa03f5e68df",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -19891,6 +19891,143 @@
       },
       "isRLSEnabled": false
     },
+    "hub.organization_closures": {
+      "name": "organization_closures",
+      "schema": "hub",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "closed_at": {
+          "name": "closed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "deletion_due_at": {
+          "name": "deletion_due_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reopened_at": {
+          "name": "reopened_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "erased_at": {
+          "name": "erased_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "erased_rows": {
+          "name": "erased_rows",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "files_erased_at": {
+          "name": "files_erased_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "erased_files": {
+          "name": "erased_files",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "replayed_at": {
+          "name": "replayed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "organization_closures_organization_idx": {
+          "name": "organization_closures_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "organization_closures_open_idx": {
+          "name": "organization_closures_open_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "reopened_at is null and erased_at is null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "organization_closures_dates_check": {
+          "name": "organization_closures_dates_check",
+          "value": "\"hub\".\"organization_closures\".\"deletion_due_at\" >= \"hub\".\"organization_closures\".\"closed_at\" + interval '29 days'"
+        }
+      },
+      "isRLSEnabled": false
+    },
     "hub.organization_exports": {
       "name": "organization_exports",
       "schema": "hub",
@@ -20680,6 +20817,30 @@
           "notNull": true,
           "default": true
         },
+        "closed_at": {
+          "name": "closed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "closed_by_user_id": {
+          "name": "closed_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deletion_due_at": {
+          "name": "deletion_due_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "closure_notice_sent_at": {
+          "name": "closure_notice_sent_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -20712,7 +20873,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "organizations_closure_check": {
+          "name": "organizations_closure_check",
+          "value": "(\"hub\".\"organizations\".\"closed_at\" is null) = (\"hub\".\"organizations\".\"deletion_due_at\" is null) and (\"hub\".\"organizations\".\"deletion_due_at\" is null or \"hub\".\"organizations\".\"deletion_due_at\" >= \"hub\".\"organizations\".\"closed_at\" + interval '29 days')"
+        }
+      },
       "isRLSEnabled": false
     },
     "hub.ownership_transfers": {

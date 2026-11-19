@@ -35,6 +35,7 @@ import {
   type SetDayDocumentEmbeddedInput,
 } from "@symbola/contracts";
 import { formatLinkToken, hashLinkSecret, newLinkSecret, parseLinkToken } from "./link-tokens";
+import { organizationLinksClosed } from "./closed-organization";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 type DocumentRow = typeof eventDocuments.$inferSelect;
@@ -457,7 +458,7 @@ export async function revokeDocumentLink(organizationId: string, linkId: string,
 // l'ouverture, c'est le fichier servi (openDocumentLink).
 export async function peekDocumentLink(token: string, now: Date = new Date()): Promise<{ label: string; mime: string; sizeBytes: number } | null> {
   const parsed = parseLinkToken(token);
-  if (!parsed) return null;
+  if (!parsed || (await organizationLinksClosed(parsed.organizationId))) return null;
   return inOrganization(parsed.organizationId, async (tx) => {
     const [link] = await tx.select().from(eventDocumentLinks).where(eq(eventDocumentLinks.tokenHash, hashLinkSecret(parsed.secret)));
     if (!link || link.revokedAt || link.expiresAt.getTime() <= now.getTime()) return null;
@@ -470,7 +471,7 @@ export async function peekDocumentLink(token: string, now: Date = new Date()): P
 // sans rien révéler (DOC-04). Chaque ouverture est comptée et va au fil de l'évènement.
 export async function openDocumentLink(token: string, now: Date = new Date()): Promise<{ label: string; mime: string; sizeBytes: number; file: () => Promise<FileDownload> } | null> {
   const parsed = parseLinkToken(token);
-  if (!parsed) return null;
+  if (!parsed || (await organizationLinksClosed(parsed.organizationId))) return null;
   const found = await inOrganization(parsed.organizationId, async (tx) => {
     const [link] = await tx.select().from(eventDocumentLinks).where(eq(eventDocumentLinks.tokenHash, hashLinkSecret(parsed.secret)));
     if (!link || link.revokedAt || link.expiresAt.getTime() <= now.getTime()) return null;
