@@ -1,6 +1,7 @@
 // Clés des modules qu'un Admin peut activer ou désactiver par organisation (lot 11 :
-// vendors, ADR 0031 ; socle des lots 46 et 49, ADR 0079 : appointments et guests).
-export const MODULE_KEYS = ["events", "budget", "quotes", "vendors", "appointments", "guests"] as const;
+// vendors, ADR 0031 ; socle des lots 46 et 49, ADR 0079 : appointments et guests ; lot 60, ADR 0099 :
+// floorplans, fermé par défaut comme eux).
+export const MODULE_KEYS = ["events", "budget", "quotes", "vendors", "appointments", "guests", "floorplans"] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
 // État d'un module tant que l'Admin n'a rien réglé pour l'organisation (aucune ligne dans
@@ -14,6 +15,7 @@ export const MODULE_ENABLED_BY_DEFAULT: Readonly<Record<ModuleKey, boolean>> = {
   vendors: true,
   appointments: false,
   guests: false,
+  floorplans: false,
 };
 
 export function isModuleKey(value: string): value is ModuleKey {

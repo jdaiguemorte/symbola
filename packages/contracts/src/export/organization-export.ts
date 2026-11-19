@@ -11,7 +11,7 @@ export const ORGANIZATION_EXPORT_FORMAT = "symbola.export/v1";
 // dans l'ordre de leurs dépendances (la reprise du lot 35b les écrit dans cet ordre).
 // Lot 49 : « guests », le module Invités (foyers, personnes, réponses ; jamais les régimes).
 // Lot 46 : « appointments », le module Rendez-vous.
-export const ORGANIZATION_EXPORT_MODULES = ["hub", "events", "budget", "quotes", "vendors", "guests", "appointments"] as const;
+export const ORGANIZATION_EXPORT_MODULES = ["hub", "events", "budget", "quotes", "vendors", "guests", "appointments", "floorplans"] as const;
 export type OrganizationExportModule = (typeof ORGANIZATION_EXPORT_MODULES)[number];
 
 // Valeurs d'une ligne : celles de JSON. Montants en centimes entiers, dates en AAAA-MM-JJ,
