@@ -17,7 +17,14 @@ function base(audience: LinkAudience): string {
   return audience === "client" ? "/portail/messages" : "/prestataire/messages";
 }
 
+// La session du lien d'abord (garde de base), puis la réception bornée qui la relit.
+async function linkSessionOf(audience: LinkAudience): Promise<boolean> {
+  const access = await currentLinkAccess();
+  return access !== null && access.audience === audience;
+}
+
 export async function linkReply(request: Request, audience: LinkAudience, topicId: string): Promise<Response> {
+  if (!(await linkSessionOf(audience))) return new Response(null, { status: 401 });
   const received = await receiveLinkUpload(request, audience);
   if (!received.ok) return received.response;
   const { access, formData } = received;
@@ -38,6 +45,7 @@ export async function linkReply(request: Request, audience: LinkAudience, topicI
 }
 
 export async function linkNewTopic(request: Request): Promise<Response> {
+  if (!(await linkSessionOf("client"))) return new Response(null, { status: 401 });
   const received = await receiveLinkUpload(request, "client");
   if (!received.ok) return received.response;
   const { access, formData } = received;

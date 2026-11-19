@@ -118,6 +118,13 @@ export async function runJob(organizationId: string, jobId: string, now: Date = 
       .set({ state: "done", payload: null, lockedUntil: null, lastError: null, finishedAt: now, updatedAt: now })
       .where(and(eq(jobs.id, jobId), eq(jobs.state, "running"))),
   );
+  // Lot 55 (MSG-05) : l'e-mail parti entre au journal des envois (statut « envoyé »). Un échec ici
+  // n'annule pas l'envoi, déjà fait.
+  if (stored.tracking) {
+    await recordEmailSent(organizationId, stored.tracking, { to: stored.to, subject: stored.subject }, now).catch((error: unknown) => {
+      console.error("journal des envois : ligne non écrite", { jobId, error: error instanceof Error ? error.name : "Error" });
+    });
+  }
   return "done";
 }
 

@@ -23,6 +23,9 @@ import {
   eventPlaces,
   eventTaskAttachments,
   eventTaskComments,
+  messageAttachments,
+  messages as threadMessages,
+  messageTopics,
   events,
   eventStatusHistory,
   eventTasks,
@@ -132,6 +135,18 @@ function placeRecord(place: typeof eventPlaces.$inferSelect): PrivacyRecord {
 // Lot 51 (JRJ-07) : un incident du jour J (texte noté, gravité, heure du téléphone).
 function incidentRecord(incident: typeof dayIncidents.$inferSelect): PrivacyRecord {
   return { module: MODULE, kind: "day_incident", recordId: incident.id, label: incident.deviceAt.toISOString().slice(0, 16), fields: compact({ body: incident.body, severity: incident.severity }), eventId: incident.eventId };
+}
+
+// Lot 55 (MSG-03) : un message d'un fil, sa visibilité et l'intitulé de ses pièces jointes.
+function threadMessageRecord(message: typeof threadMessages.$inferSelect, attachmentLabels: string[]): PrivacyRecord {
+  return {
+    module: MODULE,
+    kind: "message",
+    recordId: message.id,
+    label: `${message.createdAt.toISOString().slice(0, 10)} ${message.authorName}`,
+    fields: compact({ visibility: message.visibility, author: message.authorName, body: message.body, attachments: attachmentLabels.join(", ") || null }),
+    eventId: message.eventId,
+  };
 }
 
 function commentRecord(comment: typeof eventTaskComments.$inferSelect): PrivacyRecord {
@@ -276,6 +291,16 @@ export const eventsPrivacy: PrivacyContractV1 = {
       for (const place of await tx.select().from(eventPlaces).where(inArray(eventPlaces.eventId, eventIds))) {
         if (recordMatches([place.label, place.address, place.city, place.contactName, place.contactPhone, place.contactEmail], terms)) records.push(placeRecord(place));
       }
+      // Lot 55 (MSG-03, POR-06) : messages des fils (texte, auteur, intitulés des pièces jointes) et noms
+      // des sujets.
+      const threadAttachments = await tx.select().from(messageAttachments).where(inArray(messageAttachments.eventId, eventIds));
+      for (const message of await tx.select().from(threadMessages).where(inArray(threadMessages.eventId, eventIds))) {
+        const labels = threadAttachments.filter((attachment) => attachment.messageId === message.id).map((attachment) => attachment.label);
+        if (recordMatches([message.body, message.authorName, ...labels], terms)) records.push(threadMessageRecord(message, labels));
+      }
+      for (const topic of await tx.select().from(messageTopics).where(inArray(messageTopics.eventId, eventIds))) {
+        if (recordMatches([topic.name], terms)) records.push({ module: MODULE, kind: "message_topic", recordId: topic.id, label: topic.name, fields: { name: topic.name }, eventId: topic.eventId });
+      }
       // Lot 34b (CHR-02) : commentaires des tâches (texte) et pièces jointes (intitulé).
       for (const comment of await tx.select().from(eventTaskComments).where(inArray(eventTaskComments.eventId, eventIds))) {
         if (recordMatches([comment.body], terms)) records.push(commentRecord(comment));
@@ -397,6 +422,11 @@ export const eventsPrivacy: PrivacyContractV1 = {
       for (const version of await tx.select().from(programVersions).where(inArray(programVersions.eventId, ids)).orderBy(asc(programVersions.number))) records.push(programVersionRecord(version));
       for (const place of await tx.select().from(eventPlaces).where(inArray(eventPlaces.eventId, ids)).orderBy(asc(eventPlaces.position))) records.push(placeRecord(place));
       for (const comment of await tx.select().from(eventTaskComments).where(inArray(eventTaskComments.eventId, ids)).orderBy(asc(eventTaskComments.createdAt))) records.push(commentRecord(comment));
+      // Lot 55 (MSG-03, POR-06) : les fils de l'évènement, notes internes comprises (droit d'accès).
+      const eventThreadAttachments = await tx.select().from(messageAttachments).where(inArray(messageAttachments.eventId, ids));
+      for (const message of await tx.select().from(threadMessages).where(inArray(threadMessages.eventId, ids)).orderBy(asc(threadMessages.createdAt))) {
+        records.push(threadMessageRecord(message, eventThreadAttachments.filter((attachment) => attachment.messageId === message.id).map((attachment) => attachment.label)));
+      }
       for (const attachment of await tx.select().from(eventTaskAttachments).where(inArray(eventTaskAttachments.eventId, ids)).orderBy(asc(eventTaskAttachments.createdAt))) records.push(attachmentRecord(attachment));
       for (const link of await tx.select().from(eventLinks).where(inArray(eventLinks.eventId, ids))) {
         records.push({ module: MODULE, kind: "link", recordId: link.id, label: link.personName, fields: { name: link.personName, email: link.email }, eventId: link.eventId });

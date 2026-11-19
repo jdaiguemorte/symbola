@@ -5743,7 +5743,11 @@
       "events_event_templates": "modèle d'évènement",
       "vendors_vendor_evaluations": "évaluation d'un prestataire",
       "quotes_accounting_export_settings": "réglage des exports comptables",
-      "quotes_accounting_exports": "export comptable"
+      "quotes_accounting_exports": "export comptable",
+      "events_message_topics": "sujet de discussion",
+      "events_message_topic_links": "prestataire d'un sujet",
+      "events_messages": "message",
+      "events_message_attachments": "pièce jointe d'un message"
     },
     "modules": {
       "events": "Événements",

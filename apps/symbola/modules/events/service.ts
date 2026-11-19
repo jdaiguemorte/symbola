@@ -2845,6 +2845,8 @@ export async function requestDecision(input: RequestDecisionInput): Promise<Even
     if (!replaced || !answered || replaced.kind !== input.kind || replaced.subjectId !== subject.subjectId || replacementsOf(existing).has(replaced.id)) throw new DecisionInvalidError("replace");
   }
   const row = await insertDecisionRow({ organizationId, eventId, kind: input.kind, ...subject, note, dueOn, replacesDecisionId });
+  // Lot 55 (POR-11) : les clients qui voient la décision et ont activé le push en sont prévenus.
+  await pushDecisionToClients(organizationId, eventId, input.kind).catch((error: unknown) => console.error("push « décision demandée » non envoyé", error instanceof Error ? error.name : "erreur"));
   const programVersion = subject.snapshot.kind === "program" ? (subject.snapshot.programVersion ?? null) : null;
   return toDecision(row, new Map(), { updatedAt: subject.snapshot.kind === "program" ? subject.snapshot.programUpdatedAt : null, latestVersion: programVersion });
 }
@@ -4439,5 +4441,19 @@ export async function pushToLink(organizationId: string, linkId: string, input: 
     if (gone.length > 0) await tx.delete(linkPushSubscriptions).where(inArrayMessages(linkPushSubscriptions.id, gone));
     if (sent > 0) await tx.update(linkPushSubscriptions).set({ lastUsedAt: now }).where(andMessages(eqMessages(linkPushSubscriptions.linkId, linkId)));
   });
+  return sent;
+}
+
+// Lot 55 (POR-11) : une décision demandée, annoncée aux appareils des clients qui la voient (la rubrique
+// de sa sorte) et ont activé le push ; la sorte seulement, jamais le sujet.
+const DECISION_RUBRIC: Record<DecisionKind, LinkRubric> = { option: "vendor_options", expense: "budget", program: "program" };
+
+async function pushDecisionToClients(organizationId: string, eventId: string, kind: DecisionKind): Promise<number> {
+  const now = new Date();
+  let sent = 0;
+  for (const context of await findEventLinkRows(organizationId, eventId)) {
+    if (context.link.audience !== "client" || !usableLink(context, now) || !rightsOf(context).rubrics.includes(DECISION_RUBRIC[kind])) continue;
+    sent += await pushToLink(organizationId, context.link.id, { kind: "decision", url: "/portail#decisions", tag: `decision-${eventId}`, locale: context.link.locale === "en" ? "en" : "fr" });
+  }
   return sent;
 }

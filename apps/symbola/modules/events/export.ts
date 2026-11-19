@@ -40,6 +40,10 @@ import {
   eventStatusHistory,
   eventTaskAttachments,
   eventTaskComments,
+  messageAttachments,
+  messages as threadMessages,
+  messageTopicLinks,
+  messageTopics,
   eventTasks,
   eventTypes,
   eventVendorCandidateNotes,
@@ -162,6 +166,13 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: questionnaireAnswers, parents: { questionnaireId: "event_questionnaires" } },
   // Lot 52 (EVT-06, D2) : l'équipe de chaque évènement (planner principal, assistants).
   { table: eventTeamMembers, ...ofEvent },
+  // Lot 55 (MSG-03, POR-06 ; ADR 0101) : sujets, messages (internes et partagés) et pièces jointes ; les
+  // prestataires d'un sujet sont des liens, recréés à la reprise (comme les liens) ; l'auteur d'un
+  // message écrit par un lien garde son nom, sans le lien.
+  { table: messageTopics, ...ofEvent },
+  { table: messageTopicLinks, parents: { topicId: "message_topics", linkId: "event_links" }, importSkip: "links" },
+  { table: threadMessages, ...ofEvent, parents: { topicId: "message_topics" }, omit: ["authorLinkId"] },
+  { table: messageAttachments, ...ofEvent, parents: { messageId: "messages" }, files: ["fileKey"] },
   // Lot 58 (PAR-09, EVT-08 ; ADR 0097) : clôtures (leçons, temps passé, frais propres, budget figé), réglage
   // du lien d'avis et modèles d'évènement (des structures, sans donnée personnelle).
   { table: eventClosings, ...ofEvent },
@@ -174,6 +185,8 @@ export const EVENTS_EXPORT_EXCLUSIONS: Readonly<Record<string, string>> = {
   event_link_codes: "secret : codes à usage unique des liens personnels (hachés)",
   event_link_sessions: "secret : sessions ouvertes par les liens personnels (jetons hachés)",
   event_task_reminders: "technique : rappels déjà envoyés par les liens, qui ne sont pas repris",
+  // Lot 55 (POR-11).
+  link_push_subscriptions: "technique : abonnements push des appareils des clients (adresse du service de push, clés publiques), propres à chaque appareil",
 };
 
 export function exportEventsData(organizationId: string, context: ModuleExportContext): Promise<ModuleExport> {

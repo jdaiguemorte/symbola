@@ -2137,3 +2137,114 @@ fields:
     anonymization: >-
       Lors d'une demande d'oubli visant le prestataire (RGPD-03) : effacé ; la note et les critères
       restent, rattachés à la fiche anonymisée.
+  # Lot 55 (MSG-03, POR-06, MSG-04, MSG-05, POR-11 ; ADR 0101) : messagerie par sujet, journal des
+  # envois, abonnements push des clients. L'adresse d'expédition d'une organisation
+  # (hub.organizations.sender_local_part) est celle d'une entreprise, pas d'une personne.
+  - schema: events
+    table: message_topics
+    field: name
+    category: contenu_libre
+    retention: >-
+      Lot 55 (MSG-03) : nom court d'un sujet de discussion (« Traiteur »), écrit par l'équipe ou par un
+      client ; lu par les liens du sujet s'il a un message partagé. Tant que l'évènement existe ; voir
+      RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimé avec l'évènement ; remplacé par « [anonymisé] » lors d'une demande d'oubli qui le vise.
+  - schema: events
+    table: messages
+    field: body
+    category: contenu_libre
+    retention: >-
+      Lot 55 (MSG-03, POR-06) : texte d'un message, interne (l'équipe seulement) ou partagé (clients du
+      lien qui ouvre la rubrique « Messages », prestataires du sujet) ; jamais dans un e-mail ni un
+      push (ils n'annoncent que le sujet). Trouvé par la recherche RGPD. Tant que l'évènement existe ;
+      voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimé (avec ses pièces jointes) lors d'une demande d'oubli qui le vise ou qui vise
+      l'évènement.
+  - schema: events
+    table: messages
+    field: author_name
+    category: identifiant
+    retention: >-
+      Lot 55 (MSG-03) : nom affiché de l'auteur d'un message (le nom de l'organisation pour l'équipe, le
+      nom du lien pour un client ou un prestataire), copié pour que le fil reste lisible si le lien est
+      retiré. Tant que le message existe.
+    anonymization: >-
+      Supprimé avec le message.
+  - schema: events
+    table: messages
+    field: author_user_id
+    category: identifiant
+    retention: >-
+      Lot 55 (MSG-03) : compte de l'équipe auteur du message (identifiant, sans nom ni e-mail dans la
+      table). Tant que le message existe.
+    anonymization: >-
+      Supprimé avec le message.
+  - schema: events
+    table: message_attachments
+    field: label
+    category: contenu_libre
+    retention: >-
+      Lot 55 (POR-06 ; ADR 0027) : intitulé d'une pièce jointe (nom du fichier envoyé), trouvé par la
+      recherche RGPD. Tant que le message existe.
+    anonymization: >-
+      Supprimé avec le message.
+  - schema: events
+    table: message_attachments
+    field: file_key
+    category: contenu_libre
+    retention: >-
+      Lot 55 (POR-06 ; ADR 0027) : fichier joint à un message (stockage privé, contrôlé à l'envoi :
+      type par le contenu, taille, antivirus), servi par l'app après contrôle des droits. Tant que le
+      message existe.
+    anonymization: >-
+      Le fichier est supprimé du stockage avec le message.
+  - schema: events
+    table: link_push_subscriptions
+    field: endpoint
+    category: identifiant
+    retention: >-
+      Lot 55 (POR-11 ; DPO) : adresse du service de push du navigateur d'un appareil d'un client, qui a
+      activé les notifications du portail (facultatif, désactivé par défaut). Supprimée à la
+      désactivation, quand le service répond qu'elle n'existe plus, ou avec le lien ; jamais dans un
+      écran ni un journal.
+    anonymization: >-
+      Supprimée (désactivation, lien retiré ou effacé).
+  - schema: events
+    table: link_push_subscriptions
+    field: p256dh
+    category: securite
+    retention: >-
+      Lot 55 (POR-11) : clés publiques de l'abonnement push (p256dh, auth), qui chiffrent le message
+      jusqu'au navigateur. Mêmes durée et effacement que l'adresse de l'abonnement.
+    anonymization: >-
+      Supprimées avec l'abonnement.
+  - schema: hub
+    table: email_deliveries
+    field: recipient
+    category: contact
+    retention: >-
+      Lot 55 (MSG-05 ; DPO) : adresse e-mail du destinataire d'un e-mail envoyé au nom de
+      l'organisation, avec l'objet et le statut (envoyé, remis, rejeté, plainte), jamais le contenu.
+      Gardée 13 mois après l'envoi, puis effacée (purge quotidienne) ; trouvée par la recherche RGPD.
+    anonymization: >-
+      Supprimée (la ligne entière) lors d'une demande d'oubli qui la vise, et à 13 mois.
+  - schema: hub
+    table: email_deliveries
+    field: recipient_hash
+    category: identifiant
+    retention: >-
+      Lot 55 (MSG-05) : empreinte SHA-256 de l'adresse du destinataire, pour retrouver les envois d'un
+      contact (alerte de rejet sur sa fiche). Mêmes durée et effacement que la ligne.
+    anonymization: >-
+      Supprimée avec la ligne.
+  - schema: hub
+    table: email_deliveries
+    field: subject
+    category: contenu_libre
+    retention: >-
+      Lot 55 (MSG-05) : objet de l'e-mail envoyé (écrit par Symbola depuis le modèle de l'organisation ;
+      il peut nommer l'évènement ou un sujet). Mêmes durée et effacement que la ligne.
+    anonymization: >-
+      Supprimé avec la ligne.

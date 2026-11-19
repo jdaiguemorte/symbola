@@ -226,9 +226,19 @@ export async function contactDeliveryAlert(organizationId: string, email: string
 }
 
 // Purge à 13 mois (D2) : la ligne entière, objet et statut compris.
+// Le même instant, n mois plus tôt ; un jour qui n'existe pas ce mois-là (31 mars → février) devient
+// le dernier jour du mois, au lieu de déborder sur le mois suivant.
+export function monthsBefore(date: Date, months: number): Date {
+  const target = new Date(date);
+  target.setUTCDate(1);
+  target.setUTCMonth(target.getUTCMonth() - months);
+  const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  target.setUTCDate(Math.min(date.getUTCDate(), lastDay));
+  return target;
+}
+
 export async function purgeEmailDeliveries(organizationId: string, now: Date = new Date()): Promise<number> {
-  const limit = new Date(now);
-  limit.setUTCMonth(limit.getUTCMonth() - EMAIL_DELIVERY_RETENTION_MONTHS);
+  const limit = monthsBefore(now, EMAIL_DELIVERY_RETENTION_MONTHS);
   const rows = await withOrganization(appDatabase(), organizationId, (tx) => tx.delete(emailDeliveries).where(lt(emailDeliveries.sentAt, limit)).returning({ id: emailDeliveries.id }));
   return rows.length;
 }

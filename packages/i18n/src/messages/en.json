@@ -5743,7 +5743,11 @@
       "events_event_templates": "event template",
       "vendors_vendor_evaluations": "vendor evaluation",
       "quotes_accounting_export_settings": "accounting export setting",
-      "quotes_accounting_exports": "accounting export"
+      "quotes_accounting_exports": "accounting export",
+      "events_message_topics": "discussion topic",
+      "events_message_topic_links": "topic vendor",
+      "events_messages": "message",
+      "events_message_attachments": "message attachment"
     },
     "modules": {
       "events": "Events",

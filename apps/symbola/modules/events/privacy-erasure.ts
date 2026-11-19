@@ -39,6 +39,9 @@ import {
   eventMessages,
   eventQuestionnaires,
   prospectFollowUps,
+  messageAttachments,
+  messages,
+  messageTopics,
 } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import { ANONYMIZED, idsOfKind, monthStart, type ErasureFate, type ErasureInput, type ErasurePlanItem } from "@symbola/privacy";
@@ -82,6 +85,10 @@ const FATES: Record<string, ErasureFate> = {
   // Lot 45 (CRM-05, CRM-06, POR-07) : un message ou une relance (texte libre), un questionnaire et ses
   // réponses : supprimés.
   event_message: "deleted",
+  // Lot 55 (MSG-03, POR-06) : un message d'un fil (texte libre, pièces jointes) : supprimé, fichiers
+  // compris ; le nom d'un sujet qui nomme la personne : anonymisé (le fil reste).
+  message: "deleted",
+  message_topic: "anonymized",
   follow_up: "deleted",
   questionnaire: "deleted",
 };
@@ -158,6 +165,8 @@ async function existing(tx: Tx, input: ErasureInput): Promise<Found[]> {
         .map((row) => row.id),
     );
   // Lot 45 : messages, relances et questionnaires d'un évènement réel.
+  if (ids("message").length > 0) add("message", keep(await tx.select({ id: messages.id, eventId: messages.eventId }).from(messages).where(inArray(messages.id, ids("message")))));
+  if (ids("message_topic").length > 0) add("message_topic", keep(await tx.select({ id: messageTopics.id, eventId: messageTopics.eventId }).from(messageTopics).where(inArray(messageTopics.id, ids("message_topic")))));
   if (ids("event_message").length > 0)
     add("event_message", keep(await tx.select({ id: eventMessages.id, eventId: eventMessages.eventId }).from(eventMessages).where(inArray(eventMessages.id, ids("event_message")))));
   if (ids("follow_up").length > 0)
@@ -238,6 +247,11 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       await tx.delete(eventQuestionnaires).where(inArray(eventQuestionnaires.eventId, eventIds));
       // Lot 12 : lieux de l'événement (adresse possiblement privée), réception comprise (lot 34b).
       await tx.delete(eventPlaces).where(inArray(eventPlaces.eventId, eventIds));
+      // Lot 55 (MSG-03, POR-06) : fils de discussion de l'évènement, pièces jointes comprises.
+      const messageFiles = await tx.delete(messageAttachments).where(inArray(messageAttachments.eventId, eventIds)).returning({ key: messageAttachments.fileKey });
+      fileKeys.push(...messageFiles.map((file) => file.key));
+      await tx.delete(messages).where(inArray(messages.eventId, eventIds));
+      await tx.delete(messageTopics).where(inArray(messageTopics.eventId, eventIds));
       // Lot 34b (CHR-02) : commentaires et pièces jointes des tâches de l'événement.
       await tx.delete(eventTaskComments).where(inArray(eventTaskComments.eventId, eventIds));
       const attachments = await tx.delete(eventTaskAttachments).where(inArray(eventTaskAttachments.eventId, eventIds)).returning({ key: eventTaskAttachments.fileKey });
@@ -289,6 +303,14 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       await tx.update(eventDecisions).set({ decidedByName: ANONYMIZED, comment: sql`case when ${eventDecisions.comment} is null then null else ${ANONYMIZED} end` }).where(inArray(eventDecisions.decidedByLinkId, idsFor("link")));
       // Lot 47 (D7) : ses avis sur les options partent avec lui.
       await tx.delete(eventDecisionOptionFeedback).where(inArray(eventDecisionOptionFeedback.linkId, idsFor("link")));
+      // Lot 55 (POR-06) : les messages qu'il a écrits (son nom, son texte) partent avec lui, fichiers
+      // compris.
+      const written = await tx.select({ id: messages.id }).from(messages).where(inArray(messages.authorLinkId, idsFor("link")));
+      if (written.length > 0) {
+        const files = await tx.delete(messageAttachments).where(inArray(messageAttachments.messageId, written.map((row) => row.id))).returning({ key: messageAttachments.fileKey });
+        fileKeys.push(...files.map((file) => file.key));
+        await tx.delete(messages).where(inArray(messages.id, written.map((row) => row.id)));
+      }
       await tx.delete(eventLinks).where(inArray(eventLinks.id, idsFor("link")));
     }
     if (idsFor("event_day_contact").length > 0) await tx.delete(eventDayContacts).where(inArray(eventDayContacts.id, idsFor("event_day_contact")));
@@ -310,6 +332,12 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
     if (idsFor("prospect_request").length > 0) await tx.delete(prospectRequests).where(inArray(prospectRequests.id, idsFor("prospect_request")));
     if (idsFor("follow_up").length > 0) await tx.delete(prospectFollowUps).where(inArray(prospectFollowUps.id, idsFor("follow_up")));
     if (idsFor("event_message").length > 0) await tx.delete(eventMessages).where(inArray(eventMessages.id, idsFor("event_message")));
+    if (idsFor("message").length > 0) {
+      const files = await tx.delete(messageAttachments).where(inArray(messageAttachments.messageId, idsFor("message"))).returning({ key: messageAttachments.fileKey });
+      fileKeys.push(...files.map((file) => file.key));
+      await tx.delete(messages).where(inArray(messages.id, idsFor("message")));
+    }
+    if (idsFor("message_topic").length > 0) await tx.update(messageTopics).set({ name: ANONYMIZED }).where(inArray(messageTopics.id, idsFor("message_topic")));
     if (idsFor("questionnaire").length > 0) await tx.delete(eventQuestionnaires).where(inArray(eventQuestionnaires.id, idsFor("questionnaire")));
     if (idsFor("event_document_folder").length > 0) await tx.delete(eventDocumentFolders).where(inArray(eventDocumentFolders.id, idsFor("event_document_folder")));
     if (idsFor("day_incident").length > 0) {

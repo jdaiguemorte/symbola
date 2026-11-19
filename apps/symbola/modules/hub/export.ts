@@ -125,6 +125,8 @@ export const HUB_EXPORT_EXCLUSIONS: Readonly<Record<string, string>> = {
   notification_preferences: "préférence : sortes de notification gardées ou coupées, propres à chaque compte",
   push_subscriptions: "technique : abonnements push des appareils (adresse du service de push, clés publiques), propres à chaque appareil",
   automation_runs: "temporaire : journal des automatismes, effacé après 90 jours",
+  // Lot 55 (MSG-05 ; ADR 0101).
+  email_deliveries: "temporaire : journal des envois (objet, destinataire, statut), effacé 13 mois après l'envoi",
 };
 
 export async function exportHubData(organizationId: string, context: ModuleExportContext): Promise<ModuleExport> {

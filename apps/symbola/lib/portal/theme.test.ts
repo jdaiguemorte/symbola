@@ -16,6 +16,7 @@ describe("POR-08 — Portail aux couleurs de la planner, contraste corrigé (lot
       expect(contrasts.onWhite, color).toBeGreaterThanOrEqual(PORTAL_MIN_CONTRAST);
       expect(contrasts.onPrimary, color).toBeGreaterThanOrEqual(PORTAL_MIN_CONTRAST);
       expect(contrasts.onTint, color).toBeGreaterThanOrEqual(PORTAL_MIN_CONTRAST);
+      expect(contrasts.primaryOnTint, color).toBeGreaterThanOrEqual(PORTAL_MIN_CONTRAST);
     }
   });
 

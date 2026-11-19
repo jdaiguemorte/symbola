@@ -4393,3 +4393,82 @@
     @apply flex flex-wrap items-center gap-2 py-1;
   }
 }
+
+/* Lot 55 (MSG-03, POR-06, MSG-05, POR-08, POR-11) — fils de discussion (un message interne a son fond
+   et son étiquette, pas seulement une couleur), deux zones d'écriture distinctes, alerte d'un e-mail
+   rejeté, portail aux couleurs de l'organisation (variables posées par une feuille à nonce, contraste
+   déjà corrigé) et proposition d'installation. */
+@layer components {
+  .message-thread {
+    @apply m-0 flex list-none flex-col gap-3 p-0;
+  }
+  .message-item {
+    @apply flex flex-col gap-1 rounded-lg border border-line bg-surface p-3;
+  }
+  .message-item-internal {
+    @apply border-attention bg-attention-soft;
+  }
+  .message-meta {
+    @apply m-0 flex flex-wrap items-center gap-2 text-label text-ink-muted;
+  }
+  .message-meta strong {
+    @apply text-ink;
+  }
+  .message-badge-internal {
+    @apply inline-block rounded-sm border border-attention bg-surface px-2 py-1 font-medium text-attention;
+  }
+  .message-body {
+    @apply m-0 whitespace-pre-wrap wrap-anywhere;
+  }
+  .message-attachments {
+    @apply m-0 flex list-none flex-col gap-1 p-0;
+  }
+  .composer {
+    @apply my-3 flex flex-col gap-2 rounded-lg border p-4;
+  }
+  .composer-shared {
+    @apply border-primary bg-primary-soft;
+  }
+  .composer-internal {
+    @apply border-attention bg-attention-soft;
+  }
+  .composer h2,
+  .composer h3 {
+    @apply m-0;
+  }
+  .delivery-alert {
+    @apply my-3 flex flex-col gap-1 rounded-lg border border-critical bg-critical-soft p-4 text-critical;
+  }
+  .delivery-alert p {
+    @apply m-0;
+  }
+  .delivery-status-bounced,
+  .delivery-status-complained {
+    @apply font-medium text-critical;
+  }
+  .install-prompt {
+    @apply my-3 flex w-full max-w-3xl flex-col gap-2 rounded-lg border border-line bg-surface p-4;
+  }
+  .install-prompt h2,
+  .install-prompt p {
+    @apply m-0;
+  }
+  .link-shell-themed .link-header {
+    border-bottom: 3px solid var(--portal-primary);
+  }
+  .link-shell-themed .portal h1,
+  .link-shell-themed .portal h2,
+  .link-shell-themed .portal a {
+    color: var(--portal-primary);
+  }
+  .link-shell-themed .portal button.primary,
+  .link-shell-themed .install-prompt button.primary {
+    background-color: var(--portal-primary);
+    border-color: var(--portal-primary);
+    color: var(--portal-on-primary);
+  }
+  .link-shell-themed .portal .composer-shared {
+    border-color: var(--portal-primary);
+    background-color: var(--portal-tint);
+  }
+}

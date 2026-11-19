@@ -7,6 +7,7 @@
 import { useActionState, useEffect, useId, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useUploadAction } from "@/app/ui/use-upload";
+import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import type { UploadState } from "@/lib/uploads/state";
 import { createMessageTopicAction, setTopicVendorsAction, type MessageTopicFormState } from "./actions";
 
@@ -20,6 +21,7 @@ export function NewTopicForm({ eventId }: { eventId: string }) {
       <input type="hidden" name="eventId" value={eventId} />
       <label htmlFor={id}>{t("newTopicName")}</label>
       <input id={id} name="name" maxLength={120} required />
+      <FreeTextNotice />
       <button type="submit" disabled={pending}>
         {t("createTopic")}
       </button>
@@ -74,6 +76,7 @@ export function SharedMessageForm({ endpoint, recipientsLabel, recipientsDigest 
       <input type="hidden" name="recipientsDigest" value={recipientsDigest} />
       <label htmlFor={ids.body}>{t("sharedBodyLabel")}</label>
       <textarea id={ids.body} name="body" rows={5} maxLength={5000} required />
+      <FreeTextNotice />
       <label htmlFor={ids.files}>{t("filesLabel")}</label>
       <input id={ids.files} type="file" name="files" multiple accept="application/pdf,image/*" />
       <button type="submit" className="primary" disabled={pending}>
@@ -96,6 +99,7 @@ export function InternalNoteForm({ endpoint }: { endpoint: string }) {
       <p className="field-hint">{t("internalHint")}</p>
       <label htmlFor={ids.body}>{t("internalBodyLabel")}</label>
       <textarea id={ids.body} name="body" rows={3} maxLength={5000} required />
+      <FreeTextNotice />
       <label htmlFor={ids.files}>{t("filesLabel")}</label>
       <input id={ids.files} type="file" name="files" multiple accept="application/pdf,image/*" />
       <button type="submit" disabled={pending}>
