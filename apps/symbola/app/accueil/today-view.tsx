@@ -43,6 +43,9 @@ export function todayWords(t: TodayTranslator): TodayWords {
     vendorChoice: (vendor, slot) => t("words.vendorChoice", { vendor, slot }),
     vendorRoadmap: (vendor) => t("words.vendorRoadmap", { vendor }),
     transferDeclaration: (name, amount) => t("words.transferDeclaration", { name, amount }),
+    // Lot 48a (PRE-05, PRE-10, SEC-27).
+    vendorDocument: (vendor, document, reason) => t(`words.vendorDocument.${reason}`, { vendor, document }),
+    vendorBankCheck: (vendor) => t("words.vendorBankCheck", { vendor }),
   };
 }
 

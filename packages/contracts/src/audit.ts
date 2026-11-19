@@ -211,6 +211,14 @@ export const AUDIT_ACTIONS = {
   "events.day_shift.applied": { category: "partage", objectType: "event" },
   // Lot 51 (PAR-08, étape 7) : bilan du lendemain exporté en PDF (jamais son contenu).
   "events.day_report.downloaded": { category: "export", objectType: "event" },
+  // Lot 48a (PRE-10, SEC-27 ; ADR 0093) : IBAN d'un prestataire changé (par la planner ou par son lien)
+  // puis vérifié par un autre canal ; identifiants seulement, jamais l'IBAN, même masqué (SEC-20).
+  "vendors.bank_details.changed": { category: "encaissement", objectType: "vendor" },
+  "vendors.bank_details.verified": { category: "encaissement", objectType: "vendor" },
+  // Lot 48a (PRE-05, D3) : pièce demandée au prestataire, déposée par son lien, vérifiée par la planner.
+  "vendors.document.requested": { category: "partage", objectType: "vendor" },
+  "vendors.document.received": { category: "partage", objectType: "vendor" },
+  "vendors.document.verified": { category: "partage", objectType: "vendor" },
 } as const satisfies Record<string, ActionSpec>;
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;

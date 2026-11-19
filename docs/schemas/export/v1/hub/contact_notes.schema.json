@@ -27,7 +27,13 @@
       ]
     },
     "body": {
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "isConfidential": {
+      "type": "boolean"
     },
     "createdAt": {
       "type": "string",
@@ -93,6 +99,7 @@
     "contactId",
     "authorUserId",
     "body",
+    "isConfidential",
     "createdAt",
     "createdBy",
     "updatedAt",

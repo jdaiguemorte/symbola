@@ -23,7 +23,7 @@ export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "
   { key: "settlement", module: "quotes", kinds: ["proposal_sent", "proposal_expiry_reminder", "payment_details", "invoice_reminder"] },
   // Lot 46 (RDV-03, D10 ; migration 0158) : e-mails d'un rendez-vous, côté personne qui l'a pris.
   { key: "appointments", module: "appointments", kinds: ["appointment_confirmed", "appointment_reminder", "appointment_rescheduled", "appointment_cancelled"] },
-  // Lot 52 (HUB-04, SEC-08 ; migration 0175) : transfert de propriété et alertes de sécurité du compte.
+  // Lot 52 (HUB-04, SEC-08 ; migration 0180) : transfert de propriété et alertes de sécurité du compte.
   { key: "team", module: "hub", kinds: ["ownership_transfer", "new_device_login", "identity_changed"] },
 ];
 

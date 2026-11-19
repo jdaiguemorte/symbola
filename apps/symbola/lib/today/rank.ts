@@ -49,7 +49,10 @@ export type TodayItemKind =
   // feuille de route non confirmée.
   | "vendor_answer"
   | "vendor_choice"
-  | "vendor_roadmap";
+  | "vendor_roadmap"
+  // Lot 48a (PRE-05, PRE-10, SEC-27) : pièce d'un prestataire à surveiller, IBAN « à vérifier ».
+  | "vendor_document"
+  | "vendor_bank_check";
 
 // L'action en un clic (HUB-08) : cocher une tâche, relancer un prestataire, ou ouvrir l'objet.
 export type TodayAction =

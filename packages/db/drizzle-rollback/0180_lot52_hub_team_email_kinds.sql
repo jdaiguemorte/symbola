@@ -1,4 +1,4 @@
--- Annulation de 0175 (lot 52) : la contrainte des natures d'e-mails revient exactement à la liste de
+-- Annulation de 0180 (lot 52) : la contrainte des natures d'e-mails revient exactement à la liste de
 -- main (migration 0172 du lot 45).
 -- Refusée tant qu'un modèle personnalisé de nouvelle connexion, de changement d'identité, de transfert
 -- de propriété ou de lien de renfort existe : il serait perdu ; la planner le remet au texte de départ

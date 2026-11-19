@@ -48,8 +48,9 @@ describe("ONB-03 — Assistant de démarrage pré-rempli", { timeout: 30_000 }, 
     // Lot 21 (L21-PRE-18) : étiquettes de départ, rangées par famille.
     expect(result.vendorTags).toBeGreaterThan(20);
     expect((await listVendorTagGroups(organization.id)).find((group) => group.label === "Capacité")?.exclusive).toBe(true);
-    // Lot 31b (HUB-26, D10) : le modèle de contrat de départ « à adapter ».
-    expect(result.contractTemplates).toBe(1);
+    // Lot 31b (HUB-26, D10) : le modèle de contrat de départ « à adapter » ; lot 48b : le mandat et les
+    // conditions générales aussi.
+    expect(result.contractTemplates).toBe(3);
     // Lot 31c (D18) : les deux textes de départ des conditions de paiement, jamais le taux.
     expect(result.paymentTerms).toBe(true);
   });

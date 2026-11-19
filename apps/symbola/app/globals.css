@@ -4271,3 +4271,26 @@
     @apply m-0 wrap-anywhere;
   }
 }
+
+/* Lot 48a (PRE-05, PRE-06, PRE-10, SEC-27 ; ADR 0093) : bandeau « IBAN à vérifier par un autre canal »,
+   pièces d'une fiche, contrôles du chrono par le lieu (signalés, jamais bloquants). */
+@layer components {
+  .bank-check-banner {
+    @apply my-3 flex flex-col gap-2 rounded-md border border-attention bg-attention-soft px-4 py-3 text-body text-ink;
+  }
+  .bank-check-banner p {
+    @apply m-0;
+  }
+  .vendor-documents {
+    @apply m-0 flex list-none flex-col gap-3 p-0;
+  }
+  .vendor-documents li {
+    @apply flex flex-wrap items-center gap-2 border-b border-line pb-2;
+  }
+  .venue-findings {
+    @apply my-2 flex list-none flex-col gap-1 rounded-md bg-attention-soft p-3 text-body text-ink;
+  }
+  .venue-finding {
+    @apply text-label text-attention;
+  }
+}

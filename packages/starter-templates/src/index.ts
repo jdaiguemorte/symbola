@@ -741,6 +741,8 @@ const vendorTypesSchema = z.object({
             kind: z.enum(["number", "text", "time", "amount", "choice", "boolean"]),
             choices: z.object({ fr: z.array(z.string().min(1)), en: z.array(z.string().min(1)) }).optional(),
             isFilter: z.boolean(),
+            // Lot 48a (PRE-06) : sens du champ pour les contrôles du chrono (venue-rules.json).
+            rule: z.string().regex(/^[a-z][a-z_]{1,40}$/).optional(),
           }),
         ),
       }),
@@ -750,7 +752,7 @@ const vendorTypesSchema = z.object({
 
 const vendorTypes = vendorTypesSchema.parse(vendorTypesFile);
 
-export type StarterVendorTypeField = { label: string; kind: "number" | "text" | "time" | "amount" | "choice" | "boolean"; choices?: string[]; isFilter: boolean };
+export type StarterVendorTypeField = { label: string; kind: "number" | "text" | "time" | "amount" | "choice" | "boolean"; choices?: string[]; isFilter: boolean; ruleKey?: string };
 
 export type StarterVendorType = { key: string; label: string; fields: StarterVendorTypeField[] };
 
@@ -763,6 +765,7 @@ export function starterVendorTypes(locale: StarterLocale): StarterVendorType[] {
       kind: field.kind,
       ...(field.choices ? { choices: field.choices[locale] } : {}),
       isFilter: field.isFilter,
+      ...(field.rule ? { ruleKey: field.rule } : {}),
     })),
   }));
 }
@@ -1089,6 +1092,8 @@ const quoteTemplatesSchema = z.object({
   items: z
     .array(
       z.object({
+        // Lot 48b (DOC-02, HUB-26) : contrat (par défaut), mandat ou conditions générales.
+        kind: z.enum(["contract", "mandate", "general_terms"]).optional(),
         metier: z.enum(["wedding_planner", "event_agency", "autre"]),
         eventTypeKey: z.string().min(1),
         name: translatedLabelSchema,
@@ -1128,6 +1133,7 @@ export function starterQuoteTemplates(locale: StarterLocale, metier: StarterMeti
     .parse(quoteTemplatesFile)
     .items.filter((item) => item.metier === metier)
     .map((item) => ({
+      kind: item.kind ?? "contract",
       eventTypeKey: item.eventTypeKey,
       name: item.name[locale],
       sections: item.sections.map((section) => ({ key: section.key, title: section.title[locale] })),
@@ -1167,6 +1173,8 @@ const contractTemplatesSchema = z.object({
   items: z
     .array(
       z.object({
+        // Lot 48b (DOC-02, HUB-26) : contrat (par défaut), mandat ou conditions générales.
+        kind: z.enum(["contract", "mandate", "general_terms"]).optional(),
         metier: z.enum(["wedding_planner", "event_agency", "autre"]),
         eventTypeKey: z.string().min(1),
         name: translatedLabelSchema,
@@ -1180,6 +1188,7 @@ const contractTemplatesSchema = z.object({
 });
 
 export type StarterContractTemplate = {
+  kind: "contract" | "mandate" | "general_terms";
   eventTypeKey: string;
   name: string;
   title: string;
@@ -1191,6 +1200,7 @@ export function starterContractTemplates(locale: StarterLocale, metier: StarterM
     .parse(contractTemplatesFile)
     .items.filter((item) => item.metier === metier)
     .map((item) => ({
+      kind: item.kind ?? "contract",
       eventTypeKey: item.eventTypeKey,
       name: item.name[locale],
       title: item.title[locale],
@@ -1421,6 +1431,8 @@ export function starterBookingPrivacyNotice(locale: StarterLocale): string {
 
 // Lot 47 (PAR-05 ; ADR 0085) : délais et tâches de suivi des prestataires par lien.
 export * from "./vendor-coordination";
+export * from "./vendor-records";
+export * from "./planner-money";
 // Lot 43 (FAC-09, FAC-15 ; D1, D7) — relances de départ : jours avant l'expiration d'un devis, jours
 // après une échéance impayée, phrase d'une relance sans pénalité et phrase de la clause de pénalités
 // d'un particulier ({taux}). L'organisation les règle ; rien n'est écrit dans le code.

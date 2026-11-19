@@ -849,7 +849,11 @@ export const contactNotes = hubSchema.table(
       .notNull()
       .references(() => contacts.id, { onDelete: "cascade" }),
     authorUserId: uuid("author_user_id"),
-    body: text("body").notNull(),
+    // Lot 48 (DAT-08 ; D5, ADR 0093) : une note confidentielle est chiffrée au niveau du champ
+    // (body_sealed, field-box) et body est vide ; lue par la titulaire et son auteur seuls.
+    body: text("body"),
+    bodySealed: text("body_sealed"),
+    isConfidential: boolean("is_confidential").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -861,7 +865,10 @@ export const contactNotes = hubSchema.table(
   (table) => [
     index("contact_notes_organization_idx").on(table.organizationId),
     index("contact_notes_contact_idx").on(table.contactId),
-    check("contact_notes_body_check", sql`char_length(${table.body}) between 1 and 2000`),
+    check(
+      "contact_notes_body_check",
+      sql`(not ${table.isConfidential} and ${table.bodySealed} is null and ${table.body} is not null and char_length(${table.body}) between 1 and 2000) or (${table.isConfidential} and ${table.body} is null and ${table.bodySealed} like 'f1:%' and ${table.authorUserId} is not null)`,
+    ),
   ],
 );
 
@@ -1050,7 +1057,7 @@ export const emailTemplates = hubSchema.table(
     // Lot 43 (migration 0169, accord de Julien du 18/11, D10) : proposition, relance avant expiration,
     // RIB du règlement, relance d'impayé.
     // Lot 45 (migration 0172, accord de Julien du 18/11) : réponse, relance, questionnaire envoyé.
-    // Lot 52 (migration 0175, spécification validée par Julien le 18/11) : sécurité, transfert, renfort.
+    // Lot 52 (migration 0180, spécification validée par Julien le 18/11) : sécurité, transfert, renfort.
     check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent', 'new_device_login', 'identity_changed', 'ownership_transfer', 'day_helper_link')`),
     check("email_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
     check("email_templates_subject_check", sql`char_length(${table.subject}) between 1 and 200`),

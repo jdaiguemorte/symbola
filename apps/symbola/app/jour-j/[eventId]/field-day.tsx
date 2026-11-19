@@ -66,6 +66,8 @@ export function FieldDay(props: {
   // Lot 52 (EVT-06, D3) : l'écran d'un renfort du jour J (sans décalage du programme ni remise ; un lien
   // retiré ou expiré le lui dit).
   helper?: boolean;
+  // Lot 48a (PRE-10, SEC-27) : remises dont le prestataire a un IBAN changé, pas encore vérifié.
+  bankToVerify?: string[];
 }) {
   const t = useTranslations("DayOf");
   const format = useFormatter();
@@ -520,6 +522,7 @@ export function FieldDay(props: {
                 <li key={handover.paymentId}>
                   <p className="day-list-name">
                     {handover.vendorName ?? handover.slotLabel} · {format.number(handover.amountCents / 100, { style: "currency", currency: "EUR" })}
+                    {props.bankToVerify?.includes(handover.paymentId) ? <span className="badge badge-warning"> {t("bankToVerify")}</span> : null}
                   </p>
                   <p className="meta">{[handover.label, handover.method, handover.by ? t("handoverBy", { name: handover.by }) : null].filter(Boolean).join(" · ")}</p>
                   {handover.handedOverAt ? (

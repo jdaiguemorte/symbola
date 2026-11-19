@@ -1,4 +1,4 @@
--- Annulation de 0174 (lot 52) : les liens des renforts du jour J sont supprimés (avec leurs sessions et
+-- Annulation de 0179 (lot 52) : les liens des renforts du jour J sont supprimés (avec leurs sessions et
 -- leurs codes) ; leurs pointages, incidents et photos sont supprimés, leurs coches retirées : ces
 -- lignes n'auraient plus d'auteur. L'équipe des évènements et le téléphone des renforts sont perdus.
 DELETE FROM "events"."day_checkpoints" WHERE "user_id" IS NULL;

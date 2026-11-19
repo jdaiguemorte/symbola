@@ -1,6 +1,7 @@
 // Porte d'entrée publique du module events — seul fichier que les autres
 // modules peuvent importer (ADR 0011). Pensé comme le futur contrat HTTP
 // /v1/events si ce module est extrait en app autonome.
+import { findLinkVendorRecordId } from "./repository";
 import { z } from "zod";
 import { formatCalendarDate, isTimeZone, parisDaysSince, parisToday } from "@symbola/i18n";
 import { canSetStatus, eventPhase } from "./lifecycle";
@@ -563,7 +564,8 @@ function toEventDetail(event: EventRecord, clients: EventClientRow[]): EventDeta
     guestsEstimated: event.guestsEstimated,
     guestsConfirmed: event.guestsConfirmed,
     style: event.style,
-    notes: event.notes,
+    notes: event.notesSealed ? null : event.notes,
+    notesConfidential: event.notesSealed && event.notesConfidentialBy ? { authorUserId: event.notesConfidentialBy } : null,
     ...(event.importedFields ? { importedFields: event.importedFields } : {}),
   };
 }
@@ -3966,4 +3968,12 @@ export async function finishQuestionnaireOfLink(scope: LinkQuestionnaireScope, q
   await finishLinkQuestionnaire({ ...scope, questionnaireId, ...(now ? { now } : {}) });
   const result = await applyQuestionnairePrefill(scope.organizationId, scope.eventId);
   return { filled: result.filled, differences: result.differences.length };
+}
+
+// Lot 48a (DAT-08 ; D5, ADR 0093) : notes d'évènement confidentielles.
+export { readEventConfidentialNotes, saveEventNotes, EventNotesForbiddenError, type EventNotesViewer } from "./confidential-notes";
+
+// Lot 48a (PRE-05, PRE-10 ; D3) : fiche du carnet d'un lien de prestataire (pièces demandées, IBAN).
+export async function linkVendorRecordId(organizationId: string, linkId: string): Promise<string | null> {
+  return /^[0-9a-f-]{36}$/i.test(linkId) ? findLinkVendorRecordId(organizationId, linkId) : null;
 }

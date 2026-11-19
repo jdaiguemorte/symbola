@@ -75,7 +75,7 @@ plus de mot de passe, mais garde sa session opaque, relue à chaque requête.
    ouverte sans second facteur ; « Plus tard » le ferme un mois (`hub.users.mfa_prompt_dismissed_at`).
 9. **E-mails** : quatre natures personnalisables (`new_device_login`, `identity_changed`,
    `ownership_transfer`, `day_helper_link`), contrainte réunie avec main dans une migration à part
-   (0175), annulable vers la liste exacte de main.
+   (0180), annulable vers la liste exacte de main.
 
 ## Écarts assumés
 
@@ -97,7 +97,7 @@ plus de mot de passe, mais garde sa session opaque, relue à chaque requête.
 
 ## Conséquences
 
-- Migrations 0173 (hub), 0174 (events), 0175 (natures d'e-mails), annulables (`drizzle-rollback`).
+- Migrations 0178 (hub), 0179 (events), 0180 (natures d'e-mails), annulables (`drizzle-rollback`).
 - DPO, sans question nouvelle : appareils et dernière activité gardés tant que la session vit, les
   appareils connus 30 jours après leur dernière activité, les alertes 30 jours (purge horaire) ; nom,
   e-mail et téléphone du renfort gardés avec l'évènement, purgés avec lui.

@@ -228,6 +228,7 @@ export type {
   ContractTemplateClause,
   ContractTemplateClauseInput,
   ContractTemplateHeaderInput,
+  ContractTemplateKind,
   ContractTemplateView,
   ContractView,
   GenerateContractInput,
@@ -261,6 +262,8 @@ export type {
   // Lot 41 (FAC-10, JUR-02, JUR-13, GC-03).
   InvoiceReform,
   LineNature,
+  SupplyMode,
+  TourismKind,
   OperationCategory,
   PostalAddress,
   QuoteBuyerDetails,
@@ -348,6 +351,18 @@ export type {
   VendorFamily,
   VendorFamilyInput,
   StarterVendorCatalogInput,
+  // Lot 48a (PRE-05, PRE-06, PRE-10, SEC-27, DAT-08).
+  VendorDocumentKind,
+  VendorDocumentStatus,
+  VendorDocumentAlert,
+  VendorDocument,
+  VendorDocumentNotice,
+  VendorBankCheck,
+  VendorBankSummary,
+  VendorBankChange,
+  VenueConstraintSet,
+  VenueProgramFinding,
+  VenueCapacityFinding,
 } from "./vendors/service-contract";
 export {
   VENDORS_VENDOR_TYPE_MERGED,
@@ -372,7 +387,7 @@ export {
   type OrganizationExportModule,
 } from "./export/organization-export";
 // Lot 36a (CRM-03, DAT-12, ADR 0069) : le contact unique du hub.
-export type { Contact, ContactCompanyIds, ContactCoordinates, ContactInput, ContactKind, ContactMembership, ContactNote } from "./contacts";
+export type { Contact, ContactCompanyIds, ContactCoordinates, ContactInput, ContactKind, ContactMembership, ContactNote, ContactNoteViewer } from "./contacts";
 // Lot 38a (MSG-01, MSG-02, HUB-18 ; ADR 0072) : modèles d'e-mails et garde-fou d'envoi groupé.
 export type {
   EmailLocale,

@@ -1,4 +1,4 @@
--- Annulation de 0173 (lot 52) : le rôle « accountant » disparaît du type ; les adhésions et les
+-- Annulation de 0178 (lot 52) : le rôle « accountant » disparaît du type ; les adhésions et les
 -- invitations de comptable sont supprimées (un comptable ne devient jamais Planner), leurs sessions
 -- fermées. Les appareils connus, les transferts de propriété en cours ou passés, les alertes de
 -- changement d'identité, l'appareil et la dernière activité des sessions, le bandeau de double

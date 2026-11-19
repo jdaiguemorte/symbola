@@ -110,6 +110,9 @@ test.describe("EVT-06 (D3) — Renfort du jour J par lien personnel (SC-08 étap
       ["/devis", "/devis"],
       ["/portail", "/portail"],
       ["/prestataire", "/prestataire"],
+      // Lot 48a : ni les fiches des prestataires (IBAN, pièces, notes confidentielles), ni les contacts.
+      ["/prestataires", "/prestataires"],
+      ["/contacts", "/contacts"],
     ];
     for (const [asked, unknown] of pairs) {
       const reached = await outcome(page, asked);

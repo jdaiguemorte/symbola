@@ -10,6 +10,9 @@
 // Lot 51 (EVT-04, JRJ-05 à JRJ-09, ARC-09 ; ADR 0091) : jours et temps forts, pointage, décalage,
 // main courante, listes de contrôle et remises du jour (field-day.tsx) ; préparation des listes.
 import { notFound, redirect } from "next/navigation";
+import { venueChecksFor } from "@/lib/events/venue-checks";
+import { bankToVerifyVendors } from "@/lib/vendors/bank-checks";
+import { VenueFindings } from "@/app/events/[id]/venue-findings";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, formatFileSize, type Locale } from "@symbola/i18n";
 import { starterEmergencyNumbers } from "@symbola/starter-templates";
@@ -86,6 +89,10 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
     listDayChecklistTemplates(organizationId, locale),
   ]);
   if (!dayState) notFound();
+  // Lot 48a (PRE-06, PRE-10) : contrôles du lieu, IBAN « à vérifier » des prestataires des remises.
+  // Lot 52 (D3) : les contrôles du lieu sont ceux de la planner ; le renfort ne les voit pas.
+  const venueFindings = helper ? [] : (await venueChecksFor(organizationId, eventId, program, event.guestsConfirmed ?? event.guestsEstimated)).findings;
+  const bankVendors = await bankToVerifyVendors(organizationId, [...new Set((handovers ?? []).flatMap((handover) => handover.vendorIds ?? []))]);
   // EVT-04 : le nombre de présents du temps fort en cours, sans noms (règle du lot 49).
   const presentByMoment: Record<string, number> = {};
   if (await isGuestsAvailable(organizationId)) {
@@ -155,6 +162,7 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
           presentByMoment={presentByMoment}
           settings={{ shiftThresholdMinutes: settings.shiftThresholdMinutes, photoMaxSide: settings.photoMaxSide, refreshSeconds: settings.refreshSeconds }}
           showHandovers={budgetEnabled}
+          bankToVerify={(handovers ?? []).filter((handover) => (handover.vendorIds ?? []).some((vendorId) => bankVendors.has(vendorId))).map((handover) => handover.paymentId)}
           initial={{ state: dayState, items: program.items.map((item) => ({ id: item.id, startTime: item.startTime, endTime: item.endTime, keyMomentId: item.keyMomentId })), handovers }}
           items={view.items.map((item) => ({
             keyMomentId: programById.get(item.id)?.keyMomentId ?? null,
@@ -182,6 +190,13 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
           lists={dayState.checklists.map((list) => ({ id: list.id, name: list.name, items: list.items.map((item) => ({ id: item.id, label: item.label, checked: item.checkedAt !== null })) }))}
         />
         )}
+
+        {/* Lot 48a (PRE-06, D4) : contraintes du lieu, signalées, jamais bloquantes. */}
+        {venueFindings.length > 0 ? (
+          <div className="card">
+            <VenueFindings findings={venueFindings} labels={new Map(program.items.map((item) => [item.id, item.label]))} headingId="day-venue-title" />
+          </div>
+        ) : null}
 
         <section id="lieux" className="card" aria-labelledby="day-places-title">
           <h2 id="day-places-title">{t("placesTitle")}</h2>

@@ -33,6 +33,7 @@ import type {
   VendorFamily,
   VendorFamilyInput,
   StarterVendorCatalogInput,
+  VendorBankSummary,
 } from "@symbola/contracts";
 import { BUDGET_LINE_ICONS } from "@symbola/starter-templates";
 import { VENDOR_SOCIAL_NETWORKS, type VendorSocialLink } from "@symbola/contracts";
@@ -41,6 +42,7 @@ import { listBudgetLines } from "@/modules/budget/service";
 import { listSelectedVendorIds, listVendorConsultations } from "@/modules/events/service";
 import type { ImportUndoItem, ImportUndoOutcome } from "@symbola/contracts";
 import { cleanFieldValues, isUsableFilter } from "./fields";
+import { getVendorBankSummary } from "./records";
 import { undoImportedVendorsElements as undoImportRows } from "./import";
 import { configuredGeocoder } from "./geocoder";
 import { proposeTierGroups, tierUnitKey } from "./tag-tiers";
@@ -207,7 +209,7 @@ export class VendorFileRejectedError extends Error {
 }
 
 function toField(row: VendorTypeFieldRow): VendorTypeField {
-  return { id: row.id, typeId: row.typeId, label: row.label, kind: row.kind, choices: row.choices, isFilter: row.isFilter, position: row.position };
+  return { id: row.id, typeId: row.typeId, label: row.label, kind: row.kind, choices: row.choices, isFilter: row.isFilter, position: row.position, ruleKey: row.ruleKey };
 }
 
 function toType({ type, fields }: { type: VendorTypeRow; fields: VendorTypeFieldRow[] }): VendorType {
@@ -240,7 +242,7 @@ function toFile(row: VendorFileRow): VendorFile {
   return { id: row.id, kind: row.kind, fileName: row.fileName, mime: row.mime, sizeBytes: row.sizeBytes, createdAt: row.createdAt.toISOString() };
 }
 
-function toVendor(row: VendorRow, files: VendorFileRow[]): Vendor {
+function toVendor(row: VendorRow, files: VendorFileRow[], pendingCheck: VendorBankSummary["pendingCheck"] = null): Vendor {
   return {
     ...toSummary(row),
     contactName: row.contactName,
@@ -248,7 +250,11 @@ function toVendor(row: VendorRow, files: VendorFileRow[]): Vendor {
     phone: row.phone,
     addressLine: row.addressLine,
     country: row.country,
-    internalNote: row.internalNote,
+    internalNote: row.internalNoteSealed ? null : row.internalNote,
+    // Lot 48a (DAT-08) : le texte d'une note confidentielle ne quitte jamais ce module chiffré ;
+    // il se lit par readVendorConfidentialNote.
+    internalNoteConfidential: row.internalNoteSealed ? { authorUserId: row.internalNoteConfidentialBy } : null,
+    bank: { ibanMasked: row.ibanMasked, hasBic: row.bicSealed !== null, pendingCheck },
     indicativePrices: row.indicativePrices,
     website: row.website,
     socialLinks: cleanSocialLinks(row.socialLinks),
@@ -659,10 +665,12 @@ export async function updateVendor(organizationId: string, vendorId: string, inp
   const current = await findVendor(organizationId, vendorId);
   if (!current) throw new VendorNotFoundError();
   const write = await prepareWrite(organizationId, input);
+  // Lot 48a (DAT-08) : une note confidentielle ne se change que par saveVendorNote.
+  if (current.vendor.internalNoteSealed) write.internalNote = null;
   const { location, geocoding } = await locate(write, current.vendor);
   const row = await updateVendorRow(organizationId, vendorId, { ...write, location });
   if (!row) throw new VendorNotFoundError();
-  return { vendor: toVendor(row, current.files), geocoding };
+  return { vendor: toVendor(row, current.files, (await getVendorBankSummary(organizationId, vendorId)).pendingCheck), geocoding };
 }
 
 export async function setVendorLocation(organizationId: string, vendorId: string, latitude: number, longitude: number): Promise<void> {
@@ -686,7 +694,7 @@ export async function unarchiveVendor(organizationId: string, vendorId: string):
 export async function getVendor(organizationId: string, vendorId: string): Promise<Vendor | null> {
   if (!UUID.test(vendorId)) return null;
   const found = await findVendor(organizationId, vendorId);
-  return found ? toVendor(found.vendor, found.files) : null;
+  return found ? toVendor(found.vendor, found.files, (await getVendorBankSummary(organizationId, vendorId)).pendingCheck) : null;
 }
 
 export async function getVendorsByIds(organizationId: string, vendorIds: string[]): Promise<VendorSummary[]> {
@@ -812,7 +820,10 @@ export async function getVendorFile(organizationId: string, fileId: string): Pro
 
 // Lot 12 (L12-EVT-16) : dernier RIB déposé sur la fiche (pour l'espace clients,
 // après vérification de l'accès par l'appelant).
+// Lot 48a (PRE-10, SEC-27) : tant qu'un changement d'IBAN attend la vérification de la planner, le
+// RIB n'est jamais montré au client (même réponse qu'une fiche sans RIB).
 export async function getVendorRibFile(organizationId: string, vendorId: string): Promise<FileDownload> {
+  if ((await getVendorBankSummary(organizationId, vendorId)).pendingCheck) throw new VendorFileNotFoundError();
   const vendor = await findVendor(organizationId, vendorId);
   const rib = vendor?.files.filter((file) => file.kind === "rib").at(-1);
   if (!rib) throw new VendorFileNotFoundError();
@@ -912,3 +923,45 @@ export async function countOrganizationRealVendors(organizationId: string): Prom
 
 // Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
 export { describeVendorsExport, exportVendorsData, VENDORS_EXPORT_EXCLUSIONS } from "./export";
+
+// Lot 48a (PRE-05, PRE-06, PRE-10, SEC-27, DAT-08 ; ADR 0093) : pièces, IBAN, note confidentielle,
+// contraintes des lieux.
+export {
+  addVendorDocument,
+  addVendorDocumentKind,
+  archiveVendorDocumentKind,
+  canReadConfidentialNote,
+  checkProgramWithVenue,
+  checkVenueCapacity,
+  ConfidentialNoteForbiddenError,
+  ensureVenueRuleFields,
+  getVendorBankSummary,
+  getVendorDocumentAlertDays,
+  getVendorDocumentFile,
+  getVendorTypeKeys,
+  getVenueConstraints,
+  listPendingBankChecks,
+  listRequestedVendorDocuments,
+  listVendorBankChanges,
+  listVendorDocumentKinds,
+  listVendorDocumentNotices,
+  listVendorDocuments,
+  readVendorBankDetails,
+  readVendorConfidentialNote,
+  receiveVendorDocumentByLink,
+  removeVendorDocument,
+  requestVendorDocument,
+  saveVendorNote,
+  setVendorBankDetails,
+  setVendorDocumentAlertDays,
+  setVendorDocumentValidity,
+  verifyVendorBankDetails,
+  verifyVendorDocument,
+  VendorDocumentNotFoundError,
+  VendorDocumentRejectedError,
+  VENDOR_DOCUMENT_MAX_SIZE_BYTES,
+  type BankActor,
+  type NoteViewer,
+  type ProgramSequenceInput,
+} from "./records";
+export { InvalidBankDetailsError, maskIban } from "./bank-details";

@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { venueChecksFor } from "@/lib/events/venue-checks";
+import { EventNotesForbiddenError, readEventConfidentialNotes } from "@/modules/events/service";
+import { VenueCapacityNotice, VenueFindings } from "./venue-findings";
 import { PageHeader } from "@/app/ui/page-header";
 import { listCalendarFeeds } from "@/modules/hub/service";
 import { ImportedFields } from "../../imported-fields";
@@ -72,7 +75,7 @@ import { NextStepBanner } from "./next-step-banner";
 import { nextStep } from "./next-step";
 import { endTrialAction, removeExampleAction } from "../trial-actions";
 import { revokeLinkAction } from "./link-actions";
-import { ClientContactForm, EventIdentityForm, VenueForm, WantedBudgetForm } from "./client-contact-forms";
+import { ClientContactForm, EventIdentityForm, EventNotesForm, VenueForm, WantedBudgetForm } from "./client-contact-forms";
 import { CreateLinkForm, CreateVendorLinkForm, EditLinkForm, RenewLinkForm, type LinkFormVendor } from "./link-forms";
 import { RequestDecisionForm } from "./decision-forms";
 import { commitDecisionExpenseAction, replaceDecisionAction, retainDecisionChoiceAction, withdrawDecisionAction } from "./decision-actions";
@@ -312,6 +315,18 @@ export default async function EventDetailPage({
   ].filter((group) => group.items.length > 0);
   const programSpanOf = new Map(programGroups.flatMap((group) => programSpans(group.items)).map((span) => [span.id, span]));
   const responsibleOptions = [...new Set(program.items.flatMap((item) => (item.responsible ? [item.responsible] : [])))].sort((a, b) => a.localeCompare(b, "fr"));
+  // Lot 48a (DAT-08) : notes confidentielles, déchiffrées pour leur auteur et la titulaire seuls.
+  const eventConfidentialNotes =
+    query.modifier === "infos" && event.notesConfidential
+      ? await readEventConfidentialNotes(organizationId, id, { userId: auth.user.id, role: auth.user.role }).catch((error: unknown) => {
+          if (error instanceof EventNotesForbiddenError) return null;
+          throw error;
+        })
+      : null;
+  const eventNotesReadable = !event.notesConfidential || eventConfidentialNotes !== null;
+  // Lot 48a (PRE-06, D4) : contrôles du chrono par le lieu (programme) et capacité (synthèse).
+  const venueChecks =
+    tab === "programme" || tab === "apercu" ? await venueChecksFor(organizationId, id, program, event.guestsConfirmed ?? event.guestsEstimated) : null;
   const shiftedItem = tab === "programme" && query.decalage && isValidId(query.decalage) ? program.items.find((item) => item.id === query.decalage) : undefined;
   const shiftPlan = shiftedItem && query.depuis && /^([01]\d|2[0-3]):[0-5]\d$/.test(query.depuis) ? proposeProgramShift(program.items, shiftedItem.id, query.depuis, shiftedItem.startTime) : null;
   const shiftProposal: ShiftProposalView | null = shiftPlan ? { ...shiftPlan, duration: durationText(Math.abs(shiftPlan.minutes), spanWords) } : null;
@@ -704,7 +719,10 @@ export default async function EventDetailPage({
             <dl className="identity-facts">
               <dt>{t("guestsLabel")}</dt>
               {/* Lot 49 (EVT-03) : avec le module Invités, le nombre confirmé vient des réponses. */}
-              <dd>{t("guestsSummary", { estimated: event.guestsEstimated === null ? "—" : String(event.guestsEstimated), confirmed: guestSummary ? String(guestSummary.confirmed) : event.guestsConfirmed === null ? "—" : String(event.guestsConfirmed) })}</dd>
+              <dd>{t("guestsSummary", { estimated: event.guestsEstimated === null ? "—" : String(event.guestsEstimated), confirmed: guestSummary ? String(guestSummary.confirmed) : event.guestsConfirmed === null ? "—" : String(event.guestsConfirmed) })}
+                {/* Lot 48a (PRE-06) : invités au-delà de la capacité du lieu de réception. */}
+                {venueChecks ? <VenueCapacityNotice finding={venueChecks.capacity} /> : null}
+              </dd>
               <dt>{t("placesTitle")}</dt>
               <dd>
                 {places.length === 0 ? t("noPlaces") : places.map((place) => (place.startTime ? `${place.label} (${place.startTime})` : place.label)).join(" · ")}{" "}
@@ -772,7 +790,13 @@ export default async function EventDetailPage({
               <WantedBudgetForm key={`wanted-${event.wantedBudgetCents ?? ""}`} eventId={event.id} wantedBudgetCents={event.wantedBudgetCents} />
               <VenueForm eventId={event.id} venueName={event.venueName} venueCity={event.venueCity} />
               {/* Sans clé liée aux valeurs : l'enregistrement garde son message de confirmation. */}
-              <EventIdentityForm eventId={event.id} identity={event} version={identityVersion} />
+              <EventIdentityForm eventId={event.id} identity={event} version={identityVersion} confidentialNotes={Boolean(event.notesConfidential)} />
+              {/* Lot 48a (DAT-08) : notes confidentielles, lues par leur auteur et la titulaire seuls. */}
+              {eventNotesReadable ? (
+                <EventNotesForm eventId={event.id} notes={event.notesConfidential ? eventConfidentialNotes : event.notes} confidential={Boolean(event.notesConfidential)} />
+              ) : (
+                <p className="muted">{t("eventNotesConfidentialHidden")}</p>
+              )}
             </SidePanel>
           ) : null}
           <ImportedFields fields={event.importedFields} />
@@ -1238,6 +1262,8 @@ export default async function EventDetailPage({
               ) : null}
             </section>
           ) : null}
+          {/* Lot 48a (PRE-06, D4) : contraintes du lieu, signalées, jamais bloquantes. */}
+          {venueChecks ? <VenueFindings findings={venueChecks.findings} labels={programLabels} headingId="program-venue-title" /> : null}
           {program.overlaps.length > 0 ? (
             <section aria-labelledby="program-overlaps-title">
               <h3 id="program-overlaps-title">{t("programOverlapsTitle")}</h3>

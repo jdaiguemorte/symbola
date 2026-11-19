@@ -200,7 +200,7 @@ export function seedStarterCatalogRows(
           if (!row) throw new Error("insertion du type échouée");
           for (const [position, field] of type.fields.entries()) {
             const choices = field.kind === "choice" ? [...new Set((field.choices ?? []).map((choice) => choice.trim()).filter(Boolean))] : [];
-            await tx.insert(vendorTypeFields).values({ organizationId, typeId: row.id, label: field.label, kind: field.kind, choices, isFilter: field.isFilter ?? false, position });
+            await tx.insert(vendorTypeFields).values({ organizationId, typeId: row.id, label: field.label, kind: field.kind, choices, isFilter: field.isFilter ?? false, ruleKey: field.ruleKey ?? null, position });
           }
         }
       }

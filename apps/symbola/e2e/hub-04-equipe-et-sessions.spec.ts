@@ -96,7 +96,8 @@ test.describe("HUB-04 — Le Comptable, en lecture seule", () => {
     await expect(page.getByRole("heading", { name: /Comptabilité de/ })).toBeVisible();
     await expect(page.getByText("Lecture seule", { exact: true })).toBeVisible();
     await expectNoAxeViolation(page);
-    for (const path of ["/events", "/contacts", "/parametres", "/parametres/equipe"]) {
+    // Lot 48a : ni les fiches des prestataires (IBAN, pièces), ni leurs notes confidentielles.
+    for (const path of ["/events", "/contacts", "/parametres", "/parametres/equipe", "/prestataires", "/prestataires/parametres/pieces"]) {
       await page.goto(path);
       await expect(page, path).toHaveURL(/\/comptable/);
     }

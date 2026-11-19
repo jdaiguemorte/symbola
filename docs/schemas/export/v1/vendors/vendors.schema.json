@@ -95,6 +95,24 @@
         "null"
       ]
     },
+    "internalNoteConfidentialBy": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ibanMasked": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "rating": {
       "anyOf": [
         {
@@ -211,6 +229,8 @@
     "longitude",
     "locationSource",
     "internalNote",
+    "internalNoteConfidentialBy",
+    "ibanMasked",
     "rating",
     "indicativePrices",
     "website",

@@ -206,6 +206,9 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
             // Lot 34b (EVT-03) : style et notes libres effacés ; les nombres d'invités restent.
             style: null,
             notes: null,
+            // Lot 48a (DAT-08) : notes confidentielles comprises.
+            notesSealed: null,
+            notesConfidentialBy: null,
             importedFields: null,
             updatedAt: now,
           })

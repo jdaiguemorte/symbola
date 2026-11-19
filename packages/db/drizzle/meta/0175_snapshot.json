@@ -1,6 +1,6 @@
 {
-  "id": "d67c2b12-8e02-4689-9576-9fca27b02cfa",
-  "prevId": "39bb1f90-4153-44db-a6ee-ca5cc568d48c",
+  "id": "75f87a62-8e64-48c1-b89e-2fb93f5e4a72",
+  "prevId": "b8024714-f581-492a-a820-ce881499c3ac",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -3578,12 +3578,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "checked_by_link_id": {
-          "name": "checked_by_link_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "check_action_id": {
           "name": "check_action_id",
           "type": "uuid",
@@ -3663,20 +3657,6 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
-        },
-        "day_checklist_items_checked_by_link_id_event_links_id_fk": {
-          "name": "day_checklist_items_checked_by_link_id_event_links_id_fk",
-          "tableFrom": "day_checklist_items",
-          "tableTo": "event_links",
-          "schemaTo": "events",
-          "columnsFrom": [
-            "checked_by_link_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -3689,7 +3669,7 @@
         },
         "day_checklist_items_check_check": {
           "name": "day_checklist_items_check_check",
-          "value": "(\"events\".\"day_checklist_items\".\"checked_at\" is null and \"events\".\"day_checklist_items\".\"checked_by\" is null and \"events\".\"day_checklist_items\".\"checked_by_link_id\" is null) or (\"events\".\"day_checklist_items\".\"checked_at\" is not null and (\"events\".\"day_checklist_items\".\"checked_by\" is null or \"events\".\"day_checklist_items\".\"checked_by_link_id\" is null))"
+          "value": "(\"events\".\"day_checklist_items\".\"checked_at\" is null and \"events\".\"day_checklist_items\".\"checked_by\" is null) or (\"events\".\"day_checklist_items\".\"checked_at\" is not null and \"events\".\"day_checklist_items\".\"checked_by\" is not null)"
         }
       },
       "isRLSEnabled": false
@@ -4033,13 +4013,7 @@
           "name": "user_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
-        },
-        "link_id": {
-          "name": "link_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "action_id": {
           "name": "action_id",
@@ -4156,20 +4130,6 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
-        },
-        "day_checkpoints_link_id_event_links_id_fk": {
-          "name": "day_checkpoints_link_id_event_links_id_fk",
-          "tableFrom": "day_checkpoints",
-          "tableTo": "event_links",
-          "schemaTo": "events",
-          "columnsFrom": [
-            "link_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -4188,10 +4148,6 @@
         "day_checkpoints_kind_check": {
           "name": "day_checkpoints_kind_check",
           "value": "\"events\".\"day_checkpoints\".\"kind\" in ('started', 'finished')"
-        },
-        "day_checkpoints_author_check": {
-          "name": "day_checkpoints_author_check",
-          "value": "\"events\".\"day_checkpoints\".\"user_id\" is null or \"events\".\"day_checkpoints\".\"link_id\" is null"
         }
       },
       "isRLSEnabled": false
@@ -4247,13 +4203,7 @@
           "name": "user_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
-        },
-        "link_id": {
-          "name": "link_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "action_id": {
           "name": "action_id",
@@ -4355,20 +4305,6 @@
           ],
           "onDelete": "set null",
           "onUpdate": "no action"
-        },
-        "day_incidents_link_id_event_links_id_fk": {
-          "name": "day_incidents_link_id_event_links_id_fk",
-          "tableFrom": "day_incidents",
-          "tableTo": "event_links",
-          "schemaTo": "events",
-          "columnsFrom": [
-            "link_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -4384,10 +4320,6 @@
       },
       "policies": {},
       "checkConstraints": {
-        "day_incidents_author_check": {
-          "name": "day_incidents_author_check",
-          "value": "\"events\".\"day_incidents\".\"user_id\" is null or \"events\".\"day_incidents\".\"link_id\" is null"
-        },
         "day_incidents_body_check": {
           "name": "day_incidents_body_check",
           "value": "char_length(\"events\".\"day_incidents\".\"body\") between 1 and 2000"
@@ -4474,13 +4406,7 @@
           "name": "taken_by",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
-        },
-        "taken_by_link_id": {
-          "name": "taken_by_link_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "action_id": {
           "name": "action_id",
@@ -4583,20 +4509,6 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
-        },
-        "day_photos_taken_by_link_id_event_links_id_fk": {
-          "name": "day_photos_taken_by_link_id_event_links_id_fk",
-          "tableFrom": "day_photos",
-          "tableTo": "event_links",
-          "schemaTo": "events",
-          "columnsFrom": [
-            "taken_by_link_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -4615,10 +4527,6 @@
         "day_photos_subject_check": {
           "name": "day_photos_subject_check",
           "value": "\"events\".\"day_photos\".\"subject\" in ('incident', 'checklist_item', 'handover')"
-        },
-        "day_photos_author_check": {
-          "name": "day_photos_author_check",
-          "value": "\"events\".\"day_photos\".\"taken_by\" is null or \"events\".\"day_photos\".\"taken_by_link_id\" is null"
         },
         "day_photos_state_check": {
           "name": "day_photos_state_check",
@@ -7063,12 +6971,6 @@
           "notNull": true,
           "default": "'fr'"
         },
-        "phone": {
-          "name": "phone",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "custom_expires_on": {
           "name": "custom_expires_on",
           "type": "date",
@@ -7265,14 +7167,6 @@
         "event_links_locale_check": {
           "name": "event_links_locale_check",
           "value": "\"events\".\"event_links\".\"locale\" in ('fr', 'en')"
-        },
-        "event_links_day_helper_check": {
-          "name": "event_links_day_helper_check",
-          "value": "\"events\".\"event_links\".\"audience\"::text <> 'day_helper' or (\"events\".\"event_links\".\"rubrics\" = '{}'::text[] and \"events\".\"event_links\".\"otp_required\")"
-        },
-        "event_links_phone_check": {
-          "name": "event_links_phone_check",
-          "value": "\"events\".\"event_links\".\"phone\" is null or char_length(\"events\".\"event_links\".\"phone\") between 1 and 40"
         }
       },
       "isRLSEnabled": false
@@ -8657,167 +8551,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "events.event_team_members": {
-      "name": "event_team_members",
-      "schema": "events",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "event_id": {
-          "name": "event_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "role": {
-          "name": "role",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_by": {
-          "name": "updated_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "event_team_members_organization_idx": {
-          "name": "event_team_members_organization_idx",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "event_team_members_event_idx": {
-          "name": "event_team_members_event_idx",
-          "columns": [
-            {
-              "expression": "event_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "event_team_members_user_idx": {
-          "name": "event_team_members_user_idx",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "event_team_members_one_lead": {
-          "name": "event_team_members_one_lead",
-          "columns": [
-            {
-              "expression": "event_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "where": "\"events\".\"event_team_members\".\"role\" = 'lead'",
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "event_team_members_event_id_events_id_fk": {
-          "name": "event_team_members_event_id_events_id_fk",
-          "tableFrom": "event_team_members",
-          "tableTo": "events",
-          "schemaTo": "events",
-          "columnsFrom": [
-            "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "event_team_members_event_user_unique": {
-          "name": "event_team_members_event_user_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "event_id",
-            "user_id"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {
-        "event_team_members_role_check": {
-          "name": "event_team_members_role_check",
-          "value": "\"events\".\"event_team_members\".\"role\" in ('lead', 'assistant')"
-        }
-      },
-      "isRLSEnabled": false
-    },
     "events.event_types": {
       "name": "event_types",
       "schema": "events",
@@ -9501,6 +9234,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "notes_sealed": {
+          "name": "notes_sealed",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes_confidential_by": {
+          "name": "notes_confidential_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "imported_fields": {
           "name": "imported_fields",
           "type": "jsonb",
@@ -9697,6 +9442,10 @@
         "events_identity_text_check": {
           "name": "events_identity_text_check",
           "value": "(\"events\".\"events\".\"style\" is null or char_length(\"events\".\"events\".\"style\") <= 2000) and (\"events\".\"events\".\"notes\" is null or char_length(\"events\".\"events\".\"notes\") <= 10000)"
+        },
+        "events_notes_sealed_check": {
+          "name": "events_notes_sealed_check",
+          "value": "\"events\".\"events\".\"notes_sealed\" is null or (\"events\".\"events\".\"notes\" is null and \"events\".\"events\".\"notes_sealed\" like 'f1:%' and \"events\".\"events\".\"notes_confidential_by\" is not null)"
         }
       },
       "isRLSEnabled": false
@@ -16246,7 +15995,20 @@
           "name": "body",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "body_sealed": {
+          "name": "body_sealed",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_confidential": {
+          "name": "is_confidential",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "created_at": {
           "name": "created_at",
@@ -16341,7 +16103,7 @@
       "checkConstraints": {
         "contact_notes_body_check": {
           "name": "contact_notes_body_check",
-          "value": "char_length(\"hub\".\"contact_notes\".\"body\") between 1 and 2000"
+          "value": "(not \"hub\".\"contact_notes\".\"is_confidential\" and \"hub\".\"contact_notes\".\"body_sealed\" is null and \"hub\".\"contact_notes\".\"body\" is not null and char_length(\"hub\".\"contact_notes\".\"body\") between 1 and 2000) or (\"hub\".\"contact_notes\".\"is_confidential\" and \"hub\".\"contact_notes\".\"body\" is null and \"hub\".\"contact_notes\".\"body_sealed\" like 'f1:%' and \"hub\".\"contact_notes\".\"author_user_id\" is not null)"
         }
       },
       "isRLSEnabled": false
@@ -16653,7 +16415,7 @@
       "checkConstraints": {
         "email_templates_kind_check": {
           "name": "email_templates_kind_check",
-          "value": "\"hub\".\"email_templates\".\"kind\" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent', 'new_device_login', 'identity_changed', 'ownership_transfer', 'day_helper_link')"
+          "value": "\"hub\".\"email_templates\".\"kind\" in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent')"
         },
         "email_templates_locale_check": {
           "name": "email_templates_locale_check",
@@ -16881,122 +16643,6 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "hub.identity_change_alerts": {
-      "name": "identity_change_alerts",
-      "schema": "hub",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "kind": {
-          "name": "kind",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "delivery_key": {
-          "name": "delivery_key",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "previous_email": {
-          "name": "previous_email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "received_at": {
-          "name": "received_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "sent_at": {
-          "name": "sent_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "identity_change_alerts_user_idx": {
-          "name": "identity_change_alerts_user_idx",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "identity_change_alerts_received_idx": {
-          "name": "identity_change_alerts_received_idx",
-          "columns": [
-            {
-              "expression": "received_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "identity_change_alerts_user_id_users_id_fk": {
-          "name": "identity_change_alerts_user_id_users_id_fk",
-          "tableFrom": "identity_change_alerts",
-          "tableTo": "users",
-          "schemaTo": "hub",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "identity_change_alerts_delivery_key_unique": {
-          "name": "identity_change_alerts_delivery_key_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "delivery_key"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {
-        "identity_change_alerts_kind_check": {
-          "name": "identity_change_alerts_kind_check",
-          "value": "\"hub\".\"identity_change_alerts\".\"kind\" in ('email', 'mfa', 'password')"
-        }
-      },
       "isRLSEnabled": false
     },
     "hub.import_items": {
@@ -17773,110 +17419,6 @@
           "value": "\"hub\".\"jobs\".\"payload\" is null or pg_column_size(\"hub\".\"jobs\".\"payload\") <= 33554432"
         }
       },
-      "isRLSEnabled": false
-    },
-    "hub.known_devices": {
-      "name": "known_devices",
-      "schema": "hub",
-      "columns": {
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "device_id": {
-          "name": "device_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "device_label": {
-          "name": "device_label",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "first_seen_at": {
-          "name": "first_seen_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "last_seen_at": {
-          "name": "last_seen_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "alert_token_hash": {
-          "name": "alert_token_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "alert_expires_at": {
-          "name": "alert_expires_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "known_devices_last_seen_idx": {
-          "name": "known_devices_last_seen_idx",
-          "columns": [
-            {
-              "expression": "last_seen_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "known_devices_user_id_users_id_fk": {
-          "name": "known_devices_user_id_users_id_fk",
-          "tableFrom": "known_devices",
-          "tableTo": "users",
-          "schemaTo": "hub",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "known_devices_user_id_device_id_pk": {
-          "name": "known_devices_user_id_device_id_pk",
-          "columns": [
-            "user_id",
-            "device_id"
-          ]
-        }
-      },
-      "uniqueConstraints": {
-        "known_devices_alert_token_hash_unique": {
-          "name": "known_devices_alert_token_hash_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "alert_token_hash"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "hub.memberships": {
@@ -18865,13 +18407,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "all_planners_see_all_events": {
-          "name": "all_planners_see_all_events",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -18903,158 +18438,6 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "hub.ownership_transfers": {
-      "name": "ownership_transfers",
-      "schema": "hub",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "from_user_id": {
-          "name": "from_user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "to_user_id": {
-          "name": "to_user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "token_hash": {
-          "name": "token_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "requested_at": {
-          "name": "requested_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "expires_at": {
-          "name": "expires_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "confirmed_at": {
-          "name": "confirmed_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cancelled_at": {
-          "name": "cancelled_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "ownership_transfers_organization_idx": {
-          "name": "ownership_transfers_organization_idx",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "ownership_transfers_pending_unique": {
-          "name": "ownership_transfers_pending_unique",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "where": "\"hub\".\"ownership_transfers\".\"confirmed_at\" is null and \"hub\".\"ownership_transfers\".\"cancelled_at\" is null",
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "ownership_transfers_organization_id_organizations_id_fk": {
-          "name": "ownership_transfers_organization_id_organizations_id_fk",
-          "tableFrom": "ownership_transfers",
-          "tableTo": "organizations",
-          "schemaTo": "hub",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "ownership_transfers_from_user_id_users_id_fk": {
-          "name": "ownership_transfers_from_user_id_users_id_fk",
-          "tableFrom": "ownership_transfers",
-          "tableTo": "users",
-          "schemaTo": "hub",
-          "columnsFrom": [
-            "from_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "ownership_transfers_to_user_id_users_id_fk": {
-          "name": "ownership_transfers_to_user_id_users_id_fk",
-          "tableFrom": "ownership_transfers",
-          "tableTo": "users",
-          "schemaTo": "hub",
-          "columnsFrom": [
-            "to_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "ownership_transfers_token_hash_unique": {
-          "name": "ownership_transfers_token_hash_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "token_hash"
-          ]
-        }
-      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -19827,24 +19210,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        },
-        "device_label": {
-          "name": "device_label",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "device_id": {
-          "name": "device_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "last_seen_at": {
-          "name": "last_seen_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {
@@ -19853,21 +19218,6 @@
           "columns": [
             {
               "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "sessions_user_idx": {
-          "name": "sessions_user_idx",
-          "columns": [
-            {
-              "expression": "user_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -20153,18 +19503,6 @@
         "disabled_at": {
           "name": "disabled_at",
           "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "mfa_prompt_dismissed_at": {
-          "name": "mfa_prompt_dismissed_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "mfa_factors_fingerprint": {
-          "name": "mfa_factors_fingerprint",
-          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -25251,6 +24589,489 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "vendors.vendor_bank_changes": {
+      "name": "vendor_bank_changes",
+      "schema": "vendors",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vendor_id": {
+          "name": "vendor_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "previous_masked": {
+          "name": "previous_masked",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "next_masked": {
+          "name": "next_masked",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "changed_by_user_id": {
+          "name": "changed_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "changed_by_link_id": {
+          "name": "changed_by_link_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "changed_at": {
+          "name": "changed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "verified_at": {
+          "name": "verified_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "verified_by_user_id": {
+          "name": "verified_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "vendor_bank_changes_organization_idx": {
+          "name": "vendor_bank_changes_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "vendor_bank_changes_vendor_idx": {
+          "name": "vendor_bank_changes_vendor_idx",
+          "columns": [
+            {
+              "expression": "vendor_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "vendor_bank_changes_vendor_id_vendors_id_fk": {
+          "name": "vendor_bank_changes_vendor_id_vendors_id_fk",
+          "tableFrom": "vendor_bank_changes",
+          "tableTo": "vendors",
+          "schemaTo": "vendors",
+          "columnsFrom": [
+            "vendor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "vendor_bank_changes_author_check": {
+          "name": "vendor_bank_changes_author_check",
+          "value": "(\"vendors\".\"vendor_bank_changes\".\"changed_by_user_id\" is null) <> (\"vendors\".\"vendor_bank_changes\".\"changed_by_link_id\" is null)"
+        },
+        "vendor_bank_changes_verified_check": {
+          "name": "vendor_bank_changes_verified_check",
+          "value": "(\"vendors\".\"vendor_bank_changes\".\"verified_at\" is null) = (\"vendors\".\"vendor_bank_changes\".\"verified_by_user_id\" is null)"
+        },
+        "vendor_bank_changes_masked_check": {
+          "name": "vendor_bank_changes_masked_check",
+          "value": "(\"vendors\".\"vendor_bank_changes\".\"previous_masked\" is null or \"vendors\".\"vendor_bank_changes\".\"previous_masked\" ~ '^[A-Z]{2}[0-9]{2} [•  0-9A-Z]{4,40}$') and (\"vendors\".\"vendor_bank_changes\".\"next_masked\" is null or \"vendors\".\"vendor_bank_changes\".\"next_masked\" ~ '^[A-Z]{2}[0-9]{2} [•  0-9A-Z]{4,40}$') and (\"vendors\".\"vendor_bank_changes\".\"previous_masked\" is not null or \"vendors\".\"vendor_bank_changes\".\"next_masked\" is not null)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "vendors.vendor_document_kinds": {
+      "name": "vendor_document_kinds",
+      "schema": "vendors",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires": {
+          "name": "expires",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "starter_key": {
+          "name": "starter_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "archived_at": {
+          "name": "archived_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "vendor_document_kinds_organization_idx": {
+          "name": "vendor_document_kinds_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "vendor_document_kinds_starter_key_unique": {
+          "name": "vendor_document_kinds_starter_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "starter_key"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "vendor_document_kinds_label_check": {
+          "name": "vendor_document_kinds_label_check",
+          "value": "char_length(\"vendors\".\"vendor_document_kinds\".\"label\") between 1 and 120"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "vendors.vendor_documents": {
+      "name": "vendor_documents",
+      "schema": "vendors",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vendor_id": {
+          "name": "vendor_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind_id": {
+          "name": "kind_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "file_name": {
+          "name": "file_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "file_key": {
+          "name": "file_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "mime": {
+          "name": "mime",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "size_bytes": {
+          "name": "size_bytes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "valid_until": {
+          "name": "valid_until",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uploaded_by_user_id": {
+          "name": "uploaded_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uploaded_by_link_id": {
+          "name": "uploaded_by_link_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uploaded_at": {
+          "name": "uploaded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "requested_at": {
+          "name": "requested_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "verified_at": {
+          "name": "verified_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "verified_by_user_id": {
+          "name": "verified_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "vendor_documents_organization_idx": {
+          "name": "vendor_documents_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "vendor_documents_vendor_idx": {
+          "name": "vendor_documents_vendor_idx",
+          "columns": [
+            {
+              "expression": "vendor_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "vendor_documents_vendor_id_vendors_id_fk": {
+          "name": "vendor_documents_vendor_id_vendors_id_fk",
+          "tableFrom": "vendor_documents",
+          "tableTo": "vendors",
+          "schemaTo": "vendors",
+          "columnsFrom": [
+            "vendor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "vendor_documents_kind_id_vendor_document_kinds_id_fk": {
+          "name": "vendor_documents_kind_id_vendor_document_kinds_id_fk",
+          "tableFrom": "vendor_documents",
+          "tableTo": "vendor_document_kinds",
+          "schemaTo": "vendors",
+          "columnsFrom": [
+            "kind_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "vendor_documents_status_check": {
+          "name": "vendor_documents_status_check",
+          "value": "\"vendors\".\"vendor_documents\".\"status\" in ('requested', 'to_verify', 'verified')"
+        },
+        "vendor_documents_file_check": {
+          "name": "vendor_documents_file_check",
+          "value": "((\"vendors\".\"vendor_documents\".\"file_key\" is null) = (\"vendors\".\"vendor_documents\".\"status\" = 'requested')) and ((\"vendors\".\"vendor_documents\".\"file_key\" is null) = (\"vendors\".\"vendor_documents\".\"file_name\" is null)) and ((\"vendors\".\"vendor_documents\".\"file_key\" is null) = (\"vendors\".\"vendor_documents\".\"mime\" is null)) and ((\"vendors\".\"vendor_documents\".\"file_key\" is null) = (\"vendors\".\"vendor_documents\".\"size_bytes\" is null)) and (\"vendors\".\"vendor_documents\".\"file_name\" is null or char_length(\"vendors\".\"vendor_documents\".\"file_name\") between 1 and 120)"
+        },
+        "vendor_documents_verified_check": {
+          "name": "vendor_documents_verified_check",
+          "value": "(\"vendors\".\"vendor_documents\".\"status\" = 'verified') = (\"vendors\".\"vendor_documents\".\"verified_at\" is not null)"
+        }
+      },
+      "isRLSEnabled": false
+    },
     "vendors.vendor_families": {
       "name": "vendor_families",
       "schema": "vendors",
@@ -25500,6 +25321,25 @@
           "primaryKey": false,
           "notNull": false
         },
+        "document_alert_days": {
+          "name": "document_alert_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 30
+        },
+        "document_kinds_seeded_at": {
+          "name": "document_kinds_seeded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "venue_fields_seeded_at": {
+          "name": "venue_fields_seeded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp with time zone",
@@ -25532,7 +25372,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "vendor_settings_document_alert_days_check": {
+          "name": "vendor_settings_document_alert_days_check",
+          "value": "\"vendors\".\"vendor_settings\".\"document_alert_days\" between 1 and 180"
+        }
+      },
       "isRLSEnabled": false
     },
     "vendors.vendor_tag_groups": {
@@ -25789,6 +25634,12 @@
           "notNull": true,
           "default": 0
         },
+        "rule_key": {
+          "name": "rule_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -25852,7 +25703,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "vendor_type_fields_rule_key_check": {
+          "name": "vendor_type_fields_rule_key_check",
+          "value": "\"vendors\".\"vendor_type_fields\".\"rule_key\" is null or \"vendors\".\"vendor_type_fields\".\"rule_key\" ~ '^[a-z][a-z_]{1,40}$'"
+        }
+      },
       "isRLSEnabled": false
     },
     "vendors.vendor_types": {
@@ -26066,6 +25922,36 @@
           "primaryKey": false,
           "notNull": false
         },
+        "internal_note_sealed": {
+          "name": "internal_note_sealed",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "internal_note_confidential_by": {
+          "name": "internal_note_confidential_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "iban_sealed": {
+          "name": "iban_sealed",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bic_sealed": {
+          "name": "bic_sealed",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "iban_masked": {
+          "name": "iban_masked",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "rating": {
           "name": "rating",
           "type": "integer",
@@ -26197,6 +26083,10 @@
         "vendors_rating_check": {
           "name": "vendors_rating_check",
           "value": "\"vendors\".\"vendors\".\"rating\" between 1 and 5"
+        },
+        "vendors_sealed_fields_check": {
+          "name": "vendors_sealed_fields_check",
+          "value": "(\"vendors\".\"vendors\".\"internal_note_sealed\" is null or (\"vendors\".\"vendors\".\"internal_note\" is null and \"vendors\".\"vendors\".\"internal_note_sealed\" like 'f1:%')) and (\"vendors\".\"vendors\".\"iban_sealed\" is null or \"vendors\".\"vendors\".\"iban_sealed\" like 'f1:%') and (\"vendors\".\"vendors\".\"bic_sealed\" is null or \"vendors\".\"vendors\".\"bic_sealed\" like 'f1:%') and ((\"vendors\".\"vendors\".\"iban_sealed\" is null) = (\"vendors\".\"vendors\".\"iban_masked\" is null)) and (\"vendors\".\"vendors\".\"bic_sealed\" is null or \"vendors\".\"vendors\".\"iban_sealed\" is not null)"
         }
       },
       "isRLSEnabled": false
@@ -26243,8 +26133,7 @@
       "values": [
         "client",
         "vendor",
-        "guest",
-        "day_helper"
+        "guest"
       ]
     },
     "events.event_status": {
@@ -26362,8 +26251,7 @@
       "schema": "hub",
       "values": [
         "owner",
-        "member",
-        "accountant"
+        "member"
       ]
     },
     "hub.metier": {

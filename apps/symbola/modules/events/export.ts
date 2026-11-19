@@ -92,7 +92,8 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: prospectFollowUpSettings, files: ["brochureStorageKey"] },
   { table: questionnaireTemplates },
   { table: questionnaireTemplateItems, parents: { templateId: "questionnaire_templates" } },
-  { table: events, demoField: "isDemo" },
+  // Lot 48a (DAT-08) : des notes confidentielles ne sortent pas (chiffrées, elles restent dans Symbola).
+  { table: events, demoField: "isDemo", omit: ["notesSealed"] },
   { table: eventClients, ...ofEvent },
   { table: eventStatusHistory, ...ofEvent },
   { table: eventPlaces, ...ofEvent },

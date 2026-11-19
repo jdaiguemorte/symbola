@@ -136,6 +136,26 @@ fields:
     anonymization: >-
       Effacé avec les réglages de l'organisation ; les copies figées
       suivent la conservation de leur document.
+  - schema: quotes
+    table: quote_settings
+    field: iban_sealed
+    category: identifiant
+    retention: >-
+      Lot 48a (DAT-08, ADR 0093) : l'IBAN de la planner, chiffré au niveau du champ (field-box,
+      DATA_ENCRYPTION_KEY) depuis la migration 0176 et son étape de données ; la colonne iban
+      reste vide. Déchiffré par le module des devis à l'affichage et dans les documents ; sorti en
+      clair dans l'export complet de l'organisation (champ iban, contrat export/v1).
+    anonymization: >-
+      Effacé avec les réglages de l'organisation ; les copies figées suivent la conservation de
+      leur document.
+  - schema: quotes
+    table: quote_settings
+    field: bic_sealed
+    category: identifiant
+    retention: >-
+      Lot 48a (DAT-08) : le BIC de la planner, chiffré comme son IBAN.
+    anonymization: >-
+      Effacé avec les réglages de l'organisation.
   - schema: hub
     table: invitations
     field: email
@@ -475,6 +495,17 @@ fields:
     category: identifiant
     retention: >-
       Lot 36a (CRM-03) : note de l'équipe sur un contact ; elle suit son contact.
+    anonymization: >-
+      Supprimée avec les coordonnées du contact à l'oubli ou à la purge.
+  - schema: hub
+    table: contact_notes
+    field: body_sealed
+    category: contenu_libre
+    retention: >-
+      Lot 48a (DAT-08, ADR 0093) : note de l'équipe marquée confidentielle, chiffrée au niveau du
+      champ (body est vide) ; lue par son auteur et la titulaire seuls, absente des recherches et de
+      l'export complet ; rendue en clair à la personne qui exerce son droit d'accès. Elle suit son
+      contact.
     anonymization: >-
       Supprimée avec les coordonnées du contact à l'oubli ou à la purge.
   - schema: hub
@@ -1933,3 +1964,93 @@ fields:
       jours sans adresse.
     anonymization: >-
       Effacée à l'envoi de l'alerte ; la ligne est supprimée après 30 jours, ou avec le compte (cascade).
+  # Lot 48a (PRE-05, PRE-10, SEC-27, DAT-08 ; ADR 0093) : IBAN, BIC et note confidentielle des
+  # prestataires chiffrés, journal masqué des changements d'IBAN, pièces, notes d'évènement
+  # confidentielles.
+  - schema: vendors
+    table: vendors
+    field: iban_sealed
+    category: identifiant
+    retention: >-
+      Lot 48a (PRE-10, DAT-08) : IBAN d'un prestataire (celui d'un entrepreneur individuel est une
+      donnée personnelle), chiffré au niveau du champ ; seul l'IBAN masqué (iban_masked) se montre.
+      Jamais montré au client tant qu'un changement attend la vérification de la planner ; absent
+      de l'export complet. Tant que la fiche existe.
+    anonymization: >-
+      Mis à nul à l'oubli de la fiche (RGPD-03), avec l'IBAN masqué et le BIC.
+  - schema: vendors
+    table: vendors
+    field: bic_sealed
+    category: identifiant
+    retention: >-
+      Lot 48a (DAT-08) : BIC d'un prestataire, chiffré comme son IBAN.
+    anonymization: >-
+      Mis à nul à l'oubli de la fiche (RGPD-03).
+  - schema: vendors
+    table: vendors
+    field: iban_masked
+    category: identifiant
+    retention: >-
+      Lot 48a (PRE-10) : IBAN masqué (« FR76 •••• •••• 1234 »), seule forme montrée à l'écran.
+    anonymization: >-
+      Mis à nul à l'oubli de la fiche (RGPD-03).
+  - schema: vendors
+    table: vendors
+    field: internal_note_sealed
+    category: contenu_libre
+    retention: >-
+      Lot 48a (DAT-08) : note interne marquée confidentielle, chiffrée au niveau du champ ; lue par
+      son auteur et la titulaire seuls ; absente des recherches et de l'export complet. Tant que la
+      fiche existe.
+    anonymization: >-
+      Mise à nul à l'oubli de la fiche (RGPD-03).
+  - schema: vendors
+    table: vendor_bank_changes
+    field: previous_masked
+    category: identifiant
+    retention: >-
+      Lot 48a (PRE-10, SEC-27) : ancien et nouvel IBAN masqués d'un changement, qui l'a fait, quand,
+      et sa vérification par téléphone (journal). Jamais d'IBAN en clair. Tant que la fiche existe.
+    anonymization: >-
+      Supprimé avec la fiche à l'oubli (RGPD-03).
+  - schema: vendors
+    table: vendor_bank_changes
+    field: next_masked
+    category: identifiant
+    retention: >-
+      Lot 48a (PRE-10, SEC-27) : voir previous_masked.
+    anonymization: >-
+      Supprimé avec la fiche à l'oubli (RGPD-03).
+  - schema: vendors
+    table: vendor_documents
+    field: file_key
+    category: identifiant
+    retention: >-
+      Lot 48a (PRE-05) : pièce d'un prestataire (attestation d'assurance, Kbis ou avis Insee, plan),
+      fichier privé servi par l'app (ADR 0027), avec sa fin de validité. Tant que la fiche existe ;
+      la planner la retire quand elle n'est plus utile.
+    anonymization: >-
+      Supprimée avec son fichier à l'oubli de la fiche (RGPD-03).
+  - schema: events
+    table: events
+    field: notes_sealed
+    category: contenu_libre
+    retention: >-
+      Lot 48a (DAT-08) : notes de l'évènement marquées confidentielles, chiffrées au niveau du champ
+      (notes est vide) ; lues par leur auteur et la titulaire seuls, absentes des recherches et de
+      l'export complet ; rendues en clair à la personne qui exerce son droit d'accès. Tant que
+      l'évènement existe.
+    anonymization: >-
+      Effacées lors d'une demande d'oubli qui vise l'évènement (RGPD-03).
+  # Lot 48b (BUD-08, PRE-07 ; ADR 0093) : commissions des prestataires (nom du prestataire copié).
+  - schema: quotes
+    table: vendor_commissions
+    field: vendor_name
+    category: identifiant
+    retention: >-
+      Lot 48b (PRE-07) : nom du prestataire qui verse la commission (un entrepreneur individuel peut
+      porter son nom), copié pour la facture de commission qui le fige. Tant que l'évènement existe ;
+      la facture émise suit la conservation des pièces comptables.
+    anonymization: >-
+      Supprimée avec l'évènement si elle n'est pas facturée ; facturée, elle suit la conservation de
+      sa facture.

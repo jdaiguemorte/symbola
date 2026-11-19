@@ -6,7 +6,7 @@
 // rien. Les fiches d'exemple (essais, tutoriels) ne sont jamais trouvées.
 import { and, eq, inArray } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
-import { vendorFiles, vendors } from "@symbola/db/schema/vendors";
+import { vendorBankChanges, vendorDocuments, vendorFiles, vendors } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";
 import { createStorageClient, deletePrivateObject } from "@symbola/files";
 import { ANONYMIZED, hasTerms, idsOfKind, prepareTerms, recordMatches, type ErasurePlanItem, type PrivacyContractV1, type PrivacyRecord } from "@symbola/privacy";
@@ -84,6 +84,11 @@ export const vendorsPrivacy: PrivacyContractV1 = {
       if (ids.length === 0) return { ids, keys: [] as string[] };
       const files = await tx.select({ key: vendorFiles.fileKey }).from(vendorFiles).where(inArray(vendorFiles.vendorId, ids));
       await tx.delete(vendorFiles).where(inArray(vendorFiles.vendorId, ids));
+      // Lot 48a (PRE-05, PRE-10, DAT-08) : pièces, journal des IBAN (masqués), IBAN et note chiffrés.
+      const documents = await tx.select({ key: vendorDocuments.fileKey }).from(vendorDocuments).where(inArray(vendorDocuments.vendorId, ids));
+      await tx.delete(vendorDocuments).where(inArray(vendorDocuments.vendorId, ids));
+      await tx.delete(vendorBankChanges).where(inArray(vendorBankChanges.vendorId, ids));
+      files.push(...documents.flatMap((document) => (document.key ? [{ key: document.key }] : [])));
       await tx
         .update(vendors)
         .set({
@@ -94,6 +99,11 @@ export const vendorsPrivacy: PrivacyContractV1 = {
           addressLine: null,
           postalCode: null,
           internalNote: null,
+          internalNoteSealed: null,
+          internalNoteConfidentialBy: null,
+          ibanSealed: null,
+          bicSealed: null,
+          ibanMasked: null,
           rating: null,
           indicativePrices: null,
           website: null,

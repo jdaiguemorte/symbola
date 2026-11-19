@@ -114,6 +114,10 @@ export const events = eventsSchema.table("events", {
   guestsConfirmed: integer("guests_confirmed"),
   style: text("style"),
   notes: text("notes"),
+  // Lot 48 (DAT-08 ; D5, ADR 0093) : notes marquées confidentielles, chiffrées au niveau du champ
+  // (field-box, ADR 0079) ; notes est alors vide. Lues par la titulaire et leur auteur seuls.
+  notesSealed: text("notes_sealed"),
+  notesConfidentialBy: uuid("notes_confidential_by"),
   // Lot 5 (IMP-04/IMP-05) : colonnes d'un fichier importé gardées en champ
   // libre (intitulé → texte), affichées en lecture seule sur la fiche.
   importedFields: jsonb("imported_fields").$type<Record<string, string> | null>(),
@@ -155,6 +159,7 @@ export const events = eventsSchema.table("events", {
   check("events_time_zone_check", sql`char_length(${table.timeZone}) between 1 and 64`),
   check("events_guests_check", sql`(${table.guestsEstimated} is null or ${table.guestsEstimated} between 0 and 100000) and (${table.guestsConfirmed} is null or ${table.guestsConfirmed} between 0 and 100000)`),
   check("events_identity_text_check", sql`(${table.style} is null or char_length(${table.style}) <= 2000) and (${table.notes} is null or char_length(${table.notes}) <= 10000)`),
+  check("events_notes_sealed_check", sql`${table.notesSealed} is null or (${table.notes} is null and ${table.notesSealed} like 'f1:%' and ${table.notesConfidentialBy} is not null)`),
 ]);
 
 // Prénoms/noms affichés dans la liste (PRD-EVT-01) ; position fixe l'ordre
