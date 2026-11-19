@@ -178,6 +178,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
 
   it("lot 58 (PAR-09, EVT-08, PRE-08, FAC-11 ; ADR 0097) — 0188 à 0190 : clôture, archivage, modèles d'évènement, évaluations et exports comptables ; annulation refusée tant que des données en dépendent, puis tout est retiré", async () => {
     await migrateAll();
+    for (const tag of LOT_54) await rollback(tag);
     const organizationId = randomUUID();
     const [event] = await target<{ id: string }[]>`insert into events.events (organization_id, archived_at) values (${organizationId}, now()) returning id`;
     // Le budget figé va avec la clôture ; une demande d'avis a sa nature.
