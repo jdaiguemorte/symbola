@@ -392,3 +392,41 @@ le déploiement d'ensemble.
   `quotes/service.ts`, hors du lot). Gitleaks : aucune fuite dans le diff du lot.
 - Rejeu : export de l'atelier de Camille (ORG-01) sur le jeu fictif, sans blocage
   (`docs/recette/HUB-13.md`).
+
+## Bilan du lot 35b (19/11/2026)
+
+### Fait
+
+- **Reprise d'un export Symbola dans un espace vide** (HUB-13 ; D6, D7 ; ADR 0098) : Paramètres,
+  « Reprendre un export » (`/parametres/reprise`), Propriétaire seulement. L'archive est déposée
+  par une route dédiée aux fichiers, rangée dans le stockage privé, reprise en arrière-plan, puis
+  effacée ; l'écran montre l'avancement et le bilan, entité par entité.
+- **Contrôles avant d'écrire** : lecteur ZIP en flux sans dépendance (`@symbola/privacy`, CRC et
+  tailles), format et version, empreintes SHA-256, schéma de chaque entité, espace vide, même SIREN,
+  fichiers contrôlés comme tout envoi (type, antivirus).
+- **Écriture** générique (`@symbola/db/import`), par la porte de chaque module, en une seule
+  transaction ; nouveaux identifiants et table de correspondance commune (en mémoire : rien à
+  effacer, écart assumé dans l'ADR) ; dates et auteurs gardés.
+- **Pièces comptables (D7)** : reprises inaltérables, numérotation continuée, chaîne vérifiée puis
+  prolongée par une ancre (`quotes.ledger_anchors`) ; l'ancre s'exporte (entité ajoutée à la v1).
+- **Test de réversibilité** automatisé : jeu fictif (ORG-01, complété de pièces) exporté, repris,
+  réexporté : identique aux identifiants près, chaque fichier garde son empreinte.
+- **Migrations** 0184 (hub) et 0185 (quotes), annulables, sans arrêt de l'app ; test d'annulation.
+
+### Écarts et points ouverts
+
+- **Autre SIREN** : refusé en attendant une décision (Q40).
+- **Table de correspondance** en mémoire plutôt qu'en base (ADR 0098).
+- **Taille** : l'archive déposée est lue en mémoire par la route (512 Mio au plus).
+- **Référence de signature** : marquée `#<nouvel identifiant>` à la reprise (unicité).
+- **Réveil du traitement de fond** : dans l'app compilée, le réveil posé par la route d'envoi
+  n'atteignait pas le traitement lancé au démarrage (seul le tour complet de cinq minutes prenait la
+  reprise). La route lance donc la reprise elle-même ; le verrou de la demande empêche un double
+  traitement. L'export du 35a repose sur le même réveil : à vérifier hors du lot.
+
+### Vérifications (en local, 19/11/2026)
+
+- Lint, typecheck, unitaires de tout le dépôt, `check:boundaries`, build de production : verts.
+- Intégration sur base neuve, en séquentiel : `@symbola/db` 271, app 1 051.
+- Playwright sur l'app compilée : `hub-13-reprise-export` et `hub-13-export-complet`, ordinateur et
+  375 px, axe-core : 8/8.

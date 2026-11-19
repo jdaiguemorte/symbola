@@ -1166,7 +1166,7 @@ export {
 } from "./activity-log";
 
 // Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
-export { describeHubExport, exportHubData, HUB_EXPORT_EXCLUSIONS } from "./export";
+export { describeHubExport, exportHubData, HUB_EXPORT_EXCLUSIONS, importHubData, registerHubImportIds, resolveImportUsers } from "./export";
 // Lot 35a (HUB-13, D4, D5, ADR 0068) : exports complets de l'organisation (demande, préparation en
 // arrière-plan, téléchargement, purge).
 export {
@@ -1190,6 +1190,25 @@ export {
   type OrganizationExportView,
   type RequestOrganizationExportResult,
 } from "./organization-exports";
+// Lot 35b (HUB-13, D6, D7, ADR 0098) : reprises d'un export Symbola dans une organisation vide.
+export {
+  assertImportOwner,
+  claimOrganizationImport,
+  failOrganizationImport,
+  finishOrganizationImportInTransaction,
+  forgetOrganizationImportArchive,
+  listOrganizationImports,
+  ORGANIZATION_IMPORT_STALE_MS,
+  OrganizationImportActiveError,
+  OrganizationImportForbiddenError,
+  OrganizationImportNotFoundError,
+  recordOrganizationImportHeartbeat,
+  requestOrganizationImport,
+  takeAwakenedOrganizationImports,
+  wakeOrganizationImports,
+  type ClaimedOrganizationImport,
+  type OrganizationImportView,
+} from "./organization-imports";
 // Lot 36a (CRM-03, DAT-12, UX-02, ARC-03 ; ADR 0069) : le contact unique du noyau. Lot 36b :
 // foyers et entreprises (membres, identifiants d'entreprise).
 export {

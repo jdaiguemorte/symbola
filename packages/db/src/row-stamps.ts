@@ -54,6 +54,8 @@ export const APPEND_ONLY_TABLES: Record<string, { createdAtColumn: string }> = {
   "quotes.earnest_receipts": { createdAtColumn: "issued_at" },
   // Lot 58 (FAC-11, ADR 0097) : exports comptables demandés, tracés en ajout seul.
   "quotes.accounting_exports": { createdAtColumn: "created_at" },
+  // Lot 35b (HUB-13, D7, ADR 0098) : ancre de la chaîne des pièces reprise, posée une fois.
+  "quotes.ledger_anchors": { createdAtColumn: "created_at" },
 };
 
 // Tables horodatées dont les suppressions ne vont pas au journal : la

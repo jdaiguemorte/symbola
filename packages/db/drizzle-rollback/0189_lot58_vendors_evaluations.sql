@@ -1,4 +1,4 @@
--- Annulation de 0185 (lot 58) : les évaluations des prestataires disparaissent. Refusée tant qu'une
+-- Annulation de 0189 (lot 58) : les évaluations des prestataires disparaissent. Refusée tant qu'une
 -- évaluation existe (l'historique des collaborations serait perdu).
 DO $$
 BEGIN

@@ -80,3 +80,50 @@ export const exportManifestSchema = z.object({
 });
 
 export type ExportManifest = z.infer<typeof exportManifestSchema>;
+
+// Lot 35b (HUB-13, décisions D6 et D7, ADR 0098) — le contrat export/v1 porte aussi la reprise :
+// chaque module écrit, par son service.ts, les entités d'une archive dans une organisation vide,
+// toutes dans une seule transaction (un échec n'écrit rien). Chaque ligne reçoit un nouvel
+// identifiant ; la table de correspondance (ancien → nouveau), commune à tous les modules, relie
+// les entités entre elles, y compris d'un module à l'autre. Elle ne vit que le temps de la reprise.
+export type ModuleImportContext = {
+  // Organisation qui reprend.
+  organizationId: string;
+  // Organisation d'origine (manifeste).
+  sourceOrganizationId: string;
+  // Ancien identifiant → nouveau (lignes de toutes les entités, comptes retrouvés par leur adresse).
+  ids: Map<string, string>;
+  // Chemin d'un fichier dans l'archive → clé du fichier rangé dans le stockage privé.
+  files: ReadonlyMap<string, string>;
+  // Compte de la Propriétaire qui reprend (auteur des lignes dont le compte d'origine n'existe pas ici).
+  importerUserId: string;
+  // Empreinte SHA-256 de chaque fichier de l'archive (manifeste), pour les pièces qui la portent.
+  fileHashes: ReadonlyMap<string, string>;
+};
+
+// Lignes d'un module dans l'archive : entité → lignes (déjà conformes à leur schéma).
+export type ModuleImportRows = ReadonlyMap<string, readonly ExportRow[]>;
+
+// Bilan d'une entité : lignes lues, lignes reprises, et le motif d'un écart (null : tout repris).
+export type ImportEntityResult = { entity: string; rows: number; imported: number; reason: string | null };
+
+export type ModuleImportResult = {
+  module: OrganizationExportModule;
+  entities: ImportEntityResult[];
+  // Lot 35b (D7) : chaîne des pièces reprise, vérifiée puis prolongée (module quotes).
+  ledger?: { entries: number; lastSequence: number };
+};
+
+// Motifs du bilan (clés de traduction, Settings.organizationImport.reasons).
+export const IMPORT_SKIP_REASONS = [
+  "organization",
+  "subscription",
+  "team",
+  "journal",
+  "links",
+  "secret",
+  "rechained",
+  "trace",
+  "unknown_entity",
+] as const;
+export type ImportSkipReason = (typeof IMPORT_SKIP_REASONS)[number];

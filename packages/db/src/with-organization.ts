@@ -13,6 +13,8 @@ import { currentActor, isAuditBulk, isIncludingDeleted, type Actor } from "./act
 import type { AppDatabase } from "./client";
 
 type Transaction = Parameters<Parameters<AppDatabase["transaction"]>[0]>[0];
+// Lot 35b (HUB-13) : transaction d'une organisation, passée aux modules par la reprise d'un export.
+export type OrganizationTransaction = Transaction;
 
 export async function setActorInTransaction(tx: Transaction, actor: Actor, bulk = false): Promise<void> {
   await tx.execute(

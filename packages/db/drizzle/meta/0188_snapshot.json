@@ -1,6 +1,6 @@
 {
-  "id": "1c84b3cf-fb56-44d2-9636-25f2a6cf5658",
-  "prevId": "0f8786d1-6255-4689-9fd6-4dfeefebb1ae",
+  "id": "07a69943-fec9-4348-b115-d5692a864c32",
+  "prevId": "a0a6c3c1-3e05-4f0f-b228-05c4ae76de41",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -20084,6 +20084,174 @@
       },
       "isRLSEnabled": false
     },
+    "hub.organization_imports": {
+      "name": "organization_imports",
+      "schema": "hub",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "requested_by_user_id": {
+          "name": "requested_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "requested_at": {
+          "name": "requested_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "heartbeat_at": {
+          "name": "heartbeat_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "finished_at": {
+          "name": "finished_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "archive_key": {
+          "name": "archive_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "archive_bytes": {
+          "name": "archive_bytes",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "source_generated_at": {
+          "name": "source_generated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "report": {
+          "name": "report",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "error": {
+          "name": "error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "error_detail": {
+          "name": "error_detail",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "organization_imports_organization_idx": {
+          "name": "organization_imports_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "organization_imports_active_idx": {
+          "name": "organization_imports_active_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "status in ('pending', 'running')",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "organization_imports_status_check": {
+          "name": "organization_imports_status_check",
+          "value": "\"hub\".\"organization_imports\".\"status\" in ('pending', 'running', 'done', 'failed')"
+        },
+        "organization_imports_error_check": {
+          "name": "organization_imports_error_check",
+          "value": "\"hub\".\"organization_imports\".\"error\" is null or \"hub\".\"organization_imports\".\"error\" in ('not_empty', 'unreadable', 'unknown_format', 'checksum', 'schema', 'file_refused', 'siren_mismatch', 'ledger_invalid', 'failed')"
+        }
+      },
+      "isRLSEnabled": false
+    },
     "hub.organization_modules": {
       "name": "organization_modules",
       "schema": "hub",
@@ -22252,233 +22420,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "quotes.accounting_export_settings": {
-      "name": "accounting_export_settings",
-      "schema": "quotes",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fiscal_year_start_month": {
-          "name": "fiscal_year_start_month",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 1
-        },
-        "accounts": {
-          "name": "accounts",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::jsonb"
-        },
-        "journals": {
-          "name": "journals",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::jsonb"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_by": {
-          "name": "updated_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "accounting_export_settings_organization_idx": {
-          "name": "accounting_export_settings_organization_idx",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "accounting_export_settings_month_check": {
-          "name": "accounting_export_settings_month_check",
-          "value": "\"quotes\".\"accounting_export_settings\".\"fiscal_year_start_month\" between 1 and 12"
-        },
-        "accounting_export_settings_json_check": {
-          "name": "accounting_export_settings_json_check",
-          "value": "jsonb_typeof(\"quotes\".\"accounting_export_settings\".\"accounts\") = 'object' and jsonb_typeof(\"quotes\".\"accounting_export_settings\".\"journals\") = 'object'"
-        }
-      },
-      "isRLSEnabled": false
-    },
-    "quotes.accounting_exports": {
-      "name": "accounting_exports",
-      "schema": "quotes",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "format": {
-          "name": "format",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "period_kind": {
-          "name": "period_kind",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "period_start": {
-          "name": "period_start",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "period_end": {
-          "name": "period_end",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "invoiced_cents": {
-          "name": "invoiced_cents",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "credited_cents": {
-          "name": "credited_cents",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "received_cents": {
-          "name": "received_cents",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "document_count": {
-          "name": "document_count",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "issues": {
-          "name": "issues",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'[]'::jsonb"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "accounting_exports_organization_idx": {
-          "name": "accounting_exports_organization_idx",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "accounting_exports_format_check": {
-          "name": "accounting_exports_format_check",
-          "value": "\"quotes\".\"accounting_exports\".\"format\" in ('receipts_journal', 'sales_journal', 'payments_journal', 'fec', 'originals')"
-        },
-        "accounting_exports_period_check": {
-          "name": "accounting_exports_period_check",
-          "value": "\"quotes\".\"accounting_exports\".\"period_kind\" in ('month', 'quarter', 'year', 'fiscal_year') and \"quotes\".\"accounting_exports\".\"period_start\" <= \"quotes\".\"accounting_exports\".\"period_end\""
-        },
-        "accounting_exports_status_check": {
-          "name": "accounting_exports_status_check",
-          "value": "\"quotes\".\"accounting_exports\".\"status\" in ('done', 'blocked') and jsonb_typeof(\"quotes\".\"accounting_exports\".\"issues\") = 'array'"
-        }
-      },
-      "isRLSEnabled": false
-    },
     "quotes.catalog_items": {
       "name": "catalog_items",
       "schema": "quotes",
@@ -24081,6 +24022,71 @@
         "invoices_subject_check": {
           "name": "invoices_subject_check",
           "value": "(\"quotes\".\"invoices\".\"quote_id\" is null) = (\"quotes\".\"invoices\".\"version_id\" is null) and (\"quotes\".\"invoices\".\"quote_id\" is null) = (\"quotes\".\"invoices\".\"commission_id\" is not null) and (\"quotes\".\"invoices\".\"commission_id\" is null or (\"quotes\".\"invoices\".\"kind\" = 'balance' and \"quotes\".\"invoices\".\"schedule_item_id\" is null))"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "quotes.ledger_anchors": {
+      "name": "ledger_anchors",
+      "schema": "quotes",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "previous_hash": {
+          "name": "previous_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_organization_id": {
+          "name": "source_organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_last_sequence": {
+          "name": "source_last_sequence",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_entries": {
+          "name": "source_entries",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "ledger_anchors_previous_hash_check": {
+          "name": "ledger_anchors_previous_hash_check",
+          "value": "\"quotes\".\"ledger_anchors\".\"previous_hash\" ~ '^[0-9a-f]{64}$'"
+        },
+        "ledger_anchors_source_check": {
+          "name": "ledger_anchors_source_check",
+          "value": "\"quotes\".\"ledger_anchors\".\"source_entries\" >= 0 and \"quotes\".\"ledger_anchors\".\"source_last_sequence\" >= 0"
         }
       },
       "isRLSEnabled": false
@@ -28276,181 +28282,6 @@
         "vendor_documents_verified_check": {
           "name": "vendor_documents_verified_check",
           "value": "(\"vendors\".\"vendor_documents\".\"status\" = 'verified') = (\"vendors\".\"vendor_documents\".\"verified_at\" is not null)"
-        }
-      },
-      "isRLSEnabled": false
-    },
-    "vendors.vendor_evaluations": {
-      "name": "vendor_evaluations",
-      "schema": "vendors",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "vendor_id": {
-          "name": "vendor_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "event_id": {
-          "name": "event_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "rating": {
-          "name": "rating",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "punctuality": {
-          "name": "punctuality",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "quality": {
-          "name": "quality",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "value": {
-          "name": "value",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "comment": {
-          "name": "comment",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "evaluated_by": {
-          "name": "evaluated_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "evaluated_at": {
-          "name": "evaluated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_by": {
-          "name": "updated_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "vendor_evaluations_organization_idx": {
-          "name": "vendor_evaluations_organization_idx",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "vendor_evaluations_event_idx": {
-          "name": "vendor_evaluations_event_idx",
-          "columns": [
-            {
-              "expression": "event_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "vendor_evaluations_vendor_id_vendors_id_fk": {
-          "name": "vendor_evaluations_vendor_id_vendors_id_fk",
-          "tableFrom": "vendor_evaluations",
-          "tableTo": "vendors",
-          "schemaTo": "vendors",
-          "columnsFrom": [
-            "vendor_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "vendor_evaluations_vendor_event_key": {
-          "name": "vendor_evaluations_vendor_event_key",
-          "nullsNotDistinct": false,
-          "columns": [
-            "vendor_id",
-            "event_id"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {
-        "vendor_evaluations_rating_check": {
-          "name": "vendor_evaluations_rating_check",
-          "value": "\"vendors\".\"vendor_evaluations\".\"rating\" between 1 and 5"
-        },
-        "vendor_evaluations_criteria_check": {
-          "name": "vendor_evaluations_criteria_check",
-          "value": "(\"vendors\".\"vendor_evaluations\".\"punctuality\" is null or \"vendors\".\"vendor_evaluations\".\"punctuality\" between 1 and 5) and (\"vendors\".\"vendor_evaluations\".\"quality\" is null or \"vendors\".\"vendor_evaluations\".\"quality\" between 1 and 5) and (\"vendors\".\"vendor_evaluations\".\"value\" is null or \"vendors\".\"vendor_evaluations\".\"value\" between 1 and 5)"
-        },
-        "vendor_evaluations_comment_check": {
-          "name": "vendor_evaluations_comment_check",
-          "value": "\"vendors\".\"vendor_evaluations\".\"comment\" is null or char_length(\"vendors\".\"vendor_evaluations\".\"comment\") between 1 and 2000"
         }
       },
       "isRLSEnabled": false

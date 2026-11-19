@@ -1259,7 +1259,7 @@ const _contractCheck: BudgetServiceContract = {
 void _contractCheck;
 
 // Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
-export { BUDGET_EXPORT_EXCLUSIONS, describeBudgetExport, exportBudgetData } from "./export";
+export { BUDGET_EXPORT_EXCLUSIONS, describeBudgetExport, exportBudgetData, importBudgetData, registerBudgetImportIds } from "./export";
 
 // Lot 51 (JRJ-09 ; D8, ADR 0091) — paiements à remettre le jour J.
 export { VendorPaymentHandoverInvalidError } from "./handovers";

@@ -1,4 +1,4 @@
--- Annulation de 0184 (lot 58) : clôtures, réglages de la clôture, modèles d'évènement et archivage
+-- Annulation de 0188 (lot 58) : clôtures, réglages de la clôture, modèles d'évènement et archivage
 -- disparaissent. Refusée tant qu'une clôture, un modèle ou un évènement archivé existent (les leçons, le
 -- temps passé, le budget figé ou un modèle seraient perdus ; un évènement archivé reviendrait dans les
 -- listes courantes sans que la planner l'ait décidé) : la planner désarchive ou note ces données avant.

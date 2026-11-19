@@ -170,6 +170,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "calendar", group: "company", audience: "team", module: "events", path: null, capture: false },
   // Lot 35a (HUB-13, D5) : export complet des données, titulaire seulement.
   { key: "organizationExport", group: "data", audience: "team", ownerOnly: true, path: "/parametres/export", capture: true },
+  // Lot 35b (HUB-13, D6) : reprise d'un export Symbola dans un espace vide, titulaire seulement.
+  { key: "organizationImport", group: "data", audience: "team", ownerOnly: true, path: "/parametres/reprise", capture: false },
   // Lot 37b (DOC-12, D12) : relevé mensuel du stockage, titulaire seulement.
   { key: "storage", group: "data", audience: "team", ownerOnly: true, path: "/parametres/stockage", capture: false },
   // Lot 23b (JUR-06) : archive comptable, titulaire seulement.

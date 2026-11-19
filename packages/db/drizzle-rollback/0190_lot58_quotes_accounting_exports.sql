@@ -1,4 +1,4 @@
--- Annulation de 0186 (lot 58) : réglages et traces des exports comptables disparaissent. Refusée tant
+-- Annulation de 0190 (lot 58) : réglages et traces des exports comptables disparaissent. Refusée tant
 -- qu'un export a été demandé (sa trace est une preuve de ce qui a été remis au comptable) ou qu'un plan
 -- de comptes est réglé (il serait perdu).
 DO $$

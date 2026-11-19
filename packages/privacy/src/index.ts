@@ -20,5 +20,6 @@ export { registryEntrySchema, registrySchema, type Registry, type RegistryEntry 
 export { isSuspiciousPersonalField } from "./suspicious-fields";
 export { addMonths, daysBetween, EXTENDED_RESPONSE_MONTHS, isDueSoon, LEGAL_RESPONSE_MONTHS, parisDate, requestDueDate } from "./deadlines";
 export { ArchiveTooLargeError, createZip, toCsv, ZipFileWriter, type ArchiveEntry } from "./archive";
+export { ArchiveReadError, ZipFileReader } from "./archive-reader";
 export { clientDueOn, inactiveAccountDueOn, isExpired, prospectDueOn, requestProofDueOn, type RetentionMonths } from "./retention";
 export { findPersonalData, redactPersonalData, type PersonalDataFinding, type PersonalDataKind } from "./log-redaction";

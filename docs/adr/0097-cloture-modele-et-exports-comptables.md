@@ -73,7 +73,7 @@ comptable lisait les pièces une à une ; aucun journal ni FEC n'existait.
 
 ## Conséquences
 
-- Trois migrations, une par schéma : 0184 (events), 0185 (vendors), 0186 (quotes), annulables, refusées
+- Trois migrations, une par schéma : 0188 (events), 0189 (vendors), 0190 (quotes), annulables, refusées
   tant que des données en dépendent.
 - Les champs libres (leçons, libellés des frais propres, commentaire d'une évaluation) sont au registre
   RGPD ; l'oubli d'un client efface les leçons et anonymise les libellés de frais, l'oubli d'un

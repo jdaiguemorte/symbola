@@ -47,6 +47,7 @@ Tables non exportées :
 - `backup_runs` — exploitation : sauvegardes de la plateforme
 - `connection_traces` — exploitation : adresses IP des connexions, pour l'enquête de sécurité
 - `organization_exports` — technique : trace des exports complets eux-mêmes
+- `organization_imports` — technique : trace des reprises d'un export (état et bilan), sans donnée reprise
 - `storage_snapshots` — exploitation : relevé mensuel du stockage (nombres de fichiers et volumes)
 - `calendar_feeds` — secret : adresses des flux de calendrier (jetons hachés), propres à chaque personne
 - `form_drafts` — temporaire : brouillons de saisie, effacés à l'enregistrement et purgés après 30 jours
@@ -192,6 +193,7 @@ Toutes les tables du module sont exportées.
 | `payment_reminders` | `id`, `scheduleItemId`, `rank`, `dueOn`, `sentAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [payment_reminders.schema.json](quotes/payment_reminders.schema.json) |
 | `original_documents` | `id`, `documentKind`, `documentId`, `storageKey`, `sha256`, `byteSize`, `isReconstructed`, `createdAt`, `createdBy`, `format` | [original_documents.schema.json](quotes/original_documents.schema.json) |
 | `ledger_entries` | `id`, `sequence`, `entryKind`, `objectId`, `payload`, `previousHash`, `hash`, `isBackfill`, `recordedAt`, `createdBy` | [ledger_entries.schema.json](quotes/ledger_entries.schema.json) |
+| `ledger_anchors` | `previousHash`, `sourceOrganizationId`, `sourceLastSequence`, `sourceEntries`, `createdAt`, `createdBy` | [ledger_anchors.schema.json](quotes/ledger_anchors.schema.json) |
 | `accounting_export_settings` | `id`, `fiscalYearStartMonth`, `accounts`, `journals`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [accounting_export_settings.schema.json](quotes/accounting_export_settings.schema.json) |
 | `accounting_exports` | `id`, `format`, `periodKind`, `periodStart`, `periodEnd`, `status`, `invoicedCents`, `creditedCents`, `receivedCents`, `documentCount`, `issues`, `createdAt`, `createdBy` | [accounting_exports.schema.json](quotes/accounting_exports.schema.json) |
 

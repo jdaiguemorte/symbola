@@ -3321,7 +3321,7 @@ void _contractCheck;
 export { listRetentionEvents, type RetentionEvent } from "./privacy-retention";
 
 // Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
-export { describeEventsExport, EVENTS_EXPORT_EXCLUSIONS, exportEventsData, listDemoEventIds } from "./export";
+export { describeEventsExport, EVENTS_EXPORT_EXCLUSIONS, exportEventsData, importEventsData, listDemoEventIds, registerEventsImportIds } from "./export";
 
 // Lot 36a (CRM-03, ADR 0069) : contacts des clients des évènements donnés (fin d'un essai : ses
 // contacts d'essai partent avec lui), contacts encore clients d'un évènement, et évènements d'un

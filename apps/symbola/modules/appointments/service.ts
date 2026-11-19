@@ -79,7 +79,7 @@ import {
 import { addDays, computeSlots, nearestSlots, zonedDate, type Range } from "./slots";
 
 export { appointmentsPrivacy, listAppointmentRetention } from "./privacy";
-export { APPOINTMENTS_EXPORT_EXCLUSIONS, describeAppointmentsExport, exportAppointmentsData } from "./export";
+export { APPOINTMENTS_EXPORT_EXCLUSIONS, describeAppointmentsExport, exportAppointmentsData, importAppointmentsData, registerAppointmentsImportIds } from "./export";
 export { CalendarUrlInvalidError, CalendarReadError } from "./ics-reader";
 export { computeSlots, nearestSlots } from "./slots";
 export { manageUrl } from "./notifications";
