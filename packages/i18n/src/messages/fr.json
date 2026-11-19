@@ -1461,6 +1461,22 @@
     "standaloneTasks": {
       "title": "Tâches hors évènement",
       "body": "Une tâche sans évènement apparaît dans « Aujourd'hui » à son échéance. Cochée, une tâche qui se répète fait naître la suivante."
+    },
+    "eventClosing": {
+      "title": "Clôture d'un évènement",
+      "body": "Dès le lendemain de l'évènement, la liste de clôture rassemble ce qui reste : la facture de solde, les paiements des prestataires, les commissions, l'évaluation des prestataires (interne), vos trois leçons et le remerciement au client avec votre lien d'avis. Le bilan montre le budget final, vos honoraires, vos commissions, vos frais propres et la marge. Le temps passé est facultatif. Clôturez, puis archivez : l'évènement passe en lecture seule et sort de vos listes."
+    },
+    "eventTemplatesList": {
+      "title": "Modèles d'évènement",
+      "body": "Un évènement enregistré comme modèle garde son rétroplanning, son programme, la structure de son budget (sans montant), ses questionnaires et, si vous l'avez choisi, ses prestataires. Jamais de donnée de vos clients : Symbola refuse un modèle qui en contient. Créez un évènement depuis un modèle en choisissant sa date."
+    },
+    "closingDashboard": {
+      "title": "Vos bilans",
+      "body": "Les évènements clôturés pour lesquels vous avez saisi un temps passé, avec la marge et la marge par heure. Sans temps saisi, rien n'apparaît : c'est facultatif."
+    },
+    "accountingExports": {
+      "title": "Exports comptables",
+      "body": "Choisissez la période (mois, trimestre, année ou exercice). Symbola propose le format selon votre forme juridique : journal des recettes pour une micro-entreprise ; journaux des ventes et des encaissements et FEC pour une société ou une EI au réel ; PDF d'origine en archive ZIP. Chaque export est contrôlé : totaux au centime, numérotation continue avec les avoirs ; un écart bloque l'export et s'explique. Les données d'essai n'y sont jamais."
     }
   },
   "Aide": {
@@ -2186,7 +2202,11 @@
     "eventNotesSave": "Enregistrer les notes",
     "eventNotesSaved": "Notes enregistrées.",
     "eventNotesForbidden": "Ces notes confidentielles sont réservées à leur auteur et à la titulaire.",
-    "eventNotesConfidentialHidden": "Des notes confidentielles existent : elles sont réservées à leur auteur et à la titulaire."
+    "eventNotesConfidentialHidden": "Des notes confidentielles existent : elles sont réservées à leur auteur et à la titulaire.",
+    "archivedFilter": "Archivés",
+    "currentFilter": "En cours et passés",
+    "archivedTag": "Archivé",
+    "archivedEmpty": "Aucun évènement archivé."
   },
   "Budget": {
     "title": "Budget",
@@ -4883,7 +4903,15 @@
     "fieldYes": "Oui",
     "fieldNo": "Non",
     "internalNoteConfidentialElsewhere": "La note interne est confidentielle : elle se modifie dans sa section de la fiche.",
-    "historyTable": "Tableau de l'historique avec vous"
+    "historyTable": "Tableau de l'historique avec vous",
+    "evaluationsTitle": "Historique des collaborations",
+    "evaluationsHelp": "Vos évaluations après chaque évènement, internes à votre organisation.",
+    "evaluationsEmpty": "Aucune évaluation pour l'instant.",
+    "evaluationsAverage": "Moyenne {average} sur 5 · {count, plural, one {# évaluation} other {# évaluations}} · dernière le {date}",
+    "evaluationsEntry": "{event} : {rating} sur 5",
+    "evaluationsCriteria": "Ponctualité {punctuality} · qualité {quality} · relation {value}",
+    "evaluationsCardRating": "Évaluation générale de la fiche : {rating} sur 5",
+    "evaluationsUnknownEvent": "Évènement retiré"
   },
   "Onboarding": {
     "title": "Préparons votre espace",
@@ -5172,7 +5200,9 @@
     "notifications": "Notifications",
     "automations": "Automatisations",
     "riskRadar": "Radar des risques",
-    "clientTerms": "Termes des clients"
+    "clientTerms": "Termes des clients",
+    "accountingExports": "Exports comptables",
+    "eventTemplates": "Modèles d'évènement"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -5481,7 +5511,13 @@
       "hub_ownership_transferred": "Propriété transférée",
       "hub_ownership_transfer_cancelled": "Transfert de propriété annulé",
       "hub_organization_visibility_changed": "Visibilité des évènements modifiée",
-      "events_team_changed": "Équipe de l'évènement modifiée"
+      "events_team_changed": "Équipe de l'évènement modifiée",
+      "events_event_closed": "Évènement clôturé, budget figé",
+      "events_event_archived": "Évènement archivé",
+      "events_event_unarchived": "Évènement désarchivé",
+      "events_review_request_sent": "Remerciement et demande d'avis envoyés",
+      "quotes_accounting_exported": "Export comptable téléchargé",
+      "quotes_accounting_blocked": "Export comptable bloqué par le contrôle"
     },
     "categories": {
       "connexion": "Connexions",
@@ -5659,7 +5695,13 @@
       "hub_automations": "réglage d'un automatisme",
       "hub_risk_rules": "règle du radar des risques",
       "events_event_type_vocabulary": "terme des clients d'un type",
-      "events_planning_health_settings": "seuils de la santé du planning"
+      "events_planning_health_settings": "seuils de la santé du planning",
+      "events_event_closings": "clôture d'un évènement",
+      "events_closing_settings": "réglage de la demande d'avis",
+      "events_event_templates": "modèle d'évènement",
+      "vendors_vendor_evaluations": "évaluation d'un prestataire",
+      "quotes_accounting_export_settings": "réglage des exports comptables",
+      "quotes_accounting_exports": "export comptable"
     },
     "modules": {
       "events": "Événements",
@@ -6634,7 +6676,8 @@
         "to_verify": "{document} de {vendor} : déposée, à vérifier"
       },
       "vendorBankCheck": "IBAN de {vendor} changé : à vérifier par téléphone avant tout paiement",
-      "standaloneTaskTag": "Hors évènement"
+      "standaloneTaskTag": "Hors évènement",
+      "closingDue": "À clôturer"
     },
     "myEventsTitle": "Mes évènements",
     "myEventsEmpty": "Aucun évènement en cours.",
@@ -9728,7 +9771,8 @@
       "eReporting": "E-reporting",
       "ledger": "Journaux et exports",
       "sessions": "Mes sessions",
-      "account": "Mon compte"
+      "account": "Mon compte",
+      "exports": "Exports comptables"
     },
     "title": "Comptabilité de {organization}",
     "subtitle": "Votre accès est en lecture seule : vous consultez et téléchargez, rien ne se modifie d'ici.",
@@ -9751,7 +9795,8 @@
     "links": {
       "payments": "Encaissements",
       "ledger": "Journaux et écritures (CSV)",
-      "eReporting": "E-reporting"
+      "eReporting": "E-reporting",
+      "exports": "Exports comptables (journaux, FEC, PDF d'origine)"
     },
     "moduleUnavailable": "Le module Devis et factures n'est pas souscrit par l'organisation : rien à consulter pour l'instant.",
     "documentsTable": "Tableau des factures et avoirs"
@@ -10168,5 +10213,316 @@
     "saved": "Terme enregistré.",
     "invalid": "Indiquez un terme court (40 caractères au plus).",
     "clientsHeading": "Clients : {term}"
+  },
+  "Closing": {
+    "title": "Clôture de l'évènement",
+    "subtitle": "Facturer le solde, régler ce qui reste, noter vos prestataires et voir ce que l'évènement vous a rapporté.",
+    "back": "Retour à l'évènement",
+    "openChecklist": "Ouvrir la liste de clôture",
+    "closingLink": "Clôture et bilan",
+    "dueBanner": "L'évènement est passé : sa liste de clôture vous attend.",
+    "checklistTitle": "Liste de clôture",
+    "checklistLabel": "Étapes de la clôture",
+    "steps": {
+      "balance_invoice": "Facture de solde",
+      "vendor_payments": "Paiements des prestataires",
+      "commissions": "Commissions à facturer",
+      "evaluations": "Évaluation des prestataires",
+      "time_spent": "Temps passé (facultatif)",
+      "lessons": "Trois leçons",
+      "review_request": "Remerciement et demande d'avis"
+    },
+    "status": {
+      "done": "Fait",
+      "todo": "À faire",
+      "optional": "Facultatif",
+      "unavailable": "Indisponible"
+    },
+    "stepCount": "{count, plural, one {# restant} other {# restants}}",
+    "stepOpen": "Ouvrir",
+    "markDone": "Marquer comme fait",
+    "markTodo": "Remettre à faire",
+    "unavailableHelp": "Ce module n'est pas souscrit par l'organisation.",
+    "evaluationsTitle": "Évaluer les prestataires",
+    "evaluationsHelp": "Votre évaluation reste interne : ni le client, ni le prestataire, ni votre comptable ne la voient.",
+    "noRetainedVendors": "Aucun prestataire retenu sur cet évènement.",
+    "vendorNotLinked": "Ce prestataire n'est pas relié à votre carnet : reliez-le pour l'évaluer.",
+    "rating": "Note",
+    "ratingOption": "{value} sur 5",
+    "criteriaNone": "—",
+    "criteria": {
+      "punctuality": "Ponctualité",
+      "quality": "Qualité",
+      "value": "Relation ou rapport qualité-prix"
+    },
+    "comment": "Commentaire",
+    "evaluate": "Enregistrer l'évaluation",
+    "evaluated": "Évaluation enregistrée.",
+    "evaluatedOn": "Évalué {rating} sur 5",
+    "notesTitle": "Temps passé et leçons",
+    "timeSpent": "Temps passé (heures)",
+    "timeSpentHelp": "Facultatif : saisissez-le si vous voulez connaître votre marge par heure (« 12,5 » ou « 12:30 »).",
+    "lesson": "Leçon {index}",
+    "saveNotes": "Enregistrer",
+    "notesSaved": "Enregistré.",
+    "expensesTitle": "Vos frais propres",
+    "expensesHelp": "Déplacements, sous-traitance… Ils comptent dans votre marge et ne vont jamais dans le budget du client. Montants hors taxes.",
+    "expenseLabel": "Libellé",
+    "expenseAmount": "Montant HT (€)",
+    "addExpense": "Ajouter",
+    "removeExpense": "Retirer {label}",
+    "noExpenses": "Aucun frais saisi.",
+    "summaryTitle": "Bilan financier",
+    "summaryHelp": "Interne : jamais montré au client ni au comptable.",
+    "budgetTitle": "Budget final du client",
+    "budgetFrozen": "Figé à la clôture, le {date}.",
+    "budgetLive": "Il se figera à la clôture.",
+    "budgetUnavailable": "Module Budget non souscrit.",
+    "budget": {
+      "estimated": "Estimé",
+      "committed": "Engagé",
+      "paid": "Payé",
+      "remaining": "Reste à payer",
+      "variance": "Écart à l'enveloppe"
+    },
+    "fees": "Honoraires",
+    "commissions": "Commissions",
+    "ownExpenses": "Frais propres",
+    "margin": "Marge",
+    "marginPerHour": "Marge par heure",
+    "dashboardLink": "Voir tous vos bilans",
+    "closeTitle": "Clôturer",
+    "closeHelp": "La clôture fige le budget final et passe l'évènement en « Clôturé ».",
+    "closeButton": "Clôturer l'évènement",
+    "closedOn": "Clôturé le {date}.",
+    "incomplete": "Il reste des étapes à faire ; vous pouvez clôturer quand même.",
+    "archiveTitle": "Archiver",
+    "archiveHelp": "L'évènement passe en lecture seule et sort de vos listes ; il reste consultable avec le filtre « Archivés ». Les purges prévues suivent leur calendrier.",
+    "archiveButton": "Archiver l'évènement",
+    "archivedBanner": "Évènement archivé : lecture seule.",
+    "unarchiveButton": "Désarchiver",
+    "templateTitle": "Enregistrer comme modèle",
+    "templateHelp": "Le modèle garde le rétroplanning, le programme, la structure du budget (sans montant) et les questionnaires. Aucune donnée de vos clients.",
+    "templateName": "Nom du modèle",
+    "includeVendors": "Garder les prestataires retenus (contacts professionnels)",
+    "saveTemplate": "Enregistrer le modèle",
+    "templateSaved": "Modèle enregistré.",
+    "personalDataFound": "Le modèle contient des données personnelles ; retirez-les d'abord :",
+    "findingPlace": {
+      "name": "Nom du modèle",
+      "task": "Tâche",
+      "program": "Programme",
+      "slot": "Poste",
+      "budget_line": "Ligne du budget",
+      "questionnaire": "Questionnaire",
+      "vendor": "Prestataire"
+    },
+    "findingKind": {
+      "email": "e-mail",
+      "phone": "téléphone",
+      "client_name": "nom d'un client"
+    },
+    "finding": "{place} « {label} » : {kind}",
+    "duplicateTitle": "Dupliquer",
+    "duplicateHelp": "Une copie à une nouvelle date : rétroplanning recalculé, programme, structure du budget. Ni client, ni invité, ni devis, ni facture.",
+    "duplicateDate": "Nouvelle date",
+    "duplicateButton": "Dupliquer l'évènement",
+    "templatesLink": "Vos modèles d'évènement",
+    "reviewTitle": "Remerciement et demande d'avis",
+    "reviewHelp": "Relisez et modifiez le message avant de l'envoyer. Il part de Symbola, à l'adresse de chaque client.",
+    "reviewOpen": "Préparer le message",
+    "reviewSentOn": "Envoyé le {date}.",
+    "reviewNoLink": "Aucun lien d'avis réglé : le message ne propose que le remerciement.",
+    "reviewLinkTitle": "Votre lien d'avis",
+    "reviewLinkHelp": "Google, Mariages.net, votre site… Le lien que vos clients suivront. Aucune incitation, aucune condition.",
+    "reviewUrl": "Adresse (https://…)",
+    "reviewLabel": "Nom de la plateforme",
+    "saveReviewLink": "Enregistrer le lien",
+    "reviewLinkSaved": "Lien enregistré.",
+    "recipients": "Destinataires",
+    "noRecipients": "Aucun client n'a d'adresse e-mail sur la fiche : ajoutez-la d'abord.",
+    "subject": "Objet",
+    "body": "Message",
+    "send": "Envoyer",
+    "sent": "Message envoyé.",
+    "errors": {
+      "unauthenticated": "Votre session a expiré : reconnectez-vous.",
+      "moduleUnavailable": "Le module Évènements n'est pas souscrit.",
+      "notFound": "Évènement introuvable.",
+      "archived": "Évènement archivé : lecture seule.",
+      "notClosable": "Seul un évènement confirmé ou en préparation se clôture.",
+      "notFinished": "Clôturez ou annulez l'évènement avant de l'archiver.",
+      "demo": "Un évènement d'essai ne se clôture pas.",
+      "lessons": "Trois leçons au plus, de 500 caractères chacune.",
+      "expenses": "Libellé requis et montant positif, en euros.",
+      "timeSpent": "Temps invalide : « 12,5 » ou « 12:30 ».",
+      "steps": "Étape inconnue.",
+      "rating": "Choisissez une note de 1 à 5.",
+      "comment": "Commentaire trop long (2 000 caractères au plus).",
+      "notRetained": "Seul un prestataire retenu sur cet évènement s'évalue.",
+      "templateName": "Donnez un nom au modèle (120 caractères au plus).",
+      "templateContent": "Le modèle n'a pas pu être enregistré.",
+      "date": "Choisissez une date.",
+      "reviewUrl": "Adresse invalide : elle doit commencer par https://.",
+      "reviewLabel": "Nom trop long (60 caractères au plus).",
+      "reviewEmpty": "L'objet et le message sont requis.",
+      "reviewTooLong": "Message trop long.",
+      "reviewPlaceholder": "Une variable entre accolades reste dans le message : remplacez-la.",
+      "reviewNoRecipient": "Aucun destinataire.",
+      "mailQuota": "Quota d'e-mails atteint : réessayez plus tard."
+    }
+  },
+  "EventTemplates": {
+    "title": "Modèles d'évènement",
+    "subtitle": "Des évènements devenus modèles : rétroplanning, programme, structure du budget, questionnaires.",
+    "empty": "Aucun modèle. Enregistrez un évènement comme modèle depuis sa clôture.",
+    "listLabel": "Modèles d'évènement",
+    "counts": "{tasks} tâches · {program} séquences · {slots} postes",
+    "withVendors": "avec prestataires",
+    "eventDate": "Date de l'évènement",
+    "create": "Créer un évènement",
+    "createLabel": "Créer un évènement depuis « {name} »",
+    "remove": "Supprimer",
+    "removeLabel": "Supprimer le modèle « {name} »",
+    "removed": "Modèle supprimé.",
+    "errors": {
+      "notFound": "Modèle introuvable.",
+      "date": "Choisissez une date.",
+      "unauthenticated": "Votre session a expiré : reconnectez-vous."
+    }
+  },
+  "ClosingDashboard": {
+    "title": "Vos bilans",
+    "subtitle": "Les évènements clôturés pour lesquels vous avez saisi un temps passé.",
+    "empty": "Aucun temps saisi pour l'instant.",
+    "tableLabel": "Bilans des évènements",
+    "event": "Évènement",
+    "closedOn": "Clôturé le",
+    "hours": "Temps",
+    "margin": "Marge",
+    "perHour": "Par heure",
+    "hoursValue": "{hours} h"
+  },
+  "AccountingExports": {
+    "title": "Exports comptables",
+    "subtitle": "Les journaux de la période, contrôlés au centime, pour votre comptable.",
+    "readOnly": "Lecture seule",
+    "periodTitle": "Période",
+    "periodKind": "Type de période",
+    "periodKinds": {
+      "month": "Mois",
+      "quarter": "Trimestre",
+      "year": "Année civile",
+      "fiscal_year": "Exercice"
+    },
+    "year": "Année",
+    "month": "Mois",
+    "quarter": "Trimestre",
+    "quarterOption": "T{index}",
+    "show": "Afficher",
+    "periodLabel": "Du {start} au {end}",
+    "familyTitle": "Format",
+    "familyLabel": "Format des exports",
+    "families": {
+      "micro": "Micro-entreprise : journal des recettes",
+      "real": "Société ou EI au réel : journaux des ventes et des encaissements, FEC"
+    },
+    "familyDefault": "Proposé d'après votre forme juridique ; vous pouvez en choisir un autre.",
+    "checkTitle": "Contrôle de rapprochement",
+    "checkOk": "Rapproché au centime : numérotation continue, totaux identiques à vos pièces.",
+    "checkBlocked": "Export bloqué : corrigez d'abord ces écarts.",
+    "invoiced": "Facturé",
+    "credited": "Avoirs",
+    "received": "Encaissé",
+    "documents": "Pièces",
+    "issues": {
+      "missing_number": "{number} absente de la numérotation.",
+      "total_mismatch": "Total {total} : {exportAmount} dans l'export, {expectedAmount} dans vos pièces.",
+      "unbalanced": "{number} : totaux incohérents.",
+      "missing_original": "{number} : PDF d'origine introuvable."
+    },
+    "totals": {
+      "invoiced": "facturé",
+      "credited": "des avoirs",
+      "received": "encaissé"
+    },
+    "filesTitle": "Fichiers",
+    "formats": {
+      "receipts_journal": "Journal des recettes (CSV)",
+      "sales_journal": "Journal des ventes (CSV)",
+      "payments_journal": "Journal des encaissements (CSV)",
+      "fec": "FEC (fichier des écritures comptables)",
+      "originals": "PDF d'origine des factures et avoirs (ZIP)"
+    },
+    "download": "Télécharger",
+    "downloadLabel": "Télécharger : {format}",
+    "fecYearOnly": "Le FEC se produit sur une année ou un exercice.",
+    "settingsTitle": "Plan de comptes",
+    "settingsHelp": "Comptes et journaux de départ, à relire avec votre comptable.",
+    "fiscalYearStart": "Mois de début de l'exercice",
+    "accounts": {
+      "sales": "Ventes",
+      "vatCollected": "TVA collectée",
+      "clients": "Clients",
+      "bank": "Banque",
+      "clientAdvances": "Acomptes reçus"
+    },
+    "journals": {
+      "sales": "Journal des ventes",
+      "bank": "Journal de banque"
+    },
+    "accountNumber": "Compte {name}",
+    "accountLabel": "Libellé {name}",
+    "journalCode": "Code {name}",
+    "journalLabel": "Libellé {name}",
+    "saveSettings": "Enregistrer le plan",
+    "settingsSaved": "Plan enregistré.",
+    "historyTitle": "Derniers exports",
+    "historyEmpty": "Aucun export pour l'instant.",
+    "historyLabel": "Derniers exports",
+    "historyFormat": "Format",
+    "historyPeriod": "Période",
+    "historyStatus": "Contrôle",
+    "historyDate": "Le",
+    "statusDone": "Rapproché",
+    "statusBlocked": "Bloqué",
+    "moduleUnavailable": "Le module Devis et factures n'est pas souscrit : aucun export comptable.",
+    "header": {
+      "period": "Période",
+      "organization": "Organisation",
+      "exportedOn": "Exporté le"
+    },
+    "receiptsColumns": {
+      "date": "Date d'encaissement",
+      "method": "Mode",
+      "invoice": "Numéro de facture",
+      "client": "Client",
+      "amount": "Montant (EUR)"
+    },
+    "journalColumns": {
+      "journal": "Journal",
+      "date": "Date",
+      "entry": "Écriture",
+      "piece": "Pièce",
+      "account": "Compte",
+      "label": "Libellé",
+      "debit": "Débit",
+      "credit": "Crédit"
+    },
+    "total": "Total",
+    "lines": {
+      "invoice": "Facture",
+      "creditNote": "Avoir",
+      "payment": "Encaissement",
+      "reversal": "Annulation d'encaissement"
+    },
+    "errors": {
+      "period": "Période invalide.",
+      "format": "Ce format n'est pas disponible pour cette période.",
+      "month": "Mois invalide.",
+      "account": "Compte invalide : chiffres et lettres, 20 caractères au plus.",
+      "journal": "Code de journal invalide : 10 caractères au plus.",
+      "unauthenticated": "Votre session a expiré : reconnectez-vous."
+    }
   }
 }

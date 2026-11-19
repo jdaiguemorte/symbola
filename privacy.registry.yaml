@@ -2106,3 +2106,34 @@ fields:
       personne reconnaisse ses appareils. Mêmes durée et effacement que l'abonnement.
     anonymization: >-
       Supprimé avec l'abonnement.
+  - schema: events
+    table: event_closings
+    field: lessons
+    category: contenu_libre
+    retention: >-
+      Lot 58 (PAR-09, ADR 0097) : trois leçons de la planner à la clôture d'un évènement, internes
+      (jamais montrées au client ni au comptable). Tant que l'évènement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli visant un client de l'évènement : effacées ; exportées avec l'organisation
+      (HUB-13).
+  - schema: events
+    table: event_closings
+    field: own_expenses
+    category: contenu_libre
+    retention: >-
+      Lot 58 (PAR-09, D4) : frais propres de la planner (libellé libre et montant), hors du budget du
+      client, internes. Tant que l'évènement existe.
+    anonymization: >-
+      Lors d'une demande d'oubli visant un client de l'évènement : libellés remplacés par « [anonymisé] »,
+      montants gardés (le bilan reste juste).
+  - schema: vendors
+    table: vendor_evaluations
+    field: comment
+    category: contenu_libre
+    retention: >-
+      Lot 58 (PRE-08, ADR 0097) : commentaire de l'équipe sur un prestataire après un évènement, toujours
+      interne (jamais montré au client, au prestataire ni au comptable, jamais exporté vers un tiers).
+      Tant que la fiche existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Lors d'une demande d'oubli visant le prestataire (RGPD-03) : effacé ; la note et les critères
+      restent, rattachés à la fiche anonymisée.

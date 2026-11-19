@@ -68,7 +68,7 @@ import { ensureEventTypes } from "@/lib/events/event-types";
 import { setEventTypeAction } from "./actions";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 import { ChangeStatusForm } from "./change-status-form";
-import { CloseEventForm, ConfirmPostponementForm, TimeZoneForm } from "./lifecycle-forms";
+import { ConfirmPostponementForm, TimeZoneForm } from "./lifecycle-forms";
 import { isDayOfOpen } from "@/app/jour-j/[eventId]/day-of-view";
 import { DocumentsTab } from "./documents-tab";
 import { NextStepBanner } from "./next-step-banner";
@@ -179,6 +179,7 @@ export default async function EventDetailPage({
   const { id } = await params;
   const query = await searchParams;
   const t = await getTranslations("Events");
+  const tClosing = await getTranslations("Closing");
   const tTrash = await getTranslations("Trash");
   const tHelp = await getTranslations("Help");
   const tCommon = await getTranslations("Common");
@@ -672,12 +673,26 @@ export default async function EventDetailPage({
           )}
         </section>
       ) : null}
-      {/* D3 : la clôture se propose dès le lendemain. */}
-      {closingDue(event) ? (
+      {/* Lot 58 (PAR-09 ; ADR 0097) : un évènement archivé est en lecture seule ; il se désarchive depuis sa clôture. */}
+      {event.archivedAt ? (
+        <section className="card notice" aria-labelledby="archived-title">
+          <h2 id="archived-title">{tClosing("archivedBanner")}</h2>
+          <Link href={`/events/${event.id}/cloture`}>{tClosing("closingLink")}</Link>
+        </section>
+      ) : null}
+      {/* D3 : la clôture se propose dès le lendemain ; lot 58 (PAR-09) : par la liste de clôture. */}
+      {closingDue(event) && !event.archivedAt ? (
         <section className="card notice" aria-labelledby="closing-title">
           <h2 id="closing-title">{t("closeProposal")}</h2>
-          <CloseEventForm eventId={event.id} />
+          <p>{tClosing("dueBanner")}</p>
+          <Link className="button-link" href={`/events/${event.id}/cloture`}>
+            {tClosing("openChecklist")}
+          </Link>
         </section>
+      ) : event.status === "closed" || event.status === "cancelled" ? (
+        <p>
+          <Link href={`/events/${event.id}/cloture`}>{tClosing("closingLink")}</Link>
+        </p>
       ) : null}
       {/* FAC-13, D7 : à l'annulation, un avoir est proposé pour chaque facture émise ; la planner décide. */}
       {event.status === "cancelled" && invoicesToCredit.length > 0 ? (

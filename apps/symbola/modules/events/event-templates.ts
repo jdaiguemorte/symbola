@@ -112,8 +112,8 @@ export async function saveEventTemplate(input: { organizationId: string; name: s
 export async function listEventTemplates(organizationId: string): Promise<EventTemplateSummary[]> {
   const rows = await inOrganization(organizationId, (tx) => tx.select().from(eventTemplates).orderBy(desc(eventTemplates.createdAt)));
   return rows.map((row) => {
-    const { content: _content, ...summary } = toSummary(row);
-    return summary;
+    const detail = toSummary(row);
+    return { id: detail.id, name: detail.name, eventTypeId: detail.eventTypeId, includesVendors: detail.includesVendors, taskCount: detail.taskCount, programCount: detail.programCount, slotCount: detail.slotCount, createdAt: detail.createdAt };
   });
 }
 

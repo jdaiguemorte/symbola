@@ -40,6 +40,8 @@ import {
   proposalTemplates,
   plannerFees,
   vendorCommissions,
+  accountingExportSettings,
+  accountingExports,
 } from "@symbola/db/schema/quotes";
 
 import { openQuoteSettings } from "./bank-details";
@@ -95,6 +97,9 @@ export const QUOTES_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   },
   // La chaîne des pièces (FAC-14) ne porte jamais de pièce d'essai.
   { table: ledgerEntries },
+  // Lot 58 (FAC-11) : réglages et traces des exports comptables (périodes, totaux, contrôle).
+  { table: accountingExportSettings },
+  { table: accountingExports },
 ];
 
 // Tables du module qui ne sont pas exportées, et pourquoi (docs/export/format-v1.md).
