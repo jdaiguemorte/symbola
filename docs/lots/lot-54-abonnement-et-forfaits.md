@@ -1,6 +1,6 @@
 # Lot 54 — Abonnement en libre-service, forfaits par module, quotas, interrupteurs par fonction
 
-**Statut** : spécification proposée le 19/11/2026, **à valider par Julien**. Les **montants**
+**Statut** : spécification proposée le 19/11/2026, **validée par Julien le 19/11/2026** : toutes les décisions retenues dans leur option recommandée (a), changements de schéma compris (accord donné). Les **montants**
 proposés sont des valeurs de départ en données, modifiables sans code (Julien, 19/11 : « ça reste
 paramétrable plus tard »). Le lot change le schéma `hub` : validation explicite requise.
 
