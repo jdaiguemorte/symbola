@@ -60,6 +60,8 @@ export type EventSummary = {
   clients: EventClient[];
   // AIDE-02 : événement fictif d'un essai guidé.
   isDemo: boolean;
+  // Lot 58 (PAR-09 ; ADR 0097) : archivé (lecture seule, hors des listes courantes) ; absent : non archivé.
+  archivedAt?: string | null;
 };
 
 // Lot 38b (HUB-29 ; D11, D12) — un évènement du flux de calendrier de l'équipe : daté, ni essai, ni
@@ -108,6 +110,9 @@ export type ListEventsInput = {
   search?: string | undefined;
   // PRD-EVT-07 : la source est filtrable dans la liste.
   prospectSourceId?: string | undefined;
+  // Lot 58 (PAR-09 ; ADR 0097) : « exclude » (les listes courantes), « only » (filtre « Archivés »),
+  // « include » (par défaut : recherche, calendrier, fiche d'un contact).
+  archived?: "exclude" | "only" | "include" | undefined;
 };
 
 export type CreateProspectInput = {

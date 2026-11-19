@@ -52,7 +52,9 @@ export type TodayItemKind =
   | "vendor_roadmap"
   // Lot 48a (PRE-05, PRE-10, SEC-27) : pièce d'un prestataire à surveiller, IBAN « à vérifier ».
   | "vendor_document"
-  | "vendor_bank_check";
+  | "vendor_bank_check"
+  // Lot 58 (PAR-09) : évènement à clôturer, dès le lendemain (fuseau de l'évènement).
+  | "closing_due";
 
 // L'action en un clic (HUB-08) : cocher une tâche, relancer un prestataire, ou ouvrir l'objet.
 export type TodayAction =

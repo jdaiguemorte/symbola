@@ -1437,6 +1437,8 @@ export function starterBookingPrivacyNotice(locale: StarterLocale): string {
 export * from "./vendor-coordination";
 export * from "./vendor-records";
 export * from "./planner-money";
+// Lot 58 (PAR-09, EVT-08, FAC-11 ; ADR 0097) : clôture d'un évènement et exports comptables.
+export * from "./closing";
 // Lot 43 (FAC-09, FAC-15 ; D1, D7) — relances de départ : jours avant l'expiration d'un devis, jours
 // après une échéance impayée, phrase d'une relance sans pénalité et phrase de la clause de pénalités
 // d'un particulier ({taux}). L'organisation les règle ; rien n'est écrit dans le code.

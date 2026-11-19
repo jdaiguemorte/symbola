@@ -28,7 +28,7 @@ import { appDatabase } from "@symbola/db/client";
 import { parisToday } from "@symbola/i18n";
 import { starterAppointmentDefaults, starterAppointmentTypes, starterAvailability, starterBookingPrivacyNotice } from "@symbola/starter-templates";
 import { addEventTask, createProspect, FIRM_STATUSES, getEvent, listCalendarEvents } from "@/modules/events/service";
-import { getOrganizationContact, isModuleEnabled, resolveContact, splitPersonName } from "@/modules/hub/service";
+import { getOrganizationContact, isModuleEnabled, isOrganizationClosed, resolveContact, splitPersonName } from "@/modules/hub/service";
 import { CalendarReadError, fetchCalendarText, normalizeCalendarUrl, parseBusyRanges, urlHint, type Transport } from "./ics-reader";
 import { notifyHost, sendPersonEmail } from "./notifications";
 import {
@@ -79,7 +79,7 @@ import {
 import { addDays, computeSlots, nearestSlots, zonedDate, type Range } from "./slots";
 
 export { appointmentsPrivacy, listAppointmentRetention } from "./privacy";
-export { APPOINTMENTS_EXPORT_EXCLUSIONS, describeAppointmentsExport, exportAppointmentsData, importAppointmentsData, registerAppointmentsImportIds } from "./export";
+export { APPOINTMENTS_EXPORT_EXCLUSIONS, describeAppointmentsExport, exportAppointmentsData, eraseAppointmentsData, importAppointmentsData, registerAppointmentsImportIds } from "./export";
 export { CalendarUrlInvalidError, CalendarReadError } from "./ics-reader";
 export { computeSlots, nearestSlots } from "./slots";
 export { manageUrl } from "./notifications";
@@ -267,7 +267,7 @@ export async function resolvePublicBookingPage(slug: string, locale: "fr" | "en"
   if (!isValidSlug(slug)) return null;
   const page = await findBookingPageBySlug(slug);
   if (!page || !page.active) return null;
-  if (!(await isModuleEnabled(appDatabase(), page.organizationId, "appointments"))) return null;
+  if (!(await isModuleEnabled(appDatabase(), page.organizationId, "appointments")) || (await isOrganizationClosed(appDatabase(), page.organizationId))) return null;
   const types = (await findAppointmentTypes(page.organizationId)).filter((type) => type.active).map(toType);
   return { organizationId: page.organizationId, slug: page.slug, privacyNotice: await bookingPrivacyNotice(page.organizationId, locale, page.privacyNotice), types };
 }
@@ -706,7 +706,8 @@ export type ManagedAppointment = {
 // organisation, expiré ou retiré : la même réponse (null).
 async function appointmentOfToken(token: string, now: Date): Promise<AppointmentRow | null> {
   const parsed = parseLinkToken(token);
-  if (!parsed) return null;
+  // Lot 35c (RGP-11) : un espace fermé ferme ses liens et sa page de réservation.
+  if (!parsed || (await isOrganizationClosed(appDatabase(), parsed.organizationId))) return null;
   const row = await findAppointmentByTokenHash(parsed.organizationId, hashLinkSecret(parsed.secret));
   if (!row || row.organizationId !== parsed.organizationId || row.isDemo) return null;
   if (row.endsAt.getTime() <= now.getTime()) return null;

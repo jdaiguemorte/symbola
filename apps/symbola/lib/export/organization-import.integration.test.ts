@@ -8,7 +8,6 @@
 // - Abus : espace non vide, Planner, archive modifiée, version inconnue, fichier refusé, entité non
 //   conforme, échec en cours d'écriture : rien n'est écrit ; l'organisation d'origine reste intacte.
 import { createHash, randomUUID } from "node:crypto";
-import { readFileSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -18,38 +17,21 @@ import { createOrganization, createUser } from "@symbola/auth";
 import { exportManifestSchema, type ExportManifest } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import { organizationImports } from "@symbola/db/schema/hub";
-import { eventDocuments } from "@symbola/db/schema/events";
 import { invoices, ledgerAnchors, numberSeries } from "@symbola/db/schema/quotes";
 import { withOrganization } from "@symbola/db/with-organization";
-import { EICAR_TEST_STRING, createStorageClient, uploadPrivateObject } from "@symbola/files";
+import { EICAR_TEST_STRING } from "@symbola/files";
 import { ZipFileReader, ZipFileWriter } from "@symbola/privacy";
-import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
 import { minimalPdf } from "@/lib/test-fixtures/pdf";
-import { loadRecette } from "@/lib/recette/load";
-import { createProspect, createProspectSource, listEvents } from "@/modules/events/service";
+import { createProspect, createProspectSource } from "@/modules/events/service";
 import { getPrivacySettings, listOrganizationImports, OrganizationImportActiveError, OrganizationImportForbiddenError, requestOrganizationImport, saveOnboardingStep, updatePrivacySettings } from "@/modules/hub/service";
-import {
-  actOnFakeSignature,
-  addPaymentMethods,
-  addQuoteLine,
-  addScheduleItem,
-  createQuote,
-  issueCreditNote,
-  issueDepositInvoice,
-  markScheduleItemPaid,
-  markScheduleItemUnpaid,
-  sendQuote,
-  sendQuoteForSignature,
-  setQuoteAdvanceKind,
-} from "@/modules/quotes/service";
-import { fakeSignatureProvider, setSignatureProviderForTests } from "@/modules/quotes/signature";
+import { issueCreditNote } from "@/modules/quotes/service";
+import { setSignatureProviderForTests } from "@/modules/quotes/signature";
+import { seedFullAtelier } from "@/lib/test-fixtures/atelier-complet";
 import { buildOrganizationExportArchive, collectOrganizationData } from "./organization-export";
 import { runOrganizationImport } from "./organization-import-jobs";
 
 const db = appDatabase();
-const dataset: unknown = JSON.parse(readFileSync(new URL("../../../../docs/recette/symbola-synthetic-users.json", import.meta.url), "utf8"));
 const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
-const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 let dir: string;
 
 // Entités qui ne reviennent pas à l'identique, et pourquoi (bilan de la reprise, ADR 0098).
@@ -79,48 +61,6 @@ afterAll(async () => {
   setSignatureProviderForTests(undefined);
   await rm(dir, { recursive: true, force: true });
 });
-
-// L'atelier de Camille (ORG-01 du jeu fictif), complété de pièces comptables : un devis signé, sa
-// facture d'acompte et son original, un avoir, un encaissement annulé puis de nouveau reçu, et un
-// document d'évènement dans le stockage.
-async function seedSource() {
-  const organizationId = randomUUID();
-  const loaded = await loadRecette(dataset, { nodeEnv: "test", organizationIds: { "ORG-01": organizationId, "ORG-02": randomUUID() }, emailTag: randomUUID().slice(0, 8) });
-  const owner = loaded.accounts.find((account) => account.organisation === "ORG-01" && account.role === "owner")!;
-  const ownerId = (await db.execute(sql`select id from hub.users where email = ${owner.email}`)) as unknown as { id: string }[];
-  await saveOnboardingStep(db, organizationId, { vatRegime: "assujetti", vatRateDefaultBasisPoints: 2000 });
-  await fillRequiredMentions(organizationId);
-  const [event] = await listEvents({ organizationId });
-  const [method] = await addPaymentMethods(organizationId, ["Virement bancaire"]);
-  const created = await createQuote({ organizationId, eventId: event!.id, createdByUserId: ownerId[0]!.id });
-  await addQuoteLine(organizationId, created.id, { label: "Coordination", unit: "forfait", quantityMilli: 1000, unitPriceCents: 100000, vatRateBasisPoints: 2000 });
-  await setQuoteAdvanceKind(organizationId, created.id, "deposit");
-  const detail = await addScheduleItem(organizationId, created.id, { label: "À la signature", dueDate: today(), percentageBasisPoints: 3000 });
-  await sendQuote({ organizationId, quoteId: created.id });
-  setSignatureProviderForTests(fakeSignatureProvider());
-  const sent = await sendQuoteForSignature({
-    organizationId,
-    quoteId: created.id,
-    signers: [{ name: "Léa Martin", email: `lea-${randomUUID()}@example.test`, billingAddress: "4 rue des Lilas, 24200 Sarlat" }],
-    documentPdf: minimalPdf("devis"),
-    locale: "fr",
-  });
-  for (const signer of sent.signature!.signers) await actOnFakeSignature(signer.signingUrl.split("/").pop()!, "sign");
-  const itemId = detail.current.schedule.items[0]!.id;
-  const render = async () => minimalPdf("pièce");
-  const invoice = await issueDepositInvoice({ renderOriginal: render, organizationId, scheduleItemId: itemId });
-  await issueCreditNote({ renderOriginal: render, organizationId, invoiceId: invoice.id, amountCents: 1000, reason: "Geste commercial" });
-  await markScheduleItemPaid({ organizationId, scheduleItemId: itemId, paidOn: today(), paymentMethodId: method!.id });
-  await markScheduleItemUnpaid(organizationId, itemId, "Virement rejeté");
-  await markScheduleItemPaid({ organizationId, scheduleItemId: itemId, paidOn: today(), paymentMethodId: method!.id });
-  const key = `${organizationId}/${randomUUID()}.pdf`;
-  const pdf = minimalPdf("plan de table");
-  await uploadPrivateObject(createStorageClient(), { key, body: pdf, contentType: "application/pdf" });
-  await withOrganization(db, organizationId, (tx) =>
-    tx.insert(eventDocuments).values({ organizationId, eventId: event!.id, label: "Plan de table", fileKey: key, mime: "application/pdf", sizeBytes: pdf.byteLength, uploadedByUserId: ownerId[0]!.id }),
-  );
-  return { organizationId, ownerId: ownerId[0]!.id, invoiceNumber: invoice.number };
-}
 
 async function emptySpace(siren?: string, options: { ready?: boolean } = {}) {
   const organization = await createOrganization(db, `Nouvel atelier ${randomUUID().slice(0, 6)}`);
@@ -202,12 +142,12 @@ function comparable(rows: Record<string, unknown>[], ignored: readonly string[])
 
 const IGNORED_FIELDS: string[] = [];
 
-let source: Awaited<ReturnType<typeof seedSource>>;
+let source: Awaited<ReturnType<typeof seedFullAtelier>>;
 let firstExport: string;
 
 describe("HUB-13 — Reprise d'un export Symbola dans un espace vide (lot 35b)", { timeout: 240_000 }, () => {
   beforeAll(async () => {
-    source = await seedSource();
+    source = await seedFullAtelier();
     firstExport = await exportOf(source.organizationId);
     // Le jeu fictif complet et son export : plus que les 10 s par défaut, surtout en CI.
   }, 120_000);

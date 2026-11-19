@@ -31,6 +31,11 @@ vi.mock("./auth-context", async () => {
 const link = vi.hoisted(() => ({ current: null as null | { organizationId: string; linkId: string; eventId: string } }));
 vi.mock("./link-session", () => ({ currentLinkAccess: async () => link.current }));
 
+// Lot 35c (RGP-11) : l'état de fermeture de l'organisation, lu par les gardes.
+const closure = vi.hoisted(() => ({ closed: new Set<string>() }));
+vi.mock("@symbola/db/client", () => ({ appDatabase: () => ({}) }));
+vi.mock("@/modules/hub/service", () => ({ isOrganizationClosed: async (_db: unknown, organizationId: string) => closure.closed.has(organizationId) }));
+
 const { requireOperator, requireLink, requireOwner, requirePlanner, requireSignedIn } = await import("./guards");
 
 function signedIn(role: string, organizationId: string | null = "org-1"): AuthResult {
@@ -53,6 +58,18 @@ function pages(dir: string): string[] {
 describe("L16-ARC-01 — Une garde d'accès unique", () => {
   beforeEach(() => {
     auth.current = { status: "unauthenticated" };
+    closure.closed.clear();
+  });
+
+  it("RGP-11 (lot 35c) — un espace fermé renvoie chaque écran à la fermeture, sauf ceux qui l'acceptent (fermeture, export)", async () => {
+    closure.closed.add("org-1");
+    auth.current = signedIn("member");
+    await expect(requirePlanner()).rejects.toThrow("redirect:/parametres/fermeture");
+    auth.current = signedIn("owner");
+    await expect(requireOwner()).rejects.toThrow("redirect:/parametres/fermeture");
+    expect((await requireOwner({ allowClosed: true }))?.user.role).toBe("owner");
+    closure.closed.clear();
+    expect((await requirePlanner()).user.organizationId).toBe("org-1");
   });
 
   it("requirePlanner envoie à la connexion, à la double authentification ou à l'accueil", async () => {

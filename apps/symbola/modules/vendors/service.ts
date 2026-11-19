@@ -922,7 +922,7 @@ export async function countOrganizationRealVendors(organizationId: string): Prom
 }
 
 // Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
-export { describeVendorsExport, exportVendorsData, importVendorsData, registerVendorsImportIds, VENDORS_EXPORT_EXCLUSIONS } from "./export";
+export { describeVendorsExport, exportVendorsData, eraseVendorsData, importVendorsData, registerVendorsImportIds, VENDORS_EXPORT_EXCLUSIONS } from "./export";
 
 // Lot 48a (PRE-05, PRE-06, PRE-10, SEC-27, DAT-08 ; ADR 0093) : pièces, IBAN, note confidentielle,
 // contraintes des lieux.
@@ -965,3 +965,7 @@ export {
   type ProgramSequenceInput,
 } from "./records";
 export { InvalidBankDetailsError, maskIban } from "./bank-details";
+
+// Lot 58 (PRE-08 ; ADR 0097) : évaluation après l'évènement et historique des collaborations, internes.
+export { evaluateVendor, EvaluationVendorNotFoundError, getVendorCollaborationHistory, listEventEvaluations, type CollaborationHistory, type VendorEvaluation } from "./evaluations";
+export { EVALUATION_CRITERIA, InvalidEvaluationError, type EvaluationCriterion, type EvaluationInput } from "./evaluation-rules";

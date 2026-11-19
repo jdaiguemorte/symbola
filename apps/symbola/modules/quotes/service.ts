@@ -4036,7 +4036,7 @@ export async function countOrganizationRealQuotes(organizationId: string): Promi
 }
 
 // Lot 35a (HUB-13, DAT-13, ADR 0068) : entités du module dans l'export complet de l'organisation.
-export { describeQuotesExport, exportQuotesData, QUOTES_EXPORT_EXCLUSIONS } from "./export";
+export { describeQuotesExport, eraseQuotesData, exportQuotesData, QUOTES_EXPORT_EXCLUSIONS } from "./export";
 // Lot 35b (HUB-13, D7, ADR 0098) : reprise d'une archive, chaîne des pièces vérifiée puis prolongée.
 export { ImportedLedgerInvalidError, importQuotesData, registerQuotesImportIds } from "./archive-import";
 
@@ -5334,3 +5334,35 @@ async function mandateVariableValues(organizationId: string, quote: QuoteDetail,
     .join("\n");
   return { "devis.honoraires": fees, "devis.commissions": commissionText || null, "devis.prestations_intermediaires": intermediary || null };
 }
+
+// Lot 58 (FAC-11 ; D1 à D3 ; ADR 0097) : exports comptables (journal des recettes, journaux des ventes
+// et des encaissements, FEC, PDF d'origine), contrôle de rapprochement bloquant, réglages et traces.
+export {
+  AccountingExportFormatError,
+  accountingFamilyFor,
+  AccountingSettingsError,
+  checkAccountingPeriod,
+  getAccountingSettings,
+  listAccountingExports,
+  produceAccountingExport,
+  saveAccountingSettings,
+  type AccountingExportTrace,
+  type AccountingFile,
+  type AccountingSettingsView,
+  type ExportWords,
+  type OriginalReader,
+} from "./accounting-exports";
+export {
+  ACCOUNTING_FORMATS,
+  formatAllowedForPeriod,
+  FORMATS_BY_FAMILY,
+  InvalidPeriodError,
+  PERIOD_KINDS,
+  periodBounds,
+  type AccountingFormat,
+  type Period,
+  type PeriodKind,
+  type Reconciliation,
+  type ReconciliationIssue,
+  type SaleDocument,
+} from "./accounting-export-rules";

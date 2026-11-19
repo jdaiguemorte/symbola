@@ -38,6 +38,11 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "allTasks", group: "events", audience: "team", module: "events", path: "/taches", capture: true },
   { key: "eventsTemplates", group: "events", audience: "team", module: "events", path: "/events/modeles", capture: true },
   { key: "eventsProgramTemplates", group: "events", audience: "team", module: "events", path: "/events/modeles-programme", capture: true },
+  // Lot 58 (PAR-09, EVT-08 ; ADR 0097) : clôture d'un évènement, modèles d'évènement, bilans (tableau de
+  // bord discret du temps passé, jamais mis en avant).
+  { key: "eventClosing", group: "events", audience: "team", module: "events", path: null, capture: false },
+  { key: "eventTemplatesList", group: "events", audience: "team", module: "events", path: "/events/modeles-evenement", capture: false },
+  { key: "closingDashboard", group: "events", audience: "team", module: "events", path: null, capture: false },
   { key: "eventsSettings", group: "events", audience: "team", module: "events", path: "/events/parametres", capture: true },
   // Lot 20 (AIDE-14) : chaque écran de réglage a sa fiche.
   { key: "eventsSources", group: "events", audience: "team", module: "events", path: "/events/parametres/sources", capture: true },
@@ -100,6 +105,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "allQuotes", group: "quotes", audience: "team", module: "quotes", path: "/devis", capture: true },
   // Lot 48b (BUD-08, PRE-07) : honoraires et commissions d'un évènement.
   { key: "plannerMoney", group: "quotes", audience: "team", module: "quotes", path: null, capture: false },
+  // Lot 58 (FAC-11) : exports comptables (journaux, FEC, PDF d'origine), contrôle de rapprochement.
+  { key: "accountingExports", group: "quotes", audience: "team", module: "quotes", path: "/devis/exports-comptables", capture: false },
   { key: "quotesDetail", group: "quotes", audience: "team", module: "quotes", path: null, capture: true },
   { key: "quotesCatalog", group: "quotes", audience: "team", module: "quotes", path: "/devis/catalogue", tour: "quotes", capture: true },
   // Lot 31a (FAC-01, HUB-21) : modèles de devis.
@@ -172,6 +179,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "organizationExport", group: "data", audience: "team", ownerOnly: true, path: "/parametres/export", capture: true },
   // Lot 35b (HUB-13, D6) : reprise d'un export Symbola dans un espace vide, titulaire seulement.
   { key: "organizationImport", group: "data", audience: "team", ownerOnly: true, path: "/parametres/reprise", capture: false },
+  // Lot 35c (RGP-11, D8) : fermer l'espace, titulaire seulement.
+  { key: "organizationClosure", group: "data", audience: "team", ownerOnly: true, path: "/parametres/fermeture", capture: false },
   // Lot 37b (DOC-12, D12) : relevé mensuel du stockage, titulaire seulement.
   { key: "storage", group: "data", audience: "team", ownerOnly: true, path: "/parametres/stockage", capture: false },
   // Lot 23b (JUR-06) : archive comptable, titulaire seulement.
@@ -181,6 +190,7 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "adminOrganizations", group: "admin", audience: "admin", path: "/exploitation/organisations", capture: false },
   { key: "adminAccounts", group: "admin", audience: "admin", path: "/exploitation/comptes", capture: false },
   { key: "adminActivity", group: "admin", audience: "admin", path: "/exploitation/activite", capture: false },
+  { key: "adminClosures", group: "admin", audience: "admin", path: "/exploitation/fermetures", capture: false },
   { key: "adminOnboarding", group: "admin", audience: "admin", path: "/exploitation/prise-en-main", capture: false },
   { key: "adminHealth", group: "admin", audience: "admin", path: "/exploitation/health", capture: false },
   { key: "adminSettings", group: "admin", audience: "admin", path: "/exploitation/parametres", capture: false },

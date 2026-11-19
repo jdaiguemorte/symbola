@@ -3,6 +3,7 @@
 // leurs fichiers, réglages des trajets. Les fiches d'essai sont exclues. Exposé par service.ts.
 import type { ExportEntitySchema, ModuleExport, ModuleExportContext, ModuleImportContext, ModuleImportResult, ModuleImportRows } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
+import { eraseOrganizationSchema } from "@symbola/db/erase";
 import { describeModuleEntities, exportModuleEntities, type ExportEntitySpec } from "@symbola/db/export";
 import { clearModuleImportTargets, importModuleEntities, registerModuleImportIds } from "@symbola/db/import";
 import type { OrganizationTransaction } from "@symbola/db/with-organization";
@@ -18,6 +19,7 @@ import {
   vendorTags,
   vendorTypeFields,
   vendorTypes,
+  vendorEvaluations,
 } from "@symbola/db/schema/vendors";
 
 export const VENDORS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
@@ -35,6 +37,8 @@ export const VENDORS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: vendorDocumentKinds },
   { table: vendorDocuments, parents: { vendorId: "vendors", kindId: "vendor_document_kinds" }, files: ["fileKey"] },
   { table: vendorBankChanges, parents: { vendorId: "vendors" } },
+  // Lot 58 (PRE-08) : évaluations après les évènements, internes ; l'export de l'organisation lui revient.
+  { table: vendorEvaluations, parents: { vendorId: "vendors" } },
 ];
 
 // Toutes les tables du module sont exportées.
@@ -57,4 +61,10 @@ export function registerVendorsImportIds(rows: ModuleImportRows, context: Module
 export async function importVendorsData(tx: OrganizationTransaction, rows: ModuleImportRows, context: ModuleImportContext): Promise<ModuleImportResult> {
   await clearModuleImportTargets(tx, { organizationId: context.organizationId, specs: VENDORS_EXPORT_ENTITIES });
   return { module: "vendors", entities: await importModuleEntities(tx, { specs: VENDORS_EXPORT_ENTITIES, rows, context }) };
+}
+
+// Lot 35c (RGP-11, D8, ADR 0100) : effacement de toutes les lignes du module d'une organisation fermée,
+// à sa date de suppression (la base le refuse avant) ; fichiers effacés par l'orchestrateur.
+export function eraseVendorsData(tx: OrganizationTransaction, organizationId: string): Promise<number> {
+  return eraseOrganizationSchema(tx, organizationId, "vendors");
 }

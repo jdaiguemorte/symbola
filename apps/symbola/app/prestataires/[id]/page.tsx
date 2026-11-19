@@ -10,6 +10,7 @@ import {
   ensureVenueRuleFields,
   getVendor,
   getVendorHistory,
+  getVendorCollaborationHistory,
   listVendorBankChanges,
   listVendorDocumentKinds,
   listVendorDocuments,
@@ -20,6 +21,7 @@ import {
   readVendorConfidentialNote,
 } from "@/modules/vendors/service";
 import { listTeam } from "@symbola/auth";
+import { getEventNamesByIds } from "@/modules/events/service";
 import { appDatabase } from "@symbola/db/client";
 import { VendorBankForm, VendorDocumentRequestForm, VendorDocumentUploadForm, VendorDocumentValidityForm, VendorNoteForm } from "./vendor-records";
 import { removeVendorDocumentAction, verifyVendorBankAction, verifyVendorDocumentAction } from "./records-actions";
@@ -79,6 +81,9 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
   // Le journal nomme sans donnée personnelle : vous, la titulaire, ou un membre de l'équipe.
   const memberName = (userId: string | null) =>
     userId === auth.user.id ? tRecords("byYou") : team.find((member) => member.id === userId)?.role === "owner" ? tRecords("byOwner") : tRecords("byMember");
+  // Lot 58 (PRE-08) : évaluations après les évènements et noms de ces évènements (module events).
+  const collaborations = await getVendorCollaborationHistory(organizationId, id);
+  const evaluatedEvents = await getEventNamesByIds(organizationId, collaborations.evaluations.map((evaluation) => evaluation.eventId));
   const [types, tags, history, assets, budget, families, tagGroups] = await Promise.all([
     listVendorTypes(organizationId),
     listVendorTags(organizationId),
@@ -174,6 +179,30 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
             </table>
           </div>
         ) : null}
+      </section>
+
+      {/* Lot 58 (PRE-08 ; ADR 0097) : historique des collaborations, interne (jamais au client, au
+          prestataire ni au comptable) ; il reprend l'évaluation générale de la fiche (lot 28c). */}
+      <section className="card stack" aria-labelledby="evaluations-title">
+        <h2 id="evaluations-title">{t("evaluationsTitle")}</h2>
+        <p className="muted">{t("evaluationsHelp")}</p>
+        {collaborations.count > 0 ? (
+          <p>{t("evaluationsAverage", { average: ((collaborations.averageTenths ?? 0) / 10).toLocaleString(locale), count: collaborations.count, date: formatCalendarDate(collaborations.lastEvaluatedAt!.slice(0, 10), locale) })}</p>
+        ) : (
+          <p>{t("evaluationsEmpty")}</p>
+        )}
+        {vendor.rating !== null ? <p className="muted">{t("evaluationsCardRating", { rating: vendor.rating })}</p> : null}
+        <ul className="plain-list stack">
+          {collaborations.evaluations.map((evaluation) => (
+            <li key={evaluation.id}>
+              <Link href={`/events/${evaluation.eventId}/cloture`}>{t("evaluationsEntry", { event: evaluatedEvents[evaluation.eventId] || t("evaluationsUnknownEvent"), rating: evaluation.rating })}</Link>
+              {evaluation.punctuality !== null || evaluation.quality !== null || evaluation.value !== null ? (
+                <span className="meta"> · {t("evaluationsCriteria", { punctuality: evaluation.punctuality ?? "—", quality: evaluation.quality ?? "—", value: evaluation.value ?? "—" })}</span>
+              ) : null}
+              {evaluation.comment ? <p className="task-comment-body">{evaluation.comment}</p> : null}
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="card" aria-labelledby="details-title">

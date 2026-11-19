@@ -1,6 +1,6 @@
 {
-  "id": "45bed073-949d-415b-b13d-f7aefbd21e8d",
-  "prevId": "a0a6c3c1-3e05-4f0f-b228-05c4ae76de41",
+  "id": "bae6931b-4c19-4d19-b7c3-bb29a6c63360",
+  "prevId": "b1f89117-e911-47bb-882d-9b72e7ced9ff",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -3379,6 +3379,95 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "events.closing_settings": {
+      "name": "closing_settings",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "review_url": {
+          "name": "review_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "review_label": {
+          "name": "review_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "closing_settings_organization_idx": {
+          "name": "closing_settings_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "closing_settings_review_url_check": {
+          "name": "closing_settings_review_url_check",
+          "value": "\"events\".\"closing_settings\".\"review_url\" is null or (\"events\".\"closing_settings\".\"review_url\" like 'https://%' and char_length(\"events\".\"closing_settings\".\"review_url\") <= 500)"
+        },
+        "closing_settings_review_label_check": {
+          "name": "closing_settings_review_label_check",
+          "value": "\"events\".\"closing_settings\".\"review_label\" is null or char_length(\"events\".\"closing_settings\".\"review_label\") between 1 and 60"
+        }
+      },
+      "isRLSEnabled": false
+    },
     "events.contact_forms": {
       "name": "contact_forms",
       "schema": "events",
@@ -5340,6 +5429,188 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "events.event_closings": {
+      "name": "event_closings",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "checked_steps": {
+          "name": "checked_steps",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::text[]"
+        },
+        "time_spent_minutes": {
+          "name": "time_spent_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lessons": {
+          "name": "lessons",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::text[]"
+        },
+        "own_expenses": {
+          "name": "own_expenses",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "budget_snapshot": {
+          "name": "budget_snapshot",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "closed_at": {
+          "name": "closed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "closed_by": {
+          "name": "closed_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "review_requested_at": {
+          "name": "review_requested_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "review_request_kind": {
+          "name": "review_request_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "event_closings_organization_idx": {
+          "name": "event_closings_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "event_closings_event_idx": {
+          "name": "event_closings_event_idx",
+          "columns": [
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "event_closings_event_id_events_id_fk": {
+          "name": "event_closings_event_id_events_id_fk",
+          "tableFrom": "event_closings",
+          "tableTo": "events",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "event_closings_time_spent_check": {
+          "name": "event_closings_time_spent_check",
+          "value": "\"events\".\"event_closings\".\"time_spent_minutes\" is null or \"events\".\"event_closings\".\"time_spent_minutes\" between 0 and 360000"
+        },
+        "event_closings_lessons_check": {
+          "name": "event_closings_lessons_check",
+          "value": "cardinality(\"events\".\"event_closings\".\"lessons\") <= 10"
+        },
+        "event_closings_expenses_check": {
+          "name": "event_closings_expenses_check",
+          "value": "jsonb_typeof(\"events\".\"event_closings\".\"own_expenses\") = 'array' and jsonb_array_length(\"events\".\"event_closings\".\"own_expenses\") <= 100"
+        },
+        "event_closings_review_check": {
+          "name": "event_closings_review_check",
+          "value": "(\"events\".\"event_closings\".\"review_request_kind\" is null or \"events\".\"event_closings\".\"review_request_kind\" in ('thanks', 'thanks_with_review')) and ((\"events\".\"event_closings\".\"review_requested_at\" is null) = (\"events\".\"event_closings\".\"review_request_kind\" is null))"
+        },
+        "event_closings_closed_check": {
+          "name": "event_closings_closed_check",
+          "value": "(\"events\".\"event_closings\".\"closed_at\" is null) = (\"events\".\"event_closings\".\"budget_snapshot\" is null)"
+        }
+      },
       "isRLSEnabled": false
     },
     "events.event_day_contacts": {
@@ -8861,6 +9132,143 @@
       },
       "isRLSEnabled": false
     },
+    "events.event_templates": {
+      "name": "event_templates",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_type_id": {
+          "name": "event_type_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_event_id": {
+          "name": "source_event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "includes_vendors": {
+          "name": "includes_vendors",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "content": {
+          "name": "content",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "event_templates_organization_idx": {
+          "name": "event_templates_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "event_templates_event_type_id_event_types_id_fk": {
+          "name": "event_templates_event_type_id_event_types_id_fk",
+          "tableFrom": "event_templates",
+          "tableTo": "event_types",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "event_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "event_templates_source_event_id_events_id_fk": {
+          "name": "event_templates_source_event_id_events_id_fk",
+          "tableFrom": "event_templates",
+          "tableTo": "events",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "source_event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "event_templates_name_check": {
+          "name": "event_templates_name_check",
+          "value": "char_length(btrim(\"events\".\"event_templates\".\"name\")) between 1 and 120"
+        },
+        "event_templates_content_check": {
+          "name": "event_templates_content_check",
+          "value": "jsonb_typeof(\"events\".\"event_templates\".\"content\") = 'object'"
+        }
+      },
+      "isRLSEnabled": false
+    },
     "events.event_type_vocabulary": {
       "name": "event_type_vocabulary",
       "schema": "events",
@@ -9808,6 +10216,18 @@
         },
         "deleted_by": {
           "name": "deleted_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "archived_at": {
+          "name": "archived_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "archived_by": {
+          "name": "archived_by",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
@@ -20905,6 +21325,143 @@
       },
       "isRLSEnabled": false
     },
+    "hub.organization_closures": {
+      "name": "organization_closures",
+      "schema": "hub",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "closed_at": {
+          "name": "closed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "deletion_due_at": {
+          "name": "deletion_due_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reopened_at": {
+          "name": "reopened_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "erased_at": {
+          "name": "erased_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "erased_rows": {
+          "name": "erased_rows",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "files_erased_at": {
+          "name": "files_erased_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "erased_files": {
+          "name": "erased_files",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "replayed_at": {
+          "name": "replayed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "organization_closures_organization_idx": {
+          "name": "organization_closures_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "organization_closures_open_idx": {
+          "name": "organization_closures_open_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "reopened_at is null and erased_at is null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "organization_closures_dates_check": {
+          "name": "organization_closures_dates_check",
+          "value": "\"hub\".\"organization_closures\".\"deletion_due_at\" >= \"hub\".\"organization_closures\".\"closed_at\" + interval '29 days'"
+        }
+      },
+      "isRLSEnabled": false
+    },
     "hub.organization_exports": {
       "name": "organization_exports",
       "schema": "hub",
@@ -21694,6 +22251,30 @@
           "notNull": true,
           "default": true
         },
+        "closed_at": {
+          "name": "closed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "closed_by_user_id": {
+          "name": "closed_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deletion_due_at": {
+          "name": "deletion_due_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "closure_notice_sent_at": {
+          "name": "closure_notice_sent_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -21726,7 +22307,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "organizations_closure_check": {
+          "name": "organizations_closure_check",
+          "value": "(\"hub\".\"organizations\".\"closed_at\" is null) = (\"hub\".\"organizations\".\"deletion_due_at\" is null) and (\"hub\".\"organizations\".\"deletion_due_at\" is null or \"hub\".\"organizations\".\"deletion_due_at\" >= \"hub\".\"organizations\".\"closed_at\" + interval '29 days')"
+        }
+      },
       "isRLSEnabled": false
     },
     "hub.ownership_transfers": {
@@ -23432,6 +24018,233 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "quotes.accounting_export_settings": {
+      "name": "accounting_export_settings",
+      "schema": "quotes",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fiscal_year_start_month": {
+          "name": "fiscal_year_start_month",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "accounts": {
+          "name": "accounts",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "journals": {
+          "name": "journals",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "accounting_export_settings_organization_idx": {
+          "name": "accounting_export_settings_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "accounting_export_settings_month_check": {
+          "name": "accounting_export_settings_month_check",
+          "value": "\"quotes\".\"accounting_export_settings\".\"fiscal_year_start_month\" between 1 and 12"
+        },
+        "accounting_export_settings_json_check": {
+          "name": "accounting_export_settings_json_check",
+          "value": "jsonb_typeof(\"quotes\".\"accounting_export_settings\".\"accounts\") = 'object' and jsonb_typeof(\"quotes\".\"accounting_export_settings\".\"journals\") = 'object'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "quotes.accounting_exports": {
+      "name": "accounting_exports",
+      "schema": "quotes",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "format": {
+          "name": "format",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "period_kind": {
+          "name": "period_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "period_start": {
+          "name": "period_start",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "period_end": {
+          "name": "period_end",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "invoiced_cents": {
+          "name": "invoiced_cents",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "credited_cents": {
+          "name": "credited_cents",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "received_cents": {
+          "name": "received_cents",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "document_count": {
+          "name": "document_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "issues": {
+          "name": "issues",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "accounting_exports_organization_idx": {
+          "name": "accounting_exports_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "accounting_exports_format_check": {
+          "name": "accounting_exports_format_check",
+          "value": "\"quotes\".\"accounting_exports\".\"format\" in ('receipts_journal', 'sales_journal', 'payments_journal', 'fec', 'originals')"
+        },
+        "accounting_exports_period_check": {
+          "name": "accounting_exports_period_check",
+          "value": "\"quotes\".\"accounting_exports\".\"period_kind\" in ('month', 'quarter', 'year', 'fiscal_year') and \"quotes\".\"accounting_exports\".\"period_start\" <= \"quotes\".\"accounting_exports\".\"period_end\""
+        },
+        "accounting_exports_status_check": {
+          "name": "accounting_exports_status_check",
+          "value": "\"quotes\".\"accounting_exports\".\"status\" in ('done', 'blocked') and jsonb_typeof(\"quotes\".\"accounting_exports\".\"issues\") = 'array'"
+        }
+      },
       "isRLSEnabled": false
     },
     "quotes.catalog_items": {
@@ -29296,6 +30109,181 @@
         "vendor_documents_verified_check": {
           "name": "vendor_documents_verified_check",
           "value": "(\"vendors\".\"vendor_documents\".\"status\" = 'verified') = (\"vendors\".\"vendor_documents\".\"verified_at\" is not null)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "vendors.vendor_evaluations": {
+      "name": "vendor_evaluations",
+      "schema": "vendors",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vendor_id": {
+          "name": "vendor_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rating": {
+          "name": "rating",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "punctuality": {
+          "name": "punctuality",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "quality": {
+          "name": "quality",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "value": {
+          "name": "value",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "comment": {
+          "name": "comment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "evaluated_by": {
+          "name": "evaluated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "evaluated_at": {
+          "name": "evaluated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "vendor_evaluations_organization_idx": {
+          "name": "vendor_evaluations_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "vendor_evaluations_event_idx": {
+          "name": "vendor_evaluations_event_idx",
+          "columns": [
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "vendor_evaluations_vendor_id_vendors_id_fk": {
+          "name": "vendor_evaluations_vendor_id_vendors_id_fk",
+          "tableFrom": "vendor_evaluations",
+          "tableTo": "vendors",
+          "schemaTo": "vendors",
+          "columnsFrom": [
+            "vendor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "vendor_evaluations_vendor_event_key": {
+          "name": "vendor_evaluations_vendor_event_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "vendor_id",
+            "event_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "vendor_evaluations_rating_check": {
+          "name": "vendor_evaluations_rating_check",
+          "value": "\"vendors\".\"vendor_evaluations\".\"rating\" between 1 and 5"
+        },
+        "vendor_evaluations_criteria_check": {
+          "name": "vendor_evaluations_criteria_check",
+          "value": "(\"vendors\".\"vendor_evaluations\".\"punctuality\" is null or \"vendors\".\"vendor_evaluations\".\"punctuality\" between 1 and 5) and (\"vendors\".\"vendor_evaluations\".\"quality\" is null or \"vendors\".\"vendor_evaluations\".\"quality\" between 1 and 5) and (\"vendors\".\"vendor_evaluations\".\"value\" is null or \"vendors\".\"vendor_evaluations\".\"value\" between 1 and 5)"
+        },
+        "vendor_evaluations_comment_check": {
+          "name": "vendor_evaluations_comment_check",
+          "value": "\"vendors\".\"vendor_evaluations\".\"comment\" is null or char_length(\"vendors\".\"vendor_evaluations\".\"comment\") between 1 and 2000"
         }
       },
       "isRLSEnabled": false

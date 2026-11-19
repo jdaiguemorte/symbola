@@ -18,7 +18,7 @@ import {
   claimOrganizationImport,
   failOrganizationImport,
   forgetOrganizationImportArchive,
-  listOrganizations,
+  listOrganizationsIncludingClosed,
   recordOrganizationImportHeartbeat,
   takeAwakenedOrganizationImports,
 } from "@/modules/hub/service";
@@ -32,7 +32,7 @@ async function organizationsToVisit(now: number): Promise<string[]> {
   const awakened = takeAwakenedOrganizationImports();
   if (lastFullScanAt !== null && now - lastFullScanAt < FULL_SCAN_INTERVAL_MS) return awakened;
   lastFullScanAt = now;
-  const all = (await listOrganizations(appDatabase())).map((organization) => organization.id);
+  const all = (await listOrganizationsIncludingClosed(appDatabase())).map((organization) => organization.id);
   return [...new Set([...awakened, ...all])];
 }
 

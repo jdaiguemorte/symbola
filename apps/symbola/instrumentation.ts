@@ -77,6 +77,9 @@ async function startScheduledTasks() {
     // Lot 35b (HUB-13, D6, D7, ADR 0098) : reprises d'un export Symbola, en arrière-plan.
     const { scheduleOrganizationImports } = await import("./lib/export/organization-import-jobs");
     scheduleOrganizationImports();
+    // Lot 35c (RGP-11, D8, ADR 0100) : préavis et suppression des espaces fermés, au 30e jour.
+    const { scheduleOrganizationClosures } = await import("./lib/closure/organization-closure-jobs");
+    scheduleOrganizationClosures();
     // Lot 37b (DOC-12, D12, ADR 0071) : relevé mensuel du stockage de chaque organisation.
     const { scheduleStorageSnapshots } = await import("./lib/storage-snapshots");
     scheduleStorageSnapshots();

@@ -209,6 +209,15 @@ proposé jusqu'au dernier jour. **La clause de réversibilité** (délai, préav
 données) **sera écrite à la création officielle de la société**, avec les conditions de
 l'éditeur. Le lot 35c peut se coder.
 
+**Livré au lot 35c (19/11/2026, ADR 0100)** : fermeture par la Propriétaire (double
+authentification, nom de l'espace), export jusqu'au dernier jour, e-mail à la fermeture et sept jours
+avant ; au 30e jour, tout est effacé, fichiers et comptes de l'équipe compris (ceux qui n'ont pas
+d'autre espace, chez le fournisseur d'identité aussi). **Délai maximal** : les données effacées
+disparaissent des sauvegardes au bout de leur cycle, 35 jours au plus (ADR 0092), soit au plus
+65 jours après la fermeture. **Trace** : identifiant de l'organisation et dates, sans donnée
+personnelle, gardée sans limite de durée pour rejouer l'effacement après une restauration ; sa durée
+et sa mention dans l'accord de sous-traitance restent à fixer avec la clause de réversibilité.
+
 ## Questions du 18 novembre 2026 (lot 46, rendez-vous)
 
 ### 13. Page publique de réservation et agenda de la planner

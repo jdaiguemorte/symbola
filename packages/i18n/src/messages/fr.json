@@ -937,6 +937,10 @@
       "title": "Activité des organisations",
       "body": "Des statistiques d'usage : comptes, comptes connectés sur 30 jours, dernière connexion, nombre d'événements, de devis et de factures créés chaque mois, et le dernier relevé du stockage (nombre de fichiers et volume). Jamais un nom, un montant, un nom de fichier ni un contenu ; les essais guidés ne comptent pas."
     },
+    "adminClosures": {
+      "title": "Espaces fermés",
+      "body": "La trace de chaque fermeture d'un espace : identifiant de l'organisation, date de fermeture, date de suppression, et ce qui a été effacé (nombres). Jamais un nom ni une donnée de l'espace. Avant une restauration de sauvegarde, exportez cette trace ; après, rejouez-la (runbook de restauration)."
+    },
     "forgotPassword": {
       "title": "Mot de passe oublié",
       "body": "Saisissez l'adresse de votre compte : un lien valable 30 minutes vous est envoyé pour choisir un nouveau mot de passe. Le message est le même que l'adresse ait un compte ou non. Votre double authentification ne change pas."
@@ -1178,6 +1182,10 @@
     "organizationImport": {
       "title": "Reprendre un export Symbola",
       "body": "Déposez l'archive d'un export Symbola pour retrouver toutes vos données dans cet espace : changer d'espace, ou revenir après une fermeture. La reprise ne se fait que dans un espace vide, par la Propriétaire du compte. Symbola vérifie l'archive (format, empreintes, tables, documents) avant d'écrire : un échec n'écrit rien. Vos factures, avoirs et encaissements restent des pièces en lecture seule ; leur chaîne est vérifiée puis prolongée, et la numérotation continue. Le bilan dit ce qui reste à faire : inviter l'équipe, recréer les liens personnels."
+    },
+    "organizationClosure": {
+      "title": "Fermer l'espace",
+      "body": "La Propriétaire ferme l'espace, avec la double authentification et le nom de l'espace pour confirmer. Pendant 30 jours, l'espace ne sert plus qu'à exporter les données et à le rouvrir : l'équipe n'a plus ses écrans, les liens des tiers se ferment, aucun e-mail ne part. Un e-mail confirme la fermeture, un autre prévient sept jours avant la suppression. Au 30e jour, tout est supprimé, documents compris ; seule reste chez Symbola une trace sans donnée personnelle."
     },
     "contactsList": {
       "title": "Contacts",
@@ -1466,6 +1474,22 @@
     "standaloneTasks": {
       "title": "Tâches hors évènement",
       "body": "Une tâche sans évènement apparaît dans « Aujourd'hui » à son échéance. Cochée, une tâche qui se répète fait naître la suivante."
+    },
+    "eventClosing": {
+      "title": "Clôture d'un évènement",
+      "body": "Dès le lendemain de l'évènement, la liste de clôture rassemble ce qui reste : la facture de solde, les paiements des prestataires, les commissions, l'évaluation des prestataires (interne), vos trois leçons et le remerciement au client avec votre lien d'avis. Le bilan montre le budget final, vos honoraires, vos commissions, vos frais propres et la marge. Le temps passé est facultatif. Clôturez, puis archivez : l'évènement passe en lecture seule et sort de vos listes."
+    },
+    "eventTemplatesList": {
+      "title": "Modèles d'évènement",
+      "body": "Un évènement enregistré comme modèle garde son rétroplanning, son programme, la structure de son budget (sans montant), ses questionnaires et, si vous l'avez choisi, ses prestataires. Jamais de donnée de vos clients : Symbola refuse un modèle qui en contient. Créez un évènement depuis un modèle en choisissant sa date."
+    },
+    "closingDashboard": {
+      "title": "Vos bilans",
+      "body": "Les évènements clôturés pour lesquels vous avez saisi un temps passé, avec la marge et la marge par heure. Sans temps saisi, rien n'apparaît : c'est facultatif."
+    },
+    "accountingExports": {
+      "title": "Exports comptables",
+      "body": "Choisissez la période (mois, trimestre, année ou exercice). Symbola propose le format selon votre forme juridique : journal des recettes pour une micro-entreprise ; journaux des ventes et des encaissements et FEC pour une société ou une EI au réel ; PDF d'origine en archive ZIP. Chaque export est contrôlé : totaux au centime, numérotation continue avec les avoirs ; un écart bloque l'export et s'explique. Les données d'essai n'y sont jamais."
     },
     "floorplanVenue": {
       "title": "Plans de salle d'un lieu",
@@ -2227,6 +2251,10 @@
     "eventNotesSaved": "Notes enregistrées.",
     "eventNotesForbidden": "Ces notes confidentielles sont réservées à leur auteur et à la titulaire.",
     "eventNotesConfidentialHidden": "Des notes confidentielles existent : elles sont réservées à leur auteur et à la titulaire.",
+    "archivedFilter": "Archivés",
+    "currentFilter": "En cours et passés",
+    "archivedTag": "Archivé",
+    "archivedEmpty": "Aucun évènement archivé.",
     "floorplanLink": "Plan de salle de l'évènement"
   },
   "Budget": {
@@ -4926,6 +4954,14 @@
     "fieldNo": "Non",
     "internalNoteConfidentialElsewhere": "La note interne est confidentielle : elle se modifie dans sa section de la fiche.",
     "historyTable": "Tableau de l'historique avec vous",
+    "evaluationsTitle": "Historique des collaborations",
+    "evaluationsHelp": "Vos évaluations après chaque évènement, internes à votre organisation.",
+    "evaluationsEmpty": "Aucune évaluation pour l'instant.",
+    "evaluationsAverage": "Moyenne {average} sur 5 · {count, plural, one {# évaluation} other {# évaluations}} · dernière le {date}",
+    "evaluationsEntry": "{event} : {rating} sur 5",
+    "evaluationsCriteria": "Ponctualité {punctuality} · qualité {quality} · relation {value}",
+    "evaluationsCardRating": "Évaluation générale de la fiche : {rating} sur 5",
+    "evaluationsUnknownEvent": "Évènement retiré",
     "floorplansTitle": "Plans de salle",
     "floorplansIntro": "Espaces du lieu, installations fixes et vos configurations, prêtes à copier dans un évènement.",
     "floorplansLink": "Ouvrir les plans de salle du lieu"
@@ -5198,6 +5234,7 @@
     "contractTemplates": "Modèles de contrat",
     "export": "Exporter mes données",
     "organizationImport": "Reprendre un export",
+    "organizationClosure": "Fermer l'espace",
     "storage": "Stockage",
     "emailTemplates": "Modèles d'e-mails",
     "messageTemplates": "Modèles de messages",
@@ -5218,7 +5255,9 @@
     "notifications": "Notifications",
     "automations": "Automatisations",
     "riskRadar": "Radar des risques",
-    "clientTerms": "Termes des clients"
+    "clientTerms": "Termes des clients",
+    "accountingExports": "Exports comptables",
+    "eventTemplates": "Modèles d'évènement"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -5273,6 +5312,7 @@
     "accounts": "Comptes",
     "onboarding": "Prise en main",
     "activity": "Activité",
+    "closures": "Espaces fermés",
     "health": "Santé",
     "settings": "Réglages de la suite",
     "account": "Mon compte"
@@ -5475,6 +5515,8 @@
       "hub_organization_export_ready": "Export complet préparé",
       "hub_organization_export_downloaded": "Export complet téléchargé",
       "hub_organization_import_failed": "Reprise d'un export refusée",
+      "hub_organization_reopened": "Espace rouvert",
+      "hub_organization_closed": "Espace fermé",
       "hub_organization_import_completed": "Export repris",
       "hub_organization_import_requested": "Reprise d'un export demandée",
       "hub_mail_variable_missing": "E-mail automatique non envoyé : variable du modèle sans valeur",
@@ -5531,6 +5573,12 @@
       "hub_ownership_transfer_cancelled": "Transfert de propriété annulé",
       "hub_organization_visibility_changed": "Visibilité des évènements modifiée",
       "events_team_changed": "Équipe de l'évènement modifiée",
+      "events_event_closed": "Évènement clôturé, budget figé",
+      "events_event_archived": "Évènement archivé",
+      "events_event_unarchived": "Évènement désarchivé",
+      "events_review_request_sent": "Remerciement et demande d'avis envoyés",
+      "quotes_accounting_exported": "Export comptable téléchargé",
+      "quotes_accounting_blocked": "Export comptable bloqué par le contrôle",
       "floorplans_plan_published": "Plan de salle diffusé"
     },
     "categories": {
@@ -5634,6 +5682,7 @@
       "hub_organization_exports": "export complet",
       "quotes_ledger_anchors": "ancre de la chaîne des pièces",
       "hub_organization_imports": "reprise d'un export",
+      "hub_organization_closures": "fermeture d'un espace",
       "hub_contacts": "contact",
       "hub_contact_notes": "note d'un contact",
       "hub_contact_members": "membre d'un foyer ou d'une entreprise",
@@ -5712,6 +5761,12 @@
       "hub_risk_rules": "règle du radar des risques",
       "events_event_type_vocabulary": "terme des clients d'un type",
       "events_planning_health_settings": "seuils de la santé du planning",
+      "events_event_closings": "clôture d'un évènement",
+      "events_closing_settings": "réglage de la demande d'avis",
+      "events_event_templates": "modèle d'évènement",
+      "vendors_vendor_evaluations": "évaluation d'un prestataire",
+      "quotes_accounting_export_settings": "réglage des exports comptables",
+      "quotes_accounting_exports": "export comptable",
       "floorplans_element_types": "élément de la bibliothèque des plans",
       "floorplans_spaces": "espace d'un plan de salle",
       "floorplans_space_fixtures": "installation d'un espace",
@@ -6696,7 +6751,8 @@
         "to_verify": "{document} de {vendor} : déposée, à vérifier"
       },
       "vendorBankCheck": "IBAN de {vendor} changé : à vérifier par téléphone avant tout paiement",
-      "standaloneTaskTag": "Hors évènement"
+      "standaloneTaskTag": "Hors évènement",
+      "closingDue": "À clôturer"
     },
     "myEventsTitle": "Mes évènements",
     "myEventsEmpty": "Aucun évènement en cours.",
@@ -6919,6 +6975,50 @@
       "ledger_invalid": "La chaîne des factures, avoirs et encaissements de l'archive n'est pas intacte : elle ne peut pas être reprise.",
       "failed": "La reprise a échoué ; rien n'a été écrit. Réessayez, ou écrivez à Symbola."
     }
+  },
+  "OrganizationClosure": {
+    "title": "Fermer l'espace",
+    "subtitle": "Quitter Symbola : vos données sont supprimées 30 jours après la fermeture",
+    "ownerOnly": "Seule la Propriétaire du compte peut fermer ou rouvrir l'espace.",
+    "closedForMember": "Cet espace est fermé : il sera supprimé le {date}. Seule la Propriétaire du compte peut encore l'exporter ou le rouvrir.",
+    "intro": "Fermer l'espace arrête Symbola pour votre entreprise. Pendant 30 jours, l'espace ne sert plus qu'à exporter vos données et à le rouvrir ; ensuite, tout est supprimé : données, documents, comptes de l'équipe.",
+    "exportFirstTitle": "Exportez d'abord vos données",
+    "exportFirst": "Gardez une copie complète de vos données (vos factures comprises : leur conservation vous incombe). L'export reste possible jusqu'au dernier jour.",
+    "exportLink": "Exporter mes données",
+    "whatTitle": "Ce qui se passe",
+    "whatClosed": "Dès la fermeture : l'équipe n'a plus accès aux écrans, les liens de vos clients, prestataires et invités se ferment, et plus aucun e-mail ne part (rappels, relances, factures programmées).",
+    "whatNotice": "Un e-mail vous confirme la fermeture, un autre vous prévient sept jours avant la suppression.",
+    "whatErased": "Le {date}, tout est supprimé, documents compris ; les sauvegardes l'oublient à la fin de leur cycle, {days} jours au plus. Seule reste, chez Symbola, la trace de la fermeture, sans aucune donnée personnelle.",
+    "confirmTitle": "Fermer l'espace",
+    "confirmLabel": "Pour confirmer, écrivez le nom de l'espace : {name}",
+    "confirmHint": "La fermeture demande une session ouverte avec la double authentification.",
+    "submit": "Fermer l'espace",
+    "closed": "Espace fermé. Il sera supprimé le {date}.",
+    "confirmationMismatch": "Le nom écrit n'est pas celui de l'espace.",
+    "mfaRequired": "Fermer l'espace demande la double authentification : reconnectez-vous avec votre second facteur.",
+    "alreadyClosed": "L'espace est déjà fermé.",
+    "forbidden": "Seule la Propriétaire du compte peut fermer ou rouvrir l'espace.",
+    "closedTitle": "Espace fermé",
+    "closedSince": "Fermé le {closed}. Suppression le {date}.",
+    "daysLeft": "{days, plural, =0 {Dernier jour pour exporter vos données.} one {Encore # jour pour exporter vos données ou rouvrir l'espace.} other {Encore # jours pour exporter vos données ou rouvrir l'espace.}}",
+    "reopenTitle": "Rouvrir l'espace",
+    "reopenBody": "Rouvrir annule la suppression : l'équipe retrouve ses écrans, les liens se rouvrent, les envois reprennent.",
+    "reopen": "Rouvrir l'espace",
+    "reopened": "Espace rouvert.",
+    "notReopenable": "La date de suppression est passée : l'espace ne peut plus être rouvert."
+  },
+  "AdminClosures": {
+    "title": "Espaces fermés",
+    "intro": "Chaque fermeture d'un espace, sans donnée personnelle : identifiant de l'organisation et dates. La trace reste après la suppression ; elle sert à effacer de nouveau, après une restauration de sauvegarde, un espace déjà supprimé (runbook de restauration).",
+    "organization": "Organisation",
+    "closedAt": "Fermée le",
+    "deletionDueAt": "Suppression prévue",
+    "status": "État",
+    "statusClosed": "Fermée",
+    "statusReopened": "Rouverte le {date}",
+    "statusErased": "Supprimée le {date} ({rows, plural, one {# ligne} other {# lignes}}, {files, plural, one {# fichier} other {# fichiers}})",
+    "statusFilesPending": "Supprimée le {date} ; fichiers en attente",
+    "none": "Aucun espace fermé."
   },
   "Contacts": {
     "title": "Contacts",
@@ -7158,6 +7258,16 @@
         "subject": "Votre export Symbola est prêt",
         "body": "Bonjour,\n\nL'export complet des données de « {organization} » est prêt. Téléchargez-le depuis Paramètres, Exporter mes données, jusqu'au {until} :\n\n{url}\n\nPour votre sécurité, l'archive n'est jamais jointe à un e-mail.",
         "button": "Ouvrir mes exports"
+      },
+      "organizationClosureNotice": {
+        "subject": "Votre espace Symbola sera supprimé dans sept jours",
+        "body": "Bonjour,\n\nL'espace « {organization} », fermé, sera supprimé le {until}, avec toutes ses données et ses documents. Pensez à exporter vos données d'ici là, ou rouvrez l'espace :\n\n{url}",
+        "button": "Ouvrir la fermeture"
+      },
+      "organizationClosed": {
+        "subject": "Votre espace Symbola est fermé",
+        "body": "Bonjour,\n\nL'espace « {organization} » est fermé. Il sera supprimé le {until}, avec toutes ses données et ses documents. Jusque-là, vous pouvez exporter vos données ou rouvrir l'espace :\n\n{url}",
+        "button": "Ouvrir la fermeture"
       },
       "invitation": {
         "subject": "Votre invitation Symbola",
@@ -9855,7 +9965,8 @@
       "eReporting": "E-reporting",
       "ledger": "Journaux et exports",
       "sessions": "Mes sessions",
-      "account": "Mon compte"
+      "account": "Mon compte",
+      "exports": "Exports comptables"
     },
     "title": "Comptabilité de {organization}",
     "subtitle": "Votre accès est en lecture seule : vous consultez et téléchargez, rien ne se modifie d'ici.",
@@ -9878,7 +9989,8 @@
     "links": {
       "payments": "Encaissements",
       "ledger": "Journaux et écritures (CSV)",
-      "eReporting": "E-reporting"
+      "eReporting": "E-reporting",
+      "exports": "Exports comptables (journaux, FEC, PDF d'origine)"
     },
     "moduleUnavailable": "Le module Devis et factures n'est pas souscrit par l'organisation : rien à consulter pour l'instant.",
     "documentsTable": "Tableau des factures et avoirs"
@@ -10295,6 +10407,317 @@
     "saved": "Terme enregistré.",
     "invalid": "Indiquez un terme court (40 caractères au plus).",
     "clientsHeading": "Clients : {term}"
+  },
+  "Closing": {
+    "title": "Clôture de l'évènement",
+    "subtitle": "Facturer le solde, régler ce qui reste, noter vos prestataires et voir ce que l'évènement vous a rapporté.",
+    "back": "Retour à l'évènement",
+    "openChecklist": "Ouvrir la liste de clôture",
+    "closingLink": "Clôture et bilan",
+    "dueBanner": "L'évènement est passé : sa liste de clôture vous attend.",
+    "checklistTitle": "Liste de clôture",
+    "checklistLabel": "Étapes de la clôture",
+    "steps": {
+      "balance_invoice": "Facture de solde",
+      "vendor_payments": "Paiements des prestataires",
+      "commissions": "Commissions à facturer",
+      "evaluations": "Évaluation des prestataires",
+      "time_spent": "Temps passé (facultatif)",
+      "lessons": "Trois leçons",
+      "review_request": "Remerciement et demande d'avis"
+    },
+    "status": {
+      "done": "Fait",
+      "todo": "À faire",
+      "optional": "Facultatif",
+      "unavailable": "Indisponible"
+    },
+    "stepCount": "{count, plural, one {# restant} other {# restants}}",
+    "stepOpen": "Ouvrir",
+    "markDone": "Marquer comme fait",
+    "markTodo": "Remettre à faire",
+    "unavailableHelp": "Ce module n'est pas souscrit par l'organisation.",
+    "evaluationsTitle": "Évaluer les prestataires",
+    "evaluationsHelp": "Votre évaluation reste interne : ni le client, ni le prestataire, ni votre comptable ne la voient.",
+    "noRetainedVendors": "Aucun prestataire retenu sur cet évènement.",
+    "vendorNotLinked": "Ce prestataire n'est pas relié à votre carnet : reliez-le pour l'évaluer.",
+    "rating": "Note",
+    "ratingOption": "{value} sur 5",
+    "criteriaNone": "—",
+    "criteria": {
+      "punctuality": "Ponctualité",
+      "quality": "Qualité",
+      "value": "Relation ou rapport qualité-prix"
+    },
+    "comment": "Commentaire",
+    "evaluate": "Enregistrer l'évaluation",
+    "evaluated": "Évaluation enregistrée.",
+    "evaluatedOn": "Évalué {rating} sur 5",
+    "notesTitle": "Temps passé et leçons",
+    "timeSpent": "Temps passé (heures)",
+    "timeSpentHelp": "Facultatif : saisissez-le si vous voulez connaître votre marge par heure (« 12,5 » ou « 12:30 »).",
+    "lesson": "Leçon {index}",
+    "saveNotes": "Enregistrer",
+    "notesSaved": "Enregistré.",
+    "expensesTitle": "Vos frais propres",
+    "expensesHelp": "Déplacements, sous-traitance… Ils comptent dans votre marge et ne vont jamais dans le budget du client. Montants hors taxes.",
+    "expenseLabel": "Libellé",
+    "expenseAmount": "Montant HT (€)",
+    "addExpense": "Ajouter",
+    "removeExpense": "Retirer {label}",
+    "noExpenses": "Aucun frais saisi.",
+    "summaryTitle": "Bilan financier",
+    "summaryHelp": "Interne : jamais montré au client ni au comptable.",
+    "budgetTitle": "Budget final du client",
+    "budgetFrozen": "Figé à la clôture, le {date}.",
+    "budgetLive": "Il se figera à la clôture.",
+    "budgetUnavailable": "Module Budget non souscrit.",
+    "budget": {
+      "estimated": "Estimé",
+      "committed": "Engagé",
+      "paid": "Payé",
+      "remaining": "Reste à payer",
+      "variance": "Écart à l'enveloppe"
+    },
+    "fees": "Honoraires",
+    "commissions": "Commissions",
+    "ownExpenses": "Frais propres",
+    "margin": "Marge",
+    "marginPerHour": "Marge par heure",
+    "dashboardLink": "Voir tous vos bilans",
+    "closeTitle": "Clôturer",
+    "closeHelp": "La clôture fige le budget final et passe l'évènement en « Clôturé ».",
+    "closeButton": "Clôturer l'évènement",
+    "closedOn": "Clôturé le {date}.",
+    "incomplete": "Il reste des étapes à faire ; vous pouvez clôturer quand même.",
+    "archiveTitle": "Archiver",
+    "archiveHelp": "L'évènement passe en lecture seule et sort de vos listes ; il reste consultable avec le filtre « Archivés ». Les purges prévues suivent leur calendrier.",
+    "archiveButton": "Archiver l'évènement",
+    "archivedBanner": "Évènement archivé : lecture seule.",
+    "unarchiveButton": "Désarchiver",
+    "templateTitle": "Enregistrer comme modèle",
+    "templateHelp": "Le modèle garde le rétroplanning, le programme, la structure du budget (sans montant) et les questionnaires. Aucune donnée de vos clients.",
+    "templateName": "Nom du modèle",
+    "includeVendors": "Garder les prestataires retenus (contacts professionnels)",
+    "saveTemplate": "Enregistrer le modèle",
+    "templateSaved": "Modèle enregistré.",
+    "personalDataFound": "Le modèle contient des données personnelles ; retirez-les d'abord :",
+    "findingPlace": {
+      "name": "Nom du modèle",
+      "task": "Tâche",
+      "program": "Programme",
+      "slot": "Poste",
+      "budget_line": "Ligne du budget",
+      "questionnaire": "Questionnaire",
+      "vendor": "Prestataire"
+    },
+    "findingKind": {
+      "email": "e-mail",
+      "phone": "téléphone",
+      "client_name": "nom d'un client"
+    },
+    "finding": "{place} « {label} » : {kind}",
+    "duplicateTitle": "Dupliquer",
+    "duplicateHelp": "Une copie à une nouvelle date : rétroplanning recalculé, programme, structure du budget. Ni client, ni invité, ni devis, ni facture.",
+    "duplicateDate": "Nouvelle date",
+    "duplicateButton": "Dupliquer l'évènement",
+    "templatesLink": "Vos modèles d'évènement",
+    "reviewTitle": "Remerciement et demande d'avis",
+    "reviewHelp": "Relisez et modifiez le message avant de l'envoyer. Il part de Symbola, à l'adresse de chaque client.",
+    "reviewOpen": "Préparer le message",
+    "reviewSentOn": "Envoyé le {date}.",
+    "reviewNoLink": "Aucun lien d'avis réglé : le message ne propose que le remerciement.",
+    "reviewLinkTitle": "Votre lien d'avis",
+    "reviewLinkHelp": "Google, Mariages.net, votre site… Le lien que vos clients suivront. Aucune incitation, aucune condition.",
+    "reviewUrl": "Adresse (https://…)",
+    "reviewLabel": "Nom de la plateforme",
+    "saveReviewLink": "Enregistrer le lien",
+    "reviewLinkSaved": "Lien enregistré.",
+    "recipients": "Destinataires",
+    "noRecipients": "Aucun client n'a d'adresse e-mail sur la fiche : ajoutez-la d'abord.",
+    "subject": "Objet",
+    "body": "Message",
+    "send": "Envoyer",
+    "sent": "Message envoyé.",
+    "errors": {
+      "unauthenticated": "Votre session a expiré : reconnectez-vous.",
+      "moduleUnavailable": "Le module Évènements n'est pas souscrit.",
+      "notFound": "Évènement introuvable.",
+      "archived": "Évènement archivé : lecture seule.",
+      "notClosable": "Seul un évènement confirmé ou en préparation se clôture.",
+      "notFinished": "Clôturez ou annulez l'évènement avant de l'archiver.",
+      "demo": "Un évènement d'essai ne se clôture pas.",
+      "lessons": "Trois leçons au plus, de 500 caractères chacune.",
+      "expenses": "Libellé requis et montant positif, en euros.",
+      "timeSpent": "Temps invalide : « 12,5 » ou « 12:30 ».",
+      "steps": "Étape inconnue.",
+      "rating": "Choisissez une note de 1 à 5.",
+      "comment": "Commentaire trop long (2 000 caractères au plus).",
+      "notRetained": "Seul un prestataire retenu sur cet évènement s'évalue.",
+      "templateName": "Donnez un nom au modèle (120 caractères au plus).",
+      "templateContent": "Le modèle n'a pas pu être enregistré.",
+      "date": "Choisissez une date.",
+      "reviewUrl": "Adresse invalide : elle doit commencer par https://.",
+      "reviewLabel": "Nom trop long (60 caractères au plus).",
+      "reviewEmpty": "L'objet et le message sont requis.",
+      "reviewTooLong": "Message trop long.",
+      "reviewPlaceholder": "Une variable entre accolades reste dans le message : remplacez-la.",
+      "reviewNoRecipient": "Aucun destinataire.",
+      "mailQuota": "Quota d'e-mails atteint : réessayez plus tard."
+    }
+  },
+  "EventTemplates": {
+    "title": "Modèles d'évènement",
+    "subtitle": "Des évènements devenus modèles : rétroplanning, programme, structure du budget, questionnaires.",
+    "empty": "Aucun modèle. Enregistrez un évènement comme modèle depuis sa clôture.",
+    "listLabel": "Modèles d'évènement",
+    "counts": "{tasks} tâches · {program} séquences · {slots} postes",
+    "withVendors": "avec prestataires",
+    "eventDate": "Date de l'évènement",
+    "create": "Créer un évènement",
+    "createLabel": "Créer un évènement depuis « {name} »",
+    "remove": "Supprimer",
+    "removeLabel": "Supprimer le modèle « {name} »",
+    "removed": "Modèle supprimé.",
+    "errors": {
+      "notFound": "Modèle introuvable.",
+      "date": "Choisissez une date.",
+      "unauthenticated": "Votre session a expiré : reconnectez-vous."
+    }
+  },
+  "ClosingDashboard": {
+    "title": "Vos bilans",
+    "subtitle": "Les évènements clôturés pour lesquels vous avez saisi un temps passé.",
+    "empty": "Aucun temps saisi pour l'instant.",
+    "tableLabel": "Bilans des évènements",
+    "event": "Évènement",
+    "closedOn": "Clôturé le",
+    "hours": "Temps",
+    "margin": "Marge",
+    "perHour": "Par heure",
+    "hoursValue": "{hours} h"
+  },
+  "AccountingExports": {
+    "title": "Exports comptables",
+    "subtitle": "Les journaux de la période, contrôlés au centime, pour votre comptable.",
+    "readOnly": "Lecture seule",
+    "periodTitle": "Période",
+    "periodKind": "Type de période",
+    "periodKinds": {
+      "month": "Mois",
+      "quarter": "Trimestre",
+      "year": "Année civile",
+      "fiscal_year": "Exercice"
+    },
+    "year": "Année",
+    "month": "Mois",
+    "quarter": "Trimestre",
+    "quarterOption": "T{index}",
+    "show": "Afficher",
+    "periodLabel": "Du {start} au {end}",
+    "familyTitle": "Format",
+    "familyLabel": "Format des exports",
+    "families": {
+      "micro": "Micro-entreprise : journal des recettes",
+      "real": "Société ou EI au réel : journaux des ventes et des encaissements, FEC"
+    },
+    "familyDefault": "Proposé d'après votre forme juridique ; vous pouvez en choisir un autre.",
+    "checkTitle": "Contrôle de rapprochement",
+    "checkOk": "Rapproché au centime : numérotation continue, totaux identiques à vos pièces.",
+    "checkBlocked": "Export bloqué : corrigez d'abord ces écarts.",
+    "invoiced": "Facturé",
+    "credited": "Avoirs",
+    "received": "Encaissé",
+    "documents": "Pièces",
+    "issues": {
+      "missing_number": "{number} absente de la numérotation.",
+      "total_mismatch": "Total {total} : {exportAmount} dans l'export, {expectedAmount} dans vos pièces.",
+      "unbalanced": "{number} : totaux incohérents.",
+      "missing_original": "{number} : PDF d'origine introuvable."
+    },
+    "totals": {
+      "invoiced": "facturé",
+      "credited": "des avoirs",
+      "received": "encaissé"
+    },
+    "filesTitle": "Fichiers",
+    "formats": {
+      "receipts_journal": "Journal des recettes (CSV)",
+      "sales_journal": "Journal des ventes (CSV)",
+      "payments_journal": "Journal des encaissements (CSV)",
+      "fec": "FEC (fichier des écritures comptables)",
+      "originals": "PDF d'origine des factures et avoirs (ZIP)"
+    },
+    "download": "Télécharger",
+    "downloadLabel": "Télécharger : {format}",
+    "fecYearOnly": "Le FEC se produit sur une année ou un exercice.",
+    "settingsTitle": "Plan de comptes",
+    "settingsHelp": "Comptes et journaux de départ, à relire avec votre comptable.",
+    "fiscalYearStart": "Mois de début de l'exercice",
+    "accounts": {
+      "sales": "Ventes",
+      "vatCollected": "TVA collectée",
+      "clients": "Clients",
+      "bank": "Banque",
+      "clientAdvances": "Acomptes reçus"
+    },
+    "journals": {
+      "sales": "Journal des ventes",
+      "bank": "Journal de banque"
+    },
+    "accountNumber": "Compte {name}",
+    "accountLabel": "Libellé {name}",
+    "journalCode": "Code {name}",
+    "journalLabel": "Libellé {name}",
+    "saveSettings": "Enregistrer le plan",
+    "settingsSaved": "Plan enregistré.",
+    "historyTitle": "Derniers exports",
+    "historyEmpty": "Aucun export pour l'instant.",
+    "historyLabel": "Derniers exports",
+    "historyFormat": "Format",
+    "historyPeriod": "Période",
+    "historyStatus": "Contrôle",
+    "historyDate": "Le",
+    "statusDone": "Rapproché",
+    "statusBlocked": "Bloqué",
+    "moduleUnavailable": "Le module Devis et factures n'est pas souscrit : aucun export comptable.",
+    "header": {
+      "period": "Période",
+      "organization": "Organisation",
+      "exportedOn": "Exporté le"
+    },
+    "receiptsColumns": {
+      "date": "Date d'encaissement",
+      "method": "Mode",
+      "invoice": "Numéro de facture",
+      "client": "Client",
+      "amount": "Montant (EUR)"
+    },
+    "journalColumns": {
+      "journal": "Journal",
+      "date": "Date",
+      "entry": "Écriture",
+      "piece": "Pièce",
+      "account": "Compte",
+      "label": "Libellé",
+      "debit": "Débit",
+      "credit": "Crédit"
+    },
+    "total": "Total",
+    "lines": {
+      "invoice": "Facture",
+      "creditNote": "Avoir",
+      "payment": "Encaissement",
+      "reversal": "Annulation d'encaissement"
+    },
+    "errors": {
+      "period": "Période invalide.",
+      "format": "Ce format n'est pas disponible pour cette période.",
+      "month": "Mois invalide.",
+      "account": "Compte invalide : chiffres et lettres, 20 caractères au plus.",
+      "journal": "Code de journal invalide : 10 caractères au plus.",
+      "unauthenticated": "Votre session a expiré : reconnectez-vous."
+    }
   },
   "Floorplans": {
     "unavailable": "Les plans de salle ne sont pas ouverts pour votre organisation. Ils s'ouvrent depuis l'Exploitation.",

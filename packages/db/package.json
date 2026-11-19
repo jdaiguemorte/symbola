@@ -10,6 +10,7 @@
     "./audit": "./src/audit.ts",
     "./export": "./src/export.ts",
     "./import": "./src/import.ts",
+    "./erase": "./src/erase.ts",
     "./row-stamps": "./src/row-stamps.ts",
     "./schema/hub": "./src/schema/hub.ts",
     "./schema/events": "./src/schema/events.ts",

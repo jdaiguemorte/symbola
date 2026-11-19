@@ -24,6 +24,8 @@ import {
   listFinishedUnseenQuestionnaires,
   listReadyFollowUps,
   listStandaloneTasks,
+  closingDue,
+  listEventClosings,
 } from "@/modules/events/service";
 import { countDuplicatePairs, getFollowUpDelays } from "@/modules/hub/service";
 import { listGuestPurgeNotices, listRecentOppositions } from "@/modules/guests/service";
@@ -49,6 +51,8 @@ export type TodayWords = {
   depositBlocked: (number: string) => string;
   vendorContract: (vendorName: string, slotLabel: string) => string;
   dateConflict: (count: number) => string;
+  // Lot 58 (PAR-09) : « À clôturer » (absent : pas d'élément, pour les appelants qui ne l'affichent pas).
+  closingDue?: string;
   linkRenewal: (personName: string) => string;
   // Lot 49 (RGP-08) : préavis de purge (« régimes » ou « tout ») et oppositions des invités.
   guestPurge?: (stage: "diets" | "all") => string;
@@ -215,6 +219,27 @@ async function eventItems({ organizationId, words, locale, today, now, events, n
         since: day(alert.sentAt),
         actor: { kind: "vendor", name: alert.vendorName },
         href: `/events/${alert.eventId}?onglet=budget`,
+        action: { kind: "open" },
+      });
+    }
+  }
+  // Lot 58 (PAR-09, étape 1) : à J+1, dans le fuseau de l'évènement, la liste de clôture attend ; une
+  // clôture déjà validée n'apparaît plus.
+  if (words.closingDue) {
+    const due = events.filter((event) => !event.isDemo && closingDue(event, now));
+    const closed = due.length > 0 ? new Set((await listEventClosings(organizationId)).filter((closing) => closing.closedAt !== null).map((closing) => closing.eventId)) : new Set<string>();
+    for (const event of due) {
+      if (closed.has(event.id)) continue;
+      items.push({
+        key: `closing:${event.id}`,
+        kind: "closing_due",
+        eventId: event.id,
+        eventNames: eventNames(event.clients),
+        title: words.closingDue,
+        dueOn: nextDay(event.eventDate!),
+        since: null,
+        actor: { kind: "you" },
+        href: `/events/${event.id}/cloture`,
         action: { kind: "open" },
       });
     }
@@ -596,7 +621,8 @@ export async function loadTodayItems(
 ): Promise<{ items: TodayItem[]; today: string; events: EventSummary[]; unavailable: TodaySource[] }> {
   const today = parisToday(now);
   const unavailable: TodaySource[] = [];
-  const listed = modules.events ? await settleWithin(() => listEvents({ organizationId }), timeoutMs, "events") : { ok: true as const, value: [] };
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé sort d'« Aujourd'hui ».
+  const listed = modules.events ? await settleWithin(() => listEvents({ organizationId, archived: "exclude" }), timeoutMs, "events") : { ok: true as const, value: [] };
   if (!listed.ok) unavailable.push("events");
   const events = listed.ok ? listed.value : [];
   const namesOf = new Map(events.map((event) => [event.id, eventNames(event.clients)]));
@@ -638,4 +664,10 @@ async function withoutQuotedOptions(items: TodayItem[], organizationId: string, 
   const quoted = await settleWithin(() => listEventIdsWithSentQuote(organizationId), timeoutMs, "quotes");
   if (!quoted.ok) return items;
   return items.filter((item) => item.kind !== "prospect_follow_up" || item.eventId === null || !quoted.value.has(item.eventId));
+}
+
+function nextDay(date: string): string {
+  const next = new Date(`${date}T00:00:00Z`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  return next.toISOString().slice(0, 10);
 }

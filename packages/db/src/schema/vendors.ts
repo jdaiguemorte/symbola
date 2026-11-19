@@ -320,3 +320,42 @@ export const vendorBankChanges = vendorsSchema.table("vendor_bank_changes", {
     sql`(${table.previousMasked} is null or ${table.previousMasked} ~ '^[A-Z]{2}[0-9]{2} [•  0-9A-Z]{4,40}$') and (${table.nextMasked} is null or ${table.nextMasked} ~ '^[A-Z]{2}[0-9]{2} [•  0-9A-Z]{4,40}$') and (${table.previousMasked} is not null or ${table.nextMasked} is not null)`,
   ),
 ]);
+
+// Lot 58 (PRE-08 ; ADR 0097) — évaluation d'un prestataire après un évènement : une note de 1 à 5,
+// trois critères facultatifs (ponctualité, qualité, relation ou rapport qualité-prix) et un
+// commentaire. Une par prestataire et par évènement (uuid opaque du module events, ADR 0011).
+// Toujours interne : jamais montrée au client, au prestataire, au comptable, ni exportée vers un tiers.
+export const vendorEvaluations = vendorsSchema.table(
+  "vendor_evaluations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    vendorId: uuid("vendor_id")
+      .notNull()
+      .references(() => vendors.id, { onDelete: "cascade" }),
+    eventId: uuid("event_id").notNull(),
+    rating: integer("rating").notNull(),
+    punctuality: integer("punctuality"),
+    quality: integer("quality"),
+    value: integer("value"),
+    comment: text("comment"),
+    evaluatedBy: uuid("evaluated_by"),
+    evaluatedAt: timestamp("evaluated_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("vendor_evaluations_organization_idx").on(table.organizationId),
+    index("vendor_evaluations_event_idx").on(table.eventId),
+    unique("vendor_evaluations_vendor_event_key").on(table.vendorId, table.eventId),
+    check("vendor_evaluations_rating_check", sql`${table.rating} between 1 and 5`),
+    check(
+      "vendor_evaluations_criteria_check",
+      sql`(${table.punctuality} is null or ${table.punctuality} between 1 and 5) and (${table.quality} is null or ${table.quality} between 1 and 5) and (${table.value} is null or ${table.value} between 1 and 5)`,
+    ),
+    check("vendor_evaluations_comment_check", sql`${table.comment} is null or char_length(${table.comment}) between 1 and 2000`),
+  ],
+);

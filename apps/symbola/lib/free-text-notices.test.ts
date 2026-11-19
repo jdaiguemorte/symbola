@@ -38,6 +38,10 @@ const NOTICED: Record<string, { file: string; name: string }> = {
   // Lot 48a (DAT-08) : notes confidentielles (chiffrées) d'une fiche, d'un évènement, d'un contact.
   "vendors.vendors.internal_note_sealed": { file: "app/prestataires/[id]/vendor-records.tsx", name: "note" },
   "events.events.notes_sealed": { file: "app/events/[id]/client-contact-forms.tsx", name: "notes" },
+  // Lot 58 (PAR-09, PRE-08) : leçons et frais propres de la clôture, commentaire d'une évaluation.
+  "events.event_closings.lessons": { file: "app/events/[id]/cloture/closing-forms.tsx", name: "lessons" },
+  "events.event_closings.own_expenses": { file: "app/events/[id]/cloture/closing-forms.tsx", name: "expenseLabel" },
+  "vendors.vendor_evaluations.comment": { file: "app/events/[id]/cloture/closing-forms.tsx", name: "comment" },
   "hub.contact_notes.body_sealed": { file: "app/contacts/contact-forms.tsx", name: "body" },
   // Lot 60 (L60-PLA-02, L60-PLA-03) : note d'un élément d'un plan, note d'une installation (même éditeur).
   "floorplans.layout_elements.note": { file: "app/plans-de-salle/floorplan-editor.tsx", name: "note" },
