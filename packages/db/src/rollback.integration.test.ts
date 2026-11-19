@@ -219,7 +219,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     });
     const [gone] = await target`select count(*)::int as count from hub.organizations where id = ${organizationId}`;
     expect(gone!.count).toBe(0);
-    for (const tag of LOT_35C) await rollback(tag);
+    for (const tag of [...LOT_58, ...LOT_35C]) await rollback(tag);
     expect(await hasColumn("hub", "organizations", "closed_at")).toBe(false);
     const [table] = await target<{ name: string | null }[]>`select to_regclass('hub.organization_closures')::text as name`;
     expect(table!.name).toBeNull();
