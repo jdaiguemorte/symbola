@@ -13,8 +13,9 @@ import { createAppConnection } from "@symbola/db/client";
 import { expect, test, type Page } from "@playwright/test";
 import { addEventPlace, addEventVendorSlot, addVendorCandidate, createEventLink, createProspect, createProspectSource, selectVendorCandidate } from "../modules/events/service";
 import { setModuleEnabled } from "../modules/hub/service";
-import { createVendor, listVendorTypes } from "../modules/vendors/service";
-import { copyVenueLayoutToEvent, createLayout, createVenueSpace, getLayoutEditor, getSpace, publishEventLayout, saveFixtures, saveLayoutElements } from "../modules/floorplans/service";
+import { createVendor, listVendorTypes, seedStarterVendorCatalog } from "../modules/vendors/service";
+import { vendorCatalogInput } from "../lib/vendors/catalog";
+import { copyVenueLayoutToEvent, createLayout, createVenueSpace, getLayoutEditor, publishEventLayout, saveFixtures, saveLayoutElements } from "../modules/floorplans/service";
 import { readyOrganization, signIn } from "./helpers";
 
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
@@ -44,6 +45,8 @@ async function chateau(options: { floorplans: boolean }) {
   } finally {
     await sql.end();
   }
+  // Le catalogue de départ : le type « Lieu de réception » porte l'entrée « Plans de salle » de la fiche.
+  await seedStarterVendorCatalog(organizationId, vendorCatalogInput("fr"), { withTypes: true });
   const venueType = (await listVendorTypes(organizationId)).find((type) => type.starterKey === "venue") ?? null;
   const { vendor } = await createVendor(organizationId, { name: "Château des Essais", typeId: venueType?.id ?? null });
   const spaceId = await createVenueSpace(organizationId, vendor.id, { name: "Salle des fêtes", widthCm: 2000, depthCm: 1200 });
@@ -132,7 +135,6 @@ test("L60-PLA-04, L60-PLA-05 — Karim voit son emplacement en évidence par son
   test.setTimeout(120_000);
   const setup = await chateau({ floorplans: true });
   const { organizationId, ownerId } = setup;
-  const fixtureId = (await getSpace(organizationId, setup.spaceId))!.fixtures[0]!.id;
   const source = await createProspectSource(organizationId, "Salon");
   const event = await createProspect({ organizationId, createdByUserId: ownerId, prospectSourceId: source.id, clients: [{ firstName: "Léa" }], eventDate: "2027-06-12" });
   await addEventPlace(organizationId, event.id, { label: "Château des Essais", vendorId: setup.vendorId });
@@ -141,6 +143,8 @@ test("L60-PLA-04, L60-PLA-05 — Karim voit son emplacement en évidence par son
   await selectVendorCandidate({ organizationId, candidateId: karim.id, changedByUserId: ownerId });
   const layoutId = await copyVenueLayoutToEvent(organizationId, event.id, setup.layoutId);
   const view = await getLayoutEditor(organizationId, layoutId);
+  // La prise de la copie de l'espace dans l'évènement (pas celle du lieu).
+  const fixtureId = view.fixtures[0]!.id;
   await saveLayoutElements(organizationId, layoutId, view.layout.revision, [
     { id: null, elementTypeId: null, typeStarterKey: "buffet", typeLabel: null, category: "setup", shape: "rect", name: null, xCm: 600, yCm: 200, widthCm: 400, depthCm: 80, rotationDeg: 0, seats: 0, color: null, note: "Note interne", vendorCandidateId: karim.id, powerOutlets: 2, powerAmps: 16, needsWater: false, maxCableM: null, fixtureId },
     { id: null, elementTypeId: null, typeStarterKey: "dj", typeLabel: null, category: "setup", shape: "rect", name: null, xCm: 1500, yCm: 200, widthCm: 200, depthCm: 100, rotationDeg: 0, seats: 0, color: null, note: null, vendorCandidateId: null, powerOutlets: 0, powerAmps: null, needsWater: false, maxCableM: null, fixtureId: null },
@@ -176,12 +180,14 @@ test("L60-PLA-04, L60-PLA-05 — Karim voit son emplacement en évidence par son
   // Le client : rien sans la rubrique ; avec elle, le plan en lecture.
   const lea = await (await browser.newContext({ locale: "fr-FR", viewport })).newPage();
   await lea.goto(closed.url);
+  await expect(lea).toHaveURL(/\/portail$/);
   await expect(lea.getByRole("link", { name: "Voir le plan de salle" })).toHaveCount(0);
   await lea.goto("/portail/plan-de-salle");
   await expect(lea.getByText("Le plan de salle n'est pas partagé avec ce lien.")).toBeVisible();
   expect((await lea.request.get(`/portail/plan-de-salle/${layoutId}/pdf`)).status()).toBe(404);
   const hugo = await (await browser.newContext({ locale: "fr-FR", viewport })).newPage();
   await hugo.goto(open.url);
+  await expect(hugo).toHaveURL(/\/portail$/);
   await hugo.getByRole("link", { name: "Voir le plan de salle" }).click();
   await expect(hugo.getByRole("heading", { level: 2, name: "Dîner" })).toBeVisible();
   await expect(hugo.getByRole("main")).not.toContainText("Note interne");
