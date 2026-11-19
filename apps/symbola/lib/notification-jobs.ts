@@ -25,6 +25,7 @@ import {
   localClock,
   notify,
   purgeAutomationRuns,
+  purgeEmailDeliveries,
   purgeNotifications,
   recordAutomationRun,
   sendDueDigests,
@@ -99,6 +100,8 @@ export async function runMorningPass(organizationId: string, now: Date = new Dat
   }
   await purgeNotifications(organizationId, now);
   await purgeAutomationRuns(organizationId, now);
+  // Lot 55 (MSG-05) : le journal des envois est purgé à 13 mois.
+  await purgeEmailDeliveries(organizationId, now);
   return true;
 }
 

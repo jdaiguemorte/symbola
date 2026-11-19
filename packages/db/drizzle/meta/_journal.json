@@ -1338,6 +1338,20 @@
       "when": 1795119214922,
       "tag": "0190_lot58_quotes_accounting_exports",
       "breakpoints": true
+    },
+    {
+      "idx": 191,
+      "version": "7",
+      "when": 1795124321398,
+      "tag": "0191_lot55_events_messages",
+      "breakpoints": true
+    },
+    {
+      "idx": 192,
+      "version": "7",
+      "when": 1795124323338,
+      "tag": "0192_lot55_hub_sender_deliveries",
+      "breakpoints": true
     }
   ]
 }

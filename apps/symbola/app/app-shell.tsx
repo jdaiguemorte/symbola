@@ -38,6 +38,8 @@ import {
   listDueSoonPrivacyRequests,
 } from "@/modules/hub/service";
 import { listOrganizationTasks } from "@/modules/events/service";
+import { getDocumentSettings } from "@/modules/quotes/service";
+import { portalTheme, portalThemeCss } from "@/lib/portal/theme";
 import { getAuthContext } from "@/lib/auth-context";
 import { currentLinkAccess } from "@/lib/link-session";
 import { AppNavLink } from "./app-nav-link";
@@ -112,12 +114,17 @@ const iconProps = { size: 20, "aria-hidden": true as const, strokeWidth: 1.5 };
 // Lot 46 (RDV-02, RDV-03) : page publique de réservation et lien de gestion d'un rendez-vous, sans menu.
 const LINK_PAGE = /^\/(?:lien|portail|prestataire|partage|reserver|rdv)(?:\/|$)/;
 
+// Lot 55 (POR-08, UX-14 ; D4) : aux couleurs de l'organisation du lien (celles de ses documents),
+// contraste corrigé ; une feuille de style à nonce (la CSP refuse les styles en ligne).
 async function LinkShell({ children }: { children: ReactNode }) {
   const access = await currentLinkAccess();
   const organization = access ? await getDocumentHeader(appDatabase(), access.organizationId) : null;
   const logoVersion = organization?.logoKey?.split("/").pop() ?? null;
+  const theme = access ? portalTheme((await getDocumentSettings(access.organizationId)).color) : null;
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
-    <div className="link-shell">
+    <div className={theme?.custom ? "link-shell link-shell-themed" : "link-shell"}>
+      {theme ? <style nonce={nonce}>{portalThemeCss(theme)}</style> : null}
       <header className="link-header">
         {organization ? (
           logoVersion ? (
@@ -344,6 +351,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
             ...(isOwner ? [{ href: "/parametres/equipe", label: tSettings("team") }] : []),
             // Lot 38a (MSG-01, D3) : les e-mails envoyés au nom de l'organisation (liens, rappels, signatures, programme).
             ...(events || quotes ? [{ href: "/parametres/emails", label: tSettings("emailTemplates") }] : []),
+            // Lot 55 (MSG-04 révisée, MSG-05) : l'adresse d'où partent les e-mails, et leur journal.
+            ...(events || quotes ? [{ href: "/parametres/adresse-envoi", label: tSettings("senderAddress") }, { href: "/parametres/envois", label: tSettings("emailDeliveries") }] : []),
             // Lot 38b (HUB-21, D10) : les messages types de la planner, utilisés depuis la fiche.
             ...(events ? [{ href: "/parametres/messages", label: tSettings("messageTemplates") }] : []),
             // Lot 39a (HUB-17, ADR 0073) : ce qui a été supprimé depuis moins de 30 jours.

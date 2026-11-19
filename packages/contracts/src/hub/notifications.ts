@@ -25,6 +25,10 @@ export const NOTIFICATION_TYPES = [
   "milestone_late",
   "risk_alert",
   "day_of_alert",
+  // Lot 55 (MSG-03, POR-06, MSG-05) : un client ou un prestataire écrit sur un sujet ; un e-mail est
+  // rejeté (adresse inexistante, boîte pleine) ou signalé comme indésirable.
+  "client_message",
+  "email_bounced",
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 

@@ -15,6 +15,7 @@ import { withOrganization } from "@symbola/db/with-organization";
 import { currentMailTransport, type SendMailInput } from "@symbola/mail";
 import { hasTerms, prepareTerms, recordMatches, type PersonTerms } from "@symbola/privacy";
 import { CLOSURE_EMAIL_KEY_PREFIX, isOrganizationClosed } from "./organization-closures";
+import { recordEmailSent, type DeliveryTracking } from "./email-deliveries";
 
 export const JOB_MAX_ATTEMPTS = 5;
 // Délai avant la tentative suivante, après la 1re, 2e, 3e et 4e.
@@ -29,18 +30,20 @@ export const JOB_RETENTION_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 type StoredAttachment = { filename: string; contentType: string; contentBase64: string; cid?: string };
-type StoredEmail = Omit<SendMailInput, "attachments"> & { attachments?: StoredAttachment[] };
+// Lot 55 (MSG-05) : tracking, la ligne du journal des envois à écrire quand l'e-mail est parti.
+type StoredEmail = Omit<SendMailInput, "attachments"> & { attachments?: StoredAttachment[]; tracking?: DeliveryTracking };
 
-function store(message: SendMailInput): StoredEmail {
+function store(message: SendMailInput, tracking?: DeliveryTracking): StoredEmail {
   const { attachments, ...rest } = message;
   return {
     ...rest,
+    ...(tracking ? { tracking } : {}),
     ...(attachments ? { attachments: attachments.map((attachment) => ({ filename: attachment.filename, contentType: attachment.contentType, contentBase64: attachment.content.toString("base64"), ...(attachment.cid ? { cid: attachment.cid } : {}) })) } : {}),
   };
 }
 
 function restore(stored: StoredEmail): SendMailInput {
-  const { attachments, ...rest } = stored;
+  const { attachments, tracking: _tracking, ...rest } = stored;
   return {
     ...rest,
     ...(attachments ? { attachments: attachments.map((attachment) => ({ filename: attachment.filename, contentType: attachment.contentType, content: Buffer.from(attachment.contentBase64, "base64"), ...(attachment.cid ? { cid: attachment.cid } : {}) })) } : {}),
@@ -59,13 +62,13 @@ export async function jobKeyExists(organizationId: string, idempotencyKey: strin
 }
 
 // Inscrit l'e-mail ; null si la clé est déjà inscrite (rien de plus ne part).
-export async function enqueueEmail(organizationId: string, message: SendMailInput, idempotencyKey: string = newJobKey(), now: Date = new Date()): Promise<string | null> {
+export async function enqueueEmail(organizationId: string, message: SendMailInput, idempotencyKey: string = newJobKey(), now: Date = new Date(), tracking?: DeliveryTracking): Promise<string | null> {
   // Lot 35c (RGP-11, ADR 0100) : un espace fermé n'envoie plus rien, sauf les e-mails de sa fermeture.
   if (!idempotencyKey.startsWith(CLOSURE_EMAIL_KEY_PREFIX) && (await isOrganizationClosed(appDatabase(), organizationId))) return null;
   const rows = await withOrganization(appDatabase(), organizationId, (tx) =>
     tx
       .insert(jobs)
-      .values({ organizationId, kind: "email", idempotencyKey, state: "pending", payload: store(message), runAfter: now, createdAt: now, updatedAt: now })
+      .values({ organizationId, kind: "email", idempotencyKey, state: "pending", payload: store(message, tracking), runAfter: now, createdAt: now, updatedAt: now })
       .onConflictDoNothing({ target: [jobs.organizationId, jobs.idempotencyKey] })
       .returning({ id: jobs.id }),
   );
@@ -90,8 +93,9 @@ export async function runJob(organizationId: string, jobId: string, now: Date = 
       .returning({ payload: jobs.payload, attempts: jobs.attempts }),
   );
   if (!claimed?.payload) return "skipped";
+  const stored = claimed.payload as StoredEmail;
   try {
-    await currentMailTransport().send(restore(claimed.payload as StoredEmail));
+    await currentMailTransport().send(restore(stored));
   } catch (error) {
     const errorName = (error instanceof Error ? error.name : "Error").slice(0, 200);
     const last = claimed.attempts >= JOB_MAX_ATTEMPTS;
@@ -119,8 +123,8 @@ export async function runJob(organizationId: string, jobId: string, now: Date = 
 
 // Inscrit puis tente aussitôt : l'e-mail part comme avant, et repart plus tard si le serveur
 // d'envoi ne répond pas. Rien ne part si la clé est déjà inscrite.
-export async function queueAndSendEmail(organizationId: string, message: SendMailInput, idempotencyKey?: string): Promise<JobOutcome | "duplicate"> {
-  const jobId = await enqueueEmail(organizationId, message, idempotencyKey);
+export async function queueAndSendEmail(organizationId: string, message: SendMailInput, idempotencyKey?: string, tracking?: DeliveryTracking): Promise<JobOutcome | "duplicate"> {
+  const jobId = await enqueueEmail(organizationId, message, idempotencyKey, new Date(), tracking);
   if (!jobId) return "duplicate";
   return runJob(organizationId, jobId);
 }

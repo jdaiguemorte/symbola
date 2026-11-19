@@ -482,3 +482,7 @@ export * from "./hub/contact-events";
 export * from "./hub/notifications";
 // Lot 53 (CHR-10, CHR-05, HUB-24 ; ADR 0095) : tâches hors évènement, santé du planning, terme des clients.
 export * from "./events/planning";
+// Lot 55 (MSG-03, POR-06, MSG-04, MSG-05 ; ADR 0101) : fils de discussion, adresse d'expédition et
+// journal des envois.
+export * from "./events/messages";
+export * from "./hub/email-deliveries";

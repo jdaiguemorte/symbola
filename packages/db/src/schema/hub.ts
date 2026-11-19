@@ -46,6 +46,10 @@ export const organizations = hubSchema.table(
     closedByUserId: uuid("closed_by_user_id"),
     deletionDueAt: timestamp("deletion_due_at", { withTimezone: true }),
     closureNoticeSentAt: timestamp("closure_notice_sent_at", { withTimezone: true }),
+    // Lot 55 (MSG-04 révisée, D1 ; ADR 0101) : partie locale de l'adresse d'expédition de
+    // l'organisation, « <partie locale>@<domaine d'envoi de Symbola> » ; unique, en minuscules. Nulle
+    // tant qu'elle n'est pas choisie : elle est alors proposée depuis le nom.
+    senderLocalPart: text("sender_local_part"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdBy: uuid("created_by"),
@@ -53,6 +57,8 @@ export const organizations = hubSchema.table(
     updatedBy: uuid("updated_by"),
   },
   (table) => [
+    uniqueIndex("organizations_sender_local_part_idx").on(table.senderLocalPart),
+    check("organizations_sender_local_part_check", sql`${table.senderLocalPart} is null or ${table.senderLocalPart} ~ '^[a-z0-9]([a-z0-9]|[.-][a-z0-9]){1,39}$'`),
     check(
       "organizations_closure_check",
       sql`(${table.closedAt} is null) = (${table.deletionDueAt} is null) and (${table.deletionDueAt} is null or ${table.deletionDueAt} >= ${table.closedAt} + interval '29 days')`,
@@ -1052,6 +1058,8 @@ export const EMAIL_TEMPLATE_KINDS = [
   "daily_digest",
   "payment_due_reminder",
   "notification_alert",
+  // Lot 55 (MSG-03, POR-06) : « Nouveau message sur <sujet> », sans le contenu du message.
+  "new_message",
 ] as const;
 
 export const emailTemplates = hubSchema.table(
@@ -1080,7 +1088,7 @@ export const emailTemplates = hubSchema.table(
     // Lot 45 (migration 0172, accord de Julien du 18/11) : réponse, relance, questionnaire envoyé.
     // Lot 52 (migration 0180, spécification validée par Julien le 18/11) : sécurité, transfert, renfort.
     // Lot 53 (migration 0183, accord de Julien du 18/11) : récapitulatif, rappel J-7, alerte.
-    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent', 'new_device_login', 'identity_changed', 'ownership_transfer', 'day_helper_link', 'daily_digest', 'payment_due_reminder', 'notification_alert')`),
+    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent', 'new_device_login', 'identity_changed', 'ownership_transfer', 'day_helper_link', 'daily_digest', 'payment_due_reminder', 'notification_alert', 'new_message')`),
     check("email_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
     check("email_templates_subject_check", sql`char_length(${table.subject}) between 1 and 200`),
     check("email_templates_body_check", sql`char_length(${table.body}) between 1 and 5000`),
@@ -1373,6 +1381,9 @@ export const NOTIFICATION_TYPE_KEYS = [
   "milestone_late",
   "risk_alert",
   "day_of_alert",
+  // Lot 55 (MSG-03, POR-06, MSG-05) : message d'un client ou d'un prestataire ; e-mail rejeté.
+  "client_message",
+  "email_bounced",
 ] as const;
 const NOTIFICATION_TYPES_SQL = sql.raw(NOTIFICATION_TYPE_KEYS.map((key) => `'${key}'`).join(", "));
 export const NOTIFICATION_CHANNEL_KEYS = ["app", "email", "push"] as const;
@@ -1701,5 +1712,46 @@ export const organizationClosures = hubSchema.table(
     index("organization_closures_organization_idx").on(table.organizationId),
     uniqueIndex("organization_closures_open_idx").on(table.organizationId).where(sql`reopened_at is null and erased_at is null`),
     check("organization_closures_dates_check", sql`${table.deletionDueAt} >= ${table.closedAt} + interval '29 days'`),
+  ],
+);
+
+// Lot 55 (MSG-05 ; D2 ; ADR 0101) — journal des envois : chaque e-mail d'une organisation, son objet et
+// son statut (envoyé, remis, rejeté, plainte), mis à jour par le webhook signé du service d'envoi.
+// Jamais le corps. reference : l'identifiant du message (en-tête Message-ID, sans donnée
+// personnelle), par lequel le webhook retrouve la ligne. recipient_hash : SHA-256 de l'adresse en
+// minuscules, pour la recherche par contact. Purgé 13 mois après l'envoi.
+export const EMAIL_DELIVERY_STATUS_KEYS = ["sent", "delivered", "bounced", "complained"] as const;
+export const emailDeliveries = hubSchema.table(
+  "email_deliveries",
+  {
+    id: uuid("id").primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    reference: text("reference").notNull(),
+    recipient: text("recipient"),
+    recipientHash: text("recipient_hash").notNull(),
+    subject: text("subject").notNull(),
+    kind: text("kind"),
+    eventId: uuid("event_id"),
+    status: text("status", { enum: EMAIL_DELIVERY_STATUS_KEYS }).notNull().default("sent"),
+    reason: text("reason"),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull(),
+    statusAt: timestamp("status_at", { withTimezone: true }).notNull(),
+    isDemo: boolean("is_demo").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("email_deliveries_organization_idx").on(table.organizationId, table.sentAt),
+    uniqueIndex("email_deliveries_reference_idx").on(table.reference),
+    index("email_deliveries_recipient_idx").on(table.organizationId, table.recipientHash, table.statusAt),
+    index("email_deliveries_event_idx").on(table.eventId),
+    check("email_deliveries_status_check", sql`${table.status} in ('sent', 'delivered', 'bounced', 'complained')`),
+    check("email_deliveries_reason_check", sql`${table.reason} is null or ${table.reason} in ('mailbox_not_found', 'mailbox_full', 'blocked', 'spam_complaint', 'other')`),
+    check("email_deliveries_reference_check", sql`char_length(${table.reference}) between 1 and 300`),
+    check("email_deliveries_hash_check", sql`${table.recipientHash} ~ '^[0-9a-f]{64}$'`),
+    check("email_deliveries_subject_check", sql`char_length(${table.subject}) <= 300`),
+    check("email_deliveries_kind_check", sql`${table.kind} is null or char_length(${table.kind}) between 1 and 60`),
   ],
 );

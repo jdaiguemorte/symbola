@@ -618,7 +618,8 @@ export const eventLinks = eventsSchema.table("event_links", {
   index("event_links_contact_idx").on(table.contactId),
   // Lot 49 (INV-02, D5) : rubrique « Invités », fermée par défaut comme les autres (POR-10).
   // Lot 45 (POR-07, D6) : rubrique « Questionnaires », fermée par défaut puis ouverte à l'envoi d'un questionnaire.
-  check("event_links_rubrics_check", sql`${table.rubrics} <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes', 'guests', 'questionnaires']::text[]`),
+  // Lot 55 (POR-06, MSG-03) : rubrique « Messages », fermée par défaut.
+  check("event_links_rubrics_check", sql`${table.rubrics} <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes', 'guests', 'questionnaires', 'messages']::text[]`),
   check("event_links_budget_scope_check", sql`${table.budgetScope} in ('all', 'selected')`),
   check("event_links_vendor_candidate_check", sql`${table.audience} <> 'vendor' or ${table.vendorCandidateId} is not null`),
   check("event_links_locale_check", sql`${table.locale} in ('fr', 'en')`),
@@ -2037,5 +2038,151 @@ export const eventTemplates = eventsSchema.table(
     index("event_templates_organization_idx").on(table.organizationId),
     check("event_templates_name_check", sql`char_length(btrim(${table.name})) between 1 and 120`),
     check("event_templates_content_check", sql`jsonb_typeof(${table.content}) = 'object'`),
+  ],
+);
+
+// Lot 55 (MSG-03, POR-06 ; D3 ; ADR 0101) — sujets de discussion d'un évènement (« Traiteur »,
+// « Cérémonie »), chacun avec son fil.
+export const messageTopics = eventsSchema.table(
+  "message_topics",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("message_topics_organization_idx").on(table.organizationId),
+    index("message_topics_event_idx").on(table.eventId),
+    check("message_topics_name_check", sql`char_length(btrim(${table.name})) between 1 and 120`),
+  ],
+);
+
+// Les prestataires ajoutés à un sujet par la planner (leurs liens) : ils en lisent les messages
+// partagés. Retirer le lien retire le prestataire du sujet.
+export const messageTopicLinks = eventsSchema.table(
+  "message_topic_links",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    topicId: uuid("topic_id")
+      .notNull()
+      .references(() => messageTopics.id, { onDelete: "cascade" }),
+    linkId: uuid("link_id")
+      .notNull()
+      .references(() => eventLinks.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("message_topic_links_organization_idx").on(table.organizationId),
+    uniqueIndex("message_topic_links_unique_idx").on(table.topicId, table.linkId),
+    index("message_topic_links_link_idx").on(table.linkId),
+  ],
+);
+
+// Un message d'un sujet. « internal » : l'équipe seulement, jamais écrit par un lien (contrainte) ;
+// « shared » : les clients et les prestataires du sujet. La visibilité ne change jamais : le rôle
+// applicatif n'a pas le droit de modifier un message (lecture, ajout, effacement seulement).
+export const messages = eventsSchema.table(
+  "messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    topicId: uuid("topic_id")
+      .notNull()
+      .references(() => messageTopics.id, { onDelete: "cascade" }),
+    visibility: text("visibility", { enum: ["internal", "shared"] }).notNull(),
+    authorKind: text("author_kind", { enum: ["team", "link"] }).notNull(),
+    authorUserId: uuid("author_user_id"),
+    authorLinkId: uuid("author_link_id").references(() => eventLinks.id, { onDelete: "set null" }),
+    // Copie du nom affiché de l'auteur (le lien peut être retiré).
+    authorName: text("author_name").notNull(),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("messages_organization_idx").on(table.organizationId),
+    index("messages_topic_idx").on(table.topicId, table.createdAt),
+    index("messages_event_idx").on(table.eventId),
+    check("messages_visibility_check", sql`${table.visibility} in ('internal', 'shared')`),
+    check("messages_author_kind_check", sql`${table.authorKind} in ('team', 'link')`),
+    // Un message interne vient toujours de l'équipe ; un lien n'écrit que des messages partagés.
+    check("messages_internal_team_check", sql`${table.visibility} = 'shared' or ${table.authorKind} = 'team'`),
+    check("messages_author_check", sql`(${table.authorKind} = 'team' and ${table.authorLinkId} is null) or (${table.authorKind} = 'link' and ${table.authorUserId} is null)`),
+    check("messages_author_name_check", sql`char_length(${table.authorName}) between 1 and 200`),
+    check("messages_body_check", sql`char_length(${table.body}) between 1 and 5000`),
+  ],
+);
+
+// Pièces jointes d'un message : contrôlées à l'envoi (type par le contenu, taille, antivirus,
+// stockage privé) et servies par l'app après contrôle des droits (ADR 0027).
+export const messageAttachments = eventsSchema.table(
+  "message_attachments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    messageId: uuid("message_id")
+      .notNull()
+      .references(() => messages.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    fileKey: text("file_key").notNull(),
+    mime: text("mime").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("message_attachments_organization_idx").on(table.organizationId),
+    index("message_attachments_message_idx").on(table.messageId),
+    check("message_attachments_label_check", sql`char_length(${table.label}) between 1 and 200`),
+    check("message_attachments_size_check", sql`${table.sizeBytes} > 0`),
+  ],
+);
+
+// Lot 55 (POR-11 ; ADR 0101) — un appareil d'un client abonné au push du portail (facultatif,
+// désactivé par défaut) : nouveaux messages et décisions demandées. Données techniques.
+export const linkPushSubscriptions = eventsSchema.table(
+  "link_push_subscriptions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    linkId: uuid("link_id")
+      .notNull()
+      .references(() => eventLinks.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("link_push_subscriptions_organization_idx").on(table.organizationId),
+    index("link_push_subscriptions_link_idx").on(table.linkId),
+    uniqueIndex("link_push_subscriptions_endpoint_idx").on(table.organizationId, table.endpoint),
+    check("link_push_subscriptions_endpoint_check", sql`${table.endpoint} ~ '^https://' and char_length(${table.endpoint}) <= 1000`),
+    check("link_push_subscriptions_keys_check", sql`char_length(${table.p256dh}) between 80 and 100 and char_length(${table.auth}) between 16 and 32`),
   ],
 );

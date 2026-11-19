@@ -1,7 +1,7 @@
 // Lot 40b (ARC-12, ADR 0076) — le double en mémoire passe la suite de contrat des adaptateurs.
 import { describe, expect, it } from "vitest";
 import { mailTransportContract } from "./transport-contract";
-import { configureMailTransport, currentMailTransport, memoryTransport } from "./transport";
+import { configureMailTransport, currentMailTransport, fromHeader, memoryTransport } from "./transport";
 
 mailTransportContract("mémoire", () => {
   const transport = memoryTransport();
@@ -31,5 +31,16 @@ describe("ARC-12 — Adaptateur en service", () => {
     expect(currentMailTransport()).toBe(memory);
     configureMailTransport(null);
     expect(currentMailTransport().name).toBe("smtp");
+  });
+});
+
+describe("MSG-04 — Expéditeur d'un e-mail (lot 55, ADR 0101)", () => {
+  it("l'adresse de l'organisation remplace celle de SMTP_FROM, avec son nom affiché", () => {
+    expect(fromHeader({ fromName: "Atelier Camille", fromAddress: "atelier-camille@envoi.symbola.fr" }, "Symbola <no-reply@symbola.fr>")).toEqual({ name: "Atelier Camille", address: "atelier-camille@envoi.symbola.fr" });
+  });
+
+  it("sans adresse d'organisation, l'adresse de SMTP_FROM, comme avant le lot", () => {
+    expect(fromHeader({ fromName: "Atelier Camille" }, "Symbola <no-reply@symbola.fr>")).toEqual({ name: "Atelier Camille", address: "no-reply@symbola.fr" });
+    expect(fromHeader({}, "Symbola <no-reply@symbola.fr>")).toBe("Symbola <no-reply@symbola.fr>");
   });
 });

@@ -67,4 +67,7 @@ export const DELETION_NOT_JOURNALED: Record<string, string> = {
   "hub.notifications": "notification de l'équipe, effacée 90 jours après sa création",
   "hub.automation_runs": "journal des automatismes, effacé après 90 jours",
   "hub.push_subscriptions": "abonnement push d'un appareil (donnée technique), supprimé à la désactivation ou après 90 jours sans usage",
+  // Lot 55 (MSG-05, POR-11 ; ADR 0101).
+  "hub.email_deliveries": "journal des envois (objet et statut), purgé 13 mois après l'envoi",
+  "events.link_push_subscriptions": "abonnement push d'un appareil d'un client (donnée technique), supprimé à la désactivation, avec le lien ou après 90 jours sans usage",
 };

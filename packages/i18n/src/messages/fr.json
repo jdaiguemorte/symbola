@@ -1489,6 +1489,22 @@
     "accountingExports": {
       "title": "Exports comptables",
       "body": "Choisissez la période (mois, trimestre, année ou exercice). Symbola propose le format selon votre forme juridique : journal des recettes pour une micro-entreprise ; journaux des ventes et des encaissements et FEC pour une société ou une EI au réel ; PDF d'origine en archive ZIP. Chaque export est contrôlé : totaux au centime, numérotation continue avec les avoirs ; un écart bloque l'export et s'explique. Les données d'essai n'y sont jamais."
+    },
+    "eventMessages": {
+      "title": "Messages par sujet",
+      "body": "Un sujet par thème, chacun avec son fil. Deux zones d'écriture : « Message partagé » part aux personnes nommées sur le bouton (clients dont le lien ouvre la rubrique Messages, prestataires du sujet) ; « Note interne » reste dans l'équipe, sur fond distinct, et n'est jamais envoyée."
+    },
+    "portalMessages": {
+      "title": "Vos messages",
+      "body": "Retrouvez ici chaque échange par sujet, avec ses pièces jointes, sans chercher dans vos e-mails. Répondez directement : votre message part à votre organisatrice."
+    },
+    "senderAddress": {
+      "title": "L'adresse d'envoi",
+      "body": "Vos e-mails partent d'une adresse à votre nom sur le domaine d'envoi de Symbola ; le nom affiché est celui de votre entreprise et les réponses arrivent à votre adresse de contact. La Propriétaire peut changer le début de l'adresse."
+    },
+    "emailDeliveries": {
+      "title": "Le journal des envois",
+      "body": "Chaque e-mail parti au nom de votre entreprise, avec son statut. Un e-mail rejeté vous est signalé par une notification et sur la fiche du contact. Le journal garde l'objet et le statut 13 mois, jamais le contenu."
     }
   },
   "Aide": {
@@ -1967,7 +1983,8 @@
       "budget": "Budget",
       "quotes": "Devis à signer",
       "guests": "Invités (saisie, import, suivi des réponses ; jamais les régimes nominatifs)",
-      "questionnaires": "Questionnaires"
+      "questionnaires": "Questionnaires",
+      "messages": "Messages (sujets partagés, réponses et pièces jointes)"
     },
     "createLinkTitle": "Créer un lien",
     "linkPerson": "Personne",
@@ -5216,7 +5233,9 @@
     "riskRadar": "Radar des risques",
     "clientTerms": "Termes des clients",
     "accountingExports": "Exports comptables",
-    "eventTemplates": "Modèles d'évènement"
+    "eventTemplates": "Modèles d'évènement",
+    "senderAddress": "Adresse d'envoi",
+    "emailDeliveries": "Journal des envois"
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -5945,7 +5964,8 @@
       "signed": "signée",
       "declined": "refusée",
       "superseded": "remplacée"
-    }
+    },
+    "messagesLink": "Messages"
   },
   "VendorSpace": {
     "title": "Votre espace prestataire",
@@ -7135,7 +7155,8 @@
       "confirm": "Confirmer le transfert",
       "notMe": "Ce n'est pas moi",
       "account": "Vérifier mon compte",
-      "open": "Ouvrir Symbola"
+      "open": "Ouvrir Symbola",
+      "message": "Lire le message"
     },
     "footerNote": "Envoyé avec Symbola",
     "symbolaFooter": "Symbola — la suite des organisateurs d'évènements",
@@ -7171,7 +7192,8 @@
       "change": "L'adresse e-mail de votre compte a été modifiée",
       "clientTerm": "les mariés",
       "digest": "- Le devis D-2027-0042 est signé.\n- 3 tâches à faire aujourd'hui, dont 1 en retard.",
-      "alert": "Un virement de 1 620,00 € est déclaré (devis D-2027-0042)."
+      "alert": "Un virement de 1 620,00 € est déclaré (devis D-2027-0042).",
+      "topic": "Traiteur"
     },
     "event": {
       "coupleClient": "votre mariage",
@@ -7277,7 +7299,8 @@
       "prospects": "Demandes de contact",
       "vendors": "Prestataires",
       "settlement": "Proposition et règlement",
-      "team": "Équipe et sécurité du compte"
+      "team": "Équipe et sécurité du compte",
+      "messages": "Messages"
     },
     "kinds": {
       "client_link": {
@@ -7407,6 +7430,10 @@
       "payment_due_reminder": {
         "title": "Rappel avant l'échéance",
         "description": "Part au payeur désigné (sinon aux signataires) quelques jours avant une échéance, avec le montant, la référence et le RIB ; jamais après un virement déclaré."
+      },
+      "new_message": {
+        "title": "Nouveau message",
+        "description": "Part au client ou au prestataire quand vous lui écrivez sur un sujet : le nom du sujet et le lien vers le fil, jamais le contenu du message."
       }
     },
     "variables": {
@@ -7435,7 +7462,8 @@
       "reference": "La référence à indiquer sur le virement",
       "iban": "Votre IBAN",
       "bic": "Votre BIC",
-      "penalties": "La phrase des pénalités de retard, selon le client et vos réglages"
+      "penalties": "La phrase des pénalités de retard, selon le client et vos réglages",
+      "topic": "Le nom du sujet de discussion"
     },
     "back": "Tous les modèles d'e-mails",
     "editorTitle": "{title} ({language})",
@@ -10078,6 +10106,16 @@
         "label": "Alerte du jour J",
         "text": "Un incident est signalé sur le terrain.",
         "action": "Ouvrir le jour J"
+      },
+      "client_message": {
+        "label": "Message d'un client",
+        "text": "{name} a écrit sur le sujet « {topic} ».",
+        "action": "Lire le message"
+      },
+      "email_bounced": {
+        "label": "E-mail rejeté",
+        "text": "Un e-mail à {name} n'a pas été remis : vérifiez son adresse.",
+        "action": "Voir le contact"
       }
     },
     "center": {
@@ -10667,5 +10705,160 @@
       "journal": "Code de journal invalide : 10 caractères au plus.",
       "unauthenticated": "Votre session a expiré : reconnectez-vous."
     }
+  },
+  "LinkPush": {
+    "message": {
+      "title": "Nouveau message",
+      "body": "Un nouveau message vous attend dans votre espace."
+    },
+    "decision": {
+      "title": "Décision demandée",
+      "body": "Une décision vous attend dans votre espace."
+    }
+  },
+  "MessageThread": {
+    "empty": "Aucun message pour l'instant.",
+    "internalBadge": "Interne",
+    "attachments": "Pièces jointes",
+    "notNotified": "Message enregistré, mais l'e-mail de notification n'est pas parti : il repartira plus tard.",
+    "errors": {
+      "name": "Donnez au sujet un nom de 1 à 120 caractères.",
+      "body": "Écrivez un message de 1 à 5 000 caractères.",
+      "files": "Cinq pièces jointes au plus par message.",
+      "recipients_changed": "Les destinataires ont changé depuis l'ouverture de la page : rechargez-la et vérifiez le bouton avant d'envoyer.",
+      "no_recipients": "Personne ne reçoit encore les messages de ce sujet.",
+      "notFound": "Ce sujet n'existe pas ou n'est plus accessible.",
+      "archived": "Cet évènement est archivé : il se lit sans se modifier."
+    }
+  },
+  "Messages": {
+    "eventLink": "Messages",
+    "title": "Messages",
+    "backToEvent": "Retour à l'évènement",
+    "backToTopics": "Tous les sujets",
+    "journalLink": "Journal des envois de l'évènement",
+    "topicsTitle": "Sujets",
+    "noTopics": "Aucun sujet pour l'instant. Créez-en un par thème (traiteur, cérémonie, paiements…).",
+    "topicMeta": "{count, plural, =0 {aucun message} one {# message} other {# messages}}",
+    "topicLast": "dernier le {date}",
+    "newTopicTitle": "Nouveau sujet",
+    "newTopicName": "Nom du sujet",
+    "createTopic": "Créer le sujet",
+    "threadTitle": "Fil du sujet",
+    "composeTitle": "Écrire",
+    "sharedZoneTitle": "Message partagé",
+    "sharedHint": "Visible par les clients dont le lien ouvre la rubrique « Messages », et par les prestataires du sujet. Chacun reçoit un e-mail qui annonce le message, sans son contenu.",
+    "sharedBodyLabel": "Message aux destinataires",
+    "sendTo": "Envoyer à {names}",
+    "sent": "Message envoyé.",
+    "noRecipients": "Personne ne reçoit encore les messages de ce sujet : ouvrez la rubrique « Messages » sur le lien d'un client (onglet Clients de l'évènement), ou ajoutez un prestataire au sujet.",
+    "internalZoneTitle": "Note interne — équipe seulement",
+    "internalHint": "Jamais envoyée ni montrée aux clients ou aux prestataires.",
+    "internalBodyLabel": "Note pour l'équipe",
+    "saveInternal": "Enregistrer la note interne",
+    "internalSaved": "Note interne enregistrée.",
+    "filesLabel": "Pièces jointes (PDF ou image, cinq au plus)",
+    "vendorsSectionTitle": "Prestataires du sujet",
+    "vendorsTitle": "Prestataires qui lisent ce sujet",
+    "vendorsHint": "Ils voient les messages partagés de ce sujet dans leur espace et peuvent y répondre ; jamais les notes internes.",
+    "saveVendors": "Enregistrer les prestataires",
+    "vendorsSaved": "Prestataires du sujet enregistrés.",
+    "errors": {
+      "name": "Donnez au sujet un nom de 1 à 120 caractères.",
+      "notFound": "Cet évènement ou ce sujet n'existe pas.",
+      "archived": "Cet évènement est archivé : il se lit sans se modifier."
+    }
+  },
+  "PortalMessages": {
+    "title": "Messages",
+    "back": "Retour à mon espace",
+    "backVendor": "Retour à mon espace",
+    "backToTopics": "Tous les sujets",
+    "unavailable": "Les messages ne sont pas ouverts sur votre lien.",
+    "topicsTitle": "Sujets",
+    "none": "Aucun message pour l'instant. Vous pouvez ouvrir un sujet ci-dessous.",
+    "noneVendor": "Aucun sujet ne vous est ouvert pour l'instant.",
+    "topicMeta": "{count, plural, one {# message} other {# messages}}",
+    "threadTitle": "Messages du sujet",
+    "replyTitle": "Répondre",
+    "replyLabel": "Votre message",
+    "filesLabel": "Pièces jointes (PDF ou image, cinq au plus)",
+    "sendTo": "Envoyer à {organization}",
+    "sent": "Message envoyé.",
+    "newTopicTitle": "Nouveau sujet",
+    "newTopicName": "Sujet",
+    "pushTitle": "Notifications",
+    "pushIntro": "Facultatif : soyez prévenu sur cet appareil d'un nouveau message ou d'une décision à prendre. La notification ne montre jamais le contenu.",
+    "pushIos": "Sur iPhone, ajoutez d'abord votre espace à l'écran d'accueil (bouton Partager, puis « Sur l'écran d'accueil »), puis activez les notifications depuis l'icône.",
+    "pushUnsupported": "Ce navigateur ne permet pas les notifications.",
+    "pushDenied": "Les notifications sont bloquées pour ce site dans les réglages du navigateur.",
+    "pushFailed": "L'activation n'a pas abouti. Réessayez.",
+    "pushEnabled": "Notifications activées sur cet appareil.",
+    "pushEnable": "Activer les notifications sur cet appareil",
+    "pushDisable": "Désactiver les notifications sur cet appareil"
+  },
+  "PortalInstall": {
+    "title": "Ajouter à l'écran d'accueil",
+    "body": "Retrouvez votre espace en un geste, comme une application.",
+    "iosSteps": "Sur iPhone : touchez le bouton Partager, puis « Sur l'écran d'accueil ».",
+    "install": "Ajouter",
+    "later": "Plus tard",
+    "manifestName": "{organization} — mon espace",
+    "manifestDescription": "Votre espace pour suivre votre évènement avec {organization}."
+  },
+  "SenderAddress": {
+    "title": "Adresse d'envoi des e-mails",
+    "intro": "Vos e-mails aux clients et aux prestataires (liens, rappels, propositions, messages) partent d'une adresse à votre nom, sur le domaine d'envoi de Symbola. Le nom affiché est celui de votre entreprise ; les réponses arrivent à votre adresse de contact.",
+    "currentTitle": "Vos e-mails partent de",
+    "sharedMode": "Pour l'instant, vos e-mails partent encore de l'adresse commune de Symbola. Cette adresse sera utilisée dès que l'envoi personnalisé sera activé ; rien à faire de votre côté.",
+    "replyTo": "Les réponses arrivent à : {email}",
+    "noReplyTo": "Aucune adresse de contact : les réponses arrivent à la Propriétaire. Ajoutez une adresse de contact dans les informations de l'entreprise.",
+    "contactLink": "Modifier l'adresse de contact",
+    "editTitle": "Choisir le début de l'adresse",
+    "localPartLabel": "Début de l'adresse",
+    "localPartHint": "De 2 à 40 caractères : lettres minuscules sans accent, chiffres, points et tirets. Elle doit être libre.",
+    "save": "Enregistrer l'adresse",
+    "saved": "Adresse d'envoi enregistrée.",
+    "ownerOnly": "Seule la Propriétaire peut changer cette adresse.",
+    "journalLink": "Voir le journal des envois",
+    "errors": {
+      "format": "De 2 à 40 caractères : lettres minuscules sans accent, chiffres, points et tirets, sans point ni tiret au début, à la fin ou doublé.",
+      "reserved": "Cette adresse est réservée : choisissez-en une autre.",
+      "taken": "Cette adresse est déjà prise : choisissez-en une autre.",
+      "forbidden": "Seule la Propriétaire peut changer cette adresse."
+    }
+  },
+  "EmailDeliveries": {
+    "title": "Journal des envois",
+    "intro": "Chaque e-mail envoyé au nom de votre entreprise, avec son statut : envoyé, remis, rejeté (adresse inexistante, boîte pleine) ou signalé comme indésirable. Un rejet s'affiche aussi sur la fiche du contact.",
+    "filterLabel": "Filtrer le journal",
+    "statusFilter": "Statut",
+    "allStatuses": "Tous",
+    "filter": "Filtrer",
+    "filteredContact": "Envois à {name}.",
+    "filteredEvent": "Envois de cet évènement.",
+    "clearFilter": "Voir tous les envois",
+    "none": "Aucun envoi à afficher.",
+    "columnDate": "Envoyé le",
+    "columnTo": "Destinataire",
+    "columnSubject": "Objet",
+    "columnStatus": "Statut",
+    "status": {
+      "sent": "Envoyé",
+      "delivered": "Remis",
+      "bounced": "Rejeté",
+      "complained": "Signalé comme indésirable"
+    },
+    "reason": {
+      "mailbox_not_found": "adresse inexistante",
+      "mailbox_full": "boîte pleine",
+      "blocked": "refusé par le serveur du destinataire",
+      "spam_complaint": "signalé comme indésirable",
+      "other": "autre motif"
+    },
+    "retention": "Le journal est gardé 13 mois, sans le contenu des e-mails, puis effacé.",
+    "alertBounced": "L'adresse de {name} est rejetée ({reason}) : vérifiez-la avant le prochain envoi.",
+    "alertComplained": "{name} a signalé un de vos e-mails comme indésirable : évitez de lui écrire sans raison.",
+    "alertLink": "Voir ses envois"
   }
 }

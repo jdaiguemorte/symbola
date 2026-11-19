@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 import { getVendorBankSummary, listRequestedVendorDocuments } from "@/modules/vendors/service";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
 import { VendorBankLinkForm, VendorDocumentDropForm } from "./vendor-records-forms";
-import { getVendorConsultationView, getVendorLinkView, linkVendorRecordId, getVendorRoadmapView, LinkAccessDeniedError, listLinkSharedDocuments, markLinkProgramSeen, type LinkAccess, type VendorConsultationView, type VendorRoadmapView } from "@/modules/events/service";
+import { getVendorConsultationView, getVendorLinkView, linkVendorRecordId, getVendorRoadmapView, LinkAccessDeniedError, listLinkMessageTopics, listLinkSharedDocuments, markLinkProgramSeen, type LinkAccess, type VendorConsultationView, type VendorRoadmapView } from "@/modules/events/service";
 import { formatAmount } from "@symbola/i18n";
 import { getOrganizationContact } from "@/modules/hub/service";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
@@ -95,6 +95,12 @@ export async function VendorSpaceContent({ access, preview = false, banner, pres
       <p>
         {t("eventDate")} : {view.eventDate ? formatCalendarDate(view.eventDate, locale) : t("dateUnset")}
       </p>
+      {/* Lot 55 (MSG-03) : les sujets où la planner l'a ajouté, s'il y en a. */}
+      {!preview && (await listLinkMessageTopics(organizationId, linkId).catch(() => [])).length > 0 ? (
+        <p>
+          <a href="/prestataire/messages">{tLink("messagesLink")}</a>
+        </p>
+      ) : null}
 
       {roadmap ? <VendorRoadmap roadmap={roadmap} preview={preview} /> : null}
 

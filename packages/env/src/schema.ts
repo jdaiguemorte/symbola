@@ -77,6 +77,23 @@ export const envSchema = z.object({
   SMTP_USER: z.string().default(""),
   SMTP_PASSWORD: z.string().default(""),
   SMTP_FROM: z.string().min(1).default("Symbola <no-reply@symbola.test>"),
+  // Lot 55 (MSG-04 révisée, D1 ; ADR 0101) : domaine d'envoi de Symbola, sous-domaine dédié. Chaque
+  // organisation envoie depuis « <partie locale>@<domaine> » quand SMTP_SENDER_MODE vaut
+  // « organization » ; « shared » (défaut) garde SMTP_FROM pour tous, tant que le service d'envoi
+  // choisi (D2) n'a pas vérifié le domaine. Les réponses vont toujours à l'adresse de contact.
+  SMTP_FROM_DOMAIN: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .default("envoi.symbola.fr")
+    .refine((value) => /^(?=.{4,200}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(value), "nom de domaine attendu (ex. envoi.symbola.fr)"),
+  SMTP_SENDER_MODE: z.preprocess((value) => (value === "" ? undefined : value), z.enum(["shared", "organization"]).default("shared")),
+  // Lot 55 (MSG-05, SEC-19 ; D2) : adaptateur du webhook de remise du service d'envoi et son secret.
+  // « none » : pas de journal de remise (statut « envoyé » seulement) ; « simulated » : signature
+  // HMAC-SHA256 horodatée, pour les tests et le développement, interdite en production. L'adaptateur
+  // du service retenu par Julien s'ajoute à cette liste.
+  EMAIL_DELIVERY_WEBHOOK: z.preprocess((value) => (value === "" ? undefined : value), z.enum(["none", "simulated"]).default("none")),
+  EMAIL_DELIVERY_WEBHOOK_SECRET: z.string().trim().default(""),
 
   // Signature en ligne (DEV-02, ADR 0026 — Documenso). Sans valeur : faux
   // fournisseur hors production, « indisponible » en production tant que
@@ -169,6 +186,12 @@ export const envSchema = z.object({
   }
   if (env.NODE_ENV === "production" && env.SIGNATURE_PROVIDER === "fake") {
     context.addIssue({ code: "custom", path: ["SIGNATURE_PROVIDER"], message: "le faux fournisseur de signature est interdit en production" });
+  }
+  if (env.NODE_ENV === "production" && env.EMAIL_DELIVERY_WEBHOOK === "simulated") {
+    context.addIssue({ code: "custom", path: ["EMAIL_DELIVERY_WEBHOOK"], message: "le webhook simulé est interdit en production" });
+  }
+  if (env.EMAIL_DELIVERY_WEBHOOK !== "none" && env.EMAIL_DELIVERY_WEBHOOK_SECRET.length < 32) {
+    context.addIssue({ code: "custom", path: ["EMAIL_DELIVERY_WEBHOOK_SECRET"], message: "32 caractères au moins (openssl rand -hex 32) avec un webhook de remise" });
   }
   if (env.SIGNATURE_PROVIDER === "documenso") {
     for (const key of ["DOCUMENSO_API_URL", "DOCUMENSO_API_KEY", "SIGNATURE_WEBHOOK_SECRET"] as const) {

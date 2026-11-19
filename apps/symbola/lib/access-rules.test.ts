@@ -60,6 +60,11 @@ const SHARED_ACCESS: Record<string, string> = {
   portalQuestionnairesAccess: "app/portail/questionnaires/access.ts",
   // Lot 52 : PDF des factures et avoirs, e-reporting, écritures, aussi pour le Comptable (lecture).
   authorizedAccountingReader: "app/devis/planner-access.ts",
+  // Lot 55 : messagerie d'un lien (session du lien au public attendu, débit, taille ; le service relit
+  // le lien, sa rubrique et ses sujets).
+  linkReply: "lib/messages/link-routes.ts",
+  linkNewTopic: "lib/messages/link-routes.ts",
+  linkAttachment: "lib/messages/link-routes.ts",
 };
 
 const GUARDS = new Set([...BASE_GUARDS, ...Object.keys(SHARED_ACCESS)]);
@@ -121,6 +126,10 @@ const PUBLIC_ENTRIES: Record<string, string> = {
   "api/webhooks/identite/route.ts#POST": "webhook du fournisseur d'identité, authentifié par la signature HMAC de son corps (clé lue par l'API d'administration), refusé et journalisé sinon",
   "securite/pas-moi/page.tsx#default": "« Ce n'est pas moi » : le jeton reste dans le navigateur, la page n'affiche rien d'autre",
   "securite/actions.ts#disownDeviceAction": "jeton « Ce n'est pas moi » en POST, vérifié haché, usage unique, sept jours, limité en débit ; ferme seulement les sessions du compte de l'alerte",
+  // Lot 55 (MSG-05, SEC-19, POR-11 ; ADR 0101).
+  "api/webhooks/envois/route.ts#POST": "webhook de remise du service d'envoi, authentifié par la signature horodatée de son corps (adaptateur du service), refusé et journalisé sinon ; une référence inconnue ne change rien",
+  "portail/manifeste/[organisation]/route.ts#GET": "manifeste du portail installable : nom et couleur d'une organisation désignée par son identifiant (non devinable), sans donnée personnelle ; manifeste de Symbola pour un identifiant inconnu",
+  "portail/manifeste/[organisation]/icone/route.ts#GET": "icône du portail installé : le logo d'une organisation désignée par son identifiant (non devinable), celui de ses documents et e-mails ; l'icône de Symbola sinon",
   "rdv/actions.ts#cancelAppointmentByLinkAction": "jeton du lien de gestion : annulation de ce rendez-vous seul, motif choisi dans une liste, limité en débit",
 };
 
