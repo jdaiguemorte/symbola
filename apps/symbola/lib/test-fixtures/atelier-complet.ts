@@ -45,7 +45,7 @@ export async function seedFullAtelier() {
   await saveOnboardingStep(db, organizationId, { vatRegime: "assujetti", vatRateDefaultBasisPoints: 2000 });
   await fillRequiredMentions(organizationId);
   const [event] = await listEvents({ organizationId });
-  const [method] = await addPaymentMethods(organizationId, ["Virement bancaire"]);
+  const [method] = await addPaymentMethods(organizationId, ["Mode de test"]);
   const created = await createQuote({ organizationId, eventId: event!.id, createdByUserId: ownerId[0]!.id });
   await addQuoteLine(organizationId, created.id, { label: "Coordination", unit: "forfait", quantityMilli: 1000, unitPriceCents: 100000, vatRateBasisPoints: 2000 });
   await setQuoteAdvanceKind(organizationId, created.id, "deposit");
