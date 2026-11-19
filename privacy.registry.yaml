@@ -2137,3 +2137,41 @@ fields:
     anonymization: >-
       Lors d'une demande d'oubli visant le prestataire (RGPD-03) : effacé ; la note et les critères
       restent, rattachés à la fiche anonymisée.
+  # Module Plans de salle (lot 60, ADR 0099). Un plan ne porte aucun champ qui désigne une personne :
+  # un prestataire placé est désigné par l'identifiant de son poste (events.event_vendor_candidates),
+  # son nom reste au module events. Noms d'espace, de configuration et d'élément sont des libellés
+  # courts (« Salle des fêtes », « Table 3 »). Seules les notes libres peuvent nommer quelqu'un, et le
+  # fond de plan fourni par le lieu peut montrer une adresse ou un nom (même règle que les fichiers
+  # d'un lieu). Les versions diffusées (floorplans.layout_versions) n'emportent aucune note.
+  - schema: floorplans
+    table: layout_elements
+    field: note
+    category: contenu_libre
+    retention: >-
+      Lot 60 (L60-PLA-02) : note interne d'un élément d'un plan, jamais montrée au client ni aux prestataires. Tant que la configuration du lieu ou le plan de l'évènement existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimée avec le plan de l'évènement lors d'une demande d'oubli de l'évènement (RGPD-03) ou de sa purge.
+  - schema: floorplans
+    table: space_fixtures
+    field: note
+    category: contenu_libre
+    retention: >-
+      Lot 60 (L60-PLA-03) : note d'une installation fixe d'un espace (une prise, un accès), gardée dans l'équipe. Tant que l'espace existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimée avec l'espace de l'évènement lors d'une demande d'oubli de l'évènement (RGPD-03) ou de sa purge.
+  - schema: floorplans
+    table: spaces
+    field: background_key
+    category: contenu_libre
+    retention: >-
+      Lot 60 (D4) : fond de plan d'un espace (image fournie par le lieu, fichier privé, ADR 0027), qui peut montrer un nom ou une adresse. Tant que l'espace existe ou qu'une version diffusée le désigne ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Le fichier est supprimé du stockage quand plus aucun espace ni aucune version diffusée ne le désigne (suppression de l'espace, oubli ou purge de l'évènement).
+  - schema: floorplans
+    table: layout_versions
+    field: background_key
+    category: contenu_libre
+    retention: >-
+      Lot 60 (L60-PLA-05) : fond de plan de la version diffusée d'un plan d'évènement (même fichier privé que celui de l'espace au moment de la diffusion). Tant que la version existe ; voir RGPD-03/RGPD-05.
+    anonymization: >-
+      Supprimé avec le plan de l'évènement (oubli ou purge de l'évènement) ; le fichier n'est retiré du stockage que si plus rien ne le désigne.

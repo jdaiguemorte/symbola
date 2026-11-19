@@ -1348,6 +1348,8 @@ export function starterMessageTemplates(locale: StarterLocale): StarterMessageTe
 // Lot 49 (module Invités) : liste des régimes, règles, textes de la page de réponse, colonnes
 // d'import (guests.ts).
 export * from "./guests";
+// Lot 60 (L60-PLA-01 à L60-PLA-03) : bibliothèque des plans de salle, grille et installations (floorplans.ts).
+export * from "./floorplans";
 // Lot 51 (EVT-04, CHR-08, JRJ-05, JRJ-06) : données de départ du jour J de terrain.
 export * from "./day-of";
 // Lot 53 (HUB-15, HUB-28, GC-02, CHR-05, HUB-24 ; ADR 0095).

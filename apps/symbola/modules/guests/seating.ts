@@ -316,6 +316,36 @@ export async function removeSeatingTable(organizationId: string, eventId: string
   });
 }
 
+// Lot 60 (D7) : tables venues du plan de salle (nom ou numéro, forme, places), ajoutées une fois au
+// plan d'un temps fort, sans synchronisation. Une table du même nom déjà au plan n'est pas recréée ;
+// les bornes du plan et d'une table restent celles du lot 50.
+export async function importSeatingTables(organizationId: string, eventId: string, planId: string, input: SeatingTableInput[]): Promise<{ added: number; skipped: number }> {
+  await assertGuestsReady(organizationId);
+  await eventContext(organizationId, eventId);
+  const rules = starterSeatingRules();
+  const tables = input.map((table) => {
+    checkTable(table);
+    return { ...table, name: cleanName(table.name) };
+  });
+  return inOrganization(organizationId, async (tx) => {
+    const plan = await planInEvent(tx, eventId, planId);
+    const existing = await tx.select({ name: seatingTables.name, position: seatingTables.position }).from(seatingTables).where(eq(seatingTables.planId, plan.id));
+    const taken = new Set(existing.map((row) => row.name.toLocaleLowerCase("fr")));
+    const fresh = tables.filter((table) => {
+      const key = table.name.toLocaleLowerCase("fr");
+      if (taken.has(key)) return false;
+      taken.add(key);
+      return true;
+    });
+    if (existing.length + fresh.length > rules.maxTablesPerPlan) throw new SeatingInvalidError("too_many_tables");
+    const start = existing.reduce((max, row) => Math.max(max, row.position + 1), 0);
+    if (fresh.length > 0) {
+      await tx.insert(seatingTables).values(fresh.map((table, index) => ({ organizationId, planId: plan.id, name: table.name, shape: table.shape, capacity: table.capacity, position: start + index })));
+    }
+    return { added: fresh.length, skipped: tables.length - fresh.length };
+  });
+}
+
 // Copie du plan d'un temps fort vers un autre : les tables, et les places de ceux qui se placent au
 // temps fort d'arrivée (présents ou en attente). Le plan d'arrivée doit être vide.
 export async function copySeatingPlan(organizationId: string, eventId: string, fromKeyMomentId: string, toKeyMomentId: string): Promise<{ tables: number; seats: number }> {

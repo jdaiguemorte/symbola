@@ -266,3 +266,19 @@ Tables non exportées :
 Tables non exportées :
 
 - `busy_intervals` — technique : plages occupées relues dans les agendas extérieurs toutes les quinze minutes, sans titre ; l'agenda d'origine les garde
+
+## Module `floorplans`
+
+| Entité | Champs | Schéma |
+| --- | --- | --- |
+| `element_types` | `id`, `starterKey`, `label`, `category`, `shape`, `seatRule`, `widthCm`, `depthCm`, `powerOutlets`, `powerAmps`, `needsWater`, `hidden`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [element_types.schema.json](floorplans/element_types.schema.json) |
+| `spaces` | `id`, `vendorId`, `eventId`, `eventPlaceId`, `sourceSpaceId`, `name`, `widthCm`, `depthCm`, `backgroundKey`, `backgroundMime`, `backgroundSizeBytes`, `backgroundWidthPx`, `backgroundHeightPx`, `calibrationAx`, `calibrationAy`, `calibrationBx`, `calibrationBy`, `calibrationDistanceCm`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [spaces.schema.json](floorplans/spaces.schema.json) |
+| `space_fixtures` | `id`, `spaceId`, `sourceFixtureId`, `kind`, `label`, `xCm`, `yCm`, `widthCm`, `depthCm`, `rotationDeg`, `outletCount`, `amps`, `threePhase`, `note`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [space_fixtures.schema.json](floorplans/space_fixtures.schema.json) |
+| `layouts` | `id`, `spaceId`, `eventId`, `sourceLayoutId`, `name`, `revision`, `publishedVersion`, `showVendorNames`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [layouts.schema.json](floorplans/layouts.schema.json) |
+| `layout_elements` | `id`, `layoutId`, `elementTypeId`, `typeStarterKey`, `typeLabel`, `category`, `shape`, `name`, `xCm`, `yCm`, `widthCm`, `depthCm`, `rotationDeg`, `seats`, `color`, `note`, `vendorCandidateId`, `powerOutlets`, `powerAmps`, `needsWater`, `maxCableM`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [layout_elements.schema.json](floorplans/layout_elements.schema.json) |
+| `power_links` | `id`, `elementId`, `fixtureId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [power_links.schema.json](floorplans/power_links.schema.json) |
+| `layout_versions` | `id`, `layoutId`, `version`, `snapshot`, `backgroundKey`, `publishedAt`, `publishedBy`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [layout_versions.schema.json](floorplans/layout_versions.schema.json) |
+
+Tables non exportées :
+
+- `link_views` — dernière version vue par un lien de prestataire ou de client : sert seulement à signaler une version nouvelle, sans usage hors de Symbola

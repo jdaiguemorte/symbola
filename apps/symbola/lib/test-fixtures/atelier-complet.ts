@@ -1,12 +1,15 @@
 // Lots 35b et 35c (HUB-13, RGP-11) — pour les tests : l'atelier de Camille (ORG-01 du jeu fictif,
 // chargé sous de nouveaux identifiants), complété de ce que le jeu ne porte pas : un devis signé, sa
 // facture d'acompte et son original, un avoir, un encaissement annulé puis de nouveau reçu, et un
-// document d'évènement dans le stockage. Renvoie aussi les liens personnels du jeu.
+// document d'évènement dans le stockage. Lot 60 : un plan de salle d'évènement (espace, fond de plan
+// stocké, prise, élément relié, version diffusée, version vue par un lien). Renvoie aussi les liens
+// personnels du jeu.
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { sql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { eventDocuments } from "@symbola/db/schema/events";
+import { layoutElements, layoutVersions, layouts, linkViews, powerLinks, spaceFixtures, spaces } from "@symbola/db/schema/floorplans";
 import { withOrganization } from "@symbola/db/with-organization";
 import { createStorageClient, uploadPrivateObject } from "@symbola/files";
 import { fillRequiredMentions } from "@/lib/test-fixtures/legal-mentions";
@@ -73,7 +76,26 @@ export async function seedFullAtelier() {
   await withOrganization(db, organizationId, (tx) =>
     tx.insert(eventDocuments).values({ organizationId, eventId: event!.id, label: "Plan de table", fileKey: key, mime: "application/pdf", sizeBytes: pdf.byteLength, uploadedByUserId: ownerId[0]!.id }),
   );
+  // Lot 60 : le plan de salle du dîner, avec son fond de plan (PNG) dans le stockage privé.
+  const backgroundKey = `${organizationId}/${randomUUID()}.png`;
+  const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52, 0, 0, 0, 40, 0, 0, 0, 24, 8, 2, 0, 0, 0, 0, 0, 0, 0]);
+  await uploadPrivateObject(createStorageClient(), { key: backgroundKey, body: png, contentType: "image/png" });
+  await withOrganization(db, organizationId, async (tx) => {
+    const [space] = await tx
+      .insert(spaces)
+      .values({ organizationId, eventId: event!.id, name: "Orangerie", widthCm: 2000, depthCm: 1200, backgroundKey, backgroundMime: "image/png", backgroundSizeBytes: png.byteLength, backgroundWidthPx: 40, backgroundHeightPx: 24 })
+      .returning();
+    const [outlet] = await tx.insert(spaceFixtures).values({ organizationId, spaceId: space!.id, kind: "outlet", xCm: 100, yCm: 20, widthCm: 40, depthCm: 20, outletCount: 2, amps: 16 }).returning();
+    const [layout] = await tx.insert(layouts).values({ organizationId, spaceId: space!.id, eventId: event!.id, name: "Dîner", publishedVersion: 1 }).returning();
+    const [element] = await tx
+      .insert(layoutElements)
+      .values({ organizationId, layoutId: layout!.id, typeStarterKey: "dj", category: "setup", shape: "rect", xCm: 500, yCm: 200, widthCm: 200, depthCm: 100, powerOutlets: 2, powerAmps: 16 })
+      .returning();
+    await tx.insert(powerLinks).values({ organizationId, elementId: element!.id, fixtureId: outlet!.id });
+    await tx.insert(layoutVersions).values({ organizationId, layoutId: layout!.id, version: 1, snapshot: { layoutName: "Dîner", elementIds: [element!.id] }, backgroundKey });
+    await tx.insert(linkViews).values({ organizationId, linkId: randomUUID(), layoutId: layout!.id, seenVersion: 1 });
+  });
   setSignatureProviderForTests(undefined);
-  return { organizationId, ownerId: ownerId[0]!.id, invoiceNumber: invoice.number, documentKey: key, links: loaded.links.filter((link) => link.organisation === "ORG-01") };
+  return { organizationId, ownerId: ownerId[0]!.id, invoiceNumber: invoice.number, documentKey: key, floorplanBackgroundKey: backgroundKey, links: loaded.links.filter((link) => link.organisation === "ORG-01") };
 }
 

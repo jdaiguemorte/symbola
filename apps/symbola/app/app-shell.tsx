@@ -254,6 +254,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
       vendors,
       guests: guests && events,
       appointments,
+      floorplans: false,
     };
     const available = TUTORIALS.filter(
       (tutorial) => subscribed[tutorial.module],

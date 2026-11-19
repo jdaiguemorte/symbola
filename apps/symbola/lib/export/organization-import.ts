@@ -37,6 +37,7 @@ import { importAppointmentsData, registerAppointmentsImportIds } from "@/modules
 import { importBudgetData, registerBudgetImportIds } from "@/modules/budget/service";
 import { importEventsData, registerEventsImportIds } from "@/modules/events/service";
 import { importGuestsData, registerGuestsImportIds } from "@/modules/guests/service";
+import { importFloorplansData, registerFloorplansImportIds } from "@/modules/floorplans/service";
 import { finishOrganizationImportInTransaction, importHubData, registerHubImportIds, resolveImportUsers } from "@/modules/hub/service";
 import { ImportedLedgerInvalidError, importQuotesData, registerQuotesImportIds } from "@/modules/quotes/service";
 import { importVendorsData, registerVendorsImportIds } from "@/modules/vendors/service";
@@ -57,6 +58,8 @@ const MODULE_IMPORTERS: Record<OrganizationExportModule, Importer> = {
   vendors: { register: registerVendorsImportIds, write: importVendorsData },
   guests: { register: registerGuestsImportIds, write: importGuestsData },
   appointments: { register: registerAppointmentsImportIds, write: importAppointmentsData },
+  // Lot 60 : plans de salle (fonds de plan compris).
+  floorplans: { register: registerFloorplansImportIds, write: importFloorplansData },
 };
 
 // Entités dont une seule ligne réelle rend l'organisation « non vide » (D6).

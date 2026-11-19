@@ -5,6 +5,12 @@ import programFile from "./program.json";
 import {
   starterDietaryOptions,
   starterMealTypes,
+  starterFloorplanElements,
+  starterFloorplanElementLabel,
+  starterFloorplanFixtures,
+  floorplanAmpChoices,
+  floorplanEditorRules,
+  floorplanSeatingRules,
   starterMealTypeLabel,
   starterSeatingRules,
   starterDietConsent,
@@ -773,5 +779,32 @@ describe("CRM-05, CRM-06, POR-07 (lot 45) — Données de départ des relances e
         }
       }
     }
+  });
+});
+
+describe("L60-PLA-01 — Bibliothèque de départ des plans de salle (floorplan-elements.json)", () => {
+  it("tables de toutes formes et installations de soirée, traduites en français et en anglais", () => {
+    const fr = starterFloorplanElements("fr");
+    const en = starterFloorplanElements("en");
+    expect(en.map((element) => element.key)).toEqual(fr.map((element) => element.key));
+    expect(new Set(fr.map((element) => element.key)).size).toBe(fr.length);
+    expect(fr.filter((element) => element.category === "table").map((element) => element.shape)).toEqual(expect.arrayContaining(["circle", "rect", "ellipse"]));
+    for (const key of ["round_table", "rect_table", "oval_table", "square_table", "imperial_table", "head_table", "cocktail_table", "dance_floor", "dj", "bar", "buffet", "photobooth", "ceremony"]) {
+      expect(fr.some((element) => element.key === key), key).toBe(true);
+    }
+    expect(starterFloorplanElementLabel("dj", "en")).toBe("DJ");
+    expect(starterFloorplanElementLabel("inconnu", "fr")).toBeNull();
+  });
+
+  it("L60-PLA-03 : besoins électriques proposés (DJ : 2 prises 16 A), installations fixes de chaque nature", () => {
+    const dj = starterFloorplanElements("fr").find((element) => element.key === "dj")!;
+    expect([dj.powerOutlets, dj.powerAmps]).toEqual([2, 16]);
+    expect(starterFloorplanFixtures().map((fixture) => fixture.kind).sort()).toEqual(["delivery", "door", "emergency_exit", "outlet", "pillar", "stage", "water"]);
+    expect(floorplanAmpChoices()).toContain(16);
+  });
+
+  it("L60-PLA-02 : grille de 50 cm, pas de 10 cm et 1 m, rotation de 15°", () => {
+    expect(floorplanEditorRules()).toMatchObject({ gridCm: 50, nudgeCm: 10, nudgeLargeCm: 100, rotationStepDeg: 15 });
+    expect(floorplanSeatingRules().seatWidthCm).toBeGreaterThan(0);
   });
 });

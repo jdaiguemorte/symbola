@@ -177,7 +177,8 @@
       "quotes": "Devis",
       "vendors": "Prestataires",
       "appointments": "Rendez-vous",
-      "guests": "Invités"
+      "guests": "Invités",
+      "floorplans": "Plans de salle"
     },
     "onboardingDone": "{done} tutoriels sur {total}",
     "notStarted": "Pas commencé",
@@ -1489,6 +1490,40 @@
     "accountingExports": {
       "title": "Exports comptables",
       "body": "Choisissez la période (mois, trimestre, année ou exercice). Symbola propose le format selon votre forme juridique : journal des recettes pour une micro-entreprise ; journaux des ventes et des encaissements et FEC pour une société ou une EI au réel ; PDF d'origine en archive ZIP. Chaque export est contrôlé : totaux au centime, numérotation continue avec les avoirs ; un écart bloque l'export et s'explique. Les données d'essai n'y sont jamais."
+    },
+    "floorplanVenue": {
+      "title": "Plans de salle d'un lieu",
+      "body": "Notez une fois les espaces du lieu (salle, jardin, chapiteau), leurs dimensions et leurs installations fixes (prises, eau, issues, accès de livraison). Préparez ensuite vos configurations nommées, « Dîner 120 en rondes » ou « Cocktail debout » : elles servent de départ au plan de chaque évènement dans ce lieu. Elles vous appartiennent et ne sont jamais partagées avec le lieu."
+    },
+    "floorplanSpace": {
+      "title": "Espace, fond de plan et installations",
+      "body": "Déposez le plan fourni par le lieu en image (PNG, JPEG ou WebP), puis calibrez-le : deux points dont vous connaissez la distance, et le plan est à l'échelle. Posez les installations fixes dans l'éditeur : chaque prise a son nombre et son ampérage. Elles se retrouvent dans toutes les configurations de l'espace."
+    },
+    "floorplanEditor": {
+      "title": "Éditeur de plan",
+      "body": "Posez tables et installations depuis la bibliothèque, puis glissez-les, tournez-les et redimensionnez-les à la souris ou au doigt, avec une aimantation sur une grille de 50 cm. Au clavier : Tab passe d'un élément à l'autre, les flèches déplacent de 10 cm (1 m avec Maj), R tourne de 15°, Suppr retire. Le panneau des propriétés et la liste des éléments font tout sans le dessin, y compris sur téléphone. Les chevauchements, les éléments hors de l'espace, les places manquantes et les prises surchargées sont signalés, jamais bloqués. Rien n'est écrit avant « Enregistrer ».",
+      "faq": [
+        {
+          "q": "Symbola vérifie-t-il l'installation électrique ?",
+          "a": "Non. Le tableau « Électricité » aide à repérer qui se branche où et signale une prise surchargée d'après ce que vous avez déclaré. Faites valider les branchements par le lieu ou un électricien."
+        },
+        {
+          "q": "Le plan de salle place-t-il les invités ?",
+          "a": "Non. Il installe le lieu ; le placement des invités se fait dans le plan de table, où vous pouvez copier une fois les tables de ce plan."
+        }
+      ]
+    },
+    "floorplanEvent": {
+      "title": "Plan de salle de l'évènement",
+      "body": "Copiez une configuration du lieu dans l'évènement et ajustez-la : le lieu ne change pas. Placez les prestataires retenus, notez leurs besoins et reliez-les à une prise. Diffusez ensuite le plan : le client le lit dans sa rubrique « Plan de salle » (fermée par défaut), chaque prestataire le voit par son lien avec son emplacement en évidence. Chaque diffusion porte un numéro de version, signalé aux prestataires."
+    },
+    "floorplanLibrary": {
+      "title": "Bibliothèque d'éléments",
+      "body": "Les tables de toutes formes et les installations de soirée proposées dans l'éditeur. Masquez ce que vous n'utilisez pas, ajoutez vos éléments et réglez leurs dimensions, leurs places proposées et leurs besoins par défaut."
+    },
+    "floorplanShared": {
+      "title": "Plan de salle",
+      "body": "La dernière version du plan diffusée par l'organisatrice. Votre emplacement est mis en évidence, avec vos besoins et votre prise ; l'accès de livraison et les issues sont indiqués. Le PDF s'imprime à l'échelle. Pour toute question, contactez l'organisatrice."
     }
   },
   "Aide": {
@@ -1967,7 +2002,8 @@
       "budget": "Budget",
       "quotes": "Devis à signer",
       "guests": "Invités (saisie, import, suivi des réponses ; jamais les régimes nominatifs)",
-      "questionnaires": "Questionnaires"
+      "questionnaires": "Questionnaires",
+      "floorplan": "Plan de salle (lecture de la version diffusée, sans notes internes)"
     },
     "createLinkTitle": "Créer un lien",
     "linkPerson": "Personne",
@@ -2218,7 +2254,8 @@
     "archivedFilter": "Archivés",
     "currentFilter": "En cours et passés",
     "archivedTag": "Archivé",
-    "archivedEmpty": "Aucun évènement archivé."
+    "archivedEmpty": "Aucun évènement archivé.",
+    "floorplanLink": "Plan de salle de l'évènement"
   },
   "Budget": {
     "title": "Budget",
@@ -3588,7 +3625,8 @@
       "budget": "Budget",
       "quotes": "Devis et factures",
       "hub": "Comptes, imports et demandes RGPD",
-      "guests": "Invités"
+      "guests": "Invités",
+      "floorplans": "Plans de salle"
     },
     "kind": {
       "event": "Événement",
@@ -4923,7 +4961,10 @@
     "evaluationsEntry": "{event} : {rating} sur 5",
     "evaluationsCriteria": "Ponctualité {punctuality} · qualité {quality} · relation {value}",
     "evaluationsCardRating": "Évaluation générale de la fiche : {rating} sur 5",
-    "evaluationsUnknownEvent": "Évènement retiré"
+    "evaluationsUnknownEvent": "Évènement retiré",
+    "floorplansTitle": "Plans de salle",
+    "floorplansIntro": "Espaces du lieu, installations fixes et vos configurations, prêtes à copier dans un évènement.",
+    "floorplansLink": "Ouvrir les plans de salle du lieu"
   },
   "Onboarding": {
     "title": "Préparons votre espace",
@@ -5537,7 +5578,8 @@
       "events_event_unarchived": "Évènement désarchivé",
       "events_review_request_sent": "Remerciement et demande d'avis envoyés",
       "quotes_accounting_exported": "Export comptable téléchargé",
-      "quotes_accounting_blocked": "Export comptable bloqué par le contrôle"
+      "quotes_accounting_blocked": "Export comptable bloqué par le contrôle",
+      "floorplans_plan_published": "Plan de salle diffusé"
     },
     "categories": {
       "connexion": "Connexions",
@@ -5724,7 +5766,15 @@
       "events_event_templates": "modèle d'évènement",
       "vendors_vendor_evaluations": "évaluation d'un prestataire",
       "quotes_accounting_export_settings": "réglage des exports comptables",
-      "quotes_accounting_exports": "export comptable"
+      "quotes_accounting_exports": "export comptable",
+      "floorplans_element_types": "élément de la bibliothèque des plans",
+      "floorplans_spaces": "espace d'un plan de salle",
+      "floorplans_space_fixtures": "installation d'un espace",
+      "floorplans_layouts": "plan de salle",
+      "floorplans_layout_elements": "élément d'un plan de salle",
+      "floorplans_power_links": "liaison à une prise",
+      "floorplans_layout_versions": "version diffusée d'un plan de salle",
+      "floorplans_link_views": "version vue par un lien"
     },
     "modules": {
       "events": "Événements",
@@ -5732,7 +5782,8 @@
       "quotes": "Devis",
       "vendors": "Prestataires",
       "appointments": "Rendez-vous",
-      "guests": "Invités"
+      "guests": "Invités",
+      "floorplans": "Plans de salle"
     },
     "budgetExport": "{count, plural, =0 {aucune ligne} =1 {# ligne} other {# lignes}} ({format})",
     "actorLink": "Lien personnel",
@@ -10666,6 +10717,380 @@
       "account": "Compte invalide : chiffres et lettres, 20 caractères au plus.",
       "journal": "Code de journal invalide : 10 caractères au plus.",
       "unauthenticated": "Votre session a expiré : reconnectez-vous."
+    }
+  },
+  "Floorplans": {
+    "unavailable": "Les plans de salle ne sont pas ouverts pour votre organisation. Ils s'ouvrent depuis l'Exploitation.",
+    "venue": {
+      "title": "Plans de salle",
+      "back": "Retour à la fiche {venue}",
+      "intro": "Les espaces du lieu, leurs installations fixes et vos configurations (« Dîner 120 en rondes », « Cocktail debout »). Elles sont à vous : jamais partagées avec une autre organisation ni avec le lieu.",
+      "empty": "Aucun espace pour ce lieu. Commencez par la salle principale."
+    },
+    "library": {
+      "link": "Bibliothèque d'éléments",
+      "title": "Bibliothèque d'éléments",
+      "intro": "Les tables et installations proposées dans l'éditeur. Masquez celles que vous n'utilisez pas, ajoutez les vôtres et réglez leurs dimensions et besoins par défaut.",
+      "label": "Nom",
+      "category": "Catégorie",
+      "categories": {
+        "table": "Table",
+        "setup": "Installation de soirée"
+      },
+      "shape": "Forme dessinée",
+      "shapes": {
+        "circle": "Ronde",
+        "rect": "Rectangle",
+        "ellipse": "Ovale"
+      },
+      "seatRule": "Places proposées",
+      "seatRules": {
+        "round": "Tout autour (ronde)",
+        "two_sides": "Deux côtés et les bouts",
+        "one_side": "Un seul côté (table d'honneur)",
+        "four_sides": "Quatre côtés",
+        "oval": "Tout autour (ovale)",
+        "none": "Aucune place"
+      },
+      "width": "Largeur ou diamètre (m)",
+      "depth": "Profondeur (m)",
+      "powerOutlets": "Prises électriques demandées",
+      "powerAmps": "Ampérage demandé",
+      "noAmps": "Non précisé",
+      "amps": "{amps} A",
+      "needsWater": "Besoin d'eau",
+      "hidden": "Masqué",
+      "edit": "Régler {label}",
+      "save": "Enregistrer",
+      "show": "Afficher {label}",
+      "hide": "Masquer {label}",
+      "addTitle": "Ajouter un élément",
+      "add": "Ajouter à la bibliothèque"
+    },
+    "space": {
+      "settings": "Dimensions, fond de plan et installations de {space}",
+      "size": "{w} × {d} m",
+      "backgroundCalibrated": "fond de plan à l'échelle",
+      "backgroundNotCalibrated": "fond de plan non calibré",
+      "noBackground": "sans fond de plan",
+      "fixturesCount": "{count, plural, =0 {aucune installation} one {# installation} other {# installations}}",
+      "newTitle": "Ajouter un espace",
+      "name": "Nom de l'espace",
+      "width": "Largeur (m)",
+      "depth": "Profondeur (m)",
+      "namePlaceholder": "Salle des fêtes, jardin, chapiteau…",
+      "create": "Créer l'espace",
+      "sizeTitle": "Nom et dimensions",
+      "save": "Enregistrer",
+      "removeTitle": "Supprimer l'espace",
+      "removeIntro": "L'espace, ses installations et ses configurations disparaissent. Les plans déjà copiés dans un évènement restent dans l'évènement.",
+      "remove": "Supprimer {space}",
+      "back": "Retour aux plans du lieu",
+      "subtitle": "Espace d'un lieu du catalogue",
+      "eventSubtitle": "Espace de l'évènement : le lieu n'est pas modifié"
+    },
+    "layouts": {
+      "title": "Configurations",
+      "empty": "Aucune configuration pour cet espace.",
+      "summary": "{seats, plural, =0 {aucune place assise} one {# place assise} other {# places assises}} · {count, plural, =0 {aucun élément} one {# élément} other {# éléments}}",
+      "duplicate": "Dupliquer {layout}",
+      "name": "Nom",
+      "copyName": "{layout} (copie)",
+      "duplicateSubmit": "Dupliquer",
+      "remove": "Supprimer {layout}",
+      "newName": "Nouvelle configuration",
+      "newPlaceholder": "Dîner 120 en rondes",
+      "create": "Créer et ouvrir l'éditeur",
+      "rename": "Renommer {layout}",
+      "renameSubmit": "Renommer"
+    },
+    "background": {
+      "title": "Fond de plan",
+      "intro": "Une image PNG, JPEG ou WebP du plan fourni par le lieu (une capture de son PDF suffit), jusqu'à {size} Mo. Elle est vérifiée à l'envoi et servie seulement à votre équipe et aux liens de l'évènement.",
+      "rights": "Le plan d'un lieu peut être protégé : utilisez-le pour votre travail et ne le diffusez qu'aux prestataires de l'évènement.",
+      "file": "Image du plan",
+      "replace": "Remplacer le fond de plan",
+      "upload": "Déposer le fond de plan",
+      "calibrated": "Le fond de plan est à l'échelle.",
+      "notCalibrated": "Calibrez le fond de plan pour le mettre à l'échelle.",
+      "remove": "Retirer le fond de plan"
+    },
+    "calibration": {
+      "intro": "Cliquez deux points de l'image dont vous connaissez la distance réelle (les deux bouts d'un mur, par exemple), ou saisissez leurs coordonnées, puis la distance.",
+      "imageAlt": "Fond de plan à calibrer",
+      "clickA": "Prochain clic : premier point.",
+      "clickB": "Prochain clic : second point.",
+      "pointsLegend": "Points de l'image, en pixels (image de {width} × {height})",
+      "ax": "Premier point, horizontal",
+      "ay": "Premier point, vertical",
+      "bx": "Second point, horizontal",
+      "by": "Second point, vertical",
+      "distance": "Distance réelle entre les deux points (m)",
+      "fit": "Donner à l'espace la taille de l'image à l'échelle",
+      "submit": "Calibrer"
+    },
+    "fixtures": {
+      "title": "Installations fixes",
+      "intro": "Posées une fois pour toutes : prises électriques (nombre et ampérage), points d'eau, portes, issues de secours, accès de livraison, piliers, scène fixe. Elles se retrouvent dans chaque configuration.",
+      "drawingTitle": "Installations de {space}"
+    },
+    "fixtureKinds": {
+      "outlet": "Prise électrique",
+      "water": "Point d'eau",
+      "door": "Porte",
+      "emergency_exit": "Issue de secours",
+      "delivery": "Accès de livraison",
+      "pillar": "Pilier ou obstacle",
+      "stage": "Scène fixe"
+    },
+    "colors": {
+      "surface": "Blanc",
+      "primary-soft": "Vert clair",
+      "attention-soft": "Ambre clair",
+      "critical-soft": "Rose clair",
+      "ground": "Gris clair",
+      "line": "Gris"
+    },
+    "findings": {
+      "overlap": "{a} et {b} se chevauchent.",
+      "outside": "{label} dépasse de l'espace.",
+      "seatsShort": "{seats} places assises pour {expected} invités attendus.",
+      "powerUnlinked": "{label} a besoin d'électricité mais n'est relié à aucune prise.",
+      "outletOverloaded": "{outlet} : {used} prises demandées pour {available} disponibles.",
+      "ampsExceeded": "{label} demande {needed} A, la prise en fournit {available}.",
+      "cableTooFar": "{label} est à {distance} m de sa prise, pour {max} m de câble prévus."
+    },
+    "power": {
+      "title": "Électricité",
+      "disclaimer": "Aide de repérage : Symbola ne fait pas d'étude électrique et ne calcule pas une installation. Faites valider les branchements par le lieu ou un électricien.",
+      "none": "Aucune prise n'est notée dans cet espace.",
+      "outlet": "Prise",
+      "capacity": "Capacité déclarée",
+      "used": "Demandé",
+      "plugged": "Qui s'y branche",
+      "capacityValue": "{count, plural, one {# prise} other {# prises}} de {amps} A",
+      "capacityThreePhase": "{count, plural, one {# prise} other {# prises}} de {amps} A, triphasé",
+      "usedValue": "{used} sur {count}",
+      "usedOverloaded": "{used} sur {count} : surcharge déclarée",
+      "nothingPlugged": "Rien n'y est branché."
+    },
+    "editor": {
+      "toolbar": "Outils du plan",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "unsaved": "Modifications non enregistrées",
+      "allSaved": "Tout est enregistré",
+      "undo": "Annuler",
+      "redo": "Rétablir",
+      "snap": "Aimanter sur une grille de {grid} m",
+      "zoomOut": "Dézoomer",
+      "zoomIn": "Zoomer",
+      "zoomLevel": "{percent} %",
+      "zoomFit": "Ajuster",
+      "keyboardHelp": "Au clavier : Tab passe d'un élément à l'autre ; les flèches déplacent de 10 cm (1 m avec Maj) ; R tourne de 15° (Maj+R dans l'autre sens) ; Suppr retire ; Entrée ouvre ses propriétés ; Ctrl+Z annule.",
+      "notCalibrated": "Le fond de plan n'est pas calibré : il est étiré à la largeur de l'espace.",
+      "addTitle": "Ajouter",
+      "tables": "Tables",
+      "setups": "Installations de soirée",
+      "add": "Ajouter : {label}",
+      "propertiesTitle": "Propriétés",
+      "selectedMany": "{count} éléments sélectionnés.",
+      "alignLeft": "Aligner à gauche",
+      "alignTop": "Aligner en haut",
+      "alignCenterX": "Aligner sur la même verticale",
+      "alignCenterY": "Aligner sur la même horizontale",
+      "nothingSelected": "Choisissez un élément dans le dessin ou dans la liste pour régler ses propriétés.",
+      "copy": "Copier",
+      "duplicate": "Dupliquer",
+      "remove": "Retirer",
+      "paste": "Coller ({count})",
+      "findingsTitle": "Contrôles",
+      "capacity": "{seats, plural, =0 {Aucune place assise} one {# place assise} other {# places assises}}",
+      "expected": "{guests} invités attendus",
+      "noFindings": "Rien à signaler.",
+      "toCheck": "À vérifier",
+      "listTitle": "Liste des éléments",
+      "fixturesListTitle": "Liste des installations",
+      "sortBy": "Trier par",
+      "sortOrder": "Ordre de pose",
+      "sortName": "Nom",
+      "sortSeats": "Places",
+      "empty": "Rien n'est encore posé. Ajoutez un élément.",
+      "outletSummary": "{count, plural, one {# prise} other {# prises}} de {amps} A",
+      "seats": "{count, plural, =0 {aucune place} one {# place} other {# places}}",
+      "position": "x {x} m, y {y} m, {angle}°",
+      "pluggedTo": "Branché sur {outlet}",
+      "itemPosition": "{label}, à x {x} m, y {y} m, tourné de {angle}°",
+      "drawingTitle": "Plan {layout}, à l'échelle",
+      "defaultTableName": "Table {index}",
+      "fixtureLabel": "Nom ou repère",
+      "name": "Nom ou numéro",
+      "x": "Position x (m)",
+      "y": "Position y (m)",
+      "diameter": "Diamètre (m)",
+      "width": "Largeur (m)",
+      "depth": "Profondeur (m)",
+      "angle": "Angle (degrés)",
+      "seatsLabel": "Places",
+      "color": "Couleur",
+      "colorDefault": "Par défaut",
+      "vendor": "Prestataire retenu",
+      "noVendor": "Aucun",
+      "needsTitle": "Besoins",
+      "needOutlets": "Prises électriques",
+      "needAmps": "Ampérage",
+      "ampsUnknown": "Non précisé",
+      "amps": "{amps} A",
+      "maxCable": "Distance maximale à la prise (m)",
+      "needWater": "Besoin d'eau",
+      "outlet": "Prise utilisée",
+      "noOutlets": "Aucune prise notée dans l'espace",
+      "noOutlet": "Aucune",
+      "fixtureKind": "Nature",
+      "outletCount": "Nombre de prises",
+      "outletAmps": "Ampérage",
+      "threePhase": "Triphasé",
+      "note": "Note",
+      "noteInternal": "Note interne : jamais montrée au client ni aux prestataires.",
+      "noteFixture": "Note de l'installation : elle reste dans votre équipe.",
+      "announce": {
+        "changed": "{label} modifié.",
+        "added": "{label} ajouté à x {x} m, y {y} m.",
+        "removed": "{label} retiré.",
+        "removedMany": "{count} éléments retirés.",
+        "copied": "{count, plural, one {# élément copié} other {# éléments copiés}}.",
+        "pasted": "{count, plural, one {# élément collé} other {# éléments collés}}.",
+        "undone": "Action annulée.",
+        "redone": "Action rétablie.",
+        "aligned": "{count} éléments alignés.",
+        "moved": "{label} déplacé à x {x} m, y {y} m.",
+        "rotated": "{label} tourné à {angle}°.",
+        "resized": "{label} mesure {w} × {d} m.",
+        "deselected": "Sélection retirée.",
+        "saved": "Plan enregistré.",
+        "tooMany": "Le plan a atteint son nombre maximal d'éléments."
+      }
+    },
+    "event": {
+      "back": "Retour au plan de salle de l'évènement",
+      "backToEvent": "Retour à l'évènement",
+      "title": "Plan de salle",
+      "intro": "Copiez une configuration d'un lieu du catalogue, puis ajustez-la pour l'évènement : le lieu n'est pas modifié. Placez les prestataires retenus, puis diffusez le plan au client et aux prestataires.",
+      "empty": "Pas encore de plan pour cet évènement.",
+      "version": "Version {version}",
+      "notPublished": "Non diffusé",
+      "offCatalogue": "Lieu hors catalogue",
+      "copyTitle": "Partir d'une configuration du lieu",
+      "copyIntro": "Les configurations des lieux du catalogue de cet évènement.",
+      "noVenue": "Aucun lieu de l'évènement ne vient du catalogue.",
+      "noVenueLayouts": "Les lieux de l'évènement n'ont pas encore de configuration.",
+      "configuration": "Configuration",
+      "configurationOption": "{venue} · {space} · {layout} ({seats} places)",
+      "place": "Lieu de l'évènement",
+      "noPlace": "Non précisé",
+      "copySubmit": "Copier dans l'évènement",
+      "emptySpaceTitle": "Partir d'un espace vide",
+      "emptySpaceIntro": "Pour un lieu hors catalogue : un espace aux dimensions saisies.",
+      "emptySpaceSubmit": "Créer le plan",
+      "shareTitle": "Diffusion",
+      "shareIntro": "Le client (rubrique « Plan de salle » de son lien) et les prestataires retenus voient la dernière version diffusée, sans vos notes internes. Chaque prestataire voit son emplacement en évidence ; les autres sont désignés par leur type.",
+      "showVendorNames": "Montrer le nom des prestataires aux autres prestataires et au client",
+      "saveNames": "Enregistrer ce choix",
+      "publishNew": "Diffuser la version {version}",
+      "publishFirst": "Diffuser le plan",
+      "versionsTitle": "Versions diffusées",
+      "versionLine": "Version {version}, diffusée le {date}",
+      "toVenueTitle": "Enregistrer comme configuration du lieu",
+      "toVenueIntro": "Le plan ajusté devient une nouvelle configuration du lieu, sans les prestataires de l'évènement.",
+      "toVenueSubmit": "Enregistrer dans le lieu"
+    },
+    "seating": {
+      "title": "Créer les tables du plan de table",
+      "intro": "Copie une fois les tables de ce plan (nom ou numéro, forme, places) dans le plan de table d'un temps fort, sans synchronisation. Une table du même nom déjà présente n'est pas recréée. Le placement des invités se fait dans le plan de table.",
+      "noMoments": "Aucun temps fort à table : ajoutez-en un dans l'évènement.",
+      "moment": "Temps fort",
+      "submit": "Créer les tables"
+    },
+    "pdf": {
+      "download": "Télécharger le PDF à l'échelle",
+      "title": "Plan de salle",
+      "noVenue": "Lieu hors catalogue",
+      "scale": "Échelle 1:{scale}",
+      "version": "Version {version}",
+      "draft": "Plan en cours",
+      "scaleBar": "{m} m",
+      "backgroundOmitted": "Le fond de plan (WebP) n'est pas repris dans le PDF.",
+      "elementsTitle": "Éléments du plan",
+      "columns": {
+        "element": "Élément",
+        "detail": "Type et prestataire",
+        "position": "Position",
+        "size": "Taille",
+        "seats": "Places",
+        "power": "Besoins et prise"
+      },
+      "position": "x {x} m, y {y} m, {angle}°",
+      "diameter": "⌀ {d} m",
+      "size": "{w} × {d} m",
+      "powerNeed": "{count, plural, one {# prise} other {# prises}} {amps} A",
+      "water": "eau",
+      "pluggedTo": "sur {outlet}",
+      "footer": "Plan de repérage, pas une étude électrique ni un plan d'exécution.",
+      "page": "Page {page} sur {total}",
+      "filePrefix": "plan-de-salle"
+    },
+    "shared": {
+      "new": "Nouvelle version",
+      "published": "{space}, diffusé le {date}",
+      "mineTitle": "Votre emplacement",
+      "position": "x {x} m, y {y} m",
+      "noOutlet": "prise à confirmer avec l'organisatrice",
+      "notPlaced": "Votre emplacement n'est pas encore placé sur ce plan.",
+      "drawingTitle": "Plan {layout}, à l'échelle",
+      "accessTitle": "Accès et issues",
+      "title": "Plan de salle",
+      "backVendor": "Retour à votre espace",
+      "backPortal": "Retour à votre espace",
+      "none": "Aucun plan n'est encore diffusé.",
+      "unavailable": "Le plan de salle n'est pas partagé avec ce lien.",
+      "newVersions": "{count, plural, one {Une nouvelle version du plan est diffusée.} other {# nouvelles versions de plans sont diffusées.}}",
+      "open": "Voir le plan de salle"
+    },
+    "errors": {
+      "name": "Donnez un nom de 1 à 80 caractères.",
+      "size": "Indiquez un nom et des dimensions entre 1 et 1 000 m.",
+      "elements": "Le plan contient un élément invalide ; rien n'a été enregistré.",
+      "too_many_elements": "Le plan dépasse le nombre maximal d'éléments.",
+      "fixtures": "Une installation est invalide (une prise a un nombre et un ampérage) ; rien n'a été enregistré.",
+      "vendor": "Seul un prestataire retenu de l'évènement peut être placé.",
+      "fixture_link": "La prise choisie n'existe plus dans cet espace.",
+      "element_type": "Élément de bibliothèque invalide.",
+      "calibration": "Calibration impossible : deux points distincts de l'image et une distance réelle sont demandés.",
+      "background_type": "Le fond de plan doit être une image PNG, JPEG ou WebP.",
+      "background_size": "L'image est trop lourde.",
+      "background_infected": "Le fichier a été refusé par l'antivirus.",
+      "no_tables": "Ce plan n'a aucune table avec des places.",
+      "no_source": "Ce plan ne vient pas d'une configuration du lieu.",
+      "stale": "Le plan a été modifié ailleurs depuis son ouverture. Rechargez la page : rien n'a été écrasé.",
+      "not_found": "Plan introuvable.",
+      "guests_not_ready": "Le module Invités n'est pas prêt pour cet évènement.",
+      "seating_too_many_tables": "Le plan de table dépasserait son nombre maximal de tables.",
+      "seating_capacity": "Une table a plus de places que le plan de table n'en accepte.",
+      "seating_table_name": "Un nom de table est trop long."
+    },
+    "ok": {
+      "space": "Espace enregistré.",
+      "removed": "Supprimé.",
+      "background": "Fond de plan déposé. Calibrez-le pour le mettre à l'échelle.",
+      "background_removed": "Fond de plan retiré.",
+      "calibrated": "Fond de plan calibré.",
+      "renamed": "Renommé.",
+      "published": "Plan diffusé au client et aux prestataires retenus.",
+      "names": "Choix enregistré ; il vaut à la prochaine diffusion.",
+      "saved_to_venue": "Configuration enregistrée dans le lieu.",
+      "tables": "{added, plural, =0 {Aucune table créée} one {# table créée} other {# tables créées}} dans le plan de table ({skipped} déjà présentes).",
+      "type_added": "Élément ajouté à la bibliothèque.",
+      "type_saved": "Bibliothèque enregistrée."
     }
   }
 }

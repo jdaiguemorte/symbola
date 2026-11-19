@@ -60,6 +60,13 @@ const SHARED_ACCESS: Record<string, string> = {
   portalQuestionnairesAccess: "app/portail/questionnaires/access.ts",
   // Lot 52 : PDF des factures et avoirs, e-reporting, écritures, aussi pour le Comptable (lecture).
   authorizedAccountingReader: "app/devis/planner-access.ts",
+  // Lot 60 : plans de salle côté équipe (session, modules, visibilité de l'évènement) et par un lien
+  // (session du lien, rubrique ou statut retenu, modules).
+  floorplansAccess: "app/plans-de-salle/access.ts",
+  layoutAccess: "app/plans-de-salle/access.ts",
+  linkFloorplanAccess: "app/plans-de-salle/link-access.ts",
+  sharedFloorplanPdfResponse: "app/plans-de-salle/link-access.ts",
+  sharedFloorplanBackgroundResponse: "app/plans-de-salle/link-access.ts",
 };
 
 const GUARDS = new Set([...BASE_GUARDS, ...Object.keys(SHARED_ACCESS)]);

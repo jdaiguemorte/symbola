@@ -177,7 +177,8 @@
       "quotes": "Quotes",
       "vendors": "Vendors",
       "appointments": "Appointments",
-      "guests": "Guests"
+      "guests": "Guests",
+      "floorplans": "Floor plans"
     },
     "onboardingDone": "{done} of {total} tutorials",
     "notStarted": "Not started",
@@ -1489,6 +1490,40 @@
     "accountingExports": {
       "title": "Accounting exports",
       "body": "Choose the period (month, quarter, year or financial year). Symbola suggests the format from your legal form: receipts journal for a micro-business; sales and payments journals and FEC for a company or a sole trader under the real regime; original PDFs in a ZIP archive. Each export is checked: totals to the cent, continuous numbering including credit notes; a discrepancy blocks the export and is explained. Trial data is never included."
+    },
+    "floorplanVenue": {
+      "title": "A venue's floor plans",
+      "body": "Note the venue's spaces once (ballroom, garden, marquee), their size and their fixed installations (sockets, water, exits, delivery access). Then prepare your named layouts, \"Dinner for 120, round tables\" or \"Standing cocktail\": they are the starting point of each event's plan in this venue. They belong to you and are never shared with the venue."
+    },
+    "floorplanSpace": {
+      "title": "Space, background plan and installations",
+      "body": "Upload the venue's plan as an image (PNG, JPEG or WebP), then calibrate it: two points whose distance you know, and the plan is to scale. Place the fixed installations in the editor: each socket has its number and amperage. They appear in every layout of the space."
+    },
+    "floorplanEditor": {
+      "title": "Plan editor",
+      "body": "Place tables and set-ups from the library, then drag, rotate and resize them with the mouse or a finger, snapping to a 50 cm grid. With the keyboard: Tab moves from one element to the next, arrows move by 10 cm (1 m with Shift), R rotates by 15°, Delete removes. The properties panel and the list of elements do everything without the drawing, including on a phone. Overlaps, elements outside the space, missing seats and overloaded sockets are flagged, never blocked. Nothing is written before \"Save\".",
+      "faq": [
+        {
+          "q": "Does Symbola check the electrical installation?",
+          "a": "No. The \"Power\" table helps you spot who plugs in where and flags an overloaded socket based on what you declared. Have the connections checked by the venue or an electrician."
+        },
+        {
+          "q": "Does the floor plan seat the guests?",
+          "a": "No. It sets up the venue; guests are seated in the seating plan, where you can copy this plan's tables once."
+        }
+      ]
+    },
+    "floorplanEvent": {
+      "title": "Event floor plan",
+      "body": "Copy a venue layout into the event and adjust it: the venue does not change. Place the booked vendors, note their needs and link them to a socket. Then share the plan: the client reads it in their \"Floor plan\" section (closed by default), each vendor sees it through their link with their spot highlighted. Each shared version has a number, flagged to vendors."
+    },
+    "floorplanLibrary": {
+      "title": "Element library",
+      "body": "The tables of every shape and the evening set-ups offered in the editor. Hide what you don't use, add your own elements and set their default size, suggested seats and needs."
+    },
+    "floorplanShared": {
+      "title": "Floor plan",
+      "body": "The latest version of the plan shared by the planner. Your spot is highlighted, with your needs and your socket; delivery access and exits are shown. The PDF prints to scale. For any question, contact the planner."
     }
   },
   "Aide": {
@@ -1967,7 +2002,8 @@
       "budget": "Budget",
       "quotes": "Quotes to sign",
       "guests": "Guests (entry, import, reply tracking; never named diets)",
-      "questionnaires": "Questionnaires"
+      "questionnaires": "Questionnaires",
+      "floorplan": "Floor plan (read the shared version, without internal notes)"
     },
     "createLinkTitle": "Create a link",
     "linkPerson": "Person",
@@ -2218,7 +2254,8 @@
     "archivedFilter": "Archived",
     "currentFilter": "Current and past",
     "archivedTag": "Archived",
-    "archivedEmpty": "No archived event."
+    "archivedEmpty": "No archived event.",
+    "floorplanLink": "Event floor plan"
   },
   "Budget": {
     "title": "Budget",
@@ -3588,7 +3625,8 @@
       "budget": "Budget",
       "quotes": "Quotes and invoices",
       "hub": "Accounts, imports and GDPR requests",
-      "guests": "Guests"
+      "guests": "Guests",
+      "floorplans": "Floor plans"
     },
     "kind": {
       "event": "Event",
@@ -4923,7 +4961,10 @@
     "evaluationsEntry": "{event}: {rating} out of 5",
     "evaluationsCriteria": "Punctuality {punctuality} · quality {quality} · relationship {value}",
     "evaluationsCardRating": "Overall rating on the card: {rating} out of 5",
-    "evaluationsUnknownEvent": "Removed event"
+    "evaluationsUnknownEvent": "Removed event",
+    "floorplansTitle": "Floor plans",
+    "floorplansIntro": "The venue's spaces, fixed installations and your layouts, ready to copy into an event.",
+    "floorplansLink": "Open the venue's floor plans"
   },
   "Onboarding": {
     "title": "Let's set up your workspace",
@@ -5537,7 +5578,8 @@
       "events_event_unarchived": "Event unarchived",
       "events_review_request_sent": "Thank-you and review request sent",
       "quotes_accounting_exported": "Accounting export downloaded",
-      "quotes_accounting_blocked": "Accounting export blocked by the check"
+      "quotes_accounting_blocked": "Accounting export blocked by the check",
+      "floorplans_plan_published": "Floor plan shared"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -5724,7 +5766,15 @@
       "events_event_templates": "event template",
       "vendors_vendor_evaluations": "vendor evaluation",
       "quotes_accounting_export_settings": "accounting export setting",
-      "quotes_accounting_exports": "accounting export"
+      "quotes_accounting_exports": "accounting export",
+      "floorplans_element_types": "floor plan library element",
+      "floorplans_spaces": "floor plan space",
+      "floorplans_space_fixtures": "space installation",
+      "floorplans_layouts": "floor plan",
+      "floorplans_layout_elements": "floor plan element",
+      "floorplans_power_links": "socket link",
+      "floorplans_layout_versions": "shared floor plan version",
+      "floorplans_link_views": "version seen by a link"
     },
     "modules": {
       "events": "Events",
@@ -5732,7 +5782,8 @@
       "quotes": "Quotes",
       "vendors": "Vendors",
       "appointments": "Appointments",
-      "guests": "Guests"
+      "guests": "Guests",
+      "floorplans": "Floor plans"
     },
     "budgetExport": "{count, plural, =0 {no lines} =1 {# line} other {# lines}} ({format})",
     "actorLink": "Personal link",
@@ -10666,6 +10717,380 @@
       "account": "Invalid account: digits and letters, 20 characters at most.",
       "journal": "Invalid journal code: 10 characters at most.",
       "unauthenticated": "Your session has expired: sign in again."
+    }
+  },
+  "Floorplans": {
+    "unavailable": "Floor plans are not enabled for your organisation. They are enabled from Operations.",
+    "venue": {
+      "title": "Floor plans",
+      "back": "Back to {venue}",
+      "intro": "The venue's spaces, their fixed installations and your layouts (\"Dinner for 120, round tables\", \"Standing cocktail\"). They are yours: never shared with another organisation or with the venue.",
+      "empty": "No space for this venue yet. Start with the main room."
+    },
+    "library": {
+      "link": "Element library",
+      "title": "Element library",
+      "intro": "The tables and set-ups offered in the editor. Hide the ones you don't use, add your own and set their default size and needs.",
+      "label": "Name",
+      "category": "Category",
+      "categories": {
+        "table": "Table",
+        "setup": "Evening set-up"
+      },
+      "shape": "Drawn shape",
+      "shapes": {
+        "circle": "Round",
+        "rect": "Rectangle",
+        "ellipse": "Oval"
+      },
+      "seatRule": "Suggested seats",
+      "seatRules": {
+        "round": "All around (round)",
+        "two_sides": "Both sides and ends",
+        "one_side": "One side only (head table)",
+        "four_sides": "Four sides",
+        "oval": "All around (oval)",
+        "none": "No seats"
+      },
+      "width": "Width or diameter (m)",
+      "depth": "Depth (m)",
+      "powerOutlets": "Power sockets needed",
+      "powerAmps": "Amperage needed",
+      "noAmps": "Not specified",
+      "amps": "{amps} A",
+      "needsWater": "Needs water",
+      "hidden": "Hidden",
+      "edit": "Set up {label}",
+      "save": "Save",
+      "show": "Show {label}",
+      "hide": "Hide {label}",
+      "addTitle": "Add an element",
+      "add": "Add to the library"
+    },
+    "space": {
+      "settings": "Size, background plan and installations of {space}",
+      "size": "{w} × {d} m",
+      "backgroundCalibrated": "background plan to scale",
+      "backgroundNotCalibrated": "background plan not calibrated",
+      "noBackground": "no background plan",
+      "fixturesCount": "{count, plural, =0 {no installation} one {# installation} other {# installations}}",
+      "newTitle": "Add a space",
+      "name": "Space name",
+      "width": "Width (m)",
+      "depth": "Depth (m)",
+      "namePlaceholder": "Ballroom, garden, marquee…",
+      "create": "Create the space",
+      "sizeTitle": "Name and size",
+      "save": "Save",
+      "removeTitle": "Delete the space",
+      "removeIntro": "The space, its installations and layouts are removed. Plans already copied into an event stay in the event.",
+      "remove": "Delete {space}",
+      "back": "Back to the venue's plans",
+      "subtitle": "Space of a venue in your book",
+      "eventSubtitle": "Event space: the venue is not changed"
+    },
+    "layouts": {
+      "title": "Layouts",
+      "empty": "No layout for this space.",
+      "summary": "{seats, plural, =0 {no seats} one {# seat} other {# seats}} · {count, plural, =0 {no element} one {# element} other {# elements}}",
+      "duplicate": "Duplicate {layout}",
+      "name": "Name",
+      "copyName": "{layout} (copy)",
+      "duplicateSubmit": "Duplicate",
+      "remove": "Delete {layout}",
+      "newName": "New layout",
+      "newPlaceholder": "Dinner for 120, round tables",
+      "create": "Create and open the editor",
+      "rename": "Rename {layout}",
+      "renameSubmit": "Rename"
+    },
+    "background": {
+      "title": "Background plan",
+      "intro": "A PNG, JPEG or WebP image of the venue's plan (a screenshot of its PDF is enough), up to {size} MB. It is checked on upload and served only to your team and the event's links.",
+      "rights": "A venue's plan may be protected: use it for your work and share it only with the event's vendors.",
+      "file": "Plan image",
+      "replace": "Replace the background plan",
+      "upload": "Upload the background plan",
+      "calibrated": "The background plan is to scale.",
+      "notCalibrated": "Calibrate the background plan to bring it to scale.",
+      "remove": "Remove the background plan"
+    },
+    "calibration": {
+      "intro": "Click two points of the image whose real distance you know (both ends of a wall, for instance), or type their coordinates, then the distance.",
+      "imageAlt": "Background plan to calibrate",
+      "clickA": "Next click: first point.",
+      "clickB": "Next click: second point.",
+      "pointsLegend": "Image points, in pixels (image of {width} × {height})",
+      "ax": "First point, horizontal",
+      "ay": "First point, vertical",
+      "bx": "Second point, horizontal",
+      "by": "Second point, vertical",
+      "distance": "Real distance between the two points (m)",
+      "fit": "Give the space the size of the image to scale",
+      "submit": "Calibrate"
+    },
+    "fixtures": {
+      "title": "Fixed installations",
+      "intro": "Noted once and for all: power sockets (number and amperage), water points, doors, emergency exits, delivery access, pillars, fixed stage. They appear in every layout.",
+      "drawingTitle": "Installations of {space}"
+    },
+    "fixtureKinds": {
+      "outlet": "Power socket",
+      "water": "Water point",
+      "door": "Door",
+      "emergency_exit": "Emergency exit",
+      "delivery": "Delivery access",
+      "pillar": "Pillar or obstacle",
+      "stage": "Fixed stage"
+    },
+    "colors": {
+      "surface": "White",
+      "primary-soft": "Light green",
+      "attention-soft": "Light amber",
+      "critical-soft": "Light pink",
+      "ground": "Light grey",
+      "line": "Grey"
+    },
+    "findings": {
+      "overlap": "{a} and {b} overlap.",
+      "outside": "{label} sticks out of the space.",
+      "seatsShort": "{seats} seats for {expected} expected guests.",
+      "powerUnlinked": "{label} needs power but is not linked to any socket.",
+      "outletOverloaded": "{outlet}: {used} sockets requested for {available} available.",
+      "ampsExceeded": "{label} needs {needed} A, the socket provides {available}.",
+      "cableTooFar": "{label} is {distance} m from its socket, with {max} m of cable planned."
+    },
+    "power": {
+      "title": "Power",
+      "disclaimer": "A spotting aid: Symbola does not do electrical studies or size an installation. Have the connections checked by the venue or an electrician.",
+      "none": "No power socket is noted in this space.",
+      "outlet": "Socket",
+      "capacity": "Declared capacity",
+      "used": "Requested",
+      "plugged": "Plugged in",
+      "capacityValue": "{count, plural, one {# socket} other {# sockets}} of {amps} A",
+      "capacityThreePhase": "{count, plural, one {# socket} other {# sockets}} of {amps} A, three-phase",
+      "usedValue": "{used} of {count}",
+      "usedOverloaded": "{used} of {count}: declared overload",
+      "nothingPlugged": "Nothing plugged in."
+    },
+    "editor": {
+      "toolbar": "Plan tools",
+      "save": "Save",
+      "saving": "Saving…",
+      "unsaved": "Unsaved changes",
+      "allSaved": "Everything is saved",
+      "undo": "Undo",
+      "redo": "Redo",
+      "snap": "Snap to a {grid} m grid",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "zoomLevel": "{percent}%",
+      "zoomFit": "Fit",
+      "keyboardHelp": "With the keyboard: Tab moves from one element to the next; arrows move by 10 cm (1 m with Shift); R rotates by 15° (Shift+R the other way); Delete removes; Enter opens its properties; Ctrl+Z undoes.",
+      "notCalibrated": "The background plan is not calibrated: it is stretched to the width of the space.",
+      "addTitle": "Add",
+      "tables": "Tables",
+      "setups": "Evening set-ups",
+      "add": "Add: {label}",
+      "propertiesTitle": "Properties",
+      "selectedMany": "{count} elements selected.",
+      "alignLeft": "Align left",
+      "alignTop": "Align top",
+      "alignCenterX": "Align on the same vertical",
+      "alignCenterY": "Align on the same horizontal",
+      "nothingSelected": "Pick an element in the drawing or in the list to set its properties.",
+      "copy": "Copy",
+      "duplicate": "Duplicate",
+      "remove": "Remove",
+      "paste": "Paste ({count})",
+      "findingsTitle": "Checks",
+      "capacity": "{seats, plural, =0 {No seats} one {# seat} other {# seats}}",
+      "expected": "{guests} guests expected",
+      "noFindings": "Nothing to report.",
+      "toCheck": "To check",
+      "listTitle": "List of elements",
+      "fixturesListTitle": "List of installations",
+      "sortBy": "Sort by",
+      "sortOrder": "Order placed",
+      "sortName": "Name",
+      "sortSeats": "Seats",
+      "empty": "Nothing placed yet. Add an element.",
+      "outletSummary": "{count, plural, one {# socket} other {# sockets}} of {amps} A",
+      "seats": "{count, plural, =0 {no seats} one {# seat} other {# seats}}",
+      "position": "x {x} m, y {y} m, {angle}°",
+      "pluggedTo": "Plugged into {outlet}",
+      "itemPosition": "{label}, at x {x} m, y {y} m, rotated {angle}°",
+      "drawingTitle": "Plan {layout}, to scale",
+      "defaultTableName": "Table {index}",
+      "fixtureLabel": "Name or marker",
+      "name": "Name or number",
+      "x": "Position x (m)",
+      "y": "Position y (m)",
+      "diameter": "Diameter (m)",
+      "width": "Width (m)",
+      "depth": "Depth (m)",
+      "angle": "Angle (degrees)",
+      "seatsLabel": "Seats",
+      "color": "Colour",
+      "colorDefault": "Default",
+      "vendor": "Booked vendor",
+      "noVendor": "None",
+      "needsTitle": "Needs",
+      "needOutlets": "Power sockets",
+      "needAmps": "Amperage",
+      "ampsUnknown": "Not specified",
+      "amps": "{amps} A",
+      "maxCable": "Maximum distance to the socket (m)",
+      "needWater": "Needs water",
+      "outlet": "Socket used",
+      "noOutlets": "No socket noted in the space",
+      "noOutlet": "None",
+      "fixtureKind": "Kind",
+      "outletCount": "Number of sockets",
+      "outletAmps": "Amperage",
+      "threePhase": "Three-phase",
+      "note": "Note",
+      "noteInternal": "Internal note: never shown to the client or to vendors.",
+      "noteFixture": "Installation note: it stays within your team.",
+      "announce": {
+        "changed": "{label} changed.",
+        "added": "{label} added at x {x} m, y {y} m.",
+        "removed": "{label} removed.",
+        "removedMany": "{count} elements removed.",
+        "copied": "{count, plural, one {# element copied} other {# elements copied}}.",
+        "pasted": "{count, plural, one {# element pasted} other {# elements pasted}}.",
+        "undone": "Action undone.",
+        "redone": "Action redone.",
+        "aligned": "{count} elements aligned.",
+        "moved": "{label} moved to x {x} m, y {y} m.",
+        "rotated": "{label} rotated to {angle}°.",
+        "resized": "{label} is {w} × {d} m.",
+        "deselected": "Selection cleared.",
+        "saved": "Plan saved.",
+        "tooMany": "The plan has reached its maximum number of elements."
+      }
+    },
+    "event": {
+      "back": "Back to the event's floor plan",
+      "backToEvent": "Back to the event",
+      "title": "Floor plan",
+      "intro": "Copy a layout of a venue from your book, then adjust it for the event: the venue is not changed. Place the booked vendors, then share the plan with the client and the vendors.",
+      "empty": "No plan for this event yet.",
+      "version": "Version {version}",
+      "notPublished": "Not shared",
+      "offCatalogue": "Venue outside your book",
+      "copyTitle": "Start from a venue layout",
+      "copyIntro": "The layouts of this event's venues from your book.",
+      "noVenue": "None of the event's places comes from your book.",
+      "noVenueLayouts": "The event's venues have no layout yet.",
+      "configuration": "Layout",
+      "configurationOption": "{venue} · {space} · {layout} ({seats} seats)",
+      "place": "Event place",
+      "noPlace": "Not specified",
+      "copySubmit": "Copy into the event",
+      "emptySpaceTitle": "Start from an empty space",
+      "emptySpaceIntro": "For a venue outside your book: a space of the size you enter.",
+      "emptySpaceSubmit": "Create the plan",
+      "shareTitle": "Sharing",
+      "shareIntro": "The client (\"Floor plan\" section of their link) and the booked vendors see the latest shared version, without your internal notes. Each vendor sees their own spot highlighted; the others are shown by their type.",
+      "showVendorNames": "Show vendors' names to other vendors and to the client",
+      "saveNames": "Save this choice",
+      "publishNew": "Share version {version}",
+      "publishFirst": "Share the plan",
+      "versionsTitle": "Shared versions",
+      "versionLine": "Version {version}, shared on {date}",
+      "toVenueTitle": "Save as a venue layout",
+      "toVenueIntro": "The adjusted plan becomes a new layout of the venue, without the event's vendors.",
+      "toVenueSubmit": "Save to the venue"
+    },
+    "seating": {
+      "title": "Create the seating plan tables",
+      "intro": "Copies this plan's tables once (name or number, shape, seats) into the seating plan of a key moment, without keeping them in sync. A table with the same name already there is not created again. Guests are seated in the seating plan.",
+      "noMoments": "No seated key moment: add one in the event.",
+      "moment": "Key moment",
+      "submit": "Create the tables"
+    },
+    "pdf": {
+      "download": "Download the PDF to scale",
+      "title": "Floor plan",
+      "noVenue": "Venue outside your book",
+      "scale": "Scale 1:{scale}",
+      "version": "Version {version}",
+      "draft": "Plan in progress",
+      "scaleBar": "{m} m",
+      "backgroundOmitted": "The background plan (WebP) is not included in the PDF.",
+      "elementsTitle": "Plan elements",
+      "columns": {
+        "element": "Element",
+        "detail": "Type and vendor",
+        "position": "Position",
+        "size": "Size",
+        "seats": "Seats",
+        "power": "Needs and socket"
+      },
+      "position": "x {x} m, y {y} m, {angle}°",
+      "diameter": "⌀ {d} m",
+      "size": "{w} × {d} m",
+      "powerNeed": "{count, plural, one {# socket} other {# sockets}} {amps} A",
+      "water": "water",
+      "pluggedTo": "on {outlet}",
+      "footer": "Spotting plan, not an electrical study or a construction drawing.",
+      "page": "Page {page} of {total}",
+      "filePrefix": "floor-plan"
+    },
+    "shared": {
+      "new": "New version",
+      "published": "{space}, shared on {date}",
+      "mineTitle": "Your spot",
+      "position": "x {x} m, y {y} m",
+      "noOutlet": "socket to confirm with the planner",
+      "notPlaced": "Your spot is not placed on this plan yet.",
+      "drawingTitle": "Plan {layout}, to scale",
+      "accessTitle": "Access and exits",
+      "title": "Floor plan",
+      "backVendor": "Back to your space",
+      "backPortal": "Back to your space",
+      "none": "No plan has been shared yet.",
+      "unavailable": "The floor plan is not shared with this link.",
+      "newVersions": "{count, plural, one {A new version of the plan has been shared.} other {# new plan versions have been shared.}}",
+      "open": "See the floor plan"
+    },
+    "errors": {
+      "name": "Give a name of 1 to 80 characters.",
+      "size": "Enter a name and a size between 1 and 1,000 m.",
+      "elements": "The plan contains an invalid element; nothing was saved.",
+      "too_many_elements": "The plan exceeds the maximum number of elements.",
+      "fixtures": "An installation is invalid (a socket has a number and an amperage); nothing was saved.",
+      "vendor": "Only a booked vendor of the event can be placed.",
+      "fixture_link": "The chosen socket no longer exists in this space.",
+      "element_type": "Invalid library element.",
+      "calibration": "Calibration impossible: two distinct image points and a real distance are needed.",
+      "background_type": "The background plan must be a PNG, JPEG or WebP image.",
+      "background_size": "The image is too large.",
+      "background_infected": "The file was rejected by the antivirus.",
+      "no_tables": "This plan has no table with seats.",
+      "no_source": "This plan does not come from a venue layout.",
+      "stale": "The plan was changed elsewhere since you opened it. Reload the page: nothing was overwritten.",
+      "not_found": "Plan not found.",
+      "guests_not_ready": "The Guests module is not ready for this event.",
+      "seating_too_many_tables": "The seating plan would exceed its maximum number of tables.",
+      "seating_capacity": "A table has more seats than the seating plan accepts.",
+      "seating_table_name": "A table name is too long."
+    },
+    "ok": {
+      "space": "Space saved.",
+      "removed": "Deleted.",
+      "background": "Background plan uploaded. Calibrate it to bring it to scale.",
+      "background_removed": "Background plan removed.",
+      "calibrated": "Background plan calibrated.",
+      "renamed": "Renamed.",
+      "published": "Plan shared with the client and the booked vendors.",
+      "names": "Choice saved; it applies to the next shared version.",
+      "saved_to_venue": "Layout saved to the venue.",
+      "tables": "{added, plural, =0 {No table created} one {# table created} other {# tables created}} in the seating plan ({skipped} already there).",
+      "type_added": "Element added to the library.",
+      "type_saved": "Library saved."
     }
   }
 }

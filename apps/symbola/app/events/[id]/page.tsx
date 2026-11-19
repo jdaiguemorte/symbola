@@ -19,6 +19,7 @@ import {
 import { ENGAGED_CANDIDATE_STATUSES } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
 import { EventAppointments } from "./event-appointments";
+import { isFloorplansAvailable } from "@/app/plans-de-salle/access";
 import { ProspectExchanges } from "./prospect-exchanges";
 import { appDatabase } from "@symbola/db/client";
 import { clientTermForEvent,
@@ -273,6 +274,8 @@ export default async function EventDetailPage({
   const asked = query.onglet === "prestataires" ? "budget" : query.onglet;
   // Lot 49 : le module Invités (et l'analyse d'impact) ; sans lui, pas d'onglet ni de chiffre.
   const guests = await guestsAccess();
+  // Lot 60 : le module Plans de salle (fermé par défaut) ; sans lui, ni lien ni rubrique.
+  const floorplans = await isFloorplansAvailable(organizationId, "events");
   const tab: Tab = TABS.includes(asked as Tab) && (asked !== "devis" || quotesAvailable) && (asked !== "invites" || guests !== null) ? (asked as Tab) : "apercu";
   const tabHref = (key: Tab, extra: Record<string, string> = {}) =>
     `/events/${event.id}?${new URLSearchParams({ onglet: key, ...extra }).toString()}`;
@@ -1423,6 +1426,12 @@ export default async function EventDetailPage({
               ))}
             </ul>
             <AddPlaceForm eventId={event.id} suggestions={placeSuggestions} />
+            {/* Lot 60 (L60-PLA-04) : le plan de salle de l'évènement, si le module est ouvert (ARC-07). */}
+            {floorplans ? (
+              <p>
+                <Link href={`/events/${event.id}/plan-de-salle`}>{t("floorplanLink")}</Link>
+              </p>
+            ) : null}
           </section>
           <section aria-labelledby="day-contacts-title" className="places">
             <h3 id="day-contacts-title">{tDayContacts("title")}</h3>
@@ -1554,6 +1563,7 @@ export default async function EventDetailPage({
                           clients={linkClients}
                           slots={linkSlots}
                           guestsRubric={guests !== null}
+                          floorplanRubric={floorplans}
                         />
                       </details>
                       <details>
