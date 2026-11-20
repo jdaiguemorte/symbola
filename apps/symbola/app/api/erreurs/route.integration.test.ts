@@ -4,7 +4,7 @@
 // local) ne porte ni message, ni adresse complète, ni personne.
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
-import { randomInt } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { POST } from "./route";
 
@@ -29,8 +29,10 @@ afterAll(async () => {
   await new Promise((done) => server.close(done));
 });
 
-// Une adresse de documentation (RFC 5737) par appel de test : les compteurs de débit ne se mêlent pas.
-const ip = () => `203.0.113.${randomInt(1, 254)}`;
+// Une adresse de documentation (RFC 3849) par appel de test, tirée sur 64 bits : les compteurs de débit
+// ne se mêlent pas. Tirée parmi 253 adresses IPv4, l'adresse du test de débit retombait parfois sur
+// celle d'un appel précédent du même fichier, et le test échouait sur un 429 venu trop tôt.
+const ip = () => `2001:db8:${randomBytes(8).toString("hex").match(/.{4}/g)!.join(":")}::1`;
 
 function post(body: string, headers: Record<string, string> = {}, from = ip()) {
   return POST(
