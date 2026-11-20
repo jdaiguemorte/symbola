@@ -21,6 +21,8 @@ export type FloorplanProblem =
   | "background_type"
   | "background_size"
   | "background_infected"
+  // Lot 54 (DOC-06) : quota de stockage plein, préavis passé.
+  | "background_storage_full"
   | "no_tables"
   | "no_source";
 

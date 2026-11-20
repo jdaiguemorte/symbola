@@ -30,6 +30,30 @@ export function sumStorage(rows: StorageUsageRow[], excludedEventIds: ReadonlySe
   return totals;
 }
 
+// Lot 54 (DOC-06, ADR 0101) : le volume de chaque module, pour le quota de l'offre (évènements d'essai
+// exclus, comme le relevé).
+export type ModuleStorage = { usedBytes: number; usedByModule: Record<string, number> };
+
+export async function measureOrganizationStorageByModule(organizationId: string): Promise<ModuleStorage> {
+  const [demoEventIds, events, budget, vendors, quotes, hub] = await Promise.all([
+    listDemoEventIds(organizationId),
+    measureEventsStorage(organizationId),
+    measureBudgetStorage(organizationId),
+    measureVendorsStorage(organizationId),
+    measureQuotesStorage(organizationId),
+    measureHubStorage(organizationId),
+  ]);
+  const excluded = new Set(demoEventIds);
+  const usedByModule: Record<string, number> = {};
+  let usedBytes = 0;
+  for (const [moduleKey, rows] of Object.entries({ events, budget, quotes, vendors, hub })) {
+    const bytes = rows.filter((row) => row.eventId === null || !excluded.has(row.eventId)).reduce((sum, row) => sum + row.bytes, 0);
+    usedByModule[moduleKey] = bytes;
+    usedBytes += bytes;
+  }
+  return { usedBytes, usedByModule };
+}
+
 export async function measureOrganizationStorage(organizationId: string): Promise<StorageTotals> {
   const [demoEventIds, ...parts] = await Promise.all([
     listDemoEventIds(organizationId),

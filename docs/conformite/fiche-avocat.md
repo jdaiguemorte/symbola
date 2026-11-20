@@ -453,3 +453,30 @@ droit ».
 
 Besoin : des réponses **avant le premier mandat ou forfait touristique réel** de la pilote (aucune ne
 bloque le développement).
+
+### 24. Conditions d'abonnement de l'éditeur et résiliation en trois clics (AV-12)
+
+Le lot 54 (ADR 0101) livre l'abonnement en libre-service, **fermé tant que la société n'est pas
+créée** : un essai de 30 jours sans carte (rappels sept jours et un jour avant la fin), puis lecture
+seule sans rien effacer, l'export restant possible ; un choix d'offre avec effet immédiat (écart au
+prorata sur la facture suivante) ; une reconduction par période (mois ou année) ; une résiliation
+depuis l'écran « Mon abonnement » : « Résilier », puis « Confirmer la résiliation » (trois clics depuis
+les Paramètres). L'accès reste jusqu'à la fin de la période payée ; ensuite l'espace est fermé (export
+pendant 30 jours, puis effacement, ADR 0100). Un e-mail confirme la résiliation et sa date d'effet. La
+facturation de l'éditeur (virement, ADR 0087) reste éteinte.
+
+- **Conditions générales d'abonnement de l'éditeur**, à écrire à la création de la société : essai,
+  reconduction, changement d'offre et prorata, résiliation et préavis, fin d'essai en lecture seule,
+  réversibilité (export complet gratuit à tout moment) et sort des données à la fermeture.
+- **Résiliation des contrats conclus par voie électronique** (« résiliation en trois clics ») : le
+  parcours ci-dessus suffit-il ? Faut-il compter les clics depuis l'accueil (quatre sur téléphone,
+  menu compris), ajouter un accès plus direct, ou un accusé de réception qui reprend des mentions
+  précises ? La confirmation en deux étapes (« Résilier », « Confirmer ») est-elle permise ?
+- Les clients des planners (couples, prestataires, invités) n'ont pas de contrat avec Symbola : le
+  confirmez-vous ?
+
+> En attendant : le parcours ci-dessus, fermé à toutes les organisations (interrupteur de
+> l'Exploitation) tant que la société n'existe pas.
+
+Besoin : des réponses **à la création de la société, avant l'ouverture commerciale** (aucune ne
+bloque le développement).

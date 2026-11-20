@@ -2232,7 +2232,8 @@ async function applySignatureState(
   if (state.status === "completed") {
     const documents = await provider.downloadDocuments(request.externalId);
     const store = async (buffer: Buffer) => {
-      const uploaded = await uploadFile({ organizationId, buffer, maxSizeBytes: SIGNED_DOCUMENT_MAX_BYTES });
+      // Lot 54 (DOC-06) : une copie signée n'est jamais refusée par le quota (pièce légale).
+      const uploaded = await uploadFile({ organizationId, buffer, maxSizeBytes: SIGNED_DOCUMENT_MAX_BYTES, quotaExempt: true });
       if (uploaded.status !== "uploaded" || uploaded.mime !== "application/pdf") throw new Error(`document signé refusé (${uploaded.status})`);
       return uploaded;
     };
@@ -4908,7 +4909,7 @@ export const PROPOSAL_PHOTOS_MAX = 3;
 const PROPOSAL_PHOTO_TYPES = new Set(["image/png", "image/jpeg"]);
 
 export class ProposalPhotoError extends Error {
-  constructor(readonly reason: "too_large" | "unsupported_type" | "infected" | "full" | "not_found") {
+  constructor(readonly reason: "too_large" | "unsupported_type" | "infected" | "storage_full" | "full" | "not_found") {
     super("photo de la proposition refusée");
     this.name = "ProposalPhotoError";
   }
@@ -4920,7 +4921,7 @@ export async function addProposalTemplatePhoto(organizationId: string, templateI
   if (!template) throw new ProposalPhotoError("not_found");
   if (template.photos.length >= PROPOSAL_PHOTOS_MAX) throw new ProposalPhotoError("full");
   const upload = await uploadFile({ organizationId, buffer: Buffer.from(content), maxSizeBytes: PROPOSAL_PHOTO_MAX_BYTES });
-  if (upload.status === "rejected") throw new ProposalPhotoError(upload.reason === "too_large" ? "too_large" : upload.reason === "infected" ? "infected" : "unsupported_type");
+  if (upload.status === "rejected") throw new ProposalPhotoError(upload.reason === "too_large" || upload.reason === "infected" || upload.reason === "storage_full" ? upload.reason : "unsupported_type");
   if (!PROPOSAL_PHOTO_TYPES.has(upload.mime)) {
     await deletePrivateObject(createStorageClient(), upload.key);
     throw new ProposalPhotoError("unsupported_type");

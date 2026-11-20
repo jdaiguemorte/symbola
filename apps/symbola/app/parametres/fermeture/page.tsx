@@ -12,7 +12,7 @@ import { CloseOrganizationForm, ReopenOrganizationForm } from "./closure-forms";
 // suppression, propose l'export et la réouverture ; c'est le seul écran d'un espace fermé, avec
 // l'export. Propriétaire seulement ; une Planner y apprend que l'espace est fermé.
 export default async function OrganizationClosurePage() {
-  const auth = await requirePlanner({ allowClosed: true });
+  const auth = await requirePlanner({ allowClosed: true, allowReadOnly: true });
   const t = await getTranslations("OrganizationClosure");
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;

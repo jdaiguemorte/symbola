@@ -38,6 +38,9 @@ export async function middleware(request: NextRequest) {
   // Lot 12 (ONB-03) : le chemin demandé, pour que la structure d'écran
   // renvoie vers l'assistant de démarrage tant qu'il n'est pas terminé.
   requestHeaders.set("x-pathname", request.nextUrl.pathname);
+  // Lot 54 (HUB-27, D2 ; ADR 0101) : la méthode de la requête, pour refuser les écritures d'un espace
+  // en lecture seule (fin d'essai). Toujours écrasée ici : un en-tête envoyé par le client ne compte pas.
+  requestHeaders.set("x-symbola-method", request.method);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);

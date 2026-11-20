@@ -3,6 +3,7 @@
 // ADR 0044) : origine, session de la planner, limite de débit et taille vérifiées
 // avant la lecture du fichier (lib/uploads/receive.ts) ; type par le contenu et
 // antivirus par le module (packages/files).
+import { isStorageFullError, storageFullMessage } from "@/lib/storage-full";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { attachEventDocument, EventDocumentRejectedError, EventNotFoundError, EVENT_DOCUMENT_LABEL_MAX } from "@/modules/events/service";
@@ -27,6 +28,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const folderId = isValidId(folder) ? folder : null;
     await attachEventDocument({ organizationId: user.organizationId, eventId, label, content: new Uint8Array(await file.arrayBuffer()), uploadedByUserId: user.id, folderId });
   } catch (error) {
+    // Lot 54 (DOC-06) : quota de stockage plein, préavis passé.
+    if (isStorageFullError(error)) return uploadResponse({ error: await storageFullMessage() });
     if (error instanceof EventDocumentRejectedError) {
       return uploadResponse({ error: t(error.reason === "too_large" ? "fileTooLarge" : error.reason === "infected" ? "fileInfected" : error.reason === "label" ? "labelInvalid" : error.reason === "folder" ? "folderInvalid" : "fileUnsupported") });
     }

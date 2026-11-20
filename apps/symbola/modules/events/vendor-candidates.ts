@@ -40,7 +40,7 @@ export class VendorCandidateNotFoundError extends Error {
   }
 }
 export class CandidateQuoteRejectedError extends Error {
-  constructor(readonly reason: "too_large" | "unsupported_type" | "infected") {
+  constructor(readonly reason: "too_large" | "unsupported_type" | "infected" | "storage_full") {
     super(`devis refusé : ${reason}`);
     this.name = "CandidateQuoteRejectedError";
   }

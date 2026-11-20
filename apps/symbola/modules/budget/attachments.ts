@@ -28,9 +28,17 @@ export class QuoteFileInfectedError extends Error {
   }
 }
 
+// Lot 54 (DOC-06, ADR 0101) : le quota de stockage de l'offre est plein et son préavis est passé.
+export class QuoteFileStorageFullError extends Error {
+  constructor() {
+    super("stockage plein : dépôts refusés après le préavis");
+    this.name = "QuoteFileStorageFullError";
+  }
+}
+
 export function quoteUploadError(
   result: Extract<UploadFileResult, { status: "rejected" }>,
-): QuoteFileTooLargeError | QuoteFileUnsupportedTypeError | QuoteFileInfectedError {
+): QuoteFileTooLargeError | QuoteFileUnsupportedTypeError | QuoteFileInfectedError | QuoteFileStorageFullError {
   switch (result.reason) {
     case "too_large":
       return new QuoteFileTooLargeError();
@@ -38,5 +46,7 @@ export function quoteUploadError(
       return new QuoteFileUnsupportedTypeError();
     case "infected":
       return new QuoteFileInfectedError();
+    case "storage_full":
+      return new QuoteFileStorageFullError();
   }
 }

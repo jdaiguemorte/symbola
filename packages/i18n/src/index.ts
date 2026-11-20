@@ -170,6 +170,14 @@ export function formatFileSize(bytes: number, locale: Locale): string {
   return `${number} ${unit}`;
 }
 
+// Lot 54 (DOC-06) : volume de stockage face à un quota, en Go à partir d'un gigaoctet.
+export function formatStorageSize(bytes: number, locale: Locale): string {
+  const gigabyte = 1024 * 1024 * 1024;
+  if (bytes < gigabyte) return formatFileSize(bytes, locale);
+  const number = new Intl.NumberFormat(INTL_LOCALE[locale], { maximumFractionDigits: 1 }).format(bytes / gigabyte);
+  return `${number} ${locale === "fr" ? "Go" : "GB"}`;
+}
+
 // Langue par défaut d'un nouvel utilisateur (PRD-HUB-04) : celle de son
 // navigateur, français si elle n'est ni FR ni EN.
 export function localeFromAcceptLanguage(header: string | null): Locale {

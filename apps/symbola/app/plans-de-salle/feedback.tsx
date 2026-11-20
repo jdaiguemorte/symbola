@@ -16,6 +16,7 @@ const ERRORS = new Set([
   "background_type",
   "background_size",
   "background_infected",
+  "background_storage_full",
   "no_tables",
   "no_source",
   "stale",

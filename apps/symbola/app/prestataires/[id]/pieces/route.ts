@@ -1,6 +1,7 @@
 // Lot 48a (PRE-05, D3) — pièce déposée par la planner sur une fiche (assurance, Kbis, plan du lieu…),
 // vérifiée d'office. Comme les fichiers de la fiche (ADR 0044) : origine, session, limite de débit et
 // taille vérifiées avant la lecture (lib/uploads/receive.ts) ; type par le contenu et antivirus.
+import { isStorageFullError, storageFullMessage } from "@/lib/storage-full";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { addVendorDocument, VendorDocumentNotFoundError, VendorDocumentRejectedError } from "@/modules/vendors/service";
@@ -30,6 +31,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       userId: user.id,
     });
   } catch (error) {
+    // Lot 54 (DOC-06) : quota de stockage plein, préavis passé.
+    if (isStorageFullError(error)) return uploadResponse({ error: await storageFullMessage() });
     if (error instanceof VendorDocumentRejectedError) return uploadResponse({ error: t(error.reason === "too_large" ? "fileTooLarge" : error.reason === "infected" ? "fileInfected" : "fileUnsupported") });
     if (error instanceof VendorDocumentNotFoundError) return uploadResponse({ error: t("notFound") });
     if (error instanceof RangeError) return uploadResponse({ error: t("validUntilInvalid") });
