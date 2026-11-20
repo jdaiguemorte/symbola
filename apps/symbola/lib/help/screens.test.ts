@@ -7,7 +7,7 @@ import { GENERIC_ILLUSTRATION, HELP_SCREENS, screensFor, tileImage } from "./scr
 import { TOUR_TARGETS } from "./tours";
 
 type HelpEntry = { title: string; body: string; faq?: { q: string; a: string }[] };
-const all = { hub: true, events: true, budget: true, quotes: true, vendors: true, guests: true, appointments: true };
+const all = { hub: true, events: true, budget: true, quotes: true, vendors: true, guests: true, appointments: true, floorplans: true };
 
 describe("AIDE-12 — Centre d'aide par écran, avec captures réelles", () => {
   it("chaque écran a son titre et son texte en français et en anglais, et ses questions dans les deux langues", () => {

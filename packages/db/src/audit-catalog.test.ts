@@ -12,7 +12,7 @@ describe("SEC-19 — Catalogue des actions du journal d'audit", () => {
 
   it("chaque action se nomme <module>.<objet>.<action> et n'imite pas une suppression de ligne", () => {
     for (const action of Object.keys(AUDIT_ACTIONS)) {
-      expect(action, action).toMatch(/^(hub|events|budget|quotes|vendors|guests|ops)\.[a-z_]+\.[a-z_]+$/);
+      expect(action, action).toMatch(/^(hub|events|budget|quotes|vendors|guests|appointments|floorplans|ops)\.[a-z_]+\.[a-z_]+$/);
       expect(isDeletionAction(action), action).toBe(false);
     }
   });

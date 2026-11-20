@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "_source": "Lot 60 (L60-PLA-01 à L60-PLA-03 ; D2, D6) : bibliothèque de départ des plans de salle, copiée dans chaque organisation à la première lecture ; la planner masque, ajoute et règle les dimensions par défaut (centimètres). Les places sont proposées par la règle de la forme et la largeur d'une place, puis modifiables. Les besoins électriques sont des valeurs de repérage proposées (DJ : 2 prises 16 A), jamais une étude électrique. Grille d'aimantation et pas du clavier de l'éditeur, dimensions par défaut des installations fixes.",
+  "seating": { "seatWidthCm": 60, "roundSeatWidthCm": 55, "endSeatMinDepthCm": 75 },
+  "editor": { "gridCm": 50, "nudgeCm": 10, "nudgeLargeCm": 100, "rotationStepDeg": 15, "maxElements": 400 },
+  "elements": [
+    { "key": "round_table", "category": "table", "shape": "circle", "seatRule": "round", "widthCm": 180, "depthCm": 180, "label": { "fr": "Table ronde", "en": "Round table" } },
+    { "key": "rect_table", "category": "table", "shape": "rect", "seatRule": "two_sides", "widthCm": 180, "depthCm": 80, "label": { "fr": "Table rectangulaire", "en": "Rectangular table" } },
+    { "key": "oval_table", "category": "table", "shape": "ellipse", "seatRule": "oval", "widthCm": 240, "depthCm": 120, "label": { "fr": "Table ovale", "en": "Oval table" } },
+    { "key": "square_table", "category": "table", "shape": "rect", "seatRule": "four_sides", "widthCm": 120, "depthCm": 120, "label": { "fr": "Table carrée", "en": "Square table" } },
+    { "key": "imperial_table", "category": "table", "shape": "rect", "seatRule": "two_sides", "widthCm": 600, "depthCm": 120, "label": { "fr": "Table impériale", "en": "Banquet table" } },
+    { "key": "head_table", "category": "table", "shape": "rect", "seatRule": "one_side", "widthCm": 400, "depthCm": 80, "label": { "fr": "Table d'honneur", "en": "Head table" } },
+    { "key": "cocktail_table", "category": "table", "shape": "circle", "seatRule": "none", "widthCm": 70, "depthCm": 70, "label": { "fr": "Mange-debout", "en": "Cocktail table" } },
+    { "key": "dance_floor", "category": "setup", "shape": "rect", "widthCm": 500, "depthCm": 500, "label": { "fr": "Piste de danse", "en": "Dance floor" } },
+    { "key": "stage", "category": "setup", "shape": "rect", "widthCm": 600, "depthCm": 400, "powerOutlets": 2, "powerAmps": 16, "label": { "fr": "Scène", "en": "Stage" } },
+    { "key": "dj", "category": "setup", "shape": "rect", "widthCm": 200, "depthCm": 100, "powerOutlets": 2, "powerAmps": 16, "label": { "fr": "DJ", "en": "DJ" } },
+    { "key": "band", "category": "setup", "shape": "rect", "widthCm": 500, "depthCm": 300, "powerOutlets": 4, "powerAmps": 16, "label": { "fr": "Groupe", "en": "Band" } },
+    { "key": "bar", "category": "setup", "shape": "rect", "widthCm": 300, "depthCm": 80, "powerOutlets": 2, "powerAmps": 16, "needsWater": true, "label": { "fr": "Bar", "en": "Bar" } },
+    { "key": "buffet", "category": "setup", "shape": "rect", "widthCm": 400, "depthCm": 80, "powerOutlets": 2, "powerAmps": 16, "label": { "fr": "Buffet", "en": "Buffet" } },
+    { "key": "photobooth", "category": "setup", "shape": "rect", "widthCm": 250, "depthCm": 250, "powerOutlets": 1, "powerAmps": 16, "label": { "fr": "Photobooth", "en": "Photo booth" } },
+    { "key": "kids_corner", "category": "setup", "shape": "rect", "widthCm": 400, "depthCm": 400, "label": { "fr": "Espace enfants", "en": "Kids' corner" } },
+    { "key": "cloakroom", "category": "setup", "shape": "rect", "widthCm": 300, "depthCm": 200, "label": { "fr": "Vestiaire", "en": "Cloakroom" } },
+    { "key": "control_desk", "category": "setup", "shape": "rect", "widthCm": 200, "depthCm": 100, "powerOutlets": 2, "powerAmps": 16, "label": { "fr": "Régie", "en": "Control desk" } },
+    { "key": "cocktail_area", "category": "setup", "shape": "rect", "widthCm": 600, "depthCm": 600, "label": { "fr": "Espace cocktail", "en": "Cocktail area" } },
+    { "key": "ceremony", "category": "setup", "shape": "rect", "widthCm": 800, "depthCm": 1000, "label": { "fr": "Cérémonie (chaises en rangées et allée)", "en": "Ceremony (rows of chairs and aisle)" } }
+  ],
+  "fixtures": [
+    { "kind": "outlet", "widthCm": 40, "depthCm": 20, "outletCount": 2, "amps": 16 },
+    { "kind": "water", "widthCm": 50, "depthCm": 50 },
+    { "kind": "door", "widthCm": 100, "depthCm": 20 },
+    { "kind": "emergency_exit", "widthCm": 140, "depthCm": 20 },
+    { "kind": "delivery", "widthCm": 300, "depthCm": 30 },
+    { "kind": "pillar", "widthCm": 50, "depthCm": 50 },
+    { "kind": "stage", "widthCm": 600, "depthCm": 400 }
+  ],
+  "ampChoices": [10, 16, 20, 32, 63]
+}

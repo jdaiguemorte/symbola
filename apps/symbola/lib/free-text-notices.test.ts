@@ -46,6 +46,9 @@ const NOTICED: Record<string, { file: string; name: string }> = {
   // Lot 55 (MSG-03) : le texte d'un message ou d'une note interne écrit par l'équipe, le nom d'un sujet.
   "events.messages.body": { file: "app/events/[id]/messages/topic-forms.tsx", name: "body" },
   "events.message_topics.name": { file: "app/events/[id]/messages/topic-forms.tsx", name: "name" },
+  // Lot 60 (L60-PLA-02, L60-PLA-03) : note d'un élément d'un plan, note d'une installation (même éditeur).
+  "floorplans.layout_elements.note": { file: "app/plans-de-salle/floorplan-editor.tsx", name: "note" },
+  "floorplans.space_fixtures.note": { file: "app/plans-de-salle/floorplan-editor.tsx", name: "note" },
 };
 
 // Aussi mis en garde, bien que rangés autrement au registre : la note d'un contact, le motif d'une perte.
@@ -113,6 +116,9 @@ const WITHOUT_ENTRY: Record<string, string> = {
   "events.message_attachments.label": "intitulé court d'une pièce jointe (nom du fichier envoyé)",
   "events.message_attachments.file_key": "fichier déposé, sans champ de texte",
   "hub.email_deliveries.subject": "objet d'un e-mail composé par Symbola depuis un modèle ; aucune saisie à cet écran",
+  // Lot 60 (D4) : fond de plan déposé, sans champ de texte.
+  "floorplans.spaces.background_key": "fichier déposé, sans champ de texte",
+  "floorplans.layout_versions.background_key": "fichier figé à la diffusion, sans champ de texte",
   "hub.notifications.params": "libellés courts recopiés par Symbola depuis l'objet de la notification (numéro de devis, intitulé de tâche) ; aucune saisie",
 };
 

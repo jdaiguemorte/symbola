@@ -6,7 +6,8 @@ import type { TourKey } from "./tours";
 
 // Lot 49 : « guests », le module Invités (ses écrans demandent aussi le module Évènements).
 // Lot 46 : « appointments », le module Rendez-vous.
-export type HelpModule = "events" | "quotes" | "budget" | "vendors" | "hub" | "guests" | "appointments";
+// Lot 60 : « floorplans », le module Plans de salle (ses écrans demandent aussi le carnet ou les évènements).
+export type HelpModule = "events" | "quotes" | "budget" | "vendors" | "hub" | "guests" | "appointments" | "floorplans";
 
 export type TutorialKey =
   | "event-page"

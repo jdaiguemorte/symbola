@@ -105,7 +105,7 @@ CREATE INDEX "message_topics_event_idx" ON "events"."message_topics" USING btree
 CREATE INDEX "messages_organization_idx" ON "events"."messages" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "messages_topic_idx" ON "events"."messages" USING btree ("topic_id","created_at");--> statement-breakpoint
 CREATE INDEX "messages_event_idx" ON "events"."messages" USING btree ("event_id");--> statement-breakpoint
-ALTER TABLE "events"."event_links" ADD CONSTRAINT "event_links_rubrics_check" CHECK ("events"."event_links"."rubrics" <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes', 'guests', 'questionnaires', 'messages']::text[]);
+ALTER TABLE "events"."event_links" ADD CONSTRAINT "event_links_rubrics_check" CHECK ("events"."event_links"."rubrics" <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes', 'guests', 'questionnaires', 'floorplan', 'messages']::text[]);
 --> statement-breakpoint
 -- Row-Level Security, droits du rôle applicatif, auteur des lignes et suppressions journalisées (sauf
 -- les abonnements push, techniques). Un message ne se modifie jamais : le rôle applicatif ne reçoit pas

@@ -147,7 +147,7 @@ défaut (`envoi-staging.symbola.fr` en staging), Julien n'ayant pas indiqué pos
 
 ## Conséquences
 
-- Migrations **0191** (`events`) et **0192** (`hub`), ajout seul, annulables ; l'annulation est
+- Migrations **0194** (`events`) et **0195** (`hub`), ajout seul, annulables ; l'annulation est
   refusée tant qu'un message ou un modèle « Nouveau message » personnalisé existe.
 - Variables d'environnement : `SMTP_FROM_DOMAIN`, `SMTP_SENDER_MODE`, `EMAIL_DELIVERY_WEBHOOK`
   (`none`, `scaleway`, `simulated`), `EMAIL_DELIVERY_WEBHOOK_TOPIC_ARN` (requis avec Scaleway),

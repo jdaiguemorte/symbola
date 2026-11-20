@@ -1,4 +1,4 @@
--- Annulation de 0192 (lot 55) : le journal des envois et l'adresse d'expédition choisie disparaissent ;
+-- Annulation de 0195 (lot 55) : le journal des envois et l'adresse d'expédition choisie disparaissent ;
 -- les natures et sortes reviennent aux listes de main (migrations 0183 et 0181). Refusée tant qu'un
 -- modèle « Nouveau message » personnalisé existe (il serait perdu : la planner le remet au texte de
 -- départ). Les notifications et réglages des deux sortes du lot sont des traces et des réglages

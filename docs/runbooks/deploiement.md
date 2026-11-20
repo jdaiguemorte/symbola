@@ -421,8 +421,8 @@ région **fr-par** (comparatif : `docs/etudes/service-envoi-emails.md`). Domaine
 **`envoi.symbola.fr`** (réglable par `SMTP_FROM_DOMAIN`).
 
 Rien à faire au déploiement du lot lui-même : `SMTP_SENDER_MODE=shared` (défaut) garde l'expéditeur
-commun et, sans `EMAIL_DELIVERY_WEBHOOK`, le journal reste à « envoyé ». Migrations 0191 (events) et
-0192 (hub), en ajout seul. Tant que les étapes ci-dessous ne sont pas faites, garder dans
+commun et, sans `EMAIL_DELIVERY_WEBHOOK`, le journal reste à « envoyé ». Migrations 0194 (events) et
+0195 (hub), en ajout seul. Tant que les étapes ci-dessous ne sont pas faites, garder dans
 `.env.<environnement>` les réglages IONOS actuels (`SMTP_HOST=smtp.ionos.fr`, `SMTP_PORT=465`).
 
 ### Gestes de Julien (une fois par environnement, production d'abord)

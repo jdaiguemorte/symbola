@@ -4,11 +4,12 @@ import { describe, expect, it } from "vitest";
 import { isModuleKey, MODULE_ENABLED_BY_DEFAULT, MODULE_KEYS, moduleEnabledByDefault } from "./module-registry";
 
 describe("RGP-05 — Modules fermés par défaut tant que l'Admin ne les ouvre pas", () => {
-  it("rendez-vous et invités sont au registre, fermés sans réglage ; les modules du pilote restent ouverts", () => {
-    expect(MODULE_KEYS).toEqual(["events", "budget", "quotes", "vendors", "appointments", "guests"]);
+  it("rendez-vous, invités et plans de salle (lot 60) sont au registre, fermés sans réglage ; les modules du pilote restent ouverts", () => {
+    expect(MODULE_KEYS).toEqual(["events", "budget", "quotes", "vendors", "appointments", "guests", "floorplans"]);
     expect(Object.keys(MODULE_ENABLED_BY_DEFAULT).sort()).toEqual([...MODULE_KEYS].sort());
     expect(moduleEnabledByDefault("appointments")).toBe(false);
     expect(moduleEnabledByDefault("guests")).toBe(false);
+    expect(moduleEnabledByDefault("floorplans")).toBe(false);
     for (const moduleKey of ["events", "budget", "quotes", "vendors"]) expect(moduleEnabledByDefault(moduleKey)).toBe(true);
   });
 

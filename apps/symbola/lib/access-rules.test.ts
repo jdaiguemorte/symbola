@@ -65,6 +65,13 @@ const SHARED_ACCESS: Record<string, string> = {
   linkReply: "lib/messages/link-routes.ts",
   linkNewTopic: "lib/messages/link-routes.ts",
   linkAttachment: "lib/messages/link-routes.ts",
+  // Lot 60 : plans de salle côté équipe (session, modules, visibilité de l'évènement) et par un lien
+  // (session du lien, rubrique ou statut retenu, modules).
+  floorplansAccess: "app/plans-de-salle/access.ts",
+  layoutAccess: "app/plans-de-salle/access.ts",
+  linkFloorplanAccess: "app/plans-de-salle/link-access.ts",
+  sharedFloorplanPdfResponse: "app/plans-de-salle/link-access.ts",
+  sharedFloorplanBackgroundResponse: "app/plans-de-salle/link-access.ts",
 };
 
 const GUARDS = new Set([...BASE_GUARDS, ...Object.keys(SHARED_ACCESS)]);

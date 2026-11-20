@@ -52,6 +52,7 @@ import {
 } from "@/modules/quotes/service";
 import { unarchiveVendor } from "@/modules/vendors/service";
 import { removeEventGuestsData } from "@/modules/guests/service";
+import { removeEventFloorplansData } from "@/modules/floorplans/service";
 import { isAppointmentsObjectTrashed, listTrashedAppointmentsRows, purgeTrashedAppointmentsObjects, restoreAppointment, restoreAppointmentType } from "@/modules/appointments/service";
 
 const PURGE_INTERVAL_MS = 60 * 60 * 1000; // toutes les heures
@@ -230,6 +231,8 @@ async function purgeEvents(organizationId: string, eventIds: string[]): Promise<
     await removeEventQuotesData(organizationId, eventIds);
     // Lot 49 : les invités de l'évènement (foyers, réponses, régimes, preuves) partent avec lui.
     await removeEventGuestsData(organizationId, eventIds);
+    // Lot 60 : les plans de salle de l'évènement partent avec lui.
+    await removeEventFloorplansData(organizationId, eventIds);
     await purgeTrashedEvents(organizationId, eventIds);
   });
 }

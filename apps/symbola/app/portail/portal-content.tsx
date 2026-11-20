@@ -31,6 +31,7 @@ import { guestsRubricOpen } from "./invites/access";
 import { questionnairesRubricOpen } from "./questionnaires/access";
 import { messagesRubricOpen } from "./messages/access";
 import { isGuestsAvailable } from "@/app/events/[id]/invites/access";
+import { FloorplanLinkEntry } from "@/app/plans-de-salle/link-entry";
 
 // PRD-EVT-06, lot 26a (UX-11, POR-01, POR-10 ; ADR 0053) — le portail d'un tiers,
 // ouvert par son lien personnel, sans compte. Il ne montre que les rubriques que
@@ -191,6 +192,9 @@ export async function PortalContent({ access, preview = false, banner }: { acces
           <Link href="/portail/questionnaires">{tLink("questionnairesLink")}</Link>
         </p>
       ) : null}
+
+      {/* Lot 60 (L60-PLA-05, POR-10) : la rubrique « Plan de salle », si la planner l'a ouverte. */}
+      <FloorplanLinkEntry access={access} audience="client" preview={preview} />
 
       {/* POR-02 : accueil, avant les rubriques. */}
       <section aria-labelledby="portal-home-title" className="portal-home">

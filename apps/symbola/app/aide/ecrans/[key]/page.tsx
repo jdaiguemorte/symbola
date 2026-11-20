@@ -30,7 +30,7 @@ export default async function HelpScreenPage({ params }: { params: Promise<{ key
   const organizationId = auth.user.organizationId;
   const isTeam = Boolean(organizationId) && (auth.user.role === "owner" || auth.user.role === "member");
   const audience: HelpAudience = isTeam ? "team" : "admin";
-  let modules: Record<HelpModule, boolean> = { hub: true, events: false, budget: false, quotes: false, vendors: false, guests: false, appointments: false };
+  let modules: Record<HelpModule, boolean> = { hub: true, events: false, budget: false, quotes: false, vendors: false, guests: false, appointments: false, floorplans: false };
   if (isTeam && organizationId) {
     const db = appDatabase();
     const [events, budget, quotes, vendors, appointments] = await Promise.all([
@@ -42,7 +42,8 @@ export default async function HelpScreenPage({ params }: { params: Promise<{ key
     ]);
     // Lot 49 : les écrans du module Invités, s'il est ouvert avec le module Évènements.
     const guests = events && (await isModuleEnabled(db, organizationId, "guests"));
-    modules = { hub: true, events, budget, quotes, vendors, guests, appointments };
+    const floorplans = (events || vendors) && (await isModuleEnabled(db, organizationId, "floorplans"));
+    modules = { hub: true, events, budget, quotes, vendors, guests, appointments, floorplans };
   }
   const screen = screensFor({ audience, isOwner: auth.user.role === "owner", modules }).find((candidate) => candidate.key === key);
   if (!screen) notFound();

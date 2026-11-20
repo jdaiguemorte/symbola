@@ -1,5 +1,5 @@
--- Annulation de 0191 (lot 55) : sujets, messages, pièces jointes, prestataires des sujets et
--- abonnements push des clients disparaissent ; la rubrique « Messages » sort des liens. Refusée tant
+-- Annulation de 0194 (lot 55) : sujets, messages, pièces jointes, prestataires des sujets et
+-- abonnements push des clients disparaissent ; la rubrique « Messages » sort des liens (la contrainte revient à la liste de main, migration 0192 du lot 60). Refusée tant
 -- qu'un message existe (une conversation avec un client serait perdue) : la planner l'exporte avant.
 -- Les fichiers des pièces jointes restent dans le stockage tant qu'un message existe : la règle le
 -- garantit.
@@ -15,7 +15,7 @@ UPDATE "events"."event_links" SET "rubrics" = array_remove("rubrics", 'messages'
 --> statement-breakpoint
 ALTER TABLE "events"."event_links" DROP CONSTRAINT "event_links_rubrics_check";
 --> statement-breakpoint
-ALTER TABLE "events"."event_links" ADD CONSTRAINT "event_links_rubrics_check" CHECK ("events"."event_links"."rubrics" <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes', 'guests', 'questionnaires']::text[]);
+ALTER TABLE "events"."event_links" ADD CONSTRAINT "event_links_rubrics_check" CHECK ("events"."event_links"."rubrics" <@ array['tasks', 'program', 'vendor_options', 'budget', 'quotes', 'guests', 'questionnaires', 'floorplan']::text[]);
 --> statement-breakpoint
 DROP TABLE IF EXISTS "events"."link_push_subscriptions";
 --> statement-breakpoint

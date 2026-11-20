@@ -4472,3 +4472,255 @@
     background-color: var(--portal-tint);
   }
 }
+
+/* Lot 60 (L60-PLA-01 à L60-PLA-05 ; D2, D3, D5) — plans de salle : éditeur SVG à l'échelle, panneau
+   des propriétés, liste équivalente au dessin. Jetons de DESIGN.md seulement. À 375 px, le dessin se
+   consulte et se zoome dans son cadre (sans défilement horizontal de la page) ; la modification passe
+   par le panneau. Le glisser fin est réservé aux écrans de 768 px et plus. */
+@layer components {
+  .plans-page .card {
+    margin-top: 1rem;
+  }
+  .plan-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+  .plan-status {
+    min-height: 1.25rem;
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--color-ink-muted);
+  }
+  .plan-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .plan-error {
+    color: var(--color-critical);
+    font-weight: 600;
+  }
+  .plan-ok {
+    color: var(--color-primary-strong);
+    font-weight: 600;
+  }
+  .plan-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+  @media (min-width: 1024px) {
+    .plan-layout {
+      grid-template-columns: minmax(0, 1fr) 22rem;
+    }
+  }
+  .plan-canvas {
+    overflow: auto;
+    max-width: 100%;
+    max-height: 75vh;
+    border: 1px solid var(--color-line);
+    border-radius: 10px;
+    background: var(--color-surface);
+  }
+  .plan-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    touch-action: pan-x pan-y pinch-zoom;
+  }
+  .plan-space {
+    fill: var(--color-surface);
+    stroke: var(--color-ink);
+    stroke-width: 4;
+  }
+  .plan-background {
+    opacity: 0.45;
+  }
+  .plan-grid line {
+    stroke: var(--color-line);
+    stroke-width: 1;
+  }
+  .plan-links line {
+    stroke: var(--color-attention);
+    stroke-width: 4;
+    stroke-dasharray: 16 10;
+  }
+  .plan-fixture-shape {
+    fill: var(--color-ground);
+    stroke: var(--color-ink-muted);
+    stroke-width: 3;
+  }
+  .plan-fixture--pillar .plan-fixture-shape {
+    fill: var(--color-line-strong);
+  }
+  .plan-fixture--emergency_exit .plan-fixture-shape {
+    fill: var(--color-primary-soft);
+    stroke: var(--color-primary);
+    stroke-dasharray: 10 6;
+  }
+  .plan-fixture--outlet .plan-fixture-shape {
+    fill: var(--color-attention-soft);
+    stroke: var(--color-attention);
+  }
+  .plan-fixture-mark,
+  .plan-element-label {
+    fill: var(--color-ink);
+    pointer-events: none;
+    user-select: none;
+  }
+  .plan-element-shape {
+    fill: var(--color-surface);
+    stroke: var(--color-ink);
+    stroke-width: 3;
+  }
+  .plan-element--primary-soft .plan-element-shape {
+    fill: var(--color-primary-soft);
+  }
+  .plan-element--attention-soft .plan-element-shape {
+    fill: var(--color-attention-soft);
+  }
+  .plan-element--critical-soft .plan-element-shape {
+    fill: var(--color-critical-soft);
+  }
+  .plan-element--ground .plan-element-shape {
+    fill: var(--color-ground);
+  }
+  .plan-element--line .plan-element-shape {
+    fill: var(--color-line);
+  }
+  .plan-element.is-mine .plan-element-shape {
+    fill: var(--color-primary-soft);
+    stroke: var(--color-primary);
+    stroke-width: 10;
+  }
+  .plan-element.is-flagged .plan-element-shape {
+    stroke: var(--color-attention);
+    stroke-dasharray: 14 8;
+  }
+  .plan-element.is-selected .plan-element-shape,
+  .plan-fixture.is-selected .plan-fixture-shape {
+    stroke: var(--color-primary);
+    stroke-width: 8;
+  }
+  .plan-element[tabindex],
+  .plan-fixture[tabindex] {
+    cursor: grab;
+    outline: none;
+  }
+  .plan-element[tabindex]:focus-visible .plan-element-shape,
+  .plan-fixture[tabindex]:focus-visible .plan-fixture-shape {
+    stroke: var(--color-primary-strong);
+    stroke-width: 12;
+  }
+  @media (min-width: 768px) {
+    .plan-element[tabindex],
+    .plan-fixture[tabindex],
+    .plan-handle {
+      touch-action: none;
+    }
+  }
+  .plan-handles line {
+    stroke: var(--color-primary);
+    stroke-width: 3;
+  }
+  .plan-handle {
+    fill: var(--color-surface);
+    stroke: var(--color-primary);
+    stroke-width: 4;
+    cursor: pointer;
+  }
+  .plan-side {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+  }
+  .plan-palette .row-wrap button,
+  .plan-panel .row-wrap button {
+    font-size: 0.875rem;
+  }
+  .plan-properties,
+  .plan-needs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .plan-fields,
+  .plan-space-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 0.5rem;
+    align-items: end;
+  }
+  .plan-field,
+  .plan-space-fields > label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+  .plan-field input,
+  .plan-field select,
+  .plan-field textarea,
+  .plan-space-fields input,
+  .plan-space-fields select {
+    width: 100%;
+    min-width: 0;
+  }
+  .plan-rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .plan-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .plan-row.is-selected,
+  .plan-row.is-mine {
+    background: var(--color-primary-soft);
+  }
+  .plan-layout-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+  }
+  .plan-mine {
+    padding: 0.75rem;
+    border: 2px solid var(--color-primary);
+    border-radius: 10px;
+    background: var(--color-primary-soft);
+  }
+  .plan-calibration {
+    position: relative;
+    max-width: 100%;
+  }
+  .plan-calibration img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    cursor: crosshair;
+  }
+  .plan-calibration svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .plan-calibration-line {
+    stroke: var(--color-critical);
+    stroke-width: 3;
+  }
+  .plan-calibration-point {
+    fill: var(--color-critical);
+  }
+}

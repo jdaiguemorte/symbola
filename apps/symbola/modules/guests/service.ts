@@ -54,6 +54,7 @@ export {
   dismissSeatRelease,
   downloadCatererSummary,
   getSeatingPlan,
+  importSeatingTables,
   listSeatingMoments,
   removeSeatingConstraint,
   removeSeatingPlan,
