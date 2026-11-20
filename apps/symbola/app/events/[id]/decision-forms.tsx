@@ -19,7 +19,7 @@ export function RequestDecisionForm({ eventId, slots, expenses, hasProgram }: { 
   const ids = { kind: useId(), slot: useId(), line: useId(), note: useId(), due: useId() };
   if (kinds.length === 0) return <p className="muted">{t("nothingToRequest")}</p>;
   return (
-    <form action={formAction} className="link-form">
+    <form action={formAction}>
       <h3>{t("requestTitle")}</h3>
       <input type="hidden" name="eventId" value={eventId} />
       <label htmlFor={ids.kind}>{t("kindLabel")}</label>

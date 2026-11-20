@@ -1269,7 +1269,7 @@
     @apply min-w-[12rem] flex-1;
   }
   .inline-add {
-    @apply flex flex-wrap items-end gap-2;
+    @apply flex flex-row flex-wrap items-end gap-2;
   }
   .setup-two {
     @apply grid grid-cols-1 gap-6 md:grid-cols-2;
@@ -2116,7 +2116,7 @@
     @apply my-3;
   }
   .matches-manual {
-    @apply mt-2 flex flex-wrap items-end gap-2 text-label;
+    @apply mt-2 flex flex-row flex-wrap items-end gap-2 text-label;
   }
   /* Vérifier et confirmer : bilan des effets. */
   .effects {
@@ -2617,7 +2617,7 @@
     @apply outline-2 outline-offset-2 outline-primary;
   }
   .pay-add {
-    @apply mt-3 flex flex-wrap items-end gap-2 rounded-lg border border-dashed border-line-strong p-4;
+    @apply mt-3 flex flex-row flex-wrap items-end gap-2 rounded-lg border border-dashed border-line-strong p-4;
   }
   .pay-add input {
     @apply min-w-0 flex-[1_1_220px];
@@ -3372,7 +3372,7 @@
     @apply inline-flex min-h-11 cursor-pointer items-center text-body font-medium text-primary;
   }
   .postpone form {
-    @apply mt-2 flex flex-wrap items-end gap-2;
+    @apply mt-2 flex flex-row flex-wrap items-end gap-2;
   }
 }
 
@@ -3863,7 +3863,7 @@
     @apply w-full;
   }
   .seating-form {
-    @apply my-2 flex flex-wrap items-end gap-3;
+    @apply my-2 flex flex-row flex-wrap items-end gap-3;
   }
   .seating-alerts {
     @apply rounded-md border border-attention bg-attention-soft p-3;
@@ -4097,7 +4097,7 @@
     @apply flex-1;
   }
   .field-prep {
-    @apply my-2 flex flex-wrap items-end gap-3;
+    @apply my-2 flex flex-row flex-wrap items-end gap-3;
   }
   .field-prep-list h3 {
     @apply mt-4 text-heading;
@@ -4904,7 +4904,7 @@
   /* Ligne de champs de largeurs différentes (code postal, ville, pays). « field-fit » : le libellé
      prend la largeur de son champ court. */
   .field-row {
-    @apply flex w-full flex-wrap items-end gap-4;
+    @apply flex w-full flex-row flex-wrap items-end gap-4;
   }
   .field-row > label {
     @apply w-auto max-w-none flex-[1_1_12rem];
@@ -4958,6 +4958,23 @@
   }
   .edit-row .row-actions .icon-button {
     @apply !h-11 !min-h-11 !w-11 !min-w-11 border-0 bg-transparent;
+  }
+
+  /* Une ligne de formulaire dit sa direction. La règle de base met un formulaire en colonne : ces six
+     règles, écrites « flex flex-wrap items-end » comme l'était « form-inline » avant le lot 61,
+     poussaient chaque champ contre le bord droit. Elles disent maintenant « flex-row » ; leurs champs
+     prennent la largeur de leur contenu, un libellé séparé de son champ et un message restent sur
+     leur propre ligne. */
+  :is(.inline-add, .matches-manual, .pay-add, .postpone form, .seating-form, .field-prep) > label {
+    @apply w-auto;
+  }
+  :is(.inline-add, .matches-manual, .pay-add, .postpone form, .seating-form, .field-prep) > label[for],
+  :is(.inline-add, .matches-manual, .pay-add, .postpone form, .seating-form, .field-prep) > p {
+    @apply m-0 basis-full;
+  }
+  :is(.matches-manual, .postpone form) > select,
+  :is(.matches-manual, .postpone form) > input:not([type="hidden"]) {
+    @apply w-auto max-w-full min-w-0;
   }
 
   /* Bouton de danger : une action qui détruit ou annule (jamais le bouton principal). */

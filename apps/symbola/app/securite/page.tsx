@@ -29,7 +29,7 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
         <h1>{t("title")}</h1>
         <p>{t(auth.role === "admin" ? "operatorBody" : auth.role === "accountant" ? "accountantBody" : "ownerBody")}</p>
         <p>
-          <a className="button" href={accountCenterUrl()}>
+          <a className="button-link button-link-primary" href={accountCenterUrl()}>
             {t("setUp")}
           </a>
         </p>

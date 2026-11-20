@@ -71,7 +71,7 @@ export default async function AppointmentPage({ params, searchParams }: { params
 
       <section className="card" aria-labelledby="details-title">
         <h2 id="details-title">{t("detailsTitle")}</h2>
-        <dl className="details">
+        <dl>
           <dt>{t("personName")}</dt>
           <dd>{appointment.contactId ? <Link href={`/contacts/${appointment.contactId}`}>{appointment.personName}</Link> : appointment.personName}</dd>
           {appointment.personEmail ? (
@@ -106,7 +106,7 @@ export default async function AppointmentPage({ params, searchParams }: { params
         {appointment.answers.length > 0 ? (
           <>
             <h3>{t("answersTitle")}</h3>
-            <dl className="details">
+            <dl>
               {appointment.answers.map((answer) => (
                 <div key={answer.questionId}>
                   <dt>{answer.label}</dt>
@@ -150,7 +150,7 @@ export default async function AppointmentPage({ params, searchParams }: { params
               <input type="checkbox" name="notify" defaultChecked={Boolean(appointment.personEmail)} disabled={!appointment.personEmail} />
               {t("notifyPerson")}
             </label>
-            <button type="submit" className="danger">
+            <button type="submit" className="button-danger">
               {t("cancel")}
             </button>
           </form>

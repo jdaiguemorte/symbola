@@ -5311,7 +5311,9 @@
     "moduleSettings": "Réglages",
     "filterLabel": "Filtrer la liste",
     "filterCount": "{shown, plural, one {# affiché} other {# affichés}} sur {total}",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "errorLabel": "Erreur :",
+    "attentionLabel": "À vérifier :"
   },
   "TutorialsPage": {
     "title": "Tutoriels",

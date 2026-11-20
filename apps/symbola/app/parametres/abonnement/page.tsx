@@ -3,6 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import { formatAmount, formatDateTime, formatStorageSize, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
+import { ErrorNotice } from "@/app/ui/notices";
 import { PageHeader } from "@/app/ui/page-header";
 import { requirePlanner } from "@/lib/guards";
 import {
@@ -91,9 +92,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   const messages = (
     <>
       {error ? (
-        <p className="notice notice-error" role="alert">
-          {error === "seats" ? t("errors.seats", { count: Number(query.places) || 0 }) : t(`errors.${error}`)}
-        </p>
+        <ErrorNotice>{error === "seats" ? t("errors.seats", { count: Number(query.places) || 0 }) : t(`errors.${error}`)}</ErrorNotice>
       ) : null}
       {query.ok === "changed" ? (
         <p className="notice" role="status">
@@ -335,7 +334,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
               <h3 id="subscription-confirm">{t("confirmTitle")}</h3>
               <p>{effectiveAt && effectiveAt > now ? t("confirmBody", { date: date(effectiveAt) }) : t("confirmBodyNow")}</p>
               <form action={cancelSubscriptionAction} className="inline-form">
-                <button type="submit" className="danger">
+                <button type="submit" className="button-danger">
                   {t("confirm")}
                 </button>
                 <Link href="/parametres/abonnement" className="button-link">

@@ -169,7 +169,7 @@ export function ContactForm({
       <HoneypotField />
       {/* RGP-03 : la mention d'information, avant le bouton d'envoi. */}
       <section aria-labelledby="contact-notice-title" className="contact-notice">
-        <h2 id="contact-notice-title" className="meta-title">
+        <h2 id="contact-notice-title">
           {t("noticeTitle")}
         </h2>
         <p className="meta">{notice}</p>

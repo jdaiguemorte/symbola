@@ -13,7 +13,7 @@ export function PaymentDeclarationForm({ paymentId, label, methods, today, previ
   const ids = { date: useId(), method: useId() };
   if (state.success) return <p role="status">{t("declareSent")}</p>;
   return (
-    <form action={preview ? undefined : formAction} className="link-form">
+    <form action={preview ? undefined : formAction}>
       <input type="hidden" name="paymentId" value={paymentId} />
       <label htmlFor={ids.date}>{t("declareDate")}</label>
       <input id={ids.date} type="date" name="paidOn" defaultValue={today} max={today} required />
