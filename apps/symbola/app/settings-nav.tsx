@@ -16,8 +16,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { isSettingsPath } from "./settings-paths";
+import type { SettingsGroupIcon } from "./settings-menu";
 
-export type SettingsGroupIcon = "company" | "events" | "appointments" | "sales" | "data";
+export type { SettingsGroupIcon };
 
 const GROUP_ICONS: Record<SettingsGroupIcon, LucideIcon> = {
   company: Building2,

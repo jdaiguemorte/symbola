@@ -1,23 +1,14 @@
 // Écrans de réglage regroupés sous « Paramètres » (maquette validée) : le
 // menu principal ne garde que le métier ; chaque module y range ses listes
 // et modèles, atteints aussi par la roue crantée de ses écrans.
-export const SETTINGS_PATHS = [
-  "/parametres",
-  "/events/parametres",
-  "/events/modeles",
-  "/events/modeles-programme",
-  "/budget/parametres",
-  "/prestataires/parametres",
-  "/devis/parametres",
-  "/devis/catalogue",
-  "/devis/e-reporting",
-  // Lot 46 : réglages du module Rendez-vous.
-  "/rendez-vous/reglages",
-  "/rendez-vous/disponibilites",
-  "/import",
-  "/rgpd",
-  "/profil",
-] as const;
+// Lot 61 : la liste vient du menu des Paramètres lui-même (settings-menu.ts).
+// Tenue à part, elle avait oublié six rubriques (modèles de devis, de contrat,
+// de proposition et d'évènement, relances, exports comptables), qui
+// s'ouvraient sans le menu des réglages, sous « Devis et factures » ou
+// « Événements ».
+import { SETTINGS_MENU_HREFS } from "./settings-menu";
+
+export const SETTINGS_PATHS: readonly string[] = SETTINGS_MENU_HREFS;
 
 // Lot 16 (IMP-11, décision E) : l'assistant d'import s'ouvre en plein écran,
 // sans le menu des rubriques ; son point d'entrée reste Paramètres › Importer.
