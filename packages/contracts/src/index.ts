@@ -429,6 +429,8 @@ export {
 } from "./trash";
 // Lot 49 (module Invités, ADR 0083) : contrat interne du module.
 export * from "./guests/service-contract";
+// Lot 60 (L60-PLA-01 à L60-PLA-05) : plans de salle des lieux et des évènements.
+export * from "./floorplans/service-contract";
 // Lot 46 (RDV-01 à RDV-04, EVT-10 ; ADR 0082) — module Rendez-vous.
 export type {
   Appointment,

@@ -6,7 +6,8 @@
 import { sql } from "drizzle-orm";
 import type { OrganizationTransaction } from "./with-organization";
 
-export const ERASABLE_SCHEMAS = ["hub", "events", "budget", "quotes", "vendors", "guests", "appointments", "core"] as const;
+// Lot 60 : « floorplans », le module Plans de salle.
+export const ERASABLE_SCHEMAS = ["hub", "events", "budget", "quotes", "vendors", "guests", "appointments", "floorplans", "core"] as const;
 export type ErasableSchema = (typeof ERASABLE_SCHEMAS)[number];
 
 // Lignes effacées.

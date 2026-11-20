@@ -1,4 +1,4 @@
--- Annulation de 0191 (lot 54) : abonnements, catalogue, interrupteurs par fonction et quotas
+-- Annulation de 0193 (lot 54) : abonnements, catalogue, interrupteurs par fonction et quotas
 -- disparaissent. Les modules ouverts par un abonnement restent dans hub.organization_modules (réglage
 -- de l'Exploitation, comme avant le lot) ; aucune donnée métier n'est touchée. Refusée tant qu'une
 -- organisation a un abonnement (son offre, ses dates d'essai et de résiliation seraient perdues).

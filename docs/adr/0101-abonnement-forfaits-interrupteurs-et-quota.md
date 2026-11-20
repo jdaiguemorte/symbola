@@ -93,7 +93,7 @@ société de Julien n'est pas encore créée : Symbola ne peut pas facturer ses 
 
 ## Conséquences
 
-- Migration `0191_lot54_hub_subscriptions` (schéma `hub` seulement, ajouts) ; annulation refusée
+- Migration `0193_lot54_hub_subscriptions` (schéma `hub` seulement, ajouts) ; annulation refusée
   tant qu'une organisation a un abonnement.
 - Au déploiement, rien ne change pour la pilote tant que l'Exploitation n'ouvre pas la fonction et ne
   pose pas d'offre (runbook de déploiement).

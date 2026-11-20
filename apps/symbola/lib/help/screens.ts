@@ -68,6 +68,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "seatingPlan", group: "events", audience: "team", module: "guests", path: null, capture: false },
   { key: "catererSummary", group: "events", audience: "team", module: "guests", path: null, capture: false },
   { key: "mealTypes", group: "events", audience: "team", module: "guests", path: "/events/parametres/repas", capture: false },
+  // Lot 60 (L60-PLA-01 à L60-PLA-05) : plans de salle des lieux et des évènements.
+  { key: "floorplanEvent", group: "events", audience: "team", module: "floorplans", path: null, capture: false },
   // Lot 51 (JRJ-06, CHR-08) : modèles des listes du jour J ; import d'un chrono (onglet Programme).
   { key: "dayChecklists", group: "events", audience: "team", module: "events", path: "/events/parametres/listes-jour-j", capture: false },
   // Lot 52 (EVT-06) : l'équipe de l'évènement et ses renforts du jour J (adresse d'un évènement : pas de capture).
@@ -88,6 +90,11 @@ export const HELP_SCREENS: HelpScreen[] = [
   // Prestataires
   { key: "vendorBook", group: "vendors", audience: "team", module: "vendors", path: "/prestataires", tour: "vendors", capture: true },
   { key: "vendorDetail", group: "vendors", audience: "team", module: "vendors", path: null, capture: true },
+  // Lot 60 : plans de salle d'un lieu, réglages d'un espace, éditeur, bibliothèque d'éléments.
+  { key: "floorplanVenue", group: "vendors", audience: "team", module: "floorplans", path: null, capture: false },
+  { key: "floorplanSpace", group: "vendors", audience: "team", module: "floorplans", path: null, capture: false },
+  { key: "floorplanEditor", group: "vendors", audience: "team", module: "floorplans", path: null, capture: false },
+  { key: "floorplanLibrary", group: "vendors", audience: "team", module: "floorplans", path: "/plans-de-salle/bibliotheque", capture: false },
   { key: "vendorNew", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/nouveau", capture: true },
   { key: "vendorTypes", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/parametres", capture: true },
   { key: "vendorTags", group: "vendors", audience: "team", module: "vendors", path: "/prestataires/parametres/etiquettes", capture: true },

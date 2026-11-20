@@ -218,6 +218,8 @@ export const AUDIT_ACTIONS = {
   // RGP-08 : opposition d'un invité, report de la purge, purges exécutées.
   "guests.guest.opposed": { category: "suppression", objectType: "event" },
   "guests.purge.postponed": { category: "suppression", objectType: "event" },
+  // Lot 60 (L60-PLA-05) : une version du plan de salle d'un évènement diffusée au client et aux prestataires.
+  "floorplans.plan.published": { category: "partage", objectType: "event" },
   "guests.purge.executed": { category: "suppression", objectType: "event" },
   // INV-02 : liste importée, import annulé.
   "guests.import.applied": { category: "emission", objectType: "event" },

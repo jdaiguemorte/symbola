@@ -172,7 +172,8 @@ export function CreateLinkForm({ eventId, clients, slots, profiles }: { eventId:
 }
 
 // Lot 49 (D5) : guestsRubric, la rubrique « Invités » proposée seulement si le module est ouvert.
-export function EditLinkForm({ eventId, link, clients, slots, guestsRubric = false }: { eventId: string; link: EditableLink; clients: LinkFormClient[]; slots: LinkFormSlot[]; guestsRubric?: boolean }) {
+// Lot 60 (L60-PLA-05) : floorplanRubric, la rubrique « Plan de salle » proposée seulement si le module est ouvert.
+export function EditLinkForm({ eventId, link, clients, slots, guestsRubric = false, floorplanRubric = false }: { eventId: string; link: EditableLink; clients: LinkFormClient[]; slots: LinkFormSlot[]; guestsRubric?: boolean; floorplanRubric?: boolean }) {
   const t = useTranslations("Events");
   const [state, formAction, pending] = useActionState(updateLinkAction, {} as LinkFormState);
   const [scope, setScope] = useState(link.budgetScope);
@@ -190,7 +191,7 @@ export function EditLinkForm({ eventId, link, clients, slots, guestsRubric = fal
         {t("linkEmail")}
         <input type="email" name="email" required autoComplete="off" defaultValue={link.email} />
       </label>
-      {vendor ? null : <ClientRights link={link} clients={clients} slots={slots} personId={personId} scope={scope} onScope={setScope} guestsRubric={guestsRubric} />}
+      {vendor ? null : <ClientRights link={link} clients={clients} slots={slots} personId={personId} scope={scope} onScope={setScope} guestsRubric={guestsRubric} floorplanRubric={floorplanRubric} />}
       <label>
         {t("linkExpiresOn")}
         <input type="date" name="customExpiresOn" defaultValue={link.customExpiresOn ?? ""} />
@@ -215,6 +216,7 @@ function ClientRights({
   scope,
   onScope,
   guestsRubric,
+  floorplanRubric,
 }: {
   link: EditableLink;
   clients: LinkFormClient[];
@@ -223,6 +225,7 @@ function ClientRights({
   scope: "all" | "selected";
   onScope: (scope: "all" | "selected") => void;
   guestsRubric: boolean;
+  floorplanRubric: boolean;
 }) {
   const t = useTranslations("Events");
   const setScope = onScope;
@@ -239,7 +242,7 @@ function ClientRights({
       </select>
       <fieldset>
         <legend>{t("linkRubrics")}</legend>
-        {LINK_RUBRICS.filter((rubric) => rubric !== "guests" || guestsRubric || link.rubrics.includes("guests")).map((rubric) => (
+        {LINK_RUBRICS.filter((rubric) => (rubric !== "guests" || guestsRubric || link.rubrics.includes("guests")) && (rubric !== "floorplan" || floorplanRubric || link.rubrics.includes("floorplan"))).map((rubric) => (
           <label key={rubric} className="checkbox">
             <input type="checkbox" name="rubrics" value={rubric} defaultChecked={link.rubrics.includes(rubric)} />
             {t(`linkRubric.${rubric}`)}

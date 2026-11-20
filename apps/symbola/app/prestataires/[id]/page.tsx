@@ -38,6 +38,7 @@ import { VendorFileForm, VendorLocationForm } from "./vendor-side-forms";
 import { ScreenHelp } from "@/app/screen-help";
 import { SidePanel } from "@/app/ui/side-panel";
 import { RatingStars } from "../rating-stars";
+import { isFloorplansAvailable } from "@/app/plans-de-salle/access";
 
 const OUTCOME_KEYS = { selected: "outcomeSelected", not_selected: "outcomeNotSelected", pending: "outcomePending" } as const;
 const OUTCOME_CLASSES = { selected: "badge badge-sauge", not_selected: "badge", pending: "badge badge-ambre" } as const;
@@ -99,6 +100,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
   const editing = query.modifier === "1";
   const vendorHref = `/prestataires/${vendor.id}`;
   const type = types.find((candidate) => candidate.id === vendor.typeId);
+  const floorplans = await isFloorplansAvailable(organizationId, "vendors");
   const vendorTags = tags.filter((tag) => vendor.tagIds.includes(tag.id));
   const amount = (cents: number | null) => (cents === null ? "—" : formatAmount(cents, locale));
   const family = type ? families.find((candidate) => candidate.id === type.familyId) : undefined;
@@ -396,6 +398,17 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
         <p className="muted">{t("filesHint")}</p>
         <VendorFileForm vendorId={vendor.id} />
       </section>
+
+      {/* Lot 60 (L60-PLA-01, PRE-06) : les plans de salle d'un lieu, si le module est ouvert (ARC-07). */}
+      {floorplans && type?.starterKey === "venue" ? (
+        <section className="card" aria-labelledby="floorplans-title">
+          <h2 id="floorplans-title">{t("floorplansTitle")}</h2>
+          <p className="meta">{t("floorplansIntro")}</p>
+          <p>
+            <Link href={`/prestataires/${vendor.id}/plans`}>{t("floorplansLink")}</Link>
+          </p>
+        </section>
+      ) : null}
 
       <section className="card" aria-labelledby="point-title">
         <h2 id="point-title">{t("pointTitle")}</h2>

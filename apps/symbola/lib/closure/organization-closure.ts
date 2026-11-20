@@ -18,6 +18,7 @@ import { eraseGuestsData } from "@/modules/guests/service";
 import { eraseHubData, getOrganizationClosure, recordClosureFilesErased, recordOrganizationErasure } from "@/modules/hub/service";
 import { eraseQuotesData } from "@/modules/quotes/service";
 import { eraseVendorsData } from "@/modules/vendors/service";
+import { eraseFloorplansData } from "@/modules/floorplans/service";
 import { collectOrganizationData } from "@/lib/export/organization-export";
 
 // Préfixes du stockage propres à une organisation (envois, imports, exports, reprises, exports RGPD).
@@ -59,7 +60,7 @@ export async function eraseClosedOrganization(input: { organizationId: string; n
     withOrganization(db, input.organizationId, async (tx) => {
       let erased = 0;
       // Les modules d'abord (dans l'ordre inverse de l'export), le hub en dernier.
-      for (const eraseModule of [eraseAppointmentsData, eraseGuestsData, eraseVendorsData, eraseQuotesData, eraseBudgetData, eraseEventsData]) erased += await eraseModule(tx, input.organizationId);
+      for (const eraseModule of [eraseFloorplansData, eraseAppointmentsData, eraseGuestsData, eraseVendorsData, eraseQuotesData, eraseBudgetData, eraseEventsData]) erased += await eraseModule(tx, input.organizationId);
       const hub = await eraseHubData(tx, input.organizationId);
       return { rows: erased + hub.rows, subjects: hub.identitySubjects };
     }),

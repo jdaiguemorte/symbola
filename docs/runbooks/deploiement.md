@@ -537,7 +537,7 @@ lire le résultat :
    fermé et à sa date) ; 0187 laisse les pièces inaltérables céder à ce seul effacement. Aucun
    espace n'est fermé au déploiement. Le traitement horaire des fermetures (préavis, suppression au
    30e jour) démarre avec l'app.
-   La migration 0191 (lot 54, ADR 0101) passe sans arrêter `symbola` : elle ajoute le catalogue des
+   La migration 0193 (lot 54, ADR 0101) passe sans arrêter `symbola` : elle ajoute le catalogue des
    offres (`hub.plans`, `hub.plan_modules`, vides : l'app lit `plans.json`), les abonnements
    (`hub.organization_subscriptions`, vide), les interrupteurs par fonction et le quota de stockage,
    et deux colonnes de `hub.platform_settings` (facturation des abonnements **éteinte**, règles par

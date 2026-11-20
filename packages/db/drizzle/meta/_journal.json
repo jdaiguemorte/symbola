@@ -1342,8 +1342,22 @@
     {
       "idx": 191,
       "version": "7",
-      "when": 1795124434833,
-      "tag": "0191_lot54_hub_subscriptions",
+      "when": 1795122377869,
+      "tag": "0191_lot60_floorplans",
+      "breakpoints": true
+    },
+    {
+      "idx": 192,
+      "version": "7",
+      "when": 1795122379792,
+      "tag": "0192_lot60_events_floorplan_rubric",
+      "breakpoints": true
+    },
+    {
+      "idx": 193,
+      "version": "7",
+      "when": 1795157633518,
+      "tag": "0193_lot54_hub_subscriptions",
       "breakpoints": true
     }
   ]

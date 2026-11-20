@@ -13,6 +13,7 @@ import { quotesPrivacy } from "@/modules/quotes/service";
 import { vendorsPrivacy } from "@/modules/vendors/service";
 import { guestsPrivacy } from "@/modules/guests/service";
 import { appointmentsPrivacy } from "@/modules/appointments/service";
+import { floorplansPrivacy } from "@/modules/floorplans/service";
 
 // Modules interrogés, et la clé de souscription de chacun (le hub l'est toujours).
 export type Participant = { contract: PrivacyContractV1; moduleKey: ModuleKey | null };
@@ -27,6 +28,8 @@ export const PARTICIPANTS: Participant[] = [
   { contract: guestsPrivacy, moduleKey: "guests" },
   // Lot 46 (ADR 0082) : les personnes qui ont pris rendez-vous.
   { contract: appointmentsPrivacy, moduleKey: "appointments" },
+  // Lot 60 : plans de salle d'un évènement (aucun champ qui désigne une personne).
+  { contract: floorplansPrivacy, moduleKey: "floorplans" },
 ];
 
 // Délai de réponse d'un module, au-delà duquel le résultat est déclaré incomplet.

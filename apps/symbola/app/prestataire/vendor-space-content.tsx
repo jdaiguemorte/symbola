@@ -16,6 +16,7 @@ import { LinkPrivacyNotice } from "@/app/portail/link-privacy-notice";
 import { SharedDocuments } from "@/app/portail/shared-documents";
 import { confirmRoadmapAction, toggleVendorTaskAction } from "./actions";
 import { VendorAnswerForm, VendorInvoiceForm } from "./vendor-answer-form";
+import { FloorplanLinkEntry } from "@/app/plans-de-salle/link-entry";
 
 // Lot 26b (UX-11, POR-01 ; ADR 0053, décision D9) — espace minimal d'un
 // prestataire, ouvert par son lien personnel, sans compte : l'événement
@@ -97,6 +98,8 @@ export async function VendorSpaceContent({ access, preview = false, banner, pres
       </p>
 
       {roadmap ? <VendorRoadmap roadmap={roadmap} preview={preview} /> : null}
+      {/* Lot 60 (L60-PLA-05) : le plan de salle diffusé, son emplacement en évidence. */}
+      {consultation.stage === "retained" ? <FloorplanLinkEntry access={access} audience="vendor" preview={preview} /> : null}
 
       <h2>{t("placesTitle")}</h2>
       {view.places.length === 0 ? (

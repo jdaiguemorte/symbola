@@ -7,7 +7,7 @@ l'ouverture commerciale. Le rejeu suit les tests prévus par la spécification d
 ## Lot 54 — essai, offre, résiliation, quota
 
 - Date : 19/11/2026, en local, par Claude Code.
-- Environnement : base neuve `symbola_lot54` (bootstrap puis migrations jusqu'à 0191), Garage,
+- Environnement : base neuve `symbola_lot54` (bootstrap puis migrations jusqu'à 0193), Garage,
   ClamAV et Mailpit du socle de dev.
 - Méthode : `modules/hub/subscriptions.integration.test.ts` (20 cas) et
   `modules/hub/subscription-rules.test.ts` (26 cas, horloge simulée : veille, jour même, heure
