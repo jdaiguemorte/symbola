@@ -240,6 +240,12 @@ Coins arrondis sobres : `sm` pour les champs et les pastilles carrées, `md` pou
 - **Liste de réglages** (lot 61) : une seule carte, une ligne par réglage. À gauche, ce que fait le réglage (titre, une phrase, pastille d'état) ; à droite, ses commandes ; dessous, son détail. En colonne quand la place manque. Jamais une carte par réglage.
 - **Formulaire en ligne** (lot 61) : quelques champs courts et leur bouton sur une même ligne, alignés à gauche, le bouton en secondaire. Un nombre de jours ou de points est un champ court, jamais un champ de toute la largeur.
 - **Valeur à copier** (lot 61) : le champ en lecture seule et son bouton « Copier » côte à côte ; les étapes à suivre, numérotées, juste dessous.
+- **Formulaire en grille** (lot 62) : les champs d'une fiche sur deux ou trois colonnes, regroupés par sens (identité, adresse, contact), une seule colonne sur téléphone. Un nombre, une date ou un code est un champ court. Jamais six champs empilés sur un même bord.
+- **Liste éditable** (lot 62) : un tableau, une ligne par élément. La ligne s'ouvre en place, une seule à la fois. Les réglages s'enregistrent à la sortie du champ, avec « Annuler la dernière modification » ; le programme et le budget ont un seul « Enregistrer », qui dit le nombre de lignes modifiées. Jamais un bouton d'envoi par ligne.
+- **Actions de ligne** (lot 62) : libellés courts (« Modifier », « Archiver ») ou icônes de 44 px. Le nom de l'objet va dans le nom accessible, pas dans le libellé visible.
+- **Bouton de danger** (lot 62) : fond blanc, bord et texte `critical`, pour ce qui détruit ou annule. Jamais l'allure du bouton principal.
+- **Messages** (lot 62) : confirmation ou information en `primary-soft`, « à vérifier » en `attention-soft`, erreur en `critical-soft`. Le texte dit d'abord ce que c'est.
+- **Rubriques d'un écran long** (lot 62) : au-delà de trois écrans de haut, un sommaire d'ancres en tête, ou des onglets quand chaque rubrique a son adresse.
 
 ## Do's and Don'ts
 
