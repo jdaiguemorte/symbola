@@ -11,6 +11,10 @@ export default defineConfig({
     environment: "node",
     include: ["**/*.integration.test.ts"],
     exclude: ["**/node_modules/**"],
+    // Les tests d'intégration parlent à une vraie base partagée : sous la charge
+    // de la CI, 5 s (le défaut) ne suffisent pas toujours (échecs de main du 19/11).
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
     // L16-ARC-01 : rend la réserve de connexions partagée à la fin de chaque
     // fichier. Lot 24a (SEC-20) : aucune donnée personnelle écrite dans la console.
     setupFiles: ["./vitest.integration.setup.ts", "@symbola/privacy/console-guard"],
