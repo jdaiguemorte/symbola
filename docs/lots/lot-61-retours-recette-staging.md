@@ -99,6 +99,9 @@ et le **bouton principal désigné** (`button-primary`) existent maintenant part
 
 ## D. Suite proposée : l'ergonomie de toute l'application
 
+Le relevé est fait : [`docs/audits/2026-11-20-releve-ergonomie.md`](../audits/2026-11-20-releve-ergonomie.md)
+(101 écrans mesurés, constats par famille, découpage du lot 62 et décisions à prendre).
+
 Julien attend un travail d'ergonomie d'ensemble. Ce lot traite les écrans qu'il a signalés ; il
 n'a pas relu les autres. Proposition pour le lot suivant, à valider par Julien avant le code :
 
