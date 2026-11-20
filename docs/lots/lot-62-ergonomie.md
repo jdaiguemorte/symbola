@@ -1,8 +1,9 @@
 # Lot 62 — Ergonomie d'ensemble, côté wedding planner
 
-**Statut** : spécification proposée le 20/11/2026, **à valider par Julien** (décisions D1 à D5).
-Rien ne se code avant. Aucun changement de schéma de données, aucun contrat d'API ou d'évènement
-modifié, aucune dépendance nouvelle.
+**Statut** : spécification proposée le 20/11/2026, **validée par Julien le 20/11/2026** (« je
+valide tes recommandations toutes ») : D1 à D4 retenues dans leur option recommandée, D5 sans objet.
+Aucun changement de schéma de données, aucun contrat d'API ou d'évènement modifié, aucune
+dépendance nouvelle.
 
 Sources : le relevé [`docs/audits/2026-11-20-releve-ergonomie.md`](../audits/2026-11-20-releve-ergonomie.md)
 (101 écrans mesurés, 38 avec défauts) et les maquettes du lot
@@ -173,24 +174,20 @@ repris :
 acheteur, honoraires, signature, factures), `app/devis/modeles-contrat/`, `app/devis/relances/`,
 traductions.
 
-## Décisions demandées à Julien
+## Décisions de Julien (20/11/2026)
 
-- **D1 — Enregistrement des listes.** (a) Un seul « Enregistrer » par liste, avec le nombre de
-  lignes modifiées et « Annuler les modifications ». (b) Enregistrement à la sortie du champ, avec
-  « Annuler la dernière modification » (UX-07, UX-09). **Recommandation** : (b) pour les réglages
-  (62b), (a) pour le programme et le budget (62c), où une saisie à moitié faite ne doit pas partir
-  chez le client. La maquette du programme bascule entre les deux.
-- **D2 — Menu des Paramètres.** (a) Groupes repliables, celui de la rubrique ouverte déplié, et
-  recherche. (b) Page d'accueil des Paramètres en tuiles, menu réduit au groupe ouvert.
-  **Recommandation** : (a). Les deux sont maquettés.
-- **D3 — Ordre.** Après 62a : (a) 62c d'abord (les écrans de tous les jours), (b) 62b d'abord (là
-  où la recette a commencé), (c) les trois en parallèle. **Recommandation** : (c), les paquets ne
-  partagent pas d'écran.
-- **D4 — Maquettes.** Valent-elles accord sur les motifs, ou faut-il une maquette par écran avant
-  chaque paquet ? **Recommandation** : les huit planches valent accord ; un écran qui s'en écarte
-  est montré dans la pull request avant fusion.
-- **D5 — Regroupement des rubriques (seulement si D2 = b).** Les tuiles regroupent 51 rubriques en
-  26 ; ce regroupement est à valider nommément.
+- **D1 — Enregistrement des listes** : enregistrement à la sortie du champ, avec « Annuler la
+  dernière modification », pour les réglages (62b) ; un seul « Enregistrer » par liste, avec le
+  nombre de lignes modifiées et « Annuler les modifications », pour le programme et le budget (62c),
+  où une saisie à moitié faite ne doit pas partir chez le client.
+- **D2 — Menu des Paramètres** : groupes repliables, celui de la rubrique ouverte déplié, et champ
+  « Chercher un réglage ». La page d'accueil en tuiles n'est pas retenue.
+- **D3 — Ordre** : les motifs communs du socle d'abord (branche `lot-62a-socle`), puis les quatre
+  paquets en parallèle ; 62b, 62c et 62d partent de cette branche et ouvrent leur pull request vers
+  `main`.
+- **D4 — Maquettes** : les huit planches valent accord sur les motifs ; un écran qui s'en écarte est
+  montré dans sa pull request avant fusion.
+- **D5** : sans objet (tuiles non retenues).
 
 ## Ambiguïtés
 
