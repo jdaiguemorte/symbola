@@ -57,7 +57,7 @@ export class EventDocumentNotFoundError extends Error {
 }
 
 export class EventDocumentRejectedError extends Error {
-  constructor(readonly reason: "too_large" | "unsupported_type" | "infected" | "label" | "folder" | "duration") {
+  constructor(readonly reason: "too_large" | "unsupported_type" | "infected" | "storage_full" | "label" | "folder" | "duration") {
     super(`document refusé : ${reason}`);
     this.name = "EventDocumentRejectedError";
   }

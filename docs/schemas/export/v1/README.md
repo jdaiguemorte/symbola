@@ -63,6 +63,12 @@ Tables non exportées :
 - `push_subscriptions` — technique : abonnements push des appareils (adresse du service de push, clés publiques), propres à chaque appareil
 - `automation_runs` — temporaire : journal des automatismes, effacé après 90 jours
 - `email_deliveries` — temporaire : journal des envois (objet, destinataire, statut), effacé 13 mois après l'envoi
+- `plans` — exploitation : catalogue des offres de Symbola (prix, quotas), le même pour tous
+- `plan_modules` — exploitation : modules des offres du catalogue de Symbola
+- `organization_subscriptions` — exploitation : abonnement de l'espace à Symbola (offre, dates) ; un espace repris a le sien
+- `feature_flags` — exploitation : interrupteurs des fonctions de la plateforme
+- `feature_flag_organizations` — exploitation : fonctions nouvelles ouvertes à l'espace par l'Exploitation
+- `storage_quota_states` — exploitation : dernière mesure du stockage face au quota (des nombres)
 
 ## Module `events`
 

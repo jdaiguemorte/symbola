@@ -603,6 +603,19 @@ lire le résultat :
    fermé et à sa date) ; 0187 laisse les pièces inaltérables céder à ce seul effacement. Aucun
    espace n'est fermé au déploiement. Le traitement horaire des fermetures (préavis, suppression au
    30e jour) démarre avec l'app.
+   La migration 0193 (lot 54, ADR 0101) passe sans arrêter `symbola` : elle ajoute le catalogue des
+   offres (`hub.plans`, `hub.plan_modules`, vides : l'app lit `plans.json`), les abonnements
+   (`hub.organization_subscriptions`, vide), les interrupteurs par fonction et le quota de stockage,
+   et deux colonnes de `hub.platform_settings` (facturation des abonnements **éteinte**, règles par
+   défaut). **Rien ne change au déploiement** : l'abonnement en libre-service est fermé à toutes les
+   organisations, aucune n'a d'abonnement, aucun quota ne s'applique. Pour la pilote, ensuite :
+   `/exploitation/organisations` → l'organisation → Abonnement → « Pilote » → « Poser cette offre »
+   (tout ouvert, sans quota) ; puis, pour qu'elle teste le libre-service,
+   `/exploitation/interrupteurs` → « Abonnement en libre-service » → l'ouvrir à son organisation.
+   Ne l'ouvrir « à tous » qu'à l'ouverture commerciale, la société créée (AV-12, Q41). La
+   facturation de l'éditeur n'a pas d'interrupteur à l'écran : elle attend la société et son lot.
+   Le passage horaire des abonnements (rappels d'essai, lecture seule, reconduction, résiliations,
+   mesure du quota) démarre avec l'app et ne touche que les organisations abonnées.
 
 ### À la main, si le script ne peut pas servir
 

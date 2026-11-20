@@ -202,7 +202,7 @@ export class VendorFileNotFoundError extends Error {
   }
 }
 export class VendorFileRejectedError extends Error {
-  constructor(readonly reason: "too_large" | "unsupported_type" | "infected") {
+  constructor(readonly reason: "too_large" | "unsupported_type" | "infected" | "storage_full") {
     super(`fichier refusé : ${reason}`);
     this.name = "VendorFileRejectedError";
   }

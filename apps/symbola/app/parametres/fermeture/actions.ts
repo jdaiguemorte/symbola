@@ -32,7 +32,7 @@ function refusal(error: unknown, t: Awaited<ReturnType<typeof getTranslations>>)
 
 export async function closeOrganizationAction(_previous: ClosureState, formData: FormData): Promise<ClosureState> {
   const t = await getTranslations("OrganizationClosure");
-  const owner = await requireOwner({ allowClosed: true });
+  const owner = await requireOwner({ allowClosed: true, allowReadOnly: true });
   if (!owner) return { error: t("forbidden") };
   const confirmation = z.string().max(300).safeParse(formData.get("confirmation"));
   if (!confirmation.success) return { error: t("confirmationMismatch") };
@@ -54,7 +54,7 @@ export async function closeOrganizationAction(_previous: ClosureState, formData:
 
 export async function reopenOrganizationAction(_previous: ClosureState, _formData: FormData): Promise<ClosureState> {
   const t = await getTranslations("OrganizationClosure");
-  const owner = await requireOwner({ allowClosed: true });
+  const owner = await requireOwner({ allowClosed: true, allowReadOnly: true });
   if (!owner) return { error: t("forbidden") };
   try {
     await reopenOrganization(appDatabase(), { organizationId: owner.user.organizationId, userId: owner.user.id, mfaVerified: owner.user.mfaEnabled });

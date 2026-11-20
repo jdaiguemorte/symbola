@@ -188,6 +188,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "organizationClosure", group: "data", audience: "team", ownerOnly: true, path: "/parametres/fermeture", capture: false },
   // Lot 37b (DOC-12, D12) : relevé mensuel du stockage, titulaire seulement.
   { key: "storage", group: "data", audience: "team", ownerOnly: true, path: "/parametres/stockage", capture: false },
+  // Lot 54 (HUB-27, DOC-06) : « Mon abonnement », titulaire seulement.
+  { key: "subscription", group: "data", audience: "team", ownerOnly: true, path: "/parametres/abonnement", capture: false },
   // Lot 23b (JUR-06) : archive comptable, titulaire seulement.
   { key: "ledgerArchive", group: "quotes", audience: "team", module: "quotes", ownerOnly: true, path: "/devis/parametres/archive", capture: true },
   // Administration de la suite (aucune capture : elle montrerait des organisations)
@@ -196,6 +198,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "adminAccounts", group: "admin", audience: "admin", path: "/exploitation/comptes", capture: false },
   { key: "adminActivity", group: "admin", audience: "admin", path: "/exploitation/activite", capture: false },
   { key: "adminClosures", group: "admin", audience: "admin", path: "/exploitation/fermetures", capture: false },
+  { key: "adminPlans", group: "admin", audience: "admin", path: "/exploitation/offres", capture: false },
+  { key: "adminFeatureFlags", group: "admin", audience: "admin", path: "/exploitation/interrupteurs", capture: false },
   { key: "adminOnboarding", group: "admin", audience: "admin", path: "/exploitation/prise-en-main", capture: false },
   { key: "adminHealth", group: "admin", audience: "admin", path: "/exploitation/health", capture: false },
   { key: "adminSettings", group: "admin", audience: "admin", path: "/exploitation/parametres", capture: false },

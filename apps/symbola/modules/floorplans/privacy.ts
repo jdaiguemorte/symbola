@@ -31,7 +31,7 @@ export const floorplansPrivacy: PrivacyContractV1 = {
 
   async related({ organizationId, eventIds }) {
     return (await eventsWithPlans(organizationId, eventIds)).map(
-      ({ eventId, spaces: count }): PrivacyRecord => ({ module: MODULE, kind: "event_floorplans", recordId: eventId, label: "Plans de salle", fields: { spaces: String(count) }, eventId }),
+      ({ eventId, spaces: count }): PrivacyRecord => ({ module: MODULE, kind: "event_floorplans", recordId: eventId, label: "Plans de salle de l'évènement", fields: { spaces: String(count) }, eventId }),
     );
   },
 

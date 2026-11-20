@@ -100,7 +100,7 @@ export async function setSpaceBackground(organizationId: string, spaceId: string
   if (content.byteLength > FLOORPLAN_BACKGROUND_MAX_BYTES) throw new FloorplanInvalidError("background_size");
   await inOrganization(organizationId, (tx) => spaceOf(tx, spaceId));
   const upload = await uploadFile({ organizationId, buffer: Buffer.from(content), maxSizeBytes: FLOORPLAN_BACKGROUND_MAX_BYTES });
-  if (upload.status === "rejected") throw new FloorplanInvalidError(upload.reason === "too_large" ? "background_size" : upload.reason === "infected" ? "background_infected" : "background_type");
+  if (upload.status === "rejected") throw new FloorplanInvalidError(upload.reason === "too_large" ? "background_size" : upload.reason === "infected" ? "background_infected" : upload.reason === "storage_full" ? "background_storage_full" : "background_type");
   if (upload.mime !== size.mime) {
     await deletePrivateObject(createStorageClient(), upload.key).catch(() => undefined);
     throw new FloorplanInvalidError("background_type");

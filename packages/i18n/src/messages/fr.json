@@ -190,7 +190,20 @@
     "noAccount": "Aucun compte d'équipe.",
     "seeAccounts": "Voir les comptes et les invitations",
     "lastLoginAt": "Dernière connexion : {date}",
-    "neverLoggedIn": "Personne ne s'est encore connecté."
+    "neverLoggedIn": "Personne ne s'est encore connecté.",
+    "subscriptionTitle": "Abonnement",
+    "subscriptionNone": "Aucun abonnement : modules réglés à la main.",
+    "subscriptionCurrent": "{plan} — {status}",
+    "subscriptionStatus": {
+      "trial": "essai jusqu'au {date}",
+      "active": "active",
+      "read_only": "lecture seule",
+      "cancelled": "résiliée, accès jusqu'au {date}"
+    },
+    "subscriptionPlan": "Offre",
+    "subscriptionAssign": "Poser cette offre",
+    "subscriptionAssigned": "Offre posée. Les modules suivent.",
+    "subscriptionModulesNote": "Avec un abonnement, les modules suivent l'offre ; un réglage à la main est repris au prochain changement d'offre."
   },
   "AdminOrganizationForm": {
     "name": "Nom de l'organisation",
@@ -1524,6 +1537,18 @@
     "floorplanShared": {
       "title": "Plan de salle",
       "body": "La dernière version du plan diffusée par l'organisatrice. Votre emplacement est mis en évidence, avec vos besoins et votre prise ; l'accès de livraison et les issues sont indiqués. Le PDF s'imprime à l'échelle. Pour toute question, contactez l'organisatrice."
+    },
+    "subscription": {
+      "title": "Mon abonnement",
+      "body": "Votre offre, ses apps et ses options, le total et votre stockage face au quota de l'offre. Changer d'offre prend effet tout de suite ; l'écart au prorata va sur la facture suivante. Résilier se fait en deux gestes : « Résilier », puis « Confirmer la résiliation » ; vous gardez l'accès jusqu'à la fin de la période payée, puis l'espace est fermé (export pendant 30 jours, puis effacement). À 80 % et 95 % du quota, Symbola vous prévient ; plein, les nouveaux dépôts ne sont refusés qu'après sept jours de préavis, et la lecture et l'export restent toujours possibles. Réservé à la titulaire du compte."
+    },
+    "adminPlans": {
+      "title": "Offres et forfaits",
+      "body": "Le catalogue des offres (essai, offres, forfait Pilote) et des options : noms, modules, utilisateurs, quota et prix, et les règles de l'essai et du quota. Le forfait Pilote ne paraît jamais en libre-service. La facturation des abonnements reste éteinte tant que la société n'est pas créée. Aucune donnée métier."
+    },
+    "adminFeatureFlags": {
+      "title": "Interrupteurs par fonction",
+      "body": "Chaque fonction nouvelle a son interrupteur, fermé pour tous. Ouvrez-la d'abord à la pilote pour qu'elle la teste, puis à toutes les organisations. L'effet est immédiat, sans redéploiement."
     },
     "eventMessages": {
       "title": "Messages par sujet",
@@ -5275,6 +5300,7 @@
     "clientTerms": "Termes des clients",
     "accountingExports": "Exports comptables",
     "eventTemplates": "Modèles d'évènement",
+    "subscription": "Mon abonnement",
     "senderAddress": "Adresse d'envoi",
     "emailDeliveries": "Journal des envois"
   },
@@ -5334,7 +5360,9 @@
     "closures": "Espaces fermés",
     "health": "Santé",
     "settings": "Réglages de la suite",
-    "account": "Mon compte"
+    "account": "Mon compte",
+    "plans": "Offres et forfaits",
+    "featureFlags": "Interrupteurs"
   },
   "AdminOverview": {
     "title": "Vue d'ensemble",
@@ -5598,7 +5626,18 @@
       "events_review_request_sent": "Remerciement et demande d'avis envoyés",
       "quotes_accounting_exported": "Export comptable téléchargé",
       "quotes_accounting_blocked": "Export comptable bloqué par le contrôle",
-      "floorplans_plan_published": "Plan de salle diffusé"
+      "floorplans_plan_published": "Plan de salle diffusé",
+      "hub_subscription_trial_started": "Essai commencé",
+      "hub_subscription_assigned": "Offre posée par l'Exploitation",
+      "hub_subscription_changed": "Abonnement changé",
+      "hub_subscription_cancelled": "Abonnement résilié",
+      "hub_subscription_resumed": "Résiliation annulée",
+      "hub_subscription_read_only": "Fin de l'essai : lecture seule",
+      "hub_subscription_ended": "Échéance de la résiliation : espace fermé",
+      "hub_storage_quota_alerted": "Alerte de quota de stockage",
+      "hub_feature_flag_opened": "Fonction ouverte par l'Exploitation",
+      "hub_feature_flag_closed": "Fonction refermée par l'Exploitation",
+      "hub_plan_catalog_updated": "Catalogue des offres modifié"
     },
     "categories": {
       "connexion": "Connexions",
@@ -5794,6 +5833,12 @@
       "floorplans_power_links": "liaison à une prise",
       "floorplans_layout_versions": "version diffusée d'un plan de salle",
       "floorplans_link_views": "version vue par un lien",
+      "hub_plans": "une offre du catalogue",
+      "hub_plan_modules": "un module d'une offre",
+      "hub_organization_subscriptions": "un abonnement",
+      "hub_feature_flags": "un interrupteur",
+      "hub_feature_flag_organizations": "une ouverture de fonction",
+      "hub_storage_quota_states": "un état du quota de stockage",
       "events_message_topics": "sujet de discussion",
       "events_message_topic_links": "prestataire d'un sujet",
       "events_messages": "message",
@@ -7315,6 +7360,31 @@
       "ownershipDone": {
         "subject": "Transfert de propriété de {organization} effectué",
         "body": "Bonjour,\n\nLe transfert de propriété de {organization} est fait : {owner} en est désormais la Propriétaire, et l'ancienne Propriétaire devient Planner. Si vous ne l'attendiez pas, répondez à la Propriétaire ou écrivez au support de Symbola."
+      },
+      "subscriptionTrialReminder": {
+        "subject": "Votre essai Symbola finit dans {days, plural, one {# jour} other {# jours}}",
+        "body": "Bonjour,\n\nL'essai de « {organization} » finit le {date}. Pour continuer sans interruption, choisissez une offre dans « Mon abonnement ». Sans offre choisie, votre espace passera en lecture seule : rien ne sera effacé et l'export restera possible.\n\n{url}",
+        "button": "Choisir une offre"
+      },
+      "subscriptionTrialEnded": {
+        "subject": "Votre essai Symbola est terminé",
+        "body": "Bonjour,\n\nL'essai de « {organization} » s'est terminé le {date}. Votre espace est maintenant en lecture seule : vos données sont gardées, vous pouvez tout consulter et exporter. Choisissez une offre pour reprendre.\n\n{url}",
+        "button": "Choisir une offre"
+      },
+      "subscriptionCancelled": {
+        "subject": "Votre résiliation est enregistrée",
+        "body": "Bonjour,\n\nLa résiliation de l'abonnement de « {organization} » est enregistrée. Vous gardez l'accès jusqu'au {date}. L'espace sera ensuite fermé : l'export restera possible pendant 30 jours, puis tout sera effacé. Vous pouvez revenir sur la résiliation jusqu'à cette date.\n\n{url}",
+        "button": "Ouvrir mon abonnement"
+      },
+      "storageQuotaAlert": {
+        "subject": "Stockage Symbola : {percent} % utilisés",
+        "body": "Bonjour,\n\nL'espace de stockage de « {organization} » est utilisé à {percent} %. Rien n'est bloqué. Pour garder de la marge, supprimez des fichiers inutiles ou ajoutez du stockage dans « Mon abonnement ».\n\n{url}",
+        "button": "Voir mon stockage"
+      },
+      "storageQuotaFull": {
+        "subject": "Stockage Symbola plein",
+        "body": "Bonjour,\n\nL'espace de stockage de « {organization} » est plein. Les nouveaux dépôts seront refusés à partir du {date}, sauf si vous libérez de la place ou ajoutez du stockage d'ici là. La lecture et l'export de vos données restent toujours possibles.\n\n{url}",
+        "button": "Voir mon stockage"
       }
     },
     "followUpOptOut": "Vous ne souhaitez plus de nouvelles ? Répondez simplement à ce message.",
@@ -11118,7 +11188,8 @@
       "guests_not_ready": "Le module Invités n'est pas prêt pour cet évènement.",
       "seating_too_many_tables": "Le plan de table dépasserait son nombre maximal de tables.",
       "seating_capacity": "Une table a plus de places que le plan de table n'en accepte.",
-      "seating_table_name": "Un nom de table est trop long."
+      "seating_table_name": "Un nom de table est trop long.",
+      "background_storage_full": "Votre espace de stockage est plein : les nouveaux dépôts sont refusés. Supprimez des fichiers ou ajoutez du stockage dans « Mon abonnement »."
     },
     "ok": {
       "space": "Espace enregistré.",
@@ -11134,6 +11205,202 @@
       "type_added": "Élément ajouté à la bibliothèque.",
       "type_saved": "Bibliothèque enregistrée."
     }
+  },
+  "StorageQuota": {
+    "uploadRefused": "Votre espace de stockage est plein : les nouveaux dépôts sont refusés. Supprimez des fichiers ou ajoutez du stockage dans « Mon abonnement ». La lecture et l'export restent possibles.",
+    "uploadRefusedLink": "Le dépôt n'est pas possible pour le moment. Prévenez votre contact."
+  },
+  "SubscriptionBanner": {
+    "label": "Abonnement",
+    "trial": "Essai : {days, plural, =0 {dernier jour} one {encore # jour} other {encore # jours}}, jusqu'au {date}.",
+    "readOnly": "Votre essai est terminé : votre espace est en lecture seule. Vos données sont gardées et l'export reste possible.",
+    "cancelled": "Abonnement résilié : accès jusqu'au {date}, puis fermeture de l'espace.",
+    "quotaAlert": "Stockage utilisé à {percent} %.",
+    "quotaFull": "Stockage plein : les nouveaux dépôts seront refusés à partir du {date}.",
+    "quotaBlocked": "Stockage plein : les nouveaux dépôts sont refusés. La lecture et l'export restent possibles.",
+    "choose": "Choisir une offre",
+    "open": "Mon abonnement"
+  },
+  "Subscription": {
+    "title": "Mon abonnement",
+    "subtitle": "Votre offre, vos options, votre stockage et la résiliation.",
+    "unavailable": "L'abonnement en libre-service n'est pas encore ouvert pour votre entreprise : il est réglé par l'équipe Symbola.",
+    "ownerOnly": "Seule la titulaire du compte change l'abonnement ou le résilie.",
+    "managed": "Votre forfait est réglé par l'équipe Symbola.",
+    "noSubscription": "Aucune offre n'est encore choisie.",
+    "currentTitle": "Votre offre",
+    "status": {
+      "trial": "Essai jusqu'au {date}",
+      "active": "Active",
+      "activeUntil": "Active, prochaine échéance le {date}",
+      "read_only": "Lecture seule depuis le {date}",
+      "cancelled": "Résiliée : accès jusqu'au {date}"
+    },
+    "modulesLabel": "Apps ouvertes",
+    "noModule": "Aucune app",
+    "optionsLabel": "Options",
+    "noOption": "Aucune option",
+    "storageUnits": "{count, plural, one {# tranche de stockage} other {# tranches de stockage}}",
+    "total": "Total : {amount} HT {period, select, yearly {par an} other {par mois}}",
+    "free": "Sans frais",
+    "billingOff": "La facturation des abonnements n'a pas encore commencé : aucune facture ne vous sera envoyée pour l'instant.",
+    "billingOn": "Facture de l'éditeur, réglée par virement.",
+    "readOnlyNotice": "Votre espace est en lecture seule : vous pouvez tout consulter et exporter. Choisissez une offre pour reprendre.",
+    "exportLink": "Exporter mes données",
+    "storageTitle": "Stockage",
+    "storageUsed": "{used} sur {quota} ({percent} %)",
+    "storageUnlimited": "{used} utilisés, sans quota",
+    "storageGauge": "Stockage utilisé",
+    "storageNotMeasured": "Le stockage n'a pas encore été mesuré.",
+    "storageMeasuredAt": "Mesuré le {date}. Les essais guidés ne comptent pas.",
+    "storageByModule": "Détail par module",
+    "storageModule": "Module",
+    "storageVolume": "Volume",
+    "storageModules": {
+      "events": "Évènements",
+      "budget": "Budget",
+      "quotes": "Devis et factures",
+      "vendors": "Prestataires",
+      "hub": "Entreprise (logo)"
+    },
+    "storageWarning": "Votre stockage approche de son quota. Rien n'est bloqué.",
+    "storageFull": "Votre stockage est plein. Les nouveaux dépôts seront refusés à partir du {date}. La lecture et l'export restent possibles.",
+    "storageBlocked": "Votre stockage est plein : les nouveaux dépôts sont refusés depuis le {date}. La lecture et l'export restent possibles.",
+    "changeTitle": "Changer d'offre",
+    "changeIntro": "Le changement prend effet tout de suite. L'écart au prorata ira sur la facture suivante.",
+    "planLegend": "Offre",
+    "perMonth": "{amount} HT par mois",
+    "perYear": "ou {amount} HT par an",
+    "users": "{count, plural, one {# utilisateur} other {# utilisateurs}}",
+    "usersUnlimited": "Utilisateurs illimités",
+    "quota": "{size} de stockage",
+    "chosenModule": "App choisie (App seule)",
+    "chosenModuleNone": "—",
+    "optionsLegend": "Options (suites seulement)",
+    "storageUnitsLabel": "Tranches de stockage supplémentaire ({size} chacune, {amount} HT par mois)",
+    "periodLegend": "Période",
+    "periodMonthly": "Au mois",
+    "periodYearly": "À l'année",
+    "submitChange": "Changer d'offre",
+    "changed": "Votre offre est changée. Les apps suivent tout de suite.",
+    "changedProrata": "Votre offre est changée. Écart au prorata sur la facture suivante : {amount} HT.",
+    "invoicesTitle": "Factures",
+    "noInvoice": "Aucune facture pour l'instant.",
+    "cancelTitle": "Résilier",
+    "cancelIntro": "Vous gardez l'accès jusqu'à la fin de la période payée. Ensuite, l'espace est fermé : l'export reste possible pendant 30 jours, puis tout est effacé.",
+    "cancel": "Résilier",
+    "confirmTitle": "Confirmer la résiliation ?",
+    "confirmBody": "Vous gardez l'accès jusqu'au {date}. Ensuite, l'espace sera fermé : export possible pendant 30 jours, puis effacement.",
+    "confirmBodyNow": "Votre espace sera fermé tout de suite : export possible pendant 30 jours, puis effacement.",
+    "confirm": "Confirmer la résiliation",
+    "keep": "Garder mon abonnement",
+    "cancelled": "Résiliation enregistrée. Vous gardez l'accès jusqu'au {date}.",
+    "cancelledNotice": "Résiliation prévue le {date}. Vous pouvez revenir dessus jusque-là.",
+    "resume": "Annuler la résiliation",
+    "resumed": "La résiliation est annulée : votre abonnement continue.",
+    "errors": {
+      "unknown_plan": "Cette offre n'existe pas.",
+      "not_self_service": "Cette offre ne se choisit pas ici.",
+      "module_choice_required": "Choisissez l'app de l'offre App seule.",
+      "invalid_module_choice": "Cette app ne fait pas partie de l'offre App seule.",
+      "options_not_allowed": "Les options et le stockage supplémentaire s'ajoutent à une suite seulement.",
+      "unknown_option": "Cette option n'existe pas.",
+      "invalid_storage_units": "Le nombre de tranches de stockage n'est pas valable.",
+      "yearly_unavailable": "Cette offre n'existe pas à l'année.",
+      "seats": "Cette offre admet {count, plural, one {# utilisateur} other {# utilisateurs}} : votre équipe en compte davantage.",
+      "managed": "Votre forfait est réglé par l'équipe Symbola.",
+      "forbidden": "Seule la titulaire du compte change l'abonnement.",
+      "not_cancellable": "L'abonnement ne peut pas être résilié dans son état actuel.",
+      "not_resumable": "La résiliation ne peut plus être annulée.",
+      "read_only": "Votre espace est en lecture seule : choisissez une offre pour reprendre."
+    }
+  },
+  "AdminPlans": {
+    "title": "Offres et forfaits",
+    "subtitle": "Le catalogue des offres et des options, leurs prix, quotas et règles. Des valeurs de départ, modifiables sans code.",
+    "source": {
+      "starter": "Catalogue de départ (aucune modification).",
+      "admin": "Catalogue réglé par l'Exploitation."
+    },
+    "billing": {
+      "off": "Facturation des abonnements : éteinte. Aucune facture n'est émise ni envoyée tant que la société n'est pas créée.",
+      "on": "Facturation des abonnements : allumée."
+    },
+    "plansTitle": "Offres",
+    "optionsTitle": "Options",
+    "listLabel": "Catalogue",
+    "colName": "Offre",
+    "colKind": "Nature",
+    "colMonthly": "Au mois (HT)",
+    "colYearly": "À l'année (HT)",
+    "colUsers": "Utilisateurs",
+    "colQuota": "Stockage",
+    "colModules": "Modules",
+    "colSelfService": "Libre-service",
+    "kinds": {
+      "trial": "Essai",
+      "plan": "Offre",
+      "pilot": "Forfait Pilote",
+      "module": "Option de module",
+      "storage": "Stockage supplémentaire"
+    },
+    "yes": "Oui",
+    "no": "Non",
+    "unlimited": "Illimité",
+    "none": "—",
+    "edit": "Modifier",
+    "editTitle": "Modifier « {name} »",
+    "labelFr": "Nom (français)",
+    "labelEn": "Nom (anglais)",
+    "descriptionFr": "Description (français)",
+    "descriptionEn": "Description (anglais)",
+    "monthlyPrice": "Prix au mois, en euros HT",
+    "yearlyPrice": "Prix à l'année, en euros HT (vide : pas d'offre à l'année)",
+    "maxUsers": "Utilisateurs au plus (vide : illimité)",
+    "quotaGb": "Quota de stockage, en Go (vide : sans quota)",
+    "unitGb": "Taille d'une tranche, en Go",
+    "selfService": "Proposée en libre-service",
+    "optionsAllowed": "Accepte les options",
+    "modulesIncluded": "Modules inclus",
+    "modulesChoice": "Modules au choix (un seul)",
+    "optionModule": "Module ouvert par l'option",
+    "save": "Enregistrer",
+    "saved": "Catalogue enregistré.",
+    "invalid": "Valeurs refusées : {detail}",
+    "rulesTitle": "Règles de l'essai et du quota",
+    "trialDays": "Durée de l'essai, en jours",
+    "trialReminderDays": "Rappels, en jours avant la fin (séparés par des virgules)",
+    "quotaAlertPercents": "Alertes de quota, en % (séparées par des virgules)",
+    "quotaBlockNoticeDays": "Préavis avant de refuser les dépôts, en jours (7 au moins)",
+    "saveRules": "Enregistrer les règles",
+    "moduleNames": {
+      "events": "Évènements",
+      "budget": "Budget",
+      "quotes": "Devis et factures",
+      "vendors": "Prestataires",
+      "appointments": "Rendez-vous",
+      "guests": "Invités",
+      "floorplans": "Plans de salle"
+    }
+  },
+  "AdminFeatureFlags": {
+    "title": "Interrupteurs par fonction",
+    "subtitle": "Une fonction nouvelle est fermée pour tous. Ouvrez-la d'abord à la pilote, puis à tous.",
+    "names": {
+      "subscription_self_service": "Abonnement en libre-service"
+    },
+    "descriptions": {
+      "subscription_self_service": "Essai de 30 jours à l'inscription, écran « Mon abonnement », changement d'offre et résiliation en ligne."
+    },
+    "openToAll": "Ouverte à toutes les organisations",
+    "closedToAll": "Fermée pour tous, sauf les organisations ci-dessous",
+    "openAll": "Ouvrir à tous",
+    "closeAll": "Refermer pour tous",
+    "openedFor": "Ouverte pour",
+    "noOrganization": "Aucune organisation.",
+    "organization": "Organisation",
+    "openFor": "Ouvrir à cette organisation",
+    "close": "Refermer pour {name}"
   },
   "LinkPush": {
     "message": {

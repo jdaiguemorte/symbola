@@ -24,6 +24,8 @@ import {
   ListChecks,
   Settings,
   ShieldCheck,
+  Tags,
+  ToggleRight,
   Wallet,
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
@@ -31,9 +33,11 @@ import { parisToday } from "@symbola/i18n";
 import { isMfaPromptDue, listOrganizations, mfaPromptDismissedAt } from "@symbola/auth";
 import { accountCenterUrl } from "@/lib/identity";
 import { MfaPromptBanner } from "./securite/mfa-prompt";
+import { SubscriptionBanner } from "./subscription-banner";
 import { appDatabase } from "@symbola/db/client";
 import {
   getDocumentHeader,
+  isFeatureEnabled,
   isModuleEnabled,
   listDueSoonPrivacyRequests,
 } from "@/modules/hub/service";
@@ -219,6 +223,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
     appointments = await isModuleEnabled(db, organizationId, "appointments");
   }
   const isOwner = auth.user.role === "owner" && Boolean(organizationId);
+  // Lot 54 (NFR-26, HUB-27) : l'abonnement en libre-service, derrière son interrupteur.
+  const selfService = organizationId ? await isFeatureEnabled(appDatabase(), organizationId, "subscription_self_service") : false;
   // Lot 39c (HUB-12, D12) : les actions de la palette ⌘K, selon les modules souscrits.
   const tPalette = await getTranslations("Palette");
   const paletteActions = [
@@ -346,6 +352,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
             { href: "/profil", label: tSettings("account") },
             // Lot 53 (HUB-15, UX-16) : les notifications de chacun ; HUB-28, GC-02 : automatismes et radar.
             { href: "/parametres/notifications", label: tSettings("notifications") },
+            // Lot 54 (HUB-27, ADR 0101) : « Mon abonnement », quand le libre-service est ouvert.
+            ...(isOwner && selfService ? [{ href: "/parametres/abonnement", label: tSettings("subscription") }] : []),
             { href: "/parametres/automatisations", label: tSettings("automations") },
             { href: "/parametres/radar", label: tSettings("riskRadar") },
             // Lot 24b (SEC-06, décision D3) : équipe, titulaire seulement.
@@ -673,6 +681,19 @@ export async function AppShell({ children }: { children: ReactNode }) {
                   {tAdmin("activity")}
                 </AppNavLink>
               </li>
+              {/* Lot 54 (HUB-27, NFR-26) : catalogue des offres, interrupteurs par fonction. */}
+              <li>
+                <AppNavLink href="/exploitation/offres">
+                  <Tags {...iconProps} />
+                  {tAdmin("plans")}
+                </AppNavLink>
+              </li>
+              <li>
+                <AppNavLink href="/exploitation/interrupteurs">
+                  <ToggleRight {...iconProps} />
+                  {tAdmin("featureFlags")}
+                </AppNavLink>
+              </li>
               {/* Lot 35c (RGP-11) : trace des fermetures d'espaces, sans donnée personnelle. */}
               <li>
                 <AppNavLink href="/exploitation/fermetures">
@@ -894,6 +915,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
           ) : null}
           <NetworkStatus />
           {showMfaPrompt ? <MfaPromptBanner accountCenter={accountCenterUrl()} /> : null}
+          {/* Lot 54 (HUB-27, DOC-06) : essai, lecture seule, résiliation, quota de stockage. */}
+          {isTeam && organizationId && selfService ? <SubscriptionBanner organizationId={organizationId} isOwner={isOwner} /> : null}
           {/* Lot 39a (UX-07) : « Annuler » pendant dix secondes après une suppression. */}
           <UndoNotice />
           {/* Lot 39c (UX-15) : squelette d'écran au passage d'un écran à l'autre. */}

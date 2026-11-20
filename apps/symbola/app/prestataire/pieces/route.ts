@@ -2,6 +2,7 @@
 // demandée (assurance, Kbis…). Mêmes contrôles qu'un envoi par lien (origine, session du lien, débit,
 // taille, type par le contenu, antivirus) ; la fiche vient du lien, la pièce doit lui être demandée.
 // Elle arrive « à vérifier » chez la planner.
+import { isStorageFullError, storageFullMessage } from "@/lib/storage-full";
 import { getTranslations } from "next-intl/server";
 import { linkVendorRecordId } from "@/modules/events/service";
 import { receiveVendorDocumentByLink, VendorDocumentNotFoundError, VendorDocumentRejectedError } from "@/modules/vendors/service";
@@ -31,6 +32,8 @@ export async function POST(request: Request): Promise<Response> {
       validUntil: String(formData.get("validUntil") ?? "") || null,
     });
   } catch (error) {
+    // Lot 54 (DOC-06) : quota de stockage plein, préavis passé.
+    if (isStorageFullError(error)) return uploadResponse({ error: await storageFullMessage("link") });
     if (error instanceof VendorDocumentRejectedError) return uploadResponse({ error: t(error.reason === "too_large" ? "documentsTooLarge" : error.reason === "infected" ? "documentsInfected" : "documentsUnsupported") });
     if (error instanceof VendorDocumentNotFoundError) return uploadResponse({ error: t("documentsClosed") });
     if (error instanceof RangeError) return uploadResponse({ error: t("documentsDateInvalid") });

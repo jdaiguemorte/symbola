@@ -1,6 +1,7 @@
 // Lot 43 (FAC-02, D2 ; SEC-21, L16-SEC-02) — envoi d'une photo du modèle de proposition par la route
 // dédiée aux fichiers : même origine, session de l'équipe, débit, taille ; type lu dans le contenu
 // (PNG, JPEG), antivirus, stockage privé ; trois photos au plus.
+import { isStorageFullError, storageFullMessage } from "@/lib/storage-full";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { receiveUpload, uploadResponse } from "@/lib/uploads/receive";
@@ -18,6 +19,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ tem
   try {
     await addProposalTemplatePhoto(received.user.organizationId, templateId, new Uint8Array(await file.arrayBuffer()));
   } catch (error) {
+    // Lot 54 (DOC-06) : quota de stockage plein, préavis passé.
+    if (isStorageFullError(error)) return uploadResponse({ error: await storageFullMessage() });
     if (error instanceof ProposalPhotoError) return uploadResponse({ error: t(`photoErrors.${error.reason}`) });
     throw error;
   }

@@ -2,6 +2,7 @@
 // aux fichiers (L16-SEC-02, lib/uploads) : type vérifié par le contenu, antivirus, taille limitée,
 // stockage privé. La personne de l'équipe doit avoir le module Évènements ouvert. Elle n'est jamais
 // servie par une adresse : un message la joint par un lien sécurisé (/partage), valable 30 jours.
+import { isStorageFullError, storageFullMessage } from "@/lib/storage-full";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { starterProspectFollowUps } from "@symbola/starter-templates";
@@ -20,6 +21,8 @@ export async function POST(request: Request): Promise<Response> {
   try {
     await saveProspectBrochure(user.organizationId, { content: new Uint8Array(await file.arrayBuffer()), fileName: file.name || "brochure.pdf" });
   } catch (error) {
+    // Lot 54 (DOC-06) : quota de stockage plein, préavis passé.
+    if (isStorageFullError(error)) return uploadResponse({ error: await storageFullMessage() });
     if (error instanceof BrochureRejectedError) return uploadResponse({ error: t(`brochureRejected.${error.reason}`) });
     throw error;
   }

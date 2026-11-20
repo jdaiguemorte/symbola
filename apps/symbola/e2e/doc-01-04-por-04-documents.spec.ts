@@ -109,7 +109,10 @@ test("DOC-01 — l'espace documents : un dossier, un document rangé, une nouvel
   await expect(versions.getByRole("listitem")).toHaveCount(2);
   const first = await page.request.get((await versions.getByRole("link", { name: "Aperçu de « Plan de table, version 1 » (nouvel onglet)" }).getAttribute("href"))!);
   expect(Buffer.from(await first.body()).equals(TINY_PDF)).toBe(true);
-  expect((await page.request.get((await preview.getAttribute("href"))!)).headers()["content-length"]).toBe(String(SECOND_PDF.byteLength));
+  // Next.js 15.5.29 retire Content-Length des réponses des routes (GHSA-pc58-hwjq-p385) :
+  // on compare le contenu servi, pas sa taille annoncée.
+  const latest = await page.request.get((await preview.getAttribute("href"))!);
+  expect(Buffer.from(await latest.body()).equals(SECOND_PDF)).toBe(true);
   await expectNoAxeViolation(page);
   await expectNoHorizontalScroll(page);
 });

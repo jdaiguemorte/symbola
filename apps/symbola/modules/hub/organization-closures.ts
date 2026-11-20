@@ -10,7 +10,7 @@ import { and, asc, desc, eq, isNotNull, isNull, lte } from "drizzle-orm";
 import { listTeam } from "@symbola/auth";
 import { appendAudit } from "@symbola/db/audit";
 import type { AppDatabase } from "@symbola/db/client";
-import { organizationClosures, organizations } from "@symbola/db/schema/hub";
+import { organizationClosures, organizations, organizationSubscriptions } from "@symbola/db/schema/hub";
 import { withActorContext, withOrganization } from "@symbola/db/with-organization";
 import { parseEnv } from "@symbola/env";
 import { formatDateTime, type Locale } from "@symbola/i18n";
@@ -69,6 +69,20 @@ export async function closeOrganization(
   if (!organization) throw new OrganizationClosureForbiddenError();
   if (normalizeName(input.confirmation) !== normalizeName(organization.name)) throw new OrganizationClosureConfirmationError();
   if (organization.closedAt) throw new OrganizationAlreadyClosedError();
+  return markOrganizationClosed(db, { organizationId: input.organizationId, userId: input.userId, now });
+}
+
+// Lot 54 (HUB-27, ADR 0101) : à l'échéance d'une résiliation, la même fermeture, lancée par le
+// système (la Propriétaire a confirmé la résiliation dans « Mon abonnement »). Sans effet sur un
+// espace déjà fermé.
+export async function closeOrganizationAtSubscriptionEnd(db: AppDatabase, input: { organizationId: string; userId: string | null; now?: Date }): Promise<OrganizationClosureView | null> {
+  const now = input.now ?? new Date();
+  if (await isOrganizationClosed(db, input.organizationId)) return null;
+  return markOrganizationClosed(db, { organizationId: input.organizationId, userId: input.userId, now });
+}
+
+async function markOrganizationClosed(db: AppDatabase, input: { organizationId: string; userId: string | null; now: Date }): Promise<OrganizationClosureView> {
+  const now = input.now;
   const schedule = closureSchedule(now);
   const closureId = await withActorContext(db, async (tx) => {
     const [closed] = await tx
@@ -108,7 +122,15 @@ export async function reopenOrganization(db: AppDatabase, input: { organizationI
       .set({ reopenedAt: now })
       .where(and(eq(organizationClosures.organizationId, input.organizationId), isNull(organizationClosures.reopenedAt), isNull(organizationClosures.erasedAt)));
   });
-  await withOrganization(db, input.organizationId, (tx) => appendAudit(tx, { organizationId: input.organizationId, action: "hub.organization.reopened", objectId: input.organizationId }));
+  await withOrganization(db, input.organizationId, async (tx) => {
+    // Lot 54 (HUB-27, ADR 0101) : un espace fermé à l'échéance de sa résiliation rouvre en lecture
+    // seule ; la Propriétaire choisit une offre pour reprendre.
+    await tx
+      .update(organizationSubscriptions)
+      .set({ status: "read_only", readOnlySince: now, cancelledAt: null, cancelledByUserId: null, cancelEffectiveAt: null, endedAt: null })
+      .where(and(eq(organizationSubscriptions.organizationId, input.organizationId), isNotNull(organizationSubscriptions.endedAt)));
+    await appendAudit(tx, { organizationId: input.organizationId, action: "hub.organization.reopened", objectId: input.organizationId });
+  });
 }
 
 export type ClosedOrganization = { organizationId: string; closedAt: Date; deletionDueAt: Date; closureNoticeSentAt: Date | null };

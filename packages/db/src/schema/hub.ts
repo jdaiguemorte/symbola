@@ -454,6 +454,11 @@ export const platformSettings = hubSchema.table("platform_settings", {
   // Lot 35a (HUB-13, décision D4) : durée pendant laquelle l'archive d'un export complet de
   // l'organisation reste téléchargeable (7 jours), puis effacée du stockage.
   organizationExportRetentionDays: integer("organization_export_retention_days").notNull().default(7),
+  // Lot 54 (HUB-27, D1 ; ADR 0101) : la facturation des abonnements par l'éditeur reste éteinte tant
+  // que la société n'est pas créée ; aucun envoi de facture tant que ce réglage est faux.
+  subscriptionBillingEnabled: boolean("subscription_billing_enabled").notNull().default(false),
+  // Lot 54 : règles de l'essai et du quota réglées par l'Exploitation ; null : celles de plans.json.
+  subscriptionRules: jsonb("subscription_rules"),
   // Lot 41 (GC-03, D12) : vérifications de l'assistant de conformité désactivées par l'Admin
   // ({ "disabled": ["clé", …] }) ; null : toutes celles de la liste de départ.
   complianceChecks: jsonb("compliance_checks"),
@@ -1712,6 +1717,153 @@ export const organizationClosures = hubSchema.table(
     index("organization_closures_organization_idx").on(table.organizationId),
     uniqueIndex("organization_closures_open_idx").on(table.organizationId).where(sql`reopened_at is null and erased_at is null`),
     check("organization_closures_dates_check", sql`${table.deletionDueAt} >= ${table.closedAt} + interval '29 days'`),
+  ],
+);
+
+// Lot 54 (HUB-27, ARC-06, DOC-06 ; ADR 0101) — catalogue des offres et des options, administré par
+// l'Exploitation. Vide tant qu'elle n'a rien changé : l'app lit alors le catalogue de départ
+// (packages/starter-templates/src/plans.json) ; aucun prix n'est écrit dans une migration. Données de
+// la plateforme, sans organisation : pas de RLS (comme platform_settings).
+export const PLAN_ENTRY_KINDS = ["trial", "plan", "pilot", "module_option", "storage_option"] as const;
+export const plans = hubSchema.table(
+  "plans",
+  {
+    key: text("key").primaryKey(),
+    kind: text("kind", { enum: PLAN_ENTRY_KINDS }).notNull(),
+    position: integer("position").notNull().default(0),
+    labelFr: text("label_fr").notNull(),
+    labelEn: text("label_en").notNull(),
+    descriptionFr: text("description_fr").notNull(),
+    descriptionEn: text("description_en").notNull(),
+    monthlyPriceCents: integer("monthly_price_cents").notNull(),
+    yearlyPriceCents: integer("yearly_price_cents"),
+    maxUsers: integer("max_users"),
+    storageQuotaBytes: bigint("storage_quota_bytes", { mode: "number" }),
+    storageUnitBytes: bigint("storage_unit_bytes", { mode: "number" }),
+    optionsAllowed: boolean("options_allowed").notNull().default(false),
+    selfService: boolean("self_service").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    check("plans_kind_check", sql`${table.kind} in ('trial', 'plan', 'pilot', 'module_option', 'storage_option')`),
+    check("plans_key_check", sql`${table.key} ~ '^[a-z][a-z0-9_]{0,39}$'`),
+    check("plans_prices_check", sql`${table.monthlyPriceCents} >= 0 and (${table.yearlyPriceCents} is null or ${table.yearlyPriceCents} >= 0)`),
+    check("plans_limits_check", sql`(${table.maxUsers} is null or ${table.maxUsers} >= 1) and (${table.storageQuotaBytes} is null or ${table.storageQuotaBytes} >= 0) and (${table.storageUnitBytes} is null or ${table.storageUnitBytes} >= 1)`),
+    check("plans_self_service_check", sql`${table.kind} in ('plan', 'module_option', 'storage_option') or not ${table.selfService}`),
+  ],
+);
+
+// Modules d'une offre : inclus, au choix (App seule), ou ouvert par une option de module.
+export const PLAN_MODULE_ROLES = ["included", "choice", "option"] as const;
+export const planModules = hubSchema.table(
+  "plan_modules",
+  {
+    planKey: text("plan_key")
+      .notNull()
+      .references(() => plans.key, { onDelete: "cascade" }),
+    moduleKey: text("module_key").notNull(),
+    role: text("role", { enum: PLAN_MODULE_ROLES }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    primaryKey({ columns: [table.planKey, table.moduleKey] }),
+    check("plan_modules_role_check", sql`${table.role} in ('included', 'choice', 'option')`),
+  ],
+);
+
+// L'abonnement d'une organisation : offre, app choisie, options, tranches de stockage, période et
+// état. Absent : l'organisation est réglée par l'Exploitation comme avant le lot 54 (modules de
+// organization_modules, sans quota). Ses droits pilotent hub.organization_modules.
+export const SUBSCRIPTION_STATUSES = ["trial", "active", "read_only", "cancelled"] as const;
+export const organizationSubscriptions = hubSchema.table(
+  "organization_subscriptions",
+  {
+    organizationId: uuid("organization_id").primaryKey(),
+    planKey: text("plan_key").notNull(),
+    chosenModule: text("chosen_module"),
+    options: text("options").array().notNull().default(sql`'{}'::text[]`),
+    storageUnits: integer("storage_units").notNull().default(0),
+    billingPeriod: text("billing_period", { enum: ["monthly", "yearly"] }).notNull().default("monthly"),
+    status: text("status", { enum: SUBSCRIPTION_STATUSES }).notNull(),
+    trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }),
+    currentPeriodStart: timestamp("current_period_start", { withTimezone: true }),
+    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+    readOnlySince: timestamp("read_only_since", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    cancelledByUserId: uuid("cancelled_by_user_id"),
+    cancelEffectiveAt: timestamp("cancel_effective_at", { withTimezone: true }),
+    // La fermeture du lot 35c a été lancée à l'échéance de la résiliation.
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("organization_subscriptions_status_idx").on(table.status),
+    check("organization_subscriptions_status_check", sql`${table.status} in ('trial', 'active', 'read_only', 'cancelled')`),
+    check("organization_subscriptions_period_check", sql`${table.billingPeriod} in ('monthly', 'yearly')`),
+    check("organization_subscriptions_units_check", sql`${table.storageUnits} >= 0`),
+    check("organization_subscriptions_trial_check", sql`${table.status} <> 'trial' or ${table.trialEndsAt} is not null`),
+    check("organization_subscriptions_cancel_check", sql`${table.status} <> 'cancelled' or (${table.cancelEffectiveAt} is not null and ${table.cancelledAt} is not null)`),
+  ],
+);
+
+// Interrupteurs par fonction (NFR-26) : une fonction nouvelle déclare sa clé dans le code ; elle est
+// fermée pour tous tant que l'Exploitation ne l'ouvre pas, d'abord à la pilote, puis à tous. Données
+// de la plateforme (pas de RLS, comme organization_modules).
+export const featureFlags = hubSchema.table("feature_flags", {
+  key: text("key").primaryKey(),
+  openToAll: boolean("open_to_all").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by"),
+});
+
+export const featureFlagOrganizations = hubSchema.table(
+  "feature_flag_organizations",
+  {
+    flagKey: text("flag_key")
+      .notNull()
+      .references(() => featureFlags.key, { onDelete: "cascade" }),
+    organizationId: uuid("organization_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [primaryKey({ columns: [table.flagKey, table.organizationId] }), index("feature_flag_organizations_organization_idx").on(table.organizationId)],
+);
+
+// DOC-06 : dernière mesure du stockage d'une organisation abonnée face à son quota, paliers déjà
+// annoncés, et préavis à 100 % (dépôts refusés à partir de uploads_blocked_from). Des nombres
+// seulement, jamais un nom de fichier.
+export const storageQuotaStates = hubSchema.table(
+  "storage_quota_states",
+  {
+    organizationId: uuid("organization_id").primaryKey(),
+    measuredAt: timestamp("measured_at", { withTimezone: true }).notNull(),
+    usedBytes: bigint("used_bytes", { mode: "number" }).notNull(),
+    usedByModule: jsonb("used_by_module").$type<Record<string, number>>().notNull().default({}),
+    quotaBytes: bigint("quota_bytes", { mode: "number" }),
+    alertedPercents: integer("alerted_percents").array().notNull().default(sql`'{}'::integer[]`),
+    fullSince: timestamp("full_since", { withTimezone: true }),
+    uploadsBlockedFrom: timestamp("uploads_blocked_from", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    check("storage_quota_states_bytes_check", sql`${table.usedBytes} >= 0 and (${table.quotaBytes} is null or ${table.quotaBytes} >= 0)`),
+    check("storage_quota_states_notice_check", sql`${table.uploadsBlockedFrom} is null or (${table.fullSince} is not null and ${table.uploadsBlockedFrom} >= ${table.fullSince} + interval '6 days')`),
   ],
 );
 

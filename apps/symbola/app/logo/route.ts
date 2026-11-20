@@ -4,6 +4,7 @@
 // l'organisation est celle de la session (« v » ne sert qu'à rafraîchir le
 // cache après un remplacement).
 // POST : envoi par la route dédiée aux fichiers (L16-SEC-02, lib/uploads).
+import { isStorageFullError, storageFullMessage } from "@/lib/storage-full";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
@@ -34,6 +35,8 @@ export async function POST(request: Request): Promise<Response> {
   try {
     await uploadOrganizationLogo(appDatabase(), user.organizationId, new Uint8Array(await file.arrayBuffer()));
   } catch (error) {
+    // Lot 54 (DOC-06) : quota de stockage plein, préavis passé.
+    if (isStorageFullError(error)) return uploadResponse({ error: await storageFullMessage() });
     if (error instanceof LogoUploadError) {
       if (error.reason === "too_large") return uploadResponse({ error: t("logoTooLarge") });
       if (error.reason === "unsupported_type") return uploadResponse({ error: t("logoUnsupported") });

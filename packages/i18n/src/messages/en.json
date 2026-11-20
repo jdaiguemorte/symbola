@@ -190,7 +190,20 @@
     "noAccount": "No team account.",
     "seeAccounts": "See accounts and invitations",
     "lastLoginAt": "Last login: {date}",
-    "neverLoggedIn": "Nobody has logged in yet."
+    "neverLoggedIn": "Nobody has logged in yet.",
+    "subscriptionTitle": "Subscription",
+    "subscriptionNone": "No subscription: modules set by hand.",
+    "subscriptionCurrent": "{plan} — {status}",
+    "subscriptionStatus": {
+      "trial": "trial until {date}",
+      "active": "active",
+      "read_only": "read-only",
+      "cancelled": "cancelled, access until {date}"
+    },
+    "subscriptionPlan": "Plan",
+    "subscriptionAssign": "Set this plan",
+    "subscriptionAssigned": "Plan set. Modules follow.",
+    "subscriptionModulesNote": "With a subscription, modules follow the plan; a manual setting is overridden at the next plan change."
   },
   "AdminOrganizationForm": {
     "name": "Organization name",
@@ -1524,6 +1537,18 @@
     "floorplanShared": {
       "title": "Floor plan",
       "body": "The latest version of the plan shared by the planner. Your spot is highlighted, with your needs and your socket; delivery access and exits are shown. The PDF prints to scale. For any question, contact the planner."
+    },
+    "subscription": {
+      "title": "My subscription",
+      "body": "Your plan, its apps and options, the total and your storage against the plan's quota. Changing plan takes effect immediately; the prorated difference goes on the next invoice. Cancelling takes two steps: “Cancel subscription”, then “Confirm cancellation”; you keep access until the end of the paid period, then the space is closed (export for 30 days, then deletion). At 80% and 95% of the quota, Symbola warns you; when full, new uploads are only refused after seven days' notice, and viewing and export always remain available. Account holder only."
+    },
+    "adminPlans": {
+      "title": "Plans and packages",
+      "body": "The catalogue of plans (trial, plans, Pilot package) and options: names, modules, users, quota and prices, and the trial and quota rules. The Pilot package never appears in self-service. Subscription billing stays off until the company is created. No business data."
+    },
+    "adminFeatureFlags": {
+      "title": "Feature switches",
+      "body": "Each new feature has its switch, closed to everyone. Open it first to the pilot so she can test it, then to all organisations. The effect is immediate, without redeployment."
     },
     "eventMessages": {
       "title": "Messages by topic",
@@ -5275,6 +5300,7 @@
     "clientTerms": "Client terms",
     "accountingExports": "Accounting exports",
     "eventTemplates": "Event templates",
+    "subscription": "My subscription",
     "senderAddress": "Sending address",
     "emailDeliveries": "Email log"
   },
@@ -5334,7 +5360,9 @@
     "closures": "Closed workspaces",
     "health": "Health",
     "settings": "Suite settings",
-    "account": "My account"
+    "account": "My account",
+    "plans": "Plans and packages",
+    "featureFlags": "Feature switches"
   },
   "AdminOverview": {
     "title": "Overview",
@@ -5598,7 +5626,18 @@
       "events_review_request_sent": "Thank-you and review request sent",
       "quotes_accounting_exported": "Accounting export downloaded",
       "quotes_accounting_blocked": "Accounting export blocked by the check",
-      "floorplans_plan_published": "Floor plan shared"
+      "floorplans_plan_published": "Floor plan shared",
+      "hub_subscription_trial_started": "Trial started",
+      "hub_subscription_assigned": "Plan set by Operations",
+      "hub_subscription_changed": "Subscription changed",
+      "hub_subscription_cancelled": "Subscription cancelled",
+      "hub_subscription_resumed": "Cancellation withdrawn",
+      "hub_subscription_read_only": "Trial ended: read-only",
+      "hub_subscription_ended": "Cancellation took effect: space closed",
+      "hub_storage_quota_alerted": "Storage quota alert",
+      "hub_feature_flag_opened": "Feature opened by Operations",
+      "hub_feature_flag_closed": "Feature closed by Operations",
+      "hub_plan_catalog_updated": "Plan catalogue updated"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -5794,6 +5833,12 @@
       "floorplans_power_links": "socket link",
       "floorplans_layout_versions": "shared floor plan version",
       "floorplans_link_views": "version seen by a link",
+      "hub_plans": "a catalogue plan",
+      "hub_plan_modules": "a plan module",
+      "hub_organization_subscriptions": "a subscription",
+      "hub_feature_flags": "a feature switch",
+      "hub_feature_flag_organizations": "a feature opening",
+      "hub_storage_quota_states": "a storage quota state",
       "events_message_topics": "discussion topic",
       "events_message_topic_links": "topic vendor",
       "events_messages": "message",
@@ -7315,6 +7360,31 @@
       "ownershipDone": {
         "subject": "Ownership of {organization} transferred",
         "body": "Hello,\n\nThe ownership transfer of {organization} is done: {owner} is now the Owner, and the former Owner becomes a Planner. If you did not expect this, reply to the Owner or write to Symbola support."
+      },
+      "subscriptionTrialReminder": {
+        "subject": "Your Symbola trial ends in {days, plural, one {# day} other {# days}}",
+        "body": "Hello,\n\nThe trial of “{organization}” ends on {date}. To carry on without interruption, choose a plan in “My subscription”. Without a plan, your space will become read-only: nothing will be deleted and export will remain available.\n\n{url}",
+        "button": "Choose a plan"
+      },
+      "subscriptionTrialEnded": {
+        "subject": "Your Symbola trial has ended",
+        "body": "Hello,\n\nThe trial of “{organization}” ended on {date}. Your space is now read-only: your data is kept, you can view and export everything. Choose a plan to resume.\n\n{url}",
+        "button": "Choose a plan"
+      },
+      "subscriptionCancelled": {
+        "subject": "Your cancellation is recorded",
+        "body": "Hello,\n\nThe cancellation of the subscription of “{organization}” is recorded. You keep access until {date}. The space will then be closed: export remains available for 30 days, then everything is deleted. You can withdraw the cancellation until that date.\n\n{url}",
+        "button": "Open my subscription"
+      },
+      "storageQuotaAlert": {
+        "subject": "Symbola storage: {percent}% used",
+        "body": "Hello,\n\nThe storage space of “{organization}” is {percent}% used. Nothing is blocked. To keep some room, delete unneeded files or add storage in “My subscription”.\n\n{url}",
+        "button": "See my storage"
+      },
+      "storageQuotaFull": {
+        "subject": "Symbola storage full",
+        "body": "Hello,\n\nThe storage space of “{organization}” is full. New uploads will be refused from {date}, unless you free some space or add storage by then. Viewing and exporting your data always remain possible.\n\n{url}",
+        "button": "See my storage"
       }
     },
     "followUpOptOut": "You would rather not hear from us again? Simply reply to this message.",
@@ -11118,7 +11188,8 @@
       "guests_not_ready": "The Guests module is not ready for this event.",
       "seating_too_many_tables": "The seating plan would exceed its maximum number of tables.",
       "seating_capacity": "A table has more seats than the seating plan accepts.",
-      "seating_table_name": "A table name is too long."
+      "seating_table_name": "A table name is too long.",
+      "background_storage_full": "Your storage space is full: new uploads are refused. Delete files or add storage in “My subscription”."
     },
     "ok": {
       "space": "Space saved.",
@@ -11134,6 +11205,202 @@
       "type_added": "Element added to the library.",
       "type_saved": "Library saved."
     }
+  },
+  "StorageQuota": {
+    "uploadRefused": "Your storage space is full: new uploads are refused. Delete files or add storage in “My subscription”. Viewing and export remain available.",
+    "uploadRefusedLink": "Upload is not possible right now. Please let your contact know."
+  },
+  "SubscriptionBanner": {
+    "label": "Subscription",
+    "trial": "Trial: {days, plural, =0 {last day} one {# day left} other {# days left}}, until {date}.",
+    "readOnly": "Your trial has ended: your space is read-only. Your data is kept and export remains available.",
+    "cancelled": "Subscription cancelled: access until {date}, then the space closes.",
+    "quotaAlert": "Storage {percent}% used.",
+    "quotaFull": "Storage full: new uploads will be refused from {date}.",
+    "quotaBlocked": "Storage full: new uploads are refused. Viewing and export remain available.",
+    "choose": "Choose a plan",
+    "open": "My subscription"
+  },
+  "Subscription": {
+    "title": "My subscription",
+    "subtitle": "Your plan, your options, your storage and cancellation.",
+    "unavailable": "Self-service subscription is not open yet for your company: it is managed by the Symbola team.",
+    "ownerOnly": "Only the account holder changes or cancels the subscription.",
+    "managed": "Your package is managed by the Symbola team.",
+    "noSubscription": "No plan chosen yet.",
+    "currentTitle": "Your plan",
+    "status": {
+      "trial": "Trial until {date}",
+      "active": "Active",
+      "activeUntil": "Active, next renewal on {date}",
+      "read_only": "Read-only since {date}",
+      "cancelled": "Cancelled: access until {date}"
+    },
+    "modulesLabel": "Open apps",
+    "noModule": "No app",
+    "optionsLabel": "Options",
+    "noOption": "No option",
+    "storageUnits": "{count, plural, one {# storage block} other {# storage blocks}}",
+    "total": "Total: {amount} excl. VAT {period, select, yearly {per year} other {per month}}",
+    "free": "Free of charge",
+    "billingOff": "Subscription billing has not started yet: no invoice will be sent to you for now.",
+    "billingOn": "Publisher invoice, paid by bank transfer.",
+    "readOnlyNotice": "Your space is read-only: you can view and export everything. Choose a plan to resume.",
+    "exportLink": "Export my data",
+    "storageTitle": "Storage",
+    "storageUsed": "{used} of {quota} ({percent}%)",
+    "storageUnlimited": "{used} used, no quota",
+    "storageGauge": "Storage used",
+    "storageNotMeasured": "Storage has not been measured yet.",
+    "storageMeasuredAt": "Measured on {date}. Guided trials do not count.",
+    "storageByModule": "Breakdown by module",
+    "storageModule": "Module",
+    "storageVolume": "Volume",
+    "storageModules": {
+      "events": "Events",
+      "budget": "Budget",
+      "quotes": "Quotes and invoices",
+      "vendors": "Vendors",
+      "hub": "Company (logo)"
+    },
+    "storageWarning": "Your storage is getting close to its quota. Nothing is blocked.",
+    "storageFull": "Your storage is full. New uploads will be refused from {date}. Viewing and export remain available.",
+    "storageBlocked": "Your storage is full: new uploads have been refused since {date}. Viewing and export remain available.",
+    "changeTitle": "Change plan",
+    "changeIntro": "The change takes effect immediately. The prorated difference goes on the next invoice.",
+    "planLegend": "Plan",
+    "perMonth": "{amount} excl. VAT per month",
+    "perYear": "or {amount} excl. VAT per year",
+    "users": "{count, plural, one {# user} other {# users}}",
+    "usersUnlimited": "Unlimited users",
+    "quota": "{size} of storage",
+    "chosenModule": "Chosen app (Single app)",
+    "chosenModuleNone": "—",
+    "optionsLegend": "Options (suites only)",
+    "storageUnitsLabel": "Extra storage blocks ({size} each, {amount} excl. VAT per month)",
+    "periodLegend": "Period",
+    "periodMonthly": "Monthly",
+    "periodYearly": "Yearly",
+    "submitChange": "Change plan",
+    "changed": "Your plan has changed. The apps follow immediately.",
+    "changedProrata": "Your plan has changed. Prorated difference on the next invoice: {amount} excl. VAT.",
+    "invoicesTitle": "Invoices",
+    "noInvoice": "No invoice yet.",
+    "cancelTitle": "Cancel",
+    "cancelIntro": "You keep access until the end of the paid period. The space is then closed: export remains available for 30 days, then everything is deleted.",
+    "cancel": "Cancel subscription",
+    "confirmTitle": "Confirm cancellation?",
+    "confirmBody": "You keep access until {date}. The space will then be closed: export available for 30 days, then deletion.",
+    "confirmBodyNow": "Your space will be closed immediately: export available for 30 days, then deletion.",
+    "confirm": "Confirm cancellation",
+    "keep": "Keep my subscription",
+    "cancelled": "Cancellation recorded. You keep access until {date}.",
+    "cancelledNotice": "Cancellation scheduled on {date}. You can withdraw it until then.",
+    "resume": "Withdraw cancellation",
+    "resumed": "The cancellation is withdrawn: your subscription continues.",
+    "errors": {
+      "unknown_plan": "This plan does not exist.",
+      "not_self_service": "This plan cannot be chosen here.",
+      "module_choice_required": "Choose the app of the Single app plan.",
+      "invalid_module_choice": "This app is not part of the Single app plan.",
+      "options_not_allowed": "Options and extra storage can only be added to a suite.",
+      "unknown_option": "This option does not exist.",
+      "invalid_storage_units": "The number of storage blocks is not valid.",
+      "yearly_unavailable": "This plan is not available yearly.",
+      "seats": "This plan allows {count, plural, one {# user} other {# users}}: your team has more.",
+      "managed": "Your package is managed by the Symbola team.",
+      "forbidden": "Only the account holder changes the subscription.",
+      "not_cancellable": "The subscription cannot be cancelled in its current state.",
+      "not_resumable": "The cancellation can no longer be withdrawn.",
+      "read_only": "Your space is read-only: choose a plan to resume."
+    }
+  },
+  "AdminPlans": {
+    "title": "Plans and packages",
+    "subtitle": "The catalogue of plans and options, their prices, quotas and rules. Starting values, editable without code.",
+    "source": {
+      "starter": "Starting catalogue (unchanged).",
+      "admin": "Catalogue set by Operations."
+    },
+    "billing": {
+      "off": "Subscription billing: off. No invoice is issued or sent until the company is created.",
+      "on": "Subscription billing: on."
+    },
+    "plansTitle": "Plans",
+    "optionsTitle": "Options",
+    "listLabel": "Catalogue",
+    "colName": "Plan",
+    "colKind": "Kind",
+    "colMonthly": "Monthly (excl. VAT)",
+    "colYearly": "Yearly (excl. VAT)",
+    "colUsers": "Users",
+    "colQuota": "Storage",
+    "colModules": "Modules",
+    "colSelfService": "Self-service",
+    "kinds": {
+      "trial": "Trial",
+      "plan": "Plan",
+      "pilot": "Pilot package",
+      "module": "Module option",
+      "storage": "Extra storage"
+    },
+    "yes": "Yes",
+    "no": "No",
+    "unlimited": "Unlimited",
+    "none": "—",
+    "edit": "Edit",
+    "editTitle": "Edit “{name}”",
+    "labelFr": "Name (French)",
+    "labelEn": "Name (English)",
+    "descriptionFr": "Description (French)",
+    "descriptionEn": "Description (English)",
+    "monthlyPrice": "Monthly price, in euros excl. VAT",
+    "yearlyPrice": "Yearly price, in euros excl. VAT (empty: no yearly plan)",
+    "maxUsers": "Maximum users (empty: unlimited)",
+    "quotaGb": "Storage quota, in GB (empty: no quota)",
+    "unitGb": "Block size, in GB",
+    "selfService": "Offered in self-service",
+    "optionsAllowed": "Accepts options",
+    "modulesIncluded": "Included modules",
+    "modulesChoice": "Modules to choose from (one)",
+    "optionModule": "Module opened by the option",
+    "save": "Save",
+    "saved": "Catalogue saved.",
+    "invalid": "Values refused: {detail}",
+    "rulesTitle": "Trial and quota rules",
+    "trialDays": "Trial length, in days",
+    "trialReminderDays": "Reminders, in days before the end (comma-separated)",
+    "quotaAlertPercents": "Quota alerts, in % (comma-separated)",
+    "quotaBlockNoticeDays": "Notice before refusing uploads, in days (at least 7)",
+    "saveRules": "Save rules",
+    "moduleNames": {
+      "events": "Events",
+      "budget": "Budget",
+      "quotes": "Quotes and invoices",
+      "vendors": "Vendors",
+      "appointments": "Appointments",
+      "guests": "Guests",
+      "floorplans": "Floor plans"
+    }
+  },
+  "AdminFeatureFlags": {
+    "title": "Feature switches",
+    "subtitle": "A new feature is closed to everyone. Open it first to the pilot, then to everyone.",
+    "names": {
+      "subscription_self_service": "Self-service subscription"
+    },
+    "descriptions": {
+      "subscription_self_service": "30-day trial at signup, “My subscription” screen, online plan change and cancellation."
+    },
+    "openToAll": "Open to all organisations",
+    "closedToAll": "Closed to everyone, except the organisations below",
+    "openAll": "Open to everyone",
+    "closeAll": "Close for everyone",
+    "openedFor": "Open for",
+    "noOrganization": "No organisation.",
+    "organization": "Organisation",
+    "openFor": "Open to this organisation",
+    "close": "Close for {name}"
   },
   "LinkPush": {
     "message": {
