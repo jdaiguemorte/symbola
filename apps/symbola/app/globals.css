@@ -7,6 +7,10 @@
  * (middleware.ts) le refuse. Contrastes vérifiés WCAG AA.
  */
 @import "tailwindcss";
+/* Lot 62 : un fichier par paquet, pour que les paquets menés en parallèle ne se marchent pas dessus. */
+@import "./styles/lot-62b-reglages.css";
+@import "./styles/lot-62c-fiche-evenement.css";
+@import "./styles/lot-62d-devis.css";
 @source "../../../packages/ui/src";
 
 @theme {

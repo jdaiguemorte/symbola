@@ -1,0 +1,6 @@
+/* Lot 62c — fiche d'évènement (programme, budget, mariés, rétroplanning). Règles propres aux écrans de ce paquet (colonnes des listes éditables,
+   ajustements d'écran). Les motifs communs sont dans globals.css (bloc « Lot 62a ») : ne pas les
+   redéfinir ici. Ce fichier est chargé avant globals.css : à précision égale, une règle de
+   globals.css l'emporte. Mêmes jetons que globals.css (DESIGN.md), aucun style en ligne (CSP). */
+@layer components {
+}
