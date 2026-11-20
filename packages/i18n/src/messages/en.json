@@ -136,7 +136,7 @@
     "followUpQuote": "Follow up quote {number} · {names}",
     "followUpProspect": "Prospect with no news · {names}",
     "followUpDays": "{days, plural, one {# day} other {# days}}",
-    "followUpSettings": "Follow-up delays",
+    "followUpSettings": "Prospect follow-ups",
     "topBar": "Search and screen help",
     "agendaYear": "See the year",
     "documentsSettings": "Documents: logo, colour, IBAN",
@@ -296,7 +296,7 @@
     "changeRegime": "Change regime",
     "regimeChanged": "VAT regime updated.",
     "missingEffectiveDate": "The effective date is required.",
-    "followUpTitle": "Follow-up delays",
+    "followUpTitle": "Prospect follow-ups",
     "followUpIntro": "“Today” flags the quotes sent and prospects with no news beyond these delays.",
     "quoteFollowUpDays": "Follow up a sent quote after (days)",
     "prospectFollowUpDays": "Follow up a prospect with no news after (days)",
@@ -360,7 +360,9 @@
     "vatOnDebitsSave": "Save the option",
     "vatOnDebitsSaved": "Option saved.",
     "vatOnDebitsChoose": "Choose yes or no.",
-    "vatOnDebitsFranchise": "Not applicable under the VAT exemption scheme."
+    "vatOnDebitsFranchise": "Not applicable under the VAT exemption scheme.",
+    "followUpSeeAlso": "The reminder emails sent to your clients about a proposal or a payment are set elsewhere:",
+    "followUpSeeAlsoLink": "Sales, Quote and payment reminders"
   },
   "AdminSettings": {
     "title": "Platform settings",
@@ -540,7 +542,7 @@
       "faq": [
         {
           "q": "How do I change the follow-up delays for quotes and prospects?",
-          "a": "In Settings › Follow-up delays: by default, a sent quote after 7 days and a silent prospect after 14 days."
+          "a": "In Settings › Prospect follow-ups: by default, a sent quote after 7 days and a silent prospect after 14 days."
         },
         {
           "q": "Where do I resume a tutorial I started?",
@@ -1037,7 +1039,7 @@
       ]
     },
     "followUps": {
-      "title": "Follow-up delays",
+      "title": "Prospect follow-ups",
       "body": "Past these delays, the home screen lists under « To handle » the quotes sent and still unsigned, and the prospects you have not heard from. Shorten them if you follow up quickly, lengthen them if your clients take their time."
     },
     "vendorTypes": {
@@ -1421,7 +1423,7 @@
       "body": "The page your client receives when you send a quote: your welcome note, your presentation, the quote and its options, the schedule, the validity, then “Accept and sign”. One template for all events, and one per type if needed; each quote reuses the welcome note and can change it before sending."
     },
     "reminderSettings": {
-      "title": "Reminders",
+      "title": "Quote and payment reminders",
       "body": "When Symbola reminds your clients: a few days before a proposal expires, then after an unpaid instalment. Each reminder goes out once, stops as soon as the client reports their transfer, and can be suspended on the quote."
     },
     "proposalPreview": {
@@ -5255,7 +5257,7 @@
     "retroplanning": "Retroplanning",
     "program": "Wedding-day schedule",
     "allocation": "Budget allocation",
-    "followUp": "Follow-up delays",
+    "followUp": "Prospect follow-ups",
     "groupSales": "Sales",
     "catalog": "Catalogue",
     "quotes": "Quotes and invoices",
@@ -5292,7 +5294,7 @@
     "vendorCoordination": "Suppliers by link",
     "dayChecklists": "Event-day checklists",
     "proposalTemplates": "Proposal templates",
-    "paymentReminders": "Reminders",
+    "paymentReminders": "Quote and payment reminders",
     "vendorDocuments": "Vendor documents",
     "notifications": "Notifications",
     "automations": "Automations",
@@ -7642,7 +7644,7 @@
     "lastUsed": "read by your calendar on {date}",
     "neverUsed": "not read by a calendar yet",
     "none": "No address yet.",
-    "shownOnce": "Copy it now into your calendar (“Subscribe to calendar” or “Add by URL”): it will not be shown again.",
+    "shownOnce": "Copy it now: it will not be shown again. If you lose it, just create a new one.",
     "addressLabel": "Your calendar address",
     "copy": "Copy the address",
     "copied": "Address copied.",
@@ -7658,7 +7660,16 @@
     "programRenew": "New schedule address",
     "programRevoke": "Remove the schedule from my calendar",
     "unavailable": "The calendar follows events: it needs the Events module.",
-    "appointment": "{type} — {name}"
+    "appointment": "{type} — {name}",
+    "statusActive": "Address active",
+    "statusNone": "No address",
+    "stepCopy": "Copy the address.",
+    "stepSubscribe": "In your calendar, open the calendar subscription:",
+    "stepPaste": "Paste the address and confirm: your events appear in your calendar.",
+    "refreshDelay": "Your calendar re-reads the address by itself, at its own pace: a change can take a few hours to show up there.",
+    "stepGoogle": "Google Calendar: \"Other calendars\", \"+\", then \"From URL\".",
+    "stepApple": "Apple Calendar: \"File\", then \"New Calendar Subscription\".",
+    "stepOutlook": "Outlook: \"Add calendar\", then \"Subscribe from web\"."
   },
   "Appointments": {
     "title": "Appointments",
@@ -7828,7 +7839,6 @@
     "closureReason": "Reason (optional)",
     "closureAdd": "Add",
     "sourcesTitle": "My calendars",
-    "sourcesHint": "Paste the secret iCal address of your Google, Apple or Outlook calendar: Symbola reads it every fifteen minutes and only keeps busy times, never the title, location or attendees. The address is encrypted and never shown again. An appointment booked elsewhere less than fifteen minutes ago may still look free.",
     "sourcesEmpty": "No calendar linked.",
     "sourceOk": "Read on {date}.",
     "sourcePending": "Not read yet: no slot is offered until it has been read.",
@@ -7845,7 +7855,6 @@
     "sourceLabel": "Calendar name",
     "sourceLabelPlaceholder": "Personal calendar",
     "sourceUrl": "Secret address (iCal)",
-    "sourceUrlHint": "Google: calendar settings › Secret address in iCal format. Apple: share the calendar › Public calendar. Outlook: Share › Publish a calendar (ICS).",
     "sourceAdd": "Link this calendar",
     "newManualSubtitle": "An appointment agreed by phone, at a fair or in person.",
     "noActiveType": "No appointment type is offered yet.",
@@ -8016,7 +8025,23 @@
       "cancelled": "cancelled"
     },
     "optionNeedsSource": "To create an option, first add a lead source.",
-    "optionSourcesLink": "Lead sources"
+    "optionSourcesLink": "Lead sources",
+    "availabilitySections": "On this screen",
+    "weekHint": "Two ranges per day at most, for example morning and afternoon. Leave a day empty when you do not receive.",
+    "thenFrom": "then from",
+    "sourcesIntro": "Link your Google, Apple or Outlook calendar: Symbola stops offering the times when you are already busy.",
+    "sourcesPrivacy": "Symbola re-reads each calendar every fifteen minutes and keeps only the busy times, never the title, the place or the attendees. The address is encrypted and is not shown again. An appointment made elsewhere less than fifteen minutes ago may still look free.",
+    "sourceAddTitle": "Link a calendar",
+    "sourceStepFind": "In your calendar, copy its secret address in iCal format:",
+    "sourceStepGoogle": "Google Calendar: the calendar's \"Settings\", then \"Secret address in iCal format\".",
+    "sourceStepApple": "Apple (iCloud): share the calendar, tick \"Public Calendar\", then copy the link.",
+    "sourceStepOutlook": "Outlook: \"Settings\", \"Shared calendars\", \"Publish a calendar\", then copy the ICS link.",
+    "sourceStepPaste": "Paste it below, give the calendar a name, then link it.",
+    "sourceState": {
+      "ok": "Read",
+      "pending": "Pending",
+      "error": "In error"
+    }
   },
   "MessageTemplates": {
     "title": "Message templates",
@@ -9246,7 +9271,7 @@
     }
   },
   "FollowUpSettings": {
-    "title": "Prospect follow-ups",
+    "title": "Prepared follow-ups",
     "intro": "After your reply to a prospect, with no answer from them, a follow-up is prepared on its day in \"Today\": you review it and send it with one click. It stops as soon as they reply (say so with one click), the card changes stage, the event is confirmed or lost, or they act in Symbola.",
     "enabled": "Prepare follow-ups",
     "step": "Follow-up {rank}",
@@ -9838,10 +9863,13 @@
       "infected": "This file was rejected by the antivirus.",
       "full": "This template already has three photos.",
       "not_found": "Template not found: save it first."
-    }
+    },
+    "starterBadge": "Starter template",
+    "greetingHint": "The first lines your client reads, above the quote. You can still adapt them in each quote before sending.",
+    "photosAfterSave": "Save this template to add photos to it."
   },
   "ReminderSettings": {
-    "title": "Reminders",
+    "title": "Quote and payment reminders",
     "moduleUnavailable": "The Quotes module is not available for your organisation.",
     "intro": "Symbola reminds your clients for you, by email, during business hours: once before a proposal expires, then after an unpaid instalment. A reminder stops as soon as the client reports their transfer or you confirm receipt.",
     "formLabel": "Reminder settings",
@@ -9860,7 +9888,9 @@
       "paymentReminderDays": "One to five reminders, each between 1 and 120 days after the due date.",
       "consumerLatePenaltyBasisPoints": "The rate is between 0.01 and 100%."
     },
-    "lawyerNote": "Consumer penalties: question asked to the lawyer (maximum rate, wording). Until then, nothing is mentioned without a contract clause."
+    "lawyerNote": "Consumer penalties: question asked to the lawyer (maximum rate, wording). Until then, nothing is mentioned without a contract clause.",
+    "seeAlso": "Following up your prospects (alert delays in \"Today\", prepared follow-ups) is set elsewhere:",
+    "seeAlsoLink": "Events, Prospect follow-ups"
   },
   "VendorRecords": {
     "unauthorized": "Action not allowed.",

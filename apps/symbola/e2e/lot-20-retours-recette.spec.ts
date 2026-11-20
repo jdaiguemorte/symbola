@@ -57,7 +57,7 @@ test("Lot 20 — centre d'aide, aide des écrans de réglage, rétroplanning", a
   // AIDE-14 : le « ? » des écrans de réglage ouvre leur aide, sans quitter l'écran.
   for (const [path, title] of [
     ["/events/parametres/sources", "Sources et motifs"],
-    ["/parametres/relances", "Délais de relance"],
+    ["/parametres/relances", "Relances des prospects"],
     ["/prestataires/parametres", "Familles et types de prestataires"],
     ["/prestataires/parametres/etiquettes", "Étiquettes"],
     ["/prestataires/parametres/trajet", "Estimation des trajets"],

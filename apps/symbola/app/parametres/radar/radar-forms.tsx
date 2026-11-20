@@ -17,7 +17,7 @@ export function RiskRuleForm({ rule, label, enabled, thresholdDays, disabled }: 
       </label>
       <label>
         {t("settings.threshold")}
-        <input type="number" name="thresholdDays" min={0} max={365} defaultValue={thresholdDays} required disabled={disabled} />
+        <input type="number" name="thresholdDays" className="field-short" min={0} max={365} defaultValue={thresholdDays} required disabled={disabled} />
       </label>
       <button type="submit" disabled={pending || disabled} className="button-secondary">
         {t("settings.save")}

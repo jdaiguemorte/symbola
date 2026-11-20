@@ -32,16 +32,18 @@ export default async function EmailDeliveriesPage({ searchParams }: { searchPara
       <form method="get" className="form-inline" aria-label={t("filterLabel")}>
         {eventId ? <input type="hidden" name="evenement" value={eventId} /> : null}
         {contact ? <input type="hidden" name="contact" value={contact.id} /> : null}
-        <label htmlFor="delivery-status">{t("statusFilter")}</label>
-        <select id="delivery-status" name="statut" defaultValue={status ?? ""}>
-          <option value="">{t("allStatuses")}</option>
-          {EMAIL_DELIVERY_STATUSES.map((value) => (
-            <option key={value} value={value}>
-              {t(`status.${value}`)}
-            </option>
-          ))}
-        </select>
-        <button type="submit" className="button-ghost">
+        <label htmlFor="delivery-status">
+          {t("statusFilter")}
+          <select id="delivery-status" name="statut" defaultValue={status ?? ""}>
+            <option value="">{t("allStatuses")}</option>
+            {EMAIL_DELIVERY_STATUSES.map((value) => (
+              <option key={value} value={value}>
+                {t(`status.${value}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button type="submit" className="button-secondary">
           {t("filter")}
         </button>
       </form>

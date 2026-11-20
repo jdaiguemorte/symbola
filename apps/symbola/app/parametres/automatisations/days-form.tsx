@@ -13,7 +13,7 @@ export function AutomationDaysForm({ automationKey, days, disabled }: { automati
       <input type="hidden" name="key" value={automationKey} />
       <label>
         {t("days")}
-        <input type="number" name="days" min={1} max={60} defaultValue={days} required disabled={disabled} />
+        <input type="number" name="days" className="field-short" min={1} max={60} defaultValue={days} required disabled={disabled} />
       </label>
       <button type="submit" disabled={pending || disabled} className="button-secondary">
         {t("saveDays")}

@@ -1,7 +1,9 @@
-// Lot 13 (L13-HUB-15, L13-HUB-16) — rubrique « Délais de relance » des Paramètres.
+// Lot 13 (L13-HUB-15, L13-HUB-16) — rubrique « Relances des prospects » des Paramètres (« Délais de
+// relance » jusqu'au lot 61, confondue avec les relances de devis et de paiement).
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
-import { getFollowUpDelays } from "@/modules/hub/service";
+import { getFollowUpDelays, isModuleEnabled } from "@/modules/hub/service";
 import { requirePlanner } from "@/lib/guards";
 import { FollowUpForm } from "./follow-up-form";
 import { ScreenHelp } from "@/app/screen-help";
@@ -21,12 +23,19 @@ export default async function FollowUpSettingsPage() {
   // Lot 45 (CRM-06, CRM-05 ; D2) : relances envoyées aux prospects et brochure, si le module Évènements
   // est ouvert (ARC-07).
   const eventsOn = await isEventsModuleEnabled(auth.user.organizationId);
+  const quotesOn = await isModuleEnabled(db, auth.user.organizationId, "quotes");
   const [prospectSettings, messageTemplates] = eventsOn ? await Promise.all([getProspectFollowUpSettings(auth.user.organizationId), listMessageTemplates(auth.user.organizationId)]) : [null, []];
   return (
     <main>
       <h1>{t("followUpTitle")}</h1>
       <ScreenHelp title={tHelp("followUps.title")} body={tHelp("followUps.body")} />
       <p>{t("followUpIntro")}</p>
+      {/* Lot 61 : deux rubriques parlent de relances ; chacune renvoie à l'autre. */}
+      {quotesOn ? (
+        <p className="field-hint">
+          {t("followUpSeeAlso")} <Link href="/devis/relances">{t("followUpSeeAlsoLink")}</Link>
+        </p>
+      ) : null}
       <FollowUpForm quoteDays={delays.quoteFollowUpDays} prospectDays={delays.prospectFollowUpDays} />
       {prospectSettings ? (
         <>

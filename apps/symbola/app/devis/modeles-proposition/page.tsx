@@ -33,27 +33,38 @@ export default async function ProposalTemplatesPage() {
     <main>
       <h1>{t("title")}</h1>
       <ScreenHelp title={tHelp("proposalTemplates.title")} body={tHelp("proposalTemplates.body")} />
-      <ul className="item-list">
-        {templates.map((template) => (
-          <li key={template.id ?? "starter"}>
-            <h2>{template.eventTypeId ? t("forType", { type: typeLabel.get(template.eventTypeId) ?? "" }) : t("forAll")}</h2>
-            <p className="meta">{template.starter ? t("starterHint") : t("version", { version: template.version })}</p>
-            <ProposalTemplateForm template={template} eventTypes={[]} formId={`proposal-template-${template.id ?? "starter"}`} />
+      {/* Lot 61 : un modèle par carte. Dans une « item-list », le formulaire passait en grille de trois
+          colonnes et le mot d'accueil se retrouvait coincé dans la colonne du milieu. */}
+      {templates.map((template) => {
+        const key = template.id ?? "starter";
+        const type = template.eventTypeId ? (typeLabel.get(template.eventTypeId) ?? "") : null;
+        return (
+          <section key={key} aria-labelledby={`proposal-template-title-${key}`} className="proposal-template">
+            <div className="section-head">
+              <h2 id={`proposal-template-title-${key}`}>{type === null ? t("forAll") : t("forType", { type })}</h2>
+              <span className={template.starter ? "badge badge-ambre" : "badge"}>{template.starter ? t("starterBadge") : t("version", { version: template.version })}</span>
+            </div>
+            {template.starter ? <p className="field-hint">{t("starterHint")}</p> : null}
+            <ProposalTemplateForm template={template} eventTypes={[]} formId={`proposal-template-${key}`} />
             {template.id ? (
               <details>
                 <summary>{t("photosSummary", { count: template.photoCount })}</summary>
                 <ProposalPhotosForm templateId={template.id} count={template.photoCount} version={template.version} />
               </details>
-            ) : null}
-            {template.id && template.eventTypeId ? (
-              <form action={removeProposalTemplateAction}>
+            ) : (
+              <p className="field-hint">{t("photosAfterSave")}</p>
+            )}
+            {template.id && type !== null ? (
+              <form action={removeProposalTemplateAction} className="proposal-template-remove">
                 <input type="hidden" name="templateId" value={template.id} />
-                <button type="submit">{t("remove", { type: typeLabel.get(template.eventTypeId) ?? "" })}</button>
+                <button type="submit" className="button-ghost">
+                  {t("remove", { type })}
+                </button>
               </form>
             ) : null}
-          </li>
-        ))}
-      </ul>
+          </section>
+        );
+      })}
       {freeTypes.length > 0 ? (
         <section aria-labelledby="proposal-template-new">
           <h2 id="proposal-template-new">{t("newTitle")}</h2>

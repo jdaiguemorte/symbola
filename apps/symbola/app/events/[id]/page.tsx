@@ -94,7 +94,6 @@ import {
   ProgramNotifyForm,
   ProgramPublishForm,
 } from "./program-forms";
-import { revokeCalendarAddressAction } from "../../calendar-actions";
 import { CalendarAddressForm } from "../../calendar-address-form";
 import { setTaskMilestoneAction,
   releaseEventTaskAction,
@@ -1291,15 +1290,7 @@ export default async function EventDetailPage({
               <p className="meta">
                 {programFeed ? tCalendar("programFollowed", { date: eventTime(programFeed.createdAt) }) : tCalendar("programAddHint")}
               </p>
-              <CalendarAddressForm eventId={event.id} hasActive={programFeed !== null} labels={{ create: tCalendar("programAdd"), renew: tCalendar("programRenew"), form: tCalendar("programAdd") }} />
-              {programFeed ? (
-                <form action={revokeCalendarAddressAction}>
-                  <input type="hidden" name="eventId" value={event.id} />
-                  <button type="submit" className="link-button">
-                    {tCalendar("programRevoke")}
-                  </button>
-                </form>
-              ) : null}
+              <CalendarAddressForm eventId={event.id} hasActive={programFeed !== null} labels={{ create: tCalendar("programAdd"), renew: tCalendar("programRenew"), revoke: tCalendar("programRevoke"), form: tCalendar("programAdd") }} />
             </section>
           ) : null}
           {/* Lot 48a (PRE-06, D4) : contraintes du lieu, signalées, jamais bloquantes. */}

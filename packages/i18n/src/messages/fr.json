@@ -136,7 +136,7 @@
     "followUpQuote": "Relancer le devis {number} · {names}",
     "followUpProspect": "Prospect sans nouvelle · {names}",
     "followUpDays": "{days, plural, one {# jour} other {# jours}}",
-    "followUpSettings": "Délais de relance",
+    "followUpSettings": "Relances des prospects",
     "topBar": "Recherche et aide de l'écran",
     "agendaYear": "Voir l'année",
     "documentsSettings": "Documents : logo, couleur, IBAN",
@@ -296,7 +296,7 @@
     "changeRegime": "Changer de régime",
     "regimeChanged": "Régime de TVA mis à jour.",
     "missingEffectiveDate": "La date d'effet est obligatoire.",
-    "followUpTitle": "Délais de relance",
+    "followUpTitle": "Relances des prospects",
     "followUpIntro": "« Aujourd'hui » vous signale les devis envoyés et les prospects restés sans nouvelle au-delà de ces délais.",
     "quoteFollowUpDays": "Relancer un devis envoyé après (jours)",
     "prospectFollowUpDays": "Relancer un prospect sans nouvelle après (jours)",
@@ -360,7 +360,9 @@
     "vatOnDebitsSave": "Enregistrer l'option",
     "vatOnDebitsSaved": "Option enregistrée.",
     "vatOnDebitsChoose": "Choisissez oui ou non.",
-    "vatOnDebitsFranchise": "Sans objet en franchise en base de TVA."
+    "vatOnDebitsFranchise": "Sans objet en franchise en base de TVA.",
+    "followUpSeeAlso": "Les e-mails de relance envoyés à vos clients pour une proposition ou un paiement se règlent ailleurs :",
+    "followUpSeeAlsoLink": "Ventes, Relances de devis et de paiement"
   },
   "AdminSettings": {
     "title": "Paramètres de la plateforme",
@@ -540,7 +542,7 @@
       "faq": [
         {
           "q": "Comment changer les délais de relance des devis et des prospects ?",
-          "a": "Dans Paramètres › Délais de relance : par défaut, un devis envoyé après 7 jours et un prospect sans nouvelle après 14 jours."
+          "a": "Dans Paramètres › Relances des prospects : par défaut, un devis envoyé après 7 jours et un prospect sans nouvelle après 14 jours."
         },
         {
           "q": "Où reprendre un tutoriel commencé ?",
@@ -1037,7 +1039,7 @@
       ]
     },
     "followUps": {
-      "title": "Délais de relance",
+      "title": "Relances des prospects",
       "body": "Au-delà de ces délais, l'accueil vous signale dans « À traiter » les devis envoyés restés sans signature et les prospects sans nouvelle. Raccourcissez-les si vous relancez vite, allongez-les si vos clients prennent leur temps."
     },
     "vendorTypes": {
@@ -1421,7 +1423,7 @@
       "body": "La page que reçoit le client quand vous envoyez un devis : votre mot d'accueil, votre présentation, le devis et ses options, l'échéancier, la validité, puis « Accepter et signer ». Un modèle pour tous les évènements, et un par type si besoin ; chaque devis reprend le mot d'accueil et peut le changer avant l'envoi."
     },
     "reminderSettings": {
-      "title": "Relances",
+      "title": "Relances de devis et de paiement",
       "body": "Quand Symbola relance vos clients : quelques jours avant l'expiration d'une proposition, puis après une échéance impayée. Chaque relance part une seule fois, s'arrête dès que le client déclare son virement, et se suspend sur la fiche du devis."
     },
     "proposalPreview": {
@@ -5255,7 +5257,7 @@
     "retroplanning": "Rétroplanning",
     "program": "Programme du jour J",
     "allocation": "Répartition du budget",
-    "followUp": "Délais de relance",
+    "followUp": "Relances des prospects",
     "groupSales": "Ventes",
     "catalog": "Catalogue",
     "quotes": "Devis et factures",
@@ -5292,7 +5294,7 @@
     "vendorCoordination": "Prestataires par lien",
     "dayChecklists": "Listes du jour J",
     "proposalTemplates": "Modèles de proposition",
-    "paymentReminders": "Relances",
+    "paymentReminders": "Relances de devis et de paiement",
     "vendorDocuments": "Pièces des prestataires",
     "notifications": "Notifications",
     "automations": "Automatisations",
@@ -7642,7 +7644,7 @@
     "lastUsed": "lue par votre agenda le {date}",
     "neverUsed": "pas encore lue par un agenda",
     "none": "Aucune adresse pour l'instant.",
-    "shownOnce": "Copiez-la maintenant dans votre agenda (« S'abonner à un calendrier » ou « Ajouter par URL ») : elle ne sera plus affichée.",
+    "shownOnce": "Copiez-la maintenant : elle ne sera plus affichée. Perdue, il suffit d'en créer une nouvelle.",
     "addressLabel": "Adresse de votre calendrier",
     "copy": "Copier l'adresse",
     "copied": "Adresse copiée.",
@@ -7658,7 +7660,16 @@
     "programRenew": "Nouvelle adresse du programme",
     "programRevoke": "Retirer le programme de mon agenda",
     "unavailable": "Le calendrier suit les évènements : il demande le module Évènements.",
-    "appointment": "{type} — {name}"
+    "appointment": "{type} — {name}",
+    "statusActive": "Adresse active",
+    "statusNone": "Aucune adresse",
+    "stepCopy": "Copiez l'adresse.",
+    "stepSubscribe": "Dans votre agenda, ouvrez l'abonnement à un calendrier :",
+    "stepPaste": "Collez l'adresse et validez : vos évènements apparaissent dans votre agenda.",
+    "refreshDelay": "Votre agenda relit l'adresse tout seul, à son rythme : un changement peut mettre quelques heures à y apparaître.",
+    "stepGoogle": "Google Agenda : « Autres agendas », « + », puis « À partir de l'URL ».",
+    "stepApple": "Apple Calendrier : « Fichier », puis « Nouvel abonnement à un calendrier ».",
+    "stepOutlook": "Outlook : « Ajouter un calendrier », puis « S'abonner à partir du web »."
   },
   "Appointments": {
     "title": "Rendez-vous",
@@ -7828,7 +7839,6 @@
     "closureReason": "Motif (facultatif)",
     "closureAdd": "Ajouter",
     "sourcesTitle": "Mes agendas",
-    "sourcesHint": "Collez l'adresse secrète iCal de votre agenda Google, Apple ou Outlook : Symbola la relit toutes les quinze minutes et ne garde que les heures occupées, jamais le titre, le lieu ni les participants. L'adresse est chiffrée et ne s'affiche plus. Un rendez-vous pris ailleurs il y a moins de quinze minutes peut encore paraître libre.",
     "sourcesEmpty": "Aucun agenda relié.",
     "sourceOk": "Lu le {date}.",
     "sourcePending": "Pas encore lu : aucun créneau n'est proposé tant qu'il n'a pas été lu.",
@@ -7845,7 +7855,6 @@
     "sourceLabel": "Nom de l'agenda",
     "sourceLabelPlaceholder": "Agenda personnel",
     "sourceUrl": "Adresse secrète (iCal)",
-    "sourceUrlHint": "Google : Paramètres de l'agenda › Adresse secrète au format iCal. Apple : partager l'agenda › Calendrier public. Outlook : Partager › Publier un calendrier (ICS).",
     "sourceAdd": "Relier cet agenda",
     "newManualSubtitle": "Un rendez-vous pris par téléphone, sur un salon ou de vive voix.",
     "noActiveType": "Aucun type de rendez-vous proposé pour l'instant.",
@@ -8016,7 +8025,23 @@
       "cancelled": "annulé"
     },
     "optionNeedsSource": "Pour créer une option, ajoutez d'abord une source de prospects.",
-    "optionSourcesLink": "Sources de prospects"
+    "optionSourcesLink": "Sources de prospects",
+    "availabilitySections": "Sur cet écran",
+    "weekHint": "Deux plages par jour au plus, par exemple le matin et l'après-midi. Laissez vide un jour où vous ne recevez pas.",
+    "thenFrom": "puis de",
+    "sourcesIntro": "Reliez votre agenda Google, Apple ou Outlook : Symbola ne propose plus les heures où vous êtes déjà pris.",
+    "sourcesPrivacy": "Symbola relit chaque agenda toutes les quinze minutes et n'en garde que les heures occupées, jamais le titre, le lieu ni les participants. L'adresse est chiffrée et ne s'affiche plus. Un rendez-vous pris ailleurs il y a moins de quinze minutes peut encore paraître libre.",
+    "sourceAddTitle": "Relier un agenda",
+    "sourceStepFind": "Dans votre agenda, copiez son adresse secrète au format iCal :",
+    "sourceStepGoogle": "Google Agenda : « Paramètres » de l'agenda, puis « Adresse secrète au format iCal ».",
+    "sourceStepApple": "Apple (iCloud) : partagez l'agenda, cochez « Calendrier public », puis copiez le lien.",
+    "sourceStepOutlook": "Outlook : « Paramètres », « Calendriers partagés », « Publier un calendrier », puis copiez le lien ICS.",
+    "sourceStepPaste": "Collez-la ci-dessous, donnez un nom à l'agenda, puis reliez-le.",
+    "sourceState": {
+      "ok": "Lu",
+      "pending": "En attente",
+      "error": "En erreur"
+    }
   },
   "MessageTemplates": {
     "title": "Modèles de messages",
@@ -9246,7 +9271,7 @@
     }
   },
   "FollowUpSettings": {
-    "title": "Relances des prospects",
+    "title": "Relances préparées",
     "intro": "Après votre réponse à un prospect, sans retour de sa part, une relance se prépare à son jour dans « Aujourd'hui » : vous la relisez et l'envoyez d'un geste. Elle s'arrête dès qu'il répond (dites-le d'un geste), que la carte change d'étape, que l'évènement est confirmé ou perdu, ou qu'il agit dans Symbola.",
     "enabled": "Préparer les relances",
     "step": "Relance {rank}",
@@ -9838,10 +9863,13 @@
       "infected": "Ce fichier a été refusé par l'antivirus.",
       "full": "Ce modèle a déjà trois photos.",
       "not_found": "Modèle introuvable : enregistrez-le d'abord."
-    }
+    },
+    "starterBadge": "Modèle de départ",
+    "greetingHint": "Les premières lignes que lit votre client, au-dessus du devis. Vous pouvez encore les adapter dans chaque devis avant l'envoi.",
+    "photosAfterSave": "Enregistrez ce modèle pour lui ajouter des photos."
   },
   "ReminderSettings": {
-    "title": "Relances",
+    "title": "Relances de devis et de paiement",
     "moduleUnavailable": "Le module Devis n'est pas disponible pour votre organisation.",
     "intro": "Symbola relance pour vous, par e-mail, aux heures ouvrées : une fois avant l'expiration d'une proposition, puis après une échéance non réglée. Une relance s'arrête dès que le client déclare son virement ou que vous confirmez l'encaissement.",
     "formLabel": "Réglages des relances",
@@ -9860,7 +9888,9 @@
       "paymentReminderDays": "De une à cinq relances, chacune entre 1 et 120 jours après l'échéance.",
       "consumerLatePenaltyBasisPoints": "Le taux est compris entre 0,01 et 100 %."
     },
-    "lawyerNote": "Pénalités d'un particulier : question posée à l'avocat (taux maximal, mentions). En attendant, rien n'est mentionné sans clause au contrat."
+    "lawyerNote": "Pénalités d'un particulier : question posée à l'avocat (taux maximal, mentions). En attendant, rien n'est mentionné sans clause au contrat.",
+    "seeAlso": "Le suivi de vos prospects (délais d'alerte dans « Aujourd'hui », relances préparées) se règle ailleurs :",
+    "seeAlsoLink": "Événements, Relances des prospects"
   },
   "VendorRecords": {
     "unauthorized": "Action non autorisée.",

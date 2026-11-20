@@ -1543,6 +1543,16 @@
 
 /* Lot 13 (L13-HUB-16) — actions discrètes et listes courtes en pastilles. */
 @layer components {
+  /* Lot 61 — bouton secondaire (DESIGN.md, « button-secondary ») : la classe n'existait que dans les
+     tutoriels ; ailleurs, les boutons qui la portaient restaient des boutons principaux. */
+  button.button-secondary {
+    @apply border-line-strong bg-surface font-medium text-ink hover:border-ink hover:bg-ground;
+  }
+  /* Lot 61 — bouton principal désigné : dans un formulaire d'un seul bouton (compact et discret par
+     règle), l'action attendue de l'écran garde l'allure du bouton principal. */
+  button.button-primary {
+    @apply !min-h-11 !border-primary !bg-primary !px-4 !text-body !font-semibold !text-on-primary hover:!border-primary-strong hover:!bg-primary-strong;
+  }
   .button-ghost {
     @apply inline-flex !min-h-11 items-center rounded-md border-0 !bg-transparent px-3 text-body font-medium !text-primary hover:underline;
   }
@@ -3717,13 +3727,39 @@
   .booking-slots > legend {
     @apply mb-1 p-0 font-semibold;
   }
+  /* Lot 61 — la semaine : une ligne par jour (le nom du jour, puis ses deux plages), les champs
+     passent à la ligne à 375 px. */
+  .availability-week {
+    @apply flex w-full flex-col;
+  }
   .availability-day {
-    @apply mb-3 flex flex-col gap-2;
+    @apply flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line py-3 last:border-b-0;
+  }
+  .availability-day-name {
+    @apply w-24 shrink-0 font-semibold;
+  }
+  .availability-range {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .availability-range label {
+    @apply w-auto flex-row items-center gap-2 text-body font-normal text-ink-muted;
+  }
+  .availability-range input[type="time"] {
+    @apply w-28 px-3;
+  }
+  /* Les deux champs du formulaire « Relier un agenda » se partagent la largeur de la carte. */
+  .agenda-form > .form-row {
+    @apply w-full;
+  }
+  .agenda-form > .form-row > label {
+    @apply max-w-none;
+  }
+  .card > .setting-list {
+    @apply my-3;
   }
   .booking-types,
   .appointment-list,
   .appointment-types,
-  .calendar-sources,
   .report-actions,
   .event-appointments {
     @apply flex flex-col gap-2;
@@ -4308,7 +4344,6 @@
     @apply absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-full bg-critical px-1 text-label font-semibold text-on-primary;
   }
   .notification-list,
-  .automation-list,
   .device-list,
   .standalone-task-list,
   .today-risk-list,
@@ -4360,19 +4395,116 @@
   .field-hint {
     @apply text-label text-ink-muted;
   }
+  /* Lot 61 : la direction est dite. La règle de base met un formulaire en colonne ; sans « flex-row »,
+     « items-end » poussait chaque champ contre le bord droit (radar, automatisations, plans de salle). */
   .button-row,
   .form-inline {
-    @apply flex flex-wrap items-end gap-3;
+    @apply flex flex-row flex-wrap items-end gap-3;
+  }
+  .form-inline > label {
+    @apply w-auto;
+  }
+  /* Un champ posé directement dans la ligne (sans libellé autour) laisse sa place à ce qui le suit :
+     le suffixe d'une adresse, une unité. */
+  .form-inline > input:not([type="checkbox"], [type="radio"], [type="hidden"]),
+  .form-inline > select {
+    @apply w-80 max-w-full min-w-0;
+  }
+  /* La case à cocher s'aligne sur la hauteur des champs voisins (44 px). */
+  .form-inline > label.checkbox-row {
+    @apply min-h-11;
+  }
+  .form-inline > [role="status"],
+  .form-inline > [role="alert"] {
+    @apply m-0 basis-full;
+  }
+  /* Champ court : un nombre de jours, de points, un pourcentage. */
+  input.field-short {
+    @apply w-24;
+  }
+  /* Champ ou groupe qui prend la largeur de sa carte (texte long, groupe de champs). */
+  label.field-wide,
+  fieldset.field-wide {
+    @apply max-w-none;
+  }
+  .proposal-template > form {
+    @apply w-full;
+  }
+  .proposal-template-remove {
+    @apply mt-3 border-t border-line pt-3;
+  }
+  /* Lot 61 — une valeur à copier : le champ en lecture seule et son bouton « Copier » sur la même
+     ligne (le bouton passe dessous à 375 px). */
+  .copy-field {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .copy-field > input {
+    @apply min-w-0 flex-[1_1_16rem];
+  }
+  .copy-done {
+    @apply m-0 text-label font-medium;
+  }
+  /* Plus précis que la règle des formulaires d'un seul bouton, qui le mettrait en ligne. */
+  .calendar-address > form.stack {
+    @apply m-0 flex flex-col items-start gap-3;
+  }
+  .calendar-steps {
+    @apply my-0 space-y-1 pl-6 text-ink;
+  }
+  .calendar-steps ul {
+    @apply my-1 space-y-0 pl-6;
+  }
+  /* Champs d'un même groupe en grille : un, deux puis trois par ligne selon la place. */
+  .field-grid {
+    @apply grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3;
+  }
+  .field-grid > p {
+    @apply m-0;
+  }
+  /* Lot 61 — liste de réglages : une seule carte, une ligne par réglage. À gauche ce que fait le
+     réglage (titre, phrase) ; à droite ses commandes ; dessous, sur toute la largeur, son détail
+     (journal). En colonne quand la place manque (téléphone, menu des réglages ouvert). */
+  .setting-list {
+    @apply my-6 list-none space-y-0 rounded-lg border border-line bg-surface p-0;
+  }
+  .setting-row {
+    @apply grid grid-cols-1 gap-x-6 gap-y-3 border-b border-line p-6 last:border-b-0;
+  }
+  @media (min-width: 80rem) {
+    .setting-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+  }
+  .setting-row-text {
+    @apply min-w-0;
+  }
+  .setting-row-text h2,
+  .setting-row-text h3 {
+    @apply m-0 text-heading;
+  }
+  .setting-row-text p {
+    @apply mt-1 mb-0 text-ink-muted;
+  }
+  .setting-row-head {
+    @apply flex flex-wrap items-center gap-x-3 gap-y-1;
+  }
+  .setting-row-controls {
+    @apply flex flex-col items-start gap-3 xl:items-end;
+  }
+  .setting-row-controls form,
+  .setting-row > form {
+    @apply m-0;
+  }
+  .setting-row > form.form-inline,
+  .setting-row-controls form.form-inline {
+    @apply xl:justify-end;
+  }
+  .setting-row-foot {
+    @apply col-span-full;
   }
   .device-list li,
   .standalone-task {
     @apply flex flex-wrap items-center gap-3 border-b border-line py-2;
-  }
-  .automation-item {
-    @apply flex flex-col gap-2;
-  }
-  .automation-head {
-    @apply flex flex-wrap items-center justify-between gap-2;
   }
   .automation-journal li {
     @apply py-1 text-label;
