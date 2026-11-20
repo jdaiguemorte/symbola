@@ -19,35 +19,44 @@ export function ProposalTemplateForm({ template, eventTypes, formId }: { templat
         <input type="hidden" name="eventTypeId" value={template.eventTypeId ?? ""} />
       ) : (
         <>
-          <label htmlFor={id("type")}>{t("eventType")}</label>
-          <select id={id("type")} name="eventTypeId" required>
-            {eventTypes.map((type) => (
-              <option key={type.id} value={type.id}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-        </>
-      )}
-      <label htmlFor={id("greeting")}>{t("greeting")}</label>
-      <textarea id={id("greeting")} name="greeting" rows={6} maxLength={4000} required defaultValue={template?.greeting ?? ""} />
-      <FreeTextNotice />
-      <fieldset>
-        <legend>{t("blocksLegend")}</legend>
-        <p className="meta">{t("blocksHint")}</p>
-        {PROPOSAL_BLOCKS.map((block) => (
-          <p key={block}>
-            <label htmlFor={id(`place-${block}`)}>{t(`blocks.${block}`)}</label>
-            <select id={id(`place-${block}`)} name={`place-${block}`} defaultValue={String(Math.max(0, placeOf(block)))}>
-              {block === "quote" ? null : <option value="0">{t("hidden")}</option>}
-              {PROPOSAL_BLOCKS.map((_, index) => (
-                <option key={index} value={String(index + 1)}>
-                  {t("place", { place: index + 1 })}
+          <label htmlFor={id("type")}>
+            {t("eventType")}
+            <select id={id("type")} name="eventTypeId" required>
+              {eventTypes.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.label}
                 </option>
               ))}
             </select>
-          </p>
-        ))}
+          </label>
+        </>
+      )}
+      <label htmlFor={id("greeting")} className="field-wide">
+        {t("greeting")}
+        <textarea id={id("greeting")} name="greeting" rows={8} maxLength={4000} required defaultValue={template?.greeting ?? ""} aria-describedby={id("greeting-hint")} />
+      </label>
+      <p id={id("greeting-hint")} className="field-hint">
+        {t("greetingHint")}
+      </p>
+      <FreeTextNotice />
+      <fieldset className="field-wide">
+        <legend>{t("blocksLegend")}</legend>
+        <p className="field-hint">{t("blocksHint")}</p>
+        <div className="field-grid">
+          {PROPOSAL_BLOCKS.map((block) => (
+            <p key={block}>
+              <label htmlFor={id(`place-${block}`)}>{t(`blocks.${block}`)}</label>
+              <select id={id(`place-${block}`)} name={`place-${block}`} defaultValue={String(Math.max(0, placeOf(block)))}>
+                {block === "quote" ? null : <option value="0">{t("hidden")}</option>}
+                {PROPOSAL_BLOCKS.map((_, index) => (
+                  <option key={index} value={String(index + 1)}>
+                    {t("place", { place: index + 1 })}
+                  </option>
+                ))}
+              </select>
+            </p>
+          ))}
+        </div>
       </fieldset>
       <button type="submit" disabled={pending}>
         {t("save")}

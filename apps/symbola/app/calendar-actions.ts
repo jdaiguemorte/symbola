@@ -13,7 +13,7 @@ import { getEvent } from "@/modules/events/service";
 import { issueCalendarFeed, revokeCalendarFeed } from "@/modules/hub/service";
 import { isAppointmentsModuleEnabled } from "@/modules/appointments/service";
 
-export type CalendarAddressState = { url?: string; error?: string; at?: number };
+export type CalendarAddressState = { url?: string; error?: string; revoked?: boolean; at?: number };
 
 async function target(formData: FormData): Promise<{ organizationId: string; userId: string; eventId: string | null } | null> {
   const auth = await requirePlanner();
@@ -43,4 +43,14 @@ export async function revokeCalendarAddressAction(formData: FormData): Promise<v
   await revokeCalendarFeed(found);
   revalidatePath("/profil");
   if (found.eventId) revalidatePath(`/events/${found.eventId}`);
+}
+
+// Lot 61 : le même retrait, avec son résultat, pour que l'écran efface l'adresse affichée et le dise.
+export async function revokeCalendarAddressStateAction(_prev: CalendarAddressState, formData: FormData): Promise<CalendarAddressState> {
+  const found = await target(formData);
+  if (!found) return { error: (await getTranslations("Calendar"))("unavailable"), at: Date.now() };
+  await revokeCalendarFeed(found);
+  revalidatePath("/profil");
+  if (found.eventId) revalidatePath(`/events/${found.eventId}`);
+  return { revoked: true, at: Date.now() };
 }

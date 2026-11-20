@@ -58,8 +58,11 @@ export default async function ProfilePage() {
         <section aria-labelledby="profile-calendar-title" className="stack">
           <h2 id="profile-calendar-title">{tCalendar("title")}</h2>
           <p>{tCalendar("intro")}</p>
-          <h3>{tCalendar("personTitle")}</h3>
-          <p className="meta">{tCalendar("personHint")}</p>
+          <div className="setting-row-head">
+            <h3>{tCalendar("personTitle")}</h3>
+            <span className={personFeed ? "badge badge-sauge" : "badge"}>{personFeed ? tCalendar("statusActive") : tCalendar("statusNone")}</span>
+          </div>
+          <p className="field-hint">{tCalendar("personHint")}</p>
           <p>
             {personFeed
               ? tCalendar("active", {
@@ -68,16 +71,9 @@ export default async function ProfilePage() {
                 })
               : tCalendar("none")}
           </p>
-          <CalendarAddressForm eventId={null} hasActive={personFeed !== null} labels={{ create: tCalendar("create"), renew: tCalendar("regenerate"), form: tCalendar("personTitle") }} />
-          {personFeed ? (
-            <form action={revokeCalendarAddressAction}>
-              <button type="submit" className="link-button">
-                {tCalendar("revoke")}
-              </button>
-            </form>
-          ) : null}
+          <CalendarAddressForm eventId={null} hasActive={personFeed !== null} labels={{ create: tCalendar("create"), renew: tCalendar("regenerate"), revoke: tCalendar("revoke"), form: tCalendar("personTitle") }} />
           <h3>{tCalendar("eventsTitle")}</h3>
-          <p className="meta">{tCalendar("eventsHint")}</p>
+          <p className="field-hint">{tCalendar("eventsHint")}</p>
           {followed.filter(Boolean).length === 0 ? (
             <p>{tCalendar("eventsNone")}</p>
           ) : (

@@ -1,6 +1,7 @@
 // Lot 43 (FAC-09, FAC-15 ; D1, D7) — relances : avant l'expiration d'une proposition (une fois), et
 // après une échéance impayée (J+3, J+10, J+20 au départ). Une relance s'arrête dès que le client
 // déclare son virement ou que l'encaissement est confirmé ; la planner la suspend sur la fiche du devis.
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { requirePlanner } from "@/lib/guards";
@@ -26,6 +27,10 @@ export default async function ReminderSettingsPage() {
       <h1>{t("title")}</h1>
       <ScreenHelp title={tHelp("reminderSettings.title")} body={tHelp("reminderSettings.body")} />
       <p>{t("intro")}</p>
+      {/* Lot 61 : deux rubriques parlent de relances ; chacune renvoie à l'autre. */}
+      <p className="field-hint">
+        {t("seeAlso")} <Link href="/parametres/relances">{t("seeAlsoLink")}</Link>
+      </p>
       <ReminderSettingsForm settings={settings} />
       <p role="note" className="meta">
         {t("lawyerNote")}

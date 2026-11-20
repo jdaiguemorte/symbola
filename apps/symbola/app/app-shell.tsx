@@ -51,6 +51,7 @@ import { AppSidebar } from "./app-sidebar";
 import { LogoutButton } from "./logout-button";
 import { OfflineGuard } from "./offline-guard";
 import { SettingsNav, type SettingsGroup } from "./settings-nav";
+import { settingsMenu } from "./settings-menu";
 import { cookies, headers } from "next/headers";
 import { HelpBar, type TutorialInvite } from "./help-bar";
 import { AUTO_TOURS_COOKIE } from "@/lib/help/preferences";
@@ -342,213 +343,18 @@ export async function AppShell({ children }: { children: ReactNode }) {
   // Lot 13 (L13-HUB-16) : une rubrique par sujet, rangées en quatre groupes ;
   // seules apparaissent celles des modules souscrits.
   const tSettings = await getTranslations("SettingsMenu");
+  // Lot 61 : la liste des rubriques vit dans settings-menu.ts (source unique, avec settings-paths.ts).
   const settingsSections: SettingsGroup[] = organizationId
-    ? [
-        {
-          label: tSettings("groupCompany"),
-          icon: "company" as const,
-          items: [
-            { href: "/parametres", label: tSettings("company") },
-            { href: "/profil", label: tSettings("account") },
-            // Lot 53 (HUB-15, UX-16) : les notifications de chacun ; HUB-28, GC-02 : automatismes et radar.
-            { href: "/parametres/notifications", label: tSettings("notifications") },
-            // Lot 54 (HUB-27, ADR 0101) : « Mon abonnement », quand le libre-service est ouvert.
-            ...(isOwner && selfService ? [{ href: "/parametres/abonnement", label: tSettings("subscription") }] : []),
-            { href: "/parametres/automatisations", label: tSettings("automations") },
-            { href: "/parametres/radar", label: tSettings("riskRadar") },
-            // Lot 24b (SEC-06, décision D3) : équipe, titulaire seulement.
-            ...(isOwner ? [{ href: "/parametres/equipe", label: tSettings("team") }] : []),
-            // Lot 38a (MSG-01, D3) : les e-mails envoyés au nom de l'organisation (liens, rappels, signatures, programme).
-            ...(events || quotes ? [{ href: "/parametres/emails", label: tSettings("emailTemplates") }] : []),
-            // Lot 55 (MSG-04 révisée, MSG-05) : l'adresse d'où partent les e-mails, et leur journal.
-            ...(events || quotes ? [{ href: "/parametres/adresse-envoi", label: tSettings("senderAddress") }, { href: "/parametres/envois", label: tSettings("emailDeliveries") }] : []),
-            // Lot 38b (HUB-21, D10) : les messages types de la planner, utilisés depuis la fiche.
-            ...(events ? [{ href: "/parametres/messages", label: tSettings("messageTemplates") }] : []),
-            // Lot 39a (HUB-17, ADR 0073) : ce qui a été supprimé depuis moins de 30 jours.
-            { href: "/parametres/corbeille", label: tSettings("trash") },
-          ],
-        },
-        ...(events || budget
-          ? [
-              {
-                label: tSettings("groupEvents"),
-                icon: "events" as const,
-                items: [
-                  ...(events
-                    ? [
-                        {
-                          href: "/events/parametres",
-                          label: tSettings("budgetLines"),
-                        },
-                        {
-                          href: "/events/parametres/sources",
-                          label: tSettings("sourcesReasons"),
-                        },
-                        {
-                          href: "/events/parametres/types",
-                          label: tSettings("eventTypes"),
-                        },
-                        // Lot 53 (HUB-24, D8) : le terme qui désigne les clients de chaque type.
-                        { href: "/events/parametres/termes", label: tSettings("clientTerms") },
-                        // Lot 44 (CRM-01, CRM-02) : étapes du pipeline et formulaire de contact, réglés par la
-                        // titulaire.
-                        ...(isOwner
-                          ? [
-                              { href: "/events/parametres/etapes", label: tSettings("pipelineStages") },
-                              { href: "/events/parametres/contact", label: tSettings("contactForm") },
-                            ]
-                          : []),
-                        // Lot 45 (HUB-21, POR-07) : modèles de questionnaires.
-                        {
-                          href: "/events/parametres/questionnaires",
-                          label: tSettings("questionnaires"),
-                        },
-                        {
-                          href: "/events/modeles",
-                          label: tSettings("retroplanning"),
-                        },
-                        {
-                          href: "/events/modeles-programme",
-                          label: tSettings("program"),
-                        },
-                        // Lot 58 (EVT-08) : modèles d'évènement (structures, sans donnée personnelle).
-                        { href: "/events/modeles-evenement", label: tSettings("eventTemplates") },
-                        // Lot 51 (JRJ-06) : modèles des listes de contrôle du jour J.
-                        { href: "/events/parametres/listes-jour-j", label: tSettings("dayChecklists") },
-                        ...(guests
-                          ? [
-                              { href: "/events/parametres/regimes", label: tSettings("dietaryOptions") },
-                              { href: "/events/parametres/repas", label: tSettings("mealTypes") },
-                            ]
-                          : []),
-                        // Lot 47 (partie F) : prestataires par lien (brief, relance, feuilles de route, tâches de suivi).
-                        { href: "/events/parametres/prestataires-par-lien", label: tSettings("vendorCoordination") },
-                      ]
-                    : []),
-                  ...(budget
-                    ? [
-                        {
-                          href: "/budget/parametres",
-                          label: tSettings("allocation"),
-                        },
-                      ]
-                    : []),
-                  {
-                    href: "/parametres/relances",
-                    label: tSettings("followUp"),
-                  },
-                ],
-              },
-            ]
-          : []),
-        // Lot 46 (RDV-01, D11) : la page de réservation, les types et les disponibilités.
-        ...(appointments
-          ? [
-              {
-                label: tSettings("groupAppointments"),
-                icon: "appointments" as const,
-                items: [
-                  { href: "/rendez-vous/reglages", label: tSettings("appointmentTypes") },
-                  { href: "/rendez-vous/disponibilites", label: tSettings("appointmentAvailability") },
-                ],
-              },
-            ]
-          : []),
-        ...(quotes
-          ? [
-              {
-                label: tSettings("groupSales"),
-                icon: "sales" as const,
-                items: [
-                  { href: "/devis/catalogue", label: tSettings("catalog") },
-                  // Lot 31a/31b (HUB-21) : modèles de devis et de contrat.
-                  { href: "/devis/modeles", label: tSettings("quoteTemplates") },
-                  { href: "/devis/modeles-contrat", label: tSettings("contractTemplates") },
-                  // Lot 43 (FAC-02, FAC-09, FAC-15) : page de proposition et relances.
-                  { href: "/devis/modeles-proposition", label: tSettings("proposalTemplates") },
-                  { href: "/devis/relances", label: tSettings("paymentReminders") },
-                  { href: "/devis/parametres", label: tSettings("quotes") },
-                  {
-                    href: "/devis/parametres/documents",
-                    label: tSettings("documents"),
-                  },
-                  {
-                    href: "/devis/e-reporting",
-                    label: tSettings("eReporting"),
-                  },
-                  // Lot 58 (FAC-11) : exports comptables (journaux, FEC, PDF d'origine).
-                  { href: "/devis/exports-comptables", label: tSettings("accountingExports") },
-                  // Lot 23b (JUR-06, décision D7) : archive comptable, titulaire seulement.
-                  ...(isOwner ? [{ href: "/devis/parametres/archive", label: tSettings("accountingArchive") }] : []),
-                ],
-              },
-            ]
-          : []),
-        {
-          label: tSettings("groupData"),
-          icon: "data" as const,
-          items: [
-            ...(vendors
-              ? [
-                  {
-                    href: "/prestataires/parametres",
-                    label: tSettings("vendorTypes"),
-                  },
-                  {
-                    href: "/prestataires/parametres/etiquettes",
-                    label: tSettings("vendorTags"),
-                  },
-                  {
-                    href: "/prestataires/parametres/trajet",
-                    label: tSettings("vendorTravel"),
-                  },
-                  // Lot 48a (PRE-05) : délai d'alerte et natures des pièces des prestataires.
-                  {
-                    href: "/prestataires/parametres/pieces",
-                    label: tSettings("vendorDocuments"),
-                  },
-                ]
-              : []),
-            ...(events || budget || quotes
-              ? [{ href: "/import", label: tSettings("import") }]
-              : []),
-            ...(isOwner
-              ? [
-                  {
-                    href: "/rgpd",
-                    label: tSettings("privacy"),
-                    ...(privacyAlerts > 0 ? { count: privacyAlerts } : {}),
-                  },
-                  // Lot 23 (HUB-16, décision D4) : journal d'activité, titulaire seulement.
-                  {
-                    href: "/parametres/journal",
-                    label: tSettings("activityLog"),
-                  },
-                  // Lot 35a (HUB-13, décision D5) : export complet des données, Propriétaire seulement.
-                  {
-                    href: "/parametres/export",
-                    label: tSettings("export"),
-                  },
-                  // Lot 35b (HUB-13, D6) : reprise d'un export Symbola dans un espace vide.
-                  {
-                    href: "/parametres/reprise",
-                    label: tSettings("organizationImport"),
-                  },
-                  // Lot 35c (RGP-11, D8) : fermer l'espace.
-                  {
-                    href: "/parametres/fermeture",
-                    label: tSettings("organizationClosure"),
-                  },
-                  // Lot 37b (DOC-12, décision D12) : relevé mensuel du stockage, titulaire seulement.
-                  {
-                    href: "/parametres/stockage",
-                    label: tSettings("storage"),
-                  },
-                ]
-              : []),
-          ],
-        },
-      ].filter((group) => group.items.length > 0)
+    ? settingsMenu({ events, budget, quotes, vendors, guests, appointments, isOwner, selfService }).map((group) => ({
+        label: tSettings(group.label),
+        icon: group.icon,
+        items: group.items.map((item) => ({
+          href: item.href,
+          label: tSettings(item.label),
+          // Lot 18 : demandes RGPD en alerte, repère visuel sur « Données personnelles ».
+          ...(item.href === "/rgpd" && privacyAlerts > 0 ? { count: privacyAlerts } : {}),
+        })),
+      }))
     : [];
 
   // Lot 52 (HUB-04 ; ADR 0094) — le Comptable : un menu réduit à ses écrans de lecture comptable.

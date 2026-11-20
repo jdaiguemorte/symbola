@@ -25,14 +25,16 @@ export default async function RiskRadarSettingsPage() {
       <ScreenHelp title={tHelp("riskRadar.title")} body={tHelp("riskRadar.body")} />
       <p>{t("settings.intro")}</p>
       {isOwner ? null : <p role="status">{t("settings.ownerOnly")}</p>}
-      <ul className="automation-list">
+      <ul className="setting-list">
         {radar.rules.map((rule) => {
           const label = t(`rules.${rule.rule}.label`);
           return (
-            <li key={rule.rule} className="card automation-item">
-              <h2>{label}</h2>
-              <p>{t(`rules.${rule.rule}.description`)}</p>
-              {rule.available ? null : <p className="field-hint">{t("settings.unavailable")}</p>}
+            <li key={rule.rule} className="setting-row">
+              <div className="setting-row-text">
+                <h2>{label}</h2>
+                <p>{t(`rules.${rule.rule}.description`)}</p>
+                {rule.available ? null : <p className="field-hint">{t("settings.unavailable")}</p>}
+              </div>
               <RiskRuleForm rule={rule.rule} label={label} enabled={rule.enabled} thresholdDays={rule.thresholdDays} disabled={!isOwner || !rule.available} />
             </li>
           );

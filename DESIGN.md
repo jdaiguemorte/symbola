@@ -237,6 +237,9 @@ Coins arrondis sobres : `sm` pour les champs et les pastilles carrées, `md` pou
 - **Entrée de navigation active** (`nav-item-active`) : fond `primary-soft`, texte `primary`.
 - **Chiffre clé** (`key-figure`) : montant ou compteur, toujours accompagné de son libellé en `label`.
 - **Écran de terrain** (`field-screen`, `field-card`, `field-action`) : le mode Jour J, sombre, à gros caractères.
+- **Liste de réglages** (lot 61) : une seule carte, une ligne par réglage. À gauche, ce que fait le réglage (titre, une phrase, pastille d'état) ; à droite, ses commandes ; dessous, son détail. En colonne quand la place manque. Jamais une carte par réglage.
+- **Formulaire en ligne** (lot 61) : quelques champs courts et leur bouton sur une même ligne, alignés à gauche, le bouton en secondaire. Un nombre de jours ou de points est un champ court, jamais un champ de toute la largeur.
+- **Valeur à copier** (lot 61) : le champ en lecture seule et son bouton « Copier » côte à côte ; les étapes à suivre, numérotées, juste dessous.
 
 ## Do's and Don'ts
 

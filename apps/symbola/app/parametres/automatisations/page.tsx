@@ -47,30 +47,34 @@ export default async function AutomationsPage() {
         {t("noCatchUp")}
       </p>
       {isOwner ? null : <p role="status">{t("ownerOnly")}</p>}
-      <ul className="automation-list">
+      <ul className="setting-list">
         {gates.map((gate) => {
           const title = t(`keys.${gate.key}.title`);
           const available = modules.get(AUTOMATION_MODULES[gate.key]) ?? false;
           const journal = runs.get(gate.key) ?? [];
           return (
-            <li key={gate.key} className="card automation-item" data-enabled={gate.enabled ? "true" : "false"}>
-              <div className="automation-head">
-                <h2>{title}</h2>
-                <span className={gate.enabled && available ? "badge badge-sauge" : "badge"}>{available ? (gate.enabled ? t("on") : t("off")) : t("unavailable")}</span>
+            <li key={gate.key} className="setting-row" data-enabled={gate.enabled ? "true" : "false"}>
+              <div className="setting-row-text">
+                <div className="setting-row-head">
+                  <h2>{title}</h2>
+                  <span className={gate.enabled && available ? "badge badge-sauge" : available ? "badge" : "badge badge-wrap"}>{available ? (gate.enabled ? t("on") : t("off")) : t("unavailable")}</span>
+                </div>
+                <p>{t(`keys.${gate.key}.description`)}</p>
+                {gate.resumedAt ? <p className="field-hint">{t("resumedAt", { date: when(gate.resumedAt.toISOString()) })}</p> : null}
               </div>
-              <p>{t(`keys.${gate.key}.description`)}</p>
-              {gate.resumedAt ? <p className="field-hint">{t("resumedAt", { date: when(gate.resumedAt.toISOString()) })}</p> : null}
-              {isOwner && available ? (
-                <form action={toggleAutomationAction}>
-                  <input type="hidden" name="key" value={gate.key} />
-                  <input type="hidden" name="enabled" value={gate.enabled ? "false" : "true"} />
-                  <button type="submit" className={gate.enabled ? "button-secondary" : undefined} aria-label={t(gate.enabled ? "turnOffLabel" : "turnOnLabel", { title })}>
-                    {t(gate.enabled ? "turnOff" : "turnOn")}
-                  </button>
-                </form>
-              ) : null}
-              {gate.days !== null ? <AutomationDaysForm automationKey={gate.key} days={gate.days} disabled={!isOwner || !available} /> : null}
-              <details>
+              <div className="setting-row-controls">
+                {isOwner && available ? (
+                  <form action={toggleAutomationAction}>
+                    <input type="hidden" name="key" value={gate.key} />
+                    <input type="hidden" name="enabled" value={gate.enabled ? "false" : "true"} />
+                    <button type="submit" className={gate.enabled ? "button-secondary" : undefined} aria-label={t(gate.enabled ? "turnOffLabel" : "turnOnLabel", { title })}>
+                      {t(gate.enabled ? "turnOff" : "turnOn")}
+                    </button>
+                  </form>
+                ) : null}
+                {gate.days !== null ? <AutomationDaysForm automationKey={gate.key} days={gate.days} disabled={!isOwner || !available} /> : null}
+              </div>
+              <details className="setting-row-foot">
                 <summary>{t("journal")}</summary>
                 {journal.length === 0 ? (
                   <p>{t("journalEmpty")}</p>
@@ -96,14 +100,14 @@ export default async function AutomationsPage() {
         })}
       </ul>
       <h2>{t("alwaysOnTitle")}</h2>
-      <ul className="automation-list">
+      <ul className="setting-list">
         {ALWAYS_ON_AUTOMATIONS.map((key) => (
-          <li key={key} className="card automation-item">
-            <div className="automation-head">
+          <li key={key} className="setting-row">
+            <div className="setting-row-text">
               <h3>{t(`alwaysOn.${key}.title`)}</h3>
-              <span className="badge badge-sauge">{t("alwaysOnBadge")}</span>
+              <p>{t(`alwaysOn.${key}.reason`)}</p>
             </div>
-            <p>{t(`alwaysOn.${key}.reason`)}</p>
+            <span className="badge badge-sauge">{t("alwaysOnBadge")}</span>
           </li>
         ))}
       </ul>
