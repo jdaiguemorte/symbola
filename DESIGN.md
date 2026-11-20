@@ -121,7 +121,6 @@ components:
     height: 44px
   floating-panel:
     backgroundColor: "{colors.surface}"
-    shadow: "{elevation.float}"
     rounded: "{rounded.lg}"
   nav-item-active:
     backgroundColor: "{colors.primary-soft}"
