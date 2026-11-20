@@ -19,6 +19,11 @@ import { getDocumentSettings } from "@/modules/quotes/service";
 import { EMAIL_TEMPLATE_RULES, renderEmailTemplate, variableToken } from "./email-template-rules";
 import { getEmailTemplate } from "./email-templates";
 import { jobKeyExists, queueAndSendEmail } from "./jobs";
+import { randomUUID } from "node:crypto";
+import { parseEnv } from "@symbola/env";
+import { organizationFromAddress } from "./email-deliveries";
+import { deliveryReference, messageIdDomain } from "./sender-address-rules";
+import { DELIVERY_HEADER } from "./scaleway-webhook";
 import { findOrganizationById, findOrganizationProfile, findUserContact } from "./repository";
 
 const LOGO_CID = "logo@symbola";
@@ -51,15 +56,18 @@ type OrganizationIdentity = {
   onAccent: string;
   footerLines: string[];
   replyTo: string | null;
+  // Lot 55 (MSG-04 révisée) : l'adresse d'expédition de l'organisation (null : celle de SMTP_FROM).
+  fromAddress: string | null;
 };
 
 async function organizationIdentity(organizationId: string): Promise<OrganizationIdentity> {
   const db = appDatabase();
-  const [organization, profile, team, settings] = await Promise.all([
+  const [organization, profile, team, settings, fromAddress] = await Promise.all([
     findOrganizationById(db, organizationId),
     findOrganizationProfile(db, organizationId),
     listTeam(db, organizationId),
     getDocumentSettings(organizationId),
+    organizationFromAddress(organizationId),
   ]);
   const name = organization?.name ?? "";
   const owner = team.find((member) => member.role === "owner" && !member.disabledAt)?.email ?? null;
@@ -67,7 +75,7 @@ async function organizationIdentity(organizationId: string): Promise<Organizatio
   const appearance = documentAppearance(settings.color, null, starterDocumentStyle("fr").defaultColor);
   const contact = [replyTo, profile?.contactPhone].filter((value): value is string => Boolean(value)).join(" · ");
   const footerLines = [name, profile?.address ?? null, contact || null, profile?.website ?? null].filter((line): line is string => Boolean(line));
-  return { name, logo: await loadDocumentLogo(organizationId, profile?.logoKey ?? null), accent: appearance.accent, onAccent: appearance.onAccent, footerLines, replyTo };
+  return { name, logo: await loadDocumentLogo(organizationId, profile?.logoKey ?? null), accent: appearance.accent, onAccent: appearance.onAccent, footerLines, replyTo, fromAddress };
 }
 
 function logoAttachment(logo: DocumentLogo | null): Attachment[] {
@@ -82,6 +90,7 @@ export type ComposedEmail = {
   attachments: Attachment[];
   fromName: string;
   replyTo: string | null;
+  fromAddress: string | null;
   layout: MailLayout;
 };
 
@@ -90,7 +99,7 @@ function layoutOf(input: { kind: EmailTemplateKind; locale: EmailLocale; identit
   const rendered = renderEmailTemplate(input.kind, input.template, values);
   const t = translator(input.locale);
   const button = EMAIL_TEMPLATE_RULES[input.kind].button;
-  const label = button === "sign" ? t("button.sign") : button === "answer" ? t("button.answer") : button === "manage" ? t("button.manage") : button === "request" ? t("button.request") : button === "roadmap" ? t("button.roadmap") : button === "questionnaire" ? t("button.questionnaire") : button === "open" ? t("button.open") : button === "dayOf" ? t("button.dayOf") : button === "confirm" ? t("button.confirm") : button === "notMe" ? t("button.notMe") : button === "account" ? t("button.account") : t("button.space");
+  const label = button === "sign" ? t("button.sign") : button === "answer" ? t("button.answer") : button === "manage" ? t("button.manage") : button === "request" ? t("button.request") : button === "roadmap" ? t("button.roadmap") : button === "questionnaire" ? t("button.questionnaire") : button === "open" ? t("button.open") : button === "dayOf" ? t("button.dayOf") : button === "confirm" ? t("button.confirm") : button === "notMe" ? t("button.notMe") : button === "account" ? t("button.account") : button === "message" ? t("button.message") : t("button.space");
   // Lot 47 (D4) : les deux réponses d'un brief ont leur propre libellé.
   const labelOf = (variable: EmailVariable) => (variable === "link_available" ? t("button.available") : variable === "link_unavailable" ? t("button.unavailable") : label);
   const blocks: MailBlock[] = rendered.blocks.map((block) => (block.kind === "button" ? { kind: "button", url: block.url, label: labelOf(block.variable) } : block));
@@ -129,6 +138,7 @@ export async function composeOrganizationEmail(input: {
     attachments: logoAttachment(identity.logo),
     fromName: identity.name,
     replyTo: identity.replyTo,
+    fromAddress: identity.fromAddress,
     layout,
   };
 }
@@ -154,10 +164,16 @@ export async function sendOrganizationEmail(input: {
   attachments?: Attachment[];
   reserve?: boolean;
   idempotencyKey?: string;
+  // Lot 55 (MSG-05) : l'évènement de l'e-mail, pour le journal des envois par évènement.
+  eventId?: string | null;
 }): Promise<{ deferred: boolean }> {
   const mail = await composeOrganizationEmail(input);
   if (input.idempotencyKey && (await jobKeyExists(input.organizationId, input.idempotencyKey))) return { deferred: false };
   if (input.reserve !== false) await reserveOrganizationMail(input.organizationId);
+  // Lot 55 (MSG-05) : l'identifiant du message porte la ligne du journal, que le webhook retrouve.
+  const env = parseEnv(process.env);
+  const deliveryId = randomUUID();
+  const reference = deliveryReference(input.organizationId, deliveryId, messageIdDomain(env.SMTP_SENDER_MODE, env.SMTP_FROM_DOMAIN, env.SMTP_FROM));
   // deferred : l'envoi immédiat a échoué ; la file le reprend. Un appelant peut le dire à la personne.
   const outcome = await queueAndSendEmail(input.organizationId, {
     to: input.to,
@@ -165,9 +181,13 @@ export async function sendOrganizationEmail(input: {
     text: mail.text,
     html: mail.html,
     fromName: mail.fromName,
+    ...(mail.fromAddress ? { fromAddress: mail.fromAddress } : {}),
+    messageId: `<${reference}>`,
+    // Recopié par Scaleway dans ses évènements (email_headers) : le webhook retrouve la ligne du journal.
+    headers: { [DELIVERY_HEADER]: reference },
     ...(mail.replyTo ? { replyTo: mail.replyTo } : {}),
     attachments: [...mail.attachments, ...(input.attachments ?? [])],
-  }, input.idempotencyKey);
+  }, input.idempotencyKey, { id: deliveryId, reference, kind: input.kind, eventId: input.eventId ?? null });
   return { deferred: outcome === "retry" || outcome === "failed" };
 }
 
@@ -209,6 +229,8 @@ function sampleValues(locale: EmailLocale): EmailValues {
     client_term: t("sample.clientTerm"),
     digest: t("sample.digest"),
     alert: t("sample.alert"),
+    // Lot 55 (MSG-03, POR-06).
+    topic: t("sample.topic"),
   };
 }
 
@@ -237,6 +259,7 @@ export async function sendTestEmail(input: { organizationId: string; userId: str
     text: mail.text,
     html: mail.html,
     fromName: mail.fromName,
+    ...(mail.fromAddress ? { fromAddress: mail.fromAddress } : {}),
     ...(mail.replyTo ? { replyTo: mail.replyTo } : {}),
     attachments: mail.attachments,
   });

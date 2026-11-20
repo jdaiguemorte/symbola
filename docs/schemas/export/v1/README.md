@@ -7,7 +7,7 @@ Le format est décrit dans `docs/export/format-v1.md`.
 
 | Entité | Champs | Schéma |
 | --- | --- | --- |
-| `organizations` | `id`, `name`, `language`, `siret`, `allPlannersSeeAllEvents`, `closedAt`, `closedByUserId`, `deletionDueAt`, `closureNoticeSentAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [organizations.schema.json](hub/organizations.schema.json) |
+| `organizations` | `id`, `name`, `language`, `siret`, `allPlannersSeeAllEvents`, `closedAt`, `closedByUserId`, `deletionDueAt`, `closureNoticeSentAt`, `senderLocalPart`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [organizations.schema.json](hub/organizations.schema.json) |
 | `organization_profiles` | `siren`, `address`, `logoKey`, `logoSizeBytes`, `legalForm`, `metier`, `metierPrecision`, `vatRegime`, `vatRateDefaultBasisPoints`, `annualEventVolume`, `replacedTools`, `completedAt`, `setupStep`, `setupCompletedAt`, `quoteFollowUpDays`, `prospectFollowUpDays`, `contactEmail`, `contactPhone`, `website`, `vatNumber`, `registration`, `shareCapitalCents`, `insurer`, `insurancePolicy`, `insuranceCoverage`, `mediatorName`, `mediatorUrl`, `generalTerms`, `postalCode`, `city`, `countryCode`, `vatOnDebits`, `vatOnDebitsFrom`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [organization_profiles.schema.json](hub/organization_profiles.schema.json) |
 | `organization_modules` | `moduleKey`, `enabled`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [organization_modules.schema.json](hub/organization_modules.schema.json) |
 | `vat_regime_changes` | `id`, `previousRegime`, `newRegime`, `effectiveDate`, `changedByUserId`, `createdAt`, `createdBy` | [vat_regime_changes.schema.json](hub/vat_regime_changes.schema.json) |
@@ -62,6 +62,7 @@ Tables non exportées :
 - `notification_preferences` — préférence : sortes de notification gardées ou coupées, propres à chaque compte
 - `push_subscriptions` — technique : abonnements push des appareils (adresse du service de push, clés publiques), propres à chaque appareil
 - `automation_runs` — temporaire : journal des automatismes, effacé après 90 jours
+- `email_deliveries` — temporaire : journal des envois (objet, destinataire, statut), effacé 13 mois après l'envoi
 - `plans` — exploitation : catalogue des offres de Symbola (prix, quotas), le même pour tous
 - `plan_modules` — exploitation : modules des offres du catalogue de Symbola
 - `organization_subscriptions` — exploitation : abonnement de l'espace à Symbola (offre, dates) ; un espace repris a le sien
@@ -133,6 +134,10 @@ Tables non exportées :
 | `event_questionnaires` | `id`, `eventId`, `contactId`, `linkId`, `templateId`, `templateVersion`, `name`, `locale`, `questions`, `sentAt`, `finishedAt`, `seenAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_questionnaires.schema.json](events/event_questionnaires.schema.json) |
 | `questionnaire_answers` | `id`, `questionnaireId`, `itemKey`, `value`, `answeredAt`, `resolution`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [questionnaire_answers.schema.json](events/questionnaire_answers.schema.json) |
 | `event_team_members` | `id`, `eventId`, `userId`, `role`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_team_members.schema.json](events/event_team_members.schema.json) |
+| `message_topics` | `id`, `eventId`, `name`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [message_topics.schema.json](events/message_topics.schema.json) |
+| `message_topic_links` | `id`, `topicId`, `linkId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [message_topic_links.schema.json](events/message_topic_links.schema.json) |
+| `messages` | `id`, `eventId`, `topicId`, `visibility`, `authorKind`, `authorUserId`, `authorName`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [messages.schema.json](events/messages.schema.json) |
+| `message_attachments` | `id`, `eventId`, `messageId`, `label`, `fileKey`, `mime`, `sizeBytes`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [message_attachments.schema.json](events/message_attachments.schema.json) |
 | `event_closings` | `id`, `eventId`, `checkedSteps`, `timeSpentMinutes`, `lessons`, `ownExpenses`, `budgetSnapshot`, `closedAt`, `closedBy`, `reviewRequestedAt`, `reviewRequestKind`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_closings.schema.json](events/event_closings.schema.json) |
 | `closing_settings` | `id`, `reviewUrl`, `reviewLabel`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [closing_settings.schema.json](events/closing_settings.schema.json) |
 | `event_templates` | `id`, `name`, `eventTypeId`, `sourceEventId`, `includesVendors`, `content`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_templates.schema.json](events/event_templates.schema.json) |
@@ -142,6 +147,7 @@ Tables non exportées :
 - `event_link_codes` — secret : codes à usage unique des liens personnels (hachés)
 - `event_link_sessions` — secret : sessions ouvertes par les liens personnels (jetons hachés)
 - `event_task_reminders` — technique : rappels déjà envoyés par les liens, qui ne sont pas repris
+- `link_push_subscriptions` — technique : abonnements push des appareils des clients (adresse du service de push, clés publiques), propres à chaque appareil
 
 ## Module `budget`
 

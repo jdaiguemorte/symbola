@@ -45,6 +45,13 @@ export const BUSINESS_RULE_FILES = [
   "modules/hub/notification-rules.ts",
   "modules/events/planning-rules.ts",
   "lib/risk-radar/rules.ts",
+  // Lot 55 (MSG-04, MSG-05, SEC-19, POR-08, POR-11) : adresse d'expédition, signature du webhook
+  // simulé, couleurs du portail, proposition d'installation.
+  "modules/hub/sender-address-rules.ts",
+  "modules/hub/delivery-webhooks.ts",
+  "modules/hub/scaleway-webhook.ts",
+  "lib/portal/theme.ts",
+  "lib/portal/install-prompt.ts",
 ];
 
 export default defineConfig({

@@ -29,6 +29,7 @@ import { countdown, nextActions, progress } from "./portal-home";
 import { closeLinkSessionAction, toggleLinkTaskAction } from "./actions";
 import { guestsRubricOpen } from "./invites/access";
 import { questionnairesRubricOpen } from "./questionnaires/access";
+import { messagesRubricOpen } from "./messages/access";
 import { isGuestsAvailable } from "@/app/events/[id]/invites/access";
 import { FloorplanLinkEntry } from "@/app/plans-de-salle/link-entry";
 
@@ -177,6 +178,12 @@ export async function PortalContent({ access, preview = false, banner }: { acces
       {guestsOpen ? (
         <p>
           <Link href="/portail/invites">{tLink("guestsLink")}</Link>
+        </p>
+      ) : null}
+      {/* Lot 55 (POR-06, POR-10) : la rubrique « Messages », si la planner l'a ouverte à ce lien. */}
+      {!preview && messagesRubricOpen(access) ? (
+        <p>
+          <Link href="/portail/messages">{tLink("messagesLink")}</Link>
         </p>
       ) : null}
       {/* Lot 45 (POR-07, D6) : la rubrique « Questionnaires », ouverte à l'envoi d'un questionnaire. */}

@@ -372,6 +372,33 @@ Sans question ouverte (DPO-10, pour information).
   la liste des sous-traitants. Les notifications elles-mêmes (centre de l'application, e-mails à
   l'équipe) sont effacées 90 jours après leur création ; l'objet d'un e-mail ne dit que la sorte.
 
+## Question du 19 novembre 2026 (lot 55, messagerie et journal des envois)
+
+- **DPO-11 — Nouveau sous-traitant : Scaleway Transactional Email (pour information).** Julien a
+  retenu le 19/11/2026 **Scaleway Transactional Email** (Scaleway SAS, France), formule Essential, après
+  un comparatif (Scaleway, Brevo, Mailjet, Lettermint). Il remplacera IONOS pour envoyer chaque
+  organisation depuis sa propre adresse sur un sous-domaine de Symbola (`atelier-camille@envoi.symbola.fr`)
+  et rendre compte de la remise. Il reçoit l'adresse du destinataire et le contenu des e-mails, comme
+  IONOS aujourd'hui ; il garde les métadonnées d'envoi (destinataire, statut) tant que le domaine
+  d'envoi est actif. Hébergement à **Paris (région fr-par)**, rien répliqué hors de l'Union européenne,
+  **aucun sous-traitant dédié** au contenu des e-mails, selon la documentation « Data privacy » du
+  service. Garanties contractuelles : le **contrat de sous-traitance (DPA) général de Scaleway** et les
+  **conditions propres à Transactional Email**, acceptés dans la console avant l'activation. Les
+  rapports de remise arrivent par le service Topics and Events de Scaleway (même hébergement), signés
+  par un certificat de Scaleway que Symbola vérifie. Déclaré dans `docs/conformite/sous-traitants.md`.
+  Si vous voyez une vérification à faire avant l'activation (liste des sous-traitants de Scaleway,
+  transferts), dites-le-nous.
+- **DPO-12 — Journal des envois gardé 13 mois.** Pour chaque e-mail envoyé au nom d'une organisation,
+  Symbola garde l'adresse du destinataire (et son empreinte), l'objet, la nature et le statut
+  (envoyé, remis, rejeté, plainte), jamais le corps, **13 mois** après l'envoi, puis l'efface. Il
+  sert à prévenir la planner d'une adresse rejetée (bandeau sur la fiche du contact) ; il est trouvé
+  et effacé par une demande RGPD. Question : la durée de 13 mois vous convient-elle ?
+- **Pour information — messagerie et push du portail.** Les messages d'un sujet (et leurs pièces
+  jointes) vivent avec l'évènement, déclarés au registre ; une note interne ne sort jamais vers un
+  client ou un prestataire ; l'e-mail qui annonce un message n'en reprend pas le contenu. Le push du
+  portail est facultatif et désactivé par défaut, avec les mêmes garanties que DPO-10 (message chiffré,
+  la sorte seulement, abonnement supprimé à la désactivation ou avec le lien).
+
 ## Pour information : relances des prospects (lot 45, 18 novembre 2026)
 
 Sans question ouverte. **Décision de Julien (18/11/2026)**, contraire à votre réponse 10 : les

@@ -27,6 +27,8 @@ const inter = localFont({
 export const metadata = {
   title: "Symbola",
   description: "Suite applicative pour les métiers de l'événementiel",
+  // Lot 55 (POR-11) : le manifeste de l'application de l'équipe ; le portail le remplace par le sien.
+  manifest: "/manifest.webmanifest",
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {

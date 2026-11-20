@@ -1391,6 +1391,23 @@ export {
   type RiskRuleSetting,
 } from "./automations";
 
+// Lot 55 (MSG-04 révisée, MSG-05 ; ADR 0102) : adresse d'expédition de l'organisation, journal des
+// envois, webhook du service d'envoi et alerte d'un rejet.
+export {
+  contactDeliveryAlert,
+  EMAIL_DELIVERY_RETENTION_MONTHS,
+  getSenderAddress,
+  listEmailDeliveries,
+  purgeEmailDeliveries,
+  recipientHash,
+  SenderAddressError,
+  setSenderLocalPart,
+} from "./email-deliveries";
+export { receiveEmailDeliveryWebhook as handleEmailDeliveryWebhook } from "./delivery-alerts";
+export { configureDeliveryWebhookAdapter, signSimulatedWebhook, simulatedWebhookAdapter, SIMULATED_SIGNATURE_HEADER, type EmailDeliveryWebhookAdapter } from "./delivery-webhooks";
+export { proposeSenderLocalPart, senderLocalPartProblem } from "./sender-address-rules";
+// Lot 55 (POR-11 ; ADR 0102) : l'envoyeur Web Push, pour les appareils des clients (module events).
+export { getPushSender } from "./push";
 // Lot 54 (HUB-27, ARC-06, NFR-26, DOC-06 ; ADR 0101) — abonnement en libre-service, forfaits par module,
 // interrupteurs par fonction, quota de stockage.
 export { getPlanCatalog, getPlanCatalogWithSource, InvalidPlanCatalogError, isSubscriptionBillingEnabled, savePlanCatalog, type PlanCatalogSource } from "./plan-catalog";

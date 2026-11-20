@@ -138,6 +138,10 @@
       "payment_due_reminder": {
         "subject": "Rappel : échéance du {{échéance}} — devis {{numéro_devis}}",
         "body": "Bonjour {{prénom}},\n\nPetit rappel : une échéance de {{montant}} arrive le {{échéance}} (devis {{numéro_devis}}).\n\nVous pouvez la régler par virement sur l'IBAN {{iban}}, avec la référence {{référence}}, puis l'indiquer dans votre espace (« J'ai fait le virement »). Si le virement est déjà parti, ne tenez pas compte de ce message.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "new_message": {
+        "subject": "Nouveau message sur « {{sujet}} »",
+        "body": "Bonjour {{prénom}},\n\n{{organisation}} vous a écrit sur le sujet « {{sujet}} » de {{évènement}}. Pour lire le message et répondre, ouvrez votre espace :\n\n{{lien}}\n\nSi votre lien a expiré, la page vous permet d'en demander un nouveau.\n\nÀ bientôt,\n{{organisation}}"
       }
     },
     "en": {
@@ -276,6 +280,10 @@
       "payment_due_reminder": {
         "subject": "Reminder: payment due on {{due_date}} — quote {{quote_number}}",
         "body": "Hello {{first_name}},\n\nA quick reminder: a payment of {{amount}} is due on {{due_date}} (quote {{quote_number}}).\n\nYou can pay it by bank transfer to the IBAN {{iban}}, with the reference {{reference}}, then let us know in your space (\"I made the transfer\"). If the transfer has already been made, please disregard this message.\n\nSee you soon,\n{{organization}}"
+      },
+      "new_message": {
+        "subject": "New message about “{{topic}}”",
+        "body": "Hello {{first_name}},\n\n{{organization}} wrote to you about “{{topic}}” for {{event}}. To read the message and reply, open your space:\n\n{{link}}\n\nIf your link has expired, the page lets you ask for a new one.\n\nSee you soon,\n{{organization}}"
       }
     }
   }

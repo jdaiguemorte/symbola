@@ -130,6 +130,13 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM}
+      # Lot 55 (MSG-04 révisée, MSG-05 ; ADR 0102) : adresse d'expédition des organisations et webhook
+      # de remise de Scaleway TEM (« shared » et vide tant que le domaine et le webhook ne sont pas prêts).
+      SMTP_FROM_DOMAIN: ${SMTP_FROM_DOMAIN:-envoi.symbola.fr}
+      SMTP_SENDER_MODE: ${SMTP_SENDER_MODE:-shared}
+      EMAIL_DELIVERY_WEBHOOK: ${EMAIL_DELIVERY_WEBHOOK:-}
+      EMAIL_DELIVERY_WEBHOOK_SECRET: ${EMAIL_DELIVERY_WEBHOOK_SECRET:-}
+      EMAIL_DELIVERY_WEBHOOK_TOPIC_ARN: ${EMAIL_DELIVERY_WEBHOOK_TOPIC_ARN:-}
       # Signature en ligne (DEV-02, ADR 0026). SIGNATURE_PROVIDER vide =
       # « indisponible » en production, tant que Documenso n'est pas configuré.
       SIGNATURE_PROVIDER: ${SIGNATURE_PROVIDER:-}
@@ -266,7 +273,8 @@ services:
       NEXT_PRIVATE_SMTP_USERNAME: ${SMTP_USER:-}
       NEXT_PRIVATE_SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       NEXT_PRIVATE_SMTP_FROM_NAME: Symbola
-      NEXT_PRIVATE_SMTP_FROM_ADDRESS: ${SMTP_USER:-notifications@symbola.invalid}
+      # Lot 55 : avec Scaleway TEM, SMTP_USER est l'identifiant du projet, pas une adresse.
+      NEXT_PRIVATE_SMTP_FROM_ADDRESS: ${DOCUMENSO_SMTP_FROM_ADDRESS:-notifications@envoi.symbola.fr}
       # Inscriptions publiques fermées une fois le compte administrateur créé.
       NEXT_PUBLIC_DISABLE_SIGNUP: ${DOCUMENSO_DISABLE_SIGNUP:-true}
       DOCUMENSO_DISABLE_TELEMETRY: "true"

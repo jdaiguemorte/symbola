@@ -2845,6 +2845,8 @@ export async function requestDecision(input: RequestDecisionInput): Promise<Even
     if (!replaced || !answered || replaced.kind !== input.kind || replaced.subjectId !== subject.subjectId || replacementsOf(existing).has(replaced.id)) throw new DecisionInvalidError("replace");
   }
   const row = await insertDecisionRow({ organizationId, eventId, kind: input.kind, ...subject, note, dueOn, replacesDecisionId });
+  // Lot 55 (POR-11) : les clients qui voient la décision et ont activé le push en sont prévenus.
+  await pushDecisionToClients(organizationId, eventId, input.kind).catch((error: unknown) => console.error("push « décision demandée » non envoyé", error instanceof Error ? error.name : "erreur"));
   const programVersion = subject.snapshot.kind === "program" ? (subject.snapshot.programVersion ?? null) : null;
   return toDecision(row, new Map(), { updatedAt: subject.snapshot.kind === "program" ? subject.snapshot.programUpdatedAt : null, latestVersion: programVersion });
 }
@@ -4146,4 +4148,312 @@ export async function createEventFromStructure(input: { organizationId: string; 
     await addProgramItem(input.organizationId, id, { startTime: item.startTime, endTime: item.endTime, label: item.label, location: item.location, vendorSlotIds: [], freeParticipants: [] });
   }
   return { eventId: id, slotIds };
+}
+
+// --- Lot 55 (MSG-03, POR-06, POR-11 ; D3 ; ADR 0102) — fils de discussion par sujet ---
+//
+// L'équipe lit tout ; un lien ne lit que les messages partagés des sujets qu'il voit : client dont le
+// lien ouvre la rubrique « Messages » (POR-10 : fermée par défaut), ou prestataire ajouté au sujet. Un
+// message interne n'a aucun chemin vers l'extérieur : l'équipe l'écrit par sa propre fonction
+// (postInternalNote), qui ne prévient personne au-dehors ; aucune fonction d'un lien n'écrit ni ne lit
+// un message interne.
+import {
+  findAttachment as findMessageAttachmentRow,
+  findTopic as findMessageTopicRow,
+  insertMessage as insertMessageRow,
+  insertTopic as insertMessageTopicRow,
+  isMessageId,
+  listLinkTopics as listLinkMessageTopicRows,
+  listMessages as listMessageRows,
+  listTopics as listMessageTopicRows,
+  MessageInputError,
+  MessageNotFoundError,
+  readAttachmentFile as readMessageAttachmentFile,
+  replaceTopicVendors as replaceMessageTopicVendors,
+  topicHasSharedMessage,
+  type TopicRow as MessageTopicRow,
+} from "./messages";
+import { getOrganizationContact, getPushSender } from "@/modules/hub/service";
+import { linkPushSubscriptions } from "@symbola/db/schema/events";
+import { withOrganization as withMessagesOrganization } from "@symbola/db/with-organization";
+import { and as andMessages, eq as eqMessages, inArray as inArrayMessages } from "drizzle-orm";
+import { createHash } from "node:crypto";
+import type { LinkMessageThread, LinkMessageTopic, MessageFileInput, MessageRecipient, MessageTopicSummary, MessageTopicThread, MessageView, PushMessage } from "@symbola/contracts";
+
+export { MessageInputError, MessageNotFoundError } from "./messages";
+
+async function messageTopicOf(organizationId: string, topicId: string, eventId?: string): Promise<MessageTopicRow> {
+  const topic = await findMessageTopicRow(organizationId, topicId);
+  if (!topic || (eventId && topic.eventId !== eventId)) throw new MessageNotFoundError();
+  return topic;
+}
+
+type MessageRecipientRow = MessageRecipient & { email: string; locale: "fr" | "en" };
+
+// Les destinataires d'un message partagé : les clients dont le lien, valable, ouvre la rubrique
+// « Messages », et les prestataires du sujet dont le lien est valable.
+async function messageRecipientRows(organizationId: string, topic: MessageTopicRow, now: Date = new Date()): Promise<MessageRecipientRow[]> {
+  const vendorIds = new Set(topic.vendorLinkIds);
+  const rows: MessageRecipientRow[] = [];
+  for (const context of await findEventLinkRows(organizationId, topic.eventId)) {
+    if (!usableLink(context, now)) continue;
+    const base = { linkId: context.link.id, name: context.link.personName, email: context.link.email, locale: context.link.locale === "en" ? ("en" as const) : ("fr" as const) };
+    if (context.link.audience === "client" && rightsOf(context).rubrics.includes("messages")) rows.push({ ...base, audience: "client" });
+    if (context.link.audience === "vendor" && vendorIds.has(context.link.id)) rows.push({ ...base, audience: "vendor" });
+  }
+  return rows.sort((a, b) => a.audience.localeCompare(b.audience) || a.name.localeCompare(b.name));
+}
+
+// L'empreinte des destinataires nommés sur le bouton (D3) : l'envoi est refusé s'ils ont changé entre
+// l'affichage et l'envoi.
+export function messageRecipientsDigest(recipients: Pick<MessageRecipient, "linkId">[]): string {
+  return createHash("sha256").update(recipients.map((recipient) => recipient.linkId).sort().join(",")).digest("hex");
+}
+
+export async function listMessageTopics(organizationId: string, eventId: string): Promise<MessageTopicSummary[]> {
+  return listMessageTopicRows(organizationId, eventId);
+}
+
+export async function createMessageTopic(input: { organizationId: string; eventId: string; name: string }): Promise<MessageTopicSummary> {
+  await assertEventWritableRow(input.organizationId, input.eventId);
+  if (!(await findEventById(input.organizationId, input.eventId))) throw new EventNotFoundError();
+  return insertMessageTopicRow(input.organizationId, input.eventId, input.name);
+}
+
+// eventId : celui de l'écran ; un sujet d'un autre évènement répond comme absent.
+export async function getMessageThread(organizationId: string, topicId: string, eventId: string): Promise<MessageTopicThread> {
+  const topic = await messageTopicOf(organizationId, topicId, eventId);
+  const [summary] = (await listMessageTopicRows(organizationId, topic.eventId)).filter((item) => item.id === topic.id);
+  const recipients = await messageRecipientRows(organizationId, topic);
+  return {
+    ...summary!,
+    messages: await listMessageRows(organizationId, topic.id, { sharedOnly: false }),
+    recipients: recipients.map(({ linkId, audience, name }) => ({ linkId, audience, name })),
+  };
+}
+
+// Les prestataires que la planner peut ajouter au sujet : ceux de l'évènement qui ont un lien.
+export async function listTopicVendorChoices(organizationId: string, eventId: string): Promise<{ linkId: string; name: string }[]> {
+  const now = new Date();
+  return (await findEventLinkRows(organizationId, eventId)).filter((context) => context.link.audience === "vendor" && usableLink(context, now)).map((context) => ({ linkId: context.link.id, name: context.link.personName }));
+}
+
+export async function setMessageTopicVendors(input: { organizationId: string; eventId: string; topicId: string; vendorLinkIds: string[] }): Promise<void> {
+  const topic = await messageTopicOf(input.organizationId, input.topicId, input.eventId);
+  await assertEventWritableRow(input.organizationId, topic.eventId);
+  const allowed = new Set((await findEventLinkRows(input.organizationId, topic.eventId)).filter((context) => context.link.audience === "vendor").map((context) => context.link.id));
+  const wanted = [...new Set(input.vendorLinkIds)];
+  if (wanted.some((id) => !allowed.has(id))) throw new MessageNotFoundError();
+  await replaceMessageTopicVendors(input.organizationId, topic.id, wanted);
+}
+
+async function teamAuthorName(organizationId: string): Promise<string> {
+  return (await getOrganizationContact(appDatabase(), organizationId)).name || "—";
+}
+
+// Note interne (zone « Note interne ») : l'équipe seulement. Aucun e-mail, aucun push vers un lien.
+export async function postInternalNote(input: { organizationId: string; eventId: string; topicId: string; userId: string; body: string; files?: MessageFileInput[] }): Promise<MessageView> {
+  const topic = await messageTopicOf(input.organizationId, input.topicId, input.eventId);
+  await assertEventWritableRow(input.organizationId, topic.eventId);
+  return insertMessageRow({ organizationId: input.organizationId, topic, visibility: "internal", author: { kind: "team", userId: input.userId, name: await teamAuthorName(input.organizationId) }, body: input.body, files: input.files ?? [] });
+}
+
+// Message partagé (zone « Message aux clients ») : part aux destinataires nommés sur le bouton, et
+// seulement si ce sont toujours eux (recipientsDigest). Chacun reçoit l'e-mail « Nouveau message sur
+// <sujet> » (sans le contenu) et, s'il l'a activé, un push.
+export async function postSharedMessage(input: { organizationId: string; eventId: string; topicId: string; userId: string; body: string; files?: MessageFileInput[]; recipientsDigest: string; now?: Date }): Promise<{ message: MessageView; notified: number }> {
+  const topic = await messageTopicOf(input.organizationId, input.topicId, input.eventId);
+  await assertEventWritableRow(input.organizationId, topic.eventId);
+  const recipients = await messageRecipientRows(input.organizationId, topic, input.now);
+  if (recipients.length === 0) throw new MessageInputError("no_recipients");
+  if (messageRecipientsDigest(recipients) !== input.recipientsDigest) throw new MessageInputError("recipients_changed");
+  const message = await insertMessageRow({ organizationId: input.organizationId, topic, visibility: "shared", author: { kind: "team", userId: input.userId, name: await teamAuthorName(input.organizationId) }, body: input.body, files: input.files ?? [] });
+  const notified = await notifyMessageRecipients(input.organizationId, topic, message, recipients);
+  return { message, notified };
+}
+
+async function notifyMessageRecipients(organizationId: string, topic: MessageTopicRow, message: MessageView, recipients: MessageRecipientRow[]): Promise<number> {
+  const env = parseEnv(process.env);
+  const vocabulary = (await findEventAudience(organizationId, topic.eventId)) ?? "couple";
+  let notified = 0;
+  for (const recipient of recipients) {
+    const path = recipient.audience === "client" ? `/portail/messages/${topic.id}` : `/prestataire/messages/${topic.id}`;
+    try {
+      const values: EmailValues = {
+        ...(await linkEmailValues({ organizationId, eventId: topic.eventId, audience: recipient.audience, personName: recipient.name, locale: recipient.locale, vocabulary, expiresOn: null })),
+        topic: topic.name,
+        link: `${env.APP_PUBLIC_URL}${path}`,
+      };
+      await sendOrganizationEmail({ organizationId, to: recipient.email, kind: "new_message", locale: recipient.locale, values, eventId: topic.eventId, idempotencyKey: `message:${message.id}:${recipient.linkId}` });
+      notified += 1;
+    } catch (error) {
+      if (error instanceof MailQuotaExceededError) break;
+      // Nom de l'erreur seulement : jamais d'adresse (SEC-20).
+      console.error("e-mail « nouveau message » non parti", error instanceof Error ? error.name : "erreur");
+    }
+    if (recipient.audience === "client") await pushToLink(organizationId, recipient.linkId, { kind: "message", url: path, tag: `message-${topic.id}`, locale: recipient.locale });
+  }
+  return notified;
+}
+
+// Pour l'équipe : la pièce d'un message de cet évènement (un évènement hors de vue d'une Planner ne
+// s'ouvre pas par l'identifiant d'une de ses pièces).
+export async function getMessageAttachmentFile(organizationId: string, attachmentId: string, eventId: string): Promise<FileDownload> {
+  const found = await findMessageAttachmentRow(organizationId, attachmentId);
+  if (!found || found.row.eventId !== eventId) throw new MessageNotFoundError();
+  return readMessageAttachmentFile(found.row);
+}
+
+// --- Côté lien (portail du client, espace du prestataire) ---
+
+// Le lien, valable, et ses sujets : client avec la rubrique « Messages », ou prestataire (ses sujets).
+async function messagingLinkAccess(organizationId: string, linkId: string): Promise<LinkAccess> {
+  const access = await getLinkAccess(organizationId, linkId);
+  if (!access) throw new LinkAccessDeniedError();
+  if (access.audience === "client" && access.rights.rubrics.includes("messages")) return access;
+  if (access.audience === "vendor") return access;
+  throw new LinkAccessDeniedError();
+}
+
+async function linkVisibleTopic(access: LinkAccess, topicId: string): Promise<MessageTopicRow> {
+  const topic = await findMessageTopicRow(access.organizationId, topicId);
+  // Un sujet d'un autre évènement, un sujet sans message partagé (notes internes seulement) ou un sujet
+  // où le prestataire n'est pas répond comme absent.
+  if (!topic || topic.eventId !== access.eventId) throw new MessageNotFoundError();
+  if (access.audience === "vendor" && !topic.vendorLinkIds.includes(access.linkId)) throw new MessageNotFoundError();
+  if (!(await topicHasSharedMessage(access.organizationId, topic.id))) throw new MessageNotFoundError();
+  return topic;
+}
+
+export async function listLinkMessageTopics(organizationId: string, linkId: string): Promise<LinkMessageTopic[]> {
+  const access = await messagingLinkAccess(organizationId, linkId);
+  return listLinkMessageTopicRows(organizationId, access.eventId, access.audience === "vendor" ? access.linkId : null);
+}
+
+export async function getLinkMessageThread(organizationId: string, linkId: string, topicId: string): Promise<LinkMessageThread> {
+  const access = await messagingLinkAccess(organizationId, linkId);
+  const topic = await linkVisibleTopic(access, topicId);
+  const messagesOfTopic = await listMessageRows(organizationId, topic.id, { sharedOnly: true });
+  return { id: topic.id, name: topic.name, messageCount: messagesOfTopic.length, lastMessageAt: messagesOfTopic.at(-1)?.createdAt ?? null, messages: messagesOfTopic };
+}
+
+// Réponse d'un lien : toujours partagée (aucun champ ne choisit la visibilité). L'équipe est prévenue
+// (notification « message d'un client », lot 53, avec l'e-mail immédiat).
+export async function postLinkMessage(input: { organizationId: string; linkId: string; topicId: string; body: string; files?: MessageFileInput[] }): Promise<MessageView> {
+  const access = await messagingLinkAccess(input.organizationId, input.linkId);
+  const topic = await linkVisibleTopic(access, input.topicId);
+  return postLinkMessageTo(access, topic, input.body, input.files ?? []);
+}
+
+// Un client ouvre un sujet (« Nouveau sujet ») avec son premier message. Un prestataire n'en ouvre pas :
+// il écrit dans les sujets où la planner l'a ajouté.
+export async function startLinkMessageTopic(input: { organizationId: string; linkId: string; name: string; body: string; files?: MessageFileInput[] }): Promise<{ topicId: string; message: MessageView }> {
+  const access = await messagingLinkAccess(input.organizationId, input.linkId);
+  if (access.audience !== "client") throw new LinkAccessDeniedError();
+  const summary = await insertMessageTopicRow(input.organizationId, access.eventId, input.name);
+  const topic: MessageTopicRow = { id: summary.id, eventId: summary.eventId, name: summary.name, vendorLinkIds: [] };
+  return { topicId: topic.id, message: await postLinkMessageTo(access, topic, input.body, input.files ?? []) };
+}
+
+async function postLinkMessageTo(access: LinkAccess, topic: MessageTopicRow, body: string, files: MessageFileInput[]): Promise<MessageView> {
+  const message = await withActor({ kind: "link", id: access.linkId }, () =>
+    insertMessageRow({ organizationId: access.organizationId, topic, visibility: "shared", author: { kind: "link", linkId: access.linkId, name: access.personName }, body, files }),
+  );
+  const event = await getEvent(access.organizationId, topic.eventId).catch(() => null);
+  await notify({
+    organizationId: access.organizationId,
+    type: "client_message",
+    eventId: topic.eventId,
+    objectKey: message.id,
+    params: { name: access.personName.slice(0, 200), topic: topic.name.slice(0, 200) },
+    href: `/events/${topic.eventId}/messages/${topic.id}`,
+    eventDate: event?.eventDate ?? null,
+  }).catch((error: unknown) => console.error("notification « message d'un client » non créée", error instanceof Error ? error.name : "erreur"));
+  return message;
+}
+
+// Une pièce jointe ouverte depuis un lien : seulement celle d'un message partagé d'un sujet qu'il voit ;
+// toute autre (message interne compris) répond comme absente.
+export async function getLinkMessageAttachmentFile(organizationId: string, linkId: string, attachmentId: string): Promise<FileDownload> {
+  const access = await messagingLinkAccess(organizationId, linkId);
+  const found = await findMessageAttachmentRow(organizationId, attachmentId);
+  if (!found || found.visibility !== "shared") throw new MessageNotFoundError();
+  await linkVisibleTopic(access, found.topicId);
+  return readMessageAttachmentFile(found.row);
+}
+
+export function isValidMessageId(value: string): boolean {
+  return isMessageId(value);
+}
+
+// --- Lot 55 (POR-11) — push du portail, facultatif, désactivé par défaut ---
+
+const linkPushSubscriptionSchema = z.object({
+  endpoint: z.string().url().startsWith("https://").max(1000),
+  keys: z.object({ p256dh: z.string().min(80).max(100), auth: z.string().min(16).max(32) }),
+});
+
+export async function saveLinkPushSubscription(organizationId: string, linkId: string, input: unknown): Promise<void> {
+  const access = await getLinkAccess(organizationId, linkId);
+  if (!access || access.audience !== "client") throw new LinkAccessDeniedError();
+  const parsed = linkPushSubscriptionSchema.safeParse(input);
+  if (!parsed.success) throw new MessageInputError("body");
+  await withActor({ kind: "link", id: linkId }, () =>
+    withMessagesOrganization(appDatabase(), organizationId, (tx) =>
+      tx
+        .insert(linkPushSubscriptions)
+        .values({ organizationId, linkId, endpoint: parsed.data.endpoint, p256dh: parsed.data.keys.p256dh, auth: parsed.data.keys.auth })
+        .onConflictDoUpdate({ target: [linkPushSubscriptions.organizationId, linkPushSubscriptions.endpoint], set: { linkId, p256dh: parsed.data.keys.p256dh, auth: parsed.data.keys.auth } }),
+    ),
+  );
+}
+
+export async function removeLinkPushSubscription(organizationId: string, linkId: string, endpoint: string | null): Promise<void> {
+  await withActor({ kind: "link", id: linkId }, () =>
+    withMessagesOrganization(appDatabase(), organizationId, (tx) =>
+      tx.delete(linkPushSubscriptions).where(endpoint ? andMessages(eqMessages(linkPushSubscriptions.linkId, linkId), eqMessages(linkPushSubscriptions.endpoint, endpoint)) : eqMessages(linkPushSubscriptions.linkId, linkId)),
+    ),
+  );
+}
+
+export async function countLinkPushSubscriptions(organizationId: string, linkId: string): Promise<number> {
+  const rows = await withMessagesOrganization(appDatabase(), organizationId, (tx) => tx.select({ id: linkPushSubscriptions.id }).from(linkPushSubscriptions).where(eqMessages(linkPushSubscriptions.linkId, linkId)));
+  return rows.length;
+}
+
+// Un push aux appareils du lien qui l'ont activé : la sorte seulement, jamais le contenu (SEC-20).
+export async function pushToLink(organizationId: string, linkId: string, input: { kind: "message" | "decision"; url: string; tag: string; locale: "fr" | "en" }): Promise<number> {
+  const subscriptions = await withMessagesOrganization(appDatabase(), organizationId, (tx) => tx.select().from(linkPushSubscriptions).where(eqMessages(linkPushSubscriptions.linkId, linkId)));
+  if (subscriptions.length === 0) return 0;
+  // Le texte vient des traductions (« LinkPush ») : la sorte seulement, dans la langue du lien.
+  const t = createTranslator({ locale: input.locale, messages: input.locale === "en" ? enMessages : frMessages, namespace: "LinkPush" });
+  const message: PushMessage = { title: t(`${input.kind}.title`), body: t(`${input.kind}.body`), url: input.url, tag: input.tag };
+  const sender = getPushSender();
+  let sent = 0;
+  const gone: string[] = [];
+  for (const subscription of subscriptions) {
+    const outcome = await sender.send({ endpoint: subscription.endpoint, keys: { p256dh: subscription.p256dh, auth: subscription.auth } }, message);
+    if (outcome === "sent") sent += 1;
+    if (outcome === "gone") gone.push(subscription.id);
+  }
+  const now = new Date();
+  await withMessagesOrganization(appDatabase(), organizationId, async (tx) => {
+    if (gone.length > 0) await tx.delete(linkPushSubscriptions).where(inArrayMessages(linkPushSubscriptions.id, gone));
+    if (sent > 0) await tx.update(linkPushSubscriptions).set({ lastUsedAt: now }).where(andMessages(eqMessages(linkPushSubscriptions.linkId, linkId)));
+  });
+  return sent;
+}
+
+// Lot 55 (POR-11) : une décision demandée, annoncée aux appareils des clients qui la voient (la rubrique
+// de sa sorte) et ont activé le push ; la sorte seulement, jamais le sujet.
+const DECISION_RUBRIC: Record<DecisionKind, LinkRubric> = { option: "vendor_options", expense: "budget", program: "program" };
+
+async function pushDecisionToClients(organizationId: string, eventId: string, kind: DecisionKind): Promise<number> {
+  const now = new Date();
+  let sent = 0;
+  for (const context of await findEventLinkRows(organizationId, eventId)) {
+    if (context.link.audience !== "client" || !usableLink(context, now) || !rightsOf(context).rubrics.includes(DECISION_RUBRIC[kind])) continue;
+    sent += await pushToLink(organizationId, context.link.id, { kind: "decision", url: "/portail#decisions", tag: `decision-${eventId}`, locale: context.link.locale === "en" ? "en" : "fr" });
+  }
+  return sent;
 }

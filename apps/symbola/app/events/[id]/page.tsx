@@ -181,6 +181,7 @@ export default async function EventDetailPage({
   const query = await searchParams;
   const t = await getTranslations("Events");
   const tClosing = await getTranslations("Closing");
+  const tMessages = await getTranslations("Messages");
   const tTrash = await getTranslations("Trash");
   const tHelp = await getTranslations("Help");
   const tCommon = await getTranslations("Common");
@@ -568,7 +569,12 @@ export default async function EventDetailPage({
           </>
         }
         actions={
-          isDayOfOpen(event) || clientPreviewLink || clientEmails.length > 0 ? (
+          <>
+            {/* Lot 55 (MSG-03) : les fils de discussion de l'évènement, par sujet. */}
+            <Link href={`/events/${event.id}/messages`} className="button-link">
+              {tMessages("eventLink")}
+            </Link>
+            {isDayOfOpen(event) || clientPreviewLink || clientEmails.length > 0 ? (
             <>
               {clientEmails.length > 0 ? (
                 // Lot 38b (HUB-21, D10) : le message depuis un modèle, rempli avec la fiche ; la messagerie de la planner l'envoie.
@@ -589,7 +595,8 @@ export default async function EventDetailPage({
                 </a>
               ) : null}
             </>
-          ) : undefined
+            ) : null}
+          </>
         }
       />
       {undoneTask ? (

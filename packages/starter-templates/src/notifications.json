@@ -13,7 +13,9 @@
     "task_overdue": { "immediate": false, "dayOf": false, "channels": { "app": true, "email": true, "push": false } },
     "milestone_late": { "immediate": false, "dayOf": false, "channels": { "app": true, "email": true, "push": true } },
     "risk_alert": { "immediate": false, "dayOf": false, "channels": { "app": true, "email": true, "push": false } },
-    "day_of_alert": { "immediate": true, "dayOf": true, "channels": { "app": true, "email": true, "push": true } }
+    "day_of_alert": { "immediate": true, "dayOf": true, "channels": { "app": true, "email": true, "push": true } },
+    "client_message": { "immediate": true, "dayOf": false, "channels": { "app": true, "email": true, "push": true } },
+    "email_bounced": { "immediate": true, "dayOf": false, "channels": { "app": true, "email": true, "push": true } }
   },
   "settings": {
     "digestEnabled": true,

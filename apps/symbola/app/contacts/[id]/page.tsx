@@ -11,7 +11,7 @@ import { PageHeader } from "@/app/ui/page-header";
 import { SidePanel } from "@/app/ui/side-panel";
 import { requirePlanner } from "@/lib/guards";
 import { listContactMessages, listEventDocuments, listEventsOfContact } from "@/modules/events/service";
-import { getContact, getContactStamp, isModuleEnabled, listContactGroups, listContactMembers, listContactNotes } from "@/modules/hub/service";
+import { contactDeliveryAlert, getContact, getContactStamp, isModuleEnabled, listContactGroups, listContactMembers, listContactNotes } from "@/modules/hub/service";
 import { listEventQuotes, listQuoteInvoices } from "@/modules/quotes/service";
 import { deleteContactAction, removeContactMemberAction, removeContactNoteAction } from "../actions";
 import { ContactForm, MemberForm, NoteForm } from "../contact-forms";
@@ -60,6 +60,9 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
     isGroup ? listContactMembers(organizationId, id) : listContactGroups(organizationId, id),
   ]);
   const events = eventsEnabled ? await listEventsOfContact(organizationId, id) : [];
+  // Lot 55 (MSG-05, critère) : le dernier e-mail à son adresse est rejeté ou signalé : l'alerte.
+  const deliveryAlert = await contactDeliveryAlert(organizationId, contact.email);
+  const tDeliveries = await getTranslations("EmailDeliveries");
   // Lot 45 (CRM-03, CRM-05) : les messages échangés avec le contact (envoyés, préparés, notés).
   const messages = eventsEnabled ? await listContactMessages(organizationId, id) : [];
   const tExchanges = await getTranslations("ProspectExchanges");
@@ -91,6 +94,16 @@ export default async function ContactPage({ params, searchParams }: { params: Pr
         }
       />
       <ScreenHelp title={tHelp("contactDetail.title")} body={tHelp("contactDetail.body")} />
+      {deliveryAlert ? (
+        <div className="delivery-alert" role="alert">
+          <p>
+            {deliveryAlert.status === "bounced"
+              ? tDeliveries("alertBounced", { name: contact.displayName, reason: tDeliveries(`reason.${deliveryAlert.reason ?? "other"}`) })
+              : tDeliveries("alertComplained", { name: contact.displayName })}
+          </p>
+          <Link href={`/parametres/envois?contact=${contact.id}`}>{tDeliveries("alertLink")}</Link>
+        </div>
+      ) : null}
 
       <section aria-labelledby="contact-identity" className="card">
         <div className="section-head">

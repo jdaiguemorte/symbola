@@ -36,6 +36,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "dayOf", group: "events", audience: "team", module: "events", path: null, capture: false },
   { key: "eventsNew", group: "events", audience: "team", module: "events", path: "/events/new", capture: true },
   { key: "allTasks", group: "events", audience: "team", module: "events", path: "/taches", capture: true },
+  // Lot 55 (MSG-03) : les fils de discussion d'un évènement, ouverts depuis sa fiche.
+  { key: "eventMessages", group: "events", audience: "team", module: "events", path: null, capture: false },
   { key: "eventsTemplates", group: "events", audience: "team", module: "events", path: "/events/modeles", capture: true },
   { key: "eventsProgramTemplates", group: "events", audience: "team", module: "events", path: "/events/modeles-programme", capture: true },
   // Lot 58 (PAR-09, EVT-08 ; ADR 0097) : clôture d'un évènement, modèles d'évènement, bilans (tableau de
@@ -136,6 +138,9 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "sessions", group: "company", audience: "team", path: "/securite", capture: false },
   // Lot 53 (HUB-15, UX-16, HUB-28, GC-02) : notifications, leurs réglages, automatisations, radar.
   { key: "notifications", group: "company", audience: "team", path: "/notifications", capture: false },
+  // Lot 55 (MSG-04 révisée, MSG-05) : adresse d'envoi et journal des envois.
+  { key: "senderAddress", group: "company", audience: "team", path: "/parametres/adresse-envoi", capture: false },
+  { key: "emailDeliveries", group: "company", audience: "team", path: "/parametres/envois", capture: false },
   { key: "notificationSettings", group: "company", audience: "team", path: "/parametres/notifications", capture: false },
   { key: "automations", group: "company", audience: "team", path: "/parametres/automatisations", capture: false },
   { key: "riskRadar", group: "company", audience: "team", path: "/parametres/radar", capture: false },

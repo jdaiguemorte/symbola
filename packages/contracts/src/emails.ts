@@ -52,6 +52,9 @@ export const EMAIL_TEMPLATE_KINDS = [
   "daily_digest",
   "payment_due_reminder",
   "notification_alert",
+  // Lot 55 (MSG-03, POR-06) : « Nouveau message sur <sujet> », au client ou au prestataire, sans le
+  // contenu du message.
+  "new_message",
 ] as const;
 export type EmailTemplateKind = (typeof EMAIL_TEMPLATE_KINDS)[number];
 
@@ -74,7 +77,7 @@ export type EmailLocale = (typeof EMAIL_LOCALES)[number];
 // « date_time » (jour et heure, à Paris) et « change » (ce qui a changé dans le compte).
 // Lot 53 (HUB-24, HUB-15) : « client_term » (le terme qui désigne les clients du type d'évènement),
 // « digest » (les lignes du récapitulatif) et « alert » (la phrase d'une alerte).
-export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "slot", "deadline", "link_available", "link_unavailable", "amount", "due_date", "reference", "iban", "bic", "penalties", "brochure", "booking_link", "questionnaire", "valid_from", "device", "date_time", "change", "client_term", "digest", "alert"] as const;
+export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "slot", "deadline", "link_available", "link_unavailable", "amount", "due_date", "reference", "iban", "bic", "penalties", "brochure", "booking_link", "questionnaire", "valid_from", "device", "date_time", "change", "client_term", "digest", "alert", "topic"] as const;
 export type EmailVariable = (typeof EMAIL_VARIABLES)[number];
 export type EmailValues = Partial<Record<EmailVariable, string>>;
 

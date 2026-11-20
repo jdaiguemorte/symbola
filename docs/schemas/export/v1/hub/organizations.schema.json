@@ -76,6 +76,12 @@
         }
       ]
     },
+    "senderLocalPart": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
@@ -121,6 +127,7 @@
     "closedByUserId",
     "deletionDueAt",
     "closureNoticeSentAt",
+    "senderLocalPart",
     "createdAt",
     "createdBy",
     "updatedAt",

@@ -38,6 +38,12 @@ describe("@symbola/mail — buildTransportOptions", () => {
     expect(options.auth).toBeUndefined();
   });
 
+  it("Scaleway TEM sur le port 587 : STARTTLS exigé avec une authentification ; rien d'exigé pour Mailpit (lot 55)", () => {
+    expect(buildTransportOptions(envWith({ SMTP_HOST: "smtp.tem.scaleway.com", SMTP_PORT: "587", SMTP_USER: "projet", SMTP_PASSWORD: "cle" })).requireTLS).toBe(true);
+    expect(buildTransportOptions(envWith({ SMTP_PORT: "465", SMTP_USER: "projet", SMTP_PASSWORD: "cle" })).requireTLS).toBe(false);
+    expect(buildTransportOptions(envWith({})).requireTLS).toBe(false);
+  });
+
   it("envoie l'authentification quand SMTP_USER est renseigné", () => {
     const options = buildTransportOptions(envWith({ SMTP_USER: "alertes@symbola.fr", SMTP_PASSWORD: "secret" }));
     expect(options.auth).toEqual({ user: "alertes@symbola.fr", pass: "secret" });

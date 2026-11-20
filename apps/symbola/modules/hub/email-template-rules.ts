@@ -47,6 +47,8 @@ const TOKENS: Record<EmailVariable, Record<EmailLocale, string>> = {
   client_term: { fr: "terme_clients", en: "client_term" },
   digest: { fr: "récapitulatif", en: "digest" },
   alert: { fr: "alerte", en: "alert" },
+  // Lot 55 (MSG-03, POR-06) : le nom du sujet de discussion.
+  topic: { fr: "sujet", en: "topic" },
 };
 
 // Variables dont la valeur est une adresse : seules dans leur paragraphe, elles deviennent un bouton.
@@ -59,7 +61,7 @@ const BY_TOKEN = new Map<string, EmailVariable>(
   ]),
 );
 
-type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | "request" | "roadmap" | "questionnaire" | "open" | "dayOf" | "confirm" | "notMe" | "account" | null };
+type KindRules = { variables: EmailVariable[]; required: EmailVariable[]; button: "space" | "sign" | "answer" | "manage" | "request" | "roadmap" | "questionnaire" | "open" | "dayOf" | "confirm" | "notMe" | "account" | "message" | null };
 
 export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   client_link: { variables: ["first_name", "organization", "event", "client_term", "link", "valid_until"], required: ["link"], button: "space" },
@@ -113,6 +115,9 @@ export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   // Lot 53 (HUB-15, UX-16 ; D1) : à l'équipe ; l'objet ne dit que la sorte, le texte mène à Symbola.
   daily_digest: { variables: ["organization", "digest", "link"], required: ["digest", "link"], button: "open" },
   notification_alert: { variables: ["organization", "alert", "link"], required: ["alert", "link"], button: "open" },
+  // Lot 55 (MSG-03, POR-06) : au client ou au prestataire ; le sujet et le lien vers le fil, jamais le
+  // contenu du message.
+  new_message: { variables: ["first_name", "organization", "event", "topic", "link"], required: ["topic", "link"], button: "message" },
   // Lot 53 (HUB-28, D5) : au payeur désigné (lot 43), sept jours avant l'échéance, avec le RIB et la
   // référence ; jamais après un virement déclaré.
   payment_due_reminder: { variables: ["first_name", "organization", "client_term", "quote_number", "amount", "due_date", "reference", "iban"], required: ["amount", "due_date", "reference"], button: null },

@@ -1549,6 +1549,22 @@
     "adminFeatureFlags": {
       "title": "Feature switches",
       "body": "Each new feature has its switch, closed to everyone. Open it first to the pilot so she can test it, then to all organisations. The effect is immediate, without redeployment."
+    },
+    "eventMessages": {
+      "title": "Messages by topic",
+      "body": "One topic per theme, each with its thread. Two writing areas: “Shared message” goes to the people named on the button (clients whose link opens the Messages section, the topic's vendors); “Internal note” stays within the team, on a distinct background, and is never sent."
+    },
+    "portalMessages": {
+      "title": "Your messages",
+      "body": "Find each conversation here by topic, with its attachments, without searching your emails. Reply directly: your message goes to your planner."
+    },
+    "senderAddress": {
+      "title": "The sending address",
+      "body": "Your emails are sent from an address in your name on Symbola's sending domain; the display name is your company's and replies go to your contact address. The Owner can change the start of the address."
+    },
+    "emailDeliveries": {
+      "title": "The email log",
+      "body": "Each email sent on behalf of your company, with its status. A bounced email is reported to you by a notification and on the contact's page. The log keeps the subject and status for 13 months, never the content."
     }
   },
   "Aide": {
@@ -2028,7 +2044,8 @@
       "quotes": "Quotes to sign",
       "guests": "Guests (entry, import, reply tracking; never named diets)",
       "questionnaires": "Questionnaires",
-      "floorplan": "Floor plan (read the shared version, without internal notes)"
+      "floorplan": "Floor plan (read the shared version, without internal notes)",
+      "messages": "Messages (shared topics, replies and attachments)"
     },
     "createLinkTitle": "Create a link",
     "linkPerson": "Person",
@@ -5283,7 +5300,9 @@
     "clientTerms": "Client terms",
     "accountingExports": "Accounting exports",
     "eventTemplates": "Event templates",
-    "subscription": "My subscription"
+    "subscription": "My subscription",
+    "senderAddress": "Sending address",
+    "emailDeliveries": "Email log"
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -5819,7 +5838,11 @@
       "hub_organization_subscriptions": "a subscription",
       "hub_feature_flags": "a feature switch",
       "hub_feature_flag_organizations": "a feature opening",
-      "hub_storage_quota_states": "a storage quota state"
+      "hub_storage_quota_states": "a storage quota state",
+      "events_message_topics": "discussion topic",
+      "events_message_topic_links": "topic vendor",
+      "events_messages": "message",
+      "events_message_attachments": "message attachment"
     },
     "modules": {
       "events": "Events",
@@ -6041,7 +6064,8 @@
       "signed": "signed",
       "declined": "declined",
       "superseded": "replaced"
-    }
+    },
+    "messagesLink": "Messages"
   },
   "VendorSpace": {
     "title": "Your vendor space",
@@ -7231,7 +7255,8 @@
       "confirm": "Confirm the transfer",
       "notMe": "This wasn't me",
       "account": "Check my account",
-      "open": "Open Symbola"
+      "open": "Open Symbola",
+      "message": "Read the message"
     },
     "footerNote": "Sent with Symbola",
     "symbolaFooter": "Symbola — the suite for event organisers",
@@ -7267,7 +7292,8 @@
       "change": "The email address of your account was changed",
       "clientTerm": "the couple",
       "digest": "- Quote D-2027-0042 has been signed.\n- 3 tasks to do today, 1 of them overdue.",
-      "alert": "A transfer of €1,620.00 has been declared (quote D-2027-0042)."
+      "alert": "A transfer of €1,620.00 has been declared (quote D-2027-0042).",
+      "topic": "Catering"
     },
     "event": {
       "coupleClient": "your wedding",
@@ -7398,7 +7424,8 @@
       "prospects": "Contact requests",
       "vendors": "Suppliers",
       "settlement": "Proposal and payment",
-      "team": "Team and account security"
+      "team": "Team and account security",
+      "messages": "Messages"
     },
     "kinds": {
       "client_link": {
@@ -7528,6 +7555,10 @@
       "payment_due_reminder": {
         "title": "Reminder before the due date",
         "description": "Sent to the designated payer (otherwise the signers) a few days before a due date, with the amount, the reference and the bank details; never after a declared transfer."
+      },
+      "new_message": {
+        "title": "New message",
+        "description": "Sent to a client or a vendor when you write to them about a topic: the topic's name and a link to the thread, never the message itself."
       }
     },
     "variables": {
@@ -7556,7 +7587,8 @@
       "reference": "The reference to put on the transfer",
       "iban": "Your IBAN",
       "bic": "Your BIC",
-      "penalties": "The late payment penalty sentence, depending on the client and your settings"
+      "penalties": "The late payment penalty sentence, depending on the client and your settings",
+      "topic": "The name of the discussion topic"
     },
     "back": "All email templates",
     "editorTitle": "{title} ({language})",
@@ -10199,6 +10231,16 @@
         "label": "Day-of alert",
         "text": "An incident has been reported on site.",
         "action": "Open the day-of screen"
+      },
+      "client_message": {
+        "label": "Message from a client",
+        "text": "{name} wrote about “{topic}”.",
+        "action": "Read the message"
+      },
+      "email_bounced": {
+        "label": "Email bounced",
+        "text": "An email to {name} was not delivered: check their address.",
+        "action": "Open the contact"
       }
     },
     "center": {
@@ -11359,5 +11401,160 @@
     "organization": "Organisation",
     "openFor": "Open to this organisation",
     "close": "Close for {name}"
+  },
+  "LinkPush": {
+    "message": {
+      "title": "New message",
+      "body": "A new message is waiting in your space."
+    },
+    "decision": {
+      "title": "Decision requested",
+      "body": "A decision is waiting in your space."
+    }
+  },
+  "MessageThread": {
+    "empty": "No messages yet.",
+    "internalBadge": "Internal",
+    "attachments": "Attachments",
+    "notNotified": "Message saved, but the notification email was not sent: it will be retried later.",
+    "errors": {
+      "name": "Give the topic a name of 1 to 120 characters.",
+      "body": "Write a message of 1 to 5,000 characters.",
+      "files": "At most five attachments per message.",
+      "recipients_changed": "The recipients have changed since the page was opened: reload it and check the button before sending.",
+      "no_recipients": "Nobody receives this topic's messages yet.",
+      "notFound": "This topic does not exist or is no longer available.",
+      "archived": "This event is archived: it can be read but not changed."
+    }
+  },
+  "Messages": {
+    "eventLink": "Messages",
+    "title": "Messages",
+    "backToEvent": "Back to the event",
+    "backToTopics": "All topics",
+    "journalLink": "Email log for this event",
+    "topicsTitle": "Topics",
+    "noTopics": "No topics yet. Create one per theme (catering, ceremony, payments…).",
+    "topicMeta": "{count, plural, =0 {no messages} one {# message} other {# messages}}",
+    "topicLast": "last on {date}",
+    "newTopicTitle": "New topic",
+    "newTopicName": "Topic name",
+    "createTopic": "Create the topic",
+    "threadTitle": "Thread",
+    "composeTitle": "Write",
+    "sharedZoneTitle": "Shared message",
+    "sharedHint": "Seen by clients whose link opens the “Messages” section, and by the topic's vendors. Each receives an email announcing the message, without its content.",
+    "sharedBodyLabel": "Message to the recipients",
+    "sendTo": "Send to {names}",
+    "sent": "Message sent.",
+    "noRecipients": "Nobody receives this topic's messages yet: open the “Messages” section on a client's link (event's Clients tab), or add a vendor to the topic.",
+    "internalZoneTitle": "Internal note — team only",
+    "internalHint": "Never sent or shown to clients or vendors.",
+    "internalBodyLabel": "Note for the team",
+    "saveInternal": "Save the internal note",
+    "internalSaved": "Internal note saved.",
+    "filesLabel": "Attachments (PDF or image, five at most)",
+    "vendorsSectionTitle": "Topic vendors",
+    "vendorsTitle": "Vendors who read this topic",
+    "vendorsHint": "They see this topic's shared messages in their space and can reply; never the internal notes.",
+    "saveVendors": "Save the vendors",
+    "vendorsSaved": "Topic vendors saved.",
+    "errors": {
+      "name": "Give the topic a name of 1 to 120 characters.",
+      "notFound": "This event or topic does not exist.",
+      "archived": "This event is archived: it can be read but not changed."
+    }
+  },
+  "PortalMessages": {
+    "title": "Messages",
+    "back": "Back to my space",
+    "backVendor": "Back to my space",
+    "backToTopics": "All topics",
+    "unavailable": "Messages are not open on your link.",
+    "topicsTitle": "Topics",
+    "none": "No messages yet. You can open a topic below.",
+    "noneVendor": "No topic is open to you yet.",
+    "topicMeta": "{count, plural, one {# message} other {# messages}}",
+    "threadTitle": "Topic messages",
+    "replyTitle": "Reply",
+    "replyLabel": "Your message",
+    "filesLabel": "Attachments (PDF or image, five at most)",
+    "sendTo": "Send to {organization}",
+    "sent": "Message sent.",
+    "newTopicTitle": "New topic",
+    "newTopicName": "Topic",
+    "pushTitle": "Notifications",
+    "pushIntro": "Optional: be notified on this device of a new message or a decision to make. The notification never shows the content.",
+    "pushIos": "On iPhone, first add your space to the home screen (Share button, then “Add to Home Screen”), then turn on notifications from the icon.",
+    "pushUnsupported": "This browser does not support notifications.",
+    "pushDenied": "Notifications are blocked for this site in the browser settings.",
+    "pushFailed": "Turning on notifications failed. Try again.",
+    "pushEnabled": "Notifications are on for this device.",
+    "pushEnable": "Turn on notifications on this device",
+    "pushDisable": "Turn off notifications on this device"
+  },
+  "PortalInstall": {
+    "title": "Add to home screen",
+    "body": "Open your space in one tap, like an app.",
+    "iosSteps": "On iPhone: tap the Share button, then “Add to Home Screen”.",
+    "install": "Add",
+    "later": "Later",
+    "manifestName": "{organization} — my space",
+    "manifestDescription": "Your space to follow your event with {organization}."
+  },
+  "SenderAddress": {
+    "title": "Email sending address",
+    "intro": "Your emails to clients and vendors (links, reminders, proposals, messages) are sent from an address in your name, on Symbola's sending domain. The display name is your company's; replies go to your contact address.",
+    "currentTitle": "Your emails are sent from",
+    "sharedMode": "For now, your emails are still sent from Symbola's shared address. This address will be used as soon as personalised sending is turned on; nothing to do on your side.",
+    "replyTo": "Replies go to: {email}",
+    "noReplyTo": "No contact address: replies go to the Owner. Add a contact address in the company details.",
+    "contactLink": "Change the contact address",
+    "editTitle": "Choose the start of the address",
+    "localPartLabel": "Start of the address",
+    "localPartHint": "2 to 40 characters: lowercase letters without accents, digits, dots and hyphens. It must be available.",
+    "save": "Save the address",
+    "saved": "Sending address saved.",
+    "ownerOnly": "Only the Owner can change this address.",
+    "journalLink": "See the email log",
+    "errors": {
+      "format": "2 to 40 characters: lowercase letters without accents, digits, dots and hyphens, with no dot or hyphen at the start, at the end or doubled.",
+      "reserved": "This address is reserved: choose another one.",
+      "taken": "This address is already taken: choose another one.",
+      "forbidden": "Only the Owner can change this address."
+    }
+  },
+  "EmailDeliveries": {
+    "title": "Email log",
+    "intro": "Each email sent on behalf of your company, with its status: sent, delivered, bounced (unknown address, full mailbox) or reported as spam. A bounce also shows on the contact's page.",
+    "filterLabel": "Filter the log",
+    "statusFilter": "Status",
+    "allStatuses": "All",
+    "filter": "Filter",
+    "filteredContact": "Emails to {name}.",
+    "filteredEvent": "Emails for this event.",
+    "clearFilter": "See all emails",
+    "none": "No emails to show.",
+    "columnDate": "Sent on",
+    "columnTo": "Recipient",
+    "columnSubject": "Subject",
+    "columnStatus": "Status",
+    "status": {
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "bounced": "Bounced",
+      "complained": "Reported as spam"
+    },
+    "reason": {
+      "mailbox_not_found": "unknown address",
+      "mailbox_full": "mailbox full",
+      "blocked": "refused by the recipient's server",
+      "spam_complaint": "reported as spam",
+      "other": "other reason"
+    },
+    "retention": "The log is kept 13 months, without the emails' content, then deleted.",
+    "alertBounced": "{name}'s address bounced ({reason}): check it before the next email.",
+    "alertComplained": "{name} reported one of your emails as spam: avoid writing without a reason.",
+    "alertLink": "See their emails"
   }
 }

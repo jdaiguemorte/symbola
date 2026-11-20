@@ -8,10 +8,12 @@ import { isAppointmentsModuleEnabled } from "@/modules/appointments/service";
 // Lot 52 : « hub », les e-mails du compte et de l'équipe, toujours proposés.
 type TemplateModule = "hub" | "events" | "quotes" | "appointments";
 
-export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "prospects" | "signatures" | "settlement" | "appointments" | "vendors" | "team"; module: TemplateModule; kinds: EmailTemplateKind[] }[] = [
+export const EMAIL_TEMPLATE_GROUPS: { key: "links" | "reminders" | "program" | "prospects" | "signatures" | "settlement" | "appointments" | "vendors" | "team" | "messages"; module: TemplateModule; kinds: EmailTemplateKind[] }[] = [
   // Lot 52 (EVT-06, D3) : le lien du renfort du jour J.
   { key: "links", module: "events", kinds: ["client_link", "client_link_renewed", "vendor_link", "vendor_link_renewed", "day_helper_link"] },
   { key: "reminders", module: "events", kinds: ["task_reminder"] },
+  // Lot 55 (MSG-03, POR-06 ; migration 0195) : « Nouveau message sur <sujet> », au client ou au prestataire.
+  { key: "messages", module: "events", kinds: ["new_message"] },
   { key: "program", module: "events", kinds: ["program_published"] },
   // Lot 44 (CRM-01, D7) : « Nouvelle demande de contact », à la titulaire.
   // Lot 45 (CRM-05, CRM-06, POR-07 ; D9) : réponse et relance d'un prospect, questionnaire envoyé.

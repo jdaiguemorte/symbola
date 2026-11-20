@@ -43,6 +43,9 @@ const NOTICED: Record<string, { file: string; name: string }> = {
   "events.event_closings.own_expenses": { file: "app/events/[id]/cloture/closing-forms.tsx", name: "expenseLabel" },
   "vendors.vendor_evaluations.comment": { file: "app/events/[id]/cloture/closing-forms.tsx", name: "comment" },
   "hub.contact_notes.body_sealed": { file: "app/contacts/contact-forms.tsx", name: "body" },
+  // Lot 55 (MSG-03) : le texte d'un message ou d'une note interne écrit par l'équipe, le nom d'un sujet.
+  "events.messages.body": { file: "app/events/[id]/messages/topic-forms.tsx", name: "body" },
+  "events.message_topics.name": { file: "app/events/[id]/messages/topic-forms.tsx", name: "name" },
   // Lot 60 (L60-PLA-02, L60-PLA-03) : note d'un élément d'un plan, note d'une installation (même éditeur).
   "floorplans.layout_elements.note": { file: "app/plans-de-salle/floorplan-editor.tsx", name: "note" },
   "floorplans.space_fixtures.note": { file: "app/plans-de-salle/floorplan-editor.tsx", name: "note" },
@@ -109,6 +112,10 @@ const WITHOUT_ENTRY: Record<string, string> = {
   "events.prospect_requests.period": "période en texte court écrite par le prospect sur le formulaire public",
   "events.prospect_requests.budget_range": "tranche de budget en texte court écrite par le prospect sur le formulaire public",
   // Lot 53 (HUB-15) : jamais saisi par une personne ; recopié par Symbola (numéro, intitulé, montant).
+  // Lot 55 (MSG-03, MSG-05, POR-06).
+  "events.message_attachments.label": "intitulé court d'une pièce jointe (nom du fichier envoyé)",
+  "events.message_attachments.file_key": "fichier déposé, sans champ de texte",
+  "hub.email_deliveries.subject": "objet d'un e-mail composé par Symbola depuis un modèle ; aucune saisie à cet écran",
   // Lot 60 (D4) : fond de plan déposé, sans champ de texte.
   "floorplans.spaces.background_key": "fichier déposé, sans champ de texte",
   "floorplans.layout_versions.background_key": "fichier figé à la diffusion, sans champ de texte",

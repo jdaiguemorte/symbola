@@ -610,7 +610,9 @@ export type LinkAudience = (typeof LINK_AUDIENCES)[number];
 // Rubriques du portail qu'un lien peut ouvrir (POR-10 : rien par défaut).
 // Lot 49 (INV-02, D5) : « guests », la liste des invités et le suivi des réponses (module Invités).
 // Lot 45 (POR-07, D6) : « questionnaires », ouverte à l'envoi d'un questionnaire.
-export const LINK_RUBRICS = ["tasks", "program", "vendor_options", "budget", "quotes", "guests", "questionnaires", "floorplan"] as const;
+// Lot 60 (L60-PLA-05) : « floorplan », le plan de salle partagé.
+// Lot 55 (POR-06, MSG-03) : « messages », les sujets partagés de l'évènement et leurs fils.
+export const LINK_RUBRICS = ["tasks", "program", "vendor_options", "budget", "quotes", "guests", "questionnaires", "floorplan", "messages"] as const;
 export type LinkRubric = (typeof LINK_RUBRICS)[number];
 
 // Budget entier, ou seulement les catégories choisies (sans total général).
