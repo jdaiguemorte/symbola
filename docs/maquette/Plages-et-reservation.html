@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lot 64 — plages occupées et réservation — maquettes M1 à M10</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{--primary:#0F6E5C;--primary-soft:#E3F1EE;--primary-strong:#0B5A4B;--ground:#F6F7F9;--surface:#fff;--ink:#14181F;--muted:#5A6372;--line:#DDE1E7;--line-strong:#838C99;--attention:#9A5B00;--attention-soft:#FBF0DC;--critical:#B3261E;--critical-soft:#FBE9E7;--float:0 8px 24px rgba(20,24,31,.12)}
+*{box-sizing:border-box}
+body{margin:0;background:#E9ECF0;color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+h1,h2,h3,h4,.t{font-family:'Space Grotesk',system-ui,sans-serif;font-weight:600;margin:0}
+a{color:var(--primary)}
+.doc{max-width:1240px;margin:0 auto;padding:32px 24px 80px}
+.doc>header h1{font-size:32px;line-height:1.15}
+.doc>header p{color:var(--muted);max-width:820px}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px;padding:0;list-style:none}
+.toc a{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);text-decoration:none;font-size:13px;font-weight:500;color:var(--ink)}
+.part{margin-top:56px;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mock{margin-top:40px}
+.mock>h2{font-size:22px}
+.mock>.refs{color:var(--muted);font-size:13px;margin:4px 0 12px}
+.notes{margin:12px 0 0;padding-left:20px;font-size:14px;max-width:920px}
+.notes li{margin:4px 0}
+.frame{background:var(--ground);border:1px solid var(--line-strong);border-radius:16px;overflow:hidden;position:relative}
+.bar{display:flex;align-items:center;gap:12px;height:52px;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:8px;font-family:'Space Grotesk',system-ui,sans-serif;font-weight:600;font-size:17px}
+.logo i{width:12px;height:12px;border-radius:3px;background:var(--primary);transform:rotate(45deg);display:inline-block}
+.bar .search{flex:1;max-width:420px;height:36px;border:1px solid var(--line-strong);border-radius:6px;padding:0 12px;display:flex;align-items:center;color:var(--muted);font-size:13px}
+.app{display:flex;min-height:420px}
+.side{width:190px;flex:none;background:var(--surface);border-right:1px solid var(--line);padding:16px 10px;display:flex;flex-direction:column;gap:2px}
+.side a{display:flex;align-items:center;min-height:36px;padding:0 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-size:14px}
+.side a.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.sub{width:210px;flex:none;padding:16px 12px;border-right:1px solid var(--line);background:#FBFBFC;font-size:13px}
+.sub b{display:block;margin:10px 0 4px;font-size:13px}
+.sub a{display:block;padding:6px 10px;border-radius:8px;color:var(--ink);text-decoration:none}
+.sub a.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.main{flex:1;padding:24px;min-width:0}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.ph h1{font-size:22px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px}
+.card+.card{margin-top:16px}
+.card h3{font-size:17px;margin-bottom:6px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 16px;border-radius:10px;font:600 14px Inter,system-ui,sans-serif;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);white-space:nowrap}
+.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--primary);padding:0 8px}
+.btn.sm{height:32px;padding:0 10px;font-size:13px;border-radius:8px}
+.btn.icon{width:36px;padding:0;height:36px}
+.btn.block{width:100%}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500}
+.in{height:40px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;padding:0 12px;display:flex;align-items:center;font-weight:400;font-size:14px;color:var(--ink);gap:8px}
+.in.hint{color:var(--muted)}
+.in.time{width:92px;justify-content:center;font-variant-numeric:tabular-nums}
+.in.sel{justify-content:space-between}
+.in.sel:after{content:"⌄";color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:var(--ground);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.pill.ok{background:var(--primary-soft);color:var(--primary);border-color:transparent}
+.pill.wait{background:var(--attention-soft);color:var(--attention);border-color:transparent}
+.tag-new{display:inline-block;font:600 11px Inter,system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#7A4A00;background:#FFE7B3;border-radius:4px;padding:1px 6px;vertical-align:middle;margin-left:6px}
+.new{outline:2px dashed #C77700;outline-offset:3px;border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font:500 12px Inter,system-ui,sans-serif;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr.open td{background:#F7FAF9}
+.switch{width:40px;height:24px;border-radius:999px;background:var(--line-strong);position:relative;flex:none;display:inline-block;vertical-align:middle}
+.switch:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:999px;background:#fff}
+.switch.on{background:var(--primary)}.switch.on:after{left:19px}
+.overlay{position:absolute;inset:0;background:rgba(20,24,31,.48)}
+.modal{position:absolute;background:#fff;border-radius:16px;box-shadow:var(--float);padding:24px}
+.modal h3{font-size:20px}
+.timeline{position:relative;height:56px;border-radius:10px;background:var(--ground);border:1px solid var(--line);margin-top:8px;overflow:hidden}
+.timeline .day{position:absolute;top:0;bottom:0;border-left:1px dashed var(--line-strong);font-size:11px;color:var(--muted);padding:4px 6px}
+.timeline .busy{position:absolute;top:24px;height:22px;border-radius:6px;background:var(--primary);color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;padding:0 8px;white-space:nowrap}
+.kv{display:grid;grid-template-columns:170px 1fr;gap:8px 16px;font-size:14px}
+.kv dt{color:var(--muted);font-size:13px}.kv dd{margin:0}
+.note{border-radius:10px;padding:12px 14px;font-size:14px}
+.note.info{background:var(--primary-soft)}
+.note.attn{background:var(--attention-soft)}
+/* Ma semaine */
+.week{display:grid;grid-template-columns:150px 1fr 120px;align-items:center}
+.week>div{padding:10px 0;border-bottom:1px solid var(--line);min-height:60px;display:flex;align-items:center;gap:10px}
+.week .h{min-height:0;padding:0 0 8px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);font-weight:500}
+.ranges{display:flex;flex-wrap:wrap;gap:8px 16px}
+.range{display:flex;align-items:center;gap:6px}
+.range .to{color:var(--muted);font-size:13px}
+.x{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);font-size:16px}
+.closed{color:var(--muted);font-size:14px}
+/* Questions */
+.qtype{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--muted)}
+.drag{color:var(--line-strong);letter-spacing:-2px;font-weight:700;cursor:grab}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border:1px solid var(--line-strong);border-radius:8px;background:#fff;font-size:14px}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:10px;overflow:hidden}
+.seg span{padding:8px 14px;font-size:14px;border-right:1px solid var(--line-strong)}
+.seg span:last-child{border-right:0}
+.seg span.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+/* Réservation */
+.pub{background:var(--ground);padding:28px;display:flex;justify-content:center}
+.bk{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--float);display:grid;grid-template-columns:280px 1fr 220px;width:100%;max-width:1060px;min-height:520px}
+.bk.two{grid-template-columns:280px 1fr}
+.bk .info{border-right:1px solid var(--line);padding:24px}
+.bk .info .who{font-size:13px;color:var(--muted)}
+.bk .info h3{font-size:22px;margin:4px 0 12px}
+.meta{display:flex;flex-direction:column;gap:8px;font-size:14px;color:var(--ink)}
+.meta span{display:flex;gap:8px;align-items:center}
+.meta i{font-style:normal;width:20px;text-align:center;color:var(--muted)}
+.bk .cal{padding:24px}
+.bk .cal h4{font-size:17px;margin-bottom:16px}
+.month{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+.grid7 .dn{font-size:12px;color:var(--muted);font-weight:500;padding-bottom:4px}
+.d{height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--line-strong);font-variant-numeric:tabular-nums;position:relative}
+.d.av{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.d.sel{background:var(--primary);color:#fff;font-weight:600}
+.d.today:after{content:"";position:absolute;bottom:6px;width:4px;height:4px;border-radius:9px;background:currentColor}
+.d.off{text-decoration:line-through}
+.tz{margin-top:16px;font-size:13px;color:var(--muted)}
+.slots{border-left:1px solid var(--line);padding:24px 16px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.slots h4{font-size:15px;margin-bottom:8px}
+.slots>*{flex:none}
+.slot{height:44px;border:1px solid var(--primary);color:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:600;font-variant-numeric:tabular-nums}
+.slot.pick{display:grid;grid-template-columns:1fr 1fr;gap:6px;border:0;padding:0}
+.slot.pick b,.slot.pick em{height:44px}
+.slot.pick b{background:#5A6372;color:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.slot.pick em{font-style:normal;background:var(--primary);color:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:16px;flex-wrap:wrap}
+.legend span{display:flex;gap:6px;align-items:center}
+.legend i{width:14px;height:14px;border-radius:99px;display:inline-block}
+.step{padding:32px 40px;display:flex;flex-direction:column}
+.progress{height:4px;border-radius:9px;background:var(--line);overflow:hidden;margin-bottom:28px}
+.progress i{display:block;height:100%;background:var(--primary)}
+.qnum{font-size:13px;color:var(--primary);font-weight:600;margin-bottom:6px}
+.qtitle{font-family:'Space Grotesk',system-ui,sans-serif;font-size:26px;line-height:1.25;font-weight:600;margin-bottom:6px}
+.choice{display:flex;align-items:center;gap:12px;min-height:52px;border:1px solid var(--line-strong);border-radius:10px;padding:0 14px;font-size:17px;background:#fff;margin-bottom:10px;max-width:460px}
+.choice kbd{font:600 12px Inter,system-ui,sans-serif;width:24px;height:24px;border:1px solid var(--line-strong);border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:var(--muted)}
+.choice.on{border-color:var(--primary);background:var(--primary-soft);color:var(--primary);font-weight:600}
+.choice.on kbd{background:var(--primary);border-color:var(--primary);color:#fff}
+.bigin{border:0;border-bottom:2px solid var(--primary);font-size:22px;padding:8px 0;color:var(--ink);max-width:520px;min-height:48px}
+.hintline{font-size:13px;color:var(--muted);margin-top:12px}
+.recap{border:1px solid var(--line);border-radius:12px;padding:16px;font-size:14px;max-width:520px}
+.check{width:56px;height:56px;border-radius:99px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;margin-bottom:16px}
+/* Téléphones */
+.phones{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.phone{width:375px;max-width:100%;background:#fff;border:1px solid var(--line-strong);border-radius:24px;overflow:hidden;display:flex;flex-direction:column;min-height:700px}
+.phone .top{padding:16px;border-bottom:1px solid var(--line)}
+.phone .body{padding:16px;flex:1}
+.phone .foot{padding:12px 16px 20px;border-top:1px solid var(--line)}
+
+.cap{font-size:13px;color:var(--muted);margin:8px 4px 0;max-width:375px}
+.before{border:2px solid var(--critical);border-radius:12px;padding:10px 12px;background:var(--critical-soft);font-size:13px;margin-bottom:12px}
+@media (max-width:900px){.bk{grid-template-columns:1fr}.slots,.bk .info{border:0}}
+</style>
+</head>
+<body>
+<div class="doc">
+<header>
+  <h1>Lot 64 — plages occupées et réservation</h1>
+  <p>Maquettes à valider avant le code, 21/11/2026. Partie A : les plages occupées (règle par type d'évènement, réglage propre à un évènement). Partie B : le module Rendez-vous remis d'aplomb (ma semaine, questions préalables, réservation par une fenêtre à la manière de Calendly, questions une par une à la manière de Typeform). Les éléments neufs sont <span class="tag-new">neuf</span> ou entourés d'un pointillé ambre.</p>
+  <ul class="toc">
+    <li><a href="#m1">M1 Plages occupées</a></li><li><a href="#m2">M2 Règle d'un type</a></li><li><a href="#m3">M3 Fiche d'évènement</a></li><li><a href="#m4">M4 Réglage propre</a></li><li><a href="#m5">M5 Mon calendrier</a></li><li><a href="#m6">M6 Ma semaine</a></li><li><a href="#m7">M7 Type de rendez-vous</a></li><li><a href="#m8">M8 Choisir un créneau</a></li><li><a href="#m9">M9 Coordonnées et questions</a></li><li><a href="#m10">M10 Téléphone 375 px</a></li>
+  </ul>
+</header>
+
+<div class="part">Partie A — Plages occupées (avec ou sans le module Rendez-vous)</div>
+
+<!-- M1 -->
+<section class="mock" id="m1">
+  <h2>M1 — Paramètres › Évènements › Plages occupées <span class="tag-new">neuf</span></h2>
+  <div class="refs">Liste de réglages (lot 61) : une carte, une ligne par type d'évènement. Décisions D1, D2, D6.</div>
+  <div class="frame">
+    <div class="bar"><span class="logo"><i></i>Symbola</span><span class="search">Rechercher un évènement, un devis, une tâche, une aide…</span></div>
+    <div class="app">
+      <nav class="side"><a>Aujourd'hui</a><a>Évènements</a><a>Tâches</a><a>Contacts</a><a>Rendez-vous</a><a>Prestataires</a><a class="on">Paramètres</a></nav>
+      <nav class="sub"><b>Évènements</b><a>Lignes du budget</a><a>Sources et motifs</a><a>Types d'évènements</a><a class="on new">Plages occupées</a><a>Termes des clients</a><a>Étapes du pipeline</a><a>Rétroplanning</a><a>Programme du jour J</a></nav>
+      <div class="main">
+        <div class="ph"><div><h1>Plages occupées</h1><p class="muted small" style="margin:4px 0 0;max-width:640px">Les heures où un évènement vous prend : elles sont marquées « occupée » dans votre agenda abonné et ne sont jamais proposées à la réservation. Chaque évènement peut s'en écarter depuis sa fiche.</p></div></div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Type d'évènement</th><th>Occupée</th><th>Durée</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><b>Mariage</b></td><td>Jour même, 8 h → jour même, 22 h</td><td class="muted">14 h</td><td style="text-align:right"><span class="btn sm">Modifier</span></td></tr>
+              <tr><td><b>Anniversaire</b></td><td>Jour même, 10 h → jour même, 20 h</td><td class="muted">10 h</td><td style="text-align:right"><span class="btn sm">Modifier</span></td></tr>
+              <tr><td><b>Baptême</b></td><td>Jour même, 10 h → jour même, 20 h</td><td class="muted">10 h</td><td style="text-align:right"><span class="btn sm">Modifier</span></td></tr>
+              <tr><td><b>Séminaire</b></td><td>Jour même, 8 h → jour même, 19 h</td><td class="muted">11 h</td><td style="text-align:right"><span class="btn sm">Modifier</span></td></tr>
+              <tr><td><b>Soirée d'entreprise</b></td><td>Jour même, 14 h → jour même, 23 h 59</td><td class="muted">10 h</td><td style="text-align:right"><span class="btn sm">Modifier</span></td></tr>
+              <tr><td><b>Lancement de produit</b></td><td>Jour même, 8 h → jour même, 19 h</td><td class="muted">11 h</td><td style="text-align:right"><span class="btn sm">Modifier</span></td></tr>
+              <tr><td><b>Autre</b></td><td>Jour même, 8 h → jour même, 22 h</td><td class="muted">14 h</td><td style="text-align:right"><span class="btn sm">Modifier</span></td></tr>
+              <tr><td><b>Évènement sans type</b><div class="muted small">Tant que le type n'est pas choisi</div></td><td>Jour même, 8 h → jour même, 22 h</td><td class="muted">14 h</td><td style="text-align:right"><span class="btn sm">Modifier</span></td></tr>
+            </tbody>
+          </table>
+          <div class="row" style="justify-content:space-between;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
+            <div><b>Les options bloquent aussi mon agenda</b><div class="muted small">Désactivé : une option reste visible dans l'agenda, « provisoire », sans bloquer de créneau. Vaut aussi pour un évènement reporté sans nouvelle date confirmée.</div></div>
+            <span class="row small"><span class="switch"></span>Désactivé</span>
+          </div>
+        </div>
+        <p class="muted small" style="margin-top:12px">Un type ajouté dans « Types d'évènements » reçoit la règle « Autre » ; vous la changez ici.</p>
+      </div>
+    </div>
+  </div>
+  <ul class="notes">
+    <li>Une ligne par type, dans l'ordre de « Types d'évènements » ; les types créés par l'organisation y apparaissent d'office.</li>
+    <li>Pas de champ en ligne : la règle tient en deux couples (jour, heure), plus lisibles dans une fenêtre (M2).</li>
+  </ul>
+</section>
+
+<!-- M2 -->
+<section class="mock" id="m2">
+  <h2>M2 — Fenêtre « Plage occupée d'un mariage » <span class="tag-new">neuf</span></h2>
+  <div class="refs">Ouverte par « Modifier » (M1). Même fenêtre pour le réglage propre d'un évènement (M4), avec les vraies dates.</div>
+  <div class="frame" style="height:520px">
+    <div class="overlay"></div>
+    <div class="modal" style="left:50%;top:40px;transform:translateX(-50%);width:620px">
+      <h3>Plage occupée — Mariage</h3>
+      <p class="muted small" style="margin:4px 0 16px">Par rapport au jour de l'évènement, à son heure locale.</p>
+      <div style="display:grid;grid-template-columns:90px 1fr 110px;gap:12px;align-items:end">
+        <div class="t" style="padding-bottom:10px">Début</div>
+        <label class="field">Jour<span class="in sel">Le jour même</span></label>
+        <label class="field">Heure<span class="in time">08:00</span></label>
+        <div class="t" style="padding-bottom:10px">Fin</div>
+        <label class="field">Jour<span class="in sel">Le jour même</span></label>
+        <label class="field">Heure<span class="in time">22:00</span></label>
+      </div>
+      <div style="margin-top:20px" class="small"><b>Aperçu, pour un mariage un samedi</b></div>
+      <div class="timeline">
+        <span class="day" style="left:0;width:33.3%">vendredi</span><span class="day" style="left:33.3%;width:33.3%">samedi</span><span class="day" style="left:66.6%;width:33.4%">dimanche</span>
+        <span class="busy" style="left:calc(33.3% + 33.3% * 8 / 24);width:calc(33.3% * 14 / 24)">8 h → 22 h</span>
+      </div>
+      <p class="small" style="margin:8px 0 0">Occupée <b>le samedi de 8 h à 22 h</b>, soit 14 heures.</p>
+      <div class="row" style="justify-content:flex-end;margin-top:20px"><span class="btn">Annuler</span><span class="btn p">Enregistrer la règle</span></div>
+    </div>
+  </div>
+  <ul class="notes">
+    <li>Liste « Jour » : 7 jours avant … 2 jours avant, la veille, le jour même, le lendemain, 2 jours après … 7 jours après (D6).</li>
+    <li>L'aperçu se met à jour à chaque changement ; une fin avant le début est refusée avec « Erreur : la fin doit venir après le début. »</li>
+  </ul>
+</section>
+
+<!-- M3 -->
+<section class="mock" id="m3">
+  <h2>M3 — Fiche d'évènement : bloc « Plage occupée » <span class="tag-new">neuf</span></h2>
+  <div class="refs">Onglet Synthèse, sous « Équipe de l'évènement ». Deux états : selon la règle du type, puis avec un réglage propre.</div>
+  <div class="frame">
+    <div class="app" style="min-height:0">
+      <div class="main">
+        <div class="card new">
+          <div class="row" style="justify-content:space-between"><h3 style="margin:0">Plage occupée</h3><span class="pill">Règle du type Mariage</span></div>
+          <p style="margin:8px 0 4px"><b>Samedi 12 juin 2027, de 8 h à 22 h</b></p>
+          <p class="muted small" style="margin:0 0 12px">Bloquée pour Camille Roussel et Hugo Lemaire (équipe de l'évènement) : agendas abonnés et page de réservation.</p>
+          <div class="row"><span class="btn sm">Modifier pour cet évènement</span><span class="btn sm">Ajouter à mon agenda</span></div>
+        </div>
+        <div class="card new" style="margin-top:16px">
+          <div class="row" style="justify-content:space-between"><h3 style="margin:0">Plage occupée</h3><span class="pill wait">Réglage propre à cet évènement</span></div>
+          <p style="margin:8px 0 4px"><b>Du vendredi 11 juin 2027, 14 h, au dimanche 13 juin 2027, 12 h</b></p>
+          <p class="muted small" style="margin:0 0 12px">La règle du type Mariage (le jour même, de 8 h à 22 h) ne s'applique plus ici.</p>
+          <div class="row"><span class="btn sm">Modifier</span><span class="btn sm">Revenir à la règle du type</span><span class="btn sm">Ajouter à mon agenda</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <ul class="notes">
+    <li>La pastille dit d'où vient la plage. « Revenir à la règle du type » se fait en un geste, avec « Annuler la dernière modification ».</li>
+    <li>Une option qui ne bloque pas affiche « Ne bloque pas votre agenda tant que l'évènement est en option », avec un lien vers M1.</li>
+  </ul>
+</section>
+
+<!-- M4 -->
+<section class="mock" id="m4">
+  <h2>M4 — Réglage propre et « Ajouter à mon agenda » <span class="tag-new">neuf</span></h2>
+  <div class="refs">À gauche, la fenêtre de M2 sur un évènement réel. À droite, ce qui s'ouvre au clic sur « Ajouter à mon agenda » (D5).</div>
+  <div class="frame" style="height:560px">
+    <div class="overlay"></div>
+    <div class="modal" style="left:24px;top:32px;width:560px">
+      <h3>Plage occupée — Kévin et Kévina</h3>
+      <p class="muted small" style="margin:4px 0 16px">Mariage du samedi 12 juin 2027 (Europe/Paris).</p>
+      <div style="display:grid;grid-template-columns:70px 1fr 100px;gap:12px;align-items:end">
+        <div class="t" style="padding-bottom:10px">Début</div>
+        <label class="field">Jour<span class="in sel">La veille — ven. 11 juin</span></label>
+        <label class="field">Heure<span class="in time">14:00</span></label>
+        <div class="t" style="padding-bottom:10px">Fin</div>
+        <label class="field">Jour<span class="in sel">Le lendemain — dim. 13 juin</span></label>
+        <label class="field">Heure<span class="in time">12:00</span></label>
+      </div>
+      <div class="timeline" style="margin-top:20px">
+        <span class="day" style="left:0;width:33.3%">ven. 11</span><span class="day" style="left:33.3%;width:33.3%">sam. 12</span><span class="day" style="left:66.6%;width:33.4%">dim. 13</span>
+        <span class="busy" style="left:calc(33.3% * 14 / 24);width:calc(33.3% * 46 / 24)">ven. 14 h → dim. 12 h</span>
+      </div>
+      <p class="small" style="margin:8px 0 0">Si le mariage est reporté, la plage suit : la veille et le lendemain de la nouvelle date.</p>
+      <div class="row" style="justify-content:flex-end;margin-top:20px"><span class="btn">Annuler</span><span class="btn p">Enregistrer pour cet évènement</span></div>
+    </div>
+    <div class="modal" style="right:24px;top:32px;width:400px">
+      <h3>Ajouter à mon agenda</h3>
+      <p class="small" style="margin:8px 0">Le fichier ajoute la plage <b>dans votre agenda principal</b>, celui que lit votre outil de réservation (TidyCal, Calendly…) : il ne proposera plus ces heures.</p>
+      <ol class="small" style="padding-left:18px;margin:8px 0">
+        <li>Téléchargez le fichier.</li>
+        <li>Ouvrez-le : Apple Calendrier et Outlook l'ajoutent d'un clic. Google Agenda : « Paramètres », « Importer ».</li>
+      </ol>
+      <div class="note attn small"><b>À vérifier :</b> le fichier importé ne suit pas les changements. Après un report ou un changement d'heures, téléchargez-le de nouveau.</div>
+      <div class="row" style="justify-content:flex-end;margin-top:16px"><span class="btn p">Télécharger le fichier</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- M5 -->
+<section class="mock" id="m5">
+  <h2>M5 — Mon profil › Mon calendrier : dire la limite de l'abonnement</h2>
+  <div class="refs">Écran existant ; seuls le texte et l'encadré changent.</div>
+  <div class="frame"><div class="app" style="min-height:0"><div class="main">
+    <div class="card">
+      <h3>Mon calendrier</h3>
+      <p style="margin:4px 0 12px">Abonnez votre agenda (Google, Apple, Outlook…) à vos évènements : il les relit tout seul. Chaque adresse est secrète et personnelle : ne la partagez pas.</p>
+      <p class="muted small" style="margin:0 0 12px">Vos évènements apparaissent <b>aux heures de leur plage occupée</b> (<a>Paramètres › Plages occupées</a>), marqués « occupé » ; les options restent « provisoires ». Vos rendez-vous y sont aussi.</p>
+      <div class="note info new small"><b>Vous prenez vos rendez-vous avec TidyCal, Calendly ou un autre outil ?</b> Ces outils ne lisent pas toujours un agenda abonné, et votre agenda le relit quand il veut (parfois une fois par jour). Pour bloquer à coup sûr, ajoutez chaque évènement à votre agenda principal depuis sa fiche (« Ajouter à mon agenda »), ou prenez vos rendez-vous avec Symbola : votre page de réservation tient compte de vos évènements en temps réel.</div>
+      <div class="row" style="margin-top:12px"><span class="btn p">Créer mon adresse</span></div>
+    </div>
+  </div></div></div>
+</section>
+
+<div class="part">Partie B — Module Rendez-vous remis d'aplomb</div>
+
+<!-- M6 -->
+<section class="mock" id="m6">
+  <h2>M6 — Mes disponibilités › Ma semaine</h2>
+  <div class="refs">Aujourd'hui : quatorze champs d'heure empilés, décalés du nom du jour, sans repère. Proposé : une grille, une ligne par jour, les plages côte à côte, à la manière de Calendly.</div>
+  <div class="before"><b>Avant :</b> chaque jour occupe deux lignes (« De … à … », puis « puis de … à … ») ; la seconde ligne part sous le nom du jour, les colonnes ne s'alignent pas, un jour fermé ressemble à un oubli.</div>
+  <div class="frame"><div class="app" style="min-height:0"><div class="main">
+    <div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:12px"><div><h3 style="margin:0">Ma semaine</h3><p class="muted small" style="margin:2px 0 0">Les heures où vous recevez, à l'heure de Paris.</p></div><span class="btn sm">Copier lundi sur les jours ouverts</span></div>
+      <div class="week">
+        <div class="h">Jour</div><div class="h">Plages</div><div class="h"></div>
+        <div><span class="switch on"></span><b>Lundi</b></div><div class="ranges"><span class="range"><span class="in time">09:00</span><span class="to">à</span><span class="in time">12:30</span><span class="x" title="Retirer la plage">×</span></span><span class="range"><span class="in time">14:00</span><span class="to">à</span><span class="in time">18:00</span><span class="x">×</span></span></div><div style="justify-content:flex-end"><span class="muted small">2 plages au plus</span></div>
+        <div><span class="switch on"></span><b>Mardi</b></div><div class="ranges"><span class="range"><span class="in time">09:00</span><span class="to">à</span><span class="in time">18:00</span><span class="x">×</span></span></div><div style="justify-content:flex-end"><span class="btn ghost sm">+ Plage</span></div>
+        <div><span class="switch on"></span><b>Mercredi</b></div><div class="ranges"><span class="range"><span class="in time">09:00</span><span class="to">à</span><span class="in time">12:00</span><span class="x">×</span></span></div><div style="justify-content:flex-end"><span class="btn ghost sm">+ Plage</span></div>
+        <div><span class="switch on"></span><b>Jeudi</b></div><div class="ranges"><span class="range"><span class="in time">09:00</span><span class="to">à</span><span class="in time">18:00</span><span class="x">×</span></span></div><div style="justify-content:flex-end"><span class="btn ghost sm">+ Plage</span></div>
+        <div><span class="switch on"></span><b>Vendredi</b></div><div class="ranges"><span class="range"><span class="in time">09:00</span><span class="to">à</span><span class="in time">16:00</span><span class="x">×</span></span></div><div style="justify-content:flex-end"><span class="btn ghost sm">+ Plage</span></div>
+        <div><span class="switch"></span><b>Samedi</b></div><div class="closed">Fermé</div><div></div>
+        <div><span class="switch"></span><b>Dimanche</b></div><div class="closed">Fermé</div><div></div>
+      </div>
+      <div class="row" style="margin-top:16px;justify-content:space-between"><span class="muted small">2 plages modifiées</span><span class="btn p">Enregistrer ma semaine</span></div>
+    </div>
+  </div></div></div>
+  <ul class="notes">
+    <li>L'interrupteur ouvre ou ferme le jour ; fermé, la ligne dit « Fermé » en clair. Deux plages au plus par jour (règle actuelle), la seconde par « + Plage ».</li>
+    <li>Champs d'heure au format 24 h, de largeur fixe : les « à » s'alignent d'un jour à l'autre. Une plage qui en chevauche une autre est refusée sur place.</li>
+    <li>Un seul « Enregistrer », qui dit le nombre de plages modifiées (liste éditable, lot 62). Sur téléphone : le jour et son interrupteur sur une ligne, les plages dessous.</li>
+    <li>Les onglets « Jours fermés » et « Mes agendas » gardent leur contenu ; « Jours fermés » passe en liste éditable avec un sélecteur de dates du même calendrier que M8.</li>
+  </ul>
+</section>
+
+<!-- M7 -->
+<section class="mock" id="m7">
+  <h2>M7 — Réglage d'un type de rendez-vous et questions préalables</h2>
+  <div class="refs">Aujourd'hui : une colonne de 30 champs dont cinq blocs de question vides, étroits, toujours affichés. Proposé : formulaire en grille (lot 62) et questions en liste éditable, une ligne par question.</div>
+  <div class="before"><b>Avant :</b> les cinq questions possibles s'affichent même vides ; le champ de la question est trop étroit pour son texte ; « Choix (un par ligne) » est une zone de texte sans aperçu.</div>
+  <div class="frame"><div class="app" style="min-height:0"><div class="main">
+    <div class="ph"><div><h1>Premier rendez-vous découverte</h1><p class="muted small" style="margin:2px 0 0">Proposé sur votre page de réservation · <a>Voir la page</a></p></div><span class="row"><span class="pill ok">Proposé</span><span class="switch on"></span></span></div>
+    <div class="card">
+      <h3>Le rendez-vous</h3>
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin-top:8px">
+        <label class="field">Nom<span class="in">Premier rendez-vous découverte</span></label>
+        <label class="field">Durée<span class="in sel">1 heure</span></label>
+        <label class="field">Personne qui reçoit<span class="in sel">Camille Roussel</span></label>
+      </div>
+      <div style="margin-top:16px" class="field">Lieu</div>
+      <div class="row" style="margin-top:4px"><span class="seg"><span>Sur place</span><span class="on">En visio</span><span>Par téléphone</span></span><span class="in" style="flex:1;min-width:260px">https://meet.exemple.fr/camille</span></div>
+    </div>
+    <div class="card">
+      <h3>Quand on peut le réserver</h3>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:8px">
+        <label class="field">Marge avant<span class="in">0 min</span></label>
+        <label class="field">Marge après<span class="in">15 min</span></label>
+        <label class="field">Prévenu au moins<span class="in">24 h avant</span></label>
+        <label class="field">Réservable jusqu'à<span class="in">60 jours</span></label>
+      </div>
+      <div class="row" style="justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)">
+        <div><b>Accepter ce rendez-vous pendant une plage occupée</b><div class="muted small">Par exemple un appel bref le jour d'un évènement. Désactivé : ni le jour ni les heures de vos <a>plages occupées</a>.</div></div><span class="switch"></span>
+      </div>
+      <div class="row" style="justify-content:space-between;margin-top:12px"><b>Rappel par e-mail</b><span class="in sel" style="width:200px">24 heures avant</span></div>
+    </div>
+    <div class="card new">
+      <div class="row" style="justify-content:space-between"><div><h3 style="margin:0">Questions préalables</h3><p class="muted small" style="margin:2px 0 0">Posées une par une après le choix du créneau. Cinq au plus ; ne demandez que ce qui prépare le rendez-vous.</p></div><span class="btn sm">+ Ajouter une question</span></div>
+      <table style="margin-top:12px">
+        <thead><tr><th style="width:28px"></th><th>Question</th><th>Réponse</th><th>Obligatoire</th><th></th></tr></thead>
+        <tbody>
+          <tr><td class="drag">⋮⋮</td><td>Date ou période envisagée</td><td><span class="qtype">✎ Texte court</span></td><td>Non</td><td style="text-align:right"><span class="btn ghost sm">Modifier</span></td></tr>
+          <tr class="open"><td class="drag">⋮⋮</td><td colspan="4">
+            <div style="display:grid;grid-template-columns:1fr 220px;gap:16px;align-items:end">
+              <label class="field">Question<span class="in">Combien d'invités attendez-vous ?</span></label>
+              <label class="field">Réponse<span class="seg" style="height:40px"><span>Texte court</span><span class="on">Un choix</span></span></label>
+            </div>
+            <div class="field" style="margin-top:12px">Choix proposés</div>
+            <div class="chips" style="margin-top:6px"><span class="chip">Moins de 50 <span class="muted">×</span></span><span class="chip">50 à 100 <span class="muted">×</span></span><span class="chip">100 à 150 <span class="muted">×</span></span><span class="chip">Plus de 150 <span class="muted">×</span></span><span class="chip" style="border-style:dashed;color:var(--muted)">+ Ajouter un choix</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:12px"><span class="row small"><span class="switch on"></span>Obligatoire</span><span class="row"><span class="btn ghost sm" style="color:var(--critical)">Retirer la question</span><span class="btn sm">Fermer</span></span></div>
+          </td></tr>
+          <tr><td class="drag">⋮⋮</td><td>Où en êtes-vous de votre lieu ?</td><td><span class="qtype">◉ Un choix · 3</span></td><td>Oui</td><td style="text-align:right"><span class="btn ghost sm">Modifier</span></td></tr>
+        </tbody>
+      </table>
+      <p class="muted small" style="margin:12px 0 0">Les réglages s'enregistrent à la sortie du champ · <a>Annuler la dernière modification</a> · <a>Voir comme votre client</a></p>
+    </div>
+  </div></div></div>
+  <ul class="notes">
+    <li>Seules les questions posées s'affichent ; « + Ajouter une question » ouvre une ligne neuve, une seule ouverte à la fois. L'ordre se change par glisser-déposer (et au clavier : flèches).</li>
+    <li>Les choix deviennent des pastilles, ajoutées une à une : plus de zone « un par ligne ». Douze au plus, comme aujourd'hui.</li>
+    <li>« Obligatoire » est neuf (D7) : aujourd'hui toute question est facultative.</li>
+    <li>« Voir comme votre client » ouvre la page publique de ce type (M8, M9) dans un nouvel onglet.</li>
+  </ul>
+</section>
+
+<!-- M8 -->
+<section class="mock" id="m8">
+  <h2>M8 — Page de réservation : choisir un créneau</h2>
+  <div class="refs">Aujourd'hui : une longue page, sept jours de cases radio puis le formulaire dessous. Proposé : une fenêtre en trois colonnes, le standard du marché (Calendly) : le rendez-vous, le mois, les heures du jour choisi.</div>
+  <div class="frame"><div class="pub">
+    <div class="bk">
+      <div class="info">
+        <div class="who">Atelier Camille R.</div>
+        <h3>Premier rendez-vous découverte</h3>
+        <div class="meta"><span><i>◷</i>1 heure</span><span><i>▭</i>En visio (lien envoyé avec la confirmation)</span><span><i>✉</i>Rappel 24 heures avant</span></div>
+        <p class="muted small" style="margin-top:16px">Faisons connaissance : vos envies, votre date, votre budget. Sans engagement.</p>
+        <div class="muted small" style="margin-top:24px">Vous avez déjà rendez-vous ? Le lien pour le déplacer est dans votre e-mail de confirmation.</div>
+      </div>
+      <div class="cal">
+        <h4>Choisissez un jour</h4>
+        <div class="month"><span class="btn icon" aria-label="Mois précédent">‹</span><b class="t">Décembre 2026</b><span class="btn icon" aria-label="Mois suivant">›</span></div>
+        <div class="grid7">
+          <div class="dn">lun.</div><div class="dn">mar.</div><div class="dn">mer.</div><div class="dn">jeu.</div><div class="dn">ven.</div><div class="dn">sam.</div><div class="dn">dim.</div>
+          <div class="d"></div><div class="d av">1</div><div class="d av">2</div><div class="d sel">3</div><div class="d off" title="Indisponible">4</div><div class="d">5</div><div class="d">6</div>
+          <div class="d av">7</div><div class="d av">8</div><div class="d av">9</div><div class="d av">10</div><div class="d av">11</div><div class="d">12</div><div class="d">13</div>
+          <div class="d av">14</div><div class="d av">15</div><div class="d av">16</div><div class="d av">17</div><div class="d av">18</div><div class="d">19</div><div class="d">20</div>
+          <div class="d av">21</div><div class="d av">22</div><div class="d av">23</div><div class="d off">24</div><div class="d off">25</div><div class="d">26</div><div class="d">27</div>
+          <div class="d off">28</div><div class="d off">29</div><div class="d off">30</div><div class="d off">31</div><div class="d"></div><div class="d"></div><div class="d"></div>
+        </div>
+        <div class="legend"><span><i style="background:var(--primary-soft)"></i>Des créneaux libres</span><span><i style="background:var(--primary)"></i>Jour choisi</span><span><i style="border:1px solid var(--line-strong)"></i>Complet ou fermé</span></div>
+        <div class="tz">Heures de Paris (UTC+1)</div>
+      </div>
+      <div class="slots">
+        <h4>Jeudi 3 décembre</h4>
+        <div class="slot">09:00</div><div class="slot">09:30</div>
+        <div class="slot pick"><b>10:00</b><em>Suivant</em></div>
+        <div class="slot">10:30</div><div class="slot">11:00</div><div class="slot">14:00</div><div class="slot">14:30</div><div class="slot">15:00</div>
+        <div class="muted small" style="text-align:center">Faire défiler pour plus d'heures</div>
+      </div>
+    </div>
+  </div></div>
+  <ul class="notes">
+    <li>Le mois s'ouvre sur le premier jour libre. Un jour sans créneau est barré et grisé, avec « Indisponible » pour les lecteurs d'écran ; on ne dit jamais pourquoi (vendredi 4 : un mariage ; 24 au 31 : jours fermés).</li>
+    <li>Un clic sur une heure la transforme en « 10:00 | Suivant » (geste Calendly) : pas de case radio, pas de bouton tout en bas de page.</li>
+    <li>Le fuseau est affiché. Le choisir relève de RDV-05 (P2) : hors de ce lot.</li>
+    <li>Même composant pour « Saisir un rendez-vous » côté équipe (/rendez-vous/nouveau) et pour « Déplacer » depuis le lien de gestion (/rdv).</li>
+    <li>Plusieurs types de rendez-vous : la page d'accueil liste les types en cartes (nom, durée, lieu) ; un clic ouvre cette fenêtre.</li>
+  </ul>
+</section>
+
+<!-- M9 -->
+<section class="mock" id="m9">
+  <h2>M9 — Coordonnées, questions une par une, confirmation</h2>
+  <div class="refs">Après « Suivant » : le rendez-vous reste rappelé à gauche ; à droite, une étape à la fois (Typeform). Trois états côte à côte.</div>
+  <div class="frame"><div class="pub" style="flex-direction:column;gap:20px;align-items:center">
+    <div class="bk two">
+      <div class="info"><div class="who">Atelier Camille R.</div><h3>Premier rendez-vous découverte</h3><div class="meta"><span><i>◷</i>1 heure</span><span><i>▭</i>En visio</span><span><i>▦</i><b>Jeudi 3 décembre, 10:00 – 11:00</b></span></div><a class="small" style="display:inline-block;margin-top:12px">‹ Changer de créneau</a></div>
+      <div class="step">
+        <div class="progress"><i style="width:20%"></i></div>
+        <div class="qnum">Étape 1 sur 5</div>
+        <div class="qtitle">Vos coordonnées</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:560px;margin-top:12px">
+          <label class="field">Votre nom<span class="in">Léa Martin</span></label>
+          <label class="field">Votre e-mail<span class="in">lea.martin@exemple.fr</span></label>
+          <label class="field">Votre téléphone (facultatif)<span class="in hint">06 12 34 56 78</span></label>
+        </div>
+        <div class="row" style="margin-top:24px"><span class="btn p">Continuer</span><span class="hintline" style="margin:0">ou appuyez sur Entrée ↵</span></div>
+      </div>
+    </div>
+    <div class="bk two">
+      <div class="info"><div class="who">Atelier Camille R.</div><h3>Premier rendez-vous découverte</h3><div class="meta"><span><i>◷</i>1 heure</span><span><i>▭</i>En visio</span><span><i>▦</i><b>Jeudi 3 décembre, 10:00 – 11:00</b></span></div><a class="small" style="display:inline-block;margin-top:12px">‹ Changer de créneau</a></div>
+      <div class="step">
+        <div class="progress"><i style="width:60%"></i></div>
+        <div class="qnum">Étape 3 sur 5 · question 2 sur 3</div>
+        <div class="qtitle">Combien d'invités attendez-vous ?</div>
+        <p class="muted" style="margin:0 0 16px">Une estimation suffit.</p>
+        <div class="choice"><kbd>A</kbd>Moins de 50</div>
+        <div class="choice on"><kbd>B</kbd>50 à 100</div>
+        <div class="choice"><kbd>C</kbd>100 à 150</div>
+        <div class="choice"><kbd>D</kbd>Plus de 150</div>
+        <div class="row" style="margin-top:12px"><span class="btn">‹ Précédent</span><span class="btn p">Continuer</span></div>
+        <div class="hintline">Touche A, B, C ou D pour choisir. Un choix passe à la question suivante.</div>
+      </div>
+    </div>
+    <div class="bk two">
+      <div class="info"><div class="who">Atelier Camille R.</div><h3>Premier rendez-vous découverte</h3><div class="meta"><span><i>◷</i>1 heure</span><span><i>▭</i>En visio</span><span><i>▦</i><b>Jeudi 3 décembre, 10:00 – 11:00</b></span></div></div>
+      <div class="step">
+        <div class="progress"><i style="width:100%"></i></div>
+        <div class="qnum">Étape 5 sur 5</div>
+        <div class="qtitle">Vérifiez et réservez</div>
+        <div class="recap" style="margin-top:8px">
+          <dl class="kv" style="grid-template-columns:150px 1fr"><dt>Créneau</dt><dd>Jeudi 3 décembre 2026, 10:00 – 11:00</dd><dt>Vous</dt><dd>Léa Martin · lea.martin@exemple.fr</dd><dt>Date envisagée</dt><dd>Septembre 2027</dd><dt>Invités</dt><dd>50 à 100</dd><dt>Votre lieu</dt><dd>Nous visitons des lieux</dd></dl>
+          <a class="small">Modifier une réponse</a>
+        </div>
+        <div class="row" style="margin-top:20px"><span class="btn">‹ Précédent</span><span class="btn p">Réserver ce rendez-vous</span></div>
+        <p class="muted small" style="margin:16px 0 0;max-width:560px">Atelier Camille R. utilise ces informations pour organiser ce rendez-vous… <a>Lire la mention complète</a></p>
+      </div>
+    </div>
+    <div class="bk two" style="min-height:0">
+      <div class="info"><div class="who">Atelier Camille R.</div><h3>Premier rendez-vous découverte</h3></div>
+      <div class="step"><div class="check">✓</div><div class="qtitle">C'est réservé, Léa.</div><p style="margin:0 0 8px">Jeudi 3 décembre 2026, 10:00 – 11:00, en visio. La confirmation et le lien de la visio partent à lea.martin@exemple.fr.</p><div class="row"><span class="btn">Ajouter à mon agenda</span><span class="btn ghost">Déplacer ou annuler</span></div></div>
+    </div>
+  </div></div>
+  <ul class="notes">
+    <li>Une question par écran, en grand ; une réponse à choix passe seule à la suivante ; Entrée valide un texte ; « Précédent » revient sans rien perdre.</li>
+    <li>Les étapes : vos coordonnées, une étape par question, le récapitulatif. Sans question préalable, il n'y en a que deux (« Étape 2 sur 2 »).</li>
+    <li>Le piège à robots, la limitation de débit et la mention RGPD restent ceux d'aujourd'hui ; la mention, longue, est résumée avec « Lire la mention complète » (texte entier dans une fenêtre).</li>
+    <li>Si le créneau a été pris entre-temps, le récapitulatif le dit (« Ce créneau vient d'être pris ») et propose les créneaux voisins, comme aujourd'hui.</li>
+  </ul>
+</section>
+
+<!-- M10 -->
+<section class="mock" id="m10">
+  <h2>M10 — Sur téléphone (375 px)</h2>
+  <div class="refs">Les colonnes deviennent des étapes ; l'action principale reste en bas, dans la zone du pouce.</div>
+  <div class="phones">
+    <div><div class="phone">
+      <div class="top"><div class="muted small">Atelier Camille R.</div><div class="t" style="font-size:19px">Premier rendez-vous découverte</div><div class="muted small">1 heure · en visio</div></div>
+      <div class="body">
+        <div class="month"><span class="btn icon">‹</span><b class="t">Décembre 2026</b><span class="btn icon">›</span></div>
+        <div class="grid7">
+          <div class="dn">L</div><div class="dn">M</div><div class="dn">M</div><div class="dn">J</div><div class="dn">V</div><div class="dn">S</div><div class="dn">D</div>
+          <div class="d"></div><div class="d av">1</div><div class="d av">2</div><div class="d sel">3</div><div class="d off">4</div><div class="d">5</div><div class="d">6</div>
+          <div class="d av">7</div><div class="d av">8</div><div class="d av">9</div><div class="d av">10</div><div class="d av">11</div><div class="d">12</div><div class="d">13</div>
+          <div class="d av">14</div><div class="d av">15</div><div class="d av">16</div><div class="d av">17</div><div class="d av">18</div><div class="d">19</div><div class="d">20</div>
+          <div class="d av">21</div><div class="d av">22</div><div class="d av">23</div><div class="d off">24</div><div class="d off">25</div><div class="d">26</div><div class="d">27</div>
+        </div>
+        <h4 class="t" style="margin:16px 0 8px;font-size:15px">Jeudi 3 décembre</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><div class="slot">09:00</div><div class="slot">09:30</div><div class="slot" style="background:var(--primary);color:#fff">10:00</div><div class="slot">10:30</div><div class="slot">11:00</div><div class="slot">14:00</div></div>
+      </div>
+      <div class="foot"><span class="btn p block">Continuer avec jeudi 3 déc., 10:00</span></div>
+    </div><p class="cap">1. Le mois, puis les heures du jour juste dessous, en grille de trois.</p></div>
+    <div><div class="phone">
+      <div class="top"><div class="progress" style="margin:0 0 8px"><i style="width:60%"></i></div><div class="muted small">Jeudi 3 déc., 10:00 · <a>changer</a></div></div>
+      <div class="body">
+        <div class="qnum">Étape 3 sur 5 · question 2 sur 3</div>
+        <div class="qtitle" style="font-size:22px">Combien d'invités attendez-vous ?</div>
+        <p class="muted small" style="margin:0 0 12px">Une estimation suffit.</p>
+        <div class="choice"><kbd>A</kbd>Moins de 50</div><div class="choice on"><kbd>B</kbd>50 à 100</div><div class="choice"><kbd>C</kbd>100 à 150</div><div class="choice"><kbd>D</kbd>Plus de 150</div>
+      </div>
+      <div class="foot row" style="flex-wrap:nowrap"><span class="btn">‹</span><span class="btn p" style="flex:1">Continuer</span></div>
+    </div><p class="cap">2. Une question par écran, en 18 px au moins (corps de lecture), cibles de 52 px.</p></div>
+    <div><div class="phone">
+      <div class="top"><div class="progress" style="margin:0"><i style="width:100%"></i></div></div>
+      <div class="body"><div class="check">✓</div><div class="qtitle" style="font-size:22px">C'est réservé, Léa.</div><p>Jeudi 3 décembre 2026, 10:00 – 11:00, en visio. La confirmation part à lea.martin@exemple.fr.</p></div>
+      <div class="foot" style="display:flex;flex-direction:column;gap:8px"><span class="btn p block">Ajouter à mon agenda</span><span class="btn ghost block">Déplacer ou annuler</span></div>
+    </div><p class="cap">3. Confirmation : ajout à l'agenda du client (fichier .ics), lien de gestion.</p></div>
+  </div>
+</section>
+
+</div>
+</body>
+</html>
