@@ -14,10 +14,10 @@ export function VatOnDebitsForm({ value, from }: { value: boolean | null; from: 
     <form action={formAction} aria-label={t("vatOnDebitsTitle")}>
       <fieldset>
         <legend>{t("vatOnDebitsQuestion")}</legend>
-        <label className="checkbox-label">
+        <label>
           <input type="radio" name="vatOnDebits" value="no" defaultChecked={value === false} /> {t("vatOnDebitsNo")}
         </label>
-        <label className="checkbox-label">
+        <label>
           <input type="radio" name="vatOnDebits" value="yes" defaultChecked={value === true} /> {t("vatOnDebitsYes")}
         </label>
       </fieldset>

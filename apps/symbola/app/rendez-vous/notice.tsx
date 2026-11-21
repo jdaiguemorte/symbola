@@ -1,5 +1,6 @@
 // Lot 46 — le résultat d'une action, revenu dans l'adresse sous une clé connue (jamais un texte libre).
 import { getTranslations } from "next-intl/server";
+import { ErrorNotice } from "@/app/ui/notices";
 
 const OK = ["pageSaved", "typeCreated", "startersAdded", "typeSaved", "typeTrashed", "availabilitySaved", "closureAdded", "closureRemoved", "sourceAdded", "sourceRefreshed", "sourceRemoved", "created", "cancelled", "moved", "trashed", "linked", "unlinked", "optionCreated", "reportSaved", "actionAdded", "actionRemoved", "taskCreated"] as const;
 const ERRORS = [
@@ -39,11 +40,7 @@ export async function Notice({ ok, error }: { ok?: string | undefined; error?: s
   const t = await getTranslations("Appointments");
   if (error) {
     const key: ErrorKey = (ERRORS as readonly string[]).includes(error) ? (error as ErrorKey) : error.startsWith("invalid.") ? "invalid.name" : "unexpected";
-    return (
-      <p className="notice notice-error" role="alert">
-        {t(`errors.${key}`)}
-      </p>
-    );
+    return <ErrorNotice>{t(`errors.${key}`)}</ErrorNotice>;
   }
   if (ok && (OK as readonly string[]).includes(ok)) {
     return (

@@ -7,6 +7,10 @@
  * (middleware.ts) le refuse. Contrastes vérifiés WCAG AA.
  */
 @import "tailwindcss";
+/* Lot 62 : un fichier par paquet, pour que les paquets menés en parallèle ne se marchent pas dessus. */
+@import "./styles/lot-62b-reglages.css";
+@import "./styles/lot-62c-fiche-evenement.css";
+@import "./styles/lot-62d-devis.css";
 @source "../../../packages/ui/src";
 
 @theme {
@@ -1265,7 +1269,7 @@
     @apply min-w-[12rem] flex-1;
   }
   .inline-add {
-    @apply flex flex-wrap items-end gap-2;
+    @apply flex flex-row flex-wrap items-end gap-2;
   }
   .setup-two {
     @apply grid grid-cols-1 gap-6 md:grid-cols-2;
@@ -2112,7 +2116,7 @@
     @apply my-3;
   }
   .matches-manual {
-    @apply mt-2 flex flex-wrap items-end gap-2 text-label;
+    @apply mt-2 flex flex-row flex-wrap items-end gap-2 text-label;
   }
   /* Vérifier et confirmer : bilan des effets. */
   .effects {
@@ -2613,7 +2617,7 @@
     @apply outline-2 outline-offset-2 outline-primary;
   }
   .pay-add {
-    @apply mt-3 flex flex-wrap items-end gap-2 rounded-lg border border-dashed border-line-strong p-4;
+    @apply mt-3 flex flex-row flex-wrap items-end gap-2 rounded-lg border border-dashed border-line-strong p-4;
   }
   .pay-add input {
     @apply min-w-0 flex-[1_1_220px];
@@ -3368,7 +3372,7 @@
     @apply inline-flex min-h-11 cursor-pointer items-center text-body font-medium text-primary;
   }
   .postpone form {
-    @apply mt-2 flex flex-wrap items-end gap-2;
+    @apply mt-2 flex flex-row flex-wrap items-end gap-2;
   }
 }
 
@@ -3437,6 +3441,11 @@
 @layer components {
   /* Lot 32b (EVT-07, D11) — charge des douze prochains mois : les chiffres font foi, la barre
      (<progress>) est un repère, masqué sur téléphone. */
+  /* Lot 62a (NFR-19) : « data-table » réserve 600 px ; ce tableau de trois colonnes courtes sortait
+     de sa carte et faisait défiler la liste des évènements de 266 px en 375 px. */
+  .data-table.load-table {
+    @apply min-w-0;
+  }
   .load-table .load-bar-cell {
     @apply hidden w-2/5 sm:table-cell;
   }
@@ -3859,7 +3868,7 @@
     @apply w-full;
   }
   .seating-form {
-    @apply my-2 flex flex-wrap items-end gap-3;
+    @apply my-2 flex flex-row flex-wrap items-end gap-3;
   }
   .seating-alerts {
     @apply rounded-md border border-attention bg-attention-soft p-3;
@@ -4093,7 +4102,7 @@
     @apply flex-1;
   }
   .field-prep {
-    @apply my-2 flex flex-wrap items-end gap-3;
+    @apply my-2 flex flex-row flex-wrap items-end gap-3;
   }
   .field-prep-list h3 {
     @apply mt-4 text-heading;
@@ -4874,5 +4883,116 @@
   }
   .quota-meter {
     @apply h-3 w-full max-w-md;
+  }
+}
+
+/* Lot 62a (UX-13) — motifs communs du lot 62, décrits dans DESIGN.md (« Components »). Ce bloc
+   appartient au paquet 62a : les paquets 62b, 62c et 62d l'emploient sans le modifier, et ajoutent
+   leurs règles dans un bloc à leur nom. Les styles en ligne étant interdits (CSP), les colonnes d'une
+   liste éditable se règlent par une classe de l'écran, dans le bloc de son paquet. */
+@layer components {
+  /* Formulaire en grille : les champs d'une fiche sur deux colonnes (trois avec « form-grid-3 »),
+     une seule sur téléphone. « span-all » : un champ ou un groupe sur toute la ligne. */
+  .form-grid {
+    @apply grid w-full grid-cols-1 gap-4 sm:grid-cols-2;
+  }
+  .form-grid.form-grid-3 {
+    @apply lg:grid-cols-3;
+  }
+  .form-grid > label,
+  .form-grid > fieldset {
+    @apply max-w-none;
+  }
+  .form-grid > .span-all {
+    @apply col-span-full;
+  }
+  /* Ligne de champs de largeurs différentes (code postal, ville, pays). « field-fit » : le libellé
+     prend la largeur de son champ court. */
+  .field-row {
+    @apply flex w-full flex-row flex-wrap items-end gap-4;
+  }
+  .field-row > label {
+    @apply w-auto max-w-none flex-[1_1_12rem];
+  }
+  .field-row > label.field-fit {
+    @apply flex-none;
+  }
+  /* Champs courts, avec « field-short » (lot 61, un nombre) : une date, un code. */
+  input.field-date {
+    @apply w-44;
+  }
+  input.field-code {
+    @apply w-28;
+  }
+
+  /* Liste éditable : un tableau, une ligne par élément ; la ligne ouverte s'édite en place, une seule
+     à la fois. « edit-bar » : la barre des modifications en attente (un seul « Enregistrer »), ou
+     l'état de l'enregistrement automatique. */
+  .edit-list-scroll {
+    @apply overflow-x-auto;
+  }
+  .edit-list {
+    @apply m-0 w-full list-none space-y-0 p-0;
+  }
+  .edit-list-head,
+  .edit-row {
+    @apply grid items-center gap-3 border-b border-line;
+  }
+  .edit-list-head {
+    @apply py-2 text-label font-medium text-ink-muted;
+  }
+  .edit-row {
+    @apply min-h-14 py-1;
+  }
+  .edit-row-open {
+    @apply my-2 flex flex-col gap-3 rounded-md border border-primary bg-ground p-4;
+  }
+  .edit-row-open form {
+    @apply m-0;
+  }
+  .edit-bar {
+    @apply flex flex-wrap items-center justify-between gap-3 rounded-md bg-primary-soft px-4 py-3 font-medium text-primary-strong;
+  }
+  /* Actions d'une ligne : libellés courts ou icônes, cibles de 44 px ; le nom de l'objet va dans le
+     nom accessible (aria-label), pas dans le libellé visible. */
+  .edit-row .row-actions {
+    @apply flex-nowrap justify-end gap-1;
+  }
+  .edit-row .row-actions form {
+    @apply m-0;
+  }
+  .edit-row .row-actions .icon-button {
+    @apply !h-11 !min-h-11 !w-11 !min-w-11 border-0 bg-transparent;
+  }
+
+  /* Une ligne de formulaire dit sa direction. La règle de base met un formulaire en colonne : ces six
+     règles, écrites « flex flex-wrap items-end » comme l'était « form-inline » avant le lot 61,
+     poussaient chaque champ contre le bord droit. Elles disent maintenant « flex-row » ; leurs champs
+     prennent la largeur de leur contenu, un libellé séparé de son champ et un message restent sur
+     leur propre ligne. */
+  :is(.inline-add, .matches-manual, .pay-add, .postpone form, .seating-form, .field-prep) > label {
+    @apply w-auto;
+  }
+  :is(.inline-add, .matches-manual, .pay-add, .postpone form, .seating-form, .field-prep) > label[for],
+  :is(.inline-add, .matches-manual, .pay-add, .postpone form, .seating-form, .field-prep) > p {
+    @apply m-0 basis-full;
+  }
+  :is(.matches-manual, .postpone form) > select,
+  :is(.matches-manual, .postpone form) > input:not([type="hidden"]) {
+    @apply w-auto max-w-full min-w-0;
+  }
+
+  /* Bouton de danger : une action qui détruit ou annule (jamais le bouton principal). */
+  button.button-danger {
+    @apply !border-critical !bg-surface !font-semibold !text-critical hover:!bg-critical-soft;
+  }
+
+  /* Messages : « notice » (confirmation, information), « notice-attention » (à vérifier),
+     « notice-error » (erreur). Le texte commence par dire ce que c'est : la couleur ne suffit pas. */
+  .notice.notice-attention {
+    @apply bg-attention-soft text-attention;
+  }
+  .notice.notice-error {
+    @apply bg-critical-soft text-critical;
   }
 }

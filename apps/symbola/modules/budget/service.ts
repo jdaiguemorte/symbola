@@ -40,6 +40,8 @@ import {
   findEventBudget,
   insertAllocationModel,
   setBudgetLineAmount,
+  saveBudgetLineRows,
+  updateEventBudgetItemAmounts,
   upsertAlertThreshold,
   updateEventBudgetItemAmount,
   upsertEventBudget,
@@ -99,6 +101,8 @@ import { EVENT_PAYER_KINDS, type CashCalendarMonth, type EventPayer, type EventP
 import type {
   AddBudgetLineInput,
   AdjustEventBudgetItemInput,
+  AdjustEventBudgetItemsInput,
+  SaveBudgetLinesInput,
   DayHandover,
   VendorPaymentHandoverInput,
   AllocationModel,
@@ -134,6 +138,8 @@ import { BUDGET_DOCUMENT_KINDS } from "@symbola/contracts";
 
 export type {
   AdjustEventBudgetItemInput,
+  AdjustEventBudgetItemsInput,
+  SaveBudgetLinesInput,
   DayHandover,
   VendorPaymentHandoverInput,
   AllocationModel,
@@ -390,6 +396,23 @@ export async function adjustEventBudgetItem(input: AdjustEventBudgetItemInput): 
     amountCents: input.amountCents,
   });
 
+  const refreshed = await findEventBudget(input.organizationId, input.eventId);
+  if (!refreshed) throw new EventBudgetNotFoundError();
+  return toEventBudgetView(refreshed.budget, refreshed.items);
+}
+
+// Lot 62c (UX-13, décision D1) — la répartition s'enregistre d'un coup : tous les postes modifiés
+// dans une seule transaction. Un poste inconnu ou un montant invalide refuse tout l'envoi.
+export async function adjustEventBudgetItems(input: AdjustEventBudgetItemsInput): Promise<EventBudgetView> {
+  const event = await getEvent(input.organizationId, input.eventId);
+  if (!event) throw new EventNotFoundError();
+  const existing = await findEventBudget(input.organizationId, input.eventId);
+  if (!existing) throw new EventBudgetNotFoundError();
+  const slotIds = input.items.map((item) => item.defaultVendorSlotId);
+  if (new Set(slotIds).size !== slotIds.length) throw new RangeError("un poste est cité deux fois");
+  if (input.items.some((item) => !Number.isInteger(item.amountCents) || item.amountCents < 0)) throw new RangeError("le montant doit être un nombre entier positif de centimes");
+  await assertDefaultVendorSlotsExist(input.organizationId, slotIds);
+  if (input.items.length > 0) await updateEventBudgetItemAmounts({ organizationId: input.organizationId, eventBudgetId: existing.budget.id, items: input.items });
   const refreshed = await findEventBudget(input.organizationId, input.eventId);
   if (!refreshed) throw new EventBudgetNotFoundError();
   return toEventBudgetView(refreshed.budget, refreshed.items);
@@ -771,6 +794,57 @@ export async function updateBudgetLineDetails(input: UpdateBudgetLineDetailsInpu
     ...(input.vendorCandidateId !== undefined ? { vendorCandidateId: input.vendorCandidateId } : {}),
     ...(rate !== undefined ? { vatRateBasisPoints: rate } : {}),
   });
+  return listBudgetLines(input.organizationId, input.eventId);
+}
+
+// Lot 62c (UX-13, décision D1) — le budget s'enregistre d'un coup : libellé, prestataire, taux de
+// TVA et montants de plusieurs lignes, dans une seule transaction (tout ou rien). Une ligne refusée
+// dit laquelle, pour que l'écran l'ouvre.
+export class BudgetBatchLineError extends Error {
+  constructor(
+    readonly lineId: string,
+    readonly reason: unknown,
+  ) {
+    super("ligne du budget refusée");
+    this.name = "BudgetBatchLineError";
+  }
+}
+
+export const BUDGET_BATCH_MAX_LINES = 500;
+
+export async function saveBudgetLines(input: SaveBudgetLinesInput): Promise<BudgetLinesView> {
+  const event = await getEvent(input.organizationId, input.eventId);
+  if (!event) throw new EventNotFoundError();
+  const lineIds = input.lines.map((line) => line.lineId);
+  if (input.lines.length > BUDGET_BATCH_MAX_LINES) throw new RangeError("trop de lignes en un envoi");
+  if (new Set(lineIds).size !== lineIds.length) throw new BudgetLineNotFoundError();
+  const current = new Map((await findBudgetLines(input.organizationId, input.eventId)).map((line) => [line.id, line]));
+  const entries = [];
+  for (const line of input.lines) {
+    const row = current.get(line.lineId);
+    if (!row) throw new BudgetLineNotFoundError();
+    try {
+      const label = line.label === undefined ? undefined : line.label.trim().slice(0, 200);
+      if (label === "") throw new BudgetLineDetailsInvalidError("label");
+      const rate = line.vatRateBasisPoints;
+      if (rate !== undefined && !(Number.isInteger(rate) && rate >= 0 && rate <= 10000)) throw new BudgetLineDetailsInvalidError("vat");
+      const amounts = line.amounts ?? [];
+      if (amounts.some((amount) => !Number.isInteger(amount.amountCents) || amount.amountCents < 0)) throw new RangeError("le montant doit être un nombre entier positif de centimes");
+      await assertCandidateOfSlot(input.organizationId, input.eventId, row.eventVendorSlotId, line.vendorCandidateId);
+      entries.push({
+        lineId: line.lineId,
+        ...(label !== undefined ? { label } : {}),
+        ...(line.vendorCandidateId !== undefined ? { vendorCandidateId: line.vendorCandidateId } : {}),
+        ...(rate !== undefined ? { vatRateBasisPoints: rate } : {}),
+        amounts,
+      });
+    } catch (error) {
+      throw new BudgetBatchLineError(line.lineId, error);
+    }
+  }
+  const result = await saveBudgetLineRows({ organizationId: input.organizationId, eventId: input.eventId, changedByUserId: input.changedByUserId, lines: entries });
+  if (result.status === "line_not_found") throw new BudgetLineNotFoundError();
+  if (result.status === "paid_from_payments") throw new BudgetBatchLineError(result.lineId, new BudgetLinePaidFromPaymentsError());
   return listBudgetLines(input.organizationId, input.eventId);
 }
 
@@ -1239,6 +1313,7 @@ const _contractCheck: BudgetServiceContract = {
   getEventBudget,
   simulateEventBudget,
   adjustEventBudgetItem,
+  adjustEventBudgetItems,
   listBudgetLines,
   confirmEventBudget,
   updateBudgetLine,
@@ -1249,6 +1324,7 @@ const _contractCheck: BudgetServiceContract = {
   removeEventBudgetData,
   addBudgetLine,
   updateBudgetLineDetails,
+  saveBudgetLines,
   removeBudgetLine,
   addVendorPayment,
   updateVendorPayment,

@@ -68,32 +68,41 @@ test("PRD-EVT-05 — programme du jour J depuis un modèle, chevauchement signal
   await page.getByLabel("Modèle de programme à appliquer").selectOption({ label: "Programme du jour J (modèle de départ)" });
   await page.getByRole("button", { name: "Appliquer le modèle de programme" }).click();
   await expect(page.getByText("Modèle appliqué : les lignes ont été ajoutées au programme.")).toBeVisible();
-  const program = page.getByRole("list", { name: "Programme du jour J" });
-  // Lot 12 (L12-EVT-14) : heure | intitulé, lieu et icônes des prestataires ; lot 30b
-  // (CHR-06) : la durée de chaque séquence.
-  const first = program.getByRole("listitem").first();
-  await expect(first.locator(".program-time")).toHaveText("09:00 – 12:00 · 3 h");
+  const program = page.getByRole("table", { name: "Programme du jour J" });
+  // Lot 62c (UX-13) : une ligne par séquence — début, fin, durée (lot 30b, CHR-06), séquence,
+  // lieu, qui (les prestataires concernés, par leur nom).
+  const first = program.getByRole("row").nth(1);
+  await expect(first.locator(".program-start")).toHaveText("09:00");
+  await expect(first.locator(".program-end")).toHaveText("12:00");
+  await expect(first.locator(".program-duration")).toHaveText("3 h");
   await expect(first.locator("strong")).toHaveText("Coiffure et maquillage");
-  const ceremony = program.getByRole("listitem").filter({ has: page.locator("strong", { hasText: /^Cérémonie$/ }) });
-  await expect(ceremony.locator(".program-time")).toHaveText("15:00 – 16:00 · 1 h");
-  await expect(ceremony.getByRole("img", { name: "Prestataires concernés : Photographe" })).toBeVisible();
+  const ceremony = program.getByRole("row").filter({ has: page.locator("strong", { hasText: /^Cérémonie$/ }) });
+  await expect(ceremony.locator(".program-start")).toHaveText("15:00");
+  await expect(ceremony.locator(".program-end")).toHaveText("16:00");
+  await expect(ceremony.locator(".program-duration")).toHaveText("1 h");
+  await expect(ceremony.locator(".program-who")).toContainText("Photographe");
   await expect(page.getByRole("heading", { name: "Chevauchements à vérifier" })).toHaveCount(0);
 
   // Une ligne qui chevauche les photos de groupe pour le photographe : signalée, pas bloquée.
-  const newLine = page.getByRole("group", { name: "Nouvelle ligne du programme" });
-  await newLine.getByLabel("Heure de début").fill("16:15");
-  await newLine.getByLabel("Heure de fin (facultative)").fill("17:00");
-  await newLine.getByLabel("Intitulé de la ligne").fill("Photos des invités");
-  await newLine.getByLabel("Lieu").fill("Parc du château");
+  await page.getByRole("button", { name: "Ajouter une séquence" }).click();
+  const newLine = page.getByRole("group", { name: "Modifier la ligne Nouvelle séquence" });
+  await newLine.getByLabel("Début", { exact: true }).fill("16:15");
+  await newLine.getByLabel("Fin", { exact: true }).fill("17:00");
+  await newLine.getByLabel("Séquence", { exact: true }).fill("Photos des invités");
+  await newLine.getByLabel("Lieu", { exact: true }).fill("Parc du château");
   await newLine.getByRole("group", { name: "Prestataires concernés (lignes du budget)" }).getByLabel("Photographe").check();
   await newLine.getByLabel("Autres intervenants (séparés par des virgules)").fill("Témoin");
   await newLine.getByLabel("Note interne").fill("Prévoir les alliances");
-  await newLine.getByRole("button", { name: "Ajouter la ligne" }).click();
-  await expect(page.getByText("Ligne ajoutée.")).toBeVisible();
-  const added = program.getByRole("listitem").filter({ has: page.locator("strong", { hasText: /^Photos des invités$/ }) });
-  await expect(added.locator(".program-time")).toHaveText("16:15 – 17:00 · 45 min");
+  // Lot 62c (D1) : rien n'est écrit avant « Enregistrer le programme », qui dit le nombre de lignes.
+  await expect(page.getByText("1 ligne modifiée, pas encore enregistrée.")).toBeVisible();
+  await page.getByRole("button", { name: "Enregistrer le programme" }).click();
+  await expect(page.getByText("Programme enregistré : 1 ligne.")).toBeVisible();
+  const added = program.getByRole("row").filter({ has: page.locator("strong", { hasText: /^Photos des invités$/ }) });
+  await expect(added.locator(".program-start")).toHaveText("16:15");
+  await expect(added.locator(".program-end")).toHaveText("17:00");
+  await expect(added.locator(".program-duration")).toHaveText("45 min");
   await expect(added).toContainText("Parc du château");
-  await expect(added.getByRole("img", { name: "Prestataires concernés : Photographe, Témoin" })).toBeVisible();
+  await expect(added.locator(".program-who")).toContainText("Photographe, Témoin");
   await expect(added).toContainText("Note interne : Prévoir les alliances");
   await expect(page.getByRole("region", { name: "Chevauchements à vérifier" })).toContainText(
     "Photographe est prévu à la fois sur « Photos de groupe » et sur « Photos des invités ».",

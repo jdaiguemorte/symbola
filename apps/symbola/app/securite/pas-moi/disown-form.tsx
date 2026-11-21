@@ -19,7 +19,7 @@ export function DisownForm({ accountCenter }: { accountCenter: string }) {
       <>
         <p role="status">{t("notMeDone")}</p>
         <p>
-          <a className="button" href={accountCenter}>
+          <a className="button-link button-link-primary" href={accountCenter}>
             {t("notMeSecure")}
           </a>
         </p>

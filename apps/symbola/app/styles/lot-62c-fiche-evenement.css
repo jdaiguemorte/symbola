@@ -1,0 +1,492 @@
+/* Lot 62c — fiche d'évènement (programme, budget, mariés, rétroplanning). Règles propres aux écrans de ce paquet (colonnes des listes éditables,
+   ajustements d'écran). Les motifs communs sont dans globals.css (bloc « Lot 62a ») : ne pas les
+   redéfinir ici. Ce fichier est chargé avant globals.css : à précision égale, une règle de
+   globals.css l'emporte. Mêmes jetons que globals.css (DESIGN.md), aucun style en ligne (CSP). */
+@layer components {
+  /* —— Programme du jour J : liste éditable (DESIGN.md, « Liste éditable ») ——
+     Colonnes : début, fin, durée, séquence, lieu, qui, actions. */
+  .program-editor {
+    @apply flex flex-col gap-4;
+  }
+  .program-editor .program-moment h3 {
+    @apply mb-1;
+  }
+  .program-table .program-cols {
+    @apply grid-cols-[3.5rem_3.5rem_4.5rem_minmax(0,1fr)_11rem_11rem_5.75rem];
+  }
+  .program-table .program-line .program-main {
+    @apply flex-row flex-wrap items-center gap-x-2 gap-y-0;
+  }
+  .program-table .program-line .program-main strong {
+    @apply font-medium;
+  }
+  .program-table .program-line .program-note {
+    @apply basis-full;
+  }
+  .program-table .program-end {
+    @apply tabular-nums;
+  }
+  .program-table .program-duration,
+  .program-table .program-place,
+  .program-table .program-who {
+    @apply text-label text-ink-muted;
+  }
+  .program-table .program-who {
+    @apply flex flex-col;
+  }
+  .program-table .row-actions {
+    @apply flex;
+  }
+  .program-table .row-actions .program-remove {
+    @apply text-critical hover:text-critical;
+  }
+  /* La ligne ouverte : ses champs sur des lignes de champs (« field-row »), dans la largeur de la carte. */
+  .program-table .edit-row-open:focus {
+    @apply outline-none;
+  }
+  /* Une heure : la largeur de « 10:30 AM » et de son icône (navigateur réglé sur douze heures). */
+  .program-table .edit-row-open input.field-time {
+    @apply w-36;
+  }
+  .program-table .edit-row-open .field-row > label.program-field-wide {
+    @apply flex-[2_1_16rem];
+  }
+  .program-table .edit-row-open fieldset.program-slots {
+    @apply m-0 max-w-none gap-1 border-0 bg-transparent p-0;
+  }
+  .program-table .edit-row-open fieldset.program-slots legend {
+    @apply p-0 font-sans text-label font-medium;
+  }
+  .program-slot-choices {
+    @apply flex flex-wrap gap-x-4 gap-y-0;
+  }
+  .program-slot-choices > label {
+    @apply min-h-11;
+  }
+  .program-table .edit-row-open label.program-note-field {
+    @apply max-w-none;
+  }
+  .program-table .edit-row-open .free-text-notice {
+    @apply m-0;
+  }
+  /* La barre des modifications en attente reste en vue pendant qu'on parcourt la liste. */
+  .program-editor .edit-bar {
+    @apply sticky bottom-3 z-10 shadow-float;
+  }
+  .program-editor .edit-bar p {
+    @apply m-0;
+  }
+  /* En tête de la carte : la diffusion à gauche, les PDF et l'agenda à droite. */
+  .program-head {
+    @apply my-4 grid grid-cols-1 gap-x-8 gap-y-4 border-y border-line py-4 lg:grid-cols-2;
+  }
+  .program-head .program-publication {
+    @apply m-0 border-0 p-0;
+  }
+  .program-head .program-tools {
+    @apply flex min-w-0 flex-col gap-3;
+  }
+  .program-head .program-tools h3 {
+    @apply mb-1 font-semibold text-ink;
+  }
+  .program-head .program-tools .button-link {
+    @apply py-2;
+  }
+  .program-head .program-tools p {
+    @apply m-0;
+  }
+  .card > .program-overlaps {
+    @apply my-4;
+  }
+  .card > .program-overlaps h3 {
+    @apply m-0 text-body font-semibold text-attention;
+  }
+  .card > .program-overlaps ul {
+    @apply mb-0 mt-1;
+  }
+  /* Lieux de l'évènement : « Modifier » ouvre le formulaire en grille sur toute la largeur. */
+  .places details.place-edit[open] {
+    @apply basis-full;
+  }
+  .places input.field-time {
+    @apply w-36;
+  }
+  /* Cibles tactiles de la fiche (UX-05) : 44 px, y compris les formulaires d'un seul bouton (40 px
+     par règle générale), les liens-boutons et les gestes de la frise du statut. */
+  .event-sheet form:not(:has(label, select, textarea, input:not([type="hidden"]))) button[type="submit"],
+  .event-sheet form:not(:has(label, select, textarea, input:not([type="hidden"]))) button:not([type]) {
+    @apply min-h-11;
+  }
+  @media (width < 640px) {
+    .event-sheet .link-button {
+      @apply min-h-11;
+    }
+  }
+  .event-sheet .timeline-actions .timeline-lost {
+    @apply !min-h-11 !px-2;
+  }
+  .event-sheet .timeline-step .timeline-button {
+    @apply !min-h-11 min-w-11;
+  }
+  /* En tête de la carte : le modèle à appliquer et l'import d'un chrono, côte à côte. */
+  .program-sources {
+    @apply flex flex-wrap items-start gap-x-8 gap-y-3;
+  }
+  .program-sources > * {
+    @apply m-0;
+  }
+  /* Téléphone : une séquence tient en trois lignes (heures, nom, lieu et intervenants), ses deux
+     actions à droite ; l'en-tête des colonnes reste lu par les lecteurs d'écran. */
+  @media (max-width: 767px) {
+    .program-table .edit-list-head {
+      @apply sr-only;
+    }
+    /* Une ligne ouverte occupe l'écran : la barre attend à sa place, sous la liste, sans la couvrir. */
+    .program-editor:has(.edit-row-open) .edit-bar {
+      @apply static shadow-none;
+    }
+    .program-table .program-line {
+      @apply flex flex-wrap items-center gap-x-2 gap-y-0 py-1;
+    }
+    .program-table .program-line .program-start {
+      @apply order-1;
+    }
+    .program-table .program-line .program-end {
+      @apply order-2;
+    }
+    .program-table .program-end:not(:empty)::before {
+      content: "– ";
+    }
+    .program-table .program-line .program-duration {
+      @apply order-3;
+    }
+    .program-table .program-duration:not(:empty)::before {
+      content: "· ";
+    }
+    .program-table .program-line .row-actions {
+      @apply order-4 ml-auto;
+    }
+    .program-table .program-line .program-main {
+      @apply order-5 basis-full;
+    }
+    .program-table .program-line .program-place {
+      @apply order-6;
+    }
+    .program-table .program-line .program-who {
+      @apply order-7 flex-row flex-wrap gap-x-2;
+    }
+    .program-table .program-line .program-place:not(:empty) + .program-who:not(:empty)::before {
+      content: "·";
+    }
+    .program-table .program-line .program-place,
+    .program-table .program-line .program-who {
+      @apply pb-2;
+    }
+    .program-table .program-end:empty,
+    .program-table .program-duration:empty,
+    .program-table .program-place:empty,
+    .program-table .program-who:empty {
+      @apply hidden;
+    }
+  }
+
+  /* —— Budget d'un évènement ——
+     Simulation repliable ; répartition et lignes en listes éditables (un seul « Enregistrer »). */
+  .budget-sheet details.budget-simulation > summary {
+    @apply rounded-md;
+  }
+  /* Repliée, la simulation n'est qu'un bouton : pas de carte vide autour. */
+  .budget-sheet details.budget-simulation:not([open]) {
+    @apply border-0 bg-transparent p-0 shadow-none;
+  }
+  /* Seuil d'alerte : le libellé sur sa ligne, le champ et son bouton côte à côte. */
+  .budget-sheet form.envelope-threshold > label {
+    display: contents;
+  }
+  .budget-sheet form.envelope-threshold > label > span {
+    @apply basis-full text-label font-medium text-ink;
+  }
+  .budget-sheet details.budget-simulation[open] > summary {
+    @apply mb-4;
+  }
+  .budget-simulation-form .row-wrap {
+    @apply items-center;
+  }
+  .budget-simulation-form .row-wrap p {
+    @apply m-0;
+  }
+  .budget-allocation {
+    @apply mt-6 flex flex-col gap-3;
+  }
+  .budget-allocation h2 {
+    @apply m-0;
+  }
+  .allocation-table .allocation-cols {
+    @apply grid-cols-[minmax(0,1fr)_8rem];
+  }
+  /* Ordinateur : les postes sur deux colonnes (l'en-tête des colonnes reste lu par les lecteurs d'écran). */
+  @media (width >= 1024px) {
+    .allocation-table {
+      @apply grid grid-cols-2 gap-x-12;
+    }
+    .allocation-table .edit-list-head {
+      @apply sr-only;
+    }
+  }
+  .allocation-table .allocation-cols .num {
+    @apply text-right;
+  }
+  .allocation-table .allocation-slot {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .allocation-table .allocation-slot label {
+    @apply w-auto max-w-none flex-row text-body font-normal;
+  }
+  .budget-sheet input.field-amount {
+    @apply w-32 text-right tabular-nums;
+  }
+  .budget-sheet .edit-bar {
+    @apply sticky bottom-3 z-10 shadow-float;
+  }
+  .budget-sheet .edit-bar p {
+    @apply m-0;
+  }
+  .budget-lines-editor {
+    @apply flex flex-col gap-3;
+  }
+  .budget-lines-editor > p {
+    @apply m-0;
+  }
+  .budget-lines-editor .list-table.budget-lines td.budget-line-edit button {
+    @apply min-h-11 px-3 text-label;
+  }
+  .budget-lines-editor .budget-lines tbody th .badge {
+    @apply ml-2;
+  }
+  .budget-lines-editor .budget-lines tr.budget-line-open th,
+  .budget-lines-editor .budget-lines tr.budget-line-open td {
+    @apply border-b-0;
+  }
+  /* La ligne ouverte : ses champs, puis ses documents et ses échéances côte à côte. */
+  .budget-lines-editor .budget-line-editor-panel {
+    @apply m-0 gap-4;
+  }
+  .budget-lines-editor .budget-line-editor-panel:focus {
+    @apply outline-none;
+  }
+  .budget-line-fields {
+    @apply flex flex-col gap-3;
+  }
+  .budget-line-fields .budget-paid-hint {
+    @apply m-0 self-center text-label text-ink-muted;
+  }
+  .budget-line-more {
+    @apply grid gap-6 border-t border-line pt-4 lg:grid-cols-2;
+  }
+  .budget-line-more h3 {
+    @apply m-0;
+  }
+  /* Une échéance : sa phrase, puis chacun de ses gestes sur sa ligne. */
+  .budget-line-more li > form.inline-form {
+    @apply my-1 flex flex-row flex-wrap items-end gap-2;
+  }
+  .budget-line-more fieldset {
+    @apply m-0 max-w-none p-4;
+  }
+  .budget-line-more input.field-date {
+    @apply w-44;
+  }
+  /* Le repli d'une catégorie n'existe que sur téléphone. */
+  .budget-lines-editor .list-table.budget-lines tr.budget-category th .budget-fold {
+    @apply hidden;
+  }
+  @media (width < 640px) {
+    .budget-lines-editor .list-table.budget-lines tr.budget-category th .budget-fold {
+      @apply inline-flex;
+    }
+  }
+  /* Téléphone : une ligne tient en une carte courte — son nom et « Modifier », puis ses six
+     montants sur deux colonnes (libellé à gauche, montant à droite). */
+  @media (width < 640px) {
+    .budget-lines-editor .list-table.budget-lines tr.budget-line,
+    .budget-lines-editor .list-table.budget-lines tr.budget-category,
+    .budget-lines-editor .list-table.budget-lines tfoot tr {
+      @apply grid grid-cols-2 gap-x-4 gap-y-0 py-2;
+    }
+    .budget-lines-editor .list-table.budget-lines tr.budget-line th,
+    .budget-lines-editor .list-table.budget-lines tr.budget-category th,
+    .budget-lines-editor .list-table.budget-lines tfoot th {
+      @apply col-span-2 pb-0;
+    }
+    .budget-lines-editor .list-table.budget-lines tr.budget-line th {
+      @apply col-span-1 col-start-1 row-start-1 self-center;
+    }
+    .budget-lines-editor .list-table.budget-lines tr.budget-line td.budget-line-edit {
+      @apply col-start-2 row-start-1 flex justify-end p-0;
+    }
+    .budget-lines-editor .list-table.budget-lines tr.budget-category th {
+      @apply flex flex-wrap items-center justify-between gap-x-3;
+    }
+    .budget-lines-editor .list-table.budget-lines tr.budget-line td[data-label],
+    .budget-lines-editor .list-table.budget-lines tr.budget-category td[data-label],
+    .budget-lines-editor .list-table.budget-lines tfoot td[data-label] {
+      @apply min-h-6 flex-wrap justify-between gap-x-2 gap-y-0 py-0 text-right text-label;
+    }
+    /* La carte d'une catégorie garde son fond d'un bord à l'autre (pas de filet blanc entre ses montants). */
+    .budget-lines-editor .list-table.budget-lines tr.budget-category {
+      @apply bg-ground;
+    }
+    /* Reste à payer et écart : une ligne entière chacun (leur texte est long). */
+    .budget-lines-editor .list-table.budget-lines td.budget-wide[data-label] {
+      @apply col-span-2;
+    }
+    /* Au-delà de douze lignes, une catégorie se replie : ses totaux restent, ses lignes s'ouvrent à la demande. */
+    .budget-lines-editor .list-table.budget-lines tbody[data-folded="true"] tr.budget-line,
+    .budget-lines-editor .list-table.budget-lines tbody[data-folded="true"] tr.budget-line-editor:not(.budget-line-adding) {
+      @apply hidden;
+    }
+    .budget-lines-editor .list-table.budget-lines tr.budget-category td:not([data-label]),
+    .budget-lines-editor .list-table.budget-lines tfoot td:not([data-label]) {
+      @apply hidden;
+    }
+    .budget-lines-editor .list-table.budget-lines tr.budget-line-editor td {
+      @apply px-0 pt-0;
+    }
+    .budget-sheet .edit-row-open {
+      @apply p-3;
+    }
+    /* Une ligne ouverte occupe l'écran : la barre attend à sa place, sans la couvrir. */
+    .budget-lines-editor:has(.budget-line-editor-panel) .edit-bar {
+      @apply static shadow-none;
+    }
+    /* La répartition est courte : sa barre reste à sa place, sous la liste. */
+    .budget-allocation .edit-bar {
+      @apply static shadow-none;
+    }
+  }
+
+  /* —— Mariés : coordonnées, liens personnels, décisions —— */
+  .client-contacts {
+    @apply grid grid-cols-1 gap-4 lg:grid-cols-2;
+  }
+  .client-contacts fieldset {
+    @apply m-0 h-full max-w-none;
+  }
+  .client-contacts .client-contact-form {
+    @apply m-0;
+  }
+  .client-contacts .row-wrap {
+    @apply items-center;
+  }
+  .client-contacts .row-wrap p {
+    @apply m-0;
+  }
+  /* Un libellé et son champ écrits côte à côte (htmlFor) : une case de la grille. */
+  .event-sheet .form-grid > .field-stack {
+    @apply flex min-w-0 flex-col gap-2;
+  }
+  .event-sheet .form-grid > .field-stack > label {
+    @apply max-w-none;
+  }
+  .event-sheet .form-grid > .field-stack > p,
+  .event-sheet .form-grid > .link-choice > p {
+    @apply m-0 text-label;
+  }
+  .event-sheet .form-grid > .link-choice {
+    @apply flex min-w-0 flex-col;
+  }
+  .event-sheet .link-row > p {
+    @apply m-0;
+  }
+  /* Un lien personnel : la personne et ce qu'elle voit à gauche, ses actions à droite ; un panneau
+     ouvert (modifier, retirer, lien renouvelé) prend toute la largeur, dessous. */
+  .event-sheet .item-list > li.link-row:has(> .link-main) {
+    @apply flex-row flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3;
+  }
+  .event-sheet .link-row > .link-main {
+    @apply flex min-w-0 flex-[1_1_24rem] flex-col gap-1;
+  }
+  .event-sheet .link-row > .link-main > p {
+    @apply m-0;
+  }
+  .event-sheet .link-row > .link-actions {
+    @apply items-center gap-2;
+  }
+  .event-sheet .link-row > .link-actions form {
+    @apply m-0;
+  }
+  .event-sheet .link-row > .link-actions .button-link {
+    @apply min-h-11 px-3 text-label;
+  }
+  .event-sheet .link-row > .link-actions > details > summary {
+    @apply rounded-md px-3 text-label font-medium text-ink;
+  }
+  .event-sheet .link-row > .link-actions > details[open],
+  .event-sheet .link-row > .link-actions > form:has(.link-delivered) {
+    @apply basis-full;
+  }
+  .link-create {
+    @apply mt-4 flex flex-col gap-4 border-t border-line pt-4;
+  }
+  /* Un formulaire rare, ouvert par son sommaire (lien d'un prestataire, demande de décision). */
+  .event-sheet details.disclosure-form > summary {
+    @apply rounded-md px-4 font-medium text-ink;
+  }
+  .event-sheet details.disclosure-form > form {
+    @apply m-0 mt-2;
+  }
+  .client-contacts fieldset {
+    @apply gap-2 p-4;
+  }
+  .link-create > form {
+    @apply m-0;
+  }
+  .link-create h3 {
+    @apply mt-0;
+  }
+  /* —— Cibles tactiles (UX-05) : la case d'une tâche garde son dessin de 24 px dans une cible de
+     44 px ; une case à cocher se touche par son libellé, de 44 px. —— */
+  .event-sheet .task-check > button {
+    @apply relative !h-11 !w-11 border-0 bg-transparent;
+  }
+  .event-sheet .task-check > button::before {
+    content: "";
+    @apply absolute inset-0 m-auto h-6 w-6 rounded-sm border-2 border-line-strong bg-surface;
+  }
+  .event-sheet .task-check > button[aria-pressed="true"] {
+    @apply bg-transparent;
+  }
+  .event-sheet .task-check > button[aria-pressed="true"]::before {
+    @apply border-primary bg-primary;
+  }
+  .event-sheet .task-check > button > svg {
+    @apply relative;
+  }
+  .event-sheet label:has(> input[type="checkbox"]),
+  .event-sheet label:has(> input[type="radio"]) {
+    @apply min-h-11;
+  }
+
+  /* Téléphone : la barre des modifications en attente tient en deux lignes — le compte, puis ses
+     deux boutons côte à côte. */
+  @media (width < 640px) {
+    .program-editor .edit-bar,
+    .budget-sheet .edit-bar {
+      @apply gap-2 px-3 py-2 text-label;
+    }
+    .program-editor .edit-bar p,
+    .budget-sheet .edit-bar p {
+      @apply text-label;
+    }
+    .program-editor .edit-bar .row-wrap,
+    .budget-sheet .edit-bar .row-wrap {
+      @apply w-full flex-nowrap;
+    }
+    .program-editor .edit-bar .row-wrap button.button-secondary,
+    .program-editor .edit-bar .row-wrap button.button-primary,
+    .budget-sheet .edit-bar .row-wrap button.button-secondary,
+    .budget-sheet .edit-bar .row-wrap button.button-primary {
+      @apply flex-1 !px-2 py-1 !text-label leading-tight;
+    }
+  }
+}

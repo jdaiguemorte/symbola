@@ -55,7 +55,7 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
   const clientNames = event.clients.length ? event.clients.map((client) => client.firstName).join(" & ") : t("noClient");
 
   return (
-    <main>
+    <main className="event-sheet budget-sheet">
       <PageHeader
         title={`${t("title")} — ${clientNames}`}
         actions={
@@ -68,7 +68,12 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
 
       {models.length === 0 ? <p role="status">{t("noModelsYet")}</p> : null}
 
-      <BudgetSimulationForm eventId={eventId} models={models} budget={budget} locale={locale} vendorSlots={vendorSlots} wantedBudgetCents={event.wantedBudgetCents} />
+      {/* Lot 62c (UX-12) : une fois les lignes du budget posées, la simulation et sa répartition se
+          replient ; le suivi (enveloppe, lignes, échéancier) vient en premier. */}
+      <details className="card budget-simulation" open={linesView.lines.length === 0}>
+        <summary>{t("simulationSummary")}</summary>
+        <BudgetSimulationForm eventId={eventId} models={models} budget={budget} locale={locale} vendorSlots={vendorSlots} wantedBudgetCents={event.wantedBudgetCents} />
+      </details>
 
       {/* Lot 16 (L16-HUB-20) : chiffres clés alignés, au format de la langue. */}
       {budget ? (

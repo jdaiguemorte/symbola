@@ -61,7 +61,7 @@ export function EventDateForm({ eventId, eventDate }: { eventId: string; eventDa
       <input type="hidden" name="eventId" value={eventId} />
       <label>
         {t("eventDate")}
-        <input type="date" name="eventDate" value={value} onChange={(event) => setValue(event.target.value)} />
+        <input type="date" name="eventDate" className="field-date" value={value} onChange={(event) => setValue(event.target.value)} />
       </label>
       {/* Lot 32b (CRM-04) : les autres évènements du même jour, avant d'enregistrer. */}
       <SameDayNotice date={value} excludeEventId={eventId} />
@@ -121,22 +121,19 @@ export function AddEventTaskForm({ eventId, vendors = [] }: { eventId: string; v
       <input type="hidden" name="eventId" value={eventId} />
       <fieldset>
         <legend>{t("newTask")}</legend>
-        <label>
-          {t("taskLabel")}
-          <input type="text" name="label" required value={label} onChange={(event) => setLabel(event.target.value)} />
-        </label>
-        <label>
-          {t("taskDueDate")}
-          <input
-            type="date"
-            name="dueDate"
-            required
-            value={dueDate}
-            onChange={(event) => setDueDate(event.target.value)}
-          />
-        </label>
-        <ResponsibleSelect value={responsible} onChange={setResponsible} vendors={vendors} />
-        <button type="submit" disabled={pending}>
+        {/* Lot 62c (UX-12) : la tâche, son échéance (champ court) et son responsable sur une ligne. */}
+        <div className="field-row">
+          <label>
+            {t("taskLabel")}
+            <input type="text" name="label" required value={label} onChange={(event) => setLabel(event.target.value)} />
+          </label>
+          <label className="field-fit">
+            {t("taskDueDate")}
+            <input type="date" name="dueDate" className="field-date" required value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
+          </label>
+          <ResponsibleSelect value={responsible} onChange={setResponsible} vendors={vendors} />
+        </div>
+        <button type="submit" className="button-secondary" disabled={pending}>
           {t("addTask")}
         </button>
         {state.error ? <p role="alert">{state.error}</p> : null}
@@ -168,13 +165,7 @@ export function EditEventTaskForm({ eventId, task, vendors = [] }: { eventId: st
           </label>
           <label>
             {t("taskDueDate")}
-            <input
-              type="date"
-              name="dueDate"
-              required
-              value={dueDate}
-              onChange={(event) => setDueDate(event.target.value)}
-            />
+            <input type="date" name="dueDate" className="field-date" required value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
           </label>
           <ResponsibleSelect value={responsible} onChange={setResponsible} vendors={vendors} />
           <button type="submit" disabled={pending}>

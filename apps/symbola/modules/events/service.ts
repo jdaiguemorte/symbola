@@ -54,6 +54,7 @@ import {
   insertProgramTemplate,
   insertProgramTemplateItem,
   updateProgramItemRow,
+  saveProgramItemRows,
   shiftProgramItemRows,
   type ProgramItemData,
   type ProgramItemWithParticipants,
@@ -367,6 +368,7 @@ import type {
   ListEventsInput,
   ProgramItem,
   ProgramItemInput,
+  SaveProgramItemsInput,
   ProgramParticipant,
   ProgramPublication,
   ProgramVersion,
@@ -491,6 +493,7 @@ export type {
   PublishedProgramView,
   VendorProgramView,
   ProgramItemInput,
+  SaveProgramItemsInput,
   ProgramOverlap,
   ProgramParticipant,
   ProgramTemplate,
@@ -1878,6 +1881,52 @@ export async function updateProgramItem(organizationId: string, itemId: string, 
   );
 }
 
+// Lot 62c (UX-13, décision D1) — le programme s'enregistre d'un coup : les séquences modifiées et
+// les séquences ajoutées, dans une seule transaction (tout ou rien). Une saisie refusée dit sa
+// ligne, pour que l'écran l'ouvre ; rien n'est écrit tant qu'une ligne est refusée.
+export const PROGRAM_BATCH_MAX_LINES = 500;
+
+export class ProgramBatchLineError extends Error {
+  constructor(
+    readonly line: { kind: "update"; itemId: string } | { kind: "addition"; index: number },
+    readonly reason: unknown,
+  ) {
+    super("ligne du programme refusée");
+    this.name = "ProgramBatchLineError";
+  }
+}
+
+export async function saveProgramItems(organizationId: string, eventId: string, input: SaveProgramItemsInput): Promise<ProgramItem[]> {
+  // Lot 58 (PAR-09, étape 5) : un évènement archivé est en lecture seule.
+  await assertEventWritableRow(organizationId, eventId);
+  const itemIds = input.updates.map((update) => update.itemId);
+  if (input.updates.length + input.additions.length > PROGRAM_BATCH_MAX_LINES) throw new RangeError("trop de lignes en un envoi");
+  if (new Set(itemIds).size !== itemIds.length || !itemIds.every((itemId) => UUID_PATTERN.test(itemId))) throw new ProgramItemNotFoundError();
+  const entryOf = (item: ProgramItemInput, line: ProgramBatchLineError["line"]) => {
+    try {
+      return { data: normalizeProgramItem(item), vendorSlotIds: item.vendorSlotIds, freeLabels: cleanLabels(item.freeParticipants) };
+    } catch (error) {
+      throw new ProgramBatchLineError(line, error);
+    }
+  };
+  const updates = input.updates.map(({ itemId, item }) => ({ itemId, ...entryOf(item, { kind: "update", itemId }) }));
+  const additions = input.additions.map((item, index) => entryOf(item, { kind: "addition", index }));
+  if (updates.length + additions.length === 0) return [];
+  const result = await saveProgramItemRows(organizationId, eventId, updates, additions, await mainMomentName(organizationId));
+  switch (result.status) {
+    case "saved":
+      return sortProgramItems(result.items.map(toProgramItem));
+    case "event_not_found":
+      throw new EventNotFoundError();
+    case "item_not_found":
+      throw new ProgramItemNotFoundError();
+    case "participant_not_found":
+      throw new ProgramParticipantNotFoundError();
+    case "moment_not_found":
+      throw new KeyMomentNotFoundError();
+  }
+}
+
 export async function removeProgramItem(organizationId: string, itemId: string): Promise<void> {
   await deleteProgramItem(organizationId, itemId);
 }
@@ -3246,6 +3295,7 @@ const _contractCheck: EventsServiceContract = {
   addProgramItem,
   updateProgramItem,
   removeProgramItem,
+  saveProgramItems,
   shiftProgramItems,
   listProgramTemplates,
   createProgramTemplate,

@@ -27,32 +27,39 @@ export function ClientContactForm({ eventId, client }: { eventId: string; client
         <p className="meta">
           {tContacts("sharedHint")} <Link href={`/contacts/${client.contactId}`}>{tContacts("openContact", { name })}</Link>
         </p>
-        <label>
-          {t("contactEmail")}
-          <input type="email" name="email" defaultValue={client.email ?? ""} autoComplete="off" />
-        </label>
-        <label>
-          {t("contactPhone")}
-          <input type="tel" name="phone" defaultValue={client.phone ?? ""} autoComplete="off" />
-        </label>
-        <label>
-          {t("contactAddressLine")}
-          <input type="text" name="addressLine" defaultValue={client.addressLine ?? ""} autoComplete="off" />
-        </label>
-        <label>
-          {t("contactPostalCode")}
-          <input type="text" name="postalCode" defaultValue={client.postalCode ?? ""} autoComplete="off" />
-        </label>
-        <label>
-          {t("contactCity")}
-          <input type="text" name="city" defaultValue={client.city ?? ""} autoComplete="off" />
-        </label>
+        {/* Lot 62c (UX-12) : formulaire en grille — e-mail et téléphone côte à côte ; adresse ; code postal et ville. */}
+        <div className="form-grid">
+          <label>
+            {t("contactEmail")}
+            <input type="email" name="email" defaultValue={client.email ?? ""} autoComplete="off" />
+          </label>
+          <label>
+            {t("contactPhone")}
+            <input type="tel" name="phone" defaultValue={client.phone ?? ""} autoComplete="off" />
+          </label>
+          <label className="span-all">
+            {t("contactAddressLine")}
+            <input type="text" name="addressLine" defaultValue={client.addressLine ?? ""} autoComplete="off" />
+          </label>
+          <div className="field-row span-all">
+            <label className="field-fit">
+              {t("contactPostalCode")}
+              <input type="text" name="postalCode" className="field-code" defaultValue={client.postalCode ?? ""} autoComplete="off" />
+            </label>
+            <label>
+              {t("contactCity")}
+              <input type="text" name="city" defaultValue={client.city ?? ""} autoComplete="off" />
+            </label>
+          </div>
+        </div>
+        <div className="row-wrap">
+          <button type="submit" className="button-secondary" disabled={pending}>
+            {t("clientContactSave", { name })}
+          </button>
+          {state.error ? <p role="alert">{state.error}</p> : null}
+          {state.success ? <p role="status">{t("clientContactSaved")}</p> : null}
+        </div>
       </fieldset>
-      <button type="submit" disabled={pending}>
-        {t("clientContactSave", { name })}
-      </button>
-      {state.error ? <p role="alert">{state.error}</p> : null}
-      {state.success ? <p role="status">{t("clientContactSaved")}</p> : null}
     </form>
   );
 }

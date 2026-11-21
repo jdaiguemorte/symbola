@@ -51,7 +51,7 @@ export default async function AppointmentTypePage({ params, searchParams }: { pa
         <fieldset>
           <legend>{t("typeLocation")}</legend>
           {APPOINTMENT_LOCATION_KINDS.map((kind) => (
-            <label key={kind} className="radio">
+            <label key={kind}>
               <input type="radio" name="locationKind" value={kind} defaultChecked={type.locationKind === kind} />
               {t(`locationKind.${kind}`)}
             </label>

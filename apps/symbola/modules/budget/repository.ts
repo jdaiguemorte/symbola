@@ -211,6 +211,30 @@ export async function updateEventBudgetItemAmount(input: {
   });
 }
 
+// Lot 62c (UX-13, décision D1) : la répartition s'enregistre d'un coup, tous les postes modifiés
+// dans une seule transaction (créés s'ils manquent, comme poste par poste).
+export async function updateEventBudgetItemAmounts(input: {
+  organizationId: string;
+  eventBudgetId: string;
+  items: { defaultVendorSlotId: string; amountCents: number }[];
+}): Promise<void> {
+  const db = appDatabase();
+  await withOrganization(db, input.organizationId, async (tx) => {
+    const [budget] = await tx.select({ id: eventBudgets.id }).from(eventBudgets).where(eq(eventBudgets.id, input.eventBudgetId));
+    if (!budget) throw new Error("simulation introuvable");
+    for (const item of input.items) {
+      const updated = await tx
+        .update(eventBudgetItems)
+        .set({ amountCents: item.amountCents, updatedAt: new Date() })
+        .where(and(eq(eventBudgetItems.eventBudgetId, input.eventBudgetId), eq(eventBudgetItems.defaultVendorSlotId, item.defaultVendorSlotId)))
+        .returning({ id: eventBudgetItems.id });
+      if (updated.length === 0) {
+        await tx.insert(eventBudgetItems).values({ organizationId: input.organizationId, eventBudgetId: input.eventBudgetId, defaultVendorSlotId: item.defaultVendorSlotId, amountCents: item.amountCents });
+      }
+    }
+  });
+}
+
 export async function findBudgetLines(organizationId: string, eventId: string): Promise<BudgetLineRow[]> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, (tx) =>
@@ -363,6 +387,57 @@ async function writeLineAmount(tx: Tx, organizationId: string, line: BudgetLineR
   // PRD-BUD-02 : « chaque modification est historisée », première valeur comprise.
   await tx.insert(budgetLineHistory).values({ organizationId, lineId: line.id, field, oldValueCents: line[column], newValueCents: amountCents, changedByUserId });
   return updated;
+}
+
+// Lot 62c (UX-13, décision D1) : plusieurs lignes du budget d'un évènement en une transaction —
+// libellé, prestataire, taux de TVA et montants. Une ligne d'un autre évènement (ou d'une autre
+// organisation, invisible sous RLS), ou un « payé » saisi sur une ligne à échéances, refuse tout
+// avant la première écriture. Un montant inchangé n'est ni écrit ni historisé.
+export type BudgetLineBatchEntry = {
+  lineId: string;
+  label?: string;
+  vendorCandidateId?: string | null;
+  vatRateBasisPoints?: number;
+  amounts: { field: BudgetAmountField; amountCents: number }[];
+};
+
+export type BudgetLineBatchResult = { status: "saved" } | { status: "line_not_found" } | { status: "paid_from_payments"; lineId: string };
+
+export async function saveBudgetLineRows(input: { organizationId: string; eventId: string; changedByUserId: string; lines: BudgetLineBatchEntry[] }): Promise<BudgetLineBatchResult> {
+  const db = appDatabase();
+  return await withOrganization(db, input.organizationId, async (tx): Promise<BudgetLineBatchResult> => {
+    const lineIds = input.lines.map((line) => line.lineId);
+    if (lineIds.length === 0) return { status: "saved" };
+    const rows = await tx.select().from(budgetLines).where(and(eq(budgetLines.eventId, input.eventId), inArray(budgetLines.id, lineIds)));
+    if (rows.length !== lineIds.length) return { status: "line_not_found" };
+    const paidLineIds = input.lines.filter((line) => line.amounts.some((amount) => amount.field === "paid")).map((line) => line.lineId);
+    if (paidLineIds.length > 0) {
+      const [withPayments] = await tx.select({ lineId: vendorPayments.lineId }).from(vendorPayments).where(inArray(vendorPayments.lineId, paidLineIds)).limit(1);
+      if (withPayments) return { status: "paid_from_payments", lineId: withPayments.lineId };
+    }
+    for (const entry of input.lines) {
+      let line = rows.find((row) => row.id === entry.lineId)!;
+      if (entry.label !== undefined || entry.vendorCandidateId !== undefined || entry.vatRateBasisPoints !== undefined) {
+        const [updated] = await tx
+          .update(budgetLines)
+          .set({
+            ...(entry.label !== undefined ? { label: entry.label } : {}),
+            ...(entry.vendorCandidateId !== undefined ? { vendorCandidateId: entry.vendorCandidateId } : {}),
+            ...(entry.vatRateBasisPoints !== undefined ? { vatRateBasisPoints: entry.vatRateBasisPoints } : {}),
+            updatedAt: new Date(),
+          })
+          .where(eq(budgetLines.id, entry.lineId))
+          .returning();
+        if (!updated) throw new Error("mise à jour de la ligne de budget échouée");
+        line = updated;
+      }
+      for (const amount of entry.amounts) {
+        if (line[AMOUNT_COLUMN[amount.field]] === amount.amountCents) continue;
+        line = await writeLineAmount(tx, input.organizationId, line, amount.field, amount.amountCents, input.changedByUserId);
+      }
+    }
+    return { status: "saved" };
+  });
 }
 
 // Pose l'un des montants saisissables sur la ligne visée ; sans ligne visée, la

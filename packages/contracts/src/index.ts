@@ -117,6 +117,7 @@ export type {
   PublishEventProgramInput,
   VendorProgramView,
   ProgramItemInput,
+  SaveProgramItemsInput,
   ProgramOverlap,
   ProgramShiftProposal,
   ProgramParticipant,
@@ -160,6 +161,7 @@ export type { DayHelper, DayHelperInput, EventTeamMember, EventTeamRole } from "
 export { DAY_DOCUMENT_SOURCES, DECISION_KINDS, ENGAGED_CANDIDATE_STATUSES, EVENT_TEAM_ROLES, LINK_AUDIENCES, LINK_BUDGET_SCOPES, LINK_RUBRICS, VENDOR_CANDIDATE_STATUSES } from "./events/service-contract";
 export type {
   AdjustEventBudgetItemInput,
+  AdjustEventBudgetItemsInput,
   AllocationModel,
   AllocationModelItem,
   AllocationModelItemInput,
@@ -187,6 +189,7 @@ export type {
   SimulateEventBudgetInput,
   UpcomingVendorPayment,
   UpdateBudgetLineDetailsInput,
+  SaveBudgetLinesInput,
   UpdateBudgetLineInput,
   VendorPayment,
   VendorPaymentInput,

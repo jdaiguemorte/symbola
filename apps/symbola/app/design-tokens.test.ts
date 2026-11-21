@@ -3,13 +3,17 @@
 // racine du dépôt, et aucun écran n'emploie une valeur hors jeton. La compilation refuse déjà
 // une classe hors jeton (familles par défaut de Tailwind vidées dans @theme) ; ces tests
 // gardent le reste : DESIGN.md et le thème identiques, aucune valeur écrite en dur, contrastes.
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const repoRoot = resolve(import.meta.dirname, "..", "..", "..");
 const designMd = readFileSync(resolve(repoRoot, "DESIGN.md"), "utf8");
-const css = readFileSync(resolve(import.meta.dirname, "globals.css"), "utf8");
+// Lot 62 : la feuille de style, et les fichiers par paquet qu'elle importe (app/styles).
+const stylesDir = resolve(import.meta.dirname, "styles");
+const css = [resolve(import.meta.dirname, "globals.css"), ...readdirSync(stylesDir).filter((name) => name.endsWith(".css")).map((name) => resolve(stylesDir, name))]
+  .map((file) => readFileSync(file, "utf8"))
+  .join("\n");
 
 type Tree = { [key: string]: string | Tree };
 

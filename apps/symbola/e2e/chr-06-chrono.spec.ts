@@ -51,52 +51,55 @@ test("CHR-06 — durées calculées, durée saisie, responsable proposé ; déca
   await openEventTab(page, "Programme");
 
   // Les durées et les heures de fin se calculent seules.
-  const list = page.getByRole("list", { name: "Programme du jour J" });
-  const row = (label: string) => list.getByRole("listitem").filter({ hasText: label });
-  await expect(row("Cérémonie laïque")).toContainText("15:30 – 16:15 · 45 min");
+  // Lot 62c (UX-13) : une ligne par séquence ; « début fin durée » se lit dans ses trois premières cases.
+  const list = page.getByRole("table", { name: "Programme du jour J" });
+  const row = (label: string) => list.getByRole("row").filter({ has: page.locator("strong", { hasText: new RegExp(`^${label}$`) }) });
+  const times = async (label: string) => (await row(label).locator(".program-start, .program-end, .program-duration").allTextContents()).filter(Boolean).join(" ");
+  await expect.poll(() => times("Cérémonie laïque")).toBe("15:30 16:15 45 min");
   await expect(row("Cérémonie laïque")).toContainText("Responsable : Camille");
-  await expect(row("Cocktail")).toContainText("17:00 – 19:00 · 2 h");
-  await expect(row("Dîner")).toContainText("19:00 – 22:00 · 3 h");
-  await expect(row("Soirée dansante")).toContainText("22:00");
-  await expect(row("Soirée dansante").locator(".program-time")).toHaveText("22:00");
+  await expect.poll(() => times("Cocktail")).toBe("17:00 19:00 2 h");
+  await expect.poll(() => times("Dîner")).toBe("19:00 22:00 3 h");
+  await expect.poll(() => times("Soirée dansante")).toBe("22:00");
 
   // À la saisie, la durée donne l'heure de fin ; le responsable se propose.
-  const form = page.locator("form").filter({ has: page.getByRole("group", { name: "Nouvelle ligne du programme" }) });
-  await form.getByLabel("Heure de début").fill("12:00");
-  await form.getByLabel("Intitulé de la ligne").fill("Déjeuner de l'équipe");
-  await form.getByLabel("Durée en minutes (facultative)").fill("45");
-  await expect(form.getByLabel("Heure de fin (facultative)")).toHaveValue("12:45");
+  await page.getByRole("button", { name: "Ajouter une séquence" }).click();
+  const form = page.getByRole("group", { name: "Modifier la ligne Nouvelle séquence" });
+  await form.getByLabel("Début", { exact: true }).fill("12:00");
+  await form.getByLabel("Séquence", { exact: true }).fill("Déjeuner de l'équipe");
+  await form.getByLabel("Durée (min)").fill("45");
+  await expect(form.getByLabel("Fin", { exact: true })).toHaveValue("12:45");
   await expect(page.locator("#program-responsible-options option")).toHaveCount(2);
   await form.getByLabel("Responsable (facultatif)").fill("Camille");
-  await form.getByRole("button", { name: "Ajouter la ligne" }).click();
-  await expect(row("Déjeuner de l'équipe")).toContainText("12:00 – 12:45 · 45 min");
+  await page.getByRole("button", { name: "Enregistrer le programme" }).click();
+  await expect(page.getByText("Programme enregistré : 1 ligne.")).toBeVisible();
+  await expect.poll(() => times("Déjeuner de l'équipe")).toBe("12:00 12:45 45 min");
   await expect(row("Déjeuner de l'équipe")).toContainText("Responsable : Camille");
 
   // La cérémonie commence 20 min plus tard : la durée suit, puis la fiche propose de
   // décaler les trois séquences suivantes (pas le déjeuner, qui la précède).
-  await row("Cérémonie laïque").locator("summary").click();
-  const edit = row("Cérémonie laïque").locator("details[open] form");
-  await edit.getByLabel("Heure de début").fill("15:50");
-  await expect(edit.getByLabel("Heure de fin (facultative)")).toHaveValue("16:35");
-  await edit.getByRole("button", { name: "Enregistrer la ligne" }).click();
+  await page.getByRole("button", { name: "Modifier la ligne Cérémonie laïque" }).click();
+  const edit = page.getByRole("group", { name: "Modifier la ligne Cérémonie laïque" });
+  await edit.getByLabel("Début", { exact: true }).fill("15:50");
+  await expect(edit.getByLabel("Fin", { exact: true })).toHaveValue("16:35");
+  await page.getByRole("button", { name: "Enregistrer le programme" }).click();
   const proposal = page.getByRole("button", { name: "Décaler aussi les 3 séquences suivantes de 20 min" });
   await expect(proposal).toBeVisible();
-  await expect(row("Cérémonie laïque")).toContainText("15:50 – 16:35 · 45 min");
+  await expect.poll(() => times("Cérémonie laïque")).toBe("15:50 16:35 45 min");
   await expectNoAxeViolation(page);
 
   await proposal.click();
   await expect(page.getByRole("status").filter({ hasText: "Les 3 séquences suivantes sont décalées de 20 min." })).toBeVisible();
-  await expect(row("Cocktail")).toContainText("17:20 – 19:20 · 2 h");
-  await expect(row("Soirée dansante").locator(".program-time")).toHaveText("22:20");
-  await expect(row("Déjeuner de l'équipe")).toContainText("12:00 – 12:45");
+  await expect.poll(() => times("Cocktail")).toBe("17:20 19:20 2 h");
+  await expect.poll(() => times("Soirée dansante")).toBe("22:20");
+  await expect.poll(() => times("Déjeuner de l'équipe")).toBe("12:00 12:45 45 min");
   expect(new URL(page.url()).searchParams.get("decalage")).toBeNull();
 
   // « Annuler » pendant dix secondes : les séquences reprennent leurs heures.
   await page.getByRole("button", { name: /^Annuler \(\d+ s\)$/ }).click();
   await expect(page.getByRole("status").filter({ hasText: "Décalage annulé" })).toBeVisible();
-  await expect(row("Cocktail")).toContainText("17:00 – 19:00 · 2 h");
-  await expect(row("Soirée dansante").locator(".program-time")).toHaveText("22:00");
-  await expect(row("Cérémonie laïque")).toContainText("15:50 – 16:35");
+  await expect.poll(() => times("Cocktail")).toBe("17:00 19:00 2 h");
+  await expect.poll(() => times("Soirée dansante")).toBe("22:00");
+  await expect.poll(() => times("Cérémonie laïque")).toBe("15:50 16:35 45 min");
   await expectNoAxeViolation(page);
 
   // Rechargée, la fiche ne repropose rien.
@@ -110,18 +113,19 @@ test("UX-07 — sans annulation, « Annuler » disparaît après dix secondes et
   await login(page, setup.email);
   await page.goto(`/events/${setup.eventId}`);
   await openEventTab(page, "Programme");
-  const list = page.getByRole("list", { name: "Programme du jour J" });
-  const row = (label: string) => list.getByRole("listitem").filter({ hasText: label });
+  const list = page.getByRole("table", { name: "Programme du jour J" });
+  const row = (label: string) => list.getByRole("row").filter({ has: page.locator("strong", { hasText: new RegExp(`^${label}$`) }) });
+  const times = async (label: string) => (await row(label).locator(".program-start, .program-end, .program-duration").allTextContents()).filter(Boolean).join(" ");
 
-  await row("Cocktail").locator("summary").click();
-  const edit = row("Cocktail").locator("details[open] form");
-  await edit.getByLabel("Heure de début").fill("16:45");
-  await edit.getByRole("button", { name: "Enregistrer la ligne" }).click();
+  await page.getByRole("button", { name: "Modifier la ligne Cocktail" }).click();
+  const edit = page.getByRole("group", { name: "Modifier la ligne Cocktail" });
+  await edit.getByLabel("Début", { exact: true }).fill("16:45");
+  await page.getByRole("button", { name: "Enregistrer le programme" }).click();
   await page.getByRole("button", { name: "Avancer aussi les 2 séquences suivantes de 15 min" }).click();
-  await expect(row("Dîner")).toContainText("18:45 – 21:45 · 3 h");
+  await expect.poll(() => times("Dîner")).toBe("18:45 21:45 3 h");
   const undo = page.getByRole("button", { name: /^Annuler \(\d+ s\)$/ });
   await expect(undo).toBeVisible();
   await expect(undo).toHaveCount(0, { timeout: 15_000 });
   await expect(page.getByRole("status").filter({ hasText: "Les 2 séquences suivantes sont avancées de 15 min." })).toBeVisible();
-  await expect(row("Dîner")).toContainText("18:45");
+  await expect.poll(() => times("Dîner")).toBe("18:45 21:45 3 h");
 });

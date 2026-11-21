@@ -3,6 +3,7 @@
 import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
+import { z } from "zod";
 import { BUDGET_AMOUNT_FIELDS, type BudgetAmountField } from "@symbola/contracts";
 import { parseAmountToCents } from "@symbola/i18n";
 import {
@@ -22,7 +23,6 @@ import {
   confirmVendorPaymentDeclaration,
   refuseVendorPaymentDeclaration,
   VendorPaymentDeclarationError,
-  updateBudgetLineDetails,
   setEventAlertThreshold,
   AllocationModelNotFoundError,
   BudgetSimulationMismatchError,
@@ -30,7 +30,10 @@ import {
   EventBudgetNotFoundError,
   EventNotFoundError,
   EventVendorSlotNotFoundError,
-  adjustEventBudgetItem,
+  adjustEventBudgetItems,
+  saveBudgetLines,
+  BudgetBatchLineError,
+  BUDGET_BATCH_MAX_LINES,
   confirmEventBudget,
   simulateEventBudget,
   updateBudgetLine,
@@ -46,14 +49,6 @@ async function authorizedOrganizationId(): Promise<string | null> {
   if (auth.status !== "authenticated" || !auth.user.organizationId) return null;
   if (!(await isBudgetModuleEnabled(auth.user.organizationId))) return null;
   return auth.user.organizationId;
-}
-
-// Montant saisi en euros (« 2 929,50 », « 2929.50 ») vers des centimes, sans
-// calcul à virgule flottante (CLAUDE.md §5). Un champ vide vaut 0 €, comme
-// avant ; une saisie illisible rend undefined.
-function amountCentsFrom(formData: FormData): number | undefined {
-  const cents = parseAmountToCents(String(formData.get("amount") ?? ""));
-  return cents === null ? 0 : cents;
 }
 
 export async function simulateEventBudgetAction(
@@ -178,36 +173,41 @@ export async function setEventAlertThresholdAction(_prevState: BudgetFormState, 
   return { success: true };
 }
 
-export async function adjustEventBudgetItemAction(
-  _prevState: BudgetFormState,
-  formData: FormData,
-): Promise<BudgetFormState> {
+// Lot 62c (UX-13, décision D1) — « Enregistrer la répartition » : tous les postes modifiés de la
+// simulation partent ensemble, dans une seule transaction. Un champ vide vaut 0 €, comme avant ;
+// une saisie illisible refuse tout l'envoi et dit son poste. Entrées validées par Zod (SEC-18).
+const adjustItemsSchema = z.object({
+  eventId: z.string().refine(isValidId),
+  items: z
+    .array(z.object({ defaultVendorSlotId: z.string().refine(isValidId), amount: z.string().max(40) }))
+    .min(1)
+    .max(200),
+});
+
+export type BudgetBatchState = { ok: true; count: number } | { ok: false; error: string; line?: string };
+
+export async function adjustEventBudgetItemsAction(input: z.input<typeof adjustItemsSchema>): Promise<BudgetBatchState> {
   const t = await getTranslations("Budget");
   const organizationId = await authorizedOrganizationId();
-  if (!organizationId) return { error: t("unauthenticated") };
-
-  const eventId = String(formData.get("eventId") ?? "");
-  const defaultVendorSlotId = String(formData.get("defaultVendorSlotId") ?? "");
-  const amountCents = amountCentsFrom(formData);
-
-  if (amountCents === undefined) return { error: t("invalidAmount") };
-
+  if (!organizationId) return { ok: false, error: t("unauthenticated") };
+  const parsed = adjustItemsSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: t("batchInvalid") };
+  const items: { defaultVendorSlotId: string; amountCents: number }[] = [];
+  for (const item of parsed.data.items) {
+    const cents = parseAmountToCents(item.amount);
+    if (cents === undefined || (cents !== null && cents < 0)) return { ok: false, error: t("invalidAmount"), line: item.defaultVendorSlotId };
+    items.push({ defaultVendorSlotId: item.defaultVendorSlotId, amountCents: cents ?? 0 });
+  }
   try {
-    await adjustEventBudgetItem({
-      organizationId,
-      eventId,
-      defaultVendorSlotId,
-      amountCents,
-    });
+    await adjustEventBudgetItems({ organizationId, eventId: parsed.data.eventId, items });
   } catch (error) {
-    if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
-    if (error instanceof EventBudgetNotFoundError) return { error: t("noSimulationYet") };
-    if (error instanceof DefaultVendorSlotNotFoundError) return { error: t("unknownVendorSlot") };
+    if (error instanceof EventNotFoundError) return { ok: false, error: t("eventNotFound") };
+    if (error instanceof EventBudgetNotFoundError) return { ok: false, error: t("noSimulationYet") };
+    if (error instanceof DefaultVendorSlotNotFoundError || error instanceof RangeError) return { ok: false, error: t("unknownVendorSlot") };
     throw error;
   }
-
-  revalidatePath(`/budget/${eventId}`);
-  return {};
+  revalidatePath(`/budget/${parsed.data.eventId}`);
+  return { ok: true, count: items.length };
 }
 
 // —— Lot 28b (BUD-01, Q33) : lignes d'une catégorie ————————————————————————
@@ -254,31 +254,60 @@ export async function addBudgetLineAction(_prevState: BudgetFormState, formData:
   return { success: true };
 }
 
-export async function updateBudgetLineDetailsAction(_prevState: BudgetFormState, formData: FormData): Promise<BudgetFormState> {
+// Lot 62c (UX-13, décision D1) — « Enregistrer le budget » : libellé, prestataire, taux de TVA et
+// montants de toutes les lignes modifiées, dans une seule transaction. Rien n'est écrit si une
+// ligne est refusée, et l'écran apprend laquelle pour l'ouvrir. Un montant laissé vide n'est pas
+// écrit (comme avant) ; les montants se lisent sans calcul à virgule flottante.
+const saveLinesSchema = z.object({
+  eventId: z.string().refine(isValidId),
+  lines: z
+    .array(
+      z.object({
+        lineId: z.string().refine(isValidId),
+        label: z.string().max(300),
+        vendorCandidateId: z.string().refine(isValidId).nullable(),
+        vatRate: z.string().max(20),
+        amounts: z.partialRecord(z.enum(BUDGET_AMOUNT_FIELDS), z.string().max(40)),
+      }),
+    )
+    .min(1)
+    .max(BUDGET_BATCH_MAX_LINES),
+});
+
+export async function saveBudgetLinesAction(input: z.input<typeof saveLinesSchema>): Promise<BudgetBatchState> {
   const t = await getTranslations("Budget");
   const access = await plannerAccess();
-  if (!access) return { error: t("unauthenticated") };
-  const eventId = String(formData.get("eventId") ?? "");
-  const lineId = String(formData.get("lineId") ?? "");
-  if (!isValidId(eventId) || !isValidId(lineId)) return { error: t("unknownVendorSlot") };
-  const vendorCandidateId = candidateFrom(formData);
-  // Lot 28c (BUD-09) : taux saisi comme au catalogue (« 20 », « 5,5 »).
-  const vatRateBasisPoints = formData.has("vatRate") ? parseDecimal(String(formData.get("vatRate") ?? ""), 2) : undefined;
-  if (vatRateBasisPoints === null || (vatRateBasisPoints !== undefined && vatRateBasisPoints > 10000)) return { error: t("lineVatRateInvalid") };
+  if (!access) return { ok: false, error: t("unauthenticated") };
+  const parsed = saveLinesSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: t("batchInvalid") };
+  const { eventId } = parsed.data;
+  const lines = [];
+  for (const line of parsed.data.lines) {
+    // Lot 28c (BUD-09) : taux saisi comme au catalogue (« 20 », « 5,5 »).
+    const vatRateBasisPoints = parseDecimal(line.vatRate, 2);
+    if (vatRateBasisPoints === null || vatRateBasisPoints > 10000) return { ok: false, error: t("lineVatRateInvalid"), line: line.lineId };
+    const amounts: { field: BudgetAmountField; amountCents: number }[] = [];
+    for (const field of BUDGET_AMOUNT_FIELDS) {
+      const raw = (line.amounts[field] ?? "").trim();
+      if (raw === "") continue;
+      const amountCents = parseAmountToCents(raw);
+      if (amountCents === null || amountCents === undefined || amountCents < 0) return { ok: false, error: t("invalidAmount"), line: line.lineId };
+      amounts.push({ field, amountCents });
+    }
+    lines.push({ lineId: line.lineId, label: line.label, vendorCandidateId: line.vendorCandidateId, vatRateBasisPoints, amounts });
+  }
   try {
-    await updateBudgetLineDetails({
-      organizationId: access.organizationId,
-      eventId,
-      lineId,
-      label: String(formData.get("label") ?? ""),
-      ...(vendorCandidateId !== undefined ? { vendorCandidateId } : {}),
-      ...(vatRateBasisPoints !== undefined ? { vatRateBasisPoints } : {}),
-    });
+    await saveBudgetLines({ organizationId: access.organizationId, eventId, changedByUserId: access.userId, lines });
   } catch (error) {
-    return lineDetailsError(t, error);
+    const reason = error instanceof BudgetBatchLineError ? error.reason : error;
+    const line = error instanceof BudgetBatchLineError ? { line: error.lineId } : {};
+    if (reason instanceof BudgetLinePaidFromPaymentsError) return { ok: false, error: t("paidFromPayments"), ...line };
+    if (reason instanceof RangeError) return { ok: false, error: t("invalidAmount"), ...line };
+    const state = lineDetailsError(t, reason);
+    return { ok: false, error: state.error ?? t("batchInvalid"), ...line };
   }
   refresh(eventId);
-  return { success: true };
+  return { ok: true, count: lines.length };
 }
 
 export async function removeBudgetLineAction(formData: FormData): Promise<void> {
