@@ -7,7 +7,7 @@
 // - sinon, elle va dans le dossier de son type (créé s'il manque, nom tiré du fichier de données),
 //   ou, pour « autre », dans le dossier choisi ou « Divers ».
 // Chaque module garde ses pièces (ARC-01) : l'app passe par leurs service.ts.
-import { addBudgetLine, attachBudgetLineQuote, listBudgetLines } from "@/modules/budget/service";
+import { addBudgetLine, attachBudgetLineQuote, listBudgetLines, updateBudgetLineDetails } from "@/modules/budget/service";
 import { attachEventDocument, ensureTypedDocumentFolder, EventNotFoundError, listEventVendorSlots, listVendorCandidates } from "@/modules/events/service";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 
@@ -47,6 +47,8 @@ export async function depositTypedDocument(input: {
       line = lines.find((entry) => entry.vendorCandidateId === candidate.id);
       if (!line) throw new EventNotFoundError();
     }
+    // La ligne du poste sans prestataire prend celui de la pièce : son nom s'affiche sur la ligne.
+    if (line.vendorCandidateId === null) await updateBudgetLineDetails({ organizationId, eventId, lineId: line.id, vendorCandidateId: candidate.id });
     await attachBudgetLineQuote({ organizationId, eventId, lineId: line.id, kind: BUDGET_KIND[input.kind], content: input.content, uploadedByUserId: input.userId });
     return { destination: "budget_line", lineId: line.id, lineLabel: line.label };
   }

@@ -12,9 +12,9 @@ import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
 import { BudgetLineIcon } from "@/app/budget-line-icon";
-import { Payments } from "@/app/budget/[eventId]/budget-lines-table";
+import { setVendorPaymentPaidAction } from "@/app/budget/[eventId]/actions";
 import { BudgetLineDialog } from "./budget-line-dialog";
-import { signedAmount, type BudgetVendorRow, type BudgetVendorTotals } from "./budget-vendor-rows";
+import { signedAmount, type BudgetVendorRow, type BudgetVendorTotals, type RowPayment } from "./budget-vendor-rows";
 import { VendorChoice } from "./vendor-choice";
 
 const COLUMNS = 8;
@@ -164,9 +164,14 @@ export function BudgetVendorsTable({
                       <td colSpan={COLUMNS}>
                         <section id={scheduleId} aria-label={t("scheduleOf", { slot: row.label })} className="stack">
                           {row.lines.length === 0 ? <p className="meta">{t("scheduleNeedsLine")}</p> : null}
-                          {row.lines.map((line) => (
-                            <Payments key={line.id} eventId={eventId} line={line} locale={locale} />
-                          ))}
+                          {row.lines.length > 0 && row.payments.length === 0 ? <p className="meta">{t("scheduleEmpty")}</p> : null}
+                          {row.payments.length > 0 ? <ScheduleList eventId={eventId} payments={row.payments} showLine={row.lines.length > 1} locale={locale} /> : null}
+                          {row.lines.length > 0 ? (
+                            <button type="button" className="link-button" onClick={() => setEditing(index)} aria-haspopup="dialog">
+                              {t("addPayment")}
+                              <span className="sr-only"> {t("chooseFor", { slot: row.label })}</span>
+                            </button>
+                          ) : null}
                         </section>
                       </td>
                     </tr>
@@ -226,3 +231,41 @@ export function BudgetVendorsTable({
     </div>
   );
 }
+
+// L'échéancier d'un poste, déplié sous sa ligne : chaque échéance, sa date et « Marquer payée » (à la
+// date du jour) ; le reste (montant, payeur, remise le jour J) se règle dans la fenêtre.
+function ScheduleList({ eventId, payments, showLine, locale }: { eventId: string; payments: RowPayment[]; showLine: boolean; locale: Locale }) {
+  const t = useTranslations("BudgetVendors");
+  const tBudget = useTranslations("Budget");
+  const today = new Date().toISOString().slice(0, 10);
+  return (
+    <ul className="item-list budget-schedule">
+      {payments.map((payment) => (
+        <li key={payment.id}>
+          <span>
+            <strong>{payment.label}</strong>
+            {showLine ? <span className="meta"> · {payment.lineLabel}</span> : null} — {formatAmount(payment.amountCents, locale)}
+            {payment.percentageBasisPoints !== null ? ` (${tBudget("paymentPercent", { percent: payment.percentageBasisPoints / 100 })})` : ""}
+          </span>
+          {payment.status === "paid" ? (
+            <span className="badge badge-sauge">{tBudget("paymentPaid", { date: formatCalendarDate(payment.paidOn!, locale) })}</span>
+          ) : (
+            <span className="row-wrap">
+              <span className={payment.late ? "text-overdue" : undefined}>{tBudget(payment.late ? "paymentOverdue" : "paymentDue", { date: formatCalendarDate(payment.dueOn, locale) })}</span>
+              <form action={setVendorPaymentPaidAction} className="inline-form">
+                <input type="hidden" name="eventId" value={eventId} />
+                <input type="hidden" name="paymentId" value={payment.id} />
+                <input type="hidden" name="paidOn" value={today} />
+                <button type="submit" className="button-secondary">
+                  {t("markPaid")}
+                  <span className="sr-only"> {payment.label}</span>
+                </button>
+              </form>
+            </span>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+

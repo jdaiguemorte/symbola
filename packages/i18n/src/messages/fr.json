@@ -623,7 +623,7 @@
     },
     "eventsList": {
       "title": "Liste des événements",
-      "body": "Tous vos prospects et événements en cours ; « Terminés » garde ceux clôturés ou annulés. « Liste » ou « Calendrier » : le tableau filtrable, ou les mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues. Commencez par « Nouveau prospect », ou filtrez la liste par nom, statut, source ou année. Pour découvrir le module sans risque, lancez l'essai guidé ci-dessous.",
+      "body": "Tous vos prospects et événements en cours ; « Terminés » garde ceux clôturés ou annulés. « Liste », « Colonnes » ou « Calendrier », toujours au même endroit : le tableau filtrable, les options rangées par étape, ou les mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues. Commencez par « Nouveau » (prospect, évènement confirmé ou client existant), ou filtrez la liste par nom, statut, source ou année. Pour découvrir le module sans risque, lancez l'essai guidé ci-dessous.",
       "faq": [
         {
           "q": "Où retrouver un événement passé ?",
@@ -640,8 +640,8 @@
       ]
     },
     "eventsNew": {
-      "title": "Nouveau prospect",
-      "body": "Un prénom de marié et la source du contact suffisent pour créer le prospect ; la date, le lieu et le budget se complètent plus tard. Un client déjà connu se choisit par la recherche : son nom et ses coordonnées ne sont pas ressaisis. Si la date tombe le même jour qu'un autre évènement confirmé ou en option, Symbola le signale avant l'enregistrement, sans l'empêcher. Depuis l'agenda, une date libre ouvre ce formulaire avec la date déjà remplie.",
+      "title": "Créer un évènement",
+      "body": "« Nouveau » propose trois choix. Un prospect : un prénom de marié et la source du contact suffisent ; la date, le lieu et le budget se complètent plus tard. Un évènement confirmé : le type et la date suffisent, le client est facultatif (un shooting photo). Pour un client existant : choisissez-le par la recherche, son nom et ses coordonnées ne sont pas ressaisis. Si le type a un modèle de rétroplanning, le formulaire le propose (case cochée pour un évènement confirmé) ; sinon, une astuce permet d'en créer un sans quitter le formulaire. Si la date tombe le même jour qu'un autre évènement confirmé ou en option, Symbola le signale avant l'enregistrement, sans l'empêcher.",
       "faq": [
         {
           "q": "Quelle différence entre prospect et événement ?",
@@ -753,7 +753,7 @@
     },
     "budgetDetail": {
       "title": "Budget de l'événement",
-      "body": "Chaque poste de l'événement est une catégorie ; elle porte des lignes (« Dîner, 120 couverts », « Vin d'honneur »…), chacune avec son prestataire et cinq montants : l'estimé, le réel (le montant du devis), l'engagé (rempli quand vous retenez le prestataire), le payé et le reste à payer, calculé. « Modifier » ouvre une ligne sur place : changez son libellé, son prestataire, son taux et ses montants, sur autant de lignes que vous voulez, puis « Enregistrer le budget » les écrit ensemble ; « Annuler les modifications » rend le budget enregistré. La simulation et sa répartition par poste se replient une fois les lignes posées ; la répartition s'enregistre de même, d'un seul « Enregistrer la répartition ». Sous chaque ligne, joignez le devis, le contrat ou la facture, et posez les échéances (acompte, solde ; un pourcentage porte sur l'engagé du prestataire) : payées, elles font le payé de la ligne, et les prochaines apparaissent dans « Aujourd'hui ». L'enveloppe est le budget souhaité du client ; au-delà du seuil d'alerte, un bandeau le signale, et retenir un prestataire demande une confirmation. Les montants se saisissent TTC, chaque ligne avec son taux de TVA (20 % par défaut) ; si le devis de l'événement est à un client professionnel, le HT s'affiche sous chaque montant. « Exporter en XLSX » ou « en PDF » reprend le budget et les échéances, aux couleurs de vos documents.",
+      "body": "Le suivi courant du budget est dans l'onglet « Budget et prestataires » de la fiche : par poste, prévu, réel, écart, réglé, reste à payer et prochaine échéance ; la ligne se déplie sur son échéancier et « Modifier » ouvre la ligne dans une fenêtre. Cette page en garde le détail. Chaque poste de l'événement est une catégorie ; elle porte des lignes (« Dîner, 120 couverts », « Vin d'honneur »…), chacune avec son prestataire et cinq montants : l'estimé, le devisé, l'engagé (rempli quand vous retenez le prestataire), le payé et le reste à payer, calculé. « Modifier » ouvre une ligne sur place : changez son libellé, son prestataire, son taux et ses montants, sur autant de lignes que vous voulez, puis « Enregistrer le budget » les écrit ensemble ; « Annuler les modifications » rend le budget enregistré. La simulation et sa répartition par poste se replient une fois les lignes posées ; la répartition s'enregistre de même, d'un seul « Enregistrer la répartition ». Sous chaque ligne, joignez le devis, le contrat ou la facture, et posez les échéances (acompte, solde ; un pourcentage porte sur l'engagé du prestataire) : payées, elles font le payé de la ligne, et les prochaines apparaissent dans « Aujourd'hui ». L'enveloppe est le budget souhaité du client ; au-delà du seuil d'alerte, un bandeau le signale, et retenir un prestataire demande une confirmation. Les montants se saisissent TTC, chaque ligne avec son taux de TVA (20 % par défaut) ; si le devis de l'événement est à un client professionnel, le HT s'affiche sous chaque montant. « Exporter en XLSX » ou « en PDF » reprend le budget et les échéances, aux couleurs de vos documents.",
       "faq": [
         {
           "q": "Les mariés voient-ils le budget ?",
@@ -2351,7 +2351,7 @@
     "templateProposalHint": "Les tâches sont datées depuis la date de l'évènement. Vous pourrez aussi l'appliquer plus tard, depuis l'onglet Rétroplanning.",
     "templateProposalNeedsDate": "Indiquez la date pour partir du rétroplanning : ses tâches en dépendent. Sinon, appliquez-le plus tard depuis l'onglet Rétroplanning.",
     "templateProposalShow": "Voir les tâches",
-    "templateTip": "Astuce : vous organisez souvent des « {type} » ? Créez un modèle de rétroplanning : vos tâches habituelles seront prêtes à chaque nouvel évènement de ce type, sans les saisir à nouveau.",
+    "templateTip": "Astuce : « {type} » n'a pas encore de modèle de rétroplanning. Vous en organisez souvent ? Créez-en un : vos tâches habituelles seront prêtes à chaque nouvel évènement de ce type, sans les saisir à nouveau.",
     "templateTipCreate": "Créer un modèle pour « {type} »",
     "quickTemplateIntro": "Le modèle est rattaché à ce type : il sera proposé à chaque nouvel évènement. Vous réglerez le détail (responsable, tâches après la date) dans les modèles de rétroplanning.",
     "quickTemplateTasks": "Tâches habituelles",
@@ -11911,6 +11911,9 @@
     "newVendorSave": "Créer et retenir",
     "unauthorized": "Action réservée à l'équipe, avec les modules Évènements et Prestataires.",
     "notFound": "Ce poste ou ce prestataire n'existe pas, ou plus.",
-    "newVendorInvalid": "Vérifiez le nom et l'adresse e-mail."
+    "newVendorInvalid": "Vérifiez le nom et l'adresse e-mail.",
+    "scheduleEmpty": "Aucune échéance pour ce poste.",
+    "addPayment": "+ Ajouter une échéance",
+    "markPaid": "Marquer payée"
   }
 }

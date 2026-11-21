@@ -229,9 +229,10 @@ export default async function EventDetailPage({
     (candidate) => candidate.id === event.prospectSourceId,
   )?.label;
 
+  // Lot 63c (EVT-01, Q43) : un évènement sans client (un shooting photo) prend le nom de son type.
   const clientNames = event.clients.length
     ? event.clients.map((client) => client.firstName).join(" & ")
-    : t("noClient");
+    : (eventTypes.find((type) => type.id === event.eventTypeId)?.label ?? t("noClient"));
 
   // PRD-BUD-01/02 : « quand l'événement passe en Confirmé, l'app propose
   // d'en faire le budget prévu » — seulement si une simulation existe et

@@ -623,7 +623,7 @@
     },
     "eventsList": {
       "title": "Event list",
-      "body": "All your prospects and ongoing events; « Finished » keeps those closed or cancelled. « List » or « Calendar »: the filterable table, or the coming months. Below, the workload over the next twelve months; two events on the same day are flagged in both views. Start with « New prospect », or filter the list by name, status, source or year. To try the module safely, start the guided trial below.",
+      "body": "All your prospects and ongoing events; « Finished » keeps those closed or cancelled. « List », « Columns » or « Calendar », always in the same place: the filterable table, options by stage, or the coming months. Below, the workload over the next twelve months; two events on the same day are flagged in both views. Start with « New » (prospect, confirmed event or existing client), or filter the list by name, status, source or year. To try the module safely, start the guided trial below.",
       "faq": [
         {
           "q": "Where do I find a past event?",
@@ -640,8 +640,8 @@
       ]
     },
     "eventsNew": {
-      "title": "New prospect",
-      "body": "A partner's first name and the contact source are enough to create the prospect; date, venue and budget can be filled in later. A client you already know is picked from the search: their name and details are not typed again. If the date falls on the same day as another confirmed or optional event, Symbola flags it before saving, without blocking. From the calendar, a free date opens this form with the date already set.",
+      "title": "Create an event",
+      "body": "“New” offers three choices. A prospect: a partner's first name and the contact source are enough; date, venue and budget can be filled in later. A confirmed event: type and date are enough, the client is optional (a photo shoot). For an existing client: pick them from the search, their name and details are not typed again. If the type has a retroplanning template, the form offers it (ticked for a confirmed event); otherwise a tip lets you create one without leaving the form. If the date falls on the same day as another confirmed or optional event, Symbola flags it before saving, without blocking.",
       "faq": [
         {
           "q": "What is the difference between a prospect and an event?",
@@ -753,7 +753,7 @@
     },
     "budgetDetail": {
       "title": "Event budget",
-      "body": "Each event line is a category; it holds lines (“Dinner, 120 guests”, “Drinks reception”…), each with its vendor and five amounts: estimated, quoted, committed (filled in when you retain the vendor), paid, and left to pay, calculated. “Edit” opens a line in place: change its label, vendor, rate and amounts, on as many lines as you like, then “Save the budget” writes them together; “Discard changes” brings back the saved budget. The simulation and its allocation by category fold away once the lines are set; the allocation is saved the same way, with a single “Save the allocation”. Under each line, attach the quote, contract or invoice, and set the instalments (deposit, balance; a percentage applies to the vendor's committed amount): once paid, they make up the line's paid amount, and the next ones show in “Today”. The envelope is the client's wanted budget; above the alert threshold a banner says so, and retaining a vendor asks for confirmation. Amounts are entered including VAT, each line with its VAT rate (20% by default); if the event's quote is for a business client, the amount excluding VAT shows under each amount. “Export to XLSX” or “to PDF” gives the budget and instalments, in your documents' colours.",
+      "body": "Day-to-day budget follow-up is in the event's “Budget and vendors” tab: per item, planned, actual, variance, paid, left to pay and next instalment; the row unfolds onto its schedule and “Edit” opens the line in a window. This page keeps the detail. Each event line is a category; it holds lines (“Dinner, 120 guests”, “Drinks reception”…), each with its vendor and five amounts: estimated, quoted, committed (filled in when you retain the vendor), paid, and left to pay, calculated. “Edit” opens a line in place: change its label, vendor, rate and amounts, on as many lines as you like, then “Save the budget” writes them together; “Discard changes” brings back the saved budget. The simulation and its allocation by category fold away once the lines are set; the allocation is saved the same way, with a single “Save the allocation”. Under each line, attach the quote, contract or invoice, and set the instalments (deposit, balance; a percentage applies to the vendor's committed amount): once paid, they make up the line's paid amount, and the next ones show in “Today”. The envelope is the client's wanted budget; above the alert threshold a banner says so, and retaining a vendor asks for confirmation. Amounts are entered including VAT, each line with its VAT rate (20% by default); if the event's quote is for a business client, the amount excluding VAT shows under each amount. “Export to XLSX” or “to PDF” gives the budget and instalments, in your documents' colours.",
       "faq": [
         {
           "q": "Does the couple see the budget?",
@@ -2351,7 +2351,7 @@
     "templateProposalHint": "Tasks are dated from the event date. You can also apply it later, from the Retroplanning tab.",
     "templateProposalNeedsDate": "Enter the date to start from the retroplanning: its tasks depend on it. Otherwise, apply it later from the Retroplanning tab.",
     "templateProposalShow": "See the tasks",
-    "templateTip": "Tip: do you often organise “{type}” events? Create a retroplanning template: your usual tasks will be ready for every new event of this type, without typing them again.",
+    "templateTip": "Tip: “{type}” has no retroplanning template yet. Do you organise these often? Create one: your usual tasks will be ready for every new event of this type, without typing them again.",
     "templateTipCreate": "Create a template for “{type}”",
     "quickTemplateIntro": "The template is linked to this type: it will be offered for every new event. Fine-tune it (owner, tasks after the date) in the retroplanning templates.",
     "quickTemplateTasks": "Usual tasks",
@@ -11911,6 +11911,9 @@
     "newVendorSave": "Create and select",
     "unauthorized": "Team action, with the Events and Vendors modules.",
     "notFound": "This item or vendor does not exist, or no longer exists.",
-    "newVendorInvalid": "Check the name and email address."
+    "newVendorInvalid": "Check the name and email address.",
+    "scheduleEmpty": "No instalment for this item.",
+    "addPayment": "+ Add an instalment",
+    "markPaid": "Mark as paid"
   }
 }

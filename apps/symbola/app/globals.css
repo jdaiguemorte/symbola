@@ -5146,6 +5146,18 @@
   .list-table.budget-vendors tr.budget-engaged-total td {
     @apply text-label font-normal text-ink-muted;
   }
+  .budget-schedule > li {
+    @apply flex flex-wrap items-center justify-between gap-3;
+  }
+  /* Sur téléphone, le menu s'ouvre dans le flux de l'écran : il ne recouvre aucune autre cible. */
+  @media (width < 640px) {
+    .menu-button {
+      @apply flex-col;
+    }
+    .menu-popover {
+      @apply static mt-2 w-full shadow-none;
+    }
+  }
   .vendor-choice-popover {
     @apply left-0 right-auto gap-2 p-3;
   }

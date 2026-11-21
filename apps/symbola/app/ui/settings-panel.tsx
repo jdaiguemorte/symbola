@@ -24,7 +24,6 @@ export function SettingsPanel({ label, backLabel, fallbackHref, children }: { la
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function close() {

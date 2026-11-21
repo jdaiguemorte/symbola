@@ -552,6 +552,7 @@ function toEventSummary(event: EventRecord, clients: EventClientRow[]): EventSum
     venueCity: event.venueCity,
     clients: clients.map(toEventClient),
     isDemo: event.isDemo,
+    eventTypeId: event.eventTypeId,
     archivedAt: event.archivedAt?.toISOString() ?? null,
   };
 }

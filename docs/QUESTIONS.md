@@ -872,6 +872,16 @@ après la recette de la wedding planner.
    courte ou longue (rubriques à gauche, « Suivant » pour enchaîner) ; le panneau latéral pour
    les réglages d'un écran et la consultation rapide seulement. Écart avec UX-13 : ADR 0107.
 
+### Q43 — Lot 63c : un nom propre pour un évènement sans client ? (21 novembre 2026)
+
+EVT-01 dit « trois champs suffisent : nom, date, type ». Aujourd'hui, un évènement n'a pas de nom :
+il prend celui de ses clients (« Léa & Maxime »). Le paquet 63c rend le client **facultatif** pour un
+évènement confirmé (un shooting photo, retour #24) : un tel évènement s'affiche sous le nom de son
+type (« Shooting photo »), sans migration. Pour lui donner un vrai nom (« Shooting Roux », maquette
+M7), il faut une colonne `events.name` (schéma `events`, migration réversible) et la reprendre dans la
+liste, la fiche, l'agenda et les exports. **À trancher** : (a) garder le nom du type tant qu'il n'y a
+pas de client ; (b) ajouter le nom de l'évènement (migration, dans un paquet à part).
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que

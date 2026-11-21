@@ -6,6 +6,7 @@ import { formatCalendarDate, parisToday, type Locale } from "@symbola/i18n";
 import {
   getActiveEventsTrial,
   listEvents,
+  listEventTypes,
   listProspectSources,
   type EventStatus,
 } from "@/modules/events/service";
@@ -106,10 +107,13 @@ export default async function EventsListPage({
     (event) => event.id,
   );
 
+  // Lot 63c (EVT-01, Q43) : un évènement sans client (un shooting photo) prend le nom de son type.
+  const typeLabels = new Map((await listEventTypes(organizationId)).map((type) => [type.id, type.label]));
   function clientNames(
     clients: { firstName: string; lastName: string | null }[],
+    eventTypeId?: string | null,
   ): string {
-    if (clients.length === 0) return t("noClient");
+    if (clients.length === 0) return (eventTypeId ? typeLabels.get(eventTypeId) : undefined) ?? t("noClient");
     return clients.map((client) => client.firstName).join(" & ");
   }
 
@@ -215,7 +219,7 @@ export default async function EventsListPage({
             {items.map((item) => (
               <ListRow key={item.id} href={`/events/${item.id}`}>
                 <th scope="row">
-                  <Link href={`/events/${item.id}`}>{clientNames(item.clients)}</Link>
+                  <Link href={`/events/${item.id}`}>{clientNames(item.clients, item.eventTypeId)}</Link>
                   {item.isDemo ? <span className="badge">{t("demoTag")}</span> : null}
                 </th>
                 <td className="num">

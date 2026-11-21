@@ -60,6 +60,8 @@ export type EventSummary = {
   clients: EventClient[];
   // AIDE-02 : événement fictif d'un essai guidé.
   isDemo: boolean;
+  // Lot 63c (EVT-01) : son type, dont le nom tient lieu de nom pour un évènement sans client (Q43).
+  eventTypeId?: string | null;
   // Lot 58 (PAR-09 ; ADR 0097) : archivé (lecture seule, hors des listes courantes) ; absent : non archivé.
   archivedAt?: string | null;
 };

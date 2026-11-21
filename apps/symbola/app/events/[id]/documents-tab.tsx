@@ -80,8 +80,9 @@ export async function DocumentsTab({ eventId, organizationId, locale, documents,
         documents: typed.folderId ? documents.filter((document) => document.folderId === typed.folderId) : [],
         pieces: budgetPieces.filter((piece) => piece.attachment.kind === typed.kind),
       }))
-      // Un dossier typé supprimé par l'équipe ne revient que s'il a des pièces de ligne.
-      .filter((group) => !group.target.virtual || group.pieces.length > 0),
+      // Avec le module Budget, les trois dossiers typés se montrent toujours (M8) : une pièce de ligne
+      // peut y aller même si l'équipe n'a pas (ou plus) le dossier ; sans lui, seulement ceux de l'équipe.
+      .filter((group) => !group.target.virtual || budgetEnabled),
     ...folders
       .filter((folder) => !typedFolderIds.has(folder.id))
       .map((folder) => ({ target: { key: folder.id, name: folder.name, folderId: folder.id, budgetKind: null, virtual: false }, folder, documents: documents.filter((document) => document.folderId === folder.id), pieces: [] })),
