@@ -52,8 +52,19 @@ const WEDDING = [
   { label: "Plan de table", offsetDays: -14, responsible: "clients" as const },
 ];
 
-async function wedding(organizationId: string, eventDate: string | null, options: { eventTypeId?: string; applyTemplate?: boolean } = {}) {
+// Lot 63a : seul le modèle du type de l'évènement s'applique. Le mariage a donc son type, auquel le
+// modèle est rattaché (comme le fait le kit de départ, lib/setup/starter-kit.ts).
+const weddingTypes = new Map<string, string>();
+
+async function weddingTemplate(organizationId: string, name = "Mariage — 12 mois") {
+  const type = await createEventType(organizationId, { label: "Mariage", audience: "couple" });
+  weddingTypes.set(organizationId, type.id);
+  return createTaskTemplate(organizationId, name, WEDDING, type.id);
+}
+
+async function wedding(organizationId: string, eventDate: string | null, options: { eventTypeId?: string | null; applyTemplate?: boolean } = {}) {
   const source = await createProspectSource(organizationId, "Salon");
+  const eventTypeId = options.eventTypeId === undefined ? weddingTypes.get(organizationId) : (options.eventTypeId ?? undefined);
   return (
     await createProspect({
       organizationId,
@@ -64,7 +75,8 @@ async function wedding(organizationId: string, eventDate: string | null, options
         { firstName: "Hugo", lastName: null },
       ],
       eventDate,
-      ...options,
+      ...(eventTypeId ? { eventTypeId } : {}),
+      ...(options.applyTemplate === undefined ? {} : { applyTemplate: options.applyTemplate }),
     })
   ).id;
 }
@@ -88,10 +100,10 @@ async function statusChanges(organizationId: string, eventId: string) {
   });
 }
 
-describe("EVT-01 — Le rétroplanning du type naît avec l'évènement, Option comprise (D8)", () => {
-  it("le modèle du type s'applique à la création ; sans modèle du type, le premier créé ; l'évènement reste en Option", async () => {
+describe("EVT-01, CHR-01 — Le rétroplanning du type de l'évènement, et de lui seul (D8 ; lot 63a)", () => {
+  it("le modèle du type s'applique à la création, l'évènement reste en Option", async () => {
     const organizationId = randomUUID();
-    await createTaskTemplate(organizationId, "Mariage — 12 mois", WEDDING);
+    await weddingTemplate(organizationId);
     const birthday = await createEventType(organizationId, { label: "Anniversaire", audience: "clients" });
     await createTaskTemplate(organizationId, "Anniversaire — 2 mois", [{ label: "Choisir la salle", offsetDays: -60, responsible: "planner" }], birthday.id);
 
@@ -99,17 +111,28 @@ describe("EVT-01 — Le rétroplanning du type naît avec l'évènement, Option 
     expect(await tasksByLabel(organizationId, typed)).toEqual({ "Choisir la salle": ["2027-04-13", false, false] });
     expect((await getEvent(organizationId, typed))?.status).toBe("option");
 
-    const untyped = await wedding(organizationId, "2027-06-12");
-    expect((await listEventTasks(organizationId, untyped)).map((task) => [task.label, task.dueDate, task.offsetDays])).toEqual([
+    const married = await wedding(organizationId, "2027-06-12");
+    expect((await listEventTasks(organizationId, married)).map((task) => [task.label, task.dueDate, task.offsetDays])).toEqual([
       ["Réserver le lieu", "2026-06-12", -365],
       ["Dégustation chez le traiteur", "2027-03-14", -90],
       ["Plan de table", "2027-05-29", -14],
     ]);
   });
 
+  it("recette du 21/11 : un type sans modèle, ou un évènement sans type, ne reçoit pas le rétroplanning du mariage", async () => {
+    const organizationId = randomUUID();
+    await weddingTemplate(organizationId);
+    const other = await createEventType(organizationId, { label: "Autres", audience: "clients" });
+    // Un modèle sans type ne s'applique plus de lui-même.
+    await createTaskTemplate(organizationId, "Modèle libre", [{ label: "Tâche libre", offsetDays: -10, responsible: "planner" }]);
+
+    expect(await listEventTasks(organizationId, await wedding(organizationId, "2027-06-12", { eventTypeId: other.id }))).toEqual([]);
+    expect(await listEventTasks(organizationId, await wedding(organizationId, "2027-06-12", { eventTypeId: null }))).toEqual([]);
+  });
+
   it("sans date, rien ne s'applique ; la première date donne le rétroplanning, une fois seulement", async () => {
     const organizationId = randomUUID();
-    await createTaskTemplate(organizationId, "Mariage — 12 mois", WEDDING);
+    await weddingTemplate(organizationId);
     const eventId = await wedding(organizationId, null);
     expect(await listEventTasks(organizationId, eventId)).toEqual([]);
 
@@ -126,7 +149,7 @@ describe("EVT-01 — Le rétroplanning du type naît avec l'évènement, Option 
   it("un modèle se rattache à un type de la même organisation seulement", async () => {
     const organizationId = randomUUID();
     const other = randomUUID();
-    const template = await createTaskTemplate(organizationId, "Mariage", WEDDING);
+    const template = await weddingTemplate(organizationId, "Mariage");
     const foreignType = await createEventType(other, { label: "Pacs", audience: "couple" });
     await expect(setTaskTemplateEventType(other, template.id, foreignType.id)).rejects.toBeInstanceOf(TaskTemplateNotFoundError);
     await expect(setTaskTemplateEventType(organizationId, template.id, foreignType.id)).rejects.toBeInstanceOf(EventTypeNotFoundError);
@@ -136,7 +159,7 @@ describe("EVT-01 — Le rétroplanning du type naît avec l'évènement, Option 
 describe("EVT-05 / CHR-01 / DAT-07 — Reporter un évènement (D4, D5, horloge simulée)", () => {
   async function confirmedWedding() {
     const organizationId = randomUUID();
-    await createTaskTemplate(organizationId, "Mariage — 12 mois", WEDDING);
+    await weddingTemplate(organizationId);
     const eventId = await wedding(organizationId, "2027-06-12");
     await changeEventStatus({ organizationId, eventId, changedByUserId: plannerId, toStatus: "confirmed" });
     const tasks = await listEventTasks(organizationId, eventId);
@@ -280,7 +303,7 @@ describe("EVT-05 — Isolation par la porte d'entrée du module", () => {
   it("une autre organisation ne reporte, ne confirme, n'annule, ne réactive, ne prévisualise ni ne change le fuseau", async () => {
     const organizationId = randomUUID();
     const other = randomUUID();
-    await createTaskTemplate(organizationId, "Mariage", WEDDING);
+    await weddingTemplate(organizationId, "Mariage");
     const eventId = await wedding(organizationId, "2027-06-12");
     await changeEventStatus({ organizationId, eventId, changedByUserId: plannerId, toStatus: "confirmed" });
     const [task] = await listEventTasks(organizationId, eventId);

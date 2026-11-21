@@ -587,15 +587,15 @@ export async function setTaskTemplateEventTypeRow(organizationId: string, templa
 }
 
 // Le modèle à appliquer à la création : celui du type, sinon le premier créé.
+// Lot 63a (EVT-01, CHR-01, HUB-21 ; recette du 21/11/2026) : seul le modèle du type de l'évènement
+// s'applique. Plus de repli sur le premier modèle de l'organisation : un shooting ou un évènement
+// « Autres » recevait le rétroplanning du mariage. Sans type ou sans modèle pour ce type : rien.
 export async function findDefaultTaskTemplateId(organizationId: string, eventTypeId: string | null): Promise<string | null> {
+  if (!eventTypeId) return null;
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
-    if (eventTypeId) {
-      const [typed] = await tx.select({ id: taskTemplates.id }).from(taskTemplates).where(eq(taskTemplates.eventTypeId, eventTypeId)).orderBy(asc(taskTemplates.createdAt)).limit(1);
-      if (typed) return typed.id;
-    }
-    const [first] = await tx.select({ id: taskTemplates.id }).from(taskTemplates).orderBy(asc(taskTemplates.createdAt)).limit(1);
-    return first?.id ?? null;
+    const [typed] = await tx.select({ id: taskTemplates.id }).from(taskTemplates).where(eq(taskTemplates.eventTypeId, eventTypeId)).orderBy(asc(taskTemplates.createdAt)).limit(1);
+    return typed?.id ?? null;
   });
 }
 

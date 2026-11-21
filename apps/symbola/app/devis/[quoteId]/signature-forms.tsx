@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { RequiredLegend, RequiredMark } from "@/app/ui/required-mark";
 import { QuoteActionForm } from "./quote-forms";
 import { sendForSignatureAction } from "./signature-actions";
 
@@ -26,6 +27,7 @@ export function SendForSignatureForm({
 }) {
   const t = useTranslations("Quotes");
   const tContracts = useTranslations("Contracts");
+  const tCommon = useTranslations("Common");
   return (
     <QuoteActionForm
       action={sendForSignatureAction}
@@ -58,23 +60,33 @@ export function SendForSignatureForm({
                 : undefined
               : drafts[index];
             const id = (field: string) => `signer-${index}-${field}`;
+            // Lot 63a : le premier signataire est obligatoire (nom et e-mail) ; les suivants, non.
+            const first = index === 0;
             return (
               <fieldset key={`${index}-${state.at ?? 0}`}>
                 <legend>{t("signerNumber", { number: index + 1 })}</legend>
                 <input type="hidden" name={`signer_${index}_clientId`} value={draft?.eventClientId ?? ""} />
                 <input type="hidden" name={`signer_${index}_contactId`} value={draft?.contactId ?? ""} />
                 <label htmlFor={id("name")}>
-                  {t("signerName")}
-                  <input id={id("name")} type="text" name={`signer_${index}_name`} defaultValue={draft?.name ?? ""} autoComplete="name" />
+                  <span>
+                    {t("signerName")}
+                    {first ? <RequiredMark /> : null}
+                  </span>
+                  <input id={id("name")} type="text" name={`signer_${index}_name`} defaultValue={draft?.name ?? ""} autoComplete="name" required={first} />
                 </label>
                 <label htmlFor={id("email")}>
-                  {t("signerEmail")}
-                  <input id={id("email")} type="email" name={`signer_${index}_email`} defaultValue={draft?.email ?? ""} autoComplete="email" />
+                  <span>
+                    {t("signerEmail")}
+                    {first ? <RequiredMark /> : null}
+                  </span>
+                  <input id={id("email")} type="email" name={`signer_${index}_email`} defaultValue={draft?.email ?? ""} autoComplete="email" required={first} />
                 </label>
                 <label htmlFor={id("address")}>
                   {t("signerAddress")}
                   <textarea id={id("address")} name={`signer_${index}_address`} rows={2} autoComplete="street-address" defaultValue={draft?.billingAddress ?? ""} />
                 </label>
+                {/* Lot 63a (UX-02 ; recette du 21/11) : les mariés partagent souvent une adresse. */}
+                {index > 0 ? <SameAddressButton from={`signer-0-address`} to={id("address")} label={t("signerSameAddress")} /> : null}
                 {draft?.contactId ? (
                   <label>
                     <input type="checkbox" name={`signer_${index}_saveAddress`} defaultChecked={submitted ? (submitted.saveBillingAddress ?? false) : true} />
@@ -85,8 +97,26 @@ export function SendForSignatureForm({
             );
           })}
           </div>
+          <RequiredLegend text={tCommon("requiredLegend")} />
         </>
       )}
     </QuoteActionForm>
+  );
+}
+
+// Recopie l'adresse de facturation du premier signataire (champ non contrôlé : on écrit sa valeur).
+function SameAddressButton({ from, to, label }: { from: string; to: string; label: string }) {
+  return (
+    <button
+      type="button"
+      className="button-secondary button-small"
+      onClick={() => {
+        const source = document.getElementById(from) as HTMLTextAreaElement | null;
+        const target = document.getElementById(to) as HTMLTextAreaElement | null;
+        if (source && target) target.value = source.value;
+      }}
+    >
+      {label}
+    </button>
   );
 }

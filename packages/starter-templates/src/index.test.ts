@@ -623,12 +623,14 @@ describe("HUB-09 — Questionnaire d'accueil : réponses de départ (lot 33b, D9
     expect(onboardingDefaultEventTypes("autre")).toEqual(["other"]);
   });
 
-  it("un tableur met « Importer vos contacts » en premier ; sans outil, l'ordre de départ", () => {
-    expect(onboardingChecklistOrder([])).toEqual(["logo", "first_vendor", "first_quote", "client_invite", "contacts_import"]);
-    expect(onboardingChecklistOrder(["spreadsheet"])).toEqual(["contacts_import", "logo", "first_vendor", "first_quote", "client_invite"]);
-    expect(onboardingChecklistOrder(["word_processor", "spreadsheet"])).toEqual(["first_quote", "contacts_import", "logo", "first_vendor", "client_invite"]);
+  // Lot 63a (HUB-11 ; recette du 21/11/2026) : deux actions seulement ; le devis, l'import des
+  // contacts et l'invitation du client sont des tutoriels. L'essentiel vient toujours d'abord.
+  it("l'indispensable seulement : l'essentiel, puis un premier prestataire, quels que soient les outils remplacés", () => {
+    expect(onboardingChecklistOrder([])).toEqual(["essentials", "first_vendor"]);
+    expect(onboardingChecklistOrder(["spreadsheet"])).toEqual(["essentials", "first_vendor"]);
+    expect(onboardingChecklistOrder(["email_calendar", "word_processor"])).toEqual(["essentials", "first_vendor"]);
     expect(onboardingChecklistOrder(["inconnu"])).toEqual(onboardingChecklistOrder([]));
-    expect(ONBOARDING_CHECKLIST_KEYS).toHaveLength(5);
+    expect(ONBOARDING_CHECKLIST_KEYS).toHaveLength(2);
   });
 
   it("reconnaît les clés de volume et d'outil, et refuse les autres", () => {
