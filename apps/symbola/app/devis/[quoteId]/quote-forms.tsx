@@ -150,7 +150,7 @@ function PlacementFields({ idPrefix, sections, line }: { idPrefix: string; secti
           </select>
         </label>
       ) : null}
-      <label className="field-fit">
+      <label>
         <input type="checkbox" name="isOption" defaultChecked={line?.isOption ?? false} />
         {t("lineIsOption")}
       </label>

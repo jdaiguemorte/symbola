@@ -41,8 +41,10 @@ export function DisclosurePanel({ id, as = "div", columns, className, children }
   if (open !== id) return null;
   if (as === "row") {
     return (
-      <tr id={`panneau-${id}`} className={className}>
-        <td colSpan={columns}>{children}</td>
+      <tr id={`panneau-${id}`} role="row" className={className}>
+        <td role="cell" colSpan={columns}>
+          {children}
+        </td>
       </tr>
     );
   }

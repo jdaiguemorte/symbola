@@ -38,30 +38,30 @@ export async function QuoteLinesTable({
   ].filter((group) => group.title !== null || group.lines.length > 0);
   return (
     <div role="region" aria-label={caption} tabIndex={0} className="quote-lines">
-      <table>
+      <table role="table">
         <caption className={captionHidden ? "sr-only" : undefined}>{caption}</caption>
-        <thead>
-          <tr>
-            <th scope="col">{t("itemLabel")}</th>
-            <th scope="col">{t("quantity")}</th>
-            <th scope="col" className="amount">
+        <thead role="rowgroup">
+          <tr role="row">
+            <th scope="col" role="columnheader">{t("itemLabel")}</th>
+            <th scope="col" role="columnheader">{t("quantity")}</th>
+            <th scope="col" role="columnheader" className="amount">
               {t("itemUnitPrice")}
             </th>
             {showDiscount ? (
-              <th scope="col" className="amount">
+              <th scope="col" role="columnheader" className="amount">
                 {t("lineDiscount")}
               </th>
             ) : null}
             {version.vatApplicable ? (
-              <th scope="col" className="amount">
+              <th scope="col" role="columnheader" className="amount">
                 {t("itemVatRate")}
               </th>
             ) : null}
-            <th scope="col" className="amount">
+            <th scope="col" role="columnheader" className="amount">
               {t("lineTotal")}
             </th>
             {edit ? (
-              <th scope="col" className="quote-actions-cell">
+              <th scope="col" role="columnheader" className="quote-actions-cell">
                 {tRubrics("actions")}
               </th>
             ) : null}
@@ -70,14 +70,14 @@ export async function QuoteLinesTable({
         {groups.map((group) => {
           const section = edit && group.id !== null ? version.sections.find((candidate) => candidate.id === group.id) : undefined;
           return (
-            <tbody key={group.id ?? "sans-section"}>
+            <tbody key={group.id ?? "sans-section"} role="rowgroup">
               {group.title !== null ? (
-                <tr className="quote-section-row">
-                  <th scope="colgroup" colSpan={edit ? columns - 1 : columns}>
+                <tr role="row" className="quote-section-row">
+                  <th scope="colgroup" role="columnheader" colSpan={edit ? columns - 1 : columns}>
                     {group.title}
                   </th>
                   {edit && section ? (
-                    <td className="quote-actions-cell">
+                    <td role="cell" className="quote-actions-cell">
                       <div className="quote-row-actions">
                         <DisclosureButton className="quote-row-button" id={`section-${section.id}`} label={t("renameSectionNamed", { title: section.title })}>
                           {t("renameSection")}
@@ -103,12 +103,14 @@ export async function QuoteLinesTable({
                 <QuoteLineRows key={line.id} line={line} version={version} locale={locale} columns={columns} showDiscount={showDiscount} edit={edit} />
               ))}
               {group.title !== null ? (
-                <tr className="quote-section-subtotal">
-                  <th scope="row" colSpan={dataColumns - 1}>
+                <tr role="row" className="quote-section-subtotal">
+                  <th scope="row" role="rowheader" colSpan={dataColumns - 1}>
                     {t("sectionSubtotal", { title: group.title })}
                   </th>
-                  <td className="amount">{formatAmount(group.subtotalCents ?? 0, locale)}</td>
-                  {edit ? <td className="quote-actions-cell" /> : null}
+                  <td role="cell" className="amount">
+                    {formatAmount(group.subtotalCents ?? 0, locale)}
+                  </td>
+                  {edit ? <td role="cell" className="quote-actions-cell" /> : null}
                 </tr>
               ) : null}
             </tbody>
@@ -138,8 +140,8 @@ async function QuoteLineRows({
   const tRubrics = await getTranslations("QuoteRubrics");
   return (
     <>
-      <tr className={line.isOption && !line.optionChosen ? "quote-option-unchosen" : undefined}>
-        <th scope="row">
+      <tr role="row" className={line.isOption && !line.optionChosen ? "quote-option-unchosen" : undefined}>
+        <th scope="row" role="rowheader">
           {line.label}
           {line.isOption ? (
             <>
@@ -161,15 +163,27 @@ async function QuoteLineRows({
             </>
           ) : null}
         </th>
-        <td>
+        <td role="cell" data-label={t("quantity")}>
           {new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 3 }).format(line.quantityMilli / 1000)} {line.unit}
         </td>
-        <td className="amount">{formatAmount(line.unitPriceCents, locale)}</td>
-        {showDiscount ? <td className="amount">{line.discountBasisPoints > 0 ? `${formatRate(line.discountBasisPoints, locale)} %` : "—"}</td> : null}
-        {version.vatApplicable ? <td className="amount">{formatRate(line.vatRateBasisPoints, locale)} %</td> : null}
-        <td className="amount">{formatAmount(line.netCents, locale)}</td>
+        <td role="cell" className="amount" data-label={t("itemUnitPrice")}>
+          {formatAmount(line.unitPriceCents, locale)}
+        </td>
+        {showDiscount ? (
+          <td role="cell" className="amount" data-label={t("lineDiscount")}>
+            {line.discountBasisPoints > 0 ? `${formatRate(line.discountBasisPoints, locale)} %` : "—"}
+          </td>
+        ) : null}
+        {version.vatApplicable ? (
+          <td role="cell" className="amount" data-label={t("itemVatRate")}>
+            {formatRate(line.vatRateBasisPoints, locale)} %
+          </td>
+        ) : null}
+        <td role="cell" className="amount" data-label={t("lineTotal")}>
+          {formatAmount(line.netCents, locale)}
+        </td>
         {edit ? (
-          <td className="quote-actions-cell">
+          <td role="cell" className="quote-actions-cell">
             <div className="quote-row-actions">
               <DisclosureButton className="quote-row-button" id={`ligne-${line.id}`} label={t("editLineNamed", { label: line.label })}>
                 {tRubrics("edit")}

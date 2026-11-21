@@ -35,7 +35,7 @@ export default async function ContractTemplatesPage() {
   const typeLabel = new Map(eventTypes.map((type) => [type.id, type.label]));
 
   return (
-    <main>
+    <main className="quote-screen">
       <h1>{t("templatesTitle")}</h1>
       <ScreenHelp title={tHelp("contractTemplates.title")} body={tHelp("contractTemplates.body")} />
       <p role="note" className="adapt-warning">
@@ -51,9 +51,11 @@ export default async function ContractTemplatesPage() {
           {templates.map((template) => (
             <li key={template.id}>
               <h2>
-                <Link href={`/devis/modeles-contrat/${template.id}`}>{template.name}</Link>
+                <Link href={`/devis/modeles-contrat/${template.id}`} className="quote-link">
+                  {template.name}
+                </Link>
               </h2>
-              <p className="meta">
+              <p className="field-hint">
                 {t("templateVersion", { version: template.version })} —{" "}
                 {template.eventTypeId ? (typeLabel.get(template.eventTypeId) ?? t("templateAllEventTypes")) : t("templateAllEventTypes")} —{" "}
                 {template.legalReviewedOn ? t("templateReviewed", { date: formatCalendarDate(template.legalReviewedOn, locale) }) : t("templateNotReviewed")}
