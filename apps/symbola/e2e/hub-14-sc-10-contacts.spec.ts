@@ -71,6 +71,8 @@ test("SC-10 / HUB-14 — importer 600 contacts : colonnes proposées, prestatair
   await expectNoAxeViolation(page);
   await page.getByRole("button", { name: /^Importer \d+ contacts$/ }).click();
   // 192 lignes écartées et le doublon ignoré ne sont pas importés.
+  // Lot 63b (HUB-14, UX-07) : le bilan d'abord ; le détail du journal est replié.
+  await page.getByText("Détails du journal (fichier, auteur, dates)").click({ timeout: 30_000 });
   await expect(page.getByText(/\d+ créations, (aucune mise à jour|\d+ mises? à jour), \d+ lignes? inchangées?, 193 lignes rejetées/)).toBeVisible({ timeout: 30_000 });
   await page.getByRole("link", { name: /^Voir les \d+ contacts$/ }).click();
 
@@ -86,6 +88,8 @@ test("SC-10 / HUB-14 — importer 600 contacts : colonnes proposées, prestatair
   // L'annulation en bloc retire les contacts importés.
   await page.goto("/import");
   await page.getByRole("link", { name: "contacts-import-test-600.csv" }).click();
+  // Lot 63b (HUB-14, UX-07) : l'annulation est repliée sous le bilan.
+  await page.getByText("Annuler cet import", { exact: true }).click();
   await page.getByRole("button", { name: "Annuler l'import" }).click();
   // 700 éléments à défaire : quelques secondes quand toute la suite tourne.
   await expect(page.getByText(/éléments annulés/)).toBeVisible({ timeout: 30_000 });

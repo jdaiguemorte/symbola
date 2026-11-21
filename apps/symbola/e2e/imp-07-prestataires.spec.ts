@@ -73,7 +73,9 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
   // Doublons : la fiche existante est proposée en mise à jour.
   await expect(page).toHaveURL(/\/rapprochements/);
   await expect(page.getByRole("navigation", { name: "Filtrer les lignes" }).getByRole("link", { name: "À vérifier · 1" })).toHaveAttribute("aria-current", "true");
-  await page.getByRole("button", { name: /Mettre à jour l'existant pour Domaine des Tilleuls/ }).click();
+  // Lot 63b (HUB-14) : la ligne et la fiche existante côte à côte, trois choix.
+  await expect(page.getByRole("listitem", { name: /Domaine des Tilleuls/ })).toContainText("Fiche existante");
+  await page.getByRole("button", { name: /^C'est le même : Domaine des Tilleuls/ }).click();
   await expect(page.getByRole("navigation", { name: "Filtrer les lignes" }).getByRole("link", { name: "Mises à jour · 1" })).toBeVisible();
   await expectNoAxeViolation(page);
   await page.getByRole("group", { name: "Actions de l'étape" }).getByRole("button", { name: "Continuer" }).click();
@@ -85,8 +87,10 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
   await expect(page.getByText(/Ligne \d+ : Château de la Roche Fictive — \d{5} Niort/)).toBeVisible();
   await expectNoAxeViolation(page);
   await page.getByRole("button", { name: "Importer 25 prestataires" }).click();
+  // Lot 63b (HUB-14, UX-07) : le bilan d'abord ; le détail du journal est replié.
+  await page.getByText("Détails du journal (fichier, auteur, dates)").click();
   await expect(page.getByText("24 créations, 1 mise à jour, aucune ligne inchangée, aucune ligne rejetée")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Voir les 25 prestataires" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Vérifier les 25 prestataires" })).toBeVisible();
   // Lot 15 (GEO-01) : le placement sur la carte se fait ensuite, avec son avancement.
   const placement = page.getByRole("region", { name: "Placement sur la carte" });
   await expect(placement).toContainText(/prestataires? placés?/, { timeout: 30_000 });
@@ -105,6 +109,7 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
   // Annulation : la fiche existante retrouve ses valeurs, les créées disparaissent.
   await page.goto("/import");
   await page.getByRole("link", { name: "prestataires.xlsx" }).click();
+  await page.getByText("Annuler cet import", { exact: true }).click();
   await page.getByRole("button", { name: "Annuler l'import" }).click();
   await expect(page.getByText(/éléments annulés ; aucun gardé car modifié ; aucun gardé car utilisé\./)).toBeVisible();
   await expectNoAxeViolation(page);
