@@ -62,6 +62,13 @@ export type AdjustEventBudgetItemInput = {
   amountCents: number;
 };
 
+// Lot 62c (UX-13, décision D1) : la répartition s'enregistre d'un coup, en une transaction.
+export type AdjustEventBudgetItemsInput = {
+  organizationId: string;
+  eventId: string;
+  items: { defaultVendorSlotId: string; amountCents: number }[];
+};
+
 // Lot 28a (BUD-01, décision D2, ADR 0054) — cinq montants par ligne de budget.
 // Le reste à payer (engagé moins payé) et l'écart à l'estimé (engagé moins
 // estimé) se calculent, jamais stockés ; null tant que l'engagé n'est pas
@@ -294,6 +301,21 @@ export type UpdateBudgetLineDetailsInput = {
   vatRateBasisPoints?: number;
 };
 
+// Lot 62c (UX-13, décision D1) : plusieurs lignes du budget en une transaction (tout ou rien).
+// Un champ absent n'est pas touché ; un montant égal à celui de la ligne n'est pas historisé.
+export type SaveBudgetLinesInput = {
+  organizationId: string;
+  eventId: string;
+  changedByUserId: string;
+  lines: {
+    lineId: string;
+    label?: string;
+    vendorCandidateId?: string | null;
+    vatRateBasisPoints?: number;
+    amounts?: { field: BudgetAmountField; amountCents: number }[];
+  }[];
+};
+
 export type BudgetLinesView = {
   eventId: string;
   categories: BudgetCategory[];
@@ -383,6 +405,8 @@ export interface BudgetServiceContract {
   getEventBudget(organizationId: string, eventId: string): Promise<EventBudgetView | null>;
   simulateEventBudget(input: SimulateEventBudgetInput): Promise<EventBudgetView>;
   adjustEventBudgetItem(input: AdjustEventBudgetItemInput): Promise<EventBudgetView>;
+  // Lot 62c (UX-13, D1) : plusieurs postes en une transaction.
+  adjustEventBudgetItems(input: AdjustEventBudgetItemsInput): Promise<EventBudgetView>;
   listBudgetLines(organizationId: string, eventId: string): Promise<BudgetLinesView>;
   confirmEventBudget(input: ConfirmEventBudgetInput): Promise<BudgetLinesView>;
   updateBudgetLine(input: UpdateBudgetLineInput): Promise<BudgetLinesView>;
@@ -390,6 +414,8 @@ export interface BudgetServiceContract {
   listBudgetLineHistory(organizationId: string, eventVendorSlotId: string): Promise<BudgetLineHistoryEntry[]>;
   addBudgetLine(input: AddBudgetLineInput): Promise<BudgetLinesView>;
   updateBudgetLineDetails(input: UpdateBudgetLineDetailsInput): Promise<BudgetLinesView>;
+  // Lot 62c (UX-13, D1) : plusieurs lignes en une transaction.
+  saveBudgetLines(input: SaveBudgetLinesInput): Promise<BudgetLinesView>;
   removeBudgetLine(organizationId: string, eventId: string, lineId: string): Promise<BudgetLinesView>;
   addVendorPayment(input: VendorPaymentInput): Promise<BudgetLinesView>;
   updateVendorPayment(input: VendorPaymentInput & { paymentId: string }): Promise<BudgetLinesView>;

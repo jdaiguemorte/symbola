@@ -1,13 +1,12 @@
 "use server";
 
-// PRD-EVT-05 — actions du programme du jour J sur la fiche d'un événement.
+// PRD-EVT-05 — actions du programme du jour J sur la fiche d'un événement. Lot 62c (D1) : les
+// séquences s'enregistrent ensemble (saveProgramAction), plus ligne par ligne.
 import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import {
-  addProgramItem,
   applyProgramTemplate,
   EventNotFoundError,
   getEventProgram,
@@ -15,6 +14,10 @@ import {
   KeyMomentNotFoundError,
   importEventProgram,
   ProgramItemNotFoundError,
+  ProgramBatchLineError,
+  PROGRAM_BATCH_MAX_LINES,
+  saveProgramItems,
+  EventArchivedError,
   ProgramShiftOutOfDayError,
   ProgramParticipantNotFoundError,
   DemoEventRestrictionError,
@@ -26,8 +29,6 @@ import {
   removeProgramItem,
   shiftProgramItems,
   TaskLabelRequiredError,
-  updateProgramItem,
-  type ProgramItemInput,
 } from "@/modules/events/service";
 import { MailQuotaExceededError } from "@symbola/mail";
 import type { ProgramImportResult, RecipientsReview } from "@symbola/contracts";
@@ -48,27 +49,6 @@ async function authorize(t: Translator) {
   return { organizationId: auth.user.organizationId } as const;
 }
 
-// Les intervenants libres se saisissent séparés par des virgules. Lot 30b : la durée
-// (minutes) donne l'heure de fin quand celle-ci est vide.
-function readProgramItem(formData: FormData): ProgramItemInput | null {
-  const vendorSlotIds = formData.getAll("vendorSlotIds").map(String);
-  if (!vendorSlotIds.every(isValidId)) return null;
-  const duration = String(formData.get("durationMinutes") ?? "").trim();
-  return {
-    startTime: String(formData.get("startTime") ?? ""),
-    endTime: String(formData.get("endTime") ?? ""),
-    durationMinutes: duration === "" ? null : /^\d+$/.test(duration) ? Number(duration) : Number.NaN,
-    label: String(formData.get("label") ?? ""),
-    location: String(formData.get("location") ?? ""),
-    internalNote: String(formData.get("internalNote") ?? ""),
-    responsible: String(formData.get("responsible") ?? ""),
-    vendorSlotIds,
-    freeParticipants: String(formData.get("freeParticipants") ?? "").split(","),
-    // Lot 51 (EVT-04) : vide, le premier temps fort du jour de l'évènement (ou inchangé).
-    keyMomentId: isValidId(String(formData.get("keyMomentId") ?? "")) ? String(formData.get("keyMomentId")) : null,
-  };
-}
-
 function programErrorMessage(error: unknown, t: Translator): string {
   if (error instanceof EventNotFoundError) return t("eventNotFound");
   if (error instanceof ProgramItemNotFoundError) return t("programItemNotFound");
@@ -82,49 +62,68 @@ function programErrorMessage(error: unknown, t: Translator): string {
   throw error;
 }
 
-export async function addProgramItemAction(_prevState: ProgramFormState, formData: FormData): Promise<ProgramFormState> {
+// Lot 62c (UX-13, décision D1) — « Enregistrer le programme » : les lignes modifiées et les lignes
+// ajoutées partent ensemble, dans une seule transaction ; rien n'est écrit si une ligne est
+// refusée, et l'écran apprend laquelle pour l'ouvrir. Entrées validées par Zod (SEC-18).
+const programLineSchema = z.object({
+  startTime: z.string().max(8),
+  endTime: z.string().max(8),
+  durationMinutes: z.number().int().min(1).max(1440).nullable(),
+  label: z.string().max(300),
+  location: z.string().max(300),
+  internalNote: z.string().max(4000),
+  responsible: z.string().max(300),
+  vendorSlotIds: z.array(z.string().refine(isValidId)).max(100),
+  freeParticipants: z.array(z.string().max(200)).max(50),
+  keyMomentId: z.string().refine(isValidId).nullable(),
+});
+
+const saveProgramSchema = z
+  .object({
+    eventId: z.string().refine(isValidId),
+    updates: z.array(z.object({ itemId: z.string().refine(isValidId), item: programLineSchema })).max(PROGRAM_BATCH_MAX_LINES),
+    additions: z.array(z.object({ key: z.string().max(64), item: programLineSchema })).max(PROGRAM_BATCH_MAX_LINES),
+  })
+  .refine((input) => input.updates.length + input.additions.length <= PROGRAM_BATCH_MAX_LINES);
+
+export type ProgramSaveInput = z.input<typeof saveProgramSchema>;
+// « line » : la ligne refusée (identifiant d'une séquence, ou clé d'une ligne ajoutée).
+// « shift » : une seule séquence a changé d'heure de début (lot 30b, D8), l'écran propose de décaler les suivantes.
+export type ProgramSaveState = { ok: true; count: number; shift?: { itemId: string; from: string } } | { ok: false; error: string; line?: string };
+
+export async function saveProgramAction(input: ProgramSaveInput): Promise<ProgramSaveState> {
   const t = await getTranslations("Events");
   const access = await authorize(t);
-  if ("error" in access) return { error: access.error };
-  const eventId = String(formData.get("eventId") ?? "");
-  if (!isValidId(eventId)) return { error: t("eventNotFound") };
-  const item = readProgramItem(formData);
-  if (!item) return { error: t("programParticipantNotFound") };
+  if ("error" in access) return { ok: false, error: access.error };
+  const parsed = saveProgramSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: t("programSaveInvalid") };
+  const { eventId, updates, additions } = parsed.data;
 
-  try {
-    await addProgramItem(access.organizationId, eventId, item);
-  } catch (error) {
-    return { error: programErrorMessage(error, t) };
-  }
-  revalidatePath(`/events/${eventId}`);
-  return { success: true };
-}
-
-export async function updateProgramItemAction(_prevState: ProgramFormState, formData: FormData): Promise<ProgramFormState> {
-  const t = await getTranslations("Events");
-  const access = await authorize(t);
-  if ("error" in access) return { error: access.error };
-  const eventId = String(formData.get("eventId") ?? "");
-  const itemId = String(formData.get("itemId") ?? "");
-  if (!isValidId(eventId) || !isValidId(itemId)) return { error: t("programItemNotFound") };
-  const item = readProgramItem(formData);
-  if (!item) return { error: t("programParticipantNotFound") };
-
-  // Lot 30b (CHR-06, décision D8) : l'heure de début d'avant, pour proposer de décaler
-  // les séquences suivantes d'autant.
+  // Lot 30b (CHR-06, décision D8) : l'heure de début d'avant, pour proposer de décaler les
+  // séquences suivantes quand une seule séquence a changé d'heure.
   const before = await getEventProgram(access.organizationId, eventId).catch(() => null);
-  const oldStart = before?.items.find((line) => line.id === itemId)?.startTime ?? null;
   let saved;
   try {
-    saved = await updateProgramItem(access.organizationId, itemId, item);
+    saved = await saveProgramItems(access.organizationId, eventId, { updates, additions: additions.map((addition) => addition.item) });
   } catch (error) {
-    return { error: programErrorMessage(error, t) };
+    if (error instanceof ProgramBatchLineError) {
+      const line = error.line.kind === "update" ? error.line.itemId : additions[error.line.index]?.key;
+      return { ok: false, error: programErrorMessage(error.reason, t), ...(line ? { line } : {}) };
+    }
+    if (error instanceof EventArchivedError) return { ok: false, error: t("programSaveArchived") };
+    return { ok: false, error: programErrorMessage(error, t) };
   }
   revalidatePath(`/events/${eventId}`);
-  if (oldStart && oldStart !== saved.startTime && saved.eventId === eventId) {
-    redirect(`/events/${eventId}?${new URLSearchParams({ onglet: "programme", decalage: itemId, depuis: oldStart }).toString()}#program-title`);
+  const moved = updates.filter((update) => {
+    const oldStart = before?.items.find((line) => line.id === update.itemId)?.startTime;
+    const newStart = saved.find((line) => line.id === update.itemId)?.startTime;
+    return oldStart !== undefined && newStart !== undefined && oldStart !== newStart;
+  });
+  if (moved.length === 1 && additions.length === 0) {
+    const from = before!.items.find((line) => line.id === moved[0]!.itemId)!.startTime;
+    return { ok: true, count: saved.length, shift: { itemId: moved[0]!.itemId, from } };
   }
-  return { success: true };
+  return { ok: true, count: saved.length };
 }
 
 // Lot 30b (CHR-06, décision D8 ; UX-07) : décaler les séquences suivantes, et annuler

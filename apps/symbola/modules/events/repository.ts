@@ -1224,6 +1224,62 @@ export async function updateProgramItemRow(
   });
 }
 
+// Lot 62c (UX-13, décision D1) : le programme s'enregistre d'un coup — séquences modifiées et
+// séquences ajoutées dans une seule transaction. Tout est vérifié avant la première écriture :
+// une séquence d'un autre évènement (ou d'une autre organisation, invisible sous RLS), un poste
+// ou un temps fort étranger refuse tout, et rien n'est écrit.
+export type ProgramBatchEntry = { data: ProgramItemData; vendorSlotIds: string[]; freeLabels: string[] };
+
+export type ProgramBatchResult =
+  | { status: "saved"; items: ProgramItemWithParticipants[] }
+  | { status: "event_not_found" | "item_not_found" | "participant_not_found" | "moment_not_found" };
+
+export async function saveProgramItemRows(
+  organizationId: string,
+  eventId: string,
+  updates: (ProgramBatchEntry & { itemId: string })[],
+  additions: ProgramBatchEntry[],
+  mainMomentName: string,
+): Promise<ProgramBatchResult> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
+    if (!event) return { status: "event_not_found" };
+    const itemIds = updates.map((update) => update.itemId);
+    if (itemIds.length > 0) {
+      const rows = await tx.select({ id: programItems.id }).from(programItems).where(and(eq(programItems.eventId, eventId), inArray(programItems.id, itemIds)));
+      if (rows.length !== itemIds.length) return { status: "item_not_found" };
+    }
+    const entries = [...updates, ...additions];
+    if (!(await vendorSlotsBelongToEvent(tx, eventId, entries.flatMap((entry) => entry.vendorSlotIds)))) return { status: "participant_not_found" };
+    for (const keyMomentId of new Set(entries.flatMap((entry) => (entry.data.keyMomentId ? [entry.data.keyMomentId] : [])))) {
+      if (!(await keyMomentOfEvent(tx, eventId, keyMomentId))) return { status: "moment_not_found" };
+    }
+    const saved: ProgramItemRow[] = [];
+    for (const update of updates) {
+      const { keyMomentId, ...fields } = update.data;
+      const [item] = await tx
+        .update(programItems)
+        .set({ ...fields, ...(keyMomentId ? { keyMomentId } : {}), updatedAt: new Date() })
+        .where(eq(programItems.id, update.itemId))
+        .returning();
+      if (!item) throw new Error("mise à jour de la ligne du programme échouée");
+      await tx.delete(programItemParticipants).where(eq(programItemParticipants.programItemId, update.itemId));
+      await insertParticipants(tx, organizationId, update.itemId, update.vendorSlotIds, update.freeLabels);
+      saved.push(item);
+    }
+    for (const addition of additions) {
+      const keyMomentId = addition.data.keyMomentId || (await ensureMainKeyMoment(tx, organizationId, eventId, mainMomentName));
+      const [item] = await tx.insert(programItems).values({ organizationId, eventId, ...addition.data, keyMomentId }).returning();
+      if (!item) throw new Error("ajout de la ligne du programme échoué");
+      await insertParticipants(tx, organizationId, item.id, addition.vendorSlotIds, addition.freeLabels);
+      saved.push(item);
+    }
+    if (saved.length > 0) await touchProgram(tx, eventId);
+    return { status: "saved", items: await withParticipants(tx, saved) };
+  });
+}
+
 // Lot 30b (CHR-06, décision D8) : décale des séquences de l'événement, début et fin,
 // en une transaction. Tout ou rien : une séquence d'un autre événement (ou d'une autre
 // organisation, invisible sous RLS) ou un début qui sortirait du jour J refuse tout.

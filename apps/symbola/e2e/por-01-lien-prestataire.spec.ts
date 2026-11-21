@@ -83,6 +83,8 @@ test("UX-11 / POR-01 — lien d'un prestataire retenu avec code à l'ouverture :
   await openEventTab(planner, "Mariés");
 
   // Le formulaire du prestataire est prérempli depuis sa fiche du carnet.
+  // Lot 62c : le formulaire du lien d'un prestataire s'ouvre par son sommaire.
+  await planner.locator("summary", { hasText: "Créer le lien d'un prestataire" }).click();
   const form = planner.locator("form").filter({ has: planner.getByRole("heading", { name: "Créer le lien d'un prestataire" }) });
   await expect(form.getByLabel("Prestataire retenu")).toHaveValue(/[0-9a-f-]{36}/);
   await expect(form.getByLabel("Nom de la personne")).toHaveValue("Karim Benali");

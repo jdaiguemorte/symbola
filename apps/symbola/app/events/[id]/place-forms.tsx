@@ -20,14 +20,14 @@ export function AddPlaceForm({ eventId, suggestions }: { eventId: string; sugges
               <input type="hidden" name="eventId" value={eventId} />
               <input type="hidden" name="label" value={suggestion.label} />
               <input type="hidden" name="vendorId" value={suggestion.vendorId ?? ""} />
-              <button type="submit" disabled={pending}>
+              <button type="submit" className="button-secondary" disabled={pending}>
                 {t("addSuggestedPlace", { place: suggestion.label })}
               </button>
             </form>
           ))}
         </div>
       ) : null}
-      <form action={action} className="inline-add">
+      <form action={action} className="form-inline">
         <input type="hidden" name="eventId" value={eventId} />
         <label>
           {t("placeLabel")}
@@ -41,7 +41,7 @@ export function AddPlaceForm({ eventId, suggestions }: { eventId: string; sugges
           {t("placeCity")}
           <input type="text" name="city" maxLength={200} />
         </label>
-        <button type="submit" disabled={pending}>
+        <button type="submit" className="button-secondary" disabled={pending}>
           {t("addPlace")}
         </button>
         {state.error ? <p role="alert">{state.error}</p> : null}
@@ -57,7 +57,8 @@ export function EditPlaceForm({ eventId, place }: { eventId: string; place: Even
   return (
     <details className="place-edit">
       <summary>{t("editPlace", { place: place.label })}</summary>
-      <form action={action} className="stack">
+      {/* Lot 62c (UX-12) : formulaire en grille — le lieu et ses heures, l'adresse, le contact. */}
+      <form action={action} className="form-grid form-grid-3">
         <input type="hidden" name="eventId" value={eventId} />
         <input type="hidden" name="placeId" value={place.id} />
         <label>
@@ -72,14 +73,14 @@ export function EditPlaceForm({ eventId, place }: { eventId: string; place: Even
           {t("placeCity")}
           <input type="text" name="city" maxLength={200} defaultValue={place.city ?? ""} />
         </label>
-        <div className="row-wrap">
-          <label>
+        <div className="field-row">
+          <label className="field-fit">
             {t("placeStartTime")}
-            <input type="time" name="startTime" defaultValue={place.startTime ?? ""} />
+            <input type="time" name="startTime" className="field-time" defaultValue={place.startTime ?? ""} />
           </label>
-          <label>
+          <label className="field-fit">
             {t("placeEndTime")}
-            <input type="time" name="endTime" defaultValue={place.endTime ?? ""} />
+            <input type="time" name="endTime" className="field-time" defaultValue={place.endTime ?? ""} />
           </label>
         </div>
         <label>
@@ -94,11 +95,13 @@ export function EditPlaceForm({ eventId, place }: { eventId: string; place: Even
           {t("placeContactEmail")}
           <input type="email" name="contactEmail" maxLength={320} defaultValue={place.contactEmail ?? ""} />
         </label>
-        <button type="submit" disabled={pending}>
-          {t("savePlace")}
-        </button>
-        {state.error ? <p role="alert">{state.error}</p> : null}
-        {state.success ? <p role="status">{t("placeSaved")}</p> : null}
+        <div className="span-all row-wrap">
+          <button type="submit" className="button-secondary" disabled={pending}>
+            {t("savePlace")}
+          </button>
+          {state.error ? <p role="alert">{state.error}</p> : null}
+          {state.success ? <p role="status">{t("placeSaved")}</p> : null}
+        </div>
       </form>
     </details>
   );

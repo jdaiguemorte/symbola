@@ -83,17 +83,11 @@ import { commitDecisionExpenseAction, replaceDecisionAction, retainDecisionChoic
 import { answerSentence } from "@/app/portail/client-decisions";
 import { choiceName, decisionLabel } from "@/app/portail/decision-label";
 import { requestAudience } from "@/lib/vocabulary";
-import { removeProgramItemAction } from "./program-actions";
+import { ProgramEditor } from "./program-editor";
 import { ProgramShiftProposal, type ShiftProposalView } from "./program-shift";
-import { durationText, programSpans, spanLabel } from "@/lib/program-spans";
+import { durationText } from "@/lib/program-spans";
 import { programSpanWords } from "@/lib/program-span-words";
-import {
-  AddProgramItemForm,
-  ApplyProgramTemplateForm,
-  EditProgramItemForm,
-  ProgramNotifyForm,
-  ProgramPublishForm,
-} from "./program-forms";
+import { ApplyProgramTemplateForm, ProgramNotifyForm, ProgramPublishForm } from "./program-forms";
 import { CalendarAddressForm } from "../../calendar-address-form";
 import { setTaskMilestoneAction,
   releaseEventTaskAction,
@@ -124,7 +118,6 @@ import { removeTaskAttachmentAction, removeTaskCommentAction } from "./task-extr
 import { AddDayContactForm } from "./day-contact-forms";
 import { removeDayContactAction } from "./day-contact-actions";
 import { makeReceptionPlaceAction, removePlaceAction } from "./place-actions";
-import { Trash2 } from "lucide-react";
 import { findVendors, getVendor } from "@/modules/vendors/service";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
 import {
@@ -281,7 +274,6 @@ export default async function EventDetailPage({
     `/events/${event.id}?${new URLSearchParams({ onglet: key, ...extra }).toString()}`;
   const overdueCount = tasks.filter((task) => !task.done && task.dueDate < today).length;
   // Lot 12 (L12-EVT-14 / L12-EVT-15) : icônes des prestataires au programme, lieux saisis une fois.
-  const slotIconOf = new Map(vendorSlots.map((slot) => [slot.id, slot.icon]));
   // Lot 34b (EVT-03) : les lieux nourrissent aussi la fiche d'identité de la synthèse.
   const places = tab === "programme" || tab === "apercu" ? await listEventPlaces(organizationId, id) : [];
   const keyMoments = tab === "apercu" || tab === "programme" ? await listKeyMoments(organizationId, id) : [];
@@ -317,7 +309,6 @@ export default async function EventDetailPage({
     ...keyMoments.map((moment) => ({ id: moment.id as string | null, label: `${moment.name} — ${formatCalendarDate(moment.date, locale)}` as string | null, items: program.items.filter((item) => item.keyMomentId === moment.id) })),
     { id: null, label: null, items: program.items.filter((item) => !keyMoments.some((moment) => moment.id === item.keyMomentId)) },
   ].filter((group) => group.items.length > 0);
-  const programSpanOf = new Map(programGroups.flatMap((group) => programSpans(group.items)).map((span) => [span.id, span]));
   const responsibleOptions = [...new Set(program.items.flatMap((item) => (item.responsible ? [item.responsible] : [])))].sort((a, b) => a.localeCompare(b, "fr"));
   // Lot 48a (DAT-08) : notes confidentielles, déchiffrées pour leur auteur et la titulaire seuls.
   const eventConfidentialNotes =
@@ -524,7 +515,7 @@ export default async function EventDetailPage({
     ) : null;
 
   return (
-    <main>
+    <main className="event-sheet">
       <p>
         <Link href="/events">{t("backToEvents")}</Link>
       </p>
@@ -885,7 +876,7 @@ export default async function EventDetailPage({
             ) : null}
             {/* Lot 28a (BUD-02) : le dépassement du seuil d'alerte, en haut du budget. */}
             {budgetView?.envelope?.exceeded ? (
-              <p role="alert" className="notice">
+              <p role="alert" className="notice notice-attention">
                 {tBudget("envelopeExceeded", {
                   amount: formatAmount(budgetView.totalCommittedCents - budgetView.envelope.thresholdCents, locale),
                   percent: budgetView.envelope.thresholdPercent,
@@ -1220,6 +1211,8 @@ export default async function EventDetailPage({
             <SettingsLink href="/events/modeles-programme" label={t("programTemplatesSettings")} />
           </div>
           <ProgramShiftProposal eventId={event.id} proposal={shiftProposal} />
+          {/* Lot 62c (UX-13) : en tête de la carte, la diffusion à gauche, les PDF et l'agenda à droite. */}
+          <div className="program-head">
           {/* Lot 37b (CHR-07, DAT-14 ; D8, D10) : clients et prestataires lisent la dernière version diffusée. */}
           {publication ? (
             <section aria-labelledby="program-publication-title" className="program-publication">
@@ -1274,12 +1267,12 @@ export default async function EventDetailPage({
               ) : null}
             </section>
           ) : null}
-          <nav aria-label={t("programExports")}>
-            <a href={`/events/${event.id}/programme/pdf?variant=couple`} download>
+          <div className="program-tools">
+          <nav aria-label={t("programExports")} className="row-wrap">
+            <a href={`/events/${event.id}/programme/pdf?variant=couple`} className="button-link" download>
               {t("programExportCouple")}
             </a>
-            {" · "}
-            <a href={`/events/${event.id}/programme/pdf?variant=vendors`} download>
+            <a href={`/events/${event.id}/programme/pdf?variant=vendors`} className="button-link" download>
               {t("programExportVendors")}
             </a>
           </nav>
@@ -1290,13 +1283,15 @@ export default async function EventDetailPage({
               <p className="meta">
                 {programFeed ? tCalendar("programFollowed", { date: eventTime(programFeed.createdAt) }) : tCalendar("programAddHint")}
               </p>
-              <CalendarAddressForm eventId={event.id} hasActive={programFeed !== null} labels={{ create: tCalendar("programAdd"), renew: tCalendar("programRenew"), revoke: tCalendar("programRevoke"), form: tCalendar("programAdd") }} />
+              <CalendarAddressForm eventId={event.id} hasActive={programFeed !== null} quiet labels={{ create: tCalendar("programAdd"), renew: tCalendar("programRenew"), revoke: tCalendar("programRevoke"), form: tCalendar("programAdd") }} />
             </section>
           ) : null}
+          </div>
+          </div>
           {/* Lot 48a (PRE-06, D4) : contraintes du lieu, signalées, jamais bloquantes. */}
           {venueChecks ? <VenueFindings findings={venueChecks.findings} labels={programLabels} headingId="program-venue-title" /> : null}
           {program.overlaps.length > 0 ? (
-            <section aria-labelledby="program-overlaps-title">
+            <section aria-labelledby="program-overlaps-title" className="notice notice-attention program-overlaps">
               <h3 id="program-overlaps-title">{t("programOverlapsTitle")}</h3>
               <ul>
                 {program.overlaps.map((overlap) => (
@@ -1311,69 +1306,18 @@ export default async function EventDetailPage({
               </ul>
             </section>
           ) : null}
-          {programTemplates.length > 0 ? (
-            <ApplyProgramTemplateForm eventId={event.id} templates={programTemplates} />
-          ) : (
-            <p>
-              {t("noProgramTemplates")} <Link href="/events/modeles-programme">{t("programTemplatesLink")}</Link>
-            </p>
-          )}
+          <div className="program-sources">
+            {programTemplates.length > 0 ? (
+              <ApplyProgramTemplateForm eventId={event.id} templates={programTemplates} />
+            ) : (
+              <p>
+                {t("noProgramTemplates")} <Link href="/events/modeles-programme">{t("programTemplatesLink")}</Link>
+              </p>
+            )}
+            {/* Lot 51 (EVT-04, CHR-08) : un chrono importé d'un tableur, avec son écran de contrôle. */}
+            <ProgramImportForm eventId={event.id} />
+          </div>
           {program.items.length === 0 ? <p>{t("noProgramItems")}</p> : null}
-          {/* Lot 12 (L12-EVT-14) : une ligne par moment, une icône par prestataire concerné, actions discrètes à droite. */}
-          {/* Lot 51 (EVT-04, CHR-08) : un chrono importé d'un tableur, avec son écran de contrôle. */}
-          <ProgramImportForm eventId={event.id} />
-          {programGroups.map((group) => (
-          // Un seul temps fort (évènement d'un jour) : la liste reste « Programme du jour J », sans titre.
-          <section key={group.id ?? "sans-temps-fort"} aria-label={programGroups.length > 1 ? (group.label ?? t("programTitle")) : undefined} className="program-moment">
-          {group.label && programGroups.length > 1 ? <h3>{group.label}</h3> : null}
-          <ul aria-label={programGroups.length > 1 ? (group.label ?? t("programTitle")) : t("programTitle")} className="program-list">
-            {group.items.map((item) => (
-              <li key={item.id} className="program-row">
-                <span className="program-time">{spanLabel(programSpanOf.get(item.id)!, spanWords)}</span>
-                <span className="program-main">
-                  <strong>{item.label}</strong>
-                  <span className="program-meta">
-                    {item.location ? <span>{item.location}</span> : null}
-                    {item.responsible ? <span>{t("programResponsibleLine", { name: item.responsible })}</span> : null}
-                    {item.participants.length > 0 ? (
-                      <span
-                        className="line-icons"
-                        role="img"
-                        aria-label={t("programParticipantsList", { names: item.participants.map((participant) => participant.label).join(", ") })}
-                        title={item.participants.map((participant) => participant.label).join(", ")}
-                      >
-                        {item.participants.map((participant) => (
-                          <BudgetLineIcon
-                            key={`${participant.vendorSlotId ?? "libre"}-${participant.label}`}
-                            icon={participant.vendorSlotId ? (slotIconOf.get(participant.vendorSlotId) ?? null) : null}
-                            label={participant.label}
-                            decorative
-                          />
-                        ))}
-                      </span>
-                    ) : null}
-                  </span>
-                  {item.internalNote ? (
-                    <span className="program-note">
-                      {t("programInternalNote")} : {item.internalNote}
-                    </span>
-                  ) : null}
-                </span>
-                <span className="program-actions">
-                  <EditProgramItemForm key={JSON.stringify(item)} eventId={event.id} item={item} vendorSlots={vendorSlots} moments={momentChoices} />
-                  <form action={removeProgramItemAction}>
-                    <input type="hidden" name="eventId" value={event.id} />
-                    <input type="hidden" name="itemId" value={item.id} />
-                    <button type="submit" className="icon-button" aria-label={t("removeProgramItem", { label: item.label })} title={t("removeProgramItem", { label: item.label })}>
-                      <Trash2 size={16} aria-hidden="true" />
-                    </button>
-                  </form>
-                </span>
-              </li>
-            ))}
-          </ul>
-          </section>
-          ))}
           <datalist id="program-responsible-options">
             {responsibleOptions.map((option) => (
               <option key={option} value={option} />
@@ -1384,7 +1328,8 @@ export default async function EventDetailPage({
               <option key={option} value={option} />
             ))}
           </datalist>
-          <AddProgramItemForm eventId={event.id} vendorSlots={vendorSlots} moments={momentChoices} />
+          {/* Lot 62c (UX-13, UX-05 ; D1) : une ligne par séquence, « Modifier » ouvre la ligne en place, un seul « Enregistrer le programme ». */}
+          <ProgramEditor eventId={event.id} title={t("programTitle")} groups={programGroups} vendorSlots={vendorSlots} moments={momentChoices} />
           <section aria-labelledby="places-title" className="places">
             <h3 id="places-title">{t("placesTitle")}</h3>
             <p className="muted">{t("placesHint")}</p>
@@ -1403,8 +1348,8 @@ export default async function EventDetailPage({
                   {place.contactName || place.contactPhone || place.contactEmail ? (
                     <p className="muted">{t("placeContact", { contact: [place.contactName, place.contactPhone, place.contactEmail].filter(Boolean).join(" · ") })}</p>
                   ) : null}
-                  <EditPlaceForm eventId={event.id} place={place} />
                   <div className="row-wrap">
+                    <EditPlaceForm eventId={event.id} place={place} />
                     {index > 0 ? (
                       <form action={makeReceptionPlaceAction} className="inline-form">
                         <input type="hidden" name="eventId" value={event.id} />
@@ -1417,7 +1362,7 @@ export default async function EventDetailPage({
                     <form action={removePlaceAction} className="inline-form">
                       <input type="hidden" name="eventId" value={event.id} />
                       <input type="hidden" name="placeId" value={place.id} />
-                      <button type="submit">{t("removePlace", { place: place.label })}</button>
+                      <button type="submit" className="button-ghost">{t("removePlace", { place: place.label })}</button>
                     </form>
                   </div>
                 </li>
@@ -1443,7 +1388,7 @@ export default async function EventDetailPage({
                   <form action={removeDayContactAction} className="inline-form">
                     <input type="hidden" name="eventId" value={event.id} />
                     <input type="hidden" name="contactId" value={contact.id} />
-                    <button type="submit" aria-label={tDayContacts("removeLabel", { name: contact.name })}>
+                    <button type="submit" className="button-ghost" aria-label={tDayContacts("removeLabel", { name: contact.name })}>
                       {tDayContacts("remove")}
                     </button>
                   </form>
@@ -1498,9 +1443,12 @@ export default async function EventDetailPage({
       {tab === "maries" && event.clients.length > 0 ? (
         <section className="card" aria-labelledby="client-contact-title">
           <h2 id="client-contact-title">{t("clientContactTitle")}</h2>
-          {event.clients.map((client) => (
-            <ClientContactForm key={client.id} eventId={event.id} client={client} />
-          ))}
+          {/* Lot 62c (UX-12) : une personne par colonne, ses coordonnées en grille. */}
+          <div className="client-contacts">
+            {event.clients.map((client) => (
+              <ClientContactForm key={client.id} eventId={event.id} client={client} />
+            ))}
+          </div>
         </section>
       ) : null}
       {/* Lot 26a (UX-11, POR-01, POR-10, SEC-14, SEC-15 ; ADR 0053) : liens personnels. */}
@@ -1518,6 +1466,9 @@ export default async function EventDetailPage({
               );
               return (
                 <li key={link.id} className="link-row">
+                  {/* Lot 62c (UX-13) : la personne et ce qu'elle voit à gauche, ses actions à droite, en libellés courts
+                      (le nom reste dans le nom accessible). */}
+                  <div className="link-main">
                   <p>
                     <strong>{link.personName}</strong> — {link.email} — {t(LINK_STATUS_KEYS[link.status])}
                     {link.status !== "revoked" ? ` — ${t("linkValidUntil", { date: formatCalendarDate(link.expiresOn, locale) })}` : ""}
@@ -1532,17 +1483,21 @@ export default async function EventDetailPage({
                   {link.renewalRequestedAt ? (
                     <p className="badge-warning">{t("linkRenewalRequested", { date: eventTime(link.renewalRequestedAt) })}</p>
                   ) : null}
+                  </div>
                   {link.status !== "revoked" ? (
-                    <p>
-                      {/* Lot 27a (POR-09, D8) : ce que voit exactement cette personne. */}
-                      <Link href={`/events/${event.id}/liens/${link.id}/apercu`}>{t("linkPreview", { name: link.personName })}</Link>
-                    </p>
-                  ) : null}
-                  {link.status !== "revoked" && !event.isDemo ? (
                     <div className="link-actions">
+                      {/* Lot 27a (POR-09, D8) : ce que voit exactement cette personne. */}
+                      <Link href={`/events/${event.id}/liens/${link.id}/apercu`} className="button-link">
+                        {t("linkPreview", { name: link.personName })}
+                      </Link>
+                      {event.isDemo ? null : (
+                      <>
                       <RenewLinkForm eventId={event.id} linkId={link.id} personName={link.personName} />
                       <details>
-                        <summary>{t("editLink", { name: link.personName })}</summary>
+                        <summary>
+                          {t("linkEditShort")}
+                          <span className="sr-only">{t("linkOfName", { name: link.personName })}</span>
+                        </summary>
                         <EditLinkForm
                           eventId={event.id}
                           link={{
@@ -1565,19 +1520,28 @@ export default async function EventDetailPage({
                         />
                       </details>
                       <details>
-                        <summary>{t("revokeLink", { name: link.personName })}</summary>
+                        <summary>
+                          {t("linkRevokeShort")}
+                          <span className="sr-only">{t("linkOfName", { name: link.personName })}</span>
+                        </summary>
                         <form action={revokeLinkAction}>
                           <input type="hidden" name="eventId" value={event.id} />
                           <input type="hidden" name="linkId" value={link.id} />
-                          <button type="submit">{t("revokeLinkConfirm", { name: link.personName })}</button>
+                          <button type="submit" className="button-danger">
+                            {t("revokeLinkConfirm", { name: link.personName })}
+                          </button>
                         </form>
                       </details>
+                      </>
+                      )}
                     </div>
                   ) : null}
                 </li>
               );
             })}
           </ul>
+          {/* Lot 62c (UX-12) : créer un lien, en grille ; le lien d'un prestataire, plus rare, s'ouvre à la demande. */}
+          <div className="link-create">
           {event.isDemo ? (
             <p>{t("trialNoInvite")}</p>
           ) : (
@@ -1588,7 +1552,13 @@ export default async function EventDetailPage({
               profiles={listLinkProfiles(locale === "en" ? "en" : "fr", await requestAudience(organizationId)).map((profile) => ({ key: profile.key, label: profile.label, budgetScope: profile.budgetScope }))}
             />
           )}
-          {event.isDemo ? null : <CreateVendorLinkForm eventId={event.id} vendors={linkVendors} />}
+          {event.isDemo ? null : (
+            <details className="disclosure-form">
+              <summary>{t("createVendorLinkTitle")}</summary>
+              <CreateVendorLinkForm eventId={event.id} vendors={linkVendors} />
+            </details>
+          )}
+          </div>
         </section>
       ) : null}
       {/* Lot 27b (POR-03, BUD-07, EVT-09 ; D9, D10) : décisions demandées au client, lisibles des deux côtés. */}
@@ -1662,7 +1632,13 @@ export default async function EventDetailPage({
               );
             })}
           </ul>
-          {event.isDemo ? null : <RequestDecisionForm eventId={event.id} slots={decisionSlots} expenses={decisionExpenses} hasProgram={Boolean(publication?.latest)} />}
+          {/* Lot 62c (UX-12) : la demande s'ouvre à la demande ; la liste des décisions reste en vue. */}
+          {event.isDemo ? null : (
+            <details className="disclosure-form">
+              <summary>{tDecisions("requestTitle")}</summary>
+              <RequestDecisionForm eventId={event.id} slots={decisionSlots} expenses={decisionExpenses} hasProgram={Boolean(publication?.latest)} />
+            </details>
+          )}
         </section>
       ) : null}
 

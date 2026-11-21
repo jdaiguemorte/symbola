@@ -63,10 +63,10 @@ test("BUD-09 / BUD-10 — taux de TVA d'une ligne, HT pour un client professionn
   // Taux de la ligne : 10 %, saisi comme au catalogue.
   await table.getByRole("button", { name: "Modifier « Traiteur »" }).click();
   const editor = page.getByRole("region", { name: "Ligne « Traiteur » : montants, prestataire, documents et échéances" });
-  await expect(editor.getByLabel("Taux de TVA (%) de la ligne « Traiteur »")).toHaveValue("20");
-  await editor.getByLabel("Taux de TVA (%) de la ligne « Traiteur »").fill("10");
-  await editor.getByRole("button", { name: "Enregistrer le libellé, le prestataire et la TVA" }).click();
-  await expect(editor.getByText("Ligne mise à jour.")).toBeVisible();
+  await expect(editor.getByLabel("TVA (%) — Traiteur")).toHaveValue("20");
+  await editor.getByLabel("TVA (%) — Traiteur").fill("10");
+  await page.getByRole("button", { name: "Enregistrer le budget" }).click();
+  await expect(page.getByText("Budget enregistré : 1 ligne.")).toBeVisible();
   await expectNoAxeViolation(page);
 
   // Export XLSX : feuilles « Budget » et « Échéances », montants en euros.

@@ -13,7 +13,7 @@ const REGISTRY = fileURLToPath(new URL("../../../privacy.registry.yaml", import.
 const NOTICED: Record<string, { file: string; name: string }> = {
   "events.events.style": { file: "app/events/[id]/client-contact-forms.tsx", name: "style" },
   "events.events.notes": { file: "app/events/[id]/client-contact-forms.tsx", name: "notes" },
-  "events.program_items.internal_note": { file: "app/events/[id]/program-forms.tsx", name: "internalNote" },
+  "events.program_items.internal_note": { file: "app/events/[id]/program-editor.tsx", name: "internalNote" },
   "events.event_decisions.note": { file: "app/events/[id]/decision-forms.tsx", name: "note" },
   "budget.vendor_payments.refusal_reason": { file: "app/budget/[eventId]/declaration-refusal-form.tsx", name: "reason" },
   "vendors.vendors.internal_note": { file: "app/prestataires/vendor-form.tsx", name: "internalNote" },

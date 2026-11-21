@@ -97,7 +97,7 @@ test("PRD-BUD-02 — confirmer la simulation en budget estimé, puis suivre esti
   // Lot 28b : le formulaire s'ouvre dans une rangée pleine largeur, sous la ligne.
   const editor = page.getByRole("region", { name: "Ligne « Lieu de réception » : montants, prestataire, documents et échéances" });
   await editor.getByLabel("Engagé — Lieu de réception").fill("7000");
-  await editor.getByRole("button", { name: "Enregistrer la ligne" }).click();
+  await page.getByRole("button", { name: "Enregistrer le budget" }).click();
   await expect(lieuRow).toContainText("Dépassement de 1 000,00 €");
   await expectNoAxeViolation(page);
 });

@@ -37,7 +37,8 @@ vi.mock("next-intl/server", () => ({
 }));
 
 const {
-  adjustEventBudgetItemAction,
+  adjustEventBudgetItemsAction,
+  saveBudgetLinesAction,
   confirmEventBudgetAction,
   simulateEventBudgetAction,
   updateBudgetLineAction,
@@ -143,17 +144,18 @@ describe("PRD-BUD-04 — Un marié ne modifie jamais le budget, même par appel 
         form({ eventId, totalAmount: "1000", guestCount: "10", allocationModelId: randomUUID() }),
       ),
     ).toEqual({ error: "unauthenticated" });
-    expect(
-      await adjustEventBudgetItemAction({}, form({ eventId, defaultVendorSlotId, amount: "1" })),
-    ).toEqual({ error: "unauthenticated" });
+    // Lot 62c (D1) : les enregistrements groupés (répartition, lignes) refusent de même.
+    expect(await adjustEventBudgetItemsAction({ eventId, items: [{ defaultVendorSlotId, amount: "1" }] })).toEqual({ ok: false, error: "unauthenticated" });
+    const [line] = (await listBudgetLines(organizationId, eventId)).lines;
+    expect(await saveBudgetLinesAction({ eventId, lines: [{ lineId: line!.id, label: "Détournée", vendorCandidateId: null, vatRate: "20", amounts: { committed: "1" } }] })).toEqual({ ok: false, error: "unauthenticated" });
     await confirmEventBudgetAction(form({ eventId }));
     expect(
       await createAllocationModelAction({}, form({ name: "Intrus", [`percentage_${defaultVendorSlotId}`]: "100" })),
     ).toMatchObject({ error: expect.any(String) });
 
     const view = await listBudgetLines(organizationId, eventId);
-    expect(view.lines.map((line) => [line.estimatedAmountCents, line.committedAmountCents, line.attachments.length])).toEqual([
-      [600000, null, 0],
+    expect(view.lines.map((line) => [line.label, line.estimatedAmountCents, line.committedAmountCents, line.attachments.length])).toEqual([
+      ["Lieu", 600000, null, 0],
     ]);
     expect(await getEventBudget(organizationId, eventId)).toBeNull();
     expect(await listAllocationModels(organizationId)).toEqual([]);
@@ -193,5 +195,52 @@ describe("PRD-BUD-02 — Montants saisis en euros, au centime près", () => {
     expect(await actual()).toBe(292950);
     expect(await update("")).toEqual({ success: true });
     expect(await actual()).toBe(292950);
+  });
+});
+
+// Lot 62c (UX-13, décision D1) — « Enregistrer le budget » : plusieurs lignes en un envoi, validé
+// par Zod ; la planner d'une autre organisation n'écrit rien, même par appel direct.
+describe("UX-13 — Enregistrement groupé des lignes du budget (lot 62c)", () => {
+  it("la planner enregistre libellé, taux et montants en un envoi ; un montant laissé vide ou inchangé n'est pas écrit", async () => {
+    const context = await setup();
+    sessionToken = context.plannerToken;
+    const [line] = (await listBudgetLines(context.organizationId, context.eventId)).lines;
+
+    expect(
+      await saveBudgetLinesAction({ eventId: context.eventId, lines: [{ lineId: line!.id, label: "Location du domaine", vendorCandidateId: null, vatRate: "5,5", amounts: { quoted: "6 500,50", committed: "6500.50", paid: "" } }] }),
+    ).toEqual({ ok: true, count: 1 });
+    const [saved] = (await listBudgetLines(context.organizationId, context.eventId)).lines;
+    expect(saved).toMatchObject({ label: "Location du domaine", vatRateBasisPoints: 550, estimatedAmountCents: 600000, quotedAmountCents: 650050, committedAmountCents: 650050, paidAmountCents: null });
+  });
+
+  it("une saisie illisible refuse tout l'envoi et dit sa ligne ; une entrée mal formée est refusée par la validation", async () => {
+    const context = await setup();
+    sessionToken = context.plannerToken;
+    const [line] = (await listBudgetLines(context.organizationId, context.eventId)).lines;
+    const entry = { lineId: line!.id, label: "Lieu", vendorCandidateId: null, vatRate: "20", amounts: {} };
+
+    expect(await saveBudgetLinesAction({ eventId: context.eventId, lines: [{ ...entry, amounts: { committed: "deux mille" } }] })).toEqual({ ok: false, error: "invalidAmount", line: line!.id });
+    expect(await saveBudgetLinesAction({ eventId: context.eventId, lines: [{ ...entry, vatRate: "120" }] })).toEqual({ ok: false, error: "lineVatRateInvalid", line: line!.id });
+    expect(await saveBudgetLinesAction({ eventId: context.eventId, lines: [{ ...entry, label: "  " }] })).toEqual({ ok: false, error: "lineLabelRequired", line: line!.id });
+    expect(await saveBudgetLinesAction({ eventId: "pas-un-identifiant", lines: [entry] })).toEqual({ ok: false, error: "batchInvalid" });
+    expect(await saveBudgetLinesAction({ eventId: context.eventId, lines: [] })).toEqual({ ok: false, error: "batchInvalid" });
+    expect(await saveBudgetLinesAction({ eventId: context.eventId, lines: [{ ...entry, amounts: { remaining: "1" } as never }] })).toEqual({ ok: false, error: "batchInvalid" });
+    expect((await listBudgetLines(context.organizationId, context.eventId)).lines[0]).toMatchObject({ label: "Lieu", committedAmountCents: null });
+  });
+
+  it("abus : la planner d'une autre organisation ne modifie ni les lignes ni la répartition, par appel direct", async () => {
+    const mine = await setup();
+    const other = await setup();
+    sessionToken = other.plannerToken;
+    const [line] = (await listBudgetLines(mine.organizationId, mine.eventId)).lines;
+    const stolen = [{ lineId: line!.id, label: "Détournée", vendorCandidateId: null, vatRate: "20", amounts: { committed: "1" } }];
+
+    expect(await saveBudgetLinesAction({ eventId: mine.eventId, lines: stolen })).toEqual({ ok: false, error: "eventNotFound" });
+    // Son propre évènement, avec la ligne d'une autre organisation : même message qu'une ligne inconnue.
+    expect(await saveBudgetLinesAction({ eventId: other.eventId, lines: stolen })).toEqual({ ok: false, error: "unknownVendorSlot" });
+    expect(await adjustEventBudgetItemsAction({ eventId: mine.eventId, items: [{ defaultVendorSlotId: mine.defaultVendorSlotId, amount: "1" }] })).toEqual({ ok: false, error: "eventNotFound" });
+
+    expect((await listBudgetLines(mine.organizationId, mine.eventId)).lines[0]).toMatchObject({ label: "Lieu", estimatedAmountCents: 600000, committedAmountCents: null });
+    expect(await getEventBudget(mine.organizationId, mine.eventId)).toBeNull();
   });
 });

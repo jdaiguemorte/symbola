@@ -12,7 +12,7 @@ export function DeclarationRefusalForm({ eventId, paymentId, label }: { eventId:
   const [state, formAction, pending] = useActionState(refusePaymentDeclarationAction, {} as BudgetFormState);
   const reasonId = useId();
   return (
-    <form action={formAction} className="link-form">
+    <form action={formAction}>
       <input type="hidden" name="eventId" value={eventId} />
       <input type="hidden" name="paymentId" value={paymentId} />
       <label htmlFor={reasonId}>{t("declarationReason")}</label>

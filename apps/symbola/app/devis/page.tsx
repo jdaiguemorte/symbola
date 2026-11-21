@@ -95,7 +95,7 @@ export default async function QuotesListPage({ searchParams }: { searchParams: P
                     </td>
                     <td>
                       <span className={STATUS_CLASSES[quote.status]}>{t(QUOTE_STATUS_LABEL_KEYS[quote.status])}</span>{" "}
-                      <span className="text-muted">{t("versionLabel", { version: quote.currentVersion })}</span>
+                      <span className="muted">{t("versionLabel", { version: quote.currentVersion })}</span>
                     </td>
                     <td className="num">{formatAmount(quote.totalTtcCents, locale)}</td>
                   </tr>
