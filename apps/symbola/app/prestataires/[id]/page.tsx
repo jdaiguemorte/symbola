@@ -33,17 +33,17 @@ import { archiveVendorAction, removeVendorFileAction } from "../actions";
 import { isVendorsModuleEnabled } from "../module-access";
 import { ImportedFields } from "@/app/imported-fields";
 import { VendorForm } from "../vendor-form";
+import { parseRubric } from "../vendor-trades";
 import { VendorMap } from "../vendor-map";
 import { VendorFileForm, VendorLocationForm } from "./vendor-side-forms";
 import { ScreenHelp } from "@/app/screen-help";
-import { SidePanel } from "@/app/ui/side-panel";
 import { RatingStars } from "../rating-stars";
 import { isFloorplansAvailable } from "@/app/plans-de-salle/access";
 
 const OUTCOME_KEYS = { selected: "outcomeSelected", not_selected: "outcomeNotSelected", pending: "outcomePending" } as const;
 const OUTCOME_CLASSES = { selected: "badge badge-sauge", not_selected: "badge", pending: "badge badge-ambre" } as const;
 
-export default async function VendorPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ placement?: string; modifier?: string }> }) {
+export default async function VendorPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ placement?: string; modifier?: string; rubrique?: string }> }) {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("VendorBook");
@@ -93,19 +93,24 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
     listVendorFamilies(organizationId),
     listVendorTagGroups(organizationId),
   ]);
-  const tCommon = await getTranslations("Common");
   const query = await searchParams;
   const placement = query.placement;
-  // Lot 39c (UX-13, relevé validé le 17/11) : la fiche se lit dans la page, se modifie en panneau.
+  // Lot 39c (UX-13) : la fiche se lit dans la page. Lot 63e (ADR 0107, maquette M11) : elle se modifie
+  // dans une grande fenêtre, en rubriques.
   const editing = query.modifier === "1";
   const vendorHref = `/prestataires/${vendor.id}`;
-  const type = types.find((candidate) => candidate.id === vendor.typeId);
+  // Lot 63e (PRE-01 ; ADR 0105) : les métiers de la fiche, le principal en premier.
+  const trades = vendor.typeIds.map((typeId) => types.find((candidate) => candidate.id === typeId)).filter((candidate): candidate is (typeof types)[number] => Boolean(candidate));
+  const type = trades[0];
   const floorplans = await isFloorplansAvailable(organizationId, "vendors");
   const vendorTags = tags.filter((tag) => vendor.tagIds.includes(tag.id));
   const amount = (cents: number | null) => (cents === null ? "—" : formatAmount(cents, locale));
-  const family = type ? families.find((candidate) => candidate.id === type.familyId) : undefined;
   const address = [vendor.addressLine, [vendor.postalCode, vendor.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
-  const typedFields = type ? type.fields.filter((field) => vendor.fieldValues[field.id] !== undefined && vendor.fieldValues[field.id] !== null && vendor.fieldValues[field.id] !== "") : [];
+  const typedFields = trades.flatMap((trade) => trade.fields).filter((field) => vendor.fieldValues[field.id] !== undefined && vendor.fieldValues[field.id] !== null && vendor.fieldValues[field.id] !== "");
+  const tradeLabel = (trade: (typeof types)[number]) => {
+    const tradeFamily = families.find((candidate) => candidate.id === trade.familyId);
+    return tradeFamily ? t("typeInFamily", { family: tradeFamily.label, type: trade.label }) : trade.label;
+  };
   const fieldText = (kind: string, value: unknown) =>
     kind === "boolean" ? t(value === true ? "fieldYes" : "fieldNo") : kind === "amount" && typeof value === "number" ? formatAmount(value, locale) : String(value);
 
@@ -117,7 +122,11 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
       <div className="title-with-badge">
         <h1>{vendor.name}</h1>
         <ScreenHelp title={tHelp("vendorDetail.title")} body={tHelp("vendorDetail.body")} />
-        {type ? <span className="badge badge-sauge">{type.label}</span> : null}
+        {trades.map((trade, position) => (
+          <span key={trade.id} className={position === 0 ? "badge badge-sauge" : "badge"}>
+            {position === 0 && trades.length > 1 ? t("tradePrimaryBadge", { type: trade.label }) : trade.label}
+          </span>
+        ))}
         {vendorTags.map((tag) => (
           <span key={tag.id} className="badge">
             {tag.label}
@@ -232,8 +241,8 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
         ) : null}
         <dl className="vendor-summary">
           <div>
-            <dt>{t("summaryType")}</dt>
-            <dd>{type ? (family ? t("typeInFamily", { family: family.label, type: type.label }) : type.label) : "—"}</dd>
+            <dt>{t("summaryTrades", { count: trades.length })}</dt>
+            <dd>{trades.length > 0 ? trades.map(tradeLabel).join(" ; ") : "—"}</dd>
           </div>
           <div>
             <dt>{t("summaryContact")}</dt>
@@ -400,7 +409,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
       </section>
 
       {/* Lot 60 (L60-PLA-01, PRE-06) : les plans de salle d'un lieu, si le module est ouvert (ARC-07). */}
-      {floorplans && type?.starterKey === "venue" ? (
+      {floorplans && trades.some((trade) => trade.starterKey === "venue") ? (
         <section className="card" aria-labelledby="floorplans-title">
           <h2 id="floorplans-title">{t("floorplansTitle")}</h2>
           <p className="meta">{t("floorplansIntro")}</p>
@@ -434,9 +443,7 @@ export default async function VendorPage({ params, searchParams }: { params: Pro
         </form>
       ) : null}
       {editing ? (
-        <SidePanel title={t("editRecord")} closeHref={vendorHref} closeLabel={tCommon("closePanel")}>
-          <VendorForm key={JSON.stringify(vendor)} types={types} tags={tags} tagGroups={tagGroups} families={families} vendor={vendor} />
-        </SidePanel>
+        <VendorForm key={vendor.id} types={types} tags={tags} tagGroups={tagGroups} families={families} vendor={vendor} closeHref={vendorHref} initialRubric={parseRubric(query.rubrique)} />
       ) : null}
     </main>
   );

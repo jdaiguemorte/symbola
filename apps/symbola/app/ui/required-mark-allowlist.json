@@ -114,7 +114,6 @@
   "app/prestataires/parametres/pieces/forms.tsx",
   "app/prestataires/parametres/settings-forms.tsx",
   "app/prestataires/parametres/type-forms.tsx",
-  "app/prestataires/vendor-form.tsx",
   "app/rdv/manage-opener.tsx",
   "app/rendez-vous/[id]/page.tsx",
   "app/rendez-vous/disponibilites/page.tsx",

@@ -8,10 +8,12 @@
 import { and, arrayOverlaps, eq, isNull, sql } from "drizzle-orm";
 import { sameImportValue, type ImportApplyResult, type ImportApplyRow, type ImportedItem, type ImportUndoItem, type ImportUndoOutcome } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
-import { vendorFiles, vendors, vendorTags, vendorTypes } from "@symbola/db/schema/vendors";
+import { vendorFiles, vendors, vendorTags, vendorTypeLinks, vendorTypes } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";
 import { normalizeVendorImportValues, type VendorsExportRow } from "@symbola/import-engine";
 import { planningSoftwareProfile } from "@symbola/starter-templates";
+import { typeLinksOf, writeTypeLinks } from "./repository";
+import { vendorTypeLabels } from "./type-split";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 type Values = Record<string, unknown>;
@@ -54,12 +56,16 @@ function noteOf(record: VendorsExportRow): string | null {
   return parts.length > 0 ? parts.join("\n\n") : null;
 }
 
+// Lot 63e (ADR 0105) : l'état garde les métiers (typeIds, le principal en premier) et, pour les imports
+// journalisés avant le lot, leur métier principal sous l'ancien nom typeId.
 async function vendorState(tx: Tx, id: string): Promise<Values | null> {
   const [row] = await tx.select().from(vendors).where(eq(vendors.id, id));
   if (!row) return null;
+  const typeIds = (await typeLinksOf(tx, [id])).get(id)?.typeIds ?? [];
   return {
     name: row.name,
-    typeId: row.typeId,
+    typeIds,
+    typeId: typeIds[0] ?? null,
     contactName: row.contactName,
     email: row.email,
     phone: row.phone,
@@ -121,9 +127,11 @@ export async function importVendorRows(input: {
       items.push({ rowIndex: null, module: "vendors", kind: "vendor_type", elementId: created.id, action: "created", previous: null, written: { label: created.label } });
       return created.id;
     };
-    for (const { record } of records) {
-      if (!record?.type) continue;
-      const key = folded(record.type);
+    // Lot 63e (PRE-01, PRE-11) : une valeur combinée (« Photographe et vidéaste ») donne plusieurs
+    // métiers, chacun choisi à l'étape « Types » sous son propre libellé.
+    const typeLabelsOf = (value: string | null) => (value ? vendorTypeLabels(value) : []);
+    for (const label of records.flatMap(({ record }) => typeLabelsOf(record?.type ?? null))) {
+      const key = folded(label);
       if (typeByLabel.has(key)) continue;
       const choice = choices.get(key);
       const target: VendorTypeTarget = choice?.target ?? (choice?.typeId ? { kind: "existing", typeId: choice.typeId } : { kind: "new", familyId: null, color: UNCLASSIFIED_COLOR });
@@ -142,7 +150,7 @@ export async function importVendorRows(input: {
         // Lot 16 (L16-PRE-14) : sans famille choisie, le type part « à classer ».
         const familyId = target.kind === "new" ? target.familyId : null;
         const color = target.kind === "new" ? target.color : UNCLASSIFIED_COLOR;
-        typeByLabel.set(key, await createType({ label: record.type, color, familyId, starterKey: null }));
+        typeByLabel.set(key, await createType({ label, color, familyId, starterKey: null }));
       }
     }
 
@@ -165,9 +173,10 @@ export async function importVendorRows(input: {
         continue;
       }
       const tagIds = [...new Set(record.criteria.map((criterion) => tagByLabel.get(folded(criterion))).filter((id): id is string => Boolean(id)))];
+      const typeIds = [...new Set(typeLabelsOf(record.type).flatMap((label) => typeByLabel.get(folded(label)) ?? []))];
       const wanted: Values = {
         name: record.name,
-        typeId: record.type ? (typeByLabel.get(folded(record.type)) ?? null) : null,
+        typeIds,
         contactName: record.contactName,
         email: record.email,
         phone: record.phone,
@@ -183,7 +192,7 @@ export async function importVendorRows(input: {
         indicativePrices: record.indicativePrices,
       };
       // Lot 16 (IMP-12) : sans type, le libellé du fichier reste lisible sur la fiche.
-      const keptType = record.type && wanted.typeId === null && input.typeColumnHeader ? { [input.typeColumnHeader]: record.type } : {};
+      const keptType = record.type && typeIds.length === 0 && input.typeColumnHeader ? { [input.typeColumnHeader]: record.type } : {};
       const extra = { ...row.importedFields, ...keptType };
       const importedFields = Object.keys(extra).length > 0 ? extra : null;
       const current = row.matchId ? await vendorState(tx, row.matchId) : null;
@@ -199,6 +208,8 @@ export async function importVendorRows(input: {
         }
         const mergedTags = [...new Set([...((current.tagIds as string[]) ?? []), ...tagIds])];
         update.tagIds = mergedTags;
+        // Lot 63e : les métiers du fichier s'ajoutent à ceux de la fiche, qui garde son principal.
+        if (typeIds.length > 0) update.typeIds = [...new Set([...((current.typeIds as string[]) ?? []), ...typeIds])];
         if (importedFields) update.importedFields = { ...((current.importedFields as Record<string, string> | null) ?? {}), ...importedFields };
         const keys = Object.keys(update).filter((key) => !same(current[key], update[key]));
         if (keys.length === 0) {
@@ -206,10 +217,7 @@ export async function importVendorRows(input: {
           continue;
         }
         const written = Object.fromEntries(keys.map((key) => [key, update[key]]));
-        await tx
-          .update(vendors)
-          .set({ ...(written as Partial<typeof vendors.$inferInsert>), updatedAt: new Date() })
-          .where(eq(vendors.id, row.matchId));
+        await writeVendorValues(tx, input.organizationId, row.matchId, written);
         const previous: Values = Object.fromEntries(keys.map((key) => [key, current[key] ?? null]));
         // Adresse changée : le point d'avant est gardé pour l'annulation.
         if (keys.some((key) => (ADDRESS_KEYS as readonly string[]).includes(key))) {
@@ -228,7 +236,6 @@ export async function importVendorRows(input: {
         .values({
           organizationId: input.organizationId,
           name: record.name,
-          typeId: wanted.typeId as string | null,
           contactName: record.contactName,
           email: record.email,
           phone: record.phone,
@@ -246,6 +253,7 @@ export async function importVendorRows(input: {
         })
         .returning();
       if (!created) throw new Error("création de la fiche échouée");
+      if (typeIds.length > 0) await writeTypeLinks(tx, input.organizationId, created.id, typeIds);
       items.push({ rowIndex: row.rowIndex, module: "vendors", kind: "vendor", elementId: created.id, action: "created", previous: null, written: (await vendorState(tx, created.id)) ?? {} });
     }
     return { items, unchanged };
@@ -279,8 +287,28 @@ function modifiedSince(current: Values, written: Values | null, existingTypeIds:
   return Object.keys(written ?? {}).some((key) => {
     const value = (written ?? {})[key];
     if (key === "typeId" && typeof value === "string" && !existingTypeIds.has(value)) return false;
+    // Lot 63e : seuls comptent les métiers encore au carnet (un type fusionné ou supprimé depuis n'est
+    // pas une modification à la main).
+    if (key === "typeIds" && Array.isArray(value)) {
+      const kept = (value as string[]).filter((id) => existingTypeIds.has(id));
+      const currentIds = (current.typeIds as string[] | undefined) ?? [];
+      if (kept.length < (value as string[]).length) return !kept.every((id) => currentIds.includes(id));
+      return !same(currentIds, value);
+    }
     return !same(current[key], value);
   });
+}
+
+// Valeurs d'une fiche écrites d'un bloc : colonnes, puis métiers (typeIds, ou l'ancien typeId d'un
+// import journalisé avant le lot 63e).
+async function writeVendorValues(tx: Tx, organizationId: string, vendorId: string, values: Values): Promise<void> {
+  const { typeIds, typeId, ...columns } = values;
+  await tx
+    .update(vendors)
+    .set({ ...(columns as Partial<typeof vendors.$inferInsert>), updatedAt: new Date() })
+    .where(eq(vendors.id, vendorId));
+  if (Array.isArray(typeIds)) await writeTypeLinks(tx, organizationId, vendorId, (typeIds as string[]).filter((id) => typeof id === "string"));
+  else if (typeId !== undefined) await writeTypeLinks(tx, organizationId, vendorId, typeof typeId === "string" ? [typeId] : []);
 }
 
 async function typeIdsOf(tx: Tx): Promise<Set<string>> {
@@ -310,7 +338,7 @@ async function inUse(tx: Tx, kind: string, id: string, linkedVendorIds: Set<stri
   }
   const [row] =
     kind === "vendor_type"
-      ? await tx.select({ n: sql<number>`count(*)::int` }).from(vendors).where(eq(vendors.typeId, id))
+      ? await tx.select({ n: sql<number>`count(*)::int` }).from(vendorTypeLinks).where(eq(vendorTypeLinks.typeId, id))
       : await tx.select({ n: sql<number>`count(*)::int` }).from(vendors).where(arrayOverlaps(vendors.tagIds, [id]));
   return (row?.n ?? 0) > 0;
 }
@@ -340,10 +368,11 @@ export async function undoImportedVendorsElements(organizationId: string, items:
         else if (item.kind === "vendor_type") await tx.delete(vendorTypes).where(eq(vendorTypes.id, item.elementId));
         else await tx.delete(vendorTags).where(eq(vendorTags.id, item.elementId));
       } else if (item.kind === "vendor") {
-        await tx
-          .update(vendors)
-          .set({ ...((item.previous ?? {}) as Partial<typeof vendors.$inferInsert>), updatedAt: new Date() })
-          .where(eq(vendors.id, item.elementId));
+        const previous = { ...(item.previous ?? {}) } as Values;
+        // Un métier disparu depuis (fusion, suppression) ne revient pas.
+        if (Array.isArray(previous.typeIds)) previous.typeIds = (previous.typeIds as string[]).filter((id) => existingTypeIds.has(id));
+        if (typeof previous.typeId === "string" && !existingTypeIds.has(previous.typeId)) previous.typeId = null;
+        await writeVendorValues(tx, organizationId, item.elementId, previous);
       }
       outcomes.push("undone");
     }

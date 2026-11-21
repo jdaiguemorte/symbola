@@ -5,7 +5,7 @@
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { appendAudit } from "@symbola/db/audit";
-import { vendorBankChanges, vendorDocumentKinds, vendorDocuments, vendors, vendorSettings, vendorTypeFields, vendorTypes } from "@symbola/db/schema/vendors";
+import { vendorBankChanges, vendorDocumentKinds, vendorDocuments, vendors, vendorSettings, vendorTypeFields, vendorTypeLinks, vendorTypes } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";
 
 export type VendorDocumentKindRow = typeof vendorDocumentKinds.$inferSelect;
@@ -268,19 +268,22 @@ export function seedVenueRuleFieldRows(
   });
 }
 
-// Fiches (nom, valeurs des champs, champs à règle de leur type, clé du type de départ).
+// Fiches (nom, valeurs des champs, champs à règle de leurs métiers, clés des types de départ). Lot 63e
+// (ADR 0105) : une fiche a plusieurs métiers ; les règles de chacun valent.
 export function findVenueRows(
   organizationId: string,
   vendorIds: string[],
-): Promise<{ id: string; name: string; fieldValues: Record<string, string | number | boolean>; typeStarterKey: string | null; ruleFields: { id: string; ruleKey: string }[] }[]> {
+): Promise<{ id: string; name: string; fieldValues: Record<string, string | number | boolean>; typeStarterKeys: string[]; ruleFields: { id: string; ruleKey: string }[] }[]> {
   if (vendorIds.length === 0) return Promise.resolve([]);
   return inOrganization(organizationId, async (tx) => {
-    const rows = await tx
-      .select({ id: vendors.id, name: vendors.name, fieldValues: vendors.fieldValues, typeId: vendors.typeId, typeStarterKey: vendorTypes.starterKey })
-      .from(vendors)
-      .leftJoin(vendorTypes, eq(vendorTypes.id, vendors.typeId))
-      .where(inArray(vendors.id, vendorIds));
-    const typeIds = [...new Set(rows.map((row) => row.typeId).filter((id): id is string => id !== null))];
+    const rows = await tx.select({ id: vendors.id, name: vendors.name, fieldValues: vendors.fieldValues }).from(vendors).where(inArray(vendors.id, vendorIds));
+    const links = await tx
+      .select({ vendorId: vendorTypeLinks.vendorId, typeId: vendorTypeLinks.typeId, starterKey: vendorTypes.starterKey })
+      .from(vendorTypeLinks)
+      .innerJoin(vendorTypes, eq(vendorTypes.id, vendorTypeLinks.typeId))
+      .where(inArray(vendorTypeLinks.vendorId, vendorIds))
+      .orderBy(desc(vendorTypeLinks.isPrimary), asc(vendorTypeLinks.position));
+    const typeIds = [...new Set(links.map((link) => link.typeId))];
     const fields =
       typeIds.length > 0
         ? await tx
@@ -288,12 +291,15 @@ export function findVenueRows(
             .from(vendorTypeFields)
             .where(and(inArray(vendorTypeFields.typeId, typeIds), sql`${vendorTypeFields.ruleKey} is not null`))
         : [];
-    return rows.map((row) => ({
-      id: row.id,
-      name: row.name,
-      fieldValues: row.fieldValues,
-      typeStarterKey: row.typeStarterKey,
-      ruleFields: fields.filter((field) => field.typeId === row.typeId).map((field) => ({ id: field.id, ruleKey: field.ruleKey! })),
-    }));
+    return rows.map((row) => {
+      const own = links.filter((link) => link.vendorId === row.id);
+      return {
+        id: row.id,
+        name: row.name,
+        fieldValues: row.fieldValues,
+        typeStarterKeys: own.flatMap((link) => (link.starterKey ? [link.starterKey] : [])),
+        ruleFields: fields.filter((field) => own.some((link) => link.typeId === field.typeId)).map((field) => ({ id: field.id, ruleKey: field.ruleKey! })),
+      };
+    });
   });
 }

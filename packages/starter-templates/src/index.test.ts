@@ -67,7 +67,7 @@ import {
   starterVendorSlots,
   starterVendorTags,
   starterVendorTypes,
-  starterVendorTypeSynonymGroups, starterProspectFollowUps, starterQuestionnaires, questionnaireSensitiveWords, starterMessageTemplates } from "./index";
+  starterVendorTypeSynonymGroups, starterCombinedVendorTypes, starterProspectFollowUps, starterQuestionnaires, questionnaireSensitiveWords, starterMessageTemplates } from "./index";
 
 describe("PRD-EVT-03 — Modèle de départ des postes prestataires", () => {
   it("existe en français et en anglais, avec le même nombre de postes", () => {
@@ -342,7 +342,7 @@ describe("L16-PRE-14 — Familles et types de départ, communs à tous les méti
     // Mariages et autres événements : les deux mondes dans le même catalogue.
     expect(fr.map((family) => family.label)).toEqual(expect.arrayContaining(["Beauté et tenues", "Accueil et sécurité", "Technique et scène"]));
     expect(fr.find((family) => family.label === "Beauté et tenues")!.types.map((type) => type.label)).toEqual(
-      expect.arrayContaining(["Coiffure et maquillage", "Robe de mariée", "Tenue du marié", "Bijoux"]),
+      expect.arrayContaining(["Coiffure", "Maquillage", "Robe de mariée", "Tenue du marié", "Bijoux"]),
     );
   });
 
@@ -370,9 +370,12 @@ describe("L16-PRE-14 — Familles et types de départ, communs à tous les méti
     });
   });
 
-  it("« Coiffeur(se) » et « Maquillage » désignent le même type, « Coiffure et maquillage »", () => {
-    const group = starterVendorTypeSynonymGroups().find((labels) => labels.includes("Coiffure et maquillage"))!;
-    expect(group).toEqual(expect.arrayContaining(["Coiffeur(se)", "Maquillage"]));
+  it("PRE-01 (lot 63e) — « Coiffure » et « Maquillage » sont deux métiers ; « Coiffure et maquillage » n'est plus un type mais une combinaison", () => {
+    const groups = starterVendorTypeSynonymGroups();
+    expect(groups.find((labels) => labels.includes("Coiffeur(se)"))).toEqual(expect.arrayContaining(["Coiffure"]));
+    expect(groups.find((labels) => labels.includes("Maquilleuse"))).toEqual(expect.arrayContaining(["Maquillage"]));
+    expect(groups.some((labels) => labels.includes("Coiffure et maquillage"))).toBe(false);
+    expect(starterCombinedVendorTypes().items.find((item) => item.fr.includes("Coiffure et maquillage"))!.parts).toEqual(["hair_makeup", "makeup"]);
   });
 
   it("icônes connues de l'app, couleurs et icônes distinctes", () => {
@@ -808,5 +811,25 @@ describe("L60-PLA-01 — Bibliothèque de départ des plans de salle (floorplan-
   it("L60-PLA-02 : grille de 50 cm, pas de 10 cm et 1 m, rotation de 15°", () => {
     expect(floorplanEditorRules()).toMatchObject({ gridCm: 50, nudgeCm: 10, nudgeLargeCm: 100, rotationStepDeg: 15 });
     expect(floorplanSeatingRules().seatWidthCm).toBeGreaterThan(0);
+  });
+});
+
+describe("PRE-01, PRE-11 (lot 63e, ADR 0105) — types combinés en données", () => {
+  it("chaque combinaison désigne au moins deux types de départ distincts, connus du catalogue", () => {
+    const keys = new Set(starterVendorCatalog("fr").flatMap((family) => family.types.map((type) => type.key)));
+    for (const item of starterCombinedVendorTypes().items) {
+      expect(new Set(item.parts).size, item.fr[0]).toBe(item.parts.length);
+      for (const part of item.parts) expect(keys.has(part), part).toBe(true);
+    }
+  });
+
+  it("aucun libellé combiné n'est aussi le synonyme d'un seul type, et « Photographe & Vidéaste » donne deux métiers", () => {
+    const single = new Set(starterVendorTypeSynonymGroups().flat().map((label) => label.toLocaleLowerCase("fr")));
+    for (const item of starterCombinedVendorTypes().items) for (const label of [...item.fr, ...item.en]) expect(single.has(label.toLocaleLowerCase("fr")), label).toBe(false);
+    expect(starterCombinedVendorTypes().items.find((item) => item.fr.includes("Photographe & Vidéaste"))!.parts).toEqual(["photographer", "videographer"]);
+  });
+
+  it("les séparateurs reconnus sont écrits avec leurs espaces (« Baby-sitter » n'est pas coupé)", () => {
+    for (const separator of starterCombinedVendorTypes().separators) expect(separator.endsWith(" "), separator).toBe(true);
   });
 });

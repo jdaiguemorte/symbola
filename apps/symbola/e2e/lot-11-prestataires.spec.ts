@@ -137,11 +137,16 @@ test("L11-PRE-01 à L11-PRE-07 / L11-HUB-12 — créer ses fiches, filtrer autou
     { name: "Hôtel du Beffroi", city: "Lille", beds: "62" },
     { name: "Gîte des Prés", city: "Arras", beds: "20" },
   ]) {
+    // Lot 63e (ADR 0105, ADR 0107) : la fiche en rubriques, parcourues sans enregistrer, créée à la fin.
     await page.goto("/prestataires/nouveau");
     await page.getByLabel("Nom du prestataire").fill(vendor.name);
-    await page.locator("select[name=typeId]").selectOption({ label: "Hôtel / hébergement" });
-    await page.getByLabel("Ville").fill(vendor.city);
+    const rubrics = page.getByRole("navigation", { name: "Rubriques de la fiche" });
+    await rubrics.getByRole("button", { name: "Métiers et étiquettes" }).click();
+    await page.getByRole("checkbox", { name: "Hôtel / hébergement" }).check();
     await page.getByLabel("Couchages").fill(vendor.beds);
+    await rubrics.getByRole("button", { name: "Coordonnées" }).click();
+    await page.getByLabel("Ville").fill(vendor.city);
+    await rubrics.getByRole("button", { name: "Tarifs et note" }).click();
     await page.getByRole("button", { name: "Créer la fiche" }).click();
     await expect(page.getByRole("heading", { level: 1, name: vendor.name })).toBeVisible();
     await expect(page.getByText("Adresse placée sur la carte.")).toBeVisible();
