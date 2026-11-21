@@ -40,8 +40,11 @@ export function EssentialStepForm(props: EssentialStepProps & { previous: string
     return (
       <div className="field-group">
         <label htmlFor={id}>
-          {label}
-          {options.star ? <span aria-hidden="true"> *</span> : null}
+          {/* Le libellé et son « * » sur une même ligne (un libellé se met en colonne). */}
+          <span>
+            {label}
+            {options.star ? <span aria-hidden="true"> *</span> : null}
+          </span>
         </label>
         {input({ id, name, ...(state.field === name ? { "aria-invalid": true as const } : {}), ...(described ? { "aria-describedby": described } : {}) })}
         {options.hint ? (

@@ -45,6 +45,8 @@ test("HUB-09 / HUB-18 / HUB-23 — « L'essentiel » : six questions, une par é
   // Obligatoires pour envoyer un devis, jamais pour avancer : aucun champ n'est « required ».
   await expect(page.locator("form#essentials-form [required]")).toHaveCount(0);
   await expectNoAxeViolation(page);
+  // Les étapes défilent dans leur ligne : jamais de défilement horizontal de l'écran (375 px).
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
 
   // Un SIRET mal formé est refusé, l'erreur nomme le champ, la saisie reste.
   await page.getByLabel("Raison sociale").fill("Atelier Lumière");

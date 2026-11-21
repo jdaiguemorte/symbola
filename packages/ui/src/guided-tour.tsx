@@ -202,7 +202,7 @@ export function GuidedTour({
                 {labels.previous}
               </button>
             ) : null}
-            <button type="button" onClick={() => (lastStep ? close(true) : setIndex(index + 1))}>
+            <button type="button" className="button-primary" onClick={() => (lastStep ? close(true) : setIndex(index + 1))}>
               {lastStep ? labels.finish : labels.next}
             </button>
           </span>
