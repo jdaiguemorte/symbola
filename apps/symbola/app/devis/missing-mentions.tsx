@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { MissingMention } from "@/modules/quotes/service";
+import { anchorHref } from "./[quoteId]/rubrics";
 
 const WHERE: Record<MissingMention, string> = {
   organizationName: "/parametres#profil-entreprise",
@@ -15,17 +16,18 @@ const WHERE: Record<MissingMention, string> = {
   mediator: "/parametres#informations-professionnel",
   generalTerms: "/parametres#informations-professionnel",
   paymentTerms: "/devis/parametres#invoiceMentions",
-  advanceKind: "#acompte-arrhes",
+  // Lot 62d : les ancres du devis mènent à leur rubrique (`?rubrique=`).
+  advanceKind: anchorHref("#acompte-arrhes"),
   // Lot 31c (D18, D22).
   professionalPaymentTerms: "/devis/parametres#invoiceMentionsProfessional",
   latePenaltyRate: "/devis/parametres#latePenaltyRate",
-  earnestSingleInstalment: "#echeancier",
+  earnestSingleInstalment: anchorHref("#echeancier"),
   // Lot 41 (FAC-10, JUR-02, JUR-12 ; D6, D7, D11).
   postalCode: "/parametres#profil-entreprise",
   city: "/parametres#profil-entreprise",
-  buyerCompany: "#acheteur",
-  buyerSiren: "#acheteur",
-  buyerAddress: "#acheteur",
+  buyerCompany: anchorHref("#acheteur"),
+  buyerSiren: anchorHref("#acheteur"),
+  buyerAddress: anchorHref("#acheteur"),
   professionalDiscountTerms: "/devis/parametres#professionalDiscountTerms",
 };
 

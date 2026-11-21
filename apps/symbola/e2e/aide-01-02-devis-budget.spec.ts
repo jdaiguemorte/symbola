@@ -10,6 +10,7 @@ import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { saveOnboardingStep } from "../modules/hub/service";
 import { closeLandmarks, landmarksPanel, readyOrganization, signIn as signInByLink } from "./helpers";
+import { openQuoteRubric } from "./devis-rubriques";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -97,6 +98,7 @@ test("AIDE-02 — essai guidé du module Devis : devis fictif signé et facturé
 
   // Signature par les mariés fictifs, sur la page de signature d'essai.
   await page.waitForLoadState("networkidle");
+  await openQuoteRubric(page, "contrat");
   const send = page.getByRole("form", { name: "Envoyer en signature" });
   const groups = await send.getByRole("group").all();
   for (const [index, group] of groups.entries()) {
@@ -118,9 +120,10 @@ test("AIDE-02 — essai guidé du module Devis : devis fictif signé et facturé
   }
 
   // Facture fictive (série DEMO, en filigrane).
-  await page.goto(quoteUrl);
+  await page.goto(`${quoteUrl}?rubrique=contrat`);
   await page.waitForLoadState("networkidle");
   await expect(page.getByText("Devis signé par tous les signataires.")).toBeVisible();
+  await openQuoteRubric(page, "factures");
   await page.getByRole("button", { name: "Émettre la facture d'acompte « Acompte à la signature »" }).click();
   await expect(page.getByText(/^DEMO-F-\d{4}-0001 — Facture d'acompte/)).toBeVisible();
   const pdf = await page.request.get((await page.getByRole("link", { name: /^PDF de la facture DEMO-F-/ }).getAttribute("href"))!);

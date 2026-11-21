@@ -11,6 +11,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { createProspect, createProspectSource } from "../modules/events/service";
 import { saveOnboardingStep } from "../modules/hub/service";
 import { clickMenuLink, openEventTab, readyOrganization, signIn } from "./helpers";
+import { openQuoteForm, openQuoteRubric } from "./devis-rubriques";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -83,12 +84,14 @@ test("CRM-03 / UX-02 — Léa revient : sa fiche, son second évènement sans re
   await page.getByRole("button", { name: "Créer un devis" }).click();
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
   await page.waitForLoadState("networkidle");
-  const freeLine = page.getByRole("form", { name: "Ajouter une ligne libre" });
+  // Lot 62d : les formulaires d'ajout s'ouvrent sous le tableau des lignes, un à la fois.
+  const freeLine = await openQuoteForm(page, "Ajouter une ligne libre");
   await freeLine.getByLabel("Intitulé").fill("Coordination");
   await freeLine.getByLabel("Unité").fill("forfait");
   await freeLine.getByLabel("Prix unitaire HT (€)").fill("1800");
   await freeLine.getByRole("button", { name: "Ajouter la ligne" }).click();
   await expect(freeLine.getByText("Ligne ajoutée.")).toBeVisible();
+  await openQuoteRubric(page, "contrat");
   const send = page.getByRole("form", { name: "Envoyer en signature" });
   const first = send.getByRole("group", { name: "Signataire 1" });
   await expect(first.getByLabel("Nom et prénom")).toHaveValue(`Léa ${lastName}`);

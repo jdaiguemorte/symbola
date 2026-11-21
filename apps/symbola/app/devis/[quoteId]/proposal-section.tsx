@@ -26,9 +26,6 @@ export async function ProposalSection({ organizationId, quote, locale }: { organ
               ))}
             </blockquote>
           ) : null}
-          <p>
-            <Link href={`/devis/${quote.id}/proposition`}>{t("previewLink")}</Link>
-          </p>
           {expired ? <p className="badge-warning">{t("expired", { date: formatCalendarDate(current.validUntil!, locale) })}</p> : null}
           {quote.status === "sent" ? (
             <>
@@ -42,10 +39,12 @@ export async function ProposalSection({ organizationId, quote, locale }: { organ
         </>
       ) : (
         <>
-          <p className="meta">{t("draftHint")}</p>
+          <p className="field-hint">{t("draftHint")}</p>
           <GreetingForm quoteId={quote.id} greeting={greeting} templateGreeting={templateGreeting} />
-          <p className="meta">
-            <Link href="/devis/modeles-proposition">{t("templatesLink")}</Link>
+          <p className="field-hint">
+            <Link href="/devis/modeles-proposition" className="quote-link">
+              {t("templatesLink")}
+            </Link>
           </p>
         </>
       )}
@@ -60,7 +59,7 @@ export async function SettlementSection({ organizationId, quote, locale }: { org
   return (
     <section id="reglement" aria-labelledby="settlement-title">
       <h2 id="settlement-title">{t("settlementTitle")}</h2>
-      <p className="meta">{t("settlementHint")}</p>
+      <p className="field-hint">{t("settlementHint")}</p>
       <ul className="item-list">
         {quote.current.schedule.items.map((item) => {
           const settlement = settlements.find((entry) => entry.scheduleItemId === item.id);
@@ -77,12 +76,12 @@ export async function SettlementSection({ organizationId, quote, locale }: { org
                 </p>
               ) : null}
               {settlement && settlement.remindersSent.length > 0 ? (
-                <p className="meta">{t("remindersSent", { list: settlement.remindersSent.map((reminder) => t("reminderEntry", { rank: reminder.rank, date: formatDateTime(new Date(reminder.sentAt), locale) })).join(", ") })}</p>
+                <p className="field-hint">{t("remindersSent", { list: settlement.remindersSent.map((reminder) => t("reminderEntry", { rank: reminder.rank, date: formatDateTime(new Date(reminder.sentAt), locale) })).join(", ") })}</p>
               ) : null}
               {!item.paidOn && quote.status === "signed" ? (
                 settlement?.remindersSuspended ? (
                   <>
-                    <p className="meta">{t("suspendedSince", { date: formatDateTime(new Date(settlement.remindersSuspended.at), locale), reason: settlement.remindersSuspended.reason })}</p>
+                    <p className="field-hint">{t("suspendedSince", { date: formatDateTime(new Date(settlement.remindersSuspended.at), locale), reason: settlement.remindersSuspended.reason })}</p>
                     <ResumeRemindersForm quoteId={quote.id} scheduleItemId={item.id} label={item.label} />
                   </>
                 ) : (

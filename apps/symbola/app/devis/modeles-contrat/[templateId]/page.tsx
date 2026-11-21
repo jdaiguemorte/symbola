@@ -42,9 +42,11 @@ export default async function ContractTemplatePage({ params }: { params: Promise
   const eventTypes = (await ensureEventTypes(organizationId, locale)).map((type) => ({ id: type.id, label: type.label }));
 
   return (
-    <main>
+    <main className="quote-screen">
       <p>
-        <Link href="/devis/modeles-contrat">{t("backToTemplates")}</Link>
+        <Link href="/devis/modeles-contrat" className="quote-link">
+          {t("backToTemplates")}
+        </Link>
       </p>
       <h1>{template.name}</h1>
       <p className="meta">

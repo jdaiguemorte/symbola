@@ -26,7 +26,7 @@ export default async function ProposalPreviewPage({ params }: { params: Promise<
   }
   const banner = (
     <p role="note" className="preview-banner">
-      {t("previewBanner")} <a href={`/devis/${quoteId}#proposition`}>{t("previewBack")}</a>
+      {t("previewBanner")} <a href={`/devis/${quoteId}?rubrique=proposition`}>{t("previewBack")}</a>
     </p>
   );
   return <ProposalContent proposal={proposal} flow={null} locale={locale} preview basePath={`/devis/${quoteId}/proposition`} banner={banner} />;

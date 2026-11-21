@@ -13,6 +13,7 @@ import { createEventLink, createProspect, createProspectSource, getEvent } from 
 import { createContact, saveOnboardingStep } from "../modules/hub/service";
 import { addQuoteLine, addScheduleItem, createQuote, getQuoteSettings, sendQuote, setQuoteClientKind, updateQuoteSettings } from "../modules/quotes/service";
 import { readyOrganization, signIn as signInByLink } from "./helpers";
+import { openQuoteRubric } from "./devis-rubriques";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
 
@@ -90,8 +91,8 @@ test("FAC-10 / JUR-02 / JUR-13 / GC-03 / SC-11 étapes 4 et 5 — devis professi
   const setup = await agence();
   await signInByLink(page, setup.email, /\/$/);
 
-  // La planner désigne l'acheteuse ; l'adresse de livraison reprend le lieu proposé.
-  await page.goto(`/devis/${setup.quoteId}`);
+  // La planner désigne l'acheteuse (rubrique « Acheteur et livraison ») ; l'adresse de livraison reprend le lieu proposé.
+  await page.goto(`/devis/${setup.quoteId}?rubrique=acheteur`);
   await page.waitForLoadState("networkidle");
   const buyer = page.getByRole("form", { name: "Acheteur, bon de commande et livraison" });
   await buyer.getByLabel("Entreprise acheteuse").selectOption({ label: "Novaléa SAS" });
@@ -102,7 +103,8 @@ test("FAC-10 / JUR-02 / JUR-13 / GC-03 / SC-11 étapes 4 et 5 — devis professi
   await expect(buyer.getByRole("status")).toContainText("Acheteur et références enregistrés.");
   await expect(page.getByText("Acheteur de la facture : Novaléa SAS.")).toBeVisible();
 
-  // GC-03 : le bon de commande manque ; le point informe, l'envoi reste possible.
+  // GC-03 : le bon de commande manque ; le point informe, l'envoi reste possible (rubrique « Contrat et signature »).
+  await openQuoteRubric(page, "contrat");
   const checks = page.getByRole("group", { name: "Vérifications avant l'envoi du devis" });
   await expect(checks).toContainText("Client professionnel sans numéro de bon de commande");
   await expect(checks).toContainText("elles ne remplacent pas le conseil d'un professionnel du droit ou de la comptabilité");
@@ -140,9 +142,10 @@ test("FAC-10 / JUR-02 / JUR-13 / GC-03 / SC-11 étapes 4 et 5 — devis professi
   await clientContext.close();
 
   // SC-11 étape 5 : la planner voit le numéro ; les factures sont des Factur-X.
-  await page.goto(`/devis/${setup.quoteId}`);
+  await page.goto(`/devis/${setup.quoteId}?rubrique=acheteur`);
   await page.waitForLoadState("networkidle");
   await expect(page.getByLabel("Numéro de bon de commande du client")).toHaveValue("BC-2027-0142");
+  await openQuoteRubric(page, "factures");
   await page.getByRole("button", { name: "Émettre la facture d'acompte « Acompte à la commande »" }).click();
   await expect(page.getByText(/^F-\d{4}-0001 — Facture d'acompte/)).toBeVisible();
   await page.waitForLoadState("networkidle");

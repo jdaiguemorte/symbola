@@ -15,10 +15,13 @@ export async function SignatureSection({
   organizationId,
   quote,
   event,
+  primary = false,
 }: {
   organizationId: string;
   quote: QuoteDetail;
   event: EventDetail | null;
+  // Lot 62d : la signature est la prochaine action du devis (le seul bouton principal de l'écran).
+  primary?: boolean;
 }) {
   const t = await getTranslations("Quotes");
   const locale = (await getLocale()) as Locale;
@@ -32,11 +35,11 @@ export async function SignatureSection({
       : false;
   if (signature) {
     return (
-      <section aria-labelledby="signature-title">
+      <section id="signature" aria-labelledby="signature-title">
         <h2 id="signature-title">{t("signatureTitle")}</h2>
         <p role="status">{t(REQUEST_STATUS_KEYS[signature.status])}</p>
         {/* Lot 31b (D9) : le devis seul, ou suivi de son contrat dans le même PDF. */}
-        <p className="meta">{tContracts(`signatureScope_${signature.kind}`)}</p>
+        <p className="field-hint">{tContracts(`signatureScope_${signature.kind}`)}</p>
         <ul>
           {signature.signers.map((signer) => (
             <li key={signer.id}>
@@ -74,7 +77,7 @@ export async function SignatureSection({
   if (!sendable) return null;
   if (!isSignatureAvailable(quote.isDemo)) {
     return (
-      <section aria-labelledby="signature-title">
+      <section id="signature" aria-labelledby="signature-title">
         <h2 id="signature-title">{t("signatureTitle")}</h2>
         <p role="status">{t("signatureUnavailable")}</p>
       </section>
@@ -103,10 +106,10 @@ export async function SignatureSection({
   const current = [...contracts].reverse().find((contract) => contract.quoteVersion === quote.current.version) ?? null;
   const contract = current && !current.outdated && !current.signature ? { id: current.id, version: current.version } : null;
   return (
-    <section aria-labelledby="signature-title">
+    <section id="signature" aria-labelledby="signature-title">
       <h2 id="signature-title">{t("signatureTitle")}</h2>
       {current?.outdated ? <p role="alert">{tContracts("contractOutdatedBeforeSignature")}</p> : null}
-      <SendForSignatureForm quoteId={quote.id} drafts={drafts} rows={Math.max(2, drafts.length)} contract={contract} />
+      <SendForSignatureForm quoteId={quote.id} drafts={drafts} rows={Math.max(2, drafts.length)} contract={contract} primary={primary} />
     </section>
   );
 }

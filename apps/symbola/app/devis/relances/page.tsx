@@ -23,7 +23,7 @@ export default async function ReminderSettingsPage() {
   }
   const settings = await getReminderSettings(auth.user.organizationId);
   return (
-    <main>
+    <main className="quote-screen">
       <h1>{t("title")}</h1>
       <ScreenHelp title={tHelp("reminderSettings.title")} body={tHelp("reminderSettings.body")} />
       <p>{t("intro")}</p>

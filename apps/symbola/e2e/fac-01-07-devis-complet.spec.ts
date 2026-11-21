@@ -13,6 +13,7 @@ import { createEventLink, createProspect, createProspectSource } from "../module
 import { completeSetup, saveOnboardingStep } from "../modules/hub/service";
 import { addQuoteLine, addQuoteSection, addScheduleItem, createQuote, saveQuoteAsTemplate } from "../modules/quotes/service";
 import { openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
+import { openQuoteRubric } from "./devis-rubriques";
 
 const PASSWORD = "mot-de-passe-terrain-e2e";
 
@@ -68,16 +69,21 @@ test("FAC-01 / HUB-21 / SC-02 étapes 3 à 5 — devis type depuis un modèle, e
   await page.getByLabel("Partir d'un modèle").selectOption({ label: "Mariage complet" });
   await page.getByRole("button", { name: "Créer un devis" }).click();
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
+  const quoteUrl = page.url();
   const lines = page.getByRole("region", { name: "Lignes de la version 1" });
   await expect(lines).toContainText("Formule complète");
   await expect(lines).toContainText("Sous-total Formule complète");
   await expect(lines.getByRole("rowheader", { name: /^Brunch du lendemain Option : non retenue, hors du total/ })).toBeVisible();
   await expect(page.getByText("Créé depuis un modèle (version 1).")).toBeVisible();
+  await expectNoAxeViolation(page);
+  // Lot 62d : l'acompte du modèle est dans la rubrique « Paiement et acompte », que l'encart annonce.
+  await expect(page.getByRole("region", { name: "Avant d'envoyer" }).getByRole("link", { name: /^Paiement et acompte/ })).toContainText("Acompte, 1 échéance");
+  await openQuoteRubric(page, "paiement");
   await expect(page.getByLabel("Acompte ou arrhes")).toHaveValue("deposit");
   await expectNoAxeViolation(page);
 
   // Étape 4 : envoi.
-  await page.getByRole("button", { name: "Marquer comme envoyé" }).click();
+  await page.getByRole("button", { name: "Envoyer le devis" }).click();
   await expect(page.getByText("Devis envoyé : cette version est figée.").first()).toBeVisible();
   expect(Date.now() - started).toBeLessThan(5 * 60_000);
 
@@ -114,10 +120,10 @@ test("FAC-01 / HUB-21 / SC-02 étapes 3 à 5 — devis type depuis un modèle, e
   await leaContext.close();
 
   // La planner voit le choix, daté et nominatif ; le total du devis a suivi.
-  await page.reload();
+  await page.goto(quoteUrl);
   await expect(page.getByRole("region", { name: "Choix des options" })).toContainText("Choisies par Léa Martin sur son portail");
   await expect(lines.getByRole("rowheader", { name: /^Brunch du lendemain Option : choisie/ })).toBeVisible();
-  await expect(lines).toContainText("5 000,00 €");
+  await expect(page.getByRole("region", { name: "Totaux" })).toContainText("5 000,00 €");
 });
 
 test("FAC-07 / JUR-09 / JUR-08 — sans assurance ni médiateur, l'envoi est refusé et chaque champ est nommé ; une fois remplis, il part", async ({ page }) => {
@@ -131,18 +137,21 @@ test("FAC-07 / JUR-09 / JUR-08 — sans assurance ni médiateur, l'envoi est ref
   await expect(panel).toContainText("Conditions générales de vente");
   // Lot 31b (D17) : « acompte » est proposé par défaut ; le choix ne manque plus.
   await expect(panel).not.toContainText("Acompte ou arrhes, sur ce devis");
-  await page.getByRole("button", { name: "Marquer comme envoyé" }).click();
-  const refusal = page.getByRole("form", { name: "Marquer comme envoyé" });
+  await page.getByRole("button", { name: "Envoyer le devis" }).click();
+  // Lot 62d : le bouton est dans l'en-tête, son refus s'affiche juste dessous.
+  const refusal = page.getByRole("group", { name: "Envoyer le devis" });
   await expect(refusal.getByRole("alert")).toHaveText("Mentions requises manquantes : remplissez-les, puis recommencez.");
   await expect(refusal.getByRole("link", { name: "Assurance de responsabilité civile professionnelle (assureur et contrat)" })).toHaveAttribute("href", "/parametres#informations-professionnel");
   await expectNoAxeViolation(page);
 
-  // Arrhes sur ce devis, puis les informations du professionnel.
+  // Arrhes sur ce devis (rubrique « Paiement et acompte »), puis les informations du professionnel.
+  await openQuoteRubric(page, "paiement");
   const advance = page.getByRole("form", { name: "Sommes versées d'avance" });
   await advance.getByLabel("Acompte ou arrhes").selectOption("earnest");
   await advance.getByRole("button", { name: "Enregistrer", exact: true }).click();
   await expect(advance.getByRole("status")).toHaveText("Enregistré.");
-  await refusal.getByRole("link", { name: "Assurance de responsabilité civile professionnelle (assureur et contrat)" }).click();
+  await openQuoteRubric(page, "lignes");
+  await page.getByRole("note").filter({ hasText: "Avant l'envoi, il manque :" }).getByRole("link", { name: "Assurance de responsabilité civile professionnelle (assureur et contrat)" }).click();
   await expect(page).toHaveURL(/\/parametres#informations-professionnel$/);
   const form = page.getByRole("form", { name: "Informations du professionnel" });
   await form.getByLabel("Assureur (responsabilité civile professionnelle)").fill("Assurances du Périgord");
@@ -156,8 +165,9 @@ test("FAC-07 / JUR-09 / JUR-08 — sans assurance ni médiateur, l'envoi est ref
 
   await page.goto(`/devis/${setup.draftId}`);
   await expect(page.getByRole("note").filter({ hasText: "Avant l'envoi, il manque :" })).toHaveCount(0);
-  await page.getByRole("button", { name: "Marquer comme envoyé" }).click();
+  await page.getByRole("button", { name: "Envoyer le devis" }).click();
   await expect(page.getByText("Devis envoyé : cette version est figée.").first()).toBeVisible();
+  await openQuoteRubric(page, "paiement");
   await expect(page.getByRole("region", { name: "Sommes versées d'avance" })).toContainText("Arrhes");
 });
 

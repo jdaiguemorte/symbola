@@ -11,6 +11,7 @@ import { saveOnboardingStep } from "../modules/hub/service";
 import { createVendor } from "../modules/vendors/service";
 import AxeBuilder from "./axe";
 import { readyOrganization, signIn } from "./helpers";
+import { openQuoteRubric } from "./devis-rubriques";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -67,11 +68,13 @@ test("BUD-08 / PRE-07 / JUR-10 — honoraires à part, commission montrée d'off
   await expectNoAxeViolation(page);
 
   // Le devis : la prestation intermédiaire est hors du total ; la commission est listée.
-  await page.goto(`/devis/${setup.quoteId}`);
+  await page.goto(`/devis/${setup.quoteId}?rubrique=honoraires`);
   const money = page.getByRole("region", { name: "Vos honoraires, vos commissions et vos modes" });
   await expect(money).toContainText("Facturé par les prestataires (pour information)");
   await expect(money).toContainText("2 850,00");
   await expect(money).toContainText("Fleurs d'Élodie : 200,00 € (commission)");
+  await expectNoAxeViolation(page);
+  await openQuoteRubric(page, "lignes");
   await expect(page.getByText("facturée par le prestataire, hors total")).toBeVisible();
   await expectNoAxeViolation(page);
 

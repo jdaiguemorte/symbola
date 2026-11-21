@@ -3,4 +3,256 @@
    redéfinir ici. Ce fichier est chargé avant globals.css : à précision égale, une règle de
    globals.css l'emporte. Mêmes jetons que globals.css (DESIGN.md), aucun style en ligne (CSP). */
 @layer components {
+  /* Le devis en rubriques (UX-12). État de la version (envoyée, valable jusqu'au) : une ligne sous
+     l'en-tête, sur chaque rubrique. */
+  .quote-status {
+    @apply flex flex-wrap items-center gap-x-4 gap-y-2;
+  }
+  .quote-status > p {
+    @apply m-0;
+  }
+
+  /* Rubriques en onglets : sept libellés tiennent sur deux rangs à l'ordinateur ; sur téléphone la
+     barre défile, l'onglet affiché y est amené (rubric-tabs.tsx). */
+  .tabs.quote-tabs {
+    @apply md:flex-wrap md:overflow-x-visible;
+  }
+  .tabs.quote-tabs a {
+    @apply px-3 text-label font-medium;
+  }
+  .tabs.quote-tabs a[aria-current="page"] {
+    @apply font-semibold text-primary;
+  }
+
+  /* Rubrique « Lignes et totaux » : les lignes à gauche ; les totaux et l'encart de synthèse à
+     droite, dessous quand la place manque. */
+  .quote-layout {
+    @apply my-6 grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_18rem] 2xl:grid-cols-[minmax(0,1fr)_20rem];
+  }
+  .quote-main,
+  .quote-aside {
+    @apply flex min-w-0 flex-col gap-6;
+  }
+  .quote-layout .card {
+    @apply my-0 min-w-0;
+  }
+  .quote-layout .card > h2 {
+    @apply mt-0;
+  }
+
+  /* Le tableau des lignes. À l'ordinateur : montants alignés à droite, en chiffres tabulaires ; s'il
+     dépasse, il défile dans sa zone et la colonne des actions tient au bord droit. */
+  .quote-lines table {
+    @apply md:min-w-xl;
+  }
+  .quote-lines th.amount {
+    @apply md:text-right;
+  }
+  .quote-lines td.amount {
+    @apply whitespace-nowrap tabular-nums md:text-right;
+  }
+  .quote-lines th.quote-actions-cell,
+  .quote-lines td.quote-actions-cell {
+    @apply md:sticky md:right-0 md:border-l md:border-line md:bg-surface;
+  }
+  .quote-lines tbody td {
+    @apply align-middle;
+  }
+  /* Une option non retenue se dit en une ligne discrète sous l'intitulé : une pastille s'y repliait sur
+     trois lignes et écrasait la colonne. */
+  .quote-lines .quote-option-note {
+    @apply block text-label text-ink-muted;
+  }
+  /* Sur téléphone (UX-05) : une ligne du devis est un bloc — son intitulé, puis chaque montant avec
+     son libellé, puis ses actions. Les rôles du tableau sont écrits dans l'écran : la mise en blocs ne
+     l'efface pas pour les lecteurs d'écran. */
+  .quote-lines table,
+  .quote-lines tbody,
+  .quote-lines tr,
+  .quote-lines th,
+  .quote-lines td {
+    @apply max-md:block;
+  }
+  .quote-lines thead {
+    @apply max-md:sr-only;
+  }
+  .quote-lines tbody tr {
+    @apply max-md:border-b max-md:border-line max-md:py-2;
+  }
+  .quote-lines tbody th,
+  .quote-lines tbody td {
+    @apply max-md:border-0 max-md:px-0 max-md:py-1;
+  }
+  .quote-lines td[data-label]::before {
+    @apply max-md:mr-2 max-md:text-label max-md:text-ink-muted;
+  }
+  @media (width < 48rem) {
+    .quote-lines td[data-label]::before {
+      content: attr(data-label);
+    }
+  }
+
+  /* Actions d'une ligne (« actions de ligne » de DESIGN.md) : libellés courts, cibles de 44 px, le nom
+     de l'objet dans le nom accessible. */
+  .quote-row-actions {
+    @apply flex flex-nowrap items-center gap-1 md:justify-end;
+  }
+  .quote-row-actions form {
+    @apply m-0;
+  }
+  .quote-screen .quote-row-actions .quote-row-button {
+    @apply min-h-11 border-transparent bg-transparent px-2 text-body font-medium text-primary hover:border-transparent hover:bg-ground hover:underline;
+  }
+  .quote-screen .quote-row-actions .quote-row-button.quote-remove {
+    @apply text-critical;
+  }
+  .quote-screen .quote-row-actions .quote-row-button[aria-expanded="true"] {
+    @apply bg-primary-soft;
+  }
+
+  /* La ligne ouverte s'édite en place, sous elle-même (une seule à la fois) ; même allure pour un
+     formulaire d'ajout ouvert sous le tableau, ou une échéance en cours de modification. */
+  .quote-lines tr.quote-edit-row > td {
+    @apply border-b-0 p-0;
+  }
+  .quote-edit-row > td > form,
+  .quote-edit-panel {
+    @apply my-2 w-full rounded-md border border-primary bg-ground p-4;
+  }
+  .quote-edit-panel > form {
+    @apply m-0;
+  }
+  .quote-edit-panel > p {
+    @apply m-0;
+  }
+
+  /* Sous le tableau : ce qu'on peut ajouter au devis, un formulaire ouvert à la fois. */
+  .quote-composer {
+    @apply my-3 flex flex-wrap gap-2;
+  }
+
+  /* Formulaires du devis : la carte laisse toute sa largeur aux lignes de champs ; un champ ne
+     dépasse jamais de sa ligne (liste au libellé long, sur téléphone). */
+  .quote-form {
+    @apply w-full;
+  }
+  .quote-form .field-row > label {
+    @apply min-w-0;
+  }
+  .quote-form select {
+    @apply max-w-full;
+  }
+  .quote-form .field-row > label:has(> input[type="checkbox"]) {
+    @apply min-h-11;
+  }
+  /* Un champ et son aide, dans une case de la grille. */
+  .quote-field {
+    @apply flex min-w-0 flex-col gap-2;
+  }
+  .quote-field > .field-hint {
+    @apply m-0;
+  }
+  /* Des choix (canal de conclusion, clauses facultatives) sur deux colonnes quand la place le permet. */
+  .quote-choices {
+    @apply grid w-full grid-cols-1 gap-x-6 gap-y-1 md:grid-cols-2;
+  }
+  /* Champ court d'un montant (« 12 500,00 »). */
+  input.field-amount {
+    @apply w-32;
+  }
+  .quote-form fieldset {
+    @apply my-0 max-w-none;
+  }
+
+  /* Cibles tactiles de 44 px sur tout l'écran du devis (UX-05) : boutons compacts, cases à cocher et
+     boutons radio par leur libellé, lien seul sur sa ligne. */
+  .quote-screen button {
+    @apply !min-h-11;
+  }
+  .quote-screen label:has(> input[type="checkbox"]),
+  .quote-screen label:has(> input[type="radio"]) {
+    @apply min-h-11;
+  }
+  .quote-link {
+    @apply inline-flex min-h-11 items-center;
+  }
+
+  /* Totaux : une ligne par montant, le total TTC en chiffre clé. */
+  dl.quote-totals-list {
+    @apply my-0 grid grid-cols-[1fr_auto] gap-x-4 gap-y-2;
+  }
+  .quote-totals-list dd {
+    @apply text-right tabular-nums;
+  }
+  .quote-totals-list dt.quote-total-ttc,
+  .quote-totals-list dd.quote-total-ttc {
+    @apply mt-2 self-baseline border-t border-line pt-3;
+  }
+  .quote-totals-list dt.quote-total-ttc {
+    @apply font-medium text-ink;
+  }
+  .quote-totals-list dd.quote-total-ttc > strong {
+    @apply font-display text-figure;
+  }
+  /* Une version précédente, dépliée : ses totaux gardent la largeur de leur texte. */
+  .quote-versions dl.quote-totals-list {
+    @apply my-3 max-w-md;
+  }
+
+  /* Encart « Avant d'envoyer » ou « Suivi du devis » : une ligne par rubrique, son état, et le lien
+     qui y mène (toute la ligne est la cible). */
+  .quote-summary-list {
+    @apply m-0 list-none p-0;
+  }
+  .quote-summary-list > li {
+    @apply m-0 border-t border-line;
+  }
+  a.quote-summary-link {
+    @apply flex min-h-14 items-center justify-between gap-3 py-2 text-ink no-underline hover:text-ink;
+  }
+  .quote-summary-text {
+    @apply flex min-w-0 flex-col gap-1;
+  }
+  .quote-summary-label {
+    @apply font-medium;
+  }
+  .quote-summary-state {
+    @apply text-label text-ink-muted;
+  }
+  .quote-summary-open {
+    @apply shrink-0 text-label font-medium text-primary;
+  }
+  a.quote-summary-link:hover .quote-summary-open {
+    @apply underline;
+  }
+  .quote-summary > .missing-mentions-panel,
+  .quote-summary > .compliance-panel {
+    @apply mb-0;
+  }
+
+  /* Prochaine action dans l'en-tête, et son retour juste dessous. */
+  form.quote-next-action {
+    @apply m-0;
+  }
+  .quote-next-feedback {
+    @apply mb-4;
+  }
+
+  /* Échéancier : les actions d'une échéance sous son libellé. */
+  .quote-schedule > li > p {
+    @apply m-0;
+  }
+
+  /* Modèles de contrat, relances (UX-12) : un champ et son aide dans une case de la grille ; le
+     nombre de jours et le taux en champs courts. */
+  .settings-field {
+    @apply flex min-w-0 flex-col gap-2;
+  }
+  .settings-field > .field-hint {
+    @apply m-0;
+  }
+  /* Une courte suite de nombres de jours (« 3, 10, 20 »). */
+  input.field-days {
+    @apply w-44;
+  }
 }

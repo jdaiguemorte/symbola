@@ -180,7 +180,7 @@ test("FAC-12 — signé, facturé, encaissé sur l'année, en tête de « Devis 
   await expectNoAxeViolation(page);
 
   // L'acompte encaissé compte dans « Encaissé », à la date du paiement.
-  await page.goto(`/devis/${setup.quoteId}`);
+  await page.goto(`/devis/${setup.quoteId}?rubrique=paiement`);
   await page.getByText("Marquer payée l'échéance « Acompte à la signature »").click();
   const pay = page.getByRole("form", { name: "Marquer payée l'échéance « Acompte à la signature »" });
   await pay.getByLabel("Mode de paiement").selectOption({ label: "Virement bancaire" });

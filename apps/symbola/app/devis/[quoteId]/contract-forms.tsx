@@ -63,17 +63,20 @@ export function GenerateContractForm({
   const t = useTranslations("Contracts");
   const [state, action, pending] = useActionState(generateContractAction, {} as ContractFormState);
   return (
-    <form action={action} aria-label={t("generateContract")}>
+    <form action={action} aria-label={t("generateContract")} className="quote-form">
       <input type="hidden" name="quoteId" value={quoteId} />
       <input type="hidden" name="templateId" value={templateId} />
       <fieldset>
         <legend>{t("channelLegend")}</legend>
-        <p className="meta">{t("channelHint")}</p>
-        {CHANNELS.map((channel) => (
-          <label key={channel}>
-            <input type="radio" name="channel" value={channel} required defaultChecked={state.values?.channel === channel} /> {t(`channel_${channel}`)}
-          </label>
-        ))}
+        <p className="field-hint">{t("channelHint")}</p>
+        {/* Lot 62d (UX-12) : les choix sur deux colonnes quand la place le permet. */}
+        <div className="quote-choices">
+          {CHANNELS.map((channel) => (
+            <label key={channel}>
+              <input type="radio" name="channel" value={channel} required defaultChecked={state.values?.channel === channel} /> {t(`channel_${channel}`)}
+            </label>
+          ))}
+        </div>
       </fieldset>
       {showSmallBusiness ? (
         <label>
@@ -83,22 +86,24 @@ export function GenerateContractForm({
       {optionalClauses.length > 0 ? (
         <fieldset>
           <legend>{t("optionalClausesLegend")}</legend>
-          {optionalClauses.map((clause) => (
-            <label key={clause.id}>
-              <input type="checkbox" name="clause" value={clause.id} defaultChecked={state.values?.clauseIds.includes(clause.id) ?? false} /> {clause.title}
-              {clause.role && t(`role_${clause.role}`) !== clause.title ? ` — ${t(`role_${clause.role}`)}` : ""}
-            </label>
-          ))}
+          <div className="quote-choices">
+            {optionalClauses.map((clause) => (
+              <label key={clause.id}>
+                <input type="checkbox" name="clause" value={clause.id} defaultChecked={state.values?.clauseIds.includes(clause.id) ?? false} /> {clause.title}
+                {clause.role && t(`role_${clause.role}`) !== clause.title ? ` — ${t(`role_${clause.role}`)}` : ""}
+              </label>
+            ))}
+          </div>
         </fieldset>
       ) : null}
       {warningAccepted ? (
-        <p className="meta">{t("warningAlreadyAccepted")}</p>
+        <p className="field-hint">{t("warningAlreadyAccepted")}</p>
       ) : (
         <label>
           <input type="checkbox" name="acceptWarning" required defaultChecked={state.values?.acceptWarning ?? false} /> {t("acceptWarning", { warning })}
         </label>
       )}
-      <button type="submit" disabled={pending}>
+      <button type="submit" disabled={pending} className="button-secondary">
         {t("generateContract")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
@@ -112,14 +117,14 @@ export function SendContractAloneForm({ quoteId, contractId }: { quoteId: string
   const t = useTranslations("Contracts");
   const [state, action, pending] = useActionState(sendContractAloneAction, {} as ContractFormState);
   return (
-    <form action={action} aria-label={t("sendContractAlone")}>
+    <form action={action} aria-label={t("sendContractAlone")} className="quote-form">
       <input type="hidden" name="quoteId" value={quoteId} />
       <input type="hidden" name="contractId" value={contractId} />
-      <p className="meta">{t("sendContractAloneHint")}</p>
+      <p className="field-hint">{t("sendContractAloneHint")}</p>
       {state.confirmRecipients ? (
         <RecipientsGuard review={state.confirmRecipients} pending={pending} />
       ) : (
-        <button type="submit" disabled={pending}>
+        <button type="submit" disabled={pending} className="button-secondary">
           {t("sendContractAlone")}
         </button>
       )}

@@ -7,6 +7,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
+import { openQuoteForm } from "./devis-rubriques";
 import { saveOnboardingStep } from "../modules/hub/service";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
@@ -84,11 +85,12 @@ test("DEV-01 — composer un devis depuis un événement, l'envoyer, le téléch
 
   // Composition : un article du catalogue et une ligne libre ; les totaux
   // sont recalculés côté serveur.
-  const fromCatalog = page.getByRole("form", { name: "Ajouter un article du catalogue" });
+  // Lot 62d : les formulaires d'ajout s'ouvrent sous le tableau des lignes, un à la fois.
+  const fromCatalog = await openQuoteForm(page, "Ajouter un article du catalogue");
   await fromCatalog.getByLabel("Article").selectOption({ label: "Prestations — Coordination jour J" });
   await fromCatalog.getByRole("button", { name: "Ajouter la ligne" }).click();
   await expect(fromCatalog.getByText("Ligne ajoutée.")).toBeVisible();
-  const freeLine = page.getByRole("form", { name: "Ajouter une ligne libre" });
+  const freeLine = await openQuoteForm(page, "Ajouter une ligne libre");
   await freeLine.getByLabel("Intitulé").fill("Déplacement");
   await freeLine.getByLabel("Unité").fill("forfait");
   await freeLine.getByLabel("Prix unitaire HT (€)").fill("200");
@@ -100,7 +102,7 @@ test("DEV-01 — composer un devis depuis un événement, l'envoyer, le téléch
   await expectNoAxeViolation(page);
 
   // Envoi : la version 1 est figée, valable 45 jours.
-  await page.getByRole("button", { name: "Marquer comme envoyé" }).click();
+  await page.getByRole("button", { name: "Envoyer le devis" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Devis envoyé : cette version est figée." })).toBeVisible();
   await expect(page.getByText(/^Envoyé — version/)).toBeVisible();
   await expect(page.getByText(/^Valable jusqu'au/)).toBeVisible();
@@ -113,7 +115,7 @@ test("DEV-01 — composer un devis depuis un événement, l'envoyer, le téléch
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Créer une nouvelle version" }).click();
   await expect(page.getByText(/^Brouillon — version 2/)).toBeVisible();
-  await expect(page.getByRole("form", { name: "Ajouter une ligne libre" })).toBeVisible();
+  await openQuoteForm(page, "Ajouter une ligne libre");
   await expect(page.getByRole("heading", { name: "Versions précédentes" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Télécharger le PDF (version 1)" })).toBeVisible();
   await expectNoAxeViolation(page);

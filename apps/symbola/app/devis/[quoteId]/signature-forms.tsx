@@ -14,12 +14,15 @@ export function SendForSignatureForm({
   drafts,
   rows,
   contract,
+  primary = false,
 }: {
   quoteId: string;
   drafts: SignerDraft[];
   rows: number;
   // Lot 31b (DOC-03, D9) : contrat à jour, signé avec le devis dans le même PDF.
   contract?: { id: string; version: number } | null;
+  // Lot 62d : la signature est la prochaine action du devis (le seul bouton principal de l'écran).
+  primary?: boolean;
 }) {
   const t = useTranslations("Quotes");
   const tContracts = useTranslations("Contracts");
@@ -30,6 +33,7 @@ export function SendForSignatureForm({
       label={t("sendForSignature")}
       submitLabel={t("sendForSignature")}
       successMessage={t("signatureSent")}
+      primary={primary}
     >
       {(state) => (
         <>
@@ -40,8 +44,10 @@ export function SendForSignatureForm({
               <p role="note">{tContracts("signedWithQuote", { version: contract.version })}</p>
             </>
           ) : (
-            <p className="meta">{tContracts("quoteAloneHint")}</p>
+            <p className="field-hint">{tContracts("quoteAloneHint")}</p>
           )}
+          {/* Lot 62d (UX-12) : les signataires côte à côte, le nom et l'e-mail sur une ligne. */}
+          <div className="form-grid">
           {Array.from({ length: rows }, (_, index) => {
             // Lot 38a (MSG-02) : après un refus ou l'écran du garde-fou, les lignes saisies reviennent
             // (la clé change à chaque réponse pour que React reprenne ces valeurs).
@@ -57,14 +63,20 @@ export function SendForSignatureForm({
                 <legend>{t("signerNumber", { number: index + 1 })}</legend>
                 <input type="hidden" name={`signer_${index}_clientId`} value={draft?.eventClientId ?? ""} />
                 <input type="hidden" name={`signer_${index}_contactId`} value={draft?.contactId ?? ""} />
-                <label htmlFor={id("name")}>{t("signerName")}</label>
-                <input id={id("name")} type="text" name={`signer_${index}_name`} defaultValue={draft?.name ?? ""} autoComplete="name" />
-                <label htmlFor={id("email")}>{t("signerEmail")}</label>
-                <input id={id("email")} type="email" name={`signer_${index}_email`} defaultValue={draft?.email ?? ""} autoComplete="email" />
-                <label htmlFor={id("address")}>{t("signerAddress")}</label>
-                <textarea id={id("address")} name={`signer_${index}_address`} rows={2} autoComplete="street-address" defaultValue={draft?.billingAddress ?? ""} />
+                <label htmlFor={id("name")}>
+                  {t("signerName")}
+                  <input id={id("name")} type="text" name={`signer_${index}_name`} defaultValue={draft?.name ?? ""} autoComplete="name" />
+                </label>
+                <label htmlFor={id("email")}>
+                  {t("signerEmail")}
+                  <input id={id("email")} type="email" name={`signer_${index}_email`} defaultValue={draft?.email ?? ""} autoComplete="email" />
+                </label>
+                <label htmlFor={id("address")}>
+                  {t("signerAddress")}
+                  <textarea id={id("address")} name={`signer_${index}_address`} rows={2} autoComplete="street-address" defaultValue={draft?.billingAddress ?? ""} />
+                </label>
                 {draft?.contactId ? (
-                  <label className="checkbox">
+                  <label>
                     <input type="checkbox" name={`signer_${index}_saveAddress`} defaultChecked={submitted ? (submitted.saveBillingAddress ?? false) : true} />
                     {t("signerSaveAddress")}
                   </label>
@@ -72,6 +84,7 @@ export function SendForSignatureForm({
               </fieldset>
             );
           })}
+          </div>
         </>
       )}
     </QuoteActionForm>

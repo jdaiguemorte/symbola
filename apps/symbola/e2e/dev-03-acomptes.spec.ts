@@ -8,6 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
+import { openQuoteForm, openQuoteRubric } from "./devis-rubriques";
 import { saveOnboardingStep } from "../modules/hub/service";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
@@ -66,14 +67,16 @@ test("DEV-03 — échéancier, encaissements à venir, retard et paiement", asyn
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
   const quoteUrl = page.url();
   await page.waitForLoadState("networkidle");
-  const freeLine = page.getByRole("form", { name: "Ajouter une ligne libre" });
+  // Lot 62d : les formulaires d'ajout s'ouvrent sous le tableau des lignes, un à la fois.
+  const freeLine = await openQuoteForm(page, "Ajouter une ligne libre");
   await freeLine.getByLabel("Intitulé").fill("Coordination");
   await freeLine.getByLabel("Unité").fill("forfait");
   await freeLine.getByLabel("Prix unitaire HT (€)").fill("3000");
   await freeLine.getByRole("button", { name: "Ajouter la ligne" }).click();
   await expect(freeLine.getByText("Ligne ajoutée.")).toBeVisible();
 
-  // Échéancier : 30 % (échéance passée) puis 500 € ; un dépassement est refusé.
+  // Échéancier (rubrique « Paiement et acompte ») : 30 % (échéance passée) puis 500 € ; un dépassement est refusé.
+  await openQuoteRubric(page, "paiement");
   const addItem = page.getByRole("form", { name: "Ajouter l'échéance" });
   await addItem.getByLabel("Intitulé de l'échéance").fill("Acompte à la signature");
   await addItem.getByLabel("Date d'échéance").fill(parisDate(-3));
@@ -97,7 +100,7 @@ test("DEV-03 — échéancier, encaissements à venir, retard et paiement", asyn
 
   // L'action refusée juste avant doit être entièrement traitée.
   await page.waitForLoadState("networkidle");
-  await page.getByRole("button", { name: "Marquer comme envoyé" }).click();
+  await page.getByRole("button", { name: "Envoyer le devis" }).click();
   await expect(page.getByText(/^Envoyé — version/)).toBeVisible();
 
   // Encaissements : l'échéance dépassée est « En retard », en tête.
@@ -119,7 +122,7 @@ test("DEV-03 — échéancier, encaissements à venir, retard et paiement", asyn
   await expect(page.getByText(/Deuxième acompte/)).toHaveCount(0);
 
   // Marquer payée : date et mode de paiement.
-  await page.goto(quoteUrl);
+  await page.goto(`${quoteUrl}?rubrique=paiement`);
   await page.waitForLoadState("networkidle");
   await page.getByText("Marquer payée l'échéance « Acompte à la signature »").click();
   const pay = page.getByRole("form", { name: "Marquer payée l'échéance « Acompte à la signature »" });
