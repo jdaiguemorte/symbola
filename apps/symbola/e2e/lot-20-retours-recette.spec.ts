@@ -13,7 +13,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { starterEventTypes } from "@symbola/starter-templates";
 import { addEventTask, addStarterEventTypes, createProspect, createProspectSource, listEventTypes } from "../modules/events/service";
 import { createVendor, createVendorFamily, createVendorTag, createVendorType } from "../modules/vendors/service";
-import { landmarksPanel, readyOrganization, signIn as signInByLink } from "./helpers";
+import { helpPanel, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -64,7 +64,7 @@ test("Lot 20 — centre d'aide, aide des écrans de réglage, rétroplanning", a
   ] as const) {
     await page.goto(path);
     await page.getByRole("button", { name: "Aide sur cet écran" }).click();
-    await expect(landmarksPanel(page, title)).toBeVisible();
+    await expect(helpPanel(page, title)).toBeVisible();
     await expect(page).toHaveURL(path);
   }
 

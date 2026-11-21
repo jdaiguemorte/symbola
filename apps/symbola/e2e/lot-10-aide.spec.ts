@@ -1,7 +1,6 @@
-// Lot 13 (AIDE-11, remplace la visite focus d'AIDE-05) — repères de la fiche
-// d'un événement : non bloquants, choisis dans la liste ou parcourus dans
-// l'ordre, l'élément choisi mis en avant, Échap ; centre d'aide (état des
-// repères, préférence d'ouverture automatique, AIDE-07). En taille
+// HUB-11 (lot 63f, ADR 0104 : la visite guidée remplace les repères du lot 13) — visite de la fiche
+// d'un événement : étapes dans l'ordre, la zone de chaque étape claire, Échap ; centre d'aide (état
+// des visites, préférence de lancement automatique, AIDE-07). En taille
 // ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
@@ -9,10 +8,10 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { createProspect, createProspectSource } from "../modules/events/service";
-import { clickAdminMenuLink, clickMenuLink, closeLandmarks, landmarksPanel, readyOrganization, signIn as signInByLink } from "./helpers";
+import { clickAdminMenuLink, clickMenuLink, readyOrganization, signIn as signInByLink, skipTour, tourDialog } from "./helpers";
 import { recordHelpProgress } from "../modules/hub/service";
 
-// Repères ouverts d'office : sans la préférence posée par la configuration.
+// Visite lancée d'office : sans la préférence posée par la configuration.
 test.use({ storageState: { cookies: [], origins: [] } });
 
 async function expectNoAxeViolation(page: Page) {
@@ -20,7 +19,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("AIDE-11 / AIDE-07 — repères de la fiche d'un événement, et centre d'aide", async ({ page }) => {
+test("HUB-11 / AIDE-07 — visite de la fiche d'un événement, et centre d'aide", async ({ page }) => {
   test.setTimeout(90_000);
   const email = `planner-aide-${randomUUID()}@symbola.test`;
   const { sql, db } = createAppConnection();
@@ -37,45 +36,47 @@ test("AIDE-11 / AIDE-07 — repères de la fiche d'un événement, et centre d'a
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
   await signInByLink(page, email);
   await expect(page).toHaveURL("/");
-  // Les repères de l'accueil s'ouvrent d'eux-mêmes ; on les ferme.
-  await closeLandmarks(page, "Aujourd'hui");
+  // La visite de l'accueil se lance d'elle-même ; on la passe.
+  await skipTour(page, "Aujourd'hui");
 
-  // Fiche d'un événement : cinq repères, le premier choisi et son élément mis en avant.
+  // Fiche d'un événement : cinq étapes, la première sur les onglets, éclairés.
   await page.goto(`/events/${eventId}`);
-  const panel = landmarksPanel(page, "Fiche de l'événement");
-  await expect(panel.getByRole("list").getByRole("button")).toHaveCount(5);
-  await expect(panel.getByRole("heading", { name: "Fiche de l'événement", level: 2 })).toBeFocused();
-  await expect(page.locator("[data-tour='event-tabs']")).toHaveClass(/landmark-active/);
+  const tour = tourDialog(page, "Fiche de l'événement");
+  await expect(tour).toContainText("1 sur 5");
+  await expect(tour.getByRole("heading", { name: "Les onglets", level: 2 })).toBeFocused();
+  const spotOn = async (target: string) => {
+    const zone = (await page.locator(`[data-tour='${target}']`).boundingBox())!;
+    const spot = (await page.locator(".tour-spot").boundingBox())!;
+    return Math.abs(spot.x + 6 - zone.x) < 2 && Math.abs(spot.y + 6 - zone.y) < 2;
+  };
+  await expect.poll(() => spotOn("event-tabs")).toBe(true);
   await expectNoAxeViolation(page);
-  // L'écran reste utilisable pendant que les repères sont affichés.
-  await expect(page.getByRole("button", { name: "Repère 1 : Les onglets" })).toHaveAttribute("aria-pressed", "true");
-  await panel.getByRole("button", { name: "Repère suivant" }).click();
-  await expect(panel.getByRole("heading", { name: "La synthèse", level: 3 })).toBeVisible();
-  await expect(page.locator("[data-tour='event-overview']")).toHaveClass(/landmark-active/);
-  await expect(page.locator("[data-tour='event-tabs']")).not.toHaveClass(/landmark-active/);
+  await tour.getByRole("button", { name: "Suivant" }).click();
+  await expect(tour.getByRole("heading", { name: "La synthèse", level: 2 })).toBeVisible();
+  await expect.poll(() => spotOn("event-overview")).toBe(true);
   await page.keyboard.press("Escape");
-  await expect(panel).toHaveCount(0);
-  await expect(page.locator(".landmark-active")).toHaveCount(0);
+  await expect(tour).toHaveCount(0);
+  await expect(page.locator(".tour-spot")).toHaveCount(0);
 
-  // Rechargée, la fiche ne rouvre pas les repères d'elle-même.
+  // Rechargée, la fiche ne relance pas la visite d'elle-même.
   await page.reload();
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toHaveAttribute("aria-expanded", "false");
-  await expect(panel).toHaveCount(0);
+  await expect(tour).toHaveCount(0);
 
-  // Centre d'aide : état des repères, préférence.
+  // Centre d'aide : état des visites, préférence.
   await clickMenuLink(page, "Aide");
   const events = page.getByRole("region", { name: "Événements" });
-  await expect(events.getByRole("link", { name: /Fiche de l'événement/ })).toContainText("Repères vus");
+  await expect(events.getByRole("link", { name: /Fiche de l'événement/ })).toContainText("Visite faite");
   await expect(events.getByRole("link", { name: /Liste des événements/ })).toContainText("À découvrir");
   await expectNoAxeViolation(page);
-  await page.getByLabel("Afficher d'office les repères et proposer les tutoriels à la première ouverture d'un écran").uncheck();
+  await page.getByLabel("Lancer la visite guidée et proposer les tutoriels à la première ouverture d'un écran").uncheck();
   await expect
     .poll(async () => (await page.context().cookies()).find((cookie) => cookie.name === "symbola_visites_auto")?.value)
     .toBe("0");
   await page.goto("/events");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Événements");
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toHaveAttribute("aria-expanded", "false");
-  await expect(landmarksPanel(page, "Liste des événements")).toHaveCount(0);
+  await expect(tourDialog(page, "Liste des événements")).toHaveCount(0);
 });
 
 test("L10-HUB-11 — l'Admin voit la prise en main de chaque compte d'équipe", async ({ page }) => {
@@ -107,7 +108,10 @@ test("L10-HUB-11 — l'Admin voit la prise en main de chaque compte d'équipe", 
   await expectNoAxeViolation(page);
 });
 
-test("AIDE-06 — tutoriel en faisant : modèle de rétroplanning proposé à la première visite, vérifié, gardé", async ({ page }) => {
+// HUB-11, HUB-10 (lot 63f, ADR 0104 ; maquette M10) — le tutoriel s'ouvre dans un panneau latéral qui
+// reste pendant la navigation dans l'exemple : ses étapes se cochent seules, « Étape suivante » mène
+// au bon écran, et la fin ramène à l'écran d'où il a été lancé, qui conseille le suivant.
+test("HUB-11 / AIDE-06 — tutoriel dans le panneau latéral : proposé à la première visite, coché seul, gardé, retour à l'écran de départ", async ({ page }) => {
   test.setTimeout(120_000);
   const email = `planner-tutoriel-${randomUUID()}@symbola.test`;
   const { sql, db } = createAppConnection();
@@ -129,45 +133,84 @@ test("AIDE-06 — tutoriel en faisant : modèle de rétroplanning proposé à la
   await expect(invite).toContainText("Découvrir en 3 minutes");
   await expectNoAxeViolation(page);
   await invite.getByRole("link", { name: "Commencer le tutoriel" }).click();
-  await expect(page).toHaveURL(/\/aide\/tutoriels\/retroplanning-template$/);
+  await expect(page).toHaveURL(/\/aide\/tutoriels\/retroplanning-template\?depuis=%2Fevents%2Fmodeles$/);
   await expect(page.getByText("Étape 1 sur 6")).toBeVisible();
   await expectNoAxeViolation(page);
   await page.getByRole("button", { name: "Continuer" }).click();
   await page.getByRole("button", { name: "Créer l'exemple" }).click();
-  await expect(page.getByRole("heading", { name: "Regarder le modèle" })).toBeVisible();
-  await page.getByRole("button", { name: "Continuer" }).click();
 
-  // Étape à faire : la vérification échoue tant que ce n'est pas fait.
-  await expect(page.getByRole("heading", { name: "Appliquer le modèle" })).toBeVisible();
-  await page.getByRole("button", { name: "J'ai fait, vérifier" }).click();
-  await expect(page.getByText("Ce n'est pas encore fait sur l'exemple", { exact: false })).toBeVisible();
-  const tutorialUrl = page.url();
-  await page.getByRole("link", { name: "Ouvrir l'exemple" }).click();
+  // L'exemple créé, le tutoriel passe dans le panneau, sur l'écran de l'étape.
+  await expect(page).toHaveURL(/\/events\/modeles\/[0-9a-f-]{36}$/);
+  const panel = page.getByRole("complementary", { name: "À quoi sert un modèle de rétroplanning ?" });
+  await expect(panel).toContainText("Tutoriel · 3 sur 6");
+  await expect(panel.getByRole("heading", { name: "Regarder le modèle", level: 3 })).toBeVisible();
+  await expectNoAxeViolation(page);
+  await panel.getByRole("button", { name: "Étape suivante" }).click();
+
+  // « Étape suivante » mène au bon écran : le rétroplanning de l'exemple.
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}\?onglet=retroplanning$/);
+  await expect(panel.getByRole("heading", { name: "Appliquer le modèle", level: 3 })).toBeVisible();
+  await expect(panel).toContainText("L'étape se coche seule quand l'action est faite.");
   await page.waitForLoadState("networkidle");
   await page.getByLabel("Modèle à appliquer").selectOption({ label: "Séminaire express (exemple)" });
   await page.getByRole("button", { name: "Appliquer le modèle" }).click();
   await expect(page.getByText("Modèle appliqué : les tâches ont été créées.")).toBeVisible();
-  await page.goto(tutorialUrl);
-  await page.getByRole("button", { name: "J'ai fait, vérifier" }).click();
-  await expect(page.getByRole("heading", { name: "Déplacer la date" })).toBeVisible();
+  // L'étape se coche seule, sans « Vérifier ».
+  await expect(panel.getByRole("heading", { name: "Déplacer la date", level: 3 })).toBeVisible({ timeout: 15_000 });
+  await expect(panel.getByRole("listitem").filter({ hasText: "Appliquer le modèle" })).toHaveAttribute("data-state", "done");
 
-  await page.getByRole("link", { name: "Ouvrir l'exemple" }).click();
+  await panel.getByRole("link", { name: "Aller à l'écran de l'étape" }).click();
   await page.waitForLoadState("networkidle");
   await page.getByRole("link", { name: "Modifier les informations" }).click();
   await page.getByLabel("Date de l'événement").fill("2029-05-19");
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();
-  await page.goto(tutorialUrl);
-  await page.getByRole("button", { name: "J'ai fait, vérifier" }).click();
 
-  // Fin : le modèle est gardé, l'exemple disparaît, la progression avance.
-  await expect(page.getByRole("heading", { name: "Garder ou supprimer" })).toBeVisible();
-  await page.getByRole("button", { name: "Garder le modèle comme base" }).click();
-  await expect(page.getByRole("heading", { name: "Tutoriel terminé" })).toBeVisible();
-  await page.goto("/events/modeles");
+  // Fin : le modèle est gardé, l'exemple disparaît, retour à l'écran de départ.
+  await expect(panel.getByRole("heading", { name: "Garder ou supprimer", level: 3 })).toBeVisible({ timeout: 15_000 });
+  await panel.getByRole("button", { name: "Garder le modèle comme base" }).click();
+  await expect(page).toHaveURL(/\/events\/modeles\?tutoriel-termine=retroplanning-template&tutoriel-garde=1$/);
+  const done = page.getByRole("status").filter({ has: page.getByRole("heading", { name: "Tutoriel terminé" }) });
+  await expect(done).toBeVisible();
+  await expect(done).toContainText("Prochain tutoriel conseillé");
+  // Le modèle a été gardé : le texte de fin le dit (lot 63a).
+  await expect(done).toContainText("Ce que vous avez choisi de garder reste dans vos réglages");
+  await expect(panel).toHaveCount(0);
+  await expectNoAxeViolation(page);
   await expect(page.getByText("Séminaire express (exemple)").first()).toBeVisible();
   await expect(page.getByRole("region", { name: "À quoi sert un modèle de rétroplanning ?" })).toHaveCount(0);
   await page.goto("/aide");
   await expect(page.getByRole("heading", { name: "Tutoriels faits : 1 sur 11" })).toBeVisible();
+});
+
+// HUB-11 (lot 63f, ADR 0104) — « Quitter le tutoriel » supprime l'exemple et ramène à l'écran de départ.
+test("HUB-11 — quitter un tutoriel depuis son panneau : l'exemple est supprimé, retour à l'écran de départ", async ({ page }) => {
+  test.setTimeout(90_000);
+  const email = `planner-quitter-${randomUUID()}@symbola.test`;
+  const { sql, db } = createAppConnection();
+  try {
+    const organization = await readyOrganization(db, `Org ${randomUUID()}`);
+    const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-quitter", role: "owner" });
+    for (const key of ["hub", "events", "event"]) await recordHelpProgress(db, { userId: user.id, itemKey: `tour:${key}`, status: "completed" });
+  } finally {
+    await sql.end();
+  }
+  await signInByLink(page, email);
+  await page.goto("/aide/tutoriels/event-page?depuis=%2Fevents");
+  await page.getByRole("button", { name: "Continuer" }).click();
+  await page.getByRole("button", { name: "Créer l'exemple" }).click();
+  await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}\?onglet=apercu$/);
+  const exampleUrl = page.url();
+  const panel = page.locator(".tutorial-panel");
+  await expect(panel).toBeVisible();
+  // « Réduire » le replie sans le fermer.
+  await panel.getByRole("button", { name: "Réduire" }).click();
+  await expect(panel.getByRole("button", { name: "Ouvrir" })).toHaveAttribute("aria-expanded", "false");
+  await panel.getByRole("button", { name: "Ouvrir" }).click();
+  await panel.getByRole("button", { name: "Quitter le tutoriel (l'exemple est supprimé)" }).click();
+  await expect(page).toHaveURL(/\/events$/);
+  await expect(panel).toHaveCount(0);
+  // L'exemple n'existe plus.
+  const response = await page.goto(exampleUrl);
+  expect(response?.status()).toBe(404);
 });
