@@ -6,8 +6,7 @@ import { requirePlanner } from "@/lib/guards";
 import { ScreenHelp } from "@/app/screen-help";
 import { listMealTypes } from "@/modules/guests/service";
 import { isGuestsAvailable } from "@/app/events/[id]/invites/access";
-import { toggleMealTypeAction } from "./actions";
-import { AddMealTypeForm, RenameMealTypeForm } from "./meal-type-forms";
+import { AddMealTypeForm, MealTypeList } from "./meal-type-forms";
 
 export default async function MealTypesPage() {
   const auth = await requirePlanner();
@@ -24,33 +23,18 @@ export default async function MealTypesPage() {
   }
   const types = await listMealTypes(organizationId, (await getLocale()) === "en" ? "en" : "fr");
   return (
-    <main className="stack">
+    <main>
       <h1>{t("title")}</h1>
       <ScreenHelp title={tHelp("mealTypes.title")} body={tHelp("mealTypes.body")} />
       <p>{t("intro")}</p>
-      <section aria-labelledby="meal-types-list" className="card stack">
-        <h2 id="meal-types-list">{t("title")}</h2>
-        <ul className="plain-list stack">
-          {types.map((type) => (
-            <li key={type.id} className="stack">
-              <span className={type.hidden ? "muted" : undefined}>
-                {type.label}
-                {type.hidden ? ` (${t("hidden")})` : ""}
-              </span>
-              <details>
-                <summary>{t("rename", { label: type.label })}</summary>
-                <RenameMealTypeForm id={type.id} label={type.label} starter={type.starterKey !== null} />
-              </details>
-              <form action={toggleMealTypeAction}>
-                <input type="hidden" name="mealTypeId" value={type.id} />
-                <input type="hidden" name="hidden" value={type.hidden ? "false" : "true"} />
-                <button type="submit">{type.hidden ? t("show", { label: type.label }) : t("hide", { label: type.label })}</button>
-              </form>
-            </li>
-          ))}
-        </ul>
+      {/* Lot 62b (UX-13, D1) : tableau éditable, enregistré à la sortie du champ. */}
+      <section aria-labelledby="meal-types-list" className="card">
+        <h2 id="meal-types-list" className="sr-only">
+          {t("title")}
+        </h2>
+        <MealTypeList types={types.map((type) => ({ id: type.id, label: type.label, hidden: type.hidden, starter: type.starterKey !== null }))} />
       </section>
-      <section aria-labelledby="meal-types-add" className="card stack">
+      <section aria-labelledby="meal-types-add" className="card">
         <h2 id="meal-types-add">{t("addTitle")}</h2>
         <AddMealTypeForm />
       </section>

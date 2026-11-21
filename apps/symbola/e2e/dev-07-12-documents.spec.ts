@@ -48,15 +48,16 @@ test("DEV-07 à DEV-11 — régler le logo, l'apparence, les textes et l'IBAN de
   // DEV-07 : coordonnées imprimées, dans Entreprise et TVA.
   await openSettingsTab(page, "Entreprise et TVA");
   await page.waitForLoadState("networkidle");
-  const details = page.getByRole("form", { name: "Coordonnées des devis et factures" });
+  // Lot 62b (UX-12) : la fiche de l'entreprise réunit identité, adresse et coordonnées, un seul bouton.
+  const details = page.getByRole("form", { name: "Fiche entreprise" });
   await details.getByLabel("SIRET (14 chiffres)").fill("1234");
-  await details.getByRole("button", { name: "Enregistrer les coordonnées" }).click();
+  await details.getByRole("button", { name: "Enregistrer la fiche" }).click();
   await expect(details.getByRole("alert")).toHaveText("Le SIRET doit compter 14 chiffres.");
   await details.getByLabel("SIRET (14 chiffres)").fill("123 456 789 00012");
   await details.getByLabel("E-mail de contact").fill("bonjour@atelier.example");
   await details.getByLabel("Numéro de TVA intracommunautaire").fill("FR40123456789");
-  await details.getByRole("button", { name: "Enregistrer les coordonnées" }).click();
-  await expect(details.getByRole("status")).toHaveText("Coordonnées enregistrées.");
+  await details.getByRole("button", { name: "Enregistrer la fiche" }).click();
+  await expect(details.getByRole("status")).toHaveText("Fiche entreprise enregistrée.");
   await expectNoAxeViolation(page);
 
   // DEV-08 : un fichier qui n'est pas une image est refusé, un PNG devient le logo.

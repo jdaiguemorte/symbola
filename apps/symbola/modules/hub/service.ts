@@ -911,6 +911,32 @@ export async function saveDocumentDetails(db: AppDatabase, organizationId: strin
   await upsertOrganizationProfileFields(db, organizationId, profileFields);
 }
 
+// Lot 62b (UX-12) — la fiche de l'entreprise s'enregistre d'un seul geste : identité, adresse et
+// coordonnées imprimées. Tout est contrôlé avant la première écriture (une erreur nomme le champ,
+// InvalidSellerAddressError ou InvalidDocumentDetailsError) : une fiche refusée n'enregistre rien.
+export type CompanySheetInput = {
+  siren: string | null;
+  legalForm: LegalForm | null;
+  metier: Metier | null;
+  metierPrecision: string | null;
+  address: SellerAddressInput;
+  details: DocumentDetailsInput;
+};
+
+export async function saveCompanySheet(db: AppDatabase, organizationId: string, input: CompanySheetInput): Promise<void> {
+  const address = cleanSellerAddress(input.address);
+  const { siret, ...details } = cleanDocumentDetails(input.details);
+  await upsertOrganizationProfileFields(db, organizationId, {
+    siren: input.siren,
+    legalForm: input.legalForm,
+    metier: input.metier,
+    metierPrecision: input.metierPrecision,
+    ...address,
+    ...details,
+  });
+  await updateOrganizationSiret(db, organizationId, siret);
+}
+
 // Lot 17 (DEV-08) — logo des documents : PNG ou JPEG de 2 Mo au plus, type
 // vérifié par le contenu avant tout stockage, antivirus (uploadFile). Le
 // fichier remplacé reste dans le stockage : les documents déjà émis le

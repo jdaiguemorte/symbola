@@ -64,7 +64,7 @@ export default async function AccountingExportsPage({ searchParams }: { searchPa
       ) : null}
       <section className="card stack" aria-labelledby="period-title">
         <h2 id="period-title">{t("periodTitle")}</h2>
-        <form method="get" className="row-wrap">
+        <form method="get" className="form-inline">
           <label>
             {t("periodKind")}
             <select name="type" defaultValue={period.kind}>
@@ -77,7 +77,7 @@ export default async function AccountingExportsPage({ searchParams }: { searchPa
           </label>
           <label>
             {t("year")}
-            <input name="annee" inputMode="numeric" pattern="\d{4}" defaultValue={String(year)} size={4} />
+            <input className="field-short" name="annee" inputMode="numeric" pattern="\d{4}" defaultValue={String(year)} size={4} />
           </label>
           <label>
             {`${t("month")} / ${t("quarter")}`}
@@ -99,7 +99,9 @@ export default async function AccountingExportsPage({ searchParams }: { searchPa
               ))}
             </select>
           </label>
-          <button type="submit">{t("show")}</button>
+          <button type="submit" className="button-secondary">
+            {t("show")}
+          </button>
         </form>
         <p>
           <strong>{t("periodLabel", { start: formatCalendarDate(period.start, locale), end: formatCalendarDate(period.end, locale) })}</strong>

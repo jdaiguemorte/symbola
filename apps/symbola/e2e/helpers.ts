@@ -55,7 +55,21 @@ export async function openEventTab(page: Page, name: string): Promise<void> {
 // Réglages regroupés sous « Paramètres » (lot 13 : menu latéral par rubrique).
 export async function openSettingsTab(page: Page, name: string): Promise<void> {
   await clickMenuLink(page, "Paramètres");
-  await page.getByRole("navigation", { name: "Rubriques des paramètres" }).getByRole("link", { name, exact: true }).click();
+  // Lot 62b : attendre l'arrivée sur les Paramètres. Partie d'un autre écran de réglage, la rubrique
+  // visée pouvait être visible un instant, puis repliée avec son groupe.
+  await page.waitForURL((url) => url.pathname === "/parametres");
+  await openSettingsRubric(page, name);
+}
+
+// Lot 62b (UX-13, D2) : les groupes du menu des Paramètres se replient, seul celui de la rubrique
+// ouverte est déplié. Une rubrique d'un autre groupe s'atteint par « Chercher un réglage ».
+export async function openSettingsRubric(page: Page, name: string): Promise<void> {
+  const rubrics = page.getByRole("navigation", { name: "Rubriques des paramètres" });
+  const link = rubrics.getByRole("link", { name, exact: true });
+  await expect(async () => {
+    if (!(await link.isVisible())) await rubrics.getByRole("searchbox", { name: "Chercher un réglage" }).fill(name);
+    await link.click({ timeout: 3_000 });
+  }).toPass({ timeout: 30_000 });
 }
 
 // Lot 12 (ONB-03) : une organisation dont l'assistant de démarrage est déjà

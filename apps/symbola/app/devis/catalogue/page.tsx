@@ -9,8 +9,9 @@ import { PageTour } from "@/app/page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { isQuotesModuleEnabled } from "../module-access";
 import { formatRate } from "../quote-display";
-import { archiveCatalogItemAction } from "./actions";
+import { formatDecimal } from "../decimal-input";
 import { CatalogItemForm } from "./catalog-item-form";
+import { CatalogList } from "./catalog-list";
 
 export default async function QuoteCatalogPage({ searchParams }: { searchParams: Promise<{ visite?: string }> }) {
   const auth = await requirePlanner();
@@ -32,6 +33,7 @@ export default async function QuoteCatalogPage({ searchParams }: { searchParams:
   const db = appDatabase();
   const profile = await getOrganizationProfile(db, organizationId);
   const items = await listCatalogItems(organizationId);
+  const inputLocale = locale === "en" ? "en" : "fr";
   const defaultRate = profile.vatRegime === "franchise" ? 0 : (profile.vatRateDefaultBasisPoints ?? 0);
 
   return (
@@ -44,31 +46,37 @@ export default async function QuoteCatalogPage({ searchParams }: { searchParams:
       />
       {profile.vatRegime === "franchise" ? <p role="status">{t("franchiseRatesIgnored")}</p> : null}
 
-      {items.length === 0 ? <p>{t("noCatalogItems")}</p> : null}
-      <ul data-tour="quotes-catalog">
-        {items.map((item) => (
-          <li key={item.id}>
-            <p>
-              <strong>{item.label}</strong>
-              {item.category ? ` — ${item.category}` : ""} — {formatAmount(item.unitPriceCents, locale)} / {item.unit} —{" "}
-              {t("vatRateValue", { rate: formatRate(item.vatRateBasisPoints, locale) })}
-            </p>
-            {item.description ? <p>{item.description}</p> : null}
-            <ImportedFields fields={item.importedFields} compact />
-            <details>
-              <summary>{t("editItemNamed", { label: item.label })}</summary>
-              <CatalogItemForm item={item} defaultVatRateBasisPoints={defaultRate} />
-            </details>
-            <form action={archiveCatalogItemAction}>
-              <input type="hidden" name="itemId" value={item.id} />
-              <button type="submit">{t("archiveItem", { label: item.label })}</button>
-            </form>
-          </li>
-        ))}
-      </ul>
-
-      <h2 data-tour="catalog-new">{t("newItemTitle")}</h2>
-      <CatalogItemForm defaultVatRateBasisPoints={defaultRate} />
+      {/* Lot 62b (UX-13, D1) : un tableau, une ligne par article, deux actions de ligne. */}
+      <section className="card" aria-labelledby="catalog-list-title" data-tour="quotes-catalog">
+        <h2 id="catalog-list-title" className="sr-only">
+          {t("catalogTableLabel")}
+        </h2>
+        {items.length === 0 ? (
+          <p>{t("noCatalogItems")}</p>
+        ) : (
+          <CatalogList
+            items={items.map((item) => ({
+              id: item.id,
+              label: item.label,
+              description: item.description ?? "",
+              category: item.category ?? "",
+              unit: item.unit,
+              nature: item.nature ?? "service",
+              unitPrice: formatDecimal(item.unitPriceCents, 2, inputLocale),
+              vatRate: formatDecimal(item.vatRateBasisPoints, 2, inputLocale),
+              priceText: formatAmount(item.unitPriceCents, locale),
+              vatText: formatRate(item.vatRateBasisPoints, locale),
+            }))}
+            extras={Object.fromEntries(items.map((item) => [item.id, <ImportedFields key={item.id} fields={item.importedFields} compact />]))}
+          />
+        )}
+      </section>
+      <section className="card" aria-labelledby="catalog-new-title">
+        <h2 id="catalog-new-title" data-tour="catalog-new">
+          {t("newItemTitle")}
+        </h2>
+        <CatalogItemForm defaultVatRateBasisPoints={defaultRate} />
+      </section>
     </main>
   );
 }

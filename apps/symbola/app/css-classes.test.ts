@@ -40,7 +40,6 @@ const MARKERS: readonly string[] = [
   "task-calendar",
   "draft-keeper",
   "landmark-extra",
-  "logo-upload",
   // Contacts, pipeline, prestataires.
   "identity-facts",
   "merge-form",
@@ -57,7 +56,6 @@ const MARKERS: readonly string[] = [
   "task-comments",
   "timeline-auto",
   // Réglages des évènements, modèles.
-  "client-term-form",
   "questionnaire-editor",
   "template-label",
   // Jour J.
@@ -102,7 +100,6 @@ const MARKERS: readonly string[] = [
   "takeover",
   // Journal d'activité, envois.
   "activity-action",
-  "activity-log",
   "delivery-status",
 ];
 const MARKER_SET = new Set(MARKERS);

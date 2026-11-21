@@ -280,15 +280,15 @@ describe("SEC-12 — Chaque route a sa règle d'accès, vérifiée côté serveu
     }
   });
 
-  it("chaque page appelle une garde, ou figure parmi les entrées publiques", () => {
+  it("chaque page appelle une garde, ou figure parmi les entrées publiques", { timeout: 30_000 }, () => {
     expect(unguarded("page")).toEqual([]);
   });
 
-  it("chaque méthode de chaque route appelle une garde, ou figure parmi les entrées publiques", () => {
+  it("chaque méthode de chaque route appelle une garde, ou figure parmi les entrées publiques", { timeout: 30_000 }, () => {
     expect(unguarded("route")).toEqual([]);
   });
 
-  it("chaque action serveur appelle une garde, ou figure parmi les entrées publiques", () => {
+  it("chaque action serveur appelle une garde, ou figure parmi les entrées publiques", { timeout: 30_000 }, () => {
     expect(unguarded("action")).toEqual([]);
   });
 

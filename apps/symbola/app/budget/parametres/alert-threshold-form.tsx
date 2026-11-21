@@ -11,12 +11,12 @@ export function AlertThresholdForm({ percent }: { percent: number }) {
   const initialState: AllocationModelFormState = {};
   const [state, formAction, pending] = useActionState(setOrganizationAlertThresholdAction, initialState);
   return (
-    <form action={formAction}>
+    <form action={formAction} className="form-inline">
       <label>
         {t("organizationThreshold")}
-        <input type="number" min="1" max="500" step="1" name="percent" defaultValue={percent} required />
+        <input className="field-short" type="number" min="1" max="500" step="1" name="percent" defaultValue={percent} required />
       </label>
-      <button type="submit" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("saveThreshold")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
