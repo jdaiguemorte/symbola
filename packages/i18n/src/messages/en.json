@@ -114,6 +114,7 @@
     "upcomingTasksEmpty": "Nothing urgent: no task overdue or due within 14 days.",
     "allTasksLink": "All tasks",
     "agenda": "Today",
+    "apps": "Apps",
     "tasks": "Tasks",
     "tasksOverdue": "{count} overdue",
     "settingsOrganization": "My organisation",
@@ -203,7 +204,17 @@
     "subscriptionPlan": "Plan",
     "subscriptionAssign": "Set this plan",
     "subscriptionAssigned": "Plan set. Modules follow.",
-    "subscriptionModulesNote": "With a subscription, modules follow the plan; a manual setting is overridden at the next plan change."
+    "subscriptionModulesNote": "With a subscription, modules follow the plan; a manual setting is overridden at the next plan change.",
+    "moduleRequestsTitle": "Activation requests",
+    "moduleRequestsIntro": "Apps an organisation asked for during the pilot. Activate opens the app at the next request and notifies the Owner; close ends the request without activating.",
+    "moduleRequestsTable": "Requested apps, by organisation",
+    "moduleRequestsApp": "App",
+    "moduleRequestsDate": "Requested on",
+    "moduleRequestsActions": "Actions",
+    "moduleRequestsActivate": "Activate",
+    "moduleRequestsActivateLabel": "Activate {app} for {organization}",
+    "moduleRequestsDecline": "Close without activating",
+    "moduleRequestsDeclineLabel": "Close without activating the {app} request of {organization}"
   },
   "AdminOrganizationForm": {
     "name": "Organization name",
@@ -1548,6 +1559,10 @@
     "subscription": {
       "title": "My subscription",
       "body": "Your plan, its apps and options, the total and your storage against the plan's quota. Changing plan takes effect immediately; the prorated difference goes on the next invoice. Cancelling takes two steps: “Cancel subscription”, then “Confirm cancellation”; you keep access until the end of the paid period, then the space is closed (export for 30 days, then deletion). At 80% and 95% of the quota, Symbola warns you; when full, new uploads are only refused after seven days' notice, and viewing and export always remain available. Account holder only."
+    },
+    "apps": {
+      "title": "Apps",
+      "body": "All of Symbola's apps, with their state, what they bring and where to find them once active. During the pilot, “Request activation” tells the Symbola team, who activate the app for you, free of charge: you receive a notification and the app appears in your menu. A request can be cancelled until it is handled. The team only sees your organisation's name and the app requested. After the commercial launch, “Add to my subscription” shows the price, the prorated amount and the new total. Reserved to the Owner."
     },
     "adminPlans": {
       "title": "Plans and packages",
@@ -5722,7 +5737,11 @@
       "hub_storage_quota_alerted": "Storage quota alert",
       "hub_feature_flag_opened": "Feature opened by Operations",
       "hub_feature_flag_closed": "Feature closed by Operations",
-      "hub_plan_catalog_updated": "Plan catalogue updated"
+      "hub_plan_catalog_updated": "Plan catalogue updated",
+      "hub_module_request_created": "App activation requested",
+      "hub_module_request_cancelled": "Activation request cancelled",
+      "hub_module_request_activated": "Requested app activated",
+      "hub_module_request_declined": "Activation request closed by Operations"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -5927,7 +5946,8 @@
       "events_message_topics": "discussion topic",
       "events_message_topic_links": "topic vendor",
       "events_messages": "message",
-      "events_message_attachments": "message attachment"
+      "events_message_attachments": "message attachment",
+      "hub_module_requests": "an app activation request"
     },
     "modules": {
       "events": "Events",
@@ -10449,6 +10469,11 @@
         "label": "Email bounced",
         "text": "An email to {name} was not delivered: check their address.",
         "action": "Open the contact"
+      },
+      "module_activated": {
+        "label": "App activated",
+        "text": "The “{module}” app is active.",
+        "action": "See the app"
       }
     },
     "center": {
@@ -11530,6 +11555,57 @@
       "not_cancellable": "The subscription cannot be cancelled in its current state.",
       "not_resumable": "The cancellation can no longer be withdrawn.",
       "read_only": "Your space is read-only: choose a plan to resume."
+    }
+  },
+  "Apps": {
+    "title": "Apps",
+    "subtitle": "Symbola's apps: those of your organisation, and those you can add.",
+    "ownerOnly": "This screen is reserved to the organisation's Owner.",
+    "listLabel": "Symbola apps",
+    "pilotIntro": "<strong>During the pilot</strong>, the Symbola team activates apps for you, free of charge. Ask for the one you are missing: it appears in your menu as soon as it is activated.",
+    "selfServiceIntro": "Add an app to your subscription: it is activated straight away and can be removed at any time from “My subscription”.",
+    "status": {
+      "enabled": "Active",
+      "disabled": "Not active",
+      "requested": "Requested on {date}"
+    },
+    "whereToFind": "Where to find it: {place}",
+    "whereOnceEnabled": "Once active: {place}",
+    "declined": "Your request of {date} was closed without activation. You can ask again.",
+    "open": "Open",
+    "openLabel": "Open {app}",
+    "request": "Request activation",
+    "requestLabel": "Request activation of {app}",
+    "requestTitle": "Activate “{app}”",
+    "requestBody": "During the pilot, it is free of charge. The Symbola team receives your request and activates the app, usually within the day. You receive a notification.",
+    "requestPrivacy": "The team only sees your organisation's name and the app requested, never your events.",
+    "requestConfirm": "Send the request",
+    "cancelRequest": "Cancel the request",
+    "cancel": "Cancel",
+    "requested": "Your request is sent. You will be notified as soon as “{app}” is active.",
+    "requestCancelled": "Your request is cancelled.",
+    "add": "Add to my subscription",
+    "addLabel": "Add to my subscription: {app}",
+    "addTitle": "Add “{app}” to my subscription",
+    "addBody": "Activated straight away; removable at any time from “My subscription”. The prorated difference goes on the next invoice.",
+    "addConfirmMonthly": "Add for {amount} excl. VAT per month",
+    "addConfirmYearly": "Add for {amount} excl. VAT per year",
+    "offerCaption": "App price and new total",
+    "pricePerMonth": "{amount} excl. VAT per month",
+    "pricePerYear": "{amount} excl. VAT per year",
+    "prorata": "Prorated until {date}",
+    "newTotalMonthly": "New monthly total",
+    "newTotalYearly": "New yearly total",
+    "changePlan": "Choose a plan",
+    "changePlanLabel": "Choose a plan that includes {app}",
+    "managed": "Your subscription is managed by the Symbola team.",
+    "errors": {
+      "forbidden": "Only the organisation's Owner manages apps.",
+      "unknown_module": "This app does not exist.",
+      "already_enabled": "This app is already active.",
+      "self_service": "Add this app to your subscription: a request is no longer needed.",
+      "not_found": "This request is no longer pending.",
+      "managed": "This app cannot be added here: your subscription is managed by the Symbola team or goes through “My subscription”."
     }
   },
   "AdminPlans": {
