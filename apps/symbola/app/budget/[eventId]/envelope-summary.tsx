@@ -51,7 +51,7 @@ export function EnvelopeSummary({
             </div>
           </dl>
           {envelope.exceeded ? (
-            <p role="alert" className="notice">
+            <p role="alert" className="notice notice-attention">
               {t("envelopeExceeded", { amount: formatAmount(committedCents - envelope.thresholdCents, locale), percent: envelope.thresholdPercent })}
             </p>
           ) : null}

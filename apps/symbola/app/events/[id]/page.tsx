@@ -876,7 +876,7 @@ export default async function EventDetailPage({
             ) : null}
             {/* Lot 28a (BUD-02) : le dépassement du seuil d'alerte, en haut du budget. */}
             {budgetView?.envelope?.exceeded ? (
-              <p role="alert" className="notice">
+              <p role="alert" className="notice notice-attention">
                 {tBudget("envelopeExceeded", {
                   amount: formatAmount(budgetView.totalCommittedCents - budgetView.envelope.thresholdCents, locale),
                   percent: budgetView.envelope.thresholdPercent,

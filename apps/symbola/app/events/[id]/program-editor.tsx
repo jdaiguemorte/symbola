@@ -358,7 +358,7 @@ export function ProgramEditor({
                 ];
                 if (openKey === row.key) {
                   return (
-                    <div key={row.key} role="row" className="program-open-row">
+                    <div key={row.key} role="row">
                       <div role="cell">
                         <div role="group" className="edit-row-open" aria-label={t("editProgramItem", { label: row.item?.label ?? t("programNewLine") })} tabIndex={-1} data-open-line={row.key}>
                         <LineFields draft={row.draft} setDraft={setDraft(row)} vendorSlots={vendorSlots} moments={moments} />

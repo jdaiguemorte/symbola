@@ -44,6 +44,8 @@ export function ProgramImportForm({ eventId }: { eventId: string }) {
                 ))}
               </ul>
             ) : null}
+            {/* Lot 62c (NFR-19) : le tableau défile dans sa zone, la page ne déborde pas en 375 px. */}
+            <div className="list-table-wrap" role="region" tabIndex={0} aria-label={t("programImportPreviewTitle", { count: result.preview.rows.length })}>
             <table className="data-table">
               <caption className="sr-only">{t("programImportPreviewTitle", { count: result.preview.rows.length })}</caption>
               <thead>
@@ -69,6 +71,7 @@ export function ProgramImportForm({ eventId }: { eventId: string }) {
                 ))}
               </tbody>
             </table>
+            </div>
             <button type="submit" name="intent" value="apply" className="primary" disabled={pending || result.preview.rows.length === 0}>
               {t("programImportApply", { count: result.preview.rows.length })}
             </button>

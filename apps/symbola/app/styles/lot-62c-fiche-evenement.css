@@ -288,7 +288,7 @@
   }
   /* Une échéance : sa phrase, puis chacun de ses gestes sur sa ligne. */
   .budget-line-more li > form.inline-form {
-    @apply my-1 flex flex-wrap items-end gap-2;
+    @apply my-1 flex flex-row flex-wrap items-end gap-2;
   }
   .budget-line-more fieldset {
     @apply m-0 max-w-none p-4;
