@@ -1122,7 +1122,8 @@ export default async function EventDetailPage({
                     <input type="hidden" name="eventId" value={event.id} />
                     <input type="hidden" name="taskId" value={selectedTask.id} />
                     <input type="hidden" name="milestone" value={selectedTask.isMilestone ? "false" : "true"} />
-                    <button type="submit" className="button-ghost" aria-label={tHealth(selectedTask.isMilestone ? "milestoneOffLabel" : "milestoneOnLabel", { label: selectedTask.label })}>
+                    {/* Lot 63d : dans la fenêtre de la tâche, le texte visible suffit (WCAG 2.5.3). */}
+                    <button type="submit" className="button-ghost">
                       {tHealth(selectedTask.isMilestone ? "milestoneOff" : "milestoneOn")}
                     </button>
                   </form>
