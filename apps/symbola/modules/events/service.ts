@@ -3292,6 +3292,14 @@ const _contractCheck: EventsServiceContract = {
   listProgramRecipients,
   notifyProgramVersion,
   listCalendarEvents,
+  getBusySettings,
+  setBusySettings,
+  listEventTypeBusyRules,
+  setEventTypeBusyRule,
+  getEventBusy,
+  setEventBusyRule,
+  listBusyRanges,
+  listEventBusyRanges,
   addProgramItem,
   updateProgramItem,
   removeProgramItem,
@@ -4132,6 +4140,11 @@ export {
   suggestedClientTerms,
   type LateTask,
 } from "./planning";
+
+// Lot 64 (HUB-29, RDV-02 ; D1 à D6 ; ADR 0108) : plages occupées.
+import { getBusySettings, setBusySettings, listEventTypeBusyRules, setEventTypeBusyRule, getEventBusy, setEventBusyRule, listBusyRanges, listEventBusyRanges } from "./busy";
+export { BusyRuleInvalidError, getBusySettings, setBusySettings, listEventTypeBusyRules, setEventTypeBusyRule, getEventBusy, setEventBusyRule, listBusyRanges, listEventBusyRanges } from "./busy";
+export { busyRuleMinutes, isValidBusyRule, BUSY_DAY_OFFSET_MAX, BUSY_DAY_OFFSET_MIN } from "./busy-ranges";
 
 // —— Lot 58 (PAR-09, EVT-08 ; D4, D5 ; ADR 0097) — clôture, archivage, modèles et duplication ——————————
 

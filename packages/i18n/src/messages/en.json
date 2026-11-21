@@ -7739,7 +7739,8 @@
     "refreshDelay": "Your calendar re-reads the address by itself, at its own pace: a change can take a few hours to show up there.",
     "stepGoogle": "Google Calendar: \"Other calendars\", \"+\", then \"From URL\".",
     "stepApple": "Apple Calendar: \"File\", then \"New Calendar Subscription\".",
-    "stepOutlook": "Outlook: \"Add calendar\", then \"Subscribe from web\"."
+    "stepOutlook": "Outlook: \"Add calendar\", then \"Subscribe from web\".",
+    "busyFileName": "Busy time — Symbola"
   },
   "Appointments": {
     "title": "Appointments",

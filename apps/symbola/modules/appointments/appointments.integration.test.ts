@@ -183,6 +183,53 @@ describe("RDV-02 — Page publique et créneaux sur les disponibilités réelles
     expect(days.has("2027-03-03")).toBe(true);
   });
 
+  it("RDV-02, lot 64 : seules les heures de la plage occupée sont retirées ; le reste du jour reste réservable", async () => {
+    const context = await organization();
+    const sourceId = (await createProspectSource(context.organizationId, "Salon"))!.id;
+    const event = await createProspect({ organizationId: context.organizationId, createdByUserId: context.hostId, prospectSourceId: sourceId, clients: [{ firstName: "Léa" }], eventDate: "2027-03-03" });
+    const { changeEventStatus, setEventBusyRule } = await import("@/modules/events/service");
+    await changeEventStatus({ organizationId: context.organizationId, eventId: event.id, changedByUserId: context.hostId, toStatus: "confirmed" });
+    // Occupée le mercredi de 8 h à 12 h : rendez-vous d'une heure, marge de 15 min après.
+    await setEventBusyRule(context.organizationId, event.id, { startDayOffset: 0, startTime: "08:00", endDayOffset: 0, endTime: "12:00" });
+    const wednesday = (await availableSlots(context.organizationId, context.type.id, { now: MONDAY })).filter((slot) => slot.toISOString().startsWith("2027-03-03"));
+    expect(wednesday[0]!.toISOString()).toBe("2027-03-03T11:00:00.000Z"); // 12 h à Paris
+    expect(wednesday.some((slot) => slot.getTime() < new Date("2027-03-03T11:00:00Z").getTime())).toBe(false);
+  });
+
+  it("RDV-02, lot 64 : la veille à 14 h au lendemain à 12 h, marges comprises, ne propose rien", async () => {
+    const context = await organization();
+    const sourceId = (await createProspectSource(context.organizationId, "Salon"))!.id;
+    const event = await createProspect({ organizationId: context.organizationId, createdByUserId: context.hostId, prospectSourceId: sourceId, clients: [{ firstName: "Léa" }], eventDate: "2027-03-03" });
+    const { changeEventStatus, setEventBusyRule } = await import("@/modules/events/service");
+    await changeEventStatus({ organizationId: context.organizationId, eventId: event.id, changedByUserId: context.hostId, toStatus: "confirmed" });
+    await setEventBusyRule(context.organizationId, event.id, { startDayOffset: -1, startTime: "14:00", endDayOffset: 1, endTime: "12:00" });
+    const slots = await availableSlots(context.organizationId, context.type.id, { now: MONDAY });
+    const start = new Date("2027-03-02T13:00:00Z"); // mardi 14 h à Paris
+    const end = new Date("2027-03-04T11:00:00Z"); // jeudi 12 h à Paris
+    // Un créneau d'une heure avec 15 min de marge après : le dernier possible mardi commence à 12 h 45.
+    expect(slots.some((slot) => slot.getTime() + 75 * 60_000 > start.getTime() && slot.getTime() < end.getTime())).toBe(false);
+    expect(slots.some((slot) => slot.toISOString() === "2027-03-02T11:30:00.000Z")).toBe(true); // mardi 12 h 30
+    expect(slots.some((slot) => slot.toISOString() === "2027-03-04T11:00:00.000Z")).toBe(true); // jeudi 12 h
+  });
+
+  it("RDV-02, lot 64 (D2, D3) : une option ne bloque pas, sauf réglage ; un évènement d'une autre équipe ne bloque pas", async () => {
+    const context = await organization();
+    const sourceId = (await createProspectSource(context.organizationId, "Salon"))!.id;
+    const option = await createProspect({ organizationId: context.organizationId, createdByUserId: context.hostId, prospectSourceId: sourceId, clients: [{ firstName: "Léa" }], eventDate: "2027-03-03" });
+    const { changeEventStatus, setBusySettings, setEventTeamMember } = await import("@/modules/events/service");
+    const days = async () => new Set((await availableSlots(context.organizationId, context.type.id, { now: MONDAY })).map((slot) => slot.toISOString().slice(0, 10)));
+    expect((await days()).has("2027-03-03")).toBe(true);
+    await setBusySettings(context.organizationId, { optionsBlock: true });
+    expect((await days()).has("2027-03-03")).toBe(false);
+    await setBusySettings(context.organizationId, { optionsBlock: false });
+    await changeEventStatus({ organizationId: context.organizationId, eventId: option.id, changedByUserId: context.hostId, toStatus: "confirmed" });
+    expect((await days()).has("2027-03-03")).toBe(false);
+    // L'évènement est confié à une autre planner : l'agenda de la personne qui reçoit reste libre.
+    const other = await ensureMembership(appDatabase(), { organizationId: context.organizationId, email: `autre-${randomUUID()}@example.test`, role: "member" });
+    await setEventTeamMember({ organizationId: context.organizationId, eventId: option.id, userId: other.userId, role: "lead", byUserId: context.hostId });
+    expect((await days()).has("2027-03-03")).toBe(true);
+  });
+
   it("deux réservations simultanées du même créneau : une seule passe, l'autre reçoit les créneaux voisins", async () => {
     const context = await organization();
     const [first, second] = await Promise.all([book(context, TEN), book(context, TEN)]);

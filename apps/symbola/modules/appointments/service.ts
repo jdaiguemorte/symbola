@@ -27,7 +27,7 @@ import {
 import { appDatabase } from "@symbola/db/client";
 import { parisToday } from "@symbola/i18n";
 import { starterAppointmentDefaults, starterAppointmentTypes, starterAvailability, starterBookingPrivacyNotice } from "@symbola/starter-templates";
-import { addEventTask, createProspect, FIRM_STATUSES, getEvent, listCalendarEvents } from "@/modules/events/service";
+import { addEventTask, createProspect, getEvent, listBusyRanges } from "@/modules/events/service";
 import { getOrganizationContact, isModuleEnabled, isOrganizationClosed, resolveContact, splitPersonName } from "@/modules/hub/service";
 import { CalendarReadError, fetchCalendarText, normalizeCalendarUrl, parseBusyRanges, urlHint, type Transport } from "./ics-reader";
 import { notifyHost, sendPersonEmail } from "./notifications";
@@ -493,11 +493,14 @@ export async function listCalendarSourcesInError(organizationId: string): Promis
 
 // —— Créneaux (RDV-02) ————————————————————————————————————————————————————————————
 
-// D6 : les jours des évènements confirmés (si le module Évènements est ouvert).
-async function eventDays(organizationId: string): Promise<string[]> {
+// D6, revu au lot 64 (RDV-02 ; D2, D3 ; ADR 0108) : les plages occupées des évènements qui bloquent
+// (heures réglées par type ou par évènement, la veille et le lendemain compris), pour la personne qui
+// reçoit : ceux de son équipe, ou sans équipe (si le module Évènements est ouvert).
+async function eventBusy(organizationId: string, hostUserId: string, now: Date, horizonDays: number): Promise<Range[]> {
   if (!(await isModuleEnabled(appDatabase(), organizationId, "events"))) return [];
-  const events = await listCalendarEvents(organizationId);
-  return events.filter((event) => FIRM_STATUSES.includes(event.status) && event.status !== "closed").map((event) => event.eventDate!);
+  const window = { from: new Date(now.getTime() - DAY), to: new Date(now.getTime() + (horizonDays + 2) * DAY) };
+  const ranges = await listBusyRanges(organizationId, window, { userId: hostUserId });
+  return ranges.filter((range) => range.blocking).map((range) => ({ start: range.start, end: range.end }));
 }
 
 // Sans lecture réussie, ou en erreur : aucun créneau (mieux vaut ne rien proposer qu'une plage
@@ -506,7 +509,7 @@ function sourcesBlock(sources: CalendarSourceRow[]): boolean {
   return sources.some((source) => source.state === "error" || source.lastSuccessAt === null);
 }
 
-async function slotsInTransaction(tx: Tx, type: AppointmentTypeRow, now: Date, blockedDays: string[], excludeAppointmentId: string | null): Promise<Date[]> {
+async function slotsInTransaction(tx: Tx, type: AppointmentTypeRow, now: Date, eventRanges: Range[], excludeAppointmentId: string | null): Promise<Date[]> {
   const window: Range = { start: now, end: new Date(now.getTime() + (type.horizonDays + 2) * DAY) };
   const { busy, sources, rules, closures } = await readHostBusy(tx, type.hostUserId, window, excludeAppointmentId);
   if (sourcesBlock(sources)) return [];
@@ -515,8 +518,8 @@ async function slotsInTransaction(tx: Tx, type: AppointmentTypeRow, now: Date, b
     timeZone: APPOINTMENTS_TIME_ZONE,
     rules: rules.length > 0 ? rules : starterAvailability(),
     closures,
-    blockedDays,
-    busy,
+    blockedDays: [],
+    busy: [...busy, ...eventRanges],
     durationMinutes: type.durationMinutes,
     bufferBeforeMinutes: type.bufferBeforeMinutes,
     bufferAfterMinutes: type.bufferAfterMinutes,
@@ -538,7 +541,7 @@ export async function availableSlots(organizationId: string, typeId: string, opt
   const type = UUID.test(typeId) ? await findAppointmentType(organizationId, typeId) : null;
   if (!type || !type.active) return [];
   await refreshHostSources(organizationId, type.hostUserId, now, options.transport);
-  const blocked = type.allowEventDays ? [] : await eventDays(organizationId);
+  const blocked = type.allowEventDays ? [] : await eventBusy(organizationId, type.hostUserId, now, type.horizonDays);
   return inOrganization(organizationId, (tx) => slotsInTransaction(tx, type, now, blocked, options.excludeAppointmentId ?? null));
 }
 
@@ -640,7 +643,7 @@ export async function bookAppointment(input: BookingInput, options: { transport?
   if (!person.email) throw new AppointmentInvalidError("email");
   const answers = cleanAnswers(type, input.answers);
   await refreshHostSources(input.organizationId, type.hostUserId, now, options.transport);
-  const blocked = type.allowEventDays ? [] : await eventDays(input.organizationId);
+  const blocked = type.allowEventDays ? [] : await eventBusy(input.organizationId, type.hostUserId, now, type.horizonDays);
   const appointmentId = randomUUID();
   const manage = newManageToken(input.organizationId, appointmentId);
   const result = await inOrganization(input.organizationId, async (tx): Promise<{ row: AppointmentRow } | { taken: Date[] } | { limit: true }> => {
@@ -732,7 +735,7 @@ export async function slotsForManagedAppointment(token: string, now: Date = new 
 export type RescheduleResult = { outcome: "rescheduled"; appointment: Appointment } | { outcome: "taken"; alternatives: Date[] } | { outcome: "invalid" };
 
 async function moveInLock(row: AppointmentRow, type: AppointmentTypeRow, startsAt: Date, now: Date, checkSlots: boolean): Promise<{ row: AppointmentRow } | { taken: Date[] }> {
-  const blocked = checkSlots && !type.allowEventDays ? await eventDays(row.organizationId) : [];
+  const blocked = checkSlots && !type.allowEventDays ? await eventBusy(row.organizationId, type.hostUserId, now, type.horizonDays) : [];
   return inOrganization(row.organizationId, async (tx) => {
     await lockHost(tx, row.organizationId, type.hostUserId);
     if (checkSlots) {

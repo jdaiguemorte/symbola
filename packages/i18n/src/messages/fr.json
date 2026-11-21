@@ -7739,7 +7739,8 @@
     "refreshDelay": "Votre agenda relit l'adresse tout seul, à son rythme : un changement peut mettre quelques heures à y apparaître.",
     "stepGoogle": "Google Agenda : « Autres agendas », « + », puis « À partir de l'URL ».",
     "stepApple": "Apple Calendrier : « Fichier », puis « Nouvel abonnement à un calendrier ».",
-    "stepOutlook": "Outlook : « Ajouter un calendrier », puis « S'abonner à partir du web »."
+    "stepOutlook": "Outlook : « Ajouter un calendrier », puis « S'abonner à partir du web ».",
+    "busyFileName": "Plage occupée — Symbola"
   },
   "Appointments": {
     "title": "Rendez-vous",

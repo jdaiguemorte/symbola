@@ -85,6 +85,9 @@ const LOT_45 = ["0172_lot45_hub_prospect_email_kinds", "0171_lot45_hub_contact_d
 // Lot 55 : messagerie par sujet (0194, events), adresse d'expédition, journal des envois, nature et
 // sortes (0195, hub). Fusionné après les lots 60 et 54 : annulé avant tous les autres lots.
 const LOT_55 = ["0195_lot55_hub_sender_deliveries", "0194_lot55_events_messages"];
+// Lot 64 : plages occupées (0201, events) et description des types de rendez-vous (0202,
+// appointments). Après le lot 55 : annulé avant tous les autres lots.
+const LOT_64 = ["0202_lot64_appointments_type_description", "0201_lot64_events_busy_ranges"];
 // Lot 60 : plans de salle (0191, schéma floorplans) et rubrique « Plan de salle » des liens (0192,
 // events) ; fusionnées en dernier, après les lots 35b, 35c et 58, elles s'annulent d'abord.
 const LOT_54 = ["0193_lot54_hub_subscriptions"];
@@ -115,7 +118,7 @@ const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
 // 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
+const LOT_36 = [...LOT_64, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
 const LOT_35A = ["0134_lot35a_hub_organization_exports"];
 const LOT_34B = ["0133_lot34b_events_fiche_tasks"];
 const LOT_34A = ["0132_lot34a_events_lifecycle"];
@@ -160,6 +163,41 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
+  it("lot 64 (HUB-29, RDV-02 ; D1, D6, D8 ; ADR 0108) — 0201 et 0202 : la base refuse une plage incomplète, hors bornes ou à l'envers ; annulation refusée tant qu'un réglage ou une description existe, puis tout est retiré", async () => {
+    await migrateAll();
+    const organizationId = randomUUID();
+    const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+    // Les quatre valeurs vont ensemble ; la fin vient après le début ; jours de -7 à 7.
+    await expect(target`update events.events set busy_start_day_offset = 0 where id = ${event!.id}`).rejects.toThrow(/events_busy_rule_complete_check/);
+    await expect(target`update events.events set busy_start_day_offset = 0, busy_start_time = '22:00', busy_end_day_offset = 0, busy_end_time = '08:00' where id = ${event!.id}`).rejects.toThrow(/events_busy_rule_check/);
+    await expect(target`update events.events set busy_start_day_offset = -8, busy_start_time = '08:00', busy_end_day_offset = 0, busy_end_time = '08:00' where id = ${event!.id}`).rejects.toThrow(/events_busy_rule_check/);
+    await target`update events.events set busy_start_day_offset = -1, busy_start_time = '14:00', busy_end_day_offset = 1, busy_end_time = '12:00' where id = ${event!.id}`;
+    const [type] = await target<{ id: string }[]>`insert into events.event_types (organization_id, label, busy_start_day_offset, busy_start_time, busy_end_day_offset, busy_end_time) values (${organizationId}, 'Mariage', 0, '08:00', 0, '22:00') returning id`;
+    await expect(target`insert into events.busy_settings (organization_id, options_block, fallback_start_day_offset, fallback_start_time, fallback_end_day_offset, fallback_end_time) values (${organizationId}, false, 0, '10:00', 0, '10:00')`).rejects.toThrow(/busy_settings_busy_rule_check/);
+    await target`insert into events.busy_settings (organization_id, options_block, fallback_start_day_offset, fallback_start_time, fallback_end_day_offset, fallback_end_time) values (${organizationId}, true, 0, '08:00', 0, '22:00')`;
+    await expect(target`insert into appointments.appointment_types (organization_id, name, duration_minutes, host_user_id, description) values (${organizationId}, 'Découverte', 60, ${randomUUID()}, '')`).rejects.toThrow(/appointment_types_description_check/);
+    const [appointmentType] = await target<{ id: string }[]>`insert into appointments.appointment_types (organization_id, name, duration_minutes, host_user_id, description) values (${organizationId}, 'Découverte', 60, ${randomUUID()}, 'Faisons connaissance.') returning id`;
+    await expect(rollback(LOT_64[0]!)).rejects.toThrow(/ont une description/);
+    await target`update appointments.appointment_types set description = null where id = ${appointmentType!.id}`;
+    await rollback(LOT_64[0]!);
+    expect(await hasColumn("appointments", "appointment_types", "description")).toBe(false);
+    await expect(rollback(LOT_64[1]!)).rejects.toThrow(/plage occupée propre/);
+    await target`update events.events set busy_start_day_offset = null, busy_start_time = null, busy_end_day_offset = null, busy_end_time = null where id = ${event!.id}`;
+    await expect(rollback(LOT_64[1]!)).rejects.toThrow(/plage occupée réglée/);
+    await target`update events.event_types set busy_start_day_offset = null, busy_start_time = null, busy_end_day_offset = null, busy_end_time = null where id = ${type!.id}`;
+    await expect(rollback(LOT_64[1]!)).rejects.toThrow(/réglages des plages occupées/);
+    await target`delete from events.busy_settings where organization_id = ${organizationId}`;
+    await rollback(LOT_64[1]!);
+    expect(await hasColumn("events", "events", "busy_start_day_offset")).toBe(false);
+    expect(await hasColumn("events", "event_types", "busy_end_time")).toBe(false);
+    const [table] = await target<{ name: string | null }[]>`select to_regclass('events.busy_settings')::text as name`;
+    expect(table!.name).toBeNull();
+    await target`delete from appointments.appointment_types where id = ${appointmentType!.id}`;
+    await target`delete from events.event_types where id = ${type!.id}`;
+    await target`delete from events.events where id = ${event!.id}`;
+    await migrateAll();
+  });
+
   it("lot 55 (MSG-03, POR-06, MSG-04, MSG-05 ; ADR 0102) — 0194 et 0195 : un lien n'écrit jamais de message interne, la rubrique « Messages », l'adresse d'expédition unique, le journal des envois ; annulation refusée tant que des messages ou un modèle « Nouveau message » existent, puis tout est retiré", async () => {
     await migrateAll();
     const organizationId = randomUUID();
@@ -176,6 +214,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(target`insert into hub.email_deliveries (id, organization_id, reference, recipient_hash, subject, status, sent_at, status_at) values (${randomUUID()}, ${organizationId}, 'ref', 'pas-un-hash', 'Objet', 'sent', now(), now())`).rejects.toThrow(/email_deliveries_hash_check/);
     await target`insert into hub.email_deliveries (id, organization_id, reference, recipient_hash, subject, status, reason, sent_at, status_at) values (${randomUUID()}, ${organizationId}, 'ref-1', ${"a".repeat(64)}, 'Objet', 'bounced', 'mailbox_not_found', now(), now())`;
     await target`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, 'new_message', 'fr', 'Nouveau message', '{{lien}}')`;
+    for (const tag of LOT_64) await rollback(tag);
     await expect(rollback(LOT_55[0]!)).rejects.toThrow(/Nouveau message/);
     await target`delete from hub.email_templates where organization_id = ${organizationId}`;
     await rollback(LOT_55[0]!);
@@ -205,7 +244,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await target`insert into hub.feature_flags (key) values ('fonction_neuve')`;
     await target`insert into hub.feature_flag_organizations (flag_key, organization_id) values ('fonction_neuve', ${organizationId})`;
     await target`insert into hub.organization_subscriptions (organization_id, plan_key, status, trial_ends_at) values (${organizationId}, 'trial', 'trial', now() + interval '30 days')`;
-    for (const tag of LOT_55) await rollback(tag);
+    for (const tag of [...LOT_64, ...LOT_55]) await rollback(tag);
     await expect(rollback(LOT_54[0]!)).rejects.toThrow(/ont un abonnement/);
     await target`delete from hub.organization_subscriptions where organization_id = ${organizationId}`;
     await rollback(LOT_54[0]!);

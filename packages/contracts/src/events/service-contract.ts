@@ -68,6 +68,30 @@ export type EventSummary = {
 // perdu ou annulé ; avec son type, pour l'intitulé (« Mariage — Léa & Maxime »).
 export type CalendarEvent = EventSummary & { eventTypeId: string | null };
 
+// Lot 64 (HUB-29, RDV-02 ; D1 à D6 ; ADR 0108) — plages occupées. Début et fin : un jour relatif à la
+// date de l'évènement (-7 à 7) et une heure locale « HH:MM » (fuseau de l'évènement).
+export type BusyRule = { startDayOffset: number; startTime: string; endDayOffset: number; endTime: string };
+export type BusyRuleSource = "event" | "type" | "fallback";
+export type BusySettingsView = { optionsBlock: boolean; fallback: BusyRule; isStarter: boolean };
+export type EventTypeBusyRule = { eventTypeId: string; label: string; rule: BusyRule; isStarter: boolean };
+export type EventBusyView = {
+  rule: BusyRule;
+  source: BusyRuleSource;
+  typeLabel: string | null;
+  // Dates locales de début et de fin ; nulles sans date.
+  startDate: string | null;
+  endDate: string | null;
+  // Les mêmes, en instants UTC (ISO 8601) ; nuls sans date.
+  startsAt: string | null;
+  endsAt: string | null;
+  timeZone: string;
+  blocking: boolean;
+  status: EventStatus;
+  // D3 : les comptes dont l'agenda est bloqué ; vide = toute l'organisation (évènement sans équipe).
+  teamUserIds: string[];
+};
+export type BusyRangeItem = { eventId: string; start: Date; end: Date; blocking: boolean };
+
 export type EventDetail = EventSummary & {
   prospectSourceId: string | null;
   // Lot 16 (ADR 0045) : type de l'événement ; nul pour un événement d'avant le
@@ -956,6 +980,15 @@ export interface EventsServiceContract {
   listProgramRecipients(organizationId: string, eventId: string): Promise<ProgramRecipient[]>;
   // Lot 38b (HUB-29, D11).
   listCalendarEvents(organizationId: string): Promise<CalendarEvent[]>;
+  // Lot 64 (HUB-29, RDV-02 ; D1 à D6).
+  getBusySettings(organizationId: string): Promise<BusySettingsView>;
+  setBusySettings(organizationId: string, input: { optionsBlock?: boolean; fallback?: unknown }): Promise<BusySettingsView>;
+  listEventTypeBusyRules(organizationId: string): Promise<EventTypeBusyRule[]>;
+  setEventTypeBusyRule(organizationId: string, eventTypeId: string, rule: unknown | null): Promise<void>;
+  getEventBusy(organizationId: string, eventId: string): Promise<EventBusyView | null>;
+  setEventBusyRule(organizationId: string, eventId: string, rule: unknown | null): Promise<void>;
+  listBusyRanges(organizationId: string, window: { from: Date; to: Date }, options?: { userId?: string }): Promise<BusyRangeItem[]>;
+  listEventBusyRanges(organizationId: string, options?: { userId?: string }): Promise<Map<string, BusyRangeItem>>;
   notifyProgramVersion(input: NotifyProgramVersionInput): Promise<ProgramNotification>;
   addProgramItem(organizationId: string, eventId: string, item: ProgramItemInput): Promise<ProgramItem>;
   updateProgramItem(organizationId: string, itemId: string, item: ProgramItemInput): Promise<ProgramItem>;
