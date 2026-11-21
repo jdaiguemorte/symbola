@@ -149,7 +149,11 @@ export type DayReport = {
 // Lot 51 (CHR-08) — import d'un chrono depuis un tableur : l'aperçu avant d'écrire.
 export const PROGRAM_IMPORT_FIELDS = ["moment", "start", "end", "label", "location", "responsible", "note"] as const;
 export type ProgramImportField = (typeof PROGRAM_IMPORT_FIELDS)[number];
-export type ProgramImportProblem = "start" | "end" | "label" | "moment_date" | "too_long";
+// Lot 63b (CHR-08) : « untimed », une ligne du PDF sans heure (« 00:00 » seul).
+export type ProgramImportProblem = "start" | "end" | "label" | "moment_date" | "too_long" | "untimed";
+// Lot 63b : un interlocuteur de la séquence, rattaché à un poste prestataire de l'évènement ou
+// gardé en texte (témoin, marié, intervenant sans poste).
+export type ProgramImportParticipant = { vendorSlotId: string | null; label: string };
 export type ProgramImportRow = {
   line: number;
   moment: string | null;
@@ -160,6 +164,27 @@ export type ProgramImportRow = {
   location: string | null;
   responsible: string | null;
   note: string | null;
+  // Lot 63b, PDF de l'ancien logiciel : interlocuteurs, repère (aucun interlocuteur), « Caché des
+  // mariés », fin le lendemain. Absents pour un tableur.
+  participants?: ProgramImportParticipant[];
+  marker?: boolean;
+  hiddenFromClients?: boolean;
+  endsNextDay?: boolean;
+};
+// Lot 63b : un intervenant de l'en-tête du PDF et le poste de l'évènement qui lui est proposé (ou
+// choisi par la planner) ; à défaut, une fiche du carnet au nom proche, pour information.
+export type ProgramImportSpeaker = {
+  index: number;
+  role: string;
+  company: string | null;
+  contact: string | null;
+  phone: string | null;
+  // « planner » : la planner elle-même ; « client » : les mariés ; jamais rattachés.
+  kind: "vendor" | "planner" | "client";
+  proposedSlotId: string | null;
+  slotId: string | null;
+  chosen: boolean;
+  catalogVendor: { id: string; name: string; city: string | null } | null;
 };
 export type ProgramImportPreview = {
   rows: ProgramImportRow[];
@@ -168,6 +193,10 @@ export type ProgramImportPreview = {
   newMoments: { name: string; date: string }[];
   unknownColumns: string[];
   neutralizedCells: number;
+  // Lot 63b : lu depuis le PDF de l'ancien logiciel (sinon un tableur).
+  source?: "spreadsheet" | "program_pdf";
+  speakers?: ProgramImportSpeaker[];
+  slots?: { id: string; label: string; vendorNames: string[] }[];
 };
 export type ProgramImportResult =
   | { status: "rejected"; reason: "empty" | "too_large" | "infected" | "no_start_column" | "no_label_column" | "no_date" | string }

@@ -24,6 +24,7 @@ import privacySettingsFile from "./privacy-settings.json";
 import followUpFile from "./follow-up.json";
 import budgetAlertFile from "./budget-alert.json";
 import budgetVatFile from "./budget-vat.json";
+import budgetImportFile from "./budget-import.json";
 import linkProfilesFile from "./link-profiles.json";
 import linkExpiryFile from "./link-expiry.json";
 import clientTaskRemindersFile from "./client-task-reminders.json";
@@ -576,17 +577,32 @@ const eventSheetProfileSchema = z.object({
   // Lot 14c : intitulés des colonnes de la ligne d'import tirée d'une fiche.
   columnHeaders: z.record(z.string(), z.string().min(1)),
 });
+// Lot 63b (CHR-08) : export « programme » du jour J, en PDF (titres des colonnes et des intervenants,
+// rôles de la planner et des mariés, réponse « Oui » de la colonne « Caché des mariés »).
+const programExportProfileSchema = z.object({
+  columnHeaders: z.object({ title: z.string().min(1), description: z.string().min(1), contact: z.string().min(1), hidden: z.string().min(1) }),
+  speakerHeaders: z.object({ role: z.string().min(1), company: z.string().min(1), contact: z.string().min(1), phone: z.string().min(1), instagram: z.string().min(1) }),
+  guestSummaryHeading: z.string().min(1),
+  footerPrefix: z.string().min(1),
+  roleSeparator: z.string().min(1),
+  noTime: z.string().regex(/^\d{2}:\d{2}$/),
+  hiddenYes: z.array(z.string().min(1)).min(1),
+  plannerRoles: z.array(z.string().min(1)),
+  clientRoles: z.array(z.string().min(1)),
+  maxPages: z.number().int().positive().max(100),
+});
 const importProfilesSchema = z.object({
-  planningSoftware: z.object({ vendors: vendorsExportProfileSchema, eventSheet: eventSheetProfileSchema }),
+  planningSoftware: z.object({ vendors: vendorsExportProfileSchema, eventSheet: eventSheetProfileSchema, programExport: programExportProfileSchema }),
 });
 
 export type VendorsExportProfile = z.infer<typeof vendorsExportProfileSchema>;
 export type EventSheetProfile = z.infer<typeof eventSheetProfileSchema>;
+export type ProgramExportProfile = z.infer<typeof programExportProfileSchema>;
 
 const importProfiles = importProfilesSchema.parse(importProfilesFile);
 
 // Export d'un logiciel de planification tiers (prestataires en Excel, fiches événement en PDF).
-export function planningSoftwareProfile(): { vendors: VendorsExportProfile; eventSheet: EventSheetProfile } {
+export function planningSoftwareProfile(): { vendors: VendorsExportProfile; eventSheet: EventSheetProfile; programExport: ProgramExportProfile } {
   return importProfiles.planningSoftware;
 }
 
@@ -934,6 +950,17 @@ const budgetVatSchema = z.object({
 
 export function starterBudgetVatRateBasisPoints(): number {
   return budgetVatSchema.parse(budgetVatFile).defaultVatRateBasisPoints;
+}
+
+// Lot 63b (BUD-03, HUB-14) — libellés des échéances (acompte, solde) créées par l'import d'un budget.
+const paymentLabelsSchema = z.object({ deposit: z.string().min(1).max(80), balance: z.string().min(1).max(80) });
+const budgetImportSchema = z.object({
+  version: z.literal(1),
+  paymentLabels: z.object({ fr: paymentLabelsSchema, en: paymentLabelsSchema }),
+});
+
+export function starterBudgetImportPaymentLabels(locale: StarterLocale): { deposit: string; balance: string } {
+  return budgetImportSchema.parse(budgetImportFile).paymentLabels[locale];
 }
 
 // Lot 26a (POR-01, POR-10, décision D3) — profils de départ d'un lien

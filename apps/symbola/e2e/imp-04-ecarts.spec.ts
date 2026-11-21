@@ -47,7 +47,7 @@ test("IMP-04 — colonne gardée en champ libre, lignes rejetées et leur CSV", 
 
   // Lot 16 (IMP-11) : la colonne sans équivalent se décide à l'étape « Colonnes ».
   await expect(page).toHaveURL(/\/colonnes$/);
-  const toDecide = page.getByRole("region", { name: "Colonnes à décider" });
+  const toDecide = page.getByRole("region", { name: "Colonnes du fichier et ce qu'elles deviennent" });
   await expect(toDecide.getByRole("row").filter({ hasText: "Remarque" })).toContainText("de saison");
   await expectNoAxeViolation(page);
   const price = page.getByLabel("Champ pour la colonne « Prix HT »");

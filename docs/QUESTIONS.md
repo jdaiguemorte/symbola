@@ -872,6 +872,33 @@ après la recette de la wedding planner.
    courte ou longue (rubriques à gauche, « Suivant » pour enchaîner) ; le panneau latéral pour
    les réglages d'un écran et la consultation rapide seulement. Écart avec UX-13 : ADR 0107.
 
+### Q44 — Lot 63b : « Caché des mariés » sans migration (21 novembre 2026)
+
+La spécification du paquet 63b (import du programme du jour J depuis le PDF de l'ancien logiciel)
+dit « une ligne « Caché des mariés » n'est pas partagée », et que 63b se fait **sans migration**.
+Or une séquence du programme (`events.program_items`) n'a aucun champ pour être cachée aux mariés :
+la version diffusée part entière aux clients comme aux prestataires (CHR-07). Les lignes cachées
+des exemples reçus sont justement des surprises pour les mariés (animations du DJ), que les
+prestataires doivent voir.
+
+- **Fait en 63b, sans migration** : ces lignes sont lues et signalées, puis **écartées d'office**
+  de l'import (case « Écarter » cochée, avec l'explication) ; la planner peut les importer quand
+  même, et elles seront alors vues des mariés.
+- **Proposition** : une colonne `hidden_from_clients` (booléen, faux par défaut) sur
+  `program_items`, reprise dans la version diffusée, filtrée dans la vue des clients et dans le
+  PDF « mariés » ; une case « Cachée des mariés » sur la séquence. Une migration du schéma
+  `events`, réversible ; à placer dans un paquet suivant (63d ou un 63h).
+- **Même remarque pour les repères** (ligne sans interlocuteur, « Coucher du soleil ») : importés
+  comme une séquence sans intervenant, faute de type « repère » sur une séquence.
+
+**Tranché par Julien le 21/11 : « Oui, dans 63b ».** Migration **0201** (schéma `events`,
+réversible, faux par défaut, RLS inchangée) : colonne `hidden_from_clients` sur `program_items`.
+Une séquence cachée n'apparaît ni dans l'espace des mariés ni dans le programme qui leur est diffusé
+(lien, PDF « mariés ») ; elle reste visible de l'équipe et des prestataires qu'elle concerne (absente
+du déroulé des autres prestataires). Réglable sur la séquence dans l'éditeur du programme ; à l'import
+du PDF, les lignes « Caché des mariés » s'importent cachées au lieu d'être écartées. Les repères
+restent des séquences sans intervenant.
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que

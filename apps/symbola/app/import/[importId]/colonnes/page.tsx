@@ -12,10 +12,10 @@ import { ColumnsForm, type ColumnRow } from "./columns-form";
 
 const DELIMITER_KEYS = { ",": "delimiterComma", ";": "delimiterSemicolon", "\t": "delimiterTab" } as const;
 
-// IMP-02 — étape « colonnes ». Lot 16 (IMP-11, ADR 0041) : seules les colonnes
-// qui demandent un choix sont présentées, en tableau (Colonne du fichier ·
-// Exemples · Devient · Confiance) ; les autres se résument en une ligne. Une
-// colonne devient un champ, reste en champ libre sur la fiche, ou est ignorée.
+// IMP-02 — étape « colonnes ». Lot 16 (IMP-11, ADR 0041) puis lot 63b (HUB-14, maquette M5) : un
+// tableau (Colonne du fichier avec deux exemples · Devient, sur la fiche · État), les colonnes à
+// décider d'abord, et l'aperçu de la première ligne en fiche. Une colonne devient un champ, une
+// note sur la fiche, ou n'est pas importée.
 export default async function ImportColumnsPage({
   params,
   searchParams,
@@ -101,6 +101,7 @@ export default async function ImportColumnsPage({
         importId={view.importId}
         rows={rows}
         fields={view.fields.map((field) => ({ key: field.key, required: field.required === true }))}
+        firstRow={draft.previewRows[0] ?? []}
       />
       <ActionBar label={t("actionBarLabel")} backHref="/import" backLabel={t("back")}>
         <button type="submit" form="columns-form">

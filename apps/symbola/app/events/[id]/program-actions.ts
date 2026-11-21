@@ -32,7 +32,10 @@ import {
 } from "@/modules/events/service";
 import { MailQuotaExceededError } from "@symbola/mail";
 import type { ProgramImportResult, RecipientsReview } from "@symbola/contracts";
-import { EmailVariableMissingError, RecipientsNotConfirmedError } from "@/modules/hub/service";
+import { appDatabase } from "@symbola/db/client";
+import { looksLikePdf } from "@symbola/import-engine";
+import { EmailVariableMissingError, isModuleEnabled, RecipientsNotConfirmedError } from "@/modules/hub/service";
+import { listVendorImportCandidates } from "@/modules/vendors/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { emailVariableMissingMessage } from "../../email-errors";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
@@ -76,6 +79,8 @@ const programLineSchema = z.object({
   vendorSlotIds: z.array(z.string().refine(isValidId)).max(100),
   freeParticipants: z.array(z.string().max(200)).max(50),
   keyMomentId: z.string().refine(isValidId).nullable(),
+  // Lot 63b (CHR-08 ; Q44) : cachée des mariés.
+  hiddenFromClients: z.boolean().optional(),
 });
 
 const saveProgramSchema = z
@@ -257,8 +262,19 @@ export async function importProgramAction(_prev: ProgramImportState, formData: F
   if (file.size > PROGRAM_IMPORT_MAX_BYTES) return { error: t("programImportTooLarge") };
   const apply = formData.get("intent") === "apply";
   const skipLines = formData.getAll("skip").map(Number).filter((line) => Number.isInteger(line) && line > 0);
+  // Lot 63b (CHR-08) : poste choisi pour chaque intervenant du PDF (« none » : garder en texte).
+  const speakerSlots: Record<number, string | null> = {};
+  for (const [key, value] of formData.entries()) {
+    const match = /^speaker-(\d{1,3})$/.exec(key);
+    if (!match || typeof value !== "string") continue;
+    if (value === "none") speakerSlots[Number(match[1])] = null;
+    else if (isValidId(value)) speakerSlots[Number(match[1])] = value;
+  }
   try {
-    const result = await importEventProgram({ organizationId: auth.organizationId, eventId, bytes: new Uint8Array(await file.arrayBuffer()), apply: apply ? { skipLines } : null });
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    // Le carnet signale un intervenant qui n'est pas encore sur l'évènement (module souscrit seulement).
+    const catalogVendors = looksLikePdf(bytes) && (await isModuleEnabled(appDatabase(), auth.organizationId, "vendors")) ? await listVendorImportCandidates(auth.organizationId) : [];
+    const result = await importEventProgram({ organizationId: auth.organizationId, eventId, bytes, apply: apply ? { skipLines } : null, speakerSlots, catalogVendors });
     if (result.status === "applied") revalidatePath(`/events/${eventId}`);
     return { result };
   } catch (error) {
