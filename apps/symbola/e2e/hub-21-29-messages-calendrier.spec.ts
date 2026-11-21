@@ -152,7 +152,11 @@ test("HUB-29 — Mon calendrier : l'adresse montrée une fois, le flux lu par l'
   const first = await address.inputValue();
   const ics = await page.request.get(new URL(first).pathname);
   expect([ics.status(), ics.headers()["content-type"]]).toEqual([200, "text/calendar; charset=utf-8"]);
-  expect(await ics.text()).toContain("DTSTART;VALUE=DATE:20270612");
+  // Lot 64 (ADR 0108) : l'évènement est sa plage occupée (règle des évènements sans type, 8 h à
+  // 22 h, heure d'été) ; en option, il reste provisoire et ne bloque pas.
+  const feed = await ics.text();
+  expect(feed).toContain("DTSTART:20270612T060000Z");
+  expect(feed).toContain("TRANSP:TRANSPARENT");
   await expectNoAxeViolation(page);
   await expectNoHorizontalScroll(page);
 

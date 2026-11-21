@@ -74,11 +74,11 @@ Critères (chacun devient un `it` ; les `describe` portent `HUB-29` ou `RDV-02`)
    jours sont relatifs à la date de l'évènement.
 5. **Heure locale.** Les heures sont celles du fuseau de l'évènement (ARC-17), heure d'été
    comprise : 8 h reste 8 h le dernier dimanche de mars et le dernier dimanche d'octobre.
-6. **Statuts qui bloquent.** Bloquent : confirmé, en préparation. Une option bloque selon un
-   réglage de l'organisation (D2). Un évènement au statut « reporté » suit la même règle que
-   l'option (D2), puisque sa nouvelle date n'est pas encore confirmée (à vérifier dans
-   `lifecycle.ts` au début du code). Ne bloquent pas : perdu, annulé, clôturé, essai
-   (`is_demo`), évènement sans date.
+6. **Statuts qui bloquent.** Bloquent : confirmé, en préparation, clôturé (les statuts sûrs du
+   cycle de vie ; un évènement clôturé le lendemain garde la fin de sa plage). Une option, ou un
+   évènement au statut « reporté » dont la nouvelle date n'est pas confirmée, bloque selon un
+   réglage de l'organisation (D2). Ne bloquent pas : annulé (perdu), essai (`is_demo`), évènement
+   sans date.
 7. **Flux d'agenda.** Pour chaque évènement qui bloque, le flux de la personne contient une plage
    horaire (`DTSTART`/`DTEND` en UTC) marquée `TRANSP:OPAQUE`. Une option qui ne bloque pas
    reste visible, marquée `STATUS:TENTATIVE` et `TRANSP:TRANSPARENT`.
@@ -191,8 +191,9 @@ le choix du créneau, Typeform pour les questions). Maquettes M6 à M10, même f
   - les questions en liste éditable, une ligne par question posée, ouverte en place. Les choix y
     deviennent des pastilles, et l'ordre se change par glisser-déposer. Un interrupteur dit si la
     question est obligatoire (D7).
-- **M8 — Choisir un créneau** (`app/reserver/[adresse]`, et le même composant pour
-  `/rendez-vous/nouveau` et le déplacement par `/rdv`). Une fenêtre en trois colonnes : le
+- **M8 — Choisir un créneau** (`app/reserver/[adresse]`, et le même composant pour le
+  déplacement par `/rdv` ; `/rendez-vous/nouveau` garde sa saisie libre de l'heure, l'équipe
+  pouvant poser un rendez-vous hors des créneaux proposés, écart noté dans l'ADR 0108). Une fenêtre en trois colonnes : le
   rendez-vous, le mois, les heures du jour choisi.
   - Un jour sans créneau est barré et grisé, sans en dire la raison.
   - Un clic sur une heure la transforme en « 10:00 | Suivant ».

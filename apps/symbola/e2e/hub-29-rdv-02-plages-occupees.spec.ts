@@ -9,7 +9,8 @@ import AxeBuilder from "./axe";
 import { expect, test, type Page } from "@playwright/test";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
-import { changeEventStatus, createProspect, createProspectSource } from "../modules/events/service";
+import { changeEventStatus, createProspect, createProspectSource, setEventType } from "../modules/events/service";
+import { ensureEventTypes } from "../lib/events/event-types";
 import { createAppointmentType, saveAvailabilityRules, saveBookingPage } from "../modules/appointments/service";
 import { setModuleEnabled } from "../modules/hub/service";
 import { readyOrganization, signIn } from "./helpers";
@@ -35,6 +36,8 @@ async function atelier() {
     const source = await createProspectSource(organization.id, "Salon");
     const wedding = await createProspect({ organizationId: organization.id, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: "Kévin" }, { firstName: "Kévina" }], eventDate: "2027-06-12", applyTemplate: false });
     await changeEventStatus({ organizationId: organization.id, eventId: wedding.id, changedByUserId: owner.id, toStatus: "confirmed" });
+    const types = await ensureEventTypes(organization.id, "fr");
+    await setEventType(organization.id, wedding.id, types.find((type) => type.starterKey === "wedding")!.id);
     const type = await createAppointmentType(organization.id, { name: "Découverte", durationMinutes: 60, minNoticeMinutes: 0 }, owner.id);
     await saveAvailabilityRules(organization.id, owner.id, [1, 2, 3, 4, 5].map((weekday) => ({ weekday, startTime: "09:00", endTime: "18:00" })));
     const slug = `atelier-${randomUUID().slice(0, 8)}`;
@@ -73,7 +76,9 @@ test("HUB-29, RDV-01, RDV-02 — plages occupées par type et par évènement ; 
   // M3, M4 : le mariage de Kévin et Kévina, de la veille 14 h au lendemain 12 h.
   await page.goto(`/events/${weddingId}`);
   const card = page.getByRole("region", { name: "Plage occupée" });
-  await expect(card).toContainText("Règle du type");
+  await expect(card).toContainText("Règle du type Mariage");
+  await expect(card).toContainText("samedi 12 juin 2027, de 8 h à 23 h");
+  await expectNoAxeViolation(page);
   await card.getByRole("button", { name: "Modifier pour cet évènement" }).click();
   const own = page.getByRole("dialog", { name: /Plage occupée — Kévin/ });
   await own.getByRole("group", { name: "Début" }).getByLabel("Jour").selectOption("-1");
@@ -94,7 +99,7 @@ test("HUB-29, RDV-01, RDV-02 — plages occupées par type et par évènement ; 
   await expectNoAxeViolation(page);
   await page.keyboard.press("Escape");
   await card.getByRole("button", { name: "Revenir à la règle du type" }).click();
-  await expect(card).toContainText("Règle du type");
+  await expect(card).toContainText("Règle du type Mariage");
 
   // M7 (D7, D8) : une description et une question obligatoire à choix.
   await page.goto(`/rendez-vous/reglages/types/${typeId}`);

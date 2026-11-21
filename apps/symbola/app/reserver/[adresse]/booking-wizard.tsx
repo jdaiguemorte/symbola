@@ -5,7 +5,7 @@
 // Suivant »), puis une étape à la fois (vos coordonnées, une question par écran, le récapitulatif),
 // puis la confirmation. Un jour sans créneau est barré, sans en dire la raison. Les réponses partent
 // toutes ensemble à l'action de lot 46 (débit, piège à robots, créneau revérifié en transaction).
-import { useActionState, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { AppointmentQuestion } from "@symbola/contracts";
 import { HoneypotField } from "@/app/ui/honeypot-field";
@@ -88,13 +88,23 @@ export function BookingWizard({ slug, type, slots, locale, organizationName, tod
     const index = questions.indexOf(question);
     setStep(index + 1 < questions.length ? { kind: "question", index: index + 1 } : { kind: "recap" });
   };
-  const onChoiceKey = (event: KeyboardEvent<HTMLDivElement>, question: AppointmentQuestion) => {
-    const position = LETTERS.indexOf(event.key.toUpperCase());
-    if (event.key.length === 1 && position >= 0 && position < question.choices.length) {
-      event.preventDefault();
-      choose(question, question.choices[position]!);
-    }
-  };
+  // Une question à choix : les touches A, B, C… choisissent, où que soit le focus de l'étape (le titre
+  // de la question le reçoit), sauf dans un champ de saisie.
+  const choiceQuestion = step.kind === "question" && questions[step.index]?.kind === "choice" ? questions[step.index]! : null;
+  useEffect(() => {
+    if (!choiceQuestion) return;
+    const onKey = (event: globalThis.KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (event.altKey || event.ctrlKey || event.metaKey || target?.closest("input, textarea, select")) return;
+      const position = LETTERS.indexOf(event.key.toUpperCase());
+      if (event.key.length === 1 && position >= 0 && position < choiceQuestion.choices.length) {
+        event.preventDefault();
+        choose(choiceQuestion, choiceQuestion.choices[position]!);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   // —— Confirmation et refus ——————————————————————————————————————————————————————————
   if (state.step === "booked") {
@@ -229,7 +239,7 @@ export function BookingWizard({ slug, type, slots, locale, organizationName, tod
               {question.required ? <span className="booking-required"> {t("requiredMark")}</span> : null}
             </h2>
             {question.kind === "choice" ? (
-              <div role="radiogroup" aria-label={question.label} className="booking-choices" onKeyDown={(event) => onChoiceKey(event, question)}>
+              <div role="radiogroup" aria-label={question.label} className="booking-choices">
                 {question.choices.map((choice, index) => (
                   <button key={choice} type="button" role="radio" aria-checked={answers[question.id] === choice} className="booking-choice" onClick={() => choose(question, choice)}>
                     <kbd aria-hidden="true">{LETTERS[index]}</kbd>
