@@ -57,7 +57,7 @@ export async function AgendaBlock({
 
   const events = (await listEvents({ organizationId }))
     .filter((event) => event.eventDate !== null && event.status !== "cancelled" && (!scope || scope.has(event.id)))
-    .map((event) => ({ id: event.id, date: event.eventDate!, status: event.status, names: eventNames(event.clients), isDemo: event.isDemo }));
+    .map((event) => ({ id: event.id, date: event.eventDate!, status: event.status, names: eventNames(event.clients, event.name), isDemo: event.isDemo }));
   const months = buildCalendar({ start, months: span, events });
   const href = (changes: { agenda?: number; debut?: string }) =>
     `${basePath}?${new URLSearchParams({ ...params, agenda: String(changes.agenda ?? span), debut: changes.debut ?? start }).toString()}#agenda-title`;

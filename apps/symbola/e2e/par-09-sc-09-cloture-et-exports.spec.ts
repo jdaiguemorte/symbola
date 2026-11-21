@@ -40,7 +40,7 @@ async function atelier() {
     await createUser(db, { organizationId, email: accountant, password: "mot-de-passe-58", role: "accountant" });
     const source = await createProspectSource(organizationId, "Salon");
     // L'évènement d'avant-hier : sa clôture est due (J+1 passé, fuseau de Paris).
-    const event = await createProspect({ organizationId, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: "Léa", lastName: "Martin", email: `lea-${suffix}@symbola.test` }], eventDate: daysAgo(2), applyTemplate: false });
+    const event = await createProspect({ organizationId, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: "Léa", lastName: "Martin", email: `lea-${suffix}@symbola.test` }], eventDate: daysAgo(2) });
     await changeEventStatus({ organizationId, eventId: event.id, changedByUserId: owner.id, toStatus: "confirmed" });
     const { vendor } = await createVendor(organizationId, { name: "Maison Haddad", typeId: null });
     const slot = await addEventVendorSlot(organizationId, event.id, "Traiteur");

@@ -27,7 +27,7 @@ export default async function FollowUpReviewPage({ params }: { params: Promise<{
         <ArrowLeft aria-hidden="true" />
         {t("back")}
       </Link>
-      <PageHeader title={t("title", { rank: followUp.rank })} subtitle={eventNames(event.clients)} />
+      <PageHeader title={t("title", { rank: followUp.rank })} subtitle={eventNames(event.clients, event.name)} />
       <ScreenHelp title={tHelp("followUpReview.title")} body={tHelp("followUpReview.body")} />
       {followUp.sentAt ? (
         <p role="status">{t("alreadySent")}</p>

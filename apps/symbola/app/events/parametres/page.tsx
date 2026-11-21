@@ -1,6 +1,7 @@
 // PRD-EVT-03 / L12-EVT-17, refait au lot 13 (L13-HUB-16) — rubrique « Lignes du budget »
 // des Paramètres : tableau aligné (icône, ligne, actions) ; ajouter ou
 // modifier une ligne ouvre le panneau latéral (?ligne=nouvelle ou ?ligne=id).
+import { ScreenMain } from "@/app/ui/screen-main";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
@@ -23,10 +24,10 @@ export default async function EventsSettingsPage({ searchParams }: { searchParam
   const tCommon = await getTranslations("Common");
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
-      <main>
+      <ScreenMain>
         <h1>{t("title")}</h1>
         <p>{t("moduleUnavailable")}</p>
-      </main>
+      </ScreenMain>
     );
   }
   const { ligne } = await searchParams;
@@ -36,7 +37,7 @@ export default async function EventsSettingsPage({ searchParams }: { searchParam
   const adding = ligne === "nouvelle";
 
   return (
-    <main>
+    <ScreenMain>
       <div className="section-head">
         <h1>{t("defaultVendorSlotsTitle")}</h1>
         <Link href={`${BASE}?ligne=nouvelle`} scroll={false} className="button-link button-link-primary">
@@ -70,6 +71,6 @@ export default async function EventsSettingsPage({ searchParams }: { searchParam
           <AddBudgetLineForm />
         </SidePanel>
       ) : null}
-    </main>
+    </ScreenMain>
   );
 }

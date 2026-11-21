@@ -163,7 +163,7 @@ export default async function AppointmentPage({ params, searchParams }: { params
           {linkedEvent ? (
             <>
               <p>
-                <Link href={`/events/${linkedEvent.id}`}>{eventNames(linkedEvent.clients)}</Link>
+                <Link href={`/events/${linkedEvent.id}`}>{eventNames(linkedEvent.clients, linkedEvent.name)}</Link>
                 {linkedEvent.eventDate ? ` — ${formatCalendarDate(linkedEvent.eventDate, locale)}` : ""}
               </p>
               <form action={linkEventAction}>
@@ -185,7 +185,7 @@ export default async function AppointmentPage({ params, searchParams }: { params
                     <select name="eventId" required>
                       {events.map((event) => (
                         <option key={event.id} value={event.id}>
-                          {eventNames(event.clients)}
+                          {eventNames(event.clients, event.name)}
                           {event.eventDate ? ` — ${formatCalendarDate(event.eventDate, locale)}` : ""}
                         </option>
                       ))}

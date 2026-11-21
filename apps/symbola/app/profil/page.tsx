@@ -31,7 +31,7 @@ export default async function ProfilePage() {
           .filter((feed) => feed.eventId !== null)
           .map(async (feed) => {
             const event = await getEvent(organizationId!, feed.eventId!);
-            return event ? { id: feed.id, eventId: event.id, names: eventNames(event.clients) } : null;
+            return event ? { id: feed.id, eventId: event.id, names: eventNames(event.clients, event.name) } : null;
           }),
       )
     : [];

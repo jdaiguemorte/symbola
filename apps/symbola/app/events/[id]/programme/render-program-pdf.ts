@@ -15,9 +15,10 @@ import { loadDocumentLogo } from "@/lib/document-logo";
 import { buildProgramPdfModel, publishedPdfProgram, vendorPdfProgram } from "./program-pdf-model";
 import { pdfSafe } from "@/lib/pdf-text";
 import { programSpanWords } from "@/lib/program-span-words";
+import { eventNames } from "@/modules/events/service";
 
 // Ce que le PDF dit de l'évènement : prénoms des clients, date, essai.
-type PdfEvent = { clients: { firstName: string }[]; eventDate: string | null; isDemo: boolean };
+type PdfEvent = { clients: { firstName: string }[]; eventDate: string | null; isDemo: boolean; name?: string | null };
 
 type PdfVersion = { number: number; publishedAt: string };
 
@@ -42,7 +43,7 @@ async function renderPdfBuffer(input: PdfInput & { locale: "fr" | "en" }): Promi
 
   const locale = input.locale as Locale;
   const t = await getTranslations({ locale: input.locale, namespace: "Events" });
-  const names = input.event.clients.map((client) => client.firstName).join(" & ") || t("noClient");
+  const names = eventNames(input.event.clients, input.event.name) || t("noClient");
   const heading = input.event.eventDate ? `${names} — ${formatCalendarDate(input.event.eventDate, locale)}` : names;
   const version = input.version;
 

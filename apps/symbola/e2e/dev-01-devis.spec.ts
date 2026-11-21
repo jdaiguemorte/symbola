@@ -71,7 +71,7 @@ test("DEV-01 — composer un devis depuis un événement, l'envoyer, le téléch
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
   await page.goto("/events/new");
-  await page.getByLabel("Prénom du premier marié", { exact: true }).fill("Inès");
+  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Inès");
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page.getByRole("heading", { name: "Inès" })).toBeVisible();

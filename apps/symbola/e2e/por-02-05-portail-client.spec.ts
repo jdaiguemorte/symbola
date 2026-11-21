@@ -129,7 +129,7 @@ test("SC-06 étape 5 / POR-09 — le payeur déclare une échéance réglée ; l
   await loginAndSetupMfa(planner, setup.email);
   await expect(planner.getByRole("main").getByRole("listitem").filter({ hasText: "Règlement déclaré à confirmer : Acompte" })).toContainText(/2\s880,00\s€/);
   await expectNoAxeViolation(planner);
-  await planner.goto(`/budget/${setup.eventId}`);
+  await planner.goto(`/budget/${setup.eventId}/detail`);
   await planner.getByRole("button", { name: "Confirmer le paiement : Acompte" }).click();
   await expect(planner.getByText(/Règlement déclaré par Bernard Martin le .*, confirmé/)).toBeVisible();
   await planner.getByText("Refuser la déclaration : Solde").click();

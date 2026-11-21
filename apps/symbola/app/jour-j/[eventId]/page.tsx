@@ -111,7 +111,7 @@ export default async function DayOfPage({ params }: { params: Promise<{ eventId:
 
   const t = await getTranslations("DayOf");
   const tHelp = await getTranslations("Help");
-  const title = eventNames(event.clients) || t("noClient");
+  const title = eventNames(event.clients, event.name) || t("noClient");
   const venue = [event.venueName, event.venueCity].filter(Boolean).join(", ");
   const expiresAt = dayCopyExpiresAt(eventDate);
   // Lot 29b (JRJ-04, D8) : le PDF du programme, toujours ; puis les pièces choisies pour l'événement.

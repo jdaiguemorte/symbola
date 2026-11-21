@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "_source": "Lot 63c (DOC-01, BUD-04 ; maquette M8), décision de Julien du 21/11/2026 : les dossiers proposés à chaque évènement, créés avec lui. Un devis, une facture ou un contrat d'un prestataire déposé avec son type va dans le dossier de ce type ; « Autre » va dans « Divers » ou le dossier choisi. « kind » est la nature de la pièce de ligne du budget (devis, contrat, facture).",
+  "folders": [
+    { "key": "vendor_quotes", "kind": "quote", "label": { "fr": "Devis des prestataires", "en": "Vendor quotes" } },
+    { "key": "vendor_invoices", "kind": "invoice", "label": { "fr": "Factures des prestataires", "en": "Vendor invoices" } },
+    { "key": "contracts", "kind": "contract", "label": { "fr": "Contrats", "en": "Contracts" } }
+  ]
+}

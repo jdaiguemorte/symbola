@@ -61,7 +61,7 @@ test("PRD-BUD-01 — modèle de répartition, simulation et ajustement d'une lig
 
   // Création du prospect (PRD-EVT-07).
   await page.goto("/events/new");
-  await page.getByLabel("Prénom du premier marié", { exact: true }).fill("Camille");
+  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Camille");
   await page.getByLabel("Source du prospect").selectOption({ label: "Instagram" });
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
@@ -70,7 +70,7 @@ test("PRD-BUD-01 — modèle de répartition, simulation et ajustement d'une lig
   // Lot 12 (L12-EVT-17) : le budget est un onglet de la fiche ; le module
   // Budget s'ouvre depuis son lien.
   await openEventTab(page, "Budget");
-  await page.getByRole("link", { name: "Proposer des montants estimés, historique et devis joints" }).click();
+  await page.getByRole("link", { name: "Détail du budget (simulation, HT, exports)" }).click();
   await expect(page).toHaveURL(/\/budget\//);
   await expectNoAxeViolation(page);
 

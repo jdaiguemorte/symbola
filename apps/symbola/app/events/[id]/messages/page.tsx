@@ -30,7 +30,7 @@ export default async function EventMessagesPage({ params }: { params: Promise<{ 
         <ArrowLeft aria-hidden="true" />
         {t("backToEvent")}
       </Link>
-      <PageHeader title={t("title")} subtitle={eventNames(event.clients)} actions={<Link href={`/parametres/envois?evenement=${id}`}>{t("journalLink")}</Link>} />
+      <PageHeader title={t("title")} subtitle={eventNames(event.clients, event.name)} actions={<Link href={`/parametres/envois?evenement=${id}`}>{t("journalLink")}</Link>} />
       <ScreenHelp title={tHelp("eventMessages.title")} body={tHelp("eventMessages.body")} />
       <section aria-labelledby="topics-title" className="stack">
         <h2 id="topics-title">{t("topicsTitle")}</h2>

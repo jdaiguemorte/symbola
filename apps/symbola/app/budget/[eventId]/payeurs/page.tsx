@@ -8,7 +8,7 @@ import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
 import { PageHeader } from "@/app/ui/page-header";
 import { ScreenHelp } from "@/app/screen-help";
 import { requirePlanner } from "@/lib/guards";
-import { getEvent, listEventLinks } from "@/modules/events/service";
+import { getEvent, listEventLinks, eventNames } from "@/modules/events/service";
 import { getPayerShares, listBudgetLines } from "@/modules/budget/service";
 import { listEventInstalments } from "@/modules/quotes/service";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
@@ -48,7 +48,7 @@ export default async function EventPayersPage({ params }: { params: Promise<{ ev
     <main>
       <PageHeader
         title={t("title")}
-        subtitle={event.clients.map((client) => client.firstName).join(" & ")}
+        subtitle={eventNames(event.clients, event.name)}
         actions={
           <Link href={`/budget/${eventId}`} className="button-link">
             {t("backToBudget")}

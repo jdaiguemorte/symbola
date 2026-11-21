@@ -36,7 +36,7 @@ export default async function ReviewRequestPage({ params }: { params: Promise<{ 
         <ArrowLeft aria-hidden="true" />
         {t("checklistTitle")}
       </Link>
-      <PageHeader title={t("reviewTitle")} subtitle={eventNames(event.clients)} />
+      <PageHeader title={t("reviewTitle")} subtitle={eventNames(event.clients, event.name)} />
       <ScreenHelp title={tHelp("eventClosing.title")} body={tHelp("eventClosing.body")} />
       <section className="card stack" aria-labelledby="review-link-title">
         <h2 id="review-link-title">{t("reviewLinkTitle")}</h2>

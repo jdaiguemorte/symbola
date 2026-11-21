@@ -6,7 +6,8 @@ import { useTranslations } from "next-intl";
 export type EmptyStateKey = "events" | "tasks" | "contacts" | "vendors" | "quotes" | "documents" | "taskTemplates" | "programTemplates" | "quoteTemplates" | "messageTemplates" | "payments" | "trash";
 
 // title : la phrase d'écran vide déjà connue de l'écran (sinon, celle de l'écran vide commun).
-export function EmptyState({ screen, title, actionHref }: { screen: EmptyStateKey; title?: string; actionHref?: string }) {
+// Lot 63c (#30) : `helpHref`, l'article d'aide de l'écran plutôt que l'accueil de l'aide.
+export function EmptyState({ screen, title, actionHref, helpHref = "/aide" }: { screen: EmptyStateKey; title?: string; actionHref?: string; helpHref?: string }) {
   const t = useTranslations("EmptyStates");
   const id = `vide-${screen}`;
   return (
@@ -20,7 +21,7 @@ export function EmptyState({ screen, title, actionHref }: { screen: EmptyStateKe
             {t(`${screen}.action`)}
           </Link>
         ) : null}
-        <Link href="/aide">{t("moreHelp")}</Link>
+        <Link href={helpHref}>{t("moreHelp")}</Link>
       </div>
     </section>
   );

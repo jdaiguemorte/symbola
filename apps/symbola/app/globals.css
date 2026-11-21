@@ -5134,3 +5134,240 @@
     @apply bg-critical-soft text-critical;
   }
 }
+
+/* Lot 63c (EVT-01, EVT-07, BUD-01, BUD-03, BUD-04, DOC-01, UX-09 ; ADR 0107, maquettes M7, M8, M9, M12) —
+   menu « Nouveau », fenêtre de modification, panneau des réglages, budget et prestataires, zone de
+   dépôt et rangement des documents. */
+@layer components {
+  .text-attention {
+    @apply font-medium text-attention;
+  }
+
+  /* Un bouton qui ouvre une petite liste de choix (« Nouveau », « Choisir un prestataire… »). */
+  .menu-button {
+    @apply relative inline-flex;
+  }
+  .menu-button > button {
+    @apply gap-1;
+  }
+  .menu-popover {
+    @apply absolute top-full right-0 z-30 m-0 mt-2 flex w-[min(20rem,calc(100vw-2rem))] list-none flex-col gap-1 rounded-md border border-line bg-surface p-2 text-left shadow-float;
+  }
+  .menu-popover > li > a,
+  .menu-popover > li > button {
+    @apply flex w-full flex-col items-start gap-1 rounded-md border-0 bg-transparent px-3 py-2 text-left text-ink no-underline hover:bg-ground;
+  }
+  .menu-popover > li > a .meta {
+    @apply font-normal;
+  }
+  .events-views {
+    @apply mb-4;
+  }
+
+  /* Création d'un évènement : le rétroplanning proposé, ou l'astuce. */
+  .choice-row {
+    @apply m-0 flex flex-wrap gap-x-6 gap-y-2 border-0 p-0;
+  }
+  .choice-row > legend {
+    @apply mb-2 p-0 text-label font-medium;
+  }
+  .choice-row > label {
+    @apply inline-flex items-center gap-2;
+  }
+  .template-proposal {
+    @apply flex max-w-2xl flex-col gap-2 rounded-md border border-line bg-primary-soft p-4;
+  }
+  .template-proposal-check {
+    @apply flex items-start gap-3;
+  }
+  .template-proposal-check > span {
+    @apply flex flex-col gap-1;
+  }
+  .template-proposal-tasks {
+    @apply m-0 mt-2 flex flex-col gap-1 pl-6 text-label;
+  }
+  .template-tip {
+    @apply flex max-w-2xl flex-col items-start gap-3;
+  }
+
+  /* Fenêtre (ADR 0107) : toute modification ; fond assombri, focus piégé (dialog natif), Échap ferme.
+     Courte : une colonne. Longue : jusqu'à 860 px, deux colonnes. Sur téléphone, une page entière. */
+  .window {
+    @apply m-auto flex max-h-[calc(100dvh-2rem)] flex-col gap-4 overflow-y-auto rounded-lg border border-line bg-surface p-6 text-ink shadow-float;
+  }
+  .window::backdrop {
+    background: color-mix(in srgb, var(--color-ink) 35%, transparent);
+  }
+  .window-short {
+    @apply w-[min(32rem,calc(100vw-2rem))];
+  }
+  .window-long {
+    @apply w-[min(860px,calc(100vw-2rem))];
+  }
+  .window-head {
+    @apply flex items-center justify-between gap-3;
+  }
+  .window-head > h2 {
+    @apply m-0 flex flex-wrap items-center gap-2 text-title;
+  }
+  .window-back {
+    @apply hidden;
+  }
+  .window-body {
+    @apply grid gap-6 md:grid-cols-2;
+  }
+  .window-actions {
+    @apply flex flex-wrap items-center justify-end gap-3 border-t border-line pt-4;
+  }
+  .window-actions > button:first-child {
+    @apply mr-auto;
+  }
+  .budget-window-line {
+    @apply m-0 border-0 p-0;
+  }
+  @media (width < 640px) {
+    .window {
+      @apply m-0 h-dvh max-h-none w-screen max-w-none rounded-none border-0 p-4;
+    }
+    .window-back {
+      @apply inline-flex;
+    }
+    .window-close {
+      @apply hidden;
+    }
+  }
+
+  /* Panneau latéral des réglages (ADR 0107) : au-dessus de l'écran, qui reste tel quel. */
+  .settings-panel {
+    @apply md:w-[560px];
+  }
+  .settings-panel-bar {
+    @apply flex items-center justify-between gap-3;
+  }
+  .settings-panel-back-mobile {
+    @apply md:hidden;
+  }
+  .settings-panel-back-desktop {
+    @apply hidden md:inline;
+  }
+  .settings-panel-content {
+    @apply flex flex-col gap-4;
+  }
+  .settings-panel-content h1 {
+    @apply text-title;
+  }
+
+  /* Budget et prestataires (M9) : sept colonnes qui tiennent dans la largeur ; en 375 px, une carte. */
+  .list-table.budget-vendors th[scope="row"] {
+    @apply min-w-56 align-top;
+  }
+  .budget-vendor-head {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .budget-unfold {
+    @apply h-8 w-8 min-w-0 justify-center p-0;
+  }
+  .budget-vendor-who {
+    @apply mt-1 flex flex-col items-start gap-1 pl-8 text-label font-normal;
+  }
+  .budget-vendor-pieces {
+    @apply flex flex-wrap gap-x-3;
+  }
+  .budget-next {
+    @apply inline-flex flex-wrap items-center gap-2;
+  }
+  .list-table.budget-vendors tr.budget-vendor-schedule td {
+    @apply h-auto bg-ground py-4;
+  }
+  .list-table.budget-vendors tr.budget-engaged-total th,
+  .list-table.budget-vendors tr.budget-engaged-total td {
+    @apply text-label font-normal text-ink-muted;
+  }
+  .budget-schedule > li {
+    @apply flex flex-wrap items-center justify-between gap-3;
+  }
+  /* Sur téléphone, le menu s'ouvre dans le flux de l'écran : il ne recouvre aucune autre cible. */
+  @media (width < 640px) {
+    .menu-button {
+      @apply flex-col;
+    }
+    .menu-popover {
+      @apply static mt-2 w-full shadow-none;
+    }
+  }
+  .vendor-choice-popover {
+    @apply left-0 right-auto gap-2 p-3;
+  }
+  .vendor-choice-results {
+    @apply m-0 flex list-none flex-col gap-1 p-0;
+  }
+  .vendor-choice-results button {
+    @apply flex w-full flex-col items-start gap-1 rounded-md border-0 bg-transparent px-2 py-2 text-left text-ink hover:bg-ground;
+  }
+  .vendor-choice-more {
+    @apply flex flex-col items-start gap-2 border-t border-line pt-2;
+  }
+  @media (width < 640px) {
+    .list-table.budget-vendors,
+    .list-table.budget-vendors tbody,
+    .list-table.budget-vendors tfoot,
+    .list-table.budget-vendors tr,
+    .list-table.budget-vendors th,
+    .list-table.budget-vendors td {
+      display: block;
+      width: auto;
+    }
+    .list-table.budget-vendors thead {
+      @apply sr-only;
+    }
+    .list-table.budget-vendors tr {
+      @apply mb-3 rounded-md border border-line px-3 py-3;
+    }
+    .list-table.budget-vendors td,
+    .list-table.budget-vendors th {
+      @apply h-auto border-0 p-0 py-1;
+    }
+    .list-table.budget-vendors td[data-label] {
+      @apply flex justify-between gap-3;
+    }
+    .list-table.budget-vendors td[data-label]::before {
+      content: attr(data-label);
+      @apply text-label text-ink-muted;
+    }
+    .budget-vendor-who {
+      @apply pl-0;
+    }
+  }
+
+  /* Documents (M8) : une seule zone de dépôt ; une pièce se glisse sur un dossier. */
+  .drop-zone-form {
+    @apply flex max-w-3xl flex-col gap-4;
+  }
+  .drop-zone {
+    @apply flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-line-strong bg-ground px-4 py-6 text-center;
+  }
+  .drop-zone.drop-over {
+    @apply border-primary bg-primary-soft;
+  }
+  .drop-zone-title {
+    @apply m-0 font-medium;
+  }
+  .document-piece {
+    @apply relative;
+  }
+  .drag-handle {
+    @apply hidden cursor-grab text-ink-muted md:inline;
+  }
+  .document-folder.drop-allowed {
+    @apply rounded-md outline-2 outline-dashed outline-line-strong;
+  }
+  .document-folder.drop-over {
+    @apply bg-primary-soft outline-primary;
+  }
+  .move-menu {
+    @apply relative;
+  }
+  .move-menu > summary {
+    @apply cursor-pointer text-primary;
+  }
+}

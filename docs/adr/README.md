@@ -104,3 +104,5 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0102 — Messagerie par sujet, adresse d'expédition sur le domaine de Symbola, journal des envois, portail aux couleurs et installable](0102-messagerie-adresse-d-expedition-et-journal-des-envois.md)
 - [0103 — Assistant « L'essentiel » après le questionnaire d'accueil](0103-assistant-l-essentiel-apres-le-questionnaire.md)
 - [0104 — Visite guidée à la place des repères numérotés](0104-visite-guidee-a-la-place-des-reperes.md)
+- [0106 — Rétroplanning proposé à la création, jamais posé d'office](0106-retroplanning-propose-a-la-creation.md)
+- [0107 — La fenêtre pour modifier, le panneau latéral pour les réglages](0107-fenetre-pour-modifier-panneau-pour-les-reglages.md)

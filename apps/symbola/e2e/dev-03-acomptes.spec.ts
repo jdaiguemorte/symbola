@@ -57,7 +57,7 @@ test("DEV-03 — échéancier, encaissements à venir, retard et paiement", asyn
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
   await page.goto("/events/new");
-  await page.getByLabel("Prénom du premier marié", { exact: true }).fill("Lou");
+  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Lou");
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page.getByRole("heading", { name: "Lou" })).toBeVisible();
