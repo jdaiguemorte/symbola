@@ -11,7 +11,9 @@ import { useActionState, useId, useState } from "react";
 import { useTranslations } from "next-intl";
 import { issueCalendarAddressAction, revokeCalendarAddressStateAction, type CalendarAddressState } from "./calendar-actions";
 
-export function CalendarAddressForm({ eventId, hasActive, labels }: { eventId: string | null; hasActive: boolean; labels: { create: string; renew: string; revoke: string; form: string } }) {
+// « quiet » (lot 62c) : sur un écran qui a déjà son bouton principal (le programme d'un évènement),
+// « Ajouter à mon agenda » est un bouton secondaire.
+export function CalendarAddressForm({ eventId, hasActive, labels, quiet = false }: { eventId: string | null; hasActive: boolean; labels: { create: string; renew: string; revoke: string; form: string }; quiet?: boolean }) {
   const t = useTranslations("Calendar");
   const initialState: CalendarAddressState = {};
   const [state, formAction, pending] = useActionState(issueCalendarAddressAction, initialState);
@@ -64,7 +66,7 @@ export function CalendarAddressForm({ eventId, hasActive, labels }: { eventId: s
         {!hasActive && revoked.revoked && revokedAt > issuedAt ? <p role="status">{t("revoked")}</p> : null}
         {error ? <p role="alert">{error}</p> : null}
         <div className="row-wrap">
-          <button type="submit" className={hasActive ? "button-secondary" : "button-primary"} disabled={pending || revoking}>
+          <button type="submit" className={hasActive || quiet ? "button-secondary" : "button-primary"} disabled={pending || revoking}>
             {hasActive ? labels.renew : labels.create}
           </button>
           {hasActive ? (

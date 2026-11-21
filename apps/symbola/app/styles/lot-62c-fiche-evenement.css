@@ -3,4 +3,186 @@
    redéfinir ici. Ce fichier est chargé avant globals.css : à précision égale, une règle de
    globals.css l'emporte. Mêmes jetons que globals.css (DESIGN.md), aucun style en ligne (CSP). */
 @layer components {
+  /* —— Programme du jour J : liste éditable (DESIGN.md, « Liste éditable ») ——
+     Colonnes : début, fin, durée, séquence, lieu, qui, actions. */
+  .program-editor {
+    @apply flex flex-col gap-4;
+  }
+  .program-editor .program-moment h3 {
+    @apply mb-1;
+  }
+  .program-table .program-cols {
+    @apply grid-cols-[3.5rem_3.5rem_4.5rem_minmax(0,1fr)_11rem_11rem_5.75rem];
+  }
+  .program-table .program-line .program-main {
+    @apply flex-row flex-wrap items-center gap-x-2 gap-y-0;
+  }
+  .program-table .program-line .program-main strong {
+    @apply font-medium;
+  }
+  .program-table .program-line .program-note {
+    @apply basis-full;
+  }
+  .program-table .program-end {
+    @apply tabular-nums;
+  }
+  .program-table .program-duration,
+  .program-table .program-place,
+  .program-table .program-who {
+    @apply text-label text-ink-muted;
+  }
+  .program-table .program-who {
+    @apply flex flex-col;
+  }
+  .program-table .row-actions {
+    @apply flex;
+  }
+  .program-table .row-actions .program-remove {
+    @apply text-critical hover:text-critical;
+  }
+  /* La ligne ouverte : ses champs sur des lignes de champs (« field-row »), dans la largeur de la carte. */
+  .program-table .edit-row-open:focus {
+    @apply outline-none;
+  }
+  /* Une heure : la largeur de « 10:30 AM » et de son icône (navigateur réglé sur douze heures). */
+  .program-table .edit-row-open input.field-time {
+    @apply w-36;
+  }
+  .program-table .edit-row-open .field-row > label.program-field-wide {
+    @apply flex-[2_1_16rem];
+  }
+  .program-table .edit-row-open fieldset.program-slots {
+    @apply m-0 max-w-none gap-1 border-0 bg-transparent p-0;
+  }
+  .program-table .edit-row-open fieldset.program-slots legend {
+    @apply p-0 font-sans text-label font-medium;
+  }
+  .program-slot-choices {
+    @apply flex flex-wrap gap-x-5 gap-y-0;
+  }
+  .program-slot-choices > label {
+    @apply min-h-11;
+  }
+  .program-table .edit-row-open label.program-note-field {
+    @apply max-w-none;
+  }
+  .program-table .edit-row-open .free-text-notice {
+    @apply m-0;
+  }
+  /* La barre des modifications en attente reste en vue pendant qu'on parcourt la liste. */
+  .program-editor .edit-bar {
+    @apply sticky bottom-3 z-10 shadow-float;
+  }
+  .program-editor .edit-bar p {
+    @apply m-0;
+  }
+  /* En tête de la carte : la diffusion à gauche, les PDF et l'agenda à droite. */
+  .program-head {
+    @apply my-4 grid grid-cols-1 gap-x-8 gap-y-4 border-y border-line py-4 lg:grid-cols-2;
+  }
+  .program-head .program-publication {
+    @apply m-0 border-0 p-0;
+  }
+  .program-head .program-tools {
+    @apply flex min-w-0 flex-col gap-3;
+  }
+  .program-head .program-tools h3 {
+    @apply mb-1 font-semibold text-ink;
+  }
+  .program-head .program-tools .button-link {
+    @apply py-2;
+  }
+  .program-head .program-tools p {
+    @apply m-0;
+  }
+  .card > .program-overlaps {
+    @apply my-4;
+  }
+  .card > .program-overlaps h3 {
+    @apply m-0 text-body font-semibold text-attention;
+  }
+  .card > .program-overlaps ul {
+    @apply mb-0 mt-1;
+  }
+  /* Lieux de l'évènement : « Modifier » ouvre le formulaire en grille sur toute la largeur. */
+  .places details.place-edit[open] {
+    @apply basis-full;
+  }
+  .places input.field-time {
+    @apply w-36;
+  }
+  /* Cibles tactiles de la fiche (UX-05) : 44 px, y compris les formulaires d'un seul bouton (40 px
+     par règle générale), les liens-boutons et les gestes de la frise du statut. */
+  .event-sheet form:not(:has(label, select, textarea, input:not([type="hidden"]))) button[type="submit"],
+  .event-sheet form:not(:has(label, select, textarea, input:not([type="hidden"]))) button:not([type]),
+  .event-sheet .link-button {
+    @apply min-h-11;
+  }
+  .event-sheet .timeline-actions .timeline-lost {
+    @apply !min-h-11 !px-2;
+  }
+  .event-sheet .timeline-step .timeline-button {
+    @apply !min-h-11 min-w-11;
+  }
+  /* En tête de la carte : le modèle à appliquer et l'import d'un chrono, côte à côte. */
+  .program-sources {
+    @apply flex flex-wrap items-start gap-x-8 gap-y-3;
+  }
+  .program-sources > * {
+    @apply m-0;
+  }
+  /* Téléphone : une séquence tient en trois lignes (heures, nom, lieu et intervenants), ses deux
+     actions à droite ; l'en-tête des colonnes reste lu par les lecteurs d'écran. */
+  @media (max-width: 767px) {
+    .program-table .edit-list-head {
+      @apply sr-only;
+    }
+    /* Une ligne ouverte occupe l'écran : la barre attend à sa place, sous la liste, sans la couvrir. */
+    .program-editor:has(.edit-row-open) .edit-bar {
+      @apply static shadow-none;
+    }
+    .program-table .program-line {
+      @apply flex flex-wrap items-center gap-x-1.5 gap-y-0 py-1;
+    }
+    .program-table .program-line .program-start {
+      @apply order-1;
+    }
+    .program-table .program-line .program-end {
+      @apply order-2;
+    }
+    .program-table .program-end:not(:empty)::before {
+      content: "– ";
+    }
+    .program-table .program-line .program-duration {
+      @apply order-3;
+    }
+    .program-table .program-duration:not(:empty)::before {
+      content: "· ";
+    }
+    .program-table .program-line .row-actions {
+      @apply order-4 ml-auto;
+    }
+    .program-table .program-line .program-main {
+      @apply order-5 basis-full;
+    }
+    .program-table .program-line .program-place {
+      @apply order-6;
+    }
+    .program-table .program-line .program-who {
+      @apply order-7 flex-row flex-wrap gap-x-1.5;
+    }
+    .program-table .program-line .program-place:not(:empty) + .program-who:not(:empty)::before {
+      content: "·";
+    }
+    .program-table .program-line .program-place,
+    .program-table .program-line .program-who {
+      @apply pb-2;
+    }
+    .program-table .program-end:empty,
+    .program-table .program-duration:empty,
+    .program-table .program-place:empty,
+    .program-table .program-who:empty {
+      @apply hidden;
+    }
+  }
 }

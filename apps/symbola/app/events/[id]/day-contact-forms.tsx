@@ -9,7 +9,7 @@ export function AddDayContactForm({ eventId }: { eventId: string }) {
   const t = useTranslations("DayContacts");
   const [state, action, pending] = useActionState(addDayContactAction, {} as DayContactFormState);
   return (
-    <form action={action} className="inline-add">
+    <form action={action} className="form-inline">
       <input type="hidden" name="eventId" value={eventId} />
       <label>
         {t("name")}
@@ -23,7 +23,7 @@ export function AddDayContactForm({ eventId }: { eventId: string }) {
         {t("phone")}
         <input type="tel" name="phone" maxLength={40} autoComplete="off" required />
       </label>
-      <button type="submit" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("add")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}

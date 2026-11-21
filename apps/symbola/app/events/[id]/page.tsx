@@ -83,17 +83,11 @@ import { commitDecisionExpenseAction, replaceDecisionAction, retainDecisionChoic
 import { answerSentence } from "@/app/portail/client-decisions";
 import { choiceName, decisionLabel } from "@/app/portail/decision-label";
 import { requestAudience } from "@/lib/vocabulary";
-import { removeProgramItemAction } from "./program-actions";
+import { ProgramEditor } from "./program-editor";
 import { ProgramShiftProposal, type ShiftProposalView } from "./program-shift";
-import { durationText, programSpans, spanLabel } from "@/lib/program-spans";
+import { durationText } from "@/lib/program-spans";
 import { programSpanWords } from "@/lib/program-span-words";
-import {
-  AddProgramItemForm,
-  ApplyProgramTemplateForm,
-  EditProgramItemForm,
-  ProgramNotifyForm,
-  ProgramPublishForm,
-} from "./program-forms";
+import { ApplyProgramTemplateForm, ProgramNotifyForm, ProgramPublishForm } from "./program-forms";
 import { CalendarAddressForm } from "../../calendar-address-form";
 import { setTaskMilestoneAction,
   releaseEventTaskAction,
@@ -317,7 +311,6 @@ export default async function EventDetailPage({
     ...keyMoments.map((moment) => ({ id: moment.id as string | null, label: `${moment.name} — ${formatCalendarDate(moment.date, locale)}` as string | null, items: program.items.filter((item) => item.keyMomentId === moment.id) })),
     { id: null, label: null, items: program.items.filter((item) => !keyMoments.some((moment) => moment.id === item.keyMomentId)) },
   ].filter((group) => group.items.length > 0);
-  const programSpanOf = new Map(programGroups.flatMap((group) => programSpans(group.items)).map((span) => [span.id, span]));
   const responsibleOptions = [...new Set(program.items.flatMap((item) => (item.responsible ? [item.responsible] : [])))].sort((a, b) => a.localeCompare(b, "fr"));
   // Lot 48a (DAT-08) : notes confidentielles, déchiffrées pour leur auteur et la titulaire seuls.
   const eventConfidentialNotes =
@@ -524,7 +517,7 @@ export default async function EventDetailPage({
     ) : null;
 
   return (
-    <main>
+    <main className="event-sheet">
       <p>
         <Link href="/events">{t("backToEvents")}</Link>
       </p>
@@ -1220,6 +1213,8 @@ export default async function EventDetailPage({
             <SettingsLink href="/events/modeles-programme" label={t("programTemplatesSettings")} />
           </div>
           <ProgramShiftProposal eventId={event.id} proposal={shiftProposal} />
+          {/* Lot 62c (UX-13) : en tête de la carte, la diffusion à gauche, les PDF et l'agenda à droite. */}
+          <div className="program-head">
           {/* Lot 37b (CHR-07, DAT-14 ; D8, D10) : clients et prestataires lisent la dernière version diffusée. */}
           {publication ? (
             <section aria-labelledby="program-publication-title" className="program-publication">
@@ -1274,12 +1269,12 @@ export default async function EventDetailPage({
               ) : null}
             </section>
           ) : null}
-          <nav aria-label={t("programExports")}>
-            <a href={`/events/${event.id}/programme/pdf?variant=couple`} download>
+          <div className="program-tools">
+          <nav aria-label={t("programExports")} className="row-wrap">
+            <a href={`/events/${event.id}/programme/pdf?variant=couple`} className="button-link" download>
               {t("programExportCouple")}
             </a>
-            {" · "}
-            <a href={`/events/${event.id}/programme/pdf?variant=vendors`} download>
+            <a href={`/events/${event.id}/programme/pdf?variant=vendors`} className="button-link" download>
               {t("programExportVendors")}
             </a>
           </nav>
@@ -1290,13 +1285,15 @@ export default async function EventDetailPage({
               <p className="meta">
                 {programFeed ? tCalendar("programFollowed", { date: eventTime(programFeed.createdAt) }) : tCalendar("programAddHint")}
               </p>
-              <CalendarAddressForm eventId={event.id} hasActive={programFeed !== null} labels={{ create: tCalendar("programAdd"), renew: tCalendar("programRenew"), revoke: tCalendar("programRevoke"), form: tCalendar("programAdd") }} />
+              <CalendarAddressForm eventId={event.id} hasActive={programFeed !== null} quiet labels={{ create: tCalendar("programAdd"), renew: tCalendar("programRenew"), revoke: tCalendar("programRevoke"), form: tCalendar("programAdd") }} />
             </section>
           ) : null}
+          </div>
+          </div>
           {/* Lot 48a (PRE-06, D4) : contraintes du lieu, signalées, jamais bloquantes. */}
           {venueChecks ? <VenueFindings findings={venueChecks.findings} labels={programLabels} headingId="program-venue-title" /> : null}
           {program.overlaps.length > 0 ? (
-            <section aria-labelledby="program-overlaps-title">
+            <section aria-labelledby="program-overlaps-title" className="notice notice-attention program-overlaps">
               <h3 id="program-overlaps-title">{t("programOverlapsTitle")}</h3>
               <ul>
                 {program.overlaps.map((overlap) => (
@@ -1311,69 +1308,18 @@ export default async function EventDetailPage({
               </ul>
             </section>
           ) : null}
-          {programTemplates.length > 0 ? (
-            <ApplyProgramTemplateForm eventId={event.id} templates={programTemplates} />
-          ) : (
-            <p>
-              {t("noProgramTemplates")} <Link href="/events/modeles-programme">{t("programTemplatesLink")}</Link>
-            </p>
-          )}
+          <div className="program-sources">
+            {programTemplates.length > 0 ? (
+              <ApplyProgramTemplateForm eventId={event.id} templates={programTemplates} />
+            ) : (
+              <p>
+                {t("noProgramTemplates")} <Link href="/events/modeles-programme">{t("programTemplatesLink")}</Link>
+              </p>
+            )}
+            {/* Lot 51 (EVT-04, CHR-08) : un chrono importé d'un tableur, avec son écran de contrôle. */}
+            <ProgramImportForm eventId={event.id} />
+          </div>
           {program.items.length === 0 ? <p>{t("noProgramItems")}</p> : null}
-          {/* Lot 12 (L12-EVT-14) : une ligne par moment, une icône par prestataire concerné, actions discrètes à droite. */}
-          {/* Lot 51 (EVT-04, CHR-08) : un chrono importé d'un tableur, avec son écran de contrôle. */}
-          <ProgramImportForm eventId={event.id} />
-          {programGroups.map((group) => (
-          // Un seul temps fort (évènement d'un jour) : la liste reste « Programme du jour J », sans titre.
-          <section key={group.id ?? "sans-temps-fort"} aria-label={programGroups.length > 1 ? (group.label ?? t("programTitle")) : undefined} className="program-moment">
-          {group.label && programGroups.length > 1 ? <h3>{group.label}</h3> : null}
-          <ul aria-label={programGroups.length > 1 ? (group.label ?? t("programTitle")) : t("programTitle")} className="program-list">
-            {group.items.map((item) => (
-              <li key={item.id} className="program-row">
-                <span className="program-time">{spanLabel(programSpanOf.get(item.id)!, spanWords)}</span>
-                <span className="program-main">
-                  <strong>{item.label}</strong>
-                  <span className="program-meta">
-                    {item.location ? <span>{item.location}</span> : null}
-                    {item.responsible ? <span>{t("programResponsibleLine", { name: item.responsible })}</span> : null}
-                    {item.participants.length > 0 ? (
-                      <span
-                        className="line-icons"
-                        role="img"
-                        aria-label={t("programParticipantsList", { names: item.participants.map((participant) => participant.label).join(", ") })}
-                        title={item.participants.map((participant) => participant.label).join(", ")}
-                      >
-                        {item.participants.map((participant) => (
-                          <BudgetLineIcon
-                            key={`${participant.vendorSlotId ?? "libre"}-${participant.label}`}
-                            icon={participant.vendorSlotId ? (slotIconOf.get(participant.vendorSlotId) ?? null) : null}
-                            label={participant.label}
-                            decorative
-                          />
-                        ))}
-                      </span>
-                    ) : null}
-                  </span>
-                  {item.internalNote ? (
-                    <span className="program-note">
-                      {t("programInternalNote")} : {item.internalNote}
-                    </span>
-                  ) : null}
-                </span>
-                <span className="program-actions">
-                  <EditProgramItemForm key={JSON.stringify(item)} eventId={event.id} item={item} vendorSlots={vendorSlots} moments={momentChoices} />
-                  <form action={removeProgramItemAction}>
-                    <input type="hidden" name="eventId" value={event.id} />
-                    <input type="hidden" name="itemId" value={item.id} />
-                    <button type="submit" className="icon-button" aria-label={t("removeProgramItem", { label: item.label })} title={t("removeProgramItem", { label: item.label })}>
-                      <Trash2 size={16} aria-hidden="true" />
-                    </button>
-                  </form>
-                </span>
-              </li>
-            ))}
-          </ul>
-          </section>
-          ))}
           <datalist id="program-responsible-options">
             {responsibleOptions.map((option) => (
               <option key={option} value={option} />
@@ -1384,7 +1330,8 @@ export default async function EventDetailPage({
               <option key={option} value={option} />
             ))}
           </datalist>
-          <AddProgramItemForm eventId={event.id} vendorSlots={vendorSlots} moments={momentChoices} />
+          {/* Lot 62c (UX-13, UX-05 ; D1) : une ligne par séquence, « Modifier » ouvre la ligne en place, un seul « Enregistrer le programme ». */}
+          <ProgramEditor eventId={event.id} title={t("programTitle")} groups={programGroups} vendorSlots={vendorSlots} moments={momentChoices} />
           <section aria-labelledby="places-title" className="places">
             <h3 id="places-title">{t("placesTitle")}</h3>
             <p className="muted">{t("placesHint")}</p>
@@ -1403,8 +1350,8 @@ export default async function EventDetailPage({
                   {place.contactName || place.contactPhone || place.contactEmail ? (
                     <p className="muted">{t("placeContact", { contact: [place.contactName, place.contactPhone, place.contactEmail].filter(Boolean).join(" · ") })}</p>
                   ) : null}
-                  <EditPlaceForm eventId={event.id} place={place} />
                   <div className="row-wrap">
+                    <EditPlaceForm eventId={event.id} place={place} />
                     {index > 0 ? (
                       <form action={makeReceptionPlaceAction} className="inline-form">
                         <input type="hidden" name="eventId" value={event.id} />
@@ -1417,7 +1364,7 @@ export default async function EventDetailPage({
                     <form action={removePlaceAction} className="inline-form">
                       <input type="hidden" name="eventId" value={event.id} />
                       <input type="hidden" name="placeId" value={place.id} />
-                      <button type="submit">{t("removePlace", { place: place.label })}</button>
+                      <button type="submit" className="button-ghost">{t("removePlace", { place: place.label })}</button>
                     </form>
                   </div>
                 </li>
@@ -1443,7 +1390,7 @@ export default async function EventDetailPage({
                   <form action={removeDayContactAction} className="inline-form">
                     <input type="hidden" name="eventId" value={event.id} />
                     <input type="hidden" name="contactId" value={contact.id} />
-                    <button type="submit" aria-label={tDayContacts("removeLabel", { name: contact.name })}>
+                    <button type="submit" className="button-ghost" aria-label={tDayContacts("removeLabel", { name: contact.name })}>
                       {tDayContacts("remove")}
                     </button>
                   </form>

@@ -74,7 +74,7 @@ export function ProgramImportForm({ eventId }: { eventId: string }) {
             </button>
           </>
         ) : null}
-        <button type="submit" name="intent" value="preview" disabled={pending}>
+        <button type="submit" name="intent" value="preview" className="button-secondary" disabled={pending}>
           {t("programImportPreview")}
         </button>
         {state.error ? <p role="alert">{state.error}</p> : null}
