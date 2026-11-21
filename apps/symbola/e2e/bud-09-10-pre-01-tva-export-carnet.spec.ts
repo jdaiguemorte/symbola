@@ -107,8 +107,8 @@ test("PRE-01 — évaluation et tarifs indicatifs d'une fiche du carnet, filtre 
   const { vendor: studio } = await createVendor(planner.organizationId, { name: "Studio Lumière", typeId: null, city: "Lille" });
   await plannerLogin(page, planner.email, PASSWORD);
 
-  // Sur la fiche complète : évaluation et tarifs indicatifs.
-  await page.goto(`/prestataires/${studio.id}?modifier=1`);
+  // Sur la fiche complète : évaluation et tarifs indicatifs (lot 63e : rubrique « Tarifs et note »).
+  await page.goto(`/prestataires/${studio.id}?modifier=1&rubrique=prices`);
   await page.waitForLoadState("networkidle");
   await page.getByLabel("Évaluation").selectOption({ label: "4 sur 5" });
   await page.getByLabel("Tarifs indicatifs").fill("Forfait journée 1 900 €");
@@ -118,7 +118,9 @@ test("PRE-01 — évaluation et tarifs indicatifs d'une fiche du carnet, filtre 
     page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes(`/prestataires/${studio.id}?modifier=1`)),
     page.getByRole("button", { name: "Enregistrer", exact: true }).click(),
   ]);
-  await page.reload();
+  // « Enregistrer » à la dernière rubrique ferme la fenêtre ; on la rouvre pour relire.
+  await expect(page).toHaveURL(new RegExp(`/prestataires/${studio.id}$`));
+  await page.goto(`/prestataires/${studio.id}?modifier=1&rubrique=prices`);
   await expect(page.getByLabel("Évaluation")).toHaveValue("4");
   await expect(page.getByLabel("Tarifs indicatifs")).toHaveValue("Forfait journée 1 900 €");
   await expectNoAxeViolation(page);

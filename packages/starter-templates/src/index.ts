@@ -593,14 +593,35 @@ export function planningSoftwareProfile(): { vendors: VendorsExportProfile; even
 // Lot 14 (décision N) — groupes de types de prestataires équivalents
 // (« Coiffeur(se) », « Coiffure »), en français et en anglais, pour
 // rapprocher les types d'un fichier importé de ceux du carnet.
+// Lot 63e (PRE-01, PRE-11 ; ADR 0105) : types combinés (« Photographe et vidéaste ») qui désignent
+// plusieurs métiers, et séparateurs qui en reconnaissent d'autres (« Officiante / décoratrice ») quand
+// chaque morceau est un synonyme d'un type différent.
 const vendorTypeSynonymsSchema = z.object({
   version: z.literal(1),
   items: z.array(z.object({ key: z.string().min(1), fr: z.array(z.string().min(1)).min(1), en: z.array(z.string().min(1)).min(1) })),
+  combined: z.object({
+    separators: z.array(z.string().min(1)).min(1),
+    items: z.array(z.object({ parts: z.array(z.string().min(1)).min(2), fr: z.array(z.string().min(1)).min(1), en: z.array(z.string().min(1)).min(1) })),
+  }),
 });
 const vendorTypeSynonyms = vendorTypeSynonymsSchema.parse(vendorTypeSynonymsFile);
 
 export function starterVendorTypeSynonymGroups(): string[][] {
   return vendorTypeSynonyms.items.map((item) => [...item.fr, ...item.en]);
+}
+
+// Synonymes de chaque type de départ, par clé et par langue.
+export function starterVendorTypeSynonyms(): { key: string; fr: string[]; en: string[] }[] {
+  return vendorTypeSynonyms.items.map((item) => ({ key: item.key, fr: [...item.fr], en: [...item.en] }));
+}
+
+export type StarterCombinedVendorType = { parts: string[]; fr: string[]; en: string[] };
+
+export function starterCombinedVendorTypes(): { separators: string[]; items: StarterCombinedVendorType[] } {
+  return {
+    separators: [...vendorTypeSynonyms.combined.separators],
+    items: vendorTypeSynonyms.combined.items.map((item) => ({ parts: [...item.parts], fr: [...item.fr], en: [...item.en] })),
+  };
 }
 
 // Lot 6 (RGPD-04/RGPD-05) : réglages RGPD de départ d'une organisation —

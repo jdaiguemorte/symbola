@@ -3,7 +3,7 @@
 // (CLAUDE.md §2.4), protégée par Row-Level Security (migration dédiée).
 // Les prestataires consultés pour un poste vivent dans le module events et
 // ne connaissent qu'un identifiant opaque de fiche (ADR 0011).
-import { boolean, check, date, doublePrecision, integer, jsonb, pgSchema, text, timestamp, unique, uuid, type AnyPgColumn, index } from "drizzle-orm/pg-core";
+import { boolean, check, date, doublePrecision, integer, jsonb, pgSchema, text, timestamp, unique, uniqueIndex, uuid, type AnyPgColumn, index } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 export const vendorsSchema = pgSchema("vendors");
@@ -129,7 +129,7 @@ export const vendorLocationSourceEnum = vendorsSchema.enum("vendor_location_sour
 export const vendors = vendorsSchema.table("vendors", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
-  typeId: uuid("type_id").references(() => vendorTypes.id, { onDelete: "set null" }),
+  // Lot 63e (ADR 0105) : le type de la fiche (type_id) est devenu ses métiers, vendor_type_links.
   name: text("name").notNull(),
   contactName: text("contact_name"),
   email: text("email"),
@@ -179,6 +179,37 @@ export const vendors = vendorsSchema.table("vendors", {
     sql`(${table.internalNoteSealed} is null or (${table.internalNote} is null and ${table.internalNoteSealed} like 'f1:%')) and (${table.ibanSealed} is null or ${table.ibanSealed} like 'f1:%') and (${table.bicSealed} is null or ${table.bicSealed} like 'f1:%') and ((${table.ibanSealed} is null) = (${table.ibanMasked} is null)) and (${table.bicSealed} is null or ${table.ibanSealed} is not null)`,
   ),
 ]);
+
+// Lot 63e (PRE-01, PRE-11, HUB-20 ; ADR 0105) — les métiers d'une fiche : un prestataire peut être
+// photographe et vidéaste, officiante et décoratrice. Au plus un métier principal par fiche (index
+// unique partiel) : il donne la couleur et l'icône sur la carte. position : ordre d'affichage, le
+// principal en premier. Un type supprimé emporte ses liens (la fiche garde ses autres métiers).
+export const vendorTypeLinks = vendorsSchema.table(
+  "vendor_type_links",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    vendorId: uuid("vendor_id")
+      .notNull()
+      .references(() => vendors.id, { onDelete: "cascade" }),
+    typeId: uuid("type_id")
+      .notNull()
+      .references(() => vendorTypes.id, { onDelete: "cascade" }),
+    isPrimary: boolean("is_primary").notNull().default(false),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("vendor_type_links_organization_idx").on(table.organizationId),
+    index("vendor_type_links_type_idx").on(table.typeId),
+    unique("vendor_type_links_vendor_type_key").on(table.vendorId, table.typeId),
+    uniqueIndex("vendor_type_links_one_primary").on(table.vendorId).where(sql`${table.isPrimary}`),
+  ],
+);
 
 export const vendorFileKindEnum = vendorsSchema.enum("vendor_file_kind", ["brochure", "rib"]);
 

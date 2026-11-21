@@ -5,10 +5,10 @@
 import { randomUUID } from "node:crypto";
 import { assertOrganizationIsolation } from "@symbola/testing";
 import { eq } from "drizzle-orm";
-import { afterAll, describe, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { eventPlaces, eventVendorCandidateNotes, eventVendorCandidates, events, eventVendorSlots } from "./schema/events";
-import { vendorBankChanges, vendorDocumentKinds, vendorDocuments, vendorFiles, vendors, vendorSettings, vendorTags, vendorTypeFields, vendorTypes } from "./schema/vendors";
+import { vendorBankChanges, vendorDocumentKinds, vendorDocuments, vendorFiles, vendors, vendorSettings, vendorTags, vendorTypeFields, vendorTypeLinks, vendorTypes } from "./schema/vendors";
 import { withOrganization } from "./with-organization";
 
 const { sql, db } = createAppConnection();
@@ -244,5 +244,35 @@ describe("L11-EVT-10 / L11-PRE-01 — Isolation entre organisations (prestataire
         ).length,
       }),
     });
+  });
+
+  it("lot 63e (PRE-01, ADR 0105) — métiers des fiches", async () => {
+    await assertOrganizationIsolation({
+      seed: (organizationId) =>
+        withOrganization(db, organizationId, async (tx) => {
+          const vendor = await seedVendor(tx, organizationId);
+          const type = await seedType(tx, organizationId);
+          return first(await tx.insert(vendorTypeLinks).values({ organizationId, vendorId: vendor.id, typeId: type.id, isPrimary: true }).returning());
+        }),
+      listVisible: (organizationId) => withOrganization(db, organizationId, (tx) => tx.select().from(vendorTypeLinks)),
+      attemptCrossOrganizationUpdate: async (organizationId, target) => ({
+        affectedRows: (
+          await withOrganization(db, organizationId, (tx) => tx.update(vendorTypeLinks).set({ isPrimary: false }).where(eq(vendorTypeLinks.id, target.id)).returning())
+        ).length,
+      }),
+    });
+  });
+
+  it("lot 63e (SEC-10) — un métier ne relie jamais une fiche au type d'une autre organisation, même par un bogue applicatif", async () => {
+    const a = randomUUID();
+    const b = randomUUID();
+    const vendor = await withOrganization(db, a, (tx) => seedVendor(tx, a));
+    const foreignType = await withOrganization(db, b, (tx) => seedType(tx, b));
+    const foreignVendor = await withOrganization(db, b, (tx) => seedVendor(tx, b));
+    const ownType = await withOrganization(db, a, (tx) => seedType(tx, a));
+    await expect(withOrganization(db, a, (tx) => tx.insert(vendorTypeLinks).values({ organizationId: a, vendorId: vendor.id, typeId: foreignType.id }))).rejects.toThrow();
+    await expect(withOrganization(db, a, (tx) => tx.insert(vendorTypeLinks).values({ organizationId: a, vendorId: foreignVendor.id, typeId: ownType.id }))).rejects.toThrow();
+    // Une ligne marquée d'une autre organisation est refusée par la Row-Level Security.
+    await expect(withOrganization(db, a, (tx) => tx.insert(vendorTypeLinks).values({ organizationId: b, vendorId: foreignVendor.id, typeId: foreignType.id }))).rejects.toThrow();
   });
 });

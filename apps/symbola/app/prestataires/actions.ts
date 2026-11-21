@@ -51,7 +51,9 @@ import type { VendorTagArrangement, VendorTagSeedResult } from "@symbola/contrac
 import { isValidId } from "@/app/events/module-access";
 import { isVendorsModuleEnabled } from "./module-access";
 
-export type VendorFormState = { error?: string; success?: boolean; notice?: string };
+// Lot 63e (ADR 0107) : intent dit ce que la fenêtre fait une fois la rubrique enregistrée (passer à la
+// suivante, ou se fermer).
+export type VendorFormState = { error?: string; success?: boolean; notice?: string; intent?: "next" | "close" };
 
 const FIELD_KINDS: VendorFieldKind[] = ["number", "text", "time", "amount", "choice", "boolean"];
 
@@ -69,17 +71,20 @@ async function starterLocale(): Promise<"fr" | "en"> {
 }
 
 async function readVendorInput(organizationId: string, formData: FormData): Promise<VendorInput> {
-  const typeId = isValidId(text(formData, "typeId")) ? text(formData, "typeId") : null;
-  const type = typeId ? (await listVendorTypes(organizationId)).find((candidate) => candidate.id === typeId) : null;
+  // Lot 63e (PRE-01 ; ADR 0105) : les métiers cochés et le principal ; les champs de chacun.
+  const typeIds = [...new Set(formData.getAll("typeIds").map(String).filter(isValidId))];
+  const primaryTypeId = isValidId(text(formData, "primaryTypeId")) && typeIds.includes(text(formData, "primaryTypeId")) ? text(formData, "primaryTypeId") : (typeIds[0] ?? null);
+  const types = typeIds.length > 0 ? (await listVendorTypes(organizationId)).filter((candidate) => typeIds.includes(candidate.id)) : [];
   const fieldValues: Record<string, VendorFieldValue> = {};
-  for (const field of type?.fields ?? []) {
+  for (const field of types.flatMap((type) => type.fields)) {
     const raw = field.kind === "boolean" ? (formData.get(`field_${field.id}`) === "on" ? "true" : "") : text(formData, `field_${field.id}`);
     const value = parseFieldInput(field.kind, raw);
     if (value !== null) fieldValues[field.id] = value;
   }
   return {
     name: text(formData, "name"),
-    typeId,
+    typeIds,
+    primaryTypeId,
     contactName: text(formData, "contactName"),
     email: text(formData, "email"),
     phone: text(formData, "phone"),
@@ -132,13 +137,25 @@ export async function saveVendorAction(_prev: VendorFormState, formData: FormDat
   // Lot 39b (UX-09) : la fiche est enregistrée, le brouillon de la saisie n'a plus lieu d'être.
   await discardMyFormDraft(isValidId(vendorId) ? `vendor:${vendorId}` : "vendor-new");
   const notice = geocodingNotice(t, result);
+  const intent = text(formData, "intent") === "close" ? "close" : "next";
   if (!isValidId(vendorId)) {
     // Créée depuis un poste : on y revient pour l'ajouter.
     const back = text(formData, "back");
-    redirect(back.startsWith("/prestataires?") ? back : `/prestataires/${result.vendor.id}${notice ? `?placement=${result.geocoding}` : ""}`);
+    if (back.startsWith("/prestataires?")) redirect(back);
+    // Lot 63e (ADR 0107) : créée à la première rubrique, la fiche s'ouvre dans sa fenêtre, à la
+    // rubrique suivante ; « Créer » à la dernière mène à la fiche.
+    const next = text(formData, "nextRubric");
+    const params = new URLSearchParams();
+    if (notice) params.set("placement", result.geocoding);
+    if (intent === "next" && /^[a-z]{1,20}$/.test(next)) {
+      params.set("modifier", "1");
+      params.set("rubrique", next);
+    }
+    const query = params.toString();
+    redirect(`/prestataires/${result.vendor.id}${query ? `?${query}` : ""}`);
   }
   revalidatePath(`/prestataires/${vendorId}`);
-  return { success: true, ...(notice ? { notice } : {}) };
+  return { success: true, intent, ...(notice ? { notice } : {}) };
 }
 
 export async function setVendorLocationAction(_prev: VendorFormState, formData: FormData): Promise<VendorFormState> {
