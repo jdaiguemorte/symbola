@@ -57,7 +57,7 @@ test("BUD-09 / BUD-10 — taux de TVA d'une ligne, HT pour un client professionn
   await page.waitForLoadState("networkidle");
   // Particulier (aucun devis) : TTC seul.
   await expect(page.getByText("Montants TTC (client particulier).")).toBeVisible();
-  const table = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" });
+  const table = page.getByRole("table", { name: "Estimé, réel, engagé, payé" });
   await expect(table).not.toContainText("HT ");
 
   // Taux de la ligne : 10 %, saisi comme au catalogue.
@@ -76,7 +76,7 @@ test("BUD-09 / BUD-10 — taux de TVA d'une ligne, HT pour un client professionn
   const workbook = readImportFile(new Uint8Array(await readFile((await xlsx.path())!)), { maxBytes: 5_000_000, maxRows: 100 });
   expect(workbook.ok).toBe(true);
   if (workbook.ok) {
-    expect(workbook.table.headers.slice(0, 6)).toEqual(["Catégorie", "Ligne", "Prestataire", "Estimé TTC", "Devisé TTC", "Engagé TTC"]);
+    expect(workbook.table.headers.slice(0, 6)).toEqual(["Catégorie", "Ligne", "Prestataire", "Estimé TTC", "Réel TTC", "Engagé TTC"]);
     const total = workbook.table.rows.at(-1)!;
     expect([total[0], total[5]]).toEqual(["Total", "1200"]);
   }

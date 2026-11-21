@@ -49,7 +49,7 @@ test("BUD-01 / BUD-03 — une catégorie à plusieurs lignes, l'échéancier d'u
 
   await page.goto(`/budget/${event.id}`);
   await page.waitForLoadState("networkidle");
-  const table = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" });
+  const table = page.getByRole("table", { name: "Estimé, réel, engagé, payé" });
   const lineRow = (label: string) => table.getByRole("row").filter({ hasText: `Modifier « ${label} »` });
   // Lot 28b : le formulaire d'une ligne s'ouvre dans une rangée pleine largeur, sous la ligne.
   const editor = (label: string) => page.getByRole("region", { name: `Ligne « ${label} » : montants, prestataire, documents et échéances` });

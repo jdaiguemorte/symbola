@@ -10,7 +10,7 @@ import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { formatCalendarDate, parisToday } from "@symbola/i18n";
 import { expect, test, type Page } from "@playwright/test";
-import { addLossReasons, createProspect, createProspectSource, createTaskTemplate, listEventTasks } from "../modules/events/service";
+import { addLossReasons, createEventType, createProspect, createProspectSource, createTaskTemplate, listEventTasks } from "../modules/events/service";
 import { saveOnboardingStep } from "../modules/hub/service";
 import { actOnFakeSignature, addQuoteLine, addScheduleItem, createQuote, issueDepositInvoice, sendQuote, sendQuoteForSignature } from "../modules/quotes/service";
 import { changeEventStatus, readyOrganization, signIn } from "./helpers";
@@ -47,14 +47,16 @@ async function atelier(eventDate: string, options: { invoice?: boolean } = {}) {
     await saveOnboardingStep(db, organizationId, { vatRegime: "franchise", vatRateDefaultBasisPoints: null, metier: "wedding_planner" });
     const email = `camille-${randomUUID()}@symbola.test`;
     const owner = await createUser(db, { organizationId, email, password: PASSWORD, role: "owner" });
-    await createTaskTemplate(organizationId, "Mariage — 12 mois", WEDDING);
+    // Lot 63a : seul le modèle du type de l'évènement s'applique ; le mariage a donc son type.
+    const wedding = await createEventType(organizationId, { label: "Mariage", audience: "couple" });
+    await createTaskTemplate(organizationId, "Mariage — 12 mois", WEDDING, wedding.id);
     await addLossReasons(organizationId, [{ label: "Séparation", isFreeText: false }]);
     const source = await createProspectSource(organizationId, "Salon");
     const clients = [
       { firstName: "Léa", lastName: "Martin" },
       { firstName: "Hugo", lastName: "Durand" },
     ];
-    const eventId = (await createProspect({ organizationId, createdByUserId: owner.id, prospectSourceId: source.id, clients, eventDate })).id;
+    const eventId = (await createProspect({ organizationId, createdByUserId: owner.id, prospectSourceId: source.id, clients, eventDate, eventTypeId: wedding.id })).id;
     if (!options.invoice) return { email, organizationId, eventId, quoteId: null, invoiceNumber: null };
 
     const quote = await createQuote({ organizationId, eventId, createdByUserId: owner.id });

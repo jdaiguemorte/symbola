@@ -73,7 +73,7 @@ test("PRD-BUD-03 — joindre le devis d'un prestataire à une ligne et l'ouvrir 
   await page.goto(eventUrl.replace("/events/", "/budget/"));
   await page.waitForLoadState("networkidle");
   // Lot 28b : la ligne (pas le total de sa catégorie), repérée par « Modifier ».
-  const lieuRow = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" }).getByRole("row").filter({ hasText: "Modifier « Lieu de réception »" });
+  const lieuRow = page.getByRole("table", { name: "Estimé, réel, engagé, payé" }).getByRole("row").filter({ hasText: "Modifier « Lieu de réception »" });
   await lieuRow.getByText("Modifier « Lieu de réception »").click();
   // Lot 28b : le formulaire s'ouvre dans une rangée pleine largeur, sous la ligne.
   const editor = page.getByRole("region", { name: "Ligne « Lieu de réception » : montants, prestataire, documents et échéances" });

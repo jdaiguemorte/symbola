@@ -15,7 +15,7 @@ import { mapAssets } from "@/lib/map/tiles";
 import { PageTour } from "@/app/page-tour";
 import { SettingsLink } from "@/app/settings-link";
 import { addVendorToSlotAction, archiveVendorAction } from "./actions";
-import { queryString, RADIUS_CHOICES, UNCLASSIFIED_FAMILY, type BookQuery } from "./filters";
+import { activeFilters, clearFiltersHref, queryString, RADIUS_CHOICES, UNCLASSIFIED_FAMILY, type BookQuery } from "./filters";
 import { isVendorsModuleEnabled } from "./module-access";
 import { loadBookSelection } from "./selection";
 import { VendorMap, type MapPoint } from "./vendor-map";
@@ -94,6 +94,19 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
   const clearFields = Object.fromEntries(Object.keys(filters.fieldInputs).map((key) => [key, ""]));
   const familyHref = (family: string | null) => `/prestataires${queryString(query, { famille: family ?? "", type: "", ...clearFields })}`;
   const typeHref = (typeId: string | null) => `/prestataires${queryString(query, { type: typeId ?? "", ...clearFields })}`;
+  const fieldOf = new Map((selectedType?.fields ?? []).map((field) => [field.id, field]));
+  const chips = activeFilters("/prestataires", query, filters, {
+    text: (text) => t("activeFilterText", { text }),
+    around: (place, km) => t("activeFilterAround", { place, km }),
+    workedWith: t("filterWorkedWithLabel"),
+    rating: (rating) => t("filterRatingAtLeast", { rating }),
+    unplaced: t("filterUnplaced"),
+    tag: (tagId) => tags.find((tag) => tag.id === tagId)?.label ?? null,
+    field: (fieldId, op, value) => {
+      const field = fieldOf.get(fieldId);
+      return field ? t(`activeFilterField.${op}`, { field: field.label, value }) : null;
+    },
+  });
   const tour = await loadPageTour(auth.user.id, "vendors", typeof query.visite === "string" ? query.visite : undefined);
 
   return (
@@ -175,20 +188,26 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
             {t("filterText")}
             <input type="search" name="q" defaultValue={filters.text} />
           </label>
-          <label>
-            {t("filterAround")}
-            <input type="text" name="autour" data-apply="blur" defaultValue={filters.aroundText.startsWith("fiche:") ? "" : filters.aroundText} placeholder={t("filterAroundPlaceholder")} />
-          </label>
-          <label>
-            {t("filterRadius")}
-            <select name="rayon" defaultValue={String(filters.radiusKm)}>
-              {RADIUS_CHOICES.map((radius) => (
-                <option key={radius} value={radius}>
-                  {t("radiusKm", { km: radius })}
-                </option>
-              ))}
-            </select>
-          </label>
+          {/* Lot 63a (PRE-11) : le lieu et le rayon forment un seul contrôle, « Où ? ». */}
+          <fieldset className="filter-where">
+            <legend>{t("filterWhere")}</legend>
+            <div className="filter-where-row">
+              <label>
+                <span className="sr-only">{t("filterAround")}</span>
+                <input type="text" name="autour" data-apply="blur" defaultValue={filters.aroundText.startsWith("fiche:") ? "" : filters.aroundText} placeholder={t("filterAroundPlaceholder")} />
+              </label>
+              <label>
+                <span>{t("filterRadiusShort")}</span>
+                <select name="rayon" defaultValue={String(filters.radiusKm)}>
+                  {RADIUS_CHOICES.map((radius) => (
+                    <option key={radius} value={radius}>
+                      {t("radiusKm", { km: radius })}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </fieldset>
           <label>
             {t("filterWorkedWithLabel")}
             <select name="deja" defaultValue={filters.workedWith ? "1" : ""}>
@@ -275,6 +294,19 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
                   ],
             )}
         </FilterBar>
+        {chips.length > 0 ? (
+          <div className="filter-chips" role="group" aria-label={t("activeFiltersLabel")}>
+            <span className="muted">{t("activeFiltersCount", { count: chips.length })}</span>
+            {chips.map((chip) => (
+              <Link key={chip.key} href={chip.href} className="filter-chip" aria-label={t("removeFilter", { filter: chip.label })}>
+                {chip.label} <span aria-hidden="true">×</span>
+              </Link>
+            ))}
+            <Link href={clearFiltersHref("/prestataires", query, filters)} className="button-link filter-chips-clear">
+              {t("clearFilters")}
+            </Link>
+          </div>
+        ) : null}
         {centerNotFound ? <p role="status">{t("centerNotFound")}</p> : null}
       </div>
 

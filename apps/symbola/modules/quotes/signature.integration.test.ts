@@ -482,7 +482,8 @@ describe("DEV-02 — Essai guidé (ADR 0008)", () => {
     expect(detail.signature?.provider).toBe("fake");
     // Le marié fictif signe sur la page de signature fictive (pas de webhook HTTP).
     const tokens = detail.signature!.signers.map((signer) => signer.signingUrl.split("/").pop()!);
-    expect(await findFakeSignature(tokens[0]!)).toMatchObject({ quoteNumber: detail.number, signerName: people[0]!.name, isDemo: true });
+    // Lot 63a : la planner qui signe à la place d'un client revient au devis d'exemple dans l'app.
+    expect(await findFakeSignature(tokens[0]!)).toMatchObject({ quoteNumber: detail.number, signerName: people[0]!.name, isDemo: true, demoQuoteId: quote.id });
     expect(await actOnFakeSignature(tokens[0]!, "sign")).toBe(true);
     expect(await actOnFakeSignature(tokens[1]!, "sign")).toBe(true);
     expect((await getQuote(organizationId, quote.id)).status).toBe("signed");

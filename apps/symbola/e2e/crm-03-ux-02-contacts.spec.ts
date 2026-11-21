@@ -80,7 +80,7 @@ test("CRM-03 / UX-02 — Léa revient : sa fiche, son second évènement sans re
 
   // À l'envoi en signature : nom, e-mail et adresse de sa fiche ; l'adresse corrigée y est gardée.
   await page.waitForLoadState("networkidle");
-  await openEventTab(page, "Devis");
+  await openEventTab(page, "Mes devis et factures");
   await page.getByRole("button", { name: "Créer un devis" }).click();
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
   await page.waitForLoadState("networkidle");
@@ -92,7 +92,7 @@ test("CRM-03 / UX-02 — Léa revient : sa fiche, son second évènement sans re
   await freeLine.getByRole("button", { name: "Ajouter la ligne" }).click();
   await expect(freeLine.getByText("Ligne ajoutée.")).toBeVisible();
   await openQuoteRubric(page, "contrat");
-  const send = page.getByRole("form", { name: "Envoyer en signature" });
+  const send = page.getByRole("form", { name: "Faire signer" });
   const first = send.getByRole("group", { name: "Signataire 1" });
   await expect(first.getByLabel("Nom et prénom")).toHaveValue(`Léa ${lastName}`);
   await expect(first.getByLabel("E-mail")).toHaveValue(leaEmail);
@@ -100,7 +100,7 @@ test("CRM-03 / UX-02 — Léa revient : sa fiche, son second évènement sans re
   await expect(first.getByLabel("Garder cette adresse sur la fiche du contact")).toBeChecked();
   await first.getByLabel("Adresse de facturation").fill("Domaine des Tilleuls, 60300 Senlis");
   await expectNoAxeViolation(page);
-  await send.getByRole("button", { name: "Envoyer en signature" }).click();
+  await send.getByRole("button", { name: "Faire signer" }).click();
   await expect(page.getByText("En attente de signature.")).toBeVisible();
 
   // Sa fiche : deux évènements, et l'adresse de facturation gardée.

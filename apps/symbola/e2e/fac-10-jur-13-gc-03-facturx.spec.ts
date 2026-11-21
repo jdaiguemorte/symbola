@@ -111,7 +111,7 @@ test("FAC-10 / JUR-02 / JUR-13 / GC-03 / SC-11 étapes 4 et 5 — devis professi
   await expectNoAxeViolation(page);
 
   // Envoi en signature à Claire seule.
-  const send = page.getByRole("form", { name: "Envoyer en signature" });
+  const send = page.getByRole("form", { name: "Faire signer" });
   const first = send.getByRole("group", { name: "Signataire 1" });
   await expect(first.getByLabel("E-mail")).toHaveValue(setup.claireEmail);
   await first.getByLabel("Adresse de facturation").fill("1 rue Fictive, 44000 Nantes");
@@ -120,7 +120,7 @@ test("FAC-10 / JUR-02 / JUR-13 / GC-03 / SC-11 étapes 4 et 5 — devis professi
   await second.getByLabel("Nom et prénom").fill("");
   await second.getByLabel("E-mail").fill("");
   await second.getByLabel("Adresse de facturation").fill("");
-  await send.getByRole("button", { name: "Envoyer en signature" }).click();
+  await send.getByRole("button", { name: "Faire signer" }).click();
   await expect(page.getByText("En attente de signature.")).toBeVisible();
 
   // SC-11 étape 4 : Claire indique son numéro de bon de commande depuis son lien, puis signe.

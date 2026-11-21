@@ -85,7 +85,7 @@ test("PRD-BUD-02 — confirmer la simulation en budget estimé, puis suivre esti
   // PRD-BUD-02, BUD-01 (lot 28a) : tableau des cinq montants et de l'écart.
   await page.goto(`${eventUrl}`.replace("/events/", "/budget/"));
   await expectNoAxeViolation(page);
-  const table = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" });
+  const table = page.getByRole("table", { name: "Estimé, réel, engagé, payé" });
   await expect(table).toBeVisible();
   // Lot 28b : la ligne (pas le total de sa catégorie), repérée par « Modifier ».
   const lieuRow = table.getByRole("row").filter({ hasText: "Modifier « Lieu de réception »" });

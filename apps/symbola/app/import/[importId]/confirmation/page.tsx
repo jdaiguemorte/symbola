@@ -16,7 +16,7 @@ import { STATUS_LABEL_KEYS } from "@/app/events/event-status";
 import { ImportHeader } from "../../import-header";
 import { importStepContext, wantsAbandon } from "../../step-context";
 import { reasonText } from "../ecarts/reasons";
-import { saveSheetStatusesAction } from "./actions";
+import { SheetStatusSelect } from "./sheet-status-select";
 import { ConfirmForm } from "./confirm-form";
 
 // Décision J : libellés des statuts (fiche événement, module events) ; statuts du lot 34a (EVT-05).
@@ -136,28 +136,20 @@ export default async function ImportConfirmationPage({
         <section aria-labelledby="preview-creations">
           <h2 id="preview-creations">{t("previewCreationsTitle", { count: preview.counts.creations })}</h2>
           <p>{t("sheetStatusIntro")}</p>
-          <form action={saveSheetStatusesAction} className="sheet-statuses">
-            <input type="hidden" name="importId" value={preview.importId} />
-            <ul>
-              {preview.creations.map((row) => {
-                const title = describe(row.values);
-                return (
-                  <li key={row.rowIndex}>
-                    <input type="hidden" name="rowIndex" value={row.rowIndex} />
-                    <label htmlFor={`status-${row.rowIndex}`}>{t("rowHeading", { line: row.lineNumber, title })}</label>
-                    <select id={`status-${row.rowIndex}`} name={`status-${row.rowIndex}`} defaultValue={typeof row.values.status === "string" ? row.values.status : "option"}>
-                      {EVENT_STATUS_CHOICES.map((status) => (
-                        <option key={status} value={status}>
-                          {tEvents(STATUS_KEYS[status] ?? "statusOption")}
-                        </option>
-                      ))}
-                    </select>
-                  </li>
-                );
-              })}
-            </ul>
-            <button type="submit">{t("sheetStatusSave")}</button>
-          </form>
+          <ul className="sheet-statuses">
+            {preview.creations.map((row) => (
+              <SheetStatusSelect
+                key={row.rowIndex}
+                importId={preview.importId}
+                rowIndex={row.rowIndex}
+                label={t("rowHeading", { line: row.lineNumber, title: describe(row.values) })}
+                initialStatus={typeof row.values.status === "string" ? row.values.status : "option"}
+                options={EVENT_STATUS_CHOICES.map((status) => ({ value: status, label: tEvents(STATUS_KEYS[status] ?? "statusOption") }))}
+                savedText={t("sheetStatusSaved")}
+                failedText={t("sheetStatusFailed")}
+              />
+            ))}
+          </ul>
         </section>
       ) : preview.counts.creations > 0 ? (
         <section aria-labelledby="preview-creations">

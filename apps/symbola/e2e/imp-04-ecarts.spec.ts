@@ -52,12 +52,12 @@ test("IMP-04 — colonne gardée en champ libre, lignes rejetées et leur CSV", 
   await expectNoAxeViolation(page);
   const price = page.getByLabel("Champ pour la colonne « Prix HT »");
   if ((await price.inputValue()) === "") await price.selectOption({ label: "Prix unitaire HT (obligatoire)" });
-  await toDecide.getByLabel("Champ pour la colonne « Remarque »").selectOption({ label: "Garder en champ libre sur la fiche" });
+  await toDecide.getByLabel("Champ pour la colonne « Remarque »").selectOption({ label: "Une note sur la fiche" });
   await page.getByRole("group", { name: "Actions de l'étape" }).getByRole("button", { name: "Continuer" }).click();
 
   // Aucun doublon à vérifier : l'assistant arrive à « Vérifier et confirmer », avec les lignes rejetées.
   await expect(page).toHaveURL(/\/confirmation$/);
-  await expect(page.getByRole("navigation", { name: "Étapes de l'import" }).getByRole("listitem").filter({ hasText: "Colonnes" })).toContainText("3 colonnes reconnues, 1 en champ libre");
+  await expect(page.getByRole("navigation", { name: "Étapes de l'import" }).getByRole("listitem").filter({ hasText: "Colonnes" })).toContainText("3 colonnes reconnues, 1 en note sur la fiche");
   await expect(page.getByRole("region", { name: "Ce que va faire l'import" })).toContainText("Remarque");
   await expect(page.getByText("Ligne 3 : Unité : champ obligatoire manquant")).toBeVisible();
   await expect(page.getByText("Ligne 4 : Prix unitaire HT : montant invalide (abc)")).toBeVisible();

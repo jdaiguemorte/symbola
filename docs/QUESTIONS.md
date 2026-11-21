@@ -853,6 +853,25 @@ Ce sont des hypothèses, en données (`plans.json`), modifiables dans `/exploita
 (ADR 0101). **À valider ou corriger par Julien** : c'est un choix commercial, que le lot ne tranche
 pas.
 
+### Q42 — Lot 63 : deux écarts avec le cahier des charges (21 novembre 2026)
+
+Relevés en rédigeant la spécification du lot 63 (`docs/lots/lot-63-retours-recette-planner.md`),
+après la recette de la wedding planner.
+
+1. **L'engagé (BUD-01, SC-04)**. La première proposition masquait la colonne « Engagé » du
+   budget. Or BUD-01 impose cinq montants (estimé, devisé, engagé, payé, reste à payer), et
+   SC-04 dit « la ligne passe à engagé ». Proposition : garder l'engagé **comme une pastille
+   « Engagé »** sur la ligne dont le devis est accepté ou le contrat signé, et comme un
+   **sous-total « dont engagé »** ; plus de colonne à part. Le montant « devisé » s'affiche
+   « Réel » en français (décision du 21/11). **Tranché le 21/11 : d'accord** (pastille et sous-total).
+2. **Fenêtre ou panneau (UX-13)**. UX-13 prévoit « liste, puis fiche, puis panneau latéral
+   d'édition ». La planner demande une fenêtre modale pour modifier une tâche. Proposition : une
+   fenêtre pour une modification courte (tâche, échéance, ligne de choix), le panneau latéral
+   pour une fiche complète et pour les réglages d'un écran ; règle écrite dans `DESIGN.md`.
+   **Tranché le 21/11 sur maquettes (M11, M12) : la grande fenêtre** pour toute modification,
+   courte ou longue (rubriques à gauche, « Suivant » pour enchaîner) ; le panneau latéral pour
+   les réglages d'un écran et la consultation rapide seulement. Écart avec UX-13 : ADR 0107.
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que

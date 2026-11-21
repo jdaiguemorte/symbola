@@ -2496,7 +2496,10 @@ async function clientContract(organizationId: string, contractId: string, signer
 
 // Page de signature du faux fournisseur (développement, essai guidé) : en
 // production, seuls les devis d'essai peuvent s'y signer (ADR 0021).
-export async function findFakeSignature(token: string): Promise<{ quoteNumber: string; signerName: string; status: string; isDemo: boolean } | null> {
+// Lot 63a (recette du 21/11) : pour un devis d'exemple (tutoriel), l'identifiant du devis, pour que
+// la planner qui a signé à la place d'un client revienne au devis dans l'app ; jamais pour un vrai
+// devis, dont le signataire est un client sans compte.
+export async function findFakeSignature(token: string): Promise<{ quoteNumber: string; signerName: string; status: string; isDemo: boolean; demoQuoteId: string | null } | null> {
   const fake = fakeSignatureProvider();
   const found = fake.findByToken(token);
   const match = found ? ORGANIZATION_PREFIX.exec(found.signer.externalId) : null;
@@ -2504,7 +2507,13 @@ export async function findFakeSignature(token: string): Promise<{ quoteNumber: s
   const context = await findSignatureRequestByExternalId(match[1]!, "fake", found.request.externalId);
   if (!context || !fakeSigningAllowed(context.quote.isDemo)) return null;
   const signer = context.signers.find((candidate) => candidate.externalId === found.signer.externalId);
-  return { quoteNumber: context.quote.number, signerName: signer?.name ?? "", status: found.signer.status, isDemo: context.quote.isDemo };
+  return {
+    quoteNumber: context.quote.number,
+    signerName: signer?.name ?? "",
+    status: found.signer.status,
+    isDemo: context.quote.isDemo,
+    demoQuoteId: context.quote.isDemo ? context.quote.id : null,
+  };
 }
 
 function fakeSigningAllowed(isDemo: boolean): boolean {

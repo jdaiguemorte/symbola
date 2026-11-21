@@ -1,0 +1,959 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recette de la planner — maquettes M1 à M13</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{--primary:#0F6E5C;--on-primary:#fff;--primary-soft:#E3F1EE;--primary-strong:#0B5A4B;--ground:#F6F7F9;--surface:#fff;--ink:#14181F;--muted:#5A6372;--line:#DDE1E7;--line-strong:#838C99;--attention:#9A5B00;--attention-soft:#FBF0DC;--critical:#B3261E;--critical-soft:#FBE9E7;--float:0 8px 24px rgba(20,24,31,.12)}
+*{box-sizing:border-box}
+body{margin:0;background:#E9ECF0;color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+h1,h2,h3,.t{font-family:'Space Grotesk',system-ui,sans-serif;font-weight:600;margin:0}
+a{color:var(--primary)}
+.doc{max-width:1240px;margin:0 auto;padding:32px 24px 80px}
+.doc>header h1{font-size:32px;line-height:1.15}
+.doc>header p{color:var(--muted);max-width:760px}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px;padding:0;list-style:none}
+.toc a{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);text-decoration:none;font-size:13px;font-weight:500;color:var(--ink)}
+.mock{margin-top:48px}
+.mock>h2{font-size:22px}
+.mock>.refs{color:var(--muted);font-size:13px;margin:4px 0 12px}
+.notes{margin:12px 0 0;padding-left:20px;color:var(--ink);font-size:14px;max-width:900px}
+.notes li{margin:4px 0}
+.frame{background:var(--ground);border:1px solid var(--line-strong);border-radius:16px;overflow:hidden;position:relative}
+.bar{display:flex;align-items:center;gap:12px;height:52px;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:8px;font-family:'Space Grotesk',system-ui,sans-serif;font-weight:600;font-size:17px}
+.logo i{width:12px;height:12px;border-radius:3px;background:var(--primary);transform:rotate(45deg);display:inline-block}
+.bar .search{flex:1;max-width:420px;height:36px;border:1px solid var(--line-strong);border-radius:6px;padding:0 12px;display:flex;align-items:center;color:var(--muted);font-size:13px}
+.app{display:flex;min-height:420px}
+.side{width:200px;flex:none;background:var(--surface);border-right:1px solid var(--line);padding:16px 10px;display:flex;flex-direction:column;gap:2px}
+.side a{display:flex;align-items:center;min-height:38px;padding:0 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-size:14px}
+.side a.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.main{flex:1;padding:24px;min-width:0}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.ph h1{font-size:22px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px}
+.card h3{font-size:17px;margin-bottom:8px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-today{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 16px;border-radius:10px;font:600 14px Inter,system-ui,sans-serif;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);white-space:nowrap}
+.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--primary);padding:0 8px}
+.btn.sm{height:32px;padding:0 10px;font-size:13px;border-radius:8px}
+.btn.danger{color:var(--critical);border-color:var(--critical)}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500}
+.field .in{height:40px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;padding:0 12px;display:flex;align-items:center;font-weight:400;font-size:14px;color:var(--ink)}
+.field .in.hint{color:var(--muted)}
+.req{color:var(--critical)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:var(--ground);color:var(--muted);border:1px solid var(--line)}
+.pill.ok{background:var(--primary-soft);color:var(--primary);border-color:transparent}
+.pill.wait{background:var(--attention-soft);color:var(--attention);border-color:transparent}
+.pill.late{background:var(--critical-soft);color:var(--critical);border-color:transparent}
+.pill .x{font-weight:700;margin-left:2px}
+.new{outline:2px dashed #C77700;outline-offset:3px;border-radius:10px}
+.tag-new{display:inline-block;font:600 11px Inter,system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#7A4A00;background:#FFE7B3;border-radius:4px;padding:1px 6px;vertical-align:middle;margin-left:6px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font:500 12px Inter,system-ui,sans-serif;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.sel td{background:#F1F8F6}
+.done-btn{width:28px;height:28px;border-radius:999px;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font-size:14px;color:transparent;background:#fff}
+.done-btn.on{background:var(--primary);border-color:var(--primary);color:#fff}
+.box{width:18px;height:18px;border:1.5px solid var(--line-strong);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;background:#fff}
+.box.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.cat{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500}
+.cat i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.c-client{background:#3B6FD8}.c-presta{background:#B0558A}.c-admin{background:#6B7280}.c-jj{background:#C47A0A}.c-evt{background:var(--primary)}
+.editable{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;border:1px dashed transparent}
+.editable:hover,.editable.hover{border-color:var(--line-strong);background:#fff}
+.overlay{position:absolute;inset:0;background:rgba(20,24,31,.48)}
+.modal{position:absolute;background:#fff;border-radius:16px;box-shadow:var(--float);padding:24px}
+.drawer{position:absolute;top:0;right:0;bottom:0;width:380px;background:#fff;box-shadow:var(--float);padding:24px;border-left:1px solid var(--line)}
+.spot{position:relative;z-index:2;box-shadow:0 0 0 4px #fff,0 0 0 9999px rgba(20,24,31,.55);border-radius:16px}
+.bubble{position:absolute;z-index:3;width:330px;background:#fff;border-radius:16px;box-shadow:var(--float);padding:18px}
+.bubble:before{content:"";position:absolute;left:-8px;top:28px;width:16px;height:16px;background:#fff;transform:rotate(45deg)}
+.dots{display:flex;gap:6px}.dots i{width:8px;height:8px;border-radius:999px;background:var(--line)}.dots i.on{background:var(--primary)}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line);font-size:12px}
+.cal div{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-height:64px;padding:4px;position:relative}
+.cal .h{min-height:auto;font-weight:500;color:var(--muted);text-align:center;background:var(--ground)}
+.cal .d{font-variant-numeric:tabular-nums;color:var(--muted)}
+.cal .today{background:var(--primary-soft)}
+.cal .today .d{color:var(--primary);font-weight:700}
+.cal .out .d{opacity:.4}
+.ev{display:block;margin-top:2px;padding:1px 5px;border-radius:4px;color:#fff;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.t{background:#fff!important;color:var(--ink);border-left:3px solid;padding-left:4px}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.steps li{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border-radius:10px;font-size:14px}
+.steps li .n{width:24px;height:24px;border-radius:999px;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex:none}
+.steps li.done .n{background:var(--primary);border-color:var(--primary);color:#fff}
+.steps li.cur{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.steps li.cur .n{border-color:var(--primary);color:var(--primary)}
+.progress{height:6px;border-radius:999px;background:var(--line);overflow:hidden}.progress i{display:block;height:100%;background:var(--primary)}
+.diff{background:var(--attention-soft);color:var(--attention);font-weight:600;padding:0 4px;border-radius:4px}
+.cmp{display:grid;grid-template-columns:130px 1fr 1fr;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:14px}
+.cmp div{padding:8px 12px;border-bottom:1px solid var(--line)}
+.cmp .k{color:var(--muted);font-size:13px;background:var(--ground)}
+.cmp .hd{font-weight:600;background:var(--ground)}
+.radio{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border:1px solid var(--line-strong);border-radius:10px;font-size:14px;background:#fff}
+.radio i{width:16px;height:16px;border-radius:999px;border:1.5px solid var(--line-strong);flex:none}
+.radio.on{border-color:var(--primary);background:var(--primary-soft)}
+.radio.on i{border:5px solid var(--primary)}
+.drop{border:2px dashed var(--line-strong);border-radius:16px;padding:20px;background:#fff}
+.folder{display:flex;align-items:center;justify-content:space-between;min-height:38px;padding:0 12px;border-radius:10px;font-size:14px}
+.folder.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.folder .ro{font-size:11px;color:var(--muted)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;flex-wrap:wrap}
+.tabs a{padding:10px 12px;font-size:14px;text-decoration:none;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs a.on{color:var(--primary);border-color:var(--primary);font-weight:600}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:10px;overflow:hidden}
+.seg span{padding:0 14px;height:38px;display:inline-flex;align-items:center;font-size:14px;border-right:1px solid var(--line)}
+.seg span:last-child{border-right:0}
+.seg span.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.menu{position:absolute;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--float);padding:6px;width:320px;z-index:3}
+.menu .it{padding:10px 12px;border-radius:8px}
+.menu .it:hover,.menu .it.hl{background:var(--ground)}
+.menu .it b{display:block;font-size:14px}
+.menu .it span{font-size:13px;color:var(--muted)}
+.banner-demo{background:var(--attention-soft);color:var(--attention);font-size:13px;font-weight:600;padding:8px 20px;border-bottom:1px solid #EBD3A8}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+.strike{text-decoration:line-through;color:var(--critical)}
+.before{border-left:4px solid var(--critical);padding:8px 12px;background:#fff;border-radius:0 10px 10px 0;font-size:13px;margin-top:12px}
+.hr{height:1px;background:var(--line);margin:14px 0}
+.fgrid{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end}
+.fgrid>div{flex:1 1 180px;min-width:0}
+.fgrid>div.w-where{flex:2 1 300px}
+.fgrid>div.w-auto{flex:0 0 auto}
+.flabel{display:block;height:18px;font-size:13px;font-weight:500;margin-bottom:4px;white-space:nowrap}
+.ctrl{height:40px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;display:flex;align-items:center;padding:0 12px;font-size:14px;min-width:0}
+.ctrl.hint{color:var(--muted)}
+.compound{display:flex;height:40px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;overflow:hidden}
+.compound span{display:flex;align-items:center;padding:0 12px;font-size:14px;white-space:nowrap}
+.compound .sep{border-left:1px solid var(--line);color:var(--muted);font-size:13px;padding:0 10px;background:var(--ground)}
+.compound .grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.compound span:not(.grow){flex:none}
+.toggle{height:40px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;font-size:14px;white-space:nowrap}
+.lrow{display:grid;align-items:center;min-height:44px;border-bottom:1px solid var(--line);gap:12px}
+.lrow.h{min-height:32px;font-size:12px;color:var(--muted);font-weight:500}
+.mt{grid-template-columns:24px minmax(0,1fr) 96px}
+.tg{grid-template-columns:110px minmax(0,1fr)}
+.colmap{grid-template-columns:minmax(0,1.3fr) minmax(0,1.4fr) 150px}
+.pick{white-space:nowrap;overflow:hidden;gap:8px;height:40px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-size:14px}
+.pick.focus{border:2px solid var(--primary)}
+.c-pay{background:#5B4A8A}
+.sub td{background:var(--ground);font-size:13px;padding:6px 10px}
+.toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:10px;padding:10px 16px;font-size:14px;display:flex;gap:16px;align-items:center;box-shadow:var(--float)}
+.tip{background:var(--primary-soft);border-radius:10px;padding:12px 14px;font-size:14px}
+@media (max-width:900px){.grid2,.grid-today{grid-template-columns:1fr}.side{display:none}.drawer{width:100%}}
+</style>
+</head>
+<body>
+<div class="doc">
+<header>
+  <h1>Recette de la planner, 21/11 : maquettes</h1>
+  <p>Dix écrans pour valider la direction avant tout correctif. L'analyse complète, retour par retour, est dans <code>docs/audits/2026-11-21-recette-planner.md</code> (les numéros #1 à #39 y renvoient). Ce qui est <span class="new" style="padding:0 4px">entouré en orange</span> est nouveau. Les données sont fictives.</p>
+  <ul class="toc">
+    <li><a href="#m1">M1 · L'essentiel au démarrage</a></li>
+    <li><a href="#m2">M2 · Visite guidée</a></li>
+    <li><a href="#m3">M3 · Aujourd'hui en calendrier</a></li>
+    <li><a href="#m4">M4 · Prestataires : filtres et métiers</a></li>
+    <li><a href="#m5">M5 · Import</a></li>
+    <li><a href="#m6">M6 · Tâches</a></li>
+    <li><a href="#m7">M7 · Créer un évènement</a></li>
+    <li><a href="#m8">M8 · Documents et réglages</a></li>
+    <li><a href="#m9">M9 · Budget et prestataires</a></li>
+    <li><a href="#m10">M10 · Tutoriel en panneau</a></li>
+    <li><a href="#m11">M11 · Fiche longue : fenêtre ou panneau</a></li>
+    <li><a href="#m12">M12 · Budget long : fenêtre ou panneau</a></li>
+    <li><a href="#m13">M13 · Les apps</a></li>
+  </ul>
+</header>
+
+<!-- ===================== M1 ===================== -->
+<section class="mock" id="m1">
+  <h2>M1 · « L'essentiel » au démarrage</h2>
+  <p class="refs">Retours #1 et #2. Une question par écran, façon Typeform ; les réponses vont dans les mêmes réglages que les Paramètres.</p>
+  <div class="frame">
+    <div class="bar"><span class="logo"><i></i>Symbola</span><span class="muted small" style="margin-left:auto">Enregistré automatiquement · <a href="#">Finir plus tard</a></span></div>
+    <div style="display:grid;grid-template-columns:240px 1fr;min-height:460px">
+      <div style="background:#fff;border-right:1px solid var(--line);padding:20px 12px">
+        <p class="small muted" style="margin:0 12px 8px">L'essentiel · environ 4 minutes</p>
+        <ol class="steps">
+          <li class="done"><span class="n">✓</span>Votre société</li>
+          <li class="cur"><span class="n">2</span>Adresse et contact</li>
+          <li><span class="n">3</span>Logo</li>
+          <li><span class="n">4</span>TVA</li>
+          <li><span class="n">5</span>Banque (RIB)</li>
+          <li><span class="n">6</span>Numérotation</li>
+        </ol>
+      </div>
+      <div style="padding:40px 56px;max-width:720px">
+        <div class="progress" aria-hidden="true"><i style="width:28%"></i></div>
+        <p class="small muted" style="margin:12px 0 4px">Étape 2 sur 6</p>
+        <h3 style="font-size:28px;line-height:1.15">Où vos clients vous écrivent-ils ?</h3>
+        <p class="muted">Cette adresse figure sur vos devis et vos factures. Vous pourrez la modifier dans Paramètres › Entreprise.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px">
+          <label class="field" style="grid-column:1/3"><span>Adresse <span class="req">*</span></span><span class="in">12 rue des Tilleuls</span></label>
+          <label class="field"><span>Code postal <span class="req">*</span></span><span class="in" style="max-width:140px">69002</span></label>
+          <label class="field"><span>Ville <span class="req">*</span></span><span class="in">Lyon</span></label>
+          <label class="field"><span>E-mail professionnel <span class="req">*</span></span><span class="in">contact@exemple.fr</span></label>
+          <label class="field">Téléphone<span class="in hint">06 …</span></label>
+        </div>
+        <p class="small muted">* obligatoire pour envoyer un devis</p>
+        <div class="row" style="margin-top:24px"><span class="btn">Précédent</span><span class="btn p">Continuer</span><span class="small muted" style="margin-left:8px">ou appuyez sur Entrée ↵</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div class="card new">
+      <h3>Pour bien démarrer <span class="tag-new">nouveau</span></h3>
+      <p class="small muted" style="margin:0 0 10px">1 sur 2 faits</p>
+      <ol class="steps">
+        <li class="done"><span class="n">✓</span>Régler l'essentiel (société, TVA, banque)</li>
+        <li><span class="n">2</span><a href="#">Ajouter un premier prestataire</a></li>
+      </ol>
+      <p class="small muted" style="margin:12px 0 0">La carte disparaît une fois les deux faits.</p>
+    </div>
+    <div class="card">
+      <h3>Ce qui change</h3>
+      <ul class="notes" style="margin:0">
+        <li>Chaque action de la liste <b>revient à l'accueil</b> une fois faite, avec la suivante en évidence.</li>
+        <li>La liste ne garde que l'<b>indispensable</b>. « Préparer un premier devis », « Importer vos contacts » et « Inviter un client sur son espace » deviennent des <b>tutoriels</b> du centre d'aide : rien n'encombre l'accueil tant qu'elle ne les fait pas.</li>
+        <li>Les Paramètres ne servent plus qu'à <b>modifier</b> ensuite.</li>
+        <li>Sur téléphone : même déroulé, une question par écran, bouton « Continuer » en bas.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== M2 ===================== -->
+<section class="mock" id="m2">
+  <h2>M2 · Visite guidée</h2>
+  <p class="refs">Retour #3. Fond assombri, la zone expliquée reste claire, une bulle à côté. Lancée seule à la première visite, relançable depuis « ? ».</p>
+  <div class="frame">
+    <div class="bar"><span class="logo"><i></i>Symbola</span><span class="search">Rechercher…</span><span class="btn sm" style="margin-left:auto">?</span></div>
+    <div class="app" style="min-height:440px">
+      <nav class="side"><a class="on">Aujourd'hui</a><a>Évènements</a><a>Tâches</a><a>Prestataires</a><a>Devis</a><a>Contacts</a></nav>
+      <div class="main" style="position:relative">
+        <div class="ph"><h1>Bonjour Camille</h1></div>
+        <div class="grid-today">
+          <div class="card spot">
+            <h3>À faire en premier</h3>
+            <p style="margin:0">Relancer les Martin : devis sans réponse depuis 8 jours</p>
+            <p class="small muted">Mariage Martin · 14 juin</p>
+            <span class="btn p sm">Relancer</span>
+          </div>
+          <div class="card"><h3>Calendrier</h3><p class="muted small">…</p></div>
+        </div>
+        <div class="bubble" style="left:47%;top:84px">
+          <p class="small muted" style="margin:0 0 4px">2 sur 5</p>
+          <h3 style="font-size:17px">Votre priorité du jour</h3>
+          <p style="margin:6px 0 14px;font-size:14px">Symbola met ici l'action la plus urgente, calculée sur vos devis, vos tâches et vos dates. Un clic suffit pour la faire.</p>
+          <div class="row" style="justify-content:space-between"><span class="dots"><i></i><i class="on"></i><i></i><i></i><i></i></span><span class="row" style="gap:6px"><span class="btn ghost sm">Passer la visite</span><span class="btn sm">Précédent</span><span class="btn p sm">Suivant</span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <ul class="notes">
+    <li>Échap ou « Passer la visite » ferme ; la visite ne revient pas d'elle-même, « ? › Revoir la visite » la relance.</li>
+    <li>Le texte de chaque étape est un fichier de données traduisible (aucun texte en dur), ce qui le rend personnalisable écran par écran.</li>
+    <li>Sur téléphone : pas de découpe ; une bulle ancrée en bas, la zone concernée encadrée.</li>
+  </ul>
+</section>
+
+<!-- ===================== M3 ===================== -->
+<section class="mock" id="m3">
+  <h2>M3 · Aujourd'hui, avec le calendrier</h2>
+  <p class="refs">Retours #9, #10, #35 et #41. Le calendrier du mois est sur l'accueil ; la phrase « Chaque alerte dit sa règle » disparaît.</p>
+  <div class="frame">
+    <div class="bar"><span class="logo"><i></i>Symbola</span><span class="search">Rechercher…</span><span class="btn p sm" style="margin-left:auto">+ Créer</span></div>
+    <div class="app">
+      <nav class="side"><a class="on">Aujourd'hui</a><a>Évènements</a><a>Tâches</a><a>Prestataires</a><a>Devis</a><a>Contacts</a></nav>
+      <div class="main">
+        <div class="ph"><h1>Samedi 21 novembre</h1></div>
+        <div class="grid-today">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="card">
+              <h3>À faire en premier</h3>
+              <p style="margin:0">Relancer les Martin : devis sans réponse depuis 8 jours</p>
+              <p class="small muted" style="margin:2px 0 10px">Mariage Martin · 14 juin 2027</p>
+              <span class="btn p sm">Relancer</span>
+            </div>
+            <div class="card">
+              <h3>Ensuite</h3>
+              <table>
+                <tr><td><span class="cat"><i class="c-presta"></i></span> Confirmer le traiteur</td><td class="small muted">Durand · lun. 23</td></tr>
+                <tr><td><span class="cat"><i class="c-client"></i></span> Rendez-vous dégustation</td><td class="small muted">Martin · mar. 24</td></tr>
+                <tr><td><span class="cat"><i class="c-admin"></i></span> Facture d'acompte</td><td class="small muted">Lopez · ven. 27</td></tr>
+              </table>
+            </div>
+            <div class="card">
+              <h3>Alertes</h3>
+              <div class="before"><span class="strike">Le radar passe chaque matin sur les évènements à venir. Chaque alerte dit sa règle.</span> <b>Supprimée.</b></div>
+              <p style="margin:12px 0 0"><span class="pill wait">À vérifier</span> Mariage Lopez : pas de photographe à 120 jours</p>
+              <p class="small" style="margin:4px 0 0"><a href="#">Pourquoi ?</a></p>
+            </div>
+          </div>
+          <div class="card new">
+            <div class="row" style="justify-content:space-between;margin-bottom:10px"><h3 style="margin:0">Novembre 2026 <span class="tag-new">nouveau</span></h3><span class="row" style="gap:6px"><span class="btn sm">‹</span><span class="btn sm">Aujourd'hui</span><span class="btn sm">›</span><span class="seg" style="margin-left:6px"><span class="on" style="height:32px">Mois</span><span style="height:32px">Semaine</span></span></span></div>
+            <div class="cal">
+              <div class="h">lun.</div><div class="h">mar.</div><div class="h">mer.</div><div class="h">jeu.</div><div class="h">ven.</div><div class="h">sam.</div><div class="h">dim.</div>
+              <div class="out"><span class="d">26</span></div><div class="out"><span class="d">27</span></div><div class="out"><span class="d">28</span></div><div class="out"><span class="d">29</span></div><div class="out"><span class="d">30</span></div><div class="out"><span class="d">31</span></div><div><span class="d">1</span></div>
+              <div><span class="d">2</span></div><div><span class="d">3</span><span class="ev t" style="border-color:#3B6FD8">RDV Martin</span></div><div><span class="d">4</span></div><div><span class="d">5</span></div><div><span class="d">6</span></div><div><span class="d">7</span><span class="ev c-evt">Shooting Roux</span></div><div><span class="d">8</span></div>
+              <div><span class="d">9</span></div><div><span class="d">10</span></div><div><span class="d">11</span><span class="ev t" style="border-color:#6B7280">Acompte Lopez</span></div><div><span class="d">12</span></div><div><span class="d">13</span></div><div><span class="d">14</span><span class="ev c-evt">Mariage Petit</span><span class="ev t" style="border-color:#5B4A8A">Solde DJ 900 €</span></div><div><span class="d">15</span></div>
+              <div><span class="d">16</span></div><div><span class="d">17</span></div><div><span class="d">18</span></div><div><span class="d">19</span></div><div><span class="d">20</span></div><div class="today"><span class="d">21</span><span class="ev t" style="border-color:#B0558A">Relance Martin</span></div><div><span class="d">22</span></div>
+              <div><span class="d">23</span><span class="ev t" style="border-color:#B0558A">Traiteur Durand</span></div><div><span class="d">24</span><span class="ev t" style="border-color:#3B6FD8">Dégustation</span></div><div><span class="d">25</span><span class="ev t" style="border-color:#5B4A8A">Acompte fleurs</span></div><div><span class="d">26</span></div><div><span class="d">27</span><span class="ev t" style="border-color:#6B7280">Facture Lopez</span></div><div><span class="d">28</span><span class="ev c-evt">Mariage Durand</span></div><div><span class="d">29</span></div>
+            </div>
+            <div class="legend small"><span class="cat"><i class="c-evt"></i>Évènement</span><span class="cat"><i class="c-client"></i>Client</span><span class="cat"><i class="c-presta"></i>Prestataires</span><span class="cat"><i class="c-admin"></i>Administratif</span><span class="cat"><i class="c-jj"></i>Jour J</span><span class="cat new" style="outline-offset:1px"><i class="c-pay"></i>Paiements</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <ul class="notes">
+    <li>Pavé plein : un évènement. Pavé blanc à liseré : une tâche ou un rendez-vous, de la couleur de sa catégorie (le libellé reste toujours écrit : jamais la couleur seule).</li>
+    <li>Un clic sur un jour ouvre le détail du jour dans une fenêtre ; un clic sur un évènement ouvre sa fiche.</li>
+    <li><b>Paiements</b> : les échéances des prestataires non réglées (« Solde DJ 900 € ») apparaissent à leur date ; aujourd'hui, seules celles des 7 prochains jours remontent sur l'accueil (#41).</li>
+    <li>Sur téléphone : la semaine en cours en liste, sous les priorités.</li>
+  </ul>
+</section>
+
+<!-- ===================== M4 ===================== -->
+<section class="mock" id="m4">
+  <h2>M4 · Prestataires : filtres et fiche à plusieurs métiers</h2>
+  <p class="refs">Retours #11 à #14. Version 2 : chaque filtre a son libellé sur une même ligne et un contrôle de même hauteur ; les colonnes de la fiche sont alignées.</p>
+  <div class="frame">
+    <div class="bar"><span class="logo"><i></i>Symbola</span><span class="search">Rechercher…</span></div>
+    <div class="app" style="min-height:auto">
+      <nav class="side"><a>Aujourd'hui</a><a>Évènements</a><a>Tâches</a><a class="on">Prestataires</a><a>Devis</a></nav>
+      <div class="main">
+        <div class="ph"><h1>Mes prestataires</h1><span class="row" style="gap:8px"><span class="btn new">Importer</span><span class="btn p">Nouveau prestataire</span></span></div>
+        <div class="card" style="padding:16px 20px">
+          <div class="fgrid">
+            <div><span class="flabel">Nom ou mot-clé</span><div class="ctrl hint">Rechercher…</div></div>
+            <div><span class="flabel">Métier</span><div class="pick">Photographe, Vidéaste <span class="muted">▾</span></div></div>
+            <div class="new w-where"><span class="flabel">Où ?</span><div class="compound"><span class="grow">Lyon (69)</span><span class="sep">dans un rayon de</span><span>30 km ▾</span></div></div>
+            <div class="new w-auto"><span class="flabel">&nbsp;</span><div class="toggle"><span class="box on">✓</span>Déjà travaillé ensemble</div></div>
+          </div>
+          <div class="hr" style="margin:16px 0 12px"></div>
+          <div class="row new" style="gap:8px;justify-content:space-between">
+            <span class="row" style="gap:8px"><span class="small muted">3 filtres actifs</span><span class="pill ok">Photographe, Vidéaste <span class="x">×</span></span><span class="pill ok">Lyon, 30 km <span class="x">×</span></span><span class="pill ok">Déjà travaillé ensemble <span class="x">×</span></span></span>
+            <span class="btn sm">Effacer les filtres</span>
+          </div>
+        </div>
+        <div class="before">Avant : « Déjà retenus » ; « Autour de » et « Dans un rayon de » dans deux champs séparés ; pas de remise à zéro.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame" style="margin-top:16px">
+    <div class="main" style="max-width:1040px">
+      <div class="ph"><h1>Studio Lumière : modifier</h1><span class="btn p">Enregistrer</span></div>
+      <div class="grid2" style="align-items:start">
+        <div class="card new">
+          <h3>Métiers <span class="tag-new">nouveau</span></h3>
+          <p class="small muted" style="margin:0 0 8px">Cochez tous les métiers de ce prestataire. Le principal donne la couleur et l'icône sur la carte.</p>
+          <div class="lrow mt h"><span></span><span>Métier</span><span>Principal</span></div>
+          <div class="lrow mt"><span class="box on">✓</span><span>Photographe <span class="small muted">· Photo et vidéo</span></span><span class="radio on" style="border:0;background:none;padding:0;min-height:auto"><i></i></span></div>
+          <div class="lrow mt"><span class="box on">✓</span><span>Vidéaste <span class="small muted">· Photo et vidéo</span></span><span class="radio" style="border:0;background:none;padding:0;min-height:auto"><i></i></span></div>
+          <div class="lrow mt"><span class="box"></span><span>Photobooth <span class="small muted">· Photo et vidéo</span></span><span></span></div>
+          <p class="small" style="margin:12px 0 0"><a href="#">+ Ajouter un métier d'une autre famille</a> <span class="muted">(ex. Officiante + Décoratrice)</span></p>
+        </div>
+        <div class="card">
+          <h3>Étiquettes, par métier</h3>
+          <div class="lrow tg"><b class="small">Photographe</b><span class="row" style="gap:6px"><span class="pill ok">Reportage ✓</span><span class="pill ok">Argentique ✓</span><span class="pill">Studio</span><span class="pill">Pose</span></span></div>
+          <div class="lrow tg"><b class="small">Vidéaste</b><span class="row" style="gap:6px"><span class="pill ok">Drone ✓</span><span class="pill">Teaser</span><span class="pill ok">Film long ✓</span></span></div>
+          <div class="lrow tg" style="border-bottom:0"><b class="small">Pour tous</b><span class="row" style="gap:6px"><span class="pill ok">Déplacement inclus ✓</span><span class="pill">Anglais</span></span></div>
+        </div>
+      </div>
+      <ul class="notes">
+        <li>Une seule fiche « Studio Lumière », trouvée par le filtre Photographe comme par le filtre Vidéaste.</li>
+        <li>À l'import, « Photographe et vidéaste » ou « Coiffure &amp; maquillage » devient <b>deux métiers sur la même fiche</b> ; les types combinés déjà créés sont repris (avec ton accord, Q3).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<!-- ===================== M5 ===================== -->
+<section class="mock" id="m5">
+  <h2>M5 · Import : chargement, rapprochements, bilan</h2>
+  <p class="refs">Retours #15, #16, #17 et #22. Version 2 : l’étape des colonnes devient un tableau avec un aperçu de la fiche.</p>
+  <div class="grid2">
+    <div class="frame" style="min-height:380px">
+      <div class="main"><div class="ph"><h1>Importer des prestataires</h1></div><div class="card" style="height:220px"></div></div>
+      <div class="overlay"></div>
+      <div class="modal new" style="left:50%;top:50%;transform:translate(-50%,-50%);width:380px">
+        <h3 style="font-size:17px">Import en cours…</h3>
+        <p class="small muted" style="margin:4px 0 14px">prestataires-2026.xlsx · 52 lignes</p>
+        <div class="progress"><i style="width:62%"></i></div>
+        <ol class="steps" style="margin-top:12px">
+          <li class="done" style="min-height:30px"><span class="n">✓</span>Fichier lu</li>
+          <li class="done" style="min-height:30px"><span class="n">✓</span>Colonnes reconnues (9 sur 11)</li>
+          <li class="cur" style="min-height:30px"><span class="n">3</span>Recherche des doublons : ligne 32 sur 52</li>
+          <li style="min-height:30px"><span class="n">4</span>Préparation de l'aperçu</li>
+        </ol>
+        <p class="small muted" style="margin:12px 0 0">Rien n'est encore enregistré. Vous pouvez fermer : l'import continue et vous prévient.</p>
+      </div>
+    </div>
+    <div class="frame">
+      <div class="main">
+        <p class="small muted" style="margin:0">Rapprochement 3 sur 5</p>
+        <h3 style="font-size:17px;margin:2px 0 12px">Est-ce le même prestataire ?</h3>
+        <div class="cmp new">
+          <div class="k"></div><div class="hd">Ligne 18 du fichier</div><div class="hd">Fiche existante</div>
+          <div class="k">Nom</div><div>Benjamin</div><div>Benjamin <span class="diff">Dupuy</span></div>
+          <div class="k">Métier</div><div><span class="diff">DJ</span></div><div><span class="diff">Photographe</span></div>
+          <div class="k">Ville</div><div><span class="diff">Villeurbanne</span></div><div><span class="diff">Annecy</span></div>
+          <div class="k">E-mail</div><div>bnj.mix@…</div><div>contact@dupuy-photo…</div>
+          <div class="k">Téléphone</div><div>—</div><div>06 12 … 44</div>
+          <div class="k" style="border:0">Fiche</div><div style="border:0">—</div><div style="border:0"><a href="#">Ouvrir la fiche ↗</a> · 3 évènements</div>
+        </div>
+        <p class="small" style="margin:10px 0"><span class="pill wait">À vérifier</span> Seul le prénom est commun ; métier et ville diffèrent.</p>
+        <div class="row" style="gap:8px"><span class="btn">C'est le même</span><span class="btn p">Ce sont deux prestataires</span><span class="btn ghost">Décider plus tard</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="frame" style="margin-top:16px">
+    <div class="main" style="max-width:900px">
+      <p class="small"><a href="#">‹ Mes prestataires</a></p>
+      <div class="ph"><h1>Import terminé</h1></div>
+      <div class="card new">
+        <p style="margin:0 0 12px">prestataires-2026.xlsx, importé le 21/11 à 15 h 02.</p>
+        <div class="row" style="gap:28px">
+          <div><div class="t" style="font-size:28px">29</div><div class="small muted"><a href="#">créés</a></div></div>
+          <div><div class="t" style="font-size:28px">5</div><div class="small muted"><a href="#">mis à jour</a></div></div>
+          <div><div class="t" style="font-size:28px">3</div><div class="small muted"><a href="#">ignorés (lignes vides)</a></div></div>
+          <div><div class="t" style="font-size:28px">2</div><div class="small muted"><a href="#">colonnes gardées comme note</a></div></div>
+        </div>
+        <div class="row" style="margin-top:20px;gap:8px"><span class="btn p">Vérifier les 34 prestataires</span><span class="btn">Revenir à mes prestataires</span></div>
+        <p class="small muted" style="margin:8px 0 0">« Vérifier » ouvre la liste filtrée sur cet import (pastille « Import du 21/11 », retirable).</p>
+      </div>
+      <details class="card" style="margin-top:12px" open>
+        <summary style="font-weight:600;cursor:pointer">Annuler cet import</summary>
+        <p class="small" style="margin:10px 0">L'annulation supprime les 29 fiches créées et remet les 5 fiches mises à jour comme avant. Deux fiches ont été modifiées à la main depuis :</p>
+        <table>
+          <tr><td>Benjamin Dupuy <span class="small muted">· Photographe · rapproché de la ligne 18</span></td><td class="small muted">modifiée le 21/11 à 15 h 10</td></tr>
+          <tr><td>Ligne 41 sans nom <span class="small muted">· Traiteur · Lyon</span></td><td class="small muted">modifiée le 21/11 à 15 h 12</td></tr>
+        </table>
+        <div class="row" style="margin-top:12px;gap:8px"><span class="btn danger">Annuler l'import, sauf ces 2 fiches</span><span class="btn danger">Tout annuler</span></div>
+      </details>
+      <div class="before">Avant : « Annuler l'import » en premier ; « Annuler quand même : Prestataire : Sans intitulé » ; « Voir les 34 prestataires » non filtré ; « Retour aux imports ».</div>
+    </div>
+  </div>
+  <div class="frame" style="margin-top:16px">
+    <div class="main">
+      <p class="small muted" style="margin:0">Étape 2 sur 4 · prestataires-2026.xlsx</p>
+      <div class="ph" style="margin-top:2px"><h1>Où va chaque colonne de votre fichier ?</h1><span class="btn p">Continuer</span></div>
+      <p class="small muted" style="margin:-8px 0 14px">Symbola en a reconnu 4 sur 6. Choisissez pour les 2 autres ; l'aperçu à droite montre le résultat sur une fiche.</p>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start">
+        <div class="card new" style="padding:4px 20px 8px">
+          <div class="lrow colmap h"><span>Colonne de votre fichier</span><span>Devient, sur la fiche</span><span>État</span></div>
+          <div class="lrow colmap"><span><b>Nom</b><br><span class="small muted">Benjamin Dupuy · Studio Lumière</span></span><div class="pick">Nom <span class="muted">▾</span></div><span class="pill ok">Reconnue</span></div>
+          <div class="lrow colmap"><span><b>Tél</b><br><span class="small muted">06 12 34 56 78 · 04 78 …</span></span><div class="pick">Téléphone <span class="muted">▾</span></div><span class="pill ok">Reconnue</span></div>
+          <div class="lrow colmap"><span><b>Métier</b><br><span class="small muted">Photographe &amp; vidéaste · DJ</span></span><div class="pick">Métiers <span class="muted">▾</span></div><span class="pill ok">Reconnue</span></div>
+          <div class="lrow colmap"><span><b>Ville</b><br><span class="small muted">Annecy · Lyon</span></span><div class="pick">Ville <span class="muted">▾</span></div><span class="pill ok">Reconnue</span></div>
+          <div class="lrow colmap"><span><b>N° TVA</b><br><span class="small muted">FR12 345 678 901 · —</span></span><div><div class="pick focus">Une note sur la fiche <span class="muted">▾</span></div><span class="small muted">Visible sur la fiche, rubrique « Notes ». Pas de filtre ni de calcul.</span></div><span class="pill wait">Choisie</span></div>
+          <div class="lrow colmap" style="border-bottom:0"><span><b>Dépt</b><br><span class="small muted">74 · 69</span></span><div class="pick">Ne pas importer <span class="muted">▾</span></div><span class="pill">Ignorée</span></div>
+        </div>
+        <div class="card">
+          <p class="small muted" style="margin:0 0 6px">Aperçu : ligne 1 du fichier</p>
+          <h3 style="margin-bottom:2px">Benjamin Dupuy</h3>
+          <p class="small muted" style="margin:0 0 10px">Photographe · Vidéaste · Annecy</p>
+          <p class="small" style="margin:0">06 12 34 56 78</p>
+          <div class="hr"></div>
+          <p class="small" style="font-weight:600;margin:0 0 4px">Notes</p>
+          <p class="small new" style="margin:0;padding:6px 8px">N° TVA : FR12 345 678 901</p>
+        </div>
+      </div>
+      <p class="small muted" style="margin:10px 0 0">Le menu « Devient, sur la fiche » propose : les champs de la fiche par leur nom, puis « Une note sur la fiche », puis « Ne pas importer ». Le mot « champ libre » disparaît.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== M6 ===================== -->
+<section class="mock" id="m6">
+  <h2>M6 · Tâches et rétroplanning : agir sur la ligne</h2>
+  <p class="refs">Retours #32 à #35. Même tableau pour « Tâches » et pour le rétroplanning d'un évènement. Version 2 : « Supprimer » est sur chaque ligne et dans la fenêtre.</p>
+  <div class="frame">
+    <div class="main" style="position:relative;padding-bottom:72px">
+      <div class="ph"><h1>Tâches</h1><span class="row" style="gap:8px"><span class="seg"><span class="on">Liste</span><span>Calendrier</span></span><span class="btn p">Nouvelle tâche</span></span></div>
+      <div class="row new" style="background:var(--ink);color:#fff;border-radius:10px;padding:8px 12px;margin-bottom:10px;gap:10px">
+        <b style="font-size:14px">2 tâches sélectionnées</b>
+        <span class="btn sm" style="background:transparent;color:#fff;border-color:#5A6372">Décaler de… ▾</span>
+        <span class="btn sm" style="background:transparent;color:#fff;border-color:#5A6372">Responsable ▾</span>
+        <span class="btn sm" style="background:transparent;color:#fff;border-color:#5A6372">Catégorie ▾</span>
+        <span class="btn sm" style="background:transparent;color:#FFB4AB;border-color:#FFB4AB">Supprimer les 2</span>
+        <span style="margin-left:auto;font-size:13px">Tout désélectionner</span>
+      </div>
+      <div class="card" style="padding:0;overflow:auto">
+        <table>
+          <thead><tr><th><span class="box">–</span></th><th>Fait</th><th>Tâche</th><th>Catégorie</th><th>Échéance</th><th>Resp.</th><th>Actions</th></tr></thead>
+          <tr class="sel"><td><span class="box on">✓</span></td><td><span class="done-btn" title="Marquer comme fait">✓</span></td><td>Confirmer le menu avec le traiteur<br><span class="small muted">Mariage Durand</span></td><td><span class="cat"><i class="c-presta"></i>Prestataires</span></td><td><span class="editable hover">lun. 23 nov. 📅</span></td><td class="small">Camille</td><td><span class="row new" style="gap:4px;flex-wrap:nowrap"><span class="btn sm">Modifier</span><span class="btn sm">Reporter ▾</span><span class="btn sm danger">Supprimer</span></span></td></tr>
+          <tr class="sel"><td><span class="box on">✓</span></td><td><span class="done-btn">✓</span></td><td>Envoyer le questionnaire invités <span class="pill late">En retard</span><br><span class="small muted">Mariage Martin</span></td><td><span class="cat"><i class="c-client"></i>Client</span></td><td><span class="editable">jeu. 19 nov.</span></td><td class="small">Léa</td><td><span class="row" style="gap:4px;flex-wrap:nowrap"><span class="btn sm">Modifier</span><span class="btn sm">Reporter ▾</span><span class="btn sm danger">Supprimer</span></span></td></tr>
+          <tr><td><span class="box"></span></td><td><span class="done-btn on">✓</span></td><td class="muted"><s>Réserver le photographe</s> <span class="small">fait le 18/11</span><br><span class="small muted">Mariage Lopez</span></td><td><span class="cat"><i class="c-presta"></i>Prestataires</span></td><td class="small muted">18 nov.</td><td class="small">Camille</td><td><span class="row" style="gap:4px;flex-wrap:nowrap"><span class="btn sm">Rouvrir</span><span class="btn sm danger">Supprimer</span></span></td></tr>
+          <tr><td><span class="box"></span></td><td><span class="done-btn">✓</span></td><td>Préparer la facture d'acompte <span class="pill">Haute</span><br><span class="small muted">Mariage Lopez</span></td><td><span class="cat"><i class="c-admin"></i>Administratif</span></td><td><span class="editable">ven. 27 nov.</span></td><td class="small">Camille</td><td><span class="row" style="gap:4px;flex-wrap:nowrap"><span class="btn sm">Modifier</span><span class="btn sm">Reporter ▾</span><span class="btn sm danger">Supprimer</span></span></td></tr>
+        </table>
+      </div>
+      <div class="toast new">Tâche « Appeler le fleuriste » supprimée. <b style="color:#5FD3B8">Annuler</b></div>
+    </div>
+  </div>
+  <ul class="notes">
+    <li><b>Rond « Fait »</b> pour terminer (libellé au survol, lu par le lecteur d'écran) ; <b>case carrée</b> à gauche pour sélectionner. La case de l'en-tête sélectionne tout.</li>
+    <li><b>Supprimer</b> agit tout de suite, sans fenêtre de confirmation, et propose « Annuler » quelques secondes en bas de l'écran (motif « Annuler la dernière modification » de DESIGN.md). Une tâche supprimée part à la corbeille, comme aujourd'hui.</li>
+    <li>Échéance modifiable d'un clic dans la cellule (petit calendrier). « Modifier » ou un clic sur la ligne ouvre la fenêtre ci-dessous.</li>
+  </ul>
+  <div class="frame" style="margin-top:16px;min-height:560px">
+    <div class="overlay"></div>
+    <div class="modal new" style="left:50%;top:24px;transform:translateX(-50%);width:560px">
+      <div class="row" style="justify-content:space-between"><h3 style="font-size:17px">Modifier la tâche</h3><span class="btn ghost sm">✕ Fermer</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+        <label class="field" style="grid-column:1/3"><span>Tâche <span class="req">*</span></span><span class="in">Confirmer le menu avec le traiteur</span></label>
+        <label class="field"><span>Échéance <span class="req">*</span></span><span class="in">23/11/2026 📅</span></label>
+        <label class="field">Responsable<span class="in">Camille ▾</span></label>
+        <label class="field">Catégorie<span class="in"><span class="cat"><i class="c-presta"></i>Prestataires ▾</span></span></label>
+        <label class="field">Priorité<span class="in">Normale ▾</span></label>
+        <label class="field" style="grid-column:1/3">Note<span class="in hint" style="height:64px;align-items:flex-start;padding-top:10px">Allergies à transmettre…</span></label>
+      </div>
+      <p class="small muted">* obligatoire</p>
+      <div class="row" style="justify-content:space-between;margin-top:8px"><span class="btn danger">Supprimer la tâche</span><span class="row" style="gap:8px"><span class="btn">Annuler</span><span class="btn p">Enregistrer</span></span></div>
+    </div>
+  </div>
+</section>
+<!-- ===================== M7 ===================== -->
+<section class="mock" id="m7">
+  <h2>M7 · Évènements : créer et changer de vue</h2>
+  <p class="refs">Retours #18, #24, #25 et #26. Version 2 : le rétroplanning est proposé à la création, selon le type.</p>
+  <div class="frame" style="min-height:420px">
+    <div class="app" style="min-height:420px">
+      <nav class="side"><a>Aujourd'hui</a><a class="on">Évènements</a><a>Tâches</a><a>Prestataires</a></nav>
+      <div class="main" style="position:relative">
+        <div class="ph"><h1>Évènements</h1><span class="row" style="gap:8px"><span class="seg new"><span class="on">Liste</span><span>Colonnes</span><span>Calendrier</span></span><span class="btn new">Importer</span><span class="btn p new">Nouveau ▾</span></span></div>
+        <div class="menu" style="right:24px;top:68px">
+          <div class="it hl"><b>Prospect</b><span>Une demande à étudier, avant tout devis signé. Pas de rétroplanning.</span></div>
+          <div class="it"><b>Évènement confirmé</b><span>Directement en préparation, avec ou sans client (ex. un shooting photo).</span></div>
+          <div class="it"><b>Pour un client existant</b><span>Un nouvel évènement pour un client déjà dans vos contacts.</span></div>
+        </div>
+        <div class="tabs"><a class="on">À venir (12)</a><a>Terminés</a><a>Archivés</a></div>
+        <div class="card" style="padding:0">
+          <table>
+            <tr><th>Évènement</th><th>Date</th><th>Statut</th><th>Client</th></tr>
+            <tr><td>Mariage Durand</td><td class="small">28 nov. 2026</td><td><span class="pill ok">En préparation</span></td><td class="small">Durand</td></tr>
+            <tr><td>Shooting Roux</td><td class="small">7 déc. 2026</td><td><span class="pill">Confirmé</span></td><td class="small muted">—</td></tr>
+            <tr><td>Mariage Martin</td><td class="small">14 juin 2027</td><td><span class="pill wait">Option</span></td><td class="small">Martin</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <ul class="notes">
+    <li>Le sélecteur Liste / Colonnes / Calendrier et les boutons restent <b>au même endroit sur les trois vues</b> : plus de vue colonnes sans en-tête.</li>
+    <li>« Importer » ouvre l'import déjà réglé sur « Évènements » ; même bouton dans Prestataires, Contacts, Invités, Budget, Programme.</li>
+  </ul>
+  <div class="grid2" style="margin-top:16px;align-items:start">
+    <div class="frame">
+      <div class="main">
+        <p class="small muted" style="margin:0">Nouvel évènement confirmé</p>
+        <h3 style="font-size:20px;margin:2px 0 14px">Type : Mariage</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <label class="field"><span>Type <span class="req">*</span></span><span class="in">Mariage ▾</span></label>
+          <label class="field">Date<span class="in">14/06/2027</span></label>
+          <label class="field" style="grid-column:1/3">Client <span class="in hint">Facultatif : choisir ou créer un contact</span></label>
+        </div>
+        <div class="card new" style="margin-top:14px;padding:14px 16px">
+          <label class="row" style="gap:10px;align-items:flex-start;flex-wrap:nowrap"><span class="box on" style="margin-top:3px;flex:none">✓</span><span><b>Partir du rétroplanning « Mariage »</b><br><span class="small muted">24 tâches, de 12 mois avant au lendemain du mariage, datées depuis la date de l'évènement.</span> <a class="small" href="#">Voir les tâches</a></span></label>
+        </div>
+        <div class="row" style="margin-top:16px;justify-content:flex-end;gap:8px"><span class="btn">Annuler</span><span class="btn p">Créer l'évènement</span></div>
+      </div>
+    </div>
+    <div class="frame">
+      <div class="main">
+        <p class="small muted" style="margin:0">Nouvel évènement confirmé</p>
+        <h3 style="font-size:20px;margin:2px 0 14px">Type : Shooting photo</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <label class="field"><span>Type <span class="req">*</span></span><span class="in">Shooting photo ▾</span></label>
+          <label class="field">Date<span class="in">07/12/2026</span></label>
+          <label class="field" style="grid-column:1/3">Client <span class="in hint">Facultatif : choisir ou créer un contact</span></label>
+        </div>
+        <div class="tip new" style="margin-top:14px">
+          <b>Astuce</b> : vous organisez souvent des shootings photo ? Créez un modèle de rétroplanning : vos tâches habituelles seront prêtes à chaque nouveau shooting, sans les saisir à nouveau.
+          <div style="margin-top:8px"><a href="#">Créer un modèle pour « Shooting photo »</a> <span class="small muted">· s'ouvre dans un panneau, sans quitter ce formulaire</span></div>
+        </div>
+        <div class="row" style="margin-top:16px;justify-content:flex-end;gap:8px"><span class="btn">Annuler</span><span class="btn p">Créer l'évènement</span></div>
+      </div>
+    </div>
+  </div>
+  <ul class="notes">
+    <li><b>Aucun rétroplanning d'office.</b> Si le type a un modèle (Mariage, ou tout type pour lequel vous en avez créé un), le formulaire le <b>propose</b>, case cochée, décochable. Pour un prospect, la case est décochée : on peut l'appliquer plus tard, depuis l'onglet Rétroplanning.</li>
+    <li>Si le type n'a pas de modèle : pas de tâches, et l'<b>astuce</b> à la place. Plus jamais les tâches du mariage sur un autre type.</li>
+  </ul>
+</section>
+
+<!-- ===================== M8 ===================== -->
+<section class="mock" id="m8">
+  <h2>M8 · Documents de l'évènement, réglages en panneau</h2>
+  <p class="refs">Retours #29, #30 et #31.</p>
+  <div class="frame" style="min-height:470px">
+    <div class="main" style="position:relative">
+      <div class="ph"><h1>Mariage Durand</h1><span class="btn sm">⚙ Réglages des documents</span></div>
+      <div class="tabs"><a>Synthèse</a><a>Rétroplanning</a><a>Programme</a><a>Budget et prestataires</a><a>Mes devis et factures</a><a class="on">Documents</a></div>
+      <div style="display:grid;grid-template-columns:230px 1fr;gap:16px">
+        <div>
+          <div class="folder on"><span>Devis des prestataires</span><span>3</span></div>
+          <div class="folder"><span>Factures des prestataires</span><span>1</span></div>
+          <div class="folder"><span>Contrats</span><span>2</span></div>
+          <div class="folder"><span>Divers</span><span>4</span></div>
+          <div class="hr"></div>
+          <div class="folder"><span>Mes devis</span><span class="ro">lecture</span></div>
+          <div class="folder"><span>Mes factures</span><span class="ro">lecture</span></div>
+          <p class="small"><a href="#">+ Nouveau dossier</a></p>
+        </div>
+        <div>
+          <div class="drop new">
+            <div class="row" style="justify-content:space-between"><b>Déposez un fichier ici, ou <a href="#">choisissez-le</a></b><span class="small muted">PDF ou image · 20 Mo au plus</span></div>
+            <p class="small" style="margin:12px 0 6px;font-weight:500">Ce document est :</p>
+            <div class="row" style="gap:8px"><span class="radio on"><i></i>Devis d'un prestataire</span><span class="radio"><i></i>Facture d'un prestataire</span><span class="radio"><i></i>Contrat</span><span class="radio"><i></i>Autre</span></div>
+            <div class="row" style="margin-top:12px;align-items:flex-end"><label class="field">Prestataire concerné<span class="in" style="min-width:240px">Traiteur Les Saveurs ▾</span></label><span class="small muted" style="padding-bottom:10px">Rattaché à la ligne « Traiteur » du budget</span></div>
+          </div>
+          <div class="card" style="margin-top:12px;padding:0">
+            <table>
+              <tr><td>⠿ devis-traiteur-v2.pdf</td><td class="small muted">Traiteur Les Saveurs</td><td class="small muted">20/11</td><td><span class="row" style="gap:4px"><span class="btn sm">Aperçu</span><span class="btn sm">Déplacer vers…</span><span class="btn sm">⋯</span></span></td></tr>
+              <tr><td>⠿ devis-dj.pdf</td><td class="small muted">DJ Nova</td><td class="small muted">18/11</td><td><span class="row" style="gap:4px"><span class="btn sm">Aperçu</span><span class="btn sm">Déplacer vers…</span><span class="btn sm">⋯</span></span></td></tr>
+            </table>
+          </div>
+          <p class="small muted">⠿ : glisser une pièce sur un dossier pour la ranger (ordinateur). <a href="#">Aide : ranger les documents d'un évènement</a></p>
+        </div>
+      </div>
+      <div class="drawer new">
+        <div class="row" style="justify-content:space-between"><h3 style="font-size:17px">Réglages des documents</h3><span class="btn ghost sm">✕ Fermer</span></div>
+        <p class="small muted">S'ouvre au-dessus de l'écran : en fermant, vous êtes toujours sur les documents du mariage Durand.</p>
+        <div class="hr"></div>
+        <p style="margin:0 0 4px;font-weight:600;font-size:14px">Dossiers proposés à chaque évènement</p>
+        <p class="small muted" style="margin:0 0 8px">Devis des prestataires, Factures des prestataires, Contrats</p>
+        <span class="btn sm">Modifier la liste</span>
+        <div class="hr"></div>
+        <p style="margin:0 0 4px;font-weight:600;font-size:14px">Durée des liens de partage</p>
+        <div class="row"><span class="field"><span class="in" style="width:80px">30</span></span><span class="small">jours</span></div>
+      </div>
+    </div>
+  </div>
+  <ul class="notes">
+    <li>Une seule zone de dépôt, <b>toujours là</b>, même après le premier document. Le type choisi range la pièce dans le bon dossier.</li>
+    <li>Les devis des prestataires ne sont pas « Mes devis » (ceux que j'émets, en lecture ici) : deux dossiers distincts, deux noms clairs.</li>
+    <li>Sur téléphone : « Réglages » ouvre une page avec « Retour aux documents ».</li>
+  </ul>
+</section>
+
+<!-- ===================== M9 ===================== -->
+<section class="mock" id="m9">
+  <h2>M9 · Budget et prestataires</h2>
+  <p class="refs">Retours #21, #27, #28, #39 et #40. Version 2 : « Réel » au lieu de « Devisé », le tableau tient dans la largeur, les échéances apparaissent sur la ligne.</p>
+  <div class="frame">
+    <div class="main">
+      <div class="ph"><h1>Mariage Durand</h1><span class="row" style="gap:8px"><span class="btn new">Importer un budget</span><span class="btn p">Enregistrer (2 lignes modifiées)</span></span></div>
+      <div class="tabs"><a>Synthèse</a><a>Rétroplanning</a><a>Programme</a><a class="on new">Budget et prestataires</a><a class="new">Mes devis et factures</a><a>Documents</a></div>
+      <div class="card" style="padding:0;overflow:auto">
+        <table style="font-size:13px">
+          <thead><tr><th>Poste, prestataire et devis</th><th class="num">Prévu</th><th class="num new">Réel</th><th class="num">Écart</th><th class="num">Réglé</th><th class="num">Reste<br>à payer</th><th class="new">Prochaine<br>échéance</th></tr></thead>
+          <tr><td><b>▾ Traiteur</b><br><span class="small">Les Saveurs · <a href="#">devis-v2.pdf</a></span></td><td class="num">8&#8239;000&nbsp;€</td><td class="num">8&#8239;400&nbsp;€</td><td class="num"><span class="pill wait">+&#8239;400&nbsp;€</span></td><td class="num">2&#8239;520&nbsp;€</td><td class="num"><b>5&#8239;880&nbsp;€</b></td><td>5&#8239;880&nbsp;€<br><span class="small muted">14 juin</span></td></tr>
+          <tr class="sub"><td style="padding-left:24px">Acompte 30 %</td><td></td><td class="num">2&#8239;520&nbsp;€</td><td></td><td class="num">2&#8239;520&nbsp;€</td><td></td><td><span class="pill ok">Payée le 2 oct.</span></td></tr>
+          <tr class="sub"><td style="padding-left:24px">Solde 70 % <span class="muted">· payeur : les mariés</span></td><td></td><td class="num">5&#8239;880&nbsp;€</td><td></td><td class="num">0&nbsp;€</td><td class="num">5&#8239;880&nbsp;€</td><td><span class="small">due le 14 juin</span><br><span class="btn sm" style="margin-top:4px">Marquer payée</span></td></tr>
+          <tr class="sub"><td colspan="7" style="padding-left:24px"><a href="#">+ Ajouter une échéance</a></td></tr>
+          <tr><td><b>▸ Photographe</b><br><span class="small">Studio Lumière · <a href="#">devis.pdf</a></span></td><td class="num">2&#8239;500&nbsp;€</td><td class="num">2&#8239;200&nbsp;€</td><td class="num"><span class="pill ok">−&#8239;300&nbsp;€</span></td><td class="num">2&#8239;200&nbsp;€</td><td class="num">0&nbsp;€</td><td><span class="pill ok">Soldé</span></td></tr>
+          <tr><td><b>▸ DJ</b><br><span class="small">DJ Nova · <a href="#">2 pièces</a></span></td><td class="num">1&#8239;200&nbsp;€</td><td class="num">1&#8239;100&nbsp;€</td><td class="num"><span class="pill ok">−&#8239;100&nbsp;€</span></td><td class="num">200&nbsp;€</td><td class="num">900&nbsp;€</td><td>900&nbsp;€ <span class="pill late">En retard</span><br><span class="small muted">20 nov.</span></td></tr>
+          <tr><td><b>▸ Fleurs</b><br><span class="small"><span class="editable hover" style="border-color:var(--primary);background:#fff">Choisir un prestataire… ▾</span></span></td><td class="num">1&#8239;800&nbsp;€</td><td class="num muted">—</td><td class="num muted">—</td><td class="num">0&nbsp;€</td><td class="num muted">—</td><td class="muted">—</td></tr>
+          <tr style="font-weight:600"><td>Total</td><td class="num">13&#8239;500&nbsp;€</td><td class="num">11&#8239;700&nbsp;€</td><td class="num">+&#8239;0&nbsp;€</td><td class="num">4&#8239;920&nbsp;€</td><td class="num">6&#8239;780&nbsp;€</td><td></td></tr>
+        </table>
+      </div>
+      <p class="small muted" style="margin:8px 0 0">Écart : + au-dessus du prévu (ambre), − en dessous (vert) ; le signe est toujours écrit. Total de l'écart sur les lignes qui ont un réel.</p>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:16px;align-items:start">
+    <div class="frame">
+      <div class="main">
+        <p class="small muted" style="margin:0 0 6px">Ligne « Fleurs » : « Choisir un prestataire… » ouvert</p>
+        <div class="ctrl" style="border:2px solid var(--primary)">flo|</div>
+        <div class="card new" style="margin-top:6px;padding:6px;box-shadow:var(--float)">
+          <p class="small muted" style="margin:4px 10px">Fleuristes de votre catalogue</p>
+          <div class="menu" style="position:static;box-shadow:none;border:0;width:auto;padding:0">
+            <div class="it hl"><b>Atelier Floréal · Lyon</b><span>Déjà travaillé ensemble · 4 évènements</span></div>
+            <div class="it"><b>Flore et Sens · Villeurbanne</b><span>Fleuriste, Décoratrice</span></div>
+            <div class="hr" style="margin:4px 0"></div>
+            <div class="it"><b>+ Nouveau prestataire « flo… »</b><span>Créé dans une fenêtre, sans quitter le budget</span></div>
+            <div class="it"><b>Comparer plusieurs prestataires</b><span>Ouvre la consultation du poste</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Ce qui change</h3>
+      <ul class="notes" style="margin:0">
+        <li><b>Réel</b> (« Devisé » jusqu'ici) : le montant du devis retenu. <b>Écart</b> = réel − prévu, pour affiner les prochaines prévisions.</li>
+        <li><b>Réglé</b> = somme des échéances payées ; <b>Reste à payer</b> = réel − réglé.</li>
+        <li><b>Prochaine échéance</b> sur la ligne, avec « En retard » si la date est passée ; la ligne se déplie sur son échéancier (#40). Plus besoin de passer par la page Budget séparée.</li>
+        <li><b>Prestataire</b> : choisi dans le catalogue depuis la ligne, filtré sur le métier du poste ; le choisir le retient (#39).</li>
+        <li>L'engagé reste (BUD-01, SC-04) : pastille « Engagé » sur la ligne et sous-total « dont engagé », proposition à trancher (Q42). L'import lit ces colonnes, et les acomptes et soldes datés quand le fichier en a (#42).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<!-- ===================== M10 ===================== -->
+<section class="mock" id="m10">
+  <h2>M10 · Tutoriel dans le panneau latéral</h2>
+  <p class="refs">Retours #4 à #8. Le tutoriel reste ouvert pendant qu'on manipule l'exemple.</p>
+  <div class="frame">
+    <div class="banner-demo">EXEMPLE : ce devis et le mariage « Exemple Bernard » seront supprimés à la fin du tutoriel.</div>
+    <div style="display:grid;grid-template-columns:1fr 340px;min-height:460px">
+      <div class="main">
+        <p class="small"><a href="#">‹ Mariage Exemple Bernard</a></p>
+        <div class="ph"><h1>Devis D-EXEMPLE-0001</h1><span class="row" style="gap:8px"><span class="btn">Télécharger le PDF</span><span class="btn p">Faire signer</span></span></div>
+        <div class="card">
+          <div class="grid2">
+            <label class="field"><span>Client <span class="req">*</span></span><span class="in">Alice et Hugo Bernard</span></label>
+            <label class="field"><span>Adresse de facturation <span class="req">*</span></span><span class="in new">Celle du client : 4 place Bellecour, Lyon ▾</span></label>
+            <label class="field"><span>Date de validité <span class="req">*</span></span><span class="in">21/12/2026</span></label>
+            <label class="field"><span>E-mail d'envoi <span class="req">*</span></span><span class="in">alice@exemple.test</span></label>
+          </div>
+          <p class="small muted">* obligatoire pour faire signer</p>
+        </div>
+      </div>
+      <aside class="new" style="background:#fff;border-left:1px solid var(--line);padding:20px;border-radius:0">
+        <div class="row" style="justify-content:space-between"><span class="small muted">Tutoriel · 3 sur 5</span><span class="btn ghost sm">Réduire</span></div>
+        <h3 style="font-size:17px;margin:4px 0 10px">Faire signer un devis</h3>
+        <ol class="steps">
+          <li class="done"><span class="n">✓</span>Ouvrir le mariage d'exemple</li>
+          <li class="done"><span class="n">✓</span>Vérifier le devis</li>
+          <li class="cur"><span class="n">3</span>Cliquer « Faire signer »</li>
+          <li><span class="n">4</span>Signer à la place d'un marié</li>
+          <li><span class="n">5</span>Voir le devis signé</li>
+        </ol>
+        <p class="small" style="background:var(--ground);border-radius:10px;padding:10px 12px;margin:14px 0">Pendant un exemple, aucun e-mail ne part : le lien de signature s'affiche sur le devis. Après la signature, « <b>Revenir au devis</b> » vous ramène ici, tutoriel ouvert.</p>
+        <p class="small muted" style="margin:0">Les étapes se cochent seules quand l'action est faite.</p>
+        <div class="hr"></div>
+        <p class="small" style="margin:0"><a href="#">Quitter le tutoriel</a> (l'exemple est supprimé)</p>
+      </aside>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div class="card new">
+      <p class="small muted" style="margin:0">Au lancement</p>
+      <h3>Faire signer un devis · 5 minutes</h3>
+      <p style="font-size:14px">Symbola crée un mariage d'exemple, marqué <b>EXEMPLE</b>, avec un devis. <b>Il est supprimé à la fin du tutoriel</b>, avec tout ce qu'il contient. Vos vrais évènements ne sont pas touchés, et l'exemple n'apparaît ni dans vos statistiques ni dans vos exports.</p>
+      <span class="btn p">Commencer</span>
+    </div>
+    <div class="card new">
+      <p class="small muted" style="margin:0">À la fin, sur l'écran d'où le tutoriel a été lancé</p>
+      <h3>Tutoriel terminé</h3>
+      <p style="font-size:14px">Vous savez faire signer un devis. L'exemple a été supprimé.</p>
+      <p style="font-size:14px;margin-bottom:12px">Prochain tutoriel conseillé : <b>Encaisser un acompte</b> (4 minutes).</p>
+      <div class="row" style="gap:8px"><span class="btn p">Commencer le suivant</span><span class="btn">Revenir à Aujourd'hui</span></div>
+      <div class="before"><span class="strike">« Bravo, tutoriel terminé. L'exemple est réglé selon votre choix. »</span> sur l'écran Aide.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== M11 ===================== -->
+<section class="mock" id="m11">
+  <h2>M11 · Modification longue n° 1 : la fiche complète d'un prestataire</h2>
+  <p class="refs">Q42 bis. Six rubriques : identité, métiers et étiquettes, coordonnées, tarifs, documents, banque. En A, la grande fenêtre qui s'enchaîne ; en B, le panneau latéral.</p>
+  <div style="display:flex;flex-direction:column;gap:20px">
+    <div>
+      <p class="small" style="font-weight:600;margin:0 0 6px">A · Grande fenêtre, rubriques enchaînées</p>
+      <div class="frame" style="min-height:560px">
+        <div class="main" style="opacity:.5"><div class="ph"><h1>Mes prestataires</h1></div><div class="card" style="height:300px"></div></div>
+        <div class="overlay"></div>
+        <div class="modal new" style="left:50%;transform:translateX(-50%);width:min(860px,calc(100% - 24px));top:16px;padding:0;overflow:hidden">
+          <div class="row" style="justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)"><h3 style="font-size:17px">Studio Lumière</h3><span class="btn ghost sm">✕ Fermer</span></div>
+          <div style="display:grid;grid-template-columns:150px minmax(0,1fr)">
+            <ol class="steps" style="padding:12px 8px;border-right:1px solid var(--line);background:var(--ground)">
+              <li class="done" style="padding:0 8px"><span class="n">✓</span>Identité</li>
+              <li class="cur" style="padding:0 8px"><span class="n">2</span>Métiers</li>
+              <li style="padding:0 8px"><span class="n">3</span>Coordonnées</li>
+              <li style="padding:0 8px"><span class="n">4</span>Tarifs</li>
+              <li style="padding:0 8px"><span class="n">5</span>Documents</li>
+              <li style="padding:0 8px"><span class="n">6</span>Banque</li>
+            </ol>
+            <div style="padding:16px 18px">
+              <p class="small muted" style="margin:0">Rubrique 2 sur 6</p>
+              <h3 style="font-size:17px;margin:2px 0 10px">Métiers et étiquettes</h3>
+              <div class="lrow mt h"><span></span><span>Métier</span><span>Principal</span></div>
+              <div class="lrow mt"><span class="box on">✓</span><span>Photographe</span><span class="radio on" style="border:0;background:none;padding:0;min-height:auto"><i></i></span></div>
+              <div class="lrow mt"><span class="box on">✓</span><span>Vidéaste</span><span class="radio" style="border:0;background:none;padding:0;min-height:auto"><i></i></span></div>
+              <div class="lrow tg"><b class="small">Photographe</b><span class="row" style="gap:6px"><span class="pill ok">Reportage ✓</span><span class="pill">Studio</span></span></div>
+              <div class="lrow tg" style="border-bottom:0"><b class="small">Vidéaste</b><span class="row" style="gap:6px"><span class="pill ok">Drone ✓</span><span class="pill">Teaser</span></span></div>
+            </div>
+          </div>
+          <div class="row" style="justify-content:space-between;padding:12px 18px;border-top:1px solid var(--line);background:#fff">
+            <span class="small muted">Enregistré à chaque rubrique</span>
+            <span class="row" style="gap:8px"><span class="btn sm">Précédent</span><span class="btn sm">Enregistrer et fermer</span><span class="btn p sm">Suivant : Coordonnées</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p class="small" style="font-weight:600;margin:0 0 6px">B · Panneau latéral, rubriques à la suite</p>
+      <div class="frame" style="min-height:470px">
+        <div class="main"><div class="ph"><h1>Mes prestataires</h1></div>
+          <div class="card" style="padding:0;width:calc(100% - 460px);min-width:200px"><table><tr><td>Atelier Floréal</td></tr><tr class="sel"><td><b>Studio Lumière</b></td></tr><tr><td>DJ Nova</td></tr><tr><td>Les Saveurs</td></tr></table></div>
+        </div>
+        <div class="drawer new" style="width:min(420px,60%);padding:0;display:flex;flex-direction:column">
+          <div style="padding:14px 16px;border-bottom:1px solid var(--line)"><div class="row" style="justify-content:space-between"><h3 style="font-size:17px">Studio Lumière</h3><span class="btn ghost sm">✕</span></div>
+            <div class="row small" style="gap:10px;margin-top:6px;color:var(--primary)"><span>Identité</span><b>Métiers</b><span>Coord.</span><span>Tarifs</span><span>Docs</span><span>Banque</span></div></div>
+          <div style="padding:12px 16px;flex:1;overflow:hidden">
+            <p class="small" style="font-weight:600;margin:0 0 4px">Métiers</p>
+            <div class="lrow mt"><span class="box on">✓</span><span>Photographe</span><span class="small muted">Principal</span></div>
+            <div class="lrow mt"><span class="box on">✓</span><span>Vidéaste</span><span></span></div>
+            <p class="small" style="font-weight:600;margin:10px 0 4px">Étiquettes : Photographe</p>
+            <div class="row" style="gap:6px"><span class="pill ok">Reportage ✓</span><span class="pill">Studio</span></div>
+            <p class="small" style="font-weight:600;margin:10px 0 4px">Étiquettes : Vidéaste</p>
+            <div class="row" style="gap:6px"><span class="pill ok">Drone ✓</span><span class="pill">Teaser</span></div>
+            <p class="small" style="font-weight:600;margin:12px 0 4px">Coordonnées</p>
+            <label class="field"><span>E-mail</span><span class="in">contact@studio-lumiere.test</span></label>
+            <p class="small muted" style="margin:8px 0 0">… Tarifs, Documents, Banque plus bas (défilement)</p>
+          </div>
+          <div class="row" style="justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid var(--line)"><span class="btn sm">Annuler</span><span class="btn p sm">Enregistrer</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== M12 ===================== -->
+<section class="mock" id="m12">
+  <h2>M12 · Modification longue n° 2 : une ligne de budget et son échéancier</h2>
+  <p class="refs">Q42 bis. Montants, prestataire, devis, engagé, et trois échéances à saisir ; puis on enchaîne sur la ligne suivante.</p>
+  <div style="display:flex;flex-direction:column;gap:20px">
+    <div>
+      <p class="small" style="font-weight:600;margin:0 0 6px">A · Grande fenêtre en deux colonnes, qui enchaîne les lignes</p>
+      <div class="frame" style="min-height:560px">
+        <div class="main" style="opacity:.5"><div class="ph"><h1>Mariage Durand</h1></div><div class="card" style="height:300px"></div></div>
+        <div class="overlay"></div>
+        <div class="modal new" style="left:50%;transform:translateX(-50%);width:min(860px,calc(100% - 24px));top:16px;padding:0;overflow:hidden">
+          <div class="row" style="justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)"><h3 style="font-size:17px">Traiteur <span class="small muted" style="font-weight:400">· ligne 1 sur 6</span></h3><span class="btn ghost sm">✕ Fermer</span></div>
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px;padding:16px 18px">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <label class="field"><span>Prestataire</span><span class="in">Les Saveurs ▾</span></label>
+              <div class="row" style="gap:8px;flex-wrap:nowrap"><label class="field" style="flex:1"><span>Prévu</span><span class="in">8 000 €</span></label><label class="field" style="flex:1"><span>Réel</span><span class="in">8 400 €</span></label></div>
+              <p class="small" style="margin:0"><span class="pill wait">+&#8239;400&nbsp;€</span> au-dessus du prévu</p>
+              <p class="small" style="margin:0">Devis : <a href="#">devis-v2.pdf</a> · <span class="pill ok">Engagé</span></p>
+            </div>
+            <div>
+              <p class="small" style="font-weight:600;margin:0 0 6px">Échéancier</p>
+              <div class="lrow h" style="grid-template-columns:minmax(0,1fr) 70px 80px 64px"><span>Échéance</span><span>Part</span><span>Date</span><span>Payée</span></div>
+              <div class="lrow" style="grid-template-columns:minmax(0,1fr) 70px 80px 64px"><span class="small">Acompte</span><span class="small">30 %</span><span class="small">02/10</span><span class="box on">✓</span></div>
+              <div class="lrow" style="grid-template-columns:minmax(0,1fr) 70px 80px 64px"><span class="small">Intermédiaire</span><span class="small">40 %</span><span class="small">15/03</span><span class="box"></span></div>
+              <div class="lrow" style="grid-template-columns:minmax(0,1fr) 70px 80px 64px"><span class="small">Solde</span><span class="small">30 %</span><span class="small">14/06</span><span class="box"></span></div>
+              <p class="small" style="margin:6px 0 0"><a href="#">+ Ajouter une échéance</a> · <span class="pill ok">100 % du réel</span></p>
+            </div>
+          </div>
+          <div class="row" style="justify-content:space-between;padding:12px 18px;border-top:1px solid var(--line)">
+            <span class="btn sm">‹ Ligne précédente</span>
+            <span class="row" style="gap:8px"><span class="btn sm">Enregistrer et fermer</span><span class="btn p sm">Enregistrer, ligne suivante : DJ ›</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p class="small" style="font-weight:600;margin:0 0 6px">B · Panneau latéral, le budget reste visible à gauche</p>
+      <div class="frame" style="min-height:510px">
+        <div class="main"><div class="ph"><h1>Mariage Durand</h1></div>
+          <div class="card" style="padding:0;width:calc(100% - 460px);min-width:200px"><table style="font-size:13px"><tr class="sel"><td><b>Traiteur</b></td><td class="num">8&#8239;400&nbsp;€</td></tr><tr><td>Photographe</td><td class="num">2&#8239;200&nbsp;€</td></tr><tr><td>DJ</td><td class="num">1&#8239;100&nbsp;€</td></tr><tr><td>Fleurs</td><td class="num">—</td></tr></table></div>
+        </div>
+        <div class="drawer new" style="width:min(420px,60%);padding:0;display:flex;flex-direction:column">
+          <div class="row" style="justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)"><h3 style="font-size:17px">Traiteur</h3><span class="btn ghost sm">✕</span></div>
+          <div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px;flex:1">
+            <label class="field"><span>Prestataire</span><span class="in">Les Saveurs ▾</span></label>
+            <div class="row" style="gap:8px;flex-wrap:nowrap"><label class="field" style="flex:1"><span>Prévu</span><span class="in">8 000 €</span></label><label class="field" style="flex:1"><span>Réel</span><span class="in">8 400 €</span></label></div>
+            <p class="small" style="font-weight:600;margin:6px 0 0">Échéancier</p>
+            <div class="card" style="padding:8px 10px"><div class="row small" style="justify-content:space-between"><b>Acompte · 30 %</b><span class="pill ok">Payée</span></div><span class="small muted">02/10 · 2 520 €</span></div>
+            <div class="card" style="padding:8px 10px"><div class="row small" style="justify-content:space-between"><b>Intermédiaire · 40 %</b><span class="box"></span></div><span class="small muted">15/03 · 3 360 €</span></div>
+            <p class="small muted" style="margin:0">… Solde plus bas (défilement)</p>
+          </div>
+          <div class="row" style="justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid var(--line)"><span class="btn sm">Annuler</span><span class="btn p sm">Enregistrer</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px;padding:0;overflow:auto">
+    <table>
+      <thead><tr><th>Critère</th><th>A · Grande fenêtre</th><th>B · Panneau latéral</th></tr></thead>
+      <tr><td>Place pour un tableau (échéancier, étiquettes)</td><td><span class="pill ok">Large</span> deux colonnes, rien ne défile</td><td><span class="pill wait">Étroit</span> les lignes deviennent des cartes, il faut défiler</td></tr>
+      <tr><td>Enchaîner (rubrique suivante, ligne suivante)</td><td><span class="pill ok">Oui</span> « Suivant » ou « ligne suivante » en bas</td><td><span class="pill">Possible</span> mais moins naturel</td></tr>
+      <tr><td>Voir l'écran d'origine pendant qu'on saisit</td><td><span class="pill">Assombri</span> on le retrouve à la fermeture</td><td><span class="pill ok">Visible</span> à gauche, utile pour comparer deux lignes</td></tr>
+      <tr><td>Concentration</td><td><span class="pill ok">Forte</span> une seule chose à l'écran</td><td><span class="pill">Moyenne</span></td></tr>
+      <tr><td>Téléphone</td><td colspan="2">Les deux deviennent une page entière, avec « Retour » et les mêmes rubriques.</td></tr>
+      <tr><td>Cahier des charges</td><td>Écart avec UX-13 (« panneau latéral d'édition ») : ADR à écrire</td><td>Conforme à UX-13</td></tr>
+    </table>
+  </div>
+  <ul class="notes">
+    <li><b>Décidé le 21/11 : la grande fenêtre (A).</b> Recommandation d’origine : la <b>grande fenêtre</b> (A) pour toute modification longue (fiche complète, ligne avec échéancier, évènement), avec ses rubriques à gauche et « Suivant » pour enchaîner sans y être obligé ; le <b>panneau</b> (B) seulement pour les réglages d'un écran et la consultation rapide, là où voir l'écran d'origine compte.</li>
+    <li>Dans les deux cas : enregistrement à chaque rubrique, Échap ferme, jamais deux fenêtres l'une sur l'autre.</li>
+  </ul>
+</section>
+
+<!-- ===================== M13 ===================== -->
+<section class="mock" id="m13">
+  <h2>M13 · Les apps : voir ce qui existe et le demander</h2>
+  <p class="refs">Écran manquant. Aujourd'hui, une app non activée ne laisse aucune trace (HUB-06, ARC-07) et « Mon abonnement » est caché tant que le libre-service est fermé (ADR 0101) : la planner ne peut pas savoir que les Plans de salle existent.</p>
+  <div class="frame">
+    <div class="bar"><span class="logo"><i></i>Symbola</span><span class="search">Rechercher…</span></div>
+    <div class="app" style="min-height:auto">
+      <nav class="side"><a>Aujourd'hui</a><a>Évènements</a><a>Tâches</a><a>Prestataires</a><a>Devis</a><a>Contacts</a><span style="flex:1"></span><a class="on new">＋ Apps</a><a>Paramètres</a></nav>
+      <div class="main" style="position:relative">
+        <div class="ph"><h1>Apps</h1></div>
+        <div class="tip" style="margin:-4px 0 16px"><b>Pendant le pilote</b>, l'équipe Symbola active les apps pour vous, sans frais. Demandez celle qui vous manque : elle apparaît dans votre menu dès qu'elle est activée.</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px">
+          <div class="card" style="padding:16px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Évènements</h3><span class="pill ok">Activée</span></div><p class="small muted" style="margin:6px 0 0">Fiches, rétroplanning, programme du jour J.</p></div>
+          <div class="card" style="padding:16px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Budget</h3><span class="pill ok">Activée</span></div><p class="small muted" style="margin:6px 0 0">Budget, échéances, payeurs.</p></div>
+          <div class="card" style="padding:16px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Devis et factures</h3><span class="pill ok">Activée</span></div><p class="small muted" style="margin:6px 0 0">Propositions, signature, factures.</p></div>
+          <div class="card" style="padding:16px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Prestataires</h3><span class="pill ok">Activée</span></div><p class="small muted" style="margin:6px 0 0">Carnet, carte, consultations.</p></div>
+          <div class="card new" style="padding:16px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Plans de salle</h3><span class="pill">Non activée</span></div>
+            <p class="small" style="margin:6px 0 4px">Les <b>plans des lieux</b> : dessiner une salle à l'échelle, placer tables, scène, buffet.</p>
+            <p class="small muted" style="margin:0 0 10px">Une fois activée : onglet « Plan de salle » de chaque évènement, et sur la fiche d'un lieu.</p>
+            <span class="btn p sm">Demander l'activation</span></div>
+          <div class="card new" style="padding:16px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Invités et RSVP</h3><span class="pill">Non activée</span></div>
+            <p class="small" style="margin:6px 0 4px">La liste des invités, leurs réponses, les régimes, et le <b>plan de table</b>.</p>
+            <p class="small muted" style="margin:0 0 10px">Une fois activée : onglet « Invités » de chaque évènement, puis « Plan de table ».</p>
+            <span class="btn p sm">Demander l'activation</span></div>
+          <div class="card" style="padding:16px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Rendez-vous</h3><span class="pill wait">Demandée le 21/11</span></div>
+            <p class="small" style="margin:6px 0 10px">Prise de rendez-vous en ligne par vos prospects.</p>
+            <span class="btn sm">Annuler la demande</span></div>
+        </div>
+        <div class="overlay" style="border-radius:0"></div>
+        <div class="modal new" style="left:50%;top:80px;transform:translateX(-50%);width:440px">
+          <h3 style="font-size:17px">Activer « Plans de salle »</h3>
+          <p style="font-size:14px;margin:8px 0">Pendant le pilote, c'est sans frais. L'équipe Symbola reçoit votre demande et active l'app, en général dans la journée. Vous recevez une notification.</p>
+          <p class="small muted" style="margin:0">L'équipe voit seulement le nom de votre organisation et l'app demandée, jamais vos évènements.</p>
+          <div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px"><span class="btn">Annuler</span><span class="btn p">Envoyer la demande</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:16px;align-items:start">
+    <div class="card new">
+      <p class="small muted" style="margin:0">Après l'ouverture commerciale (libre-service ouvert)</p>
+      <h3>Ajouter « Plans de salle » à mon abonnement</h3>
+      <table style="font-size:14px">
+        <tr><td>Plans de salle</td><td class="num">9&nbsp;€ / mois</td></tr>
+        <tr><td class="muted">Au prorata jusqu'au 1er décembre</td><td class="num muted">2,70&nbsp;€</td></tr>
+        <tr style="font-weight:600"><td>Nouveau total mensuel <span class="small muted" style="font-weight:400">(Suite Solo 49 € + 9 €)</span></td><td class="num">58&nbsp;€</td></tr>
+      </table>
+      <p class="small muted">Activée tout de suite ; se retire à tout moment depuis « Mon abonnement ». Prix tirés du catalogue (hypothèses de Q41).</p>
+      <div class="row" style="justify-content:flex-end;gap:8px"><span class="btn">Annuler</span><span class="btn p">Ajouter pour 9 € / mois</span></div>
+    </div>
+    <div class="card">
+      <h3>Ce qui change</h3>
+      <ul class="notes" style="margin:0">
+        <li>Une entrée <b>« Apps »</b> en bas du menu, pour la Propriétaire. Les apps non activées restent absentes des autres écrans (ARC-07 : pas de lien vers une app absente ailleurs).</li>
+        <li>Pendant le pilote : « Demander l'activation » envoie la demande à l'Exploitation (une ligne dans <code>/exploitation/organisations</code>, une notification à la planner une fois faite).</li>
+        <li>À l'ouverture commerciale : le même écran devient le choix des apps de « Mon abonnement » (HUB-27).</li>
+        <li>Le catalogue décrit aujourd'hui « Plans de salle » comme « plans des lieux et des tables », alors que le plan de table est dans « Invités » : description à corriger.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</div>
+</body>
+</html>
