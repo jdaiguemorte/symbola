@@ -287,7 +287,7 @@ test("CHR-08 — un chrono s'importe d'un tableur : écran de contrôle, puis s�
   const importer = page.locator("details.program-import");
   await page.getByText("Importer un chrono (tableur ou PDF)").click();
   const csv = ["Temps fort;Date;Début;Fin;Séquence;Note", `Brunch;${addDays(setup.eventDate, 1)};11h;14h;Brunch des mariés;=1+1`, ";;midi;;Déjeuner;"].join("\n");
-  await importer.getByLabel("Fichier CSV ou XLSX").setInputFiles({ name: "chrono.csv", mimeType: "text/csv", buffer: Buffer.from(csv, "utf8") });
+  await importer.getByLabel("Fichier CSV, XLSX ou PDF").setInputFiles({ name: "chrono.csv", mimeType: "text/csv", buffer: Buffer.from(csv, "utf8") });
   await importer.getByRole("button", { name: "Voir avant d'importer" }).click();
   await expect(importer).toContainText("1 séquence lue");
   await expect(importer).toContainText("Ligne 3 : heure de début illisible");

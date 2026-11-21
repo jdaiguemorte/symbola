@@ -87,7 +87,8 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
   await page.getByLabel("Source pour les événements sans source").selectOption({ label: "Instagram" });
   await page.getByRole("button", { name: "Importer 2 événements" }).click();
   await expect(page).toHaveURL(/\/journal$/);
-  await expect(page.getByRole("heading", { name: "Import de « mariages.csv »" })).toBeVisible();
+  // Lot 63b (HUB-14, UX-07) : la fin d'import s'annonce comme telle.
+  await expect(page.getByRole("heading", { name: "Import terminé" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Voir les 2 événements" })).toBeVisible();
   // Lot 63b (HUB-14, UX-07) : le bilan d'abord ; le détail du journal est replié.
   await page.getByText("Détails du journal (fichier, auteur, dates)").click();
@@ -110,6 +111,7 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
   await page.getByText("Annuler cet import", { exact: true }).click();
   await page.getByRole("button", { name: "Annuler l'import" }).click();
   await expect(page.getByText("2 éléments annulés ; aucun gardé car modifié ; aucun gardé car utilisé.")).toBeVisible();
+  await page.getByText("Détails du journal (fichier, auteur, dates)").click();
   await expect(page.getByText("Annulé le")).toBeVisible();
   await expectNoAxeViolation(page);
 

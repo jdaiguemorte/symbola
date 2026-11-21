@@ -103,7 +103,8 @@ test("HUB-14 — import de prestataires : chargement visible, colonnes avec aper
   await expect(benjamin.getByRole("button", { name: "Ce sont deux prestataires : Benjamin — Villeurbanne" })).toHaveAttribute("aria-pressed", "true");
   await expectNoAxeViolation(page);
   await page.getByRole("button", { name: "C'est le même : Studio Lumière — Tours" }).click();
-  await expect(page.getByRole("listitem", { name: /Studio Lumière — Tours/ })).toContainText("Choix actuel : C'est le même");
+  // Décidé, il passe dans « Mises à jour ».
+  await expect(page.getByRole("navigation", { name: "Filtrer les lignes" }).getByRole("link", { name: "Mises à jour · 1" })).toBeVisible();
   await continueStep(page);
 
   // Vérifier et confirmer.

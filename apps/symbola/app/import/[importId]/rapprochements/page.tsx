@@ -140,7 +140,7 @@ export default async function ImportMatchesPage({
             return (
               <li key={row.rowIndex} className="match-compare" aria-labelledby={headingId}>
                 <header>
-                  <h3 id={headingId}>{t("matchCompareTitle", { line: row.lineNumber, title })}</h3>
+                  <h2 id={headingId}>{t("matchCompareTitle", { line: row.lineNumber, title })}</h2>
                   {compare.toVerify ? <span className="badge badge-ambre">{t("matchToVerify")}</span> : null}
                 </header>
                 {reason ? <p className="meta">{reason}</p> : null}

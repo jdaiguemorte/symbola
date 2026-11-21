@@ -872,7 +872,7 @@ après la recette de la wedding planner.
    courte ou longue (rubriques à gauche, « Suivant » pour enchaîner) ; le panneau latéral pour
    les réglages d'un écran et la consultation rapide seulement. Écart avec UX-13 : ADR 0107.
 
-### Q43 — Lot 63b : « Caché des mariés » sans migration (21 novembre 2026)
+### Q44 — Lot 63b : « Caché des mariés » sans migration (21 novembre 2026)
 
 La spécification du paquet 63b (import du programme du jour J depuis le PDF de l'ancien logiciel)
 dit « une ligne « Caché des mariés » n'est pas partagée », et que 63b se fait **sans migration**.

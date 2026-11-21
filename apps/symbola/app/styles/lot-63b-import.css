@@ -87,7 +87,7 @@
   .match-compare > header {
     @apply flex flex-wrap items-center justify-between gap-2;
   }
-  .match-compare > header > h3 {
+  .match-compare > header > h2 {
     @apply m-0 text-heading;
   }
   .match-compare table {
