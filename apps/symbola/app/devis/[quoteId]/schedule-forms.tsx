@@ -18,17 +18,25 @@ function ScheduleFields({ idSuffix, item }: { idSuffix: string; item?: ScheduleI
     : "";
   return (
     <>
-      <label htmlFor={id("label")}>{t("scheduleLabel")}</label>
-      <input id={id("label")} type="text" name="label" required defaultValue={item?.label ?? ""} />
-      <label htmlFor={id("dueDate")}>{t("scheduleDueDate")}</label>
-      <input id={id("dueDate")} type="date" name="dueDate" required defaultValue={item?.dueDate ?? ""} />
-      <label htmlFor={id("kind")}>{t("scheduleKind")}</label>
-      <select id={id("kind")} name="kind" defaultValue={kind}>
-        <option value="amount">{t("scheduleKindAmount")}</option>
-        <option value="percent">{t("scheduleKindPercent")}</option>
-      </select>
-      <label htmlFor={id("value")}>{t("scheduleValue")}</label>
-      <input id={id("value")} type="text" inputMode="decimal" name="value" required defaultValue={value} />
+      <label htmlFor={id("label")}>
+        {t("scheduleLabel")}
+        <input id={id("label")} type="text" name="label" required defaultValue={item?.label ?? ""} />
+      </label>
+      <label htmlFor={id("dueDate")} className="field-fit">
+        {t("scheduleDueDate")}
+        <input id={id("dueDate")} type="date" name="dueDate" required defaultValue={item?.dueDate ?? ""} className="field-date" />
+      </label>
+      <label htmlFor={id("kind")} className="field-fit">
+        {t("scheduleKind")}
+        <select id={id("kind")} name="kind" defaultValue={kind}>
+          <option value="amount">{t("scheduleKindAmount")}</option>
+          <option value="percent">{t("scheduleKindPercent")}</option>
+        </select>
+      </label>
+      <label htmlFor={id("value")} className="field-fit">
+        {t("scheduleValue")}
+        <input id={id("value")} type="text" inputMode="decimal" name="value" required defaultValue={value} className="field-amount" />
+      </label>
     </>
   );
 }
@@ -42,6 +50,7 @@ export function AddScheduleItemForm({ quoteId }: { quoteId: string }) {
       label={t("addScheduleItem")}
       submitLabel={t("addScheduleItem")}
       successMessage={t("scheduleItemAdded")}
+      layout="row"
     >
       <ScheduleFields idSuffix="new" />
     </QuoteActionForm>
@@ -57,6 +66,7 @@ export function EditScheduleItemForm({ quoteId, item }: { quoteId: string; item:
       label={t("editScheduleItemNamed", { label: item.label })}
       submitLabel={t("saveScheduleItem")}
       successMessage={t("scheduleItemSaved")}
+      layout="row"
     >
       <input type="hidden" name="scheduleItemId" value={item.id} />
       <ScheduleFields idSuffix={item.id} item={item} />
@@ -83,21 +93,26 @@ export function MarkPaidForm({
       label={t("markPaidNamed", { label: item.label })}
       submitLabel={t("markPaid")}
       successMessage={t("markedPaid")}
+      layout="row"
     >
       <input type="hidden" name="scheduleItemId" value={item.id} />
-      <label htmlFor={`paidOn-${item.id}`}>{t("paidOn")}</label>
-      <input id={`paidOn-${item.id}`} type="date" name="paidOn" required max={today} defaultValue={today} />
-      <label htmlFor={`method-${item.id}`}>{t("paymentMethod")}</label>
-      <select id={`method-${item.id}`} name="paymentMethodId" required defaultValue="">
-        <option value="" disabled>
-          {t("choosePaymentMethod")}
-        </option>
-        {methods.map((method) => (
-          <option key={method.id} value={method.id}>
-            {method.label}
+      <label htmlFor={`paidOn-${item.id}`} className="field-fit">
+        {t("paidOn")}
+        <input id={`paidOn-${item.id}`} type="date" name="paidOn" required max={today} defaultValue={today} className="field-date" />
+      </label>
+      <label htmlFor={`method-${item.id}`}>
+        {t("paymentMethod")}
+        <select id={`method-${item.id}`} name="paymentMethodId" required defaultValue="">
+          <option value="" disabled>
+            {t("choosePaymentMethod")}
           </option>
-        ))}
-      </select>
+          {methods.map((method) => (
+            <option key={method.id} value={method.id}>
+              {method.label}
+            </option>
+          ))}
+        </select>
+      </label>
     </QuoteActionForm>
   );
 }
@@ -111,11 +126,14 @@ export function MarkUnpaidForm({ quoteId, item }: { quoteId: string; item: Sched
       label={t("markUnpaidNamed", { label: item.label })}
       submitLabel={t("markUnpaid")}
       successMessage={t("markedUnpaid")}
+      danger
     >
       <input type="hidden" name="scheduleItemId" value={item.id} />
       {/* Lot 23b (D2) : motif obligatoire, gardé avec l'écriture inverse. */}
-      <label htmlFor={`reason-${item.id}`}>{t("reversalReason")}</label>
-      <input id={`reason-${item.id}`} type="text" name="reason" required maxLength={300} />
+      <label htmlFor={`reason-${item.id}`} className="field-wide">
+        {t("reversalReason")}
+        <input id={`reason-${item.id}`} type="text" name="reason" required maxLength={300} />
+      </label>
       <FreeTextNotice />
     </QuoteActionForm>
   );

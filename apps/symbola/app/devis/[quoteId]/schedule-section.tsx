@@ -5,6 +5,7 @@ import type { PaymentMethod, QuoteDetail } from "@/modules/quotes/service";
 import { formatRate, OVERDUE_CLASS, PAID_CLASS } from "../quote-display";
 import { removeScheduleItemAction } from "./schedule-actions";
 import { AddScheduleItemForm, EditScheduleItemForm, MarkPaidForm, MarkUnpaidForm } from "./schedule-forms";
+import { DisclosureButton, DisclosureGroup, DisclosurePanel } from "./disclosure";
 
 // DEV-03 — échéancier de la version courante : acomptes (montant ou
 // pourcentage du TTC), solde calculé ; composition sur un brouillon,
@@ -21,6 +22,7 @@ export async function ScheduleSection({
   today: string;
 }) {
   const t = await getTranslations("Quotes");
+  const tRubrics = await getTranslations("QuoteRubrics");
   const { current } = quote;
   const { schedule } = current;
   const isDraft = current.sentAt === null;
@@ -30,7 +32,9 @@ export async function ScheduleSection({
     <section id="echeancier" aria-labelledby="schedule-title">
       <h2 id="schedule-title">{t("scheduleTitle")}</h2>
       {schedule.items.length === 0 ? <p>{t("noScheduleItems")}</p> : null}
-      <ul>
+      {/* Lot 62d (UX-13) : une échéance par ligne ; sur un brouillon, elle s'ouvre en place, une seule à la fois. */}
+      <DisclosureGroup>
+      <ul className="item-list quote-schedule">
         {schedule.items.map((item) => (
           <li key={item.id}>
             <p>
@@ -66,15 +70,21 @@ export async function ScheduleSection({
             ) : null}
             {isDraft ? (
               <>
-                <details>
-                  <summary>{t("editScheduleItemNamed", { label: item.label })}</summary>
+                <div className="quote-row-actions">
+                  <DisclosureButton className="quote-row-button" id={`echeance-${item.id}`} label={t("editScheduleItemNamed", { label: item.label })}>
+                    {tRubrics("edit")}
+                  </DisclosureButton>
+                  <form action={removeScheduleItemAction}>
+                    <input type="hidden" name="quoteId" value={quote.id} />
+                    <input type="hidden" name="scheduleItemId" value={item.id} />
+                    <button type="submit" className="quote-row-button quote-remove" aria-label={t("removeScheduleItem", { label: item.label })}>
+                      {tRubrics("remove")}
+                    </button>
+                  </form>
+                </div>
+                <DisclosurePanel id={`echeance-${item.id}`} className="quote-edit-panel">
                   <EditScheduleItemForm quoteId={quote.id} item={item} />
-                </details>
-                <form action={removeScheduleItemAction}>
-                  <input type="hidden" name="quoteId" value={quote.id} />
-                  <input type="hidden" name="scheduleItemId" value={item.id} />
-                  <button type="submit">{t("removeScheduleItem", { label: item.label })}</button>
-                </form>
+                </DisclosurePanel>
               </>
             ) : null}
             {payable && !item.paidOn ? (
@@ -89,10 +99,15 @@ export async function ScheduleSection({
                 </details>
               )
             ) : null}
-            {payable && item.paidOn ? <MarkUnpaidForm quoteId={quote.id} item={item} /> : null}
+            {payable && item.paidOn ? (
+              <div className="quote-edit-panel">
+                <MarkUnpaidForm quoteId={quote.id} item={item} />
+              </div>
+            ) : null}
           </li>
         ))}
       </ul>
+      </DisclosureGroup>
       <p>
         {t("scheduledTotal", { amount: formatAmount(schedule.scheduledCents, locale) })} —{" "}
         <strong>{t("balance", { amount: formatAmount(schedule.balanceCents, locale) })}</strong>

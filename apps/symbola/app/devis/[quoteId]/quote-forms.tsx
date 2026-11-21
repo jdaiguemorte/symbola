@@ -16,7 +16,6 @@ import {
   renameSectionAction,
   reviseQuoteAction,
   saveAsTemplateAction,
-  sendQuoteAction,
   setAdvanceKindAction,
   setGlobalDiscountAction,
   updateLineAction,
@@ -36,6 +35,9 @@ export function QuoteActionForm({
   successMessage,
   children,
   draftKey,
+  layout = "stack",
+  primary = false,
+  danger = false,
 }: {
   action: Action;
   quoteId: string;
@@ -44,22 +46,41 @@ export function QuoteActionForm({
   successMessage: string;
   // Lot 39b (UX-09) : la saisie en cours est gardée (brouillon) et se reprend sur tout appareil.
   draftKey?: string;
+  // Lot 62d (UX-12) : « row », quelques champs courts et leur bouton sur une même ligne (formulaire
+  // en ligne de DESIGN.md) ; « stack », les champs (en grille) puis le bouton.
+  layout?: "stack" | "row";
+  // Lot 62d (DESIGN.md) : un seul bouton principal par écran, celui de la prochaine action du devis ;
+  // tous les autres envois sont des boutons secondaires.
+  primary?: boolean;
+  // Une action qui annule ou détruit (bouton de danger de DESIGN.md), jamais le bouton principal.
+  danger?: boolean;
   children?: ReactNode | ((state: QuoteFormState) => ReactNode);
 }) {
   const t = useTranslations("Quotes");
   const initialState: QuoteFormState = {};
   const [state, formAction, pending] = useActionState(action, initialState);
+  const fields = typeof children === "function" ? children(state) : children;
+  const submit = state.confirmRecipients ? (
+    <RecipientsGuard review={state.confirmRecipients} pending={pending} />
+  ) : (
+    <button type="submit" disabled={pending} className={primary ? "button-primary" : danger ? "button-danger" : "button-secondary"}>
+      {submitLabel}
+    </button>
+  );
   return (
-    <form action={formAction} aria-label={label}>
+    <form action={formAction} aria-label={label} className={primary ? "quote-form quote-next-action" : "quote-form"}>
       <input type="hidden" name="quoteId" value={quoteId} />
       {draftKey ? <DraftKeeper formKey={draftKey} submission={state} saved={Boolean(state.success)} /> : null}
-      {typeof children === "function" ? children(state) : children}
-      {state.confirmRecipients ? (
-        <RecipientsGuard review={state.confirmRecipients} pending={pending} />
+      {layout === "row" ? (
+        <div className="field-row">
+          {fields}
+          {submit}
+        </div>
       ) : (
-        <button type="submit" disabled={pending}>
-          {submitLabel}
-        </button>
+        <>
+          {fields}
+          {submit}
+        </>
       )}
       {state.error ? (
         <p role="alert">
@@ -84,24 +105,30 @@ export function NatureField({ idPrefix, value, line }: { idPrefix: string; value
   const t = useTranslations("Quotes");
   return (
     <>
-      <label htmlFor={`${idPrefix}-nature`}>{t("lineNature")}</label>
-      <select id={`${idPrefix}-nature`} name="nature" defaultValue={value ?? "service"}>
-        <option value="service">{t("lineNatureService")}</option>
-        <option value="goods">{t("lineNatureGoods")}</option>
-      </select>
+      <label htmlFor={`${idPrefix}-nature`}>
+        {t("lineNature")}
+        <select id={`${idPrefix}-nature`} name="nature" defaultValue={value ?? "service"}>
+          <option value="service">{t("lineNatureService")}</option>
+          <option value="goods">{t("lineNatureGoods")}</option>
+        </select>
+      </label>
       {/* Lot 48b (JUR-10, D7) : revendeur (dans votre total) ou intermédiaire (facturée par le prestataire). */}
-      <label htmlFor={`${idPrefix}-supply`}>{t("lineSupplyMode")}</label>
-      <select id={`${idPrefix}-supply`} name="supplyMode" defaultValue={line?.supplyMode ?? "resale"}>
-        <option value="resale">{t("lineSupplyResale")}</option>
-        <option value="intermediary">{t("lineSupplyIntermediary")}</option>
-      </select>
-      <label htmlFor={`${idPrefix}-tourism`}>{t("lineTourismKind")}</label>
-      <select id={`${idPrefix}-tourism`} name="tourismKind" defaultValue={line?.tourismKind ?? ""}>
-        <option value="">{t("lineTourismNone")}</option>
-        <option value="transport">{t("lineTourismTransport")}</option>
-        <option value="lodging">{t("lineTourismLodging")}</option>
-        <option value="other">{t("lineTourismOther")}</option>
-      </select>
+      <label htmlFor={`${idPrefix}-supply`}>
+        {t("lineSupplyMode")}
+        <select id={`${idPrefix}-supply`} name="supplyMode" defaultValue={line?.supplyMode ?? "resale"}>
+          <option value="resale">{t("lineSupplyResale")}</option>
+          <option value="intermediary">{t("lineSupplyIntermediary")}</option>
+        </select>
+      </label>
+      <label htmlFor={`${idPrefix}-tourism`}>
+        {t("lineTourismKind")}
+        <select id={`${idPrefix}-tourism`} name="tourismKind" defaultValue={line?.tourismKind ?? ""}>
+          <option value="">{t("lineTourismNone")}</option>
+          <option value="transport">{t("lineTourismTransport")}</option>
+          <option value="lodging">{t("lineTourismLodging")}</option>
+          <option value="other">{t("lineTourismOther")}</option>
+        </select>
+      </label>
     </>
   );
 }
@@ -111,8 +138,8 @@ function PlacementFields({ idPrefix, sections, line }: { idPrefix: string; secti
   return (
     <>
       {sections.length > 0 ? (
-        <>
-          <label htmlFor={`${idPrefix}-section`}>{t("lineSection")}</label>
+        <label htmlFor={`${idPrefix}-section`}>
+          {t("lineSection")}
           <select id={`${idPrefix}-section`} name="sectionId" defaultValue={line?.sectionId ?? ""}>
             <option value="">{t("noSection")}</option>
             {sections.map((section) => (
@@ -121,9 +148,9 @@ function PlacementFields({ idPrefix, sections, line }: { idPrefix: string; secti
               </option>
             ))}
           </select>
-        </>
+        </label>
       ) : null}
-      <label className="checkbox-label">
+      <label className="field-fit">
         <input type="checkbox" name="isOption" defaultChecked={line?.isOption ?? false} />
         {t("lineIsOption")}
       </label>
@@ -140,20 +167,25 @@ export function AddCatalogLineForm({ quoteId, items, sections = [] }: { quoteId:
       label={t("addFromCatalog")}
       submitLabel={t("addLine")}
       successMessage={t("lineAdded")}
+      layout="row"
     >
-      <label htmlFor="catalogItemId">{t("catalogItem")}</label>
-      <select id="catalogItemId" name="catalogItemId" required defaultValue="">
-        <option value="" disabled>
-          {t("chooseItem")}
-        </option>
-        {items.map((item) => (
-          <option key={item.id} value={item.id}>
-            {item.category ? `${item.category} — ${item.label}` : item.label}
+      <label htmlFor="catalogItemId">
+        {t("catalogItem")}
+        <select id="catalogItemId" name="catalogItemId" required defaultValue="">
+          <option value="" disabled>
+            {t("chooseItem")}
           </option>
-        ))}
-      </select>
-      <label htmlFor="catalog-quantity">{t("quantity")}</label>
-      <input id="catalog-quantity" type="text" inputMode="decimal" name="quantity" required defaultValue="1" />
+          {items.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.category ? `${item.category} — ${item.label}` : item.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label htmlFor="catalog-quantity" className="field-fit">
+        {t("quantity")}
+        <input id="catalog-quantity" type="text" inputMode="decimal" name="quantity" required defaultValue="1" className="field-short" />
+      </label>
       <PlacementFields idPrefix="catalog" sections={sections} />
     </QuoteActionForm>
   );
@@ -181,30 +213,38 @@ export function AddFreeLineForm({
       submitLabel={t("addLine")}
       successMessage={t("lineAdded")}
     >
-      <label htmlFor="free-label">{t("itemLabel")}</label>
-      <input id="free-label" type="text" name="label" required />
-      <label htmlFor="free-description">{t("itemDescription")}</label>
-      <input id="free-description" type="text" name="description" />
-      <label htmlFor="free-unit">{t("itemUnit")}</label>
-      <input id="free-unit" type="text" name="unit" required />
-      <label htmlFor="free-quantity">{t("quantity")}</label>
-      <input id="free-quantity" type="text" inputMode="decimal" name="quantity" required defaultValue="1" />
-      <label htmlFor="free-unit-price">{t("itemUnitPrice")}</label>
-      <input id="free-unit-price" type="text" inputMode="decimal" name="unitPrice" required />
-      {vatApplicable ? (
-        <>
-          <label htmlFor="free-vat-rate">{t("itemVatRate")}</label>
-          <input
-            id="free-vat-rate"
-            type="text"
-            inputMode="decimal"
-            name="vatRate"
-            defaultValue={formatDecimal(defaultVatRateBasisPoints, 2, locale)}
-          />
-        </>
-      ) : null}
-      <NatureField idPrefix="free" />
-      <PlacementFields idPrefix="free" sections={sections} />
+      <div className="field-row">
+        <label htmlFor="free-label">
+          {t("itemLabel")}
+          <input id="free-label" type="text" name="label" required />
+        </label>
+        <label htmlFor="free-unit" className="field-fit">
+          {t("itemUnit")}
+          <input id="free-unit" type="text" name="unit" required className="field-code" />
+        </label>
+        <label htmlFor="free-quantity" className="field-fit">
+          {t("quantity")}
+          <input id="free-quantity" type="text" inputMode="decimal" name="quantity" required defaultValue="1" className="field-short" />
+        </label>
+        <label htmlFor="free-unit-price" className="field-fit">
+          {t("itemUnitPrice")}
+          <input id="free-unit-price" type="text" inputMode="decimal" name="unitPrice" required className="field-amount" />
+        </label>
+        {vatApplicable ? (
+          <label htmlFor="free-vat-rate" className="field-fit">
+            {t("itemVatRate")}
+            <input id="free-vat-rate" type="text" inputMode="decimal" name="vatRate" defaultValue={formatDecimal(defaultVatRateBasisPoints, 2, locale)} className="field-short" />
+          </label>
+        ) : null}
+      </div>
+      <label htmlFor="free-description" className="field-wide">
+        {t("itemDescription")}
+        <input id="free-description" type="text" name="description" />
+      </label>
+      <div className="field-row">
+        <NatureField idPrefix="free" />
+        <PlacementFields idPrefix="free" sections={sections} />
+      </div>
     </QuoteActionForm>
   );
 }
@@ -222,24 +262,38 @@ export function EditLineForm({ quoteId, line, vatApplicable, sections = [] }: { 
       successMessage={t("lineSaved")}
     >
       <input type="hidden" name="lineId" value={line.id} />
-      <label htmlFor={id("label")}>{t("itemLabel")}</label>
-      <input id={id("label")} type="text" name="label" required defaultValue={line.label} />
-      <label htmlFor={id("description")}>{t("itemDescription")}</label>
-      <input id={id("description")} type="text" name="description" defaultValue={line.description ?? ""} />
-      <label htmlFor={id("quantity")}>{t("quantity")}</label>
-      <input id={id("quantity")} type="text" inputMode="decimal" name="quantity" required defaultValue={formatDecimal(line.quantityMilli, 3, locale)} />
-      <label htmlFor={id("unitPrice")}>{t("itemUnitPrice")}</label>
-      <input id={id("unitPrice")} type="text" inputMode="decimal" name="unitPrice" required defaultValue={formatDecimal(line.unitPriceCents, 2, locale)} />
-      <label htmlFor={id("discount")}>{t("lineDiscount")}</label>
-      <input id={id("discount")} type="text" inputMode="decimal" name="discount" defaultValue={formatDecimal(line.discountBasisPoints, 2, locale)} />
-      {vatApplicable ? (
-        <>
-          <label htmlFor={id("vatRate")}>{t("itemVatRate")}</label>
-          <input id={id("vatRate")} type="text" inputMode="decimal" name="vatRate" defaultValue={formatDecimal(line.vatRateBasisPoints, 2, locale)} />
-        </>
-      ) : null}
-      <NatureField idPrefix={`edit-${line.id}`} value={line.nature} line={line} />
-      <PlacementFields idPrefix={`edit-${line.id}`} sections={sections} line={line} />
+      <div className="field-row">
+        <label htmlFor={id("label")}>
+          {t("itemLabel")}
+          <input id={id("label")} type="text" name="label" required defaultValue={line.label} />
+        </label>
+        <label htmlFor={id("quantity")} className="field-fit">
+          {t("quantity")}
+          <input id={id("quantity")} type="text" inputMode="decimal" name="quantity" required defaultValue={formatDecimal(line.quantityMilli, 3, locale)} className="field-short" />
+        </label>
+        <label htmlFor={id("unitPrice")} className="field-fit">
+          {t("itemUnitPrice")}
+          <input id={id("unitPrice")} type="text" inputMode="decimal" name="unitPrice" required defaultValue={formatDecimal(line.unitPriceCents, 2, locale)} className="field-amount" />
+        </label>
+        <label htmlFor={id("discount")} className="field-fit">
+          {t("lineDiscount")}
+          <input id={id("discount")} type="text" inputMode="decimal" name="discount" defaultValue={formatDecimal(line.discountBasisPoints, 2, locale)} className="field-short" />
+        </label>
+        {vatApplicable ? (
+          <label htmlFor={id("vatRate")} className="field-fit">
+            {t("itemVatRate")}
+            <input id={id("vatRate")} type="text" inputMode="decimal" name="vatRate" defaultValue={formatDecimal(line.vatRateBasisPoints, 2, locale)} className="field-short" />
+          </label>
+        ) : null}
+      </div>
+      <label htmlFor={id("description")} className="field-wide">
+        {t("itemDescription")}
+        <input id={id("description")} type="text" name="description" defaultValue={line.description ?? ""} />
+      </label>
+      <div className="field-row">
+        <NatureField idPrefix={`edit-${line.id}`} value={line.nature} line={line} />
+        <PlacementFields idPrefix={`edit-${line.id}`} sections={sections} line={line} />
+      </div>
     </QuoteActionForm>
   );
 }
@@ -260,49 +314,40 @@ export function GlobalDiscountForm({ quoteId, discount }: { quoteId: string; dis
       label={t("globalDiscount")}
       submitLabel={t("applyDiscount")}
       successMessage={t("discountApplied")}
+      layout="row"
     >
-      <label htmlFor="discount-kind">{t("discountKind")}</label>
-      <select id="discount-kind" name="kind" defaultValue={discount.kind}>
-        <option value="none">{t("discountNone")}</option>
-        <option value="percent">{t("discountPercent")}</option>
-        <option value="amount">{t("discountAmount")}</option>
-      </select>
-      <label htmlFor="discount-value">{t("discountValue")}</label>
-      <input id="discount-value" type="text" inputMode="decimal" name="value" defaultValue={value} />
-    </QuoteActionForm>
-  );
-}
-
-export function SendQuoteForm({ quoteId }: { quoteId: string }) {
-  const t = useTranslations("Quotes");
-  return (
-    <QuoteActionForm
-      action={sendQuoteAction}
-      quoteId={quoteId}
-      label={t("sendQuote")}
-      submitLabel={t("sendQuote")}
-      successMessage={t("quoteSent")}
-    >
-      <p>{t("sendQuoteHint")}</p>
+      <label htmlFor="discount-kind" className="field-fit">
+        {t("discountKind")}
+        <select id="discount-kind" name="kind" defaultValue={discount.kind}>
+          <option value="none">{t("discountNone")}</option>
+          <option value="percent">{t("discountPercent")}</option>
+          <option value="amount">{t("discountAmount")}</option>
+        </select>
+      </label>
+      <label htmlFor="discount-value" className="field-fit">
+        {t("discountValue")}
+        <input id="discount-value" type="text" inputMode="decimal" name="value" defaultValue={value} className="field-amount" />
+      </label>
     </QuoteActionForm>
   );
 }
 
 export function ReviseQuoteForm({ quoteId, label }: { quoteId: string; label: string }) {
   const t = useTranslations("Quotes");
-  return (
-    <QuoteActionForm action={reviseQuoteAction} quoteId={quoteId} label={label} submitLabel={label} successMessage={t("versionCreated")} />
-  );
+  return <QuoteActionForm action={reviseQuoteAction} quoteId={quoteId} label={label} submitLabel={label} successMessage={t("versionCreated")} />;
 }
 
 // --- Lot 31a (FAC-01, JUR-08, HUB-21 ; décisions D2, D3, D5) ---
 
 export function AddSectionForm({ quoteId }: { quoteId: string }) {
   const t = useTranslations("Quotes");
+  const tRubrics = useTranslations("QuoteRubrics");
   return (
-    <QuoteActionForm action={addSectionAction} quoteId={quoteId} label={t("addSection")} submitLabel={t("addSection")} successMessage={t("sectionAdded")}>
-      <label htmlFor="section-title">{t("sectionTitle")}</label>
-      <input id="section-title" type="text" name="title" maxLength={120} required />
+    <QuoteActionForm action={addSectionAction} quoteId={quoteId} label={tRubrics("addSection")} submitLabel={t("addSection")} successMessage={t("sectionAdded")} layout="row">
+      <label htmlFor="section-title">
+        {t("sectionTitle")}
+        <input id="section-title" type="text" name="title" maxLength={120} required />
+      </label>
     </QuoteActionForm>
   );
 }
@@ -316,10 +361,13 @@ export function RenameSectionForm({ quoteId, section }: { quoteId: string; secti
       label={t("renameSectionNamed", { title: section.title })}
       submitLabel={t("renameSection")}
       successMessage={t("sectionRenamed")}
+      layout="row"
     >
       <input type="hidden" name="sectionId" value={section.id} />
-      <label htmlFor={`section-${section.id}`}>{t("sectionTitle")}</label>
-      <input id={`section-${section.id}`} type="text" name="title" maxLength={120} required defaultValue={section.title} />
+      <label htmlFor={`section-${section.id}`}>
+        {t("sectionTitle")}
+        <input id={`section-${section.id}`} type="text" name="title" maxLength={120} required defaultValue={section.title} />
+      </label>
     </QuoteActionForm>
   );
 }
@@ -327,13 +375,15 @@ export function RenameSectionForm({ quoteId, section }: { quoteId: string; secti
 export function AdvanceKindForm({ quoteId, value }: { quoteId: string; value: AdvanceKind | null }) {
   const t = useTranslations("Quotes");
   return (
-    <QuoteActionForm action={setAdvanceKindAction} quoteId={quoteId} label={t("advanceKindTitle")} submitLabel={t("advanceKindSave")} successMessage={t("advanceKindSaved")}>
-      <label htmlFor="advance-kind">{t("advanceKindLabel")}</label>
-      <select id="advance-kind" name="advanceKind" defaultValue={value ?? ""}>
-        <option value="">{t("advanceUnset")}</option>
-        <option value="deposit">{t("advanceDeposit")}</option>
-        <option value="earnest">{t("advanceEarnest")}</option>
-      </select>
+    <QuoteActionForm action={setAdvanceKindAction} quoteId={quoteId} label={t("advanceKindTitle")} submitLabel={t("advanceKindSave")} successMessage={t("advanceKindSaved")} layout="row">
+      <label htmlFor="advance-kind" className="field-fit">
+        {t("advanceKindLabel")}
+        <select id="advance-kind" name="advanceKind" defaultValue={value ?? ""}>
+          <option value="">{t("advanceUnset")}</option>
+          <option value="deposit">{t("advanceDeposit")}</option>
+          <option value="earnest">{t("advanceEarnest")}</option>
+        </select>
+      </label>
     </QuoteActionForm>
   );
 }
@@ -345,7 +395,7 @@ export function ChooseOptionsForm({ quoteId, options }: { quoteId: string; optio
       <fieldset>
         <legend>{t("optionsTitle")}</legend>
         {options.map((line) => (
-          <label key={line.id} className="checkbox-label">
+          <label key={line.id}>
             <input type="checkbox" name="optionLineIds" value={line.id} defaultChecked={line.optionChosen} />
             {line.label}
           </label>
@@ -358,10 +408,10 @@ export function ChooseOptionsForm({ quoteId, options }: { quoteId: string; optio
 export function SaveAsTemplateForm({ quoteId, templates }: { quoteId: string; templates: QuoteTemplateSummary[] }) {
   const t = useTranslations("Quotes");
   return (
-    <QuoteActionForm action={saveAsTemplateAction} quoteId={quoteId} label={t("saveAsTemplate")} submitLabel={t("saveAsTemplate")} successMessage={t("templateSaved")}>
+    <QuoteActionForm action={saveAsTemplateAction} quoteId={quoteId} label={t("saveAsTemplate")} submitLabel={t("saveAsTemplate")} successMessage={t("templateSaved")} layout="row">
       {templates.length > 0 ? (
-        <>
-          <label htmlFor="replace-template">{t("templateTarget")}</label>
+        <label htmlFor="replace-template">
+          {t("templateTarget")}
           <select id="replace-template" name="templateId" defaultValue="">
             <option value="">{t("templateTargetNew")}</option>
             {templates.map((template) => (
@@ -370,10 +420,12 @@ export function SaveAsTemplateForm({ quoteId, templates }: { quoteId: string; te
               </option>
             ))}
           </select>
-        </>
+        </label>
       ) : null}
-      <label htmlFor="template-name">{t("templateName")}</label>
-      <input id="template-name" type="text" name="name" maxLength={120} />
+      <label htmlFor="template-name">
+        {t("templateName")}
+        <input id="template-name" type="text" name="name" maxLength={120} />
+      </label>
     </QuoteActionForm>
   );
 }

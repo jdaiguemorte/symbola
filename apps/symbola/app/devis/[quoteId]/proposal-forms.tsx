@@ -11,10 +11,12 @@ export function GreetingForm({ quoteId, greeting, templateGreeting }: { quoteId:
   const inputId = `proposal-greeting-${quoteId}`;
   return (
     <QuoteActionForm action={setGreetingAction} quoteId={quoteId} label={t("greetingForm")} submitLabel={t("greetingSave")} successMessage={t("greetingSaved")} draftKey={`proposal-greeting-${quoteId}`}>
-      <label htmlFor={inputId}>{t("greetingLabel")}</label>
-      <textarea id={inputId} name="greeting" rows={5} maxLength={4000} defaultValue={greeting ?? ""} placeholder={templateGreeting} aria-describedby={`${inputId}-hint`} />
+      <label htmlFor={inputId} className="field-wide">
+        {t("greetingLabel")}
+        <textarea id={inputId} name="greeting" rows={5} maxLength={4000} defaultValue={greeting ?? ""} placeholder={templateGreeting} aria-describedby={`${inputId}-hint`} />
+      </label>
       <FreeTextNotice />
-      <p id={`${inputId}-hint`} className="meta">
+      <p id={`${inputId}-hint`} className="field-hint">
         {t("greetingHint")}
       </p>
     </QuoteActionForm>
@@ -30,9 +32,11 @@ export function ExtendValidityForm({ quoteId, current, today }: { quoteId: strin
   const t = useTranslations("QuoteProposal");
   const inputId = `proposal-valid-until-${quoteId}`;
   return (
-    <QuoteActionForm action={extendValidityAction} quoteId={quoteId} label={t("extendForm")} submitLabel={t("extendSubmit")} successMessage={t("extended")}>
-      <label htmlFor={inputId}>{t("extendLabel")}</label>
-      <input id={inputId} type="date" name="validUntil" min={today} defaultValue={current && current >= today ? current : today} required />
+    <QuoteActionForm action={extendValidityAction} quoteId={quoteId} label={t("extendForm")} submitLabel={t("extendSubmit")} successMessage={t("extended")} layout="row">
+      <label htmlFor={inputId} className="field-fit">
+        {t("extendLabel")}
+        <input id={inputId} type="date" name="validUntil" min={today} defaultValue={current && current >= today ? current : today} required className="field-date" />
+      </label>
     </QuoteActionForm>
   );
 }
@@ -43,8 +47,10 @@ export function SuspendRemindersForm({ quoteId, scheduleItemId, label }: { quote
   return (
     <QuoteActionForm action={suspendRemindersAction} quoteId={quoteId} label={t("suspendForm", { label })} submitLabel={t("suspendSubmit")} successMessage={t("suspended")}>
       <input type="hidden" name="scheduleItemId" value={scheduleItemId} />
-      <label htmlFor={inputId}>{t("suspendReason")}</label>
-      <input id={inputId} type="text" name="reason" maxLength={500} required />
+      <label htmlFor={inputId} className="field-wide">
+        {t("suspendReason")}
+        <input id={inputId} type="text" name="reason" maxLength={500} required />
+      </label>
       <FreeTextNotice />
     </QuoteActionForm>
   );

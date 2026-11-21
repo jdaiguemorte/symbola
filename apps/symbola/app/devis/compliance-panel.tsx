@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import type { ComplianceDocument, ComplianceFinding } from "@/modules/quotes/service";
+import { anchorHref } from "./[quoteId]/rubrics";
 
 export async function CompliancePanel({ document, findings, disclaimer }: { document: ComplianceDocument; findings: ComplianceFinding[]; disclaimer: string }) {
   const t = await getTranslations("Compliance");
@@ -25,7 +26,8 @@ export async function CompliancePanel({ document, findings, disclaimer }: { docu
                 <strong>{finding.title}</strong>
                 <br />
                 {finding.why}{" "}
-                {finding.target.startsWith("#") ? <a href={finding.target}>{t("goTo")}</a> : <Link href={finding.target}>{t("goTo")}</Link>}
+                {/* Lot 62d : une ancre du devis (« #acheteur », « #contrat ») mène à sa rubrique. */}
+                <Link href={finding.target.startsWith("#") ? anchorHref(finding.target) : finding.target}>{t("goTo")}</Link>
               </li>
             ))}
           </ul>

@@ -4,6 +4,7 @@ import type { ComplianceFinding, InvoiceView, MissingMention, QuoteDetail, Recei
 import { CompliancePanel } from "../compliance-panel";
 import { MissingMentionsList } from "../missing-mentions";
 import { ClientKindForm, CreditNoteForm, IssueBalanceInvoiceForm, IssueDepositInvoiceForm } from "./invoice-forms";
+import { invoicePlan, type NextAction } from "./rubrics";
 
 // DEV-04 — factures d'un devis signé : émission (acompte par échéance,
 // solde), liste des factures émises et de leurs avoirs, PDF. Lot 31c (D21) : un devis à arrhes n'a
@@ -15,7 +16,10 @@ export async function InvoicesSection({
   scheduled = null,
   receipts = [],
   compliance = null,
+  next = null,
 }: {
+  // Lot 62d : la prochaine pièce à émettre porte le seul bouton principal de l'écran.
+  next?: NextAction | null;
   // Lot 41 (GC-03, D12) : points d'attention avant l'émission (non bloquants).
   compliance?: { findings: ComplianceFinding[]; disclaimer: string } | null;
   quote: QuoteDetail;
@@ -29,11 +33,8 @@ export async function InvoicesSection({
   const tContracts = await getTranslations("Contracts");
   const mentionFields = (scheduled?.missingFields ?? []).filter((field): field is MissingMention => field !== "unavailable");
   if (quote.status !== "signed" && invoices.length === 0 && receipts.length === 0) return null;
-  const active = invoices.filter((invoice) => invoice.amountCents - invoice.creditedCents > 0);
-  const balanceIssued = active.some((invoice) => invoice.kind === "balance");
-  const invoicedItems = new Set(active.flatMap((invoice) => (invoice.scheduleItemId ? [invoice.scheduleItemId] : [])));
-  const earnest = quote.current.advanceKind === "earnest";
-  const pendingItems = balanceIssued || earnest ? [] : quote.current.schedule.items.filter((item) => !invoicedItems.has(item.id));
+  const { balanceIssued, earnest, pendingItems } = invoicePlan(quote, invoices);
+  const nextInvoice = next?.kind === "invoice" ? next : null;
 
   return (
     <section id="factures" aria-labelledby="invoices-title">
@@ -48,23 +49,23 @@ export async function InvoicesSection({
         </div>
       ) : null}
       {scheduled?.paymentNotBefore && scheduled.status !== "issued" ? (
-        <p className="meta">{tContracts("depositNoPaymentBefore", { date: formatCalendarDate(scheduled.paymentNotBefore, locale) })}</p>
+        <p className="field-hint">{tContracts("depositNoPaymentBefore", { date: formatCalendarDate(scheduled.paymentNotBefore, locale) })}</p>
       ) : null}
       {quote.status === "signed" ? (
         <>
           <ClientKindForm quoteId={quote.id} clientKind={quote.clientKind} />
           {/* Lot 41 (FAC-10, D6) : la facture d'un professionnel est un Factur-X adressé à son acheteur entreprise. */}
-          {quote.clientKind === "professional" ? <p className="meta">{t("professionalInvoiceFacturX")}</p> : null}
-          {earnest && quote.current.schedule.items.length > 0 ? <p className="meta">{t("earnestNoInvoice")}</p> : null}
+          {quote.clientKind === "professional" ? <p className="field-hint">{t("professionalInvoiceFacturX")}</p> : null}
+          {earnest && quote.current.schedule.items.length > 0 ? <p className="field-hint">{t("earnestNoInvoice")}</p> : null}
           {pendingItems.map((item) => (
-            <IssueDepositInvoiceForm key={item.id} quoteId={quote.id} scheduleItemId={item.id} label={item.label} />
+            <IssueDepositInvoiceForm key={item.id} quoteId={quote.id} scheduleItemId={item.id} label={item.label} primary={nextInvoice?.scheduleItemId === item.id} />
           ))}
           {!balanceIssued && compliance ? <CompliancePanel document="invoice" {...compliance} /> : null}
-          {!balanceIssued ? <IssueBalanceInvoiceForm quoteId={quote.id} /> : null}
+          {!balanceIssued ? <IssueBalanceInvoiceForm quoteId={quote.id} primary={nextInvoice !== null && nextInvoice.scheduleItemId === null} /> : null}
         </>
       ) : null}
       {invoices.length === 0 ? <p>{t("noInvoices")}</p> : null}
-      <ul>
+      <ul className="item-list">
         {invoices.map((invoice) => (
           <li key={invoice.id}>
             <p>

@@ -67,7 +67,9 @@ export async function PlannerMoneySection({ organizationId, quote, locale }: { o
       )}
       <p className="muted">{quote.clientKind === "professional" ? t("commissionsProfessional") : t("commissionsIndividual")}</p>
       <p>
-        <Link href={`/devis/argent/${quote.eventId}`}>{t("manageLink")}</Link>
+        <Link href={`/devis/argent/${quote.eventId}`} className="quote-link">
+          {t("manageLink")}
+        </Link>
       </p>
       {terms && fee !== null && isDraft ? (
         <form action={addPlannerFeeLineAction}>

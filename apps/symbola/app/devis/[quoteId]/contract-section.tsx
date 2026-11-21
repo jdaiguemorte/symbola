@@ -12,6 +12,7 @@ import { checkContract, listContractTemplates, listQuoteContracts, quoteComplian
 import { addStarterContractTemplatesAction } from "../modeles-contrat/actions";
 import { ClientKindForm } from "./invoice-forms";
 import { ContractProblems, GenerateContractForm, SendContractAloneForm } from "./contract-forms";
+import { rubricHref } from "./rubrics";
 
 const PREVIEW_PROBLEMS = new Set(["variable_missing", "variable_unknown", "clause_unwritten"]);
 
@@ -79,7 +80,9 @@ export async function ContractSection({
             </>
           ) : !signing ? (
             <>
-              <form method="get" action={`/devis/${quote.id}#contrat`} aria-label={t("chooseTemplate")}>
+              <form method="get" action={rubricHref(quote.id, "lignes", "contrat")} aria-label={t("chooseTemplate")} className="form-inline">
+                {/* Lot 62d : le choix du modèle rouvre la même rubrique. */}
+                <input type="hidden" name="rubrique" value="contrat" />
                 <label>
                   {t("chooseTemplate")}
                   <select name="modele" defaultValue={template?.id ?? ""}>
@@ -91,14 +94,16 @@ export async function ContractSection({
                     ))}
                   </select>
                 </label>
-                <button type="submit">{t("chooseTemplateSubmit")}</button>
+                <button type="submit" className="button-secondary">
+                  {t("chooseTemplateSubmit")}
+                </button>
               </form>
               {template && preview ? (
                 <>
                   <p role="note" className="adapt-warning">
                     {warning}
                   </p>
-                  <p className="meta">
+                  <p className="field-hint">
                     {t("templateVersion", { version: template.version })} —{" "}
                     {template.legalReviewedOn ? t("templateReviewed", { date: formatCalendarDate(template.legalReviewedOn, locale) }) : t("templateNotReviewed")} —{" "}
                     <Link href={`/devis/modeles-contrat/${template.id}`}>{t("editTemplate", { name: template.name })}</Link>
@@ -176,7 +181,9 @@ async function CurrentContract({ quote, contract, locale }: { quote: QuoteDetail
         </>
       ) : null}
       <p>
-        <a href={`/devis/${quote.id}/contrat/${contract.id}/pdf`}>{t("downloadContract", { version: contract.version })}</a>
+        <a href={`/devis/${quote.id}/contrat/${contract.id}/pdf`} className="quote-link">
+          {t("downloadContract", { version: contract.version })}
+        </a>
         {contract.hasEvidence ? (
           <>
             {" — "}

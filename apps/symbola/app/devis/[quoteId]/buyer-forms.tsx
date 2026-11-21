@@ -35,49 +35,67 @@ export function BuyerDetailsForm({
   };
   return (
     <QuoteActionForm action={setBuyerDetailsAction} quoteId={quoteId} label={t("buyerTitle")} submitLabel={t("saveBuyer")} successMessage={t("buyerSaved")}>
-      {professional ? (
-        <>
-          <label htmlFor="buyer-contact">{t("buyerCompany")}</label>
-          <select id="buyer-contact" name="buyerContactId" defaultValue={buyer.buyerContactId ?? ""} aria-describedby="buyer-contact-hint">
-            <option value="">{t("buyerCompanyNone")}</option>
-            {companies.map((company) => (
-              <option key={company.id} value={company.id}>
-                {company.name}
-              </option>
-            ))}
-          </select>
-          <p id="buyer-contact-hint" className="meta">
-            {t("buyerCompanyHint")}
-          </p>
-        </>
-      ) : null}
-      <label htmlFor="order-reference">{t("orderReference")}</label>
-      <input id="order-reference" type="text" name="orderReference" maxLength={60} defaultValue={buyer.orderReference ?? ""} aria-describedby="order-reference-hint" />
-      <p id="order-reference-hint" className="meta">
-        {t("orderReferenceHint")}
-      </p>
-      <label htmlFor="buyer-reference">{t("buyerReference")}</label>
-      <input id="buyer-reference" type="text" name="buyerReference" maxLength={60} defaultValue={buyer.buyerReference ?? ""} />
-      <fieldset>
-        <legend>{t("deliveryAddress")}</legend>
-        <p className="meta">{t("deliveryAddressHint")}</p>
-        <label htmlFor="delivery-line">{t("deliveryLine")}</label>
-        <input id="delivery-line" ref={line} type="text" name="deliveryLine" maxLength={300} defaultValue={delivery?.line ?? ""} autoComplete="off" />
-        <label htmlFor="delivery-postal-code">{t("deliveryPostalCode")}</label>
-        <input id="delivery-postal-code" type="text" name="deliveryPostalCode" maxLength={16} defaultValue={delivery?.postalCode ?? ""} autoComplete="off" />
-        <label htmlFor="delivery-city">{t("deliveryCity")}</label>
-        <input id="delivery-city" ref={city} type="text" name="deliveryCity" maxLength={120} defaultValue={delivery?.city ?? ""} autoComplete="off" />
-        <label htmlFor="delivery-country">{t("deliveryCountry")}</label>
-        <input id="delivery-country" type="text" name="deliveryCountry" maxLength={2} defaultValue={delivery?.countryCode ?? "FR"} autoComplete="off" aria-describedby="delivery-country-hint" />
-        <p id="delivery-country-hint" className="meta">
-          {t("deliveryCountryHint")}
-        </p>
-        {venue.name ? (
-          <button type="button" className="button-secondary" onClick={suggestVenue}>
-            {t("deliveryUseVenue", { venue: venue.name })}
-          </button>
+      {/* Lot 62d (UX-12) : formulaire en grille — l'entreprise sur toute la ligne, les deux références
+          côte à côte, l'adresse de livraison sur une ligne (code postal et pays en champs courts). */}
+      <div className="form-grid">
+        {professional ? (
+          <div className="span-all quote-field">
+            <label htmlFor="buyer-contact">{t("buyerCompany")}</label>
+            <select id="buyer-contact" name="buyerContactId" defaultValue={buyer.buyerContactId ?? ""} aria-describedby="buyer-contact-hint">
+              <option value="">{t("buyerCompanyNone")}</option>
+              {companies.map((company) => (
+                <option key={company.id} value={company.id}>
+                  {company.name}
+                </option>
+              ))}
+            </select>
+            <p id="buyer-contact-hint" className="field-hint">
+              {t("buyerCompanyHint")}
+            </p>
+          </div>
         ) : null}
-      </fieldset>
+        <div className="quote-field">
+          <label htmlFor="order-reference">{t("orderReference")}</label>
+          <input id="order-reference" type="text" name="orderReference" maxLength={60} defaultValue={buyer.orderReference ?? ""} aria-describedby="order-reference-hint" />
+          <p id="order-reference-hint" className="field-hint">
+            {t("orderReferenceHint")}
+          </p>
+        </div>
+        <div className="quote-field">
+          <label htmlFor="buyer-reference">{t("buyerReference")}</label>
+          <input id="buyer-reference" type="text" name="buyerReference" maxLength={60} defaultValue={buyer.buyerReference ?? ""} />
+        </div>
+        <fieldset className="span-all">
+          <legend>{t("deliveryAddress")}</legend>
+          <p className="field-hint">{t("deliveryAddressHint")}</p>
+          <div className="field-row">
+            <label htmlFor="delivery-line">
+              {t("deliveryLine")}
+              <input id="delivery-line" ref={line} type="text" name="deliveryLine" maxLength={300} defaultValue={delivery?.line ?? ""} autoComplete="off" />
+            </label>
+            <label htmlFor="delivery-postal-code" className="field-fit">
+              {t("deliveryPostalCode")}
+              <input id="delivery-postal-code" type="text" name="deliveryPostalCode" maxLength={16} defaultValue={delivery?.postalCode ?? ""} autoComplete="off" className="field-code" />
+            </label>
+            <label htmlFor="delivery-city">
+              {t("deliveryCity")}
+              <input id="delivery-city" ref={city} type="text" name="deliveryCity" maxLength={120} defaultValue={delivery?.city ?? ""} autoComplete="off" />
+            </label>
+            <label htmlFor="delivery-country" className="field-fit">
+              {t("deliveryCountry")}
+              <input id="delivery-country" type="text" name="deliveryCountry" maxLength={2} defaultValue={delivery?.countryCode ?? "FR"} autoComplete="off" aria-describedby="delivery-country-hint" className="field-short" />
+            </label>
+          </div>
+          <p id="delivery-country-hint" className="field-hint">
+            {t("deliveryCountryHint")}
+          </p>
+          {venue.name ? (
+            <button type="button" className="button-secondary" onClick={suggestVenue}>
+              {t("deliveryUseVenue", { venue: venue.name })}
+            </button>
+          ) : null}
+        </fieldset>
+      </div>
     </QuoteActionForm>
   );
 }
