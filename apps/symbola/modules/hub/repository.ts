@@ -53,6 +53,11 @@ export async function updateOrganizationSiret(db: AppDatabase, organizationId: s
   await db.update(organizations).set({ siret }).where(eq(organizations.id, organizationId));
 }
 
+// Lot 63f (HUB-18 ; ADR 0103) : la raison sociale, réglée par la planner dans « L'essentiel ».
+export async function updateOrganizationName(db: AppDatabase, organizationId: string, name: string) {
+  await db.update(organizations).set({ name }).where(eq(organizations.id, organizationId));
+}
+
 export async function listAllOrganizations(db: AppDatabase) {
   return db.select().from(organizations);
 }

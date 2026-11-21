@@ -1,6 +1,6 @@
 # ADR 0033 — Refonte UX : panneaux latéraux, aide par repères, captures réelles
 
-- Statut : accepté
+- Statut : accepté ; point 3 (aide par repères) remplacé par [0104](0104-visite-guidee-a-la-place-des-reperes.md) (lot 63f)
 - Date : 2026-11-06
 - Précise : ADR 0030 (aide qui forme), ADR 0029 (Administration), lot 13
 

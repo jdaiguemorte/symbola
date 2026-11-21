@@ -7,12 +7,14 @@
 import { onboardingChecklistOrder, type OnboardingChecklistKey } from "@symbola/starter-templates";
 import { appDatabase } from "@symbola/db/client";
 import { countOrganizationRealVendors } from "@/modules/vendors/service";
-import { getOrganizationProfile, isModuleEnabled } from "@/modules/hub/service";
+import { getOrganizationProfile, getSellerDetails, isModuleEnabled } from "@/modules/hub/service";
+import { ESSENTIALS_HREF, missingForQuote } from "./essentials";
 
 export type ChecklistItem = { key: OnboardingChecklistKey; href: string; done: boolean };
 
 const HREFS: Record<OnboardingChecklistKey, string> = {
-  essentials: "/parametres",
+  // Lot 63f (ADR 0103) : l'assistant « L'essentiel », une question par écran.
+  essentials: ESSENTIALS_HREF,
   first_vendor: "/prestataires/nouveau",
 };
 
@@ -30,14 +32,22 @@ export function buildChecklist(input: {
 
 export async function loadOnboardingChecklist(organizationId: string): Promise<ChecklistItem[] | null> {
   const db = appDatabase();
-  const [profile, vendors] = await Promise.all([getOrganizationProfile(db, organizationId), isModuleEnabled(db, organizationId, "vendors")]);
+  const [profile, details, vendors] = await Promise.all([
+    getOrganizationProfile(db, organizationId),
+    getSellerDetails(db, organizationId),
+    isModuleEnabled(db, organizationId, "vendors"),
+  ]);
   const vendorCount = vendors ? await countOrganizationRealVendors(organizationId) : 0;
   return buildChecklist({
     tools: profile.replacedTools,
     available: { essentials: true, first_vendor: vendors },
     done: {
-      // Ce qu'il faut pour envoyer un devis : SIREN, adresse, régime de TVA.
-      essentials: profile.siren !== null && profile.address !== null && profile.vatRegime !== null,
+      // Lot 63f (ADR 0103) : ce qu'il faut pour envoyer un devis (raison sociale, adresse, SIRET,
+      // régime de TVA), réglé par l'assistant ou les Paramètres. Une organisation déjà cochée au
+      // lot 63a (SIREN, adresse, TVA) ne voit pas la carte revenir.
+      essentials:
+        missingForQuote({ ...details, vatRegime: profile.vatRegime, logoKey: null, iban: null, quotesEnabled: false, reached: 0, finished: false }).length === 0 ||
+        (profile.siren !== null && profile.address !== null && profile.vatRegime !== null),
       first_vendor: vendorCount > 0,
     },
   });

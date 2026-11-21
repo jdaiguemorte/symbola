@@ -15,7 +15,7 @@ function typing(target: EventTarget | null): boolean {
 }
 
 export function HelpButton() {
-  const t = useTranslations("Landmarks");
+  const t = useTranslations("HelpUi");
   const help = useHelpContext();
   const router = useRouter();
   useEffect(() => {

@@ -1,12 +1,11 @@
 "use client";
 
-// Lot 10 (AIDE-05), refait au lot 13 (AIDE-11, ADR 0033) puis au lot 16
-// (L16-HUB-19, ADR 0039) — aide sur l'écran par repères. L'écran DÉCLARE ses
-// repères et son texte d'aide ; le « ? » de la barre du haut les affiche. À
-// la première ouverture d'un écran, ils s'affichent d'eux-mêmes une fois
-// (décision C du lot 13), et comptent alors comme vus.
+// Lot 10 (AIDE-05), refait au lot 13 (ADR 0033), au lot 16 (L16-HUB-19, ADR 0039) puis au lot 63f
+// (HUB-11, ADR 0104) — un écran à visite guidée DÉCLARE ses étapes et son texte d'aide. À la
+// première ouverture, la visite se lance d'elle-même une fois et compte alors comme vue ; ensuite,
+// « ? › Revoir la visite » la relance.
 import { useEffect, useId, type ReactNode } from "react";
-import type { LandmarkStep } from "@symbola/ui";
+import type { TourStep } from "@symbola/ui";
 import { useHelpContext } from "./help-context";
 
 export function PageTour({
@@ -18,7 +17,7 @@ export function PageTour({
   helpExtra,
 }: {
   tourKey: string;
-  steps: LandmarkStep[];
+  steps: TourStep[];
   initialOpen: boolean;
   helpTitle: string;
   helpBody: string;
@@ -28,12 +27,12 @@ export function PageTour({
   const declare = help?.declare;
   const withdraw = help?.withdraw;
   const id = useId();
-  // Les repères viennent du serveur : comparés par leur contenu, pas par référence.
+  // Les étapes viennent du serveur : comparées par leur contenu, pas par référence.
   const stepsKey = JSON.stringify(steps);
 
   useEffect(() => {
     if (!declare || !withdraw) return;
-    declare(id, { title: helpTitle, body: helpBody, steps: JSON.parse(stepsKey) as LandmarkStep[], tourKey, initialOpen, extra: helpExtra });
+    declare(id, { title: helpTitle, body: helpBody, steps: JSON.parse(stepsKey) as TourStep[], tourKey, initialOpen, extra: helpExtra });
     return () => withdraw(id);
   }, [declare, withdraw, id, helpTitle, helpBody, stepsKey, tourKey, initialOpen, helpExtra]);
 
