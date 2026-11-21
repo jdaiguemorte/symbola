@@ -65,6 +65,7 @@ import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { QUOTE_STATUS_LABEL_KEYS } from "@/app/devis/quote-display";
 import { requirePlanner } from "@/lib/guards";
 import { EventTeamCard } from "./team-card";
+import { EventBusyCard } from "./busy-card";
 import { ensureEventTypes } from "@/lib/events/event-types";
 import { setEventTypeAction } from "./actions";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
@@ -725,6 +726,8 @@ export default async function EventDetailPage({
           <EventCockpit organizationId={organizationId} eventId={event.id} tasks={tasks} quotesAvailable={quotesAvailable} today={today} locale={locale} afterNextAction={stepBanner} vendorProgress={progress} />
           {/* Lot 52 (EVT-06 ; D2, D3) : l'équipe de l'évènement et ses renforts du jour J. */}
           <EventTeamCard organizationId={organizationId} eventId={event.id} />
+          {/* Lot 64 (HUB-29, RDV-02 ; maquette M3) : la plage occupée de l'évènement. */}
+          <EventBusyCard organizationId={organizationId} eventId={event.id} eventDate={event.eventDate} eventLabel={eventNames(event.clients)} readOnly={Boolean(event.archivedAt)} />
           {/* Lot 34b (EVT-03, D10, D11) : fiche d'identité — invités, lieux, interlocuteurs, style, notes. */}
           <section className="card" aria-labelledby="identity-title">
             {/* Lot 39c (UX-13, relevé validé le 17/11) : « Modifier les informations » ouvre un panneau. */}

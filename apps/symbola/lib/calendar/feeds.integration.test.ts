@@ -7,7 +7,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createOrganization, createUser, removeMember } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { ensureEventTypes } from "@/lib/events/event-types";
-import { addProgramItem, changeEventStatus, createLossReason, createProspect, createProspectSource, setEventType, startEventsTrial } from "@/modules/events/service";
+import { addProgramItem, BusyRuleInvalidError, changeEventStatus, createLossReason, createProspect, createProspectSource, getEventBusy, listBusyRanges, listEventTypeBusyRules, setBusySettings, setEventBusyRule, setEventTeamMember, setEventType, setEventTypeBusyRule, startEventsTrial } from "@/modules/events/service";
 import { issueCalendarFeed, listCalendarFeeds, resolveCalendarFeed, revokeCalendarFeed } from "@/modules/hub/service";
 import { GET } from "@/app/calendrier/[jeton]/route";
 
@@ -41,7 +41,7 @@ async function atelier() {
 }
 
 describe("HUB-29 — Flux ICS par utilisateur et par évènement (lot 38b)", () => {
-  it("le flux d'une personne : les évènements datés de l'organisation, en journée entière, « Mariage — Léa & Maxime », avec le lien vers la fiche ; ni sans date, ni perdu, ni essai", async () => {
+  it("le flux d'une personne : les évènements datés de l'organisation, à leur plage occupée (lot 64), « Mariage — Léa & Maxime », avec le lien vers la fiche ; ni sans date, ni perdu, ni essai", async () => {
     const w = await atelier();
     const trial = await startEventsTrial({ organizationId: w.organizationId, userId: w.owner.id, locale: "fr" });
     const { token } = await issueCalendarFeed({ organizationId: w.organizationId, userId: w.owner.id, eventId: null });
@@ -52,7 +52,11 @@ describe("HUB-29 — Flux ICS par utilisateur et par évènement (lot 38b)", () 
     const ics = await response.text();
     expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(1);
     expect(ics).toContain("SUMMARY:Mariage — Léa & Maxime\r\n");
-    expect(ics).toContain("DTSTART;VALUE=DATE:20270612\r\n");
+    // Lot 64 : une option, à la règle du type Mariage (8 h à 22 h, heure d'été), provisoire et libre.
+    expect(ics).toContain("DTSTART:20270612T060000Z\r\n");
+    expect(ics).toContain("DTEND:20270612T200000Z\r\n");
+    expect(ics).toContain("STATUS:TENTATIVE\r\n");
+    expect(ics).toContain("TRANSP:TRANSPARENT\r\n");
     expect(ics).toContain(`/events/${w.weddingId}`);
     for (const absent of ["Inès", "Perdu", trial.eventId]) expect(ics).not.toContain(absent);
     expect((await listCalendarFeeds(w.organizationId, w.owner.id))[0]!.lastUsedAt).not.toBeNull();
@@ -108,5 +112,90 @@ describe("HUB-29 — Flux ICS par utilisateur et par évènement (lot 38b)", () 
     const trial = await startEventsTrial({ organizationId: a.organizationId, userId: a.owner.id, locale: "fr" });
     const demo = await issueCalendarFeed({ organizationId: a.organizationId, userId: a.owner.id, eventId: trial.eventId });
     expect((await feed(demo.token)).status).toBe(404);
+  });
+});
+
+describe("HUB-29 — Plages occupées dans le flux d'agenda (lot 64 ; D1 à D4)", () => {
+  async function confirmedWedding() {
+    const w = await atelier();
+    await changeEventStatus({ organizationId: w.organizationId, eventId: w.weddingId, changedByUserId: w.owner.id, toStatus: "confirmed" });
+    return w;
+  }
+
+  it("un mariage confirmé est « occupé » de 8 h à 22 h, heure de Paris", async () => {
+    const w = await confirmedWedding();
+    const { token } = await issueCalendarFeed({ organizationId: w.organizationId, userId: w.owner.id, eventId: null });
+    const ics = await (await feed(token)).text();
+    expect(ics).toContain("DTSTART:20270612T060000Z\r\n");
+    expect(ics).toContain("DTEND:20270612T200000Z\r\n");
+    expect(ics).toContain("STATUS:CONFIRMED\r\n");
+    expect(ics).toContain("TRANSP:OPAQUE\r\n");
+    expect(ics).not.toContain("VALUE=DATE");
+  });
+
+  it("le réglage propre (la veille 14 h au lendemain 12 h) passe avant la règle du type, et se retire en un geste", async () => {
+    const w = await confirmedWedding();
+    await setEventBusyRule(w.organizationId, w.weddingId, { startDayOffset: -1, startTime: "14:00", endDayOffset: 1, endTime: "12:00" });
+    const { token } = await issueCalendarFeed({ organizationId: w.organizationId, userId: w.owner.id, eventId: null });
+    let ics = await (await feed(token)).text();
+    expect(ics).toContain("DTSTART:20270611T120000Z\r\n");
+    expect(ics).toContain("DTEND:20270613T100000Z\r\n");
+    const view = await getEventBusy(w.organizationId, w.weddingId);
+    expect(view).toMatchObject({ source: "event", startDate: "2027-06-11", endDate: "2027-06-13", typeLabel: "Mariage", blocking: true });
+    await setEventBusyRule(w.organizationId, w.weddingId, null);
+    ics = await (await feed(token)).text();
+    expect(ics).toContain("DTSTART:20270612T060000Z\r\n");
+    expect((await getEventBusy(w.organizationId, w.weddingId))!.source).toBe("type");
+  });
+
+  it("la règle d'un type se change pour tous ses évènements ; une règle à l'envers est refusée", async () => {
+    const w = await confirmedWedding();
+    const wedding = (await listEventTypeBusyRules(w.organizationId)).find((type) => type.label === "Mariage")!;
+    expect(wedding).toMatchObject({ isStarter: true, rule: { startDayOffset: 0, startTime: "08:00", endDayOffset: 0, endTime: "22:00" } });
+    await setEventTypeBusyRule(w.organizationId, wedding.eventTypeId, { startDayOffset: 0, startTime: "10:00", endDayOffset: 1, endTime: "02:00" });
+    const { token } = await issueCalendarFeed({ organizationId: w.organizationId, userId: w.owner.id, eventId: null });
+    const ics = await (await feed(token)).text();
+    expect(ics).toContain("DTSTART:20270612T080000Z\r\n");
+    expect(ics).toContain("DTEND:20270613T000000Z\r\n");
+    await expect(setEventTypeBusyRule(w.organizationId, wedding.eventTypeId, { startDayOffset: 0, startTime: "22:00", endDayOffset: 0, endTime: "08:00" })).rejects.toBeInstanceOf(BusyRuleInvalidError);
+    await expect(setEventBusyRule(w.organizationId, w.weddingId, { startDayOffset: -8, startTime: "08:00", endDayOffset: 0, endTime: "22:00" })).rejects.toBeInstanceOf(BusyRuleInvalidError);
+  });
+
+  it("une option bloque si l'organisation l'a réglé (D2)", async () => {
+    const w = await atelier();
+    const window = { from: new Date("2027-06-01T00:00:00Z"), to: new Date("2027-06-30T00:00:00Z") };
+    expect((await listBusyRanges(w.organizationId, window)).map((range) => range.blocking)).toEqual([false]);
+    await setBusySettings(w.organizationId, { optionsBlock: true });
+    expect((await listBusyRanges(w.organizationId, window)).map((range) => range.blocking)).toEqual([true]);
+    const { token } = await issueCalendarFeed({ organizationId: w.organizationId, userId: w.owner.id, eventId: null });
+    expect(await (await feed(token)).text()).toContain("TRANSP:OPAQUE\r\n");
+  });
+
+  it("avec une équipe, seuls ses membres sont bloqués ; les autres voient la journée, libre (D3)", async () => {
+    const w = await confirmedWedding();
+    await setEventTeamMember({ organizationId: w.organizationId, eventId: w.weddingId, userId: w.owner.id, role: "lead", byUserId: w.owner.id });
+    const window = { from: new Date("2027-06-01T00:00:00Z"), to: new Date("2027-06-30T00:00:00Z") };
+    expect(await listBusyRanges(w.organizationId, window, { userId: w.owner.id })).toHaveLength(1);
+    expect(await listBusyRanges(w.organizationId, window, { userId: w.member.id })).toHaveLength(0);
+    const owner = await issueCalendarFeed({ organizationId: w.organizationId, userId: w.owner.id, eventId: null });
+    expect(await (await feed(owner.token)).text()).toContain("TRANSP:OPAQUE\r\n");
+    const member = await issueCalendarFeed({ organizationId: w.organizationId, userId: w.member.id, eventId: null });
+    const ics = await (await feed(member.token)).text();
+    expect(ics).toContain("DTSTART;VALUE=DATE:20270612\r\n");
+    expect(ics).toContain("TRANSP:TRANSPARENT\r\n");
+  });
+
+  it("isolation : une organisation ne lit ni ne règle les plages d'une autre", async () => {
+    const a = await confirmedWedding();
+    const b = await atelier();
+    const typeA = (await listEventTypeBusyRules(a.organizationId))[0]!;
+    expect(await getEventBusy(b.organizationId, a.weddingId)).toBeNull();
+    await expect(setEventBusyRule(b.organizationId, a.weddingId, { startDayOffset: 0, startTime: "08:00", endDayOffset: 0, endTime: "09:00" })).rejects.toThrow();
+    await expect(setEventTypeBusyRule(b.organizationId, typeA.eventTypeId, { startDayOffset: 0, startTime: "08:00", endDayOffset: 0, endTime: "09:00" })).rejects.toBeInstanceOf(BusyRuleInvalidError);
+    await setBusySettings(b.organizationId, { optionsBlock: true });
+    const window = { from: new Date("2027-06-01T00:00:00Z"), to: new Date("2027-06-30T00:00:00Z") };
+    expect((await listBusyRanges(a.organizationId, window)).map((range) => range.eventId)).toEqual([a.weddingId]);
+    expect((await listBusyRanges(a.organizationId, window))[0]!.blocking).toBe(true);
+    expect((await getEventBusy(a.organizationId, a.weddingId))!.rule).toEqual({ startDayOffset: 0, startTime: "08:00", endDayOffset: 0, endTime: "22:00" });
   });
 });

@@ -17,7 +17,9 @@ export const APPOINTMENT_QUESTION_KINDS = ["choice", "text"] as const;
 export type AppointmentQuestionKind = (typeof APPOINTMENT_QUESTION_KINDS)[number];
 export const APPOINTMENT_QUESTIONS_MAX = 5;
 
-export type AppointmentQuestion = { id: string; label: string; kind: AppointmentQuestionKind; choices: string[] };
+// Lot 64 (D7) : required facultatif ; absent = question facultative.
+export type AppointmentQuestion = { id: string; label: string; kind: AppointmentQuestionKind; choices: string[]; required?: boolean };
+export const APPOINTMENT_DESCRIPTION_MAX = 300;
 
 export type AppointmentType = {
   id: string;
@@ -25,6 +27,8 @@ export type AppointmentType = {
   durationMinutes: number;
   locationKind: AppointmentLocationKind;
   location: string | null;
+  // Lot 64 (D8) : quelques mots affichés sur la page de réservation.
+  description: string | null;
   bufferBeforeMinutes: number;
   bufferAfterMinutes: number;
   minNoticeMinutes: number;
@@ -43,6 +47,7 @@ export type AppointmentTypeInput = {
   durationMinutes: number;
   locationKind?: AppointmentLocationKind;
   location?: string | null;
+  description?: string | null;
   bufferBeforeMinutes?: number;
   bufferAfterMinutes?: number;
   minNoticeMinutes?: number;

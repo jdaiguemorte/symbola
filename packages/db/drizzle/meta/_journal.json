@@ -1373,6 +1373,20 @@
       "when": 1795157757554,
       "tag": "0195_lot55_hub_sender_deliveries",
       "breakpoints": true
+    },
+    {
+      "idx": 196,
+      "version": "7",
+      "when": 1795288712750,
+      "tag": "0201_lot64_events_busy_ranges",
+      "breakpoints": true
+    },
+    {
+      "idx": 197,
+      "version": "7",
+      "when": 1795288725501,
+      "tag": "0202_lot64_appointments_type_description",
+      "breakpoints": true
     }
   ]
 }

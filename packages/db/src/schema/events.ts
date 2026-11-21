@@ -73,6 +73,21 @@ export const lossReasons = eventsSchema.table("loss_reasons", {
 // l'événement : « les mariés » (couple) ou « le client » (clients).
 export const eventTypeAudienceEnum = eventsSchema.enum("event_type_audience", ["couple", "clients"]);
 
+// Lot 64 (HUB-29, RDV-02 ; D1, D6) — plage occupée : début et fin, chacun un jour relatif à la date de
+// l'évènement (-7 à 7) et une heure locale (fuseau de l'évènement). Les quatre colonnes vont ensemble ;
+// la fin vient après le début.
+function busyRuleChecks(name: string, columns: { startDay: AnyPgColumn; startTime: AnyPgColumn; endDay: AnyPgColumn; endTime: AnyPgColumn }, nullable: boolean) {
+  const { startDay, startTime, endDay, endTime } = columns;
+  const order = sql`(${endDay} * 1440 + extract(epoch from ${endTime}) / 60) > (${startDay} * 1440 + extract(epoch from ${startTime}) / 60)`;
+  const range = sql`${startDay} between -7 and 7 and ${endDay} between -7 and 7`;
+  return nullable
+    ? [
+        check(`${name}_busy_rule_complete_check`, sql`(${startDay} is null) = (${startTime} is null) and (${startDay} is null) = (${endDay} is null) and (${startDay} is null) = (${endTime} is null)`),
+        check(`${name}_busy_rule_check`, sql`${startDay} is null or (${range} and ${order})`),
+      ]
+    : [check(`${name}_busy_rule_check`, sql`${range} and ${order}`)];
+}
+
 export const eventTypes = eventsSchema.table(
   "event_types",
   {
@@ -84,13 +99,22 @@ export const eventTypes = eventsSchema.table(
     // Clé du type de départ (packages/starter-templates/src/event-types.json),
     // nulle pour un type créé par l'organisation.
     starterKey: text("starter_key"),
+    // Lot 64 (HUB-29, RDV-02 ; D1) : règle de la plage occupée du type ; nulle = celle de départ de sa
+    // clé (event-types.json), ou celle de repli pour un type créé par l'organisation.
+    busyStartDayOffset: integer("busy_start_day_offset"),
+    busyStartTime: time("busy_start_time"),
+    busyEndDayOffset: integer("busy_end_day_offset"),
+    busyEndTime: time("busy_end_time"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdBy: uuid("created_by"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     updatedBy: uuid("updated_by"),
   },
-  (table) => [unique("event_types_organization_starter_key_unique").on(table.organizationId, table.starterKey)],
+  (table) => [
+    unique("event_types_organization_starter_key_unique").on(table.organizationId, table.starterKey),
+    ...busyRuleChecks("event_types", { startDay: table.busyStartDayOffset, startTime: table.busyStartTime, endDay: table.busyEndDayOffset, endTime: table.busyEndTime }, true),
+  ],
 );
 
 export const events = eventsSchema.table("events", {
@@ -158,8 +182,15 @@ export const events = eventsSchema.table("events", {
   // courantes mais consultable (filtre « Archivés », recherche). Les purges suivent leur calendrier.
   archivedAt: timestamp("archived_at", { withTimezone: true }),
   archivedBy: uuid("archived_by"),
+  // Lot 64 (HUB-29, RDV-02) : plage occupée propre à l'évènement (la veille, le lendemain…) ; nulle =
+  // la règle de son type. Les jours sont relatifs à la date : un report garde le réglage.
+  busyStartDayOffset: integer("busy_start_day_offset"),
+  busyStartTime: time("busy_start_time"),
+  busyEndDayOffset: integer("busy_end_day_offset"),
+  busyEndTime: time("busy_end_time"),
 }, (table) => [
   index("events_organization_idx").on(table.organizationId),
+  ...busyRuleChecks("events", { startDay: table.busyStartDayOffset, startTime: table.busyStartTime, endDay: table.busyEndDayOffset, endTime: table.busyEndTime }, true),
   check("events_time_zone_check", sql`char_length(${table.timeZone}) between 1 and 64`),
   check("events_guests_check", sql`(${table.guestsEstimated} is null or ${table.guestsEstimated} between 0 and 100000) and (${table.guestsConfirmed} is null or ${table.guestsConfirmed} between 0 and 100000)`),
   check("events_identity_text_check", sql`(${table.style} is null or char_length(${table.style}) <= 2000) and (${table.notes} is null or char_length(${table.notes}) <= 10000)`),
@@ -1948,6 +1979,30 @@ export const planningHealthSettings = eventsSchema.table(
     uniqueIndex("planning_health_settings_organization_idx").on(table.organizationId),
     check("planning_health_settings_points_check", sql`${table.watchPoints} between 1 and 100 and ${table.latePoints} between 1 and 100 and ${table.watchPoints} <= ${table.latePoints}`),
     check("planning_health_settings_weight_check", sql`${table.milestoneWeight} between 1 and 10`),
+  ],
+);
+
+// Lot 64 (HUB-29, RDV-02 ; D1, D2) — réglages des plages occupées, par organisation : la règle des
+// évènements sans type, et si une option (ou un report en cours) bloque l'agenda. Sans ligne, les
+// valeurs de départ (event-types.json).
+export const busySettings = eventsSchema.table(
+  "busy_settings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    optionsBlock: boolean("options_block").notNull(),
+    fallbackStartDayOffset: integer("fallback_start_day_offset").notNull(),
+    fallbackStartTime: time("fallback_start_time").notNull(),
+    fallbackEndDayOffset: integer("fallback_end_day_offset").notNull(),
+    fallbackEndTime: time("fallback_end_time").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    uniqueIndex("busy_settings_organization_idx").on(table.organizationId),
+    ...busyRuleChecks("busy_settings", { startDay: table.fallbackStartDayOffset, startTime: table.fallbackStartTime, endDay: table.fallbackEndDayOffset, endTime: table.fallbackEndTime }, false),
   ],
 );
 

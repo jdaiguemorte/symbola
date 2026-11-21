@@ -1,6 +1,9 @@
 // Lot 38b (HUB-29 ; D11, D12 ; ADR 0072) — le contenu d'un flux de calendrier, dans la langue de la
-// personne. Son flux : les évènements datés de l'organisation (ni essai, ni perdu ou annulé), en
-// journée entière, intitulés « Type — prénoms des clients » (D12), avec le lien vers la fiche. Le
+// personne. Son flux : les évènements datés de l'organisation (ni essai, ni perdu ou annulé),
+// intitulés « Type — prénoms des clients » (D12), avec le lien vers la fiche. Lot 64 (HUB-29 ; D2,
+// D3, D4) : un évènement de son équipe (ou sans équipe) est sa plage occupée, aux heures locales,
+// « occupé » s'il bloque, « provisoire » et libre sinon ; celui d'une autre équipe reste une journée
+// entière, libre. Le
 // flux d'un évènement : son programme du jour, séquence par séquence, aux heures de son fuseau ;
 // jamais de note interne.
 import { createTranslator } from "next-intl";
@@ -8,7 +11,7 @@ import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import { appDatabase } from "@symbola/db/client";
 import { parseEnv } from "@symbola/env";
-import { eventNames, getEvent, getEventProgram, listCalendarEvents, listEventTypes } from "@/modules/events/service";
+import { eventNames, getEvent, getEventProgram, listCalendarEvents, listEventBusyRanges, listEventTypes } from "@/modules/events/service";
 import { getDocumentHeader, getUserContact, isModuleEnabled, type CalendarFeedAccess } from "@/modules/hub/service";
 import { listHostAppointmentsForFeed } from "@/modules/appointments/service";
 import { buildIcs, wallTimeToInstant, type IcsEvent } from "./ics";
@@ -30,10 +33,11 @@ export async function calendarFeedIcs(access: CalendarFeedAccess, now: Date = ne
     // Lot 46 (RDV-04, HUB-29) : ses rendez-vous, s'il les reçoit (module Rendez-vous ouvert) ; les
     // évènements, si le module Évènements l'est.
     const eventsEnabled = await isModuleEnabled(db, access.organizationId, "events");
-    const [events, types, appointments] = await Promise.all([
+    const [events, types, appointments, busy] = await Promise.all([
       eventsEnabled ? listCalendarEvents(access.organizationId) : Promise.resolve([]),
       eventsEnabled ? listEventTypes(access.organizationId) : Promise.resolve([]),
       listHostAppointmentsForFeed(access.organizationId, access.userId, now),
+      eventsEnabled ? listEventBusyRanges(access.organizationId, { userId: access.userId }) : Promise.resolve(new Map()),
     ]);
     const typeLabel = new Map(types.map((type) => [type.id, type.label]));
     const appointmentItems: IcsEvent[] = appointments.map((appointment) => ({
@@ -44,17 +48,21 @@ export async function calendarFeedIcs(access: CalendarFeedAccess, now: Date = ne
       location: appointment.locationKind === "place" ? appointment.location : null,
       url: `${appUrl}/rendez-vous/${appointment.id}`,
       status: "CONFIRMED",
+      transparency: "OPAQUE",
     }));
     const items: IcsEvent[] = events.map((event) => {
       const names = eventNames(event.clients);
       const type = event.eventTypeId ? typeLabel.get(event.eventTypeId) : undefined;
+      const range = busy.get(event.id);
+      const tentative = event.status === "option" || event.status === "postponed";
       return {
         uid: `${event.id}@symbola`,
         summary: type ? `${type} — ${names}` : names,
-        start: { date: event.eventDate! },
+        ...(range ? { start: { dateTime: range.start }, end: { dateTime: range.end } } : { start: { date: event.eventDate! } }),
         location: [event.venueName, event.venueCity].filter(Boolean).join(", ") || null,
         url: `${appUrl}/events/${event.id}`,
-        status: event.status === "option" ? "TENTATIVE" : "CONFIRMED",
+        status: tentative ? "TENTATIVE" : "CONFIRMED",
+        transparency: range?.blocking ? "OPAQUE" : "TRANSPARENT",
       };
     });
     return buildIcs({ name: t("personFeed", { organization }), events: [...items, ...appointmentItems], now });

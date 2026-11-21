@@ -1,14 +1,17 @@
 {
   "version": 1,
+  "_busy": "Lot 64 (HUB-29, RDV-02 ; D1, D2) — plage occupée de départ de chaque type, par rapport au jour de l'évènement (day : -7 à 7) et à son heure locale. fallbackBusy sert aux types créés par l'organisation et aux évènements sans type ; optionsBlock dit si une option bloque l'agenda (non au départ).",
   "items": [
-    { "key": "wedding", "label": { "fr": "Mariage", "en": "Wedding" }, "audience": "couple" },
-    { "key": "birthday", "label": { "fr": "Anniversaire", "en": "Birthday" }, "audience": "clients" },
-    { "key": "christening", "label": { "fr": "Baptême", "en": "Christening" }, "audience": "clients" },
-    { "key": "seminar", "label": { "fr": "Séminaire", "en": "Seminar" }, "audience": "clients" },
-    { "key": "corporate_party", "label": { "fr": "Soirée d'entreprise", "en": "Corporate party" }, "audience": "clients" },
-    { "key": "product_launch", "label": { "fr": "Lancement de produit", "en": "Product launch" }, "audience": "clients" },
-    { "key": "other", "label": { "fr": "Autre", "en": "Other" }, "audience": "clients" }
+    { "key": "wedding", "label": { "fr": "Mariage", "en": "Wedding" }, "audience": "couple", "busy": { "start": { "day": 0, "time": "08:00" }, "end": { "day": 0, "time": "22:00" } } },
+    { "key": "birthday", "label": { "fr": "Anniversaire", "en": "Birthday" }, "audience": "clients", "busy": { "start": { "day": 0, "time": "10:00" }, "end": { "day": 0, "time": "20:00" } } },
+    { "key": "christening", "label": { "fr": "Baptême", "en": "Christening" }, "audience": "clients", "busy": { "start": { "day": 0, "time": "10:00" }, "end": { "day": 0, "time": "20:00" } } },
+    { "key": "seminar", "label": { "fr": "Séminaire", "en": "Seminar" }, "audience": "clients", "busy": { "start": { "day": 0, "time": "08:00" }, "end": { "day": 0, "time": "19:00" } } },
+    { "key": "corporate_party", "label": { "fr": "Soirée d'entreprise", "en": "Corporate party" }, "audience": "clients", "busy": { "start": { "day": 0, "time": "14:00" }, "end": { "day": 0, "time": "23:59" } } },
+    { "key": "product_launch", "label": { "fr": "Lancement de produit", "en": "Product launch" }, "audience": "clients", "busy": { "start": { "day": 0, "time": "08:00" }, "end": { "day": 0, "time": "19:00" } } },
+    { "key": "other", "label": { "fr": "Autre", "en": "Other" }, "audience": "clients", "busy": { "start": { "day": 0, "time": "08:00" }, "end": { "day": 0, "time": "22:00" } } }
   ],
+  "fallbackBusy": { "start": { "day": 0, "time": "08:00" }, "end": { "day": 0, "time": "22:00" } },
+  "optionsBlock": false,
   "orders": {
     "wedding_planner": ["wedding", "birthday", "christening", "seminar", "corporate_party", "product_launch", "other"],
     "event_agency": ["seminar", "corporate_party", "product_launch", "wedding", "birthday", "christening", "other"]

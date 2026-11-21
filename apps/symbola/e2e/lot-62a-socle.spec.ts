@@ -137,16 +137,19 @@ test("UX-13 — Une réservation qui échoue est un message d'erreur ; annuler u
     await visitor.goto(`/reserver/${slug}`);
     await expect(visitor.getByRole("heading", { level: 1, name: "Premier rendez-vous" })).toBeVisible();
   }
-  await lea.getByRole("radio").first().check();
-  await lea.getByLabel("Votre nom").fill("Léa Martin");
-  await lea.getByLabel("Votre e-mail").fill(leaEmail);
-  await lea.getByRole("button", { name: "Réserver ce rendez-vous" }).click();
+  // Lot 64 (M8, M9) : une heure, « Suivant », les coordonnées, le récapitulatif.
+  const book = async (visitor: typeof lea, name: string, mail: string) => {
+    await visitor.locator("button.booking-time").first().click();
+    await visitor.getByRole("button", { name: /^Suivant, créneau du/ }).click();
+    await visitor.getByLabel("Votre nom").fill(name);
+    await visitor.getByLabel("Votre e-mail").fill(mail);
+    await visitor.getByRole("button", { name: "Continuer" }).click();
+    await visitor.getByRole("button", { name: "Réserver ce rendez-vous" }).click();
+  };
+  await book(lea, "Léa Martin", leaEmail);
   await expect(lea.getByRole("heading", { name: "Votre rendez-vous est confirmé" })).toBeVisible();
 
-  await hugo.getByRole("radio").first().check();
-  await hugo.getByLabel("Votre nom").fill("Hugo Bernard");
-  await hugo.getByLabel("Votre e-mail").fill(`hugo-${randomUUID()}@symbola.test`);
-  await hugo.getByRole("button", { name: "Réserver ce rendez-vous" }).click();
+  await book(hugo, "Hugo Bernard", `hugo-${randomUUID()}@symbola.test`);
   const refusal = hugo.getByRole("alert").filter({ hasText: "Erreur" });
   await expect(refusal).toBeVisible();
   await expectErrorNotice(hugo, refusal);

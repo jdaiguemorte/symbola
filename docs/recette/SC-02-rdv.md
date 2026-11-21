@@ -39,3 +39,40 @@ Non rejoué en local : les parcours Playwright (`rdv-01-04-evt-10-rendez-vous`, 
 ARC-07 du module) — le port 3000 et le fournisseur d'identité local servaient aux sessions des lots
 41 et 49 ; ils tournent en CI (job `e2e`). À rejouer par Julien sur le staging (portes 1 et 2), une
 fois le module ouvert pour l'organisation de recette et la mention d'information relue par la DPO.
+
+## Lot 64 — 21/11/2026 (plages occupées, réservation remise à plat)
+
+- En local, par Claude Code : base dédiée `symbola_lot64` (jeu fictif `seed:recette`, migrations
+  jusqu'à 0202), module Rendez-vous ouvert pour ORG-01 (Atelier Camille R.). Un évènement confirmé
+  est déplacé au vendredi 4 décembre 2026 pour tomber dans l'horizon de la page. Écrans regardés par
+  Playwright (Chromium isolé, session ouverte en base) en taille ordinateur et en 375 px. Parcours
+  rejoués sur l'app compilée (`next build`, puis `next start` sur le port 3064), connexion par session
+  ouverte en base (modification locale, non versée, de `signIn`).
+
+| Étape | Rejouée par | Résultat |
+| --- | --- | --- |
+| Camille règle la plage d'un mariage | Paramètres › Évènements › Plages occupées ; « Modifier » sur Mariage ; fin à 23 h | La fenêtre montre la frise et « Occupée le samedi, de 8 h à 23 h, soit 15 h » ; la ligne Mariage est à jour |
+| Camille règle le mariage de Kévin et Kévina | Fiche de l'évènement, bloc « Plage occupée », « Modifier pour cet évènement » : la veille 14 h, le lendemain 12 h | « Réglage propre à cet évènement » ; « Du vendredi 11 juin 2027, 14 h, au dimanche 13 juin 2027, 12 h » ; « Revenir à la règle du type » en un geste |
+| Le fichier à importer | « Ajouter à mon agenda » | La fenêtre dit où va le fichier et qu'il ne suit pas les changements ; le fichier porte `DTSTART:20270611T120000Z` et `TRANSP:OPAQUE` |
+| Le flux d'agenda | Tests d'intégration `feeds.integration.test.ts` | Un mariage confirmé est « occupé » de 8 h à 22 h (UTC+2) ; une option reste provisoire et libre, sauf réglage ; l'évènement d'une autre équipe reste une journée entière, libre |
+| La page de rendez-vous | Page publique, semaine du 30 novembre | Le vendredi 4 décembre (mariage confirmé) est barré ; les autres jours sont proposés ; dans les tests, une plage de 8 h à 12 h laisse l'après-midi réservable |
+| Camille règle son type | Réglage du type : description, question « Combien d'invités ? » à choix, obligatoire | Grille en deux cartes, lieu en choix segmenté, questions en liste éditable avec pastilles ; « Type enregistré » |
+| Léa réserve | Page publique, ordinateur et 375 px : un jour, une heure (« 10:00 \| Suivant »), coordonnées, une question par écran (touche B), récapitulatif | « Passer » n'est pas proposé pour la question obligatoire ; le récapitulatif reprend les réponses ; « Votre rendez-vous est confirmé » |
+| Paul déplace son rendez-vous | Lien de gestion, « Reporter » : le même sélecteur (mois, heures) | « C'est noté : votre rendez-vous est déplacé » |
+| Camille règle sa semaine | Mes disponibilités, ordinateur et 375 px | Une ligne par jour, interrupteur, plages alignées ; « 1 jour modifié » avant « Enregistrer ma semaine » |
+
+Parcours Playwright, ordinateur et 375 px, tous passés : `hub-29-rdv-02-plages-occupees` (neuf),
+`rdv-01-04-evt-10-rendez-vous`, `lot-62a-socle`, `lot-61-retours-recette-staging`,
+`hub-21-29-messages-calendrier` et `arc-07-combinaisons-modules`.
+
+Constats corrigés pendant le rejeu :
+
+- La CSP refuse les attributs `style` : la frise de l'aperçu est passée en SVG.
+- Une fenêtre fermée apparaissait dans le tableau en 375 px : elle est désormais toujours cachée.
+- L'interrupteur était écrasé par la règle des formulaires d'un seul bouton.
+- Après le choix d'une heure, le focus se perdait : il passe à « Suivant ».
+- Les touches A, B, C ne marchaient que dans la liste des choix : elles marchent sur toute l'étape.
+
+À rejouer par Julien sur le staging (portes 1 et 2) : TidyCal relié à l'agenda principal, après
+import du fichier d'un mariage ; abonnement Google à l'adresse du flux (rafraîchissement lent, hors
+de notre main).

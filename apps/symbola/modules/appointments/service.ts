@@ -4,6 +4,7 @@
 import { randomUUID } from "node:crypto";
 import { formatLinkToken, hashLinkSecret, newLinkSecret, openField, parseLinkToken, sealField } from "@symbola/auth";
 import {
+  APPOINTMENT_DESCRIPTION_MAX,
   APPOINTMENT_CANCEL_REASONS,
   APPOINTMENT_LOCATION_KINDS,
   APPOINTMENT_QUESTIONS_MAX,
@@ -27,7 +28,7 @@ import {
 import { appDatabase } from "@symbola/db/client";
 import { parisToday } from "@symbola/i18n";
 import { starterAppointmentDefaults, starterAppointmentTypes, starterAvailability, starterBookingPrivacyNotice } from "@symbola/starter-templates";
-import { addEventTask, createProspect, FIRM_STATUSES, getEvent, listCalendarEvents } from "@/modules/events/service";
+import { addEventTask, createProspect, getEvent, listBusyRanges } from "@/modules/events/service";
 import { getOrganizationContact, isModuleEnabled, isOrganizationClosed, resolveContact, splitPersonName } from "@/modules/hub/service";
 import { CalendarReadError, fetchCalendarText, normalizeCalendarUrl, parseBusyRanges, urlHint, type Transport } from "./ics-reader";
 import { notifyHost, sendPersonEmail } from "./notifications";
@@ -147,6 +148,7 @@ function toType(row: AppointmentTypeRow): AppointmentType {
     durationMinutes: row.durationMinutes,
     locationKind: row.locationKind,
     location: row.location,
+    description: row.description,
     bufferBeforeMinutes: row.bufferBeforeMinutes,
     bufferAfterMinutes: row.bufferAfterMinutes,
     minNoticeMinutes: row.minNoticeMinutes,
@@ -280,6 +282,7 @@ function cleanQuestions(questions: AppointmentQuestion[] | undefined): Appointme
     label: question.label.trim(),
     kind: question.kind === "choice" ? ("choice" as const) : ("text" as const),
     choices: question.kind === "choice" ? question.choices.map((choice) => choice.trim()).filter(Boolean).slice(0, 12) : [],
+    ...(question.required ? { required: true } : {}),
   }));
   if (list.length > APPOINTMENT_QUESTIONS_MAX) throw new AppointmentInvalidError("questions");
   for (const question of list) {
@@ -303,6 +306,8 @@ function typeValues(input: AppointmentTypeInput, base: Omit<AppointmentType, "id
   const location = input.location === undefined ? base.location : input.location?.trim() || null;
   if (location && location.length > 500) throw new AppointmentInvalidError("location");
   if (locationKind === "video" && location && !/^https:\/\/\S+$/.test(location)) throw new AppointmentInvalidError("location");
+  const description = input.description === undefined ? base.description : input.description?.trim() || null;
+  if (description && description.length > APPOINTMENT_DESCRIPTION_MAX) throw new AppointmentInvalidError("description");
   const reminders = input.reminders ?? base.reminders;
   if (!APPOINTMENT_REMINDER_PLANS.includes(reminders)) throw new AppointmentInvalidError("reminders");
   return {
@@ -310,6 +315,7 @@ function typeValues(input: AppointmentTypeInput, base: Omit<AppointmentType, "id
     durationMinutes: integerIn(input.durationMinutes, base.durationMinutes, 15, 480, "durationMinutes"),
     locationKind,
     location,
+    description,
     bufferBeforeMinutes: integerIn(input.bufferBeforeMinutes, base.bufferBeforeMinutes, 0, 240, "bufferBeforeMinutes"),
     bufferAfterMinutes: integerIn(input.bufferAfterMinutes, base.bufferAfterMinutes, 0, 240, "bufferAfterMinutes"),
     minNoticeMinutes: integerIn(input.minNoticeMinutes, base.minNoticeMinutes, 0, 43_200, "minNoticeMinutes"),
@@ -336,7 +342,7 @@ export async function getAppointmentType(organizationId: string, id: string): Pr
 // personne qui reçoit est celle qui crée le type.
 export async function createAppointmentType(organizationId: string, input: AppointmentTypeInput, createdByUserId: string): Promise<AppointmentType> {
   const defaults = starterAppointmentDefaults();
-  const values = typeValues(input, { ...defaults, name: input.name, durationMinutes: input.durationMinutes, location: null, questions: [], hostUserId: createdByUserId, active: true });
+  const values = typeValues(input, { ...defaults, name: input.name, durationMinutes: input.durationMinutes, location: null, description: null, questions: [], hostUserId: createdByUserId, active: true });
   return toType(await insertAppointmentType(organizationId, values));
 }
 
@@ -493,11 +499,14 @@ export async function listCalendarSourcesInError(organizationId: string): Promis
 
 // —— Créneaux (RDV-02) ————————————————————————————————————————————————————————————
 
-// D6 : les jours des évènements confirmés (si le module Évènements est ouvert).
-async function eventDays(organizationId: string): Promise<string[]> {
+// D6, revu au lot 64 (RDV-02 ; D2, D3 ; ADR 0108) : les plages occupées des évènements qui bloquent
+// (heures réglées par type ou par évènement, la veille et le lendemain compris), pour la personne qui
+// reçoit : ceux de son équipe, ou sans équipe (si le module Évènements est ouvert).
+async function eventBusy(organizationId: string, hostUserId: string, now: Date, horizonDays: number): Promise<Range[]> {
   if (!(await isModuleEnabled(appDatabase(), organizationId, "events"))) return [];
-  const events = await listCalendarEvents(organizationId);
-  return events.filter((event) => FIRM_STATUSES.includes(event.status) && event.status !== "closed").map((event) => event.eventDate!);
+  const window = { from: new Date(now.getTime() - DAY), to: new Date(now.getTime() + (horizonDays + 2) * DAY) };
+  const ranges = await listBusyRanges(organizationId, window, { userId: hostUserId });
+  return ranges.filter((range) => range.blocking).map((range) => ({ start: range.start, end: range.end }));
 }
 
 // Sans lecture réussie, ou en erreur : aucun créneau (mieux vaut ne rien proposer qu'une plage
@@ -506,7 +515,7 @@ function sourcesBlock(sources: CalendarSourceRow[]): boolean {
   return sources.some((source) => source.state === "error" || source.lastSuccessAt === null);
 }
 
-async function slotsInTransaction(tx: Tx, type: AppointmentTypeRow, now: Date, blockedDays: string[], excludeAppointmentId: string | null): Promise<Date[]> {
+async function slotsInTransaction(tx: Tx, type: AppointmentTypeRow, now: Date, eventRanges: Range[], excludeAppointmentId: string | null): Promise<Date[]> {
   const window: Range = { start: now, end: new Date(now.getTime() + (type.horizonDays + 2) * DAY) };
   const { busy, sources, rules, closures } = await readHostBusy(tx, type.hostUserId, window, excludeAppointmentId);
   if (sourcesBlock(sources)) return [];
@@ -515,8 +524,8 @@ async function slotsInTransaction(tx: Tx, type: AppointmentTypeRow, now: Date, b
     timeZone: APPOINTMENTS_TIME_ZONE,
     rules: rules.length > 0 ? rules : starterAvailability(),
     closures,
-    blockedDays,
-    busy,
+    blockedDays: [],
+    busy: [...busy, ...eventRanges],
     durationMinutes: type.durationMinutes,
     bufferBeforeMinutes: type.bufferBeforeMinutes,
     bufferAfterMinutes: type.bufferAfterMinutes,
@@ -538,7 +547,7 @@ export async function availableSlots(organizationId: string, typeId: string, opt
   const type = UUID.test(typeId) ? await findAppointmentType(organizationId, typeId) : null;
   if (!type || !type.active) return [];
   await refreshHostSources(organizationId, type.hostUserId, now, options.transport);
-  const blocked = type.allowEventDays ? [] : await eventDays(organizationId);
+  const blocked = type.allowEventDays ? [] : await eventBusy(organizationId, type.hostUserId, now, type.horizonDays);
   return inOrganization(organizationId, (tx) => slotsInTransaction(tx, type, now, blocked, options.excludeAppointmentId ?? null));
 }
 
@@ -575,6 +584,8 @@ function cleanPerson(input: { name: string; email: string | null; phone: string 
 function cleanAnswers(type: AppointmentTypeRow, answers: Record<string, string>) {
   return type.questions.flatMap((question) => {
     const answer = (answers[question.id] ?? "").trim();
+    // Lot 64 (D7) : une question obligatoire demande une réponse.
+    if (answer === "" && question.required) throw new AppointmentInvalidError(`answer:${question.id}`);
     if (answer === "") return [];
     if (answer.length > 500) throw new AppointmentInvalidError(`answer:${question.id}`);
     if (question.kind === "choice" && !question.choices.includes(answer)) throw new AppointmentInvalidError(`answer:${question.id}`);
@@ -640,7 +651,7 @@ export async function bookAppointment(input: BookingInput, options: { transport?
   if (!person.email) throw new AppointmentInvalidError("email");
   const answers = cleanAnswers(type, input.answers);
   await refreshHostSources(input.organizationId, type.hostUserId, now, options.transport);
-  const blocked = type.allowEventDays ? [] : await eventDays(input.organizationId);
+  const blocked = type.allowEventDays ? [] : await eventBusy(input.organizationId, type.hostUserId, now, type.horizonDays);
   const appointmentId = randomUUID();
   const manage = newManageToken(input.organizationId, appointmentId);
   const result = await inOrganization(input.organizationId, async (tx): Promise<{ row: AppointmentRow } | { taken: Date[] } | { limit: true }> => {
@@ -732,7 +743,7 @@ export async function slotsForManagedAppointment(token: string, now: Date = new 
 export type RescheduleResult = { outcome: "rescheduled"; appointment: Appointment } | { outcome: "taken"; alternatives: Date[] } | { outcome: "invalid" };
 
 async function moveInLock(row: AppointmentRow, type: AppointmentTypeRow, startsAt: Date, now: Date, checkSlots: boolean): Promise<{ row: AppointmentRow } | { taken: Date[] }> {
-  const blocked = checkSlots && !type.allowEventDays ? await eventDays(row.organizationId) : [];
+  const blocked = checkSlots && !type.allowEventDays ? await eventBusy(row.organizationId, type.hostUserId, now, type.horizonDays) : [];
   return inOrganization(row.organizationId, async (tx) => {
     await lockHost(tx, row.organizationId, type.hostUserId);
     if (checkSlots) {

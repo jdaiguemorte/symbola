@@ -69,11 +69,7 @@ const MARKERS: readonly string[] = [
   "variables",
   // Rendez-vous et réservation publique.
   "appointment-row",
-  "booking-form",
-  "booking-page",
-  "booking-weeks",
   "calendar-sources",
-  "question-row",
   // Portail du client, proposition, liens personnels.
   "client-contract",
   "client-options",
