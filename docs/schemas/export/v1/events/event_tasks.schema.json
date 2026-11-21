@@ -200,6 +200,25 @@
     },
     "isMilestone": {
       "type": "boolean"
+    },
+    "categoryId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "high",
+        "normal"
+      ]
     }
   },
   "required": [
@@ -223,7 +242,9 @@
     "deletedBy",
     "recurrence",
     "recurrenceSpawnedAt",
-    "isMilestone"
+    "isMilestone",
+    "categoryId",
+    "priority"
   ],
   "additionalProperties": false,
   "$defs": {

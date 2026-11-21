@@ -153,8 +153,12 @@ describe("DAT-13 — Chaque entité a un format d'export stable et documenté", 
       recurrence: null,
       recurrenceSpawnedAt: null,
       isMilestone: false,
+      // Lot 63d (CHR-03) : catégorie (facultative) et priorité.
+      categoryId: null,
+      priority: "normal",
     };
     expect(tasks.safeParse(task).success).toBe(true);
+    expect(tasks.safeParse({ ...task, priority: "urgent" }).success).toBe(false);
     expect(tasks.safeParse({ ...task, deletedAt: "2026-11-16T10:00:00.000Z", deletedBy: task.eventId }).success).toBe(true);
     expect(tasks.safeParse({ ...task, organizationId: task.id }).success).toBe(false);
     expect(tasks.safeParse({ ...task, dueDate: "11/06/2027" }).success).toBe(false);

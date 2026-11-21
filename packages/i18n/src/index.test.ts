@@ -7,6 +7,7 @@ import {
   formatDateTime,
   formatFileSize,
   formatMonth,
+  formatShortCalendarDate,
   localeFromAcceptLanguage,
   formatAmountInput,
   parseAmountToCents,
@@ -172,5 +173,13 @@ describe("@symbola/i18n — formatAmountInput (montant pré-rempli dans un champ
     for (const cents of [0, 1, 99, 100, 150050, 292950, 100500, 2_147_483_647]) {
       for (const locale of ["fr", "en"] as const) expect(parseAmountToCents(formatAmountInput(cents, locale))).toBe(cents);
     }
+  });
+});
+
+describe("CHR-02, HUB-08 — Date courte avec son jour (lot 63d)", () => {
+  it("« lun. 23 nov. » en français, « Mon, Nov 23 » en anglais, sans décalage de fuseau", () => {
+    expect(formatShortCalendarDate("2026-11-23", "fr")).toBe("lun. 23 nov.");
+    expect(formatShortCalendarDate("2026-11-23", "en")).toBe("Mon, Nov 23");
+    expect(formatShortCalendarDate("2027-03-28", "fr")).toBe("dim. 28 mars");
   });
 });

@@ -76,6 +76,8 @@ export function settingsMenu(flags: SettingsMenuFlags): SettingsMenuGroup[] {
                 // Lot 45 (HUB-21, POR-07) : modèles de questionnaires.
                 { href: "/events/parametres/questionnaires", label: "questionnaires" },
                 { href: "/events/modeles", label: "retroplanning" },
+                // Lot 63d (CHR-03, HUB-20) : catégories et priorité des tâches.
+                { href: "/events/parametres/taches", label: "taskCategories" },
                 { href: "/events/modeles-programme", label: "program" },
                 // Lot 58 (EVT-08) : modèles d'évènement (structures, sans donnée personnelle).
                 { href: "/events/modeles-evenement", label: "eventTemplates" },

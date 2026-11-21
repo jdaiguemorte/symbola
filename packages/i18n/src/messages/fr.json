@@ -543,7 +543,7 @@
     },
     "home": {
       "title": "Aujourd'hui",
-      "body": "Ce qui demande votre attention, tous évènements confondus, trié par urgence : en retard, aujourd'hui, en attente d'un tiers (le client ou un prestataire), puis les quatorze prochains jours. Les trois premiers points sont en tête ; chaque ligne dit qui doit agir et mène à l'action en un clic. Dessous, vos évènements en cours, avec le compte à rebours.",
+      "body": "Ce qui demande votre attention, tous évènements confondus, trié par urgence : en retard, aujourd'hui, en attente d'un tiers (le client ou un prestataire), puis les quatorze prochains jours. Les trois premiers points sont en tête ; chaque ligne dit qui doit agir et mène à l'action en un clic. À côté, le calendrier du mois : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. Dessous, vos évènements en cours, avec le compte à rebours.",
       "faq": [
         {
           "q": "Comment changer les délais de relance des devis et des prospects ?",
@@ -925,7 +925,7 @@
     },
     "allTasks": {
       "title": "Les tâches de tous vos mariages",
-      "body": "Les tâches de tous vos événements, triées par échéance. Filtrez « En retard » pour rattraper, ou par qui la réalise ; cochez une tâche faite : elle l'est tout de suite, et « Annuler » la rétablit pendant dix secondes. « Calendrier » les range à leur échéance, mois par mois. Cliquez-en une pour la modifier sur la fiche de son mariage.",
+      "body": "Les tâches de tous vos évènements, triées par échéance. Filtrez « En retard » pour rattraper, ou par qui la réalise. Le rond marque une tâche faite (« Annuler » la rétablit pendant dix secondes) ; la case à gauche la sélectionne, pour la décaler, la confier, la ranger ou la supprimer avec d'autres. Sur chaque ligne : « Modifier » ou un clic ouvre la fenêtre de la tâche, « Reporter » la repousse à demain, dans une semaine ou à une date, « Supprimer » la retire tout de suite (« Annuler » dix secondes) ; l'échéance se change d'un clic. « Calendrier » les range à leur échéance, mois par mois.",
       "faq": [
         {
           "q": "Les tâches des mariés apparaissent-elles ?",
@@ -1576,6 +1576,10 @@
     "eventDocuments": {
       "title": "Ranger les documents d'un évènement",
       "body": "Une seule zone de dépôt, en tête de l'onglet Documents : glissez le fichier (ou choisissez-le), puis dites ce que c'est. Un devis ou une facture d'un prestataire, avec son nom, se rattache à sa ligne dans « Budget et prestataires » et se range dans « Devis des prestataires » ou « Factures des prestataires » ; un contrat va dans « Contrats » ; le reste dans le dossier choisi ou « Divers ». « Déplacer vers… » range une pièce ailleurs ; sur ordinateur, on peut aussi la glisser sur un dossier. « Mes devis » et « Mes factures » sont ceux que vous émettez : ils se gèrent dans « Mes devis et factures »."
+    },
+    "taskCategories": {
+      "title": "Catégories des tâches",
+      "body": "Rangez vos tâches par catégorie : Client, Prestataires, Administratif, Jour J au départ. Renommez-les, changez leur couleur, leur ordre, ajoutez-en ; une catégorie supprimée laisse ses tâches sans catégorie. Chaque modification s'enregistre quand vous quittez le champ ; « Annuler la dernière modification » la reprend."
     }
   },
   "Aide": {
@@ -2362,7 +2366,60 @@
     "quickTemplateInvalid": "Vérifiez le nom et les tâches du modèle.",
     "eventName": "Nom de l'évènement",
     "eventNameHint": "(obligatoire sans client, ex. « Shooting Roux »)",
-    "missingEventName": "Sans client, donnez un nom à l'évènement."
+    "missingEventName": "Sans client, donnez un nom à l'évènement.",
+    "taskMarkDone": "Marquer « {label} » comme faite",
+    "taskMarkUndone": "Marquer « {label} » comme à faire",
+    "tasksSelectAll": "Tout sélectionner",
+    "taskSelect": "Sélectionner « {label} »",
+    "taskColumnCategory": "Catégorie",
+    "taskColumnActions": "Actions",
+    "taskCategory": "Catégorie",
+    "taskNoCategory": "Sans catégorie",
+    "taskCategoryInvalid": "Cette catégorie n'existe plus : choisissez-en une autre.",
+    "taskPriority": "Priorité",
+    "taskPriorityHigh": "Haute",
+    "taskPriorityNormal": "Normale",
+    "taskEdit": "Modifier",
+    "taskEditLabel": "Modifier « {label} »",
+    "taskPostpone": "Reporter",
+    "taskPostponeLabel": "Reporter « {label} »",
+    "taskPostponeTomorrow": "Demain ({date})",
+    "taskPostponeNextWeek": "Dans une semaine ({date})",
+    "taskPostponeDate": "Choisir une date",
+    "taskPostponeApply": "Reporter à cette date",
+    "taskDelete": "Supprimer",
+    "taskDeleteLabel": "Supprimer « {label} »",
+    "taskReopen": "Rouvrir",
+    "taskReopenLabel": "Rouvrir « {label} »",
+    "taskDueEdit": ", changer l'échéance de « {label} »",
+    "taskDueInput": "Échéance de « {label} »",
+    "taskDueChanged": "Échéance changée.",
+    "tasksBulkLabel": "Actions sur les tâches sélectionnées",
+    "tasksBulkSelected": "{count, plural, one {# tâche sélectionnée} other {# tâches sélectionnées}}",
+    "tasksBulkShift": "Décaler de…",
+    "tasksBulkDays": "Nombre de jours (négatif pour avancer)",
+    "tasksBulkShiftApply": "Décaler",
+    "tasksBulkResponsible": "Responsable",
+    "tasksBulkCategory": "Catégorie",
+    "tasksBulkApply": "Appliquer",
+    "tasksBulkDelete": "{count, plural, one {Supprimer la tâche} other {Supprimer les #}}",
+    "tasksBulkClear": "Tout désélectionner",
+    "tasksBulkNone": "Sélectionnez au moins une tâche.",
+    "tasksBulkInvalid": "Cette action n'a pas pu s'appliquer : vérifiez le nombre de jours (entre -366 et 366, sauf 0).",
+    "tasksBulkDeleted": "{count, plural, =0 {Aucune tâche supprimée.} one {# tâche supprimée.} other {# tâches supprimées.}}",
+    "tasksBulkShifted": "{count, plural, =0 {Aucune tâche décalée.} one {# tâche décalée de {days} jours.} other {# tâches décalées de {days} jours.}}",
+    "tasksBulkResponsibleDone": "{count, plural, =0 {Aucune tâche changée.} one {Responsable changé pour # tâche.} other {Responsable changé pour # tâches.}}",
+    "tasksBulkCategoryDone": "{count, plural, =0 {Aucune tâche changée.} one {Catégorie changée pour # tâche.} other {Catégorie changée pour # tâches.}}",
+    "taskDialogTitle": "Modifier la tâche",
+    "taskDialogClose": "Fermer",
+    "taskDialogBack": "Retour",
+    "taskDialogSections": "Rubriques de la tâche",
+    "taskDialogMain": "La tâche",
+    "taskDialogMore": "Rang et jalon",
+    "taskDialogCancel": "Annuler",
+    "taskDialogSave": "Enregistrer",
+    "taskDialogDelete": "Supprimer la tâche",
+    "taskDialogOpenEvent": "Ouvrir le rétroplanning de l'évènement"
   },
   "Budget": {
     "title": "Budget",
@@ -4763,7 +4820,11 @@
     "quoteInfected": "Fichier refusé par l'antivirus.",
     "noteRequired": "La note est vide.",
     "noteTooLong": "La note est trop longue (2 000 caractères au plus).",
-    "shareRibWithClients": "Partager le RIB de la fiche avec les clients"
+    "shareRibWithClients": "Partager le RIB de la fiche avec les clients",
+    "edit": "Modifier",
+    "editFor": "Modifier {vendor}",
+    "editTitle": "{vendor}",
+    "shownToClientsShort": "Montré aux clients"
   },
   "VendorBook": {
     "title": "Carnet de prestataires",
@@ -5416,7 +5477,8 @@
     "senderAddress": "Adresse d'envoi",
     "emailDeliveries": "Journal des envois",
     "search": "Chercher un réglage",
-    "searchCount": "{count, plural, =0 {Aucun réglage ne porte ce nom.} one {# réglage trouvé} other {# réglages trouvés}}"
+    "searchCount": "{count, plural, =0 {Aucun réglage ne porte ce nom.} one {# réglage trouvé} other {# réglages trouvés}}",
+    "taskCategories": "Catégories des tâches"
   },
   "SettingsLists": {
     "hint": "Chaque modification s'enregistre quand vous quittez le champ.",
@@ -5446,7 +5508,9 @@
       "tasks": "Retour aux tâches",
       "vendors": "Retour aux prestataires"
     },
-    "settingsPanelOpenAll": "Ouvrir tous les réglages"
+    "settingsPanelOpenAll": "Ouvrir tous les réglages",
+    "dialogBack": "Retour",
+    "dialogClose": "Fermer"
   },
   "TutorialsPage": {
     "title": "Tutoriels",
@@ -5977,7 +6041,8 @@
       "events_message_topics": "sujet de discussion",
       "events_message_topic_links": "prestataire d'un sujet",
       "events_messages": "message",
-      "events_message_attachments": "pièce jointe d'un message"
+      "events_message_attachments": "pièce jointe d'un message",
+      "events_task_categories": "catégorie de tâche"
     },
     "modules": {
       "events": "Événements",
@@ -7047,6 +7112,37 @@
       "budget": "budget",
       "guests": "invités",
       "appointments": "rendez-vous"
+    },
+    "calendar": {
+      "kind": {
+        "event": "Évènement",
+        "appointment": "Rendez-vous",
+        "payment": "Paiement",
+        "task": "Tâche"
+      },
+      "payments": "Paiements",
+      "high": "Haute",
+      "overdue": "En retard",
+      "gridLabel": "Calendrier du mois",
+      "openDay": "Voir le détail du {day} ({count, plural, =0 {rien de prévu} one {# élément} other {# éléments}})",
+      "more": "{count, plural, one {+ # autre} other {+ # autres}}",
+      "legend": "Légende du calendrier",
+      "weekLabel": "La semaine en cours",
+      "weekTitle": "Cette semaine",
+      "dayEmpty": "Rien de prévu.",
+      "back": "Retour",
+      "close": "Fermer",
+      "navigate": "Changer de mois",
+      "previous": "Mois précédent",
+      "next": "Mois suivant",
+      "thisMonth": "Ce mois-ci",
+      "unavailable": "Le calendrier n'a pas pu lire {sources} : le reste s'affiche.",
+      "source": {
+        "events": "les évènements",
+        "tasks": "les tâches",
+        "appointments": "les rendez-vous",
+        "budget": "les échéances de paiement"
+      }
     }
   },
   "QuickCreate": {
@@ -8338,6 +8434,7 @@
       "conflict": "Un autre contact porte déjà cette adresse e-mail : le contact reste dans la corbeille.",
       "seeTrash": "Voir la corbeille",
       "task": "Tâche supprimée.",
+      "taskBatch": "Tâches supprimées.",
       "programItem": "Séquence supprimée.",
       "place": "Lieu retiré.",
       "taskComment": "Commentaire retiré.",
@@ -11917,5 +12014,32 @@
     "scheduleEmpty": "Aucune échéance pour ce poste.",
     "addPayment": "+ Ajouter une échéance",
     "markPaid": "Marquer payée"
+  },
+  "TaskCategories": {
+    "title": "Catégories des tâches",
+    "intro": "Les catégories rangent vos tâches : chacune a un nom et une couleur, qui la suit dans la liste des tâches, le rétroplanning et le calendrier d'« Aujourd'hui ». Le nom est toujours écrit à côté de la couleur. Une tâche peut rester sans catégorie.",
+    "tableLabel": "Tableau des catégories des tâches",
+    "label": "Nom de la catégorie",
+    "labelFor": "Nom de la catégorie {label}",
+    "color": "Couleur",
+    "colorFor": "Couleur de la catégorie {label}",
+    "columnTasks": "Tâches",
+    "columnActions": "Actions",
+    "tasksCount": "{count, plural, =0 {aucune tâche} one {# tâche} other {# tâches}}",
+    "moveUp": "Monter",
+    "moveUpFor": "Monter la catégorie {label}",
+    "moveDown": "Descendre",
+    "moveDownFor": "Descendre la catégorie {label}",
+    "remove": "Supprimer",
+    "removeFor": "Supprimer la catégorie {label}",
+    "removed": "{count, plural, =0 {Catégorie supprimée.} one {Catégorie supprimée : # tâche reste sans catégorie.} other {Catégorie supprimée : # tâches restent sans catégorie.}}",
+    "add": "Ajouter la catégorie",
+    "added": "Catégorie ajoutée.",
+    "invalid": "Nom de la catégorie obligatoire (60 caractères au plus) et couleur de la palette.",
+    "tooMany": "Vingt catégories au plus : au-delà, la liste et le calendrier deviennent illisibles.",
+    "last": "Gardez au moins une catégorie ; une tâche peut rester sans catégorie.",
+    "notFound": "Cette catégorie n'existe plus.",
+    "priorityTitle": "Priorité d'une tâche",
+    "priorityBody": "Deux niveaux : « Normale », par défaut, et « Haute ». Une tâche haute porte la pastille « Haute » dans la liste, le rétroplanning et le calendrier. La priorité se choisit dans la fenêtre de la tâche."
   }
 }

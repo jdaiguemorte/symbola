@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "palette": [
+    {
+      "key": "blue",
+      "color": "#3b6fd8",
+      "label": {
+        "fr": "Bleu",
+        "en": "Blue"
+      }
+    },
+    {
+      "key": "plum",
+      "color": "#b0558a",
+      "label": {
+        "fr": "Prune",
+        "en": "Plum"
+      }
+    },
+    {
+      "key": "grey",
+      "color": "#6b7280",
+      "label": {
+        "fr": "Gris",
+        "en": "Grey"
+      }
+    },
+    {
+      "key": "amber",
+      "color": "#c47a0a",
+      "label": {
+        "fr": "Ambre",
+        "en": "Amber"
+      }
+    },
+    {
+      "key": "green",
+      "color": "#2f7d4f",
+      "label": {
+        "fr": "Vert",
+        "en": "Green"
+      }
+    },
+    {
+      "key": "teal",
+      "color": "#1f7a8c",
+      "label": {
+        "fr": "Bleu canard",
+        "en": "Teal"
+      }
+    },
+    {
+      "key": "brick",
+      "color": "#9c3d24",
+      "label": {
+        "fr": "Brique",
+        "en": "Brick"
+      }
+    },
+    {
+      "key": "violet",
+      "color": "#5b4a8a",
+      "label": {
+        "fr": "Violet",
+        "en": "Violet"
+      }
+    }
+  ],
+  "items": [
+    {
+      "key": "client",
+      "label": {
+        "fr": "Client",
+        "en": "Client"
+      },
+      "color": "blue"
+    },
+    {
+      "key": "vendors",
+      "label": {
+        "fr": "Prestataires",
+        "en": "Vendors"
+      },
+      "color": "plum"
+    },
+    {
+      "key": "admin",
+      "label": {
+        "fr": "Administratif",
+        "en": "Admin"
+      },
+      "color": "grey"
+    },
+    {
+      "key": "day_of",
+      "label": {
+        "fr": "Jour J",
+        "en": "Big day"
+      },
+      "color": "amber"
+    }
+  ],
+  "calendar": {
+    "payments": "violet",
+    "appointments": "teal"
+  }
+}

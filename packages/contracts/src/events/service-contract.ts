@@ -362,6 +362,11 @@ export type VendorSlotProgress = {
 // PRD-EVT-04 — rétroplanning. Lot 34b (CHR-02, D12) : une tâche peut être confiée à un
 // prestataire retenu sur l'événement (responsable « vendor ») ; un modèle n'en a pas.
 export type TaskResponsible = "planner" | "clients" | "vendor";
+// Lot 63d (CHR-03, HUB-20) : priorité d'une tâche (deux niveaux) et catégories de l'organisation.
+export type TaskPriority = "high" | "normal";
+export type TaskCategory = { id: string; label: string; color: string; position: number; starterKey: string | null };
+export type TaskCategoryInput = { label: string; color: string };
+export type StarterTaskCategoryInput = { key: string; label: string; color: string };
 export type TemplateTaskResponsible = Exclude<TaskResponsible, "vendor">;
 
 export type TaskTemplateItem = {
@@ -406,6 +411,9 @@ export type EventTask = {
   importedFields?: Record<string, string>;
   // Lot 53 (CHR-05) : jalon du rétroplanning (pèse plus sur la santé du planning).
   isMilestone?: boolean;
+  // Lot 63d (CHR-03) : catégorie (nulle : sans catégorie) et priorité.
+  categoryId: string | null;
+  priority: TaskPriority;
 };
 
 export type EventTaskInput = {
@@ -413,7 +421,16 @@ export type EventTaskInput = {
   dueDate: string;
   responsible: TaskResponsible;
   vendorCandidateId?: string | null;
+  categoryId?: string | null;
+  priority?: TaskPriority;
 };
+
+// Lot 63d (CHR-02, UX-07) : actions groupées sur des tâches choisies dans un tableau.
+export type BulkTaskChange =
+  | { kind: "shift"; days: number }
+  | { kind: "responsible"; responsible: Exclude<TaskResponsible, "vendor"> }
+  | { kind: "category"; categoryId: string | null }
+  | { kind: "priority"; priority: TaskPriority };
 
 // Lot 34b (CHR-02, D13) : pièces jointes et fil de commentaires d'une tâche, réservés à l'équipe.
 export type EventTaskAttachment = { id: string; taskId: string; eventId: string; label: string; mime: string; sizeBytes: number; createdAt: string };
@@ -443,6 +460,8 @@ export type UpdateEventTaskInput = {
   responsible?: TaskResponsible | undefined;
   vendorCandidateId?: string | null | undefined;
   done?: boolean | undefined;
+  categoryId?: string | null | undefined;
+  priority?: TaskPriority | undefined;
 };
 
 export type TaskRecalculation = {
@@ -954,6 +973,18 @@ export interface EventsServiceContract {
   updateEventTask(input: UpdateEventTaskInput): Promise<EventTask>;
   moveEventTask(organizationId: string, taskId: string, direction: "up" | "down"): Promise<void>;
   removeEventTask(organizationId: string, taskId: string): Promise<void>;
+  // Lot 63d (CHR-02, CHR-03, UX-07) : actions groupées (tâches de l'organisation seulement ; renvoie le
+  // nombre de tâches changées), suppression groupée annulable, catégories des tâches.
+  changeEventTasks(organizationId: string, taskIds: string[], change: BulkTaskChange): Promise<number>;
+  removeEventTasks(organizationId: string, taskIds: string[]): Promise<number>;
+  restoreEventTasksDeletedWith(organizationId: string, taskId: string): Promise<number>;
+  listTaskCategories(organizationId: string): Promise<TaskCategory[]>;
+  addStarterTaskCategories(organizationId: string, categories: StarterTaskCategoryInput[]): Promise<number>;
+  createTaskCategory(organizationId: string, input: TaskCategoryInput): Promise<TaskCategory>;
+  updateTaskCategory(organizationId: string, categoryId: string, input: TaskCategoryInput): Promise<void>;
+  moveTaskCategory(organizationId: string, categoryId: string, direction: "up" | "down"): Promise<void>;
+  removeTaskCategory(organizationId: string, categoryId: string): Promise<number>;
+  countTasksByCategory(organizationId: string): Promise<Record<string, number>>;
   getEventProgram(organizationId: string, eventId: string): Promise<EventProgram>;
   // Lot 37b (CHR-07, DAT-14 ; D8, D11).
   publishEventProgram(input: PublishEventProgramInput): Promise<ProgramVersionSummary>;
