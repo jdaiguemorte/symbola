@@ -1,6 +1,6 @@
 // Accès aux données du module budget — jamais importé hors de
 // modules/budget/ (ADR 0011).
-import { and, asc, eq, inArray, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm";
 import { inTrash, markDeleted, UNMARKED } from "@symbola/db/soft-delete";
 import type { BudgetAmountField, BudgetDocumentKind } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
@@ -692,13 +692,15 @@ export async function deleteVendorPaymentRow(input: { organizationId: string; ev
 // Bloc « Échéances prestataires » (D7) : échéances non payées jusqu'à la date
 // donnée (retards compris), toutes les lignes de leurs événements pour le calcul
 // des pourcentages.
-export async function findDueVendorPayments(organizationId: string, until: string): Promise<{ payments: VendorPaymentRow[]; lines: BudgetLineRow[] }> {
+// Lot 63d (HUB-08, BUD-11) : « from », la première date (calendrier d'un mois) ; sans elle, les retards
+// comptent aussi.
+export async function findDueVendorPayments(organizationId: string, until: string, from?: string): Promise<{ payments: VendorPaymentRow[]; lines: BudgetLineRow[] }> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
     const payments = await tx
       .select()
       .from(vendorPayments)
-      .where(and(isNull(vendorPayments.paidOn), lte(vendorPayments.dueOn, until)))
+      .where(and(isNull(vendorPayments.paidOn), lte(vendorPayments.dueOn, until), from ? gte(vendorPayments.dueOn, from) : undefined))
       .orderBy(asc(vendorPayments.dueOn), asc(vendorPayments.position));
     const eventIds = [...new Set(payments.map((payment) => payment.eventId))];
     const lines = eventIds.length > 0 ? await tx.select().from(budgetLines).where(inArray(budgetLines.eventId, eventIds)) : [];

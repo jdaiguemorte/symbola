@@ -46,6 +46,7 @@ import {
   messageTopics,
   eventTasks,
   eventTypes,
+  taskCategories,
   eventVendorCandidateNotes,
   eventVendorCandidates,
   eventVendorSlots,
@@ -93,6 +94,8 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: contactForms },
   { table: taskTemplates },
   { table: taskTemplateItems, parents: { templateId: "task_templates" } },
+  // Lot 63d (CHR-03, HUB-20) : catégories des tâches, avant les tâches qui s'y rangent.
+  { table: taskCategories },
   { table: programTemplates },
   { table: programTemplateItems, parents: { templateId: "program_templates" } },
   // Lot 51 (JRJ-06) : modèles des listes de contrôle du jour J.

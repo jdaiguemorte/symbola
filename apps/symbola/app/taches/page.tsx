@@ -1,13 +1,20 @@
 // PRD-HUB-02 / PRD-EVT-04 — écran « Tâches » : les tâches de tous les événements en
 // cours (hors perdus et réalisés), en tableau, filtrables par état et par
 // responsable. Cocher une tâche ici la marque faite sur sa fiche.
+// Lot 63d (CHR-02, CHR-03 ; maquette M6) : le tableau agit sur la ligne, et la tâche s'ouvre dans une
+// fenêtre sur cet écran (« ?tache= »), sans partir vers l'évènement.
 import { PageHeader } from "@/app/ui/page-header";
 import { EmptyState } from "@/app/ui/empty-state";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatCalendarDate, parisToday, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
-import { listOrganizationTasks, listStandaloneTasks } from "@/modules/events/service";
+import { ENGAGED_CANDIDATE_STATUSES } from "@symbola/contracts";
+import { listOrganizationTasks, listStandaloneTasks, listVendorCandidates } from "@/modules/events/service";
+import { ensureTaskCategories } from "@/lib/events/task-categories";
+import { isValidId } from "@/app/events/module-access";
+import { responsibleValue } from "@/app/events/[id]/task-responsible";
+import { TaskDialog } from "./task-dialog";
 import { AddStandaloneTaskForm } from "./standalone-tasks";
 import { completeStandaloneTaskAction, deleteStandaloneTaskAction } from "./standalone-actions";
 import { requirePlanner } from "@/lib/guards";
@@ -17,7 +24,7 @@ import { TaskTable } from "./task-table";
 import { TaskCalendar } from "./task-calendar";
 import { responsibleLabels } from "@/lib/vocabulary";
 
-type SearchParams = { vue?: string; qui?: string; affichage?: string; mois?: string };
+type SearchParams = { vue?: string; qui?: string; affichage?: string; mois?: string; tache?: string };
 
 export default async function TasksPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const auth = await requirePlanner();
@@ -47,6 +54,17 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const month = query.mois && /^\d{4}-(0[1-9]|1[0-2])$/.test(query.mois) ? query.mois : today.slice(0, 7);
   const href = (changes: Record<string, string>) =>
     `/taches?${new URLSearchParams({ vue: view, qui: owner, ...(calendar ? { affichage: "calendrier", mois: month } : {}), ...changes }).toString()}`;
+  const categories = await ensureTaskCategories(organizationId, locale);
+  // La tâche ouverte dans la fenêtre : cherchée aussi parmi les faites (cochée depuis « Toutes »).
+  const openId = query.tache && isValidId(query.tache) ? query.tache : null;
+  const opened = openId
+    ? (all.find((task) => task.id === openId) ??
+      (await listOrganizationTasks({ organizationId, today, horizonDays: null, includeDone: true })).find((task) => task.id === openId) ??
+      null)
+    : null;
+  const openedVendors = opened
+    ? (await listVendorCandidates(organizationId, opened.eventId)).filter((candidate) => ENGAGED_CANDIDATE_STATUSES.includes(candidate.status)).map((candidate) => ({ candidateId: candidate.id, name: candidate.vendorName }))
+    : [];
   const overdue = all.filter((task) => task.overdue).length;
   // Lot 53 (CHR-10, D6) : les tâches hors évènement (TVA, assurance…), avec leur répétition.
   const standalone = await listStandaloneTasks(organizationId, { includeDone: view === "toutes" });
@@ -88,7 +106,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             ))}
           </nav>
         </div>
-        {calendar ? <TaskCalendar month={month} tasks={tasks} today={today} locale={locale} href={(next) => href({ mois: next })} /> : null}
+        {calendar ? <TaskCalendar month={month} tasks={tasks} today={today} locale={locale} href={(next) => href({ mois: next })} taskHref={(task) => href({ tache: task.id })} categories={categories} /> : null}
         {/* Lot 39c (UX-08) : l'écran vide enseigne. */}
         {!calendar && tasks.length === 0 ? all.length === 0 && view !== "toutes" ? <EmptyState screen="tasks" title={t("allTasksEmpty")} actionHref="/events" /> : <p>{t("noTasksForFilter")}</p> : null}
         {!calendar && tasks.length > 0 ? (
@@ -98,11 +116,23 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             today={today}
             caption={t("allTasksTitle")}
             showEvent
-            editHref={(task) => `/events/${task.eventId}?onglet=retroplanning&tache=${task.id}`}
+            selectedTaskId={opened?.id ?? null}
+            openHref={(task) => href({ tache: task.id })}
             responsibleLabel={(task) => labelOf(task.eventId, task.responsible)}
+            categories={categories}
           />
         ) : null}
       </section>
+      {opened ? (
+        <TaskDialog
+          key={`${opened.id}-${opened.dueDate}-${opened.label}`}
+          task={{ id: opened.id, label: opened.label, dueDate: opened.dueDate, responsible: responsibleValue(opened), categoryId: opened.categoryId, priority: opened.priority }}
+          closeHref={href({})}
+          categories={categories.map((category) => ({ id: category.id, label: category.label }))}
+          vendors={openedVendors}
+          eventLink={{ href: `/events/${opened.eventId}?onglet=retroplanning&tache=${opened.id}`, label: t("taskDialogOpenEvent"), names: opened.event.names }}
+        />
+      ) : null}
       <section className="card" aria-labelledby="standalone-tasks-title" id="hors-evenement">
         <h2 id="standalone-tasks-title">{tStandalone("title")}</h2>
         <ScreenHelp title={tHelp("standaloneTasks.title")} body={tHelp("standaloneTasks.body")} />

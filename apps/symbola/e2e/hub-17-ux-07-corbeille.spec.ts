@@ -52,7 +52,8 @@ test("UX-07 — une tâche supprimée revient par « Annuler » pendant dix seco
   const setup = await atelier();
   await signIn(page, setup.email, /\/$/);
   await page.goto(`/events/${setup.eventId}?onglet=retroplanning&tache=${setup.taskId}`);
-  await page.getByRole("button", { name: "Supprimer la tâche Envoyer les faire-part" }).click();
+  // Lot 63d : la fenêtre de la tâche, ouverte par l'adresse, propose « Supprimer la tâche ».
+  await page.getByRole("dialog", { name: "Modifier la tâche" }).getByRole("button", { name: "Supprimer la tâche", exact: true }).click();
   const banner = page.getByRole("status").filter({ hasText: "Tâche supprimée." });
   await expect(banner).toBeVisible();
   await expect(page.getByText("Envoyer les faire-part")).toHaveCount(0);

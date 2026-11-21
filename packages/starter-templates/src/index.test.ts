@@ -34,6 +34,9 @@ import {
   starterEmergencyNumbers,
   starterErasureResponse,
   starterEventTypes,
+  starterTaskCategories,
+  taskCategoryPalette,
+  paymentsCalendarColor,
   starterFollowUpDelays,
   starterInvoiceMentions,
   starterLatePenalty,
@@ -808,5 +811,24 @@ describe("L60-PLA-01 — Bibliothèque de départ des plans de salle (floorplan-
   it("L60-PLA-02 : grille de 50 cm, pas de 10 cm et 1 m, rotation de 15°", () => {
     expect(floorplanEditorRules()).toMatchObject({ gridCm: 50, nudgeCm: 10, nudgeLargeCm: 100, rotationStepDeg: 15 });
     expect(floorplanSeatingRules().seatWidthCm).toBeGreaterThan(0);
+  });
+});
+
+describe("CHR-03, HUB-20 — Catégories de départ des tâches (lot 63d)", () => {
+  it("Client, Prestataires, Administratif, Jour J, traduites, chacune de sa couleur", () => {
+    expect(starterTaskCategories("fr").map((category) => category.label)).toEqual(["Client", "Prestataires", "Administratif", "Jour J"]);
+    expect(starterTaskCategories("en").map((category) => category.label)).toEqual(["Client", "Vendors", "Admin", "Big day"]);
+    const colors = starterTaskCategories("fr").map((category) => category.color);
+    expect(new Set(colors).size).toBe(colors.length);
+    for (const color of colors) expect(color).toMatch(/^#[0-9a-f]{6}$/);
+  });
+
+  it("la palette est nommée dans chaque langue et la couleur des paiements en fait partie, distincte des catégories de départ", () => {
+    const palette = taskCategoryPalette("fr");
+    expect(new Set(palette.map((entry) => entry.color)).size).toBe(palette.length);
+    expect(taskCategoryPalette("en").every((entry) => entry.label.length > 0)).toBe(true);
+    for (const category of starterTaskCategories("fr")) expect(palette.map((entry) => entry.color)).toContain(category.color);
+    expect(palette.map((entry) => entry.color)).toContain(paymentsCalendarColor());
+    expect(starterTaskCategories("fr").map((category) => category.color)).not.toContain(paymentsCalendarColor());
   });
 });

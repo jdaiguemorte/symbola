@@ -179,13 +179,14 @@ test("EVT-07 / CHR-03 — le portefeuille en liste et en calendrier, la charge p
   await expect(agenda.getByText(/2 événements (ce week-end|ce jour-là)/).first()).toBeAttached();
   await expectNoAxeViolation(page);
 
-  // Tâches : le calendrier du mois ; chaque tâche ouvre son évènement.
+  // Tâches : le calendrier du mois ; chaque tâche s'ouvre dans sa fenêtre, sur l'écran (lot 63d).
   await page.goto(`/taches?affichage=calendrier&mois=${setup.dueOn.slice(0, 7)}`);
   const calendar = page.getByRole("region", { name: new RegExp(monthName(setup.dueOn), "i") });
   await expect(calendar).toContainText("Léa & Maxime");
   await expectNoAxeViolation(page);
   await calendar.getByRole("link", { name: "Choisir le menu" }).click();
-  await expect(page).toHaveURL(new RegExp(`/events/${setup.lea}\\?onglet=retroplanning&tache=`));
+  await expect(page).toHaveURL(/\/taches\?.*tache=/);
+  await expect(page.getByRole("dialog", { name: "Modifier la tâche" }).getByLabel("Tâche", { exact: true })).toHaveValue("Choisir le menu");
 });
 
 // Une autre agence : Zoé en prospect à J+200, rien d'autre.

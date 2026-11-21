@@ -356,7 +356,7 @@ test("UX-05, UX-07 — rétroplanning : cibles de 44 px ; cocher une tâche gard
   await page.goto(`/events/${setup.eventId}`);
   await openEventTab(page, "Rétroplanning");
 
-  const check = page.getByRole("button", { name: "Cocher la tâche Choisir le traiteur" });
+  const check = page.getByRole("button", { name: "Marquer « Choisir le traiteur » comme faite" });
   const box = (await check.boundingBox())!;
   expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44);
   await expectCommonCriteria(page);
@@ -364,11 +364,11 @@ test("UX-05, UX-07 — rétroplanning : cibles de 44 px ; cocher une tâche gard
 
   // La case garde son comportement : cochée tout de suite, « Annuler » la rétablit (UX-07).
   await check.click();
-  await expect(page.getByRole("button", { name: "Décocher la tâche Choisir le traiteur" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Marquer « Choisir le traiteur » comme à faire" })).toBeVisible();
   await expect.poll(async () => (await listEventTasks(setup.organizationId, setup.eventId)).find((task) => task.label === "Choisir le traiteur")?.done).toBe(true);
   const undo = page.getByRole("status").filter({ hasText: "Tâche « Choisir le traiteur » faite." });
   await undo.getByRole("button", { name: "Annuler" }).click();
-  await expect(page.getByRole("button", { name: "Cocher la tâche Choisir le traiteur" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Marquer « Choisir le traiteur » comme faite" })).toBeVisible();
   await expect.poll(async () => (await listEventTasks(setup.organizationId, setup.eventId)).find((task) => task.label === "Choisir le traiteur")?.done).toBe(false);
   await expectCommonCriteria(page);
 });
