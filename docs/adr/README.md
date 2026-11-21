@@ -34,7 +34,7 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0030 — Une aide qui forme et une recherche globale](0030-aide-qui-forme-et-recherche-globale.md)
 - [0031 — Prestataires consultés, carnet de prestataires et carte](0031-prestataires-carnet-et-carte.md)
 - [0032 — « Budget » remplace les postes prestataires](0032-budget-remplace-les-postes.md) — *remplacé par 0054 (lot 28)*
-- [0033 — Refonte UX : panneaux latéraux, aide par repères, captures réelles](0033-refonte-ux-panneaux-et-aide-par-reperes.md)
+- [0033 — Refonte UX : panneaux latéraux, aide par repères, captures réelles](0033-refonte-ux-panneaux-et-aide-par-reperes.md) — *point 3 (repères) remplacé par 0104 (lot 63f)*
 - [0034 — Import : lecture des fiches PDF avec `pdfjs-dist`](0034-lecture-des-pdf-pour-l-import.md)
 - [0035 — Traitements de fond suivis des imports](0035-traitements-de-fond-suivis-des-imports.md)
 - [0036 — Migrations annulables par script, types énumérés compris](0036-migrations-annulables.md)
@@ -102,3 +102,5 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0100 — Fermeture d'un espace : 30 jours d'export, effacement contrôlé par la base, trace rejouable](0100-fermeture-d-un-espace-et-effacement-au-30e-jour.md)
 - [0101 — Abonnement en libre-service, forfaits par module, interrupteurs par fonction et quota de stockage](0101-abonnement-forfaits-interrupteurs-et-quota.md)
 - [0102 — Messagerie par sujet, adresse d'expédition sur le domaine de Symbola, journal des envois, portail aux couleurs et installable](0102-messagerie-adresse-d-expedition-et-journal-des-envois.md)
+- [0103 — Assistant « L'essentiel » après le questionnaire d'accueil](0103-assistant-l-essentiel-apres-le-questionnaire.md)
+- [0104 — Visite guidée à la place des repères numérotés](0104-visite-guidee-a-la-place-des-reperes.md)
