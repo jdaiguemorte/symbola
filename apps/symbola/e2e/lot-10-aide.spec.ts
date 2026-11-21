@@ -164,7 +164,7 @@ test("AIDE-06 — tutoriel en faisant : modèle de rétroplanning proposé à la
   // Fin : le modèle est gardé, l'exemple disparaît, la progression avance.
   await expect(page.getByRole("heading", { name: "Garder ou supprimer" })).toBeVisible();
   await page.getByRole("button", { name: "Garder le modèle comme base" }).click();
-  await expect(page.getByRole("heading", { name: "Bravo, tutoriel terminé" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tutoriel terminé" })).toBeVisible();
   await page.goto("/events/modeles");
   await expect(page.getByText("Séminaire express (exemple)").first()).toBeVisible();
   await expect(page.getByRole("region", { name: "À quoi sert un modèle de rétroplanning ?" })).toHaveCount(0);

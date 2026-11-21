@@ -753,7 +753,7 @@
     },
     "budgetDetail": {
       "title": "Budget de l'événement",
-      "body": "Chaque poste de l'événement est une catégorie ; elle porte des lignes (« Dîner, 120 couverts », « Vin d'honneur »…), chacune avec son prestataire et cinq montants : l'estimé, le devisé, l'engagé (rempli quand vous retenez le prestataire), le payé et le reste à payer, calculé. « Modifier » ouvre une ligne sur place : changez son libellé, son prestataire, son taux et ses montants, sur autant de lignes que vous voulez, puis « Enregistrer le budget » les écrit ensemble ; « Annuler les modifications » rend le budget enregistré. La simulation et sa répartition par poste se replient une fois les lignes posées ; la répartition s'enregistre de même, d'un seul « Enregistrer la répartition ». Sous chaque ligne, joignez le devis, le contrat ou la facture, et posez les échéances (acompte, solde ; un pourcentage porte sur l'engagé du prestataire) : payées, elles font le payé de la ligne, et les prochaines apparaissent dans « Aujourd'hui ». L'enveloppe est le budget souhaité du client ; au-delà du seuil d'alerte, un bandeau le signale, et retenir un prestataire demande une confirmation. Les montants se saisissent TTC, chaque ligne avec son taux de TVA (20 % par défaut) ; si le devis de l'événement est à un client professionnel, le HT s'affiche sous chaque montant. « Exporter en XLSX » ou « en PDF » reprend le budget et les échéances, aux couleurs de vos documents.",
+      "body": "Chaque poste de l'événement est une catégorie ; elle porte des lignes (« Dîner, 120 couverts », « Vin d'honneur »…), chacune avec son prestataire et cinq montants : l'estimé, le réel (le montant du devis), l'engagé (rempli quand vous retenez le prestataire), le payé et le reste à payer, calculé. « Modifier » ouvre une ligne sur place : changez son libellé, son prestataire, son taux et ses montants, sur autant de lignes que vous voulez, puis « Enregistrer le budget » les écrit ensemble ; « Annuler les modifications » rend le budget enregistré. La simulation et sa répartition par poste se replient une fois les lignes posées ; la répartition s'enregistre de même, d'un seul « Enregistrer la répartition ». Sous chaque ligne, joignez le devis, le contrat ou la facture, et posez les échéances (acompte, solde ; un pourcentage porte sur l'engagé du prestataire) : payées, elles font le payé de la ligne, et les prochaines apparaissent dans « Aujourd'hui ». L'enveloppe est le budget souhaité du client ; au-delà du seuil d'alerte, un bandeau le signale, et retenir un prestataire demande une confirmation. Les montants se saisissent TTC, chaque ligne avec son taux de TVA (20 % par défaut) ; si le devis de l'événement est à un client professionnel, le HT s'affiche sous chaque montant. « Exporter en XLSX » ou « en PDF » reprend le budget et les échéances, aux couleurs de vos documents.",
       "faq": [
         {
           "q": "Les mariés voient-ils le budget ?",
@@ -871,7 +871,7 @@
     },
     "importColumns": {
       "title": "Reconnaître les colonnes",
-      "body": "Seules les colonnes qui demandent un choix sont présentées : dites ce que devient chacune, un champ de la fiche, un champ libre gardé tel quel, ou rien. Une proposition peu sûre n'est jamais choisie d'office. Les colonnes reconnues se résument en une ligne ; « Voir le détail » les déplie."
+      "body": "Seules les colonnes qui demandent un choix sont présentées : dites ce que devient chacune, un champ de la fiche, une note sur la fiche, ou rien. Une proposition peu sûre n'est jamais choisie d'office. Les colonnes reconnues se résument en une ligne ; « Voir le détail » les déplie."
     },
     "importMatches": {
       "title": "Rapprocher des éléments existants",
@@ -883,7 +883,7 @@
     },
     "importConfirm": {
       "title": "Confirmer un import",
-      "body": "Avant d'importer, l'assistant fait le bilan : fiches créées et mises à jour, types et étiquettes créés, colonnes gardées en champ libre, lignes rejetées, avec un aperçu des valeurs corrigées. Le bouton dit ce qui sera importé."
+      "body": "Avant d'importer, l'assistant fait le bilan : fiches créées et mises à jour, types et étiquettes créés, colonnes gardées en note sur la fiche, lignes rejetées, avec un aperçu des valeurs corrigées. Le bouton dit ce qui sera importé."
     },
     "importUndo": {
       "title": "Journal et annulation d'un import",
@@ -1605,9 +1605,9 @@
     "noResults": "Aucun événement ne correspond à ces critères.",
     "statusConfirmed": "Confirmé",
     "templateEventType": "Type d'évènement",
-    "templateEventTypeNone": "Aucun (premier modèle par défaut)",
+    "templateEventTypeNone": "Aucun : ne s'applique pas de lui-même",
     "templateEventTypeSave": "Rattacher",
-    "templateEventTypeHint": "Le modèle rattaché à un type s'applique dès la création d'un évènement de ce type ; sans modèle rattaché, le premier modèle s'applique.",
+    "templateEventTypeHint": "Le modèle rattaché à un type s'applique dès la création d'un évènement de ce type. Un modèle sans type ne s'applique à aucun évènement de lui-même : appliquez-le depuis l'onglet Rétroplanning d'un évènement.",
     "statusOption": "Option",
     "statusInPreparation": "En préparation",
     "statusDayOf": "Jour J",
@@ -1686,7 +1686,7 @@
     "statusChanged": "Statut mis à jour.",
     "taskTableRegion": "Tableau : {caption}",
     "vendorSlotsTable": "Lignes du budget",
-    "vendorSlotsTitle": "Budget",
+    "vendorSlotsTitle": "Budget et prestataires",
     "vendorProgress": "{booked, plural, =0 {Aucune ligne pourvue} one {# ligne pourvue} other {# lignes pourvues}} sur {required}",
     "vendorStatusToFind": "À trouver",
     "vendorStatusShortlisted": "Pressenti",
@@ -1713,7 +1713,7 @@
     "missingVendorName": "Indiquez le nom du prestataire retenu pour saisir un montant.",
     "invalidAmount": "Montant invalide. Exemple : 2 500,50",
     "defaultVendorSlotsTitle": "Lignes du budget par défaut",
-    "defaultVendorSlotsIntro": "Chaque nouvel événement reçoit ces lignes (lieu, traiteur, photographe…) ; vous y suivez prestataires, devis et montants (estimé, devisé, engagé, payé), et vous les modifiez ensuite événement par événement.",
+    "defaultVendorSlotsIntro": "Chaque nouvel événement reçoit ces lignes (lieu, traiteur, photographe…) ; vous y suivez prestataires, devis et montants (estimé, réel, engagé, payé), et vous les modifiez ensuite événement par événement.",
     "noDefaultVendorSlots": "Aucune ligne par défaut pour l'instant.",
     "newDefaultVendorSlotLabel": "Nouvelle ligne par défaut",
     "addDefaultVendorSlot": "Ajouter la ligne",
@@ -2389,14 +2389,14 @@
     "allocated": "Déjà réparti",
     "remaining": "Reste à répartir",
     "costPerGuest": "Coût par invité",
-    "linesTitle": "Estimé, devisé, engagé, payé",
+    "linesTitle": "Estimé, réel, engagé, payé",
     "clientLinesTitle": "Estimé, engagé, écart",
     "confirmAsPlanned": "En faire le budget estimé",
     "vendorSlot": "Ligne",
     "notSet": "Non renseigné",
     "amounts": {
       "estimated": "Estimé",
-      "quoted": "Devisé",
+      "quoted": "Réel",
       "committed": "Engagé",
       "paid": "Payé",
       "remaining": "Reste à payer"
@@ -2584,7 +2584,7 @@
     "invalidPrefix": "Préfixe invalide : lettres majuscules et chiffres, 8 caractères au plus, DEMO exclu.",
     "vatRegimeInProfile": "Le régime de TVA, l'adresse et le SIREN imprimés sur vos devis se règlent dans",
     "organizationSettingsLink": "les paramètres de l'organisation",
-    "eventQuotesTitle": "Devis",
+    "eventQuotesTitle": "Mes devis et factures",
     "noEventQuotes": "Aucun devis pour cet événement.",
     "createQuote": "Créer un devis",
     "quoteTitle": "Devis {number}",
@@ -2707,7 +2707,7 @@
     "loadStarterPaymentMethods": "Charger les modes de départ",
     "starterPaymentMethodsLoaded": "Modes de départ chargés.",
     "signatureTitle": "Signature en ligne",
-    "sendForSignature": "Envoyer en signature",
+    "sendForSignature": "Faire signer",
     "sendForSignatureHint": "La version courante est figée puis envoyée au service de signature ; chaque signataire reçoit son lien personnel par e-mail. Laissez vide une ligne inutile.",
     "signerNumber": "Signataire {number}",
     "signerName": "Nom et prénom",
@@ -3007,7 +3007,8 @@
     "editItem": "Modifier",
     "closeItem": "Fermer",
     "closeItemNamed": "Fermer « {label} »",
-    "archiveItemShort": "Archiver"
+    "archiveItemShort": "Archiver",
+    "signerSameAddress": "Même adresse que le signataire 1"
   },
   "Documents": {
     "pdfSellerHeading": "De",
@@ -3211,7 +3212,8 @@
     "decline": "Refuser le devis",
     "signed": "Vous avez signé ce devis.",
     "declined": "Vous avez refusé ce devis.",
-    "backToSpace": "Revenir à mon espace"
+    "backToSpace": "Revenir à mon espace",
+    "backToQuote": "Revenir au devis"
   },
   "Import": {
     "title": "Importer des données",
@@ -3428,12 +3430,12 @@
     "gapsStepTitle": "Écarts",
     "continueToGaps": "Continuer : rapport des écarts",
     "gapsPending": "{count, plural, =0 {Rapport des écarts à consulter.} one {# colonne sans équivalent attend votre décision.} other {# colonnes sans équivalent attendent votre décision.}}",
-    "gapsSummary": "{kept, plural, =0 {aucune colonne gardée en champ libre} one {# colonne gardée en champ libre} other {# colonnes gardées en champ libre}}, {ignored, plural, =0 {aucune ignorée} one {# ignorée} other {# ignorées}}.",
+    "gapsSummary": "{kept, plural, =0 {aucune colonne gardée en note} one {# colonne gardée en note sur la fiche} other {# colonnes gardées en note sur la fiche}}, {ignored, plural, =0 {aucune ignorée} one {# ignorée} other {# ignorées}}.",
     "gapsTitle": "Rapport des écarts de « {fileName} »",
     "gapsColumnsTitle": "Colonnes sans équivalent",
-    "gapsColumnsIntro": "Ces colonnes ne correspondent à aucun champ. Gardez-les en champ libre, visible sur la fiche de chaque élément importé, ou ignorez-les.",
+    "gapsColumnsIntro": "Ces colonnes ne correspondent à aucun champ. Gardez-les comme une note sur la fiche de chaque élément importé (visible dans la rubrique Notes, sans filtre ni calcul), ou ignorez-les.",
     "gapsNoColumns": "Toutes les colonnes ont un équivalent ou sont ignorées.",
-    "gapsKeep": "Garder en champ libre sur la fiche",
+    "gapsKeep": "Une note sur la fiche",
     "gapsIgnore": "Ignorer",
     "gapsUndecided": "À décider.",
     "gapsSaveColumns": "Enregistrer les choix",
@@ -3525,8 +3527,9 @@
     "rejectedTooManySheets": "Trop de fiches à la fois : déposez-les en plusieurs fois.",
     "gapsRejectedSheet": "Fiche « {file} » : {reasons}",
     "rowSameAs": "Cette fiche décrit le même événement que la ligne {line} : rapprochez-la de l'événement existant ou ne gardez que l'une des deux.",
-    "sheetStatusIntro": "Statut proposé pour chaque événement (confirmé si la date est à venir et un lieu connu, réalisé si elle est passée) : changez-le si besoin avant de confirmer.",
-    "sheetStatusSave": "Enregistrer les statuts",
+    "sheetStatusIntro": "Statut proposé pour chaque évènement (confirmé si la date est à venir et un lieu connu, réalisé si elle est passée). Changez-le si besoin : il est enregistré dès que vous le choisissez.",
+    "sheetStatusSaved": "Statut enregistré.",
+    "sheetStatusFailed": "Erreur : le statut n'a pas pu être enregistré. Réessayez.",
     "sheetRejection": {
       "not_pdf": "ce n'est pas un PDF",
       "too_large": "fichier trop volumineux",
@@ -3583,7 +3586,7 @@
     },
     "summary": {
       "file": "{rows, plural, one {# ligne} other {# lignes}}",
-      "columns": "{recognized, plural, one {# colonne reconnue} other {# colonnes reconnues}}{kept, plural, =0 {} other {, # en champ libre}}{ignored, plural, =0 {} one {, # ignorée} other {, # ignorées}}",
+      "columns": "{recognized, plural, one {# colonne reconnue} other {# colonnes reconnues}}{kept, plural, =0 {} other {, # en note sur la fiche}}{ignored, plural, =0 {} one {, # ignorée} other {, # ignorées}}",
       "types": "{labels, plural, one {# libellé} other {# libellés}}, {created, plural, =0 {aucun type créé} one {# type créé} other {# types créés}}{unclassified, plural, =0 {} other {, # à classer}}",
       "matches": "{creations, plural, one {# nouveau} other {# nouveaux}}, {updates, plural, =0 {aucune mise à jour} one {# mise à jour} other {# mises à jour}}",
       "rows": "{excluded, plural, =0 {toutes les lignes gardées} one {# ligne écartée} other {# lignes écartées}}"
@@ -3604,11 +3607,11 @@
     "columnHeaderBecomes": "Devient",
     "columnHeaderConfidence": "Confiance",
     "columnChoose": "Choisir…",
-    "columnTargetFree": "Garder en champ libre sur la fiche",
+    "columnTargetFree": "Une note sur la fiche",
     "confidencePercent": "{value} %",
     "confidenceProfile": "Export reconnu",
     "columnsToDecideTitle": "{count, plural, one {# colonne à décider} other {# colonnes à décider}}",
-    "columnsToDecideIntro": "Dites ce que devient chacune : un champ de la fiche, un champ libre gardé tel quel, ou rien.",
+    "columnsToDecideIntro": "Dites ce que devient chacune : un champ de la fiche, une note sur la fiche (visible, sans filtre ni calcul), ou rien.",
     "columnsToDecideTable": "Colonnes à décider",
     "columnsRecognized": "{count, plural, one {# colonne reconnue} other {# colonnes reconnues}}",
     "columnsShowDetail": "Voir le détail",
@@ -3653,7 +3656,7 @@
     "effectsUpdates": "Fiches mises à jour",
     "effectsTypes": "Types créés",
     "effectsTags": "Étiquettes créées",
-    "effectsFreeColumns": "Colonnes gardées en champ libre",
+    "effectsFreeColumns": "Colonnes gardées en note sur la fiche",
     "effectsRejected": "Lignes rejetées",
     "startQuestion": "Que voulez-vous reprendre ?",
     "otherFileTitle": "Un autre fichier",
@@ -3802,7 +3805,7 @@
       "issuedOn": "Émis le",
       "amountCents": "Montant (centimes)",
       "estimatedAmountCents": "Estimé (centimes)",
-      "quotedAmountCents": "Devisé (centimes)",
+      "quotedAmountCents": "Réel, montant devisé (centimes)",
       "committedAmountCents": "Engagé (centimes)",
       "paidAmountCents": "Payé (centimes)",
       "reason": "Motif",
@@ -4346,13 +4349,15 @@
     "stepOf": "Étape {step} sur {total}",
     "continue": "Continuer",
     "createExample": "Créer l'exemple",
+    "setupNote": "Symbola va créer un exemple marqué « Essai ». Il sera supprimé à la fin du tutoriel, avec tout ce qu'il contient (ou au bout de 24 h si vous l'abandonnez). Vos vrais évènements ne sont pas touchés.",
     "openExample": "Ouvrir l'exemple",
     "openScreen": "Voir à l'écran",
     "check": "J'ai fait, vérifier",
     "checkHint": "Ce n'est pas encore fait sur l'exemple : ouvrez-le, faites l'action décrite, puis revenez vérifier.",
     "finishAndDelete": "Terminer et supprimer l'exemple",
-    "doneTitle": "Bravo, tutoriel terminé",
-    "doneBody": "L'exemple est réglé selon votre choix. Le tutoriel suivant vous attend dans le centre d'aide.",
+    "doneTitle": "Tutoriel terminé",
+    "doneBody": "L'exemple a été supprimé, avec tout ce qu'il contenait. Vos vrais évènements n'ont pas été touchés. Le tutoriel suivant vous attend dans le centre d'aide.",
+    "doneBodyKept": "L'exemple a été supprimé. Ce que vous avez choisi de garder reste dans vos réglages ; vos vrais évènements n'ont pas été touchés. Le tutoriel suivant vous attend dans le centre d'aide.",
     "alreadyDoneTitle": "Tutoriel déjà terminé",
     "alreadyDoneBody": "Vous pouvez le refaire à tout moment, avec un nouvel exemple.",
     "restart": "Refaire ce tutoriel",
@@ -4433,7 +4438,7 @@
         },
         {
           "title": "À quoi elle sert",
-          "body": "Dans chaque devis, « Ajouter depuis le catalogue » reprend cette prestation avec son prix et sa TVA. Modifier le catalogue ne change jamais un devis déjà envoyé."
+          "body": "Dans chaque devis, « Ajouter un article du catalogue » reprend cette prestation avec son prix et sa TVA. Modifier le catalogue ne change jamais un devis déjà envoyé."
         },
         {
           "title": "Garder ou supprimer",
@@ -4452,8 +4457,8 @@
           "body": "Symbola crée un mariage fictif et un devis d'exemple, déjà rempli de lignes et d'un échéancier."
         },
         {
-          "title": "Envoyer en signature",
-          "body": "Ouvrez le devis d'exemple, cliquez « Envoyer le devis » puis « Envoyer en signature ». Pendant un exemple, aucun e-mail ne part : les liens de signature s'affichent sur le devis."
+          "title": "Faire signer",
+          "body": "Ouvrez le devis d'exemple, cliquez « Envoyer le devis » puis « Faire signer ». Pendant un exemple, aucun e-mail ne part : les liens de signature s'affichent sur le devis."
         },
         {
           "title": "Signer",
@@ -4477,7 +4482,7 @@
         },
         {
           "title": "Faire signer le devis",
-          "body": "Ouvrez le devis d'exemple : envoyez-le, envoyez-le en signature, puis signez par les liens affichés."
+          "body": "Ouvrez le devis d'exemple : envoyez-le, cliquez « Faire signer », puis signez par les liens affichés."
         },
         {
           "title": "Facturer l'acompte",
@@ -4577,7 +4582,7 @@
         },
         {
           "title": "Commencer un import",
-          "body": "Ouvrez Importer des données, téléchargez la fiche d'exemple (un PDF fictif) depuis « Reprendre mes événements », puis choisissez « Fiches événement (PDF) » et déposez-la. Allez jusqu'à l'aperçu."
+          "body": "Ouvrez Importer des données, téléchargez la fiche d'exemple (un PDF fictif) depuis « Reprendre mes événements », puis choisissez « Fiches événement (PDF, une fiche par événement) » et déposez-la. Allez jusqu'à l'aperçu."
         },
         {
           "title": "Vérifier avant de confirmer",
@@ -4809,7 +4814,7 @@
     "historyDate": "Date",
     "historySlot": "Ligne du budget",
     "historyOutcome": "Issue",
-    "historyQuoted": "Prix devisé",
+    "historyQuoted": "Prix réel",
     "historyFinal": "Prix final",
     "historyUnnamed": "Événement",
     "outcomeSelected": "Retenu",
@@ -4897,7 +4902,7 @@
     "exportPdfAround": "{count, plural, one {# prestataire} other {# prestataires}} à moins de {km} km de {place}",
     "allTypesCount": "Tous · {count}",
     "typeCount": "{label} · {count}",
-    "filterWorkedWithLabel": "Déjà retenus",
+    "filterWorkedWithLabel": "Déjà travaillé ensemble",
     "viewLabel": "Affichage",
     "viewList": "Liste",
     "viewMap": "Carte",
@@ -5068,7 +5073,20 @@
     "evaluationsUnknownEvent": "Évènement retiré",
     "floorplansTitle": "Plans de salle",
     "floorplansIntro": "Espaces du lieu, installations fixes et vos configurations, prêtes à copier dans un évènement.",
-    "floorplansLink": "Ouvrir les plans de salle du lieu"
+    "floorplansLink": "Ouvrir les plans de salle du lieu",
+    "filterWhere": "Où ?",
+    "filterRadiusShort": "dans un rayon de",
+    "activeFiltersLabel": "Filtres actifs",
+    "activeFiltersCount": "{count, plural, one {# filtre actif :} other {# filtres actifs :}}",
+    "removeFilter": "Retirer le filtre {filter}",
+    "clearFilters": "Effacer les filtres",
+    "activeFilterText": "« {text} »",
+    "activeFilterAround": "{place}, {km} km",
+    "activeFilterField": {
+      "min": "{field} : au moins {value}",
+      "max": "{field} : au plus {value}",
+      "eq": "{field} : {value}"
+    }
   },
   "Onboarding": {
     "title": "Préparons votre espace",
@@ -5149,11 +5167,8 @@
       "progress": "{done} sur {total} faits",
       "done": "fait",
       "items": {
-        "logo": "Ajouter votre logo",
-        "first_vendor": "Ajouter un premier prestataire",
-        "first_quote": "Préparer un premier devis",
-        "client_invite": "Inviter un client sur son espace",
-        "contacts_import": "Importer vos contacts"
+        "essentials": "Régler l'essentiel : société, adresse, TVA",
+        "first_vendor": "Ajouter un premier prestataire"
       }
     }
   },
@@ -5385,7 +5400,8 @@
     "filterCount": "{shown, plural, one {# affiché} other {# affichés}} sur {total}",
     "cancel": "Annuler",
     "errorLabel": "Erreur :",
-    "attentionLabel": "À vérifier :"
+    "attentionLabel": "À vérifier :",
+    "requiredLegend": "obligatoire"
   },
   "TutorialsPage": {
     "title": "Tutoriels",
@@ -10617,7 +10633,7 @@
     },
     "today": {
       "title": "Risques",
-      "intro": "Le radar passe chaque matin sur les évènements à venir. Chaque alerte dit sa règle.",
+      "intro": "Le radar passe chaque matin sur les évènements à venir.",
       "empty": "Aucun risque détecté ce matin.",
       "off": "Le radar des risques est coupé.",
       "open": "Agir",

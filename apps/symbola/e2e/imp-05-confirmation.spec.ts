@@ -69,7 +69,7 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
 
   // Lot 16 (IMP-11) : la colonne « E-mail » se garde en champ libre dès l'étape « Colonnes ».
   await expect(page).toHaveURL(/\/colonnes$/);
-  await page.getByLabel("Champ pour la colonne « E-mail »").selectOption({ label: "Garder en champ libre sur la fiche" });
+  await page.getByLabel("Champ pour la colonne « E-mail »").selectOption({ label: "Une note sur la fiche" });
   await continueButton.click();
   // Doublons : l'événement existant est mis à jour.
   await expect(page).toHaveURL(/\/rapprochements/);

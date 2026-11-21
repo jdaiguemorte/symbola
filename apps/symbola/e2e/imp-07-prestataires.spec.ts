@@ -56,7 +56,7 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
   // champ libre) : l'étape est faite d'office, l'assistant ouvre « Types ».
   await expect(page).toHaveURL(/\/types$/);
   const steps = page.getByRole("navigation", { name: "Étapes de l'import" });
-  await expect(steps.getByRole("listitem").filter({ hasText: "Colonnes" })).toContainText(/colonnes reconnues, 3 en champ libre, 1 ignorée/);
+  await expect(steps.getByRole("listitem").filter({ hasText: "Colonnes" })).toContainText(/colonnes reconnues, 3 en note sur la fiche, 1 ignorée/);
   await expect(steps.getByRole("listitem").filter({ hasText: "Types" })).toHaveAttribute("aria-current", "step");
   await expectNoAxeViolation(page);
 

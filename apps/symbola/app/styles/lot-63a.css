@@ -1,0 +1,48 @@
+/* Lot 63a — retours de la recette du 21/11/2026. Règles propres à ce paquet ; mêmes jetons que
+   globals.css (DESIGN.md), aucun style en ligne (CSP). Chargé avant globals.css. */
+@layer components {
+  /* Barre de filtres (PRE-11) : « Où ? » réunit le lieu et le rayon en un seul contrôle, à la hauteur
+     des autres filtres (libellé au-dessus, contrôles de 38 px). */
+  .filter-bar fieldset.filter-where {
+    @apply m-0 grid min-w-0 gap-1 border-0 p-0 lg:col-span-2;
+  }
+  .filter-bar fieldset.filter-where legend {
+    @apply m-0 p-0 text-label font-medium text-ink-muted;
+  }
+  .filter-where-row {
+    @apply flex items-center gap-2;
+  }
+  .filter-where-row label:first-child {
+    @apply min-w-0 flex-1;
+  }
+  .filter-bar .filter-where-row label {
+    @apply flex items-center gap-2;
+  }
+  .filter-bar .filter-where-row label span:not(.sr-only) {
+    @apply whitespace-nowrap text-label text-ink-muted;
+  }
+  .filter-bar .filter-where-row select {
+    @apply w-auto;
+  }
+  /* Filtres actifs : une pastille par filtre, qui se retire seule, et « Effacer les filtres ». */
+  .filter-chips {
+    @apply mt-3 flex flex-wrap items-center gap-2 text-label;
+  }
+  .filter-chip {
+    @apply inline-flex min-h-8 items-center gap-1 rounded-full bg-primary-soft px-3 text-primary no-underline hover:bg-primary hover:text-on-primary;
+  }
+  .filter-chips-clear {
+    @apply ml-auto;
+  }
+}
+
+@layer components {
+  /* Champ obligatoire (UX-14) : l'astérisque dans le libellé, la légende sous le formulaire. Encre,
+     pas de rouge : le rouge dit « en retard ou bloqué » (DESIGN.md). */
+  .required-mark {
+    @apply font-bold text-ink;
+  }
+  .required-legend {
+    @apply mt-2;
+  }
+}

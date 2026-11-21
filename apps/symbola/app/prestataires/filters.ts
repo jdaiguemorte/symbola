@@ -106,3 +106,49 @@ export function queryString(query: BookQuery, overrides: Record<string, string |
   const text = params.toString();
   return text ? `?${text}` : "";
 }
+
+// Lot 63a (PRE-01, PRE-11 ; recette du 21/11/2026) — les filtres actifs du carnet, chacun en pastille
+// qui se retire seule, et « Effacer les filtres » qui les retire tous. La famille, le type, la vue
+// et l'évènement d'origine ne sont pas des filtres de la barre : ils restent.
+export const BAR_FILTER_KEYS = ["q", "autour", "rayon", "deja", "note", "aplacer", "etiquette"] as const;
+
+export type ActiveFilter = { key: string; label: string; href: string };
+
+export type ActiveFilterLabels = {
+  text: (text: string) => string;
+  around: (place: string, km: number) => string;
+  workedWith: string;
+  rating: (rating: number) => string;
+  unplaced: string;
+  tag: (tagId: string) => string | null;
+  field: (fieldId: string, op: "min" | "max" | "eq", value: string) => string | null;
+};
+
+export function activeFilters(path: string, query: BookQuery, filters: BookFilters, labels: ActiveFilterLabels): ActiveFilter[] {
+  const without = (...keys: string[]) => `${path}${queryString(query, Object.fromEntries(keys.map((key) => [key, ""])))}`;
+  const list: ActiveFilter[] = [];
+  if (filters.text) list.push({ key: "q", label: labels.text(filters.text), href: without("q") });
+  if (filters.aroundText && !filters.aroundText.startsWith("fiche:")) {
+    list.push({ key: "autour", label: labels.around(filters.aroundText, filters.radiusKm), href: without("autour", "rayon") });
+  }
+  if (filters.workedWith) list.push({ key: "deja", label: labels.workedWith, href: without("deja") });
+  if (filters.minRating) list.push({ key: "note", label: labels.rating(filters.minRating), href: without("note") });
+  if (filters.unplaced) list.push({ key: "aplacer", label: labels.unplaced, href: without("aplacer") });
+  if (filters.tagId) {
+    const label = labels.tag(filters.tagId);
+    if (label) list.push({ key: "etiquette", label, href: without("etiquette") });
+  }
+  for (const [key, value] of Object.entries(filters.fieldInputs)) {
+    if (!value) continue;
+    const match = /^(min|max|eq)_(.+)$/.exec(key);
+    if (!match) continue;
+    const label = labels.field(match[2]!, match[1] as "min" | "max" | "eq", value);
+    if (label) list.push({ key, label, href: without(key) });
+  }
+  return list;
+}
+
+export function clearFiltersHref(path: string, query: BookQuery, filters: BookFilters): string {
+  const keys = [...BAR_FILTER_KEYS, ...Object.keys(filters.fieldInputs)];
+  return `${path}${queryString(query, Object.fromEntries(keys.map((key) => [key, ""])))}`;
+}

@@ -65,7 +65,7 @@ test("DEV-02 — envoyer un devis en signature, signer par le lien reçu, archiv
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page.getByRole("heading", { name: "Inès" })).toBeVisible();
   await page.waitForLoadState("networkidle");
-  await openEventTab(page, "Devis");
+  await openEventTab(page, "Mes devis et factures");
   await page.getByRole("button", { name: "Créer un devis" }).click();
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
   const quoteUrl = page.url();
@@ -80,13 +80,13 @@ test("DEV-02 — envoyer un devis en signature, signer par le lien reçu, archiv
 
   // Signataire saisi sur le devis (rubrique « Contrat et signature »), pré-rempli depuis les mariés de l'événement.
   await openQuoteRubric(page, "contrat");
-  const send = page.getByRole("form", { name: "Envoyer en signature" });
+  const send = page.getByRole("form", { name: "Faire signer" });
   const first = send.getByRole("group", { name: "Signataire 1" });
   await expect(first.getByLabel("Nom et prénom")).toHaveValue("Inès Martin");
   await first.getByLabel("E-mail").fill(signerEmail);
   await first.getByLabel("Adresse de facturation").fill("3 place Bellecour, 69002 Lyon");
   await expectNoAxeViolation(page);
-  await send.getByRole("button", { name: "Envoyer en signature" }).click();
+  await send.getByRole("button", { name: "Faire signer" }).click();
   await expect(page.getByText("En attente de signature.")).toBeVisible();
   await expect(page.getByText(/^Envoyé — version/)).toBeVisible();
   await expectNoAxeViolation(page);

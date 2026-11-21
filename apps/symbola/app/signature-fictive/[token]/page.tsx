@@ -32,9 +32,11 @@ export default async function FakeSignaturePage({ params }: { params: Promise<{ 
       ) : (
         <>
           <p role="status">{signature.status === "signed" ? t("signed") : t("declined")}</p>
-          {/* Lot 43 (GC-01) : retour à l'espace du client, où l'enchaînement continue (régler l'acompte). */}
+          {/* Lot 43 (GC-01) : retour à l'espace du client, où l'enchaînement continue (régler l'acompte).
+              Lot 63a : pour un devis d'exemple, c'est la planner qui signe à la place d'un client, depuis
+              un tutoriel ; elle revient au devis dans l'app, pas dans l'espace du client. */}
           <p>
-            <a href="/portail">{t("backToSpace")}</a>
+            {signature.demoQuoteId ? <a href={`/devis/${signature.demoQuoteId}`}>{t("backToQuote")}</a> : <a href="/portail">{t("backToSpace")}</a>}
           </p>
         </>
       )}

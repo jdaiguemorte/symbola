@@ -65,7 +65,7 @@ test("BUD-01 — une ligne complète (estimé, devisé, engagé, payé) se saisi
 
   await page.goto(`/budget/${wedding.eventId}`);
   await page.waitForLoadState("networkidle");
-  const table = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" });
+  const table = page.getByRole("table", { name: "Estimé, réel, engagé, payé" });
   // Lot 28b : la catégorie « Traiteur » a sa ligne de total ; la ligne se repère par « Modifier ».
   const row = table.getByRole("row").filter({ hasText: "Modifier « Traiteur »" });
   await expect(row).toContainText("4 500,00 €");
@@ -75,7 +75,7 @@ test("BUD-01 — une ligne complète (estimé, devisé, engagé, payé) se saisi
   await row.getByText("Modifier « Traiteur »").click();
   // Lot 28b : le formulaire s'ouvre dans une rangée pleine largeur, sous la ligne.
   const editor = page.getByRole("region", { name: "Ligne « Traiteur » : montants, prestataire, documents et échéances" });
-  await editor.getByLabel("Devisé — Traiteur").fill("4 480");
+  await editor.getByLabel("Réel — Traiteur").fill("4 480");
   await editor.getByLabel("Engagé — Traiteur").fill("4 480");
   await editor.getByLabel("Payé — Traiteur").fill("1 344");
   // Lot 62c (D1) : un seul « Enregistrer le budget », qui dit le nombre de lignes modifiées.

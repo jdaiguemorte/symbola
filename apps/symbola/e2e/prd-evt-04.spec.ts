@@ -57,7 +57,7 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await addItem.getByRole("button", { name: "Ajouter la tâche au modèle" }).click();
   await expect(page.getByRole("row", { name: /J-120 Envoyer les faire-part Mariés/ })).toBeVisible();
   await expectNoAxeViolation(page);
-  // Le modèle de départ se charge à côté ; « Mariage court », créé le premier, reste celui par défaut (lot 34a, D8).
+  // Le modèle de départ se charge à côté. Lot 63a : un modèle sans type ne s'applique pas de lui-même.
   await page.goto("/events/modeles");
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Charger le modèle de départ" }).click();
@@ -81,8 +81,9 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await expect(page.getByText("Ajoutez une date à l'événement pour appliquer un modèle de rétroplanning.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toHaveCount(0);
 
-  // Lot 34a (EVT-01, D8) : à sa première date (onglet Synthèse, « Modifier les informations »), le
-  // modèle par défaut crée de lui-même les tâches, regroupées par mois.
+  // Lot 34a (EVT-01, D8) puis lot 63a : à sa première date (onglet Synthèse, « Modifier les
+  // informations »), seul un modèle rattaché au type de l'évènement s'appliquerait de lui-même.
+  // Ces modèles n'ont pas de type : la planner applique « Mariage court » à la main.
   await openEventTab(page, "Synthèse");
   await page.waitForLoadState("networkidle");
   await page.getByRole("link", { name: "Modifier les informations" }).click();
@@ -92,8 +93,11 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await page.getByRole("link", { name: "Fermer le panneau" }).click();
   await expect(page.getByRole("complementary", { name: "Modifier les informations" })).toHaveCount(0);
   await openEventTab(page, "Rétroplanning");
-  // Un autre modèle reste applicable à la main.
-  await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toBeVisible();
+  await expect(page.getByRole("columnheader", { name: "juin 2026" })).toHaveCount(0);
+  await page.waitForLoadState("networkidle");
+  await page.getByLabel("Modèle à appliquer").selectOption({ label: "Mariage court" });
+  await page.getByRole("button", { name: "Appliquer le modèle" }).click();
+  await expect(page.getByText("Modèle appliqué : les tâches ont été créées.")).toBeVisible();
   const row = (label: string) => page.getByRole("row", { name: new RegExp(label) });
   await expect(page.getByRole("columnheader", { name: "juin 2026" })).toBeVisible();
   await expect(row("Réserver le lieu")).toContainText("12 juin 2026");

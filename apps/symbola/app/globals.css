@@ -11,6 +11,7 @@
 @import "./styles/lot-62b-reglages.css";
 @import "./styles/lot-62c-fiche-evenement.css";
 @import "./styles/lot-62d-devis.css";
+@import "./styles/lot-63a.css";
 @source "../../../packages/ui/src";
 
 @theme {

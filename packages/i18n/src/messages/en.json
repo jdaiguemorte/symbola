@@ -871,7 +871,7 @@
     },
     "importColumns": {
       "title": "Recognising columns",
-      "body": "Only the columns that need a choice are shown: say what each one becomes, a record field, a free field kept as is, or nothing. A doubtful proposal is never chosen for you. Recognised columns are summed up in one line; “See the detail” opens them."
+      "body": "Only the columns that need a choice are shown: say what each one becomes, a record field, a note on the record, or nothing. A doubtful proposal is never chosen for you. Recognised columns are summed up in one line; “See the detail” opens them."
     },
     "importMatches": {
       "title": "Matching existing records",
@@ -883,7 +883,7 @@
     },
     "importConfirm": {
       "title": "Confirming an import",
-      "body": "Before importing, the assistant sums up the effects: records created and updated, types and tags created, columns kept as free fields, rows rejected, with a preview of the corrected values. The button says what will be imported."
+      "body": "Before importing, the assistant sums up the effects: records created and updated, types and tags created, columns kept as notes on the record, rows rejected, with a preview of the corrected values. The button says what will be imported."
     },
     "importUndo": {
       "title": "Import log and undo",
@@ -1605,9 +1605,9 @@
     "noResults": "No event matches these criteria.",
     "statusConfirmed": "Confirmed",
     "templateEventType": "Event type",
-    "templateEventTypeNone": "None (first template by default)",
+    "templateEventTypeNone": "None: does not apply by itself",
     "templateEventTypeSave": "Attach",
-    "templateEventTypeHint": "A template attached to a type applies as soon as an event of that type is created; without one, the first template applies.",
+    "templateEventTypeHint": "A template attached to a type applies as soon as an event of that type is created. A template without a type never applies by itself: apply it from an event's Retroplanning tab.",
     "statusOption": "Option",
     "statusInPreparation": "In preparation",
     "statusDayOf": "Event day",
@@ -1686,7 +1686,7 @@
     "statusChanged": "Status updated.",
     "taskTableRegion": "Table: {caption}",
     "vendorSlotsTable": "Budget lines",
-    "vendorSlotsTitle": "Budget",
+    "vendorSlotsTitle": "Budget and vendors",
     "vendorProgress": "{booked, plural, =0 {No line filled} one {# line filled} other {# lines filled}} out of {required}",
     "vendorStatusToFind": "To find",
     "vendorStatusShortlisted": "Shortlisted",
@@ -2584,7 +2584,7 @@
     "invalidPrefix": "Invalid prefix: capital letters and digits, up to 8 characters, DEMO excluded.",
     "vatRegimeInProfile": "The VAT regime, address and SIREN printed on your quotes are set in",
     "organizationSettingsLink": "the organisation settings",
-    "eventQuotesTitle": "Quotes",
+    "eventQuotesTitle": "My quotes and invoices",
     "noEventQuotes": "No quote for this event.",
     "createQuote": "Create a quote",
     "quoteTitle": "Quote {number}",
@@ -2707,7 +2707,7 @@
     "loadStarterPaymentMethods": "Load starter methods",
     "starterPaymentMethodsLoaded": "Starter methods loaded.",
     "signatureTitle": "Online signature",
-    "sendForSignature": "Send for signature",
+    "sendForSignature": "Get it signed",
     "sendForSignatureHint": "The current version is frozen then sent to the signature service; each signer receives their personal link by email. Leave an unneeded row empty.",
     "signerNumber": "Signer {number}",
     "signerName": "Full name",
@@ -3007,7 +3007,8 @@
     "editItem": "Edit",
     "closeItem": "Close",
     "closeItemNamed": "Close “{label}”",
-    "archiveItemShort": "Archive"
+    "archiveItemShort": "Archive",
+    "signerSameAddress": "Same address as signer 1"
   },
   "Documents": {
     "pdfSellerHeading": "From",
@@ -3211,7 +3212,8 @@
     "decline": "Decline the quote",
     "signed": "You have signed this quote.",
     "declined": "You have declined this quote.",
-    "backToSpace": "Back to my space"
+    "backToSpace": "Back to my space",
+    "backToQuote": "Back to the quote"
   },
   "Import": {
     "title": "Import data",
@@ -3428,12 +3430,12 @@
     "gapsStepTitle": "Gaps",
     "continueToGaps": "Continue: gaps report",
     "gapsPending": "{count, plural, =0 {Gaps report to review.} one {# column without equivalent awaits your decision.} other {# columns without equivalent await your decision.}}",
-    "gapsSummary": "{kept, plural, =0 {no column kept as a free field} one {# column kept as a free field} other {# columns kept as free fields}}, {ignored, plural, =0 {none ignored} one {# ignored} other {# ignored}}.",
+    "gapsSummary": "{kept, plural, =0 {no column kept as a note} one {# column kept as a note on the record} other {# columns kept as notes on the record}}, {ignored, plural, =0 {none ignored} one {# ignored} other {# ignored}}.",
     "gapsTitle": "Gaps report for “{fileName}”",
     "gapsColumnsTitle": "Columns without equivalent",
-    "gapsColumnsIntro": "These columns match no field. Keep them as a free field, shown on the record of each imported item, or ignore them.",
+    "gapsColumnsIntro": "These columns match no field. Keep them as a note on the record of each imported item (shown under Notes, with no filter or calculation), or ignore them.",
     "gapsNoColumns": "Every column has an equivalent or is ignored.",
-    "gapsKeep": "Keep as a free field on the record",
+    "gapsKeep": "A note on the record",
     "gapsIgnore": "Ignore",
     "gapsUndecided": "To decide.",
     "gapsSaveColumns": "Save choices",
@@ -3525,8 +3527,9 @@
     "rejectedTooManySheets": "Too many sheets at once: upload them in several goes.",
     "gapsRejectedSheet": "Sheet “{file}”: {reasons}",
     "rowSameAs": "This sheet describes the same event as row {line}: match it with the existing event or keep only one of them.",
-    "sheetStatusIntro": "Suggested status for each event (confirmed when the date is ahead and a venue is known, done when it has passed): change it if needed before confirming.",
-    "sheetStatusSave": "Save the statuses",
+    "sheetStatusIntro": "Suggested status for each event (confirmed when the date is ahead and a venue is known, done when it has passed). Change it if needed: it is saved as soon as you choose it.",
+    "sheetStatusSaved": "Status saved.",
+    "sheetStatusFailed": "Error: the status could not be saved. Try again.",
     "sheetRejection": {
       "not_pdf": "not a PDF",
       "too_large": "file too large",
@@ -3583,7 +3586,7 @@
     },
     "summary": {
       "file": "{rows, plural, one {# row} other {# rows}}",
-      "columns": "{recognized, plural, one {# column recognised} other {# columns recognised}}{kept, plural, =0 {} other {, # kept as free fields}}{ignored, plural, =0 {} other {, # ignored}}",
+      "columns": "{recognized, plural, one {# column recognised} other {# columns recognised}}{kept, plural, =0 {} other {, # kept as notes}}{ignored, plural, =0 {} other {, # ignored}}",
       "types": "{labels, plural, one {# label} other {# labels}}, {created, plural, =0 {no type created} one {# type created} other {# types created}}{unclassified, plural, =0 {} other {, # to sort}}",
       "matches": "{creations, plural, other {# new}}, {updates, plural, =0 {no update} one {# update} other {# updates}}",
       "rows": "{excluded, plural, =0 {all rows kept} one {# row set aside} other {# rows set aside}}"
@@ -3604,11 +3607,11 @@
     "columnHeaderBecomes": "Becomes",
     "columnHeaderConfidence": "Confidence",
     "columnChoose": "Choose…",
-    "columnTargetFree": "Keep as a free field on the record",
+    "columnTargetFree": "A note on the record",
     "confidencePercent": "{value}%",
     "confidenceProfile": "Recognised export",
     "columnsToDecideTitle": "{count, plural, one {# column to decide} other {# columns to decide}}",
-    "columnsToDecideIntro": "Say what each one becomes: a record field, a free field kept as is, or nothing.",
+    "columnsToDecideIntro": "Say what each one becomes: a record field, a note on the record (shown, with no filter or calculation), or nothing.",
     "columnsToDecideTable": "Columns to decide",
     "columnsRecognized": "{count, plural, one {# column recognised} other {# columns recognised}}",
     "columnsShowDetail": "See the detail",
@@ -3653,7 +3656,7 @@
     "effectsUpdates": "Records updated",
     "effectsTypes": "Types created",
     "effectsTags": "Tags created",
-    "effectsFreeColumns": "Columns kept as free fields",
+    "effectsFreeColumns": "Columns kept as notes on the record",
     "effectsRejected": "Rows rejected",
     "startQuestion": "What do you want to bring in?",
     "otherFileTitle": "Another file",
@@ -4346,13 +4349,15 @@
     "stepOf": "Step {step} of {total}",
     "continue": "Continue",
     "createExample": "Create the example",
+    "setupNote": "Symbola will create an example marked \"Trial\". It is deleted at the end of the tutorial, with everything it contains (or after 24 hours if you abandon it). Your real events are not touched.",
     "openExample": "Open the example",
     "openScreen": "See it on screen",
     "check": "Done, check it",
     "checkHint": "It is not done on the example yet: open it, do the action described, then come back to check.",
     "finishAndDelete": "Finish and delete the example",
-    "doneTitle": "Well done, tutorial finished",
-    "doneBody": "The example is handled as you chose. The next tutorial is waiting in the help centre.",
+    "doneTitle": "Tutorial finished",
+    "doneBody": "The example has been deleted, with everything it contained. Your real events were not touched. The next tutorial is waiting in the help centre.",
+    "doneBodyKept": "The example has been deleted. What you chose to keep stays in your settings; your real events were not touched. The next tutorial is waiting in the help centre.",
     "alreadyDoneTitle": "Tutorial already finished",
     "alreadyDoneBody": "You can do it again at any time, with a new example.",
     "restart": "Do this tutorial again",
@@ -4433,7 +4438,7 @@
         },
         {
           "title": "What it is for",
-          "body": "In every quote, \"Add from catalogue\" picks up this service with its price and VAT. Changing the catalogue never changes a quote already sent."
+          "body": "In every quote, \"Add a catalogue item\" picks up this service with its price and VAT. Changing the catalogue never changes a quote already sent."
         },
         {
           "title": "Keep or delete",
@@ -4452,8 +4457,8 @@
           "body": "Symbola creates a fictional wedding and an example quote, already filled with lines and a payment schedule."
         },
         {
-          "title": "Send for signature",
-          "body": "Open the example quote, click \"Send the quote\" then \"Send for signature\". During an example no e-mail is sent: the signing links show on the quote."
+          "title": "Get it signed",
+          "body": "Open the example quote, click \"Send the quote\" then \"Get it signed\". During an example no e-mail is sent: the signing links show on the quote."
         },
         {
           "title": "Sign",
@@ -4477,7 +4482,7 @@
         },
         {
           "title": "Get the quote signed",
-          "body": "Open the example quote: send it, send it for signature, then sign through the links shown."
+          "body": "Open the example quote: send it, click \"Get it signed\", then sign through the links shown."
         },
         {
           "title": "Invoice the deposit",
@@ -4577,7 +4582,7 @@
         },
         {
           "title": "Start an import",
-          "body": "Open Import data, download the example sheet (a fictitious PDF) from “Bring over my events”, then choose “Event sheets (PDF)” and drop it in. Go as far as the preview."
+          "body": "Open Import data, download the example sheet (a fictitious PDF) from “Bring over my events”, then choose “Event sheets (PDF, one sheet per event)” and drop it in. Go as far as the preview."
         },
         {
           "title": "Check before confirming",
@@ -4897,7 +4902,7 @@
     "exportPdfAround": "{count, plural, one {# vendor} other {# vendors}} within {km} km of {place}",
     "allTypesCount": "All · {count}",
     "typeCount": "{label} · {count}",
-    "filterWorkedWithLabel": "Already booked",
+    "filterWorkedWithLabel": "Already worked together",
     "viewLabel": "Display",
     "viewList": "List",
     "viewMap": "Map",
@@ -5068,7 +5073,20 @@
     "evaluationsUnknownEvent": "Removed event",
     "floorplansTitle": "Floor plans",
     "floorplansIntro": "The venue's spaces, fixed installations and your layouts, ready to copy into an event.",
-    "floorplansLink": "Open the venue's floor plans"
+    "floorplansLink": "Open the venue's floor plans",
+    "filterWhere": "Where?",
+    "filterRadiusShort": "within",
+    "activeFiltersLabel": "Active filters",
+    "activeFiltersCount": "{count, plural, one {# active filter:} other {# active filters:}}",
+    "removeFilter": "Remove the filter {filter}",
+    "clearFilters": "Clear filters",
+    "activeFilterText": "“{text}”",
+    "activeFilterAround": "{place}, {km} km",
+    "activeFilterField": {
+      "min": "{field}: at least {value}",
+      "max": "{field}: at most {value}",
+      "eq": "{field}: {value}"
+    }
   },
   "Onboarding": {
     "title": "Let's set up your workspace",
@@ -5149,11 +5167,8 @@
       "progress": "{done} of {total} done",
       "done": "done",
       "items": {
-        "logo": "Add your logo",
-        "first_vendor": "Add a first vendor",
-        "first_quote": "Prepare a first quote",
-        "client_invite": "Invite a client to their space",
-        "contacts_import": "Import your contacts"
+        "essentials": "Set up the essentials: company, address, VAT",
+        "first_vendor": "Add a first vendor"
       }
     }
   },
@@ -5385,7 +5400,8 @@
     "filterCount": "{shown} shown of {total}",
     "cancel": "Cancel",
     "errorLabel": "Error:",
-    "attentionLabel": "To check:"
+    "attentionLabel": "To check:",
+    "requiredLegend": "required"
   },
   "TutorialsPage": {
     "title": "Tutorials",
@@ -10617,7 +10633,7 @@
     },
     "today": {
       "title": "Risks",
-      "intro": "The radar checks upcoming events every morning. Each alert explains its rule.",
+      "intro": "The radar checks upcoming events every morning.",
       "empty": "No risk detected this morning.",
       "off": "The risk radar is turned off.",
       "open": "Act",

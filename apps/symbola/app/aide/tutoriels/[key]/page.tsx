@@ -15,7 +15,7 @@ import { CheckForm } from "./check-form";
 import { abandonTutorialAction, continueTutorialAction, finishTutorialAction, restartTutorialAction, setupTutorialAction } from "./actions";
 import { isInProgress, tutorialInProgress } from "@/lib/help/journey";
 
-export default async function TutorialPage({ params, searchParams }: { params: Promise<{ key: string }>; searchParams: Promise<{ termine?: string }> }) {
+export default async function TutorialPage({ params, searchParams }: { params: Promise<{ key: string }>; searchParams: Promise<{ termine?: string; garde?: string }> }) {
   const auth = await requirePlanner();
   const { key } = await params;
   const tutorial = TUTORIALS.find((candidate) => candidate.key === key);
@@ -68,7 +68,9 @@ export default async function TutorialPage({ params, searchParams }: { params: P
   const script = TUTORIAL_SCRIPTS[tutorial.key];
   const texts = t.raw(`${tutorial.key}.steps`) as { title: string; body: string }[];
   const completed = entry?.status === "completed";
-  const justFinished = (await searchParams).termine === "1";
+  const query = await searchParams;
+  const justFinished = query.termine === "1";
+  const kept = query.garde === "1";
   const index = Math.min(entry?.step ?? 0, script.steps.length - 1);
   const step = script.steps[index]!;
   const text = texts[index]!;
@@ -106,7 +108,7 @@ export default async function TutorialPage({ params, searchParams }: { params: P
           {completed && !showStep ? (
             <>
               <h2 id="tutorial-step-title">{justFinished ? t("doneTitle") : t("alreadyDoneTitle")}</h2>
-              <p role="status">{justFinished ? t("doneBody") : t("alreadyDoneBody")}</p>
+              <p role="status">{justFinished ? t(kept ? "doneBodyKept" : "doneBody") : t("alreadyDoneBody")}</p>
               <form action={restartTutorialAction.bind(null, tutorial.key)}>
                 <button type="submit">{t("restart")}</button>
               </form>
@@ -132,6 +134,9 @@ export default async function TutorialPage({ params, searchParams }: { params: P
                     <button type="submit">{t("continue")}</button>
                   </form>
                 </div>
+              ) : null}
+              {step.kind === "setup" ? (
+                <p className="notice">{t("setupNote")}</p>
               ) : null}
               {step.kind === "setup" ? (
                 <form action={setupTutorialAction.bind(null, tutorial.key)}>

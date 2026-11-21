@@ -1277,7 +1277,10 @@ export function contractTemplateWarning(locale: StarterLocale): string {
 // cinq questions (« Passer » la retient), volumes et outils remplacés proposés, et ordre de la
 // liste de prise en main. Un outil remplacé fait passer devant les actions qu'il appelle (un
 // tableur : « Importer vos contacts » d'abord). Les clés sont gardées dans le profil (D11).
-export const ONBOARDING_CHECKLIST_KEYS = ["logo", "first_vendor", "first_quote", "client_invite", "contacts_import"] as const;
+// Lot 63a (HUB-11 ; recette du 21/11/2026) : l'indispensable seulement. Le devis, l'import des
+// contacts et l'invitation du client sont des tutoriels du centre d'aide (quote-signature, import,
+// client-space) : ils n'encombrent pas l'accueil tant que la planner ne les fait pas.
+export const ONBOARDING_CHECKLIST_KEYS = ["essentials", "first_vendor"] as const;
 export type OnboardingChecklistKey = (typeof ONBOARDING_CHECKLIST_KEYS)[number];
 export type OnboardingVatRegime = "franchise" | "assujetti";
 

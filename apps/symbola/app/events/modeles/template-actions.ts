@@ -12,6 +12,8 @@ import {
   addTaskTemplateItem,
   createTaskTemplate,
   EventTypeNotFoundError,
+  listEventTypes,
+  listTaskTemplates,
   removeTaskTemplate,
   removeTaskTemplateItem,
   renameTaskTemplate,
@@ -123,7 +125,12 @@ export async function loadStarterRetroplanningAction(
   if (!organizationId) return { error: t("unauthenticated") };
 
   const starter = starterRetroplanning((await getLocale()) as StarterLocale);
-  await createTaskTemplate(organizationId, starter.name, starter.items);
+  // Lot 63a : seul le modèle d'un type s'applique de lui-même. Le modèle de départ se rattache au
+  // premier type de l'organisation (le mariage pour une wedding planner), comme le fait le kit de
+  // départ, si ce type n'a pas encore de modèle ; sinon il reste sans type, à rattacher.
+  const [[firstType], templates] = await Promise.all([listEventTypes(organizationId), listTaskTemplates(organizationId)]);
+  const free = firstType && !templates.some((template) => template.eventTypeId === firstType.id);
+  await createTaskTemplate(organizationId, starter.name, starter.items, free ? firstType.id : null);
   revalidatePath(PATH);
   return { success: true };
 }

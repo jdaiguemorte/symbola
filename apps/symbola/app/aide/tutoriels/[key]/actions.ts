@@ -77,7 +77,8 @@ export async function finishTutorialAction(key: string, keep: boolean): Promise<
   if (script.steps[loaded.step]?.kind !== "finish") return;
   await script.cleanup(loaded.env, keep && Boolean(script.keepable));
   await save(loaded, loaded.step, null, "completed");
-  redirect(`/aide/tutoriels/${loaded.key}?termine=1`);
+  // Lot 63a : le texte de fin dit si une partie de l'exemple a été gardée (modèle, prestation).
+  redirect(`/aide/tutoriels/${loaded.key}?termine=1${keep && script.keepable ? "&garde=1" : ""}`);
 }
 
 // Lot 13 (AIDE-10) — un seul tutoriel en cours : abandonner celui en cours

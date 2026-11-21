@@ -40,18 +40,15 @@ export async function confirmImportAction(_prevState: ConfirmFormState, formData
   redirect(`/import/${importId}/journal`);
 }
 
-// Lot 14c (décision J) — statut de chaque événement à créer depuis une fiche.
-export async function saveSheetStatusesAction(formData: FormData): Promise<void> {
+// Lot 14c (décision J) — statut de chaque événement à créer depuis une fiche. Lot 63a (HUB-14,
+// recette du 21/11) : enregistré à chaque choix, une ligne à la fois. L'ancien formulaire et son
+// bouton « Enregistrer les statuts » étaient remis à zéro par React après l'action : la liste
+// réaffichait le statut lu dans le fichier alors que le choix était bien enregistré.
+export async function saveSheetStatusAction(importId: string, rowIndex: number, status: string): Promise<boolean> {
   const auth = await getPlannerAuthContext();
-  if (auth.status !== "authenticated" || !auth.user.organizationId) return;
-  const importId = String(formData.get("importId") ?? "");
-  if (!isValidId(importId)) return;
-  const statuses = formData
-    .getAll("rowIndex")
-    .map((value) => Number(value))
-    .filter((rowIndex) => Number.isInteger(rowIndex) && rowIndex >= 0)
-    .slice(0, 500)
-    .map((rowIndex) => ({ rowIndex, status: String(formData.get(`status-${rowIndex}`) ?? "") }));
-  if (statuses.length > 0) await setEventSheetStatuses(auth.user.organizationId, importId, statuses);
-  revalidatePath(`/import/${importId}/confirmation`);
+  if (auth.status !== "authenticated" || !auth.user.organizationId) return false;
+  if (!isValidId(importId) || !Number.isInteger(rowIndex) || rowIndex < 0) return false;
+  const saved = await setEventSheetStatuses(auth.user.organizationId, importId, [{ rowIndex, status }]);
+  if (saved) revalidatePath(`/import/${importId}/confirmation`);
+  return saved;
 }
