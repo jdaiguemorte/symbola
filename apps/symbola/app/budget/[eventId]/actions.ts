@@ -82,7 +82,7 @@ export async function simulateEventBudgetAction(
     throw error;
   }
 
-  revalidatePath(`/budget/${eventId}`);
+  revalidatePath(`/budget/${eventId}`, "layout");
   return {};
 }
 
@@ -103,7 +103,7 @@ export async function confirmEventBudgetAction(formData: FormData): Promise<void
     throw error;
   }
 
-  revalidatePath(`/budget/${eventId}`);
+  revalidatePath(`/budget/${eventId}`, "layout");
   revalidatePath(`/events/${eventId}`);
 }
 
@@ -147,7 +147,7 @@ export async function updateBudgetLineAction(
     throw error;
   }
 
-  revalidatePath(`/budget/${eventId}`);
+  revalidatePath(`/budget/${eventId}`, "layout");
   // Lot 12 (L12-EVT-17) : l'estimé se saisit aussi depuis l'onglet Budget de la fiche.
   revalidatePath(`/events/${eventId}`);
   return { success: true };
@@ -169,7 +169,7 @@ export async function setEventAlertThresholdAction(_prevState: BudgetFormState, 
     if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };
     throw error;
   }
-  revalidatePath(`/budget/${eventId}`);
+  revalidatePath(`/budget/${eventId}`, "layout");
   return { success: true };
 }
 
@@ -206,7 +206,7 @@ export async function adjustEventBudgetItemsAction(input: z.input<typeof adjustI
     if (error instanceof DefaultVendorSlotNotFoundError || error instanceof RangeError) return { ok: false, error: t("unknownVendorSlot") };
     throw error;
   }
-  revalidatePath(`/budget/${parsed.data.eventId}`);
+  revalidatePath(`/budget/${parsed.data.eventId}`, "layout");
   return { ok: true, count: items.length };
 }
 
@@ -220,7 +220,7 @@ async function plannerAccess(): Promise<{ organizationId: string; userId: string
 }
 
 function refresh(eventId: string) {
-  revalidatePath(`/budget/${eventId}`);
+  revalidatePath(`/budget/${eventId}`, "layout");
   revalidatePath(`/events/${eventId}`);
 }
 

@@ -44,7 +44,7 @@ export default async function QuotesListPage({ searchParams }: { searchParams: P
   const filter = FILTERS.includes(query.statut as (typeof FILTERS)[number]) ? (query.statut as (typeof FILTERS)[number]) : "tous";
   // Noms des mariés : par la porte d'entrée du module Événements (ADR 0011).
   const [quotes, events] = await Promise.all([listQuotes(organizationId), listEvents({ organizationId })]);
-  const names = new Map(events.map((event) => [event.id, eventNames(event.clients)]));
+  const names = new Map(events.map((event) => [event.id, eventNames(event.clients, event.name)]));
   const shown = filter === "tous" ? quotes : quotes.filter((quote) => quote.status === filter);
 
   return (
@@ -52,7 +52,7 @@ export default async function QuotesListPage({ searchParams }: { searchParams: P
       <PageHeader
         title={t("allQuotesTitle")}
         subtitle={<span>{t("allQuotesIntro")}</span>}
-        actions={<SettingsLink href="/devis/parametres" label={t("settingsTitle")} />}
+        actions={<SettingsLink href="/devis/parametres" back="quotes" label={t("settingsTitle")} />}
       />
       <ScreenHelp title={tHelp("allQuotes.title")} body={tHelp("allQuotes.body")} />
       {/* Lot 32a (FAC-12, D8) : signé, facturé, encaissé, sur l'année civile. */}

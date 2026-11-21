@@ -53,7 +53,7 @@ export default async function SeatingPlanPage({ params, searchParams }: { params
     return (
       <main>
         {back}
-        <PageHeader title={t("title")} subtitle={eventNames(event.clients)} />
+        <PageHeader title={t("title")} subtitle={eventNames(event.clients, event.name)} />
         <ScreenHelp title={tHelp("seatingPlan.title")} body={`${tHelp("seatingPlan.body")} ${tHelp("catererSummary.body")}`} />
         <p role="note">
           {t("notReady")} <Link href={`/events/${id}?onglet=invites`}>{t("notReadyLink")}</Link>
@@ -67,7 +67,7 @@ export default async function SeatingPlanPage({ params, searchParams }: { params
     return (
       <main>
         {back}
-        <PageHeader title={t("title")} subtitle={eventNames(event.clients)} />
+        <PageHeader title={t("title")} subtitle={eventNames(event.clients, event.name)} />
         <ScreenHelp title={tHelp("seatingPlan.title")} body={`${tHelp("seatingPlan.body")} ${tHelp("catererSummary.body")}`} />
         <p role="note">
           {t("noKeyMoments")} <Link href={`/events/${id}`}>{t("noKeyMomentsLink")}</Link>
@@ -86,7 +86,7 @@ export default async function SeatingPlanPage({ params, searchParams }: { params
   return (
     <main className="stack">
       {back}
-      <PageHeader title={t("title")} subtitle={eventNames(event.clients)} />
+      <PageHeader title={t("title")} subtitle={eventNames(event.clients, event.name)} />
       <ScreenHelp title={tHelp("seatingPlan.title")} body={`${tHelp("seatingPlan.body")} ${tHelp("catererSummary.body")}`} />
 
       <nav aria-label={t("momentsNav")} className="row-wrap">

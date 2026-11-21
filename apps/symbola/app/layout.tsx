@@ -31,7 +31,7 @@ export const metadata = {
   manifest: "/manifest.webmanifest",
 };
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children, panel }: { children: ReactNode; panel: ReactNode }) {
   const locale = await getLocale();
 
   return (
@@ -42,6 +42,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             change reçoit le sien (app/event-vocabulary.tsx). */}
         <NextIntlClientProvider messages={await organizationMessages(locale as Locale)}>
           <AppShell>{children}</AppShell>
+          {/* Lot 63c (ADR 0107) : le panneau des réglages d'un écran (navigation interceptée). */}
+          {panel}
         </NextIntlClientProvider>
       </body>
     </html>

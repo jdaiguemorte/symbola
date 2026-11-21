@@ -623,7 +623,7 @@
     },
     "eventsList": {
       "title": "Liste des événements",
-      "body": "Tous vos prospects et événements en cours ; « Terminés » garde ceux clôturés ou annulés. « Liste » ou « Calendrier » : le tableau filtrable, ou les mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues. Commencez par « Nouveau prospect », ou filtrez la liste par nom, statut, source ou année. Pour découvrir le module sans risque, lancez l'essai guidé ci-dessous.",
+      "body": "Tous vos prospects et événements en cours ; « Terminés » garde ceux clôturés ou annulés. « Liste », « Colonnes » ou « Calendrier », toujours au même endroit : le tableau filtrable, les options rangées par étape, ou les mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues. Commencez par « Nouveau » (prospect, évènement confirmé ou client existant), ou filtrez la liste par nom, statut, source ou année. Pour découvrir le module sans risque, lancez l'essai guidé ci-dessous.",
       "faq": [
         {
           "q": "Où retrouver un événement passé ?",
@@ -640,8 +640,8 @@
       ]
     },
     "eventsNew": {
-      "title": "Nouveau prospect",
-      "body": "Un prénom de marié et la source du contact suffisent pour créer le prospect ; la date, le lieu et le budget se complètent plus tard. Un client déjà connu se choisit par la recherche : son nom et ses coordonnées ne sont pas ressaisis. Si la date tombe le même jour qu'un autre évènement confirmé ou en option, Symbola le signale avant l'enregistrement, sans l'empêcher. Depuis l'agenda, une date libre ouvre ce formulaire avec la date déjà remplie.",
+      "title": "Créer un évènement",
+      "body": "« Nouveau » propose trois choix. Un prospect : un prénom de marié et la source du contact suffisent ; la date, le lieu et le budget se complètent plus tard. Un évènement confirmé : le type et la date suffisent, le client est facultatif (un shooting photo). Pour un client existant : choisissez-le par la recherche, son nom et ses coordonnées ne sont pas ressaisis. Si le type a un modèle de rétroplanning, le formulaire le propose (case cochée pour un évènement confirmé) ; sinon, une astuce permet d'en créer un sans quitter le formulaire. Si la date tombe le même jour qu'un autre évènement confirmé ou en option, Symbola le signale avant l'enregistrement, sans l'empêcher.",
       "faq": [
         {
           "q": "Quelle différence entre prospect et événement ?",
@@ -753,7 +753,7 @@
     },
     "budgetDetail": {
       "title": "Budget de l'événement",
-      "body": "Chaque poste de l'événement est une catégorie ; elle porte des lignes (« Dîner, 120 couverts », « Vin d'honneur »…), chacune avec son prestataire et cinq montants : l'estimé, le réel (le montant du devis), l'engagé (rempli quand vous retenez le prestataire), le payé et le reste à payer, calculé. « Modifier » ouvre une ligne sur place : changez son libellé, son prestataire, son taux et ses montants, sur autant de lignes que vous voulez, puis « Enregistrer le budget » les écrit ensemble ; « Annuler les modifications » rend le budget enregistré. La simulation et sa répartition par poste se replient une fois les lignes posées ; la répartition s'enregistre de même, d'un seul « Enregistrer la répartition ». Sous chaque ligne, joignez le devis, le contrat ou la facture, et posez les échéances (acompte, solde ; un pourcentage porte sur l'engagé du prestataire) : payées, elles font le payé de la ligne, et les prochaines apparaissent dans « Aujourd'hui ». L'enveloppe est le budget souhaité du client ; au-delà du seuil d'alerte, un bandeau le signale, et retenir un prestataire demande une confirmation. Les montants se saisissent TTC, chaque ligne avec son taux de TVA (20 % par défaut) ; si le devis de l'événement est à un client professionnel, le HT s'affiche sous chaque montant. « Exporter en XLSX » ou « en PDF » reprend le budget et les échéances, aux couleurs de vos documents.",
+      "body": "Le suivi courant du budget est dans l'onglet « Budget et prestataires » de la fiche : par poste, prévu, réel, écart, réglé, reste à payer et prochaine échéance ; la ligne se déplie sur son échéancier et « Modifier » ouvre la ligne dans une fenêtre. Cette page en garde le détail. Chaque poste de l'événement est une catégorie ; elle porte des lignes (« Dîner, 120 couverts », « Vin d'honneur »…), chacune avec son prestataire et cinq montants : l'estimé, le réel (le montant du devis), l'engagé (rempli quand vous retenez le prestataire), le payé et le reste à payer, calculé. « Modifier » ouvre une ligne sur place : changez son libellé, son prestataire, son taux et ses montants, sur autant de lignes que vous voulez, puis « Enregistrer le budget » les écrit ensemble ; « Annuler les modifications » rend le budget enregistré. La simulation et sa répartition par poste se replient une fois les lignes posées ; la répartition s'enregistre de même, d'un seul « Enregistrer la répartition ». Sous chaque ligne, joignez le devis, le contrat ou la facture, et posez les échéances (acompte, solde ; un pourcentage porte sur l'engagé du prestataire) : payées, elles font le payé de la ligne, et les prochaines apparaissent dans « Aujourd'hui ». L'enveloppe est le budget souhaité du client ; au-delà du seuil d'alerte, un bandeau le signale, et retenir un prestataire demande une confirmation. Les montants se saisissent TTC, chaque ligne avec son taux de TVA (20 % par défaut) ; si le devis de l'événement est à un client professionnel, le HT s'affiche sous chaque montant. « Exporter en XLSX » ou « en PDF » reprend le budget et les échéances, aux couleurs de vos documents.",
       "faq": [
         {
           "q": "Les mariés voient-ils le budget ?",
@@ -1572,6 +1572,10 @@
     "emailDeliveries": {
       "title": "Le journal des envois",
       "body": "Chaque e-mail parti au nom de votre entreprise, avec son statut. Un e-mail rejeté vous est signalé par une notification et sur la fiche du contact. Le journal garde l'objet et le statut 13 mois, jamais le contenu."
+    },
+    "eventDocuments": {
+      "title": "Ranger les documents d'un évènement",
+      "body": "Une seule zone de dépôt, en tête de l'onglet Documents : glissez le fichier (ou choisissez-le), puis dites ce que c'est. Un devis ou une facture d'un prestataire, avec son nom, se rattache à sa ligne dans « Budget et prestataires » et se range dans « Devis des prestataires » ou « Factures des prestataires » ; un contrat va dans « Contrats » ; le reste dans le dossier choisi ou « Divers ». « Déplacer vers… » range une pièce ailleurs ; sur ordinateur, on peut aussi la glisser sur un dossier. « Mes devis » et « Mes factures » sont ceux que vous émettez : ils se gèrent dans « Mes devis et factures »."
     }
   },
   "Aide": {
@@ -2323,7 +2327,42 @@
     "currentFilter": "En cours et passés",
     "archivedTag": "Archivé",
     "archivedEmpty": "Aucun évènement archivé.",
-    "floorplanLink": "Plan de salle de l'évènement"
+    "floorplanLink": "Plan de salle de l'évènement",
+    "newMenu": "Nouveau",
+    "newMenuLabel": "Créer un évènement",
+    "newMenuProspect": "Prospect",
+    "newMenuProspectHint": "Une demande à étudier, avant tout devis signé. Pas de rétroplanning.",
+    "newMenuConfirmed": "Évènement confirmé",
+    "newMenuConfirmedHint": "Directement en préparation, avec ou sans client (ex. un shooting photo).",
+    "newMenuClient": "Pour un client existant",
+    "newMenuClientHint": "Un nouvel évènement pour un client déjà dans vos contacts.",
+    "newForClient": "Nouvel évènement pour un client existant",
+    "viewColumns": "Colonnes",
+    "newStatusLegend": "C'est :",
+    "newStatusProspect": "une demande à étudier (prospect)",
+    "newStatusConfirmed": "un évènement confirmé",
+    "existingClientSearch": "Rechercher le client dans vos contacts (nom, e-mail ou téléphone)",
+    "clientOptionalLegend": "Client (facultatif : choisir ou créer un contact)",
+    "sourceNone": "Aucune",
+    "missingExistingContact": "Choisissez le client dans vos contacts.",
+    "taskTemplateUnavailable": "Ce rétroplanning n'est plus disponible pour ce type. Rechargez la page.",
+    "templateProposal": "Partir du rétroplanning « {name} » ({count, plural, one {# tâche} other {# tâches}})",
+    "templateProposalHint": "Les tâches sont datées depuis la date de l'évènement. Vous pourrez aussi l'appliquer plus tard, depuis l'onglet Rétroplanning.",
+    "templateProposalNeedsDate": "Indiquez la date pour partir du rétroplanning : ses tâches en dépendent. Sinon, appliquez-le plus tard depuis l'onglet Rétroplanning.",
+    "templateProposalShow": "Voir les tâches",
+    "templateTip": "Astuce : « {type} » n'a pas encore de modèle de rétroplanning. Vous en organisez souvent ? Créez-en un : vos tâches habituelles seront prêtes à chaque nouvel évènement de ce type, sans les saisir à nouveau.",
+    "templateTipCreate": "Créer un modèle pour « {type} »",
+    "quickTemplateIntro": "Le modèle est rattaché à ce type : il sera proposé à chaque nouvel évènement. Vous réglerez le détail (responsable, tâches après la date) dans les modèles de rétroplanning.",
+    "quickTemplateTasks": "Tâches habituelles",
+    "quickTemplateTaskLabel": "Tâche {number}",
+    "quickTemplateDaysBefore": "Jours avant la date (tâche {number})",
+    "quickTemplateAddTask": "+ Ajouter une tâche",
+    "quickTemplateSave": "Créer le modèle",
+    "quickTemplateNoTask": "Ajoutez au moins une tâche.",
+    "quickTemplateInvalid": "Vérifiez le nom et les tâches du modèle.",
+    "eventName": "Nom de l'évènement",
+    "eventNameHint": "(obligatoire sans client, ex. « Shooting Roux »)",
+    "missingEventName": "Sans client, donnez un nom à l'évènement."
   },
   "Budget": {
     "title": "Budget",
@@ -5396,7 +5435,18 @@
     "cancel": "Annuler",
     "errorLabel": "Erreur :",
     "attentionLabel": "À vérifier :",
-    "requiredLegend": "obligatoire"
+    "requiredLegend": "obligatoire",
+    "settingsPanelLabel": "Réglages",
+    "settingsBack": {
+      "screen": "Retour à l'écran",
+      "events": "Retour aux évènements",
+      "event": "Retour à l'évènement",
+      "quotes": "Retour aux devis",
+      "payments": "Retour aux encaissements",
+      "tasks": "Retour aux tâches",
+      "vendors": "Retour aux prestataires"
+    },
+    "settingsPanelOpenAll": "Ouvrir tous les réglages"
   },
   "TutorialsPage": {
     "title": "Tutoriels",
@@ -6480,7 +6530,7 @@
   },
   "EventDocuments": {
     "title": "Documents de l'événement",
-    "intro": "Plan de table, plans d'accès, plan B : déposez-les ici, rangez-les dans des dossiers, partagez-les. Les devis, factures et pièces des autres écrans s'y retrouvent aussi, en lecture.",
+    "intro": "Devis et factures des prestataires, contrats, plan de table, plans d'accès : déposez-les ici, dites ce que c'est, et chaque pièce va dans son dossier. Vos devis et factures s'y retrouvent aussi, en lecture.",
     "empty": "Aucun document pour l'instant.",
     "addTitle": "Ajouter un document",
     "label": "Intitulé",
@@ -6562,8 +6612,8 @@
     "moved": "Document rangé.",
     "moduleTitle": "Pièces des autres écrans",
     "moduleHint": "Devis, factures, pièces des tâches et du budget, devis des prestataires consultés : chacun se gère depuis son écran. Les factures, avoirs et documents signés s'affichent tels qu'émis.",
-    "folderQuotes": "Devis et documents signés",
-    "folderInvoices": "Factures et avoirs",
+    "folderQuotes": "Mes devis",
+    "folderInvoices": "Mes factures",
     "folderTasks": "Pièces des tâches",
     "folderBudget": "Pièces du budget",
     "folderCandidates": "Devis des prestataires consultés",
@@ -6581,7 +6631,32 @@
       "signed": "signé",
       "declined": "refusé",
       "expired": "expiré"
-    }
+    },
+    "helpLink": "Aide : ranger les documents d'un évènement",
+    "dropTitle": "Déposez un fichier ici, ou choisissez-le",
+    "dropChosen": "Fichier choisi : {name}",
+    "dropChoose": "Choisir un fichier",
+    "dropChange": "Choisir un autre fichier",
+    "dropLimits": "PDF ou image · 20 Mo au plus",
+    "depositKindLegend": "Ce document est :",
+    "depositKind": {
+      "vendor_quotes": "Devis d'un prestataire",
+      "vendor_invoices": "Facture d'un prestataire",
+      "contracts": "Contrat",
+      "other": "Autre"
+    },
+    "depositVendor": "Prestataire concerné",
+    "depositVendorOptional": "Prestataire concerné (facultatif)",
+    "depositVendorNone": "Aucun (le ranger dans son dossier)",
+    "depositOnLine": "Rattaché à la ligne « {line} » du budget.",
+    "depositedOnLine": "Document ajouté et rattaché à la ligne « {line} » du budget.",
+    "onBudgetLine": "ligne « {line} » du budget",
+    "dragHelp": "Sur ordinateur, glissez une pièce sur un dossier pour la ranger ; partout, « Déplacer vers… ».",
+    "dragHint": "Pièce à glisser sur un dossier, ou à ranger avec « Déplacer vers… ».",
+    "moveTo": "Déplacer vers…",
+    "moveToLabel": "Dossiers où ranger « {label} »",
+    "movedTo": "« {label} » rangé dans « {folder} ».",
+    "readOnly": "lecture"
   },
   "DayContacts": {
     "title": "Contacts du jour J",
@@ -11773,5 +11848,74 @@
     "alertBounced": "L'adresse de {name} est rejetée ({reason}) : vérifiez-la avant le prochain envoi.",
     "alertComplained": "{name} a signalé un de vos e-mails comme indésirable : évitez de lui écrire sans raison.",
     "alertLink": "Voir ses envois"
+  },
+  "BudgetVendors": {
+    "caption": "Budget et prestataires, par poste",
+    "columnSlot": "Poste, prestataire et pièces",
+    "columnPlanned": "Prévu",
+    "columnActual": "Réel",
+    "columnVariance": "Écart",
+    "columnPaid": "Réglé",
+    "columnRemaining": "Reste à payer",
+    "columnNext": "Prochaine échéance",
+    "columnActions": "Actions",
+    "unfoldSchedule": "Voir l'échéancier de « {slot} »",
+    "foldSchedule": "Replier l'échéancier de « {slot} »",
+    "engaged": "Engagé",
+    "addVendor": "Ajouter un prestataire",
+    "pieceOf": "de « {slot} » (nouvel onglet)",
+    "late": "En retard",
+    "settled": "Soldé",
+    "edit": "Modifier",
+    "scheduleOf": "Échéancier de « {slot} »",
+    "scheduleNeedsLine": "Indiquez d'abord le prévu ou le réel de ce poste (« Modifier ») : l'échéancier se calcule sur ce montant.",
+    "total": "Total",
+    "engagedTotal": "dont engagé",
+    "legend": "Écart = réel − prévu : « + » au-dessus du prévu, « − » en dessous, le signe toujours écrit. Réglé = échéances payées ; reste à payer = réel − réglé. « Engagé » : devis accepté ou contrat signé.",
+    "detailLink": "Détail du budget (simulation, HT, exports)",
+    "windowBack": "Retour au budget",
+    "windowTitle": "{slot} · ligne {index} sur {count}",
+    "windowClose": "Fermer",
+    "windowAmounts": "Montants, prestataire et pièces",
+    "amount": {
+      "estimated": "Prévu",
+      "quoted": "Réel (devis)",
+      "committed": "Engagé"
+    },
+    "committedHint": "L'engagé est le montant du devis accepté ou du contrat signé ; il est posé quand le prestataire est retenu.",
+    "varianceOver": "{amount} au-dessus du prévu",
+    "varianceUnder": "{amount} en dessous du prévu",
+    "varianceEqual": "Égal au prévu",
+    "windowSchedule": "Échéancier",
+    "windowSaved": "Enregistré.",
+    "previousLine": "Ligne précédente",
+    "saveAndClose": "Enregistrer et fermer",
+    "saveAndNext": "Enregistrer, ligne suivante : {next}",
+    "choose": "Choisir un prestataire…",
+    "chooseFor": "pour « {slot} »",
+    "searchLabel": "Chercher dans votre catalogue (métier « {slot} » d'abord)",
+    "resultsCount": "{count, plural, =0 {Aucun prestataire} one {# prestataire} other {# prestataires}}",
+    "resultsLabel": "Prestataires de votre catalogue",
+    "workedWith": "Déjà travaillé ensemble",
+    "retainHint": "Le retenir pour « {slot} »",
+    "noResults": "Aucun prestataire de votre catalogue ne correspond.",
+    "newVendor": "+ Nouveau prestataire",
+    "newVendorNamed": "+ Nouveau prestataire « {name} »",
+    "compare": "Comparer plusieurs prestataires",
+    "newVendorTitle": "Nouveau prestataire pour « {slot} »",
+    "newVendorName": "Nom",
+    "newVendorType": "Métier",
+    "newVendorTypeNone": "À classer",
+    "newVendorEmail": "E-mail",
+    "newVendorPhone": "Téléphone",
+    "newVendorCity": "Ville",
+    "newVendorHint": "La fiche entre dans votre catalogue et le prestataire est retenu pour ce poste. Vous compléterez sa fiche plus tard.",
+    "newVendorSave": "Créer et retenir",
+    "unauthorized": "Action réservée à l'équipe, avec les modules Évènements et Prestataires.",
+    "notFound": "Ce poste ou ce prestataire n'existe pas, ou plus.",
+    "newVendorInvalid": "Vérifiez le nom et l'adresse e-mail.",
+    "scheduleEmpty": "Aucune échéance pour ce poste.",
+    "addPayment": "+ Ajouter une échéance",
+    "markPaid": "Marquer payée"
   }
 }

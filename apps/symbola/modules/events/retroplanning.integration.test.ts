@@ -27,7 +27,7 @@ import {
 
 const plannerId = randomUUID();
 
-// Lot 34a (EVT-01) : le modèle s'applique de lui-même à la création ; ces cas l'appliquent à la main.
+// Lot 63c (ADR 0106) : aucun modèle ne s'applique d'office ; ces cas l'appliquent à la main.
 async function createEvent(organizationId: string, eventDate: string | null) {
   const source = await createProspectSource(organizationId, "Instagram");
   return createProspect({
@@ -36,7 +36,6 @@ async function createEvent(organizationId: string, eventDate: string | null) {
     prospectSourceId: source.id,
     clients: [{ firstName: "Camille", lastName: null }],
     eventDate,
-    applyTemplate: false,
   });
 }
 

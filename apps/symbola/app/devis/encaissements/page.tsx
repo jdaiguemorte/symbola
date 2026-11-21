@@ -32,7 +32,7 @@ export default async function UpcomingPaymentsPage({ searchParams }: { searchPar
   const view = await listUnpaidPayments(organizationId);
   return (
     <main>
-      <PageHeader title={t("paymentsTitle")} actions={auth.readOnly ? undefined : <SettingsLink href="/devis/parametres" label={t("settingsTitle")} />} />
+      <PageHeader title={t("paymentsTitle")} actions={auth.readOnly ? undefined : <SettingsLink href="/devis/parametres" back="payments" label={t("settingsTitle")} />} />
       <ScreenHelp title={tHelp("quotesPayments.title")} body={tHelp("quotesPayments.body")} />
       {/* Lot 32a (FAC-12, D8) : signé, facturé, encaissé, sur l'année civile ; les échéances à venir dessous. */}
       <RevenueTiles organizationId={organizationId} locale={locale} basePath="/devis/encaissements" yearParam={(await searchParams).annee} />

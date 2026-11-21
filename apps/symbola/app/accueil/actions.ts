@@ -119,7 +119,7 @@ export async function remindVendorAction(_prev: RemindState, formData: FormData)
   const locale = (await getLocale()) as Locale;
   const event = await getEvent(allowed.organizationId, eventId);
   const header = await getDocumentHeader(db, allowed.organizationId);
-  const names = event ? eventNames(event.clients) : "";
+  const names = event ? eventNames(event.clients, event.name) : "";
   const subject = t("remind.subject", { names });
   const body = t("remind.body", {
     slot: reminded.slotLabel,

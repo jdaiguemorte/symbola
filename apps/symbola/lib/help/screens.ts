@@ -38,6 +38,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "allTasks", group: "events", audience: "team", module: "events", path: "/taches", capture: true },
   // Lot 55 (MSG-03) : les fils de discussion d'un évènement, ouverts depuis sa fiche.
   { key: "eventMessages", group: "events", audience: "team", module: "events", path: null, capture: false },
+  // Lot 63c (DOC-01, #30) : l'article des documents d'un évènement, où mène « Lire l'aide ».
+  { key: "eventDocuments", group: "events", audience: "team", module: "events", path: null, capture: false },
   { key: "eventsTemplates", group: "events", audience: "team", module: "events", path: "/events/modeles", capture: true },
   { key: "eventsProgramTemplates", group: "events", audience: "team", module: "events", path: "/events/modeles-programme", capture: true },
   // Lot 58 (PAR-09, EVT-08 ; ADR 0097) : clôture d'un évènement, modèles d'évènement, bilans (tableau de

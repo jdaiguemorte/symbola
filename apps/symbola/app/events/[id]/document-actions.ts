@@ -22,6 +22,8 @@ import {
   revokeEventDocumentLink,
   setEventDocumentSharing,
 } from "@/modules/events/service";
+import { BUDGET_DOCUMENT_KINDS, BudgetLineNotFoundError, setBudgetLineAttachmentKind } from "@/modules/budget/service";
+import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
@@ -189,4 +191,24 @@ export async function revokeDocumentLinkAction(formData: FormData): Promise<void
     if (!(error instanceof EventDocumentNotFoundError)) throw error;
   }
   revalidatePath(`/events/${eventId}`);
+}
+
+// Lot 63c (DOC-01, BUD-04 ; M8) — « Déplacer vers… » (ou glisser-déposer) une pièce de ligne du budget
+// dans un autre dossier typé : sa nature change (devis, contrat, facture), elle reste sur sa ligne.
+export async function moveBudgetPieceAction(_previous: EventDocumentFormState, formData: FormData): Promise<EventDocumentFormState> {
+  const t = await getTranslations("EventDocuments");
+  const organizationId = await organization();
+  if (!organizationId || !(await isBudgetModuleEnabled(organizationId))) return { error: t("unauthorized") };
+  const [eventId, attachmentId] = ids(formData, "eventId", "attachmentId") ?? [];
+  if (!eventId || !attachmentId) return { error: t("notFound") };
+  const kind = BUDGET_DOCUMENT_KINDS.find((entry) => entry === String(formData.get("kind") ?? ""));
+  if (!kind) return { error: t("folderInvalid") };
+  try {
+    await setBudgetLineAttachmentKind(organizationId, eventId, attachmentId, kind);
+  } catch (error) {
+    if (error instanceof BudgetLineNotFoundError) return { error: t("notFound") };
+    throw error;
+  }
+  revalidatePath(`/events/${eventId}`);
+  return { success: true };
 }

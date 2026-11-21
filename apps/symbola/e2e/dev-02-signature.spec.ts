@@ -59,7 +59,7 @@ test("DEV-02 — envoyer un devis en signature, signer par le lien reçu, archiv
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
   await page.goto("/events/new");
-  await page.getByLabel("Prénom du premier marié", { exact: true }).fill("Inès");
+  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Inès");
   await page.getByLabel("Nom du premier marié", { exact: true }).fill("Martin");
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
   await page.getByRole("button", { name: "Créer le prospect" }).click();

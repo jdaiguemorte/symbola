@@ -86,7 +86,7 @@ test("UX-07 et UX-15 — une tâche cochée l'est tout de suite, et « Annuler �
     const organization = await readyOrganization(db, `Atelier ${randomUUID().slice(0, 6)}`);
     const owner = await createUser(db, { organizationId: organization.id, email, role: "owner" });
     const source = await createProspectSource(organization.id, "Salon");
-    const event = await createProspect({ organizationId: organization.id, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: "Inès" }, { firstName: "Sacha" }], eventDate: "2027-09-18", applyTemplate: false });
+    const event = await createProspect({ organizationId: organization.id, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: "Inès" }, { firstName: "Sacha" }], eventDate: "2027-09-18" });
     eventId = event.id;
     await addEventTask(organization.id, event.id, { label: "Réserver le traiteur", dueDate: "2027-03-01", responsible: "planner" });
     await addEventTask(organization.id, event.id, { label: "Choisir les faire-part", dueDate: "2027-04-01", responsible: "planner" });

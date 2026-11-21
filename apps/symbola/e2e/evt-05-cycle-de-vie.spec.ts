@@ -47,16 +47,17 @@ async function atelier(eventDate: string, options: { invoice?: boolean } = {}) {
     await saveOnboardingStep(db, organizationId, { vatRegime: "franchise", vatRateDefaultBasisPoints: null, metier: "wedding_planner" });
     const email = `camille-${randomUUID()}@symbola.test`;
     const owner = await createUser(db, { organizationId, email, password: PASSWORD, role: "owner" });
-    // Lot 63a : seul le modèle du type de l'évènement s'applique ; le mariage a donc son type.
+    // Lot 63a : le modèle est celui du type de l'évènement ; lot 63c (ADR 0106) : il s'applique parce
+    // qu'il est choisi à la création, jamais d'office.
     const wedding = await createEventType(organizationId, { label: "Mariage", audience: "couple" });
-    await createTaskTemplate(organizationId, "Mariage — 12 mois", WEDDING, wedding.id);
+    const template = await createTaskTemplate(organizationId, "Mariage — 12 mois", WEDDING, wedding.id);
     await addLossReasons(organizationId, [{ label: "Séparation", isFreeText: false }]);
     const source = await createProspectSource(organizationId, "Salon");
     const clients = [
       { firstName: "Léa", lastName: "Martin" },
       { firstName: "Hugo", lastName: "Durand" },
     ];
-    const eventId = (await createProspect({ organizationId, createdByUserId: owner.id, prospectSourceId: source.id, clients, eventDate, eventTypeId: wedding.id })).id;
+    const eventId = (await createProspect({ organizationId, createdByUserId: owner.id, prospectSourceId: source.id, clients, eventDate, eventTypeId: wedding.id, taskTemplateId: template.id })).id;
     if (!options.invoice) return { email, organizationId, eventId, quoteId: null, invoiceNumber: null };
 
     const quote = await createQuote({ organizationId, eventId, createdByUserId: owner.id });

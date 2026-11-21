@@ -50,7 +50,7 @@ test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture 
   await page.getByRole("button", { name: "Créer le modèle" }).click();
   await expect(page.getByText("Modèle créé.")).toBeVisible();
   await page.goto("/events/new");
-  await page.getByLabel("Prénom du premier marié", { exact: true }).fill("Camille");
+  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Camille");
   await page.getByLabel("Source du prospect").selectOption({ label: "Instagram" });
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
@@ -58,7 +58,7 @@ test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture 
   // Lot 12 (L12-EVT-17) : le budget est un onglet de la fiche ; le module
   // Budget s'ouvre depuis son lien.
   await openEventTab(page, "Budget");
-  await page.getByRole("link", { name: "Proposer des montants estimés, historique et devis joints" }).click();
+  await page.getByRole("link", { name: "Détail du budget (simulation, HT, exports)" }).click();
   await page.getByLabel("Budget total (€)").fill("10000");
   await page.getByLabel("Nombre d'invités").fill("40");
   await page.getByLabel("Modèle de répartition").selectOption({ label: "Classique" });
@@ -72,7 +72,7 @@ test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture 
 
   // La planner saisit un engagé sur le lieu (6 000 € estimés, 7 000 € engagés).
   const eventId = eventUrl.split("/").pop()!;
-  await page.goto(`/budget/${eventId}`);
+  await page.goto(`/budget/${eventId}/detail`);
   await page.waitForLoadState("networkidle");
   // Lot 28b : la ligne (pas le total de sa catégorie), repérée par « Modifier ».
   const plannerRow = page.getByRole("table", { name: "Estimé, réel, engagé, payé" }).getByRole("row").filter({ hasText: "Modifier « Lieu de réception »" });
@@ -114,7 +114,7 @@ test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture 
   await expectNoAxeViolation(couple);
 
   // Les écrans budget de la planner lui restent fermés (il n'a pas de compte).
-  await couple.goto(`/budget/${eventId}`);
+  await couple.goto(`/budget/${eventId}/detail`);
   await expect(couple).toHaveURL(/\/login$/);
   await couple.goto("/budget/parametres");
   await expect(couple).toHaveURL(/\/login$/);

@@ -20,6 +20,6 @@ export async function sameDayEventsAction(date: string, excludeEventId: string |
   // Les confirmés d'abord, puis les options : un ordre fixe (la liste n'est triée que par date).
   return sameDayEvents(await listEvents({ organizationId }), date, exclude)
     // Lot 34a (EVT-05) : un évènement en préparation ou clôturé est ferme, comme un confirmé.
-    .map((event) => ({ names: eventNames(event.clients), confirmed: FIRM_STATUSES.includes(event.status) }))
+    .map((event) => ({ names: eventNames(event.clients, event.name), confirmed: FIRM_STATUSES.includes(event.status) }))
     .sort((a, b) => Number(b.confirmed) - Number(a.confirmed));
 }

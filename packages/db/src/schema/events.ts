@@ -97,6 +97,9 @@ export const events = eventsSchema.table("events", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
   status: eventStatusEnum("status").notNull().default("option"),
+  // Lot 63c (EVT-01 ; Q43, décision de Julien du 21/11/2026) : nom facultatif de l'évènement
+  // (« Shooting Roux ») ; rempli, il remplace le nom tiré des clients partout où l'évènement est nommé.
+  name: text("name"),
   // Date sans heure (CLAUDE.md §5) ; nulle tant que la date n'est pas
   // fixée (« Date à définir », PRD-EVT-01).
   eventDate: date("event_date"),
@@ -161,6 +164,7 @@ export const events = eventsSchema.table("events", {
 }, (table) => [
   index("events_organization_idx").on(table.organizationId),
   check("events_time_zone_check", sql`char_length(${table.timeZone}) between 1 and 64`),
+  check("events_name_check", sql`${table.name} is null or char_length(${table.name}) between 1 and 200`),
   check("events_guests_check", sql`(${table.guestsEstimated} is null or ${table.guestsEstimated} between 0 and 100000) and (${table.guestsConfirmed} is null or ${table.guestsConfirmed} between 0 and 100000)`),
   check("events_identity_text_check", sql`(${table.style} is null or char_length(${table.style}) <= 2000) and (${table.notes} is null or char_length(${table.notes}) <= 10000)`),
   check("events_notes_sealed_check", sql`${table.notesSealed} is null or (${table.notes} is null and ${table.notesSealed} like 'f1:%' and ${table.notesConfidentialBy} is not null)`),
