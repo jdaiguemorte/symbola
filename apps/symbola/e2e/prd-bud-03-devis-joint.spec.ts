@@ -70,7 +70,7 @@ test("PRD-BUD-03 — joindre le devis d'un prestataire à une ligne et l'ouvrir 
   await expect(page.getByRole("heading", { name: "Faire de la simulation le budget estimé" })).toHaveCount(0);
 
   // PRD-BUD-03 : un format non supporté est refusé avec un message clair.
-  await page.goto(eventUrl.replace("/events/", "/budget/"));
+  await page.goto(`${eventUrl.replace("/events/", "/budget/")}/detail`);
   await page.waitForLoadState("networkidle");
   // Lot 28b : la ligne (pas le total de sa catégorie), repérée par « Modifier ».
   const lieuRow = page.getByRole("table", { name: "Estimé, réel, engagé, payé" }).getByRole("row").filter({ hasText: "Modifier « Lieu de réception »" });

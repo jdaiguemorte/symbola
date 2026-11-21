@@ -40,6 +40,7 @@ import {
   isPreviousStarterInvoiceMentions,
   starterProfessionalPaymentTerms,
   starterLinkExpiry,
+  starterEventDocumentFolders,
   starterLinkPrivacyNotice,
   starterLinkProfiles,
   starterLossReasons,
@@ -808,5 +809,16 @@ describe("L60-PLA-01 — Bibliothèque de départ des plans de salle (floorplan-
   it("L60-PLA-02 : grille de 50 cm, pas de 10 cm et 1 m, rotation de 15°", () => {
     expect(floorplanEditorRules()).toMatchObject({ gridCm: 50, nudgeCm: 10, nudgeLargeCm: 100, rotationStepDeg: 15 });
     expect(floorplanSeatingRules().seatWidthCm).toBeGreaterThan(0);
+  });
+});
+
+describe("DOC-01, BUD-04 — Dossiers proposés à chaque évènement (lot 63c, M8)", () => {
+  it("trois dossiers typés, traduits, chacun avec la nature de pièce qui s'y range", () => {
+    expect(starterEventDocumentFolders("fr")).toEqual([
+      { key: "vendor_quotes", kind: "quote", name: "Devis des prestataires" },
+      { key: "vendor_invoices", kind: "invoice", name: "Factures des prestataires" },
+      { key: "contracts", kind: "contract", name: "Contrats" },
+    ]);
+    expect(starterEventDocumentFolders("en").map((folder) => folder.name)).toEqual(["Vendor quotes", "Vendor invoices", "Contracts"]);
   });
 });

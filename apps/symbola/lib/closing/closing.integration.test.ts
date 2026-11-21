@@ -58,7 +58,7 @@ async function atelier() {
   const planner = await createUser(db, { organizationId, email: `planner-${randomUUID()}@example.test`, password: "mot-de-passe-du-test", role: "owner" });
   const source = await createProspectSource(organizationId, "Salon");
   const eventId = (
-    await createProspect({ organizationId, createdByUserId: planner.id, prospectSourceId: source.id, eventDate: "2027-06-12", clients: [{ firstName: "Léa", lastName: "Martin", email: `lea-${randomUUID()}@example.test` }], applyTemplate: false })
+    await createProspect({ organizationId, createdByUserId: planner.id, prospectSourceId: source.id, eventDate: "2027-06-12", clients: [{ firstName: "Léa", lastName: "Martin", email: `lea-${randomUUID()}@example.test` }] })
   ).id;
   await changeEventStatus({ organizationId, eventId, changedByUserId: planner.id, toStatus: "confirmed" });
   // Rétroplanning, programme, un poste avec une ligne de budget et un prestataire retenu du carnet.

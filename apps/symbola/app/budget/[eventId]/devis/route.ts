@@ -53,7 +53,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ eve
     throw error;
   }
 
-  revalidatePath(`/budget/${eventId}`);
+  revalidatePath(`/budget/${eventId}`, "layout");
   revalidatePath(`/events/${eventId}`);
   return uploadResponse({ success: true });
 }

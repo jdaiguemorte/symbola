@@ -188,7 +188,7 @@ export async function insertProspect(input: {
   createdByUserId: string | null;
   // Lot 36a : les contacts des clients, déjà résolus chez le hub, dans l'ordre.
   clientContactIds: string[];
-  prospectSourceId: string;
+  prospectSourceId: string | null;
   eventTypeId?: string | null | undefined;
   eventDate?: string | null | undefined;
   venueName?: string | null | undefined;

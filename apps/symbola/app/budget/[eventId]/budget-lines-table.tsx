@@ -149,7 +149,7 @@ function LineFields({ line, draft, setDraft, vendors, locale }: { line: Line; dr
 }
 
 // BUD-04 : documents par nature, chacun s'ouvre en un clic.
-function Documents({ eventId, line, locale }: { eventId: string; line: Line; locale: Locale }) {
+export function Documents({ eventId, line, locale }: { eventId: string; line: Line; locale: Locale }) {
   const t = useTranslations("Budget");
   const [state, action, pending] = useUploadAction<BudgetFormState>(`/budget/${eventId}/devis`);
   return (
@@ -195,7 +195,7 @@ function Documents({ eventId, line, locale }: { eventId: string; line: Line; loc
 }
 
 // BUD-03 : échéances de la ligne (montant fixe ou % de l'engagé du prestataire).
-function Payments({ eventId, line, locale }: { eventId: string; line: Line; locale: Locale }) {
+export function Payments({ eventId, line, locale }: { eventId: string; line: Line; locale: Locale }) {
   const t = useTranslations("Budget");
   const [state, action, pending] = useActionState(addVendorPaymentAction, {});
   const today = new Date().toISOString().slice(0, 10);

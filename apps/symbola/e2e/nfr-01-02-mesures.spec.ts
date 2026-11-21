@@ -108,7 +108,7 @@ test("NFR-01 — chaque écran des parcours P0 s'affiche en moins de 2,5 s sur u
     ["Tâches", "/taches", session],
     ["Synthèse de l'évènement", `/events/${setup.eventId}`, session],
     ["Rétroplanning", `/events/${setup.eventId}?onglet=retroplanning`, session],
-    ["Budget", `/budget/${setup.eventId}`, session],
+    ["Budget", `/budget/${setup.eventId}/detail`, session],
     ["Devis", "/devis", session],
     ["Contacts", "/contacts", session],
     ["Jour J", `/jour-j/${setup.eventId}`, session],

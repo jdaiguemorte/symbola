@@ -27,7 +27,7 @@ async function atelier() {
     const email = `camille-${randomUUID()}@symbola.test`;
     const owner = await createUser(db, { organizationId: organization.id, email, role: "owner" });
     const source = await createProspectSource(organization.id, "Salon");
-    await createProspect({ organizationId: organization.id, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: "Léa", lastName: "Martin" }], eventDate: "2027-09-18", applyTemplate: false });
+    await createProspect({ organizationId: organization.id, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: "Léa", lastName: "Martin" }], eventDate: "2027-09-18" });
     return { email, slug: `atelier-${randomUUID().slice(0, 8)}` };
   } finally {
     await sql.end();

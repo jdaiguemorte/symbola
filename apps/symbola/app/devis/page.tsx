@@ -52,7 +52,7 @@ export default async function QuotesListPage({ searchParams }: { searchParams: P
       <PageHeader
         title={t("allQuotesTitle")}
         subtitle={<span>{t("allQuotesIntro")}</span>}
-        actions={<SettingsLink href="/devis/parametres" label={t("settingsTitle")} />}
+        actions={<SettingsLink href="/devis/parametres" back="quotes" label={t("settingsTitle")} />}
       />
       <ScreenHelp title={tHelp("allQuotes.title")} body={tHelp("allQuotes.body")} />
       {/* Lot 32a (FAC-12, D8) : signé, facturé, encaissé, sur l'année civile. */}

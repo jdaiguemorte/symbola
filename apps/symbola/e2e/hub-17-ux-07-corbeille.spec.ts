@@ -37,7 +37,6 @@ async function atelier() {
         { firstName: "Sacha", lastName: "Petit" },
       ],
       eventDate: "2027-06-12",
-      applyTemplate: false,
     });
     const task = await addEventTask(organization.id, event.id, { label: "Envoyer les faire-part", dueDate: "2027-03-01", responsible: "planner" });
     const contact = await createContact(organization.id, { firstName: "Rose", lastName: "Fleuriste" });

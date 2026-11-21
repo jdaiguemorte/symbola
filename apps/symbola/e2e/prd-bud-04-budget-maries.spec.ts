@@ -72,7 +72,7 @@ test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture 
 
   // La planner saisit un engagé sur le lieu (6 000 € estimés, 7 000 € engagés).
   const eventId = eventUrl.split("/").pop()!;
-  await page.goto(`/budget/${eventId}`);
+  await page.goto(`/budget/${eventId}/detail`);
   await page.waitForLoadState("networkidle");
   // Lot 28b : la ligne (pas le total de sa catégorie), repérée par « Modifier ».
   const plannerRow = page.getByRole("table", { name: "Estimé, réel, engagé, payé" }).getByRole("row").filter({ hasText: "Modifier « Lieu de réception »" });
@@ -114,7 +114,7 @@ test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture 
   await expectNoAxeViolation(couple);
 
   // Les écrans budget de la planner lui restent fermés (il n'a pas de compte).
-  await couple.goto(`/budget/${eventId}`);
+  await couple.goto(`/budget/${eventId}/detail`);
   await expect(couple).toHaveURL(/\/login$/);
   await couple.goto("/budget/parametres");
   await expect(couple).toHaveURL(/\/login$/);

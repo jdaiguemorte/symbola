@@ -40,7 +40,12 @@ test("PRD-EVT-07 — la planner paramètre ses sources et motifs de perte, puis 
   await expect(page).toHaveURL(/\/events$/);
   await expectNoAxeViolation(page);
 
+  // Lot 63c (UX-09, ADR 0107) : la roue « Réglages » ouvre les réglages dans le panneau latéral, au-dessus
+  // de la liste ; la page complète garde son adresse.
   await page.getByRole("link", { name: "Paramètres des événements" }).first().click();
+  await expect(page.getByRole("complementary", { name: "Réglages" })).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Réglages" }).getByRole("heading", { level: 1 })).toBeVisible();
+  await page.goto("/events/parametres");
   await expect(page).toHaveURL(/\/events\/parametres$/);
   // Lot 13 (L13-HUB-16) : sources et motifs ont leur rubrique.
   await page.getByRole("navigation", { name: "Rubriques des paramètres" }).getByRole("link", { name: "Sources et motifs", exact: true }).click();
