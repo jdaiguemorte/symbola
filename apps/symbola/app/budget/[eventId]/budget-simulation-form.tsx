@@ -92,7 +92,7 @@ function AllocationList({ eventId, budget, locale, vendorSlots }: { eventId: str
 
   return (
     <section aria-labelledby="allocation-title" className="budget-allocation">
-      <h3 id="allocation-title">{t("itemsTitle")}</h3>
+      <h2 id="allocation-title">{t("itemsTitle")}</h2>
       <div className="edit-list allocation-table" role="table" aria-labelledby="allocation-title">
         <div className="edit-list-head allocation-cols" role="row">
           <span role="columnheader">{t("allocationSlot")}</span>

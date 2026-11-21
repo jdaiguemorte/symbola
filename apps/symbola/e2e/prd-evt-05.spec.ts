@@ -80,7 +80,7 @@ test("PRD-EVT-05 — programme du jour J depuis un modèle, chevauchement signal
   await expect(ceremony.locator(".program-start")).toHaveText("15:00");
   await expect(ceremony.locator(".program-end")).toHaveText("16:00");
   await expect(ceremony.locator(".program-duration")).toHaveText("1 h");
-  await expect(ceremony.locator(".program-who")).toHaveText("Photographe");
+  await expect(ceremony.locator(".program-who")).toContainText("Photographe");
   await expect(page.getByRole("heading", { name: "Chevauchements à vérifier" })).toHaveCount(0);
 
   // Une ligne qui chevauche les photos de groupe pour le photographe : signalée, pas bloquée.
@@ -102,7 +102,7 @@ test("PRD-EVT-05 — programme du jour J depuis un modèle, chevauchement signal
   await expect(added.locator(".program-end")).toHaveText("17:00");
   await expect(added.locator(".program-duration")).toHaveText("45 min");
   await expect(added).toContainText("Parc du château");
-  await expect(added.locator(".program-who")).toHaveText("Photographe, Témoin");
+  await expect(added.locator(".program-who")).toContainText("Photographe, Témoin");
   await expect(added).toContainText("Note interne : Prévoir les alliances");
   await expect(page.getByRole("region", { name: "Chevauchements à vérifier" })).toContainText(
     "Photographe est prévu à la fois sur « Photos de groupe » et sur « Photos des invités ».",

@@ -61,7 +61,7 @@ test("BUD-01 / BUD-03 — une catégorie à plusieurs lignes, l'échéancier d'u
   // La ligne de la simulation devient « Dîner, 120 couverts », du traiteur.
   await openLine("Traiteur");
   await editor("Traiteur").getByLabel("Libellé — Traiteur").fill("Dîner, 120 couverts");
-  await editor("Traiteur").getByLabel("Prestataire — Traiteur").selectOption({ label: "Maison Haddad" });
+  await editor("Traiteur").getByRole("combobox", { name: "Prestataire — Traiteur" }).selectOption({ label: "Maison Haddad" });
   // Lot 62c (D1) : un seul « Enregistrer le budget ».
   await page.getByRole("button", { name: "Enregistrer le budget" }).click();
   await expect(page.getByText("Budget enregistré : 1 ligne.")).toBeVisible();

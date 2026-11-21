@@ -133,7 +133,7 @@ export function AddEventTaskForm({ eventId, vendors = [] }: { eventId: string; v
           </label>
           <ResponsibleSelect value={responsible} onChange={setResponsible} vendors={vendors} />
         </div>
-        <button type="submit" disabled={pending}>
+        <button type="submit" className="button-secondary" disabled={pending}>
           {t("addTask")}
         </button>
         {state.error ? <p role="alert">{state.error}</p> : null}

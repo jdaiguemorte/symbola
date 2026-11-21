@@ -216,13 +216,22 @@
     @apply m-0;
   }
   .budget-allocation {
-    @apply mt-6 flex max-w-xl flex-col gap-3;
+    @apply mt-6 flex flex-col gap-3;
   }
-  .budget-allocation h3 {
+  .budget-allocation h2 {
     @apply m-0;
   }
   .allocation-table .allocation-cols {
     @apply grid-cols-[minmax(0,1fr)_8rem];
+  }
+  /* Ordinateur : les postes sur deux colonnes (l'en-tête des colonnes reste lu par les lecteurs d'écran). */
+  @media (width >= 1024px) {
+    .allocation-table {
+      @apply grid grid-cols-2 gap-x-12;
+    }
+    .allocation-table .edit-list-head {
+      @apply sr-only;
+    }
   }
   .allocation-table .allocation-cols .num {
     @apply text-right;

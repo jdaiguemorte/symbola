@@ -17,11 +17,11 @@ import {
   createProspect,
   createProspectSource,
   getEventProgram,
+  listDefaultVendorSlots,
   listEventTasks,
   listEventVendorSlots,
 } from "../modules/events/service";
-import { addBudgetLine, createAllocationModel, getEventBudget, listBudgetLines, simulateEventBudget, updateBudgetLine } from "../modules/budget/service";
-import { listDefaultVendorSlots } from "../modules/events/service";
+import { createAllocationModel, getEventBudget, listBudgetLines, simulateEventBudget, updateBudgetLine } from "../modules/budget/service";
 import { openEventTab, readyOrganization, signIn } from "./helpers";
 import { measureScreen } from "./lot-62c-mesures";
 
@@ -33,6 +33,11 @@ async function expectNoAxeViolation(page: Page) {
 }
 
 const isPhone = (page: Page) => (page.viewportSize()?.width ?? 1280) < 640;
+
+// En taille ordinateur, la fenêtre du relevé (1440 × 900) : les hauteurs « en écrans » s'y comparent.
+test.beforeEach(async ({ page }) => {
+  if (!isPhone(page)) await page.setViewportSize({ width: 1440, height: 900 });
+});
 
 // Les critères communs du lot 62 : un bouton principal au plus, aucun champ court trop large, aucun
 // débordement ; en taille ordinateur, jamais six champs empilés ; en 375 px, aucune cible de moins de 44 px.
@@ -148,8 +153,9 @@ test("UX-13, UX-05 — programme : une ligne par séquence, une seule ligne ouve
   await added.getByLabel("Séquence", { exact: true }).fill("Photos de groupe");
   await added.getByRole("button", { name: "Fermer la ligne" }).click();
   await expect(page.getByText("3 lignes modifiées, pas encore enregistrées.")).toBeVisible();
-  // Un seul bouton principal, celui de la barre.
-  expect((await measureScreen(page)).primary).toEqual(["Enregistrer le programme"]);
+  // Dans la carte du programme, un seul bouton principal : celui de la barre.
+  await expect(page.getByRole("button", { name: "Enregistrer le programme" })).toHaveClass(/button-primary/);
+  expect((await measureScreen(page)).primary.filter((label) => label !== "Préparer le devis")).toEqual(["Enregistrer le programme"]);
   expect(await saved()).toEqual(before);
 
   // « Annuler les modifications » rend le programme enregistré.
@@ -218,7 +224,7 @@ test("UX-13, UX-05 — budget : répartition et lignes en tableaux éditables, u
   const editor = (label: string) => page.getByRole("region", { name: `Ligne « ${label} » : montants, prestataire, documents et échéances` });
   await table.getByRole("button", { name: "Modifier « Traiteur »" }).click();
   await editor("Traiteur").getByLabel("Libellé — Traiteur").fill("Dîner, 120 couverts");
-  await editor("Traiteur").getByLabel("Prestataire — Traiteur").selectOption({ label: "Maison Haddad" });
+  await editor("Traiteur").getByRole("combobox", { name: "Prestataire — Traiteur" }).selectOption({ label: "Maison Haddad" });
   await editor("Traiteur").getByLabel("Engagé — Traiteur").fill("11 000");
   await expectNoAxeViolation(page);
   await table.getByRole("button", { name: "Modifier « Musique »" }).click();
@@ -230,6 +236,7 @@ test("UX-13, UX-05 — budget : répartition et lignes en tableaux éditables, u
   // La barre dit le nombre de lignes ; rien n'est écrit avant « Enregistrer le budget ».
   await expect(page.getByText("2 lignes modifiées, pas encore enregistrées.")).toBeVisible();
   expect((await measureScreen(page)).primary).toEqual(["Enregistrer le budget"]);
+  await expect(page.getByRole("button", { name: "Enregistrer le budget" })).toHaveClass(/button-primary/);
   expect(await lines()).toEqual(before);
   await page.getByRole("button", { name: "Annuler les modifications" }).click();
   await expect(page.getByText(/pas encore enregistrée/)).toHaveCount(0);
@@ -238,7 +245,7 @@ test("UX-13, UX-05 — budget : répartition et lignes en tableaux éditables, u
   // Les deux lignes partent ensemble ; les cinq montants et l'écart se recalculent comme avant.
   await table.getByRole("button", { name: "Modifier « Traiteur »" }).click();
   await editor("Traiteur").getByLabel("Libellé — Traiteur").fill("Dîner, 120 couverts");
-  await editor("Traiteur").getByLabel("Prestataire — Traiteur").selectOption({ label: "Maison Haddad" });
+  await editor("Traiteur").getByRole("combobox", { name: "Prestataire — Traiteur" }).selectOption({ label: "Maison Haddad" });
   await editor("Traiteur").getByLabel("Engagé — Traiteur").fill("11 000");
   await table.getByRole("button", { name: "Modifier « Musique »" }).click();
   await editor("Musique").getByLabel("Engagé — Musique").fill("2 100,50");

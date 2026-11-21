@@ -175,7 +175,7 @@ export function CreateLinkForm({ eventId, clients, slots, profiles }: { eventId:
       <ReminderChoice defaultChecked />
       <OtpChoice defaultChecked={false} />
       </div>
-      <button type="submit" className="button-primary" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("createLink")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
