@@ -5,7 +5,6 @@ import { getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import { parseAmountToCents } from "@symbola/i18n";
 import {
-  cleanSellerAddress,
   InvalidSellerAddressError,
   saveVatOnDebits,
   VatOnDebitsNotApplicableError,
@@ -13,10 +12,9 @@ import {
   completeOnboarding,
   InvalidDocumentDetailsError,
   InvalidProfessionalMentionError,
-  saveDocumentDetails,
+  saveCompanySheet,
   saveProfessionalMentions,
   saveFollowUpDelays,
-  saveOnboardingStep,
   type LegalForm,
   type Metier,
   type VatRegime,
@@ -28,40 +26,63 @@ async function requireOrganization() {
   return { organizationId: auth.user.organizationId, userId: auth.user.id };
 }
 
-export type ProfileFormState = { success?: boolean; error?: string };
+// Lot 62b (UX-12) — la fiche de l'entreprise, enregistrée d'un seul geste : identité (ONB-01),
+// adresse (FAC-10, D7) et coordonnées imprimées sur les devis et factures (DEV-07). Le hub contrôle
+// tout avant d'écrire : une fiche refusée n'enregistre rien, et l'erreur nomme le champ.
+export type CompanySheetFormState = { success?: boolean; error?: string };
 
-export async function saveProfileAction(
-  _prevState: ProfileFormState,
-  formData: FormData,
-): Promise<ProfileFormState> {
+const DETAIL_ERROR_KEYS = {
+  siret: "errorSiret",
+  contactEmail: "errorContactEmail",
+  contactPhone: "errorContactPhone",
+  website: "errorWebsite",
+  vatNumber: "errorVatNumber",
+  registration: "errorRegistration",
+  shareCapitalCents: "errorShareCapital",
+} as const;
+
+export async function saveCompanySheetAction(_prevState: CompanySheetFormState, formData: FormData): Promise<CompanySheetFormState> {
+  const t = await getTranslations("Settings");
   const { organizationId } = await requireOrganization();
-
-  const siren = String(formData.get("siren") ?? "").trim() || null;
-  // Lot 41 (FAC-10, D7) : ligne, code postal, ville et pays, nettoyés et bornés par le hub.
-  let address;
-  try {
-    address = cleanSellerAddress({
-      address: String(formData.get("address") ?? ""),
-      postalCode: String(formData.get("postalCode") ?? ""),
-      city: String(formData.get("city") ?? ""),
-      countryCode: String(formData.get("countryCode") ?? ""),
-    });
-  } catch (error) {
-    if (error instanceof InvalidSellerAddressError) return { error: (await getTranslations("Settings"))(`invalidAddress_${error.field}`) };
-    throw error;
-  }
-  const legalForm = (String(formData.get("legalForm") ?? "").trim() || null) as LegalForm | null;
-  const metier = (String(formData.get("metier") ?? "").trim() || null) as Metier | null;
-  const metierPrecision = String(formData.get("metierPrecision") ?? "").trim() || null;
+  const text = (name: string) => String(formData.get(name) ?? "").trim() || null;
+  const capital = parseAmountToCents(String(formData.get("shareCapital") ?? ""));
+  if (capital === undefined) return { error: t("errorShareCapital") };
 
   const db = appDatabase();
-  await saveOnboardingStep(db, organizationId, { siren, ...address, legalForm, metier, metierPrecision });
+  try {
+    await saveCompanySheet(db, organizationId, {
+      siren: text("siren"),
+      legalForm: text("legalForm") as LegalForm | null,
+      metier: text("metier") as Metier | null,
+      metierPrecision: text("metierPrecision"),
+      address: {
+        address: String(formData.get("address") ?? ""),
+        postalCode: String(formData.get("postalCode") ?? ""),
+        city: String(formData.get("city") ?? ""),
+        countryCode: String(formData.get("countryCode") ?? ""),
+      },
+      details: {
+        siret: text("siret"),
+        contactEmail: text("contactEmail"),
+        contactPhone: text("contactPhone"),
+        website: text("website"),
+        vatNumber: text("vatNumber"),
+        registration: text("registration"),
+        shareCapitalCents: capital,
+      },
+    });
+  } catch (error) {
+    if (error instanceof InvalidSellerAddressError) return { error: t(`invalidAddress_${error.field}`) };
+    if (error instanceof InvalidDocumentDetailsError) return { error: t(DETAIL_ERROR_KEYS[error.field]) };
+    throw error;
+  }
   // ONB-01 : se termine tout seul dès que les champs requis sont
   // réunis — pas de bouton « terminer » à part, cohérent avec un
   // questionnaire qu'on peut interrompre et reprendre par morceaux.
   await completeOnboarding(db, organizationId);
 
   revalidatePath("/parametres");
+  revalidatePath("/devis/parametres/documents");
   return { success: true };
 }
 
@@ -106,46 +127,6 @@ export async function saveFollowUpDelaysAction(_prev: FollowUpFormState, formDat
   }
   revalidatePath("/");
   revalidatePath("/parametres/relances");
-  return { success: true };
-}
-
-// Lot 17 (DEV-07) — coordonnées imprimées sur les devis et factures. La
-// validation est faite par le module hub (InvalidDocumentDetailsError) ;
-// rien n'est enregistré si un champ est refusé.
-export type DocumentDetailsFormState = { error?: string; success?: boolean };
-
-const DETAIL_ERROR_KEYS = {
-  siret: "errorSiret",
-  contactEmail: "errorContactEmail",
-  contactPhone: "errorContactPhone",
-  website: "errorWebsite",
-  vatNumber: "errorVatNumber",
-  registration: "errorRegistration",
-  shareCapitalCents: "errorShareCapital",
-} as const;
-
-export async function saveDocumentDetailsAction(_prev: DocumentDetailsFormState, formData: FormData): Promise<DocumentDetailsFormState> {
-  const t = await getTranslations("Settings");
-  const { organizationId } = await requireOrganization();
-  const text = (name: string) => String(formData.get(name) ?? "").trim() || null;
-  const capital = parseAmountToCents(String(formData.get("shareCapital") ?? ""));
-  if (capital === undefined) return { error: t("errorShareCapital") };
-  try {
-    await saveDocumentDetails(appDatabase(), organizationId, {
-      siret: text("siret"),
-      contactEmail: text("contactEmail"),
-      contactPhone: text("contactPhone"),
-      website: text("website"),
-      vatNumber: text("vatNumber"),
-      registration: text("registration"),
-      shareCapitalCents: capital,
-    });
-  } catch (error) {
-    if (error instanceof InvalidDocumentDetailsError) return { error: t(DETAIL_ERROR_KEYS[error.field]) };
-    throw error;
-  }
-  revalidatePath("/parametres");
-  revalidatePath("/devis/parametres/documents");
   return { success: true };
 }
 

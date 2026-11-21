@@ -36,7 +36,10 @@ export default async function FollowUpSettingsPage() {
           {t("followUpSeeAlso")} <Link href="/devis/relances">{t("followUpSeeAlsoLink")}</Link>
         </p>
       ) : null}
-      <FollowUpForm quoteDays={delays.quoteFollowUpDays} prospectDays={delays.prospectFollowUpDays} />
+      <section className="card" aria-labelledby="follow-up-delays">
+        <h2 id="follow-up-delays">{t("followUpDelaysTitle")}</h2>
+        <FollowUpForm quoteDays={delays.quoteFollowUpDays} prospectDays={delays.prospectFollowUpDays} />
+      </section>
       {prospectSettings ? (
         <>
           <section className="card">

@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { listDefaultVendorSlots } from "@/modules/events/service";
 import { getBudgetAlertSettings, listAllocationModels } from "@/modules/budget/service";
 import { requirePlanner } from "@/lib/guards";
@@ -25,6 +25,7 @@ export default async function BudgetSettingsPage({ searchParams }: { searchParam
     );
   }
 
+  const percent = new Intl.NumberFormat((await getLocale()) === "en" ? "en-GB" : "fr-FR", { maximumFractionDigits: 2 });
   const [models, vendorSlots, alertSettings] = await Promise.all([
     listAllocationModels(organizationId),
     listDefaultVendorSlots(organizationId),
@@ -40,35 +41,46 @@ export default async function BudgetSettingsPage({ searchParams }: { searchParam
         helpBody={tHelp("budgetSettings.body")}
       />
 
-      {/* Lot 28a (BUD-02) : seuil d'alerte de l'enveloppe. */}
-      <h2>{t("thresholdTitle")}</h2>
-      <p>{t("thresholdIntro")}</p>
-      <AlertThresholdForm percent={alertSettings.organizationPercent} />
-
-      <h2 data-tour="budget-models">{t("modelsTitle")}</h2>
-      {models.length === 0 ? <p>{t("noModels")}</p> : null}
-      <ul>
-        {models.map((model) => (
-          <li key={model.id}>
-            <strong>{model.name}</strong>
-            <ul>
-              {model.items.map((item) => {
-                const slot = vendorSlots.find((candidate) => candidate.id === item.defaultVendorSlotId);
-                return (
-                  <li key={item.id}>
-                    {slot?.label ?? item.defaultVendorSlotId} — {(item.percentageBasisPoints / 100).toFixed(2)} %
-                  </li>
-                );
-              })}
+      {/* Lot 28a (BUD-02) : seuil d'alerte de l'enveloppe. Lot 62b (UX-12) : une carte par sujet. */}
+      <section className="card" aria-labelledby="budget-threshold">
+        <h2 id="budget-threshold">{t("thresholdTitle")}</h2>
+        <p className="field-hint">{t("thresholdIntro")}</p>
+        <AlertThresholdForm percent={alertSettings.organizationPercent} />
+      </section>
+      <section className="card" aria-labelledby="budget-models">
+        <h2 id="budget-models" data-tour="budget-models">
+          {t("modelsTitle")}
+        </h2>
+        {models.length === 0 ? (
+          <p>{t("noModels")}</p>
+        ) : (
+          <div className="edit-list-scroll settings-list">
+            <ul className="edit-list model-list">
+              {models.map((model) => (
+                <li key={model.id} className="edit-row">
+                  <strong className="edit-cell-name">{model.name}</strong>
+                  <span className="edit-cell-meta">
+                    {model.items
+                      .map((item) => {
+                        const slot = vendorSlots.find((candidate) => candidate.id === item.defaultVendorSlotId);
+                        return `${slot?.label ?? item.defaultVendorSlotId} ${percent.format(item.percentageBasisPoints / 100)} %`;
+                      })
+                      .join(" · ")}
+                  </span>
+                  <span className="row-actions">
+                    <form action={removeAllocationModelAction}>
+                      <input type="hidden" name="modelId" value={model.id} />
+                      <button type="submit" className="button-ghost" aria-label={t("removeModel", { name: model.name })}>
+                        {t("removeModelShort")}
+                      </button>
+                    </form>
+                  </span>
+                </li>
+              ))}
             </ul>
-            <form action={removeAllocationModelAction}>
-              <input type="hidden" name="modelId" value={model.id} />
-              <button type="submit">{t("removeModel", { name: model.name })}</button>
-            </form>
-          </li>
-        ))}
-      </ul>
-
+          </div>
+        )}
+      </section>
       {vendorSlots.length === 0 ? (
         <p role="status">{t("noVendorSlotsYet")}</p>
       ) : (

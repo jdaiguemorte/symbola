@@ -13,20 +13,22 @@ export function FollowUpForm({ quoteDays, prospectDays }: { quoteDays: number; p
   const [prospect, setProspect] = useState(String(prospectDays));
 
   return (
-    <form action={formAction}>
+    <form action={formAction} className="form-grid" aria-label={t("followUpDelaysTitle")}>
       <label>
         {t("quoteFollowUpDays")}
-        <input type="number" name="quoteFollowUpDays" min={1} max={365} value={quote} onChange={(event) => setQuote(event.target.value)} required />
+        <input className="field-short" type="number" name="quoteFollowUpDays" min={1} max={365} value={quote} onChange={(event) => setQuote(event.target.value)} required />
       </label>
       <label>
         {t("prospectFollowUpDays")}
-        <input type="number" name="prospectFollowUpDays" min={1} max={365} value={prospect} onChange={(event) => setProspect(event.target.value)} required />
+        <input className="field-short" type="number" name="prospectFollowUpDays" min={1} max={365} value={prospect} onChange={(event) => setProspect(event.target.value)} required />
       </label>
-      <button type="submit" disabled={pending}>
-        {t("saveFollowUpDelays")}
-      </button>
-      {state.error ? <p role="alert">{state.error}</p> : null}
-      {state.success ? <p role="status">{t("followUpDelaysSaved")}</p> : null}
+      <div className="span-all form-foot">
+        <button type="submit" className="button-secondary" disabled={pending}>
+          {t("saveFollowUpDelays")}
+        </button>
+        {state.error ? <p role="alert">{state.error}</p> : null}
+        {state.success ? <p role="status">{t("followUpDelaysSaved")}</p> : null}
+      </div>
     </form>
   );
 }

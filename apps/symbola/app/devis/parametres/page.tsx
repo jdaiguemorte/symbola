@@ -47,7 +47,9 @@ export default async function QuoteSettingsPage() {
       <p role="note">
         {t("facturxBanner", { date: formatCalendarDate(starterInvoiceReform().electronicInvoicingFrom, locale) })}
       </p>
-      <QuoteSettingsForm
+      {/* Lot 62b : le formulaire porte ses cartes ; il n'en est pas une lui-même. */}
+      <div>
+        <QuoteSettingsForm
         professionalBounds={starterProfessionalTerms().paymentTerm}
         defaultDiscountTerms={starterProfessionalTerms().discountTerms[locale]}
         settings={settings}
@@ -55,7 +57,8 @@ export default async function QuoteSettingsPage() {
         defaultProfessionalMentions={starterProfessionalPaymentTerms(locale)}
         rates={starterLatePenalty().rates.map((rate) => ({ key: rate.key, label: rate.label[locale] }))}
         previousStarterText={isPreviousStarterInvoiceMentions(settings.invoiceMentions)}
-      />
+        />
+      </div>
 
       <section aria-labelledby="payment-methods-title">
         <h2 id="payment-methods-title">{t("paymentMethodsTitle")}</h2>

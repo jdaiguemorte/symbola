@@ -9,10 +9,12 @@ export function AddPaymentMethodForm() {
   const initialState: QuoteSettingsFormState = {};
   const [state, formAction, pending] = useActionState(addPaymentMethodAction, initialState);
   return (
-    <form action={formAction} className="pay-add">
-      <label htmlFor="payment-method-label">{t("newPaymentMethod")}</label>
-      <input id="payment-method-label" type="text" name="label" required />
-      <button type="submit" disabled={pending}>
+    <form action={formAction} className="form-inline">
+      <label htmlFor="payment-method-label">
+        {t("newPaymentMethod")}
+        <input id="payment-method-label" type="text" name="label" required />
+      </label>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("addPaymentMethod")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
@@ -27,7 +29,7 @@ export function LoadStarterPaymentMethodsForm() {
   const [state, formAction, pending] = useActionState(loadStarterPaymentMethodsAction, initialState);
   return (
     <form action={formAction}>
-      <button type="submit" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("loadStarterPaymentMethods")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}

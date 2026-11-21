@@ -5,9 +5,8 @@ import { LogoForm } from "@/app/logo/logo-form";
 import { appDatabase } from "@symbola/db/client";
 import { getOrganizationProfile, getSellerDetails, isModuleEnabled } from "@/modules/hub/service";
 import { requirePlanner } from "@/lib/guards";
-import { DocumentDetailsForm } from "./document-details-form";
+import { CompanySheetForm } from "./company-sheet-form";
 import { ProfessionalMentionsForm } from "./professional-mentions-form";
-import { ProfileForm } from "./profile-form";
 import { VatRegimeForm } from "./vat-regime-form";
 import { VatOnDebitsForm } from "./vat-on-debits-form";
 
@@ -31,34 +30,42 @@ export default async function SettingsPage() {
       {/* Lot 16 (L16-HUB-20) : le titre est la rubrique ouverte ; le menu des rubriques est la structure. */}
       <h1>{tMenu("company")}</h1>
       <ScreenHelp title={tHelp("settings.title")} body={tHelp("settings.body")} />
-      <h2 id="profil-entreprise">{t("companyProfileTitle")}</h2>
-      <ProfileForm profile={profile} />
+      {/* Lot 62b (UX-12) : identité, adresse et coordonnées imprimées, un seul « Enregistrer la fiche ». */}
+      <div id="profil-entreprise">
+        <CompanySheetForm profile={profile} details={details} />
+      </div>
 
-      <h2>{t("vatRegimeTitle")}</h2>
-      <VatRegimeForm currentRegime={profile.vatRegime} />
-
-      {/* Lot 41 (JUR-02, D10) : option pour la TVA sur les débits, datée (assujetti seulement). */}
-      <h2 id="tva-debits">{t("vatOnDebitsTitle")}</h2>
-      <p className="meta">{t("vatOnDebitsHint")}</p>
-      {profile.vatRegime === "assujetti" ? <VatOnDebitsForm value={profile.vatOnDebits} from={profile.vatOnDebitsFrom} /> : <p>{t("vatOnDebitsFranchise")}</p>}
-
-      {/* Lot 17 (DEV-07, DEV-08, décision A) : coordonnées et logo des documents. */}
-      <h2 id="coordonnees-documents">{t("documentDetailsTitle")}</h2>
-      <p className="meta">{t("documentDetailsHint")}</p>
-      <DocumentDetailsForm details={details} />
+      {/* Lot 62b : la TVA dans sa carte, en formulaires en ligne. Lot 41 (JUR-02, D10) : option pour la
+          TVA sur les débits, datée (assujetti seulement). */}
+      <section className="card" aria-labelledby="tva">
+        <h2 id="tva">{t("vatCardTitle")}</h2>
+        <p>
+          {t("currentRegime")} :{" "}
+          <strong>{profile.vatRegime === "franchise" ? t("vatRegimeFranchise") : profile.vatRegime === "assujetti" ? t("vatRegimeAssujetti") : t("vatRegimeUnset")}</strong>
+        </p>
+        <VatRegimeForm currentRegime={profile.vatRegime} />
+        <h3 id="tva-debits">{t("vatOnDebitsTitle")}</h3>
+        <p className="field-hint">{t("vatOnDebitsHint")}</p>
+        {profile.vatRegime === "assujetti" ? <VatOnDebitsForm value={profile.vatOnDebits} from={profile.vatOnDebitsFrom} /> : <p>{t("vatOnDebitsFranchise")}</p>}
+      </section>
 
       {/* Lot 31a (JUR-09, D4) : assurance, médiateur et conditions générales, repris sur les devis. */}
-      <h2 id="informations-professionnel">{t("professionalMentionsTitle")}</h2>
-      <p className="meta">{t("professionalMentionsHint")}</p>
-      <ProfessionalMentionsForm details={details} />
+      <section className="card" aria-labelledby="informations-professionnel">
+        <h2 id="informations-professionnel">{t("professionalMentionsTitle")}</h2>
+        <p className="field-hint">{t("professionalMentionsHint")}</p>
+        <ProfessionalMentionsForm details={details} />
+      </section>
 
-      <h2 id="logo">{t("logoTitle")}</h2>
-      <LogoForm version={logoVersion} />
-      {quotes ? (
-        <p>
-          {t("documentsSettingsHint")} <Link href="/devis/parametres/documents">{t("documentsSettingsLink")}</Link>
-        </p>
-      ) : null}
+      {/* Lot 17 (DEV-07, DEV-08, décision A) : logo des documents. */}
+      <section className="card company-logo" aria-labelledby="logo">
+        <h2 id="logo">{t("logoTitle")}</h2>
+        <LogoForm version={logoVersion} />
+        {quotes ? (
+          <p className="field-hint">
+            {t("documentsSettingsHint")} <Link href="/devis/parametres/documents">{t("documentsSettingsLink")}</Link>
+          </p>
+        ) : null}
+      </section>
     </main>
   );
 }

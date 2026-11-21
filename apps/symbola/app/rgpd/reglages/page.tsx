@@ -36,10 +36,16 @@ export default async function PrivacySettingsPage() {
       {/* Lot 18 (RGPD-07, décision A) : onglets de Données personnelles. */}
       <PrivacyTabs />
       <p>{t("settingsIntro")}</p>
-      <PrivacySettingsForm settings={settings} guestsEnabled={guestsEnabled} />
-      {/* Lot 26a (RGP-03) : mention d'information des pages à lien personnel. */}
-      <LinkNoticeForm text={notice ?? linkPrivacyNoticeTemplate(locale)} custom={notice !== null} />
-      {guestsEnabled ? <GuestNoticeForm text={guestNotice ?? guestPrivacyNoticeTemplate(locale)} custom={guestNotice !== null} /> : null}
+      {/* Lot 62b : le formulaire porte ses cartes ; il n'en est pas une lui-même. */}
+      <div>
+        <PrivacySettingsForm settings={settings} guestsEnabled={guestsEnabled} />
+      </div>
+      {/* Lot 26a (RGP-03) : mention d'information des pages à lien personnel. Lot 62b : les deux
+          mentions côte à côte quand la place le permet. */}
+      <div className="card-grid notice-grid">
+        <LinkNoticeForm text={notice ?? linkPrivacyNoticeTemplate(locale)} custom={notice !== null} />
+        {guestsEnabled ? <GuestNoticeForm text={guestNotice ?? guestPrivacyNoticeTemplate(locale)} custom={guestNotice !== null} /> : null}
+      </div>
     </main>
   );
 }

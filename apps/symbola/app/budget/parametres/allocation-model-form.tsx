@@ -10,24 +10,30 @@ export function AllocationModelForm({ vendorSlots }: { vendorSlots: DefaultVendo
   const initialState: AllocationModelFormState = {};
   const [state, formAction, pending] = useActionState(createAllocationModelAction, initialState);
 
+  // Lot 62b (UX-12) : un pourcentage par ligne du budget, en champs courts sur une grille (plus de
+  // liste à puces qui porte un formulaire).
   return (
-    <form action={formAction}>
-      <h3 data-tour="budget-new-model">{t("newModelTitle")}</h3>
+    <form action={formAction} aria-labelledby="budget-new-model">
+      <h2 id="budget-new-model" data-tour="budget-new-model">
+        {t("newModelTitle")}
+      </h2>
       <label>
         {t("modelName")}
         <input type="text" name="name" required />
       </label>
-      <p>{t("percentagePerSlot")}</p>
-      <ul>
-        {vendorSlots.map((slot) => (
-          <li key={slot.id}>
-            <label>
+      <fieldset className="percent-fieldset">
+        <legend>{t("percentagePerSlot")}</legend>
+        <div className="percent-grid">
+          {vendorSlots.map((slot) => (
+            <label key={slot.id}>
               {slot.label}
-              <input type="number" name={`percentage_${slot.id}`} min={0} max={100} step={0.01} /> %
+              <span className="field-unit">
+                <input className="field-short" type="number" name={`percentage_${slot.id}`} min={0} max={100} step={0.01} /> %
+              </span>
             </label>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </div>
+      </fieldset>
       <button type="submit" disabled={pending}>
         {t("createModel")}
       </button>
