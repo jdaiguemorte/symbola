@@ -24,6 +24,7 @@ import privacySettingsFile from "./privacy-settings.json";
 import followUpFile from "./follow-up.json";
 import budgetAlertFile from "./budget-alert.json";
 import budgetVatFile from "./budget-vat.json";
+import budgetImportFile from "./budget-import.json";
 import linkProfilesFile from "./link-profiles.json";
 import linkExpiryFile from "./link-expiry.json";
 import clientTaskRemindersFile from "./client-task-reminders.json";
@@ -949,6 +950,17 @@ const budgetVatSchema = z.object({
 
 export function starterBudgetVatRateBasisPoints(): number {
   return budgetVatSchema.parse(budgetVatFile).defaultVatRateBasisPoints;
+}
+
+// Lot 63b (BUD-03, HUB-14) — libellés des échéances (acompte, solde) créées par l'import d'un budget.
+const paymentLabelsSchema = z.object({ deposit: z.string().min(1).max(80), balance: z.string().min(1).max(80) });
+const budgetImportSchema = z.object({
+  version: z.literal(1),
+  paymentLabels: z.object({ fr: paymentLabelsSchema, en: paymentLabelsSchema }),
+});
+
+export function starterBudgetImportPaymentLabels(locale: StarterLocale): { deposit: string; balance: string } {
+  return budgetImportSchema.parse(budgetImportFile).paymentLabels[locale];
 }
 
 // Lot 26a (POR-01, POR-10, décision D3) — profils de départ d'un lien

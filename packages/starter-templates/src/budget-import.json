@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "_source": "Lot 63b (BUD-03, HUB-14) : libellés des échéances créées par l'import d'un budget qui donne un acompte et un solde datés, dans chaque langue de l'organisation.",
+  "paymentLabels": {
+    "fr": { "deposit": "Acompte", "balance": "Solde" },
+    "en": { "deposit": "Deposit", "balance": "Balance" }
+  }
+}
