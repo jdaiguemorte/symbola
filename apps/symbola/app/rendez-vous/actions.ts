@@ -128,7 +128,7 @@ export async function addStarterTypesAction(): Promise<void> {
   done("/rendez-vous/reglages", "startersAdded");
 }
 
-const questionSchema = z.object({ id: z.string().max(40), label: text(200), kind: z.enum(["choice", "text"]), choices: z.array(text(120)).max(12) });
+const questionSchema = z.object({ id: z.string().max(40), label: text(200), kind: z.enum(["choice", "text"]), choices: z.array(text(120)).max(12), required: z.boolean() });
 
 export async function updateAppointmentTypeAction(formData: FormData): Promise<void> {
   const auth = await planner();
@@ -139,7 +139,8 @@ export async function updateAppointmentTypeAction(formData: FormData): Promise<v
     const label = value(formData, `question${index}Label`).trim();
     if (!label) continue;
     const kind = value(formData, `question${index}Kind`) === "choice" ? "choice" : "text";
-    questions.push({ id: value(formData, `question${index}Id`) || `q${index + 1}`, label, kind, choices: kind === "choice" ? value(formData, `question${index}Choices`).split("\n").map((line) => line.trim()).filter(Boolean) : [] });
+    // Lot 64 (D7) : « Obligatoire » ; les choix arrivent un par ligne (les pastilles de l'éditeur).
+    questions.push({ id: value(formData, `question${index}Id`) || `q${index + 1}`, label, kind, choices: kind === "choice" ? value(formData, `question${index}Choices`).split("\n").map((line) => line.trim()).filter(Boolean) : [], required: formData.get(`question${index}Required`) === "on" });
   }
   const parsed = z
     .object({
@@ -148,6 +149,7 @@ export async function updateAppointmentTypeAction(formData: FormData): Promise<v
       durationMinutes: z.coerce.number().int().min(15).max(480),
       locationKind: z.enum(APPOINTMENT_LOCATION_KINDS),
       location: text(500),
+      description: text(300),
       bufferBeforeMinutes: z.coerce.number().int().min(0).max(240),
       bufferAfterMinutes: z.coerce.number().int().min(0).max(240),
       minNoticeHours: z.coerce.number().int().min(0).max(720),
@@ -161,6 +163,7 @@ export async function updateAppointmentTypeAction(formData: FormData): Promise<v
       durationMinutes: value(formData, "durationMinutes"),
       locationKind: value(formData, "locationKind"),
       location: value(formData, "location"),
+      description: value(formData, "description"),
       bufferBeforeMinutes: value(formData, "bufferBeforeMinutes"),
       bufferAfterMinutes: value(formData, "bufferAfterMinutes"),
       minNoticeHours: value(formData, "minNoticeHours"),
@@ -179,6 +182,7 @@ export async function updateAppointmentTypeAction(formData: FormData): Promise<v
       ...input,
       hostUserId,
       location: input.location || null,
+      description: input.description || null,
       minNoticeMinutes: minNoticeHours * 60,
       allowEventDays: formData.get("allowEventDays") === "on",
       active: formData.get("active") === "on",

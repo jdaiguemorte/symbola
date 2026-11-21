@@ -4,6 +4,7 @@
 import { randomUUID } from "node:crypto";
 import { formatLinkToken, hashLinkSecret, newLinkSecret, openField, parseLinkToken, sealField } from "@symbola/auth";
 import {
+  APPOINTMENT_DESCRIPTION_MAX,
   APPOINTMENT_CANCEL_REASONS,
   APPOINTMENT_LOCATION_KINDS,
   APPOINTMENT_QUESTIONS_MAX,
@@ -147,6 +148,7 @@ function toType(row: AppointmentTypeRow): AppointmentType {
     durationMinutes: row.durationMinutes,
     locationKind: row.locationKind,
     location: row.location,
+    description: row.description,
     bufferBeforeMinutes: row.bufferBeforeMinutes,
     bufferAfterMinutes: row.bufferAfterMinutes,
     minNoticeMinutes: row.minNoticeMinutes,
@@ -280,6 +282,7 @@ function cleanQuestions(questions: AppointmentQuestion[] | undefined): Appointme
     label: question.label.trim(),
     kind: question.kind === "choice" ? ("choice" as const) : ("text" as const),
     choices: question.kind === "choice" ? question.choices.map((choice) => choice.trim()).filter(Boolean).slice(0, 12) : [],
+    ...(question.required ? { required: true } : {}),
   }));
   if (list.length > APPOINTMENT_QUESTIONS_MAX) throw new AppointmentInvalidError("questions");
   for (const question of list) {
@@ -303,6 +306,8 @@ function typeValues(input: AppointmentTypeInput, base: Omit<AppointmentType, "id
   const location = input.location === undefined ? base.location : input.location?.trim() || null;
   if (location && location.length > 500) throw new AppointmentInvalidError("location");
   if (locationKind === "video" && location && !/^https:\/\/\S+$/.test(location)) throw new AppointmentInvalidError("location");
+  const description = input.description === undefined ? base.description : input.description?.trim() || null;
+  if (description && description.length > APPOINTMENT_DESCRIPTION_MAX) throw new AppointmentInvalidError("description");
   const reminders = input.reminders ?? base.reminders;
   if (!APPOINTMENT_REMINDER_PLANS.includes(reminders)) throw new AppointmentInvalidError("reminders");
   return {
@@ -310,6 +315,7 @@ function typeValues(input: AppointmentTypeInput, base: Omit<AppointmentType, "id
     durationMinutes: integerIn(input.durationMinutes, base.durationMinutes, 15, 480, "durationMinutes"),
     locationKind,
     location,
+    description,
     bufferBeforeMinutes: integerIn(input.bufferBeforeMinutes, base.bufferBeforeMinutes, 0, 240, "bufferBeforeMinutes"),
     bufferAfterMinutes: integerIn(input.bufferAfterMinutes, base.bufferAfterMinutes, 0, 240, "bufferAfterMinutes"),
     minNoticeMinutes: integerIn(input.minNoticeMinutes, base.minNoticeMinutes, 0, 43_200, "minNoticeMinutes"),
@@ -336,7 +342,7 @@ export async function getAppointmentType(organizationId: string, id: string): Pr
 // personne qui reçoit est celle qui crée le type.
 export async function createAppointmentType(organizationId: string, input: AppointmentTypeInput, createdByUserId: string): Promise<AppointmentType> {
   const defaults = starterAppointmentDefaults();
-  const values = typeValues(input, { ...defaults, name: input.name, durationMinutes: input.durationMinutes, location: null, questions: [], hostUserId: createdByUserId, active: true });
+  const values = typeValues(input, { ...defaults, name: input.name, durationMinutes: input.durationMinutes, location: null, description: null, questions: [], hostUserId: createdByUserId, active: true });
   return toType(await insertAppointmentType(organizationId, values));
 }
 
@@ -578,6 +584,8 @@ function cleanPerson(input: { name: string; email: string | null; phone: string 
 function cleanAnswers(type: AppointmentTypeRow, answers: Record<string, string>) {
   return type.questions.flatMap((question) => {
     const answer = (answers[question.id] ?? "").trim();
+    // Lot 64 (D7) : une question obligatoire demande une réponse.
+    if (answer === "" && question.required) throw new AppointmentInvalidError(`answer:${question.id}`);
     if (answer === "") return [];
     if (answer.length > 500) throw new AppointmentInvalidError(`answer:${question.id}`);
     if (question.kind === "choice" && !question.choices.includes(answer)) throw new AppointmentInvalidError(`answer:${question.id}`);

@@ -5,6 +5,7 @@ import { ScreenHelp } from "@/app/screen-help";
 import { PageHeader } from "@/app/ui/page-header";
 import { getAvailability, listMyCalendarSources } from "@/modules/appointments/service";
 import { appointmentsPlanner } from "../access";
+import { WeekEditor } from "./week-editor";
 import { Notice } from "../notice";
 import { addCalendarSourceAction, addClosureAction, refreshCalendarSourceAction, removeCalendarSourceAction, removeClosureAction, saveAvailabilityAction } from "../actions";
 
@@ -28,8 +29,7 @@ export default async function AvailabilityPage({ searchParams }: { searchParams:
   const query = await searchParams;
   const { organizationId, id: userId } = auth.user;
   const [availability, sources] = await Promise.all([getAvailability(organizationId, userId), listMyCalendarSources(organizationId, userId)]);
-  const rulesOf = (weekday: number) => availability.rules.filter((rule) => rule.weekday === weekday);
-
+  
   return (
     <main>
       <PageHeader title={t("availabilityTitle")} subtitle={t("availabilitySubtitle")} actions={<Link href="/rendez-vous">{t("backToList")}</Link>} />
@@ -54,35 +54,8 @@ export default async function AvailabilityPage({ searchParams }: { searchParams:
         <h2 id="week-title">{t("weekTitle")}</h2>
         <p className="field-hint">{t("weekHint")}</p>
         {availability.isDefault ? <p className="field-hint">{t("weekDefault")}</p> : null}
-        <form action={saveAvailabilityAction} className="stack">
-          <div className="availability-week">
-            {[1, 2, 3, 4, 5, 6, 7].map((weekday) => (
-              <div key={weekday} role="group" aria-labelledby={`weekday-${weekday}`} className="availability-day">
-                <span id={`weekday-${weekday}`} className="availability-day-name">
-                  {t(`weekday.${weekday}`)}
-                </span>
-                {[0, 1].map((slot) => {
-                  const rule = rulesOf(weekday)[slot];
-                  return (
-                    <div key={slot} className="availability-range">
-                      <label>
-                        {t(slot === 0 ? "from" : "thenFrom")}
-                        <input type="time" name={`d${weekday}s${slot}`} defaultValue={rule?.startTime ?? ""} step={900} />
-                      </label>
-                      <label>
-                        {t("to")}
-                        <input type="time" name={`d${weekday}e${slot}`} defaultValue={rule?.endTime ?? ""} step={900} />
-                      </label>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-          <button type="submit" className="primary">
-            {t("weekSave")}
-          </button>
-        </form>
+        {/* Lot 64 (maquette M6) : une grille, une ligne par jour, à la manière de Calendly. */}
+        <WeekEditor rules={availability.rules} isDefault={availability.isDefault} action={saveAvailabilityAction} />
       </section>
 
       <section className="card" aria-labelledby="closures-title">
