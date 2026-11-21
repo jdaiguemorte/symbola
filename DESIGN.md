@@ -245,6 +245,11 @@ Coins arrondis sobres : `sm` pour les champs et les pastilles carrées, `md` pou
 - **Bouton de danger** (lot 62) : fond blanc, bord et texte `critical`, pour ce qui détruit ou annule. Jamais l'allure du bouton principal.
 - **Messages** (lot 62) : confirmation ou information en `primary-soft`, « à vérifier » en `attention-soft`, erreur en `critical-soft`. Le texte dit d'abord ce que c'est : « Erreur : », « À vérifier : » (composants `ErrorNotice` et `AttentionNotice`). La couleur seule ne dit rien.
 - **Rubriques d'un écran long** (lot 62) : au-delà de trois écrans de haut, un sommaire d'ancres en tête, ou des onglets quand chaque rubrique a son adresse.
+- **Champ obligatoire** (lot 63) : « * » dans le libellé (`RequiredMark`), « * obligatoire » sous le formulaire (`RequiredLegend`), et l'attribut `required` sur le champ. L'astérisque est en encre, jamais en rouge. Un nouvel écran sans astérisque fait échouer `app/ui/required-mark.test.ts`.
+- **Barre de filtres** (lot 63) : chaque filtre a son libellé au-dessus et la même hauteur ; un lieu et son rayon forment un seul contrôle (« Où ? ») ; chaque filtre actif est une pastille qui se retire seule, avec « Effacer les filtres » dès qu'un filtre est actif.
+- **Fenêtre (ordinateur)** (lot 63) : pour un chargement, une confirmation et toute modification. Fond assombri, focus gardé dedans, Échap ferme. Une modification longue a ses rubriques à gauche et « Suivant » pour enchaîner, jusqu'à 860 px de large. Sur téléphone, elle devient une page avec « Retour ».
+- **Panneau latéral** (lot 63) : les réglages d'un écran et la consultation rapide, sans quitter l'écran ; jamais une modification longue.
+- **Glisser-déposer** (lot 63) : toujours doublé d'un bouton (« Déplacer vers… »), pour le clavier et le téléphone.
 
 ## Do's and Don'ts
 
