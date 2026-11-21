@@ -166,11 +166,11 @@ test("FAC-04 / DOC-03 / FAC-05 / SC-02 étapes 4 à 7 — contrat généré (pro
   await expectNoAxeViolation(page);
 
   // Le devis et son contrat partent ensemble ; à distance, le lien s'affiche sur l'espace du client.
-  const send = page.getByRole("form", { name: "Envoyer en signature" });
+  const send = page.getByRole("form", { name: "Faire signer" });
   await expect(send).toContainText("Le devis et son contrat (V1) seront signés ensemble, dans un même document.");
   await send.getByLabel("Adresse de facturation").first().fill("4 rue des Lilas, 60300 Senlis");
   await send.getByLabel("Adresse de facturation").nth(1).fill("4 rue des Lilas, 60300 Senlis");
-  await send.getByRole("button", { name: "Envoyer en signature" }).click();
+  await send.getByRole("button", { name: "Faire signer" }).click();
   // Lot 38a (MSG-02) : à deux signataires, l'écran du garde-fou (nombre et liste), puis la confirmation.
   await expect(send.getByRole("heading", { name: "Cet envoi part à 2 personnes" })).toBeVisible();
   await expect(send.getByRole("region", { name: "Cet envoi part à 2 personnes" }).getByRole("listitem")).toHaveCount(2);

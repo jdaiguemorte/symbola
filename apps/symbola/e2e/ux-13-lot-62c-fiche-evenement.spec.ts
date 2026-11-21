@@ -220,7 +220,7 @@ test("UX-13, UX-05 — budget : répartition et lignes en tableaux éditables, u
   await expectNoAxeViolation(page);
 
   // Les lignes forment un tableau ; « Modifier » ouvre la ligne en place, une seule à la fois.
-  const table = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" });
+  const table = page.getByRole("table", { name: "Estimé, réel, engagé, payé" });
   const editor = (label: string) => page.getByRole("region", { name: `Ligne « ${label} » : montants, prestataire, documents et échéances` });
   await table.getByRole("button", { name: "Modifier « Traiteur »" }).click();
   await editor("Traiteur").getByLabel("Libellé — Traiteur").fill("Dîner, 120 couverts");
@@ -285,7 +285,7 @@ test("UX-05 — budget de plus de douze lignes : sur téléphone, les catégorie
   await page.goto(`/budget/${setup.eventId}`);
   await page.waitForLoadState("networkidle");
 
-  const table = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" });
+  const table = page.getByRole("table", { name: "Estimé, réel, engagé, payé" });
   const caterer = table.getByRole("rowgroup", { name: "Traiteur" });
   const edit = table.getByRole("button", { name: "Modifier « Traiteur, complément »" });
   await expect(caterer.getByRole("row").first()).toContainText("10 850,00 €");

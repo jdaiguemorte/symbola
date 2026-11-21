@@ -99,13 +99,13 @@ test("AIDE-02 — essai guidé du module Devis : devis fictif signé et facturé
   // Signature par les mariés fictifs, sur la page de signature d'essai.
   await page.waitForLoadState("networkidle");
   await openQuoteRubric(page, "contrat");
-  const send = page.getByRole("form", { name: "Envoyer en signature" });
+  const send = page.getByRole("form", { name: "Faire signer" });
   const groups = await send.getByRole("group").all();
   for (const [index, group] of groups.entries()) {
     await group.getByLabel("E-mail").fill(`marie-fictif-${index}-${randomUUID()}@symbola.test`);
     await group.getByLabel("Adresse de facturation").fill("12 rue du Lac, 74000 Annecy");
   }
-  await send.getByRole("button", { name: "Envoyer en signature" }).click();
+  await send.getByRole("button", { name: "Faire signer" }).click();
   // Lot 38a (MSG-02) : à plusieurs signataires, l'écran du garde-fou, puis la confirmation.
   if (groups.length > 1) await send.getByRole("button", { name: `Envoyer à ${groups.length} personnes` }).click();
   await expect(page.getByText("En attente de signature.")).toBeVisible();

@@ -75,7 +75,7 @@ test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture 
   await page.goto(`/budget/${eventId}`);
   await page.waitForLoadState("networkidle");
   // Lot 28b : la ligne (pas le total de sa catégorie), repérée par « Modifier ».
-  const plannerRow = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" }).getByRole("row").filter({ hasText: "Modifier « Lieu de réception »" });
+  const plannerRow = page.getByRole("table", { name: "Estimé, réel, engagé, payé" }).getByRole("row").filter({ hasText: "Modifier « Lieu de réception »" });
   await plannerRow.getByText("Modifier « Lieu de réception »").click();
   // Lot 28b : le formulaire s'ouvre dans une rangée pleine largeur, sous la ligne.
   const editor = page.getByRole("region", { name: "Ligne « Lieu de réception » : montants, prestataire, documents et échéances" });

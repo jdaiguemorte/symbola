@@ -143,10 +143,10 @@ test("SC-02 étapes 4 à 8 / FAC-02 / GC-01 / SEC-16 / FAC-08 — aperçu, optio
 
   // Camille envoie le devis en signature aux deux mariés (rubrique « Contrat et signature »).
   await page.goto(`/devis/${setup.quoteId}?rubrique=contrat`);
-  const send = page.getByRole("form", { name: "Envoyer en signature" });
+  const send = page.getByRole("form", { name: "Faire signer" });
   await send.getByLabel("Adresse de facturation").first().fill("4 rue des Lilas, 60300 Senlis");
   await send.getByLabel("Adresse de facturation").nth(1).fill("4 rue des Lilas, 60300 Senlis");
-  await send.getByRole("button", { name: "Envoyer en signature" }).click();
+  await send.getByRole("button", { name: "Faire signer" }).click();
   await send.getByRole("button", { name: "Envoyer à 2 personnes" }).click();
   await expect(page.getByText("En attente de signature.")).toBeVisible();
 

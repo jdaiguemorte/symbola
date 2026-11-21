@@ -68,8 +68,17 @@ test("IMP-08 — reprendre ses événements depuis les fiches PDF de l'outil act
 
   const second = page.getByLabel(/Ligne 2 : Chloé PETIT & Antoine ROUX/);
   await expect(second).toHaveValue("confirmed");
-  await second.selectOption({ label: "Option" });
-  await page.getByRole("button", { name: "Enregistrer les statuts" }).click();
+  // Lot 63a (HUB-14, recette du 21/11) : le statut choisi s'enregistre dès le choix et reste
+  // affiché, après l'enregistrement comme après un rechargement (le bouton « Enregistrer les
+  // statuts » réaffichait le statut du fichier).
+  await second.selectOption({ label: "En préparation" });
+  await expect(page.getByText("Statut enregistré.")).toBeVisible();
+  await expect(second).toHaveValue("in_preparation");
+  await page.reload();
+  await expect(page.getByLabel(/Ligne 2 : Chloé PETIT & Antoine ROUX/)).toHaveValue("in_preparation");
+  await page.getByLabel(/Ligne 2 : Chloé PETIT & Antoine ROUX/).selectOption({ label: "Option" });
+  await expect(page.getByText("Statut enregistré.")).toBeVisible();
+  await page.reload();
   await expect(page.getByLabel(/Ligne 2 : Chloé PETIT & Antoine ROUX/)).toHaveValue("option");
   await expectNoAxeViolation(page);
 

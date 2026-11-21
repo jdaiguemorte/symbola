@@ -277,7 +277,7 @@ test.describe("UX-12 — Le devis en rubriques (lot 62d)", () => {
     expect(await primaryLabels()).toEqual(["Faire signer"]);
     await page.getByRole("link", { name: "Faire signer" }).click();
     await expect(page).toHaveURL(/\?rubrique=contrat#signature$/);
-    expect(await primaryLabels()).toEqual(["Envoyer en signature"]);
+    expect(await primaryLabels()).toEqual(["Faire signer"]);
     await expectNoAxeViolation(page);
 
     // Signé : « Facturer » mène aux factures ; la prochaine pièce à émettre est le bouton principal.
@@ -329,7 +329,7 @@ test.describe("UX-12 — Le devis en rubriques (lot 62d)", () => {
     await expect(page.getByRole("region", { name: "Contrat", exact: true }).getByRole("heading", { name: "Générer le contrat" })).toBeVisible();
     await expect(page.getByRole("form", { name: "Type de client" })).toBeVisible();
     await expect(page.getByRole("group", { name: "Vérifications avant l'envoi du devis" })).toBeVisible();
-    await expect(page.getByRole("form", { name: "Envoyer en signature" })).toBeVisible();
+    await expect(page.getByRole("form", { name: "Faire signer" })).toBeVisible();
     await expectNoAxeViolation(page);
 
     // Devis signé : signature, échéancier encaissé, facture, avoir.

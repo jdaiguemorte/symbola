@@ -82,12 +82,13 @@ test("HUB-09 / PAR-01 — une wedding planner répond aux cinq questions, une pa
   await expect(page.getByRole("heading", { name: "Explorer avec un exemple" })).toBeVisible();
   await expectNoAxeViolation(page);
 
-  // Prise en main : un tableur met « Importer vos contacts » en premier.
+  // Prise en main (lot 63a) : l'indispensable seulement, même avec un tableur.
   await page.goto("/");
   await expect(page.getByText("Terminez la préparation de votre espace")).toHaveCount(0);
   const checklist = page.getByRole("region", { name: "Pour bien démarrer" });
-  await expect(checklist.getByRole("listitem").first()).toHaveText("Importer vos contacts");
-  await expect(checklist).toContainText("0 sur 5 faits");
+  await expect(checklist.getByRole("listitem").first()).toHaveText("Régler l'essentiel : société, adresse, TVA");
+  await expect(checklist.getByRole("listitem")).toHaveCount(2);
+  await expect(checklist).toContainText("0 sur 2 faits");
   await expectNoAxeViolation(page);
 });
 
