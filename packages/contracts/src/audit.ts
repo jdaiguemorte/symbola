@@ -100,6 +100,12 @@ export const AUDIT_ACTIONS = {
   "hub.feature_flag.opened": { category: "administration", objectType: "organization" },
   "hub.feature_flag.closed": { category: "administration", objectType: "organization" },
   "hub.plan_catalog.updated": { category: "administration", objectType: null },
+  // Lot 63g (HUB-06, SEC-09 ; ADR 0108) : demandes d'activation d'une app pendant le pilote (détail :
+  // la clé du module, jamais un texte libre).
+  "hub.module_request.created": { category: "droits", objectType: "organization" },
+  "hub.module_request.cancelled": { category: "droits", objectType: "organization" },
+  "hub.module_request.activated": { category: "droits", objectType: "organization" },
+  "hub.module_request.declined": { category: "administration", objectType: "organization" },
   "vendors.vendors.exported": { category: "export", objectType: null },
   "quotes.e_reporting.exported": { category: "export", objectType: null },
   "quotes.archive.exported": { category: "export", objectType: null },

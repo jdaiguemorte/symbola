@@ -2286,3 +2286,14 @@ fields:
       Lot 60 (L60-PLA-05) : fond de plan de la version diffusée d'un plan d'évènement (même fichier privé que celui de l'espace au moment de la diffusion). Tant que la version existe ; voir RGPD-03/RGPD-05.
     anonymization: >-
       Supprimé avec le plan de l'évènement (oubli ou purge de l'évènement) ; le fichier n'est retiré du stockage que si plus rien ne le désigne.
+  - schema: hub
+    table: module_requests
+    field: requested_by_user_id
+    category: identifiant
+    retention: >-
+      Lot 63g (HUB-06, ADR 0108) : compte de la Propriétaire qui a demandé l'activation d'une app,
+      pseudonyme, sans autre donnée. Gardé avec la demande (une démarche auprès de Symbola) ; jamais
+      montré à l'Exploitation, qui ne lit que l'organisation, l'app et la date.
+    anonymization: >-
+      Effacé avec l'organisation (fermeture de l'espace, lot 35c) ; la demande ne porte ni nom ni
+      texte libre.

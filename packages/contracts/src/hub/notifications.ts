@@ -29,6 +29,8 @@ export const NOTIFICATION_TYPES = [
   // rejeté (adresse inexistante, boîte pleine) ou signalé comme indésirable.
   "client_message",
   "email_bounced",
+  // Lot 63g (HUB-06, HUB-15 ; ADR 0108) : l'app demandée pendant le pilote est activée.
+  "module_activated",
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 

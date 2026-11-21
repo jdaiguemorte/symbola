@@ -102,3 +102,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0100 — Fermeture d'un espace : 30 jours d'export, effacement contrôlé par la base, trace rejouable](0100-fermeture-d-un-espace-et-effacement-au-30e-jour.md)
 - [0101 — Abonnement en libre-service, forfaits par module, interrupteurs par fonction et quota de stockage](0101-abonnement-forfaits-interrupteurs-et-quota.md)
 - [0102 — Messagerie par sujet, adresse d'expédition sur le domaine de Symbola, journal des envois, portail aux couleurs et installable](0102-messagerie-adresse-d-expedition-et-journal-des-envois.md)
+- [0108 — Écran « Apps » et demandes d'activation pendant le pilote](0108-ecran-apps-et-demandes-d-activation.md)
