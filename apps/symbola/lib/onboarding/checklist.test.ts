@@ -13,7 +13,8 @@ describe("HUB-11 — Pour bien démarrer, l'indispensable seulement (lot 63a)", 
   it("deux actions : régler l'essentiel, puis ajouter un premier prestataire", () => {
     expect(ONBOARDING_CHECKLIST_KEYS).toEqual(["essentials", "first_vendor"]);
     expect(buildChecklist({ tools: [], available: all, done: none })).toEqual([
-      { key: "essentials", href: "/parametres", done: false },
+      // Lot 63f (ADR 0103) : l'assistant « L'essentiel ».
+      { key: "essentials", href: "/demarrage/essentiel", done: false },
       { key: "first_vendor", href: "/prestataires/nouveau", done: false },
     ]);
     // Un outil remplacé ne fait plus remonter une action retirée.

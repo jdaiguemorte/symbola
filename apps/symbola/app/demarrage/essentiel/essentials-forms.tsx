@@ -3,11 +3,13 @@
 // Lot 63f (HUB-09, HUB-18, HUB-23 ; ADR 0103 ; maquette M1) — une étape de « L'essentiel » : une
 // question, ses champs déjà remplis par les réglages, « Continuer » (ou Entrée) qui enregistre,
 // « Passer cette étape ». Les champs marqués « * » sont obligatoires pour envoyer un devis, jamais
-// pour avancer : aucun n'a l'attribut required (SC-01).
+// pour avancer : aucun n'a l'attribut required (SC-01). L'astérisque est celui de la règle commune
+// (RequiredMark, lot 63a) ; la légende dit pourquoi : « obligatoire pour envoyer un devis ».
 import Link from "next/link";
 import { useActionState, useId, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { LogoForm } from "@/app/logo/logo-form";
+import { RequiredMark } from "@/app/ui/required-mark";
 import { saveEssentialStepAction, type EssentialsFormState } from "./actions";
 
 const LEGAL_FORMS = ["ei", "eirl", "eurl", "sarl", "sas", "sasu", "sa", "auto_entrepreneur", "autre"] as const;
@@ -43,7 +45,7 @@ export function EssentialStepForm(props: EssentialStepProps & { previous: string
           {/* Le libellé et son « * » sur une même ligne (un libellé se met en colonne). */}
           <span>
             {label}
-            {options.star ? <span aria-hidden="true"> *</span> : null}
+            {options.star ? <RequiredMark /> : null}
           </span>
         </label>
         {input({ id, name, ...(state.field === name ? { "aria-invalid": true as const } : {}), ...(described ? { "aria-describedby": described } : {}) })}
@@ -94,7 +96,7 @@ export function EssentialStepForm(props: EssentialStepProps & { previous: string
             <fieldset className="choice-cards" aria-describedby={noteId}>
               <legend>
                 {t("steps.vat")}
-                <span aria-hidden="true"> *</span>
+                <RequiredMark />
               </legend>
               {(["franchise", "assujetti"] as const).map((value) => (
                 <label key={value} className="choice-card">
