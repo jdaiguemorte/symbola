@@ -268,6 +268,15 @@
   .budget-line-more input.field-date {
     @apply w-44;
   }
+  /* Le repli d'une catégorie n'existe que sur téléphone. */
+  .budget-lines-editor .budget-lines .budget-fold {
+    @apply hidden;
+  }
+  @media (width < 640px) {
+    .budget-lines-editor .list-table.budget-lines tr.budget-category th .budget-fold {
+      @apply inline-flex;
+    }
+  }
   /* Téléphone : une ligne tient en une carte courte — son nom et « Modifier », puis ses six
      montants sur deux colonnes (libellé à gauche, montant à droite). */
   @media (width < 640px) {
@@ -294,6 +303,15 @@
     .budget-lines-editor .list-table.budget-lines tr.budget-category td[data-label],
     .budget-lines-editor .list-table.budget-lines tfoot td[data-label] {
       @apply min-h-6 flex-wrap justify-between gap-x-2 gap-y-0 py-0 text-right text-label;
+    }
+    /* Reste à payer et écart : une ligne entière chacun (leur texte est long). */
+    .budget-lines-editor .list-table.budget-lines td.budget-wide[data-label] {
+      @apply col-span-2;
+    }
+    /* Au-delà de douze lignes, une catégorie se replie : ses totaux restent, ses lignes s'ouvrent à la demande. */
+    .budget-lines-editor .list-table.budget-lines tbody[data-folded="true"] tr.budget-line,
+    .budget-lines-editor .list-table.budget-lines tbody[data-folded="true"] tr.budget-line-editor:not(.budget-line-adding) {
+      @apply hidden;
     }
     .budget-lines-editor .list-table.budget-lines tr.budget-category td:not([data-label]),
     .budget-lines-editor .list-table.budget-lines tfoot td:not([data-label]) {
@@ -343,6 +361,42 @@
   }
   .event-sheet .link-row > p {
     @apply m-0;
+  }
+  /* Un lien personnel : la personne et ce qu'elle voit à gauche, ses actions à droite ; un panneau
+     ouvert (modifier, retirer, lien renouvelé) prend toute la largeur, dessous. */
+  .event-sheet .item-list > li.link-row:has(> .link-main) {
+    @apply flex-row flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3;
+  }
+  .event-sheet .link-row > .link-main {
+    @apply flex min-w-0 flex-[1_1_24rem] flex-col gap-1;
+  }
+  .event-sheet .link-row > .link-main > p {
+    @apply m-0;
+  }
+  .event-sheet .link-row > .link-actions {
+    @apply items-center gap-2;
+  }
+  .event-sheet .link-row > .link-actions form {
+    @apply m-0;
+  }
+  .event-sheet .link-row > .link-actions .button-link {
+    @apply min-h-11 px-3 text-label;
+  }
+  .event-sheet .link-row > .link-actions > details > summary {
+    @apply rounded-md px-3 text-label font-medium text-ink;
+  }
+  .event-sheet .link-row > .link-actions > details[open],
+  .event-sheet .link-row > .link-actions > form:has(.link-delivered) {
+    @apply basis-full;
+  }
+  .link-create {
+    @apply mt-4 grid grid-cols-1 items-start gap-x-8 gap-y-6 border-t border-line pt-4 lg:grid-cols-2;
+  }
+  .link-create > form {
+    @apply m-0;
+  }
+  .link-create h3 {
+    @apply mt-0;
   }
   /* —— Cibles tactiles (UX-05) : la case d'une tâche garde son dessin de 24 px dans une cible de
      44 px ; une case à cocher se touche par son libellé, de 44 px. —— */

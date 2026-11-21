@@ -118,7 +118,6 @@ import { removeTaskAttachmentAction, removeTaskCommentAction } from "./task-extr
 import { AddDayContactForm } from "./day-contact-forms";
 import { removeDayContactAction } from "./day-contact-actions";
 import { makeReceptionPlaceAction, removePlaceAction } from "./place-actions";
-import { Trash2 } from "lucide-react";
 import { findVendors, getVendor } from "@/modules/vendors/service";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
 import {
@@ -275,7 +274,6 @@ export default async function EventDetailPage({
     `/events/${event.id}?${new URLSearchParams({ onglet: key, ...extra }).toString()}`;
   const overdueCount = tasks.filter((task) => !task.done && task.dueDate < today).length;
   // Lot 12 (L12-EVT-14 / L12-EVT-15) : icônes des prestataires au programme, lieux saisis une fois.
-  const slotIconOf = new Map(vendorSlots.map((slot) => [slot.id, slot.icon]));
   // Lot 34b (EVT-03) : les lieux nourrissent aussi la fiche d'identité de la synthèse.
   const places = tab === "programme" || tab === "apercu" ? await listEventPlaces(organizationId, id) : [];
   const keyMoments = tab === "apercu" || tab === "programme" ? await listKeyMoments(organizationId, id) : [];
@@ -1468,6 +1466,9 @@ export default async function EventDetailPage({
               );
               return (
                 <li key={link.id} className="link-row">
+                  {/* Lot 62c (UX-13) : la personne et ce qu'elle voit à gauche, ses actions à droite, en libellés courts
+                      (le nom reste dans le nom accessible). */}
+                  <div className="link-main">
                   <p>
                     <strong>{link.personName}</strong> — {link.email} — {t(LINK_STATUS_KEYS[link.status])}
                     {link.status !== "revoked" ? ` — ${t("linkValidUntil", { date: formatCalendarDate(link.expiresOn, locale) })}` : ""}
@@ -1482,17 +1483,21 @@ export default async function EventDetailPage({
                   {link.renewalRequestedAt ? (
                     <p className="badge-warning">{t("linkRenewalRequested", { date: eventTime(link.renewalRequestedAt) })}</p>
                   ) : null}
+                  </div>
                   {link.status !== "revoked" ? (
-                    <p>
-                      {/* Lot 27a (POR-09, D8) : ce que voit exactement cette personne. */}
-                      <Link href={`/events/${event.id}/liens/${link.id}/apercu`}>{t("linkPreview", { name: link.personName })}</Link>
-                    </p>
-                  ) : null}
-                  {link.status !== "revoked" && !event.isDemo ? (
                     <div className="link-actions">
+                      {/* Lot 27a (POR-09, D8) : ce que voit exactement cette personne. */}
+                      <Link href={`/events/${event.id}/liens/${link.id}/apercu`} className="button-link">
+                        {t("linkPreview", { name: link.personName })}
+                      </Link>
+                      {event.isDemo ? null : (
+                      <>
                       <RenewLinkForm eventId={event.id} linkId={link.id} personName={link.personName} />
                       <details>
-                        <summary>{t("editLink", { name: link.personName })}</summary>
+                        <summary>
+                          {t("linkEditShort")}
+                          <span className="sr-only">{t("linkOfName", { name: link.personName })}</span>
+                        </summary>
                         <EditLinkForm
                           eventId={event.id}
                           link={{
@@ -1515,19 +1520,28 @@ export default async function EventDetailPage({
                         />
                       </details>
                       <details>
-                        <summary>{t("revokeLink", { name: link.personName })}</summary>
+                        <summary>
+                          {t("linkRevokeShort")}
+                          <span className="sr-only">{t("linkOfName", { name: link.personName })}</span>
+                        </summary>
                         <form action={revokeLinkAction}>
                           <input type="hidden" name="eventId" value={event.id} />
                           <input type="hidden" name="linkId" value={link.id} />
-                          <button type="submit">{t("revokeLinkConfirm", { name: link.personName })}</button>
+                          <button type="submit" className="button-danger">
+                            {t("revokeLinkConfirm", { name: link.personName })}
+                          </button>
                         </form>
                       </details>
+                      </>
+                      )}
                     </div>
                   ) : null}
                 </li>
               );
             })}
           </ul>
+          {/* Lot 62c (UX-12) : les deux créations de lien côte à côte. */}
+          <div className="link-create">
           {event.isDemo ? (
             <p>{t("trialNoInvite")}</p>
           ) : (
@@ -1539,6 +1553,7 @@ export default async function EventDetailPage({
             />
           )}
           {event.isDemo ? null : <CreateVendorLinkForm eventId={event.id} vendors={linkVendors} />}
+          </div>
         </section>
       ) : null}
       {/* Lot 27b (POR-03, BUD-07, EVT-09 ; D9, D10) : décisions demandées au client, lisibles des deux côtés. */}

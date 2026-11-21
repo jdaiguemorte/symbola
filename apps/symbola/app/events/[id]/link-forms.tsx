@@ -122,7 +122,7 @@ export function CreateLinkForm({ eventId, clients, slots, profiles }: { eventId:
       <h3>{t("createLinkTitle")}</h3>
       <input type="hidden" name="eventId" value={eventId} />
       {/* Lot 62c (UX-12) : formulaire en grille — la personne, son nom, son e-mail ; le profil et la durée. */}
-      <div className="form-grid form-grid-3">
+      <div className="form-grid">
       <div className="field-stack">
       <label htmlFor={ids.person}>{t("linkPerson")}</label>
       <select
@@ -295,7 +295,7 @@ export function CreateVendorLinkForm({ eventId, vendors }: { eventId: string; ve
         <>
           <input type="hidden" name="eventId" value={eventId} />
           <input type="hidden" name="audience" value="vendor" />
-          <div className="form-grid form-grid-3">
+          <div className="form-grid">
           <div className="field-stack">
           <label htmlFor={vendorId}>{t("linkVendor")}</label>
           <select
@@ -350,7 +350,8 @@ export function RenewLinkForm({ eventId, linkId, personName }: { eventId: string
       <input type="hidden" name="eventId" value={eventId} />
       <input type="hidden" name="linkId" value={linkId} />
       <button type="submit" className="button-secondary" disabled={pending}>
-        {t("renewLink", { name: personName })}
+        {t("linkRenewShort")}
+        <span className="sr-only">{t("linkOfName", { name: personName })}</span>
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
       <LinkDelivered state={state} />

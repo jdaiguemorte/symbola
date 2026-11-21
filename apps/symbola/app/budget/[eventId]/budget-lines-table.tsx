@@ -16,6 +16,8 @@
 // les écrit ensemble (une transaction). Documents, échéances et suppression restent immédiats.
 
 const COLUMNS = 8;
+// Au-delà de ce nombre de lignes, les catégories se replient sur téléphone (lot 62c).
+const FOLD_ABOVE_LINES = 12;
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { formatAmount, formatAmountInput, formatCalendarDate, formatFileSize, type Locale } from "@symbola/i18n";
@@ -339,11 +341,11 @@ function LineRow({ eventId, line, vendors, professional, locale, editing }: { ev
             <HtAmount cents={HT_OF[field](line)} professional={professional} locale={locale} />
           </td>
         ))}
-        <td className={line.remainingAmountCents !== null && line.remainingAmountCents < 0 ? "num text-overdue" : "num"} data-label={t("amounts.remaining")}>
+        <td className={line.remainingAmountCents !== null && line.remainingAmountCents < 0 ? "num budget-wide text-overdue" : "num budget-wide"} data-label={t("amounts.remaining")}>
           {shown(line.remainingAmountCents)}
           <HtAmount cents={line.ht.remainingCents} professional={professional} locale={locale} />
         </td>
-        <td className={variance.className} data-label={t("variance")}>
+        <td className={variance.className ? `budget-wide ${variance.className}` : "budget-wide"} data-label={t("variance")}>
           {t(variance.labelKey, { amount: variance.amountCents === null ? "" : formatAmount(variance.amountCents, locale) })}
           <HtAmount cents={line.ht.varianceCents} professional={professional} locale={locale} />
         </td>
@@ -432,6 +434,7 @@ function CategoryRows({
   professional,
   locale,
   editing,
+  foldable,
 }: {
   eventId: string;
   category: BudgetCategory;
@@ -439,16 +442,27 @@ function CategoryRows({
   professional: boolean;
   locale: Locale;
   editing: RowEditing;
+  // Au-delà de douze lignes, les catégories se replient sur téléphone (leurs totaux restent en vue).
+  foldable: boolean;
 }) {
   const t = useTranslations("Budget");
   const [adding, setAdding] = useState(false);
+  const [unfolded, setUnfolded] = useState(false);
+  // Une ligne ouverte ou modifiée garde sa catégorie dépliée.
+  const folded = foldable && !unfolded && !category.lines.some((line) => line.id === editing.openId || editing.isChanged(line));
   const titleId = `categorie-${category.eventVendorSlotId}`;
   const addId = `ajout-${category.eventVendorSlotId}`;
   return (
-    <tbody aria-labelledby={titleId}>
+    <tbody aria-labelledby={titleId} data-folded={folded ? "true" : undefined}>
       <tr className="budget-category">
         <th scope="rowgroup">
           <span id={titleId}>{category.label}</span>
+          {foldable && category.lines.length > 0 ? (
+            <button type="button" className="link-button budget-fold" aria-expanded={!folded} onClick={() => setUnfolded(folded)}>
+              {t(folded ? "showLines" : "hideLines", { count: category.lines.length })}
+              <span className="sr-only"> {t("editLineName", { label: category.label })}</span>
+            </button>
+          ) : null}
           {/* L'ajout d'une ligne sous le nom de la catégorie : la dernière colonne reste étroite. */}
           <button type="button" className="link-button" aria-expanded={adding} aria-controls={addId} onClick={() => setAdding(!adding)}>
             {t("addLine")}
@@ -459,7 +473,7 @@ function CategoryRows({
         <td />
       </tr>
       {adding ? (
-        <tr className="budget-line-editor">
+        <tr className="budget-line-editor budget-line-adding">
           <td colSpan={COLUMNS}>
             <section id={addId} aria-label={t("newLineOf", { category: category.label })} className="edit-row-open">
               <AddLineForm eventId={eventId} category={category} vendors={vendors} />
@@ -498,7 +512,7 @@ function TotalCells({
   return (
     <>
       {cells.map(([label, key]) => (
-        <td key={key} className="num" data-label={t(label)}>
+        <td key={key} className={key === "remainingCents" || key === "varianceCents" ? "num budget-wide" : "num"} data-label={t(label)}>
           {formatAmount(ttc[key], locale)}
           <HtAmount cents={ht[key]} professional={professional} locale={locale} />
         </td>
@@ -660,6 +674,7 @@ export function BudgetLinesTable({
             professional={professional}
             locale={locale}
             editing={editing}
+            foldable={view.lines.length > FOLD_ABOVE_LINES}
           />
         ))}
         <tfoot>
