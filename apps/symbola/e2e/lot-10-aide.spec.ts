@@ -203,6 +203,13 @@ test("HUB-11 — quitter un tutoriel depuis son panneau : l'exemple est supprim�
   const exampleUrl = page.url();
   const panel = page.locator(".tutorial-panel");
   await expect(panel).toBeVisible();
+  // La vérification de l'étape : même origine et session exigées (tests d'abus de la route).
+  const verify = "/aide/tutoriels/event-page/verifier";
+  expect((await page.request.post(verify, { headers: { origin: "https://ailleurs.example" } })).status()).toBe(403);
+  const anonymous = await page.context().browser()!.newContext({ baseURL: page.url() });
+  expect((await anonymous.request.post(verify, { headers: { origin: new URL(page.url()).origin } })).status()).toBe(401);
+  await anonymous.close();
+  expect((await page.request.post("/aide/tutoriels/inconnu/verifier", { headers: { origin: new URL(page.url()).origin } })).status()).toBe(404);
   // « Réduire » le replie sans le fermer.
   await panel.getByRole("button", { name: "Réduire" }).click();
   await expect(panel.getByRole("button", { name: "Ouvrir" })).toHaveAttribute("aria-expanded", "false");

@@ -82,18 +82,6 @@ export async function setupTutorialAction(key: string, formData?: FormData): Pro
   goToStep(loaded, loaded.step + 1, { ...loaded.env.context, ...context });
 }
 
-// Lot 63f (HUB-11 ; ADR 0104) : le panneau latéral revérifie l'étape « faire » à chaque changement
-// d'écran et à intervalle régulier ; faite, elle se coche seule. Même contrôle côté serveur que
-// « J'ai fait, vérifier ».
-export async function autoCheckTutorialAction(key: string): Promise<{ advanced: boolean }> {
-  const loaded = await load(key);
-  const step = TUTORIAL_SCRIPTS[loaded.key].steps[loaded.step];
-  if (loaded.completed || step?.kind !== "do" || !step.check) return { advanced: false };
-  if (!(await step.check(loaded.env))) return { advanced: false };
-  await save(loaded, loaded.step + 1);
-  return { advanced: true };
-}
-
 // « Quitter le tutoriel » : l'exemple est supprimé, la progression remise à zéro, retour à l'écran
 // de départ.
 export async function quitTutorialAction(key: string): Promise<void> {

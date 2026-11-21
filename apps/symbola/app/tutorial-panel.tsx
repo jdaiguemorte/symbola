@@ -8,12 +8,12 @@
 // le montre déjà. Après la fin, l'écran de départ dit « Tutoriel terminé » et conseille le suivant.
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Check } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { TutorialPanelState } from "@/lib/help/tutorial-panel";
 import { TUTORIAL_DONE_PARAM, TUTORIAL_KEPT_PARAM } from "@/lib/help/tutorial-origin";
-import { autoCheckTutorialAction, continueTutorialAction, finishTutorialAction, quitTutorialAction } from "./aide/tutoriels/[key]/actions";
+import { continueTutorialAction, finishTutorialAction, quitTutorialAction } from "./aide/tutoriels/[key]/actions";
 import { CheckForm } from "./aide/tutoriels/[key]/check-form";
 
 const CHECK_EVERY_MS = 4000;
@@ -39,11 +39,13 @@ function Panel({ panel, location, pathname }: { panel: TutorialPanelState; locat
   const tTutorials = useTranslations("Tutorials");
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
-  const [checking, startChecking] = useTransition();
+  const [checking, setChecking] = useState(false);
   const titleId = useId();
   const busy = useRef(false);
   const { current } = panel;
-  const onScreen = current.href === null || current.href === location || current.href.split("?")[0] === pathname;
+  // Déjà sur l'écran de l'étape : même adresse (onglet compris), ou même page quand l'étape n'en
+  // précise pas l'onglet.
+  const onScreen = current.href === null || current.href === location || (!current.href.includes("?") && current.href === pathname);
 
   // Replié d'un écran à l'autre (le choix reste pour la session de navigation).
   useEffect(() => {
@@ -62,14 +64,20 @@ function Panel({ panel, location, pathname }: { panel: TutorialPanelState; locat
     const check = () => {
       if (busy.current || document.visibilityState === "hidden") return;
       busy.current = true;
-      startChecking(async () => {
+      setChecking(true);
+      void (async () => {
         try {
-          const result = await autoCheckTutorialAction(panel.key);
+          // Une route, pas une action serveur : elle ne retarde jamais un envoi de la planner.
+          const response = await fetch(`/aide/tutoriels/${panel.key}/verifier`, { method: "POST" });
+          const result = response.ok ? ((await response.json()) as { advanced: boolean }) : { advanced: false };
           if (result.advanced) router.refresh();
+        } catch {
+          // Hors ligne ou session expirée : on réessaiera au prochain passage.
         } finally {
           busy.current = false;
+          setChecking(false);
         }
-      });
+      })();
     };
     check();
     const timer = window.setInterval(check, CHECK_EVERY_MS);
