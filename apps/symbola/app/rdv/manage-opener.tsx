@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { APPOINTMENT_CANCEL_REASONS } from "@symbola/contracts";
+import { SlotPicker } from "@/app/reserver/slot-picker";
 import { appointmentLinkSlotsAction, cancelAppointmentByLinkAction, describeAppointmentLinkAction, rescheduleAppointmentAction, type ManagedView } from "./actions";
 
 type State =
@@ -131,28 +132,26 @@ export function ManageOpener() {
         </div>
       ) : null}
       {state.mode === "reschedule" ? (
-        <form action={submitReschedule} className="stack">
-          <fieldset className="booking-slots">
-            <legend>{t("chooseSlot")}</legend>
-            {(state.slots ?? []).length === 0 ? <p>{t("noSlot", { organization: view.organizationName })}</p> : null}
-            <div className="slot-chips">
-              {(state.slots ?? []).slice(0, 60).map((slot) => (
-                <label key={slot} className="slot-chip">
-                  <input type="radio" name="startsAt" value={slot} required />
-                  <span>{format.format(new Date(slot))}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-          <div className="row-wrap">
-            <button type="submit" className="primary" disabled={(state.slots ?? []).length === 0}>
-              {t("confirmReschedule")}
-            </button>
-            <button type="button" onClick={() => setState({ ...state, mode: "view", message: undefined })}>
+        // Lot 64 (RDV-03 ; maquette M8) : le même sélecteur que la page de réservation.
+        <div className="booking-window booking-window-two booking-reschedule">
+          <SlotPicker
+            slots={state.slots ?? []}
+            locale={locale}
+            today={new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date())}
+            chooseLabel={t("confirmReschedule")}
+            emptyText={t("noSlot", { organization: view.organizationName })}
+            onChoose={(slot) => {
+              const formData = new FormData();
+              formData.set("startsAt", slot);
+              void submitReschedule(formData);
+            }}
+          />
+          <div className="booking-reschedule-back">
+            <button type="button" className="button-secondary" onClick={() => setState({ ...state, mode: "view", message: undefined })}>
               {t("back")}
             </button>
           </div>
-        </form>
+        </div>
       ) : null}
       {state.mode === "cancel" ? (
         <form action={submitCancel} className="stack">

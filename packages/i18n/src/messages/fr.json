@@ -8069,7 +8069,6 @@
       "dayUnavailable": "indisponible",
       "timeZone": "Heures de Paris",
       "pickDayFirst": "Choisissez un jour",
-      "nextWithSlot": "Suivant, avec le créneau du {slot}",
       "next": "Suivant",
       "stepQuestion": "Étape {step} sur {total} · question {number} sur {count}",
       "stepOf": "Étape {step} sur {total}",
@@ -8084,7 +8083,8 @@
       "previous": "‹ Précédent",
       "continue": "Continuer",
       "skip": "Passer",
-      "privacySummary": "Ce que {organization} fait de vos informations"
+      "privacySummary": "Ce que {organization} fait de vos informations",
+      "chooseWithSlot": "{action}, créneau du {slot}"
     },
     "manage": {
       "pageNotice": "Cette page ne recueille aucune information nouvelle. Le lien est personnel et cesse de fonctionner à la fin du rendez-vous.",

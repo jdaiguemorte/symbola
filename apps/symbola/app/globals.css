@@ -5499,6 +5499,18 @@
   .booking-check {
     @apply m-0 flex h-14 w-14 items-center justify-center rounded-full bg-primary-soft text-[1.75rem] font-bold text-primary;
   }
+  main.link-page:has(.booking-reschedule) {
+    @apply max-w-[52rem];
+  }
+  @media (min-width: 60rem) {
+    .booking-window.booking-window-two.booking-reschedule {
+      grid-template-columns: minmax(0, 1fr) 14rem;
+      min-height: 0;
+    }
+  }
+  .booking-reschedule-back {
+    @apply col-span-full border-t border-line p-4;
+  }
   .booking-notice {
     @apply text-label text-ink-muted;
   }

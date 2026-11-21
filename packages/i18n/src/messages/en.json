@@ -8069,7 +8069,6 @@
       "dayUnavailable": "unavailable",
       "timeZone": "Paris time",
       "pickDayFirst": "Choose a day",
-      "nextWithSlot": "Next, with the slot on {slot}",
       "next": "Next",
       "stepQuestion": "Step {step} of {total} · question {number} of {count}",
       "stepOf": "Step {step} of {total}",
@@ -8084,7 +8083,8 @@
       "previous": "‹ Previous",
       "continue": "Continue",
       "skip": "Skip",
-      "privacySummary": "What {organization} does with your information"
+      "privacySummary": "What {organization} does with your information",
+      "chooseWithSlot": "{action}, slot on {slot}"
     },
     "manage": {
       "pageNotice": "This page collects no new information. The link is personal and stops working at the end of the appointment.",
