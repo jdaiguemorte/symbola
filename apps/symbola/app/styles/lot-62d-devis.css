@@ -27,7 +27,7 @@
   /* Rubrique « Lignes et totaux » : les lignes à gauche ; les totaux et l'encart de synthèse à
      droite, dessous quand la place manque. */
   .quote-layout {
-    @apply my-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem];
+    @apply my-6 grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_18rem] 2xl:grid-cols-[minmax(0,1fr)_20rem];
   }
   .quote-main,
   .quote-aside {
@@ -57,6 +57,11 @@
   }
   .quote-lines tbody td {
     @apply align-middle;
+  }
+  /* Une option non retenue se dit en une ligne discrète sous l'intitulé : une pastille s'y repliait sur
+     trois lignes et écrasait la colonne. */
+  .quote-lines .quote-option-note {
+    @apply block text-label text-ink-muted;
   }
   /* Sur téléphone (UX-05) : une ligne du devis est un bloc — son intitulé, puis chaque montant avec
      son libellé, puis ses actions. Les rôles du tableau sont écrits dans l'écran : la mise en blocs ne
@@ -96,7 +101,7 @@
     @apply m-0;
   }
   .quote-screen .quote-row-actions .quote-row-button {
-    @apply min-h-11 border-transparent bg-transparent px-3 text-body font-medium text-primary hover:border-transparent hover:bg-ground hover:underline;
+    @apply min-h-11 border-transparent bg-transparent px-2 text-body font-medium text-primary hover:border-transparent hover:bg-ground hover:underline;
   }
   .quote-screen .quote-row-actions .quote-row-button.quote-remove {
     @apply text-critical;

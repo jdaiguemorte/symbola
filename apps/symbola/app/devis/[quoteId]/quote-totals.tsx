@@ -146,7 +146,7 @@ async function QuoteLineRows({
           {line.isOption ? (
             <>
               {" "}
-              <span className="badge badge-wrap">{line.optionChosen ? t("optionChosen") : t("optionNotChosen")}</span>
+              <span className="quote-option-note">{line.optionChosen ? t("optionChosen") : t("optionNotChosen")}</span>
             </>
           ) : null}
           {/* Lot 48b (JUR-10) : facturée par le prestataire au client, hors du total. */}
