@@ -25,13 +25,18 @@
   }
 
   /* Rubrique « Lignes et totaux » : les lignes à gauche ; les totaux et l'encart de synthèse à
-     droite, dessous quand la place manque. */
+     droite à partir de 1536 px, dessous en deçà (le tableau garde toute la largeur : avec la TVA et
+     la remise, il ne tenait pas à côté des totaux sur un écran de portable). */
   .quote-layout {
-    @apply my-6 grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_18rem] 2xl:grid-cols-[minmax(0,1fr)_20rem];
+    @apply my-6 grid grid-cols-1 items-start gap-6 2xl:grid-cols-[minmax(0,1fr)_20rem];
   }
   .quote-main,
   .quote-aside {
     @apply flex min-w-0 flex-col gap-6;
+  }
+  /* Sous le tableau, les totaux et l'encart de synthèse se rangent côte à côte. */
+  .quote-aside {
+    @apply md:max-2xl:grid md:max-2xl:grid-cols-2 md:max-2xl:items-start;
   }
   .quote-layout .card {
     @apply my-0 min-w-0;
