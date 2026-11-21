@@ -79,6 +79,7 @@ import { revokeLinkAction } from "./link-actions";
 import { ClientContactForm, EventIdentityForm, EventNotesForm, VenueForm, WantedBudgetForm } from "./client-contact-forms";
 import { CreateLinkForm, CreateVendorLinkForm, EditLinkForm, RenewLinkForm, type LinkFormVendor } from "./link-forms";
 import { RequestDecisionForm } from "./decision-forms";
+import { EditDialog } from "@/app/ui/edit-dialog";
 import { commitDecisionExpenseAction, replaceDecisionAction, retainDecisionChoiceAction, withdrawDecisionAction } from "./decision-actions";
 import { answerSentence } from "@/app/portail/client-decisions";
 import { choiceName, decisionLabel } from "@/app/portail/decision-label";
@@ -92,15 +93,16 @@ import { CalendarAddressForm } from "../../calendar-address-form";
 import { setTaskMilestoneAction,
   releaseEventTaskAction,
   moveEventTaskAction,
-  removeEventTaskAction,
   resolveRecalculationAction,
 } from "./task-actions";
 import {
   AddEventTaskForm,
   ApplyTaskTemplateForm,
-  EditEventTaskForm,
   EventDateForm,
 } from "./task-forms";
+import { responsibleValue } from "./task-responsible";
+import { TaskDialog } from "@/app/taches/task-dialog";
+import { ensureTaskCategories } from "@/lib/events/task-categories";
 import { PageTour } from "../../page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { SettingsLink } from "@/app/settings-link";
@@ -397,6 +399,8 @@ export default async function EventDetailPage({
     tab === "retroplanning"
       ? (await listVendorCandidates(organizationId, id)).filter((candidate) => ENGAGED_CANDIDATE_STATUSES.includes(candidate.status)).map((candidate) => ({ candidateId: candidate.id, name: candidate.vendorName }))
       : [];
+  // Lot 63d (CHR-03) : catégories des tâches (celles de départ à la première visite).
+  const taskCategories = tab === "retroplanning" ? await ensureTaskCategories(organizationId, locale) : [];
   const taskAttachments = selectedTask ? await listTaskAttachments(organizationId, selectedTask.id) : [];
   const taskComments = selectedTask ? await listTaskComments(organizationId, selectedTask.id) : [];
   const commentAuthors = taskComments.length > 0 ? new Map((await listTeam(appDatabase(), organizationId)).map((member) => [member.id, member.email])) : new Map<string, string>();
@@ -1045,9 +1049,11 @@ export default async function EventDetailPage({
       ) : null}
 
       {/* PRD-EVT-04 : rétroplanning en tableau. */}
+      {/* Lot 63d (CHR-02, CHR-03 ; maquette M6) : le même tableau que l'écran « Tâches » ; la tâche s'ouvre
+          dans une fenêtre (Q42 bis, ADR 0107), plus dans un panneau à côté. */}
       {tab === "retroplanning" ? (
-        <div className="split">
-          <section className="card split-main" aria-labelledby="tasks-title">
+        <>
+          <section className="card" aria-labelledby="tasks-title">
             <div className="section-head">
               <h2 id="tasks-title">{t("tasksTitle")}</h2>
               <SettingsLink href="/events/modeles" back="event" label={t("taskTemplatesSettings")} />
@@ -1121,22 +1127,27 @@ export default async function EventDetailPage({
                 today={today}
                 caption={t("tasksTitle")}
                 selectedTaskId={selectedTask?.id ?? null}
-                editHref={(task) => retroQuery({ tache: task.id })}
+                openHref={(task) => retroQuery({ tache: task.id })}
+                categories={taskCategories}
               />
             ) : null}
             <AddEventTaskForm eventId={event.id} vendors={taskVendors} />
           </section>
-          <aside className="split-aside" aria-labelledby="task-detail-title">
-            {selectedTask ? (
-              <>
-                <h2 id="task-detail-title">{selectedTask.label}</h2>
-                {/* Clé liée au contenu : après un recalcul, le formulaire repart des nouvelles valeurs. */}
-                <EditEventTaskForm
-                  key={`${selectedTask.id}-${selectedTask.dueDate}-${selectedTask.label}-${selectedTask.responsible}`}
-                  eventId={event.id}
-                  task={selectedTask}
-                  vendors={taskVendors}
-                />
+          {selectedTask ? (
+            <TaskDialog
+              key={`${selectedTask.id}-${selectedTask.dueDate}-${selectedTask.label}-${selectedTask.responsible}`}
+              task={{ id: selectedTask.id, label: selectedTask.label, dueDate: selectedTask.dueDate, responsible: responsibleValue(selectedTask), categoryId: selectedTask.categoryId, priority: selectedTask.priority }}
+              closeHref={retroQuery({})}
+              categories={taskCategories.map((category) => ({ id: category.id, label: category.label }))}
+              vendors={taskVendors}
+              sections={[
+                { id: "task-dialog-more", title: t("taskDialogMore") },
+                { id: "task-dialog-attachments", title: t("taskAttachmentsTitle") },
+                { id: "task-dialog-comments", title: t("taskCommentsTitle") },
+              ]}
+            >
+              <section id="task-dialog-more" aria-labelledby="task-more-title" className="stack">
+                <h3 id="task-more-title">{t("taskDialogMore")}</h3>
                 <ImportedFields fields={selectedTask.importedFields} compact />
                 {/* Lot 53 (CHR-05) : un jalon en retard pèse plus sur la santé du planning. */}
                 {selectedTask.responsible === "planner" ? (
@@ -1161,80 +1172,68 @@ export default async function EventDetailPage({
                     </button>
                   </form>
                 ) : null}
-                <form action={moveEventTaskAction}>
+                <form action={moveEventTaskAction} className="row-wrap">
                   <input type="hidden" name="eventId" value={event.id} />
                   <input type="hidden" name="taskId" value={selectedTask.id} />
-                  <button type="submit" name="direction" value="up" disabled={selectedIndex <= 0}>
+                  <button type="submit" name="direction" value="up" className="button-secondary" disabled={selectedIndex <= 0}>
                     {t("moveTaskUp", { label: selectedTask.label })}
-                  </button>{" "}
-                  <button type="submit" name="direction" value="down" disabled={selectedIndex === sameMonth.length - 1}>
+                  </button>
+                  <button type="submit" name="direction" value="down" className="button-secondary" disabled={selectedIndex === sameMonth.length - 1}>
                     {t("moveTaskDown", { label: selectedTask.label })}
                   </button>
                 </form>
-                {/* Lot 34b (CHR-02, D13) : pièces jointes et commentaires, réservés à l'équipe. */}
-                <section aria-labelledby="task-attachments-title" className="stack">
-                  <h3 id="task-attachments-title">{t("taskAttachmentsTitle")}</h3>
-                  {taskAttachments.length === 0 ? <p className="muted">{t("taskAttachmentsEmpty")}</p> : null}
-                  {taskAttachments.length > 0 ? (
-                    <ul className="item-list">
-                      {taskAttachments.map((attachment) => (
-                        <li key={attachment.id} className="row-wrap">
-                          <a href={`/events/${event.id}/taches/${selectedTask.id}/pieces/${attachment.id}`}>{attachment.label}</a>
-                          <span className="muted">{formatFileSize(attachment.sizeBytes, locale)}</span>
-                          <form action={removeTaskAttachmentAction}>
+              </section>
+              <section id="task-dialog-attachments" aria-labelledby="task-attachments-title" className="stack">
+                <h3 id="task-attachments-title">{t("taskAttachmentsTitle")}</h3>
+                {taskAttachments.length === 0 ? <p className="muted">{t("taskAttachmentsEmpty")}</p> : null}
+                {taskAttachments.length > 0 ? (
+                  <ul className="item-list">
+                    {taskAttachments.map((attachment) => (
+                      <li key={attachment.id} className="row-wrap">
+                        <a href={`/events/${event.id}/taches/${selectedTask.id}/pieces/${attachment.id}`}>{attachment.label}</a>
+                        <span className="muted">{formatFileSize(attachment.sizeBytes, locale)}</span>
+                        <form action={removeTaskAttachmentAction}>
+                          <input type="hidden" name="eventId" value={event.id} />
+                          <input type="hidden" name="attachmentId" value={attachment.id} />
+                          <button type="submit" className="button-ghost">
+                            {t("taskAttachmentRemove", { label: attachment.label })}
+                          </button>
+                        </form>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                <TaskAttachmentUploadForm eventId={event.id} taskId={selectedTask.id} />
+              </section>
+              <section id="task-dialog-comments" aria-labelledby="task-comments-title" className="stack">
+                <h3 id="task-comments-title">{t("taskCommentsTitle")}</h3>
+                {taskComments.length === 0 ? <p className="muted">{t("taskCommentsEmpty")}</p> : null}
+                {taskComments.length > 0 ? (
+                  <ol className="item-list task-comments">
+                    {taskComments.map((comment) => (
+                      <li key={comment.id}>
+                        <p className="meta">
+                          {(comment.authorUserId ? commentAuthors.get(comment.authorUserId) : null) ?? t("taskCommentFormerMember")} — {eventTime(comment.createdAt)}
+                        </p>
+                        <p className="task-comment-body">{comment.body}</p>
+                        {comment.authorUserId === auth.user.id ? (
+                          <form action={removeTaskCommentAction}>
                             <input type="hidden" name="eventId" value={event.id} />
-                            <input type="hidden" name="attachmentId" value={attachment.id} />
+                            <input type="hidden" name="commentId" value={comment.id} />
                             <button type="submit" className="button-ghost">
-                              {t("taskAttachmentRemove", { label: attachment.label })}
+                              {t("taskCommentRemove")}
                             </button>
                           </form>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                  <TaskAttachmentUploadForm eventId={event.id} taskId={selectedTask.id} />
-                </section>
-                <section aria-labelledby="task-comments-title" className="stack">
-                  <h3 id="task-comments-title">{t("taskCommentsTitle")}</h3>
-                  {taskComments.length === 0 ? <p className="muted">{t("taskCommentsEmpty")}</p> : null}
-                  {taskComments.length > 0 ? (
-                    <ol className="item-list task-comments">
-                      {taskComments.map((comment) => (
-                        <li key={comment.id}>
-                          <p className="meta">
-                            {(comment.authorUserId ? commentAuthors.get(comment.authorUserId) : null) ?? t("taskCommentFormerMember")} — {eventTime(comment.createdAt)}
-                          </p>
-                          <p className="task-comment-body">{comment.body}</p>
-                          {comment.authorUserId === auth.user.id ? (
-                            <form action={removeTaskCommentAction}>
-                              <input type="hidden" name="eventId" value={event.id} />
-                              <input type="hidden" name="commentId" value={comment.id} />
-                              <button type="submit" className="button-ghost">
-                                {t("taskCommentRemove")}
-                              </button>
-                            </form>
-                          ) : null}
-                        </li>
-                      ))}
-                    </ol>
-                  ) : null}
-                  <TaskCommentForm eventId={event.id} taskId={selectedTask.id} />
-                </section>
-                <form action={removeEventTaskAction}>
-                  <input type="hidden" name="eventId" value={event.id} />
-                  <input type="hidden" name="taskId" value={selectedTask.id} />
-                  <button type="submit">{t("removeTask", { label: selectedTask.label })}</button>
-                </form>
-                <Link href={retroQuery({})}>{t("closePanel")}</Link>
-              </>
-            ) : (
-              <>
-                <h2 id="task-detail-title">{t("taskDetailTitle")}</h2>
-                <p>{t("taskDetailHint")}</p>
-              </>
-            )}
-          </aside>
-        </div>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ol>
+                ) : null}
+                <TaskCommentForm eventId={event.id} taskId={selectedTask.id} />
+              </section>
+            </TaskDialog>
+          ) : null}
+        </>
       ) : null}
 
       {/* PRD-EVT-05 : programme du jour J. */}
@@ -1668,10 +1667,10 @@ export default async function EventDetailPage({
           </ul>
           {/* Lot 62c (UX-12) : la demande s'ouvre à la demande ; la liste des décisions reste en vue. */}
           {event.isDemo ? null : (
-            <details className="disclosure-form">
-              <summary>{tDecisions("requestTitle")}</summary>
+            // Lot 63d (PRE-02, UX-13, #36) : la demande s'ouvre dans une fenêtre, sans quitter la liste.
+            <EditDialog title={tDecisions("requestTitle")} trigger={{ label: tDecisions("requestTitle") }}>
               <RequestDecisionForm eventId={event.id} slots={decisionSlots} expenses={decisionExpenses} hasProgram={Boolean(publication?.latest)} />
-            </details>
+            </EditDialog>
           )}
         </section>
       ) : null}
