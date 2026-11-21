@@ -4,7 +4,7 @@
 // départ). Résultat annoncé (role="status"), erreur (role="alert").
 // Lot 62b (UX-13, D1) : la liste est un tableau éditable ; le libellé s'enregistre à la sortie du
 // champ, « Masquer », « Afficher » et « Rétablir » sont des actions de ligne.
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AutosaveList, useAutosaveList, useAutosaveRow } from "@/app/ui/autosave-list";
 import { addMealTypeAction, renameMealTypeAction, toggleMealTypeAction, type MealTypeState } from "./actions";
@@ -35,7 +35,7 @@ export function AddMealTypeForm() {
   );
 }
 
-function MealTypeRow({ type }: { type: MealTypeLine }) {
+function MealTypeRow({ type, renaming, onRenaming }: { type: MealTypeLine; renaming: boolean; onRenaming: (open: boolean) => void }) {
   const t = useTranslations("Guests.mealTypes");
   const { run } = useAutosaveList();
   const { ref, rowProps, read } = useAutosaveRow((form) => renameMealTypeAction({}, form), { label: type.label });
@@ -56,13 +56,37 @@ function MealTypeRow({ type }: { type: MealTypeLine }) {
   return (
     <div className="edit-row" role="row" ref={ref} {...rowProps} data-hidden={type.hidden ? "true" : undefined}>
       <input type="hidden" name="mealTypeId" value={type.id} />
-      <span role="cell" className="edit-cell">
-        <input name="label" defaultValue={type.label} required maxLength={60} aria-label={t("labelFor", { label: type.label })} />
-      </span>
+      {renaming ? (
+        <span key="edit" role="cell" className="edit-cell">
+          <input
+            name="label"
+            defaultValue={type.label}
+            required
+            maxLength={60}
+            aria-label={t("labelFor", { label: type.label })}
+            autoFocus
+            onBlur={() => onRenaming(false)}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.currentTarget.value = type.label;
+                event.currentTarget.blur();
+              } else if (event.key === "Enter") event.currentTarget.blur();
+            }}
+          />
+        </span>
+      ) : (
+        <span key="read" role="rowheader" className="edit-cell-name">
+          <input type="hidden" name="label" value={type.label} />
+          {type.label}
+        </span>
+      )}
       <span role="cell" className="edit-cell-meta">
         {type.hidden ? <span className="badge">{t("hiddenState")}</span> : t("shownState")}
       </span>
       <span role="cell" className="row-actions">
+        <button type="button" className="button-ghost" aria-label={t("renameFor", { label: type.label })} onClick={() => onRenaming(true)}>
+          {t("renameShort")}
+        </button>
         {type.starter ? (
           <button type="button" className="button-ghost" aria-label={t("resetFor", { label: type.label })} onClick={reset}>
             {t("resetShort")}
@@ -78,8 +102,10 @@ function MealTypeRow({ type }: { type: MealTypeLine }) {
 
 export function MealTypeList({ types }: { types: MealTypeLine[] }) {
   const t = useTranslations("Guests.mealTypes");
+  // Une seule ligne ouverte à la fois.
+  const [renamingId, setRenamingId] = useState<string | null>(null);
   return (
-    <AutosaveList>
+    <AutosaveList hint={t("listHint")}>
       <div className="edit-list-scroll settings-list">
         <div className="edit-list meal-types-list" role="table" aria-label={t("title")}>
           <div className="edit-list-head" role="row">
@@ -90,7 +116,7 @@ export function MealTypeList({ types }: { types: MealTypeLine[] }) {
             </span>
           </div>
           {types.map((type) => (
-            <MealTypeRow key={type.id} type={type} />
+            <MealTypeRow key={type.id} type={type} renaming={renamingId === type.id} onRenaming={(open) => setRenamingId(open ? type.id : null)} />
           ))}
         </div>
       </div>

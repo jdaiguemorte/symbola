@@ -45,10 +45,10 @@ export function ClientTermRow({ eventTypeId, typeLabel, locale, current, fallbac
     <div className="edit-row" role="row" ref={ref} {...rowProps}>
       <input type="hidden" name="eventTypeId" value={eventTypeId} />
       <input type="hidden" name="locale" value={locale} />
-      <span role="rowheader" className="edit-cell-name">
+      <span role="rowheader" className="edit-cell-name edit-cell-wide">
         {typeLabel} <span className="badge">{names.locale}</span>
       </span>
-      <span role="cell" className="edit-cell">
+      <span role="cell" className="edit-cell edit-cell-wide">
         <span className="edit-cell-label" aria-hidden="true">
           {t("term")}
         </span>
@@ -78,7 +78,7 @@ export function ClientTermRow({ eventTypeId, typeLabel, locale, current, fallbac
           ))}
         </select>
       </span>
-      <span role="cell" className="row-actions">
+      <span role="cell" className="row-actions edit-cell-wide">
         {current ? (
           <button type="button" className="button-ghost" aria-label={t("resetFor", names)} onClick={reset}>
             {t("resetShort")}

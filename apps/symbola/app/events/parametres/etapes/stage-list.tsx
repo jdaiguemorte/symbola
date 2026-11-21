@@ -1,7 +1,7 @@
 "use client";
 
-// Lot 62b (UX-13, D1) — les étapes du pipeline en tableau éditable : le nom s'enregistre à la sortie
-// du champ ; « Monter », « Descendre » et « Retirer » sont des actions de ligne (le nom de l'étape est
+// Lot 62b (UX-13, D1) — les étapes du pipeline en tableau éditable : « Renommer » ouvre le nom dans sa
+// ligne (une seule à la fois), il s'enregistre à la sortie du champ ; « Monter », « Descendre » et « Retirer » sont des actions de ligne (le nom de l'étape est
 // dans leur nom accessible). Une étape qui contient des cartes ouvre la ligne, le temps de choisir
 // l'étape où elles passent. Une carte par étape et son bouton « Renommer » : plus maintenant.
 import { useState } from "react";
@@ -17,7 +17,7 @@ function data(values: Record<string, string>): FormData {
   return form;
 }
 
-function StageRow({ stage, index, stages, removable, removing, onRemoving }: { stage: StageLine; index: number; stages: StageLine[]; removable: boolean; removing: boolean; onRemoving: (open: boolean) => void }) {
+function StageRow({ stage, index, stages, removable, removing, onRemoving, renaming, onRenaming }: { stage: StageLine; index: number; stages: StageLine[]; removable: boolean; removing: boolean; onRemoving: (open: boolean) => void; renaming: boolean; onRenaming: (open: boolean) => void }) {
   const t = useTranslations("Pipeline.settings");
   const { run } = useAutosaveList();
   const { ref, rowProps } = useAutosaveRow((form) => renameStageAction(form), { label: stage.label });
@@ -41,13 +41,38 @@ function StageRow({ stage, index, stages, removable, removing, onRemoving }: { s
         <span role="cell" className="edit-cell-rank num">
           {index + 1}
         </span>
-        <span role="cell" className="edit-cell">
-          <input type="text" name="label" required maxLength={60} defaultValue={stage.label} aria-label={t("stageLabel", { position: index + 1 })} />
-        </span>
+        {renaming ? (
+          <span key="edit" role="cell" className="edit-cell">
+            <input
+              type="text"
+              name="label"
+              required
+              maxLength={60}
+              defaultValue={stage.label}
+              aria-label={t("stageLabel", { position: index + 1 })}
+              autoFocus
+              onBlur={() => onRenaming(false)}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  event.currentTarget.value = stage.label;
+                  event.currentTarget.blur();
+                } else if (event.key === "Enter") event.currentTarget.blur();
+              }}
+            />
+          </span>
+        ) : (
+          <span key="read" role="rowheader" className="edit-cell-name">
+            <input type="hidden" name="label" value={stage.label} />
+            {stage.label}
+          </span>
+        )}
         <span role="cell" className="edit-cell-meta">
           {t("cards", { count: stage.cardCount })}
         </span>
         <span role="cell" className="row-actions">
+          <button type="button" className="button-ghost" aria-label={t("renameLabel", { stage: stage.label })} onClick={() => onRenaming(true)}>
+            {t("rename")}
+          </button>
           <button type="button" className="button-ghost" disabled={index === 0} aria-label={t("upLabel", { stage: stage.label })} onClick={() => move("up")}>
             {t("up")}
           </button>
@@ -89,10 +114,11 @@ function StageRow({ stage, index, stages, removable, removing, onRemoving }: { s
 
 export function StageList({ stages, minimum }: { stages: StageLine[]; minimum: number }) {
   const t = useTranslations("Pipeline.settings");
-  // Une seule ligne ouverte à la fois.
+  // Une seule ligne ouverte à la fois (renommer, ou choisir où passent les cartes).
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
   return (
-    <AutosaveList>
+    <AutosaveList hint={t("listHint")}>
       <div className="edit-list-scroll settings-list">
         <div className="edit-list pipeline-stages-list" role="table" aria-label={t("tableLabel")}>
           <div className="edit-list-head" role="row">
@@ -104,7 +130,7 @@ export function StageList({ stages, minimum }: { stages: StageLine[]; minimum: n
             </span>
           </div>
           {stages.map((stage, index) => (
-            <StageRow key={stage.id} stage={stage} index={index} stages={stages} removable={stages.length > minimum} removing={removingId === stage.id} onRemoving={(open) => setRemovingId(open ? stage.id : null)} />
+            <StageRow key={stage.id} stage={stage} index={index} stages={stages} removable={stages.length > minimum} removing={removingId === stage.id} onRemoving={(open) => setRemovingId(open ? stage.id : null)} renaming={renamingId === stage.id} onRenaming={(open) => setRenamingId(open ? stage.id : null)} />
           ))}
         </div>
       </div>

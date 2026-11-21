@@ -33,12 +33,9 @@ export default async function EventTypesSettingsPage() {
       <ScreenHelp title={tHelp("eventTypes.title")} body={tHelp("eventTypes.body")} />
       <p>{t("intro")}</p>
       {/* Lot 62b (UX-13, D1) : tableau éditable, enregistré à la sortie du champ. */}
-      <section className="card" aria-labelledby="event-types-list-title">
-        <h2 id="event-types-list-title" className="sr-only">
-          {t("tableLabel")}
-        </h2>
+      <div className="card">
         <EventTypeList types={types} counts={counts} />
-      </section>
+      </div>
       <section aria-labelledby="add-event-type-title" className="card">
         <h2 id="add-event-type-title">{t("add")}</h2>
         <AddEventTypeForm />
