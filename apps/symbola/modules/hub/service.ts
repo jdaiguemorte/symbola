@@ -32,6 +32,7 @@ import {
   markInvitationAccepted,
   findPendingRoleInvitations,
   updateFirstStepsHidden,
+  updateOrganizationName,
   updateOrganizationSiret,
   upsertOrganizationModule,
   upsertOrganizationProfileFields,
@@ -937,6 +938,60 @@ export async function saveCompanySheet(db: AppDatabase, organizationId: string, 
   await updateOrganizationSiret(db, organizationId, siret);
 }
 
+// Lot 63f (HUB-09, HUB-18 ; ADR 0103) — assistant « L'essentiel » : la raison sociale (nom de
+// l'organisation, imprimé sur les documents) et une partie de la fiche, enregistrées étape par
+// étape. Les champs absents de l'étape gardent leur valeur ; tout est contrôlé avant la première
+// écriture (une erreur nomme le champ, comme pour la fiche des Paramètres).
+export class InvalidOrganizationNameError extends Error {
+  constructor() {
+    super("raison sociale invalide");
+    this.name = "InvalidOrganizationNameError";
+  }
+}
+
+export function cleanOrganizationName(name: string): string {
+  const clean = name.replace(/\s+/g, " ").trim();
+  if (clean === "" || clean.length > 200) throw new InvalidOrganizationNameError();
+  return clean;
+}
+
+export async function renameOrganization(db: AppDatabase, organizationId: string, name: string): Promise<void> {
+  await updateOrganizationName(db, organizationId, cleanOrganizationName(name));
+}
+
+export type CompanyEssentialsPatch = {
+  organizationName?: string;
+  legalForm?: LegalForm | null;
+  siret?: string | null;
+  address?: SellerAddressInput;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  vatNumber?: string | null;
+};
+
+export async function saveCompanyEssentials(db: AppDatabase, organizationId: string, patch: CompanyEssentialsPatch): Promise<void> {
+  const name = patch.organizationName === undefined ? undefined : cleanOrganizationName(patch.organizationName);
+  const [profile, details] = await Promise.all([getOrganizationProfile(db, organizationId), getSellerDetails(db, organizationId)]);
+  const keep = <T>(value: T | undefined, current: T): T => (value === undefined ? current : value);
+  await saveCompanySheet(db, organizationId, {
+    siren: profile.siren,
+    legalForm: keep(patch.legalForm, profile.legalForm),
+    metier: profile.metier,
+    metierPrecision: profile.metierPrecision,
+    address: patch.address ?? { address: profile.address, postalCode: profile.postalCode, city: profile.city, countryCode: profile.countryCode },
+    details: {
+      siret: keep(patch.siret, details.siret),
+      contactEmail: keep(patch.contactEmail, profile.contactEmail),
+      contactPhone: keep(patch.contactPhone, profile.contactPhone),
+      website: profile.website,
+      vatNumber: keep(patch.vatNumber, profile.vatNumber),
+      registration: profile.registration,
+      shareCapitalCents: profile.shareCapitalCents,
+    },
+  });
+  if (name !== undefined) await updateOrganizationName(db, organizationId, name);
+}
+
 // Lot 17 (DEV-08) — logo des documents : PNG ou JPEG de 2 Mo au plus, type
 // vérifié par le contenu avant tout stockage, antivirus (uploadFile). Le
 // fichier remplacé reste dans le stockage : les documents déjà émis le
@@ -1130,7 +1185,8 @@ export async function getHelpProgress(db: AppDatabase, userId: string): Promise<
   }));
 }
 
-const HELP_ITEM_KEY = /^(tour|tutorial):[a-z0-9-]{1,60}$/;
+// Lot 63f (ADR 0103) : « setup:essentials », l'étape atteinte dans l'assistant « L'essentiel ».
+const HELP_ITEM_KEY = /^(tour|tutorial|setup):[a-z0-9-]{1,60}$/;
 
 export class InvalidHelpItemError extends Error {
   constructor() {
