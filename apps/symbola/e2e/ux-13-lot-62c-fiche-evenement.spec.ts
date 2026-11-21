@@ -211,7 +211,7 @@ test("UX-13, UX-05 — budget : répartition et lignes en tableaux éditables, u
   const lines = async () => (await listBudgetLines(setup.organizationId, setup.eventId)).lines.map((line) => `${line.label} ${line.committedAmountCents ?? "—"}`);
   const before = await lines();
   await signIn(page, setup.email, /\/$/);
-  await page.goto(`/budget/${setup.eventId}`);
+  await page.goto(`/budget/${setup.eventId}/detail`);
   await page.waitForLoadState("networkidle");
 
   // Au repos : critères communs ; huit écrans au plus en 375 px pour neuf lignes.
@@ -282,7 +282,7 @@ test("UX-05 — budget de plus de douze lignes : sur téléphone, les catégorie
   const slots = await listEventVendorSlots(setup.organizationId, setup.eventId);
   for (const slot of slots.slice(0, 5)) await addBudgetLine({ organizationId: setup.organizationId, eventId: setup.eventId, eventVendorSlotId: slot.id, label: `${slot.label}, complément` });
   await signIn(page, setup.email, /\/$/);
-  await page.goto(`/budget/${setup.eventId}`);
+  await page.goto(`/budget/${setup.eventId}/detail`);
   await page.waitForLoadState("networkidle");
 
   const table = page.getByRole("table", { name: "Estimé, réel, engagé, payé" });

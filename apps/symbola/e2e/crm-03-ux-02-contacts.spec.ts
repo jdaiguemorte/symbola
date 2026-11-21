@@ -72,7 +72,7 @@ test("CRM-03 / UX-02 — Léa revient : sa fiche, son second évènement sans re
   // Un second évènement pour elle, sans ressaisir son nom.
   await page.getByRole("link", { name: "Créer un évènement" }).click();
   await expect(page.getByText(`Contact choisi : Léa ${lastName}`)).toBeVisible();
-  await expect(page.getByLabel("Prénom du premier marié", { exact: true })).toHaveCount(0);
+  await expect(page.getByLabel(/^Prénom du premier marié( \*)?$/)).toHaveCount(0);
   await expectNoAxeViolation(page);
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
   await page.getByRole("button", { name: "Créer le prospect" }).click();

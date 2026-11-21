@@ -40,6 +40,7 @@ import {
   isPreviousStarterInvoiceMentions,
   starterProfessionalPaymentTerms,
   starterLinkExpiry,
+  starterEventDocumentFolders,
   starterLinkPrivacyNotice,
   starterLinkProfiles,
   starterLossReasons,
@@ -831,5 +832,16 @@ describe("PRE-01, PRE-11 (lot 63e, ADR 0105) — types combinés en données", (
 
   it("les séparateurs reconnus sont écrits avec leurs espaces (« Baby-sitter » n'est pas coupé)", () => {
     for (const separator of starterCombinedVendorTypes().separators) expect(separator.endsWith(" "), separator).toBe(true);
+  });
+});
+
+describe("DOC-01, BUD-04 — Dossiers proposés à chaque évènement (lot 63c, M8)", () => {
+  it("trois dossiers typés, traduits, chacun avec la nature de pièce qui s'y range", () => {
+    expect(starterEventDocumentFolders("fr")).toEqual([
+      { key: "vendor_quotes", kind: "quote", name: "Devis des prestataires" },
+      { key: "vendor_invoices", kind: "invoice", name: "Factures des prestataires" },
+      { key: "contracts", kind: "contract", name: "Contrats" },
+    ]);
+    expect(starterEventDocumentFolders("en").map((folder) => folder.name)).toEqual(["Vendor quotes", "Vendor invoices", "Contracts"]);
   });
 });

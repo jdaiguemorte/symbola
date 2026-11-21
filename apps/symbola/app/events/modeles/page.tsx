@@ -2,6 +2,7 @@
 // décision 4) : comme le Programme du jour J, la liste des modèles ; un clic
 // ouvre le détail. « Nouveau modèle » demande le nom dans le panneau latéral,
 // puis ouvre le modèle créé.
+import { ScreenMain } from "@/app/ui/screen-main";
 import Link from "next/link";
 import { EmptyState } from "@/app/ui/empty-state";
 import { ChevronRight, Plus } from "lucide-react";
@@ -26,17 +27,17 @@ export default async function TaskTemplatesPage({ searchParams }: { searchParams
   const tCommon = await getTranslations("Common");
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
-      <main>
+      <ScreenMain>
         <h1>{t("title")}</h1>
         <p>{t("moduleUnavailable")}</p>
-      </main>
+      </ScreenMain>
     );
   }
   const templates = await listTaskTemplates(organizationId);
   const creating = (await searchParams).nouveau === "1";
 
   return (
-    <main>
+    <ScreenMain>
       <PageHeader
         title={t("taskTemplatesTitle")}
         actions={
@@ -78,6 +79,6 @@ export default async function TaskTemplatesPage({ searchParams }: { searchParams
           <CreateTaskTemplateForm />
         </SidePanel>
       ) : null}
-    </main>
+    </ScreenMain>
   );
 }

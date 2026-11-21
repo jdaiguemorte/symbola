@@ -38,7 +38,7 @@ export default async function EventMessageTopicPage({ params }: { params: Promis
         <ArrowLeft aria-hidden="true" />
         {t("backToTopics")}
       </Link>
-      <PageHeader title={thread.name} subtitle={eventNames(event.clients)} />
+      <PageHeader title={thread.name} subtitle={eventNames(event.clients, event.name)} />
       <ScreenHelp title={tHelp("eventMessages.title")} body={tHelp("eventMessages.body")} />
       <section aria-labelledby="thread-title" className="stack">
         <h2 id="thread-title">{t("threadTitle")}</h2>

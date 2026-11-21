@@ -247,9 +247,11 @@ Coins arrondis sobres : `sm` pour les champs et les pastilles carrées, `md` pou
 - **Rubriques d'un écran long** (lot 62) : au-delà de trois écrans de haut, un sommaire d'ancres en tête, ou des onglets quand chaque rubrique a son adresse.
 - **Champ obligatoire** (lot 63) : « * » dans le libellé (`RequiredMark`), « * obligatoire » sous le formulaire (`RequiredLegend`), et l'attribut `required` sur le champ. L'astérisque est en encre, jamais en rouge. Un nouvel écran sans astérisque fait échouer `app/ui/required-mark.test.ts`.
 - **Barre de filtres** (lot 63) : chaque filtre a son libellé au-dessus et la même hauteur ; un lieu et son rayon forment un seul contrôle (« Où ? ») ; chaque filtre actif est une pastille qui se retire seule, avec « Effacer les filtres » dès qu'un filtre est actif.
-- **Fenêtre (ordinateur)** (lot 63) : pour un chargement, une confirmation et toute modification. Fond assombri, focus gardé dedans, Échap ferme. Une modification longue a ses rubriques à gauche et « Suivant » pour enchaîner, jusqu'à 860 px de large. Sur téléphone, elle devient une page avec « Retour ».
-- **Panneau latéral** (lot 63) : les réglages d'un écran et la consultation rapide, sans quitter l'écran ; jamais une modification longue.
-- **Glisser-déposer** (lot 63) : toujours doublé d'un bouton (« Déplacer vers… »), pour le clavier et le téléphone.
+- **Fenêtre** (lot 63, ADR 0107) : toute modification, courte ou longue, et les confirmations. Dialog natif en modal : fond assombri, focus piégé, Échap ferme. Courte : une colonne (`window-short`). Longue : jusqu'à 860 px, deux colonnes ou rubriques à gauche (`window-long`), « Suivant » ou « ligne suivante » pour enchaîner sans y obliger, enregistrement à chaque rubrique. Sur téléphone, une page entière avec « Retour » et les mêmes rubriques. Jamais deux fenêtres empilées.
+- **Panneau latéral** (lot 63, ADR 0107) : les réglages d'un écran et la consultation rapide, au-dessus de l'écran, qui ne bouge pas ; la roue « Réglages » l'ouvre (`/reglages/<clé>`). Jamais pour une modification longue. Sur téléphone, il prend l'écran et dit « Retour à <écran> ».
+- **Menu d'un bouton** (lot 63) : « Nouveau ▾ » ouvre une courte liste de choix (`menu-button`, `menu-popover`), chacun avec une phrase qui dit ce qu'il fait. Échap ou un clic ailleurs le ferme.
+- **Glisser-déposer** (lot 63) : geste d'ordinateur, toujours doublé d'un bouton (« Déplacer vers… ») pour le clavier et le téléphone. La zone qui accepte la pièce se marque (bord pointillé) pendant le geste.
+- **Zone de dépôt** (lot 63) : une seule, toujours en tête de l'écran, même après le premier fichier ; elle demande ce qu'est le document avant de l'envoyer.
 
 ## Do's and Don'ts
 

@@ -4,7 +4,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import { formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
-import { getEvent } from "@/modules/events/service";
+import { getEvent, eventNames } from "@/modules/events/service";
 import { computeLegalMention, getContactsByIds, getOrganizationProfile } from "@/modules/hub/service";
 import {
   getQuote,
@@ -83,7 +83,7 @@ export default async function QuotePage({ params, searchParams }: { params: Prom
     // Lot 31c (D21) : reçus d'arrhes.
     listQuoteReceipts(organizationId, quote.id),
   ]);
-  const clientNames = event?.clients.map((client) => client.firstName).join(" & ") || t("noClient");
+  const clientNames = (event ? eventNames(event.clients, event.name) : "") || t("noClient");
 
   const current = quote.current;
   const isDraft = current.sentAt === null;

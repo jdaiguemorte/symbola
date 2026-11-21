@@ -117,7 +117,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
         subtitle={t("subtitle", { count: results.length })}
         actions={
           <>
-            <SettingsLink href="/prestataires/parametres" label={t("settingsLink")} />
+            <SettingsLink href="/prestataires/parametres" back="vendors" label={t("settingsLink")} />
             <Link className="button-link button-link-primary" href={`/prestataires/nouveau${target ? queryString(query) : ""}`} data-tour="vendor-new">
               {t("newVendor")}
             </Link>

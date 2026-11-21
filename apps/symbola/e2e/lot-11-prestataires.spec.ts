@@ -77,7 +77,7 @@ test("L11-EVT-10 / L11-EVT-11 — comparer deux devis pour une ligne du budget, 
   const tables = candidates.getByRole("listitem", { name: "Les Tables de Flandre" });
   await expect(tables).toBeVisible();
   // Lot 28a (PRE-02) : un prestataire ajouté est « Pressenti » ; le poste montre le statut le plus avancé.
-  await expect(page.getByRole("region", { name: "Lignes du budget" }).getByRole("row", { name: /Traiteur/ })).toContainText("Pressenti");
+  await expect(page.getByRole("region", { name: "Budget et prestataires, par poste" }).getByRole("row", { name: /Traiteur/ })).toContainText("Pressenti");
 
   // Devis, montré aux clients, notes « Clients » et interne.
   await tables.getByLabel("Montant du devis (€)").fill("4480");
@@ -91,12 +91,12 @@ test("L11-EVT-10 / L11-EVT-11 — comparer deux devis pour une ligne du budget, 
   await tables.getByLabel("Nouvelle note sur Les Tables de Flandre").fill("Négociable à 60 € par personne.");
   await tables.getByRole("button", { name: "Ajouter la note sur Les Tables de Flandre" }).click();
   await expect(tables.getByText("Négociable à 60 € par personne.")).toBeVisible();
-  await expect(page.getByRole("region", { name: "Lignes du budget" }).getByRole("row", { name: /Traiteur/ })).toContainText("Devis reçu");
+  await expect(page.getByRole("region", { name: "Budget et prestataires, par poste" }).getByRole("row", { name: /Traiteur/ })).toContainText("Devis reçu");
   await expectNoAxeViolation(page);
 
   // Retenir : le poste est engagé avec ce prestataire et son montant ; l'autre est écarté.
   await tables.getByRole("button", { name: "Retenir Les Tables de Flandre" }).click();
-  const row = page.getByRole("region", { name: "Lignes du budget" }).getByRole("row", { name: /Traiteur/ });
+  const row = page.getByRole("region", { name: "Budget et prestataires, par poste" }).getByRole("row", { name: /Traiteur/ });
   await expect(row).toContainText("Les Tables de Flandre");
   await expect(row).toContainText("Retenu");
   await expect(row).toContainText("4 480,00 €");

@@ -9,6 +9,7 @@ import { getEventsPipeline, listLossReasons, listProspectRequestsToReview } from
 import { requirePlanner } from "@/lib/guards";
 import { ScreenHelp } from "@/app/screen-help";
 import { isEventsModuleEnabled } from "../module-access";
+import { EventsHeader } from "../events-header";
 import { PipelineBoard, type BoardCard } from "./pipeline-board";
 import { acceptRequestAction, discardRequestAction } from "./actions";
 
@@ -53,17 +54,15 @@ export default async function PipelinePage() {
 
   return (
     <main className="pipeline-page">
-      <h1>{t("title")}</h1>
+      {/* Lot 63c (EVT-07, CRM-02, UX-13 ; M7) : le même en-tête que la liste et le calendrier. */}
+      <EventsHeader view="pipeline" />
       <ScreenHelp title={tHelp("eventsPipeline.title")} body={tHelp("eventsPipeline.body")} />
-      <nav className="row-wrap" aria-label={t("viewsLabel")}>
-        <Link href="/events">{t("listView")}</Link>
-        {auth.user.role === "owner" ? (
-          <>
-            <Link href="/events/parametres/etapes">{t("stagesSettings")}</Link>
-            <Link href="/events/parametres/contact">{t("contactSettings")}</Link>
-          </>
-        ) : null}
-      </nav>
+      {auth.user.role === "owner" ? (
+        <nav className="row-wrap" aria-label={t("viewsLabel")}>
+          <Link href="/events/parametres/etapes">{t("stagesSettings")}</Link>
+          <Link href="/events/parametres/contact">{t("contactSettings")}</Link>
+        </nav>
+      ) : null}
       <PipelineBoard stages={pipeline.stages.map((stage) => ({ id: stage.id, label: stage.label }))} cards={cards} lossReasons={reasons.map((reason) => ({ id: reason.id, label: reason.label, isFreeText: reason.isFreeText }))} />
 
       <section aria-labelledby="to-review-title" className="pipeline-review" id="a-verifier">

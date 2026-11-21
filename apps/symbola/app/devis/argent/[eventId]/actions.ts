@@ -130,7 +130,7 @@ export async function issueCommissionInvoiceAction(_previous: MoneyFormState, fo
       organizationId: planner.organizationId,
       commissionId,
       buyer: { name: vendor.name, addressLine: vendor.addressLine, postalCode: vendor.postalCode, city: vendor.city, countryCode: vendor.country, siret: vendor.siret },
-      label: t(commission.nature === "referral" ? "invoiceLineReferral" : "invoiceLineCommission", { event: event ? eventNames(event.clients) : "" }),
+      label: t(commission.nature === "referral" ? "invoiceLineReferral" : "invoiceLineCommission", { event: event ? eventNames(event.clients, event.name) : "" }),
       locale,
       renderOriginal: (invoice) => renderInvoicePdf(planner.organizationId, invoice),
     });

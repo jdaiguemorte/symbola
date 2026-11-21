@@ -187,7 +187,7 @@ test("captures des écrans pour le centre d'aide", async ({ page }) => {
 
   const dynamic: Record<string, string> = {
     eventsDetail: `/events/${confirmed}`,
-    budgetDetail: `/budget/${confirmed}`,
+    budgetDetail: `/budget/${confirmed}/detail`,
     quotesDetail: `/devis/${quoteId}`,
     // Lot 20 (AIDE-14, AIDE-16) : fiche d'un prestataire, recherche avec un
     // terme, dossier d'une demande RGPD à son étape « Données retrouvées ».

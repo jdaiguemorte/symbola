@@ -103,3 +103,5 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0101 — Abonnement en libre-service, forfaits par module, interrupteurs par fonction et quota de stockage](0101-abonnement-forfaits-interrupteurs-et-quota.md)
 - [0102 — Messagerie par sujet, adresse d'expédition sur le domaine de Symbola, journal des envois, portail aux couleurs et installable](0102-messagerie-adresse-d-expedition-et-journal-des-envois.md)
 - [0105 — Prestataires à plusieurs métiers : métiers d'une fiche, un principal, types combinés en données et reprise rapportée avant application](0105-prestataires-a-plusieurs-metiers.md)
+- [0106 — Rétroplanning proposé à la création, jamais posé d'office](0106-retroplanning-propose-a-la-creation.md)
+- [0107 — La fenêtre pour modifier, le panneau latéral pour les réglages](0107-fenetre-pour-modifier-panneau-pour-les-reglages.md)

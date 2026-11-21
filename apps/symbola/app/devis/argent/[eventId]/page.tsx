@@ -47,7 +47,7 @@ export default async function PlannerMoneyPage({ params }: { params: Promise<{ e
   return (
     <main>
       <p>
-        <Link href={`/events/${eventId}`}>{t("backToEvent", { names: eventNames(event.clients) })}</Link>
+        <Link href={`/events/${eventId}`}>{t("backToEvent", { names: eventNames(event.clients, event.name) })}</Link>
       </p>
       <h1>{t("pageTitle")}</h1>
       <ScreenHelp title={tHelp("plannerMoney.title")} body={tHelp("plannerMoney.body")} />

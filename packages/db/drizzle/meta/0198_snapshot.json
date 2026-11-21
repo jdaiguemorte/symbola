@@ -1,6 +1,6 @@
 {
   "id": "57679e16-a42e-46d0-a5cb-1197f8d273b2",
-  "prevId": "b9f946a3-91ec-4683-aa6b-c35a1e46c5af",
+  "prevId": "92e3eb6b-d56e-4f7b-9326-cf37cc6d21be",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -10053,6 +10053,12 @@
           "notNull": true,
           "default": "'option'"
         },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "event_date": {
           "name": "event_date",
           "type": "date",
@@ -10315,6 +10321,10 @@
         "events_time_zone_check": {
           "name": "events_time_zone_check",
           "value": "char_length(\"events\".\"events\".\"time_zone\") between 1 and 64"
+        },
+        "events_name_check": {
+          "name": "events_name_check",
+          "value": "\"events\".\"events\".\"name\" is null or char_length(\"events\".\"events\".\"name\") between 1 and 200"
         },
         "events_guests_check": {
           "name": "events_guests_check",
@@ -31483,7 +31493,7 @@
         },
         "vendor_bank_changes_masked_check": {
           "name": "vendor_bank_changes_masked_check",
-          "value": "(\"vendors\".\"vendor_bank_changes\".\"previous_masked\" is null or \"vendors\".\"vendor_bank_changes\".\"previous_masked\" ~ '^[A-Z]{2}[0-9]{2} [•  0-9A-Z]{4,40}$') and (\"vendors\".\"vendor_bank_changes\".\"next_masked\" is null or \"vendors\".\"vendor_bank_changes\".\"next_masked\" ~ '^[A-Z]{2}[0-9]{2} [•  0-9A-Z]{4,40}$') and (\"vendors\".\"vendor_bank_changes\".\"previous_masked\" is not null or \"vendors\".\"vendor_bank_changes\".\"next_masked\" is not null)"
+          "value": "(\"vendors\".\"vendor_bank_changes\".\"previous_masked\" is null or \"vendors\".\"vendor_bank_changes\".\"previous_masked\" ~ '^[A-Z]{2}[0-9]{2} [\u2022  0-9A-Z]{4,40}$') and (\"vendors\".\"vendor_bank_changes\".\"next_masked\" is null or \"vendors\".\"vendor_bank_changes\".\"next_masked\" ~ '^[A-Z]{2}[0-9]{2} [\u2022  0-9A-Z]{4,40}$') and (\"vendors\".\"vendor_bank_changes\".\"previous_masked\" is not null or \"vendors\".\"vendor_bank_changes\".\"next_masked\" is not null)"
         }
       },
       "isRLSEnabled": false

@@ -67,7 +67,7 @@ test("PRD-EVT-06 / UX-11 / SEC-17 — le marié ouvre son lien sans inscription,
   await planner.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(planner.getByText("Source ajoutée.")).toBeVisible();
   await planner.goto("/events/new");
-  await planner.getByLabel("Prénom du premier marié", { exact: true }).fill("Inès");
+  await planner.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Inès");
   await planner.getByLabel("Source du prospect").selectOption({ label: "Salon" });
   await planner.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(planner).toHaveURL(/\/events\/[0-9a-f-]{36}$/);

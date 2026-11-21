@@ -127,7 +127,7 @@ test("SC-S3 — avec le lien d'un prestataire, il demande le budget, les devis d
     expect((await page.request.get(path)).status(), path).toBe(404);
   }
   expect((await page.request.get(`/budget/${wedding.id}/export?format=xlsx`)).status()).toBe(401);
-  await page.goto(`/budget/${wedding.id}`);
+  await page.goto(`/budget/${wedding.id}/detail`);
   await expect(page).toHaveURL(/\/login$/);
   // Son lien n'a pas été retiré pour autant.
   await page.goto("/prestataire");

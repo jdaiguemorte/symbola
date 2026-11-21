@@ -57,7 +57,8 @@ test("Lot 18 — menu, « Plus d'options », pastille des tutoriels et estimatio
   // L18-HUB-24, revu au lot 20 (décision 2) : plus de « Plus d'options » ; la
   // barre des Événements ne garde que « Nouveau prospect ».
   await page.goto("/events");
-  await expect(page.getByRole("link", { name: "Nouveau prospect" })).toBeVisible();
+  // Lot 63c (EVT-01, M7) : « Nouveau » propose prospect, évènement confirmé ou client existant.
+  await expect(page.getByRole("button", { name: "Nouveau", exact: true })).toBeVisible();
   await expect(page.getByText("Plus d'options")).toHaveCount(0);
 
   // L18-HUB-23 : un tutoriel en cours ; la pastille « Reprendre » n'apparaît que sur Tutoriels.

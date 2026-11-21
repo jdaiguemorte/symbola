@@ -144,5 +144,5 @@ export async function commitDecisionExpenseAction(formData: FormData): Promise<v
   if (!decision || decision.snapshot.kind !== "expense" || decision.status !== "approved" || !decision.subjectId) return;
   await updateBudgetLine({ organizationId: access.organizationId, eventId, lineId: decision.subjectId, field: "committed", amountCents: decision.snapshot.amountCents, changedByUserId: access.userId });
   revalidatePath(`/events/${eventId}`);
-  revalidatePath(`/budget/${eventId}`);
+  revalidatePath(`/budget/${eventId}`, "layout");
 }

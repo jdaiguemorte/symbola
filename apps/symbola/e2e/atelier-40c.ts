@@ -27,7 +27,7 @@ export async function atelier40c(tag: string): Promise<Atelier40c> {
     const user = await createUser(db, { organizationId, email, role: "owner" });
     await addDefaultVendorSlots(organizationId, ["Lieu de réception", "Traiteur"]);
     const source = await createProspectSource(organizationId, "Salon");
-    const event = await createProspect({ organizationId, createdByUserId: user.id, prospectSourceId: source.id, clients: [{ firstName: "Inès" }, { firstName: "Sacha" }], eventDate: addDays(today, 120), applyTemplate: false });
+    const event = await createProspect({ organizationId, createdByUserId: user.id, prospectSourceId: source.id, clients: [{ firstName: "Inès" }, { firstName: "Sacha" }], eventDate: addDays(today, 120) });
     // Confirmé : le mode jour J ne s'ouvre que pour un évènement confirmé (JRJ-01).
     await changeEventStatus({ organizationId, eventId: event.id, changedByUserId: user.id, toStatus: "confirmed" });
     const tasks: [string, number, "planner" | "clients"][] = [
