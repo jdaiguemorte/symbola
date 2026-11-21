@@ -193,8 +193,9 @@ test("UX-13 — Une ligne de formulaire range ses champs à gauche", async ({ pa
   await page.goto(`/events/${eventId}`);
   await openEventTab(page, "Programme");
   await openDetails(page);
-  for (const form of await page.locator("form.inline-add").all()) await expectRowFromTheLeft(form);
-  expect(await page.locator("form.inline-add").count()).toBeGreaterThan(0);
+  // Lot 62c : ces deux formulaires sont des formulaires en ligne (« form-inline »).
+  for (const form of await page.locator(".places form.form-inline").all()) await expectRowFromTheLeft(form);
+  expect(await page.locator(".places form.form-inline").count()).toBeGreaterThan(0);
   await expectNoHorizontalScroll(page);
 
   // Paramètres des devis : un nouveau moyen de paiement.
