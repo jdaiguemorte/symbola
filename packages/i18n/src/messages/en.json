@@ -1778,6 +1778,7 @@
     "noProgramItems": "No line in the schedule.",
     "editProgramItem": "Edit line {label}",
     "removeProgramItem": "Delete line {label}",
+    "removeProgramLine": "Remove line {label}",
     "programItemNotFound": "Schedule line not found.",
     "programParticipantNotFound": "A chosen participant is not a budget line of this event.",
     "programStartTime": "Start time",

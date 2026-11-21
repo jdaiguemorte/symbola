@@ -10,7 +10,6 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Pencil, Trash2 } from "lucide-react";
 import type { EventVendorSlot, ProgramItem } from "@/modules/events/service";
 import { clock, durationText, endTimeAfter, minutesBetween, programSpans, type SpanWords } from "@/lib/program-spans";
 import { FreeTextNotice } from "@/app/ui/free-text-notice";
@@ -405,20 +404,20 @@ export function ProgramEditor({
                       {who.length > 0 ? <span>{who.join(", ")}</span> : null}
                     </span>
                     <span role="cell" className="row-actions">
-                      <button type="button" className="icon-button" aria-label={t("editProgramItem", { label })} title={t("editProgramItem", { label })} data-edit-line={row.key} onClick={() => setOpenKey(row.key)}>
-                        <Pencil size={20} aria-hidden="true" />
+                      <button type="button" className="button-ghost" aria-label={t("editProgramItem", { label })} data-edit-line={row.key} onClick={() => setOpenKey(row.key)}>
+                        {t("edit")}
                       </button>
                       {row.item ? (
                         <form action={removeProgramItemAction}>
                           <input type="hidden" name="eventId" value={eventId} />
                           <input type="hidden" name="itemId" value={row.item.id} />
-                          <button type="submit" className="icon-button program-remove" aria-label={t("removeProgramItem", { label })} title={t("removeProgramItem", { label })}>
-                            <Trash2 size={20} aria-hidden="true" />
+                          <button type="submit" className="button-ghost program-remove" aria-label={t("removeProgramLine", { label })}>
+                            {t("remove")}
                           </button>
                         </form>
                       ) : (
-                        <button type="button" className="icon-button program-remove" aria-label={t("removeProgramItem", { label })} title={t("removeProgramItem", { label })} onClick={() => discard(row)}>
-                          <Trash2 size={20} aria-hidden="true" />
+                        <button type="button" className="button-ghost program-remove" aria-label={t("removeProgramLine", { label })} onClick={() => discard(row)}>
+                          {t("remove")}
                         </button>
                       )}
                     </span>

@@ -12,7 +12,7 @@
     @apply mb-1;
   }
   .program-table .program-cols {
-    @apply grid-cols-[3.5rem_3.5rem_4.5rem_minmax(0,1fr)_11rem_11rem_5.75rem];
+    @apply grid-cols-[3.5rem_3.5rem_4.5rem_minmax(0,1fr)_10rem_10rem_9.5rem];
   }
   .program-table .program-line .program-main {
     @apply flex-row flex-wrap items-center gap-x-2 gap-y-0;
@@ -37,8 +37,13 @@
   .program-table .row-actions {
     @apply flex;
   }
+  /* Actions de ligne en mots (« Modifier », « Retirer »), comme dans les réglages et le devis : le
+     nom de la séquence reste dans le nom accessible. */
+  .program-table .row-actions .button-ghost {
+    @apply px-2 !text-body !font-medium;
+  }
   .program-table .row-actions .program-remove {
-    @apply text-critical hover:text-critical;
+    @apply !text-critical;
   }
   /* La ligne ouverte : ses champs sur des lignes de champs (« field-row »), dans la largeur de la carte. */
   .program-table .edit-row-open:focus {

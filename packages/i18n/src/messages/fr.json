@@ -1778,6 +1778,7 @@
     "noProgramItems": "Aucune ligne dans le programme.",
     "editProgramItem": "Modifier la ligne {label}",
     "removeProgramItem": "Supprimer la ligne {label}",
+    "removeProgramLine": "Retirer la ligne {label}",
     "programItemNotFound": "Ligne du programme introuvable.",
     "programParticipantNotFound": "Un intervenant choisi n'est pas une ligne du budget de cet événement.",
     "programStartTime": "Heure de début",
