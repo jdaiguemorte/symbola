@@ -43,9 +43,19 @@ afterAll(async () => {
   await setFeatureFlagOpenToAll(db, { adminUserId, key: "subscription_self_service", open: false });
 });
 
-async function atelier() {
+// L'interrupteur du libre-service est commun à la base : un autre fichier de tests l'ouvre un moment
+// à toutes les organisations (NFR-26). Sous le forfait Pilote, une app se demande quel que soit
+// l'interrupteur : l'atelier le reçoit, apps du pilote refermées (réglage de l'Exploitation), pour que
+// ces tests ne dépendent pas de l'ordre des fichiers. pilot: false : un atelier sans abonnement.
+const CLOSED_APPS = ["appointments", "guests", "floorplans"] as const;
+
+async function atelier(options: { pilot?: boolean } = {}) {
   const organization = await createOrganization(db, `Atelier ${randomUUID().slice(0, 8)}`);
   const owner = await createUser(db, { organizationId: organization.id, email: `titulaire-${randomUUID()}@example.test`, role: "owner" });
+  if (options.pilot !== false) {
+    await assignPlanByOperator(db, { adminUserId, organizationId: organization.id, planKey: "pilot" });
+    for (const moduleKey of CLOSED_APPS) await setModuleEnabled(db, { adminUserId, organizationId: organization.id, moduleKey, enabled: false });
+  }
   return { organizationId: organization.id, organizationName: organization.name, ownerId: owner.id };
 }
 
@@ -111,7 +121,7 @@ describe("HUB-06 — Demander l'activation d'une app pendant le pilote", () => {
   });
 
   it("libre-service ouvert : plus de demande, on ajoute l'app à son abonnement", async () => {
-    const { organizationId, ownerId } = await atelier();
+    const { organizationId, ownerId } = await atelier({ pilot: false });
     await setFeatureFlagForOrganization(db, { adminUserId, key: "subscription_self_service", organizationId, open: true });
     expect(await refusal(requestModuleActivation(db, { organizationId, userId: ownerId, moduleKey: "floorplans" }))).toBe("self_service");
     // Sauf sous le forfait Pilote, que la planner ne change pas elle-même.
@@ -181,6 +191,9 @@ describe("HUB-15, ARC-06 — Une fois l'app activée, la planner est prévenue",
   it("libre-service : ajouter l'app à son abonnement l'ouvre tout de suite et clôt une demande restée en attente", async () => {
     const { organizationId, ownerId } = await atelier();
     await requestModuleActivation(db, { organizationId, userId: ownerId, moduleKey: "floorplans" });
+    // L'Exploitation pose la suite Solo (sans les Plans de salle) : la demande reste en attente.
+    await assignPlanByOperator(db, { adminUserId, organizationId, planKey: "solo" });
+    expect((await listModuleRequests(db, organizationId))[0]?.status).toBe("pending");
     await setFeatureFlagForOrganization(db, { adminUserId, key: "subscription_self_service", organizationId, open: true });
     const now = new Date();
     await changeSubscription(db, { organizationId, userId: ownerId, selection: { planKey: "solo", chosenModule: null, options: ["floorplans"], storageUnits: 0, billingPeriod: "monthly" }, now });

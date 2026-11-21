@@ -46,6 +46,9 @@ test("HUB-06 — la Propriétaire voit les apps, demande « Plans de salle », l
   const { name, ownerEmail, plannerEmail, adminEmail } = await atelier();
   const floorplans = app("floorplans");
   const guests = app("guests");
+  // Une fenêtre par personne (Exploitation, Planner), à la taille du projet.
+  const viewport = page.viewportSize();
+  const contextOptions = { ...(baseURL ? { baseURL } : {}), ...(viewport ? { viewport } : {}) };
 
   await signIn(page, ownerEmail);
   await openMenu(page);
@@ -85,7 +88,7 @@ test("HUB-06 — la Propriétaire voit les apps, demande « Plans de salle », l
   await expect(floorplansCard).toContainText(/Demandée le/);
 
   // L'Exploitation, dans sa propre fenêtre, voit la demande (organisation et app) et active l'app.
-  const operations = await browser.newContext({ baseURL, viewport: page.viewportSize() });
+  const operations = await browser.newContext(contextOptions);
   const admin = await operations.newPage();
   await signIn(admin, adminEmail, /\/exploitation$/);
   await clickAdminMenuLink(admin, "Organisations");
@@ -106,7 +109,7 @@ test("HUB-06 — la Propriétaire voit les apps, demande « Plans de salle », l
   await expectNoAxeViolation(page);
 
   // ARC-07 : une Planner n'a pas « Apps » au menu, et l'écran lui dit qu'il est réservé.
-  const team = await browser.newContext({ baseURL, viewport: page.viewportSize() });
+  const team = await browser.newContext(contextOptions);
   const planner = await team.newPage();
   await signIn(planner, plannerEmail);
   await openMenu(planner);
