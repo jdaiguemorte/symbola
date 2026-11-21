@@ -2289,6 +2289,7 @@
     "programImportFromPdf": "Programme lu depuis le PDF de votre ancien logiciel : chaque séquence garde son jour, ses heures et sa description (en note interne).",
     "programImportSpeakersTitle": "{count, plural, one {Intervenant du fichier : # à rattacher} other {Intervenants du fichier : # à rattacher}}",
     "programImportSpeakersIntro": "À gauche, l'intervenant tel qu'il est dans le fichier ; à droite, le prestataire de l'évènement qui lui correspond. Ses séquences lui seront rattachées ; « Garder en texte » laisse son nom tel quel. Vous-même n'êtes pas rattachée.",
+    "programImportSpeakersTable": "Tableau des intervenants et de leur prestataire",
     "programImportSpeakerFile": "Dans le fichier",
     "programImportSpeakerEvent": "Prestataire de l'évènement",
     "programImportSpeakerChoose": "Prestataire de l'évènement pour « {role} »",

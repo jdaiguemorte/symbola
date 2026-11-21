@@ -2289,6 +2289,7 @@
     "programImportFromPdf": "Programme read from the PDF of your previous software: each sequence keeps its day, times and description (as an internal note).",
     "programImportSpeakersTitle": "{count, plural, one {Person from the file: # to link} other {People from the file: # to link}}",
     "programImportSpeakersIntro": "On the left, the person as written in the file; on the right, the matching vendor of the event. Their sequences will be linked to them; “Keep as text” leaves their name as written. You are not linked yourself.",
+    "programImportSpeakersTable": "Table of people and their vendor",
     "programImportSpeakerFile": "In the file",
     "programImportSpeakerEvent": "Vendor of the event",
     "programImportSpeakerChoose": "Vendor of the event for “{role}”",

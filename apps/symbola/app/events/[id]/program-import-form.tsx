@@ -22,7 +22,7 @@ function SpeakersTable({ preview }: { preview: ProgramImportPreview }) {
     <section aria-labelledby="program-import-speakers" className="stack">
       <h3 id="program-import-speakers">{t("programImportSpeakersTitle", { count: speakers.length })}</h3>
       <p className="muted">{t("programImportSpeakersIntro")}</p>
-      <div className="list-table-wrap" role="region" tabIndex={0} aria-label={t("programImportSpeakersTitle", { count: speakers.length })}>
+      <div className="list-table-wrap" role="region" tabIndex={0} aria-label={t("programImportSpeakersTable")}>
         <table className="data-table">
           <caption className="sr-only">{t("programImportSpeakersTitle", { count: speakers.length })}</caption>
           <thead>
