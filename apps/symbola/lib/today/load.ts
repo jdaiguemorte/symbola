@@ -234,7 +234,7 @@ async function eventItems({ organizationId, words, locale, today, now, events, n
         key: `closing:${event.id}`,
         kind: "closing_due",
         eventId: event.id,
-        eventNames: eventNames(event.clients),
+        eventNames: eventNames(event.clients, event.name),
         title: words.closingDue,
         dueOn: nextDay(event.eventDate!),
         since: null,
@@ -256,7 +256,7 @@ async function eventItems({ organizationId, words, locale, today, now, events, n
       key: `conflict:${date}`,
       kind: "date_conflict",
       eventId: null,
-      eventNames: sameDay.map((event) => eventNames(event.clients)).join(" · "),
+      eventNames: sameDay.map((event) => eventNames(event.clients, event.name)).join(" · "),
       title: words.dateConflict(sameDay.length),
       dueOn: date,
       since: null,
@@ -559,7 +559,7 @@ async function vendorItems({ organizationId, words, today, now, events }: Contex
         key: `vendor-document:${notice.documentId}:${event.id}`,
         kind: "vendor_document",
         eventId: event.id,
-        eventNames: eventNames(event.clients),
+        eventNames: eventNames(event.clients, event.name),
         title: words.vendorDocument(notice.vendorName, notice.kindLabel, notice.reason),
         // À traiter maintenant : demander la pièce à jour avant le jour J, aussi lointain soit-il.
         dueOn: null,
@@ -625,7 +625,7 @@ export async function loadTodayItems(
   const listed = modules.events ? await settleWithin(() => listEvents({ organizationId, archived: "exclude" }), timeoutMs, "events") : { ok: true as const, value: [] };
   if (!listed.ok) unavailable.push("events");
   const events = listed.ok ? listed.value : [];
-  const namesOf = new Map(events.map((event) => [event.id, eventNames(event.clients)]));
+  const namesOf = new Map(events.map((event) => [event.id, eventNames(event.clients, event.name)]));
   const context: Context = {
     organizationId,
     words,

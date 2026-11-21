@@ -1,7 +1,7 @@
 // Lot 11 (L11-PRE-04 à L11-PRE-07, L11-PRE-11) — sélection courante du carnet,
 // commune à l'écran et à l'export : filtres de l'URL, centre du cercle
 // (une fiche du carnet ou une adresse géocodée), résultats triés.
-import { getEvent, listEventVendorSlots } from "@/modules/events/service";
+import { getEvent, listEventVendorSlots, eventNames } from "@/modules/events/service";
 import {
   findVendors,
   geocodeAddress,
@@ -56,7 +56,7 @@ export async function loadBookSelection(organizationId: string, query: BookQuery
         eventId: event.id,
         slotId: slot.id,
         slotLabel: slot.label,
-        eventLabel: event.clients.map((client) => client.firstName).join(" & ") || event.venueName || "",
+        eventLabel: eventNames(event.clients, event.name) || event.venueName || "",
       };
       // Sans centre choisi : autour du lieu de l'événement.
       if (!aroundText && (event.venueName || event.venueCity)) aroundText = [event.venueName, event.venueCity].filter(Boolean).join(" ");

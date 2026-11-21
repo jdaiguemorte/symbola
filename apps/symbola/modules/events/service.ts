@@ -20,7 +20,7 @@ import { organizationLinksClosed } from "./closed-organization";
 import { randomUUID } from "node:crypto";
 import { parseEnv } from "@symbola/env";
 import { MailQuotaExceededError, reserveOrganizationMail } from "@symbola/mail";
-import { starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, starterDayOfSettings, type StarterLinkProfile } from "@symbola/starter-templates";
+import { starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, starterDayOfSettings, starterEventDocumentFolders, type StarterEventDocumentFolder, type StarterLinkProfile } from "@symbola/starter-templates";
 import {
   postponeEventRow,
   confirmPostponementRow,
@@ -28,7 +28,6 @@ import {
   releaseEventTaskRow,
   updateEventTimeZoneRow,
   setTaskTemplateEventTypeRow,
-  findDefaultTaskTemplateId,
   countRealClientLinks,
   findEventNamesByIds,
   searchEventRows,
@@ -553,6 +552,8 @@ function toEventSummary(event: EventRecord, clients: EventClientRow[]): EventSum
     venueCity: event.venueCity,
     clients: clients.map(toEventClient),
     isDemo: event.isDemo,
+    eventTypeId: event.eventTypeId,
+    name: event.name,
     archivedAt: event.archivedAt?.toISOString() ?? null,
   };
 }
@@ -611,7 +612,7 @@ export async function listStaleProspects(organizationId: string, days: number, n
     .filter(({ event }) => !event.isDemo)
     .map(({ event, clients }) => ({
       eventId: event.id,
-      names: eventNames(clients),
+      names: eventNames(clients, event.name),
       lastUpdateAt: event.updatedAt,
       daysSince: parisDaysSince(event.updatedAt, now),
     }))
@@ -634,20 +635,27 @@ export async function createProspect(input: CreateProspectInput): Promise<Create
     organizationId: input.organizationId,
     createdByUserId: input.createdByUserId,
     clientContactIds,
+    name: input.name?.trim() ? input.name.trim().slice(0, 200) : null,
     prospectSourceId: input.prospectSourceId,
     eventTypeId: input.eventTypeId ?? null,
     eventDate: input.eventDate,
     venueName: input.venueName,
     venueCity: input.venueCity,
   });
-  // Lot 34a (EVT-01, D8) : le rétroplanning du type naît avec l'événement, Option comprise.
-  if (input.applyTemplate !== false && event.eventDate) await applyDefaultTemplate(input.organizationId, event.id, event.eventTypeId);
+  // Lot 63c (EVT-01, CHR-01 ; ADR 0106, qui remplace D8 du lot 34a) : aucun rétroplanning d'office.
+  // Le modèle choisi à la création s'applique, daté depuis la date de l'évènement ; un modèle d'une
+  // autre organisation n'est pas lu (RLS) et refuse la création.
+  if (input.taskTemplateId && event.eventDate) {
+    const applied = await applyTaskTemplateRows(input.organizationId, event.id, input.taskTemplateId);
+    if (applied.status === "template_not_found") throw new TaskTemplateNotFoundError();
+  }
   return { id: event.id };
 }
 
-async function applyDefaultTemplate(organizationId: string, eventId: string, eventTypeId: string | null): Promise<void> {
-  const templateId = await findDefaultTaskTemplateId(organizationId, eventTypeId);
-  if (templateId) await applyTaskTemplateRows(organizationId, eventId, templateId);
+// Lot 63c (EVT-01, HUB-21 ; ADR 0106) — le modèle de rétroplanning proposé à la création pour un type :
+// celui qui lui est rattaché (le premier créé s'il y en a plusieurs), jamais celui d'un autre type.
+export async function findTaskTemplateForEventType(organizationId: string, eventTypeId: string): Promise<TaskTemplate | null> {
+  return (await listTaskTemplates(organizationId)).find((template) => template.eventTypeId === eventTypeId) ?? null;
 }
 
 // Lot 34a (EVT-05, D2 à D6) — statuts. La frise pose Option, Confirmé, En préparation, Clôturé ;
@@ -1198,6 +1206,29 @@ export async function createEventDocumentFolder(organizationId: string, eventId:
   return folder;
 }
 
+// Lot 63c (DOC-01, BUD-04 ; M8) — les dossiers typés d'un évènement (« Devis des prestataires »,
+// « Factures des prestataires », « Contrats »), tirés du fichier de données. Ceux qui manquent sont
+// créés (à la création de l'évènement, ou au premier dépôt de ce type) ; un dossier renommé ou
+// supprimé par l'équipe n'est pas recréé tant qu'aucune pièce de ce type n'est déposée.
+export type TypedDocumentFolder = StarterEventDocumentFolder & { folderId: string | null };
+
+export async function listTypedDocumentFolders(organizationId: string, eventId: string, locale: "fr" | "en"): Promise<TypedDocumentFolder[]> {
+  const folders = await listDocumentFolders(organizationId, eventId);
+  return starterEventDocumentFolders(locale).map((typed) => ({ ...typed, folderId: folders.find((folder) => folder.name === typed.name)?.id ?? null }));
+}
+
+export async function ensureTypedDocumentFolder(organizationId: string, eventId: string, locale: "fr" | "en", key: StarterEventDocumentFolder["key"]): Promise<string> {
+  const typed = (await listTypedDocumentFolders(organizationId, eventId, locale)).find((folder) => folder.key === key);
+  if (!typed) throw new EventNotFoundError();
+  return typed.folderId ?? (await createEventDocumentFolder(organizationId, eventId, typed.name)).id;
+}
+
+export async function createTypedDocumentFolders(organizationId: string, eventId: string, locale: "fr" | "en"): Promise<void> {
+  for (const typed of await listTypedDocumentFolders(organizationId, eventId, locale)) {
+    if (!typed.folderId) await createEventDocumentFolder(organizationId, eventId, typed.name);
+  }
+}
+
 export async function renameEventDocumentFolder(organizationId: string, folderId: string, name: string): Promise<void> {
   await renameDocumentFolder(organizationId, folderId, name);
 }
@@ -1469,13 +1500,9 @@ export async function changeEventDate(
   eventDate: string | null,
 ): Promise<TaskRecalculation> {
   if (eventDate !== null) assertDate(eventDate);
-  const before = await findEventById(organizationId, eventId);
   const recalculation = await updateEventDateRow(organizationId, eventId, eventDate);
   if (!recalculation) throw new EventNotFoundError();
-  // Lot 34a (EVT-01, D8) : sa première date donne son rétroplanning à un évènement qui n'en a pas.
-  if (before && before.event.eventDate === null && eventDate !== null && (await findEventTasks(organizationId, eventId)).length === 0) {
-    await applyDefaultTemplate(organizationId, eventId, before.event.eventTypeId);
-  }
+  // Lot 63c (ADR 0106) : la première date ne pose plus de rétroplanning d'office ; la fiche le propose.
   return recalculation;
 }
 
@@ -1513,9 +1540,10 @@ export async function listEventTasks(organizationId: string, eventId: string): P
   return (await findEventTasks(organizationId, eventId)).map(toEventTask);
 }
 
-// Noms affichés d'un événement : prénoms des mariés (« Inès & Sacha »).
-export function eventNames(clients: { firstName: string }[]): string {
-  return clients.map((client) => client.firstName).join(" & ");
+// Noms affichés d'un événement : prénoms des mariés (« Inès & Sacha »). Lot 63c (Q43) : le nom de
+// l'évènement, s'il en a un, les remplace.
+export function eventNames(clients: { firstName: string }[], name?: string | null): string {
+  return name?.trim() ? name.trim() : clients.map((client) => client.firstName).join(" & ");
 }
 
 // PRD-HUB-02 — tâches de toute l'organisation (accueil, écran Tâches), triées
@@ -1539,7 +1567,7 @@ export async function listOrganizationTasks(input: ListOrganizationTasksInput): 
       {
         ...task,
         overdue: !task.done && task.dueDate < input.today,
-        event: { id: event.id, names: eventNames(event.clients), eventDate: event.eventDate, status: event.status, isDemo: event.isDemo },
+        event: { id: event.id, names: eventNames(event.clients, event.name), eventDate: event.eventDate, status: event.status, isDemo: event.isDemo },
       },
     ];
   });
@@ -3457,7 +3485,7 @@ export async function listTrashedEventObjects(organizationId: string): Promise<T
     Promise.all(
       rows.map(async (row) => {
         const event = row.kind === "event" ? await getEvent(organizationId, row.id) : null;
-        const label = row.kind === "event" ? (event ? eventNames(event.clients) : "") : (row.label ?? "");
+        const label = row.kind === "event" ? (event ? eventNames(event.clients, event.name) : "") : (row.label ?? "");
         return { kind: row.kind, id: row.id, label, eventId: row.eventId, deletedAt: row.deletedAt, deletedBy: row.deletedBy };
       }),
     ),
@@ -3467,7 +3495,7 @@ export async function listTrashedEventObjects(organizationId: string): Promise<T
 // Le libellé d'un évènement de la corbeille (bandeau « Annuler », confirmations).
 export async function getTrashedEventLabel(organizationId: string, eventId: string): Promise<string | null> {
   const event = await includingDeleted(() => getEvent(organizationId, eventId));
-  return event ? eventNames(event.clients) : null;
+  return event ? eventNames(event.clients, event.name) : null;
 }
 
 // Lot 39b (UX-09 ; D8 ; ADR 0074) — identité d'un évènement (invités, style, notes) et sa version.
@@ -3529,7 +3557,7 @@ export {
 // Le pipeline, avec le nom des prospects (premier client de chaque option).
 export async function getEventsPipeline(organizationId: string, locale: "fr" | "en"): Promise<Pipeline> {
   const options = await listEvents({ organizationId, statusIn: ["option"] });
-  return getPipelineOf(organizationId, locale, new Map(options.map((event) => [event.id, eventNames(event.clients)])));
+  return getPipelineOf(organizationId, locale, new Map(options.map((event) => [event.id, eventNames(event.clients, event.name)])));
 }
 
 // « Gagné » (CRM-02, D9) : l'évènement est confirmé, avec les effets de la confirmation (EVT-05).
@@ -4205,7 +4233,7 @@ export async function createEventFromStructure(input: { organizationId: string; 
   const prospectSourceId = sources.some((source) => source.id === input.prospectSourceId) ? input.prospectSourceId! : sources[0]?.id;
   if (!prospectSourceId) throw new EventNotFoundError();
   const eventTypeId = input.eventTypeId && (await listEventTypes(input.organizationId)).some((type) => type.id === input.eventTypeId) ? input.eventTypeId : null;
-  const { id } = await createProspect({ organizationId: input.organizationId, createdByUserId: input.userId, clients: [], prospectSourceId, eventTypeId, eventDate: input.eventDate, applyTemplate: false });
+  const { id } = await createProspect({ organizationId: input.organizationId, createdByUserId: input.userId, clients: [], prospectSourceId, eventTypeId, eventDate: input.eventDate });
   const slotIds = await applyTemplateStructures({ organizationId: input.organizationId, eventId: id, eventDate: input.eventDate, content: input.content, locale: input.locale });
   for (const item of input.content.program) {
     await addProgramItem(input.organizationId, id, { startTime: item.startTime, endTime: item.endTime, label: item.label, location: item.location, vendorSlotIds: [], freeParticipants: [] });

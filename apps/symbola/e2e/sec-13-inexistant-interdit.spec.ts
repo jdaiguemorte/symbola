@@ -56,6 +56,8 @@ type Objects = Awaited<ReturnType<typeof organizationWithObjects>>;
 const ADDRESSES: { kind: "page" | "route"; path: (objects: Objects) => string }[] = [
   { kind: "page", path: (o) => `/events/${o.eventId}` },
   { kind: "page", path: (o) => `/budget/${o.eventId}` },
+  // Lot 63c : /budget/<id> mène à la fiche ; le détail du budget garde sa propre adresse.
+  { kind: "page", path: (o) => `/budget/${o.eventId}/detail` },
   { kind: "page", path: (o) => `/devis/${o.quoteId}` },
   { kind: "page", path: (o) => `/prestataires/${o.vendorId}` },
   { kind: "page", path: (o) => `/contacts/${o.contactId}` },

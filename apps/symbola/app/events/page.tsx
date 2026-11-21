@@ -6,14 +6,14 @@ import { formatCalendarDate, parisToday, type Locale } from "@symbola/i18n";
 import {
   getActiveEventsTrial,
   listEvents,
+  listEventTypes,
   listProspectSources,
   type EventStatus,
 } from "@/modules/events/service";
 import { requirePlanner } from "@/lib/guards";
 import { purgeOrganizationsDemoData } from "@/lib/demo-purge";
 import { PageTour } from "../page-tour";
-import { SettingsLink } from "@/app/settings-link";
-import { PageHeader } from "@/app/ui/page-header";
+import { EventsHeader } from "./events-header";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { isEventsModuleEnabled } from "./module-access";
 import { startTrialAction } from "./trial-actions";
@@ -107,10 +107,15 @@ export default async function EventsListPage({
     (event) => event.id,
   );
 
+  // Lot 63c (EVT-01, Q43) : un évènement sans client (un shooting photo) prend le nom de son type.
+  const typeLabels = new Map((await listEventTypes(organizationId)).map((type) => [type.id, type.label]));
   function clientNames(
     clients: { firstName: string; lastName: string | null }[],
+    eventTypeId?: string | null,
+    name?: string | null,
   ): string {
-    if (clients.length === 0) return t("noClient");
+    if (name) return name;
+    if (clients.length === 0) return (eventTypeId ? typeLabels.get(eventTypeId) : undefined) ?? t("noClient");
     return clients.map((client) => client.firstName).join(" & ");
   }
 
@@ -137,33 +142,11 @@ export default async function EventsListPage({
 
   return (
     <main>
-      <PageHeader
-        title={t("title")}
-        actions={
-          <>
-            {/* Lot 63b (HUB-14) : importer des évènements (fiches PDF ou tableur) depuis l'écran. */}
-            <Link className="button-link" href="/import?type=evenements#import-form">
-              {t("importHere")}
-            </Link>
-            <SettingsLink href="/events/parametres" label={t("settingsLink")} tour="events-settings" />
-          </>
-        }
-      />
+      {/* Lot 63c (EVT-07, UX-13 ; M7) : le même en-tête sur les trois vues, avec « Nouveau ». */}
+      <EventsHeader view={calendarView ? "calendar" : "list"} />
       <PageTour {...tour} helpTitle={tHelp("eventsList.title")} helpBody={tHelp("eventsList.body")} helpExtra={trialHelp} />
 
       {essai === "termine" ? <p role="status">{t("trialEnded")}</p> : null}
-      {/* Lot 20 (décision 1) : les réglages passent par « Réglages » ; la barre
-          ne garde que l'action principale. */}
-      <nav className="toolbar" aria-label={t("actionsLabel")}>
-        <Link href="/events/new" className="button-link button-link-primary" data-tour="new-prospect">
-          {t("newProspect")}
-        </Link>
-        {/* Lot 44 (CRM-02) : la vue en colonnes des options, et retour. */}
-        <Link href="/events/pipeline" className="button-link">
-          {t("pipelineView")}
-        </Link>
-      </nav>
-
       {calendarView ? null : (
       <div data-tour="events-filters">
       <FilterBar label={t("filtersLabel")} applyLabel={t("filter")} preserve={isPastTab ? { tab: "termines" } : isArchivedTab ? { tab: "archives" } : {}}>
@@ -208,24 +191,16 @@ export default async function EventsListPage({
       </div>
       )}
 
-      <nav aria-label={t("tabsLabel")} className="segmented">
-        <Link href="/events" aria-current={!isPastTab && !isArchivedTab ? "page" : undefined}>
-          {t("tabUpcomingCount", { count: counts.upcoming })}
-        </Link>
-        <Link href="/events?tab=termines" aria-current={isPastTab ? "page" : undefined}>
-          {t("tabPastCount", { count: counts.past })}
-        </Link>
-        <Link href="/events?tab=archives" aria-current={isArchivedTab ? "page" : undefined}>
-          {t("archivedFilter")}
-        </Link>
-      </nav>
-      {isPastTab || isArchivedTab ? null : (
-        <nav aria-label={t("viewLabel")} className="segmented" data-tour="events-views">
-          <Link href="/events" aria-current={calendarView ? undefined : "page"}>
-            {t("viewList")}
+      {calendarView ? null : (
+        <nav aria-label={t("tabsLabel")} className="segmented">
+          <Link href="/events" aria-current={!isPastTab && !isArchivedTab ? "page" : undefined}>
+            {t("tabUpcomingCount", { count: counts.upcoming })}
           </Link>
-          <Link href="/events?affichage=calendrier" aria-current={calendarView ? "page" : undefined}>
-            {t("viewCalendar")}
+          <Link href="/events?tab=termines" aria-current={isPastTab ? "page" : undefined}>
+            {t("tabPastCount", { count: counts.past })}
+          </Link>
+          <Link href="/events?tab=archives" aria-current={isArchivedTab ? "page" : undefined}>
+            {t("archivedFilter")}
           </Link>
         </nav>
       )}
@@ -246,7 +221,7 @@ export default async function EventsListPage({
             {items.map((item) => (
               <ListRow key={item.id} href={`/events/${item.id}`}>
                 <th scope="row">
-                  <Link href={`/events/${item.id}`}>{clientNames(item.clients)}</Link>
+                  <Link href={`/events/${item.id}`}>{clientNames(item.clients, item.eventTypeId, item.name)}</Link>
                   {item.isDemo ? <span className="badge">{t("demoTag")}</span> : null}
                 </th>
                 <td className="num">

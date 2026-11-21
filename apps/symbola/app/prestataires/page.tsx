@@ -118,7 +118,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
         subtitle={t("subtitle", { count: results.length })}
         actions={
           <>
-            <SettingsLink href="/prestataires/parametres" label={t("settingsLink")} />
+            <SettingsLink href="/prestataires/parametres" back="vendors" label={t("settingsLink")} />
             {/* Lot 63b (HUB-14) : importer depuis l'écran, l'import déjà réglé sur les prestataires. */}
             <Link className="button-link" href="/import?type=vendors#import-form">
               {t("importVendors")}

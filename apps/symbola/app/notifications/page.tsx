@@ -18,7 +18,7 @@ export default async function NotificationsPage() {
   const locale = (await getLocale()) as Locale;
   const notifications = await listNotifications(organizationId, auth.user.id);
   const names = (await isModuleEnabled(appDatabase(), organizationId, "events"))
-    ? new Map((await listEvents({ organizationId })).map((event) => [event.id, eventNames(event.clients)]))
+    ? new Map((await listEvents({ organizationId })).map((event) => [event.id, eventNames(event.clients, event.name)]))
     : new Map<string, string>();
   const unread = notifications.some((notification) => notification.readAt === null);
   return (

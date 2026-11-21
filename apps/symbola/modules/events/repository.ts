@@ -188,7 +188,9 @@ export async function insertProspect(input: {
   createdByUserId: string | null;
   // Lot 36a : les contacts des clients, déjà résolus chez le hub, dans l'ordre.
   clientContactIds: string[];
-  prospectSourceId: string;
+  // Lot 63c (Q43) : nom facultatif de l'évènement.
+  name?: string | null | undefined;
+  prospectSourceId: string | null;
   eventTypeId?: string | null | undefined;
   eventDate?: string | null | undefined;
   venueName?: string | null | undefined;
@@ -207,6 +209,7 @@ export async function insertProspect(input: {
       .values({
         organizationId: input.organizationId,
         status: "option",
+        name: input.name ?? null,
         eventDate: input.eventDate ?? null,
         prospectSourceId: input.prospectSourceId,
         eventTypeId: input.eventTypeId ?? null,
@@ -1802,9 +1805,12 @@ async function eventNamesOf(organizationId: string, eventIds: readonly string[])
   const links = await withOrganization(appDatabase(), organizationId, (tx) =>
     tx.select().from(eventClients).where(inArray(eventClients.eventId, unique)).orderBy(asc(eventClients.position), asc(eventClients.createdAt)),
   );
+  // Lot 63c (Q43) : le nom de l'évènement, s'il en a un, remplace celui tiré des clients.
+  const named = await withOrganization(appDatabase(), organizationId, (tx) => tx.select({ id: events.id, name: events.name }).from(events).where(inArray(events.id, unique)));
+  const ownNames = new Map(named.flatMap((row) => (row.name ? [[row.id, row.name] as const] : [])));
   const names = new Map<string, string[]>();
   for (const client of await withContacts(organizationId, links)) names.set(client.eventId, [...(names.get(client.eventId) ?? []), client.firstName]);
-  return new Map(unique.map((id) => [id, (names.get(id) ?? []).join(" & ")]));
+  return new Map(unique.map((id) => [id, ownNames.get(id) ?? (names.get(id) ?? []).join(" & ")]));
 }
 // Lot 34b (D10) : le lieu de réception, premier lieu de la liste.
 const venueNameSql = sql<string | null>`(select ep.label from "events"."event_places" ep where ep.event_id = "events"."id" order by ep.position, ep.created_at limit 1)`;
@@ -1833,7 +1839,8 @@ export async function searchEventRows(
               ids.length > 0
                 ? exists(tx.select({ one: sql`1` }).from(eventClients).where(and(eq(eventClients.eventId, events.id), inArray(eventClients.contactId, ids))))
                 : sql`false`;
-            return or(sql`${places} like ${likeWord(word)}`, byClient)!;
+            // Lot 63c (Q43) : le nom de l'évènement est cherché comme ses lieux.
+            return or(sql`${places} like ${likeWord(word)}`, sql`${foldedColumn(sql`coalesce(${events.name}, '')`)} like ${likeWord(word)}`, byClient)!;
           }),
         ),
       )

@@ -62,7 +62,7 @@ export default async function EventFloorplanPage({ params, searchParams }: { par
         <ArrowLeft aria-hidden="true" />
         {t("event.backToEvent")}
       </Link>
-      <PageHeader title={t("event.title")} subtitle={eventNames(event.clients)} />
+      <PageHeader title={t("event.title")} subtitle={eventNames(event.clients, event.name)} />
       <ScreenHelp title={tHelp("floorplanEvent.title")} body={tHelp("floorplanEvent.body")} />
       <p className="meta">{t("event.intro")}</p>
       <Feedback query={await searchParams} />

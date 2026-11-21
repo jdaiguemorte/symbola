@@ -189,7 +189,7 @@ export async function MyEvents({ events, ranked, today, locale }: { events: Even
             return (
               <li key={event.id} className="today-event">
                 <Link href={`/events/${event.id}`} className="today-item-title">
-                  {eventNames(event.clients)}
+                  {eventNames(event.clients, event.name)}
                 </Link>
                 <span className="today-item-meta">
                   {event.eventDate ? formatCalendarDate(event.eventDate, locale) : t("dateUnset")}

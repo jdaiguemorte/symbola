@@ -57,7 +57,7 @@ async function organization(): Promise<string> {
 
 async function wedding(organizationId: string) {
   const source = await createProspectSource(organizationId, `Salon ${randomUUID().slice(0, 6)}`);
-  const event = await createProspect({ organizationId, createdByUserId: plannerId, prospectSourceId: source.id, clients: [{ firstName: "Inès", lastName: "Morel" }], applyTemplate: false });
+  const event = await createProspect({ organizationId, createdByUserId: plannerId, prospectSourceId: source.id, clients: [{ firstName: "Inès", lastName: "Morel" }] });
   const task = await addEventTask(organizationId, event.id, { label: "Envoyer les faire-part", dueDate: "2027-03-01", responsible: "planner" });
   const quote = await createQuote({ organizationId, eventId: event.id, createdByUserId: plannerId });
   await addQuoteLine(organizationId, quote.id, { label: "Coordination jour J", unit: "forfait", quantityMilli: 1000, unitPriceCents: 150000 });

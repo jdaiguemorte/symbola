@@ -1375,6 +1375,13 @@
       "breakpoints": true
     },
     {
+      "idx": 196,
+      "version": "7",
+      "when": 1795283122258,
+      "tag": "0196_lot63c_events_name",
+      "breakpoints": true
+    },
+    {
       "idx": 201,
       "version": "7",
       "when": 1795290000000,

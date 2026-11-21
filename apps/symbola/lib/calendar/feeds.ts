@@ -46,7 +46,7 @@ export async function calendarFeedIcs(access: CalendarFeedAccess, now: Date = ne
       status: "CONFIRMED",
     }));
     const items: IcsEvent[] = events.map((event) => {
-      const names = eventNames(event.clients);
+      const names = eventNames(event.clients, event.name);
       const type = event.eventTypeId ? typeLabel.get(event.eventTypeId) : undefined;
       return {
         uid: `${event.id}@symbola`,
@@ -82,5 +82,5 @@ export async function calendarFeedIcs(access: CalendarFeedAccess, now: Date = ne
         };
       })
     : [];
-  return buildIcs({ name: t("eventFeed", { event: eventNames(event.clients), organization }), events: items, now });
+  return buildIcs({ name: t("eventFeed", { event: eventNames(event.clients, event.name), organization }), events: items, now });
 }

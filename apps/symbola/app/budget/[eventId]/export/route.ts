@@ -19,7 +19,7 @@ import { loadDocumentLogo } from "@/lib/document-logo";
 import { pdfSafe } from "@/lib/pdf-text";
 import { createXlsx } from "@/lib/xlsx-workbook";
 import { listBudgetLines } from "@/modules/budget/service";
-import { getEvent } from "@/modules/events/service";
+import { getEvent, eventNames } from "@/modules/events/service";
 import { getDocumentHeader } from "@/modules/hub/service";
 import { getDocumentSettings } from "@/modules/quotes/service";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
@@ -75,7 +75,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ even
     statuses: { due: t("exportStatusDue"), overdue: t("exportStatusOverdue"), paid: t("exportStatusPaid") },
   };
   const model = buildBudgetExport(view, labels);
-  const names = event.clients.map((client) => client.firstName).join(" & ") || t("noClient");
+  const names = eventNames(event.clients, event.name) || t("noClient");
   const heading = event.eventDate ? `${names} — ${formatCalendarDate(event.eventDate, locale)}` : names;
   const organizationName = header?.organizationName ?? "";
   const today = parisToday();

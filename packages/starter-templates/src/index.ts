@@ -27,6 +27,7 @@ import budgetVatFile from "./budget-vat.json";
 import budgetImportFile from "./budget-import.json";
 import linkProfilesFile from "./link-profiles.json";
 import linkExpiryFile from "./link-expiry.json";
+import eventDocumentFoldersFile from "./event-document-folders.json";
 import clientTaskRemindersFile from "./client-task-reminders.json";
 import emergencyNumbersFile from "./emergency-numbers.json";
 import requiredMentionsFile from "./required-mentions.json";
@@ -1016,6 +1017,19 @@ export type StarterLinkExpiry = {
 export function starterLinkExpiry(): StarterLinkExpiry {
   const { daysAfterEvent, daysWithoutEventDate, dayHelperDaysBefore } = linkExpirySchema.parse(linkExpiryFile);
   return { daysAfterEvent: { ...daysAfterEvent }, daysWithoutEventDate, dayHelperDaysBefore };
+}
+
+// Lot 63c (DOC-01, BUD-04 ; M8) — dossiers proposés à chaque évènement, un par type de pièce d'un
+// prestataire ; « kind » est la nature de la pièce de ligne du budget qui s'y range.
+const eventDocumentFoldersSchema = z.object({
+  version: z.literal(1),
+  folders: z.array(z.object({ key: z.enum(["vendor_quotes", "vendor_invoices", "contracts"]), kind: z.enum(["quote", "invoice", "contract"]), label: translatedLabelSchema })).min(1),
+});
+
+export type StarterEventDocumentFolder = { key: "vendor_quotes" | "vendor_invoices" | "contracts"; kind: "quote" | "invoice" | "contract"; name: string };
+
+export function starterEventDocumentFolders(locale: StarterLocale): StarterEventDocumentFolder[] {
+  return eventDocumentFoldersSchema.parse(eventDocumentFoldersFile).folders.map((folder) => ({ key: folder.key, kind: folder.kind, name: folder.label[locale] }));
 }
 
 // Lot 26a (RGP-03) — mention d'information des pages à lien personnel, à faire

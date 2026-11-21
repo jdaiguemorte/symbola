@@ -530,6 +530,23 @@ export async function findBudgetLineAttachment(
   });
 }
 
+// Lot 63c (DOC-01, BUD-04 ; maquette M8) — « Déplacer vers… » une pièce de ligne : sa nature change
+// (devis, contrat, facture), le fichier et la ligne restent. Renvoie faux si la pièce n'est pas de
+// l'organisation (RLS) ou d'une ligne d'un autre évènement.
+export async function updateBudgetLineAttachmentKind(organizationId: string, eventId: string, attachmentId: string, kind: BudgetLineAttachmentRow["kind"]): Promise<boolean> {
+  const db = appDatabase();
+  return await withOrganization(db, organizationId, async (tx) => {
+    const [found] = await tx
+      .select({ id: budgetLineAttachments.id })
+      .from(budgetLineAttachments)
+      .innerJoin(budgetLines, eq(budgetLines.id, budgetLineAttachments.lineId))
+      .where(and(eq(budgetLineAttachments.id, attachmentId), eq(budgetLines.eventId, eventId)));
+    if (!found) return false;
+    await tx.update(budgetLineAttachments).set({ kind }).where(eq(budgetLineAttachments.id, attachmentId));
+    return true;
+  });
+}
+
 // AIDE-02 — suppression de toutes les données budget d'événements
 // (essais guidés terminés ou expirés), enfants d'abord. Renvoie les clés
 // des devis stockés, à supprimer ensuite du stockage.

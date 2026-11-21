@@ -872,6 +872,19 @@ après la recette de la wedding planner.
    courte ou longue (rubriques à gauche, « Suivant » pour enchaîner) ; le panneau latéral pour
    les réglages d'un écran et la consultation rapide seulement. Écart avec UX-13 : ADR 0107.
 
+### Q43 — Lot 63c : un nom propre pour un évènement sans client ? (21 novembre 2026)
+
+EVT-01 dit « trois champs suffisent : nom, date, type ». Aujourd'hui, un évènement n'a pas de nom :
+il prend celui de ses clients (« Léa & Maxime »). Le paquet 63c rend le client **facultatif** pour un
+évènement confirmé (un shooting photo, retour #24) : un tel évènement s'affiche sous le nom de son
+type (« Shooting photo »), sans migration. Pour lui donner un vrai nom (« Shooting Roux », maquette
+M7), il faut une colonne `events.name` (schéma `events`, migration réversible) et la reprendre dans la
+liste, la fiche, l'agenda et les exports. **Tranché le 21/11 par Julien : « Oui, nom facultatif ».**
+Colonne facultative `events.name` (migration 0196, schéma `events`, réversible, RLS inchangée) ;
+rempli, ce nom remplace celui tiré des clients partout où l'évènement est nommé (liste, fiche,
+recherche, calendrier, exports, PDF) ; le formulaire « Évènement confirmé » le propose, requis
+seulement sans client. Déclaré au registre RGPD (trouvé, rendu et effacé avec l'évènement).
+
 ### Q44 — Lot 63b : « Caché des mariés » sans migration (21 novembre 2026)
 
 La spécification du paquet 63b (import du programme du jour J depuis le PDF de l'ancien logiciel)
