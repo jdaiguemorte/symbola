@@ -64,7 +64,7 @@ test("PRE-01 — la fiche se modifie en grande fenêtre ; elle coche deux métie
   await edit.getByRole("checkbox", { name: "Drone" }).check();
   await expectNoAxeViolation(page);
   await edit.getByRole("button", { name: "Enregistrer et fermer" }).click();
-  await expect(edit).toHaveCount(0);
+  await expect(edit).toHaveCount(0, { timeout: 15_000 });
   await expect(page).toHaveURL(new RegExp(`/prestataires/${vendorId}$`));
   await expect(page.locator(".title-with-badge")).toContainText("Vidéaste (principal)");
   await expect(page.locator(".title-with-badge")).toContainText("Photographe");

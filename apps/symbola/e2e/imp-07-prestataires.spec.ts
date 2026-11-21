@@ -103,7 +103,7 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
   // Lot 63e (ADR 0107) : la fiche se modifie en grande fenêtre, rubrique par rubrique.
   await page.goto(`/prestataires/${existingId}?modifier=1`);
   await expect(page.getByLabel("N° SIRET")).toHaveValue("12345678900011");
-  await page.getByRole("dialog").getByRole("button", { name: "Métiers et étiquettes" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Métiers et étiquettes", exact: true }).click();
   await expect(page.getByLabel("Hébergement sur place")).toBeChecked();
   await expectNoAxeViolation(page);
 
