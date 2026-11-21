@@ -332,6 +332,10 @@
     .budget-lines-editor .list-table.budget-lines tfoot td[data-label] {
       @apply min-h-6 flex-wrap justify-between gap-x-2 gap-y-0 py-0 text-right text-label;
     }
+    /* La carte d'une catégorie garde son fond d'un bord à l'autre (pas de filet blanc entre ses montants). */
+    .budget-lines-editor .list-table.budget-lines tr.budget-category {
+      @apply bg-ground;
+    }
     /* Reste à payer et écart : une ligne entière chacun (leur texte est long). */
     .budget-lines-editor .list-table.budget-lines td.budget-wide[data-label] {
       @apply col-span-2;

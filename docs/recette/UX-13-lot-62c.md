@@ -81,6 +81,12 @@ Deux précisions de lecture :
 - **Mariés** : pas de planche. Le lien d'un prestataire et la demande de décision s'ouvrent par un
   bouton (sans cela l'onglet tenait en 3,3 écrans, pour une cible de 3).
 
+## Captures (jeu fictif, après)
+
+- Programme : [1440 px](lot-62c/programme-1440.jpg), [ligne ouverte](lot-62c/programme-ligne-ouverte-1440.jpg), [375 px](lot-62c/programme-375.jpg).
+- Budget : [1440 px](lot-62c/budget-1440.jpg), [ligne ouverte](lot-62c/budget-ligne-ouverte-1440.jpg), [375 px](lot-62c/budget-375.jpg).
+- Mariés : [1440 px](lot-62c/maries-1440.jpg) ; rétroplanning et mariés en [375 px](lot-62c/retroplanning-maries-375.jpg).
+
 ## Non rejoué ici
 
 - Les captures du centre d'aide (`pnpm help:captures`) ne sont pas régénérées : elles demandent le
