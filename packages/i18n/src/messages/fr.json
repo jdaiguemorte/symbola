@@ -5068,7 +5068,6 @@
     "autoCheck": "L'étape se coche seule quand l'action est faite.",
     "checking": "Vérification…",
     "quit": "Quitter le tutoriel (l'exemple est supprimé)",
-    "doneBody": "« {title} » : c'est fait. L'exemple a été supprimé ; vos vrais évènements n'ont pas été touchés.",
     "suggestion": "Prochain tutoriel conseillé : {title} ({minutes} minutes).",
     "startNext": "Commencer le suivant",
     "dismiss": "Fermer"

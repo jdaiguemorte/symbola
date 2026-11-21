@@ -5068,7 +5068,6 @@
     "autoCheck": "The step ticks itself once the action is done.",
     "checking": "Checking…",
     "quit": "Quit the tutorial (the example is deleted)",
-    "doneBody": "“{title}”: done. The example has been deleted; your real events were not touched.",
     "suggestion": "Suggested next tutorial: {title} ({minutes} minutes).",
     "startNext": "Start the next one",
     "dismiss": "Close"

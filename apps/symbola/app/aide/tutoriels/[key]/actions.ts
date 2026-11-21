@@ -2,7 +2,9 @@
 
 // Lot 10 (AIDE-06) — actions d'un tutoriel « en faisant » : contrôles côté
 // serveur (compte d'équipe, organisation, module souscrit), progression et
-// contexte enregistrés à chaque étape.
+// contexte enregistrés à chaque étape. Lot 63f (HUB-11, HUB-10 ; ADR 0104) : l'écran de départ est
+// gardé dans le contexte (« origin ») ; chaque étape mène à son écran, où le panneau latéral du
+// tutoriel la vérifie seul ; la fin et « Quitter le tutoriel » ramènent à l'écran de départ.
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
@@ -11,6 +13,8 @@ import { getHelpProgress, isModuleEnabled, recordHelpProgress, restartHelpItem }
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { TUTORIALS, type TutorialKey } from "@/lib/help/catalog";
 import { TUTORIAL_SCRIPTS, type TutorialEnv } from "@/lib/help/tutorials";
+import { stepHref } from "@/lib/help/tutorial-panel";
+import { safeOrigin, withTutorialDone } from "@/lib/help/tutorial-origin";
 
 type Loaded = { env: TutorialEnv; key: TutorialKey; step: number; completed: boolean };
 
@@ -36,6 +40,21 @@ async function save(loaded: Loaded, step: number, context?: Record<string, strin
   const db = appDatabase();
   await recordHelpProgress(db, { userId: loaded.env.userId, itemKey: `tutorial:${loaded.key}`, status, step, ...(context === undefined ? {} : { context }) });
   revalidatePath(`/aide/tutoriels/${loaded.key}`);
+  // Le panneau latéral du tutoriel est dans la mise en page de chaque écran.
+  revalidatePath("/", "layout");
+}
+
+// L'écran de la nouvelle étape, s'il en a un : on y va.
+function goToStep(loaded: Loaded, step: number, context: Record<string, string>): void {
+  const href = stepHref(TUTORIAL_SCRIPTS[loaded.key].steps[step], context);
+  if (href) redirect(href);
+}
+
+// L'écran d'où le tutoriel a été lancé (formulaire de sa page), gardé au premier pas seulement.
+function originOf(loaded: Loaded, formData: FormData | undefined): Record<string, string> {
+  if (loaded.env.context.origin) return {};
+  const origin = safeOrigin(formData ? String(formData.get("origin") ?? "") : null);
+  return origin ? { origin } : {};
 }
 
 export async function restartTutorialAction(key: string): Promise<void> {
@@ -45,19 +64,46 @@ export async function restartTutorialAction(key: string): Promise<void> {
   revalidatePath(`/aide/tutoriels/${loaded.key}`);
 }
 
-export async function continueTutorialAction(key: string): Promise<void> {
+export async function continueTutorialAction(key: string, formData?: FormData): Promise<void> {
   const loaded = await load(key);
   const step = TUTORIAL_SCRIPTS[loaded.key].steps[loaded.step];
   if (!step || (step.kind !== "explain" && step.kind !== "look")) return;
-  await save(loaded, loaded.step + 1);
+  const origin = originOf(loaded, formData);
+  await save(loaded, loaded.step + 1, Object.keys(origin).length > 0 ? origin : undefined);
+  goToStep(loaded, loaded.step + 1, { ...loaded.env.context, ...origin });
 }
 
-export async function setupTutorialAction(key: string): Promise<void> {
+export async function setupTutorialAction(key: string, formData?: FormData): Promise<void> {
   const loaded = await load(key);
   const script = TUTORIAL_SCRIPTS[loaded.key];
   if (script.steps[loaded.step]?.kind !== "setup") return;
-  const context = script.setup ? await script.setup(loaded.env) : {};
+  const context = { ...(script.setup ? await script.setup(loaded.env) : {}), ...originOf(loaded, formData) };
   await save(loaded, loaded.step + 1, context);
+  goToStep(loaded, loaded.step + 1, { ...loaded.env.context, ...context });
+}
+
+// Lot 63f (HUB-11 ; ADR 0104) : le panneau latéral revérifie l'étape « faire » à chaque changement
+// d'écran et à intervalle régulier ; faite, elle se coche seule. Même contrôle côté serveur que
+// « J'ai fait, vérifier ».
+export async function autoCheckTutorialAction(key: string): Promise<{ advanced: boolean }> {
+  const loaded = await load(key);
+  const step = TUTORIAL_SCRIPTS[loaded.key].steps[loaded.step];
+  if (loaded.completed || step?.kind !== "do" || !step.check) return { advanced: false };
+  if (!(await step.check(loaded.env))) return { advanced: false };
+  await save(loaded, loaded.step + 1);
+  return { advanced: true };
+}
+
+// « Quitter le tutoriel » : l'exemple est supprimé, la progression remise à zéro, retour à l'écran
+// de départ.
+export async function quitTutorialAction(key: string): Promise<void> {
+  const loaded = await load(key);
+  const origin = safeOrigin(loaded.env.context.origin);
+  await TUTORIAL_SCRIPTS[loaded.key].cleanup(loaded.env, false);
+  const db = appDatabase();
+  await restartHelpItem(db, loaded.env.userId, `tutorial:${loaded.key}`);
+  revalidatePath("/", "layout");
+  redirect(origin ?? "/tutoriels");
 }
 
 export type CheckState = { failed?: boolean };
@@ -75,10 +121,13 @@ export async function finishTutorialAction(key: string, keep: boolean): Promise<
   const loaded = await load(key);
   const script = TUTORIAL_SCRIPTS[loaded.key];
   if (script.steps[loaded.step]?.kind !== "finish") return;
+  const origin = safeOrigin(loaded.env.context.origin);
   await script.cleanup(loaded.env, keep && Boolean(script.keepable));
   await save(loaded, loaded.step, null, "completed");
   // Lot 63a : le texte de fin dit si une partie de l'exemple a été gardée (modèle, prestation).
-  redirect(`/aide/tutoriels/${loaded.key}?termine=1${keep && script.keepable ? "&garde=1" : ""}`);
+  const kept = keep && Boolean(script.keepable);
+  // Lot 63f : retour à l'écran de départ, qui dit « Tutoriel terminé » et conseille le suivant.
+  redirect(origin ? withTutorialDone(origin, loaded.key, kept) : `/aide/tutoriels/${loaded.key}?termine=1${kept ? "&garde=1" : ""}`);
 }
 
 // Lot 13 (AIDE-10) — un seul tutoriel en cours : abandonner celui en cours
