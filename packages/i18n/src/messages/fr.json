@@ -861,7 +861,7 @@
     },
     "importFile": {
       "title": "Importer des données",
-      "body": "Choisissez ce que vous reprenez : vos contacts (CSV ou Excel), vos prestataires ou vos fiches événement depuis votre outil actuel, ou un autre fichier. L'assistant enchaîne les étapes et ne vous demande que ce qui doit être décidé. Rien n'est enregistré avant la confirmation, et un import s'annule depuis le journal.",
+      "body": "Choisissez ce que vous reprenez : vos contacts (CSV ou Excel), vos prestataires ou vos fiches événement depuis votre outil actuel, ou un autre fichier. Chaque écran (prestataires, évènements, contacts, budget, programme, invités) a aussi son bouton « Importer », réglé sur le bon type. Dès le clic, une fenêtre montre où en est la lecture. Rien n'est enregistré avant la confirmation, et un import s'annule depuis son bilan.",
       "faq": [
         {
           "q": "Que devient mon fichier ?",
@@ -871,11 +871,11 @@
     },
     "importColumns": {
       "title": "Reconnaître les colonnes",
-      "body": "Seules les colonnes qui demandent un choix sont présentées : dites ce que devient chacune, un champ de la fiche, une note sur la fiche, ou rien. Une proposition peu sûre n'est jamais choisie d'office. Les colonnes reconnues se résument en une ligne ; « Voir le détail » les déplie."
+      "body": "Un tableau montre chaque colonne de votre fichier avec deux exemples, ce qu'elle devient sur la fiche (un champ par son nom, « Une note sur la fiche » ou « Ne pas importer ») et son état : reconnue, choisie, ignorée ou à choisir. Les colonnes à choisir viennent d'abord. À droite, l'aperçu montre la première ligne du fichier en fiche et suit vos choix. Une proposition peu sûre n'est jamais choisie d'office."
     },
     "importMatches": {
       "title": "Rapprocher des éléments existants",
-      "body": "Quand une ligne ressemble à un élément déjà présent, l'app propose de le mettre à jour plutôt que de créer un doublon. Filtrez « À vérifier », « Nouveaux », « Mises à jour » ; « Tout accepter » valide les propositions sûres. Vous pouvez aussi rapprocher une ligne à la main."
+      "body": "Quand une ligne ressemble à un prestataire déjà au carnet, la ligne du fichier et la fiche existante s'affichent côte à côte (nom, métier, ville, e-mail, téléphone, nombre d'évènements), les différences écrites en toutes lettres. Choisissez « C'est le même », « Ce sont deux prestataires » ou « Décider plus tard ». Si seul le prénom est commun, la proposition est « À vérifier » et ce sont deux prestataires tant que vous ne dites pas le contraire. Filtrez « À vérifier », « Nouveaux », « Mises à jour » ; « Tout accepter » valide les propositions sûres."
     },
     "importGaps": {
       "title": "Rapport des écarts",
@@ -887,7 +887,7 @@
     },
     "importUndo": {
       "title": "Journal et annulation d'un import",
-      "body": "Chaque import confirmé est journalisé : fichier, auteur, date et résultat. Pendant le délai d'annulation, vous pouvez l'annuler : les créations sont supprimées et les mises à jour reviennent à leurs valeurs d'avant. Un élément modifié depuis est signalé et gardé."
+      "body": "À la fin, le bilan vient d'abord : créés, mis à jour, ignorés, colonnes gardées en note, chacun cliquable. « Vérifier les N prestataires » ouvre la liste filtrée sur cet import. Pendant le délai d'annulation, « Annuler cet import » (replié) nomme les fiches modifiées à la main depuis, et vous choisissez : annuler l'import sauf ces fiches, ou tout annuler."
     },
     "privacySearch": {
       "title": "Données personnelles",
@@ -2343,7 +2343,8 @@
     "currentFilter": "En cours et passés",
     "archivedTag": "Archivé",
     "archivedEmpty": "Aucun évènement archivé.",
-    "floorplanLink": "Plan de salle de l'évènement"
+    "floorplanLink": "Plan de salle de l'évènement",
+    "importHere": "Importer"
   },
   "Budget": {
     "title": "Budget",
@@ -2562,7 +2563,8 @@
     "payersLink": "Payeurs et répartition",
     "cashCalendarLink": "Calendrier des sorties d'argent",
     "bankToVerify": "IBAN à vérifier",
-    "removeModelShort": "Supprimer"
+    "removeModelShort": "Supprimer",
+    "importHere": "Importer"
   },
   "Quotes": {
     "title": "Devis",
@@ -3410,7 +3412,7 @@
     "columnTargetLabel": "Champ pour la colonne « {column} »",
     "columnTargetFields": "Champs",
     "columnTargetNone": "Sans équivalent (à décider au rapport des écarts)",
-    "columnTargetIgnore": "Ignorer cette colonne",
+    "columnTargetIgnore": "Ne pas importer",
     "columnConfirm": "Je confirme : cette colonne correspond à « {field} »",
     "saveColumns": "Enregistrer les colonnes",
     "backToDraft": "Retour à l'import",
@@ -3508,8 +3510,14 @@
     "journalUndoneAt": "Annulé le",
     "journalResult": "Résultat",
     "journalResultValue": "{created, plural, =0 {aucune création} one {# création} other {# créations}}, {updated, plural, =0 {aucune mise à jour} one {# mise à jour} other {# mises à jour}}, {unchanged, plural, =0 {aucune ligne inchangée} one {# ligne inchangée} other {# lignes inchangées}}, {rejected, plural, =0 {aucune ligne rejetée} one {# ligne rejetée} other {# lignes rejetées}}",
-    "undoTitle": "Annuler l'import",
+    "undoTitle": "Annuler cet import",
     "undoIntro": "Les éléments créés seront supprimés et les éléments mis à jour retrouveront leurs valeurs précédentes. Annulation possible jusqu'au {date}.",
+    "undoWhat": "L'annulation supprime {created, plural, =0 {aucun élément créé} one {l'élément créé} other {les # éléments créés}} et remet {updated, plural, =0 {rien d'autre} one {l'élément mis à jour comme avant} other {les # éléments mis à jour comme avant}}.",
+    "undoModifiedNamed": "{count, plural, one {Une fiche a été modifiée à la main depuis l'import :} other {# fiches ont été modifiées à la main depuis l'import :}}",
+    "undoModifiedAt": "modifiée le {date}",
+    "undoModifiedSince": "modifiée depuis l'import",
+    "undoExceptModified": "{count, plural, one {Annuler l'import, sauf cette fiche} other {Annuler l'import, sauf ces # fiches}}",
+    "undoAll": "Tout annuler",
     "undoModifiedLegend": "{count, plural, one {Élément modifié à la main depuis l'import} other {# éléments modifiés à la main depuis l'import}}",
     "undoModifiedIntro": "Sans confirmation, ils sont gardés tels quels. Cochez ceux que vous voulez annuler quand même : vos modifications seront perdues.",
     "undoForce": "Annuler quand même : {title}",
@@ -3674,7 +3682,7 @@
     "matchesEmptyFilter": "Aucune ligne ici.",
     "matchesTable": "Lignes du fichier",
     "matchCompareList": "Prestataires rapprochés, à vérifier côte à côte",
-    "matchCompareTitle": "Ligne {line} : est-ce le même prestataire que {title} ?",
+    "matchCompareTitle": "Ligne {line} · {title} : est-ce le même prestataire ?",
     "matchToVerify": "À vérifier",
     "matchCheckOnlyFirstName": "Seul un mot du nom est commun (le prénom ?) : ce sont deux prestataires, sauf si vous dites le contraire.",
     "matchCheckTypeAndCity": "Le métier et la ville diffèrent : vérifiez avant de dire que c'est le même.",
@@ -3722,6 +3730,9 @@
     "startQuestion": "Que voulez-vous reprendre ?",
     "otherFileTitle": "Un autre fichier",
     "otherFileBody": "Événements, tâches, lignes de budget, catalogue, listes… depuis un tableur (CSV, Excel) ou un fichier JSON.",
+    "screenGroup": {
+      "evenements": "Importer des évènements"
+    },
     "resumeImport": "Reprendre",
     "resumeImportFor": "Reprendre l'import de {file}",
     "importButton": {
@@ -3745,6 +3756,32 @@
       "catalog_items": "{count, plural, one {Voir l'article} other {Voir les # articles}}",
       "contacts": "{count, plural, one {Voir le contact} other {Voir les # contacts}}"
     },
+    "finishTitle": "Import terminé",
+    "finishSummaryTitle": "Bilan de l'import",
+    "finishImportedOn": "{fileName}, importé le {date}.",
+    "finishFigure": {
+      "created": "{count, plural, one {créé} other {créés}}",
+      "updated": "{count, plural, other {mis à jour}}",
+      "ignored": "{count, plural, one {ignorée (vide, en erreur ou inchangée)} other {ignorées (vides, en erreur ou inchangées)}}",
+      "kept": "{count, plural, one {colonne gardée comme note} other {colonnes gardées comme note}}"
+    },
+    "finishCount": "{count} {label}",
+    "finishHistory": "Historique des imports",
+    "finishCheck": {
+      "vendors": "{count, plural, one {Vérifier le prestataire} other {Vérifier les # prestataires}}"
+    },
+    "finishBack": {
+      "vendors": "Revenir à mes prestataires",
+      "events": "Revenir à mes évènements",
+      "event_sheets": "Revenir à mes évènements",
+      "tasks": "Revenir à mes tâches",
+      "catalog_items": "Revenir au catalogue",
+      "contacts": "Revenir à mes contacts"
+    },
+    "finishCheckHint": "« Vérifier » ouvre la liste filtrée sur cet import (pastille « Import du {date} », que vous pouvez retirer).",
+    "finishIgnoredDetail": "{rejected, plural, =0 {Aucune ligne rejetée} one {# ligne rejetée (vide ou en erreur)} other {# lignes rejetées (vides ou en erreur)}} ; {unchanged, plural, =0 {aucune ligne sans changement} one {# ligne sans changement (déjà à jour)} other {# lignes sans changement (déjà à jour)}}.",
+    "finishKeptDetail": "Gardées comme note sur chaque fiche : {columns}.",
+    "finishJournalDetails": "Détails du journal (fichier, auteur, dates)",
     "confidenceProposal": "{field} ? ({value} %, à confirmer)",
     "journalTable": "Tableau du journal des imports",
     "rowsIntro": "Votre fichier mêle peut-être plusieurs sortes de contacts. Cochez les valeurs dont vous ne voulez pas ici (vos prestataires, par exemple) : leurs lignes ne seront pas importées. Elles restent au rapport des écarts, d'où vous pouvez les télécharger pour les importer ailleurs.",
@@ -5162,7 +5199,13 @@
       "min": "{field} : au moins {value}",
       "max": "{field} : au plus {value}",
       "eq": "{field} : {value}"
-    }
+    },
+    "importVendors": "Importer",
+    "importFilterPill": "Import du {date}",
+    "importFilterCreated": "Import du {date} : créés",
+    "importFilterUpdated": "Import du {date} : mis à jour",
+    "importFilterRemove": "Retirer le filtre « Import du {date} »",
+    "importFilterJournal": "Voir le bilan de l'import"
   },
   "Onboarding": {
     "title": "Préparons votre espace",
@@ -8826,7 +8869,8 @@
       "revoke": "Retirer les liens de {name}",
       "edit": "Modifier {name}",
       "remove": "Supprimer le foyer {name}",
-      "planLink": "Plan de table et synthèse pour le traiteur"
+      "planLink": "Plan de table et synthèse pour le traiteur",
+      "importHere": "Importer"
     },
     "portal": {
       "title": "Vos invités",

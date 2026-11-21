@@ -137,7 +137,18 @@ export default async function EventsListPage({
 
   return (
     <main>
-      <PageHeader title={t("title")} actions={<SettingsLink href="/events/parametres" label={t("settingsLink")} tour="events-settings" />} />
+      <PageHeader
+        title={t("title")}
+        actions={
+          <>
+            {/* Lot 63b (HUB-14) : importer des évènements (fiches PDF ou tableur) depuis l'écran. */}
+            <Link className="button-link" href="/import?type=evenements#import-form">
+              {t("importHere")}
+            </Link>
+            <SettingsLink href="/events/parametres" label={t("settingsLink")} tour="events-settings" />
+          </>
+        }
+      />
       <PageTour {...tour} helpTitle={tHelp("eventsList.title")} helpBody={tHelp("eventsList.body")} helpExtra={trialHelp} />
 
       {essai === "termine" ? <p role="status">{t("trialEnded")}</p> : null}

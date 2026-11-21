@@ -47,7 +47,7 @@
 
   /* Où va chaque colonne (maquette M5) : le tableau, et l'aperçu de la fiche à droite. */
   .columns-map {
-    @apply grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start;
+    @apply grid gap-6 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start;
   }
   .columns-map select {
     @apply w-full min-w-48;
@@ -59,7 +59,7 @@
     @apply mt-1 block text-label text-ink-muted;
   }
   .column-preview {
-    @apply rounded-md border border-line bg-surface p-4 lg:sticky lg:top-4;
+    @apply min-w-0 rounded-md border border-line bg-surface p-4 xl:sticky xl:top-4;
   }
   .column-preview > h3 {
     @apply m-0 text-heading;
@@ -67,11 +67,14 @@
   .column-preview dl {
     @apply m-0 mt-3 grid gap-2;
   }
+  .column-preview dl > div {
+    @apply grid gap-0.5;
+  }
   .column-preview dt {
     @apply text-label text-ink-muted;
   }
   .column-preview dd {
-    @apply m-0 break-words;
+    @apply m-0 min-w-0 [overflow-wrap:anywhere];
   }
   .column-preview .column-preview-notes {
     @apply mt-3 border-t border-line pt-3;

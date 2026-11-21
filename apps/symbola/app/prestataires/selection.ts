@@ -16,6 +16,7 @@ import {
   type VendorTagGroup,
   type VendorType,
 } from "@/modules/vendors/service";
+import { importFilterOf, type ImportFilter } from "@/lib/import/imported-elements";
 import { parseBookFilters, toFindInput, type BookFilters, type BookQuery } from "./filters";
 
 export type BookSelection = {
@@ -30,6 +31,8 @@ export type BookSelection = {
   results: VendorListItem[];
   // Contexte « Ajouter au poste » (venu d'un poste de la fiche événement).
   target: { eventId: string; slotId: string; slotLabel: string; eventLabel: string } | null;
+  // Lot 63b (HUB-14) : la liste filtrée sur un import (« Vérifier les N prestataires »).
+  importFilter: ImportFilter | null;
 };
 
 const VENDOR_REFERENCE = /^fiche:([0-9a-f-]{36})$/i;
@@ -74,6 +77,7 @@ export async function loadBookSelection(organizationId: string, query: BookQuery
     centerNotFound = center === null;
   }
 
-  const results = await findVendors(toFindInput(organizationId, { ...filters, aroundText }, center));
-  return { families, types, tags, tagGroups, filters: { ...filters, aroundText }, center, centerNotFound, results, target };
+  const importFilter = await importFilterOf(organizationId, query, "vendor");
+  const results = await findVendors({ ...toFindInput(organizationId, { ...filters, aroundText }, center), ...(importFilter ? { ids: importFilter.ids } : {}) });
+  return { families, types, tags, tagGroups, filters: { ...filters, aroundText }, center, centerNotFound, results, target, importFilter };
 }

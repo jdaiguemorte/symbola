@@ -76,11 +76,11 @@ export function ImportLoading({ open, fileName, progress, onClose }: { open: boo
       <p id={bodyId} className="meta" role="status" aria-live="polite">
         {t("loading.nothingSaved")}
       </p>
-      <form method="dialog" className="import-loading-actions">
-        <button type="submit" className="button-secondary">
+      <div className="import-loading-actions">
+        <button type="button" className="button-secondary" onClick={() => ref.current?.close()}>
           {t("loading.close")}
         </button>
-      </form>
+      </div>
     </dialog>
   );
 }

@@ -672,6 +672,8 @@ export type AppliedImportItem = Pick<ImportItemRow, "id" | "module" | "kind" | "
 
 export type AppliedImportView = ImportSummary & {
   items: AppliedImportItem[];
+  // Lot 63b (HUB-14) : intitulés des colonnes gardées comme note sur la fiche.
+  keptColumns: string[];
   // Encore annulable : confirmé, non annulé, dans le délai réglé par l'Admin.
   undoable: boolean;
   undoDeadline: Date | null;
@@ -698,9 +700,11 @@ export async function getAppliedImport(
     undoOutcome,
   }));
   const pending = items.some((item) => item.undoOutcome !== "undone" && item.undoOutcome !== "missing");
+  const keptColumns = (row.mapping ?? []).filter((choice) => choice.target === "free").map((choice) => row.headers[choice.columnIndex] || `#${choice.columnIndex + 1}`);
   return {
     ...toSummary(row),
     items,
+    keptColumns,
     undoable: row.status === "applied" && now < deadline && pending && items.every((item) => item.written !== null),
     undoDeadline: row.status === "applied" ? deadline : null,
   };

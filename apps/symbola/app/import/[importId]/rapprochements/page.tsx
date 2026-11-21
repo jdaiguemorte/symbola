@@ -163,7 +163,12 @@ export default async function ImportMatchesPage({
                           <td className={line.different ? "is-different" : undefined}>{line.file ?? "—"}</td>
                           <td className={line.different ? "is-different" : undefined}>
                             {line.existing ?? "—"}
-                            {line.different ? <span className="difference">{t("matchDifferent")}</span> : null}
+                            {line.different ? (
+                              <>
+                                {" "}
+                                <span className="difference">{t("matchDifferent")}</span>
+                              </>
+                            ) : null}
                           </td>
                         </tr>
                       ))}
