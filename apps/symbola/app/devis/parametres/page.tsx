@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ScreenMain } from "@/app/ui/screen-main";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Banknote, CreditCard, Landmark, PenLine, Wallet, type LucideIcon } from "lucide-react";
 import { isPreviousStarterInvoiceMentions, starterInvoiceMentions, starterInvoiceReform, starterLatePenalty, starterPaymentMethodKinds, starterProfessionalPaymentTerms, starterProfessionalTerms } from "@symbola/starter-templates";
@@ -30,17 +31,17 @@ export default async function QuoteSettingsPage() {
 
   if (!(await isQuotesModuleEnabled(organizationId))) {
     return (
-      <main>
+      <ScreenMain>
         <h1>{t("settingsTitle")}</h1>
         <p>{t("moduleUnavailable")}</p>
-      </main>
+      </ScreenMain>
     );
   }
 
   const [settings, methods] = await Promise.all([getQuoteSettings(organizationId), listPaymentMethods(organizationId, { includeArchived: true })]);
   const locale = (await getLocale()) === "en" ? "en" : "fr";
   return (
-    <main>
+    <ScreenMain>
       <h1>{t("settingsTitle")}</h1>
       <ScreenHelp title={tHelp("quotesSettings.title")} body={tHelp("quotesSettings.body")} />
       {/* Lot 41 (FAC-10, JUR-03) : jusqu'au 1er septembre 2027, le Factur-X part par e-mail ; ensuite, vers une entreprise, par une plateforme agréée. */}
@@ -98,6 +99,6 @@ export default async function QuoteSettingsPage() {
       <p>
         {t("vatRegimeInProfile")} <Link href="/parametres">{t("organizationSettingsLink")}</Link>
       </p>
-    </main>
+    </ScreenMain>
   );
 }

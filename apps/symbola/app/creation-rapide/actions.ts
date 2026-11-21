@@ -26,8 +26,7 @@ import {
   listEventVendorSlots,
   listProspectSources,
   listVendorCandidates,
-  makeCreatorLead,
-} from "@/modules/events/service";
+  makeCreatorLead, createTypedDocumentFolders } from "@/modules/events/service";
 import { isModuleEnabled } from "@/modules/hub/service";
 import { createQuote, EventNotFoundError, getQuote } from "@/modules/quotes/service";
 
@@ -81,7 +80,7 @@ export async function quickCreateOptionsAction(pathname: string): Promise<QuickC
   const active = all.filter((event) => isActiveEvent(event) && !event.isDemo).sort((a, b) => (a.eventDate ?? "9999").localeCompare(b.eventDate ?? "9999"));
   const currentId = typeof pathname === "string" ? await eventOfPath(organizationId, pathname, access.modules.quotes) : null;
   const current = currentId ? all.find((event) => event.id === currentId) : undefined;
-  const events = [...(current && !active.includes(current) ? [current] : []), ...active].map((event) => ({ id: event.id, names: eventNames(event.clients), date: event.eventDate }));
+  const events = [...(current && !active.includes(current) ? [current] : []), ...active].map((event) => ({ id: event.id, names: eventNames(event.clients, event.name), date: event.eventDate }));
   const locale = (await getLocale()) as Locale;
   const [sources, eventTypes] = await Promise.all([listProspectSources(organizationId), ensureEventTypes(organizationId, locale)]);
   return {
@@ -144,6 +143,8 @@ export async function quickCreateProspectAction(_prev: QuickCreateState, formDat
   });
   // Lot 52 (EVT-06, D2) : la personne qui crée l'évènement en est le planner principal.
   await makeCreatorLead(organizationId, created.id, access.userId);
+  // Lot 63c (DOC-01, M8) : les dossiers proposés à chaque évènement.
+  await createTypedDocumentFolders(organizationId, created.id, locale === "en" ? "en" : "fr");
   refresh(created.id);
   // Lot 39b (UX-09) : l'évènement est créé, le brouillon de la saisie n'a plus lieu d'être.
   await discardMyFormDraft("event-quick");
@@ -202,7 +203,7 @@ export async function quickCreateExpenseAction(_prev: QuickCreateState, formData
     return { error: await unexpectedActionError(error) };
   }
   refresh(eventId);
-  revalidatePath(`/budget/${eventId}`);
+  revalidatePath(`/budget/${eventId}`, "layout");
   return { done: { message: t("expenseDone", { label }), href: `/budget/${eventId}` }, nonce: Date.now() };
 }
 

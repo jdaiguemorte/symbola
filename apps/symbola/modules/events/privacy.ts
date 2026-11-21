@@ -220,13 +220,13 @@ export const eventsPrivacy: PrivacyContractV1 = {
 
       for (const event of realEvents) {
         // Lot 34b (EVT-03) : le style et les notes libres peuvent nommer la personne.
-        if (recordMatches([event.lossReasonNote, event.style, event.notes, ...importedValues(event.importedFields)], terms)) {
+        if (recordMatches([event.name, event.lossReasonNote, event.style, event.notes, ...importedValues(event.importedFields)], terms)) {
           records.push({
             module: MODULE,
             kind: "event",
             recordId: event.id,
             label: event.eventDate ?? "",
-            fields: compact({ lossReasonNote: event.lossReasonNote, style: event.style, notes: event.notes, ...importedFieldsOf(event.importedFields) }),
+            fields: compact({ name: event.name, lossReasonNote: event.lossReasonNote, style: event.style, notes: event.notes, ...importedFieldsOf(event.importedFields) }),
             eventId: event.id,
           });
         }
@@ -387,6 +387,8 @@ export const eventsPrivacy: PrivacyContractV1 = {
             lossReasonNote: event.lossReasonNote,
             guestsEstimated: event.guestsEstimated === null ? null : String(event.guestsEstimated),
             guestsConfirmed: event.guestsConfirmed === null ? null : String(event.guestsConfirmed),
+            // Lot 63c (Q43) : le nom de l'évènement, s'il en a un.
+            name: event.name,
             style: event.style,
             // Lot 48a (DAT-08) : droit d'accès de la personne, notes confidentielles comprises.
             notes: revealEventNotes(organizationId, event),

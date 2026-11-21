@@ -52,7 +52,6 @@
   "app/events/modeles-evenement/create-form.tsx",
   "app/events/modeles-programme/template-forms.tsx",
   "app/events/modeles/template-forms.tsx",
-  "app/events/new/new-prospect-form.tsx",
   "app/events/parametres/budget-line-panel-forms.tsx",
   "app/events/parametres/contact/contact-settings-form.tsx",
   "app/events/parametres/default-vendor-slot-forms.tsx",

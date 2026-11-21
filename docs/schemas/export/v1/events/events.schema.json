@@ -20,6 +20,12 @@
         "cancelled"
       ]
     },
+    "name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "eventDate": {
       "anyOf": [
         {
@@ -357,6 +363,7 @@
   "required": [
     "id",
     "status",
+    "name",
     "eventDate",
     "timeZone",
     "postponedFromDate",

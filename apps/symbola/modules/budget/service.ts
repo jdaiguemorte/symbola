@@ -12,6 +12,7 @@ import {
   deleteVendorPaymentRow,
   findBudgetLine,
   findBudgetLineAttachment,
+  updateBudgetLineAttachmentKind,
   findBudgetLineAttachments,
   findBudgetLinesOfSlot,
   releaseCommittedAmount,
@@ -99,6 +100,7 @@ import {
 } from "./payers-repository";
 import { EVENT_PAYER_KINDS, type CashCalendarMonth, type EventPayer, type EventPayerKind, type PayerShareInput, type PayerShareView } from "@symbola/contracts";
 import type {
+  BudgetDocumentKind,
   AddBudgetLineInput,
   AdjustEventBudgetItemInput,
   AdjustEventBudgetItemsInput,
@@ -998,6 +1000,13 @@ export async function attachBudgetLineQuote(input: AttachBudgetLineQuoteInput): 
     uploadedByUserId: input.uploadedByUserId,
   });
   return toBudgetLineAttachment(row);
+}
+
+// Lot 63c (DOC-01, BUD-04 ; M8) — une pièce de ligne rangée dans un autre dossier typé (devis,
+// contrat, facture) : sa nature change, elle reste rattachée à sa ligne.
+export async function setBudgetLineAttachmentKind(organizationId: string, eventId: string, attachmentId: string, kind: BudgetDocumentKind): Promise<void> {
+  if (!BUDGET_DOCUMENT_KINDS.includes(kind)) throw new BudgetLineNotFoundError();
+  if (!(await updateBudgetLineAttachmentKind(organizationId, eventId, attachmentId, kind))) throw new BudgetLineNotFoundError();
 }
 
 // Préfixe technique du nom de fichier téléchargé, par nature de document.

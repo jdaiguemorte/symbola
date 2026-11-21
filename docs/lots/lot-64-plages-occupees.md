@@ -4,12 +4,12 @@
 décisions D1 à D6 retenues dans leur option recommandée (a). Le même jour, Julien a ajouté une
 partie B, la remise à plat des écrans du module Rendez-vous ; maquettes M1 à M10
 (`docs/maquette/Plages-et-reservation.html`) et décisions D7 à D9 (option a) **validées le
-21/11/2026**. Migration 0202 (schéma `appointments`, D8) comprise. Le lot
-change le schéma de données (`events`, migration 0201) : validation explicite requise (CLAUDE.md
+21/11/2026**. Migration 0203 (schéma `appointments`, D8) comprise. Le lot
+change le schéma de données (`events`, migration 0202) : validation explicite requise (CLAUDE.md
 § 8). Aucune dépendance nouvelle. Un ADR à écrire dans la PR (0108).
 
 Branche `lot-64-plages-occupees`, partie de `main` (3fda5a51). Numéros pris après ceux du lot 63
-(migrations 0196 à 0200, ADR 0103 à 0107).
+(migrations 0196 à 0201, ADR 0103 à 0107).
 
 ## Contexte
 
@@ -111,7 +111,7 @@ Critères (chacun devient un `it` ; les `describe` portent `HUB-29` ou `RDV-02`)
 
 ## Ce que le lot change
 
-### Données (migration 0201, schéma `events` seulement, annulable)
+### Données (migration 0202, schéma `events` seulement, annulable)
 
 - `events.event_types` : quatre colonnes de règle, `busy_start_day_offset` (entier, -7 à 7),
   `busy_start_time` (`time`), `busy_end_day_offset`, `busy_end_time`. Les types existants
@@ -246,7 +246,7 @@ Décisions de la partie B (validées le 21/11/2026 : option a) :
   *Recommandé : (a).*
 - **D8 — Une description du rendez-vous** (« Faisons connaissance : vos envies, votre date… »,
   colonne de gauche de M8). (a) Un champ de 300 caractères au plus sur le type de rendez-vous,
-  donc une migration 0202 dans le schéma `appointments`. (b) Pas de description.
+  donc une migration 0203 dans le schéma `appointments`. (b) Pas de description.
   *Recommandé : (a)*, c'est ce qui rassure le client avant de réserver.
 - **D9 — Un lot ou deux.** (a) Une seule PR, en deux paquets de commits : les plages occupées,
   puis la réservation. Les deux touchent le calcul des créneaux et les mêmes écrans. (b) Un
@@ -271,7 +271,7 @@ Décisions de la partie B (validées le 21/11/2026 : option a) :
 
 ## Fichiers touchés (prévision)
 
-- `packages/db/src/schema/events.ts`, `packages/db/drizzle/0201_lot64_events_busy_ranges.sql`
+- `packages/db/src/schema/events.ts`, `packages/db/drizzle/0202_lot64_events_busy_ranges.sql`
   (et son annulation).
 - `packages/starter-templates/src/event-types.json`.
 - `apps/symbola/modules/events/` : `busy-ranges.ts` (neuf), `service.ts`, `repository.ts`.
@@ -282,7 +282,7 @@ Décisions de la partie B (validées le 21/11/2026 : option a) :
 - Traductions FR/EN, aide, `docs/gap.csv` (HUB-29, RDV-02), ADR 0108.
 - Partie B : `app/rendez-vous/disponibilites`, `app/rendez-vous/reglages/types/[id]`,
   `app/reserver/[adresse]` (composant de choix du créneau, réemployé par `/rendez-vous/nouveau`
-  et `/rdv`), questions une par une ; si D8 (a), migration 0202 dans `appointments`.
+  et `/rdv`), questions une par une ; si D8 (a), migration 0203 dans `appointments`.
 
 ## Hors périmètre
 

@@ -1,4 +1,4 @@
--- Annulation de 0202 (lot 64) : la description des types de rendez-vous disparaît. Refusée tant
+-- Annulation de 0203 (lot 64) : la description des types de rendez-vous disparaît. Refusée tant
 -- qu'un type en a une (le texte serait perdu) : la planner la vide d'abord.
 DO $$
 BEGIN

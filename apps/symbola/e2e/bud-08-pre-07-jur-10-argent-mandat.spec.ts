@@ -79,7 +79,7 @@ test("BUD-08 / PRE-07 / JUR-10 — honoraires à part, commission montrée d'off
   await expectNoAxeViolation(page);
 
   // Le budget : les honoraires forment une ligne à part.
-  await page.goto(`/budget/${setup.eventId}`);
+  await page.goto(`/budget/${setup.eventId}/detail`);
   await expect(page.getByRole("region", { name: "Honoraires de la planner" })).toContainText("1 500,00");
 
   // Léa, particulière, voit la commission dans son portail, sans case pour la masquer.

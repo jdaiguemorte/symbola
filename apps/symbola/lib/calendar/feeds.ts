@@ -51,7 +51,7 @@ export async function calendarFeedIcs(access: CalendarFeedAccess, now: Date = ne
       transparency: "OPAQUE",
     }));
     const items: IcsEvent[] = events.map((event) => {
-      const names = eventNames(event.clients);
+      const names = eventNames(event.clients, event.name);
       const type = event.eventTypeId ? typeLabel.get(event.eventTypeId) : undefined;
       const range = busy.get(event.id);
       const tentative = event.status === "option" || event.status === "postponed";
@@ -90,5 +90,5 @@ export async function calendarFeedIcs(access: CalendarFeedAccess, now: Date = ne
         };
       })
     : [];
-  return buildIcs({ name: t("eventFeed", { event: eventNames(event.clients), organization }), events: items, now });
+  return buildIcs({ name: t("eventFeed", { event: eventNames(event.clients, event.name), organization }), events: items, now });
 }

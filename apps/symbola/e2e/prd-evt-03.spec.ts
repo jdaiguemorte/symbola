@@ -51,7 +51,7 @@ test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et prestat
 
   // Un nouvel événement reçoit les 11 lignes par défaut.
   await page.goto("/events/new");
-  await page.getByLabel("Prénom du premier marié", { exact: true }).fill("Camille");
+  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Camille");
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);

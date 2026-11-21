@@ -53,7 +53,7 @@ test("BUD-09 / BUD-10 — taux de TVA d'une ligne, HT pour un client professionn
   const eventId = await weddingWithCaterer(planner.organizationId, planner.userId);
   await plannerLogin(page, planner.email, PASSWORD);
 
-  await page.goto(`/budget/${eventId}`);
+  await page.goto(`/budget/${eventId}/detail`);
   await page.waitForLoadState("networkidle");
   // Particulier (aucun devis) : TTC seul.
   await expect(page.getByText("Montants TTC (client particulier).")).toBeVisible();

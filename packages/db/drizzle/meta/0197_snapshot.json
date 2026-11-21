@@ -1,6 +1,6 @@
 {
-  "id": "ce62e0e2-ad49-4bfe-b25c-ef419cd67b9c",
-  "prevId": "76e2335e-077d-48f7-a85c-814b9f419ac6",
+  "id": "71b4f853-7e6a-4092-8f2a-8b743cf4d998",
+  "prevId": "92e3eb6b-d56e-4f7b-9326-cf37cc6d21be",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -316,12 +316,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "buffer_before_minutes": {
           "name": "buffer_before_minutes",
           "type": "integer",
@@ -471,10 +465,6 @@
         "appointment_types_location_check": {
           "name": "appointment_types_location_check",
           "value": "\"appointments\".\"appointment_types\".\"location\" is null or char_length(\"appointments\".\"appointment_types\".\"location\") between 1 and 500"
-        },
-        "appointment_types_description_check": {
-          "name": "appointment_types_description_check",
-          "value": "\"appointments\".\"appointment_types\".\"description\" is null or char_length(\"appointments\".\"appointment_types\".\"description\") between 1 and 300"
         },
         "appointment_types_buffers_check": {
           "name": "appointment_types_buffers_check",
@@ -10199,6 +10189,12 @@
           "notNull": true,
           "default": "'option'"
         },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "event_date": {
           "name": "event_date",
           "type": "date",
@@ -10493,6 +10489,10 @@
         "events_time_zone_check": {
           "name": "events_time_zone_check",
           "value": "char_length(\"events\".\"events\".\"time_zone\") between 1 and 64"
+        },
+        "events_name_check": {
+          "name": "events_name_check",
+          "value": "\"events\".\"events\".\"name\" is null or char_length(\"events\".\"events\".\"name\") between 1 and 200"
         },
         "events_guests_check": {
           "name": "events_guests_check",

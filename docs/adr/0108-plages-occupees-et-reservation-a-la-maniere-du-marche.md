@@ -59,14 +59,15 @@ validation de l'application par Google et des jetons à garder ; Julien l'a éca
    - le même sélecteur sert au déplacement par lien (`/rdv`) ;
    - une question peut être obligatoire (D7 : champ facultatif `required` dans le JSON des questions,
      sans migration) ;
-   - un type peut porter une courte description (D8, migration 0202).
+   - un type peut porter une courte description (D8, migration 0203).
 
 ## Conséquences
 
-- Migrations **0201** (`events` : colonnes de règle, `busy_settings` sous RLS) et **0202**
+- Migrations **0202** (`events` : colonnes de règle, `busy_settings` sous RLS) et **0203**
   (`appointments` : description d'un type). Ajouts seuls, annulables ; l'annulation est refusée tant
-  qu'un réglage ou une description existe. Numéros pris après ceux réservés au lot 63 (0196 à 0200) :
-  à rechaîner si le lot 63 est fusionné d'abord.
+  qu'un réglage ou une description existe. Numéros pris après ceux du lot 63 (0196 à
+  0201, 0201 pour le lot 63b) ; le lot 64 est fusionné après lui et ses migrations s'appliquent en
+  dernier.
 - **Aucun nouveau sous-traitant**, aucune dépendance. La frise de l'aperçu et la barre d'avancement
   sont en SVG, parce que la CSP refuse les attributs `style`.
 - `/rendez-vous/nouveau` garde sa saisie libre de l'heure : l'équipe peut poser un rendez-vous hors

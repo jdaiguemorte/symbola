@@ -43,7 +43,7 @@ fois le module ouvert pour l'organisation de recette et la mention d'information
 ## Lot 64 — 21/11/2026 (plages occupées, réservation remise à plat)
 
 - En local, par Claude Code : base dédiée `symbola_lot64` (jeu fictif `seed:recette`, migrations
-  jusqu'à 0202), module Rendez-vous ouvert pour ORG-01 (Atelier Camille R.). Un évènement confirmé
+  jusqu'à 0203), module Rendez-vous ouvert pour ORG-01 (Atelier Camille R.). Un évènement confirmé
   est déplacé au vendredi 4 décembre 2026 pour tomber dans l'horizon de la page. Écrans regardés par
   Playwright (Chromium isolé, session ouverte en base) en taille ordinateur et en 375 px. Parcours
   rejoués sur l'app compilée (`next build`, puis `next start` sur le port 3064), connexion par session

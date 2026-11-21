@@ -1,4 +1,4 @@
--- Annulation de 0201 (lot 64) : les règles des types, les réglages propres des évènements et les
+-- Annulation de 0202 (lot 64) : les règles des types, les réglages propres des évènements et les
 -- réglages de l'organisation disparaissent ; les évènements reviennent à la journée entière.
 -- Refusée tant qu'un réglage a été posé (il serait perdu sans que la planner le sache) : elle le note
 -- et revient d'abord à la règle de départ (types, évènements), ou supprime ses réglages.

@@ -36,7 +36,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const sections = dayReportSections(report, dayReportWords(t as never), { time, amount });
   const labels = {
     title: t("title"),
-    heading: t("heading", { event: eventNames(event.clients) || t("event"), date: event.eventDate ? formatCalendarDate(event.eventDate, locale) : "" }),
+    heading: t("heading", { event: eventNames(event.clients, event.name) || t("event"), date: event.eventDate ? formatCalendarDate(event.eventDate, locale) : "" }),
     preparedAt: t("preparedAt", { date: formatDateTime(new Date(report.preparedAt ?? Date.now()), locale) }),
     footer: t("footer"),
     page: (page: number, total: number) => t("page", { page, total }),

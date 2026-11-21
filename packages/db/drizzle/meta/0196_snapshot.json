@@ -1,5 +1,5 @@
 {
-  "id": "76e2335e-077d-48f7-a85c-814b9f419ac6",
+  "id": "92e3eb6b-d56e-4f7b-9326-cf37cc6d21be",
   "prevId": "b9f946a3-91ec-4683-aa6b-c35a1e46c5af",
   "version": "7",
   "dialect": "postgresql",
@@ -3377,109 +3377,6 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "events.busy_settings": {
-      "name": "busy_settings",
-      "schema": "events",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "options_block": {
-          "name": "options_block",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fallback_start_day_offset": {
-          "name": "fallback_start_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fallback_start_time": {
-          "name": "fallback_start_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fallback_end_day_offset": {
-          "name": "fallback_end_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fallback_end_time": {
-          "name": "fallback_end_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_by": {
-          "name": "updated_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "busy_settings_organization_idx": {
-          "name": "busy_settings_organization_idx",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "busy_settings_busy_rule_check": {
-          "name": "busy_settings_busy_rule_check",
-          "value": "\"events\".\"busy_settings\".\"fallback_start_day_offset\" between -7 and 7 and \"events\".\"busy_settings\".\"fallback_end_day_offset\" between -7 and 7 and (\"events\".\"busy_settings\".\"fallback_end_day_offset\" * 1440 + extract(epoch from \"events\".\"busy_settings\".\"fallback_end_time\") / 60) > (\"events\".\"busy_settings\".\"fallback_start_day_offset\" * 1440 + extract(epoch from \"events\".\"busy_settings\".\"fallback_start_time\") / 60)"
-        }
-      },
       "isRLSEnabled": false
     },
     "events.closing_settings": {
@@ -9567,30 +9464,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "busy_start_day_offset": {
-          "name": "busy_start_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_start_time": {
-          "name": "busy_start_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_end_day_offset": {
-          "name": "busy_end_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_end_time": {
-          "name": "busy_end_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -9632,16 +9505,7 @@
         }
       },
       "policies": {},
-      "checkConstraints": {
-        "event_types_busy_rule_complete_check": {
-          "name": "event_types_busy_rule_complete_check",
-          "value": "(\"events\".\"event_types\".\"busy_start_day_offset\" is null) = (\"events\".\"event_types\".\"busy_start_time\" is null) and (\"events\".\"event_types\".\"busy_start_day_offset\" is null) = (\"events\".\"event_types\".\"busy_end_day_offset\" is null) and (\"events\".\"event_types\".\"busy_start_day_offset\" is null) = (\"events\".\"event_types\".\"busy_end_time\" is null)"
-        },
-        "event_types_busy_rule_check": {
-          "name": "event_types_busy_rule_check",
-          "value": "\"events\".\"event_types\".\"busy_start_day_offset\" is null or (\"events\".\"event_types\".\"busy_start_day_offset\" between -7 and 7 and \"events\".\"event_types\".\"busy_end_day_offset\" between -7 and 7 and (\"events\".\"event_types\".\"busy_end_day_offset\" * 1440 + extract(epoch from \"events\".\"event_types\".\"busy_end_time\") / 60) > (\"events\".\"event_types\".\"busy_start_day_offset\" * 1440 + extract(epoch from \"events\".\"event_types\".\"busy_start_time\") / 60))"
-        }
-      },
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "events.event_vendor_candidate_notes": {
@@ -10189,6 +10053,12 @@
           "notNull": true,
           "default": "'option'"
         },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "event_date": {
           "name": "event_date",
           "type": "date",
@@ -10367,30 +10237,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
-        },
-        "busy_start_day_offset": {
-          "name": "busy_start_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_start_time": {
-          "name": "busy_start_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_end_day_offset": {
-          "name": "busy_end_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_end_time": {
-          "name": "busy_end_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {
@@ -10472,17 +10318,13 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {
-        "events_busy_rule_complete_check": {
-          "name": "events_busy_rule_complete_check",
-          "value": "(\"events\".\"events\".\"busy_start_day_offset\" is null) = (\"events\".\"events\".\"busy_start_time\" is null) and (\"events\".\"events\".\"busy_start_day_offset\" is null) = (\"events\".\"events\".\"busy_end_day_offset\" is null) and (\"events\".\"events\".\"busy_start_day_offset\" is null) = (\"events\".\"events\".\"busy_end_time\" is null)"
-        },
-        "events_busy_rule_check": {
-          "name": "events_busy_rule_check",
-          "value": "\"events\".\"events\".\"busy_start_day_offset\" is null or (\"events\".\"events\".\"busy_start_day_offset\" between -7 and 7 and \"events\".\"events\".\"busy_end_day_offset\" between -7 and 7 and (\"events\".\"events\".\"busy_end_day_offset\" * 1440 + extract(epoch from \"events\".\"events\".\"busy_end_time\") / 60) > (\"events\".\"events\".\"busy_start_day_offset\" * 1440 + extract(epoch from \"events\".\"events\".\"busy_start_time\") / 60))"
-        },
         "events_time_zone_check": {
           "name": "events_time_zone_check",
           "value": "char_length(\"events\".\"events\".\"time_zone\") between 1 and 64"
+        },
+        "events_name_check": {
+          "name": "events_name_check",
+          "value": "\"events\".\"events\".\"name\" is null or char_length(\"events\".\"events\".\"name\") between 1 and 200"
         },
         "events_guests_check": {
           "name": "events_guests_check",

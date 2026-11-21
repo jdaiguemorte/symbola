@@ -1377,15 +1377,22 @@
     {
       "idx": 196,
       "version": "7",
-      "when": 1795288712750,
-      "tag": "0201_lot64_events_busy_ranges",
+      "when": 1795283122258,
+      "tag": "0196_lot63c_events_name",
       "breakpoints": true
     },
     {
       "idx": 197,
       "version": "7",
-      "when": 1795288725501,
-      "tag": "0202_lot64_appointments_type_description",
+      "when": 1795301610967,
+      "tag": "0202_lot64_events_busy_ranges",
+      "breakpoints": true
+    },
+    {
+      "idx": 198,
+      "version": "7",
+      "when": 1795301613216,
+      "tag": "0203_lot64_appointments_type_description",
       "breakpoints": true
     }
   ]

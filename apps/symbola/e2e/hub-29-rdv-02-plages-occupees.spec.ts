@@ -34,7 +34,7 @@ async function atelier() {
     const email = `camille-lot64-${randomUUID()}@symbola.test`;
     const owner = await createUser(db, { organizationId: organization.id, email, role: "owner" });
     const source = await createProspectSource(organization.id, "Salon");
-    const wedding = await createProspect({ organizationId: organization.id, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: "Kévin" }, { firstName: "Kévina" }], eventDate: "2027-06-12", applyTemplate: false });
+    const wedding = await createProspect({ organizationId: organization.id, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: "Kévin" }, { firstName: "Kévina" }], eventDate: "2027-06-12" });
     await changeEventStatus({ organizationId: organization.id, eventId: wedding.id, changedByUserId: owner.id, toStatus: "confirmed" });
     const types = await ensureEventTypes(organization.id, "fr");
     await setEventType(organization.id, wedding.id, types.find((type) => type.starterKey === "wedding")!.id);

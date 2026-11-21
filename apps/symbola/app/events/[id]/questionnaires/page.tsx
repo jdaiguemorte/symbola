@@ -35,7 +35,7 @@ export default async function EventQuestionnairesPage({ params }: { params: Prom
         <ArrowLeft aria-hidden="true" />
         {t("back")}
       </Link>
-      <PageHeader title={t("title")} subtitle={eventNames(event.clients)} />
+      <PageHeader title={t("title")} subtitle={eventNames(event.clients, event.name)} />
       <ScreenHelp title={tHelp("eventQuestionnaires.title")} body={tHelp("eventQuestionnaires.body")} />
 
       {differences.length > 0 ? (

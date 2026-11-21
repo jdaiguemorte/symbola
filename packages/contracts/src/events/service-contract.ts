@@ -60,6 +60,10 @@ export type EventSummary = {
   clients: EventClient[];
   // AIDE-02 : événement fictif d'un essai guidé.
   isDemo: boolean;
+  // Lot 63c (EVT-01) : son type, dont le nom tient lieu de nom pour un évènement sans client.
+  eventTypeId?: string | null;
+  // Lot 63c (EVT-01 ; Q43, migration 0196) : nom facultatif ; rempli, il remplace le nom tiré des clients.
+  name?: string | null;
   // Lot 58 (PAR-09 ; ADR 0097) : archivé (lecture seule, hors des listes courantes) ; absent : non archivé.
   archivedAt?: string | null;
 };
@@ -143,14 +147,18 @@ export type CreateProspectInput = {
   organizationId: string;
   createdByUserId: string;
   clients: EventClientInput[];
-  prospectSourceId: string;
+  // Lot 63c (EVT-01 ; Q43) : nom facultatif de l'évènement (« Shooting Roux »).
+  name?: string | null;
+  // Lot 63c (EVT-01) : facultative pour un évènement confirmé (un shooting photo sans demande à suivre).
+  prospectSourceId: string | null;
   // Lot 16 (ADR 0045) : un type de l'organisation.
   eventTypeId?: string | null | undefined;
   eventDate?: string | null;
   venueName?: string | null;
   venueCity?: string | null;
-  // Lot 34a (EVT-01, D8) : le modèle du type s'applique dès la création (faux pour un import).
-  applyTemplate?: boolean;
+  // Lot 63c (EVT-01, CHR-01 ; ADR 0106, qui remplace D8 du lot 34a) : aucun rétroplanning d'office ;
+  // seulement le modèle choisi à la création (case cochée), daté depuis la date de l'évènement.
+  taskTemplateId?: string | null;
 };
 
 export type CreateProspectResult = {
