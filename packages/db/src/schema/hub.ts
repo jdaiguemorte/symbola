@@ -1392,6 +1392,8 @@ export const NOTIFICATION_TYPE_KEYS = [
   // Lot 55 (MSG-03, POR-06, MSG-05) : message d'un client ou d'un prestataire ; e-mail rejeté.
   "client_message",
   "email_bounced",
+  // Lot 63g (HUB-06, HUB-15 ; ADR 0108) : l'app demandée pendant le pilote est activée.
+  "module_activated",
 ] as const;
 const NOTIFICATION_TYPES_SQL = sql.raw(NOTIFICATION_TYPE_KEYS.map((key) => `'${key}'`).join(", "));
 export const NOTIFICATION_CHANNEL_KEYS = ["app", "email", "push"] as const;
@@ -1908,5 +1910,37 @@ export const emailDeliveries = hubSchema.table(
     check("email_deliveries_hash_check", sql`${table.recipientHash} ~ '^[0-9a-f]{64}$'`),
     check("email_deliveries_subject_check", sql`char_length(${table.subject}) <= 300`),
     check("email_deliveries_kind_check", sql`${table.kind} is null or char_length(${table.kind}) between 1 and 60`),
+  ],
+);
+
+// Lot 63g (HUB-06, HUB-27, ARC-07, SEC-09 ; ADR 0108) — demandes d'activation d'une app pendant le
+// pilote : la Propriétaire demande une app non activée, sans champ libre ; elle l'annule tant que la
+// demande attend ; l'Exploitation l'active (la demande passe à « activated », la planner est notifiée)
+// ou la classe sans l'activer (« declined »). Une seule demande en attente par app et par
+// organisation. L'Exploitation n'en lit que l'organisation, la clé du module et la date (SEC-09) ;
+// jamais la personne qui a demandé. RLS forcée ; aucune suppression par l'app (trace).
+export const MODULE_REQUEST_STATUSES = ["pending", "cancelled", "activated", "declined"] as const;
+export const moduleRequests = hubSchema.table(
+  "module_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    moduleKey: text("module_key").notNull(),
+    requestedByUserId: uuid("requested_by_user_id").notNull(),
+    requestedAt: timestamp("requested_at", { withTimezone: true }).notNull(),
+    status: text("status", { enum: MODULE_REQUEST_STATUSES }).notNull().default("pending"),
+    handledAt: timestamp("handled_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("module_requests_organization_idx").on(table.organizationId, table.requestedAt),
+    uniqueIndex("module_requests_pending_idx").on(table.organizationId, table.moduleKey).where(sql`status = 'pending'`),
+    index("module_requests_status_idx").on(table.status),
+    check("module_requests_status_check", sql`${table.status} in ('pending', 'cancelled', 'activated', 'declined')`),
+    check("module_requests_module_key_check", sql`${table.moduleKey} ~ '^[a-z][a-z0-9_]{0,39}$'`),
+    check("module_requests_handled_check", sql`(${table.status} = 'pending') = (${table.handledAt} is null)`),
   ],
 );

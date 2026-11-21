@@ -18,6 +18,7 @@ import { withOrganization } from "@symbola/db/with-organization";
 import { notificationPreferences, notifications, notificationSettings, pushSubscriptions, users } from "@symbola/db/schema/hub";
 import { parseEnv } from "@symbola/env";
 import { formatAmount } from "@symbola/i18n";
+import { starterAppCatalog } from "@symbola/starter-templates";
 import {
   NOTIFICATION_CHANNELS,
   NOTIFICATION_TYPES,
@@ -331,6 +332,11 @@ export function notificationText(view: Pick<NotificationView, "type" | "params">
     const risk = riskTranslatorFor(locale);
     const summary = risk(`rules.${view.params.rule}.alert` as "rules.vendor_without_contract.alert", params);
     return summary === MISSING ? notificationTypeLabel(view.type, locale) : translatorFor(locale)("types.risk_alert.text", { summary });
+  }
+  // Lot 63g (HUB-06 ; ADR 0108) : l'app activée est nommée dans la langue de la personne (plans.json).
+  if (view.type === "module_activated" && typeof view.params.module === "string") {
+    const app = starterAppCatalog().find((entry) => entry.key === view.params.module);
+    params.module = app ? app.labels[locale] : view.params.module;
   }
   const text = translatorFor(locale)(`types.${view.type}.text`, params);
   return text === MISSING ? notificationTypeLabel(view.type, locale) : text;
