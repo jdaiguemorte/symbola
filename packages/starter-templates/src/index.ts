@@ -576,17 +576,32 @@ const eventSheetProfileSchema = z.object({
   // Lot 14c : intitulés des colonnes de la ligne d'import tirée d'une fiche.
   columnHeaders: z.record(z.string(), z.string().min(1)),
 });
+// Lot 63b (CHR-08) : export « programme » du jour J, en PDF (titres des colonnes et des intervenants,
+// rôles de la planner et des mariés, réponse « Oui » de la colonne « Caché des mariés »).
+const programExportProfileSchema = z.object({
+  columnHeaders: z.object({ title: z.string().min(1), description: z.string().min(1), contact: z.string().min(1), hidden: z.string().min(1) }),
+  speakerHeaders: z.object({ role: z.string().min(1), company: z.string().min(1), contact: z.string().min(1), phone: z.string().min(1), instagram: z.string().min(1) }),
+  guestSummaryHeading: z.string().min(1),
+  footerPrefix: z.string().min(1),
+  roleSeparator: z.string().min(1),
+  noTime: z.string().regex(/^\d{2}:\d{2}$/),
+  hiddenYes: z.array(z.string().min(1)).min(1),
+  plannerRoles: z.array(z.string().min(1)),
+  clientRoles: z.array(z.string().min(1)),
+  maxPages: z.number().int().positive().max(100),
+});
 const importProfilesSchema = z.object({
-  planningSoftware: z.object({ vendors: vendorsExportProfileSchema, eventSheet: eventSheetProfileSchema }),
+  planningSoftware: z.object({ vendors: vendorsExportProfileSchema, eventSheet: eventSheetProfileSchema, programExport: programExportProfileSchema }),
 });
 
 export type VendorsExportProfile = z.infer<typeof vendorsExportProfileSchema>;
 export type EventSheetProfile = z.infer<typeof eventSheetProfileSchema>;
+export type ProgramExportProfile = z.infer<typeof programExportProfileSchema>;
 
 const importProfiles = importProfilesSchema.parse(importProfilesFile);
 
 // Export d'un logiciel de planification tiers (prestataires en Excel, fiches événement en PDF).
-export function planningSoftwareProfile(): { vendors: VendorsExportProfile; eventSheet: EventSheetProfile } {
+export function planningSoftwareProfile(): { vendors: VendorsExportProfile; eventSheet: EventSheetProfile; programExport: ProgramExportProfile } {
   return importProfiles.planningSoftware;
 }
 
