@@ -13,7 +13,9 @@ import { listOrganizationsSupport } from "./admin-support";
 import { acceptInvitation, createTeamInvitation, describeInvitation, listPendingTeamInvitations, TEAM_INVITATION_DURATION_MS } from "./service";
 
 const { sql, db } = createAppConnection();
-const NOW = new Date("2026-11-14T10:00:00Z");
+// L'invitation est acceptée à l'horloge réelle : une date figée la faisait expirer sept jours plus tard
+// (le test est tombé le 21/11/2026 à 11 h). L'instant de l'envoi est donc celui du test.
+const NOW = new Date();
 const MINUTE = 60 * 1000;
 
 afterAll(async () => {
