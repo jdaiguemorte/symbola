@@ -8,7 +8,7 @@ import { ScreenHelp } from "@/app/screen-help";
 import { requirePlanner } from "@/lib/guards";
 import { ensureEventTypes } from "@/lib/events/event-types";
 import { isEventsModuleEnabled } from "../../module-access";
-import { AddEventTypeForm, EventTypeRow } from "../event-type-forms";
+import { AddEventTypeForm, EventTypeList } from "../event-type-forms";
 
 export default async function EventTypesSettingsPage() {
   const auth = await requirePlanner();
@@ -32,22 +32,13 @@ export default async function EventTypesSettingsPage() {
       <h1>{t("title")}</h1>
       <ScreenHelp title={tHelp("eventTypes.title")} body={tHelp("eventTypes.body")} />
       <p>{t("intro")}</p>
-      <div className="list-table-wrap" role="region" aria-label={t("tableLabel")} tabIndex={0}>
-        <table className="list-table">
-          <thead>
-            <tr>
-              <th scope="col">{t("columnLabel")}</th>
-              <th scope="col">{t("columnEvents")}</th>
-              <th scope="col">{t("columnActions")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {types.map((type) => (
-              <EventTypeRow key={`${type.id}-${type.label}-${type.audience}`} type={type} eventCount={counts[type.id] ?? 0} others={types.filter((other) => other.id !== type.id)} />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {/* Lot 62b (UX-13, D1) : tableau éditable, enregistré à la sortie du champ. */}
+      <section className="card" aria-labelledby="event-types-list-title">
+        <h2 id="event-types-list-title" className="sr-only">
+          {t("tableLabel")}
+        </h2>
+        <EventTypeList types={types} counts={counts} />
+      </section>
       <section aria-labelledby="add-event-type-title" className="card">
         <h2 id="add-event-type-title">{t("add")}</h2>
         <AddEventTypeForm />

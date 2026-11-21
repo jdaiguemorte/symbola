@@ -8,7 +8,8 @@ import { ScreenHelp } from "@/app/screen-help";
 import { requirePlanner } from "@/lib/guards";
 import { ensureEventTypes } from "@/lib/events/event-types";
 import { isEventsModuleEnabled } from "../../module-access";
-import { ClientTermForm } from "./client-term-form";
+import { AutosaveList } from "@/app/ui/autosave-list";
+import { ClientTermRow } from "./client-term-row";
 
 export default async function ClientTermsPage() {
   const auth = await requirePlanner();
@@ -33,14 +34,37 @@ export default async function ClientTermsPage() {
       <h1>{t("title")}</h1>
       <ScreenHelp title={tHelp("clientTerms.title")} body={tHelp("clientTerms.body")} />
       <p>{t("intro")}</p>
-      {types.map((type) => (
-        <section key={type.eventTypeId} className="card" aria-labelledby={`type-${type.eventTypeId}`}>
-          <h2 id={`type-${type.eventTypeId}`}>{type.label}</h2>
-          {(["fr", "en"] as const).map((locale) => (
-            <ClientTermForm key={locale} eventTypeId={type.eventTypeId} typeLabel={type.label} locale={locale} current={type.terms[locale]} fallback={fallback(type.audience, locale)} suggestions={suggestions[locale]} />
-          ))}
-        </section>
-      ))}
+      {/* Lot 62b (UX-13, D1) : un tableau, une ligne par type et par langue, enregistrée à la sortie du champ. */}
+      <section className="card" aria-labelledby="client-terms-table">
+        <h2 id="client-terms-table" className="sr-only">
+          {t("tableLabel")}
+        </h2>
+        {(["fr", "en"] as const).map((locale) => (
+          <datalist key={locale} id={`client-terms-${locale}`}>
+            {suggestions[locale].map((suggestion) => (
+              <option key={suggestion.term} value={suggestion.term} />
+            ))}
+          </datalist>
+        ))}
+        <AutosaveList>
+          <div className="edit-list-scroll settings-list">
+          <div className="edit-list client-terms-list" role="table" aria-label={t("tableLabel")}>
+            <div className="edit-list-head" role="row">
+              <span role="columnheader">{t("type")}</span>
+              <span role="columnheader">{t("term")}</span>
+              <span role="columnheader">{t("gender")}</span>
+              <span role="columnheader">{t("number")}</span>
+              <span role="columnheader">{t("columnState")}</span>
+            </div>
+            {types.flatMap((type) =>
+              (["fr", "en"] as const).map((locale) => (
+                <ClientTermRow key={`${type.eventTypeId}-${locale}`} eventTypeId={type.eventTypeId} typeLabel={type.label} locale={locale} current={type.terms[locale]} fallback={fallback(type.audience, locale)} listId={`client-terms-${locale}`} />
+              )),
+            )}
+          </div>
+          </div>
+        </AutosaveList>
+      </section>
     </main>
   );
 }
