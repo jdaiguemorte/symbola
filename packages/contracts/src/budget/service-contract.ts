@@ -422,6 +422,8 @@ export interface BudgetServiceContract {
   setVendorPaymentPaid(input: { organizationId: string; eventId: string; paymentId: string; paidOn: string | null; changedByUserId: string }): Promise<BudgetLinesView>;
   removeVendorPayment(input: { organizationId: string; eventId: string; paymentId: string; changedByUserId: string }): Promise<BudgetLinesView>;
   listUpcomingVendorPayments(organizationId: string, today: string): Promise<UpcomingVendorPayment[]>;
+  // Lot 63d (HUB-08, BUD-11) : les échéances non réglées entre deux dates (calendrier d'« Aujourd'hui »).
+  listVendorPaymentsDueBetween(organizationId: string, today: string, from: string, until: string): Promise<UpcomingVendorPayment[]>;
   attachBudgetLineQuote(input: AttachBudgetLineQuoteInput): Promise<BudgetLineAttachment>;
   // ADR 0027 — servi par l'app (jamais de lien direct vers le stockage).
   getBudgetLineAttachmentFile(organizationId: string, attachmentId: string): Promise<FileDownload>;

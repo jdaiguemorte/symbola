@@ -10,18 +10,14 @@ import {
   updateEventTaskAction,
   type TaskFormState,
 } from "./task-actions";
-import { RESPONSIBLE_LABEL_KEYS } from "./task-responsible";
+import { RESPONSIBLE_LABEL_KEYS, responsibleValue } from "./task-responsible";
 import { SameDayNotice } from "../same-day-notice";
 
 // Lot 34b (CHR-02, D12) : prestataires engagés sur l'événement, à qui une tâche peut être confiée.
 export type TaskVendorOption = { candidateId: string; name: string };
 
-// Valeur du choix : « planner », « clients » ou « vendor:<id du prestataire retenu> ».
-function responsibleValue(task: Pick<EventTask, "responsible" | "vendorCandidateId">): string {
-  return task.responsible === "vendor" && task.vendorCandidateId ? `vendor:${task.vendorCandidateId}` : task.responsible;
-}
 
-function ResponsibleSelect({ value, onChange, vendors }: { value: string; onChange: (value: string) => void; vendors: TaskVendorOption[] }) {
+export function ResponsibleSelect({ value, onChange, vendors }: { value: string; onChange: (value: string) => void; vendors: TaskVendorOption[] }) {
   const t = useTranslations("Events");
   const known = value === "planner" || value === "clients" || vendors.some((vendor) => `vendor:${vendor.candidateId}` === value);
   return (

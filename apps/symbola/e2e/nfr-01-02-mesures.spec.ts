@@ -130,12 +130,12 @@ test("NFR-01, UX-15 — un geste optimiste réagit en moins de 100 ms ; ⌘K ouv
   try {
     const page = await context.newPage();
     await page.goto("/taches");
-    await expect(page.getByRole("button", { name: "Cocher la tâche Confirmer le lieu" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Marquer « Confirmer le lieu » comme faite" })).toBeVisible();
     const cdp = await context.newCDPSession(page);
     await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
 
     const check = await page.evaluate(async () => {
-      const button = document.querySelector<HTMLButtonElement>("button[aria-label='Cocher la tâche Confirmer le lieu']");
+      const button = document.querySelector<HTMLButtonElement>("button[aria-label='Marquer « Confirmer le lieu » comme faite']");
       if (!button) return -1;
       const start = performance.now();
       const reacted = new Promise<number>((done) => {

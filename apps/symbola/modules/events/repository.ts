@@ -36,11 +36,13 @@ import {
   ENGAGED_CANDIDATE_STATUSES,
   type EventStatus,
   type TaskRecalculation,
+  type TaskPriority,
   type TaskResponsible,
   type TaskTemplateItemInput,
   type VendorCandidateStatus,
 } from "@symbola/contracts";
 import { addDays, daysBetween, dueDateFor } from "./schedule";
+import { isVisibleCategory } from "./task-categories";
 import { shiftedTimes } from "./program";
 import { ensureMainKeyMoment, followEventDate, keyMomentOfEvent } from "./main-moment";
 import { resolveClientContacts, withContacts, type EventClientLinkRow, type EventClientRow } from "./clients";
@@ -943,8 +945,8 @@ async function isEngagedCandidate(tx: Tx, eventId: string, candidateId: string |
 export async function insertEventTask(
   organizationId: string,
   eventId: string,
-  task: { label: string; dueDate: string; responsible: TaskResponsible; vendorCandidateId?: string | null | undefined },
-): Promise<EventTaskRow | null | "invalid_vendor"> {
+  task: { label: string; dueDate: string; responsible: TaskResponsible; vendorCandidateId?: string | null | undefined; categoryId?: string | null | undefined; priority?: TaskPriority | undefined },
+): Promise<EventTaskRow | null | "invalid_vendor" | "invalid_category"> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
     // Clé étrangère vérifiée sans RLS : on contrôle que l'événement est visible.
@@ -952,12 +954,14 @@ export async function insertEventTask(
     if (!event) return null;
     const vendorCandidateId = task.responsible === "vendor" ? (task.vendorCandidateId ?? null) : null;
     if (task.responsible === "vendor" && !(await isEngagedCandidate(tx, eventId, vendorCandidateId))) return "invalid_vendor";
+    // Lot 63d (CHR-03) : seulement une catégorie de l'organisation (même contrôle que l'événement).
+    if (task.categoryId && !(await isVisibleCategory(tx, task.categoryId))) return "invalid_category";
     const position = await nextTaskPosition(tx, eventId);
     // Lot 34a (DAT-07, D5) : une tâche créée à la main sur un événement daté est relative.
     const offsetDays = event.eventDate ? daysBetween(event.eventDate, task.dueDate) : null;
     const [row] = await tx
       .insert(eventTasks)
-      .values({ organizationId, eventId, label: task.label, dueDate: task.dueDate, responsible: task.responsible, vendorCandidateId, offsetDays, position })
+      .values({ organizationId, eventId, label: task.label, dueDate: task.dueDate, responsible: task.responsible, vendorCandidateId, offsetDays, position, categoryId: task.categoryId ?? null, priority: task.priority ?? "normal" })
       .returning();
     if (!row) throw new Error("ajout de la tâche échoué");
     if (!event.tasksScheduledFor && event.eventDate) {
@@ -975,7 +979,9 @@ export async function updateEventTaskRow(input: {
   responsible?: TaskResponsible | undefined;
   vendorCandidateId?: string | null | undefined;
   done?: boolean | undefined;
-}): Promise<EventTaskRow | null | "invalid_vendor"> {
+  categoryId?: string | null | undefined;
+  priority?: TaskPriority | undefined;
+}): Promise<EventTaskRow | null | "invalid_vendor" | "invalid_category"> {
   const db = appDatabase();
   return await withOrganization(db, input.organizationId, async (tx) => {
     const [current] = await tx.select().from(eventTasks).where(eq(eventTasks.id, input.taskId));
@@ -984,6 +990,7 @@ export async function updateEventTaskRow(input: {
     const vendorCandidateId = responsible === "vendor" ? (input.vendorCandidateId !== undefined ? input.vendorCandidateId : current.vendorCandidateId) : null;
     const vendorChanged = responsible === "vendor" && (responsible !== current.responsible || vendorCandidateId !== current.vendorCandidateId);
     if (vendorChanged && (current.eventId === null || !(await isEngagedCandidate(tx, current.eventId, vendorCandidateId)))) return "invalid_vendor";
+    if (input.categoryId && input.categoryId !== current.categoryId && !(await isVisibleCategory(tx, input.categoryId))) return "invalid_category";
     const doneAt = input.done === undefined ? current.doneAt : input.done ? (current.doneAt ?? new Date()) : null;
     // Lot 34a (DAT-07) : déplacée à la main, la tâche est fixée ; le report ne la bouge plus.
     const moved = input.dueDate !== undefined && input.dueDate !== current.dueDate;
@@ -995,6 +1002,8 @@ export async function updateEventTaskRow(input: {
         responsible,
         vendorCandidateId,
         doneAt,
+        ...(input.categoryId !== undefined ? { categoryId: input.categoryId } : {}),
+        ...(input.priority !== undefined ? { priority: input.priority } : {}),
         ...(moved ? { fixedAt: current.fixedAt ?? new Date() } : {}),
         updatedAt: new Date(),
       })

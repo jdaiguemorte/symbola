@@ -4997,3 +4997,341 @@
     @apply bg-critical-soft text-critical;
   }
 }
+
+/* Lot 63d (CHR-02, CHR-03, UX-07 ; maquette M6) — le tableau des tâches agit sur la ligne : case de
+   sélection, rond « Fait », catégorie en toutes lettres, échéance modifiable d'un clic, actions de ligne
+   et barre des actions groupées. Puis la fenêtre de la tâche (DESIGN.md, « Fenêtre »). */
+@layer components {
+  .tasks-table {
+    @apply min-w-[760px];
+  }
+  /* Les textes réservés au lecteur d'écran (positionnés) restent dans la zone qui défile : sinon, à
+     375 px, ils élargissent la page. */
+  .tasks-table td,
+  .tasks-table th {
+    @apply relative;
+  }
+  .tasks-table .tasks-table-row {
+    @apply cursor-pointer hover:bg-ground;
+  }
+  .tasks-table .tasks-table-row[data-selected="true"] {
+    @apply bg-primary-soft;
+  }
+  .task-select-cell {
+    @apply w-12;
+  }
+  /* La case de sélection : une cible de 44 px (son libellé, lu par le lecteur d'écran). */
+  label.task-select {
+    @apply inline-flex h-11 w-11 max-w-none cursor-pointer items-center justify-center gap-0;
+  }
+  /* Le rond « Fait » : rond, pour ne pas se confondre avec la case de sélection (carrée). */
+  .tasks-table .task-check > button {
+    @apply rounded-full;
+  }
+  .task-label-cell {
+    @apply font-normal;
+  }
+  .task-label-cell > a {
+    @apply mr-2 font-medium text-ink no-underline hover:underline;
+  }
+  .task-label-cell > .badge {
+    @apply mr-1;
+  }
+  .task-event {
+    @apply block text-label font-normal text-ink-muted;
+  }
+  .task-event a {
+    @apply text-ink-muted;
+  }
+  .task-category {
+    @apply inline-flex items-center gap-2 whitespace-nowrap;
+  }
+  .category-dot,
+  .category-bar {
+    @apply shrink-0;
+  }
+  /* L'échéance, un bouton discret qui devient un champ date. */
+  button.task-due {
+    @apply min-h-9 gap-1 border-transparent bg-transparent px-2 text-body font-normal text-ink hover:border-line-strong max-sm:min-h-11;
+  }
+  button.task-due.text-overdue {
+    @apply font-medium text-critical;
+  }
+  .task-due-form {
+    @apply my-0;
+  }
+  .task-due-form input {
+    @apply min-h-9 w-auto px-2;
+  }
+  .tasks-table-actions {
+    @apply flex-nowrap;
+  }
+  .tasks-table-actions form {
+    @apply my-0 mr-0;
+  }
+  /* Menus de ligne (« Reporter », actions groupées) : un <details> sans le style de l'aide. */
+  details.row-menu {
+    @apply relative m-0 max-w-none rounded-none border-0 bg-transparent p-0;
+  }
+  details.row-menu > summary {
+    @apply min-h-10 max-sm:min-h-11 rounded-md border border-line-strong bg-surface px-3 text-label font-medium text-ink after:ml-1 after:content-['▾'] hover:border-ink;
+  }
+  details.row-menu[open] > summary {
+    @apply mb-0;
+  }
+  .row-menu-panel {
+    @apply absolute right-0 z-30 mt-1 flex w-64 flex-col gap-1 rounded-md border border-line bg-surface p-2 text-left shadow-float;
+  }
+  .row-menu-choices {
+    @apply my-0 flex w-full flex-col items-stretch gap-1;
+  }
+  .row-menu-choices .button-ghost {
+    @apply w-full justify-start !text-ink hover:!bg-ground hover:no-underline;
+  }
+  .row-menu-date {
+    @apply my-0 flex w-full flex-col items-stretch gap-2 border-t border-line pt-2;
+  }
+  .row-menu-panel.row-menu-date {
+    @apply w-64 border-t p-3;
+  }
+  /* « Modifier » de la ligne : à la taille des autres actions de ligne. */
+  .tasks-table-actions .button-link {
+    @apply min-h-10 px-3 text-label;
+  }
+  .task-bulk {
+    @apply my-3 flex flex-row flex-wrap items-center gap-2 rounded-md border border-primary bg-primary-soft px-3 py-2;
+  }
+  .task-bulk details.row-menu .row-menu-panel {
+    @apply right-auto left-0;
+  }
+  .task-bulk-count {
+    @apply mr-2 text-body text-primary;
+  }
+  .task-bulk-status {
+    @apply text-label text-primary;
+  }
+
+  /* La fenêtre de la tâche : une colonne ; avec ses rubriques (rétroplanning), jusqu'à 860 px, le
+     sommaire à gauche. Sur téléphone, elle occupe l'écran, avec « Retour ». */
+  .task-dialog {
+    @apply m-auto flex max-h-[calc(100dvh-2rem)] w-[min(36rem,calc(100vw-2rem))] flex-col rounded-lg border border-line bg-surface p-0 text-ink shadow-float;
+  }
+  .task-dialog:not([open]) {
+    @apply hidden;
+  }
+  .task-dialog.task-dialog-long {
+    @apply w-[min(860px,calc(100vw-2rem))];
+  }
+  .task-dialog::backdrop {
+    background: color-mix(in srgb, var(--color-ink) 35%, transparent);
+  }
+  .task-dialog-head {
+    @apply flex items-center justify-between gap-3 border-b border-line px-6 py-4;
+  }
+  .task-dialog-head > h2 {
+    @apply m-0 text-title;
+  }
+  .task-dialog-back {
+    @apply sm:hidden;
+  }
+  .task-dialog-x {
+    @apply max-sm:hidden;
+  }
+  .task-dialog-body {
+    @apply flex min-h-0 flex-1 gap-6 overflow-y-auto px-6 py-4;
+  }
+  .task-dialog-nav {
+    @apply hidden w-44 shrink-0 md:block;
+  }
+  .task-dialog-nav ul {
+    @apply sticky top-0 m-0 flex list-none flex-col gap-1 p-0;
+  }
+  .task-dialog-nav a {
+    @apply block rounded-md px-3 py-2 text-ink no-underline hover:bg-ground;
+  }
+  .task-dialog-content {
+    @apply flex min-w-0 flex-1 flex-col gap-6;
+  }
+  .task-dialog-content h3 {
+    @apply m-0 text-heading;
+  }
+  .task-dialog-form {
+    @apply my-0 w-full;
+  }
+  .task-dialog-form > label,
+  .task-dialog-form .field-row {
+    @apply max-w-none;
+  }
+  .task-dialog-actions {
+    @apply flex flex-wrap items-center justify-between gap-2 border-t border-line px-6 py-3;
+  }
+  .task-dialog-actions form {
+    @apply my-0;
+  }
+  .task-dialog-actions-main {
+    @apply flex flex-wrap gap-2;
+  }
+  @media (max-width: 639px) {
+    .task-dialog,
+    .task-dialog.task-dialog-long {
+      @apply m-0 h-dvh max-h-none w-screen max-w-none rounded-none border-0;
+    }
+    .task-dialog-head {
+      @apply flex-row-reverse justify-end px-4;
+    }
+    .task-dialog-body {
+      @apply px-4;
+    }
+    .task-dialog-actions {
+      @apply px-4;
+    }
+  }
+}
+
+/* Lot 63d (HUB-08, BUD-11 ; maquette M3) — « Aujourd'hui » : le calendrier du mois à côté des priorités
+   (grand écran), dessous sur écran moyen ; sur téléphone, la semaine en cours en liste. Pavé plein : un
+   évènement ; pavé blanc à liseré de couleur : le reste. Le libellé est toujours écrit. */
+@layer components {
+  .today-layout {
+    @apply grid grid-cols-1 items-start gap-x-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.4fr)];
+  }
+  .today-main {
+    @apply min-w-0;
+  }
+  .today-calendar {
+    @apply min-w-0;
+  }
+  .today-calendar .section-head h2 {
+    @apply m-0;
+  }
+  .today-calendar-month {
+    @apply max-md:hidden;
+  }
+  .today-calendar-week {
+    @apply md:hidden;
+  }
+  .today-calendar-nav {
+    @apply max-md:hidden;
+  }
+  .calendar-month {
+    @apply mt-2 hidden md:block;
+  }
+  .calendar-weekdays,
+  .calendar-week {
+    @apply grid grid-cols-7 gap-1;
+  }
+  .calendar-weekdays {
+    @apply mb-1 text-center text-label font-medium text-ink-muted;
+  }
+  .calendar-week {
+    @apply mb-1;
+  }
+  .calendar-day {
+    @apply flex min-h-24 min-w-0 flex-col gap-1 rounded-md border border-line p-1;
+  }
+  .calendar-day.is-weekend {
+    @apply bg-ground;
+  }
+  .calendar-day.is-outside {
+    @apply border-transparent bg-transparent text-ink-muted;
+  }
+  .calendar-day.is-today {
+    @apply border-2 border-primary;
+  }
+  .calendar-day ul,
+  .calendar-day-items,
+  .calendar-week-list,
+  .calendar-week-list ul {
+    @apply m-0 flex list-none flex-col gap-1 p-0;
+  }
+  button.calendar-day-num,
+  span.calendar-day-num {
+    @apply min-h-8 min-w-8 self-start border-transparent bg-transparent px-1 text-label font-semibold text-ink hover:border-line-strong;
+  }
+  .calendar-day.is-today button.calendar-day-num {
+    @apply text-primary;
+  }
+  .calendar-item {
+    @apply flex min-w-0 items-center gap-1 rounded-sm border border-line bg-surface px-1 text-label text-ink no-underline hover:border-ink;
+  }
+  /* Dans la grille, le libellé tient sur deux lignes au plus ; il est entier dans le détail du jour. */
+  .calendar-day .calendar-item {
+    @apply items-start px-1 py-1 text-label leading-tight;
+  }
+  .calendar-day .calendar-item .category-bar {
+    @apply mt-1;
+  }
+  .calendar-day .calendar-item-label {
+    @apply line-clamp-2 break-words hyphens-auto;
+  }
+  .calendar-item.calendar-item-event {
+    @apply border-primary bg-primary font-medium text-on-primary;
+  }
+  .calendar-item.is-overdue .calendar-item-label {
+    @apply font-medium text-critical;
+  }
+  .calendar-item.calendar-item-event.is-overdue .calendar-item-label {
+    @apply text-on-primary;
+  }
+  .calendar-item-kind,
+  .calendar-item-detail {
+    @apply text-ink-muted;
+  }
+  .calendar-item-event .calendar-item-kind {
+    @apply text-on-primary;
+  }
+  .calendar-day-items .calendar-item,
+  .calendar-week-list .calendar-item {
+    @apply flex-wrap px-2 py-1 text-body;
+  }
+  button.calendar-more {
+    @apply min-h-7 self-start border-transparent bg-transparent px-1 text-label font-medium text-primary hover:underline;
+  }
+  .calendar-legend {
+    @apply m-0 mt-2 hidden list-none flex-wrap gap-x-4 gap-y-1 p-0 text-label text-ink-muted md:flex;
+  }
+  .calendar-legend li {
+    @apply inline-flex items-center gap-2;
+  }
+  .calendar-legend-event {
+    @apply inline-block h-2.5 w-2.5 rounded-sm bg-primary;
+  }
+  .calendar-week-list {
+    @apply mt-2 gap-3 md:hidden;
+  }
+  .calendar-week-list > li[aria-current="date"] .calendar-week-day {
+    @apply text-primary;
+  }
+  .calendar-week-day {
+    @apply m-0 mb-1 text-label font-semibold;
+  }
+  .calendar-week-list .muted {
+    @apply m-0 text-label;
+  }
+}
+
+/* Lot 63d (PRE-02, UX-13, #36) — écrans de choix au motif de ligne des tâches : une ligne par option, ses
+   actions visibles à droite (à la ligne sur téléphone) ; un clic sur la ligne ouvre sa fenêtre. */
+@layer components {
+  .choice-list {
+    @apply m-0 flex list-none flex-col p-0;
+  }
+  .choice-row {
+    @apply flex cursor-pointer flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-ground px-2 py-3 hover:bg-ground;
+  }
+  .choice-row-main {
+    @apply flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1;
+  }
+  .choice-row-title {
+    @apply font-medium;
+  }
+  .choice-row-meta {
+    @apply text-label text-ink-muted;
+  }
+  .choice-row-actions form {
+    @apply my-0 mr-0;
+  }
+  .choice-row .candidate-card {
+    @apply cursor-auto;
+  }
+}

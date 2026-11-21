@@ -97,27 +97,27 @@ test("UX-07 et UX-15 — une tâche cochée l'est tout de suite, et « Annuler �
 
   // Écran « Tâches », vue « À faire » : la tâche cochée quitte la liste, le bandeau reste.
   await page.goto("/taches");
-  await page.getByRole("button", { name: "Cocher la tâche Réserver le traiteur" }).click();
+  await page.getByRole("button", { name: "Marquer « Réserver le traiteur » comme faite" }).click();
   const offer = page.getByRole("status").filter({ hasText: "Tâche « Réserver le traiteur » faite." });
   await expect(offer.getByRole("button", { name: "Annuler" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Cocher la tâche Réserver le traiteur" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Marquer « Réserver le traiteur » comme faite" })).toHaveCount(0);
   await expectNoAxeViolation(page);
   await offer.getByRole("button", { name: "Annuler" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Tâche « Réserver le traiteur » remise à faire." })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Cocher la tâche Réserver le traiteur" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Marquer « Réserver le traiteur » comme faite" })).toBeVisible();
 
   // Rétroplanning, en 375 px : sans « Annuler », la coche reste après dix secondes ; décocher ne
   // propose rien.
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto(`/events/${eventId}?onglet=retroplanning`);
-  await page.getByRole("button", { name: "Cocher la tâche Choisir les faire-part" }).click();
+  await page.getByRole("button", { name: "Marquer « Choisir les faire-part » comme faite" }).click();
   const second = page.getByRole("status").filter({ hasText: "Tâche « Choisir les faire-part » faite." });
   await expect(second.getByRole("button", { name: "Annuler" })).toBeVisible();
   await expectNoAxeViolation(page);
   await expect(second).toHaveCount(0, { timeout: 15_000 });
-  await expect(page.getByRole("button", { name: "Décocher la tâche Choisir les faire-part" })).toBeVisible();
-  await page.getByRole("button", { name: "Décocher la tâche Choisir les faire-part" }).click();
-  await expect(page.getByRole("button", { name: "Cocher la tâche Choisir les faire-part" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Marquer « Choisir les faire-part » comme à faire" })).toBeVisible();
+  await page.getByRole("button", { name: "Marquer « Choisir les faire-part » comme à faire" }).click();
+  await expect(page.getByRole("button", { name: "Marquer « Choisir les faire-part » comme faite" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Annuler", exact: true })).toHaveCount(0);
 });
 

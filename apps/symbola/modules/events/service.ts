@@ -190,6 +190,8 @@ import { hashLinkCode, LINK_CODE_TTL_MS, LINK_CODES_PER_HOUR, linkCodeExpiresAt,
 import { addPlace, listPlaces, makeReceptionPlace, removePlace, restorePlace, updatePlace } from "./places";
 import { attachFile, getAttachmentFile, listAttachments, listEventAttachments, removeAttachment } from "./task-attachments";
 import { addComment, listComments, removeComment, restoreComment } from "./task-comments";
+import { addStarterCategories, countByCategory, createCategory, listCategories, moveCategory, removeCategory, TaskCategoryNotFoundError, updateCategory } from "./task-categories";
+import { changeTasks, removeTasks, restoreTasksDeletedWith } from "./task-bulk";
 import { listTrashedEventRows, restoreDocumentRow, restoreEventRow, restoreProgramTemplateRow, restoreTaskTemplateRow, trashEventRow } from "./trash";
 import { createStorageClient, deletePrivateObject, detectFileType, PrivateObjectNotFoundError, readPrivateObject, scanBuffer, uploadPrivateObject } from "@symbola/files";
 import {
@@ -398,6 +400,11 @@ import type {
   TaskRecalculation,
   TaskResponsible,
   TemplateTaskResponsible,
+  TaskPriority,
+  TaskCategory,
+  TaskCategoryInput,
+  StarterTaskCategoryInput,
+  BulkTaskChange,
   TaskTemplate,
   TaskTemplateItem,
   TaskTemplateItemInput,
@@ -474,6 +481,11 @@ export type {
   TaskRecalculation,
   TaskResponsible,
   TemplateTaskResponsible,
+  TaskPriority,
+  TaskCategory,
+  TaskCategoryInput,
+  StarterTaskCategoryInput,
+  BulkTaskChange,
   TaskTemplate,
   TaskTemplateItem,
   TaskTemplateItemInput,
@@ -1407,6 +1419,9 @@ function toEventTask(row: EventTaskRow): EventTask {
     isMilestone: row.isMilestone,
     fixed: row.fixedAt !== null,
     ...(row.importedFields ? { importedFields: row.importedFields } : {}),
+    // Lot 63d (CHR-03).
+    categoryId: row.categoryId,
+    priority: row.priority,
   };
 }
 
@@ -1550,9 +1565,11 @@ export async function addEventTask(organizationId: string, eventId: string, task
   await assertEventWritableRow(organizationId, eventId);
   assertDate(task.dueDate);
   if (!TASK_RESPONSIBLES.includes(task.responsible)) throw new RangeError("responsable inconnu");
+  if (task.priority !== undefined && !TASK_PRIORITIES.includes(task.priority)) throw new RangeError("priorité inconnue");
   const row = await insertEventTask(organizationId, eventId, { ...task, label: normalizeLabel(task.label) });
   if (!row) throw new EventNotFoundError();
   if (row === "invalid_vendor") throw new TaskVendorInvalidError();
+  if (row === "invalid_category") throw new TaskCategoryNotFoundError();
   return toEventTask(row);
 }
 
@@ -1561,10 +1578,12 @@ export async function updateEventTask(input: UpdateEventTaskInput): Promise<Even
   if (input.responsible !== undefined && !TASK_RESPONSIBLES.includes(input.responsible)) {
     throw new RangeError("responsable inconnu");
   }
+  if (input.priority !== undefined && !TASK_PRIORITIES.includes(input.priority)) throw new RangeError("priorité inconnue");
   const label = input.label === undefined ? undefined : normalizeLabel(input.label);
   const row = await updateEventTaskRow({ ...input, label });
   if (!row) throw new EventTaskNotFoundError();
   if (row === "invalid_vendor") throw new TaskVendorInvalidError();
+  if (row === "invalid_category") throw new TaskCategoryNotFoundError();
   return toEventTask(row);
 }
 
@@ -1581,6 +1600,51 @@ export async function moveEventTask(organizationId: string, taskId: string, dire
 
 export async function removeEventTask(organizationId: string, taskId: string): Promise<void> {
   await deleteEventTask(organizationId, taskId);
+}
+
+// Lot 63d (CHR-02, UX-07 ; maquette M6) — actions groupées du tableau des tâches, et suppression groupée
+// annulable d'un seul « Annuler ».
+export const TASK_PRIORITIES: TaskPriority[] = ["high", "normal"];
+
+export async function changeEventTasks(organizationId: string, taskIds: string[], change: BulkTaskChange): Promise<number> {
+  return changeTasks(organizationId, taskIds, change);
+}
+
+export async function removeEventTasks(organizationId: string, taskIds: string[]): Promise<number> {
+  return removeTasks(organizationId, taskIds);
+}
+
+export async function restoreEventTasksDeletedWith(organizationId: string, taskId: string): Promise<number> {
+  return restoreTasksDeletedWith(organizationId, taskId);
+}
+
+// Lot 63d (CHR-03, HUB-20) — catégories des tâches (Paramètres des évènements).
+export async function listTaskCategories(organizationId: string): Promise<TaskCategory[]> {
+  return listCategories(organizationId);
+}
+
+export async function addStarterTaskCategories(organizationId: string, categories: StarterTaskCategoryInput[]): Promise<number> {
+  return addStarterCategories(organizationId, categories);
+}
+
+export async function createTaskCategory(organizationId: string, input: TaskCategoryInput): Promise<TaskCategory> {
+  return createCategory(organizationId, input);
+}
+
+export async function updateTaskCategory(organizationId: string, categoryId: string, input: TaskCategoryInput): Promise<void> {
+  return updateCategory(organizationId, categoryId, input);
+}
+
+export async function moveTaskCategory(organizationId: string, categoryId: string, direction: "up" | "down"): Promise<void> {
+  return moveCategory(organizationId, categoryId, direction);
+}
+
+export async function removeTaskCategory(organizationId: string, categoryId: string): Promise<number> {
+  return removeCategory(organizationId, categoryId);
+}
+
+export async function countTasksByCategory(organizationId: string): Promise<Record<string, number>> {
+  return countByCategory(organizationId);
 }
 
 // PRD-EVT-05 — programme du jour J.
@@ -2662,6 +2726,8 @@ export async function setVendorLinkTaskDone(organizationId: string, linkId: stri
 // Lot 34b (CHR-02, D13) — pièces jointes et commentaires d'une tâche, réservés à l'équipe.
 export { TaskAttachmentNotFoundError } from "./task-attachments";
 export { TaskCommentNotFoundError, TASK_COMMENT_MAX } from "./task-comments";
+export { TaskCategoryInvalidError, TaskCategoryNotFoundError, TASK_CATEGORY_LABEL_MAX, TASK_CATEGORY_MAX } from "./task-categories";
+export { BulkTaskChangeInvalidError, BULK_SHIFT_MAX_DAYS, BULK_TASKS_MAX } from "./task-bulk";
 
 export async function listTaskAttachments(organizationId: string, taskId: string): Promise<EventTaskAttachment[]> {
   return listAttachments(organizationId, taskId);
@@ -3284,6 +3350,16 @@ const _contractCheck: EventsServiceContract = {
   updateEventTask,
   moveEventTask,
   removeEventTask,
+  changeEventTasks,
+  removeEventTasks,
+  restoreEventTasksDeletedWith,
+  listTaskCategories,
+  addStarterTaskCategories,
+  createTaskCategory,
+  updateTaskCategory,
+  moveTaskCategory,
+  removeTaskCategory,
+  countTasksByCategory,
   getEventProgram,
   publishEventProgram,
   getEventProgramPublication,

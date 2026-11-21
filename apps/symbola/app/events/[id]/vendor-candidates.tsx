@@ -4,9 +4,13 @@
 // statut, devis, notes (internes ou montrées aux clients), « Retenir ».
 // Des cartes plutôt qu'un tableau : lisibles en 375 px. Lot 28a (PRE-02,
 // BUD-02) : sept statuts ; « Retenir » au-delà du seuil se confirme d'abord.
+// Lot 63d (PRE-02, UX-13 ; recette du 21/11/2026, #36) : le motif de ligne des tâches (maquette M6). Chaque
+// prestataire est une ligne (nom, statut, devis) avec ses actions visibles, « Modifier », « Retenir » et
+// « Retirer » ; « Modifier » ou un clic sur la ligne ouvre sa fenêtre (statut, devis, notes).
 import Link from "next/link";
 import { FreeTextNotice } from "@/app/ui/free-text-notice";
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState, type MouseEvent } from "react";
+import { EditDialog, type EditDialogHandle } from "@/app/ui/edit-dialog";
 import { useTranslations } from "next-intl";
 import { useUploadAction } from "@/app/ui/use-upload";
 import { formatAmount, formatAmountInput, type Locale } from "@symbola/i18n";
@@ -126,7 +130,7 @@ export function AddCandidateForm({ eventId, slot, bookOptions, vendorsAvailable 
   );
 }
 
-function CandidateCard({
+function CandidateDetails({
   eventId,
   candidate,
   vendorsAvailable,
@@ -144,7 +148,6 @@ function CandidateCard({
   const [state, action, pending] = useActionState(updateCandidateAction, {});
   const [quoteState, quoteAction, quotePending] = useUploadAction<CandidateFormState>(`/events/${eventId}/consultes/${candidate.id}/devis`);
   const [noteState, noteAction, notePending] = useActionState(addCandidateNoteAction, {});
-  const [selectState, selectAction, selectPending] = useActionState(selectCandidateAction, {});
   const [status, setStatus] = useState<VendorCandidateStatus>(candidate.status);
   const [contactedOn, setContactedOn] = useState(candidate.contactedOn ?? "");
   const [amount, setAmount] = useState(formatAmountInput(candidate.quoteAmountCents, locale));
@@ -154,7 +157,7 @@ function CandidateCard({
   const headingId = `candidate-${candidate.id}`;
 
   return (
-    <li className="card candidate-card" aria-labelledby={headingId}>
+    <div className="candidate-card" aria-labelledby={headingId}>
       <div className="section-head">
         <h3 id={headingId}>
           {candidate.vendorId && vendorsAvailable ? <Link href={`/prestataires/${candidate.vendorId}`}>{name}</Link> : name}
@@ -275,7 +278,49 @@ function CandidateCard({
         </form>
       </section>
 
-      <div className="candidate-actions">
+      {vendorsAvailable && !candidate.vendorId ? (
+        <div className="candidate-actions">
+          <form action={addCandidateToBookAction}>
+            <input type="hidden" name="eventId" value={eventId} />
+            <input type="hidden" name="candidateId" value={candidate.id} />
+            <input type="hidden" name="vendorName" value={name} />
+            <button type="submit">{t("addToBook", { vendor: name })}</button>
+          </form>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// Un clic sur la ligne ouvre la fenêtre, sauf s'il vise un contrôle de la ligne.
+function fromControl(event: MouseEvent): boolean {
+  return (event.target as HTMLElement).closest("a, button, input, select, label, summary, details, form, dialog") !== null;
+}
+
+function CandidateRow(props: { eventId: string; candidate: VendorCandidate; vendorsAvailable: boolean; locale: Locale; followUp: VendorFollowUpStatus | undefined }) {
+  const { eventId, candidate, vendorsAvailable, locale } = props;
+  const t = useTranslations("VendorCandidates");
+  const [selectState, selectAction, selectPending] = useActionState(selectCandidateAction, {});
+  const dialog = useRef<EditDialogHandle>(null);
+  const name = candidate.vendorName;
+  return (
+    <li
+      className="choice-row"
+      aria-label={name}
+      onClick={(event) => {
+        if (!fromControl(event)) dialog.current?.open();
+      }}
+    >
+      <div className="choice-row-main">
+        <span className="choice-row-title">{candidate.vendorId && vendorsAvailable ? <Link href={`/prestataires/${candidate.vendorId}`}>{name}</Link> : name}</span>
+        <span className={STATUS_CLASSES[candidate.status]}>{t(`status.${candidate.status}`)}</span>
+        {candidate.quoteAmountCents !== null ? <span className="choice-row-meta">{t("quoteOf", { amount: formatAmount(candidate.quoteAmountCents, locale) })}</span> : null}
+        {candidate.shownToClients ? <span className="badge badge-sauge">{t("shownToClientsShort")}</span> : null}
+      </div>
+      <div className="row-actions choice-row-actions">
+        <EditDialog ref={dialog} title={t("editTitle", { vendor: name })} long trigger={{ label: t("edit"), ariaLabel: t("editFor", { vendor: name }) }}>
+          <CandidateDetails {...props} />
+        </EditDialog>
         {!isEngaged(candidate.status) && candidate.status !== "dismissed" ? (
           <form action={selectAction} className="primary-action">
             <input type="hidden" name="eventId" value={eventId} />
@@ -287,18 +332,12 @@ function CandidateCard({
             <ConfirmEngagement state={selectState} vendor={name} />
           </form>
         ) : null}
-        {vendorsAvailable && !candidate.vendorId ? (
-          <form action={addCandidateToBookAction}>
-            <input type="hidden" name="eventId" value={eventId} />
-            <input type="hidden" name="candidateId" value={candidate.id} />
-            <input type="hidden" name="vendorName" value={name} />
-            <button type="submit">{t("addToBook", { vendor: name })}</button>
-          </form>
-        ) : null}
         <form action={removeCandidateAction}>
           <input type="hidden" name="eventId" value={eventId} />
           <input type="hidden" name="candidateId" value={candidate.id} />
-          <button type="submit">{t("remove", { vendor: name })}</button>
+          <button type="submit" className="button-danger">
+            {t("remove", { vendor: name })}
+          </button>
         </form>
       </div>
     </li>
@@ -343,9 +382,9 @@ export function VendorCandidates({
       </p>
       <SlotBriefForm key={`brief-${slot.id}`} eventId={eventId} slot={slot} />
       {candidates.length === 0 ? <p>{t("empty")}</p> : null}
-      <ul className="candidate-list">
+      <ul className="choice-list">
         {candidates.map((candidate) => (
-          <CandidateCard key={`${candidate.id}-${candidate.status}-${candidate.quoteAmountCents}-${candidate.shownToClients}-${candidate.shareRibWithClients}`} eventId={eventId} candidate={candidate} vendorsAvailable={vendorsAvailable} locale={locale} followUp={followUps.find((entry) => entry.candidateId === candidate.id)} />
+          <CandidateRow key={`${candidate.id}-${candidate.status}-${candidate.quoteAmountCents}-${candidate.shownToClients}-${candidate.shareRibWithClients}`} eventId={eventId} candidate={candidate} vendorsAvailable={vendorsAvailable} locale={locale} followUp={followUps.find((entry) => entry.candidateId === candidate.id)} />
         ))}
       </ul>
       <p className="muted">{t("selectHint")}</p>
