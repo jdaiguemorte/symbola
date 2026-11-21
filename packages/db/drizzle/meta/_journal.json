@@ -1382,16 +1382,23 @@
       "breakpoints": true
     },
     {
+      "idx": 197,
+      "version": "7",
+      "when": 1795283123258,
+      "tag": "0197_lot63d_events_task_categories",
+      "breakpoints": true
+    },
+    {
       "idx": 198,
       "version": "7",
-      "when": 1795301588563,
+      "when": 1795305117307,
       "tag": "0198_lot63e_vendors_type_links",
       "breakpoints": true
     },
     {
       "idx": 199,
       "version": "7",
-      "when": 1795301589563,
+      "when": 1795305118307,
       "tag": "0199_lot63e_vendors_drop_type_id",
       "breakpoints": true
     }

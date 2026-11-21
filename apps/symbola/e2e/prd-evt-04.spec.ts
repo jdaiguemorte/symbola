@@ -102,16 +102,16 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await expect(page.getByText("Modèle appliqué : les tâches ont été créées.")).toBeVisible();
   const row = (label: string) => page.getByRole("row", { name: new RegExp(label) });
   await expect(page.getByRole("columnheader", { name: "juin 2026" })).toBeVisible();
-  await expect(row("Réserver le lieu")).toContainText("12 juin 2026");
+  await expect(row("Réserver le lieu")).toContainText("ven. 12 juin");
   await expect(row("Réserver le lieu")).toContainText("Planner");
   await expect(page.getByRole("columnheader", { name: "février 2027" })).toBeVisible();
-  await expect(row("Envoyer les faire-part")).toContainText("12 février 2027");
+  await expect(row("Envoyer les faire-part")).toContainText("ven. 12 févr.");
   await expect(row("Envoyer les faire-part")).toContainText("Mariés");
   await expectNoAxeViolation(page);
 
   // Une tâche faite n'est pas décalée ; les autres le sont si la planner accepte.
-  await page.getByRole("button", { name: "Cocher la tâche Réserver le lieu" }).click();
-  await expect(page.getByRole("button", { name: "Décocher la tâche Réserver le lieu" })).toBeVisible();
+  await page.getByRole("button", { name: "Marquer « Réserver le lieu » comme faite" }).click();
+  await expect(page.getByRole("button", { name: "Marquer « Réserver le lieu » comme à faire" })).toBeVisible();
   await openEventTab(page, "Synthèse");
   await page.getByRole("link", { name: "Modifier les informations" }).click();
   await page.getByLabel("Date de l'événement").fill("2027-06-19");
@@ -125,10 +125,10 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await expectNoAxeViolation(page);
   await proposal.getByRole("button", { name: "Décaler les échéances" }).click();
   await expect(proposal).toHaveCount(0);
-  await expect(row("Envoyer les faire-part")).toContainText("19 février 2027");
-  await expect(row("Réserver le lieu")).toContainText("12 juin 2026");
+  await expect(row("Envoyer les faire-part")).toContainText("ven. 19 févr.");
+  await expect(row("Réserver le lieu")).toContainText("ven. 12 juin");
 
-  // Ajout d'une tâche des mariés, puis réordonnancement dans le mois (panneau de la tâche).
+  // Ajout d'une tâche des mariés, puis réordonnancement dans le mois (fenêtre de la tâche, lot 63d).
   const newTask = page.getByRole("group", { name: "Nouvelle tâche" });
   await newTask.getByLabel("Intitulé de la tâche").fill("Essayage");
   await newTask.getByLabel("Échéance").fill("2027-02-25");
@@ -138,8 +138,9 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   const order = async () => (await page.getByRole("rowheader").allTextContents()).filter((text) => ["Essayage", "Envoyer les faire-part"].includes(text));
   await expect.poll(order).toEqual(["Envoyer les faire-part", "Essayage"]);
   await page.getByRole("link", { name: "Essayage", exact: true }).click();
-  await page.getByRole("button", { name: "Monter la tâche Essayage" }).click();
+  const window = page.getByRole("dialog", { name: "Modifier la tâche" });
+  await window.getByRole("button", { name: "Monter la tâche Essayage" }).click();
   await expect.poll(order).toEqual(["Essayage", "Envoyer les faire-part"]);
-  await expect(row("Essayage")).toContainText("25 février 2027");
+  await expect(row("Essayage")).toContainText("jeu. 25 févr.");
   await expectNoAxeViolation(page);
 });

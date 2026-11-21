@@ -92,9 +92,9 @@ test("NFR-17 — PAR-03 au clavier : cocher une tâche, puis « Annuler »", asy
   test.setTimeout(120_000);
   await signIn(page, setup.email, /\/$/);
   await page.goto("/taches");
-  const check = page.getByRole("button", { name: "Cocher la tâche Confirmer le lieu" });
+  const check = page.getByRole("button", { name: "Marquer « Confirmer le lieu » comme faite" });
   await expect(check).toBeVisible();
-  expect(await tabUntil(page, () => document.activeElement?.getAttribute("aria-label") === "Cocher la tâche Confirmer le lieu")).toBe(true);
+  expect(await tabUntil(page, () => document.activeElement?.getAttribute("aria-label") === "Marquer « Confirmer le lieu » comme faite")).toBe(true);
   expect((await focusIsVisible(page)).visible).toBe(true);
   await page.keyboard.press("Enter");
   const offer = page.getByRole("status").filter({ hasText: "Tâche « Confirmer le lieu » faite." });

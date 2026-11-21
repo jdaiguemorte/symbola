@@ -12,7 +12,9 @@ export const TRASH_KINDS = ["event", "contact", "document", "taskTemplate", "pro
 export type TrashKind = (typeof TRASH_KINDS)[number];
 
 // « vendor » : l'archivage d'un prestataire s'annule aussi (D6), sans passer par la corbeille.
-export const ELEMENT_KINDS = ["task", "programItem", "place", "taskComment", "contactNote", "budgetLine", "quoteLine", "vendor"] as const;
+// Lot 63d (UX-07) : « taskBatch », des tâches supprimées d'un seul geste depuis un tableau (l'identifiant
+// est celui de l'une d'elles ; « Annuler » rend toutes celles du même geste).
+export const ELEMENT_KINDS = ["task", "taskBatch", "programItem", "place", "taskComment", "contactNote", "budgetLine", "quoteLine", "vendor"] as const;
 export type ElementKind = (typeof ELEMENT_KINDS)[number];
 
 export type UndoKind = TrashKind | ElementKind;

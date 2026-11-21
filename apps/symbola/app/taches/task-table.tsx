@@ -1,12 +1,14 @@
-// PRD-EVT-04 / PRD-HUB-02 — tableau des tâches (maquette validée) : Fait · Tâche ·
-// Échéance · Qui la réalise · Statut, regroupé par mois. Partagé entre le
-// rétroplanning d'un événement et l'écran « Tâches » de l'organisation.
-import Link from "next/link";
+// PRD-EVT-04 / PRD-HUB-02 — tableau des tâches, regroupé par mois, partagé entre le rétroplanning d'un
+// évènement et l'écran « Tâches » de l'organisation.
+// Lot 63d (CHR-02, CHR-03 ; maquette M6) : sélection, rond « Fait », catégorie, échéance modifiable dans
+// la cellule, actions de ligne et actions groupées (task-table-client.tsx) ; ce composant serveur prépare
+// les lignes (libellés traduits, dates écrites, adresse de la fenêtre de chaque tâche).
 import { getTranslations } from "next-intl/server";
-import { formatCalendarDate, formatMonth, type Locale } from "@symbola/i18n";
-import { monthKey, type EventTask } from "@/modules/events/service";
-import { TaskCheck } from "./task-check";
+import { formatMonth, formatShortCalendarDate, type Locale } from "@symbola/i18n";
+import { monthKey, type EventTask, type TaskCategory } from "@/modules/events/service";
+import { postponedDueDate } from "@/lib/tasks/postpone";
 import { RESPONSIBLE_LABEL_KEYS } from "@/app/events/[id]/task-responsible";
+import { TaskTableClient, type TaskTableMonth } from "./task-table-client";
 
 export type TaskRow = EventTask & { event?: { id: string; names: string } };
 
@@ -17,8 +19,9 @@ export async function TaskTable({
   caption,
   showEvent = false,
   selectedTaskId,
-  editHref,
+  openHref,
   responsibleLabel,
+  categories,
 }: {
   tasks: TaskRow[];
   locale: Locale;
@@ -26,79 +29,50 @@ export async function TaskTable({
   caption: string;
   showEvent?: boolean;
   selectedTaskId?: string | null;
-  editHref?: (task: TaskRow) => string;
+  // Adresse de l'écran courant qui ouvre la fenêtre de la tâche (lot 63d, Q42 bis).
+  openHref: (task: TaskRow) => string;
   // Lot 20 (décision 6) : libellé dans le vocabulaire de l'événement de la ligne.
   responsibleLabel?: (task: TaskRow) => string;
+  categories: TaskCategory[];
 }) {
   const t = await getTranslations("Events");
   // Lot 39c (UX-07) : les textes du bandeau « Annuler », les mêmes que sur « Aujourd'hui ».
   const tToday = await getTranslations("Today");
-  const months = new Map<string, TaskRow[]>();
+  const categoryById = new Map(categories.map((category) => [category.id, category]));
+  const months = new Map<string, TaskTableMonth>();
+  const undoMessages: Record<string, { done: string; reopened: string }> = {};
   for (const task of tasks) {
     const key = monthKey(task.dueDate);
-    months.set(key, [...(months.get(key) ?? []), task]);
+    const month = months.get(key) ?? { key, label: formatMonth(`${key}-01`, locale), rows: [] };
+    const category = task.categoryId ? categoryById.get(task.categoryId) : undefined;
+    month.rows.push({
+      id: task.id,
+      eventId: task.eventId,
+      label: task.label,
+      dueDate: task.dueDate,
+      dueLabel: formatShortCalendarDate(task.dueDate, locale),
+      done: task.done,
+      overdue: !task.done && task.dueDate < today,
+      priority: task.priority,
+      category: category ? { label: category.label, color: category.color } : null,
+      responsibleLabel: responsibleLabel ? responsibleLabel(task) : t(RESPONSIBLE_LABEL_KEYS[task.responsible]),
+      responsibleKind: task.responsible,
+      event: task.event ? { names: task.event.names, href: `/events/${task.event.id}?onglet=retroplanning` } : null,
+      href: openHref(task),
+    });
+    months.set(key, month);
+    undoMessages[task.id] = { done: tToday("undo.taskDone", { label: task.label }), reopened: tToday("undo.taskReopened", { label: task.label }) };
   }
-  const columns = showEvent ? 6 : 5;
-
+  const now = new Date();
   return (
-    <div role="region" aria-label={t("taskTableRegion", { caption })} tabIndex={0}>
-      <table className="data-table">
-        <caption className="sr-only">{caption}</caption>
-        <thead>
-          <tr>
-            <th scope="col">{t("taskColumnDone")}</th>
-            <th scope="col">{t("taskColumnLabel")}</th>
-            {showEvent ? <th scope="col">{t("taskColumnEvent")}</th> : null}
-            <th scope="col">{t("taskColumnDue")}</th>
-            <th scope="col">{t("taskColumnResponsible")}</th>
-            <th scope="col">{t("taskColumnStatus")}</th>
-          </tr>
-        </thead>
-        {[...months.entries()].map(([month, monthTasks]) => (
-          <tbody key={month}>
-            <tr className="month-row">
-              <th scope="colgroup" colSpan={columns}>
-                {formatMonth(`${month}-01`, locale)}
-              </th>
-            </tr>
-            {monthTasks.map((task) => {
-              const overdue = !task.done && task.dueDate < today;
-              return (
-                <tr key={task.id} aria-current={task.id === selectedTaskId ? "true" : undefined}>
-                  <td>
-                    <TaskCheck
-                      eventId={task.eventId}
-                      taskId={task.id}
-                      done={task.done}
-                      labelDone={t("markTaskDone", { label: task.label })}
-                      labelUndone={t("markTaskUndone", { label: task.label })}
-                      doneMessage={tToday("undo.taskDone", { label: task.label })}
-                      reopenedMessage={tToday("undo.taskReopened", { label: task.label })}
-                    />
-                  </td>
-                  <th scope="row" className={task.done ? "done" : undefined}>
-                    {editHref ? <Link href={editHref(task)}>{task.label}</Link> : task.label}
-                  </th>
-                  {showEvent ? (
-                    <td>{task.event ? <Link href={`/events/${task.event.id}?onglet=retroplanning`}>{task.event.names}</Link> : null}</td>
-                  ) : null}
-                  <td className={overdue ? "nowrap text-overdue" : "nowrap"}>{formatCalendarDate(task.dueDate, locale)}</td>
-                  <td>
-                    <span className={task.responsible === "clients" ? "badge badge-ambre" : "badge badge-bleu"}>
-                      {responsibleLabel ? responsibleLabel(task) : t(RESPONSIBLE_LABEL_KEYS[task.responsible])}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={task.done ? "badge badge-sauge" : overdue ? "badge badge-terracotta" : "badge"}>
-                      {task.done ? t("taskStatusDone") : overdue ? t("taskStatusOverdue") : t("taskStatusTodo")}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        ))}
-      </table>
-    </div>
+    <TaskTableClient
+      months={[...months.values()]}
+      caption={caption}
+      showEvent={showEvent}
+      selectedTaskId={selectedTaskId ?? null}
+      categories={categories.map((category) => ({ value: category.id, label: category.label }))}
+      postponeDates={{ tomorrow: formatShortCalendarDate(postponedDueDate("tomorrow", now), locale), nextWeek: formatShortCalendarDate(postponedDueDate("next_week", now), locale) }}
+      undoMessages={undoMessages}
+    />
   );
 }

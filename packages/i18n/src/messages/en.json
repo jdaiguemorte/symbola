@@ -543,7 +543,7 @@
     },
     "home": {
       "title": "Today",
-      "body": "What needs your attention, across all events, sorted by urgency: overdue, today, waiting on someone else (the client or a vendor), then the next fourteen days. The first three items come first; each line says who has to act and leads to the action in one click. Below, your events in progress, with the countdown.",
+      "body": "What needs your attention, across all events, sorted by urgency: overdue, today, waiting on someone else (the client or a vendor), then the next fourteen days. The first three items come first; each line says who has to act and leads to the action in one click. Next to it, the calendar of the month: your events, appointments, tasks in the colour of their category and unpaid vendor due dates; a click on a day shows its detail. On a phone, the current week. Below, your events in progress, with the countdown.",
       "faq": [
         {
           "q": "How do I change the follow-up delays for quotes and prospects?",
@@ -925,7 +925,7 @@
     },
     "allTasks": {
       "title": "Tasks across all your weddings",
-      "body": "The tasks of all your events, sorted by due date. Filter « Overdue » to catch up, or by who does it; tick a task when done: it is done at once, and « Undo » brings it back for ten seconds. « Calendar » places them on their due date, month by month. Click one to edit it on its wedding's page.",
+      "body": "The tasks of all your events, sorted by due date. Filter « Overdue » to catch up, or by who does it. The circle marks a task as done (« Undo » brings it back for ten seconds); the box on the left selects it, to shift, assign, categorise or delete it with others. On each line: « Edit » or a click opens the task window, « Postpone » pushes it to tomorrow, a week later or a date, « Delete » removes it at once (« Undo » for ten seconds); the due date changes in one click. « Calendar » places them on their due date, month by month.",
       "faq": [
         {
           "q": "Do the couple's tasks appear here?",
@@ -1576,6 +1576,10 @@
     "eventDocuments": {
       "title": "Filing an event's documents",
       "body": "One upload area, at the top of the Documents tab: drag the file (or choose it), then say what it is. A vendor's quote or invoice, with the vendor's name, is linked to its line in “Budget and vendors” and filed in “Vendor quotes” or “Vendor invoices”; a contract goes to “Contracts”; anything else to the chosen folder or “Miscellaneous”. “Move to…” files a document elsewhere; on a computer you can also drag it onto a folder. “My quotes” and “My invoices” are the ones you issue: manage them in “My quotes and invoices”."
+    },
+    "taskCategories": {
+      "title": "Task categories",
+      "body": "Sort your tasks by category: Client, Vendors, Admin, Big day to start with. Rename them, change their colour and order, add some; a deleted category leaves its tasks without a category. Each change is saved when you leave the field; « Undo the last change » takes it back."
     }
   },
   "Aide": {
@@ -2362,7 +2366,60 @@
     "quickTemplateInvalid": "Check the template name and tasks.",
     "eventName": "Event name",
     "eventNameHint": "(required without a client, e.g. “Roux photo shoot”)",
-    "missingEventName": "Without a client, give the event a name."
+    "missingEventName": "Without a client, give the event a name.",
+    "taskMarkDone": "Mark “{label}” as done",
+    "taskMarkUndone": "Mark “{label}” as to do",
+    "tasksSelectAll": "Select all",
+    "taskSelect": "Select “{label}”",
+    "taskColumnCategory": "Category",
+    "taskColumnActions": "Actions",
+    "taskCategory": "Category",
+    "taskNoCategory": "No category",
+    "taskCategoryInvalid": "This category no longer exists: choose another one.",
+    "taskPriority": "Priority",
+    "taskPriorityHigh": "High",
+    "taskPriorityNormal": "Normal",
+    "taskEdit": "Edit",
+    "taskEditLabel": "Edit “{label}”",
+    "taskPostpone": "Postpone",
+    "taskPostponeLabel": "Postpone “{label}”",
+    "taskPostponeTomorrow": "Tomorrow ({date})",
+    "taskPostponeNextWeek": "In a week ({date})",
+    "taskPostponeDate": "Choose a date",
+    "taskPostponeApply": "Postpone to this date",
+    "taskDelete": "Delete",
+    "taskDeleteLabel": "Delete “{label}”",
+    "taskReopen": "Reopen",
+    "taskReopenLabel": "Reopen “{label}”",
+    "taskDueEdit": ", change the due date of “{label}”",
+    "taskDueInput": "Due date of “{label}”",
+    "taskDueChanged": "Due date changed.",
+    "tasksBulkLabel": "Actions on the selected tasks",
+    "tasksBulkSelected": "{count, plural, one {# task selected} other {# tasks selected}}",
+    "tasksBulkShift": "Shift by…",
+    "tasksBulkDays": "Number of days (negative to bring forward)",
+    "tasksBulkShiftApply": "Shift",
+    "tasksBulkResponsible": "Responsible",
+    "tasksBulkCategory": "Category",
+    "tasksBulkApply": "Apply",
+    "tasksBulkDelete": "{count, plural, one {Delete the task} other {Delete the #}}",
+    "tasksBulkClear": "Clear selection",
+    "tasksBulkNone": "Select at least one task.",
+    "tasksBulkInvalid": "This action could not be applied: check the number of days (between -366 and 366, except 0).",
+    "tasksBulkDeleted": "{count, plural, =0 {No task deleted.} one {# task deleted.} other {# tasks deleted.}}",
+    "tasksBulkShifted": "{count, plural, =0 {No task shifted.} one {# task shifted by {days} days.} other {# tasks shifted by {days} days.}}",
+    "tasksBulkResponsibleDone": "{count, plural, =0 {No task changed.} one {Responsible changed for # task.} other {Responsible changed for # tasks.}}",
+    "tasksBulkCategoryDone": "{count, plural, =0 {No task changed.} one {Category changed for # task.} other {Category changed for # tasks.}}",
+    "taskDialogTitle": "Edit the task",
+    "taskDialogClose": "Close",
+    "taskDialogBack": "Back",
+    "taskDialogSections": "Task sections",
+    "taskDialogMain": "The task",
+    "taskDialogMore": "Order and milestone",
+    "taskDialogCancel": "Cancel",
+    "taskDialogSave": "Save",
+    "taskDialogDelete": "Delete the task",
+    "taskDialogOpenEvent": "Open the event's planning"
   },
   "Budget": {
     "title": "Budget",
@@ -4764,7 +4821,11 @@
     "quoteInfected": "File rejected by the antivirus.",
     "noteRequired": "The note is empty.",
     "noteTooLong": "The note is too long (2,000 characters max).",
-    "shareRibWithClients": "Share the vendor bank details (RIB) with the clients"
+    "shareRibWithClients": "Share the vendor bank details (RIB) with the clients",
+    "edit": "Edit",
+    "editFor": "Edit {vendor}",
+    "editTitle": "{vendor}",
+    "shownToClientsShort": "Shown to clients"
   },
   "VendorBook": {
     "title": "Vendor book",
@@ -5444,7 +5505,8 @@
     "senderAddress": "Sending address",
     "emailDeliveries": "Email log",
     "search": "Search settings",
-    "searchCount": "{count, plural, =0 {No setting has that name.} one {# setting found} other {# settings found}}"
+    "searchCount": "{count, plural, =0 {No setting has that name.} one {# setting found} other {# settings found}}",
+    "taskCategories": "Task categories"
   },
   "SettingsLists": {
     "hint": "Each change is saved when you leave the field.",
@@ -5474,7 +5536,9 @@
       "tasks": "Back to tasks",
       "vendors": "Back to vendors"
     },
-    "settingsPanelOpenAll": "Open all settings"
+    "settingsPanelOpenAll": "Open all settings",
+    "dialogBack": "Back",
+    "dialogClose": "Close"
   },
   "TutorialsPage": {
     "title": "Tutorials",
@@ -6006,7 +6070,8 @@
       "events_message_topic_links": "topic vendor",
       "events_messages": "message",
       "events_message_attachments": "message attachment",
-      "vendors_vendor_type_links": "vendor trade"
+      "vendors_vendor_type_links": "vendor trade",
+      "events_task_categories": "task category"
     },
     "modules": {
       "events": "Events",
@@ -7076,6 +7141,37 @@
       "budget": "budget",
       "guests": "guests",
       "appointments": "appointments"
+    },
+    "calendar": {
+      "kind": {
+        "event": "Event",
+        "appointment": "Appointment",
+        "payment": "Payment",
+        "task": "Task"
+      },
+      "payments": "Payments",
+      "high": "High",
+      "overdue": "Overdue",
+      "gridLabel": "Calendar of the month",
+      "openDay": "See the detail of {day} ({count, plural, =0 {nothing planned} one {# item} other {# items}})",
+      "more": "{count, plural, one {+ # more} other {+ # more}}",
+      "legend": "Calendar legend",
+      "weekLabel": "This week",
+      "weekTitle": "This week",
+      "dayEmpty": "Nothing planned.",
+      "back": "Back",
+      "close": "Close",
+      "navigate": "Change month",
+      "previous": "Previous month",
+      "next": "Next month",
+      "thisMonth": "This month",
+      "unavailable": "The calendar could not read {sources}: the rest is shown.",
+      "source": {
+        "events": "the events",
+        "tasks": "the tasks",
+        "appointments": "the appointments",
+        "budget": "the payment due dates"
+      }
     }
   },
   "QuickCreate": {
@@ -8367,6 +8463,7 @@
       "conflict": "Another contact already uses this email address: the contact stays in the trash.",
       "seeTrash": "View trash",
       "task": "Task deleted.",
+      "taskBatch": "Tasks deleted.",
       "programItem": "Sequence deleted.",
       "place": "Place removed.",
       "taskComment": "Comment removed.",
@@ -11946,5 +12043,32 @@
     "scheduleEmpty": "No instalment for this item.",
     "addPayment": "+ Add an instalment",
     "markPaid": "Mark as paid"
+  },
+  "TaskCategories": {
+    "title": "Task categories",
+    "intro": "Categories sort your tasks: each has a name and a colour, shown in the task list, the planning and the « Today » calendar. The name is always written next to the colour. A task can stay without a category.",
+    "tableLabel": "Task categories table",
+    "label": "Category name",
+    "labelFor": "Name of category {label}",
+    "color": "Colour",
+    "colorFor": "Colour of category {label}",
+    "columnTasks": "Tasks",
+    "columnActions": "Actions",
+    "tasksCount": "{count, plural, =0 {no task} one {# task} other {# tasks}}",
+    "moveUp": "Move up",
+    "moveUpFor": "Move category {label} up",
+    "moveDown": "Move down",
+    "moveDownFor": "Move category {label} down",
+    "remove": "Delete",
+    "removeFor": "Delete category {label}",
+    "removed": "{count, plural, =0 {Category deleted.} one {Category deleted: # task is left without a category.} other {Category deleted: # tasks are left without a category.}}",
+    "add": "Add the category",
+    "added": "Category added.",
+    "invalid": "Category name required (60 characters at most) and a colour from the palette.",
+    "tooMany": "Twenty categories at most: beyond that, the list and the calendar become unreadable.",
+    "last": "Keep at least one category; a task can stay without a category.",
+    "notFound": "This category no longer exists.",
+    "priorityTitle": "Task priority",
+    "priorityBody": "Two levels: « Normal », the default, and « High ». A high task carries the « High » badge in the list, the planning and the calendar. The priority is chosen in the task window."
   }
 }
