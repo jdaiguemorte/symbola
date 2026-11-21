@@ -105,7 +105,7 @@ test("HUB-29, RDV-01, RDV-02 — plages occupées par type et par évènement ; 
   await page.goto(`/rendez-vous/reglages/types/${typeId}`);
   await page.getByLabel("Description (facultative)").fill("Faisons connaissance : vos envies, votre date.");
   await page.getByRole("button", { name: "+ Ajouter une question" }).click();
-  await page.getByLabel("Question", { exact: true }).fill("Combien d'invités ?");
+  await page.getByRole("textbox", { name: "Question", exact: true }).fill("Combien d'invités ?");
   await page.getByRole("radio", { name: "Un choix" }).click();
   for (const choice of ["Moins de 50", "50 à 100"]) {
     await page.getByLabel("Nouveau choix").fill(choice);
