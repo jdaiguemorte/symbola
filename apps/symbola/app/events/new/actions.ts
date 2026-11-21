@@ -109,7 +109,7 @@ export async function createProspectAction(
   const example = await getActiveEventsTrial(organizationId);
   const first = example ? (await countOrganizationRealEvents(organizationId)) === 1 : false;
   // Lot 39b (UX-09) : l'évènement est créé, le brouillon de la saisie n'a plus lieu d'être.
-  await discardMyFormDraft("event-new");
+  await discardMyFormDraft(mode === "prospect" ? "event-new" : `event-new-${mode}`);
   redirect(`/events/${result.id}${first ? "?exemple=proposer" : ""}`);
 }
 

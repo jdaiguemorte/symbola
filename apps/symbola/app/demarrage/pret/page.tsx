@@ -60,7 +60,7 @@ export default async function ReadyPage() {
           <section className="card" aria-labelledby="ready-first-event">
             <h3 id="ready-first-event">{t("ready.firstEventTitle")}</h3>
             <p>{t("ready.firstEventBody")}</p>
-            <FirstEventForm eventTypes={eventTypes.map(({ id, label, audience }) => ({ id, label, audience }))} clientLabels={clientFieldLabelsByAudience(locale)} />
+            <FirstEventForm eventTypes={eventTypes.map(({ id, label, audience }) => ({ id, label, audience }))} clientLabels={clientFieldLabelsByAudience(locale)} templates={templates.flatMap((template) => (template.eventTypeId ? [{ id: template.id, name: template.name, eventTypeId: template.eventTypeId, count: template.items.length }] : []))} />
           </section>
           <section className="card" aria-labelledby="ready-example">
             <h3 id="ready-example">{t("ready.exampleTitle")}</h3>

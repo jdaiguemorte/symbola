@@ -16,8 +16,7 @@ import {
   getActiveEventsTrial,
   listEventTypes,
   listProspectSources,
-  startExampleEvent,
-} from "@/modules/events/service";
+  startExampleEvent, createTypedDocumentFolders, listTaskTemplates } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { eventsMessageFor } from "@/lib/vocabulary";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
@@ -50,6 +49,9 @@ export async function createFirstEventAction(_prev: FirstEventFormState, formDat
   const [source] = await listProspectSources(access.organizationId);
   if (!source) return { error: t("ready.noSource") };
 
+  // Lot 63c (ADR 0106) : le rétroplanning choisi (case cochée), seulement s'il est celui du type.
+  const chosen = formData.get("applyTaskTemplate") === "1" ? text(formData, "taskTemplateId") : "";
+  const taskTemplateId = chosen && (await listTaskTemplates(access.organizationId)).some((template) => template.id === chosen && template.eventTypeId === eventType.id) ? chosen : null;
   const clients = [{ firstName: firstName1, lastName: null }, ...(firstName2 ? [{ firstName: firstName2, lastName: null }] : [])];
   const created = await createProspect({
     organizationId: access.organizationId,
@@ -60,8 +62,10 @@ export async function createFirstEventAction(_prev: FirstEventFormState, formDat
     eventDate,
     venueName: null,
     venueCity: null,
+    taskTemplateId,
   });
-  // Lot 34a (EVT-01) : le rétroplanning du type est né avec l'évènement.
+  // Lot 63c (DOC-01) : les dossiers proposés à chaque évènement.
+  await createTypedDocumentFolders(access.organizationId, created.id, (await getLocale()) === "en" ? "en" : "fr");
   await changeEventStatus({ organizationId: access.organizationId, eventId: created.id, changedByUserId: access.userId, toStatus: "confirmed" });
 
   // HUB-10 : au premier évènement réel, la suppression de l'exemple est proposée.

@@ -63,7 +63,7 @@ export function NewProspectForm({
     <>
       <form action={formAction}>
         {/* Lot 39b (UX-09) : la saisie est gardée et se reprend sur tout appareil. */}
-        <DraftKeeper formKey={`event-new-${mode}`} submission={state} />
+        <DraftKeeper formKey={mode === "prospect" ? "event-new" : `event-new-${mode}`} submission={state} />
         <input type="hidden" name="mode" value={mode} />
         <RequiredLegend text={tCommon("requiredLegend")} />
         {mode === "client" ? (
