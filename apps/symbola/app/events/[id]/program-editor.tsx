@@ -177,7 +177,7 @@ function LineFields({
       <label className="program-note-field">
         {t("programInternalNote")}
         <span className="meta">{t("programInternalNoteHint")}</span>
-        <textarea rows={2} maxLength={4000} value={draft.internalNote} onChange={set("internalNote")} />
+        <textarea name="internalNote" rows={2} maxLength={4000} value={draft.internalNote} onChange={set("internalNote")} />
       </label>
       <FreeTextNotice />
     </>

@@ -84,9 +84,12 @@ test("PRD-BUD-01 — modèle de répartition, simulation et ajustement d'une lig
   // Ajustement d'un poste à la main (PRD-EVT-03/PRD-BUD-01 : le reste à répartir
   // se recalcule) — scopé à la ligne « Lieu de réception », l'ordre des
   // postes n'étant pas garanti.
-  const lieuItem = page.getByRole("listitem").filter({ has: page.getByLabel("Lieu de réception", { exact: true }) });
-  await lieuItem.getByLabel("Lieu de réception", { exact: true }).fill("7000");
-  await lieuItem.getByRole("button", { name: "Ajuster" }).click();
+  // Lot 62c (D1) : la répartition est un tableau, enregistré d'un seul « Enregistrer la répartition ».
+  const allocation = page.getByRole("table", { name: "Répartition par poste" });
+  await allocation.getByLabel("Lieu de réception", { exact: true }).fill("7000");
+  await expect(page.getByText("1 poste modifié, pas encore enregistré.")).toBeVisible();
+  await page.getByRole("button", { name: "Enregistrer la répartition" }).click();
+  await expect(page.getByText("Répartition enregistrée : 1 poste.")).toBeVisible();
   // Lot 16 (L16-HUB-20) : chiffres clés en grille (terme, valeur).
   await expect(page.getByRole("term").filter({ hasText: "Reste à répartir" })).toBeVisible();
   await expectNoAxeViolation(page);

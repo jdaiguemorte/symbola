@@ -60,9 +60,11 @@ test("BUD-01 / BUD-03 — une catégorie à plusieurs lignes, l'échéancier d'u
 
   // La ligne de la simulation devient « Dîner, 120 couverts », du traiteur.
   await openLine("Traiteur");
-  await editor("Traiteur").getByLabel("Libellé de la ligne « Traiteur »").fill("Dîner, 120 couverts");
-  await editor("Traiteur").getByLabel("Prestataire de la ligne « Traiteur »").selectOption({ label: "Maison Haddad" });
-  await editor("Traiteur").getByRole("button", { name: "Enregistrer le libellé, le prestataire et la TVA" }).click();
+  await editor("Traiteur").getByLabel("Libellé — Traiteur").fill("Dîner, 120 couverts");
+  await editor("Traiteur").getByLabel("Prestataire — Traiteur").selectOption({ label: "Maison Haddad" });
+  // Lot 62c (D1) : un seul « Enregistrer le budget ».
+  await page.getByRole("button", { name: "Enregistrer le budget" }).click();
+  await expect(page.getByText("Budget enregistré : 1 ligne.")).toBeVisible();
   const dinner = lineRow("Dîner, 120 couverts");
   await expect(dinner).toContainText("Maison Haddad");
 
@@ -83,9 +85,11 @@ test("BUD-01 / BUD-03 — une catégorie à plusieurs lignes, l'échéancier d'u
   ] as const) {
     await openLine(label);
     await editor(label).getByLabel(`Engagé — ${label}`).fill(amount);
-    await editor(label).getByRole("button", { name: "Enregistrer la ligne" }).click();
-    await expect(editor(label).getByText("Ligne enregistrée.")).toBeVisible();
   }
+  // Lot 62c (D1) : les deux lignes partent ensemble.
+  await expect(page.getByText("2 lignes modifiées, pas encore enregistrées.")).toBeVisible();
+  await page.getByRole("button", { name: "Enregistrer le budget" }).click();
+  await expect(page.getByText("Budget enregistré : 2 lignes.")).toBeVisible();
   await expect(category.getByRole("row").first()).toContainText("9 600,00 €");
 
   // Acompte de 30 % de l'engagé du traiteur (D12), à payer dans deux jours.
