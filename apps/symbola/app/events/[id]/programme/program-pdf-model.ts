@@ -113,6 +113,7 @@ export function vendorPdfProgram(program: VendorProgramView, slotLabel: string, 
         responsible: detail?.responsible ?? null,
         participants: detail ? [{ vendorSlotId: null, label: slotLabel }] : [],
         keyMomentId: null,
+        hiddenFromClients: false,
       };
     }),
     overlaps: [],

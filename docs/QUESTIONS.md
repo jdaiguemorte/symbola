@@ -891,7 +891,13 @@ prestataires doivent voir.
 - **Même remarque pour les repères** (ligne sans interlocuteur, « Coucher du soleil ») : importés
   comme une séquence sans intervenant, faute de type « repère » sur une séquence.
 
-**À trancher par Julien.**
+**Tranché par Julien le 21/11 : « Oui, dans 63b ».** Migration **0201** (schéma `events`,
+réversible, faux par défaut, RLS inchangée) : colonne `hidden_from_clients` sur `program_items`.
+Une séquence cachée n'apparaît ni dans l'espace des mariés ni dans le programme qui leur est diffusé
+(lien, PDF « mariés ») ; elle reste visible de l'équipe et des prestataires qu'elle concerne (absente
+du déroulé des autres prestataires). Réglable sur la séquence dans l'éditeur du programme ; à l'import
+du PDF, les lignes « Caché des mariés » s'importent cachées au lieu d'être écartées. Les repères
+restent des séquences sans intervenant.
 
 ## Remarques sur le nouveau document lui-même
 

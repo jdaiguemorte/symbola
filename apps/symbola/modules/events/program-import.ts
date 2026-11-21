@@ -188,6 +188,8 @@ export async function importProgram(input: {
           location: row.location,
           responsible: row.responsible?.slice(0, 120) ?? null,
           internalNote: row.note,
+          // Lot 63b (Q44) : « Caché des mariés » dans le PDF, cachée d'eux ici.
+          hiddenFromClients: row.hiddenFromClients === true,
         })
         .returning({ id: programItems.id });
       // Lot 63b : interlocuteurs du PDF, sur un poste de l'évènement (vérifié) ou en texte.

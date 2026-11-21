@@ -79,6 +79,8 @@ const programLineSchema = z.object({
   vendorSlotIds: z.array(z.string().refine(isValidId)).max(100),
   freeParticipants: z.array(z.string().max(200)).max(50),
   keyMomentId: z.string().refine(isValidId).nullable(),
+  // Lot 63b (CHR-08 ; Q44) : cachée des mariés.
+  hiddenFromClients: z.boolean().optional(),
 });
 
 const saveProgramSchema = z

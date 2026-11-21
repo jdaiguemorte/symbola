@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ProgramItem, PublishedProgramItem } from "@symbola/contracts";
-import { findProgramOverlaps, normalizeTime, programChanges, programForVariant, proposeProgramShift, publishedProgramItems, shiftedTimes, sortProgramItems, startShift, vendorProgramOf } from "./program";
+import { clientProgramItems, findProgramOverlaps, normalizeTime, programChanges, programForVariant, proposeProgramShift, publishedProgramItems, shiftedTimes, sortProgramItems, startShift, vendorProgramOf } from "./program";
 
 type Line = Parameters<typeof findProgramOverlaps>[0][number];
 
@@ -127,7 +127,7 @@ describe("CHR-06 — Décaler une séquence propose de décaler les suivantes (l
 
 // Lot 37b (CHR-07, DAT-14 ; D8, D9) — règles pures de la diffusion du programme.
 function item(id: string, startTime: string, label: string, extra: Partial<ProgramItem> = {}): ProgramItem {
-  return { id, eventId: "evt", startTime, endTime: null, label, location: null, internalNote: null, responsible: null, participants: [], keyMomentId: null, ...extra };
+  return { id, eventId: "evt", startTime, endTime: null, label, location: null, internalNote: null, responsible: null, participants: [], keyMomentId: null, hiddenFromClients: false, ...extra };
 }
 
 describe("CHR-07 — Diffusion du chrono par destinataire, par lien et en PDF ; versions numérotées", () => {
@@ -143,7 +143,18 @@ describe("CHR-07 — Diffusion du chrono par destinataire, par lien et en PDF ; 
     const published = publishedProgramItems(program);
     expect(published).toHaveLength(3);
     expect(JSON.stringify(published)).not.toMatch(/alliances|Marge|€/);
-    expect(published[0]).toEqual({ id: "a", startTime: "15:00", endTime: "16:30", label: "Cérémonie", location: "Jardin", responsible: "Camille", participants: [photographe, { vendorSlotId: null, label: "Officiant" }] });
+    expect(published[0]).toEqual({ id: "a", startTime: "15:00", endTime: "16:30", label: "Cérémonie", location: "Jardin", responsible: "Camille", participants: [photographe, { vendorSlotId: null, label: "Officiant" }], hiddenFromClients: false });
+  });
+
+  it("CHR-08 (lot 63b, Q44) — une séquence cachée des mariés n'est jamais dans leur programme, ni dans le déroulé d'un prestataire qu'elle ne concerne pas ; la cacher est un changement à diffuser", () => {
+    const withHidden = [...program, item("s", "21:30", "Animation surprise", { participants: [traiteur], hiddenFromClients: true })];
+    expect(clientProgramItems(withHidden).map((line) => line.id)).toEqual(["a", "b", "c"]);
+    expect(programForVariant(withHidden, "couple").map((line) => line.id)).toEqual(["a", "b", "c"]);
+    const published = publishedProgramItems(withHidden);
+    expect(vendorProgramOf(published, "slot-traiteur").outline.map((line) => line.id)).toContain("s");
+    expect(vendorProgramOf(published, "slot-photo").outline.map((line) => line.id)).not.toContain("s");
+    const shown = publishedProgramItems(withHidden.map((line) => (line.id === "s" ? { ...line, hiddenFromClients: false } : line)));
+    expect(programChanges(published, shown).changed).toEqual(["Animation surprise"]);
   });
 
   it("dit ce qui a changé depuis la dernière diffusion : ajouts, modifications, retraits ; une note interne ne compte pas", () => {

@@ -39,6 +39,8 @@ function itemsOf(row: VersionRow): PublishedProgramItem[] {
       location: item.location ?? null,
       responsible: item.responsible ?? null,
       participants: (item.participants ?? []).map((participant) => ({ vendorSlotId: participant.vendorSlotId ?? null, label: participant.label })),
+      // Lot 63b (Q44) : une version d'avant 0201 n'a que des séquences visibles.
+      hiddenFromClients: item.hiddenFromClients === true,
     })),
   );
 }

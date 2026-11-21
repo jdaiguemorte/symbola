@@ -135,7 +135,7 @@ sur sa partie « Données ».
 
 ---
 
-### 63b — Import (aucune migration)
+### 63b — Import (migration 0201, Q44)
 
 #### HUB-14, UX-15 — On voit que ça charge (#15)
 
@@ -197,7 +197,8 @@ sur sa partie « Données ».
   - un interlocuteur sans rôle reste en texte ;
   - un rôle en double se rapproche par rôle et nom, et la planner elle-même est ignorée ;
   - le nom après le rôle se cherche dans le prénom, le nom et la raison sociale ;
-  - une ligne « Caché des mariés » n'est pas partagée ;
+  - une ligne « Caché des mariés » n'est pas partagée : elle s'importe cachée des mariés (Q44,
+    migration 0201 ; réglable sur chaque séquence dans l'éditeur du programme) ;
   - le résumé des invités est ignoré.
 - Les intervenants de l'en-tête se rapprochent des prestataires du catalogue par le même écran
   qu'en M5.
@@ -442,7 +443,8 @@ laisse aucune trace (HUB-06, ARC-07). Maquette M13.
 
 | Paquet | Migration | Schéma | Réversible | Accord |
 |---|---|---|---|---|
-| 63a, 63b, 63f | aucune | — | — | — |
+| 63a, 63f | aucune | — | — | — |
+| 63b | 0201 : `program_items.hidden_from_clients` (séquence cachée des mariés, Q44) | `events` | oui | accordé le 21/11 (Q44) |
 | 63c | 0196 si le type de pièce doit être gardé (à vérifier) | `events` | oui | à confirmer au début du paquet |
 | 63d | 0197 : `task_categories`, `category_id`, `priority` | `events` | oui | **accord du 21/11** |
 | 63e | 0198 : `vendor_type_links` et reprise ; 0199 : retrait de `type_id` | `vendors` | oui | **accord du 21/11** (résultat de la reprise montré avant la production) |

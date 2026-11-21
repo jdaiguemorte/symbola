@@ -1090,6 +1090,8 @@ export type ProgramItemData = {
   // Lot 51 (EVT-04 ; D1) : le temps fort de la séquence ; absent à l'ajout, le premier temps fort du
   // jour de l'évènement (créé de lui-même au besoin) ; absent à la modification, inchangé.
   keyMomentId?: string | null;
+  // Lot 63b (Q44) : absent à la modification, inchangé ; absent à l'ajout, visible des mariés.
+  hiddenFromClients?: boolean;
 };
 
 export type ProgramItemWithParticipants = {

@@ -31,9 +31,11 @@ type Draft = {
   freeParticipants: string;
   // Lot 51 (EVT-04 ; D1) : le temps fort de la séquence (son jour) ; vide, le jour de l'évènement.
   keyMomentId: string;
+  // Lot 63b (CHR-08 ; Q44) : cachée des mariés (leur espace, le programme diffusé, le PDF « mariés »).
+  hiddenFromClients: boolean;
 };
 
-const EMPTY_DRAFT: Draft = { startTime: "", endTime: "", durationMinutes: "", label: "", location: "", internalNote: "", responsible: "", vendorSlotIds: [], freeParticipants: "", keyMomentId: "" };
+const EMPTY_DRAFT: Draft = { startTime: "", endTime: "", durationMinutes: "", label: "", location: "", internalNote: "", responsible: "", vendorSlotIds: [], freeParticipants: "", keyMomentId: "", hiddenFromClients: false };
 const TEXT_FIELDS = ["startTime", "endTime", "durationMinutes", "label", "location", "internalNote", "responsible", "freeParticipants", "keyMomentId"] as const;
 
 function draftOf(item: ProgramItem): Draft {
@@ -51,11 +53,12 @@ function draftOf(item: ProgramItem): Draft {
       .map((participant) => participant.label)
       .join(", "),
     keyMomentId: item.keyMomentId ?? "",
+    hiddenFromClients: item.hiddenFromClients,
   };
 }
 
 function sameDraft(a: Draft, b: Draft): boolean {
-  return TEXT_FIELDS.every((field) => a[field] === b[field]) && a.vendorSlotIds.length === b.vendorSlotIds.length && a.vendorSlotIds.every((id) => b.vendorSlotIds.includes(id));
+  return TEXT_FIELDS.every((field) => a[field] === b[field]) && a.hiddenFromClients === b.hiddenFromClients && a.vendorSlotIds.length === b.vendorSlotIds.length && a.vendorSlotIds.every((id) => b.vendorSlotIds.includes(id));
 }
 
 const validDuration = (value: string) => /^\d+$/.test(value) && Number(value) >= 1 && Number(value) <= 1440;
@@ -73,6 +76,7 @@ function lineOf(draft: Draft): ProgramSaveInput["updates"][number]["item"] {
     vendorSlotIds: draft.vendorSlotIds,
     freeParticipants: draft.freeParticipants.split(","),
     keyMomentId: draft.keyMomentId === "" ? null : draft.keyMomentId,
+    hiddenFromClients: draft.hiddenFromClients,
   };
 }
 
@@ -173,6 +177,11 @@ function LineFields({
           </div>
         </fieldset>
       ) : null}
+      <label className="program-hidden-field">
+        <input type="checkbox" checked={draft.hiddenFromClients} onChange={(event) => setDraft({ ...draft, hiddenFromClients: event.target.checked })} />
+        {t("programHiddenFromClients")}
+        <span className="meta">{t("programHiddenFromClientsHint")}</span>
+      </label>
       <label className="program-note-field">
         {t("programInternalNote")}
         <span className="meta">{t("programInternalNoteHint")}</span>
@@ -390,6 +399,7 @@ export function ProgramEditor({
                     <span role="cell" className="program-main">
                       <strong>{label}</strong>
                       {row.state !== "saved" ? <span className="badge badge-ambre">{t(row.state === "new" ? "programLineNew" : "programLineChanged")}</span> : null}
+                      {row.draft.hiddenFromClients ? <span className="badge">{t("programHiddenBadge")}</span> : null}
                       {row.draft.internalNote.trim() ? (
                         <span className="program-note">
                           {t("programInternalNote")} : {row.draft.internalNote.trim()}

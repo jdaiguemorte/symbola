@@ -129,7 +129,7 @@ test("HUB-14 — import de prestataires : chargement visible, colonnes avec aper
   await expect(page.getByText("4 résultats")).toBeVisible();
 });
 
-test("CHR-08 — programme du jour J importé depuis le PDF de l'ancien logiciel : intervenants rattachés, ligne cachée des mariés écartée", async ({ page }) => {
+test("CHR-08 — programme du jour J importé depuis le PDF de l'ancien logiciel : intervenants rattachés, ligne cachée des mariés importée cachée", async ({ page }) => {
   test.setTimeout(180_000);
   const { organizationId, userId, email } = await atelier("planner-63b-programme");
   const source = await createProspectSource(organizationId, "Salon");
@@ -147,10 +147,18 @@ test("CHR-08 — programme du jour J importé depuis le PDF de l'ancien logiciel
   await expect(page.getByText("Programme lu depuis le PDF de votre ancien logiciel")).toBeVisible();
   // L'intervenant « DJ » de l'en-tête est rattaché au poste de l'évènement qui porte son nom.
   await expect(page.getByLabel("Prestataire de l'évènement pour « DJ »")).toHaveValue(dj.id);
-  await expect(page.getByText(/est « Cachée des mariés » dans le fichier/)).toBeVisible();
-  await expect(page.getByRole("checkbox", { name: "Écarter la ligne 10" })).toBeChecked();
+  // Q44 : la ligne « Caché des mariés » s'importe cachée d'eux, pas écartée.
+  await expect(page.getByText(/est « Cachée des mariés » dans le fichier : elle s'importe cachée d'eux/)).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: "Écarter la ligne 10" })).not.toBeChecked();
   await expectNoAxeViolation(page);
 
   await page.getByRole("button", { name: "Importer 12 séquences" }).click();
-  await expect(page.getByText("11 séquences importées, 2 temps forts créés.")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText("12 séquences importées, 2 temps forts créés.")).toBeVisible({ timeout: 30_000 });
+  // Dans l'éditeur, la séquence porte la pastille et la case cochée.
+  await page.reload();
+  const surprise = page.getByRole("row").filter({ hasText: "Animation surprise" });
+  await expect(surprise).toContainText("Cachée des mariés");
+  await surprise.getByRole("button", { name: /Modifier/ }).click();
+  await expect(page.getByRole("checkbox", { name: /Cachée des mariés/ })).toBeChecked();
+  await expectNoAxeViolation(page);
 });

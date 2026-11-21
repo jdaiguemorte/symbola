@@ -1373,6 +1373,13 @@
       "when": 1795157757554,
       "tag": "0195_lot55_hub_sender_deliveries",
       "breakpoints": true
+    },
+    {
+      "idx": 201,
+      "version": "7",
+      "when": 1795290000000,
+      "tag": "0201_lot63b_events_program_hidden",
+      "breakpoints": true
     }
   ]
 }

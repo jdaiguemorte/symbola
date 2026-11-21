@@ -1,7 +1,7 @@
 // Lot 63b (CHR-08) — le programme du jour J s'importe depuis le PDF de l'ancien logiciel, contre un
 // vrai PostgreSQL (RLS), par la porte d'entrée du module : aperçu sans rien écrire, intervenants
 // rattachés aux postes de l'évènement, séquences écrites avec leurs interlocuteurs, jours de la veille
-// et du lendemain, lignes « Caché des mariés » écartées d'office ; abus d'une autre organisation.
+// et du lendemain, lignes « Caché des mariés » importées cachées (Q44) ; abus d'une autre organisation.
 // PDF fabriqués aux noms inventés (packages/testing/import-corpus/generate_programme.py).
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
@@ -49,17 +49,14 @@ describe("CHR-08 — Programme du jour J depuis le PDF de l'ancien logiciel (imp
     expect((await getEventProgram(organizationId, eventId)).items).toHaveLength(0);
   });
 
-  it("à l'import, chaque séquence garde son jour, ses heures, sa description en note et ses interlocuteurs ; la planner n'est jamais intervenante", async () => {
+  it("à l'import, chaque séquence garde son jour, ses heures, sa description en note et ses interlocuteurs ; la planner n'est jamais intervenante ; « Caché des mariés » s'importe cachée (Q44)", async () => {
     const { organizationId, eventId, djSlotId, catererSlotId } = await wedding();
-    const hidden = (await importEventProgram({ organizationId, eventId, bytes: pdf("programme-jour-j.pdf"), apply: null })) as Extract<Awaited<ReturnType<typeof importEventProgram>>, { status: "preview" }>;
-    const skipLines = hidden.preview.rows.filter((row) => row.hiddenFromClients).map((row) => row.line);
-    expect(skipLines).toEqual([10]);
-
-    const applied = await importEventProgram({ organizationId, eventId, bytes: pdf("programme-jour-j.pdf"), apply: { skipLines } });
-    expect(applied).toMatchObject({ status: "applied", items: 11, moments: 2, skipped: 1 });
+    const applied = await importEventProgram({ organizationId, eventId, bytes: pdf("programme-jour-j.pdf"), apply: { skipLines: [] } });
+    expect(applied).toMatchObject({ status: "applied", items: 12, moments: 2, skipped: 0 });
     const program = await getEventProgram(organizationId, eventId);
     const byLabel = new Map(program.items.map((item) => [item.label, item]));
-    expect(byLabel.has("Animation surprise")).toBe(false);
+    expect(byLabel.get("Animation surprise")!.hiddenFromClients).toBe(true);
+    expect(byLabel.get("Dîner") ?? byLabel.get("Brunch")!).toMatchObject({ hiddenFromClients: false });
     const evening = byLabel.get("Soirée de la veille")!;
     expect(evening).toMatchObject({ startTime: "19:00", endTime: "02:00", internalNote: "Apéritif servi à partir de 20h" });
     expect(evening.participants.map((participant) => participant.vendorSlotId)).toEqual([catererSlotId]);

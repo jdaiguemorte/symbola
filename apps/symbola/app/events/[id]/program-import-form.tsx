@@ -6,8 +6,8 @@
 // seront créés et les cellules neutralisées ; rien n'est écrit avant « Importer ».
 // Lot 63b (CHR-08) : ou le PDF de programme de l'ancien logiciel. Le même écran montre en plus les
 // intervenants de l'en-tête côte à côte avec le poste de l'évènement proposé (modifiable), les
-// interlocuteurs de chaque séquence, les repères et les lignes « Caché des mariés », écartées
-// d'office tant que le programme partagé ne sait pas les cacher aux mariés.
+// interlocuteurs de chaque séquence, les repères et les lignes « Caché des mariés », importées
+// cachées d'eux (Q44, migration 0201).
 import { useActionState, useRef } from "react";
 import { useTranslations } from "next-intl";
 import type { ProgramImportPreview, ProgramImportRow } from "@symbola/contracts";
@@ -159,7 +159,7 @@ export function ProgramImportForm({ eventId, open = false }: { eventId: string; 
                           <td className="meta">{(row.participants ?? []).length > 0 ? (row.participants ?? []).map((participant) => (participant.vendorSlotId ? participant.label : `${participant.label} (${t("programImportParticipantText")})`)).join(", ") : "—"}</td>
                         ) : null}
                         <td>
-                          <input type="checkbox" name="skip" value={row.line} defaultChecked={row.hiddenFromClients === true} aria-label={t("programImportSkipLine", { line: row.line })} />
+                          <input type="checkbox" name="skip" value={row.line} aria-label={t("programImportSkipLine", { line: row.line })} />
                         </td>
                       </tr>
                     );

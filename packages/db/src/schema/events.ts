@@ -441,6 +441,9 @@ export const programItems = eventsSchema.table("program_items", {
   // Lot 51 (EVT-04 ; D1, ADR 0091) : le temps fort de la séquence, donc son jour. Facultatif en base
   // (compatible avec l'ancien code, ARC-14) ; l'app rattache toute séquence nouvelle à un temps fort.
   keyMomentId: uuid("key_moment_id").references((): AnyPgColumn => keyMoments.id, { onDelete: "set null" }),
+  // Lot 63b (CHR-08 ; Q44, migration 0201) : cachée des mariés (espace, programme diffusé, PDF
+  // « mariés ») ; visible de l'équipe et des prestataires concernés.
+  hiddenFromClients: boolean("hidden_from_clients").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
@@ -479,6 +482,8 @@ export const programItemParticipants = eventsSchema.table("program_item_particip
 // version ne se modifie pas. publishedByUserId est nul pour la version 1 reprise à la migration.
 export type ProgramVersionItemRow = {
   id: string;
+  // Lot 63b (Q44) : absente des versions d'avant 0201 (alors visible).
+  hiddenFromClients?: boolean;
   startTime: string;
   endTime: string | null;
   label: string;

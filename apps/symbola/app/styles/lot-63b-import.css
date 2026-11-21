@@ -68,7 +68,7 @@
     @apply m-0 mt-3 grid gap-2;
   }
   .column-preview dl > div {
-    @apply grid gap-0.5;
+    @apply grid gap-1;
   }
   .column-preview dt {
     @apply text-label text-ink-muted;
@@ -139,5 +139,15 @@
   /* Pastille du filtre « Import du JJ/MM » sur la liste des prestataires. */
   .import-filter-pill {
     @apply inline-flex items-center gap-2 rounded-full border border-primary bg-primary-soft px-3 py-1 text-label font-semibold text-primary;
+  }
+}
+
+/* Lot 63b (Q44) — case « Cachée des mariés » d'une séquence du programme, avec son explication. */
+@layer components {
+  .program-hidden-field {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .program-hidden-field > .meta {
+    @apply basis-full;
   }
 }
