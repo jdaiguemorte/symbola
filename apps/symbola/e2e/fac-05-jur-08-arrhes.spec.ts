@@ -12,6 +12,7 @@ import { createProspect, createProspectSource } from "../modules/events/service"
 import { saveOnboardingStep } from "../modules/hub/service";
 import { addPaymentMethods, addQuoteLine, addScheduleItem, createQuote, getQuoteSettings, setQuoteAdvanceKind, updateQuoteSettings } from "../modules/quotes/service";
 import { readyOrganization, signIn as signInByLink } from "./helpers";
+import { openQuoteRubric } from "./devis-rubriques";
 
 const PASSWORD = "mot-de-passe-terrain-e2e";
 const OLD_STARTER_TEXT =
@@ -103,7 +104,8 @@ test("JUR-01 / FAC-07 — conditions de paiement selon le client : deux textes, 
 test("JUR-08 / FAC-05 — devis à arrhes : une seule échéance ; à l'encaissement, un reçu non fiscal de sa propre série", async ({ page }) => {
   const setup = await atelier({ earnestQuote: true });
   await login(page, setup.email);
-  const quoteUrl = `/devis/${setup.quoteId}`;
+  // Lot 62d : l'échéancier est dans la rubrique « Paiement et acompte ».
+  const quoteUrl = `/devis/${setup.quoteId}?rubrique=paiement`;
   await page.goto(quoteUrl);
   await page.waitForLoadState("networkidle");
 
@@ -118,7 +120,7 @@ test("JUR-08 / FAC-05 — devis à arrhes : une seule échéance ; à l'encaisse
   await expectNoAxeViolation(page);
 
   await page.waitForLoadState("networkidle");
-  await page.getByRole("button", { name: "Marquer comme envoyé" }).click();
+  await page.getByRole("button", { name: "Envoyer le devis" }).click();
   await expect(page.getByText(/^Envoyé — version/)).toBeVisible();
 
   // D21 : l'encaissement des arrhes crée un reçu non fiscal, listé avec son PDF.
@@ -127,6 +129,8 @@ test("JUR-08 / FAC-05 — devis à arrhes : une seule échéance ; à l'encaisse
   await pay.getByLabel("Mode de paiement").selectOption({ label: "Virement bancaire" });
   await pay.getByRole("button", { name: "Marquer payée" }).click();
   await expect(page.getByText(/^Payée le .* \(Virement bancaire\)$/)).toBeVisible();
+  // Le reçu est rangé avec les factures : la rubrique apparaît dès qu'une pièce existe.
+  await openQuoteRubric(page, "factures");
   const receipts = page.getByRole("list", { name: "Reçus d'arrhes" });
   await expect(receipts.getByRole("listitem")).toHaveCount(1);
   await expect(receipts.getByRole("listitem")).toContainText(/R-\d{4}-0001/);

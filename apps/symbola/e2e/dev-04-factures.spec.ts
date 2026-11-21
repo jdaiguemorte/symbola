@@ -8,6 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
+import { openQuoteForm, openQuoteRubric } from "./devis-rubriques";
 import { saveOnboardingStep } from "../modules/hub/service";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
@@ -69,12 +70,14 @@ test("DEV-04 — facturer un devis signé (acompte, solde, avoir) puis exporter 
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
   const quoteUrl = page.url();
   await page.waitForLoadState("networkidle");
-  const freeLine = page.getByRole("form", { name: "Ajouter une ligne libre" });
+  // Lot 62d : les formulaires d'ajout s'ouvrent sous le tableau des lignes, un à la fois.
+  const freeLine = await openQuoteForm(page, "Ajouter une ligne libre");
   await freeLine.getByLabel("Intitulé").fill("Coordination");
   await freeLine.getByLabel("Unité").fill("forfait");
   await freeLine.getByLabel("Prix unitaire HT (€)").fill("3000");
   await freeLine.getByRole("button", { name: "Ajouter la ligne" }).click();
   await expect(freeLine.getByText("Ligne ajoutée.")).toBeVisible();
+  await openQuoteRubric(page, "paiement");
   const addItem = page.getByRole("form", { name: "Ajouter l'échéance" });
   await addItem.getByLabel("Intitulé de l'échéance").fill("Acompte à la signature");
   await addItem.getByLabel("Date d'échéance").fill("2030-01-15");
@@ -84,6 +87,7 @@ test("DEV-04 — facturer un devis signé (acompte, solde, avoir) puis exporter 
   await expect(page.getByText(/Solde : 2\s100,00\s€/)).toBeVisible();
 
   // Signature par le faux fournisseur.
+  await openQuoteRubric(page, "contrat");
   const send = page.getByRole("form", { name: "Envoyer en signature" });
   const first = send.getByRole("group", { name: "Signataire 1" });
   await first.getByLabel("E-mail").fill(signerEmail);
@@ -98,6 +102,9 @@ test("DEV-04 — facturer un devis signé (acompte, solde, avoir) puis exporter 
   await page.goto(quoteUrl);
   await page.waitForLoadState("networkidle");
   await expect(page.getByText(/^Signé — version/)).toBeVisible();
+  // Lot 62d : « Facturer », la prochaine action d'un devis signé, mène à la rubrique des factures.
+  await page.getByRole("link", { name: "Facturer" }).click();
+  await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Émettre la facture d'acompte « Acompte à la signature »" }).click();
   await expect(page.getByText(/^F-\d{4}-0001 — Facture d'acompte/)).toBeVisible();
   await page.waitForLoadState("networkidle");

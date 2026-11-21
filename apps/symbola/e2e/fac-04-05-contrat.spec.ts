@@ -120,8 +120,8 @@ test("FAC-04 / DOC-03 / FAC-05 / SC-02 étapes 4 à 7 — contrat généré (pro
   const setup = await atelier();
   await login(page, setup.email);
 
-  // Étape 6 : le contrat du devis envoyé. Ce qui empêche de le générer est nommé.
-  await page.goto(`/devis/${setup.quoteId}`);
+  // Étape 6 : le contrat du devis envoyé (rubrique « Contrat et signature »). Ce qui empêche de le générer est nommé.
+  await page.goto(`/devis/${setup.quoteId}?rubrique=contrat`);
   const section = page.getByRole("region", { name: "Contrat" });
   await expect(section).toContainText("Base à adapter, à faire relire par un professionnel du droit.");
   await expect(section).toContainText("Lieu de l'événement : vide");
@@ -144,7 +144,7 @@ test("FAC-04 / DOC-03 / FAC-05 / SC-02 étapes 4 à 7 — contrat généré (pro
   await venue.getByRole("button", { name: "Enregistrer le lieu" }).click();
   await expect(venue.getByRole("status")).toHaveText("✓ Lieu enregistré.");
 
-  await page.goto(`/devis/${setup.quoteId}`);
+  await page.goto(`/devis/${setup.quoteId}?rubrique=contrat`);
   await expect(section).not.toContainText("À régler avant de générer");
   const generate = section.getByRole("form", { name: "Générer le contrat" });
   await generate.getByLabel("À distance").check();
@@ -187,7 +187,7 @@ test("FAC-04 / DOC-03 / FAC-05 / SC-02 étapes 4 à 7 — contrat généré (pro
   }
 
   // Devis signé ; actes et dossier de preuve ; la facture d'acompte existe sans autre saisie.
-  await page.goto(`/devis/${setup.quoteId}`);
+  await page.goto(`/devis/${setup.quoteId}?rubrique=contrat`);
   await expect(page.getByText("Devis signé par tous les signataires.")).toBeVisible();
   await expect(section).toContainText("Léa Martin — Commande avec obligation de paiement");
   await expect(section).toContainText("Maxime Durand — Demande d'exécution avant la fin du délai de rétractation");
@@ -195,6 +195,7 @@ test("FAC-04 / DOC-03 / FAC-05 / SC-02 étapes 4 à 7 — contrat généré (pro
   expect(evidence.status()).toBe(200);
   expect(evidence.headers()["content-type"]).toBe("application/pdf");
   // Worker des événements (toutes les 15 secondes) : la facture d'acompte part d'elle-même.
+  await page.goto(`/devis/${setup.quoteId}?rubrique=factures`);
   const invoices = page.getByRole("region", { name: "Factures" });
   await expect(async () => {
     await page.reload();

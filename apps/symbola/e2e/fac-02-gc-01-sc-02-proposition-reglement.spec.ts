@@ -141,8 +141,8 @@ test("SC-02 étapes 4 à 8 / FAC-02 / GC-01 / SEC-16 / FAC-08 — aperçu, optio
   await expectNoHorizontalScroll(lea);
   await expectNoAxeViolation(lea);
 
-  // Camille envoie le devis en signature aux deux mariés.
-  await page.goto(`/devis/${setup.quoteId}`);
+  // Camille envoie le devis en signature aux deux mariés (rubrique « Contrat et signature »).
+  await page.goto(`/devis/${setup.quoteId}?rubrique=contrat`);
   const send = page.getByRole("form", { name: "Envoyer en signature" });
   await send.getByLabel("Adresse de facturation").first().fill("4 rue des Lilas, 60300 Senlis");
   await send.getByLabel("Adresse de facturation").nth(1).fill("4 rue des Lilas, 60300 Senlis");
@@ -186,7 +186,11 @@ test("SC-02 étapes 4 à 8 / FAC-02 / GC-01 / SEC-16 / FAC-08 — aperçu, optio
   await page.goto("/");
   await page.waitForLoadState("networkidle");
   await expect(page.getByText("Léa Martin déclare avoir viré 1 620,00 €")).toBeVisible();
+  // Lot 62d : l'encart de suivi annonce le virement déclaré, et mène à la rubrique du paiement.
   await page.goto(`/devis/${setup.quoteId}`);
+  const follow = page.getByRole("region", { name: "Suivi du devis" }).getByRole("link", { name: /^Paiement et acompte/ });
+  await expect(follow).toContainText("1 virement déclaré à confirmer");
+  await follow.click();
   await expect(page.getByRole("region", { name: "Règlement par virement" })).toContainText("Léa Martin déclare avoir viré le");
   await page.getByText("Marquer payée l'échéance « Acompte à la signature »").click();
   const pay = page.getByRole("form", { name: "Marquer payée l'échéance « Acompte à la signature »" });

@@ -8,6 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
+import { openQuoteForm, openQuoteRubric } from "./devis-rubriques";
 import { saveOnboardingStep } from "../modules/hub/service";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
@@ -69,14 +70,16 @@ test("DEV-02 — envoyer un devis en signature, signer par le lien reçu, archiv
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
   const quoteUrl = page.url();
   await page.waitForLoadState("networkidle");
-  const freeLine = page.getByRole("form", { name: "Ajouter une ligne libre" });
+  // Lot 62d : les formulaires d'ajout s'ouvrent sous le tableau des lignes, un à la fois.
+  const freeLine = await openQuoteForm(page, "Ajouter une ligne libre");
   await freeLine.getByLabel("Intitulé").fill("Coordination");
   await freeLine.getByLabel("Unité").fill("forfait");
   await freeLine.getByLabel("Prix unitaire HT (€)").fill("1800");
   await freeLine.getByRole("button", { name: "Ajouter la ligne" }).click();
   await expect(freeLine.getByText("Ligne ajoutée.")).toBeVisible();
 
-  // Signataire saisi sur le devis, pré-rempli depuis les mariés de l'événement.
+  // Signataire saisi sur le devis (rubrique « Contrat et signature »), pré-rempli depuis les mariés de l'événement.
+  await openQuoteRubric(page, "contrat");
   const send = page.getByRole("form", { name: "Envoyer en signature" });
   const first = send.getByRole("group", { name: "Signataire 1" });
   await expect(first.getByLabel("Nom et prénom")).toHaveValue("Inès Martin");
@@ -97,7 +100,7 @@ test("DEV-02 — envoyer un devis en signature, signer par le lien reçu, archiv
   await expect(page.getByText("Vous avez signé ce devis.")).toBeVisible();
 
   // Devis signé, documents archivés et téléchargeables.
-  await page.goto(quoteUrl);
+  await page.goto(`${quoteUrl}?rubrique=contrat`);
   await page.waitForLoadState("networkidle");
   await expect(page.getByText("Devis signé par tous les signataires.")).toBeVisible();
   await expect(page.getByText(/^Signé — version/)).toBeVisible();
