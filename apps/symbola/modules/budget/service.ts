@@ -1265,7 +1265,17 @@ export async function listPendingPaymentDeclarations(organizationId: string): Pr
 // D7 : échéances non payées des 7 prochains jours et en retard, toutes les
 // lignes de l'organisation (hors essais : leurs données ne publient rien).
 export async function listUpcomingVendorPayments(organizationId: string, today: string): Promise<UpcomingVendorPayment[]> {
-  const { payments, lines } = await findDueVendorPayments(organizationId, addDaysTo(today, 7));
+  return describeVendorPayments(organizationId, today, await findDueVendorPayments(organizationId, addDaysTo(today, 7)));
+}
+
+// Lot 63d (HUB-08, BUD-03, BUD-11 ; maquette M3) — les échéances des prestataires non réglées entre deux
+// dates (« AAAA-MM-JJ », bornes comprises) : le calendrier du mois d'« Aujourd'hui » les montre à leur date.
+export async function listVendorPaymentsDueBetween(organizationId: string, today: string, from: string, until: string): Promise<UpcomingVendorPayment[]> {
+  if (from > until) return [];
+  return describeVendorPayments(organizationId, today, await findDueVendorPayments(organizationId, until, from));
+}
+
+async function describeVendorPayments(organizationId: string, today: string, { payments, lines }: Awaited<ReturnType<typeof findDueVendorPayments>>): Promise<UpcomingVendorPayment[]> {
   if (payments.length === 0) return [];
   const eventIds = [...new Set(payments.map((payment) => payment.eventId))];
   const [names, slotsByEvent, candidatesByEvent] = await Promise.all([
@@ -1340,6 +1350,7 @@ const _contractCheck: BudgetServiceContract = {
   setVendorPaymentPaid,
   removeVendorPayment,
   listUpcomingVendorPayments,
+  listVendorPaymentsDueBetween,
 };
 void _contractCheck;
 

@@ -177,7 +177,8 @@ test("Décision 6 — Tâches : vocabulaire neutre quand les événements sont d
   }
   await loginAndSetupMfa(page, email, password);
   await page.goto("/taches");
-  await expect(page.getByRole("columnheader", { name: "Événement" })).toBeVisible();
+  // Lot 63d (maquette M6) : l'évènement s'écrit sous la tâche, plus dans une colonne à part.
+  await expect(page.getByRole("columnheader", { name: "Catégorie" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Clients", exact: true })).toBeVisible();
   await expect(page.getByRole("row", { name: /Choisir les alliances/ })).toContainText("Mariés");
   await expect(page.getByRole("row", { name: /Valider le traiteur/ })).toContainText("Clients");

@@ -56,6 +56,7 @@ import vendorTagsFile from "./vendor-tags.json";
 import agencyVendorTagsFile from "./vendor-tags.event-agency.json";
 import allocationFile from "./allocation.json";
 import eventTypesFile from "./event-types.json";
+import taskCategoriesFile from "./task-categories.json";
 import onboardingFile from "./onboarding.json";
 import appointmentTypesFileJson from "./appointment-types.json";
 
@@ -873,6 +874,45 @@ export function starterEventTypes(locale: StarterLocale, metier: StarterMetier =
     if (!item) throw new Error(`type d'événement de départ inconnu : ${key}`);
     return { key: item.key, label: item.label[locale], audience: item.audience };
   });
+}
+
+// Lot 63d (CHR-03, HUB-20 ; recette du 21/11/2026) — catégories de départ des tâches (Client,
+// Prestataires, Administratif, Jour J), la palette où la planner choisit la couleur d'une catégorie, et la
+// couleur des échéances de paiement dans le calendrier d'« Aujourd'hui ». Une couleur est un code
+// « #rrggbb » ; elle n'est jamais montrée sans son libellé.
+export type StarterTaskCategory = { key: string; label: string; color: string };
+export type TaskCategoryColor = { key: string; label: string; color: string };
+
+const hexColorSchema = z.string().regex(/^#[0-9a-f]{6}$/);
+const taskCategoriesSchema = z
+  .object({
+    version: z.literal(1),
+    palette: z.array(z.object({ key: z.string().min(1), color: hexColorSchema, label: translatedLabelSchema })).min(2),
+    items: z.array(z.object({ key: z.string().min(1), label: translatedLabelSchema, color: z.string().min(1) })).min(1),
+    calendar: z.object({ payments: z.string().min(1), appointments: z.string().min(1) }),
+  })
+  .superRefine((file, context) => {
+    const keys = new Set(file.palette.map((entry) => entry.key));
+    for (const item of file.items) if (!keys.has(item.color)) context.addIssue({ code: "custom", message: `couleur inconnue : ${item.color}` });
+    for (const color of Object.values(file.calendar)) if (!keys.has(color)) context.addIssue({ code: "custom", message: `couleur inconnue : ${color}` });
+  });
+const taskCategoriesData = taskCategoriesSchema.parse(taskCategoriesFile);
+const paletteColor = (key: string): string => taskCategoriesData.palette.find((entry) => entry.key === key)!.color;
+
+export function starterTaskCategories(locale: StarterLocale): StarterTaskCategory[] {
+  return taskCategoriesData.items.map((item) => ({ key: item.key, label: item.label[locale], color: paletteColor(item.color) }));
+}
+
+export function taskCategoryPalette(locale: StarterLocale): TaskCategoryColor[] {
+  return taskCategoriesData.palette.map((entry) => ({ key: entry.key, label: entry.label[locale], color: entry.color }));
+}
+
+export function paymentsCalendarColor(): string {
+  return paletteColor(taskCategoriesData.calendar.payments);
+}
+
+export function appointmentsCalendarColor(): string {
+  return paletteColor(taskCategoriesData.calendar.appointments);
 }
 
 // Lot 21 (L21-PRE-18, ADR 0050) — étiquettes de départ des prestataires, rangées

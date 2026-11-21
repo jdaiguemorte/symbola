@@ -35,6 +35,7 @@ import {
   programItems,
   programTemplateItems,
   programTemplates,
+  taskCategories,
   taskTemplateItems,
   taskTemplates,
   eventMessages,
@@ -786,5 +787,29 @@ describe("PRD-EVT-01/02 — Isolation entre organisations (module events, Postgr
       const [row] = await withOrganization(db, organizationId, (tx) => tx.insert(contactMerges).values({ organizationId, keptContactId: randomUUID(), absorbedContactId: randomUUID() }).returning());
       return row!;
     }, { fieldsFromAbsorbed: ["email"] });
+  });
+  it("CHR-03, SEC-10, lot 63d — catégories des tâches : invisibles et intouchables depuis une autre organisation ; la catégorie et la priorité d'une tâche aussi", async () => {
+    const category = async (organizationId: string) => {
+      const [row] = await withOrganization(db, organizationId, (tx) => tx.insert(taskCategories).values({ organizationId, label: "Prestataires", color: "#b0558a", position: 1 }).returning());
+      return row!;
+    };
+    await isolate(taskCategories, category, { label: "falsifiée" });
+    await isolate(eventTasks, async (organizationId) => {
+      const eventId = await eventOf(organizationId);
+      const parent = await category(organizationId);
+      const [row] = await withOrganization(db, organizationId, (tx) => tx.insert(eventTasks).values({ organizationId, eventId, label: "Confirmer le menu", dueDate: "2027-03-01", categoryId: parent.id, priority: "high" }).returning());
+      return row!;
+    }, { priority: "normal", categoryId: null });
+  });
+
+  it("CHR-03, lot 63d — la base refuse une couleur hors du format « #rrggbb », un libellé vide et une priorité inconnue", async () => {
+    const organizationId = randomUUID();
+    await expect(withOrganization(db, organizationId, (tx) => tx.insert(taskCategories).values({ organizationId, label: "Client", color: "bleu" }))).rejects.toThrow();
+    await expect(withOrganization(db, organizationId, (tx) => tx.insert(taskCategories).values({ organizationId, label: "  ", color: "#3b6fd8" }))).rejects.toThrow();
+    const eventId = await eventOf(organizationId);
+    await expect(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      withOrganization(db, organizationId, (tx) => tx.insert(eventTasks).values({ organizationId, eventId, label: "Relancer", dueDate: "2027-03-01", priority: "urgent" as any })),
+    ).rejects.toThrow();
   });
 });
