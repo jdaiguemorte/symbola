@@ -284,7 +284,6 @@
     "metierWeddingPlanner": "Wedding planner",
     "metierAutre": "Autre métier de l'événementiel",
     "metierPrecision": "Précisez (si « autre »)",
-    "save": "Enregistrer",
     "profileSaved": "Fiche entreprise enregistrée.",
     "vatRegimeTitle": "Régime de TVA",
     "currentRegime": "Régime actuel",
@@ -303,7 +302,6 @@
     "saveFollowUpDelays": "Enregistrer les délais",
     "followUpDelaysSaved": "✓ Délais enregistrés.",
     "followUpDelaysInvalid": "Indiquez un nombre de jours entre 1 et 365.",
-    "documentDetailsTitle": "Coordonnées des devis et factures",
     "documentDetailsHint": "Imprimées sur vos prochains devis et factures ; les documents déjà émis ne changent pas.",
     "siret": "SIRET (14 chiffres)",
     "contactEmail": "E-mail de contact",
@@ -314,8 +312,6 @@
     "registrationHint": "Par exemple : RCS Lyon 123 456 789.",
     "shareCapital": "Capital social (€)",
     "shareCapitalHint": "Pour une société seulement (EURL, SARL, SAS, SASU, SA).",
-    "documentDetailsSave": "Enregistrer les coordonnées",
-    "documentDetailsSaved": "Coordonnées enregistrées.",
     "errorSiret": "Le SIRET doit compter 14 chiffres.",
     "errorContactEmail": "Cet e-mail n'est pas valide.",
     "errorContactPhone": "Ce numéro de téléphone n'est pas valide.",
@@ -362,7 +358,16 @@
     "vatOnDebitsChoose": "Choisissez oui ou non.",
     "vatOnDebitsFranchise": "Sans objet en franchise en base de TVA.",
     "followUpSeeAlso": "Les e-mails de relance envoyés à vos clients pour une proposition ou un paiement se règlent ailleurs :",
-    "followUpSeeAlsoLink": "Ventes, Relances de devis et de paiement"
+    "followUpSeeAlsoLink": "Ventes, Relances de devis et de paiement",
+    "sheetIdentityTitle": "Identité",
+    "sheetAddressTitle": "Adresse",
+    "sheetContactTitle": "Coordonnées imprimées",
+    "sheetSave": "Enregistrer la fiche",
+    "vatCardTitle": "TVA",
+    "followUpDelaysTitle": "Délais de relance",
+    "sheetTabsLabel": "Rubriques de l'entreprise",
+    "sheetTabCompany": "Fiche et TVA",
+    "sheetTabDocuments": "Mentions et logo"
   },
   "AdminSettings": {
     "title": "Paramètres de la plateforme",
@@ -469,7 +474,7 @@
     "quotes": [
       {
         "title": "Le catalogue",
-        "body": "Vos prestations réutilisables : intitulé, unité, prix HT, TVA et catégorie. Dépliez un article pour le modifier ; archivé, il n'est plus proposé mais reste sur les devis qui l'utilisent."
+        "body": "Vos prestations réutilisables : intitulé, unité, prix HT, TVA et catégorie. « Modifier » ouvre un article dans sa ligne ; archivé, il n'est plus proposé mais reste sur les devis qui l'utilisent."
       },
       {
         "title": "Nouvel article",
@@ -564,7 +569,7 @@
     },
     "settings": {
       "title": "Entreprise et TVA",
-      "body": "La fiche de votre entreprise (SIREN, adresse, forme juridique, métier) et votre régime de TVA : ils figurent sur vos devis et factures. Le métier règle le vocabulaire et les modèles de départ. Les autres réglages sont rangés par rubrique dans le menu de gauche. Complétez le code postal et la ville avant votre première facture, et, si vous êtes assujettie, dites si vous avez opté pour la TVA sur les débits.",
+      "body": "La fiche de votre entreprise (SIREN, adresse, forme juridique, métier) et votre régime de TVA : ils figurent sur vos devis et factures. Le métier règle le vocabulaire et les modèles de départ. Les autres réglages sont rangés par rubrique dans le menu de gauche. Complétez le code postal et la ville avant votre première facture, et, si vous êtes assujettie, dites si vous avez opté pour la TVA sur les débits. Identité, adresse et coordonnées imprimées s'enregistrent ensemble, par « Enregistrer la fiche ».",
       "faq": [
         {
           "q": "Je passe de la franchise à la TVA : que faire ?",
@@ -766,7 +771,7 @@
     },
     "quotesCatalog": {
       "title": "Catalogue des prestations",
-      "body": "Vos prestations réutilisables : intitulé, unité, prix HT, TVA et catégorie. Ajoutez un article en bas de page ; il est aussitôt proposé dans vos devis. Archivé, il n'est plus proposé mais reste sur les devis qui l'utilisent. Indiquez si l'article est une prestation de services ou une livraison de biens : la facture en déduit la catégorie de l'opération.",
+      "body": "Vos prestations réutilisables : intitulé, unité, prix HT, TVA et catégorie. Ajoutez un article en bas de page ; il est aussitôt proposé dans vos devis. Archivé, il n'est plus proposé mais reste sur les devis qui l'utilisent. Indiquez si l'article est une prestation de services ou une livraison de biens : la facture en déduit la catégorie de l'opération. « Modifier » ouvre un article dans sa ligne ; chaque modification s'enregistre quand vous quittez le champ, et « Annuler la dernière modification » la reprend.",
       "faq": [
         {
           "q": "Changer un prix modifie-t-il les devis envoyés ?",
@@ -1002,7 +1007,7 @@
     },
     "eventTypes": {
       "title": "Types d'événements",
-      "body": "Chaque événement a un type : mariage, séminaire, anniversaire… Le type dit qui sont vos clients, les mariés ou un client, et la fiche, le programme et l'espace client en suivent le vocabulaire. Renommez un type, choisissez qui sont ses clients, ajoutez-en ; un type qui a des événements ne se supprime qu'en les confiant à un autre."
+      "body": "Chaque événement a un type : mariage, séminaire, anniversaire… Le type dit qui sont vos clients, les mariés ou un client, et la fiche, le programme et l'espace client en suivent le vocabulaire. Renommez un type, choisissez qui sont ses clients, ajoutez-en ; un type qui a des événements ne se supprime qu'en les confiant à un autre. Chaque modification s'enregistre quand vous quittez le champ ; « Annuler la dernière modification » la reprend."
     },
     "quotesDocuments": {
       "title": "Documents",
@@ -1280,7 +1285,7 @@
     },
     "mealTypes": {
       "title": "Types de repas",
-      "body": "Les types de repas de la synthèse pour le traiteur : adulte, enfant, bébé (sans repas), prestataire au départ. Renommez, masquez ou ajoutez un type ; le type d'un invité suit son âge, sauf si vous le changez sur le plan de table."
+      "body": "Les types de repas de la synthèse pour le traiteur : adulte, enfant, bébé (sans repas), prestataire au départ. Renommez, masquez ou ajoutez un type ; le type d'un invité suit son âge, sauf si vous le changez sur le plan de table. Chaque modification s'enregistre quand vous quittez le champ ; « Annuler la dernière modification » la reprend."
     },
     "appointmentsList": {
       "title": "Rendez-vous",
@@ -1322,7 +1327,7 @@
     },
     "eventsPipelineStages": {
       "title": "Étapes du pipeline",
-      "body": "Renommez les étapes, ajoutez-en (dix au plus), changez leur ordre, retirez celles qui ne vous servent pas. Une étape qui contient des cartes se vide d'abord : choisissez l'étape où elles passent.",
+      "body": "Renommez les étapes, ajoutez-en (dix au plus), changez leur ordre, retirez celles qui ne vous servent pas. Une étape qui contient des cartes se vide d'abord : choisissez l'étape où elles passent. Chaque modification s'enregistre quand vous quittez le champ ; « Annuler la dernière modification » la reprend.",
       "faq": [
         {
           "q": "Puis-je ajouter « Gagné » comme étape ?",
@@ -1400,7 +1405,7 @@
     },
     "dayChecklists": {
       "title": "Listes du jour J",
-      "body": "Les modèles de listes de contrôle (installation, démontage) de votre organisation, copiés au départ de quelques listes types. Ajoutez une liste à un temps fort depuis l'écran du jour J (« Préparer les listes ») : elle est copiée, et modifier le modèle ensuite ne la change pas."
+      "body": "Les modèles de listes de contrôle (installation, démontage) de votre organisation, copiés au départ de quelques listes types. Ajoutez une liste à un temps fort depuis l'écran du jour J (« Préparer les listes ») : elle est copiée, et modifier le modèle ensuite ne la change pas. « Modifier » ouvre un modèle dans sa ligne ; chaque modification s'enregistre quand vous quittez le champ."
     },
     "programImport": {
       "title": "Importer un chrono",
@@ -1484,7 +1489,7 @@
     },
     "clientTerms": {
       "title": "Termes des clients",
-      "body": "Le terme choisi pour un type remplace « les mariés » ou « les clients » là où Symbola nomme vos clients, et remplit '{{terme_clients}}' dans vos e-mails et vos documents à venir."
+      "body": "Le terme choisi pour un type remplace « les mariés » ou « les clients » là où Symbola nomme vos clients, et remplit '{{terme_clients}}' dans vos e-mails et vos documents à venir. Chaque modification s'enregistre quand vous quittez le champ ; « Annuler la dernière modification » la reprend."
     },
     "standaloneTasks": {
       "title": "Tâches hors évènement",
@@ -2535,7 +2540,8 @@
     "payersNav": "Payeurs et calendrier",
     "payersLink": "Payeurs et répartition",
     "cashCalendarLink": "Calendrier des sorties d'argent",
-    "bankToVerify": "IBAN à vérifier"
+    "bankToVerify": "IBAN à vérifier",
+    "removeModelShort": "Supprimer"
   },
   "Quotes": {
     "title": "Devis",
@@ -2556,9 +2562,7 @@
     "itemVatRate": "Taux de TVA (%)",
     "itemCategory": "Catégorie",
     "createItem": "Ajouter l'article",
-    "saveItem": "Enregistrer l'article",
     "itemCreated": "Article ajouté.",
-    "itemSaved": "Article enregistré.",
     "invalidPrice": "Le prix doit être un montant positif, avec au plus deux décimales.",
     "invalidVatRate": "Le taux de TVA doit être compris entre 0 et 100 %.",
     "missingLabelOrUnit": "L'intitulé et l'unité sont obligatoires.",
@@ -2984,7 +2988,21 @@
     "lineTourismTransport": "Transport",
     "lineTourismLodging": "Hébergement",
     "lineTourismOther": "Autre prestation touristique",
-    "lineIntermediaryBadge": "facturée par le prestataire, hors total"
+    "lineIntermediaryBadge": "facturée par le prestataire, hors total",
+    "settingsDelaysTitle": "Délais et sommes versées d'avance",
+    "settingsTermsTitle": "Conditions de paiement",
+    "settingsProfessionalTitle": "Clients professionnels",
+    "settingsNumberingTitle": "Numérotation",
+    "catalogTableLabel": "Articles du catalogue",
+    "catalogListHint": "« Modifier » ouvre un article ; chaque modification s'enregistre quand vous quittez le champ.",
+    "catalogColumnPrice": "Prix HT",
+    "catalogColumnVat": "TVA",
+    "catalogColumnActions": "Actions",
+    "catalogPricePerUnit": "{price} / {unit}",
+    "editItem": "Modifier",
+    "closeItem": "Fermer",
+    "closeItemNamed": "Fermer « {label} »",
+    "archiveItemShort": "Archiver"
   },
   "Documents": {
     "pdfSellerHeading": "De",
@@ -4114,7 +4132,8 @@
     "guestRetentionIntro": "Comptées depuis le dernier jour de l'évènement, ou son annulation. Préavis de sept jours avant chaque purge, un seul report motivé possible. Valeurs de départ : réponses de la DPO.",
     "guestNoticeTitle": "Mention d'information de la page de réponse des invités",
     "guestNoticeIntro": "Affichée en tête et en pied de la page où les invités répondent, au nom de votre organisation et des mariés : qui traite, pourquoi, combien de temps, leurs droits et leur opposition. Variables : {organization}, {clients}, {contact}, {dietDays}, {days}.",
-    "guestNoticeLabel": "Texte de la mention"
+    "guestNoticeLabel": "Texte de la mention",
+    "durationsTitle": "Alerte et durées de conservation"
   },
   "AdminAccounts": {
     "title": "Comptes et assistance",
@@ -5340,7 +5359,18 @@
     "eventTemplates": "Modèles d'évènement",
     "subscription": "Mon abonnement",
     "senderAddress": "Adresse d'envoi",
-    "emailDeliveries": "Journal des envois"
+    "emailDeliveries": "Journal des envois",
+    "search": "Chercher un réglage",
+    "searchCount": "{count, plural, =0 {Aucun réglage ne porte ce nom.} one {# réglage trouvé} other {# réglages trouvés}}"
+  },
+  "SettingsLists": {
+    "hint": "Chaque modification s'enregistre quand vous quittez le champ.",
+    "saving": "Enregistrement…",
+    "saved": "Modification enregistrée.",
+    "undone": "Modification annulée.",
+    "undo": "Annuler la dernière modification",
+    "error": "Erreur : {message}",
+    "failed": "l'enregistrement n'a pas abouti. Vérifiez votre connexion, puis reprenez le champ."
   },
   "Common": {
     "closePanel": "Fermer le panneau",
@@ -5463,18 +5493,16 @@
     "eventsCount": "{count, plural, =0 {aucun} one {# événement} other {# événements}}",
     "add": "Ajouter le type",
     "added": "Type ajouté.",
-    "save": "Enregistrer",
-    "saveFor": "Enregistrer le type {label}",
-    "saved": "Type enregistré.",
     "remove": "Supprimer",
     "removeFor": "Supprimer le type {label}",
-    "removed": "Type supprimé.",
-    "moveTo": "Ses événements passent au type",
     "moveToFor": "Les événements du type {label} passent au type",
     "invalid": "Nom du type obligatoire (80 caractères au plus).",
     "inUse": "Ce type a des événements : choisissez le type qui les reprend.",
     "last": "Gardez au moins un type d'événement.",
-    "notFound": "Ce type n'existe plus."
+    "notFound": "Ce type n'existe plus.",
+    "moveToChoose": "Choisir un type",
+    "removeConfirm": "Supprimer le type",
+    "cancel": "Annuler"
   },
   "ActivityLog": {
     "title": "Journal d'activité",
@@ -8880,17 +8908,25 @@
       "title": "Types de repas",
       "intro": "Les types de repas de la synthèse pour le traiteur. Par défaut, un adulte est servi « Adulte », un enfant « Enfant », un enfant de moins de 3 ans « Bébé » ; changez le type d'un invité sur le plan de table. Masquer n'efface rien.",
       "unavailable": "Les types de repas sont indisponibles : le module Invités n'est pas ouvert pour votre organisation.",
-      "hidden": "masqué",
       "show": "Afficher {label}",
       "hide": "Masquer {label}",
-      "rename": "Renommer {label}",
       "label": "Libellé",
-      "save": "Enregistrer",
       "saved": "Libellé enregistré.",
-      "reset": "Reprendre le libellé de départ",
       "addTitle": "Ajouter un type",
       "add": "Ajouter",
-      "added": "Type ajouté."
+      "added": "Type ajouté.",
+      "labelFor": "Libellé du type {label}",
+      "columnState": "État",
+      "columnActions": "Actions",
+      "hiddenState": "Masqué",
+      "shownState": "Affiché",
+      "hideShort": "Masquer",
+      "showShort": "Afficher",
+      "resetShort": "Rétablir",
+      "resetFor": "Rétablir le libellé de départ de {label}",
+      "renameShort": "Renommer",
+      "renameFor": "Renommer {label}",
+      "listHint": "« Renommer » ouvre le libellé d'un type ; il s'enregistre quand vous quittez le champ."
     }
   },
   "MoveToGroup": {
@@ -9047,17 +9083,27 @@
         "destination": "L'étape choisie pour les cartes n'existe plus."
       },
       "stageLabel": "Étape {position}",
-      "rename": "Renommer",
       "cards": "{count, plural, =0 {Aucune carte} one {Une carte} other {# cartes}}",
       "up": "Monter",
       "upLabel": "Monter l'étape {stage}",
       "down": "Descendre",
       "downLabel": "Descendre l'étape {stage}",
-      "destination": "Ses cartes passent à",
       "remove": "Retirer",
       "removeLabel": "Retirer l'étape {stage}",
       "newStage": "Nouvelle étape",
-      "add": "Ajouter"
+      "add": "Ajouter",
+      "tableLabel": "Tableau des étapes du pipeline",
+      "columnRank": "Ordre",
+      "columnStage": "Étape",
+      "columnCards": "Cartes",
+      "columnActions": "Actions",
+      "destinationFor": "Les cartes de l'étape {stage} passent à",
+      "removeConfirm": "Retirer l'étape",
+      "cancel": "Annuler",
+      "newStageName": "Nom de l'étape",
+      "rename": "Renommer",
+      "renameLabel": "Renommer l'étape {stage}",
+      "listHint": "« Renommer » ouvre le nom d'une étape ; il s'enregistre quand vous quittez le champ."
     },
     "reply": "Répondre",
     "answered": "A répondu",
@@ -9473,7 +9519,11 @@
       "resetTasks": "Revenir à la liste de départ",
       "save": "Enregistrer",
       "saved": "Réglages enregistrés.",
-      "ownerOnly": "Seule la titulaire du compte peut changer ces réglages."
+      "ownerOnly": "Seule la titulaire du compte peut changer ces réglages.",
+      "delaysTitle": "Délais et envois",
+      "taskColumn": "Tâche",
+      "taskDaysColumn": "Échéance (jours)",
+      "taskNew": "Nouvelle tâche"
     },
     "errors": {
       "unauthorized": "Action impossible : rechargez la page.",
@@ -9567,14 +9617,21 @@
     "setup": "Installation",
     "teardown": "Démontage",
     "items": "Cases (une par ligne)",
-    "save": "Enregistrer",
     "add": "Ajouter le modèle",
     "saved": "Modèle enregistré.",
     "invalid": "Nom obligatoire (100 caractères), 100 cases au plus de 200 caractères.",
     "count": "{count, plural, =0 {Aucune case} one {# case} other {# cases}}",
     "edit": "Modifier « {name} »",
     "remove": "Retirer « {name} »",
-    "addTitle": "Nouveau modèle"
+    "addTitle": "Nouveau modèle",
+    "listHint": "« Modifier » ouvre un modèle ; chaque modification s'enregistre quand vous quittez le champ.",
+    "columnItems": "Cases",
+    "columnActions": "Actions",
+    "editShort": "Modifier",
+    "close": "Fermer",
+    "closeNamed": "Fermer « {name} »",
+    "removeShort": "Retirer",
+    "empty": "Aucun modèle pour l'instant."
   },
   "DayReport": {
     "title": "Bilan du jour J",
@@ -10567,7 +10624,6 @@
     "title": "Termes pour désigner les clients",
     "intro": "Pour chaque type d'évènement, choisissez le mot qui désigne vos clients (« les mariés », « les clients », « le commanditaire »…), avec son genre et son nombre. Il s'emploie dans les écrans, dans les e-mails ('{{terme_clients}}') et dans les documents à venir ; un document déjà émis garde son texte.",
     "type": "Type",
-    "locale": "Langue",
     "term": "Terme",
     "gender": "Genre",
     "number": "Nombre",
@@ -10580,13 +10636,16 @@
       "singular": "Singulier",
       "plural": "Pluriel"
     },
-    "suggested": "Termes proposés",
-    "default": "Par défaut : {term}",
-    "save": "Enregistrer",
-    "reset": "Revenir au terme du type",
-    "saved": "Terme enregistré.",
     "invalid": "Indiquez un terme court (40 caractères au plus).",
-    "clientsHeading": "Clients : {term}"
+    "clientsHeading": "Clients : {term}",
+    "tableLabel": "Tableau des termes, par type et par langue",
+    "columnState": "Réglage",
+    "termFor": "Terme pour {type} ({locale})",
+    "genderFor": "Genre du terme pour {type} ({locale})",
+    "numberFor": "Nombre du terme pour {type} ({locale})",
+    "defaultState": "Par défaut",
+    "resetShort": "Rétablir",
+    "resetFor": "Rétablir le terme par défaut pour {type} ({locale})"
   },
   "Closing": {
     "title": "Clôture de l'évènement",
@@ -10897,7 +10956,14 @@
       "account": "Compte invalide : chiffres et lettres, 20 caractères au plus.",
       "journal": "Code de journal invalide : 10 caractères au plus.",
       "unauthenticated": "Votre session a expiré : reconnectez-vous."
-    }
+    },
+    "accountsTableLabel": "Comptes du plan",
+    "accountsColumnUse": "Poste",
+    "accountsColumnNumber": "Compte",
+    "accountsColumnLabel": "Libellé",
+    "journalsTableLabel": "Journaux",
+    "journalsColumnUse": "Journal",
+    "journalsColumnCode": "Code"
   },
   "Floorplans": {
     "unavailable": "Les plans de salle ne sont pas ouverts pour votre organisation. Ils s'ouvrent depuis l'Exploitation.",

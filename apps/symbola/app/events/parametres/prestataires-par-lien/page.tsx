@@ -28,11 +28,13 @@ export default async function VendorCoordinationSettingsPage() {
   const profile = await getOrganizationProfile(appDatabase(), organizationId);
   const settings = await getVendorCoordinationSettings(organizationId, locale, profile.metier);
   return (
-    <main className="stack">
+    <main>
       <h1>{t("settings.title")}</h1>
       <ScreenHelp title={tHelp("vendorCoordinationSettings.title")} body={tHelp("vendorCoordinationSettings.body")} />
       <p>{t("settings.intro")}</p>
-      <VendorCoordinationSettingsForm settings={settings} editable={auth.user.role === "owner"} />
+      <div>
+        <VendorCoordinationSettingsForm settings={settings} editable={auth.user.role === "owner"} />
+      </div>
     </main>
   );
 }

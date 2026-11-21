@@ -48,10 +48,11 @@ export async function renameMealTypeAction(_prev: MealTypeState, formData: FormD
   return { success: (await getTranslations("Guests.mealTypes"))("saved") };
 }
 
-export async function toggleMealTypeAction(formData: FormData): Promise<void> {
+export async function toggleMealTypeAction(formData: FormData): Promise<MealTypeState> {
   const access = await guestsAccess();
   const parsed = z.object({ mealTypeId: z.uuid() }).safeParse({ mealTypeId: formData.get("mealTypeId") });
-  if (!access || !parsed.success) return;
+  if (!access || !parsed.success) return { error: (await getTranslations("Guests.errors"))("denied") };
   await setMealTypeHidden(access.organizationId, parsed.data.mealTypeId, formData.get("hidden") === "true");
   revalidatePath(PATH);
+  return {};
 }

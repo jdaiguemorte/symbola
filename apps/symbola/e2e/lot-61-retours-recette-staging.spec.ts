@@ -10,7 +10,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { organizationModules } from "@symbola/db/schema/hub";
-import { mainMenu, openMenu, readyOrganization, signIn } from "./helpers";
+import { mainMenu, openMenu, openSettingsRubric, readyOrganization, signIn } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -55,7 +55,7 @@ test("UX-13 (L13-HUB-16) — Les rubriques du menu des Paramètres s'ouvrent dan
   for (const [name, path] of REPORTED) {
     await page.goto("/parametres");
     const rubrics = page.getByRole("navigation", { name: "Rubriques des paramètres" });
-    await rubrics.getByRole("link", { name, exact: true }).click();
+    await openSettingsRubric(page, name);
     await expect(page).toHaveURL(path, { timeout: 30_000 });
     // Le menu des réglages reste affiché, la rubrique y est allumée ; le menu principal allume
     // « Paramètres », plus « Devis et factures » ni « Événements ».

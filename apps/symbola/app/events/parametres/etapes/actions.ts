@@ -5,7 +5,7 @@
 // d'abord, ou ses cartes passent à l'étape choisie). Entre une et dix étapes.
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { addPipelineStage, movePipelineStage, PipelineStageInvalidError, removePipelineStage, renamePipelineStage } from "@/modules/events/service";
 import { requireOwner } from "@/lib/guards";
 import { isEventsModuleEnabled, isValidId } from "../../module-access";
@@ -36,25 +36,45 @@ export async function addStageAction(formData: FormData): Promise<void> {
   await guarded(() => addPipelineStage(access.organizationId, String(formData.get("label") ?? "").slice(0, 200), access.locale));
 }
 
-export async function renameStageAction(formData: FormData): Promise<void> {
-  const access = await ownerAccess();
-  const stageId = String(formData.get("stageId") ?? "");
-  if (!access || !isValidId(stageId)) return;
-  await guarded(() => renamePipelineStage(access.organizationId, stageId, String(formData.get("label") ?? "").slice(0, 200)));
+// Lot 62b (UX-13, D1) — renommer, monter, descendre et retirer partent de la ligne du tableau, sans
+// recharger la page : un refus revient en clair à la barre de la liste, au lieu de « ?refus=… ».
+export type StageActionState = { error?: string };
+
+async function settled(work: () => Promise<unknown>): Promise<StageActionState> {
+  try {
+    await work();
+  } catch (error) {
+    if (error instanceof PipelineStageInvalidError) return { error: (await getTranslations("Pipeline.settings"))(`refusal.${error.reason}`) };
+    throw error;
+  }
+  revalidatePath(PAGE);
+  revalidatePath("/events/pipeline");
+  return {};
 }
 
-export async function moveStageAction(formData: FormData): Promise<void> {
+async function refused(): Promise<StageActionState> {
+  return { error: (await getTranslations("Pipeline.settings"))("refusal.not_found") };
+}
+
+export async function renameStageAction(formData: FormData): Promise<StageActionState> {
+  const access = await ownerAccess();
+  const stageId = String(formData.get("stageId") ?? "");
+  if (!access || !isValidId(stageId)) return refused();
+  return settled(() => renamePipelineStage(access.organizationId, stageId, String(formData.get("label") ?? "").slice(0, 200)));
+}
+
+export async function moveStageAction(formData: FormData): Promise<StageActionState> {
   const access = await ownerAccess();
   const stageId = String(formData.get("stageId") ?? "");
   const direction = formData.get("direction") === "up" ? "up" : "down";
-  if (!access || !isValidId(stageId)) return;
-  await guarded(() => movePipelineStage(access.organizationId, stageId, direction, access.locale));
+  if (!access || !isValidId(stageId)) return refused();
+  return settled(() => movePipelineStage(access.organizationId, stageId, direction, access.locale));
 }
 
-export async function removeStageAction(formData: FormData): Promise<void> {
+export async function removeStageAction(formData: FormData): Promise<StageActionState> {
   const access = await ownerAccess();
   const stageId = String(formData.get("stageId") ?? "");
   const destination = String(formData.get("destinationId") ?? "");
-  if (!access || !isValidId(stageId)) return;
-  await guarded(() => removePipelineStage({ organizationId: access.organizationId, stageId, destinationId: isValidId(destination) ? destination : null, userId: access.userId, locale: access.locale }));
+  if (!access || !isValidId(stageId)) return refused();
+  return settled(() => removePipelineStage({ organizationId: access.organizationId, stageId, destinationId: isValidId(destination) ? destination : null, userId: access.userId, locale: access.locale }));
 }

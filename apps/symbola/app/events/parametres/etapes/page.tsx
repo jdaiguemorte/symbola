@@ -7,7 +7,8 @@ import { listPipelineStages, PIPELINE_MAX_STAGES, PIPELINE_MIN_STAGES } from "@/
 import { requireOwner } from "@/lib/guards";
 import { ScreenHelp } from "@/app/screen-help";
 import { isEventsModuleEnabled } from "../../module-access";
-import { addStageAction, moveStageAction, removeStageAction, renameStageAction } from "./actions";
+import { addStageAction } from "./actions";
+import { StageList } from "./stage-list";
 
 const REFUSALS = ["label", "too_many", "too_few", "not_found", "not_empty", "destination"] as const;
 
@@ -46,69 +47,24 @@ export default async function PipelineStagesSettingsPage({ searchParams }: { sea
         <Link href="/events/pipeline">{t("back")}</Link>
       </p>
       {refusal ? <p role="alert">{t(`refusal.${refusal}`)}</p> : null}
-      <ol className="pipeline-stage-list">
-        {stages.map((stage, index) => (
-          <li key={stage.id} className="card stack">
-            <form action={renameStageAction} className="row-wrap">
-              <input type="hidden" name="stageId" value={stage.id} />
-              <label>
-                {t("stageLabel", { position: index + 1 })}
-                <input type="text" name="label" required maxLength={60} defaultValue={stage.label} />
-              </label>
-              <button type="submit">{t("rename")}</button>
-            </form>
-            <p className="meta">{t("cards", { count: stage.cardCount })}</p>
-            <div className="row-wrap">
-              <form action={moveStageAction}>
-                <input type="hidden" name="stageId" value={stage.id} />
-                <input type="hidden" name="direction" value="up" />
-                <button type="submit" className="button-ghost" disabled={index === 0} aria-label={t("upLabel", { stage: stage.label })}>
-                  {t("up")}
-                </button>
-              </form>
-              <form action={moveStageAction}>
-                <input type="hidden" name="stageId" value={stage.id} />
-                <input type="hidden" name="direction" value="down" />
-                <button type="submit" className="button-ghost" disabled={index === stages.length - 1} aria-label={t("downLabel", { stage: stage.label })}>
-                  {t("down")}
-                </button>
-              </form>
-              {stages.length > PIPELINE_MIN_STAGES ? (
-                <form action={removeStageAction} className="row-wrap">
-                  <input type="hidden" name="stageId" value={stage.id} />
-                  {stage.cardCount > 0 ? (
-                    <label>
-                      {t("destination")}
-                      <select name="destinationId" required>
-                        {stages
-                          .filter((other) => other.id !== stage.id)
-                          .map((other) => (
-                            <option key={other.id} value={other.id}>
-                              {other.label}
-                            </option>
-                          ))}
-                      </select>
-                    </label>
-                  ) : null}
-                  <button type="submit" className="button-ghost" aria-label={t("removeLabel", { stage: stage.label })}>
-                    {t("remove")}
-                  </button>
-                </form>
-              ) : null}
-            </div>
-          </li>
-        ))}
-      </ol>
+      {/* Lot 62b (UX-13, D1) : tableau éditable, enregistré à la sortie du champ. */}
+      <section className="card" aria-labelledby="pipeline-stages-title">
+        <h2 id="pipeline-stages-title" className="sr-only">
+          {t("tableLabel")}
+        </h2>
+        <StageList stages={stages.map((stage) => ({ id: stage.id, label: stage.label, cardCount: stage.cardCount }))} minimum={PIPELINE_MIN_STAGES} />
+      </section>
       {stages.length < PIPELINE_MAX_STAGES ? (
-        <form action={addStageAction} className="row-wrap card">
-          <label>
-            {t("newStage")}
-            <input type="text" name="label" required maxLength={60} />
-          </label>
-          <button type="submit" className="primary">
-            {t("add")}
-          </button>
-        </form>
+        <section className="card" aria-labelledby="pipeline-stage-new">
+          <h2 id="pipeline-stage-new">{t("newStage")}</h2>
+          <form action={addStageAction} className="form-inline">
+            <label>
+              {t("newStageName")}
+              <input type="text" name="label" required maxLength={60} />
+            </label>
+            <button type="submit">{t("add")}</button>
+          </form>
+        </section>
       ) : null}
     </main>
   );

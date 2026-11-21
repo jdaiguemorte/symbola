@@ -43,6 +43,9 @@ test("L13-HUB-16 — Paramètres en rubriques, lignes du budget modifiées dans 
   for (const group of ["Mon entreprise", "Événements", "Ventes", "Prestataires et données"]) {
     await expect(sections.getByText(group, { exact: true })).toBeVisible();
   }
+  // Lot 62b (D2) : seul le groupe de la rubrique ouverte est déplié ; un autre s'ouvre d'un clic.
+  await expect(sections.getByRole("link", { name: "Lignes du budget", exact: true })).toBeHidden();
+  await sections.getByRole("button", { name: "Événements", exact: true }).click();
   await sections.getByRole("link", { name: "Lignes du budget", exact: true }).click();
   await expect(page).toHaveURL(/\/events\/parametres$/);
   await expect(sections.getByRole("link", { name: "Lignes du budget", exact: true })).toHaveAttribute("aria-current", "page");

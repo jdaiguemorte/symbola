@@ -3,6 +3,7 @@
 // Lot 41 (JUR-02, D10) — option pour le paiement de la TVA d'après les débits : oui (à partir d'une
 // date) ou non. Réservée au régime assujetti ; la facture imprime la mention quand elle est active
 // à sa date d'émission.
+// Lot 62b (UX-12) : formulaire en ligne dans la carte « TVA », date en champ court, bouton secondaire.
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { saveVatOnDebitsAction, type VatOnDebitsFormState } from "./actions";
@@ -11,8 +12,8 @@ export function VatOnDebitsForm({ value, from }: { value: boolean | null; from: 
   const t = useTranslations("Settings");
   const [state, formAction, pending] = useActionState(saveVatOnDebitsAction, {} as VatOnDebitsFormState);
   return (
-    <form action={formAction} aria-label={t("vatOnDebitsTitle")}>
-      <fieldset>
+    <form action={formAction} aria-label={t("vatOnDebitsTitle")} className="form-inline">
+      <fieldset className="choice-inline">
         <legend>{t("vatOnDebitsQuestion")}</legend>
         <label>
           <input type="radio" name="vatOnDebits" value="no" defaultChecked={value === false} /> {t("vatOnDebitsNo")}
@@ -23,9 +24,9 @@ export function VatOnDebitsForm({ value, from }: { value: boolean | null; from: 
       </fieldset>
       <label>
         {t("vatOnDebitsFrom")}
-        <input type="date" name="vatOnDebitsFrom" defaultValue={from ?? ""} />
+        <input className="field-date" type="date" name="vatOnDebitsFrom" defaultValue={from ?? ""} />
       </label>
-      <button type="submit" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("vatOnDebitsSave")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}

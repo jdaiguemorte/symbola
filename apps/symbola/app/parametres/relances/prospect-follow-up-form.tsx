@@ -21,29 +21,32 @@ export function ProspectFollowUpForm({ settings, templates }: { settings: Prospe
         <input type="checkbox" name="enabled" defaultChecked={settings.enabled} />
         {t("enabled")}
       </label>
-      {[1, 2, 3].map((rank) => {
-        const step = settings.steps[rank - 1];
-        return (
-          <fieldset key={rank} className="row-wrap">
-            <legend>{t("step", { rank })}</legend>
-            <label>
-              {t("days")}
-              <input type="number" name={`days-${rank}`} min={1} max={60} defaultValue={step?.days ?? ""} />
-            </label>
-            <label>
-              {t("template")}
-              <select name={`template-${rank}`} defaultValue={step?.messageTemplateId ?? ""}>
-                <option value="">{t("defaultText")}</option>
-                {templates.map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </fieldset>
-        );
-      })}
+      {/* Lot 62b (UX-12) : une ligne par relance, le nombre de jours en champ court. */}
+      <div className="step-rows">
+        {[1, 2, 3].map((rank) => {
+          const step = settings.steps[rank - 1];
+          return (
+            <fieldset key={rank} className="step-row">
+              <legend>{t("step", { rank })}</legend>
+              <label className="field-fit">
+                {t("days")}
+                <input className="field-short" type="number" name={`days-${rank}`} min={1} max={60} defaultValue={step?.days ?? ""} />
+              </label>
+              <label>
+                {t("template")}
+                <select name={`template-${rank}`} defaultValue={step?.messageTemplateId ?? ""}>
+                  <option value="">{t("defaultText")}</option>
+                  {templates.map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </fieldset>
+          );
+        })}
+      </div>
       <label className="checkbox">
         <input type="checkbox" name="autoSend" defaultChecked={settings.autoSend} />
         {t("autoSend")}
@@ -69,7 +72,7 @@ export function BrochureForm({ brochure }: { brochure: ProspectFollowUpSettings[
       <form action={action} className="stack">
         <label htmlFor={fieldId}>{t("brochureField")}</label>
         <input id={fieldId} type="file" name="brochure" accept="application/pdf" required />
-        <button type="submit" disabled={pending}>
+        <button type="submit" className="button-secondary" disabled={pending}>
           {t("brochureSubmit")}
         </button>
         {state.error ? <p role="alert">{state.error}</p> : null}

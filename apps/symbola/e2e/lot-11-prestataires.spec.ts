@@ -15,7 +15,7 @@ import {
   listEventVendorSlots,
 } from "../modules/events/service";
 import { createVendor } from "../modules/vendors/service";
-import { clickMenuLink, openMenu, readyOrganization, signIn as signInByLink } from "./helpers";
+import { clickMenuLink, openMenu, openSettingsRubric, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -125,7 +125,7 @@ test("L11-PRE-01 à L11-PRE-07 / L11-HUB-12 — créer ses fiches, filtrer autou
   // Lot 13 (L13-HUB-16) : rubrique « Types de prestataires » des Paramètres.
   await clickMenuLink(page, "Paramètres");
   const sections = page.getByRole("navigation", { name: "Rubriques des paramètres" });
-  await sections.getByRole("link", { name: "Types de prestataires", exact: true }).click();
+  await openSettingsRubric(page, "Types de prestataires");
   await expect(sections.getByRole("link", { name: "Types de prestataires", exact: true })).toHaveAttribute("aria-current", "page");
   await page.getByRole("button", { name: "Ajouter les types de départ" }).click();
   // Lot 16 (L16-PRE-15) : types en tableau, rangés par famille.

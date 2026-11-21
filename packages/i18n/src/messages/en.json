@@ -284,7 +284,6 @@
     "metierWeddingPlanner": "Wedding planner",
     "metierAutre": "Other event business",
     "metierPrecision": "Please specify (if \"other\")",
-    "save": "Save",
     "profileSaved": "Company profile saved.",
     "vatRegimeTitle": "VAT regime",
     "currentRegime": "Current regime",
@@ -303,7 +302,6 @@
     "saveFollowUpDelays": "Save the delays",
     "followUpDelaysSaved": "✓ Delays saved.",
     "followUpDelaysInvalid": "Enter a number of days between 1 and 365.",
-    "documentDetailsTitle": "Details on quotes and invoices",
     "documentDetailsHint": "Printed on your next quotes and invoices; documents already issued do not change.",
     "siret": "SIRET (14 digits)",
     "contactEmail": "Contact email",
@@ -314,8 +312,6 @@
     "registrationHint": "For example: RCS Lyon 123 456 789.",
     "shareCapital": "Share capital (€)",
     "shareCapitalHint": "For companies only (EURL, SARL, SAS, SASU, SA).",
-    "documentDetailsSave": "Save the details",
-    "documentDetailsSaved": "Details saved.",
     "errorSiret": "The SIRET must have 14 digits.",
     "errorContactEmail": "This email is not valid.",
     "errorContactPhone": "This phone number is not valid.",
@@ -362,7 +358,16 @@
     "vatOnDebitsChoose": "Choose yes or no.",
     "vatOnDebitsFranchise": "Not applicable under the VAT exemption scheme.",
     "followUpSeeAlso": "The reminder emails sent to your clients about a proposal or a payment are set elsewhere:",
-    "followUpSeeAlsoLink": "Sales, Quote and payment reminders"
+    "followUpSeeAlsoLink": "Sales, Quote and payment reminders",
+    "sheetIdentityTitle": "Identity",
+    "sheetAddressTitle": "Address",
+    "sheetContactTitle": "Printed contact details",
+    "sheetSave": "Save company details",
+    "vatCardTitle": "VAT",
+    "followUpDelaysTitle": "Follow-up delays",
+    "sheetTabsLabel": "Company sections",
+    "sheetTabCompany": "Details and VAT",
+    "sheetTabDocuments": "Legal notices and logo"
   },
   "AdminSettings": {
     "title": "Platform settings",
@@ -469,7 +474,7 @@
     "quotes": [
       {
         "title": "The catalogue",
-        "body": "Your reusable services: label, unit, price excl. VAT, VAT rate and category. Expand an item to edit it; once archived it is no longer offered but stays on the quotes that use it."
+        "body": "Your reusable services: label, unit, price excl. VAT, VAT rate and category. “Edit” opens an item in its row; once archived it is no longer offered but stays on the quotes that use it."
       },
       {
         "title": "New item",
@@ -564,7 +569,7 @@
     },
     "settings": {
       "title": "Company and VAT",
-      "body": "Your company record (SIREN, address, legal form, trade) and your VAT regime: they appear on your quotes and invoices. The trade sets the vocabulary and starter templates. Other settings are filed by section in the left menu. Fill in the postal code and city before your first invoice and, if you are VAT-registered, say whether you opted for VAT on an accrual basis.",
+      "body": "Your company record (SIREN, address, legal form, trade) and your VAT regime: they appear on your quotes and invoices. The trade sets the vocabulary and starter templates. Other settings are filed by section in the left menu. Fill in the postal code and city before your first invoice and, if you are VAT-registered, say whether you opted for VAT on an accrual basis. Identity, address and printed contact details are saved together, with “Save company details”.",
       "faq": [
         {
           "q": "I am moving from the VAT exemption to charging VAT: what do I do?",
@@ -766,7 +771,7 @@
     },
     "quotesCatalog": {
       "title": "Services catalogue",
-      "body": "Your reusable services: label, unit, price excl. VAT, VAT rate and category. Add an item at the bottom of the page; it is offered in your quotes right away. Once archived, it is no longer offered but stays on the quotes that use it. State whether the item is a service or goods: the invoice derives the category of the transaction from it.",
+      "body": "Your reusable services: label, unit, price excl. VAT, VAT rate and category. Add an item at the bottom of the page; it is offered in your quotes right away. Once archived, it is no longer offered but stays on the quotes that use it. State whether the item is a service or goods: the invoice derives the category of the transaction from it. “Edit” opens an item in its row; each change is saved when you leave the field, and “Undo the last change” takes it back.",
       "faq": [
         {
           "q": "Does changing a price affect quotes already sent?",
@@ -1002,7 +1007,7 @@
     },
     "eventTypes": {
       "title": "Event types",
-      "body": "Each event has a type: wedding, seminar, birthday… The type says who your clients are, the couple or a client, and the event page, the schedule and the client space follow its wording. Rename a type, choose who its clients are, add more; a type that has events can only be deleted by handing them to another type."
+      "body": "Each event has a type: wedding, seminar, birthday… The type says who your clients are, the couple or a client, and the event page, the schedule and the client space follow its wording. Rename a type, choose who its clients are, add more; a type that has events can only be deleted by handing them to another type. Each change is saved when you leave the field; “Undo the last change” takes it back."
     },
     "quotesDocuments": {
       "title": "Documents",
@@ -1280,7 +1285,7 @@
     },
     "mealTypes": {
       "title": "Meal types",
-      "body": "The meal types of the caterer summary: adult, child, baby (no meal), vendor to start with. Rename, hide or add a type; a guest's type follows their age, unless you change it on the seating plan."
+      "body": "The meal types of the caterer summary: adult, child, baby (no meal), vendor to start with. Rename, hide or add a type; a guest's type follows their age, unless you change it on the seating plan. Each change is saved when you leave the field; “Undo the last change” takes it back."
     },
     "appointmentsList": {
       "title": "Appointments",
@@ -1322,7 +1327,7 @@
     },
     "eventsPipelineStages": {
       "title": "Pipeline stages",
-      "body": "Rename stages, add some (ten at most), change their order, remove those you do not use. A stage holding cards is emptied first: choose the stage they move to.",
+      "body": "Rename stages, add some (ten at most), change their order, remove those you do not use. A stage holding cards is emptied first: choose the stage they move to. Each change is saved when you leave the field; “Undo the last change” takes it back.",
       "faq": [
         {
           "q": "Can I add “Won” as a stage?",
@@ -1400,7 +1405,7 @@
     },
     "dayChecklists": {
       "title": "Event-day checklists",
-      "body": "Your organisation's checklist templates (setup, teardown), copied at first from a few standard lists. Add a checklist to a key moment from the event-day screen (\"Prepare the checklists\"): it is copied, and editing the template afterwards does not change it."
+      "body": "Your organisation's checklist templates (setup, teardown), copied at first from a few standard lists. Add a checklist to a key moment from the event-day screen (\"Prepare the checklists\"): it is copied, and editing the template afterwards does not change it. “Edit” opens a template in its row; each change is saved when you leave the field."
     },
     "programImport": {
       "title": "Import a schedule",
@@ -1484,7 +1489,7 @@
     },
     "clientTerms": {
       "title": "Client terms",
-      "body": "The term chosen for a type replaces “the couple” or “the clients” where Symbola names your clients, and fills '{{client_term}}' in your e-mails and future documents."
+      "body": "The term chosen for a type replaces “the couple” or “the clients” where Symbola names your clients, and fills '{{client_term}}' in your e-mails and future documents. Each change is saved when you leave the field; “Undo the last change” takes it back."
     },
     "standaloneTasks": {
       "title": "Tasks outside events",
@@ -2535,7 +2540,8 @@
     "payersNav": "Payers and calendar",
     "payersLink": "Payers and split",
     "cashCalendarLink": "Cash-out calendar",
-    "bankToVerify": "IBAN to check"
+    "bankToVerify": "IBAN to check",
+    "removeModelShort": "Delete"
   },
   "Quotes": {
     "title": "Quotes",
@@ -2556,9 +2562,7 @@
     "itemVatRate": "VAT rate (%)",
     "itemCategory": "Category",
     "createItem": "Add item",
-    "saveItem": "Save item",
     "itemCreated": "Item added.",
-    "itemSaved": "Item saved.",
     "invalidPrice": "The price must be a positive amount with at most two decimals.",
     "invalidVatRate": "The VAT rate must be between 0 and 100%.",
     "missingLabelOrUnit": "Label and unit are required.",
@@ -2984,7 +2988,21 @@
     "lineTourismTransport": "Transport",
     "lineTourismLodging": "Lodging",
     "lineTourismOther": "Other travel service",
-    "lineIntermediaryBadge": "invoiced by the vendor, not in the total"
+    "lineIntermediaryBadge": "invoiced by the vendor, not in the total",
+    "settingsDelaysTitle": "Time limits and advance payments",
+    "settingsTermsTitle": "Payment terms",
+    "settingsProfessionalTitle": "Business clients",
+    "settingsNumberingTitle": "Numbering",
+    "catalogTableLabel": "Catalogue items",
+    "catalogListHint": "“Edit” opens an item; each change is saved when you leave the field.",
+    "catalogColumnPrice": "Price excl. VAT",
+    "catalogColumnVat": "VAT",
+    "catalogColumnActions": "Actions",
+    "catalogPricePerUnit": "{price} / {unit}",
+    "editItem": "Edit",
+    "closeItem": "Close",
+    "closeItemNamed": "Close “{label}”",
+    "archiveItemShort": "Archive"
   },
   "Documents": {
     "pdfSellerHeading": "From",
@@ -4114,7 +4132,8 @@
     "guestRetentionIntro": "Counted from the last day of the event, or its cancellation. Seven days' notice before each purge, one justified postponement possible. Starting values: the DPO's answers.",
     "guestNoticeTitle": "Privacy notice of the guests' reply page",
     "guestNoticeIntro": "Shown at the top and bottom of the page where guests reply, on behalf of your organisation and the couple: who processes, why, for how long, their rights and their objection. Variables: {organization}, {clients}, {contact}, {dietDays}, {days}.",
-    "guestNoticeLabel": "Notice text"
+    "guestNoticeLabel": "Notice text",
+    "durationsTitle": "Alert and retention periods"
   },
   "AdminAccounts": {
     "title": "Accounts and support",
@@ -5340,7 +5359,18 @@
     "eventTemplates": "Event templates",
     "subscription": "My subscription",
     "senderAddress": "Sending address",
-    "emailDeliveries": "Email log"
+    "emailDeliveries": "Email log",
+    "search": "Search settings",
+    "searchCount": "{count, plural, =0 {No setting has that name.} one {# setting found} other {# settings found}}"
+  },
+  "SettingsLists": {
+    "hint": "Each change is saved when you leave the field.",
+    "saving": "Saving…",
+    "saved": "Change saved.",
+    "undone": "Change undone.",
+    "undo": "Undo the last change",
+    "error": "Error: {message}",
+    "failed": "the change could not be saved. Check your connection, then edit the field again."
   },
   "Common": {
     "closePanel": "Close the panel",
@@ -5463,18 +5493,16 @@
     "eventsCount": "{count, plural, =0 {none} one {# event} other {# events}}",
     "add": "Add type",
     "added": "Type added.",
-    "save": "Save",
-    "saveFor": "Save type {label}",
-    "saved": "Type saved.",
     "remove": "Delete",
     "removeFor": "Delete type {label}",
-    "removed": "Type deleted.",
-    "moveTo": "Its events move to type",
     "moveToFor": "Events of type {label} move to type",
     "invalid": "Type name required (80 characters at most).",
     "inUse": "This type has events: choose the type that takes them over.",
     "last": "Keep at least one event type.",
-    "notFound": "This type no longer exists."
+    "notFound": "This type no longer exists.",
+    "moveToChoose": "Choose a type",
+    "removeConfirm": "Delete the type",
+    "cancel": "Cancel"
   },
   "ActivityLog": {
     "title": "Activity log",
@@ -8880,17 +8908,25 @@
       "title": "Meal types",
       "intro": "The meal types of the caterer summary. By default, an adult is served “Adult”, a child “Child”, a child under 3 “Baby”; change a guest's type on the seating plan. Hiding erases nothing.",
       "unavailable": "Meal types are unavailable: the Guests module is not open for your organization.",
-      "hidden": "hidden",
       "show": "Show {label}",
       "hide": "Hide {label}",
-      "rename": "Rename {label}",
       "label": "Label",
-      "save": "Save",
       "saved": "Label saved.",
-      "reset": "Restore the starting label",
       "addTitle": "Add a type",
       "add": "Add",
-      "added": "Type added."
+      "added": "Type added.",
+      "labelFor": "Label of type {label}",
+      "columnState": "Status",
+      "columnActions": "Actions",
+      "hiddenState": "Hidden",
+      "shownState": "Shown",
+      "hideShort": "Hide",
+      "showShort": "Show",
+      "resetShort": "Reset",
+      "resetFor": "Reset the starter label of {label}",
+      "renameShort": "Rename",
+      "renameFor": "Rename {label}",
+      "listHint": "“Rename” opens a type label; it is saved when you leave the field."
     }
   },
   "MoveToGroup": {
@@ -9047,17 +9083,27 @@
         "destination": "The stage chosen for the cards no longer exists."
       },
       "stageLabel": "Stage {position}",
-      "rename": "Rename",
       "cards": "{count, plural, =0 {No card} one {One card} other {# cards}}",
       "up": "Move up",
       "upLabel": "Move stage {stage} up",
       "down": "Move down",
       "downLabel": "Move stage {stage} down",
-      "destination": "Its cards move to",
       "remove": "Remove",
       "removeLabel": "Remove stage {stage}",
       "newStage": "New stage",
-      "add": "Add"
+      "add": "Add",
+      "tableLabel": "Table of pipeline stages",
+      "columnRank": "Order",
+      "columnStage": "Stage",
+      "columnCards": "Cards",
+      "columnActions": "Actions",
+      "destinationFor": "The cards of stage {stage} move to",
+      "removeConfirm": "Remove the stage",
+      "cancel": "Cancel",
+      "newStageName": "Stage name",
+      "rename": "Rename",
+      "renameLabel": "Rename stage {stage}",
+      "listHint": "“Rename” opens a stage name; it is saved when you leave the field."
     },
     "reply": "Reply",
     "answered": "Has replied",
@@ -9473,7 +9519,11 @@
       "resetTasks": "Go back to the starter list",
       "save": "Save",
       "saved": "Settings saved.",
-      "ownerOnly": "Only the account owner can change these settings."
+      "ownerOnly": "Only the account owner can change these settings.",
+      "delaysTitle": "Time limits and sending",
+      "taskColumn": "Task",
+      "taskDaysColumn": "Due (days)",
+      "taskNew": "New task"
     },
     "errors": {
       "unauthorized": "Action not possible: reload the page.",
@@ -9567,14 +9617,21 @@
     "setup": "Setup",
     "teardown": "Teardown",
     "items": "Boxes (one per line)",
-    "save": "Save",
     "add": "Add the template",
     "saved": "Template saved.",
     "invalid": "Name required (100 characters), at most 100 boxes of 200 characters.",
     "count": "{count, plural, =0 {No box} one {# box} other {# boxes}}",
     "edit": "Edit \"{name}\"",
     "remove": "Remove \"{name}\"",
-    "addTitle": "New template"
+    "addTitle": "New template",
+    "listHint": "“Edit” opens a template; each change is saved when you leave the field.",
+    "columnItems": "Items",
+    "columnActions": "Actions",
+    "editShort": "Edit",
+    "close": "Close",
+    "closeNamed": "Close “{name}”",
+    "removeShort": "Remove",
+    "empty": "No template yet."
   },
   "DayReport": {
     "title": "Event-day report",
@@ -10567,7 +10624,6 @@
     "title": "Terms for the clients",
     "intro": "For each event type, choose the word for your clients (“the couple”, “the clients”, “the sponsor”…), with its gender and number. It is used on screens, in e-mails ('{{client_term}}') and in future documents; a document already issued keeps its text.",
     "type": "Type",
-    "locale": "Language",
     "term": "Term",
     "gender": "Gender",
     "number": "Number",
@@ -10580,13 +10636,16 @@
       "singular": "Singular",
       "plural": "Plural"
     },
-    "suggested": "Suggested terms",
-    "default": "Default: {term}",
-    "save": "Save",
-    "reset": "Back to the type's term",
-    "saved": "Term saved.",
     "invalid": "Enter a short term (40 characters at most).",
-    "clientsHeading": "Clients: {term}"
+    "clientsHeading": "Clients: {term}",
+    "tableLabel": "Table of terms, by type and language",
+    "columnState": "Setting",
+    "termFor": "Term for {type} ({locale})",
+    "genderFor": "Gender of the term for {type} ({locale})",
+    "numberFor": "Number of the term for {type} ({locale})",
+    "defaultState": "Default",
+    "resetShort": "Reset",
+    "resetFor": "Reset the default term for {type} ({locale})"
   },
   "Closing": {
     "title": "Event closing",
@@ -10897,7 +10956,14 @@
       "account": "Invalid account: digits and letters, 20 characters at most.",
       "journal": "Invalid journal code: 10 characters at most.",
       "unauthenticated": "Your session has expired: sign in again."
-    }
+    },
+    "accountsTableLabel": "Chart accounts",
+    "accountsColumnUse": "Item",
+    "accountsColumnNumber": "Account",
+    "accountsColumnLabel": "Label",
+    "journalsTableLabel": "Journals",
+    "journalsColumnUse": "Journal",
+    "journalsColumnCode": "Code"
   },
   "Floorplans": {
     "unavailable": "Floor plans are not enabled for your organisation. They are enabled from Operations.",
