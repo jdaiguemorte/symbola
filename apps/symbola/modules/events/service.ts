@@ -3594,8 +3594,16 @@ export function dayOfSettings(locale: "fr" | "en") {
   return starterDayOfSettings(locale);
 }
 
-// CHR-08 : aperçu, puis écriture, d'un chrono importé d'un tableur.
-export async function importEventProgram(input: { organizationId: string; eventId: string; bytes: Uint8Array; apply: { skipLines: number[] } | null }): Promise<ProgramImportResult> {
+// CHR-08 : aperçu, puis écriture, d'un chrono importé d'un tableur ou (lot 63b) du PDF de programme
+// de l'ancien logiciel, avec le poste choisi pour chacun de ses intervenants.
+export async function importEventProgram(input: {
+  organizationId: string;
+  eventId: string;
+  bytes: Uint8Array;
+  apply: { skipLines: number[] } | null;
+  speakerSlots?: Record<number, string | null>;
+  catalogVendors?: { id: string; name: string; city: string | null }[];
+}): Promise<ProgramImportResult> {
   const result = await importProgram({ ...input, mainMomentName: await mainMomentName(input.organizationId) });
   if (!result) throw new EventNotFoundError();
   return result;
