@@ -3,4 +3,284 @@
    redéfinir ici. Ce fichier est chargé avant globals.css : à précision égale, une règle de
    globals.css l'emporte. Mêmes jetons que globals.css (DESIGN.md), aucun style en ligne (CSP). */
 @layer components {
+  /* Menu des Paramètres (décision D2) : groupes repliables, celui de la rubrique ouverte déplié, et
+     « Chercher un réglage ». Le titre d'un groupe est un bouton (aria-expanded) ; son chevron est
+     dessiné en CSS. */
+  .settings-nav .settings-nav-search input {
+    @apply min-h-11 px-3 text-label;
+  }
+  .settings-nav .settings-nav-none {
+    @apply m-0 px-2 text-label text-ink-muted;
+  }
+  .settings-nav button.settings-nav-title {
+    @apply min-h-11 w-full justify-start rounded-md border-0 bg-transparent px-2 py-0 text-left text-label font-bold text-ink hover:bg-ground;
+  }
+  .settings-nav button.settings-nav-title::after {
+    content: "";
+    @apply mr-1 ml-auto size-2 shrink-0 rotate-45 border-r-2 border-b-2 border-ink-muted transition-transform;
+  }
+  .settings-nav button.settings-nav-title[aria-expanded="true"]::after {
+    @apply -rotate-135;
+  }
+  .settings-nav button.settings-nav-title .nav-count {
+    @apply ml-auto;
+  }
+  .settings-nav button.settings-nav-title .nav-count + * {
+    @apply ml-0;
+  }
+  .settings-nav ul[hidden] {
+    @apply hidden;
+  }
+  .settings-nav .settings-nav-group ul {
+    @apply mt-1 gap-0;
+  }
+  .settings-nav .settings-nav-group + .settings-nav-group {
+    @apply pt-2;
+  }
+  .settings-nav {
+    @apply gap-2;
+  }
+  /* 44 px au doigt ; 36 px à la souris, pour que le groupe ouvert tienne dans la hauteur de l'écran. */
+  .settings-nav li > a {
+    @apply min-h-11 lg:min-h-9;
+  }
+
+  /* Fiche de réglages : un formulaire qui porte ses cartes, et un seul bouton principal au pied. */
+  .settings-sheet {
+    @apply m-0 flex w-full flex-col items-stretch gap-6;
+  }
+  .settings-sheet .card {
+    @apply m-0;
+  }
+  fieldset.sheet-fieldset {
+    @apply m-0 flex w-full max-w-none flex-col items-stretch gap-6 border-0 bg-transparent p-0;
+  }
+  .form-foot {
+    @apply flex flex-wrap items-center gap-3;
+  }
+  .form-foot > p {
+    @apply m-0;
+  }
+  /* Un champ et son aide, dans une case de la grille : l'aide reste hors du libellé (nom accessible). */
+  .field-group {
+    @apply flex min-w-0 flex-col gap-1;
+  }
+  .field-group > label {
+    @apply max-w-none;
+  }
+  .field-group > p {
+    @apply m-0;
+  }
+  form.form-grid {
+    @apply my-0 items-start;
+  }
+  /* Liste déroulante courte : la largeur de son texte, pas celle de la carte. */
+  select.field-choice {
+    @apply w-auto max-w-full min-w-48 self-start;
+  }
+  /* Durées (RGPD) : des libellés longs au-dessus d'un champ court ; les champs s'alignent en bas. */
+  .duration-grid > label {
+    @apply justify-between;
+  }
+  /* Choix en ligne (oui ou non) dans un formulaire en ligne. */
+  fieldset.choice-inline {
+    @apply m-0 flex w-auto max-w-none flex-row flex-wrap items-center gap-x-4 gap-y-0 border-0 bg-transparent p-0;
+  }
+  fieldset.choice-inline > legend {
+    @apply w-full p-0 font-sans text-label font-medium;
+  }
+  fieldset.choice-inline > label {
+    @apply min-h-11;
+  }
+  .choice-stack {
+    @apply flex flex-col gap-2;
+  }
+  .choice-stack > label {
+    @apply min-h-11;
+  }
+
+  /* Entreprise et TVA : la carte TVA porte deux formulaires en ligne ; le logo n'a pas de bouton principal. */
+  .company-logo .logo-upload button[type="submit"] {
+    @apply border-line-strong bg-surface font-medium text-ink hover:border-ink hover:bg-ground;
+  }
+
+  /* Prestataires par lien : une ligne par tâche (intitulé, échéance en jours). */
+  .task-rows {
+    @apply flex w-full flex-col gap-2;
+  }
+  .task-row {
+    @apply grid grid-cols-[minmax(0,1fr)_6rem] items-center gap-3;
+  }
+  .task-row-head {
+    @apply text-label font-medium text-ink-muted;
+  }
+
+  /* Relances des prospects : une ligne par relance. */
+  .step-rows {
+    @apply flex w-full flex-col gap-3;
+  }
+  fieldset.step-row {
+    @apply m-0 flex max-w-none flex-row flex-wrap items-end gap-x-4 gap-y-2 border-0 bg-transparent p-0;
+  }
+  fieldset.step-row > legend {
+    @apply p-0 font-sans text-body-strong;
+  }
+  fieldset.step-row > label {
+    @apply w-auto max-w-none flex-[1_1_14rem];
+  }
+  fieldset.step-row > label.field-fit {
+    @apply flex-none;
+  }
+
+  /* Modèles de budget : un pourcentage par ligne du budget, en champs courts sur une grille. */
+  fieldset.percent-fieldset {
+    @apply m-0 max-w-none border-0 bg-transparent p-0;
+  }
+  fieldset.percent-fieldset > legend {
+    @apply p-0 pb-2 font-sans text-label font-medium;
+  }
+  .percent-grid {
+    @apply grid w-full grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 xl:grid-cols-3;
+  }
+  .field-unit {
+    @apply flex items-center gap-2 font-normal;
+  }
+
+  /* RGPD : les deux mentions d'information côte à côte. */
+  .notice-grid > form {
+    @apply m-0 rounded-lg border border-line bg-surface p-6;
+  }
+  .notice-grid > form > h2 {
+    @apply mt-0;
+  }
+
+  /* Exports comptables : le plan de comptes en tableau. */
+  form.plan-form {
+    @apply m-0 items-stretch;
+  }
+  .plan-table {
+    @apply min-w-[30rem];
+  }
+  .plan-table tbody th {
+    @apply w-1/4 font-medium;
+  }
+  .plan-table td {
+    @apply py-1;
+  }
+  .plan-table td:nth-child(2) {
+    @apply w-36;
+  }
+
+  /* Journal d'activité : « Quoi » à la largeur de son texte, « Sur quoi » prend le reste. */
+  .activity-log td:nth-child(1),
+  .activity-log td:nth-child(2),
+  .activity-log td:nth-child(3) {
+    @apply whitespace-nowrap;
+  }
+  .activity-log td:nth-child(4) {
+    @apply w-full min-w-56;
+  }
+  .activity-log td {
+    @apply py-2;
+  }
+
+  /* Listes éditables des réglages (décision D1). Ce qui manquait au motif commun : les cases d'une
+     ligne, la barre de l'enregistrement automatique, et le passage en colonne quand la place manque
+     (téléphone, menu des réglages ouvert), mesuré sur la liste elle-même. */
+  .edit-bar.edit-bar-auto {
+    @apply sticky top-2 z-10 mb-3 min-h-14 bg-ground py-2 font-normal text-ink-muted;
+  }
+  .edit-bar.edit-bar-auto[data-status="saved"],
+  .edit-bar.edit-bar-auto[data-status="undone"] {
+    @apply bg-primary-soft font-medium text-primary-strong;
+  }
+  .edit-bar.edit-bar-auto[data-status="error"] {
+    @apply bg-critical-soft font-medium text-critical;
+  }
+  .edit-bar > p {
+    @apply m-0;
+  }
+  .settings-list {
+    container-type: inline-size;
+  }
+  .settings-list .edit-list-head {
+    @apply hidden;
+  }
+  .settings-list .edit-row {
+    @apply grid-cols-1 gap-2 py-3;
+  }
+  .settings-list .edit-row .row-actions {
+    @apply flex flex-wrap items-center justify-start;
+  }
+  .edit-cell {
+    @apply flex min-w-0 flex-col gap-1;
+  }
+  .edit-cell-label {
+    @apply text-label font-medium text-ink-muted;
+  }
+  .edit-cell-name {
+    @apply flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0 font-medium wrap-anywhere;
+  }
+  .edit-cell-note {
+    @apply basis-full text-label font-normal text-ink-muted;
+  }
+  .edit-cell-name > small {
+    @apply basis-full;
+  }
+  .edit-cell-meta {
+    @apply text-ink-muted;
+  }
+  .edit-cell-meta.num {
+    @apply text-ink;
+  }
+  .edit-cell-rank {
+    @apply font-display font-semibold text-ink-muted;
+  }
+  .edit-row[data-hidden="true"] input {
+    @apply text-ink-muted;
+  }
+  .edit-row-open > [role="cell"] {
+    @apply w-full;
+  }
+  @container (min-width: 44rem) {
+    .settings-list .edit-list-head {
+      @apply grid;
+    }
+    .settings-list .edit-row {
+      @apply gap-3 py-1;
+    }
+    .settings-list .edit-row .row-actions {
+      @apply flex-nowrap justify-end;
+    }
+    .settings-list .edit-cell-label {
+      @apply hidden;
+    }
+    .client-terms-list .edit-list-head,
+    .client-terms-list .edit-row {
+      grid-template-columns: minmax(9rem, 1.1fr) minmax(10rem, 1.4fr) 9rem 9rem 7rem;
+    }
+    .event-types-list .edit-list-head,
+    .event-types-list .edit-row {
+      grid-template-columns: minmax(12rem, 1.5fr) 12rem 8rem 7rem;
+    }
+    .pipeline-stages-list .edit-list-head,
+    .pipeline-stages-list .edit-row {
+      grid-template-columns: 2.5rem minmax(10rem, 1fr) 7rem 17rem;
+    }
+    .meal-types-list .edit-list-head,
+    .meal-types-list .edit-row {
+      grid-template-columns: minmax(12rem, 1fr) 7rem 12rem;
+    }
+    .catalog-list .edit-list-head,
+    .catalog-list .edit-row {
+      grid-template-columns: minmax(11rem, 1.6fr) minmax(6rem, 0.9fr) 10rem 5.5rem 11rem;
+    }
+    .day-checklists-list .edit-list-head,
+    .day-checklists-list .edit-row {
+      grid-template-columns: minmax(12rem, 1.4fr) 9rem 7rem 11rem;
+    }
+    .model-list .edit-row {
+      grid-template-columns: minmax(8rem, 14rem) minmax(0, 1fr) auto;
+    }
+  }
 }
