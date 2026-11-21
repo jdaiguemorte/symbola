@@ -185,4 +185,129 @@
       @apply hidden;
     }
   }
+
+  /* —— Budget d'un évènement ——
+     Simulation repliable ; répartition et lignes en listes éditables (un seul « Enregistrer »). */
+  .budget-sheet details.budget-simulation > summary {
+    @apply rounded-md;
+  }
+  .budget-sheet details.budget-simulation[open] > summary {
+    @apply mb-4;
+  }
+  .budget-simulation-form .row-wrap {
+    @apply items-center;
+  }
+  .budget-simulation-form .row-wrap p {
+    @apply m-0;
+  }
+  .budget-allocation {
+    @apply mt-6 flex max-w-xl flex-col gap-3;
+  }
+  .budget-allocation h3 {
+    @apply m-0;
+  }
+  .allocation-table .allocation-cols {
+    @apply grid-cols-[minmax(0,1fr)_8rem];
+  }
+  .allocation-table .allocation-cols .num {
+    @apply text-right;
+  }
+  .allocation-table .allocation-slot {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .allocation-table .allocation-slot label {
+    @apply w-auto max-w-none flex-row text-body font-normal;
+  }
+  .budget-sheet input.field-amount {
+    @apply w-32 text-right tabular-nums;
+  }
+  .budget-sheet .edit-bar {
+    @apply sticky bottom-3 z-10 shadow-float;
+  }
+  .budget-sheet .edit-bar p {
+    @apply m-0;
+  }
+  .budget-lines-editor {
+    @apply flex flex-col gap-3;
+  }
+  .budget-lines-editor > p {
+    @apply m-0;
+  }
+  .budget-lines-editor .list-table.budget-lines td.budget-line-edit button {
+    @apply min-h-11 px-3 text-label;
+  }
+  .budget-lines-editor .budget-lines tbody th .badge {
+    @apply ml-2;
+  }
+  .budget-lines-editor .budget-lines tr.budget-line-open th,
+  .budget-lines-editor .budget-lines tr.budget-line-open td {
+    @apply border-b-0;
+  }
+  /* La ligne ouverte : ses champs, puis ses documents et ses échéances côte à côte. */
+  .budget-lines-editor .budget-line-editor-panel {
+    @apply m-0 gap-4;
+  }
+  .budget-lines-editor .budget-line-editor-panel:focus {
+    @apply outline-none;
+  }
+  .budget-line-fields {
+    @apply flex flex-col gap-3;
+  }
+  .budget-line-fields .budget-paid-hint {
+    @apply m-0 self-center text-label text-ink-muted;
+  }
+  .budget-line-more {
+    @apply grid gap-6 border-t border-line pt-4 lg:grid-cols-2;
+  }
+  .budget-line-more h3 {
+    @apply m-0;
+  }
+  .budget-line-more fieldset {
+    @apply m-0 max-w-none p-4;
+  }
+  .budget-line-more input.field-date {
+    @apply w-44;
+  }
+  /* Téléphone : une ligne tient en une carte courte — son nom et « Modifier », puis ses six
+     montants sur deux colonnes (libellé à gauche, montant à droite). */
+  @media (width < 640px) {
+    .budget-lines-editor .list-table.budget-lines tr.budget-line,
+    .budget-lines-editor .list-table.budget-lines tr.budget-category,
+    .budget-lines-editor .list-table.budget-lines tfoot tr {
+      @apply grid grid-cols-2 gap-x-4 gap-y-0 py-2;
+    }
+    .budget-lines-editor .list-table.budget-lines tr.budget-line th,
+    .budget-lines-editor .list-table.budget-lines tr.budget-category th,
+    .budget-lines-editor .list-table.budget-lines tfoot th {
+      @apply col-span-2 pb-0;
+    }
+    .budget-lines-editor .list-table.budget-lines tr.budget-line th {
+      @apply col-span-1 col-start-1 row-start-1 self-center;
+    }
+    .budget-lines-editor .list-table.budget-lines tr.budget-line td.budget-line-edit {
+      @apply col-start-2 row-start-1 flex justify-end p-0;
+    }
+    .budget-lines-editor .list-table.budget-lines tr.budget-category th {
+      @apply flex flex-wrap items-center justify-between gap-x-3;
+    }
+    .budget-lines-editor .list-table.budget-lines tr.budget-line td[data-label],
+    .budget-lines-editor .list-table.budget-lines tr.budget-category td[data-label],
+    .budget-lines-editor .list-table.budget-lines tfoot td[data-label] {
+      @apply min-h-6 flex-wrap justify-between gap-x-2 gap-y-0 py-0 text-right text-label;
+    }
+    .budget-lines-editor .list-table.budget-lines tr.budget-category td:not([data-label]),
+    .budget-lines-editor .list-table.budget-lines tfoot td:not([data-label]) {
+      @apply hidden;
+    }
+    .budget-lines-editor .list-table.budget-lines tr.budget-line-editor td {
+      @apply px-0 pt-0;
+    }
+    .budget-sheet .edit-row-open {
+      @apply p-3;
+    }
+    /* Une ligne ouverte occupe l'écran : la barre attend à sa place, sans la couvrir. */
+    .budget-lines-editor:has(.budget-line-editor-panel) .edit-bar {
+      @apply static shadow-none;
+    }
+  }
 }

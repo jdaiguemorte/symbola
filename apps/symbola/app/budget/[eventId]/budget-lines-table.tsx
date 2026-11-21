@@ -10,9 +10,13 @@
 // Lot 28c (BUD-09, D5) : montants saisis TTC ; pour un client professionnel (type
 // d'acheteur du devis de l'événement), le HT s'affiche sous chaque TTC, calculé
 // au taux de la ligne (ADR 0059).
+// Lot 62c (UX-13, UX-05 ; décision D1) : « Modifier » ouvre la ligne en place, une seule à la fois ;
+// son libellé, son prestataire, son taux et ses montants ne partent plus un par un : les lignes
+// modifiées attendent dans la barre du bas, qui dit leur nombre, et un seul « Enregistrer le budget »
+// les écrit ensemble (une transaction). Documents, échéances et suppression restent immédiats.
 
 const COLUMNS = 8;
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { formatAmount, formatAmountInput, formatCalendarDate, formatFileSize, type Locale } from "@symbola/i18n";
 import { BUDGET_AMOUNT_FIELDS, BUDGET_DOCUMENT_KINDS, type BudgetAmountField, type BudgetCategory, type BudgetHtTotals } from "@symbola/contracts";
@@ -24,8 +28,7 @@ import {
   removeVendorPaymentAction,
   setVendorPaymentPaidAction,
   setVendorPaymentHandoverAction,
-  updateBudgetLineAction,
-  updateBudgetLineDetailsAction,
+  saveBudgetLinesAction,
   type BudgetFormState,
 } from "./actions";
 import { useUploadAction } from "@/app/ui/use-upload";
@@ -63,64 +66,83 @@ function Feedback({ state, success }: { state: BudgetFormState; success: string 
   return null;
 }
 
-function AmountsForm({ eventId, line, locale }: { eventId: string; line: Line; locale: Locale }) {
-  const t = useTranslations("Budget");
-  const [state, action, pending] = useActionState(updateBudgetLineAction, {});
-  return (
-    <form action={action}>
-      <input type="hidden" name="eventId" value={eventId} />
-      <input type="hidden" name="lineId" value={line.id} />
-      {BUDGET_AMOUNT_FIELDS.map((field) =>
-        field === "paid" && line.paidFromPayments ? (
-          // D13 : le payé vient des échéances payées.
-          <p key={field}>{t("paidFromPaymentsHint", { amount: formatAmount(line.paidAmountCents ?? 0, locale) })}</p>
-        ) : (
-          <label key={field}>
-            {t(`amounts.${field}`)} — {line.label}
-            <input type="hidden" name={`current_${field}`} value={AMOUNT_OF[field](line) ?? ""} />
-            <input type="text" inputMode="decimal" name={`amount_${field}`} defaultValue={formatAmountInput(AMOUNT_OF[field](line), locale)} />
-          </label>
-        ),
-      )}
-      <button type="submit" disabled={pending}>
-        {t("saveLine")}
-      </button>
-      <Feedback state={state} success={t("lineSaved")} />
-    </form>
-  );
+// Ce qui se modifie d'une ligne avant « Enregistrer le budget » : le brouillon, en texte.
+type LineDraft = { label: string; vendorCandidateId: string; vatRate: string; amounts: Record<BudgetAmountField, string> };
+
+function draftOf(line: Line, locale: Locale): LineDraft {
+  return {
+    label: line.label,
+    vendorCandidateId: line.vendorCandidateId ?? "",
+    vatRate: formatDecimal(line.vatRateBasisPoints, 2, locale),
+    amounts: {
+      estimated: formatAmountInput(line.estimatedAmountCents, locale),
+      quoted: formatAmountInput(line.quotedAmountCents, locale),
+      committed: formatAmountInput(line.committedAmountCents, locale),
+      paid: formatAmountInput(line.paidAmountCents, locale),
+    },
+  };
 }
 
-function DetailsForm({ eventId, line, vendors, locale }: { eventId: string; line: Line; vendors: VendorOption[]; locale: Locale }) {
+function sameDraft(a: LineDraft, b: LineDraft): boolean {
+  return a.label === b.label && a.vendorCandidateId === b.vendorCandidateId && a.vatRate.trim() === b.vatRate.trim() && BUDGET_AMOUNT_FIELDS.every((field) => a.amounts[field].trim() === b.amounts[field].trim());
+}
+
+// Les champs d'une ligne ouverte : libellé, prestataire, taux, puis ses quatre montants. Le nom de
+// la ligne reste dans le nom accessible de chaque champ, pas dans son libellé visible.
+function LineFields({ line, draft, setDraft, vendors, locale }: { line: Line; draft: LineDraft; setDraft: (draft: LineDraft) => void; vendors: VendorOption[]; locale: Locale }) {
   const t = useTranslations("Budget");
-  const [state, action, pending] = useActionState(updateBudgetLineDetailsAction, {});
+  const of = <span className="sr-only"> — {line.label}</span>;
   return (
-    <form action={action}>
-      <input type="hidden" name="eventId" value={eventId} />
-      <input type="hidden" name="lineId" value={line.id} />
-      <label>
-        {t("lineLabelOf", { label: line.label })}
-        <input type="text" name="label" defaultValue={line.label} maxLength={200} required />
-      </label>
-      <label>
-        {t("lineVendorOf", { label: line.label })}
-        <select name="vendorCandidateId" defaultValue={line.vendorCandidateId ?? ""}>
-          <option value="">{t("noVendor")}</option>
-          {vendors.map((vendor) => (
-            <option key={vendor.id} value={vendor.id}>
-              {vendor.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        {t("lineVatRateOf", { label: line.label })}
-        <input type="text" inputMode="decimal" name="vatRate" defaultValue={formatDecimal(line.vatRateBasisPoints, 2, locale)} />
-      </label>
-      <button type="submit" disabled={pending}>
-        {t("saveLineDetails")}
-      </button>
-      <Feedback state={state} success={t("lineDetailsSaved")} />
-    </form>
+    <div className="budget-line-fields">
+      <div className="field-row">
+        <label>
+          <span>
+            {t("lineLabel")}
+            {of}
+          </span>
+          <input type="text" value={draft.label} maxLength={200} required onChange={(event) => setDraft({ ...draft, label: event.target.value })} />
+        </label>
+        <label>
+          <span>
+            {t("lineVendor")}
+            {of}
+          </span>
+          <select value={draft.vendorCandidateId} onChange={(event) => setDraft({ ...draft, vendorCandidateId: event.target.value })}>
+            <option value="">{t("noVendor")}</option>
+            {vendors.map((vendor) => (
+              <option key={vendor.id} value={vendor.id}>
+                {vendor.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="field-fit">
+          <span>
+            {t("lineVatRate")}
+            {of}
+          </span>
+          <input type="text" inputMode="decimal" className="field-short" value={draft.vatRate} onChange={(event) => setDraft({ ...draft, vatRate: event.target.value })} />
+        </label>
+      </div>
+      <div className="field-row">
+        {BUDGET_AMOUNT_FIELDS.map((field) =>
+          field === "paid" && line.paidFromPayments ? (
+            // D13 : le payé vient des échéances payées.
+            <p key={field} className="budget-paid-hint">
+              {t("paidFromPaymentsHint", { amount: formatAmount(line.paidAmountCents ?? 0, locale) })}
+            </p>
+          ) : (
+            <label key={field} className="field-fit">
+              <span>
+                {t(`amounts.${field}`)}
+                {of}
+              </span>
+              <input type="text" inputMode="decimal" className="field-amount" value={draft.amounts[field]} onChange={(event) => setDraft({ ...draft, amounts: { ...draft.amounts, [field]: event.target.value } })} />
+            </label>
+          ),
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -144,7 +166,7 @@ function Documents({ eventId, line, locale }: { eventId: string; line: Line; loc
           })}
         </ul>
       ) : null}
-      <form action={action}>
+      <form action={action} className="form-inline">
         <input type="hidden" name="eventId" value={eventId} />
         <input type="hidden" name="lineId" value={line.id} />
         <label>
@@ -161,7 +183,7 @@ function Documents({ eventId, line, locale }: { eventId: string; line: Line; loc
           {t("quoteFile", { label: line.label })}
           <input type="file" name="quote" accept="application/pdf,image/*" required />
         </label>
-        <button type="submit" disabled={pending}>
+        <button type="submit" className="button-secondary" disabled={pending}>
           {t("attachQuote")}
         </button>
         <Feedback state={state} success={t("quoteAttached")} />
@@ -205,9 +227,11 @@ function Payments({ eventId, line, locale }: { eventId: string; line: Line; loca
                 <input type="hidden" name="paymentId" value={payment.id} />
                 <label>
                   {t("paidOnFor", { label: payment.label })}
-                  <input type="date" name="paidOn" defaultValue={today} required />
+                  <input type="date" name="paidOn" className="field-date" defaultValue={today} required />
                 </label>
-                <button type="submit">{t("markPaid", { label: payment.label })}</button>
+                <button type="submit" className="button-secondary">
+                  {t("markPaid", { label: payment.label })}
+                </button>
               </form>
             )}
             <form action={removeVendorPaymentAction} className="inline-form">
@@ -239,7 +263,9 @@ function Payments({ eventId, line, locale }: { eventId: string; line: Line; loca
                     <input type="text" name="by" maxLength={120} defaultValue={payment.handover?.by ?? ""} />
                   </label>
                   <p className="muted">{t("handoverCashHint")}</p>
-                  <button type="submit">{t("handoverSave")}</button>
+                  <button type="submit" className="button-secondary">
+                    {t("handoverSave")}
+                  </button>
                 </form>
               </details>
             )}
@@ -251,26 +277,28 @@ function Payments({ eventId, line, locale }: { eventId: string; line: Line; loca
         <input type="hidden" name="lineId" value={line.id} />
         <fieldset>
           <legend>{t("addPaymentTo", { label: line.label })}</legend>
-          <label>
-            {t("paymentLabel")}
-            <input type="text" name="label" maxLength={200} required />
-          </label>
-          <label>
-            {t("paymentMode")}
-            <select name="mode" defaultValue="amount">
-              <option value="amount">{t("paymentModeAmount")}</option>
-              <option value="percent">{t("paymentModePercent")}</option>
-            </select>
-          </label>
-          <label>
-            {t("paymentValue")}
-            <input type="text" inputMode="decimal" name="value" required />
-          </label>
-          <label>
-            {t("paymentDueOn")}
-            <input type="date" name="dueOn" required />
-          </label>
-          <button type="submit" disabled={pending}>
+          <div className="field-row">
+            <label>
+              {t("paymentLabel")}
+              <input type="text" name="label" maxLength={200} required />
+            </label>
+            <label>
+              {t("paymentMode")}
+              <select name="mode" defaultValue="amount">
+                <option value="amount">{t("paymentModeAmount")}</option>
+                <option value="percent">{t("paymentModePercent")}</option>
+              </select>
+            </label>
+            <label className="field-fit">
+              {t("paymentValue")}
+              <input type="text" inputMode="decimal" name="value" className="field-amount" required />
+            </label>
+            <label className="field-fit">
+              {t("paymentDueOn")}
+              <input type="date" name="dueOn" className="field-date" required />
+            </label>
+          </div>
+          <button type="submit" className="button-secondary" disabled={pending}>
             {t("addPayment")}
           </button>
           <Feedback state={state} success={t("paymentAdded")} />
@@ -280,18 +308,29 @@ function Payments({ eventId, line, locale }: { eventId: string; line: Line; loca
   );
 }
 
-function LineRow({ eventId, line, vendors, professional, locale }: { eventId: string; line: Line; vendors: VendorOption[]; professional: boolean; locale: Locale }) {
+type RowEditing = {
+  openId: string | null;
+  toggle: (lineId: string) => void;
+  draftFor: (line: Line) => LineDraft;
+  isChanged: (line: Line) => boolean;
+  setDraft: (line: Line, draft: LineDraft) => void;
+  revert: (line: Line) => void;
+};
+
+function LineRow({ eventId, line, vendors, professional, locale, editing }: { eventId: string; line: Line; vendors: VendorOption[]; professional: boolean; locale: Locale; editing: RowEditing }) {
   const t = useTranslations("Budget");
-  const [open, setOpen] = useState(false);
+  const open = editing.openId === line.id;
+  const changed = editing.isChanged(line);
   const shown = (cents: number | null) => (cents === null ? t("notSet") : formatAmount(cents, locale));
   const variance = varianceDisplay(line.varianceCents);
   const editorId = `edition-${line.id}`;
   return (
     <>
-      <tr id={`ligne-${line.id}`}>
+      <tr id={`ligne-${line.id}`} className={open ? "budget-line budget-line-open" : "budget-line"}>
         {/* Le prestataire sous le libellé : le tableau tient dans la largeur de l'écran. */}
         <th scope="row">
           {line.label}
+          {changed ? <span className="badge badge-ambre">{t("lineChanged")}</span> : null}
           {line.vendorName ? <span className="budget-line-vendor">{line.vendorName}</span> : null}
         </th>
         {BUDGET_AMOUNT_FIELDS.map((field) => (
@@ -310,8 +349,8 @@ function LineRow({ eventId, line, vendors, professional, locale }: { eventId: st
         </td>
         <td className="budget-line-edit">
           {/* « Modifier » visible ; le nom de la ligne pour les lecteurs d'écran. */}
-          <button type="button" aria-expanded={open} aria-controls={editorId} onClick={() => setOpen(!open)}>
-            {t("edit")}
+          <button type="button" className="button-secondary" aria-expanded={open} aria-controls={editorId} data-edit-line={line.id} onClick={() => editing.toggle(line.id)}>
+            {t(open ? "closeLine" : "edit")}
             <span className="sr-only"> {t("editLineName", { label: line.label })}</span>
           </button>
         </td>
@@ -319,15 +358,34 @@ function LineRow({ eventId, line, vendors, professional, locale }: { eventId: st
       {open ? (
         <tr className="budget-line-editor">
           <td colSpan={COLUMNS}>
-            <section id={editorId} aria-label={t("editorOf", { label: line.label })} className="budget-line-editor-panel">
-              <AmountsForm eventId={eventId} line={line} locale={locale} />
-              <DetailsForm eventId={eventId} line={line} vendors={vendors} locale={locale} />
-              <Documents eventId={eventId} line={line} locale={locale} />
-              <Payments eventId={eventId} line={line} locale={locale} />
+            <section id={editorId} aria-label={t("editorOf", { label: line.label })} className="edit-row-open budget-line-editor-panel" tabIndex={-1} data-open-line={line.id}>
+              <LineFields line={line} draft={editing.draftFor(line)} setDraft={(draft) => editing.setDraft(line, draft)} vendors={vendors} locale={locale} />
+              <div className="row-wrap">
+                <button type="button" className="button-secondary" onClick={() => editing.toggle(line.id)}>
+                  {t("closeLine")}
+                </button>
+                {changed ? (
+                  <button type="button" className="button-ghost" onClick={() => editing.revert(line)}>
+                    {t("revertLine")}
+                  </button>
+                ) : null}
+              </div>
+              <div className="budget-line-more">
+                <section aria-label={t("documentsOf", { label: line.label })} className="stack">
+                  <h3>{t("documentsTitle")}</h3>
+                  <Documents eventId={eventId} line={line} locale={locale} />
+                </section>
+                <div className="stack">
+                  <h3>{t("paymentsTitle")}</h3>
+                  <Payments eventId={eventId} line={line} locale={locale} />
+                </div>
+              </div>
               <form action={removeBudgetLineAction}>
                 <input type="hidden" name="eventId" value={eventId} />
                 <input type="hidden" name="lineId" value={line.id} />
-                <button type="submit">{t("removeLine", { label: line.label })}</button>
+                <button type="submit" className="button-danger">
+                  {t("removeLine", { label: line.label })}
+                </button>
               </form>
             </section>
           </td>
@@ -341,7 +399,7 @@ function AddLineForm({ eventId, category, vendors }: { eventId: string; category
   const t = useTranslations("Budget");
   const [state, action, pending] = useActionState(addBudgetLineAction, {});
   return (
-    <form action={action}>
+    <form action={action} className="form-inline">
       <input type="hidden" name="eventId" value={eventId} />
       <input type="hidden" name="eventVendorSlotId" value={category.eventVendorSlotId} />
       <label>
@@ -359,7 +417,7 @@ function AddLineForm({ eventId, category, vendors }: { eventId: string; category
           ))}
         </select>
       </label>
-      <button type="submit" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("addLine")}
       </button>
       <Feedback state={state} success={t("lineAdded")} />
@@ -373,12 +431,14 @@ function CategoryRows({
   vendors,
   professional,
   locale,
+  editing,
 }: {
   eventId: string;
   category: BudgetCategory;
   vendors: VendorOption[];
   professional: boolean;
   locale: Locale;
+  editing: RowEditing;
 }) {
   const t = useTranslations("Budget");
   const [adding, setAdding] = useState(false);
@@ -401,14 +461,14 @@ function CategoryRows({
       {adding ? (
         <tr className="budget-line-editor">
           <td colSpan={COLUMNS}>
-            <section id={addId} aria-label={t("newLineOf", { category: category.label })} className="budget-line-editor-panel">
+            <section id={addId} aria-label={t("newLineOf", { category: category.label })} className="edit-row-open">
               <AddLineForm eventId={eventId} category={category} vendors={vendors} />
             </section>
           </td>
         </tr>
       ) : null}
       {category.lines.map((line) => (
-        <LineRow key={line.id} eventId={eventId} line={line} vendors={vendors} professional={professional} locale={locale} />
+        <LineRow key={line.id} eventId={eventId} line={line} vendors={vendors} professional={professional} locale={locale} editing={editing} />
       ))}
     </tbody>
   );
@@ -463,19 +523,114 @@ export function BudgetLinesTable({
 }) {
   const t = useTranslations("Budget");
   const professional = view?.clientKind === "professional";
+  const [drafts, setDrafts] = useState<Record<string, LineDraft>>({});
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [savedCount, setSavedCount] = useState<number | null>(null);
+  const [pending, startTransition] = useTransition();
+  const root = useRef<HTMLDivElement>(null);
+  const lines = view?.lines ?? [];
+  // Une ligne redevenue comme elle était, ou supprimée entre-temps, ne compte plus.
+  const changed = lines.filter((line) => drafts[line.id] && !sameDraft(drafts[line.id]!, draftOf(line, locale)));
+  const dirty = changed.length > 0;
+
+  // Quitter ou recharger la page avec des lignes en attente : le navigateur demande confirmation ;
+  // un lien de l'app (menu, retour à la fiche) pose la même question.
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    const guard = (event: MouseEvent) => {
+      const link = (event.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
+      if (link.origin === window.location.origin && link.pathname === window.location.pathname && link.search === window.location.search) return;
+      if (!window.confirm(t("unsavedConfirm"))) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+    window.addEventListener("beforeunload", warn);
+    document.addEventListener("click", guard, true);
+    return () => {
+      window.removeEventListener("beforeunload", warn);
+      document.removeEventListener("click", guard, true);
+    };
+  }, [dirty, t]);
+
+  // La ligne qui s'ouvre prend le focus ; refermée, il revient à son bouton « Modifier ».
+  const lastOpen = useRef<string | null>(null);
+  useEffect(() => {
+    const target = openId ? `[data-open-line="${openId}"]` : lastOpen.current ? `[data-edit-line="${lastOpen.current}"]` : null;
+    if (target) root.current?.querySelector<HTMLElement>(target)?.focus();
+    lastOpen.current = openId;
+  }, [openId]);
+
+  const editing: RowEditing = {
+    openId,
+    toggle: (lineId) => setOpenId(openId === lineId ? null : lineId),
+    draftFor: (line) => drafts[line.id] ?? draftOf(line, locale),
+    isChanged: (line) => changed.includes(line),
+    setDraft: (line, draft) => {
+      setSavedCount(null);
+      setDrafts((current) => ({ ...current, [line.id]: draft }));
+    },
+    revert: (line) => {
+      setDrafts((current) => Object.fromEntries(Object.entries(current).filter(([lineId]) => lineId !== line.id)));
+      setError(null);
+    },
+  };
+  const cancelAll = () => {
+    setDrafts({});
+    setError(null);
+  };
+  const save = () => {
+    const unnamed = changed.find((line) => drafts[line.id]!.label.trim() === "");
+    if (unnamed) {
+      setOpenId(unnamed.id);
+      setError(t("lineLabelRequired"));
+      return;
+    }
+    startTransition(async () => {
+      setError(null);
+      const result = await saveBudgetLinesAction({
+        eventId,
+        lines: changed.map((line) => {
+          const draft = drafts[line.id]!;
+          const original = draftOf(line, locale);
+          return {
+            lineId: line.id,
+            label: draft.label,
+            vendorCandidateId: draft.vendorCandidateId === "" ? null : draft.vendorCandidateId,
+            vatRate: draft.vatRate,
+            // Seuls les montants touchés partent : un champ laissé tel quel n'est pas réécrit.
+            amounts: Object.fromEntries(BUDGET_AMOUNT_FIELDS.filter((field) => !(field === "paid" && line.paidFromPayments) && draft.amounts[field].trim() !== original.amounts[field].trim()).map((field) => [field, draft.amounts[field]])),
+          };
+        }),
+      });
+      if (!result.ok) {
+        setError(result.error);
+        if (result.line) setOpenId(result.line);
+        return;
+      }
+      setDrafts({});
+      setOpenId(null);
+      setSavedCount(result.count);
+    });
+  };
 
   if (!view || view.lines.length === 0) {
     if (!canConfirm) return null;
     return (
       <form action={confirmEventBudgetAction}>
         <input type="hidden" name="eventId" value={eventId} />
-        <button type="submit">{t("confirmAsPlanned")}</button>
+        <button type="submit" className="button-primary">
+          {t("confirmAsPlanned")}
+        </button>
       </form>
     );
   }
 
   return (
-    <>
+    <div className="budget-lines-editor" ref={root}>
     {/* BUD-09 : le mode suit le type de client du devis, sans réglage. */}
     <p className="muted">{t(professional ? "vatModeProfessional" : "vatModeIndividual")}</p>
     <div className="list-table-wrap" role="region" aria-labelledby="budget-lines-caption" tabIndex={0}>
@@ -493,7 +648,7 @@ export function BudgetLinesTable({
               {t("amounts.remaining")}
             </th>
             <th scope="col">{t("variance")}</th>
-            <th scope="col">{t("adjust")}</th>
+            <th scope="col">{t("linesActions")}</th>
           </tr>
         </thead>
         {view.categories.map((category) => (
@@ -504,6 +659,7 @@ export function BudgetLinesTable({
             vendors={vendorOptions[category.eventVendorSlotId] ?? []}
             professional={professional}
             locale={locale}
+            editing={editing}
           />
         ))}
         <tfoot>
@@ -527,6 +683,28 @@ export function BudgetLinesTable({
         </tfoot>
       </table>
     </div>
-    </>
+    {error ? (
+      <p role="alert" className="notice notice-error">
+        {error}
+      </p>
+    ) : null}
+    {dirty ? (
+      <div className="edit-bar">
+        <p role="status">{t("linesPending", { count: changed.length })}</p>
+        <div className="row-wrap">
+          <button type="button" className="button-secondary" onClick={cancelAll} disabled={pending}>
+            {t("cancelChanges")}
+          </button>
+          <button type="button" className="button-primary" onClick={save} disabled={pending}>
+            {t("linesSave")}
+          </button>
+        </div>
+      </div>
+    ) : savedCount !== null ? (
+      <p role="status" className="notice">
+        {t("linesSaved", { count: savedCount })}
+      </p>
+    ) : null}
+    </div>
   );
 }
