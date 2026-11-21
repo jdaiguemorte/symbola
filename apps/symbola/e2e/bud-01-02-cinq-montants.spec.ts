@@ -78,8 +78,10 @@ test("BUD-01 — une ligne complète (estimé, devisé, engagé, payé) se saisi
   await editor.getByLabel("Devisé — Traiteur").fill("4 480");
   await editor.getByLabel("Engagé — Traiteur").fill("4 480");
   await editor.getByLabel("Payé — Traiteur").fill("1 344");
-  await editor.getByRole("button", { name: "Enregistrer la ligne" }).click();
-  await expect(editor.getByText("Ligne enregistrée.")).toBeVisible();
+  // Lot 62c (D1) : un seul « Enregistrer le budget », qui dit le nombre de lignes modifiées.
+  await expect(page.getByText("1 ligne modifiée, pas encore enregistrée.")).toBeVisible();
+  await page.getByRole("button", { name: "Enregistrer le budget" }).click();
+  await expect(page.getByText("Budget enregistré : 1 ligne.")).toBeVisible();
   expect(Date.now() - started).toBeLessThan(60_000);
 
   // Cinq montants, l'écart, et les totaux au centime près.

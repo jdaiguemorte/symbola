@@ -483,6 +483,13 @@ export type ProgramItemInput = {
   keyMomentId?: string | null | undefined;
 };
 
+// Lot 62c (UX-13, décision D1) : le programme s'enregistre d'un coup, séquences modifiées et
+// séquences ajoutées dans une seule transaction (tout ou rien).
+export type SaveProgramItemsInput = {
+  updates: { itemId: string; item: ProgramItemInput }[];
+  additions: ProgramItemInput[];
+};
+
 // Lot 30b (CHR-06, décision D8) : décaler les séquences suivantes d'autant que la
 // séquence modifiée, proposé après le changement de son heure de début ; `outOfDay`
 // quand l'une d'elles sortirait du jour J (elle se déplace alors à la main).
@@ -953,6 +960,8 @@ export interface EventsServiceContract {
   addProgramItem(organizationId: string, eventId: string, item: ProgramItemInput): Promise<ProgramItem>;
   updateProgramItem(organizationId: string, itemId: string, item: ProgramItemInput): Promise<ProgramItem>;
   removeProgramItem(organizationId: string, itemId: string): Promise<void>;
+  // Lot 62c (UX-13, D1) : plusieurs séquences en une transaction.
+  saveProgramItems(organizationId: string, eventId: string, input: SaveProgramItemsInput): Promise<ProgramItem[]>;
   // Lot 30b (CHR-06, décision D8) : décaler des séquences de l'événement, début et fin.
   shiftProgramItems(organizationId: string, eventId: string, itemIds: string[], minutes: number): Promise<ProgramItem[]>;
   listProgramTemplates(organizationId: string): Promise<ProgramTemplate[]>;

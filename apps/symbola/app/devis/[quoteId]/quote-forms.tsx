@@ -123,7 +123,7 @@ function PlacementFields({ idPrefix, sections, line }: { idPrefix: string; secti
           </select>
         </>
       ) : null}
-      <label className="checkbox-label">
+      <label>
         <input type="checkbox" name="isOption" defaultChecked={line?.isOption ?? false} />
         {t("lineIsOption")}
       </label>
@@ -345,7 +345,7 @@ export function ChooseOptionsForm({ quoteId, options }: { quoteId: string; optio
       <fieldset>
         <legend>{t("optionsTitle")}</legend>
         {options.map((line) => (
-          <label key={line.id} className="checkbox-label">
+          <label key={line.id}>
             <input type="checkbox" name="optionLineIds" value={line.id} defaultChecked={line.optionChosen} />
             {line.label}
           </label>

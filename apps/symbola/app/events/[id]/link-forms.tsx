@@ -63,7 +63,7 @@ function OtpChoice({ defaultChecked }: { defaultChecked: boolean }) {
   const t = useTranslations("Events");
   const hintId = useId();
   return (
-    <>
+    <div className="link-choice">
       <label className="checkbox">
         <input type="checkbox" name="otpRequired" defaultChecked={defaultChecked} aria-describedby={hintId} />
         {t("linkOtp")}
@@ -71,7 +71,7 @@ function OtpChoice({ defaultChecked }: { defaultChecked: boolean }) {
       <p id={hintId} className="muted">
         {t("linkOtpHint")}
       </p>
-    </>
+    </div>
   );
 }
 
@@ -80,7 +80,7 @@ function ReminderChoice({ defaultChecked }: { defaultChecked: boolean }) {
   const t = useTranslations("Events");
   const hintId = useId();
   return (
-    <>
+    <div className="link-choice">
       <label className="checkbox">
         <input type="checkbox" name="taskReminders" defaultChecked={defaultChecked} aria-describedby={hintId} />
         {t("linkReminders")}
@@ -88,7 +88,7 @@ function ReminderChoice({ defaultChecked }: { defaultChecked: boolean }) {
       <p id={hintId} className="muted">
         {t("linkRemindersHint")}
       </p>
-    </>
+    </div>
   );
 }
 
@@ -118,9 +118,12 @@ export function CreateLinkForm({ eventId, clients, slots, profiles }: { eventId:
   const profile = profiles.find((candidate) => candidate.key === profileKey);
   const ids = { person: useId(), profile: useId() };
   return (
-    <form action={formAction} className="link-form">
+    <form action={formAction}>
       <h3>{t("createLinkTitle")}</h3>
       <input type="hidden" name="eventId" value={eventId} />
+      {/* Lot 62c (UX-12) : formulaire en grille — la personne, son nom, son e-mail ; le profil et la durée. */}
+      <div className="form-grid form-grid-3">
+      <div className="field-stack">
       <label htmlFor={ids.person}>{t("linkPerson")}</label>
       <select
           id={ids.person}
@@ -138,6 +141,7 @@ export function CreateLinkForm({ eventId, clients, slots, profiles }: { eventId:
             </option>
           ))}
       </select>
+      </div>
       <label>
         {t("linkPersonName")}
         <input name="personName" required maxLength={120} value={person.name} onChange={(event) => setPerson({ ...person, name: event.target.value })} />
@@ -146,6 +150,7 @@ export function CreateLinkForm({ eventId, clients, slots, profiles }: { eventId:
         {t("linkEmail")}
         <input type="email" name="email" required autoComplete="off" value={person.email} onChange={(event) => setPerson({ ...person, email: event.target.value })} />
       </label>
+      <div className="field-stack">
       <label htmlFor={ids.profile}>{t("linkProfile")}</label>
       <select id={ids.profile} name="profile" value={profileKey} onChange={(event) => setProfileKey(event.target.value)}>
         {profiles.map((candidate) => (
@@ -154,15 +159,23 @@ export function CreateLinkForm({ eventId, clients, slots, profiles }: { eventId:
           </option>
         ))}
       </select>
-      {profile?.budgetScope === "selected" ? <SlotChoices slots={slots} selected={[]} /> : null}
+      </div>
+      <div className="field-stack">
       <label>
         {t("linkExpiresOn")}
-        <input type="date" name="customExpiresOn" />
+        <input type="date" name="customExpiresOn" className="field-date" />
       </label>
       <p className="muted">{t("linkExpiresOnHint")}</p>
+      </div>
+      {profile?.budgetScope === "selected" ? (
+        <div className="span-all">
+          <SlotChoices slots={slots} selected={[]} />
+        </div>
+      ) : null}
       <ReminderChoice defaultChecked />
       <OtpChoice defaultChecked={false} />
-      <button type="submit" className="primary" disabled={pending}>
+      </div>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("createLink")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
@@ -180,7 +193,7 @@ export function EditLinkForm({ eventId, link, clients, slots, guestsRubric = fal
   const personId = useId();
   const vendor = link.audience === "vendor";
   return (
-    <form action={formAction} className="link-form">
+    <form action={formAction}>
       <input type="hidden" name="eventId" value={eventId} />
       <input type="hidden" name="linkId" value={link.id} />
       <label>
@@ -194,11 +207,11 @@ export function EditLinkForm({ eventId, link, clients, slots, guestsRubric = fal
       {vendor ? null : <ClientRights link={link} clients={clients} slots={slots} personId={personId} scope={scope} onScope={setScope} guestsRubric={guestsRubric} floorplanRubric={floorplanRubric} />}
       <label>
         {t("linkExpiresOn")}
-        <input type="date" name="customExpiresOn" defaultValue={link.customExpiresOn ?? ""} />
+        <input type="date" name="customExpiresOn" className="field-date" defaultValue={link.customExpiresOn ?? ""} />
       </label>
       {vendor ? null : <ReminderChoice defaultChecked={link.taskReminders} />}
       <OtpChoice defaultChecked={link.otpRequired} />
-      <button type="submit" disabled={pending}>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("saveLink", { name: link.personName })}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
@@ -273,8 +286,9 @@ export function CreateVendorLinkForm({ eventId, vendors }: { eventId: string; ve
   const [person, setPerson] = useState({ candidateId: vendors[0]?.candidateId ?? "", name: vendors[0]?.personName ?? "", email: vendors[0]?.email ?? "" });
   const vendorId = useId();
   return (
-    <form action={formAction} className="link-form">
-      <h3>{t("createVendorLinkTitle")}</h3>
+    <form action={formAction}>
+      {/* Le titre visible est le sommaire qui ouvre ce formulaire (fiche de l'évènement). */}
+      <h3 className="sr-only">{t("createVendorLinkTitle")}</h3>
       <p className="muted">{t("createVendorLinkIntro")}</p>
       {vendors.length === 0 ? (
         <p>{t("noLinkVendors")}</p>
@@ -282,6 +296,8 @@ export function CreateVendorLinkForm({ eventId, vendors }: { eventId: string; ve
         <>
           <input type="hidden" name="eventId" value={eventId} />
           <input type="hidden" name="audience" value="vendor" />
+          <div className="form-grid form-grid-3">
+          <div className="field-stack">
           <label htmlFor={vendorId}>{t("linkVendor")}</label>
           <select
             id={vendorId}
@@ -298,6 +314,7 @@ export function CreateVendorLinkForm({ eventId, vendors }: { eventId: string; ve
               </option>
             ))}
           </select>
+          </div>
           <label>
             {t("linkPersonName")}
             <input name="personName" required maxLength={120} value={person.name} onChange={(event) => setPerson({ ...person, name: event.target.value })} />
@@ -306,13 +323,16 @@ export function CreateVendorLinkForm({ eventId, vendors }: { eventId: string; ve
             {t("linkEmail")}
             <input type="email" name="email" required autoComplete="off" value={person.email} onChange={(event) => setPerson({ ...person, email: event.target.value })} />
           </label>
+          <div className="field-stack">
           <label>
             {t("linkExpiresOn")}
-            <input type="date" name="customExpiresOn" />
+            <input type="date" name="customExpiresOn" className="field-date" />
           </label>
           <p className="muted">{t("linkVendorExpiresOnHint")}</p>
+          </div>
           <OtpChoice defaultChecked={false} />
-          <button type="submit" className="primary" disabled={pending}>
+          </div>
+          <button type="submit" className="button-secondary" disabled={pending}>
             {t("createVendorLink")}
           </button>
         </>
@@ -330,8 +350,9 @@ export function RenewLinkForm({ eventId, linkId, personName }: { eventId: string
     <form action={formAction}>
       <input type="hidden" name="eventId" value={eventId} />
       <input type="hidden" name="linkId" value={linkId} />
-      <button type="submit" disabled={pending}>
-        {t("renewLink", { name: personName })}
+      <button type="submit" className="button-secondary" disabled={pending}>
+        {t("linkRenewShort")}
+        <span className="sr-only">{t("linkOfName", { name: personName })}</span>
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}
       <LinkDelivered state={state} />

@@ -19,9 +19,13 @@ export function RequestDecisionForm({ eventId, slots, expenses, hasProgram }: { 
   const ids = { kind: useId(), slot: useId(), line: useId(), note: useId(), due: useId() };
   if (kinds.length === 0) return <p className="muted">{t("nothingToRequest")}</p>;
   return (
-    <form action={formAction} className="link-form">
-      <h3>{t("requestTitle")}</h3>
+    <form action={formAction}>
+      {/* Le titre visible est le sommaire qui ouvre ce formulaire (fiche de l'évènement). */}
+      <h3 className="sr-only">{t("requestTitle")}</h3>
       <input type="hidden" name="eventId" value={eventId} />
+      {/* Lot 62c (UX-12) : formulaire en grille — la sorte de décision, son objet, la date souhaitée ; le message dessous. */}
+      <div className="form-grid form-grid-3">
+      <div className="field-stack">
       <label htmlFor={ids.kind}>{t("kindLabel")}</label>
       <select id={ids.kind} name="kind" value={kind} onChange={(event) => setKind(event.target.value as typeof kind)}>
         {kinds.map((value) => (
@@ -30,8 +34,9 @@ export function RequestDecisionForm({ eventId, slots, expenses, hasProgram }: { 
           </option>
         ))}
       </select>
+      </div>
       {kind === "option" ? (
-        <>
+        <div className="field-stack">
           <label htmlFor={ids.slot}>{t("slotLabel")}</label>
           <select id={ids.slot} name="slotId" required>
             {slots.map((slot) => (
@@ -40,10 +45,10 @@ export function RequestDecisionForm({ eventId, slots, expenses, hasProgram }: { 
               </option>
             ))}
           </select>
-        </>
+        </div>
       ) : null}
       {kind === "expense" ? (
-        <>
+        <div className="field-stack">
           <label htmlFor={ids.line}>{t("expenseLabel")}</label>
           <select id={ids.line} name="lineId" required>
             {expenses.map((expense) => (
@@ -52,14 +57,19 @@ export function RequestDecisionForm({ eventId, slots, expenses, hasProgram }: { 
               </option>
             ))}
           </select>
-        </>
+        </div>
       ) : null}
+      <div className="field-stack">
+      <label htmlFor={ids.due}>{t("dueOnLabel")}</label>
+      <input id={ids.due} type="date" name="dueOn" className="field-date" />
+      </div>
+      <div className="field-stack span-all">
       <label htmlFor={ids.note}>{t("noteLabel")}</label>
       <textarea id={ids.note} name="note" maxLength={500} rows={2} />
       <FreeTextNotice />
-      <label htmlFor={ids.due}>{t("dueOnLabel")}</label>
-      <input id={ids.due} type="date" name="dueOn" />
-      <button type="submit" className="primary" disabled={pending}>
+      </div>
+      </div>
+      <button type="submit" className="button-secondary" disabled={pending}>
         {t("requestSubmit")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}

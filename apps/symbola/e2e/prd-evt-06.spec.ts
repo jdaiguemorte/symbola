@@ -83,12 +83,14 @@ test("PRD-EVT-06 / UX-11 / SEC-17 — le marié ouvre son lien sans inscription,
   await expect(planner.getByText("Tâche ajoutée.")).toBeVisible();
 
   await openEventTab(planner, "Programme du jour J");
-  const newLine = planner.getByRole("group", { name: "Nouvelle ligne du programme" });
-  await newLine.getByLabel("Heure de début").fill("15:00");
-  await newLine.getByLabel("Intitulé de la ligne").fill("Cérémonie");
+  // Lot 62c (D1) : la séquence s'ajoute dans la liste, puis « Enregistrer le programme ».
+  await planner.getByRole("button", { name: "Ajouter une séquence" }).click();
+  const newLine = planner.getByRole("group", { name: "Modifier la ligne Nouvelle séquence" });
+  await newLine.getByLabel("Début", { exact: true }).fill("15:00");
+  await newLine.getByLabel("Séquence", { exact: true }).fill("Cérémonie");
   await newLine.getByLabel("Note interne").fill("Le témoin oublie toujours les alliances");
-  await newLine.getByRole("button", { name: "Ajouter la ligne" }).click();
-  await expect(planner.getByText("Ligne ajoutée.")).toBeVisible();
+  await planner.getByRole("button", { name: "Enregistrer le programme" }).click();
+  await expect(planner.getByText("Programme enregistré : 1 ligne.")).toBeVisible();
   // Lot 37b (CHR-07, D10) : les clients lisent la version diffusée.
   await planner.getByRole("button", { name: "Diffuser le programme (version 1)" }).click();
   await expect(planner.getByText("Version 1 diffusée")).toBeVisible();

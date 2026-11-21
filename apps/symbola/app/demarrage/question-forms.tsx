@@ -85,7 +85,7 @@ export function QuestionForm(props: QuestionProps) {
       ) : null}
       {state.error ? <p role="alert">{state.error}</p> : null}
       <div className="question-actions">
-        <button type="submit" name="intent" value="continue" className="primary-button" disabled={pending}>
+        <button type="submit" name="intent" value="continue" disabled={pending}>
           {props.step === 5 ? t("finish") : t("continue")}
         </button>
         <button type="submit" name="intent" value="skip" className="button-ghost" disabled={pending}>

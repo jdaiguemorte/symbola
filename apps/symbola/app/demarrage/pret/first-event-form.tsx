@@ -46,7 +46,7 @@ export function FirstEventForm({ eventTypes, clientLabels }: { eventTypes: Pick<
       </label>
       <SameDayNotice date={eventDate} />
       {state.error ? <p role="alert">{state.error}</p> : null}
-      <button type="submit" className="primary-button" disabled={pending}>
+      <button type="submit" disabled={pending}>
         {t("ready.firstEventSubmit")}
       </button>
     </form>

@@ -168,7 +168,7 @@ export function ManageOpener() {
             </select>
           </label>
           <div className="row-wrap">
-            <button type="submit" className="danger">
+            <button type="submit" className="button-danger">
               {t("confirmCancel")}
             </button>
             <button type="button" onClick={() => setState({ ...state, mode: "view", message: undefined })}>
