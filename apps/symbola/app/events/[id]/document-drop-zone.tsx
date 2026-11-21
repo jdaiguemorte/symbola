@@ -6,6 +6,7 @@
 // sa ligne du budget) ; pour « autre », le dossier.
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { RequiredMark } from "@/app/ui/required-mark";
 import { useUploadAction } from "@/app/ui/use-upload";
 import type { UploadState } from "@/lib/uploads/state";
 
@@ -74,7 +75,10 @@ export function DocumentDropZone({ eventId, vendors, folders, budgetEnabled }: {
       </div>
 
       <fieldset className="choice-row">
-        <legend>{t("depositKindLegend")} *</legend>
+        <legend>
+          {t("depositKindLegend")}
+          <RequiredMark />
+        </legend>
         {KINDS.map((entry) => (
           <label key={entry}>
             <input type="radio" name="kind" value={entry} checked={kind === entry} onChange={() => setKind(entry)} />

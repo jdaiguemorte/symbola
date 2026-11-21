@@ -6,6 +6,7 @@
 // se règle ensuite dans les modèles de rétroplanning.
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { RequiredMark } from "@/app/ui/required-mark";
 import { createTypedTaskTemplateAction } from "./actions";
 
 export type ProposedTemplate = { id: string; name: string; eventTypeId: string; items: { label: string; offsetDays: number }[] };
@@ -69,7 +70,8 @@ export function QuickTemplatePanel({ eventTypeId, typeLabel, onClose, onCreated 
       <p className="meta">{t("quickTemplateIntro")}</p>
       <form onSubmit={submit} className="panel-form">
         <label>
-          {t("newTaskTemplateName")} *
+          {t("newTaskTemplateName")}
+          <RequiredMark />
           <input type="text" value={name} maxLength={200} required onChange={(event) => setName(event.target.value)} />
         </label>
         <fieldset className="stack">

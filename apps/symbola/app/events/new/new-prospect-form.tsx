@@ -7,6 +7,7 @@
 // modèle reçoit une astuce et un panneau pour en créer un, sans quitter le formulaire.
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
+import { RequiredLegend, RequiredMark } from "@/app/ui/required-mark";
 import { DraftKeeper } from "@/app/ui/draft-keeper";
 import { createProspectAction, type NewProspectFormState } from "./actions";
 import type { EventType, ProspectSource } from "@/modules/events/service";
@@ -49,6 +50,7 @@ export function NewProspectForm({
   const eventType = eventTypes.find((type) => type.id === eventTypeId);
   const labels = clientLabels[eventType?.audience ?? "couple"];
   const tContacts = useTranslations("Contacts");
+  const tCommon = useTranslations("Common");
   // Les modèles créés dans le panneau s'ajoutent à ceux de la page.
   const [created, setCreated] = useState<ProposedTemplate[]>([]);
   const template = [...created, ...templates].find((candidate) => candidate.eventTypeId === eventTypeId) ?? null;
@@ -63,7 +65,7 @@ export function NewProspectForm({
         {/* Lot 39b (UX-09) : la saisie est gardée et se reprend sur tout appareil. */}
         <DraftKeeper formKey={`event-new-${mode}`} submission={state} />
         <input type="hidden" name="mode" value={mode} />
-        <p className="meta">{t("requiredLegend")}</p>
+        <RequiredLegend text={tCommon("requiredLegend")} />
         {mode === "client" ? (
           <fieldset className="choice-row">
             <legend>{t("newStatusLegend")}</legend>
@@ -78,7 +80,8 @@ export function NewProspectForm({
           </fieldset>
         ) : null}
         <label>
-          {t("eventType")} *
+          {t("eventType")}
+          <RequiredMark />
           <select name="eventTypeId" required value={eventTypeId} onChange={(event) => setEventTypeId(event.target.value)}>
             {eventTypes.map((type) => (
               <option key={type.id} value={type.id}>
@@ -107,7 +110,7 @@ export function NewProspectForm({
           <ContactPicker name="contactId1" legend={rules.clientRequired ? `${tContacts("pickerClient1")} *` : t("clientOptionalLegend")} initial={initialContact}>
             <label>
               {labels.client1FirstName}
-              {rules.clientRequired ? " *" : ""}
+              {rules.clientRequired ? <RequiredMark /> : null}
               <input type="text" name="firstName1" required={rules.clientRequired} />
             </label>
             <label>
@@ -128,7 +131,7 @@ export function NewProspectForm({
         </ContactPicker>
         <label>
           {t("source")}
-          {rules.sourceRequired ? " *" : ""}
+          {rules.sourceRequired ? <RequiredMark /> : null}
           <select name="prospectSourceId" required={rules.sourceRequired} defaultValue="">
             <option value="" disabled={rules.sourceRequired}>
               {rules.sourceRequired ? t("sourceChoose") : t("sourceNone")}

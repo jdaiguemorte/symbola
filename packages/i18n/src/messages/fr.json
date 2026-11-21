@@ -753,7 +753,7 @@
     },
     "budgetDetail": {
       "title": "Budget de l'événement",
-      "body": "Le suivi courant du budget est dans l'onglet « Budget et prestataires » de la fiche : par poste, prévu, réel, écart, réglé, reste à payer et prochaine échéance ; la ligne se déplie sur son échéancier et « Modifier » ouvre la ligne dans une fenêtre. Cette page en garde le détail. Chaque poste de l'événement est une catégorie ; elle porte des lignes (« Dîner, 120 couverts », « Vin d'honneur »…), chacune avec son prestataire et cinq montants : l'estimé, le devisé, l'engagé (rempli quand vous retenez le prestataire), le payé et le reste à payer, calculé. « Modifier » ouvre une ligne sur place : changez son libellé, son prestataire, son taux et ses montants, sur autant de lignes que vous voulez, puis « Enregistrer le budget » les écrit ensemble ; « Annuler les modifications » rend le budget enregistré. La simulation et sa répartition par poste se replient une fois les lignes posées ; la répartition s'enregistre de même, d'un seul « Enregistrer la répartition ». Sous chaque ligne, joignez le devis, le contrat ou la facture, et posez les échéances (acompte, solde ; un pourcentage porte sur l'engagé du prestataire) : payées, elles font le payé de la ligne, et les prochaines apparaissent dans « Aujourd'hui ». L'enveloppe est le budget souhaité du client ; au-delà du seuil d'alerte, un bandeau le signale, et retenir un prestataire demande une confirmation. Les montants se saisissent TTC, chaque ligne avec son taux de TVA (20 % par défaut) ; si le devis de l'événement est à un client professionnel, le HT s'affiche sous chaque montant. « Exporter en XLSX » ou « en PDF » reprend le budget et les échéances, aux couleurs de vos documents.",
+      "body": "Le suivi courant du budget est dans l'onglet « Budget et prestataires » de la fiche : par poste, prévu, réel, écart, réglé, reste à payer et prochaine échéance ; la ligne se déplie sur son échéancier et « Modifier » ouvre la ligne dans une fenêtre. Cette page en garde le détail. Chaque poste de l'événement est une catégorie ; elle porte des lignes (« Dîner, 120 couverts », « Vin d'honneur »…), chacune avec son prestataire et cinq montants : l'estimé, le réel (le montant du devis), l'engagé (rempli quand vous retenez le prestataire), le payé et le reste à payer, calculé. « Modifier » ouvre une ligne sur place : changez son libellé, son prestataire, son taux et ses montants, sur autant de lignes que vous voulez, puis « Enregistrer le budget » les écrit ensemble ; « Annuler les modifications » rend le budget enregistré. La simulation et sa répartition par poste se replient une fois les lignes posées ; la répartition s'enregistre de même, d'un seul « Enregistrer la répartition ». Sous chaque ligne, joignez le devis, le contrat ou la facture, et posez les échéances (acompte, solde ; un pourcentage porte sur l'engagé du prestataire) : payées, elles font le payé de la ligne, et les prochaines apparaissent dans « Aujourd'hui ». L'enveloppe est le budget souhaité du client ; au-delà du seuil d'alerte, un bandeau le signale, et retenir un prestataire demande une confirmation. Les montants se saisissent TTC, chaque ligne avec son taux de TVA (20 % par défaut) ; si le devis de l'événement est à un client professionnel, le HT s'affiche sous chaque montant. « Exporter en XLSX » ou « en PDF » reprend le budget et les échéances, aux couleurs de vos documents.",
       "faq": [
         {
           "q": "Les mariés voient-ils le budget ?",
@@ -2338,7 +2338,6 @@
     "newMenuClientHint": "Un nouvel évènement pour un client déjà dans vos contacts.",
     "newForClient": "Nouvel évènement pour un client existant",
     "viewColumns": "Colonnes",
-    "requiredLegend": "* obligatoire",
     "newStatusLegend": "C'est :",
     "newStatusProspect": "une demande à étudier (prospect)",
     "newStatusConfirmed": "un évènement confirmé",
@@ -11903,7 +11902,6 @@
     "newVendorNamed": "+ Nouveau prestataire « {name} »",
     "compare": "Comparer plusieurs prestataires",
     "newVendorTitle": "Nouveau prestataire pour « {slot} »",
-    "requiredLegend": "* obligatoire",
     "newVendorName": "Nom",
     "newVendorType": "Métier",
     "newVendorTypeNone": "À classer",

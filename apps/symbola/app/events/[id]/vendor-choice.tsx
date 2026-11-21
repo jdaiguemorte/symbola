@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { RequiredLegend, RequiredMark } from "@/app/ui/required-mark";
 import { ChevronDown } from "lucide-react";
 import { createSlotVendorAction, retainSlotVendorAction, searchSlotVendorsAction } from "./budget-vendor-actions";
 import type { SlotVendorChoice } from "@/lib/vendors/slot-retention";
@@ -172,8 +173,10 @@ function NewVendorDialog({ eventId, slotId, slotLabel, initialName, vendorTypes,
         </button>
       </div>
       <form onSubmit={submit} className="stack">
-        <p className="meta">{t("requiredLegend")}</p>
-        <label htmlFor={ids.name}>{t("newVendorName")} *</label>
+        <RequiredLegend text={tCommon("requiredLegend")} />
+        <label htmlFor={ids.name}>{t("newVendorName")}
+          <RequiredMark />
+        </label>
         <input id={ids.name} name="name" type="text" required maxLength={200} defaultValue={initialName} />
         {vendorTypes.length > 0 ? (
           <>
