@@ -11,34 +11,38 @@ export async function MonthlyLoad({ load, locale }: { load: MonthLoad[]; locale:
   return (
     <section className="card" aria-labelledby="monthly-load-title">
       <h2 id="monthly-load-title">{t("loadTitle")}</h2>
-      <table className="data-table load-table">
-        <thead>
-          <tr>
-            <th scope="col">{t("loadMonth")}</th>
-            <th scope="col" className="num">
-              {t("loadConfirmed")}
-            </th>
-            <th scope="col" className="num">
-              {t("loadOptions")}
-            </th>
-            <th scope="col" className="load-bar-cell">
-              <span className="sr-only">{t("loadBar")}</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {load.map((entry) => (
-            <tr key={entry.month}>
-              <th scope="row">{formatMonth(`${entry.month}-01`, locale)}</th>
-              <td className="num">{entry.confirmed}</td>
-              <td className="num">{entry.options}</td>
-              <td className="load-bar-cell">
-                <progress aria-hidden="true" value={entry.confirmed + entry.options} max={max} />
-              </td>
+      {/* Lot 62a (NFR-19) : trois colonnes courtes, sans largeur minimale ; si la place manque quand
+          même, le tableau défile dans sa zone, jamais la page. */}
+      <div role="region" aria-label={t("loadTableLabel")} tabIndex={0}>
+        <table className="data-table load-table">
+          <thead>
+            <tr>
+              <th scope="col">{t("loadMonth")}</th>
+              <th scope="col" className="num">
+                {t("loadConfirmed")}
+              </th>
+              <th scope="col" className="num">
+                {t("loadOptions")}
+              </th>
+              <th scope="col" className="load-bar-cell">
+                <span className="sr-only">{t("loadBar")}</span>
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {load.map((entry) => (
+              <tr key={entry.month}>
+                <th scope="row">{formatMonth(`${entry.month}-01`, locale)}</th>
+                <td className="num">{entry.confirmed}</td>
+                <td className="num">{entry.options}</td>
+                <td className="load-bar-cell">
+                  <progress aria-hidden="true" value={entry.confirmed + entry.options} max={max} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

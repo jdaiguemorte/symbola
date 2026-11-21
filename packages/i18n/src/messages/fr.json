@@ -2132,6 +2132,7 @@
     "loadMonth": "Mois",
     "loadConfirmed": "Confirmés",
     "loadOptions": "Options",
+    "loadTableLabel": "Charge par mois, en tableau",
     "loadBar": "Charge du mois",
     "sameDayWith": "Même jour : {names}",
     "tasksDisplayLabel": "Affichage des tâches",

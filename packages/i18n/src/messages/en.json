@@ -2132,6 +2132,7 @@
     "loadMonth": "Month",
     "loadConfirmed": "Confirmed",
     "loadOptions": "Options",
+    "loadTableLabel": "Workload by month, as a table",
     "loadBar": "Month's workload",
     "sameDayWith": "Same day: {names}",
     "tasksDisplayLabel": "Task display",

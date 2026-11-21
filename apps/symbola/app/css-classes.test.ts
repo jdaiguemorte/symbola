@@ -213,7 +213,7 @@ function scanExpression(src: string, start: number, found: Found, collect: boole
 }
 
 /** Les classes qu'emploie un fichier d'écran. */
-export function classesOf(source: string): Found {
+function classesOf(source: string): Found {
   const found: Found = { exact: new Set(), prefixes: new Set(), suffixes: new Set() };
   // Attributs JSX : className="…" ou className={…} (et triggerClassName, rowClassName…).
   for (const match of source.matchAll(/[cC]lassName=/g)) {

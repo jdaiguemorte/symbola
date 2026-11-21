@@ -3441,6 +3441,11 @@
 @layer components {
   /* Lot 32b (EVT-07, D11) — charge des douze prochains mois : les chiffres font foi, la barre
      (<progress>) est un repère, masqué sur téléphone. */
+  /* Lot 62a (NFR-19) : « data-table » réserve 600 px ; ce tableau de trois colonnes courtes sortait
+     de sa carte et faisait défiler la liste des évènements de 266 px en 375 px. */
+  .data-table.load-table {
+    @apply min-w-0;
+  }
   .load-table .load-bar-cell {
     @apply hidden w-2/5 sm:table-cell;
   }
