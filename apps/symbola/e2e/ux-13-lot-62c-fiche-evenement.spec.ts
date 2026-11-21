@@ -21,7 +21,7 @@ import {
   listEventTasks,
   listEventVendorSlots,
 } from "../modules/events/service";
-import { createAllocationModel, getEventBudget, listBudgetLines, simulateEventBudget, updateBudgetLine } from "../modules/budget/service";
+import { addBudgetLine, createAllocationModel, getEventBudget, listBudgetLines, simulateEventBudget, updateBudgetLine } from "../modules/budget/service";
 import { openEventTab, readyOrganization, signIn } from "./helpers";
 import { measureScreen } from "./lot-62c-mesures";
 
@@ -274,6 +274,38 @@ test("UX-13, UX-05 — budget : répartition et lignes en tableaux éditables, u
   expect((await getEventBudget(setup.organizationId, setup.eventId))!.allocatedCents).toBe(3500000 - 280000 - 70000 + 300000 + 50000);
 
   await expectCommonCriteria(page);
+  await expectNoAxeViolation(page);
+});
+
+test("UX-05 — budget de plus de douze lignes : sur téléphone, les catégories se replient, leurs totaux en vue", async ({ page }) => {
+  const setup = await weddingWithBudget();
+  const slots = await listEventVendorSlots(setup.organizationId, setup.eventId);
+  for (const slot of slots.slice(0, 5)) await addBudgetLine({ organizationId: setup.organizationId, eventId: setup.eventId, eventVendorSlotId: slot.id, label: `${slot.label}, complément` });
+  await signIn(page, setup.email, /\/$/);
+  await page.goto(`/budget/${setup.eventId}`);
+  await page.waitForLoadState("networkidle");
+
+  const table = page.getByRole("table", { name: "Estimé, devisé, engagé, payé" });
+  const caterer = table.getByRole("rowgroup", { name: "Traiteur" });
+  const edit = table.getByRole("button", { name: "Modifier « Traiteur, complément »" });
+  await expect(caterer.getByRole("row").first()).toContainText("10 850,00 €");
+  if (isPhone(page)) {
+    // Quatorze lignes : la catégorie est repliée, ses totaux restent ; « Voir les 2 lignes » la déplie.
+    await expect(edit).toBeHidden();
+    await expectCommonCriteria(page);
+    await caterer.getByRole("button", { name: /^Voir les 2 lignes/ }).click();
+    await expect(edit).toBeVisible();
+    // Une ligne ouverte ou modifiée garde sa catégorie dépliée.
+    await edit.click();
+    await page.getByRole("region", { name: /^Ligne « Traiteur, complément »/ }).getByLabel("Estimé — Traiteur, complément").fill("300");
+    await caterer.getByRole("button", { name: /^Masquer les 2 lignes/ }).click();
+    await expect(edit).toBeVisible();
+    await expect(page.getByText("1 ligne modifiée, pas encore enregistrée.")).toBeVisible();
+  } else {
+    // En taille ordinateur, rien ne se replie.
+    await expect(edit).toBeVisible();
+    await expect(table.getByRole("button", { name: /^Voir les/ })).toHaveCount(0);
+  }
   await expectNoAxeViolation(page);
 });
 
