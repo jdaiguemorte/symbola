@@ -4996,3 +4996,130 @@
     @apply bg-critical-soft text-critical;
   }
 }
+
+/* Lot 64 (HUB-29, RDV-02 ; maquettes M1 à M4) — plages occupées : fenêtre à formulaire, champs d'une
+   règle et son aperçu (frise de jours), interrupteur, bloc de la fiche. */
+@layer components {
+  .form-dialog {
+    @apply m-auto w-[min(32rem,calc(100vw-2rem))] rounded-lg border border-line bg-surface p-6 text-ink shadow-float;
+  }
+  .form-dialog.form-dialog-wide {
+    @apply w-[min(40rem,calc(100vw-2rem))];
+  }
+  .form-dialog::backdrop {
+    background: color-mix(in srgb, var(--color-ink) 35%, transparent);
+  }
+  .form-dialog > h2 {
+    @apply m-0 mb-1 text-title;
+  }
+  .form-dialog-intro {
+    @apply mt-0 mb-4 text-label text-ink-muted;
+  }
+  .form-dialog-form {
+    @apply m-0 grid gap-4;
+  }
+  .form-dialog-actions {
+    @apply mt-2 flex flex-wrap items-center justify-end gap-2;
+  }
+  .busy-rule-fields {
+    @apply grid gap-4;
+  }
+  .busy-bound {
+    @apply grid grid-cols-[minmax(0,1fr)_9.5rem] items-end gap-3 sm:grid-cols-[4.5rem_minmax(0,1fr)_9.5rem];
+  }
+  .busy-bound-title {
+    @apply col-span-full text-heading font-semibold sm:col-span-1 sm:pb-2.5;
+  }
+  .busy-bound-field {
+    @apply grid min-w-0 gap-1 text-label font-medium;
+  }
+  .busy-bound-field select,
+  .busy-bound-field input {
+    @apply w-full min-w-0;
+  }
+  .busy-preview-title {
+    @apply m-0 text-label font-semibold;
+  }
+  .busy-timeline {
+    @apply relative mt-2 h-14 overflow-hidden rounded-md border border-line bg-ground;
+  }
+  .busy-timeline-days {
+    @apply absolute inset-0 flex;
+  }
+  .busy-timeline-days > span {
+    @apply min-w-0 flex-1 truncate border-l border-dashed border-line-strong px-1.5 pt-1 text-[0.75rem] text-ink-muted first:border-l-0;
+  }
+  .busy-timeline-bar {
+    @apply absolute inset-x-0 top-6 block h-5 w-full;
+  }
+  .busy-timeline-bar rect {
+    fill: var(--color-primary);
+  }
+  .busy-preview-sentence {
+    @apply mt-2 mb-0 text-body;
+  }
+  .busy-preview-invalid {
+    @apply font-medium text-critical;
+  }
+  .busy-table .busy-row-hint {
+    @apply block text-label font-normal text-ink-muted;
+  }
+  .busy-row-actions {
+    @apply text-right;
+  }
+  .busy-row-actions {
+    @apply whitespace-nowrap;
+  }
+  .busy-row-actions > button,
+  .busy-row-actions > form {
+    @apply m-0 inline-flex align-middle;
+  }
+  .busy-card-range {
+    @apply mt-0 mb-1 text-body font-semibold;
+  }
+  .busy-card-actions {
+    @apply mt-4 flex flex-wrap items-center gap-2;
+  }
+  .busy-card-actions form {
+    @apply m-0;
+  }
+  .busy-card-actions form button {
+    @apply min-h-11 text-body font-semibold;
+  }
+  .busy-steps {
+    @apply my-3 pl-5;
+  }
+  .busy-switch-form {
+    @apply m-0 flex items-center gap-2;
+  }
+  /* Interrupteur générique : un bouton (role="switch"), 44 × 26 px. Sélecteurs plus précis que la
+     règle des formulaires d'un seul bouton (hauteur, fond, survol), comme celui des moyens de paiement. */
+  form button.toggle-switch.toggle-switch[type="submit"],
+  form button.toggle-switch.toggle-switch[type="submit"]:hover,
+  button.toggle-switch[type="button"],
+  button.toggle-switch[type="button"]:hover {
+    @apply relative h-[26px] min-h-0 w-11 shrink-0 cursor-pointer rounded-full border-0 bg-line-strong p-0 transition-none;
+  }
+  form button.toggle-switch.toggle-switch[type="submit"]::after,
+  button.toggle-switch[type="button"]::after {
+    @apply absolute top-[3px] left-[3px] h-5 w-5 rounded-full bg-surface content-[''];
+  }
+  form button.toggle-switch.toggle-switch[type="submit"][aria-checked="true"],
+  form button.toggle-switch.toggle-switch[type="submit"][aria-checked="true"]:hover,
+  button.toggle-switch[type="button"][aria-checked="true"],
+  button.toggle-switch[type="button"][aria-checked="true"]:hover {
+    @apply bg-primary;
+  }
+  form button.toggle-switch.toggle-switch[type="submit"][aria-checked="true"]::after,
+  button.toggle-switch[type="button"][aria-checked="true"]::after {
+    @apply left-[21px];
+  }
+  form button.toggle-switch.toggle-switch[type="submit"]:focus-visible,
+  button.toggle-switch[type="button"]:focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+  /* Une fenêtre fermée reste cachée, même dans une cellule de tableau mise en bloc sur téléphone. */
+  dialog.form-dialog:not([open]) {
+    display: none;
+  }
+}

@@ -1572,6 +1572,10 @@
     "emailDeliveries": {
       "title": "The email log",
       "body": "Each email sent on behalf of your company, with its status. A bounced email is reported to you by a notification and on the contact's page. The log keeps the subject and status for 13 months, never the content."
+    },
+    "busyRanges": {
+      "title": "Busy times",
+      "body": "For each event type, the hours it takes up: for example a wedding, the same day from 8 AM to 10 PM. These hours are marked “busy” in your subscribed calendar, and your booking page never offers them. On an event page, “Change for this event” sets its own busy time (the day before at 2 PM until the day after at noon, for example); if the event is postponed, the busy time follows. If the event has a team, only its members are blocked. An option does not block, unless you turn on “Options also block my calendar”. Do you take appointments with TidyCal or Calendly? “Add to my calendar”, on the event page, puts the busy time in your main calendar, the one these tools read."
     }
   },
   "Aide": {
@@ -5362,7 +5366,8 @@
     "senderAddress": "Sending address",
     "emailDeliveries": "Email log",
     "search": "Search settings",
-    "searchCount": "{count, plural, =0 {No setting has that name.} one {# setting found} other {# settings found}}"
+    "searchCount": "{count, plural, =0 {No setting has that name.} one {# setting found} other {# settings found}}",
+    "busyRanges": "Busy times"
   },
   "SettingsLists": {
     "hint": "Each change is saved when you leave the field.",
@@ -7705,7 +7710,7 @@
     "title": "My calendar",
     "intro": "Subscribe your calendar (Google, Apple, Outlook…) to your events: it refreshes on its own. Each address is secret and personal: do not share it.",
     "personTitle": "My events",
-    "personHint": "The business's dated events, as all-day events, with a link to their record, and the appointments you host. No trial, lost or cancelled event.",
+    "personHint": "The company's dated events, at the hours of their busy time (Settings › Busy times), “busy” or “tentative” for an option, with the link to their page, and the appointments you host. No trials, no lost or cancelled events.",
     "create": "Create my address",
     "regenerate": "New address",
     "regenerateHint": "A new address replaces the old one, which stops responding at once.",
@@ -7740,7 +7745,9 @@
     "stepGoogle": "Google Calendar: \"Other calendars\", \"+\", then \"From URL\".",
     "stepApple": "Apple Calendar: \"File\", then \"New Calendar Subscription\".",
     "stepOutlook": "Outlook: \"Add calendar\", then \"Subscribe from web\".",
-    "busyFileName": "Busy time — Symbola"
+    "busyFileName": "Busy time — Symbola",
+    "bookingToolTitle": "Do you take appointments with TidyCal, Calendly or another tool?",
+    "bookingToolBody": "These tools do not always read a subscribed calendar, and your calendar refreshes it when it chooses (sometimes once a day). To block for sure, add each event to your main calendar from its page (“Add to my calendar”), or take appointments with Symbola: your booking page follows your events in real time."
   },
   "Appointments": {
     "title": "Appointments",
@@ -11758,5 +11765,68 @@
     "alertBounced": "{name}'s address bounced ({reason}): check it before the next email.",
     "alertComplained": "{name} reported one of your emails as spam: avoid writing without a reason.",
     "alertLink": "See their emails"
+  },
+  "Busy": {
+    "settingsTitle": "Busy times",
+    "settingsIntro": "The hours an event takes up: they are marked “busy” in your subscribed calendar and are never offered for booking. Each event can depart from them on its own page.",
+    "columnType": "Event type",
+    "columnBusy": "Busy",
+    "columnDuration": "Duration",
+    "columnActions": "Actions",
+    "noType": "Event without a type",
+    "noTypeHint": "Until a type is chosen",
+    "ruleText": "{startDay}, {start} → {endDay}, {end}",
+    "sameDay": "the same day",
+    "dayBefore": "{count, plural, one {the day before} other {# days before}}",
+    "dayAfter": "{count, plural, one {the day after} other {# days after}}",
+    "start": "Start",
+    "end": "End",
+    "day": "Day",
+    "hour": "Time",
+    "edit": "Edit",
+    "editFor": "Edit the busy time: {label}",
+    "editForEvent": "Change for this event",
+    "reset": "Back to the starter rule",
+    "resetFor": "Back to the starter rule: {label}",
+    "resetToType": "Back to the type's rule",
+    "dialogTitle": "Busy time — {label}",
+    "dialogIntro": "Relative to the day of the event, in its local time.",
+    "dialogIntroEvent": "Event on {date}, in its local time.",
+    "saveRule": "Save the rule",
+    "saveForEvent": "Save for this event",
+    "cancel": "Cancel",
+    "close": "Close",
+    "previewTitle": "Preview",
+    "previewTitleSample": "Preview, for an event on a Saturday",
+    "sentenceSameDay": "Busy on {day}, from {start} to {end}, {duration} in all.",
+    "sentenceSpan": "Busy from {startDay}, {start}, to {endDay}, {end}, {duration} in all.",
+    "invalidOrder": "The end must come after the start.",
+    "invalidRule": "this busy time is not valid: the end must come after the start, from seven days before to seven days after.",
+    "notFound": "this item does not exist or no longer exists.",
+    "archived": "this event is archived: it is read-only.",
+    "optionsBlockTitle": "Options also block my calendar",
+    "optionsBlockOff": "Off: an option stays visible in the calendar, “tentative”, without blocking any slot. The same goes for a postponed event without a confirmed new date.",
+    "optionsBlockOn": "On: an option, or a postponed event, blocks the calendar like a confirmed event.",
+    "enabled": "On",
+    "disabled": "Off",
+    "newTypeNote": "A type added in “Event types” gets the “Event without a type” rule; you change it here.",
+    "cardTitle": "Busy time",
+    "sourceEvent": "Set for this event",
+    "sourceType": "{label} type rule",
+    "sourceFallback": "Rule for events without a type",
+    "rangeSameDay": "{day}, from {start} to {end}",
+    "rangeSpan": "From {startDay}, {start}, to {endDay}, {end}",
+    "noDate": "The event has no date yet: its busy time will follow the date.",
+    "blocksEveryone": "Blocks the calendar of the whole company team (the event has no assigned team): subscribed calendars and booking page.",
+    "blocksTeam": "Blocks the calendar of the event team: {names}. Subscribed calendars and booking page.",
+    "notBlocking": "Does not block your calendar while the event is an option.",
+    "settingsLink": "Set busy times",
+    "followsPostponement": "If the event is postponed, the busy time follows: same relative days, on the new date.",
+    "addToCalendar": "Add to my calendar",
+    "addToCalendarIntro": "The file adds the busy time to your main calendar, the one your booking tool reads (TidyCal, Calendly…): it will stop offering those hours.",
+    "addToCalendarStep1": "Download the file.",
+    "addToCalendarStep2": "Open it: Apple Calendar and Outlook add it in one click. Google Calendar: “Settings”, then “Import & export”.",
+    "addToCalendarWarning": "the imported file does not follow changes. After a postponement or a change of hours, download it again.",
+    "download": "Download the file"
   }
 }
