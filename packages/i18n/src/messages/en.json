@@ -2356,6 +2356,7 @@
     "unsavedConfirm": "Some budget changes are not saved. Leave this screen without saving them?",
     "batchInvalid": "This entry cannot be saved. Reload the page, then try again.",
     "allocationSlot": "Category",
+    "allocationChanged": "Edited",
     "allocationAmount": "Amount (€)",
     "allocationPending": "{count, plural, one {# category edited, not saved yet.} other {# categories edited, not saved yet.}}",
     "allocationSave": "Save the allocation",

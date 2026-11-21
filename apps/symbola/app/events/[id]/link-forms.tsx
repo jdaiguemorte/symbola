@@ -122,7 +122,7 @@ export function CreateLinkForm({ eventId, clients, slots, profiles }: { eventId:
       <h3>{t("createLinkTitle")}</h3>
       <input type="hidden" name="eventId" value={eventId} />
       {/* Lot 62c (UX-12) : formulaire en grille — la personne, son nom, son e-mail ; le profil et la durée. */}
-      <div className="form-grid">
+      <div className="form-grid form-grid-3">
       <div className="field-stack">
       <label htmlFor={ids.person}>{t("linkPerson")}</label>
       <select
@@ -287,7 +287,8 @@ export function CreateVendorLinkForm({ eventId, vendors }: { eventId: string; ve
   const vendorId = useId();
   return (
     <form action={formAction} className="link-form">
-      <h3>{t("createVendorLinkTitle")}</h3>
+      {/* Le titre visible est le sommaire qui ouvre ce formulaire (fiche de l'évènement). */}
+      <h3 className="sr-only">{t("createVendorLinkTitle")}</h3>
       <p className="muted">{t("createVendorLinkIntro")}</p>
       {vendors.length === 0 ? (
         <p>{t("noLinkVendors")}</p>
@@ -295,7 +296,7 @@ export function CreateVendorLinkForm({ eventId, vendors }: { eventId: string; ve
         <>
           <input type="hidden" name="eventId" value={eventId} />
           <input type="hidden" name="audience" value="vendor" />
-          <div className="form-grid">
+          <div className="form-grid form-grid-3">
           <div className="field-stack">
           <label htmlFor={vendorId}>{t("linkVendor")}</label>
           <select

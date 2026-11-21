@@ -1540,7 +1540,7 @@ export default async function EventDetailPage({
               );
             })}
           </ul>
-          {/* Lot 62c (UX-12) : les deux créations de lien côte à côte. */}
+          {/* Lot 62c (UX-12) : créer un lien, en grille ; le lien d'un prestataire, plus rare, s'ouvre à la demande. */}
           <div className="link-create">
           {event.isDemo ? (
             <p>{t("trialNoInvite")}</p>
@@ -1552,7 +1552,12 @@ export default async function EventDetailPage({
               profiles={listLinkProfiles(locale === "en" ? "en" : "fr", await requestAudience(organizationId)).map((profile) => ({ key: profile.key, label: profile.label, budgetScope: profile.budgetScope }))}
             />
           )}
-          {event.isDemo ? null : <CreateVendorLinkForm eventId={event.id} vendors={linkVendors} />}
+          {event.isDemo ? null : (
+            <details className="disclosure-form">
+              <summary>{t("createVendorLinkTitle")}</summary>
+              <CreateVendorLinkForm eventId={event.id} vendors={linkVendors} />
+            </details>
+          )}
           </div>
         </section>
       ) : null}
@@ -1627,7 +1632,13 @@ export default async function EventDetailPage({
               );
             })}
           </ul>
-          {event.isDemo ? null : <RequestDecisionForm eventId={event.id} slots={decisionSlots} expenses={decisionExpenses} hasProgram={Boolean(publication?.latest)} />}
+          {/* Lot 62c (UX-12) : la demande s'ouvre à la demande ; la liste des décisions reste en vue. */}
+          {event.isDemo ? null : (
+            <details className="disclosure-form">
+              <summary>{tDecisions("requestTitle")}</summary>
+              <RequestDecisionForm eventId={event.id} slots={decisionSlots} expenses={decisionExpenses} hasProgram={Boolean(publication?.latest)} />
+            </details>
+          )}
         </section>
       ) : null}
 

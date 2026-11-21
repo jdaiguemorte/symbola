@@ -114,9 +114,13 @@
   /* Cibles tactiles de la fiche (UX-05) : 44 px, y compris les formulaires d'un seul bouton (40 px
      par règle générale), les liens-boutons et les gestes de la frise du statut. */
   .event-sheet form:not(:has(label, select, textarea, input:not([type="hidden"]))) button[type="submit"],
-  .event-sheet form:not(:has(label, select, textarea, input:not([type="hidden"]))) button:not([type]),
-  .event-sheet .link-button {
+  .event-sheet form:not(:has(label, select, textarea, input:not([type="hidden"]))) button:not([type]) {
     @apply min-h-11;
+  }
+  @media (width < 640px) {
+    .event-sheet .link-button {
+      @apply min-h-11;
+    }
   }
   .event-sheet .timeline-actions .timeline-lost {
     @apply !min-h-11 !px-2;
@@ -191,6 +195,17 @@
   .budget-sheet details.budget-simulation > summary {
     @apply rounded-md;
   }
+  /* Repliée, la simulation n'est qu'un bouton : pas de carte vide autour. */
+  .budget-sheet details.budget-simulation:not([open]) {
+    @apply border-0 bg-transparent p-0 shadow-none;
+  }
+  /* Seuil d'alerte : le libellé sur sa ligne, le champ et son bouton côte à côte. */
+  .budget-sheet form.envelope-threshold > label {
+    display: contents;
+  }
+  .budget-sheet form.envelope-threshold > label > span {
+    @apply basis-full text-label font-medium text-ink;
+  }
   .budget-sheet details.budget-simulation[open] > summary {
     @apply mb-4;
   }
@@ -262,6 +277,10 @@
   .budget-line-more h3 {
     @apply m-0;
   }
+  /* Une échéance : sa phrase, puis chacun de ses gestes sur sa ligne. */
+  .budget-line-more li > form.inline-form {
+    @apply my-1 flex flex-wrap items-end gap-2;
+  }
   .budget-line-more fieldset {
     @apply m-0 max-w-none p-4;
   }
@@ -269,7 +288,7 @@
     @apply w-44;
   }
   /* Le repli d'une catégorie n'existe que sur téléphone. */
-  .budget-lines-editor .budget-lines .budget-fold {
+  .budget-lines-editor .list-table.budget-lines tr.budget-category th .budget-fold {
     @apply hidden;
   }
   @media (width < 640px) {
@@ -325,6 +344,10 @@
     }
     /* Une ligne ouverte occupe l'écran : la barre attend à sa place, sans la couvrir. */
     .budget-lines-editor:has(.budget-line-editor-panel) .edit-bar {
+      @apply static shadow-none;
+    }
+    /* La répartition est courte : sa barre reste à sa place, sous la liste. */
+    .budget-allocation .edit-bar {
       @apply static shadow-none;
     }
   }
@@ -390,7 +413,17 @@
     @apply basis-full;
   }
   .link-create {
-    @apply mt-4 grid grid-cols-1 items-start gap-x-8 gap-y-6 border-t border-line pt-4 lg:grid-cols-2;
+    @apply mt-4 flex flex-col gap-4 border-t border-line pt-4;
+  }
+  /* Un formulaire rare, ouvert par son sommaire (lien d'un prestataire, demande de décision). */
+  .event-sheet details.disclosure-form > summary {
+    @apply rounded-md px-4 font-medium text-ink;
+  }
+  .event-sheet details.disclosure-form > form {
+    @apply m-0 mt-2;
+  }
+  .client-contacts fieldset {
+    @apply gap-2 p-4;
   }
   .link-create > form {
     @apply m-0;
@@ -419,5 +452,28 @@
   .event-sheet label:has(> input[type="checkbox"]),
   .event-sheet label:has(> input[type="radio"]) {
     @apply min-h-11;
+  }
+
+  /* Téléphone : la barre des modifications en attente tient en deux lignes — le compte, puis ses
+     deux boutons côte à côte. */
+  @media (width < 640px) {
+    .program-editor .edit-bar,
+    .budget-sheet .edit-bar {
+      @apply gap-2 px-3 py-2 text-label;
+    }
+    .program-editor .edit-bar p,
+    .budget-sheet .edit-bar p {
+      @apply text-label;
+    }
+    .program-editor .edit-bar .row-wrap,
+    .budget-sheet .edit-bar .row-wrap {
+      @apply w-full flex-nowrap;
+    }
+    .program-editor .edit-bar .row-wrap button.button-secondary,
+    .program-editor .edit-bar .row-wrap button.button-primary,
+    .budget-sheet .edit-bar .row-wrap button.button-secondary,
+    .budget-sheet .edit-bar .row-wrap button.button-primary {
+      @apply flex-1 !px-2 py-1 !text-label leading-tight;
+    }
   }
 }

@@ -352,7 +352,7 @@ function LineRow({ eventId, line, vendors, professional, locale, editing }: { ev
         <td className="budget-line-edit">
           {/* « Modifier » visible ; le nom de la ligne pour les lecteurs d'écran. */}
           <button type="button" className="button-secondary" aria-expanded={open} aria-controls={editorId} data-edit-line={line.id} onClick={() => editing.toggle(line.id)}>
-            {t(open ? "closeLine" : "edit")}
+            {t("edit")}
             <span className="sr-only"> {t("editLineName", { label: line.label })}</span>
           </button>
         </td>

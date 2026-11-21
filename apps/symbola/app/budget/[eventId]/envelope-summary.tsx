@@ -59,10 +59,10 @@ export function EnvelopeSummary({
       ) : (
         <p>{t("envelopeMissing")}</p>
       )}
-      <form action={formAction} className="form-inline">
+      <form action={formAction} className="form-inline envelope-threshold">
         <input type="hidden" name="eventId" value={eventId} />
         <label>
-          {t("eventThreshold", { percent: settings.organizationPercent })}
+          <span>{t("eventThreshold", { percent: settings.organizationPercent })}</span>
           <input type="number" min="1" max="500" step="1" name="percent" className="field-short" defaultValue={settings.eventPercent ?? ""} />
         </label>
         <button type="submit" className="button-secondary" disabled={pending}>

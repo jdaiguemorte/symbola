@@ -108,7 +108,7 @@ function AllocationList({ eventId, budget, locale, vendorSlots }: { eventId: str
             <div key={item.defaultVendorSlotId} className="edit-row allocation-cols" role="row">
               <span role="cell" className="allocation-slot">
                 <label htmlFor={fieldId}>{slot?.label ?? item.defaultVendorSlotId}</label>
-                {isChanged ? <span className="badge badge-ambre">{t("lineChanged")}</span> : null}
+                {isChanged ? <span className="badge badge-ambre">{t("allocationChanged")}</span> : null}
               </span>
               <span role="cell">
                 <input

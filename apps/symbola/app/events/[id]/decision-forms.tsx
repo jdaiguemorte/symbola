@@ -20,7 +20,8 @@ export function RequestDecisionForm({ eventId, slots, expenses, hasProgram }: { 
   if (kinds.length === 0) return <p className="muted">{t("nothingToRequest")}</p>;
   return (
     <form action={formAction} className="link-form">
-      <h3>{t("requestTitle")}</h3>
+      {/* Le titre visible est le sommaire qui ouvre ce formulaire (fiche de l'évènement). */}
+      <h3 className="sr-only">{t("requestTitle")}</h3>
       <input type="hidden" name="eventId" value={eventId} />
       {/* Lot 62c (UX-12) : formulaire en grille — la sorte de décision, son objet, la date souhaitée ; le message dessous. */}
       <div className="form-grid form-grid-3">

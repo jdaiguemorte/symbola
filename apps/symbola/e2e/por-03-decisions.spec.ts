@@ -62,6 +62,8 @@ test("POR-03 / EVT-09 — la planner demande un choix ; le marié répond depuis
   await planner.goto(`/events/${setup.eventId}`);
   await openEventTab(planner, "Mariés");
   const section = planner.getByRole("region", { name: "Décisions du client" });
+  // Lot 62c : le formulaire de la demande s'ouvre par son sommaire.
+  await section.locator("summary", { hasText: "Demander une décision" }).click();
   await section.getByLabel("Sorte de décision").selectOption({ label: "Choisir entre des options d'un poste" });
   await section.getByLabel("Poste").selectOption({ label: "Traiteur (2 options montrées)" });
   await section.getByLabel("Message au client (facultatif)").fill("Après la dégustation de samedi");

@@ -2356,6 +2356,7 @@
     "unsavedConfirm": "Des modifications du budget ne sont pas enregistrées. Quitter cet écran sans les enregistrer ?",
     "batchInvalid": "Cette saisie ne peut pas être enregistrée. Rechargez la page, puis recommencez.",
     "allocationSlot": "Poste",
+    "allocationChanged": "Modifié",
     "allocationAmount": "Montant (€)",
     "allocationPending": "{count, plural, one {# poste modifié, pas encore enregistré.} other {# postes modifiés, pas encore enregistrés.}}",
     "allocationSave": "Enregistrer la répartition",
