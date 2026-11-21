@@ -69,11 +69,14 @@ export function GenerateContractForm({
       <fieldset>
         <legend>{t("channelLegend")}</legend>
         <p className="field-hint">{t("channelHint")}</p>
-        {CHANNELS.map((channel) => (
-          <label key={channel}>
-            <input type="radio" name="channel" value={channel} required defaultChecked={state.values?.channel === channel} /> {t(`channel_${channel}`)}
-          </label>
-        ))}
+        {/* Lot 62d (UX-12) : les choix sur deux colonnes quand la place le permet. */}
+        <div className="quote-choices">
+          {CHANNELS.map((channel) => (
+            <label key={channel}>
+              <input type="radio" name="channel" value={channel} required defaultChecked={state.values?.channel === channel} /> {t(`channel_${channel}`)}
+            </label>
+          ))}
+        </div>
       </fieldset>
       {showSmallBusiness ? (
         <label>
@@ -83,12 +86,14 @@ export function GenerateContractForm({
       {optionalClauses.length > 0 ? (
         <fieldset>
           <legend>{t("optionalClausesLegend")}</legend>
-          {optionalClauses.map((clause) => (
-            <label key={clause.id}>
-              <input type="checkbox" name="clause" value={clause.id} defaultChecked={state.values?.clauseIds.includes(clause.id) ?? false} /> {clause.title}
-              {clause.role && t(`role_${clause.role}`) !== clause.title ? ` — ${t(`role_${clause.role}`)}` : ""}
-            </label>
-          ))}
+          <div className="quote-choices">
+            {optionalClauses.map((clause) => (
+              <label key={clause.id}>
+                <input type="checkbox" name="clause" value={clause.id} defaultChecked={state.values?.clauseIds.includes(clause.id) ?? false} /> {clause.title}
+                {clause.role && t(`role_${clause.role}`) !== clause.title ? ` — ${t(`role_${clause.role}`)}` : ""}
+              </label>
+            ))}
+          </div>
         </fieldset>
       ) : null}
       {warningAccepted ? (

@@ -12,10 +12,26 @@ import { EditLineForm, RenameSectionForm } from "./quote-forms";
 // Lot 62d (UX-13, « liste éditable ») : sur un brouillon (`edit`), chaque ligne et chaque section porte
 // ses actions (« Modifier », « Retirer ») ; la ligne s'ouvre en place, sous elle-même, une seule à la
 // fois (le groupe d'ouverture est posé par l'écran).
-export async function QuoteLinesTable({ version, locale, caption, edit }: { version: QuoteVersionView; locale: Locale; caption: string; edit?: { quoteId: string } | undefined }) {
+// La colonne « Remise » n'apparaît que si une ligne en porte une ; `captionHidden` : la carte a déjà son
+// titre, la légende reste le nom du tableau pour les lecteurs d'écran.
+export async function QuoteLinesTable({
+  version,
+  locale,
+  caption,
+  captionHidden = false,
+  edit,
+}: {
+  version: QuoteVersionView;
+  locale: Locale;
+  caption: string;
+  captionHidden?: boolean;
+  edit?: { quoteId: string } | undefined;
+}) {
   const t = await getTranslations("Quotes");
   const tRubrics = await getTranslations("QuoteRubrics");
-  const columns = (version.vatApplicable ? 6 : 5) + (edit ? 1 : 0);
+  const showDiscount = version.lines.some((line) => line.discountBasisPoints > 0);
+  const dataColumns = 4 + (showDiscount ? 1 : 0) + (version.vatApplicable ? 1 : 0);
+  const columns = dataColumns + (edit ? 1 : 0);
   const groups: { id: string | null; title: string | null; subtotalCents: number | null; lines: QuoteLine[] }[] = [
     { id: null, title: null, subtotalCents: null, lines: version.lines.filter((line) => line.sectionId === null || !version.sections.some((section) => section.id === line.sectionId)) },
     ...version.sections.map((section) => ({ id: section.id, title: section.title, subtotalCents: section.subtotalCents, lines: version.lines.filter((line) => line.sectionId === section.id) })),
@@ -23,7 +39,7 @@ export async function QuoteLinesTable({ version, locale, caption, edit }: { vers
   return (
     <div role="region" aria-label={caption} tabIndex={0} className="quote-lines">
       <table>
-        <caption>{caption}</caption>
+        <caption className={captionHidden ? "sr-only" : undefined}>{caption}</caption>
         <thead>
           <tr>
             <th scope="col">{t("itemLabel")}</th>
@@ -31,9 +47,11 @@ export async function QuoteLinesTable({ version, locale, caption, edit }: { vers
             <th scope="col" className="amount">
               {t("itemUnitPrice")}
             </th>
-            <th scope="col" className="amount">
-              {t("lineDiscount")}
-            </th>
+            {showDiscount ? (
+              <th scope="col" className="amount">
+                {t("lineDiscount")}
+              </th>
+            ) : null}
             {version.vatApplicable ? (
               <th scope="col" className="amount">
                 {t("itemVatRate")}
@@ -42,7 +60,11 @@ export async function QuoteLinesTable({ version, locale, caption, edit }: { vers
             <th scope="col" className="amount">
               {t("lineTotal")}
             </th>
-            {edit ? <th scope="col">{tRubrics("actions")}</th> : null}
+            {edit ? (
+              <th scope="col" className="quote-actions-cell">
+                {tRubrics("actions")}
+              </th>
+            ) : null}
           </tr>
         </thead>
         {groups.map((group) => {
@@ -55,7 +77,7 @@ export async function QuoteLinesTable({ version, locale, caption, edit }: { vers
                     {group.title}
                   </th>
                   {edit && section ? (
-                    <td>
+                    <td className="quote-actions-cell">
                       <div className="quote-row-actions">
                         <DisclosureButton className="quote-row-button" id={`section-${section.id}`} label={t("renameSectionNamed", { title: section.title })}>
                           {t("renameSection")}
@@ -78,15 +100,15 @@ export async function QuoteLinesTable({ version, locale, caption, edit }: { vers
                 </DisclosurePanel>
               ) : null}
               {group.lines.map((line) => (
-                <QuoteLineRows key={line.id} line={line} version={version} locale={locale} columns={columns} edit={edit} />
+                <QuoteLineRows key={line.id} line={line} version={version} locale={locale} columns={columns} showDiscount={showDiscount} edit={edit} />
               ))}
               {group.title !== null ? (
                 <tr className="quote-section-subtotal">
-                  <th scope="row" colSpan={(version.vatApplicable ? 6 : 5) - 1}>
+                  <th scope="row" colSpan={dataColumns - 1}>
                     {t("sectionSubtotal", { title: group.title })}
                   </th>
                   <td className="amount">{formatAmount(group.subtotalCents ?? 0, locale)}</td>
-                  {edit ? <td /> : null}
+                  {edit ? <td className="quote-actions-cell" /> : null}
                 </tr>
               ) : null}
             </tbody>
@@ -97,7 +119,21 @@ export async function QuoteLinesTable({ version, locale, caption, edit }: { vers
   );
 }
 
-async function QuoteLineRows({ line, version, locale, columns, edit }: { line: QuoteLine; version: QuoteVersionView; locale: Locale; columns: number; edit?: { quoteId: string } | undefined }) {
+async function QuoteLineRows({
+  line,
+  version,
+  locale,
+  columns,
+  showDiscount,
+  edit,
+}: {
+  line: QuoteLine;
+  version: QuoteVersionView;
+  locale: Locale;
+  columns: number;
+  showDiscount: boolean;
+  edit?: { quoteId: string } | undefined;
+}) {
   const t = await getTranslations("Quotes");
   const tRubrics = await getTranslations("QuoteRubrics");
   return (
@@ -108,14 +144,14 @@ async function QuoteLineRows({ line, version, locale, columns, edit }: { line: Q
           {line.isOption ? (
             <>
               {" "}
-              <span className="badge">{line.optionChosen ? t("optionChosen") : t("optionNotChosen")}</span>
+              <span className="badge badge-wrap">{line.optionChosen ? t("optionChosen") : t("optionNotChosen")}</span>
             </>
           ) : null}
           {/* Lot 48b (JUR-10) : facturée par le prestataire au client, hors du total. */}
           {line.supplyMode === "intermediary" ? (
             <>
               {" "}
-              <span className="badge">{t("lineIntermediaryBadge")}</span>
+              <span className="badge badge-wrap">{t("lineIntermediaryBadge")}</span>
             </>
           ) : null}
           {line.description ? (
@@ -129,11 +165,11 @@ async function QuoteLineRows({ line, version, locale, columns, edit }: { line: Q
           {new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 3 }).format(line.quantityMilli / 1000)} {line.unit}
         </td>
         <td className="amount">{formatAmount(line.unitPriceCents, locale)}</td>
-        <td className="amount">{line.discountBasisPoints > 0 ? `${formatRate(line.discountBasisPoints, locale)} %` : "—"}</td>
+        {showDiscount ? <td className="amount">{line.discountBasisPoints > 0 ? `${formatRate(line.discountBasisPoints, locale)} %` : "—"}</td> : null}
         {version.vatApplicable ? <td className="amount">{formatRate(line.vatRateBasisPoints, locale)} %</td> : null}
         <td className="amount">{formatAmount(line.netCents, locale)}</td>
         {edit ? (
-          <td>
+          <td className="quote-actions-cell">
             <div className="quote-row-actions">
               <DisclosureButton className="quote-row-button" id={`ligne-${line.id}`} label={t("editLineNamed", { label: line.label })}>
                 {tRubrics("edit")}

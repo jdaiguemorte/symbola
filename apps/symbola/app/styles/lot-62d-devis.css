@@ -45,9 +45,17 @@
   .quote-lines table {
     @apply min-w-xl;
   }
-  .quote-lines th.amount,
+  .quote-lines th.amount {
+    @apply text-right;
+  }
   .quote-lines td.amount {
     @apply text-right whitespace-nowrap tabular-nums;
+  }
+  /* Les actions restent à portée quand le tableau défile dans sa zone : leur colonne tient au bord
+     droit ; sur téléphone, elles s'empilent pour laisser la place aux lignes. */
+  .quote-lines th.quote-actions-cell,
+  .quote-lines td.quote-actions-cell {
+    @apply sticky right-0 border-l border-line bg-surface;
   }
   .quote-lines tbody td {
     @apply align-middle;
@@ -56,7 +64,7 @@
   /* Actions d'une ligne (« actions de ligne » de DESIGN.md) : libellés courts, cibles de 44 px, le nom
      de l'objet dans le nom accessible. */
   .quote-row-actions {
-    @apply flex flex-nowrap items-center justify-end gap-1;
+    @apply flex flex-col flex-nowrap items-stretch justify-end gap-1 md:flex-row md:items-center;
   }
   .quote-row-actions form {
     @apply m-0;
@@ -105,6 +113,10 @@
   }
   .quote-field > .field-hint {
     @apply m-0;
+  }
+  /* Des choix (canal de conclusion, clauses facultatives) sur deux colonnes quand la place le permet. */
+  .quote-choices {
+    @apply grid w-full grid-cols-1 gap-x-6 gap-y-1 md:grid-cols-2;
   }
   /* Champ court d'un montant (« 12 500,00 »). */
   input.field-amount {

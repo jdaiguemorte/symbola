@@ -214,7 +214,7 @@ test.describe("UX-12 — Le devis en rubriques (lot 62d)", () => {
     const brunch = page.getByRole("form", { name: "Modifier la ligne « Brunch du lendemain »" });
     await brunch.getByLabel("Prix unitaire HT (€)").fill("900");
     await brunch.getByRole("button", { name: "Enregistrer la ligne" }).click();
-    await expect(lines.getByRole("row", { name: /Brunch du lendemain/ })).toContainText("900,00 €");
+    await expect(lines.getByRole("row", { name: /^Brunch du lendemain/ })).toContainText("900,00 €");
     await expectNoAxeViolation(page);
 
     // Ajouter depuis le catalogue, puis une ligne libre : un formulaire ouvert à la fois, sous le tableau.
@@ -267,6 +267,7 @@ test.describe("UX-12 — Le devis en rubriques (lot 62d)", () => {
       await page.goto(`/devis/${setup.draft.quoteId}?rubrique=${rubric}`);
       expect(await primaryLabels(), `brouillon, ${rubric}`).toEqual(["Envoyer le devis"]);
     }
+    await page.goto(`/devis/${setup.draft.quoteId}`);
     await page.waitForLoadState("networkidle");
     await page.getByRole("button", { name: "Envoyer le devis" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Devis envoyé : cette version est figée." })).toBeVisible();
@@ -325,7 +326,7 @@ test.describe("UX-12 — Le devis en rubriques (lot 62d)", () => {
     await expect(page.getByText("Marquer payée l'échéance « Acompte à la signature »")).toBeVisible();
     await expect(page.getByRole("region", { name: "Règlement par virement" })).toContainText("Acompte à la signature");
     await openQuoteRubric(page, "contrat");
-    await expect(page.getByRole("region", { name: "Contrat", exact: true })).toContainText("Base à adapter, à faire relire par un professionnel du droit.");
+    await expect(page.getByRole("region", { name: "Contrat", exact: true }).getByRole("heading", { name: "Générer le contrat" })).toBeVisible();
     await expect(page.getByRole("form", { name: "Type de client" })).toBeVisible();
     await expect(page.getByRole("group", { name: "Vérifications avant l'envoi du devis" })).toBeVisible();
     await expect(page.getByRole("form", { name: "Envoyer en signature" })).toBeVisible();

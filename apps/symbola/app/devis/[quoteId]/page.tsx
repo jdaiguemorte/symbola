@@ -292,7 +292,7 @@ async function LinesRubric({
           <h2 id="quote-lines-title">{tRubrics("linesTitle")}</h2>
           {/* Une seule chose ouverte à la fois : la ligne en cours de modification, ou un formulaire d'ajout. */}
           <DisclosureGroup initial={isDraft && current.lines.length === 0 ? (catalog.length > 0 ? "catalogue" : "libre") : null}>
-            <QuoteLinesTable version={current} locale={locale} caption={t("linesCaption", { version: current.version })} edit={isDraft ? { quoteId: quote.id } : undefined} />
+            <QuoteLinesTable version={current} locale={locale} caption={t("linesCaption", { version: current.version })} captionHidden edit={isDraft ? { quoteId: quote.id } : undefined} />
             {current.lines.length === 0 ? <p>{t("noLines")}</p> : null}
             {isDraft ? (
               <>
