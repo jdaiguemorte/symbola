@@ -434,104 +434,6 @@
     "complianceChecksSave": "Save the checks",
     "complianceChecksSaved": "Checks saved."
   },
-  "Tour": {
-    "hub": [
-      {
-        "title": "Deal with first",
-        "body": "The three most urgent items, across all events. Each line says who has to act and offers the action in one click."
-      },
-      {
-        "title": "The rest, by urgency",
-        "body": "Overdue, today, waiting on someone else, then the next fourteen days."
-      },
-      {
-        "title": "My events",
-        "body": "Your events in progress, with the countdown and what is left to deal with. One click opens the event summary."
-      }
-    ],
-    "events": [
-      {
-        "title": "The list",
-        "body": "Your prospects and upcoming events; click a row to open its page."
-      },
-      {
-        "title": "New prospect",
-        "body": "A first name and the contact source are enough to start."
-      },
-      {
-        "title": "Filters",
-        "body": "Name, status, source, year: the list filters as you type."
-      },
-      {
-        "title": "Settings",
-        "body": "« Settings » leads to budget lines, sources and reasons, event types, and planning and schedule templates."
-      },
-      {
-        "title": "List or calendar",
-        "body": "Switch from the list to the calendar of the coming months. Below, the workload over the next twelve months; two events on the same day are flagged in both views."
-      }
-    ],
-    "quotes": [
-      {
-        "title": "The catalogue",
-        "body": "Your reusable services: label, unit, price excl. VAT, VAT rate and category. “Edit” opens an item in its row; once archived it is no longer offered but stays on the quotes that use it."
-      },
-      {
-        "title": "New item",
-        "body": "Label, unit and price are enough: the item is offered right away when you compose a quote."
-      }
-    ],
-    "budget": [
-      {
-        "title": "Your allocations",
-        "body": "Each template splits a total budget across your lines, in percentages. It suggests estimated amounts when you simulate an event's budget."
-      },
-      {
-        "title": "New template",
-        "body": "A name, then a percentage per line; the total must be 100 %. The lines are those of Settings › Budget lines."
-      }
-    ],
-    "event": [
-      {
-        "title": "The tabs",
-        "body": "Summary, budget, planning timeline, schedule, couple: each tab groups part of the preparations."
-      },
-      {
-        "title": "Summary",
-        "body": "The next action and who must act, the event's health, then the next fourteen days. Details are edited at the bottom."
-      },
-      {
-        "title": "Planning timeline",
-        "body": "Tasks month by month, from a template; it starts once the event is confirmed."
-      },
-      {
-        "title": "Budget",
-        "body": "One line per service: vendors, status, estimated and committed."
-      },
-      {
-        "title": "Search",
-        "body": "A client name, a quote number or a screen: it searches everywhere."
-      }
-    ],
-    "vendors": [
-      {
-        "title": "Families",
-        "body": "One pill per family, with the number of vendors; pick one to see its types. “To sort” gathers those without a family yet."
-      },
-      {
-        "title": "Filters",
-        "body": "Name, place and distance, already booked: the list follows as you type."
-      },
-      {
-        "title": "List and map",
-        "body": "Hover over a record to see its pin on the map, and vice versa."
-      },
-      {
-        "title": "New vendor",
-        "body": "One record per vendor, found again for every event."
-      }
-    ]
-  },
   "Help": {
     "login": {
       "title": "Sign in",
@@ -4250,17 +4152,17 @@
         "description": "Details, logo, colour, texts and IBAN: documents that look like you, with a sample PDF."
       }
     },
-    "intro": "Every screen has its own page: what it is for, its markers and frequently asked questions. On the screen itself, the “?” button shows its markers.",
+    "intro": "Every screen has its own page: what it is for, its guided tour and frequently asked questions. On the screen itself, “? › Replay the tour” starts the tour again.",
     "progressTitle": "Tutorials done: {completed} of {total}",
     "nextSuggestion": "Suggested next step: {title} ({minutes} minutes).",
     "continue": "Continue getting started",
     "allDone": "Well done, you have followed every tutorial. They stay available here to review.",
-    "autoTours": "Show the markers and suggest tutorials the first time a screen opens",
+    "autoTours": "Start the guided tour and suggest tutorials the first time a screen opens",
     "tutorialKind": "Tutorial · {minutes} min",
     "stateInProgress": "In progress · step {step}",
     "stateNew": "To discover",
     "openTutorials": "See the tutorial path",
-    "stateSeen": "Markers seen",
+    "stateSeen": "Tour done",
     "results": "Screens found: {count}",
     "groups": {
       "events": "Events",
@@ -4275,12 +4177,12 @@
     },
     "screenTitle": "Help: {title}",
     "back": "Back to the help centre",
-    "captureAlt": "Screenshot of the “{title}” screen, with its numbered markers",
+    "captureAlt": "Screenshot of the “{title}” screen, with its guided tour open",
     "captureAltPlain": "Screenshot of the “{title}” screen",
-    "landmarksTitle": "Markers on this screen",
+    "tourTitle": "The tour of this screen",
     "faqTitle": "Frequently asked questions",
     "openScreen": "Open this screen",
-    "showLandmarks": "Show the markers on the screen",
+    "replayTour": "Replay the tour on the screen",
     "fromEvent": "This screen opens from an event page.",
     "fromQuote": "This screen opens from a quote, on its event page.",
     "fromBudget": "This screen opens from the Budget tab of an event page.",
@@ -5084,6 +4986,93 @@
       "eq": "{field}: {value}"
     }
   },
+  "Essentials": {
+    "helpTitle": "The essentials",
+    "helpBody": "Six questions, one per screen, so that your quotes and invoices carry the right details: company and SIRET, address, logo, VAT, bank details, numbering. Each step is saved when you press “Continue”; nothing is required to move on. Company name, address, SIRET and VAT scheme are needed before sending a quote. Everything can be changed later in Settings.",
+    "title": "The essentials",
+    "duration": "about {minutes} minutes",
+    "saved": "Saved at every step",
+    "later": "Finish later",
+    "stepsLabel": "Steps of The essentials",
+    "stepOf": "Step {number} of {total}",
+    "stepDone": "(done)",
+    "steps": {
+      "company": "Your company",
+      "address": "Address and contact",
+      "logo": "Logo",
+      "vat": "VAT",
+      "bank": "Bank details",
+      "numbering": "Numbering"
+    },
+    "questions": {
+      "company": {
+        "title": "What is your company called?",
+        "hint": "Your company name and SIRET appear on your quotes and invoices. You can change them later in Settings › Company."
+      },
+      "address": {
+        "title": "Where do your clients write to you?",
+        "hint": "This address appears on your quotes and invoices. You can change it later in Settings › Company."
+      },
+      "logo": {
+        "title": "Do you have a logo?",
+        "hint": "It is printed at the top of your quotes and invoices. Without a logo, your documents show your company name."
+      },
+      "vat": {
+        "title": "Do you charge VAT?",
+        "hint": "Your answer to the questionnaire is already selected. A change applies to future documents, never to those already issued."
+      },
+      "bank": {
+        "title": "Which account do your clients pay into?",
+        "hint": "The IBAN is printed on your invoices and under the payment schedule of your quotes, with a transfer QR code. You can change it later in Quote settings › Documents."
+      },
+      "numbering": {
+        "title": "How should your quotes and invoices be numbered?",
+        "hint": "Each series runs without gaps, year by year. You can change the prefixes later in Quote settings."
+      }
+    },
+    "organizationName": "Company name",
+    "legalForm": "Legal form",
+    "legalFormUnset": "Not chosen yet",
+    "siret": "SIRET",
+    "siretHint": "14 digits, on your Insee registration notice.",
+    "address": "Address",
+    "postalCode": "Postcode",
+    "city": "City",
+    "contactEmail": "Business e-mail",
+    "contactPhone": "Phone",
+    "vatNumber": "EU VAT number",
+    "vatNumberHint": "Only if you charge VAT: it is printed on your invoices.",
+    "iban": "IBAN",
+    "bic": "BIC",
+    "quotePrefix": "Quote prefix",
+    "invoicePrefix": "Invoice prefix",
+    "prefixHint": "1 to 8 letters or digits, no spaces.",
+    "numberingExample": "First quote of {year}: {quote}. First invoice: {invoice}.",
+    "requiredNote": "* required to send a quote",
+    "continue": "Continue",
+    "finish": "Finish",
+    "enterHint": "or press Enter",
+    "skip": "Skip this step",
+    "previous": "Previous",
+    "errorOrganizationName": "Enter your company name, 200 characters at most.",
+    "errorPrefix": "A prefix has 1 to 8 letters or digits, no spaces; “DEMO” is reserved for examples.",
+    "unauthenticated": "Your session has expired: sign in again."
+  },
+  "TutorialPanel": {
+    "kicker": "Tutorial · {step} of {total}",
+    "collapse": "Minimise",
+    "expand": "Open",
+    "stepDone": "(done)",
+    "goToStep": "Go to this step's screen",
+    "nextStep": "Next step",
+    "autoCheck": "The step ticks itself once the action is done.",
+    "checking": "Checking…",
+    "quit": "Quit the tutorial (the example is deleted)",
+    "doneBody": "“{title}”: done. The example has been deleted; your real events were not touched.",
+    "suggestion": "Suggested next tutorial: {title} ({minutes} minutes).",
+    "startNext": "Start the next one",
+    "dismiss": "Close"
+  },
   "Onboarding": {
     "title": "Let's set up your workspace",
     "intro": "Five questions, one per screen. Each answer has a suggested value: \"Skip\" keeps it. Everything can be changed later in Settings.",
@@ -5427,14 +5416,20 @@
     "conflictFinish": "Finish it first",
     "conflictAbandon": "Abandon it and start this one"
   },
-  "Landmarks": {
+  "HelpUi": {
     "toggle": "Help on this screen",
     "panel": "Help: {screen}",
     "close": "Close help",
-    "previous": "Previous marker",
-    "next": "Next marker",
-    "marker": "Marker {number}: {title}",
-    "center": "Help center"
+    "center": "Help center",
+    "replay": "Replay the tour",
+    "tour": {
+      "dialog": "Tour: {screen}",
+      "progress": "{number} of {total}",
+      "previous": "Previous",
+      "next": "Next",
+      "finish": "Finish",
+      "skip": "Skip the tour"
+    }
   },
   "AdminMenu": {
     "brand": "Operations",

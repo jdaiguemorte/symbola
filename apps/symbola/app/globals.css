@@ -89,6 +89,8 @@
   --container-content: 1120px;
   /* Place laissée au panneau d'aide (lot 16) : largeur sur ordinateur, hauteur de la barre. */
   --spacing-help-panel: 380px;
+  /* Lot 63f (ADR 0104) : le panneau du tutoriel en cours. */
+  --spacing-tutorial-panel: 340px;
   --spacing-help-tray: 112px;
 }
 
@@ -959,14 +961,14 @@
   .help-screen-body {
     @apply text-heading;
   }
-  .help-landmarks {
+  .help-tour-steps {
     @apply m-0 flex list-none flex-col gap-3 p-0;
   }
-  .help-landmarks li {
+  .help-tour-steps li {
     @apply flex items-start gap-3;
   }
-  .help-landmarks .landmark-number {
-    @apply mt-1 h-6 w-6 text-label;
+  .help-tour-number {
+    @apply mt-1 inline-flex h-6 w-6 flex-none items-center justify-center rounded-full bg-primary text-label font-semibold text-on-primary;
   }
   .help-faq {
     @apply m-0 flex flex-col gap-4;
@@ -992,6 +994,64 @@
   }
   .kpi-list li strong {
     @apply font-display text-title;
+  }
+}
+
+/* Lot 63f (HUB-09, ADR 0103 ; maquette M1) — assistant « L'essentiel » : les étapes à gauche (en
+   ligne sur téléphone), une question par écran à droite. */
+@layer components {
+  .essentials {
+    @apply max-w-5xl;
+  }
+  .essentials-head {
+    @apply flex items-center justify-between gap-3;
+  }
+  .essentials-duration {
+    @apply text-body font-normal;
+  }
+  .essentials-layout {
+    @apply grid items-start gap-6 lg:grid-cols-[14rem_1fr];
+  }
+  .essentials-steps ol {
+    @apply m-0 flex list-none gap-1 overflow-x-auto p-0 lg:flex-col;
+  }
+  .essentials-steps a {
+    @apply flex min-h-11 items-center gap-2 rounded-md px-2 whitespace-nowrap text-ink no-underline hover:bg-ground;
+  }
+  .essentials-steps li[data-state="current"] a {
+    @apply bg-primary-soft font-semibold;
+  }
+  .essentials-mark {
+    @apply inline-flex h-7 w-7 flex-none items-center justify-center rounded-full bg-ground text-label font-semibold text-ink-muted;
+  }
+  .essentials-steps li[data-state="current"] .essentials-mark,
+  .essentials-steps li[data-state="done"] .essentials-mark {
+    @apply bg-primary text-on-primary;
+  }
+  .essentials-question {
+    @apply flex max-w-2xl flex-col gap-3;
+  }
+  .essentials-question > h2,
+  .essentials-question > p {
+    @apply m-0;
+  }
+  .essentials-form {
+    @apply mt-2;
+  }
+  .essentials-actions {
+    @apply flex flex-wrap items-center justify-between gap-3;
+  }
+  .essentials-continue {
+    @apply flex items-center gap-3;
+  }
+  .essentials-enter {
+    @apply hidden text-label md:inline;
+  }
+  .essentials-skip {
+    @apply self-start;
+  }
+  .essentials-example {
+    @apply m-0 text-label text-ink-muted;
   }
 }
 
@@ -1702,9 +1762,68 @@
   .tutorial-conflict {
     @apply mx-auto mt-8 max-w-xl;
   }
+  /* Lot 63f (HUB-11, ADR 0104 ; maquette M10) — le tutoriel en cours, dans un panneau latéral qui
+     reste pendant la navigation : à droite sur ordinateur (il pousse le contenu), en bas sur
+     téléphone ; « Réduire » n'en garde que le titre. */
+  .tutorial-panel {
+    @apply fixed inset-x-0 bottom-0 z-[55] flex max-h-[55vh] flex-col gap-3 overflow-y-auto rounded-t-lg border-t border-line bg-surface p-4 shadow-float lg:top-4 lg:right-4 lg:bottom-4 lg:left-auto lg:max-h-none lg:w-tutorial-panel lg:rounded-lg lg:border;
+  }
+  .tutorial-panel[data-collapsed="true"] {
+    @apply lg:bottom-auto;
+  }
+  .tutorial-panel h2 {
+    @apply m-0 text-heading;
+  }
+  body[data-tutorial-open="open"] .app-main {
+    @apply pb-[58vh] lg:pb-0;
+  }
+  body[data-tutorial-open="collapsed"] .app-main {
+    @apply pb-help-tray lg:pb-0;
+  }
+  body[data-tutorial-open] .app-shell {
+    @apply lg:pr-[calc(var(--spacing-tutorial-panel)+2rem)];
+  }
+  .tutorial-panel-head {
+    @apply flex items-center justify-between gap-2;
+  }
+  .tutorial-panel-kicker {
+    @apply m-0 text-label font-semibold text-ink-muted;
+  }
+  .tutorial-panel-steps {
+    @apply m-0 flex list-none flex-col gap-2 p-0;
+  }
+  .tutorial-panel-steps li {
+    @apply flex items-center gap-2 text-label;
+  }
+  .tutorial-panel-steps li[data-state="current"] {
+    @apply font-semibold;
+  }
+  .tutorial-panel-steps li[data-state="current"] .tutorial-step-mark,
+  .tutorial-panel-steps li[data-state="done"] .tutorial-step-mark {
+    @apply bg-primary text-on-primary;
+  }
+  .tutorial-panel-current {
+    @apply flex flex-col gap-2 rounded-md bg-ground p-3;
+  }
+  .tutorial-panel-current h3,
+  .tutorial-panel-current p {
+    @apply m-0;
+  }
+  .tutorial-quit {
+    @apply self-start !px-0;
+  }
+  .tutorial-done {
+    @apply mb-4 flex flex-col gap-2;
+  }
+  .tutorial-done h2 {
+    @apply m-0 text-heading outline-none;
+  }
+  .tutorial-done p {
+    @apply m-0;
+  }
 }
 
-/* Lot 13 (AIDE-11, ADR 0033) — aide sur l'écran par repères. */
+/* Lot 13 (AIDE-11, ADR 0033), revu au lot 63f (ADR 0104) — le « ? », son tiroir, la visite guidée. */
 @layer components {
   .help-button {
     @apply inline-flex !h-11 !min-h-0 !w-11 !min-w-0 items-center justify-center rounded-full border border-line-strong !bg-surface !p-0 font-semibold !text-primary;
@@ -1723,26 +1842,11 @@
   .app-topbar > .help-button {
     @apply ml-auto flex-none;
   }
-  .landmark-marker {
-    @apply fixed z-[55] inline-flex !h-7 !min-h-0 !w-7 !min-w-0 items-center justify-center rounded-full border-0 !bg-primary !p-0 text-label font-semibold !text-on-primary;
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 25%, transparent);
-  }
-  .landmark-marker[aria-pressed="true"] {
-    @apply !bg-primary-strong;
-    box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-primary) 30%, transparent);
-  }
-  .landmark-marker[data-hidden="true"] {
-    @apply hidden;
-  }
-  .landmark-active {
-    outline: 3px solid var(--color-primary);
-    outline-offset: 4px;
-    border-radius: 12px;
-  }
   /* Lot 16 (L16-HUB-19, ADR 0039) : un tiroir qui pousse le contenu au lieu de le
      recouvrir. Ordinateur : à droite, toute la hauteur ; téléphone et tablette :
-     en bas de l'écran, le contenu défile au-dessus. */
-  .landmark-panel {
+     en bas de l'écran, le contenu défile au-dessus. Lot 63f (ADR 0104) : plus de
+     liste de repères, « Revoir la visite » lance la visite guidée. */
+  .help-drawer {
     @apply fixed inset-x-0 bottom-0 z-[56] flex max-h-[60vh] flex-col gap-3 overflow-y-auto rounded-t-lg border-t border-line bg-surface p-4 shadow-float lg:inset-y-0 lg:right-0 lg:left-auto lg:max-h-none lg:w-help-panel lg:rounded-none lg:border-t-0 lg:border-l lg:p-6;
   }
   body[data-help-open="true"] .app-main {
@@ -1751,25 +1855,23 @@
   body[data-help-open="true"] .app-shell {
     @apply lg:pr-help-panel;
   }
-  body[data-help-open="true"] .landmark-active {
-    scroll-margin-bottom: 64vh;
-  }
-  @media (min-width: 1024px) {
-    body[data-help-open="true"] .landmark-active {
-      scroll-margin-bottom: 0;
-    }
-  }
-  .landmark-panel-head {
+  .help-drawer-head {
     @apply flex items-start justify-between gap-2;
   }
-  .landmark-panel-head h2 {
+  .help-drawer-head h2 {
     @apply m-0 text-heading outline-none;
   }
-  .landmark-close {
+  .help-drawer-close {
     @apply inline-flex !h-9 !min-h-0 !w-9 !min-w-0 items-center justify-center rounded-full border-0 !bg-transparent !p-0 text-title !text-ink;
   }
-  .landmark-intro {
+  .help-drawer-intro {
     @apply m-0 text-label text-ink-muted;
+  }
+  .help-drawer-replay {
+    @apply self-start;
+  }
+  .help-drawer-extra {
+    @apply grid gap-2;
   }
   /* Lot 20 (décision 2) : action propre à l'écran (essai guidé…), sous le texte. */
   .help-extra {
@@ -1784,29 +1886,61 @@
   .help-extra > form {
     @apply m-0;
   }
-  .landmark-list {
-    @apply m-0 flex list-none flex-col gap-1 p-0;
+  /* Lot 63f (HUB-11, ADR 0104 ; maquette M2) — visite guidée : fond assombri, la zone expliquée
+     reste claire (découpe par une ombre immense autour d'elle), une bulle à côté. Sans zone à
+     l'écran, tout le fond est assombri et la bulle est au centre. */
+  .tour-layer {
+    @apply fixed inset-0 z-[60];
   }
-  .landmark-list button {
-    @apply flex w-full !min-h-9 items-center gap-2 rounded-md border-0 !bg-transparent px-2 text-left text-label !text-ink;
+  .tour-layer:has(.tour-spot[data-hidden="true"]) {
+    background: color-mix(in srgb, var(--color-ink) 55%, transparent);
   }
-  .landmark-list button[aria-current="step"] {
-    @apply !bg-primary-soft font-semibold;
+  .tour-spot {
+    @apply pointer-events-none fixed rounded-lg;
+    box-shadow: 0 0 0 9999px color-mix(in srgb, var(--color-ink) 55%, transparent);
+    outline: 3px solid var(--color-primary);
+    transition: top 150ms ease, left 150ms ease, width 150ms ease, height 150ms ease;
   }
-  .landmark-number {
-    @apply inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-primary text-label font-semibold text-on-primary;
+  .tour-spot[data-hidden="true"] {
+    @apply hidden;
   }
-  .landmark-detail {
-    @apply rounded-md bg-ground p-3;
+  .tour-bubble {
+    @apply fixed flex w-[min(22.5rem,calc(100vw-1rem))] flex-col gap-2 rounded-lg border border-line bg-surface p-4 shadow-float;
   }
-  .landmark-detail h3 {
-    @apply m-0 mb-1 text-body;
+  .tour-bubble h2 {
+    @apply m-0 text-heading outline-none;
   }
-  .landmark-detail p {
-    @apply m-0 text-label;
+  .tour-bubble p {
+    @apply m-0;
   }
-  .landmark-nav {
-    @apply flex justify-between gap-2;
+  .tour-progress {
+    @apply text-label font-semibold text-ink-muted;
+  }
+  .tour-actions {
+    @apply mt-2 flex flex-wrap items-center justify-between gap-2;
+  }
+  .tour-nav {
+    @apply flex gap-2;
+  }
+  .tour-skip {
+    @apply !px-0;
+  }
+  /* Téléphone : pas de découpe ; la bulle est ancrée en bas, la zone encadrée. */
+  @media (max-width: 767px) {
+    .tour-layer:has(.tour-spot[data-hidden="true"]) {
+      background: color-mix(in srgb, var(--color-ink) 25%, transparent);
+    }
+    .tour-spot {
+      box-shadow: none;
+    }
+    .tour-bubble[data-layout="sheet"] {
+      @apply inset-x-0 top-auto bottom-0 w-auto rounded-b-none border-x-0 border-b-0 pb-6;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tour-spot {
+      transition: none;
+    }
   }
 }
 
@@ -3106,13 +3240,13 @@
     @apply !min-h-14 !text-night-accent;
   }
   /* Le panneau d'aide de l'écran, lui aussi en thème nuit et en cibles de 56 px. */
-  .day-shell .landmark-panel {
+  .day-shell .help-drawer {
     @apply border-night-line bg-night-surface text-night-ink;
   }
-  .day-shell .landmark-close {
+  .day-shell .help-drawer-close {
     @apply !h-14 !w-14 !text-night-ink;
   }
-  .day-shell .landmark-intro {
+  .day-shell .help-drawer-intro {
     @apply text-night-ink-muted;
   }
   .day-shell .day-program > li {

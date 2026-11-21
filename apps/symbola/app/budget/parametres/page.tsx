@@ -43,7 +43,9 @@ export default async function BudgetSettingsPage({ searchParams }: { searchParam
 
       {/* Lot 28a (BUD-02) : seuil d'alerte de l'enveloppe. Lot 62b (UX-12) : une carte par sujet. */}
       <section className="card" aria-labelledby="budget-threshold">
-        <h2 id="budget-threshold">{t("thresholdTitle")}</h2>
+        <h2 id="budget-threshold" data-tour="budget-threshold">
+          {t("thresholdTitle")}
+        </h2>
         <p className="field-hint">{t("thresholdIntro")}</p>
         <AlertThresholdForm percent={alertSettings.organizationPercent} />
       </section>
