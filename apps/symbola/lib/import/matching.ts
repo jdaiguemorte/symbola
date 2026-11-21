@@ -43,7 +43,9 @@ import {
   type ImportWorkingSet,
   type MatchDecision,
 } from "@/modules/hub/service";
-import { listVendorFamilies, listVendorTypes, type VendorFamily, type VendorType } from "@/modules/vendors/service";
+import { getVendorContacts, getVendorsByIds, listVendorFamilies, listVendorTypes, type VendorFamily, type VendorType } from "@/modules/vendors/service";
+import { listVendorConsultations } from "@/modules/events/service";
+import { compareVendorRecords, onlyOneNameInCommon, vendorMatchNeedsCheck, type VendorCompareLine } from "./vendor-compare";
 import { ensureVendorFamilies, vendorCatalogInput } from "@/lib/vendors/catalog";
 import {
   listEventCandidates,
@@ -381,7 +383,15 @@ export async function computeImportMatching(organizationId: string, set: ImportW
     return { ...computeContactMatching(rows, await listContactImportCandidates(organizationId)), rowEvents };
   } else if (set.entityType === "vendors") {
     const candidates = (await listVendorCandidates(organizationId)).map((vendor) => ({ id: vendor.id, value: vendor }));
-    for (const row of rows) proposed(row.rowIndex, bestMatch(vendorReference(row.values), candidates, vendorSimilarity));
+    for (const row of rows) {
+      const reference = vendorReference(row.values);
+      const best = bestMatch(reference, candidates, vendorSimilarity);
+      const candidate = best ? candidates.find((entry) => entry.id === best.id)?.value : undefined;
+      // Lot 63b (HUB-14) : seul le prénom en commun, « À vérifier », deux prestataires par défaut.
+      if (best && candidate && onlyOneNameInCommon(reference.name, candidate.name)) {
+        matches.push({ rowIndex: row.rowIndex, candidateId: best.id, score: best.score, status: "refused", manual: false, toVerify: true, reviewed: false });
+      } else proposed(row.rowIndex, best);
+    }
     return { matches, rowEvents, vendorTypes: await computeVendorTypeChoices(organizationId, rows) };
   } else if (set.entityType === "tasks" || set.entityType === "budget_lines") {
     const events = await listEventCandidates(organizationId);
@@ -426,6 +436,8 @@ export type MatchesRowView = {
   sameAsLine?: number;
   // Lot 36b (DAT-12) : ligne de contact ignorée par la planner (doublon de son adresse).
   ignored?: boolean;
+  // Lot 63b (HUB-14) : prestataire rapproché, la ligne et la fiche côte à côte.
+  compare?: { vendorId: string; lines: VendorCompareLine[]; eventCount: number; toVerify: boolean };
 };
 
 export type MatchesView = {
@@ -522,6 +534,7 @@ export async function getImportMatchesView(organizationId: string, importId: str
   }
   if (!isVendorType) return { importId: set.importId, entityType: set.entityType, fileName: set.fileName, rows };
   const typeOptions = await listVendorTypeCandidates(organizationId);
+  await attachVendorComparisons(organizationId, rows, typeOptions);
   const typeLabels = new Map(typeOptions.map((type) => [type.id, type.label]));
   const vendorTypes = (matching.vendorTypes ?? []).map((choice) => {
     const target = choiceTarget(choice);
@@ -535,6 +548,30 @@ export async function getImportMatchesView(organizationId: string, importId: str
     };
   });
   return { importId: set.importId, entityType: set.entityType, fileName: set.fileName, rows, vendorTypes, typeOptions };
+}
+
+// Lot 63b (HUB-14) — la fiche existante de chaque rapprochement, lue par la porte d'entrée du module
+// Prestataires (métier, ville, e-mail, téléphone) et du module Évènements (nombre d'évènements).
+async function attachVendorComparisons(organizationId: string, rows: MatchesRowView[], typeOptions: LabelCandidate[]): Promise<void> {
+  const matched = rows.filter((row) => row.match);
+  const ids = [...new Set(matched.map((row) => row.match!.candidateId))];
+  if (ids.length === 0) return;
+  const [summaries, contacts] = await Promise.all([getVendorsByIds(organizationId, ids), getVendorContacts(organizationId, ids)]);
+  const typeLabel = new Map(typeOptions.map((type) => [type.id, type.label]));
+  const eventCounts = new Map<string, number>();
+  for (const id of ids) eventCounts.set(id, new Set((await listVendorConsultations(organizationId, id)).map((entry) => entry.eventId)).size);
+  for (const row of matched) {
+    const id = row.match!.candidateId;
+    const summary = summaries.find((entry) => entry.id === id);
+    const contact = contacts.find((entry) => entry.id === id);
+    if (!summary) continue;
+    const firstPhone = text(row.values.phones)?.split(/[,;\n]/)[0]?.trim() ?? null;
+    const lines = compareVendorRecords(
+      { name: text(row.values.name), type: text(row.values.type), city: text(row.values.city), email: text(row.values.email), phone: firstPhone },
+      { name: summary.name, type: summary.typeId ? (typeLabel.get(summary.typeId) ?? null) : null, city: summary.city, email: contact?.email ?? null, phone: contact?.phone ?? null },
+    );
+    row.compare = { vendorId: id, lines, eventCount: eventCounts.get(id) ?? 0, toVerify: row.match!.toVerify === true || vendorMatchNeedsCheck(lines) };
+  }
 }
 
 // Décision N, lot 16 (IMP-12) : pour chaque libellé, un type du carnet, un type

@@ -1,0 +1,140 @@
+/* Lot 63b — import. Règles propres aux écrans de ce paquet : fenêtre de chargement, colonnes du
+   fichier avec l'aperçu de la fiche, rapprochements côte à côte, bilan de fin d'import. Les motifs
+   communs sont dans globals.css (fenêtre, pastilles, messages) : ne pas les redéfinir ici. Ce
+   fichier est chargé avant globals.css. Mêmes jetons (DESIGN.md), aucun style en ligne (CSP). */
+@layer components {
+  /* Fenêtre de chargement (HUB-14, UX-15) : modale sur ordinateur, en haut de page sur téléphone. */
+  .import-loading {
+    @apply w-full rounded-lg border border-line bg-surface p-6 text-ink md:m-auto md:w-[min(32rem,calc(100vw-2rem))] md:shadow-float;
+  }
+  .import-loading:not([open]) {
+    @apply hidden;
+  }
+  .import-loading::backdrop {
+    background: color-mix(in srgb, var(--color-ink) 35%, transparent);
+  }
+  .import-loading > h2 {
+    @apply m-0 mb-1 text-title;
+  }
+  .import-loading > progress {
+    @apply my-3 w-full;
+  }
+  .import-loading-steps {
+    @apply m-0 mb-3 grid list-none gap-2 p-0;
+  }
+  .import-loading-steps > li {
+    @apply flex items-center gap-3 text-ink-muted;
+  }
+  .import-loading-steps > li.is-done,
+  .import-loading-steps > li.is-current {
+    @apply text-ink;
+  }
+  .import-loading-steps > li.is-current {
+    @apply font-semibold;
+  }
+  .import-loading-mark {
+    @apply inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-line text-label;
+  }
+  .is-done > .import-loading-mark {
+    @apply border-primary bg-primary-soft text-primary;
+  }
+  .is-current > .import-loading-mark {
+    @apply border-primary bg-primary text-on-primary;
+  }
+  .import-loading-actions {
+    @apply m-0 flex justify-end;
+  }
+
+  /* Où va chaque colonne (maquette M5) : le tableau, et l'aperçu de la fiche à droite. */
+  .columns-map {
+    @apply grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start;
+  }
+  .columns-map select {
+    @apply w-full min-w-48;
+  }
+  .columns-map .column-samples {
+    @apply block text-label text-ink-muted;
+  }
+  .columns-map .column-hint {
+    @apply mt-1 block text-label text-ink-muted;
+  }
+  .column-preview {
+    @apply rounded-md border border-line bg-surface p-4 lg:sticky lg:top-4;
+  }
+  .column-preview > h3 {
+    @apply m-0 text-heading;
+  }
+  .column-preview dl {
+    @apply m-0 mt-3 grid gap-2;
+  }
+  .column-preview dt {
+    @apply text-label text-ink-muted;
+  }
+  .column-preview dd {
+    @apply m-0 break-words;
+  }
+  .column-preview .column-preview-notes {
+    @apply mt-3 border-t border-line pt-3;
+  }
+
+  /* Rapprochements côte à côte (HUB-14) : ligne du fichier et fiche existante. */
+  .match-compare {
+    @apply grid gap-4 rounded-md border border-line bg-surface p-4;
+  }
+  .match-compare > header {
+    @apply flex flex-wrap items-center justify-between gap-2;
+  }
+  .match-compare > header > h3 {
+    @apply m-0 text-heading;
+  }
+  .match-compare table {
+    @apply w-full border-collapse;
+  }
+  .match-compare th,
+  .match-compare td {
+    @apply border-b border-line px-2 py-2 text-left align-top;
+  }
+  .match-compare thead th {
+    @apply text-label text-ink-muted;
+  }
+  .match-compare .is-different {
+    @apply font-semibold;
+  }
+  .match-compare .difference {
+    @apply ml-1 rounded-sm bg-attention-soft px-1 text-label font-medium text-attention;
+  }
+  .match-compare .match-choices {
+    @apply flex flex-wrap gap-2;
+  }
+  .match-compare .match-choices button[aria-pressed="true"] {
+    @apply border-primary bg-primary-soft text-primary;
+  }
+  .matches-list {
+    @apply m-0 grid list-none gap-4 p-0;
+  }
+
+  /* Fin d'import : le bilan d'abord, chaque nombre cliquable. */
+  .import-summary {
+    @apply m-0 grid list-none grid-cols-2 gap-3 p-0 md:grid-cols-4;
+  }
+  .import-summary > li {
+    @apply rounded-md border border-line bg-surface p-3;
+  }
+  .import-summary .import-summary-figure {
+    @apply block text-title font-semibold;
+  }
+  .import-finish-actions {
+    @apply flex flex-wrap gap-3;
+  }
+  .import-undo > summary {
+    @apply cursor-pointer font-semibold;
+  }
+  .import-undo-actions {
+    @apply flex flex-wrap gap-3;
+  }
+
+  /* Pastille du filtre « Import du JJ/MM » sur la liste des prestataires. */
+  .import-filter-pill {
+    @apply inline-flex items-center gap-2 rounded-full border border-primary bg-primary-soft px-3 py-1 text-label font-semibold text-primary;
+  }
+}

@@ -50,7 +50,7 @@ function SpeakersTable({ preview }: { preview: ProgramImportPreview }) {
                     ))}
                     <option value="none">{t("programImportSpeakerNone")}</option>
                   </select>
-                  {speaker.slotId && speaker.slotId === speaker.proposedSlotId && !speaker.chosen ? <span className="pill">{t("programImportSpeakerProposed")}</span> : null}
+                  {speaker.slotId && speaker.slotId === speaker.proposedSlotId && !speaker.chosen ? <span className="badge">{t("programImportSpeakerProposed")}</span> : null}
                   {!speaker.slotId && speaker.catalogVendor ? (
                     <p className="meta">
                       {t("programImportSpeakerCatalog", { vendor: speaker.catalogVendor.city ? `${speaker.catalogVendor.name} — ${speaker.catalogVendor.city}` : speaker.catalogVendor.name })}
@@ -149,7 +149,7 @@ export function ProgramImportForm({ eventId, open = false }: { eventId: string; 
                         <td>
                           {row.label}
                           {badges.map((badge) => (
-                            <span key={badge} className="pill">
+                            <span key={badge} className="badge">
                               {" "}
                               {badge}
                             </span>

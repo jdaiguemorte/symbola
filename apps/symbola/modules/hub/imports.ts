@@ -526,7 +526,8 @@ export async function saveImportMatching(
 
 // Décision de la planner sur des rapprochements proposés : un par un ou en
 // lot (plusieurs lignes à la fois). Une ligne sans rapprochement est ignorée.
-export type MatchDecision = { rowIndex: number; decision: "accept" | "refuse" };
+// Lot 63b (HUB-14) : « later », décider plus tard (la proposition reste en attente).
+export type MatchDecision = { rowIndex: number; decision: "accept" | "refuse" | "later" };
 
 export async function decideImportMatches(
   db: AppDatabase,
@@ -539,7 +540,7 @@ export async function decideImportMatches(
   const matches = set.matching.matches.map((match): ImportMatch => {
     const decision = decisions.get(match.rowIndex);
     if (!decision) return match;
-    return { ...match, status: decision === "accept" ? "accepted" : "refused" };
+    return { ...match, status: decision === "accept" ? "accepted" : decision === "later" ? "proposed" : "refused", ...(match.toVerify ? { reviewed: decision !== "later" } : {}) };
   });
   return updateDraftMatching(db, input.organizationId, input.importId, { ...set.matching, matches }, now);
 }

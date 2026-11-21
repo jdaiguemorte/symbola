@@ -536,6 +536,10 @@ export type ImportMatch = {
   // Lot 36b (DAT-12) : contact rapproché par son adresse e-mail (refuser, c'est ignorer la ligne :
   // jamais deux contacts pour une adresse) ou par son nom (refuser, c'est créer un contact).
   reason?: "email" | "name";
+  // Lot 63b (HUB-14) : proposition douteuse (seul le prénom est commun) : « À vérifier », et « Ce sont
+  // deux prestataires » par défaut. Reste dans « À vérifier » jusqu'à ce que la planner l'ait vue.
+  toVerify?: boolean;
+  reviewed?: boolean;
 };
 
 // Tâche ou ligne de budget : événement existant auquel la ligne se rattache
