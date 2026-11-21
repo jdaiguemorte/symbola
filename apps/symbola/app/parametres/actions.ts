@@ -29,7 +29,8 @@ async function requireOrganization() {
 // Lot 62b (UX-12) — la fiche de l'entreprise, enregistrée d'un seul geste : identité (ONB-01),
 // adresse (FAC-10, D7) et coordonnées imprimées sur les devis et factures (DEV-07). Le hub contrôle
 // tout avant d'écrire : une fiche refusée n'enregistre rien, et l'erreur nomme le champ.
-export type CompanySheetFormState = { success?: boolean; error?: string };
+// values : ce qui a été saisi, rendu au formulaire quand la fiche est refusée (rien n'est perdu).
+export type CompanySheetFormState = { success?: boolean; error?: string; values?: Record<string, string> };
 
 const DETAIL_ERROR_KEYS = {
   siret: "errorSiret",
@@ -45,8 +46,9 @@ export async function saveCompanySheetAction(_prevState: CompanySheetFormState, 
   const t = await getTranslations("Settings");
   const { organizationId } = await requireOrganization();
   const text = (name: string) => String(formData.get(name) ?? "").trim() || null;
+  const values = Object.fromEntries([...formData.entries()].filter((entry): entry is [string, string] => typeof entry[1] === "string" && !entry[0].startsWith("$")));
   const capital = parseAmountToCents(String(formData.get("shareCapital") ?? ""));
-  if (capital === undefined) return { error: t("errorShareCapital") };
+  if (capital === undefined) return { error: t("errorShareCapital"), values };
 
   const db = appDatabase();
   try {
@@ -72,8 +74,8 @@ export async function saveCompanySheetAction(_prevState: CompanySheetFormState, 
       },
     });
   } catch (error) {
-    if (error instanceof InvalidSellerAddressError) return { error: t(`invalidAddress_${error.field}`) };
-    if (error instanceof InvalidDocumentDetailsError) return { error: t(DETAIL_ERROR_KEYS[error.field]) };
+    if (error instanceof InvalidSellerAddressError) return { error: t(`invalidAddress_${error.field}`), values };
+    if (error instanceof InvalidDocumentDetailsError) return { error: t(DETAIL_ERROR_KEYS[error.field]), values };
     throw error;
   }
   // ONB-01 : se termine tout seul dès que les champs requis sont
