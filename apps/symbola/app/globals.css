@@ -1768,6 +1768,11 @@
   .tutorial-panel[data-collapsed="true"] {
     @apply lg:bottom-auto;
   }
+  /* Un panneau d'édition ouvert (fiche, « Modifier les informations ») passe devant : sur téléphone il
+     occupe l'écran, sur ordinateur le tutoriel se range à sa gauche. */
+  body:has(.side-panel) .tutorial-panel {
+    @apply z-40 lg:right-[calc(400px+1rem)];
+  }
   .tutorial-panel h2 {
     @apply m-0 text-heading;
   }

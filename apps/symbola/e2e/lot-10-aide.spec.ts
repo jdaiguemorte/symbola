@@ -165,6 +165,8 @@ test("HUB-11 / AIDE-06 — tutoriel dans le panneau latéral : proposé à la pr
   await page.getByLabel("Date de l'événement").fill("2029-05-19");
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();
+  // Le panneau d'édition passait devant le tutoriel (sur téléphone, il occupe l'écran) : on le ferme.
+  await page.getByRole("link", { name: "Fermer le panneau" }).click();
 
   // Fin : le modèle est gardé, l'exemple disparaît, retour à l'écran de départ.
   await expect(panel.getByRole("heading", { name: "Garder ou supprimer", level: 3 })).toBeVisible({ timeout: 15_000 });
