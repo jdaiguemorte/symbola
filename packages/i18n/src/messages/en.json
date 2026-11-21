@@ -2149,6 +2149,7 @@
     "loadMonth": "Month",
     "loadConfirmed": "Confirmed",
     "loadOptions": "Options",
+    "loadTableLabel": "Workload by month, as a table",
     "loadBar": "Month's workload",
     "sameDayWith": "Same day: {names}",
     "tasksDisplayLabel": "Task display",
@@ -5346,7 +5347,9 @@
     "moduleSettings": "Settings",
     "filterLabel": "Filter the list",
     "filterCount": "{shown} shown of {total}",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "errorLabel": "Error:",
+    "attentionLabel": "To check:"
   },
   "TutorialsPage": {
     "title": "Tutorials",

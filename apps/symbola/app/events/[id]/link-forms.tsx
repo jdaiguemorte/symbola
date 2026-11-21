@@ -118,7 +118,7 @@ export function CreateLinkForm({ eventId, clients, slots, profiles }: { eventId:
   const profile = profiles.find((candidate) => candidate.key === profileKey);
   const ids = { person: useId(), profile: useId() };
   return (
-    <form action={formAction} className="link-form">
+    <form action={formAction}>
       <h3>{t("createLinkTitle")}</h3>
       <input type="hidden" name="eventId" value={eventId} />
       {/* Lot 62c (UX-12) : formulaire en grille — la personne, son nom, son e-mail ; le profil et la durée. */}
@@ -193,7 +193,7 @@ export function EditLinkForm({ eventId, link, clients, slots, guestsRubric = fal
   const personId = useId();
   const vendor = link.audience === "vendor";
   return (
-    <form action={formAction} className="link-form">
+    <form action={formAction}>
       <input type="hidden" name="eventId" value={eventId} />
       <input type="hidden" name="linkId" value={link.id} />
       <label>
@@ -286,7 +286,7 @@ export function CreateVendorLinkForm({ eventId, vendors }: { eventId: string; ve
   const [person, setPerson] = useState({ candidateId: vendors[0]?.candidateId ?? "", name: vendors[0]?.personName ?? "", email: vendors[0]?.email ?? "" });
   const vendorId = useId();
   return (
-    <form action={formAction} className="link-form">
+    <form action={formAction}>
       {/* Le titre visible est le sommaire qui ouvre ce formulaire (fiche de l'évènement). */}
       <h3 className="sr-only">{t("createVendorLinkTitle")}</h3>
       <p className="muted">{t("createVendorLinkIntro")}</p>

@@ -103,7 +103,7 @@ export function QuoteSettingsForm({
         aria-describedby="professional-term-hint"
         defaultValue={settings.professionalPaymentTermDays ?? 30}
       />
-      <label className="checkbox-label">
+      <label>
         <input type="checkbox" name="professionalPaymentTermEndOfMonth" defaultChecked={settings.professionalPaymentTermEndOfMonth ?? false} aria-describedby="professional-term-hint" />
         {t("professionalPaymentTermEndOfMonth")}
       </label>

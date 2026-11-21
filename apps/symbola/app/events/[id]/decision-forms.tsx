@@ -19,7 +19,7 @@ export function RequestDecisionForm({ eventId, slots, expenses, hasProgram }: { 
   const ids = { kind: useId(), slot: useId(), line: useId(), note: useId(), due: useId() };
   if (kinds.length === 0) return <p className="muted">{t("nothingToRequest")}</p>;
   return (
-    <form action={formAction} className="link-form">
+    <form action={formAction}>
       {/* Le titre visible est le sommaire qui ouvre ce formulaire (fiche de l'évènement). */}
       <h3 className="sr-only">{t("requestTitle")}</h3>
       <input type="hidden" name="eventId" value={eventId} />

@@ -2149,6 +2149,7 @@
     "loadMonth": "Mois",
     "loadConfirmed": "Confirmés",
     "loadOptions": "Options",
+    "loadTableLabel": "Charge par mois, en tableau",
     "loadBar": "Charge du mois",
     "sameDayWith": "Même jour : {names}",
     "tasksDisplayLabel": "Affichage des tâches",
@@ -5346,7 +5347,9 @@
     "moduleSettings": "Réglages",
     "filterLabel": "Filtrer la liste",
     "filterCount": "{shown, plural, one {# affiché} other {# affichés}} sur {total}",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "errorLabel": "Erreur :",
+    "attentionLabel": "À vérifier :"
   },
   "TutorialsPage": {
     "title": "Tutoriels",

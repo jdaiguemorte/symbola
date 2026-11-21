@@ -18,7 +18,7 @@ export function CloseOrganizationForm({ organizationName }: { organizationName: 
       <p id="closure-hint" className="meta">
         {t("confirmHint")}
       </p>
-      <button type="submit" className="danger" disabled={pending}>
+      <button type="submit" className="button-danger" disabled={pending}>
         {t("submit")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}

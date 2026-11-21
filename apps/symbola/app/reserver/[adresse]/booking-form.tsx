@@ -8,6 +8,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import type { AppointmentQuestion } from "@symbola/contracts";
 import { HoneypotField } from "@/app/ui/honeypot-field";
+import { ErrorNotice } from "@/app/ui/notices";
 import { bookAppointmentAction, type BookingState } from "./actions";
 
 export type SlotDay = { date: string; slots: string[] };
@@ -48,11 +49,7 @@ export function BookingForm({ slug, typeId, days, questions, locale, organizatio
     );
   }
   if (state.step === "refused" || state.step === "unavailable") {
-    return (
-      <p role="alert" className="notice notice-error">
-        {state.step === "refused" ? t("refused", { organization: organizationName }) : t("unavailable")}
-      </p>
-    );
+    return <ErrorNotice>{state.step === "refused" ? t("refused", { organization: organizationName }) : t("unavailable")}</ErrorNotice>;
   }
   const values = "values" in state ? (state.values ?? {}) : {};
   const choices: SlotDay[] = state.step === "taken" ? [{ date: "", slots: state.alternatives }] : days;
@@ -61,16 +58,8 @@ export function BookingForm({ slug, typeId, days, questions, locale, organizatio
     <form action={action} className="stack booking-form" noValidate={false}>
       <input type="hidden" name="slug" value={slug} />
       <input type="hidden" name="typeId" value={typeId} />
-      {state.step === "taken" ? (
-        <p role="alert" className="notice">
-          {state.alternatives.length > 0 ? t("taken") : t("takenNone")}
-        </p>
-      ) : null}
-      {state.step === "form" && state.error ? (
-        <p role="alert" className="notice notice-error">
-          {t(`error.${state.error}`)}
-        </p>
-      ) : null}
+      {state.step === "taken" ? <ErrorNotice>{state.alternatives.length > 0 ? t("taken") : t("takenNone")}</ErrorNotice> : null}
+      {state.step === "form" && state.error ? <ErrorNotice>{t(`error.${state.error}`)}</ErrorNotice> : null}
       <fieldset className="booking-slots">
         <legend>{t("chooseSlot")}</legend>
         {choices.map((day) => (
