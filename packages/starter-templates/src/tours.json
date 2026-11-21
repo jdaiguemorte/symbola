@@ -82,8 +82,8 @@
         "target": "event-tabs",
         "title": { "fr": "Les onglets", "en": "The tabs" },
         "body": {
-          "fr": "Synthèse, budget, rétroplanning, programme, mariés : chaque onglet regroupe une partie de la préparation.",
-          "en": "Summary, budget, planning timeline, schedule, couple: each tab groups part of the preparations."
+          "fr": "Synthèse, budget, rétroplanning, programme, documents : chaque onglet regroupe une partie de la préparation.",
+          "en": "Summary, budget, planning timeline, schedule, documents: each tab groups part of the preparations."
         }
       },
       {

@@ -1,11 +1,4 @@
 {
-  "Tour": {
-    "event": {
-      "0": {
-        "body": "Vue d'ensemble, budget, rétroplanning, programme, clients : chaque onglet regroupe une partie de la préparation."
-      }
-    }
-  },
   "Help": {
     "eventsNew": {
       "body": "Un prénom de contact et la source suffisent pour créer le prospect ; la date, le lieu et le budget se complètent plus tard. Depuis l'agenda, une date libre ouvre ce formulaire avec la date déjà remplie."
