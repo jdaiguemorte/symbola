@@ -30,7 +30,7 @@ const plannerId = randomUUID();
 
 async function createEvent(organizationId: string) {
   const source = await createProspectSource(organizationId, "Instagram");
-  return createProspect({ organizationId, createdByUserId: plannerId, prospectSourceId: source.id, clients: [{ firstName: "Camille", lastName: null }], eventDate: "2027-06-12", applyTemplate: false });
+  return createProspect({ organizationId, createdByUserId: plannerId, prospectSourceId: source.id, clients: [{ firstName: "Camille", lastName: null }], eventDate: "2027-06-12" });
 }
 
 async function withTasks(organizationId: string, labels: string[]) {

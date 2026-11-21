@@ -35,7 +35,7 @@ async function wedding() {
     const owner = await createUser(db, { organizationId, email, password: "mot-de-passe-lot-63d", role: "owner" });
     await addDefaultVendorSlots(organizationId, ["Traiteur", "Musique"]);
     const source = await createProspectSource(organizationId, "Salon");
-    const event = await createProspect({ organizationId, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: "Léa" }, { firstName: "Maxime" }], eventDate: inDays(200), applyTemplate: false });
+    const event = await createProspect({ organizationId, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: "Léa" }, { firstName: "Maxime" }], eventDate: inDays(200) });
     for (const [label, days] of [
       ["Envoyer le questionnaire", 0],
       ["Confirmer le menu", 2],
