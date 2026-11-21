@@ -29,7 +29,7 @@ export function LoadStarterPaymentMethodsForm() {
   const [state, formAction, pending] = useActionState(loadStarterPaymentMethodsAction, initialState);
   return (
     <form action={formAction}>
-      <button type="submit" className="button-secondary" disabled={pending}>
+      <button type="submit" className="button-secondary target-44" disabled={pending}>
         {t("loadStarterPaymentMethods")}
       </button>
       {state.error ? <p role="alert">{state.error}</p> : null}

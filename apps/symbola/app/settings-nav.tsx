@@ -71,7 +71,9 @@ export function SettingsNav({
     if (!nav || !current || nav.scrollHeight <= nav.clientHeight) return;
     const box = current.getBoundingClientRect();
     const frame = nav.getBoundingClientRect();
-    if (box.top < frame.top || box.bottom > frame.bottom) nav.scrollTop += box.top - frame.top - nav.clientHeight / 2;
+    // Le moins possible : le haut du menu (la recherche, les groupes) reste en vue tant qu'il le peut.
+    if (box.bottom > frame.bottom) nav.scrollTop += box.bottom - frame.bottom + 12;
+    else if (box.top < frame.top) nav.scrollTop += box.top - frame.top - 12;
   }, [pathname, shown]);
 
   if (!shown) return null;
@@ -81,7 +83,7 @@ export function SettingsNav({
 
   return (
     <nav aria-label={label} className="settings-nav" ref={navRef}>
-      <div className="settings-nav-search" role="search">
+      <div className="settings-nav-search" role="search" aria-label={t("search")}>
         <label htmlFor={searchId} className="sr-only">
           {t("search")}
         </label>

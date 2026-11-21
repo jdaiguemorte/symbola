@@ -364,7 +364,10 @@
     "sheetContactTitle": "Coordonnées imprimées",
     "sheetSave": "Enregistrer la fiche",
     "vatCardTitle": "TVA",
-    "followUpDelaysTitle": "Délais de relance"
+    "followUpDelaysTitle": "Délais de relance",
+    "sheetTabsLabel": "Rubriques de l'entreprise",
+    "sheetTabCompany": "Fiche et TVA",
+    "sheetTabDocuments": "Mentions et logo"
   },
   "AdminSettings": {
     "title": "Paramètres de la plateforme",
@@ -471,7 +474,7 @@
     "quotes": [
       {
         "title": "Le catalogue",
-        "body": "Vos prestations réutilisables : intitulé, unité, prix HT, TVA et catégorie. Dépliez un article pour le modifier ; archivé, il n'est plus proposé mais reste sur les devis qui l'utilisent."
+        "body": "Vos prestations réutilisables : intitulé, unité, prix HT, TVA et catégorie. « Modifier » ouvre un article dans sa ligne ; archivé, il n'est plus proposé mais reste sur les devis qui l'utilisent."
       },
       {
         "title": "Nouvel article",
@@ -8882,7 +8885,10 @@
       "hideShort": "Masquer",
       "showShort": "Afficher",
       "resetShort": "Rétablir",
-      "resetFor": "Reprendre le libellé de départ de {label}"
+      "resetFor": "Rétablir le libellé de départ de {label}",
+      "renameShort": "Renommer",
+      "renameFor": "Renommer {label}",
+      "listHint": "« Renommer » ouvre le libellé d'un type ; il s'enregistre quand vous quittez le champ."
     }
   },
   "MoveToGroup": {
@@ -9056,7 +9062,10 @@
       "destinationFor": "Les cartes de l'étape {stage} passent à",
       "removeConfirm": "Retirer l'étape",
       "cancel": "Annuler",
-      "newStageName": "Nom de l'étape"
+      "newStageName": "Nom de l'étape",
+      "rename": "Renommer",
+      "renameLabel": "Renommer l'étape {stage}",
+      "listHint": "« Renommer » ouvre le nom d'une étape ; il s'enregistre quand vous quittez le champ."
     },
     "reply": "Répondre",
     "answered": "A répondu",

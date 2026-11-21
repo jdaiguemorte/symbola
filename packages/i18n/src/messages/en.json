@@ -364,7 +364,10 @@
     "sheetContactTitle": "Printed contact details",
     "sheetSave": "Save company details",
     "vatCardTitle": "VAT",
-    "followUpDelaysTitle": "Follow-up delays"
+    "followUpDelaysTitle": "Follow-up delays",
+    "sheetTabsLabel": "Company sections",
+    "sheetTabCompany": "Details and VAT",
+    "sheetTabDocuments": "Legal notices and logo"
   },
   "AdminSettings": {
     "title": "Platform settings",
@@ -471,7 +474,7 @@
     "quotes": [
       {
         "title": "The catalogue",
-        "body": "Your reusable services: label, unit, price excl. VAT, VAT rate and category. Expand an item to edit it; once archived it is no longer offered but stays on the quotes that use it."
+        "body": "Your reusable services: label, unit, price excl. VAT, VAT rate and category. “Edit” opens an item in its row; once archived it is no longer offered but stays on the quotes that use it."
       },
       {
         "title": "New item",
@@ -8882,7 +8885,10 @@
       "hideShort": "Hide",
       "showShort": "Show",
       "resetShort": "Reset",
-      "resetFor": "Restore the starter label of {label}"
+      "resetFor": "Reset the starter label of {label}",
+      "renameShort": "Rename",
+      "renameFor": "Rename {label}",
+      "listHint": "“Rename” opens a type label; it is saved when you leave the field."
     }
   },
   "MoveToGroup": {
@@ -9056,7 +9062,10 @@
       "destinationFor": "The cards of stage {stage} move to",
       "removeConfirm": "Remove the stage",
       "cancel": "Cancel",
-      "newStageName": "Stage name"
+      "newStageName": "Stage name",
+      "rename": "Rename",
+      "renameLabel": "Rename stage {stage}",
+      "listHint": "“Rename” opens a stage name; it is saved when you leave the field."
     },
     "reply": "Reply",
     "answered": "Has replied",

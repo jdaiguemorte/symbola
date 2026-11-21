@@ -52,6 +52,19 @@
   .settings-sheet .card {
     @apply m-0;
   }
+  /* Deux cartes côte à côte quand la place le permet (adresse et coordonnées). */
+  .sheet-pair {
+    @apply grid grid-cols-1 gap-6 xl:grid-cols-[3fr_2fr];
+  }
+  .sheet-stack {
+    @apply flex flex-col gap-4;
+  }
+  .sheet-stack > label {
+    @apply max-w-none;
+  }
+  [data-rubric] > .card:first-child {
+    @apply mt-0;
+  }
   fieldset.sheet-fieldset {
     @apply m-0 flex w-full max-w-none flex-col items-stretch gap-6 border-0 bg-transparent p-0;
   }
@@ -99,6 +112,15 @@
     @apply min-h-11;
   }
 
+  /* Un formulaire d'un seul bouton est compact (40 px) ; celui-ci garde une cible de 44 px. */
+  form button.target-44 {
+    @apply !min-h-11;
+  }
+  /* Journal d'activité : les filtres gardent 44 px au doigt. */
+  .filter-bar.filter-bar-even select {
+    @apply max-sm:!h-11;
+  }
+
   /* Entreprise et TVA : la carte TVA porte deux formulaires en ligne ; le logo n'a pas de bouton principal. */
   .company-logo .logo-upload button[type="submit"] {
     @apply border-line-strong bg-surface font-medium text-ink hover:border-ink hover:bg-ground;
@@ -110,6 +132,9 @@
   }
   .task-row {
     @apply grid grid-cols-[minmax(0,1fr)_6rem] items-center gap-3;
+  }
+  .task-rows + .choice-stack {
+    @apply mt-3;
   }
   .task-row-head {
     @apply text-label font-medium text-ink-muted;
@@ -142,6 +167,9 @@
   .percent-grid {
     @apply grid w-full grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 xl:grid-cols-3;
   }
+  .app-main > main > form.wide-form:has(label) {
+    @apply max-w-none;
+  }
   .field-unit {
     @apply flex items-center gap-2 font-normal;
   }
@@ -158,6 +186,9 @@
   form.plan-form {
     @apply m-0 items-stretch;
   }
+  form.plan-form > button {
+    @apply self-start;
+  }
   .plan-table {
     @apply min-w-[30rem];
   }
@@ -171,14 +202,17 @@
     @apply w-36;
   }
 
-  /* Journal d'activité : « Quoi » à la largeur de son texte, « Sur quoi » prend le reste. */
+  /* Journal d'activité : « Quand » et « Quoi » à la largeur de leur texte ; « Qui » et « Sur quoi » se
+     partagent le reste et passent à la ligne. */
   .activity-log td:nth-child(1),
-  .activity-log td:nth-child(2),
   .activity-log td:nth-child(3) {
     @apply whitespace-nowrap;
   }
+  .activity-log td:nth-child(2) {
+    @apply wrap-anywhere;
+  }
   .activity-log td:nth-child(4) {
-    @apply w-full min-w-56;
+    @apply min-w-40;
   }
   .activity-log td {
     @apply py-2;
@@ -188,14 +222,14 @@
      ligne, la barre de l'enregistrement automatique, et le passage en colonne quand la place manque
      (téléphone, menu des réglages ouvert), mesuré sur la liste elle-même. */
   .edit-bar.edit-bar-auto {
-    @apply sticky top-2 z-10 mb-3 min-h-14 bg-ground py-2 font-normal text-ink-muted;
+    @apply sticky top-0 z-10 mb-2 min-h-11 justify-start rounded-none bg-surface p-0 py-1 font-normal;
   }
-  .edit-bar.edit-bar-auto[data-status="saved"],
-  .edit-bar.edit-bar-auto[data-status="undone"] {
-    @apply bg-primary-soft font-medium text-primary-strong;
+  .edit-bar.edit-bar-auto[data-status="idle"] > p {
+    @apply bg-ground text-ink-muted;
   }
-  .edit-bar.edit-bar-auto[data-status="error"] {
-    @apply bg-critical-soft font-medium text-critical;
+  .edit-bar.edit-bar-auto[data-status="saved"] > p,
+  .edit-bar.edit-bar-auto[data-status="undone"] > p {
+    @apply font-medium text-primary-strong;
   }
   .edit-bar > p {
     @apply m-0;
@@ -242,7 +276,17 @@
   .edit-row-open > [role="cell"] {
     @apply w-full;
   }
+  /* Termes des clients, à l'étroit : le genre et le nombre côte à côte. */
+  .settings-list .client-terms-list .edit-row {
+    @apply grid-cols-2;
+  }
+  .settings-list .client-terms-list .edit-row > .edit-cell-wide {
+    @apply col-span-2;
+  }
   @container (min-width: 44rem) {
+    .settings-list .client-terms-list .edit-row > .edit-cell-wide {
+      @apply col-span-1;
+    }
     .settings-list .edit-list-head {
       @apply grid;
     }
@@ -255,9 +299,9 @@
     .settings-list .edit-cell-label {
       @apply hidden;
     }
-    .client-terms-list .edit-list-head,
-    .client-terms-list .edit-row {
-      grid-template-columns: minmax(9rem, 1.1fr) minmax(10rem, 1.4fr) 9rem 9rem 7rem;
+    .settings-list .client-terms-list .edit-list-head,
+    .settings-list .client-terms-list .edit-row {
+      grid-template-columns: minmax(8rem, 1.1fr) minmax(9rem, 1.4fr) 8.5rem 8rem 6.5rem;
     }
     .event-types-list .edit-list-head,
     .event-types-list .edit-row {
@@ -265,11 +309,11 @@
     }
     .pipeline-stages-list .edit-list-head,
     .pipeline-stages-list .edit-row {
-      grid-template-columns: 2.5rem minmax(10rem, 1fr) 7rem 17rem;
+      grid-template-columns: 2.5rem minmax(9rem, 1fr) 6.5rem 22rem;
     }
     .meal-types-list .edit-list-head,
     .meal-types-list .edit-row {
-      grid-template-columns: minmax(12rem, 1fr) 7rem 12rem;
+      grid-template-columns: minmax(10rem, 1fr) 6rem 17rem;
     }
     .catalog-list .edit-list-head,
     .catalog-list .edit-row {

@@ -58,10 +58,12 @@ export function VendorCoordinationSettingsForm({ settings, editable }: { setting
             ))}
           </div>
           {settings.followUpTasksCustomized ? (
-            <label className="checkbox">
-              <input type="checkbox" name="resetTasks" />
-              {t("settings.resetTasks")}
-            </label>
+            <div className="choice-stack">
+              <label className="checkbox">
+                <input type="checkbox" name="resetTasks" />
+                {t("settings.resetTasks")}
+              </label>
+            </div>
           ) : null}
         </section>
         <div className="form-foot">

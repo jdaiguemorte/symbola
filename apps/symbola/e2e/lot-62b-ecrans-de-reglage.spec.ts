@@ -12,6 +12,7 @@ import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { createProspect, createProspectSource } from "../modules/events/service";
 import { setModuleEnabled } from "../modules/hub/service";
+import { ensureEventTypes } from "../lib/events/event-types";
 import { confirmImpactAssessment } from "../modules/guests/service";
 import { openSettingsRubric, readyOrganization, signIn } from "./helpers";
 
@@ -78,6 +79,11 @@ async function measure(page: Page) {
 
 // Critères communs aux quatre paquets du lot 62, pour l'écran ouvert.
 async function expectCommonCriteria(page: Page, screen: string) {
+  // Un bouton survolé change de couleur : la souris quitte l'écran avant la mesure.
+  await page.mouse.move(0, 0);
+  // L'écran au repos, en haut : la barre d'une liste éditable reste collée en haut quand on défile.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(300);
   const found = await measure(page);
   expect(found.primary.length, `${screen} : un seul bouton principal (${found.primary.join(", ")})`).toBeLessThanOrEqual(1);
   expect(found.wideShortFields, `${screen} : nombre ou date de plus de 260 px`).toBe(0);
@@ -108,7 +114,8 @@ async function atelier() {
   }
   await confirmImpactAssessment(organizationId, ownerId);
   const source = await createProspectSource(organizationId, "Salon");
-  await createProspect({ organizationId, createdByUserId: ownerId, prospectSourceId: source.id, clients: [{ firstName: "Léa", lastName: "Martin" }, { firstName: "Maxime", lastName: "Petit" }], eventDate: "2027-06-12" });
+  const wedding = (await ensureEventTypes(organizationId, "fr")).find((type) => type.label === "Mariage")!;
+  await createProspect({ organizationId, createdByUserId: ownerId, prospectSourceId: source.id, eventTypeId: wedding.id, clients: [{ firstName: "Léa", lastName: "Martin" }, { firstName: "Maxime", lastName: "Petit" }], eventDate: "2027-06-12" });
   return { email };
 }
 
@@ -185,25 +192,29 @@ test("UX-12 — Entreprise et TVA : trois cartes, un seul « Enregistrer la fich
   for (const card of ["Identité", "Adresse", "Coordonnées imprimées"]) await expect(sheet.getByRole("region", { name: card, exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "TVA", exact: true })).toBeVisible();
 
-  // Une coordonnée refusée n'enregistre rien de la fiche, et le dit.
-  await sheet.getByLabel("SIREN").fill("123456789");
+  // Une coordonnée refusée n'enregistre rien de la fiche, et le dit ; la saisie reste à l'écran.
+  const storedSiren = await sheet.getByLabel("SIREN").inputValue();
+  await sheet.getByLabel("SIREN").fill("987654321");
   await sheet.getByLabel("SIRET (14 chiffres)").fill("1234");
   await sheet.getByRole("button", { name: "Enregistrer la fiche" }).click();
   await expect(sheet.getByRole("alert")).toHaveText("Le SIRET doit compter 14 chiffres.");
-  await page.reload();
-  await expect(sheet.getByLabel("SIREN")).toHaveValue("");
+  await expect(sheet.getByLabel("SIREN")).toHaveValue("987654321");
+  await expect(sheet.getByLabel("SIRET (14 chiffres)")).toHaveValue("1234");
+  await page.goto("/");
+  await page.goto("/parametres");
+  await expect(sheet.getByLabel("SIREN")).toHaveValue(storedSiren);
 
   // Identité, adresse et coordonnées partent ensemble.
   await sheet.getByLabel("SIREN").fill("123456789");
   await sheet.getByLabel("SIRET (14 chiffres)").fill("123 456 789 00012");
   await sheet.getByLabel("Forme juridique").selectOption("sasu");
-  await sheet.getByLabel("Adresse", { exact: true }).fill("12 rue des Lilas");
+  await sheet.getByRole("textbox", { name: "Adresse", exact: true }).fill("12 rue des Lilas");
   await sheet.getByLabel("Code postal").fill("59000");
   await sheet.getByLabel("Ville").fill("Lille");
   await sheet.getByLabel("E-mail de contact").fill("bonjour@atelier.example");
   await sheet.getByRole("button", { name: "Enregistrer la fiche" }).click();
   await expect(sheet.getByRole("status")).toHaveText("Fiche entreprise enregistrée.");
-  await page.reload();
+  await page.goto("/parametres");
   await expect(sheet.getByLabel("SIRET (14 chiffres)")).toHaveValue("12345678900012");
   await expect(sheet.getByLabel("Ville")).toHaveValue("Lille");
   await expect(sheet.getByLabel("E-mail de contact")).toHaveValue("bonjour@atelier.example");
@@ -224,8 +235,24 @@ test("UX-12 — Entreprise et TVA : trois cartes, un seul « Enregistrer la fich
   await debits.getByRole("button", { name: "Enregistrer l'option" }).click();
   await expect(debits.getByRole("status")).toHaveText("Option enregistrée.");
 
+  // L'écran au repos, pour une entreprise assujettie (le cas le plus haut).
+  await page.goto("/parametres");
+  await page.waitForLoadState("networkidle");
   const found = await expectCommonCriteria(page, "/parametres");
   expect(found.primary).toEqual(["Enregistrer la fiche"]);
+
+  // Deuxième rubrique : les mentions des devis et le logo. Une ancre d'un de ses blocs l'ouvre.
+  const sections = page.getByRole("navigation", { name: "Rubriques de l'entreprise" });
+  await expect(sections.getByRole("link", { name: "Fiche et TVA" })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("form", { name: "Informations du professionnel" })).toBeHidden();
+  await sections.getByRole("link", { name: "Mentions et logo" }).click();
+  await expect(page.getByRole("form", { name: "Informations du professionnel" })).toBeVisible();
+  await expect(sheet).toBeHidden();
+  await expectCommonCriteria(page, "/parametres#documents");
+  await page.goto("/");
+  await page.goto("/parametres#informations-professionnel");
+  await expect(page.getByRole("form", { name: "Informations du professionnel" })).toBeVisible();
+  await expect(sections.getByRole("link", { name: "Mentions et logo" })).toHaveAttribute("aria-current", "page");
   // Deux écrans au plus en 1440 px (4,3 avant le lot).
   if (!isPhone(page)) expect(found.screens).toBeLessThanOrEqual(2);
 });
@@ -330,12 +357,12 @@ test("UX-13 / UX-09 / UX-07 — Listes éditables : enregistrement à la sortie 
   await page.waitForLoadState("networkidle");
   const terms = page.getByRole("table", { name: "Tableau des termes, par type et par langue" });
   await expect(page.getByRole("main").getByRole("button", { name: /^Enregistrer/ })).toHaveCount(0);
-  const term = terms.getByLabel("Terme pour Mariage (FR)");
+  const term = terms.getByLabel("Terme pour Mariage (FR)", { exact: true });
   const before = await term.inputValue();
   await term.fill("les fiancés");
   await term.blur();
   await expect(status.filter({ hasText: SAVED })).toBeVisible();
-  await page.reload();
+  await page.goto("/events/parametres/termes");
   await expect(term).toHaveValue("les fiancés");
   // « Annuler la dernière modification » rend la valeur d'avant.
   await term.fill("les amoureux");
@@ -373,51 +400,57 @@ test("UX-13 / UX-09 / UX-07 — Listes éditables : enregistrement à la sortie 
   await expect(types.getByRole("textbox", { name: "Nom du type Séminaire d'entreprise" })).toHaveCount(0);
   await expectCommonCriteria(page, "/events/parametres/types");
 
-  // Étapes du pipeline : renommer en place, monter, descendre (annulable), retirer.
+  // Étapes du pipeline : monter, descendre (annulable), renommer dans la ligne, retirer.
   await page.goto("/events/parametres/etapes");
   await page.waitForLoadState("networkidle");
   const stages = page.getByRole("table", { name: "Tableau des étapes du pipeline" });
-  const firstStage = await stages.getByLabel("Étape 1", { exact: true }).inputValue();
-  const secondStage = await stages.getByLabel("Étape 2", { exact: true }).inputValue();
+  const [firstStage, secondStage] = await stages.getByRole("rowheader").allInnerTexts();
   await stages.getByRole("button", { name: `Descendre l'étape ${firstStage}` }).click();
-  await expect(stages.getByLabel("Étape 1", { exact: true })).toHaveValue(secondStage);
+  await expect(stages.getByRole("rowheader").first()).toHaveText(secondStage!);
   await page.getByRole("button", { name: UNDO }).click();
-  await expect(stages.getByLabel("Étape 1", { exact: true })).toHaveValue(firstStage);
-  await stages.getByLabel("Étape 1", { exact: true }).fill("Premier échange");
+  await expect(stages.getByRole("rowheader").first()).toHaveText(firstStage!);
+  // « Renommer » ouvre le nom dans sa ligne ; il s'enregistre à la sortie du champ, et la ligne se referme.
+  await stages.getByRole("button", { name: `Renommer l'étape ${firstStage}` }).click();
+  await expect(stages.getByLabel("Étape 1", { exact: true })).toBeFocused();
+  await stages.getByLabel("Étape 1", { exact: true }).fill("Prise de contact");
   await stages.getByLabel("Étape 1", { exact: true }).blur();
   await expect(status.filter({ hasText: SAVED })).toBeVisible();
-  await expect(stages.getByRole("button", { name: "Descendre l'étape Premier échange" })).toBeVisible();
-  await expect(stages.getByRole("button", { name: "Monter l'étape Premier échange" })).toBeDisabled();
-  // Un nom vide est refusé par le champ : rien ne part.
+  await expect(stages.getByRole("rowheader").first()).toHaveText("Prise de contact");
+  await expect(stages.getByRole("textbox")).toHaveCount(0);
+  await expect(stages.getByRole("button", { name: "Monter l'étape Prise de contact" })).toBeDisabled();
+  // Un nom vide est refusé : la barre le dit, rien ne part.
+  await stages.getByRole("button", { name: `Renommer l'étape ${secondStage}` }).click();
   await stages.getByLabel("Étape 2", { exact: true }).fill("");
   await stages.getByLabel("Étape 2", { exact: true }).blur();
-  await page.reload();
-  await expect(stages.getByLabel("Étape 2", { exact: true })).toHaveValue(secondStage);
-  const stageCount = await stages.getByRole("textbox").count();
+  await expect(page.getByRole("main").getByRole("alert")).toContainText("Étape 2");
+  await expect(stages.getByRole("rowheader").nth(1)).toHaveText(secondStage!);
+  const stageCount = await stages.getByRole("rowheader").count();
   await stages.getByRole("button", { name: `Retirer l'étape ${secondStage}` }).click();
-  await expect(stages.getByRole("textbox")).toHaveCount(stageCount - 1);
+  await expect(stages.getByRole("rowheader")).toHaveCount(stageCount - 1);
   await page.getByLabel("Nom de l'étape").fill("Visite du lieu");
   await page.getByRole("button", { name: "Ajouter", exact: true }).click();
-  await expect(stages.getByRole("textbox")).toHaveCount(stageCount);
+  await expect(stages.getByRole("rowheader")).toHaveCount(stageCount);
   await expectCommonCriteria(page, "/events/parametres/etapes");
 
-  // Types de repas : libellé en place, « Masquer » et « Afficher » en actions de ligne.
+  // Types de repas : « Renommer », « Masquer » et « Afficher » en actions de ligne.
   await page.goto("/events/parametres/repas");
   await page.waitForLoadState("networkidle");
   const meals = page.getByRole("table", { name: "Types de repas" });
+  await meals.getByRole("button", { name: "Renommer Adulte" }).click();
   await meals.getByLabel("Libellé du type Adulte").fill("Adulte (menu complet)");
   await meals.getByLabel("Libellé du type Adulte").blur();
   await expect(status.filter({ hasText: SAVED })).toBeVisible();
+  await expect(meals.getByRole("rowheader", { name: "Adulte (menu complet)" })).toBeVisible();
   await meals.getByRole("button", { name: "Masquer Enfant" }).click();
   await expect(meals.getByRole("button", { name: "Afficher Enfant" })).toBeVisible();
-  await expect(meals.getByRole("row").filter({ has: page.getByLabel("Libellé du type Enfant") })).toContainText("Masqué");
+  await expect(meals.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "Enfant" }) })).toContainText("Masqué");
   await page.getByRole("button", { name: UNDO }).click();
   await expect(meals.getByRole("button", { name: "Masquer Enfant" })).toBeVisible();
-  await meals.getByRole("button", { name: "Reprendre le libellé de départ de Adulte (menu complet)" }).click();
-  await expect(meals.getByLabel("Libellé du type Adulte")).toHaveValue("Adulte");
+  await meals.getByRole("button", { name: "Rétablir le libellé de départ de Adulte (menu complet)" }).click();
+  await expect(meals.getByRole("rowheader", { name: "Adulte", exact: true })).toBeVisible();
   await page.getByRole("region", { name: "Ajouter un type" }).getByLabel("Libellé").fill("Végétarien");
   await page.getByRole("button", { name: "Ajouter", exact: true }).click();
-  await expect(meals.getByLabel("Libellé du type Végétarien")).toBeVisible();
+  await expect(meals.getByRole("rowheader", { name: "Végétarien" })).toBeVisible();
   await expectCommonCriteria(page, "/events/parametres/repas");
 
   // Catalogue : un tableau ; « Modifier » ouvre l'article dans sa ligne, une seule à la fois.

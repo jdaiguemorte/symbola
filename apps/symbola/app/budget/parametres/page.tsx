@@ -63,7 +63,7 @@ export default async function BudgetSettingsPage({ searchParams }: { searchParam
                     {model.items
                       .map((item) => {
                         const slot = vendorSlots.find((candidate) => candidate.id === item.defaultVendorSlotId);
-                        return `${slot?.label ?? item.defaultVendorSlotId} ${percent.format(item.percentageBasisPoints / 100)} %`;
+                        return `${slot?.label ?? item.defaultVendorSlotId} ${percent.format(item.percentageBasisPoints / 100)}\u00a0%`;
                       })
                       .join(" · ")}
                   </span>

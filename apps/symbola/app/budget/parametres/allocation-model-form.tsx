@@ -13,7 +13,7 @@ export function AllocationModelForm({ vendorSlots }: { vendorSlots: DefaultVendo
   // Lot 62b (UX-12) : un pourcentage par ligne du budget, en champs courts sur une grille (plus de
   // liste à puces qui porte un formulaire).
   return (
-    <form action={formAction} aria-labelledby="budget-new-model">
+    <form action={formAction} aria-labelledby="budget-new-model" className="wide-form">
       <h2 id="budget-new-model" data-tour="budget-new-model">
         {t("newModelTitle")}
       </h2>
