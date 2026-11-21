@@ -1445,9 +1445,12 @@ export default async function EventDetailPage({
       {tab === "maries" && event.clients.length > 0 ? (
         <section className="card" aria-labelledby="client-contact-title">
           <h2 id="client-contact-title">{t("clientContactTitle")}</h2>
-          {event.clients.map((client) => (
-            <ClientContactForm key={client.id} eventId={event.id} client={client} />
-          ))}
+          {/* Lot 62c (UX-12) : une personne par colonne, ses coordonnées en grille. */}
+          <div className="client-contacts">
+            {event.clients.map((client) => (
+              <ClientContactForm key={client.id} eventId={event.id} client={client} />
+            ))}
+          </div>
         </section>
       ) : null}
       {/* Lot 26a (UX-11, POR-01, POR-10, SEC-14, SEC-15 ; ADR 0053) : liens personnels. */}

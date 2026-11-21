@@ -310,4 +310,60 @@
       @apply static shadow-none;
     }
   }
+
+  /* —— Mariés : coordonnées, liens personnels, décisions —— */
+  .client-contacts {
+    @apply grid grid-cols-1 gap-4 lg:grid-cols-2;
+  }
+  .client-contacts fieldset {
+    @apply m-0 h-full max-w-none;
+  }
+  .client-contacts .client-contact-form {
+    @apply m-0;
+  }
+  .client-contacts .row-wrap {
+    @apply items-center;
+  }
+  .client-contacts .row-wrap p {
+    @apply m-0;
+  }
+  /* Un libellé et son champ écrits côte à côte (htmlFor) : une case de la grille. */
+  .event-sheet .form-grid > .field-stack {
+    @apply flex min-w-0 flex-col gap-2;
+  }
+  .event-sheet .form-grid > .field-stack > label {
+    @apply max-w-none;
+  }
+  .event-sheet .form-grid > .field-stack > p,
+  .event-sheet .form-grid > .link-choice > p {
+    @apply m-0 text-label;
+  }
+  .event-sheet .form-grid > .link-choice {
+    @apply flex min-w-0 flex-col;
+  }
+  .event-sheet .link-row > p {
+    @apply m-0;
+  }
+  /* —— Cibles tactiles (UX-05) : la case d'une tâche garde son dessin de 24 px dans une cible de
+     44 px ; une case à cocher se touche par son libellé, de 44 px. —— */
+  .event-sheet .task-check > button {
+    @apply relative !h-11 !w-11 border-0 bg-transparent;
+  }
+  .event-sheet .task-check > button::before {
+    content: "";
+    @apply absolute inset-0 m-auto h-6 w-6 rounded-sm border-2 border-line-strong bg-surface;
+  }
+  .event-sheet .task-check > button[aria-pressed="true"] {
+    @apply bg-transparent;
+  }
+  .event-sheet .task-check > button[aria-pressed="true"]::before {
+    @apply border-primary bg-primary;
+  }
+  .event-sheet .task-check > button > svg {
+    @apply relative;
+  }
+  .event-sheet label:has(> input[type="checkbox"]),
+  .event-sheet label:has(> input[type="radio"]) {
+    @apply min-h-11;
+  }
 }
