@@ -74,7 +74,6 @@ export function WeekEditor({ rules, isDefault, action }: { rules: { weekday: num
                     <input
                       type="time"
                       step={900}
-                      required
                       name={`d${weekday}s${index}`}
                       value={range.startTime}
                       aria-label={t("weekRangeStart", { day, number: index + 1 })}
@@ -84,7 +83,6 @@ export function WeekEditor({ rules, isDefault, action }: { rules: { weekday: num
                     <input
                       type="time"
                       step={900}
-                      required
                       name={`d${weekday}e${index}`}
                       value={range.endTime}
                       aria-label={t("weekRangeEnd", { day, number: index + 1 })}

@@ -6,6 +6,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import type { BusyRule } from "@symbola/contracts";
+import { RequiredMark } from "@/app/ui/required-mark";
 import { addDays, BUSY_DAY_OFFSETS, busyDate, busyDayLabel, busyDuration, busyHour, busyMinutes, busyShortDate, capitalize, type BusyLocale } from "@/lib/events/busy-format";
 
 // Un samedi, pour l'aperçu d'une règle de type.
@@ -61,7 +62,10 @@ export function BusyRuleFields({ defaultRule, eventDate }: { defaultRule: BusyRu
           </select>
         </label>
         <label className="busy-bound-field">
-          <span>{t("hour")}</span>
+          <span>
+            {t("hour")}
+            <RequiredMark />
+          </span>
           <input type="time" name={timeKey} required step={300} value={rule[timeKey]} onChange={(event) => setRule({ ...rule, [timeKey]: event.target.value })} />
         </label>
       </div>

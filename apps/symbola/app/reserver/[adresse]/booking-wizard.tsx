@@ -10,6 +10,7 @@ import { useTranslations } from "next-intl";
 import type { AppointmentQuestion } from "@symbola/contracts";
 import { HoneypotField } from "@/app/ui/honeypot-field";
 import { ErrorNotice } from "@/app/ui/notices";
+import { RequiredLegend, RequiredMark } from "@/app/ui/required-mark";
 import { bookAppointmentAction, type BookingState } from "./actions";
 import { SlotPicker } from "../slot-picker";
 
@@ -27,6 +28,7 @@ function zonedDate(instant: Date): string {
 
 export function BookingWizard({ slug, type, slots, locale, organizationName, today, otherTypesHref }: { slug: string; type: TypeInfo; slots: string[]; locale: string; organizationName: string; today: string; otherTypesHref: string | null }) {
   const t = useTranslations("Appointments.public");
+  const tCommon = useTranslations("Common");
   const tag = locale === "en" ? "en-GB" : "fr-FR";
   const format = (options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(tag, { timeZone: ZONE, ...options });
   const time = format({ hour: "2-digit", minute: "2-digit" });
@@ -215,13 +217,20 @@ export function BookingWizard({ slug, type, slots, locale, organizationName, tod
             <h2 ref={heading} tabIndex={-1} className="booking-question-title">
               {t("detailsTitle")}
             </h2>
+            <RequiredLegend text={tCommon("requiredLegend")} />
             <div className="booking-fields">
               <label>
-                {t("name")}
+                <span>
+                  {t("name")}
+                  <RequiredMark />
+                </span>
                 <input type="text" name="name" required maxLength={200} autoComplete="name" value={person.name} onChange={(event) => setPerson({ ...person, name: event.target.value })} />
               </label>
               <label>
-                {t("email")}
+                <span>
+                  {t("email")}
+                  <RequiredMark />
+                </span>
                 <input type="email" name="email" required maxLength={254} autoComplete="email" value={person.email} onChange={(event) => setPerson({ ...person, email: event.target.value })} />
               </label>
               <label>

@@ -7,6 +7,7 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { APPOINTMENT_QUESTIONS_MAX, type AppointmentQuestion } from "@symbola/contracts";
+import { RequiredMark } from "@/app/ui/required-mark";
 
 type Draft = { id: string; label: string; kind: "text" | "choice"; choices: string[]; required: boolean };
 
@@ -76,7 +77,10 @@ export function QuestionsEditor({ questions }: { questions: AppointmentQuestion[
                 <div className="questions-item-body">
                   <div className="questions-item-grid">
                     <label>
-                      {t("questionText")}
+                      <span>
+                        {t("questionText")}
+                        <RequiredMark />
+                      </span>
                       <input type="text" name={`question${index}Label`} value={question.label} maxLength={200} required onChange={(event) => update(index, { label: event.target.value })} />
                     </label>
                     <div role="radiogroup" aria-label={t("questionKind")} className="segmented-choice">
