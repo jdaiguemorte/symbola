@@ -57,7 +57,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
       <PageHeader
         title={t("allTasksTitle")}
         subtitle={<span>{t("allTasksSummary", { count: all.filter((task) => !task.done).length, overdue })}</span>}
-        actions={<SettingsLink href="/events/modeles" label={t("taskTemplatesSettings")} />}
+        actions={<SettingsLink href="/events/modeles" back="tasks" label={t("taskTemplatesSettings")} />}
       />
       <ScreenHelp title={tHelp("allTasks.title")} body={tHelp("allTasks.body")} />
       <section className="card" aria-labelledby="all-tasks-title">

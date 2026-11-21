@@ -46,7 +46,7 @@ for (const size of SIZES) {
       ["Tâches", "/taches"],
       ["Synthèse de l'évènement", `/events/${setup.eventId}`],
       ["Rétroplanning", `/events/${setup.eventId}?onglet=retroplanning`],
-      ["Budget", `/budget/${setup.eventId}`],
+      ["Budget", `/budget/${setup.eventId}/detail`],
       ["Devis", "/devis"],
       ["Contacts", "/contacts"],
     ];

@@ -23,7 +23,7 @@ import {
   type PublicContactForm,
 } from "@symbola/contracts";
 import { getOrganizationContact, getPrivacySettings, getSellerDetails, isModuleEnabled, sendOrganizationEmail } from "@/modules/hub/service";
-import { applyTaskTemplateRows, findDefaultTaskTemplateId, findProspectSources, insertProspect, insertProspectSource } from "./repository";
+import { findProspectSources, insertProspect, insertProspectSource } from "./repository";
 import { listEventTypes } from "./event-types";
 import { resolveClientContacts } from "./clients";
 import {
@@ -250,10 +250,7 @@ async function createFormProspect(organizationId: string, submission: ContactSub
       await insertReceivedRequest(tx, { organizationId, eventId: created.id, message: submission.message, period: submission.period, budgetRange: submission.budgetRange, receivedAt: now });
     },
   });
-  if (event.eventDate) {
-    const templateId = await findDefaultTaskTemplateId(organizationId, event.eventTypeId);
-    if (templateId) await applyTaskTemplateRows(organizationId, event.id, templateId);
-  }
+  // Lot 63c (ADR 0106) : une demande reçue reste un prospect, sans rétroplanning d'office.
   return event.id;
 }
 

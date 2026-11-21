@@ -59,7 +59,7 @@ export default async function WriteToClientPage({ params, searchParams }: { para
         <ArrowLeft aria-hidden="true" />
         {t("back")}
       </Link>
-      <PageHeader title={t("title")} subtitle={eventNames(event.clients)} />
+      <PageHeader title={t("title")} subtitle={eventNames(event.clients, event.name)} />
       <ScreenHelp title={tHelp("messageTemplates.title")} body={tHelp("messageTemplates.body")} />
 
       <form method="get" className="stack" aria-label={t("choiceLabel")}>

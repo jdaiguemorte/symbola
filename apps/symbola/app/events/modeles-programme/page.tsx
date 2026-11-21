@@ -1,6 +1,7 @@
 // PRD-EVT-05 — modèles de programme du jour J de l'organisation. Lot 21 (L21-EVT-21,
 // décision 3) : la liste des modèles ; un clic ouvre le détail. « Nouveau
 // modèle » demande le nom dans le panneau latéral, puis ouvre le modèle créé.
+import { ScreenMain } from "@/app/ui/screen-main";
 import Link from "next/link";
 import { EmptyState } from "@/app/ui/empty-state";
 import { ChevronRight, Plus } from "lucide-react";
@@ -24,17 +25,17 @@ export default async function ProgramTemplatesPage({ searchParams }: { searchPar
   const tCommon = await getTranslations("Common");
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
-      <main>
+      <ScreenMain>
         <h1>{t("title")}</h1>
         <p>{t("moduleUnavailable")}</p>
-      </main>
+      </ScreenMain>
     );
   }
   const templates = await listProgramTemplates(organizationId);
   const creating = (await searchParams).nouveau === "1";
 
   return (
-    <main>
+    <ScreenMain>
       <PageHeader
         title={t("programTemplatesTitle")}
         actions={
@@ -75,6 +76,6 @@ export default async function ProgramTemplatesPage({ searchParams }: { searchPar
           <CreateProgramTemplateForm />
         </SidePanel>
       ) : null}
-    </main>
+    </ScreenMain>
   );
 }

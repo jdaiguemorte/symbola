@@ -269,6 +269,25 @@ sur sa partie « Données ».
   latéral** ; le fermer laisse l'écran tel quel.
 - Sur téléphone : la page de réglages, avec « Retour à <écran> ».
 
+#### Réalisation de 63c (21/11)
+
+- **Type de pièce sans migration.** Vérifié au début du paquet : `budget_line_attachments` garde déjà la nature
+  de la pièce (devis, contrat, facture) et son fichier. Un devis ou une facture déposé avec son
+  prestataire devient une pièce de ligne (stockée une fois), montrée dans le dossier typé ; sans
+  prestataire, ou sans le module Budget, il va dans le dossier de l'équipe de son type. « Déplacer
+  vers… » change la nature d'une pièce de ligne, ou le dossier d'une pièce de l'équipe.
+- **`/budget/<id>`** mène à l'onglet « Budget et prestataires » ; le détail (simulation et
+  répartition, enveloppe et seuil, honoraires, montants HT, exports, payeurs, calendrier) reste
+  sous `/budget/<id>/detail`, lié depuis l'onglet. Les parcours e2e de cette page y sont redirigés.
+- **Client facultatif** pour un évènement confirmé, avec un **nom facultatif** (`events.name`,
+  migration 0196, Q43 tranchée le 21/11) : requis seulement sans client ; rempli, il remplace le nom
+  tiré des clients partout ; à défaut, l'évènement prend le nom de son type.
+- **Réglages en panneau** : `/reglages/<clé>` intercepté (`app/@panel`) ; pas de réglages propres aux
+  documents (la liste des dossiers proposés reste le fichier de données ; la rendre modifiable par
+  organisation demanderait une table).
+- ADR 0106 et 0107 ; règles de `DESIGN.md` (Fenêtre, Panneau latéral, Menu d'un bouton,
+  Glisser-déposer, Zone de dépôt).
+
 ---
 
 ### 63d — Tâches et Aujourd'hui (migration : oui)
@@ -443,12 +462,12 @@ laisse aucune trace (HUB-06, ARC-07). Maquette M13.
 | Paquet | Migration | Schéma | Réversible | Accord |
 |---|---|---|---|---|
 | 63a, 63b, 63f | aucune | — | — | — |
-| 63c | 0196 si le type de pièce doit être gardé (à vérifier) | `events` | oui | à confirmer au début du paquet |
+| 63c | 0196 : `events.name`, nom facultatif (Q43) ; le type de pièce n'en demande pas | `events` | oui | **accordée le 21/11** (Q43) |
 | 63d | 0197 : `task_categories`, `category_id`, `priority` | `events` | oui | **accord du 21/11** |
 | 63e | 0198 : `vendor_type_links` et reprise ; 0199 : retrait de `type_id` | `vendors` | oui | **accord du 21/11** (résultat de la reprise montré avant la production) |
 | 63g | 0200 : `module_requests` | `hub` | oui | **accord du 21/11** |
 
-Numéros réservés le 21/11 (0196 à 0200), pour que les paquets menés en parallèle ne se marchent pas dessus ; si 63c n'a pas de migration, 0196 reste libre. Aucune clé étrangère entre schémas (avenant de l'ADR 0012).
+Numéros réservés le 21/11 (0196 à 0200), pour que les paquets menés en parallèle ne se marchent pas dessus ; 63c emploie la 0196 (`events.name`, Q43). Aucune clé étrangère entre schémas (avenant de l'ADR 0012).
 
 ## ADR à écrire
 

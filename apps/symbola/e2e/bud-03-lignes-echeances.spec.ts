@@ -47,7 +47,7 @@ test("BUD-01 / BUD-03 — une catégorie à plusieurs lignes, l'échéancier d'u
   await updateBudgetLine({ organizationId, eventId: event.id, eventVendorSlotId: caterer!.id, field: "estimated", amountCents: 1087100, changedByUserId: userId });
   await plannerLogin(page, email, PASSWORD);
 
-  await page.goto(`/budget/${event.id}`);
+  await page.goto(`/budget/${event.id}/detail`);
   await page.waitForLoadState("networkidle");
   const table = page.getByRole("table", { name: "Estimé, réel, engagé, payé" });
   const lineRow = (label: string) => table.getByRole("row").filter({ hasText: `Modifier « ${label} »` });
@@ -112,7 +112,7 @@ test("BUD-01 / BUD-03 — une catégorie à plusieurs lignes, l'échéancier d'u
   await expectNoAxeViolation(page);
 
   // Payée : le payé de la ligne en est la somme (D13), le rappel disparaît.
-  await page.goto(`/budget/${event.id}`);
+  await page.goto(`/budget/${event.id}/detail`);
   await page.waitForLoadState("networkidle");
   await openLine("Dîner, 120 couverts");
   await dinnerEditor.getByRole("button", { name: "Marquer « Acompte du traiteur » payée" }).click();

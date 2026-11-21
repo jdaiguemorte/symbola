@@ -214,6 +214,8 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
             eventDate: event.eventDate ? monthStart(event.eventDate) : null,
             lossReasonNote: null,
             // Lot 34b (EVT-03) : style et notes libres effacés ; les nombres d'invités restent.
+            // Lot 63c (Q43) : le nom de l'évènement peut nommer la personne.
+            name: null,
             style: null,
             notes: null,
             // Lot 48a (DAT-08) : notes confidentielles comprises.

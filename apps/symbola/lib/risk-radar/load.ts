@@ -42,7 +42,7 @@ export async function loadRiskRadar(organizationId: string, now: Date = new Date
   const events = await settleWithin(() => listEvents({ organizationId }), undefined, "radar:évènements");
   if (!events.ok) return { alerts: [], rules };
   const facts: RiskFacts = {
-    events: new Map(events.value.filter((event) => !event.isDemo && isInProgress(event.status)).map((event) => [event.id, { id: event.id, names: eventNames(event.clients), eventDate: event.eventDate }])),
+    events: new Map(events.value.filter((event) => !event.isDemo && isInProgress(event.status)).map((event) => [event.id, { id: event.id, names: eventNames(event.clients, event.name), eventDate: event.eventDate }])),
   };
   const [uncontracted, decisions, milestones, roadmaps, payments] = await Promise.all([
     settleWithin(() => listUncontractedVendors(organizationId, today), undefined, "radar:prestataires"),

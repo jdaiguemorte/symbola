@@ -122,7 +122,7 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   // Tout est arrivé : la tâche au rétroplanning, la dépense au budget avec le montant du devis.
   await page.goto(`/events/${setup.lea}?onglet=retroplanning`);
   await expect(page.getByRole("rowheader", { name: "Réserver la navette" })).toBeVisible();
-  await page.goto(`/budget/${setup.lea}`);
+  await page.goto(`/budget/${setup.lea}/detail`);
   await expect(page.getByText("Dîner, 120 couverts").first()).toBeVisible();
   await expect(page.locator("main")).toContainText(/9\s600,00\s€/);
 

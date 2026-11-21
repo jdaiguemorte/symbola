@@ -72,7 +72,7 @@ export default async function NewAppointmentPage({ searchParams }: { searchParam
                 <option value="">{t("noEvent")}</option>
                 {events.map((event) => (
                   <option key={event.id} value={event.id}>
-                    {eventNames(event.clients)}
+                    {eventNames(event.clients, event.name)}
                     {event.eventDate ? ` — ${event.eventDate}` : ""}
                   </option>
                 ))}

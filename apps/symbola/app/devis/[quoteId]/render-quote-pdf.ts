@@ -9,7 +9,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
 import type { Locale } from "@symbola/i18n";
 import { starterDocumentStyle, starterLatePenalty } from "@symbola/starter-templates";
-import { clientTermForEvent, getEvent } from "@/modules/events/service";
+import { clientTermForEvent, getEvent, eventNames } from "@/modules/events/service";
 
 import { computeLegalMention, getContactsByIds, getOrganizationProfile } from "@/modules/hub/service";
 import { formatAmount } from "@symbola/i18n";
@@ -96,7 +96,7 @@ export async function quotePdfModelFor(input: {
     version: { ...version, lines: version.lines.filter((line) => line.supplyMode !== "intermediary") },
     draftSeller,
     draftLegalMention: computeLegalMention(profile) || null,
-    clientNames: event?.clients.map((client) => client.firstName).join(" & ") || tQuotes("noClient"),
+    clientNames: (event ? eventNames(event.clients, event.name) : "") || tQuotes("noClient"),
     clientDetails,
     eventDate: event?.eventDate ?? null,
     logo: await loadDocumentLogo(organizationId, seller.logoKey),

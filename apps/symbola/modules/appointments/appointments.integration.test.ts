@@ -323,7 +323,7 @@ describe("EVT-10 — Comptes rendus ; les actions deviennent des tâches", () =>
     const actionId = report.actions[0]!.id;
     await expect(convertActionToTask(context.organizationId, actionId)).rejects.toBeInstanceOf(AppointmentNotLinkedError);
     const sourceId = (await createProspectSource(context.organizationId, "Salon")).id;
-    const event = await createProspect({ organizationId: context.organizationId, createdByUserId: context.hostId, prospectSourceId: sourceId, clients: [{ firstName: "Léa" }], eventDate: "2027-09-18", applyTemplate: false });
+    const event = await createProspect({ organizationId: context.organizationId, createdByUserId: context.hostId, prospectSourceId: sourceId, clients: [{ firstName: "Léa" }], eventDate: "2027-09-18" });
     await linkAppointmentToEvent(context.organizationId, manual.appointment.id, event.id);
     const { taskId } = await convertActionToTask(context.organizationId, actionId);
     const [task] = await withOrganization(appDatabase(), context.organizationId, (tx) => tx.select().from(eventTasks).where(eq(eventTasks.id, taskId)));
@@ -347,7 +347,7 @@ describe("HUB-08, POR-02 — Aujourd'hui et portail", () => {
       [otherResult.appointment.id, "today"],
     ]);
     const sourceId = (await createProspectSource(context.organizationId, "Salon")).id;
-    const event = await createProspect({ organizationId: context.organizationId, createdByUserId: context.hostId, prospectSourceId: sourceId, clients: [{ firstName: "Léa" }], eventDate: "2027-09-18", applyTemplate: false });
+    const event = await createProspect({ organizationId: context.organizationId, createdByUserId: context.hostId, prospectSourceId: sourceId, clients: [{ firstName: "Léa" }], eventDate: "2027-09-18" });
     await linkAppointmentToEvent(context.organizationId, result.appointment.id, event.id);
     await linkAppointmentToEvent(context.organizationId, otherResult.appointment.id, event.id);
     const mine = await listUpcomingAppointmentsForPerson(context.organizationId, event.id, email.toUpperCase(), MONDAY);

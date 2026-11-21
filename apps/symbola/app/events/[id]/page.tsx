@@ -112,13 +112,15 @@ import { VendorCandidates } from "./vendor-candidates";
 import { BudgetLineIcon } from "@/app/budget-line-icon";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { PlannedAmountForm, SlotIconForm } from "./budget-line-forms";
+import { buildBudgetVendorRows } from "./budget-vendor-rows";
+import { BudgetVendorsTable } from "./budget-vendors-table";
 import { AddPlaceForm, EditPlaceForm } from "./place-forms";
 import { TaskAttachmentUploadForm, TaskCommentForm } from "./task-extra-forms";
 import { removeTaskAttachmentAction, removeTaskCommentAction } from "./task-extra-actions";
 import { AddDayContactForm } from "./day-contact-forms";
 import { removeDayContactAction } from "./day-contact-actions";
 import { makeReceptionPlaceAction, removePlaceAction } from "./place-actions";
-import { findVendors, getVendor } from "@/modules/vendors/service";
+import { findVendors, getVendor, listVendorTypes } from "@/modules/vendors/service";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
 import {
   VENDOR_STATUS_CLASSES,
@@ -227,9 +229,12 @@ export default async function EventDetailPage({
     (candidate) => candidate.id === event.prospectSourceId,
   )?.label;
 
-  const clientNames = event.clients.length
+  // Lot 63c (EVT-01, Q43) : un évènement sans client (un shooting photo) prend le nom de son type.
+  const clientNames = event.name
+    ? event.name
+    : event.clients.length
     ? event.clients.map((client) => client.firstName).join(" & ")
-    : t("noClient");
+    : (eventTypes.find((type) => type.id === event.eventTypeId)?.label ?? t("noClient"));
 
   // PRD-BUD-01/02 : « quand l'événement passe en Confirmé, l'app propose
   // d'en faire le budget prévu » — seulement si une simulation existe et
@@ -256,6 +261,7 @@ export default async function EventDetailPage({
   const tQuotes = await getTranslations("Quotes");
   const tCandidates = await getTranslations("VendorCandidates");
   const tBudget = await getTranslations("Budget");
+  const tBudgetVendors = await getTranslations("BudgetVendors");
 
   const today = parisToday();
   // Lot 34a (ARC-17, D9) : les heures de l'évènement dans son fuseau, nommé s'il n'est pas celui de Paris.
@@ -363,6 +369,10 @@ export default async function EventDetailPage({
       ? (await findVendors({ organizationId })).map((vendor) => ({ id: vendor.id, label: vendor.city ? `${vendor.name} — ${vendor.city}` : vendor.name }))
       : [];
   const candidatesBySlot = (slotId: string) => candidates.filter((candidate) => candidate.vendorSlotId === slotId);
+  // Lot 63c (BUD-01, BUD-03, BUD-04 ; M9) : les lignes de « Budget et prestataires », et les métiers du
+  // catalogue pour « + Nouveau prestataire ».
+  const budgetRows = budgetView ? buildBudgetVendorRows(vendorSlots, budgetView.categories, today) : null;
+  const budgetVendorTypes = tab === "budget" && budgetView && vendorsAvailable ? (await listVendorTypes(organizationId)).map((type) => ({ id: type.id, label: type.label })) : [];
   // Somme des devis des prestataires retenus d'un poste (null s'il n'y en a aucun connu).
   const retainedQuotesOf = (slot: EventVendorSlot) => {
     const quotes = slot.retainedVendors.map((vendor) => vendor.quoteAmountCents).filter((amount): amount is number => amount !== null);
@@ -639,7 +649,7 @@ export default async function EventDetailPage({
       {/* Lot 13 (L13-EVT-19) : frise datée du statut, visible sur tous les onglets. */}
       <ChangeStatusForm
         eventId={event.id}
-        eventNames={eventNames(event.clients)}
+        eventNames={eventNames(event.clients, event.name)}
         currentStatus={event.status}
         phase={event.phase}
         reasons={reasons}
@@ -860,22 +870,24 @@ export default async function EventDetailPage({
         </>
       ) : null}
 
-      {tab === "budget" ? (
-        <div className="split">
-          <section className="card split-main" aria-labelledby="vendor-slots-title">
+      {/* Lot 63c (BUD-01, BUD-03, BUD-04 ; Q42, M9) : avec le module Budget, une seule vue par poste
+          (prévu, réel, écart, réglé, reste, prochaine échéance, échéancier) ; le détail d'un poste
+          (statut, icône, consultés) s'ouvre sous le tableau. */}
+      {tab === "budget" && budgetView ? (
+        <>
+          <section className="card" aria-labelledby="vendor-slots-title">
             <div className="section-head">
               <h2 id="vendor-slots-title">{t("vendorSlotsTitle")}</h2>
-              <SettingsLink href="/events/parametres" label={t("vendorSlotsSettings")} />
+              <div className="row-wrap">
+                <Link href={`/budget/${event.id}/detail`} className="button-link">
+                  {tBudgetVendors("detailLink")}
+                </Link>
+                <SettingsLink href="/events/parametres" back="event" label={t("vendorSlotsSettings")} />
+              </div>
             </div>
             <p id="vendor-progress-label">{t("vendorProgress", { booked: progress.booked, required: progress.required })}</p>
-            {budgetView ? (
-              <p className="meta">
-                <span>{t("budgetTotals", { estimated: formatAmount(budgetView.totalEstimatedCents, locale), committed: formatAmount(budgetView.totalCommittedCents, locale) })}</span>
-                <Link href={`/budget/${event.id}`}>{t("budgetSuggest")}</Link>
-              </p>
-            ) : null}
             {/* Lot 28a (BUD-02) : le dépassement du seuil d'alerte, en haut du budget. */}
-            {budgetView?.envelope?.exceeded ? (
+            {budgetView.envelope?.exceeded ? (
               <p role="alert" className="notice notice-attention">
                 {tBudget("envelopeExceeded", {
                   amount: formatAmount(budgetView.totalCommittedCents - budgetView.envelope.thresholdCents, locale),
@@ -883,6 +895,56 @@ export default async function EventDetailPage({
                 })}
               </p>
             ) : null}
+            <progress aria-labelledby="vendor-progress-label" value={progress.booked} max={Math.max(progress.required, 1)} />
+            {vendorSlots.length === 0 ? <p>{t("noVendorSlots")}</p> : null}
+            {vendorSlots.length > 0 ? (
+              <BudgetVendorsTable
+                eventId={event.id}
+                rows={budgetRows!.rows}
+                totals={budgetRows!.totals}
+                locale={locale}
+                posteHrefs={Object.fromEntries(vendorSlots.map((slot) => [slot.id, `${tabHref("budget", { poste: slot.id })}#detail-poste`]))}
+                consultationHrefs={Object.fromEntries(vendorSlots.map((slot) => [slot.id, `/events/${event.id}/consultation/${slot.id}`]))}
+                vendorsAvailable={vendorsAvailable}
+                vendorTypes={budgetVendorTypes}
+                slotVendors={Object.fromEntries(vendorSlots.map((slot) => [slot.id, candidatesBySlot(slot.id).filter((candidate) => candidate.status !== "dismissed").map((candidate) => ({ id: candidate.id, name: candidate.vendorName }))]))}
+              />
+            ) : null}
+            <AddVendorSlotForm eventId={event.id} />
+          </section>
+          {selectedSlot ? (
+            <section className="card" aria-labelledby="vendor-detail-title" id="detail-poste">
+                <h2 id="vendor-detail-title">{selectedSlot.label}</h2>
+                <VendorSlotForm key={selectedSlot.id} eventId={event.id} slot={selectedSlot} />
+                {/* Lot 28b (Q33) : l'estimé d'une catégorie à une seule ligne se saisit ici ; au-delà, sur le budget. */}
+                {budgetView && (categoryOf(selectedSlot.id)?.lines.length ?? 0) <= 1 ? (
+                  <PlannedAmountForm key={`planned-${selectedSlot.id}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} plannedCents={categoryOf(selectedSlot.id)?.lines[0]?.estimatedAmountCents ?? null} />
+                ) : null}
+                {budgetView && (categoryOf(selectedSlot.id)?.lines.length ?? 0) > 1 ? (
+                  <p>
+                    <Link href={`/budget/${event.id}/detail#categorie-${selectedSlot.id}`}>{t("budgetLinesDetail", { count: categoryOf(selectedSlot.id)?.lines.length ?? 0, line: selectedSlot.label })}</Link>
+                  </p>
+                ) : null}
+                <SlotIconForm key={`icon-${selectedSlot.id}-${selectedSlot.icon ?? ""}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} icon={selectedSlot.icon} />
+                <ImportedFields fields={selectedSlot.importedFields} compact />
+                <form action={removeVendorSlotAction}>
+                  <input type="hidden" name="eventId" value={event.id} />
+                  <input type="hidden" name="vendorSlotId" value={selectedSlot.id} />
+                  <button type="submit">{t("removeVendorSlot", { label: selectedSlot.label })}</button>
+                </form>
+                <Link href={tabHref("budget", slotFilter === "a-pourvoir" ? { filtre: "a-pourvoir" } : {})}>{t("closePanel")}</Link>
+            </section>
+          ) : null}
+        </>
+      ) : null}
+      {tab === "budget" && !budgetView ? (
+        <div className="split">
+          <section className="card split-main" aria-labelledby="vendor-slots-title">
+            <div className="section-head">
+              <h2 id="vendor-slots-title">{t("vendorSlotsTitle")}</h2>
+              <SettingsLink href="/events/parametres" back="event" label={t("vendorSlotsSettings")} />
+            </div>
+            <p id="vendor-progress-label">{t("vendorProgress", { booked: progress.booked, required: progress.required })}</p>
             <progress aria-labelledby="vendor-progress-label" value={progress.booked} max={Math.max(progress.required, 1)} />
             <nav aria-label={t("vendorSlotsFilter")} className="pills">
               <Link href={tabHref("budget")} aria-current={slotFilter === "tous" ? "true" : undefined}>
@@ -901,17 +963,9 @@ export default async function EventDetailPage({
                       <th scope="col">{t("vendorColumnSlot")}</th>
                       <th scope="col">{t("vendorName")}</th>
                       <th scope="col">{t("vendorSlotStatus")}</th>
-                      {budgetView ? (
-                        <>
-                          <th scope="col" className="num">{tBudget("amounts.estimated")}</th>
-                          <th scope="col" className="num">{tBudget("amounts.committed")}</th>
-                          <th scope="col" className="num">{tBudget("variance")}</th>
-                        </>
-                      ) : (
-                        <th scope="col" className="num">
-                          {t("vendorAmount")}
-                        </th>
-                      )}
+                      <th scope="col" className="num">
+                        {t("vendorAmount")}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -935,29 +989,7 @@ export default async function EventDetailPage({
                         <td>
                           <span className={VENDOR_STATUS_CLASSES[slot.status]}>{t(VENDOR_STATUS_LABEL_KEYS[slot.status])}</span>
                         </td>
-                        {budgetView ? (
-                          (() => {
-                            const category = categoryOf(slot.id);
-                            const planned = category && category.lines.some((line) => line.estimatedAmountCents !== null) ? category.estimatedCents : null;
-                            // Le devis des prestataires retenus engage leurs lignes (événement
-                            // interne traité en différé) : on l'affiche dès la retenue.
-                            const engaged = category && category.lines.some((line) => line.committedAmountCents !== null) ? category.committedCents : null;
-                            const retainedQuotes = retainedQuotesOf(slot);
-                            const actual = engaged ?? retainedQuotes;
-                            const variance = planned !== null && actual !== null ? actual - planned : null;
-                            return (
-                              <>
-                                <td className="num">{planned !== null ? formatAmount(planned, locale) : "—"}</td>
-                                <td className="num">{actual !== null ? formatAmount(actual, locale) : "—"}</td>
-                                <td className={variance !== null && variance > 0 ? "num text-overdue" : "num"}>
-                                  {variance !== null ? `${variance > 0 ? "+" : ""}${formatAmount(variance, locale)}` : "—"}
-                                </td>
-                              </>
-                            );
-                          })()
-                        ) : (
-                          <td className="num">{retainedQuotesOf(slot) !== null ? formatAmount(retainedQuotesOf(slot)!, locale) : "—"}</td>
-                        )}
+                        <td className="num">{retainedQuotesOf(slot) !== null ? formatAmount(retainedQuotesOf(slot)!, locale) : "—"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -977,7 +1009,7 @@ export default async function EventDetailPage({
                 ) : null}
                 {budgetView && (categoryOf(selectedSlot.id)?.lines.length ?? 0) > 1 ? (
                   <p>
-                    <Link href={`/budget/${event.id}#categorie-${selectedSlot.id}`}>{t("budgetLinesDetail", { count: categoryOf(selectedSlot.id)?.lines.length ?? 0, line: selectedSlot.label })}</Link>
+                    <Link href={`/budget/${event.id}/detail#categorie-${selectedSlot.id}`}>{t("budgetLinesDetail", { count: categoryOf(selectedSlot.id)?.lines.length ?? 0, line: selectedSlot.label })}</Link>
                   </p>
                 ) : null}
                 <SlotIconForm key={`icon-${selectedSlot.id}-${selectedSlot.icon ?? ""}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} icon={selectedSlot.icon} />
@@ -1016,7 +1048,7 @@ export default async function EventDetailPage({
           <section className="card split-main" aria-labelledby="tasks-title">
             <div className="section-head">
               <h2 id="tasks-title">{t("tasksTitle")}</h2>
-              <SettingsLink href="/events/modeles" label={t("taskTemplatesSettings")} />
+              <SettingsLink href="/events/modeles" back="event" label={t("taskTemplatesSettings")} />
             </div>
             <p className="meta">
               <span>{t("tasksSummary", { done: tasks.filter((task) => task.done).length, total: tasks.length, overdue: overdueCount })}</span>
@@ -1208,7 +1240,7 @@ export default async function EventDetailPage({
         <section className="card" aria-labelledby="program-title">
           <div className="section-head">
             <h2 id="program-title">{t("programTitle")}</h2>
-            <SettingsLink href="/events/modeles-programme" label={t("programTemplatesSettings")} />
+            <SettingsLink href="/events/modeles-programme" back="event" label={t("programTemplatesSettings")} />
           </div>
           <ProgramShiftProposal eventId={event.id} proposal={shiftProposal} />
           {/* Lot 62c (UX-13) : en tête de la carte, la diffusion à gauche, les PDF et l'agenda à droite. */}
@@ -1404,7 +1436,7 @@ export default async function EventDetailPage({
         <section className="card" aria-labelledby="event-quotes-title">
           <div className="section-head">
             <h2 id="event-quotes-title">{tQuotes("eventQuotesTitle")}</h2>
-            <SettingsLink href="/devis/parametres" label={tQuotes("settingsTitle")} />
+            <SettingsLink href="/devis/parametres" back="event" label={tQuotes("settingsTitle")} />
           </div>
           {quotes.length === 0 ? <p>{tQuotes("noEventQuotes")}</p> : null}
           <ul className="item-list">

@@ -94,7 +94,6 @@ async function atelier(modules: ("appointments" | "guests")[]) {
             { firstName: "Maxime", lastName: "Lefèvre-Saint-Germain" },
           ],
           eventDate: `2027-09-${18 + index}`,
-          applyTemplate: false,
         }),
       );
     }

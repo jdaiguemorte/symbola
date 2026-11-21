@@ -36,7 +36,7 @@ import {
   type SignerInput,
 } from "@/modules/quotes/service";
 import type { RecipientsReview } from "@symbola/contracts";
-import { getEvent } from "@/modules/events/service";
+import { getEvent, eventNames } from "@/modules/events/service";
 import { parseDecimal } from "../decimal-input";
 import { isValidId } from "../module-access";
 import { authorizedPlanner } from "../planner-access";
@@ -268,7 +268,7 @@ export async function chooseOptionsAction(_prevState: QuoteFormState, formData: 
     if (!chosenLineIds.every(isValidId)) return { error: t("quoteNotFound") };
     const quote = await getQuote(organizationId, quoteId);
     const event = await getEvent(organizationId, quote.eventId);
-    const chosenBy = event?.clients.map((client) => client.firstName).join(" & ") || t("noClient");
+    const chosenBy = (event ? eventNames(event.clients, event.name) : "") || t("noClient");
     await chooseQuoteOptions({ organizationId, quoteId, chosenLineIds, chosenBy, byKind: "planner" });
   });
 }

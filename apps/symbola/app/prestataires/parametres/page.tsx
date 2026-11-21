@@ -4,6 +4,7 @@
 // type, nombre de fiches) ; le détail s'ouvre dans le panneau latéral (motif
 // du lot 13) : renommer, changer de famille, champs, fusionner, supprimer en
 // déplaçant les fiches. Les familles appartiennent à l'organisation.
+import { ScreenMain } from "@/app/ui/screen-main";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { countVendorsByType, listVendorFamilies, listVendorTypes, type VendorFamily, type VendorType } from "@/modules/vendors/service";
@@ -58,10 +59,10 @@ export default async function VendorTypesPage({ searchParams }: { searchParams: 
   const tCommon = await getTranslations("Common");
   if (!enabled) {
     return (
-      <main>
+      <ScreenMain>
         <h1>{t("settingsTitle")}</h1>
         <p>{t("moduleUnavailable")}</p>
-      </main>
+      </ScreenMain>
     );
   }
   await ensureVendorFamilies(organizationId, (await getLocale()) === "en" ? "en" : "fr");
@@ -83,7 +84,7 @@ export default async function VendorTypesPage({ searchParams }: { searchParams: 
   const openedCount = openedType ? (countOf.get(openedType.id) ?? 0) : 0;
 
   return (
-    <main>
+    <ScreenMain>
       <h1>{t("settingsTypesTitle")}</h1>
       <ScreenHelp title={tHelp("vendorTypes.title")} body={tHelp("vendorTypes.body")} />
       <p>{t("settingsTypesIntro")}</p>
@@ -344,6 +345,6 @@ export default async function VendorTypesPage({ searchParams }: { searchParams: 
           ) : null}
         </SidePanel>
       ) : null}
-    </main>
+    </ScreenMain>
   );
 }

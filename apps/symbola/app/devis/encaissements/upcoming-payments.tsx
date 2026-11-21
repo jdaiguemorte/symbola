@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatAmount, formatCalendarDate, formatMonth, type Locale } from "@symbola/i18n";
-import { getEvent } from "@/modules/events/service";
+import { getEvent, eventNames } from "@/modules/events/service";
 import type { UnpaidPayment, UnpaidPaymentsView } from "@/modules/quotes/service";
 import { EmptyState } from "@/app/ui/empty-state";
 import { OVERDUE_CLASS } from "../quote-display";
@@ -25,7 +25,7 @@ export async function UpcomingPayments({
   const eventIds = [...new Set([...view.overdue, ...view.upcoming].map((payment) => payment.eventId))];
   const events = await Promise.all(eventIds.map((eventId) => getEvent(organizationId, eventId)));
   const names = new Map(
-    events.flatMap((event) => (event ? [[event.id, event.clients.map((client) => client.firstName).join(" & ") || t("noClient")]] : [])),
+    events.flatMap((event) => (event ? [[event.id, eventNames(event.clients, event.name) || t("noClient")]] : [])),
   );
 
   const row = (payment: UnpaidPayment) => (

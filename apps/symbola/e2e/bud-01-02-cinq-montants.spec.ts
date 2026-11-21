@@ -63,7 +63,7 @@ test("BUD-01 — une ligne complète (estimé, devisé, engagé, payé) se saisi
   });
   await plannerLogin(page, wedding.email, PASSWORD);
 
-  await page.goto(`/budget/${wedding.eventId}`);
+  await page.goto(`/budget/${wedding.eventId}/detail`);
   await page.waitForLoadState("networkidle");
   const table = page.getByRole("table", { name: "Estimé, réel, engagé, payé" });
   // Lot 28b : la catégorie « Traiteur » a sa ligne de total ; la ligne se repère par « Modifier ».
@@ -136,7 +136,7 @@ test("BUD-02 — l'alerte précède l'engagement : le dépassement chiffré du s
   await expectNoAxeViolation(page);
 
   // Sur le budget : enveloppe, seuil, alerte ; le seuil se relève pour cet événement.
-  await page.goto(`/budget/${wedding.eventId}`);
+  await page.goto(`/budget/${wedding.eventId}/detail`);
   await page.waitForLoadState("networkidle");
   const envelope = page.getByRole("region", { name: "Enveloppe et seuil d'alerte" });
   await expect(envelope).toContainText("Budget souhaité du client");
