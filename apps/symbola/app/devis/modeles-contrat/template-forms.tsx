@@ -29,7 +29,9 @@ function Feedback({ state, success }: { state: ContractTemplateFormState; succes
 function HeaderFields({ template, eventTypes }: { template?: ContractTemplateView; eventTypes: { id: string; label: string }[] }) {
   const t = useTranslations("Contracts");
   return (
-    <>
+    // Lot 62d (UX-12) : formulaire en grille — nom et titre côte à côte, puis le type d'événement, la
+    // nature du modèle et la date de revue (champ court) sur une ligne.
+    <div className="form-grid form-grid-3">
       <label>
         {t("templateName")}
         <input type="text" name="name" maxLength={120} required defaultValue={template?.name ?? ""} />
@@ -61,12 +63,12 @@ function HeaderFields({ template, eventTypes }: { template?: ContractTemplateVie
       </label>
       <label>
         {t("templateReviewedOn")}
-        <input type="date" name="legalReviewedOn" defaultValue={template?.legalReviewedOn ?? ""} aria-describedby="reviewed-on-hint" />
+        <input type="date" name="legalReviewedOn" defaultValue={template?.legalReviewedOn ?? ""} aria-describedby="reviewed-on-hint" className="field-date" />
       </label>
-      <p id="reviewed-on-hint" className="meta">
+      <p id="reviewed-on-hint" className="field-hint span-all">
         {t("templateReviewedOnHint")}
       </p>
-    </>
+    </div>
   );
 }
 
@@ -103,13 +105,11 @@ function ClauseFields({ clause }: { clause?: ContractTemplateClause }) {
   const t = useTranslations("Contracts");
   const id = (field: string) => `clause-${clause?.id ?? "new"}-${field}`;
   return (
-    <>
-      <label htmlFor={id("title")}>{t("clauseTitle")}</label>
-      <input id={id("title")} type="text" name="title" maxLength={200} required defaultValue={clause?.title ?? ""} />
-      <label htmlFor={id("body")}>{t("clauseBody")}</label>
-      <textarea id={id("body")} name="body" rows={6} maxLength={20000} defaultValue={clause?.body ?? ""} aria-describedby="variables-title" />
-      <label>
-        <input type="checkbox" name="optional" defaultChecked={clause?.optional ?? false} /> {t("clauseOptional")}
+    // Lot 62d (UX-12) : le titre et le rôle légal côte à côte, le texte sur toute la largeur.
+    <div className="form-grid">
+      <label htmlFor={id("title")}>
+        {t("clauseTitle")}
+        <input id={id("title")} type="text" name="title" maxLength={200} required defaultValue={clause?.title ?? ""} />
       </label>
       <label>
         {t("clauseRole")}
@@ -122,7 +122,14 @@ function ClauseFields({ clause }: { clause?: ContractTemplateClause }) {
           ))}
         </select>
       </label>
-    </>
+      <label htmlFor={id("body")} className="span-all">
+        {t("clauseBody")}
+        <textarea id={id("body")} name="body" rows={6} maxLength={20000} defaultValue={clause?.body ?? ""} aria-describedby="variables-title" />
+      </label>
+      <label className="span-all">
+        <input type="checkbox" name="optional" defaultChecked={clause?.optional ?? false} /> {t("clauseOptional")}
+      </label>
+    </div>
   );
 }
 
@@ -133,7 +140,7 @@ export function UpdateClauseForm({ clause }: { clause: ContractTemplateClause })
     <form action={action} aria-label={t("updateClauseNamed", { title: clause.title })}>
       <input type="hidden" name="clauseId" value={clause.id} />
       <ClauseFields clause={clause} />
-      <button type="submit" disabled={pending}>
+      <button type="submit" disabled={pending} className="button-secondary">
         {t("updateClause")}
       </button>
       <Feedback state={state} success={t("clauseSaved")} />
@@ -148,7 +155,7 @@ export function AddClauseForm({ templateId }: { templateId: string }) {
     <form action={action} aria-label={t("addClause")}>
       <input type="hidden" name="templateId" value={templateId} />
       <ClauseFields />
-      <button type="submit" disabled={pending}>
+      <button type="submit" disabled={pending} className="button-secondary">
         {t("addClause")}
       </button>
       <Feedback state={state} success={t("clauseAdded")} />

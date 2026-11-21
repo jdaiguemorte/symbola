@@ -12,29 +12,40 @@ export function ReminderSettingsForm({ settings }: { settings: ReminderSettings 
   const locale = useLocale() as "fr" | "en";
   const [state, action, pending] = useActionState(saveReminderSettingsAction, {} as ReminderSettingsState);
   return (
+    // Lot 62d (UX-12) : formulaire en grille, un réglage par case ; le nombre de jours, la suite de
+    // jours et le taux sont des champs courts.
     <form action={action} aria-label={t("formLabel")}>
-      <label htmlFor="expiry-reminder-days">{t("expiryDays")}</label>
-      <input id="expiry-reminder-days" type="number" name="expiryReminderDays" min={1} max={30} required defaultValue={settings.expiryReminderDays} aria-describedby="expiry-reminder-hint" />
-      <p id="expiry-reminder-hint" className="meta">
-        {t("expiryHint")}
-      </p>
-      <label htmlFor="payment-reminder-days">{t("paymentDays")}</label>
-      <input id="payment-reminder-days" type="text" name="paymentReminderDays" required defaultValue={settings.paymentReminderDays.join(", ")} aria-describedby="payment-reminder-hint" />
-      <p id="payment-reminder-hint" className="meta">
-        {t("paymentHint")}
-      </p>
-      <label htmlFor="consumer-rate">{t("consumerRate")}</label>
-      <input
-        id="consumer-rate"
-        type="text"
-        inputMode="decimal"
-        name="consumerRate"
-        defaultValue={settings.consumerLatePenaltyBasisPoints === null ? "" : formatDecimal(settings.consumerLatePenaltyBasisPoints, 2, locale)}
-        aria-describedby="consumer-rate-hint"
-      />
-      <p id="consumer-rate-hint" className="meta">
-        {t("consumerRateHint")}
-      </p>
+      <div className="form-grid">
+        <div className="settings-field">
+          <label htmlFor="expiry-reminder-days">{t("expiryDays")}</label>
+          <input id="expiry-reminder-days" type="number" name="expiryReminderDays" min={1} max={30} required defaultValue={settings.expiryReminderDays} aria-describedby="expiry-reminder-hint" className="field-short" />
+          <p id="expiry-reminder-hint" className="field-hint">
+            {t("expiryHint")}
+          </p>
+        </div>
+        <div className="settings-field">
+          <label htmlFor="payment-reminder-days">{t("paymentDays")}</label>
+          <input id="payment-reminder-days" type="text" name="paymentReminderDays" required defaultValue={settings.paymentReminderDays.join(", ")} aria-describedby="payment-reminder-hint" className="field-days" />
+          <p id="payment-reminder-hint" className="field-hint">
+            {t("paymentHint")}
+          </p>
+        </div>
+        <div className="settings-field span-all">
+          <label htmlFor="consumer-rate">{t("consumerRate")}</label>
+          <input
+            id="consumer-rate"
+            type="text"
+            inputMode="decimal"
+            name="consumerRate"
+            defaultValue={settings.consumerLatePenaltyBasisPoints === null ? "" : formatDecimal(settings.consumerLatePenaltyBasisPoints, 2, locale)}
+            aria-describedby="consumer-rate-hint"
+            className="field-short"
+          />
+          <p id="consumer-rate-hint" className="field-hint">
+            {t("consumerRateHint")}
+          </p>
+        </div>
+      </div>
       <button type="submit" disabled={pending}>
         {t("save")}
       </button>
