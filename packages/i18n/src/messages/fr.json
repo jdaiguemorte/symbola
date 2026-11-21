@@ -5445,7 +5445,8 @@
       "payments": "Retour aux encaissements",
       "tasks": "Retour aux tâches",
       "vendors": "Retour aux prestataires"
-    }
+    },
+    "settingsPanelOpenAll": "Ouvrir tous les réglages"
   },
   "TutorialsPage": {
     "title": "Tutoriels",

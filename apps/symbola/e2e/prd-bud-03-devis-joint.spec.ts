@@ -49,7 +49,7 @@ test("PRD-BUD-03 — joindre le devis d'un prestataire à une ligne et l'ouvrir 
   await page.getByRole("button", { name: "Créer le modèle" }).click();
   await expect(page.getByText("Modèle créé.")).toBeVisible();
   await page.goto("/events/new");
-  await page.getByLabel("Prénom du premier marié", { exact: true }).fill("Camille");
+  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Camille");
   await page.getByLabel("Source du prospect").selectOption({ label: "Instagram" });
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
@@ -57,7 +57,7 @@ test("PRD-BUD-03 — joindre le devis d'un prestataire à une ligne et l'ouvrir 
   // Lot 12 (L12-EVT-17) : le budget est un onglet de la fiche ; le module
   // Budget s'ouvre depuis son lien.
   await openEventTab(page, "Budget");
-  await page.getByRole("link", { name: "Proposer des montants estimés, historique et devis joints" }).click();
+  await page.getByRole("link", { name: "Détail du budget (simulation, HT, exports)" }).click();
   await page.getByLabel("Budget total (€)").fill("10000");
   await page.getByLabel("Nombre d'invités").fill("40");
   await page.getByLabel("Modèle de répartition").selectOption({ label: "Classique" });

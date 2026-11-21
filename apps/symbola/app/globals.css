@@ -5105,7 +5105,7 @@
     @apply md:w-[560px];
   }
   .settings-panel-bar {
-    @apply flex justify-end;
+    @apply flex items-center justify-between gap-3;
   }
   .settings-panel-back-mobile {
     @apply md:hidden;

@@ -35,6 +35,8 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await page.goto("/events");
   // Lot 20 (décision 1) : par « Réglages », puis la rubrique.
   await page.getByRole("link", { name: /^Réglages/ }).click();
+  // Lot 63c (ADR 0107) : les réglages s'ouvrent dans le panneau ; ses autres rubriques sont sur la page complète.
+  await page.getByRole("link", { name: "Ouvrir tous les réglages" }).click();
   await page.getByRole("navigation", { name: "Rubriques des paramètres" }).getByRole("link", { name: "Rétroplanning", exact: true }).click();
   await expect(page).toHaveURL(/\/events\/modeles$/);
   await page.waitForLoadState("networkidle");
@@ -69,7 +71,7 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
   await page.goto("/events/new");
-  await page.getByLabel("Prénom du premier marié", { exact: true }).fill("Inès");
+  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Inès");
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);

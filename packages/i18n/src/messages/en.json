@@ -5445,7 +5445,8 @@
       "payments": "Back to payments",
       "tasks": "Back to tasks",
       "vendors": "Back to vendors"
-    }
+    },
+    "settingsPanelOpenAll": "Open all settings"
   },
   "TutorialsPage": {
     "title": "Tutorials",

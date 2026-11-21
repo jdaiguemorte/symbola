@@ -908,6 +908,8 @@ export default async function EventDetailPage({
                 vendorsAvailable={vendorsAvailable}
                 vendorTypes={budgetVendorTypes}
                 slotVendors={Object.fromEntries(vendorSlots.map((slot) => [slot.id, candidatesBySlot(slot.id).filter((candidate) => candidate.status !== "dismissed").map((candidate) => ({ id: candidate.id, name: candidate.vendorName }))]))}
+                statusLabels={Object.fromEntries(Object.entries(VENDOR_STATUS_LABEL_KEYS).map(([status, key]) => [status, t(key)]))}
+                statusClasses={VENDOR_STATUS_CLASSES}
               />
             ) : null}
             <AddVendorSlotForm eventId={event.id} />

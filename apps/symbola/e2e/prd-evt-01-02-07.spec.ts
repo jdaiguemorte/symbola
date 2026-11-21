@@ -65,7 +65,7 @@ test("PRD-EVT-07 — la planner paramètre ses sources et motifs de perte, puis 
   await expectNoAxeViolation(page);
 
   await page.goto("/events/new");
-  await page.getByLabel("Prénom du premier marié", { exact: true }).fill("Camille");
+  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Camille");
   // Sans source, le formulaire ne part pas : le champ est signalé manquant.
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page).toHaveURL(/\/events\/new$/);
@@ -100,7 +100,7 @@ test("PRD-EVT-01/02 / EVT-05 — un prospect apparaît dans la liste en Option, 
   await expect(page.getByText("Motif ajouté.")).toBeVisible();
 
   await page.goto("/events/new");
-  await page.getByLabel("Prénom du premier marié", { exact: true }).fill(firstName);
+  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill(firstName);
   await page.getByLabel("Prénom du second marié (facultatif)", { exact: true }).fill("Sacha");
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
   await page.getByRole("button", { name: "Créer le prospect" }).click();

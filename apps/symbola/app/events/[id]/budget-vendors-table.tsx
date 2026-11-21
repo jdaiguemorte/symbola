@@ -29,6 +29,8 @@ export function BudgetVendorsTable({
   vendorsAvailable,
   vendorTypes,
   slotVendors,
+  statusLabels,
+  statusClasses,
 }: {
   eventId: string;
   rows: BudgetVendorRow[];
@@ -40,6 +42,9 @@ export function BudgetVendorsTable({
   vendorsAvailable: boolean;
   vendorTypes: { id: string; label: string }[];
   slotVendors: Record<string, { id: string; name: string }[]>;
+  // Le statut de chaque poste, libellé et classe de la charte (vendor-slot-status.ts).
+  statusLabels: Record<string, string>;
+  statusClasses: Record<string, string>;
 }) {
   const t = useTranslations("BudgetVendors");
   const tBudget = useTranslations("Budget");
@@ -95,14 +100,12 @@ export function BudgetVendorsTable({
                   <tr>
                     <th scope="row">
                       <div className="budget-vendor-head">
-                        <button type="button" className="button-ghost budget-unfold" aria-expanded={open} aria-controls={scheduleId} onClick={() => toggle(row.slotId)}>
-                          {open ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
-                          <span className="sr-only">{t(open ? "foldSchedule" : "unfoldSchedule", { slot: row.label })}</span>
-                        </button>
                         <span className="line-cell">
                           <BudgetLineIcon icon={row.icon} label={row.label} decorative />
                           <Link href={posteHrefs[row.slotId] ?? "#"}>{row.label}</Link>
                         </span>
+                        {/* PAR-04 : le statut du poste (à pourvoir, pressenti, retenu…), toujours en mots. */}
+                        <span className={statusClasses[row.status]}>{statusLabels[row.status]}</span>
                         {row.engaged ? <span className="badge badge-sauge">{t("engaged")}</span> : null}
                       </div>
                       <div className="budget-vendor-who">
@@ -153,6 +156,10 @@ export function BudgetVendorsTable({
                       )}
                     </td>
                     <td className="actions">
+                      <button type="button" className="button-ghost budget-unfold" aria-expanded={open} aria-controls={scheduleId} onClick={() => toggle(row.slotId)}>
+                        {open ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
+                        <span className="sr-only">{t(open ? "foldSchedule" : "unfoldSchedule", { slot: row.label })}</span>
+                      </button>
                       <button type="button" className="button-secondary" onClick={() => setEditing(index)} aria-haspopup="dialog">
                         {t("edit")}
                         <span className="sr-only"> {row.label}</span>

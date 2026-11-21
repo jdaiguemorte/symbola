@@ -3,6 +3,7 @@
 // Lot 63c (UX-09, UX-13 ; ADR 0107, maquette M8) — le panneau latéral des réglages d'un écran : il
 // s'ouvre au-dessus de l'écran, qui reste tel quel ; « Fermer », Échap ou le retour du navigateur le
 // referment. Sur téléphone, il prend tout l'écran et son bouton dit « Retour à <écran> ».
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
@@ -35,6 +36,8 @@ export function SettingsPanel({ label, backLabel, fallbackHref, children }: { la
   return (
     <aside ref={panelRef} className="side-panel settings-panel" aria-label={label} tabIndex={-1} data-settings-panel="">
       <div className="settings-panel-bar">
+        {/* Les autres rubriques des réglages : la page complète. */}
+        <Link href={fallbackHref}>{t("settingsPanelOpenAll")}</Link>
         <button type="button" className="button-ghost" onClick={close}>
           <span className="settings-panel-back-mobile">‹ {backLabel}</span>
           <span className="settings-panel-back-desktop">{t("closePanel")}</span>
