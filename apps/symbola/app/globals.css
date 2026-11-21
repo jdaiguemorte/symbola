@@ -1003,9 +1003,6 @@
   .essentials {
     @apply max-w-5xl;
   }
-  .essentials-head {
-    @apply flex items-center justify-between gap-3;
-  }
   .essentials-duration {
     @apply text-body font-normal;
   }
@@ -1047,8 +1044,8 @@
   .essentials-enter {
     @apply hidden text-label md:inline;
   }
-  .essentials-skip {
-    @apply self-start;
+  .essentials-secondary {
+    @apply flex flex-wrap gap-2;
   }
   .essentials-example {
     @apply m-0 text-label text-ink-muted;

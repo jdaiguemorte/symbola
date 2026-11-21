@@ -154,29 +154,18 @@ export function EssentialStepForm(props: EssentialStepProps & { previous: string
             </button>
           </span>
         </div>
-        <button type="submit" name="intent" value="skip" className="button-ghost essentials-skip" disabled={pending}>
-          {t("skip")}
-        </button>
-        {/* Envoyé par « Finir plus tard » (en tête d'écran) ; en dernier, il n'est jamais le bouton d'Entrée. */}
-        <button type="submit" name="intent" value="later" hidden tabIndex={-1} id="essentials-later" />
+        {/* « Passer » n'écrit rien ; « Finir plus tard » enregistre l'étape affichée et ramène à l'accueil.
+            Après « Continuer » dans le formulaire : ni l'un ni l'autre n'est le bouton d'Entrée. */}
+        <div className="essentials-secondary">
+          <button type="submit" name="intent" value="skip" className="button-ghost" disabled={pending}>
+            {t("skip")}
+          </button>
+          <button type="submit" name="intent" value="later" className="button-ghost" disabled={pending}>
+            {t("later")}
+          </button>
+        </div>
       </form>
     </>
   );
 }
 
-// « Finir plus tard », en tête d'écran : enregistre l'étape affichée puis ramène à l'accueil.
-export function FinishLaterButton({ label }: { label: string }) {
-  return (
-    <button
-      type="button"
-      className="button-ghost"
-      onClick={() => {
-        const form = document.getElementById("essentials-form");
-        const submitter = document.getElementById("essentials-later");
-        if (form instanceof HTMLFormElement && submitter instanceof HTMLButtonElement) form.requestSubmit(submitter);
-      }}
-    >
-      {label}
-    </button>
-  );
-}

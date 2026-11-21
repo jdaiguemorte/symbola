@@ -50,7 +50,7 @@ test("HUB-09 / HUB-18 / HUB-23 — « L'essentiel » : six questions, une par é
   await page.getByLabel("Raison sociale").fill("Atelier Lumière");
   await page.getByLabel("SIRET").fill("123");
   await page.getByRole("button", { name: "Continuer" }).click();
-  await expect(page.getByRole("alert")).toContainText("SIRET");
+  await expect(page.locator("#essentials-form").getByRole("alert")).toContainText("SIRET");
   await expect(page.getByLabel("Raison sociale")).toHaveValue("Atelier Lumière");
   await expect(page.getByLabel("SIRET")).toHaveAttribute("aria-invalid", "true");
   // Entrée enregistre et ouvre la question suivante.
@@ -80,7 +80,7 @@ test("HUB-09 / HUB-18 / HUB-23 — « L'essentiel » : six questions, une par é
   await expect(page.getByText("Étape 5 sur 6")).toBeVisible();
   await page.getByLabel("IBAN").fill("FR00 1234");
   await page.getByRole("button", { name: "Continuer" }).click();
-  await expect(page.getByRole("alert")).toContainText("IBAN");
+  await expect(page.locator("#essentials-form").getByRole("alert")).toContainText("IBAN");
   await page.getByRole("button", { name: "Passer cette étape" }).click();
 
   // Numérotation : l'exemple suit la saisie ; « Terminer » ramène à l'accueil.

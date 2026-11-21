@@ -12,7 +12,7 @@ import { getDocumentSettings, getQuoteSettings } from "@/modules/quotes/service"
 import { requirePlanner } from "@/lib/guards";
 import { ESSENTIALS_HREF, essentialSteps, loadEssentials, nextEssentialStep, stepDone } from "@/lib/onboarding/essentials";
 import { ScreenHelp } from "@/app/screen-help";
-import { EssentialStepForm, FinishLaterButton, type EssentialStepProps } from "./essentials-forms";
+import { EssentialStepForm, type EssentialStepProps } from "./essentials-forms";
 
 // Environ quatre minutes pour les six étapes (maquette M1).
 const MINUTES = 4;
@@ -30,13 +30,10 @@ export default async function EssentialsPage({ searchParams }: { searchParams: P
 
   return (
     <main className="setup essentials">
-      <div className="essentials-head">
-        <p className="muted">{t("saved")}</p>
-        <FinishLaterButton label={t("later")} />
-      </div>
       <h1>
         {t("title")} <span className="muted essentials-duration">· {t("duration", { minutes: MINUTES })}</span>
       </h1>
+      <p className="muted">{t("saved")}</p>
       <ScreenHelp title={t("helpTitle")} body={t("helpBody")} />
       <div className="essentials-layout">
         <nav aria-label={t("stepsLabel")} className="essentials-steps">
