@@ -4,7 +4,7 @@
 // mois (les jours libres en émeraude, les autres barrés, sans dire pourquoi), puis les heures du jour
 // choisi ; un clic sur une heure la transforme en « 10:00 | Suivant ». Partagé par la page publique
 // de réservation et le déplacement par lien (/rdv). Heures de Paris (ARC-17).
-import { useMemo, useState, type ReactNode, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { useTranslations } from "next-intl";
 
 const ZONE = "Europe/Paris";
@@ -75,6 +75,12 @@ export function SlotPicker({
   const [month, setMonth] = useState(startDay.slice(0, 7));
   const [day, setDay] = useState<string | null>(byDay.has(startDay) ? startDay : null);
   const [slot, setSlot] = useState<string | null>(initialSlot);
+  // Le bouton d'une heure devient « 10:00 | Suivant » : le focus passe à « Suivant » (WCAG 2.4.3).
+  const chooseRef = useRef<HTMLButtonElement>(null);
+  const picked = useRef(false);
+  useEffect(() => {
+    if (picked.current && slot) chooseRef.current?.focus();
+  }, [slot]);
   const cells = monthCells(month);
   const daySlots = day ? (byDay.get(day) ?? []) : [];
 
@@ -142,12 +148,19 @@ export function SlotPicker({
               {candidate === slot ? (
                 <span className="booking-time-pick">
                   <span className="booking-time-chosen">{time.format(new Date(candidate))}</span>
-                  <button type="button" disabled={pending} onClick={() => onChoose(candidate)} aria-label={t("chooseWithSlot", { action: chooseLabel, slot: `${shortDay.format(dayOf(day!))} ${time.format(new Date(candidate))}` })}>
+                  <button ref={chooseRef} type="button" disabled={pending} onClick={() => onChoose(candidate)} aria-label={t("chooseWithSlot", { action: chooseLabel, slot: `${shortDay.format(dayOf(day!))} ${time.format(new Date(candidate))}` })}>
                     {chooseLabel}
                   </button>
                 </span>
               ) : (
-                <button type="button" className="booking-time" onClick={() => setSlot(candidate)}>
+                <button
+                  type="button"
+                  className="booking-time"
+                  onClick={() => {
+                    picked.current = true;
+                    setSlot(candidate);
+                  }}
+                >
                   {time.format(new Date(candidate))}
                 </button>
               )}

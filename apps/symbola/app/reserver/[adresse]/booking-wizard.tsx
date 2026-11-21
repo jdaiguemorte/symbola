@@ -31,7 +31,6 @@ export function BookingWizard({ slug, type, slots, locale, organizationName, tod
   const format = (options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(tag, { timeZone: ZONE, ...options });
   const time = format({ hour: "2-digit", minute: "2-digit" });
   const longDay = new Intl.DateTimeFormat(tag, { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
-  const shortDay = new Intl.DateTimeFormat(tag, { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
   const dayOf = (date: string) => new Date(`${date}T12:00:00Z`);
 
   const [state, action, pending] = useActionState<BookingState, FormData>(bookAppointmentAction, { step: "form" });

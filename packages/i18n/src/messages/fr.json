@@ -1305,11 +1305,11 @@
     },
     "appointmentType": {
       "title": "Réglages d'un type",
-      "body": "Lieu (adresse, lien de visio ou téléphone), marges avant et après (le temps de trajet ou de préparation, jamais proposé à un autre rendez-vous), délai de prévenance, horizon de réservation, rappels, questions préalables (cinq au plus) et personne qui reçoit. Par défaut, aucun rendez-vous n'est proposé un jour d'évènement confirmé."
+      "body": "Le rendez-vous (nom, durée, personne qui reçoit, lieu, description affichée sur votre page), quand on peut le réserver (marges avant et après, délai de prévenance, horizon, rappel) et les questions préalables. Les questions sont posées une par une après le choix du créneau ; « Modifier » ouvre une question en place, les choix s'ajoutent un à un, et « Obligatoire » empêche de réserver sans répondre. Par défaut, aucun rendez-vous n'est proposé pendant les plages occupées de vos évènements (Paramètres › Plages occupées)."
     },
     "appointmentAvailability": {
       "title": "Mes disponibilités",
-      "body": "Vos plages de la semaine (deux par jour au plus), vos jours fermés et vos agendas. Reliez votre agenda Google, Apple ou Outlook par son adresse secrète iCal : seules les heures occupées sont lues, toutes les quinze minutes, jamais le contenu. Si un agenda ne se lit plus, aucun créneau n'est proposé jusqu'à ce qu'il soit relu : mieux vaut ne rien proposer qu'une heure déjà prise."
+      "body": "Ma semaine : une ligne par jour ; l'interrupteur ouvre ou ferme le jour, « + Plage » ajoute une seconde plage, « Copier lundi sur les jours ouverts » recopie le lundi ; un seul « Enregistrer ». Puis vos jours fermés et vos agendas : reliez votre agenda Google, Apple ou Outlook par son adresse secrète iCal ; seules les heures occupées sont lues, toutes les quinze minutes, jamais le contenu. Si un agenda ne se lit plus, aucun créneau n'est proposé jusqu'à ce qu'il soit relu."
     },
     "eventsPipeline": {
       "title": "Suivre vos demandes en colonnes",
@@ -5916,7 +5916,8 @@
       "events_message_topics": "sujet de discussion",
       "events_message_topic_links": "prestataire d'un sujet",
       "events_messages": "message",
-      "events_message_attachments": "pièce jointe d'un message"
+      "events_message_attachments": "pièce jointe d'un message",
+      "events_busy_settings": "réglages des plages occupées"
     },
     "modules": {
       "events": "Événements",

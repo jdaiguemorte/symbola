@@ -1305,11 +1305,11 @@
     },
     "appointmentType": {
       "title": "Type settings",
-      "body": "Location (address, video link or phone), buffers before and after (travel or preparation time, never offered to another appointment), minimum notice, booking horizon, reminders, questions before booking (five at most) and the team member who hosts. By default, no appointment is offered on a confirmed event day."
+      "body": "The appointment (name, duration, host, place, description shown on your page), when it can be booked (buffers before and after, notice, horizon, reminder) and the questions asked beforehand. Questions are asked one at a time after the slot is chosen; “Edit” opens a question in place, choices are added one by one, and “Required” prevents booking without an answer. By default, no appointment is offered during your events' busy times (Settings › Busy times)."
     },
     "appointmentAvailability": {
       "title": "My availability",
-      "body": "Your weekly hours (two ranges per day at most), your closed days and your calendars. Link your Google, Apple or Outlook calendar through its secret iCal address: only busy times are read, every fifteen minutes, never the content. If a calendar can no longer be read, no slot is offered until it is read again: better offer nothing than a time already taken."
+      "body": "My week: one row per day; the switch opens or closes the day, “+ Range” adds a second range, “Copy Monday to open days” copies Monday; a single “Save”. Then your closed days and calendars: connect your Google, Apple or Outlook calendar by its secret iCal address; only busy hours are read, every fifteen minutes, never the content. If a calendar can no longer be read, no slot is offered until it is read again."
     },
     "eventsPipeline": {
       "title": "Follow your requests in columns",
@@ -5916,7 +5916,8 @@
       "events_message_topics": "discussion topic",
       "events_message_topic_links": "topic vendor",
       "events_messages": "message",
-      "events_message_attachments": "message attachment"
+      "events_message_attachments": "message attachment",
+      "events_busy_settings": "busy time settings"
     },
     "modules": {
       "events": "Events",

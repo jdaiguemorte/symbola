@@ -5059,7 +5059,7 @@
     @apply grid grid-cols-[minmax(0,1fr)_9.5rem] items-end gap-3 sm:grid-cols-[4.5rem_minmax(0,1fr)_9.5rem];
   }
   .busy-bound-title {
-    @apply col-span-full text-heading font-semibold sm:col-span-1 sm:pb-2.5;
+    @apply col-span-full text-heading font-semibold sm:col-span-1 sm:pb-3;
   }
   .busy-bound-field {
     @apply grid min-w-0 gap-1 text-label font-medium;
@@ -5081,7 +5081,7 @@
     @apply absolute inset-0 flex;
   }
   .busy-timeline-days > span {
-    @apply min-w-0 flex-1 truncate border-l border-dashed border-line-strong px-1.5 pt-1 text-[0.75rem] text-ink-muted first:border-l-0;
+    @apply min-w-0 flex-1 truncate border-l border-dashed border-line-strong px-1 pt-1 text-label text-ink-muted first:border-l-0;
   }
   .busy-timeline-bar {
     @apply absolute inset-x-0 top-6 block h-5 w-full;
@@ -5121,7 +5121,7 @@
     @apply min-h-11 text-body font-semibold;
   }
   .busy-steps {
-    @apply my-3 pl-5;
+    @apply my-3 pl-6;
   }
   .busy-switch-form {
     @apply m-0 flex items-center gap-2;
@@ -5225,7 +5225,7 @@
     @apply m-0 mt-4 grid list-none gap-3 border-t border-line p-0 pt-4;
   }
   .type-switches .checkbox > span {
-    @apply grid gap-0.5;
+    @apply grid gap-1;
   }
   .type-switches .type-reminders > label {
     @apply w-full max-w-none flex-row flex-wrap items-center justify-between gap-3 text-body font-semibold;
@@ -5377,10 +5377,10 @@
     @apply m-0 font-display text-heading font-semibold capitalize;
   }
   .booking-grid {
-    @apply grid gap-1.5;
+    @apply grid gap-2;
   }
   .booking-grid-row {
-    @apply grid grid-cols-7 gap-1.5;
+    @apply grid grid-cols-7 gap-2;
   }
   .booking-weekday {
     @apply text-center text-label font-medium text-ink-muted capitalize;
@@ -5418,7 +5418,7 @@
     @apply w-full border-primary bg-surface font-semibold text-primary tabular-nums hover:bg-primary-soft;
   }
   .booking-time-pick {
-    @apply col-span-full grid grid-cols-2 gap-1.5;
+    @apply col-span-full grid grid-cols-2 gap-2;
   }
   .booking-time-chosen {
     @apply flex min-h-11 items-center justify-center rounded-md bg-ink-muted font-semibold text-on-primary tabular-nums;
@@ -5427,7 +5427,7 @@
     @apply w-full border-primary bg-primary font-semibold text-on-primary hover:bg-primary-strong;
   }
   .booking-step {
-    @apply m-0 grid content-start gap-4 p-6 lg:px-10 lg:py-8;
+    @apply m-0 grid content-start gap-4 p-6 lg:px-12 lg:py-8;
   }
   .booking-progress {
     @apply w-full;
@@ -5449,7 +5449,7 @@
     @apply m-0 text-label font-semibold text-primary;
   }
   .booking-question-title {
-    @apply m-0 font-display text-[1.625rem] leading-tight font-semibold;
+    @apply m-0 font-display text-title leading-tight font-semibold;
   }
   .booking-required {
     @apply text-label font-normal text-ink-muted;
@@ -5461,10 +5461,10 @@
     @apply grid max-w-none gap-1;
   }
   .booking-choices {
-    @apply grid max-w-md gap-2.5;
+    @apply grid max-w-md gap-3;
   }
   button.booking-choice {
-    @apply min-h-13 w-full justify-start gap-3 rounded-md border-line-strong bg-surface px-3.5 text-left text-reading font-normal text-ink;
+    @apply min-h-13 w-full justify-start gap-3 rounded-md border-line-strong bg-surface px-4 text-left text-reading font-normal text-ink;
   }
   button.booking-choice kbd {
     @apply inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border border-line-strong text-label font-semibold text-ink-muted;
@@ -5476,7 +5476,7 @@
     @apply border-primary bg-primary text-on-primary;
   }
   .booking-answer {
-    @apply w-full max-w-xl rounded-none border-0 border-b-2 border-primary bg-transparent px-0 text-[1.375rem];
+    @apply w-full max-w-xl rounded-none border-0 border-b-2 border-primary bg-transparent px-0 text-title;
   }
   .booking-hint {
     @apply m-0 text-label text-ink-muted;
@@ -5497,7 +5497,7 @@
     @apply flex flex-wrap items-center gap-2;
   }
   .booking-check {
-    @apply m-0 flex h-14 w-14 items-center justify-center rounded-full bg-primary-soft text-[1.75rem] font-bold text-primary;
+    @apply m-0 flex h-14 w-14 items-center justify-center rounded-full bg-primary-soft text-figure font-bold text-primary;
   }
   main.link-page:has(.booking-reschedule) {
     @apply max-w-[52rem];

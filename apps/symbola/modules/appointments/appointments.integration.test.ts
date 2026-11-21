@@ -45,6 +45,7 @@ import {
   sendDueAppointmentReminders,
   slotsForManagedAppointment,
   UPCOMING_PER_EMAIL,
+  updateAppointmentType,
 } from "./service";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
@@ -228,6 +229,28 @@ describe("RDV-02 — Page publique et créneaux sur les disponibilités réelles
     const other = await ensureMembership(appDatabase(), { organizationId: context.organizationId, email: `autre-${randomUUID()}@example.test`, role: "member" });
     await setEventTeamMember({ organizationId: context.organizationId, eventId: option.id, userId: other.userId, role: "lead", byUserId: context.hostId });
     expect((await days()).has("2027-03-03")).toBe(true);
+  });
+
+  it("RDV-01, lot 64 (D8) : une description de 300 caractères au plus, vidée par une chaîne vide", async () => {
+    const context = await organization();
+    const saved = await updateAppointmentType(context.organizationId, context.type.id, { description: "  Faisons connaissance.  " });
+    expect(saved.description).toBe("Faisons connaissance.");
+    await expect(updateAppointmentType(context.organizationId, context.type.id, { description: "x".repeat(301) })).rejects.toMatchObject({ field: "description" });
+    expect((await updateAppointmentType(context.organizationId, context.type.id, { description: "" })).description).toBeNull();
+  });
+
+  it("RDV-02, lot 64 (D7) : une question obligatoire demande une réponse ; une facultative non", async () => {
+    const context = await organization();
+    const stored = await updateAppointmentType(context.organizationId, context.type.id, {
+      questions: [
+        { id: "invites", label: "Combien d'invités ?", kind: "choice", choices: ["Moins de 50", "50 à 100"], required: true },
+        { id: "date", label: "Date envisagée", kind: "text", choices: [] },
+      ],
+    });
+    expect(stored.questions.map((question) => question.required ?? false)).toEqual([true, false]);
+    await expect(book(context, TEN, { ...person(), answers: { date: "Septembre" } })).rejects.toMatchObject({ field: "answer:invites" });
+    const booked = await book(context, TEN, { ...person(), answers: { invites: "50 à 100" } });
+    expect(booked.outcome).toBe("booked");
   });
 
   it("deux réservations simultanées du même créneau : une seule passe, l'autre reçoit les créneaux voisins", async () => {
