@@ -111,12 +111,16 @@ test("EVT-01, EVT-07, CHR-01 — « Nouveau » sur les trois vues ; un mariage c
   await panel.getByRole("button", { name: "Créer le modèle" }).click();
   await expect(page.getByRole("checkbox", { name: /Partir du rétroplanning « Shooting photo » \(1 tâche\)/ })).toBeChecked();
 
-  // Retour au mariage, sans client (facultatif pour un évènement confirmé) : créé avec ses tâches.
+  // Retour au mariage, sans client (facultatif pour un évènement confirmé) : il faut alors un nom (Q43).
   await types.selectOption({ value: weddingTypeId });
+  await page.getByRole("button", { name: "Créer l'événement" }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Sans client, donnez un nom à l'évènement." })).toBeVisible({ timeout: 20_000 });
+  await page.getByLabel(/Nom de l'évènement/).fill("Mariage Bernard");
   await page.getByRole("button", { name: "Créer l'événement" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/, { timeout: 20_000 });
   const eventId = /\/events\/([0-9a-f-]{36})/.exec(page.url())![1]!;
   expect((await listEventTasks(setup.organizationId, eventId)).map((task) => task.label).sort()).toEqual(["Plan de table", "Réserver le lieu"]);
+  await expect(page.getByRole("heading", { level: 1, name: /Mariage Bernard/ })).toBeVisible();
   await expectNoHorizontalScroll(page);
 });
 
@@ -184,7 +188,7 @@ test("DOC-01, BUD-04 — Une zone de dépôt typée ; le devis d'un prestataire 
   await expectNoHorizontalScroll(page);
 
   // « Déplacer vers… » : la pièce devient une facture, toujours sur sa ligne.
-  await quotes.getByText("Déplacer vers…").first().click();
+  await quotes.locator("summary", { hasText: "Déplacer vers…" }).click();
   await quotes.getByRole("button", { name: "Factures des prestataires" }).click();
   await expect(page.getByRole("region", { name: "Factures des prestataires", exact: true })).toContainText("Traiteur · Les Saveurs");
   expect((await listBudgetLines(setup.organizationId, setup.eventId)).lines.flatMap((line) => line.attachments.map((attachment) => attachment.kind))).toEqual(["invoice"]);

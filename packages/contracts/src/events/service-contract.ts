@@ -60,8 +60,10 @@ export type EventSummary = {
   clients: EventClient[];
   // AIDE-02 : événement fictif d'un essai guidé.
   isDemo: boolean;
-  // Lot 63c (EVT-01) : son type, dont le nom tient lieu de nom pour un évènement sans client (Q43).
+  // Lot 63c (EVT-01) : son type, dont le nom tient lieu de nom pour un évènement sans client.
   eventTypeId?: string | null;
+  // Lot 63c (EVT-01 ; Q43, migration 0196) : nom facultatif ; rempli, il remplace le nom tiré des clients.
+  name?: string | null;
   // Lot 58 (PAR-09 ; ADR 0097) : archivé (lecture seule, hors des listes courantes) ; absent : non archivé.
   archivedAt?: string | null;
 };
@@ -121,6 +123,8 @@ export type CreateProspectInput = {
   organizationId: string;
   createdByUserId: string;
   clients: EventClientInput[];
+  // Lot 63c (EVT-01 ; Q43) : nom facultatif de l'évènement (« Shooting Roux »).
+  name?: string | null;
   // Lot 63c (EVT-01) : facultative pour un évènement confirmé (un shooting photo sans demande à suivre).
   prospectSourceId: string | null;
   // Lot 16 (ADR 0045) : un type de l'organisation.

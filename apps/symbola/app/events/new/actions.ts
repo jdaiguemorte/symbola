@@ -41,6 +41,8 @@ export async function createProspectAction(
   const eventDate = String(formData.get("eventDate") ?? "").trim();
   const venueName = String(formData.get("venueName") ?? "").trim();
   const venueCity = String(formData.get("venueCity") ?? "").trim();
+  // Lot 63c (EVT-01 ; Q43) : nom facultatif ; requis seulement pour un évènement sans client.
+  const name = String(formData.get("name") ?? "").trim().slice(0, 200);
   // Lot 16 (ADR 0045) : un type de l'organisation ; il dit aussi comment parler des clients.
   const eventTypeId = String(formData.get("eventTypeId") ?? "").trim();
   const eventType = (await listEventTypes(organizationId)).find((type) => type.id === eventTypeId);
@@ -54,6 +56,7 @@ export async function createProspectAction(
   if (rules.existingContactOnly && !contactId1) return { error: t("missingExistingContact") };
   if (rules.clientRequired && !firstName1 && !contactId1) return { error: eventsMessageFor((await getLocale()) as Locale, eventType.audience, "missingFirstName") };
   if (rules.sourceRequired && !prospectSourceId) return { error: t("missingSource") };
+  if (!firstName1 && !contactId1 && !name) return { error: t("missingEventName") };
 
   const sources = await listProspectSources(organizationId);
   if (prospectSourceId && !sources.some((source) => source.id === prospectSourceId)) return { error: t("missingSource") };
@@ -76,6 +79,7 @@ export async function createProspectAction(
       organizationId,
       createdByUserId: auth.user.id,
       clients,
+      name: name || null,
       prospectSourceId: prospectSourceId || null,
       eventTypeId: eventType.id,
       eventDate: eventDate || null,

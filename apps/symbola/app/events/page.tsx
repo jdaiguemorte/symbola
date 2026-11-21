@@ -112,7 +112,9 @@ export default async function EventsListPage({
   function clientNames(
     clients: { firstName: string; lastName: string | null }[],
     eventTypeId?: string | null,
+    name?: string | null,
   ): string {
+    if (name) return name;
     if (clients.length === 0) return (eventTypeId ? typeLabels.get(eventTypeId) : undefined) ?? t("noClient");
     return clients.map((client) => client.firstName).join(" & ");
   }
@@ -219,7 +221,7 @@ export default async function EventsListPage({
             {items.map((item) => (
               <ListRow key={item.id} href={`/events/${item.id}`}>
                 <th scope="row">
-                  <Link href={`/events/${item.id}`}>{clientNames(item.clients, item.eventTypeId)}</Link>
+                  <Link href={`/events/${item.id}`}>{clientNames(item.clients, item.eventTypeId, item.name)}</Link>
                   {item.isDemo ? <span className="badge">{t("demoTag")}</span> : null}
                 </th>
                 <td className="num">

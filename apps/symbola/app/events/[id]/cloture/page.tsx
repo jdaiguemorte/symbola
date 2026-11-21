@@ -37,7 +37,7 @@ export default async function EventClosingPage({ params }: { params: Promise<{ i
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
   const archived = Boolean(event.archivedAt);
-  const names = eventNames(event.clients);
+  const names = eventNames(event.clients, event.name);
   const { closing, items, financial, budget } = state;
   const money = (cents: number) => formatAmount(cents, locale);
   const stepHref = (step: ClosingStep): string | null => {

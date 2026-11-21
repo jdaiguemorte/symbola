@@ -553,6 +553,7 @@ function toEventSummary(event: EventRecord, clients: EventClientRow[]): EventSum
     clients: clients.map(toEventClient),
     isDemo: event.isDemo,
     eventTypeId: event.eventTypeId,
+    name: event.name,
     archivedAt: event.archivedAt?.toISOString() ?? null,
   };
 }
@@ -611,7 +612,7 @@ export async function listStaleProspects(organizationId: string, days: number, n
     .filter(({ event }) => !event.isDemo)
     .map(({ event, clients }) => ({
       eventId: event.id,
-      names: eventNames(clients),
+      names: eventNames(clients, event.name),
       lastUpdateAt: event.updatedAt,
       daysSince: parisDaysSince(event.updatedAt, now),
     }))
@@ -634,6 +635,7 @@ export async function createProspect(input: CreateProspectInput): Promise<Create
     organizationId: input.organizationId,
     createdByUserId: input.createdByUserId,
     clientContactIds,
+    name: input.name?.trim() ? input.name.trim().slice(0, 200) : null,
     prospectSourceId: input.prospectSourceId,
     eventTypeId: input.eventTypeId ?? null,
     eventDate: input.eventDate,
@@ -1538,9 +1540,10 @@ export async function listEventTasks(organizationId: string, eventId: string): P
   return (await findEventTasks(organizationId, eventId)).map(toEventTask);
 }
 
-// Noms affichés d'un événement : prénoms des mariés (« Inès & Sacha »).
-export function eventNames(clients: { firstName: string }[]): string {
-  return clients.map((client) => client.firstName).join(" & ");
+// Noms affichés d'un événement : prénoms des mariés (« Inès & Sacha »). Lot 63c (Q43) : le nom de
+// l'évènement, s'il en a un, les remplace.
+export function eventNames(clients: { firstName: string }[], name?: string | null): string {
+  return name?.trim() ? name.trim() : clients.map((client) => client.firstName).join(" & ");
 }
 
 // PRD-HUB-02 — tâches de toute l'organisation (accueil, écran Tâches), triées
@@ -1564,7 +1567,7 @@ export async function listOrganizationTasks(input: ListOrganizationTasksInput): 
       {
         ...task,
         overdue: !task.done && task.dueDate < input.today,
-        event: { id: event.id, names: eventNames(event.clients), eventDate: event.eventDate, status: event.status, isDemo: event.isDemo },
+        event: { id: event.id, names: eventNames(event.clients, event.name), eventDate: event.eventDate, status: event.status, isDemo: event.isDemo },
       },
     ];
   });
@@ -3477,7 +3480,7 @@ export async function listTrashedEventObjects(organizationId: string): Promise<T
     Promise.all(
       rows.map(async (row) => {
         const event = row.kind === "event" ? await getEvent(organizationId, row.id) : null;
-        const label = row.kind === "event" ? (event ? eventNames(event.clients) : "") : (row.label ?? "");
+        const label = row.kind === "event" ? (event ? eventNames(event.clients, event.name) : "") : (row.label ?? "");
         return { kind: row.kind, id: row.id, label, eventId: row.eventId, deletedAt: row.deletedAt, deletedBy: row.deletedBy };
       }),
     ),
@@ -3487,7 +3490,7 @@ export async function listTrashedEventObjects(organizationId: string): Promise<T
 // Le libellé d'un évènement de la corbeille (bandeau « Annuler », confirmations).
 export async function getTrashedEventLabel(organizationId: string, eventId: string): Promise<string | null> {
   const event = await includingDeleted(() => getEvent(organizationId, eventId));
-  return event ? eventNames(event.clients) : null;
+  return event ? eventNames(event.clients, event.name) : null;
 }
 
 // Lot 39b (UX-09 ; D8 ; ADR 0074) — identité d'un évènement (invités, style, notes) et sa version.
@@ -3549,7 +3552,7 @@ export {
 // Le pipeline, avec le nom des prospects (premier client de chaque option).
 export async function getEventsPipeline(organizationId: string, locale: "fr" | "en"): Promise<Pipeline> {
   const options = await listEvents({ organizationId, statusIn: ["option"] });
-  return getPipelineOf(organizationId, locale, new Map(options.map((event) => [event.id, eventNames(event.clients)])));
+  return getPipelineOf(organizationId, locale, new Map(options.map((event) => [event.id, eventNames(event.clients, event.name)])));
 }
 
 // « Gagné » (CRM-02, D9) : l'évènement est confirmé, avec les effets de la confirmation (EVT-05).

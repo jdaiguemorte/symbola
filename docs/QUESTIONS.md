@@ -879,8 +879,11 @@ il prend celui de ses clients (« Léa & Maxime »). Le paquet 63c rend le clien
 évènement confirmé (un shooting photo, retour #24) : un tel évènement s'affiche sous le nom de son
 type (« Shooting photo »), sans migration. Pour lui donner un vrai nom (« Shooting Roux », maquette
 M7), il faut une colonne `events.name` (schéma `events`, migration réversible) et la reprendre dans la
-liste, la fiche, l'agenda et les exports. **À trancher** : (a) garder le nom du type tant qu'il n'y a
-pas de client ; (b) ajouter le nom de l'évènement (migration, dans un paquet à part).
+liste, la fiche, l'agenda et les exports. **Tranché le 21/11 par Julien : « Oui, nom facultatif ».**
+Colonne facultative `events.name` (migration 0196, schéma `events`, réversible, RLS inchangée) ;
+rempli, ce nom remplace celui tiré des clients partout où l'évènement est nommé (liste, fiche,
+recherche, calendrier, exports, PDF) ; le formulaire « Évènement confirmé » le propose, requis
+seulement sans client. Déclaré au registre RGPD (trouvé, rendu et effacé avec l'évènement).
 
 ## Remarques sur le nouveau document lui-même
 

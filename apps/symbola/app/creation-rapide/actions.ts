@@ -80,7 +80,7 @@ export async function quickCreateOptionsAction(pathname: string): Promise<QuickC
   const active = all.filter((event) => isActiveEvent(event) && !event.isDemo).sort((a, b) => (a.eventDate ?? "9999").localeCompare(b.eventDate ?? "9999"));
   const currentId = typeof pathname === "string" ? await eventOfPath(organizationId, pathname, access.modules.quotes) : null;
   const current = currentId ? all.find((event) => event.id === currentId) : undefined;
-  const events = [...(current && !active.includes(current) ? [current] : []), ...active].map((event) => ({ id: event.id, names: eventNames(event.clients), date: event.eventDate }));
+  const events = [...(current && !active.includes(current) ? [current] : []), ...active].map((event) => ({ id: event.id, names: eventNames(event.clients, event.name), date: event.eventDate }));
   const locale = (await getLocale()) as Locale;
   const [sources, eventTypes] = await Promise.all([listProspectSources(organizationId), ensureEventTypes(organizationId, locale)]);
   return {

@@ -7,7 +7,7 @@ import { PageHeader } from "@/app/ui/page-header";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatAmount, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
-import { getEvent, listDefaultVendorSlots, listVendorCandidates } from "@/modules/events/service";
+import { getEvent, listDefaultVendorSlots, listVendorCandidates, eventNames } from "@/modules/events/service";
 import { getBudgetAlertSettings, getEventBudget, listAllocationModels, listBudgetLines } from "@/modules/budget/service";
 import { requirePlanner } from "@/lib/guards";
 import { isBudgetModuleEnabled, isValidId } from "../../module-access";
@@ -55,7 +55,7 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
     (vendorOptions[candidate.vendorSlotId] ??= []).push({ id: candidate.id, name: candidate.vendorName });
   }
   const locale = (await getLocale()) as Locale;
-  const clientNames = event.clients.length ? event.clients.map((client) => client.firstName).join(" & ") : t("noClient");
+  const clientNames = eventNames(event.clients, event.name) || t("noClient");
 
   return (
     <main className="event-sheet budget-sheet">

@@ -2360,7 +2360,10 @@
     "quickTemplateAddTask": "+ Ajouter une tâche",
     "quickTemplateSave": "Créer le modèle",
     "quickTemplateNoTask": "Ajoutez au moins une tâche.",
-    "quickTemplateInvalid": "Vérifiez le nom et les tâches du modèle."
+    "quickTemplateInvalid": "Vérifiez le nom et les tâches du modèle.",
+    "eventName": "Nom de l'évènement",
+    "eventNameHint": "(obligatoire sans client, ex. « Shooting Roux »)",
+    "missingEventName": "Sans client, donnez un nom à l'évènement."
   },
   "Budget": {
     "title": "Budget",

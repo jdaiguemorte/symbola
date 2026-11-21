@@ -44,7 +44,7 @@ export default async function QuotesListPage({ searchParams }: { searchParams: P
   const filter = FILTERS.includes(query.statut as (typeof FILTERS)[number]) ? (query.statut as (typeof FILTERS)[number]) : "tous";
   // Noms des mariés : par la porte d'entrée du module Événements (ADR 0011).
   const [quotes, events] = await Promise.all([listQuotes(organizationId), listEvents({ organizationId })]);
-  const names = new Map(events.map((event) => [event.id, eventNames(event.clients)]));
+  const names = new Map(events.map((event) => [event.id, eventNames(event.clients, event.name)]));
   const shown = filter === "tous" ? quotes : quotes.filter((quote) => quote.status === filter);
 
   return (

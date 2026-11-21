@@ -602,6 +602,17 @@ fields:
       (RGPD-03).
   - schema: events
     table: events
+    field: name
+    category: identifiant
+    retention: >-
+      Lot 63c (EVT-01 ; Q43) : nom facultatif de l'évènement saisi par l'équipe (« Shooting Roux »),
+      qui peut nommer une personne ; trouvé par la recherche RGPD. Tant que l'événement existe ; voir
+      RGPD-03/RGPD-05.
+    anonymization: >-
+      Effacé lors d'une demande d'oubli qui vise l'événement (RGPD-03) ; l'évènement reprend le nom
+      de son type.
+  - schema: events
+    table: events
     field: style
     category: contenu_libre
     retention: >-

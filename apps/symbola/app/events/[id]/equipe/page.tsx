@@ -37,7 +37,7 @@ export default async function EventTeamPage({ params, searchParams }: { params: 
   const emailOf = new Map(members.map((member) => [member.id, member.email]));
   const roleOf = new Map(team.map((entry) => [entry.userId, entry.role]));
   const outcome = OUTCOMES.find((candidate) => candidate === query.resultat);
-  const title = eventNames(event.clients) || t("untitled");
+  const title = eventNames(event.clients, event.name) || t("untitled");
   return (
     <main>
       <p>

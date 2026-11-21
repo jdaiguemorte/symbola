@@ -50,7 +50,7 @@ export default async function FloorplanEditorPage({ params, searchParams }: { pa
   const back = layout.eventId ? { href: `/events/${layout.eventId}/plan-de-salle`, label: t("event.back") } : { href: `/prestataires/${space.vendorId}/plans`, label: t("venue.back", { venue: vendor?.name ?? "" }) };
   const size = space.background ? backgroundSize(space.background, space.calibration, space.widthCm) : null;
   const typeLabels = Object.fromEntries(starterFloorplanElements(locale).map((element) => [element.key, element.label]));
-  const subtitle = [space.name, vendor?.name, event ? eventNames(event.clients) : null].filter(Boolean).join(" · ");
+  const subtitle = [space.name, vendor?.name, event ? eventNames(event.clients, event.name) : null].filter(Boolean).join(" · ");
   return (
     <main className="plans-page">
       <Link href={back.href} className="back-link">

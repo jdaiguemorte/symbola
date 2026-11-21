@@ -92,6 +92,15 @@ export function NewProspectForm({
           <input type="date" name="eventDate" value={eventDate} onChange={(event) => setEventDate(event.target.value)} />
         </label>
         <SameDayNotice date={eventDate} />
+        {/* Lot 63c (EVT-01 ; Q43) : le nom de l'évènement, proposé pour un évènement confirmé ; requis
+            seulement sans client (sinon il prend le nom des clients). */}
+        {mode !== "prospect" ? (
+          <label>
+            {t("eventName")}
+            {mode === "confirmed" ? <span className="meta"> {t("eventNameHint")}</span> : null}
+            <input type="text" name="name" maxLength={200} />
+          </label>
+        ) : null}
         {mode === "client" ? (
           <ContactPicker name="contactId1" legend={`${tContacts("pickerClient1")} *`} initial={initialContact} searchLabel={t("existingClientSearch")} />
         ) : (

@@ -2360,7 +2360,10 @@
     "quickTemplateAddTask": "+ Add a task",
     "quickTemplateSave": "Create the template",
     "quickTemplateNoTask": "Add at least one task.",
-    "quickTemplateInvalid": "Check the template name and tasks."
+    "quickTemplateInvalid": "Check the template name and tasks.",
+    "eventName": "Event name",
+    "eventNameHint": "(required without a client, e.g. “Roux photo shoot”)",
+    "missingEventName": "Without a client, give the event a name."
   },
   "Budget": {
     "title": "Budget",

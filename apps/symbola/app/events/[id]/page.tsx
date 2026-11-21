@@ -230,7 +230,9 @@ export default async function EventDetailPage({
   )?.label;
 
   // Lot 63c (EVT-01, Q43) : un évènement sans client (un shooting photo) prend le nom de son type.
-  const clientNames = event.clients.length
+  const clientNames = event.name
+    ? event.name
+    : event.clients.length
     ? event.clients.map((client) => client.firstName).join(" & ")
     : (eventTypes.find((type) => type.id === event.eventTypeId)?.label ?? t("noClient"));
 
@@ -647,7 +649,7 @@ export default async function EventDetailPage({
       {/* Lot 13 (L13-EVT-19) : frise datée du statut, visible sur tous les onglets. */}
       <ChangeStatusForm
         eventId={event.id}
-        eventNames={eventNames(event.clients)}
+        eventNames={eventNames(event.clients, event.name)}
         currentStatus={event.status}
         phase={event.phase}
         reasons={reasons}

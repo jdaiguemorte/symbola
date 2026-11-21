@@ -7,7 +7,7 @@ import type { Locale } from "@symbola/i18n";
 import { PageHeader } from "@/app/ui/page-header";
 import { ScreenHelp } from "@/app/screen-help";
 import { requirePlanner } from "@/lib/guards";
-import { getEvent } from "@/modules/events/service";
+import { getEvent, eventNames } from "@/modules/events/service";
 import { getCashCalendar, listEventPayers } from "@/modules/budget/service";
 import { CashCalendarMonths } from "@/app/portail/calendrier/cash-calendar-months";
 import { isBudgetModuleEnabled, isValidId } from "../../module-access";
@@ -38,7 +38,7 @@ export default async function EventCashCalendarPage({ params, searchParams }: { 
     <main>
       <PageHeader
         title={t("title")}
-        subtitle={event.clients.map((client) => client.firstName).join(" & ")}
+        subtitle={eventNames(event.clients, event.name)}
         actions={
           <Link href={`/budget/${eventId}`} className="button-link">
             {t("backToBudget")}
