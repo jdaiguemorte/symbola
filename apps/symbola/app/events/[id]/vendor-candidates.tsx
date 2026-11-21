@@ -306,6 +306,7 @@ function CandidateRow(props: { eventId: string; candidate: VendorCandidate; vend
   return (
     <li
       className="vendor-choice-row"
+      aria-label={name}
       onClick={(event) => {
         if (!fromControl(event)) dialog.current?.open();
       }}

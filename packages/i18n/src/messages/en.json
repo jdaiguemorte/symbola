@@ -2391,7 +2391,7 @@
     "taskDeleteLabel": "Delete “{label}”",
     "taskReopen": "Reopen",
     "taskReopenLabel": "Reopen “{label}”",
-    "taskDueEdit": "Change the due date of “{label}” ({date})",
+    "taskDueEdit": ", change the due date of “{label}”",
     "taskDueInput": "Due date of “{label}”",
     "taskDueChanged": "Due date changed.",
     "tasksBulkLabel": "Actions on the selected tasks",

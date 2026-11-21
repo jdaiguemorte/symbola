@@ -60,8 +60,10 @@ function DueCell({ row }: { row: TaskTableRow }) {
   if (!editing) {
     return (
       <>
-        <button type="button" className={`task-due${row.overdue ? " text-overdue" : ""}`} aria-label={t("taskDueEdit", { label: row.label, date: row.dueLabel })} onClick={() => setEditing(true)} disabled={pending}>
+        <button type="button" className={`task-due${row.overdue ? " text-overdue" : ""}`} onClick={() => setEditing(true)} disabled={pending}>
+          {/* Le texte visible ouvre le nom accessible (WCAG 2.5.3) ; la suite n'est lue que par le lecteur d'écran. */}
           {row.dueLabel}
+          <span className="sr-only">{t("taskDueEdit", { label: row.label })}</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <rect x="3" y="5" width="18" height="16" rx="2" />
             <path d="M3 10h18M8 3v4M16 3v4" />
@@ -271,7 +273,10 @@ export function TaskTableClient({
           <thead>
             <tr>
               <th scope="col" className="task-select-cell">
-                <input ref={selectAll} type="checkbox" aria-label={t("tasksSelectAll")} checked={allSelected} onChange={() => setSelected(allSelected ? new Set() : new Set(allIds))} />
+                <label className="task-select">
+                  <input ref={selectAll} type="checkbox" checked={allSelected} onChange={() => setSelected(allSelected ? new Set() : new Set(allIds))} />
+                  <span className="sr-only">{t("tasksSelectAll")}</span>
+                </label>
               </th>
               <th scope="col">{t("taskColumnDone")}</th>
               <th scope="col">{t("taskColumnLabel")}</th>
@@ -301,7 +306,10 @@ export function TaskTableClient({
                   }}
                 >
                   <td className="task-select-cell">
-                    <input type="checkbox" aria-label={t("taskSelect", { label: row.label })} checked={selected.has(row.id)} onChange={() => toggle(row.id)} />
+                    <label className="task-select">
+                      <input type="checkbox" checked={selected.has(row.id)} onChange={() => toggle(row.id)} />
+                      <span className="sr-only">{t("taskSelect", { label: row.label })}</span>
+                    </label>
                   </td>
                   <td>
                     <TaskCheck
@@ -321,11 +329,8 @@ export function TaskTableClient({
                     {row.overdue ? <span className="badge badge-terracotta">{t("taskStatusOverdue")}</span> : null}
                     {row.priority === "high" ? <span className="badge badge-ambre">{t("taskPriorityHigh")}</span> : null}
                     {row.done ? <span className="badge badge-sauge">{t("taskStatusDone")}</span> : null}
-                    {showEvent && row.event ? (
-                      <span className="task-event">
-                        <Link href={row.event.href}>{row.event.names}</Link>
-                      </span>
-                    ) : null}
+                    {/* L'évènement en texte (maquette M6) : la fenêtre de la tâche mène à son rétroplanning. */}
+                    {showEvent && row.event ? <span className="task-event">{row.event.names}</span> : null}
                   </th>
                   <td>
                     {row.category ? (

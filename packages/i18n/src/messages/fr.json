@@ -2391,7 +2391,7 @@
     "taskDeleteLabel": "Supprimer « {label} »",
     "taskReopen": "Rouvrir",
     "taskReopenLabel": "Rouvrir « {label} »",
-    "taskDueEdit": "Changer l'échéance de « {label} » ({date})",
+    "taskDueEdit": ", changer l'échéance de « {label} »",
     "taskDueInput": "Échéance de « {label} »",
     "taskDueChanged": "Échéance changée.",
     "tasksBulkLabel": "Actions sur les tâches sélectionnées",

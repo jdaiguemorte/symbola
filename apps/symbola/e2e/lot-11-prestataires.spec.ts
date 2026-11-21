@@ -79,18 +79,25 @@ test("L11-EVT-10 / L11-EVT-11 — comparer deux devis pour une ligne du budget, 
   // Lot 28a (PRE-02) : un prestataire ajouté est « Pressenti » ; le poste montre le statut le plus avancé.
   await expect(page.getByRole("region", { name: "Budget et prestataires, par poste" }).getByRole("row", { name: /Traiteur/ })).toContainText("Pressenti");
 
-  // Devis, montré aux clients, notes « Clients » et interne.
-  await tables.getByLabel("Montant du devis (€)").fill("4480");
-  await tables.getByLabel("Montrer aux clients").check();
-  await tables.getByRole("button", { name: "Enregistrer — Les Tables de Flandre" }).click();
-  await expect(tables.getByText("Devis : 4 480,00 €")).toBeVisible();
-  await tables.getByLabel("Nouvelle note sur Les Tables de Flandre").fill("Cuisine régionale, service en plateaux.");
-  await tables.getByLabel("Visible par les clients").check();
-  await tables.getByRole("button", { name: "Ajouter la note sur Les Tables de Flandre" }).click();
-  await expect(tables.getByText("Cuisine régionale, service en plateaux.")).toBeVisible();
-  await tables.getByLabel("Nouvelle note sur Les Tables de Flandre").fill("Négociable à 60 € par personne.");
-  await tables.getByRole("button", { name: "Ajouter la note sur Les Tables de Flandre" }).click();
-  await expect(tables.getByText("Négociable à 60 € par personne.")).toBeVisible();
+  // Devis, montré aux clients, notes « Clients » et interne : dans la fenêtre du prestataire (lot 63d, #36).
+  await tables.getByRole("button", { name: "Modifier Les Tables de Flandre" }).click();
+  let card = page.getByRole("dialog", { name: "Les Tables de Flandre" });
+  await card.getByLabel("Montant du devis (€)").fill("4480");
+  await card.getByLabel("Montrer aux clients").check();
+  await card.getByRole("button", { name: "Enregistrer — Les Tables de Flandre" }).click();
+  // La ligne dit le devis et qu'il est montré aux clients.
+  await expect(tables.locator(".vendor-choice-row-main")).toContainText("Devis : 4 480,00 €");
+  await expect(tables.locator(".vendor-choice-row-main")).toContainText("Montré aux clients");
+  await tables.getByRole("button", { name: "Modifier Les Tables de Flandre" }).click();
+  card = page.getByRole("dialog", { name: "Les Tables de Flandre" });
+  await card.getByLabel("Nouvelle note sur Les Tables de Flandre").fill("Cuisine régionale, service en plateaux.");
+  await card.getByLabel("Visible par les clients").check();
+  await card.getByRole("button", { name: "Ajouter la note sur Les Tables de Flandre" }).click();
+  await expect(card.getByText("Cuisine régionale, service en plateaux.")).toBeVisible();
+  await card.getByLabel("Nouvelle note sur Les Tables de Flandre").fill("Négociable à 60 € par personne.");
+  await card.getByRole("button", { name: "Ajouter la note sur Les Tables de Flandre" }).click();
+  await expect(card.getByText("Négociable à 60 € par personne.")).toBeVisible();
+  await card.getByRole("button", { name: /^(Fermer|Retour)$/ }).click();
   await expect(page.getByRole("region", { name: "Budget et prestataires, par poste" }).getByRole("row", { name: /Traiteur/ })).toContainText("Devis reçu");
   await expectNoAxeViolation(page);
 

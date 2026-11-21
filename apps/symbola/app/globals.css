@@ -5242,6 +5242,12 @@
   .tasks-table {
     @apply min-w-[760px];
   }
+  /* Les textes réservés au lecteur d'écran (positionnés) restent dans la zone qui défile : sinon, à
+     375 px, ils élargissent la page. */
+  .tasks-table td,
+  .tasks-table th {
+    @apply relative;
+  }
   .tasks-table .tasks-table-row {
     @apply cursor-pointer hover:bg-ground;
   }
@@ -5249,7 +5255,11 @@
     @apply bg-primary-soft;
   }
   .task-select-cell {
-    @apply w-10;
+    @apply w-12;
+  }
+  /* La case de sélection : une cible de 44 px (son libellé, lu par le lecteur d'écran). */
+  label.task-select {
+    @apply inline-flex h-11 w-11 max-w-none cursor-pointer items-center justify-center gap-0;
   }
   /* Le rond « Fait » : rond, pour ne pas se confondre avec la case de sélection (carrée). */
   .tasks-table .task-check > button {
@@ -5279,7 +5289,7 @@
   }
   /* L'échéance, un bouton discret qui devient un champ date. */
   button.task-due {
-    @apply min-h-9 gap-1 border-transparent bg-transparent px-2 text-body font-normal text-ink hover:border-line-strong;
+    @apply min-h-9 gap-1 border-transparent bg-transparent px-2 text-body font-normal text-ink hover:border-line-strong max-sm:min-h-11;
   }
   button.task-due.text-overdue {
     @apply font-medium text-critical;
@@ -5301,7 +5311,7 @@
     @apply relative m-0 max-w-none rounded-none border-0 bg-transparent p-0;
   }
   details.row-menu > summary {
-    @apply min-h-10 rounded-md border border-line-strong bg-surface px-3 text-label font-medium text-ink after:ml-1 after:content-['▾'] hover:border-ink;
+    @apply min-h-10 max-sm:min-h-11 rounded-md border border-line-strong bg-surface px-3 text-label font-medium text-ink after:ml-1 after:content-['▾'] hover:border-ink;
   }
   details.row-menu[open] > summary {
     @apply mb-0;
@@ -5483,10 +5493,10 @@
   }
   /* Dans la grille, le libellé tient sur deux lignes au plus ; il est entier dans le détail du jour. */
   .calendar-day .calendar-item {
-    @apply items-start px-1 py-0.5 text-[0.75rem] leading-tight;
+    @apply items-start px-1 py-1 text-label leading-tight;
   }
   .calendar-day .calendar-item .category-bar {
-    @apply mt-0.5;
+    @apply mt-1;
   }
   .calendar-day .calendar-item-label {
     @apply line-clamp-2 break-words hyphens-auto;
