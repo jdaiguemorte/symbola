@@ -29,6 +29,7 @@ import {
   listBudgetLineHistory,
   listBudgetLines,
   listUpcomingVendorPayments,
+  listVendorPaymentsDueBetween,
   previewEngagement,
   removeBudgetLine,
   removeVendorPayment,
@@ -308,6 +309,24 @@ describe("BUD-03 — Échéancier des prestataires (lot 28b, D7, D12, D13)", () 
       ["Acompte", "Maison Haddad", "Dîner, 120 couverts", 288000, false],
     ]);
     expect(upcoming[0]?.eventName).toBe("Léa");
+  });
+
+  it("BUD-11, HUB-08 (lot 63d) — le calendrier du mois lit les échéances non réglées de ce mois seulement, bornes comprises ; jamais celles d'une autre organisation", async () => {
+    const organizationId = randomUUID();
+    const { eventId, dinner, dress } = await engaged(organizationId);
+    await addVendorPayment({ organizationId, eventId, lineId: dress.id, label: "Mois d'avant", fixedAmountCents: 10000, dueOn: "2027-03-31", changedByUserId: plannerId });
+    await addVendorPayment({ organizationId, eventId, lineId: dinner.id, label: "Premier jour", fixedAmountCents: 20000, dueOn: "2027-04-01", changedByUserId: plannerId });
+    await addVendorPayment({ organizationId, eventId, lineId: dinner.id, label: "Dernier jour", fixedAmountCents: 30000, dueOn: "2027-04-30", changedByUserId: plannerId });
+    const added = await addVendorPayment({ organizationId, eventId, lineId: dress.id, label: "Payée", fixedAmountCents: 10000, dueOn: "2027-04-15", changedByUserId: plannerId });
+    const paidId = added.lines.find((line) => line.id === dress.id)!.payments.find((payment) => payment.label === "Payée")!.id;
+    await setVendorPaymentPaid({ organizationId, eventId, paymentId: paidId, paidOn: "2027-04-02", changedByUserId: plannerId });
+    const april = await listVendorPaymentsDueBetween(organizationId, "2027-04-10", "2027-04-01", "2027-04-30");
+    expect(april.map((payment) => [payment.label, payment.dueOn, payment.overdue])).toEqual([
+      ["Premier jour", "2027-04-01", true],
+      ["Dernier jour", "2027-04-30", false],
+    ]);
+    expect(await listVendorPaymentsDueBetween(randomUUID(), "2027-04-10", "2027-04-01", "2027-04-30")).toEqual([]);
+    expect(await listVendorPaymentsDueBetween(organizationId, "2027-04-10", "2027-05-01", "2027-04-30")).toEqual([]);
   });
 
   it("une autre organisation n'ajoute, ne paie ni ne voit les échéances d'une autre", async () => {

@@ -1,12 +1,16 @@
 // Lot 32b (CHR-03 ; décision D11) — les tâches d'un mois en calendrier, du lundi au dimanche :
 // chaque tâche est à son échéance et ouvre son évènement (rétroplanning, tâche choisie). Sur
 // téléphone, la grille devient une liste des seuls jours qui ont des tâches.
+// Lot 63d (CHR-03) : chaque tâche porte sa catégorie (pastille et libellé) et s'ouvre dans la fenêtre de
+// l'écran « Tâches ».
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatCalendarDate, formatMonth, type Locale } from "@symbola/i18n";
 import type { OrganizationTask } from "@symbola/contracts";
 import { addMonths } from "@/app/agenda/calendar";
 import { monthGrid } from "@/lib/portfolio/portfolio";
+import type { TaskCategory } from "@/modules/events/service";
+import { CategorySwatch } from "./category-swatch";
 
 export async function TaskCalendar({
   month,
@@ -14,13 +18,18 @@ export async function TaskCalendar({
   today,
   locale,
   href,
+  taskHref,
+  categories,
 }: {
   month: string;
   tasks: OrganizationTask[];
   today: string;
   locale: Locale;
   href: (month: string) => string;
+  taskHref: (task: OrganizationTask) => string;
+  categories: TaskCategory[];
 }) {
+  const categoryById = new Map(categories.map((category) => [category.id, category]));
   const t = await getTranslations("Events");
   const tHome = await getTranslations("Home");
   const weekdays = tHome.raw("agendaWeekdays") as string[];
@@ -68,8 +77,17 @@ export async function TaskCalendar({
                 <ul>
                   {dayTasks.map((task) => (
                     <li key={task.id} className={task.done ? "is-done" : task.overdue ? "is-overdue" : undefined}>
-                      <Link href={`/events/${task.eventId}?onglet=retroplanning&tache=${task.id}`}>{task.label}</Link>
+                      <Link href={taskHref(task)} scroll={false}>
+                        {task.label}
+                      </Link>
                       <span className="task-calendar-event">{task.event.names}</span>
+                      {task.categoryId && categoryById.get(task.categoryId) ? (
+                        <span className="task-category">
+                          <CategorySwatch color={categoryById.get(task.categoryId)!.color} />
+                          {categoryById.get(task.categoryId)!.label}
+                        </span>
+                      ) : null}
+                      {task.priority === "high" ? <span className="badge badge-ambre">{t("taskPriorityHigh")}</span> : null}
                     </li>
                   ))}
                 </ul>

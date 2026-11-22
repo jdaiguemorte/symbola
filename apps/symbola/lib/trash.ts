@@ -17,6 +17,7 @@ import {
   restoreEventDocument,
   restoreEventPlace,
   restoreEventTask,
+  restoreEventTasksDeletedWith,
   restoreProgramItem,
   restoreProgramTemplate,
   restoreTaskComment,
@@ -180,6 +181,9 @@ export async function undoDeletion(input: { organizationId: string; userId: stri
   switch (kind) {
     case "task":
       restored = await restoreEventTask(organizationId, id);
+      break;
+    case "taskBatch":
+      restored = (await restoreEventTasksDeletedWith(organizationId, id)) > 0;
       break;
     case "programItem":
       restored = await restoreProgramItem(organizationId, id);

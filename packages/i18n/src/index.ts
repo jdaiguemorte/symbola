@@ -108,6 +108,14 @@ export function formatCalendarDate(date: string, locale: Locale): string {
   }).format(calendarDateToUtc(date));
 }
 
+// Lot 63d (CHR-02, HUB-08) : une date courte avec son jour, « lun. 23 nov. » (tableau des tâches,
+// calendrier d'« Aujourd'hui »).
+export function formatShortCalendarDate(date: string, locale: Locale): string {
+  return new Intl.DateTimeFormat(INTL_LOCALE[locale], { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" })
+    .format(calendarDateToUtc(date))
+    .replace(/[\u00a0\u202f]/g, " ");
+}
+
 export function formatMonth(date: string, locale: Locale): string {
   return new Intl.DateTimeFormat(INTL_LOCALE[locale], { year: "numeric", month: "long", timeZone: "UTC" }).format(
     calendarDateToUtc(date),

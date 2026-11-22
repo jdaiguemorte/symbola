@@ -1382,6 +1382,13 @@
       "breakpoints": true
     },
     {
+      "idx": 197,
+      "version": "7",
+      "when": 1795283123258,
+      "tag": "0197_lot63d_events_task_categories",
+      "breakpoints": true
+    },
+    {
       "idx": 201,
       "version": "7",
       "when": 1795290000000,

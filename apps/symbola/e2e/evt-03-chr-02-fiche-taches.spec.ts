@@ -96,9 +96,9 @@ test("EVT-03 / CHR-02 — fiche d'identité, lieu complet, tâche confiée au fl
   await newTask.getByRole("button", { name: "Ajouter la tâche" }).click();
   await expect(page.getByText("Tâche ajoutée.")).toBeVisible();
 
-  // D13 : commentaire et pièce jointe, dans le panneau de la tâche.
+  // D13 : commentaire et pièce jointe, dans la fenêtre de la tâche (lot 63d).
   await page.getByRole("link", { name: "Livrer les fleurs", exact: true }).click();
-  const panel = page.getByRole("complementary", { name: "Livrer les fleurs" });
+  const panel = page.getByRole("dialog", { name: "Modifier la tâche" });
   await page.waitForLoadState("networkidle");
   await panel.getByLabel("Votre commentaire").fill("Accès par le portail nord");
   await panel.getByRole("button", { name: "Commenter" }).click();
@@ -128,5 +128,5 @@ test("EVT-03 / CHR-02 — fiche d'identité, lieu complet, tâche confiée au fl
 
   // La planner la voit faite.
   await page.goto(`/events/${eventId}?onglet=retroplanning`);
-  await expect(page.getByRole("button", { name: "Décocher la tâche Livrer les fleurs" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Marquer « Livrer les fleurs » comme à faire" })).toBeVisible();
 });

@@ -377,6 +377,37 @@ export const taskTemplateItems = eventsSchema.table("task_template_items", {
 export const TASK_RECURRENCES = ["weekly", "monthly", "quarterly", "yearly"] as const;
 export type TaskRecurrence = (typeof TASK_RECURRENCES)[number];
 
+// Lot 63d (CHR-03, HUB-20 ; recette du 21/11/2026) : catégories des tâches de l'organisation (Client,
+// Prestataires, Administratif, Jour J au départ, fichier de données traduisible) et priorité d'une tâche.
+// La couleur est un code « #rrggbb » choisi dans une palette de données ; le libellé s'affiche toujours
+// avec elle (jamais la couleur seule).
+export const TASK_PRIORITIES = ["high", "normal"] as const;
+export type TaskPriority = (typeof TASK_PRIORITIES)[number];
+
+export const taskCategories = eventsSchema.table(
+  "task_categories",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    label: text("label").notNull(),
+    color: text("color").notNull(),
+    position: integer("position").notNull().default(0),
+    // Clé de la catégorie de départ (packages/starter-templates/src/task-categories.json), nulle pour une
+    // catégorie créée par l'organisation.
+    starterKey: text("starter_key"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("task_categories_organization_idx").on(table.organizationId),
+    unique("task_categories_organization_starter_key_unique").on(table.organizationId, table.starterKey),
+    check("task_categories_label_check", sql`char_length(btrim(${table.label})) between 1 and 60`),
+    check("task_categories_color_check", sql`${table.color} ~ '^#[0-9a-f]{6}$'`),
+  ],
+);
+
 export const eventTasks = eventsSchema.table("event_tasks", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
@@ -416,8 +447,13 @@ export const eventTasks = eventsSchema.table("event_tasks", {
   recurrenceSpawnedAt: timestamp("recurrence_spawned_at", { withTimezone: true }),
   // Lot 53 (CHR-05) : jalon du rétroplanning ; en retard, il pèse plus sur la santé du planning.
   isMilestone: boolean("is_milestone").notNull().default(false),
+  // Lot 63d (CHR-03) : catégorie (facultative ; retirée, la tâche reste sans catégorie) et priorité.
+  categoryId: uuid("category_id").references(() => taskCategories.id, { onDelete: "set null" }),
+  priority: text("priority", { enum: TASK_PRIORITIES }).notNull().default("normal"),
 }, (table) => [
   index("event_tasks_organization_idx").on(table.organizationId),
+  index("event_tasks_category_idx").on(table.categoryId),
+  check("event_tasks_priority_check", sql`${table.priority} in ('high', 'normal')`),
   index("event_tasks_vendor_candidate_idx").on(table.vendorCandidateId),
   index("event_tasks_follow_up_candidate_idx").on(table.followUpCandidateId),
   index("event_tasks_event_idx").on(table.eventId),
