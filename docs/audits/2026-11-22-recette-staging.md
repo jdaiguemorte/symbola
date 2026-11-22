@@ -28,7 +28,14 @@ Proposition (M14) :
 
 ### 2.2 Aujourd'hui (M15)
 
-- La liste du haut se limite à **7 éléments au plus**, triés par priorité puis par délai. « Voir les N autres » mène aux Tâches, et un clic sur un élément l'ouvre.
+- La liste du haut se limite à **7 éléments au plus**, triés par priorité puis par délai. Un clic sur un élément l'ouvre.
+- **Revu par Julien le 22/11** : tout ce qui remonte n'est pas une tâche (les relances, par exemple, ne sont pas dans Tâches). La liste se découpe donc **par nature**, chaque partie avec son nombre, ses premiers éléments et son propre lien :
+  - Tâches → « Tâches » ;
+  - Relances et messages à envoyer → leur page, ou l'évènement concerné si elle n'existe pas ;
+  - Paiements à encaisser ou à vérifier → « Encaissements » ;
+  - Décisions et signatures attendues → l'évènement concerné.
+
+  Une partie vide n'apparaît pas. Le total reste de 7 lignes au plus, réparties par priorité.
 - Le calendrier passe **sous la liste, sur toute la largeur**. Il se feuillette mois par mois, et propose Mois, Semaine et Liste, avec le composant du calendrier des évènements. On le voit sans défiler.
 
 ### 2.3 Relance d'un prestataire (M16)
@@ -45,3 +52,7 @@ Proposition (M14) :
 
 1. **M14** : les cinq rubriques de la fenêtre d'un poste te conviennent-elles ? Faut-il garder une vue « Comparer » à part, ou la comparaison dans la fenêtre suffit-elle ?
 2. **M16** : on garde le message type à copier, ou on le retire complètement ?
+
+## 5. Décisions du 22/11
+
+- Maquettes M14 à M16 **validées**, avec la retouche de M15 (priorités découpées par nature, un lien par partie).
