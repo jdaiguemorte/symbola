@@ -42,15 +42,18 @@ test("IMP-02 — propositions de colonnes, confirmation d'une colonne à faible 
   });
   await page.getByRole("button", { name: "Lire le fichier" }).click();
 
-  // Seule la colonne à faible confiance est à décider ; les autres se résument.
+  // Seule la colonne à faible confiance est à décider ; lot 63b (HUB-14, maquette M5) : un seul tableau,
+  // les colonnes à décider d'abord, et l'aperçu de la première ligne en fiche.
   await expect(page).toHaveURL(/\/colonnes$/);
   await expect(page.getByRole("heading", { name: "Import de « tarifs.csv »" })).toBeVisible();
-  const toDecide = page.getByRole("region", { name: "Colonnes à décider" });
+  const toDecide = page.getByRole("region", { name: "Colonnes du fichier et ce qu'elles deviennent" });
   const amount = toDecide.getByRole("row").filter({ hasText: "Montant" });
   await expect(amount).toContainText("1 500,00 · 75,00");
   await expect(amount).toContainText("Prix unitaire HT ? (");
   await expect(amount).toContainText("à confirmer");
-  await expect(page.getByRole("heading", { name: "2 colonnes reconnues" })).toBeVisible();
+  await expect(amount).toContainText("À choisir");
+  await expect(page.getByText("Symbola en a reconnu 2 sur 3.")).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Aperçu : ligne 1 du fichier" })).toContainText("Coordination jour J");
   await expectNoAxeViolation(page);
 
   // Sans confirmation, la colonne à faible confiance n'est pas appliquée : rien n'est choisi d'office.

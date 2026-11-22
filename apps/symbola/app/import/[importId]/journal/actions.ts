@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getPlannerAuthContext } from "@/lib/auth-context";
-import { undoImport } from "@/lib/import/apply";
+import { getUndoPreview, undoImport } from "@/lib/import/apply";
 import { isValidId } from "../../access";
 
 // IMP-05 — annulation d'un import confirmé. Les éléments modifiés à la main
@@ -13,10 +13,17 @@ export async function undoImportAction(formData: FormData): Promise<void> {
   if (auth.status !== "authenticated" || !auth.user.organizationId) return;
   const importId = String(formData.get("importId") ?? "");
   if (!isValidId(importId)) return;
-  const forceItemIds = formData
+  let forceItemIds = formData
     .getAll("forceItemId")
     .map(String)
     .filter((id) => isValidId(id));
+  // Lot 63b (HUB-14) : « Tout annuler » annule aussi les fiches modifiées à la main depuis ;
+  // « Annuler l'import, sauf ces fiches » les garde. Relu côté serveur, jamais pris du formulaire.
+  const mode = formData.get("mode");
+  if (mode === "all" || mode === "keep") {
+    const preview = await getUndoPreview(auth.user.organizationId, importId);
+    forceItemIds = mode === "all" && preview ? preview.pendingItems.filter((item) => item.modified && !item.usedElsewhere).map((item) => item.id) : [];
+  }
 
   const result = await undoImport({ organizationId: auth.user.organizationId, userId: auth.user.id, importId, forceItemIds });
   revalidatePath("/import");

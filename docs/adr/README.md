@@ -107,3 +107,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0105 — Prestataires à plusieurs métiers : métiers d'une fiche, un principal, types combinés en données et reprise rapportée avant application](0105-prestataires-a-plusieurs-metiers.md)
 - [0106 — Rétroplanning proposé à la création, jamais posé d'office](0106-retroplanning-propose-a-la-creation.md)
 - [0107 — La fenêtre pour modifier, le panneau latéral pour les réglages](0107-fenetre-pour-modifier-panneau-pour-les-reglages.md)
+- [0108 — Écran « Apps » et demandes d'activation pendant le pilote](0108-ecran-apps-et-demandes-d-activation.md)

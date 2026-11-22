@@ -113,7 +113,8 @@ export function importWizardSteps(input: StepInput): ImportWizardStep[] {
 
   const rows = input.matches?.rows.filter((row) => row.errors.length === 0) ?? [];
   // À vérifier : une proposition en attente, ou une fiche du même lot qui décrit le même événement.
-  const proposed = rows.filter((row) => row.match?.status === "proposed" || row.sameAsLine !== undefined).length;
+  // Lot 63b (HUB-14) : une proposition « À vérifier » pas encore vue compte aussi.
+  const proposed = rows.filter((row) => row.match?.status === "proposed" || row.sameAsLine !== undefined || (row.match?.toVerify === true && row.match.reviewed !== true)).length;
   const updates = rows.filter((row) => row.match?.status === "accepted" || (input.entityType === "contacts" && row.sameAsLine !== undefined && !row.ignored)).length;
   const ignored = rows.filter((row) => row.ignored).length;
   steps.push({

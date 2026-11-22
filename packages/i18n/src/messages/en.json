@@ -114,6 +114,7 @@
     "upcomingTasksEmpty": "Nothing urgent: no task overdue or due within 14 days.",
     "allTasksLink": "All tasks",
     "agenda": "Today",
+    "apps": "Apps",
     "tasks": "Tasks",
     "tasksOverdue": "{count} overdue",
     "settingsOrganization": "My organisation",
@@ -203,7 +204,17 @@
     "subscriptionPlan": "Plan",
     "subscriptionAssign": "Set this plan",
     "subscriptionAssigned": "Plan set. Modules follow.",
-    "subscriptionModulesNote": "With a subscription, modules follow the plan; a manual setting is overridden at the next plan change."
+    "subscriptionModulesNote": "With a subscription, modules follow the plan; a manual setting is overridden at the next plan change.",
+    "moduleRequestsTitle": "Activation requests",
+    "moduleRequestsIntro": "Apps an organisation asked for during the pilot. Activate opens the app at the next request and notifies the Owner; close ends the request without activating.",
+    "moduleRequestsTable": "Requested apps, by organisation",
+    "moduleRequestsApp": "App",
+    "moduleRequestsDate": "Requested on",
+    "moduleRequestsActions": "Actions",
+    "moduleRequestsActivate": "Activate",
+    "moduleRequestsActivateLabel": "Activate {app} for {organization}",
+    "moduleRequestsDecline": "Close without activating",
+    "moduleRequestsDeclineLabel": "Close without activating the {app} request of {organization}"
   },
   "AdminOrganizationForm": {
     "name": "Organization name",
@@ -763,7 +774,7 @@
     },
     "importFile": {
       "title": "Importing data",
-      "body": "Choose what you are bringing in: your contacts (CSV or Excel), your suppliers or event sheets from your current tool, or another file. The assistant runs through the steps and only asks what needs deciding. Nothing is saved before confirmation, and an import can be undone from the log.",
+      "body": "Choose what you are bringing over: your contacts (CSV or Excel), your vendors or your event sheets from your current tool, or another file. Each screen (vendors, events, contacts, budget, programme, guests) also has its own “Import” button, set to the right type. As soon as you click, a window shows how the reading is going. Nothing is saved before you confirm, and an import can be undone from its summary.",
       "faq": [
         {
           "q": "What happens to my file?",
@@ -773,11 +784,11 @@
     },
     "importColumns": {
       "title": "Recognising columns",
-      "body": "Only the columns that need a choice are shown: say what each one becomes, a record field, a note on the record, or nothing. A doubtful proposal is never chosen for you. Recognised columns are summed up in one line; “See the detail” opens them."
+      "body": "A table shows each column of your file with two examples, what it becomes on the record (a field by its name, “A note on the record” or “Do not import”) and its status: recognised, chosen, ignored or to choose. Columns to choose come first. On the right, the preview shows the first row of the file as a record and follows your choices. An uncertain suggestion is never chosen for you."
     },
     "importMatches": {
       "title": "Matching existing records",
-      "body": "When a row looks like something already there, the app offers to update it rather than create a duplicate. Filter “To check”, “New”, “Updates”; “Accept all” confirms the safe proposals. You can also match a row by hand."
+      "body": "When a row looks like a vendor already in your book, the file row and the existing record are shown side by side (name, trade, city, email, phone, number of events), with the differences spelled out. Choose “It's the same”, “These are two vendors” or “Decide later”. If only the first name is shared, the suggestion is “To check” and they stay two vendors unless you say otherwise. Filter “To check”, “New”, “Updates”; “Accept all” confirms the safe suggestions."
     },
     "importGaps": {
       "title": "Gaps report",
@@ -789,7 +800,7 @@
     },
     "importUndo": {
       "title": "Import log and undo",
-      "body": "Every confirmed import is logged: file, author, date and result. During the undo period you can cancel it: created records are deleted and updated ones go back to their previous values. A record edited since then is flagged and kept."
+      "body": "At the end, the summary comes first: created, updated, ignored, columns kept as a note, each one clickable. “Check the N vendors” opens the list filtered on this import. During the undo period, “Undo this import” (folded) names the records edited by hand since, and you choose: undo the import except those records, or undo everything."
     },
     "privacySearch": {
       "title": "Personal data",
@@ -1451,6 +1462,10 @@
       "title": "My subscription",
       "body": "Your plan, its apps and options, the total and your storage against the plan's quota. Changing plan takes effect immediately; the prorated difference goes on the next invoice. Cancelling takes two steps: “Cancel subscription”, then “Confirm cancellation”; you keep access until the end of the paid period, then the space is closed (export for 30 days, then deletion). At 80% and 95% of the quota, Symbola warns you; when full, new uploads are only refused after seven days' notice, and viewing and export always remain available. Account holder only."
     },
+    "apps": {
+      "title": "Apps",
+      "body": "All of Symbola's apps, with their state, what they bring and where to find them once active. During the pilot, “Request activation” tells the Symbola team, who activate the app for you, free of charge: you receive a notification and the app appears in your menu. A request can be cancelled until it is handled. The team only sees your organisation's name and the app requested. After the commercial launch, “Add to my subscription” shows the price, the prorated amount and the new total. Reserved to the Owner."
+    },
     "adminPlans": {
       "title": "Plans and packages",
       "body": "The catalogue of plans (trial, plans, Pilot package) and options: names, modules, users, quota and prices, and the trial and quota rules. The Pilot package never appears in self-service. Subscription billing stays off until the company is created. No business data."
@@ -1699,6 +1714,9 @@
     "programVendorParticipants": "Vendors involved (budget lines)",
     "programFreeParticipants": "Other participants (comma-separated)",
     "programInternalNote": "Internal note",
+    "programHiddenFromClients": "Hidden from the couple",
+    "programHiddenFromClientsHint": "Left out of their space, of the programme shared with them and of the “couple” PDF; visible to the team and to the vendors of the sequence.",
+    "programHiddenBadge": "Hidden from the couple",
     "programInternalNoteHint": "Never shown to clients or vendors.",
     "programColStart": "Start",
     "programColEnd": "End",
@@ -2188,13 +2206,26 @@
     "programKeyMomentDefault": "Event day",
     "programMomentInvalid": "This key moment does not belong to the event.",
     "keyMomentHasItems": "{count, plural, one {This key moment holds # schedule sequence: move or delete it to remove the key moment.} other {This key moment holds # schedule sequences: move or delete them to remove the key moment.}}",
-    "programImportTitle": "Import a schedule (spreadsheet)",
-    "programImportHint": "Recognised columns: day or key moment, date, start, end, sequence, location, responsible, note. Nothing is written before you agree; missing key moments are created.",
-    "programImportFileLabel": "CSV or XLSX file",
-    "programImportFile": "Choose a CSV or XLSX file.",
-    "programImportTooLarge": "This file is over 1 MB: a schedule weighs a few KB.",
+    "programImportTitle": "Import a schedule (spreadsheet or PDF)",
+    "programImportHint": "A spreadsheet (recognised columns: day or key moment, date, start, end, sequence, place, person in charge, note) or the “programme” PDF of your previous software. Nothing is saved before you agree; missing key moments are created.",
+    "programImportFileLabel": "CSV, XLSX or PDF file",
+    "programImportFile": "Choose a CSV, XLSX or PDF file.",
+    "programImportTooLarge": "This file is over 1 MB: a spreadsheet schedule weighs a few KB, a PDF programme a few hundred.",
     "programImportPreview": "Preview before importing",
+    "programImportReading": "Reading the file… Nothing is saved yet.",
     "programImportPreviewTitle": "{count, plural, =0 {No sequence read} one {# sequence read} other {# sequences read}}",
+    "programImportFromPdf": "Programme read from the PDF of your previous software: each sequence keeps its day, times and description (as an internal note).",
+    "programImportSpeakersTitle": "{count, plural, one {Person from the file: # to link} other {People from the file: # to link}}",
+    "programImportSpeakersIntro": "On the left, the person as written in the file; on the right, the matching vendor of the event. Their sequences will be linked to them; “Keep as text” leaves their name as written. You are not linked yourself.",
+    "programImportSpeakersTable": "Table of people and their vendor",
+    "programImportSpeakerFile": "In the file",
+    "programImportSpeakerEvent": "Vendor of the event",
+    "programImportSpeakerChoose": "Vendor of the event for “{role}”",
+    "programImportSpeakerNone": "Keep as text",
+    "programImportSpeakerProposed": "Suggested",
+    "programImportSpeakerCatalog": "In your vendor book: {vendor}. Add them to the event's vendors to link their sequences.",
+    "programImportSpeakersRefresh": "Update the preview",
+    "programImportHiddenNotice": "{count, plural, one {# sequence is “Hidden from the couple” in the file: it is imported hidden from them (left out of their space and of the programme shared with them), visible to the team and to the vendors concerned.} other {# sequences are “Hidden from the couple” in the file: they are imported hidden from them (left out of their space and of the programme shared with them), visible to the team and to the vendors concerned.}}",
     "programImportNeutralized": "{count, plural, one {# cell starting with =, +, - or @ was kept as text.} other {# cells starting with =, +, - or @ were kept as text.}}",
     "programImportUnknownColumns": "Ignored columns: {columns}.",
     "programImportNewMoments": "Key moments created: {moments}.",
@@ -2205,9 +2236,15 @@
       "end": "unreadable end time",
       "label": "empty sequence",
       "moment_date": "key moment without a date (the event has no date)",
-      "too_long": "text too long"
+      "too_long": "text too long",
+      "untimed": "no time in the file (“00:00”): add it as a task if needed"
     },
     "programImportLine": "Row",
+    "programImportParticipants": "People",
+    "programImportParticipantText": "as text",
+    "programImportMarker": "Marker",
+    "programImportHidden": "Hidden from the couple",
+    "programImportNextDay": "Ends the next day",
     "programImportSkip": "Set aside",
     "programImportSkipLine": "Set aside row {line}",
     "programImportApply": "{count, plural, one {Import # sequence} other {Import # sequences}}",
@@ -2219,7 +2256,9 @@
       "no_start_column": "No start time column recognised (start, time…).",
       "no_label_column": "No sequence column recognised (sequence, item…).",
       "unsupported_format": "Unread format: save the file as .xlsx or .csv.",
-      "malformed": "The file could not be read."
+      "malformed": "The file could not be read.",
+      "not_program_pdf": "This PDF is not a programme from your previous software (no Title, Description, Contact table found).",
+      "too_many_pages": "This PDF has too many pages for a programme."
     },
     "eventNotesConfidentialElsewhere": "The notes are confidential: edit them just below.",
     "eventNotesConfidentialTitle": "Notes and confidentiality",
@@ -2234,6 +2273,7 @@
     "archivedTag": "Archived",
     "archivedEmpty": "No archived event.",
     "floorplanLink": "Event floor plan",
+    "importHere": "Import",
     "newMenu": "New",
     "newMenuLabel": "Create an event",
     "newMenuProspect": "Prospect",
@@ -2540,7 +2580,8 @@
     "payersLink": "Payers and split",
     "cashCalendarLink": "Cash-out calendar",
     "bankToVerify": "IBAN to check",
-    "removeModelShort": "Delete"
+    "removeModelShort": "Delete",
+    "importHere": "Import"
   },
   "Quotes": {
     "title": "Quotes",
@@ -3319,8 +3360,13 @@
       "done": "Done",
       "slotLabel": "Budget line",
       "vendorName": "Vendor",
-      "plannedAmount": "Estimated amount",
-      "actualAmount": "Committed amount",
+      "plannedAmount": "Planned",
+      "actualAmount": "Actual (quoted)",
+      "paidAmount": "Paid",
+      "depositAmount": "Deposit (amount)",
+      "depositDueOn": "Deposit (date)",
+      "balanceAmount": "Balance (amount)",
+      "balanceDueOn": "Balance (date)",
       "description": "Description",
       "unit": "Unit",
       "unitPrice": "Unit price excl. VAT",
@@ -3383,7 +3429,7 @@
     "columnTargetLabel": "Field for column “{column}”",
     "columnTargetFields": "Fields",
     "columnTargetNone": "No equivalent (decide in the gaps report)",
-    "columnTargetIgnore": "Ignore this column",
+    "columnTargetIgnore": "Do not import",
     "columnConfirm": "I confirm: this column is “{field}”",
     "saveColumns": "Save columns",
     "backToDraft": "Back to the import",
@@ -3481,8 +3527,14 @@
     "journalUndoneAt": "Undone on",
     "journalResult": "Result",
     "journalResultValue": "{created, plural, =0 {no creation} one {# creation} other {# creations}}, {updated, plural, =0 {no update} one {# update} other {# updates}}, {unchanged, plural, =0 {no unchanged row} one {# unchanged row} other {# unchanged rows}}, {rejected, plural, =0 {no rejected row} one {# rejected row} other {# rejected rows}}",
-    "undoTitle": "Undo the import",
+    "undoTitle": "Undo this import",
     "undoIntro": "Created records will be deleted and updated records will get their previous values back. Undo is possible until {date}.",
+    "undoWhat": "Undoing deletes {created, plural, =0 {no created item} one {the created item} other {the # created items}} and restores {updated, plural, =0 {nothing else} one {the updated item as it was} other {the # updated items as they were}}.",
+    "undoModifiedNamed": "{count, plural, one {One record was edited by hand since the import:} other {# records were edited by hand since the import:}}",
+    "undoModifiedAt": "edited on {date}",
+    "undoModifiedSince": "edited since the import",
+    "undoExceptModified": "{count, plural, one {Undo the import, except this record} other {Undo the import, except these # records}}",
+    "undoAll": "Undo everything",
     "undoModifiedLegend": "{count, plural, one {Record changed by hand since the import} other {# records changed by hand since the import}}",
     "undoModifiedIntro": "Without confirmation they are kept as they are. Tick the ones you want to undo anyway: your changes will be lost.",
     "undoForce": "Undo anyway: {title}",
@@ -3598,10 +3650,24 @@
     "fileRead": "File read: {format}, {size}, {rows, plural, one {# row} other {# rows}}.",
     "columnHeaderFile": "File column",
     "columnHeaderSamples": "Examples",
-    "columnHeaderBecomes": "Becomes",
+    "columnHeaderBecomes": "Becomes, on the record",
+    "columnHeaderState": "Status",
+    "columnsMapTitle": "Where does each column of your file go?",
+    "columnsMapIntro": "{toChoose, plural, =0 {Symbola recognised all of them ({total}): check, then continue.} one {Symbola recognised {recognized} of {total}. Choose for the last one; the preview shows the result on a record.} other {Symbola recognised {recognized} of {total}. Choose for the # others; the preview shows the result on a record.}}",
+    "columnsMapTable": "File columns and what they become",
     "columnHeaderConfidence": "Confidence",
     "columnChoose": "Choose…",
     "columnTargetFree": "A note on the record",
+    "columnTargetFreeHint": "Shown on the record, in “Notes”. No filter or calculation.",
+    "columnState": {
+      "recognized": "Recognised",
+      "chosen": "Chosen",
+      "ignored": "Ignored",
+      "todo": "To choose"
+    },
+    "columnsPreviewTitle": "Preview: row 1 of the file",
+    "columnsPreviewNotes": "Notes",
+    "columnsPreviewNote": "{column}: {value}",
     "confidencePercent": "{value}%",
     "confidenceProfile": "Recognised export",
     "columnsToDecideTitle": "{count, plural, one {# column to decide} other {# columns to decide}}",
@@ -3632,6 +3698,32 @@
     "acceptSafeMatches": "Accept all ({count, plural, one {# safe proposal} other {# safe proposals}})",
     "matchesEmptyFilter": "No row here.",
     "matchesTable": "File rows",
+    "matchCompareList": "Matched vendors, to check side by side",
+    "matchCompareTitle": "Row {line} · {title}: is it the same vendor?",
+    "matchToVerify": "To check",
+    "matchCheckOnlyFirstName": "Only one word of the name is shared (the first name?): these are two vendors, unless you say otherwise.",
+    "matchCheckTypeAndCity": "The trade and the city differ: check before saying it is the same.",
+    "matchCompareTable": "Row {line} of the file and existing record",
+    "matchCompareField": "Detail",
+    "matchCompareFile": "Row {line} of the file",
+    "matchCompareExisting": "Existing record",
+    "matchCompareKey": {
+      "name": "Name",
+      "type": "Trade",
+      "city": "City",
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "matchDifferent": "different",
+    "matchCompareRecord": "Record",
+    "matchOpenRecord": "Open the record (new tab)",
+    "matchEventCount": "{count, plural, =0 {no event} one {# event} other {# events}}",
+    "matchCurrentChoice": "Current choice: {choice}",
+    "matchChoiceSame": "It's the same",
+    "matchChoiceTwo": "These are two vendors",
+    "matchChoiceLater": "Decide later",
+    "matchChoiceFor": "{choice}: {title}",
+    "matchOtherRecord": "Not this record: choose another one",
     "matchesHeaderLine": "Row",
     "matchesHeaderElement": "In the file",
     "matchesHeaderProposal": "Already in Symbola",
@@ -3655,6 +3747,9 @@
     "startQuestion": "What do you want to bring in?",
     "otherFileTitle": "Another file",
     "otherFileBody": "Events, tasks, budget lines, catalogue, lists… from a spreadsheet (CSV, Excel) or a JSON file.",
+    "screenGroup": {
+      "evenements": "Import events"
+    },
     "resumeImport": "Resume",
     "resumeImportFor": "Resume the import of {file}",
     "importButton": {
@@ -3678,6 +3773,32 @@
       "catalog_items": "{count, plural, one {See the item} other {See the # items}}",
       "contacts": "{count, plural, one {See the contact} other {See the # contacts}}"
     },
+    "finishTitle": "Import finished",
+    "finishSummaryTitle": "Import summary",
+    "finishImportedOn": "{fileName}, imported on {date}.",
+    "finishFigure": {
+      "created": "{count, plural, other {created}}",
+      "updated": "{count, plural, other {updated}}",
+      "ignored": "{count, plural, other {ignored (empty, in error or unchanged)}}",
+      "kept": "{count, plural, one {column kept as a note} other {columns kept as a note}}"
+    },
+    "finishCount": "{count} {label}",
+    "finishHistory": "Import history",
+    "finishCheck": {
+      "vendors": "{count, plural, one {Check the vendor} other {Check the # vendors}}"
+    },
+    "finishBack": {
+      "vendors": "Back to my vendors",
+      "events": "Back to my events",
+      "event_sheets": "Back to my events",
+      "tasks": "Back to my tasks",
+      "catalog_items": "Back to the catalogue",
+      "contacts": "Back to my contacts"
+    },
+    "finishCheckHint": "“Check” opens the list filtered on this import (“Import of {date}” tag, which you can remove).",
+    "finishIgnoredDetail": "{rejected, plural, =0 {No row rejected} one {# row rejected (empty or in error)} other {# rows rejected (empty or in error)}}; {unchanged, plural, =0 {no unchanged row} one {# unchanged row (already up to date)} other {# unchanged rows (already up to date)}}.",
+    "finishKeptDetail": "Kept as a note on each record: {columns}.",
+    "finishJournalDetails": "Journal details (file, author, dates)",
     "confidenceProposal": "{field}? ({value}%, to confirm)",
     "journalTable": "Import log table",
     "rowsIntro": "Your file may mix several kinds of contacts. Tick the values you do not want here (your vendors, for instance): their rows will not be imported. They stay in the gaps report, which you can download to import them elsewhere.",
@@ -3701,6 +3822,21 @@
     "decisionKeep": "Keep the row",
     "decisionKeepFor": "Keep the row {title}",
     "contactSameLine": "Row {line}, with the same email address",
+    "loading": {
+      "title": "Import in progress…",
+      "fileLine": "{fileName} · {count, plural, one {# row} other {# rows}}",
+      "files": "{count} files",
+      "progressLabel": "Import progress",
+      "file": "Reading the file",
+      "fileDone": "File read: {count, plural, one {# row} other {# rows}}",
+      "columns": "Recognising the columns",
+      "columnsDone": "Columns recognised: {recognized} of {total}",
+      "matches": "Looking for duplicates",
+      "matchesAt": "Looking for duplicates: row {done} of {total}",
+      "preview": "Preparing the preview",
+      "nothingSaved": "Nothing is saved yet. You can close this: the import goes on.",
+      "close": "Close"
+    },
     "typesCombinedFrom": "From {labels}: several trades on the same record"
   },
   "Privacy": {
@@ -5086,6 +5222,12 @@
       "max": "{field}: at most {value}",
       "eq": "{field}: {value}"
     },
+    "importVendors": "Import",
+    "importFilterPill": "Import of {date}",
+    "importFilterCreated": "Import of {date}: created",
+    "importFilterUpdated": "Import of {date}: updated",
+    "importFilterRemove": "Remove the “Import of {date}” filter",
+    "importFilterJournal": "See the import summary",
     "trades": "Trades",
     "tradesHint": "Tick every trade this vendor offers. The primary one sets the colour and icon on the map.",
     "tradesNone": "No trades in your book yet: add some in the vendor settings.",
@@ -5858,7 +6000,11 @@
       "hub_storage_quota_alerted": "Storage quota alert",
       "hub_feature_flag_opened": "Feature opened by Operations",
       "hub_feature_flag_closed": "Feature closed by Operations",
-      "hub_plan_catalog_updated": "Plan catalogue updated"
+      "hub_plan_catalog_updated": "Plan catalogue updated",
+      "hub_module_request_created": "App activation requested",
+      "hub_module_request_cancelled": "Activation request cancelled",
+      "hub_module_request_activated": "Requested app activated",
+      "hub_module_request_declined": "Activation request closed by Operations"
     },
     "categories": {
       "connexion": "Sign-ins",
@@ -6065,7 +6211,8 @@
       "events_messages": "message",
       "events_message_attachments": "message attachment",
       "vendors_vendor_type_links": "vendor trade",
-      "events_task_categories": "task category"
+      "events_task_categories": "task category",
+      "hub_module_requests": "an app activation request"
     },
     "modules": {
       "events": "Events",
@@ -8941,7 +9088,8 @@
       "revoke": "Withdraw {name}'s links",
       "edit": "Edit {name}",
       "remove": "Delete the household {name}",
-      "planLink": "Seating plan and caterer summary"
+      "planLink": "Seating plan and caterer summary",
+      "importHere": "Import"
     },
     "portal": {
       "title": "Your guests",
@@ -10644,6 +10792,11 @@
         "label": "Email bounced",
         "text": "An email to {name} was not delivered: check their address.",
         "action": "Open the contact"
+      },
+      "module_activated": {
+        "label": "App activated",
+        "text": "The “{module}” app is active.",
+        "action": "See the app"
       }
     },
     "center": {
@@ -11725,6 +11878,57 @@
       "not_cancellable": "The subscription cannot be cancelled in its current state.",
       "not_resumable": "The cancellation can no longer be withdrawn.",
       "read_only": "Your space is read-only: choose a plan to resume."
+    }
+  },
+  "Apps": {
+    "title": "Apps",
+    "subtitle": "Symbola's apps: those of your organisation, and those you can add.",
+    "ownerOnly": "This screen is reserved to the organisation's Owner.",
+    "listLabel": "Symbola apps",
+    "pilotIntro": "<strong>During the pilot</strong>, the Symbola team activates apps for you, free of charge. Ask for the one you are missing: it appears in your menu as soon as it is activated.",
+    "selfServiceIntro": "Add an app to your subscription: it is activated straight away and can be removed at any time from “My subscription”.",
+    "status": {
+      "enabled": "Active",
+      "disabled": "Not active",
+      "requested": "Requested on {date}"
+    },
+    "whereToFind": "Where to find it: {place}",
+    "whereOnceEnabled": "Once active: {place}",
+    "declined": "Your request of {date} was closed without activation. You can ask again.",
+    "open": "Open",
+    "openLabel": "Open {app}",
+    "request": "Request activation",
+    "requestLabel": "Request activation of {app}",
+    "requestTitle": "Activate “{app}”",
+    "requestBody": "During the pilot, it is free of charge. The Symbola team receives your request and activates the app, usually within the day. You receive a notification.",
+    "requestPrivacy": "The team only sees your organisation's name and the app requested, never your events.",
+    "requestConfirm": "Send the request",
+    "cancelRequest": "Cancel the request",
+    "cancel": "Cancel",
+    "requested": "Your request is sent. You will be notified as soon as “{app}” is active.",
+    "requestCancelled": "Your request is cancelled.",
+    "add": "Add to my subscription",
+    "addLabel": "Add to my subscription: {app}",
+    "addTitle": "Add “{app}” to my subscription",
+    "addBody": "Activated straight away; removable at any time from “My subscription”. The prorated difference goes on the next invoice.",
+    "addConfirmMonthly": "Add for {amount} excl. VAT per month",
+    "addConfirmYearly": "Add for {amount} excl. VAT per year",
+    "offerCaption": "App price and new total",
+    "pricePerMonth": "{amount} excl. VAT per month",
+    "pricePerYear": "{amount} excl. VAT per year",
+    "prorata": "Prorated until {date}",
+    "newTotalMonthly": "New monthly total",
+    "newTotalYearly": "New yearly total",
+    "changePlan": "Choose a plan",
+    "changePlanLabel": "Choose a plan that includes {app}",
+    "managed": "Your subscription is managed by the Symbola team.",
+    "errors": {
+      "forbidden": "Only the organisation's Owner manages apps.",
+      "unknown_module": "This app does not exist.",
+      "already_enabled": "This app is already active.",
+      "self_service": "Add this app to your subscription: a request is no longer needed.",
+      "not_found": "This request is no longer pending.",
+      "managed": "This app cannot be added here: your subscription is managed by the Symbola team or goes through “My subscription”."
     }
   },
   "AdminPlans": {

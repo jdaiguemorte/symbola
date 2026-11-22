@@ -191,7 +191,13 @@ export async function GuestsTab({
       </section>
 
       <section aria-labelledby="guests-list-title" className="stack">
-        <h2 id="guests-list-title">{t("listTitle")}</h2>
+        <div className="section-head">
+          <h2 id="guests-list-title">{t("listTitle")}</h2>
+          {/* Lot 63b (HUB-14) : importer depuis la liste ; l'import des invités est plus bas. */}
+          <a className="button-link" href="#guests-import-title">
+            {t("importHere")}
+          </a>
+        </div>
         <nav aria-label={t("filters")} className="row-wrap">
           {filterLinks.map((link) => (
             <Link key={link.key} href={link.href} aria-current={link.current ? "true" : undefined} scroll={false}>

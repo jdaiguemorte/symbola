@@ -42,3 +42,17 @@ describe("IMP-11 — Assistant linéaire", () => {
     expect(nextImportStep(importWizardSteps({ ...base, entityType: "event_sheets", readingDone: false, mapping: null, matches: null }))).toBe("file");
   });
 });
+
+describe("HUB-14 — Rapprochements vérifiables (lot 63b)", () => {
+  it("une proposition « À vérifier » (deux prestataires par défaut) garde l'étape « Doublons » ouverte tant qu'elle n'a pas été vue", () => {
+    const doubtful = (reviewed: boolean) =>
+      ({ rowIndex: 0, lineNumber: 2, values: {}, errors: [], options: [], match: { rowIndex: 0, candidateId: "c", score: 70, status: "refused", manual: false, toVerify: true, reviewed, label: null, event: null } }) as never;
+    const vendorTypes = [] as never;
+    let steps = importWizardSteps({ ...base, mapping: [field(0)], matches: { rows: [doubtful(false)], vendorTypes } });
+    expect(nextImportStep(steps)).toBe("matches");
+    // Par défaut, la ligne crée une fiche.
+    expect(steps.find((step) => step.key === "matches")?.summary).toMatchObject({ values: { creations: 1, updates: 0, proposed: 1 } });
+    steps = importWizardSteps({ ...base, mapping: [field(0)], matches: { rows: [doubtful(true)], vendorTypes } });
+    expect(nextImportStep(steps)).toBe("confirm");
+  });
+});

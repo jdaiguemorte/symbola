@@ -15,6 +15,9 @@ import { NewImportForm } from "./new-import-form";
 // Lot 36b (HUB-14, SC-10) : les contacts d'abord.
 const TAKEOVER_TYPES = ["contacts", "vendors", "event_sheets"] as const;
 const OTHER = "autre";
+// Lot 63b (HUB-14) : le bouton « Importer » d'un écran ouvre l'import réglé sur son type ; l'écran
+// des évènements propose les fiches PDF et le tableur.
+const SCREEN_GROUPS: Record<string, readonly ImportEntityType[]> = { evenements: ["event_sheets", "events"] };
 
 export default async function ImportPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
   const auth = await requirePlanner();
@@ -28,8 +31,13 @@ export default async function ImportPage({ searchParams }: { searchParams: Promi
   const takeovers = TAKEOVER_TYPES.filter((type) => available.includes(type));
   const others = available.filter((type) => !(TAKEOVER_TYPES as readonly string[]).includes(type));
   const requested = (await searchParams).type;
-  const chosen: ImportEntityType | typeof OTHER | null = requested === OTHER && others.length > 0 ? OTHER : (takeovers.find((type) => type === requested) ?? null);
-  const formTypes: ImportEntityType[] = chosen === OTHER ? others : chosen ? [chosen] : [];
+  const group = requested && Object.hasOwn(SCREEN_GROUPS, requested) ? SCREEN_GROUPS[requested]!.filter((type) => available.includes(type)) : [];
+  const direct = available.find((type) => type === requested) ?? null;
+  const chosen: string | null =
+    requested === OTHER && others.length > 0 ? OTHER : group.length > 0 ? requested! : direct;
+  const formTypes: ImportEntityType[] = chosen === OTHER ? others : group.length > 0 ? group : direct ? [direct] : [];
+  const isTakeover = (TAKEOVER_TYPES as readonly string[]).includes(chosen ?? "");
+  const formTitle = chosen === OTHER ? t("otherFileTitle") : group.length > 0 ? t(`screenGroup.${chosen}`) : isTakeover ? t(`takeover.${chosen}.title`) : direct ? t(`entityType.${direct}`) : "";
   const db = appDatabase();
   const [journal, limits]: [ImportSummary[], ImportLimits] = await Promise.all([listImports(db, organizationId), getImportLimits(db)]);
   const tiles = [
@@ -59,16 +67,16 @@ export default async function ImportPage({ searchParams }: { searchParams: Promi
 
       {chosen ? (
         <section aria-labelledby="import-form-title" className="card">
-          <h2 id="import-form-title">{chosen === OTHER ? t("otherFileTitle") : t(`takeover.${chosen}.title`)}</h2>
-          {chosen !== OTHER ? <p>{t(`takeover.${chosen}.how`)}</p> : null}
-          {chosen === "event_sheets" ? (
+          <h2 id="import-form-title">{formTitle}</h2>
+          {isTakeover ? <p>{t(`takeover.${chosen}.how`)}</p> : null}
+          {chosen === "event_sheets" || chosen === "evenements" ? (
             <p>
               <a href="/aide/exemples/fiche-evenement-exemple.pdf" download>
                 {t("takeoverExampleSheet")}
               </a>
             </p>
           ) : null}
-          <NewImportForm key={chosen} entityTypes={formTypes} defaultEntityType={formTypes.length === 1 ? formTypes[0]! : null} maxSizeLabel={formatFileSize(limits.maxBytes, locale)} maxSheets={limits.maxSheets} />
+          <NewImportForm key={chosen} entityTypes={formTypes} defaultEntityType={formTypes.length === 1 || group.length > 0 ? formTypes[0]! : null} maxSizeLabel={formatFileSize(limits.maxBytes, locale)} maxSheets={limits.maxSheets} />
         </section>
       ) : null}
 

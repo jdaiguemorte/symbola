@@ -2,11 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
-import { formatAmount, formatCalendarDate, formatDateTime, type Locale } from "@symbola/i18n";
+import { formatAmount, formatCalendarDate, formatDateTime, formatDayMonth, type Locale } from "@symbola/i18n";
 import { ScreenHelp } from "@/app/screen-help";
 import { getUserContact, listImportJobs } from "@/modules/hub/service";
 import { requirePlanner } from "@/lib/guards";
 import { getUndoPreview, type UndoPreviewItem } from "@/lib/import/apply";
+import { describeVendorsForImportUndo, listVendorTypes } from "@/modules/vendors/service";
 import { isValidId } from "../../access";
 import { retryImportJobAction } from "../../actions";
 import { JobProgress } from "../../job-progress";
@@ -20,6 +21,19 @@ function count(value: string | undefined): number | null {
 // IMP-05 — « Chaque import est journalisé : fichier, auteur, date, résultat »,
 // et un import confirmé reste annulable pendant le délai réglé par l'Admin.
 // Lot 16 (IMP-11) — fin de l'assistant : la prochaine action, selon ce qui a été importé.
+// Lot 63b (HUB-14, UX-07) : élément principal de chaque type d'import, compté dans le bilan, et la
+// liste qui sait se filtrer sur l'import (« Vérifier les N prestataires »).
+const MAIN_KIND: Partial<Record<string, string>> = {
+  vendors: "vendor",
+  contacts: "contact",
+  events: "event",
+  event_sheets: "event",
+  tasks: "task",
+  budget_lines: "budget_line",
+  catalog_items: "catalog_item",
+};
+const FILTERED_LIST: Partial<Record<string, string>> = { vendors: "/prestataires" };
+
 const FINISH_LINKS: Partial<Record<string, string>> = {
   vendors: "/prestataires",
   events: "/events",
@@ -86,46 +100,86 @@ export default async function ImportJournalPage({
   const modified = view.pendingItems.filter((item) => item.modified && !item.usedElsewhere);
   const usedElsewhere = view.pendingItems.filter((item) => item.usedElsewhere);
 
+  // Lot 63b (HUB-14, UX-07) : le bilan d'abord, chaque nombre mène aux éléments ; puis la
+  // vérification (liste filtrée sur l'import) ; l'annulation, repliée, nomme les fiches modifiées.
+  const mainKind = MAIN_KIND[view.entityType];
+  const mainItems = view.pendingItems.filter((item) => item.kind === mainKind);
+  const createdItems = mainItems.filter((item) => item.action === "created");
+  const updatedItems = mainItems.filter((item) => item.action === "updated");
+  const filteredList = FILTERED_LIST[view.entityType];
+  const finishHref = FINISH_LINKS[view.entityType];
+  const checkCount = view.result ? view.result.created + view.result.updated : mainItems.length;
+  const listHref = (part: "crees" | "maj" | null) => (filteredList ? `${filteredList}?import=${view.id}${part ? `&quoi=${part}` : ""}` : null);
+  const vendorDetails =
+    view.entityType === "vendors" && modified.length > 0
+      ? await describeVendorsForImportUndo(organizationId, modified.filter((item) => item.kind === "vendor").map((item) => item.elementId))
+      : [];
+  const typeLabels = vendorDetails.length > 0 ? new Map((await listVendorTypes(organizationId)).map((type) => [type.id, type.label])) : new Map<string, string>();
+  const modifiedDetail = (item: UndoPreviewItem): string | null => {
+    const vendor = vendorDetails.find((entry) => entry.id === item.elementId);
+    if (!vendor) return null;
+    return [vendor.typeId ? typeLabels.get(vendor.typeId) : null, vendor.city].filter(Boolean).join(" · ") || null;
+  };
+  const modifiedAt = (item: UndoPreviewItem): Date | null => vendorDetails.find((entry) => entry.id === item.elementId)?.updatedAt ?? null;
+  const summary = view.result
+    ? [
+        { key: "created", value: view.result.created, href: listHref("crees") ?? (createdItems.length > 0 ? "#elements-crees" : null) },
+        { key: "updated", value: view.result.updated, href: listHref("maj") ?? (updatedItems.length > 0 ? "#elements-maj" : null) },
+        { key: "ignored", value: view.result.rejected + view.result.unchanged, href: view.result.rejected + view.result.unchanged > 0 ? "#lignes-ignorees" : null },
+        { key: "kept", value: view.keptColumns.length, href: view.keptColumns.length > 0 ? "#colonnes-gardees" : null },
+      ]
+    : [];
+
   return (
     <main>
-      <h1>{t("journalEntryTitle", { fileName: view.fileName })}</h1>
-      <ScreenHelp title={tHelp("importUndo.title")} body={tHelp("importUndo.body")} />
-      {view.status === "applied" && view.result && FINISH_LINKS[view.entityType] ? (
-        <p className="primary-action">
-          <Link href={FINISH_LINKS[view.entityType]!} className="button-link button-link-primary">
-            {t(`finishLink.${view.entityType}`, { count: view.result.created + view.result.updated })}
-          </Link>
+      {finishHref ? (
+        <p>
+          <Link href={finishHref}>‹ {t(`finishBack.${view.entityType}`)}</Link>
         </p>
       ) : null}
+      <h1>{view.status === "applied" ? t("finishTitle") : t("journalEntryTitle", { fileName: view.fileName })}</h1>
+      <ScreenHelp title={tHelp("importUndo.title")} body={tHelp("importUndo.body")} />
       {undone !== null ? (
         <p role="status">
           {t("undoResult", { undone, kept: count(query.gardes) ?? 0, used: count(query.utilises) ?? 0 })}
         </p>
       ) : null}
-      <dl>
-        <dt>{t("journalFile")}</dt>
-        <dd>{view.fileName}</dd>
-        <dt>{t("journalEntityType")}</dt>
-        <dd>{t(`entityType.${view.entityType}`)}</dd>
-        <dt>{t("journalAuthor")}</dt>
-        <dd>{author?.email ?? t("journalAuthorUnknown")}</dd>
-        <dt>{t("journalAppliedAt")}</dt>
-        <dd>{view.appliedAt ? formatDateTime(view.appliedAt, locale) : "—"}</dd>
-        <dt>{t("journalResult")}</dt>
-        <dd>
-          {view.result
-            ? t("journalResultValue", { created: view.result.created, updated: view.result.updated, unchanged: view.result.unchanged, rejected: view.result.rejected })
-            : "—"}
-        </dd>
-        <dt>{t("journalStatus")}</dt>
-        <dd>{t(`status.${view.status}`)}</dd>
-        {view.undoneAt ? (
-          <>
-            <dt>{t("journalUndoneAt")}</dt>
-            <dd>{formatDateTime(view.undoneAt, locale)}</dd>
-          </>
-        ) : null}
-      </dl>
+
+      {view.result ? (
+        <section className="card stack" aria-labelledby="import-summary-title">
+          <h2 id="import-summary-title" className="sr-only">
+            {t("finishSummaryTitle")}
+          </h2>
+          <p>{view.appliedAt ? t("finishImportedOn", { fileName: view.fileName, date: formatDateTime(view.appliedAt, locale) }) : view.fileName}</p>
+          <ul className="import-summary">
+            {summary.map((entry) => (
+              <li key={entry.key}>
+                <span className="import-summary-figure">{entry.value}</span>
+                {entry.href && entry.value > 0 ? <Link href={entry.href}>{t(`finishFigure.${entry.key}`, { count: entry.value })}</Link> : <span className="meta">{t(`finishFigure.${entry.key}`, { count: entry.value })}</span>}
+              </li>
+            ))}
+          </ul>
+          {view.status === "applied" ? (
+            <div className="import-finish-actions">
+              {filteredList && checkCount > 0 ? (
+                <Link href={listHref(null)!} className="button-link button-link-primary">
+                  {t(`finishCheck.${view.entityType}`, { count: checkCount })}
+                </Link>
+              ) : finishHref ? (
+                <Link href={finishHref} className="button-link button-link-primary">
+                  {t(`finishLink.${view.entityType}`, { count: checkCount })}
+                </Link>
+              ) : null}
+              {filteredList && finishHref ? (
+                <Link href={finishHref} className="button-link">
+                  {t(`finishBack.${view.entityType}`)}
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
+          {filteredList && view.status === "applied" && view.appliedAt ? <p className="meta">{t("finishCheckHint", { date: formatDayMonth(view.appliedAt, locale) })}</p> : null}
+        </section>
+      ) : null}
 
       {placeJob ? (
         <section aria-labelledby="import-placement" className="card">
@@ -151,43 +205,142 @@ export default async function ImportJournalPage({
         </section>
       ) : null}
 
+      {!filteredList && createdItems.length > 0 ? (
+        <details id="elements-crees">
+          <summary>{t("finishCount", { count: createdItems.length, label: t("finishFigure.created", { count: createdItems.length }) })}</summary>
+          <ul>
+            {createdItems.map((item) => (
+              <li key={item.id}>{itemTitle(item)}</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+      {!filteredList && updatedItems.length > 0 ? (
+        <details id="elements-maj">
+          <summary>{t("finishCount", { count: updatedItems.length, label: t("finishFigure.updated", { count: updatedItems.length }) })}</summary>
+          <ul>
+            {updatedItems.map((item) => (
+              <li key={item.id}>{itemTitle(item)}</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+      {view.result && view.result.rejected + view.result.unchanged > 0 ? (
+        <details id="lignes-ignorees">
+          <summary>{t("finishCount", { count: view.result.rejected + view.result.unchanged, label: t("finishFigure.ignored", { count: view.result.rejected + view.result.unchanged }) })}</summary>
+          <p>{t("finishIgnoredDetail", { rejected: view.result.rejected, unchanged: view.result.unchanged })}</p>
+        </details>
+      ) : null}
+      {view.keptColumns.length > 0 ? (
+        <details id="colonnes-gardees">
+          <summary>{t("finishCount", { count: view.keptColumns.length, label: t("finishFigure.kept", { count: view.keptColumns.length }) })}</summary>
+          <p>{t("finishKeptDetail", { columns: view.keptColumns.join(", ") })}</p>
+        </details>
+      ) : null}
+
+      <details className="card">
+        <summary>{t("finishJournalDetails")}</summary>
+        <dl>
+          <dt>{t("journalFile")}</dt>
+          <dd>{view.fileName}</dd>
+          <dt>{t("journalEntityType")}</dt>
+          <dd>{t(`entityType.${view.entityType}`)}</dd>
+          <dt>{t("journalAuthor")}</dt>
+          <dd>{author?.email ?? t("journalAuthorUnknown")}</dd>
+          <dt>{t("journalAppliedAt")}</dt>
+          <dd>{view.appliedAt ? formatDateTime(view.appliedAt, locale) : "—"}</dd>
+          <dt>{t("journalResult")}</dt>
+          <dd>
+            {view.result
+              ? t("journalResultValue", { created: view.result.created, updated: view.result.updated, unchanged: view.result.unchanged, rejected: view.result.rejected })
+              : "—"}
+          </dd>
+          <dt>{t("journalStatus")}</dt>
+          <dd>{t(`status.${view.status}`)}</dd>
+          {view.undoneAt ? (
+            <>
+              <dt>{t("journalUndoneAt")}</dt>
+              <dd>{formatDateTime(view.undoneAt, locale)}</dd>
+            </>
+          ) : null}
+        </dl>
+      </details>
+
       {view.undoable ? (
-        <section aria-labelledby="undo-import">
-          <h2 id="undo-import">{t("undoTitle")}</h2>
+        <details className="card import-undo">
+          <summary id="undo-import">{t("undoTitle")}</summary>
           <p>{t("undoIntro", { date: view.undoDeadline ? formatDateTime(view.undoDeadline, locale) : "" })}</p>
-          <form action={undoImportAction}>
-            <input type="hidden" name="importId" value={view.id} />
-            {modified.length > 0 ? (
-              <fieldset>
-                <legend>{t("undoModifiedLegend", { count: modified.length })}</legend>
-                <p>{t("undoModifiedIntro")}</p>
-                {modified.map((item) => (
-                  <label key={item.id}>
-                    <input type="checkbox" name="forceItemId" value={item.id} />
-                    {t("undoForce", { title: itemTitle(item) })}
-                  </label>
-                ))}
-              </fieldset>
-            ) : null}
-            {usedElsewhere.length > 0 ? (
-              <div>
-                <p>{t("undoUsedElsewhereIntro")}</p>
-                <ul>
-                  {usedElsewhere.map((item) => (
-                    <li key={item.id}>{itemTitle(item)}</li>
-                  ))}
-                </ul>
+          <p>{t("undoWhat", { created: createdItems.length, updated: updatedItems.length })}</p>
+          {modified.length > 0 ? (
+            <>
+              <p>{t("undoModifiedNamed", { count: modified.length })}</p>
+              <div className="list-table-wrap" role="region" aria-label={t("undoModifiedLegend", { count: modified.length })} tabIndex={0}>
+                <table className="list-table">
+                  <caption className="sr-only">{t("undoModifiedLegend", { count: modified.length })}</caption>
+                  <tbody>
+                    {modified.map((item) => {
+                      const detail = modifiedDetail(item);
+                      const at = modifiedAt(item);
+                      return (
+                        <tr key={item.id}>
+                          <th scope="row">
+                            {itemTitle(item)}
+                            {detail ? <span className="meta"> · {detail}</span> : null}
+                          </th>
+                          <td className="meta">{at ? t("undoModifiedAt", { date: formatDateTime(at, locale) }) : t("undoModifiedSince")}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-            ) : null}
-            <button type="submit">{t("undoSubmit")}</button>
-          </form>
-        </section>
+            </>
+          ) : null}
+          {usedElsewhere.length > 0 ? (
+            <div>
+              <p>{t("undoUsedElsewhereIntro")}</p>
+              <ul>
+                {usedElsewhere.map((item) => (
+                  <li key={item.id}>{itemTitle(item)}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          <div className="import-undo-actions">
+            {modified.length > 0 ? (
+              <>
+                <form action={undoImportAction}>
+                  <input type="hidden" name="importId" value={view.id} />
+                  <input type="hidden" name="mode" value="keep" />
+                  <button type="submit" className="button-danger">
+                    {t("undoExceptModified", { count: modified.length })}
+                  </button>
+                </form>
+                <form action={undoImportAction}>
+                  <input type="hidden" name="importId" value={view.id} />
+                  <input type="hidden" name="mode" value="all" />
+                  <button type="submit" className="button-danger">
+                    {t("undoAll")}
+                  </button>
+                </form>
+              </>
+            ) : (
+              <form action={undoImportAction}>
+                <input type="hidden" name="importId" value={view.id} />
+                <input type="hidden" name="mode" value="keep" />
+                <button type="submit" className="button-danger">
+                  {t("undoSubmit")}
+                </button>
+              </form>
+            )}
+          </div>
+        </details>
       ) : view.status === "applied" ? (
         <p>{t("undoExpired")}</p>
       ) : null}
 
       <p>
-        <Link href="/import">{t("backToImports")}</Link>
+        <Link href="/import">{t("finishHistory")}</Link>
       </p>
     </main>
   );

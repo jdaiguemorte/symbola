@@ -58,7 +58,7 @@ import {
 import { getImportGapsView } from "./gaps";
 import { getImportMatchesView, loadVendorTypeCatalog, parseWorkingSetRows, type MatchesRowView, type VendorTypeCatalog } from "./matching";
 import type { ImportVendorTypeTarget } from "@/modules/hub/service";
-import type { StarterLocale } from "@symbola/starter-templates";
+import { starterBudgetImportPaymentLabels, type StarterLocale } from "@symbola/starter-templates";
 import { organizationTagCatalog } from "@/lib/vendors/tag-catalog";
 
 // Couleur d'un type « à classer » (sans famille) sur la carte.
@@ -193,6 +193,8 @@ async function applyToModules(
     defaultVatRateBasisPoints: number;
     vendorTypeChoices: VendorTypeChoiceInput[];
     typeColumnHeader?: string | null;
+    // Lot 63b : libellés des échéances créées par un budget importé.
+    paymentLabels?: { deposit: string; balance: string };
   },
 ): Promise<ImportApplyResult> {
   switch (entityType) {
@@ -202,7 +204,7 @@ async function applyToModules(
     case "tasks":
       return importTaskRows({ organizationId, rows });
     case "budget_lines":
-      return importBudgetLineRows({ organizationId, userId, rows });
+      return importBudgetLineRows({ organizationId, userId, rows, ...(options.paymentLabels ? { paymentLabels: options.paymentLabels } : {}) });
     case "catalog_items":
       return importCatalogItemRows({ organizationId, rows, defaultVatRateBasisPoints: options.defaultVatRateBasisPoints });
     case "payment_methods":
@@ -271,6 +273,7 @@ export async function confirmImport(input: {
     defaultVatRateBasisPoints: (await defaultVatRate(input.organizationId)) ?? 0,
     vendorTypeChoices: catalog ? (matches.vendorTypes ?? []).map(({ label, typeId, target }) => ({ label, typeId, target: vendorTypeTarget(target, catalog) })) : [],
     typeColumnHeader: typeColumn ? set.headers[typeColumn.columnIndex] || null : null,
+    paymentLabels: starterBudgetImportPaymentLabels(input.locale ?? "fr"),
   });
 
   // Compté par ligne : une ligne de budget crée parfois deux éléments (poste

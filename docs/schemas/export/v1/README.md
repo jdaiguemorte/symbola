@@ -69,6 +69,7 @@ Tables non exportées :
 - `feature_flags` — exploitation : interrupteurs des fonctions de la plateforme
 - `feature_flag_organizations` — exploitation : fonctions nouvelles ouvertes à l'espace par l'Exploitation
 - `storage_quota_states` — exploitation : dernière mesure du stockage face au quota (des nombres)
+- `module_requests` — exploitation : demandes d'activation d'une app à l'équipe Symbola (module, dates)
 
 ## Module `events`
 
@@ -114,7 +115,7 @@ Tables non exportées :
 | `event_tasks` | `id`, `eventId`, `label`, `dueDate`, `offsetDays`, `fixedAt`, `responsible`, `vendorCandidateId`, `followUpCandidateId`, `doneAt`, `position`, `importedFields`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy`, `recurrence`, `recurrenceSpawnedAt`, `isMilestone`, `categoryId`, `priority` | [event_tasks.schema.json](events/event_tasks.schema.json) |
 | `event_task_comments` | `id`, `eventId`, `taskId`, `authorUserId`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [event_task_comments.schema.json](events/event_task_comments.schema.json) |
 | `event_task_attachments` | `id`, `eventId`, `taskId`, `label`, `fileKey`, `mime`, `sizeBytes`, `uploadedByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_task_attachments.schema.json](events/event_task_attachments.schema.json) |
-| `program_items` | `id`, `eventId`, `startTime`, `endTime`, `label`, `location`, `internalNote`, `responsible`, `keyMomentId`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy` | [program_items.schema.json](events/program_items.schema.json) |
+| `program_items` | `id`, `eventId`, `startTime`, `endTime`, `label`, `location`, `internalNote`, `responsible`, `keyMomentId`, `hiddenFromClients`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy` | [program_items.schema.json](events/program_items.schema.json) |
 | `program_item_participants` | `id`, `programItemId`, `vendorSlotId`, `freeLabel`, `position`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [program_item_participants.schema.json](events/program_item_participants.schema.json) |
 | `program_versions` | `id`, `eventId`, `number`, `publishedAt`, `publishedByUserId`, `items`, `notifiedAt`, `notifiedCount`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [program_versions.schema.json](events/program_versions.schema.json) |
 | `day_checkpoints` | `id`, `eventId`, `programItemId`, `kind`, `deviceAt`, `userId`, `linkId`, `actionId`, `receivedAt`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [day_checkpoints.schema.json](events/day_checkpoints.schema.json) |

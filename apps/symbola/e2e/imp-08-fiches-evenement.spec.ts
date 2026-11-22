@@ -84,6 +84,8 @@ test("IMP-08 — reprendre ses événements depuis les fiches PDF de l'outil act
 
   await page.getByLabel("Source pour les événements sans source").selectOption({ label: "Outil actuel" });
   await page.getByRole("button", { name: "Importer 2 événements" }).click();
+  // Lot 63b (HUB-14, UX-07) : le bilan d'abord ; le détail du journal est replié.
+  await page.getByText("Détails du journal (fichier, auteur, dates)").click();
   await expect(page.getByText("2 créations, aucune mise à jour, aucune ligne inchangée, 1 ligne rejetée")).toBeVisible();
 
   // La fiche de Léa et Hugo : budget souhaité, lieux, coordonnées des mariés.
@@ -103,6 +105,8 @@ test("IMP-08 — reprendre ses événements depuis les fiches PDF de l'outil act
   // Annulation : l'événement modifié à la main est signalé ; l'autre disparaît.
   await page.goto("/import");
   await page.getByRole("link", { name: /fiche-evenement-complete\.pdf/ }).click();
+  // Lot 63b (HUB-14, UX-07) : l'annulation est repliée sous le bilan.
+  await page.getByText("Annuler cet import", { exact: true }).click();
   await page.getByRole("button", { name: "Annuler l'import" }).click();
   await expect(page.getByText("1 élément annulé ; 1 gardé car modifié à la main ; aucun gardé car utilisé.")).toBeVisible();
   await expectNoAxeViolation(page);

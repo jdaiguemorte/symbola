@@ -114,6 +114,7 @@
     "upcomingTasksEmpty": "Rien d'urgent : aucune tâche en retard ni due dans les 14 jours.",
     "allTasksLink": "Toutes les tâches",
     "agenda": "Aujourd'hui",
+    "apps": "Apps",
     "tasks": "Tâches",
     "tasksOverdue": "{count} en retard",
     "settingsOrganization": "Mon organisation",
@@ -203,7 +204,17 @@
     "subscriptionPlan": "Offre",
     "subscriptionAssign": "Poser cette offre",
     "subscriptionAssigned": "Offre posée. Les modules suivent.",
-    "subscriptionModulesNote": "Avec un abonnement, les modules suivent l'offre ; un réglage à la main est repris au prochain changement d'offre."
+    "subscriptionModulesNote": "Avec un abonnement, les modules suivent l'offre ; un réglage à la main est repris au prochain changement d'offre.",
+    "moduleRequestsTitle": "Demandes d'activation",
+    "moduleRequestsIntro": "Les apps qu'une organisation a demandées pendant le pilote. Activer ouvre l'app à la requête suivante et prévient la Propriétaire ; classer ferme la demande sans activer.",
+    "moduleRequestsTable": "Apps demandées, par organisation",
+    "moduleRequestsApp": "App",
+    "moduleRequestsDate": "Demandée le",
+    "moduleRequestsActions": "Actions",
+    "moduleRequestsActivate": "Activer",
+    "moduleRequestsActivateLabel": "Activer {app} pour {organization}",
+    "moduleRequestsDecline": "Classer sans activer",
+    "moduleRequestsDeclineLabel": "Classer sans activer la demande de {app} de {organization}"
   },
   "AdminOrganizationForm": {
     "name": "Nom de l'organisation",
@@ -763,7 +774,7 @@
     },
     "importFile": {
       "title": "Importer des données",
-      "body": "Choisissez ce que vous reprenez : vos contacts (CSV ou Excel), vos prestataires ou vos fiches événement depuis votre outil actuel, ou un autre fichier. L'assistant enchaîne les étapes et ne vous demande que ce qui doit être décidé. Rien n'est enregistré avant la confirmation, et un import s'annule depuis le journal.",
+      "body": "Choisissez ce que vous reprenez : vos contacts (CSV ou Excel), vos prestataires ou vos fiches événement depuis votre outil actuel, ou un autre fichier. Chaque écran (prestataires, évènements, contacts, budget, programme, invités) a aussi son bouton « Importer », réglé sur le bon type. Dès le clic, une fenêtre montre où en est la lecture. Rien n'est enregistré avant la confirmation, et un import s'annule depuis son bilan.",
       "faq": [
         {
           "q": "Que devient mon fichier ?",
@@ -773,11 +784,11 @@
     },
     "importColumns": {
       "title": "Reconnaître les colonnes",
-      "body": "Seules les colonnes qui demandent un choix sont présentées : dites ce que devient chacune, un champ de la fiche, une note sur la fiche, ou rien. Une proposition peu sûre n'est jamais choisie d'office. Les colonnes reconnues se résument en une ligne ; « Voir le détail » les déplie."
+      "body": "Un tableau montre chaque colonne de votre fichier avec deux exemples, ce qu'elle devient sur la fiche (un champ par son nom, « Une note sur la fiche » ou « Ne pas importer ») et son état : reconnue, choisie, ignorée ou à choisir. Les colonnes à choisir viennent d'abord. À droite, l'aperçu montre la première ligne du fichier en fiche et suit vos choix. Une proposition peu sûre n'est jamais choisie d'office."
     },
     "importMatches": {
       "title": "Rapprocher des éléments existants",
-      "body": "Quand une ligne ressemble à un élément déjà présent, l'app propose de le mettre à jour plutôt que de créer un doublon. Filtrez « À vérifier », « Nouveaux », « Mises à jour » ; « Tout accepter » valide les propositions sûres. Vous pouvez aussi rapprocher une ligne à la main."
+      "body": "Quand une ligne ressemble à un prestataire déjà au carnet, la ligne du fichier et la fiche existante s'affichent côte à côte (nom, métier, ville, e-mail, téléphone, nombre d'évènements), les différences écrites en toutes lettres. Choisissez « C'est le même », « Ce sont deux prestataires » ou « Décider plus tard ». Si seul le prénom est commun, la proposition est « À vérifier » et ce sont deux prestataires tant que vous ne dites pas le contraire. Filtrez « À vérifier », « Nouveaux », « Mises à jour » ; « Tout accepter » valide les propositions sûres."
     },
     "importGaps": {
       "title": "Rapport des écarts",
@@ -789,7 +800,7 @@
     },
     "importUndo": {
       "title": "Journal et annulation d'un import",
-      "body": "Chaque import confirmé est journalisé : fichier, auteur, date et résultat. Pendant le délai d'annulation, vous pouvez l'annuler : les créations sont supprimées et les mises à jour reviennent à leurs valeurs d'avant. Un élément modifié depuis est signalé et gardé."
+      "body": "À la fin, le bilan vient d'abord : créés, mis à jour, ignorés, colonnes gardées en note, chacun cliquable. « Vérifier les N prestataires » ouvre la liste filtrée sur cet import. Pendant le délai d'annulation, « Annuler cet import » (replié) nomme les fiches modifiées à la main depuis, et vous choisissez : annuler l'import sauf ces fiches, ou tout annuler."
     },
     "privacySearch": {
       "title": "Données personnelles",
@@ -1451,6 +1462,10 @@
       "title": "Mon abonnement",
       "body": "Votre offre, ses apps et ses options, le total et votre stockage face au quota de l'offre. Changer d'offre prend effet tout de suite ; l'écart au prorata va sur la facture suivante. Résilier se fait en deux gestes : « Résilier », puis « Confirmer la résiliation » ; vous gardez l'accès jusqu'à la fin de la période payée, puis l'espace est fermé (export pendant 30 jours, puis effacement). À 80 % et 95 % du quota, Symbola vous prévient ; plein, les nouveaux dépôts ne sont refusés qu'après sept jours de préavis, et la lecture et l'export restent toujours possibles. Réservé à la titulaire du compte."
     },
+    "apps": {
+      "title": "Apps",
+      "body": "Toutes les apps de Symbola, avec leur état, ce qu'elles apportent et où les trouver une fois activées. Pendant le pilote, « Demander l'activation » prévient l'équipe Symbola, qui active l'app pour vous, sans frais : vous recevez une notification et l'app apparaît dans votre menu. Une demande s'annule tant qu'elle n'est pas traitée. L'équipe ne voit que le nom de votre organisation et l'app demandée. Après l'ouverture commerciale, « Ajouter à mon abonnement » affiche le prix, le prorata et le nouveau total. Réservé à la Propriétaire."
+    },
     "adminPlans": {
       "title": "Offres et forfaits",
       "body": "Le catalogue des offres (essai, offres, forfait Pilote) et des options : noms, modules, utilisateurs, quota et prix, et les règles de l'essai et du quota. Le forfait Pilote ne paraît jamais en libre-service. La facturation des abonnements reste éteinte tant que la société n'est pas créée. Aucune donnée métier."
@@ -1699,6 +1714,9 @@
     "programVendorParticipants": "Prestataires concernés (lignes du budget)",
     "programFreeParticipants": "Autres intervenants (séparés par des virgules)",
     "programInternalNote": "Note interne",
+    "programHiddenFromClients": "Cachée des mariés",
+    "programHiddenFromClientsHint": "Absente de leur espace, du programme qui leur est diffusé et du PDF « mariés » ; visible de l'équipe et des prestataires de la séquence.",
+    "programHiddenBadge": "Cachée des mariés",
     "programInternalNoteHint": "Jamais montrée aux clients ni aux prestataires.",
     "programColStart": "Début",
     "programColEnd": "Fin",
@@ -2188,13 +2206,26 @@
     "programKeyMomentDefault": "Jour de l'évènement",
     "programMomentInvalid": "Ce temps fort n'est pas un temps fort de l'évènement.",
     "keyMomentHasItems": "{count, plural, one {Ce temps fort porte # séquence du programme : déplacez-la ou supprimez-la pour le retirer.} other {Ce temps fort porte # séquences du programme : déplacez-les ou supprimez-les pour le retirer.}}",
-    "programImportTitle": "Importer un chrono (tableur)",
-    "programImportHint": "Colonnes reconnues : jour ou temps fort, date, début, fin, séquence, lieu, responsable, note. Rien n'est écrit avant votre accord ; les temps forts manquants sont créés.",
-    "programImportFileLabel": "Fichier CSV ou XLSX",
-    "programImportFile": "Choisissez un fichier CSV ou XLSX.",
-    "programImportTooLarge": "Ce fichier dépasse 1 Mo : un chrono en pèse quelques Ko.",
+    "programImportTitle": "Importer un chrono (tableur ou PDF)",
+    "programImportHint": "Un tableur (colonnes reconnues : jour ou temps fort, date, début, fin, séquence, lieu, responsable, note) ou le PDF « programme » de votre ancien logiciel. Rien n'est écrit avant votre accord ; les temps forts manquants sont créés.",
+    "programImportFileLabel": "Fichier CSV, XLSX ou PDF",
+    "programImportFile": "Choisissez un fichier CSV, XLSX ou PDF.",
+    "programImportTooLarge": "Ce fichier dépasse 1 Mo : un chrono en tableur pèse quelques Ko, un programme en PDF quelques centaines.",
     "programImportPreview": "Voir avant d'importer",
+    "programImportReading": "Lecture du fichier… Rien n'est encore enregistré.",
     "programImportPreviewTitle": "{count, plural, =0 {Aucune séquence lue} one {# séquence lue} other {# séquences lues}}",
+    "programImportFromPdf": "Programme lu depuis le PDF de votre ancien logiciel : chaque séquence garde son jour, ses heures et sa description (en note interne).",
+    "programImportSpeakersTitle": "{count, plural, one {Intervenant du fichier : # à rattacher} other {Intervenants du fichier : # à rattacher}}",
+    "programImportSpeakersIntro": "À gauche, l'intervenant tel qu'il est dans le fichier ; à droite, le prestataire de l'évènement qui lui correspond. Ses séquences lui seront rattachées ; « Garder en texte » laisse son nom tel quel. Vous-même n'êtes pas rattachée.",
+    "programImportSpeakersTable": "Tableau des intervenants et de leur prestataire",
+    "programImportSpeakerFile": "Dans le fichier",
+    "programImportSpeakerEvent": "Prestataire de l'évènement",
+    "programImportSpeakerChoose": "Prestataire de l'évènement pour « {role} »",
+    "programImportSpeakerNone": "Garder en texte",
+    "programImportSpeakerProposed": "Proposé",
+    "programImportSpeakerCatalog": "Dans votre carnet : {vendor}. Ajoutez-le aux prestataires de l'évènement pour lui rattacher ses séquences.",
+    "programImportSpeakersRefresh": "Mettre à jour l'aperçu",
+    "programImportHiddenNotice": "{count, plural, one {# séquence est « Cachée des mariés » dans le fichier : elle s'importe cachée d'eux (absente de leur espace et du programme qui leur est diffusé), visible de l'équipe et des prestataires concernés.} other {# séquences sont « Cachées des mariés » dans le fichier : elles s'importent cachées d'eux (absentes de leur espace et du programme qui leur est diffusé), visibles de l'équipe et des prestataires concernés.}}",
     "programImportNeutralized": "{count, plural, one {# cellule commençant par =, +, - ou @ a été gardée en texte.} other {# cellules commençant par =, +, - ou @ ont été gardées en texte.}}",
     "programImportUnknownColumns": "Colonnes ignorées : {columns}.",
     "programImportNewMoments": "Temps forts créés : {moments}.",
@@ -2205,9 +2236,15 @@
       "end": "heure de fin illisible",
       "label": "séquence vide",
       "moment_date": "temps fort sans date (l'évènement n'est pas daté)",
-      "too_long": "texte trop long"
+      "too_long": "texte trop long",
+      "untimed": "sans heure dans le fichier (« 00:00 ») : ajoutez-la comme tâche si besoin"
     },
     "programImportLine": "Ligne",
+    "programImportParticipants": "Interlocuteurs",
+    "programImportParticipantText": "en texte",
+    "programImportMarker": "Repère",
+    "programImportHidden": "Caché des mariés",
+    "programImportNextDay": "Finit le lendemain",
     "programImportSkip": "Écarter",
     "programImportSkipLine": "Écarter la ligne {line}",
     "programImportApply": "{count, plural, one {Importer # séquence} other {Importer # séquences}}",
@@ -2219,7 +2256,9 @@
       "no_start_column": "Aucune colonne d'heure de début reconnue (début, heure…).",
       "no_label_column": "Aucune colonne de séquence reconnue (séquence, intitulé…).",
       "unsupported_format": "Format non lu : enregistrez le fichier en .xlsx ou .csv.",
-      "malformed": "Le fichier n'a pas pu être lu."
+      "malformed": "Le fichier n'a pas pu être lu.",
+      "not_program_pdf": "Ce PDF n'est pas un programme de votre ancien logiciel (tableau Titre, Description, Interlocuteur introuvable).",
+      "too_many_pages": "Ce PDF a trop de pages pour un programme."
     },
     "eventNotesConfidentialElsewhere": "Les notes sont confidentielles : elles se modifient juste en dessous.",
     "eventNotesConfidentialTitle": "Notes et confidentialité",
@@ -2234,6 +2273,7 @@
     "archivedTag": "Archivé",
     "archivedEmpty": "Aucun évènement archivé.",
     "floorplanLink": "Plan de salle de l'évènement",
+    "importHere": "Importer",
     "newMenu": "Nouveau",
     "newMenuLabel": "Créer un évènement",
     "newMenuProspect": "Prospect",
@@ -2540,7 +2580,8 @@
     "payersLink": "Payeurs et répartition",
     "cashCalendarLink": "Calendrier des sorties d'argent",
     "bankToVerify": "IBAN à vérifier",
-    "removeModelShort": "Supprimer"
+    "removeModelShort": "Supprimer",
+    "importHere": "Importer"
   },
   "Quotes": {
     "title": "Devis",
@@ -3319,8 +3360,13 @@
       "done": "Faite",
       "slotLabel": "Ligne du budget",
       "vendorName": "Prestataire",
-      "plannedAmount": "Montant estimé",
-      "actualAmount": "Montant engagé",
+      "plannedAmount": "Prévu",
+      "actualAmount": "Réel (devisé)",
+      "paidAmount": "Réglé",
+      "depositAmount": "Acompte (montant)",
+      "depositDueOn": "Acompte (date)",
+      "balanceAmount": "Solde (montant)",
+      "balanceDueOn": "Solde (date)",
       "description": "Description",
       "unit": "Unité",
       "unitPrice": "Prix unitaire HT",
@@ -3383,7 +3429,7 @@
     "columnTargetLabel": "Champ pour la colonne « {column} »",
     "columnTargetFields": "Champs",
     "columnTargetNone": "Sans équivalent (à décider au rapport des écarts)",
-    "columnTargetIgnore": "Ignorer cette colonne",
+    "columnTargetIgnore": "Ne pas importer",
     "columnConfirm": "Je confirme : cette colonne correspond à « {field} »",
     "saveColumns": "Enregistrer les colonnes",
     "backToDraft": "Retour à l'import",
@@ -3481,8 +3527,14 @@
     "journalUndoneAt": "Annulé le",
     "journalResult": "Résultat",
     "journalResultValue": "{created, plural, =0 {aucune création} one {# création} other {# créations}}, {updated, plural, =0 {aucune mise à jour} one {# mise à jour} other {# mises à jour}}, {unchanged, plural, =0 {aucune ligne inchangée} one {# ligne inchangée} other {# lignes inchangées}}, {rejected, plural, =0 {aucune ligne rejetée} one {# ligne rejetée} other {# lignes rejetées}}",
-    "undoTitle": "Annuler l'import",
+    "undoTitle": "Annuler cet import",
     "undoIntro": "Les éléments créés seront supprimés et les éléments mis à jour retrouveront leurs valeurs précédentes. Annulation possible jusqu'au {date}.",
+    "undoWhat": "L'annulation supprime {created, plural, =0 {aucun élément créé} one {l'élément créé} other {les # éléments créés}} et remet {updated, plural, =0 {rien d'autre} one {l'élément mis à jour comme avant} other {les # éléments mis à jour comme avant}}.",
+    "undoModifiedNamed": "{count, plural, one {Une fiche a été modifiée à la main depuis l'import :} other {# fiches ont été modifiées à la main depuis l'import :}}",
+    "undoModifiedAt": "modifiée le {date}",
+    "undoModifiedSince": "modifiée depuis l'import",
+    "undoExceptModified": "{count, plural, one {Annuler l'import, sauf cette fiche} other {Annuler l'import, sauf ces # fiches}}",
+    "undoAll": "Tout annuler",
     "undoModifiedLegend": "{count, plural, one {Élément modifié à la main depuis l'import} other {# éléments modifiés à la main depuis l'import}}",
     "undoModifiedIntro": "Sans confirmation, ils sont gardés tels quels. Cochez ceux que vous voulez annuler quand même : vos modifications seront perdues.",
     "undoForce": "Annuler quand même : {title}",
@@ -3598,10 +3650,24 @@
     "fileRead": "Fichier lu : {format}, {size}, {rows, plural, one {# ligne} other {# lignes}}.",
     "columnHeaderFile": "Colonne du fichier",
     "columnHeaderSamples": "Exemples",
-    "columnHeaderBecomes": "Devient",
+    "columnHeaderBecomes": "Devient, sur la fiche",
+    "columnHeaderState": "État",
+    "columnsMapTitle": "Où va chaque colonne de votre fichier ?",
+    "columnsMapIntro": "{toChoose, plural, =0 {Symbola les a toutes reconnues ({total}) : vérifiez, puis continuez.} one {Symbola en a reconnu {recognized} sur {total}. Choisissez pour la dernière ; l'aperçu montre le résultat sur une fiche.} other {Symbola en a reconnu {recognized} sur {total}. Choisissez pour les # autres ; l'aperçu montre le résultat sur une fiche.}}",
+    "columnsMapTable": "Colonnes du fichier et ce qu'elles deviennent",
     "columnHeaderConfidence": "Confiance",
     "columnChoose": "Choisir…",
     "columnTargetFree": "Une note sur la fiche",
+    "columnTargetFreeHint": "Visible sur la fiche, rubrique « Notes ». Pas de filtre ni de calcul.",
+    "columnState": {
+      "recognized": "Reconnue",
+      "chosen": "Choisie",
+      "ignored": "Ignorée",
+      "todo": "À choisir"
+    },
+    "columnsPreviewTitle": "Aperçu : ligne 1 du fichier",
+    "columnsPreviewNotes": "Notes",
+    "columnsPreviewNote": "{column} : {value}",
     "confidencePercent": "{value} %",
     "confidenceProfile": "Export reconnu",
     "columnsToDecideTitle": "{count, plural, one {# colonne à décider} other {# colonnes à décider}}",
@@ -3632,6 +3698,32 @@
     "acceptSafeMatches": "Tout accepter ({count, plural, one {# proposition sûre} other {# propositions sûres}})",
     "matchesEmptyFilter": "Aucune ligne ici.",
     "matchesTable": "Lignes du fichier",
+    "matchCompareList": "Prestataires rapprochés, à vérifier côte à côte",
+    "matchCompareTitle": "Ligne {line} · {title} : est-ce le même prestataire ?",
+    "matchToVerify": "À vérifier",
+    "matchCheckOnlyFirstName": "Seul un mot du nom est commun (le prénom ?) : ce sont deux prestataires, sauf si vous dites le contraire.",
+    "matchCheckTypeAndCity": "Le métier et la ville diffèrent : vérifiez avant de dire que c'est le même.",
+    "matchCompareTable": "Ligne {line} du fichier et fiche existante",
+    "matchCompareField": "Information",
+    "matchCompareFile": "Ligne {line} du fichier",
+    "matchCompareExisting": "Fiche existante",
+    "matchCompareKey": {
+      "name": "Nom",
+      "type": "Métier",
+      "city": "Ville",
+      "email": "E-mail",
+      "phone": "Téléphone"
+    },
+    "matchDifferent": "différent",
+    "matchCompareRecord": "Fiche",
+    "matchOpenRecord": "Ouvrir la fiche (nouvel onglet)",
+    "matchEventCount": "{count, plural, =0 {aucun évènement} one {# évènement} other {# évènements}}",
+    "matchCurrentChoice": "Choix actuel : {choice}",
+    "matchChoiceSame": "C'est le même",
+    "matchChoiceTwo": "Ce sont deux prestataires",
+    "matchChoiceLater": "Décider plus tard",
+    "matchChoiceFor": "{choice} : {title}",
+    "matchOtherRecord": "Ce n'est pas cette fiche : en choisir une autre",
     "matchesHeaderLine": "Ligne",
     "matchesHeaderElement": "Dans le fichier",
     "matchesHeaderProposal": "Déjà dans Symbola",
@@ -3655,6 +3747,9 @@
     "startQuestion": "Que voulez-vous reprendre ?",
     "otherFileTitle": "Un autre fichier",
     "otherFileBody": "Événements, tâches, lignes de budget, catalogue, listes… depuis un tableur (CSV, Excel) ou un fichier JSON.",
+    "screenGroup": {
+      "evenements": "Importer des évènements"
+    },
     "resumeImport": "Reprendre",
     "resumeImportFor": "Reprendre l'import de {file}",
     "importButton": {
@@ -3678,6 +3773,32 @@
       "catalog_items": "{count, plural, one {Voir l'article} other {Voir les # articles}}",
       "contacts": "{count, plural, one {Voir le contact} other {Voir les # contacts}}"
     },
+    "finishTitle": "Import terminé",
+    "finishSummaryTitle": "Bilan de l'import",
+    "finishImportedOn": "{fileName}, importé le {date}.",
+    "finishFigure": {
+      "created": "{count, plural, one {créé} other {créés}}",
+      "updated": "{count, plural, other {mis à jour}}",
+      "ignored": "{count, plural, one {ignorée (vide, en erreur ou inchangée)} other {ignorées (vides, en erreur ou inchangées)}}",
+      "kept": "{count, plural, one {colonne gardée comme note} other {colonnes gardées comme note}}"
+    },
+    "finishCount": "{count} {label}",
+    "finishHistory": "Historique des imports",
+    "finishCheck": {
+      "vendors": "{count, plural, one {Vérifier le prestataire} other {Vérifier les # prestataires}}"
+    },
+    "finishBack": {
+      "vendors": "Revenir à mes prestataires",
+      "events": "Revenir à mes évènements",
+      "event_sheets": "Revenir à mes évènements",
+      "tasks": "Revenir à mes tâches",
+      "catalog_items": "Revenir au catalogue",
+      "contacts": "Revenir à mes contacts"
+    },
+    "finishCheckHint": "« Vérifier » ouvre la liste filtrée sur cet import (pastille « Import du {date} », que vous pouvez retirer).",
+    "finishIgnoredDetail": "{rejected, plural, =0 {Aucune ligne rejetée} one {# ligne rejetée (vide ou en erreur)} other {# lignes rejetées (vides ou en erreur)}} ; {unchanged, plural, =0 {aucune ligne sans changement} one {# ligne sans changement (déjà à jour)} other {# lignes sans changement (déjà à jour)}}.",
+    "finishKeptDetail": "Gardées comme note sur chaque fiche : {columns}.",
+    "finishJournalDetails": "Détails du journal (fichier, auteur, dates)",
     "confidenceProposal": "{field} ? ({value} %, à confirmer)",
     "journalTable": "Tableau du journal des imports",
     "rowsIntro": "Votre fichier mêle peut-être plusieurs sortes de contacts. Cochez les valeurs dont vous ne voulez pas ici (vos prestataires, par exemple) : leurs lignes ne seront pas importées. Elles restent au rapport des écarts, d'où vous pouvez les télécharger pour les importer ailleurs.",
@@ -3701,6 +3822,21 @@
     "decisionKeep": "Garder la ligne",
     "decisionKeepFor": "Garder la ligne {title}",
     "contactSameLine": "La ligne {line}, à la même adresse e-mail",
+    "loading": {
+      "title": "Import en cours…",
+      "fileLine": "{fileName} · {count, plural, one {# ligne} other {# lignes}}",
+      "files": "{count} fichiers",
+      "progressLabel": "Avancement de l'import",
+      "file": "Lecture du fichier",
+      "fileDone": "Fichier lu : {count, plural, one {# ligne} other {# lignes}}",
+      "columns": "Reconnaissance des colonnes",
+      "columnsDone": "Colonnes reconnues : {recognized} sur {total}",
+      "matches": "Recherche des doublons",
+      "matchesAt": "Recherche des doublons : ligne {done} sur {total}",
+      "preview": "Préparation de l'aperçu",
+      "nothingSaved": "Rien n'est encore enregistré. Vous pouvez fermer : l'import continue.",
+      "close": "Fermer"
+    },
     "typesCombinedFrom": "Vient de {labels} : plusieurs métiers sur la même fiche"
   },
   "Privacy": {
@@ -5086,6 +5222,12 @@
       "max": "{field} : au plus {value}",
       "eq": "{field} : {value}"
     },
+    "importVendors": "Importer",
+    "importFilterPill": "Import du {date}",
+    "importFilterCreated": "Import du {date} : créés",
+    "importFilterUpdated": "Import du {date} : mis à jour",
+    "importFilterRemove": "Retirer le filtre « Import du {date} »",
+    "importFilterJournal": "Voir le bilan de l'import",
     "trades": "Métiers",
     "tradesHint": "Cochez tous les métiers de ce prestataire. Le principal donne la couleur et l'icône sur la carte.",
     "tradesNone": "Aucun métier au carnet pour l'instant : ajoutez-en dans les réglages des prestataires.",
@@ -5858,7 +6000,11 @@
       "hub_storage_quota_alerted": "Alerte de quota de stockage",
       "hub_feature_flag_opened": "Fonction ouverte par l'Exploitation",
       "hub_feature_flag_closed": "Fonction refermée par l'Exploitation",
-      "hub_plan_catalog_updated": "Catalogue des offres modifié"
+      "hub_plan_catalog_updated": "Catalogue des offres modifié",
+      "hub_module_request_created": "Activation d'une app demandée",
+      "hub_module_request_cancelled": "Demande d'activation annulée",
+      "hub_module_request_activated": "App demandée activée",
+      "hub_module_request_declined": "Demande d'activation classée par l'Exploitation"
     },
     "categories": {
       "connexion": "Connexions",
@@ -6065,7 +6211,8 @@
       "events_messages": "message",
       "events_message_attachments": "pièce jointe d'un message",
       "vendors_vendor_type_links": "métier d'un prestataire",
-      "events_task_categories": "catégorie de tâche"
+      "events_task_categories": "catégorie de tâche",
+      "hub_module_requests": "une demande d'activation d'une app"
     },
     "modules": {
       "events": "Événements",
@@ -8941,7 +9088,8 @@
       "revoke": "Retirer les liens de {name}",
       "edit": "Modifier {name}",
       "remove": "Supprimer le foyer {name}",
-      "planLink": "Plan de table et synthèse pour le traiteur"
+      "planLink": "Plan de table et synthèse pour le traiteur",
+      "importHere": "Importer"
     },
     "portal": {
       "title": "Vos invités",
@@ -10644,6 +10792,11 @@
         "label": "E-mail rejeté",
         "text": "Un e-mail à {name} n'a pas été remis : vérifiez son adresse.",
         "action": "Voir le contact"
+      },
+      "module_activated": {
+        "label": "App activée",
+        "text": "L'app « {module} » est activée.",
+        "action": "Voir l'app"
       }
     },
     "center": {
@@ -11725,6 +11878,57 @@
       "not_cancellable": "L'abonnement ne peut pas être résilié dans son état actuel.",
       "not_resumable": "La résiliation ne peut plus être annulée.",
       "read_only": "Votre espace est en lecture seule : choisissez une offre pour reprendre."
+    }
+  },
+  "Apps": {
+    "title": "Apps",
+    "subtitle": "Les apps de Symbola : celles de votre organisation, et celles que vous pouvez ajouter.",
+    "ownerOnly": "Cet écran est réservé à la Propriétaire de l'organisation.",
+    "listLabel": "Apps de Symbola",
+    "pilotIntro": "<strong>Pendant le pilote</strong>, l'équipe Symbola active les apps pour vous, sans frais. Demandez celle qui vous manque : elle apparaît dans votre menu dès qu'elle est activée.",
+    "selfServiceIntro": "Ajoutez une app à votre abonnement : elle est activée tout de suite et se retire à tout moment depuis « Mon abonnement ».",
+    "status": {
+      "enabled": "Activée",
+      "disabled": "Non activée",
+      "requested": "Demandée le {date}"
+    },
+    "whereToFind": "Où la trouver : {place}",
+    "whereOnceEnabled": "Une fois activée : {place}",
+    "declined": "Votre demande du {date} a été close sans activation. Vous pouvez la refaire.",
+    "open": "Ouvrir",
+    "openLabel": "Ouvrir {app}",
+    "request": "Demander l'activation",
+    "requestLabel": "Demander l'activation de {app}",
+    "requestTitle": "Activer « {app} »",
+    "requestBody": "Pendant le pilote, c'est sans frais. L'équipe Symbola reçoit votre demande et active l'app, en général dans la journée. Vous recevez une notification.",
+    "requestPrivacy": "L'équipe voit seulement le nom de votre organisation et l'app demandée, jamais vos évènements.",
+    "requestConfirm": "Envoyer la demande",
+    "cancelRequest": "Annuler la demande",
+    "cancel": "Annuler",
+    "requested": "Votre demande est envoyée. Vous recevrez une notification dès que « {app} » sera activée.",
+    "requestCancelled": "Votre demande est annulée.",
+    "add": "Ajouter à mon abonnement",
+    "addLabel": "Ajouter à mon abonnement : {app}",
+    "addTitle": "Ajouter « {app} » à mon abonnement",
+    "addBody": "Activée tout de suite ; se retire à tout moment depuis « Mon abonnement ». L'écart au prorata va sur la facture suivante.",
+    "addConfirmMonthly": "Ajouter pour {amount} HT par mois",
+    "addConfirmYearly": "Ajouter pour {amount} HT par an",
+    "offerCaption": "Prix de l'app et nouveau total",
+    "pricePerMonth": "{amount} HT par mois",
+    "pricePerYear": "{amount} HT par an",
+    "prorata": "Au prorata jusqu'au {date}",
+    "newTotalMonthly": "Nouveau total mensuel",
+    "newTotalYearly": "Nouveau total annuel",
+    "changePlan": "Choisir une offre",
+    "changePlanLabel": "Choisir une offre qui comprend {app}",
+    "managed": "Votre abonnement est réglé par l'équipe Symbola.",
+    "errors": {
+      "forbidden": "Seule la Propriétaire de l'organisation gère les apps.",
+      "unknown_module": "Cette app n'existe pas.",
+      "already_enabled": "Cette app est déjà activée.",
+      "self_service": "Ajoutez cette app à votre abonnement : la demande n'est plus nécessaire.",
+      "not_found": "Cette demande n'est plus en attente.",
+      "managed": "Cette app ne s'ajoute pas ici : votre abonnement est réglé par l'équipe Symbola ou passe par « Mon abonnement »."
     }
   },
   "AdminPlans": {

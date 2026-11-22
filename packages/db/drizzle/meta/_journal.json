@@ -1401,6 +1401,20 @@
       "when": 1795305118307,
       "tag": "0199_lot63e_vendors_drop_type_id",
       "breakpoints": true
+    },
+    {
+      "idx": 200,
+      "version": "7",
+      "when": 1795308697610,
+      "tag": "0200_lot63g_hub_module_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 201,
+      "version": "7",
+      "when": 1795308698610,
+      "tag": "0201_lot63b_events_program_hidden",
+      "breakpoints": true
     }
   ]
 }

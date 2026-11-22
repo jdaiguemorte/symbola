@@ -470,6 +470,8 @@ export async function setModuleEnabled(
     details: { module: input.moduleKey },
     actor: { kind: "admin", id: input.adminUserId },
   });
+  // Lot 63g (HUB-06, HUB-15 ; ADR 0108) : l'app demandée est activée, la planner est prévenue.
+  if (input.enabled) await settleModuleRequests(db, { organizationId: input.organizationId, moduleKeys: [input.moduleKey] });
 }
 
 export type OrganizationProfile = {
@@ -1514,6 +1516,7 @@ export {
 } from "./subscriptions";
 export { subscriptionMail, type SubscriptionMail } from "./subscription-mails";
 export {
+  appOffer,
   BILLING_PERIODS,
   entitledModules,
   findOption,
@@ -1524,10 +1527,29 @@ export {
   storageQuotaBytes,
   subscriptionPrice,
   validateSelection,
+  type AppOffer,
   type BillingPeriod,
   type SelectionProblem,
   type SubscriptionSelection,
   type SubscriptionStatus,
 } from "./subscription-rules";
+// Lot 63g (HUB-06, HUB-15, HUB-27, SEC-09 ; ADR 0108) : écran « Apps » et demandes d'activation.
+import { settleModuleRequests } from "./module-requests";
+export {
+  appHref,
+  cancelModuleRequest,
+  declineModuleRequest,
+  listModuleRequests,
+  listPendingModuleRequests,
+  ModuleRequestError,
+  moduleActivationPath,
+  requestModuleActivation,
+  settleModuleRequests,
+  type ModuleActivationPath,
+  type ModuleRequestRefusal,
+  type ModuleRequestStatus,
+  type ModuleRequestView,
+  type PendingModuleRequest,
+} from "./module-requests";
 export { FEATURE_FLAG_KEYS, isFeatureEnabled, isFeatureFlagKey, listFeatureFlags, setFeatureFlagForOrganization, setFeatureFlagOpenToAll, UnknownFeatureFlagError, type FeatureFlagKey, type FeatureFlagView } from "./feature-flags";
 export { getStorageQuota, isUploadBlocked, recordStorageMeasure, refreshStorageQuota, storageMeasureIsStale, type StorageQuotaView } from "./storage-quota";
