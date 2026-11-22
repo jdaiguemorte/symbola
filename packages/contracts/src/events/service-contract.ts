@@ -635,7 +635,8 @@ export type NotifyProgramVersionInput = {
 };
 
 // notSent : e-mails non partis (plafond d'envois atteint, messagerie en panne).
-export type ProgramNotification = { version: number; sent: number; notSent: number };
+// Lot 65d (ADR 0110) : prepared, les messages préparés pour la messagerie de la planner (rien n'est parti).
+export type ProgramNotification = { version: number; sent: number; notSent: number; prepared?: number };
 
 export type ProgramTemplateItem = {
   id: string;

@@ -20,6 +20,8 @@ const NATURE: Record<TodayItemKind, TodayNature> = {
   vendor_contract: "follow_ups",
   vendor_roadmap: "follow_ups",
   link_renewal: "follow_ups",
+  // Lot 65d (ADR 0110) : les messages « À envoyer » sont des relances, au sens de M15.
+  email_to_send: "follow_ups",
   client_payment: "payments",
   vendor_payment: "payments",
   payment_declaration: "payments",

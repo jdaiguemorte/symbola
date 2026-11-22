@@ -12,7 +12,7 @@
 //   automatique est un réglage, désactivé par défaut. Les faits qui les arrêtent (« a répondu »,
 //   étape, confirmation, refus, action du prospect, nouvel envoi) sont revérifiés juste avant
 //   l'envoi. Symbola ne lit aucune boîte e-mail (D3).
-import type { AutomationHooks } from "@symbola/contracts";
+import type { AutomationHooks, PreparedEmailView, RelationDraft } from "@symbola/contracts";
 import { and, desc, eq, inArray, isNull, lte, max } from "drizzle-orm";
 import { createTranslator } from "next-intl";
 import frMessages from "@symbola/i18n/messages/fr.json";
@@ -37,7 +37,7 @@ import {
   type ProspectFollowUpSettings,
   type ReadyFollowUp,
 } from "@symbola/contracts";
-import { getDocumentHeader, getEmailTemplate, getMessageTemplate, renderMessageTemplate, sendOrganizationEmail, variableToken } from "@/modules/hub/service";
+import { depositPreparedEmail, getContactsByIds, getDocumentHeader, getEmailTemplate, getMessageTemplate, preparesRelationEmail, renderMessageTemplate, sendOrganizationEmail, variableToken } from "@/modules/hub/service";
 import { followUpStopReason, nextFollowUpToPrepare, validateFollowUpSteps, withOptOut, type FollowUpFacts } from "./follow-up-rules";
 import { formatLinkToken, hashLinkSecret, newLinkSecret, parseLinkToken } from "./link-tokens";
 import { organizationLinksClosed } from "./closed-organization";
@@ -263,7 +263,9 @@ function finalText(text: { subject: string; body: string }, values: EmailValues,
   return { subject: rendered.subject, body: rendered.body };
 }
 
-export type ProspectSendResult = { messageIds: string[]; subject: string; body: string; deferred: boolean; brochureExpiresAt: string | null };
+// Lot 65d (ADR 0110) : preparedIds, les messages préparés pour la messagerie de la planner (« préparé »),
+// un par destinataire, que la fenêtre « Préparer l'e-mail » ouvre.
+export type ProspectSendResult = { messageIds: string[]; subject: string; body: string; deferred: boolean; brochureExpiresAt: string | null; preparedIds: string[] };
 
 // Envoyer depuis Symbola (« sent ») ou préparer pour la messagerie de la planner (« prepared ») : le
 // message est rangé dans l'historique de chaque destinataire ; les relances en attente de l'évènement
@@ -287,7 +289,11 @@ export async function sendProspectMessage(input: ProspectSendInput): Promise<Pro
   const final = finalText(text, { ...input.values, ...(brochure ? { brochure: brochure.url } : {}) }, input.locale);
 
   let deferred = false;
-  if (input.delivery === "sent") {
+  // Lot 65d (MSG-01 ; ADR 0110) : quand la planner envoie de sa messagerie, le message est toujours
+  // « préparé », jamais envoyé par Symbola.
+  const plannerSends = await preparesRelationEmail(input.organizationId, "prospect_reply");
+  const delivery = input.delivery === "sent" && plannerSends ? "prepared" : input.delivery;
+  if (delivery === "sent") {
     for (const recipient of input.recipients) {
       const outcome = await sendOrganizationEmail({ organizationId: input.organizationId, to: recipient.email, kind: "prospect_reply", locale: input.locale, values: {}, template: final });
       deferred ||= outcome.deferred;
@@ -302,7 +308,7 @@ export async function sendProspectMessage(input: ProspectSendInput): Promise<Pro
           eventId: input.eventId,
           contactId: recipient.contactId,
           kind: "reply" as const,
-          delivery: input.delivery,
+          delivery,
           templateId: template?.id ?? null,
           templateVersion: template?.version ?? null,
           subject: final.subject,
@@ -316,10 +322,17 @@ export async function sendProspectMessage(input: ProspectSendInput): Promise<Pro
       )
       .returning({ id: eventMessages.id });
     await stopPendingFollowUps(tx, input.eventId, "new_message", now);
-    if (input.delivery === "sent") await appendAudit(tx, { organizationId: input.organizationId, action: "events.prospect_message.sent", objectId: input.eventId, details: { recipients: input.recipients.length } });
+    if (delivery === "sent") await appendAudit(tx, { organizationId: input.organizationId, action: "events.prospect_message.sent", objectId: input.eventId, details: { recipients: input.recipients.length } });
     return rows.map((row) => row.id);
   });
-  return { messageIds, subject: final.subject, body: final.body, deferred, brochureExpiresAt: brochure?.expiresAt.toISOString() ?? null };
+  const preparedIds: string[] = [];
+  if (delivery === "prepared" && plannerSends) {
+    for (const [index, recipient] of input.recipients.entries()) {
+      const { id } = await depositPreparedEmail({ organizationId: input.organizationId, kind: "prospect_reply", eventId: input.eventId, recipientType: "contact", recipientId: recipient.contactId, ref: { messageId: messageIds[index]! }, origin: "gesture", sourceKey: `prospect-message:${messageIds[index]!}` });
+      preparedIds.push(id);
+    }
+  }
+  return { messageIds, subject: final.subject, body: final.body, deferred, brochureExpiresAt: brochure?.expiresAt.toISOString() ?? null, preparedIds };
 }
 
 async function stopPendingFollowUps(tx: Tx, eventId: string, reason: FollowUpStopReason, now: Date): Promise<number> {
@@ -526,7 +539,8 @@ export async function prepareDueFollowUps(input: {
     );
     if (inserted.length === 0) continue;
     result.prepared += 1;
-    if (settings.autoSend) {
+    // Lot 65d (ADR 0110) : quand la planner envoie de sa messagerie, la relance attend toujours sa relecture.
+    if (settings.autoSend && !(await preparesRelationEmail(input.organizationId, "prospect_follow_up"))) {
       // Une relance qui garde une variable vide attend la relecture de la planner.
       if (text.missing.length > 0) continue;
       const outcome = await sendProspectFollowUp({ organizationId: input.organizationId, followUpId: inserted[0]!.id, userId: null, locale: input.locale, now, external, recipients: context.recipients, values: context.values }).catch(() => null);
@@ -579,7 +593,8 @@ export async function listReadyFollowUps(organizationId: string, now: Date = new
   });
 }
 
-export type FollowUpSendOutcome = { status: "sent"; deferred: boolean } | { status: "stopped"; reason: FollowUpStopReason } | { status: "already" };
+// Lot 65d (ADR 0110) : preparedIds, la relance préparée pour la messagerie de la planner.
+export type FollowUpSendOutcome = { status: "sent"; deferred: boolean; preparedIds?: string[] } | { status: "stopped"; reason: FollowUpStopReason } | { status: "already" };
 
 // Envoyer une relance (la planner après relecture, ou l'envoi automatique) : les faits sont revérifiés
 // juste avant ; une relance arrêtée entre la préparation et l'envoi ne part pas (critère CRM-06).
@@ -636,11 +651,16 @@ export async function sendProspectFollowUp(input: {
   }
   const final = finalText(text, { ...input.values, ...(brochure ? { brochure: brochure.url } : {}) }, input.locale);
   let deferred = false;
-  for (const recipient of recipients) {
-    const outcome = await sendOrganizationEmail({ organizationId: input.organizationId, to: recipient.email, kind: "prospect_follow_up", locale: input.locale, values: {}, template: final, idempotencyKey: `follow-up:${row.id}:${recipient.contactId}` });
-    deferred ||= outcome.deferred;
+  // Lot 65d (MSG-01 ; ADR 0110) : quand la planner envoie de sa messagerie, la relance relue est préparée
+  // (« préparé ») ; l'envoi automatique ne passe pas par ici dans ce cas (prepareDueFollowUps).
+  const prepared = await preparesRelationEmail(input.organizationId, "prospect_follow_up");
+  if (!prepared) {
+    for (const recipient of recipients) {
+      const outcome = await sendOrganizationEmail({ organizationId: input.organizationId, to: recipient.email, kind: "prospect_follow_up", locale: input.locale, values: {}, template: final, idempotencyKey: `follow-up:${row.id}:${recipient.contactId}` });
+      deferred ||= outcome.deferred;
+    }
   }
-  await inOrganization(input.organizationId, async (tx) => {
+  const messageIds = await inOrganization(input.organizationId, async (tx) => {
     const messages = await tx
       .insert(eventMessages)
       .values(
@@ -649,7 +669,7 @@ export async function sendProspectFollowUp(input: {
           eventId: row.eventId,
           contactId: recipient.contactId,
           kind: "follow_up" as const,
-          delivery: "sent" as const,
+          delivery: prepared ? ("prepared" as const) : ("sent" as const),
           subject: final.subject,
           body: final.body,
           brochureTokenHash: index === 0 ? (brochure?.hash ?? null) : null,
@@ -661,8 +681,15 @@ export async function sendProspectFollowUp(input: {
       .returning({ id: eventMessages.id });
     await tx.update(prospectFollowUps).set({ sentAt: now, sentMessageId: messages[0]!.id, subject: final.subject, body: final.body, updatedAt: now }).where(eq(prospectFollowUps.id, row.id));
     await appendAudit(tx, { organizationId: input.organizationId, action: "events.follow_up.sent", objectId: row.eventId, details: { rank: row.rank, automatic: input.userId === null } });
+    return messages.map((message) => message.id);
   });
-  return { status: "sent", deferred };
+  if (!prepared) return { status: "sent", deferred };
+  const preparedIds: string[] = [];
+  for (const [index, recipient] of recipients.entries()) {
+    const { id } = await depositPreparedEmail({ organizationId: input.organizationId, kind: "prospect_follow_up", eventId: row.eventId, recipientType: "contact", recipientId: recipient.contactId, ref: { messageId: messageIds[index]! }, origin: "gesture", sourceKey: `follow-up:${row.id}:${recipient.contactId}` });
+    preparedIds.push(id);
+  }
+  return { status: "sent", deferred, preparedIds };
 }
 
 // La planner retire une relance prête : elle ne part pas ; la suivante viendra à son jour.
@@ -693,3 +720,16 @@ export async function lastPlannerMessages(organizationId: string, eventIds: stri
 }
 
 export type { ReadyFollowUp };
+
+// Lot 65d (MSG-01 ; ADR 0110) — la réponse ou la relance d'un prospect, préparée pour la messagerie de
+// la planner : le texte final rangé dans l'historique du contact (déjà relu par la planner), l'adresse
+// relue au carnet de contacts. null : le message ou le contact n'existent plus.
+export async function draftProspectRelationEmail(organizationId: string, item: PreparedEmailView): Promise<RelationDraft | null> {
+  if (!item.ref.messageId || !UUID.test(item.ref.messageId)) return null;
+  const [message] = await inOrganization(organizationId, (tx) => tx.select().from(eventMessages).where(eq(eventMessages.id, item.ref.messageId!)));
+  if (!message || message.eventId !== item.eventId || message.contactId !== item.recipientId) return null;
+  const contact = (await getContactsByIds(organizationId, [item.recipientId])).get(item.recipientId);
+  if (!contact?.email || message.subject === null || message.body === null) return null;
+  // Le texte est déjà rendu dans sa langue : la langue ne sert plus à rien ici.
+  return { to: contact.email, recipientName: contact.displayName, locale: "fr", values: {}, text: { subject: message.subject, body: message.body } };
+}

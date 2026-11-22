@@ -30,11 +30,13 @@ import {
   type ClosingStep,
   type TemplateFinding,
 } from "@/modules/events/service";
-import { sendOrganizationEmail } from "@/modules/hub/service";
+import { depositPreparedEmail, preparesRelationEmail, sendOrganizationEmail } from "@/modules/hub/service";
+import type { PreparedEmailDraft } from "@symbola/contracts";
 import { InvalidEvaluationError } from "@/modules/vendors/service";
 import { isEventsModuleEnabled, isValidId } from "../../module-access";
 
-export type ClosingFormState = { error?: string; success?: boolean; findings?: TemplateFinding[] };
+// Lot 65d (ADR 0110) : prepared, les remerciements préparés pour la messagerie de la planner.
+export type ClosingFormState = { error?: string; success?: boolean; findings?: TemplateFinding[]; prepared?: PreparedEmailDraft[] };
 
 type T = Awaited<ReturnType<typeof getTranslations>>;
 type Access = { organizationId: string; userId: string; t: T };
@@ -248,6 +250,10 @@ export async function sendReviewRequestAction(_state: ClosingFormState, formData
   const eventId = eventIdOf(formData);
   if (!eventId) return { error: allowed.t("errors.notFound") };
   const locale = (await getLocale()) === "en" ? "en" : "fr";
+  // Lot 65d (MSG-01 ; ADR 0110) : quand la planner envoie de sa messagerie, chaque remerciement est
+  // préparé (son texte relu reste dans la fenêtre « Préparer l'e-mail ») ; rien ne part de Symbola.
+  const plannerSends = await preparesRelationEmail(allowed.organizationId, "prospect_reply");
+  const prepared: PreparedEmailDraft[] = [];
   const result = await guarded(allowed.t, async () => {
     const event = await getEvent(allowed.organizationId, eventId);
     if (!event) throw new EventNotFoundError();
@@ -260,10 +266,15 @@ export async function sendReviewRequestAction(_state: ClosingFormState, formData
       body: String(formData.get("body") ?? ""),
       withReview: formData.get("withReview") === "1",
       sendMail: async (recipient, text) => {
+        if (plannerSends) {
+          const { id } = await depositPreparedEmail({ organizationId: allowed.organizationId, kind: "prospect_reply", eventId, recipientType: "contact", recipientId: recipient.contactId, ref: { review: "1" }, origin: "gesture" });
+          prepared.push({ id, kind: "prospect_reply", eventId, to: recipient.email, recipientName: recipient.firstName, subject: text.subject, body: text.body, renewedLink: false, pdfHref: null, problem: null });
+          return;
+        }
         await sendOrganizationEmail({ organizationId: allowed.organizationId, to: recipient.email, kind: "prospect_reply", locale, values: {}, template: text });
       },
     });
   });
   refresh(eventId);
-  return result;
+  return prepared.length > 0 ? { ...result, prepared } : result;
 }

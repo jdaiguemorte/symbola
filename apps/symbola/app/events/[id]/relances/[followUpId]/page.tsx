@@ -9,6 +9,7 @@ import { PageHeader } from "@/app/ui/page-header";
 import { ScreenHelp } from "@/app/screen-help";
 import { requirePlanner } from "@/lib/guards";
 import { eventNames, getEvent, getProspectFollowUp } from "@/modules/events/service";
+import { preparesRelationEmail } from "@/modules/hub/service";
 import { isEventsModuleEnabled, isValidId } from "../../../module-access";
 import { FollowUpForm } from "./follow-up-form";
 
@@ -34,7 +35,7 @@ export default async function FollowUpReviewPage({ params }: { params: Promise<{
       ) : followUp.stopReason ? (
         <p role="status">{t(`stopped.${followUp.stopReason}`)}</p>
       ) : (
-        <FollowUpForm eventId={event.id} followUpId={followUp.id} subject={followUp.subject} body={followUp.body} />
+        <FollowUpForm eventId={event.id} followUpId={followUp.id} subject={followUp.subject} body={followUp.body} plannerSends={await preparesRelationEmail(organizationId, "prospect_follow_up")} />
       )}
     </main>
   );

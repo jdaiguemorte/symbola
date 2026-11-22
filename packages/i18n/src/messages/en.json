@@ -458,7 +458,7 @@
     },
     "home": {
       "title": "Today",
-      "body": "What needs your attention, across all events, sorted by urgency: overdue, today, waiting on someone else (the client or a vendor), then the next fourteen days. “Deal with first” keeps the first seven items, grouped by kind (follow-ups and messages, tasks, payments, decisions and signatures, prospects); each part gives its count and leads to its page (“See in Tasks”, “See payments received”…), each line says who has to act and leads to the action in one click. Below, full width, the calendar: your events, appointments, tasks in the colour of their category and unpaid vendor due dates; “‹”, “Today” and “›” page through it, “Month”, “Week” and “List” change the view, a click on a day shows its detail. On a phone, the current week. Then the remaining items, and your events in progress, with the countdown.",
+      "body": "What needs your attention, across all events, sorted by urgency: overdue, today, waiting on someone else (the client or a vendor), then the next fourteen days. “Deal with first” keeps the first seven items, grouped by kind (follow-ups and messages, tasks, payments, decisions and signatures, prospects); each part gives its count and leads to its page (“See in Tasks”, “See payments received”…), each line says who has to act and leads to the action in one click. Below, full width, the calendar: your events, appointments, tasks in the colour of their category and unpaid vendor due dates; “‹”, “Today” and “›” page through it, “Month”, “Week” and “List” change the view, a click on a day shows its detail. On a phone, the current week. Then the remaining items, and your events in progress, with the countdown. “To send”: a relationship message prepared by Symbola (reminder, brief…), to send from your own mailbox; one click opens the “Prepare the email” window.",
       "faq": [
         {
           "q": "How do I change the follow-up delays for quotes and prospects?",
@@ -1144,7 +1144,7 @@
     },
     "emailTemplates": {
       "title": "Email templates",
-      "body": "The emails Symbola sends on your behalf (links, reminders, signature requests, schedule) come from these templates, in French and English according to each person's language. Edit the subject and text with the variables offered: an unknown variable is refused, and the link cannot be missing. The preview shows the email with sample data; “Send me a test” sends it to your own address only. An email with a variable that has no value is not sent: Symbola tells you which one. “Back to the starter text” erases your version."
+      "body": "Who sends the messages to your clients and vendors: by default, you, from your own mailbox. Symbola prepares each relationship message (proposal, reminders, brief, schedule, reply to a prospect…) in the “Prepare the email” window: “Open in my mailbox”, “Copy the message”, then “I've sent it”, which notes the sending in the event's activity. No attachment: the space link is in the message, or download the PDF. Automations leave a “To send” item in “Today”. With “Symbola sends them for me”, messages are sent by Symbola, with attachments and automatic reminders. Technical messages (access, signature, online appointments, security, notices) are always sent by Symbola. The templates below are used either way, in French and English according to each person's language: an unknown variable is refused, and the link cannot be missing. The preview shows the email with sample data; “Send me a test” sends it to your own address only. An email with a variable that has no value is not sent: Symbola tells you which one. “Back to the starter text” erases your version."
     },
     "messageTemplates": {
       "title": "Message templates",
@@ -2371,7 +2371,9 @@
     "taskDialogCancel": "Cancel",
     "taskDialogSave": "Save",
     "taskDialogDelete": "Delete the task",
-    "taskDialogOpenEvent": "Open the event's planning"
+    "taskDialogOpenEvent": "Open the event's planning",
+    "activityEmailSent": "{actor} sent “{kind}” from their mailbox.",
+    "activityFormerMember": "A team member"
   },
   "Budget": {
     "title": "Budget",
@@ -6224,7 +6226,9 @@
       "events_busy_settings": "busy time settings",
       "vendors_vendor_type_links": "vendor trade",
       "events_task_categories": "task category",
-      "hub_module_requests": "an app activation request"
+      "hub_module_requests": "an app activation request",
+      "hub_prepared_emails": "a message prepared for the planner's mailbox",
+      "hub_relation_mail_settings": "the “who sends the messages” setting"
     },
     "modules": {
       "events": "Events",
@@ -7231,7 +7235,8 @@
       },
       "vendorBankCheck": "{vendor}'s IBAN changed: check it by phone before any payment",
       "standaloneTaskTag": "Outside events",
-      "closingDue": "To close"
+      "closingDue": "To close",
+      "emailToSend": "To send: {kind}"
     },
     "myEventsTitle": "My events",
     "myEventsEmpty": "No event in progress.",
@@ -8090,7 +8095,20 @@
     "errorBodyTooLong": "The text is longer than {max} characters.",
     "variableMissing": "The “{template}” email cannot be sent: a variable has no value ({tokens}). Complete the record, or fix the template in Settings, Email templates.",
     "todayBanner": "{count, plural, one {The automatic reminder of one event is not being sent} other {The automatic reminders of # events are not being sent}}: a variable of the “{template}” template has no value.",
-    "todayBannerLink": "Fix the template"
+    "todayBannerLink": "Fix the template",
+    "sender": {
+      "legend": "Who sends the messages to your clients and vendors",
+      "planner": "I send them from my mailbox",
+      "plannerHint": "Symbola prepares each message (proposal, payment details, reminders, brief, schedule, reply to a prospect…) with the personal links already inserted; you send it from your mailbox, with your signature. Automations leave a “To send” item in “Today”.",
+      "symbola": "Symbola sends them for me",
+      "symbolaHint": "Messages are sent by Symbola, from your sending address, with the quote or schedule attached and automatic reminders.",
+      "technical": "Either way, Symbola itself sends the technical messages: access links, signature and signed copy, online appointments, account security and team notices.",
+      "save": "Save",
+      "saved": "Setting saved.",
+      "error": "Setting refused: choose one of the two options.",
+      "preparedBadge": "Prepared for your mailbox",
+      "sentBadge": "Sent by Symbola"
+    }
   },
   "Calendar": {
     "personFeed": "{organization} — events",
@@ -8665,7 +8683,8 @@
     "empty": "The subject and the text are required.",
     "tooLong": "The subject or the text is too long.",
     "quota": "The hourly email limit is reached: try again a little later.",
-    "refused": "Not possible on this event."
+    "refused": "Not possible on this event.",
+    "prepareEmail": "Prepare the email"
   },
   "Trash": {
     "title": "Trash",
@@ -9632,7 +9651,9 @@
       "stopped": "Not sent: you asked to stop following up this contact.",
       "withdrawn": "Follow-up withdrawn: it will not go out.",
       "no_recipient": "Not sent: the contact no longer has an email address."
-    }
+    },
+    "prepare": "Prepare the email",
+    "prepared": "Follow-up prepared for your mailbox: send it, then note “I've sent it”."
   },
   "EventQuestionnaires": {
     "title": "Questionnaires",
@@ -11342,7 +11363,8 @@
       "reviewPlaceholder": "A variable in braces is still in the message: replace it.",
       "reviewNoRecipient": "No recipient.",
       "mailQuota": "Email quota reached: try again later."
-    }
+    },
+    "prepared": "Thank-you messages prepared for your mailbox: send them, then note “I've sent it”."
   },
   "EventTemplates": {
     "title": "Event templates",
@@ -12491,5 +12513,33 @@
     "notFound": "This category no longer exists.",
     "priorityTitle": "Task priority",
     "priorityBody": "Two levels: « Normal », the default, and « High ». A high task carries the « High » badge in the list, the planning and the calendar. The priority is chosen in the task window."
+  },
+  "PrepareEmail": {
+    "title": "Prepare the email",
+    "intro": "Read the message, edit it if needed, then send it from your own mailbox: nothing is sent by Symbola.",
+    "position": "Message {n} of {total}",
+    "to": "To",
+    "toValue": "{name} <{email}>",
+    "subject": "Subject",
+    "body": "Message",
+    "open": "Open in my mailbox",
+    "openHint": "Your mailbox opens a new message, with your signature. If nothing opens, copy the message.",
+    "copy": "Copy the message",
+    "copied": "Message copied: paste it into your mailbox.",
+    "copyFailed": "Copy failed: select the text of the message and copy it.",
+    "sent": "I've sent it",
+    "sentDone": "Sending noted: it appears in the event's activity.",
+    "dismiss": "Don't send it",
+    "dismissed": "Message set aside: it leaves “To send”.",
+    "pdf": "Download the PDF",
+    "noAttachment": "No attachment: the message points to the personal space. To attach the PDF, download it and add it in your mailbox.",
+    "renewedLink": "A new personal link was just created for this message: the previous one no longer works. Send this message so that {name} keeps access.",
+    "missingVariable": "This message cannot be prepared: its template uses a variable with no value. Fix it in Settings › Email templates, or complete the record.",
+    "unavailable": "This message is no longer needed (link removed, instalment paid, answer already received…), or its text is no longer available: prepare it again from its screen.",
+    "loading": "Preparing the message…",
+    "none": "No message to prepare: it has already been sent or set aside.",
+    "error": "Action not possible right now: try again.",
+    "next": "Next message",
+    "previous": "Previous message"
   }
 }

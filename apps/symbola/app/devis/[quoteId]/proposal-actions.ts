@@ -4,9 +4,11 @@
 // mot d'accueil du brouillon, annonce par e-mail, prolongation de la validité, suspension et reprise
 // des relances d'une échéance (motif). Session planner, organisation et module contrôlés côté serveur.
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import {
   extendQuoteValidity,
+  getQuote,
   notifyProposalSent,
   ProposalTemplateInvalidError,
   QuoteNotFoundError,
@@ -16,6 +18,7 @@ import {
   suspendPaymentReminders,
   ValidityExtensionError,
 } from "@/modules/quotes/service";
+import { pendingPreparedEmailIds, withPreparer } from "@/lib/prepared-emails";
 import { isValidId } from "../module-access";
 import { authorizedPlanner } from "../planner-access";
 import type { QuoteFormState } from "./actions";
@@ -53,6 +56,10 @@ export async function notifyProposalAction(_prev: QuoteFormState, formData: Form
   return run(formData, async ({ organizationId }, quoteId) => {
     const sent = await notifyProposalSent(organizationId, quoteId, locale);
     if (sent === 0) return { error: t("errors.noRecipient") };
+    // Lot 65d (ADR 0110) : préparée pour la messagerie de la planner, la fenêtre s'ouvre aussitôt.
+    const quote = await getQuote(organizationId, quoteId);
+    const prepared = await pendingPreparedEmailIds(organizationId, { eventId: quote.eventId, kinds: ["proposal_sent"], ref: { quoteId } });
+    if (prepared.length > 0) redirect(withPreparer(`/devis/${quoteId}`, prepared));
   });
 }
 

@@ -3,7 +3,7 @@ import { venueChecksFor } from "@/lib/events/venue-checks";
 import { EventNotesForbiddenError, readEventConfidentialNotes } from "@/modules/events/service";
 import { VenueCapacityNotice, VenueFindings } from "./venue-findings";
 import { PageHeader } from "@/app/ui/page-header";
-import { listCalendarFeeds } from "@/modules/hub/service";
+import { listCalendarFeeds, listPreparedEmails } from "@/modules/hub/service";
 import { ImportedFields } from "../../imported-fields";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -220,6 +220,11 @@ export default async function EventDetailPage({
     listEventLinks(organizationId, id),
     listEventActivity(organizationId, id),
   ]);
+  // Lot 65d (MSG-01 ; ADR 0110) : les messages de la relation que la planner a dit avoir envoyés de sa
+  // messagerie, dans le fil d'activité (le modèle et la personne de l'équipe, jamais l'adresse).
+  const sentEmails = await listPreparedEmails(organizationId, { eventId: id, status: "sent" });
+  const senders = sentEmails.length > 0 ? new Map((await listTeam(appDatabase(), organizationId)).map((member) => [member.id, member.email])) : new Map<string, string>();
+  const tEmailKinds = await getTranslations("EmailTemplates");
   // Lot 44 (CRM-01, D5) : la demande reçue par le formulaire de contact, affichée telle quelle.
   const prospectRequest = await getEventProspectRequest(organizationId, id);
   const programLabels = new Map(
@@ -888,17 +893,29 @@ export default async function EventDetailPage({
           <ProspectExchanges organizationId={organizationId} eventId={event.id} isOption={event.status === "option"} locale={locale === "en" ? "en" : "fr"} />
           <section className="card" aria-labelledby="activity-title">
             <h2 id="activity-title">{t("activityTitle")}</h2>
-            {activity.length === 0 ? <p>{t("noActivity")}</p> : null}
+            {activity.length === 0 && sentEmails.length === 0 ? <p>{t("noActivity")}</p> : null}
             <ul aria-label={t("activityTitle")}>
-              {activity.map((entry) => (
-                <li key={entry.id}>
-                  {eventTime(entry.createdAt)} —{" "}
-                  {t(entry.kind === "task_done" ? "activityTaskDone" : entry.kind === "decision_made" ? "activityDecisionMade" : entry.kind === "vendor_reminded" ? "activityVendorReminded" : entry.kind === "document_link_opened" ? "activityDocumentLinkOpened" : entry.kind === "stage_changed" ? "activityStageChanged" : "activityTaskUndone", {
+              {[
+                ...activity.map((entry) => ({
+                  id: entry.id,
+                  at: entry.createdAt,
+                  text: t(entry.kind === "task_done" ? "activityTaskDone" : entry.kind === "decision_made" ? "activityDecisionMade" : entry.kind === "vendor_reminded" ? "activityVendorReminded" : entry.kind === "document_link_opened" ? "activityDocumentLinkOpened" : entry.kind === "stage_changed" ? "activityStageChanged" : "activityTaskUndone", {
                     actor: entry.actorName ?? t("activityFormerClient"),
                     task: entry.taskLabel || (entry.kind === "vendor_reminded" ? t("activityVendorRemoved") : tDecisions("programLabel")),
-                  })}
-                </li>
-              ))}
+                  }),
+                })),
+                ...sentEmails.map((email) => ({
+                  id: email.id,
+                  at: email.sentAt ?? email.createdAt,
+                  text: t("activityEmailSent", { actor: (email.sentByUserId ? senders.get(email.sentByUserId) : null) ?? t("activityFormerMember"), kind: tEmailKinds(`kinds.${email.kind}.title`) }),
+                })),
+              ]
+                .sort((left, right) => right.at.localeCompare(left.at))
+                .map((entry) => (
+                  <li key={entry.id}>
+                    {eventTime(entry.at)} — {entry.text}
+                  </li>
+                ))}
             </ul>
           </section>
         </>

@@ -171,17 +171,17 @@ import {
 } from "./link-tokens";
 import { isSendingHour, reminderTaskLines, reminderThreshold, reminderThresholdStart, type ReminderTask } from "./task-reminders";
 import { clientTermForEvent as clientTermOf } from "./planning";
-import type { AutomationHooks } from "@symbola/contracts";
+import type { AutomationHooks, PreparedEmailView, RelationDraft } from "@symbola/contracts";
 import { recordAudit } from "@symbola/db/audit";
 import { resolveClientContacts } from "./clients";
-import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, getOrganizationLanguage, getUserContact, notificationRecipients, notify, sendOrganizationEmail, sendSymbolaEmail, updateContact } from "@/modules/hub/service";
+import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, depositPreparedEmail, getOrganizationLanguage, getUserContact, notificationRecipients, notify, preparesRelationEmail, sendOrganizationEmail, sendSymbolaEmail, updateContact } from "@/modules/hub/service";
 import { createTranslator } from "next-intl";
 import type { DayHelper, DayHelperInput, EmailTemplateKind, EmailValues, EventTeamMember, EventTeamRole, TrashedObject } from "@symbola/contracts";
 import { EVENT_TEAM_ROLES } from "@symbola/contracts";
 import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import { answerDecisionRow, findDecisionRow, findDecisionRows, insertDecisionRow, replacementsOf, withdrawDecisionRow, type EventDecisionRow } from "./decisions-repository";
-import { engageOptionChoice, engagementContext } from "./vendor-coordination";
+import { draftVendorRelationEmail, engageOptionChoice, engagementContext } from "./vendor-coordination";
 import { findLastVendorReminders, findPendingDecisions, findUncontractedVendors, insertVendorReminder } from "./today-sources";
 import { VendorCandidateNotFoundError as CandidateNotFoundError } from "./vendor-candidates";
 import { answerProblem, DECISION_NOTE_MAX, decisionOpenTo, programChangedSince } from "./decisions";
@@ -219,7 +219,8 @@ import {
   updateCandidate,
 } from "./vendor-candidates";
 import { addDayContact, listDayContacts, removeDayContact } from "./day-contacts";
-import { describeBrochureLink, openBrochureLink, prospectMessageValues, recordQuestionnaireSent, type ProspectRecipient } from "./prospect-messages";
+import { describeBrochureLink, draftProspectRelationEmail, openBrochureLink, prospectMessageValues, recordQuestionnaireSent, type ProspectRecipient } from "./prospect-messages";
+import { listEventQuestionnaires as listQuestionnairesOfEvent } from "./questionnaires";
 import {
   eventPrefillState,
   findResolvableAnswer,
@@ -1914,6 +1915,15 @@ export async function notifyProgramVersion(input: NotifyProgramVersionInput): Pr
     letters.push({ row, values });
   }
   if (!(await claimProgramNotification(organizationId, eventId, version.number, now))) throw new ProgramNotifyError("already_notified");
+  // Lot 65d (MSG-01 ; ADR 0110) : quand la planner envoie de sa messagerie, un message est préparé pour
+  // chaque personne (le programme est dans son espace, ou en PDF à joindre à la main).
+  if (await preparesRelationEmail(organizationId, "program_published")) {
+    for (const { row } of letters) {
+      await depositPreparedEmail({ organizationId, kind: "program_published", eventId, recipientType: "event_link", recipientId: row.linkId, ref: { version: String(version.number) }, origin: "gesture", sourceKey: `program:${eventId}:${version.number}:${row.linkId}` });
+    }
+    await recordProgramNotification(organizationId, eventId, version.number, letters.length);
+    return { version: version.number, sent: 0, notSent: 0, prepared: letters.length };
+  }
   let sent = 0;
   let failure: unknown = null;
   for (const { row, values } of letters) {
@@ -2862,6 +2872,9 @@ export async function sendClientTaskReminders(organizationId: string, now: Date 
     parisStartOfDay(today),
   );
   let sent = 0;
+  // Lot 65d (décision 2 du 22/11 ; ADR 0110) : quand la planner envoie de sa messagerie, le rappel est
+  // déposé « À envoyer » ; Symbola n'envoie rien.
+  const prepared = await preparesRelationEmail(organizationId, "task_reminder");
   for (const candidate of candidates) {
     if (candidate.sentToday || !usableLink(candidate.context, now)) continue;
     const due: (ReminderTask & { taskId: string })[] = candidate.tasks.flatMap((task) => {
@@ -2884,6 +2897,16 @@ export async function sendClientTaskReminders(organizationId: string, now: Date 
     } catch (error) {
       if (!(error instanceof EmailVariableMissingError)) throw error;
       await recordAudit(appDatabase(), { organizationId, action: "hub.mail.variable_missing", objectId: link.eventId, details: { kind: "task_reminder", locale, missing: error.missing.join(",") }, actor: SYSTEM_ACTOR });
+      continue;
+    }
+    if (prepared) {
+      const recorded = await withActor(SYSTEM_ACTOR, () =>
+        insertTaskRemindersRow({ organizationId, eventId: link.eventId, linkId: link.id, reminders: due.map(({ taskId, threshold }) => ({ taskId, threshold })), now }),
+      );
+      if (recorded === 0) continue;
+      await depositPreparedEmail({ organizationId, kind: "task_reminder", eventId: link.eventId, recipientType: "event_link", recipientId: link.id, origin: "automation", automationKey: "client_task_reminder", sourceKey: `task-reminder:${link.id}:${today}` });
+      sent += 1;
+      await hooks.onRun?.({ objectKey: link.id, href: `/events/${link.eventId}?onglet=retroplanning`, result: "sent" });
       continue;
     }
     try {
@@ -3853,7 +3876,7 @@ export async function publishAndNotifyDayShift(input: {
   userId: string;
   renderDocument: NotifyProgramVersionInput["renderDocument"];
   now: Date;
-}): Promise<{ sent: number; notSent: number }> {
+}): Promise<{ sent: number; notSent: number; prepared?: number }> {
   const { organizationId, eventId } = input;
   const program = await getEventProgram(organizationId, eventId);
   const published = await insertProgramVersion({ organizationId, eventId, userId: input.userId, items: publishedProgramItems(program.items), now: input.now });
@@ -3868,6 +3891,14 @@ export async function publishAndNotifyDayShift(input: {
   const slots = new Set(shift.vendorSlotIds);
   const rows = (await programRecipientRows(organizationId, eventId, input.now)).filter((row) => row.vendor && slots.has(row.vendor.vendorSlotId));
   const vocabulary = (await findEventAudience(organizationId, eventId)) ?? "couple";
+  // Lot 65d (MSG-01 ; ADR 0110) : préparé pour la messagerie de la planner, un message par prestataire.
+  if (await preparesRelationEmail(organizationId, "program_published")) {
+    for (const row of rows) {
+      await depositPreparedEmail({ organizationId, kind: "program_published", eventId, recipientType: "event_link", recipientId: row.linkId, ref: { version: String(latest.number) }, origin: "gesture", sourceKey: `day-shift:${shift.id}:${row.linkId}` });
+    }
+    await recordDayShiftNotification(organizationId, shift.id, rows.length);
+    return { sent: 0, notSent: 0, prepared: rows.length };
+  }
   let sent = 0;
   for (const row of rows) {
     try {
@@ -4124,7 +4155,9 @@ export async function sendEventQuestionnaire(input: { organizationId: string; ev
   const base = { organizationId: input.organizationId, eventId: input.eventId, audience: "client" as const, personName: client.firstName, locale: input.locale, vocabulary };
   const valuesFor = async (expiresOn: string | null, url?: string): Promise<EmailValues> => ({ ...(await linkEmailValues({ ...base, expiresOn, ...(url ? { url } : {}) })), questionnaire: frozen.name });
   await assertOrganizationEmailReady({ organizationId: input.organizationId, kind: "questionnaire_sent", locale: input.locale, values: await valuesFor(null) });
-  await reserveOrganizationMail(input.organizationId);
+  // Lot 65d (MSG-01 ; ADR 0110) : quand la planner envoie de sa messagerie, rien ne part : pas de plafond.
+  const prepared = await preparesRelationEmail(input.organizationId, "questionnaire_sent");
+  if (!prepared) await reserveOrganizationMail(input.organizationId);
   const secret = newLinkSecret();
   const existing = (await findEventLinkRows(input.organizationId, input.eventId)).find((context) => context.link.audience === "client" && context.link.eventClientId === client.id && !context.link.revokedAt);
   let context: LinkWithContext;
@@ -4156,9 +4189,76 @@ export async function sendEventQuestionnaire(input: { organizationId: string; ev
   const link = toEventLink(context, now);
   const url = linkUrl(formatLinkToken(input.organizationId, secret));
   const questionnaireId = await insertEventQuestionnaire({ organizationId: input.organizationId, eventId: input.eventId, contactId: client.contactId, linkId: link.id, frozen, now });
-  await sendOrganizationEmail({ organizationId: input.organizationId, to: link.email, kind: "questionnaire_sent", locale: input.locale, values: await valuesFor(link.expiresOn, url), reserve: false });
+  if (prepared) {
+    await depositPreparedEmail({ organizationId: input.organizationId, kind: "questionnaire_sent", eventId: input.eventId, recipientType: "event_link", recipientId: link.id, ref: { questionnaireId, locale: input.locale }, origin: "gesture", sourceKey: `questionnaire:${questionnaireId}` });
+  } else {
+    await sendOrganizationEmail({ organizationId: input.organizationId, to: link.email, kind: "questionnaire_sent", locale: input.locale, values: await valuesFor(link.expiresOn, url), reserve: false });
+  }
   await recordQuestionnaireSent({ organizationId: input.organizationId, eventId: input.eventId, contactId: client.contactId, userId: input.userId, name: frozen.name, now });
   return { questionnaireId, linkId: link.id, url };
+}
+
+// Lot 65d (MSG-01, HUB-28 ; ADR 0110) — la fenêtre « Préparer l'e-mail » : un message de la relation du
+// module Évènements, recomposé à l'ouverture depuis ses références, avec les mêmes valeurs qu'un envoi
+// par Symbola. Le lien personnel d'un message qui en porte un (questionnaire, brief, relance, feuille de
+// route) reçoit un nouveau jeton à l'ouverture, comme à chaque envoi par Symbola : l'ancien cesse
+// (renewedLink). null : le message n'a plus lieu d'être (lien retiré ou expiré, rien à rappeler).
+export async function draftEventsRelationEmail(organizationId: string, item: PreparedEmailView, now: Date = new Date()): Promise<RelationDraft | null> {
+  if (!item.eventId) return null;
+  const eventId = item.eventId;
+  switch (item.kind) {
+    case "program_published": {
+      const row = (await programRecipientRows(organizationId, eventId, now)).find((candidate) => candidate.linkId === item.recipientId);
+      if (!row) return null;
+      const vocabulary = (await findEventAudience(organizationId, eventId)) ?? "couple";
+      const values: EmailValues = { ...(await linkEmailValues({ organizationId, eventId, audience: row.audience, personName: row.name, locale: row.locale, vocabulary, expiresOn: null })), version: item.ref.version ?? "" };
+      return { to: row.email, recipientName: row.name, locale: row.locale, values, pdfHref: row.audience === "client" ? `/events/${eventId}/programme/pdf` : null };
+    }
+    case "task_reminder": {
+      const policy = starterClientTaskReminders();
+      const today = parisToday(now);
+      const candidate = (await findReminderCandidateRows(organizationId, addDays(today, -policy.overdue.within), addDays(today, policy.daysBefore.week), parisStartOfDay(today))).find((row) => row.context.link.id === item.recipientId);
+      if (!candidate || !usableLink(candidate.context, now)) return null;
+      const due = candidate.tasks.flatMap((task) => {
+        const threshold = reminderThreshold(task.dueDate, today, policy);
+        return threshold ? [{ label: task.label, dueDate: task.dueDate, threshold }] : [];
+      });
+      if (due.length === 0) return null;
+      const { link } = candidate.context;
+      const locale = link.locale === "en" ? "en" : "fr";
+      const vocabulary = (await findEventAudience(organizationId, link.eventId)) ?? "couple";
+      const values: EmailValues = {
+        ...(await linkEmailValues({ organizationId, eventId: link.eventId, audience: "client", personName: link.personName, locale, vocabulary, expiresOn: null })),
+        tasks: reminderTaskLines({ locale, tasks: due, today }),
+      };
+      return { to: link.email, recipientName: link.personName, locale, values };
+    }
+    case "questionnaire_sent": {
+      const questionnaire = (await listQuestionnairesOfEvent(organizationId, eventId)).find((candidate) => candidate.id === item.ref.questionnaireId);
+      const context = await findLinkRow(organizationId, item.recipientId);
+      if (!questionnaire || !context || context.link.eventId !== eventId || !usableLink(context, now)) return null;
+      const locale = item.ref.locale === "en" ? "en" : item.ref.locale === "fr" ? "fr" : context.link.locale === "en" ? "en" : "fr";
+      const secret = newLinkSecret();
+      const replaced = await replaceLinkTokenRow(organizationId, context.link.id, hashLinkSecret(secret));
+      if (!replaced) return null;
+      const link = toEventLink(replaced, now);
+      const vocabulary = (await findEventAudience(organizationId, eventId)) ?? "couple";
+      const values: EmailValues = {
+        ...(await linkEmailValues({ organizationId, eventId, audience: "client", personName: link.personName, locale, vocabulary, expiresOn: link.expiresOn, url: linkUrl(formatLinkToken(organizationId, secret)) })),
+        questionnaire: questionnaire.name,
+      };
+      return { to: link.email, recipientName: link.personName, locale, values, renewedLink: true };
+    }
+    case "vendor_brief":
+    case "vendor_brief_reminder":
+    case "vendor_roadmap":
+      return draftVendorRelationEmail(organizationId, item, now);
+    case "prospect_reply":
+    case "prospect_follow_up":
+      return draftProspectRelationEmail(organizationId, item);
+    default:
+      return null;
+  }
 }
 
 // Les champs de l'évènement qu'un questionnaire peut alimenter, tels qu'ils sont (D7).

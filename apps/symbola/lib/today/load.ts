@@ -5,7 +5,7 @@
 // mots viennent de l'appelant (traductions), pour que l'assemblage se teste sans écran.
 import { appDatabase } from "@symbola/db/client";
 import { formatAmount, formatDateTime, parisToday, type Locale } from "@symbola/i18n";
-import type { EventSummary } from "@symbola/contracts";
+import type { EmailTemplateKind, EventSummary } from "@symbola/contracts";
 import { listPendingPaymentDeclarations, listUpcomingVendorPayments } from "@/modules/budget/service";
 import {
   eventNames,
@@ -27,7 +27,8 @@ import {
   closingDue,
   listEventClosings,
 } from "@/modules/events/service";
-import { countDuplicatePairs, getFollowUpDelays } from "@/modules/hub/service";
+import { countDuplicatePairs, getFollowUpDelays, listPreparedEmails } from "@/modules/hub/service";
+import { preparedEmailModule } from "@/lib/prepared-emails";
 import { listGuestPurgeNotices, listRecentOppositions } from "@/modules/guests/service";
 import { listEventIdsWithSentQuote, listOpenScheduledDeposits, listQuotesAwaitingAnswer, listTransferDeclarations, listUnpaidPayments } from "@/modules/quotes/service";
 import { listCalendarSourcesInError, listTodayAppointments } from "@/modules/appointments/service";
@@ -83,6 +84,8 @@ export type TodayWords = {
   vendorBankCheck?: (vendor: string) => string;
   // Lot 53 (CHR-10) : « Hors évènement », sous l'intitulé d'une tâche sans évènement.
   standaloneTask?: string;
+  // Lot 65d (MSG-01, HUB-28 ; ADR 0110) : « À envoyer : Rappel d'échéance » (absent : pas d'élément).
+  emailToSend?: (kind: EmailTemplateKind) => string;
 };
 
 function addDaysTo(date: string, days: number): string {
@@ -638,7 +641,7 @@ export async function loadTodayItems(
     delays: await getFollowUpDelays(appDatabase(), organizationId),
   };
   const sources: [TodaySource, boolean, (context: Context) => Promise<TodayItem[]>][] = [
-    ["events", modules.events && listed.ok, eventItems],
+    ["events", modules.events && listed.ok, async (current) => [...(await eventItems(current)), ...(await preparedEmailItems(current, modules))]],
     ["quotes", modules.quotes, quoteItems],
     ["budget", modules.budget, budgetItems],
     ["guests", Boolean(modules.guests) && modules.events && listed.ok, guestItems],
@@ -654,6 +657,30 @@ export async function loadTodayItems(
     else if (!unavailable.includes(source)) unavailable.push(source);
   }
   return { items: await withoutQuotedOptions(items, organizationId, modules.quotes, timeoutMs), today, events, unavailable };
+}
+
+// Lot 65d (MSG-01, HUB-28 ; ADR 0110) — les messages de la relation « À envoyer » de la messagerie de la
+// planner, déposés par un geste ou un automatisme. Un clic ouvre la fenêtre « Préparer l'e-mail » sur
+// l'écran courant (?preparer=, des identifiants seulement). Un message du module Devis fermé n'apparaît
+// pas (ARC-06).
+async function preparedEmailItems({ organizationId, words, names }: Context, modules: TodayModules): Promise<TodayItem[]> {
+  const label = words.emailToSend;
+  if (!label) return [];
+  const pending = await listPreparedEmails(organizationId, { status: "to_send" });
+  return pending
+    .filter((item) => modules.quotes || preparedEmailModule(item.kind) !== "quotes")
+    .map((item) => ({
+      key: `email:${item.id}`,
+      kind: "email_to_send" as const,
+      eventId: item.eventId,
+      eventNames: names(item.eventId),
+      title: label(item.kind),
+      dueOn: null,
+      since: day(item.createdAt),
+      actor: { kind: "you" as const },
+      href: `?preparer=${item.id}`,
+      action: { kind: "open" as const },
+    }));
 }
 
 // Lot 34a (EVT-05, D2) : « Devis envoyé » n'est plus un statut ; une option dont le devis est parti

@@ -54,7 +54,10 @@ export type TodayItemKind =
   | "vendor_document"
   | "vendor_bank_check"
   // Lot 58 (PAR-09) : évènement à clôturer, dès le lendemain (fuseau de l'évènement).
-  | "closing_due";
+  | "closing_due"
+  // Lot 65d (MSG-01, HUB-28 ; ADR 0110) : un message de la relation préparé, « À envoyer » de la
+  // messagerie de la planner (déposé par un geste ou par un automatisme).
+  | "email_to_send";
 
 // L'action en un clic (HUB-08) : cocher une tâche, relancer un prestataire, ou ouvrir l'objet.
 export type TodayAction =

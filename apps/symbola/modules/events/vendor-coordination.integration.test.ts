@@ -3,6 +3,7 @@
 // Tests d'abus (CLAUDE.md § 2.11, SEC-36) : les prestataires consultés ne se voient pas entre eux ;
 // un lien n'ouvre que son évènement et son poste ; un lien d'une autre organisation, retiré ou
 // expiré est refusé ; un clic d'e-mail n'enregistre rien. Horloge simulée pour les envois planifiés.
+import { setRelationMailSender } from "@/modules/hub/service";
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createOrganization } from "@symbola/auth";
@@ -55,6 +56,14 @@ import {
   VendorCandidateNotFoundError,
 } from "./service";
 
+// Lot 65d (MSG-01 ; ADR 0110) : ces tests vérifient l'envoi par Symbola, réglage « Symbola les envoie
+// pour moi » : rien n'y change. Le réglage par défaut (la planner envoie de sa messagerie) est vérifié
+// dans modules/hub/relation-mail.integration.test.ts.
+async function symbolaSends(organizationId: string): Promise<string> {
+  await setRelationMailSender(organizationId, "symbola");
+  return organizationId;
+}
+
 // Le worker ne fait tourner que le consommateur du module Budget : lancé avec tous les consommateurs,
 // il traiterait aussi les événements des autres fichiers de tests joués en parallèle (une facture
 // d'acompte émise par le consommateur « quotes » sous un test des factures, par exemple).
@@ -69,7 +78,7 @@ const EICAR = new TextEncoder().encode("X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STAND
 async function organization(): Promise<string> {
   const { sql, db } = createAppConnection();
   try {
-    return (await createOrganization(db, `Org ${randomUUID()}`)).id;
+    return await symbolaSends((await createOrganization(db, `Org ${randomUUID()}`)).id);
   } finally {
     await sql.end();
   }

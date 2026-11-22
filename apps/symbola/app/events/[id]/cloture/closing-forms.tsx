@@ -3,7 +3,9 @@
 // Lot 58 (PAR-09, PRE-08, EVT-08 ; D4, D5 ; ADR 0097) — formulaires de la clôture : étape cochée à la
 // main, évaluation d'un prestataire, temps passé et leçons, frais propres, clôture, archivage, modèle,
 // duplication, lien d'avis et remerciement relu avant l'envoi.
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import type { PreparedEmailDraft } from "@symbola/contracts";
+import { PrepareEmailDialog } from "@/app/ui/prepare-email-dialog";
 import { useTranslations } from "next-intl";
 import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import {
@@ -252,7 +254,12 @@ export function ReviewLinkForm({ eventId, reviewUrl, reviewLabel }: { eventId: s
 export function ReviewSendForm({ eventId, subject, body, withReview }: { eventId: string; subject: string; body: string; withReview: boolean }) {
   const t = useTranslations("Closing");
   const [state, action, pending] = useActionState<ClosingFormState, FormData>(sendReviewRequestAction, {});
+  // Lot 65d (ADR 0110) : les remerciements préparés pour la messagerie de la planner s'ouvrent dans la
+  // fenêtre « Préparer l'e-mail ».
+  const [closedDrafts, setClosedDrafts] = useState<PreparedEmailDraft[] | null>(null);
   return (
+    <>
+    {state.prepared && state.prepared !== closedDrafts ? <PrepareEmailDialog drafts={state.prepared} onClose={() => setClosedDrafts(state.prepared ?? null)} /> : null}
     <form action={action} className="stack">
       <input type="hidden" name="eventId" value={eventId} />
       {withReview ? <input type="hidden" name="withReview" value="1" /> : null}
@@ -267,7 +274,8 @@ export function ReviewSendForm({ eventId, subject, body, withReview }: { eventId
       <button type="submit" disabled={pending}>
         {t("send")}
       </button>
-      <Feedback state={state} success={t("sent")} />
+      <Feedback state={state} success={state.prepared ? t("prepared") : t("sent")} />
     </form>
+    </>
   );
 }

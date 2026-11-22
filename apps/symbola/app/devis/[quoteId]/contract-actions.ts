@@ -4,6 +4,8 @@
 // envoyé (canal, clauses facultatives, avertissement accepté ; chaque problème nommé) et
 // signature du contrat seul, généré après la signature du devis. Session planner vérifiée.
 import { revalidatePath } from "next/cache";
+import { pendingPreparedEmailIds, withPreparer } from "@/lib/prepared-emails";
+import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import {
   ContractNotFoundError,
@@ -118,5 +120,9 @@ export async function sendContractAloneAction(_prev: ContractFormState, formData
     return { error: tQuotes("signatureServiceDown") };
   }
   revalidatePath(`/devis/${quoteId}`);
+  // Lot 65d (ADR 0110) : « commande d'abord » préparé pour la messagerie de la planner.
+  const quote = await getQuote(auth.organizationId, quoteId);
+  const prepared = await pendingPreparedEmailIds(auth.organizationId, { eventId: quote.eventId, kinds: ["order_first"], ref: { contractId } });
+  if (prepared.length > 0) redirect(withPreparer(`/devis/${quoteId}`, prepared));
   return { success: true };
 }

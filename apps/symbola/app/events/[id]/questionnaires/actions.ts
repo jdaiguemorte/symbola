@@ -5,6 +5,8 @@
 // fiche. Contrôlé côté serveur à chaque appel : session, organisation, module Évènements ouvert ;
 // l'évènement, le client, le modèle et le questionnaire sont de l'organisation (RLS).
 import { revalidatePath } from "next/cache";
+import { pendingPreparedEmailIds, withPreparer } from "@/lib/prepared-emails";
+import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { MailQuotaExceededError } from "@symbola/mail";
 import {
@@ -34,8 +36,9 @@ export async function sendQuestionnaireAction(eventId: string, _state: Questionn
   const templateId = String(form.get("templateId") ?? "");
   const eventClientId = String(form.get("eventClientId") ?? "");
   if (!who || !isValidId(eventId) || !isValidId(templateId) || !isValidId(eventClientId)) return { error: t("refused") };
+  let questionnaireId: string;
   try {
-    await sendEventQuestionnaire({ organizationId: who.organizationId, eventId, eventClientId, templateId, userId: who.userId, locale: (await getLocale()) === "en" ? "en" : "fr" });
+    ({ questionnaireId } = await sendEventQuestionnaire({ organizationId: who.organizationId, eventId, eventClientId, templateId, userId: who.userId, locale: (await getLocale()) === "en" ? "en" : "fr" }));
   } catch (error) {
     if (error instanceof DemoEventRestrictionError) return { error: t("demo") };
     if (error instanceof EventLinkInvalidError) return { error: t("noEmail") };
@@ -46,6 +49,9 @@ export async function sendQuestionnaireAction(eventId: string, _state: Questionn
   }
   revalidatePath(`/events/${eventId}/questionnaires`);
   revalidatePath(`/events/${eventId}`);
+  // Lot 65d (ADR 0110) : préparé pour la messagerie de la planner, la fenêtre s'ouvre aussitôt.
+  const prepared = await pendingPreparedEmailIds(who.organizationId, { eventId, kinds: ["questionnaire_sent"], ref: { questionnaireId } });
+  if (prepared.length > 0) redirect(withPreparer(`/events/${eventId}/questionnaires`, prepared));
   return { ok: t("sent") };
 }
 

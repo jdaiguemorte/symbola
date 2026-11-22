@@ -87,7 +87,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const tTemplates = await getTranslations("EmailTemplates");
 
   const now = new Date();
-  const loaded = await loadTodayItems(organizationId, modules, todayWords(t), locale, now);
+  const loaded = await loadTodayItems(organizationId, modules, { ...todayWords(t), emailToSend: (kind) => t("words.emailToSend", { kind: tTemplates(`kinds.${kind}.title`) }) }, locale, now);
   // Lot 52 (EVT-06, D2) : seulement les évènements visibles de la personne (réglage de visibilité).
   const scope = auth.user.role === "member" ? await visibleEventScope({ user: { id: auth.user.id, role: auth.user.role, organizationId } }) : null;
   const { today, unavailable } = loaded;

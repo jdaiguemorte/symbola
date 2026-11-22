@@ -458,7 +458,7 @@
     },
     "home": {
       "title": "Aujourd'hui",
-      "body": "Ce qui demande votre attention, tous évènements confondus, trié par urgence : en retard, aujourd'hui, en attente d'un tiers (le client ou un prestataire), puis les quatorze prochains jours. « À traiter en premier » en garde les sept premiers points, regroupés par nature (relances et messages, tâches, paiements, décisions et signatures, prospects) ; chaque partie dit son nombre et mène à sa page (« Voir dans Tâches », « Voir les encaissements »…), chaque ligne dit qui doit agir et mène à l'action en un clic. Dessous, sur toute la largeur, le calendrier : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; « ‹ », « Aujourd'hui » et « › » le feuillettent, « Mois », « Semaine » et « Liste » changent la vue, un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. Puis le reste des points, et vos évènements en cours, avec le compte à rebours.",
+      "body": "Ce qui demande votre attention, tous évènements confondus, trié par urgence : en retard, aujourd'hui, en attente d'un tiers (le client ou un prestataire), puis les quatorze prochains jours. « À traiter en premier » en garde les sept premiers points, regroupés par nature (relances et messages, tâches, paiements, décisions et signatures, prospects) ; chaque partie dit son nombre et mène à sa page (« Voir dans Tâches », « Voir les encaissements »…), chaque ligne dit qui doit agir et mène à l'action en un clic. Dessous, sur toute la largeur, le calendrier : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; « ‹ », « Aujourd'hui » et « › » le feuillettent, « Mois », « Semaine » et « Liste » changent la vue, un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. Puis le reste des points, et vos évènements en cours, avec le compte à rebours. « À envoyer » : un message de la relation préparé par Symbola (relance, rappel, brief…), à envoyer de votre messagerie ; un clic ouvre la fenêtre « Préparer l'e-mail ».",
       "faq": [
         {
           "q": "Comment changer les délais de relance des devis et des prospects ?",
@@ -1144,7 +1144,7 @@
     },
     "emailTemplates": {
       "title": "Modèles d'e-mails",
-      "body": "Les e-mails que Symbola envoie en votre nom (liens, rappels, demandes de signature, programme) partent de ces modèles, en français et en anglais selon la langue de la personne. Modifiez l'objet et le texte avec les variables proposées : une variable inconnue est refusée, et le lien ne peut pas manquer. L'aperçu montre l'e-mail avec des données fictives ; « M'envoyer un essai » l'envoie à votre seule adresse. Un e-mail dont une variable n'a pas de valeur ne part pas : Symbola vous dit laquelle. « Revenir au texte de départ » efface votre version."
+      "body": "Qui envoie les messages à vos clients et à vos prestataires : par défaut, vous, de votre messagerie. Symbola prépare chaque message de la relation (proposition, relances, brief, programme, réponse à un prospect…) dans la fenêtre « Préparer l'e-mail » : « Ouvrir dans ma messagerie », « Copier le message », puis « J'ai envoyé », qui note l'envoi dans l'activité de l'évènement. Pas de pièce jointe : le lien de l'espace est dans le message, ou téléchargez le PDF. Les automatismes déposent un élément « À envoyer » dans « Aujourd'hui ». Avec « Symbola les envoie pour moi », les messages partent de Symbola, avec les pièces jointes et les relances automatiques. Les messages techniques (accès, signature, rendez-vous en ligne, sécurité, avis) partent toujours de Symbola. Les modèles ci-dessous servent dans les deux cas, en français et en anglais selon la langue de la personne : une variable inconnue est refusée, et le lien ne peut pas manquer. L'aperçu montre l'e-mail avec des données fictives ; « M'envoyer un essai » l'envoie à votre seule adresse. Un e-mail dont une variable n'a pas de valeur ne part pas : Symbola vous dit laquelle. « Revenir au texte de départ » efface votre version."
     },
     "messageTemplates": {
       "title": "Modèles de messages",
@@ -2371,7 +2371,9 @@
     "taskDialogCancel": "Annuler",
     "taskDialogSave": "Enregistrer",
     "taskDialogDelete": "Supprimer la tâche",
-    "taskDialogOpenEvent": "Ouvrir le rétroplanning de l'évènement"
+    "taskDialogOpenEvent": "Ouvrir le rétroplanning de l'évènement",
+    "activityEmailSent": "{actor} a envoyé « {kind} » de sa messagerie.",
+    "activityFormerMember": "Une personne de l'équipe"
   },
   "Budget": {
     "title": "Budget",
@@ -6224,7 +6226,9 @@
       "events_busy_settings": "réglages des plages occupées",
       "vendors_vendor_type_links": "métier d'un prestataire",
       "events_task_categories": "catégorie de tâche",
-      "hub_module_requests": "une demande d'activation d'une app"
+      "hub_module_requests": "une demande d'activation d'une app",
+      "hub_prepared_emails": "un message préparé pour la messagerie de la planner",
+      "hub_relation_mail_settings": "le réglage « qui envoie les messages »"
     },
     "modules": {
       "events": "Événements",
@@ -7231,7 +7235,8 @@
       },
       "vendorBankCheck": "IBAN de {vendor} changé : à vérifier par téléphone avant tout paiement",
       "standaloneTaskTag": "Hors évènement",
-      "closingDue": "À clôturer"
+      "closingDue": "À clôturer",
+      "emailToSend": "À envoyer : {kind}"
     },
     "myEventsTitle": "Mes évènements",
     "myEventsEmpty": "Aucun évènement en cours.",
@@ -8090,7 +8095,20 @@
     "errorBodyTooLong": "Le texte dépasse {max} caractères.",
     "variableMissing": "L'e-mail « {template} » ne peut pas partir : variable sans valeur ({tokens}). Complétez la fiche, ou corrigez le modèle dans Paramètres, Modèles d'e-mails.",
     "todayBanner": "{count, plural, one {Le rappel automatique d'un évènement ne part pas} other {Les rappels automatiques de # évènements ne partent pas}} : une variable du modèle « {template} » n'a pas de valeur.",
-    "todayBannerLink": "Corriger le modèle"
+    "todayBannerLink": "Corriger le modèle",
+    "sender": {
+      "legend": "Qui envoie les messages à vos clients et à vos prestataires",
+      "planner": "Je les envoie de ma messagerie",
+      "plannerHint": "Symbola prépare chaque message (proposition, coordonnées de paiement, relances, brief, programme, réponse à un prospect…) avec les liens personnels déjà insérés ; vous l'envoyez de votre messagerie, avec votre signature. Les automatismes déposent un élément « À envoyer » dans « Aujourd'hui ».",
+      "symbola": "Symbola les envoie pour moi",
+      "symbolaHint": "Les messages partent de Symbola, depuis votre adresse d'envoi, avec le devis ou le programme en pièce jointe et les relances automatiques.",
+      "technical": "Dans les deux cas, Symbola envoie lui-même les messages techniques : liens d'accès, signature et exemplaire signé, rendez-vous en ligne, sécurité du compte et avis à l'équipe.",
+      "save": "Enregistrer",
+      "saved": "Réglage enregistré.",
+      "error": "Réglage refusé : choisissez l'une des deux possibilités.",
+      "preparedBadge": "Préparé pour votre messagerie",
+      "sentBadge": "Envoyé par Symbola"
+    }
   },
   "Calendar": {
     "personFeed": "{organization} — évènements",
@@ -8665,7 +8683,8 @@
     "empty": "L'objet et le texte sont obligatoires.",
     "tooLong": "L'objet ou le texte est trop long.",
     "quota": "Le plafond d'e-mails de l'heure est atteint : réessayez un peu plus tard.",
-    "refused": "Action impossible sur cet évènement."
+    "refused": "Action impossible sur cet évènement.",
+    "prepareEmail": "Préparer l'e-mail"
   },
   "Trash": {
     "title": "Corbeille",
@@ -9632,7 +9651,9 @@
       "stopped": "Pas d'envoi : vous avez demandé de ne plus relancer ce contact.",
       "withdrawn": "Relance retirée : elle ne partira pas.",
       "no_recipient": "Pas d'envoi : le contact n'a plus d'adresse e-mail."
-    }
+    },
+    "prepare": "Préparer l'e-mail",
+    "prepared": "Relance préparée pour votre messagerie : envoyez-la, puis notez « J'ai envoyé »."
   },
   "EventQuestionnaires": {
     "title": "Questionnaires",
@@ -11342,7 +11363,8 @@
       "reviewPlaceholder": "Une variable entre accolades reste dans le message : remplacez-la.",
       "reviewNoRecipient": "Aucun destinataire.",
       "mailQuota": "Quota d'e-mails atteint : réessayez plus tard."
-    }
+    },
+    "prepared": "Remerciements préparés pour votre messagerie : envoyez-les, puis notez « J'ai envoyé »."
   },
   "EventTemplates": {
     "title": "Modèles d'évènement",
@@ -12491,5 +12513,33 @@
     "notFound": "Cette catégorie n'existe plus.",
     "priorityTitle": "Priorité d'une tâche",
     "priorityBody": "Deux niveaux : « Normale », par défaut, et « Haute ». Une tâche haute porte la pastille « Haute » dans la liste, le rétroplanning et le calendrier. La priorité se choisit dans la fenêtre de la tâche."
+  },
+  "PrepareEmail": {
+    "title": "Préparer l'e-mail",
+    "intro": "Relisez le message, modifiez-le si besoin, puis envoyez-le de votre messagerie : rien ne part de Symbola.",
+    "position": "Message {n} sur {total}",
+    "to": "À",
+    "toValue": "{name} <{email}>",
+    "subject": "Objet",
+    "body": "Message",
+    "open": "Ouvrir dans ma messagerie",
+    "openHint": "Votre messagerie s'ouvre sur un nouveau message, avec votre signature. Si rien ne s'ouvre, copiez le message.",
+    "copy": "Copier le message",
+    "copied": "Message copié : collez-le dans votre messagerie.",
+    "copyFailed": "Copie impossible : sélectionnez le texte du message et copiez-le.",
+    "sent": "J'ai envoyé",
+    "sentDone": "Envoi noté : il figure dans l'activité de l'évènement.",
+    "dismiss": "Ne pas l'envoyer",
+    "dismissed": "Message écarté : il quitte « À envoyer ».",
+    "pdf": "Télécharger le PDF",
+    "noAttachment": "Pas de pièce jointe : le message renvoie à l'espace personnel. Pour joindre le PDF, téléchargez-le et ajoutez-le dans votre messagerie.",
+    "renewedLink": "Un nouveau lien personnel vient d'être créé pour ce message : l'ancien ne fonctionne plus. Envoyez ce message pour que {name} garde son accès.",
+    "missingVariable": "Ce message ne peut pas être préparé : son modèle emploie une variable sans valeur. Corrigez-le dans Paramètres › Modèles d'e-mails, ou complétez la fiche.",
+    "unavailable": "Ce message n'a plus lieu d'être (lien retiré, échéance réglée, réponse déjà reçue…), ou son texte n'est plus disponible : préparez-le de nouveau depuis son écran.",
+    "loading": "Préparation du message…",
+    "none": "Aucun message à préparer : il a déjà été envoyé ou écarté.",
+    "error": "Action impossible pour le moment : réessayez.",
+    "next": "Message suivant",
+    "previous": "Message précédent"
   }
 }
