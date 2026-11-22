@@ -85,6 +85,8 @@ const LOT_45 = ["0172_lot45_hub_prospect_email_kinds", "0171_lot45_hub_contact_d
 // Lot 55 : messagerie par sujet (0194, events), adresse d'expédition, journal des envois, nature et
 // sortes (0195, hub). Fusionné après les lots 60 et 54 : annulé avant tous les autres lots.
 const LOT_55 = ["0195_lot55_hub_sender_deliveries", "0194_lot55_events_messages"];
+// Lot 63b : séquence du programme cachée des mariés (0201, events) ; la plus récente, annulée d'abord.
+const LOT_63B = ["0201_lot63b_events_program_hidden"];
 // Lot 63g : demandes d'activation d'une app (0200, hub) ; la plus récente, elle s'annule d'abord.
 const LOT_63G = ["0200_lot63g_hub_module_requests"];
 // Lot 63d : catégories et priorité des tâches (0197, events).
@@ -127,7 +129,7 @@ const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
 // 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_64, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
+const LOT_36 = [...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
 // Lot 63c : l'ordre des annulations des lots récents, de la plus récente à la plus ancienne, se lit
 // dans cette seule liste. Un nouveau lot ajoute sa liste en tête de LOT_36, et rien d'autre : les
 // tests annulent par rollbackNewerThan et rollbackThrough, jamais par une suite écrite à la main.
@@ -225,8 +227,26 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await migrateAll();
   });
 
+  it("lot 63b (CHR-08, CHR-07 ; Q44) — 0201 : une séquence est visible des mariés par défaut ; annulation refusée tant qu'une séquence est cachée, puis la colonne est retirée", async () => {
+    await migrateAll();
+    const organizationId = randomUUID();
+    const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+    const [visible] = await target<{ id: string; hidden: boolean }[]>`insert into events.program_items (organization_id, event_id, start_time, label) values (${organizationId}, ${event!.id}, '20:00', 'Dîner') returning id, hidden_from_clients as hidden`;
+    expect(visible!.hidden).toBe(false);
+    await target`insert into events.program_items (organization_id, event_id, start_time, label, hidden_from_clients) values (${organizationId}, ${event!.id}, '21:30', 'Animation surprise', true)`;
+    await rollbackNewerThan(LOT_63B[0]!);
+    await expect(rollback(LOT_63B[0]!)).rejects.toThrow(/cachées des mariés/);
+    await target`update events.program_items set hidden_from_clients = false where organization_id = ${organizationId}`;
+    await rollback(LOT_63B[0]!);
+    expect(await hasColumn("events", "program_items", "hidden_from_clients")).toBe(false);
+    await target`delete from events.program_items where organization_id = ${organizationId}`;
+    await target`delete from events.events where id = ${event!.id}`;
+  });
+
   it("lot 63g (HUB-06, HUB-15, SEC-09, SEC-10 ; ADR 0108) — 0200 : demandes d'activation d'une app, une seule en attente par module, sortes « App activée » ; annulation refusée tant qu'une demande attend, puis tout est retiré", async () => {
     await migrateAll();
+    // Les migrations plus récentes (0201) s'annulent d'abord.
+    await rollbackNewerThan(LOT_63G[0]!);
     const organizationId = randomUUID();
     const suffix = randomUUID();
     const [user] = await target<{ id: string }[]>`insert into hub.users (email, idp_subject) values (${`titulaire-${suffix}@symbola.test`}, ${`sub-${suffix}`}) returning id`;
@@ -237,7 +257,6 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await target`insert into hub.module_requests (organization_id, module_key, requested_by_user_id, requested_at) values (${organizationId}, 'floorplans', ${userId}, now())`;
     await expect(target`insert into hub.module_requests (organization_id, module_key, requested_by_user_id, requested_at) values (${organizationId}, 'floorplans', ${userId}, now())`).rejects.toThrow(/module_requests_pending_idx/);
     await target`insert into hub.notifications (organization_id, user_id, type, object_key, href) values (${organizationId}, ${userId}, 'module_activated', 'module_request:1', '/events')`;
-    await rollbackNewerThan(LOT_63G[0]!);
     await expect(rollback(LOT_63G[0]!)).rejects.toThrow(/demandes d'activation attendent/);
     await target`update hub.module_requests set status = 'activated', handled_at = now() where organization_id = ${organizationId}`;
     await rollback(LOT_63G[0]!);

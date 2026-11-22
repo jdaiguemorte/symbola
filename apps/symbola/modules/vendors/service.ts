@@ -748,6 +748,13 @@ export async function getVendorsByIds(organizationId: string, vendorIds: string[
   return (await findVendorsByIds(organizationId, vendorIds.filter((id) => UUID.test(id)))).map(toSummary);
 }
 
+// Lot 63b (HUB-14) : les fiches modifiées à la main depuis un import, nommées dans « Annuler cet
+// import » (métier, ville, heure de la modification).
+export async function describeVendorsForImportUndo(organizationId: string, vendorIds: string[]): Promise<{ id: string; name: string; typeId: string | null; city: string | null; updatedAt: Date }[]> {
+  const rows = await findVendorsByIds(organizationId, vendorIds.filter((id) => UUID.test(id)));
+  return rows.map((row) => ({ id: row.id, name: row.name, typeId: row.primaryTypeId, city: row.city, updatedAt: row.updatedAt }));
+}
+
 // Lot 29a (JRJ-02, décision D5) : coordonnées des prestataires retenus, pour l'écran du
 // jour J (rien d'autre de la fiche : ni note interne, ni tarifs).
 export async function getVendorContacts(organizationId: string, vendorIds: string[]): Promise<VendorContact[]> {
@@ -757,6 +764,14 @@ export async function getVendorContacts(organizationId: string, vendorIds: strin
 
 // L11-PRE-04 à L11-PRE-07 — recherche dans le carnet : filtres appliqués par la
 // base ; un filtre qui ne convient pas au champ est ignoré, jamais en erreur.
+// « Déjà travaillé avec » et (lot 63b) les fiches d'un import : les deux à la fois s'il le faut.
+async function onlyVendorIds(input: FindVendorsInput): Promise<string[] | undefined> {
+  const ids = input.ids?.filter((id) => UUID.test(id));
+  const worked = input.workedWith ? await listSelectedVendorIds(input.organizationId) : undefined;
+  if (ids && worked) return ids.filter((id) => worked.includes(id));
+  return ids ?? worked;
+}
+
 export async function findVendors(input: FindVendorsInput): Promise<VendorListItem[]> {
   const [types, settings] = await Promise.all([listVendorTypes(input.organizationId), getVendorSettings(input.organizationId)]);
   const fieldsById = new Map(types.flatMap((type) => type.fields).map((field) => [field.id, field]));
@@ -782,7 +797,7 @@ export async function findVendors(input: FindVendorsInput): Promise<VendorListIt
     typeScope,
     tagIds: input.tagIds?.filter((id) => UUID.test(id)),
     fieldFilters,
-    onlyIds: input.workedWith ? await listSelectedVendorIds(input.organizationId) : undefined,
+    onlyIds: await onlyVendorIds(input),
     unplacedOnly: input.unplacedOnly ?? false,
     // Un seuil hors de 1 à 5 est ignoré, jamais en erreur.
     minRating: input.minRating !== undefined && Number.isInteger(input.minRating) && input.minRating >= 1 && input.minRating <= VENDOR_RATING_MAX ? input.minRating : undefined,

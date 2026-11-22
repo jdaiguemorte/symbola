@@ -18,6 +18,7 @@ const program: EventProgram = {
         { vendorSlotId: null, label: "Officiant" },
       ],
       keyMomentId: null,
+        hiddenFromClients: false,
     },
     {
       id: "b",
@@ -30,6 +31,7 @@ const program: EventProgram = {
       responsible: null,
       participants: [],
       keyMomentId: null,
+        hiddenFromClients: false,
     },
   ],
   overlaps: [],

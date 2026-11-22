@@ -286,7 +286,7 @@ import {
   setDayChoice,
   setDocumentSharing,
 } from "./documents";
-import { findProgramOverlaps, hasProgramChanges, MAX_SHIFT_MINUTES, normalizeTime, programChanges, publishedProgramItems, sortProgramItems, vendorProgramOf } from "./program";
+import { clientProgramItems, findProgramOverlaps, hasProgramChanges, MAX_SHIFT_MINUTES, normalizeTime, programChanges, publishedProgramItems, sortProgramItems, vendorProgramOf } from "./program";
 import {
   claimProgramNotification,
   findLatestProgramVersion,
@@ -1753,6 +1753,7 @@ function normalizeProgramItem(input: ProgramItemInput): ProgramItemData {
     internalNote: optionalText(input.internalNote),
     responsible,
     keyMomentId: input.keyMomentId && UUID_PATTERN.test(input.keyMomentId) ? input.keyMomentId : null,
+    ...(input.hiddenFromClients !== undefined ? { hiddenFromClients: input.hiddenFromClients === true } : {}),
   };
 }
 
@@ -1767,6 +1768,7 @@ function toProgramItem({ item, participants }: ProgramItemWithParticipants): Pro
     internalNote: item.internalNote,
     responsible: item.responsible,
     keyMomentId: item.keyMomentId,
+    hiddenFromClients: item.hiddenFromClients,
     participants: participants.map(
       ({ row, vendorSlotLabel }): ProgramParticipant => ({
         vendorSlotId: row.vendorSlotId,
@@ -1874,7 +1876,7 @@ function programDocumentOf(row: ProgramRecipientRow, found: { clients: { firstNa
   const published = { number: version.number, publishedAt: version.publishedAt };
   return vendor
     ? { recipient, event, version: published, view: { kind: "vendor", slotLabel: vendor.slotLabel, ...vendorProgramOf(version.items, vendor.vendorSlotId) } }
-    : { recipient, event, version: published, view: { kind: "client", items: version.items } };
+    : { recipient, event, version: published, view: { kind: "client", items: clientProgramItems(version.items) } };
 }
 
 // Lot 38a (D9 ; MSG-02, D8 ; MSG-01, D5) — envoie la dernière version diffusée à ses destinataires,
@@ -1941,8 +1943,11 @@ export async function markLinkProgramSeen(organizationId: string, linkId: string
   await markProgramSeen(organizationId, linkId, number);
 }
 
-async function linkPublishedProgram(organizationId: string, linkId: string, eventId: string): Promise<{ version: ProgramVersion | null; isNew: boolean }> {
-  const [version, seen] = await Promise.all([findLatestProgramVersion(organizationId, eventId), findLinkProgramSeen(organizationId, linkId)]);
+// Lot 63b (Q44) : un lien de client ne reçoit jamais une séquence cachée des mariés ; un lien de
+// prestataire la garde (vendorProgramOf ne lui montre que les siennes en entier).
+async function linkPublishedProgram(organizationId: string, linkId: string, eventId: string, audience: "client" | "vendor" = "client"): Promise<{ version: ProgramVersion | null; isNew: boolean }> {
+  const [latest, seen] = await Promise.all([findLatestProgramVersion(organizationId, eventId), findLinkProgramSeen(organizationId, linkId)]);
+  const version = latest && audience === "client" ? { ...latest, items: clientProgramItems(latest.items) } : latest;
   return { version, isNew: version !== null && seen !== null && version.number > seen };
 }
 
@@ -2719,7 +2724,7 @@ export async function getVendorLinkView(organizationId: string, linkId: string):
   if (!access || access.audience !== "vendor" || !access.vendorCandidateId) throw new LinkAccessDeniedError();
   const [vendor, found] = await Promise.all([findLinkVendorRow(organizationId, access.vendorCandidateId), findEventById(organizationId, access.eventId)]);
   if (!vendor || vendor.eventId !== access.eventId || !found) throw new LinkAccessDeniedError();
-  const [places, published] = await Promise.all([listEventPlaces(organizationId, access.eventId), linkPublishedProgram(organizationId, linkId, access.eventId)]);
+  const [places, published] = await Promise.all([listEventPlaces(organizationId, access.eventId), linkPublishedProgram(organizationId, linkId, access.eventId, "vendor")]);
   const dayShift = await latestVendorDayShift(organizationId, access.eventId, vendor.vendorSlotId);
   const program: VendorProgramView = {
     version: published.version ? { number: published.version.number, publishedAt: published.version.publishedAt } : null,
@@ -2976,7 +2981,7 @@ export async function requestDecision(input: RequestDecisionInput): Promise<Even
     const [program, version] = await Promise.all([getEventProgram(organizationId, eventId), findLatestProgramVersion(organizationId, eventId)]);
     if (!version || version.items.length === 0) throw new DecisionInvalidError("program");
     // Titre vide : l'écran affiche « le programme du jour J » dans la langue de la personne.
-    subject = { subjectId: null, slotId: null, title: "", snapshot: { kind: "program", programUpdatedAt: program.updatedAt, itemCount: version.items.length, programVersion: version.number } };
+    subject = { subjectId: null, slotId: null, title: "", snapshot: { kind: "program", programUpdatedAt: program.updatedAt, itemCount: clientProgramItems(version.items).length, programVersion: version.number } };
   }
 
   const existing = await findDecisionRows(organizationId, eventId);
@@ -3706,8 +3711,16 @@ export function dayOfSettings(locale: "fr" | "en") {
   return starterDayOfSettings(locale);
 }
 
-// CHR-08 : aperçu, puis écriture, d'un chrono importé d'un tableur.
-export async function importEventProgram(input: { organizationId: string; eventId: string; bytes: Uint8Array; apply: { skipLines: number[] } | null }): Promise<ProgramImportResult> {
+// CHR-08 : aperçu, puis écriture, d'un chrono importé d'un tableur ou (lot 63b) du PDF de programme
+// de l'ancien logiciel, avec le poste choisi pour chacun de ses intervenants.
+export async function importEventProgram(input: {
+  organizationId: string;
+  eventId: string;
+  bytes: Uint8Array;
+  apply: { skipLines: number[] } | null;
+  speakerSlots?: Record<number, string | null>;
+  catalogVendors?: { id: string; name: string; city: string | null }[];
+}): Promise<ProgramImportResult> {
   const result = await importProgram({ ...input, mainMomentName: await mainMomentName(input.organizationId) });
   if (!result) throw new EventNotFoundError();
   return result;

@@ -1,6 +1,6 @@
 {
-  "id": "b1958187-5e03-4f8f-9e5e-c595f6d52d00",
-  "prevId": "f6ecd857-1d80-4e06-b11b-90842114f3ef",
+  "id": "9f54a5ef-5690-41ce-85b1-e4663920db1e",
+  "prevId": "3ed6fe81-b832-4f69-8ee3-bb8f744b17d6",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -316,12 +316,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "buffer_before_minutes": {
           "name": "buffer_before_minutes",
           "type": "integer",
@@ -471,10 +465,6 @@
         "appointment_types_location_check": {
           "name": "appointment_types_location_check",
           "value": "\"appointments\".\"appointment_types\".\"location\" is null or char_length(\"appointments\".\"appointment_types\".\"location\") between 1 and 500"
-        },
-        "appointment_types_description_check": {
-          "name": "appointment_types_description_check",
-          "value": "\"appointments\".\"appointment_types\".\"description\" is null or char_length(\"appointments\".\"appointment_types\".\"description\") between 1 and 300"
         },
         "appointment_types_buffers_check": {
           "name": "appointment_types_buffers_check",
@@ -11981,6 +11971,13 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
+        },
+        "hidden_from_clients": {
+          "name": "hidden_from_clients",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "created_at": {
           "name": "created_at",

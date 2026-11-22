@@ -330,10 +330,10 @@ describe("IMP-05 — Aperçu et annulation", () => {
     );
     await acceptAllMatches(planner, importId);
     await confirmImport({ ...planner, importId });
-    // La trace d'un import d'avant le lot porte les anciens noms.
+    // La trace d'un import d'avant le lot porte les anciens noms (et pas le devisé, écrit depuis le lot 63b).
     const OLD: Record<string, string> = { estimatedAmountCents: "plannedAmountCents", committedAmountCents: "actualAmountCents" };
     const legacy = (values: Record<string, unknown> | null) =>
-      values === null ? null : Object.fromEntries(Object.entries(values).map(([key, value]) => [OLD[key] ?? key, value]));
+      values === null ? null : Object.fromEntries(Object.entries(values).filter(([key]) => key !== "quotedAmountCents").map(([key, value]) => [OLD[key] ?? key, value]));
     const renamed = await withOrganization(db, planner.organizationId, async (tx) => {
       const items = await tx.select().from(importItems).where(and(eq(importItems.importId, importId), eq(importItems.kind, "budget_line")));
       for (const item of items) {

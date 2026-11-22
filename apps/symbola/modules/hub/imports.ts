@@ -526,7 +526,8 @@ export async function saveImportMatching(
 
 // Décision de la planner sur des rapprochements proposés : un par un ou en
 // lot (plusieurs lignes à la fois). Une ligne sans rapprochement est ignorée.
-export type MatchDecision = { rowIndex: number; decision: "accept" | "refuse" };
+// Lot 63b (HUB-14) : « later », décider plus tard (la proposition reste en attente).
+export type MatchDecision = { rowIndex: number; decision: "accept" | "refuse" | "later" };
 
 export async function decideImportMatches(
   db: AppDatabase,
@@ -539,7 +540,7 @@ export async function decideImportMatches(
   const matches = set.matching.matches.map((match): ImportMatch => {
     const decision = decisions.get(match.rowIndex);
     if (!decision) return match;
-    return { ...match, status: decision === "accept" ? "accepted" : "refused" };
+    return { ...match, status: decision === "accept" ? "accepted" : decision === "later" ? "proposed" : "refused", ...(match.toVerify ? { reviewed: decision !== "later" } : {}) };
   });
   return updateDraftMatching(db, input.organizationId, input.importId, { ...set.matching, matches }, now);
 }
@@ -671,6 +672,8 @@ export type AppliedImportItem = Pick<ImportItemRow, "id" | "module" | "kind" | "
 
 export type AppliedImportView = ImportSummary & {
   items: AppliedImportItem[];
+  // Lot 63b (HUB-14) : intitulés des colonnes gardées comme note sur la fiche.
+  keptColumns: string[];
   // Encore annulable : confirmé, non annulé, dans le délai réglé par l'Admin.
   undoable: boolean;
   undoDeadline: Date | null;
@@ -697,9 +700,11 @@ export async function getAppliedImport(
     undoOutcome,
   }));
   const pending = items.some((item) => item.undoOutcome !== "undone" && item.undoOutcome !== "missing");
+  const keptColumns = (row.mapping ?? []).filter((choice) => choice.target === "free").map((choice) => row.headers[choice.columnIndex] || `#${choice.columnIndex + 1}`);
   return {
     ...toSummary(row),
     items,
+    keptColumns,
     undoable: row.status === "applied" && now < deadline && pending && items.every((item) => item.written !== null),
     undoDeadline: row.status === "applied" ? deadline : null,
   };

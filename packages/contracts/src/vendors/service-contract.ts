@@ -190,6 +190,8 @@ export type FindVendorsInput = {
   around?: VendorAround;
   includeArchived?: boolean;
   limit?: number;
+  // Lot 63b (HUB-14) : seulement ces fiches (celles d'un import, « Vérifier les N prestataires »).
+  ids?: string[];
 };
 
 export type VendorListItem = VendorSummary & { travel: TravelEstimate | null };

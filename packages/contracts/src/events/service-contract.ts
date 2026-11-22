@@ -516,6 +516,9 @@ export type ProgramItem = {
   participants: ProgramParticipant[];
   // Lot 51 (EVT-04 ; D1) : le temps fort de la séquence, donc son jour (null : évènement sans date).
   keyMomentId: string | null;
+  // Lot 63b (CHR-08 ; Q44) : cachée des mariés (leur espace, le programme diffusé, le PDF « mariés ») ;
+  // visible de l'équipe et des prestataires qu'elle concerne.
+  hiddenFromClients: boolean;
 };
 
 export type ProgramItemInput = {
@@ -532,6 +535,8 @@ export type ProgramItemInput = {
   // Lot 51 (EVT-04) : absent ou null, la séquence rejoint le premier temps fort du jour de
   // l'évènement (créé de lui-même s'il n'y en a pas).
   keyMomentId?: string | null | undefined;
+  // Lot 63b (Q44) : absent, la séquence reste visible des mariés (ou garde son réglage).
+  hiddenFromClients?: boolean | undefined;
 };
 
 // Lot 62c (UX-13, décision D1) : le programme s'enregistre d'un coup, séquences modifiées et

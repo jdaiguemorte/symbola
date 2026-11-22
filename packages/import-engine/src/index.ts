@@ -68,6 +68,20 @@ export {
   type EventSheetPlace,
   type EventSheetResult,
 } from "./third-party/event-sheet";
+// Lot 63b (CHR-08) — export « programme » du jour J du même logiciel, en PDF.
+export {
+  foldProgramText,
+  matchProgramSpeaker,
+  parseProgramContact,
+  parseProgramExport,
+  parseProgramTime,
+  type ProgramExport,
+  type ProgramExportContact,
+  type ProgramExportContactKind,
+  type ProgramExportResult,
+  type ProgramExportRow,
+  type ProgramExportSpeaker,
+} from "./third-party/program-export";
 export {
   cleanVendorImportText,
   detectVendorsExport,

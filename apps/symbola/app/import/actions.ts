@@ -7,7 +7,9 @@ import { cancelImport, retryImportJob } from "@/modules/hub/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isValidId } from "./access";
 
-export type StartImportFormState = { error?: string };
+// Lot 63b (HUB-14, UX-15) : ce que la lecture a trouvé, montré par la fenêtre de chargement pendant
+// que l'étape suivante se prépare (doublons, aperçu).
+export type StartImportFormState = { error?: string; redirect?: string; reading?: { rows: number; columns: number; recognized: number } };
 
 export async function cancelImportAction(formData: FormData): Promise<void> {
   const auth = await getPlannerAuthContext();
