@@ -66,7 +66,13 @@ export async function TodayCalendar({
   const step = (direction: -1 | 1) =>
     view === "semaine" ? href({ view, month: addDays(shownWeek, 7 * direction).slice(0, 7), week: addDays(shownWeek, 7 * direction) }) : href({ view, month: addMonths(month, direction), week: shownWeek });
   const current = href({ view, month: today.slice(0, 7), week: mondayOf(today) });
-  const title = view === "semaine" ? t("calendar.weekOf", { date: dayTitle(shownWeek, locale) }) : formatMonth(`${month}-01`, locale);
+  // « Semaine du lundi 16 novembre » ; « Novembre 2026 » (la majuscule en tête du titre seulement).
+  const weekDate = dayTitle(shownWeek, locale);
+  const monthTitle = formatMonth(`${month}-01`, locale);
+  const title =
+    view === "semaine"
+      ? t("calendar.weekOf", { date: locale === "fr" ? weekDate.charAt(0).toLocaleLowerCase("fr") + weekDate.slice(1) : weekDate })
+      : monthTitle.charAt(0).toLocaleUpperCase(locale) + monthTitle.slice(1);
   const legend = [
     ...(modules.events ? [{ label: t("calendar.kind.event"), color: null }] : []),
     ...(modules.events ? categories.map((category) => ({ label: category.label, color: category.color })) : []),

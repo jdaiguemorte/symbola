@@ -160,7 +160,7 @@
   .today-calendar .section-head {
     @apply flex-wrap gap-y-2;
   }
-  .today-calendar-views {
+  .today-calendar .section-head > .today-calendar-views {
     @apply max-md:hidden;
   }
   .calendar-month.calendar-month-week .calendar-day {
