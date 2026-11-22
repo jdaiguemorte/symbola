@@ -401,7 +401,8 @@ export async function previewVendorTypeSplit(organizationId: string, _catalog: S
 }
 
 export async function splitCombinedVendorTypes(organizationId: string, catalog: StarterVendorCatalogInput, locale: "fr" | "en"): Promise<VendorTypeSplitResult[]> {
-  const steps = await previewVendorTypeSplit(organizationId, catalog, locale);
+  // Lot 65e : une étape où deux métiers aboutiraient au même type n'est jamais appliquée.
+  const steps = (await previewVendorTypeSplit(organizationId, catalog, locale)).filter((step) => !step.conflict);
   if (steps.length === 0) return [];
   const outcomes = await applyTypeSplitRows(
     organizationId,
