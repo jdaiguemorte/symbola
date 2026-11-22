@@ -3876,7 +3876,7 @@ export async function publishAndNotifyDayShift(input: {
   userId: string;
   renderDocument: NotifyProgramVersionInput["renderDocument"];
   now: Date;
-}): Promise<{ sent: number; notSent: number; prepared?: number }> {
+}): Promise<{ sent: number; notSent: number }> {
   const { organizationId, eventId } = input;
   const program = await getEventProgram(organizationId, eventId);
   const published = await insertProgramVersion({ organizationId, eventId, userId: input.userId, items: publishedProgramItems(program.items), now: input.now });
@@ -3891,14 +3891,9 @@ export async function publishAndNotifyDayShift(input: {
   const slots = new Set(shift.vendorSlotIds);
   const rows = (await programRecipientRows(organizationId, eventId, input.now)).filter((row) => row.vendor && slots.has(row.vendor.vendorSlotId));
   const vocabulary = (await findEventAudience(organizationId, eventId)) ?? "couple";
-  // Lot 65d (MSG-01 ; ADR 0110) : préparé pour la messagerie de la planner, un message par prestataire.
-  if (await preparesRelationEmail(organizationId, "program_published")) {
-    for (const row of rows) {
-      await depositPreparedEmail({ organizationId, kind: "program_published", eventId, recipientType: "event_link", recipientId: row.linkId, ref: { version: String(latest.number) }, origin: "gesture", sourceKey: `day-shift:${shift.id}:${row.linkId}` });
-    }
-    await recordDayShiftNotification(organizationId, shift.id, rows.length);
-    return { sent: 0, notSent: 0, prepared: rows.length };
-  }
+  // Lot 65d (Q45, décision de Julien du 22/11/2026 ; ADR 0110) : le jour J, le programme décalé part
+  // toujours de Symbola, quel que soit le réglage « qui envoie » : en plein mariage, la planner n'a pas
+  // le temps d'envoyer elle-même un message par prestataire.
   let sent = 0;
   for (const row of rows) {
     try {
@@ -3915,6 +3910,7 @@ export async function publishAndNotifyDayShift(input: {
         values,
         attachments: [{ filename: pdf.filename, content: Buffer.from(pdf.content), contentType: "application/pdf" }],
         idempotencyKey: `day-shift:${shift.id}:${row.linkId}`,
+        dayOfShift: true,
       });
       sent += 1;
     } catch (error) {

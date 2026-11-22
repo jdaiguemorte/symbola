@@ -180,10 +180,13 @@ export async function sendOrganizationEmail(input: {
   idempotencyKey?: string;
   // Lot 55 (MSG-05) : l'évènement de l'e-mail, pour le journal des envois par évènement.
   eventId?: string | null;
+  // Lot 65d (Q45, décision de Julien du 22/11/2026) : la seule exception au garde-fou ci-dessous, le
+  // programme décalé le jour J (JRJ-05), qui part toujours de Symbola.
+  dayOfShift?: true;
 }): Promise<{ deferred: boolean; prepared?: true }> {
   // Lot 65d (MSG-01 ; ADR 0110) : garde-fou. Un message de la relation ne part jamais de Symbola quand
   // l'organisation l'envoie de sa messagerie ; l'appelant dépose un message préparé (depositPreparedEmail).
-  if (await preparesRelationEmail(input.organizationId, input.kind)) {
+  if (!(input.dayOfShift && input.kind === "program_published") && (await preparesRelationEmail(input.organizationId, input.kind))) {
     console.error(`message de la relation non envoyé par Symbola (${input.kind}) : l'organisation l'envoie de sa messagerie`);
     return { deferred: false, prepared: true };
   }

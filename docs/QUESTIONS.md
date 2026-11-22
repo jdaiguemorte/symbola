@@ -935,7 +935,8 @@ envoie pour moi »), pour la pièce jointe et les relances automatiques. Les mes
   concernés par le modèle `program_published`, rangé côté relation. Par défaut, il dépose donc un
   message « À envoyer » par prestataire au lieu de l'envoyer. En plein mariage, la planner a-t-elle le
   temps de les envoyer elle-même ? Proposition : ranger ce message du jour J (et lui seul) avec les
-  messages envoyés par Symbola. **À trancher par Julien.**
+  messages envoyés par Symbola. **Décidé par Julien le 22/11 : le message du jour J part de
+  Symbola**, quel que soit le réglage (exception au garde-fou, ADR 0110).
 
 Fait au lot 65d2 : migration **0205** (schéma hub), réglage dans Paramètres › Modèles d'e-mails,
 fenêtre « Préparer l'e-mail », éléments « À envoyer » ; ADR 0110.

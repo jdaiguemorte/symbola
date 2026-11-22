@@ -182,8 +182,8 @@ describe("CHR-08 — Modèles de chrono et import", () => {
 describe("JRJ-05 — Pointage des séquences ; décalage de la suite et information des prestataires", () => {
   it("rien n'est envoyé sans validation ; validé, le programme est décalé, une version diffusée, et seuls les prestataires concernés sont prévenus, une seule fois", async () => {
     const organizationId = await organization();
-    // Lot 65d (ADR 0110) : avec l'option « Symbola les envoie pour moi », les prestataires reçoivent le
-    // programme décalé par e-mail, comme avant.
+    // Lot 65d (ADR 0110) : avec l'option « Symbola les envoie pour moi » comme par défaut, le programme
+    // décalé part de Symbola le jour J.
     await setRelationMailSender(organizationId, "symbola");
     const w = await weekend(organizationId);
     // 16 h 20 : la cérémonie commence ; le retard est proposé sur le téléphone, rien n'est envoyé.
@@ -222,7 +222,7 @@ describe("JRJ-05 — Pointage des séquences ; décalage de la suite et informat
     expect(state!.shifts[0]).toMatchObject({ outcome: "applied", minutes: 20, notifiedCount: 2 });
   });
 
-  it("L65-MSG-01 — par défaut (la planner envoie), le décalage validé dépose un message « À envoyer » par prestataire concerné, sans rien envoyer, une seule fois", async () => {
+  it("L65-MSG-01 (Q45) — même quand la planner envoie ses messages, le programme décalé du jour J part de Symbola, une seule fois, sans rien déposer « À envoyer »", async () => {
     const organizationId = await organization();
     const w = await weekend(organizationId);
     const shift = action<Extract<DayAction, { kind: "shift" }>>({
@@ -237,10 +237,9 @@ describe("JRJ-05 — Pointage des séquences ; décalage de la suite et informat
     expect(await applyDayAction({ organizationId, eventId: w.eventId, userId: camille, action: shift, renderDocument, now: NOW })).toEqual({ status: "applied" });
     expect(await applyDayAction({ organizationId, eventId: w.eventId, userId: camille, action: shift, renderDocument, now: NOW })).toEqual({ status: "duplicate" });
     await new Promise((resolve) => setTimeout(resolve, 500));
-    expect(await mailsTo(w.emails.officiantEmail, false)).toEqual([]);
-    expect(await mailsTo(w.emails.catererEmail, false)).toEqual([]);
-    const prepared = await listPreparedEmails(organizationId, { status: "to_send", eventId: w.eventId });
-    expect(prepared.map((item) => item.kind)).toEqual(["program_published", "program_published"]);
+    expect(await mailsTo(w.emails.officiantEmail)).toHaveLength(1);
+    expect(await mailsTo(w.emails.catererEmail)).toHaveLength(1);
+    expect(await listPreparedEmails(organizationId, { status: "to_send", eventId: w.eventId })).toEqual([]);
     expect((await getDayState(organizationId, w.eventId))!.shifts[0]).toMatchObject({ outcome: "applied", notifiedCount: 2 });
   });
 

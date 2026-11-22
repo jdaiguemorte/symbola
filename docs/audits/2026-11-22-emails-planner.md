@@ -89,3 +89,5 @@ Paramètres › E-mails, propose :
 
 Les messages techniques (§ 1, « Symbola envoie ») partent de Symbola dans les deux cas.
 
+Exception décidée ensuite (Q45, 22/11) : le jour J, le programme décalé (JRJ-05) part toujours de
+Symbola, quel que soit le réglage.

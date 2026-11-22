@@ -43,6 +43,9 @@ option, par organisation, pour ce qu'il permet : pièce jointe d'office et relan
 3. **Garde-fou** : `sendOrganizationEmail` refuse d'envoyer un modèle de la relation quand
    l'organisation l'envoie de sa messagerie (rien n'est mis en file) ; chaque point d'envoi dépose à
    la place un **message préparé**.
+   **Seule exception** (Q45, décision de Julien du 22/11/2026) : le programme décalé le jour J
+   (JRJ-05, `publishAndNotifyDayShift`) part toujours de Symbola, quel que soit le réglage. En plein
+   mariage, la planner n'a pas le temps d'envoyer elle-même un message par prestataire.
 4. **Message préparé** (`hub.prepared_emails`) : le modèle, l'évènement, le destinataire **par son
    identifiant** (lien personnel, contact ou signataire), des références (identifiants seulement),
    l'origine (geste ou automatisme) et la clé de l'envoi qu'il remplace (une fois par clé). **Aucun
