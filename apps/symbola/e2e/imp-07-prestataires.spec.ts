@@ -60,14 +60,16 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
   await expect(steps.getByRole("listitem").filter({ hasText: "Types" })).toHaveAttribute("aria-current", "step");
   await expectNoAxeViolation(page);
 
-  // IMP-12 — types par famille : « Photographe » rejoint le type du carnet ;
-  // « Coiffeur(se) » et « Maquillage », le type de départ « Coiffure et maquillage ».
+  // IMP-12 — types par famille : « Photographe » rejoint le type du carnet ; « Coiffeur(se) » le type
+  // de départ « Coiffure », « Maquillage » le sien (lot 63e : deux métiers).
   const beauty = page.getByRole("region", { name: "Types du fichier — Beauté et tenues" });
   await expect(beauty.getByLabel("Ce que devient « Coiffeur(se) »")).toHaveValue("starter:hair_makeup");
-  await expect(beauty.getByLabel("Ce que devient « Maquillage »")).toHaveValue("starter:hair_makeup");
+  await expect(beauty.getByLabel("Ce que devient « Maquillage »")).toHaveValue("starter:makeup");
+  // Lot 63e (PRE-01, PRE-11) : « Photographe & Vidéaste » devient deux métiers, et l'étape le dit.
   const photo = page.getByRole("region", { name: "Types du fichier — Photo et vidéo" });
   await expect(photo.getByLabel("Ce que devient « Photographe »")).toHaveValue(/^existing:/);
-  await photo.getByLabel("Ce que devient « Photographe & Vidéaste »").selectOption({ label: "Photographe" });
+  await expect(photo.getByLabel("Ce que devient « Photographe & Vidéaste »")).toHaveCount(0);
+  await expect(photo.getByText("Vient de « Photographe & Vidéaste » : plusieurs métiers sur la même fiche").first()).toBeVisible();
   await page.getByRole("group", { name: "Actions de l'étape" }).getByRole("button", { name: "Continuer" }).click();
 
   // Doublons : la fiche existante est proposée en mise à jour.
@@ -93,12 +95,15 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
   await expectNoAxeViolation(page);
 
   // La fiche existante est complétée : site, SIRET, champs importés, étiquettes.
-  await page.goto(`/prestataires/${existingId}?modifier=1`);
+  await page.goto(`/prestataires/${existingId}`);
   await expect(page.getByRole("link", { name: "Site web" })).toHaveAttribute("href", "https://www.domaine-tilleuls.example.org");
-  await expect(page.getByLabel("N° SIRET")).toHaveValue("12345678900011");
   const imported = page.getByRole("region", { name: "Champs importés" });
   await expect(imported).toContainText("Code APE");
   await expect(imported).toContainText("5510Z");
+  // Lot 63e (ADR 0107) : la fiche se modifie en grande fenêtre, rubrique par rubrique.
+  await page.goto(`/prestataires/${existingId}?modifier=1`);
+  await expect(page.getByLabel("N° SIRET")).toHaveValue("12345678900011");
+  await page.getByRole("dialog").getByRole("button", { name: "Métiers et étiquettes", exact: true }).click();
   await expect(page.getByLabel("Hébergement sur place")).toBeChecked();
   await expectNoAxeViolation(page);
 
@@ -108,8 +113,9 @@ test("IMP-07 — reprendre ses prestataires depuis l'export Excel de l'outil act
   await page.getByRole("button", { name: "Annuler l'import" }).click();
   await expect(page.getByText(/éléments annulés ; aucun gardé car modifié ; aucun gardé car utilisé\./)).toBeVisible();
   await expectNoAxeViolation(page);
-  await page.goto(`/prestataires/${existingId}?modifier=1`);
+  await page.goto(`/prestataires/${existingId}`);
   await expect(page.getByRole("link", { name: "Site web" })).toHaveCount(0);
+  await page.goto(`/prestataires/${existingId}?modifier=1&rubrique=contact`);
   await expect(page.getByLabel("Téléphone")).toHaveValue("05 00 00 00 00");
   await page.goto("/prestataires");
   await expect(page.getByText("Château de la Roche Fictive")).toHaveCount(0);

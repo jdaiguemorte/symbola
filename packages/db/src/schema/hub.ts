@@ -554,6 +554,9 @@ export type ImportVendorTypeChoice = {
   // Lot 16 (IMP-12) : ce que devient le libellé. Absent (imports d'avant le
   // lot 16) : `typeId`, ou un type créé sous le libellé du fichier.
   target?: ImportVendorTypeTarget;
+  // Lot 63e (PRE-01, PRE-11) : valeurs combinées du fichier (« Photographe et vidéaste ») dont ce
+  // métier vient ; chacune donne plusieurs métiers à la fiche.
+  combinedFrom?: string[];
 };
 
 // Lot 16 (IMP-12, ADR 0040) — un type du carnet ; un type de départ de la

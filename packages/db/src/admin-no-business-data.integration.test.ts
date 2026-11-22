@@ -10,7 +10,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createAppConnection } from "./client";
 import { alertThresholds, budgetLineAttachments, budgetLines, vendorPayments } from "./schema/budget";
-import { vendors, vendorTypes } from "./schema/vendors";
+import { vendors, vendorTypeLinks, vendorTypes } from "./schema/vendors";
 import { calendarFeeds, contactMembers, contactNotes, contacts, emailTemplates, formDrafts, importItems, imports, messageTemplates, messageTemplateVersions, privacyRequests, storageSnapshots, users } from "./schema/hub";
 import {
   catalogItems,
@@ -365,8 +365,10 @@ describe("PRD-HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
   it("vaut aussi pour le carnet de prestataires et les consultés (lot 11, PostgreSQL réel)", async () => {
     const organizationId = randomUUID();
     await withOrganization(db, organizationId, async (tx) => {
-      await tx.insert(vendorTypes).values({ organizationId, label: "Traiteur", color: "#4f6b5a" });
-      await tx.insert(vendors).values({ organizationId, name: "Maison test", email: "contact@example.test" });
+      const [type] = await tx.insert(vendorTypes).values({ organizationId, label: "Traiteur", color: "#4f6b5a" }).returning();
+      const [vendor] = await tx.insert(vendors).values({ organizationId, name: "Maison test", email: "contact@example.test" }).returning();
+      // Lot 63e : les métiers des fiches.
+      await tx.insert(vendorTypeLinks).values({ organizationId, vendorId: vendor!.id, typeId: type!.id, isPrimary: true });
       const [event] = await tx.insert(events).values({ organizationId }).returning();
       if (!event) throw new Error("insertion attendue");
       const [slot] = await tx.insert(eventVendorSlots).values({ organizationId, eventId: event.id, label: "Traiteur" }).returning();
@@ -374,7 +376,7 @@ describe("PRD-HUB-03 — L'Admin ne lit jamais de donnée métier", () => {
       await tx.insert(eventVendorCandidates).values({ organizationId, eventId: event.id, vendorSlotId: slot.id, vendorName: "Maison test" });
     });
 
-    for (const table of [vendors, vendorTypes, eventVendorCandidates]) {
+    for (const table of [vendors, vendorTypes, vendorTypeLinks, eventVendorCandidates]) {
       try {
         const rows = await db.select().from(table);
         expect(rows).toHaveLength(0);

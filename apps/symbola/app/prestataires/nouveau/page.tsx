@@ -7,6 +7,7 @@ import { requirePlanner } from "@/lib/guards";
 import { queryString, type BookQuery } from "../filters";
 import { isVendorsModuleEnabled } from "../module-access";
 import { VendorForm } from "../vendor-form";
+import { parseRubric } from "../vendor-trades";
 import { ScreenHelp } from "@/app/screen-help";
 
 export default async function NewVendorPage({ searchParams }: { searchParams: Promise<BookQuery> }) {
@@ -38,7 +39,8 @@ export default async function NewVendorPage({ searchParams }: { searchParams: Pr
       <h1>{t("newVendor")}</h1>
       <ScreenHelp title={tHelp("vendorNew.title")} body={tHelp("vendorNew.body")} />
       <p>{t("newVendorHint")}</p>
-      <VendorForm types={types} tags={tags} tagGroups={tagGroups} families={families} back={back} />
+      {/* Lot 63e (ADR 0107) : les mêmes rubriques que la fenêtre de modification, dans la page. */}
+      <VendorForm types={types} tags={tags} tagGroups={tagGroups} families={families} back={back} initialRubric={parseRubric(typeof query.rubrique === "string" ? query.rubrique : undefined)} />
     </main>
   );
 }

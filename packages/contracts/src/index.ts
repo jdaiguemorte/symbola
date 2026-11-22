@@ -328,6 +328,8 @@ export type {
   Vendor,
   VendorAround,
   VendorBookSearchResult,
+  VendorTypeSplitStep,
+  VendorTypeSplitResult,
   VendorContact,
   VendorFieldFilter,
   VendorFieldKind,
