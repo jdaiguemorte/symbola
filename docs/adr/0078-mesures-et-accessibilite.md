@@ -105,3 +105,13 @@ Chromium seul, à 1 280 et 375 px.
   dépendances système, les navigateurs s'installent sans elles et un navigateur qui ne démarre pas
   fait échouer ses parcours, avec un message clair.
 - Un audit par un tiers reste utile avant la porte 3 (hors périmètre).
+
+## Avenant du 22/11/2026 (lot 65, décision de Julien)
+
+Une série de 72 requêtes, sur une machine de CI partagée, variait de 212 à 343 ms d'une version à
+l'autre, sur main comme sur les branches : NFR-02 échouait au hasard. La mesure du serveur se fait
+désormais en **trois séries** (chacune : huit tours des neuf pages, puis les vingt recherches) ; le
+seuil (300 ms pour les pages, 500 ms pour la recherche) vaut pour la **médiane des trois 95e
+centiles**. Les trois valeurs vont au résumé du job. Les seuils ne changent pas. Chaque mesure est
+aussi rejouée à part par les reprises de la CI (elle ne dépend plus du succès de la précédente).
+
