@@ -17,12 +17,12 @@ import { isValidId } from "./events/module-access";
 import { PrivacyPurgeAlertBlock, PrivacyRequestsAlertBlock } from "./rgpd/dashboard-block";
 import { PageTour } from "./page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
-import { longDate, MyEvents, TodayList, todayWords, UnavailableNotice } from "./accueil/today-view";
+import { longDate, MyEvents, TodayFirst, TodayRest, todayWords, UnavailableNotice } from "./accueil/today-view";
 import { UndoTaskNotice } from "./accueil/today-client";
 import { OnboardingChecklist } from "./accueil/onboarding-checklist";
 import { loadOnboardingChecklist } from "@/lib/onboarding/checklist";
 import { TodayCalendar } from "./accueil/today-calendar";
-import { isMonthKey } from "@/lib/today/calendar";
+import { isCalendarView, isMonthKey, isWeekKey, mondayOf, type CalendarView } from "@/lib/today/calendar";
 import { ensureTaskCategories } from "@/lib/events/task-categories";
 
 // Lot 32a (HUB-08, UX-01, UX-06 ; D3) — « Aujourd'hui » : ce qui demande une action, tous
@@ -30,7 +30,7 @@ import { ensureTaskCategories } from "@/lib/events/task-categories";
 // tâches, encaissements, relances, alertes de liens et de règlements) passent dans la liste ;
 // l'agenda passe à « Évènements ». Les alertes du titulaire et le plafond d'envois gardent leur
 // bandeau en tête.
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ fait?: string; evenement?: string; visite?: string; mois?: string }> }) {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ fait?: string; evenement?: string; visite?: string; mois?: string; vue?: string; semaine?: string }> }) {
   const auth = await requireSignedIn();
   // Lot 13 (L13-HUB-17) : l'Admin arrive sur la console, pas sur un accueil vide.
   if (auth.user.role === "admin") redirect("/exploitation");
@@ -98,6 +98,18 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // Lot 63d : le calendrier vit des évènements, des rendez-vous ou du budget ; sans aucun, il n'apparaît pas.
   const showCalendar = modules.events || modules.budget || modules.appointments;
   const calendarMonth = isMonthKey(query.mois) ? query.mois : today.slice(0, 7);
+  // Lot 65c (M15) : la vue du calendrier et la semaine montrée.
+  const calendarView: CalendarView = isCalendarView(query.vue) ? query.vue : "mois";
+  const calendarWeek = isWeekKey(query.semaine) ? query.semaine : mondayOf(today);
+  const calendarHref = ({ view, month, week }: { view: CalendarView; month: string; week: string }) => {
+    const params = new URLSearchParams();
+    if (view !== "mois") params.set("vue", view);
+    if (view === "semaine") {
+      if (week !== mondayOf(today)) params.set("semaine", week);
+    } else if (month !== today.slice(0, 7)) params.set("mois", month);
+    const search = params.toString();
+    return search ? `/?${search}#calendrier` : "/#calendrier";
+  };
   const taskCategories = modules.events ? await ensureTaskCategories(organizationId, locale) : [];
 
   // D7 : la tâche cochée l'est déjà ; « Annuler » reste dix secondes. Seule une tâche faite de cet
@@ -142,13 +154,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <UndoTaskNotice key={undone.taskId} eventId={undone.eventId} taskId={undone.taskId} message={t("undo.taskDone", { label: undone.label })} undoLabel={t("undo.action")} returnTo="home" />
       ) : null}
       <UnavailableNotice sources={unavailable} />
-      {/* Lot 63d (HUB-08, maquette M3) : le calendrier du mois à côté des priorités ; sur téléphone, la
-          semaine en cours, dessous. */}
-      <div className={showCalendar ? "today-layout" : undefined}>
-        <div className="today-main">
-          <TodayList ranked={ranked} locale={locale} />
-        </div>
-        {showCalendar ? (
+      {/* Lot 65c (HUB-08, UX-01 ; maquette M15) : les sept lignes à traiter en premier, par nature, puis
+          le calendrier sur toute la largeur (visible sans défiler sur un écran courant), puis le reste. */}
+      <TodayFirst ranked={ranked} locale={locale} modules={{ quotes: modules.quotes, events: modules.events }} />
+      {showCalendar ? (
+        <div id="calendrier">
           <TodayCalendar
             organizationId={organizationId}
             modules={{ events: modules.events, budget: modules.budget, appointments: modules.appointments }}
@@ -157,10 +167,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             locale={locale}
             scope={scope}
             categories={taskCategories}
-            monthHref={(month) => (month === today.slice(0, 7) ? "/" : `/?mois=${month}`)}
+            view={calendarView}
+            week={calendarWeek}
+            href={calendarHref}
           />
-        ) : null}
-      </div>
+        </div>
+      ) : null}
+      <TodayRest ranked={ranked} locale={locale} />
       {/* Lot 53 (GC-02) : le radar des risques du matin, après ce qui demande une action. */}
       {modules.events ? <RiskSection organizationId={organizationId} now={now} /> : null}
       {/* Lot 33b (PAR-01, étape 6) : après ce qui demande une action (UX-01 : la prochaine action d'abord). */}

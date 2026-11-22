@@ -4,10 +4,12 @@
 // un évènement ; pavé blanc à liseré : une tâche, un rendez-vous ou une échéance, de la couleur de sa
 // catégorie, le libellé toujours écrit. Un clic sur un jour ouvre son détail dans une fenêtre ; un clic
 // sur un élément ouvre son écran. Sur téléphone : la semaine en cours en liste.
+// Lot 65c (M15) : la vue « Semaine » (une rangée, chaque élément écrit en entier) et la vue « Liste »
+// (les seuls jours du mois qui ont quelque chose).
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import type { CalendarDay, CalendarItem } from "@/lib/today/calendar";
+import type { CalendarDay, CalendarItem, CalendarView } from "@/lib/today/calendar";
 import { CategorySwatch } from "@/app/taches/category-swatch";
 
 // Au-delà, « + N » ouvre le détail du jour.
@@ -31,7 +33,7 @@ function ItemLine({ item, compact }: { item: CalendarItem; compact: boolean }) {
   );
 }
 
-export function TodayCalendarClient({ weeks, week, labels, legend }: { weeks: CalendarDay[][]; week: CalendarDay[]; labels: CalendarLabels; legend: { label: string; color: string | null }[] }) {
+export function TodayCalendarClient({ view, weeks, week, list, labels, legend }: { view: CalendarView; weeks: CalendarDay[][]; week: CalendarDay[]; list: CalendarDay[]; labels: CalendarLabels; legend: { label: string; color: string | null }[] }) {
   const t = useTranslations("Today");
   const dialog = useRef<HTMLDialogElement>(null);
   const [opened, setOpened] = useState<CalendarDay | null>(null);
@@ -40,9 +42,32 @@ export function TodayCalendarClient({ weeks, week, labels, legend }: { weeks: Ca
     dialog.current?.showModal();
   };
 
+  if (view === "liste") {
+    return (
+      <>
+        {list.length === 0 ? <p className="muted">{t("calendar.listEmpty")}</p> : null}
+        <ol className="calendar-list" aria-label={t("calendar.listLabel")}>
+          {list.map((day) => (
+            <li key={day.date} aria-current={day.today ? "date" : undefined}>
+              <p className="calendar-week-day">{labels.dayTitles[day.date] ?? day.date}</p>
+              <ul>
+                {day.items.map((item) => (
+                  <li key={item.key}>
+                    <ItemLine item={item} compact={false} />
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ol>
+      </>
+    );
+  }
+  const perDay = view === "semaine" ? Number.POSITIVE_INFINITY : SHOWN_PER_DAY;
+
   return (
     <>
-      <div className="calendar-month" role="table" aria-label={t("calendar.gridLabel")}>
+      <div className={view === "semaine" ? "calendar-month calendar-month-week" : "calendar-month"} role="table" aria-label={t("calendar.gridLabel")}>
         <div className="calendar-weekdays" role="row">
           {labels.weekdays.map((day, index) => (
             <span key={index} role="columnheader">
@@ -60,15 +85,15 @@ export function TodayCalendarClient({ weeks, week, labels, legend }: { weeks: Ca
                       {day.day}
                     </button>
                     <ul>
-                      {day.items.slice(0, SHOWN_PER_DAY).map((item) => (
+                      {day.items.slice(0, perDay).map((item) => (
                         <li key={item.key}>
-                          <ItemLine item={item} compact />
+                          <ItemLine item={item} compact={view !== "semaine"} />
                         </li>
                       ))}
                     </ul>
-                    {day.items.length > SHOWN_PER_DAY ? (
+                    {day.items.length > perDay ? (
                       <button type="button" className="calendar-more" onClick={() => open(day)}>
-                        {t("calendar.more", { count: day.items.length - SHOWN_PER_DAY })}
+                        {t("calendar.more", { count: day.items.length - perDay })}
                       </button>
                     ) : null}
                   </>

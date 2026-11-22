@@ -2,7 +2,7 @@
 // simulée : semaines du lundi au dimanche, jours d'un autre mois, semaine en cours sur téléphone, ordre des
 // éléments d'un jour, rendez-vous rangé au jour de Paris autour de minuit et du changement d'heure.
 import { describe, expect, it } from "vitest";
-import { calendarRange, currentWeek, isMonthKey, mondayOf, monthBounds, monthWeeks, parisDay, sortItems, type CalendarItem } from "./calendar";
+import { calendarRange, currentWeek, isCalendarView, isMonthKey, isWeekKey, listDays, mondayOf, monthBounds, monthWeeks, parisDay, sortItems, viewRange, weekDays, type CalendarItem } from "./calendar";
 
 function item(partial: Partial<CalendarItem> & Pick<CalendarItem, "key" | "kind" | "date">): CalendarItem {
   return { label: partial.key, detail: null, href: "/", color: null, categoryLabel: null, overdue: false, highPriority: false, time: null, ...partial };
@@ -68,5 +68,35 @@ describe("HUB-08 — Calendrier du mois sur « Aujourd'hui » (lot 63d, maquette
     expect(isMonthKey("2026-13")).toBe(false);
     expect(isMonthKey("2026-1")).toBe(false);
     expect(isMonthKey(undefined)).toBe(false);
+  });
+});
+
+describe("HUB-08 — Lot 65c : le calendrier d'« Aujourd'hui » par mois, semaine ou liste (M15)", () => {
+  const entry = (key: string, date: string) => ({ key, kind: "task" as const, date, label: key, href: "#", color: null, categoryLabel: null, detail: null, time: null, highPriority: false, overdue: false });
+  it("une vue inconnue n'est pas reçue ; une semaine est un lundi valide", () => {
+    expect(isCalendarView("semaine")).toBe(true);
+    expect(isCalendarView("annee")).toBe(false);
+    expect(isWeekKey("2026-11-23")).toBe(true);
+    expect(isWeekKey("2026-11-24")).toBe(false);
+    expect(isWeekKey("2026-02-30")).toBe(false);
+    expect(isWeekKey(undefined)).toBe(false);
+  });
+  it("la semaine : sept jours du lundi au dimanche, y compris à cheval sur deux mois et au passage à l'heure d'hiver", () => {
+    const days = weekDays("2026-10-26", "2026-10-28", [entry("a", "2026-11-01"), entry("b", "2026-10-25")]);
+    expect(days.map((day) => day.date)).toEqual(["2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-10-30", "2026-10-31", "2026-11-01"]);
+    expect(days[2]!.today).toBe(true);
+    expect(days[6]!.items.map((item) => item.key)).toEqual(["a"]);
+    expect(days.flatMap((day) => day.items).map((item) => item.key)).not.toContain("b");
+  });
+  it("la liste : les seuls jours du mois qui ont quelque chose, dans l'ordre", () => {
+    const days = listDays("2026-11", "2026-11-23", [entry("c", "2026-11-28"), entry("a", "2026-11-02"), entry("x", "2026-12-01"), entry("b", "2026-11-02")]);
+    expect(days.map((day) => [day.date, day.items.length])).toEqual([
+      ["2026-11-02", 2],
+      ["2026-11-28", 1],
+    ]);
+  });
+  it("chaque vue charge ce qu'elle montre", () => {
+    expect(viewRange("semaine", "2026-11", "2026-12-28", "2026-11-23")).toEqual({ from: "2026-12-28", until: "2027-01-03" });
+    expect(viewRange("liste", "2026-11", "2026-11-23", "2026-11-23")).toEqual(calendarRange("2026-11", "2026-11-23"));
   });
 });

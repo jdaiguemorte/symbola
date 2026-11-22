@@ -456,7 +456,7 @@
     },
     "home": {
       "title": "Today",
-      "body": "What needs your attention, across all events, sorted by urgency: overdue, today, waiting on someone else (the client or a vendor), then the next fourteen days. The first three items come first; each line says who has to act and leads to the action in one click. Next to it, the calendar of the month: your events, appointments, tasks in the colour of their category and unpaid vendor due dates; a click on a day shows its detail. On a phone, the current week. Below, your events in progress, with the countdown.",
+      "body": "What needs your attention, across all events, sorted by urgency: overdue, today, waiting on someone else (the client or a vendor), then the next fourteen days. “Deal with first” keeps the first seven items, grouped by kind (follow-ups and messages, tasks, payments, decisions and signatures, prospects); each part gives its count and leads to its page (“See in Tasks”, “See payments received”…), each line says who has to act and leads to the action in one click. Below, full width, the calendar: your events, appointments, tasks in the colour of their category and unpaid vendor due dates; “‹”, “Today” and “›” page through it, “Month”, “Week” and “List” change the view, a click on a day shows its detail. On a phone, the current week. Then the remaining items, and your events in progress, with the countdown.",
       "faq": [
         {
           "q": "How do I change the follow-up delays for quotes and prospects?",
@@ -7318,7 +7318,33 @@
         "tasks": "the tasks",
         "appointments": "the appointments",
         "budget": "the payment due dates"
-      }
+      },
+      "today": "Today",
+      "previousWeek": "Previous week",
+      "nextWeek": "Next week",
+      "weekOf": "Week of {date}",
+      "views": "Calendar view",
+      "view": {
+        "mois": "Month",
+        "semaine": "Week",
+        "liste": "List"
+      },
+      "listEmpty": "Nothing this month.",
+      "listLabel": "Days of the month with something on"
+    },
+    "parts": {
+      "follow_ups": "Follow-ups and messages ({count})",
+      "tasks": "Tasks ({count})",
+      "payments": "Payments ({count})",
+      "decisions": "Decisions and signatures ({count})",
+      "prospects": "Prospects and enquiries ({count})",
+      "others": "To look at ({count})"
+    },
+    "partLink": {
+      "tasks": "See in Tasks",
+      "payments": "See payments received",
+      "pipeline": "See prospects",
+      "event": "See the event"
     }
   },
   "QuickCreate": {

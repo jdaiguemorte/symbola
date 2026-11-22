@@ -105,24 +105,32 @@ test("SC-03 / HUB-08 / UX-01 / UX-06 / EVT-02 — lundi matin : les urgences, an
   const setup = await lundiMatin();
   await login(page, setup.email);
 
-  // Étapes 1 et 2 : « Aujourd'hui » dit par quoi commencer ; les trois urgences tiennent sans défiler,
-  // chacune avec son évènement, son échéance et qui doit agir (UX-06).
+  // Étapes 1 et 2 : « Aujourd'hui » dit par quoi commencer ; lot 65c (M15) : sept lignes au plus, par
+  // priorité puis par délai, découpées par nature, chaque partie avec son nombre et son lien ; chaque
+  // ligne dit son évènement, son échéance et qui doit agir (UX-06).
   await expect(page.getByRole("heading", { level: 1, name: "Aujourd'hui" })).toBeVisible();
   await expect(page.getByText(/4 évènements en cours/)).toBeVisible();
   const first = page.getByRole("region", { name: "À traiter en premier" });
   const items = first.getByRole("listitem");
-  await expect(items).toHaveCount(3);
-  await expect(items.nth(0)).toContainText("Relancer la mairie");
-  await expect(items.nth(0)).toContainText("Chloé & Paul");
-  await expect(items.nth(0)).toContainText("En retard de 5 jours");
-  await expect(items.nth(0)).toContainText("Vous");
-  await expect(items.nth(1)).toContainText("Faire signer le contrat du photographe");
-  await expect(items.nth(2)).toContainText("Acompte à la signature");
-  await expect(items.nth(2)).toContainText("Attend le client");
+  await expect(items).toHaveCount(7);
+  const tasks = first.getByRole("list", { name: /^Tâches \(\d+\)$/ });
+  await expect(tasks.getByRole("listitem").nth(0)).toContainText("Relancer la mairie");
+  await expect(tasks.getByRole("listitem").nth(0)).toContainText("Chloé & Paul");
+  await expect(tasks.getByRole("listitem").nth(0)).toContainText("En retard de 5 jours");
+  await expect(tasks.getByRole("listitem").nth(0)).toContainText("Vous");
+  await expect(tasks.getByRole("listitem").nth(1)).toContainText("Faire signer le contrat du photographe");
+  await expect(first.getByRole("link", { name: "Voir dans Tâches ›" })).toHaveAttribute("href", "/taches");
+  const payments = first.getByRole("list", { name: /^Paiements \(1\)$/ });
+  await expect(payments.getByRole("listitem").first()).toContainText("Acompte à la signature");
+  await expect(payments.getByRole("listitem").first()).toContainText("Attend le client");
+  await expect(first.getByRole("link", { name: "Voir les encaissements ›" })).toHaveAttribute("href", "/devis/encaissements");
   for (const index of [0, 1, 2]) await expect(items.nth(index)).toBeInViewport();
-  const groups = page.getByRole("region", { name: "Ensuite" });
-  await expect(groups.getByRole("heading", { name: "En attente d'un tiers" })).toBeVisible();
-  await expect(groups).toContainText("Attend Studio Lumière");
+  // Le calendrier, sous la liste, commence dans la partie visible d'un écran courant (1 366 × 768).
+  if (page.viewportSize()!.width >= 1280) {
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await expect(page.locator("#calendrier")).toBeInViewport();
+  }
+  await expect(page.getByText("Attend Studio Lumière").first()).toBeVisible();
   await expect(page.getByRole("region", { name: "Mes évènements" })).toContainText("Léa & Maxime");
   await expectNoAxeViolation(page);
 
@@ -137,7 +145,7 @@ test("SC-03 / HUB-08 / UX-01 / UX-06 / EVT-02 — lundi matin : les urgences, an
 
   // Étape 4 : l'alerte du photographe ouvre la synthèse du mariage de référence (EVT-02) : compte à
   // rebours, prochaine action et qui agit, santé de l'évènement.
-  await groups.getByRole("link", { name: "Contrat de Studio Lumière (Photographe) à faire signer" }).click();
+  await page.getByRole("link", { name: "Contrat de Studio Lumière (Photographe) à faire signer" }).first().click();
   await expect(page).toHaveURL(new RegExp(`/events/${setup.leaId}$`));
   await expect(page.getByText("68 jours avant le jour J")).toBeVisible();
   const next = page.getByRole("region", { name: "Prochaine action" });

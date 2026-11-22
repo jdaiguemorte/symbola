@@ -107,3 +107,35 @@ export function calendarRange(month: string, today: string): { from: string; unt
   const weekEnd = addDays(weekStart, 6);
   return { from: first < weekStart ? first : weekStart, until: last > weekEnd ? last : weekEnd };
 }
+
+// Lot 65c (HUB-08 ; maquette M15) : le calendrier d'« Aujourd'hui » se lit par mois, par semaine ou en
+// liste (« ?vue= »), et se feuillette (« ‹ », « Aujourd'hui », « › »).
+export const CALENDAR_VIEWS = ["mois", "semaine", "liste"] as const;
+export type CalendarView = (typeof CALENDAR_VIEWS)[number];
+
+export function isCalendarView(value: string | undefined): value is CalendarView {
+  return value !== undefined && (CALENDAR_VIEWS as readonly string[]).includes(value);
+}
+
+// « ?semaine= » : un lundi, « AAAA-MM-JJ ».
+export function isWeekKey(value: string | undefined): value is string {
+  return value !== undefined && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(utc(value).getTime()) && iso(utc(value)) === value && mondayOf(value) === value;
+}
+
+// Les sept jours (lundi à dimanche) qui commencent à ce lundi.
+export function weekDays(monday: string, today: string, items: CalendarItem[]): CalendarDay[] {
+  const map = byDate(items);
+  return Array.from({ length: 7 }, (_, index) => dayOf(addDays(monday, index), today, null, map));
+}
+
+// La liste : les seuls jours du mois qui ont quelque chose, dans l'ordre.
+export function listDays(month: string, today: string, items: CalendarItem[]): CalendarDay[] {
+  const map = byDate(items.filter((item) => item.date.startsWith(month)));
+  return [...map.keys()].sort().map((date) => dayOf(date, today, month, map));
+}
+
+// Ce que charge chaque vue : la semaine affichée, ou le mois (et la semaine en cours, pour le téléphone).
+export function viewRange(view: CalendarView, month: string, week: string, today: string): { from: string; until: string } {
+  if (view === "semaine") return { from: week, until: addDays(week, 6) };
+  return calendarRange(month, today);
+}

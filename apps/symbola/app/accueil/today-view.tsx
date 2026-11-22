@@ -1,6 +1,6 @@
 // Lot 32a (HUB-08, UX-01, UX-06 ; décisions D2 à D4) — l'écran « Aujourd'hui » : « À traiter en
-// premier » (les trois plus urgents), le reste par groupe (replié au-delà de quatre lignes), puis
-// « Mes évènements ». Chaque ligne dit ce qu'il faut faire, pour quel évènement, quand, qui doit agir,
+// premier », le reste par groupe (replié au-delà de quatre lignes), puis « Mes évènements ». Lot 65c :
+// sept lignes en premier, par nature. Chaque ligne dit ce qu'il faut faire, pour quel évènement, quand, qui doit agir,
 // et propose l'action en un clic.
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -10,6 +10,7 @@ import { eventNames } from "@/modules/events/service";
 import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "@/app/events/event-status";
 import { daysUntil, TODAY_GROUPS, type RankedItem, type RankedToday, type TodayGroup } from "@/lib/today/rank";
 import { isActiveEvent, type TodaySource, type TodayWords } from "@/lib/today/load";
+import { HOME_FIRST_COUNT, todayParts } from "@/lib/today/parts";
 import { completeTaskAction } from "./actions";
 import { completeStandaloneTaskAction } from "@/app/taches/standalone-actions";
 import { RemindVendorButton } from "./today-client";
@@ -123,50 +124,70 @@ export async function TodayItemLine({ item, locale, returnTo }: { item: RankedIt
   );
 }
 
-export async function TodayList({ ranked, locale }: { ranked: RankedToday; locale: Locale }) {
+// Lot 65c (HUB-08, UX-01 ; maquette M15 retouchée) — « À traiter en premier » : sept lignes au plus,
+// par priorité puis par délai, découpées par nature (relances, tâches, paiements, décisions…) ;
+// chaque partie dit son nombre et mène à sa page quand elle existe.
+export async function TodayFirst({ ranked, locale, modules }: { ranked: RankedToday; locale: Locale; modules: { quotes: boolean; events: boolean } }) {
   const t = await getTranslations("Today");
-  const first = new Set(ranked.first.map((item) => item.key));
-  const rest = TODAY_GROUPS.map((group) => ({ group, items: ranked.groups[group].filter((item) => !first.has(item.key)) })).filter((entry) => entry.items.length > 0);
+  const parts = todayParts(ranked, modules);
   return (
-    <>
-      <section className="card today-first" aria-labelledby="today-first-title" data-tour="home-first">
-        <h2 id="today-first-title">{t("firstTitle")}</h2>
-        {ranked.first.length === 0 ? (
-          <p>{t("firstEmpty")}</p>
-        ) : (
-          <ul className="today-items">
-            {ranked.first.map((item) => (
+    <section className="card today-first" aria-labelledby="today-first-title" data-tour="home-first">
+      <h2 id="today-first-title">{t("firstTitle")}</h2>
+      {parts.length === 0 ? (
+        <p>{t("firstEmpty")}</p>
+      ) : (
+        parts.map((part) => (
+          <div key={part.nature} className="today-part">
+            <div className="today-part-head">
+              <h3 id={`today-part-${part.nature}`}>{t(`parts.${part.nature}`, { count: part.total })}</h3>
+              {part.link ? (
+                <Link href={part.link.href} className="today-part-link">
+                  {t(`partLink.${part.link.kind}`)} ›
+                </Link>
+              ) : null}
+            </div>
+            <ul className="today-items" aria-labelledby={`today-part-${part.nature}`}>
+              {part.items.map((item) => (
+                <TodayItemLine key={item.key} item={item} locale={locale} returnTo="home" />
+              ))}
+            </ul>
+          </div>
+        ))
+      )}
+    </section>
+  );
+}
+
+// Le reste (au-delà des sept), par groupe, replié au-delà de quatre lignes ; sous le calendrier.
+export async function TodayRest({ ranked, locale }: { ranked: RankedToday; locale: Locale }) {
+  const t = await getTranslations("Today");
+  const first = new Set(ranked.all.slice(0, HOME_FIRST_COUNT).map((item) => item.key));
+  const rest = TODAY_GROUPS.map((group) => ({ group, items: ranked.groups[group].filter((item) => !first.has(item.key)) })).filter((entry) => entry.items.length > 0);
+  if (rest.length === 0) return null;
+  return (
+    <section className="card today-groups" aria-labelledby="today-rest-title" data-tour="home-groups">
+      <h2 id="today-rest-title">{t("restTitle")}</h2>
+      {rest.map(({ group, items }) => (
+        <div key={group} className="today-group">
+          <h3 id={`today-group-${group}`}>{t(`group.${group}`)}</h3>
+          <ul className="today-items" aria-labelledby={`today-group-${group}`}>
+            {items.slice(0, GROUP_VISIBLE).map((item) => (
               <TodayItemLine key={item.key} item={item} locale={locale} returnTo="home" />
             ))}
           </ul>
-        )}
-      </section>
-      {rest.length > 0 ? (
-        <section className="card today-groups" aria-labelledby="today-rest-title" data-tour="home-groups">
-          <h2 id="today-rest-title">{t("restTitle")}</h2>
-          {rest.map(({ group, items }) => (
-            <div key={group} className="today-group">
-              <h3 id={`today-group-${group}`}>{t(`group.${group}`)}</h3>
-              <ul className="today-items" aria-labelledby={`today-group-${group}`}>
-                {items.slice(0, GROUP_VISIBLE).map((item) => (
+          {items.length > GROUP_VISIBLE ? (
+            <details>
+              <summary>{t("more", { count: items.length - GROUP_VISIBLE })}</summary>
+              <ul className="today-items">
+                {items.slice(GROUP_VISIBLE).map((item) => (
                   <TodayItemLine key={item.key} item={item} locale={locale} returnTo="home" />
                 ))}
               </ul>
-              {items.length > GROUP_VISIBLE ? (
-                <details>
-                  <summary>{t("more", { count: items.length - GROUP_VISIBLE })}</summary>
-                  <ul className="today-items">
-                    {items.slice(GROUP_VISIBLE).map((item) => (
-                      <TodayItemLine key={item.key} item={item} locale={locale} returnTo="home" />
-                    ))}
-                  </ul>
-                </details>
-              ) : null}
-            </div>
-          ))}
-        </section>
-      ) : null}
-    </>
+            </details>
+          ) : null}
+        </div>
+      ))}
+    </section>
   );
 }
 

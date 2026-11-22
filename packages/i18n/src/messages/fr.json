@@ -456,7 +456,7 @@
     },
     "home": {
       "title": "Aujourd'hui",
-      "body": "Ce qui demande votre attention, tous évènements confondus, trié par urgence : en retard, aujourd'hui, en attente d'un tiers (le client ou un prestataire), puis les quatorze prochains jours. Les trois premiers points sont en tête ; chaque ligne dit qui doit agir et mène à l'action en un clic. À côté, le calendrier du mois : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. Dessous, vos évènements en cours, avec le compte à rebours.",
+      "body": "Ce qui demande votre attention, tous évènements confondus, trié par urgence : en retard, aujourd'hui, en attente d'un tiers (le client ou un prestataire), puis les quatorze prochains jours. « À traiter en premier » en garde les sept premiers points, regroupés par nature (relances et messages, tâches, paiements, décisions et signatures, prospects) ; chaque partie dit son nombre et mène à sa page (« Voir dans Tâches », « Voir les encaissements »…), chaque ligne dit qui doit agir et mène à l'action en un clic. Dessous, sur toute la largeur, le calendrier : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; « ‹ », « Aujourd'hui » et « › » le feuillettent, « Mois », « Semaine » et « Liste » changent la vue, un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. Puis le reste des points, et vos évènements en cours, avec le compte à rebours.",
       "faq": [
         {
           "q": "Comment changer les délais de relance des devis et des prospects ?",
@@ -7318,7 +7318,33 @@
         "tasks": "les tâches",
         "appointments": "les rendez-vous",
         "budget": "les échéances de paiement"
-      }
+      },
+      "today": "Aujourd'hui",
+      "previousWeek": "Semaine précédente",
+      "nextWeek": "Semaine suivante",
+      "weekOf": "Semaine du {date}",
+      "views": "Vue du calendrier",
+      "view": {
+        "mois": "Mois",
+        "semaine": "Semaine",
+        "liste": "Liste"
+      },
+      "listEmpty": "Rien ce mois-ci.",
+      "listLabel": "Les jours du mois qui ont quelque chose"
+    },
+    "parts": {
+      "follow_ups": "Relances et messages ({count})",
+      "tasks": "Tâches ({count})",
+      "payments": "Paiements ({count})",
+      "decisions": "Décisions et signatures ({count})",
+      "prospects": "Prospects et demandes ({count})",
+      "others": "À regarder ({count})"
+    },
+    "partLink": {
+      "tasks": "Voir dans Tâches",
+      "payments": "Voir les encaissements",
+      "pipeline": "Voir les prospects",
+      "event": "Voir l'évènement"
     }
   },
   "QuickCreate": {
