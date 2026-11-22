@@ -1,7 +1,8 @@
 # Lot 65 — Retours de la recette staging du 22/11/2026 (version 69186b1)
 
-**Statut** : spécification, **à valider par Julien avant le code**. Le paquet 65a est déjà fait
-(branche `lot-65-retours-staging`).
+**Statut** : spécification validée par Julien le 22/11. Faits : 65a, 65e, 65b, 65c (branche
+`lot-65-retours-staging`). En cours : 65d. À part : 65f, le menu latéral réductible (demande du 22/11,
+session dédiée).
 
 Sources :
 - l'analyse `docs/audits/2026-11-22-recette-staging.md` ;
@@ -69,8 +70,9 @@ Ordre :
   prestataire » et « Ne plus retenir ». Retenir au-delà du seuil d'alerte du budget demande toujours
   une confirmation (BUD-02).
 - **Données** : les statuts des prestataires envisagés existent depuis le lot 28a. Ne plus retenir
-  ramène au statut « devis reçu », ou « contacté » sans devis. Si le retour arrière demande une
-  colonne, la migration prend le numéro **0204**, avec l'accord de Julien.
+  ramène au statut « devis reçu », ou « contacté » sans devis. **Fait sans migration** : « Changer de
+  prestataire » et « Ne plus retenir » reprennent le changement de retenu du lot 47 (D6), qui libère
+  l'engagé du budget.
 - Rejeu de **SC-04** et **SC-05** (trois fleuristes, un choix).
 
 ### 65c — Aujourd'hui (M15, sans migration)
@@ -137,7 +139,7 @@ Ordre :
 - un journal des messages préparés et déclarés envoyés ;
 - l'état « à envoyer » des automatismes.
 
-Migrations à partir de **0205**, réversibles, avec des tests d'isolation.
+Migrations à partir de **0204** (65b n'en a pas eu besoin), réversibles, avec des tests d'isolation.
 
 **Écarts avec le cahier des charges**, à inscrire dans un ADR et dans la question **Q45** de
 `docs/QUESTIONS.md` :
