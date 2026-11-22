@@ -1,6 +1,6 @@
 {
-  "id": "badfee11-e03e-4a80-bc22-e82c0ce1503f",
-  "prevId": "6309421d-1b5f-4545-95d7-ac90c4903582",
+  "id": "f6ecd857-1d80-4e06-b11b-90842114f3ef",
+  "prevId": "3ed6fe81-b832-4f69-8ee3-bb8f744b17d6",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -316,12 +316,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "buffer_before_minutes": {
           "name": "buffer_before_minutes",
           "type": "integer",
@@ -471,10 +465,6 @@
         "appointment_types_location_check": {
           "name": "appointment_types_location_check",
           "value": "\"appointments\".\"appointment_types\".\"location\" is null or char_length(\"appointments\".\"appointment_types\".\"location\") between 1 and 500"
-        },
-        "appointment_types_description_check": {
-          "name": "appointment_types_description_check",
-          "value": "\"appointments\".\"appointment_types\".\"description\" is null or char_length(\"appointments\".\"appointment_types\".\"description\") between 1 and 300"
         },
         "appointment_types_buffers_check": {
           "name": "appointment_types_buffers_check",
@@ -22205,6 +22195,161 @@
       },
       "isRLSEnabled": false
     },
+    "hub.module_requests": {
+      "name": "module_requests",
+      "schema": "hub",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "module_key": {
+          "name": "module_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "requested_by_user_id": {
+          "name": "requested_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "requested_at": {
+          "name": "requested_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "handled_at": {
+          "name": "handled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "module_requests_organization_idx": {
+          "name": "module_requests_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "requested_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "module_requests_pending_idx": {
+          "name": "module_requests_pending_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "module_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "status = 'pending'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "module_requests_status_idx": {
+          "name": "module_requests_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "module_requests_status_check": {
+          "name": "module_requests_status_check",
+          "value": "\"hub\".\"module_requests\".\"status\" in ('pending', 'cancelled', 'activated', 'declined')"
+        },
+        "module_requests_module_key_check": {
+          "name": "module_requests_module_key_check",
+          "value": "\"hub\".\"module_requests\".\"module_key\" ~ '^[a-z][a-z0-9_]{0,39}$'"
+        },
+        "module_requests_handled_check": {
+          "name": "module_requests_handled_check",
+          "value": "(\"hub\".\"module_requests\".\"status\" = 'pending') = (\"hub\".\"module_requests\".\"handled_at\" is null)"
+        }
+      },
+      "isRLSEnabled": false
+    },
     "hub.notification_preferences": {
       "name": "notification_preferences",
       "schema": "hub",
@@ -22345,7 +22490,7 @@
       "checkConstraints": {
         "notification_preferences_type_check": {
           "name": "notification_preferences_type_check",
-          "value": "\"hub\".\"notification_preferences\".\"type\" in ('prospect_request', 'quote_signed', 'quote_expired', 'transfer_declared', 'client_decision', 'vendor_answer', 'iban_to_verify', 'document_expiring', 'task_overdue', 'milestone_late', 'risk_alert', 'day_of_alert', 'client_message', 'email_bounced')"
+          "value": "\"hub\".\"notification_preferences\".\"type\" in ('prospect_request', 'quote_signed', 'quote_expired', 'transfer_declared', 'client_decision', 'vendor_answer', 'iban_to_verify', 'document_expiring', 'task_overdue', 'milestone_late', 'risk_alert', 'day_of_alert', 'client_message', 'email_bounced', 'module_activated')"
         },
         "notification_preferences_channel_check": {
           "name": "notification_preferences_channel_check",
@@ -22805,7 +22950,7 @@
       "checkConstraints": {
         "notifications_type_check": {
           "name": "notifications_type_check",
-          "value": "\"hub\".\"notifications\".\"type\" in ('prospect_request', 'quote_signed', 'quote_expired', 'transfer_declared', 'client_decision', 'vendor_answer', 'iban_to_verify', 'document_expiring', 'task_overdue', 'milestone_late', 'risk_alert', 'day_of_alert', 'client_message', 'email_bounced')"
+          "value": "\"hub\".\"notifications\".\"type\" in ('prospect_request', 'quote_signed', 'quote_expired', 'transfer_declared', 'client_decision', 'vendor_answer', 'iban_to_verify', 'document_expiring', 'task_overdue', 'milestone_late', 'risk_alert', 'day_of_alert', 'client_message', 'email_bounced', 'module_activated')"
         },
         "notifications_object_key_check": {
           "name": "notifications_object_key_check",

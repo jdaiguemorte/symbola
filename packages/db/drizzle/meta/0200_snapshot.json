@@ -1,5 +1,5 @@
 {
-  "id": "6309421d-1b5f-4545-95d7-ac90c4903582",
+  "id": "3ed6fe81-b832-4f69-8ee3-bb8f744b17d6",
   "prevId": "73788725-f9d3-43c9-a5a7-22602ce126df",
   "version": "7",
   "dialect": "postgresql",
@@ -3377,109 +3377,6 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "events.busy_settings": {
-      "name": "busy_settings",
-      "schema": "events",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "options_block": {
-          "name": "options_block",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fallback_start_day_offset": {
-          "name": "fallback_start_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fallback_start_time": {
-          "name": "fallback_start_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fallback_end_day_offset": {
-          "name": "fallback_end_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fallback_end_time": {
-          "name": "fallback_end_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_by": {
-          "name": "updated_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "busy_settings_organization_idx": {
-          "name": "busy_settings_organization_idx",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "busy_settings_busy_rule_check": {
-          "name": "busy_settings_busy_rule_check",
-          "value": "\"events\".\"busy_settings\".\"fallback_start_day_offset\" between -7 and 7 and \"events\".\"busy_settings\".\"fallback_end_day_offset\" between -7 and 7 and (\"events\".\"busy_settings\".\"fallback_end_day_offset\" * 1440 + extract(epoch from \"events\".\"busy_settings\".\"fallback_end_time\") / 60) > (\"events\".\"busy_settings\".\"fallback_start_day_offset\" * 1440 + extract(epoch from \"events\".\"busy_settings\".\"fallback_start_time\") / 60)"
-        }
-      },
       "isRLSEnabled": false
     },
     "events.closing_settings": {
@@ -9613,30 +9510,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "busy_start_day_offset": {
-          "name": "busy_start_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_start_time": {
-          "name": "busy_start_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_end_day_offset": {
-          "name": "busy_end_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_end_time": {
-          "name": "busy_end_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -9678,16 +9551,7 @@
         }
       },
       "policies": {},
-      "checkConstraints": {
-        "event_types_busy_rule_complete_check": {
-          "name": "event_types_busy_rule_complete_check",
-          "value": "(\"events\".\"event_types\".\"busy_start_day_offset\" is null) = (\"events\".\"event_types\".\"busy_start_time\" is null) and (\"events\".\"event_types\".\"busy_start_day_offset\" is null) = (\"events\".\"event_types\".\"busy_end_day_offset\" is null) and (\"events\".\"event_types\".\"busy_start_day_offset\" is null) = (\"events\".\"event_types\".\"busy_end_time\" is null)"
-        },
-        "event_types_busy_rule_check": {
-          "name": "event_types_busy_rule_check",
-          "value": "\"events\".\"event_types\".\"busy_start_day_offset\" is null or (\"events\".\"event_types\".\"busy_start_day_offset\" between -7 and 7 and \"events\".\"event_types\".\"busy_end_day_offset\" between -7 and 7 and (\"events\".\"event_types\".\"busy_end_day_offset\" * 1440 + extract(epoch from \"events\".\"event_types\".\"busy_end_time\") / 60) > (\"events\".\"event_types\".\"busy_start_day_offset\" * 1440 + extract(epoch from \"events\".\"event_types\".\"busy_start_time\") / 60))"
-        }
-      },
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "events.event_vendor_candidate_notes": {
@@ -10235,12 +10099,6 @@
           "notNull": true,
           "default": "'option'"
         },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "event_date": {
           "name": "event_date",
           "type": "date",
@@ -10420,27 +10278,9 @@
           "primaryKey": false,
           "notNull": false
         },
-        "busy_start_day_offset": {
-          "name": "busy_start_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_start_time": {
-          "name": "busy_start_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_end_day_offset": {
-          "name": "busy_end_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_end_time": {
-          "name": "busy_end_time",
-          "type": "time",
+        "name": {
+          "name": "name",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         }
@@ -10524,21 +10364,9 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {
-        "events_busy_rule_complete_check": {
-          "name": "events_busy_rule_complete_check",
-          "value": "(\"events\".\"events\".\"busy_start_day_offset\" is null) = (\"events\".\"events\".\"busy_start_time\" is null) and (\"events\".\"events\".\"busy_start_day_offset\" is null) = (\"events\".\"events\".\"busy_end_day_offset\" is null) and (\"events\".\"events\".\"busy_start_day_offset\" is null) = (\"events\".\"events\".\"busy_end_time\" is null)"
-        },
-        "events_busy_rule_check": {
-          "name": "events_busy_rule_check",
-          "value": "\"events\".\"events\".\"busy_start_day_offset\" is null or (\"events\".\"events\".\"busy_start_day_offset\" between -7 and 7 and \"events\".\"events\".\"busy_end_day_offset\" between -7 and 7 and (\"events\".\"events\".\"busy_end_day_offset\" * 1440 + extract(epoch from \"events\".\"events\".\"busy_end_time\") / 60) > (\"events\".\"events\".\"busy_start_day_offset\" * 1440 + extract(epoch from \"events\".\"events\".\"busy_start_time\") / 60))"
-        },
         "events_time_zone_check": {
           "name": "events_time_zone_check",
           "value": "char_length(\"events\".\"events\".\"time_zone\") between 1 and 64"
-        },
-        "events_name_check": {
-          "name": "events_name_check",
-          "value": "\"events\".\"events\".\"name\" is null or char_length(\"events\".\"events\".\"name\") between 1 and 200"
         },
         "events_guests_check": {
           "name": "events_guests_check",
@@ -10551,6 +10379,10 @@
         "events_notes_sealed_check": {
           "name": "events_notes_sealed_check",
           "value": "\"events\".\"events\".\"notes_sealed\" is null or (\"events\".\"events\".\"notes\" is null and \"events\".\"events\".\"notes_sealed\" like 'f1:%' and \"events\".\"events\".\"notes_confidential_by\" is not null)"
+        },
+        "events_name_check": {
+          "name": "events_name_check",
+          "value": "\"events\".\"events\".\"name\" is null or char_length(\"events\".\"events\".\"name\") between 1 and 200"
         }
       },
       "isRLSEnabled": false
@@ -22335,7 +22167,7 @@
       "checkConstraints": {
         "notification_preferences_type_check": {
           "name": "notification_preferences_type_check",
-          "value": "\"hub\".\"notification_preferences\".\"type\" in ('prospect_request', 'quote_signed', 'quote_expired', 'transfer_declared', 'client_decision', 'vendor_answer', 'iban_to_verify', 'document_expiring', 'task_overdue', 'milestone_late', 'risk_alert', 'day_of_alert', 'client_message', 'email_bounced')"
+          "value": "\"hub\".\"notification_preferences\".\"type\" in ('prospect_request', 'quote_signed', 'quote_expired', 'transfer_declared', 'client_decision', 'vendor_answer', 'iban_to_verify', 'document_expiring', 'task_overdue', 'milestone_late', 'risk_alert', 'day_of_alert', 'client_message', 'email_bounced', 'module_activated')"
         },
         "notification_preferences_channel_check": {
           "name": "notification_preferences_channel_check",
@@ -22795,7 +22627,7 @@
       "checkConstraints": {
         "notifications_type_check": {
           "name": "notifications_type_check",
-          "value": "\"hub\".\"notifications\".\"type\" in ('prospect_request', 'quote_signed', 'quote_expired', 'transfer_declared', 'client_decision', 'vendor_answer', 'iban_to_verify', 'document_expiring', 'task_overdue', 'milestone_late', 'risk_alert', 'day_of_alert', 'client_message', 'email_bounced')"
+          "value": "\"hub\".\"notifications\".\"type\" in ('prospect_request', 'quote_signed', 'quote_expired', 'transfer_declared', 'client_decision', 'vendor_answer', 'iban_to_verify', 'document_expiring', 'task_overdue', 'milestone_late', 'risk_alert', 'day_of_alert', 'client_message', 'email_bounced', 'module_activated')"
         },
         "notifications_object_key_check": {
           "name": "notifications_object_key_check",
@@ -33478,6 +33310,161 @@
         "vendors_sealed_fields_check": {
           "name": "vendors_sealed_fields_check",
           "value": "(\"vendors\".\"vendors\".\"internal_note_sealed\" is null or (\"vendors\".\"vendors\".\"internal_note\" is null and \"vendors\".\"vendors\".\"internal_note_sealed\" like 'f1:%')) and (\"vendors\".\"vendors\".\"iban_sealed\" is null or \"vendors\".\"vendors\".\"iban_sealed\" like 'f1:%') and (\"vendors\".\"vendors\".\"bic_sealed\" is null or \"vendors\".\"vendors\".\"bic_sealed\" like 'f1:%') and ((\"vendors\".\"vendors\".\"iban_sealed\" is null) = (\"vendors\".\"vendors\".\"iban_masked\" is null)) and (\"vendors\".\"vendors\".\"bic_sealed\" is null or \"vendors\".\"vendors\".\"iban_sealed\" is not null)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "hub.module_requests": {
+      "name": "module_requests",
+      "schema": "hub",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "module_key": {
+          "name": "module_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "requested_by_user_id": {
+          "name": "requested_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "requested_at": {
+          "name": "requested_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "handled_at": {
+          "name": "handled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "module_requests_organization_idx": {
+          "name": "module_requests_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "requested_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "module_requests_pending_idx": {
+          "name": "module_requests_pending_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "module_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "status = 'pending'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "module_requests_status_idx": {
+          "name": "module_requests_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "module_requests_status_check": {
+          "name": "module_requests_status_check",
+          "value": "\"hub\".\"module_requests\".\"status\" in ('pending', 'cancelled', 'activated', 'declined')"
+        },
+        "module_requests_module_key_check": {
+          "name": "module_requests_module_key_check",
+          "value": "\"hub\".\"module_requests\".\"module_key\" ~ '^[a-z][a-z0-9_]{0,39}$'"
+        },
+        "module_requests_handled_check": {
+          "name": "module_requests_handled_check",
+          "value": "(\"hub\".\"module_requests\".\"status\" = 'pending') = (\"hub\".\"module_requests\".\"handled_at\" is null)"
         }
       },
       "isRLSEnabled": false

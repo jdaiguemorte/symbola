@@ -24,6 +24,9 @@ const SUBSCRIPTION_SOURCES = [
   "app/parametres/abonnement",
   "app/exploitation/offres",
   "app/exploitation/interrupteurs",
+  // Lot 63g (ADR 0108) : l'écran « Apps » et les demandes d'activation.
+  "app/apps",
+  "modules/hub/module-requests.ts",
 ];
 
 function files(path: string): string[] {

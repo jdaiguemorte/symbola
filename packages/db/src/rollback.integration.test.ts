@@ -85,8 +85,11 @@ const LOT_45 = ["0172_lot45_hub_prospect_email_kinds", "0171_lot45_hub_contact_d
 // Lot 55 : messagerie par sujet (0194, events), adresse d'expédition, journal des envois, nature et
 // sortes (0195, hub). Fusionné après les lots 60 et 54 : annulé avant tous les autres lots.
 const LOT_55 = ["0195_lot55_hub_sender_deliveries", "0194_lot55_events_messages"];
-// Lot 63c : nom facultatif des évènements (0196, events) ; la plus récente, elle s'annule d'abord.
+// Lot 63g : demandes d'activation d'une app (0200, hub) ; la plus récente, elle s'annule d'abord.
+const LOT_63G = ["0200_lot63g_hub_module_requests"];
+// Lot 63d : catégories et priorité des tâches (0197, events).
 const LOT_63D = ["0197_lot63d_events_task_categories"];
+// Lot 63c : nom facultatif des évènements (0196, events).
 const LOT_63C = ["0196_lot63c_events_name"];
 // Lot 64 : plages occupées (0202, events) et description des types de rendez-vous (0203,
 // appointments). Fusionné après le lot 63 : annulé avant tous les autres lots.
@@ -124,7 +127,7 @@ const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
 // 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_64, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
+const LOT_36 = [...LOT_64, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
 // Lot 63c : l'ordre des annulations des lots récents, de la plus récente à la plus ancienne, se lit
 // dans cette seule liste. Un nouveau lot ajoute sa liste en tête de LOT_36, et rien d'autre : les
 // tests annulent par rollbackNewerThan et rollbackThrough, jamais par une suite écrite à la main.
@@ -219,6 +222,32 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await target`delete from appointments.appointment_types where id = ${appointmentType!.id}`;
     await target`delete from events.event_types where id = ${type!.id}`;
     await target`delete from events.events where id = ${event!.id}`;
+    await migrateAll();
+  });
+
+  it("lot 63g (HUB-06, HUB-15, SEC-09, SEC-10 ; ADR 0108) — 0200 : demandes d'activation d'une app, une seule en attente par module, sortes « App activée » ; annulation refusée tant qu'une demande attend, puis tout est retiré", async () => {
+    await migrateAll();
+    const organizationId = randomUUID();
+    const suffix = randomUUID();
+    const [user] = await target<{ id: string }[]>`insert into hub.users (email, idp_subject) values (${`titulaire-${suffix}@symbola.test`}, ${`sub-${suffix}`}) returning id`;
+    const userId = user!.id;
+    await expect(target`insert into hub.module_requests (organization_id, module_key, requested_by_user_id, requested_at, status) values (${organizationId}, 'floorplans', ${userId}, now(), 'activated')`).rejects.toThrow(/module_requests_handled_check/);
+    await expect(target`insert into hub.module_requests (organization_id, module_key, requested_by_user_id, requested_at, status) values (${organizationId}, 'Plans de salle', ${userId}, now(), 'pending')`).rejects.toThrow(/module_requests_module_key_check/);
+    await expect(target`insert into hub.module_requests (organization_id, module_key, requested_by_user_id, requested_at, status, handled_at) values (${organizationId}, 'floorplans', ${userId}, now(), 'refused', now())`).rejects.toThrow(/module_requests_status_check/);
+    await target`insert into hub.module_requests (organization_id, module_key, requested_by_user_id, requested_at) values (${organizationId}, 'floorplans', ${userId}, now())`;
+    await expect(target`insert into hub.module_requests (organization_id, module_key, requested_by_user_id, requested_at) values (${organizationId}, 'floorplans', ${userId}, now())`).rejects.toThrow(/module_requests_pending_idx/);
+    await target`insert into hub.notifications (organization_id, user_id, type, object_key, href) values (${organizationId}, ${userId}, 'module_activated', 'module_request:1', '/events')`;
+    await rollbackNewerThan(LOT_63G[0]!);
+    await expect(rollback(LOT_63G[0]!)).rejects.toThrow(/demandes d'activation attendent/);
+    await target`update hub.module_requests set status = 'activated', handled_at = now() where organization_id = ${organizationId}`;
+    await rollback(LOT_63G[0]!);
+    const [table] = await target<{ name: string | null }[]>`select to_regclass('hub.module_requests')::text as name`;
+    expect(table!.name).toBeNull();
+    const notifications = await target`select 1 from hub.notifications where organization_id = ${organizationId}`;
+    expect(notifications).toHaveLength(0);
+    await expect(target`insert into hub.notifications (organization_id, user_id, type, object_key, href) values (${organizationId}, ${userId}, 'module_activated', 'module_request:2', '/events')`).rejects.toThrow(/notifications_type_check/);
+    await target`delete from hub.users where id = ${userId}`;
+    await migrateAll();
     await migrateAll();
   });
 

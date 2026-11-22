@@ -100,8 +100,8 @@
       "kind": "module",
       "labels": { "fr": "Espaces couples (Invités et RSVP)", "en": "Couple spaces (Guests and RSVP)" },
       "descriptions": {
-        "fr": "Le planner le paie au mois, sans compter les évènements ; le couple ne paie rien.",
-        "en": "The planner pays it monthly, whatever the number of events; the couple pays nothing."
+        "fr": "La liste des invités, leurs réponses, leurs régimes et le plan de table. Le planner le paie au mois, sans compter les évènements ; le couple ne paie rien.",
+        "en": "The guest list, their answers, their diets and the seating plan. The planner pays it monthly, whatever the number of events; the couple pays nothing."
       },
       "module": "guests",
       "monthlyPriceCents": 1500,
@@ -122,7 +122,7 @@
       "key": "floorplans",
       "kind": "module",
       "labels": { "fr": "Plans de salle", "en": "Floor plans" },
-      "descriptions": { "fr": "Plans des lieux et des tables.", "en": "Venue and table plans." },
+      "descriptions": { "fr": "Les plans des lieux : une salle à l'échelle, avec ses tables, sa scène et son buffet.", "en": "Venue plans: a room to scale, with its tables, stage and buffet." },
       "module": "floorplans",
       "monthlyPriceCents": 900,
       "storageUnitBytes": null,
@@ -137,6 +137,57 @@
       "monthlyPriceCents": 500,
       "storageUnitBytes": 53687091200,
       "selfService": true
+    }
+  ],
+  "apps": [
+    {
+      "key": "events",
+      "labels": { "fr": "Évènements", "en": "Events" },
+      "benefits": { "fr": "Les fiches de vos évènements, le rétroplanning, les tâches et le programme du jour J.", "en": "Your event files, the backward planning, tasks and the wedding-day programme." },
+      "whereToFind": { "fr": "Dans le menu : « Évènements » et « Tâches ».", "en": "In the menu: “Events” and “Tasks”." },
+      "href": "/events"
+    },
+    {
+      "key": "budget",
+      "labels": { "fr": "Budget", "en": "Budget" },
+      "benefits": { "fr": "Le budget de chaque évènement, ses échéances et ses payeurs.", "en": "Each event's budget, its due dates and its payers." },
+      "whereToFind": { "fr": "Dans chaque évènement : onglet « Budget et prestataires ».", "en": "In each event: “Budget and vendors” tab." },
+      "href": "/events"
+    },
+    {
+      "key": "quotes",
+      "labels": { "fr": "Devis et factures", "en": "Quotes and invoices" },
+      "benefits": { "fr": "Vos propositions, leur signature en ligne, vos factures et vos encaissements.", "en": "Your proposals, their online signature, your invoices and your payments." },
+      "whereToFind": { "fr": "Dans le menu : « Devis et factures » et « Encaissements ».", "en": "In the menu: “Quotes and invoices” and “Payments”." },
+      "href": "/devis"
+    },
+    {
+      "key": "vendors",
+      "labels": { "fr": "Prestataires", "en": "Vendors" },
+      "benefits": { "fr": "Votre carnet de prestataires, leur carte et vos consultations.", "en": "Your vendor book, their map and your consultations." },
+      "whereToFind": { "fr": "Dans le menu : « Prestataires ».", "en": "In the menu: “Vendors”." },
+      "href": "/prestataires"
+    },
+    {
+      "key": "appointments",
+      "labels": { "fr": "Rendez-vous", "en": "Appointments" },
+      "benefits": { "fr": "La prise de rendez-vous en ligne par vos prospects et vos clients.", "en": "Online appointment booking by your prospects and clients." },
+      "whereToFind": { "fr": "Dans le menu : « Rendez-vous », après les contacts.", "en": "In the menu: “Appointments”, after contacts." },
+      "href": "/rendez-vous"
+    },
+    {
+      "key": "guests",
+      "labels": { "fr": "Invités et RSVP", "en": "Guests and RSVP" },
+      "benefits": { "fr": "La liste des invités, leurs réponses, leurs régimes et le plan de table.", "en": "The guest list, their answers, their diets and the seating plan." },
+      "whereToFind": { "fr": "Dans chaque évènement : onglet « Invités », puis « Plan de table ».", "en": "In each event: “Guests” tab, then “Seating plan”." },
+      "href": "/events"
+    },
+    {
+      "key": "floorplans",
+      "labels": { "fr": "Plans de salle", "en": "Floor plans" },
+      "benefits": { "fr": "Les plans des lieux : dessiner une salle à l'échelle, placer les tables, la scène et le buffet.", "en": "Venue plans: draw a room to scale, place the tables, the stage and the buffet." },
+      "whereToFind": { "fr": "Dans chaque évènement : rubrique des lieux, lien « Plan de salle de l'évènement » ; et sur la fiche d'un lieu.", "en": "In each event: places section, “Event floor plan” link; and on a venue's sheet." },
+      "href": "/events"
     }
   ]
 }
