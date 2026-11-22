@@ -59,7 +59,7 @@ export async function notifyProposalAction(_prev: QuoteFormState, formData: Form
     // Lot 65d (ADR 0110) : préparée pour la messagerie de la planner, la fenêtre s'ouvre aussitôt.
     const quote = await getQuote(organizationId, quoteId);
     const prepared = await pendingPreparedEmailIds(organizationId, { eventId: quote.eventId, kinds: ["proposal_sent"], ref: { quoteId } });
-    if (prepared.length > 0) redirect(withPreparer(`/devis/${quoteId}`, prepared));
+    if (prepared.length > 0) redirect(withPreparer(`/devis/${quoteId}?rubrique=proposition`, prepared));
   });
 }
 

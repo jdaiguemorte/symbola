@@ -151,6 +151,11 @@ Migrations à partir de **0204** (65b n'en a pas eu besoin), réversibles, avec 
 
 Rejeu de **SC-02** (de la demande à l'acompte), qui fait partir des messages.
 
+**Fait (65d2, 22/11, branche `lot-65d2-messages-planner`)** : réglage, liste fermée (14 modèles de la
+relation, 21 techniques : le décompte « 17 / 18 » ci-dessus ne correspond pas au partage validé, voir
+Q45), fenêtre « Préparer l'e-mail », éléments « À envoyer », migration **0205** (schéma hub), ADR 0110 ;
+rejeu SC-02 dans `docs/recette/SC-02.md`.
+
 ### 65f — Menu latéral réductible (demande du 22/11, sans migration)
 
 - **UX-13** : sur ordinateur, « Réduire le menu » ne garde que les icônes du menu latéral ; leur nom

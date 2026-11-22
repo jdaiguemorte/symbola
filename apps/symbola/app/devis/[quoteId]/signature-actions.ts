@@ -135,6 +135,6 @@ async function requestSignature(
   // s'ouvre aussitôt (le lien de signature, lui, est parti de Symbola).
   const quote = await getQuote(organizationId, quoteId);
   const prepared = await pendingPreparedEmailIds(organizationId, { eventId: quote.eventId, kinds: ["order_first"], ref: { quoteId } });
-  if (prepared.length > 0) redirect(withPreparer(`/devis/${quoteId}`, prepared));
+  if (prepared.length > 0) redirect(withPreparer(`/devis/${quoteId}?rubrique=contrat`, prepared));
   return { success: true };
 }

@@ -912,6 +912,29 @@ du déroulé des autres prestataires). Réglable sur la séquence dans l'éditeu
 du PDF, les lignes « Caché des mariés » s'importent cachées au lieu d'être écartées. Les repères
 restent des séquences sans intervenant.
 
+### Q45 — Lot 65d : les messages de la relation envoyés par la planner (22 novembre 2026)
+
+Décisions de Julien du 22/11 (note `docs/audits/2026-11-22-emails-planner.md`, § 4 et § 5) : les
+messages de la relation (proposition, coordonnées de paiement, relances, brief, programme, réponse à
+un prospect, questionnaire, rappel des tâches du client) partent par défaut de la messagerie de la
+planner ; Symbola les prépare. L'envoi par Symbola reste une option par organisation (« Symbola les
+envoie pour moi »), pour la pièce jointe et les relances automatiques. Les messages techniques
+(accès, signature, rendez-vous en ligne, sécurité, avis) partent toujours de Symbola.
+
+Écarts avec le cahier des charges, assumés dans l'ADR 0110 :
+
+- **FAC-09** et **HUB-28** : dans le mode par défaut, une relance d'impayé ou d'échéance est
+  **préparée** (élément « À envoyer » d'« Aujourd'hui »), pas envoyée par Symbola ; avec l'option,
+  elle reste envoyée.
+- **MSG-01** et l'ADR 0102 : la messagerie de Symbola ne sert plus, par défaut, aux messages de la
+  relation.
+- Le décompte de la spécification (17 modèles de la relation, 18 techniques) ne correspond pas au
+  partage validé du § 1 de la note (14 et 21, avec `task_reminder` côté relation) : c'est le partage
+  validé qui est appliqué. **À confirmer par Julien** si un modèle doit changer de liste.
+
+Fait au lot 65d2 : migration **0205** (schéma hub), réglage dans Paramètres › Modèles d'e-mails,
+fenêtre « Préparer l'e-mail », éléments « À envoyer » ; ADR 0110.
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que

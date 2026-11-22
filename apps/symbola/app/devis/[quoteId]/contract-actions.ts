@@ -123,6 +123,6 @@ export async function sendContractAloneAction(_prev: ContractFormState, formData
   // Lot 65d (ADR 0110) : « commande d'abord » préparé pour la messagerie de la planner.
   const quote = await getQuote(auth.organizationId, quoteId);
   const prepared = await pendingPreparedEmailIds(auth.organizationId, { eventId: quote.eventId, kinds: ["order_first"], ref: { contractId } });
-  if (prepared.length > 0) redirect(withPreparer(`/devis/${quoteId}`, prepared));
+  if (prepared.length > 0) redirect(withPreparer(`/devis/${quoteId}?rubrique=contrat`, prepared));
   return { success: true };
 }

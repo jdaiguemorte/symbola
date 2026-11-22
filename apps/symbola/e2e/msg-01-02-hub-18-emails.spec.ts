@@ -12,6 +12,7 @@ import { recordAudit } from "@symbola/db/audit";
 import { createAppConnection } from "@symbola/db/client";
 import { addEventVendorSlot, addProgramItem, addVendorCandidate, createEventLink, createProspect, createProspectSource, publishEventProgram } from "../modules/events/service";
 import { openSettingsTab, readyOrganization, signIn } from "./helpers";
+import { setRelationMailSender } from "../modules/hub/service";
 
 const MAILPIT = "http://localhost:8025/api/v1";
 const PROGRAM_ONLY = { rubrics: ["program" as const], budgetScope: "all" as const, sharedSlotIds: [] };
@@ -45,6 +46,8 @@ async function atelier() {
   const { sql, db } = createAppConnection();
   try {
     const organization = await readyOrganization(db, name);
+    // Lot 65d (ADR 0110) : ce parcours vérifie l'envoi par Symbola (« Symbola les envoie pour moi »).
+    await setRelationMailSender(organization.id, "symbola");
     const owner = await createUser(db, { organizationId: organization.id, email, role: "owner" });
     const organizationId = organization.id;
     const source = await createProspectSource(organizationId, "Salon");
