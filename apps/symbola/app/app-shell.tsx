@@ -56,6 +56,7 @@ import { settingsMenu } from "./settings-menu";
 import { cookies, headers } from "next/headers";
 import { HelpBar, type TutorialInvite } from "./help-bar";
 import { AUTO_TOURS_COOKIE } from "@/lib/help/preferences";
+import { SIDEBAR_COLLAPSED_COOKIE, isSidebarCollapsed } from "./sidebar-preference";
 import { SearchBox } from "./search-box";
 import { QuickCreate } from "./creation-rapide/quick-create";
 import { HelpProvider } from "./help-context";
@@ -107,7 +108,7 @@ function Brand({ href, suffix }: { href: string; suffix?: string }) {
   return (
     <a href={href} className="app-brand">
       <Logo />
-      <span>Symbola</span>
+      <span className="app-brand-name">Symbola</span>
       {suffix ? <span className="app-brand-suffix">{suffix}</span> : null}
     </a>
   );
@@ -188,6 +189,14 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const tAide = await getTranslations("Aide");
   const tLoading = await getTranslations("Loading");
   const tToday = await getTranslations("Today");
+  // Lot 65f : libellés du menu, et son état réduit retenu sur l'appareil (lu ici : pas de clignotement).
+  const sidebarProps = {
+    menuLabel: t("menuOpen"),
+    closeLabel: t("menuClose"),
+    collapseLabel: t("menuCollapse"),
+    expandLabel: t("menuExpand"),
+    initialCollapsed: isSidebarCollapsed((await cookies()).get(SIDEBAR_COLLAPSED_COOKIE)?.value),
+  };
 
   // Connexion, double authentification, invitation : pas de menu.
   if (auth.status !== "authenticated") {
@@ -379,62 +388,41 @@ export async function AppShell({ children }: { children: ReactNode }) {
         <a className="skip-link" href="#contenu">
           {t("skipToContent")}
         </a>
-        <AppSidebar brand={<Brand href="/comptable" />} menuLabel={t("menuOpen")} closeLabel={t("menuClose")}>
+        <AppSidebar brand={<Brand href="/comptable" />} {...sidebarProps}>
           <nav aria-label={tAccounting("menuLabel")}>
             <ul className="app-nav">
               <li>
-                <AppNavLink href="/comptable" exact>
-                  <FileText {...iconProps} />
-                  {tAccounting("menu.documents")}
-                </AppNavLink>
+                <AppNavLink href="/comptable" exact icon={<FileText {...iconProps} />} label={tAccounting("menu.documents")} />
               </li>
               {quotes ? (
                 <>
                   <li>
-                    <AppNavLink href="/devis/encaissements">
-                      <Wallet {...iconProps} />
-                      {tAccounting("menu.payments")}
-                    </AppNavLink>
+                    <AppNavLink href="/devis/encaissements" icon={<Wallet {...iconProps} />} label={tAccounting("menu.payments")} />
                   </li>
                   <li>
-                    <AppNavLink href="/devis/e-reporting">
-                      <Activity {...iconProps} />
-                      {tAccounting("menu.eReporting")}
-                    </AppNavLink>
+                    <AppNavLink href="/devis/e-reporting" icon={<Activity {...iconProps} />} label={tAccounting("menu.eReporting")} />
                   </li>
                   {/* Lot 58 (FAC-11) : exports comptables, en lecture. */}
                   <li>
-                    <AppNavLink href="/devis/exports-comptables">
-                      <FileText {...iconProps} />
-                      {tAccounting("menu.exports")}
-                    </AppNavLink>
+                    <AppNavLink href="/devis/exports-comptables" icon={<FileText {...iconProps} />} label={tAccounting("menu.exports")} />
                   </li>
                   <li>
-                    <AppNavLink href="/devis/parametres/archive">
-                      <BookUser {...iconProps} />
-                      {tAccounting("menu.ledger")}
-                    </AppNavLink>
+                    <AppNavLink href="/devis/parametres/archive" icon={<BookUser {...iconProps} />} label={tAccounting("menu.ledger")} />
                   </li>
                 </>
               ) : null}
             </ul>
             <ul className="app-nav app-nav-secondary">
               <li>
-                <AppNavLink href="/securite">
-                  <ShieldCheck {...iconProps} />
-                  {tAccounting("menu.sessions")}
-                </AppNavLink>
+                <AppNavLink href="/securite" icon={<ShieldCheck {...iconProps} />} label={tAccounting("menu.sessions")} />
               </li>
               <li>
-                <AppNavLink href="/profil">
-                  <UserCog {...iconProps} />
-                  {tAccounting("menu.account")}
-                </AppNavLink>
+                <AppNavLink href="/profil" icon={<UserCog {...iconProps} />} label={tAccounting("menu.account")} />
               </li>
             </ul>
           </nav>
           <div className="app-user">
-            <span>{t("connectedAs", { email: auth.user.email })}</span>
+            <span className="app-user-email">{t("connectedAs", { email: auth.user.email })}</span>
             {logout}
           </div>
         </AppSidebar>
@@ -465,92 +453,55 @@ export async function AppShell({ children }: { children: ReactNode }) {
         </a>
         <AppSidebar
           brand={<Brand href="/exploitation" suffix={tAdmin("brand")} />}
-          menuLabel={t("menuOpen")}
-          closeLabel={t("menuClose")}
+          {...sidebarProps}
           admin
         >
           <nav aria-label={tAdmin("label")}>
             <ul className="app-nav">
               <li>
-                <AppNavLink href="/exploitation" exact>
-                  <LayoutDashboard {...iconProps} />
-                  {tAdmin("overview")}
-                </AppNavLink>
+                <AppNavLink href="/exploitation" exact icon={<LayoutDashboard {...iconProps} />} label={tAdmin("overview")} />
               </li>
               <li>
-                <AppNavLink href="/exploitation/organisations">
-                  <Building2 {...iconProps} />
-                  {tAdmin("organizations")}
-                </AppNavLink>
+                <AppNavLink href="/exploitation/organisations" icon={<Building2 {...iconProps} />} label={tAdmin("organizations")} />
               </li>
               <li>
-                <AppNavLink href="/exploitation/comptes">
-                  <Users {...iconProps} />
-                  {tAdmin("accounts")}
-                </AppNavLink>
+                <AppNavLink href="/exploitation/comptes" icon={<Users {...iconProps} />} label={tAdmin("accounts")} />
               </li>
               <li>
-                <AppNavLink href="/exploitation/prise-en-main">
-                  <GraduationCap {...iconProps} />
-                  {tAdmin("onboarding")}
-                </AppNavLink>
+                <AppNavLink href="/exploitation/prise-en-main" icon={<GraduationCap {...iconProps} />} label={tAdmin("onboarding")} />
               </li>
               <li>
-                <AppNavLink href="/exploitation/activite">
-                  <Activity {...iconProps} />
-                  {tAdmin("activity")}
-                </AppNavLink>
+                <AppNavLink href="/exploitation/activite" icon={<Activity {...iconProps} />} label={tAdmin("activity")} />
               </li>
               {/* Lot 54 (HUB-27, NFR-26) : catalogue des offres, interrupteurs par fonction. */}
               <li>
-                <AppNavLink href="/exploitation/offres">
-                  <Tags {...iconProps} />
-                  {tAdmin("plans")}
-                </AppNavLink>
+                <AppNavLink href="/exploitation/offres" icon={<Tags {...iconProps} />} label={tAdmin("plans")} />
               </li>
               <li>
-                <AppNavLink href="/exploitation/interrupteurs">
-                  <ToggleRight {...iconProps} />
-                  {tAdmin("featureFlags")}
-                </AppNavLink>
+                <AppNavLink href="/exploitation/interrupteurs" icon={<ToggleRight {...iconProps} />} label={tAdmin("featureFlags")} />
               </li>
               {/* Lot 35c (RGP-11) : trace des fermetures d'espaces, sans donnée personnelle. */}
               <li>
-                <AppNavLink href="/exploitation/fermetures">
-                  <Archive {...iconProps} />
-                  {tAdmin("closures")}
-                </AppNavLink>
+                <AppNavLink href="/exploitation/fermetures" icon={<Archive {...iconProps} />} label={tAdmin("closures")} />
               </li>
               <li>
-                <AppNavLink href="/exploitation/health">
-                  <HeartPulse {...iconProps} />
-                  {tAdmin("health")}
-                </AppNavLink>
+                <AppNavLink href="/exploitation/health" icon={<HeartPulse {...iconProps} />} label={tAdmin("health")} />
               </li>
             </ul>
             <ul className="app-nav app-nav-secondary">
               <li>
-                <AppNavLink href="/exploitation/parametres">
-                  <SlidersHorizontal {...iconProps} />
-                  {tAdmin("settings")}
-                </AppNavLink>
+                <AppNavLink href="/exploitation/parametres" icon={<SlidersHorizontal {...iconProps} />} label={tAdmin("settings")} />
               </li>
               <li>
-                <AppNavLink href="/profil">
-                  <UserCog {...iconProps} />
-                  {tAdmin("account")}
-                </AppNavLink>
+                <AppNavLink href="/profil" icon={<UserCog {...iconProps} />} label={tAdmin("account")} />
               </li>
               <li>
-                <AppNavLink href="/aide">
-                  <LifeBuoy {...iconProps} />
-                  {tAide("link")}
-                </AppNavLink>
+                <AppNavLink href="/aide" icon={<LifeBuoy {...iconProps} />} label={tAide("link")} />
               </li>
             </ul>
           </nav>
           <div className="app-user">
-            <span>{t("connectedAs", { email: auth.user.email })}</span>
+            <span className="app-user-email">{t("connectedAs", { email: auth.user.email })}</span>
             {logout}
           </div>
         </AppSidebar>
@@ -581,29 +532,20 @@ export async function AppShell({ children }: { children: ReactNode }) {
       </a>
       <AppSidebar
         brand={<Brand href="/" />}
-        menuLabel={t("menuOpen")}
-        closeLabel={t("menuClose")}
+        {...sidebarProps}
       >
           <nav aria-label={t("navLabel")}>
             <ul className="app-nav">
               <li>
-                <AppNavLink href="/">
-                  <CalendarDays {...iconProps} />
-                  {t("agenda")}
-                </AppNavLink>
+                <AppNavLink href="/" icon={<CalendarDays {...iconProps} />} label={t("agenda")} />
               </li>
               {events ? (
                 <>
                   <li>
-                    <AppNavLink href="/events">
-                      <CalendarHeart {...iconProps} />
-                      {t("events")}
-                    </AppNavLink>
+                    <AppNavLink href="/events" icon={<CalendarHeart {...iconProps} />} label={t("events")} />
                   </li>
                   <li>
-                    <AppNavLink href="/taches">
-                      <ListChecks {...iconProps} />
-                      {t("tasks")}
+                    <AppNavLink href="/taches" icon={<ListChecks {...iconProps} />} label={t("tasks")}>
                       {overdue > 0 ? (
                         <span className="nav-count nav-count-alert">
                           {t("tasksOverdue", { count: overdue })}
@@ -616,42 +558,27 @@ export async function AppShell({ children }: { children: ReactNode }) {
               {/* Lot 36a (CRM-03, ADR 0069) : les contacts, dans le noyau du hub, pour toute l'équipe. */}
               {organizationId ? (
                 <li>
-                  <AppNavLink href="/contacts">
-                    <Contact {...iconProps} />
-                    {t("contacts")}
-                  </AppNavLink>
+                  <AppNavLink href="/contacts" icon={<Contact {...iconProps} />} label={t("contacts")} />
                 </li>
               ) : null}
               {/* Lot 46 (RDV-01 à RDV-04, ADR 0082) : les rendez-vous, juste après les contacts. */}
               {appointments ? (
                 <li>
-                  <AppNavLink href="/rendez-vous" except={["/rendez-vous/reglages", "/rendez-vous/disponibilites"]}>
-                    <CalendarClock {...iconProps} />
-                    {t("appointments")}
-                  </AppNavLink>
+                  <AppNavLink href="/rendez-vous" except={["/rendez-vous/reglages", "/rendez-vous/disponibilites"]} icon={<CalendarClock {...iconProps} />} label={t("appointments")} />
                 </li>
               ) : null}
               {vendors ? (
                 <li>
-                  <AppNavLink href="/prestataires" tour="nav-vendors">
-                    <BookUser {...iconProps} />
-                    {t("vendorBook")}
-                  </AppNavLink>
+                  <AppNavLink href="/prestataires" tour="nav-vendors" icon={<BookUser {...iconProps} />} label={t("vendorBook")} />
                 </li>
               ) : null}
               {quotes ? (
                 <>
                   <li>
-                    <AppNavLink href="/devis" except={["/devis/encaissements"]}>
-                      <FileText {...iconProps} />
-                      {t("navQuotesGroup")}
-                    </AppNavLink>
+                    <AppNavLink href="/devis" except={["/devis/encaissements"]} icon={<FileText {...iconProps} />} label={t("navQuotesGroup")} />
                   </li>
                   <li>
-                    <AppNavLink href="/devis/encaissements">
-                      <Wallet {...iconProps} />
-                      {t("quotePayments")}
-                    </AppNavLink>
+                    <AppNavLink href="/devis/encaissements" icon={<Wallet {...iconProps} />} label={t("quotePayments")} />
                   </li>
                 </>
               ) : null}
@@ -661,17 +588,12 @@ export async function AppShell({ children }: { children: ReactNode }) {
                   la Propriétaire ; le seul endroit qui nomme une app non activée. */}
               {isOwner ? (
                 <li>
-                  <AppNavLink href="/apps">
-                    <LayoutGrid {...iconProps} />
-                    {t("apps")}
-                  </AppNavLink>
+                  <AppNavLink href="/apps" icon={<LayoutGrid {...iconProps} />} label={t("apps")} />
                 </li>
               ) : null}
               {organizationId ? (
                 <li>
-                  <AppNavLink href="/parametres" settings tour="nav-settings">
-                    <Settings {...iconProps} />
-                    {t("settings")}
+                  <AppNavLink href="/parametres" settings tour="nav-settings" icon={<Settings {...iconProps} />} label={t("settings")}>
                     {/* Repère visuel : le nom du lien reste « Paramètres » ; le détail est dans Données personnelles. */}
                     {privacyAlerts > 0 ? (
                       <span
@@ -690,9 +612,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
               {/* Lot 13 (AIDE-10) : les tutoriels ont leur page, avec leur compteur. */}
               {helpBar ? (
                 <li>
-                  <AppNavLink href="/tutoriels">
-                    <GraduationCap {...iconProps} />
-                    {tAide("tutorialsLink")}
+                  <AppNavLink href="/tutoriels" icon={<GraduationCap {...iconProps} />} label={tAide("tutorialsLink")}>
                     {/* Repère visuel : le nom du lien reste « Tutoriels ». */}
                     <span
                       className="nav-count"
@@ -708,15 +628,12 @@ export async function AppShell({ children }: { children: ReactNode }) {
                 </li>
               ) : null}
               <li>
-                <AppNavLink href="/aide">
-                  <LifeBuoy {...iconProps} />
-                  {tAide("link")}
-                </AppNavLink>
+                <AppNavLink href="/aide" icon={<LifeBuoy {...iconProps} />} label={tAide("link")} />
               </li>
             </ul>
           </nav>
         <div className="app-user">
-          <span>{t("connectedAs", { email: auth.user.email })}</span>
+          <span className="app-user-email">{t("connectedAs", { email: auth.user.email })}</span>
           {/* Lot 33 (HUB-02, D6) : plusieurs organisations, et en créer une autre. */}
           {isTeam ? <OrganizationSwitcher organizations={await listOrganizations(appDatabase(), auth.user.id)} current={organizationId} /> : null}
           {logout}

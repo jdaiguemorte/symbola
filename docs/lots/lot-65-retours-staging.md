@@ -134,6 +134,14 @@ Migrations à partir de **0205**, réversibles, avec des tests d'isolation.
 
 Rejeu de **SC-02** (de la demande à l'acompte), qui fait partir des messages.
 
+### 65f — Menu latéral réductible (demande du 22/11, sans migration)
+
+- **UX-13** : sur ordinateur, « Réduire le menu » ne garde que les icônes du menu latéral ; leur nom
+  s'affiche en infobulle (survol, focus clavier, Échap la masque) et reste leur nom accessible ; le
+  contenu prend la largeur libérée. Le choix tient sur l'appareil (cookie `symbola_menu_reduit`, lu
+  par le serveur : pas de clignotement). En 375 px, le menu de téléphone ne change pas. Parcours
+  `e2e/lot-65f-menu-reductible.spec.ts`, question ajoutée à l'aide d'« Aujourd'hui ».
+
 ---
 
 ## ADR à écrire

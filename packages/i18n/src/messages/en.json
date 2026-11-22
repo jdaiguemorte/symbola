@@ -88,6 +88,8 @@
     "menuOpen": "Menu",
     "skipToContent": "Skip to content",
     "menuClose": "Close menu",
+    "menuCollapse": "Collapse menu",
+    "menuExpand": "Expand menu",
     "agendaTitle": "Calendar",
     "agendaNavigate": "Browse the calendar",
     "agendaPrevious": "Previous period",
@@ -477,6 +479,10 @@
         {
           "q": "How do I quickly create a prospect, a task, an expense or a quote?",
           "a": "With « Create » at the top of every screen, or the N key outside a field: a short form opens without leaving the screen, and the screen's event is suggested."
+        },
+        {
+          "q": "How do I make more room on screen?",
+          "a": "On a computer, “Collapse menu”, at the top of the menu, keeps only its icons: their names show on hover or with the keyboard, and the screen takes the space freed. “Expand menu” brings it back. The choice is kept on this device."
         }
       ]
     },
