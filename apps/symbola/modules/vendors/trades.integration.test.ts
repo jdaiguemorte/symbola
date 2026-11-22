@@ -176,8 +176,8 @@ describe("PRE-01, HUB-20 — Reprise des types combinés", () => {
     const plan = await previewVendorTypeSplit(organizationId, vendorCatalogInput("fr"), "fr");
     expect(plan).toEqual(
       expect.arrayContaining([
-        { typeId: combined.id, label: "Photographe & Vidéaste", vendorCount: 1, first: { action: "merge", into: { id: photo.id, label: photo.label } }, others: [{ key: "videographer", label: video.label, existing: { id: video.id, label: video.label } }] },
-        { typeId: hair.id, label: "Coiffure et maquillage", vendorCount: 1, first: { action: "rename", key: "hair_makeup", to: "Coiffure" }, others: [{ key: "makeup", label: "Maquillage", existing: null }] },
+        { typeId: combined.id, label: "Photographe & Vidéaste", vendorCount: 1, first: { action: "merge", into: { id: photo.id, label: photo.label } }, others: [{ key: "videographer", label: video.label, existing: { id: video.id, label: video.label } }], conflict: false },
+        { typeId: hair.id, label: "Coiffure et maquillage", vendorCount: 1, first: { action: "rename", key: "hair_makeup", to: "Coiffure" }, others: [{ key: "makeup", label: "Maquillage", existing: null }], conflict: false },
       ]),
     );
     expect((await listVendorTypes(organizationId)).some((type) => type.id === combined.id)).toBe(true);
