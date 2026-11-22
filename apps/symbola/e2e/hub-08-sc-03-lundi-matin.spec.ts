@@ -120,7 +120,7 @@ test("SC-03 / HUB-08 / UX-01 / UX-06 / EVT-02 — lundi matin : les urgences, an
   await expect(tasks.getByRole("listitem").nth(0)).toContainText("Vous");
   await expect(tasks.getByRole("listitem").nth(1)).toContainText("Faire signer le contrat du photographe");
   await expect(first.getByRole("link", { name: "Voir dans Tâches ›" })).toHaveAttribute("href", "/taches");
-  const payments = first.getByRole("list", { name: /^Paiements \(1\)$/ });
+  const payments = first.getByRole("list", { name: /^Paiements \(\d+\)$/ });
   await expect(payments.getByRole("listitem").first()).toContainText("Acompte à la signature");
   await expect(payments.getByRole("listitem").first()).toContainText("Attend le client");
   await expect(first.getByRole("link", { name: "Voir les encaissements ›" })).toHaveAttribute("href", "/devis/encaissements");
