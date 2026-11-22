@@ -199,15 +199,14 @@ export function NoteReminderButton({
                   ) : (
                     <p className="meta">{t("templateNoEmail")}</p>
                   )}
-                  <label htmlFor={ids.template}>
-                    {t("templateLabel")}
-                    <textarea
-                      id={ids.template}
-                      readOnly
-                      rows={7}
-                      value={`${draft.subject}\n\n${draft.body}`}
-                    />
-                  </label>
+                  {/* Libellé séparé de la zone : enveloppée, son texte entrerait dans le libellé. */}
+                  <label htmlFor={ids.template}>{t("templateLabel")}</label>
+                  <textarea
+                    id={ids.template}
+                    readOnly
+                    rows={7}
+                    value={`${draft.subject}\n\n${draft.body}`}
+                  />
                   <button
                     type="button"
                     className="button-secondary"
