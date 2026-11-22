@@ -2,7 +2,7 @@
 
 // Lot 66c (HUB-18 ; D5 ; ADR 0113) — Mon compte › Ma signature : enregistrer sa signature, retirer sa
 // photo. La personne est toujours celle de la session : aucun identifiant de compte n'est lu dans le
-// formulaire (un membre ne modifie que sa signature ; la base le garantit aussi, migration 0208).
+// formulaire (un membre ne modifie que sa signature ; la base le garantit aussi, migration 0209).
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { SIGNATURE_LINKS_MAX } from "@symbola/contracts";

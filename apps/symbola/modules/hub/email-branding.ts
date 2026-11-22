@@ -2,7 +2,7 @@
 // de chaque membre. La marque (police, ligne libre du pied, nom affiché de l'expéditeur, éléments
 // affichés des signatures, personne dont la signature porte les envois automatiques) se règle par la
 // titulaire ; chaque membre remplit sa signature dans « Mon compte » et n'écrit que la sienne (la base
-// le garantit aussi : politique restrictive de la migration 0208). La photo est contrôlée comme le
+// le garantit aussi : politique restrictive de la migration 0209). La photo est contrôlée comme le
 // logo : type lu dans le contenu, taille, antivirus, stockage privé. Une signature part avec l'accès du
 // membre. Exposé seulement par service.ts (ADR 0011).
 import { and, eq } from "drizzle-orm";

@@ -21,7 +21,7 @@ propre marque » ; « que l'expéditeur soit Symbola avec une personnalisation b
 ## Décision
 
 1. **Une signature par membre, sur un modèle commun** (D5 a). `hub.member_signatures` (migration
-   0208) : nom affiché, fonction, téléphone, site, quatre liens au plus (nom et adresse), photo
+   0209) : nom affiché, fonction, téléphone, site, quatre liens au plus (nom et adresse), photo
    facultative. Chacun la remplit dans **Mon compte › Ma signature**, avec un aperçu en direct composé
    par la même fonction que l'e-mail (`packages/mail/src/signature.ts`). L'organisation choisit les
    éléments affichés (photo, fonction, nom de l'organisation, téléphone, site, liens) dans
@@ -71,5 +71,5 @@ propre marque » ; « que l'expéditeur soit Symbola avec une personnalisation b
   photo, compte) et de `email_branding` (nom affiché de l'expéditeur, personne des envois
   automatiques). Export complet : la marque est exportée et reprise (sans la personne des envois
   automatiques) ; les signatures sortent avec l'équipe et, comme elle, ne sont pas reprises.
-- Annulation de 0208 refusée tant qu'un réglage, une signature ou un libellé existe.
+- Annulation de 0209 refusée tant qu'un réglage, une signature ou un libellé existe.
 - Ce qu'un e-mail a déjà emporté (signature, photo) reste dans la messagerie du destinataire.

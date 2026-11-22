@@ -1,7 +1,7 @@
 # Recette du lot 66c — la signature et la marque des e-mails (HUB-18, MSG-01 ; D5, D6)
 
 Rejouée en local le 22/11/2026 sur la base `symbola_lot66c` (copie du jeu de recette, migrations
-jusqu'à 0208), Mailpit et Garage du socle de dev. Données fictives : « Atelier Lumière », Camille
+jusqu'à 0209), Mailpit et Garage du socle de dev. Données fictives : « Atelier Lumière », Camille
 Morel (maquettes M19 et M20 de `docs/maquette/Envois-et-marque.html`). ADR 0113.
 
 ## Les e-mails rendus
@@ -64,6 +64,6 @@ Wedding planner à Lyon depuis 2015
 ## Ce qui reste
 
 - Rejeu de Julien sur le staging (SC-02, proposition envoyée à la marque de la planner), après le
-  déploiement de la migration 0208.
+  déploiement de la migration 0209.
 - Rendu dans les messageries réelles (Gmail, Outlook, Apple Mail) : à regarder sur le staging avec un
   envoi d'essai ; Mailpit ne montre que le HTML reçu.
