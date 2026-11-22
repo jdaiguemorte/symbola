@@ -476,8 +476,8 @@ describe("L26 — Données de départ des liens personnels (POR-01, SEC-15, RGP-
     expect(starterLinkExpiry()).toEqual({ daysAfterEvent: { client: 30, vendor: 7, guest: 30, day_helper: 1 }, daysWithoutEventDate: 180, dayHelperDaysBefore: 1 });
   });
 
-  it("CHR-04, lot 27a — rappels de départ : 7 jours avant, la veille, retard rappelé dans la semaine, de 9 h à 19 h", () => {
-    expect(starterClientTaskReminders()).toEqual({ daysBefore: { week: 7, eve: 1 }, overdue: { after: 1, within: 7 }, sendingHours: { from: 9, until: 19 } });
+  it("CHR-04, lot 27a — rappels de départ : 7 jours avant, la veille, retard rappelé dans la semaine (l'heure d'envoi est celle de l'automatisme, lot 66a)", () => {
+    expect(starterClientTaskReminders()).toEqual({ daysBefore: { week: 7, eve: 1 }, overdue: { after: 1, within: 7 } });
   });
 
   it("JRJ-03, lot 30a — numéros d'urgence en données, dans les deux langues ; le 114 se joint par SMS", () => {

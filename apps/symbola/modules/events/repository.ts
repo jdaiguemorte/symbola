@@ -4,6 +4,7 @@ import { and, asc, desc, eq, exists, gt, gte, inArray, isNotNull, isNull, lte, n
 import { inTrash, markDeleted, UNMARKED } from "@symbola/db/soft-delete";
 import { appDatabase } from "@symbola/db/client";
 import {
+  dayReminderOverrides,
   defaultVendorSlots,
   eventActivities,
   eventClients,
@@ -2046,4 +2047,45 @@ export async function findLinkVendorRecordId(organizationId: string, linkId: str
       .where(and(eq(eventLinks.id, linkId), eq(eventLinks.audience, "vendor")));
     return row?.vendorId ?? null;
   });
+}
+
+// Lot 66a (HUB-28 ; D1 ; ADR 0112) : les fuseaux des évènements à venir (ou sans date), pour placer
+// l'heure d'envoi des automatismes dans le fuseau de chaque évènement. Des noms de fuseau seulement.
+export async function findUpcomingEventTimeZones(organizationId: string, today: string): Promise<string[]> {
+  const rows = await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx
+      .selectDistinct({ timeZone: events.timeZone })
+      .from(events)
+      .where(and(eq(events.organizationId, organizationId), or(isNull(events.eventDate), gte(events.eventDate, today)))),
+  );
+  return rows.map((row) => row.timeZone);
+}
+
+// Lot 66b (JRJ-01 ; D2, D3 ; ADR 0112) : le rappel du jour J réglé pour un évènement, cible par cible.
+export async function findDayReminderOverrideRows(organizationId: string, eventId: string) {
+  return withOrganization(appDatabase(), organizationId, (tx) => tx.select().from(dayReminderOverrides).where(eq(dayReminderOverrides.eventId, eventId)));
+}
+
+export async function upsertDayReminderOverrideRow(organizationId: string, eventId: string, value: { target: "planner" | "vendors" | "team" | "clients"; enabled: boolean; moment: "eve" | "morning"; sendTime: string }): Promise<void> {
+  await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx
+      .insert(dayReminderOverrides)
+      .values({ organizationId, eventId, ...value })
+      .onConflictDoUpdate({ target: [dayReminderOverrides.eventId, dayReminderOverrides.target], set: { enabled: value.enabled, moment: value.moment, sendTime: value.sendTime, updatedAt: new Date() } }),
+  );
+}
+
+export async function deleteDayReminderOverrideRow(organizationId: string, eventId: string, target: string): Promise<void> {
+  await withOrganization(appDatabase(), organizationId, (tx) => tx.delete(dayReminderOverrides).where(and(eq(dayReminderOverrides.eventId, eventId), eq(dayReminderOverrides.target, target as "planner"))));
+}
+
+// Lot 66b (JRJ-01 ; ADR 0112) : les évènements dont la date tombe entre from et to, pour le rappel du
+// jour J (statut, essai et fuseau : le service décide).
+export async function findDayReminderEventRows(organizationId: string, from: string, to: string) {
+  return withOrganization(appDatabase(), organizationId, (tx) =>
+    tx
+      .select({ id: events.id, eventDate: events.eventDate, timeZone: events.timeZone, status: events.status, isDemo: events.isDemo })
+      .from(events)
+      .where(and(eq(events.organizationId, organizationId), gte(events.eventDate, from), lte(events.eventDate, to), isNull(events.deletedAt))),
+  );
 }

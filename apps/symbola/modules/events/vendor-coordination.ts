@@ -81,7 +81,7 @@ import {
   type VendorRoadmapView,
   type VendorScenario,
 } from "@symbola/contracts";
-import { assertOrganizationEmailReady, assertRecipientsConfirmed, depositPreparedEmail, EmailVariableMissingError, getOrganizationProfile, getUserContact, preparesRelationEmail, sendOrganizationEmail } from "@/modules/hub/service";
+import { assertOrganizationEmailReady, assertRecipientsConfirmed, depositPreparedEmail, EmailVariableMissingError, getOrganizationProfile, getUserContact, preparesRelationEmail, sendOrganizationEmail, sendTimeReached } from "@/modules/hub/service";
 import { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } from "./errors";
 import { findEventAudience } from "./event-types";
 import { findLinkRow, type LinkWithContext } from "./links-repository";
@@ -95,7 +95,6 @@ import {
   briefReminderDue,
   choiceNoticeShown,
   compareByAmount,
-  isVendorSendingHour,
   roadmapAlertDue,
   roadmapStageDue,
   scenarioTotals,
@@ -458,9 +457,10 @@ export async function sendBrief(input: SendVendorBriefInput): Promise<VendorBrie
 
 // --- La relance de la veille (D2) ---
 
-export async function sendBriefReminders(organizationId: string, now: Date): Promise<number> {
+// Lot 66a (D1) : isSendTime, l'heure d'envoi par défaut de l'organisation (remise par l'appelant).
+export async function sendBriefReminders(organizationId: string, now: Date, isSendTime?: AutomationHooks["isSendTime"]): Promise<number> {
   const policy = await inOrganization(organizationId, (tx) => policyOf(tx, organizationId));
-  if (!policy.briefReminder || !isVendorSendingHour(now, policy)) return 0;
+  if (!policy.briefReminder) return 0;
   const due = await inOrganization(organizationId, async (tx) =>
     tx
       .select({ candidate: eventVendorCandidates, brief: vendorBriefs, slotLabel: eventVendorSlots.label, timeZone: events.timeZone })
@@ -484,6 +484,8 @@ export async function sendBriefReminders(organizationId: string, now: Date): Pro
   const planner = await preparesRelationEmail(organizationId, "vendor_brief_reminder");
   for (const row of due) {
     if (!briefReminderDue(row.brief.deadline, dateInTimeZone(now, row.timeZone), policy)) continue;
+    // Lot 66a (D1) : à l'heure d'envoi, dans le fuseau de l'évènement.
+    if (!sendTimeReached(isSendTime, now, row.timeZone)) continue;
     // Une seule relance : marquée avant l'envoi (deux passages simultanés n'en envoient qu'une).
     const claimed = await inOrganization(organizationId, async (tx) =>
       (await tx.update(eventVendorCandidates).set({ remindedAt: now }).where(and(eq(eventVendorCandidates.id, row.candidate.id), isNull(eventVendorCandidates.remindedAt))).returning({ id: eventVendorCandidates.id })).length > 0,
@@ -1097,7 +1099,7 @@ export async function changeRetained(input: ChangeRetainedVendorInput): Promise<
 // route ne part pas ; hooks.onRun, la trace de chaque envoi.
 export async function sendRoadmaps(organizationId: string, now: Date, hooks: AutomationHooks = {}): Promise<number> {
   const policy = await inOrganization(organizationId, (tx) => policyOf(tx, organizationId));
-  if ((!policy.roadmapMonth && !policy.roadmapWeek) || !isVendorSendingHour(now, policy)) return 0;
+  if (!policy.roadmapMonth && !policy.roadmapWeek) return 0;
   const retained = await inOrganization(organizationId, (tx) =>
     tx
       .select({ candidate: eventVendorCandidates, eventDate: events.eventDate, timeZone: events.timeZone })
@@ -1111,6 +1113,8 @@ export async function sendRoadmaps(organizationId: string, now: Date, hooks: Aut
   for (const row of retained) {
     const stage = roadmapStageDue(row.eventDate!, dateInTimeZone(now, row.timeZone), { month: policy.roadmapMonth, week: policy.roadmapWeek }, policy);
     if (!stage) continue;
+    // Lot 66a (D1) : à l'heure d'envoi de l'automatisme, dans le fuseau de l'évènement.
+    if (!sendTimeReached(hooks.isSendTime, now, row.timeZone)) continue;
     if (hooks.notBefore && addDays(row.eventDate!, -(stage === "j7" ? policy.roadmapDaysBefore.week : policy.roadmapDaysBefore.month)) < hooks.notBefore) continue;
     const hasLink = await inOrganization(organizationId, async (tx) => (await tx.select({ id: eventLinks.id }).from(eventLinks).where(and(eq(eventLinks.vendorCandidateId, row.candidate.id), isNull(eventLinks.revokedAt))).limit(1)).length > 0);
     if (!hasLink) continue;

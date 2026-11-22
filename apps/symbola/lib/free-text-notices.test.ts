@@ -122,6 +122,10 @@ const WITHOUT_ENTRY: Record<string, string> = {
   "floorplans.spaces.background_key": "fichier déposé, sans champ de texte",
   "floorplans.layout_versions.background_key": "fichier figé à la diffusion, sans champ de texte",
   "hub.notifications.params": "libellés courts recopiés par Symbola depuis l'objet de la notification (numéro de devis, intitulé de tâche) ; aucune saisie",
+  // Lot 66c (HUB-18 ; D5 ; ADR 0113) : des lignes courtes écrites pour être lues par les destinataires.
+  "hub.member_signatures.job_title": "fonction d'une ligne, écrite par le membre pour sa propre signature, que les destinataires liront ; rien de confidentiel à mettre en garde",
+  "hub.member_signatures.photo_key": "fichier déposé, sans champ de texte",
+  "hub.email_branding.sender_name": "nom affiché d'expéditeur d'une ligne, réglé par la titulaire pour être lu par les destinataires",
 };
 
 function freeTextFields(): string[] {

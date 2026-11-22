@@ -49,6 +49,9 @@ import type { Language } from "./types";
 export {
   assertRecipientsConfirmed,
   EMAIL_BODY_MAX,
+  EMAIL_BUTTON_LABEL_MAX,
+  hasButton,
+  isTeamNoticeKind,
   EMAIL_SUBJECT_MAX,
   emailTemplateVariables,
   recipientsDigest,
@@ -79,11 +82,12 @@ export {
 } from "./message-templates";
 // Lot 38b (HUB-29 ; D11, D12 ; ADR 0072) : adresses secrètes des flux de calendrier.
 export { issueCalendarFeed, listCalendarFeeds, resolveCalendarFeed, revokeCalendarFeed, type CalendarFeedAccess, type CalendarFeedView } from "./calendar-feeds";
-export { EmailTemplateInvalidError, getEmailTemplate, isEmailTemplateKind, listEmailTemplates, recentEmailVariableProblems, resetEmailTemplate, saveEmailTemplate } from "./email-templates";
+export { cleanButtonLabel, EmailTemplateInvalidError, getEmailTemplate, isEmailTemplateKind, listEmailTemplates, recentEmailVariableProblems, resetEmailTemplate, saveEmailTemplate } from "./email-templates";
 export {
   assertOrganizationEmailReady,
   composeOrganizationEmail,
   composePreparedEmailText,
+  defaultButtonLabel,
   EmailVariableMissingError,
   previewEmailTemplate,
   sendOrganizationEmail,
@@ -109,6 +113,33 @@ export {
   TECHNICAL_EMAIL_KINDS,
   type DepositPreparedEmailInput,
 } from "./relation-mail";
+// Lot 66c (HUB-18, MSG-01 ; D5, D6 ; ADR 0113) : la marque des e-mails et la signature de chaque membre.
+export {
+  composeSignature,
+  displayUrl,
+  EMAIL_FOOTER_LINE_MAX,
+  EMAIL_SENDER_NAME_MAX,
+  EmailBrandingInvalidError,
+  eraseMemberSignature,
+  getEmailBranding,
+  getMemberSignature,
+  loadSignaturePhoto,
+  memberSignatureText,
+  MemberSignatureInvalidError,
+  removeSignaturePhoto,
+  saveEmailBranding,
+  saveMemberSignature,
+  SIGNATURE_LINK_LABEL_MAX,
+  SIGNATURE_PHOTO_MAX_SIZE_BYTES,
+  SIGNATURE_TEXT_MAX,
+  SIGNATURE_URL_MAX,
+  SignaturePhotoUploadError,
+  uploadSignaturePhoto,
+  validateMemberSignature,
+  type EmailBrandingInput,
+  type MemberSignatureField,
+  type MemberSignatureInput,
+} from "./email-branding";
 
 export {
   emptyStorageTotals,
@@ -1481,18 +1512,28 @@ export {
   AutomationInputError,
   claimDailyAutomationRun,
   getAutomationGate,
+  getDefaultSendTime,
   getRiskRules,
+  isSendTimeAutomation,
+  listDayReminderTargets,
   listAutomationGates,
   listAutomationRuns,
   purgeAutomationRuns,
   recordAutomationRun,
   setAutomationDays,
   setAutomationEnabled,
+  setAutomationSendTime,
+  setDayReminderTarget,
+  setDefaultSendTime,
   setRiskRule,
   type AutomationGate,
   type AutomationRunInput,
   type RiskRuleSetting,
 } from "./automations";
+// Lot 66a (HUB-28 ; D1 ; ADR 0112) : règles pures de l'heure d'envoi.
+export { localMinutes, sendTimeReached, sendWindowOpen } from "./send-time-rules";
+// Lot 66b (JRJ-01 ; D2, D3) : règles pures du rappel du jour J.
+export { dayReminderDue, dayReminderKey, dayReminderSendDate, effectiveDayReminder, localDate } from "./day-reminder-rules";
 
 // Lot 55 (MSG-04 révisée, MSG-05 ; ADR 0102) : adresse d'expédition de l'organisation, journal des
 // envois, webhook du service d'envoi et alerte d'un rejet.

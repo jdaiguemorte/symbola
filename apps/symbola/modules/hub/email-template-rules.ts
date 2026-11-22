@@ -49,6 +49,10 @@ const TOKENS: Record<EmailVariable, Record<EmailLocale, string>> = {
   alert: { fr: "alerte", en: "alert" },
   // Lot 55 (MSG-03, POR-06) : le nom du sujet de discussion.
   topic: { fr: "sujet", en: "topic" },
+  // Lot 66b (JRJ-01) : le programme du jour (ou du poste), les contacts du jour, ce qui reste ouvert.
+  program: { fr: "programme", en: "program" },
+  day_contacts: { fr: "contacts_du_jour", en: "day_contacts" },
+  open_items: { fr: "points_ouverts", en: "open_items" },
 };
 
 // Variables dont la valeur est une adresse : seules dans leur paragraphe, elles deviennent un bouton.
@@ -107,6 +111,14 @@ export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   // Lot 52 (SEC-08 ; D6) : le lien « Ce n'est pas moi » ferme toutes les sessions ; l'alerte de changement
   // part à l'ancienne adresse, avec le lien du centre de compte.
   new_device_login: { variables: ["organization", "device", "date_time", "link"], required: ["link", "device"], button: "notMe" },
+  // Lot 66b (JRJ-01, HUB-24 ; D2 à D4) : le rappel du jour J, envoyé par Symbola. La planner reçoit le
+  // bouton « Ouvrir le jour J » ; les prestataires et les clients retrouvent le programme dans leur
+  // espace (leur lien personnel n'est gardé que haché : pas de bouton) ; l'équipe ouvre le jour J avec
+  // son accès habituel.
+  day_reminder_planner: { variables: ["first_name", "organization", "event", "event_date", "clients", "program", "day_contacts", "open_items", "link"], required: ["link"], button: "dayOf" },
+  day_reminder_vendor: { variables: ["first_name", "organization", "event", "event_date", "clients", "slot", "place", "program", "day_contacts"], required: [], button: null },
+  day_reminder_team: { variables: ["first_name", "organization", "event", "event_date", "clients", "program", "day_contacts"], required: [], button: null },
+  day_reminder_client: { variables: ["first_name", "organization", "event", "event_date", "clients", "client_term"], required: [], button: null },
   identity_changed: { variables: ["organization", "change", "date_time", "link"], required: ["change", "link"], button: "account" },
   // Lot 52 (HUB-04 ; D1) : la Planner désignée confirme par ce lien (usage unique, sept jours).
   ownership_transfer: { variables: ["organization", "link", "valid_until"], required: ["link"], button: "confirm" },
@@ -122,6 +134,23 @@ export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   // référence ; jamais après un virement déclaré.
   payment_due_reminder: { variables: ["first_name", "organization", "client_term", "quote_number", "amount", "due_date", "reference", "iban"], required: ["amount", "due_date", "reference"], button: null },
 };
+
+// Lot 66c (HUB-18 ; D5, D6 ; ADR 0113) — les avis que Symbola adresse à l'équipe de l'organisation
+// (compte, sécurité, transfert, récapitulatif, alertes, nouvelle demande) : ce sont des e-mails de
+// Symbola. Ils gardent « Envoyé avec Symbola » et ne portent pas de signature ; tous les autres sont des
+// e-mails de la planner à ses tiers, signés par la personne qui écrit, sans la marque de Symbola.
+export const TEAM_NOTICE_KINDS: ReadonlySet<EmailTemplateKind> = new Set(["ownership_transfer", "new_device_login", "identity_changed", "daily_digest", "notification_alert", "prospect_form_received"]);
+
+export function isTeamNoticeKind(kind: EmailTemplateKind): boolean {
+  return TEAM_NOTICE_KINDS.has(kind);
+}
+
+// Lot 66c : le libellé d'un bouton tient sur une ligne.
+export const EMAIL_BUTTON_LABEL_MAX = 60;
+
+export function hasButton(kind: EmailTemplateKind): boolean {
+  return EMAIL_TEMPLATE_RULES[kind].button !== null;
+}
 
 const TOKEN_PATTERN = /\{\{\s*([^{}\s]+)\s*\}\}/g;
 
@@ -141,7 +170,7 @@ export function emailTemplateVariables(kind: EmailTemplateKind, locale: EmailLoc
   return rules.variables.map((key) => ({ key, token: `{{${TOKENS[key][locale]}}}`, required: rules.required.includes(key) }));
 }
 
-export type EmailTemplateProblems = { unknown: string[]; missingRequired: EmailVariable[]; tooLong: ("subject" | "body")[] };
+export type EmailTemplateProblems = { unknown: string[]; missingRequired: EmailVariable[]; tooLong: ("subject" | "body" | "buttonLabel")[] };
 
 // À l'enregistrement : variables inconnues ou étrangères à ce modèle, variables indispensables
 // absentes du texte, longueurs.
@@ -154,9 +183,10 @@ export function validateEmailTemplate(kind: EmailTemplateKind, text: EmailTempla
   }
   const inBody = new Set(tokensOf(text.body).map((token) => BY_TOKEN.get(token)));
   const missingRequired = EMAIL_TEMPLATE_RULES[kind].required.filter((key) => !inBody.has(key));
-  const tooLong: ("subject" | "body")[] = [];
+  const tooLong: ("subject" | "body" | "buttonLabel")[] = [];
   if (text.subject.length > EMAIL_SUBJECT_MAX) tooLong.push("subject");
   if (text.body.length > EMAIL_BODY_MAX) tooLong.push("body");
+  if ((text.buttonLabel ?? "").length > EMAIL_BUTTON_LABEL_MAX) tooLong.push("buttonLabel");
   return { unknown, missingRequired, tooLong };
 }
 

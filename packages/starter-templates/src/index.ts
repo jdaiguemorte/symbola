@@ -1138,19 +1138,17 @@ const clientTaskRemindersSchema = z
     version: z.literal(1),
     daysBefore: z.object({ week: z.number().int().min(2), eve: z.number().int().min(0) }),
     overdue: z.object({ after: z.number().int().min(1), within: z.number().int().min(1) }),
-    sendingHours: z.object({ from: z.number().int().min(0).max(23), until: z.number().int().min(1).max(24) }),
   })
-  .refine((value) => value.daysBefore.eve < value.daysBefore.week && value.overdue.after <= value.overdue.within && value.sendingHours.from < value.sendingHours.until);
+  .refine((value) => value.daysBefore.eve < value.daysBefore.week && value.overdue.after <= value.overdue.within);
 
 export type StarterClientTaskReminders = {
   daysBefore: { week: number; eve: number };
   overdue: { after: number; within: number };
-  sendingHours: { from: number; until: number };
 };
 
 export function starterClientTaskReminders(): StarterClientTaskReminders {
-  const { daysBefore, overdue, sendingHours } = clientTaskRemindersSchema.parse(clientTaskRemindersFile);
-  return { daysBefore: { ...daysBefore }, overdue: { ...overdue }, sendingHours: { ...sendingHours } };
+  const { daysBefore, overdue } = clientTaskRemindersSchema.parse(clientTaskRemindersFile);
+  return { daysBefore: { ...daysBefore }, overdue: { ...overdue } };
 }
 
 // Lot 30a (JRJ-03, décision D4) : numéros d'urgence nationaux de l'annuaire du jour J,
@@ -1492,6 +1490,7 @@ export * from "./tours";
 // Lot 53 (HUB-15, HUB-28, GC-02, CHR-05, HUB-24 ; ADR 0095).
 export * from "./notifications";
 export * from "./email-senders";
+export * from "./email-branding";
 
 // Lot 46 (RDV-01, HUB-20 ; D6, D10 ; ADR 0082) — module Rendez-vous : trois types de départ, plages
 // hebdomadaires par défaut, réglages par défaut d'un type créé avec son seul nom et sa durée, et

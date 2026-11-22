@@ -8,9 +8,5 @@
     "week": 7
   },
   "roadmapAlertDays": 3,
-  "choiceNoticeDays": 7,
-  "sendingHours": {
-    "from": 9,
-    "until": 19
-  }
+  "choiceNoticeDays": 7
 }

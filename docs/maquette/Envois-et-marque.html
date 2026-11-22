@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lot 66 — Les envois et la marque de la planner : maquettes M17 à M20</title>
+<style>
+:root{--primary:#0F6E5C;--on-primary:#fff;--primary-soft:#E3F1EE;--primary-strong:#0B5A4B;--ground:#F6F7F9;--surface:#fff;--ink:#14181F;--muted:#5A6372;--line:#DDE1E7;--line-strong:#838C99;--attention:#9A5B00;--attention-soft:#FBF0DC;--critical:#B3261E;--critical-soft:#FBE9E7;--float:0 8px 24px rgba(20,24,31,.12)}
+*{box-sizing:border-box}
+body{margin:0;background:#E9ECF0;color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+h1,h2,h3,.t{font-family:'Space Grotesk',system-ui,sans-serif;font-weight:600;margin:0}
+a{color:var(--primary)}
+.doc{max-width:1240px;margin:0 auto;padding:32px 24px 80px}
+.doc>header h1{font-size:32px;line-height:1.15}
+.doc>header p{color:var(--muted);max-width:760px}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px;padding:0;list-style:none}
+.toc a{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);text-decoration:none;font-size:13px;font-weight:500;color:var(--ink)}
+.mock{margin-top:48px}
+.mock>h2{font-size:22px}
+.mock>.refs{color:var(--muted);font-size:13px;margin:4px 0 12px}
+.notes{margin:12px 0 0;padding-left:20px;color:var(--ink);font-size:14px;max-width:900px}
+.notes li{margin:4px 0}
+.frame{background:var(--ground);border:1px solid var(--line-strong);border-radius:16px;overflow:hidden;position:relative}
+.bar{display:flex;align-items:center;gap:12px;height:52px;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:8px;font-family:'Space Grotesk',system-ui,sans-serif;font-weight:600;font-size:17px}
+.logo i{width:12px;height:12px;border-radius:3px;background:var(--primary);transform:rotate(45deg);display:inline-block}
+.bar .search{flex:1;max-width:420px;height:36px;border:1px solid var(--line-strong);border-radius:6px;padding:0 12px;display:flex;align-items:center;color:var(--muted);font-size:13px}
+.app{display:flex;min-height:420px}
+.side{width:200px;flex:none;background:var(--surface);border-right:1px solid var(--line);padding:16px 10px;display:flex;flex-direction:column;gap:2px}
+.side a{display:flex;align-items:center;min-height:38px;padding:0 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-size:14px}
+.side a.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.main{flex:1;padding:24px;min-width:0}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.ph h1{font-size:22px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px}
+.card h3{font-size:17px;margin-bottom:8px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-today{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 16px;border-radius:10px;font:600 14px Inter,system-ui,sans-serif;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);white-space:nowrap}
+.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--primary);padding:0 8px}
+.btn.sm{height:32px;padding:0 10px;font-size:13px;border-radius:8px}
+.btn.danger{color:var(--critical);border-color:var(--critical)}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500}
+.field .in{height:40px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;padding:0 12px;display:flex;align-items:center;font-weight:400;font-size:14px;color:var(--ink)}
+.field .in.hint{color:var(--muted)}
+.req{color:var(--critical)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:var(--ground);color:var(--muted);border:1px solid var(--line)}
+.pill.ok{background:var(--primary-soft);color:var(--primary);border-color:transparent}
+.pill.wait{background:var(--attention-soft);color:var(--attention);border-color:transparent}
+.pill.late{background:var(--critical-soft);color:var(--critical);border-color:transparent}
+.pill .x{font-weight:700;margin-left:2px}
+.new{outline:2px dashed #C77700;outline-offset:3px;border-radius:10px}
+.tag-new{display:inline-block;font:600 11px Inter,system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#7A4A00;background:#FFE7B3;border-radius:4px;padding:1px 6px;vertical-align:middle;margin-left:6px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font:500 12px Inter,system-ui,sans-serif;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.sel td{background:#F1F8F6}
+.done-btn{width:28px;height:28px;border-radius:999px;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font-size:14px;color:transparent;background:#fff}
+.done-btn.on{background:var(--primary);border-color:var(--primary);color:#fff}
+.box{width:18px;height:18px;border:1.5px solid var(--line-strong);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;background:#fff}
+.box.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.cat{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500}
+.cat i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.c-client{background:#3B6FD8}.c-presta{background:#B0558A}.c-admin{background:#6B7280}.c-jj{background:#C47A0A}.c-evt{background:var(--primary)}
+.editable{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;border:1px dashed transparent}
+.editable:hover,.editable.hover{border-color:var(--line-strong);background:#fff}
+.overlay{position:absolute;inset:0;background:rgba(20,24,31,.48)}
+.modal{position:absolute;background:#fff;border-radius:16px;box-shadow:var(--float);padding:24px}
+.drawer{position:absolute;top:0;right:0;bottom:0;width:380px;background:#fff;box-shadow:var(--float);padding:24px;border-left:1px solid var(--line)}
+.spot{position:relative;z-index:2;box-shadow:0 0 0 4px #fff,0 0 0 9999px rgba(20,24,31,.55);border-radius:16px}
+.bubble{position:absolute;z-index:3;width:330px;background:#fff;border-radius:16px;box-shadow:var(--float);padding:18px}
+.bubble:before{content:"";position:absolute;left:-8px;top:28px;width:16px;height:16px;background:#fff;transform:rotate(45deg)}
+.dots{display:flex;gap:6px}.dots i{width:8px;height:8px;border-radius:999px;background:var(--line)}.dots i.on{background:var(--primary)}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line);font-size:12px}
+.cal div{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-height:64px;padding:4px;position:relative}
+.cal .h{min-height:auto;font-weight:500;color:var(--muted);text-align:center;background:var(--ground)}
+.cal .d{font-variant-numeric:tabular-nums;color:var(--muted)}
+.cal .today{background:var(--primary-soft)}
+.cal .today .d{color:var(--primary);font-weight:700}
+.cal .out .d{opacity:.4}
+.ev{display:block;margin-top:2px;padding:1px 5px;border-radius:4px;color:#fff;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.t{background:#fff!important;color:var(--ink);border-left:3px solid;padding-left:4px}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.steps li{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border-radius:10px;font-size:14px}
+.steps li .n{width:24px;height:24px;border-radius:999px;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex:none}
+.steps li.done .n{background:var(--primary);border-color:var(--primary);color:#fff}
+.steps li.cur{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.steps li.cur .n{border-color:var(--primary);color:var(--primary)}
+.progress{height:6px;border-radius:999px;background:var(--line);overflow:hidden}.progress i{display:block;height:100%;background:var(--primary)}
+.diff{background:var(--attention-soft);color:var(--attention);font-weight:600;padding:0 4px;border-radius:4px}
+.cmp{display:grid;grid-template-columns:130px 1fr 1fr;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:14px}
+.cmp div{padding:8px 12px;border-bottom:1px solid var(--line)}
+.cmp .k{color:var(--muted);font-size:13px;background:var(--ground)}
+.cmp .hd{font-weight:600;background:var(--ground)}
+.radio{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border:1px solid var(--line-strong);border-radius:10px;font-size:14px;background:#fff}
+.radio i{width:16px;height:16px;border-radius:999px;border:1.5px solid var(--line-strong);flex:none}
+.radio.on{border-color:var(--primary);background:var(--primary-soft)}
+.radio.on i{border:5px solid var(--primary)}
+.drop{border:2px dashed var(--line-strong);border-radius:16px;padding:20px;background:#fff}
+.folder{display:flex;align-items:center;justify-content:space-between;min-height:38px;padding:0 12px;border-radius:10px;font-size:14px}
+.folder.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.folder .ro{font-size:11px;color:var(--muted)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;flex-wrap:wrap}
+.tabs a{padding:10px 12px;font-size:14px;text-decoration:none;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs a.on{color:var(--primary);border-color:var(--primary);font-weight:600}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:10px;overflow:hidden}
+.seg span{padding:0 14px;height:38px;display:inline-flex;align-items:center;font-size:14px;border-right:1px solid var(--line)}
+.seg span:last-child{border-right:0}
+.seg span.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.menu{position:absolute;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--float);padding:6px;width:320px;z-index:3}
+.menu .it{padding:10px 12px;border-radius:8px}
+.menu .it:hover,.menu .it.hl{background:var(--ground)}
+.menu .it b{display:block;font-size:14px}
+.menu .it span{font-size:13px;color:var(--muted)}
+.banner-demo{background:var(--attention-soft);color:var(--attention);font-size:13px;font-weight:600;padding:8px 20px;border-bottom:1px solid #EBD3A8}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+.strike{text-decoration:line-through;color:var(--critical)}
+.before{border-left:4px solid var(--critical);padding:8px 12px;background:#fff;border-radius:0 10px 10px 0;font-size:13px;margin-top:12px}
+.hr{height:1px;background:var(--line);margin:14px 0}
+.fgrid{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end}
+.fgrid>div{flex:1 1 180px;min-width:0}
+.fgrid>div.w-where{flex:2 1 300px}
+.fgrid>div.w-auto{flex:0 0 auto}
+.flabel{display:block;height:18px;font-size:13px;font-weight:500;margin-bottom:4px;white-space:nowrap}
+.ctrl{height:40px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;display:flex;align-items:center;padding:0 12px;font-size:14px;min-width:0}
+.ctrl.hint{color:var(--muted)}
+.compound{display:flex;height:40px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;overflow:hidden}
+.compound span{display:flex;align-items:center;padding:0 12px;font-size:14px;white-space:nowrap}
+.compound .sep{border-left:1px solid var(--line);color:var(--muted);font-size:13px;padding:0 10px;background:var(--ground)}
+.compound .grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.compound span:not(.grow){flex:none}
+.toggle{height:40px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;font-size:14px;white-space:nowrap}
+.lrow{display:grid;align-items:center;min-height:44px;border-bottom:1px solid var(--line);gap:12px}
+.lrow.h{min-height:32px;font-size:12px;color:var(--muted);font-weight:500}
+.mt{grid-template-columns:24px minmax(0,1fr) 96px}
+.tg{grid-template-columns:110px minmax(0,1fr)}
+.colmap{grid-template-columns:minmax(0,1.3fr) minmax(0,1.4fr) 150px}
+.pick{white-space:nowrap;overflow:hidden;gap:8px;height:40px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-size:14px}
+.pick.focus{border:2px solid var(--primary)}
+.c-pay{background:#5B4A8A}
+.sub td{background:var(--ground);font-size:13px;padding:6px 10px}
+.toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:10px;padding:10px 16px;font-size:14px;display:flex;gap:16px;align-items:center;box-shadow:var(--float)}
+.tip{background:var(--primary-soft);border-radius:10px;padding:12px 14px;font-size:14px}
+@media (max-width:900px){.grid2,.grid-today{grid-template-columns:1fr}.side{display:none}.drawer{width:100%}}
+</style>
+<style>
+.switch{width:38px;height:22px;border-radius:999px;background:var(--line-strong);position:relative;flex:none;display:inline-block}
+.switch:after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:999px;background:#fff}
+.switch.on{background:var(--primary)}.switch.on:after{left:19px}
+.auto{display:grid;grid-template-columns:44px minmax(0,1fr) 170px 150px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.auto:last-child{border-bottom:0}
+.auto b{display:block;font-size:14px}.auto .small{margin:0}
+.time{height:40px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-size:14px;font-variant-numeric:tabular-nums}
+.time.def{color:var(--muted)}
+.jj{display:grid;grid-template-columns:44px minmax(0,1.2fr) minmax(0,1.3fr) 120px 130px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.mail{background:#F3F4F6;border-radius:12px;padding:20px}
+.mail .env{max-width:560px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.mail .band{height:6px}
+.mail .head{padding:18px 24px 6px;display:flex;align-items:center;gap:10px}
+.mail .body{padding:6px 24px 18px;font-size:14px;line-height:1.6}
+.mail .cta{display:inline-block;margin:10px 0 4px;padding:10px 18px;border-radius:8px;color:#fff;font-weight:600;font-size:14px}
+.mail .foot{padding:12px 24px 18px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.sig{display:grid;grid-template-columns:56px 1fr;gap:12px;align-items:center;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.sig .ph-img{width:56px;height:56px;border-radius:999px;background:linear-gradient(135deg,#E8D5C4,#C9A88B)}
+.sig b{display:block;font-size:14px}
+.sig .links{display:flex;gap:8px;margin-top:4px;font-size:12px}
+.brandlogo{font-family:Georgia,'Times New Roman',serif;font-size:20px;letter-spacing:.04em}
+.serif{font-family:Georgia,'Times New Roman',serif}
+.symb{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.cross{background:var(--critical-soft);color:var(--critical);font-weight:600;padding:0 4px;border-radius:4px}
+.fontpick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.fontpick span{border:1px solid var(--line-strong);border-radius:10px;padding:10px;text-align:center;font-size:18px;background:#fff}
+.fontpick span small{display:block;font:500 11px Inter,system-ui,sans-serif;color:var(--muted);margin-top:4px}
+.fontpick span.on{border:2px solid var(--primary);background:var(--primary-soft)}
+</style>
+</head>
+<body>
+<div class="doc">
+<header>
+  <h1>Lot 66 : les envois et la marque de la planner</h1>
+  <p>Maquettes M17 à M20 de la spécification <code>docs/lots/lot-66-envois-et-marque.md</code>. Ce qui est <span class="new" style="padding:0 4px">entouré en orange</span> est nouveau. Données fictives : « Atelier Lumière », Camille Morel.</p>
+  <ul class="toc">
+    <li><a href="#m17">M17 · L'heure d'envoi de chaque automatisme</a></li>
+    <li><a href="#m18">M18 · Le rappel du jour J</a></li>
+    <li><a href="#m19">M19 · Ma signature</a></li>
+    <li><a href="#m20">M20 · Un e-mail à la marque de la planner</a></li>
+  </ul>
+</header>
+
+<section class="mock" id="m17">
+  <h2>M17 · L'heure d'envoi de chaque automatisme (D1)</h2>
+  <p class="refs">Paramètres › Automatisations. Aujourd'hui : un interrupteur et parfois un délai en jours ; l'envoi part entre 9 h et 10 h, selon le serveur.</p>
+  <div class="frame">
+    <div class="bar"><span class="logo"><i></i>Symbola</span><span class="search">Rechercher…</span></div>
+    <div class="app">
+      <nav class="side"><a>Aujourd'hui</a><a>Évènements</a><a>Tâches</a><a>Devis et factures</a><a class="on">Paramètres</a></nav>
+      <div class="main">
+        <div class="ph"><h1>Automatisations</h1></div>
+        <div class="card new" style="margin-bottom:16px">
+          <div class="row" style="justify-content:space-between">
+            <div><h3 style="margin:0">Heure d'envoi par défaut</h3><p class="small muted" style="margin:2px 0 0">Reprise par chaque automatisme, sauf s'il a la sienne. Dans le fuseau de l'évènement.</p></div>
+            <span class="time" style="width:150px">09:00 <span>▾</span></span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="auto lrow h" style="border-bottom:1px solid var(--line);padding:0"><span></span><span>Automatisme</span><span>Quand</span><span class="new" style="padding:2px 4px">Envoi à</span></div>
+          <div class="auto"><span class="switch on"></span><div><b>Rappel au payeur</b><p class="small muted">E-mail au payeur avant une échéance</p></div><span class="time">7 jours avant ▾</span><span class="time def">09:00 (défaut) ▾</span></div>
+          <div class="auto"><span class="switch on"></span><div><b>Relances d'impayés</b><p class="small muted">Après l'échéance, tant que rien n'est déclaré</p></div><span class="time">J+3, J+10, J+20</span><span class="time new">10:30 ▾</span></div>
+          <div class="auto"><span class="switch on"></span><div><b>Rappel des tâches du client</b><p class="small muted">Avant l'échéance d'une tâche confiée aux mariés</p></div><span class="time">7 j et 1 j avant</span><span class="time def">09:00 (défaut) ▾</span></div>
+          <div class="auto"><span class="switch on"></span><div><b>Feuille de route des prestataires</b><p class="small muted">Horaires et contacts du poste</p></div><span class="time">J-30 et J-7</span><span class="time def">09:00 (défaut) ▾</span></div>
+          <div class="auto"><span class="switch"></span><div><b>Relances des prospects</b><p class="small muted">Sans réponse après une première demande</p></div><span class="time">J+3, J+7</span><span class="time def">09:00 (défaut) ▾</span></div>
+          <div class="auto new"><span class="switch on"></span><div><b>Rappel du jour J</b><span class="tag-new">nouveau</span><p class="small muted">Prestataires, équipe, mariés : voir M18</p></div><span class="time">la veille / le matin</span><a class="small" href="#m18">Régler ›</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <ul class="notes">
+    <li>Chaque automatisme qui envoie un e-mail a son <b>heure d'envoi</b> ; sans réglage, l'heure par défaut de l'organisation.</li>
+    <li>L'envoi part <b>à l'heure exacte</b> (à 5 minutes près), dans le fuseau de l'évènement ; plus d'envoi la nuit (relances de prospects comprises).</li>
+    <li>Les rappels de rendez-vous gardent leur délai relatif (24 h, 2 h avant).</li>
+  </ul>
+</section>
+
+<section class="mock" id="m18">
+  <h2>M18 · Le rappel du jour J (D2 : cibles à cocher, par défaut la planner)</h2>
+  <p class="refs">Paramètres › Automatisations › Rappel du jour J. Rien n'existe aujourd'hui : le dernier envoi aux prestataires est la feuille de route à J-7.</p>
+  <div class="frame">
+    <div class="main">
+      <div class="ph"><h1>Rappel du jour J</h1><span class="btn ghost">‹ Automatisations</span></div>
+      <div class="card new">
+        <p class="small muted" style="margin:0 0 8px">Un message la veille ou le matin même de chaque évènement, envoyé par Symbola à votre marque (vous n'avez rien à faire ce jour-là).</p>
+        <div class="jj lrow h" style="padding:0"><span></span><span>Destinataires</span><span>Contenu</span><span>Quand</span><span>Heure</span></div>
+        <div class="jj"><span class="box on">✓</span><div><b>Vous (la planner)</b><p class="small muted" style="margin:0">cochée au départ</p></div><span class="small">Programme du lendemain, contacts du jour, ce qui reste ouvert (contrats, échéances), lien du mode jour J</span><span class="time">la veille ▾</span><span class="time">18:00 ▾</span></div>
+        <div class="jj"><span class="box"></span><div><b>Prestataires retenus</b><p class="small muted" style="margin:0">un message par prestataire</p></div><span class="small">Horaires de son poste, lieu, contact sur place, lien de son espace</span><span class="time">la veille ▾</span><span class="time">18:00 ▾</span></div>
+        <div class="jj"><span class="box"></span><div><b>Équipe du jour</b><p class="small muted" style="margin:0">membres et renforts</p></div><span class="small">Programme du jour, lien du mode jour J</span><span class="time">le matin ▾</span><span class="time">07:00 ▾</span></div>
+        <div class="jj"><span class="box"></span><div><b>Mariés</b><p class="small muted" style="margin:0">« clients » selon le type</p></div><span class="small">Votre mot, lien de leur espace</span><span class="time">la veille ▾</span><span class="time">19:00 ▾</span></div>
+        <p class="small" style="margin:12px 0 0"><a href="#m20">Adapter les quatre modèles ›</a> · Ne part pas pour un évènement annulé, reporté ou d'essai ; une seule fois par destinataire.</p>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h3>Sur la fiche d'un évènement, rubrique Jour J</h3>
+        <div class="row"><span class="pill ok">Rappel du jour J : vous, la veille à 18:00</span><span class="btn sm">Changer pour cet évènement</span><span class="btn sm ghost">Couper pour cet évènement</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mock" id="m19">
+  <h2>M19 · Ma signature (D5)</h2>
+  <p class="refs">Mon compte › Ma signature. L'organisation choisit les éléments affichés (Paramètres › E-mails › Signature) ; chaque membre remplit la sienne.</p>
+  <div class="frame">
+    <div class="app">
+      <nav class="side"><a>Mon compte</a><a class="on">Ma signature</a><a>Notifications</a><a>Sessions</a></nav>
+      <div class="main">
+        <div class="ph"><h1>Ma signature</h1></div>
+        <div class="grid2 new" style="align-items:start">
+          <div class="card">
+            <div class="fgrid">
+              <div><span class="flabel">Nom affiché</span><span class="ctrl">Camille Morel</span></div>
+              <div><span class="flabel">Fonction</span><span class="ctrl">Wedding planner</span></div>
+              <div><span class="flabel">Téléphone</span><span class="ctrl">06 12 34 56 78</span></div>
+              <div><span class="flabel">Site</span><span class="ctrl">atelier-lumiere.fr</span></div>
+              <div class="w-where"><span class="flabel">Liens (4 au plus)</span><span class="ctrl">Instagram · @atelierlumiere</span></div>
+              <div class="w-where"><span class="flabel"></span><span class="ctrl hint">Pinterest · lien</span></div>
+              <div class="w-auto"><span class="flabel">Photo (facultative)</span><span class="btn sm">Choisir une image</span></div>
+            </div>
+            <p class="small muted" style="margin:12px 0 0">Ajoutée à vos e-mails ; un envoi automatique porte celle de la titulaire. Les messages préparés (que vous envoyez de votre messagerie) peuvent la reprendre en texte.</p>
+            <div class="row" style="justify-content:flex-end;margin-top:12px"><span class="btn p">Enregistrer ma signature</span></div>
+          </div>
+          <div class="mail">
+            <p class="small muted" style="margin:0 0 8px">Aperçu</p>
+            <div class="env"><div class="body serif">… À très vite pour la dégustation !
+              <div class="sig"><span class="ph-img"></span><div><b>Camille Morel</b><span class="small muted">Wedding planner · Atelier Lumière</span><div class="small">06 12 34 56 78 · <a href="#">atelier-lumiere.fr</a></div><div class="links"><a href="#">Instagram</a><a href="#">Pinterest</a></div></div></div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mock" id="m20">
+  <h2>M20 · Un e-mail à la marque de la planner (D6 : sans « Envoyé avec Symbola »)</h2>
+  <p class="refs">Paramètres › E-mails › Marque : police, ligne de pied, nom affiché de l'expéditeur ; libellé du bouton dans chaque modèle. L'adresse d'envoi reste sur le domaine de Symbola.</p>
+  <div class="grid2" style="align-items:start">
+    <div>
+      <p class="small" style="font-weight:600;margin:0 0 6px">Aujourd'hui</p>
+      <div class="mail"><div class="env">
+        <div class="band" style="background:#0F6E5C"></div>
+        <div class="head"><b>Atelier Lumière</b></div>
+        <div class="body">Bonjour Léa et Maxime,<br>votre proposition est prête.<br><span class="cta" style="background:#0F6E5C">Ouvrir Symbola</span></div>
+        <div class="foot">Atelier Lumière · 12 rue des Lilas · contact@atelier-lumiere.fr<br><span class="cross">Envoyé avec Symbola</span></div>
+      </div><p class="small muted" style="margin:8px 0 0">De : Atelier Lumière &lt;atelier-lumiere@envoi.symbola.fr&gt;</p></div>
+    </div>
+    <div>
+      <p class="small" style="font-weight:600;margin:0 0 6px">Avec le lot 66</p>
+      <div class="mail new"><div class="env">
+        <div class="band" style="background:#B08968"></div>
+        <div class="head"><span class="brandlogo">ATELIER LUMIÈRE</span></div>
+        <div class="body serif">Bonjour Léa et Maxime,<br>votre proposition est prête : je vous ai préparé deux formules.<br><span class="cta" style="background:#B08968;font-family:Inter,system-ui,sans-serif">Découvrir votre proposition</span>
+          <div class="sig"><span class="ph-img"></span><div><b>Camille Morel</b><span class="small muted">Wedding planner · Atelier Lumière</span><div class="small">06 12 34 56 78 · atelier-lumiere.fr</div><div class="links"><a href="#">Instagram</a><a href="#">Pinterest</a></div></div></div>
+        </div>
+        <div class="foot">Atelier Lumière · 12 rue des Lilas, 69003 Lyon · Wedding planner à Lyon depuis 2015</div>
+      </div><p class="small muted" style="margin:8px 0 0">De : Camille — Atelier Lumière &lt;atelier-lumiere@envoi.symbola.fr&gt;</p></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>Police des e-mails</h3>
+    <div class="fontpick"><span>Aa<small>Sans empattement</small></span><span class="on serif">Aa<small>Avec empattement</small></span><span style="font-family:'Palatino Linotype',Palatino,serif;font-style:italic">Aa<small>Élégante</small></span><span style="font-family:'Trebuchet MS',sans-serif">Aa<small>Arrondie</small></span></div>
+    <ul class="notes">
+      <li><b>Signature</b> de la personne qui écrit (M19), <b>bouton</b> au vocabulaire de la planner, <b>police</b> choisie, <b>pied</b> complet avec une ligne libre.</li>
+      <li><b>« Envoyé avec Symbola » est retiré</b> de tous les e-mails de la planner (décision du 22/11 : toutes les offres sont payantes).</li>
+      <li>Les e-mails propres à Symbola (compte, sécurité, codes de connexion) gardent la marque de Symbola.</li>
+    </ul>
+  </div>
+</section>
+</div>
+</body>
+</html>

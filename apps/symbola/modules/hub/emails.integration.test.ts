@@ -94,7 +94,9 @@ describe("MSG-01 — E-mails transactionnels à variables, aux couleurs de l'org
     expect(message!.Text).toContain(LINK);
     expect(message!.HTML).toContain("Ouvrir mon espace");
     expect(message!.HTML).toContain(`href="${LINK}"`);
-    for (const line of [name, "12 rue des Lilas, 69002 Lyon", contactEmail, "04 78 00 00 00", "https://atelier.test", "Envoyé avec Symbola"]) expect(message!.HTML).toContain(line);
+    for (const line of [name, "12 rue des Lilas, 69002 Lyon", contactEmail, "04 78 00 00 00", "https://atelier.test"]) expect(message!.HTML).toContain(line);
+    // Lot 66c (D6) : plus de « Envoyé avec Symbola » sur un e-mail de la planner.
+    expect(message!.HTML).not.toContain("Envoyé avec Symbola");
   });
 
   it("sans modèle réécrit, l'e-mail part du texte de départ, dans la langue demandée", async () => {

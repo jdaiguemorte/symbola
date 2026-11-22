@@ -359,6 +359,34 @@ export const eventVendorCandidateNotes = eventsSchema.table("event_vendor_candid
   updatedBy: uuid("updated_by"),
 }, (table) => [index("event_vendor_candidate_notes_organization_idx").on(table.organizationId)]);
 
+// Lot 66b (JRJ-01, HUB-28 ; D2, D3 ; maquette M18) — le rappel du jour J réglé pour un évènement :
+// coupé, ou une autre heure, pour une cible ; sans ligne, le réglage de l'organisation.
+export const dayReminderOverrides = eventsSchema.table(
+  "day_reminder_overrides",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    target: text("target").notNull(),
+    enabled: boolean("enabled").notNull(),
+    moment: text("moment").notNull(),
+    sendTime: time("send_time").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("day_reminder_overrides_organization_idx").on(table.organizationId),
+    uniqueIndex("day_reminder_overrides_event_target_idx").on(table.eventId, table.target),
+    check("day_reminder_overrides_target_check", sql`${table.target} in ('planner', 'vendors', 'team', 'clients')`),
+    check("day_reminder_overrides_moment_check", sql`${table.moment} in ('eve', 'morning')`),
+    check("day_reminder_overrides_time_check", sql`extract(minute from ${table.sendTime})::int % 15 = 0 and extract(second from ${table.sendTime}) = 0`),
+  ],
+);
+
 // Lot 65d (PRE-02, HUB-08 ; recette staging du 22/11/2026, maquette M16) — « Noter une relance » : la
 // planner déclare une relance faite par elle-même (téléphone, e-mail, SMS, de vive voix), à une date,
 // avec la date du rappel ; Symbola n'envoie rien. Sa note facultative est une note interne du

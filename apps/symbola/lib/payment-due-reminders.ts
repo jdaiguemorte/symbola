@@ -24,7 +24,7 @@ export async function sendPaymentDueReminders(organizationId: string, now: Date 
       if (link) recipients.push({ key: link.id, name: link.personName, email: link.email, type: "event_link" });
     }
     const terms = { fr: (await clientTermForEvent(organizationId, planned.eventId, "fr")).term, en: (await clientTermForEvent(organizationId, planned.eventId, "en")).term };
-    const count = await sendPaymentDueReminder(organizationId, planned, { recipients, clientTerm: (locale) => terms[locale], now });
+    const count = await sendPaymentDueReminder(organizationId, planned, { recipients, clientTerm: (locale) => terms[locale], now, ...(hooks.isSendTime ? { isSendTime: hooks.isSendTime } : {}) });
     if (count === 0) continue;
     sent += count;
     await hooks.onRun?.({ objectKey: planned.scheduleItemId, objectLabel: planned.quoteNumber, href: `/devis/${planned.quoteId}`, result: "sent" });

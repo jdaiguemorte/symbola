@@ -5,18 +5,25 @@
 // nom est le nom affiché de l'expéditeur, l'adresse reste celle de Symbola, les réponses vont à son
 // adresse de contact. L'essai part à la personne connectée seulement. Les e-mails de Symbola
 // (sécurité, équipe) ont un texte fixe et la même mise en page, à l'image de Symbola.
+// Lot 66c (HUB-18, MSG-01 ; D5, D6 ; ADR 0113) : la police de l'organisation, son code postal et sa
+// ville, une ligne libre en pied, le nom affiché qu'elle a choisi ; la signature de la personne qui
+// écrit (celle de la session, ou pour un envoi automatique celle choisie dans le réglage, sinon la
+// titulaire) ; le libellé du bouton de chaque modèle. « Envoyé avec Symbola » ne reste que sur les avis
+// de Symbola à l'équipe (TEAM_NOTICE_KINDS), qui ne portent pas de signature.
 import { createTranslator } from "next-intl";
 import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import { appDatabase } from "@symbola/db/client";
 import { listTeam } from "@symbola/auth";
-import { renderMailHtml, renderMailText, reserveOrganizationMail, sendMail, type MailBlock, type MailLayout } from "@symbola/mail";
+import { renderMailHtml, renderMailText, reserveOrganizationMail, sendMail, SIGNATURE_PHOTO_CID, type MailBlock, type MailLayout } from "@symbola/mail";
+import type { EmailBrandingView } from "@symbola/contracts";
 import { starterDocumentStyle } from "@symbola/starter-templates";
 import type { EmailLocale, EmailTemplateKind, EmailTemplateText, EmailValues, EmailVariable } from "@symbola/contracts";
 import { DOCUMENT_INK, documentAppearance } from "@/lib/documents/appearance";
 import { loadDocumentLogo, type DocumentLogo } from "@/lib/document-logo";
 import { getDocumentSettings } from "@/modules/quotes/service";
-import { EMAIL_TEMPLATE_RULES, renderEmailTemplate, variableToken } from "./email-template-rules";
+import { EMAIL_TEMPLATE_RULES, isTeamNoticeKind, renderEmailTemplate, variableToken } from "./email-template-rules";
+import { getEmailBranding, resolveEmailSignature, type ResolvedSignature } from "./email-branding";
 import { getEmailTemplate } from "./email-templates";
 import { jobKeyExists, queueAndSendEmail } from "./jobs";
 import { randomUUID } from "node:crypto";
@@ -52,6 +59,9 @@ export class EmailVariableMissingError extends Error {
 
 type OrganizationIdentity = {
   name: string;
+  // Lot 66c : le nom affiché de l'expéditeur (le nom de l'organisation sans réglage).
+  fromName: string;
+  branding: EmailBrandingView;
   logo: DocumentLogo | null;
   accent: string;
   onAccent: string;
@@ -63,25 +73,41 @@ type OrganizationIdentity = {
 
 async function organizationIdentity(organizationId: string): Promise<OrganizationIdentity> {
   const db = appDatabase();
-  const [organization, profile, team, settings, fromAddress] = await Promise.all([
+  const [organization, profile, team, settings, fromAddress, branding] = await Promise.all([
     findOrganizationById(db, organizationId),
     findOrganizationProfile(db, organizationId),
     listTeam(db, organizationId),
     getDocumentSettings(organizationId),
     organizationFromAddress(organizationId),
+    getEmailBranding(organizationId),
   ]);
   const name = organization?.name ?? "";
   const owner = team.find((member) => member.role === "owner" && !member.disabledAt)?.email ?? null;
   const replyTo = profile?.contactEmail ?? owner;
   const appearance = documentAppearance(settings.color, null, starterDocumentStyle("fr").defaultColor);
   const contact = [replyTo, profile?.contactPhone].filter((value): value is string => Boolean(value)).join(" · ");
-  const footerLines = [name, profile?.address ?? null, contact || null, profile?.website ?? null].filter((line): line is string => Boolean(line));
-  return { name, logo: await loadDocumentLogo(organizationId, profile?.logoKey ?? null), accent: appearance.accent, onAccent: appearance.onAccent, footerLines, replyTo, fromAddress };
+  // Lot 66c : « 12 rue des Lilas, 69003 Lyon » ; puis la ligne libre de l'organisation.
+  const place = [profile?.postalCode, profile?.city].filter((part): part is string => Boolean(part)).join(" ");
+  const address = [profile?.address, place].filter((part): part is string => Boolean(part)).join(", ");
+  const footerLines = [name, address || null, contact || null, profile?.website ?? null, branding.footerLine].filter((line): line is string => Boolean(line));
+  return { name, fromName: branding.senderName ?? name, branding, logo: await loadDocumentLogo(organizationId, profile?.logoKey ?? null), accent: appearance.accent, onAccent: appearance.onAccent, footerLines, replyTo, fromAddress };
 }
 
 function logoAttachment(logo: DocumentLogo | null): Attachment[] {
   if (!logo) return [];
   return [{ filename: `logo.${logo.format === "png" ? "png" : "jpg"}`, content: logo.data, contentType: logo.format === "png" ? "image/png" : "image/jpeg", cid: LOGO_CID }];
+}
+
+function signaturePhotoAttachment(signature: ResolvedSignature | null): Attachment[] {
+  const photo = signature?.photo;
+  if (!photo) return [];
+  return [{ filename: `signature.${photo.format}`, content: photo.data, contentType: photo.format === "png" ? "image/png" : "image/jpeg", cid: SIGNATURE_PHOTO_CID }];
+}
+
+// La signature d'un e-mail de la planner à ses tiers ; aucune sur un avis de Symbola à l'équipe.
+async function signatureFor(kind: EmailTemplateKind, identity: OrganizationIdentity, organizationId: string, senderUserId: string | null | undefined, withPhoto = true): Promise<ResolvedSignature | null> {
+  if (isTeamNoticeKind(kind)) return null;
+  return resolveEmailSignature({ organizationId, organizationName: identity.name, branding: identity.branding, ...(senderUserId !== undefined ? { senderUserId } : {}), withPhoto });
 }
 
 export type ComposedEmail = {
@@ -95,12 +121,26 @@ export type ComposedEmail = {
   layout: MailLayout;
 };
 
-function layoutOf(input: { kind: EmailTemplateKind; locale: EmailLocale; identity: OrganizationIdentity; template: EmailTemplateText; values: EmailValues; banner: string | null }) {
+// Le texte donné (aperçu, essai, texte relu par la planner) ou le modèle enregistré ; un texte donné
+// sans libellé de bouton garde celui du modèle enregistré.
+async function templateOf(input: { organizationId: string; kind: EmailTemplateKind; locale: EmailLocale; template?: EmailTemplateText }): Promise<EmailTemplateText> {
+  if (!input.template) return getEmailTemplate(input.organizationId, input.kind, input.locale);
+  if (input.template.buttonLabel !== undefined || EMAIL_TEMPLATE_RULES[input.kind].button === null) return input.template;
+  return { ...input.template, buttonLabel: (await getEmailTemplate(input.organizationId, input.kind, input.locale)).buttonLabel };
+}
+
+// Le libellé de départ du bouton d'un modèle (fichiers de traduction).
+export function defaultButtonLabel(kind: EmailTemplateKind, locale: EmailLocale): string | null {
+  const button = EMAIL_TEMPLATE_RULES[kind].button;
+  return button ? translator(locale)(`button.${button}`) : null;
+}
+
+function layoutOf(input: { kind: EmailTemplateKind; locale: EmailLocale; identity: OrganizationIdentity; template: EmailTemplateText; values: EmailValues; banner: string | null; signature: ResolvedSignature | null }) {
   const values: EmailValues = { organization: input.identity.name, ...input.values };
   const rendered = renderEmailTemplate(input.kind, input.template, values);
   const t = translator(input.locale);
-  const button = EMAIL_TEMPLATE_RULES[input.kind].button;
-  const label = button === "sign" ? t("button.sign") : button === "answer" ? t("button.answer") : button === "manage" ? t("button.manage") : button === "request" ? t("button.request") : button === "roadmap" ? t("button.roadmap") : button === "questionnaire" ? t("button.questionnaire") : button === "open" ? t("button.open") : button === "dayOf" ? t("button.dayOf") : button === "confirm" ? t("button.confirm") : button === "notMe" ? t("button.notMe") : button === "account" ? t("button.account") : button === "message" ? t("button.message") : t("button.space");
+  // Lot 66c (ADR 0113) : le libellé écrit par la planner avec le texte du modèle, sinon celui de départ.
+  const label = input.template.buttonLabel?.trim() || defaultButtonLabel(input.kind, input.locale) || t("button.space");
   // Lot 47 (D4) : les deux réponses d'un brief ont leur propre libellé.
   const labelOf = (variable: EmailVariable) => (variable === "link_available" ? t("button.available") : variable === "link_unavailable" ? t("button.unavailable") : label);
   const blocks: MailBlock[] = rendered.blocks.map((block) => (block.kind === "button" ? { kind: "button", url: block.url, label: labelOf(block.variable) } : block));
@@ -113,8 +153,11 @@ function layoutOf(input: { kind: EmailTemplateKind; locale: EmailLocale; identit
     textOnAccent: input.identity.onAccent,
     blocks,
     footerLines: input.identity.footerLines,
-    footerNote: t("footerNote"),
+    // D6 : « Envoyé avec Symbola » seulement sur les avis de Symbola à l'équipe.
+    footerNote: isTeamNoticeKind(input.kind) ? t("footerNote") : null,
     banner: input.banner,
+    font: input.identity.branding.font,
+    signature: input.signature?.signature ?? null,
   };
   return { layout, missing: rendered.missing };
 }
@@ -128,16 +171,20 @@ export async function composeOrganizationEmail(input: {
   values: EmailValues;
   template?: EmailTemplateText;
   banner?: string | null;
+  // Lot 66c (D5) : la personne dont la signature porte l'e-mail ; absente : celle de la session, sinon
+  // celle des envois automatiques ; nulle : aucune signature.
+  senderUserId?: string | null;
 }): Promise<ComposedEmail> {
-  const [identity, template] = await Promise.all([organizationIdentity(input.organizationId), input.template ?? getEmailTemplate(input.organizationId, input.kind, input.locale)]);
-  const { layout, missing } = layoutOf({ kind: input.kind, locale: input.locale, identity, template, values: input.values, banner: input.banner ?? null });
+  const [identity, template] = await Promise.all([organizationIdentity(input.organizationId), templateOf(input)]);
+  const signature = await signatureFor(input.kind, identity, input.organizationId, input.senderUserId);
+  const { layout, missing } = layoutOf({ kind: input.kind, locale: input.locale, identity, template, values: input.values, banner: input.banner ?? null, signature });
   if (missing.length > 0) throw new EmailVariableMissingError(missing, input.kind, input.locale);
   return {
     subject: layout.subject,
     text: renderMailText(layout),
     html: renderMailHtml(layout),
-    attachments: logoAttachment(identity.logo),
-    fromName: identity.name,
+    attachments: [...logoAttachment(identity.logo), ...signaturePhotoAttachment(signature)],
+    fromName: identity.fromName,
     replyTo: identity.replyTo,
     fromAddress: identity.fromAddress,
     layout,
@@ -148,9 +195,10 @@ export async function composeOrganizationEmail(input: {
 // l'objet et le texte brut, sans mise en page ni pied (sa messagerie ajoute sa signature) ; un lien
 // devient une ligne « Libellé : adresse ». Une variable employée sans valeur lève
 // EmailVariableMissingError, comme pour un envoi.
+// Lot 66c (D5) : sans signature ; la fenêtre l'ajoute en texte si la planner coche « Ajouter ma signature ».
 export async function composePreparedEmailText(input: { organizationId: string; kind: EmailTemplateKind; locale: EmailLocale; values: EmailValues; template?: EmailTemplateText }): Promise<{ subject: string; body: string }> {
-  const [identity, template] = await Promise.all([organizationIdentity(input.organizationId), input.template ?? getEmailTemplate(input.organizationId, input.kind, input.locale)]);
-  const { layout, missing } = layoutOf({ kind: input.kind, locale: input.locale, identity, template, values: input.values, banner: null });
+  const [identity, template] = await Promise.all([organizationIdentity(input.organizationId), templateOf(input)]);
+  const { layout, missing } = layoutOf({ kind: input.kind, locale: input.locale, identity, template, values: input.values, banner: null, signature: null });
   if (missing.length > 0) throw new EmailVariableMissingError(missing, input.kind, input.locale);
   const separator = input.locale === "en" ? ": " : " : ";
   const body = layout.blocks.map((block) => (block.kind === "button" ? `${block.label}${separator}${block.url}` : block.text)).join("\n\n");
@@ -183,6 +231,8 @@ export async function sendOrganizationEmail(input: {
   // Lot 65d (Q45, décision de Julien du 22/11/2026) : la seule exception au garde-fou ci-dessous, le
   // programme décalé le jour J (JRJ-05), qui part toujours de Symbola.
   dayOfShift?: true;
+  // Lot 66c (D5) : la personne qui signe ; absente, celle de la session ou des envois automatiques.
+  senderUserId?: string | null;
 }): Promise<{ deferred: boolean; prepared?: true }> {
   // Lot 65d (MSG-01 ; ADR 0110) : garde-fou. Un message de la relation ne part jamais de Symbola quand
   // l'organisation l'envoie de sa messagerie ; l'appelant dépose un message préparé (depositPreparedEmail).
@@ -254,19 +304,26 @@ function sampleValues(locale: EmailLocale): EmailValues {
     alert: t("sample.alert"),
     // Lot 55 (MSG-03, POR-06).
     topic: t("sample.topic"),
+    program: t("sample.program"),
+    day_contacts: t("sample.dayContacts"),
+    open_items: t("sample.openItems"),
   };
 }
 
 // missingTokens : les variables sans valeur, telles qu'elles s'écrivent dans le modèle ; replyTo :
 // l'adresse où arriveront les réponses (null : aucune).
-export type EmailPreview = { layout: MailLayout; hasLogo: boolean; missing: EmailVariable[]; missingTokens: string[]; replyTo: string | null };
+// Lot 66c : fromName, le nom affiché de l'expéditeur ; signaturePhoto, la signature porte la photo de la
+// personne qui regarde (servie par l'app à elle seule, /compte/signature/photo).
+export type EmailPreview = { layout: MailLayout; hasLogo: boolean; missing: EmailVariable[]; missingTokens: string[]; replyTo: string | null; fromName: string; signaturePhoto: boolean };
 
 // D7 — l'aperçu dans l'écran du modèle : le même rendu que l'e-mail, avec les données fictives ;
 // le logo s'affiche par l'adresse de l'app (pas de pièce jointe dans une page).
 export async function previewEmailTemplate(input: { organizationId: string; kind: EmailTemplateKind; locale: EmailLocale; template?: EmailTemplateText }): Promise<EmailPreview> {
-  const [identity, template] = await Promise.all([organizationIdentity(input.organizationId), input.template ?? getEmailTemplate(input.organizationId, input.kind, input.locale)]);
-  const { layout, missing } = layoutOf({ kind: input.kind, locale: input.locale, identity, template, values: sampleValues(input.locale), banner: null });
-  return { layout, hasLogo: identity.logo !== null, missing, missingTokens: missing.map((key) => variableToken(key, input.locale)), replyTo: identity.replyTo };
+  const [identity, template] = await Promise.all([organizationIdentity(input.organizationId), templateOf(input)]);
+  // La signature de la personne qui regarde : celle qui partira de ses gestes.
+  const signature = await signatureFor(input.kind, identity, input.organizationId, undefined, false);
+  const { layout, missing } = layoutOf({ kind: input.kind, locale: input.locale, identity, template, values: sampleValues(input.locale), banner: null, signature });
+  return { layout, hasLogo: identity.logo !== null, missing, missingTokens: missing.map((key) => variableToken(key, input.locale)), replyTo: identity.replyTo, fromName: identity.fromName, signaturePhoto: Boolean(signature?.signature.photoCid) };
 }
 
 // D7 — l'essai part à la personne connectée seulement, marqué « Essai », compté dans le plafond.

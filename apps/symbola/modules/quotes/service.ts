@@ -109,7 +109,7 @@ import {
 import { latePenaltySentence as latePenaltySentenceOf } from "@/lib/documents/payment-terms";
 import { epcQrSvg, isValidIban, newPaymentReference, normalizeIban } from "./payment-references";
 import { settlementState } from "./settlement";
-import { dueInvoiceReminder, expiryReminderDue, isProposalExpired, paymentDueReminderDay, penaltySentence, reminderSendWindow } from "./payment-reminders";
+import { dueInvoiceReminder, expiryReminderDue, isProposalExpired, paymentDueReminderDay, penaltySentence } from "./payment-reminders";
 import {
   claimInvoiceReminder,
   declareTransferRow,
@@ -158,6 +158,7 @@ import {
   notify,
   recordAutomationRun,
   type OrganizationProfile,
+  sendTimeReached,
 } from "@/modules/hub/service";
 import { fakeSignatureProvider, realSignatureProvider, signatureProviderFor } from "./signature";
 import { signatureTag, type SignatureProvider } from "./signature/provider";
@@ -4425,12 +4426,25 @@ export async function notifyProposalSent(organizationId: string, quoteId: string
   return sent;
 }
 
+// Lot 66a (HUB-28 ; D1 ; ADR 0112) : le fuseau de l'évènement d'un envoi (Europe/Paris s'il est
+// introuvable), lu une fois par évènement le temps d'un passage.
+function eventTimeZoneReader(organizationId: string): (eventId: string) => Promise<string> {
+  const zones = new Map<string, string>();
+  return async (eventId) => {
+    const known = zones.get(eventId);
+    if (known) return known;
+    const zone = (await getEvent(organizationId, eventId).catch(() => null))?.timeZone ?? "Europe/Paris";
+    zones.set(eventId, zone);
+    return zone;
+  };
+}
+
 // FAC-15 (D1) : relance avant l'expiration, une seule fois, aux clients qui n'ont ni signé ni refusé.
 // Lot 53 (HUB-28, D5) : hooks.notBefore, le jour de la remise en route — une relance prévue avant ne
 // part pas ; hooks.onRun, la trace de chaque devis relancé.
 export async function sendProposalExpiryReminders(organizationId: string, now: Date = new Date(), hooks: AutomationHooks = {}): Promise<number> {
-  if (!reminderSendWindow(now)) return 0;
   const today = parisDate(now);
+  const timeZoneOf = eventTimeZoneReader(organizationId);
   const { expiryReminderDays } = await getReminderSettings(organizationId);
   let sent = 0;
   for (const { quote, version } of await findOpenSentVersions(organizationId)) {
@@ -4438,6 +4452,8 @@ export async function sendProposalExpiryReminders(organizationId: string, now: D
     const due = expiryReminderDue({ status: quote.status, validUntil: version.validUntil, remindedAt: version.expiryRemindedAt, daysBefore: expiryReminderDays, signatureStarted: detail.signature !== null && detail.signature.status !== "declined" }, today);
     if (!due) continue;
     if (hooks.notBefore && addCalendarDays(version.validUntil!, -expiryReminderDays) < hooks.notBefore) continue;
+    // Lot 66a (D1) : à l'heure d'envoi de l'automatisme, dans le fuseau de l'évènement.
+    if (!sendTimeReached(hooks.isSendTime, now, await timeZoneOf(quote.eventId))) continue;
     const links = (await listEventLinks(organizationId, quote.eventId)).filter((link) => link.audience === "client" && link.status === "active" && link.rights.rubrics.includes("quotes"));
     if (links.length === 0) continue;
     if (!(await markExpiryReminded(organizationId, version.id, now))) continue;
@@ -4819,7 +4835,8 @@ async function invoiceReminderLetter(organizationId: string, planned: { quoteId:
 
 // Lot 53 (HUB-28, D5) : comme les relances avant expiration, sans rattrapage après une remise en route.
 export async function sendInvoiceReminders(organizationId: string, now: Date = new Date(), hooks: AutomationHooks = {}): Promise<number> {
-  if (!reminderSendWindow(now)) return 0;
+  // Lot 66a (D1) : à l'heure d'envoi de l'automatisme (heure de Paris).
+  if (!sendTimeReached(hooks.isSendTime, now)) return 0;
   let sent = 0;
   for (const planned of await planInvoiceReminders(organizationId, now)) {
     if (hooks.notBefore && planned.dueOn < hooks.notBefore) continue;
@@ -4871,10 +4888,11 @@ export async function planPaymentDueReminders(organizationId: string, daysBefore
 export async function sendPaymentDueReminder(
   organizationId: string,
   planned: PlannedPaymentDueReminder,
-  input: { recipients: { key: string; name: string; email: string; type?: "event_link" | "quote_signer" }[]; clientTerm: (locale: "fr" | "en") => string; now?: Date },
+  input: { recipients: { key: string; name: string; email: string; type?: "event_link" | "quote_signer" }[]; clientTerm: (locale: "fr" | "en") => string; now?: Date; isSendTime?: AutomationHooks["isSendTime"] },
 ): Promise<number> {
   const now = input.now ?? new Date();
-  if (!reminderSendWindow(now)) return 0;
+  // Lot 66a (D1) : à l'heure d'envoi de l'automatisme, dans le fuseau de l'évènement.
+  if (!sendTimeReached(input.isSendTime, now, await eventTimeZoneReader(organizationId)(planned.eventId))) return 0;
   const context = await settlementContext(organizationId, planned.eventId, planned.scheduleItemId);
   if (!context || context.facts.declared || context.facts.paid) return 0;
   const documents = await getDocumentSettings(organizationId);
@@ -4923,8 +4941,9 @@ export async function sendPaymentDueReminder(
 
 // JUR-07 (hors établissement) : le jour où un paiement peut être demandé, le RIB et la référence
 // partent par e-mail aux signataires, une seule fois, pour la première échéance non réglée.
-export async function sendDueSettlementDetails(organizationId: string, now: Date = new Date()): Promise<number> {
-  if (!reminderSendWindow(now)) return 0;
+// Lot 66a (D1) : à l'heure d'envoi par défaut de l'organisation (heure de Paris), remise par l'appelant.
+export async function sendDueSettlementDetails(organizationId: string, now: Date = new Date(), isSendTime?: AutomationHooks["isSendTime"]): Promise<number> {
+  if (!sendTimeReached(isSendTime, now)) return 0;
   const today = parisDate(now);
   const rows = (await findUnpaidScheduleItems(organizationId)).filter((row) => row.quote.status === "signed" && !row.quote.deletedAt);
   const firstByVersion = new Map<string, (typeof rows)[number]>();

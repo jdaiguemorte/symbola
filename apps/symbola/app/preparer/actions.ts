@@ -7,7 +7,9 @@ import { z } from "zod";
 import type { PreparedEmailDraft } from "@symbola/contracts";
 import { requirePlanner } from "@/lib/guards";
 import { draftPreparedEmails } from "@/lib/prepared-emails";
-import { dismissPreparedEmail, markPreparedEmailSent, PreparedEmailError } from "@/modules/hub/service";
+import { getLocale } from "next-intl/server";
+import { appDatabase } from "@symbola/db/client";
+import { dismissPreparedEmail, getOrganizationContact, markPreparedEmailSent, memberSignatureText, PreparedEmailError } from "@/modules/hub/service";
 
 const idsSchema = z.array(z.uuid()).min(1).max(30);
 const idSchema = z.uuid();
@@ -43,4 +45,14 @@ export async function dismissPreparedEmailAction(raw: unknown): Promise<Prepared
   const parsed = idSchema.safeParse(raw);
   if (!parsed.success) return { ok: false };
   return guarded(() => dismissPreparedEmail(auth.user.organizationId, parsed.data));
+}
+
+// Lot 66c (HUB-18 ; D5 ; ADR 0113) : la signature en texte de la personne connectée, que la fenêtre
+// ajoute à la fin du message si elle coche « Ajouter ma signature » ; nulle sans signature.
+export async function loadMySignatureTextAction(): Promise<{ text: string | null }> {
+  const auth = await requirePlanner();
+  const organizationId = auth.user.organizationId;
+  const locale = (await getLocale()) === "en" ? "en" : "fr";
+  const organization = await getOrganizationContact(appDatabase(), organizationId);
+  return { text: await memberSignatureText({ organizationId, organizationName: organization.name, userId: auth.user.id, locale }) };
 }

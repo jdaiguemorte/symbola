@@ -6,7 +6,7 @@ import { starterGuestImportColumns } from "@symbola/starter-templates";
 import { aggregateDiets, dietPlace, openDietOptions, sealDietOptions } from "./diets";
 import { foldHeader, findDuplicates, mapGuestColumns, phoneKey, readGuestRows } from "./import-rules";
 import { isDue, noticeActive, noticeOn, purgeBaseDate, purgeSchedule, validatePostponement } from "./purge-rules";
-import { currentReminder, reminderKey, withinSendingHours } from "./reminders";
+import { currentReminder, reminderKey } from "./reminders";
 import {
   defaultDisplayName,
   householdComplete,
@@ -246,13 +246,6 @@ describe("INV-04 — Relances automatiques (horloge simulée)", () => {
     expect(reminderKey(householdId, 7)).toBe(`guests:reminder:${householdId}:7`);
   });
 
-  it("heures d'envoi à Paris, passages à l'heure d'été et d'hiver compris", () => {
-    const hours = { from: 9, until: 20 };
-    expect(withinSendingHours(new Date("2027-03-28T07:59:00Z"), hours)).toBe(true); // 9 h 59, heure d'été
-    expect(withinSendingHours(new Date("2027-03-27T07:59:00Z"), hours)).toBe(false); // 8 h 59, heure d'hiver
-    expect(withinSendingHours(new Date("2027-10-31T18:59:00Z"), hours)).toBe(true); // 19 h 59, heure d'hiver
-    expect(withinSendingHours(new Date("2027-10-30T18:30:00Z"), hours)).toBe(false); // 20 h 30, heure d'été
-  });
 });
 
 describe("RGP-08 — Purge des données d'invités, annoncée sept jours avant, report unique", () => {

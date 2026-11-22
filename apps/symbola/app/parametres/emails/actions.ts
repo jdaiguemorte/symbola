@@ -11,7 +11,9 @@ import { MailQuotaExceededError } from "@symbola/mail";
 import type { EmailLocale, EmailTemplateKind } from "@symbola/contracts";
 import { requirePlanner } from "@/lib/guards";
 import {
+  cleanButtonLabel,
   EMAIL_BODY_MAX,
+  EMAIL_BUTTON_LABEL_MAX,
   EMAIL_SUBJECT_MAX,
   EmailTemplateInvalidError,
   EmailVariableMissingError,
@@ -33,7 +35,7 @@ export type EmailTemplateFormState = {
   saved?: boolean;
   testSentTo?: string;
   preview?: EmailPreview;
-  values?: { subject: string; body: string };
+  values?: { subject: string; body: string; buttonLabel?: string };
   at?: number;
 };
 
@@ -46,6 +48,7 @@ function problemMessages(problems: EmailTemplateProblems & { empty: ("subject" |
   if (problems.missingRequired.length > 0) messages.push(t("errorRequired", { tokens: problems.missingRequired.map((key) => variableToken(key, locale)).join(", ") }));
   if (problems.tooLong.includes("subject")) messages.push(t("errorSubjectTooLong", { max: EMAIL_SUBJECT_MAX }));
   if (problems.tooLong.includes("body")) messages.push(t("errorBodyTooLong", { max: EMAIL_BODY_MAX }));
+  if (problems.tooLong.includes("buttonLabel")) messages.push(t("errorButtonLabelTooLong", { max: EMAIL_BUTTON_LABEL_MAX }));
   return messages;
 }
 
@@ -61,8 +64,9 @@ export async function emailTemplateAction(_prev: EmailTemplateFormState, formDat
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("EmailTemplates");
   const target = await readTarget(formData, organizationId);
-  const values = { subject: String(formData.get("subject") ?? ""), body: String(formData.get("body") ?? "") };
-  const text = { subject: values.subject.trim(), body: values.body.replace(/\r\n/g, "\n").trim() };
+  const values = { subject: String(formData.get("subject") ?? ""), body: String(formData.get("body") ?? ""), buttonLabel: String(formData.get("buttonLabel") ?? "") };
+  // Lot 66c : le libellé du bouton saisi (vide : celui de départ), dans l'aperçu et l'essai aussi.
+  const text = { subject: values.subject.trim(), body: values.body.replace(/\r\n/g, "\n").trim(), buttonLabel: cleanButtonLabel(target.kind, values.buttonLabel) };
   const echo = { values, at: Date.now() };
   const intent = String(formData.get("intent") ?? "save");
 
@@ -96,7 +100,7 @@ export async function emailTemplateAction(_prev: EmailTemplateFormState, formDat
     revalidatePath("/parametres/emails", "layout");
     return {
       saved: true,
-      values: { subject: saved.subject, body: saved.body },
+      values: { subject: saved.subject, body: saved.body, buttonLabel: saved.buttonLabel ?? "" },
       at: Date.now(),
       preview: await previewEmailTemplate({ organizationId, ...target }),
     };

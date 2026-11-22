@@ -8,6 +8,8 @@ import clientTermsFile from "./client-terms.json";
 import notificationsFile from "./notifications.json";
 import planningHealthFile from "./planning-health.json";
 import riskRadarFile from "./risk-radar.json";
+import sendingFile from "./sending.json";
+import dayReminderFile from "./day-reminder.json";
 
 const channels = z.object({ app: z.boolean(), email: z.boolean(), push: z.boolean() });
 const notificationsSchema = z.object({
@@ -40,6 +42,32 @@ const automations = automationsSchema.parse(automationsFile);
 
 export function starterAutomations(): Record<string, { enabled: boolean; days: number | null }> {
   return structuredClone(automations.automations);
+}
+
+// Lot 66a (HUB-28 ; D1 ; ADR 0112) : l'heure d'envoi par défaut (« HH:MM », au quart d'heure) et le
+// rattrapage d'un envoi manqué, en heures.
+const sendingSchema = z.object({
+  version: z.literal(1),
+  defaultSendTime: z.string().regex(/^([01]\d|2[0-3]):(00|15|30|45)$/),
+  catchUpHours: z.number().int().min(1).max(12),
+});
+const sending = sendingSchema.parse(sendingFile);
+
+export function starterSending(): { defaultSendTime: string; catchUpHours: number } {
+  return { defaultSendTime: sending.defaultSendTime, catchUpHours: sending.catchUpHours };
+}
+
+// Lot 66b (JRJ-01 ; D2, D3 ; ADR 0112) : le rappel du jour J au départ, par cible.
+const dayReminderTarget = z.object({ enabled: z.boolean(), moment: z.enum(["eve", "morning"]), sendTime: z.string().regex(/^([01]\d|2[0-3]):(00|15|30|45)$/) });
+const dayReminderSchema = z.object({
+  version: z.literal(1),
+  targets: z.object({ planner: dayReminderTarget, vendors: dayReminderTarget, team: dayReminderTarget, clients: dayReminderTarget }),
+});
+const dayReminder = dayReminderSchema.parse(dayReminderFile);
+export type StarterDayReminderTarget = z.infer<typeof dayReminderTarget>;
+
+export function starterDayReminder(): Record<"planner" | "vendors" | "team" | "clients", StarterDayReminderTarget> {
+  return structuredClone(dayReminder.targets);
 }
 
 const riskRadarSchema = z.object({

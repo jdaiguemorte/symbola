@@ -524,7 +524,7 @@
     },
     "profile": {
       "title": "Mon compte et la sécurité",
-      "body": "Choisissez la langue dans laquelle Symbola s'affiche pour vous. Votre mot de passe et votre double authentification protègent votre compte ; « Oublier tous mes appareils » redemande le code sur les appareils de confiance. « Déconnecter tous mes autres appareils » ferme vos autres sessions, par exemple après la perte d'un téléphone.",
+      "body": "Choisissez la langue dans laquelle Symbola s'affiche pour vous. Votre mot de passe et votre double authentification protègent votre compte ; « Oublier tous mes appareils » redemande le code sur les appareils de confiance. « Déconnecter tous mes autres appareils » ferme vos autres sessions, par exemple après la perte d'un téléphone. « Ma signature » : votre nom, votre fonction et vos liens à la fin des e-mails que vous envoyez.",
       "faq": [
         {
           "q": "Comment changer mon mot de passe ?",
@@ -1144,7 +1144,7 @@
     },
     "emailTemplates": {
       "title": "Modèles d'e-mails",
-      "body": "Qui envoie les messages à vos clients et à vos prestataires : par défaut, vous, de votre messagerie. Symbola prépare chaque message de la relation (proposition, relances, brief, programme, réponse à un prospect…) dans la fenêtre « Préparer l'e-mail » : « Ouvrir dans ma messagerie », « Copier le message », puis « J'ai envoyé », qui note l'envoi dans l'activité de l'évènement. Pas de pièce jointe : le lien de l'espace est dans le message, ou téléchargez le PDF. Les automatismes déposent un élément « À envoyer » dans « Aujourd'hui ». Avec « Symbola les envoie pour moi », les messages partent de Symbola, avec les pièces jointes et les relances automatiques. Les messages techniques (accès, signature, rendez-vous en ligne, sécurité, avis) partent toujours de Symbola. Les modèles ci-dessous servent dans les deux cas, en français et en anglais selon la langue de la personne : une variable inconnue est refusée, et le lien ne peut pas manquer. L'aperçu montre l'e-mail avec des données fictives ; « M'envoyer un essai » l'envoie à votre seule adresse. Un e-mail dont une variable n'a pas de valeur ne part pas : Symbola vous dit laquelle. « Revenir au texte de départ » efface votre version."
+      "body": "Qui envoie les messages à vos clients et à vos prestataires : par défaut, vous, de votre messagerie. Symbola prépare chaque message de la relation (proposition, relances, brief, programme, réponse à un prospect…) dans la fenêtre « Préparer l'e-mail » : « Ouvrir dans ma messagerie », « Copier le message », puis « J'ai envoyé », qui note l'envoi dans l'activité de l'évènement. Pas de pièce jointe : le lien de l'espace est dans le message, ou téléchargez le PDF. Les automatismes déposent un élément « À envoyer » dans « Aujourd'hui ». Avec « Symbola les envoie pour moi », les messages partent de Symbola, avec les pièces jointes et les relances automatiques. Les messages techniques (accès, signature, rendez-vous en ligne, sécurité, avis) partent toujours de Symbola. Les modèles ci-dessous servent dans les deux cas, en français et en anglais selon la langue de la personne : une variable inconnue est refusée, et le lien ne peut pas manquer. L'aperçu montre l'e-mail avec des données fictives ; « M'envoyer un essai » l'envoie à votre seule adresse. Un e-mail dont une variable n'a pas de valeur ne part pas : Symbola vous dit laquelle. « Revenir au texte de départ » efface votre version. Chaque modèle à bouton a son libellé, à écrire dans votre vocabulaire (« Découvrir votre proposition ») ; les modèles des invités se modifient aussi. Police, pied, nom d'expéditeur et signatures : « Marque et signature des e-mails »."
     },
     "messageTemplates": {
       "title": "Modèles de messages",
@@ -1398,9 +1398,13 @@
       "title": "Régler mes notifications",
       "body": "Coupez une sorte sur un canal sans toucher aux autres. Le récapitulatif part chaque matin à l'heure choisie ; pendant les plages de silence, rien ne sonne, sauf les alertes du jour J le jour d'un évènement si vous le gardez."
     },
+    "dayReminder": {
+      "title": "Rappel du jour J",
+      "body": "Cochez qui reçoit le rappel du jour J : vous (cochée au départ), les prestataires retenus, l'équipe de l'évènement et ses renforts, les clients. Pour chacun, la veille ou le matin même, et l'heure, dans le fuseau de l'évènement. Symbola l'envoie, à votre marque, une seule fois par personne ; jamais pour un évènement annulé, reporté, d'essai ou sans date. Sur la fiche d'un évènement (onglet Programme), le rappel se coupe ou change d'heure pour cet évènement seulement. Les quatre modèles s'adaptent dans Modèles d'e-mails."
+    },
     "automations": {
       "title": "Automatisations",
-      "body": "Chaque ligne est un automatisme : ce qu'il fait, son interrupteur et son journal. Couper arrête les prochains envois ; rien n'est rattrapé à la remise en route. La purge RGPD et le contrôle des pièces ne se coupent pas."
+      "body": "Chaque ligne est un automatisme : ce qu'il fait, son interrupteur, son heure d'envoi et son journal. L'heure d'envoi par défaut vaut pour chaque automatisme qui n'a pas la sienne ; l'envoi part à cette heure (à cinq minutes près), dans le fuseau de l'évènement, et jamais la nuit. Les rappels de rendez-vous gardent leur délai (24 h, 2 h avant). Couper arrête les prochains envois ; rien n'est rattrapé à la remise en route. La purge RGPD et le contrôle des pièces ne se coupent pas."
     },
     "riskRadar": {
       "title": "Radar des risques",
@@ -1507,6 +1511,14 @@
     "taskCategories": {
       "title": "Catégories des tâches",
       "body": "Rangez vos tâches par catégorie : Client, Prestataires, Administratif, Jour J au départ. Renommez-les, changez leur couleur, leur ordre, ajoutez-en ; une catégorie supprimée laisse ses tâches sans catégorie. Chaque modification s'enregistre quand vous quittez le champ ; « Annuler la dernière modification » la reprend."
+    },
+    "emailBranding": {
+      "title": "Marque et signature des e-mails",
+      "body": "Vos e-mails aux clients, aux prestataires et aux invités portent votre logo, la couleur de vos documents, la police choisie ici, vos coordonnées complètes en pied (avec le code postal et la ville) et une ligne libre. Le nom affiché de l'expéditeur remplace le nom de l'organisation dans « De : » ; l'adresse reste sur le domaine de Symbola et les réponses arrivent à votre adresse de contact. Chaque personne de l'équipe remplit sa signature dans Mon compte › Ma signature ; vous choisissez ici les éléments que les signatures affichent, et la signature des envois automatiques (la vôtre par défaut). « Envoyé avec Symbola » n'apparaît plus sur vos e-mails : seuls les e-mails de Symbola (compte, sécurité, codes, avis à l'équipe) gardent sa marque."
+    },
+    "mySignature": {
+      "title": "Ma signature",
+      "body": "Votre signature s'ajoute à la fin des e-mails que vous envoyez depuis Symbola : nom affiché, fonction, téléphone, site, jusqu'à quatre liens et une petite photo facultative. L'aperçu montre le rendu en direct ; enregistrez pour l'appliquer. Votre organisation choisit les éléments affichés. Un envoi automatique porte la signature choisie par la titulaire. Dans la fenêtre « Préparer l'e-mail », « Ajouter ma signature » la reprend en texte à la fin du message. Votre signature est effacée si votre accès à l'organisation est retiré."
     }
   },
   "Aide": {
@@ -6230,7 +6242,12 @@
       "events_task_categories": "catégorie de tâche",
       "hub_module_requests": "une demande d'activation d'une app",
       "hub_prepared_emails": "un message préparé pour la messagerie de la planner",
-      "hub_relation_mail_settings": "le réglage « qui envoie les messages »"
+      "hub_relation_mail_settings": "le réglage « qui envoie les messages »",
+      "hub_email_branding": "Marque des e-mails",
+      "hub_member_signatures": "Signature d'un membre",
+      "events_day_reminder_overrides": "réglage du rappel du jour J d'un évènement",
+      "hub_sending_settings": "l'heure d'envoi par défaut",
+      "hub_day_reminder_targets": "réglage du rappel du jour J"
     },
     "modules": {
       "events": "Événements",
@@ -7768,6 +7785,14 @@
     "symbolaFooter": "Symbola — la suite des organisateurs d'évènements",
     "testBanner": "Essai : cet e-mail montre votre modèle avec des données fictives.",
     "testSubject": "[Essai] {subject}",
+    "dayReminder": {
+      "noProgram": "Le programme n'est pas encore saisi.",
+      "noContacts": "Aucun contact du jour saisi.",
+      "placeUnknown": "à préciser",
+      "slotOpen": "Poste sans prestataire retenu : {slot}",
+      "nothingOpen": "Rien d'ouvert.",
+      "noName": "à vous"
+    },
     "sample": {
       "firstName": "Léa",
       "event": "votre mariage",
@@ -7799,7 +7824,10 @@
       "clientTerm": "les mariés",
       "digest": "- Le devis D-2027-0042 est signé.\n- 3 tâches à faire aujourd'hui, dont 1 en retard.",
       "alert": "Un virement de 1 620,00 € est déclaré (devis D-2027-0042).",
-      "topic": "Traiteur"
+      "topic": "Traiteur",
+      "program": "- 14:00 Cérémonie — Château des Fictifs\n- 18:30 Vin d'honneur\n- 20:30 Dîner",
+      "dayContacts": "- Camille (coordination) : 06 00 00 00 00",
+      "openItems": "- Contrat du traiteur à signer"
     },
     "event": {
       "coupleClient": "votre mariage",
@@ -7931,7 +7959,9 @@
       "vendors": "Prestataires",
       "settlement": "Proposition et règlement",
       "team": "Équipe et sécurité du compte",
-      "messages": "Messages"
+      "messages": "Messages",
+      "guests": "Invités",
+      "dayOf": "Rappel du jour J"
     },
     "kinds": {
       "client_link": {
@@ -8065,6 +8095,30 @@
       "new_message": {
         "title": "Nouveau message",
         "description": "Part au client ou au prestataire quand vous lui écrivez sur un sujet : le nom du sujet et le lien vers le fil, jamais le contenu du message."
+      },
+      "day_reminder_planner": {
+        "title": "Rappel du jour J à la planner",
+        "description": "Part seul la veille ou le matin même, à l'heure réglée : programme, contacts du jour, ce qui reste ouvert, bouton « Ouvrir le jour J ». Envoyé par Symbola."
+      },
+      "day_reminder_vendor": {
+        "title": "Rappel du jour J aux prestataires",
+        "description": "Part seul aux prestataires retenus, si vous l'avez coché : leurs horaires, le lieu, le contact sur place. Envoyé par Symbola."
+      },
+      "day_reminder_team": {
+        "title": "Rappel du jour J à l'équipe",
+        "description": "Part seul aux membres de l'équipe de l'évènement, si vous l'avez coché : le programme du jour et les contacts. Envoyé par Symbola."
+      },
+      "day_reminder_client": {
+        "title": "Rappel du jour J aux clients",
+        "description": "Part seul aux clients de l'évènement, si vous l'avez coché : un mot de votre part. Envoyé par Symbola."
+      },
+      "guest_invitation": {
+        "title": "Invitation à répondre",
+        "description": "À chaque invité adulte : son lien personnel pour dire s'il vient, ses choix de repas et ses allergies."
+      },
+      "guest_reminder": {
+        "title": "Relance des invités",
+        "description": "Aux invités qui n'ont pas encore répondu, selon les relances réglées sur l'évènement."
       }
     },
     "variables": {
@@ -8094,7 +8148,10 @@
       "iban": "Votre IBAN",
       "bic": "Votre BIC",
       "penalties": "La phrase des pénalités de retard, selon le client et vos réglages",
-      "topic": "Le nom du sujet de discussion"
+      "topic": "Le nom du sujet de discussion",
+      "program": "Les lignes du programme du jour (pour un prestataire, celles de son poste)",
+      "day_contacts": "Les contacts du jour (nom, rôle, téléphone)",
+      "open_items": "Ce qui reste ouvert : contrats non signés, échéances à venir"
     },
     "back": "Tous les modèles d'e-mails",
     "editorTitle": "{title} ({language})",
@@ -8142,7 +8199,12 @@
       "error": "Réglage refusé : choisissez l'une des deux possibilités.",
       "preparedBadge": "Préparé pour votre messagerie",
       "sentBadge": "Envoyé par Symbola"
-    }
+    },
+    "buttonLabel": "Libellé du bouton",
+    "buttonLabelHint": "Le texte du bouton qui ouvre le lien, dans votre vocabulaire. Laissé vide : « {label} ».",
+    "errorButtonLabelTooLong": "Le libellé du bouton dépasse {max} caractères.",
+    "brandingLink": "Marque et signature des e-mails",
+    "brandingLinkHint": "Police, ligne de pied, nom affiché de l'expéditeur et modèle des signatures de l'équipe."
   },
   "Calendar": {
     "personFeed": "{organization} — évènements",
@@ -11098,6 +11160,61 @@
       "invalid": "Ces seuils ne sont pas valables."
     }
   },
+  "DayReminder": {
+    "title": "Rappel du jour J",
+    "back": "Automatisations",
+    "intro": "Un message la veille ou le matin même de chaque évènement, envoyé par Symbola à votre marque : vous n'avez rien à faire ce jour-là. Cochez qui le reçoit, et quand.",
+    "colWhen": "Quand",
+    "colTime": "Heure",
+    "targets": {
+      "planner": {
+        "label": "Vous (la planner)",
+        "hint": "la personne en charge de l'évènement",
+        "content": "Programme, contacts du jour, ce qui reste ouvert, lien du mode Jour J"
+      },
+      "vendors": {
+        "label": "Prestataires retenus",
+        "hint": "un message par prestataire",
+        "content": "Horaires de son poste, lieu, contact sur place"
+      },
+      "team": {
+        "label": "Équipe du jour",
+        "hint": "membres de l'équipe de l'évènement et renforts",
+        "content": "Programme du jour, contacts du jour"
+      },
+      "clients": {
+        "label": "Les mariés",
+        "hint": "leur lien personnel",
+        "content": "Votre mot ; le programme est dans leur espace"
+      }
+    },
+    "moments": {
+      "eve": "la veille",
+      "morning": "le matin même"
+    },
+    "enabledLabel": "Envoyer à : {target}",
+    "whenLabel": "Quand, pour : {target}",
+    "timeLabel": "Heure, pour : {target}",
+    "save": "Enregistrer",
+    "saved": "Rappel du jour J enregistré.",
+    "invalid": "Choisissez « la veille » ou « le matin même », et une heure au quart d'heure.",
+    "ownerOnly": "Seule la Propriétaire règle le rappel du jour J.",
+    "templatesLink": "Adapter les quatre modèles",
+    "rules": "Ne part pas pour un évènement annulé, reporté ou d'essai, ni sans date ; une seule fois par destinataire et par évènement. Envoyé par Symbola, avec votre marque. Les heures s'entendent dans le fuseau de l'évènement.",
+    "settingsLink": "Régler le rappel du jour J",
+    "event": {
+      "title": "Rappel du jour J",
+      "none": "Aucun rappel ne part pour cet évènement.",
+      "item": "{target} : {moment} à {time}",
+      "custom": "Réglé pour cet évènement.",
+      "change": "Changer pour cet évènement",
+      "saveEvent": "Enregistrer pour cet évènement",
+      "reset": "Revenir au réglage de l'organisation",
+      "saved": "Rappel enregistré pour cet évènement.",
+      "resetDone": "Le réglage de l'organisation s'applique de nouveau.",
+      "settings": "Réglage de l'organisation"
+    }
+  },
   "Automations": {
     "keys": {
       "quote_signed_confirm_event": {
@@ -11135,6 +11252,10 @@
       "risk_radar": {
         "title": "Radar des risques",
         "description": "Chaque matin, le radar cherche les risques des évènements à venir et vous prévient."
+      },
+      "day_reminder": {
+        "title": "Rappel du jour J",
+        "description": "La veille ou le matin même, un rappel à la planner (au départ), et, si vous les cochez, aux prestataires retenus, à l'équipe et aux clients. Envoyé par Symbola ; une fois par personne et par évènement."
       }
     },
     "alwaysOn": {
@@ -11174,7 +11295,18 @@
     "alwaysOnTitle": "Toujours actifs",
     "alwaysOnBadge": "Toujours actif",
     "saved": "Automatisme enregistré.",
-    "invalid": "Ce réglage n'est pas valable."
+    "invalid": "Ce réglage n'est pas valable.",
+    "defaultTimeTitle": "Heure d'envoi par défaut",
+    "defaultTimeHint": "Reprise par chaque automatisme qui envoie un e-mail, sauf s'il a la sienne. Elle s'entend dans le fuseau de l'évènement. Un envoi manqué (serveur arrêté) part au passage suivant, le jour même ; jamais la nuit.",
+    "defaultTimeLabel": "Envoi à",
+    "sendAt": "Envoi à",
+    "sendAtLabel": "Heure d'envoi de « {title} »",
+    "defaultOption": "{time} (par défaut)",
+    "saveTime": "Enregistrer l'heure",
+    "saveTimeLabel": "Enregistrer l'heure de « {title} »",
+    "invalidTime": "Choisissez une heure au quart d'heure.",
+    "timeSaved": "Heure enregistrée.",
+    "dayReminderLink": "Régler le rappel du jour J ›"
   },
   "StandaloneTasks": {
     "title": "Tâches hors évènement",
@@ -12584,6 +12716,97 @@
     "none": "Aucun message à préparer : il a déjà été envoyé ou écarté.",
     "error": "Action impossible pour le moment : réessayez.",
     "next": "Message suivant",
-    "previous": "Message précédent"
+    "previous": "Message précédent",
+    "addSignature": "Ajouter ma signature",
+    "addSignatureHint": "Votre messagerie ajoute souvent déjà la vôtre : cochez seulement si ce n'est pas le cas.",
+    "noSignature": "Vous n'avez pas encore de signature : Mon compte › Ma signature."
+  },
+  "EmailBranding": {
+    "title": "Marque et signature des e-mails",
+    "subtitle": "Vos e-mails portent votre marque : votre police, votre pied, votre nom d'expéditeur et la signature de la personne qui écrit.",
+    "back": "Modèles d'e-mails",
+    "brandTitle": "Marque",
+    "fontLegend": "Police des e-mails",
+    "fontHint": "Quatre familles que toutes les messageries affichent ; à défaut, la police de la messagerie prend le relais.",
+    "fonts": {
+      "sans": "Sans empattement",
+      "serif": "Avec empattement",
+      "elegant": "Élégante",
+      "rounded": "Arrondie"
+    },
+    "footerLineLabel": "Ligne libre du pied (facultative)",
+    "footerLineHint": "Sous vos coordonnées : « Wedding planner à Lyon depuis 2015 », une mention légale courte… {max} caractères au plus.",
+    "senderNameLabel": "Nom affiché de l'expéditeur (facultatif)",
+    "senderNameHint": "Ce que vos destinataires lisent dans « De : », par exemple « Camille — Atelier Lumière ». Laissé vide : le nom de votre organisation. L'adresse d'envoi reste sur le domaine de Symbola ; les réponses arrivent à votre adresse de contact.",
+    "footerAddressNote": "Le pied reprend votre nom, votre adresse avec le code postal et la ville, votre e-mail, votre téléphone et votre site (Paramètres › Entreprise et TVA).",
+    "signatureTitle": "Modèle des signatures",
+    "signatureIntro": "Chaque personne de l'équipe remplit sa signature dans Mon compte › Ma signature ; l'e-mail porte celle de la personne qui l'envoie. Choisissez ici ce que les signatures affichent.",
+    "elementsLegend": "Éléments affichés",
+    "elements": {
+      "photo": "Photo",
+      "title": "Fonction",
+      "organization": "Nom de l'organisation",
+      "phone": "Téléphone",
+      "website": "Site",
+      "links": "Liens (réseaux, site de mariage…)"
+    },
+    "automaticSignerLabel": "Signature des envois automatiques",
+    "automaticSignerHint": "Rappels, relances et autres envois que personne ne déclenche à la main.",
+    "automaticSignerOwner": "La titulaire du compte",
+    "symbolaNote": "Les e-mails de Symbola (compte, sécurité, codes de connexion, avis à l'équipe) gardent la marque de Symbola et ne portent pas de signature.",
+    "save": "Enregistrer",
+    "saved": "Marque des e-mails enregistrée.",
+    "ownerOnly": "Seule la titulaire du compte modifie la marque des e-mails.",
+    "errorFont": "Choisissez une des quatre polices.",
+    "errorFooterLine": "La ligne de pied tient sur une ligne de {max} caractères au plus.",
+    "errorSenderName": "Le nom affiché tient en {max} caractères, sans « < », « > » ni guillemets.",
+    "errorElements": "Un élément de signature est inconnu.",
+    "errorAutomaticSigner": "Choisissez une Planner active de l'équipe.",
+    "mySignatureLink": "Remplir ma signature",
+    "previewTitle": "Aperçu",
+    "previewIntro": "Un e-mail fictif, avec votre signature si vous l’avez remplie."
+  },
+  "MySignature": {
+    "title": "Ma signature",
+    "subtitle": "Ajoutée à la fin des e-mails que vous envoyez depuis Symbola.",
+    "back": "Mon compte",
+    "displayName": "Nom affiché",
+    "displayNameHint": "Sans nom affiché, vos e-mails partent sans signature.",
+    "jobTitle": "Fonction",
+    "phone": "Téléphone",
+    "website": "Site",
+    "websiteHint": "Par exemple atelier-lumiere.fr",
+    "linksLegend": "Liens ({max} au plus)",
+    "linksHint": "Instagram, Pinterest, votre site de mariage… Un nom et une adresse par lien ; une ligne vide est ignorée.",
+    "linkLabel": "Nom du lien {n}",
+    "linkUrl": "Adresse du lien {n}",
+    "photoTitle": "Photo (facultative)",
+    "photoField": "Choisir une image",
+    "photoSubmit": "Envoyer la photo",
+    "photoRemove": "Retirer la photo",
+    "photoHint": "PNG ou JPEG, 1 Mo au plus ; affichée en petit rond à côté de votre nom.",
+    "photoNone": "Aucune photo.",
+    "photoAlt": "Votre photo de signature",
+    "photoMissing": "Choisissez une image.",
+    "photoTooLarge": "Image trop lourde : 1 Mo au plus.",
+    "photoUnsupported": "Seules les images PNG et JPEG sont acceptées.",
+    "photoInfected": "Ce fichier a été refusé par l'analyse antivirus.",
+    "save": "Enregistrer ma signature",
+    "saved": "Signature enregistrée.",
+    "errorDisplayName": "Le nom affiché tient sur une ligne de {max} caractères au plus.",
+    "errorJobTitle": "La fonction tient sur une ligne de {max} caractères au plus.",
+    "errorPhone": "Le téléphone ne contient que des chiffres, des espaces et « + ( ) . - ».",
+    "errorWebsite": "Le site doit être une adresse web, par exemple atelier-lumiere.fr.",
+    "errorLinks": "Chaque lien a un nom et une adresse web ; {max} liens au plus.",
+    "previewTitle": "Aperçu",
+    "previewBody": "… À très vite pour la dégustation !",
+    "previewEmpty": "Saisissez votre nom affiché pour voir votre signature.",
+    "automaticNote": "Un envoi automatique (rappel, relance) porte la signature choisie par la titulaire dans Paramètres › Modèles d'e-mails › Marque et signature.",
+    "preparedNote": "Les messages préparés, que vous envoyez de votre messagerie, peuvent reprendre cette signature en texte (« Ajouter ma signature »).",
+    "hiddenNote": "Votre organisation n'affiche pas certains éléments : {elements}.",
+    "profileTitle": "Ma signature",
+    "profileBody": "Votre nom, votre fonction et vos liens à la fin des e-mails que vous envoyez.",
+    "profileLink": "Remplir ma signature",
+    "previewLabel": "Aperçu de ma signature"
   }
 }

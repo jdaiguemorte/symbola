@@ -99,6 +99,10 @@ const LOT_64 = ["0203_lot64_appointments_type_description", "0202_lot64_events_b
 // Lot 65d : relances notées (0204, events), puis réglage « qui envoie » et messages préparés (0205,
 // hub) ; la plus récente, annulée d'abord.
 const LOT_65 = ["0206_lot65g_hub_import_target_event", "0205_lot65d_hub_relation_mail", "0204_lot65d_events_vendor_reminders"];
+// Lot 66 : heures d'envoi et rappel du jour J (0207, hub), réglages du rappel par évènement (0208,
+// events) ; les plus récentes, annulées d'abord.
+// Lot 66c : marque des e-mails, signatures et libellés de bouton (0209, hub), après 0207 et 0208.
+const LOT_66 = ["0210_lot66b_hub_day_reminder_templates", "0209_lot66c_hub_email_branding", "0208_lot66_events_day_reminder_overrides", "0207_lot66_hub_sending_times"];
 // Lot 63e : métiers d'une fiche (0198) puis retrait de vendors.type_id (0199) ; fusionné après les
 // lots 63c et 63d, il s'annule d'abord.
 const LOT_63E = ["0199_lot63e_vendors_drop_type_id", "0198_lot63e_vendors_type_links"];
@@ -132,7 +136,7 @@ const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
 // 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_65, ...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
+const LOT_36 = [...LOT_66, ...LOT_65, ...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
 // Lot 63c : l'ordre des annulations des lots récents, de la plus récente à la plus ancienne, se lit
 // dans cette seule liste. Un nouveau lot ajoute sa liste en tête de LOT_36, et rien d'autre : les
 // tests annulent par rollbackNewerThan et rollbackThrough, jamais par une suite écrite à la main.
@@ -195,6 +199,107 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
+  it("lot 66b (JRJ-01 ; D2 à D4) — 0210 : les modèles du rappel du jour J se modifient ; annulation refusée tant qu'un modèle est modifié, puis la liste revient", async () => {
+    await migrateAll();
+    const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0210') returning id`;
+    const organizationId = organization!.id;
+    await target`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, 'day_reminder_planner', 'fr', 'Rappel', 'Bonjour {{prénom}}, {{lien}}')`;
+    await expect(rollback(LOT_66[0]!)).rejects.toThrow(/rappel du jour J sont modifiés/);
+    await target`delete from hub.email_templates where organization_id = ${organizationId}`;
+    await rollback(LOT_66[0]!);
+    await expect(target`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, 'day_reminder_team', 'fr', 'Rappel', 'Bonjour')`).rejects.toThrow(/email_templates_kind_check/);
+    await migrateAll();
+  });
+
+  it("lot 66c (HUB-18, MSG-01 ; D5, D6) — 0209 : la base refuse une police, un élément ou un libellé de bouton inconnus ou mal formés, plus de quatre liens, une seconde signature du même membre ; un membre n'écrit que la sienne ; annulation refusée tant qu'un réglage, une signature ou un libellé existe, puis tout est retiré", async () => {
+    await migrateAll();
+    await rollbackNewerThan(LOT_66[1]!);
+    const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0209') returning id`;
+    const organizationId = organization!.id;
+    const [camille] = await target<{ id: string }[]>`insert into hub.users (email) values (${`camille-${organizationId}@example.test`}) returning id`;
+    const [lea] = await target<{ id: string }[]>`insert into hub.users (email) values (${`lea-${organizationId}@example.test`}) returning id`;
+    await expect(target`insert into hub.email_branding (organization_id, font) values (${organizationId}, 'comic')`).rejects.toThrow(/email_branding_font_check/);
+    await expect(target`insert into hub.email_branding (organization_id, signature_elements) values (${organizationId}, '{photo,fax}')`).rejects.toThrow(/email_branding_signature_elements_check/);
+    await expect(target`insert into hub.email_branding (organization_id, sender_name) values (${organizationId}, ${"Camille <x@y>"})`).rejects.toThrow(/email_branding_sender_name_check/);
+    await expect(target`insert into hub.email_branding (organization_id, footer_line) values (${organizationId}, ${"une\nautre ligne"})`).rejects.toThrow(/email_branding_footer_line_check/);
+    await target`insert into hub.email_branding (organization_id, font, footer_line, sender_name, automatic_signer_user_id) values (${organizationId}, 'serif', 'Wedding planner à Lyon depuis 2015', 'Camille — Atelier Lumière', ${camille!.id})`;
+    const fiveLinks = JSON.stringify(Array.from({ length: 5 }, (_, index) => ({ label: `L${index}`, url: "https://example.test" })));
+    await expect(target`insert into hub.member_signatures (organization_id, user_id, links) values (${organizationId}, ${camille!.id}, ${fiveLinks}::jsonb)`).rejects.toThrow(/member_signatures_links_check/);
+    await expect(target`insert into hub.member_signatures (organization_id, user_id, website) values (${organizationId}, ${camille!.id}, 'javascript:alert(1)')`).rejects.toThrow(/member_signatures_website_check/);
+    await expect(target`insert into hub.member_signatures (organization_id, user_id, photo_key) values (${organizationId}, ${camille!.id}, 'org/photo.png')`).rejects.toThrow(/member_signatures_photo_check/);
+    await target`insert into hub.member_signatures (organization_id, user_id, display_name, phone) values (${organizationId}, ${camille!.id}, 'Camille Morel', '06 12 34 56 78')`;
+    await expect(target`insert into hub.member_signatures (organization_id, user_id) values (${organizationId}, ${camille!.id})`).rejects.toThrow(/member_signatures_user_idx/);
+    // Politique restrictive : sous l'identité de Léa (rôle applicatif, contexte posé), la signature de Camille ne change pas.
+    const app = postgres({ host: env.POSTGRES_HOST, port: env.POSTGRES_PORT, database, username: env.POSTGRES_APP_USER, password: env.POSTGRES_APP_PASSWORD, max: 1, onnotice: () => {} });
+    try {
+      const updated = await app.begin(async (tx) => {
+        await tx`select set_config('app.organization_id', ${organizationId}, true), set_config('app.actor_kind', 'member', true), set_config('app.actor_id', ${lea!.id}, true)`;
+        return tx`update hub.member_signatures set display_name = 'Léa' where user_id = ${camille!.id} returning id`;
+      });
+      expect(updated).toHaveLength(0);
+      await expect(
+        app.begin(async (tx) => {
+          await tx`select set_config('app.organization_id', ${organizationId}, true), set_config('app.actor_kind', 'member', true), set_config('app.actor_id', ${lea!.id}, true)`;
+          await tx`insert into hub.member_signatures (organization_id, user_id, display_name) values (${organizationId}, ${camille!.id}, 'Usurpée')`;
+        }),
+      ).rejects.toThrow(/row-level security/);
+      const own = await app.begin(async (tx) => {
+        await tx`select set_config('app.organization_id', ${organizationId}, true), set_config('app.actor_kind', 'member', true), set_config('app.actor_id', ${lea!.id}, true)`;
+        return tx`insert into hub.member_signatures (organization_id, user_id, display_name) values (${organizationId}, ${lea!.id}, 'Léa Martin') returning id`;
+      });
+      expect(own).toHaveLength(1);
+    } finally {
+      await app.end();
+    }
+    await target`insert into hub.email_templates (organization_id, kind, locale, subject, body, button_label) values (${organizationId}, 'client_link', 'fr', 'Votre espace', '{{lien}}', 'Voir votre espace')`;
+    await expect(target`update hub.email_templates set button_label = ${"x".repeat(61)} where organization_id = ${organizationId}`).rejects.toThrow(/email_templates_button_label_check/);
+    await expect(rollback(LOT_66[1]!)).rejects.toThrow(/ont rempli leur signature/);
+    await target`delete from hub.member_signatures where organization_id = ${organizationId}`;
+    await expect(rollback(LOT_66[1]!)).rejects.toThrow(/marque de ses e-mails/);
+    await target`delete from hub.email_branding where organization_id = ${organizationId}`;
+    await expect(rollback(LOT_66[1]!)).rejects.toThrow(/libellé de bouton propre/);
+    await target`update hub.email_templates set button_label = null where organization_id = ${organizationId}`;
+    await rollback(LOT_66[1]!);
+    expect(await hasColumn("hub", "email_templates", "button_label")).toBe(false);
+    const [table] = await target<{ name: string | null }[]>`select to_regclass('hub.member_signatures')::text as name`;
+    expect(table!.name).toBeNull();
+    await target`delete from hub.email_templates where organization_id = ${organizationId}`;
+    await target`delete from hub.users where id in (${camille!.id}, ${lea!.id})`;
+    await migrateAll();
+  });
+
+  it("lot 66 (HUB-28, JRJ-01 ; D1 à D4) — 0207 et 0208 : la base refuse une heure hors du quart d'heure, une cible ou un moment inconnus ; annulation refusée tant qu'un réglage existe, puis tout est retiré", async () => {
+    await migrateAll();
+    await rollbackNewerThan(LOT_66[2]!);
+    const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0207') returning id`;
+    const organizationId = organization!.id;
+    const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+    await expect(target`insert into hub.sending_settings (organization_id, default_send_time) values (${organizationId}, '09:10')`).rejects.toThrow(/sending_settings_time_check/);
+    await target`insert into hub.sending_settings (organization_id, default_send_time) values (${organizationId}, '08:45')`;
+    await expect(target`insert into hub.automations (organization_id, key, enabled, send_time) values (${organizationId}, 'payment_due_reminder', true, '07:05')`).rejects.toThrow(/automations_send_time_check/);
+    await target`insert into hub.automations (organization_id, key, enabled, send_time) values (${organizationId}, 'day_reminder', true, '18:00')`;
+    await expect(target`insert into hub.day_reminder_targets (organization_id, target, enabled, moment, send_time) values (${organizationId}, 'cousins', true, 'eve', '18:00')`).rejects.toThrow(/day_reminder_targets_target_check/);
+    await expect(target`insert into hub.day_reminder_targets (organization_id, target, enabled, moment, send_time) values (${organizationId}, 'planner', true, 'midi', '18:00')`).rejects.toThrow(/day_reminder_targets_moment_check/);
+    await target`insert into hub.day_reminder_targets (organization_id, target, enabled, moment, send_time) values (${organizationId}, 'planner', true, 'morning', '07:00')`;
+    await target`insert into events.day_reminder_overrides (organization_id, event_id, target, enabled, moment, send_time) values (${organizationId}, ${event!.id}, 'vendors', false, 'eve', '18:00')`;
+    await expect(rollback(LOT_66[2]!)).rejects.toThrow(/rappel du jour J réglé/);
+    await target`delete from events.day_reminder_overrides where organization_id = ${organizationId}`;
+    await rollback(LOT_66[2]!);
+    await expect(rollback(LOT_66[3]!)).rejects.toThrow(/heure d'envoi propre/);
+    await target`update hub.automations set send_time = null where organization_id = ${organizationId}`;
+    await expect(rollback(LOT_66[3]!)).rejects.toThrow(/heures d'envoi par défaut/);
+    await target`delete from hub.sending_settings where organization_id = ${organizationId}`;
+    await expect(rollback(LOT_66[3]!)).rejects.toThrow(/rappel du jour J est réglé/);
+    await target`delete from hub.day_reminder_targets where organization_id = ${organizationId}`;
+    await target`delete from hub.automations where organization_id = ${organizationId}`;
+    await rollback(LOT_66[3]!);
+    expect(await hasColumn("hub", "automations", "send_time")).toBe(false);
+    const [table] = await target<{ name: string | null }[]>`select to_regclass('hub.day_reminder_targets')::text as name`;
+    expect(table!.name).toBeNull();
+    await target`delete from events.events where id = ${event!.id}`;
+    await migrateAll();
+  });
+
   it("lot 65g (HUB-14, BUD-04) — 0206 : l'évènement de destination d'un import ; l'annulation retire la colonne", async () => {
     await migrateAll();
     await rollbackNewerThan(LOT_65[0]!);

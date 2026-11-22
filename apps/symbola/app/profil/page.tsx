@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ScreenHelp } from "@/app/screen-help";
 import { formatDateTime, type Locale } from "@symbola/i18n";
@@ -16,6 +17,7 @@ export default async function ProfilePage() {
   const auth = await requireSignedIn();
 
   const t = await getTranslations("Profile");
+  const tSignature = await getTranslations("MySignature");
   const tHelp = await getTranslations("Help");
   // Lot 33 (ADR 0067) : mot de passe, clés d'accès et double authentification dans le centre de
   // compte du fournisseur d'identité.
@@ -43,6 +45,16 @@ export default async function ProfilePage() {
       <h1>{t("title")}</h1>
       <ScreenHelp title={tHelp("profile.title")} body={tHelp("profile.body")} />
       <LanguageForm currentLanguage={auth.user.language ?? "fr"} />
+      {/* Lot 66c (HUB-18 ; D5) : la signature des e-mails, pour une personne de l'équipe qui envoie. */}
+      {auth.user.role === "owner" || auth.user.role === "member" ? (
+        <section aria-labelledby="profile-signature-title">
+          <h2 id="profile-signature-title">{tSignature("profileTitle")}</h2>
+          <p>{tSignature("profileBody")}</p>
+          <p>
+            <Link href="/profil/signature">{tSignature("profileLink")}</Link>
+          </p>
+        </section>
+      ) : null}
       <section aria-labelledby="profile-security-title">
         <h2 id="profile-security-title">{t("securityTitle")}</h2>
         <p>{t("securityBody")}</p>

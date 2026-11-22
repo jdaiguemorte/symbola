@@ -5,7 +5,7 @@
 // ces tables est assurée exclusivement par packages/auth (seule porte
 // d'entrée, ADR 0013) : aucun autre code n'y accède directement.
 import { sql } from "drizzle-orm";
-import { bigint, boolean, check, date, index, integer, jsonb, pgSchema, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, check, date, index, integer, jsonb, pgSchema, primaryKey, text, time, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const hubSchema = pgSchema("hub");
 
@@ -1076,6 +1076,11 @@ export const EMAIL_TEMPLATE_KINDS = [
   "notification_alert",
   // Lot 55 (MSG-03, POR-06) : « Nouveau message sur <sujet> », sans le contenu du message.
   "new_message",
+  // Lot 66b (JRJ-01 ; D2 à D4) : le rappel du jour J, par cible.
+  "day_reminder_planner",
+  "day_reminder_vendor",
+  "day_reminder_team",
+  "day_reminder_client",
 ] as const;
 
 export const emailTemplates = hubSchema.table(
@@ -1087,6 +1092,9 @@ export const emailTemplates = hubSchema.table(
     locale: text("locale").notNull(),
     subject: text("subject").notNull(),
     body: text("body").notNull(),
+    // Lot 66c (HUB-18, MSG-01 ; ADR 0113) : le libellé du bouton du modèle, modifié avec le texte ;
+    // nul : le libellé de départ (Emails.button.* des fichiers de traduction).
+    buttonLabel: text("button_label"),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
@@ -1104,10 +1112,11 @@ export const emailTemplates = hubSchema.table(
     // Lot 45 (migration 0172, accord de Julien du 18/11) : réponse, relance, questionnaire envoyé.
     // Lot 52 (migration 0180, spécification validée par Julien le 18/11) : sécurité, transfert, renfort.
     // Lot 53 (migration 0183, accord de Julien du 18/11) : récapitulatif, rappel J-7, alerte.
-    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent', 'new_device_login', 'identity_changed', 'ownership_transfer', 'day_helper_link', 'daily_digest', 'payment_due_reminder', 'notification_alert', 'new_message')`),
+    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent', 'new_device_login', 'identity_changed', 'ownership_transfer', 'day_helper_link', 'daily_digest', 'payment_due_reminder', 'notification_alert', 'new_message', 'day_reminder_planner', 'day_reminder_vendor', 'day_reminder_team', 'day_reminder_client')`),
     check("email_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
     check("email_templates_subject_check", sql`char_length(${table.subject}) between 1 and 200`),
     check("email_templates_body_check", sql`char_length(${table.body}) between 1 and 5000`),
+    check("email_templates_button_label_check", sql`${table.buttonLabel} is null or (char_length(${table.buttonLabel}) between 1 and 60 and ${table.buttonLabel} !~ '[[:cntrl:]]')`),
   ],
 );
 
@@ -1557,6 +1566,8 @@ export const AUTOMATION_KEY_VALUES = [
   "prospect_follow_up",
   "vendor_roadmap",
   "risk_radar",
+  // Lot 66b (JRJ-01, HUB-28 ; D2 à D4) : le rappel du jour J, réglé par cible (day_reminder_targets).
+  "day_reminder",
 ] as const;
 const AUTOMATION_KEYS_SQL = sql.raw(AUTOMATION_KEY_VALUES.map((key) => `'${key}'`).join(", "));
 
@@ -1571,6 +1582,9 @@ export const automations = hubSchema.table(
     resumedAt: timestamp("resumed_at", { withTimezone: true }),
     // Lot 53 (GC-02) : jour (Paris) du dernier passage du radar, une fois par matin.
     lastRunOn: date("last_run_on"),
+    // Lot 66a (HUB-28 ; D1) : heure d'envoi propre à l'automatisme, heure locale de l'évènement, au
+    // quart d'heure ; nulle : l'heure par défaut de l'organisation (sending_settings).
+    sendTime: time("send_time"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -1581,6 +1595,52 @@ export const automations = hubSchema.table(
     uniqueIndex("automations_key_idx").on(table.organizationId, table.key),
     check("automations_key_check", sql`${table.key} in (${AUTOMATION_KEYS_SQL})`),
     check("automations_days_check", sql`${table.days} is null or ${table.days} between 1 and 60`),
+    check("automations_send_time_check", sql`${table.sendTime} is null or (extract(minute from ${table.sendTime})::int % 15 = 0 and extract(second from ${table.sendTime}) = 0)`),
+  ],
+);
+
+// Lot 66a (HUB-28 ; D1) — l'heure d'envoi par défaut de l'organisation, reprise par chaque automatisme
+// sans heure propre. Sans ligne : 09:00 (sending-settings.json).
+export const sendingSettings = hubSchema.table(
+  "sending_settings",
+  {
+    organizationId: uuid("organization_id")
+      .primaryKey()
+      .references(() => organizations.id),
+    defaultSendTime: time("default_send_time").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [check("sending_settings_time_check", sql`extract(minute from ${table.defaultSendTime})::int % 15 = 0 and extract(second from ${table.defaultSendTime}) = 0`)],
+);
+
+// Lot 66b (JRJ-01, HUB-28 ; D2, D3, D4) — le rappel du jour J, par cible : la planner (cochée au
+// départ), les prestataires retenus, l'équipe du jour, les clients ; la veille ou le matin même, à une
+// heure. Sans ligne : les valeurs de départ (day-reminder.json).
+export const DAY_REMINDER_TARGETS = ["planner", "vendors", "team", "clients"] as const;
+export const DAY_REMINDER_MOMENTS = ["eve", "morning"] as const;
+export const dayReminderTargets = hubSchema.table(
+  "day_reminder_targets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    target: text("target", { enum: DAY_REMINDER_TARGETS }).notNull(),
+    enabled: boolean("enabled").notNull(),
+    moment: text("moment", { enum: DAY_REMINDER_MOMENTS }).notNull(),
+    sendTime: time("send_time").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("day_reminder_targets_organization_idx").on(table.organizationId),
+    uniqueIndex("day_reminder_targets_target_idx").on(table.organizationId, table.target),
+    check("day_reminder_targets_target_check", sql`${table.target} in ('planner', 'vendors', 'team', 'clients')`),
+    check("day_reminder_targets_moment_check", sql`${table.moment} in ('eve', 'morning')`),
+    check("day_reminder_targets_time_check", sql`extract(minute from ${table.sendTime})::int % 15 = 0 and extract(second from ${table.sendTime}) = 0`),
   ],
 );
 
@@ -2019,5 +2079,72 @@ export const preparedEmails = hubSchema.table(
     check("prepared_emails_source_key_check", sql`${table.sourceKey} is null or char_length(${table.sourceKey}) between 1 and 300`),
     check("prepared_emails_sent_check", sql`(${table.status} = 'sent') = (${table.sentAt} is not null)`),
     check("prepared_emails_dismissed_check", sql`(${table.status} = 'dismissed') = (${table.dismissedAt} is not null)`),
+  ],
+);
+
+// Lot 66c (HUB-18, MSG-01 ; D5, D6 ; ADR 0113) — la marque des e-mails de l'organisation : la police
+// (quatre familles compatibles avec les messageries, repli sur une police système), une ligne libre en
+// pied, le nom affiché de l'expéditeur (l'adresse reste sur le domaine de Symbola, ADR 0102), le modèle
+// commun des signatures (les éléments affichés) et la personne dont la signature porte les envois
+// automatiques (nulle : la titulaire). Sans ligne : les valeurs de départ.
+export const EMAIL_FONT_KEYS = ["sans", "serif", "elegant", "rounded"] as const;
+export const SIGNATURE_ELEMENT_KEYS = ["photo", "title", "organization", "phone", "website", "links"] as const;
+export const emailBranding = hubSchema.table(
+  "email_branding",
+  {
+    organizationId: uuid("organization_id")
+      .primaryKey()
+      .references(() => organizations.id),
+    font: text("font", { enum: EMAIL_FONT_KEYS }).notNull().default("sans"),
+    footerLine: text("footer_line"),
+    senderName: text("sender_name"),
+    signatureElements: text("signature_elements").array().notNull().default(sql`'{photo,title,organization,phone,website,links}'::text[]`),
+    automaticSignerUserId: uuid("automatic_signer_user_id").references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    check("email_branding_font_check", sql`${table.font} in ('sans', 'serif', 'elegant', 'rounded')`),
+    check("email_branding_footer_line_check", sql`${table.footerLine} is null or (char_length(${table.footerLine}) between 1 and 200 and ${table.footerLine} !~ '[[:cntrl:]]')`),
+    check("email_branding_sender_name_check", sql`${table.senderName} is null or (char_length(${table.senderName}) between 1 and 80 and ${table.senderName} !~ '[[:cntrl:]<>"]')`),
+    check("email_branding_signature_elements_check", sql`${table.signatureElements} <@ array['photo', 'title', 'organization', 'phone', 'website', 'links']::text[]`),
+  ],
+);
+
+// Lot 66c (HUB-18 ; D5 ; ADR 0113) — la signature d'un membre de l'équipe, une par personne et par
+// organisation : nom affiché, fonction, téléphone, site, jusqu'à quatre liens ({ label, url }), photo
+// facultative (clé du stockage privé, contrôlée comme le logo). Champs personnels au registre RGPD,
+// effacés avec l'accès du membre. Chacun n'écrit que la sienne (politique de la base).
+export const memberSignatures = hubSchema.table(
+  "member_signatures",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    displayName: text("display_name"),
+    jobTitle: text("job_title"),
+    phone: text("phone"),
+    website: text("website"),
+    links: jsonb("links").$type<{ label: string; url: string }[]>().notNull().default(sql`'[]'::jsonb`),
+    photoKey: text("photo_key"),
+    photoSizeBytes: integer("photo_size_bytes"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("member_signatures_organization_idx").on(table.organizationId),
+    uniqueIndex("member_signatures_user_idx").on(table.organizationId, table.userId),
+    check("member_signatures_display_name_check", sql`${table.displayName} is null or (char_length(${table.displayName}) between 1 and 120 and ${table.displayName} !~ '[[:cntrl:]]')`),
+    check("member_signatures_job_title_check", sql`${table.jobTitle} is null or (char_length(${table.jobTitle}) between 1 and 120 and ${table.jobTitle} !~ '[[:cntrl:]]')`),
+    check("member_signatures_phone_check", sql`${table.phone} is null or ${table.phone} ~ '^[0-9+(). -]{3,40}$'`),
+    check("member_signatures_website_check", sql`${table.website} is null or (char_length(${table.website}) <= 300 and ${table.website} ~ '^https?://[^[:space:]"<>]+$')`),
+    check("member_signatures_links_check", sql`jsonb_typeof(${table.links}) = 'array' and jsonb_array_length(${table.links}) <= 4`),
+    check("member_signatures_photo_check", sql`(${table.photoKey} is null) = (${table.photoSizeBytes} is null)`),
   ],
 );

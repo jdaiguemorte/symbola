@@ -15,12 +15,11 @@ import { eventSettings, guestLinks, guests, households } from "@symbola/db/schem
 import { parseEnv } from "@symbola/env";
 import { formatCalendarDate, parisToday } from "@symbola/i18n";
 import { MailQuotaExceededError } from "@symbola/mail";
-import { starterGuestRules } from "@symbola/starter-templates";
 import type { EmailRecipient, GuestEventContext, GuestLocale } from "@symbola/contracts";
-import { assertRecipientsConfirmed, EmailVariableMissingError, getOrganizationContact, jobKeyExists, sendOrganizationEmail } from "@/modules/hub/service";
+import { assertRecipientsConfirmed, EmailVariableMissingError, getOrganizationContact, jobKeyExists, sendOrganizationEmail, sendTimeReached } from "@/modules/hub/service";
 import { assertGuestsReady, eventContext } from "./households";
 import { findEventSettings, inOrganization, UUID, type GuestRow, type HouseholdRow, type Tx } from "./repository";
-import { currentReminder, invitationKey, reminderKey, withinSendingHours } from "./reminders";
+import { currentReminder, invitationKey, reminderKey } from "./reminders";
 import { invitedMoments, rsvpOpen } from "./rsvp";
 
 export class GuestNotFoundError extends Error {
@@ -230,8 +229,8 @@ function reminderTarget(household: HouseholdRow, people: GuestRow[]): GuestRow |
 // Lot 53 (HUB-28, D5) : hooks.notBefore, le jour de la remise en route de l'automatisme — une relance
 // prévue avant ne part pas ; hooks.onRun, la trace de chaque envoi.
 export async function sendGuestReminders(organizationId: string, words: InvitationWords, now: Date = new Date(), hooks: AutomationHooks = {}): Promise<number> {
-  const rules = starterGuestRules();
-  if (!withinSendingHours(now, rules.reminderHours)) return 0;
+  // Lot 66a (D1) : à l'heure d'envoi de l'automatisme (heure de Paris).
+  if (!sendTimeReached(hooks.isSendTime, now)) return 0;
   const today = parisToday(now);
   const settingsRows = await inOrganization(organizationId, (tx) => tx.select().from(eventSettings));
   let sent = 0;

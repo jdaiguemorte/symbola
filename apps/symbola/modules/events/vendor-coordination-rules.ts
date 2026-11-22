@@ -6,7 +6,7 @@ import { ENGAGED_CANDIDATE_STATUSES, type VendorCandidateStatus, type VendorLink
 import type { StarterVendorCoordination } from "@symbola/starter-templates";
 import { addDays } from "./schedule";
 
-type Policy = Pick<StarterVendorCoordination, "reminderDaysBefore" | "roadmapDaysBefore" | "choiceNoticeDays" | "sendingHours">;
+type Policy = Pick<StarterVendorCoordination, "reminderDaysBefore" | "roadmapDaysBefore" | "choiceNoticeDays">;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -75,8 +75,3 @@ export function vendorCanAnswer(candidate: { status: VendorCandidateStatus; dism
   return true;
 }
 
-// Les envois automatiques partent aux heures ouvrées, à Paris.
-export function isVendorSendingHour(now: Date, policy: Pick<Policy, "sendingHours">): boolean {
-  const hour = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Paris", hour: "2-digit", hourCycle: "h23" }).format(now));
-  return hour >= policy.sendingHours.from && hour < policy.sendingHours.until;
-}

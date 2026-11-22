@@ -29,6 +29,13 @@ export default async function EmailTemplatesPage({ searchParams }: { searchParam
         <h2 id="email-sender-title">{t("sender.legend")}</h2>
         <RelationMailSenderForm sender={sender} disabled={auth.user.role !== "owner"} />
       </section>
+      {/* Lot 66c (HUB-18 ; D5, D6 ; ADR 0113) : police, pied, nom affiché, modèle des signatures. */}
+      <section aria-labelledby="email-branding-link-title" className="card">
+        <h2 id="email-branding-link-title">
+          <Link href="/parametres/emails/marque">{t("brandingLink")}</Link>
+        </h2>
+        <p className="meta">{t("brandingLinkHint")}</p>
+      </section>
       <p>{t("intro")}</p>
       <nav aria-label={t("languageLabel")} className="segmented">
         {(["fr", "en"] as const).map((language) => (

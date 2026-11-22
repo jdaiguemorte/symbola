@@ -2,6 +2,7 @@
 
 // Lot 38a (MSG-01 ; D5, D6, D7 ; ADR 0072) — l'écran d'un modèle d'e-mail : objet, texte, variables du
 // modèle, enregistrement, aperçu avec des données fictives et essai envoyé à soi-même.
+// Lot 66c (HUB-18 ; ADR 0113) : le libellé du bouton, modifié avec le texte (laissé vide : celui de départ).
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import type { EmailLocale, EmailTemplateKind } from "@symbola/contracts";
@@ -18,15 +19,20 @@ export function EmailTemplateForm({
   variables,
   initialPreview,
   logoUrl,
+  signaturePhotoUrl,
   limits,
+  defaultButton,
 }: {
   kind: EmailTemplateKind;
   locale: EmailLocale;
-  template: { subject: string; body: string };
+  template: { subject: string; body: string; buttonLabel: string };
   variables: TemplateVariable[];
   initialPreview: EmailPreview;
   logoUrl: string | null;
-  limits: { subject: number; body: number };
+  signaturePhotoUrl: string | null;
+  limits: { subject: number; body: number; buttonLabel: number };
+  // Le libellé de départ du bouton ; nul : le modèle n'a pas de bouton.
+  defaultButton: string | null;
 }) {
   const t = useTranslations("EmailTemplates");
   const initialState: EmailTemplateFormState = {};
@@ -54,6 +60,24 @@ export function EmailTemplateForm({
         <p id="email-template-body-hint" className="meta">
           {t("bodyHint")}
         </p>
+        {defaultButton ? (
+          <>
+            <label htmlFor="email-template-button">{t("buttonLabel")}</label>
+            <input
+              key={`button-${state.at ?? 0}`}
+              id="email-template-button"
+              type="text"
+              name="buttonLabel"
+              defaultValue={values.buttonLabel ?? ""}
+              placeholder={defaultButton}
+              maxLength={limits.buttonLabel}
+              aria-describedby="email-template-button-hint"
+            />
+            <p id="email-template-button-hint" className="meta">
+              {t("buttonLabelHint", { label: defaultButton })}
+            </p>
+          </>
+        ) : null}
         <section aria-labelledby="email-template-variables-title">
           <h2 id="email-template-variables-title">{t("variablesTitle")}</h2>
           <ul className="plain-list">
@@ -93,7 +117,7 @@ export function EmailTemplateForm({
       <section aria-labelledby="email-template-preview-title">
         <h2 id="email-template-preview-title">{t("previewTitle")}</h2>
         <p className="meta">{t("previewHint")}</p>
-        <EmailPreviewView preview={preview} logoUrl={logoUrl} />
+        <EmailPreviewView preview={preview} logoUrl={logoUrl} signaturePhotoUrl={signaturePhotoUrl} />
       </section>
     </div>
   );

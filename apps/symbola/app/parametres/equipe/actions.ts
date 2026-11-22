@@ -19,7 +19,7 @@ import { MailQuotaExceededError, reserveOrganizationMail } from "@symbola/mail";
 import { requireOwner } from "@/lib/guards";
 import { closeProviderSessions, identity } from "@/lib/identity";
 import { checkRateLimit, longestWait, rateLimitMessage } from "@/lib/rate-limit";
-import { createTeamInvitation, getOrganizationContact, sendOrganizationEmail, sendSymbolaEmail, setEventVisibility } from "@/modules/hub/service";
+import { createTeamInvitation, eraseMemberSignature, getOrganizationContact, sendOrganizationEmail, sendSymbolaEmail, setEventVisibility } from "@/modules/hub/service";
 import { removeMemberFromEvents } from "@/modules/events/service";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 
@@ -41,6 +41,8 @@ export async function removeMemberAction(formData: FormData): Promise<void> {
   const organizationId = owner.user.organizationId;
   const outcome = await removeMember(appDatabase(), { organizationId, userId, removedByUserId: owner.user.id, closeProviderSessions });
   if (outcome === "removed" && (await isEventsModuleEnabled(organizationId))) await removeMemberFromEvents(organizationId, userId);
+  // Lot 66c (D5, RGP-05) : sa signature (nom, fonction, téléphone, liens, photo) part avec son accès.
+  if (outcome === "removed") await eraseMemberSignature(organizationId, userId);
   revalidatePath("/parametres/equipe");
   redirect(outcome === "removed" ? "/parametres/equipe?retire=1" : "/parametres/equipe");
 }

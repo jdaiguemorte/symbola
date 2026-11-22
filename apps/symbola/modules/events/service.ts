@@ -1,7 +1,7 @@
 // Porte d'entrée publique du module events — seul fichier que les autres
 // modules peuvent importer (ADR 0011). Pensé comme le futur contrat HTTP
 // /v1/events si ce module est extrait en app autonome.
-import { findLinkVendorRecordId } from "./repository";
+import { deleteDayReminderOverrideRow, findDayReminderEventRows, findDayReminderOverrideRows, findLinkVendorRecordId, findUpcomingEventTimeZones, upsertDayReminderOverrideRow } from "./repository";
 import { z } from "zod";
 import { formatCalendarDate, isTimeZone, parisDaysSince, parisToday } from "@symbola/i18n";
 import { canSetStatus, eventPhase } from "./lifecycle";
@@ -169,12 +169,13 @@ import {
   parseLinkToken,
   parisStartOfDay,
 } from "./link-tokens";
-import { isSendingHour, reminderTaskLines, reminderThreshold, reminderThresholdStart, type ReminderTask } from "./task-reminders";
+import { reminderTaskLines, reminderThreshold, reminderThresholdStart, type ReminderTask } from "./task-reminders";
 import { clientTermForEvent as clientTermOf } from "./planning";
-import type { AutomationHooks, PreparedEmailView, RelationDraft } from "@symbola/contracts";
+import type { AutomationHooks, DayReminderSetting, PreparedEmailView, RelationDraft } from "@symbola/contracts";
+import { DAY_REMINDER_TARGETS, ENGAGED_CANDIDATE_STATUSES, dayReminderSettingSchema } from "@symbola/contracts";
 import { recordAudit } from "@symbola/db/audit";
 import { resolveClientContacts } from "./clients";
-import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, depositPreparedEmail, getOrganizationLanguage, getUserContact, notificationRecipients, notify, preparesRelationEmail, sendOrganizationEmail, sendSymbolaEmail, updateContact } from "@/modules/hub/service";
+import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, depositPreparedEmail, getMemberSignature, getOrganizationLanguage, getUserContact, notificationRecipients, notify, preparesRelationEmail, sendOrganizationEmail, sendSymbolaEmail, sendTimeReached, updateContact } from "@/modules/hub/service";
 import { createTranslator } from "next-intl";
 import type { DayHelper, DayHelperInput, EmailTemplateKind, EmailValues, EventTeamMember, EventTeamRole, TrashedObject } from "@symbola/contracts";
 import { EVENT_TEAM_ROLES } from "@symbola/contracts";
@@ -420,6 +421,30 @@ import type {
 } from "@symbola/contracts";
 
 export { eventsPrivacy } from "./privacy";
+
+// Lot 66b (JRJ-01 ; D2, D3 ; ADR 0112) : le rappel du jour J réglé pour cet évènement (coupé, ou un autre
+// moment ou une autre heure), cible par cible ; sans réglage, celui de l'organisation.
+export async function listDayReminderOverrides(organizationId: string, eventId: string): Promise<DayReminderSetting[]> {
+  return (await findDayReminderOverrideRows(organizationId, eventId)).map((row) => ({ target: row.target as DayReminderSetting["target"], enabled: row.enabled, moment: row.moment as DayReminderSetting["moment"], sendTime: row.sendTime.slice(0, 5) }));
+}
+
+export async function setDayReminderOverride(organizationId: string, eventId: string, target: string, input: { enabled: boolean; moment: string; sendTime: string }): Promise<void> {
+  if (!(DAY_REMINDER_TARGETS as readonly string[]).includes(target)) throw new RangeError("cible inconnue");
+  const parsed = dayReminderSettingSchema.safeParse(input);
+  if (!parsed.success) throw new RangeError("réglage refusé");
+  await getEvent(organizationId, eventId);
+  await upsertDayReminderOverrideRow(organizationId, eventId, { target: target as DayReminderSetting["target"], ...parsed.data });
+}
+
+export async function clearDayReminderOverride(organizationId: string, eventId: string, target: string): Promise<void> {
+  if (!(DAY_REMINDER_TARGETS as readonly string[]).includes(target)) throw new RangeError("cible inconnue");
+  await deleteDayReminderOverrideRow(organizationId, eventId, target);
+}
+
+// Lot 66a (HUB-28 ; D1 ; ADR 0112) : les fuseaux des évènements à venir ou sans date.
+export async function listUpcomingEventTimeZones(organizationId: string, today: string): Promise<string[]> {
+  return findUpcomingEventTimeZones(organizationId, today);
+}
 export { monthKey } from "./schedule";
 export { programForVariant, type ProgramVariant } from "./program";
 // Lot 37b (CHR-07, DAT-14 ; D8) : diffusion du programme refusée (vide, ou déjà diffusé tel quel).
@@ -2863,7 +2888,8 @@ export async function getLinkNamesByIds(organizationId: string, linkIds: string[
 // part pas ; hooks.onRun, la trace de chaque rappel envoyé.
 export async function sendClientTaskReminders(organizationId: string, now: Date = new Date(), hooks: AutomationHooks = {}): Promise<number> {
   const policy = starterClientTaskReminders();
-  if (!isSendingHour(now, policy)) return 0;
+  // Lot 66a (D1) : à l'heure d'envoi de l'automatisme (heure de Paris : un rappel regroupe les tâches).
+  if (!sendTimeReached(hooks.isSendTime, now)) return 0;
   const today = parisToday(now);
   const candidates = await findReminderCandidateRows(
     organizationId,
@@ -4772,4 +4798,125 @@ async function pushDecisionToClients(organizationId: string, eventId: string, ki
     sent += await pushToLink(organizationId, context.link.id, { kind: "decision", url: "/portail#decisions", tag: `decision-${eventId}`, locale: context.link.locale === "en" ? "en" : "fr" });
   }
   return sent;
+}
+
+// --- Rappel du jour J (lot 66b, JRJ-01, HUB-28, HUB-24 ; D2 à D4 ; ADR 0112) ---
+
+export type DayReminderEvent = { id: string; eventDate: string; timeZone: string };
+
+// Les évènements dont la date tombe entre from et to (inclus), qui peuvent recevoir un rappel : ni
+// annulés, ni reportés, ni clos, ni d'essai, avec une date.
+export async function listDayReminderEvents(organizationId: string, from: string, to: string): Promise<DayReminderEvent[]> {
+  const rows = await findDayReminderEventRows(organizationId, from, to);
+  return rows.filter((row) => !row.isDemo && row.eventDate !== null && !["cancelled", "postponed", "closed"].includes(row.status)).map((row) => ({ id: row.id, eventDate: row.eventDate!, timeZone: row.timeZone }));
+}
+
+// Les prestataires retenus sans lien d'espace actif : le carnet (module Prestataires) donne leur
+// adresse à l'appelant ; ils reçoivent le rappel sans lien (D2).
+export async function listDayReminderVendorsWithoutLink(organizationId: string, eventId: string, now: Date = new Date()): Promise<{ candidateId: string; vendorId: string; vendorSlotId: string }[]> {
+  const [candidates, links] = await Promise.all([listCandidates(organizationId, eventId), listEventLinks(organizationId, eventId)]);
+  const linked = new Set(links.filter((link) => link.audience === "vendor" && link.status === "active" && link.vendorCandidateId).map((link) => link.vendorCandidateId));
+  void now;
+  return candidates.filter((candidate) => ENGAGED_CANDIDATE_STATUSES.includes(candidate.status) && candidate.vendorId && !linked.has(candidate.id)).map((candidate) => ({ candidateId: candidate.id, vendorId: candidate.vendorId!, vendorSlotId: candidate.vendorSlotId }));
+}
+
+type DayReminderRecipient = { key: string; email: string; name: string; locale: "fr" | "en"; vendorSlotId?: string };
+
+function programLines(items: ProgramItem[], vendorSlotId: string | null, locale: "fr" | "en"): string {
+  const shown = vendorSlotId ? items.filter((item) => item.participants.some((participant) => participant.vendorSlotId === vendorSlotId)) : items;
+  const t = emailTranslator(locale);
+  if (shown.length === 0) return t("dayReminder.noProgram");
+  return [...shown]
+    .sort((a, b) => a.startTime.localeCompare(b.startTime))
+    .map((item) => `- ${item.startTime}${item.endTime ? `–${item.endTime}` : ""} ${item.label}${item.location ? ` — ${item.location}` : ""}`)
+    .join("\n");
+}
+
+// Compose et envoie le rappel d'un évènement à une cible ; une fois par personne (clé de la file).
+// extraVendors : les prestataires retenus sans lien, avec l'adresse du carnet (lot 66b, D2).
+export async function sendDayReminder(input: { organizationId: string; eventId: string; target: "planner" | "vendors" | "team" | "clients"; now?: Date; extraVendors?: { candidateId: string; vendorSlotId: string; email: string; name: string }[] }): Promise<number> {
+  const { organizationId, eventId, target } = input;
+  const now = input.now ?? new Date();
+  const found = await findEventById(organizationId, eventId);
+  if (!found?.event.eventDate) return 0;
+  const organizationLocale = await getOrganizationLanguage(appDatabase(), organizationId);
+  const vocabulary = (await findEventAudience(organizationId, eventId)) ?? "couple";
+  const [program, contacts, places, slots] = await Promise.all([getEventProgram(organizationId, eventId), listEventDayContacts(organizationId, eventId), listEventPlaces(organizationId, eventId), listEventVendorSlots(organizationId, eventId)]);
+  const recipients: DayReminderRecipient[] = [];
+  if (target === "planner" || target === "team") {
+    // La planner : la personne en charge de l'évènement, sinon la titulaire (comme les alertes) ;
+    // l'équipe du jour : les autres membres de l'équipe de l'évènement.
+    const planners = await notificationRecipients(organizationId, eventId);
+    const team = (await listTeam(appDatabase(), organizationId)).filter((member) => !member.disabledAt);
+    const userIds = target === "planner" ? planners : (await listEventTeam(organizationId, eventId)).map((member) => member.userId).filter((userId) => !planners.includes(userId));
+    for (const userId of userIds) {
+      const member = team.find((candidate) => candidate.id === userId);
+      if (!member) continue;
+      const contact = await getUserContact(appDatabase(), organizationId, userId);
+      const locale = contact?.language ?? organizationLocale;
+      // Le prénom : celui de sa signature (lot 66c), sinon « Bonjour à vous ».
+      const displayName = (await getMemberSignature(organizationId, userId).catch(() => null))?.displayName?.trim();
+      recipients.push({ key: userId, email: contact?.email ?? member.email, name: displayName ? displayName.split(/\s+/)[0]! : emailTranslator(locale)("dayReminder.noName"), locale });
+    }
+  }
+  const links = target === "clients" || target === "vendors" || target === "team" ? await listEventLinks(organizationId, eventId) : [];
+  if (target === "team") {
+    // Les renforts du jour J (lot 52) : leur lien personnel, reçu à part, ouvre le jour J.
+    for (const link of links.filter((candidate) => candidate.audience === "day_helper" && candidate.status === "active")) recipients.push({ key: link.id, email: link.email, name: link.personName, locale: organizationLocale });
+  }
+  if (target === "clients") {
+    for (const link of links.filter((candidate) => candidate.audience === "client" && candidate.status === "active")) recipients.push({ key: link.id, email: link.email, name: link.personName, locale: organizationLocale });
+  }
+  if (target === "vendors") {
+    const candidates = await listCandidates(organizationId, eventId);
+    for (const link of links.filter((candidate) => candidate.audience === "vendor" && candidate.status === "active" && candidate.vendorCandidateId)) {
+      const candidate = candidates.find((row) => row.id === link.vendorCandidateId);
+      if (!candidate || !ENGAGED_CANDIDATE_STATUSES.includes(candidate.status)) continue;
+      recipients.push({ key: candidate.id, email: link.email, name: link.personName, locale: organizationLocale, vendorSlotId: candidate.vendorSlotId });
+    }
+    for (const vendor of input.extraVendors ?? []) recipients.push({ key: vendor.candidateId, email: vendor.email, name: vendor.name, locale: organizationLocale, vendorSlotId: vendor.vendorSlotId });
+  }
+  const kind = target === "planner" ? "day_reminder_planner" : target === "vendors" ? "day_reminder_vendor" : target === "team" ? "day_reminder_team" : "day_reminder_client";
+  const clients = eventNames(found.clients.filter((client) => client.firstName.trim()), found.event.name);
+  let sent = 0;
+  for (const recipient of recipients) {
+    if (!recipient.email) continue;
+    const t = emailTranslator(recipient.locale);
+    const audience = target === "vendors" ? "vendor" : "client";
+    const values: EmailValues = {
+      ...(await linkEmailValues({ organizationId, eventId, audience, personName: recipient.name, locale: recipient.locale, vocabulary, expiresOn: null })),
+      clients,
+      program: programLines(program.items, recipient.vendorSlotId ?? null, recipient.locale),
+      day_contacts: contacts.length > 0 ? contacts.map((contact) => `- ${contact.name}${contact.role ? ` (${contact.role})` : ""} : ${contact.phone}`).join("\n") : t("dayReminder.noContacts"),
+      place: places[0] ? [places[0].label, places[0].address].filter(Boolean).join(", ") : t("dayReminder.placeUnknown"),
+      ...(recipient.vendorSlotId ? { slot: slots.find((slot) => slot.id === recipient.vendorSlotId)?.label ?? "" } : {}),
+      ...(target === "planner"
+        ? {
+            open_items: dayReminderOpenItems(slots, await listEventTasks(organizationId, eventId), found.event.eventDate, recipient.locale),
+            link: `${parseEnv(process.env).APP_PUBLIC_URL}/jour-j/${eventId}`,
+          }
+        : {}),
+    };
+    try {
+      await sendOrganizationEmail({ organizationId, to: recipient.email, kind, locale: recipient.locale, values, idempotencyKey: `day-reminder:${eventId}:${target}:${recipient.key}`, eventId, reserve: false });
+      sent += 1;
+    } catch (error) {
+      console.error(`rappel du jour J non envoyé (évènement ${eventId}, cible ${target})`, error instanceof Error ? error.name : "inconnue");
+    }
+  }
+  void now;
+  return sent;
+}
+
+const SETTLED_DAY_REMINDER_STATUSES = new Set<string>(["retained", "contract_signed", "paid_off", "not_required"]);
+
+// Ce qui reste ouvert pour la planner : postes sans prestataire retenu, tâches de la planner non faites
+// à échéance de l'évènement.
+function dayReminderOpenItems(slots: { label: string; status: string }[], tasks: EventTask[], eventDate: string, locale: "fr" | "en"): string {
+  const t = emailTranslator(locale);
+  const lines = [
+    ...slots.filter((slot) => !SETTLED_DAY_REMINDER_STATUSES.has(slot.status)).map((slot) => `- ${t("dayReminder.slotOpen", { slot: slot.label })}`),
+    ...tasks.filter((task) => !task.done && task.responsible === "planner" && task.dueDate <= eventDate).map((task) => `- ${task.label}`),
+  ];
+  return lines.length > 0 ? lines.slice(0, 20).join("\n") : t("dayReminder.nothingOpen");
 }

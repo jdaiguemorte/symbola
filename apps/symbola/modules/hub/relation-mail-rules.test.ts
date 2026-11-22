@@ -33,6 +33,11 @@ describe("MSG-01 — Qui envoie les messages de la relation (lot 65d, ADR 0110)"
         "notification_alert",
         "new_message",
         "prospect_form_received",
+        // Lot 66b (D4) : le rappel du jour J part toujours de Symbola.
+        "day_reminder_planner",
+        "day_reminder_vendor",
+        "day_reminder_team",
+        "day_reminder_client",
       ].sort(),
     );
   });

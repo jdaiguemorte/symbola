@@ -4,13 +4,14 @@
 // « toujours actifs », avec leur raison.
 import Link from "next/link";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { ALWAYS_ON_AUTOMATIONS, type AutomationKey } from "@symbola/contracts";
+import { ALWAYS_ON_AUTOMATIONS, SEND_TIME_AUTOMATIONS, type AutomationKey } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
-import { isModuleEnabled, listAutomationGates, listAutomationRuns } from "@/modules/hub/service";
+import { getDefaultSendTime, isModuleEnabled, listAutomationGates, listAutomationRuns } from "@/modules/hub/service";
 import { requirePlanner } from "@/lib/guards";
 import { ScreenHelp } from "@/app/screen-help";
 import { toggleAutomationAction } from "./actions";
 import { AutomationDaysForm } from "./days-form";
+import { AutomationSendTimeForm, DefaultSendTimeForm } from "./send-time-form";
 
 // Le module dont dépend chaque automatisme (ARC-06).
 const AUTOMATION_MODULES: Record<AutomationKey, "quotes" | "events" | "guests"> = {
@@ -23,6 +24,8 @@ const AUTOMATION_MODULES: Record<AutomationKey, "quotes" | "events" | "guests"> 
   prospect_follow_up: "events",
   vendor_roadmap: "events",
   risk_radar: "events",
+  // Lot 66b (JRJ-01) : le rappel du jour J.
+  day_reminder: "events",
 };
 
 export default async function AutomationsPage() {
@@ -33,7 +36,8 @@ export default async function AutomationsPage() {
   const tHelp = await getTranslations("Help");
   const format = await getFormatter();
   const db = appDatabase();
-  const gates = await listAutomationGates(organizationId);
+  const [gates, defaultSendTime] = await Promise.all([listAutomationGates(organizationId), getDefaultSendTime(organizationId)]);
+  const sendsAtTime = (key: AutomationKey) => (SEND_TIME_AUTOMATIONS as readonly string[]).includes(key);
   const modules = new Map<string, boolean>();
   for (const name of new Set(Object.values(AUTOMATION_MODULES))) modules.set(name, await isModuleEnabled(db, organizationId, name));
   const runs = new Map(await Promise.all(gates.map(async (gate) => [gate.key, await listAutomationRuns(organizationId, gate.key)] as const)));
@@ -47,6 +51,12 @@ export default async function AutomationsPage() {
         {t("noCatchUp")}
       </p>
       {isOwner ? null : <p role="status">{t("ownerOnly")}</p>}
+      {/* Lot 66a (D1 ; M17) : l'heure d'envoi par défaut, reprise par chaque automatisme sans la sienne. */}
+      <section className="card stack" aria-labelledby="default-send-time-title">
+        <h2 id="default-send-time-title">{t("defaultTimeTitle")}</h2>
+        <p className="field-hint">{t("defaultTimeHint")}</p>
+        <DefaultSendTimeForm time={defaultSendTime} disabled={!isOwner} />
+      </section>
       <ul className="setting-list">
         {gates.map((gate) => {
           const title = t(`keys.${gate.key}.title`);
@@ -73,6 +83,12 @@ export default async function AutomationsPage() {
                   </form>
                 ) : null}
                 {gate.days !== null ? <AutomationDaysForm automationKey={gate.key} days={gate.days} disabled={!isOwner || !available} /> : null}
+                {gate.key === "day_reminder" ? (
+                  <Link href="/parametres/automatisations/rappel-jour-j" className="button-link button-secondary">
+                    {t("dayReminderLink")}
+                  </Link>
+                ) : null}
+                {sendsAtTime(gate.key) ? <AutomationSendTimeForm automationKey={gate.key} title={title} time={gate.sendTime} defaultTime={defaultSendTime} disabled={!isOwner || !available} /> : null}
               </div>
               <details className="setting-row-foot">
                 <summary>{t("journal")}</summary>

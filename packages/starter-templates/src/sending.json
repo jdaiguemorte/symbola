@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "_comment": "Lot 66a (HUB-28 ; D1 ; ADR 0112) — l'heure d'envoi par défaut de l'organisation, reprise par chaque automatisme sans heure propre (heure locale de l'évènement, au quart d'heure), et la durée pendant laquelle un envoi manqué (serveur arrêté) part encore le jour même.",
+  "defaultSendTime": "09:00",
+  "catchUpHours": 6
+}

@@ -110,8 +110,26 @@ export const AUTOMATION_KEYS = [
   "prospect_follow_up",
   "vendor_roadmap",
   "risk_radar",
+  // Lot 66b (JRJ-01, HUB-28 ; D2 à D4) : le rappel du jour J, réglé par cible (heure et moment propres).
+  "day_reminder",
 ] as const;
 export type AutomationKey = (typeof AUTOMATION_KEYS)[number];
+
+// Lot 66a (HUB-28 ; D1 ; ADR 0112) : les automatismes qui envoient un e-mail à une heure du jour ;
+// chacun a son heure (« Envoi à »), sinon l'heure par défaut de l'organisation.
+export const SEND_TIME_AUTOMATIONS = ["payment_due_reminder", "proposal_expiry_reminder", "invoice_reminder", "client_task_reminder", "rsvp_reminder", "vendor_roadmap", "prospect_follow_up"] as const satisfies readonly AutomationKey[];
+export type SendTimeAutomation = (typeof SEND_TIME_AUTOMATIONS)[number];
+// « HH:MM », au quart d'heure.
+export const sendTimeSchema = z.string().regex(/^([01]\d|2[0-3]):(00|15|30|45)$/);
+
+// Lot 66b (JRJ-01, HUB-28 ; D2, D3 ; ADR 0112) : le rappel du jour J, par cible, la veille ou le matin
+// même, à une heure (au quart d'heure, fuseau de l'évènement).
+export const DAY_REMINDER_TARGETS = ["planner", "vendors", "team", "clients"] as const;
+export type DayReminderTarget = (typeof DAY_REMINDER_TARGETS)[number];
+export const DAY_REMINDER_MOMENTS = ["eve", "morning"] as const;
+export type DayReminderMoment = (typeof DAY_REMINDER_MOMENTS)[number];
+export type DayReminderSetting = { target: DayReminderTarget; enabled: boolean; moment: DayReminderMoment; sendTime: string };
+export const dayReminderSettingSchema = z.object({ enabled: z.boolean(), moment: z.enum(DAY_REMINDER_MOMENTS), sendTime: z.string().regex(/^([01]\d|2[0-3]):(00|15|30|45)$/) });
 
 // Ce qui ne se coupe pas : affiché « toujours actif », avec sa raison.
 export const ALWAYS_ON_AUTOMATIONS = ["privacy_purge", "ledger_check"] as const;
@@ -138,6 +156,10 @@ export type AutomationView = {
   // Réglage en jours, quand il en a un (J-7 du rappel avant échéance).
   days: number | null;
   resumedAt: string | null;
+  // Lot 66a : l'heure propre de l'automatisme (null : l'heure par défaut) et l'heure qui s'applique ;
+  // null pour un automatisme qui n'envoie pas à heure fixe.
+  sendTime: string | null;
+  effectiveSendTime: string | null;
   runs: AutomationRunView[];
 };
 
@@ -177,4 +199,6 @@ export type RiskAlert = {
 // de la remise en route — un envoi prévu avant ne part pas, rien n'est rattrapé ; onRun, la trace de
 // chaque exécution, sans donnée personnelle (un identifiant, un libellé de pièce, l'écran).
 export type AutomationRunReport = { objectKey: string; objectLabel?: string | null; href?: string | null; result: AutomationResult };
-export type AutomationHooks = { notBefore?: string | null; onRun?: (run: AutomationRunReport) => Promise<void> };
+// Lot 66a (D1 ; ADR 0112) : isSendTime dit si l'heure d'envoi de l'automatisme est venue, dans le fuseau
+// donné (celui de l'évènement ; Europe/Paris sans évènement). Absent : pas de contrainte d'heure.
+export type AutomationHooks = { notBefore?: string | null; onRun?: (run: AutomationRunReport) => Promise<void>; isSendTime?: (now: Date, timeZone?: string) => boolean };

@@ -107,6 +107,10 @@ async function startScheduledTasks() {
     // minutes (envois dus, passage du matin et radar des risques, récapitulatif à l'heure de chacun).
     const { scheduleNotificationJobs } = await import("./lib/notification-jobs");
     scheduleNotificationJobs();
+    // Lot 66b (JRJ-01, HUB-28 ; D2 à D4 ; ADR 0112) : le rappel du jour J, la veille ou le matin même,
+    // toutes les cinq minutes.
+    const { scheduleDayReminders } = await import("./lib/day-reminders");
+    scheduleDayReminders();
   }
 }
 

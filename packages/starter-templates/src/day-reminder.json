@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "_comment": "Lot 66b (JRJ-01, HUB-28 ; D2, D3 ; ADR 0112) — le rappel du jour J au départ, par cible : la planner seule est cochée, la veille à 18 h 00 ; les prestataires retenus la veille à 18 h 00, l'équipe du jour le matin même à 7 h 00, les clients la veille à 19 h 00 s'ils sont cochés. Heures dans le fuseau de l'évènement, au quart d'heure.",
+  "targets": {
+    "planner": { "enabled": true, "moment": "eve", "sendTime": "18:00" },
+    "vendors": { "enabled": false, "moment": "eve", "sendTime": "18:00" },
+    "team": { "enabled": false, "moment": "morning", "sendTime": "07:00" },
+    "clients": { "enabled": false, "moment": "eve", "sendTime": "19:00" }
+  }
+}

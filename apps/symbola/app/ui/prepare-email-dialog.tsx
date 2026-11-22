@@ -8,10 +8,12 @@
 // pièce jointe : « Télécharger le PDF » est à côté. Plusieurs messages (un par destinataire) se
 // suivent, « Message 1 sur 3 ». Fenêtre native : fond assombri, focus gardé, Échap ferme ; plein
 // écran sur téléphone, avec « Retour ».
+// Lot 66c (HUB-18 ; D5 ; ADR 0113) : « Ajouter ma signature », décochée au départ (la messagerie de la
+// planner ajoute souvent déjà la sienne), ajoute sa signature en texte à la fin du message.
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import type { PreparedEmailDraft } from "@symbola/contracts";
-import { dismissPreparedEmailAction, markPreparedEmailSentAction } from "@/app/preparer/actions";
+import { dismissPreparedEmailAction, loadMySignatureTextAction, markPreparedEmailSentAction } from "@/app/preparer/actions";
 
 type Outcome = "sent" | "dismissed" | "copied" | "copyFailed" | "error";
 
@@ -29,16 +31,34 @@ export function PrepareEmailDialog({ drafts, loading = false, onClose }: { draft
   const [texts, setTexts] = useState<Record<string, { subject: string; body: string }>>({});
   const [outcomes, setOutcomes] = useState<Record<string, Outcome>>({});
   const [pending, startTransition] = useTransition();
+  const [signature, setSignature] = useState<string | null>(null);
+  const [withSignature, setWithSignature] = useState(false);
 
   useEffect(() => {
     const element = dialog.current;
     if (element && !element.open) element.showModal();
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    loadMySignatureTextAction()
+      .then((result) => {
+        if (active) setSignature(result.text);
+      })
+      .catch(() => {
+        if (active) setSignature(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const draft = drafts[Math.min(index, Math.max(drafts.length - 1, 0))];
   const text = draft ? (texts[draft.id] ?? { subject: draft.subject, body: draft.body }) : { subject: "", body: "" };
   const outcome = draft ? outcomes[draft.id] : undefined;
   const closed = outcome === "sent" || outcome === "dismissed";
+  // Le texte qui part (messagerie, copie) : celui affiché, et la signature si elle est cochée.
+  const finalBody = withSignature && signature ? `${text.body.trimEnd()}\n\n${signature}` : text.body;
   const setText = (patch: Partial<{ subject: string; body: string }>) => draft && setTexts((current) => ({ ...current, [draft.id]: { ...text, ...patch } }));
   const note = (value: Outcome) => draft && setOutcomes((current) => ({ ...current, [draft.id]: value }));
 
@@ -52,7 +72,7 @@ export function PrepareEmailDialog({ drafts, loading = false, onClose }: { draft
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(`${text.subject}\n\n${text.body}`);
+      await navigator.clipboard.writeText(`${text.subject}\n\n${finalBody}`);
       note("copied");
     } catch {
       note("copyFailed");
@@ -89,6 +109,13 @@ export function PrepareEmailDialog({ drafts, loading = false, onClose }: { draft
                   <input id={`${titleId}-subject`} type="text" value={text.subject} maxLength={300} disabled={closed} onChange={(event) => setText({ subject: event.target.value })} />
                   <label htmlFor={`${titleId}-body`}>{t("body")}</label>
                   <textarea id={`${titleId}-body`} rows={12} value={text.body} disabled={closed} onChange={(event) => setText({ body: event.target.value })} />
+                  <label>
+                    <input type="checkbox" checked={withSignature} disabled={closed || !signature} onChange={(event) => setWithSignature(event.target.checked)} aria-describedby={`${titleId}-signature-hint`} /> {t("addSignature")}
+                  </label>
+                  <p id={`${titleId}-signature-hint`} className="field-hint">
+                    {signature ? t("addSignatureHint") : t("noSignature")}
+                  </p>
+                  {withSignature && signature ? <p className="message-text meta">{signature}</p> : null}
                   {draft.renewedLink ? <p className="notice">{t("renewedLink", { name: draft.recipientName })}</p> : null}
                   <p className="meta">
                     {t("noAttachment")}{" "}
@@ -114,7 +141,7 @@ export function PrepareEmailDialog({ drafts, loading = false, onClose }: { draft
           <div className="task-dialog-actions-main">
             {!draft.problem && !closed ? (
               <>
-                <a className="button-link button-link-primary" href={mailtoOf(draft.to, text.subject, text.body)} title={t("openHint")}>
+                <a className="button-link button-link-primary" href={mailtoOf(draft.to, text.subject, finalBody)} title={t("openHint")}>
                   {t("open")}
                 </a>
                 <button type="button" className="button-secondary" onClick={copy}>

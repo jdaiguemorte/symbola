@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "_comment": "Lot 66c (HUB-18, MSG-01 ; D5, D6 ; ADR 0113) — la marque des e-mails au départ : police sans empattement, signatures avec tous leurs éléments, et les noms de liens proposés dans « Ma signature » (la planner peut en écrire un autre). Une organisation qui n'a rien réglé reçoit ces valeurs.",
+  "font": "sans",
+  "signatureElements": ["photo", "title", "organization", "phone", "website", "links"],
+  "linkSuggestions": {
+    "fr": ["Instagram", "Facebook", "Pinterest", "LinkedIn", "TikTok", "YouTube", "Site de mariage", "Avis clients"],
+    "en": ["Instagram", "Facebook", "Pinterest", "LinkedIn", "TikTok", "YouTube", "Wedding website", "Client reviews"]
+  }
+}

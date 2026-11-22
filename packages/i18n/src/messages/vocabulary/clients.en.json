@@ -130,5 +130,12 @@
   },
   "DayOf": {
     "clientsTitle": "The clients"
+  },
+  "DayReminder": {
+    "targets": {
+      "clients": {
+        "label": "The clients"
+      }
+    }
   }
 }

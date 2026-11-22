@@ -11,7 +11,9 @@ import { ConfirmDialog } from "@/app/ui/confirm-dialog";
 import { PageHeader } from "@/app/ui/page-header";
 import { requirePlanner } from "@/lib/guards";
 import {
+  defaultButtonLabel,
   EMAIL_BODY_MAX,
+  EMAIL_BUTTON_LABEL_MAX,
   EMAIL_SUBJECT_MAX,
   emailTemplateVariables,
   getEmailTemplate,
@@ -59,11 +61,13 @@ export default async function EmailTemplatePage({ params, searchParams }: { para
         key={query.retabli ?? "modele"}
         kind={kind}
         locale={locale}
-        template={{ subject: template.subject, body: template.body }}
+        template={{ subject: template.subject, body: template.body, buttonLabel: template.buttonLabel ?? "" }}
+        defaultButton={defaultButtonLabel(kind, locale)}
         variables={emailTemplateVariables(kind, locale).map((variable) => ({ ...variable, description: t(`variables.${variable.key}`) }))}
         initialPreview={preview}
         logoUrl={logoVersion ? `/logo?v=${encodeURIComponent(logoVersion)}` : null}
-        limits={{ subject: EMAIL_SUBJECT_MAX, body: EMAIL_BODY_MAX }}
+        signaturePhotoUrl="/profil/signature/photo"
+        limits={{ subject: EMAIL_SUBJECT_MAX, body: EMAIL_BODY_MAX, buttonLabel: EMAIL_BUTTON_LABEL_MAX }}
       />
       {template.customized ? (
         <ConfirmDialog

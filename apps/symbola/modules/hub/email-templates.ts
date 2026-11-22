@@ -10,7 +10,7 @@ import { emailTemplates } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 import { EMAIL_TEMPLATE_KINDS, type EmailLocale, type EmailTemplateKind, type EmailTemplateText, type EmailTemplateView } from "@symbola/contracts";
 import { starterEmailTemplate } from "@symbola/starter-templates";
-import { validateEmailTemplate, type EmailTemplateProblems } from "./email-template-rules";
+import { hasButton, validateEmailTemplate, type EmailTemplateProblems } from "./email-template-rules";
 
 export class EmailTemplateInvalidError extends Error {
   constructor(readonly problems: EmailTemplateProblems & { empty: ("subject" | "body")[] }) {
@@ -28,7 +28,7 @@ export async function listEmailTemplates(organizationId: string, locale: EmailLo
   const own = new Map(rows.map((row) => [row.kind, row]));
   return EMAIL_TEMPLATE_KINDS.map((kind) => {
     const row = own.get(kind);
-    return row ? { kind, locale, subject: row.subject, body: row.body, customized: true } : { kind, locale, ...starterEmailTemplate(kind, locale), customized: false };
+    return row ? { kind, locale, subject: row.subject, body: row.body, buttonLabel: row.buttonLabel, customized: true } : { kind, locale, ...starterEmailTemplate(kind, locale), buttonLabel: null, customized: false };
   });
 }
 
@@ -36,11 +36,19 @@ export async function getEmailTemplate(organizationId: string, kind: EmailTempla
   const [row] = await withOrganization(appDatabase(), organizationId, (tx) =>
     tx.select().from(emailTemplates).where(and(eq(emailTemplates.kind, kind), eq(emailTemplates.locale, locale))),
   );
-  return row ? { kind, locale, subject: row.subject, body: row.body, customized: true } : { kind, locale, ...starterEmailTemplate(kind, locale), customized: false };
+  return row ? { kind, locale, subject: row.subject, body: row.body, buttonLabel: row.buttonLabel, customized: true } : { kind, locale, ...starterEmailTemplate(kind, locale), buttonLabel: null, customized: false };
+}
+
+// Lot 66c (HUB-18 ; ADR 0113) : le libellé du bouton sur une ligne, espaces resserrés ; vide (ou pour un
+// modèle sans bouton) : celui de départ.
+export function cleanButtonLabel(kind: EmailTemplateKind, value: string | null | undefined): string | null {
+  if (!hasButton(kind)) return null;
+  const label = (value ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
+  return label || null;
 }
 
 export async function saveEmailTemplate(input: { organizationId: string; kind: EmailTemplateKind; locale: EmailLocale } & EmailTemplateText): Promise<EmailTemplateView> {
-  const text = { subject: input.subject.trim(), body: input.body.replace(/\r\n/g, "\n").trim() };
+  const text = { subject: input.subject.trim(), body: input.body.replace(/\r\n/g, "\n").trim(), buttonLabel: cleanButtonLabel(input.kind, input.buttonLabel) };
   const problems = validateEmailTemplate(input.kind, text);
   const empty: ("subject" | "body")[] = [];
   if (!text.subject) empty.push("subject");
@@ -59,7 +67,7 @@ export async function saveEmailTemplate(input: { organizationId: string; kind: E
 
 export async function resetEmailTemplate(organizationId: string, kind: EmailTemplateKind, locale: EmailLocale): Promise<EmailTemplateView> {
   await withOrganization(appDatabase(), organizationId, (tx) => tx.delete(emailTemplates).where(and(eq(emailTemplates.kind, kind), eq(emailTemplates.locale, locale))));
-  return { kind, locale, ...starterEmailTemplate(kind, locale), customized: false };
+  return { kind, locale, ...starterEmailTemplate(kind, locale), buttonLabel: null, customized: false };
 }
 
 // D5 — « Aujourd'hui » : les rappels automatiques arrêtés par une variable sans valeur depuis 24 heures

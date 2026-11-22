@@ -38,7 +38,6 @@ const guestRulesSchema = z.object({
   maxReminders: z.number().int().min(0).max(3),
   purgeNoticeDays: z.number().int().min(1).max(30),
   aggregateThreshold: z.number().int().min(1).max(20),
-  reminderHours: z.object({ from: z.number().int().min(0).max(23), until: z.number().int().min(1).max(24) }),
   impactAssessmentUrl: z.url().nullable(),
 });
 
@@ -46,7 +45,7 @@ export type StarterGuestRules = Omit<z.infer<typeof guestRulesSchema>, "version"
 
 export function starterGuestRules(): StarterGuestRules {
   const { version: _version, ...rules } = guestRulesSchema.parse(guestRulesFile);
-  return { ...rules, reminderDaysBeforeClosing: [...rules.reminderDaysBeforeClosing], reminderHours: { ...rules.reminderHours } };
+  return { ...rules, reminderDaysBeforeClosing: [...rules.reminderDaysBeforeClosing] };
 }
 
 const guestTextsSchema = z.object({

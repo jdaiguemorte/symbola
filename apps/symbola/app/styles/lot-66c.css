@@ -1,0 +1,78 @@
+/* Lot 66c (HUB-18, MSG-01 ; D5, D6 ; ADR 0113 ; maquettes M19 et M20) — la marque des e-mails : la
+   police choisie dans l'aperçu (les mêmes familles que packages/mail/src/layout.ts, repli système), la
+   signature (photo ronde, nom, lignes, liens), le choix de la police en quatre cartes, l'écran « Ma
+   signature » (formulaire et aperçu côte à côte sur ordinateur). Mêmes jetons que globals.css
+   (DESIGN.md), aucun style en ligne (CSP). */
+@layer components {
+  .mail-font-sans {
+    font-family: Helvetica, Arial, sans-serif;
+  }
+  .mail-font-serif {
+    font-family: Georgia, "Times New Roman", Times, serif;
+  }
+  .mail-font-elegant {
+    font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  }
+  .mail-font-rounded {
+    font-family: "Trebuchet MS", "Lucida Grande", Verdana, sans-serif;
+  }
+
+  .mail-preview-signature {
+    @apply mb-4 flex items-start gap-3;
+  }
+  .mail-preview-signature img {
+    @apply size-14 shrink-0 rounded-full object-cover;
+  }
+  .mail-preview-signature-photo {
+    @apply size-14 shrink-0 rounded-full bg-ground;
+  }
+  .mail-preview-body .mail-preview-signature p {
+    @apply m-0 mb-0 text-label;
+  }
+  .mail-preview-body .mail-preview-signature .mail-preview-signature-name {
+    @apply text-body font-semibold;
+  }
+  .mail-preview-signature-links {
+    @apply flex flex-wrap gap-x-3 gap-y-1 text-label;
+  }
+  .mail-preview-signature-links span {
+    color: var(--mail-accent, var(--color-ink));
+    @apply underline;
+  }
+
+  /* Le choix de la police : quatre cartes « Aa » de 44 px au moins, la carte choisie bordée. */
+  .font-pick {
+    @apply grid grid-cols-2 gap-3 sm:grid-cols-4;
+  }
+  .font-pick label {
+    @apply flex min-h-11 cursor-pointer flex-col items-center gap-1 rounded-md border border-line bg-surface px-3 py-3 text-center;
+  }
+  .font-pick label:has(input:checked) {
+    @apply border-primary bg-primary-soft;
+  }
+  .font-pick label:has(input:focus-visible) {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+  .font-pick input {
+    @apply sr-only;
+  }
+  .font-pick-sample {
+    @apply text-title;
+  }
+  .font-pick-name {
+    @apply text-label text-ink-muted;
+  }
+
+  .signature-editor {
+    @apply grid grid-cols-1 items-start gap-8 xl:grid-cols-2;
+  }
+  .signature-links {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-2;
+  }
+  .signature-photo {
+    @apply flex flex-wrap items-center gap-4;
+  }
+  .signature-photo img {
+    @apply size-14 rounded-full object-cover;
+  }
+}

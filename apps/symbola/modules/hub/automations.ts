@@ -10,10 +10,11 @@
 import { and, desc, eq, isNull, lt, or } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { withOrganization } from "@symbola/db/with-organization";
-import { automationRuns, automations, riskRules } from "@symbola/db/schema/hub";
-import { AUTOMATION_KEYS, RISK_RULES, automationDaysSchema, riskThresholdSchema, type AutomationKey, type AutomationResult, type AutomationRunView, type RiskRuleKey } from "@symbola/contracts";
-import { starterAutomations, starterRiskRules } from "@symbola/starter-templates";
+import { automationRuns, automations, dayReminderTargets, riskRules, sendingSettings } from "@symbola/db/schema/hub";
+import { AUTOMATION_KEYS, DAY_REMINDER_TARGETS, RISK_RULES, SEND_TIME_AUTOMATIONS, dayReminderSettingSchema, type DayReminderSetting, type DayReminderTarget, automationDaysSchema, riskThresholdSchema, sendTimeSchema, type AutomationKey, type AutomationResult, type AutomationRunView, type RiskRuleKey } from "@symbola/contracts";
+import { starterAutomations, starterDayReminder, starterRiskRules, starterSending } from "@symbola/starter-templates";
 import { notificationRetentionDays } from "./notification-rules";
+import { fromDatabaseTime } from "./send-time-rules";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 const RUNS_SHOWN = 10;
@@ -23,7 +24,7 @@ function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): 
 }
 
 export class AutomationInputError extends Error {
-  constructor(readonly reason: "key" | "days" | "rule" | "threshold") {
+  constructor(readonly reason: "key" | "days" | "rule" | "threshold" | "send_time") {
     super("réglage d'automatisme refusé");
     this.name = "AutomationInputError";
   }
@@ -33,13 +34,14 @@ function assertKey(key: string): asserts key is AutomationKey {
   if (!(AUTOMATION_KEYS as readonly string[]).includes(key)) throw new AutomationInputError("key");
 }
 
-export type AutomationGate = { key: AutomationKey; enabled: boolean; days: number | null; resumedAt: Date | null };
+// sendTime : l'heure propre de l'automatisme (« HH:MM »), null : l'heure par défaut (lot 66a).
+export type AutomationGate = { key: AutomationKey; enabled: boolean; days: number | null; resumedAt: Date | null; sendTime: string | null };
 
 export async function getAutomationGate(organizationId: string, key: AutomationKey): Promise<AutomationGate> {
   assertKey(key);
   const starter = starterAutomations()[key] ?? { enabled: true, days: null };
   const [row] = await inOrganization(organizationId, (tx) => tx.select().from(automations).where(and(eq(automations.organizationId, organizationId), eq(automations.key, key))));
-  return { key, enabled: row?.enabled ?? starter.enabled, days: row?.days ?? starter.days, resumedAt: row?.resumedAt ?? null };
+  return { key, enabled: row?.enabled ?? starter.enabled, days: row?.days ?? starter.days, resumedAt: row?.resumedAt ?? null, sendTime: fromDatabaseTime(row?.sendTime) };
 }
 
 export async function listAutomationGates(organizationId: string): Promise<AutomationGate[]> {
@@ -47,7 +49,7 @@ export async function listAutomationGates(organizationId: string): Promise<Autom
   const starter = starterAutomations();
   return AUTOMATION_KEYS.map((key) => {
     const row = rows.find((candidate) => candidate.key === key);
-    return { key, enabled: row?.enabled ?? starter[key]?.enabled ?? true, days: row?.days ?? starter[key]?.days ?? null, resumedAt: row?.resumedAt ?? null };
+    return { key, enabled: row?.enabled ?? starter[key]?.enabled ?? true, days: row?.days ?? starter[key]?.days ?? null, resumedAt: row?.resumedAt ?? null, sendTime: fromDatabaseTime(row?.sendTime) };
   });
 }
 
@@ -85,6 +87,44 @@ export async function setAutomationDays(organizationId: string, key: string, day
       .onConflictDoUpdate({ target: [automations.organizationId, automations.key], set: { days, updatedAt: new Date() } });
   });
   return { ...current, days };
+}
+
+// --- Heure d'envoi (lot 66a, HUB-28 ; D1 ; ADR 0112) ---
+
+export function isSendTimeAutomation(key: AutomationKey): boolean {
+  return (SEND_TIME_AUTOMATIONS as readonly string[]).includes(key);
+}
+
+// L'heure d'envoi par défaut de l'organisation ; sans réglage, celle de départ (sending.json).
+export async function getDefaultSendTime(organizationId: string): Promise<string> {
+  const [row] = await inOrganization(organizationId, (tx) => tx.select({ time: sendingSettings.defaultSendTime }).from(sendingSettings).where(eq(sendingSettings.organizationId, organizationId)));
+  return fromDatabaseTime(row?.time) ?? starterSending().defaultSendTime;
+}
+
+export async function setDefaultSendTime(organizationId: string, time: string): Promise<string> {
+  if (!sendTimeSchema.safeParse(time).success) throw new AutomationInputError("send_time");
+  await inOrganization(organizationId, (tx) =>
+    tx
+      .insert(sendingSettings)
+      .values({ organizationId, defaultSendTime: time })
+      .onConflictDoUpdate({ target: sendingSettings.organizationId, set: { defaultSendTime: time, updatedAt: new Date() } }),
+  );
+  return time;
+}
+
+// L'heure propre d'un automatisme qui envoie à heure fixe ; null : revenir à l'heure par défaut.
+export async function setAutomationSendTime(organizationId: string, key: string, time: string | null): Promise<AutomationGate> {
+  assertKey(key);
+  if (!isSendTimeAutomation(key)) throw new AutomationInputError("key");
+  if (time !== null && !sendTimeSchema.safeParse(time).success) throw new AutomationInputError("send_time");
+  const current = await getAutomationGate(organizationId, key);
+  await inOrganization(organizationId, (tx) =>
+    tx
+      .insert(automations)
+      .values({ organizationId, key, enabled: current.enabled, days: current.days, resumedAt: current.resumedAt, sendTime: time })
+      .onConflictDoUpdate({ target: [automations.organizationId, automations.key], set: { sendTime: time, updatedAt: new Date() } }),
+  );
+  return { ...current, sendTime: time };
 }
 
 // Le radar passe une fois par matin : true si ce passage est le premier du jour.
@@ -162,4 +202,30 @@ export async function setRiskRule(organizationId: string, input: { rule: string;
       .onConflictDoUpdate({ target: [riskRules.organizationId, riskRules.rule], set: { enabled: input.enabled, thresholdDays: input.thresholdDays, updatedAt: new Date() } });
   });
   return { rule, enabled: input.enabled, thresholdDays: input.thresholdDays };
+}
+
+// --- Rappel du jour J (lot 66b, JRJ-01, HUB-28 ; D2, D3 ; ADR 0112) ---
+
+// Le réglage de l'organisation, cible par cible ; sans ligne, celui de départ (day-reminder.json).
+export async function listDayReminderTargets(organizationId: string): Promise<DayReminderSetting[]> {
+  const rows = await inOrganization(organizationId, (tx) => tx.select().from(dayReminderTargets).where(eq(dayReminderTargets.organizationId, organizationId)));
+  const starter = starterDayReminder();
+  return DAY_REMINDER_TARGETS.map((target) => {
+    const row = rows.find((candidate) => candidate.target === target);
+    return row ? { target, enabled: row.enabled, moment: row.moment, sendTime: fromDatabaseTime(row.sendTime) ?? starter[target].sendTime } : { target, ...starter[target] };
+  });
+}
+
+export async function setDayReminderTarget(organizationId: string, target: string, input: { enabled: boolean; moment: string; sendTime: string }): Promise<DayReminderSetting> {
+  if (!(DAY_REMINDER_TARGETS as readonly string[]).includes(target)) throw new AutomationInputError("key");
+  const parsed = dayReminderSettingSchema.safeParse(input);
+  if (!parsed.success) throw new AutomationInputError("send_time");
+  const value = { enabled: parsed.data.enabled, moment: parsed.data.moment, sendTime: parsed.data.sendTime };
+  await inOrganization(organizationId, (tx) =>
+    tx
+      .insert(dayReminderTargets)
+      .values({ organizationId, target: target as DayReminderTarget, ...value })
+      .onConflictDoUpdate({ target: [dayReminderTargets.organizationId, dayReminderTargets.target], set: { ...value, updatedAt: new Date() } }),
+  );
+  return { target: target as DayReminderTarget, ...value };
 }

@@ -138,6 +138,7 @@ import { getDayReport, listKeyMoments } from "@/modules/events/service";
 import { getGuestEventSummary, getGuestModuleState } from "@/modules/guests/service";
 import { AddKeyMomentForm, EditKeyMomentForm } from "./key-moments";
 import { ProgramImportForm } from "./program-import-form";
+import { DayReminderCard } from "./day-reminder-card";
 import { dayReportSections, reportHandovers } from "./bilan/day-report-view";
 import { dayReportWords } from "./bilan/report-words";
 import { eventDays, isReportReady } from "@/lib/day-of/rules";
@@ -1483,6 +1484,8 @@ export default async function EventDetailPage({
             </ul>
             <AddDayContactForm eventId={event.id} />
           </section>
+          {/* Lot 66b (JRJ-01 ; M18) : le rappel du jour J de cet évènement. */}
+          <DayReminderCard organizationId={organizationId} eventId={event.id} />
         </section>
       ) : null}
 
