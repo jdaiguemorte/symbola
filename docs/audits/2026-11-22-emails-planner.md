@@ -67,3 +67,11 @@ Limites techniques, à connaître :
 3. Les automatismes deviennent des éléments « À envoyer » : d'accord ?
 4. Faut-il garder l'envoi par Symbola comme **option** pour une organisation qui le préfère, ou le
    retirer pour les messages de la relation ?
+
+## 4. Décisions de Julien (22/11)
+
+1. Partage du § 1 : **accepté** (signature et invitations des invités restent envoyées par Symbola).
+2. `task_reminder` : **préparé, envoyé par la planner** ; aucun envoi automatique.
+3. Les automatismes deviennent des éléments « À envoyer » d'« Aujourd'hui » : **accepté**.
+4. **Pas d'option** d'envoi par Symbola pour les messages de la relation : l'expérience d'une vraie
+   messagerie (Gmail ou autre) ne se reproduit pas. Revient sur Q18 révisée et l'ADR 0102 : ADR à écrire.
