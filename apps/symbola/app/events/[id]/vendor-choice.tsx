@@ -1,28 +1,52 @@
 "use client";
 
-// Lot 63c (BUD-04, PRE-02 ; #39, maquette M9) — « Choisir un prestataire… » sur la ligne d'un poste :
-// une recherche dans le catalogue (le métier du poste et « Déjà travaillé ensemble » d'abord) ; le
-// choisir le retient. « + Nouveau prestataire » crée la fiche dans une fenêtre, sans quitter le
-// budget ; « Comparer plusieurs prestataires » ouvre la consultation du poste.
+// Lot 63c (BUD-04, PRE-02 ; #39, maquette M9) — chercher un prestataire du catalogue depuis la ligne
+// d'un poste (le métier du poste et « Déjà travaillé ensemble » d'abord) ; « + Nouveau prestataire »
+// crée la fiche dans une fenêtre, sans quitter le budget.
+// Lot 65b (PRE-02, BUD-02 ; maquette M14 C) : choisir un nom ne le retient plus d'office. Chaque fiche
+// propose « Comparer » (elle entre dans la comparaison du poste) et « Retenir » ; sans rien taper, la
+// liste montre tout le carnet du métier, avec « Voir tout le carnet ». Retenir au-delà du seuil
+// d'alerte du budget se confirme d'abord (BUD-02).
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { RequiredLegend, RequiredMark } from "@/app/ui/required-mark";
 import { ChevronDown } from "lucide-react";
-import { createSlotVendorAction, retainSlotVendorAction, searchSlotVendorsAction } from "./budget-vendor-actions";
-import type { SlotVendorChoice } from "@/lib/vendors/slot-retention";
+import { compareSlotVendorAction, createSlotVendorAction, retainSlotVendorAction, searchSlotVendorsAction, type SlotVendorState } from "./budget-vendor-actions";
+import type { SlotVendorSearch } from "@/lib/vendors/slot-retention";
 
 const DEBOUNCE_MS = 200;
 
-export function VendorChoice({ eventId, slotId, slotLabel, consultationHref, vendorTypes }: { eventId: string; slotId: string; slotLabel: string; consultationHref: string; vendorTypes: { id: string; label: string }[] }) {
+export function VendorChoice({
+  eventId,
+  slotId,
+  slotLabel,
+  catalogHref,
+  vendorTypes,
+  label,
+  onChanged,
+}: {
+  eventId: string;
+  slotId: string;
+  slotLabel: string;
+  // « Voir tout le carnet » : le carnet, filtré pour ce poste.
+  catalogHref: string;
+  vendorTypes: { id: string; label: string }[];
+  // Le libellé du bouton (« + Ajouter des prestataires » sur la ligne, « + Ajouter un prestataire » dans la fenêtre).
+  label?: string;
+  // Après un ajout (la comparaison de la fenêtre se recharge).
+  onChanged?: () => void;
+}) {
   const t = useTranslations("BudgetVendors");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [term, setTerm] = useState("");
-  const [results, setResults] = useState<SlotVendorChoice[] | null>(null);
+  const [found, setFound] = useState<SlotVendorSearch | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState<{ vendorId: string; message: string } | null>(null);
   const [creating, setCreating] = useState(false);
+  const [version, setVersion] = useState(0);
   const [pending, startTransition] = useTransition();
   const root = useRef<HTMLDivElement>(null);
   const search = useRef<HTMLInputElement>(null);
@@ -34,16 +58,19 @@ export function VendorChoice({ eventId, slotId, slotLabel, consultationHref, ven
     search.current?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || creating) return;
+      // Dans la fenêtre du poste, Échap ferme la liste, pas la fenêtre.
+      event.stopPropagation();
+      event.preventDefault();
       setOpen(false);
       button.current?.focus();
     };
     const onPointer = (event: PointerEvent) => {
       if (!creating && !root.current?.contains(event.target as Node)) setOpen(false);
     };
-    document.addEventListener("keydown", onKey);
+    document.addEventListener("keydown", onKey, true);
     document.addEventListener("pointerdown", onPointer);
     return () => {
-      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("keydown", onKey, true);
       document.removeEventListener("pointerdown", onPointer);
     };
   }, [open, creating]);
@@ -52,31 +79,37 @@ export function VendorChoice({ eventId, slotId, slotLabel, consultationHref, ven
     if (!open) return;
     let current = true;
     const timer = setTimeout(() => {
-      void searchSlotVendorsAction({ eventId, slotId, term }).then((found) => {
-        if (current) setResults(found);
+      void searchSlotVendorsAction({ eventId, slotId, term }).then((result) => {
+        if (current) setFound(result);
       });
     }, DEBOUNCE_MS);
     return () => {
       current = false;
       clearTimeout(timer);
     };
-  }, [open, term, eventId, slotId]);
+  }, [open, term, eventId, slotId, version]);
 
-  const retain = (vendor: SlotVendorChoice) =>
-    startTransition(async () => {
-      const result = await retainSlotVendorAction({ eventId, slotId, vendorId: vendor.id });
-      if (!result.ok) {
-        setError(result.error);
-        return;
-      }
-      setOpen(false);
+  const done = (result: SlotVendorState, vendorId: string) => {
+    if (result.ok) {
+      setError(null);
+      setConfirm(null);
+      setVersion(version + 1);
+      onChanged?.();
       router.refresh();
-    });
+      return;
+    }
+    if ("confirm" in result) setConfirm({ vendorId, message: result.confirm });
+    else setError(result.error);
+  };
+
+  const compare = (vendorId: string) => startTransition(async () => done(await compareSlotVendorAction({ eventId, slotId, vendorId }), vendorId));
+  const retain = (vendorId: string, confirmed = false) => startTransition(async () => done(await retainSlotVendorAction({ eventId, slotId, vendorId, confirmed }), vendorId));
+  const choices = found?.choices ?? null;
 
   return (
     <div className="menu-button" ref={root}>
       <button ref={button} type="button" className="button-secondary" aria-expanded={open} aria-controls={ids.popover} onClick={() => setOpen(!open)}>
-        {t("choose")}
+        {label ?? t("choose")}
         <span className="sr-only"> {t("chooseFor", { slot: slotLabel })}</span>
         <ChevronDown size={14} aria-hidden="true" />
       </button>
@@ -85,30 +118,57 @@ export function VendorChoice({ eventId, slotId, slotLabel, consultationHref, ven
           <label htmlFor={ids.search}>{t("searchLabel", { slot: slotLabel })}</label>
           <input ref={search} id={ids.search} type="search" value={term} maxLength={100} autoComplete="off" onChange={(event) => setTerm(event.target.value)} />
           <p className="sr-only" role="status" aria-live="polite">
-            {results ? t("resultsCount", { count: results.length }) : ""}
+            {choices ? t("resultsCount", { count: choices.length }) : ""}
           </p>
-          {results && results.length > 0 ? (
+          {choices && choices.length > 0 ? (
             <ul className="vendor-choice-results" aria-label={t("resultsLabel")}>
-              {results.map((vendor) => (
+              {choices.map((vendor) => (
                 <li key={vendor.id}>
-                  <button type="button" disabled={pending} onClick={() => retain(vendor)}>
+                  <span className="vendor-choice-who">
                     <strong>{vendor.name}</strong>
                     <span className="meta">
-                      {[vendor.city, vendor.typeLabel, vendor.workedWith ? t("workedWith") : null].filter(Boolean).join(" · ")}
+                      {[vendor.city, vendor.typeLabel, vendor.workedWithCount > 0 ? t("workedWithCount", { count: vendor.workedWithCount }) : null].filter(Boolean).join(" · ")}
                     </span>
-                    <span className="sr-only">{t("retainHint", { slot: slotLabel })}</span>
-                  </button>
+                  </span>
+                  {vendor.onSlot ? (
+                    <span className={vendor.onSlot === "retained" ? "badge badge-sauge" : "badge"}>{t(vendor.onSlot === "retained" ? "retainedBadge" : "inComparison")}</span>
+                  ) : (
+                    <span className="vendor-choice-actions">
+                      <button type="button" className="button-secondary" disabled={pending} onClick={() => compare(vendor.id)} title={t("compareHint", { name: vendor.name, slot: slotLabel })}>
+                        {t("compareOne")}
+                        <span className="sr-only"> — {vendor.name}</span>
+                      </button>
+                      <button type="button" className="button-secondary" disabled={pending} onClick={() => retain(vendor.id)} title={t("retainHint", { name: vendor.name, slot: slotLabel })}>
+                        {t("retainOne")}
+                        <span className="sr-only"> — {vendor.name}</span>
+                      </button>
+                    </span>
+                  )}
+                  {vendor.onSlot === "compared" ? (
+                    <button type="button" className="link-button" disabled={pending} onClick={() => retain(vendor.id)} title={t("retainHint", { name: vendor.name, slot: slotLabel })}>
+                      {t("retainOne")}
+                      <span className="sr-only"> — {vendor.name}</span>
+                    </button>
+                  ) : null}
+                  {confirm?.vendorId === vendor.id ? (
+                    <div className="notice notice-attention">
+                      <p role="alert">{confirm.message}</p>
+                      <button type="button" className="button-primary" disabled={pending} onClick={() => retain(vendor.id, true)}>
+                        {t("confirmRetain")}
+                      </button>
+                    </div>
+                  ) : null}
                 </li>
               ))}
             </ul>
           ) : null}
-          {results && results.length === 0 ? <p className="meta">{t("noResults")}</p> : null}
+          {choices && choices.length === 0 ? <p className="meta">{t("noResults")}</p> : null}
           {error ? <p role="alert">{error}</p> : null}
           <div className="vendor-choice-more">
+            <Link href={catalogHref}>{found && found.matchingCount > 0 ? t("seeCatalog", { count: found.matchingCount }) : t("seeCatalogAll")}</Link>
             <button type="button" className="link-button" onClick={() => setCreating(true)} aria-haspopup="dialog">
               {term.trim() ? t("newVendorNamed", { name: term.trim() }) : t("newVendor")}
             </button>
-            <Link href={consultationHref}>{t("compare")}</Link>
           </div>
         </div>
       ) : null}
@@ -123,6 +183,7 @@ export function VendorChoice({ eventId, slotId, slotLabel, consultationHref, ven
           onCreated={() => {
             setCreating(false);
             setOpen(false);
+            onChanged?.();
             router.refresh();
           }}
         />
@@ -150,14 +211,16 @@ function NewVendorDialog({ eventId, slotId, slotLabel, initialName, vendorTypes,
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    // Lot 65b : « Créer et comparer » (par défaut) ou « Créer et retenir ».
+    const retain = (event.nativeEvent as SubmitEvent).submitter?.getAttribute("value") === "retain";
     const text = (name: string) => {
       const value = String(data.get(name) ?? "").trim();
       return value === "" ? null : value;
     };
     startTransition(async () => {
-      const result = await createSlotVendorAction({ eventId, slotId, name: text("name") ?? "", typeId: text("typeId"), email: text("email"), phone: text("phone"), city: text("city") });
+      const result = await createSlotVendorAction({ eventId, slotId, name: text("name") ?? "", typeId: text("typeId"), email: text("email"), phone: text("phone"), city: text("city"), retain });
       if (!result.ok) {
-        setError(result.error);
+        setError("error" in result ? result.error : result.confirm);
         return;
       }
       onCreated();
@@ -203,7 +266,10 @@ function NewVendorDialog({ eventId, slotId, slotLabel, initialName, vendorTypes,
           <button type="button" className="button-secondary" onClick={onClose}>
             {tCommon("cancel")}
           </button>
-          <button type="submit" className="button-primary" disabled={pending}>
+          <button type="submit" name="intent" value="retain" className="button-secondary" disabled={pending}>
+            {t("newVendorSaveRetain")}
+          </button>
+          <button type="submit" name="intent" value="compare" className="button-primary" disabled={pending}>
             {t("newVendorSave")}
           </button>
         </div>

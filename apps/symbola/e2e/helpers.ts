@@ -268,3 +268,39 @@ export async function signIn(page: Page, email: string, landing?: RegExp | strin
   if (landing) await expect(page).toHaveURL(landing);
   else await expect(page).not.toHaveURL(/\/(login|securite)(\?|$)/);
 }
+
+// Lot 65b (PRE-02, ADR 0111, maquette M14) : la fenêtre d'un poste de « Budget et prestataires ».
+// Modale : l'écran derrière est inerte, on la ferme avant de lire le tableau.
+function escapeForRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function slotWindow(page: Page, slot: string) {
+  return page.getByRole("dialog", { name: new RegExp(`^${escapeForRegExp(slot)} · poste \\d+ sur \\d+`) });
+}
+
+export async function openSlotWindow(page: Page, slot: string, rubric?: "Prestataires" | "Montants" | "Échéancier" | "Documents" | "Réglages du poste") {
+  await page.getByRole("button", { name: `Ouvrir le poste « ${slot} »` }).click();
+  const window = slotWindow(page, slot);
+  await expect(window).toBeVisible();
+  if (rubric) await openSlotRubric(page, slot, rubric);
+  return window;
+}
+
+export async function openSlotRubric(page: Page, slot: string, rubric: "Prestataires" | "Montants" | "Échéancier" | "Documents" | "Réglages du poste") {
+  await slotWindow(page, slot).getByRole("navigation", { name: "Rubriques du poste" }).getByRole("button", { name: rubric }).click();
+}
+
+// Le détail des prestataires du poste (statut, devis, notes), sous la comparaison.
+export async function openSlotDetails(page: Page, slot: string) {
+  const window = slotWindow(page, slot);
+  const details = window.locator("details.slot-window-details");
+  if (!(await details.evaluate((element) => (element as HTMLDetailsElement).open))) await details.locator("summary").click();
+  return window.getByRole("region", { name: `Prestataires consultés — ${slot}` });
+}
+
+export async function closeSlotWindow(page: Page, slot: string) {
+  const window = slotWindow(page, slot);
+  await window.locator(".window-actions").getByRole("button", { name: "Fermer" }).click();
+  await expect(window).toHaveCount(0);
+}

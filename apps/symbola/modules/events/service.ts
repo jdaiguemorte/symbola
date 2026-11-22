@@ -207,6 +207,7 @@ import {
   listCandidates,
   listConsultations,
   listSelectedVendors,
+  countSelectedEventsByVendor,
   removeCandidate,
   removeCandidateNote,
   retainVendorByName,
@@ -1162,6 +1163,11 @@ export async function listVendorConsultations(organizationId: string, vendorId: 
 
 export async function listSelectedVendorIds(organizationId: string): Promise<string[]> {
   return listSelectedVendors(organizationId);
+}
+
+// Lot 65b : nombre d'évènements où chaque fiche du carnet a été retenue.
+export async function countWorkedWithByVendor(organizationId: string): Promise<Map<string, number>> {
+  return countSelectedEventsByVendor(organizationId);
 }
 
 // L11-EVT-11, lot 26a : options montrées au tiers dont le lien ouvre la
@@ -3344,6 +3350,7 @@ const _contractCheck: EventsServiceContract = {
   getVendorCandidate,
   listVendorConsultations,
   listSelectedVendorIds,
+  countWorkedWithByVendor,
   getLinkVendorOptions,
   getLinkVendorQuoteFile,
   getLinkSharedRibVendorId,

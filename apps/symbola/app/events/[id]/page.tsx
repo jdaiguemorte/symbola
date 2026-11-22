@@ -368,13 +368,40 @@ export default async function EventDetailPage({
   const candidates = tab === "budget" ? await listVendorCandidates(organizationId, id) : [];
   const vendorsAvailable = tab === "budget" ? await isVendorsModuleEnabled(organizationId) : false;
   const bookOptions =
-    selectedSlot && vendorsAvailable
+    (selectedSlot || (tab === "budget" && budgetAvailable)) && vendorsAvailable
       ? (await findVendors({ organizationId })).map((vendor) => ({ id: vendor.id, label: vendor.city ? `${vendor.name} — ${vendor.city}` : vendor.name }))
       : [];
   const candidatesBySlot = (slotId: string) => candidates.filter((candidate) => candidate.vendorSlotId === slotId);
   // Lot 63c (BUD-01, BUD-03, BUD-04 ; M9) : les lignes de « Budget et prestataires », et les métiers du
   // catalogue pour « + Nouveau prestataire ».
   const budgetRows = budgetView ? buildBudgetVendorRows(vendorSlots, budgetView.categories, today) : null;
+  // Lot 65b (M14 B) : les réglages et le détail des prestataires de chaque poste, rendus ici et montrés
+  // dans la fenêtre du poste.
+  const budgetFollowUps = budgetView ? await listVendorFollowUps(organizationId, id) : [];
+  const slotPanels = budgetView
+    ? Object.fromEntries(
+        vendorSlots.map((slot) => [
+          slot.id,
+          {
+            settings: (
+              <div className="stack">
+                <VendorSlotForm eventId={event.id} slot={slot} />
+                <SlotIconForm key={`icon-${slot.id}-${slot.icon ?? ""}`} eventId={event.id} slotId={slot.id} label={slot.label} icon={slot.icon} />
+                <ImportedFields fields={slot.importedFields} compact />
+                <form action={removeVendorSlotAction}>
+                  <input type="hidden" name="eventId" value={event.id} />
+                  <input type="hidden" name="vendorSlotId" value={slot.id} />
+                  <button type="submit" className="button-ghost">
+                    {t("removeVendorSlot", { label: slot.label })}
+                  </button>
+                </form>
+              </div>
+            ),
+            details: <VendorCandidates eventId={event.id} slot={slot} candidates={candidatesBySlot(slot.id)} bookOptions={bookOptions} vendorsAvailable={vendorsAvailable} locale={locale} followUps={budgetFollowUps} />,
+          },
+        ]),
+      )
+    : {};
   const budgetVendorTypes = tab === "budget" && budgetView && vendorsAvailable ? (await listVendorTypes(organizationId)).map((type) => ({ id: type.id, label: type.label })) : [];
   // Somme des devis des prestataires retenus d'un poste (null s'il n'y en a aucun connu).
   const retainedQuotesOf = (slot: EventVendorSlot) => {
@@ -878,8 +905,9 @@ export default async function EventDetailPage({
       ) : null}
 
       {/* Lot 63c (BUD-01, BUD-03, BUD-04 ; Q42, M9) : avec le module Budget, une seule vue par poste
-          (prévu, réel, écart, réglé, reste, prochaine échéance, échéancier) ; le détail d'un poste
-          (statut, icône, consultés) s'ouvre sous le tableau. */}
+          (prévu, réel, écart, réglé, reste, prochaine échéance, échéancier). Lot 65b (M14, ADR 0111) :
+          tout le poste (prestataires, montants, échéancier, documents, réglages) est dans sa fenêtre ;
+          plus de bloc en bas de page. */}
       {tab === "budget" && budgetView ? (
         <>
           <section className="card" aria-labelledby="vendor-slots-title">
@@ -916,7 +944,15 @@ export default async function EventDetailPage({
                 rows={budgetRows!.rows}
                 totals={budgetRows!.totals}
                 locale={locale}
-                posteHrefs={Object.fromEntries(vendorSlots.map((slot) => [slot.id, `${tabHref("budget", { poste: slot.id })}#detail-poste`]))}
+                initialSlotId={selectedSlot?.id ?? null}
+                slotPanels={slotPanels}
+                choices={Object.fromEntries(
+                  vendorSlots.map((slot) => {
+                    const inTheRunning = candidatesBySlot(slot.id).filter((candidate) => candidate.status !== "dismissed" && !ENGAGED_CANDIDATE_STATUSES.includes(candidate.status));
+                    return [slot.id, { comparing: inTheRunning.length, quotes: inTheRunning.filter((candidate) => candidate.quoteAmountCents !== null || candidate.hasQuoteFile).length }];
+                  }),
+                )}
+                catalogHrefs={Object.fromEntries(vendorSlots.map((slot) => [slot.id, `/prestataires?evenement=${event.id}&poste=${slot.id}`]))}
                 consultationHrefs={Object.fromEntries(vendorSlots.map((slot) => [slot.id, `/events/${event.id}/consultation/${slot.id}`]))}
                 vendorsAvailable={vendorsAvailable}
                 vendorTypes={budgetVendorTypes}
@@ -927,29 +963,6 @@ export default async function EventDetailPage({
             ) : null}
             <AddVendorSlotForm eventId={event.id} />
           </section>
-          {selectedSlot ? (
-            <section className="card" aria-labelledby="vendor-detail-title" id="detail-poste">
-                <h2 id="vendor-detail-title">{selectedSlot.label}</h2>
-                <VendorSlotForm key={selectedSlot.id} eventId={event.id} slot={selectedSlot} />
-                {/* Lot 28b (Q33) : l'estimé d'une catégorie à une seule ligne se saisit ici ; au-delà, sur le budget. */}
-                {budgetView && (categoryOf(selectedSlot.id)?.lines.length ?? 0) <= 1 ? (
-                  <PlannedAmountForm key={`planned-${selectedSlot.id}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} plannedCents={categoryOf(selectedSlot.id)?.lines[0]?.estimatedAmountCents ?? null} />
-                ) : null}
-                {budgetView && (categoryOf(selectedSlot.id)?.lines.length ?? 0) > 1 ? (
-                  <p>
-                    <Link href={`/budget/${event.id}/detail#categorie-${selectedSlot.id}`}>{t("budgetLinesDetail", { count: categoryOf(selectedSlot.id)?.lines.length ?? 0, line: selectedSlot.label })}</Link>
-                  </p>
-                ) : null}
-                <SlotIconForm key={`icon-${selectedSlot.id}-${selectedSlot.icon ?? ""}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} icon={selectedSlot.icon} />
-                <ImportedFields fields={selectedSlot.importedFields} compact />
-                <form action={removeVendorSlotAction}>
-                  <input type="hidden" name="eventId" value={event.id} />
-                  <input type="hidden" name="vendorSlotId" value={selectedSlot.id} />
-                  <button type="submit">{t("removeVendorSlot", { label: selectedSlot.label })}</button>
-                </form>
-                <Link href={tabHref("budget", slotFilter === "a-pourvoir" ? { filtre: "a-pourvoir" } : {})}>{t("closePanel")}</Link>
-            </section>
-          ) : null}
         </>
       ) : null}
       {tab === "budget" && !budgetView ? (
@@ -1045,7 +1058,7 @@ export default async function EventDetailPage({
           </aside>
         </div>
       ) : null}
-      {tab === "budget" && selectedSlot ? (
+      {tab === "budget" && !budgetView && selectedSlot ? (
         <VendorCandidates
           eventId={event.id}
           slot={selectedSlot}

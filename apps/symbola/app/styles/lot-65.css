@@ -38,4 +38,70 @@
   .today-items > .today-item .today-action > p[role] {
     @apply max-w-none text-left;
   }
+
+  /* 65b (M14 C) : « + Ajouter un prestataire » — chaque fiche avec « Comparer » et « Retenir ». */
+  .vendor-choice-popover .vendor-choice-results > li {
+    @apply flex flex-wrap items-center justify-between gap-2 rounded-md px-2 py-2 hover:bg-ground;
+  }
+  .vendor-choice-popover .vendor-choice-results > li > .notice {
+    @apply w-full;
+  }
+  .vendor-choice-popover .vendor-choice-results button {
+    @apply w-auto flex-row items-center;
+  }
+  .vendor-choice-who {
+    @apply flex min-w-0 flex-1 flex-col gap-1;
+  }
+  .vendor-choice-actions {
+    @apply flex shrink-0 gap-2;
+  }
+  .vendor-choice-popover {
+    @apply w-[min(28rem,calc(100vw-2rem))];
+  }
+
+  /* 65b (M14 A) : la ligne d'un poste s'ouvre d'un clic. */
+  .list-table.budget-vendors .budget-vendor-row {
+    @apply cursor-pointer hover:bg-ground;
+  }
+
+  /* 65b (M14 B) : la fenêtre du poste, plus large pour la comparaison côte à côte. */
+  dialog.window.window-long:has(.slot-comparison, .window-rubrics) {
+    @apply w-[min(1100px,calc(100vw-2rem))];
+  }
+  .slot-comparison {
+    @apply w-full border-collapse text-body;
+  }
+  .slot-comparison :is(th, td) {
+    @apply border-b border-line px-3 py-2 text-left align-top;
+  }
+  .slot-comparison thead th {
+    @apply min-w-36 font-semibold;
+  }
+  .slot-comparison thead th .badge {
+    @apply ml-2;
+  }
+  .slot-comparison tbody th {
+    @apply whitespace-nowrap font-medium text-ink-muted;
+  }
+  .slot-comparison .is-retained {
+    @apply bg-primary-soft;
+  }
+  .slot-comparison .is-dismissed {
+    @apply text-ink-muted;
+  }
+  .slot-comparison thead th.is-dismissed {
+    @apply font-normal line-through;
+  }
+  .slot-comparison-note {
+    @apply max-w-56;
+  }
+  .slot-comparison-actions {
+    @apply space-y-2;
+  }
+  .slot-comparison-actions > button {
+    @apply block w-full;
+  }
+  .slot-window-details > summary {
+    @apply min-h-11 cursor-pointer content-center font-medium text-primary;
+  }
 }

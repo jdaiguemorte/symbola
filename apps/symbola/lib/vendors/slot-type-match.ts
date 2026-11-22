@@ -29,3 +29,13 @@ export type RankedVendor = { id: string; name: string; matchesSlot: boolean; wor
 export function rankSlotVendors<T extends RankedVendor>(vendors: T[], locale: string): T[] {
   return [...vendors].sort((a, b) => Number(b.matchesSlot) - Number(a.matchesSlot) || Number(b.workedWith) - Number(a.workedWith) || a.name.localeCompare(b.name, locale));
 }
+
+// Lot 65b (PRE-02 ; maquette M14) : sans rien taper, tout le carnet du métier du poste (déjà classé) ;
+// sans fiche du métier, ou pour une recherche, les premières fiches.
+export const SHOWN_CHOICES = 8;
+
+export function slotChoiceList<T extends RankedVendor>(ranked: T[], term: string): T[] {
+  if (term.trim()) return ranked.slice(0, SHOWN_CHOICES);
+  const matching = ranked.filter((vendor) => vendor.matchesSlot);
+  return matching.length > 0 ? matching : ranked.slice(0, SHOWN_CHOICES);
+}

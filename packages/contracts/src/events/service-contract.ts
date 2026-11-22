@@ -981,6 +981,8 @@ export interface EventsServiceContract {
   getVendorCandidate(organizationId: string, candidateId: string): Promise<VendorCandidate | null>;
   listVendorConsultations(organizationId: string, vendorId: string): Promise<VendorConsultation[]>;
   listSelectedVendorIds(organizationId: string): Promise<string[]>;
+  // Lot 65b : nombre d'évènements (hors démonstration) où chaque fiche du carnet a été retenue.
+  countWorkedWithByVendor(organizationId: string): Promise<Map<string, number>>;
   // Lot 26a : par le lien personnel (rubrique « Options de prestataires »).
   getLinkVendorOptions(organizationId: string, linkId: string): Promise<ClientVendorSlotOptions[]>;
   getLinkVendorQuoteFile(organizationId: string, linkId: string, candidateId: string): Promise<FileDownload>;

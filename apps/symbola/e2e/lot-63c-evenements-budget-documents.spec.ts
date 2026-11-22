@@ -12,7 +12,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { addDefaultVendorSlots, addVendorCandidate, createEventType, createProspect, createProspectSource, createTaskTemplate, listEventTasks, listEventVendorSlots, listEvents } from "../modules/events/service";
 import { addVendorPayment, listBudgetLines, updateBudgetLine } from "../modules/budget/service";
 import { createVendor, createVendorType } from "../modules/vendors/service";
-import { readyOrganization, signIn } from "./helpers";
+import { closeSlotWindow, openSlotWindow, readyOrganization, signIn } from "./helpers";
 
 const TINY_PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1");
 
@@ -146,24 +146,42 @@ test("BUD-01, BUD-03, BUD-04 — Budget et prestataires : réel, écart, réglé
   await expect(schedule.getByText(/payée le/i)).toBeVisible({ timeout: 20_000 });
   await expect(caterer).not.toContainText("En retard");
 
-  // « Modifier » ouvre la grande fenêtre ; l'engagé se pose, « Engagé » s'affiche et le sous-total suit.
-  await caterer.getByRole("button", { name: /Modifier/ }).click();
-  const window = page.getByRole("dialog", { name: /Traiteur · ligne 1 sur 2/ });
-  await expect(window).toBeVisible();
+  // « Ouvrir » ouvre la fenêtre du poste (lot 65b, M14) ; rubrique « Montants » : l'engagé se pose,
+  // « Engagé » s'affiche et le sous-total suit.
+  const window = await openSlotWindow(page, "Traiteur", "Montants");
+  await expect(window).toHaveAccessibleName(/Traiteur · poste 1 sur 2/);
   await window.getByLabel("Engagé", { exact: true }).fill("8400");
   await expectNoAxeViolation(page);
-  await window.getByRole("button", { name: "Enregistrer, ligne suivante : Fleurs ›" }).click();
-  await expect(page.getByRole("dialog", { name: /Fleurs · ligne 2 sur 2/ })).toBeVisible();
+  await window.getByRole("button", { name: "Enregistrer, poste suivant : Fleurs ›" }).click();
+  await expect(page.getByRole("dialog", { name: /Fleurs · poste 2 sur 2/ })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(caterer.getByText("Engagé", { exact: true })).toBeVisible();
   await expect(table.getByRole("row", { name: /dont engagé/ })).toContainText("8 400,00 €");
 
-  // « Choisir un prestataire… » sur la ligne des fleurs : le fleuriste du catalogue d'abord, et le retenir.
+  // « + Ajouter des prestataires » sur la ligne des fleurs (lot 65b, M14 C) : le fleuriste du carnet,
+  // sans rien taper ; « Comparer » ne le retient pas, « Retenir » le retient.
   const flowers = table.getByRole("row").filter({ hasText: "Fleurs" }).first();
-  await flowers.getByRole("button", { name: /Choisir un prestataire…/ }).click();
+  await flowers.getByRole("button", { name: /\+ Ajouter des prestataires/ }).click();
   const results = page.getByRole("list", { name: "Prestataires de votre catalogue" });
-  await expect(results.getByRole("button").first()).toContainText("Atelier Floréal");
-  await results.getByRole("button", { name: /Atelier Floréal/ }).click();
+  await expect(results.getByRole("listitem").first()).toContainText("Atelier Floréal");
+  await expect(page.getByRole("link", { name: /Voir tout le carnet \(1 fiche du métier\)/ })).toBeVisible();
+  await results.getByRole("button", { name: "Comparer — Atelier Floréal" }).click();
+  await expect(results.getByRole("listitem").first()).toContainText("Dans la comparaison");
+  await page.keyboard.press("Escape");
+  await expect(flowers).toContainText("1 en comparaison");
+  await expect(flowers).not.toContainText("Atelier Floréal");
+
+  // La fenêtre du poste : la comparaison, « Retenir », puis « Ne plus retenir » (sans supprimer la ligne).
+  const floristWindow = await openSlotWindow(page, "Fleurs");
+  const comparison = floristWindow.getByRole("table", { name: "Comparaison des prestataires de « Fleurs »" });
+  await comparison.getByRole("button", { name: "Retenir — Atelier Floréal" }).click();
+  await expect(comparison.getByRole("columnheader", { name: /Atelier Floréal Retenu/ })).toBeVisible();
+  await expectNoAxeViolation(page);
+  await comparison.getByRole("button", { name: "Ne plus retenir — Atelier Floréal" }).click();
+  await expect(comparison.getByRole("button", { name: "Retenir — Atelier Floréal" })).toBeVisible();
+  await comparison.getByRole("button", { name: "Retenir — Atelier Floréal" }).click();
+  await expect(comparison.getByRole("columnheader", { name: /Atelier Floréal Retenu/ })).toBeVisible();
+  await closeSlotWindow(page, "Fleurs");
   await expect(flowers).toContainText("Atelier Floréal");
 
   // /budget/<id> mène à cet onglet.
