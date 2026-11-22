@@ -18,7 +18,7 @@ const PARIS = "Europe/Paris";
 const SEND_TIMES_TTL_MS = 30 * 60_000;
 const PASS_EVERY_MS = 60 * 60_000;
 
-type SendTimes = { at: number; defaultTime: string; byKey: Map<AutomationKey, string>; timeZones: string[] };
+type SendTimes = { until: number; defaultTime: string; byKey: Map<AutomationKey, string>; timeZones: string[] };
 const sendTimesCache = new Map<string, SendTimes>();
 const lastPassAt = new Map<string, number>();
 const lastRunAt = new Map<string, number>();
@@ -39,10 +39,12 @@ export function forgetSendTimes(organizationId?: string): void {
 
 async function sendTimesOf(organizationId: string, now: Date): Promise<SendTimes> {
   const cached = sendTimesCache.get(organizationId);
-  if (cached && now.getTime() - cached.at < SEND_TIMES_TTL_MS) return cached;
+  if (cached && now.getTime() < cached.until) return cached;
   const [defaultTime, gates, eventZones] = await Promise.all([getDefaultSendTime(organizationId), listAutomationGates(organizationId), listUpcomingEventTimeZones(organizationId, parisToday(now)).catch(() => [])]);
   const byKey = new Map<AutomationKey, string>(gates.map((gate) => [gate.key, gate.sendTime ?? defaultTime]));
-  const fresh = { at: now.getTime(), defaultTime, byKey, timeZones: [...new Set([PARIS, ...eventZones])] };
+  // Une durée tirée entre la moitié et une fois et demie : les relectures des organisations ne
+  // tombent pas toutes au même passage (une rafale de requêtes pendant les pages, NFR-02).
+  const fresh = { until: now.getTime() + SEND_TIMES_TTL_MS * (0.5 + Math.random()), defaultTime, byKey, timeZones: [...new Set([PARIS, ...eventZones])] };
   sendTimesCache.set(organizationId, fresh);
   return fresh;
 }

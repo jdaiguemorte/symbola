@@ -18,7 +18,7 @@ const INTERVAL_MS = 5 * 60 * 1000;
 const CACHE_MS = 30 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-type Plan = { at: number; events: (DayReminderEvent & { settings: DayReminderSetting[] })[] };
+type Plan = { until: number; events: (DayReminderEvent & { settings: DayReminderSetting[] })[] };
 const plans = new Map<string, Plan>();
 const done = new Set<string>();
 
@@ -37,12 +37,13 @@ function shiftDate(date: string, days: number): string {
 
 async function planOf(organizationId: string, now: Date): Promise<Plan> {
   const known = plans.get(organizationId);
-  if (known && now.getTime() - known.at < CACHE_MS) return known;
+  if (known && now.getTime() < known.until) return known;
   const today = parisToday(now);
   // Un fuseau lointain décale le jour : un jour de marge de chaque côté.
   const [organization, events] = await Promise.all([listDayReminderTargets(organizationId), listDayReminderEvents(organizationId, shiftDate(today, -1), shiftDate(today, 2))]);
   const withSettings = await Promise.all(events.map(async (event) => ({ ...event, settings: effectiveDayReminder(organization, await listDayReminderOverrides(organizationId, event.id)) })));
-  const plan = { at: now.getTime(), events: withSettings };
+  // Durée tirée entre la moitié et une fois et demie (NFR-02 : pas de rafale de relectures).
+  const plan = { until: now.getTime() + CACHE_MS * (0.5 + Math.random()), events: withSettings };
   plans.set(organizationId, plan);
   return plan;
 }
