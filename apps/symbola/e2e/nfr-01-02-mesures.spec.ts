@@ -22,7 +22,10 @@ const SERVER_P95_LIMIT_MS = 300;
 const SEARCH_P95_LIMIT_MS = 500;
 const MOBILE_4G = { offline: false, latency: 150, downloadThroughput: (1.6 * 1024 * 1024) / 8, uploadThroughput: (750 * 1024) / 8 };
 
-test.describe.configure({ mode: "serial" });
+// Lot 65 : chaque mesure est indépendante (préparation commune dans beforeAll, refaite par un
+// nouveau processus après un échec). En mode « serial », l'échec d'un geste (NFR-01) sautait la
+// mesure du serveur (NFR-02) à chaque reprise de la CI : elle n'était jouée qu'une fois.
+test.describe.configure({ mode: "default" });
 
 let setup: Atelier40c;
 // Sessions de la titulaire et des mariés (lien échangé), reprises par chaque contexte neuf (cache
