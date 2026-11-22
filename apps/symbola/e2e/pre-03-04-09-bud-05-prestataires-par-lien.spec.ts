@@ -23,6 +23,7 @@ import {
   setVendorScenarioChoice,
   updateVendorCandidate,
 } from "../modules/events/service";
+import { setRelationMailSender } from "../modules/hub/service";
 import { readyOrganization, signIn } from "./helpers";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
@@ -55,6 +56,9 @@ async function wedding() {
     const organization = await readyOrganization(db, `Org ${randomUUID()}`);
     const user = await createUser(db, { organizationId: organization.id, email, role: "owner" });
     const organizationId = organization.id;
+    // Lot 65d (ADR 0110) : ce parcours lit les boutons de l'e-mail du brief, envoyé par Symbola
+    // (« Symbola les envoie pour moi ») ; le réglage par défaut est rejoué par lot-65d-preparer-email.spec.ts.
+    await setRelationMailSender(organizationId, "symbola");
     const source = await createProspectSource(organizationId, "Salon");
     const event = await createProspect({ organizationId, createdByUserId: user.id, prospectSourceId: source.id, clients: [{ firstName: "Léa" }, { firstName: "Maxime" }], eventDate: "2027-06-12" });
     const flowers = await addEventVendorSlot(organizationId, event.id, "Fleurs");

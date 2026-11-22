@@ -96,8 +96,13 @@ test("PAR-09 / PRE-08 / EVT-08 — SC-09 : Camille clôture l'évènement en moi
   await expect(body).toHaveValue(/Bonjour Léa/);
   await body.fill(`${await body.inputValue()}\n\nLes photos arrivent la semaine prochaine.`);
   await page.getByRole("button", { name: "Envoyer" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Message envoyé." })).toBeVisible();
+  // Lot 65d (ADR 0110) : par défaut, la planner envoie les messages de la relation de sa messagerie ;
+  // Symbola prépare les remerciements (lien d'avis compris), elle note « J'ai envoyé ».
+  const prepared = page.getByRole("dialog", { name: "Préparer l'e-mail" });
+  await expect(prepared.getByLabel("Message", { exact: true })).toHaveValue(/Les photos arrivent la semaine prochaine\./);
   await expectNoAxeViolation(page);
+  await prepared.getByRole("button", { name: "J'ai envoyé" }).click();
+  await expect(prepared.getByRole("status").filter({ hasText: "Envoi noté" })).toBeVisible();
 
   // Étape 4 : clôturer (budget figé), puis archiver.
   await page.goto(`/events/${setup.eventId}/cloture`);

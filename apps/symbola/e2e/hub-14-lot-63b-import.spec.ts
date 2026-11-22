@@ -145,6 +145,8 @@ test("CHR-08 — programme du jour J importé depuis le PDF de l'ancien logiciel
 
   await page.goto(`/events/${event.id}?onglet=programme`);
   await page.getByRole("link", { name: "Importer", exact: true }).click();
+  // Lot 65g (CHR-08) : l'import s'ouvre en tête de la carte, une fois la page rechargée.
+  await expect(page).toHaveURL(/importer=1/);
   await page.getByLabel("Fichier CSV, XLSX ou PDF").setInputFiles(PROGRAM_PDF);
   await page.getByRole("button", { name: "Voir avant d'importer" }).click();
 

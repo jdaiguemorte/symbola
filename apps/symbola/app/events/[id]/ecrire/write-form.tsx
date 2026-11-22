@@ -78,7 +78,7 @@ export function WriteForm(props: Props) {
         )}
         <CopyMessageButton text={`${subject}\n\n${body}`} />
       </div>
-      <p className="meta">{t("sendHint")}</p>
+      <p className="meta">{t(props.plannerSends ? "prepareHint" : "sendHint")}</p>
       {result ? <p role={result.ok ? "status" : "alert"}>{result.ok ? result.message : result.error}</p> : null}
     </form>
   );
