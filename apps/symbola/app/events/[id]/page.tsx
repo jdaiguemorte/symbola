@@ -966,7 +966,9 @@ export default async function EventDetailPage({
                 choices={Object.fromEntries(
                   vendorSlots.map((slot) => {
                     const inTheRunning = candidatesBySlot(slot.id).filter((candidate) => candidate.status !== "dismissed" && !ENGAGED_CANDIDATE_STATUSES.includes(candidate.status));
-                    return [slot.id, { comparing: inTheRunning.length, quotes: inTheRunning.filter((candidate) => candidate.quoteAmountCents !== null || candidate.hasQuoteFile).length }];
+                    // La comparaison de la fenêtre se relit quand un prestataire du poste change (statut, devis).
+                    const signature = candidatesBySlot(slot.id).map((candidate) => `${candidate.id}:${candidate.status}:${candidate.quoteAmountCents ?? ""}:${candidate.hasQuoteFile ? 1 : 0}:${candidate.notes.length}`).join("|");
+                    return [slot.id, { comparing: inTheRunning.length, quotes: inTheRunning.filter((candidate) => candidate.quoteAmountCents !== null || candidate.hasQuoteFile).length, signature }];
                   }),
                 )}
                 catalogHrefs={Object.fromEntries(vendorSlots.map((slot) => [slot.id, `/prestataires?evenement=${event.id}&poste=${slot.id}`]))}

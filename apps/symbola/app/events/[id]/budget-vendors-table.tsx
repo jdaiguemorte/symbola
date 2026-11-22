@@ -57,7 +57,7 @@ export function BudgetVendorsTable({
   initialSlotId: string | null;
   slotPanels: Record<string, SlotPanel>;
   // Prestataires en comparaison (hors écartés et retenus) et devis reçus, par poste.
-  choices: Record<string, { comparing: number; quotes: number }>;
+  choices: Record<string, { comparing: number; quotes: number; signature?: string }>;
   // Le carnet filtré pour le poste, et la demande de devis.
   catalogHrefs: Record<string, string>;
   consultationHrefs: Record<string, string>;
@@ -305,6 +305,7 @@ export function BudgetVendorsTable({
           vendorsAvailable={vendorsAvailable}
           vendorTypes={vendorTypes}
           catalogHref={catalogHrefs[editingRow.slotId] ?? "/prestataires"}
+          candidatesSignature={choices[editingRow.slotId]?.signature ?? ""}
           consultationHref={consultationHrefs[editingRow.slotId] ?? "#"}
           onClose={() => setEditingId(null)}
           onMove={(step) => setEditingId(rows[editing + step]?.slotId ?? null)}

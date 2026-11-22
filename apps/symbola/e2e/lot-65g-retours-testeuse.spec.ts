@@ -56,13 +56,16 @@ test("HUB-14, BUD-04 — Lot 65g : le budget de la testeuse s'importe depuis l'�
   await page.getByRole("button", { name: "Lire le fichier" }).click();
   await expect(page).toHaveURL(/\/colonnes$/, { timeout: 30_000 });
   await expect(page.getByText("Symbola en a reconnu 7 sur 8.", { exact: false })).toBeVisible();
-  // Chaque liste « devient » se voit en entier : la colonne n'est plus coupée par le cadre.
+  // Chaque liste « devient » se voit en entier : la colonne n'est plus coupée par le cadre (sur
+  // ordinateur ; sur téléphone, le tableau défile dans sa largeur).
+  if ((page.viewportSize()?.width ?? 1280) >= 1024) {
   const clipped = await page.evaluate(() => {
     const wrap = document.querySelector(".columns-map .list-table-wrap") as HTMLElement;
     const right = wrap.getBoundingClientRect().right;
     return [...wrap.querySelectorAll("select")].filter((select) => select.getBoundingClientRect().right > right + 1).length;
   });
   expect(clipped).toBe(0);
+  }
   await expectNoAxeViolation(page);
 });
 
@@ -87,6 +90,7 @@ test("CHR-08 — Lot 65g : « Importer » ouvre l'import du programme en tête d
   await signIn(page, setup.email);
   await page.goto(`/events/${setup.eventId}?onglet=programme`);
   await page.getByRole("link", { name: "Importer", exact: true }).click();
+  await expect(page).toHaveURL(/importer=1/);
   const file = page.getByLabel("Fichier CSV, XLSX ou PDF");
   await expect(file).toBeVisible();
   await expect(file).toHaveCount(1);

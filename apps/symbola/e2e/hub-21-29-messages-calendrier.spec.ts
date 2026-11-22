@@ -111,9 +111,13 @@ test("HUB-21 / MSG-02 — « Écrire au client » : le modèle rempli avec la fi
   await expect(page.getByRole("heading", { name: "Ce message part à 2 personnes" })).toBeVisible();
   await expectNoAxeViolation(page);
   await expectNoHorizontalScroll(page);
-  // « Ouvrir dans ma messagerie » : le texte part dans la messagerie de la planner, l'envoi est noté « préparé ».
-  await page.getByRole("button", { name: "Ouvrir dans ma messagerie" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "préparé" })).toBeVisible();
+  // Lot 65d (ADR 0110) : par défaut, la planner envoie de sa messagerie. « Préparer l'e-mail » ouvre le
+  // message prêt (ouvrir, copier), « J'ai envoyé » le note dans l'activité.
+  await page.getByRole("button", { name: "Préparer l'e-mail" }).click();
+  const prepared = page.getByRole("dialog", { name: "Préparer l'e-mail" });
+  await expect(prepared.getByLabel("Message", { exact: true })).toHaveValue(/^Bonjour Léa & Maxime,/);
+  await prepared.getByRole("button", { name: "J'ai envoyé" }).click();
+  await expect(prepared.getByRole("status").filter({ hasText: "Envoi noté" })).toBeVisible();
 
   // Seulement Léa : un destinataire, sans liste.
   await page.goto(`/events/${setup.eventId}/ecrire`);
@@ -121,7 +125,7 @@ test("HUB-21 / MSG-02 — « Écrire au client » : le modèle rempli avec la fi
   await page.getByRole("group", { name: "Destinataires" }).getByLabel(`Maxime Durand — ${setup.maxime}`).uncheck();
   await page.getByRole("button", { name: "Mettre à jour l'aperçu" }).click();
   await expect(page.getByRole("textbox", { name: "Texte" })).toHaveValue(/^Bonjour Léa,/);
-  await expect(page.getByRole("button", { name: "Envoyer depuis Symbola", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Préparer l'e-mail", exact: true })).toBeVisible();
 
   // Un modèle qui emploie le lieu, absent de la fiche : le message ne s'ouvre pas.
   await openSettingsTab(page, "Modèles de messages");
@@ -135,7 +139,7 @@ test("HUB-21 / MSG-02 — « Écrire au client » : le modèle rempli avec la fi
   await page.getByLabel("Modèle", { exact: true }).selectOption({ label: "Visite du lieu" });
   await page.getByRole("button", { name: "Mettre à jour l'aperçu" }).click();
   await expect(page.getByRole("alert")).toContainText("Ces variables n'ont pas de valeur : {{lieu}}.");
-  await expect(page.getByRole("button", { name: /Ouvrir dans ma messagerie|Envoyer depuis Symbola/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Préparer l'e-mail|Ouvrir dans ma messagerie|Envoyer depuis Symbola/ })).toHaveCount(0);
   await expectNoAxeViolation(page);
 });
 

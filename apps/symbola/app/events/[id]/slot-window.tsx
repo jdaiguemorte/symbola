@@ -43,6 +43,7 @@ export function SlotWindow({
   vendorTypes,
   catalogHref,
   consultationHref,
+  candidatesSignature,
   onClose,
   onMove,
 }: {
@@ -61,6 +62,8 @@ export function SlotWindow({
   vendorTypes: { id: string; label: string }[];
   catalogHref: string;
   consultationHref: string;
+  // Change quand un prestataire du poste change : la comparaison se relit.
+  candidatesSignature: string;
   onClose: () => void;
   onMove: (step: -1 | 1) => void;
 }) {
@@ -185,7 +188,7 @@ export function SlotWindow({
               slotId={row.slotId}
               slotLabel={row.label}
               locale={locale}
-              version={version}
+              version={`${version}:${candidatesSignature}`}
               addVendor={
                 vendorsAvailable ? (
                   <VendorChoice eventId={eventId} slotId={row.slotId} slotLabel={row.label} catalogHref={catalogHref} vendorTypes={vendorTypes} label={t("addOne")} onChanged={() => setVersion(version + 1)} />

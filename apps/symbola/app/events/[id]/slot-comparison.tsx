@@ -13,7 +13,7 @@ import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
 import { NoteReminderButton } from "@/app/accueil/note-reminder";
 import { releaseSlotRetainedAction, retainSlotCandidateAction, setSlotCandidateDismissedAction, slotComparisonAction, type SlotComparisonColumn, type SlotVendorState } from "./budget-vendor-actions";
 
-export function SlotComparison({ eventId, slotId, slotLabel, locale, version, addVendor }: { eventId: string; slotId: string; slotLabel: string; locale: Locale; version: number; addVendor: React.ReactNode }) {
+export function SlotComparison({ eventId, slotId, slotLabel, locale, version, addVendor }: { eventId: string; slotId: string; slotLabel: string; locale: Locale; version: string | number; addVendor: React.ReactNode }) {
   const t = useTranslations("BudgetVendors");
   const tStatus = useTranslations("VendorCandidates");
   const tReminder = useTranslations("Today.reminder");
