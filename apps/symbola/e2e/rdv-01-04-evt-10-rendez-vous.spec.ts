@@ -72,15 +72,20 @@ test("RDV-01 à RDV-04, EVT-10 — un type en moins d'une minute, une réservati
   await lea.goto(`/reserver/${slug}`);
   await expect(lea.getByRole("heading", { level: 1, name: "Premier rendez-vous" })).toBeVisible();
   await expectNoAxeViolation(lea);
-  const firstSlot = lea.getByRole("radio").first();
-  await firstSlot.focus();
-  await lea.keyboard.press("Space");
-  await expect(firstSlot).toBeChecked();
+  // Lot 64 (M8, M9) : une heure, « Suivant », puis une étape à la fois, au clavier.
+  await lea.locator("button.booking-time").first().focus();
+  await lea.keyboard.press("Enter");
+  await expect(lea.getByRole("button", { name: /^Suivant, créneau du/ })).toBeFocused();
+  await lea.keyboard.press("Enter");
+  await expect(lea.getByRole("heading", { name: "Vos coordonnées" })).toBeFocused();
   await lea.keyboard.press("Tab");
   await expect(lea.getByLabel("Votre nom")).toBeFocused();
   await lea.keyboard.type("Léa Martin");
   await lea.keyboard.press("Tab");
   await lea.keyboard.type(leaEmail);
+  await lea.keyboard.press("Enter");
+  await expect(lea.getByRole("heading", { name: "Vérifiez et réservez" })).toBeFocused();
+  await expectNoAxeViolation(lea);
   await lea.getByRole("button", { name: "Réserver ce rendez-vous" }).focus();
   await lea.keyboard.press("Enter");
   await expect(lea.getByRole("heading", { name: "Votre rendez-vous est confirmé" })).toBeVisible();
@@ -94,8 +99,8 @@ test("RDV-01 à RDV-04, EVT-10 — un type en moins d'une minute, une réservati
   await lea.goto(link.replace(/^https?:\/\/[^/]+/, ""));
   await expect(lea).toHaveURL(/\/rdv$/);
   await lea.getByRole("button", { name: "Reporter" }).click();
-  await lea.getByRole("radio").nth(1).check();
-  await lea.getByRole("button", { name: "Confirmer le report" }).click();
+  await lea.locator("button.booking-time").nth(1).click();
+  await lea.getByRole("button", { name: /^Confirmer le report/ }).click();
   await expect(lea.getByRole("status")).toContainText("votre rendez-vous est déplacé");
   await expectNoAxeViolation(lea);
   await visitor.close();

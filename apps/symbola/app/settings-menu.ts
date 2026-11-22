@@ -66,6 +66,8 @@ export function settingsMenu(flags: SettingsMenuFlags): SettingsMenuGroup[] {
                 { href: "/events/parametres", label: "budgetLines" },
                 { href: "/events/parametres/sources", label: "sourcesReasons" },
                 { href: "/events/parametres/types", label: "eventTypes" },
+                // Lot 64 (HUB-29, RDV-02) : les heures qu'un évènement prend, par type.
+                { href: "/events/parametres/plages-occupees", label: "busyRanges" },
                 // Lot 53 (HUB-24, D8) : le terme qui désigne les clients de chaque type.
                 { href: "/events/parametres/termes", label: "clientTerms" },
                 // Lot 44 (CRM-01, CRM-02) : étapes du pipeline et formulaire de contact, titulaire seulement.

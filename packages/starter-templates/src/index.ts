@@ -897,12 +897,37 @@ export type StarterEventTypeAudience = "couple" | "clients";
 export type StarterEventType = { key: string; label: string; audience: StarterEventTypeAudience };
 
 const eventTypeKeys = z.array(z.string().min(1)).min(1);
+// Lot 64 (HUB-29, RDV-02 ; D1, D6) : une borne de plage occupée, jour relatif (-7 à 7) et heure locale.
+const busyBoundSchema = z.object({ day: z.number().int().min(-7).max(7), time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/) });
+const busyRuleFileSchema = z
+  .object({ start: busyBoundSchema, end: busyBoundSchema })
+  .refine((rule) => rule.end.day * 1440 + minutesOf(rule.end.time) > rule.start.day * 1440 + minutesOf(rule.start.time), "la fin vient après le début");
 const eventTypesSchema = z.object({
   version: z.literal(1),
-  items: z.array(z.object({ key: z.string().min(1), label: translatedLabelSchema, audience: z.enum(["couple", "clients"]) })).min(1),
+  items: z.array(z.object({ key: z.string().min(1), label: translatedLabelSchema, audience: z.enum(["couple", "clients"]), busy: busyRuleFileSchema })).min(1),
+  fallbackBusy: busyRuleFileSchema,
+  optionsBlock: z.boolean(),
   orders: z.object({ wedding_planner: eventTypeKeys, event_agency: eventTypeKeys }),
 });
+function minutesOf(time: string): number {
+  const [hours, minutes] = time.split(":").map(Number) as [number, number];
+  return hours * 60 + minutes;
+}
 const eventTypes = eventTypesSchema.parse(eventTypesFile);
+
+// Lot 64 (HUB-29, RDV-02 ; D1, D2) — plages occupées de départ : celle d'un type de départ (par sa clé),
+// sinon celle de repli (type créé par l'organisation, évènement sans type) ; et si une option bloque.
+export type StarterBusyRule = { startDayOffset: number; startTime: string; endDayOffset: number; endTime: string };
+function toBusyRule(rule: z.infer<typeof busyRuleFileSchema>): StarterBusyRule {
+  return { startDayOffset: rule.start.day, startTime: rule.start.time, endDayOffset: rule.end.day, endTime: rule.end.time };
+}
+export function starterBusyRule(starterKey: string | null): StarterBusyRule {
+  const item = starterKey ? eventTypes.items.find((candidate) => candidate.key === starterKey) : undefined;
+  return toBusyRule(item ? item.busy : eventTypes.fallbackBusy);
+}
+export function starterBusySettings(): { optionsBlock: boolean; fallback: StarterBusyRule } {
+  return { optionsBlock: eventTypes.optionsBlock, fallback: toBusyRule(eventTypes.fallbackBusy) };
+}
 
 export function starterEventTypes(locale: StarterLocale, metier: StarterMetier = "wedding_planner"): StarterEventType[] {
   const byKey = new Map(eventTypes.items.map((item) => [item.key, item]));

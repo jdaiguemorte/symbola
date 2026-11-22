@@ -63,6 +63,10 @@ export default async function ProfilePage() {
             <span className={personFeed ? "badge badge-sauge" : "badge"}>{personFeed ? tCalendar("statusActive") : tCalendar("statusNone")}</span>
           </div>
           <p className="field-hint">{tCalendar("personHint")}</p>
+          {/* Lot 64 (HUB-29 ; maquette M5) : l'abonnement affiche ; un outil de réservation ne le lit pas toujours. */}
+          <p className="notice" role="note">
+            <strong>{tCalendar("bookingToolTitle")}</strong> {tCalendar("bookingToolBody")}
+          </p>
           <p>
             {personFeed
               ? tCalendar("active", {

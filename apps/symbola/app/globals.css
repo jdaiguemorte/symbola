@@ -3947,25 +3947,56 @@
   .booking-slots > legend {
     @apply mb-1 p-0 font-semibold;
   }
-  /* Lot 61 — la semaine : une ligne par jour (le nom du jour, puis ses deux plages), les champs
-     passent à la ligne à 375 px. */
-  .availability-week {
-    @apply flex w-full flex-col;
+  /* Lot 64 (maquette M6) — « Ma semaine » : une grille, une ligne par jour (interrupteur et nom, plages
+     alignées, « + Plage ») ; sur téléphone, le jour sur une ligne et ses plages dessous. */
+  .week-editor {
+    @apply m-0 grid w-full gap-0;
   }
-  .availability-day {
-    @apply flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line py-3 last:border-b-0;
+  .week-editor-head,
+  .week-editor-row {
+    @apply grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 border-b border-line py-3 md:grid-cols-[10rem_minmax(0,1fr)_auto];
   }
-  .availability-day-name {
-    @apply w-24 shrink-0 font-semibold;
+  .week-editor-head {
+    @apply py-2 text-label font-medium text-ink-muted;
   }
-  .availability-range {
-    @apply flex flex-wrap items-center gap-2;
+  .week-editor-head > span:nth-child(2) {
+    @apply hidden md:block;
   }
-  .availability-range label {
-    @apply w-auto flex-row items-center gap-2 text-body font-normal text-ink-muted;
+  .week-editor-copy {
+    @apply justify-self-end whitespace-nowrap text-label md:col-start-3;
   }
-  .availability-range input[type="time"] {
-    @apply w-28 px-3;
+  .week-editor-day {
+    @apply col-start-1 row-start-1 flex items-center gap-3 font-semibold;
+  }
+  .week-editor-ranges {
+    @apply col-span-full row-start-2 flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 md:col-span-1 md:col-start-2 md:row-start-1;
+  }
+  .week-editor-range {
+    @apply inline-flex items-center gap-2;
+  }
+  .week-editor-range input[type="time"] {
+    @apply w-28 px-2 text-center tabular-nums md:w-32 md:px-3;
+  }
+  .week-editor-to {
+    @apply text-label text-ink-muted;
+  }
+  .week-editor-remove {
+    @apply min-h-11 min-w-9 px-0 text-heading text-ink-muted;
+  }
+  .week-editor-closed {
+    @apply text-ink-muted;
+  }
+  .week-editor-problem {
+    @apply w-full text-label font-medium text-critical;
+  }
+  .week-editor-add {
+    @apply col-start-2 row-start-1 flex justify-end md:col-start-3;
+  }
+  .week-editor-max {
+    @apply text-label text-ink-muted;
+  }
+  .week-editor-foot {
+    @apply flex flex-wrap items-center justify-between gap-3 pt-4;
   }
   /* Les deux champs du formulaire « Relier un agenda » se partagent la largeur de la carte. */
   .agenda-form > .form-row {
@@ -5205,6 +5236,497 @@
   }
   .notice.notice-error {
     @apply bg-critical-soft text-critical;
+  }
+}
+
+/* Lot 64 (HUB-29, RDV-02 ; maquettes M1 à M4) — plages occupées : fenêtre à formulaire, champs d'une
+   règle et son aperçu (frise de jours), interrupteur, bloc de la fiche. */
+@layer components {
+  .form-dialog {
+    @apply m-auto w-[min(32rem,calc(100vw-2rem))] rounded-lg border border-line bg-surface p-6 text-ink shadow-float;
+  }
+  .form-dialog.form-dialog-wide {
+    @apply w-[min(40rem,calc(100vw-2rem))];
+  }
+  .form-dialog::backdrop {
+    background: color-mix(in srgb, var(--color-ink) 35%, transparent);
+  }
+  .form-dialog > h2 {
+    @apply m-0 mb-1 text-title;
+  }
+  .form-dialog-intro {
+    @apply mt-0 mb-4 text-label text-ink-muted;
+  }
+  .form-dialog-form {
+    @apply m-0 grid gap-4;
+  }
+  .form-dialog-actions {
+    @apply mt-2 flex flex-wrap items-center justify-end gap-2;
+  }
+  .busy-rule-fields {
+    @apply grid gap-4;
+  }
+  .busy-bound {
+    @apply grid grid-cols-[minmax(0,1fr)_9.5rem] items-end gap-3 sm:grid-cols-[4.5rem_minmax(0,1fr)_9.5rem];
+  }
+  .busy-bound-title {
+    @apply col-span-full text-heading font-semibold sm:col-span-1 sm:pb-3;
+  }
+  .busy-bound-field {
+    @apply grid min-w-0 gap-1 text-label font-medium;
+  }
+  .busy-bound-field select,
+  .busy-bound-field input {
+    @apply w-full min-w-0;
+  }
+  .busy-preview {
+    @apply grid gap-0;
+  }
+  .busy-preview-title {
+    @apply m-0 text-label font-semibold;
+  }
+  .busy-timeline {
+    @apply relative mt-2 h-14 overflow-hidden rounded-md border border-line bg-ground;
+  }
+  .busy-timeline-days {
+    @apply absolute inset-0 flex;
+  }
+  .busy-timeline-days > span {
+    @apply min-w-0 flex-1 truncate border-l border-dashed border-line-strong px-1 pt-1 text-label text-ink-muted first:border-l-0;
+  }
+  .busy-timeline-bar {
+    @apply absolute inset-x-0 top-6 block h-5 w-full;
+  }
+  .busy-timeline-bar rect {
+    fill: var(--color-primary);
+  }
+  .busy-preview-sentence {
+    @apply mt-2 mb-0 text-body;
+  }
+  .busy-preview-invalid {
+    @apply font-medium text-critical;
+  }
+  .busy-table .busy-row-hint {
+    @apply block text-label font-normal text-ink-muted;
+  }
+  .busy-row-actions {
+    @apply text-right;
+  }
+  .busy-row-actions {
+    @apply whitespace-nowrap;
+  }
+  .busy-row-actions > button,
+  .busy-row-actions > form {
+    @apply m-0 inline-flex align-middle;
+  }
+  .busy-card-range {
+    @apply mt-0 mb-1 text-body font-semibold;
+  }
+  .busy-card-actions {
+    @apply mt-4 flex flex-wrap items-center gap-2;
+  }
+  .busy-card-actions form {
+    @apply m-0;
+  }
+  .busy-card-actions form button {
+    @apply min-h-11 text-body font-semibold;
+  }
+  .busy-steps {
+    @apply my-3 pl-6;
+  }
+  .busy-switch-form {
+    @apply m-0 flex items-center gap-2;
+  }
+  /* Interrupteur générique : un bouton (role="switch"), 44 × 26 px. Sélecteurs plus précis que la
+     règle des formulaires d'un seul bouton (hauteur, fond, survol), comme celui des moyens de paiement. */
+  form button.toggle-switch.toggle-switch[type="submit"],
+  form button.toggle-switch.toggle-switch[type="submit"]:hover,
+  button.toggle-switch[type="button"],
+  button.toggle-switch[type="button"]:hover {
+    @apply relative h-[26px] min-h-0 w-11 shrink-0 cursor-pointer rounded-full border-0 bg-line-strong p-0 transition-none;
+  }
+  form button.toggle-switch.toggle-switch[type="submit"]::after,
+  button.toggle-switch[type="button"]::after {
+    @apply absolute top-[3px] left-[3px] h-5 w-5 rounded-full bg-surface content-[''];
+  }
+  form button.toggle-switch.toggle-switch[type="submit"][aria-checked="true"],
+  form button.toggle-switch.toggle-switch[type="submit"][aria-checked="true"]:hover,
+  button.toggle-switch[type="button"][aria-checked="true"],
+  button.toggle-switch[type="button"][aria-checked="true"]:hover {
+    @apply bg-primary;
+  }
+  form button.toggle-switch.toggle-switch[type="submit"][aria-checked="true"]::after,
+  button.toggle-switch[type="button"][aria-checked="true"]::after {
+    @apply left-[21px];
+  }
+  form button.toggle-switch.toggle-switch[type="submit"]:focus-visible,
+  button.toggle-switch[type="button"]:focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+  /* Une fenêtre fermée reste cachée, même dans une cellule de tableau mise en bloc sur téléphone. */
+  dialog.form-dialog:not([open]) {
+    display: none;
+  }
+}
+
+/* Lot 64 (RDV-01 ; maquette M7) — réglage d'un type de rendez-vous : formulaire en grille, lieu en
+   choix segmenté, questions préalables en liste éditable (une ligne par question, ouverte en place). */
+@layer components {
+  main > form.type-form {
+    @apply m-0 grid max-w-none gap-4 rounded-none border-0 bg-transparent p-0 shadow-none;
+  }
+  .type-form > .card {
+    @apply m-0;
+  }
+  .type-grid {
+    @apply grid w-full grid-cols-1 gap-4;
+  }
+  @media (min-width: 48rem) {
+    .type-grid-meeting {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.4fr);
+    }
+    .type-grid-when {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      align-items: end;
+    }
+  }
+  .type-grid > label,
+  .type-description {
+    @apply grid max-w-none gap-1 text-label font-medium;
+  }
+  .type-grid input,
+  .type-grid select {
+    @apply w-full;
+  }
+  .type-location {
+    @apply mt-4 grid gap-2 md:grid-cols-[auto_minmax(0,1fr)] md:items-center;
+  }
+  .type-location > span:first-child,
+  .type-location > .field-hint {
+    @apply md:col-span-2;
+  }
+  .type-location-detail {
+    @apply m-0 max-w-none;
+  }
+  .type-location-detail input {
+    @apply w-full;
+  }
+  .type-description {
+    @apply mt-4;
+  }
+  .type-description textarea {
+    @apply w-full;
+  }
+  .segmented-radio {
+    @apply inline-flex w-fit overflow-hidden rounded-md border border-line-strong;
+  }
+  .segmented-radio > label {
+    @apply relative m-0 flex min-h-11 cursor-pointer items-center border-r border-line-strong px-4 text-body font-normal last:border-r-0;
+  }
+  .segmented-radio > label > input {
+    @apply sr-only;
+  }
+  .segmented-radio > label:has(input:checked) {
+    @apply bg-primary-soft font-semibold text-primary;
+  }
+  .segmented-radio > label:has(input:focus-visible) {
+    @apply outline-2 -outline-offset-2 outline-primary;
+  }
+  .type-switches {
+    @apply m-0 mt-4 grid list-none gap-3 border-t border-line p-0 pt-4;
+  }
+  .type-switches .checkbox > span {
+    @apply grid gap-1;
+  }
+  .type-switches .type-reminders > label {
+    @apply w-full max-w-none flex-row flex-wrap items-center justify-between gap-3 text-body font-semibold;
+  }
+  .type-reminders select {
+    @apply w-56;
+  }
+  .type-form-foot {
+    @apply flex justify-end;
+  }
+  .questions-editor {
+    @apply grid gap-3;
+  }
+  .questions-list {
+    @apply m-0 list-none p-0;
+  }
+  .questions-item {
+    @apply border-b border-line;
+  }
+  .questions-item-open {
+    @apply rounded-md bg-ground;
+  }
+  .questions-item-head {
+    @apply grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 py-2 md:grid-cols-[auto_minmax(0,1fr)_11rem_7rem_auto];
+  }
+  .questions-move {
+    @apply row-span-2 inline-flex md:row-span-1;
+  }
+  .questions-move button {
+    @apply min-h-11 min-w-9 px-1;
+  }
+  .questions-item-label {
+    @apply min-w-0 font-medium wrap-anywhere;
+  }
+  .questions-item-kind,
+  .questions-item-required {
+    @apply text-label text-ink-muted;
+  }
+  .questions-item-kind {
+    @apply col-start-2 md:col-start-auto;
+  }
+  .questions-item-required {
+    @apply hidden md:inline;
+  }
+  .questions-item-head > button:last-child {
+    @apply col-start-3 row-start-1 md:col-start-auto md:row-start-auto;
+  }
+  .questions-item-body {
+    @apply grid gap-4 px-3 pb-4;
+  }
+  .questions-item-grid {
+    @apply grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end;
+  }
+  .questions-item-grid > label {
+    @apply grid max-w-none gap-1 text-label font-medium;
+  }
+  .questions-item-grid input {
+    @apply w-full;
+  }
+  .segmented-choice {
+    @apply inline-flex w-fit overflow-hidden rounded-md border border-line-strong;
+  }
+  .segmented-choice > button[type="button"] {
+    @apply min-h-11 rounded-none border-0 border-r border-line-strong bg-surface px-4 font-normal last:border-r-0;
+  }
+  .segmented-choice > button[type="button"][aria-checked="true"] {
+    @apply bg-primary-soft font-semibold text-primary;
+  }
+  .questions-choices {
+    @apply grid gap-2;
+  }
+  .choice-chips {
+    @apply m-0 flex list-none flex-wrap gap-2 p-0;
+  }
+  .choice-chip {
+    @apply inline-flex min-h-9 items-center gap-1 rounded-md border border-line-strong bg-surface pl-3 text-body;
+  }
+  .choice-chip button {
+    @apply min-h-9 min-w-9 px-1 text-ink-muted;
+  }
+  .choice-add {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .choice-add input {
+    @apply w-60 max-w-full;
+  }
+  .questions-item-foot {
+    @apply flex flex-wrap items-center justify-between gap-3;
+  }
+}
+
+/* Lot 64 (RDV-02 ; maquettes M8 à M10) — réservation : une fenêtre en colonnes (le rendez-vous, le
+   mois, les heures), puis une étape à la fois. Sur téléphone, les colonnes s'empilent. */
+@layer components {
+  main.link-page.booking-page {
+    @apply max-w-[66rem] rounded-none border-0 bg-transparent p-0 sm:p-0;
+  }
+  .booking-window h1[tabindex="-1"]:focus,
+  .booking-window h2[tabindex="-1"]:focus {
+    @apply outline-none;
+  }
+  .booking-window {
+    @apply my-4 grid overflow-hidden rounded-lg border border-line bg-surface shadow-float;
+  }
+  @media (min-width: 60rem) {
+    .booking-window {
+      grid-template-columns: 17rem minmax(0, 1fr) 14rem;
+      min-height: 32rem;
+    }
+    .booking-window.booking-window-two {
+      grid-template-columns: 17rem minmax(0, 1fr);
+    }
+  }
+  .booking-summary {
+    @apply grid content-start gap-2 border-b border-line p-6 lg:border-r lg:border-b-0;
+  }
+  .booking-organization {
+    @apply m-0 text-label text-ink-muted;
+  }
+  .booking-type-name {
+    @apply m-0 text-title;
+  }
+  .booking-meta {
+    @apply m-0 grid list-none gap-1 p-0 text-body;
+  }
+  .booking-meta-slot {
+    @apply font-semibold;
+  }
+  .booking-change {
+    @apply justify-self-start px-0;
+  }
+  .booking-description {
+    @apply m-0 mt-2 text-body text-ink-muted;
+  }
+  .booking-calendar {
+    @apply grid content-start gap-3 p-6;
+  }
+  .booking-calendar > h2,
+  .booking-times > h2 {
+    @apply m-0 text-heading;
+  }
+  .booking-month {
+    @apply flex items-center justify-between gap-2;
+  }
+  .booking-month-nav {
+    @apply min-w-11 px-0;
+  }
+  .booking-month-name {
+    @apply m-0 font-display text-heading font-semibold capitalize;
+  }
+  .booking-grid {
+    @apply grid gap-2;
+  }
+  .booking-grid-row {
+    @apply grid grid-cols-7 gap-2;
+  }
+  .booking-weekday {
+    @apply text-center text-label font-medium text-ink-muted capitalize;
+  }
+  .booking-grid-row > span {
+    @apply flex justify-center;
+  }
+  button.booking-day {
+    @apply h-11 w-11 min-w-0 rounded-full border-0 p-0 text-body tabular-nums;
+  }
+  .booking-day-empty {
+    @apply h-11;
+  }
+  button.booking-day.booking-day-available {
+    @apply bg-primary-soft font-semibold text-primary hover:bg-primary hover:text-on-primary;
+  }
+  button.booking-day.booking-day-selected {
+    @apply bg-primary font-semibold text-on-primary;
+  }
+  button.booking-day.booking-day-off,
+  button.booking-day.booking-day-off:disabled {
+    @apply cursor-default bg-transparent text-line-strong line-through opacity-100;
+  }
+  .booking-zone,
+  .booking-delay {
+    @apply m-0 text-label text-ink-muted;
+  }
+  .booking-times {
+    @apply grid content-start gap-3 border-t border-line p-6 lg:border-t-0 lg:border-l lg:px-4;
+  }
+  .booking-time-list {
+    @apply m-0 grid list-none grid-cols-3 gap-2 p-0 lg:max-h-[26rem] lg:grid-cols-1 lg:overflow-y-auto lg:pr-1;
+  }
+  button.booking-time {
+    @apply w-full border-primary bg-surface font-semibold text-primary tabular-nums hover:bg-primary-soft;
+  }
+  .booking-time-pick {
+    @apply col-span-full grid grid-cols-2 gap-2;
+  }
+  .booking-time-chosen {
+    @apply flex min-h-11 items-center justify-center rounded-md bg-ink-muted font-semibold text-on-primary tabular-nums;
+  }
+  .booking-time-pick button {
+    @apply w-full border-primary bg-primary font-semibold text-on-primary hover:bg-primary-strong;
+  }
+  .booking-step {
+    @apply m-0 grid content-start gap-4 p-6 lg:px-12 lg:py-8;
+  }
+  .booking-progress {
+    @apply w-full;
+  }
+  .booking-progress-bar,
+  .booking-progress-full {
+    @apply block h-1 w-full overflow-hidden rounded-full bg-line;
+  }
+  .booking-progress-full {
+    @apply bg-primary;
+  }
+  .booking-progress-bar svg {
+    @apply block h-1 w-full;
+  }
+  .booking-progress-bar rect {
+    fill: var(--color-primary);
+  }
+  .booking-step-number {
+    @apply m-0 text-label font-semibold text-primary;
+  }
+  .booking-question-title {
+    @apply m-0 font-display text-title leading-tight font-semibold;
+  }
+  .booking-required {
+    @apply text-label font-normal text-ink-muted;
+  }
+  .booking-fields {
+    @apply grid max-w-xl gap-4 sm:grid-cols-2;
+  }
+  .booking-fields > label {
+    @apply grid max-w-none gap-1;
+  }
+  .booking-choices {
+    @apply grid max-w-md gap-3;
+  }
+  button.booking-choice {
+    @apply min-h-13 w-full justify-start gap-3 rounded-md border-line-strong bg-surface px-4 text-left text-reading font-normal text-ink;
+  }
+  button.booking-choice kbd {
+    @apply inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border border-line-strong text-label font-semibold text-ink-muted;
+  }
+  button.booking-choice[aria-checked="true"] {
+    @apply border-primary bg-primary-soft font-semibold text-primary;
+  }
+  button.booking-choice[aria-checked="true"] kbd {
+    @apply border-primary bg-primary text-on-primary;
+  }
+  .booking-answer {
+    @apply w-full max-w-xl rounded-none border-0 border-b-2 border-primary bg-transparent px-0 text-title;
+  }
+  .booking-hint {
+    @apply m-0 text-label text-ink-muted;
+  }
+  .booking-recap {
+    @apply m-0 grid max-w-xl grid-cols-[9rem_minmax(0,1fr)] gap-x-4 gap-y-2 rounded-lg border border-line p-4;
+  }
+  .booking-recap dt {
+    @apply text-label text-ink-muted;
+  }
+  .booking-recap dd {
+    @apply m-0 wrap-anywhere;
+  }
+  .booking-recap-row {
+    @apply contents;
+  }
+  .booking-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .booking-check {
+    @apply m-0 flex h-14 w-14 items-center justify-center rounded-full bg-primary-soft text-figure font-bold text-primary;
+  }
+  main.link-page:has(.booking-reschedule) {
+    @apply max-w-[52rem];
+  }
+  @media (min-width: 60rem) {
+    .booking-window.booking-window-two.booking-reschedule {
+      grid-template-columns: minmax(0, 1fr) 14rem;
+      min-height: 0;
+    }
+  }
+  .booking-reschedule-back {
+    @apply col-span-full border-t border-line p-4;
+  }
+  .booking-notice {
+    @apply text-label text-ink-muted;
+  }
+  .booking-notice summary {
+    @apply cursor-pointer;
   }
 }
 

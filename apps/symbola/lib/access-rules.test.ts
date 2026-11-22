@@ -294,7 +294,8 @@ describe("SEC-12 — Chaque route a sa règle d'accès, vérifiée côté serveu
     expect(unguarded("action")).toEqual([]);
   });
 
-  it("la liste des entrées publiques ne garde aucune entrée disparue, et chacune a son motif", () => {
+  // Même parcours de toutes les routes que les tests voisins : même limite (lent sous la couverture).
+  it("la liste des entrées publiques ne garde aucune entrée disparue, et chacune a son motif", { timeout: 30_000 }, () => {
     const keys = new Set(appEntries().map((entry) => entry.key));
     expect(Object.keys(PUBLIC_ENTRIES).filter((key) => !keys.has(key))).toEqual([]);
     expect(Object.values(PUBLIC_ENTRIES).filter((reason) => reason.trim().length < 5)).toEqual([]);

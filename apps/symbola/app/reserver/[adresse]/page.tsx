@@ -5,9 +5,7 @@ import { appDatabase } from "@symbola/db/client";
 import type { Locale } from "@symbola/i18n";
 import { getOrganizationContact } from "@/modules/hub/service";
 import { APPOINTMENTS_TIME_ZONE, availableSlots, resolvePublicBookingPage } from "@/modules/appointments/service";
-import { BookingForm, type SlotDay } from "./booking-form";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
+import { BookingWizard } from "./booking-wizard";
 
 function zonedDate(instant: Date): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: APPOINTMENTS_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(instant);
@@ -56,44 +54,24 @@ export default async function BookingPage({ params, searchParams }: { params: Pr
 
   const now = new Date();
   const slots = await availableSlots(page.organizationId, type.id, { now });
-  const today = zonedDate(now);
-  const start = query.semaine && /^\d{4}-\d{2}-\d{2}$/.test(query.semaine) && query.semaine >= today ? query.semaine : (slots[0] ? zonedDate(slots[0]) : today);
-  const startDay = new Date(`${start}T12:00:00Z`);
-  const days: SlotDay[] = Array.from({ length: 7 }, (_, offset) => {
-    const date = new Date(startDay.getTime() + offset * DAY_MS).toISOString().slice(0, 10);
-    return { date, slots: slots.filter((slot) => zonedDate(slot) === date).map((slot) => slot.toISOString()) };
-  });
-  const previous = new Date(startDay.getTime() - 7 * DAY_MS).toISOString().slice(0, 10);
-  const next = new Date(startDay.getTime() + 7 * DAY_MS).toISOString().slice(0, 10);
-  const hasLater = slots.some((slot) => zonedDate(slot) >= next);
-  const base = `/reserver/${page.slug}?type=${type.id}`;
 
+  // Lot 64 (maquettes M8 à M10) : une fenêtre, le mois et les heures du jour choisi, puis une étape à
+  // la fois. Tous les créneaux de l'horizon partent au navigateur (heures seulement, rien de personnel).
   return (
     <main className="link-page booking-page">
-      <p className="muted">{organization.name}</p>
-      <h1>{type.name}</h1>
-      <p className="meta">{t("typeMeta", { minutes: type.durationMinutes, place: t(`place.${type.locationKind}`) })}</p>
-      {page.types.length > 1 ? <Link href={`/reserver/${page.slug}`}>{t("otherTypes")}</Link> : null}
-      {slots.length === 0 ? (
-        <p role="status">{t("noSlot", { organization: organization.name })}</p>
-      ) : (
-        <>
-          <nav className="row-wrap booking-weeks" aria-label={t("weeksLabel")}>
-            {slots[0] && start > zonedDate(slots[0]) ? <Link href={`${base}&semaine=${previous < today ? today : previous}`}>{t("previousWeek")}</Link> : null}
-            {hasLater ? <Link href={`${base}&semaine=${next}`}>{t("nextWeek")}</Link> : null}
-          </nav>
-          <BookingForm
-            slug={page.slug}
-            typeId={type.id}
-            days={days}
-            questions={type.questions}
-            locale={locale}
-            organizationName={organization.name}
-          />
-        </>
-      )}
-      <p className="meta">{t("delayNotice")}</p>
-      <p className="muted">{page.privacyNotice}</p>
+      <BookingWizard
+        slug={page.slug}
+        type={{ id: type.id, name: type.name, durationMinutes: type.durationMinutes, locationKind: type.locationKind, description: type.description, questions: type.questions }}
+        slots={slots.map((slot) => slot.toISOString())}
+        locale={locale}
+        organizationName={organization.name}
+        today={zonedDate(now)}
+        otherTypesHref={page.types.length > 1 ? `/reserver/${page.slug}` : null}
+      />
+      <details className="booking-notice">
+        <summary>{t("privacySummary", { organization: organization.name })}</summary>
+        <p>{page.privacyNotice}</p>
+      </details>
     </main>
   );
 }

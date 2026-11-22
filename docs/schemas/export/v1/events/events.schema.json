@@ -312,6 +312,52 @@
           "type": "null"
         }
       ]
+    },
+    "busyStartDayOffset": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "busyStartTime": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "busyEndDayOffset": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "busyEndTime": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?$"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "required": [
@@ -344,7 +390,11 @@
     "deletedAt",
     "deletedBy",
     "archivedAt",
-    "archivedBy"
+    "archivedBy",
+    "busyStartDayOffset",
+    "busyStartTime",
+    "busyEndDayOffset",
+    "busyEndTime"
   ],
   "additionalProperties": false,
   "$defs": {

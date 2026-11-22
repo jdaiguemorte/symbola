@@ -1415,6 +1415,20 @@
       "when": 1795308698610,
       "tag": "0201_lot63b_events_program_hidden",
       "breakpoints": true
+    },
+    {
+      "idx": 202,
+      "version": "7",
+      "when": 1795312578111,
+      "tag": "0202_lot64_events_busy_ranges",
+      "breakpoints": true
+    },
+    {
+      "idx": 203,
+      "version": "7",
+      "when": 1795312580292,
+      "tag": "0203_lot64_appointments_type_description",
+      "breakpoints": true
     }
   ]
 }

@@ -113,6 +113,12 @@ export type {
   ProgramVersion,
   ProgramVersionSummary,
   CalendarEvent,
+  BusyRule,
+  BusyRuleSource,
+  BusySettingsView,
+  EventTypeBusyRule,
+  EventBusyView,
+  BusyRangeItem,
   ProgramRecipient,
   ProgramRecipientDocument,
   NotifyProgramVersionInput,
@@ -469,6 +475,7 @@ export {
   APPOINTMENT_LOCATION_KINDS,
   APPOINTMENT_QUESTION_KINDS,
   APPOINTMENT_QUESTIONS_MAX,
+  APPOINTMENT_DESCRIPTION_MAX,
   APPOINTMENT_REMINDER_PLANS,
 } from "./appointments/service-contract";
 export {

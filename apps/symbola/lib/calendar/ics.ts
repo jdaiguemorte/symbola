@@ -1,6 +1,6 @@
 // Lot 38b (HUB-29 ; D11 ; ADR 0072) — écriture d'un calendrier iCalendar (RFC 5545), sans
 // dépendance : texte échappé, lignes pliées à 75 octets sans couper un caractère, fins de ligne CRLF.
-// Un évènement daté est une journée entière ; une séquence du programme porte des instants UTC,
+// Lot 64 : un évènement daté est sa plage occupée (heures locales, TRANSP) ; une séquence du programme porte des instants UTC,
 // calculés depuis l'heure locale dans le fuseau de l'évènement (heure d'été comprise) : l'agenda
 // les montre à l'heure de celui qui le lit.
 
@@ -15,6 +15,9 @@ export type IcsEvent = {
   description?: string | null;
   url?: string | null;
   status?: "TENTATIVE" | "CONFIRMED" | null;
+  // Lot 64 (HUB-29) : OPAQUE = occupé (bloque l'agenda et les outils de réservation), TRANSPARENT =
+  // affiché sans bloquer. Absent : la règle de l'agenda (une journée entière y est souvent libre).
+  transparency?: "OPAQUE" | "TRANSPARENT" | null;
 };
 
 export function escapeIcsText(text: string): string {
@@ -86,6 +89,7 @@ export function buildIcs(input: { name: string; events: IcsEvent[]; now: Date })
     if (event.description) lines.push(`DESCRIPTION:${escapeIcsText(event.description)}`);
     if (event.url) lines.push(`URL:${event.url}`);
     if (event.status) lines.push(`STATUS:${event.status}`);
+    if (event.transparency) lines.push(`TRANSP:${event.transparency}`);
     lines.push("END:VEVENT");
   }
   lines.push("END:VCALENDAR");

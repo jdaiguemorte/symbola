@@ -39,3 +39,21 @@ describe("HUB-29 — Flux ICS par utilisateur et par évènement (lot 38b, RFC 5
     expect(ics).toContain("LOCATION:Jardin\\, Domaine des Tilleuls\r\n");
   });
 });
+
+describe("HUB-29 — Plages occupées : « occupé » ou provisoire dans l'agenda (lot 64, ADR 0109)", () => {
+  const now = new Date("2026-11-21T10:00:00Z");
+  const range = { start: { dateTime: new Date("2027-06-12T06:00:00Z") }, end: { dateTime: new Date("2027-06-12T20:00:00Z") } };
+
+  it("une plage qui bloque porte TRANSP:OPAQUE, en heures UTC", () => {
+    const ics = buildIcs({ name: "Agenda", now, events: [{ uid: "a@symbola", summary: "Mariage — Kévin & Kévina", ...range, status: "CONFIRMED", transparency: "OPAQUE" }] });
+    expect(ics).toContain("DTSTART:20270612T060000Z\r\n");
+    expect(ics).toContain("DTEND:20270612T200000Z\r\n");
+    expect(ics).toContain("TRANSP:OPAQUE\r\n");
+  });
+
+  it("une option qui ne bloque pas est provisoire et libre ; sans réglage, aucune ligne TRANSP", () => {
+    const ics = buildIcs({ name: "Agenda", now, events: [{ uid: "b@symbola", summary: "Option", ...range, status: "TENTATIVE", transparency: "TRANSPARENT" }, { uid: "c@symbola", summary: "Sans réglage", ...range }] });
+    expect(ics).toContain("STATUS:TENTATIVE\r\nTRANSP:TRANSPARENT\r\n");
+    expect(ics.match(/TRANSP:/g)).toHaveLength(1);
+  });
+});

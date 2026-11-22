@@ -136,16 +136,20 @@ test("HUB-29 / RDV-02 — Retirer l'adresse du calendrier efface sa zone ; les d
 
   // Mes disponibilités : les sept jours et « Mes agendas » sans faire défiler plus de deux écrans.
   await page.goto("/rendez-vous/disponibilites");
-  await expect(page.getByRole("group", { name: "Lundi" }).getByLabel("De", { exact: true })).toHaveValue("09:00");
+  // Lot 64 (M6) : une ligne par jour, un interrupteur, les plages alignées.
+  await expect(page.getByLabel("Lundi, début de la plage 1")).toHaveValue("09:00");
   await expect(page.getByRole("group", { name: "Dimanche" })).toBeVisible();
   await page.getByRole("navigation", { name: "Sur cet écran" }).getByRole("link", { name: "Mes agendas" }).click();
   const agendas = page.getByRole("region", { name: "Mes agendas" });
   await expect(agendas.getByRole("heading", { name: "Relier un agenda" })).toBeVisible();
   await expect(agendas.getByText(/Adresse secrète au format iCal/)).toBeVisible();
-  await page.getByRole("group", { name: "Samedi" }).getByLabel("De", { exact: true }).fill("10:00");
-  await page.getByRole("group", { name: "Samedi" }).getByLabel("à").first().fill("12:00");
+  await page.getByRole("switch", { name: "Samedi : ouvert" }).click();
+  await page.getByLabel("Samedi, début de la plage 1").fill("10:00");
+  await page.getByLabel("Samedi, fin de la plage 1").fill("12:00");
+  await expect(page.getByText("1 jour modifié")).toBeVisible();
   await page.getByRole("button", { name: "Enregistrer ma semaine" }).click();
-  await expect(page.getByRole("group", { name: "Samedi" }).getByLabel("De", { exact: true })).toHaveValue("10:00");
+  await expect(page.getByLabel("Samedi, début de la plage 1")).toHaveValue("10:00");
+  await expect(page.getByRole("switch", { name: "Samedi : ouvert" })).toHaveAttribute("aria-checked", "true");
   await expectNoAxeViolation(page);
   await expectNoHorizontalScroll(page);
 });

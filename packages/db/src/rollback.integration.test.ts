@@ -93,6 +93,9 @@ const LOT_63G = ["0200_lot63g_hub_module_requests"];
 const LOT_63D = ["0197_lot63d_events_task_categories"];
 // Lot 63c : nom facultatif des évènements (0196, events).
 const LOT_63C = ["0196_lot63c_events_name"];
+// Lot 64 : plages occupées (0202, events) et description des types de rendez-vous (0203,
+// appointments). Fusionné après le lot 63 : annulé avant tous les autres lots.
+const LOT_64 = ["0203_lot64_appointments_type_description", "0202_lot64_events_busy_ranges"];
 // Lot 63e : métiers d'une fiche (0198) puis retrait de vendors.type_id (0199) ; fusionné après les
 // lots 63c et 63d, il s'annule d'abord.
 const LOT_63E = ["0199_lot63e_vendors_drop_type_id", "0198_lot63e_vendors_type_links"];
@@ -126,7 +129,7 @@ const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
 // 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
+const LOT_36 = [...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
 // Lot 63c : l'ordre des annulations des lots récents, de la plus récente à la plus ancienne, se lit
 // dans cette seule liste. Un nouveau lot ajoute sa liste en tête de LOT_36, et rien d'autre : les
 // tests annulent par rollbackNewerThan et rollbackThrough, jamais par une suite écrite à la main.
@@ -189,6 +192,41 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
+  it("lot 64 (HUB-29, RDV-02 ; D1, D6, D8 ; ADR 0109) — 0202 et 0203 : la base refuse une plage incomplète, hors bornes ou à l'envers ; annulation refusée tant qu'un réglage ou une description existe, puis tout est retiré", async () => {
+    await migrateAll();
+    const organizationId = randomUUID();
+    const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+    // Les quatre valeurs vont ensemble ; la fin vient après le début ; jours de -7 à 7.
+    await expect(target`update events.events set busy_start_day_offset = 0 where id = ${event!.id}`).rejects.toThrow(/events_busy_rule_complete_check/);
+    await expect(target`update events.events set busy_start_day_offset = 0, busy_start_time = '22:00', busy_end_day_offset = 0, busy_end_time = '08:00' where id = ${event!.id}`).rejects.toThrow(/events_busy_rule_check/);
+    await expect(target`update events.events set busy_start_day_offset = -8, busy_start_time = '08:00', busy_end_day_offset = 0, busy_end_time = '08:00' where id = ${event!.id}`).rejects.toThrow(/events_busy_rule_check/);
+    await target`update events.events set busy_start_day_offset = -1, busy_start_time = '14:00', busy_end_day_offset = 1, busy_end_time = '12:00' where id = ${event!.id}`;
+    const [type] = await target<{ id: string }[]>`insert into events.event_types (organization_id, label, busy_start_day_offset, busy_start_time, busy_end_day_offset, busy_end_time) values (${organizationId}, 'Mariage', 0, '08:00', 0, '22:00') returning id`;
+    await expect(target`insert into events.busy_settings (organization_id, options_block, fallback_start_day_offset, fallback_start_time, fallback_end_day_offset, fallback_end_time) values (${organizationId}, false, 0, '10:00', 0, '10:00')`).rejects.toThrow(/busy_settings_busy_rule_check/);
+    await target`insert into events.busy_settings (organization_id, options_block, fallback_start_day_offset, fallback_start_time, fallback_end_day_offset, fallback_end_time) values (${organizationId}, true, 0, '08:00', 0, '22:00')`;
+    await expect(target`insert into appointments.appointment_types (organization_id, name, duration_minutes, host_user_id, description) values (${organizationId}, 'Découverte', 60, ${randomUUID()}, '')`).rejects.toThrow(/appointment_types_description_check/);
+    const [appointmentType] = await target<{ id: string }[]>`insert into appointments.appointment_types (organization_id, name, duration_minutes, host_user_id, description) values (${organizationId}, 'Découverte', 60, ${randomUUID()}, 'Faisons connaissance.') returning id`;
+    await expect(rollback(LOT_64[0]!)).rejects.toThrow(/ont une description/);
+    await target`update appointments.appointment_types set description = null where id = ${appointmentType!.id}`;
+    await rollback(LOT_64[0]!);
+    expect(await hasColumn("appointments", "appointment_types", "description")).toBe(false);
+    await expect(rollback(LOT_64[1]!)).rejects.toThrow(/plage occupée propre/);
+    await target`update events.events set busy_start_day_offset = null, busy_start_time = null, busy_end_day_offset = null, busy_end_time = null where id = ${event!.id}`;
+    await expect(rollback(LOT_64[1]!)).rejects.toThrow(/plage occupée réglée/);
+    await target`update events.event_types set busy_start_day_offset = null, busy_start_time = null, busy_end_day_offset = null, busy_end_time = null where id = ${type!.id}`;
+    await expect(rollback(LOT_64[1]!)).rejects.toThrow(/réglages des plages occupées/);
+    await target`delete from events.busy_settings where organization_id = ${organizationId}`;
+    await rollback(LOT_64[1]!);
+    expect(await hasColumn("events", "events", "busy_start_day_offset")).toBe(false);
+    expect(await hasColumn("events", "event_types", "busy_end_time")).toBe(false);
+    const [table] = await target<{ name: string | null }[]>`select to_regclass('events.busy_settings')::text as name`;
+    expect(table!.name).toBeNull();
+    await target`delete from appointments.appointment_types where id = ${appointmentType!.id}`;
+    await target`delete from events.event_types where id = ${type!.id}`;
+    await target`delete from events.events where id = ${event!.id}`;
+    await migrateAll();
+  });
+
   it("lot 63b (CHR-08, CHR-07 ; Q44) — 0201 : une séquence est visible des mariés par défaut ; annulation refusée tant qu'une séquence est cachée, puis la colonne est retirée", async () => {
     await migrateAll();
     const organizationId = randomUUID();
@@ -196,9 +234,10 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     const [visible] = await target<{ id: string; hidden: boolean }[]>`insert into events.program_items (organization_id, event_id, start_time, label) values (${organizationId}, ${event!.id}, '20:00', 'Dîner') returning id, hidden_from_clients as hidden`;
     expect(visible!.hidden).toBe(false);
     await target`insert into events.program_items (organization_id, event_id, start_time, label, hidden_from_clients) values (${organizationId}, ${event!.id}, '21:30', 'Animation surprise', true)`;
-    await expect(rollbackThrough(LOT_63B[0]!)).rejects.toThrow(/cachées des mariés/);
+    await rollbackNewerThan(LOT_63B[0]!);
+    await expect(rollback(LOT_63B[0]!)).rejects.toThrow(/cachées des mariés/);
     await target`update events.program_items set hidden_from_clients = false where organization_id = ${organizationId}`;
-    await rollbackThrough(LOT_63B[0]!);
+    await rollback(LOT_63B[0]!);
     expect(await hasColumn("events", "program_items", "hidden_from_clients")).toBe(false);
     await target`delete from events.program_items where organization_id = ${organizationId}`;
     await target`delete from events.events where id = ${event!.id}`;

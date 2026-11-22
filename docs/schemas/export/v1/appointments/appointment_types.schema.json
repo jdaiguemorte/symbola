@@ -31,6 +31,12 @@
         "null"
       ]
     },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "bufferBeforeMinutes": {
       "type": "integer",
       "minimum": -9007199254740991,
@@ -143,6 +149,7 @@
     "durationMinutes",
     "locationKind",
     "location",
+    "description",
     "bufferBeforeMinutes",
     "bufferAfterMinutes",
     "minNoticeMinutes",
