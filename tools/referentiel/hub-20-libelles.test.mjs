@@ -41,7 +41,8 @@ function sourceFiles(directory, files = []) {
   return files;
 }
 
-// Un libellé entre guillemets, sauf comme nom d'un espace de traductions (useTranslations("Security")).
+// Un libellé entre guillemets, sauf comme nom d'un espace de traductions (useTranslations("Security"),
+// ou en type : getTranslations<"Events">).
 // Une seule lecture par fichier : les chaînes entre guillemets de chaque ligne, comparées à l'ensemble
 // des libellés (rapide même sur un runner de CI lent).
 const QUOTED = [/"([^"\n]{1,160})"/g, /'([^'\n]{1,160})'/g, /`([^`\n]{1,160})`/g];
@@ -54,7 +55,7 @@ function findLabels(text, labels) {
     for (const pattern of QUOTED) {
       for (const match of content.matchAll(pattern)) {
         if (!set.has(match[1])) continue;
-        if (/(Translations\(|namespace:\s*)$/.test(content.slice(0, match.index))) continue;
+        if (/(Translations\(|Translations<|namespace:\s*)$/.test(content.slice(0, match.index))) continue;
         found.push({ line: index + 1, label: match[1] });
       }
     }
@@ -81,6 +82,7 @@ describe("HUB-20 — Référentiels modifiables, aucun libellé métier dans le 
     const labels = ["Mariage", "Security", "Lieu de réception"];
     expect(findLabels(`const types = ["Mariage", 'Séminaire'];`, labels)).toEqual([{ line: 1, label: "Mariage" }]);
     expect(findLabels('const t = await getTranslations("Security");\nconst u = useTranslations({ namespace: "Security" });', labels)).toEqual([]);
+    expect(findLabels('type T = Awaited<ReturnType<typeof getTranslations<"Security">>>;', labels)).toEqual([]);
     expect(findLabels("// le Lieu de réception de l'évènement", labels)).toEqual([]);
   });
 });

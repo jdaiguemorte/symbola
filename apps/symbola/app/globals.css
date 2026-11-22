@@ -2489,6 +2489,12 @@
   .confirm-dialog > p {
     @apply m-0 mb-6;
   }
+  .confirm-dialog .confirm-dialog-details {
+    @apply mb-6 grid gap-2;
+  }
+  .confirm-dialog .confirm-dialog-details p {
+    @apply m-0;
+  }
   .confirm-dialog .confirm-dialog-actions {
     @apply m-0 flex w-full flex-wrap justify-end gap-2;
   }
@@ -5637,5 +5643,38 @@
   }
   .vendor-choice-row .candidate-card {
     @apply cursor-auto;
+  }
+}
+
+/* Lot 63g (HUB-06, ADR 0108) — écran « Apps » : une carte par app, son état en mots (jamais la
+   couleur seule), ce qu'elle apporte, où la trouver et l'action qui l'ouvre. */
+@layer components {
+  .app-grid {
+    @apply m-0 grid list-none gap-3 p-0;
+    grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr));
+  }
+  .app-card {
+    @apply m-0 flex h-full flex-col gap-2 p-4 sm:p-6;
+  }
+  .app-card-head {
+    @apply flex flex-wrap items-center justify-between gap-2;
+  }
+  .app-card-head > h2 {
+    @apply m-0 text-heading;
+  }
+  .app-card > p {
+    @apply m-0;
+  }
+  .app-card-actions {
+    @apply mt-auto flex flex-wrap gap-2 pt-2;
+  }
+  .app-offer {
+    @apply w-full border-collapse;
+  }
+  .app-offer td {
+    @apply py-1;
+  }
+  .app-offer .num {
+    @apply text-right whitespace-nowrap;
   }
 }

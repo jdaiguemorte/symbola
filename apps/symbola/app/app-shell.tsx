@@ -20,6 +20,7 @@ import {
   Contact,
   FileText,
   GraduationCap,
+  LayoutGrid,
   LifeBuoy,
   ListChecks,
   Settings,
@@ -643,6 +644,16 @@ export async function AppShell({ children }: { children: ReactNode }) {
               ) : null}
             </ul>
             <ul className="app-nav app-nav-secondary">
+              {/* Lot 63g (HUB-06, HUB-27, ARC-07 ; ADR 0108) : les apps du catalogue, activées ou non, pour
+                  la Propriétaire ; le seul endroit qui nomme une app non activée. */}
+              {isOwner ? (
+                <li>
+                  <AppNavLink href="/apps">
+                    <LayoutGrid {...iconProps} />
+                    {t("apps")}
+                  </AppNavLink>
+                </li>
+              ) : null}
               {organizationId ? (
                 <li>
                   <AppNavLink href="/parametres" settings tour="nav-settings">

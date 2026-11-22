@@ -69,6 +69,7 @@ Tables non exportées :
 - `feature_flags` — exploitation : interrupteurs des fonctions de la plateforme
 - `feature_flag_organizations` — exploitation : fonctions nouvelles ouvertes à l'espace par l'Exploitation
 - `storage_quota_states` — exploitation : dernière mesure du stockage face au quota (des nombres)
+- `module_requests` — exploitation : demandes d'activation d'une app à l'équipe Symbola (module, dates)
 
 ## Module `events`
 

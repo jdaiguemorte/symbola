@@ -113,6 +113,58 @@ export function prorataCents(input: { fromCents: number; toCents: number; period
   return value === 0 ? 0 : value;
 }
 
+// Lot 63g (HUB-06, HUB-27 ; ADR 0108) — ce que l'écran « Apps » propose, libre-service ouvert, pour
+// un module pas encore ouvert :
+// - option : l'offre en cours admet des options et le module se vend en option en libre-service ; son
+//   prix sur la période, l'écart au prorata jusqu'à la fin de la période en cours (reporté sur la
+//   facture suivante, comme « Mon abonnement ») et le nouveau total ; selection : le choix à envoyer ;
+// - change_plan : il faut changer d'offre (App seule, essai, lecture seule, résiliation, aucun
+//   abonnement), dans « Mon abonnement » ;
+// - none : le forfait Pilote, réglé par l'Exploitation.
+export type AppOffer =
+  | {
+      kind: "option";
+      optionKey: string;
+      period: BillingPeriod;
+      priceCents: number;
+      prorataCents: number;
+      currentTotalCents: number;
+      newTotalCents: number;
+      periodEnd: Date | null;
+      selection: SubscriptionSelection;
+    }
+  | { kind: "change_plan" }
+  | { kind: "none" };
+
+export function appOffer(catalog: PlanCatalog, subscription: SubscriptionRecord | null, moduleKey: string, now: Date): AppOffer {
+  if (!subscription) return { kind: "change_plan" };
+  const plan = findPlan(catalog, subscription.planKey);
+  if (plan?.kind === "pilot") return { kind: "none" };
+  const option = catalog.options.find((entry) => entry.kind === "module" && entry.module === moduleKey && entry.selfService);
+  if (!plan || subscription.status !== "active" || !plan.optionsAllowed || !option || subscription.options.includes(option.key)) return { kind: "change_plan" };
+  const selection: SubscriptionSelection = {
+    planKey: subscription.planKey,
+    chosenModule: subscription.chosenModule,
+    options: [...new Set([...subscription.options, option.key])].sort(),
+    storageUnits: subscription.storageUnits,
+    billingPeriod: subscription.billingPeriod,
+  };
+  const currentTotalCents = subscriptionPrice(catalog, subscription).totalCents;
+  const newTotalCents = subscriptionPrice(catalog, selection).totalCents;
+  const running = subscription.currentPeriodStart !== null && subscription.currentPeriodEnd !== null && subscription.currentPeriodEnd > now;
+  return {
+    kind: "option",
+    optionKey: option.key,
+    period: subscription.billingPeriod,
+    priceCents: newTotalCents - currentTotalCents,
+    prorataCents: running ? prorataCents({ fromCents: currentTotalCents, toCents: newTotalCents, periodStart: subscription.currentPeriodStart!, periodEnd: subscription.currentPeriodEnd!, now }) : 0,
+    currentTotalCents,
+    newTotalCents,
+    periodEnd: subscription.currentPeriodEnd,
+    selection,
+  };
+}
+
 function addCalendarDays(date: string, days: number): string {
   const [year, month, day] = date.split("-").map(Number) as [number, number, number];
   return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
