@@ -205,12 +205,9 @@ test("captures des écrans pour le centre d'aide", async ({ page }) => {
     await page.goto(screen.tour ? `${path}${path.includes("?") ? "&" : "?"}visite=revoir` : path);
     await page.waitForLoadState("networkidle");
     if (screen.tour) {
-      // Repères ouverts : la capture est annotée (repère 1 choisi).
-      await expect(page.locator(".landmark-panel")).toBeVisible();
+      // Lot 63f (ADR 0104) : visite guidée ouverte, première étape (sa zone claire, la bulle à côté).
+      await expect(page.locator(".tour-bubble")).toBeVisible();
       await page.waitForTimeout(400);
-      // Le repère choisi a pu faire défiler l'écran : la capture montre le haut de l'écran.
-      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-      await page.waitForTimeout(200);
     }
     const anchor = anchors[screen.key];
     if (anchor) await page.locator(anchor).evaluate((element) => element.scrollIntoView({ block: "start", behavior: "instant" }));

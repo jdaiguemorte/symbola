@@ -1,13 +1,14 @@
-// AIDE-11 (lot 13, remplace la visite guidée d'AIDE-01) — les repères de
-// l'écran s'affichent d'office à la première ouverture, puis seulement au
-// clic sur « ? ». AIDE-03 — l'aide est consultable et cherchable depuis le
+// HUB-11 (lot 63f, ADR 0104 : la visite guidée remplace les repères du lot 13) — la visite de
+// l'écran se lance d'office à la première ouverture : fond assombri, zone claire, bulle « Précédent,
+// Suivant, Passer la visite » ; clavier (focus dans la bulle, piégé, rendu ; Échap) ; relancée par
+// « ? › Revoir la visite » ; en bas de l'écran sur téléphone. AIDE-03 — l'aide est consultable et cherchable depuis le
 // hub. (AIDE-04, liste des premiers pas : retirée au lot 13, L13-HUB-15.)
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import { clickMenuLink, landmarksPanel, readyOrganization, signIn as signInByLink } from "./helpers";
+import { clickMenuLink, helpPanel, readyOrganization, signIn as signInByLink, tourDialog } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string): Promise<void> {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -27,52 +28,72 @@ async function createTestUser(): Promise<{ email: string; password: string }> {
   return { email, password };
 }
 
-// Repères ouverts d'office (sans la préférence posée par la configuration
-// des autres parcours).
+// Visite lancée d'office (sans la préférence posée par la configuration des autres parcours).
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test("AIDE-11 / AIDE-03 — repères de l'accueil, aide consultable", async ({ page }) => {
+test("HUB-11 / AIDE-03 — visite guidée de l'accueil, aide consultable", async ({ page }) => {
   const { email, password } = await createTestUser();
   await loginAndSetupMfa(page, email, password);
 
-  // Lot 13 (AIDE-11) : les repères de l'écran s'affichent d'office à la
-  // première ouverture, sans bloquer l'écran.
-  const panel = landmarksPanel(page, "Aujourd'hui");
-  await expect(panel).toBeVisible();
-  await expect(page.getByRole("button", { name: "Repère 1 : À traiter en premier" })).toBeVisible();
+  // HUB-11 : la visite se lance d'office à la première ouverture ; le focus est dans la bulle.
+  const tour = tourDialog(page, "Aujourd'hui");
+  await expect(tour).toBeVisible();
+  await expect(tour).toContainText("1 sur 4");
+  await expect(tour.getByRole("heading", { name: "Votre priorité du jour", level: 2 })).toBeFocused();
+  // La zone expliquée reste claire : le cadre est posé sur elle.
+  const zone = await page.locator("[data-tour='home-first']").boundingBox();
+  const spot = await page.locator(".tour-spot").boundingBox();
+  expect(zone && spot).toBeTruthy();
+  expect(Math.abs(spot!.x + 6 - zone!.x)).toBeLessThan(2);
+  expect(Math.abs(spot!.y + 6 - zone!.y)).toBeLessThan(2);
   let violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
+  // Sur téléphone, la bulle est ancrée en bas de l'écran, sans découpe.
+  const viewport = page.viewportSize()!;
+  if (viewport.width < 768) {
+    const bubble = (await tour.boundingBox())!;
+    expect(Math.round(bubble.y + bubble.height)).toBe(viewport.height);
+  }
 
-  // Un clic dans la liste des repères l'explique ; « Repère suivant » les
-  // parcourt. Lot 32a (HUB-08) : les trois urgences, le reste par groupe, puis
-  // les évènements en cours.
-  await panel.getByRole("button", { name: "Le reste, par urgence" }).click();
-  await expect(panel.getByRole("heading", { name: "Le reste, par urgence", level: 3 })).toBeVisible();
-  await panel.getByRole("button", { name: "Repère suivant" }).click();
-  await expect(panel.getByRole("heading", { name: "Mes évènements", level: 3 })).toBeVisible();
-  await expect(panel.getByRole("button", { name: "Repère suivant" })).toBeDisabled();
-  await page.keyboard.press("Escape");
-  await expect(panel).toHaveCount(0);
+  // « Suivant », « Précédent » ; le focus reste dans la bulle (Tab ne sort pas).
+  await expect(tour.getByRole("button", { name: "Précédent" })).toHaveCount(0);
+  await tour.getByRole("button", { name: "Suivant" }).click();
+  await expect(tour.getByRole("heading", { name: "Le reste, par urgence", level: 2 })).toBeVisible();
+  await tour.getByRole("button", { name: "Précédent" }).click();
+  await expect(tour.getByRole("heading", { name: "Votre priorité du jour", level: 2 })).toBeVisible();
+  for (let index = 0; index < 6; index += 1) {
+    await page.keyboard.press("Tab");
+    expect(await tour.evaluate((element) => element.contains(document.activeElement))).toBe(true);
+  }
+  for (let index = 0; index < 3; index += 1) await tour.getByRole("button", { name: "Suivant" }).click();
+  await expect(tour).toContainText("4 sur 4");
+  // Dernière étape : le « ? », d'où la visite se relance.
+  await expect(tour.getByRole("heading", { name: "L'aide de chaque écran", level: 2 })).toBeVisible();
+  await tour.getByRole("button", { name: "Terminer" }).click();
+  await expect(tour).toHaveCount(0);
 
-  // Déjà vus, ils ne se réaffichent pas d'eux-mêmes ; le bouton « ? » les rouvre.
+  // Déjà vue, elle ne revient pas d'elle-même ; « ? › Revoir la visite » la relance, Échap la ferme
+  // et le focus revient au « ? ».
   await page.reload();
-  await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
-  await expect(panel).toHaveCount(0);
-  await page.getByRole("button", { name: "Aide sur cet écran" }).click();
-  await expect(panel).toBeVisible();
-  await expect(panel.getByRole("heading", { name: "À traiter en premier", level: 3 })).toBeVisible();
-  await panel.getByRole("button", { name: "Fermer l'aide" }).click();
-  await expect(panel).toHaveCount(0);
-
-  // Un écran sans repères : le même « ? » ouvre le même panneau, avec le
-  // seul texte d'aide de l'écran.
-  await page.goto("/taches");
   const help = page.getByRole("button", { name: "Aide sur cet écran" });
+  await expect(help).toBeVisible();
+  await expect(tour).toHaveCount(0);
+  await help.click();
+  const panel = helpPanel(page, "Aujourd'hui");
+  await expect(panel).toBeVisible();
+  await panel.getByRole("button", { name: "Revoir la visite" }).click();
+  await expect(tour.getByRole("heading", { name: "Votre priorité du jour", level: 2 })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(tour).toHaveCount(0);
+  await expect(help).toBeFocused();
+
+  // Un écran sans visite : le même « ? » ouvre le même tiroir, avec le seul texte d'aide de l'écran.
+  await page.goto("/taches");
   await help.click();
   await expect(help).toHaveAttribute("aria-expanded", "true");
-  const tasksPanel = landmarksPanel(page, "Les tâches de tous vos mariages");
+  const tasksPanel = helpPanel(page, "Les tâches de tous vos mariages");
   await expect(tasksPanel).toContainText("triées par échéance");
-  await expect(tasksPanel.getByRole("list")).toHaveCount(0);
+  await expect(tasksPanel.getByRole("button", { name: "Revoir la visite" })).toHaveCount(0);
   violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
   await help.click();

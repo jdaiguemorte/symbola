@@ -59,6 +59,9 @@ import { AUTO_TOURS_COOKIE } from "@/lib/help/preferences";
 import { SearchBox } from "./search-box";
 import { QuickCreate } from "./creation-rapide/quick-create";
 import { HelpProvider } from "./help-context";
+import { TutorialPanel, type TutorialSuggestion } from "./tutorial-panel";
+import { loadTutorialPanel, type TutorialPanelState } from "@/lib/help/tutorial-panel";
+import { journeyStates } from "@/lib/help/journey";
 import { UndoNotice } from "./undo-notice";
 import { NetworkStatus } from "./ui/network-status";
 import { NavigationSkeleton } from "./ui/navigation-skeleton";
@@ -259,6 +262,11 @@ export async function AppShell({ children }: { children: ReactNode }) {
     total: number;
     tutorial: { title: string; href: string } | null;
     invites: TutorialInvite[];
+    // Lot 63f (HUB-11 ; ADR 0104) : le tutoriel en cours dans son panneau latéral, les titres pour
+    // « Tutoriel terminé » sur l'écran de départ, et le tutoriel conseillé ensuite.
+    panel: TutorialPanelState | null;
+    done: Record<string, string>;
+    suggestion: TutorialSuggestion;
   } | null = null;
   if (isTeam) {
     const subscribed: Record<HelpModule, boolean> = {
@@ -291,7 +299,12 @@ export async function AppShell({ children }: { children: ReactNode }) {
           (tutorial) => `tutorial:${tutorial.key}` === inProgress.itemKey,
         )!.key
       : null;
+    const states = journeyStates(available, progress);
+    const suggested = available.find((tutorial) => states.get(tutorial.key) === "next");
     helpBar = {
+      panel: await loadTutorialPanel(available, progress),
+      done: Object.fromEntries(available.map((tutorial) => [tutorial.key, tHelpCenter(`items.${tutorial.key}.title`)])),
+      suggestion: suggested ? { title: tHelpCenter(`items.${suggested.key}.title`), minutes: suggested.minutes, href: tutorialHref(suggested.key) } : null,
       completed: available.filter((tutorial) =>
         progress.some(
           (entry) =>
@@ -730,6 +743,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
           {helpBar ? (
             <HelpBar tutorial={helpBar.tutorial} invites={helpBar.invites} />
           ) : null}
+          {helpBar ? <TutorialPanel panel={helpBar.panel} done={helpBar.done} suggestion={helpBar.suggestion} /> : null}
           <NetworkStatus />
           {showMfaPrompt ? <MfaPromptBanner accountCenter={accountCenterUrl()} /> : null}
           {/* Lot 54 (HUB-27, DOC-06) : essai, lecture seule, résiliation, quota de stockage. */}

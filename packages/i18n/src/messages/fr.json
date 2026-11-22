@@ -445,104 +445,6 @@
     "complianceChecksSave": "Enregistrer les vérifications",
     "complianceChecksSaved": "Vérifications enregistrées."
   },
-  "Tour": {
-    "hub": [
-      {
-        "title": "À traiter en premier",
-        "body": "Les trois points les plus urgents, tous évènements confondus. Chaque ligne dit qui doit agir et propose l'action en un clic."
-      },
-      {
-        "title": "Le reste, par urgence",
-        "body": "En retard, aujourd'hui, en attente d'un tiers, puis les quatorze prochains jours."
-      },
-      {
-        "title": "Mes évènements",
-        "body": "Vos évènements en cours, avec le compte à rebours et ce qui reste à traiter. Un clic ouvre la synthèse de l'évènement."
-      }
-    ],
-    "events": [
-      {
-        "title": "La liste",
-        "body": "Vos prospects et événements à venir ; cliquez une ligne pour ouvrir la fiche."
-      },
-      {
-        "title": "Nouveau prospect",
-        "body": "Un prénom et la source du contact suffisent pour commencer."
-      },
-      {
-        "title": "Les filtres",
-        "body": "Nom, statut, source, année : la liste se filtre à la saisie."
-      },
-      {
-        "title": "Les réglages",
-        "body": "« Réglages » mène aux lignes du budget, sources et motifs, types d'événements et modèles de rétroplanning et de programme."
-      },
-      {
-        "title": "Liste ou calendrier",
-        "body": "Passez de la liste au calendrier des mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues."
-      }
-    ],
-    "quotes": [
-      {
-        "title": "Le catalogue",
-        "body": "Vos prestations réutilisables : intitulé, unité, prix HT, TVA et catégorie. « Modifier » ouvre un article dans sa ligne ; archivé, il n'est plus proposé mais reste sur les devis qui l'utilisent."
-      },
-      {
-        "title": "Nouvel article",
-        "body": "Intitulé, unité et prix suffisent : l'article est aussitôt proposé quand vous composez un devis."
-      }
-    ],
-    "budget": [
-      {
-        "title": "Vos répartitions",
-        "body": "Chaque modèle partage un budget total entre vos lignes, en pourcentages. Il propose les montants estimés quand vous simulez le budget d'un événement."
-      },
-      {
-        "title": "Nouveau modèle",
-        "body": "Un nom, puis un pourcentage par ligne ; le total doit faire 100 %. Les lignes sont celles de Paramètres › Lignes du budget."
-      }
-    ],
-    "event": [
-      {
-        "title": "Les onglets",
-        "body": "Synthèse, budget, rétroplanning, programme, mariés : chaque onglet regroupe une partie de la préparation."
-      },
-      {
-        "title": "La synthèse",
-        "body": "La prochaine action et qui doit agir, la santé de l'évènement, puis les quatorze prochains jours. Les informations se modifient en bas."
-      },
-      {
-        "title": "Le rétroplanning",
-        "body": "Les tâches mois par mois, à partir d'un modèle ; il démarre à la confirmation."
-      },
-      {
-        "title": "Le budget",
-        "body": "Une ligne par prestation : prestataires, statut, estimé et engagé."
-      },
-      {
-        "title": "La recherche",
-        "body": "Un nom de client, un numéro de devis ou un écran : elle cherche partout."
-      }
-    ],
-    "vendors": [
-      {
-        "title": "Familles",
-        "body": "Une pastille par famille, avec le nombre de prestataires ; choisissez-en une pour voir ses types. « À classer » réunit ceux qui n'ont pas encore de famille."
-      },
-      {
-        "title": "Les filtres",
-        "body": "Nom, lieu et distance, déjà retenus : la liste suit à la saisie."
-      },
-      {
-        "title": "La liste et la carte",
-        "body": "Survolez une fiche pour voir son repère sur la carte, et inversement."
-      },
-      {
-        "title": "Nouveau prestataire",
-        "body": "Une seule fiche par prestataire, retrouvée à chaque événement."
-      }
-    ]
-  },
   "Help": {
     "login": {
       "title": "Se connecter",
@@ -4487,17 +4389,17 @@
         "description": "Coordonnées, logo, couleur, textes et IBAN : vos documents à votre image, avec un exemple en PDF."
       }
     },
-    "intro": "Chaque écran a sa fiche : à quoi il sert, ses repères et les questions fréquentes. Sur l'écran lui-même, le bouton « ? » affiche ses repères.",
+    "intro": "Chaque écran a sa fiche : à quoi il sert, sa visite guidée et les questions fréquentes. Sur l'écran lui-même, « ? › Revoir la visite » relance la visite.",
     "progressTitle": "Tutoriels faits : {completed} sur {total}",
     "nextSuggestion": "Prochaine étape conseillée : {title} ({minutes} minutes).",
     "continue": "Continuer ma prise en main",
     "allDone": "Bravo, vous avez suivi tous les tutoriels. Ils restent disponibles ici pour les revoir.",
-    "autoTours": "Afficher d'office les repères et proposer les tutoriels à la première ouverture d'un écran",
+    "autoTours": "Lancer la visite guidée et proposer les tutoriels à la première ouverture d'un écran",
     "tutorialKind": "Tutoriel · {minutes} min",
     "stateInProgress": "En cours · étape {step}",
     "stateNew": "À découvrir",
     "openTutorials": "Voir le parcours des tutoriels",
-    "stateSeen": "Repères vus",
+    "stateSeen": "Visite faite",
     "results": "Écrans trouvés : {count}",
     "groups": {
       "events": "Événements",
@@ -4512,12 +4414,12 @@
     },
     "screenTitle": "Aide : {title}",
     "back": "Retour au centre d'aide",
-    "captureAlt": "Capture de l'écran « {title} », avec ses repères numérotés",
+    "captureAlt": "Capture de l'écran « {title} », visite guidée ouverte",
     "captureAltPlain": "Capture de l'écran « {title} »",
-    "landmarksTitle": "Les repères de cet écran",
+    "tourTitle": "La visite de cet écran",
     "faqTitle": "Questions fréquentes",
     "openScreen": "Ouvrir cet écran",
-    "showLandmarks": "Voir les repères sur l'écran",
+    "replayTour": "Revoir la visite sur l'écran",
     "fromEvent": "Cet écran s'ouvre depuis la fiche d'un événement.",
     "fromQuote": "Cet écran s'ouvre depuis un devis, sur la fiche de son événement.",
     "fromBudget": "Cet écran s'ouvre depuis l'onglet Budget de la fiche d'un événement.",
@@ -5358,6 +5260,92 @@
     "windowClose": "Fermer",
     "editTitle": "{vendor} : modifier"
   },
+  "Essentials": {
+    "helpTitle": "L'essentiel",
+    "helpBody": "Six questions, une par écran, pour que vos devis et vos factures portent les bonnes informations : société et SIRET, adresse, logo, TVA, banque, numérotation. Chaque étape s'enregistre à « Continuer » ; rien n'est obligatoire pour avancer. Raison sociale, adresse, SIRET et régime de TVA sont demandés avant d'envoyer un devis. Tout se modifie ensuite dans les Paramètres.",
+    "title": "L'essentiel",
+    "duration": "environ {minutes} minutes",
+    "saved": "Enregistré à chaque étape",
+    "later": "Finir plus tard",
+    "stepsLabel": "Étapes de L'essentiel",
+    "stepOf": "Étape {number} sur {total}",
+    "stepDone": "(faite)",
+    "steps": {
+      "company": "Votre société",
+      "address": "Adresse et contact",
+      "logo": "Logo",
+      "vat": "TVA",
+      "bank": "Banque (RIB)",
+      "numbering": "Numérotation"
+    },
+    "questions": {
+      "company": {
+        "title": "Comment s'appelle votre société ?",
+        "hint": "La raison sociale et le SIRET figurent sur vos devis et vos factures. Vous pourrez les modifier dans Paramètres › Entreprise."
+      },
+      "address": {
+        "title": "Où vos clients vous écrivent-ils ?",
+        "hint": "Cette adresse figure sur vos devis et vos factures. Vous pourrez la modifier dans Paramètres › Entreprise."
+      },
+      "logo": {
+        "title": "Avez-vous un logo ?",
+        "hint": "Il s'imprime en tête de vos devis et de vos factures. Sans logo, vos documents portent le nom de votre société."
+      },
+      "vat": {
+        "title": "Facturez-vous la TVA ?",
+        "hint": "La réponse donnée au questionnaire est déjà choisie. Un changement vaut pour les documents à venir, jamais pour ceux déjà émis."
+      },
+      "bank": {
+        "title": "Sur quel compte vos clients vous paient-ils ?",
+        "hint": "L'IBAN s'imprime sur vos factures et sous l'échéancier de vos devis, avec un QR code de virement. Vous pourrez le modifier dans Paramètres des devis › Documents."
+      },
+      "numbering": {
+        "title": "Comment numéroter vos devis et vos factures ?",
+        "hint": "Chaque série se suit sans trou, année par année. Vous pourrez changer les préfixes dans Paramètres des devis."
+      }
+    },
+    "organizationName": "Raison sociale",
+    "legalForm": "Forme juridique",
+    "legalFormUnset": "Pas encore choisie",
+    "siret": "SIRET",
+    "siretHint": "14 chiffres, sur votre avis de situation Insee.",
+    "address": "Adresse",
+    "postalCode": "Code postal",
+    "city": "Ville",
+    "contactEmail": "E-mail professionnel",
+    "contactPhone": "Téléphone",
+    "vatNumber": "Numéro de TVA intracommunautaire",
+    "vatNumberHint": "Seulement si vous êtes assujettie : il s'imprime sur vos factures.",
+    "iban": "IBAN",
+    "bic": "BIC",
+    "quotePrefix": "Préfixe des devis",
+    "invoicePrefix": "Préfixe des factures",
+    "prefixHint": "1 à 8 lettres ou chiffres, sans espace.",
+    "numberingExample": "Premier devis de {year} : {quote}. Première facture : {invoice}.",
+    "requiredNote": "* obligatoire pour envoyer un devis",
+    "continue": "Continuer",
+    "finish": "Terminer",
+    "enterHint": "ou appuyez sur Entrée",
+    "skip": "Passer cette étape",
+    "previous": "Précédent",
+    "errorOrganizationName": "Indiquez la raison sociale de votre société, 200 caractères au plus.",
+    "errorPrefix": "Un préfixe compte 1 à 8 lettres ou chiffres, sans espace ; « DEMO » est réservé aux exemples.",
+    "unauthenticated": "Votre session a expiré : reconnectez-vous."
+  },
+  "TutorialPanel": {
+    "kicker": "Tutoriel · {step} sur {total}",
+    "collapse": "Réduire",
+    "expand": "Ouvrir",
+    "stepDone": "(faite)",
+    "goToStep": "Aller à l'écran de l'étape",
+    "nextStep": "Étape suivante",
+    "autoCheck": "L'étape se coche seule quand l'action est faite.",
+    "checking": "Vérification…",
+    "quit": "Quitter le tutoriel (l'exemple est supprimé)",
+    "suggestion": "Prochain tutoriel conseillé : {title} ({minutes} minutes).",
+    "startNext": "Commencer le suivant",
+    "dismiss": "Fermer"
+  },
   "Onboarding": {
     "title": "Préparons votre espace",
     "intro": "Cinq questions, une par écran. Chaque réponse a une valeur proposée : « Passer » la garde. Tout reste modifiable ensuite dans les Paramètres.",
@@ -5716,14 +5704,20 @@
     "conflictFinish": "Le terminer d’abord",
     "conflictAbandon": "L’abandonner et commencer celui-ci"
   },
-  "Landmarks": {
+  "HelpUi": {
     "toggle": "Aide sur cet écran",
     "panel": "Aide : {screen}",
     "close": "Fermer l'aide",
-    "previous": "Repère précédent",
-    "next": "Repère suivant",
-    "marker": "Repère {number} : {title}",
-    "center": "Centre d'aide"
+    "center": "Centre d'aide",
+    "replay": "Revoir la visite",
+    "tour": {
+      "dialog": "Visite : {screen}",
+      "progress": "{number} sur {total}",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "finish": "Terminer",
+      "skip": "Passer la visite"
+    }
   },
   "AdminMenu": {
     "brand": "Exploitation",

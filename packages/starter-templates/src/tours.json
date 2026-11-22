@@ -1,0 +1,209 @@
+{
+  "version": 1,
+  "tours": {
+    "hub": [
+      {
+        "target": "home-first",
+        "title": { "fr": "Votre priorité du jour", "en": "Your priority today" },
+        "body": {
+          "fr": "Les trois points les plus urgents, tous évènements confondus, calculés sur vos devis, vos tâches et vos dates. Chaque ligne dit qui doit agir et propose l'action en un clic.",
+          "en": "The three most urgent items across all events, worked out from your quotes, tasks and dates. Each line says who has to act and offers the action in one click."
+        }
+      },
+      {
+        "target": "home-groups",
+        "title": { "fr": "Le reste, par urgence", "en": "The rest, by urgency" },
+        "body": {
+          "fr": "En retard, aujourd'hui, en attente d'un tiers, puis les quatorze prochains jours.",
+          "en": "Overdue, today, waiting on someone else, then the next fourteen days."
+        }
+      },
+      {
+        "target": "home-events",
+        "title": { "fr": "Mes évènements", "en": "My events" },
+        "body": {
+          "fr": "Vos évènements en cours, avec le compte à rebours et ce qui reste à traiter. Un clic ouvre la synthèse de l'évènement.",
+          "en": "Your events in progress, with the countdown and what is left to deal with. One click opens the event summary."
+        }
+      },
+      {
+        "target": "help-button",
+        "title": { "fr": "L'aide de chaque écran", "en": "Help on every screen" },
+        "body": {
+          "fr": "« ? » ouvre l'aide de l'écran affiché ; « Revoir la visite » relance cette visite quand vous voulez.",
+          "en": "“?” opens the help for the screen you are on; “Replay the tour” starts this tour again whenever you like."
+        }
+      }
+    ],
+    "events": [
+      {
+        "target": "events-list",
+        "title": { "fr": "La liste", "en": "The list" },
+        "body": {
+          "fr": "Vos prospects et vos évènements à venir ; cliquez une ligne pour ouvrir la fiche.",
+          "en": "Your prospects and upcoming events; click a row to open its page."
+        }
+      },
+      {
+        "target": "new-prospect",
+        "title": { "fr": "Nouveau prospect", "en": "New prospect" },
+        "body": {
+          "fr": "Un prénom et la source du contact suffisent pour commencer.",
+          "en": "A first name and the contact source are enough to start."
+        }
+      },
+      {
+        "target": "events-filters",
+        "title": { "fr": "Les filtres", "en": "Filters" },
+        "body": {
+          "fr": "Nom, statut, source, année : la liste se filtre à la saisie.",
+          "en": "Name, status, source, year: the list filters as you type."
+        }
+      },
+      {
+        "target": "events-settings",
+        "title": { "fr": "Les réglages", "en": "Settings" },
+        "body": {
+          "fr": "« Réglages » mène aux lignes du budget, sources et motifs, types d'évènements et modèles de rétroplanning et de programme.",
+          "en": "“Settings” leads to budget lines, sources and reasons, event types, and planning and schedule templates."
+        }
+      },
+      {
+        "target": "events-views",
+        "title": { "fr": "Liste ou calendrier", "en": "List or calendar" },
+        "body": {
+          "fr": "Passez de la liste au calendrier des mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues.",
+          "en": "Switch from the list to the calendar of the coming months. Below, the workload over the next twelve months; two events on the same day are flagged in both views."
+        }
+      }
+    ],
+    "event": [
+      {
+        "target": "event-tabs",
+        "title": { "fr": "Les onglets", "en": "The tabs" },
+        "body": {
+          "fr": "Synthèse, budget, rétroplanning, programme, documents : chaque onglet regroupe une partie de la préparation.",
+          "en": "Summary, budget, planning timeline, schedule, documents: each tab groups part of the preparations."
+        }
+      },
+      {
+        "target": "event-overview",
+        "title": { "fr": "La synthèse", "en": "Summary" },
+        "body": {
+          "fr": "La prochaine action et qui doit agir, la santé de l'évènement, puis les quatorze prochains jours. Les informations se modifient en bas.",
+          "en": "The next action and who must act, the event's health, then the next fourteen days. Details are edited at the bottom."
+        }
+      },
+      {
+        "target": "tab-retroplanning",
+        "title": { "fr": "Le rétroplanning", "en": "Planning timeline" },
+        "body": {
+          "fr": "Les tâches mois par mois, à partir d'un modèle de rétroplanning.",
+          "en": "Tasks month by month, from a planning timeline template."
+        }
+      },
+      {
+        "target": "tab-budget",
+        "title": { "fr": "Le budget et les prestataires", "en": "Budget and vendors" },
+        "body": {
+          "fr": "Une ligne par prestation : le prestataire retenu, le prévu, le réel et ce qui est réglé.",
+          "en": "One line per service: the vendor retained, the planned and actual amounts, and what has been paid."
+        }
+      },
+      {
+        "target": "global-search",
+        "title": { "fr": "La recherche", "en": "Search" },
+        "body": {
+          "fr": "Un nom de client, un numéro de devis ou un écran : elle cherche partout.",
+          "en": "A client name, a quote number or a screen: it searches everywhere."
+        }
+      }
+    ],
+    "vendors": [
+      {
+        "target": "vendor-types",
+        "title": { "fr": "Les familles", "en": "Families" },
+        "body": {
+          "fr": "Une pastille par famille, avec le nombre de prestataires ; choisissez-en une pour voir ses métiers. « À classer » réunit ceux qui n'ont pas encore de famille.",
+          "en": "One pill per family, with the number of vendors; pick one to see its trades. “To sort” gathers those without a family yet."
+        }
+      },
+      {
+        "target": "vendor-filters",
+        "title": { "fr": "Les filtres", "en": "Filters" },
+        "body": {
+          "fr": "Nom, lieu et distance, prestataires avec qui vous avez déjà travaillé : la liste suit à la saisie.",
+          "en": "Name, place and distance, vendors you have already worked with: the list follows as you type."
+        }
+      },
+      {
+        "target": "vendor-results",
+        "title": { "fr": "La liste et la carte", "en": "List and map" },
+        "body": {
+          "fr": "Survolez une fiche pour voir son repère sur la carte, et inversement.",
+          "en": "Hover over a record to see its pin on the map, and vice versa."
+        }
+      },
+      {
+        "target": "vendor-new",
+        "title": { "fr": "Nouveau prestataire", "en": "New vendor" },
+        "body": {
+          "fr": "Une seule fiche par prestataire, retrouvée à chaque évènement.",
+          "en": "One record per vendor, found again for every event."
+        }
+      }
+    ],
+    "quotes": [
+      {
+        "target": "quotes-catalog",
+        "title": { "fr": "Le catalogue", "en": "The catalogue" },
+        "body": {
+          "fr": "Vos prestations réutilisables : intitulé, unité, prix HT, TVA et catégorie. « Modifier » ouvre un article ; archivé, il n'est plus proposé mais reste sur les devis qui l'utilisent.",
+          "en": "Your reusable services: label, unit, price excl. VAT, VAT rate and category. “Edit” opens an item; once archived it is no longer offered but stays on the quotes that use it."
+        }
+      },
+      {
+        "target": "catalog-new",
+        "title": { "fr": "Nouvel article", "en": "New item" },
+        "body": {
+          "fr": "Intitulé, unité et prix suffisent : l'article est aussitôt proposé quand vous composez un devis.",
+          "en": "Label, unit and price are enough: the item is offered right away when you compose a quote."
+        }
+      },
+      {
+        "target": "help-button",
+        "title": { "fr": "Pour aller plus loin", "en": "To go further" },
+        "body": {
+          "fr": "« ? » ouvre l'aide de cet écran et le tutoriel « Saisir son catalogue de prestations » ; « Revoir la visite » la relance.",
+          "en": "“?” opens the help for this screen and the “Enter your service catalogue” tutorial; “Replay the tour” starts it again."
+        }
+      }
+    ],
+    "budget": [
+      {
+        "target": "budget-threshold",
+        "title": { "fr": "Le seuil d'alerte", "en": "Alert threshold" },
+        "body": {
+          "fr": "Une alerte s'affiche avant de retenir un prestataire si le budget d'un évènement dépasserait ce pourcentage de son enveloppe. Chaque évènement peut l'ajuster.",
+          "en": "An alert shows before you retain a vendor if an event's budget would exceed this percentage of its envelope. Each event can adjust it."
+        }
+      },
+      {
+        "target": "budget-models",
+        "title": { "fr": "Vos répartitions", "en": "Your allocations" },
+        "body": {
+          "fr": "Chaque modèle partage un budget total entre vos lignes, en pourcentages. Il propose les montants prévus quand vous simulez le budget d'un évènement.",
+          "en": "Each template splits a total budget across your lines, in percentages. It suggests planned amounts when you simulate an event's budget."
+        }
+      },
+      {
+        "target": "budget-new-model",
+        "title": { "fr": "Nouveau modèle", "en": "New template" },
+        "body": {
+          "fr": "Un nom, puis un pourcentage par ligne ; le total doit faire 100 %. Les lignes sont celles de Paramètres › Lignes du budget.",
+          "en": "A name, then a percentage per line; the total must be 100 %. The lines are those of Settings › Budget lines."
+        }
+      }
+    ]
+  }
+}

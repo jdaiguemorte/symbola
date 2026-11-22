@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import fr from "@symbola/i18n/messages/fr.json";
 import en from "@symbola/i18n/messages/en.json";
 import { GENERIC_ILLUSTRATION, HELP_SCREENS, screensFor, tileImage } from "./screens";
-import { TOUR_TARGETS } from "./tours";
+import { starterTour } from "@symbola/starter-templates";
 
 type HelpEntry = { title: string; body: string; faq?: { q: string; a: string }[] };
 const all = { hub: true, events: true, budget: true, quotes: true, vendors: true, guests: true, appointments: true, floorplans: true };
@@ -29,10 +29,18 @@ describe("AIDE-12 — Centre d'aide par écran, avec captures réelles", () => {
     }
   });
 
-  it("les repères d'un écran existent, avec un texte par cible", () => {
+  // Lot 63f (HUB-11 ; ADR 0104) : la visite guidée remplace les repères.
+  it("HUB-11 — chaque zone citée par une visite existe sur les écrans (attribut data-tour)", () => {
+    const appDirectory = join(__dirname, "..", "..", "app");
+    const sources = files(appDirectory).map((path) => readFileSync(path, "utf-8")).join("\n");
     for (const screen of HELP_SCREENS.filter((candidate) => candidate.tour)) {
-      const steps = (fr.Tour as Record<string, unknown[]>)[screen.tour!];
-      expect(steps?.length, screen.key).toBe(TOUR_TARGETS[screen.tour!].length);
+      for (const step of starterTour("fr", screen.tour!)) {
+        if (!step.target) continue;
+        // Les onglets de la fiche portent « tab-<clé> », écrit par le code ; un lien de réglages reçoit
+        // sa zone par sa propriété « tour ».
+        const found = sources.includes(`data-tour="${step.target}"`) || sources.includes(`tour="${step.target}"`) || (step.target.startsWith("tab-") && sources.includes("data-tour={`tab-${"));
+        expect(found, `${screen.key} : ${step.target}`).toBe(true);
+      }
     }
   });
 
@@ -62,14 +70,23 @@ describe("AIDE-13 — Textes d'aide réécrits", () => {
     expect((en.Help as Record<string, HelpEntry>).profile!.title).toBe("My account and security");
   });
 
-  it("aucun texte d'aide ne renvoie encore à la visite guidée ni à la bulle d'aide", () => {
-    const texts = JSON.stringify([fr.Help, fr.Tour]);
-    expect(texts).not.toMatch(/visite guidée|relancer cette visite|Relancer la visite/i);
+  // Lot 63f (ADR 0104) : la visite guidée revient, les repères numérotés partent.
+  it("aucun texte d'aide ne parle encore des repères numérotés", () => {
+    const texts = JSON.stringify([fr.Help, fr.HelpCenter, fr.HelpUi, en.Help, en.HelpCenter, en.HelpUi]);
+    expect(texts).not.toMatch(/repères numérotés|repère suivant|numbered markers|next marker/i);
   });
 });
 
 // Lot 20 (AIDE-14) : un écran sans aide déclarée faisait mener le « ? » au
 // centre d'aide, pris pour un renvoi vers les tutoriels.
+function files(directory: string): string[] {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) return files(path);
+    return entry.name.endsWith(".tsx") ? [path] : [];
+  });
+}
+
 function pages(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = join(directory, entry.name);
@@ -79,7 +96,7 @@ function pages(directory: string): string[] {
 }
 
 describe("AIDE-14 — Chaque écran a son aide", () => {
-  it("chaque écran déclare son aide (fiche ou repères), sauf le centre d'aide lui-même et les pages hors session ou de simple redirection", () => {
+  it("chaque écran déclare son aide (fiche ou visite guidée), sauf le centre d'aide lui-même et les pages hors session ou de simple redirection", () => {
     const appDirectory = join(__dirname, "..", "..", "app");
     // Le centre d'aide (son « ? » y mène déjà), les liens reçus par e-mail
     // (nouveau mot de passe, signature d'essai, lot 26a : arrivée d'un lien

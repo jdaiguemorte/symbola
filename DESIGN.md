@@ -252,6 +252,9 @@ Coins arrondis sobres : `sm` pour les champs et les pastilles carrées, `md` pou
 - **Menu d'un bouton** (lot 63) : « Nouveau ▾ » ouvre une courte liste de choix (`menu-button`, `menu-popover`), chacun avec une phrase qui dit ce qu'il fait. Échap ou un clic ailleurs le ferme.
 - **Glisser-déposer** (lot 63) : geste d'ordinateur, toujours doublé d'un bouton (« Déplacer vers… ») pour le clavier et le téléphone. La zone qui accepte la pièce se marque (bord pointillé) pendant le geste.
 - **Zone de dépôt** (lot 63) : une seule, toujours en tête de l'écran, même après le premier fichier ; elle demande ce qu'est le document avant de l'envoyer.
+- **Visite guidée** (lot 63f, ADR 0104) : fond assombri, la zone expliquée reste claire et encadrée en `primary`, une bulle à côté (« N sur M », « Précédent », « Suivant » ou « Terminer », « Passer la visite »). Trois à cinq étapes par écran, texte dans `tours.json`. Focus dans la bulle, Échap ferme. Sur téléphone, pas de découpe : la bulle est ancrée en bas, la zone encadrée.
+- **Assistant pas à pas** (lot 63f, ADR 0103) : une question par écran, les étapes à gauche (en ligne sur téléphone) avec leur coche, « Continuer » à droite (Entrée), « Précédent » à gauche, « Passer cette étape » et « Finir plus tard » dessous. Chaque étape s'enregistre ; rien n'est bloquant.
+- **Panneau du tutoriel** (lot 63f, ADR 0104) : à droite sur ordinateur (il pousse le contenu), en bas sur téléphone ; ses étapes cochées, l'étape en cours, « Réduire » et « Quitter le tutoriel ». Il suit la navigation dans l'exemple.
 
 ## Do's and Don'ts
 

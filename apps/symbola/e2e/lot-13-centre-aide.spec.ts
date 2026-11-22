@@ -1,13 +1,13 @@
 // Lot 13 (AIDE-12, AIDE-13) — centre d'aide par écran : vignettes groupées
-// par rubrique avec la capture réelle de l'écran, fiche d'un écran (capture
-// annotée, repères, questions fréquentes), recherche dans l'aide ; chaque
+// par rubrique avec la capture réelle de l'écran, fiche d'un écran (capture,
+// étapes de la visite guidée, questions fréquentes), recherche dans l'aide ; chaque
 // public ne voit que ses écrans. Ordinateur et 375 px, axe-core.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import { landmarksPanel, readyOrganization, signIn as signInByLink } from "./helpers";
+import { readyOrganization, signIn as signInByLink, tourDialog } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -32,7 +32,7 @@ async function account(role: "owner" | "member" | "admin") {
   return { email, password };
 }
 
-test("AIDE-12 — une vignette par écran avec sa capture, une fiche avec capture annotée, repères et questions", async ({ page }) => {
+test("AIDE-12 — une vignette par écran avec sa capture, une fiche avec capture, étapes de la visite et questions", async ({ page }) => {
   const owner = await account("owner");
   await login(page, owner.email, owner.password);
 
@@ -54,19 +54,19 @@ test("AIDE-12 — une vignette par écran avec sa capture, une fiche avec captur
   await tile.click();
   await expect(page).toHaveURL(/\/aide\/ecrans\/eventsDetail$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Aide : Fiche de l'événement");
-  const capture = page.getByRole("img", { name: "Capture de l'écran « Fiche de l'événement », avec ses repères numérotés" });
+  const capture = page.getByRole("img", { name: "Capture de l'écran « Fiche de l'événement », visite guidée ouverte" });
   await expect(capture).toBeVisible();
   expect(await capture.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(1280);
-  await expect(page.getByRole("region", { name: "Les repères de cet écran" }).getByRole("listitem")).toHaveCount(5);
+  await expect(page.getByRole("region", { name: "La visite de cet écran" }).getByRole("listitem")).toHaveCount(5);
   await expect(page.getByText("Comment marquer un événement perdu ?")).toBeVisible();
   await expect(page.getByText("Cet écran s'ouvre depuis la fiche d'un événement.")).toBeVisible();
   await expectNoAxeViolation(page);
 
-  // Depuis la fiche d'un écran, ses repères s'ouvrent sur l'écran lui-même.
+  // Depuis la fiche d'un écran, sa visite se relance sur l'écran lui-même.
   await page.goto("/aide/ecrans/eventsList");
-  await page.getByRole("link", { name: "Voir les repères sur l'écran" }).click();
+  await page.getByRole("link", { name: "Revoir la visite sur l'écran" }).click();
   await expect(page).toHaveURL(/\/events\?visite=revoir$/);
-  await expect(landmarksPanel(page, "Liste des événements")).toBeVisible();
+  await expect(tourDialog(page, "Liste des événements")).toBeVisible();
 });
 
 test("AIDE-12 — chaque public ne voit que ses écrans", async ({ page }) => {

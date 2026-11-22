@@ -39,7 +39,6 @@ const MARKERS: readonly string[] = [
   "standalone-task-form",
   "task-calendar",
   "draft-keeper",
-  "landmark-extra",
   // Contacts, pipeline, prestataires.
   "identity-facts",
   "merge-form",

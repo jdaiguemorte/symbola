@@ -1,4 +1,4 @@
-// AIDE-11/02 — repères des modules Devis et Budget (affichés d’office à la
+// AIDE-11/02, HUB-11 (lot 63f, ADR 0104) — visites des modules Devis et Budget (lancées d’office à la
 // première ouverture, rouverts par « ? »), puis essai guidé du module Devis : devis
 // fictif signé sur la page de signature d'essai (aucun e-mail à un tiers),
 // facture DEMO, tout supprimé à la fin de l'essai. Ordinateur et 375 px,
@@ -9,7 +9,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { saveOnboardingStep } from "../modules/hub/service";
-import { closeLandmarks, landmarksPanel, readyOrganization, signIn as signInByLink } from "./helpers";
+import { helpPanel, readyOrganization, signIn as signInByLink, skipTour, tourDialog } from "./helpers";
 import { openQuoteRubric } from "./devis-rubriques";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
@@ -36,38 +36,40 @@ async function newPlanner(page: Page, tag: string) {
   await loginAndSetupMfa(page, email, password);
 }
 
-// Repères ouverts d'office (sans la préférence posée par la
+// Visite lancée d'office (sans la préférence posée par la
 // configuration des autres parcours).
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test("AIDE-11 — repères des modules Devis et Budget, rouverts depuis « ? »", async ({ page }) => {
+test("HUB-11 — visites des modules Devis et Budget, relancées depuis « ? »", async ({ page }) => {
   test.setTimeout(90_000);
   await newPlanner(page, "tours");
 
   await page.goto("/devis/catalogue");
-  const catalog = landmarksPanel(page, "Catalogue des prestations");
-  await expect(catalog).toBeVisible();
-  await expect(catalog.getByRole("heading", { name: "Le catalogue", level: 3 })).toBeVisible();
+  const catalog = tourDialog(page, "Catalogue des prestations");
+  await expect(catalog.getByRole("heading", { name: "Le catalogue", level: 2 })).toBeVisible();
   await expectNoAxeViolation(page);
-  // Lot 20 (AIDE-15) : deux repères, chacun sur un élément de l'écran.
-  await catalog.getByRole("button", { name: "Repère suivant" }).click();
-  await expect(catalog.getByRole("heading", { name: "Nouvel article", level: 3 })).toBeVisible();
-  await expect(catalog.getByRole("button", { name: "Repère suivant" })).toBeDisabled();
-  await closeLandmarks(page, "Catalogue des prestations");
+  // Trois étapes, chacune sur un élément de l'écran.
+  await catalog.getByRole("button", { name: "Suivant" }).click();
+  await expect(catalog.getByRole("heading", { name: "Nouvel article", level: 2 })).toBeVisible();
+  await catalog.getByRole("button", { name: "Suivant" }).click();
+  await expect(catalog).toContainText("3 sur 3");
+  await catalog.getByRole("button", { name: "Terminer" }).click();
+  await expect(catalog).toHaveCount(0);
   await page.reload();
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
   await expect(catalog).toHaveCount(0);
   await page.getByRole("button", { name: "Aide sur cet écran" }).click();
-  await expect(catalog.getByRole("heading", { name: "Le catalogue", level: 3 })).toBeVisible();
-  await closeLandmarks(page, "Catalogue des prestations");
+  await helpPanel(page, "Catalogue des prestations").getByRole("button", { name: "Revoir la visite" }).click();
+  await expect(catalog.getByRole("heading", { name: "Le catalogue", level: 2 })).toBeVisible();
+  await skipTour(page, "Catalogue des prestations");
 
   await page.goto("/budget/parametres");
-  const budget = landmarksPanel(page, "Répartition du budget");
-  await expect(budget.getByRole("heading", { name: "Vos répartitions", level: 3 })).toBeVisible();
-  await budget.getByRole("button", { name: "Repère suivant" }).click();
-  await expect(budget.getByRole("heading", { name: "Nouveau modèle", level: 3 })).toBeVisible();
+  const budget = tourDialog(page, "Répartition du budget");
+  await expect(budget.getByRole("heading", { name: "Le seuil d'alerte", level: 2 })).toBeVisible();
+  await budget.getByRole("button", { name: "Suivant" }).click();
+  await expect(budget.getByRole("heading", { name: "Vos répartitions", level: 2 })).toBeVisible();
   await expectNoAxeViolation(page);
-  await closeLandmarks(page, "Répartition du budget");
+  await skipTour(page, "Répartition du budget");
   await page.reload();
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
   await expect(budget).toHaveCount(0);
@@ -78,13 +80,13 @@ test("AIDE-02 — essai guidé du module Devis : devis fictif signé et facturé
   await newPlanner(page, "essai-devis");
 
   await page.goto("/events");
-  await closeLandmarks(page, "Liste des événements");
+  await skipTour(page, "Liste des événements");
   // Lot 20 (décision 2) : l'essai se lance depuis l'aide de l'écran.
   await page.getByRole("button", { name: "Aide sur cet écran" }).click();
-  await landmarksPanel(page, "Liste des événements").getByRole("button", { name: "Démarrer l'essai" }).click();
+  await helpPanel(page, "Liste des événements").getByRole("button", { name: "Démarrer l'essai" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
-  // Les repères de la fiche s'affichent d'eux-mêmes ; ce parcours les ferme.
-  await closeLandmarks(page, "Fiche de l'événement");
+  // La visite de la fiche se lance d'elle-même ; ce parcours la passe.
+  await skipTour(page, "Fiche de l'événement");
   const trialUrl = page.url();
   await expect(page.getByText(/Composez un devis fictif/)).toBeVisible();
   await page.waitForLoadState("networkidle");

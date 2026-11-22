@@ -1,24 +1,25 @@
 "use client";
 
-// Lot 10 (AIDE-05, AIDE-07), revu au lot 13 (AIDE-11) puis au lot 16 (L16-HUB-19,
-// ADR 0039) — l'aide de l'écran affiché. L'écran DÉCLARE son aide (titre,
-// texte, repères) par <ScreenHelp> ou <PageTour> ; il ne pose plus de bouton.
-// Un seul « ? », dans la barre du haut (<HelpButton>), ouvre un seul panneau,
-// un tiroir qui pousse le contenu au lieu de le recouvrir. À la fermeture, le
-// focus revient au « ? ». La pastille « Reprendre » (HelpBar) se masque tant
-// que les repères sont ouverts.
+// Lot 10 (AIDE-05, AIDE-07), revu au lot 13 (AIDE-11), au lot 16 (L16-HUB-19, ADR 0039) puis au
+// lot 63f (HUB-11, ADR 0104) — l'aide de l'écran affiché. L'écran DÉCLARE son aide (titre, texte,
+// étapes de sa visite) par <ScreenHelp> ou <PageTour> ; il ne pose plus de bouton. Un seul « ? »,
+// dans la barre du haut (<HelpButton>), ouvre un tiroir qui pousse le contenu ; « Revoir la visite »
+// y lance la visite guidée. À la première ouverture d'un écran à visite, elle se lance d'elle-même
+// une fois (et compte alors comme vue). À la fermeture du tiroir, le focus revient au « ? » ; à la
+// fin de la visite, à son point de départ. La pastille « Reprendre » (HelpBar) se masque pendant la
+// visite.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
-import { Landmarks, type LandmarkStep } from "@symbola/ui";
+import { GuidedTour, HelpDrawer, type TourStep } from "@symbola/ui";
 import { useTranslations } from "next-intl";
 import { recordHelpProgressAction } from "./actions";
 
 export type ScreenHelpDeclaration = {
   title: string;
   body: string;
-  steps: LandmarkStep[];
-  // Écran à repères (AIDE-11) : progression « repères vus ».
+  steps: TourStep[];
+  // Écran à visite guidée (HUB-11) : progression « visite vue ».
   tourKey?: string | undefined;
-  // Ouverts d'office à la première ouverture de l'écran (décision C du lot 13).
+  // Visite lancée d'office à la première ouverture de l'écran.
   initialOpen?: boolean | undefined;
   // Lot 20 (décision 2) : action propre à l'écran, affichée sous son texte.
   extra?: ReactNode;
@@ -33,6 +34,7 @@ type HelpContextValue = {
   declare: (id: string, declaration: ScreenHelpDeclaration) => void;
   withdraw: (id: string) => void;
   toggle: () => void;
+  startTour: () => void;
   buttonRef: RefObject<HTMLButtonElement | null>;
 };
 
@@ -43,9 +45,10 @@ function recordSeen(declaration: ScreenHelpDeclaration | null) {
 }
 
 export function HelpProvider({ children }: { children: ReactNode }) {
-  const t = useTranslations("Landmarks");
+  const t = useTranslations("HelpUi");
   const [declarations, setDeclarations] = useState<{ id: string; declaration: ScreenHelpDeclaration }[]>([]);
   const [open, setOpen] = useState(false);
+  const [touring, setTouring] = useState(false);
   const known = useRef(new Set<string>());
   const buttonRef = useRef<HTMLButtonElement>(null);
   // La première déclaration est celle de l'écran (une section peut en déclarer une seconde).
@@ -57,9 +60,10 @@ export function HelpProvider({ children }: { children: ReactNode }) {
     );
     if (!known.current.has(id)) {
       known.current.add(id);
-      // Ouverts d'office une fois : comptés comme vus dès l'ouverture.
-      if (declaration.initialOpen) {
-        setOpen(true);
+      // Lancée d'office une fois : comptée comme vue dès l'ouverture.
+      if (declaration.initialOpen && declaration.steps.length > 0) {
+        setOpen(false);
+        setTouring(true);
         recordSeen(declaration);
       }
     }
@@ -71,26 +75,41 @@ export function HelpProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toggle = useCallback(() => {
-    if (!open) recordSeen(screen);
+    setTouring(false);
     setOpen(!open);
-  }, [open, screen]);
+  }, [open]);
 
   const close = useCallback(() => {
     setOpen(false);
     buttonRef.current?.focus();
   }, []);
 
-  // Écran quitté sans fermer l'aide : le panneau ne suit pas sur l'écran
-  // suivant. Seulement quand une aide déclarée disparaît : au premier
-  // affichage, l'écran déclare (et peut ouvrir d'office) avant cet effet.
+  // « Revoir la visite » : le tiroir se ferme, la visite part ; à sa fin, le focus revient au « ? ».
+  const startTour = useCallback(() => {
+    if (!screen || screen.steps.length === 0) return;
+    buttonRef.current?.focus();
+    setOpen(false);
+    setTouring(true);
+    recordSeen(screen);
+  }, [screen]);
+
+  const endTour = useCallback(() => setTouring(false), []);
+
+  // Écran quitté sans fermer l'aide : ni le tiroir ni la visite ne suivent sur l'écran suivant.
+  // Seulement quand une aide déclarée disparaît : au premier affichage, l'écran déclare (et peut
+  // lancer sa visite) avant cet effet.
   const hadScreen = useRef(false);
   useEffect(() => {
-    if (screen === null && hadScreen.current) setOpen(false);
+    if (screen === null && hadScreen.current) {
+      setOpen(false);
+      setTouring(false);
+    }
     hadScreen.current = screen !== null;
   }, [screen]);
 
   // Le tiroir pousse le contenu (globals.css, body[data-help-open]).
   const visible = open && screen !== null;
+  const touringVisible = touring && screen !== null && screen.steps.length > 0;
   useEffect(() => {
     document.body.dataset.helpOpen = visible ? "true" : "false";
     return () => {
@@ -102,33 +121,43 @@ export function HelpProvider({ children }: { children: ReactNode }) {
     () => ({
       screen,
       open: visible,
-      tour: screen?.tourKey ? { key: screen.tourKey, open: visible } : null,
+      tour: screen?.tourKey ? { key: screen.tourKey, open: touringVisible } : null,
       declare,
       withdraw,
       toggle,
+      startTour,
       buttonRef,
     }),
-    [screen, visible, declare, withdraw, toggle],
+    [screen, visible, touringVisible, declare, withdraw, toggle, startTour],
   );
 
   return (
     <HelpContext.Provider value={value}>
       {children}
       {screen ? (
-        <Landmarks
-          open={visible}
-          intro={screen.body}
-          steps={screen.steps}
-          labels={{
-            panel: t("panel", { screen: screen.title }),
-            close: t("close"),
-            previous: t("previous"),
-            next: t("next"),
-            marker: (number, markerTitle) => t("marker", { number, title: markerTitle }),
-          }}
-          onClose={close}
-          extra={screen.extra}
-        />
+        <>
+          <HelpDrawer
+            open={visible}
+            intro={screen.body}
+            labels={{ panel: t("panel", { screen: screen.title }), close: t("close"), replay: t("replay") }}
+            onClose={close}
+            onReplay={screen.steps.length > 0 ? startTour : undefined}
+            extra={screen.extra}
+          />
+          <GuidedTour
+            open={touringVisible}
+            steps={screen.steps}
+            labels={{
+              dialog: t("tour.dialog", { screen: screen.title }),
+              progress: (number, total) => t("tour.progress", { number, total }),
+              previous: t("tour.previous"),
+              next: t("tour.next"),
+              finish: t("tour.finish"),
+              skip: t("tour.skip"),
+            }}
+            onClose={endTour}
+          />
+        </>
       ) : null}
     </HelpContext.Provider>
   );

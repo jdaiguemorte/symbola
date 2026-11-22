@@ -1482,6 +1482,8 @@ export * from "./guests";
 export * from "./floorplans";
 // Lot 51 (EVT-04, CHR-08, JRJ-05, JRJ-06) : données de départ du jour J de terrain.
 export * from "./day-of";
+// Lot 63f (HUB-11 ; ADR 0104) : visites guidées des écrans clés.
+export * from "./tours";
 // Lot 53 (HUB-15, HUB-28, GC-02, CHR-05, HUB-24 ; ADR 0095).
 export * from "./notifications";
 

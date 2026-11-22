@@ -2,6 +2,7 @@
 // cours à droite. L'exemple est fictif (marqué démo, supprimé à la fin ou au
 // bout de 24 h) ; l'utilisateur agit dans les vrais écrans.
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { starterTutorialCatalogItem } from "@symbola/starter-templates";
@@ -14,8 +15,9 @@ import { TUTORIAL_SCRIPTS } from "@/lib/help/tutorials";
 import { CheckForm } from "./check-form";
 import { abandonTutorialAction, continueTutorialAction, finishTutorialAction, restartTutorialAction, setupTutorialAction } from "./actions";
 import { isInProgress, tutorialInProgress } from "@/lib/help/journey";
+import { originFromReferer, safeOrigin } from "@/lib/help/tutorial-origin";
 
-export default async function TutorialPage({ params, searchParams }: { params: Promise<{ key: string }>; searchParams: Promise<{ termine?: string; garde?: string }> }) {
+export default async function TutorialPage({ params, searchParams }: { params: Promise<{ key: string }>; searchParams: Promise<{ termine?: string; garde?: string; depuis?: string }> }) {
   const auth = await requirePlanner();
   const { key } = await params;
   const tutorial = TUTORIALS.find((candidate) => candidate.key === key);
@@ -68,13 +70,18 @@ export default async function TutorialPage({ params, searchParams }: { params: P
   const script = TUTORIAL_SCRIPTS[tutorial.key];
   const texts = t.raw(`${tutorial.key}.steps`) as { title: string; body: string }[];
   const completed = entry?.status === "completed";
+  const context = entry?.context ?? {};
   const query = await searchParams;
   const justFinished = query.termine === "1";
   const kept = query.garde === "1";
+  // Lot 63f (ADR 0104) : l'écran d'où le tutoriel est lancé (« ?depuis= » ou la page précédente),
+  // pour y revenir à la fin. Gardé au premier pas.
+  const requestHeaders = await headers();
+  const origin = context.origin ? null : (safeOrigin(query.depuis) ?? originFromReferer(requestHeaders.get("referer"), requestHeaders.get("host")));
+  const originField = origin ? <input type="hidden" name="origin" value={origin} /> : null;
   const index = Math.min(entry?.step ?? 0, script.steps.length - 1);
   const step = script.steps[index]!;
   const text = texts[index]!;
-  const context = entry?.context ?? {};
   const href = step.href && (step.kind === "do" || step.kind === "look") ? step.href(context) : null;
   const suggestion = tutorial.key === "catalog" ? starterTutorialCatalogItem(locale === "en" ? "en" : "fr") : null;
   // Terminé : écran « bravo », sauf si l'utilisateur le revoit (étape revenue à 0
@@ -131,6 +138,7 @@ export default async function TutorialPage({ params, searchParams }: { params: P
                     </Link>
                   ) : null}
                   <form action={continueTutorialAction.bind(null, tutorial.key)}>
+                    {originField}
                     <button type="submit">{t("continue")}</button>
                   </form>
                 </div>
@@ -140,6 +148,7 @@ export default async function TutorialPage({ params, searchParams }: { params: P
               ) : null}
               {step.kind === "setup" ? (
                 <form action={setupTutorialAction.bind(null, tutorial.key)}>
+                  {originField}
                   <button type="submit">{t("createExample")}</button>
                 </form>
               ) : null}

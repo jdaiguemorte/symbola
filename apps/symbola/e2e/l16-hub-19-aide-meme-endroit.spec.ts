@@ -7,10 +7,10 @@ import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import { landmarksPanel, readyOrganization, signIn as signInByLink } from "./helpers";
+import { helpPanel, readyOrganization, signIn as signInByLink } from "./helpers";
 
 const PASSWORD = "mot-de-passe-e2e-de-test";
-// Dix écrans représentatifs : à repères, sans repères, réglages (menu des rubriques).
+// Dix écrans représentatifs : avec visite, sans visite, réglages (menu des rubriques).
 const SCREENS = ["/", "/events", "/taches", "/prestataires", "/devis", "/devis/catalogue", "/parametres", "/import", "/profil", "/rgpd"];
 
 async function signIn(page: Page) {
@@ -52,7 +52,7 @@ test("L16-HUB-19 — le « ? » au même endroit sur tous les écrans, un tiroir
   const help = page.getByRole("button", { name: "Aide sur cet écran" });
   await help.click();
   await expect(help).toHaveAttribute("aria-expanded", "true");
-  const panel = landmarksPanel(page, "Les tâches de tous vos mariages");
+  const panel = helpPanel(page, "Les tâches de tous vos mariages");
   await expect(panel).toBeVisible();
   const viewport = page.viewportSize()!;
   if (viewport.width >= 1024) {
