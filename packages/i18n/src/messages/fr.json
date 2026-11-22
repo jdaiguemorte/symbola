@@ -88,6 +88,8 @@
     "menuOpen": "Menu",
     "skipToContent": "Aller au contenu",
     "menuClose": "Fermer le menu",
+    "menuCollapse": "Réduire le menu",
+    "menuExpand": "Agrandir le menu",
     "agendaTitle": "Agenda",
     "agendaNavigate": "Naviguer dans l'agenda",
     "agendaPrevious": "Période précédente",
@@ -477,6 +479,10 @@
         {
           "q": "Comment créer vite un prospect, une tâche, une dépense ou un devis ?",
           "a": "Avec « Créer » en haut de chaque écran, ou la touche N hors d'un champ : un formulaire court s'ouvre sans quitter l'écran, et l'évènement de l'écran est proposé."
+        },
+        {
+          "q": "Comment gagner de la place à l'écran ?",
+          "a": "Sur ordinateur, « Réduire le menu », en haut du menu, ne garde que ses icônes : leur nom s'affiche au survol ou au clavier, et l'écran prend la place libérée. « Agrandir le menu » le rétablit. Le choix est retenu sur cet appareil."
         }
       ]
     },
