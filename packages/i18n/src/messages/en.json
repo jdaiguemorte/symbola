@@ -12496,7 +12496,8 @@
     "comparisonError": "The comparison could not be loaded. Try again.",
     "detailsTitle": "Status, quote and notes of each vendor",
     "documentsEmpty": "No document for this item.",
-    "consultationLink": "Request quotes (brief, sending to vendors)"
+    "consultationLink": "Request quotes (brief, sending to vendors)",
+    "addMore": "+ Add"
   },
   "TaskCategories": {
     "title": "Task categories",

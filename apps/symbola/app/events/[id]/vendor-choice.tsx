@@ -34,7 +34,7 @@ export function VendorChoice({
   catalogHref: string;
   vendorTypes: { id: string; label: string }[];
   // Le libellé du bouton (« + Ajouter des prestataires » sur la ligne, « + Ajouter un prestataire » dans la fenêtre).
-  label?: string;
+  label?: string | undefined;
   // Après un ajout (la comparaison de la fenêtre se recharge).
   onChanged?: () => void;
 }) {

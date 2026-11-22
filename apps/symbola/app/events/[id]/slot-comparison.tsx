@@ -24,8 +24,11 @@ export function SlotComparison({ eventId, slotId, slotLabel, locale, version, ad
   const [changing, setChanging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ candidateId: string; replace: boolean; message: string } | null>(null);
-  const [reload, setReload] = useState(0);
-  const [pending, startTransition] = useTransition();
+  const [refreshing, setRefreshing] = useState(false);
+  const [pendingAction, startTransition] = useTransition();
+  // Entre la fin d'un geste et la comparaison relue, les boutons restent inactifs : jamais un geste sur
+  // un état périmé.
+  const pending = pendingAction || refreshing;
 
   const load = useCallback(async () => {
     const result = await slotComparisonAction({ eventId, slotId });
@@ -37,14 +40,15 @@ export function SlotComparison({ eventId, slotId, slotLabel, locale, version, ad
 
   useEffect(() => {
     void load();
-  }, [load, version, reload]);
+  }, [load, version]);
 
   const after = (result: SlotVendorState, retry?: { candidateId: string; replace: boolean }) => {
     if (result.ok) {
       setError(null);
       setConfirm(null);
       setChanging(false);
-      setReload((value) => value + 1);
+      setRefreshing(true);
+      void load().finally(() => setRefreshing(false));
       router.refresh();
       return;
     }

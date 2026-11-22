@@ -136,19 +136,26 @@ export function BudgetVendorsTable({
                       <div className="budget-vendor-who">
                         {row.vendorNames.length > 0 ? (
                           <span>{row.vendorNames.join(", ")}</span>
-                        ) : choice.comparing > 0 ? (
-                          <button type="button" className="link-button" onClick={() => open(index)} aria-haspopup="dialog">
-                            {t("choiceComparing", { count: choice.comparing })}
-                            {choice.quotes > 0 ? ` · ${t("quotesReceived", { count: choice.quotes })}` : ""}
-                            <span className="sr-only"> — {t("openFor", { slot: row.label })}</span>
-                          </button>
-                        ) : vendorsAvailable ? (
-                          <VendorChoice eventId={eventId} slotId={row.slotId} slotLabel={row.label} catalogHref={catalogHrefs[row.slotId] ?? "/prestataires"} vendorTypes={vendorTypes} />
                         ) : (
-                          <button type="button" className="link-button" onClick={() => open(index)} aria-haspopup="dialog">
-                            {t("addVendor")}
-                            <span className="sr-only"> — {t("openFor", { slot: row.label })}</span>
-                          </button>
+                          // La liste « + Ajouter » reste à la même place quand un prestataire entre en
+                          // comparaison : elle ne se ferme pas entre deux « Comparer ».
+                          <>
+                            {choice.comparing > 0 ? (
+                              <button type="button" className="link-button" onClick={() => open(index)} aria-haspopup="dialog">
+                                {t("choiceComparing", { count: choice.comparing })}
+                                {choice.quotes > 0 ? ` · ${t("quotesReceived", { count: choice.quotes })}` : ""}
+                                <span className="sr-only"> — {t("openFor", { slot: row.label })}</span>
+                              </button>
+                            ) : null}
+                            {vendorsAvailable ? (
+                              <VendorChoice eventId={eventId} slotId={row.slotId} slotLabel={row.label} catalogHref={catalogHrefs[row.slotId] ?? "/prestataires"} vendorTypes={vendorTypes} label={choice.comparing > 0 ? t("addMore") : undefined} />
+                            ) : choice.comparing === 0 ? (
+                              <button type="button" className="link-button" onClick={() => open(index)} aria-haspopup="dialog">
+                                {t("addVendor")}
+                                <span className="sr-only"> — {t("openFor", { slot: row.label })}</span>
+                              </button>
+                            ) : null}
+                          </>
                         )}
                         {row.attachments.length > 0 ? (
                           <span className="budget-vendor-pieces">

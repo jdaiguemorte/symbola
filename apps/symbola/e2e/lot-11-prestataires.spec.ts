@@ -111,7 +111,7 @@ test("L11-EVT-10 / L11-EVT-11 — comparer deux devis pour une ligne du budget, 
   const comparison = slotWindow(page, "Traiteur").getByRole("table", { name: "Comparaison des prestataires de « Traiteur »" });
   await expect(comparison.getByRole("columnheader", { name: "Les Tables de Flandre" })).toBeVisible();
   await expect(comparison.getByRole("row", { name: /^Devis/ })).toContainText("4 480,00 €");
-  await comparison.getByRole("button", { name: "Retenir — Les Tables de Flandre" }).click();
+  await comparison.getByRole("button", { name: "Retenir — Les Tables de Flandre", exact: true }).click();
   await expect(comparison.getByRole("columnheader", { name: /Les Tables de Flandre Retenu/ })).toBeVisible();
   await expect(comparison.getByRole("row", { name: /^Où en est-on/ })).toContainText("Écarté");
   await closeSlotWindow(page, "Traiteur");
