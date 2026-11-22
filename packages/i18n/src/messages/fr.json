@@ -6240,7 +6240,10 @@
       "hub_prepared_emails": "un message préparé pour la messagerie de la planner",
       "hub_relation_mail_settings": "le réglage « qui envoie les messages »",
       "hub_email_branding": "Marque des e-mails",
-      "hub_member_signatures": "Signature d'un membre"
+      "hub_member_signatures": "Signature d'un membre",
+      "events_day_reminder_overrides": "réglage du rappel du jour J d'un évènement",
+      "hub_sending_settings": "l'heure d'envoi par défaut",
+      "hub_day_reminder_targets": "réglage du rappel du jour J"
     },
     "modules": {
       "events": "Événements",

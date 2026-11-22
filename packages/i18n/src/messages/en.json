@@ -6240,7 +6240,10 @@
       "hub_prepared_emails": "a message prepared for the planner's mailbox",
       "hub_relation_mail_settings": "the “who sends the messages” setting",
       "hub_email_branding": "E-mail branding",
-      "hub_member_signatures": "Member's signature"
+      "hub_member_signatures": "Member's signature",
+      "events_day_reminder_overrides": "an event's day-of reminder setting",
+      "hub_sending_settings": "the default send time",
+      "hub_day_reminder_targets": "day-of reminder setting"
     },
     "modules": {
       "events": "Events",

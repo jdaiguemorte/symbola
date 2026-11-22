@@ -49,6 +49,7 @@ import {
   taskCategories,
   eventVendorCandidateNotes,
   vendorReminders,
+  dayReminderOverrides,
   eventVendorCandidates,
   eventVendorSlots,
   lossReasons,
@@ -141,6 +142,8 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: eventVendorCandidateNotes, parents: { candidateId: "event_vendor_candidates" } },
   // Lot 65d (M16) : les relances notées, après les notes qu'elles citent.
   { table: vendorReminders, ...ofEvent, parents: { candidateId: "event_vendor_candidates", noteId: "event_vendor_candidate_notes" } },
+  // Lot 66b (JRJ-01 ; D2, D3) : le rappel du jour J réglé pour l'évènement.
+  { table: dayReminderOverrides, ...ofEvent },
   { table: eventTasks, ...ofEvent },
   { table: eventTaskComments, ...ofEvent },
   { table: eventTaskAttachments, ...ofEvent, files: ["fileKey"] },

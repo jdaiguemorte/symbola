@@ -25,6 +25,8 @@ import {
   relationMailSettings,
   emailBranding,
   memberSignatures,
+  sendingSettings,
+  dayReminderTargets,
   riskRules,
   membershipRoleEnum,
   messageTemplates,
@@ -73,6 +75,10 @@ export const HUB_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   // sortent avec l'équipe et, comme elle, ne sont pas reprises.
   { table: emailBranding, idField: "organizationId", importTransform: (row) => ({ ...row, automaticSignerUserId: null }) },
   { table: memberSignatures, files: ["photoKey"], importSkip: "team" },
+  // Lot 66a et 66b (HUB-28, JRJ-01 ; D1 à D3) : l'heure d'envoi par défaut et le rappel du jour J par
+  // cible ; l'heure propre d'un automatisme sort avec lui.
+  { table: sendingSettings, idField: "organizationId" },
+  { table: dayReminderTargets },
   { table: privacySettings, idField: "organizationId" },
   { table: privacyRequests },
   // Trace des exports RGPD : leurs fichiers, effacés à l'expiration, ne sont pas repris.
