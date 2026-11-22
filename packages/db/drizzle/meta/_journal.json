@@ -1443,6 +1443,13 @@
       "when": 1795337841082,
       "tag": "0205_lot65d_hub_relation_mail",
       "breakpoints": true
+    },
+    {
+      "idx": 206,
+      "version": "7",
+      "when": 1795350687669,
+      "tag": "0206_lot65g_hub_import_target_event",
+      "breakpoints": true
     }
   ]
 }

@@ -3849,7 +3849,8 @@
       "nothingSaved": "Nothing is saved yet. You can close this: the import goes on.",
       "close": "Close"
     },
-    "typesCombinedFrom": "From {labels}: several trades on the same record"
+    "typesCombinedFrom": "From {labels}: several trades on the same record",
+    "targetEvent": "The lines will go into the “{names}” event: your file needs no column to name it."
   },
   "Privacy": {
     "title": "Personal data",
@@ -12519,7 +12520,13 @@
     "detailsTitle": "Status, quote and notes of each vendor",
     "documentsEmpty": "No document for this item.",
     "consultationLink": "Request quotes (brief, sending to vendors)",
-    "addMore": "+ Add"
+    "addMore": "+ Add",
+    "removeSlot": "Delete",
+    "removeSlotFor": "Delete the “{slot}” item",
+    "removeSlotTitle": "Delete the “{slot}” item?",
+    "removeSlotBody": "This item has no vendor, amount or instalment: it disappears from this event. To keep it without looking for a vendor, tick “Not required” in its settings instead.",
+    "removeSlotConfirm": "Delete the item",
+    "removeSlotCancel": "Cancel"
   },
   "TaskCategories": {
     "title": "Task categories",

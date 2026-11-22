@@ -936,7 +936,7 @@ export default async function EventDetailPage({
                 </Link>
                 {/* Lot 63b (HUB-14) : importer un budget depuis l'écran. */}
                 {budgetAvailable ? (
-                  <Link className="button-link" href="/import?type=budget_lines#import-form">
+                  <Link className="button-link" href={`/import?type=budget_lines&evenement=${event.id}#import-form`}>
                     {t("importHere")}
                   </Link>
                 ) : null}
@@ -1288,6 +1288,9 @@ export default async function EventDetailPage({
             <SettingsLink href="/events/modeles-programme" back="event" label={t("programTemplatesSettings")} />
           </div>
           <ProgramShiftProposal eventId={event.id} proposal={shiftProposal} />
+          {/* Lot 65g (CHR-08 ; recette staging du 22/11/2026) : « Importer » ouvre l'import en tête de la
+              carte, au-dessus de la diffusion, au lieu de le déplier plus bas. */}
+          {query.importer === "1" ? <ProgramImportForm eventId={event.id} open /> : null}
           {/* Lot 62c (UX-13) : en tête de la carte, la diffusion à gauche, les PDF et l'agenda à droite. */}
           <div className="program-head">
           {/* Lot 37b (CHR-07, DAT-14 ; D8, D10) : clients et prestataires lisent la dernière version diffusée. */}
@@ -1392,7 +1395,7 @@ export default async function EventDetailPage({
               </p>
             )}
             {/* Lot 51 (EVT-04, CHR-08) : un chrono importé d'un tableur, avec son écran de contrôle. */}
-            <ProgramImportForm eventId={event.id} open={query.importer === "1"} />
+            {query.importer === "1" ? null : <ProgramImportForm eventId={event.id} open={false} />}
           </div>
           {program.items.length === 0 ? <p>{t("noProgramItems")}</p> : null}
           <datalist id="program-responsible-options">

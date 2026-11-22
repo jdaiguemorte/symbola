@@ -11,6 +11,8 @@ import { getImportColumns, getImportDraft, startEventSheetsImport, startImport, 
 import { saveColumnsIfNothingToDecide } from "@/lib/import/columns";
 import { receiveUpload, uploadResponse } from "@/lib/uploads/receive";
 import { availableImportEntityTypes, parseEntityType } from "../access";
+import { getEvent } from "@/modules/events/service";
+import { isValidId } from "@/app/events/module-access";
 
 const REJECTION_MESSAGES: Record<ImportRejectionReason, string> = {
   empty: "rejectedEmpty",
@@ -58,7 +60,10 @@ export async function POST(request: Request): Promise<Response> {
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) return uploadResponse({ error: t("missingFile") });
 
-  const result = await startImport(db, { organizationId, userId: user.id, entityType, fileName: file.name, bytes: new Uint8Array(await file.arrayBuffer()) });
+  // Lot 65g (HUB-14, BUD-04) : l'évènement d'où l'import est lancé, s'il est bien de l'organisation.
+  const targetId = String(formData.get("targetEventId") ?? "");
+  const targetEventId = (entityType === "budget_lines" || entityType === "tasks") && isValidId(targetId) && (await getEvent(organizationId, targetId).catch(() => null)) ? targetId : null;
+  const result = await startImport(db, { organizationId, userId: user.id, entityType, fileName: file.name, bytes: new Uint8Array(await file.arrayBuffer()), targetEventId });
   if (result.status === "rejected") {
     // Journalisé sans le nom du fichier ni son contenu (CLAUDE.md §5).
     console.warn("import refusé", { organizationId, reason: result.reason, hint: result.hint });
