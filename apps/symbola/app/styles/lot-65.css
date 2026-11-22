@@ -15,7 +15,7 @@
      des libellés, l'aide commence à la même hauteur. Au-delà de trois éléments, le groupe reste tel
      quel. */
   @media (width >= 640px) {
-    .form-grid > .field-group:not(:has(> :nth-child(4))):has(> label:first-child:not(:has(> input[type="checkbox"], > input[type="radio"]))) {
+    .form-grid > .field-group:not(:has(> :nth-child(4))):has(> label:first-child):not(:has(> label:first-child > input[type="checkbox"], > label:first-child > input[type="radio"])) {
       @apply row-span-3 grid gap-y-1;
       grid-template-rows: subgrid;
     }
@@ -135,6 +135,16 @@
   }
   .today-first .today-items > .today-item {
     @apply py-1;
+  }
+  /* Sur ordinateur, des lignes compactes : l'action garde une cible de 32 px (WCAG 2.5.8 : 24 px au
+     moins) ; sur téléphone, les 44 px habituels. */
+  @media (width >= 768px) {
+    .today-first .today-action :is(button, a.button-link) {
+      @apply min-h-8 px-3 py-0 text-label;
+    }
+    .app-main > main > .today-first {
+      @apply py-4;
+    }
   }
   .today-first .today-item-body {
     @apply flex-row flex-wrap items-baseline gap-x-3;
