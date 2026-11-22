@@ -1,6 +1,6 @@
 {
-  "id": "d46af268-4cf1-487a-aee9-4a0bd2165f68",
-  "prevId": "126ade97-17df-44d5-9887-fa878958707a",
+  "id": "bf6197f4-aee9-4b23-b8ac-dba026fa021b",
+  "prevId": "c5cbbec1-1df4-4594-a963-9d1899eb550c",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -4825,153 +4825,6 @@
         "day_photos_state_check": {
           "name": "day_photos_state_check",
           "value": "(\"events\".\"day_photos\".\"state\" = 'stored' and \"events\".\"day_photos\".\"storage_key\" is not null and \"events\".\"day_photos\".\"content_type\" is not null and \"events\".\"day_photos\".\"size_bytes\" > 0 and \"events\".\"day_photos\".\"rejection\" is null) or (\"events\".\"day_photos\".\"state\" = 'rejected' and \"events\".\"day_photos\".\"storage_key\" is null and \"events\".\"day_photos\".\"rejection\" in ('type', 'size', 'virus', 'unavailable'))"
-        }
-      },
-      "isRLSEnabled": false
-    },
-    "events.day_reminder_overrides": {
-      "name": "day_reminder_overrides",
-      "schema": "events",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "event_id": {
-          "name": "event_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "target": {
-          "name": "target",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "enabled": {
-          "name": "enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "moment": {
-          "name": "moment",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "send_time": {
-          "name": "send_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_by": {
-          "name": "updated_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "day_reminder_overrides_organization_idx": {
-          "name": "day_reminder_overrides_organization_idx",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "day_reminder_overrides_event_target_idx": {
-          "name": "day_reminder_overrides_event_target_idx",
-          "columns": [
-            {
-              "expression": "event_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "target",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "day_reminder_overrides_event_id_events_id_fk": {
-          "name": "day_reminder_overrides_event_id_events_id_fk",
-          "tableFrom": "day_reminder_overrides",
-          "tableTo": "events",
-          "schemaTo": "events",
-          "columnsFrom": [
-            "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "day_reminder_overrides_target_check": {
-          "name": "day_reminder_overrides_target_check",
-          "value": "\"events\".\"day_reminder_overrides\".\"target\" in ('planner', 'vendors', 'team', 'clients')"
-        },
-        "day_reminder_overrides_moment_check": {
-          "name": "day_reminder_overrides_moment_check",
-          "value": "\"events\".\"day_reminder_overrides\".\"moment\" in ('eve', 'morning')"
-        },
-        "day_reminder_overrides_time_check": {
-          "name": "day_reminder_overrides_time_check",
-          "value": "extract(minute from \"events\".\"day_reminder_overrides\".\"send_time\")::int % 15 = 0 and extract(second from \"events\".\"day_reminder_overrides\".\"send_time\") = 0"
         }
       },
       "isRLSEnabled": false
@@ -21835,6 +21688,12 @@
         "result": {
           "name": "result",
           "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "target_event_id": {
+          "name": "target_event_id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },

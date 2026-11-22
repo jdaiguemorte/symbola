@@ -73,7 +73,7 @@ Détail des options :
 - Les rappels de rendez-vous gardent leur délai relatif (24 h, 2 h avant) : pas d'heure fixe.
 - **Données** : l'heure de chaque automatisme (colonne `send_time` de `hub.automations`, nulle =
   l'heure par défaut) et l'heure par défaut de l'organisation (nouvelle table de réglages du hub).
-  Migration à partir de **0206**, réversible, schéma hub seulement.
+  Migration à partir de **0207** (0206 prise par le lot 65g), réversible, schéma hub seulement.
 
 ### 66b — Le rappel du jour J (JRJ-01, HUB-28, HUB-24 ; D2, D3, D4 ; M18)
 

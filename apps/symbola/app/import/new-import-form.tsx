@@ -12,8 +12,11 @@ export function NewImportForm({
   maxSizeLabel,
   maxSheets,
   defaultEntityType = null,
+  target = null,
 }: {
   entityTypes: ImportEntityType[];
+  // Lot 65g (HUB-14, BUD-04) : l'évènement d'où l'import est lancé ; toutes les lignes y vont.
+  target?: { eventId: string; names: string } | null;
   maxSizeLabel: string;
   maxSheets: number;
   // Lot 14 (IMP-09) : type choisi depuis une carte de reprise.
@@ -53,6 +56,12 @@ export function NewImportForm({
         }}
       >
         {/* Lot 16 (IMP-11) : une reprise choisie par sa tuile n'a plus de choix à faire. */}
+        {target ? (
+          <>
+            <input type="hidden" name="targetEventId" value={target.eventId} />
+            <p className="notice">{t("targetEvent", { names: target.names })}</p>
+          </>
+        ) : null}
         {entityTypes.length === 1 ? (
           <input type="hidden" name="entityType" value={entityTypes[0]} />
         ) : (

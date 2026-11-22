@@ -3849,7 +3849,8 @@
       "nothingSaved": "Rien n'est encore enregistré. Vous pouvez fermer : l'import continue.",
       "close": "Fermer"
     },
-    "typesCombinedFrom": "Vient de {labels} : plusieurs métiers sur la même fiche"
+    "typesCombinedFrom": "Vient de {labels} : plusieurs métiers sur la même fiche",
+    "targetEvent": "Les lignes iront dans l'évènement « {names} » : votre fichier n'a pas besoin de colonne pour le désigner."
   },
   "Privacy": {
     "title": "Données personnelles",
@@ -12519,7 +12520,13 @@
     "detailsTitle": "Statut, devis et notes de chaque prestataire",
     "documentsEmpty": "Aucune pièce pour ce poste.",
     "consultationLink": "Demander des devis (brief, envoi aux prestataires)",
-    "addMore": "+ Ajouter"
+    "addMore": "+ Ajouter",
+    "removeSlot": "Supprimer",
+    "removeSlotFor": "Supprimer le poste « {slot} »",
+    "removeSlotTitle": "Supprimer le poste « {slot} » ?",
+    "removeSlotBody": "Ce poste n'a ni prestataire, ni montant, ni échéance : il disparaît de cet évènement. Pour le garder sans le chercher, cochez plutôt « Non requis » dans ses réglages.",
+    "removeSlotConfirm": "Supprimer le poste",
+    "removeSlotCancel": "Annuler"
   },
   "TaskCategories": {
     "title": "Catégories des tâches",

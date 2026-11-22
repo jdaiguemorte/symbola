@@ -196,4 +196,17 @@
   .reminder-template[open] > summary {
     @apply mb-2;
   }
+
+  /* 65g (HUB-14 ; recette staging du 22/11/2026) : l'écran des colonnes d'un import prend toute la
+     largeur de l'écran (un formulaire de saisie est limité à 48rem, et range ses enfants à la largeur
+     de leur contenu) ; la liste des champs n'est plus coupée alors qu'il reste de la place à droite. */
+  .app-main > main.import-assistant > form#columns-form {
+    @apply w-full max-w-none;
+  }
+  .import-assistant form > .columns-map {
+    @apply w-full min-w-0 self-stretch;
+  }
+  .import-assistant .columns-map select {
+    @apply min-w-40 max-w-full;
+  }
 }
