@@ -58,19 +58,19 @@ test("JRJ-01 — Lot 66b : le rappel du jour J, réglé pour l'organisation puis
   // Sur l'évènement : ce qui partira, puis couper le rappel de la planner pour cet évènement.
   await page.goto(`/events/${setup.eventId}?onglet=programme`);
   const card = page.getByRole("region", { name: "Rappel du jour J" });
-  await expect(card.getByRole("listitem")).toHaveText(["Vous (la planner) : la veille à 18:00", "Prestataires retenus : la veille à 17:30"]);
-  await card.getByText("Changer pour cet évènement").click();
+  const summary = card.locator("summary");
+  await expect(summary).toHaveText("Rappel du jour J — Vous (la planner) : la veille à 18:00 ; Prestataires retenus : la veille à 17:30");
+  await summary.click();
   await card.getByLabel("Envoyer à : Vous (la planner)").uncheck();
   await card.getByRole("button", { name: "Enregistrer pour cet évènement" }).click();
   await expect(card.getByRole("status")).toHaveText("Rappel enregistré pour cet évènement.");
   await expect.poll(async () => (await listDayReminderOverrides(setup.organizationId, setup.eventId)).map((setting) => [setting.target, setting.enabled])).toEqual([["planner", false]]);
   await page.reload();
-  await expect(page.getByRole("region", { name: "Rappel du jour J" }).getByRole("listitem")).toHaveText(["Prestataires retenus : la veille à 17:30"]);
-  await expect(page.getByRole("region", { name: "Rappel du jour J" })).toContainText("Réglé pour cet évènement.");
+  await expect(page.getByRole("region", { name: "Rappel du jour J" }).locator("summary")).toHaveText("Rappel du jour J — Prestataires retenus : la veille à 17:30 · Réglé pour cet évènement.");
   await expectNoAxeViolation(page);
   await expectNoHorizontalScroll(page);
 
-  await page.getByRole("region", { name: "Rappel du jour J" }).getByText("Changer pour cet évènement").click();
+  await page.getByRole("region", { name: "Rappel du jour J" }).locator("summary").click();
   await page.getByRole("button", { name: "Revenir au réglage de l'organisation" }).click();
   await expect.poll(async () => (await listDayReminderOverrides(setup.organizationId, setup.eventId)).length).toBe(0);
 });
