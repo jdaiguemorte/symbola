@@ -524,7 +524,7 @@
     },
     "profile": {
       "title": "My account and security",
-      "body": "Choose the language Symbola uses for you. Your password and two-factor authentication protect your account; \"Forget all my devices\" asks for the code again on trusted devices. \"Sign out all my other devices\" closes your other sessions, for example after losing a phone.",
+      "body": "Choose the language Symbola uses for you. Your password and two-factor authentication protect your account; \"Forget all my devices\" asks for the code again on trusted devices. \"Sign out all my other devices\" closes your other sessions, for example after losing a phone. “My signature”: your name, job title and links at the end of the e-mails you send.",
       "faq": [
         {
           "q": "How do I change my password?",
@@ -1144,7 +1144,7 @@
     },
     "emailTemplates": {
       "title": "Email templates",
-      "body": "Who sends the messages to your clients and vendors: by default, you, from your own mailbox. Symbola prepares each relationship message (proposal, reminders, brief, schedule, reply to a prospect…) in the “Prepare the email” window: “Open in my mailbox”, “Copy the message”, then “I've sent it”, which notes the sending in the event's activity. No attachment: the space link is in the message, or download the PDF. Automations leave a “To send” item in “Today”. With “Symbola sends them for me”, messages are sent by Symbola, with attachments and automatic reminders. Technical messages (access, signature, online appointments, security, notices) are always sent by Symbola. The templates below are used either way, in French and English according to each person's language: an unknown variable is refused, and the link cannot be missing. The preview shows the email with sample data; “Send me a test” sends it to your own address only. An email with a variable that has no value is not sent: Symbola tells you which one. “Back to the starter text” erases your version."
+      "body": "Who sends the messages to your clients and vendors: by default, you, from your own mailbox. Symbola prepares each relationship message (proposal, reminders, brief, schedule, reply to a prospect…) in the “Prepare the email” window: “Open in my mailbox”, “Copy the message”, then “I've sent it”, which notes the sending in the event's activity. No attachment: the space link is in the message, or download the PDF. Automations leave a “To send” item in “Today”. With “Symbola sends them for me”, messages are sent by Symbola, with attachments and automatic reminders. Technical messages (access, signature, online appointments, security, notices) are always sent by Symbola. The templates below are used either way, in French and English according to each person's language: an unknown variable is refused, and the link cannot be missing. The preview shows the email with sample data; “Send me a test” sends it to your own address only. An email with a variable that has no value is not sent: Symbola tells you which one. “Back to the starter text” erases your version. Each template with a button has its own label, in your own words (“Discover your proposal”); guest templates can be edited too. Font, footer, sender name and signatures: “E-mail branding and signature”."
     },
     "messageTemplates": {
       "title": "Message templates",
@@ -1507,6 +1507,14 @@
     "taskCategories": {
       "title": "Task categories",
       "body": "Sort your tasks by category: Client, Vendors, Admin, Big day to start with. Rename them, change their colour and order, add some; a deleted category leaves its tasks without a category. Each change is saved when you leave the field; « Undo the last change » takes it back."
+    },
+    "emailBranding": {
+      "title": "E-mail branding and signature",
+      "body": "Your e-mails to clients, vendors and guests carry your logo, the colour of your documents, the font chosen here, your full contact details in the footer (with postcode and city) and a free line. The sender display name replaces the organisation name in “From:”; the address stays on the Symbola domain and replies reach your contact address. Each team member fills in their signature in My account › My signature; here you choose what signatures show, and the signature of automatic e-mails (yours by default). “Sent with Symbola” no longer appears on your e-mails: only Symbola’s own e-mails (account, security, codes, team notices) keep its branding."
+    },
+    "mySignature": {
+      "title": "My signature",
+      "body": "Your signature is added at the end of the e-mails you send from Symbola: display name, job title, phone, website, up to four links and an optional small photo. The preview shows the result live; save to apply it. Your organisation chooses the elements shown. An automatic e-mail carries the signature chosen by the account holder. In the “Prepare the e-mail” window, “Add my signature” adds it as text at the end of the message. Your signature is erased if your access to the organisation is removed."
     }
   },
   "Aide": {
@@ -6229,7 +6237,9 @@
       "events_task_categories": "task category",
       "hub_module_requests": "an app activation request",
       "hub_prepared_emails": "a message prepared for the planner's mailbox",
-      "hub_relation_mail_settings": "the “who sends the messages” setting"
+      "hub_relation_mail_settings": "the “who sends the messages” setting",
+      "hub_email_branding": "E-mail branding",
+      "hub_member_signatures": "Member's signature"
     },
     "modules": {
       "events": "Events",
@@ -7930,7 +7940,8 @@
       "vendors": "Suppliers",
       "settlement": "Proposal and payment",
       "team": "Team and account security",
-      "messages": "Messages"
+      "messages": "Messages",
+      "guests": "Guests"
     },
     "kinds": {
       "client_link": {
@@ -8064,6 +8075,14 @@
       "new_message": {
         "title": "New message",
         "description": "Sent to a client or a vendor when you write to them about a topic: the topic's name and a link to the thread, never the message itself."
+      },
+      "guest_invitation": {
+        "title": "Invitation to reply",
+        "description": "To each adult guest: their personal link to say whether they are coming, their meal choices and allergies."
+      },
+      "guest_reminder": {
+        "title": "Guest reminder",
+        "description": "To guests who have not replied yet, following the reminders set on the event."
       }
     },
     "variables": {
@@ -8141,7 +8160,12 @@
       "error": "Setting refused: choose one of the two options.",
       "preparedBadge": "Prepared for your mailbox",
       "sentBadge": "Sent by Symbola"
-    }
+    },
+    "buttonLabel": "Button label",
+    "buttonLabelHint": "The text of the button that opens the link, in your own words. Left empty: “{label}”.",
+    "errorButtonLabelTooLong": "The button label is longer than {max} characters.",
+    "brandingLink": "E-mail branding and signature",
+    "brandingLinkHint": "Font, footer line, sender display name and the team's signature template."
   },
   "Calendar": {
     "personFeed": "{organization} — events",
@@ -12574,6 +12598,96 @@
     "none": "No message to prepare: it has already been sent or set aside.",
     "error": "Action not possible right now: try again.",
     "next": "Next message",
-    "previous": "Previous message"
+    "previous": "Previous message",
+    "addSignature": "Add my signature",
+    "addSignatureHint": "Your e-mail app often adds yours already: tick only if it does not.",
+    "noSignature": "You have no signature yet: My account › My signature."
+  },
+  "EmailBranding": {
+    "title": "E-mail branding and signature",
+    "subtitle": "Your e-mails carry your brand: your font, your footer, your sender name and the signature of the person writing.",
+    "back": "E-mail templates",
+    "brandTitle": "Branding",
+    "fontLegend": "E-mail font",
+    "fontHint": "Four families that every e-mail app displays; otherwise the e-mail app’s own font takes over.",
+    "fonts": {
+      "sans": "Sans serif",
+      "serif": "Serif",
+      "elegant": "Elegant",
+      "rounded": "Rounded"
+    },
+    "footerLineLabel": "Free footer line (optional)",
+    "footerLineHint": "Below your contact details: “Wedding planner in Lyon since 2015”, a short legal notice… {max} characters at most.",
+    "senderNameLabel": "Sender display name (optional)",
+    "senderNameHint": "What your recipients read in “From:”, for example “Camille — Atelier Lumière”. Left empty: your organisation’s name. The sending address stays on the Symbola domain; replies reach your contact address.",
+    "footerAddressNote": "The footer shows your name, your address with postcode and city, your e-mail, your phone and your website (Settings › Company and VAT).",
+    "signatureTitle": "Signature template",
+    "signatureIntro": "Each team member fills in their signature in My account › My signature; the e-mail carries the signature of the person who sends it. Choose here what signatures show.",
+    "elementsLegend": "Elements shown",
+    "elements": {
+      "photo": "Photo",
+      "title": "Job title",
+      "organization": "Organisation name",
+      "phone": "Phone",
+      "website": "Website",
+      "links": "Links (social networks, wedding website…)"
+    },
+    "automaticSignerLabel": "Signature of automatic e-mails",
+    "automaticSignerHint": "Reminders, follow-ups and other e-mails nobody sends by hand.",
+    "automaticSignerOwner": "The account holder",
+    "symbolaNote": "Symbola’s own e-mails (account, security, sign-in codes, team notices) keep Symbola’s branding and carry no signature.",
+    "save": "Save",
+    "saved": "E-mail branding saved.",
+    "ownerOnly": "Only the account holder changes the e-mail branding.",
+    "errorFont": "Choose one of the four fonts.",
+    "errorFooterLine": "The footer line fits on one line of {max} characters at most.",
+    "errorSenderName": "The display name fits in {max} characters, without “<”, “>” or quotes.",
+    "errorElements": "A signature element is unknown.",
+    "errorAutomaticSigner": "Choose an active Planner of the team.",
+    "mySignatureLink": "Fill in my signature",
+    "previewTitle": "Preview",
+    "previewIntro": "A sample e-mail, with your signature if you have filled it in."
+  },
+  "MySignature": {
+    "title": "My signature",
+    "subtitle": "Added at the end of the e-mails you send from Symbola.",
+    "back": "My account",
+    "displayName": "Display name",
+    "displayNameHint": "Without a display name, your e-mails go out without a signature.",
+    "jobTitle": "Job title",
+    "phone": "Phone",
+    "website": "Website",
+    "websiteHint": "For example atelier-lumiere.fr",
+    "linksLegend": "Links ({max} at most)",
+    "linksHint": "Instagram, Pinterest, your wedding website… A name and an address per link; an empty line is ignored.",
+    "linkLabel": "Link {n} name",
+    "linkUrl": "Link {n} address",
+    "photoTitle": "Photo (optional)",
+    "photoField": "Choose an image",
+    "photoSubmit": "Upload the photo",
+    "photoRemove": "Remove the photo",
+    "photoHint": "PNG or JPEG, 1 MB at most; shown as a small circle next to your name.",
+    "photoNone": "No photo.",
+    "photoAlt": "Your signature photo",
+    "photoMissing": "Choose an image.",
+    "photoTooLarge": "Image too large: 1 MB at most.",
+    "photoUnsupported": "Only PNG and JPEG images are accepted.",
+    "photoInfected": "This file was rejected by the virus scan.",
+    "save": "Save my signature",
+    "saved": "Signature saved.",
+    "errorDisplayName": "The display name fits on one line of {max} characters at most.",
+    "errorJobTitle": "The job title fits on one line of {max} characters at most.",
+    "errorPhone": "The phone number only contains digits, spaces and “+ ( ) . -”.",
+    "errorWebsite": "The website must be a web address, for example atelier-lumiere.fr.",
+    "errorLinks": "Each link has a name and a web address; {max} links at most.",
+    "previewTitle": "Preview",
+    "previewBody": "… See you soon for the tasting!",
+    "previewEmpty": "Enter your display name to see your signature.",
+    "automaticNote": "An automatic e-mail (reminder, follow-up) carries the signature chosen by the account holder in Settings › E-mail templates › Branding and signature.",
+    "preparedNote": "Prepared messages, which you send from your own e-mail app, can include this signature as text (“Add my signature”).",
+    "hiddenNote": "Your organisation does not show some elements: {elements}.",
+    "profileTitle": "My signature",
+    "profileBody": "Your name, job title and links at the end of the e-mails you send.",
+    "profileLink": "Fill in my signature"
   }
 }

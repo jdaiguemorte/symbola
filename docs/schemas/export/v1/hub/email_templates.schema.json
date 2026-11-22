@@ -58,6 +58,12 @@
     "body": {
       "type": "string"
     },
+    "buttonLabel": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
@@ -99,6 +105,7 @@
     "locale",
     "subject",
     "body",
+    "buttonLabel",
     "createdAt",
     "createdBy",
     "updatedAt",

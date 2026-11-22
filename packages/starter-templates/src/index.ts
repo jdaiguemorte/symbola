@@ -1487,6 +1487,7 @@ export * from "./tours";
 // Lot 53 (HUB-15, HUB-28, GC-02, CHR-05, HUB-24 ; ADR 0095).
 export * from "./notifications";
 export * from "./email-senders";
+export * from "./email-branding";
 
 // Lot 46 (RDV-01, HUB-20 ; D6, D10 ; ADR 0082) — module Rendez-vous : trois types de départ, plages
 // hebdomadaires par défaut, réglages par défaut d'un type créé avec son seul nom et sa durée, et

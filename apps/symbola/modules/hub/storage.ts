@@ -8,6 +8,7 @@ import { organizationProfiles, storageSnapshots } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 import { createStorageClient, statPrivateObject } from "@symbola/files";
 import { STORAGE_NATURES, type StorageNature, type StorageUsageRow } from "@symbola/contracts";
+import { signaturePhotoUsage } from "./email-branding";
 
 export type StorageTotals = Record<StorageNature, { files: number; bytes: number }>;
 export type StorageSnapshotMonth = { month: string; takenAt: string; natures: StorageTotals; files: number; bytes: number };
@@ -18,21 +19,28 @@ export function emptyStorageTotals(): StorageTotals {
 }
 
 // Le logo de l'organisation (images). D13 : un logo déposé avant le lot 37b a sa taille lue une fois
-// au stockage, puis gardée.
+// au stockage, puis gardée. Lot 66c (ADR 0113) : les photos des signatures comptent aussi en images.
 export async function measureHubStorage(organizationId: string): Promise<StorageUsageRow[]> {
+  const [logo, photos] = await Promise.all([measureLogo(organizationId), signaturePhotoUsage(organizationId)]);
+  const files = (logo ? 1 : 0) + photos.files;
+  if (files === 0) return [];
+  return [{ nature: "images", eventId: null, files, bytes: (logo ?? 0) + photos.bytes }];
+}
+
+async function measureLogo(organizationId: string): Promise<number | null> {
   const db = appDatabase();
   const [profile] = await db.select({ logoKey: organizationProfiles.logoKey, logoSizeBytes: organizationProfiles.logoSizeBytes }).from(organizationProfiles).where(eq(organizationProfiles.organizationId, organizationId));
-  if (!profile?.logoKey) return [];
+  if (!profile?.logoKey) return null;
   let size = profile.logoSizeBytes;
   if (size === null) {
     size = await statPrivateObject(createStorageClient(), profile.logoKey);
     if (size === null) {
       console.warn(`relevé de stockage : logo absent du stockage (organisation ${organizationId})`);
-      return [];
+      return null;
     }
     await db.update(organizationProfiles).set({ logoSizeBytes: size }).where(eq(organizationProfiles.organizationId, organizationId));
   }
-  return [{ nature: "images", eventId: null, files: 1, bytes: size }];
+  return size;
 }
 
 export async function hasStorageSnapshot(organizationId: string, month: string): Promise<boolean> {

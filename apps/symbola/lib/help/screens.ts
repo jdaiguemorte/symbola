@@ -179,6 +179,9 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "contactDetail", group: "company", audience: "team", path: null, capture: false },
   // Lot 38a (MSG-01, D3, D7) : modèles des e-mails envoyés au nom de l'organisation.
   { key: "emailTemplates", group: "company", audience: "team", path: "/parametres/emails", capture: false },
+  // Lot 66c (HUB-18, MSG-01 ; D5, D6 ; ADR 0113) : marque des e-mails et modèle des signatures ; ma signature.
+  { key: "emailBranding", group: "company", audience: "team", path: "/parametres/emails/marque", capture: false },
+  { key: "mySignature", group: "company", audience: "team", path: "/profil/signature", capture: false },
   // Lot 38b (HUB-21, HUB-29 ; D10, D11) : modèles de messages ; Mon calendrier (dans le profil).
   { key: "messageTemplates", group: "company", audience: "team", module: "events", path: "/parametres/messages", capture: false },
   { key: "calendar", group: "company", audience: "team", module: "events", path: null, capture: false },

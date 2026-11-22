@@ -23,6 +23,8 @@ import {
   emailTemplates,
   automations,
   relationMailSettings,
+  emailBranding,
+  memberSignatures,
   riskRules,
   membershipRoleEnum,
   messageTemplates,
@@ -66,6 +68,11 @@ export const HUB_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: riskRules },
   // Lot 65d (MSG-01 ; ADR 0110) : qui envoie les messages de la relation.
   { table: relationMailSettings, idField: "organizationId" },
+  // Lot 66c (HUB-18 ; ADR 0113) : la marque des e-mails ; la personne des envois automatiques n'est pas
+  // reprise (les comptes de l'équipe ne le sont pas : la titulaire signe). Les signatures et leurs photos
+  // sortent avec l'équipe et, comme elle, ne sont pas reprises.
+  { table: emailBranding, idField: "organizationId", importTransform: (row) => ({ ...row, automaticSignerUserId: null }) },
+  { table: memberSignatures, files: ["photoKey"], importSkip: "team" },
   { table: privacySettings, idField: "organizationId" },
   { table: privacyRequests },
   // Trace des exports RGPD : leurs fichiers, effacés à l'expiration, ne sont pas repris.

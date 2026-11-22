@@ -81,11 +81,14 @@ export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_da
 export type EmailVariable = (typeof EMAIL_VARIABLES)[number];
 export type EmailValues = Partial<Record<EmailVariable, string>>;
 
-export type EmailTemplateText = { subject: string; body: string };
+// Lot 66c (HUB-18 ; ADR 0113) : buttonLabel, le libellé du bouton du modèle (nul ou absent : celui de
+// départ).
+export type EmailTemplateText = { subject: string; body: string; buttonLabel?: string | null };
 
 export type EmailTemplateView = EmailTemplateText & {
   kind: EmailTemplateKind;
   locale: EmailLocale;
+  buttonLabel: string | null;
   // false : le texte de départ, jamais réécrit par l'organisation.
   customized: boolean;
 };
@@ -120,3 +123,35 @@ export type MessageTemplateVersionView = EmailTemplateText & { version: number; 
 
 // Le texte de la version en cours, et toutes les versions, la plus récente d'abord.
 export type MessageTemplateDetail = MessageTemplateSummary & EmailTemplateText & { versions: MessageTemplateVersionView[] };
+
+// Lot 66c (HUB-18, MSG-01 ; D5, D6 ; ADR 0113) — la marque des e-mails de l'organisation et la signature
+// de chaque membre. Quatre familles de police compatibles avec les messageries (repli sur une police
+// système) ; les éléments d'une signature que l'organisation affiche.
+export const EMAIL_FONTS = ["sans", "serif", "elegant", "rounded"] as const;
+export type EmailFont = (typeof EMAIL_FONTS)[number];
+export const SIGNATURE_ELEMENTS = ["photo", "title", "organization", "phone", "website", "links"] as const;
+export type SignatureElement = (typeof SIGNATURE_ELEMENTS)[number];
+export const SIGNATURE_LINKS_MAX = 4;
+
+export type EmailBrandingView = {
+  font: EmailFont;
+  footerLine: string | null;
+  // Nom affiché de l'expéditeur (nul : le nom de l'organisation) ; l'adresse reste celle de Symbola.
+  senderName: string | null;
+  signatureElements: SignatureElement[];
+  // Personne dont la signature porte les envois automatiques (nulle : la titulaire).
+  automaticSignerUserId: string | null;
+};
+
+export type SignatureLink = { label: string; url: string };
+
+export type MemberSignatureView = {
+  displayName: string | null;
+  jobTitle: string | null;
+  phone: string | null;
+  website: string | null;
+  links: SignatureLink[];
+  hasPhoto: boolean;
+  // Partie opaque de la clé de la photo (rafraîchit l'image après un remplacement) ; nulle sans photo.
+  photoVersion: string | null;
+};

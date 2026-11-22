@@ -123,6 +123,23 @@ export const EMAIL_TEMPLATE_RULES: Record<EmailTemplateKind, KindRules> = {
   payment_due_reminder: { variables: ["first_name", "organization", "client_term", "quote_number", "amount", "due_date", "reference", "iban"], required: ["amount", "due_date", "reference"], button: null },
 };
 
+// Lot 66c (HUB-18 ; D5, D6 ; ADR 0113) — les avis que Symbola adresse à l'équipe de l'organisation
+// (compte, sécurité, transfert, récapitulatif, alertes, nouvelle demande) : ce sont des e-mails de
+// Symbola. Ils gardent « Envoyé avec Symbola » et ne portent pas de signature ; tous les autres sont des
+// e-mails de la planner à ses tiers, signés par la personne qui écrit, sans la marque de Symbola.
+export const TEAM_NOTICE_KINDS: ReadonlySet<EmailTemplateKind> = new Set(["ownership_transfer", "new_device_login", "identity_changed", "daily_digest", "notification_alert", "prospect_form_received"]);
+
+export function isTeamNoticeKind(kind: EmailTemplateKind): boolean {
+  return TEAM_NOTICE_KINDS.has(kind);
+}
+
+// Lot 66c : le libellé d'un bouton tient sur une ligne.
+export const EMAIL_BUTTON_LABEL_MAX = 60;
+
+export function hasButton(kind: EmailTemplateKind): boolean {
+  return EMAIL_TEMPLATE_RULES[kind].button !== null;
+}
+
 const TOKEN_PATTERN = /\{\{\s*([^{}\s]+)\s*\}\}/g;
 
 function tokensOf(text: string): string[] {
@@ -141,7 +158,7 @@ export function emailTemplateVariables(kind: EmailTemplateKind, locale: EmailLoc
   return rules.variables.map((key) => ({ key, token: `{{${TOKENS[key][locale]}}}`, required: rules.required.includes(key) }));
 }
 
-export type EmailTemplateProblems = { unknown: string[]; missingRequired: EmailVariable[]; tooLong: ("subject" | "body")[] };
+export type EmailTemplateProblems = { unknown: string[]; missingRequired: EmailVariable[]; tooLong: ("subject" | "body" | "buttonLabel")[] };
 
 // À l'enregistrement : variables inconnues ou étrangères à ce modèle, variables indispensables
 // absentes du texte, longueurs.
@@ -154,9 +171,10 @@ export function validateEmailTemplate(kind: EmailTemplateKind, text: EmailTempla
   }
   const inBody = new Set(tokensOf(text.body).map((token) => BY_TOKEN.get(token)));
   const missingRequired = EMAIL_TEMPLATE_RULES[kind].required.filter((key) => !inBody.has(key));
-  const tooLong: ("subject" | "body")[] = [];
+  const tooLong: ("subject" | "body" | "buttonLabel")[] = [];
   if (text.subject.length > EMAIL_SUBJECT_MAX) tooLong.push("subject");
   if (text.body.length > EMAIL_BODY_MAX) tooLong.push("body");
+  if ((text.buttonLabel ?? "").length > EMAIL_BUTTON_LABEL_MAX) tooLong.push("buttonLabel");
   return { unknown, missingRequired, tooLong };
 }
 
