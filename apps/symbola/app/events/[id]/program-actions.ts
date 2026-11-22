@@ -4,6 +4,8 @@
 // séquences s'enregistrent ensemble (saveProgramAction), plus ligne par ligne.
 import { offerUndo } from "@/lib/undo";
 import { revalidatePath } from "next/cache";
+import { pendingPreparedEmailIds, withPreparer } from "@/lib/prepared-emails";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import {
@@ -221,15 +223,15 @@ export async function notifyProgramAction(_prevState: ProgramNotifyState, formDa
   if (!(await isEventsModuleEnabled(organizationId))) return { error: t("moduleUnavailable") };
   const eventId = String(formData.get("eventId") ?? "");
   if (!isValidId(eventId)) return { error: t("eventNotFound") };
+  let result: Awaited<ReturnType<typeof notifyProgramVersion>>;
   try {
-    const result = await notifyProgramVersion({
+    result = await notifyProgramVersion({
       organizationId,
       eventId,
       confirmedRecipients: String(formData.get("confirmedRecipients") ?? "") || null,
       renderDocument: (document) => renderRecipientProgramPdf(organizationId, document),
     });
     revalidatePath(`/events/${eventId}`);
-    return { sent: result.sent, notSent: result.notSent };
   } catch (error) {
     if (error instanceof RecipientsNotConfirmedError) return { confirmRecipients: error.review };
     if (error instanceof EmailVariableMissingError) return { error: await emailVariableMissingMessage(error) };
@@ -244,6 +246,12 @@ export async function notifyProgramAction(_prevState: ProgramNotifyState, formDa
     console.error("envoi du programme échoué", error instanceof Error ? error.name : "erreur");
     return { error: t("programNotifyFailed") };
   }
+  // Lot 65d (ADR 0110) : préparé pour la messagerie de la planner, la fenêtre s'ouvre aussitôt.
+  if (result.prepared) {
+    const prepared = await pendingPreparedEmailIds(organizationId, { eventId, kinds: ["program_published"], ref: { version: String(result.version) } });
+    if (prepared.length > 0) redirect(withPreparer(`/events/${eventId}?onglet=programme`, prepared));
+  }
+  return { sent: result.sent, notSent: result.notSent };
 }
 
 // Lot 51 (CHR-08 ; ADR 0091) — import d'un chrono depuis un tableur : l'aperçu (écran de contrôle,

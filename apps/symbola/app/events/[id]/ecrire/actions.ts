@@ -33,7 +33,9 @@ const draftSchema = z.object({
   locale: z.enum(["fr", "en"]),
 });
 
-export type WriteResult = { ok: true; message: string; mailto?: string } | { ok: false; error: string };
+// Lot 65d (ADR 0110) : preparedIds, les messages préparés quand la planner envoie de sa messagerie ; la
+// fenêtre « Préparer l'e-mail » les ouvre (un par destinataire).
+export type WriteResult = { ok: true; message: string; mailto?: string; preparedIds?: string[] } | { ok: false; error: string };
 
 function mailtoHref(emails: string[], subject: string, body: string): string {
   const query = `subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.replace(/\n/g, "\r\n"))}`;
@@ -65,6 +67,7 @@ async function deliver(raw: unknown, delivery: "sent" | "prepared"): Promise<Wri
     revalidatePath(`/events/${input.eventId}`);
     revalidatePath("/events/pipeline");
     revalidatePath("/");
+    if (result.preparedIds.length > 0) return { ok: true, message: t("prepared"), preparedIds: result.preparedIds };
     if (delivery === "prepared") return { ok: true, message: t("prepared"), mailto: mailtoHref(context.recipients.map((recipient) => recipient.email), result.subject, result.body) };
     return { ok: true, message: result.deferred ? t("sentDeferred") : t("sent", { count: context.recipients.length }) };
   } catch (error) {

@@ -14,7 +14,8 @@ import { getPlannerAuthContext } from "@/lib/auth-context";
 import { sendFollowUpNow } from "@/lib/prospect-follow-ups";
 import { isEventsModuleEnabled, isValidId } from "../../../module-access";
 
-export type FollowUpResult = { ok: true; message: string } | { ok: false; error: string };
+// Lot 65d (ADR 0110) : preparedIds, la relance préparée pour la messagerie de la planner.
+export type FollowUpResult = { ok: true; message: string; preparedIds?: string[] } | { ok: false; error: string };
 
 const schema = z.object({ eventId: z.string(), followUpId: z.string(), subject: z.string().max(2000), body: z.string().max(20_000) });
 
@@ -40,6 +41,7 @@ export async function sendFollowUpAction(raw: unknown): Promise<FollowUpResult> 
   try {
     const outcome = await sendFollowUpNow({ organizationId: who.organizationId, eventId: parsed.data.eventId, followUpId: parsed.data.followUpId, userId: who.userId, locale: (await getLocale()) === "en" ? "en" : "fr", subject: parsed.data.subject, body: parsed.data.body });
     refresh(parsed.data.eventId);
+    if (outcome.status === "sent" && outcome.preparedIds && outcome.preparedIds.length > 0) return { ok: true, message: t("prepared"), preparedIds: outcome.preparedIds };
     if (outcome.status === "sent") return { ok: true, message: outcome.deferred ? t("sentDeferred") : t("sent") };
     if (outcome.status === "already") return { ok: false, error: t("already") };
     return { ok: false, error: t(`stopped.${outcome.reason}`) };

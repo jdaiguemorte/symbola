@@ -21,6 +21,7 @@ Le format est décrit dans `docs/export/format-v1.md`.
 | `message_template_versions` | `id`, `templateId`, `version`, `subject`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [message_template_versions.schema.json](hub/message_template_versions.schema.json) |
 | `automations` | `id`, `key`, `enabled`, `days`, `resumedAt`, `lastRunOn`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [automations.schema.json](hub/automations.schema.json) |
 | `risk_rules` | `id`, `rule`, `enabled`, `thresholdDays`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [risk_rules.schema.json](hub/risk_rules.schema.json) |
+| `relation_mail_settings` | `sender`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [relation_mail_settings.schema.json](hub/relation_mail_settings.schema.json) |
 | `privacy_settings` | `requestAlertDays`, `prospectRetentionMonths`, `clientRetentionMonths`, `accountingRetentionMonths`, `inactiveAccountMonths`, `signedQuoteRetentionMonths`, `requestProofRetentionMonths`, `linkPrivacyNotice`, `guestRetentionDays`, `guestDietRetentionDays`, `guestPurgeMaxPostponeDays`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [privacy_settings.schema.json](hub/privacy_settings.schema.json) |
 | `privacy_requests` | `id`, `type`, `personLabel`, `receivedOn`, `dueOn`, `status`, `extensionReason`, `extendedAt`, `closedAt`, `actionDoneAt`, `responseSentAt`, `createdByUserId`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [privacy_requests.schema.json](hub/privacy_requests.schema.json) |
 | `privacy_exports` | `id`, `requestId`, `recordCount`, `createdByUserId`, `createdAt`, `expiresAt`, `purgedAt`, `createdBy`, `updatedAt`, `updatedBy` | [privacy_exports.schema.json](hub/privacy_exports.schema.json) |
@@ -70,6 +71,7 @@ Tables non exportées :
 - `feature_flag_organizations` — exploitation : fonctions nouvelles ouvertes à l'espace par l'Exploitation
 - `storage_quota_states` — exploitation : dernière mesure du stockage face au quota (des nombres)
 - `module_requests` — exploitation : demandes d'activation d'une app à l'équipe Symbola (module, dates)
+- `prepared_emails` — trace : messages de la relation préparés pour la messagerie de la planner (modèle, identifiants, état), sans contenu
 
 ## Module `events`
 
@@ -113,6 +115,7 @@ Tables non exportées :
 | `vendor_scenario_choices` | `id`, `scenarioId`, `vendorSlotId`, `candidateId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_scenario_choices.schema.json](events/vendor_scenario_choices.schema.json) |
 | `vendor_roadmaps` | `id`, `candidateId`, `stage`, `sentAt`, `confirmedAt`, `programVersion`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_roadmaps.schema.json](events/vendor_roadmaps.schema.json) |
 | `event_vendor_candidate_notes` | `id`, `candidateId`, `body`, `visibleToClients`, `createdByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_vendor_candidate_notes.schema.json](events/event_vendor_candidate_notes.schema.json) |
+| `vendor_reminders` | `id`, `eventId`, `candidateId`, `channel`, `remindedOn`, `recallOn`, `noteId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_reminders.schema.json](events/vendor_reminders.schema.json) |
 | `event_tasks` | `id`, `eventId`, `label`, `dueDate`, `offsetDays`, `fixedAt`, `responsible`, `vendorCandidateId`, `followUpCandidateId`, `doneAt`, `position`, `importedFields`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy`, `recurrence`, `recurrenceSpawnedAt`, `isMilestone`, `categoryId`, `priority` | [event_tasks.schema.json](events/event_tasks.schema.json) |
 | `event_task_comments` | `id`, `eventId`, `taskId`, `authorUserId`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [event_task_comments.schema.json](events/event_task_comments.schema.json) |
 | `event_task_attachments` | `id`, `eventId`, `taskId`, `label`, `fileKey`, `mime`, `sizeBytes`, `uploadedByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_task_attachments.schema.json](events/event_task_attachments.schema.json) |

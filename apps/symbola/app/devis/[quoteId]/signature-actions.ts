@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import {
   QuoteEmptyError,
@@ -25,6 +26,7 @@ import {
 } from "@/modules/quotes/service";
 import { assertRecipientsConfirmed, EmailVariableMissingError, RecipientsNotConfirmedError } from "@/modules/hub/service";
 import { emailVariableMissingMessage } from "../../email-errors";
+import { pendingPreparedEmailIds, withPreparer } from "@/lib/prepared-emails";
 import { isValidId } from "../module-access";
 import { authorizedPlanner } from "../planner-access";
 import type { QuoteFormState } from "./actions";
@@ -129,5 +131,10 @@ async function requestSignature(
     return { error: t("signatureServiceDown") };
   }
   revalidatePath(`/devis/${quoteId}`);
+  // Lot 65d (ADR 0110) : « commande d'abord » préparé pour la messagerie de la planner : la fenêtre
+  // s'ouvre aussitôt (le lien de signature, lui, est parti de Symbola).
+  const quote = await getQuote(organizationId, quoteId);
+  const prepared = await pendingPreparedEmailIds(organizationId, { eventId: quote.eventId, kinds: ["order_first"], ref: { quoteId } });
+  if (prepared.length > 0) redirect(withPreparer(`/devis/${quoteId}?rubrique=contrat`, prepared));
   return { success: true };
 }

@@ -2308,3 +2308,28 @@ fields:
     anonymization: >-
       Effacé avec l'organisation (fermeture de l'espace, lot 35c) ; la demande ne porte ni nom ni
       texte libre.
+  # Lot 65d (MSG-01, HUB-20, HUB-28 ; ADR 0110) : messages de la relation préparés pour la messagerie de
+  # la planner. Aucun contenu, aucune adresse, aucun nom : le message est recomposé à l'ouverture de la
+  # fenêtre « Préparer l'e-mail » et n'est gardé nulle part ; seuls des identifiants restent.
+  # hub.relation_mail_settings ne porte qu'un réglage de l'organisation.
+  - schema: hub
+    table: prepared_emails
+    field: recipient_id
+    category: identifiant
+    retention: >-
+      Lot 65d (ADR 0110) : identifiant du destinataire d'un message préparé (lien personnel, contact ou
+      signataire), pseudonyme, jamais son adresse ni son nom. Gardé avec la trace de l'envoi déclaré par
+      la planner (« J'ai envoyé ») ; une demande d'oubli ou la purge de l'évènement efface la personne
+      dans son module, l'identifiant ne désigne alors plus personne.
+    anonymization: >-
+      Effacé avec l'organisation (fermeture de l'espace, lot 35c) ; ne désigne plus personne une fois
+      le lien, le contact ou le signataire effacés.
+  - schema: hub
+    table: prepared_emails
+    field: sent_by_user_id
+    category: identifiant
+    retention: >-
+      Lot 65d (ADR 0110) : compte de la personne de l'équipe qui a déclaré l'envoi d'un message
+      préparé, pseudonyme, pour le fil d'activité de l'évènement. Gardé avec la trace de l'envoi.
+    anonymization: >-
+      Effacé avec l'organisation (fermeture de l'espace, lot 35c).

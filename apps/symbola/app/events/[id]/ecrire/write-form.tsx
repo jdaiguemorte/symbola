@@ -5,6 +5,7 @@
 // l'historique) ou s'ouvre dans la messagerie de la planner (noté « préparé »). La brochure garde sa
 // variable jusqu'à l'envoi : son lien sécurisé n'existe qu'alors.
 import { useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { prepareForMailAction, sendFromSymbolaAction, type WriteResult } from "./actions";
@@ -18,6 +19,9 @@ type Props = {
   body: string;
   locale: "fr" | "en";
   recipientCount: number;
+  // Lot 65d (ADR 0110) : la planner envoie les messages de la relation de sa messagerie (réglage de
+  // l'organisation) : pas d'envoi par Symbola, la fenêtre « Préparer l'e-mail » s'ouvre.
+  plannerSends?: boolean;
 };
 
 export function WriteForm(props: Props) {
@@ -26,6 +30,15 @@ export function WriteForm(props: Props) {
   const [body, setBody] = useState(props.body);
   const [result, setResult] = useState<WriteResult | null>(null);
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
+  const pathname = usePathname();
+  const prepare = () =>
+    startTransition(async () => {
+      const outcome = await prepareForMailAction(draft());
+      setResult(outcome);
+      if (outcome.ok && outcome.preparedIds && outcome.preparedIds.length > 0) router.push(`${pathname}?preparer=${outcome.preparedIds.join(",")}`);
+      else if (outcome.ok && outcome.mailto) window.location.href = outcome.mailto;
+    });
   const draft = () => ({ eventId: props.eventId, templateId: props.templateId, contactIds: props.contactIds, subject, body, locale: props.locale });
 
   return (
@@ -34,6 +47,10 @@ export function WriteForm(props: Props) {
       aria-labelledby="write-edit-title"
       onSubmit={(event) => {
         event.preventDefault();
+        if (props.plannerSends) {
+          prepare();
+          return;
+        }
         startTransition(async () => setResult(await sendFromSymbolaAction(draft())));
       }}
     >
@@ -45,26 +62,23 @@ export function WriteForm(props: Props) {
       <textarea id="write-body" name="body" value={body} onChange={(event) => setBody(event.target.value)} rows={14} maxLength={5000} required />
       <FreeTextNotice />
       <div className="row-wrap">
-        <button type="submit" className="primary" disabled={pending}>
-          {t("sendFromSymbola", { count: props.recipientCount })}
-        </button>
-        <button
-          type="button"
-          className="button-ghost"
-          disabled={pending}
-          onClick={() =>
-            startTransition(async () => {
-              const outcome = await prepareForMailAction(draft());
-              setResult(outcome);
-              if (outcome.ok && outcome.mailto) window.location.href = outcome.mailto;
-            })
-          }
-        >
-          {t("openInMail")}
-        </button>
+        {props.plannerSends ? (
+          <button type="submit" className="primary" disabled={pending}>
+            {t("prepareEmail")}
+          </button>
+        ) : (
+          <>
+            <button type="submit" className="primary" disabled={pending}>
+              {t("sendFromSymbola", { count: props.recipientCount })}
+            </button>
+            <button type="button" className="button-ghost" disabled={pending} onClick={prepare}>
+              {t("openInMail")}
+            </button>
+          </>
+        )}
         <CopyMessageButton text={`${subject}\n\n${body}`} />
       </div>
-      <p className="meta">{t("sendHint")}</p>
+      <p className="meta">{t(props.plannerSends ? "prepareHint" : "sendHint")}</p>
       {result ? <p role={result.ok ? "status" : "alert"}>{result.ok ? result.message : result.error}</p> : null}
     </form>
   );

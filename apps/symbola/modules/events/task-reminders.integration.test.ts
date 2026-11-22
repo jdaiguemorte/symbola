@@ -2,6 +2,7 @@
 // client, contre un vrai PostgreSQL (RLS) et Mailpit, horloge simulée : seuils,
 // un e-mail par jour, jamais deux fois le même rappel, heures d'envoi, liens
 // sans rubrique, rappels décochés, retirés, événement perdu ; langue du lien.
+import { setRelationMailSender } from "@/modules/hub/service";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
@@ -11,10 +12,32 @@ import { auditEntries } from "@symbola/db/schema/core";
 import { eventTaskReminders } from "@symbola/db/schema/events";
 import { withOrganization } from "@symbola/db/with-organization";
 import type { EventLinkRights } from "@symbola/contracts";
-import { recentEmailVariableProblems, resetEmailTemplate, saveEmailTemplate } from "@/modules/hub/service";
+import { listPreparedEmails, recentEmailVariableProblems, resetEmailTemplate, saveEmailTemplate } from "@/modules/hub/service";
+import { draftPreparedEmails } from "@/lib/prepared-emails";
+import { loadTodayItems, type TodayWords } from "@/lib/today/load";
 import { addEventTask, changeEventDate, changeEventStatus, createEventLink, createLossReason, createProspect, createProspectSource, revokeEventLink, sendClientTaskReminders, updateEventLink, updateEventTask } from "./service";
 
+// Lot 65d (MSG-01 ; ADR 0110) : ces tests vérifient l'envoi par Symbola, réglage « Symbola les envoie
+// pour moi » : rien n'y change. Le réglage par défaut (la planner envoie de sa messagerie) est vérifié
+// dans modules/hub/relation-mail.integration.test.ts.
+async function symbolaSends(organizationId: string): Promise<string> {
+  await setRelationMailSender(organizationId, "symbola");
+  return organizationId;
+}
+
 const plannerId = randomUUID();
+const TODAY_WORDS: TodayWords = {
+  clientTask: "tâche du client",
+  amount: (label, amount) => `${label} ${amount}`,
+  decision: (title) => `choix ${title}`,
+  paymentDeclaration: (label) => `déclaration ${label}`,
+  quoteFollowUp: (number) => `devis ${number}`,
+  prospectFollowUp: "prospect sans nouvelle",
+  depositBlocked: (number) => `acompte bloqué ${number}`,
+  vendorContract: (vendor) => `contrat ${vendor}`,
+  dateConflict: (count) => `${count} le même jour`,
+  linkRenewal: (name) => `lien ${name}`,
+};
 const MAILPIT_API = "http://localhost:8025/api/v1";
 const TASKS: EventLinkRights = { rubrics: ["tasks", "program"], budgetScope: "all", sharedSlotIds: [] };
 // Mercredi 3 mars 2027, 11 h à Paris (heure d'hiver).
@@ -31,7 +54,7 @@ async function withDb<T>(fn: (db: AppDatabase) => Promise<T>): Promise<T> {
 }
 
 async function wedding() {
-  const organizationId = (await withDb((db) => createOrganization(db, `Org ${randomUUID()}`))).id;
+  const organizationId = await symbolaSends((await withDb((db) => createOrganization(db, `Org ${randomUUID()}`))).id);
   const source = await createProspectSource(organizationId, "Salon");
   const event = await createProspect({ organizationId, createdByUserId: plannerId, prospectSourceId: source.id, clients: [{ firstName: "Léa", lastName: "Martin" }], eventDate: "2027-06-12" });
   const task = (label: string, dueDate: string, responsible: "clients" | "planner" = "clients") => addEventTask(organizationId, event.id, { label, dueDate, responsible });
@@ -146,5 +169,36 @@ describe("MSG-01 — Aucun e-mail avec une variable vide (lot 38a, D5)", () => {
     await resetEmailTemplate(w.organizationId, "task_reminder", "fr");
     expect(await sendClientTaskReminders(w.organizationId, MARCH_3)).toBe(1);
     expect(await mailsTo(email)).toHaveLength(1);
+  });
+});
+
+// Lot 65d (décision 2 du 22/11 ; HUB-28 ; ADR 0110) — par défaut, le rappel des tâches du client n'est
+// plus envoyé par Symbola : l'automatisme dépose un élément « À envoyer » dans « Aujourd'hui », que la
+// planner ouvre, relit et envoie de sa messagerie.
+describe("HUB-28 — Rappel des tâches préparé pour la planner (lot 65d, ADR 0110)", () => {
+  it("rien ne part ; un seul élément « À envoyer » par lien et par jour ; il s'ouvre sur les tâches du rappel ; une autre organisation ne le voit pas", async () => {
+    const w = await wedding();
+    await setRelationMailSender(w.organizationId, "planner");
+    const { linkId, email } = await link(w.organizationId, w.eventId);
+    await updateEventTask({ organizationId: w.organizationId, taskId: w.done.id, done: true });
+
+    expect(await sendClientTaskReminders(w.organizationId, MARCH_3)).toBe(1);
+    expect(await sendClientTaskReminders(w.organizationId, at("2027-03-03T15:00:00Z"))).toBe(0);
+    expect(await mailsTo(email)).toEqual([]);
+    const pending = await listPreparedEmails(w.organizationId, { status: "to_send" });
+    expect(pending.map((item) => [item.kind, item.recipientId, item.origin, item.automationKey])).toEqual([["task_reminder", linkId, "automation", "client_task_reminder"]]);
+
+    const today = await loadTodayItems(w.organizationId, { events: true, quotes: false, budget: false }, { ...TODAY_WORDS, emailToSend: (kind) => `À envoyer : ${kind}` }, "fr", MARCH_3);
+    const item = today.items.find((candidate) => candidate.kind === "email_to_send");
+    expect(item).toMatchObject({ title: "À envoyer : task_reminder", eventId: w.eventId, href: `?preparer=${pending[0]!.id}`, actor: { kind: "you" } });
+
+    const [draft] = await draftPreparedEmails(w.organizationId, [pending[0]!.id], MARCH_3);
+    expect(draft).toMatchObject({ to: email, subject: "Vos prochaines tâches pour votre mariage", problem: null });
+    for (const label of ["Choisir les alliances", "Envoyer la liste des invités", "Réserver le coiffeur"]) expect(draft!.body).toContain(label);
+    expect(draft!.body).not.toContain("Signer le contrat");
+
+    const other = await symbolaSends((await withDb((db) => createOrganization(db, `Org ${randomUUID()}`))).id);
+    expect(await draftPreparedEmails(other, [pending[0]!.id], MARCH_3)).toEqual([]);
+    expect((await loadTodayItems(other, { events: true, quotes: false, budget: false }, { ...TODAY_WORDS, emailToSend: (kind) => kind }, "fr", MARCH_3)).items.filter((candidate) => candidate.kind === "email_to_send")).toEqual([]);
   });
 });

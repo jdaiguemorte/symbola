@@ -89,3 +89,59 @@ describe("BUD-01, BUD-03, HUB-14 — Budget importé complet (lot 63b)", () => {
     expect(line).toMatchObject({ paidAmountCents: 30000, paidFromPayments: false, payments: [] });
   });
 });
+
+describe("HUB-14, BUD-04 — Lot 65g : un budget importé depuis un évènement (recette staging du 22/11/2026)", () => {
+  // Le fichier de la testeuse : ni colonne d'évènement, « Catégorie » et « Titre », des colonnes
+  // calculées (« Différence », « Reste à payer »).
+  const CSV =
+    "Catégorie;Titre;Budget;Réel (devisé);Différence;Somme réglée;Reste à payer\n" +
+    "Animation;Photobooth;250;0;-250;0;0\n" +
+    "Boisson;Tireuse et Futs;300;268;-32;0;268\n";
+
+  it("les colonnes sont reconnues ; les colonnes calculées sont ignorées d'office ; toutes les lignes vont dans l'évènement", async () => {
+    const planner = await plannerWithWedding();
+    const started = await startImport(db, { organizationId: planner.organizationId, userId: planner.userId, entityType: "budget_lines", fileName: "budget.csv", bytes: new TextEncoder().encode(CSV), targetEventId: planner.eventId });
+    if (started.status !== "started") throw new Error(JSON.stringify(started));
+    const view = await getImportColumns(db, planner.organizationId, started.importId);
+    expect(view!.columns.map((column) => [column.header, column.proposedFieldKey ?? column.profileDecision])).toEqual([
+      ["Catégorie", "slotLabel"],
+      ["Titre", "lineLabel"],
+      ["Budget", "plannedAmount"],
+      ["Réel (devisé)", "actualAmount"],
+      ["Différence", "ignore"],
+      ["Somme réglée", "paidAmount"],
+      ["Reste à payer", "ignore"],
+    ]);
+    await saveImportMapping(db, {
+      organizationId: planner.organizationId,
+      importId: started.importId,
+      choices: view!.columns.map((column) => ({ columnIndex: column.columnIndex, target: column.proposedFieldKey ?? column.profileDecision ?? "none", confirmed: true })),
+    });
+    await decideFreeColumns(db, { organizationId: planner.organizationId, importId: started.importId, decisions: [] });
+    const matches = await getImportMatchesView(planner.organizationId, started.importId);
+    expect(matches!.rows.map((row) => row.event?.eventId)).toEqual([planner.eventId, planner.eventId]);
+    expect(await confirmImport({ ...planner, importId: started.importId })).toMatchObject({ status: "applied" });
+    const lines = (await listBudgetLines(planner.organizationId, planner.eventId)).lines;
+    expect(lines.map((line) => [line.label, line.estimatedAmountCents]).sort()).toEqual([
+      ["Photobooth", 25000],
+      ["Tireuse et Futs", 30000],
+    ]);
+  });
+
+  it("abus : un évènement d'une autre organisation n'est jamais pris pour destination", async () => {
+    const planner = await plannerWithWedding();
+    const other = await plannerWithWedding();
+    const started = await startImport(db, { organizationId: planner.organizationId, userId: planner.userId, entityType: "budget_lines", fileName: "budget.csv", bytes: new TextEncoder().encode(CSV), targetEventId: other.eventId });
+    if (started.status !== "started") throw new Error(JSON.stringify(started));
+    const view = await getImportColumns(db, planner.organizationId, started.importId);
+    await saveImportMapping(db, {
+      organizationId: planner.organizationId,
+      importId: started.importId,
+      choices: view!.columns.map((column) => ({ columnIndex: column.columnIndex, target: column.proposedFieldKey ?? column.profileDecision ?? "none", confirmed: true })),
+    });
+    await decideFreeColumns(db, { organizationId: planner.organizationId, importId: started.importId, decisions: [] });
+    const matches = await getImportMatchesView(planner.organizationId, started.importId);
+    expect(matches!.rows.map((row) => row.event?.eventId ?? null)).toEqual([null, null]);
+  });
+});
+

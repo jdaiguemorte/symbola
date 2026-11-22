@@ -2,11 +2,16 @@
 
 // Lot 45 (CRM-06 ; D2) — la relance préparée se relit, se modifie, puis part d'un geste ; ou se retire.
 import { useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { sendFollowUpAction, withdrawFollowUpAction, type FollowUpResult } from "./actions";
 
-export function FollowUpForm({ eventId, followUpId, subject: initialSubject, body: initialBody }: { eventId: string; followUpId: string; subject: string; body: string }) {
+// Lot 65d (ADR 0110) : plannerSends, la planner envoie de sa messagerie : « Préparer l'e-mail » ouvre la
+// fenêtre, rien ne part de Symbola.
+export function FollowUpForm({ eventId, followUpId, subject: initialSubject, body: initialBody, plannerSends = false }: { eventId: string; followUpId: string; subject: string; body: string; plannerSends?: boolean }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const t = useTranslations("FollowUpReview");
   const [subject, setSubject] = useState(initialSubject);
   const [body, setBody] = useState(initialBody);
@@ -19,7 +24,11 @@ export function FollowUpForm({ eventId, followUpId, subject: initialSubject, bod
       aria-labelledby="follow-up-edit-title"
       onSubmit={(event) => {
         event.preventDefault();
-        startTransition(async () => setResult(await sendFollowUpAction({ eventId, followUpId, subject, body })));
+        startTransition(async () => {
+          const outcome = await sendFollowUpAction({ eventId, followUpId, subject, body });
+          setResult(outcome);
+          if (outcome.ok && outcome.preparedIds && outcome.preparedIds.length > 0) router.push(`${pathname}?preparer=${outcome.preparedIds.join(",")}`);
+        });
       }}
     >
       <h2 id="follow-up-edit-title">{t("editTitle")}</h2>
@@ -31,7 +40,7 @@ export function FollowUpForm({ eventId, followUpId, subject: initialSubject, bod
       <p className="meta">{t("optOutHint")}</p>
       <div className="row-wrap">
         <button type="submit" className="primary" disabled={pending || done}>
-          {t("send")}
+          {plannerSends ? t("prepare") : t("send")}
         </button>
         <button type="button" className="button-ghost" disabled={pending || done} onClick={() => startTransition(async () => setResult(await withdrawFollowUpAction(eventId, followUpId)))}>
           {t("withdraw")}

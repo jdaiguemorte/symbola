@@ -18,6 +18,10 @@ function option(args: string[], name: string): string | undefined {
 }
 
 function describeStep(step: VendorTypeSplitStep): string {
+  if (step.conflict) {
+    const targets = [step.first.action === "merge" ? step.first.into.label : step.first.to, ...step.others.map((part) => part.label)];
+    return `- « ${step.label} » — ${step.vendorCount} fiche(s) : NON APPLIQUÉ, deux métiers aboutiraient au même type (${targets.map((label) => `« ${label} »`).join(", ")}) ; à reprendre à la main dans Paramètres › Types de prestataires`;
+  }
   const first = step.first.action === "merge" ? `fusionné dans « ${step.first.into.label} »` : `renommé « ${step.first.to} »`;
   const others = step.others.map((part) => (part.existing ? `« ${part.label} »` : `« ${part.label} » (créé)`)).join(", ");
   return `- « ${step.label} » — ${step.vendorCount} fiche(s) : ${first} ; ajoute ${others}`;
@@ -43,6 +47,8 @@ async function main(): Promise<void> {
     steps += plan.length;
     vendors += plan.reduce((sum, step) => sum + step.vendorCount, 0);
     if (apply) {
+      const conflicts = plan.filter((step) => step.conflict).length;
+      if (conflicts > 0) lines.push("", `Non appliqué : ${conflicts} type(s) signalé(s) ci-dessus.`);
       const result = await splitCombinedVendorTypes(organization.id, catalog, locale);
       lines.push("", `Appliqué : ${result.length} type(s) repris, ${result.reduce((sum, entry) => sum + entry.vendors, 0)} fiche(s) ; métiers créés : ${result.flatMap((entry) => entry.createdTypes).join(", ") || "aucun"}.`);
     }

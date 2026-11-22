@@ -52,7 +52,8 @@ export type SendVendorBriefInput = {
   now?: Date | undefined;
 };
 
-export type VendorBriefDelivery = { sent: number; deferred: number };
+// Lot 65d (ADR 0110) : prepared, les briefs préparés pour la messagerie de la planner (rien n'est parti).
+export type VendorBriefDelivery = { sent: number; deferred: number; prepared?: number };
 
 // Partie F : réglages de l'organisation (titulaire).
 export type VendorFollowUpTaskSetting = { label: string; dueInDays: number };

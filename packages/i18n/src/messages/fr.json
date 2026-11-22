@@ -88,6 +88,8 @@
     "menuOpen": "Menu",
     "skipToContent": "Aller au contenu",
     "menuClose": "Fermer le menu",
+    "menuCollapse": "Réduire le menu",
+    "menuExpand": "Agrandir le menu",
     "agendaTitle": "Agenda",
     "agendaNavigate": "Naviguer dans l'agenda",
     "agendaPrevious": "Période précédente",
@@ -456,7 +458,7 @@
     },
     "home": {
       "title": "Aujourd'hui",
-      "body": "Ce qui demande votre attention, tous évènements confondus, trié par urgence : en retard, aujourd'hui, en attente d'un tiers (le client ou un prestataire), puis les quatorze prochains jours. Les trois premiers points sont en tête ; chaque ligne dit qui doit agir et mène à l'action en un clic. À côté, le calendrier du mois : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. Dessous, vos évènements en cours, avec le compte à rebours.",
+      "body": "Ce qui demande votre attention, tous évènements confondus, trié par urgence : en retard, aujourd'hui, en attente d'un tiers (le client ou un prestataire), puis les quatorze prochains jours. « À traiter en premier » en garde les sept premiers points, regroupés par nature (relances et messages, tâches, paiements, décisions et signatures, prospects) ; chaque partie dit son nombre et mène à sa page (« Voir dans Tâches », « Voir les encaissements »…), chaque ligne dit qui doit agir et mène à l'action en un clic. Dessous, sur toute la largeur, le calendrier : vos évènements, vos rendez-vous, vos tâches de la couleur de leur catégorie et les échéances de paiement des prestataires non réglées ; « ‹ », « Aujourd'hui » et « › » le feuillettent, « Mois », « Semaine » et « Liste » changent la vue, un clic sur un jour en montre le détail. Sur téléphone, la semaine en cours. Puis le reste des points, et vos évènements en cours, avec le compte à rebours. « À envoyer » : un message de la relation préparé par Symbola (relance, rappel, brief…), à envoyer de votre messagerie ; un clic ouvre la fenêtre « Préparer l'e-mail ».",
       "faq": [
         {
           "q": "Comment changer les délais de relance des devis et des prospects ?",
@@ -477,6 +479,10 @@
         {
           "q": "Comment créer vite un prospect, une tâche, une dépense ou un devis ?",
           "a": "Avec « Créer » en haut de chaque écran, ou la touche N hors d'un champ : un formulaire court s'ouvre sans quitter l'écran, et l'évènement de l'écran est proposé."
+        },
+        {
+          "q": "Comment gagner de la place à l'écran ?",
+          "a": "Sur ordinateur, « Réduire le menu », en haut du menu, ne garde que ses icônes : leur nom s'affiche au survol ou au clavier, et l'écran prend la place libérée. « Agrandir le menu » le rétablit. Le choix est retenu sur cet appareil."
         }
       ]
     },
@@ -568,7 +574,7 @@
     },
     "eventsDetail": {
       "title": "Fiche de l'événement",
-      "body": "Tout l'événement, en onglets. La « Synthèse » s'ouvre sur la prochaine action et qui doit agir, puis la santé de l'événement (planning, budget, décisions du client) et les quatorze prochains jours ; « Modifier les informations », en tête de la fiche d'identité, ouvre un panneau où elles se modifient, fuseau de l'évènement compris. La frise du haut montre où il en est : Option, Confirmé, En préparation, Jour J, Clôturé. Cliquez une étape pour la poser ; « Jour J » s'applique de lui-même le jour de l'évènement, et la clôture vous est proposée dès le lendemain. « Reporter l'évènement… » demande la nouvelle date : à la confirmation du report, les échéances du rétroplanning suivent, sauf les tâches faites et celles dont vous avez fixé la date ; celles qui tomberaient dans le passé sont listées avant. « Annuler l'évènement… » demande un motif : les données restent, les liens se ferment, les rappels et les factures d'acompte programmées s'arrêtent, et un avoir vous est proposé pour chaque facture émise. La « Fiche d'identité » rassemble les invités estimés et confirmés, les lieux, les interlocuteurs, le style et les notes ; les lieux se gèrent dans l'onglet « Programme du jour J » (adresse, ville, horaires, contact sur place), le premier étant le lieu de réception. Dans ce même onglet, chaque séquence du programme est une ligne : « Modifier » l'ouvre sur place, « Ajouter une séquence » en crée une ; rien ne part tant que vous n'avez pas cliqué « Enregistrer le programme », qui dit combien de lignes attendent, et « Annuler les modifications » rend le programme enregistré. Une tâche se confie à vous, aux mariés ou à un prestataire retenu, qui la coche dans son espace ; ses pièces jointes et ses commentaires restent dans l'équipe. Cochée par erreur, une tâche se rétablit par « Annuler », pendant dix secondes. Le bandeau « Prochaine étape » propose l'étape du parcours (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Chaque onglet a son lien « Réglages » vers ses modèles.",
+      "body": "Tout l'événement, en onglets. La « Synthèse » s'ouvre sur la prochaine action et qui doit agir, puis la santé de l'événement (planning, budget, décisions du client) et les quatorze prochains jours ; « Modifier les informations », en tête de la fiche d'identité, ouvre un panneau où elles se modifient, fuseau de l'évènement compris. La frise du haut montre où il en est : Option, Confirmé, En préparation, Jour J, Clôturé. Cliquez une étape pour la poser ; « Jour J » s'applique de lui-même le jour de l'évènement, et la clôture vous est proposée dès le lendemain. « Reporter l'évènement… » demande la nouvelle date : à la confirmation du report, les échéances du rétroplanning suivent, sauf les tâches faites et celles dont vous avez fixé la date ; celles qui tomberaient dans le passé sont listées avant. « Annuler l'évènement… » demande un motif : les données restent, les liens se ferment, les rappels et les factures d'acompte programmées s'arrêtent, et un avoir vous est proposé pour chaque facture émise. La « Fiche d'identité » rassemble les invités estimés et confirmés, les lieux, les interlocuteurs, le style et les notes ; les lieux se gèrent dans l'onglet « Programme du jour J » (adresse, ville, horaires, contact sur place), le premier étant le lieu de réception. Dans ce même onglet, chaque séquence du programme est une ligne : « Modifier » l'ouvre sur place, « Ajouter une séquence » en crée une ; rien ne part tant que vous n'avez pas cliqué « Enregistrer le programme », qui dit combien de lignes attendent, et « Annuler les modifications » rend le programme enregistré. Une tâche se confie à vous, aux mariés ou à un prestataire retenu, qui la coche dans son espace ; ses pièces jointes et ses commentaires restent dans l'équipe. Cochée par erreur, une tâche se rétablit par « Annuler », pendant dix secondes. Le bandeau « Prochaine étape » propose l'étape du parcours (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Dans « Budget et prestataires », chaque ligne dit où en est le choix (« Retenu », « 2 en comparaison », « À trouver ») ; « + Ajouter des prestataires » propose, pour chaque fiche du carnet du métier, « Comparer » ou « Retenir », jamais d'office. La fenêtre du poste compare les prestataires côte à côte (devis, disponibilité, déjà travaillé ensemble, dernière relance, note) : « Retenir », « Écarter », puis « Changer de prestataire » ou « Ne plus retenir », sans supprimer la ligne ; « Poste suivant » enchaîne. Chaque onglet a son lien « Réglages » vers ses modèles.",
       "faq": [
         {
           "q": "Comment marquer un événement perdu ?",
@@ -600,7 +606,7 @@
         },
         {
           "q": "Comment relancer un prestataire sans contrat signé ?",
-          "a": "Avec « Relancer » sur sa ligne, dans « Aujourd'hui » ou la synthèse : votre messagerie s'ouvre sur un message prêt, à l'adresse de sa fiche du carnet, et la relance s'inscrit dans le fil d'activité."
+          "a": "Avec « Noter une relance », dans « Aujourd'hui », la synthèse ou la fenêtre du poste : vous relancez par votre moyen habituel, puis vous notez comment (téléphone, e-mail, SMS, de vive voix), quand, une note si besoin et quand y revenir. Rien n'est envoyé ; le message type se copie s'il vous sert. Le prestataire quitte « Aujourd'hui » jusqu'au rappel, et la relance s'inscrit dans le fil d'activité."
         },
         {
           "q": "Comment ranger et partager les documents de l'évènement ?",
@@ -666,7 +672,7 @@
     },
     "budgetDetail": {
       "title": "Budget de l'événement",
-      "body": "Le suivi courant du budget est dans l'onglet « Budget et prestataires » de la fiche : par poste, prévu, réel, écart, réglé, reste à payer et prochaine échéance ; la ligne se déplie sur son échéancier et « Modifier » ouvre la ligne dans une fenêtre. Cette page en garde le détail. Chaque poste de l'événement est une catégorie ; elle porte des lignes (« Dîner, 120 couverts », « Vin d'honneur »…), chacune avec son prestataire et cinq montants : l'estimé, le réel (le montant du devis), l'engagé (rempli quand vous retenez le prestataire), le payé et le reste à payer, calculé. « Modifier » ouvre une ligne sur place : changez son libellé, son prestataire, son taux et ses montants, sur autant de lignes que vous voulez, puis « Enregistrer le budget » les écrit ensemble ; « Annuler les modifications » rend le budget enregistré. La simulation et sa répartition par poste se replient une fois les lignes posées ; la répartition s'enregistre de même, d'un seul « Enregistrer la répartition ». Sous chaque ligne, joignez le devis, le contrat ou la facture, et posez les échéances (acompte, solde ; un pourcentage porte sur l'engagé du prestataire) : payées, elles font le payé de la ligne, et les prochaines apparaissent dans « Aujourd'hui ». L'enveloppe est le budget souhaité du client ; au-delà du seuil d'alerte, un bandeau le signale, et retenir un prestataire demande une confirmation. Les montants se saisissent TTC, chaque ligne avec son taux de TVA (20 % par défaut) ; si le devis de l'événement est à un client professionnel, le HT s'affiche sous chaque montant. « Exporter en XLSX » ou « en PDF » reprend le budget et les échéances, aux couleurs de vos documents.",
+      "body": "Le suivi courant du budget est dans l'onglet « Budget et prestataires » de la fiche : par poste, prévu, réel, écart, réglé, reste à payer et prochaine échéance ; la ligne se déplie sur son échéancier, et « Ouvrir » (ou un clic sur la ligne) ouvre la fenêtre du poste, en cinq rubriques : Prestataires, Montants, Échéancier, Documents et Réglages du poste. Cette page en garde le détail. Chaque poste de l'événement est une catégorie ; elle porte des lignes (« Dîner, 120 couverts », « Vin d'honneur »…), chacune avec son prestataire et cinq montants : l'estimé, le réel (le montant du devis), l'engagé (rempli quand vous retenez le prestataire), le payé et le reste à payer, calculé. « Modifier » ouvre une ligne sur place : changez son libellé, son prestataire, son taux et ses montants, sur autant de lignes que vous voulez, puis « Enregistrer le budget » les écrit ensemble ; « Annuler les modifications » rend le budget enregistré. La simulation et sa répartition par poste se replient une fois les lignes posées ; la répartition s'enregistre de même, d'un seul « Enregistrer la répartition ». Sous chaque ligne, joignez le devis, le contrat ou la facture, et posez les échéances (acompte, solde ; un pourcentage porte sur l'engagé du prestataire) : payées, elles font le payé de la ligne, et les prochaines apparaissent dans « Aujourd'hui ». L'enveloppe est le budget souhaité du client ; au-delà du seuil d'alerte, un bandeau le signale, et retenir un prestataire demande une confirmation. Les montants se saisissent TTC, chaque ligne avec son taux de TVA (20 % par défaut) ; si le devis de l'événement est à un client professionnel, le HT s'affiche sous chaque montant. « Exporter en XLSX » ou « en PDF » reprend le budget et les échéances, aux couleurs de vos documents.",
       "faq": [
         {
           "q": "Les mariés voient-ils le budget ?",
@@ -1138,7 +1144,7 @@
     },
     "emailTemplates": {
       "title": "Modèles d'e-mails",
-      "body": "Les e-mails que Symbola envoie en votre nom (liens, rappels, demandes de signature, programme) partent de ces modèles, en français et en anglais selon la langue de la personne. Modifiez l'objet et le texte avec les variables proposées : une variable inconnue est refusée, et le lien ne peut pas manquer. L'aperçu montre l'e-mail avec des données fictives ; « M'envoyer un essai » l'envoie à votre seule adresse. Un e-mail dont une variable n'a pas de valeur ne part pas : Symbola vous dit laquelle. « Revenir au texte de départ » efface votre version."
+      "body": "Qui envoie les messages à vos clients et à vos prestataires : par défaut, vous, de votre messagerie. Symbola prépare chaque message de la relation (proposition, relances, brief, programme, réponse à un prospect…) dans la fenêtre « Préparer l'e-mail » : « Ouvrir dans ma messagerie », « Copier le message », puis « J'ai envoyé », qui note l'envoi dans l'activité de l'évènement. Pas de pièce jointe : le lien de l'espace est dans le message, ou téléchargez le PDF. Les automatismes déposent un élément « À envoyer » dans « Aujourd'hui ». Avec « Symbola les envoie pour moi », les messages partent de Symbola, avec les pièces jointes et les relances automatiques. Les messages techniques (accès, signature, rendez-vous en ligne, sécurité, avis) partent toujours de Symbola. Les modèles ci-dessous servent dans les deux cas, en français et en anglais selon la langue de la personne : une variable inconnue est refusée, et le lien ne peut pas manquer. L'aperçu montre l'e-mail avec des données fictives ; « M'envoyer un essai » l'envoie à votre seule adresse. Un e-mail dont une variable n'a pas de valeur ne part pas : Symbola vous dit laquelle. « Revenir au texte de départ » efface votre version."
     },
     "messageTemplates": {
       "title": "Modèles de messages",
@@ -2074,7 +2080,7 @@
     "venueFormTitle": "Lieu de l'événement",
     "venueSave": "Enregistrer le lieu",
     "venueSaved": "✓ Lieu enregistré.",
-    "activityVendorReminded": "Relance envoyée à {task}.",
+    "activityVendorReminded": "Relance de {task} notée.",
     "activityVendorRemoved": "un prestataire retiré",
     "sameDayAlert": "Le {date}, vous avez déjà : {events}. Vous pouvez enregistrer quand même.",
     "sameDayConfirmed": "{names} (confirmé)",
@@ -2365,7 +2371,9 @@
     "taskDialogCancel": "Annuler",
     "taskDialogSave": "Enregistrer",
     "taskDialogDelete": "Supprimer la tâche",
-    "taskDialogOpenEvent": "Ouvrir le rétroplanning de l'évènement"
+    "taskDialogOpenEvent": "Ouvrir le rétroplanning de l'évènement",
+    "activityEmailSent": "{actor} a envoyé « {kind} » de sa messagerie.",
+    "activityFormerMember": "Une personne de l'équipe"
   },
   "Budget": {
     "title": "Budget",
@@ -3841,7 +3849,8 @@
       "nothingSaved": "Rien n'est encore enregistré. Vous pouvez fermer : l'import continue.",
       "close": "Fermer"
     },
-    "typesCombinedFrom": "Vient de {labels} : plusieurs métiers sur la même fiche"
+    "typesCombinedFrom": "Vient de {labels} : plusieurs métiers sur la même fiche",
+    "targetEvent": "Les lignes iront dans l'évènement « {names} » : votre fichier n'a pas besoin de colonne pour le désigner."
   },
   "Privacy": {
     "title": "Données personnelles",
@@ -6216,9 +6225,12 @@
       "events_messages": "message",
       "events_message_attachments": "pièce jointe d'un message",
       "events_busy_settings": "réglages des plages occupées",
+      "events_vendor_reminders": "relances notées",
       "vendors_vendor_type_links": "métier d'un prestataire",
       "events_task_categories": "catégorie de tâche",
-      "hub_module_requests": "une demande d'activation d'une app"
+      "hub_module_requests": "une demande d'activation d'une app",
+      "hub_prepared_emails": "un message préparé pour la messagerie de la planner",
+      "hub_relation_mail_settings": "le réglage « qui envoie les messages »"
     },
     "modules": {
       "events": "Événements",
@@ -7176,8 +7188,6 @@
     "action": {
       "checkTask": "Fait",
       "checkTaskLabel": "Fait : « {label} »",
-      "remindVendor": "Relancer",
-      "remindVendorLabel": "Relancer {vendor}",
       "open": "Ouvrir",
       "openLabel": "Ouvrir : {title}"
     },
@@ -7225,7 +7235,8 @@
       },
       "vendorBankCheck": "IBAN de {vendor} changé : à vérifier par téléphone avant tout paiement",
       "standaloneTaskTag": "Hors évènement",
-      "closingDue": "À clôturer"
+      "closingDue": "À clôturer",
+      "emailToSend": "À envoyer : {kind}"
     },
     "myEventsTitle": "Mes évènements",
     "myEventsEmpty": "Aucun évènement en cours.",
@@ -7243,8 +7254,8 @@
       "subject": "Contrat à signer — {names}",
       "body": "Bonjour,\n\nNous attendons votre contrat signé pour « {slot} » ({names}{date}). Pouvez-vous nous le renvoyer ?\n\nMerci,\n{organization}",
       "dateSuffix": ", le {date}",
-      "recorded": "Relance inscrite dans l'activité de l'évènement.",
-      "noEmail": "Relance inscrite. La fiche du prestataire n'a pas d'adresse e-mail : écrivez-lui depuis votre messagerie."
+      "quoteSubject": "Votre devis — {names}",
+      "quoteBody": "Bonjour,\n\nNous attendons votre devis pour « {slot} » ({names}{date}). Pouvez-vous nous l'envoyer ?\n\nMerci,\n{organization}"
     },
     "cockpit": {
       "countdown": "{days, plural, =0 {C'est le jour J} one {# jour avant le jour J} other {# jours avant le jour J}}",
@@ -7318,7 +7329,67 @@
         "tasks": "les tâches",
         "appointments": "les rendez-vous",
         "budget": "les échéances de paiement"
-      }
+      },
+      "today": "Aujourd'hui",
+      "previousWeek": "Semaine précédente",
+      "nextWeek": "Semaine suivante",
+      "weekOf": "Semaine du {date}",
+      "views": "Vue du calendrier",
+      "view": {
+        "mois": "Mois",
+        "semaine": "Semaine",
+        "liste": "Liste"
+      },
+      "listEmpty": "Rien ce mois-ci.",
+      "listLabel": "Les jours du mois qui ont quelque chose"
+    },
+    "parts": {
+      "follow_ups": "Relances et messages ({count})",
+      "tasks": "Tâches ({count})",
+      "payments": "Paiements ({count})",
+      "decisions": "Décisions et signatures ({count})",
+      "prospects": "Prospects et demandes ({count})",
+      "others": "À regarder ({count})"
+    },
+    "partLink": {
+      "tasks": "Voir dans Tâches",
+      "payments": "Voir les encaissements",
+      "pipeline": "Voir les prospects",
+      "event": "Voir l'évènement"
+    },
+    "reminder": {
+      "button": "Noter une relance",
+      "title": "Relance de {vendor}",
+      "back": "Retour",
+      "close": "Fermer",
+      "channel": "Comment avez-vous relancé ?",
+      "channels": {
+        "phone": "Téléphone",
+        "email": "E-mail",
+        "sms": "SMS",
+        "in_person": "De vive voix"
+      },
+      "date": "Date de la relance",
+      "recall": "Me le rappeler",
+      "recallOptions": {
+        "2": "Dans 2 jours",
+        "3": "Dans 3 jours",
+        "7": "Dans une semaine",
+        "14": "Dans deux semaines",
+        "none": "Pas de rappel"
+      },
+      "note": "Note (facultative)",
+      "template": "Message type, à copier",
+      "templateLoading": "Préparation du message…",
+      "templateTo": "Adresse de la fiche : {email}",
+      "templateNoEmail": "La fiche du prestataire n'a pas d'adresse e-mail.",
+      "templateLabel": "Message",
+      "copy": "Copier le message",
+      "copied": "Message copié.",
+      "save": "Noter la relance",
+      "saved": "Relance notée. Rappel le {date}.",
+      "savedNoRecall": "Relance notée.",
+      "invalid": "Vérifiez la date et le moyen de la relance."
     }
   },
   "QuickCreate": {
@@ -8058,7 +8129,20 @@
     "errorBodyTooLong": "Le texte dépasse {max} caractères.",
     "variableMissing": "L'e-mail « {template} » ne peut pas partir : variable sans valeur ({tokens}). Complétez la fiche, ou corrigez le modèle dans Paramètres, Modèles d'e-mails.",
     "todayBanner": "{count, plural, one {Le rappel automatique d'un évènement ne part pas} other {Les rappels automatiques de # évènements ne partent pas}} : une variable du modèle « {template} » n'a pas de valeur.",
-    "todayBannerLink": "Corriger le modèle"
+    "todayBannerLink": "Corriger le modèle",
+    "sender": {
+      "legend": "Qui envoie les messages à vos clients et à vos prestataires",
+      "planner": "Je les envoie de ma messagerie",
+      "plannerHint": "Symbola prépare chaque message (proposition, coordonnées de paiement, relances, brief, programme, réponse à un prospect…) avec les liens personnels déjà insérés ; vous l'envoyez de votre messagerie, avec votre signature. Les automatismes déposent un élément « À envoyer » dans « Aujourd'hui ».",
+      "symbola": "Symbola les envoie pour moi",
+      "symbolaHint": "Les messages partent de Symbola, depuis votre adresse d'envoi, avec le devis ou le programme en pièce jointe et les relances automatiques.",
+      "technical": "Dans les deux cas, Symbola envoie lui-même les messages techniques : liens d'accès, signature et exemplaire signé, rendez-vous en ligne, sécurité du compte et avis à l'équipe.",
+      "save": "Enregistrer",
+      "saved": "Réglage enregistré.",
+      "error": "Réglage refusé : choisissez l'une des deux possibilités.",
+      "preparedBadge": "Préparé pour votre messagerie",
+      "sentBadge": "Envoyé par Symbola"
+    }
   },
   "Calendar": {
     "personFeed": "{organization} — évènements",
@@ -8571,7 +8655,9 @@
       "event": "L'évènement, dit aux clients : « votre mariage »",
       "event_date": "La date de l'évènement",
       "place": "Le lieu de réception",
-      "organization": "Le nom de votre entreprise"
+      "organization": "Le nom de votre entreprise",
+      "brochure": "Le lien de votre brochure, valable 30 jours ; créé à l'envoi",
+      "booking_link": "Votre page de réservation de rendez-vous, ou des créneaux à compléter si elle n'est pas ouverte"
     },
     "create": "Créer le modèle",
     "save": "Enregistrer",
@@ -8625,6 +8711,7 @@
     "sendFromSymbola": "{count, plural, one {Envoyer depuis Symbola} other {Envoyer depuis Symbola à # personnes}}",
     "openInMail": "Ouvrir dans ma messagerie",
     "sendHint": "« Envoyer depuis Symbola » : l'e-mail part à l'image de votre entreprise, les réponses arrivent à votre adresse, et il est rangé dans l'historique du contact ; les relances partent de cet envoi. « Ouvrir dans ma messagerie » : vous l'envoyez vous-même, il est noté « préparé ».",
+    "prepareHint": "« Préparer l'e-mail » : Symbola met le message en forme, vous l'ouvrez dans votre messagerie ou le copiez, puis « J'ai envoyé » le note dans l'activité de l'évènement.",
     "sent": "{count, plural, one {Message envoyé et rangé dans l'historique.} other {Message envoyé à # personnes et rangé dans l'historique.}}",
     "sentDeferred": "Message rangé dans l'historique ; la messagerie ne répond pas, il partira dès que possible.",
     "prepared": "Message noté « préparé » ; votre messagerie s'ouvre.",
@@ -8633,7 +8720,8 @@
     "empty": "L'objet et le texte sont obligatoires.",
     "tooLong": "L'objet ou le texte est trop long.",
     "quota": "Le plafond d'e-mails de l'heure est atteint : réessayez un peu plus tard.",
-    "refused": "Action impossible sur cet évènement."
+    "refused": "Action impossible sur cet évènement.",
+    "prepareEmail": "Préparer l'e-mail"
   },
   "Trash": {
     "title": "Corbeille",
@@ -9600,7 +9688,9 @@
       "stopped": "Pas d'envoi : vous avez demandé de ne plus relancer ce contact.",
       "withdrawn": "Relance retirée : elle ne partira pas.",
       "no_recipient": "Pas d'envoi : le contact n'a plus d'adresse e-mail."
-    }
+    },
+    "prepare": "Préparer l'e-mail",
+    "prepared": "Relance préparée pour votre messagerie : envoyez-la, puis notez « J'ai envoyé »."
   },
   "EventQuestionnaires": {
     "title": "Questionnaires",
@@ -11310,7 +11400,8 @@
       "reviewPlaceholder": "Une variable entre accolades reste dans le message : remplacez-la.",
       "reviewNoRecipient": "Aucun destinataire.",
       "mailQuota": "Quota d'e-mails atteint : réessayez plus tard."
-    }
+    },
+    "prepared": "Remerciements préparés pour votre messagerie : envoyez-les, puis notez « J'ai envoyé »."
   },
   "EventTemplates": {
     "title": "Modèles d'évènement",
@@ -12329,17 +12420,15 @@
     "pieceOf": "de « {slot} » (nouvel onglet)",
     "late": "En retard",
     "settled": "Soldé",
-    "edit": "Modifier",
     "scheduleOf": "Échéancier de « {slot} »",
-    "scheduleNeedsLine": "Indiquez d'abord le prévu ou le réel de ce poste (« Modifier ») : l'échéancier se calcule sur ce montant.",
+    "scheduleNeedsLine": "Indiquez d'abord le prévu ou le réel de ce poste (rubrique « Montants ») : l'échéancier se calcule sur ce montant.",
     "total": "Total",
     "engagedTotal": "dont engagé",
     "legend": "Écart = réel − prévu : « + » au-dessus du prévu, « − » en dessous, le signe toujours écrit. Réglé = échéances payées ; reste à payer = réel − réglé. « Engagé » : devis accepté ou contrat signé.",
     "detailLink": "Détail du budget (simulation, HT, exports)",
     "windowBack": "Retour au budget",
-    "windowTitle": "{slot} · ligne {index} sur {count}",
+    "windowTitle": "{slot} · poste {index} sur {count}",
     "windowClose": "Fermer",
-    "windowAmounts": "Montants, prestataire et pièces",
     "amount": {
       "estimated": "Prévu",
       "quoted": "Réel (devis)",
@@ -12351,20 +12440,17 @@
     "varianceEqual": "Égal au prévu",
     "windowSchedule": "Échéancier",
     "windowSaved": "Enregistré.",
-    "previousLine": "Ligne précédente",
-    "saveAndClose": "Enregistrer et fermer",
-    "saveAndNext": "Enregistrer, ligne suivante : {next}",
-    "choose": "Choisir un prestataire…",
+    "saveAndNext": "Enregistrer, poste suivant : {next}",
+    "choose": "+ Ajouter des prestataires",
     "chooseFor": "pour « {slot} »",
     "searchLabel": "Chercher dans votre catalogue (métier « {slot} » d'abord)",
     "resultsCount": "{count, plural, =0 {Aucun prestataire} one {# prestataire} other {# prestataires}}",
     "resultsLabel": "Prestataires de votre catalogue",
     "workedWith": "Déjà travaillé ensemble",
-    "retainHint": "Le retenir pour « {slot} »",
+    "retainHint": "Retenir « {name} » pour « {slot} »",
     "noResults": "Aucun prestataire de votre catalogue ne correspond.",
     "newVendor": "+ Nouveau prestataire",
     "newVendorNamed": "+ Nouveau prestataire « {name} »",
-    "compare": "Comparer plusieurs prestataires",
     "newVendorTitle": "Nouveau prestataire pour « {slot} »",
     "newVendorName": "Nom",
     "newVendorType": "Métier",
@@ -12372,14 +12458,78 @@
     "newVendorEmail": "E-mail",
     "newVendorPhone": "Téléphone",
     "newVendorCity": "Ville",
-    "newVendorHint": "La fiche entre dans votre catalogue et le prestataire est retenu pour ce poste. Vous compléterez sa fiche plus tard.",
-    "newVendorSave": "Créer et retenir",
+    "newVendorHint": "La fiche entre dans votre carnet et dans la comparaison de ce poste. Vous compléterez sa fiche plus tard.",
+    "newVendorSave": "Créer et comparer",
     "unauthorized": "Action réservée à l'équipe, avec les modules Évènements et Prestataires.",
     "notFound": "Ce poste ou ce prestataire n'existe pas, ou plus.",
     "newVendorInvalid": "Vérifiez le nom et l'adresse e-mail.",
     "scheduleEmpty": "Aucune échéance pour ce poste.",
     "addPayment": "+ Ajouter une échéance",
-    "markPaid": "Marquer payée"
+    "markPaid": "Marquer payée",
+    "addOne": "+ Ajouter un prestataire",
+    "compareOne": "Comparer",
+    "retainOne": "Retenir",
+    "compareHint": "Ajouter « {name} » à la comparaison de « {slot} »",
+    "inComparison": "Dans la comparaison",
+    "retainedBadge": "Retenu",
+    "workedWithCount": "Déjà travaillé ensemble · {count, plural, one {# évènement} other {# évènements}}",
+    "seeCatalog": "Voir tout le carnet ({count, plural, one {# fiche du métier} other {# fiches du métier}})",
+    "seeCatalogAll": "Voir tout le carnet",
+    "confirmRetain": "Retenir quand même",
+    "newVendorSaveRetain": "Créer et retenir",
+    "choiceRetained": "Retenu",
+    "choiceComparing": "{count} en comparaison",
+    "quotesReceived": "{count, plural, one {# devis reçu} other {# devis reçus}}",
+    "choiceToFind": "À trouver",
+    "open": "Ouvrir",
+    "openFor": "le poste « {slot} »",
+    "tabsLabel": "Rubriques du poste",
+    "tabVendors": "Prestataires",
+    "tabAmounts": "Montants",
+    "tabSchedule": "Échéancier",
+    "tabDocuments": "Documents",
+    "tabSettings": "Réglages du poste",
+    "previousSlot": "Poste précédent",
+    "nextSlot": "Poste suivant : {next}",
+    "save": "Enregistrer",
+    "comparisonTitle": "{count, plural, =0 {Aucun prestataire en comparaison} one {# prestataire en comparaison} other {# prestataires en comparaison}}",
+    "comparisonEmpty": "Ajoutez des prestataires de votre carnet pour les comparer côte à côte.",
+    "comparisonCaption": "Comparaison des prestataires de « {slot} »",
+    "rowStatus": "Où en est-on",
+    "rowQuote": "Devis",
+    "rowAvailability": "Disponible le jour J",
+    "rowWorkedWith": "Déjà travaillé ensemble",
+    "rowReminded": "Dernière relance",
+    "rowNote": "Note",
+    "rowActions": "Actions",
+    "availabilityYes": "Oui",
+    "availabilityNo": "Non",
+    "availabilityUnknown": "À confirmer",
+    "workedWithEvents": "{count, plural, =0 {—} one {# évènement} other {# évènements}}",
+    "quotePdf": "PDF",
+    "quotePdfOf": "devis de {name} (nouvel onglet)",
+    "retain": "Retenir",
+    "dismiss": "Écarter",
+    "restore": "Remettre en comparaison",
+    "change": "Changer de prestataire",
+    "release": "Ne plus retenir",
+    "retainInstead": "Retenir à la place",
+    "cancelChange": "Annuler le changement",
+    "actionFor": "{name}",
+    "changeHint": "Choisissez qui retenir à la place de {name} : son engagé est libéré, celui du nouveau prestataire est posé.",
+    "releaseHint": "Plus personne n'est retenu : l'engagé est libéré, les prestataires écartés pour lui reviennent en comparaison.",
+    "comparisonLoading": "Chargement de la comparaison…",
+    "comparisonError": "La comparaison n'a pas pu être chargée. Réessayez.",
+    "detailsTitle": "Statut, devis et notes de chaque prestataire",
+    "documentsEmpty": "Aucune pièce pour ce poste.",
+    "consultationLink": "Demander des devis (brief, envoi aux prestataires)",
+    "addMore": "+ Ajouter",
+    "removeSlot": "Supprimer",
+    "removeSlotFor": "Supprimer le poste « {slot} »",
+    "removeSlotTitle": "Supprimer le poste « {slot} » ?",
+    "removeSlotBody": "Ce poste n'a ni prestataire, ni montant, ni échéance : il disparaît de cet évènement. Pour le garder sans le chercher, cochez plutôt « Non requis » dans ses réglages.",
+    "removeSlotConfirm": "Supprimer le poste",
+    "removeSlotCancel": "Annuler"
   },
   "TaskCategories": {
     "title": "Catégories des tâches",
@@ -12407,5 +12557,33 @@
     "notFound": "Cette catégorie n'existe plus.",
     "priorityTitle": "Priorité d'une tâche",
     "priorityBody": "Deux niveaux : « Normale », par défaut, et « Haute ». Une tâche haute porte la pastille « Haute » dans la liste, le rétroplanning et le calendrier. La priorité se choisit dans la fenêtre de la tâche."
+  },
+  "PrepareEmail": {
+    "title": "Préparer l'e-mail",
+    "intro": "Relisez le message, modifiez-le si besoin, puis envoyez-le de votre messagerie : rien ne part de Symbola.",
+    "position": "Message {n} sur {total}",
+    "to": "À",
+    "toValue": "{name} <{email}>",
+    "subject": "Objet",
+    "body": "Message",
+    "open": "Ouvrir dans ma messagerie",
+    "openHint": "Votre messagerie s'ouvre sur un nouveau message, avec votre signature. Si rien ne s'ouvre, copiez le message.",
+    "copy": "Copier le message",
+    "copied": "Message copié : collez-le dans votre messagerie.",
+    "copyFailed": "Copie impossible : sélectionnez le texte du message et copiez-le.",
+    "sent": "J'ai envoyé",
+    "sentDone": "Envoi noté : il figure dans l'activité de l'évènement.",
+    "dismiss": "Ne pas l'envoyer",
+    "dismissed": "Message écarté : il quitte « À envoyer ».",
+    "pdf": "Télécharger le PDF",
+    "noAttachment": "Pas de pièce jointe : le message renvoie à l'espace personnel. Pour joindre le PDF, téléchargez-le et ajoutez-le dans votre messagerie.",
+    "renewedLink": "Un nouveau lien personnel vient d'être créé pour ce message : l'ancien ne fonctionne plus. Envoyez ce message pour que {name} garde son accès.",
+    "missingVariable": "Ce message ne peut pas être préparé : son modèle emploie une variable sans valeur. Corrigez-le dans Paramètres › Modèles d'e-mails, ou complétez la fiche.",
+    "unavailable": "Ce message n'a plus lieu d'être (lien retiré, échéance réglée, réponse déjà reçue…), ou son texte n'est plus disponible : préparez-le de nouveau depuis son écran.",
+    "loading": "Préparation du message…",
+    "none": "Aucun message à préparer : il a déjà été envoyé ou écarté.",
+    "error": "Action impossible pour le moment : réessayez.",
+    "next": "Message suivant",
+    "previous": "Message précédent"
   }
 }

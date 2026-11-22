@@ -5,6 +5,7 @@
 // sommes versées d'avance, avertissement accepté, signature du devis et du contrat, actes du
 // client, dossier de preuve, facture d'acompte émise d'elle-même (horloge simulée) ; abus d'une
 // autre organisation, d'un autre événement, d'un autre signataire.
+import { setRelationMailSender } from "@/modules/hub/service";
 import { randomUUID } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
@@ -62,6 +63,14 @@ import { recipientsDigest } from "@/modules/hub/service";
 import { minimalPdf } from "@/lib/test-fixtures/pdf";
 import { markSigningCodeVerified } from "@/lib/test-fixtures/signing-code";
 
+// Lot 65d (MSG-01 ; ADR 0110) : ces tests vérifient l'envoi par Symbola, réglage « Symbola les envoie
+// pour moi » : rien n'y change. Le réglage par défaut (la planner envoie de sa messagerie) est vérifié
+// dans modules/hub/relation-mail.integration.test.ts.
+async function symbolaSends(organizationId: string): Promise<string> {
+  await setRelationMailSender(organizationId, "symbola");
+  return organizationId;
+}
+
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
 const render = async () => new Uint8Array(minimalPdf("facture de test"));
 const rules = starterContractRules();
@@ -82,7 +91,7 @@ const atNoon = (date: string) => new Date(`${date}T10:00:00Z`);
 
 async function organization(options: { venue?: boolean } = {}) {
   const db = appDatabase();
-  const organizationId = (await createOrganization(db, `Atelier ${randomUUID().slice(0, 6)}`)).id;
+  const organizationId = await symbolaSends((await createOrganization(db, `Atelier ${randomUUID().slice(0, 6)}`)).id);
   await saveOnboardingStep(db, organizationId, { vatRegime: "assujetti", vatRateDefaultBasisPoints: 2000, metier: "wedding_planner" });
   await fillRequiredMentions(organizationId);
   const planner = await createUser(db, { organizationId, email: `planner-${randomUUID()}@example.test`, password: "mot-de-passe-du-test", role: "owner" });

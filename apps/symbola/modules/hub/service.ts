@@ -83,6 +83,7 @@ export { EmailTemplateInvalidError, getEmailTemplate, isEmailTemplateKind, listE
 export {
   assertOrganizationEmailReady,
   composeOrganizationEmail,
+  composePreparedEmailText,
   EmailVariableMissingError,
   previewEmailTemplate,
   sendOrganizationEmail,
@@ -90,6 +91,24 @@ export {
   sendTestEmail,
   type EmailPreview,
 } from "./emails";
+// Lot 65d (MSG-01, HUB-20, HUB-28 ; ADR 0110) : qui envoie les messages de la relation, et les messages
+// préparés pour la messagerie de la planner.
+export {
+  depositPreparedEmail,
+  dismissPreparedEmail,
+  getPreparedEmail,
+  getRelationMailSender,
+  isRelationEmailKind,
+  listPreparedEmails,
+  markPreparedEmailSent,
+  PreparedEmailError,
+  preparedMailto,
+  preparesRelationEmail,
+  RELATION_EMAIL_KINDS,
+  setRelationMailSender,
+  TECHNICAL_EMAIL_KINDS,
+  type DepositPreparedEmailInput,
+} from "./relation-mail";
 
 export {
   emptyStorageTotals,
@@ -1397,7 +1416,7 @@ export {
 } from "./form-drafts";
 
 // Lot 40b (ARC-10 ; D9 ; ADR 0076) — file des tâches de fond (e-mails tentés aussitôt, puis repris).
-export { JOB_MAX_ATTEMPTS, JOB_RETENTION_DAYS, runDueJobs, type JobsPass } from "./jobs";
+export { JOB_MAX_ATTEMPTS, JOB_RETENTION_DAYS, runDueJobs, takeOrganizationsWithDueJobs, type JobsPass } from "./jobs";
 // Lot 49 (INV-04, D10) : une relance déjà inscrite dans la file ne prépare pas un second lien.
 export { enqueueEmail, jobKeyExists } from "./jobs";
 // Lot 49 (RGP-08, D9) : la purge des invités efface les exports stockés qui peuvent les contenir.

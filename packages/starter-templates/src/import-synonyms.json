@@ -231,7 +231,10 @@
         "poste de dépense",
         "catégorie de dépense",
         "prestation",
-        "type de prestataire"
+        "type de prestataire",
+        "catégorie",
+        "rubrique",
+        "type de dépense"
       ],
       "en": [
         "budget item",
@@ -246,13 +249,18 @@
         "libellé de la ligne",
         "ligne",
         "détail de la dépense",
-        "libellé"
+        "libellé",
+        "titre",
+        "intitulé",
+        "désignation",
+        "objet"
       ],
       "en": [
         "line",
         "line label",
         "expense detail",
-        "label"
+        "label",
+        "title"
       ]
     },
     "vendorName": {
@@ -311,13 +319,17 @@
         "montant payé",
         "total payé",
         "déjà payé",
-        "déjà réglé"
+        "déjà réglé",
+        "somme réglée",
+        "somme payée",
+        "montant versé"
       ],
       "en": [
         "paid",
         "amount paid",
         "paid amount",
-        "settled"
+        "settled",
+        "amount paid so far"
       ]
     },
     "depositAmount": {
@@ -1070,6 +1082,27 @@
         "to do",
         "todo",
         "0"
+      ]
+    }
+  },
+  "ignored": {
+    "_source": "Lot 65g (HUB-14, BUD-04 ; recette staging du 22/11/2026) : colonnes calculées d'un tableau de budget, recalculées par Symbola ; ignorées d'office, la planner peut changer.",
+    "budget_lines": {
+      "fr": [
+        "différence",
+        "écart",
+        "reste à payer",
+        "reste",
+        "solde restant",
+        "total"
+      ],
+      "en": [
+        "difference",
+        "variance",
+        "left to pay",
+        "remaining",
+        "balance due",
+        "total"
       ]
     }
   }

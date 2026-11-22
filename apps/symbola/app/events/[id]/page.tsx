@@ -3,7 +3,7 @@ import { venueChecksFor } from "@/lib/events/venue-checks";
 import { EventNotesForbiddenError, readEventConfidentialNotes } from "@/modules/events/service";
 import { VenueCapacityNotice, VenueFindings } from "./venue-findings";
 import { PageHeader } from "@/app/ui/page-header";
-import { listCalendarFeeds } from "@/modules/hub/service";
+import { listCalendarFeeds, listPreparedEmails } from "@/modules/hub/service";
 import { ImportedFields } from "../../imported-fields";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -208,6 +208,8 @@ export default async function EventDetailPage({
     programTemplates,
     links,
     activity,
+    sentEmails,
+    prospectRequest,
   ] = await Promise.all([
     listLossReasons(organizationId),
     listProspectSources(organizationId),
@@ -219,9 +221,14 @@ export default async function EventDetailPage({
     listProgramTemplates(organizationId),
     listEventLinks(organizationId, id),
     listEventActivity(organizationId, id),
+    // Lot 65d (MSG-01 ; ADR 0110) : les messages de la relation que la planner a dit avoir envoyés de sa
+    // messagerie, dans le fil d'activité (le modèle et la personne de l'équipe, jamais l'adresse).
+    listPreparedEmails(organizationId, { eventId: id, status: "sent" }),
+    // Lot 44 (CRM-01, D5) : la demande reçue par le formulaire de contact, affichée telle quelle.
+    getEventProspectRequest(organizationId, id),
   ]);
-  // Lot 44 (CRM-01, D5) : la demande reçue par le formulaire de contact, affichée telle quelle.
-  const prospectRequest = await getEventProspectRequest(organizationId, id);
+  const senders = sentEmails.length > 0 ? new Map((await listTeam(appDatabase(), organizationId)).map((member) => [member.id, member.email])) : new Map<string, string>();
+  const tEmailKinds = await getTranslations("EmailTemplates");
   const programLabels = new Map(
     program.items.map((item) => [item.id, item.label]),
   );
@@ -284,8 +291,7 @@ export default async function EventDetailPage({
   const overdueCount = tasks.filter((task) => !task.done && task.dueDate < today).length;
   // Lot 12 (L12-EVT-14 / L12-EVT-15) : icônes des prestataires au programme, lieux saisis une fois.
   // Lot 34b (EVT-03) : les lieux nourrissent aussi la fiche d'identité de la synthèse.
-  const places = tab === "programme" || tab === "apercu" ? await listEventPlaces(organizationId, id) : [];
-  const keyMoments = tab === "apercu" || tab === "programme" ? await listKeyMoments(organizationId, id) : [];
+  const [places, keyMoments] = tab === "programme" || tab === "apercu" ? await Promise.all([listEventPlaces(organizationId, id), listKeyMoments(organizationId, id)]) : [[], []];
   // Lot 51 (PAR-08, étape 7) : le bilan du lendemain, prêt après le dernier jour (fuseau de l'évènement).
   const lastDay = eventDays(keyMoments, event.eventDate).at(-1) ?? null;
   const dayReport =
@@ -360,22 +366,52 @@ export default async function EventDetailPage({
   const shownSlots = slotFilter === "a-pourvoir" ? toFind : vendorSlots;
   const selectedSlot = vendorSlots.find((slot) => slot.id === query.poste) ?? null;
   // Lot 12 (L12-EVT-17) : prévu et réel de chaque ligne, si le module Budget est souscrit.
-  const budgetAvailable = tab === "budget" ? await isBudgetModuleEnabled(organizationId) : false;
-  const budgetView = budgetAvailable ? await listBudgetLines(organizationId, id) : null;
+  // NFR-02 : les lectures de l'onglet « Budget et prestataires » partent ensemble.
+  const [budgetAvailable, candidates, vendorsAvailable] =
+    tab === "budget" ? await Promise.all([isBudgetModuleEnabled(organizationId), listVendorCandidates(organizationId, id), isVendorsModuleEnabled(organizationId)]) : [false, [], false];
+  const bookOptionsWanted = (selectedSlot || (tab === "budget" && budgetAvailable)) && vendorsAvailable;
+  const [budgetView, catalogVendors, budgetFollowUps, vendorTypes] = await Promise.all([
+    budgetAvailable ? listBudgetLines(organizationId, id) : null,
+    bookOptionsWanted ? findVendors({ organizationId }) : [],
+    // Lot 65b (M14 B) : les relances du détail des prestataires, montré dans la fenêtre du poste.
+    budgetAvailable ? listVendorFollowUps(organizationId, id) : [],
+    tab === "budget" && budgetAvailable && vendorsAvailable ? listVendorTypes(organizationId) : [],
+  ]);
   // Lot 28b (Q33) : chaque poste est une catégorie du budget, avec ses lignes.
   const categoryOf = (slotId: string) => budgetView?.categories.find((category) => category.eventVendorSlotId === slotId) ?? null;
   // Lot 11 (L11-EVT-10) : prestataires consultés, et le carnet s'il est souscrit.
-  const candidates = tab === "budget" ? await listVendorCandidates(organizationId, id) : [];
-  const vendorsAvailable = tab === "budget" ? await isVendorsModuleEnabled(organizationId) : false;
-  const bookOptions =
-    selectedSlot && vendorsAvailable
-      ? (await findVendors({ organizationId })).map((vendor) => ({ id: vendor.id, label: vendor.city ? `${vendor.name} — ${vendor.city}` : vendor.name }))
-      : [];
+  const bookOptions = catalogVendors.map((vendor) => ({ id: vendor.id, label: vendor.city ? `${vendor.name} — ${vendor.city}` : vendor.name }));
   const candidatesBySlot = (slotId: string) => candidates.filter((candidate) => candidate.vendorSlotId === slotId);
   // Lot 63c (BUD-01, BUD-03, BUD-04 ; M9) : les lignes de « Budget et prestataires », et les métiers du
   // catalogue pour « + Nouveau prestataire ».
   const budgetRows = budgetView ? buildBudgetVendorRows(vendorSlots, budgetView.categories, today) : null;
-  const budgetVendorTypes = tab === "budget" && budgetView && vendorsAvailable ? (await listVendorTypes(organizationId)).map((type) => ({ id: type.id, label: type.label })) : [];
+  // Lot 65b (M14 B) : les réglages et le détail des prestataires de chaque poste, rendus ici et montrés
+  // dans la fenêtre du poste.
+  const slotPanels = budgetView
+    ? Object.fromEntries(
+        vendorSlots.map((slot) => [
+          slot.id,
+          {
+            settings: (
+              <div className="stack">
+                <VendorSlotForm eventId={event.id} slot={slot} />
+                <SlotIconForm key={`icon-${slot.id}-${slot.icon ?? ""}`} eventId={event.id} slotId={slot.id} label={slot.label} icon={slot.icon} />
+                <ImportedFields fields={slot.importedFields} compact />
+                <form action={removeVendorSlotAction}>
+                  <input type="hidden" name="eventId" value={event.id} />
+                  <input type="hidden" name="vendorSlotId" value={slot.id} />
+                  <button type="submit" className="button-ghost">
+                    {t("removeVendorSlot", { label: slot.label })}
+                  </button>
+                </form>
+              </div>
+            ),
+            details: <VendorCandidates eventId={event.id} slot={slot} candidates={candidatesBySlot(slot.id)} bookOptions={bookOptions} vendorsAvailable={vendorsAvailable} locale={locale} followUps={budgetFollowUps} />,
+          },
+        ]),
+      )
+    : {};
+  const budgetVendorTypes = budgetView ? vendorTypes.map((type) => ({ id: type.id, label: type.label })) : [];
   // Somme des devis des prestataires retenus d'un poste (null s'il n'y en a aucun connu).
   const retainedQuotesOf = (slot: EventVendorSlot) => {
     const quotes = slot.retainedVendors.map((vendor) => vendor.quoteAmountCents).filter((amount): amount is number => amount !== null);
@@ -861,25 +897,38 @@ export default async function EventDetailPage({
           <ProspectExchanges organizationId={organizationId} eventId={event.id} isOption={event.status === "option"} locale={locale === "en" ? "en" : "fr"} />
           <section className="card" aria-labelledby="activity-title">
             <h2 id="activity-title">{t("activityTitle")}</h2>
-            {activity.length === 0 ? <p>{t("noActivity")}</p> : null}
+            {activity.length === 0 && sentEmails.length === 0 ? <p>{t("noActivity")}</p> : null}
             <ul aria-label={t("activityTitle")}>
-              {activity.map((entry) => (
-                <li key={entry.id}>
-                  {eventTime(entry.createdAt)} —{" "}
-                  {t(entry.kind === "task_done" ? "activityTaskDone" : entry.kind === "decision_made" ? "activityDecisionMade" : entry.kind === "vendor_reminded" ? "activityVendorReminded" : entry.kind === "document_link_opened" ? "activityDocumentLinkOpened" : entry.kind === "stage_changed" ? "activityStageChanged" : "activityTaskUndone", {
+              {[
+                ...activity.map((entry) => ({
+                  id: entry.id,
+                  at: entry.createdAt,
+                  text: t(entry.kind === "task_done" ? "activityTaskDone" : entry.kind === "decision_made" ? "activityDecisionMade" : entry.kind === "vendor_reminded" ? "activityVendorReminded" : entry.kind === "document_link_opened" ? "activityDocumentLinkOpened" : entry.kind === "stage_changed" ? "activityStageChanged" : "activityTaskUndone", {
                     actor: entry.actorName ?? t("activityFormerClient"),
                     task: entry.taskLabel || (entry.kind === "vendor_reminded" ? t("activityVendorRemoved") : tDecisions("programLabel")),
-                  })}
-                </li>
-              ))}
+                  }),
+                })),
+                ...sentEmails.map((email) => ({
+                  id: email.id,
+                  at: email.sentAt ?? email.createdAt,
+                  text: t("activityEmailSent", { actor: (email.sentByUserId ? senders.get(email.sentByUserId) : null) ?? t("activityFormerMember"), kind: tEmailKinds(`kinds.${email.kind}.title`) }),
+                })),
+              ]
+                .sort((left, right) => right.at.localeCompare(left.at))
+                .map((entry) => (
+                  <li key={entry.id}>
+                    {eventTime(entry.at)} — {entry.text}
+                  </li>
+                ))}
             </ul>
           </section>
         </>
       ) : null}
 
       {/* Lot 63c (BUD-01, BUD-03, BUD-04 ; Q42, M9) : avec le module Budget, une seule vue par poste
-          (prévu, réel, écart, réglé, reste, prochaine échéance, échéancier) ; le détail d'un poste
-          (statut, icône, consultés) s'ouvre sous le tableau. */}
+          (prévu, réel, écart, réglé, reste, prochaine échéance, échéancier). Lot 65b (M14, ADR 0111) :
+          tout le poste (prestataires, montants, échéancier, documents, réglages) est dans sa fenêtre ;
+          plus de bloc en bas de page. */}
       {tab === "budget" && budgetView ? (
         <>
           <section className="card" aria-labelledby="vendor-slots-title">
@@ -891,7 +940,7 @@ export default async function EventDetailPage({
                 </Link>
                 {/* Lot 63b (HUB-14) : importer un budget depuis l'écran. */}
                 {budgetAvailable ? (
-                  <Link className="button-link" href="/import?type=budget_lines#import-form">
+                  <Link className="button-link" href={`/import?type=budget_lines&evenement=${event.id}#import-form`}>
                     {t("importHere")}
                   </Link>
                 ) : null}
@@ -916,7 +965,17 @@ export default async function EventDetailPage({
                 rows={budgetRows!.rows}
                 totals={budgetRows!.totals}
                 locale={locale}
-                posteHrefs={Object.fromEntries(vendorSlots.map((slot) => [slot.id, `${tabHref("budget", { poste: slot.id })}#detail-poste`]))}
+                initialSlotId={selectedSlot?.id ?? null}
+                slotPanels={slotPanels}
+                choices={Object.fromEntries(
+                  vendorSlots.map((slot) => {
+                    const inTheRunning = candidatesBySlot(slot.id).filter((candidate) => candidate.status !== "dismissed" && !ENGAGED_CANDIDATE_STATUSES.includes(candidate.status));
+                    // La comparaison de la fenêtre se relit quand un prestataire du poste change (statut, devis).
+                    const signature = candidatesBySlot(slot.id).map((candidate) => `${candidate.id}:${candidate.status}:${candidate.quoteAmountCents ?? ""}:${candidate.hasQuoteFile ? 1 : 0}:${candidate.notes.length}`).join("|");
+                    return [slot.id, { comparing: inTheRunning.length, quotes: inTheRunning.filter((candidate) => candidate.quoteAmountCents !== null || candidate.hasQuoteFile).length, signature }];
+                  }),
+                )}
+                catalogHrefs={Object.fromEntries(vendorSlots.map((slot) => [slot.id, `/prestataires?evenement=${event.id}&poste=${slot.id}`]))}
                 consultationHrefs={Object.fromEntries(vendorSlots.map((slot) => [slot.id, `/events/${event.id}/consultation/${slot.id}`]))}
                 vendorsAvailable={vendorsAvailable}
                 vendorTypes={budgetVendorTypes}
@@ -927,29 +986,6 @@ export default async function EventDetailPage({
             ) : null}
             <AddVendorSlotForm eventId={event.id} />
           </section>
-          {selectedSlot ? (
-            <section className="card" aria-labelledby="vendor-detail-title" id="detail-poste">
-                <h2 id="vendor-detail-title">{selectedSlot.label}</h2>
-                <VendorSlotForm key={selectedSlot.id} eventId={event.id} slot={selectedSlot} />
-                {/* Lot 28b (Q33) : l'estimé d'une catégorie à une seule ligne se saisit ici ; au-delà, sur le budget. */}
-                {budgetView && (categoryOf(selectedSlot.id)?.lines.length ?? 0) <= 1 ? (
-                  <PlannedAmountForm key={`planned-${selectedSlot.id}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} plannedCents={categoryOf(selectedSlot.id)?.lines[0]?.estimatedAmountCents ?? null} />
-                ) : null}
-                {budgetView && (categoryOf(selectedSlot.id)?.lines.length ?? 0) > 1 ? (
-                  <p>
-                    <Link href={`/budget/${event.id}/detail#categorie-${selectedSlot.id}`}>{t("budgetLinesDetail", { count: categoryOf(selectedSlot.id)?.lines.length ?? 0, line: selectedSlot.label })}</Link>
-                  </p>
-                ) : null}
-                <SlotIconForm key={`icon-${selectedSlot.id}-${selectedSlot.icon ?? ""}`} eventId={event.id} slotId={selectedSlot.id} label={selectedSlot.label} icon={selectedSlot.icon} />
-                <ImportedFields fields={selectedSlot.importedFields} compact />
-                <form action={removeVendorSlotAction}>
-                  <input type="hidden" name="eventId" value={event.id} />
-                  <input type="hidden" name="vendorSlotId" value={selectedSlot.id} />
-                  <button type="submit">{t("removeVendorSlot", { label: selectedSlot.label })}</button>
-                </form>
-                <Link href={tabHref("budget", slotFilter === "a-pourvoir" ? { filtre: "a-pourvoir" } : {})}>{t("closePanel")}</Link>
-            </section>
-          ) : null}
         </>
       ) : null}
       {tab === "budget" && !budgetView ? (
@@ -1045,7 +1081,7 @@ export default async function EventDetailPage({
           </aside>
         </div>
       ) : null}
-      {tab === "budget" && selectedSlot ? (
+      {tab === "budget" && !budgetView && selectedSlot ? (
         <VendorCandidates
           eventId={event.id}
           slot={selectedSlot}
@@ -1258,6 +1294,9 @@ export default async function EventDetailPage({
             <SettingsLink href="/events/modeles-programme" back="event" label={t("programTemplatesSettings")} />
           </div>
           <ProgramShiftProposal eventId={event.id} proposal={shiftProposal} />
+          {/* Lot 65g (CHR-08 ; recette staging du 22/11/2026) : « Importer » ouvre l'import en tête de la
+              carte, au-dessus de la diffusion, au lieu de le déplier plus bas. */}
+          {query.importer === "1" ? <ProgramImportForm eventId={event.id} open /> : null}
           {/* Lot 62c (UX-13) : en tête de la carte, la diffusion à gauche, les PDF et l'agenda à droite. */}
           <div className="program-head">
           {/* Lot 37b (CHR-07, DAT-14 ; D8, D10) : clients et prestataires lisent la dernière version diffusée. */}
@@ -1362,7 +1401,7 @@ export default async function EventDetailPage({
               </p>
             )}
             {/* Lot 51 (EVT-04, CHR-08) : un chrono importé d'un tableur, avec son écran de contrôle. */}
-            <ProgramImportForm eventId={event.id} open={query.importer === "1"} />
+            {query.importer === "1" ? null : <ProgramImportForm eventId={event.id} open={false} />}
           </div>
           {program.items.length === 0 ? <p>{t("noProgramItems")}</p> : null}
           <datalist id="program-responsible-options">

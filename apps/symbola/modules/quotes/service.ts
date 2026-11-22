@@ -87,7 +87,7 @@ import type {
   SignerInput,
   StartQuotesTrialInput,
 } from "@symbola/contracts";
-import { QUOTES_QUOTE_SIGNED, QUOTES_QUOTE_SIGNED_VERSION, type AutomationHooks, type QuoteSignedPayload } from "@symbola/contracts";
+import { QUOTES_QUOTE_SIGNED, QUOTES_QUOTE_SIGNED_VERSION, type AutomationHooks, type EmailValues, type PreparedEmailView, type QuoteSignedPayload, type RelationDraft } from "@symbola/contracts";
 import { changeEventStatus, clientTermForEvent, EventNotFoundError, getEvent, listEventLinks, listEventTypes, sendLinkActionCode, verifyLinkActionCode } from "@/modules/events/service";
 import { withActor } from "@symbola/db/actor";
 import {
@@ -152,6 +152,8 @@ import {
   sendOrganizationEmail,
   updateContact,
   getAutomationGate,
+  depositPreparedEmail,
+  preparesRelationEmail,
   jobKeyExists,
   notify,
   recordAutomationRun,
@@ -2140,6 +2142,15 @@ export async function sendQuoteForSignature(input: SendForSignatureInput): Promi
   }
 
   const detail = await loadDetail(input.organizationId, input.quoteId);
+  // Lot 65d (MSG-01 ; ADR 0110) : « commande d'abord » est un message de la relation ; quand la planner
+  // l'envoie de sa messagerie, il est préparé pour chaque signataire (le lien de signature, technique,
+  // reste envoyé par Symbola).
+  if (!quote.isDemo && (await preparesRelationEmail(input.organizationId, mailKind))) {
+    for (const signer of detail.signature?.signers ?? []) {
+      await depositPreparedEmail({ organizationId: input.organizationId, kind: mailKind, eventId: quote.eventId, recipientType: "quote_signer", recipientId: signer.id, ref: { quoteId: quote.id, locale: input.locale }, origin: "gesture", sourceKey: `order-first:${detail.current.id}:${signer.id}` });
+    }
+    return detail;
+  }
   if (!quote.isDemo) {
     let notMailed = 0;
     for (const signer of detail.signature?.signers ?? []) {
@@ -3666,7 +3677,15 @@ export async function sendContractForSignature(input: SendContractForSignatureIn
   if (result.status === "exists") throw new SignatureAlreadyRequestedError();
   if (result.status === "not_sent") throw new QuoteNotSignedError();
   if (result.status !== "ok") throw new ContractNotFoundError();
-  if (!quote.isDemo) {
+  // Lot 65d (MSG-01 ; ADR 0110) : « commande d'abord » préparé pour la messagerie de la planner.
+  const prepared = !quote.isDemo && (await preparesRelationEmail(input.organizationId, mailKind));
+  if (prepared) {
+    const request = (await findContractRequests(input.organizationId, [contract.id])).find((candidate) => candidate.kind === "contract");
+    for (const signer of request ? await findSignersOfRequest(input.organizationId, request.id) : []) {
+      await depositPreparedEmail({ organizationId: input.organizationId, kind: mailKind, eventId: quote.eventId, recipientType: "quote_signer", recipientId: signer.id, ref: { quoteId: quote.id, contractId: contract.id, locale: input.locale }, origin: "gesture", sourceKey: `order-first-contract:${contract.id}:${signer.id}` });
+    }
+  }
+  if (!quote.isDemo && !prepared) {
     const request = (await findContractRequests(input.organizationId, [contract.id])).find((candidate) => candidate.kind === "contract");
     const signers = request ? await findSignersOfRequest(input.organizationId, request.id) : [];
     let notMailed = 0;
@@ -4374,11 +4393,19 @@ export async function extendQuoteValidity(organizationId: string, quoteId: strin
 }
 
 // FAC-02 : prévenir les clients de l'évènement (liens ouverts avec la rubrique « Devis ») qu'une
-// proposition les attend. Un devis d'essai n'envoie rien. Renvoie le nombre d'e-mails partis.
+// proposition les attend. Un devis d'essai n'envoie rien. Renvoie le nombre d'e-mails partis (lot 65d :
+// ou préparés pour la messagerie de la planner).
 export async function notifyProposalSent(organizationId: string, quoteId: string, locale: "fr" | "en"): Promise<number> {
   const quote = await loadDetail(organizationId, quoteId);
   if (quote.isDemo || quote.status !== "sent" || !quote.current.sentAt) return 0;
   const links = (await listEventLinks(organizationId, quote.eventId)).filter((link) => link.audience === "client" && link.status === "active" && link.rights.rubrics.includes("quotes"));
+  // Lot 65d (MSG-01 ; ADR 0110) : préparé pour la messagerie de la planner, un message par client.
+  if (await preparesRelationEmail(organizationId, "proposal_sent")) {
+    for (const link of links) {
+      await depositPreparedEmail({ organizationId, kind: "proposal_sent", eventId: quote.eventId, recipientType: "event_link", recipientId: link.id, ref: { quoteId: quote.id, versionId: quote.current.id, locale }, origin: "gesture", sourceKey: `proposal-sent:${quote.current.id}:${link.id}` });
+    }
+    return links.length;
+  }
   let sent = 0;
   for (const link of links) {
     try {
@@ -4415,6 +4442,16 @@ export async function sendProposalExpiryReminders(organizationId: string, now: D
     if (links.length === 0) continue;
     if (!(await markExpiryReminded(organizationId, version.id, now))) continue;
     const locale = await creatorLocale(organizationId, quote.createdByUserId);
+    // Lot 65d (HUB-28 ; ADR 0110) : quand la planner envoie de sa messagerie, la relance est déposée
+    // « À envoyer » dans « Aujourd'hui ».
+    if (await preparesRelationEmail(organizationId, "proposal_expiry_reminder")) {
+      for (const link of links) {
+        await depositPreparedEmail({ organizationId, kind: "proposal_expiry_reminder", eventId: quote.eventId, recipientType: "event_link", recipientId: link.id, ref: { quoteId: quote.id, versionId: version.id, locale }, origin: "automation", automationKey: "proposal_expiry_reminder", sourceKey: `proposal-expiry:${version.id}:${link.id}` });
+        sent += 1;
+      }
+      await hooks.onRun?.({ objectKey: version.id, objectLabel: quote.number, href: `/devis/${quote.id}`, result: "sent" });
+      continue;
+    }
     for (const link of links) {
       try {
         await sendOrganizationEmail({
@@ -4723,11 +4760,36 @@ export async function planInvoiceReminders(organizationId: string, now: Date = n
 // confirmation arrivée entre la liste et l'envoi arrête la relance. true : la relance est partie.
 export async function sendPlannedInvoiceReminder(organizationId: string, planned: PlannedInvoiceReminder, now: Date = new Date()): Promise<boolean> {
   if (!(await claimInvoiceReminder(organizationId, { scheduleItemId: planned.scheduleItemId, rank: planned.rank, dueOn: planned.dueOn, now }))) return false;
+  const letter = await invoiceReminderLetter(organizationId, planned, now);
+  if (!letter) return false;
+  // Lot 65d (HUB-28, FAC-09 ; ADR 0110) : déposée « À envoyer » quand la planner envoie de sa messagerie.
+  if (await preparesRelationEmail(organizationId, "invoice_reminder")) {
+    for (const signer of letter.signers) {
+      await depositPreparedEmail({ organizationId, kind: "invoice_reminder", eventId: letter.eventId, recipientType: "quote_signer", recipientId: signer.id, ref: { quoteId: planned.quoteId, scheduleItemId: planned.scheduleItemId, rank: String(planned.rank) }, origin: "automation", automationKey: "invoice_reminder", sourceKey: `invoice-reminder:${planned.scheduleItemId}:${planned.rank}:${signer.id}` });
+    }
+    return true;
+  }
+  for (const signer of letter.signers) {
+    await sendOrganizationEmail({
+      organizationId,
+      to: signer.email,
+      kind: "invoice_reminder",
+      locale: letter.locale,
+      values: { first_name: signer.name, ...letter.values },
+      idempotencyKey: `invoice-reminder:${planned.scheduleItemId}:${planned.rank}:${signer.id}`,
+    });
+  }
+  return true;
+}
+
+// La lettre d'une relance d'impayé, sans le destinataire : l'envoi et la fenêtre « Préparer l'e-mail »
+// (lot 65d) la composent de la même façon. La référence du virement est créée au besoin.
+async function invoiceReminderLetter(organizationId: string, planned: { quoteId: string; scheduleItemId: string }, now: Date): Promise<{ eventId: string; locale: "fr" | "en"; signers: { id: string; name: string; email: string }[]; values: EmailValues } | null> {
   const quote = await loadDetail(organizationId, planned.quoteId);
   const createdByUserId = (await findQuoteAggregate(organizationId, planned.quoteId))!.quote.createdByUserId;
   const item = quote.current.schedule.items.find((candidate) => candidate.id === planned.scheduleItemId);
   const signature = quote.signature;
-  if (!item || !signature) return false;
+  if (!item || !signature) return null;
   const [reference] = await findPaymentReferences(organizationId, [planned.scheduleItemId]);
   const ensured = reference ?? (await ensurePaymentReference(organizationId, { scheduleItemId: planned.scheduleItemId, isDemo: quote.isDemo, draw: () => newPaymentReference(Number(parisDate(now).slice(0, 4))) }));
   const locale = await creatorLocale(organizationId, createdByUserId);
@@ -4740,25 +4802,19 @@ export async function sendPlannedInvoiceReminder(organizationId: string, planned
     { clientKind: quote.clientKind, consumerRateBasisPoints: settings.consumerLatePenaltyBasisPoints, locale },
     { noPenalty: starter.noPenaltySentence[locale], consumerClause: starter.consumerClauseSentence[locale], professional: sentences ?? starter.noPenaltySentence[locale] },
   );
-  for (const signer of signature.signers) {
-    await sendOrganizationEmail({
-      organizationId,
-      to: signer.email,
-      kind: "invoice_reminder",
-      locale,
-      values: {
-        first_name: signer.name,
-        quote_number: quote.number,
-        amount: formatAmount(item.amountCents, locale),
-        due_date: formatCalendarDate(item.dueDate, locale),
-        reference: ensured.reference,
-        iban: documents.iban ? normalizeIban(documents.iban).replace(/(.{4})/g, "$1 ").trim() : "",
-        penalties,
-      },
-      idempotencyKey: `invoice-reminder:${planned.scheduleItemId}:${planned.rank}:${signer.id}`,
-    });
-  }
-  return true;
+  return {
+    eventId: quote.eventId,
+    locale,
+    signers: signature.signers.map((signer) => ({ id: signer.id, name: signer.name, email: signer.email })),
+    values: {
+      quote_number: quote.number,
+      amount: formatAmount(item.amountCents, locale),
+      due_date: formatCalendarDate(item.dueDate, locale),
+      reference: ensured.reference,
+      iban: documents.iban ? normalizeIban(documents.iban).replace(/(.{4})/g, "$1 ").trim() : "",
+      penalties,
+    },
+  };
 }
 
 // Lot 53 (HUB-28, D5) : comme les relances avant expiration, sans rattrapage après une remise en route.
@@ -4815,7 +4871,7 @@ export async function planPaymentDueReminders(organizationId: string, daysBefore
 export async function sendPaymentDueReminder(
   organizationId: string,
   planned: PlannedPaymentDueReminder,
-  input: { recipients: { key: string; name: string; email: string }[]; clientTerm: (locale: "fr" | "en") => string; now?: Date },
+  input: { recipients: { key: string; name: string; email: string; type?: "event_link" | "quote_signer" }[]; clientTerm: (locale: "fr" | "en") => string; now?: Date },
 ): Promise<number> {
   const now = input.now ?? new Date();
   if (!reminderSendWindow(now)) return 0;
@@ -4825,7 +4881,16 @@ export async function sendPaymentDueReminder(
   if (!documents.iban || !isValidIban(documents.iban)) return 0;
   const reference = context.reference ?? (await ensurePaymentReference(organizationId, { scheduleItemId: planned.scheduleItemId, isDemo: context.quote.isDemo, draw: () => newPaymentReference(Number(parisDate(now).slice(0, 4))) }));
   const locale = await creatorLocale(organizationId, (await findQuoteAggregate(organizationId, planned.quoteId))!.quote.createdByUserId);
-  const recipients = input.recipients.length > 0 ? input.recipients : (context.quote.signature?.signers ?? []).map((signer) => ({ key: signer.id, name: signer.name, email: signer.email }));
+  const recipients = input.recipients.length > 0 ? input.recipients : (context.quote.signature?.signers ?? []).map((signer) => ({ key: signer.id, name: signer.name, email: signer.email, type: "quote_signer" as const }));
+  // Lot 65d (HUB-28 ; ADR 0110) : déposé « À envoyer » quand la planner envoie de sa messagerie.
+  if (await preparesRelationEmail(organizationId, "payment_due_reminder")) {
+    let deposited = 0;
+    for (const recipient of recipients) {
+      const { created } = await depositPreparedEmail({ organizationId, kind: "payment_due_reminder", eventId: planned.eventId, recipientType: recipient.type ?? "event_link", recipientId: recipient.key, ref: { quoteId: planned.quoteId, scheduleItemId: planned.scheduleItemId }, origin: "automation", automationKey: "payment_due_reminder", sourceKey: `payment-due:${planned.scheduleItemId}:${recipient.key}` });
+      if (created) deposited += 1;
+    }
+    return deposited;
+  }
   let sent = 0;
   for (const recipient of recipients) {
     const idempotencyKey = `payment-due:${planned.scheduleItemId}:${recipient.key}`;
@@ -4874,6 +4939,14 @@ export async function sendDueSettlementDetails(organizationId: string, now: Date
     const reference = await ensurePaymentReference(organizationId, { scheduleItemId: row.item.id, isDemo: context.quote.isDemo, draw: () => newPaymentReference(Number(today.slice(0, 4))) });
     if (!(await markDetailsMailed(organizationId, row.item.id, now))) continue;
     const locale = await creatorLocale(organizationId, row.quote.createdByUserId);
+    // Lot 65d (MSG-01 ; ADR 0110) : le RIB est préparé pour la messagerie de la planner, « À envoyer ».
+    if (await preparesRelationEmail(organizationId, "payment_details")) {
+      for (const signer of context.quote.signature?.signers ?? []) {
+        await depositPreparedEmail({ organizationId, kind: "payment_details", eventId: row.quote.eventId, recipientType: "quote_signer", recipientId: signer.id, ref: { quoteId: row.quote.id, scheduleItemId: row.item.id }, origin: "automation", sourceKey: `payment-details:${row.item.id}:${signer.id}` });
+        sent += 1;
+      }
+      continue;
+    }
     for (const signer of context.quote.signature?.signers ?? []) {
       try {
         await sendOrganizationEmail({
@@ -4891,6 +4964,83 @@ export async function sendDueSettlementDetails(organizationId: string, now: Date
     }
   }
   return sent;
+}
+
+// Lot 65d (MSG-01, HUB-28 ; ADR 0110) — la fenêtre « Préparer l'e-mail » : un message de la relation du
+// module Devis, recomposé à l'ouverture depuis ses références (des identifiants), avec les mêmes
+// valeurs qu'un envoi par Symbola. Le destinataire est relu (lien actif du client, signataire du
+// devis) ; null si le message n'a plus lieu d'être (lien retiré, échéance réglée ou déclarée).
+// clientTerm : le terme des clients du type d'évènement, lu au module Évènements par l'appelant.
+export async function draftQuoteRelationEmail(
+  organizationId: string,
+  item: PreparedEmailView,
+  input: { clientTerm: (eventId: string, locale: "fr" | "en") => Promise<string>; now?: Date },
+): Promise<RelationDraft | null> {
+  const now = input.now ?? new Date();
+  const ref = item.ref;
+  const refLocale = ref.locale === "en" ? "en" : ref.locale === "fr" ? "fr" : null;
+  if (!ref.quoteId || !/^[0-9a-f-]{36}$/i.test(ref.quoteId)) return null;
+  const quote = await loadDetail(organizationId, ref.quoteId).catch((error: unknown) => {
+    if (error instanceof QuoteNotFoundError) return null;
+    throw error;
+  });
+  if (!quote || quote.eventId !== item.eventId) return null;
+  const locale = refLocale ?? (await creatorLocale(organizationId, (await findQuoteAggregate(organizationId, quote.id))!.quote.createdByUserId));
+  const pdfHref = `/devis/${quote.id}/pdf`;
+  const clientLink = async () => (await listEventLinks(organizationId, quote.eventId)).find((link) => link.id === item.recipientId && link.status === "active") ?? null;
+  const signerOf = (signers: { id: string; name: string; email: string }[]) => signers.find((signer) => signer.id === item.recipientId) ?? null;
+  switch (item.kind) {
+    case "proposal_sent":
+    case "proposal_expiry_reminder": {
+      const version = quote.versions.find((candidate) => candidate.id === ref.versionId);
+      const link = await clientLink();
+      if (!version?.sentAt || !link) return null;
+      return { to: link.email, recipientName: link.personName, locale, values: { first_name: link.personName, quote_number: quote.number, valid_until: version.validUntil ? formatCalendarDate(version.validUntil, locale) : "" }, pdfHref };
+    }
+    case "order_first": {
+      let signers: { id: string; name: string; email: string }[] = quote.signature?.signers ?? [];
+      let href = pdfHref;
+      if (ref.contractId) {
+        const request = (await findContractRequests(organizationId, [ref.contractId])).find((candidate) => candidate.kind === "contract");
+        signers = request ? await findSignersOfRequest(organizationId, request.id) : [];
+        href = `/devis/${quote.id}/contrat/${ref.contractId}/pdf`;
+      }
+      const signer = signerOf(signers);
+      if (!signer) return null;
+      return { to: signer.email, recipientName: signer.name, locale, values: { first_name: signer.name, quote_number: quote.number }, pdfHref: href };
+    }
+    case "invoice_reminder": {
+      if (!ref.scheduleItemId) return null;
+      const context = await settlementContext(organizationId, quote.eventId, ref.scheduleItemId);
+      if (!context || context.facts.declared || context.facts.paid) return null;
+      const letter = await invoiceReminderLetter(organizationId, { quoteId: quote.id, scheduleItemId: ref.scheduleItemId }, now);
+      const signer = letter ? signerOf(letter.signers) : null;
+      if (!letter || !signer) return null;
+      return { to: signer.email, recipientName: signer.name, locale: letter.locale, values: { first_name: signer.name, ...letter.values }, pdfHref };
+    }
+    case "payment_due_reminder":
+    case "payment_details": {
+      if (!ref.scheduleItemId) return null;
+      const context = await settlementContext(organizationId, quote.eventId, ref.scheduleItemId);
+      if (!context || context.facts.declared || context.facts.paid) return null;
+      const documents = await getDocumentSettings(organizationId);
+      if (!documents.iban || !isValidIban(documents.iban)) return null;
+      const reference = context.reference ?? (await ensurePaymentReference(organizationId, { scheduleItemId: ref.scheduleItemId, isDemo: context.quote.isDemo, draw: () => newPaymentReference(Number(parisDate(now).slice(0, 4))) }));
+      const link = item.recipientType === "event_link" ? await clientLink() : null;
+      const signer = item.recipientType === "quote_signer" ? signerOf(context.quote.signature?.signers ?? []) : null;
+      const person = link ? { email: link.email, name: link.personName } : signer ? { email: signer.email, name: signer.name } : null;
+      if (!person) return null;
+      const iban = normalizeIban(documents.iban).replace(/(.{4})/g, "$1 ").trim();
+      const common = { first_name: person.name, quote_number: context.quote.number, amount: formatAmount(context.item.amountCents, locale), reference: reference.reference, iban };
+      const values: EmailValues =
+        item.kind === "payment_details"
+          ? { ...common, bic: documents.bic ?? "—" }
+          : { ...common, due_date: formatCalendarDate(context.item.dueDate, locale), client_term: await input.clientTerm(quote.eventId, locale) };
+      return { to: person.email, recipientName: person.name, locale, values, pdfHref };
+    }
+    default:
+      return null;
+  }
 }
 
 // BUD-11 (D9) : les échéances de la planner pour l'évènement, avec leur statut (à venir, déclarée,

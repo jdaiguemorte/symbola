@@ -359,6 +359,40 @@ export const eventVendorCandidateNotes = eventsSchema.table("event_vendor_candid
   updatedBy: uuid("updated_by"),
 }, (table) => [index("event_vendor_candidate_notes_organization_idx").on(table.organizationId)]);
 
+// Lot 65d (PRE-02, HUB-08 ; recette staging du 22/11/2026, maquette M16) — « Noter une relance » : la
+// planner déclare une relance faite par elle-même (téléphone, e-mail, SMS, de vive voix), à une date,
+// avec la date du rappel ; Symbola n'envoie rien. Sa note facultative est une note interne du
+// prestataire (event_vendor_candidate_notes, déjà au registre RGPD) : cette table ne porte aucun texte
+// libre ni aucune donnée personnelle.
+export const VENDOR_REMINDER_CHANNELS = ["phone", "email", "sms", "in_person"] as const;
+export const vendorReminders = eventsSchema.table(
+  "vendor_reminders",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    candidateId: uuid("candidate_id")
+      .notNull()
+      .references(() => eventVendorCandidates.id, { onDelete: "cascade" }),
+    channel: text("channel").notNull(),
+    remindedOn: date("reminded_on").notNull(),
+    recallOn: date("recall_on"),
+    noteId: uuid("note_id").references(() => eventVendorCandidateNotes.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("vendor_reminders_organization_idx").on(table.organizationId),
+    index("vendor_reminders_candidate_idx").on(table.candidateId, table.remindedOn),
+    check("vendor_reminders_channel_check", sql`${table.channel} in ('phone', 'email', 'sms', 'in_person')`),
+    check("vendor_reminders_recall_check", sql`${table.recallOn} is null or ${table.recallOn} >= ${table.remindedOn}`),
+  ],
+);
+
 // PRD-EVT-04 : responsable d'une tâche du rétroplanning (PRD). Une tâche des
 // « clients » apparaîtra dans l'espace des mariés (PRD-EVT-06).
 // Lot 34b (CHR-02, D12) : une tâche peut être confiée à un prestataire retenu sur l'événement.

@@ -15,7 +15,7 @@ import {
   listEventVendorSlots,
 } from "../modules/events/service";
 import { createVendor } from "../modules/vendors/service";
-import { clickMenuLink, openMenu, openSettingsRubric, readyOrganization, signIn as signInByLink } from "./helpers";
+import { clickMenuLink, closeSlotWindow, openMenu, openSettingsRubric, openSlotDetails, openSlotWindow, readyOrganization, signIn as signInByLink, slotWindow } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -63,8 +63,9 @@ test("L11-EVT-10 / L11-EVT-11 — comparer deux devis pour une ligne du budget, 
   });
 
   await plannerLogin(page, planner.email, "mot-de-passe-presta");
+  // Lot 65b (M14) : ?poste= ouvre la fenêtre du poste ; le détail des prestataires est sous la comparaison.
   await page.goto(`/events/${event.id}?onglet=budget&poste=${caterer.id}`);
-  const candidates = page.getByRole("region", { name: "Prestataires consultés — Traiteur" });
+  const candidates = await openSlotDetails(page, "Traiteur");
   await expect(candidates.getByText("Aucun prestataire consulté pour l'instant.", { exact: false })).toBeVisible();
 
   // Un prestataire du carnet, puis un autre saisi par son nom.
@@ -77,7 +78,12 @@ test("L11-EVT-10 / L11-EVT-11 — comparer deux devis pour une ligne du budget, 
   const tables = candidates.getByRole("listitem", { name: "Les Tables de Flandre" });
   await expect(tables).toBeVisible();
   // Lot 28a (PRE-02) : un prestataire ajouté est « Pressenti » ; le poste montre le statut le plus avancé.
+  await closeSlotWindow(page, "Traiteur");
   await expect(page.getByRole("region", { name: "Budget et prestataires, par poste" }).getByRole("row", { name: /Traiteur/ })).toContainText("Pressenti");
+  // Lot 65b : la ligne dit « 2 en comparaison ».
+  await expect(page.getByRole("region", { name: "Budget et prestataires, par poste" }).getByRole("row", { name: /Traiteur/ })).toContainText("2 en comparaison");
+  await openSlotWindow(page, "Traiteur");
+  await openSlotDetails(page, "Traiteur");
 
   // Devis, montré aux clients, notes « Clients » et interne : dans la fenêtre du prestataire (lot 63d, #36).
   await tables.getByRole("button", { name: "Modifier Les Tables de Flandre" }).click();
@@ -98,17 +104,21 @@ test("L11-EVT-10 / L11-EVT-11 — comparer deux devis pour une ligne du budget, 
   await card.getByRole("button", { name: "Ajouter la note sur Les Tables de Flandre" }).click();
   await expect(card.getByText("Négociable à 60 € par personne.")).toBeVisible();
   await card.getByRole("button", { name: /^(Fermer|Retour)$/ }).click();
-  await expect(page.getByRole("region", { name: "Budget et prestataires, par poste" }).getByRole("row", { name: /Traiteur/ })).toContainText("Devis reçu");
   await expectNoAxeViolation(page);
 
-  // Retenir : le poste est engagé avec ce prestataire et son montant ; l'autre est écarté.
-  await tables.getByRole("button", { name: "Retenir Les Tables de Flandre" }).click();
+  // Lot 65b (M14 B) : la comparaison côte à côte, puis « Retenir » : le poste est engagé avec ce
+  // prestataire et son montant ; l'autre est écarté (grisé).
+  const comparison = slotWindow(page, "Traiteur").getByRole("table", { name: "Comparaison des prestataires de « Traiteur »" });
+  await expect(comparison.getByRole("columnheader", { name: "Les Tables de Flandre" })).toBeVisible();
+  await expect(comparison.getByRole("row", { name: /^Devis/ })).toContainText("4 480,00 €");
+  await comparison.getByRole("button", { name: "Retenir — Les Tables de Flandre", exact: true }).click();
+  await expect(comparison.getByRole("columnheader", { name: /Les Tables de Flandre Retenu/ })).toBeVisible();
+  await expect(comparison.getByRole("row", { name: /^Où en est-on/ })).toContainText("Écarté");
+  await closeSlotWindow(page, "Traiteur");
   const row = page.getByRole("region", { name: "Budget et prestataires, par poste" }).getByRole("row", { name: /Traiteur/ });
   await expect(row).toContainText("Les Tables de Flandre");
   await expect(row).toContainText("Retenu");
   await expect(row).toContainText("4 480,00 €");
-  await expect(candidates.getByRole("listitem", { name: "Les Tables de Flandre" }).getByLabel("Statut")).toHaveValue("retained");
-  await expect(candidates.getByRole("listitem", { name: "Maison Verdier" }).getByLabel("Statut")).toHaveValue("dismissed");
 
   // Les clients voient l'option montrée et la note « Clients », rien d'autre.
   const clientContext = await browser.newContext({ locale: "fr-FR", viewport: page.viewportSize() });

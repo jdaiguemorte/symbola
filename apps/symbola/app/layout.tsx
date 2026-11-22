@@ -1,9 +1,11 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import type { Locale } from "@symbola/i18n";
 import { AppShell } from "./app-shell";
+import { PrepareEmailHost } from "./preparer/prepare-email-host";
+import { clientMessages } from "@/lib/client-messages";
 import { organizationMessages } from "@/lib/vocabulary";
 import "./globals.css";
 
@@ -40,10 +42,14 @@ export default async function RootLayout({ children, panel }: { children: ReactN
         {/* Lot 16 (ADR 0045) : le cadre reste en place d'une page à l'autre ; il
             garde le vocabulaire du métier. Une page d'événement dont le type en
             change reçoit le sien (app/event-vocabulary.tsx). */}
-        <NextIntlClientProvider messages={await organizationMessages(locale as Locale)}>
+        <NextIntlClientProvider messages={clientMessages(await organizationMessages(locale as Locale))}>
           <AppShell>{children}</AppShell>
           {/* Lot 63c (ADR 0107) : le panneau des réglages d'un écran (navigation interceptée). */}
           {panel}
+          {/* Lot 65d (ADR 0110) : la fenêtre « Préparer l'e-mail », ouverte par ?preparer=. */}
+          <Suspense fallback={null}>
+            <PrepareEmailHost />
+          </Suspense>
         </NextIntlClientProvider>
       </body>
     </html>

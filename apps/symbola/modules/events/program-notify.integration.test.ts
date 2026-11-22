@@ -3,12 +3,14 @@
 // Seuls les liens actifs concernés reçoivent l'e-mail, chacun avec son PDF ; ni note interne ni
 // séquence détaillée d'un autre prestataire. Tests d'abus (CLAUDE.md § 2.11) : une autre
 // organisation ne prévient personne ; un essai n'envoie rien ; une version ne part qu'une fois.
+import { setRelationMailSender } from "@/modules/hub/service";
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createOrganization } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import type { EventLinkRights, ProgramRecipientDocument } from "@symbola/contracts";
-import { recipientsDigest, RecipientsNotConfirmedError } from "@/modules/hub/service";
+import { listPreparedEmails, markPreparedEmailSent, recipientsDigest, RecipientsNotConfirmedError } from "@/modules/hub/service";
+import { draftPreparedEmails } from "@/lib/prepared-emails";
 import {
   addEventVendorSlot,
   addProgramItem,
@@ -27,6 +29,14 @@ import {
   startEventsTrial,
 } from "./service";
 
+// Lot 65d (MSG-01 ; ADR 0110) : ces tests vérifient l'envoi par Symbola, réglage « Symbola les envoie
+// pour moi » : rien n'y change. Le réglage par défaut (la planner envoie de sa messagerie) est vérifié
+// dans modules/hub/relation-mail.integration.test.ts.
+async function symbolaSends(organizationId: string): Promise<string> {
+  await setRelationMailSender(organizationId, "symbola");
+  return organizationId;
+}
+
 const plannerId = randomUUID();
 const MAILPIT_API = "http://localhost:8025/api/v1";
 const PDF = new Uint8Array(Buffer.from("%PDF-1.4\n%%EOF\n", "latin1"));
@@ -39,7 +49,7 @@ async function organization(): Promise<{ organizationId: string; name: string }>
   const { sql, db } = createAppConnection();
   try {
     const name = `Atelier ${randomUUID().slice(0, 8)}`;
-    return { organizationId: (await createOrganization(db, name)).id, name };
+    return { organizationId: await symbolaSends((await createOrganization(db, name)).id), name };
   } finally {
     await sql.end();
   }
@@ -201,5 +211,43 @@ describe("MSG-02 — Garde-fou d'envoi groupé (programme)", () => {
     const { render } = recorder();
     await expect(notifyProgramVersion({ organizationId: b.organizationId, eventId: w.eventId, renderDocument: render })).rejects.toBeInstanceOf(EventNotFoundError);
     expect(await listProgramRecipients(b.organizationId, w.eventId)).toEqual([]);
+  });
+});
+
+// Lot 65d (MSG-01 ; décisions du 22/11 ; ADR 0110) — par défaut, la planner envoie le programme de sa
+// messagerie : rien ne part de Symbola ; un message est préparé pour chaque personne, recomposé à
+// l'ouverture de la fenêtre « Préparer l'e-mail » (pas de pièce jointe : le PDF se télécharge à côté).
+describe("MSG-01 — Programme préparé pour la messagerie de la planner (lot 65d, ADR 0110)", () => {
+  it("rien ne part ; un message par personne, prérempli avec son nom, la version et le PDF à côté ; « J'ai envoyé » le note dans l'activité", async () => {
+    const { organizationId } = await organization();
+    await setRelationMailSender(organizationId, "planner");
+    const w = await wedding(organizationId);
+    await publishEventProgram({ organizationId, eventId: w.eventId, userId: plannerId });
+    const recipients = await listProgramRecipients(organizationId, w.eventId);
+    const { documents, render } = recorder();
+    const result = await notifyProgramVersion({ organizationId, eventId: w.eventId, confirmedRecipients: recipientsDigest(recipients), renderDocument: render });
+    expect(result).toEqual({ version: 1, sent: 0, notSent: 0, prepared: 2 });
+    expect(documents).toEqual([]);
+    expect(await programMailsTo(w.lea.email, false)).toEqual([]);
+    expect(await programMailsTo(w.karim.email, false)).toEqual([]);
+    expect((await getEventProgramPublication(organizationId, w.eventId)).latest?.notifiedCount).toBe(2);
+
+    const pending = await listPreparedEmails(organizationId, { eventId: w.eventId, status: "to_send" });
+    expect(pending.map((item) => [item.kind, item.recipientId]).sort()).toEqual([["program_published", w.lea.id], ["program_published", w.karim.id]].sort());
+    const drafts = await draftPreparedEmails(organizationId, pending.map((item) => item.id));
+    const lea = drafts.find((draft) => draft.to === w.lea.email)!;
+    expect(lea).toMatchObject({ recipientName: "Léa Martin", problem: null, renewedLink: false, pdfHref: `/events/${w.eventId}/programme/pdf` });
+    expect(lea.subject).toMatch(/^Programme, version 1/);
+    expect(lea.body).toContain("Bonjour Léa Martin");
+    const karim = drafts.find((draft) => draft.to === w.karim.email)!;
+    expect(karim.subject).toMatch(/^Schedule/);
+    expect(karim.pdfHref).toBeNull();
+
+    const userId = randomUUID();
+    await markPreparedEmailSent(organizationId, lea.id, userId);
+    expect((await listPreparedEmails(organizationId, { eventId: w.eventId, status: "sent" })).map((item) => [item.id, item.sentByUserId])).toEqual([[lea.id, userId]]);
+    // Une autre organisation ne recompose pas ces messages.
+    const other = await organization();
+    expect(await draftPreparedEmails(other.organizationId, [karim.id])).toEqual([]);
   });
 });

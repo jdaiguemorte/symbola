@@ -17,11 +17,11 @@ export async function sendPaymentDueReminders(organizationId: string, now: Date 
   for (const planned of await planPaymentDueReminders(organizationId, gate.days ?? 7, now)) {
     // D5 : un rappel dont le jour est passé pendant que l'automatisme était coupé n'est pas rattrapé.
     if (hooks.notBefore && planned.sendOn < hooks.notBefore) continue;
-    const recipients: { key: string; name: string; email: string }[] = [];
+    const recipients: { key: string; name: string; email: string; type: "event_link" }[] = [];
     if (budgetOpen) {
       const linkId = await getInstalmentPayerLinkId(organizationId, planned.eventId, planned.scheduleItemId);
       const link = linkId ? (await listEventLinks(organizationId, planned.eventId)).find((candidate) => candidate.id === linkId && candidate.status === "active") : undefined;
-      if (link) recipients.push({ key: link.id, name: link.personName, email: link.email });
+      if (link) recipients.push({ key: link.id, name: link.personName, email: link.email, type: "event_link" });
     }
     const terms = { fr: (await clientTermForEvent(organizationId, planned.eventId, "fr")).term, en: (await clientTermForEvent(organizationId, planned.eventId, "en")).term };
     const count = await sendPaymentDueReminder(organizationId, planned, { recipients, clientTerm: (locale) => terms[locale], now });

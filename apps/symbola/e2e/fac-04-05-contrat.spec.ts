@@ -176,6 +176,15 @@ test("FAC-04 / DOC-03 / FAC-05 / SC-02 étapes 4 à 7 — contrat généré (pro
   await expect(send.getByRole("region", { name: "Cet envoi part à 2 personnes" }).getByRole("listitem")).toHaveCount(2);
   await expectNoAxeViolation(page);
   await send.getByRole("button", { name: "Envoyer à 2 personnes" }).click();
+  // Lot 65d (ADR 0110) : par défaut, Camille envoie « commande d'abord » de sa messagerie : la fenêtre
+  // « Préparer l'e-mail » s'ouvre, un message par signataire ; le lien de signature reste technique.
+  const prepare = page.getByRole("dialog", { name: "Préparer l'e-mail" });
+  await expect(prepare).toBeVisible();
+  await expect(prepare.getByText("Message 1 sur 2")).toBeVisible();
+  await expect(prepare.getByLabel("Objet")).toHaveValue(/et son contrat/);
+  await expectNoAxeViolation(page);
+  await page.keyboard.press("Escape");
+  await expect(prepare).toBeHidden();
   await expect(page.getByText("En attente de signature.")).toBeVisible();
   await expect(page.getByText("Document signé : le devis et son contrat, dans un même document.")).toBeVisible();
 

@@ -622,6 +622,10 @@ export const imports = hubSchema.table("imports", {
   appliedAt: timestamp("applied_at", { withTimezone: true }),
   undoneAt: timestamp("undone_at", { withTimezone: true }),
   result: jsonb("result").$type<ImportResult | null>(),
+  // Lot 65g (HUB-14, BUD-04 ; recette staging du 22/11/2026) : import lancé depuis un évènement (tâches,
+  // lignes de budget) : toutes les lignes vont dans cet évènement, sans colonne pour le désigner.
+  // Identifiant opaque (pas de clé étrangère entre schémas).
+  targetEventId: uuid("target_event_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
@@ -1946,5 +1950,74 @@ export const moduleRequests = hubSchema.table(
     check("module_requests_status_check", sql`${table.status} in ('pending', 'cancelled', 'activated', 'declined')`),
     check("module_requests_module_key_check", sql`${table.moduleKey} ~ '^[a-z][a-z0-9_]{0,39}$'`),
     check("module_requests_handled_check", sql`(${table.status} = 'pending') = (${table.handledAt} is null)`),
+  ],
+);
+
+// Lot 65d (MSG-01, HUB-20, HUB-28 ; décisions de Julien du 22/11/2026 ; ADR 0110) — qui envoie les
+// messages de la relation (proposition, relances, brief, programme…) : « planner », par défaut, la
+// planner les envoie de sa messagerie (Symbola les prépare) ; « symbola », Symbola les envoie pour elle
+// (adresse de l'ADR 0102, pièces jointes, relances automatiques). Sans ligne : « planner ». Les modèles
+// techniques (accès, signature, rendez-vous en ligne, sécurité, avis) partent toujours de Symbola.
+export const RELATION_MAIL_SENDER_KEYS = ["planner", "symbola"] as const;
+export const relationMailSettings = hubSchema.table(
+  "relation_mail_settings",
+  {
+    organizationId: uuid("organization_id")
+      .primaryKey()
+      .references(() => organizations.id),
+    sender: text("sender", { enum: RELATION_MAIL_SENDER_KEYS }).notNull().default("planner"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [check("relation_mail_settings_sender_check", sql`${table.sender} in ('planner', 'symbola')`)],
+);
+
+// Lot 65d — les messages de la relation préparés pour la messagerie de la planner : « à envoyer »
+// (déposé par un geste ou par un automatisme du lot 53), puis « envoyé » quand la planner dit l'avoir
+// envoyé (date, personne, modèle), ou « écarté ». Aucun contenu : le message est recomposé à
+// l'ouverture depuis ses références (ref : des identifiants seulement), le destinataire est désigné
+// par son identifiant (lien personnel, contact ou signataire), jamais par son adresse. source_key :
+// la clé de l'envoi qu'il remplace (une seule fois par clé). Pas de clé étrangère vers un autre schéma
+// (avenant de l'ADR 0012) : l'évènement est désigné par son identifiant.
+export const PREPARED_EMAIL_RECIPIENT_TYPES = ["event_link", "contact", "quote_signer"] as const;
+export const PREPARED_EMAIL_STATUS_KEYS = ["to_send", "sent", "dismissed"] as const;
+export const PREPARED_EMAIL_ORIGINS = ["gesture", "automation"] as const;
+export const preparedEmails = hubSchema.table(
+  "prepared_emails",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    eventId: uuid("event_id"),
+    kind: text("kind").notNull(),
+    recipientType: text("recipient_type", { enum: PREPARED_EMAIL_RECIPIENT_TYPES }).notNull(),
+    recipientId: uuid("recipient_id").notNull(),
+    ref: jsonb("ref").$type<Record<string, string>>().notNull().default(sql`'{}'::jsonb`),
+    origin: text("origin", { enum: PREPARED_EMAIL_ORIGINS }).notNull(),
+    automationKey: text("automation_key"),
+    sourceKey: text("source_key"),
+    status: text("status", { enum: PREPARED_EMAIL_STATUS_KEYS }).notNull().default("to_send"),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    sentByUserId: uuid("sent_by_user_id"),
+    dismissedAt: timestamp("dismissed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("prepared_emails_organization_idx").on(table.organizationId, table.status, table.createdAt),
+    index("prepared_emails_event_idx").on(table.eventId),
+    uniqueIndex("prepared_emails_source_key_idx").on(table.organizationId, table.sourceKey).where(sql`source_key is not null`),
+    check("prepared_emails_kind_check", sql`${table.kind} ~ '^[a-z][a-z_]{0,59}$'`),
+    check("prepared_emails_recipient_type_check", sql`${table.recipientType} in ('event_link', 'contact', 'quote_signer')`),
+    check("prepared_emails_origin_check", sql`${table.origin} in ('gesture', 'automation')`),
+    check("prepared_emails_status_check", sql`${table.status} in ('to_send', 'sent', 'dismissed')`),
+    check("prepared_emails_ref_check", sql`jsonb_typeof(${table.ref}) = 'object'`),
+    check("prepared_emails_automation_key_check", sql`${table.automationKey} is null or ${table.automationKey} ~ '^[a-z][a-z_]{0,59}$'`),
+    check("prepared_emails_source_key_check", sql`${table.sourceKey} is null or char_length(${table.sourceKey}) between 1 and 300`),
+    check("prepared_emails_sent_check", sql`(${table.status} = 'sent') = (${table.sentAt} is not null)`),
+    check("prepared_emails_dismissed_check", sql`(${table.status} = 'dismissed') = (${table.dismissedAt} is not null)`),
   ],
 );

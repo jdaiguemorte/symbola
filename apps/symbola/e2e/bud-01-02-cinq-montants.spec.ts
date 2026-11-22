@@ -17,7 +17,7 @@ import {
   updateVendorCandidate,
 } from "../modules/events/service";
 import { updateBudgetLine } from "../modules/budget/service";
-import { readyOrganization, signIn as signInByLink } from "./helpers";
+import { openSlotDetails, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -113,7 +113,8 @@ test("BUD-02 — l'alerte précède l'engagement : le dépassement chiffré du s
 
   await page.goto(`/events/${wedding.eventId}?onglet=budget&poste=${wedding.caterer.id}`);
   await page.waitForLoadState("networkidle");
-  const candidates = page.getByRole("region", { name: "Prestataires consultés — Traiteur" });
+  // Lot 65b : ?poste= ouvre la fenêtre du poste ; le détail des prestataires est sous la comparaison.
+  const candidates = await openSlotDetails(page, "Traiteur");
   const card = candidates.getByRole("listitem", { name: "Les Tables de Flandre" });
   await card.getByRole("button", { name: "Retenir Les Tables de Flandre" }).click();
   await expect(card.getByRole("alert")).toHaveText(
@@ -130,7 +131,7 @@ test("BUD-02 — l'alerte précède l'engagement : le dépassement chiffré du s
   // L'engagé suit (événement interne traité en différé) ; le bandeau rappelle le dépassement.
   const banner = page.getByRole("alert").filter({ hasText: "L'engagé dépasse de 2 480,00 € le seuil d'alerte (90 % de l'enveloppe)." });
   await expect(async () => {
-    await page.reload();
+    await page.goto(`/events/${wedding.eventId}?onglet=budget`);
     await expect(banner).toBeVisible({ timeout: 2_000 });
   }).toPass({ timeout: 30_000 });
   await expectNoAxeViolation(page);

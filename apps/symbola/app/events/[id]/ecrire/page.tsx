@@ -16,7 +16,7 @@ import { ScreenHelp } from "@/app/screen-help";
 import { requirePlanner } from "@/lib/guards";
 import { bookingPageUrl } from "@/lib/prospect-follow-ups";
 import { eventNames, getEvent, getProspectFollowUpSettings, prospectMessageContext, renderProspectText } from "@/modules/events/service";
-import { getEmailTemplate, getMessageTemplate, messageTemplatesForEventType, variableToken } from "@/modules/hub/service";
+import { getEmailTemplate, getMessageTemplate, messageTemplatesForEventType, preparesRelationEmail, variableToken } from "@/modules/hub/service";
 import { isEventsModuleEnabled, isValidId } from "../../module-access";
 import { WriteForm } from "./write-form";
 
@@ -121,6 +121,7 @@ export default async function WriteToClientPage({ params, searchParams }: { para
             body={rendered.body}
             locale={locale}
             recipientCount={recipients.length}
+            plannerSends={await preparesRelationEmail(organizationId, "prospect_reply")}
           />
         </>
       )}

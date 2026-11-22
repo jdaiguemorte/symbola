@@ -1,0 +1,216 @@
+/* Lot 65 — retours de la recette staging du 22/11/2026. Règles propres à ce lot ; mêmes jetons que
+   globals.css (DESIGN.md), aucun style en ligne (CSP). Chargé avant globals.css : à précision égale,
+   une règle de globals.css l'emporte, d'où des sélecteurs un cran plus précis. */
+@layer components {
+  /* Formulaire en grille : dans une même rangée, les libellés d'une ligne et ceux de deux lignes
+     faisaient des champs à des hauteurs différentes (« Validité d'un devis », « Assureur »…). Le
+     libellé occupe toute la hauteur de la case, son texte en haut, son champ en bas : les champs d'une
+     rangée s'alignent. Hors cases à cocher et boutons radio, qui gardent leur ligne. */
+  form.form-grid > label:not(:has(> input[type="checkbox"], > input[type="radio"])),
+  div.form-grid > label:not(:has(> input[type="checkbox"], > input[type="radio"])) {
+    @apply self-stretch justify-between;
+  }
+  /* Même règle pour un groupe « libellé + champ, puis aide » (.field-group) : sur ordinateur, les
+     groupes d'une rangée partagent leurs lignes (sous-grille) ; le champ se cale en bas de la ligne
+     des libellés, l'aide commence à la même hauteur. Seulement quand tous les groupes de la grille ont
+     cette forme (un libellé en tête, trois éléments au plus) : sinon la grille reste telle quelle. */
+  @media (width >= 640px) {
+    .form-grid:not(:has(> .field-group > :first-child:not(label), > .field-group > label:first-child > input[type="checkbox"], > .field-group > label:first-child > input[type="radio"], > .field-group > :nth-child(4))) > .field-group {
+      @apply row-span-2 grid gap-y-1;
+      grid-template-rows: subgrid;
+    }
+    /* Autant de lignes que d'éléments : une ligne vide ajouterait l'écart de la grille. */
+    .form-grid:not(:has(> .field-group > :first-child:not(label), > .field-group > label:first-child > input[type="checkbox"], > .field-group > label:first-child > input[type="radio"], > .field-group > :nth-child(4))):has(> .field-group > :nth-child(3)) > .field-group {
+      @apply row-span-3;
+    }
+    .form-grid:not(:has(> .field-group > :first-child:not(label), > .field-group > label:first-child > input[type="checkbox"], > .field-group > label:first-child > input[type="radio"], > .field-group > :nth-child(4))) > .field-group > label:first-child {
+      @apply self-stretch justify-between;
+    }
+  }
+  /* « field-fit » : le libellé prend la largeur de son champ court, mais jamais plus que sa case ; un
+     libellé long revient à la ligne au lieu de déborder sur la colonne voisine (« Délai de paiement
+     des clients professionnels » passait sous « Taux des pénalités de retard »). */
+  .field-group .field-row > label.field-fit,
+  .form-grid .field-row > label.field-fit {
+    @apply max-w-full shrink;
+  }
+  /* Panneau latéral des réglages : l'aide de l'écran se déplie dans le panneau, en tête. */
+  .settings-panel-help {
+    @apply mb-4 rounded-md bg-primary-soft px-4 py-3 text-label text-ink;
+  }
+  .settings-panel-help > summary {
+    @apply cursor-pointer font-medium text-primary;
+  }
+  .settings-panel-help > p {
+    @apply mt-2 mb-0;
+  }
+  /* « Aujourd'hui » : un message après « Relancer » passait dans la colonne des actions et écrasait le
+     titre (un mot par ligne). Avec un message, l'action passe sous l'élément, sur toute la largeur. */
+  .today-items > .today-item:has(.today-action > p[role]) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .today-items > .today-item:has(.today-action > p[role]) > .today-action {
+    @apply items-start;
+  }
+  .today-items > .today-item .today-action > p[role] {
+    @apply max-w-none text-left;
+  }
+
+  /* 65b (M14 C) : « + Ajouter un prestataire » — chaque fiche avec « Comparer » et « Retenir ». */
+  .vendor-choice-popover .vendor-choice-results > li {
+    @apply flex flex-wrap items-center justify-between gap-2 rounded-md px-2 py-2 hover:bg-ground;
+  }
+  .vendor-choice-popover .vendor-choice-results > li > .notice {
+    @apply w-full;
+  }
+  .vendor-choice-who {
+    @apply flex min-w-0 flex-1 flex-col gap-1;
+  }
+  .vendor-choice-actions {
+    @apply flex shrink-0 gap-2;
+  }
+  .vendor-choice-popover {
+    @apply w-[min(28rem,calc(100vw-2rem))];
+  }
+
+  /* 65b (M14 A) : la ligne d'un poste s'ouvre d'un clic. */
+  .list-table.budget-vendors .budget-vendor-row {
+    @apply cursor-pointer hover:bg-ground;
+  }
+
+  /* 65b (M14 B) : la fenêtre du poste, plus large pour la comparaison côte à côte. */
+  @media (width >= 640px) {
+    dialog.window.window-long:has(.slot-comparison, .window-rubrics) {
+      @apply w-[min(1100px,calc(100vw-2rem))];
+    }
+  }
+  .window-rubrics-body .section-head {
+    @apply flex-wrap;
+  }
+  .slot-comparison {
+    @apply w-full border-collapse text-body;
+  }
+  .slot-comparison :is(th, td) {
+    @apply border-b border-line px-3 py-2 text-left align-top;
+  }
+  .slot-comparison thead th {
+    @apply min-w-36 font-semibold;
+  }
+  .slot-comparison thead th .badge {
+    @apply ml-2;
+  }
+  .slot-comparison tbody th {
+    @apply whitespace-nowrap font-medium text-ink-muted;
+  }
+  .slot-comparison .is-retained {
+    @apply bg-primary-soft;
+  }
+  .slot-comparison .is-dismissed {
+    @apply text-ink-muted;
+  }
+  .slot-comparison thead th.is-dismissed {
+    @apply font-normal line-through;
+  }
+  .slot-comparison-note {
+    @apply max-w-56;
+  }
+  .slot-comparison-actions {
+    @apply space-y-2;
+  }
+  .slot-comparison-actions > button {
+    @apply block w-full;
+  }
+  .slot-window-details > summary {
+    @apply min-h-11 cursor-pointer content-center font-medium text-primary;
+  }
+
+  /* 65c (HUB-08, UX-01 ; M15) : « À traiter en premier » par nature, en lignes compactes. */
+  .today-first .today-part + .today-part {
+    @apply mt-1 border-t border-line pt-1;
+  }
+  .app-main > main > .today-first > h2 {
+    @apply mb-1;
+  }
+  .today-part-head {
+    @apply flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1;
+  }
+  .today-part-head > h3 {
+    @apply m-0 text-label font-semibold text-ink-muted;
+  }
+  .today-part-link {
+    @apply text-label font-medium;
+  }
+  .today-first .today-items > .today-item {
+    @apply py-1;
+  }
+  /* Sur ordinateur, des lignes compactes : l'action garde une cible de 32 px (WCAG 2.5.8 : 24 px au
+     moins) ; sur téléphone, les 44 px habituels. */
+  .today-first .today-items > .today-item > .today-action,
+  .today-first .today-items > .today-item > .today-action > :is(button, a) {
+    @apply my-0;
+  }
+  @media (width >= 768px) {
+    .today-first .today-action :is(button, a.button-link) {
+      @apply min-h-8 px-3 py-0 text-label;
+    }
+    .app-main > main > .today-first {
+      @apply py-3;
+    }
+  }
+  .today-first .today-item-body {
+    @apply flex-row flex-wrap items-baseline gap-x-3;
+  }
+  .today-first .today-item-meta,
+  .today-first .today-item-tags {
+    @apply m-0;
+  }
+  /* Le calendrier, sous la liste, sur toute la largeur ; ses trois vues. */
+  #calendrier {
+    @apply mt-3 scroll-mt-4;
+  }
+  .today-calendar .section-head {
+    @apply flex-wrap gap-y-2;
+  }
+  .today-calendar .section-head > .today-calendar-views {
+    @apply max-md:hidden;
+  }
+  .calendar-month.calendar-month-week .calendar-day {
+    @apply min-h-40;
+  }
+  .calendar-month.calendar-month-week .calendar-item {
+    @apply flex-wrap;
+  }
+  .calendar-list {
+    @apply m-0 mt-2 grid list-none gap-3 p-0;
+  }
+  .calendar-list ul {
+    @apply m-0 flex list-none flex-col gap-1 p-0;
+  }
+  .calendar-list .calendar-item {
+    @apply flex-wrap px-2 py-1 text-body;
+  }
+  .calendar-list > li[aria-current="date"] .calendar-week-day {
+    @apply text-primary;
+  }
+
+  /* 65d (M16) : « Noter une relance » — le message type se déplie, à copier. */
+  .reminder-template > summary {
+    @apply min-h-11 cursor-pointer content-center font-medium text-primary;
+  }
+  .reminder-template[open] > summary {
+    @apply mb-2;
+  }
+
+  /* 65g (HUB-14 ; recette staging du 22/11/2026) : l'écran des colonnes d'un import prend toute la
+     largeur de l'écran (un formulaire de saisie est limité à 48rem, et range ses enfants à la largeur
+     de leur contenu) ; la liste des champs n'est plus coupée alors qu'il reste de la place à droite. */
+  .app-main > main.import-assistant > form#columns-form {
+    @apply w-full max-w-none;
+  }
+  .import-assistant form > .columns-map {
+    @apply w-full min-w-0 self-stretch;
+  }
+  .import-assistant .columns-map select {
+    @apply min-w-40 max-w-full;
+  }
+}

@@ -23,7 +23,7 @@ import {
   sendEventQuestionnaire,
   sendProspectMessage,
 } from "../modules/events/service";
-import { createContact } from "../modules/hub/service";
+import { createContact, setRelationMailSender } from "../modules/hub/service";
 import { readyOrganization, signIn } from "./helpers";
 
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
@@ -45,6 +45,9 @@ async function organization() {
   let ownerId: string;
   try {
     organizationId = (await readyOrganization(db, `Atelier Camille ${randomUUID().slice(0, 6)}`)).id;
+    // Lot 65d (ADR 0110) : ce parcours vérifie l'envoi par Symbola (« Symbola les envoie pour moi ») ;
+    // le réglage par défaut est rejoué par lot-65d-preparer-email.spec.ts.
+    await setRelationMailSender(organizationId, "symbola");
     ownerId = (await createUser(db, { organizationId, email, role: "owner" })).id;
   } finally {
     await sql.end();

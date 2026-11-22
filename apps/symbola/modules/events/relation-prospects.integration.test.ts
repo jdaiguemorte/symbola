@@ -2,6 +2,7 @@
 // PostgreSQL (RLS), avec une horloge simulée : envoi depuis Symbola ou préparé, historique du contact,
 // brochure par lien de 30 jours, relances à J+3 et J+7, arrêt par chaque fait (y compris entre la
 // préparation et l'envoi), envoi automatique en réglage, isolation entre organisations (SEC-36).
+import { setRelationMailSender } from "@/modules/hub/service";
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createOrganization } from "@symbola/auth";
@@ -36,6 +37,14 @@ import {
   type ProspectRecipient,
 } from "./service";
 
+// Lot 65d (MSG-01 ; ADR 0110) : ces tests vérifient l'envoi par Symbola, réglage « Symbola les envoie
+// pour moi » : rien n'y change. Le réglage par défaut (la planner envoie de sa messagerie) est vérifié
+// dans modules/hub/relation-mail.integration.test.ts.
+async function symbolaSends(organizationId: string): Promise<string> {
+  await setRelationMailSender(organizationId, "symbola");
+  return organizationId;
+}
+
 const plannerId = randomUUID();
 const MARCH_1 = new Date("2027-03-01T09:00:00.000Z");
 const DAY = 86_400_000;
@@ -43,7 +52,7 @@ const DAY = 86_400_000;
 async function organization(): Promise<string> {
   const { sql, db } = createAppConnection();
   try {
-    return (await createOrganization(db, `Atelier ${randomUUID()}`)).id;
+    return await symbolaSends((await createOrganization(db, `Atelier ${randomUUID()}`)).id);
   } finally {
     await sql.end();
   }

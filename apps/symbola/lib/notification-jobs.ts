@@ -41,11 +41,19 @@ function digestWords(locale: "fr" | "en") {
   return createTranslator({ locale, messages: locale === "en" ? enMessages : frMessages, namespace: "Notifications.digest" });
 }
 
+// NFR-02 (lot 65, ADR 0114) : le jour du dernier passage du matin de chaque organisation, connu du
+// processus ; il évite de redemander à la base, toutes les cinq minutes, un passage déjà fait. La base
+// reste l'arbitre (claimDailyAutomationRun) : un redémarrage la relit.
+const morningDoneOn = new Map<string, string>();
+
 // Le passage du matin : true s'il a eu lieu à cet appel (une fois par jour et par organisation).
 export async function runMorningPass(organizationId: string, now: Date = new Date()): Promise<boolean> {
   const today = parisToday(now);
   if (localClock(now, PARIS).minute < starterRiskRadarHour() * 60) return false;
-  if (!(await claimDailyAutomationRun(organizationId, "risk_radar", today))) return false;
+  if (morningDoneOn.get(organizationId) === today) return false;
+  const claimed = await claimDailyAutomationRun(organizationId, "risk_radar", today);
+  morningDoneOn.set(organizationId, today);
+  if (!claimed) return false;
   const db = appDatabase();
   const eventsOpen = await isModuleEnabled(db, organizationId, "events");
   if (eventsOpen) {

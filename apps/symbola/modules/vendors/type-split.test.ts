@@ -2,7 +2,7 @@
 // « Photographe et vidéaste » (liste en données, puis séparateurs), et planifier la reprise des types
 // combinés d'une organisation (fusion dans le premier métier, métiers suivants retrouvés ou créés).
 import { describe, expect, it } from "vitest";
-import { combinedTypeParts, planTypeSplit, vendorTypeLabels, type SplitTypeInput } from "./type-split";
+import { combinedTypeParts, planTypeSplit, splitTargetsCollide, vendorTypeLabels, type SplitTypeInput } from "./type-split";
 
 describe("PRE-01, PRE-11 — Une valeur combinée donne plusieurs métiers", () => {
   it("« Photographe et vidéaste », « Photographe & Vidéaste » et « Coiffure et maquillage » sont reconnus par la liste en données", () => {
@@ -48,6 +48,7 @@ describe("PRE-01, HUB-20 — Reprise des types combinés d'une organisation", ()
         vendorCount: 2,
         first: { action: "merge", into: { id: "p", label: "Photographe" } },
         others: [{ key: "videographer", label: "Vidéo", existing: { id: "v", label: "Vidéo" } }],
+        conflict: false,
       },
     ]);
   });
@@ -55,11 +56,46 @@ describe("PRE-01, HUB-20 — Reprise des types combinés d'une organisation", ()
   it("sans type pour le premier métier, le type combiné le devient (renommé) ; un métier suivant absent est à créer", () => {
     const plan = planTypeSplit([type("c", "Coiffure et maquillage", { starterKey: "hair_makeup", vendorCount: 3 })], "fr");
     expect(plan).toEqual([
-      { typeId: "c", label: "Coiffure et maquillage", vendorCount: 3, first: { action: "rename", key: "hair_makeup", to: "Coiffure" }, others: [{ key: "makeup", label: "Maquillage", existing: null }] },
+      { typeId: "c", label: "Coiffure et maquillage", vendorCount: 3, first: { action: "rename", key: "hair_makeup", to: "Coiffure" }, others: [{ key: "makeup", label: "Maquillage", existing: null }], conflict: false },
     ]);
   });
 
   it("rien à faire pour une organisation sans type combiné ; rejouée après la reprise, la planification est vide", () => {
     expect(planTypeSplit([type("p", "Photographe", { starterKey: "photographer" }), type("h", "Coiffure", { starterKey: "hair_makeup" })], "fr")).toEqual([]);
+  });
+});
+
+describe("PRE-01, HUB-20 — Lot 65e : un rattachement erroné ne confond pas deux métiers", () => {
+  it("« Maquillage » rattaché à la coiffure : la coiffure devient un type à part, le maquillage va dans « Maquillage »", () => {
+    const plan = planTypeSplit([type("m", "Maquillage", { starterKey: "hair_makeup" }), type("c", "Coiffeur(se) - Maquilleur(se)", { vendorCount: 4 })], "fr");
+    expect(plan).toEqual([
+      {
+        typeId: "c",
+        label: "Coiffeur(se) - Maquilleur(se)",
+        vendorCount: 4,
+        first: { action: "rename", key: "hair_makeup", to: "Coiffure" },
+        others: [{ key: "makeup", label: "Maquillage", existing: { id: "m", label: "Maquillage" } }],
+        conflict: false,
+      },
+    ]);
+  });
+
+  it("un type de coiffure existant reçoit la coiffure, même si « Maquillage » porte aussi la clé de la coiffure", () => {
+    const plan = planTypeSplit([type("m", "Maquillage", { starterKey: "hair_makeup" }), type("h", "Coiffure"), type("c", "Coiffure et maquillage")], "fr");
+    expect(plan[0]?.first).toEqual({ action: "merge", into: { id: "h", label: "Coiffure" } });
+    expect(plan[0]?.others[0]?.existing).toEqual({ id: "m", label: "Maquillage" });
+    expect(plan[0]?.conflict).toBe(false);
+  });
+
+  it("un rattachement dont le libellé n'est le synonyme d'aucun métier reste suivi", () => {
+    const plan = planTypeSplit([type("x", "Beauté mariée", { starterKey: "hair_makeup" }), type("c", "Coiffure et maquillage")], "fr");
+    expect(plan[0]?.first).toEqual({ action: "merge", into: { id: "x", label: "Beauté mariée" } });
+  });
+
+  it("si deux métiers aboutissent quand même au même type, l'étape est signalée", () => {
+    expect(splitTargetsCollide("m", [{ key: "makeup", existing: { id: "m" } }])).toBe(true);
+    expect(splitTargetsCollide("c", [{ key: "makeup", existing: null }, { key: "makeup", existing: null }])).toBe(true);
+    expect(splitTargetsCollide("h", [{ key: "makeup", existing: { id: "m" } }])).toBe(false);
+    expect(splitTargetsCollide("c", [{ key: "makeup", existing: null }])).toBe(false);
   });
 });

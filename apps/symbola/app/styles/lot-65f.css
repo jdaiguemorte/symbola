@@ -1,0 +1,103 @@
+/* Lot 65f — menu latéral réductible (recette staging du 22/11/2026). Ordinateur seulement : en dessous
+   de md, le menu de téléphone (« Menu », lot 7) ne change pas. Mêmes jetons que globals.css (DESIGN.md),
+   aucun style en ligne (CSP). Chargé avant globals.css : à précision égale, une règle de globals.css
+   l'emporte, d'où des sélecteurs un cran plus précis (.app-sidebar.is-collapsed …). */
+@layer components {
+  /* Le bouton « Réduire le menu » / « Agrandir le menu » : une icône de 44 px dans l'en-tête du menu,
+     son nom en infobulle. */
+  .app-sidebar .app-sidebar-collapse {
+    @apply hidden size-11 shrink-0 border-0 bg-transparent p-0 text-ink-muted hover:bg-ground hover:text-ink md:inline-flex;
+  }
+  .app-sidebar-admin .app-sidebar-collapse {
+    @apply text-ground hover:bg-on-primary/10 hover:text-on-primary;
+  }
+
+  /* Cibles de 44 px aussi dans le menu ouvert : le logo (32 px de haut) et « Se déconnecter » (40 px)
+     restaient en dessous. */
+  .app-sidebar .app-brand,
+  .app-sidebar .app-user button[type="submit"] {
+    @apply min-h-11;
+  }
+
+  /* Le nom d'un lien et ses pastilles : à côté de l'icône, la pastille poussée à droite. */
+  .app-nav .app-nav-label {
+    @apply flex min-w-0 flex-1 items-center gap-3;
+  }
+  /* Le bouton « Se déconnecter » ne montre son icône que dans le menu réduit. */
+  .app-user .app-user-icon {
+    @apply hidden;
+  }
+
+  /* Infobulle : hors de l'écran, le texte reste le nom accessible du lien ou du bouton (sr-only).
+     Ouverte (data-tip-open, posé par app-sidebar.tsx au survol ou au focus clavier), une bulle à droite
+     du menu, à la hauteur de son lien (--tip-top, --tip-left, mesurés à l'ouverture). Position fixe :
+     le défilement du menu ne la coupe pas. Son ::before couvre l'écart jusqu'au lien, pour qu'on
+     puisse passer la souris dessus sans la perdre (WCAG 1.4.13). */
+  .app-tip {
+    @apply sr-only;
+  }
+  /* Ordinateur seulement (md) : sur téléphone, les noms restent à côté des icônes. */
+  @media (width >= 48rem) {
+    .app-sidebar.is-collapsed .app-nav-label {
+      @apply sr-only;
+    }
+    .app-sidebar [data-tip-open] > .app-tip,
+    .app-sidebar.is-collapsed [data-tip-open] > .app-nav-label {
+      position: fixed;
+      top: var(--tip-top);
+      left: var(--tip-left);
+      width: max-content;
+      height: auto;
+      margin: 0;
+      overflow: visible;
+      clip-path: none;
+      white-space: nowrap;
+      @apply z-50 flex -translate-y-1/2 items-center gap-2 rounded-md bg-ink px-3 py-2 text-label font-medium text-on-primary before:absolute before:inset-y-0 before:right-full before:w-6 before:content-[''];
+    }
+  }
+
+  /* Menu réduit : une colonne d'icônes de 44 px ; le contenu prend la largeur libérée. */
+  .app-sidebar.is-collapsed {
+    @apply md:w-19 md:items-center;
+  }
+  /* z-40 : le menu, collant, est son propre contexte d'empilement ; sans rang, ses infobulles
+     passaient sous la barre de recherche. */
+  .app-sidebar {
+    @apply md:z-40 md:transition-[width] md:duration-150;
+  }
+  .app-sidebar.is-collapsed .app-sidebar-header {
+    @apply md:flex-col md:gap-2;
+  }
+  .app-sidebar.is-collapsed .app-brand {
+    @apply md:min-h-11 md:w-11 md:justify-center md:px-0;
+  }
+  .app-sidebar.is-collapsed .app-brand-name,
+  .app-sidebar.is-collapsed .app-brand-suffix {
+    @apply md:sr-only;
+  }
+  .app-sidebar.is-collapsed .app-nav a {
+    @apply md:relative md:w-11 md:justify-center md:gap-0 md:px-0;
+  }
+  /* Une alerte (tâches en retard, demande de données personnelles à traiter) : un point sur l'icône ;
+     le détail est dans l'infobulle et dans le nom du lien. */
+  .app-sidebar.is-collapsed .app-nav a:has(.nav-count-alert) {
+    @apply md:after:absolute md:after:top-2 md:after:right-2 md:after:size-2 md:after:rounded-full md:after:bg-critical md:after:content-[''];
+  }
+  .app-sidebar.is-collapsed .app-user {
+    @apply md:items-center;
+  }
+  .app-sidebar.is-collapsed .app-user-email,
+  .app-sidebar.is-collapsed .organization-switcher {
+    @apply md:hidden;
+  }
+  .app-sidebar.is-collapsed .app-user button[type="submit"] {
+    @apply md:size-11 md:p-0;
+  }
+  .app-sidebar.is-collapsed .app-user .app-user-icon {
+    @apply md:block;
+  }
+  /* 4.75rem : la largeur du menu réduit (md:w-19). */
+  .app-shell:has(> .app-sidebar.is-collapsed) .app-main {
+    @apply md:max-w-[calc(var(--container-content)+var(--spacing-sidebar)-4.75rem)];
+  }
+}

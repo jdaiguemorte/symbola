@@ -8,7 +8,7 @@ import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import { openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
+import { closeSlotWindow, openEventTab, openSlotRubric, readyOrganization, signIn as signInByLink, slotWindow } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -59,13 +59,15 @@ test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et prestat
   await expect(page.getByText("Aucune ligne pourvue sur 11")).toBeVisible();
   await expectNoAxeViolation(page);
 
-  // Onglet Budget : un clic sur une ligne ouvre son détail dans le panneau.
+  // Onglet Budget : un clic sur une ligne ouvre sa fenêtre (lot 65b, M14) ; ses réglages sont dans
+  // « Réglages du poste ».
   await openEventTab(page, "Budget");
   await expect(page.getByText("Aucune ligne pourvue sur 11")).toBeVisible();
-  await page.getByRole("link", { name: "Photographe", exact: true }).click();
+  await page.getByRole("button", { name: "Photographe", exact: true }).click();
+  await openSlotRubric(page, "Photographe", "Réglages du poste");
 
   // Un montant exige le nom du prestataire retenu ; le montant est facultatif.
-  const photographer = page.getByRole("group", { name: "Photographe" });
+  const photographer = slotWindow(page, "Photographe").getByRole("group", { name: "Photographe" });
   await expect(photographer.getByText("À trouver")).toBeVisible();
   await photographer.getByLabel("Montant de son devis en euros (facultatif)").fill("2 500,50");
   await photographer.getByRole("button", { name: "Enregistrer la ligne" }).click();
@@ -73,6 +75,7 @@ test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et prestat
   await photographer.getByLabel("Ajouter un prestataire retenu (nom)").fill("Studio Lumière");
   await photographer.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(photographer.getByText("Ligne enregistrée.")).toBeVisible();
+  await closeSlotWindow(page, "Photographe");
   await expect(page.getByText("1 ligne pourvue sur 11")).toBeVisible();
   const photographerRow = page.getByRole("row", { name: /^Photographe/ });
   await expect(photographerRow).toContainText("Studio Lumière");
@@ -80,20 +83,23 @@ test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et prestat
   await expect(photographerRow).toContainText(/2\s500,50\s€/);
 
   // Une ligne « Non requise » sort du compte des lignes requises.
-  await page.getByRole("link", { name: "Vidéaste", exact: true }).click();
-  const videographer = page.getByRole("group", { name: "Vidéaste" });
+  await page.getByRole("button", { name: "Vidéaste", exact: true }).click();
+  await openSlotRubric(page, "Vidéaste", "Réglages du poste");
+  const videographer = slotWindow(page, "Vidéaste").getByRole("group", { name: "Vidéaste" });
   await videographer.getByLabel("Ligne non requise pour cet événement").check();
   await videographer.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(videographer.getByText("Ligne enregistrée.")).toBeVisible();
+  await closeSlotWindow(page, "Vidéaste");
   await expect(page.getByText("1 ligne pourvue sur 10")).toBeVisible();
 
   // Lignes modifiables événement par événement.
   await page.getByLabel("Nouvelle ligne du budget pour cet événement").fill("Wedding designer");
   await page.getByRole("button", { name: "Ajouter la ligne", exact: true }).click();
-  await expect(page.getByRole("link", { name: "Wedding designer", exact: true })).toBeVisible();
-  await page.getByRole("link", { name: "Papeterie", exact: true }).click();
-  await page.getByRole("button", { name: "Retirer la ligne « Papeterie »" }).click();
-  await expect(page.getByRole("link", { name: "Papeterie", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Wedding designer", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Papeterie", exact: true }).click();
+  await openSlotRubric(page, "Papeterie", "Réglages du poste");
+  await slotWindow(page, "Papeterie").getByRole("button", { name: "Retirer la ligne « Papeterie »" }).click();
+  await expect(page.getByRole("button", { name: "Papeterie", exact: true })).toHaveCount(0);
   await expect(page.getByText("1 ligne pourvue sur 10")).toBeVisible();
   await expectNoAxeViolation(page);
 });

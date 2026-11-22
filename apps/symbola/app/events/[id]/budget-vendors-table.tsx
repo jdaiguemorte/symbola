@@ -4,27 +4,44 @@
 // tient dans la largeur : par poste, le prestataire et ses pièces, prévu, réel, écart (signe écrit),
 // réglé, reste à payer et prochaine échéance (« En retard » si dépassée). La ligne se déplie sur son
 // échéancier (« Ajouter une échéance », « Marquer payée ») ; « Modifier » ouvre la grande fenêtre (M12).
+// Lot 65b (PRE-02, UX-03 ; maquette M14 A) : chaque ligne dit où en est le choix (« Retenu », « N en
+// comparaison », « À trouver ») ; « Ouvrir », ou un clic sur la ligne, ouvre la fenêtre du poste.
 // L'engagé : pastille « Engagé » sur la ligne, sous-total « dont engagé ». En 375 px, une carte par
 // poste (globals.css, .budget-vendors).
-import Link from "next/link";
-import { Fragment, useState } from "react";
+import { Fragment, useState, type MouseEvent } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
 import { BudgetLineIcon } from "@/app/budget-line-icon";
 import { setVendorPaymentPaidAction } from "@/app/budget/[eventId]/actions";
-import { BudgetLineDialog } from "./budget-line-dialog";
+import { SlotWindow, type SlotPanel, type SlotRubric } from "./slot-window";
+import { ConfirmDialog } from "@/app/ui/confirm-dialog";
+import { removeVendorSlotAction } from "./vendor-slot-actions";
 import { signedAmount, type BudgetVendorRow, type BudgetVendorTotals, type RowPayment } from "./budget-vendor-rows";
 import { VendorChoice } from "./vendor-choice";
 
 const COLUMNS = 8;
+
+// Lot 65g : un poste vide se supprime sans rien perdre.
+function removable(row: BudgetVendorRow, choice: { comparing: number }): boolean {
+  return (
+    row.vendorNames.length === 0 &&
+    choice.comparing === 0 &&
+    row.payments.length === 0 &&
+    row.attachments.length === 0 &&
+    row.lines.every((line) => !line.estimatedAmountCents && !line.quotedAmountCents && !line.committedAmountCents && !line.paidAmountCents)
+  );
+}
 
 export function BudgetVendorsTable({
   eventId,
   rows,
   totals,
   locale,
-  posteHrefs,
+  initialSlotId,
+  slotPanels,
+  choices,
+  catalogHrefs,
   consultationHrefs,
   vendorsAvailable,
   vendorTypes,
@@ -36,8 +53,13 @@ export function BudgetVendorsTable({
   rows: BudgetVendorRow[];
   totals: BudgetVendorTotals;
   locale: Locale;
-  // Le détail du poste (statut, consultés) dans la fiche, et la consultation.
-  posteHrefs: Record<string, string>;
+  // ?poste=<id> : la fenêtre de ce poste s'ouvre d'emblée (liens d'autres écrans, tutoriels).
+  initialSlotId: string | null;
+  slotPanels: Record<string, SlotPanel>;
+  // Prestataires en comparaison (hors écartés et retenus) et devis reçus, par poste.
+  choices: Record<string, { comparing: number; quotes: number; signature?: string }>;
+  // Le carnet filtré pour le poste, et la demande de devis.
+  catalogHrefs: Record<string, string>;
   consultationHrefs: Record<string, string>;
   vendorsAvailable: boolean;
   vendorTypes: { id: string; label: string }[];
@@ -49,7 +71,20 @@ export function BudgetVendorsTable({
   const t = useTranslations("BudgetVendors");
   const tBudget = useTranslations("Budget");
   const [unfolded, setUnfolded] = useState<Set<string>>(new Set());
-  const [editing, setEditing] = useState<number | null>(null);
+  // Le poste ouvert, par son identifiant : un poste retiré ferme sa fenêtre, sans en ouvrir un autre.
+  const [editingId, setEditingId] = useState<string | null>(initialSlotId && rows.some((row) => row.slotId === initialSlotId) ? initialSlotId : null);
+  const [rubric, setRubric] = useState<SlotRubric>("vendors");
+  const open = (index: number, at: SlotRubric = "vendors") => {
+    setRubric(at);
+    setEditingId(rows[index]?.slotId ?? null);
+  };
+  const editingIndex = editingId ? rows.findIndex((row) => row.slotId === editingId) : -1;
+  const editing = editingIndex >= 0 ? editingIndex : null;
+  // Un clic sur la ligne l'ouvre, sauf sur un lien, un bouton ou un champ.
+  const onRowClick = (event: MouseEvent<HTMLTableRowElement>, index: number) => {
+    if ((event.target as HTMLElement).closest("a, button, input, select, textarea, label, dialog, [role='group']")) return;
+    open(index);
+  };
   const money = (cents: number) => formatAmount(cents, locale);
   const shown = (cents: number | null) => (cents === null ? "—" : money(cents));
   const toggle = (slotId: string) => {
@@ -93,16 +128,19 @@ export function BudgetVendorsTable({
           </thead>
           <tbody>
             {rows.map((row, index) => {
-              const open = unfolded.has(row.slotId);
+              const unfoldedRow = unfolded.has(row.slotId);
+              const choice = choices[row.slotId] ?? { comparing: 0, quotes: 0 };
               const scheduleId = `echeancier-${row.slotId}`;
               return (
                 <Fragment key={row.slotId}>
-                  <tr>
+                  <tr className="budget-vendor-row" onClick={(event) => onRowClick(event, index)}>
                     <th scope="row">
                       <div className="budget-vendor-head">
                         <span className="line-cell">
                           <BudgetLineIcon icon={row.icon} label={row.label} decorative />
-                          <Link href={posteHrefs[row.slotId] ?? "#"}>{row.label}</Link>
+                          <button type="button" className="link-button" onClick={() => open(index)} aria-haspopup="dialog">
+                            {row.label}
+                          </button>
                         </span>
                         {/* PAR-04 : le statut du poste (à pourvoir, pressenti, retenu…), toujours en mots. */}
                         <span className={statusClasses[row.status]}>{statusLabels[row.status]}</span>
@@ -111,10 +149,26 @@ export function BudgetVendorsTable({
                       <div className="budget-vendor-who">
                         {row.vendorNames.length > 0 ? (
                           <span>{row.vendorNames.join(", ")}</span>
-                        ) : vendorsAvailable ? (
-                          <VendorChoice eventId={eventId} slotId={row.slotId} slotLabel={row.label} consultationHref={consultationHrefs[row.slotId] ?? "#"} vendorTypes={vendorTypes} />
                         ) : (
-                          <Link href={posteHrefs[row.slotId] ?? "#"}>{t("addVendor")}</Link>
+                          // La liste « + Ajouter » reste à la même place quand un prestataire entre en
+                          // comparaison : elle ne se ferme pas entre deux « Comparer ».
+                          <>
+                            {choice.comparing > 0 ? (
+                              <button type="button" className="link-button" onClick={() => open(index)} aria-haspopup="dialog">
+                                {t("choiceComparing", { count: choice.comparing })}
+                                {choice.quotes > 0 ? ` · ${t("quotesReceived", { count: choice.quotes })}` : ""}
+                                <span className="sr-only"> — {t("openFor", { slot: row.label })}</span>
+                              </button>
+                            ) : null}
+                            {vendorsAvailable ? (
+                              <VendorChoice eventId={eventId} slotId={row.slotId} slotLabel={row.label} catalogHref={catalogHrefs[row.slotId] ?? "/prestataires"} vendorTypes={vendorTypes} label={choice.comparing > 0 ? t("addMore") : undefined} />
+                            ) : choice.comparing === 0 ? (
+                              <button type="button" className="link-button" onClick={() => open(index)} aria-haspopup="dialog">
+                                {t("addVendor")}
+                                <span className="sr-only"> — {t("openFor", { slot: row.label })}</span>
+                              </button>
+                            ) : null}
+                          </>
                         )}
                         {row.attachments.length > 0 ? (
                           <span className="budget-vendor-pieces">
@@ -156,17 +210,34 @@ export function BudgetVendorsTable({
                       )}
                     </td>
                     <td className="actions">
-                      <button type="button" className="button-ghost budget-unfold" aria-expanded={open} aria-controls={scheduleId} onClick={() => toggle(row.slotId)}>
-                        {open ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
-                        <span className="sr-only">{t(open ? "foldSchedule" : "unfoldSchedule", { slot: row.label })}</span>
+                      <button type="button" className="button-ghost budget-unfold" aria-expanded={unfoldedRow} aria-controls={scheduleId} onClick={() => toggle(row.slotId)}>
+                        {unfoldedRow ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
+                        <span className="sr-only">{t(unfoldedRow ? "foldSchedule" : "unfoldSchedule", { slot: row.label })}</span>
                       </button>
-                      <button type="button" className="button-secondary" onClick={() => setEditing(index)} aria-haspopup="dialog">
-                        {t("edit")}
-                        <span className="sr-only"> {row.label}</span>
+                      <button type="button" className="button-secondary" onClick={() => open(index)} aria-haspopup="dialog">
+                        {t("open")}
+                        <span className="sr-only"> {t("openFor", { slot: row.label })}</span>
                       </button>
+                      {/* Lot 65g (PRE-02 ; recette staging du 22/11/2026) : un évènement n'a pas besoin de tous
+                          les postes ; « Supprimer » à côté d'« Ouvrir », après confirmation, pour un poste vide
+                          (ni prestataire, ni montant, ni échéance, ni pièce) : rien ne se perd. Un poste qui en a
+                          se retire depuis ses réglages. */}
+                      {removable(row, choice) ? (
+                        <ConfirmDialog
+                          trigger={t("removeSlot")}
+                          triggerLabel={t("removeSlotFor", { slot: row.label })}
+                          triggerClassName="button-ghost"
+                          title={t("removeSlotTitle", { slot: row.label })}
+                          body={t("removeSlotBody")}
+                          confirmLabel={t("removeSlotConfirm")}
+                          cancelLabel={t("removeSlotCancel")}
+                          action={removeVendorSlotAction}
+                          fields={{ eventId, vendorSlotId: row.slotId }}
+                        />
+                      ) : null}
                     </td>
                   </tr>
-                  {open ? (
+                  {unfoldedRow ? (
                     <tr className="budget-vendor-schedule">
                       <td colSpan={COLUMNS}>
                         <section id={scheduleId} aria-label={t("scheduleOf", { slot: row.label })} className="stack">
@@ -174,7 +245,7 @@ export function BudgetVendorsTable({
                           {row.lines.length > 0 && row.payments.length === 0 ? <p className="meta">{t("scheduleEmpty")}</p> : null}
                           {row.payments.length > 0 ? <ScheduleList eventId={eventId} payments={row.payments} showLine={row.lines.length > 1} locale={locale} /> : null}
                           {row.lines.length > 0 ? (
-                            <button type="button" className="link-button" onClick={() => setEditing(index)} aria-haspopup="dialog">
+                            <button type="button" className="link-button" onClick={() => open(index, "schedule")} aria-haspopup="dialog">
                               {t("addPayment")}
                               <span className="sr-only"> {t("chooseFor", { slot: row.label })}</span>
                             </button>
@@ -219,7 +290,7 @@ export function BudgetVendorsTable({
       </div>
       <p className="meta">{t("legend")}</p>
       {editingRow && editing !== null ? (
-        <BudgetLineDialog
+        <SlotWindow
           key={editingRow.slotId}
           eventId={eventId}
           row={editingRow}
@@ -228,11 +299,16 @@ export function BudgetVendorsTable({
           nextLabel={rows[editing + 1]?.label ?? null}
           vendors={slotVendors[editingRow.slotId] ?? []}
           locale={locale}
-          onClose={() => setEditing(null)}
-          onMove={(step) => {
-            const next = editing + step;
-            setEditing(next >= 0 && next < rows.length ? next : null);
-          }}
+          rubric={rubric}
+          onRubric={setRubric}
+          panel={slotPanels[editingRow.slotId]}
+          vendorsAvailable={vendorsAvailable}
+          vendorTypes={vendorTypes}
+          catalogHref={catalogHrefs[editingRow.slotId] ?? "/prestataires"}
+          candidatesSignature={choices[editingRow.slotId]?.signature ?? ""}
+          consultationHref={consultationHrefs[editingRow.slotId] ?? "#"}
+          onClose={() => setEditingId(null)}
+          onMove={(step) => setEditingId(rows[editing + step]?.slotId ?? null)}
         />
       ) : null}
     </div>

@@ -5,6 +5,8 @@
 // annulation d'un choix engagé. Chaque action vérifie la session, l'organisation et le module ; les
 // identifiants sont validés avant toute requête ; le service revérifie tout (évènement, poste).
 import { revalidatePath } from "next/cache";
+import { pendingPreparedEmailIds, withPreparer } from "@/lib/prepared-emails";
+import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { parseAmountToCents } from "@symbola/i18n";
 import {
@@ -97,8 +99,9 @@ export async function recipientsAction(_prev: RecipientsState, formData: FormDat
     const review = reviewRecipients(recipients.map((recipient) => ({ name: recipient.name, email: recipient.email })));
     return { review: recipients, digest: review.digest };
   }
+  let delivery: Awaited<ReturnType<typeof sendVendorBrief>>;
   try {
-    const delivery = await sendVendorBrief({
+    delivery = await sendVendorBrief({
       organizationId: user.organizationId,
       eventId,
       vendorSlotId: slotId,
@@ -108,7 +111,6 @@ export async function recipientsAction(_prev: RecipientsState, formData: FormDat
       locale: (await getLocale()) === "en" ? "en" : "fr",
     });
     revalidatePath(pathOf(eventId, slotId));
-    return { sent: delivery.sent };
   } catch (error) {
     if (error instanceof RecipientsNotConfirmedError) return { review: recipients, digest: error.review.digest, error: t("errors.changed") };
     if (error instanceof VendorBriefInvalidError) return { error: t(`errors.${error.reason}`) };
@@ -116,6 +118,12 @@ export async function recipientsAction(_prev: RecipientsState, formData: FormDat
     if (error instanceof MailQuotaExceededError) return { error: t("errors.quota") };
     throw error;
   }
+  // Lot 65d (ADR 0110) : préparés pour la messagerie de la planner, la fenêtre s'ouvre aussitôt.
+  if (delivery.prepared) {
+    const prepared = await pendingPreparedEmailIds(user.organizationId, { eventId, kinds: ["vendor_brief"] });
+    if (prepared.length > 0) redirect(withPreparer(pathOf(eventId, slotId), prepared));
+  }
+  return { sent: delivery.sent };
 }
 
 // Ajouter un prestataire consulté au poste, par son nom (sans le module Prestataires : ARC-07).

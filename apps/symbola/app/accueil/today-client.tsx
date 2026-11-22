@@ -1,11 +1,11 @@
 "use client";
 
 // Lot 32a (HUB-08, EVT-02, PAR-03 ; D6, D7) — parties interactives de « Aujourd'hui » et du cockpit :
-// l'avis « Annuler » qui reste dix secondes après une tâche cochée, la relance d'un prestataire
-// (relance inscrite, puis messagerie de la planner ouverte sur un message prérempli), le report.
+// l'avis « Annuler » qui reste dix secondes après une tâche cochée, le report. Lot 65d : la relance
+// d'un prestataire se note (note-reminder.tsx).
 import { useActionState, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { postponeTaskAction, remindVendorAction, undoTaskAction, type PostponeState, type RemindState } from "./actions";
+import { postponeTaskAction, undoTaskAction, type PostponeState } from "./actions";
 
 const UNDO_SECONDS = 10;
 
@@ -33,24 +33,6 @@ export function UndoTaskNotice({ eventId, taskId, message, undoLabel, returnTo }
         </button>
       </form>
     </div>
-  );
-}
-
-export function RemindVendorButton({ eventId, candidateId, label, ariaLabel }: { eventId: string; candidateId: string; label: string; ariaLabel: string }) {
-  const [state, formAction, pending] = useActionState<RemindState, FormData>(remindVendorAction, {});
-  useEffect(() => {
-    if (state.mailto) window.location.href = state.mailto;
-  }, [state.mailto, state.nonce]);
-  return (
-    <form action={formAction} className="today-action">
-      <input type="hidden" name="eventId" value={eventId} />
-      <input type="hidden" name="candidateId" value={candidateId} />
-      <button type="submit" disabled={pending} aria-label={ariaLabel}>
-        {label}
-      </button>
-      {state.message ? <p role="status">{state.message}</p> : null}
-      {state.error ? <p role="alert">{state.error}</p> : null}
-    </form>
   );
 }
 

@@ -220,6 +220,9 @@ export type VendorTypeSplitStep = {
   vendorCount: number;
   first: { action: "merge"; into: { id: string; label: string } } | { action: "rename"; key: string; to: string };
   others: { key: string; label: string; existing: { id: string; label: string } | null }[];
+  // Lot 65e : deux métiers aboutiraient au même type ; l'étape n'est pas appliquée, le rapport la
+  // signale (à reprendre à la main dans Paramètres › Types de prestataires).
+  conflict: boolean;
 };
 export type VendorTypeSplitResult = { typeId: string; label: string; vendors: number; createdTypes: string[] };
 

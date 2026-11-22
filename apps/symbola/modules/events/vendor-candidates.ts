@@ -403,6 +403,20 @@ export async function listSelectedVendors(organizationId: string): Promise<strin
   });
 }
 
+// Lot 65b (PRE-02 ; M14) : « Déjà travaillé ensemble · N évènements » — par fiche du carnet, le nombre
+// d'évènements (hors démonstration) où elle a été retenue.
+export async function countSelectedEventsByVendor(organizationId: string): Promise<Map<string, number>> {
+  return inOrganization(organizationId, async (tx) => {
+    const rows = await tx
+      .select({ vendorId: eventVendorCandidates.vendorId, count: sql<number>`count(distinct ${eventVendorCandidates.eventId})::int` })
+      .from(eventVendorCandidates)
+      .innerJoin(events, eq(events.id, eventVendorCandidates.eventId))
+      .where(and(isNotNull(eventVendorCandidates.vendorId), inArray(eventVendorCandidates.status, [...ENGAGED_CANDIDATE_STATUSES]), eq(events.isDemo, false)))
+      .groupBy(eventVendorCandidates.vendorId);
+    return new Map(rows.flatMap((row) => (row.vendorId ? [[row.vendorId, row.count] as const] : [])));
+  });
+}
+
 // L11-EVT-11 — ce que voient les clients : consultés montrés, notes « Clients ».
 // L'accès du client à l'événement est vérifié par l'appelant (service).
 export async function clientOptions(organizationId: string, eventId: string): Promise<ClientVendorSlotOptions[]> {

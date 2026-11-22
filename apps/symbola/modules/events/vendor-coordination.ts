@@ -5,7 +5,7 @@
 // feuille de route à J-30 et J-7 et sa confirmation. Fichier interne au module events : exposé aux
 // autres modules seulement par service.ts (ADR 0011). Tout se lit et s'écrit sous RLS, dans
 // l'organisation ; un lien ne voit que son prestataire (PRE-03 : les consultés ne se voient pas).
-import type { AutomationHooks } from "@symbola/contracts";
+import type { AutomationHooks, PreparedEmailView, RelationDraft } from "@symbola/contracts";
 import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, notInArray, or, sql } from "drizzle-orm";
 import { createTranslator } from "next-intl";
 import frMessages from "@symbola/i18n/messages/fr.json";
@@ -81,7 +81,7 @@ import {
   type VendorRoadmapView,
   type VendorScenario,
 } from "@symbola/contracts";
-import { assertOrganizationEmailReady, assertRecipientsConfirmed, EmailVariableMissingError, getOrganizationProfile, getUserContact, sendOrganizationEmail } from "@/modules/hub/service";
+import { assertOrganizationEmailReady, assertRecipientsConfirmed, depositPreparedEmail, EmailVariableMissingError, getOrganizationProfile, getUserContact, preparesRelationEmail, sendOrganizationEmail } from "@/modules/hub/service";
 import { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } from "./errors";
 import { findEventAudience } from "./event-types";
 import { findLinkRow, type LinkWithContext } from "./links-repository";
@@ -330,6 +330,47 @@ async function reissueActiveLink(organizationId: string, candidateId: string, no
   return { ...issued, email: link.email, personName: link.personName, locale, eventId: link.eventId };
 }
 
+// Lot 65d : le lien actif et valable du prestataire, sans le rééquiper (le jeton est donné à l'ouverture
+// de la fenêtre « Préparer l'e-mail »).
+async function activeVendorLink(organizationId: string, candidateId: string, now: Date): Promise<{ id: string } | null> {
+  const [link] = await inOrganization(organizationId, (tx) =>
+    tx.select({ id: eventLinks.id }).from(eventLinks).where(and(eq(eventLinks.vendorCandidateId, candidateId), eq(eventLinks.audience, "vendor"), isNull(eventLinks.revokedAt))).orderBy(desc(eventLinks.createdAt)).limit(1),
+  );
+  if (!link) return null;
+  const context = await findLinkRow(organizationId, link.id);
+  return context && usable(context, now) ? link : null;
+}
+
+// Lot 65d (MSG-01, HUB-28 ; ADR 0110) — brief, relance du brief et feuille de route recomposés à
+// l'ouverture de la fenêtre « Préparer l'e-mail » : le lien du prestataire reçoit un nouveau jeton,
+// comme à chaque envoi par Symbola (l'ancien cesse). null : lien retiré ou expiré, réponse déjà
+// donnée (brief et relance), prestataire plus retenu (feuille de route).
+export async function draftVendorRelationEmail(organizationId: string, item: PreparedEmailView, now: Date = new Date()): Promise<RelationDraft | null> {
+  const context = await findLinkRow(organizationId, item.recipientId);
+  if (!context || context.link.audience !== "vendor" || !context.link.vendorCandidateId || context.link.eventId !== item.eventId || !usable(context, now)) return null;
+  const candidateId = context.link.vendorCandidateId;
+  const [row] = await inOrganization(organizationId, (tx) =>
+    tx
+      .select({ candidate: eventVendorCandidates, slotLabel: eventVendorSlots.label })
+      .from(eventVendorCandidates)
+      .innerJoin(eventVendorSlots, eq(eventVendorSlots.id, eventVendorCandidates.vendorSlotId))
+      .where(eq(eventVendorCandidates.id, candidateId)),
+  );
+  if (!row) return null;
+  const brief = item.kind === "vendor_roadmap" ? null : ((await inOrganization(organizationId, (tx) => tx.select().from(vendorBriefs).where(eq(vendorBriefs.id, item.ref.briefId ?? "00000000-0000-0000-0000-000000000000"))))[0] ?? null);
+  if (item.kind === "vendor_roadmap" ? !isEngaged(row.candidate.status) : !brief || row.candidate.answeredAt !== null) return null;
+  const link = await reissueActiveLink(organizationId, candidateId, now);
+  if (!link) return null;
+  const locale = item.ref.locale === "en" ? "en" : item.ref.locale === "fr" ? "fr" : link.locale;
+  const urls = vendorLinkUrls(link.token);
+  const base: EmailValues = { ...(await vendorEventValues(organizationId, row.candidate.eventId, locale)), first_name: link.personName };
+  const values: EmailValues =
+    item.kind === "vendor_roadmap"
+      ? { ...base, link: urls.link }
+      : { ...base, slot: row.slotLabel, deadline: formatCalendarDate(brief!.deadline, locale), link: urls.link, link_available: urls.available, link_unavailable: urls.unavailable };
+  return { to: link.email, recipientName: link.personName, locale, values, renewedLink: true };
+}
+
 // D4, MSG-02 : un e-mail par prestataire, jamais de copie ni de liste visible ; chacun porte son
 // lien personnel. L'envoi à plusieurs ne part qu'une fois l'écran de contrôle confirmé.
 export async function sendBrief(input: SendVendorBriefInput): Promise<VendorBriefDelivery> {
@@ -365,10 +406,14 @@ export async function sendBrief(input: SendVendorBriefInput): Promise<VendorBrie
 
   let sent = 0;
   let deferred = 0;
+  let prepared = 0;
   const today = dateInTimeZone(now, found.event.timeZone);
+  // Lot 65d (MSG-01 ; ADR 0110) : quand la planner envoie de sa messagerie, le brief est préparé pour
+  // chaque prestataire (son lien personnel est inséré à l'ouverture de la fenêtre) ; rien ne part.
+  const planner = await preparesRelationEmail(input.organizationId, "vendor_brief");
   for (const recipient of recipients) {
     // SEC-22 : chaque e-mail compte dans le plafond de l'organisation, réservé avant le lien.
-    await reserveOrganizationMail(input.organizationId, { now });
+    if (!planner) await reserveOrganizationMail(input.organizationId, { now });
     const issued = await inOrganization(input.organizationId, async (tx) => {
       const link = await issueVendorLink(tx, { organizationId: input.organizationId, eventId: input.eventId, candidateId: recipient.candidateId, personName: recipient.name, email: recipient.email, locale });
       const [current] = await tx.select().from(eventVendorCandidates).where(eq(eventVendorCandidates.id, recipient.candidateId));
@@ -387,6 +432,11 @@ export async function sendBrief(input: SendVendorBriefInput): Promise<VendorBrie
         .where(eq(eventVendorCandidates.id, recipient.candidateId));
       return link;
     });
+    if (planner) {
+      await depositPreparedEmail({ organizationId: input.organizationId, kind: "vendor_brief", eventId: input.eventId, recipientType: "event_link", recipientId: issued.linkId, ref: { briefId: brief.id, locale }, origin: "gesture", sourceKey: `vendor-brief:${brief.id}:${recipient.candidateId}:${now.getTime()}` });
+      prepared += 1;
+      continue;
+    }
     const urls = vendorLinkUrls(issued.token);
     const result = await sendOrganizationEmail({
       organizationId: input.organizationId,
@@ -403,7 +453,7 @@ export async function sendBrief(input: SendVendorBriefInput): Promise<VendorBrie
     await tx.update(vendorBriefs).set({ sentAt: now, sentByUserId: input.sentByUserId, updatedAt: now }).where(eq(vendorBriefs.id, brief.id));
     await appendAudit(tx, { organizationId: input.organizationId, action: "events.vendor_brief.sent", objectId: input.eventId, details: { briefId: brief.id, recipients: recipients.length } });
   });
-  return { sent, deferred };
+  return { sent, deferred, ...(planner ? { prepared } : {}) };
 }
 
 // --- La relance de la veille (D2) ---
@@ -430,6 +480,8 @@ export async function sendBriefReminders(organizationId: string, now: Date): Pro
       ),
   );
   let sent = 0;
+  // Lot 65d (HUB-28 ; ADR 0110) : déposée « À envoyer » quand la planner envoie de sa messagerie.
+  const planner = await preparesRelationEmail(organizationId, "vendor_brief_reminder");
   for (const row of due) {
     if (!briefReminderDue(row.brief.deadline, dateInTimeZone(now, row.timeZone), policy)) continue;
     // Une seule relance : marquée avant l'envoi (deux passages simultanés n'en envoient qu'une).
@@ -437,6 +489,13 @@ export async function sendBriefReminders(organizationId: string, now: Date): Pro
       (await tx.update(eventVendorCandidates).set({ remindedAt: now }).where(and(eq(eventVendorCandidates.id, row.candidate.id), isNull(eventVendorCandidates.remindedAt))).returning({ id: eventVendorCandidates.id })).length > 0,
     );
     if (!claimed) continue;
+    if (planner) {
+      const active = await activeVendorLink(organizationId, row.candidate.id, now);
+      if (!active) continue;
+      await depositPreparedEmail({ organizationId, kind: "vendor_brief_reminder", eventId: row.candidate.eventId, recipientType: "event_link", recipientId: active.id, ref: { briefId: row.brief.id }, origin: "automation", sourceKey: `vendor-brief-reminder:${row.candidate.id}:${row.brief.id}` });
+      sent += 1;
+      continue;
+    }
     const link = await reissueActiveLink(organizationId, row.candidate.id, now);
     if (!link) continue;
     const values: EmailValues = {
@@ -1047,6 +1106,8 @@ export async function sendRoadmaps(organizationId: string, now: Date, hooks: Aut
       .where(and(inArray(eventVendorCandidates.status, ENGAGED), eq(events.isDemo, false), notInArray(events.status, CLOSED_EVENT_STATUSES), isNotNull(events.eventDate))),
   );
   let sent = 0;
+  // Lot 65d (HUB-28 ; ADR 0110) : déposée « À envoyer » quand la planner envoie de sa messagerie.
+  const planner = await preparesRelationEmail(organizationId, "vendor_roadmap");
   for (const row of retained) {
     const stage = roadmapStageDue(row.eventDate!, dateInTimeZone(now, row.timeZone), { month: policy.roadmapMonth, week: policy.roadmapWeek }, policy);
     if (!stage) continue;
@@ -1059,6 +1120,14 @@ export async function sendRoadmaps(organizationId: string, now: Date, hooks: Aut
       (await tx.insert(vendorRoadmaps).values({ organizationId, candidateId: row.candidate.id, stage, sentAt: now, programVersion: program?.number ?? null }).onConflictDoNothing().returning({ id: vendorRoadmaps.id })).length > 0,
     );
     if (!claimed) continue;
+    if (planner) {
+      const active = await activeVendorLink(organizationId, row.candidate.id, now);
+      if (!active) continue;
+      await depositPreparedEmail({ organizationId, kind: "vendor_roadmap", eventId: row.candidate.eventId, recipientType: "event_link", recipientId: active.id, ref: { stage }, origin: "automation", automationKey: "vendor_roadmap", sourceKey: `vendor-roadmap:${row.candidate.id}:${stage}` });
+      sent += 1;
+      await hooks.onRun?.({ objectKey: `${row.candidate.id}:${stage}`, href: `/events/${row.candidate.eventId}?onglet=budget`, result: "sent" });
+      continue;
+    }
     const link = await reissueActiveLink(organizationId, row.candidate.id, now);
     if (!link) continue;
     const values: EmailValues = { ...(await vendorEventValues(organizationId, row.candidate.eventId, link.locale)), first_name: link.personName, link: vendorLinkUrls(link.token).link };

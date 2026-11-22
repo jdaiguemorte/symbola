@@ -94,14 +94,29 @@ export type SplitStep = {
   first: { action: "merge"; into: { id: string; label: string } } | { action: "rename"; key: string; to: string };
   // Métiers suivants : type existant, ou à créer (existing nul) depuis le type de départ.
   others: { key: string; label: string; existing: { id: string; label: string } | null }[];
+  // Lot 65e : deux métiers aboutiraient au même type : l'étape est signalée, jamais appliquée.
+  conflict: boolean;
 };
 
 // Type de l'organisation qui porte un métier de départ : par sa clé, sinon par ses synonymes ; jamais un
-// type combiné lui-même.
+// type combiné lui-même. Lot 65e : un rattachement n'est pas suivi quand le libellé du type est le
+// synonyme d'un autre métier (« Maquillage » rattaché par erreur à la coiffure reste le maquillage).
 function typeForKey(key: string, types: SplitTypeInput[], combinedIds: Set<string>): SplitTypeInput | null {
   const { synonyms } = loadDictionary();
   const candidates = types.filter((type) => !combinedIds.has(type.id));
-  return candidates.find((type) => type.starterKey === key) ?? candidates.find((type) => synonyms.get(foldTypeLabel(type.label))?.key === key) ?? null;
+  const labelKey = (type: SplitTypeInput) => synonyms.get(foldTypeLabel(type.label))?.key;
+  return (
+    candidates.find((type) => type.starterKey === key && (labelKey(type) === undefined || labelKey(type) === key)) ??
+    candidates.find((type) => labelKey(type) === key) ??
+    null
+  );
+}
+
+// Lot 65e — garde-fou : chaque métier doit aboutir à un type distinct (le type combiné renommé tient la
+// place du premier métier ; un métier à créer est distinct par sa clé).
+export function splitTargetsCollide(firstTypeId: string, others: { key: string; existing: { id: string } | null }[]): boolean {
+  const ids = [firstTypeId, ...others.map((part) => part.existing?.id ?? `new:${part.key}`)];
+  return new Set(ids).size !== ids.length;
 }
 
 export function planTypeSplit(types: SplitTypeInput[], locale: StarterLocale): SplitStep[] {
@@ -113,15 +128,17 @@ export function planTypeSplit(types: SplitTypeInput[], locale: StarterLocale): S
   return combined.map(({ type, keys }) => {
     const [firstKey, ...otherKeys] = keys as [string, ...string[]];
     const target = typeForKey(firstKey, types, combinedIds);
+    const others = otherKeys.map((key) => {
+      const existing = typeForKey(key, types, combinedIds);
+      return { key, label: existing?.label ?? starterTypeLabel(key, locale), existing: existing ? { id: existing.id, label: existing.label } : null };
+    });
     return {
       typeId: type.id,
       label: type.label,
       vendorCount: type.vendorCount,
       first: target ? { action: "merge", into: { id: target.id, label: target.label } } : { action: "rename", key: firstKey, to: starterTypeLabel(firstKey, locale) },
-      others: otherKeys.map((key) => {
-        const existing = typeForKey(key, types, combinedIds);
-        return { key, label: existing?.label ?? starterTypeLabel(key, locale), existing: existing ? { id: existing.id, label: existing.label } : null };
-      }),
+      others,
+      conflict: splitTargetsCollide(target?.id ?? type.id, others),
     };
   });
 }

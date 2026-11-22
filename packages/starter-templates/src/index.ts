@@ -523,6 +523,8 @@ const importSynonymsSchema = z.object({
   columns: z.record(z.string(), translatedListSchema),
   choices: z.record(z.string(), z.record(z.string(), translatedListSchema)),
   booleans: z.object({ true: translatedListSchema, false: translatedListSchema }),
+  // Lot 65g : par type d'import, les intitulés de colonnes calculées, ignorées d'office.
+  ignored: z.record(z.string(), z.union([z.string(), translatedListSchema])).optional(),
 });
 
 export type StarterImportSynonyms = {
@@ -531,6 +533,8 @@ export type StarterImportSynonyms = {
   // Clé de champ « choice » → valeur → libellés possibles.
   choices: Record<string, Record<string, string[]>>;
   booleans: { true: string[]; false: string[] };
+  // Lot 65g (HUB-14, BUD-04) : type d'import → intitulés de colonnes calculées, ignorées d'office.
+  ignored: Record<string, string[]>;
 };
 
 const importSynonyms = importSynonymsSchema.parse(importSynonymsFile);
@@ -549,6 +553,7 @@ export function starterImportSynonyms(): StarterImportSynonyms {
       ]),
     ),
     booleans: { true: bothLanguages(importSynonyms.booleans.true), false: bothLanguages(importSynonyms.booleans.false) },
+    ignored: Object.fromEntries(Object.entries(importSynonyms.ignored ?? {}).flatMap(([key, list]) => (typeof list === "string" ? [] : [[key, bothLanguages(list)]]))),
   };
 }
 
@@ -1486,6 +1491,7 @@ export * from "./day-of";
 export * from "./tours";
 // Lot 53 (HUB-15, HUB-28, GC-02, CHR-05, HUB-24 ; ADR 0095).
 export * from "./notifications";
+export * from "./email-senders";
 
 // Lot 46 (RDV-01, HUB-20 ; D6, D10 ; ADR 0082) — module Rendez-vous : trois types de départ, plages
 // hebdomadaires par défaut, réglages par défaut d'un type créé avec son seul nom et sa durée, et

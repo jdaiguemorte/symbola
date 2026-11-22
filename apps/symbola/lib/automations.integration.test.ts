@@ -5,6 +5,7 @@
 //   jamais après un virement déclaré, distinct des relances d'impayés ;
 // - « RSVP manquant, puis relance » : coupée, elle ne part plus ;
 // - couper puis remettre en route : rien n'est rattrapé (D5).
+import { setRelationMailSender } from "@/modules/hub/service";
 import { randomUUID } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
 import { createOrganization, createUser } from "@symbola/auth";
@@ -41,6 +42,14 @@ import { fakeSignatureProvider, setSignatureProviderForTests } from "@/modules/q
 import { automationHooks } from "./automation-gates";
 import { sendPaymentDueReminders } from "./payment-due-reminders";
 
+// Lot 65d (MSG-01 ; ADR 0110) : ces tests vérifient l'envoi par Symbola, réglage « Symbola les envoie
+// pour moi » : rien n'y change. Le réglage par défaut (la planner envoie de sa messagerie) est vérifié
+// dans modules/hub/relation-mail.integration.test.ts.
+async function symbolaSends(organizationId: string): Promise<string> {
+  await setRelationMailSender(organizationId, "symbola");
+  return organizationId;
+}
+
 const MAILPIT_API = "http://localhost:8025/api/v1";
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n", "latin1");
 const IBAN = "FR7630006000011234567890189";
@@ -66,7 +75,7 @@ async function messagesTo(email: string): Promise<{ ID: string; Subject: string 
 
 async function organization() {
   const db = appDatabase();
-  const organizationId = (await createOrganization(db, `Atelier ${randomUUID().slice(0, 6)}`)).id;
+  const organizationId = await symbolaSends((await createOrganization(db, `Atelier ${randomUUID().slice(0, 6)}`)).id);
   await saveOnboardingStep(db, organizationId, { vatRegime: "assujetti", vatRateDefaultBasisPoints: 2000, metier: "wedding_planner" });
   await fillRequiredMentions(organizationId);
   await updateDocumentSettings(organizationId, { ...(await getDocumentSettings(organizationId)), iban: IBAN, bic: "AGRIFRPP" });
