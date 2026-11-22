@@ -37,6 +37,7 @@ import {
   changeEventDate,
 } from "./service";
 import { addVendorPayment, getLinkBudgetView, listBudgetLines, listDayHandovers, recordDayHandover, setVendorPaymentHandover, updateBudgetLine } from "@/modules/budget/service";
+import { listPreparedEmails, setRelationMailSender } from "@/modules/hub/service";
 
 const plannerId = randomUUID();
 const camille = randomUUID();
@@ -181,6 +182,9 @@ describe("CHR-08 — Modèles de chrono et import", () => {
 describe("JRJ-05 — Pointage des séquences ; décalage de la suite et information des prestataires", () => {
   it("rien n'est envoyé sans validation ; validé, le programme est décalé, une version diffusée, et seuls les prestataires concernés sont prévenus, une seule fois", async () => {
     const organizationId = await organization();
+    // Lot 65d (ADR 0110) : avec l'option « Symbola les envoie pour moi », les prestataires reçoivent le
+    // programme décalé par e-mail, comme avant.
+    await setRelationMailSender(organizationId, "symbola");
     const w = await weekend(organizationId);
     // 16 h 20 : la cérémonie commence ; le retard est proposé sur le téléphone, rien n'est envoyé.
     expect(await applyDayAction({ organizationId, eventId: w.eventId, userId: camille, action: action({ kind: "checkpoint", itemId: w.items.ceremony.id, checkpoint: "started" }), renderDocument, now: NOW })).toEqual({ status: "applied" });
@@ -216,6 +220,28 @@ describe("JRJ-05 — Pointage des séquences ; décalage de la suite et informat
     const state = await getDayState(organizationId, w.eventId);
     expect(state!.shifts).toHaveLength(1);
     expect(state!.shifts[0]).toMatchObject({ outcome: "applied", minutes: 20, notifiedCount: 2 });
+  });
+
+  it("L65-MSG-01 — par défaut (la planner envoie), le décalage validé dépose un message « À envoyer » par prestataire concerné, sans rien envoyer, une seule fois", async () => {
+    const organizationId = await organization();
+    const w = await weekend(organizationId);
+    const shift = action<Extract<DayAction, { kind: "shift" }>>({
+      kind: "shift",
+      keyMomentId: w.moments.saturday.id,
+      lateItemId: w.items.ceremony.id,
+      minutes: 20,
+      itemIds: [w.items.ceremony.id, w.items.cocktail.id, w.items.dinner.id],
+      vendorSlotIds: [w.slots.officiant.id, w.slots.caterer.id],
+      deviceAt: "2027-06-12T14:21:00Z",
+    });
+    expect(await applyDayAction({ organizationId, eventId: w.eventId, userId: camille, action: shift, renderDocument, now: NOW })).toEqual({ status: "applied" });
+    expect(await applyDayAction({ organizationId, eventId: w.eventId, userId: camille, action: shift, renderDocument, now: NOW })).toEqual({ status: "duplicate" });
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    expect(await mailsTo(w.emails.officiantEmail, false)).toEqual([]);
+    expect(await mailsTo(w.emails.catererEmail, false)).toEqual([]);
+    const prepared = await listPreparedEmails(organizationId, { status: "to_send", eventId: w.eventId });
+    expect(prepared.map((item) => item.kind)).toEqual(["program_published", "program_published"]);
+    expect((await getDayState(organizationId, w.eventId))!.shifts[0]).toMatchObject({ outcome: "applied", notifiedCount: 2 });
   });
 
   it("un décalage qui ferait sortir une séquence du jour est refusé à l'arrivée : la validation reste, rien n'est décalé ni envoyé", async () => {
