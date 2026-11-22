@@ -15,8 +15,10 @@ import { AddToCalendarDialog } from "./add-to-calendar-dialog";
 export async function EventBusyCard({ organizationId, eventId, eventDate, eventLabel, readOnly }: { organizationId: string; eventId: string; eventDate: string | null; eventLabel: string; readOnly: boolean }) {
   const t = await getTranslations("Busy");
   const locale: BusyLocale = (await getLocale()) === "en" ? "en" : "fr";
-  const [busy, members] = await Promise.all([getEventBusy(organizationId, eventId), listTeam(appDatabase(), organizationId)]);
+  const busy = await getEventBusy(organizationId, eventId);
   if (!busy) return null;
+  // NFR-02 : l'équipe de l'organisation n'est relue que si l'évènement a une équipe désignée.
+  const members = busy.teamUserIds.length > 0 ? await listTeam(appDatabase(), organizationId) : [];
   const emailOf = new Map(members.map((member) => [member.id, member.email]));
   const source = busy.source === "event" ? t("sourceEvent") : busy.source === "type" ? t("sourceType", { label: busy.typeLabel ?? "" }) : t("sourceFallback");
   const range =

@@ -1,5 +1,5 @@
 {
-  "id": "71b4f853-7e6a-4092-8f2a-8b743cf4d998",
+  "id": "7b435c28-0405-41b2-bdba-0e8138fc3536",
   "prevId": "92e3eb6b-d56e-4f7b-9326-cf37cc6d21be",
   "version": "7",
   "dialect": "postgresql",
@@ -3377,109 +3377,6 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "events.busy_settings": {
-      "name": "busy_settings",
-      "schema": "events",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "options_block": {
-          "name": "options_block",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fallback_start_day_offset": {
-          "name": "fallback_start_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fallback_start_time": {
-          "name": "fallback_start_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fallback_end_day_offset": {
-          "name": "fallback_end_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fallback_end_time": {
-          "name": "fallback_end_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_by": {
-          "name": "updated_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "busy_settings_organization_idx": {
-          "name": "busy_settings_organization_idx",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "busy_settings_busy_rule_check": {
-          "name": "busy_settings_busy_rule_check",
-          "value": "\"events\".\"busy_settings\".\"fallback_start_day_offset\" between -7 and 7 and \"events\".\"busy_settings\".\"fallback_end_day_offset\" between -7 and 7 and (\"events\".\"busy_settings\".\"fallback_end_day_offset\" * 1440 + extract(epoch from \"events\".\"busy_settings\".\"fallback_end_time\") / 60) > (\"events\".\"busy_settings\".\"fallback_start_day_offset\" * 1440 + extract(epoch from \"events\".\"busy_settings\".\"fallback_start_time\") / 60)"
-        }
-      },
       "isRLSEnabled": false
     },
     "events.closing_settings": {
@@ -8951,6 +8848,19 @@
           "primaryKey": false,
           "notNull": true,
           "default": false
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "priority": {
+          "name": "priority",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'normal'"
         }
       },
       "indexes": {
@@ -8959,6 +8869,21 @@
           "columns": [
             {
               "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "event_tasks_category_idx": {
+          "name": "event_tasks_category_idx",
+          "columns": [
+            {
+              "expression": "category_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -9057,12 +8982,30 @@
           ],
           "onDelete": "set null",
           "onUpdate": "no action"
+        },
+        "event_tasks_category_id_task_categories_id_fk": {
+          "name": "event_tasks_category_id_task_categories_id_fk",
+          "tableFrom": "event_tasks",
+          "tableTo": "task_categories",
+          "schemaTo": "events",
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {
+        "event_tasks_priority_check": {
+          "name": "event_tasks_priority_check",
+          "value": "\"events\".\"event_tasks\".\"priority\" in ('high', 'normal')"
+        },
         "event_tasks_recurrence_check": {
           "name": "event_tasks_recurrence_check",
           "value": "\"events\".\"event_tasks\".\"recurrence\" is null or (\"events\".\"event_tasks\".\"recurrence\" in ('weekly', 'monthly', 'quarterly', 'yearly') and \"events\".\"event_tasks\".\"event_id\" is null)"
@@ -9567,30 +9510,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "busy_start_day_offset": {
-          "name": "busy_start_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_start_time": {
-          "name": "busy_start_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_end_day_offset": {
-          "name": "busy_end_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_end_time": {
-          "name": "busy_end_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -9632,16 +9551,7 @@
         }
       },
       "policies": {},
-      "checkConstraints": {
-        "event_types_busy_rule_complete_check": {
-          "name": "event_types_busy_rule_complete_check",
-          "value": "(\"events\".\"event_types\".\"busy_start_day_offset\" is null) = (\"events\".\"event_types\".\"busy_start_time\" is null) and (\"events\".\"event_types\".\"busy_start_day_offset\" is null) = (\"events\".\"event_types\".\"busy_end_day_offset\" is null) and (\"events\".\"event_types\".\"busy_start_day_offset\" is null) = (\"events\".\"event_types\".\"busy_end_time\" is null)"
-        },
-        "event_types_busy_rule_check": {
-          "name": "event_types_busy_rule_check",
-          "value": "\"events\".\"event_types\".\"busy_start_day_offset\" is null or (\"events\".\"event_types\".\"busy_start_day_offset\" between -7 and 7 and \"events\".\"event_types\".\"busy_end_day_offset\" between -7 and 7 and (\"events\".\"event_types\".\"busy_end_day_offset\" * 1440 + extract(epoch from \"events\".\"event_types\".\"busy_end_time\") / 60) > (\"events\".\"event_types\".\"busy_start_day_offset\" * 1440 + extract(epoch from \"events\".\"event_types\".\"busy_start_time\") / 60))"
-        }
-      },
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "events.event_vendor_candidate_notes": {
@@ -10189,12 +10099,6 @@
           "notNull": true,
           "default": "'option'"
         },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "event_date": {
           "name": "event_date",
           "type": "date",
@@ -10373,30 +10277,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
-        },
-        "busy_start_day_offset": {
-          "name": "busy_start_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_start_time": {
-          "name": "busy_start_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_end_day_offset": {
-          "name": "busy_end_day_offset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "busy_end_time": {
-          "name": "busy_end_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {
@@ -10478,21 +10358,9 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {
-        "events_busy_rule_complete_check": {
-          "name": "events_busy_rule_complete_check",
-          "value": "(\"events\".\"events\".\"busy_start_day_offset\" is null) = (\"events\".\"events\".\"busy_start_time\" is null) and (\"events\".\"events\".\"busy_start_day_offset\" is null) = (\"events\".\"events\".\"busy_end_day_offset\" is null) and (\"events\".\"events\".\"busy_start_day_offset\" is null) = (\"events\".\"events\".\"busy_end_time\" is null)"
-        },
-        "events_busy_rule_check": {
-          "name": "events_busy_rule_check",
-          "value": "\"events\".\"events\".\"busy_start_day_offset\" is null or (\"events\".\"events\".\"busy_start_day_offset\" between -7 and 7 and \"events\".\"events\".\"busy_end_day_offset\" between -7 and 7 and (\"events\".\"events\".\"busy_end_day_offset\" * 1440 + extract(epoch from \"events\".\"events\".\"busy_end_time\") / 60) > (\"events\".\"events\".\"busy_start_day_offset\" * 1440 + extract(epoch from \"events\".\"events\".\"busy_start_time\") / 60))"
-        },
         "events_time_zone_check": {
           "name": "events_time_zone_check",
           "value": "char_length(\"events\".\"events\".\"time_zone\") between 1 and 64"
-        },
-        "events_name_check": {
-          "name": "events_name_check",
-          "value": "\"events\".\"events\".\"name\" is null or char_length(\"events\".\"events\".\"name\") between 1 and 200"
         },
         "events_guests_check": {
           "name": "events_guests_check",
@@ -13433,6 +13301,117 @@
         "questionnaire_templates_version_check": {
           "name": "questionnaire_templates_version_check",
           "value": "\"events\".\"questionnaire_templates\".\"version\" >= 1"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "events.task_categories": {
+      "name": "task_categories",
+      "schema": "events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "color": {
+          "name": "color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "starter_key": {
+          "name": "starter_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "task_categories_organization_idx": {
+          "name": "task_categories_organization_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "task_categories_organization_starter_key_unique": {
+          "name": "task_categories_organization_starter_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "starter_key"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "task_categories_label_check": {
+          "name": "task_categories_label_check",
+          "value": "char_length(btrim(\"events\".\"task_categories\".\"label\")) between 1 and 60"
+        },
+        "task_categories_color_check": {
+          "name": "task_categories_color_check",
+          "value": "\"events\".\"task_categories\".\"color\" ~ '^#[0-9a-f]{6}$'"
         }
       },
       "isRLSEnabled": false

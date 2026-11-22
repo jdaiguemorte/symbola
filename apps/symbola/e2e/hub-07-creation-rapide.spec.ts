@@ -92,7 +92,7 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   await quickMenu(page).getByRole("button", { name: "Tâche" }).click();
   const task = page.getByRole("dialog", { name: "Nouvelle tâche" });
   await expect(task.getByLabel("Évènement")).toHaveValue(setup.lea);
-  await task.getByLabel("Tâche", { exact: true }).fill("Réserver la navette");
+  await task.getByLabel(/^Tâche/).fill("Réserver la navette");
   await task.getByRole("button", { name: "Ajouter la tâche" }).click();
   await expect(task.getByRole("status")).toContainText("Tâche « Réserver la navette » ajoutée.");
   await expectNoAxeViolation(page);
@@ -179,13 +179,14 @@ test("EVT-07 / CHR-03 — le portefeuille en liste et en calendrier, la charge p
   await expect(agenda.getByText(/2 événements (ce week-end|ce jour-là)/).first()).toBeAttached();
   await expectNoAxeViolation(page);
 
-  // Tâches : le calendrier du mois ; chaque tâche ouvre son évènement.
+  // Tâches : le calendrier du mois ; chaque tâche s'ouvre dans sa fenêtre, sur l'écran (lot 63d).
   await page.goto(`/taches?affichage=calendrier&mois=${setup.dueOn.slice(0, 7)}`);
   const calendar = page.getByRole("region", { name: new RegExp(monthName(setup.dueOn), "i") });
   await expect(calendar).toContainText("Léa & Maxime");
   await expectNoAxeViolation(page);
   await calendar.getByRole("link", { name: "Choisir le menu" }).click();
-  await expect(page).toHaveURL(new RegExp(`/events/${setup.lea}\\?onglet=retroplanning&tache=`));
+  await expect(page).toHaveURL(/\/taches\?.*tache=/);
+  await expect(page.getByRole("dialog", { name: "Modifier la tâche" }).getByLabel(/^Tâche/)).toHaveValue("Choisir le menu");
 });
 
 // Une autre agence : Zoé en prospect à J+200, rien d'autre.
@@ -234,7 +235,7 @@ test("SEC-12 / SEC-13 — la création rapide et l'alerte de date ne touchent ja
     select.appendChild(option);
     (select as HTMLSelectElement).value = id;
   }, camille.lea);
-  await task.getByLabel("Tâche", { exact: true }).fill("Tâche forgée");
+  await task.getByLabel(/^Tâche/).fill("Tâche forgée");
   await task.getByRole("button", { name: "Ajouter la tâche" }).click();
   await expect(task.getByRole("alert")).toBeVisible();
   expect((await listEventTasks(camille.organizationId, camille.lea)).map((entry) => entry.label)).not.toContain("Tâche forgée");

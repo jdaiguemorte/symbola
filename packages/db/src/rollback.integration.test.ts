@@ -86,6 +86,7 @@ const LOT_45 = ["0172_lot45_hub_prospect_email_kinds", "0171_lot45_hub_contact_d
 // sortes (0195, hub). Fusionné après les lots 60 et 54 : annulé avant tous les autres lots.
 const LOT_55 = ["0195_lot55_hub_sender_deliveries", "0194_lot55_events_messages"];
 // Lot 63c : nom facultatif des évènements (0196, events) ; la plus récente, elle s'annule d'abord.
+const LOT_63D = ["0197_lot63d_events_task_categories"];
 const LOT_63C = ["0196_lot63c_events_name"];
 // Lot 64 : plages occupées (0202, events) et description des types de rendez-vous (0203,
 // appointments). Fusionné après le lot 63 : annulé avant tous les autres lots.
@@ -120,7 +121,7 @@ const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
 // 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_64, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
+const LOT_36 = [...LOT_64, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
 // Lot 63c : l'ordre des annulations des lots récents, de la plus récente à la plus ancienne, se lit
 // dans cette seule liste. Un nouveau lot ajoute sa liste en tête de LOT_36, et rien d'autre : les
 // tests annulent par rollbackNewerThan et rollbackThrough, jamais par une suite écrite à la main.
@@ -218,13 +219,44 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await migrateAll();
   });
 
+  it("lot 63d (CHR-03, HUB-20) — 0197 : catégories et priorité des tâches ; annulation refusée tant qu'une tâche a une catégorie ou la priorité haute, puis tout est retiré", async () => {
+    await migrateAll();
+    const organizationId = randomUUID();
+    const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+    await expect(target`insert into events.task_categories (organization_id, label, color) values (${organizationId}, 'Client', '#3B6FD8')`).rejects.toThrow(/task_categories_color_check/);
+    const [category] = await target<{ id: string }[]>`insert into events.task_categories (organization_id, label, color, starter_key) values (${organizationId}, 'Client', '#3b6fd8', 'client') returning id`;
+    await expect(target`insert into events.task_categories (organization_id, label, color, starter_key) values (${organizationId}, 'Client bis', '#3b6fd8', 'client')`).rejects.toThrow(/task_categories_organization_starter_key_unique/);
+    const [task] = await target<{ id: string; priority: string }[]>`insert into events.event_tasks (organization_id, event_id, label, due_date, category_id) values (${organizationId}, ${event!.id}, 'Envoyer le questionnaire', '2027-03-01', ${category!.id}) returning id, priority`;
+    expect(task!.priority).toBe("normal");
+    await expect(target`update events.event_tasks set priority = 'urgent' where id = ${task!.id}`).rejects.toThrow(/event_tasks_priority_check/);
+    await rollbackNewerThan(LOT_63D[0]!);
+    await expect(rollback(LOT_63D[0]!)).rejects.toThrow(/ont une catégorie/);
+    // Une catégorie retirée laisse sa tâche sans catégorie.
+    await target`delete from events.task_categories where id = ${category!.id}`;
+    const [orphan] = await target<{ category_id: string | null }[]>`select category_id from events.event_tasks where id = ${task!.id}`;
+    expect(orphan!.category_id).toBeNull();
+    await target`update events.event_tasks set priority = 'high' where id = ${task!.id}`;
+    await expect(rollback(LOT_63D[0]!)).rejects.toThrow(/priorité haute/);
+    await target`update events.event_tasks set priority = 'normal' where id = ${task!.id}`;
+    await target`insert into events.task_categories (organization_id, label, color) values (${organizationId}, 'Jour J', '#c47a0a')`;
+    await rollback(LOT_63D[0]!);
+    const [table] = await target<{ name: string | null }[]>`select to_regclass('events.task_categories')::text as name`;
+    expect(table!.name).toBeNull();
+    expect(await hasColumn("events", "event_tasks", "category_id")).toBe(false);
+    expect(await hasColumn("events", "event_tasks", "priority")).toBe(false);
+    await target`delete from events.event_tasks where id = ${task!.id}`;
+    await target`delete from events.events where id = ${event!.id}`;
+    await migrateAll();
+  });
+
   it("lot 63c (EVT-01 ; Q43) — 0196 : nom facultatif d'un évènement, de 1 à 200 caractères ; l'annulation le retire, l'évènement reste", async () => {
     await migrateAll();
+    await rollbackNewerThan(LOT_63C[0]!);
     const organizationId = randomUUID();
     const [event] = await target<{ id: string }[]>`insert into events.events (organization_id, name) values (${organizationId}, 'Shooting Roux') returning id`;
     await expect(target`insert into events.events (organization_id, name) values (${organizationId}, '')`).rejects.toThrow(/events_name_check/);
     await target`insert into events.events (organization_id) values (${organizationId})`;
-    await rollbackThrough(LOT_63C[0]!);
+    await rollback(LOT_63C[0]!);
     expect(await hasColumn("events", "events", "name")).toBe(false);
     const [kept] = await target<{ id: string }[]>`select id from events.events where id = ${event!.id}`;
     expect(kept!.id).toBe(event!.id);

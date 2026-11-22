@@ -1,7 +1,7 @@
 // Lot 64 (HUB-29, RDV-02 ; D1 à D6 ; ADR 0108) — plages occupées : règles des types, réglage propre
 // d'un évènement, réglages de l'organisation, et plages d'une fenêtre pour le flux d'agenda et la page
 // de rendez-vous. Accès aux données du module events ; exposé seulement par service.ts (ADR 0011).
-import { and, eq, gte, inArray, isNotNull, lte, ne } from "drizzle-orm";
+import { and, eq, gte, inArray, isNotNull, lte, ne, sql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { withOrganization } from "@symbola/db/with-organization";
 import { busySettings, eventTeamMembers, eventTypes, events } from "@symbola/db/schema/events";
@@ -9,6 +9,7 @@ import type { BusyRangeItem, BusyRule, BusyRuleSource, BusySettingsView, EventBu
 import { starterBusyRule, starterBusySettings } from "@symbola/starter-templates";
 import { assertEventWritable } from "./closing";
 import { busyRange, busyRangeDates, isBlocking, isValidBusyRule, overlapsWindow, resolveBusyRule, shortTime } from "./busy-ranges";
+import { FIRM_STATUSES } from "./lifecycle";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
@@ -163,27 +164,50 @@ async function readTeams(tx: Tx, eventIds: string[]): Promise<Map<string, string
   return teams;
 }
 
+// La fiche d'un évènement le lit à chaque affichage (NFR-02) : une requête (l'évènement, son type et
+// son équipe joints) ; les réglages de l'organisation seulement s'ils servent (règle de repli, ou
+// option qui bloque selon le réglage).
 export async function getEventBusy(organizationId: string, eventId: string): Promise<EventBusyView | null> {
   if (!UUID.test(eventId)) return null;
   return inOrganization(organizationId, async (tx) => {
-    const [event] = await tx.select(eventColumns).from(events).where(eq(events.id, eventId));
-    if (!event) return null;
-    const [settings, types, teams] = await Promise.all([readSettings(tx, organizationId), readTypes(tx, organizationId), readTeams(tx, [eventId])]);
-    const { rule, source, typeLabel } = eventRule(event, types, settings);
-    const dates = event.eventDate ? busyRangeDates(event.eventDate, rule) : null;
-    const range = event.eventDate ? busyRange(event.eventDate, rule, event.timeZone) : null;
+    const [row] = await tx
+      .select({
+        ...eventColumns,
+        typeId: eventTypes.id,
+        typeLabel: eventTypes.label,
+        typeStarterKey: eventTypes.starterKey,
+        typeStartDay: eventTypes.busyStartDayOffset,
+        typeStartTime: eventTypes.busyStartTime,
+        typeEndDay: eventTypes.busyEndDayOffset,
+        typeEndTime: eventTypes.busyEndTime,
+        team: sql<string[]>`coalesce((select array_agg(m.user_id) from events.event_team_members m where m.event_id = ${events.id}), '{}')`,
+      })
+      .from(events)
+      .leftJoin(eventTypes, eq(eventTypes.id, events.eventTypeId))
+      .where(eq(events.id, eventId));
+    if (!row) return null;
+    const own = ruleOf(row);
+    const typeOwn = row.typeId ? ruleOf({ startDay: row.typeStartDay, startTime: row.typeStartTime, endDay: row.typeEndDay, endTime: row.typeEndTime }) : null;
+    const typeStarter = row.typeId && !typeOwn && row.typeStarterKey ? starterBusyRule(row.typeStarterKey) : null;
+    const firm = FIRM_STATUSES.includes(row.status);
+    const needsSettings = (!own && !typeOwn && !typeStarter) || (!firm && !row.isDemo && row.eventDate !== null);
+    const settings = needsSettings ? await readSettings(tx, organizationId) : { ...starterBusySettings(), isStarter: true };
+    const resolved = resolveBusyRule({ own, type: row.typeId ? (typeOwn ?? typeStarter ?? settings.fallback) : null, fallback: settings.fallback });
+    const rule = resolved.rule;
+    const dates = row.eventDate ? busyRangeDates(row.eventDate, rule) : null;
+    const range = row.eventDate ? busyRange(row.eventDate, rule, row.timeZone) : null;
     return {
       rule,
-      source,
-      typeLabel,
+      source: resolved.source,
+      typeLabel: row.typeLabel ?? null,
       startDate: dates?.startDate ?? null,
       endDate: dates?.endDate ?? null,
       startsAt: range?.start.toISOString() ?? null,
       endsAt: range?.end.toISOString() ?? null,
-      timeZone: event.timeZone,
-      blocking: isBlocking(event, settings.optionsBlock),
-      status: event.status,
-      teamUserIds: teams.get(eventId) ?? [],
+      timeZone: row.timeZone,
+      blocking: isBlocking(row, settings.optionsBlock),
+      status: row.status,
+      teamUserIds: row.team ?? [],
     };
   });
 }

@@ -1384,14 +1384,21 @@
     {
       "idx": 197,
       "version": "7",
-      "when": 1795301610967,
-      "tag": "0202_lot64_events_busy_ranges",
+      "when": 1795283123258,
+      "tag": "0197_lot63d_events_task_categories",
       "breakpoints": true
     },
     {
       "idx": 198,
       "version": "7",
-      "when": 1795301613216,
+      "when": 1795305320568,
+      "tag": "0202_lot64_events_busy_ranges",
+      "breakpoints": true
+    },
+    {
+      "idx": 199,
+      "version": "7",
+      "when": 1795305322743,
       "tag": "0203_lot64_appointments_type_description",
       "breakpoints": true
     }
