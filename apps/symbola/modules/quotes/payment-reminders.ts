@@ -16,14 +16,6 @@ export function dueInvoiceReminder(input: { dueDate: string; offsets: number[]; 
   return due;
 }
 
-// Heures d'envoi des relances : de 9 h à 19 h, heure de Paris (comme les rappels des tâches).
-const PARIS_HOUR = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Paris", hour: "2-digit", hourCycle: "h23" });
-
-export function reminderSendWindow(now: Date): boolean {
-  const hour = Number(PARIS_HOUR.format(now));
-  return hour >= 9 && hour < 19;
-}
-
 export function isProposalExpired(validUntil: string | null, today: string): boolean {
   return validUntil !== null && today > validUntil;
 }

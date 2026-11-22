@@ -1,7 +1,7 @@
 // Porte d'entrée publique du module events — seul fichier que les autres
 // modules peuvent importer (ADR 0011). Pensé comme le futur contrat HTTP
 // /v1/events si ce module est extrait en app autonome.
-import { findLinkVendorRecordId } from "./repository";
+import { findLinkVendorRecordId, findUpcomingEventTimeZones } from "./repository";
 import { z } from "zod";
 import { formatCalendarDate, isTimeZone, parisDaysSince, parisToday } from "@symbola/i18n";
 import { canSetStatus, eventPhase } from "./lifecycle";
@@ -169,12 +169,12 @@ import {
   parseLinkToken,
   parisStartOfDay,
 } from "./link-tokens";
-import { isSendingHour, reminderTaskLines, reminderThreshold, reminderThresholdStart, type ReminderTask } from "./task-reminders";
+import { reminderTaskLines, reminderThreshold, reminderThresholdStart, type ReminderTask } from "./task-reminders";
 import { clientTermForEvent as clientTermOf } from "./planning";
 import type { AutomationHooks, PreparedEmailView, RelationDraft } from "@symbola/contracts";
 import { recordAudit } from "@symbola/db/audit";
 import { resolveClientContacts } from "./clients";
-import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, depositPreparedEmail, getOrganizationLanguage, getUserContact, notificationRecipients, notify, preparesRelationEmail, sendOrganizationEmail, sendSymbolaEmail, updateContact } from "@/modules/hub/service";
+import { assertOrganizationEmailReady, assertRecipientsConfirmed, ContactEmailTakenError, ContactInvalidError, ContactNotFoundError, EmailVariableMissingError, depositPreparedEmail, getOrganizationLanguage, getUserContact, notificationRecipients, notify, preparesRelationEmail, sendOrganizationEmail, sendSymbolaEmail, sendTimeReached, updateContact } from "@/modules/hub/service";
 import { createTranslator } from "next-intl";
 import type { DayHelper, DayHelperInput, EmailTemplateKind, EmailValues, EventTeamMember, EventTeamRole, TrashedObject } from "@symbola/contracts";
 import { EVENT_TEAM_ROLES } from "@symbola/contracts";
@@ -420,6 +420,11 @@ import type {
 } from "@symbola/contracts";
 
 export { eventsPrivacy } from "./privacy";
+
+// Lot 66a (HUB-28 ; D1 ; ADR 0112) : les fuseaux des évènements à venir ou sans date.
+export async function listUpcomingEventTimeZones(organizationId: string, today: string): Promise<string[]> {
+  return findUpcomingEventTimeZones(organizationId, today);
+}
 export { monthKey } from "./schedule";
 export { programForVariant, type ProgramVariant } from "./program";
 // Lot 37b (CHR-07, DAT-14 ; D8) : diffusion du programme refusée (vide, ou déjà diffusé tel quel).
@@ -2863,7 +2868,8 @@ export async function getLinkNamesByIds(organizationId: string, linkIds: string[
 // part pas ; hooks.onRun, la trace de chaque rappel envoyé.
 export async function sendClientTaskReminders(organizationId: string, now: Date = new Date(), hooks: AutomationHooks = {}): Promise<number> {
   const policy = starterClientTaskReminders();
-  if (!isSendingHour(now, policy)) return 0;
+  // Lot 66a (D1) : à l'heure d'envoi de l'automatisme (heure de Paris : un rappel regroupe les tâches).
+  if (!sendTimeReached(hooks.isSendTime, now)) return 0;
   const today = parisToday(now);
   const candidates = await findReminderCandidateRows(
     organizationId,

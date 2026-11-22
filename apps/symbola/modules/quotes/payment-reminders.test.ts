@@ -1,7 +1,8 @@
 // Lot 43 (FAC-09, FAC-15 ; D1, D7) — relances d'impayés et relance avant expiration, horloge simulée :
 // veille, jour même, rattrapage après une panne, changement d'heure.
 import { describe, expect, it } from "vitest";
-import { dueInvoiceReminder, expiryReminderDue, isProposalExpired, penaltySentence, reminderSendWindow } from "./payment-reminders";
+import { sendTimeReached } from "@/modules/hub/service";
+import { dueInvoiceReminder, expiryReminderDue, isProposalExpired, penaltySentence } from "./payment-reminders";
 
 describe("FAC-09 — Relances d'une échéance impayée (J+3, J+10, J+20)", () => {
   const offsets = [3, 10, 20];
@@ -26,11 +27,11 @@ describe("FAC-09 — Relances d'une échéance impayée (J+3, J+10, J+20)", () =
     expect(dueInvoiceReminder({ dueDate: "2027-03-25", offsets, sentRanks: [], today: "2027-03-28" })).toEqual({ rank: 1, dueOn: "2027-03-28" });
   });
 
-  it("les relances partent dans les heures d'envoi (9 h à 19 h à Paris), aussi le jour du changement d'heure", () => {
-    expect(reminderSendWindow(new Date("2027-01-13T07:59:00Z"))).toBe(false);
-    expect(reminderSendWindow(new Date("2027-01-13T08:00:00Z"))).toBe(true);
-    expect(reminderSendWindow(new Date("2027-03-28T07:30:00Z"))).toBe(true);
-    expect(reminderSendWindow(new Date("2027-03-28T17:00:00Z"))).toBe(false);
+  it("lot 66a (D1) : sans heure réglée, les relances partent à 9 h à Paris, et encore six heures en rattrapage ; aussi le jour du changement d'heure", () => {
+    expect(sendTimeReached(undefined, new Date("2027-01-13T07:59:00Z"))).toBe(false);
+    expect(sendTimeReached(undefined, new Date("2027-01-13T08:00:00Z"))).toBe(true);
+    expect(sendTimeReached(undefined, new Date("2027-03-28T07:30:00Z"))).toBe(true);
+    expect(sendTimeReached(undefined, new Date("2027-03-28T13:00:00Z"))).toBe(false);
   });
 });
 

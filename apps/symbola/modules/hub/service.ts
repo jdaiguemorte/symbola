@@ -1512,18 +1512,24 @@ export {
   AutomationInputError,
   claimDailyAutomationRun,
   getAutomationGate,
+  getDefaultSendTime,
   getRiskRules,
+  isSendTimeAutomation,
   listAutomationGates,
   listAutomationRuns,
   purgeAutomationRuns,
   recordAutomationRun,
   setAutomationDays,
   setAutomationEnabled,
+  setAutomationSendTime,
+  setDefaultSendTime,
   setRiskRule,
   type AutomationGate,
   type AutomationRunInput,
   type RiskRuleSetting,
 } from "./automations";
+// Lot 66a (HUB-28 ; D1 ; ADR 0112) : règles pures de l'heure d'envoi.
+export { localMinutes, sendTimeReached, sendWindowOpen } from "./send-time-rules";
 
 // Lot 55 (MSG-04 révisée, MSG-05 ; ADR 0102) : adresse d'expédition de l'organisation, journal des
 // envois, webhook du service d'envoi et alerte d'un rejet.

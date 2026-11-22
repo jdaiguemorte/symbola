@@ -42,10 +42,6 @@ export function parisHour(now: Date): number {
   return Number(hour);
 }
 
-export function isSendingHour(now: Date, policy: StarterClientTaskReminders): boolean {
-  const hour = parisHour(now);
-  return hour >= policy.sendingHours.from && hour < policy.sendingHours.until;
-}
 
 export type ReminderTask = { label: string; dueDate: string; threshold: ReminderThreshold };
 

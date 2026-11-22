@@ -1400,7 +1400,7 @@
     },
     "automations": {
       "title": "Automatisations",
-      "body": "Chaque ligne est un automatisme : ce qu'il fait, son interrupteur et son journal. Couper arrête les prochains envois ; rien n'est rattrapé à la remise en route. La purge RGPD et le contrôle des pièces ne se coupent pas."
+      "body": "Chaque ligne est un automatisme : ce qu'il fait, son interrupteur, son heure d'envoi et son journal. L'heure d'envoi par défaut vaut pour chaque automatisme qui n'a pas la sienne ; l'envoi part à cette heure (à cinq minutes près), dans le fuseau de l'évènement, et jamais la nuit. Les rappels de rendez-vous gardent leur délai (24 h, 2 h avant). Couper arrête les prochains envois ; rien n'est rattrapé à la remise en route. La purge RGPD et le contrôle des pièces ne se coupent pas."
     },
     "riskRadar": {
       "title": "Radar des risques",
@@ -11201,7 +11201,17 @@
     "alwaysOnTitle": "Toujours actifs",
     "alwaysOnBadge": "Toujours actif",
     "saved": "Automatisme enregistré.",
-    "invalid": "Ce réglage n'est pas valable."
+    "invalid": "Ce réglage n'est pas valable.",
+    "defaultTimeTitle": "Heure d'envoi par défaut",
+    "defaultTimeHint": "Reprise par chaque automatisme qui envoie un e-mail, sauf s'il a la sienne. Elle s'entend dans le fuseau de l'évènement. Un envoi manqué (serveur arrêté) part au passage suivant, le jour même ; jamais la nuit.",
+    "defaultTimeLabel": "Envoi à",
+    "sendAt": "Envoi à",
+    "sendAtLabel": "Heure d'envoi de « {title} »",
+    "defaultOption": "{time} (par défaut)",
+    "saveTime": "Enregistrer l'heure",
+    "saveTimeLabel": "Enregistrer l'heure de « {title} »",
+    "invalidTime": "Choisissez une heure au quart d'heure.",
+    "timeSaved": "Heure enregistrée."
   },
   "StandaloneTasks": {
     "title": "Tâches hors évènement",

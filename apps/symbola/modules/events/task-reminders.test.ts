@@ -3,7 +3,7 @@
 // heures d'envoi à Paris (changements d'heure compris), texte de l'e-mail.
 import { describe, expect, it } from "vitest";
 import { starterClientTaskReminders } from "@symbola/starter-templates";
-import { daysBetween, isSendingHour, parisHour, reminderTaskLines, reminderThreshold } from "./task-reminders";
+import { daysBetween, parisHour, reminderTaskLines, reminderThreshold } from "./task-reminders";
 
 const policy = starterClientTaskReminders();
 
@@ -26,12 +26,8 @@ describe("CHR-04 — Rappel automatique des tâches confiées au client", () => 
     expect(daysBetween("2027-03-10", "2027-03-03")).toBe(-7);
   });
 
-  it("heures d'envoi à Paris : de 9 h à 19 h, en hiver comme en été", () => {
+  it("lot 66a : l'heure de Paris, en hiver comme en été (l'heure d'envoi est celle de l'automatisme)", () => {
     expect(parisHour(new Date("2027-01-10T07:59:00Z"))).toBe(8);
-    expect(isSendingHour(new Date("2027-01-10T07:59:00Z"), policy)).toBe(false);
-    expect(isSendingHour(new Date("2027-01-10T08:00:00Z"), policy)).toBe(true);
-    expect(isSendingHour(new Date("2027-07-10T07:00:00Z"), policy)).toBe(true);
-    expect(isSendingHour(new Date("2027-07-10T17:00:00Z"), policy)).toBe(false);
     // Nuit du passage à l'heure d'été : 2 h à Paris n'existe pas.
     expect(parisHour(new Date("2027-03-28T01:30:00Z"))).toBe(3);
   });

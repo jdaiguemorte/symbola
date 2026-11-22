@@ -10,9 +10,12 @@ import { SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
 import { runGuestPurge, sendGuestReminders, type InvitationWords } from "@/modules/guests/service";
 import { isModuleEnabled, listOrganizations } from "@/modules/hub/service";
-import { automationHooks } from "./automation-gates";
+import { automationHooks, oncePer, sendTimeDue } from "./automation-gates";
 
-const INTERVAL_MS = 60 * 60 * 1000; // toutes les heures
+// Lot 66a (D1 ; ADR 0112) : toutes les cinq minutes, pour partir à l'heure réglée ; la purge, toutes les
+// heures.
+const INTERVAL_MS = 5 * 60 * 1000;
+const PURGE_EVERY_MS = 60 * 60 * 1000;
 
 // « mariage » ou « évènement » dans les e-mails des invités, dans la langue de chaque foyer.
 export function invitationWords(): InvitationWords {
@@ -27,13 +30,20 @@ export async function runGuestTasks(now: Date = new Date()): Promise<{ purged: n
   let purged = 0;
   let reminders = 0;
   for (const organization of await listOrganizations(db)) {
+    // Lot 66a (D1 ; ADR 0112) : la purge garde son rythme horaire ; les relances partent à l'heure
+    // d'envoi de l'automatisme. Ni l'une ni l'autre maintenant : rien n'est lu.
+    const purgeDue = oncePer(PURGE_EVERY_MS, `guests-purge:${organization.id}`, now);
+    const remindersDue = await sendTimeDue(organization.id, "rsvp_reminder", now);
+    if (!purgeDue && !remindersDue) continue;
     if (!(await isModuleEnabled(db, organization.id, "guests")) || !(await isModuleEnabled(db, organization.id, "events"))) continue;
     try {
       await withActor(SYSTEM_ACTOR, async () => {
-        const pass = await runGuestPurge(organization.id, now);
-        purged += pass.dietsPurged + pass.purged;
+        if (purgeDue) {
+          const pass = await runGuestPurge(organization.id, now);
+          purged += pass.dietsPurged + pass.purged;
+        }
         // Lot 53 (HUB-28, D5) : la purge ne se coupe pas ; les relances, si.
-        const hooks = await automationHooks(organization.id, "rsvp_reminder", now);
+        const hooks = remindersDue ? await automationHooks(organization.id, "rsvp_reminder", now) : null;
         if (hooks) reminders += await sendGuestReminders(organization.id, words, now, hooks);
       });
     } catch (error) {

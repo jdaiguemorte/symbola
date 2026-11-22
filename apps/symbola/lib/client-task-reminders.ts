@@ -6,14 +6,17 @@
 import { appDatabase } from "@symbola/db/client";
 import { sendClientTaskReminders } from "@/modules/events/service";
 import { isModuleEnabled, listOrganizations } from "@/modules/hub/service";
-import { automationHooks } from "./automation-gates";
+import { automationHooks, sendTimeDue } from "./automation-gates";
 
-const REMINDER_INTERVAL_MS = 60 * 60 * 1000; // toutes les heures
+// Lot 66a (D1 ; ADR 0112) : toutes les cinq minutes, pour partir à l'heure réglée.
+const REMINDER_INTERVAL_MS = 5 * 60 * 1000;
 
 export async function sendAllClientTaskReminders(now: Date = new Date()): Promise<number> {
   const db = appDatabase();
   let sent = 0;
   for (const organization of await listOrganizations(db)) {
+    // Lot 66a (D1 ; ADR 0112) : à l'heure d'envoi de l'automatisme ; sinon, rien n'est lu.
+    if (!(await sendTimeDue(organization.id, "client_task_reminder", now))) continue;
     if (!(await isModuleEnabled(db, organization.id, "events"))) continue;
     try {
       // Lot 53 (HUB-28, D5) : coupé, l'automatisme n'envoie rien ; remis en route, il ne rattrape rien.

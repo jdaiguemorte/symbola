@@ -18,9 +18,8 @@ const vendorCoordinationSchema = z
     roadmapDaysBefore: z.object({ month: days, week: days }),
     roadmapAlertDays: days,
     choiceNoticeDays: days,
-    sendingHours: z.object({ from: z.number().int().min(0).max(23), until: z.number().int().min(1).max(24) }),
   })
-  .refine((value) => value.roadmapDaysBefore.week < value.roadmapDaysBefore.month && value.roadmapAlertDays < value.roadmapDaysBefore.week && value.sendingHours.from < value.sendingHours.until);
+  .refine((value) => value.roadmapDaysBefore.week < value.roadmapDaysBefore.month && value.roadmapAlertDays < value.roadmapDaysBefore.week);
 
 export type StarterVendorCoordination = {
   briefDeadlineDays: number;
@@ -29,12 +28,11 @@ export type StarterVendorCoordination = {
   roadmapAlertDays: number;
   // Durée pendant laquelle le choix d'un client est signalé dans « Aujourd'hui » (affichage seulement).
   choiceNoticeDays: number;
-  sendingHours: { from: number; until: number };
 };
 
 export function starterVendorCoordination(): StarterVendorCoordination {
   const { version: _version, ...policy } = vendorCoordinationSchema.parse(vendorCoordinationFile);
-  return { ...policy, roadmapDaysBefore: { ...policy.roadmapDaysBefore }, sendingHours: { ...policy.sendingHours } };
+  return { ...policy, roadmapDaysBefore: { ...policy.roadmapDaysBefore } };
 }
 
 const followUpTaskSchema = z.object({ label: z.object({ fr: z.string().min(1).max(200), en: z.string().min(1).max(200) }), dueInDays: z.number().int().min(0).max(365) });

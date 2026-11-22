@@ -8,7 +8,6 @@ import {
   briefReminderDue,
   choiceNoticeShown,
   compareByAmount,
-  isVendorSendingHour,
   roadmapAlertDue,
   roadmapStageDue,
   scenarioTotals,
@@ -133,12 +132,3 @@ describe("PRE-04 (D3) — Un seul lien, ce qu'il montre dépend du statut", () =
   });
 });
 
-describe("PAR-05 (D2, D8) — Heures d'envoi", () => {
-  it("les envois partent entre 9 h et 19 h à Paris, été comme hiver", () => {
-    expect(isVendorSendingHour(new Date("2027-07-01T07:00:00Z"), policy)).toBe(true); // 9 h en été
-    expect(isVendorSendingHour(new Date("2027-07-01T06:59:00Z"), policy)).toBe(false);
-    expect(isVendorSendingHour(new Date("2027-01-15T07:30:00Z"), policy)).toBe(false); // 8 h 30 en hiver
-    expect(isVendorSendingHour(new Date("2027-01-15T17:59:00Z"), policy)).toBe(true); // 18 h 59
-    expect(isVendorSendingHour(new Date("2027-01-15T18:00:00Z"), policy)).toBe(false); // 19 h
-  });
-});

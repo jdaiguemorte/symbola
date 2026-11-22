@@ -1400,7 +1400,7 @@
     },
     "automations": {
       "title": "Automations",
-      "body": "Each line is an automation: what it does, its switch and its log. Turning off stops the next sends; nothing is caught up when you turn it back on. The GDPR purge and the document check cannot be turned off."
+      "body": "Each row is an automation: what it does, its switch, its send time and its log. The default send time applies to every automation without its own; the email goes out at that time (within five minutes), in the event's time zone, and never at night. Appointment reminders keep their delay (24 h, 2 h before). Turning one off stops its next sends; nothing is caught up when it is turned back on. The GDPR purge and the document check cannot be turned off."
     },
     "riskRadar": {
       "title": "Risk radar",
@@ -11201,7 +11201,17 @@
     "alwaysOnTitle": "Always on",
     "alwaysOnBadge": "Always on",
     "saved": "Automation saved.",
-    "invalid": "This setting is not valid."
+    "invalid": "This setting is not valid.",
+    "defaultTimeTitle": "Default send time",
+    "defaultTimeHint": "Used by every automation that sends an email, unless it has its own. It is read in the event's time zone. A missed send (server stopped) goes out at the next pass, the same day; never at night.",
+    "defaultTimeLabel": "Send at",
+    "sendAt": "Send at",
+    "sendAtLabel": "Send time for “{title}”",
+    "defaultOption": "{time} (default)",
+    "saveTime": "Save the time",
+    "saveTimeLabel": "Save the time for “{title}”",
+    "invalidTime": "Choose a time on the quarter hour.",
+    "timeSaved": "Time saved."
   },
   "StandaloneTasks": {
     "title": "Tasks outside events",

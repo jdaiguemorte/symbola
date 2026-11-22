@@ -4,7 +4,8 @@
 // l'organisation). Couper arrête les envois à venir ; à la remise en route, rien n'est rattrapé.
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
-import { AutomationInputError, setAutomationDays, setAutomationEnabled } from "@/modules/hub/service";
+import { AutomationInputError, setAutomationDays, setAutomationEnabled, setAutomationSendTime, setDefaultSendTime } from "@/modules/hub/service";
+import { forgetSendTimes } from "@/lib/automation-gates";
 import { requireOwner } from "@/lib/guards";
 
 export type AutomationFormState = { error?: string; success?: boolean };
@@ -30,6 +31,39 @@ export async function saveAutomationDaysAction(_prev: AutomationFormState, formD
     if (error instanceof AutomationInputError) return { error: t("invalid") };
     throw error;
   }
+  revalidatePath("/parametres/automatisations");
+  return { success: true };
+}
+
+// Lot 66a (HUB-28 ; D1 ; ADR 0112) : l'heure d'envoi par défaut de l'organisation, et celle d'un
+// automatisme (vide : revenir à l'heure par défaut). Les tâches périodiques la relisent aussitôt.
+export async function saveDefaultSendTimeAction(_prev: AutomationFormState, formData: FormData): Promise<AutomationFormState> {
+  const auth = await requireOwner();
+  const t = await getTranslations("Automations");
+  if (!auth) return { error: t("ownerOnly") };
+  try {
+    await setDefaultSendTime(auth.user.organizationId, String(formData.get("time") ?? ""));
+  } catch (error) {
+    if (error instanceof AutomationInputError) return { error: t("invalidTime") };
+    throw error;
+  }
+  forgetSendTimes(auth.user.organizationId);
+  revalidatePath("/parametres/automatisations");
+  return { success: true };
+}
+
+export async function saveAutomationSendTimeAction(_prev: AutomationFormState, formData: FormData): Promise<AutomationFormState> {
+  const auth = await requireOwner();
+  const t = await getTranslations("Automations");
+  if (!auth) return { error: t("ownerOnly") };
+  const time = String(formData.get("time") ?? "");
+  try {
+    await setAutomationSendTime(auth.user.organizationId, String(formData.get("key") ?? ""), time === "" ? null : time);
+  } catch (error) {
+    if (error instanceof AutomationInputError) return { error: t("invalidTime") };
+    throw error;
+  }
+  forgetSendTimes(auth.user.organizationId);
   revalidatePath("/parametres/automatisations");
   return { success: true };
 }

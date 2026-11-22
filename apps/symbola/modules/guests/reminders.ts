@@ -23,12 +23,3 @@ export function invitationKey(guestId: string): string {
   return `guests:invitation:${guestId}`;
 }
 
-// Heure de Paris de l'instant, heure d'été comprise.
-function parisHour(now: Date): number {
-  return Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Paris", hour: "2-digit", hourCycle: "h23" }).format(now));
-}
-
-export function withinSendingHours(now: Date, hours: { from: number; until: number }): boolean {
-  const hour = parisHour(now);
-  return hour >= hours.from && hour < hours.until;
-}

@@ -2047,3 +2047,15 @@ export async function findLinkVendorRecordId(organizationId: string, linkId: str
     return row?.vendorId ?? null;
   });
 }
+
+// Lot 66a (HUB-28 ; D1 ; ADR 0112) : les fuseaux des évènements à venir (ou sans date), pour placer
+// l'heure d'envoi des automatismes dans le fuseau de chaque évènement. Des noms de fuseau seulement.
+export async function findUpcomingEventTimeZones(organizationId: string, today: string): Promise<string[]> {
+  const rows = await withOrganization(appDatabase(), organizationId, (tx) =>
+    tx
+      .selectDistinct({ timeZone: events.timeZone })
+      .from(events)
+      .where(and(eq(events.organizationId, organizationId), or(isNull(events.eventDate), gte(events.eventDate, today)))),
+  );
+  return rows.map((row) => row.timeZone);
+}
