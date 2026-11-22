@@ -930,7 +930,8 @@ envoie pour moi »), pour la pièce jointe et les relances automatiques. Les mes
   relation.
 - Le décompte de la spécification (17 modèles de la relation, 18 techniques) ne correspond pas au
   partage validé du § 1 de la note (14 et 21, avec `task_reminder` côté relation) : c'est le partage
-  validé qui est appliqué. **À confirmer par Julien** si un modèle doit changer de liste.
+  validé qui est appliqué. **Confirmé par Julien le 22/11** : 14 modèles de la relation, 21
+  techniques.
 - **Le jour J** : le décalage du programme validé sur le téléphone (JRJ-05) prévient les prestataires
   concernés par le modèle `program_published`, rangé côté relation. Par défaut, il dépose donc un
   message « À envoyer » par prestataire au lieu de l'envoyer. En plein mariage, la planner a-t-elle le
