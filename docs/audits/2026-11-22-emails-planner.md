@@ -75,3 +75,17 @@ Limites techniques, à connaître :
 3. Les automatismes deviennent des éléments « À envoyer » d'« Aujourd'hui » : **accepté**.
 4. **Pas d'option** d'envoi par Symbola pour les messages de la relation : l'expérience d'une vraie
    messagerie (Gmail ou autre) ne se reproduit pas. Revient sur Q18 révisée et l'ADR 0102 : ADR à écrire.
+
+## 5. Décision révisée par Julien (22/11, plus tard)
+
+Q4 révisée : **l'envoi par Symbola reste en option**, par organisation, pour les planners qui veulent
+ce qu'il permet (devis ou facture joint d'office, relances automatiques). Le réglage, dans
+Paramètres › E-mails, propose :
+
+- **« Je les envoie de ma messagerie »** (par défaut) : Symbola prépare les messages de la relation,
+  la planner les envoie elle-même (§ 2) ; les automatismes déposent des éléments « À envoyer ».
+- **« Symbola les envoie pour moi »** : les messages de la relation partent de Symbola comme avant
+  (adresse personnalisée de l'ADR 0102, pièces jointes, relances automatiques du lot 53).
+
+Les messages techniques (§ 1, « Symbola envoie ») partent de Symbola dans les deux cas.
+

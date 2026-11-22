@@ -16,7 +16,7 @@ Sources :
 | Prestataires d'un poste | M14 : « Comparer » ou « Retenir », jamais d'office ; fenêtre du poste en cinq rubriques ; changer d'avis sans supprimer la ligne. |
 | Aujourd'hui | M15 : 7 lignes au plus, découpées par nature (relances, tâches, paiements, décisions), chaque partie avec son lien ; calendrier pleine largeur, feuilletable. |
 | Relance d'un prestataire | M16 : « Noter une relance » (comment, date, note, rappel) ; message type à copier ; rien n'est envoyé ni ouvert d'office. |
-| E-mails | Symbola n'envoie que : accès, signature et exemplaire signé, rendez-vous en ligne, sécurité, avis à l'équipe. Tout le reste est préparé, puis envoyé de la messagerie de la planner. Plus aucun envoi automatique de la relation, ni d'option pour en faire. Revient sur Q18 révisée et l'ADR 0102. |
+| E-mails | Par défaut, Symbola n'envoie que : accès, signature et exemplaire signé, rendez-vous en ligne, sécurité, avis à l'équipe. Tout le reste est préparé, puis envoyé de la messagerie de la planner. **Révisé le 22/11** : l'envoi par Symbola reste en **option** par organisation (pièces jointes, relances automatiques). Revient en partie sur Q18 révisée et l'ADR 0102. |
 | Reprise des types combinés | À corriger avant la production ; sans gêne sur le staging. |
 
 ## Paquets
@@ -101,7 +101,17 @@ Ordre :
 - L'élément quitte « Aujourd'hui » jusqu'au rappel, puis revient s'il n'est pas réglé.
 - Il affiche « Relancé le … par … ».
 
-**« Préparer l'e-mail » (MSG-01, ADR à écrire)**
+**Le réglage « Qui envoie les messages de la relation » (MSG-01, HUB-20 ; décision révisée du 22/11)**
+- Dans Paramètres › E-mails, par organisation :
+  - « Je les envoie de ma messagerie » (**par défaut**) ;
+  - « Symbola les envoie pour moi » : le fonctionnement actuel, avec les pièces jointes et les
+    relances automatiques.
+- Le réglage ne touche que les 17 modèles de la relation. Les modèles techniques partent toujours de
+  Symbola.
+- Changer de réglage ne perd rien. Les automatismes gardent leurs propres réglages (lot 53) ; seule
+  leur sortie change : un envoi, ou un élément « À envoyer ».
+
+**« Préparer l'e-mail » (MSG-01, ADR à écrire), quand la planner envoie elle-même**
 - Les 17 modèles de la relation sont **préparés**, et plus envoyés par Symbola. Ils sont listés au
   § 1 de la note des e-mails, avec `task_reminder`.
 - Une fenêtre montre le message prérempli et modifiable : destinataire, objet, texte, avec les liens
@@ -116,10 +126,13 @@ Ordre :
   « À envoyer » dans la partie « Relances » d'« Aujourd'hui ».
 - Symbola continue d'envoyer lui-même les 18 modèles techniques : accès, signature, rendez-vous en
   ligne, sécurité, avis.
-- La liste des modèles envoyés par Symbola est **fermée, en données**. Un test vérifie qu'aucun envoi
-  automatique d'un modèle de la relation ne reste dans le code.
+- La liste des modèles techniques est **fermée, en données**. Un test vérifie qu'en mode « Je les
+  envoie de ma messagerie », aucun modèle de la relation ne part de Symbola.
+- En mode « Symbola les envoie pour moi », rien ne change par rapport au fonctionnement actuel. Un
+  test le vérifie sur un envoi avec pièce jointe et sur une relance automatique.
 
-**Données** (schéma `events` pour les relances, `hub` pour les envois préparés) :
+**Données** (schéma `events` pour les relances, `hub` pour les envois préparés et le réglage) :
+- le réglage de l'organisation (qui envoie) ;
 - les colonnes de la relance : moyen, note, date du rappel ;
 - un journal des messages préparés et déclarés envoyés ;
 - l'état « à envoyer » des automatismes.
@@ -129,8 +142,10 @@ Migrations à partir de **0205**, réversibles, avec des tests d'isolation.
 **Écarts avec le cahier des charges**, à inscrire dans un ADR et dans la question **Q45** de
 `docs/QUESTIONS.md` :
 - **FAC-09** prévoit des « relances d'impayés réglables », **HUB-28** des automatismes « échéance →
-  relance ». Ils deviennent des relances **préparées**, et plus envoyées.
-- **MSG-01** et l'ADR 0102 : la messagerie de Symbola ne sert plus aux messages de la relation.
+  relance ». Par défaut, ils deviennent des relances **préparées**. Avec l'option, ils restent
+  envoyés.
+- **MSG-01** et l'ADR 0102 : par défaut, la messagerie de Symbola ne sert plus aux messages de la
+  relation. L'option la garde.
 
 Rejeu de **SC-02** (de la demande à l'acompte), qui fait partir des messages.
 
@@ -138,8 +153,9 @@ Rejeu de **SC-02** (de la demande à l'acompte), qui fait partir des messages.
 
 ## ADR à écrire
 
-- **0110** : les e-mails de la relation sont préparés par Symbola et envoyés par la planner. Revient
-  sur l'ADR 0102 et la décision Q18 révisée ; s'écarte de FAC-09 et HUB-28.
+- **0110** : par défaut, les e-mails de la relation sont préparés par Symbola et envoyés par la
+  planner ; l'envoi par Symbola reste en option, par organisation. Précise l'ADR 0102 et la décision
+  Q18 révisée ; s'écarte de FAC-09 et HUB-28 dans le mode par défaut.
 - **0111** (si 65b en a besoin) : la fenêtre du poste remplace le détail en bas de page ; comparer
   avant de retenir.
 
@@ -155,4 +171,4 @@ Rejeu de **SC-02** (de la demande à l'acompte), qui fait partir des messages.
 
 - La vérification des autres modules par Julien, qu'il fera dans un second temps.
 - L'envoi d'un message depuis Symbola avec la boîte de la planner (connexion Gmail ou Outlook) :
-  écarté le 22/11.
+  écarté le 22/11. L'option « Symbola les envoie pour moi » garde l'adresse de l'ADR 0102.
