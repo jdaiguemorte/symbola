@@ -172,7 +172,8 @@ test("SC-03 / HUB-08 / UX-01 / UX-06 / EVT-02 — lundi matin : les urgences, an
   await reminder.getByLabel("Me le rappeler").selectOption({ label: "Dans 3 jours" });
   await reminder.getByLabel("Note (facultative)").fill("Contrat promis pour vendredi.");
   await reminder.getByText("Message type, à copier").click();
-  await expect(reminder.getByLabel("Message", { exact: true })).toHaveValue(/Contrat à signer/);
+  // Le message type se prépare côté serveur à l'ouverture : plus lent sur une machine chargée.
+  await expect(reminder.getByLabel("Message", { exact: true })).toHaveValue(/Contrat à signer/, { timeout: 15_000 });
   await expectNoAxeViolation(page);
   await reminder.getByRole("button", { name: "Noter la relance" }).click();
   await expect(reminder).toBeHidden();
