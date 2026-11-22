@@ -1457,13 +1457,6 @@
       "when": 1795350310478,
       "tag": "0207_lot66_events_day_reminder_overrides",
       "breakpoints": true
-    },
-    {
-      "idx": 208,
-      "version": "7",
-      "when": 1795350788947,
-      "tag": "0208_lot66c_hub_email_branding",
-      "breakpoints": true
     }
   ]
 }
