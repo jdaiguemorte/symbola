@@ -9,6 +9,7 @@ import { useEffect, useId, useState } from "react";
 import { HelpDrawer } from "@symbola/ui";
 import { useTranslations } from "next-intl";
 import { useHelpContext } from "./help-context";
+import { useInSettingsPanel } from "./ui/screen-main";
 
 export function ScreenHelp({ title, body }: { title: string; body: string }) {
   const t = useTranslations("HelpUi");
@@ -17,6 +18,7 @@ export function ScreenHelp({ title, body }: { title: string; body: string }) {
   const withdraw = help?.withdraw;
   const id = useId();
   const [open, setOpen] = useState(false);
+  const inPanel = useInSettingsPanel();
 
   useEffect(() => {
     if (!declare || !withdraw) return;
@@ -25,6 +27,16 @@ export function ScreenHelp({ title, body }: { title: string; body: string }) {
   }, [declare, withdraw, id, title, body]);
 
   if (help) return null;
+  // Lot 65 (recette du 22/11) : dans le panneau latéral des réglages, l'aide se déplie dans le panneau
+  // lui-même ; un second panneau par-dessus faisait un « millefeuille ».
+  if (inPanel) {
+    return (
+      <details className="settings-panel-help">
+        <summary>{t("panel", { screen: title })}</summary>
+        <p>{body}</p>
+      </details>
+    );
+  }
   return (
     <>
       <button

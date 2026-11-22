@@ -1,0 +1,41 @@
+/* Lot 65 — retours de la recette staging du 22/11/2026. Règles propres à ce lot ; mêmes jetons que
+   globals.css (DESIGN.md), aucun style en ligne (CSP). Chargé avant globals.css : à précision égale,
+   une règle de globals.css l'emporte, d'où des sélecteurs un cran plus précis. */
+@layer components {
+  /* Formulaire en grille : dans une même rangée, les libellés d'une ligne et ceux de deux lignes
+     faisaient des champs à des hauteurs différentes (« Validité d'un devis », « Assureur »…). Le
+     libellé occupe toute la hauteur de la case, son texte en haut, son champ en bas : les champs d'une
+     rangée s'alignent. Hors cases à cocher et boutons radio, qui gardent leur ligne. */
+  form.form-grid > label:not(:has(> input[type="checkbox"], > input[type="radio"])),
+  div.form-grid > label:not(:has(> input[type="checkbox"], > input[type="radio"])) {
+    @apply self-stretch justify-between;
+  }
+  /* « field-fit » : le libellé prend la largeur de son champ court, mais jamais plus que sa case ; un
+     libellé long revient à la ligne au lieu de déborder sur la colonne voisine (« Délai de paiement
+     des clients professionnels » passait sous « Taux des pénalités de retard »). */
+  .field-group .field-row > label.field-fit,
+  .form-grid .field-row > label.field-fit {
+    @apply max-w-full shrink;
+  }
+  /* Panneau latéral des réglages : l'aide de l'écran se déplie dans le panneau, en tête. */
+  .settings-panel-help {
+    @apply mb-4 rounded-md bg-primary-soft px-4 py-3 text-label text-ink;
+  }
+  .settings-panel-help > summary {
+    @apply cursor-pointer font-medium text-primary;
+  }
+  .settings-panel-help > p {
+    @apply mt-2 mb-0;
+  }
+  /* « Aujourd'hui » : un message après « Relancer » passait dans la colonne des actions et écrasait le
+     titre (un mot par ligne). Avec un message, l'action passe sous l'élément, sur toute la largeur. */
+  .today-items > .today-item:has(.today-action > p[role]) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .today-items > .today-item:has(.today-action > p[role]) > .today-action {
+    @apply items-start;
+  }
+  .today-items > .today-item .today-action > p[role] {
+    @apply max-w-none text-left;
+  }
+}
