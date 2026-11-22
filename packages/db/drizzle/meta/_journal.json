@@ -1443,6 +1443,20 @@
       "when": 1795337841082,
       "tag": "0205_lot65d_hub_relation_mail",
       "breakpoints": true
+    },
+    {
+      "idx": 206,
+      "version": "7",
+      "when": 1795350277788,
+      "tag": "0206_lot66_hub_sending_times",
+      "breakpoints": true
+    },
+    {
+      "idx": 207,
+      "version": "7",
+      "when": 1795350310478,
+      "tag": "0207_lot66_events_day_reminder_overrides",
+      "breakpoints": true
     }
   ]
 }

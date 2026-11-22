@@ -5,7 +5,7 @@
 // ces tables est assurée exclusivement par packages/auth (seule porte
 // d'entrée, ADR 0013) : aucun autre code n'y accède directement.
 import { sql } from "drizzle-orm";
-import { bigint, boolean, check, date, index, integer, jsonb, pgSchema, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, check, date, index, integer, jsonb, pgSchema, primaryKey, text, time, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const hubSchema = pgSchema("hub");
 
@@ -1553,6 +1553,8 @@ export const AUTOMATION_KEY_VALUES = [
   "prospect_follow_up",
   "vendor_roadmap",
   "risk_radar",
+  // Lot 66b (JRJ-01, HUB-28 ; D2 à D4) : le rappel du jour J, réglé par cible (day_reminder_targets).
+  "day_reminder",
 ] as const;
 const AUTOMATION_KEYS_SQL = sql.raw(AUTOMATION_KEY_VALUES.map((key) => `'${key}'`).join(", "));
 
@@ -1567,6 +1569,9 @@ export const automations = hubSchema.table(
     resumedAt: timestamp("resumed_at", { withTimezone: true }),
     // Lot 53 (GC-02) : jour (Paris) du dernier passage du radar, une fois par matin.
     lastRunOn: date("last_run_on"),
+    // Lot 66a (HUB-28 ; D1) : heure d'envoi propre à l'automatisme, heure locale de l'évènement, au
+    // quart d'heure ; nulle : l'heure par défaut de l'organisation (sending_settings).
+    sendTime: time("send_time"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: uuid("created_by"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -1577,6 +1582,52 @@ export const automations = hubSchema.table(
     uniqueIndex("automations_key_idx").on(table.organizationId, table.key),
     check("automations_key_check", sql`${table.key} in (${AUTOMATION_KEYS_SQL})`),
     check("automations_days_check", sql`${table.days} is null or ${table.days} between 1 and 60`),
+    check("automations_send_time_check", sql`${table.sendTime} is null or (extract(minute from ${table.sendTime})::int % 15 = 0 and extract(second from ${table.sendTime}) = 0)`),
+  ],
+);
+
+// Lot 66a (HUB-28 ; D1) — l'heure d'envoi par défaut de l'organisation, reprise par chaque automatisme
+// sans heure propre. Sans ligne : 09:00 (sending-settings.json).
+export const sendingSettings = hubSchema.table(
+  "sending_settings",
+  {
+    organizationId: uuid("organization_id")
+      .primaryKey()
+      .references(() => organizations.id),
+    defaultSendTime: time("default_send_time").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [check("sending_settings_time_check", sql`extract(minute from ${table.defaultSendTime})::int % 15 = 0 and extract(second from ${table.defaultSendTime}) = 0`)],
+);
+
+// Lot 66b (JRJ-01, HUB-28 ; D2, D3, D4) — le rappel du jour J, par cible : la planner (cochée au
+// départ), les prestataires retenus, l'équipe du jour, les clients ; la veille ou le matin même, à une
+// heure. Sans ligne : les valeurs de départ (day-reminder.json).
+export const DAY_REMINDER_TARGETS = ["planner", "vendors", "team", "clients"] as const;
+export const DAY_REMINDER_MOMENTS = ["eve", "morning"] as const;
+export const dayReminderTargets = hubSchema.table(
+  "day_reminder_targets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    target: text("target", { enum: DAY_REMINDER_TARGETS }).notNull(),
+    enabled: boolean("enabled").notNull(),
+    moment: text("moment", { enum: DAY_REMINDER_MOMENTS }).notNull(),
+    sendTime: time("send_time").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: uuid("created_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by"),
+  },
+  (table) => [
+    index("day_reminder_targets_organization_idx").on(table.organizationId),
+    uniqueIndex("day_reminder_targets_target_idx").on(table.organizationId, table.target),
+    check("day_reminder_targets_target_check", sql`${table.target} in ('planner', 'vendors', 'team', 'clients')`),
+    check("day_reminder_targets_moment_check", sql`${table.moment} in ('eve', 'morning')`),
+    check("day_reminder_targets_time_check", sql`extract(minute from ${table.sendTime})::int % 15 = 0 and extract(second from ${table.sendTime}) = 0`),
   ],
 );
 
