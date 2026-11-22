@@ -2,9 +2,9 @@
 // départ program-import-columns.json), heures lues sous leurs formes courantes, jour de chaque
 // séquence (temps fort existant, temps fort à créer, ou date seule), écarts expliqués ligne par
 // ligne. Rien n'est écrit ici : l'aperçu se montre avant (program-import.ts).
-import { parseDate } from "@symbola/import-engine";
-import type { ProgramImportColumnKey } from "@symbola/starter-templates";
-import type { ProgramImportProblem, ProgramImportRow } from "@symbola/contracts";
+import { matchProgramSpeaker, parseDate, textSimilarity, type ProgramExport, type ProgramExportSpeaker } from "@symbola/import-engine";
+import type { ProgramExportProfile, ProgramImportColumnKey } from "@symbola/starter-templates";
+import type { ProgramImportParticipant, ProgramImportProblem, ProgramImportRow } from "@symbola/contracts";
 
 export type ProgramColumnMapping = Partial<Record<ProgramImportColumnKey, number>>;
 
@@ -108,4 +108,97 @@ export function readProgramRows(
     result.push({ line, moment, momentDate, startTime, endTime, label, location, responsible, note });
   });
   return { rows: result, problems, newMoments };
+}
+
+// Lot 63b (CHR-08) — import du PDF de programme de l'ancien logiciel. Chaque intervenant de
+// l'en-tête se voit proposer un poste prestataire de l'évènement : celui dont un prestataire porte
+// son nom (raison sociale ou contact), sinon le seul poste de son métier. La planner l'accepte ou
+// en choisit un autre, ou aucun : l'interlocuteur reste alors en texte. Rien n'est écrit ici.
+export type ProgramSlotOption = { id: string; label: string; vendorNames: string[] };
+
+const SAME_NAME = 0.85;
+
+export function proposeSpeakerSlot(
+  speaker: Pick<ProgramExportSpeaker, "role" | "company" | "contact">,
+  slots: readonly ProgramSlotOption[],
+  synonymGroups: readonly (readonly string[])[] = [],
+): string | null {
+  const names = [speaker.company, speaker.contact].filter((name): name is string => Boolean(name));
+  const byName = slots.filter((slot) => slot.vendorNames.some((vendor) => names.some((name) => textSimilarity(vendor, name) >= SAME_NAME)));
+  if (byName.length === 1) return byName[0]!.id;
+  const role = foldText(speaker.role);
+  const group = synonymGroups.find((entries) => entries.some((entry) => foldText(entry) === role));
+  const sameRole = (byName.length > 1 ? byName : slots).filter((slot) => {
+    const label = foldText(slot.label);
+    return label === role || textSimilarity(slot.label, speaker.role) >= SAME_NAME || (group?.some((entry) => foldText(entry) === label) ?? false);
+  });
+  return sameRole.length === 1 ? sameRole[0]!.id : null;
+}
+
+const roleKey = (value: string) => foldText(value).replace(/[^a-z0-9]+/g, "");
+
+export function speakerKind(speaker: Pick<ProgramExportSpeaker, "role">, profile: Pick<ProgramExportProfile, "plannerRoles" | "clientRoles">): "vendor" | "planner" | "client" {
+  const key = roleKey(speaker.role);
+  if (profile.plannerRoles.some((role) => roleKey(role) === key)) return "planner";
+  if (profile.clientRoles.some((role) => roleKey(role) === key)) return "client";
+  return "vendor";
+}
+
+// Les séquences lues, prêtes pour l'aperçu : jour, heures, note, interlocuteurs rattachés au poste
+// choisi pour leur intervenant (la planner ignorée), repère et « Caché des mariés ».
+export function programRowsFromExport(
+  program: ProgramExport,
+  context: { eventDate: string | null },
+  speakerSlots: ReadonlyMap<number, string | null>,
+  slotLabels: ReadonlyMap<string, string>,
+): { rows: ProgramImportRow[]; problems: { line: number; problem: ProgramImportProblem }[] } {
+  const rows: ProgramImportRow[] = [];
+  const problems: { line: number; problem: ProgramImportProblem }[] = [];
+  for (const row of program.rows) {
+    if (!row.startTime) {
+      problems.push({ line: row.line, problem: "untimed" });
+      continue;
+    }
+    const label = row.title.trim();
+    if (!label) {
+      problems.push({ line: row.line, problem: "label" });
+      continue;
+    }
+    if (label.length > PROGRAM_IMPORT_TEXT_MAX) {
+      problems.push({ line: row.line, problem: "too_long" });
+      continue;
+    }
+    const momentDate = row.date ?? context.eventDate;
+    if (!momentDate) {
+      problems.push({ line: row.line, problem: "moment_date" });
+      continue;
+    }
+    const participants: ProgramImportParticipant[] = [];
+    for (const contact of row.contacts) {
+      if (contact.kind === "planner") continue;
+      const speaker = matchProgramSpeaker(contact, program.speakers);
+      const slotId = speaker === null ? null : (speakerSlots.get(speaker) ?? null);
+      const slotLabel = slotId ? slotLabels.get(slotId) : undefined;
+      const entry = slotId && slotLabel !== undefined ? { vendorSlotId: slotId, label: slotLabel } : { vendorSlotId: null, label: contact.text.slice(0, PROGRAM_IMPORT_TEXT_MAX) };
+      if (!participants.some((existing) => (existing.vendorSlotId ?? existing.label) === (entry.vendorSlotId ?? entry.label))) participants.push(entry);
+    }
+    // Une description trop longue est coupée : c'est une note, la séquence reste importée.
+    const note = row.description && row.description.length > PROGRAM_IMPORT_NOTE_MAX ? `${row.description.slice(0, PROGRAM_IMPORT_NOTE_MAX - 1)}…` : row.description;
+    rows.push({
+      line: row.line,
+      moment: null,
+      momentDate,
+      startTime: row.startTime,
+      endTime: row.endTime,
+      label,
+      location: null,
+      responsible: null,
+      note,
+      participants,
+      marker: row.marker,
+      hiddenFromClients: row.hiddenFromClients,
+      endsNextDay: row.endsNextDay,
+    });
+  }
+  return { rows, problems };
 }

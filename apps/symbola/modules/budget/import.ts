@@ -5,7 +5,7 @@
 // transaction, historisés comme une saisie à la main. Si cette seconde
 // écriture échoue, les postes écrits sont annulés (compensation : deux
 // modules, deux transactions).
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, notInArray, sql } from "drizzle-orm";
 import { sameImportValue, type ImportApplyResult, type ImportApplyRow, type ImportedItem, type ImportUndoItem, type ImportUndoOutcome } from "@symbola/contracts";
 import { appDatabase } from "@symbola/db/client";
 import { budgetLineAttachments, budgetLineHistory, budgetLines, vendorPayments } from "@symbola/db/schema/budget";
@@ -27,7 +27,74 @@ function amount(value: unknown): number | null {
 async function lineState(tx: Tx, lineId: string): Promise<Values | null> {
   const [line] = await tx.select().from(budgetLines).where(eq(budgetLines.id, lineId));
   if (!line) return null;
-  return { estimatedAmountCents: line.estimatedAmountCents, committedAmountCents: line.committedAmountCents, vendorCandidateId: line.vendorCandidateId };
+  return {
+    estimatedAmountCents: line.estimatedAmountCents,
+    quotedAmountCents: line.quotedAmountCents,
+    committedAmountCents: line.committedAmountCents,
+    paidAmountCents: line.paidAmountCents,
+    vendorCandidateId: line.vendorCandidateId,
+  };
+}
+
+// Lot 63b (BUD-01, BUD-03, HUB-14) — un acompte et un solde datés deviennent les échéances de la
+// ligne. Le réglé du fichier dit lesquelles sont payées (dans l'ordre : rien, l'acompte, ou les
+// deux ; payée à sa date). Une échéance sans date, ou un réglé qui ne tombe pas sur une échéance,
+// et l'import fait comme avant : le réglé va sur la ligne, sans échéance (rien n'est inventé).
+export type ImportedPayment = { label: string; fixedAmountCents: number; dueOn: string; paidOn: string | null };
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const isoDate = (value: unknown): string | null => (typeof value === "string" && ISO_DATE.test(value) ? value : null);
+
+export function importedPaymentSchedule(values: Values, labels: { deposit: string; balance: string }): { payments: ImportedPayment[]; paidAmountCents: number } | null {
+  const parts: { label: string; amount: number | null; dueOn: string | null }[] = [
+    { label: labels.deposit, amount: amount(values.depositAmount), dueOn: isoDate(values.depositDueOn) },
+    { label: labels.balance, amount: amount(values.balanceAmount), dueOn: isoDate(values.balanceDueOn) },
+  ].filter((part) => part.amount !== null || part.dueOn !== null);
+  if (parts.length === 0 || parts.some((part) => part.amount === null || part.amount <= 0 || part.dueOn === null)) return null;
+  const paid = amount(values.paidAmount) ?? 0;
+  let covered = 0;
+  let paidCount = 0;
+  if (paid > 0) {
+    for (const part of parts) {
+      covered += part.amount!;
+      paidCount += 1;
+      if (covered >= paid) break;
+    }
+    if (covered !== paid) return null;
+  }
+  return {
+    payments: parts.map((part, index) => ({ label: part.label, fixedAmountCents: part.amount!, dueOn: part.dueOn!, paidOn: index < paidCount ? part.dueOn! : null })),
+    paidAmountCents: covered,
+  };
+}
+
+type RecordedPayment = ImportedPayment & { id: string };
+
+function recordedPayments(values: Values | null): RecordedPayment[] {
+  const list = values?.payments;
+  return Array.isArray(list) ? (list as RecordedPayment[]).filter((payment) => typeof payment?.id === "string") : [];
+}
+
+// Les échéances créées par l'import, telles qu'il les a écrites ? Sinon la ligne a été retouchée.
+async function paymentsUnchanged(tx: Tx, recorded: RecordedPayment[]): Promise<boolean> {
+  if (recorded.length === 0) return true;
+  const rows = await tx.select().from(vendorPayments).where(inArray(vendorPayments.id, recorded.map((payment) => payment.id)));
+  return recorded.every((payment) => {
+    const row = rows.find((candidate) => candidate.id === payment.id);
+    return row !== undefined && row.fixedAmountCents === payment.fixedAmountCents && row.dueOn === payment.dueOn && (row.paidOn ?? null) === payment.paidOn;
+  });
+}
+
+async function insertPayments(tx: Tx, organizationId: string, eventId: string, lineId: string, payments: ImportedPayment[]): Promise<RecordedPayment[]> {
+  const recorded: RecordedPayment[] = [];
+  for (const [position, payment] of payments.entries()) {
+    const [row] = await tx
+      .insert(vendorPayments)
+      .values({ organizationId, eventId, lineId, label: payment.label, fixedAmountCents: payment.fixedAmountCents, dueOn: payment.dueOn, paidOn: payment.paidOn, position })
+      .returning({ id: vendorPayments.id });
+    recorded.push({ id: row!.id, ...payment });
+  }
+  return recorded;
 }
 
 function text(value: unknown): string | null {
@@ -55,7 +122,9 @@ function currentKeys(values: Values | null): Values | null {
 async function history(tx: Tx, organizationId: string, lineId: string, userId: string, before: Values, after: Values): Promise<void> {
   for (const [field, key] of [
     ["estimated", "estimatedAmountCents"],
+    ["quoted", "quotedAmountCents"],
     ["committed", "committedAmountCents"],
+    ["paid", "paidAmountCents"],
   ] as const) {
     if (!(key in after) || after[key] === null || after[key] === before[key]) continue;
     await tx.insert(budgetLineHistory).values({
@@ -69,7 +138,14 @@ async function history(tx: Tx, organizationId: string, lineId: string, userId: s
   }
 }
 
-export async function importBudgetLineRows(input: { organizationId: string; userId: string; rows: ImportApplyRow[] }): Promise<ImportApplyResult> {
+export async function importBudgetLineRows(input: {
+  organizationId: string;
+  userId: string;
+  rows: ImportApplyRow[];
+  // Lot 63b : libellés des échéances créées (langue de l'organisation).
+  paymentLabels?: { deposit: string; balance: string };
+}): Promise<ImportApplyResult> {
+  const labels = input.paymentLabels ?? { deposit: "Acompte", balance: "Solde" };
   const slots = await importVendorSlotsForBudget({ organizationId: input.organizationId, rows: input.rows });
   try {
     const result = await inTransaction(input.organizationId, async (tx) => {
@@ -83,23 +159,42 @@ export async function importBudgetLineRows(input: { organizationId: string; user
         const actual = amount(row.values.actualAmount);
         const label = text(row.values.lineLabel);
         const candidateId = slots.candidateIdByRow.get(row.rowIndex) ?? null;
+        // Lot 63b : un « réel » est aussi un montant devisé (« Réel » à l'écran) ; le réglé, ou les
+        // échéances datées qui le portent.
+        const schedule = importedPaymentSchedule(row.values, labels);
+        const paidOnly = schedule ? null : amount(row.values.paidAmount);
         const { line: existing, position } = await targetLine(tx, slotId, label);
         if (existing) {
-          const current = { estimatedAmountCents: existing.estimatedAmountCents, committedAmountCents: existing.committedAmountCents, vendorCandidateId: existing.vendorCandidateId };
+          const current = {
+            estimatedAmountCents: existing.estimatedAmountCents,
+            quotedAmountCents: existing.quotedAmountCents,
+            committedAmountCents: existing.committedAmountCents,
+            paidAmountCents: existing.paidAmountCents,
+            vendorCandidateId: existing.vendorCandidateId,
+          };
+          const [anyPayment] = await tx.select({ id: vendorPayments.id }).from(vendorPayments).where(eq(vendorPayments.lineId, existing.id)).limit(1);
           const written: Values = {};
           if (planned !== null && planned !== current.estimatedAmountCents) written.estimatedAmountCents = planned;
           if (actual !== null && actual !== current.committedAmountCents) written.committedAmountCents = actual;
+          if (actual !== null && current.quotedAmountCents === null) written.quotedAmountCents = actual;
           if (candidateId !== null && current.vendorCandidateId === null) written.vendorCandidateId = candidateId;
-          if (Object.keys(written).length === 0) {
+          // Une ligne qui a déjà ses échéances garde son réglé : il se calcule d'elles.
+          const newSchedule = schedule && !anyPayment ? schedule : null;
+          if (newSchedule && newSchedule.paidAmountCents !== (current.paidAmountCents ?? null)) written.paidAmountCents = newSchedule.paidAmountCents;
+          if (!newSchedule && !anyPayment && paidOnly !== null && paidOnly !== current.paidAmountCents) written.paidAmountCents = paidOnly;
+          if (Object.keys(written).length === 0 && !newSchedule) {
             if (!slots.items.some((item) => item.rowIndex === row.rowIndex)) unchanged += 1;
             continue;
           }
-          await tx
-            .update(budgetLines)
-            .set({ ...(written as Partial<typeof budgetLines.$inferInsert>), updatedAt: new Date() })
-            .where(eq(budgetLines.id, existing.id));
-          await history(tx, input.organizationId, existing.id, input.userId, current, written);
+          if (Object.keys(written).length > 0) {
+            await tx
+              .update(budgetLines)
+              .set({ ...(written as Partial<typeof budgetLines.$inferInsert>), updatedAt: new Date() })
+              .where(eq(budgetLines.id, existing.id));
+            await history(tx, input.organizationId, existing.id, input.userId, current, written);
+          }
           const previous = Object.fromEntries(Object.keys(written).map((key) => [key, current[key as keyof typeof current]]));
+          if (newSchedule) written.payments = await insertPayments(tx, input.organizationId, row.eventId, existing.id, newSchedule.payments);
           items.push({ rowIndex: row.rowIndex, module: "budget", kind: "budget_line", elementId: existing.id, action: "updated", previous, written });
           continue;
         }
@@ -113,12 +208,21 @@ export async function importBudgetLineRows(input: { organizationId: string; user
             vendorCandidateId: candidateId,
             position,
             estimatedAmountCents: planned,
+            quotedAmountCents: actual,
             committedAmountCents: actual,
+            paidAmountCents: schedule ? schedule.paidAmountCents : paidOnly,
           })
           .returning();
         if (!line) throw new Error("création de la ligne de budget échouée");
-        const written = { estimatedAmountCents: line.estimatedAmountCents, committedAmountCents: line.committedAmountCents, vendorCandidateId: line.vendorCandidateId };
-        await history(tx, input.organizationId, line.id, input.userId, { estimatedAmountCents: null, committedAmountCents: null }, written);
+        const written: Values = {
+          estimatedAmountCents: line.estimatedAmountCents,
+          quotedAmountCents: line.quotedAmountCents,
+          committedAmountCents: line.committedAmountCents,
+          paidAmountCents: line.paidAmountCents,
+          vendorCandidateId: line.vendorCandidateId,
+        };
+        await history(tx, input.organizationId, line.id, input.userId, { estimatedAmountCents: null, quotedAmountCents: null, committedAmountCents: null, paidAmountCents: null }, written);
+        if (schedule) written.payments = await insertPayments(tx, input.organizationId, row.eventId, line.id, schedule.payments);
         items.push({ rowIndex: row.rowIndex, module: "budget", kind: "budget_line", elementId: line.id, action: "created", previous: null, written });
       }
       return { items, unchanged };
@@ -137,14 +241,26 @@ export async function importBudgetLineRows(input: { organizationId: string; user
 
 function modifiedSince(current: Values, recorded: Values | null): boolean {
   const written = currentKeys(recorded) ?? {};
-  return Object.keys(written).some((key) => !sameImportValue(current[key], written[key]));
+  return Object.keys(written).some((key) => key !== "payments" && !sameImportValue(current[key], written[key]));
 }
 
-// Un document joint ou une échéance (lot 28b) : la ligne a reçu du travail à la main.
-async function hasAttachments(tx: Tx, lineId: string): Promise<boolean> {
+// Un document joint ou une échéance (lot 28b) : la ligne a reçu du travail à la main. Les échéances
+// créées par l'import lui-même (lot 63b) ne comptent pas, tant qu'elles n'ont pas été retouchées.
+async function hasAttachments(tx: Tx, lineId: string, imported: RecordedPayment[] = []): Promise<boolean> {
   const [row] = await tx.select({ n: sql<number>`count(*)::int` }).from(budgetLineAttachments).where(eq(budgetLineAttachments.lineId, lineId));
-  const [payment] = await tx.select({ n: sql<number>`count(*)::int` }).from(vendorPayments).where(and(eq(vendorPayments.lineId, lineId)));
+  const own = imported.map((payment) => payment.id);
+  const [payment] = await tx
+    .select({ n: sql<number>`count(*)::int` })
+    .from(vendorPayments)
+    .where(and(eq(vendorPayments.lineId, lineId), own.length > 0 ? notInArray(vendorPayments.id, own) : undefined));
   return (row?.n ?? 0) + (payment?.n ?? 0) > 0;
+}
+
+async function lineModified(tx: Tx, item: Pick<ImportUndoItem, "elementId" | "action" | "written">, current: Values): Promise<boolean> {
+  const imported = recordedPayments(item.written);
+  if (modifiedSince(current, item.written)) return true;
+  if (!(await paymentsUnchanged(tx, imported))) return true;
+  return item.action === "created" && (await hasAttachments(tx, item.elementId, imported));
 }
 
 export async function findModifiedImportedBudgetElements(
@@ -155,7 +271,7 @@ export async function findModifiedImportedBudgetElements(
     const result: boolean[] = [];
     for (const item of items) {
       const current = await lineState(tx, item.elementId);
-      result.push(current ? modifiedSince(current, item.written) || (item.action === "created" && (await hasAttachments(tx, item.elementId))) : false);
+      result.push(current ? await lineModified(tx, item, current) : false);
     }
     return result;
   });
@@ -172,20 +288,24 @@ export async function undoImportedBudgetElements(organizationId: string, userId:
         outcomes.push("missing");
         continue;
       }
-      const modified = modifiedSince(current, item.written) || (item.action === "created" && (await hasAttachments(tx, item.elementId)));
+      const modified = await lineModified(tx, item, current);
       if (modified && !item.force) {
         outcomes.push("kept_modified");
         continue;
       }
+      const imported = recordedPayments(item.written);
       if (item.action === "created") {
-        if (await hasAttachments(tx, item.elementId)) {
+        if (await hasAttachments(tx, item.elementId, imported)) {
           // Un devis joint ne disparaît jamais avec une annulation d'import.
           outcomes.push("kept_in_use");
           continue;
         }
+        if (imported.length > 0) await tx.delete(vendorPayments).where(inArray(vendorPayments.id, imported.map((payment) => payment.id)));
         await tx.delete(budgetLineHistory).where(inArray(budgetLineHistory.lineId, [item.elementId]));
         await tx.delete(budgetLines).where(eq(budgetLines.id, item.elementId));
       } else {
+        // Les échéances créées par l'import partent avec lui ; la ligne retrouve ses montants.
+        if (imported.length > 0) await tx.delete(vendorPayments).where(inArray(vendorPayments.id, imported.map((payment) => payment.id)));
         const previous = currentKeys(item.previous ?? {}) ?? {};
         await tx
           .update(budgetLines)

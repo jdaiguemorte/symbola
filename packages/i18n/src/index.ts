@@ -88,6 +88,11 @@ export function formatDate(date: Date, locale: Locale): string {
   }).format(date);
 }
 
+// Lot 63b (HUB-14) : jour et mois d'un instant, à Paris (« 21/11 », « 11/21 » en anglais).
+export function formatDayMonth(date: Date, locale: Locale): string {
+  return new Intl.DateTimeFormat(INTL_LOCALE[locale], { day: "2-digit", month: "2-digit", timeZone: "Europe/Paris" }).format(date);
+}
+
 // Dates sans heure (« AAAA-MM-JJ », CLAUDE.md §5) : formatées en UTC,
 // faute de quoi un fuseau à l'ouest de Greenwich afficherait la veille.
 function calendarDateToUtc(date: string): Date {

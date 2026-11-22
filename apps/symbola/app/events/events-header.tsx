@@ -24,6 +24,10 @@ export async function EventsHeader({ view, showViews = true }: { view: EventsVie
         actions={
           <>
             <SettingsLink href="/events/parametres" back="events" label={t("settingsLink")} tour="events-settings" />
+            {/* Lot 63b (HUB-14) : importer des évènements (fiches PDF ou tableur) depuis l'écran. */}
+            <Link className="button-link" href="/import?type=evenements#import-form">
+              {t("importHere")}
+            </Link>
             <NewEventMenu />
           </>
         }

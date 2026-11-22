@@ -39,7 +39,8 @@ export async function decideMatchesAction(formData: FormData): Promise<void> {
         .filter((row) => row.match?.status === "proposed" && (decision === "accept_all" || row.match.score >= SAFE_MATCH_SCORE))
         .map((row) => row.rowIndex) ?? [];
   }
-  const kind = decision === "refuse" ? "refuse" : "accept";
+  // Lot 63b (HUB-14) : « Décider plus tard » remet la proposition en attente.
+  const kind = decision === "refuse" ? "refuse" : decision === "later" ? "later" : "accept";
   if (rowIndexes.length > 0) {
     await decideMatches(
       context.organizationId,

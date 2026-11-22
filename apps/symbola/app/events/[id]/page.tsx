@@ -158,7 +158,7 @@ const LINK_STATUS_KEYS = {
 const TABS = ["apercu", "budget", "retroplanning", "programme", "devis", "maries", "documents", "invites"] as const;
 type Tab = (typeof TABS)[number];
 
-type SearchParams = { cote?: string; groupe?: string; sansReponse?: string; suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string };
+type SearchParams = { importer?: string; cote?: string; groupe?: string; sansReponse?: string; suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string };
 
 // Lot 28a (PRE-02) : postes pourvus (un prestataire retenu) ou non requis.
 const SETTLED_SLOT_STATUSES = new Set<string>(["retained", "contract_signed", "paid_off", "not_required"]);
@@ -886,6 +886,12 @@ export default async function EventDetailPage({
                 <Link href={`/budget/${event.id}/detail`} className="button-link">
                   {tBudgetVendors("detailLink")}
                 </Link>
+                {/* Lot 63b (HUB-14) : importer un budget depuis l'écran. */}
+                {budgetAvailable ? (
+                  <Link className="button-link" href="/import?type=budget_lines#import-form">
+                    {t("importHere")}
+                  </Link>
+                ) : null}
                 <SettingsLink href="/events/parametres" back="event" label={t("vendorSlotsSettings")} />
               </div>
             </div>
@@ -1242,6 +1248,10 @@ export default async function EventDetailPage({
         <section className="card" aria-labelledby="program-title">
           <div className="section-head">
             <h2 id="program-title">{t("programTitle")}</h2>
+            {/* Lot 63b (HUB-14) : importer depuis l'écran (tableur ou PDF de l'ancien logiciel). */}
+            <Link className="button-link" href={`${tabHref("programme")}&importer=1#importer-programme`} scroll={false}>
+              {t("importHere")}
+            </Link>
             <SettingsLink href="/events/modeles-programme" back="event" label={t("programTemplatesSettings")} />
           </div>
           <ProgramShiftProposal eventId={event.id} proposal={shiftProposal} />
@@ -1349,7 +1359,7 @@ export default async function EventDetailPage({
               </p>
             )}
             {/* Lot 51 (EVT-04, CHR-08) : un chrono importé d'un tableur, avec son écran de contrôle. */}
-            <ProgramImportForm eventId={event.id} />
+            <ProgramImportForm eventId={event.id} open={query.importer === "1"} />
           </div>
           {program.items.length === 0 ? <p>{t("noProgramItems")}</p> : null}
           <datalist id="program-responsible-options">

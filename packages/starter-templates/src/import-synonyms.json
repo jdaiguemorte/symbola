@@ -290,17 +290,85 @@
       "fr": [
         "réel",
         "montant réel",
-        "dépensé",
-        "payé",
-        "montant payé",
-        "coût réel"
+        "coût réel",
+        "devisé",
+        "montant devisé",
+        "dépensé"
       ],
       "en": [
         "actual",
         "actual amount",
-        "spent",
+        "actual cost",
+        "quoted",
+        "spent"
+      ]
+    },
+    "paidAmount": {
+      "fr": [
+        "réglé",
+        "montant réglé",
+        "payé",
+        "montant payé",
+        "total payé",
+        "déjà payé",
+        "déjà réglé"
+      ],
+      "en": [
         "paid",
-        "actual cost"
+        "amount paid",
+        "paid amount",
+        "settled"
+      ]
+    },
+    "depositAmount": {
+      "fr": [
+        "acompte",
+        "montant de l'acompte",
+        "montant acompte",
+        "acompte versé"
+      ],
+      "en": [
+        "deposit",
+        "deposit amount"
+      ]
+    },
+    "depositDueOn": {
+      "fr": [
+        "date de l'acompte",
+        "date acompte",
+        "échéance de l'acompte",
+        "échéance acompte",
+        "acompte le"
+      ],
+      "en": [
+        "deposit date",
+        "deposit due",
+        "deposit due date"
+      ]
+    },
+    "balanceAmount": {
+      "fr": [
+        "solde",
+        "montant du solde",
+        "montant solde"
+      ],
+      "en": [
+        "balance",
+        "balance amount"
+      ]
+    },
+    "balanceDueOn": {
+      "fr": [
+        "date du solde",
+        "date solde",
+        "échéance du solde",
+        "échéance solde",
+        "solde le"
+      ],
+      "en": [
+        "balance date",
+        "balance due",
+        "balance due date"
       ]
     },
     "description": {

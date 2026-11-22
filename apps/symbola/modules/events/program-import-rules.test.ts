@@ -3,7 +3,7 @@
 // d'écrire. Règles pures (le fichier est lu par le moteur d'import, formules neutralisées).
 import { describe, expect, it } from "vitest";
 import { starterProgramImportColumns } from "@symbola/starter-templates";
-import { mapProgramColumns, parseClock, readProgramRows } from "./program-import-rules";
+import { mapProgramColumns, parseClock, programRowsFromExport, proposeSpeakerSlot, readProgramRows, speakerKind } from "./program-import-rules";
 
 const columns = starterProgramImportColumns();
 
@@ -86,5 +86,62 @@ describe("CHR-08 — Modèles de chrono et import", () => {
       { line: 6, problem: "too_long" },
     ]);
     expect(result.rows).toEqual([]);
+  });
+});
+
+describe("CHR-08 — Programme du jour J depuis le PDF de l'ancien logiciel (rattachement, lot 63b)", () => {
+  const slots = [
+    { id: "slot-dj", label: "DJ", vendorNames: ["Ondes Sonores"] },
+    { id: "slot-traiteur-1", label: "Traiteur", vendorNames: ["Les Saveurs d'Antan"] },
+    { id: "slot-traiteur-2", label: "Traiteur", vendorNames: ["La Barque Fictive"] },
+    { id: "slot-coiffure", label: "Coiffure", vendorNames: [] },
+  ];
+  const synonyms = [["Coiffeur(se)", "Coiffure", "Coiffeur(se) - Maquilleur(se)"]];
+
+  it("propose le poste dont un prestataire porte le nom de l'intervenant, sinon le seul poste de son métier", () => {
+    expect(proposeSpeakerSlot({ role: "DJ", company: "Ondes Sonores", contact: "Félix ROUSSEL" }, slots)).toBe("slot-dj");
+    expect(proposeSpeakerSlot({ role: "Traiteur", company: "La Barque Fictive", contact: null }, slots)).toBe("slot-traiteur-2");
+    // Deux postes du même métier, aucun nom reconnu : rien n'est proposé (la planner choisit).
+    expect(proposeSpeakerSlot({ role: "Traiteur", company: "Inconnu", contact: null }, slots)).toBeNull();
+    expect(proposeSpeakerSlot({ role: "Coiffeur(se) - Maquilleur(se)", company: "Iris Beauté", contact: null }, slots, synonyms)).toBe("slot-coiffure");
+    expect(proposeSpeakerSlot({ role: "Photographe", company: "Studio", contact: null }, slots)).toBeNull();
+  });
+
+  it("la planner et les mariés ne sont jamais des intervenants à rattacher", () => {
+    const profile = { plannerRoles: ["Wedding Planner", "WeddingPlanner"], clientRoles: ["Marié", "Client"] };
+    expect(speakerKind({ role: "Wedding-Planner" }, profile)).toBe("planner");
+    expect(speakerKind({ role: "Marié" }, profile)).toBe("client");
+    expect(speakerKind({ role: "DJ" }, profile)).toBe("vendor");
+  });
+
+  const program = {
+    title: null,
+    eventDate: "2027-06-12",
+    speakers: [
+      { role: "DJ", company: "Ondes Sonores", contact: "Félix ROUSSEL", phone: null },
+      { role: "WeddingPlanner", company: "Atelier", contact: "Julie EXEMPLE", phone: null },
+    ],
+    rows: [
+      { line: 1, date: "2027-06-11", startTime: "19:00", endTime: "02:00", endsNextDay: true, title: "Soirée", description: "x".repeat(2100), contacts: [{ text: "DJ - Félix", role: "DJ", name: "Félix", kind: "vendor" as const }, { text: "WeddingPlanner - Julie", role: "WeddingPlanner", name: "Julie", kind: "planner" as const }, { text: "Gaspard", role: null, name: "Gaspard", kind: "free" as const }], hiddenFromClients: false, marker: false },
+      { line: 2, date: null, startTime: "21:18", endTime: null, endsNextDay: false, title: "Coucher du soleil", description: null, contacts: [], hiddenFromClients: false, marker: true },
+      { line: 3, date: "2027-06-12", startTime: null, endTime: null, endsNextDay: false, title: "Sans heure", description: null, contacts: [], hiddenFromClients: false, marker: true },
+      { line: 4, date: "2027-06-12", startTime: "21:30", endTime: null, endsNextDay: false, title: "Animation surprise", description: null, contacts: [{ text: "DJ - ROUSSEL", role: "DJ", name: "ROUSSEL", kind: "vendor" as const }], hiddenFromClients: true, marker: false },
+    ],
+  };
+
+  it("chaque séquence garde son jour, ses heures et sa description en note ; l'interlocuteur va au poste choisi, la planner est ignorée, un témoin reste en texte", () => {
+    const { rows, problems } = programRowsFromExport(program, { eventDate: "2027-06-12" }, new Map([[0, "slot-dj"]]), new Map([["slot-dj", "DJ"]]));
+    expect(rows[0]).toMatchObject({ momentDate: "2027-06-11", startTime: "19:00", endTime: "02:00", endsNextDay: true, label: "Soirée" });
+    expect(rows[0]!.participants).toEqual([{ vendorSlotId: "slot-dj", label: "DJ" }, { vendorSlotId: null, label: "Gaspard" }]);
+    // Une description trop longue est coupée, jamais refusée.
+    expect(rows[0]!.note!.length).toBe(2000);
+    expect(rows[1]).toMatchObject({ momentDate: "2027-06-12", marker: true, participants: [] });
+    expect(rows[2]).toMatchObject({ hiddenFromClients: true, participants: [{ vendorSlotId: "slot-dj", label: "DJ" }] });
+    expect(problems).toEqual([{ line: 3, problem: "untimed" }]);
+  });
+
+  it("sans poste choisi pour son intervenant, l'interlocuteur reste en texte", () => {
+    const { rows } = programRowsFromExport(program, { eventDate: "2027-06-12" }, new Map([[0, null]]), new Map());
+    expect(rows[0]!.participants).toEqual([{ vendorSlotId: null, label: "DJ - Félix" }, { vendorSlotId: null, label: "Gaspard" }]);
   });
 });

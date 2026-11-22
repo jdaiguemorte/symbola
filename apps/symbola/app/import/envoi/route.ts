@@ -7,7 +7,7 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { appDatabase } from "@symbola/db/client";
-import { startEventSheetsImport, startImport, type ImportRejectionReason } from "@/modules/hub/service";
+import { getImportColumns, getImportDraft, startEventSheetsImport, startImport, type ImportRejectionReason } from "@/modules/hub/service";
 import { saveColumnsIfNothingToDecide } from "@/lib/import/columns";
 import { receiveUpload, uploadResponse } from "@/lib/uploads/receive";
 import { availableImportEntityTypes, parseEntityType } from "../access";
@@ -68,5 +68,8 @@ export async function POST(request: Request): Promise<Response> {
   // Lot 16 (IMP-11) : rien à décider sur les colonnes, l'étape est faite d'office.
   await saveColumnsIfNothingToDecide(organizationId, result.importId);
   revalidatePath("/import");
-  return uploadResponse({ redirect: `/import/${result.importId}` });
+  // Lot 63b (HUB-14, UX-15) : lignes lues et colonnes reconnues, pour la fenêtre de chargement.
+  const [draft, columns] = await Promise.all([getImportDraft(db, organizationId, result.importId), getImportColumns(db, organizationId, result.importId)]);
+  const reading = draft && columns ? { rows: draft.rowCount, columns: columns.columns.length, recognized: columns.columns.filter((column) => column.proposedFieldKey !== null || column.profileDecision !== null).length } : undefined;
+  return uploadResponse({ redirect: `/import/${result.importId}`, ...(reading ? { reading } : {}) } as Parameters<typeof uploadResponse>[0]);
 }

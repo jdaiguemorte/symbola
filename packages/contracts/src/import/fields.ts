@@ -82,6 +82,13 @@ export const IMPORT_FIELDS: Record<ImportEntityType, readonly ImportFieldDefinit
     { key: "vendorName", kind: "text" },
     { key: "plannedAmount", kind: "amount", required: true },
     { key: "actualAmount", kind: "amount" },
+    // Lot 63b (BUD-01, BUD-03, HUB-14) : le réglé, et un acompte et un solde datés qui deviennent
+    // les échéances de la ligne.
+    { key: "paidAmount", kind: "amount" },
+    { key: "depositAmount", kind: "amount" },
+    { key: "depositDueOn", kind: "date" },
+    { key: "balanceAmount", kind: "amount" },
+    { key: "balanceDueOn", kind: "date" },
   ],
   catalog_items: [
     { key: "label", kind: "text", required: true },

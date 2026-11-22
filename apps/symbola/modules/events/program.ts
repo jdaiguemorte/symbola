@@ -120,9 +120,15 @@ export function proposeProgramShift<T extends { id: string; startTime: string; e
 
 export type ProgramVariant = "couple" | "vendors";
 
-// Variante « mariés » : jamais de note interne (PRD PRD-EVT-05, PRD-EVT-06).
-export function programForVariant<T extends { internalNote: string | null }>(items: T[], variant: ProgramVariant): T[] {
-  return variant === "couple" ? items.map((item) => ({ ...item, internalNote: null })) : items;
+// Lot 63b (CHR-08 ; Q44) — ce que lisent les mariés : jamais une séquence cachée d'eux.
+export function clientProgramItems<T extends { hiddenFromClients?: boolean }>(items: T[]): T[] {
+  return items.filter((item) => item.hiddenFromClients !== true);
+}
+
+// Variante « mariés » : jamais de note interne (PRD PRD-EVT-05, PRD-EVT-06), ni (lot 63b) de séquence
+// cachée des mariés.
+export function programForVariant<T extends { internalNote: string | null; hiddenFromClients?: boolean }>(items: T[], variant: ProgramVariant): T[] {
+  return variant === "couple" ? clientProgramItems(items).map((item) => ({ ...item, internalNote: null })) : items;
 }
 
 // Lot 37b (CHR-07, DAT-14 ; D8) — la copie diffusée d'un programme : ses séquences dans l'ordre du
@@ -136,13 +142,14 @@ export function publishedProgramItems(items: ProgramItem[]): PublishedProgramIte
     location: item.location,
     responsible: item.responsible,
     participants: item.participants.map((participant) => ({ vendorSlotId: participant.vendorSlotId, label: participant.label })),
+    hiddenFromClients: item.hiddenFromClients,
   }));
 }
 
 // Ce qu'un tiers lit d'une séquence, dans un ordre fixe (le jsonb de la base ne garde pas l'ordre
 // des clés).
 function readableKey(item: PublishedProgramItem): string {
-  return JSON.stringify([item.startTime, item.endTime, item.label, item.location, item.responsible, item.participants.map((participant) => [participant.vendorSlotId, participant.label])]);
+  return JSON.stringify([item.startTime, item.endTime, item.label, item.location, item.responsible, item.participants.map((participant) => [participant.vendorSlotId, participant.label]), item.hiddenFromClients === true]);
 }
 
 // Ce qui a changé depuis la dernière version diffusée (null : rien n'est encore diffusé).
@@ -167,6 +174,7 @@ export function vendorProgramOf(items: PublishedProgramItem[], vendorSlotId: str
   const sorted = sortProgramItems(items);
   return {
     ownItems: sorted.filter(isOwn).map((item) => ({ id: item.id, startTime: item.startTime, endTime: item.endTime, label: item.label, location: item.location, responsible: item.responsible })),
-    outline: sorted.map((item) => ({ id: item.id, startTime: item.startTime, endTime: item.endTime, label: item.label, own: isOwn(item) })),
+    // Lot 63b (Q44) : une séquence cachée des mariés n'apparaît qu'aux prestataires qu'elle concerne.
+    outline: sorted.filter((item) => item.hiddenFromClients !== true || isOwn(item)).map((item) => ({ id: item.id, startTime: item.startTime, endTime: item.endTime, label: item.label, own: isOwn(item) })),
   };
 }

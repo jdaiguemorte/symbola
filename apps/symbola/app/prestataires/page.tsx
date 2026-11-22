@@ -9,6 +9,7 @@ import { PageHeader } from "@/app/ui/page-header";
 import { EmptyState } from "@/app/ui/empty-state";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
+import { formatDayMonth, type Locale } from "@symbola/i18n";
 import { requirePlanner } from "@/lib/guards";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { mapAssets } from "@/lib/map/tiles";
@@ -45,10 +46,11 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
     );
   }
 
-  await ensureVendorFamilies(organizationId, (await getLocale()) === "en" ? "en" : "fr");
+  const locale: Locale = (await getLocale()) === "en" ? "en" : "fr";
+  await ensureVendorFamilies(organizationId, locale);
   const query = await searchParams;
   const [selection, assets, counts, familyCounts] = await Promise.all([loadBookSelection(organizationId, query), mapAssets(), countVendorsByType(organizationId), countVendorsByFamily(organizationId)]);
-  const { families, types, tags, tagGroups, filters, center, centerNotFound, results, target } = selection;
+  const { families, types, tags, tagGroups, filters, center, centerNotFound, results, target, importFilter } = selection;
   const typeById = new Map(types.map((type) => [type.id, type]));
   const familyById = new Map(families.map((family) => [family.id, family]));
   const familyOf = (typeId: string | null) => {
@@ -118,6 +120,10 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
         actions={
           <>
             <SettingsLink href="/prestataires/parametres" back="vendors" label={t("settingsLink")} />
+            {/* Lot 63b (HUB-14) : importer depuis l'écran, l'import déjà réglé sur les prestataires. */}
+            <Link className="button-link" href="/import?type=vendors#import-form">
+              {t("importVendors")}
+            </Link>
             <Link className="button-link button-link-primary" href={`/prestataires/nouveau${target ? queryString(query) : ""}`} data-tour="vendor-new">
               {t("newVendor")}
             </Link>
@@ -125,6 +131,19 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
         }
       />
       <PageTour {...tour} helpTitle={tHelp("vendorBook.title")} helpBody={tHelp("vendorBook.body")} />
+
+      {/* Lot 63b (HUB-14) : la liste filtrée sur un import ; la pastille se retire. */}
+      {importFilter ? (
+        <p className="row-actions">
+          <span className="import-filter-pill">
+            {t(importFilter.part === "created" ? "importFilterCreated" : importFilter.part === "updated" ? "importFilterUpdated" : "importFilterPill", { date: formatDayMonth(importFilter.appliedAt, locale) })}
+            <Link href={`/prestataires${queryString(query, { import: null, quoi: null })}`} aria-label={t("importFilterRemove", { date: formatDayMonth(importFilter.appliedAt, locale) })}>
+              ×
+            </Link>
+          </span>
+          <Link href={`/import/${importFilter.importId}/journal`}>{t("importFilterJournal")}</Link>
+        </p>
+      ) : null}
 
       {target ? (
         <section className="card" aria-labelledby="target-title">
@@ -182,6 +201,9 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
               ["evenement", filters.eventId],
               ["poste", filters.slotId],
               ["vue", view === "carte" ? "carte" : null],
+              // Lot 63b (HUB-14) : le filtre sur un import reste quand on en ajoute un autre.
+              ["import", importFilter?.importId ?? null],
+              ["quoi", importFilter?.part === "created" ? "crees" : importFilter?.part === "updated" ? "maj" : null],
             ].filter((entry): entry is [string, string] => Boolean(entry[1])),
           )}
         >

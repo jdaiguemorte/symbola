@@ -37,6 +37,7 @@ const program: EventProgram = {
         { vendorSlotId: null, label: "Officiante" },
       ],
       keyMomentId: null,
+        hiddenFromClients: false,
     },
   ],
   overlaps: [],
