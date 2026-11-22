@@ -48,3 +48,28 @@ pouvaient partir la nuit. La planner ne pouvait rien régler.
   payeur reste borné au jour de l'échéance ; les relances d'impayés prennent le relais).
 - Plusieurs processus qui tiennent tour à tour le verrou des tâches relisent les heures au plus une
   demi-heure après un réglage fait ailleurs.
+
+## Le rappel du jour J (lot 66b ; D2 à D4 ; M18)
+
+1. **Un automatisme « Rappel du jour J »**, réglé par cible (D2) : la planner (cochée au départ ; la
+   personne en charge de l'évènement, sinon la titulaire), les prestataires retenus, l'équipe de
+   l'évènement et ses renforts, les clients (décochés au départ). Pour chaque cible, la veille ou le
+   matin même, à une heure (D3) ; valeurs de départ dans `day-reminder.json`. Le réglage d'un évènement
+   (onglet Programme) remplace celui de l'organisation, cible par cible (couper, autre moment, autre
+   heure).
+2. **Envoyé par Symbola, toujours** (D4) : les quatre modèles (`day_reminder_*`) sont rangés côté
+   techniques (`email-senders.json`), comme le programme décalé du jour J ; ils restent modifiables
+   (migration 0210). Une fois par personne et par évènement (clé de la file des e-mails) ; jamais pour
+   un évènement annulé, reporté, clos, d'essai ou sans date.
+3. **Contenu** : la planner reçoit le programme, les contacts du jour, ce qui reste ouvert (postes sans
+   prestataire retenu, ses tâches non faites à l'échéance de l'évènement) et le bouton du mode Jour J ;
+   un prestataire, ses horaires (les séquences de son poste), le lieu et les contacts du jour ; l'équipe,
+   le programme et les contacts ; les clients, un mot. Les prestataires et les clients retrouvent le
+   programme dans leur espace : leur lien personnel n'est gardé que haché, il ne peut pas être remis dans
+   l'e-mail. Un prestataire retenu sans lien reçoit le rappel à l'adresse du carnet. « Ce qui reste
+   ouvert » ne lit pas encore les contrats non signés ni les échéances du module Devis (écart assumé :
+   les modules ne se lisent que par leur service, et le module Évènements ne lit pas le module Devis).
+4. **À l'heure** : une tâche toutes les cinq minutes ; les réglages et les évènements des jours proches
+   de chaque organisation sont gardés une demi-heure (relus après un réglage) : la base n'est lue pour
+   envoyer que lorsqu'un rappel est dû. Trace dans le journal de l'automatisme et le journal des envois
+   (par évènement).

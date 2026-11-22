@@ -1398,6 +1398,10 @@
       "title": "My notification settings",
       "body": "Turn a kind off on one channel without touching the others. The summary is sent every morning at the chosen time; during quiet hours nothing rings, except day-of alerts on the day of an event if you keep that option."
     },
+    "dayReminder": {
+      "title": "Day-of reminder",
+      "body": "Tick who receives the day-of reminder: you (ticked by default), booked vendors, the event's team and its helpers, the clients. For each, the day before or the same morning, and the time, in the event's time zone. Symbola sends it, with your branding, once per person; never for a cancelled, postponed, trial or undated event. On an event's page (Schedule tab), the reminder can be turned off or given another time for that event only. The four templates are adapted in Email templates."
+    },
     "automations": {
       "title": "Automations",
       "body": "Each row is an automation: what it does, its switch, its send time and its log. The default send time applies to every automation without its own; the email goes out at that time (within five minutes), in the event's time zone, and never at night. Appointment reminders keep their delay (24 h, 2 h before). Turning one off stops its next sends; nothing is caught up when it is turned back on. The GDPR purge and the document check cannot be turned off."
@@ -7781,6 +7785,14 @@
     "symbolaFooter": "Symbola — the suite for event organisers",
     "testBanner": "Test: this e-mail shows your template with sample data.",
     "testSubject": "[Test] {subject}",
+    "dayReminder": {
+      "noProgram": "The schedule has not been entered yet.",
+      "noContacts": "No contact for the day entered.",
+      "placeUnknown": "to be confirmed",
+      "slotOpen": "Slot without a booked vendor: {slot}",
+      "nothingOpen": "Nothing open.",
+      "noName": "there"
+    },
     "sample": {
       "firstName": "Lea",
       "event": "your wedding",
@@ -7812,7 +7824,10 @@
       "clientTerm": "the couple",
       "digest": "- Quote D-2027-0042 has been signed.\n- 3 tasks to do today, 1 of them overdue.",
       "alert": "A transfer of €1,620.00 has been declared (quote D-2027-0042).",
-      "topic": "Catering"
+      "topic": "Catering",
+      "program": "- 2:00 pm Ceremony — Château des Fictifs\n- 6:30 pm Drinks\n- 8:30 pm Dinner",
+      "dayContacts": "- Camille (coordination): +33 6 00 00 00 00",
+      "openItems": "- Caterer's contract to sign"
     },
     "event": {
       "coupleClient": "your wedding",
@@ -7945,7 +7960,8 @@
       "settlement": "Proposal and payment",
       "team": "Team and account security",
       "messages": "Messages",
-      "guests": "Guests"
+      "guests": "Guests",
+      "dayOf": "Day-of reminder"
     },
     "kinds": {
       "client_link": {
@@ -8080,6 +8096,22 @@
         "title": "New message",
         "description": "Sent to a client or a vendor when you write to them about a topic: the topic's name and a link to the thread, never the message itself."
       },
+      "day_reminder_planner": {
+        "title": "Day-of reminder to the planner",
+        "description": "Sent automatically the day before or the same morning, at the set time: schedule, day's contacts, what is still open, “Open the day of” button. Sent by Symbola."
+      },
+      "day_reminder_vendor": {
+        "title": "Day-of reminder to vendors",
+        "description": "Sent automatically to booked vendors, if you ticked them: their times, the venue, the on-site contact. Sent by Symbola."
+      },
+      "day_reminder_team": {
+        "title": "Day-of reminder to the team",
+        "description": "Sent automatically to the event's team members, if you ticked them: the day's schedule and contacts. Sent by Symbola."
+      },
+      "day_reminder_client": {
+        "title": "Day-of reminder to clients",
+        "description": "Sent automatically to the event's clients, if you ticked them: a word from you. Sent by Symbola."
+      },
       "guest_invitation": {
         "title": "Invitation to reply",
         "description": "To each adult guest: their personal link to say whether they are coming, their meal choices and allergies."
@@ -8116,7 +8148,10 @@
       "iban": "Your IBAN",
       "bic": "Your BIC",
       "penalties": "The late payment penalty sentence, depending on the client and your settings",
-      "topic": "The name of the discussion topic"
+      "topic": "The name of the discussion topic",
+      "program": "The lines of the day's schedule (for a vendor, those of their slot)",
+      "day_contacts": "The day's contacts (name, role, phone)",
+      "open_items": "What is still open: unsigned contracts, upcoming payments"
     },
     "back": "All email templates",
     "editorTitle": "{title} ({language})",
@@ -11125,6 +11160,61 @@
       "invalid": "These thresholds are not valid."
     }
   },
+  "DayReminder": {
+    "title": "Day-of reminder",
+    "back": "Automations",
+    "intro": "A message the day before or the same morning of each event, sent by Symbola with your branding: you have nothing to do on the day. Tick who receives it, and when.",
+    "colWhen": "When",
+    "colTime": "Time",
+    "targets": {
+      "planner": {
+        "label": "You (the planner)",
+        "hint": "the person in charge of the event",
+        "content": "Schedule, day's contacts, what is still open, day-of mode link"
+      },
+      "vendors": {
+        "label": "Booked vendors",
+        "hint": "one message per vendor",
+        "content": "Their slot times, venue, on-site contact"
+      },
+      "team": {
+        "label": "Team of the day",
+        "hint": "the event's team members and helpers",
+        "content": "The day's schedule and contacts"
+      },
+      "clients": {
+        "label": "The couple",
+        "hint": "their personal link",
+        "content": "Your word; the schedule is in their space"
+      }
+    },
+    "moments": {
+      "eve": "the day before",
+      "morning": "the same morning"
+    },
+    "enabledLabel": "Send to: {target}",
+    "whenLabel": "When, for: {target}",
+    "timeLabel": "Time, for: {target}",
+    "save": "Save",
+    "saved": "Day-of reminder saved.",
+    "invalid": "Choose “the day before” or “the same morning”, and a time on the quarter hour.",
+    "ownerOnly": "Only the Owner can set the day-of reminder.",
+    "templatesLink": "Adapt the four templates",
+    "rules": "Not sent for a cancelled, postponed, trial or undated event; once per recipient and per event. Sent by Symbola, with your branding. Times are read in the event's time zone.",
+    "settingsLink": "Set the day-of reminder",
+    "event": {
+      "title": "Day-of reminder",
+      "none": "No reminder is sent for this event.",
+      "item": "{target}: {moment} at {time}",
+      "custom": "Set for this event.",
+      "change": "Change for this event",
+      "saveEvent": "Save for this event",
+      "reset": "Back to the organisation's setting",
+      "saved": "Reminder saved for this event.",
+      "resetDone": "The organisation's setting applies again.",
+      "settings": "Organisation's setting"
+    }
+  },
   "Automations": {
     "keys": {
       "quote_signed_confirm_event": {
@@ -11162,6 +11252,10 @@
       "risk_radar": {
         "title": "Risk radar",
         "description": "Every morning, the radar looks for risks in upcoming events and lets you know."
+      },
+      "day_reminder": {
+        "title": "Day-of reminder",
+        "description": "The day before or the same morning, a reminder to the planner (by default) and, if you tick them, to booked vendors, the team and the clients. Sent by Symbola; once per person and per event."
       }
     },
     "alwaysOn": {
@@ -11211,7 +11305,8 @@
     "saveTime": "Save the time",
     "saveTimeLabel": "Save the time for “{title}”",
     "invalidTime": "Choose a time on the quarter hour.",
-    "timeSaved": "Time saved."
+    "timeSaved": "Time saved.",
+    "dayReminderLink": "Set the day-of reminder ›"
   },
   "StandaloneTasks": {
     "title": "Tasks outside events",

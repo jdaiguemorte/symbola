@@ -304,6 +304,9 @@ function sampleValues(locale: EmailLocale): EmailValues {
     alert: t("sample.alert"),
     // Lot 55 (MSG-03, POR-06).
     topic: t("sample.topic"),
+    program: t("sample.program"),
+    day_contacts: t("sample.dayContacts"),
+    open_items: t("sample.openItems"),
   };
 }
 

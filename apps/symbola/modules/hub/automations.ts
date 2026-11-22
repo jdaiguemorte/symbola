@@ -10,9 +10,9 @@
 import { and, desc, eq, isNull, lt, or } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { withOrganization } from "@symbola/db/with-organization";
-import { automationRuns, automations, riskRules, sendingSettings } from "@symbola/db/schema/hub";
-import { AUTOMATION_KEYS, RISK_RULES, SEND_TIME_AUTOMATIONS, automationDaysSchema, riskThresholdSchema, sendTimeSchema, type AutomationKey, type AutomationResult, type AutomationRunView, type RiskRuleKey } from "@symbola/contracts";
-import { starterAutomations, starterRiskRules, starterSending } from "@symbola/starter-templates";
+import { automationRuns, automations, dayReminderTargets, riskRules, sendingSettings } from "@symbola/db/schema/hub";
+import { AUTOMATION_KEYS, DAY_REMINDER_TARGETS, RISK_RULES, SEND_TIME_AUTOMATIONS, dayReminderSettingSchema, type DayReminderSetting, type DayReminderTarget, automationDaysSchema, riskThresholdSchema, sendTimeSchema, type AutomationKey, type AutomationResult, type AutomationRunView, type RiskRuleKey } from "@symbola/contracts";
+import { starterAutomations, starterDayReminder, starterRiskRules, starterSending } from "@symbola/starter-templates";
 import { notificationRetentionDays } from "./notification-rules";
 import { fromDatabaseTime } from "./send-time-rules";
 
@@ -202,4 +202,30 @@ export async function setRiskRule(organizationId: string, input: { rule: string;
       .onConflictDoUpdate({ target: [riskRules.organizationId, riskRules.rule], set: { enabled: input.enabled, thresholdDays: input.thresholdDays, updatedAt: new Date() } });
   });
   return { rule, enabled: input.enabled, thresholdDays: input.thresholdDays };
+}
+
+// --- Rappel du jour J (lot 66b, JRJ-01, HUB-28 ; D2, D3 ; ADR 0112) ---
+
+// Le réglage de l'organisation, cible par cible ; sans ligne, celui de départ (day-reminder.json).
+export async function listDayReminderTargets(organizationId: string): Promise<DayReminderSetting[]> {
+  const rows = await inOrganization(organizationId, (tx) => tx.select().from(dayReminderTargets).where(eq(dayReminderTargets.organizationId, organizationId)));
+  const starter = starterDayReminder();
+  return DAY_REMINDER_TARGETS.map((target) => {
+    const row = rows.find((candidate) => candidate.target === target);
+    return row ? { target, enabled: row.enabled, moment: row.moment, sendTime: fromDatabaseTime(row.sendTime) ?? starter[target].sendTime } : { target, ...starter[target] };
+  });
+}
+
+export async function setDayReminderTarget(organizationId: string, target: string, input: { enabled: boolean; moment: string; sendTime: string }): Promise<DayReminderSetting> {
+  if (!(DAY_REMINDER_TARGETS as readonly string[]).includes(target)) throw new AutomationInputError("key");
+  const parsed = dayReminderSettingSchema.safeParse(input);
+  if (!parsed.success) throw new AutomationInputError("send_time");
+  const value = { enabled: parsed.data.enabled, moment: parsed.data.moment, sendTime: parsed.data.sendTime };
+  await inOrganization(organizationId, (tx) =>
+    tx
+      .insert(dayReminderTargets)
+      .values({ organizationId, target: target as DayReminderTarget, ...value })
+      .onConflictDoUpdate({ target: [dayReminderTargets.organizationId, dayReminderTargets.target], set: { ...value, updatedAt: new Date() } }),
+  );
+  return { target: target as DayReminderTarget, ...value };
 }

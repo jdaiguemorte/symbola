@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_comment": "Lot 53 (HUB-28 ; D5) — automatismes prêts à activer : actifs au départ, avec leur délai en jours quand ils en ont un (rappel au payeur 7 jours avant l'échéance).",
+  "_comment": "Lot 53 (HUB-28 ; D5) — automatismes prêts à activer : actifs au départ, avec leur délai en jours quand ils en ont un (rappel au payeur 7 jours avant l'échéance). Lot 66b (JRJ-01 ; D2) : le rappel du jour J, actif, à la planner seule au départ (day-reminder.json).",
   "automations": {
     "quote_signed_confirm_event": { "enabled": true, "days": null },
     "payment_due_reminder": { "enabled": true, "days": 7 },
@@ -10,6 +10,7 @@
     "proposal_expiry_reminder": { "enabled": true, "days": null },
     "prospect_follow_up": { "enabled": true, "days": null },
     "vendor_roadmap": { "enabled": true, "days": null },
-    "risk_radar": { "enabled": true, "days": null }
+    "risk_radar": { "enabled": true, "days": null },
+    "day_reminder": { "enabled": true, "days": null }
   }
 }

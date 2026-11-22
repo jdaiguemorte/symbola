@@ -1076,6 +1076,11 @@ export const EMAIL_TEMPLATE_KINDS = [
   "notification_alert",
   // Lot 55 (MSG-03, POR-06) : « Nouveau message sur <sujet> », sans le contenu du message.
   "new_message",
+  // Lot 66b (JRJ-01 ; D2 à D4) : le rappel du jour J, par cible.
+  "day_reminder_planner",
+  "day_reminder_vendor",
+  "day_reminder_team",
+  "day_reminder_client",
 ] as const;
 
 export const emailTemplates = hubSchema.table(
@@ -1107,7 +1112,7 @@ export const emailTemplates = hubSchema.table(
     // Lot 45 (migration 0172, accord de Julien du 18/11) : réponse, relance, questionnaire envoyé.
     // Lot 52 (migration 0180, spécification validée par Julien le 18/11) : sécurité, transfert, renfort.
     // Lot 53 (migration 0183, accord de Julien du 18/11) : récapitulatif, rappel J-7, alerte.
-    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent', 'new_device_login', 'identity_changed', 'ownership_transfer', 'day_helper_link', 'daily_digest', 'payment_due_reminder', 'notification_alert', 'new_message')`),
+    check("email_templates_kind_check", sql`${table.kind} in ('client_link', 'client_link_renewed', 'vendor_link', 'vendor_link_renewed', 'task_reminder', 'quote_signature', 'contract_signature', 'order_first', 'signed_copy', 'program_published', 'guest_invitation', 'guest_reminder', 'appointment_confirmed', 'appointment_reminder', 'appointment_rescheduled', 'appointment_cancelled', 'prospect_form_received', 'vendor_brief', 'vendor_brief_reminder', 'vendor_roadmap', 'proposal_sent', 'proposal_expiry_reminder', 'payment_details', 'invoice_reminder', 'prospect_reply', 'prospect_follow_up', 'questionnaire_sent', 'new_device_login', 'identity_changed', 'ownership_transfer', 'day_helper_link', 'daily_digest', 'payment_due_reminder', 'notification_alert', 'new_message', 'day_reminder_planner', 'day_reminder_vendor', 'day_reminder_team', 'day_reminder_client')`),
     check("email_templates_locale_check", sql`${table.locale} in ('fr', 'en')`),
     check("email_templates_subject_check", sql`char_length(${table.subject}) between 1 and 200`),
     check("email_templates_body_check", sql`char_length(${table.body}) between 1 and 5000`),

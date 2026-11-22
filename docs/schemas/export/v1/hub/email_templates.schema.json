@@ -46,7 +46,11 @@
         "daily_digest",
         "payment_due_reminder",
         "notification_alert",
-        "new_message"
+        "new_message",
+        "day_reminder_planner",
+        "day_reminder_vendor",
+        "day_reminder_team",
+        "day_reminder_client"
       ]
     },
     "locale": {

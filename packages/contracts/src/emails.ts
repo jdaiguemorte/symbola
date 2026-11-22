@@ -55,6 +55,12 @@ export const EMAIL_TEMPLATE_KINDS = [
   // Lot 55 (MSG-03, POR-06) : « Nouveau message sur <sujet> », au client ou au prestataire, sans le
   // contenu du message.
   "new_message",
+  // Lot 66b (JRJ-01, HUB-28 ; D2 à D4) : le rappel du jour J, la veille ou le matin même, à la planner, aux
+  // prestataires retenus, à l'équipe du jour et aux clients ; envoyé par Symbola.
+  "day_reminder_planner",
+  "day_reminder_vendor",
+  "day_reminder_team",
+  "day_reminder_client",
 ] as const;
 export type EmailTemplateKind = (typeof EMAIL_TEMPLATE_KINDS)[number];
 
@@ -77,7 +83,9 @@ export type EmailLocale = (typeof EMAIL_LOCALES)[number];
 // « date_time » (jour et heure, à Paris) et « change » (ce qui a changé dans le compte).
 // Lot 53 (HUB-24, HUB-15) : « client_term » (le terme qui désigne les clients du type d'évènement),
 // « digest » (les lignes du récapitulatif) et « alert » (la phrase d'une alerte).
-export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "slot", "deadline", "link_available", "link_unavailable", "amount", "due_date", "reference", "iban", "bic", "penalties", "brochure", "booking_link", "questionnaire", "valid_from", "device", "date_time", "change", "client_term", "digest", "alert", "topic"] as const;
+// Lot 66b (JRJ-01) : « program » (les lignes du programme du jour, ou celles du poste du prestataire),
+// « day_contacts » (les contacts du jour) et « open_items » (ce qui reste ouvert, pour la planner).
+export const EMAIL_VARIABLES = ["first_name", "organization", "event", "event_date", "clients", "link", "valid_until", "tasks", "quote_number", "version", "place", "appointment", "appointment_date", "slot", "deadline", "link_available", "link_unavailable", "amount", "due_date", "reference", "iban", "bic", "penalties", "brochure", "booking_link", "questionnaire", "valid_from", "device", "date_time", "change", "client_term", "digest", "alert", "topic", "program", "day_contacts", "open_items"] as const;
 export type EmailVariable = (typeof EMAIL_VARIABLES)[number];
 export type EmailValues = Partial<Record<EmailVariable, string>>;
 

@@ -110,6 +110,8 @@ export const AUTOMATION_KEYS = [
   "prospect_follow_up",
   "vendor_roadmap",
   "risk_radar",
+  // Lot 66b (JRJ-01, HUB-28 ; D2 à D4) : le rappel du jour J, réglé par cible (heure et moment propres).
+  "day_reminder",
 ] as const;
 export type AutomationKey = (typeof AUTOMATION_KEYS)[number];
 
@@ -119,6 +121,15 @@ export const SEND_TIME_AUTOMATIONS = ["payment_due_reminder", "proposal_expiry_r
 export type SendTimeAutomation = (typeof SEND_TIME_AUTOMATIONS)[number];
 // « HH:MM », au quart d'heure.
 export const sendTimeSchema = z.string().regex(/^([01]\d|2[0-3]):(00|15|30|45)$/);
+
+// Lot 66b (JRJ-01, HUB-28 ; D2, D3 ; ADR 0112) : le rappel du jour J, par cible, la veille ou le matin
+// même, à une heure (au quart d'heure, fuseau de l'évènement).
+export const DAY_REMINDER_TARGETS = ["planner", "vendors", "team", "clients"] as const;
+export type DayReminderTarget = (typeof DAY_REMINDER_TARGETS)[number];
+export const DAY_REMINDER_MOMENTS = ["eve", "morning"] as const;
+export type DayReminderMoment = (typeof DAY_REMINDER_MOMENTS)[number];
+export type DayReminderSetting = { target: DayReminderTarget; enabled: boolean; moment: DayReminderMoment; sendTime: string };
+export const dayReminderSettingSchema = z.object({ enabled: z.boolean(), moment: z.enum(DAY_REMINDER_MOMENTS), sendTime: z.string().regex(/^([01]\d|2[0-3]):(00|15|30|45)$/) });
 
 // Ce qui ne se coupe pas : affiché « toujours actif », avec sa raison.
 export const ALWAYS_ON_AUTOMATIONS = ["privacy_purge", "ledger_check"] as const;

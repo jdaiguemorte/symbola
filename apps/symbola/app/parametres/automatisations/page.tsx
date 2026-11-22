@@ -24,6 +24,8 @@ const AUTOMATION_MODULES: Record<AutomationKey, "quotes" | "events" | "guests"> 
   prospect_follow_up: "events",
   vendor_roadmap: "events",
   risk_radar: "events",
+  // Lot 66b (JRJ-01) : le rappel du jour J.
+  day_reminder: "events",
 };
 
 export default async function AutomationsPage() {
@@ -81,6 +83,11 @@ export default async function AutomationsPage() {
                   </form>
                 ) : null}
                 {gate.days !== null ? <AutomationDaysForm automationKey={gate.key} days={gate.days} disabled={!isOwner || !available} /> : null}
+                {gate.key === "day_reminder" ? (
+                  <Link href="/parametres/automatisations/rappel-jour-j" className="button-link button-secondary">
+                    {t("dayReminderLink")}
+                  </Link>
+                ) : null}
                 {sendsAtTime(gate.key) ? <AutomationSendTimeForm automationKey={gate.key} title={title} time={gate.sendTime} defaultTime={defaultSendTime} disabled={!isOwner || !available} /> : null}
               </div>
               <details className="setting-row-foot">

@@ -1515,6 +1515,7 @@ export {
   getDefaultSendTime,
   getRiskRules,
   isSendTimeAutomation,
+  listDayReminderTargets,
   listAutomationGates,
   listAutomationRuns,
   purgeAutomationRuns,
@@ -1522,6 +1523,7 @@ export {
   setAutomationDays,
   setAutomationEnabled,
   setAutomationSendTime,
+  setDayReminderTarget,
   setDefaultSendTime,
   setRiskRule,
   type AutomationGate,
@@ -1530,6 +1532,8 @@ export {
 } from "./automations";
 // Lot 66a (HUB-28 ; D1 ; ADR 0112) : règles pures de l'heure d'envoi.
 export { localMinutes, sendTimeReached, sendWindowOpen } from "./send-time-rules";
+// Lot 66b (JRJ-01 ; D2, D3) : règles pures du rappel du jour J.
+export { dayReminderDue, dayReminderKey, dayReminderSendDate, effectiveDayReminder, localDate } from "./day-reminder-rules";
 
 // Lot 55 (MSG-04 révisée, MSG-05 ; ADR 0102) : adresse d'expédition de l'organisation, journal des
 // envois, webhook du service d'envoi et alerte d'un rejet.

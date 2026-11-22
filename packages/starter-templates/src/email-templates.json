@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_source": "Lot 38a (MSG-01, D3, D5, D6 ; ADR 0072) : textes de départ des e-mails que l'organisation adresse aux tiers. Variables entre doubles accolades, en français ({{prénom}}) ou en anglais ({{first_name}}) ; un paragraphe fait du seul lien devient un bouton. La planner les remplace dans Paramètres › Modèles d'e-mails. Les textes de départ n'emploient que des variables toujours renseignées (aucun e-mail ne part avec une variable vide). Repris des textes des lots 26 à 31 ; l'exemplaire signé garde le sens validé par l'avocat (réponse 1, lot 31b). Lot 46 (RDV-03, D10 ; ADR 0082) : confirmation (avec l'invitation .ics), rappel, report et annulation d'un rendez-vous, côté personne qui a pris rendez-vous. Lot 47 (PRE-03, PAR-05 ; D2, D4, D8 ; ADR 0085) : brief à un prestataire (deux boutons, « disponible » ou non), sa relance, feuille de route. Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10 ; ADR 0087, ADR 0089) : proposition envoyée et relance avant son expiration (lues dans l'espace du client), RIB et référence du virement envoyés au 8e jour d'un contrat hors établissement, relance d'une échéance impayée ; aucun paiement en ligne. Lot 45 (CRM-05, CRM-06, POR-07 ; D9 ; ADR 0090) : réponse à un prospect et relance (le texte de la planner), questionnaire envoyé.",
+  "_source": "Lot 38a (MSG-01, D3, D5, D6 ; ADR 0072) : textes de départ des e-mails que l'organisation adresse aux tiers. Variables entre doubles accolades, en français ({{prénom}}) ou en anglais ({{first_name}}) ; un paragraphe fait du seul lien devient un bouton. La planner les remplace dans Paramètres › Modèles d'e-mails. Les textes de départ n'emploient que des variables toujours renseignées (aucun e-mail ne part avec une variable vide). Repris des textes des lots 26 à 31 ; l'exemplaire signé garde le sens validé par l'avocat (réponse 1, lot 31b). Lot 46 (RDV-03, D10 ; ADR 0082) : confirmation (avec l'invitation .ics), rappel, report et annulation d'un rendez-vous, côté personne qui a pris rendez-vous. Lot 47 (PRE-03, PAR-05 ; D2, D4, D8 ; ADR 0085) : brief à un prestataire (deux boutons, « disponible » ou non), sa relance, feuille de route. Lot 43 (FAC-02, FAC-08, FAC-09, FAC-15 ; D10 ; ADR 0087, ADR 0089) : proposition envoyée et relance avant son expiration (lues dans l'espace du client), RIB et référence du virement envoyés au 8e jour d'un contrat hors établissement, relance d'une échéance impayée ; aucun paiement en ligne. Lot 45 (CRM-05, CRM-06, POR-07 ; D9 ; ADR 0090) : réponse à un prospect et relance (le texte de la planner), questionnaire envoyé. Lot 66b (JRJ-01 ; D2 à D4) : rappel du jour J à la planner (programme, contacts, ce qui reste ouvert, bouton du mode Jour J), aux prestataires retenus (leurs horaires, le lieu, le contact sur place), à l'équipe et aux clients ; les variables sont toujours renseignées (« à préciser », « rien d'ouvert »).",
   "templates": {
     "fr": {
       "client_link": {
@@ -142,6 +142,22 @@
       "new_message": {
         "subject": "Nouveau message sur « {{sujet}} »",
         "body": "Bonjour {{prénom}},\n\n{{organisation}} vous a écrit sur le sujet « {{sujet}} » de {{évènement}}. Pour lire le message et répondre, ouvrez votre espace :\n\n{{lien}}\n\nSi votre lien a expiré, la page vous permet d'en demander un nouveau.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "day_reminder_planner": {
+        "subject": "Rappel du jour J — {{évènement}}, le {{date_évènement}}",
+        "body": "Bonjour {{prénom}},\n\nVoici votre rappel pour {{évènement}}, le {{date_évènement}}.\n\nLe programme :\n{{programme}}\n\nLes contacts du jour :\n{{contacts_du_jour}}\n\nCe qui reste ouvert :\n{{points_ouverts}}\n\nLe mode Jour J :\n\n{{lien}}\n\n{{organisation}}"
+      },
+      "day_reminder_vendor": {
+        "subject": "Rappel : {{évènement}}, le {{date_évènement}} — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\nUn petit rappel pour {{évènement}}, le {{date_évènement}} ({{poste}}).\n\nVos horaires :\n{{programme}}\n\nLe lieu : {{lieu}}\n\nSur place :\n{{contacts_du_jour}}\n\nLe programme à jour et votre feuille de route sont dans votre espace, avec le lien personnel reçu par e-mail.\n\nÀ bientôt,\n{{organisation}}"
+      },
+      "day_reminder_team": {
+        "subject": "Jour J : {{évènement}}, le {{date_évènement}}",
+        "body": "Bonjour {{prénom}},\n\nRappel pour {{évènement}}, le {{date_évènement}}.\n\nLe programme :\n{{programme}}\n\nLes contacts du jour :\n{{contacts_du_jour}}\n\nLe mode Jour J s'ouvre avec votre accès habituel.\n\n{{organisation}}"
+      },
+      "day_reminder_client": {
+        "subject": "{{évènement}} approche — {{organisation}}",
+        "body": "Bonjour {{prénom}},\n\nC'est bientôt : {{évènement}}, le {{date_évènement}}. Toute l'équipe de {{organisation}} est prête. Le programme à jour est dans votre espace, avec le lien personnel reçu par e-mail.\n\nÀ très vite,\n{{organisation}}"
       }
     },
     "en": {
@@ -284,6 +300,22 @@
       "new_message": {
         "subject": "New message about “{{topic}}”",
         "body": "Hello {{first_name}},\n\n{{organization}} wrote to you about “{{topic}}” for {{event}}. To read the message and reply, open your space:\n\n{{link}}\n\nIf your link has expired, the page lets you ask for a new one.\n\nSee you soon,\n{{organization}}"
+      },
+      "day_reminder_planner": {
+        "subject": "Day-of reminder — {{event}}, {{event_date}}",
+        "body": "Hello {{first_name}},\n\nHere is your reminder for {{event}}, on {{event_date}}.\n\nThe schedule:\n{{program}}\n\nThe day's contacts:\n{{day_contacts}}\n\nStill open:\n{{open_items}}\n\nThe day-of mode:\n\n{{link}}\n\n{{organization}}"
+      },
+      "day_reminder_vendor": {
+        "subject": "Reminder: {{event}}, {{event_date}} — {{organization}}",
+        "body": "Hello {{first_name}},\n\nA short reminder for {{event}}, on {{event_date}} ({{slot}}).\n\nYour times:\n{{program}}\n\nThe venue: {{place}}\n\nOn site:\n{{day_contacts}}\n\nThe up-to-date schedule and your road map are in your space, with the personal link you received by email.\n\nSee you soon,\n{{organization}}"
+      },
+      "day_reminder_team": {
+        "subject": "Day of: {{event}}, {{event_date}}",
+        "body": "Hello {{first_name}},\n\nA reminder for {{event}}, on {{event_date}}.\n\nThe schedule:\n{{program}}\n\nThe day's contacts:\n{{day_contacts}}\n\nThe day-of mode opens with your usual access.\n\n{{organization}}"
+      },
+      "day_reminder_client": {
+        "subject": "{{event}} is coming — {{organization}}",
+        "body": "Hello {{first_name}},\n\nIt's nearly time: {{event}}, on {{event_date}}. The whole {{organization}} team is ready. The up-to-date schedule is in your space, with the personal link you received by email.\n\nSee you very soon,\n{{organization}}"
       }
     }
   }

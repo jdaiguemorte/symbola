@@ -1471,6 +1471,13 @@
       "when": 1795353806769,
       "tag": "0209_lot66c_hub_email_branding",
       "breakpoints": true
+    },
+    {
+      "idx": 210,
+      "version": "7",
+      "when": 1795377824076,
+      "tag": "0210_lot66b_hub_day_reminder_templates",
+      "breakpoints": true
     }
   ]
 }

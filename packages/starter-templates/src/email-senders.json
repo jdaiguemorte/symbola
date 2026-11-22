@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "_comment": "Lot 65d (MSG-01, HUB-20 ; décisions de Julien du 22/11/2026 ; ADR 0110) — qui envoie chaque modèle d'e-mail. « technical » : Symbola l'envoie toujours (accès, signature et preuve, rendez-vous en ligne, sécurité et compte, avis à l'équipe). « relation » : les messages de la relation ; par défaut préparés par Symbola et envoyés par la planner de sa messagerie, envoyés par Symbola si l'organisation le choisit (Paramètres › E-mails). Liste fermée : chaque modèle est dans l'une des deux, et un seul (contrôlé par les tests). Partage de la note docs/audits/2026-11-22-emails-planner.md, § 1 et § 4.",
+  "_comment": "Lot 65d (MSG-01, HUB-20 ; décisions de Julien du 22/11/2026 ; ADR 0110) — qui envoie chaque modèle d'e-mail. « technical » : Symbola l'envoie toujours (accès, signature et preuve, rendez-vous en ligne, sécurité et compte, avis à l'équipe). « relation » : les messages de la relation ; par défaut préparés par Symbola et envoyés par la planner de sa messagerie, envoyés par Symbola si l'organisation le choisit (Paramètres › E-mails). Liste fermée : chaque modèle est dans l'une des deux, et un seul (contrôlé par les tests). Partage de la note docs/audits/2026-11-22-emails-planner.md, § 1 et § 4. Lot 66b (D4) : le rappel du jour J part toujours de Symbola (technique), comme le programme décalé du jour J.",
   "technical": [
     "client_link",
     "client_link_renewed",
@@ -22,7 +22,11 @@
     "daily_digest",
     "notification_alert",
     "new_message",
-    "prospect_form_received"
+    "prospect_form_received",
+    "day_reminder_planner",
+    "day_reminder_vendor",
+    "day_reminder_team",
+    "day_reminder_client"
   ],
   "relation": [
     "prospect_reply",

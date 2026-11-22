@@ -102,7 +102,7 @@ const LOT_65 = ["0206_lot65g_hub_import_target_event", "0205_lot65d_hub_relation
 // Lot 66 : heures d'envoi et rappel du jour J (0207, hub), réglages du rappel par évènement (0208,
 // events) ; les plus récentes, annulées d'abord.
 // Lot 66c : marque des e-mails, signatures et libellés de bouton (0209, hub), après 0207 et 0208.
-const LOT_66 = ["0209_lot66c_hub_email_branding", "0208_lot66_events_day_reminder_overrides", "0207_lot66_hub_sending_times"];
+const LOT_66 = ["0210_lot66b_hub_day_reminder_templates", "0209_lot66c_hub_email_branding", "0208_lot66_events_day_reminder_overrides", "0207_lot66_hub_sending_times"];
 // Lot 63e : métiers d'une fiche (0198) puis retrait de vendors.type_id (0199) ; fusionné après les
 // lots 63c et 63d, il s'annule d'abord.
 const LOT_63E = ["0199_lot63e_vendors_drop_type_id", "0198_lot63e_vendors_type_links"];
@@ -199,8 +199,21 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
+  it("lot 66b (JRJ-01 ; D2 à D4) — 0210 : les modèles du rappel du jour J se modifient ; annulation refusée tant qu'un modèle est modifié, puis la liste revient", async () => {
+    await migrateAll();
+    const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0210') returning id`;
+    const organizationId = organization!.id;
+    await target`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, 'day_reminder_planner', 'fr', 'Rappel', 'Bonjour {{prénom}}, {{lien}}')`;
+    await expect(rollback(LOT_66[0]!)).rejects.toThrow(/rappel du jour J sont modifiés/);
+    await target`delete from hub.email_templates where organization_id = ${organizationId}`;
+    await rollback(LOT_66[0]!);
+    await expect(target`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, 'day_reminder_team', 'fr', 'Rappel', 'Bonjour')`).rejects.toThrow(/email_templates_kind_check/);
+    await migrateAll();
+  });
+
   it("lot 66c (HUB-18, MSG-01 ; D5, D6) — 0209 : la base refuse une police, un élément ou un libellé de bouton inconnus ou mal formés, plus de quatre liens, une seconde signature du même membre ; un membre n'écrit que la sienne ; annulation refusée tant qu'un réglage, une signature ou un libellé existe, puis tout est retiré", async () => {
     await migrateAll();
+    await rollbackNewerThan(LOT_66[1]!);
     const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0209') returning id`;
     const organizationId = organization!.id;
     const [camille] = await target<{ id: string }[]>`insert into hub.users (email) values (${`camille-${organizationId}@example.test`}) returning id`;
@@ -240,13 +253,13 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     }
     await target`insert into hub.email_templates (organization_id, kind, locale, subject, body, button_label) values (${organizationId}, 'client_link', 'fr', 'Votre espace', '{{lien}}', 'Voir votre espace')`;
     await expect(target`update hub.email_templates set button_label = ${"x".repeat(61)} where organization_id = ${organizationId}`).rejects.toThrow(/email_templates_button_label_check/);
-    await expect(rollback(LOT_66[0]!)).rejects.toThrow(/ont rempli leur signature/);
+    await expect(rollback(LOT_66[1]!)).rejects.toThrow(/ont rempli leur signature/);
     await target`delete from hub.member_signatures where organization_id = ${organizationId}`;
-    await expect(rollback(LOT_66[0]!)).rejects.toThrow(/marque de ses e-mails/);
+    await expect(rollback(LOT_66[1]!)).rejects.toThrow(/marque de ses e-mails/);
     await target`delete from hub.email_branding where organization_id = ${organizationId}`;
-    await expect(rollback(LOT_66[0]!)).rejects.toThrow(/libellé de bouton propre/);
+    await expect(rollback(LOT_66[1]!)).rejects.toThrow(/libellé de bouton propre/);
     await target`update hub.email_templates set button_label = null where organization_id = ${organizationId}`;
-    await rollback(LOT_66[0]!);
+    await rollback(LOT_66[1]!);
     expect(await hasColumn("hub", "email_templates", "button_label")).toBe(false);
     const [table] = await target<{ name: string | null }[]>`select to_regclass('hub.member_signatures')::text as name`;
     expect(table!.name).toBeNull();
@@ -257,7 +270,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
 
   it("lot 66 (HUB-28, JRJ-01 ; D1 à D4) — 0207 et 0208 : la base refuse une heure hors du quart d'heure, une cible ou un moment inconnus ; annulation refusée tant qu'un réglage existe, puis tout est retiré", async () => {
     await migrateAll();
-    await rollbackNewerThan(LOT_66[1]!);
+    await rollbackNewerThan(LOT_66[2]!);
     const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0207') returning id`;
     const organizationId = organization!.id;
     const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
@@ -269,17 +282,17 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await expect(target`insert into hub.day_reminder_targets (organization_id, target, enabled, moment, send_time) values (${organizationId}, 'planner', true, 'midi', '18:00')`).rejects.toThrow(/day_reminder_targets_moment_check/);
     await target`insert into hub.day_reminder_targets (organization_id, target, enabled, moment, send_time) values (${organizationId}, 'planner', true, 'morning', '07:00')`;
     await target`insert into events.day_reminder_overrides (organization_id, event_id, target, enabled, moment, send_time) values (${organizationId}, ${event!.id}, 'vendors', false, 'eve', '18:00')`;
-    await expect(rollback(LOT_66[1]!)).rejects.toThrow(/rappel du jour J réglé/);
+    await expect(rollback(LOT_66[2]!)).rejects.toThrow(/rappel du jour J réglé/);
     await target`delete from events.day_reminder_overrides where organization_id = ${organizationId}`;
-    await rollback(LOT_66[1]!);
-    await expect(rollback(LOT_66[2]!)).rejects.toThrow(/heure d'envoi propre/);
+    await rollback(LOT_66[2]!);
+    await expect(rollback(LOT_66[3]!)).rejects.toThrow(/heure d'envoi propre/);
     await target`update hub.automations set send_time = null where organization_id = ${organizationId}`;
-    await expect(rollback(LOT_66[2]!)).rejects.toThrow(/heures d'envoi par défaut/);
+    await expect(rollback(LOT_66[3]!)).rejects.toThrow(/heures d'envoi par défaut/);
     await target`delete from hub.sending_settings where organization_id = ${organizationId}`;
-    await expect(rollback(LOT_66[2]!)).rejects.toThrow(/rappel du jour J est réglé/);
+    await expect(rollback(LOT_66[3]!)).rejects.toThrow(/rappel du jour J est réglé/);
     await target`delete from hub.day_reminder_targets where organization_id = ${organizationId}`;
     await target`delete from hub.automations where organization_id = ${organizationId}`;
-    await rollback(LOT_66[2]!);
+    await rollback(LOT_66[3]!);
     expect(await hasColumn("hub", "automations", "send_time")).toBe(false);
     const [table] = await target<{ name: string | null }[]>`select to_regclass('hub.day_reminder_targets')::text as name`;
     expect(table!.name).toBeNull();

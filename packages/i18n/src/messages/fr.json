@@ -1398,6 +1398,10 @@
       "title": "Régler mes notifications",
       "body": "Coupez une sorte sur un canal sans toucher aux autres. Le récapitulatif part chaque matin à l'heure choisie ; pendant les plages de silence, rien ne sonne, sauf les alertes du jour J le jour d'un évènement si vous le gardez."
     },
+    "dayReminder": {
+      "title": "Rappel du jour J",
+      "body": "Cochez qui reçoit le rappel du jour J : vous (cochée au départ), les prestataires retenus, l'équipe de l'évènement et ses renforts, les clients. Pour chacun, la veille ou le matin même, et l'heure, dans le fuseau de l'évènement. Symbola l'envoie, à votre marque, une seule fois par personne ; jamais pour un évènement annulé, reporté, d'essai ou sans date. Sur la fiche d'un évènement (onglet Programme), le rappel se coupe ou change d'heure pour cet évènement seulement. Les quatre modèles s'adaptent dans Modèles d'e-mails."
+    },
     "automations": {
       "title": "Automatisations",
       "body": "Chaque ligne est un automatisme : ce qu'il fait, son interrupteur, son heure d'envoi et son journal. L'heure d'envoi par défaut vaut pour chaque automatisme qui n'a pas la sienne ; l'envoi part à cette heure (à cinq minutes près), dans le fuseau de l'évènement, et jamais la nuit. Les rappels de rendez-vous gardent leur délai (24 h, 2 h avant). Couper arrête les prochains envois ; rien n'est rattrapé à la remise en route. La purge RGPD et le contrôle des pièces ne se coupent pas."
@@ -7781,6 +7785,14 @@
     "symbolaFooter": "Symbola — la suite des organisateurs d'évènements",
     "testBanner": "Essai : cet e-mail montre votre modèle avec des données fictives.",
     "testSubject": "[Essai] {subject}",
+    "dayReminder": {
+      "noProgram": "Le programme n'est pas encore saisi.",
+      "noContacts": "Aucun contact du jour saisi.",
+      "placeUnknown": "à préciser",
+      "slotOpen": "Poste sans prestataire retenu : {slot}",
+      "nothingOpen": "Rien d'ouvert.",
+      "noName": "à vous"
+    },
     "sample": {
       "firstName": "Léa",
       "event": "votre mariage",
@@ -7812,7 +7824,10 @@
       "clientTerm": "les mariés",
       "digest": "- Le devis D-2027-0042 est signé.\n- 3 tâches à faire aujourd'hui, dont 1 en retard.",
       "alert": "Un virement de 1 620,00 € est déclaré (devis D-2027-0042).",
-      "topic": "Traiteur"
+      "topic": "Traiteur",
+      "program": "- 14:00 Cérémonie — Château des Fictifs\n- 18:30 Vin d'honneur\n- 20:30 Dîner",
+      "dayContacts": "- Camille (coordination) : 06 00 00 00 00",
+      "openItems": "- Contrat du traiteur à signer"
     },
     "event": {
       "coupleClient": "votre mariage",
@@ -7945,7 +7960,8 @@
       "settlement": "Proposition et règlement",
       "team": "Équipe et sécurité du compte",
       "messages": "Messages",
-      "guests": "Invités"
+      "guests": "Invités",
+      "dayOf": "Rappel du jour J"
     },
     "kinds": {
       "client_link": {
@@ -8080,6 +8096,22 @@
         "title": "Nouveau message",
         "description": "Part au client ou au prestataire quand vous lui écrivez sur un sujet : le nom du sujet et le lien vers le fil, jamais le contenu du message."
       },
+      "day_reminder_planner": {
+        "title": "Rappel du jour J à la planner",
+        "description": "Part seul la veille ou le matin même, à l'heure réglée : programme, contacts du jour, ce qui reste ouvert, bouton « Ouvrir le jour J ». Envoyé par Symbola."
+      },
+      "day_reminder_vendor": {
+        "title": "Rappel du jour J aux prestataires",
+        "description": "Part seul aux prestataires retenus, si vous l'avez coché : leurs horaires, le lieu, le contact sur place. Envoyé par Symbola."
+      },
+      "day_reminder_team": {
+        "title": "Rappel du jour J à l'équipe",
+        "description": "Part seul aux membres de l'équipe de l'évènement, si vous l'avez coché : le programme du jour et les contacts. Envoyé par Symbola."
+      },
+      "day_reminder_client": {
+        "title": "Rappel du jour J aux clients",
+        "description": "Part seul aux clients de l'évènement, si vous l'avez coché : un mot de votre part. Envoyé par Symbola."
+      },
       "guest_invitation": {
         "title": "Invitation à répondre",
         "description": "À chaque invité adulte : son lien personnel pour dire s'il vient, ses choix de repas et ses allergies."
@@ -8116,7 +8148,10 @@
       "iban": "Votre IBAN",
       "bic": "Votre BIC",
       "penalties": "La phrase des pénalités de retard, selon le client et vos réglages",
-      "topic": "Le nom du sujet de discussion"
+      "topic": "Le nom du sujet de discussion",
+      "program": "Les lignes du programme du jour (pour un prestataire, celles de son poste)",
+      "day_contacts": "Les contacts du jour (nom, rôle, téléphone)",
+      "open_items": "Ce qui reste ouvert : contrats non signés, échéances à venir"
     },
     "back": "Tous les modèles d'e-mails",
     "editorTitle": "{title} ({language})",
@@ -11125,6 +11160,61 @@
       "invalid": "Ces seuils ne sont pas valables."
     }
   },
+  "DayReminder": {
+    "title": "Rappel du jour J",
+    "back": "Automatisations",
+    "intro": "Un message la veille ou le matin même de chaque évènement, envoyé par Symbola à votre marque : vous n'avez rien à faire ce jour-là. Cochez qui le reçoit, et quand.",
+    "colWhen": "Quand",
+    "colTime": "Heure",
+    "targets": {
+      "planner": {
+        "label": "Vous (la planner)",
+        "hint": "la personne en charge de l'évènement",
+        "content": "Programme, contacts du jour, ce qui reste ouvert, lien du mode Jour J"
+      },
+      "vendors": {
+        "label": "Prestataires retenus",
+        "hint": "un message par prestataire",
+        "content": "Horaires de son poste, lieu, contact sur place"
+      },
+      "team": {
+        "label": "Équipe du jour",
+        "hint": "membres de l'équipe de l'évènement et renforts",
+        "content": "Programme du jour, contacts du jour"
+      },
+      "clients": {
+        "label": "Les mariés",
+        "hint": "leur lien personnel",
+        "content": "Votre mot ; le programme est dans leur espace"
+      }
+    },
+    "moments": {
+      "eve": "la veille",
+      "morning": "le matin même"
+    },
+    "enabledLabel": "Envoyer à : {target}",
+    "whenLabel": "Quand, pour : {target}",
+    "timeLabel": "Heure, pour : {target}",
+    "save": "Enregistrer",
+    "saved": "Rappel du jour J enregistré.",
+    "invalid": "Choisissez « la veille » ou « le matin même », et une heure au quart d'heure.",
+    "ownerOnly": "Seule la Propriétaire règle le rappel du jour J.",
+    "templatesLink": "Adapter les quatre modèles",
+    "rules": "Ne part pas pour un évènement annulé, reporté ou d'essai, ni sans date ; une seule fois par destinataire et par évènement. Envoyé par Symbola, avec votre marque. Les heures s'entendent dans le fuseau de l'évènement.",
+    "settingsLink": "Régler le rappel du jour J",
+    "event": {
+      "title": "Rappel du jour J",
+      "none": "Aucun rappel ne part pour cet évènement.",
+      "item": "{target} : {moment} à {time}",
+      "custom": "Réglé pour cet évènement.",
+      "change": "Changer pour cet évènement",
+      "saveEvent": "Enregistrer pour cet évènement",
+      "reset": "Revenir au réglage de l'organisation",
+      "saved": "Rappel enregistré pour cet évènement.",
+      "resetDone": "Le réglage de l'organisation s'applique de nouveau.",
+      "settings": "Réglage de l'organisation"
+    }
+  },
   "Automations": {
     "keys": {
       "quote_signed_confirm_event": {
@@ -11162,6 +11252,10 @@
       "risk_radar": {
         "title": "Radar des risques",
         "description": "Chaque matin, le radar cherche les risques des évènements à venir et vous prévient."
+      },
+      "day_reminder": {
+        "title": "Rappel du jour J",
+        "description": "La veille ou le matin même, un rappel à la planner (au départ), et, si vous les cochez, aux prestataires retenus, à l'équipe et aux clients. Envoyé par Symbola ; une fois par personne et par évènement."
       }
     },
     "alwaysOn": {
@@ -11211,7 +11305,8 @@
     "saveTime": "Enregistrer l'heure",
     "saveTimeLabel": "Enregistrer l'heure de « {title} »",
     "invalidTime": "Choisissez une heure au quart d'heure.",
-    "timeSaved": "Heure enregistrée."
+    "timeSaved": "Heure enregistrée.",
+    "dayReminderLink": "Régler le rappel du jour J ›"
   },
   "StandaloneTasks": {
     "title": "Tâches hors évènement",
