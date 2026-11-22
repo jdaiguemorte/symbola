@@ -6,7 +6,7 @@ partie B, la remise à plat des écrans du module Rendez-vous ; maquettes M1 à 
 (`docs/maquette/Plages-et-reservation.html`) et décisions D7 à D9 (option a) **validées le
 21/11/2026**. Migration 0203 (schéma `appointments`, D8) comprise. Le lot
 change le schéma de données (`events`, migration 0202) : validation explicite requise (CLAUDE.md
-§ 8). Aucune dépendance nouvelle. Un ADR à écrire dans la PR (0108).
+§ 8). Aucune dépendance nouvelle. Un ADR à écrire dans la PR (0109 ; 0108 est celui du lot 63g).
 
 Branche `lot-64-plages-occupees`, partie de `main` (3fda5a51). Numéros pris après ceux du lot 63
 (migrations 0196 à 0201, ADR 0103 à 0107).
