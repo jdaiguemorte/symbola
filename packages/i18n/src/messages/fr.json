@@ -606,7 +606,7 @@
         },
         {
           "q": "Comment relancer un prestataire sans contrat signé ?",
-          "a": "Avec « Relancer » sur sa ligne, dans « Aujourd'hui » ou la synthèse : votre messagerie s'ouvre sur un message prêt, à l'adresse de sa fiche du carnet, et la relance s'inscrit dans le fil d'activité."
+          "a": "Avec « Noter une relance », dans « Aujourd'hui », la synthèse ou la fenêtre du poste : vous relancez par votre moyen habituel, puis vous notez comment (téléphone, e-mail, SMS, de vive voix), quand, une note si besoin et quand y revenir. Rien n'est envoyé ; le message type se copie s'il vous sert. Le prestataire quitte « Aujourd'hui » jusqu'au rappel, et la relance s'inscrit dans le fil d'activité."
         },
         {
           "q": "Comment ranger et partager les documents de l'évènement ?",
@@ -2080,7 +2080,7 @@
     "venueFormTitle": "Lieu de l'événement",
     "venueSave": "Enregistrer le lieu",
     "venueSaved": "✓ Lieu enregistré.",
-    "activityVendorReminded": "Relance envoyée à {task}.",
+    "activityVendorReminded": "Relance de {task} notée.",
     "activityVendorRemoved": "un prestataire retiré",
     "sameDayAlert": "Le {date}, vous avez déjà : {events}. Vous pouvez enregistrer quand même.",
     "sameDayConfirmed": "{names} (confirmé)",
@@ -6222,6 +6222,7 @@
       "events_messages": "message",
       "events_message_attachments": "pièce jointe d'un message",
       "events_busy_settings": "réglages des plages occupées",
+      "events_vendor_reminders": "relances notées",
       "vendors_vendor_type_links": "métier d'un prestataire",
       "events_task_categories": "catégorie de tâche",
       "hub_module_requests": "une demande d'activation d'une app"
@@ -7182,8 +7183,6 @@
     "action": {
       "checkTask": "Fait",
       "checkTaskLabel": "Fait : « {label} »",
-      "remindVendor": "Relancer",
-      "remindVendorLabel": "Relancer {vendor}",
       "open": "Ouvrir",
       "openLabel": "Ouvrir : {title}"
     },
@@ -7249,8 +7248,8 @@
       "subject": "Contrat à signer — {names}",
       "body": "Bonjour,\n\nNous attendons votre contrat signé pour « {slot} » ({names}{date}). Pouvez-vous nous le renvoyer ?\n\nMerci,\n{organization}",
       "dateSuffix": ", le {date}",
-      "recorded": "Relance inscrite dans l'activité de l'évènement.",
-      "noEmail": "Relance inscrite. La fiche du prestataire n'a pas d'adresse e-mail : écrivez-lui depuis votre messagerie."
+      "quoteSubject": "Votre devis — {names}",
+      "quoteBody": "Bonjour,\n\nNous attendons votre devis pour « {slot} » ({names}{date}). Pouvez-vous nous l'envoyer ?\n\nMerci,\n{organization}"
     },
     "cockpit": {
       "countdown": "{days, plural, =0 {C'est le jour J} one {# jour avant le jour J} other {# jours avant le jour J}}",
@@ -7351,6 +7350,40 @@
       "payments": "Voir les encaissements",
       "pipeline": "Voir les prospects",
       "event": "Voir l'évènement"
+    },
+    "reminder": {
+      "button": "Noter une relance",
+      "title": "Relance de {vendor}",
+      "back": "Retour",
+      "close": "Fermer",
+      "channel": "Comment avez-vous relancé ?",
+      "channels": {
+        "phone": "Téléphone",
+        "email": "E-mail",
+        "sms": "SMS",
+        "in_person": "De vive voix"
+      },
+      "date": "Date de la relance",
+      "recall": "Me le rappeler",
+      "recallOptions": {
+        "2": "Dans 2 jours",
+        "3": "Dans 3 jours",
+        "7": "Dans une semaine",
+        "14": "Dans deux semaines",
+        "none": "Pas de rappel"
+      },
+      "note": "Note (facultative)",
+      "template": "Message type, à copier",
+      "templateLoading": "Préparation du message…",
+      "templateTo": "Adresse de la fiche : {email}",
+      "templateNoEmail": "La fiche du prestataire n'a pas d'adresse e-mail.",
+      "templateLabel": "Message",
+      "copy": "Copier le message",
+      "copied": "Message copié.",
+      "save": "Noter la relance",
+      "saved": "Relance notée. Rappel le {date}.",
+      "savedNoRecall": "Relance notée.",
+      "invalid": "Vérifiez la date et le moyen de la relance."
     }
   },
   "QuickCreate": {

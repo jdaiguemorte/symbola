@@ -13,7 +13,7 @@ import { isActiveEvent, type TodaySource, type TodayWords } from "@/lib/today/lo
 import { HOME_FIRST_COUNT, todayParts } from "@/lib/today/parts";
 import { completeTaskAction } from "./actions";
 import { completeStandaloneTaskAction } from "@/app/taches/standalone-actions";
-import { RemindVendorButton } from "./today-client";
+import { NoteReminderButton } from "./note-reminder";
 
 type TodayTranslator = Awaited<ReturnType<typeof getTranslations<"Today">>>;
 
@@ -107,12 +107,7 @@ export async function TodayItemLine({ item, locale, returnTo }: { item: RankedIt
           </button>
         </form>
       ) : item.action?.kind === "remind_vendor" && item.actor.kind === "vendor" ? (
-        <RemindVendorButton
-          eventId={item.action.eventId}
-          candidateId={item.action.candidateId}
-          label={t("action.remindVendor")}
-          ariaLabel={t("action.remindVendorLabel", { vendor: item.actor.name })}
-        />
+        <NoteReminderButton eventId={item.action.eventId} candidateId={item.action.candidateId} vendorName={item.actor.name} />
       ) : (
         <div className="today-action">
           <Link href={item.href} className="button-link" aria-label={t("action.openLabel", { title: item.title })}>

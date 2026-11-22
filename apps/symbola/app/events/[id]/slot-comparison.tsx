@@ -9,12 +9,14 @@
 import { useCallback, useEffect, useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { formatAmount, formatDate, type Locale } from "@symbola/i18n";
+import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
+import { NoteReminderButton } from "@/app/accueil/note-reminder";
 import { releaseSlotRetainedAction, retainSlotCandidateAction, setSlotCandidateDismissedAction, slotComparisonAction, type SlotComparisonColumn, type SlotVendorState } from "./budget-vendor-actions";
 
 export function SlotComparison({ eventId, slotId, slotLabel, locale, version, addVendor }: { eventId: string; slotId: string; slotLabel: string; locale: Locale; version: number; addVendor: React.ReactNode }) {
   const t = useTranslations("BudgetVendors");
   const tStatus = useTranslations("VendorCandidates");
+  const tReminder = useTranslations("Today.reminder");
   const router = useRouter();
   const captionId = useId();
   const [columns, setColumns] = useState<SlotComparisonColumn[] | null>(null);
@@ -133,7 +135,7 @@ export function SlotComparison({ eventId, slotId, slotLabel, locale, version, ad
                 <th scope="row">{t("rowReminded")}</th>
                 {columns.map((column) => (
                   <td key={column.candidateId} className={column.dismissed ? "is-dismissed" : undefined}>
-                    {column.remindedAt ? formatDate(new Date(column.remindedAt), locale) : "—"}
+                    {column.remindedOn ? [formatCalendarDate(column.remindedOn, locale), column.remindedBy ? tReminder(`channels.${column.remindedBy}`) : null].filter(Boolean).join(" · ") : "—"}
                   </td>
                 ))}
               </tr>
@@ -192,6 +194,8 @@ export function SlotComparison({ eventId, slotId, slotLabel, locale, version, ad
                         </button>
                       </>
                     )}
+                    {/* Lot 65d (M16) : la relance d'un prestataire encore en lice ou retenu se note. */}
+                    {!column.dismissed ? <NoteReminderButton eventId={eventId} candidateId={column.candidateId} vendorName={column.vendorName} className="button-ghost" /> : null}
                     {confirm?.candidateId === column.candidateId ? (
                       <div className="notice notice-attention">
                         <p role="alert">{confirm.message}</p>
