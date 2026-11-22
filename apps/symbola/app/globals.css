@@ -1197,11 +1197,77 @@
   /* Lot 21 (L21-PRE-20) : les deux colonnes valent pour les blocs de champs, pas
      pour le bloc des étiquettes ni ses groupes, où les pastilles prennent
      toute la largeur. */
-  .vendor-form fieldset:not(.tag-fieldset, .tag-group) {
+  .vendor-form fieldset:not(.tag-fieldset, .tag-group, .trades-fieldset, .trade-group) {
     @apply grid grid-cols-1 gap-3 sm:grid-cols-2;
   }
-  .vendor-form fieldset:not(.tag-fieldset, .tag-group) > legend {
+  .vendor-form fieldset:not(.tag-fieldset, .tag-group, .trades-fieldset, .trade-group) > legend {
     @apply sm:col-span-2;
+  }
+  /* Lot 63e (PRE-01, ADR 0107, maquette M11) : la fiche en rubriques, à gauche le sommaire. */
+  .window-rubrics {
+    @apply grid w-full gap-6 md:grid-cols-[12rem_minmax(0,1fr)];
+  }
+  .window-rubrics-nav ol {
+    @apply m-0 grid list-none gap-1 p-0;
+  }
+  .window-rubrics-nav .window-rubric {
+    @apply flex min-h-11 w-full items-center justify-start gap-2 rounded-md border-0 bg-transparent px-3 text-left text-body font-medium text-ink hover:bg-ground;
+  }
+  .window-rubrics-nav .window-rubric[aria-current="step"] {
+    @apply bg-primary-soft font-semibold text-primary;
+  }
+  .window-rubric-number {
+    @apply inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-line-strong text-label;
+  }
+  .window-rubrics-body {
+    @apply grid content-start gap-4;
+  }
+  .window-rubrics-body > section > :is(h2, h3) {
+    @apply m-0 text-heading;
+  }
+  .trades-fieldset {
+    @apply m-0 grid gap-3 border-0 p-0;
+  }
+  .trades-fieldset > legend {
+    @apply mb-1 text-heading;
+  }
+  .trade-group {
+    @apply m-0 grid gap-2 rounded-md border border-line p-3;
+  }
+  .trade-group > legend {
+    @apply px-1 font-semibold;
+  }
+  .trade-list {
+    @apply m-0 grid list-none gap-1 p-0;
+  }
+  .trade-row {
+    @apply flex min-h-11 max-w-md flex-wrap items-center justify-between gap-2;
+  }
+  .trade-primary {
+    @apply text-label text-ink-muted;
+  }
+  .trade-more > summary {
+    @apply min-h-11 cursor-pointer content-center font-medium text-primary;
+  }
+  .trade-more[open] > summary {
+    @apply mb-3;
+  }
+  /* Fenêtre de la fiche (ADR 0107) : les règles communes sont celles du paquet 63c (.window, plus
+     bas) ; ici seulement ce qui tient à la fiche. « Retour » et la croix sont des boutons stylés
+     ailleurs, d'où le sélecteur plus précis ; la première action peut être un lien. */
+  .window-head .window-back {
+    @apply hidden;
+  }
+  .window-actions > :first-child {
+    @apply mr-auto;
+  }
+  @media (width < 640px) {
+    .window-head .window-back {
+      @apply inline-flex;
+    }
+    .window-head .window-close {
+      @apply hidden;
+    }
   }
   /* Lot 39c (UX-13) : dans le panneau latéral (400 px), la fiche se remplit sur une colonne. */
   .side-panel .vendor-form fieldset:not(.tag-fieldset, .tag-group) {

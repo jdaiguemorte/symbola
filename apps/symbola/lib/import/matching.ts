@@ -43,7 +43,7 @@ import {
   type ImportWorkingSet,
   type MatchDecision,
 } from "@/modules/hub/service";
-import { getVendorContacts, getVendorsByIds, listVendorFamilies, listVendorTypes, type VendorFamily, type VendorType } from "@/modules/vendors/service";
+import { getVendorContacts, getVendorsByIds, listVendorFamilies, listVendorTypes, vendorTypeLabels, type VendorFamily, type VendorType } from "@/modules/vendors/service";
 import { listVendorConsultations } from "@/modules/events/service";
 import { compareVendorRecords, onlyOneNameInCommon, vendorMatchNeedsCheck, type VendorCompareLine } from "./vendor-compare";
 import { ensureVendorFamilies, vendorCatalogInput } from "@/lib/vendors/catalog";
@@ -310,16 +310,23 @@ async function computeVendorTypeChoices(organizationId: string, rows: ParsedImpo
   const catalog = await loadVendorTypeCatalog(organizationId);
   const byKey = new Map<string, ImportVendorTypeChoice>();
   for (const row of rows) {
-    const label = text(row.values.type);
-    if (!label) continue;
-    const key = label.normalize("NFD").replace(/[̀-ͯ]/g, "").toLocaleLowerCase("fr").trim();
-    const existing = byKey.get(key);
-    if (existing) {
-      existing.rowCount += 1;
-      continue;
+    const value = text(row.values.type);
+    if (!value) continue;
+    // Lot 63e (PRE-01, PRE-11) : une valeur combinée (« Photographe et vidéaste ») donne plusieurs
+    // métiers, chacun choisi sous son libellé ; la valeur du fichier reste lisible (combinedFrom).
+    const labels = vendorTypeLabels(value);
+    for (const label of labels) {
+      const key = label.normalize("NFD").replace(/[̀-ͯ]/g, "").toLocaleLowerCase("fr").trim();
+      const existing = byKey.get(key);
+      const combinedFrom = labels.length > 1 ? [value] : [];
+      if (existing) {
+        existing.rowCount += 1;
+        for (const source of combinedFrom) if (!existing.combinedFrom?.includes(source)) existing.combinedFrom = [...(existing.combinedFrom ?? []), source];
+        continue;
+      }
+      const { target, score } = proposeVendorTypeTarget(label, catalog);
+      byKey.set(key, { label, rowCount: 1, typeId: target.kind === "existing" ? target.typeId : null, score, manual: false, target, ...(combinedFrom.length > 0 ? { combinedFrom } : {}) });
     }
-    const { target, score } = proposeVendorTypeTarget(label, catalog);
-    byKey.set(key, { label, rowCount: 1, typeId: target.kind === "existing" ? target.typeId : null, score, manual: false, target });
   }
   return [...byKey.values()].sort((a, b) => b.rowCount - a.rowCount || a.label.localeCompare(b.label, "fr"));
 }
@@ -605,7 +612,8 @@ export type ImportTypesView = {
   families: VendorFamily[];
   types: VendorType[];
   starters: { key: string; label: string; familyId: string | null }[];
-  choices: { label: string; rowCount: number; target: ImportVendorTypeTarget; familyId: string | null }[];
+  // combinedFrom (lot 63e) : valeurs combinées du fichier dont vient ce métier.
+  choices: { label: string; rowCount: number; target: ImportVendorTypeTarget; familyId: string | null; combinedFrom: string[] }[];
 };
 
 export async function getImportTypesView(organizationId: string, importId: string): Promise<ImportTypesView | null> {
@@ -615,7 +623,7 @@ export async function getImportTypesView(organizationId: string, importId: strin
   const starters = catalog.starters
     .filter((starter) => !catalog.types.some((type) => type.starterKey === starter.key))
     .map((starter) => ({ key: starter.key, label: starter.label, familyId: catalog.families.find((family) => family.starterKey === starter.familyKey)?.id ?? null }));
-  const choices = (matches.vendorTypes ?? []).map((choice) => ({ label: choice.label, rowCount: choice.rowCount, target: choice.target, familyId: targetFamilyId(choice.target, catalog) }));
+  const choices = (matches.vendorTypes ?? []).map((choice) => ({ label: choice.label, rowCount: choice.rowCount, target: choice.target, familyId: targetFamilyId(choice.target, catalog), combinedFrom: choice.combinedFrom ?? [] }));
   return { importId, fileName: matches.fileName, families: catalog.families, types: catalog.types, starters, choices };
 }
 

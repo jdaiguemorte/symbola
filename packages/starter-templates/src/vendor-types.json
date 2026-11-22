@@ -361,8 +361,16 @@
     {
       "key": "hair_makeup",
       "label": {
-        "fr": "Coiffure et maquillage",
-        "en": "Hair and make-up"
+        "fr": "Coiffure",
+        "en": "Hair"
+      },
+      "fields": []
+    },
+    {
+      "key": "makeup",
+      "label": {
+        "fr": "Maquillage",
+        "en": "Make-up"
       },
       "fields": []
     },

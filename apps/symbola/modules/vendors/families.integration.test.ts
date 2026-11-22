@@ -73,7 +73,8 @@ describe("L16-PRE-14 — Familles et types", () => {
     expect(types.length).toBeGreaterThanOrEqual(22);
     expect(types.every((type) => type.familyId !== null)).toBe(true);
     const beauty = await familyNamed(organizationId, "Beauté et tenues");
-    expect(types.filter((type) => type.familyId === beauty.id).map((type) => type.label)).toContain("Coiffure et maquillage");
+    // Lot 63e (ADR 0105) : « Coiffure » et « Maquillage » sont deux métiers.
+    expect(types.filter((type) => type.familyId === beauty.id).map((type) => type.label)).toEqual(expect.arrayContaining(["Coiffure", "Maquillage"]));
     // Les champs de départ suivent leur type.
     expect((await typeNamed(organizationId, "Lieu de réception")).fields.length).toBeGreaterThan(3);
   });
@@ -118,7 +119,7 @@ describe("L16-PRE-14 — Familles et types", () => {
     const organizationId = await newOrganization();
     await seedStarterVendorCatalog(organizationId, catalog(), { withTypes: true });
     const beauty = await familyNamed(organizationId, "Beauté et tenues");
-    const hair = await typeNamed(organizationId, "Coiffure et maquillage");
+    const hair = await typeNamed(organizationId, "Coiffure");
     const dress = await typeNamed(organizationId, "Robe de mariée");
     const venue = await typeNamed(organizationId, "Lieu de réception");
     const loose = await createVendorType(organizationId, "Mannequin", "#123456");
@@ -256,7 +257,7 @@ describe("L16-PRE-15 — Renommer, fusionner, ranger les types", () => {
     expect(families.find((family) => family.id === beauty.id)!.label).toBe("Beauté");
     expect(families.find((family) => family.id === attire.id)).toMatchObject({ label: "Tenues", color: "#7a2e5c", icon: "attire" });
     const types = await listVendorTypes(organizationId);
-    expect(types.filter((type) => type.familyId === beauty.id).map((type) => type.label).sort()).toEqual(["Bien-être", "Coiffure et maquillage"]);
+    expect(types.filter((type) => type.familyId === beauty.id).map((type) => type.label).sort()).toEqual(["Bien-être", "Coiffure", "Maquillage"]);
     expect(types.filter((type) => type.familyId === attire.id)).toHaveLength(3);
   });
 

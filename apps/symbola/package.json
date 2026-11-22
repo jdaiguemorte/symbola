@@ -16,6 +16,7 @@
     "seed:recette": "tsx scripts/seed-recette.ts",
     "closures:export": "tsx scripts/closure-traces.ts export",
     "closures:replay": "tsx scripts/closure-traces.ts replay",
+    "vendors:split-types": "tsx scripts/vendor-type-split.ts",
     "export:schemas": "EXPORT_SCHEMAS_UPDATE=1 vitest run lib/export/schemas.test.ts",
     "facturx:samples": "FACTURX_SAMPLES_DIR=${FACTURX_SAMPLES_DIR:-facturx-samples} vitest run app/devis/factures/facturx.test.ts"
   },

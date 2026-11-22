@@ -9,7 +9,7 @@ import path from "node:path";
 import AxeBuilder from "./axe";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
-import { vendors, vendorTypes } from "@symbola/db/schema/vendors";
+import { vendors, vendorTypeLinks, vendorTypes } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";
 import { expect, test, type Page } from "@playwright/test";
 import { addEventVendorSlot, addVendorCandidate, createProspect, createProspectSource } from "../modules/events/service";
@@ -30,10 +30,15 @@ async function atelier(label: string) {
     const user = await createUser(db, { organizationId: organization.id, email, password: "mot-de-passe-63b", role: "owner" });
     await withOrganization(db, organization.id, async (tx) => {
       const [photographer] = await tx.insert(vendorTypes).values({ organizationId: organization.id, label: "Photographe", color: "#2f5d7c", position: 0 }).returning();
-      await tx.insert(vendors).values([
-        { organizationId: organization.id, name: "Benjamin Dupuy", typeId: photographer!.id, email: "contact@dupuy-photo.example.org", phone: "06 39 98 00 44" },
-        { organizationId: organization.id, name: "Studio Lumière", typeId: photographer!.id, city: "Tours" },
-      ]);
+      const created = await tx
+        .insert(vendors)
+        .values([
+          { organizationId: organization.id, name: "Benjamin Dupuy", email: "contact@dupuy-photo.example.org", phone: "06 39 98 00 44" },
+          { organizationId: organization.id, name: "Studio Lumière", city: "Tours" },
+        ])
+        .returning();
+      // Lot 63e : le métier d'une fiche est un lien, le principal donne la couleur.
+      await tx.insert(vendorTypeLinks).values(created.map((vendor) => ({ organizationId: organization.id, vendorId: vendor.id, typeId: photographer!.id, isPrimary: true })));
     });
     return { organizationId: organization.id, userId: user.id, email };
   } finally {

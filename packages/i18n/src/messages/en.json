@@ -1067,7 +1067,7 @@
     },
     "vendorDetail": {
       "title": "Supplier record",
-      "body": "The record gathers everything you know about the vendor: contact details, features of their type, rating, indicative prices, history with you. Documents (insurance, registration) have an end of validity and can be requested from the vendor. The IBAN is encrypted and only shown masked: if it changes, a banner asks you to call the vendor on the number you already know, never the one in the message announcing the change, before any payment. A note marked confidential is encrypted and reserved for you and the account owner. For a venue, its constraints (music end, vendor access, capacity) check the event program, without ever blocking anything.",
+      "body": "The record gathers everything you know about the vendor: contact details, trades and the features of each, rating, indicative prices, history with you. A vendor can offer several trades (photographer and videographer): tick them all; the primary one sets the colour and icon on the map, and the record is found under each of them. “Edit the record” opens it in a large window, section by section; “Next” saves and moves on. Documents (insurance, registration) have an end of validity and can be requested from the vendor. The IBAN is encrypted and only shown masked: if it changes, a banner asks you to call the vendor on the number you already know, never the one in the message announcing the change, before any payment. A note marked confidential is encrypted and reserved for you and the account owner. For a venue, its constraints (music end, vendor access, capacity) check the event program, without ever blocking anything.",
       "faq": [
         {
           "q": "Does archiving erase its history?",
@@ -1077,7 +1077,7 @@
     },
     "vendorNew": {
       "title": "New supplier",
-      "body": "A name and a type are enough to create the record; the rest can be filled in later. The address you enter places the supplier on the map, and you can move the point by hand."
+      "body": "A name is enough to create the record; its trades and the rest are filled in section by section, now or later. A vendor can have several trades. The address you enter places the supplier on the map, and you can move the point by hand."
     },
     "search": {
       "title": "Search",
@@ -3919,7 +3919,8 @@
       "preview": "Preparing the preview",
       "nothingSaved": "Nothing is saved yet. You can close this: the import goes on.",
       "close": "Close"
-    }
+    },
+    "typesCombinedFrom": "From {labels}: several trades on the same record"
   },
   "Privacy": {
     "title": "Personal data",
@@ -5107,7 +5108,7 @@
     "travelSaved": "Settings saved.",
     "travelInvalid": "Factor between 1 and 3, speed between 5 and 130 km/h.",
     "exportName": "Name",
-    "exportType": "Type",
+    "exportType": "Trades",
     "exportContact": "Contact",
     "exportPhone": "Phone",
     "exportEmail": "Email",
@@ -5309,7 +5310,34 @@
     "importFilterCreated": "Import of {date}: created",
     "importFilterUpdated": "Import of {date}: updated",
     "importFilterRemove": "Remove the “Import of {date}” filter",
-    "importFilterJournal": "See the import summary"
+    "importFilterJournal": "See the import summary",
+    "trades": "Trades",
+    "tradesHint": "Tick every trade this vendor offers. The primary one sets the colour and icon on the map.",
+    "tradesNone": "No trades in your book yet: add some in the vendor settings.",
+    "tradesAddOther": "Add a trade from another family",
+    "tradesChoose": "Choose the trades",
+    "tradePrimary": "Primary",
+    "tradePrimaryOf": "{type} is the primary trade",
+    "tradePrimaryBadge": "{type} (primary)",
+    "tagsFor": "Tags: {trades}",
+    "tagsForAll": "Tags for every trade",
+    "summaryTrades": "{count, plural, one {Trade} other {Trades}}",
+    "rubricsLabel": "Sections of the record",
+    "rubric": {
+      "identity": "Identity",
+      "trades": "Trades and tags",
+      "contact": "Contact details",
+      "prices": "Prices and note"
+    },
+    "rubricProgress": "Section {index} of {count}",
+    "rubricElsewhere": "Documents, bank details, files and the map point are set on the record, below this window.",
+    "rubricPrevious": "Previous",
+    "rubricNext": "Next: {rubric}",
+    "createAndNext": "Create, then {rubric}",
+    "saveAndClose": "Save and close",
+    "windowBack": "Back",
+    "windowClose": "Close",
+    "editTitle": "Edit {vendor}"
   },
   "Onboarding": {
     "title": "Let's set up your workspace",
@@ -6169,6 +6197,7 @@
       "events_message_topic_links": "topic vendor",
       "events_messages": "message",
       "events_message_attachments": "message attachment",
+      "vendors_vendor_type_links": "vendor trade",
       "events_task_categories": "task category"
     },
     "modules": {

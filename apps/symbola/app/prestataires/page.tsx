@@ -21,7 +21,7 @@ import { isVendorsModuleEnabled } from "./module-access";
 import { loadBookSelection } from "./selection";
 import { VendorMap, type MapPoint } from "./vendor-map";
 import { HoverSync } from "./hover-sync";
-import { countVendorsByType, getVendor } from "@/modules/vendors/service";
+import { countVendorsByFamily, countVendorsByType, getVendor } from "@/modules/vendors/service";
 import { ensureVendorFamilies } from "@/lib/vendors/catalog";
 import { FamilyIcon } from "./family-icon";
 import { RatingStars } from "./rating-stars";
@@ -49,7 +49,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
   const locale: Locale = (await getLocale()) === "en" ? "en" : "fr";
   await ensureVendorFamilies(organizationId, locale);
   const query = await searchParams;
-  const [selection, assets, counts] = await Promise.all([loadBookSelection(organizationId, query), mapAssets(), countVendorsByType(organizationId)]);
+  const [selection, assets, counts, familyCounts] = await Promise.all([loadBookSelection(organizationId, query), mapAssets(), countVendorsByType(organizationId), countVendorsByFamily(organizationId)]);
   const { families, types, tags, tagGroups, filters, center, centerNotFound, results, target, importFilter } = selection;
   const typeById = new Map(types.map((type) => [type.id, type]));
   const familyById = new Map(families.map((family) => [family.id, family]));
@@ -58,10 +58,11 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
     return type?.familyId ? (familyById.get(type.familyId) ?? null) : null;
   };
   const selectedType = filters.typeId ? (typeById.get(filters.typeId) ?? null) : null;
+  // Lot 63e (PRE-01 ; ADR 0105) : sur la carte, la couleur et l'icône du métier principal.
   const points: MapPoint[] = results
     .filter((vendor) => vendor.location)
     .map((vendor) => {
-      const family = familyOf(vendor.typeId);
+      const family = familyOf(vendor.primaryTypeId);
       return {
         id: vendor.id,
         name: vendor.name,
@@ -72,24 +73,24 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
         href: `/prestataires${queryString(query, { fiche: vendor.id })}`,
       };
     });
-  // Nombre de fiches (hors archives) par type, par famille et « à classer ».
+  // Nombre de fiches (hors archives) par type, par famille et « à classer ». Lot 63e : une fiche compte
+  // pour chacun de ses métiers, mais une seule fois dans sa famille et dans le total.
   const countOf = new Map(counts.map((entry) => [entry.typeId, entry.count]));
-  const total = counts.reduce((sum, entry) => sum + entry.count, 0);
-  const countOfTypes = (list: typeof types) => list.reduce((sum, type) => sum + (countOf.get(type.id) ?? 0), 0);
-  const familyCount = (familyId: string) => countOfTypes(types.filter((type) => type.familyId === familyId));
+  const familyCountOf = new Map(familyCounts.families.map((entry) => [entry.familyId, entry.count]));
+  const total = familyCounts.total;
+  const familyCount = (familyId: string) => familyCountOf.get(familyId) ?? 0;
   const unclassifiedTypes = types.filter((type) => type.familyId === null);
-  const unclassifiedCount = countOfTypes(unclassifiedTypes) + (countOf.get(null) ?? 0);
+  const unclassifiedCount = familyCountOf.get(null) ?? 0;
   const visibleFamilies = families.filter((family) => familyCount(family.id) > 0 || family.id === filters.familyId);
   const chosenFamily = filters.familyId ? (familyById.get(filters.familyId) ?? null) : null;
   const rowTypes = filters.unclassified ? unclassifiedTypes : chosenFamily ? types.filter((type) => type.familyId === chosenFamily.id) : [];
   const shownTypes = rowTypes.filter((type) => (countOf.get(type.id) ?? 0) > 0 || type.id === filters.typeId);
   const legend = [
-    ...families.filter((family) => results.some((vendor) => vendor.location && familyOf(vendor.typeId)?.id === family.id)),
+    ...families.filter((family) => results.some((vendor) => vendor.location && familyOf(vendor.primaryTypeId)?.id === family.id)),
   ];
-  const legendUnclassified = results.some((vendor) => vendor.location && !familyOf(vendor.typeId));
+  const legendUnclassified = results.some((vendor) => vendor.location && !familyOf(vendor.primaryTypeId));
   const opened = typeof query.fiche === "string" ? await getVendor(organizationId, query.fiche) : null;
-  const openedType = opened?.typeId ? typeById.get(opened.typeId) : undefined;
-  const openedFamily = opened ? familyOf(opened.typeId) : null;
+  const openedTypes = (opened?.typeIds ?? []).flatMap((typeId) => (typeById.has(typeId) ? [typeById.get(typeId)!] : []));
   const openedTravel = opened ? results.find((vendor) => vendor.id === opened.id)?.travel ?? null : null;
   const view = query.vue === "carte" ? "carte" : "liste";
   const tCommon = await getTranslations("Common");
@@ -355,19 +356,20 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
           {results.length === 0 ? types.length === 0 ? <EmptyState screen="vendors" title={t("emptyNoTypes")} actionHref="/prestataires/nouveau" /> : <p>{t("empty")}</p> : null}
           <ul className="vendor-results">
             {results.map((vendor) => {
-              const type = vendor.typeId ? typeById.get(vendor.typeId) : undefined;
+              const trades = vendor.typeIds.flatMap((typeId) => (typeById.has(typeId) ? [typeById.get(typeId)!] : []));
               return (
                 <li key={vendor.id} data-vendor-id={vendor.id} aria-current={vendor.id === opened?.id ? "true" : undefined}>
                   <Link href={`/prestataires${queryString(query, { fiche: vendor.id })}`} scroll={false} className="strong">
                     {vendor.name}
                   </Link>
                   <span className="meta">
-                    {type ? (
-                      <span className="badge badge-family">
+                    {/* Lot 63e : chaque métier de la fiche, le principal en premier. */}
+                    {trades.map((type) => (
+                      <span key={type.id} className="badge badge-family">
                         <FamilyIcon color={familyOf(type.id)?.color ?? UNCLASSIFIED_COLOR} icon={familyOf(type.id)?.icon ?? "other"} />
                         {type.label}
                       </span>
-                    ) : null}
+                    ))}
                     {vendor.city ? <span>{vendor.city}</span> : null}
                     {vendor.travel ? <span>{t("travel", { km: vendor.travel.distanceKm, minutes: vendor.travel.minutes })}</span> : null}
                     {vendor.rating ? <RatingStars rating={vendor.rating} label={t("ratingValue", { rating: vendor.rating })} /> : null}
@@ -429,10 +431,17 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
       {opened ? (
         <SidePanel title={opened.name} closeHref={`/prestataires${queryString(query, { fiche: "" })}`} closeLabel={tCommon("closePanel")}>
           <dl className="vendor-summary">
-            {openedType ? (
+            {openedTypes.length > 0 ? (
               <div>
-                <dt>{t("summaryType")}</dt>
-                <dd>{openedFamily ? t("typeInFamily", { family: openedFamily.label, type: openedType.label }) : openedType.label}</dd>
+                <dt>{t("summaryTrades", { count: openedTypes.length })}</dt>
+                <dd>
+                  {openedTypes
+                    .map((openedType) => {
+                      const openedFamily = familyOf(openedType.id);
+                      return openedFamily ? t("typeInFamily", { family: openedFamily.label, type: openedType.label }) : openedType.label;
+                    })
+                    .join(" ; ")}
+                </dd>
               </div>
             ) : null}
             {opened.contactName ? (

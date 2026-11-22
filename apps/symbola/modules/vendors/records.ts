@@ -417,10 +417,11 @@ export async function getVenueConstraints(organizationId: string, vendorIds: str
   }));
 }
 
-// Clé du type de départ de chaque fiche (« music », « venue »…), pour qualifier les séquences.
-export async function getVendorTypeKeys(organizationId: string, vendorIds: string[]): Promise<Map<string, string | null>> {
+// Clés des types de départ des métiers de chaque fiche (« music », « venue »…), pour qualifier les
+// séquences (lot 63e : une fiche peut en avoir plusieurs).
+export async function getVendorTypeKeys(organizationId: string, vendorIds: string[]): Promise<Map<string, string[]>> {
   const rows = await findVenueRows(organizationId, [...new Set(vendorIds.filter((id) => UUID.test(id)))]);
-  return new Map(rows.map((row) => [row.id, row.typeStarterKey]));
+  return new Map(rows.map((row) => [row.id, row.typeStarterKeys]));
 }
 
 export type ProgramSequenceInput = { id: string; startTime: string; endTime: string | null; vendorIds: string[]; hasVendorSlot: boolean };
@@ -435,7 +436,7 @@ export async function checkProgramWithVenue(organizationId: string, venue: Venue
     id: sequence.id,
     startTime: sequence.startTime,
     endTime: sequence.endTime,
-    music: sequence.vendorIds.some((id) => music.has(typeKeys.get(id) ?? "")),
+    music: sequence.vendorIds.some((id) => (typeKeys.get(id) ?? []).some((key) => music.has(key))),
     withVendors: sequence.hasVendorSlot,
   }));
   return checkProgramAgainstVenue(venue, qualified, rules);

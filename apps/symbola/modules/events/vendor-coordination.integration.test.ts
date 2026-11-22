@@ -186,7 +186,8 @@ describe("PRE-03 — Demande de devis groupée : un brief à plusieurs prestatai
       expect(mail!.HTML).not.toContain(other);
     }
     const view = await getVendorConsultationView(organizationId, sent.elodie.linkId);
-    const serialized = JSON.stringify(view);
+    // Les identifiants (UUID aléatoires) peuvent contenir « 4123 » par hasard : ils sont retirés avant la recherche du montant.
+    const serialized = JSON.stringify(view).replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "<id>");
     for (const other of ["Pivoine", "Silence", "Studio", "4123", "412345", "Avec plaisir"]) expect(serialized).not.toContain(other);
     expect(view.vendorName).toBe("Atelier Élodie");
     expect(view.answer.quoteAmountCents).toBeNull();

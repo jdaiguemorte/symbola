@@ -34,6 +34,8 @@ import type {
   VendorFamilyInput,
   StarterVendorCatalogInput,
   VendorBankSummary,
+  VendorTypeSplitResult,
+  VendorTypeSplitStep,
 } from "@symbola/contracts";
 import { BUDGET_LINE_ICONS } from "@symbola/starter-templates";
 import { VENDOR_SOCIAL_NETWORKS, type VendorSocialLink } from "@symbola/contracts";
@@ -89,8 +91,11 @@ import {
 } from "./repository";
 import { DEFAULT_VENDOR_SETTINGS, estimateTravel, validateVendorSettings } from "./travel";
 import {
+  applyTypeSplitRows,
+  countVendorsByFamilyRows,
   countVendorsByTypeRows,
   deleteVendorFamilyRow,
+  findTypesWithVendorCounts,
   deleteVendorTypeMovingRows,
   findVendorFamilies,
   insertVendorFamily,
@@ -103,6 +108,9 @@ import {
 } from "./families";
 
 export { InvalidVendorFieldValueError, parseFieldInput } from "./fields";
+// Lot 63e (PRE-01, PRE-11 ; ADR 0105) : valeurs combinées (« Photographe et vidéaste »), pour l'import.
+export { combinedTypeParts, vendorTypeLabels } from "./type-split";
+import { planTypeSplit } from "./type-split";
 
 // Lot 20 (décision 5, ADR 0049).
 export class VendorTagNotFoundError extends Error {
@@ -129,6 +137,8 @@ export { estimateTravel, haversineKm } from "./travel";
 export { vendorsPrivacy } from "./privacy";
 export type {
   FindVendorsInput,
+  VendorTypeSplitResult,
+  VendorTypeSplitStep,
   SaveVendorResult,
   TravelEstimate,
   Vendor,
@@ -224,7 +234,9 @@ function toSummary(row: VendorRow): VendorSummary {
   return {
     id: row.id,
     name: row.name,
-    typeId: row.typeId,
+    typeIds: row.typeIds,
+    primaryTypeId: row.primaryTypeId,
+    typeId: row.primaryTypeId,
     postalCode: row.postalCode,
     city: row.city,
     location:
@@ -374,6 +386,33 @@ export async function mergeVendorTypes(organizationId: string, input: { sourceTy
 
 export function countVendorsByType(organizationId: string): Promise<{ typeId: string | null; count: number }[]> {
   return countVendorsByTypeRows(organizationId);
+}
+
+// Lot 63e (PRE-01) : nombre de fiches par famille, chacune une fois ; familyId nul : « à classer ».
+export function countVendorsByFamily(organizationId: string): Promise<{ total: number; families: { familyId: string | null; count: number }[] }> {
+  return countVendorsByFamilyRows(organizationId);
+}
+
+// Lot 63e (PRE-01, HUB-20 ; ADR 0105) — reprise des types combinés : ce qui changerait, sans rien
+// écrire (rapport montré avant la production), puis l'application. Le catalogue (types de départ du
+// métier, dans la langue de l'organisation) sert à créer un métier absent.
+export async function previewVendorTypeSplit(organizationId: string, _catalog: StarterVendorCatalogInput, locale: "fr" | "en"): Promise<VendorTypeSplitStep[]> {
+  return planTypeSplit(await findTypesWithVendorCounts(organizationId), locale);
+}
+
+export async function splitCombinedVendorTypes(organizationId: string, catalog: StarterVendorCatalogInput, locale: "fr" | "en"): Promise<VendorTypeSplitResult[]> {
+  const steps = await previewVendorTypeSplit(organizationId, catalog, locale);
+  if (steps.length === 0) return [];
+  const outcomes = await applyTypeSplitRows(
+    organizationId,
+    steps.map((step) => ({
+      typeId: step.typeId,
+      first: step.first.action === "merge" ? { action: "merge", intoTypeId: step.first.into.id } : { action: "rename", key: step.first.key, label: step.first.to },
+      others: step.others.map((part) => ({ key: part.key, existingTypeId: part.existing?.id ?? null })),
+    })),
+    catalog,
+  );
+  return outcomes.map((outcome) => ({ ...outcome, label: steps.find((step) => step.typeId === outcome.typeId)?.label ?? "" }));
 }
 
 // L16-PRE-14 / L16-PRE-15 — familles, propres à l'organisation.
@@ -557,7 +596,8 @@ async function tagPlanContext(organizationId: string) {
     findVendorTagCarriers(organizationId),
   ]);
   const familyOfType = new Map(types.map((type) => [type.id, type.familyId]));
-  const vendors: PlanVendor[] = carriers.map((vendor) => ({ id: vendor.id, name: vendor.name, familyId: vendor.typeId ? (familyOfType.get(vendor.typeId) ?? null) : null, tagIds: vendor.tagIds }));
+  // Lot 63e : la famille d'une fiche, pour ranger ses étiquettes, est celle de son métier principal.
+  const vendors: PlanVendor[] = carriers.map((vendor) => ({ id: vendor.id, name: vendor.name, familyId: vendor.typeIds[0] ? (familyOfType.get(vendor.typeIds[0]) ?? null) : null, tagIds: vendor.tagIds }));
   return { tags, groups, families, vendors };
 }
 
@@ -610,8 +650,14 @@ async function prepareWrite(organizationId: string, input: VendorInput): Promise
   const name = input.name.trim();
   if (!name) throw new RangeError("le nom du prestataire est obligatoire");
   const types = await listVendorTypes(organizationId);
-  const type = input.typeId ? types.find((candidate) => candidate.id === input.typeId) : null;
-  if (input.typeId && !type) throw new VendorTypeNotFoundError();
+  // Lot 63e (PRE-01 ; ADR 0105) : les métiers cochés (l'ancien typeId seul, si typeIds manque), le
+  // principal en premier. Un type d'une autre organisation n'existe pas ici (RLS) : refusé.
+  const wantedIds = [...new Set((input.typeIds ?? (input.typeId ? [input.typeId] : [])).filter(Boolean))];
+  const chosen = wantedIds.map((id) => types.find((candidate) => candidate.id === id));
+  if (chosen.some((type) => !type)) throw new VendorTypeNotFoundError();
+  const primaryId = input.primaryTypeId && wantedIds.includes(input.primaryTypeId) ? input.primaryTypeId : wantedIds[0];
+  if (input.primaryTypeId && !wantedIds.includes(input.primaryTypeId)) throw new VendorTypeNotFoundError();
+  const ordered = (chosen as VendorType[]).sort((a, b) => Number(b.id === primaryId) - Number(a.id === primaryId));
   const tagRows = await findVendorTags(organizationId);
   const tags = new Set(tagRows.map((tag) => tag.id));
   // Lot 20 (décision 5) : un seul palier par groupe « palier ».
@@ -622,7 +668,7 @@ async function prepareWrite(organizationId: string, input: VendorInput): Promise
   });
   if (new Set(chosenTiers).size !== chosenTiers.length) throw new VendorTagTierConflictError();
   return {
-    typeId: type?.id ?? null,
+    typeIds: ordered.map((type) => type.id),
     name,
     contactName: blankToNull(input.contactName),
     email: blankToNull(input.email),
@@ -637,7 +683,8 @@ async function prepareWrite(organizationId: string, input: VendorInput): Promise
     website: cleanWebsite(input.website),
     socialLinks: cleanSocialLinks(input.socialLinks ?? []),
     siret: cleanSiret(input.siret),
-    fieldValues: type ? cleanFieldValues(type.fields, input.fieldValues ?? {}) : {},
+    // Les champs de chaque métier s'ajoutent.
+    fieldValues: ordered.length > 0 ? cleanFieldValues(ordered.flatMap((type) => type.fields), input.fieldValues ?? {}) : {},
     tagIds: [...new Set((input.tagIds ?? []).filter((id) => tags.has(id)))],
   };
 }
@@ -705,7 +752,7 @@ export async function getVendorsByIds(organizationId: string, vendorIds: string[
 // import » (métier, ville, heure de la modification).
 export async function describeVendorsForImportUndo(organizationId: string, vendorIds: string[]): Promise<{ id: string; name: string; typeId: string | null; city: string | null; updatedAt: Date }[]> {
   const rows = await findVendorsByIds(organizationId, vendorIds.filter((id) => UUID.test(id)));
-  return rows.map((row) => ({ id: row.id, name: row.name, typeId: row.typeId, city: row.city, updatedAt: row.updatedAt }));
+  return rows.map((row) => ({ id: row.id, name: row.name, typeId: row.primaryTypeId, city: row.city, updatedAt: row.updatedAt }));
 }
 
 // Lot 29a (JRJ-02, décision D5) : coordonnées des prestataires retenus, pour l'écran du
@@ -866,7 +913,10 @@ export async function searchVendorBook(organizationId: string, words: string[], 
   if (words.length === 0) return [];
   const [rows, types] = await Promise.all([searchVendorRows(organizationId, words, limit), findVendorTypes(organizationId)]);
   const labels = new Map(types.map(({ type }) => [type.id, type.label]));
-  return rows.map((row) => ({ id: row.id, name: row.name, city: row.city, typeLabel: row.typeId ? (labels.get(row.typeId) ?? null) : null }));
+  return rows.map((row) => {
+    const typeLabels = row.typeIds.flatMap((id) => (labels.has(id) ? [labels.get(id)!] : []));
+    return { id: row.id, name: row.name, city: row.city, typeLabel: typeLabels[0] ?? null, typeLabels };
+  });
 }
 
 export async function geocodeAddress(address: string): Promise<{ latitude: number; longitude: number } | null> {
@@ -889,6 +939,9 @@ const _contractCheck: VendorsServiceContract = {
   setVendorTypeFamily,
   mergeVendorTypes,
   countVendorsByType,
+  countVendorsByFamily,
+  previewVendorTypeSplit,
+  splitCombinedVendorTypes,
   listVendorFamilies,
   createVendorFamily,
   updateVendorFamily,

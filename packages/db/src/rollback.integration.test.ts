@@ -90,6 +90,9 @@ const LOT_63B = ["0201_lot63b_events_program_hidden"];
 // Lot 63c : nom facultatif des évènements (0196, events) ; la plus récente, elle s'annule d'abord.
 const LOT_63D = ["0197_lot63d_events_task_categories"];
 const LOT_63C = ["0196_lot63c_events_name"];
+// Lot 63e : métiers d'une fiche (0198) puis retrait de vendors.type_id (0199) ; fusionné après les
+// lots 63c et 63d, il s'annule d'abord.
+const LOT_63E = ["0199_lot63e_vendors_drop_type_id", "0198_lot63e_vendors_type_links"];
 // Lot 60 : plans de salle (0191, schéma floorplans) et rubrique « Plan de salle » des liens (0192,
 // events) ; fusionnées en dernier, après les lots 35b, 35c et 58, elles s'annulent d'abord.
 const LOT_54 = ["0193_lot54_hub_subscriptions"];
@@ -120,7 +123,7 @@ const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
 // 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_63B, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
+const LOT_36 = [...LOT_63B, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
 // Lot 63c : l'ordre des annulations des lots récents, de la plus récente à la plus ancienne, se lit
 // dans cette seule liste. Un nouveau lot ajoute sa liste en tête de LOT_36, et rien d'autre : les
 // tests annulent par rollbackNewerThan et rollbackThrough, jamais par une suite écrite à la main.
@@ -198,8 +201,49 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     await target`delete from events.events where id = ${event!.id}`;
   });
 
+  it("lot 63e (PRE-01, PRE-11 ; ADR 0105) — 0198 et 0199 : chaque fiche typée reçoit son type comme métier principal, un seul principal par fiche, jamais le type d'une autre organisation ; l'annulation de 0199 rend le type principal, celle de 0198 est refusée tant qu'une fiche a plusieurs métiers", async () => {
+    await migrateAll();
+    await rollbackThrough(LOT_63E.at(-1)!);
+    const organizationId = randomUUID();
+    const otherOrganizationId = randomUUID();
+    const [photo] = await target<{ id: string }[]>`insert into vendors.vendor_types (organization_id, label, color) values (${organizationId}, 'Photographe', '#4f6b5a') returning id`;
+    const [video] = await target<{ id: string }[]>`insert into vendors.vendor_types (organization_id, label, color) values (${organizationId}, 'Vidéaste', '#4f6b5a') returning id`;
+    const [foreign] = await target<{ id: string }[]>`insert into vendors.vendor_types (organization_id, label, color) values (${otherOrganizationId}, 'Traiteur', '#4f6b5a') returning id`;
+    const [typed] = await target<{ id: string }[]>`insert into vendors.vendors (organization_id, name, type_id) values (${organizationId}, 'Studio Lumière', ${photo!.id}) returning id`;
+    const [untyped] = await target<{ id: string }[]>`insert into vendors.vendors (organization_id, name) values (${organizationId}, 'Sans type') returning id`;
+    await migrateAll();
+    // Reprise : le type actuel devient le métier principal ; une fiche sans type n'a aucun métier.
+    const links = await target<{ vendor_id: string; type_id: string; is_primary: boolean }[]>`select vendor_id, type_id, is_primary from vendors.vendor_type_links where organization_id = ${organizationId}`;
+    expect(links).toEqual([{ vendor_id: typed!.id, type_id: photo!.id, is_primary: true }]);
+    expect(await hasColumn("vendors", "vendors", "type_id")).toBe(false);
+    // Au plus un métier principal par fiche ; un métier en double est refusé.
+    await expect(target`insert into vendors.vendor_type_links (organization_id, vendor_id, type_id, is_primary) values (${organizationId}, ${typed!.id}, ${video!.id}, true)`).rejects.toThrow(/vendor_type_links_one_primary/);
+    await expect(target`insert into vendors.vendor_type_links (organization_id, vendor_id, type_id) values (${organizationId}, ${typed!.id}, ${photo!.id})`).rejects.toThrow(/vendor_type_links_vendor_type_key/);
+    // SEC-10 : un type d'une autre organisation n'est jamais un métier de la fiche.
+    await expect(target`insert into vendors.vendor_type_links (organization_id, vendor_id, type_id) values (${organizationId}, ${typed!.id}, ${foreign!.id})`).rejects.toThrow(/autre organisation/);
+    await target`insert into vendors.vendor_type_links (organization_id, vendor_id, type_id, position) values (${organizationId}, ${typed!.id}, ${video!.id}, 1)`;
+    // Les migrations plus récentes (0201), rejouées par migrateAll, s'annulent d'abord.
+    await rollbackNewerThan(LOT_63E[0]!);
+    // 0199 annulée : la colonne revient avec le métier principal.
+    await rollback(LOT_63E[0]!);
+    const [back] = await target<{ type_id: string | null }[]>`select type_id from vendors.vendors where id = ${typed!.id}`;
+    expect(back!.type_id).toBe(photo!.id);
+    await expect(rollback(LOT_63E[1]!)).rejects.toThrow(/plusieurs métiers/);
+    await target`delete from vendors.vendor_type_links where vendor_id = ${typed!.id} and type_id = ${video!.id}`;
+    await rollback(LOT_63E[1]!);
+    const [table] = await target<{ name: string | null }[]>`select to_regclass('vendors.vendor_type_links')::text as name`;
+    expect(table!.name).toBeNull();
+    // Rejouée, la reprise ne double rien ; une fiche typée entre 0198 et 0199 garde son type.
+    await migrateAll();
+    const [count] = await target<{ n: number }[]>`select count(*)::int as n from vendors.vendor_type_links where vendor_id = ${typed!.id}`;
+    expect(count!.n).toBe(1);
+    await target`delete from vendors.vendors where id in (${typed!.id}, ${untyped!.id})`;
+    await target`delete from vendors.vendor_types where id in (${photo!.id}, ${video!.id}, ${foreign!.id})`;
+  });
+
   it("lot 63d (CHR-03, HUB-20) — 0197 : catégories et priorité des tâches ; annulation refusée tant qu'une tâche a une catégorie ou la priorité haute, puis tout est retiré", async () => {
     await migrateAll();
+    await rollbackNewerThan(LOT_63D[0]!);
     const organizationId = randomUUID();
     const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
     await expect(target`insert into events.task_categories (organization_id, label, color) values (${organizationId}, 'Client', '#3B6FD8')`).rejects.toThrow(/task_categories_color_check/);
@@ -208,8 +252,6 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     const [task] = await target<{ id: string; priority: string }[]>`insert into events.event_tasks (organization_id, event_id, label, due_date, category_id) values (${organizationId}, ${event!.id}, 'Envoyer le questionnaire', '2027-03-01', ${category!.id}) returning id, priority`;
     expect(task!.priority).toBe("normal");
     await expect(target`update events.event_tasks set priority = 'urgent' where id = ${task!.id}`).rejects.toThrow(/event_tasks_priority_check/);
-    // Les migrations plus récentes (0201) s'annulent d'abord.
-    await rollbackNewerThan(LOT_63D[0]!);
     await expect(rollback(LOT_63D[0]!)).rejects.toThrow(/ont une catégorie/);
     // Une catégorie retirée laisse sa tâche sans catégorie.
     await target`delete from events.task_categories where id = ${category!.id}`;

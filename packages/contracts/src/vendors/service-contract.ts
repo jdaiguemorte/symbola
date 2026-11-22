@@ -83,6 +83,11 @@ export type VendorFile = { id: string; kind: VendorFileKind; fileName: string; m
 export type VendorSummary = {
   id: string;
   name: string;
+  // Lot 63e (PRE-01, PRE-11 ; ADR 0105) : les métiers de la fiche, le principal en premier, et le
+  // principal (couleur et icône sur la carte) ; vide et null pour une fiche sans métier.
+  typeIds: string[];
+  primaryTypeId: string | null;
+  /** @deprecated Lot 63e : le métier principal, gardé le temps que les appelants passent à typeIds et primaryTypeId. */
   typeId: string | null;
   postalCode: string | null;
   city: string | null;
@@ -134,7 +139,11 @@ export type VendorSocialLink = { network: VendorSocialNetwork; url: string };
 
 export type VendorInput = {
   name: string;
-  typeId: string | null;
+  // Lot 63e (ADR 0105) : les métiers cochés, et le principal (parmi eux ; à défaut, le premier).
+  typeIds?: string[];
+  primaryTypeId?: string | null;
+  /** @deprecated Lot 63e : un seul métier ; pris seulement si typeIds est absent. */
+  typeId?: string | null;
   contactName?: string | null;
   email?: string | null;
   phone?: string | null;
@@ -200,7 +209,19 @@ export type VendorHistoryEntry = {
 };
 export type VendorHistory = { entries: VendorHistoryEntry[]; averageFinalCents: number | null };
 
-export type VendorBookSearchResult = { id: string; name: string; city: string | null; typeLabel: string | null };
+// typeLabel : le métier principal ; typeLabels (lot 63e) : tous les métiers, le principal en premier.
+export type VendorBookSearchResult = { id: string; name: string; city: string | null; typeLabel: string | null; typeLabels: string[] };
+
+// Lot 63e (PRE-01, HUB-20 ; ADR 0105) — reprise des types combinés d'une organisation : ce que devient
+// chaque type combiné (fusion dans un métier existant ou renommé, métiers ajoutés trouvés ou créés).
+export type VendorTypeSplitStep = {
+  typeId: string;
+  label: string;
+  vendorCount: number;
+  first: { action: "merge"; into: { id: string; label: string } } | { action: "rename"; key: string; to: string };
+  others: { key: string; label: string; existing: { id: string; label: string } | null }[];
+};
+export type VendorTypeSplitResult = { typeId: string; label: string; vendors: number; createdTypes: string[] };
 
 export type VendorsServiceContract = {
   listVendorTypes(organizationId: string): Promise<VendorType[]>;
@@ -212,6 +233,11 @@ export type VendorsServiceContract = {
   setVendorTypeFamily(organizationId: string, typeId: string, familyId: string | null): Promise<void>;
   mergeVendorTypes(organizationId: string, input: { sourceTypeId: string; targetTypeId: string }): Promise<{ movedVendors: number; movedFields: number }>;
   countVendorsByType(organizationId: string): Promise<{ typeId: string | null; count: number }[]>;
+  // Lot 63e : chaque fiche une fois par famille ; familyId nul : « à classer » ; total : fiches (hors
+  // archives), chacune une fois.
+  countVendorsByFamily(organizationId: string): Promise<{ total: number; families: { familyId: string | null; count: number }[] }>;
+  previewVendorTypeSplit(organizationId: string, catalog: StarterVendorCatalogInput, locale: "fr" | "en"): Promise<VendorTypeSplitStep[]>;
+  splitCombinedVendorTypes(organizationId: string, catalog: StarterVendorCatalogInput, locale: "fr" | "en"): Promise<VendorTypeSplitResult[]>;
   listVendorFamilies(organizationId: string): Promise<VendorFamily[]>;
   createVendorFamily(organizationId: string, input: VendorFamilyInput): Promise<VendorFamily>;
   updateVendorFamily(organizationId: string, familyId: string, input: VendorFamilyInput): Promise<void>;
