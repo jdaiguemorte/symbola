@@ -83,6 +83,7 @@ export { EmailTemplateInvalidError, getEmailTemplate, isEmailTemplateKind, listE
 export {
   assertOrganizationEmailReady,
   composeOrganizationEmail,
+  composePreparedEmailText,
   EmailVariableMissingError,
   previewEmailTemplate,
   sendOrganizationEmail,
@@ -90,6 +91,24 @@ export {
   sendTestEmail,
   type EmailPreview,
 } from "./emails";
+// Lot 65d (MSG-01, HUB-20, HUB-28 ; ADR 0110) : qui envoie les messages de la relation, et les messages
+// préparés pour la messagerie de la planner.
+export {
+  depositPreparedEmail,
+  dismissPreparedEmail,
+  getPreparedEmail,
+  getRelationMailSender,
+  isRelationEmailKind,
+  listPreparedEmails,
+  markPreparedEmailSent,
+  PreparedEmailError,
+  preparedMailto,
+  preparesRelationEmail,
+  RELATION_EMAIL_KINDS,
+  setRelationMailSender,
+  TECHNICAL_EMAIL_KINDS,
+  type DepositPreparedEmailInput,
+} from "./relation-mail";
 
 export {
   emptyStorageTotals,

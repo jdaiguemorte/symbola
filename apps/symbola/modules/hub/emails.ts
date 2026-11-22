@@ -25,6 +25,7 @@ import { organizationFromAddress } from "./email-deliveries";
 import { deliveryReference, messageIdDomain } from "./sender-address-rules";
 import { DELIVERY_HEADER } from "./scaleway-webhook";
 import { findOrganizationById, findOrganizationProfile, findUserContact } from "./repository";
+import { preparesRelationEmail } from "./relation-mail";
 
 const LOGO_CID = "logo@symbola";
 const PLACEHOLDER_LINK = "https://symbola.invalid/lien";
@@ -143,6 +144,19 @@ export async function composeOrganizationEmail(input: {
   };
 }
 
+// Lot 65d (MSG-01 ; ADR 0110) — le message de la relation préparé pour la messagerie de la planner :
+// l'objet et le texte brut, sans mise en page ni pied (sa messagerie ajoute sa signature) ; un lien
+// devient une ligne « Libellé : adresse ». Une variable employée sans valeur lève
+// EmailVariableMissingError, comme pour un envoi.
+export async function composePreparedEmailText(input: { organizationId: string; kind: EmailTemplateKind; locale: EmailLocale; values: EmailValues; template?: EmailTemplateText }): Promise<{ subject: string; body: string }> {
+  const [identity, template] = await Promise.all([organizationIdentity(input.organizationId), input.template ?? getEmailTemplate(input.organizationId, input.kind, input.locale)]);
+  const { layout, missing } = layoutOf({ kind: input.kind, locale: input.locale, identity, template, values: input.values, banner: null });
+  if (missing.length > 0) throw new EmailVariableMissingError(missing, input.kind, input.locale);
+  const separator = input.locale === "en" ? ": " : " : ";
+  const body = layout.blocks.map((block) => (block.kind === "button" ? `${block.label}${separator}${block.url}` : block.text)).join("\n\n");
+  return { subject: layout.subject, body };
+}
+
 // Avant un geste qu'on ne défait pas (créer un lien, demander une signature) : l'e-mail qui suivra
 // pourra-t-il partir ? Le lien, pas encore connu, est remplacé par une adresse d'attente.
 export async function assertOrganizationEmailReady(input: { organizationId: string; kind: EmailTemplateKind; locale: EmailLocale; values: EmailValues }): Promise<void> {
@@ -166,7 +180,13 @@ export async function sendOrganizationEmail(input: {
   idempotencyKey?: string;
   // Lot 55 (MSG-05) : l'évènement de l'e-mail, pour le journal des envois par évènement.
   eventId?: string | null;
-}): Promise<{ deferred: boolean }> {
+}): Promise<{ deferred: boolean; prepared?: true }> {
+  // Lot 65d (MSG-01 ; ADR 0110) : garde-fou. Un message de la relation ne part jamais de Symbola quand
+  // l'organisation l'envoie de sa messagerie ; l'appelant dépose un message préparé (depositPreparedEmail).
+  if (await preparesRelationEmail(input.organizationId, input.kind)) {
+    console.error(`message de la relation non envoyé par Symbola (${input.kind}) : l'organisation l'envoie de sa messagerie`);
+    return { deferred: false, prepared: true };
+  }
   const mail = await composeOrganizationEmail(input);
   if (input.idempotencyKey && (await jobKeyExists(input.organizationId, input.idempotencyKey))) return { deferred: false };
   if (input.reserve !== false) await reserveOrganizationMail(input.organizationId);

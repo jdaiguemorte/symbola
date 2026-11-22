@@ -505,3 +505,4 @@ export * from "./events/planning";
 // journal des envois.
 export * from "./events/messages";
 export * from "./hub/email-deliveries";
+export * from "./hub/relation-mail";

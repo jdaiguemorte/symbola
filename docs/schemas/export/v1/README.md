@@ -21,6 +21,7 @@ Le format est décrit dans `docs/export/format-v1.md`.
 | `message_template_versions` | `id`, `templateId`, `version`, `subject`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [message_template_versions.schema.json](hub/message_template_versions.schema.json) |
 | `automations` | `id`, `key`, `enabled`, `days`, `resumedAt`, `lastRunOn`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [automations.schema.json](hub/automations.schema.json) |
 | `risk_rules` | `id`, `rule`, `enabled`, `thresholdDays`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [risk_rules.schema.json](hub/risk_rules.schema.json) |
+| `relation_mail_settings` | `sender`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [relation_mail_settings.schema.json](hub/relation_mail_settings.schema.json) |
 | `privacy_settings` | `requestAlertDays`, `prospectRetentionMonths`, `clientRetentionMonths`, `accountingRetentionMonths`, `inactiveAccountMonths`, `signedQuoteRetentionMonths`, `requestProofRetentionMonths`, `linkPrivacyNotice`, `guestRetentionDays`, `guestDietRetentionDays`, `guestPurgeMaxPostponeDays`, `updatedAt`, `createdAt`, `createdBy`, `updatedBy` | [privacy_settings.schema.json](hub/privacy_settings.schema.json) |
 | `privacy_requests` | `id`, `type`, `personLabel`, `receivedOn`, `dueOn`, `status`, `extensionReason`, `extendedAt`, `closedAt`, `actionDoneAt`, `responseSentAt`, `createdByUserId`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy` | [privacy_requests.schema.json](hub/privacy_requests.schema.json) |
 | `privacy_exports` | `id`, `requestId`, `recordCount`, `createdByUserId`, `createdAt`, `expiresAt`, `purgedAt`, `createdBy`, `updatedAt`, `updatedBy` | [privacy_exports.schema.json](hub/privacy_exports.schema.json) |
@@ -70,6 +71,7 @@ Tables non exportées :
 - `feature_flag_organizations` — exploitation : fonctions nouvelles ouvertes à l'espace par l'Exploitation
 - `storage_quota_states` — exploitation : dernière mesure du stockage face au quota (des nombres)
 - `module_requests` — exploitation : demandes d'activation d'une app à l'équipe Symbola (module, dates)
+- `prepared_emails` — trace : messages de la relation préparés pour la messagerie de la planner (modèle, identifiants, état), sans contenu
 
 ## Module `events`
 

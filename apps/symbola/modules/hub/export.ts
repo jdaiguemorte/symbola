@@ -22,6 +22,7 @@ import {
   contactMerges,
   emailTemplates,
   automations,
+  relationMailSettings,
   riskRules,
   membershipRoleEnum,
   messageTemplates,
@@ -63,6 +64,8 @@ export const HUB_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   // et les notifications ne sont que des traces de 90 jours.
   { table: automations },
   { table: riskRules },
+  // Lot 65d (MSG-01 ; ADR 0110) : qui envoie les messages de la relation.
+  { table: relationMailSettings, idField: "organizationId" },
   { table: privacySettings, idField: "organizationId" },
   { table: privacyRequests },
   // Trace des exports RGPD : leurs fichiers, effacés à l'expiration, ne sont pas repris.
@@ -137,6 +140,9 @@ export const HUB_EXPORT_EXCLUSIONS: Readonly<Record<string, string>> = {
   storage_quota_states: "exploitation : dernière mesure du stockage face au quota (des nombres)",
   // Lot 63g (HUB-06 ; ADR 0108) : une démarche auprès de Symbola, pas une donnée de l'organisation.
   module_requests: "exploitation : demandes d'activation d'une app à l'équipe Symbola (module, dates)",
+  // Lot 65d (MSG-01 ; ADR 0110) : des identifiants seulement, recomposés à l'ouverture ; sans sens hors de
+  // l'espace d'origine.
+  prepared_emails: "trace : messages de la relation préparés pour la messagerie de la planner (modèle, identifiants, état), sans contenu",
 };
 
 export async function exportHubData(organizationId: string, context: ModuleExportContext): Promise<ModuleExport> {
