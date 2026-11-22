@@ -1429,6 +1429,13 @@
       "when": 1795312580292,
       "tag": "0203_lot64_appointments_type_description",
       "breakpoints": true
+    },
+    {
+      "idx": 204,
+      "version": "7",
+      "when": 1795337185038,
+      "tag": "0204_lot65d_events_vendor_reminders",
+      "breakpoints": true
     }
   ]
 }

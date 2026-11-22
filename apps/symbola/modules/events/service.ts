@@ -182,7 +182,7 @@ import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
 import { answerDecisionRow, findDecisionRow, findDecisionRows, insertDecisionRow, replacementsOf, withdrawDecisionRow, type EventDecisionRow } from "./decisions-repository";
 import { engageOptionChoice, engagementContext } from "./vendor-coordination";
-import { findPendingDecisions, findUncontractedVendors, insertVendorReminder } from "./today-sources";
+import { findLastVendorReminders, findPendingDecisions, findUncontractedVendors, insertVendorReminder } from "./today-sources";
 import { VendorCandidateNotFoundError as CandidateNotFoundError } from "./vendor-candidates";
 import { answerProblem, DECISION_NOTE_MAX, decisionOpenTo, programChangedSince } from "./decisions";
 import { hashLinkCode, LINK_CODE_TTL_MS, LINK_CODES_PER_HOUR, linkCodeExpiresAt, maskEmail, newLinkCode, normalizeLinkCode } from "./link-otp";
@@ -3040,13 +3040,46 @@ export async function listUncontractedVendors(organizationId: string, today: str
 // D6 : la relance d'un prestataire s'inscrit dans l'activité de l'évènement ; le message part de la
 // messagerie de la planner (l'appelant), Symbola n'envoie rien. Lot 33b (HUB-10) : jamais depuis un
 // évènement fictif, même vers un prestataire réel du carnet ajouté à l'exemple.
-export async function recordVendorReminder(input: { organizationId: string; eventId: string; candidateId: string; userId: string }): Promise<{ vendorName: string; vendorId: string | null; slotLabel: string }> {
+// Lot 65d (PRE-02, HUB-08 ; M16) : « Noter une relance » — la planner déclare comment et quand elle a
+// relancé (téléphone, e-mail, SMS, de vive voix), et quand y revenir ; sans moyen précisé, un e-mail
+// le jour même (geste du lot 32a). Le rappel vient après la relance ; la note va aux notes internes.
+export type VendorReminderChannel = "phone" | "email" | "sms" | "in_person";
+export const VENDOR_REMINDER_CHANNEL_KEYS: readonly VendorReminderChannel[] = ["phone", "email", "sms", "in_person"];
+
+export async function recordVendorReminder(input: {
+  organizationId: string;
+  eventId: string;
+  candidateId: string;
+  userId: string;
+  channel?: VendorReminderChannel;
+  remindedOn?: string;
+  recallOn?: string | null;
+  note?: string | null;
+  today?: string;
+}): Promise<{ vendorName: string; vendorId: string | null; slotLabel: string }> {
+  const today = input.today ?? parisToday(new Date());
+  const remindedOn = input.remindedOn ?? today;
+  assertDate(remindedOn);
+  if (remindedOn > today) throw new RangeError("une relance notée est passée ou du jour");
+  const recallOn = input.recallOn ?? null;
+  if (recallOn !== null) {
+    assertDate(recallOn);
+    if (recallOn < remindedOn) throw new RangeError("le rappel vient après la relance");
+  }
+  const channel = input.channel ?? "email";
+  if (!VENDOR_REMINDER_CHANNEL_KEYS.includes(channel)) throw new RangeError("moyen de relance inconnu");
+  const note = input.note?.trim() ? input.note.trim().slice(0, 2000) : null;
   const found = await findEventById(input.organizationId, input.eventId);
   if (!found) throw new CandidateNotFoundError();
   if (found.event.isDemo) throw new DemoEventRestrictionError();
-  const recorded = await insertVendorReminder(input);
+  const recorded = await insertVendorReminder({ organizationId: input.organizationId, eventId: input.eventId, candidateId: input.candidateId, userId: input.userId, channel, remindedOn, recallOn, note });
   if (!recorded) throw new CandidateNotFoundError();
   return recorded;
+}
+
+// Lot 65d (M16) : la dernière relance notée de chaque prestataire de l'évènement.
+export async function listLastVendorReminders(organizationId: string, eventId: string): Promise<Map<string, { remindedOn: string; channel: VendorReminderChannel; recallOn: string | null }>> {
+  return (await findLastVendorReminders(organizationId, eventId)) as Map<string, { remindedOn: string; channel: VendorReminderChannel; recallOn: string | null }>;
 }
 
 export async function listEventDecisions(organizationId: string, eventId: string): Promise<EventDecision[]> {

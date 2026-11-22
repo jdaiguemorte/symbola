@@ -96,6 +96,8 @@ const LOT_63C = ["0196_lot63c_events_name"];
 // Lot 64 : plages occupées (0202, events) et description des types de rendez-vous (0203,
 // appointments). Fusionné après le lot 63 : annulé avant tous les autres lots.
 const LOT_64 = ["0203_lot64_appointments_type_description", "0202_lot64_events_busy_ranges"];
+// Lot 65d : relances notées (0204, events) ; la plus récente, annulée d'abord.
+const LOT_65 = ["0204_lot65d_events_vendor_reminders"];
 // Lot 63e : métiers d'une fiche (0198) puis retrait de vendors.type_id (0199) ; fusionné après les
 // lots 63c et 63d, il s'annule d'abord.
 const LOT_63E = ["0199_lot63e_vendors_drop_type_id", "0198_lot63e_vendors_type_links"];
@@ -129,7 +131,7 @@ const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
 // 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
+const LOT_36 = [...LOT_65, ...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
 // Lot 63c : l'ordre des annulations des lots récents, de la plus récente à la plus ancienne, se lit
 // dans cette seule liste. Un nouveau lot ajoute sa liste en tête de LOT_36, et rien d'autre : les
 // tests annulent par rollbackNewerThan et rollbackThrough, jamais par une suite écrite à la main.
@@ -192,8 +194,29 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
+  it("lot 65d (PRE-02, HUB-08 ; M16) — 0204 : la base refuse un moyen inconnu ou un rappel avant la relance ; annulation refusée tant qu'une relance est notée, puis la table est retirée", async () => {
+    await migrateAll();
+    const organizationId = randomUUID();
+    const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
+    const [slot] = await target<{ id: string }[]>`insert into events.event_vendor_slots (organization_id, event_id, label) values (${organizationId}, ${event!.id}, 'Traiteur') returning id`;
+    const [candidate] = await target<{ id: string }[]>`insert into events.event_vendor_candidates (organization_id, event_id, vendor_slot_id, vendor_name) values (${organizationId}, ${event!.id}, ${slot!.id}, 'Les Saveurs') returning id`;
+    await expect(target`insert into events.vendor_reminders (organization_id, event_id, candidate_id, channel, reminded_on) values (${organizationId}, ${event!.id}, ${candidate!.id}, 'pigeon', '2026-11-22')`).rejects.toThrow(/vendor_reminders_channel_check/);
+    await expect(target`insert into events.vendor_reminders (organization_id, event_id, candidate_id, channel, reminded_on, recall_on) values (${organizationId}, ${event!.id}, ${candidate!.id}, 'phone', '2026-11-22', '2026-11-21')`).rejects.toThrow(/vendor_reminders_recall_check/);
+    await target`insert into events.vendor_reminders (organization_id, event_id, candidate_id, channel, reminded_on, recall_on) values (${organizationId}, ${event!.id}, ${candidate!.id}, 'phone', '2026-11-22', '2026-11-25')`;
+    await expect(rollback(LOT_65[0]!)).rejects.toThrow(/relances sont notées/);
+    await target`delete from events.vendor_reminders where organization_id = ${organizationId}`;
+    await rollback(LOT_65[0]!);
+    const [table] = await target<{ name: string | null }[]>`select to_regclass('events.vendor_reminders')::text as name`;
+    expect(table!.name).toBeNull();
+    await target`delete from events.event_vendor_candidates where id = ${candidate!.id}`;
+    await target`delete from events.event_vendor_slots where id = ${slot!.id}`;
+    await target`delete from events.events where id = ${event!.id}`;
+    await migrateAll();
+  });
+
   it("lot 64 (HUB-29, RDV-02 ; D1, D6, D8 ; ADR 0109) — 0202 et 0203 : la base refuse une plage incomplète, hors bornes ou à l'envers ; annulation refusée tant qu'un réglage ou une description existe, puis tout est retiré", async () => {
     await migrateAll();
+    await rollbackNewerThan(LOT_64[0]!);
     const organizationId = randomUUID();
     const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;
     // Les quatre valeurs vont ensemble ; la fin vient après le début ; jours de -7 à 7.
