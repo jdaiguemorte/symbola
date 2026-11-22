@@ -2333,3 +2333,78 @@ fields:
       préparé, pseudonyme, pour le fil d'activité de l'évènement. Gardé avec la trace de l'envoi.
     anonymization: >-
       Effacé avec l'organisation (fermeture de l'espace, lot 35c).
+  # Lot 66c (HUB-18, MSG-01 ; D5, D6 ; ADR 0113) — la signature de chaque membre de l'équipe et la marque
+  # des e-mails. Les destinataires reçoivent la signature dans le corps de l'e-mail (et sa photo en pièce
+  # jointe en ligne) : ce qui est parti reste dans leur messagerie.
+  - schema: hub
+    table: member_signatures
+    field: display_name
+    category: contact
+    retention: >-
+      Lot 66c (HUB-18, D5, ADR 0113) : nom affiché dans la signature des e-mails d'un membre de l'équipe, saisi par lui-même dans Mon compte › Ma signature. Gardé tant que son accès à l'organisation existe.
+    anonymization: >-
+      Effacé avec la signature quand la titulaire retire l'accès du membre (eraseMemberSignature, photo retirée du stockage), et avec l'organisation (fermeture de l'espace, lot 35c). Exporté avec l'équipe, non repris par une reprise d'export.
+  - schema: hub
+    table: member_signatures
+    field: job_title
+    category: contenu_libre
+    retention: >-
+      Lot 66c (HUB-18, D5, ADR 0113) : fonction affichée dans la signature d'un membre de l'équipe. Gardée tant que son accès existe.
+    anonymization: >-
+      Effacé avec la signature quand la titulaire retire l'accès du membre (eraseMemberSignature, photo retirée du stockage), et avec l'organisation (fermeture de l'espace, lot 35c). Exporté avec l'équipe, non repris par une reprise d'export.
+  - schema: hub
+    table: member_signatures
+    field: phone
+    category: contact
+    retention: >-
+      Lot 66c (HUB-18, D5, ADR 0113) : téléphone affiché dans la signature d'un membre de l'équipe (souvent professionnel). Gardé tant que son accès existe.
+    anonymization: >-
+      Effacé avec la signature quand la titulaire retire l'accès du membre (eraseMemberSignature, photo retirée du stockage), et avec l'organisation (fermeture de l'espace, lot 35c). Exporté avec l'équipe, non repris par une reprise d'export.
+  - schema: hub
+    table: member_signatures
+    field: website
+    category: contact
+    retention: >-
+      Lot 66c (HUB-18, D5, ADR 0113) : adresse du site affichée dans la signature d'un membre. Gardée tant que son accès existe.
+    anonymization: >-
+      Effacé avec la signature quand la titulaire retire l'accès du membre (eraseMemberSignature, photo retirée du stockage), et avec l'organisation (fermeture de l'espace, lot 35c). Exporté avec l'équipe, non repris par une reprise d'export.
+  - schema: hub
+    table: member_signatures
+    field: links
+    category: contact
+    retention: >-
+      Lot 66c (HUB-18, D5, ADR 0113) : jusqu'à quatre liens (nom et adresse : réseaux sociaux, site de mariage…) de la signature d'un membre. Gardés tant que son accès existe.
+    anonymization: >-
+      Effacé avec la signature quand la titulaire retire l'accès du membre (eraseMemberSignature, photo retirée du stockage), et avec l'organisation (fermeture de l'espace, lot 35c). Exporté avec l'équipe, non repris par une reprise d'export.
+  - schema: hub
+    table: member_signatures
+    field: photo_key
+    category: contenu_libre
+    retention: >-
+      Lot 66c (HUB-18, D5, ADR 0113) : clé, dans le stockage privé, de la photo facultative de la signature d'un membre (PNG ou JPEG contrôlé comme le logo : type, taille, antivirus). Servie à lui seul dans l'app ; jointe aux e-mails qu'il envoie. Remplacée : l'ancienne photo est retirée du stockage.
+    anonymization: >-
+      Effacé avec la signature quand la titulaire retire l'accès du membre (eraseMemberSignature, photo retirée du stockage), et avec l'organisation (fermeture de l'espace, lot 35c). Exporté avec l'équipe, non repris par une reprise d'export.
+  - schema: hub
+    table: member_signatures
+    field: user_id
+    category: identifiant
+    retention: >-
+      Lot 66c (HUB-18, D5, ADR 0113) : compte du membre à qui la signature appartient, pseudonyme. Gardé avec la signature.
+    anonymization: >-
+      Effacé avec la signature quand la titulaire retire l'accès du membre (eraseMemberSignature, photo retirée du stockage), et avec l'organisation (fermeture de l'espace, lot 35c). Exporté avec l'équipe, non repris par une reprise d'export.
+  - schema: hub
+    table: email_branding
+    field: sender_name
+    category: contenu_libre
+    retention: >-
+      Lot 66c (HUB-18, MSG-01, ADR 0113) : nom affiché de l'expéditeur des e-mails de l'organisation (« Camille — Atelier Lumière »), qui peut porter le prénom d'une personne de l'équipe. Réglage de l'organisation, gardé tant qu'elle existe.
+    anonymization: >-
+      Effacé avec l'organisation (fermeture de l'espace, lot 35c) ; la personne des envois automatiques n'est pas reprise par une reprise d'export.
+  - schema: hub
+    table: email_branding
+    field: automatic_signer_user_id
+    category: identifiant
+    retention: >-
+      Lot 66c (HUB-18, D5, ADR 0113) : compte de la personne dont la signature porte les envois automatiques (nul : la titulaire), pseudonyme. Ignoré dès que son accès est retiré.
+    anonymization: >-
+      Effacé avec l'organisation (fermeture de l'espace, lot 35c) ; la personne des envois automatiques n'est pas reprise par une reprise d'export.
