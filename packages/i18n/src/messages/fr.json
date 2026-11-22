@@ -969,7 +969,7 @@
     },
     "vendorDetail": {
       "title": "Fiche d'un prestataire",
-      "body": "La fiche réunit tout ce que vous savez du prestataire : coordonnées, caractéristiques de son type, évaluation, tarifs indicatifs, historique avec vous. Les pièces (assurance, Kbis) ont une fin de validité et peuvent être demandées au prestataire. L'IBAN est chiffré et n'apparaît que masqué : s'il change, un bandeau vous demande d'appeler le prestataire au numéro déjà connu, jamais à celui du message qui annonce le changement, avant tout paiement. Une note marquée confidentielle est chiffrée et réservée à vous et à la titulaire. Pour un lieu, les contraintes (fin de la musique, accès des prestataires, capacité) contrôlent le programme de l'évènement, sans jamais rien bloquer.",
+      "body": "La fiche réunit tout ce que vous savez du prestataire : coordonnées, métiers et caractéristiques de chacun, évaluation, tarifs indicatifs, historique avec vous. Un prestataire peut exercer plusieurs métiers (photographe et vidéaste) : cochez-les tous, le principal donne la couleur et l'icône sur la carte, et la fiche est trouvée par chacun. « Modifier la fiche » l'ouvre en grande fenêtre, rubrique par rubrique ; « Suivant » enregistre et passe à la suite. Les pièces (assurance, Kbis) ont une fin de validité et peuvent être demandées au prestataire. L'IBAN est chiffré et n'apparaît que masqué : s'il change, un bandeau vous demande d'appeler le prestataire au numéro déjà connu, jamais à celui du message qui annonce le changement, avant tout paiement. Une note marquée confidentielle est chiffrée et réservée à vous et à la titulaire. Pour un lieu, les contraintes (fin de la musique, accès des prestataires, capacité) contrôlent le programme de l'évènement, sans jamais rien bloquer.",
       "faq": [
         {
           "q": "Archiver efface-t-il son historique ?",
@@ -979,7 +979,7 @@
     },
     "vendorNew": {
       "title": "Nouveau prestataire",
-      "body": "Un nom et un type suffisent pour créer la fiche ; le reste se complète plus tard. L'adresse saisie place le prestataire sur la carte, et vous pouvez corriger le point à la main."
+      "body": "Un nom suffit pour créer la fiche ; ses métiers et le reste se complètent rubrique par rubrique, tout de suite ou plus tard. Un prestataire peut avoir plusieurs métiers. L'adresse saisie place le prestataire sur la carte, et vous pouvez corriger le point à la main."
     },
     "search": {
       "title": "Recherche",
@@ -3700,7 +3700,8 @@
     "decisionIgnoreFor": "Ignorer la ligne {title}",
     "decisionKeep": "Garder la ligne",
     "decisionKeepFor": "Garder la ligne {title}",
-    "contactSameLine": "La ligne {line}, à la même adresse e-mail"
+    "contactSameLine": "La ligne {line}, à la même adresse e-mail",
+    "typesCombinedFrom": "Vient de {labels} : plusieurs métiers sur la même fiche"
   },
   "Privacy": {
     "title": "Données personnelles",
@@ -4888,7 +4889,7 @@
     "travelSaved": "Paramètres enregistrés.",
     "travelInvalid": "Coefficient entre 1 et 3, vitesse entre 5 et 130 km/h.",
     "exportName": "Nom",
-    "exportType": "Type",
+    "exportType": "Métiers",
     "exportContact": "Contact",
     "exportPhone": "Téléphone",
     "exportEmail": "E-mail",
@@ -5084,7 +5085,34 @@
       "min": "{field} : au moins {value}",
       "max": "{field} : au plus {value}",
       "eq": "{field} : {value}"
-    }
+    },
+    "trades": "Métiers",
+    "tradesHint": "Cochez tous les métiers de ce prestataire. Le principal donne la couleur et l'icône sur la carte.",
+    "tradesNone": "Aucun métier au carnet pour l'instant : ajoutez-en dans les réglages des prestataires.",
+    "tradesAddOther": "Ajouter un métier d'une autre famille",
+    "tradesChoose": "Choisir les métiers",
+    "tradePrimary": "Principal",
+    "tradePrimaryOf": "{type} est le métier principal",
+    "tradePrimaryBadge": "{type} (principal)",
+    "tagsFor": "Étiquettes : {trades}",
+    "tagsForAll": "Étiquettes pour tous les métiers",
+    "summaryTrades": "{count, plural, one {Métier} other {Métiers}}",
+    "rubricsLabel": "Rubriques de la fiche",
+    "rubric": {
+      "identity": "Identité",
+      "trades": "Métiers et étiquettes",
+      "contact": "Coordonnées",
+      "prices": "Tarifs et note"
+    },
+    "rubricProgress": "Rubrique {index} sur {count}",
+    "rubricElsewhere": "Les pièces, la banque, les fichiers et le point sur la carte se règlent sur la fiche, sous la fenêtre.",
+    "rubricPrevious": "Précédent",
+    "rubricNext": "Suivant : {rubric}",
+    "createAndNext": "Créer, puis {rubric}",
+    "saveAndClose": "Enregistrer et fermer",
+    "windowBack": "Retour",
+    "windowClose": "Fermer",
+    "editTitle": "{vendor} : modifier"
   },
   "Essentials": {
     "helpTitle": "L'essentiel",
@@ -6036,6 +6064,7 @@
       "events_message_topic_links": "prestataire d'un sujet",
       "events_messages": "message",
       "events_message_attachments": "pièce jointe d'un message",
+      "vendors_vendor_type_links": "métier d'un prestataire",
       "events_task_categories": "catégorie de tâche"
     },
     "modules": {

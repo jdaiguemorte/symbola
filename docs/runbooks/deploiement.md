@@ -531,6 +531,28 @@ cite son tag (contrôle de la CI, `packages/db/src/migration-compatibility.test.
   sans rien perdre. **Retour arrière** : `pnpm --filter @symbola/db rollback --
   0176_lot48a_quotes_sealed_bank_details`, avec la même clé dans l'environnement, remet l'IBAN et
   le BIC en clair dans la même transaction (refusé sans la clé), puis l'image précédente.
+- **`0198_lot63e_vendors_type_links`** et **`0199_lot63e_vendors_drop_type_id`** (lot 63e, PRE-01,
+  ADR 0105) : une fiche de prestataire a désormais plusieurs métiers. 0198 ajoute
+  `vendors.vendor_type_links` et donne à chaque fiche son type comme métier principal (ajout seul) ;
+  0199 retire `vendors.type_id`, que l'ancienne version lit encore : `deploy.sh` arrête `symbola` le
+  temps des deux migrations (quelques secondes). Rien ne se perd : une fiche typée entre les deux
+  reçoit d'abord son métier.
+  **Ensuite, la reprise des types combinés** (« Photographe & Vidéaste », « Coiffure et
+  maquillage »…), en deux gestes, depuis un conteneur `node:22-slim` branché sur le réseau de
+  l'environnement comme pour les migrations (§ À la main) :
+  1. le rapport, qui n'écrit rien :
+     `pnpm -s --filter @symbola/app vendors:split-types -- --out /tmp/reprise-metiers.md` ;
+     organisation par organisation, chaque type combiné, ses fiches, le métier où il est fusionné
+     (ou qu'il devient) et les métiers ajoutés (« créé » s'il manquait). Des libellés de métiers et
+     des nombres, aucune fiche ni donnée personnelle. **Le montrer à Julien avant la production** ;
+  2. l'application, une transaction par organisation, rejouable :
+     `pnpm -s --filter @symbola/app vendors:split-types -- --appliquer`.
+  **Retour arrière** : `pnpm --filter @symbola/db rollback -- 0199_lot63e_vendors_drop_type_id`
+  remet `vendors.type_id`, rempli par le métier principal de chaque fiche (les métiers secondaires
+  restent, ignorés par l'ancienne version), puis l'image précédente (`rollback.sh`). Annuler aussi
+  0198 n'est possible qu'une fois les métiers secondaires retirés des fiches (refusé sinon). Une
+  reprise appliquée ne se défait pas d'elle-même (les types fusionnés n'existent plus) : prendre la
+  sauvegarde du déploiement si elle doit l'être.
 
 ### Migrations livrées avant le lot 40a (déploiement d'ensemble)
 

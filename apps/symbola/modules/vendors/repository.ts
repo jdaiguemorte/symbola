@@ -1,10 +1,10 @@
 // Accès aux données du module vendors — jamais importé hors de
 // modules/vendors/ (ADR 0011). Chaque requête passe par withOrganization
 // (RLS, CLAUDE.md § 5).
-import { and, asc, eq, gte, inArray, isNotNull, isNull, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, or, sql, type SQL } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { foldedColumn, likeWord } from "@symbola/db/search";
-import { vendorDocuments, vendorFiles, vendors, vendorSettings, vendorTagGroups, vendorTags, vendorTypeFields, vendorTypes } from "@symbola/db/schema/vendors";
+import { vendorDocuments, vendorFiles, vendors, vendorSettings, vendorTagGroups, vendorTags, vendorTypeFields, vendorTypeLinks, vendorTypes } from "@symbola/db/schema/vendors";
 import { withOrganization } from "@symbola/db/with-organization";
 import type { VendorAround, VendorFieldFilter, VendorFieldKind, VendorFieldValue, VendorFileKind, VendorSettings, VendorSocialLink } from "@symbola/contracts";
 import { EARTH_RADIUS_KM } from "./travel";
@@ -14,13 +14,76 @@ export type VendorTypeRow = typeof vendorTypes.$inferSelect;
 export type VendorTypeFieldRow = typeof vendorTypeFields.$inferSelect;
 export type VendorTagRow = typeof vendorTags.$inferSelect;
 export type VendorTagGroupRow = typeof vendorTagGroups.$inferSelect;
-export type VendorRow = typeof vendors.$inferSelect;
+// Lot 63e (PRE-01, ADR 0105) : une fiche et ses métiers (vendor_type_links), le principal en
+// premier ; primaryTypeId est nul pour une fiche sans métier.
+export type VendorRow = typeof vendors.$inferSelect & { typeIds: string[]; primaryTypeId: string | null };
 export type VendorFileRow = typeof vendorFiles.$inferSelect;
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 
 async function inOrganization<T>(organizationId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, fn);
+}
+
+// Lot 63e (PRE-01, ADR 0105) — métiers des fiches, lus d'un bloc : le principal d'abord, puis l'ordre
+// choisi.
+export async function typeLinksOf(tx: Tx, vendorIds: string[]): Promise<Map<string, { typeIds: string[]; primaryTypeId: string | null }>> {
+  const result = new Map<string, { typeIds: string[]; primaryTypeId: string | null }>();
+  if (vendorIds.length === 0) return result;
+  const links = await tx
+    .select({ vendorId: vendorTypeLinks.vendorId, typeId: vendorTypeLinks.typeId, isPrimary: vendorTypeLinks.isPrimary })
+    .from(vendorTypeLinks)
+    .where(inArray(vendorTypeLinks.vendorId, [...new Set(vendorIds)]))
+    .orderBy(desc(vendorTypeLinks.isPrimary), asc(vendorTypeLinks.position), asc(vendorTypeLinks.createdAt));
+  for (const link of links) {
+    const entry = result.get(link.vendorId) ?? { typeIds: [], primaryTypeId: null };
+    entry.typeIds.push(link.typeId);
+    if (link.isPrimary) entry.primaryTypeId = link.typeId;
+    result.set(link.vendorId, entry);
+  }
+  return result;
+}
+
+export async function withTypeLinks(tx: Tx, rows: (typeof vendors.$inferSelect)[]): Promise<VendorRow[]> {
+  const links = await typeLinksOf(tx, rows.map((row) => row.id));
+  return rows.map((row) => ({ ...row, typeIds: links.get(row.id)?.typeIds ?? [], primaryTypeId: links.get(row.id)?.primaryTypeId ?? null }));
+}
+
+// Les métiers d'une fiche remplacés par la liste donnée, le premier principal. Seuls les liens qui
+// changent sont écrits (une suppression va au journal d'audit) ; le principal est d'abord retiré,
+// pour ne jamais avoir deux principaux.
+export async function writeTypeLinks(tx: Tx, organizationId: string, vendorId: string, typeIds: string[]): Promise<void> {
+  const wanted = [...new Set(typeIds)];
+  const current = await tx.select().from(vendorTypeLinks).where(eq(vendorTypeLinks.vendorId, vendorId));
+  const removed = current.filter((link) => !wanted.includes(link.typeId)).map((link) => link.id);
+  if (removed.length > 0) await tx.delete(vendorTypeLinks).where(inArray(vendorTypeLinks.id, removed));
+  const kept = current.filter((link) => wanted.includes(link.typeId));
+  const primary = kept.find((link) => link.isPrimary);
+  if (primary && primary.typeId !== wanted[0]) await tx.update(vendorTypeLinks).set({ isPrimary: false }).where(eq(vendorTypeLinks.id, primary.id));
+  for (const [position, typeId] of wanted.entries()) {
+    const link = kept.find((candidate) => candidate.typeId === typeId);
+    const isPrimary = position === 0;
+    if (!link) {
+      await tx.insert(vendorTypeLinks).values({ organizationId, vendorId, typeId, isPrimary, position });
+    } else if (link.position !== position || link.isPrimary !== isPrimary) {
+      await tx.update(vendorTypeLinks).set({ isPrimary, position }).where(eq(vendorTypeLinks.id, link.id));
+    }
+  }
+}
+
+// Condition « la fiche a l'un de ces métiers ».
+export function hasAnyTypeSql(typeIds: string[]): SQL {
+  if (typeIds.length === 0) return sql`false`;
+  return sql`exists (select 1 from ${vendorTypeLinks} where ${vendorTypeLinks.vendorId} = ${vendors.id} and ${inArray(vendorTypeLinks.typeId, typeIds)})`;
+}
+
+export function hasNoTypeSql(): SQL {
+  return sql`not exists (select 1 from ${vendorTypeLinks} where ${vendorTypeLinks.vendorId} = ${vendors.id})`;
+}
+
+// Libellés des métiers d'une fiche, pour la recherche par mot (« vidéaste » trouve la fiche).
+function typeLabelsSql(): SQL {
+  return sql`(select string_agg(${vendorTypes.label}, ' ') from ${vendorTypeLinks} join ${vendorTypes} on ${vendorTypes.id} = ${vendorTypeLinks.typeId} where ${vendorTypeLinks.vendorId} = ${vendors.id})`;
 }
 
 // L11-PRE-02 — types et champs.
@@ -131,8 +194,12 @@ export function deleteVendorTagGroup(organizationId: string, groupId: string): P
 
 // Lot 21 (L21-PRE-18, L21-PRE-19, ADR 0050) — fiches (archivées comprises) et leurs
 // étiquettes, pour ranger les étiquettes d'après les prestataires qui les portent.
-export function findVendorTagCarriers(organizationId: string): Promise<{ id: string; name: string; typeId: string | null; tagIds: string[] }[]> {
-  return inOrganization(organizationId, (tx) => tx.select({ id: vendors.id, name: vendors.name, typeId: vendors.typeId, tagIds: vendors.tagIds }).from(vendors));
+export function findVendorTagCarriers(organizationId: string): Promise<{ id: string; name: string; typeIds: string[]; tagIds: string[] }[]> {
+  return inOrganization(organizationId, async (tx) => {
+    const rows = await tx.select({ id: vendors.id, name: vendors.name, tagIds: vendors.tagIds }).from(vendors);
+    const links = await typeLinksOf(tx, rows.map((row) => row.id));
+    return rows.map((row) => ({ ...row, typeIds: links.get(row.id)?.typeIds ?? [] }));
+  });
 }
 
 // Un plan de rangement appliqué d'un bloc : groupes créés, étiquettes placées
@@ -175,7 +242,8 @@ export function deleteVendorTag(organizationId: string, tagId: string): Promise<
 // L11-PRE-01 — fiches.
 
 export type VendorWrite = {
-  typeId: string | null;
+  // Lot 63e (ADR 0105) : les métiers de la fiche, le principal en premier (vide : aucun métier).
+  typeIds: string[];
   name: string;
   contactName: string | null;
   email: string | null;
@@ -207,27 +275,30 @@ function locationColumns(location: VendorWrite["location"]) {
 
 export function insertVendor(organizationId: string, input: VendorWrite): Promise<VendorRow> {
   return inOrganization(organizationId, async (tx) => {
-    const { location, ...columns } = input;
+    const { location, typeIds, ...columns } = input;
     const [row] = await tx
       .insert(vendors)
       .values({ organizationId, ...columns, ...locationColumns(location) })
       .returning();
     if (!row) throw new Error("insertion de la fiche échouée");
-    return row;
+    await writeTypeLinks(tx, organizationId, row.id, typeIds);
+    return (await withTypeLinks(tx, [row]))[0]!;
   });
 }
 
 export function updateVendorRow(organizationId: string, vendorId: string, input: VendorWrite): Promise<VendorRow | null> {
   return inOrganization(organizationId, async (tx) => {
     // Une fiche ne devient jamais exemple (ni l'inverse) par une modification.
-    const { location, ...columns } = input;
+    const { location, typeIds, ...columns } = input;
     delete columns.isDemo;
     const [row] = await tx
       .update(vendors)
       .set({ ...columns, ...locationColumns(location), updatedAt: new Date() })
       .where(eq(vendors.id, vendorId))
       .returning();
-    return row ?? null;
+    if (!row) return null;
+    await writeTypeLinks(tx, organizationId, row.id, typeIds);
+    return (await withTypeLinks(tx, [row]))[0]!;
   });
 }
 
@@ -258,13 +329,13 @@ export function findVendor(organizationId: string, vendorId: string): Promise<{ 
     const [vendor] = await tx.select().from(vendors).where(eq(vendors.id, vendorId));
     if (!vendor) return null;
     const files = await tx.select().from(vendorFiles).where(eq(vendorFiles.vendorId, vendorId)).orderBy(asc(vendorFiles.createdAt));
-    return { vendor, files };
+    return { vendor: (await withTypeLinks(tx, [vendor]))[0]!, files };
   });
 }
 
 export function findVendorsByIds(organizationId: string, vendorIds: string[]): Promise<VendorRow[]> {
   if (vendorIds.length === 0) return Promise.resolve([]);
-  return inOrganization(organizationId, (tx) => tx.select().from(vendors).where(inArray(vendors.id, vendorIds)));
+  return inOrganization(organizationId, async (tx) => withTypeLinks(tx, await tx.select().from(vendors).where(inArray(vendors.id, vendorIds))));
 }
 
 // Distance à vol d'oiseau calculée par la base (haversine, ADR 0031 § 4).
@@ -307,17 +378,18 @@ export function findVendorRows(
     if (!input.includeArchived) conditions.push(isNull(vendors.archivedAt));
     if (input.unplacedOnly) conditions.push(isNull(vendors.latitude));
     if (input.minRating !== undefined) conditions.push(gte(vendors.rating, input.minRating));
-    if (input.typeIds && input.typeIds.length > 0) conditions.push(inArray(vendors.typeId, input.typeIds));
+    // Lot 63e (PRE-01, PRE-11) : une fiche est trouvée par n'importe lequel de ses métiers.
+    if (input.typeIds && input.typeIds.length > 0) conditions.push(hasAnyTypeSql(input.typeIds));
     if (input.typeScope) {
       const scope = [
-        ...(input.typeScope.typeIds.length > 0 ? [inArray(vendors.typeId, input.typeScope.typeIds)] : []),
-        ...(input.typeScope.includeUntyped ? [isNull(vendors.typeId)] : []),
+        ...(input.typeScope.typeIds.length > 0 ? [hasAnyTypeSql(input.typeScope.typeIds)] : []),
+        ...(input.typeScope.includeUntyped ? [hasNoTypeSql()] : []),
       ];
       conditions.push(scope.length > 0 ? or(...scope)! : sql`false`);
     }
     if (input.tagIds && input.tagIds.length > 0) conditions.push(sql`${vendors.tagIds} @> array[${sql.join(input.tagIds.map((id) => sql`${id}`), sql`, `)}]::uuid[]`);
     if (input.onlyIds) conditions.push(input.onlyIds.length > 0 ? inArray(vendors.id, input.onlyIds) : sql`false`);
-    const haystack = foldedColumn(sql`concat_ws(' ', ${vendors.name}, ${vendors.city}, ${vendors.postalCode})`);
+    const haystack = foldedColumn(sql`concat_ws(' ', ${vendors.name}, ${vendors.city}, ${vendors.postalCode}, ${typeLabelsSql()})`);
     for (const word of input.words) conditions.push(sql`${haystack} like ${likeWord(word)}`);
     for (const filter of input.fieldFilters) conditions.push(fieldFilterSql(filter));
     const distance = input.around ? distanceSql(input.around) : null;
@@ -330,20 +402,22 @@ export function findVendorRows(
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(...(distance ? [asc(distance)] : []), asc(vendors.name))
       .limit(input.limit);
-    return rows.map((row) => ({ vendor: row.vendor, distanceKm: row.distanceKm === null ? null : Number(row.distanceKm) }));
+    const typed = await withTypeLinks(tx, rows.map((row) => row.vendor));
+    return rows.map((row, index) => ({ vendor: typed[index]!, distanceKm: row.distanceKm === null ? null : Number(row.distanceKm) }));
   });
 }
 
 // Recherche globale (AIDE-08) : jamais les fiches d'exemple ni archivées.
 export function searchVendorRows(organizationId: string, words: string[], limit: number): Promise<VendorRow[]> {
-  return inOrganization(organizationId, (tx) => {
-    const haystack = foldedColumn(sql`concat_ws(' ', ${vendors.name}, ${vendors.city}, ${vendors.contactName})`);
-    return tx
+  return inOrganization(organizationId, async (tx) => {
+    const haystack = foldedColumn(sql`concat_ws(' ', ${vendors.name}, ${vendors.city}, ${vendors.contactName}, ${typeLabelsSql()})`);
+    const rows = await tx
       .select()
       .from(vendors)
       .where(and(eq(vendors.isDemo, false), isNull(vendors.archivedAt), ...words.map((word) => sql`${haystack} like ${likeWord(word)}`)))
       .orderBy(asc(vendors.name))
       .limit(limit);
+    return withTypeLinks(tx, rows);
   });
 }
 
