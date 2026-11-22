@@ -1,10 +1,11 @@
-// Lot 13 (AIDE-12, ADR 0033) — fiche d'aide d'un écran : la capture réelle
-// annotée de ses repères, ce qu'on y fait, la liste des repères, puis les
-// questions fréquentes. Un écran que la personne ne peut pas ouvrir (autre
+// Lot 13 (AIDE-12, ADR 0033), revu au lot 63f (ADR 0104) — fiche d'aide d'un écran : la capture
+// réelle (visite guidée ouverte), ce qu'on y fait, les étapes de sa visite, puis les questions
+// fréquentes. Un écran que la personne ne peut pas ouvrir (autre
 // public, module non souscrit) n'a pas de fiche pour elle.
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+import { starterTour } from "@symbola/starter-templates";
 import { appDatabase } from "@symbola/db/client";
 import { isModuleEnabled } from "@/modules/hub/service";
 import { requireSignedIn } from "@/lib/guards";
@@ -50,10 +51,9 @@ export default async function HelpScreenPage({ params }: { params: Promise<{ key
 
   const t = await getTranslations("HelpCenter");
   const tHelp = await getTranslations("Help");
-  const tTour = await getTranslations("Tour");
   const title = tHelp(`${screen.key}.title`);
   const faq = (tHelp.has(`${screen.key}.faq`) ? tHelp.raw(`${screen.key}.faq`) : []) as Faq;
-  const landmarks = screen.tour ? (tTour.raw(screen.tour) as { title: string; body: string }[]) : [];
+  const tourSteps = screen.tour ? starterTour((await getLocale()) === "en" ? "en" : "fr", screen.tour) : [];
   const origin = originKey(screen);
 
   return (
@@ -67,7 +67,7 @@ export default async function HelpScreenPage({ params }: { params: Promise<{ key
           {/* Capture réelle, produite par « pnpm --filter @symbola/app help:captures ». */}
           <img
             src={captureSrc(screen.key)}
-            alt={landmarks.length > 0 ? t("captureAlt", { title }) : t("captureAltPlain", { title })}
+            alt={tourSteps.length > 0 ? t("captureAlt", { title }) : t("captureAltPlain", { title })}
             width={1280}
             height={800}
           />
@@ -82,22 +82,22 @@ export default async function HelpScreenPage({ params }: { params: Promise<{ key
         ) : null}
         {screen.path && screen.tour ? (
           <Link href={`${screen.path}?visite=revoir`} className="button-link button-link-primary">
-            {t("showLandmarks")}
+            {t("replayTour")}
           </Link>
         ) : null}
       </p>
       {origin ? <p className="notice">{t(origin)}</p> : null}
-      {landmarks.length > 0 ? (
-        <section aria-labelledby="help-landmarks-title">
-          <h2 id="help-landmarks-title">{t("landmarksTitle")}</h2>
-          <ol className="help-landmarks">
-            {landmarks.map((landmark, index) => (
-              <li key={landmark.title}>
-                <span className="landmark-number" aria-hidden="true">
+      {tourSteps.length > 0 ? (
+        <section aria-labelledby="help-tour-title">
+          <h2 id="help-tour-title">{t("tourTitle")}</h2>
+          <ol className="help-tour-steps">
+            {tourSteps.map((step, index) => (
+              <li key={step.title}>
+                <span className="help-tour-number" aria-hidden="true">
                   {index + 1}
                 </span>
                 <span>
-                  <strong>{landmark.title}</strong> {landmark.body}
+                  <strong>{step.title}</strong> {step.body}
                 </span>
               </li>
             ))}

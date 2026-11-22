@@ -89,17 +89,32 @@ export async function changeEventStatus(page: Page, status: string): Promise<voi
   await expect(page.getByRole("list", { name: "Statut de l'événement" }).getByRole("listitem").filter({ hasText: status })).toHaveAttribute("aria-current", "step");
 }
 
-// Lot 13 (AIDE-11) — panneau des repères d'un écran (« Aide : <écran> »).
-export function landmarksPanel(page: Page, screen: string) {
+// Lot 13 (AIDE-11), revu au lot 63f (ADR 0104) — tiroir de l'aide d'un écran (« Aide : <écran> »),
+// ouvert par le « ? ».
+export function helpPanel(page: Page, screen: string) {
   return page.getByRole("complementary", { name: `Aide : ${screen}` });
 }
 
-// Ferme le panneau des repères s'il est ouvert (affiché d'office une fois).
-export async function closeLandmarks(page: Page, screen: string): Promise<void> {
-  const panel = landmarksPanel(page, screen);
+// Ferme le tiroir de l'aide.
+export async function closeHelp(page: Page, screen: string): Promise<void> {
+  const panel = helpPanel(page, screen);
   await expect(panel).toBeVisible();
   await panel.getByRole("button", { name: "Fermer l'aide" }).click();
   await expect(panel).toHaveCount(0);
+}
+
+// Lot 63f (HUB-11, ADR 0104) — la visite guidée d'un écran (« Visite : <écran> »), lancée d'office
+// à la première ouverture.
+export function tourDialog(page: Page, screen: string) {
+  return page.getByRole("dialog", { name: `Visite : ${screen}` });
+}
+
+// Passe la visite lancée d'office.
+export async function skipTour(page: Page, screen: string): Promise<void> {
+  const dialog = tourDialog(page, screen);
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Passer la visite" }).click();
+  await expect(dialog).toHaveCount(0);
 }
 
 // Lot 13 (L13-HUB-17) — lien du menu de la console d'Administration (replié sur téléphone).

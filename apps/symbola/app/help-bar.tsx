@@ -36,7 +36,8 @@ export function HelpBar({
           <p className="tutorial-invite-kicker">{t("inviteKicker", { minutes: invite.minutes })}</p>
           <h2 id="tutorial-invite-title">{invite.title}</h2>
           <div className="tutorial-invite-actions">
-            <Link href={invite.href} className="button-link button-link-primary">
+            {/* Lot 63f (ADR 0104) : le tutoriel ramène à cet écran une fois fini. */}
+            <Link href={`${invite.href}?depuis=${encodeURIComponent(pathname)}`} className="button-link button-link-primary">
               {t("inviteStart")}
             </Link>
             <button

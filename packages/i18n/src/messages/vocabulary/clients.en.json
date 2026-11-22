@@ -1,11 +1,4 @@
 {
-  "Tour": {
-    "event": {
-      "0": {
-        "body": "Overview, budget, planning timeline, schedule, client: each tab groups part of the preparations."
-      }
-    }
-  },
   "Help": {
     "eventsNew": {
       "body": "A contact's first name and the source are enough to create the prospect; date, venue and budget can be filled in later. From the calendar, a free date opens this form with the date already set."

@@ -135,7 +135,7 @@ test("JRJ-01 / JRJ-03 / SC-08 étapes 1 et 2 — à 17:20 le jour J : Maintenant
   // Gardé, l'écran gagne « Retirer de cet appareil » ; l'aide ouverte reste en thème nuit.
   await expectTouchTargets(page, 56);
   await page.getByRole("button", { name: "Aide sur cet écran" }).click();
-  await expect(page.locator(".landmark-panel")).toBeVisible();
+  await expect(page.locator(".help-drawer")).toBeVisible();
   await expectTouchTargets(page, 56);
   await expectNoAxeViolation(page);
   await page.getByRole("button", { name: "Aide sur cet écran" }).click();
