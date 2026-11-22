@@ -20,9 +20,13 @@ const GESTURE_LIMIT_MS = 200;
 const OPTIMISTIC_LIMIT_MS = 100;
 const SERVER_P95_LIMIT_MS = 300;
 const SEARCH_P95_LIMIT_MS = 500;
+const SERIES = 3;
 const MOBILE_4G = { offline: false, latency: 150, downloadThroughput: (1.6 * 1024 * 1024) / 8, uploadThroughput: (750 * 1024) / 8 };
 
-test.describe.configure({ mode: "serial" });
+// Lot 65 : chaque mesure est indépendante (préparation commune dans beforeAll, refaite par un
+// nouveau processus après un échec). En mode « serial », l'échec d'un geste (NFR-01) sautait la
+// mesure du serveur (NFR-02) à chaque reprise de la CI : elle n'était jouée qu'une fois.
+test.describe.configure({ mode: "default" });
 
 let setup: Atelier40c;
 // Sessions de la titulaire et des mariés (lien échangé), reprises par chaque contexte neuf (cache
@@ -34,6 +38,11 @@ const lines: string[] = [];
 function percentile(values: number[], rank: number): number {
   const sorted = [...values].sort((a, b) => a - b);
   return sorted[Math.min(sorted.length - 1, Math.ceil((rank / 100) * sorted.length) - 1)]!;
+}
+
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)]!;
 }
 
 async function throttled(page: Page): Promise<void> {
@@ -172,7 +181,7 @@ test("NFR-01, UX-15 — un geste optimiste réagit en moins de 100 ms ; ⌘K ouv
 });
 
 test("NFR-02, HUB-12 — 95 % des requêtes des parcours P0 en moins de 300 ms ; la recherche en moins de 500 ms", async ({ browser }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(300_000);
   const context = await browser.newContext({ storageState: session, locale: "fr-FR" });
   const coupleContext = await browser.newContext({ storageState: coupleSession, locale: "fr-FR" });
   try {
@@ -181,30 +190,43 @@ test("NFR-02, HUB-12 — 95 % des requêtes des parcours P0 en moins de 300 ms ;
     const urls: [typeof request, string][] = [...planner.map((url): [typeof request, string] => [request, url]), [coupleContext.request, "/portail"]];
     // Un premier passage réveille le serveur (connexions, caches) ; il ne compte pas.
     for (const [client, url] of urls) await client.get(url);
-    const pages: number[] = [];
-    for (let round = 0; round < 8; round += 1) {
-      for (const [client, url] of urls) {
-        const start = performance.now();
-        const response = await client.get(url);
-        await response.body();
-        pages.push(performance.now() - start);
-        expect(response.status(), url).toBe(200);
+    // Lot 65 (décision de Julien du 22/11/2026, ADR 0078) : trois séries ; le seuil vaut pour la
+    // médiane de leurs 95e centiles. Une série seule, sur une machine de CI partagée, variait de 212 à
+    // 343 ms d'une version à l'autre, sur main comme ailleurs.
+    const pageSeries: number[] = [];
+    const searchSeries: number[] = [];
+    let pageCount = 0;
+    let searchCount = 0;
+    for (let series = 0; series < SERIES; series += 1) {
+      const pages: number[] = [];
+      for (let round = 0; round < 8; round += 1) {
+        for (const [client, url] of urls) {
+          const start = performance.now();
+          const response = await client.get(url);
+          await response.body();
+          pages.push(performance.now() - start);
+          expect(response.status(), url).toBe(200);
+        }
       }
-    }
-    const searches: number[] = [];
-    for (const query of ["Inès", "Sacha", "traiteur", "Salon", "lieu", "plan de table", "Inès Sacha", "photographe", "faire-part", "dégustation"]) {
-      for (let round = 0; round < 2; round += 1) {
-        const start = performance.now();
-        const response = await request.get(`/recherche/instantanee?q=${encodeURIComponent(query)}`);
-        await response.body();
-        searches.push(performance.now() - start);
-        expect(response.status(), query).toBe(200);
+      const searches: number[] = [];
+      for (const query of ["Inès", "Sacha", "traiteur", "Salon", "lieu", "plan de table", "Inès Sacha", "photographe", "faire-part", "dégustation"]) {
+        for (let round = 0; round < 2; round += 1) {
+          const start = performance.now();
+          const response = await request.get(`/recherche/instantanee?q=${encodeURIComponent(query)}`);
+          await response.body();
+          searches.push(performance.now() - start);
+          expect(response.status(), query).toBe(200);
+        }
       }
+      pageSeries.push(Math.round(percentile(pages, 95)));
+      searchSeries.push(Math.round(percentile(searches, 95)));
+      pageCount = pages.length;
+      searchCount = searches.length;
     }
-    const pagesP95 = Math.round(percentile(pages, 95));
-    const searchP95 = Math.round(percentile(searches, 95));
-    lines.push(`| Serveur : pages des parcours P0, 95e centile (${pages.length} requêtes) | ${pagesP95} ms | ${SERVER_P95_LIMIT_MS} ms |`);
-    lines.push(`| Serveur : recherche, 95e centile (${searches.length} requêtes) | ${searchP95} ms | ${SEARCH_P95_LIMIT_MS} ms |`);
+    const pagesP95 = median(pageSeries);
+    const searchP95 = median(searchSeries);
+    lines.push(`| Serveur : pages des parcours P0, médiane des 95e centiles de ${SERIES} séries (${pageCount} requêtes chacune : ${pageSeries.join(", ")} ms) | ${pagesP95} ms | ${SERVER_P95_LIMIT_MS} ms |`);
+    lines.push(`| Serveur : recherche, médiane des 95e centiles de ${SERIES} séries (${searchCount} requêtes chacune : ${searchSeries.join(", ")} ms) | ${searchP95} ms | ${SEARCH_P95_LIMIT_MS} ms |`);
     expect(pagesP95).toBeLessThan(SERVER_P95_LIMIT_MS);
     expect(searchP95).toBeLessThan(SEARCH_P95_LIMIT_MS);
   } finally {

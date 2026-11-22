@@ -8,7 +8,7 @@
 // - le contenu (destinataire, message) s'efface dès la fin, réussie ou non ; la ligne garde le
 //   genre, l'état et les dates 30 jours. Aucune donnée personnelle au journal : le nom de l'erreur.
 import { randomUUID } from "node:crypto";
-import { and, asc, eq, inArray, lt, lte, sql } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, lt, lte, or, sql } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { jobs } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -28,6 +28,29 @@ export function retryDelay(attempts: number): number {
 const BATCH = 50;
 export const JOB_RETENTION_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+// NFR-02 (lot 65) : les organisations dont une tâche est due, connues du processus (inscription,
+// reprise planifiée, envoi en cours). Le worker ne visite qu'elles entre deux tours complets
+// (lib/jobs.ts) ; un tour complet rattrape ce que le processus ne sait pas (redémarrage, autre
+// processus). Des identifiants et des heures seulement.
+const dueAt = new Map<string, number>();
+
+function noteJobDue(organizationId: string, at: Date): void {
+  const known = dueAt.get(organizationId);
+  if (known === undefined || at.getTime() < known) dueAt.set(organizationId, at.getTime());
+}
+
+// Les organisations dont une tâche est due à `now`, retirées de la liste.
+export function takeOrganizationsWithDueJobs(now: Date = new Date()): string[] {
+  const due: string[] = [];
+  for (const [organizationId, at] of dueAt) {
+    if (at <= now.getTime()) {
+      due.push(organizationId);
+      dueAt.delete(organizationId);
+    }
+  }
+  return due;
+}
 
 type StoredAttachment = { filename: string; contentType: string; contentBase64: string; cid?: string };
 // Lot 55 (MSG-05) : tracking, la ligne du journal des envois à écrire quand l'e-mail est parti.
@@ -74,6 +97,7 @@ export async function enqueueEmail(organizationId: string, message: SendMailInpu
       .onConflictDoNothing({ target: [jobs.organizationId, jobs.idempotencyKey] })
       .returning({ id: jobs.id }),
   );
+  if (rows[0]) noteJobDue(organizationId, now);
   return rows[0]?.id ?? null;
 }
 
@@ -140,28 +164,36 @@ export async function queueAndSendEmail(organizationId: string, message: SendMai
 
 export type JobsPass = { done: number; retried: number; failed: number; interrupted: number; purged: number };
 
-// Passage du worker pour une organisation : tâches interrompues, tâches dues, purge.
-export async function runDueJobs(organizationId: string, now: Date = new Date()): Promise<JobsPass> {
+// Passage du worker pour une organisation : tâches interrompues, tâches dues, purge (sauf
+// `purge: false` : le worker ne purge qu'une fois par heure). NFR-02 (lot 65) : les tâches
+// interrompues et les tâches dues sont lues dans une seule transaction.
+export async function runDueJobs(organizationId: string, now: Date = new Date(), options: { purge?: boolean } = {}): Promise<JobsPass> {
   const db = appDatabase();
   const pass: JobsPass = { done: 0, retried: 0, failed: 0, interrupted: 0, purged: 0 };
-  const interrupted = await withOrganization(db, organizationId, (tx) =>
-    tx
+  const { interrupted, due, next } = await withOrganization(db, organizationId, async (tx) => ({
+    interrupted: await tx
       .update(jobs)
       .set({ state: "interrupted", payload: null, lockedUntil: null, finishedAt: now, updatedAt: now })
       .where(and(eq(jobs.state, "running"), lt(jobs.lockedUntil, now)))
       .returning({ id: jobs.id }),
-  );
-  for (const { id } of interrupted) console.error("tâche de fond : envoi interrompu, non renvoyé", { jobId: id });
-  pass.interrupted = interrupted.length;
-
-  const due = await withOrganization(db, organizationId, (tx) =>
-    tx
+    due: await tx
       .select({ id: jobs.id })
       .from(jobs)
       .where(and(eq(jobs.state, "pending"), lte(jobs.runAfter, now)))
       .orderBy(asc(jobs.runAfter))
       .limit(BATCH),
-  );
+    // La prochaine échéance : une reprise planifiée, ou la fin du verrou d'un envoi en cours.
+    next: await tx
+      .select({ at: sql<Date | null>`min(case when ${jobs.state} = 'pending' then ${jobs.runAfter} else ${jobs.lockedUntil} end)`.mapWith(jobs.runAfter) })
+      .from(jobs)
+      .where(and(inArray(jobs.state, ["pending", "running"]), or(and(eq(jobs.state, "pending"), gt(jobs.runAfter, now)), eq(jobs.state, "running")))),
+  }));
+  for (const { id } of interrupted) console.error("tâche de fond : envoi interrompu, non renvoyé", { jobId: id });
+  pass.interrupted = interrupted.length;
+  // Plus d'une fournée : la suite au prochain passage ; sinon, la prochaine échéance connue.
+  if (due.length === BATCH) noteJobDue(organizationId, now);
+  const nextAt = next[0]?.at;
+  if (nextAt) noteJobDue(organizationId, nextAt);
   for (const { id } of due) {
     const outcome = await runJob(organizationId, id, now);
     if (outcome === "done") pass.done += 1;
@@ -169,6 +201,7 @@ export async function runDueJobs(organizationId: string, now: Date = new Date())
     else if (outcome === "failed") pass.failed += 1;
   }
 
+  if (options.purge === false) return pass;
   const purged = await withOrganization(db, organizationId, (tx) =>
     tx
       .delete(jobs)
