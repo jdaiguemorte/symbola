@@ -60,28 +60,30 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
   // Dégradation propre (ARC-06) : un module non souscrit n'apporte rien à la liste.
   const db = appDatabase();
-  const modules = {
-    events: await isModuleEnabled(db, organizationId, "events"),
-    quotes: await isModuleEnabled(db, organizationId, "quotes"),
-    budget: await isModuleEnabled(db, organizationId, "budget"),
+  // NFR-02 : les lectures indépendantes de l'accueil partent ensemble.
+  const [eventsEnabled, quotes, budget, guests, appointments, vendors, setup, checklist, mailQuota] = await Promise.all([
+    isModuleEnabled(db, organizationId, "events"),
+    isModuleEnabled(db, organizationId, "quotes"),
+    isModuleEnabled(db, organizationId, "budget"),
     // Lot 49 (RGP-08) : préavis de purge et oppositions des invités.
-    guests: await isModuleEnabled(db, organizationId, "guests"),
+    isModuleEnabled(db, organizationId, "guests"),
     // Lot 46 (HUB-08) : les rendez-vous du jour.
-    appointments: await isModuleEnabled(db, organizationId, "appointments"),
+    isModuleEnabled(db, organizationId, "appointments"),
     // Lot 48a (PRE-05, PRE-10) : pièces et IBAN des prestataires.
-    vendors: await isModuleEnabled(db, organizationId, "vendors"),
-  };
-  // Lot 33b (HUB-09, PAR-01) : le questionnaire d'accueil se reprend d'ici tant qu'il n'est pas
-  // fini (Propriétaire), puis la liste de prise en main guide les premiers pas de l'équipe.
-  const setup = await getSetupState(db, organizationId);
+    isModuleEnabled(db, organizationId, "vendors"),
+    // Lot 33b (HUB-09, PAR-01) : le questionnaire d'accueil se reprend d'ici tant qu'il n'est pas
+    // fini (Propriétaire), puis la liste de prise en main guide les premiers pas de l'équipe.
+    getSetupState(db, organizationId),
+    loadOnboardingChecklist(organizationId),
+    // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
+    organizationMailQuota(organizationId),
+  ]);
+  const modules = { events: eventsEnabled, quotes, budget, guests, appointments, vendors };
   const resumeQuestionnaire = auth.user.role === "owner" && !setup.completed;
-  const checklist = await loadOnboardingChecklist(organizationId);
   const tOnboarding = await getTranslations("Onboarding");
   // ONB-01 : guide vers la fiche entreprise sans jamais bloquer l'entrée ; lot 33b (PAR-01, « à
   // éviter ») : seulement une fois le questionnaire fini et l'espace prêt, jamais avant.
   const onboardingIncomplete = setup.completed && (await getOrganizationProfile(db, organizationId)).completedAt === null;
-  // Lot 24b (SEC-22, décision D5) : plafond d'e-mails de l'heure atteint.
-  const mailQuota = await organizationMailQuota(organizationId);
   // Lot 38a (MSG-01, D5) : des rappels automatiques arrêtés par une variable sans valeur (24 heures).
   const mailProblems = modules.events ? await recentEmailVariableProblems(organizationId) : null;
   const tTemplates = await getTranslations("EmailTemplates");
