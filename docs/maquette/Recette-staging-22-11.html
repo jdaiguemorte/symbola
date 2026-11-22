@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recette staging du 22/11 — maquettes M14 à M16</title>
+<style>
+:root{--primary:#0F6E5C;--on-primary:#fff;--primary-soft:#E3F1EE;--primary-strong:#0B5A4B;--ground:#F6F7F9;--surface:#fff;--ink:#14181F;--muted:#5A6372;--line:#DDE1E7;--line-strong:#838C99;--attention:#9A5B00;--attention-soft:#FBF0DC;--critical:#B3261E;--critical-soft:#FBE9E7;--float:0 8px 24px rgba(20,24,31,.12)}
+*{box-sizing:border-box}
+body{margin:0;background:#E9ECF0;color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+h1,h2,h3,.t{font-family:'Space Grotesk',system-ui,sans-serif;font-weight:600;margin:0}
+a{color:var(--primary)}
+.doc{max-width:1240px;margin:0 auto;padding:32px 24px 80px}
+.doc>header h1{font-size:32px;line-height:1.15}
+.doc>header p{color:var(--muted);max-width:760px}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px;padding:0;list-style:none}
+.toc a{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);text-decoration:none;font-size:13px;font-weight:500;color:var(--ink)}
+.mock{margin-top:48px}
+.mock>h2{font-size:22px}
+.mock>.refs{color:var(--muted);font-size:13px;margin:4px 0 12px}
+.notes{margin:12px 0 0;padding-left:20px;color:var(--ink);font-size:14px;max-width:900px}
+.notes li{margin:4px 0}
+.frame{background:var(--ground);border:1px solid var(--line-strong);border-radius:16px;overflow:hidden;position:relative}
+.bar{display:flex;align-items:center;gap:12px;height:52px;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:8px;font-family:'Space Grotesk',system-ui,sans-serif;font-weight:600;font-size:17px}
+.logo i{width:12px;height:12px;border-radius:3px;background:var(--primary);transform:rotate(45deg);display:inline-block}
+.bar .search{flex:1;max-width:420px;height:36px;border:1px solid var(--line-strong);border-radius:6px;padding:0 12px;display:flex;align-items:center;color:var(--muted);font-size:13px}
+.app{display:flex;min-height:420px}
+.side{width:200px;flex:none;background:var(--surface);border-right:1px solid var(--line);padding:16px 10px;display:flex;flex-direction:column;gap:2px}
+.side a{display:flex;align-items:center;min-height:38px;padding:0 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-size:14px}
+.side a.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.main{flex:1;padding:24px;min-width:0}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.ph h1{font-size:22px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px}
+.card h3{font-size:17px;margin-bottom:8px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-today{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 16px;border-radius:10px;font:600 14px Inter,system-ui,sans-serif;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);white-space:nowrap}
+.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--primary);padding:0 8px}
+.btn.sm{height:32px;padding:0 10px;font-size:13px;border-radius:8px}
+.btn.danger{color:var(--critical);border-color:var(--critical)}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500}
+.field .in{height:40px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;padding:0 12px;display:flex;align-items:center;font-weight:400;font-size:14px;color:var(--ink)}
+.field .in.hint{color:var(--muted)}
+.req{color:var(--critical)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:var(--ground);color:var(--muted);border:1px solid var(--line)}
+.pill.ok{background:var(--primary-soft);color:var(--primary);border-color:transparent}
+.pill.wait{background:var(--attention-soft);color:var(--attention);border-color:transparent}
+.pill.late{background:var(--critical-soft);color:var(--critical);border-color:transparent}
+.pill .x{font-weight:700;margin-left:2px}
+.new{outline:2px dashed #C77700;outline-offset:3px;border-radius:10px}
+.tag-new{display:inline-block;font:600 11px Inter,system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#7A4A00;background:#FFE7B3;border-radius:4px;padding:1px 6px;vertical-align:middle;margin-left:6px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font:500 12px Inter,system-ui,sans-serif;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.sel td{background:#F1F8F6}
+.done-btn{width:28px;height:28px;border-radius:999px;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font-size:14px;color:transparent;background:#fff}
+.done-btn.on{background:var(--primary);border-color:var(--primary);color:#fff}
+.box{width:18px;height:18px;border:1.5px solid var(--line-strong);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;background:#fff}
+.box.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.cat{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500}
+.cat i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.c-client{background:#3B6FD8}.c-presta{background:#B0558A}.c-admin{background:#6B7280}.c-jj{background:#C47A0A}.c-evt{background:var(--primary)}
+.editable{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;border:1px dashed transparent}
+.editable:hover,.editable.hover{border-color:var(--line-strong);background:#fff}
+.overlay{position:absolute;inset:0;background:rgba(20,24,31,.48)}
+.modal{position:absolute;background:#fff;border-radius:16px;box-shadow:var(--float);padding:24px}
+.drawer{position:absolute;top:0;right:0;bottom:0;width:380px;background:#fff;box-shadow:var(--float);padding:24px;border-left:1px solid var(--line)}
+.spot{position:relative;z-index:2;box-shadow:0 0 0 4px #fff,0 0 0 9999px rgba(20,24,31,.55);border-radius:16px}
+.bubble{position:absolute;z-index:3;width:330px;background:#fff;border-radius:16px;box-shadow:var(--float);padding:18px}
+.bubble:before{content:"";position:absolute;left:-8px;top:28px;width:16px;height:16px;background:#fff;transform:rotate(45deg)}
+.dots{display:flex;gap:6px}.dots i{width:8px;height:8px;border-radius:999px;background:var(--line)}.dots i.on{background:var(--primary)}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line);font-size:12px}
+.cal div{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-height:64px;padding:4px;position:relative}
+.cal .h{min-height:auto;font-weight:500;color:var(--muted);text-align:center;background:var(--ground)}
+.cal .d{font-variant-numeric:tabular-nums;color:var(--muted)}
+.cal .today{background:var(--primary-soft)}
+.cal .today .d{color:var(--primary);font-weight:700}
+.cal .out .d{opacity:.4}
+.ev{display:block;margin-top:2px;padding:1px 5px;border-radius:4px;color:#fff;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.t{background:#fff!important;color:var(--ink);border-left:3px solid;padding-left:4px}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.steps li{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border-radius:10px;font-size:14px}
+.steps li .n{width:24px;height:24px;border-radius:999px;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex:none}
+.steps li.done .n{background:var(--primary);border-color:var(--primary);color:#fff}
+.steps li.cur{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.steps li.cur .n{border-color:var(--primary);color:var(--primary)}
+.progress{height:6px;border-radius:999px;background:var(--line);overflow:hidden}.progress i{display:block;height:100%;background:var(--primary)}
+.diff{background:var(--attention-soft);color:var(--attention);font-weight:600;padding:0 4px;border-radius:4px}
+.cmp{display:grid;grid-template-columns:130px 1fr 1fr;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:14px}
+.cmp div{padding:8px 12px;border-bottom:1px solid var(--line)}
+.cmp .k{color:var(--muted);font-size:13px;background:var(--ground)}
+.cmp .hd{font-weight:600;background:var(--ground)}
+.radio{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 12px;border:1px solid var(--line-strong);border-radius:10px;font-size:14px;background:#fff}
+.radio i{width:16px;height:16px;border-radius:999px;border:1.5px solid var(--line-strong);flex:none}
+.radio.on{border-color:var(--primary);background:var(--primary-soft)}
+.radio.on i{border:5px solid var(--primary)}
+.drop{border:2px dashed var(--line-strong);border-radius:16px;padding:20px;background:#fff}
+.folder{display:flex;align-items:center;justify-content:space-between;min-height:38px;padding:0 12px;border-radius:10px;font-size:14px}
+.folder.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.folder .ro{font-size:11px;color:var(--muted)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;flex-wrap:wrap}
+.tabs a{padding:10px 12px;font-size:14px;text-decoration:none;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs a.on{color:var(--primary);border-color:var(--primary);font-weight:600}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:10px;overflow:hidden}
+.seg span{padding:0 14px;height:38px;display:inline-flex;align-items:center;font-size:14px;border-right:1px solid var(--line)}
+.seg span:last-child{border-right:0}
+.seg span.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.menu{position:absolute;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--float);padding:6px;width:320px;z-index:3}
+.menu .it{padding:10px 12px;border-radius:8px}
+.menu .it:hover,.menu .it.hl{background:var(--ground)}
+.menu .it b{display:block;font-size:14px}
+.menu .it span{font-size:13px;color:var(--muted)}
+.banner-demo{background:var(--attention-soft);color:var(--attention);font-size:13px;font-weight:600;padding:8px 20px;border-bottom:1px solid #EBD3A8}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+.strike{text-decoration:line-through;color:var(--critical)}
+.before{border-left:4px solid var(--critical);padding:8px 12px;background:#fff;border-radius:0 10px 10px 0;font-size:13px;margin-top:12px}
+.hr{height:1px;background:var(--line);margin:14px 0}
+.fgrid{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end}
+.fgrid>div{flex:1 1 180px;min-width:0}
+.fgrid>div.w-where{flex:2 1 300px}
+.fgrid>div.w-auto{flex:0 0 auto}
+.flabel{display:block;height:18px;font-size:13px;font-weight:500;margin-bottom:4px;white-space:nowrap}
+.ctrl{height:40px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;display:flex;align-items:center;padding:0 12px;font-size:14px;min-width:0}
+.ctrl.hint{color:var(--muted)}
+.compound{display:flex;height:40px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;overflow:hidden}
+.compound span{display:flex;align-items:center;padding:0 12px;font-size:14px;white-space:nowrap}
+.compound .sep{border-left:1px solid var(--line);color:var(--muted);font-size:13px;padding:0 10px;background:var(--ground)}
+.compound .grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.compound span:not(.grow){flex:none}
+.toggle{height:40px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;font-size:14px;white-space:nowrap}
+.lrow{display:grid;align-items:center;min-height:44px;border-bottom:1px solid var(--line);gap:12px}
+.lrow.h{min-height:32px;font-size:12px;color:var(--muted);font-weight:500}
+.mt{grid-template-columns:24px minmax(0,1fr) 96px}
+.tg{grid-template-columns:110px minmax(0,1fr)}
+.colmap{grid-template-columns:minmax(0,1.3fr) minmax(0,1.4fr) 150px}
+.pick{white-space:nowrap;overflow:hidden;gap:8px;height:40px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-size:14px}
+.pick.focus{border:2px solid var(--primary)}
+.c-pay{background:#5B4A8A}
+.sub td{background:var(--ground);font-size:13px;padding:6px 10px}
+.toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:10px;padding:10px 16px;font-size:14px;display:flex;gap:16px;align-items:center;box-shadow:var(--float)}
+.tip{background:var(--primary-soft);border-radius:10px;padding:12px 14px;font-size:14px}
+@media (max-width:900px){.grid2,.grid-today{grid-template-columns:1fr}.side{display:none}.drawer{width:100%}}
+</style>
+</head>
+<body>
+<div class="doc">
+<header>
+  <h1>Recette staging du 22/11 : maquettes M14 à M16</h1>
+  <p>Trois parcours à repenser avant de les recoder. L'analyse est dans <code>docs/audits/2026-11-22-recette-staging.md</code>. Ce qui est <span class="new" style="padding:0 4px">entouré en orange</span> change. Données fictives.</p>
+  <ul class="toc">
+    <li><a href="#m14">M14 · Choisir et comparer les prestataires d'un poste</a></li>
+    <li><a href="#m15">M15 · Aujourd'hui : l'essentiel, puis le planning</a></li>
+    <li><a href="#m16">M16 · Noter une relance</a></li>
+  </ul>
+</header>
+
+<section class="mock" id="m14">
+  <h2>M14 · Choisir et comparer les prestataires d'un poste</h2>
+  <p class="refs">Aujourd'hui, cliquer un nom dans « Choisir un prestataire… » le retient d'office ; la comparaison est un lien discret ; une fois retenu, on ne peut plus changer ; cliquer la ligne ouvre un bloc tout en bas de la page.</p>
+  <p class="small" style="font-weight:600;margin:0 0 6px">A · La liste : chaque ligne dit où en est le choix, et s'ouvre en grande fenêtre</p>
+  <div class="frame">
+    <div class="main">
+      <div class="tabs"><a>Synthèse</a><a>Rétroplanning</a><a>Programme</a><a class="on">Budget et prestataires</a><a>Mes devis et factures</a><a>Documents</a></div>
+      <div class="card" style="padding:0;overflow:auto">
+        <table style="font-size:13px">
+          <thead><tr><th>Poste</th><th>Prestataire</th><th class="num">Prévu</th><th class="num">Réel</th><th>Prochaine échéance</th><th></th></tr></thead>
+          <tr><td><b>Traiteur</b></td><td><span class="pill ok">Retenu</span> Les Saveurs</td><td class="num">8&#8239;000&nbsp;€</td><td class="num">8&#8239;400&nbsp;€</td><td>5&#8239;880&nbsp;€ · 14 juin</td><td><span class="btn sm new">Ouvrir</span></td></tr>
+          <tr><td><b>Photographe</b></td><td class="new"><span class="pill wait">3 en comparaison</span> <span class="small muted">2 devis reçus</span></td><td class="num">2&#8239;500&nbsp;€</td><td class="num muted">—</td><td class="muted">—</td><td><span class="btn sm">Ouvrir</span></td></tr>
+          <tr><td><b>DJ</b></td><td class="new"><span class="pill">À trouver</span> <a href="#">+ Ajouter des prestataires</a></td><td class="num">1&#8239;200&nbsp;€</td><td class="num muted">—</td><td class="muted">—</td><td><span class="btn sm">Ouvrir</span></td></tr>
+        </table>
+      </div>
+      <p class="small muted" style="margin:8px 0 0">Plus de bloc caché en bas de page : « Ouvrir » (ou un clic sur la ligne) ouvre la fenêtre B.</p>
+    </div>
+  </div>
+  <p class="small" style="font-weight:600;margin:16px 0 6px">B · La fenêtre du poste : comparer côte à côte, retenir, changer d'avis</p>
+  <div class="frame" style="min-height:600px">
+    <div class="main" style="opacity:.5"><div class="ph"><h1>Mariage Durand</h1></div><div class="card" style="height:300px"></div></div>
+    <div class="overlay"></div>
+    <div class="modal new" style="left:50%;transform:translateX(-50%);width:min(900px,calc(100% - 24px));top:16px;padding:0;overflow:hidden">
+      <div class="row" style="justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)"><h3 style="font-size:17px">Photographe <span class="small muted" style="font-weight:400">· poste 2 sur 6</span></h3><span class="btn ghost sm">✕ Fermer</span></div>
+      <div style="display:grid;grid-template-columns:160px minmax(0,1fr)">
+        <ol class="steps" style="padding:12px 8px;border-right:1px solid var(--line);background:var(--ground)">
+          <li class="cur" style="padding:0 8px"><span class="n">1</span>Prestataires</li>
+          <li style="padding:0 8px"><span class="n">2</span>Montants</li>
+          <li style="padding:0 8px"><span class="n">3</span>Échéancier</li>
+          <li style="padding:0 8px"><span class="n">4</span>Documents</li>
+          <li style="padding:0 8px"><span class="n">5</span>Réglages du poste</li>
+        </ol>
+        <div style="padding:16px 18px;min-width:0">
+          <div class="row" style="justify-content:space-between;margin-bottom:10px"><b>3 prestataires en comparaison</b><span class="btn sm">+ Ajouter un prestataire</span></div>
+          <div style="overflow:auto">
+          <table style="font-size:13px">
+            <thead><tr><th></th><th>Studio Lumière</th><th>Atelier Clair</th><th>Mathieu P.</th></tr></thead>
+            <tr><td class="muted">Où en est-on</td><td><span class="pill wait">Devis reçu</span></td><td><span class="pill wait">Devis reçu</span></td><td><span class="pill">Contacté</span></td></tr>
+            <tr><td class="muted">Devis</td><td class="num">2&#8239;200&nbsp;€ · <a href="#">PDF</a></td><td class="num">2&#8239;650&nbsp;€ · <a href="#">PDF</a></td><td class="muted">—</td></tr>
+            <tr><td class="muted">Disponible le 14 juin</td><td>Oui</td><td>Oui</td><td class="muted">À confirmer</td></tr>
+            <tr><td class="muted">Déjà travaillé ensemble</td><td>4 évènements</td><td>—</td><td>1 évènement</td></tr>
+            <tr><td class="muted">Dernière relance</td><td class="muted">—</td><td class="muted">—</td><td>18/11, téléphone</td></tr>
+            <tr><td class="muted">Note</td><td class="small">Reportage + album</td><td class="small">Drone inclus</td><td class="small"></td></tr>
+            <tr><td></td><td><span class="btn p sm">Retenir</span></td><td><span class="btn sm">Retenir</span></td><td><span class="btn sm">Noter une relance</span></td></tr>
+            <tr><td></td><td><a class="small" href="#">Écarter</a></td><td><a class="small" href="#">Écarter</a></td><td><a class="small" href="#">Écarter</a></td></tr>
+          </table>
+          </div>
+          <p class="small muted" style="margin:10px 0 0">Une fois retenu : la colonne passe en tête avec « Retenu », et « Changer de prestataire » ou « Ne plus retenir » remplacent « Retenir ». Les autres restent visibles, grisés.</p>
+        </div>
+      </div>
+      <div class="row" style="justify-content:space-between;padding:12px 18px;border-top:1px solid var(--line)">
+        <span class="btn sm">‹ Poste précédent</span>
+        <span class="row" style="gap:8px"><span class="btn sm">Fermer</span><span class="btn p sm">Poste suivant : DJ ›</span></span>
+      </div>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:16px;align-items:start">
+    <div class="card new">
+      <h3>C · « + Ajouter un prestataire » : on choisit ce qu'on fait</h3>
+      <div class="ctrl" style="border:2px solid var(--primary)">pho|</div>
+      <div class="menu" style="position:static;box-shadow:var(--float);width:auto;margin-top:6px">
+        <p class="small muted" style="margin:4px 12px">Photographes de votre carnet</p>
+        <div class="it hl"><div class="row" style="justify-content:space-between"><span><b>Studio Lumière · Lyon</b><span>Déjà travaillé ensemble · 4 évènements</span></span><span class="row" style="gap:4px"><span class="btn sm">Comparer</span><span class="btn sm">Retenir</span></span></div></div>
+        <div class="it"><div class="row" style="justify-content:space-between"><span><b>Atelier Clair · Villeurbanne</b><span>Photographe, Vidéaste</span></span><span class="row" style="gap:4px"><span class="btn sm">Comparer</span><span class="btn sm">Retenir</span></span></div></div>
+        <div class="hr" style="margin:4px 0"></div>
+        <div class="it"><b>Voir tout le carnet (12 photographes)</b><span>Liste complète, filtres du carnet</span></div>
+        <div class="it"><b>+ Nouveau prestataire</b><span>Créé sans quitter le budget</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Ce qui change</h3>
+      <ul class="notes" style="margin:0">
+        <li>Choisir un nom ne <b>retient plus d'office</b> : deux boutons, « Comparer » (ajoute à la comparaison) et « Retenir ».</li>
+        <li>La liste se parcourt sans taper : <b>tout le carnet du métier</b> est proposé, avec « Voir tout le carnet ».</li>
+        <li><b>On peut changer d'avis</b> : « Changer de prestataire », « Ne plus retenir », sans supprimer la ligne.</li>
+        <li>Les blocs du bas de page disparaissent : tout ce qui concerne un poste est dans sa fenêtre (règle de l'ADR 0107), en rubriques, avec « Poste suivant ».</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="mock" id="m15">
+  <h2>M15 · Aujourd'hui : l'essentiel, puis le planning sans défiler</h2>
+  <p class="refs">Sept éléments au plus, par priorité et par délai ; « Voir les autres » mène aux tâches ; le calendrier prend toute la largeur et se feuillette comme celui des évènements.</p>
+  <div class="frame">
+    <div class="app" style="min-height:auto">
+      <nav class="side"><a class="on">Aujourd'hui</a><a>Évènements</a><a>Tâches</a><a>Prestataires</a></nav>
+      <div class="main">
+        <div class="ph"><h1>Dimanche 22 novembre</h1></div>
+        <div class="card new" style="padding:14px 18px">
+          <div class="row" style="justify-content:space-between"><h3 style="margin:0">À traiter en premier</h3><a href="#" class="small">Voir les 12 autres dans Tâches ›</a></div>
+          <table style="font-size:13px;margin-top:6px">
+            <tr><td><a href="#">Contrat de La Petite France (Traiteur) à faire signer</a> <span class="small muted">· Mélanie &amp; Valentin</span></td><td><span class="pill wait">Depuis le 22/11</span></td><td><span class="btn sm">Noter une relance</span></td></tr>
+            <tr><td><a href="#">Contrat de Alexia Jarry (Photographe) à faire signer</a> <span class="small muted">· Mélanie &amp; Valentin</span></td><td><span class="pill wait">Depuis le 22/11</span></td><td><span class="btn sm">Noter une relance</span></td></tr>
+            <tr><td><a href="#">Envoyer le questionnaire invités</a> <span class="small muted">· Mariage Martin</span></td><td><span class="pill late">En retard</span></td><td><span class="done-btn" title="Fait">✓</span></td></tr>
+            <tr><td><a href="#">Facture d'acompte</a> <span class="small muted">· Mariage Lopez</span></td><td><span class="pill">ven. 27</span></td><td><span class="done-btn">✓</span></td></tr>
+            <tr><td class="muted small" colspan="3">… 3 autres lignes au plus (7 en tout)</td></tr>
+          </table>
+        </div>
+        <div class="card new" style="margin-top:12px">
+          <div class="row" style="justify-content:space-between;margin-bottom:8px"><h3 style="margin:0">Novembre 2026</h3><span class="row" style="gap:6px"><span class="btn sm">‹</span><span class="btn sm">Aujourd'hui</span><span class="btn sm">›</span><span class="seg"><span class="on" style="height:32px">Mois</span><span style="height:32px">Semaine</span><span style="height:32px">Liste</span></span></span></div>
+          <div class="cal">
+            <div class="h">lun.</div><div class="h">mar.</div><div class="h">mer.</div><div class="h">jeu.</div><div class="h">ven.</div><div class="h">sam.</div><div class="h">dim.</div>
+            <div><span class="d">16</span></div><div><span class="d">17</span></div><div><span class="d">18</span><span class="ev t" style="border-color:#3B6FD8">RDV Martin</span></div><div><span class="d">19</span></div><div><span class="d">20</span></div><div><span class="d">21</span></div><div class="today"><span class="d">22</span><span class="ev t" style="border-color:#B0558A">Contrat traiteur</span></div>
+            <div><span class="d">23</span></div><div><span class="d">24</span><span class="ev t" style="border-color:#3B6FD8">Dégustation</span></div><div><span class="d">25</span></div><div><span class="d">26</span></div><div><span class="d">27</span><span class="ev t" style="border-color:#6B7280">Facture Lopez</span></div><div><span class="d">28</span><span class="ev c-evt">Mariage Durand</span></div><div><span class="d">29</span></div>
+            <div><span class="d">30</span></div><div class="out"><span class="d">1</span></div><div class="out"><span class="d">2</span></div><div class="out"><span class="d">3</span></div><div class="out"><span class="d">4</span></div><div class="out"><span class="d">5</span><span class="ev c-evt">Mariage Petit</span></div><div class="out"><span class="d">6</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <ul class="notes">
+    <li>La liste du haut tient en <b>sept lignes compactes</b> au plus, triées par priorité puis par délai ; le reste est dans « Tâches ». Un clic sur une ligne ouvre l'élément.</li>
+    <li>Le calendrier passe <b>sous la liste, sur toute la largeur</b>, et se feuillette mois par mois (« ‹ », « › », « Aujourd'hui »), avec Mois, Semaine et Liste : le même composant que le calendrier des évènements.</li>
+    <li>Sur un écran d'ordinateur courant, le calendrier commence au premier tiers de la page : pas besoin de défiler pour le voir.</li>
+  </ul>
+</section>
+
+<section class="mock" id="m16">
+  <h2>M16 · Noter une relance (au lieu de « Relancer »)</h2>
+  <p class="refs">« Relancer » inscrit une relance et ouvre la messagerie sur un message qu'on n'a pas vu. La planner relance à sa façon ; l'app doit surtout garder la trace et rappeler quand recommencer.</p>
+  <div class="frame" style="min-height:470px">
+    <div class="main" style="opacity:.5"><div class="ph"><h1>Aujourd'hui</h1></div><div class="card" style="height:300px"></div></div>
+    <div class="overlay"></div>
+    <div class="modal new" style="left:50%;top:24px;transform:translateX(-50%);width:min(520px,calc(100% - 24px))">
+      <div class="row" style="justify-content:space-between"><h3 style="font-size:17px">Relance de La Petite France</h3><span class="btn ghost sm">✕ Fermer</span></div>
+      <p class="small muted" style="margin:4px 0 12px">Contrat du traiteur à faire signer · Mélanie &amp; Valentin</p>
+      <p class="small" style="font-weight:500;margin:0 0 6px">Comment l'avez-vous relancé ?</p>
+      <div class="row" style="gap:8px"><span class="radio on"><i></i>Téléphone</span><span class="radio"><i></i>E-mail</span><span class="radio"><i></i>SMS</span><span class="radio"><i></i>De vive voix</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <label class="field"><span>Date</span><span class="in">22/11/2026</span></label>
+        <label class="field"><span>Me le rappeler dans</span><span class="in">5 jours ▾</span></label>
+        <label class="field" style="grid-column:1/3"><span>Note (facultative)</span><span class="in hint" style="height:56px;align-items:flex-start;padding-top:10px">Signe lundi, envoie le contrat par la poste</span></label>
+      </div>
+      <details style="margin-top:10px"><summary class="small" style="cursor:pointer;color:var(--primary)">Besoin d'un message ? Voir le message type à copier</summary><p class="small" style="background:var(--ground);border-radius:8px;padding:8px 10px">Bonjour, nous attendons toujours le contrat signé pour le mariage du 14 juin…</p><span class="btn sm">Copier le message</span></details>
+      <div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px"><span class="btn">Annuler</span><span class="btn p">Enregistrer la relance</span></div>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:16px;align-items:start">
+    <div class="card new">
+      <p class="small muted" style="margin:0 0 6px">Ensuite, sur « Aujourd'hui » et sur la ligne du poste</p>
+      <p style="margin:0"><a href="#">Contrat de La Petite France (Traiteur) à faire signer</a></p>
+      <p class="small" style="margin:6px 0 0"><span class="pill ok">Relancé le 22/11 par téléphone</span> <span class="muted">· rappel le 27/11</span></p>
+    </div>
+    <div class="card">
+      <h3>Ce qui change</h3>
+      <ul class="notes" style="margin:0">
+        <li>L'app <b>n'envoie ni n'ouvre rien d'elle-même</b> : elle note qui a été relancé, quand, comment.</li>
+        <li>Le rappel fait <b>disparaître l'élément d'« Aujourd'hui » jusqu'à la date choisie</b>, puis il revient s'il n'est pas réglé.</li>
+        <li>Le message type reste à portée, à copier, jamais envoyé à l'insu de la planner.</li>
+        <li>Même geste sur la ligne d'un poste (M14) et partout où « Relancer » existe pour un prestataire.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+</div>
+</body>
+</html>
