@@ -165,7 +165,7 @@ test("BUD-01, BUD-03, BUD-04 — Budget et prestataires : réel, écart, réglé
   const results = page.getByRole("list", { name: "Prestataires de votre catalogue" });
   await expect(results.getByRole("listitem").first()).toContainText("Atelier Floréal");
   await expect(page.getByRole("link", { name: /Voir tout le carnet \(1 fiche du métier\)/ })).toBeVisible();
-  await results.getByRole("button", { name: "Comparer — Atelier Floréal" }).click();
+  await results.getByRole("button", { name: "Comparer — Atelier Floréal", exact: true }).click();
   await expect(results.getByRole("listitem").first()).toContainText("Dans la comparaison");
   await page.keyboard.press("Escape");
   await expect(flowers).toContainText("1 en comparaison");
@@ -174,12 +174,12 @@ test("BUD-01, BUD-03, BUD-04 — Budget et prestataires : réel, écart, réglé
   // La fenêtre du poste : la comparaison, « Retenir », puis « Ne plus retenir » (sans supprimer la ligne).
   const floristWindow = await openSlotWindow(page, "Fleurs");
   const comparison = floristWindow.getByRole("table", { name: "Comparaison des prestataires de « Fleurs »" });
-  await comparison.getByRole("button", { name: "Retenir — Atelier Floréal" }).click();
+  await comparison.getByRole("button", { name: "Retenir — Atelier Floréal", exact: true }).click();
   await expect(comparison.getByRole("columnheader", { name: /Atelier Floréal Retenu/ })).toBeVisible();
   await expectNoAxeViolation(page);
-  await comparison.getByRole("button", { name: "Ne plus retenir — Atelier Floréal" }).click();
-  await expect(comparison.getByRole("button", { name: "Retenir — Atelier Floréal" })).toBeVisible();
-  await comparison.getByRole("button", { name: "Retenir — Atelier Floréal" }).click();
+  await comparison.getByRole("button", { name: "Ne plus retenir — Atelier Floréal", exact: true }).click();
+  await expect(comparison.getByRole("button", { name: "Retenir — Atelier Floréal", exact: true })).toBeVisible();
+  await comparison.getByRole("button", { name: "Retenir — Atelier Floréal", exact: true }).click();
   await expect(comparison.getByRole("columnheader", { name: /Atelier Floréal Retenu/ })).toBeVisible();
   await closeSlotWindow(page, "Fleurs");
   await expect(flowers).toContainText("Atelier Floréal");

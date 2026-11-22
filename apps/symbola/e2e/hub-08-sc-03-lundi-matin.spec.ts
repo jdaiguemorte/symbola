@@ -120,7 +120,7 @@ test("SC-03 / HUB-08 / UX-01 / UX-06 / EVT-02 — lundi matin : les urgences, an
   await expect(tasks.getByRole("listitem").nth(0)).toContainText("Vous");
   await expect(tasks.getByRole("listitem").nth(1)).toContainText("Faire signer le contrat du photographe");
   await expect(first.getByRole("link", { name: "Voir dans Tâches ›" })).toHaveAttribute("href", "/taches");
-  const payments = first.getByRole("list", { name: /^Paiements \(1\)$/ });
+  const payments = first.getByRole("list", { name: /^Paiements \(\d+\)$/ });
   await expect(payments.getByRole("listitem").first()).toContainText("Acompte à la signature");
   await expect(payments.getByRole("listitem").first()).toContainText("Attend le client");
   await expect(first.getByRole("link", { name: "Voir les encaissements ›" })).toHaveAttribute("href", "/devis/encaissements");
@@ -163,14 +163,24 @@ test("SC-03 / HUB-08 / UX-01 / UX-06 / EVT-02 — lundi matin : les urgences, an
   await expect(page.getByRole("region", { name: "Les 14 prochains jours" })).toContainText("Réserver la navette");
   await expectNoAxeViolation(page);
 
-  // Étape 5 (D6) : relancer le photographe ; la relance s'inscrit dans l'activité de l'évènement.
-  await next.getByRole("button", { name: "Relancer Studio Lumière" }).click();
-  await expect(next.getByRole("status")).toHaveText("Relance inscrite dans l'activité de l'évènement.");
+  // Étape 5 (lot 65d, M16) : « Noter une relance » — Camille a relancé le photographe au téléphone ; elle
+  // le note, avec le rappel ; rien n'est envoyé. Le prestataire quitte les priorités jusqu'au rappel,
+  // la relance s'inscrit dans l'activité de l'évènement, sa note dans les notes internes.
+  await next.getByRole("button", { name: "Noter une relance — Studio Lumière" }).click();
+  const reminder = page.getByRole("dialog", { name: "Relance de Studio Lumière" });
+  await reminder.getByLabel("Téléphone").check();
+  await reminder.getByLabel("Me le rappeler").selectOption({ label: "Dans 3 jours" });
+  await reminder.getByLabel("Note (facultative)").fill("Contrat promis pour vendredi.");
+  await reminder.getByText("Message type, à copier").click();
+  await expect(reminder.getByLabel("Message", { exact: true })).toHaveValue(/Contrat à signer/);
+  await expectNoAxeViolation(page);
+  await reminder.getByRole("button", { name: "Noter la relance" }).click();
+  await expect(reminder).toBeHidden();
   // La page est rouverte plutôt que rechargée : juste après l'action serveur, Firefox refuse parfois
-  // le rechargement (« NS_ERROR_NO_CONTENT », CI du 18/11/2026). Rouvrir l'adresse montre la même
-  // chose : le fil d'activité relu depuis le serveur.
+  // le rechargement (« NS_ERROR_NO_CONTENT », CI du 18/11/2026).
   await page.goto(page.url());
-  await expect(page.getByRole("list", { name: "Fil d'activité" })).toContainText("Relance envoyée à Studio Lumière.");
+  await expect(page.getByRole("region", { name: "Prochaine action" })).not.toContainText("Contrat de Studio Lumière (Photographe) à faire signer");
+  await expect(page.getByRole("list", { name: "Fil d'activité" })).toContainText("Relance de Studio Lumière notée.");
   await expectNoAxeViolation(page);
 });
 

@@ -185,4 +185,12 @@
   .calendar-list > li[aria-current="date"] .calendar-week-day {
     @apply text-primary;
   }
+
+  /* 65d (M16) : « Noter une relance » — le message type se déplie, à copier. */
+  .reminder-template > summary {
+    @apply min-h-11 cursor-pointer content-center font-medium text-primary;
+  }
+  .reminder-template[open] > summary {
+    @apply mb-2;
+  }
 }

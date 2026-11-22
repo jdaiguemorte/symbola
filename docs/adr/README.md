@@ -109,3 +109,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0107 — La fenêtre pour modifier, le panneau latéral pour les réglages](0107-fenetre-pour-modifier-panneau-pour-les-reglages.md)
 - [0108 — Écran « Apps » et demandes d'activation pendant le pilote](0108-ecran-apps-et-demandes-d-activation.md)
 - [0110 — Les messages de la relation sont préparés par Symbola et envoyés par la planner ; l'envoi par Symbola reste en option](0110-messages-de-la-relation-prepares-pour-la-planner.md)
+- [0111 — La fenêtre du poste ; comparer avant de retenir](0111-fenetre-du-poste-comparer-avant-de-retenir.md)

@@ -11,7 +11,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { ENGAGED_CANDIDATE_STATUSES, type VendorAvailability, type VendorCandidateStatus } from "@symbola/contracts";
 import { getPlannerAuthContext } from "@/lib/auth-context";
-import { changeRetainedVendor, countWorkedWithByVendor, getVendorComparison, listVendorCandidates, selectVendorCandidate, updateVendorCandidate } from "@/modules/events/service";
+import { changeRetainedVendor, countWorkedWithByVendor, getVendorComparison, listLastVendorReminders, listVendorCandidates, selectVendorCandidate, updateVendorCandidate, type VendorReminderChannel } from "@/modules/events/service";
 import { isEventsModuleEnabled } from "../module-access";
 import { isVendorsModuleEnabled } from "@/app/prestataires/module-access";
 import { compareVendorForSlot, createAndRetainVendor, retainVendorForSlot, searchSlotVendors, type SlotVendorSearch } from "@/lib/vendors/slot-retention";
@@ -100,7 +100,10 @@ export type SlotComparisonColumn = {
   quoteAmountCents: number | null;
   hasQuoteFile: boolean;
   availability: VendorAvailability | null;
-  remindedAt: string | null;
+  // La dernière relance : notée par la planner (lot 65d, avec son moyen), ou le rappel de brief du lot
+  // 47 (sans moyen) ; jour de Paris.
+  remindedOn: string | null;
+  remindedBy: VendorReminderChannel | null;
   note: string | null;
   workedWithCount: number;
 };
@@ -112,9 +115,17 @@ export async function slotComparisonAction(input: unknown): Promise<SlotComparis
   const parsed = slotSchema.safeParse(input);
   if (!allowed || !parsed.success) return { ok: false };
   try {
-    const [comparison, worked] = await Promise.all([getVendorComparison(allowed.organizationId, parsed.data.eventId, parsed.data.slotId), countWorkedWithByVendor(allowed.organizationId)]);
+    const [comparison, worked, reminders] = await Promise.all([
+      getVendorComparison(allowed.organizationId, parsed.data.eventId, parsed.data.slotId),
+      countWorkedWithByVendor(allowed.organizationId),
+      listLastVendorReminders(allowed.organizationId, parsed.data.eventId),
+    ]);
+    const parisDay = (instant: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(instant));
     const columns = comparison.rows.map((row): SlotComparisonColumn => {
       const status = row.status as VendorCandidateStatus;
+      const noted = reminders.get(row.candidateId) ?? null;
+      const briefReminder = row.remindedAt ? parisDay(row.remindedAt) : null;
+      const latestNoted = noted && (!briefReminder || noted.remindedOn >= briefReminder);
       return {
         candidateId: row.candidateId,
         vendorName: row.vendorName,
@@ -124,7 +135,8 @@ export async function slotComparisonAction(input: unknown): Promise<SlotComparis
         quoteAmountCents: row.quoteAmountCents,
         hasQuoteFile: row.hasQuoteFile,
         availability: row.availability,
-        remindedAt: row.remindedAt,
+        remindedOn: latestNoted ? noted.remindedOn : briefReminder,
+        remindedBy: latestNoted ? noted.channel : null,
         note: row.internalNotes.at(-1) ?? null,
         workedWithCount: row.vendorId ? (worked.get(row.vendorId) ?? 0) : 0,
       };

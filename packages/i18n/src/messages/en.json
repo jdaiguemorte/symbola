@@ -606,7 +606,7 @@
         },
         {
           "q": "How do I follow up with a vendor whose contract isn't signed?",
-          "a": "With « Follow up » on its line, in « Today » or the summary: your mail app opens on a ready message, to the address on its card, and the follow-up is logged in the activity feed."
+          "a": "With « Log a follow-up », in « Today », the summary or the item window: you follow up your usual way, then log how (phone, email, text, in person), when, a note if needed and when to come back to it. Nothing is sent; the template message can be copied if useful. The vendor leaves « Today » until the reminder, and the follow-up goes into the activity feed."
         },
         {
           "q": "How do I file and share the event's documents?",
@@ -2080,7 +2080,7 @@
     "venueFormTitle": "Event venue",
     "venueSave": "Save the venue",
     "venueSaved": "✓ Venue saved.",
-    "activityVendorReminded": "Follow-up sent to {task}.",
+    "activityVendorReminded": "Follow-up with {task} logged.",
     "activityVendorRemoved": "a removed vendor",
     "sameDayAlert": "On {date}, you already have: {events}. You can save anyway.",
     "sameDayConfirmed": "{names} (confirmed)",
@@ -6224,6 +6224,7 @@
       "events_messages": "message",
       "events_message_attachments": "message attachment",
       "events_busy_settings": "busy time settings",
+      "events_vendor_reminders": "logged follow-ups",
       "vendors_vendor_type_links": "vendor trade",
       "events_task_categories": "task category",
       "hub_module_requests": "an app activation request",
@@ -7186,8 +7187,6 @@
     "action": {
       "checkTask": "Done",
       "checkTaskLabel": "Done: “{label}”",
-      "remindVendor": "Follow up",
-      "remindVendorLabel": "Follow up with {vendor}",
       "open": "Open",
       "openLabel": "Open: {title}"
     },
@@ -7254,8 +7253,8 @@
       "subject": "Contract to sign — {names}",
       "body": "Hello,\n\nWe are waiting for your signed contract for “{slot}” ({names}{date}). Could you send it back to us?\n\nThank you,\n{organization}",
       "dateSuffix": ", on {date}",
-      "recorded": "Follow-up recorded in the event activity.",
-      "noEmail": "Follow-up recorded. The vendor's card has no email address: write to them from your mailbox."
+      "quoteSubject": "Your quote — {names}",
+      "quoteBody": "Hello,\n\nWe are waiting for your quote for “{slot}” ({names}{date}). Could you send it to us?\n\nThank you,\n{organization}"
     },
     "cockpit": {
       "countdown": "{days, plural, =0 {It's the big day} one {# day before the big day} other {# days before the big day}}",
@@ -7356,6 +7355,40 @@
       "payments": "See payments received",
       "pipeline": "See prospects",
       "event": "See the event"
+    },
+    "reminder": {
+      "button": "Log a follow-up",
+      "title": "Follow-up with {vendor}",
+      "back": "Back",
+      "close": "Close",
+      "channel": "How did you follow up?",
+      "channels": {
+        "phone": "Phone",
+        "email": "Email",
+        "sms": "Text message",
+        "in_person": "In person"
+      },
+      "date": "Follow-up date",
+      "recall": "Remind me",
+      "recallOptions": {
+        "2": "In 2 days",
+        "3": "In 3 days",
+        "7": "In a week",
+        "14": "In two weeks",
+        "none": "No reminder"
+      },
+      "note": "Note (optional)",
+      "template": "Template message, to copy",
+      "templateLoading": "Preparing the message…",
+      "templateTo": "Address on the record: {email}",
+      "templateNoEmail": "The vendor record has no email address.",
+      "templateLabel": "Message",
+      "copy": "Copy the message",
+      "copied": "Message copied.",
+      "save": "Log the follow-up",
+      "saved": "Follow-up logged. Reminder on {date}.",
+      "savedNoRecall": "Follow-up logged.",
+      "invalid": "Check the date and how you followed up."
     }
   },
   "QuickCreate": {
@@ -12485,7 +12518,8 @@
     "comparisonError": "The comparison could not be loaded. Try again.",
     "detailsTitle": "Status, quote and notes of each vendor",
     "documentsEmpty": "No document for this item.",
-    "consultationLink": "Request quotes (brief, sending to vendors)"
+    "consultationLink": "Request quotes (brief, sending to vendors)",
+    "addMore": "+ Add"
   },
   "TaskCategories": {
     "title": "Task categories",
