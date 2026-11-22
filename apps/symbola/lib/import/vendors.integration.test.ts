@@ -264,22 +264,49 @@ describe("IMP-07 — Importer ses prestataires depuis l'export Excel", () => {
 });
 
 describe("IMP-12 — Types à l'import par familles", () => {
-  it("avec les types de départ d'une wedding planner, les 22 libellés du corpus créent au plus 12 types ; « Coiffeur(se) » et « Maquillage » sont réunis", async () => {
+  it("avec les types de départ d'une wedding planner, les 22 libellés du corpus créent au plus 12 types ; « Coiffeur(se) » rejoint « Coiffure », « Maquillage » reste un métier", async () => {
     const planner = await createPlanner();
     await seedStarterVendorCatalog(planner.organizationId, vendorCatalogInput("fr"), { withTypes: true });
     const before = (await listVendorTypes(planner.organizationId)).length;
     const importId = await preparedImport(planner);
     const view = await getImportTypesView(planner.organizationId, importId);
-    expect(view!.choices).toHaveLength(22);
+    // Lot 63e : « Photographe & Vidéaste » devient « Photographe » et « Vidéaste », déjà dans le fichier.
+    expect(view!.choices).toHaveLength(21);
     await acceptAllMatches(planner, importId);
     await confirmImport({ ...planner, importId });
 
     const types = await listVendorTypes(planner.organizationId);
     expect(types.length - before).toBeLessThanOrEqual(12);
-    const hair = types.find((type) => type.label === "Coiffure et maquillage")!;
+    const hair = types.find((type) => type.label === "Coiffure")!;
     expect((await vendorNamed(planner, "Coiff' Mariée"))!.typeId).toBe(hair.id);
-    const makeup = view!.choices.find((choice) => choice.label === "Maquillage")!;
-    expect(makeup.target).toEqual({ kind: "existing", typeId: hair.id });
+    const makeup = types.find((type) => type.label === "Maquillage")!;
+    expect(view!.choices.find((choice) => choice.label === "Maquillage")!.target).toEqual({ kind: "existing", typeId: makeup.id });
+  });
+
+  it("PRE-01, PRE-11 (lot 63e) — « Photographe & Vidéaste » donne deux métiers à la même fiche, le premier principal ; l'étape « Types » le dit", async () => {
+    const planner = await createPlanner();
+    await seedStarterVendorCatalog(planner.organizationId, vendorCatalogInput("fr"), { withTypes: true });
+    const importId = await preparedImport(planner);
+    const view = (await getImportTypesView(planner.organizationId, importId))!;
+    expect(view.choices.some((choice) => choice.label === "Photographe & Vidéaste")).toBe(false);
+    expect(view.choices.find((choice) => choice.label === "Photographe")!.combinedFrom).toEqual(["Photographe & Vidéaste"]);
+    expect(view.choices.find((choice) => choice.label === "Vidéaste")!.combinedFrom).toEqual(["Photographe & Vidéaste"]);
+    await acceptAllMatches(planner, importId);
+    await confirmImport({ ...planner, importId });
+
+    const types = await listVendorTypes(planner.organizationId);
+    const photo = types.find((type) => type.starterKey === "photographer")!;
+    const video = types.find((type) => type.starterKey === "videographer")!;
+    const studio = (await vendorNamed(planner, "Clic & Déclic"))!;
+    expect(studio.typeIds).toEqual([photo.id, video.id]);
+    expect(studio.primaryTypeId).toBe(photo.id);
+    expect(types.some((type) => type.label === "Photographe & Vidéaste")).toBe(false);
+    // Trouvée par l'un comme par l'autre de ses métiers.
+    expect((await findVendors({ organizationId: planner.organizationId, typeIds: [video.id] })).map((vendor) => vendor.name)).toContain("Clic & Déclic");
+    expect((await findVendors({ organizationId: planner.organizationId, typeIds: [photo.id] })).map((vendor) => vendor.name)).toContain("Clic & Déclic");
+    // L'annulation retire la fiche et ses deux métiers.
+    expect((await undoImport({ ...planner, importId })).status).toBe("done");
+    expect(await vendorNamed(planner, "Clic & Déclic")).toBeNull();
   });
 
   it("sans les types de départ, chaque famille de synonymes crée un seul type de départ, rangé dans sa famille ; jamais un type par libellé", async () => {
@@ -289,7 +316,7 @@ describe("IMP-12 — Types à l'import par familles", () => {
     const view = (await getImportTypesView(planner.organizationId, importId))!;
     const target = (label: string) => view.choices.find((choice) => choice.label === label)!.target;
     expect(target("Coiffeur(se)")).toEqual({ kind: "starter", starterKey: "hair_makeup" });
-    expect(target("Maquillage")).toEqual({ kind: "starter", starterKey: "hair_makeup" });
+    expect(target("Maquillage")).toEqual({ kind: "starter", starterKey: "makeup" });
     expect(target("Vins & Boissons")).toEqual({ kind: "starter", starterKey: "drinks" });
     expect(target("Photographe")).toMatchObject({ kind: "existing" });
     expect(view.choices.every((choice) => choice.target.kind !== "new")).toBe(true);
@@ -302,7 +329,8 @@ describe("IMP-12 — Types à l'import par familles", () => {
     const types = await listVendorTypes(planner.organizationId);
     const created = types.filter((type) => type.label !== "Photographe");
     expect(created.every((type) => type.starterKey !== null && type.familyId !== null)).toBe(true);
-    expect(types.filter((type) => type.label === "Coiffure et maquillage")).toHaveLength(1);
+    expect(types.filter((type) => type.label === "Coiffure")).toHaveLength(1);
+    expect(types.filter((type) => type.label === "Maquillage")).toHaveLength(1);
     expect(types.map((type) => type.label)).not.toContain("Coiffeur(se)");
   });
 

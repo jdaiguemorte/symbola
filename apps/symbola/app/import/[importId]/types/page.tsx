@@ -107,7 +107,11 @@ export default async function ImportTypesPage({
                 <tbody>
                   {group.choices.map((choice) => (
                     <tr key={choice.label}>
-                      <th scope="row">{choice.label}</th>
+                      <th scope="row">
+                        {choice.label}
+                        {/* Lot 63e (PRE-01, PRE-11) : la valeur combinée du fichier, devenue plusieurs métiers. */}
+                        {choice.combinedFrom.length > 0 ? <p className="meta">{t("typesCombinedFrom", { labels: choice.combinedFrom.map((label) => `« ${label} »`).join(", ") })}</p> : null}
+                      </th>
                       <td>{choice.rowCount}</td>
                       <td>
                         <input type="hidden" name={`label-${choice.index}`} value={choice.label} />

@@ -55,8 +55,7 @@
       "key": "photographer",
       "fr": [
         "Photographe",
-        "Photographes",
-        "Photographe & Vidéaste"
+        "Photographes"
       ],
       "en": [
         "Photographer",
@@ -115,22 +114,34 @@
     {
       "key": "hair_makeup",
       "fr": [
-        "Coiffure et maquillage",
         "Coiffure",
         "Coiffeur(se)",
         "Coiffeur",
         "Coiffeuse",
-        "Coiffeur(se) - Maquilleur(se)",
-        "Maquillage",
-        "Maquilleur(se)",
-        "Maquilleuse"
+        "Coiffeurs"
       ],
       "en": [
-        "Hair and make-up",
         "Hair",
         "Hairdresser",
+        "Hair stylist",
+        "Hairstylist"
+      ]
+    },
+    {
+      "key": "makeup",
+      "fr": [
+        "Maquillage",
+        "Maquilleur(se)",
+        "Maquilleuse",
+        "Maquilleur",
         "Make-up",
-        "Make-up artist"
+        "Maquillage mariée"
+      ],
+      "en": [
+        "Make-up",
+        "Makeup",
+        "Make-up artist",
+        "Makeup artist"
       ]
     },
     {
@@ -572,5 +583,98 @@
         "Corporate gifts"
       ]
     }
-  ]
+  ],
+  "combined": {
+    "separators": [
+      " et ",
+      " & ",
+      " / ",
+      " + ",
+      " - ",
+      ", ",
+      " and "
+    ],
+    "items": [
+      {
+        "parts": [
+          "photographer",
+          "videographer"
+        ],
+        "fr": [
+          "Photographe et vidéaste",
+          "Photographe & Vidéaste",
+          "Photographe / vidéaste",
+          "Photo et vidéo",
+          "Photo & vidéo",
+          "Photographe-vidéaste"
+        ],
+        "en": [
+          "Photographer and videographer",
+          "Photo and video",
+          "Photo & video"
+        ]
+      },
+      {
+        "parts": [
+          "hair_makeup",
+          "makeup"
+        ],
+        "fr": [
+          "Coiffure et maquillage",
+          "Coiffure & maquillage",
+          "Coiffeur(se) - Maquilleur(se)",
+          "Coiffure-maquillage",
+          "Beauté (coiffure et maquillage)"
+        ],
+        "en": [
+          "Hair and make-up",
+          "Hair & make-up",
+          "Hair and makeup",
+          "Hair & makeup"
+        ]
+      },
+      {
+        "parts": [
+          "officiant",
+          "decorator"
+        ],
+        "fr": [
+          "Officiante et décoratrice",
+          "Officiant et décorateur"
+        ],
+        "en": [
+          "Celebrant and decorator"
+        ]
+      },
+      {
+        "parts": [
+          "music",
+          "sound_light"
+        ],
+        "fr": [
+          "DJ et sonorisation",
+          "DJ, son et lumière"
+        ],
+        "en": [
+          "DJ and sound",
+          "DJ, sound and lighting"
+        ]
+      },
+      {
+        "parts": [
+          "florist",
+          "decorator"
+        ],
+        "fr": [
+          "Fleuriste et décoratrice",
+          "Fleuriste et décorateur",
+          "Fleurs et décoration"
+        ],
+        "en": [
+          "Florist and decorator",
+          "Flowers and decoration"
+        ]
+      }
+    ]
+  }
 }

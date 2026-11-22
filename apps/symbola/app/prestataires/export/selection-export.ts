@@ -25,7 +25,8 @@ export function exportRows(results: VendorListItem[], details: Vendor[], types: 
     const vendor = byId.get(item.id);
     return {
       name: item.name,
-      type: item.typeId ? (typeLabels.get(item.typeId) ?? "") : "",
+      // Lot 63e (PRE-01, PRE-11) : tous les métiers de la fiche, le principal en premier.
+      type: item.typeIds.flatMap((id) => (typeLabels.has(id) ? [typeLabels.get(id)!] : [])).join(", "),
       contact: vendor?.contactName ?? "",
       phone: vendor?.phone ?? "",
       email: vendor?.email ?? "",

@@ -7,7 +7,7 @@
     { "key": "entertainment", "label": { "fr": "Musique et animation", "en": "Music and entertainment" }, "color": "#c2410c", "icon": "music", "types": ["music", "entertainment", "speaker", "childcare"] },
     { "key": "technical", "label": { "fr": "Technique et scène", "en": "Technical and staging" }, "color": "#5b4a8a", "icon": "stage", "types": ["sound_light", "stage_rental", "video_projection", "tent_rental"] },
     { "key": "decor", "label": { "fr": "Fleurs et décoration", "en": "Flowers and decoration" }, "color": "#a23b72", "icon": "flower", "types": ["florist", "decorator", "furniture_rental"] },
-    { "key": "beauty_attire", "label": { "fr": "Beauté et tenues", "en": "Beauty and attire" }, "color": "#0f766e", "icon": "beauty", "types": ["hair_makeup", "bridal_wear", "groom_wear", "jewelry", "wellness"] },
+    { "key": "beauty_attire", "label": { "fr": "Beauté et tenues", "en": "Beauty and attire" }, "color": "#0f766e", "icon": "beauty", "types": ["hair_makeup", "makeup", "bridal_wear", "groom_wear", "jewelry", "wellness"] },
     { "key": "ceremony", "label": { "fr": "Cérémonie et organisation", "en": "Ceremony and planning" }, "color": "#1e4f8a", "icon": "rings", "types": ["officiant", "planner"] },
     { "key": "staff", "label": { "fr": "Accueil et sécurité", "en": "Reception and security" }, "color": "#0e5a74", "icon": "staff", "types": ["hostess", "security"] },
     { "key": "stationery", "label": { "fr": "Papeterie et impression", "en": "Stationery and printing" }, "color": "#7c6a0a", "icon": "stationery", "types": ["stationery", "printing", "goodies"] },

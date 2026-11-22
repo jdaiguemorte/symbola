@@ -113,7 +113,6 @@
   "app/prestataires/parametres/pieces/forms.tsx",
   "app/prestataires/parametres/settings-forms.tsx",
   "app/prestataires/parametres/type-forms.tsx",
-  "app/prestataires/vendor-form.tsx",
   "app/rendez-vous/[id]/page.tsx",
   "app/rendez-vous/disponibilites/page.tsx",
   "app/rendez-vous/nouveau/page.tsx",
