@@ -78,3 +78,26 @@ const starter = planCatalogSchema.parse(plansFile);
 export function starterPlanCatalog(): PlanCatalog {
   return structuredClone(starter);
 }
+
+// Lot 63g (HUB-06, HUB-27, ARC-07 ; ADR 0108) — présentation des apps sur l'écran « Apps » : pour
+// chaque module, son nom, ce qu'il apporte et où le trouver une fois activé, et l'écran où il mène
+// (chemin interne de l'app). Des textes, pas une offre : ils ne passent pas par le catalogue que
+// l'Exploitation modifie (hub.plans), et l'app les lit toujours ici.
+export const appEntrySchema = z.object({
+  key,
+  labels: localized,
+  benefits: localizedText,
+  whereToFind: localizedText,
+  href: z.string().regex(/^\/[a-z][a-z0-9/-]{0,99}$/),
+});
+export type AppEntry = z.infer<typeof appEntrySchema>;
+
+export const appCatalogSchema = z
+  .object({ apps: z.array(appEntrySchema).min(1).max(30) })
+  .refine((file) => new Set(file.apps.map((entry) => entry.key)).size === file.apps.length, { message: "apps en double" });
+
+const starterApps = appCatalogSchema.parse(plansFile).apps;
+
+export function starterAppCatalog(): AppEntry[] {
+  return structuredClone(starterApps);
+}

@@ -114,6 +114,7 @@
     "upcomingTasksEmpty": "Rien d'urgent : aucune tâche en retard ni due dans les 14 jours.",
     "allTasksLink": "Toutes les tâches",
     "agenda": "Aujourd'hui",
+    "apps": "Apps",
     "tasks": "Tâches",
     "tasksOverdue": "{count} en retard",
     "settingsOrganization": "Mon organisation",
@@ -203,7 +204,17 @@
     "subscriptionPlan": "Offre",
     "subscriptionAssign": "Poser cette offre",
     "subscriptionAssigned": "Offre posée. Les modules suivent.",
-    "subscriptionModulesNote": "Avec un abonnement, les modules suivent l'offre ; un réglage à la main est repris au prochain changement d'offre."
+    "subscriptionModulesNote": "Avec un abonnement, les modules suivent l'offre ; un réglage à la main est repris au prochain changement d'offre.",
+    "moduleRequestsTitle": "Demandes d'activation",
+    "moduleRequestsIntro": "Les apps qu'une organisation a demandées pendant le pilote. Activer ouvre l'app à la requête suivante et prévient la Propriétaire ; classer ferme la demande sans activer.",
+    "moduleRequestsTable": "Apps demandées, par organisation",
+    "moduleRequestsApp": "App",
+    "moduleRequestsDate": "Demandée le",
+    "moduleRequestsActions": "Actions",
+    "moduleRequestsActivate": "Activer",
+    "moduleRequestsActivateLabel": "Activer {app} pour {organization}",
+    "moduleRequestsDecline": "Classer sans activer",
+    "moduleRequestsDeclineLabel": "Classer sans activer la demande de {app} de {organization}"
   },
   "AdminOrganizationForm": {
     "name": "Nom de l'organisation",
@@ -1548,6 +1559,10 @@
     "subscription": {
       "title": "Mon abonnement",
       "body": "Votre offre, ses apps et ses options, le total et votre stockage face au quota de l'offre. Changer d'offre prend effet tout de suite ; l'écart au prorata va sur la facture suivante. Résilier se fait en deux gestes : « Résilier », puis « Confirmer la résiliation » ; vous gardez l'accès jusqu'à la fin de la période payée, puis l'espace est fermé (export pendant 30 jours, puis effacement). À 80 % et 95 % du quota, Symbola vous prévient ; plein, les nouveaux dépôts ne sont refusés qu'après sept jours de préavis, et la lecture et l'export restent toujours possibles. Réservé à la titulaire du compte."
+    },
+    "apps": {
+      "title": "Apps",
+      "body": "Toutes les apps de Symbola, avec leur état, ce qu'elles apportent et où les trouver une fois activées. Pendant le pilote, « Demander l'activation » prévient l'équipe Symbola, qui active l'app pour vous, sans frais : vous recevez une notification et l'app apparaît dans votre menu. Une demande s'annule tant qu'elle n'est pas traitée. L'équipe ne voit que le nom de votre organisation et l'app demandée. Après l'ouverture commerciale, « Ajouter à mon abonnement » affiche le prix, le prorata et le nouveau total. Réservé à la Propriétaire."
     },
     "adminPlans": {
       "title": "Offres et forfaits",
@@ -5864,7 +5879,11 @@
       "hub_storage_quota_alerted": "Alerte de quota de stockage",
       "hub_feature_flag_opened": "Fonction ouverte par l'Exploitation",
       "hub_feature_flag_closed": "Fonction refermée par l'Exploitation",
-      "hub_plan_catalog_updated": "Catalogue des offres modifié"
+      "hub_plan_catalog_updated": "Catalogue des offres modifié",
+      "hub_module_request_created": "Activation d'une app demandée",
+      "hub_module_request_cancelled": "Demande d'activation annulée",
+      "hub_module_request_activated": "App demandée activée",
+      "hub_module_request_declined": "Demande d'activation classée par l'Exploitation"
     },
     "categories": {
       "connexion": "Connexions",
@@ -6071,7 +6090,8 @@
       "events_messages": "message",
       "events_message_attachments": "pièce jointe d'un message",
       "vendors_vendor_type_links": "métier d'un prestataire",
-      "events_task_categories": "catégorie de tâche"
+      "events_task_categories": "catégorie de tâche",
+      "hub_module_requests": "une demande d'activation d'une app"
     },
     "modules": {
       "events": "Événements",
@@ -10650,6 +10670,11 @@
         "label": "E-mail rejeté",
         "text": "Un e-mail à {name} n'a pas été remis : vérifiez son adresse.",
         "action": "Voir le contact"
+      },
+      "module_activated": {
+        "label": "App activée",
+        "text": "L'app « {module} » est activée.",
+        "action": "Voir l'app"
       }
     },
     "center": {
@@ -11731,6 +11756,57 @@
       "not_cancellable": "L'abonnement ne peut pas être résilié dans son état actuel.",
       "not_resumable": "La résiliation ne peut plus être annulée.",
       "read_only": "Votre espace est en lecture seule : choisissez une offre pour reprendre."
+    }
+  },
+  "Apps": {
+    "title": "Apps",
+    "subtitle": "Les apps de Symbola : celles de votre organisation, et celles que vous pouvez ajouter.",
+    "ownerOnly": "Cet écran est réservé à la Propriétaire de l'organisation.",
+    "listLabel": "Apps de Symbola",
+    "pilotIntro": "<strong>Pendant le pilote</strong>, l'équipe Symbola active les apps pour vous, sans frais. Demandez celle qui vous manque : elle apparaît dans votre menu dès qu'elle est activée.",
+    "selfServiceIntro": "Ajoutez une app à votre abonnement : elle est activée tout de suite et se retire à tout moment depuis « Mon abonnement ».",
+    "status": {
+      "enabled": "Activée",
+      "disabled": "Non activée",
+      "requested": "Demandée le {date}"
+    },
+    "whereToFind": "Où la trouver : {place}",
+    "whereOnceEnabled": "Une fois activée : {place}",
+    "declined": "Votre demande du {date} a été close sans activation. Vous pouvez la refaire.",
+    "open": "Ouvrir",
+    "openLabel": "Ouvrir {app}",
+    "request": "Demander l'activation",
+    "requestLabel": "Demander l'activation de {app}",
+    "requestTitle": "Activer « {app} »",
+    "requestBody": "Pendant le pilote, c'est sans frais. L'équipe Symbola reçoit votre demande et active l'app, en général dans la journée. Vous recevez une notification.",
+    "requestPrivacy": "L'équipe voit seulement le nom de votre organisation et l'app demandée, jamais vos évènements.",
+    "requestConfirm": "Envoyer la demande",
+    "cancelRequest": "Annuler la demande",
+    "cancel": "Annuler",
+    "requested": "Votre demande est envoyée. Vous recevrez une notification dès que « {app} » sera activée.",
+    "requestCancelled": "Votre demande est annulée.",
+    "add": "Ajouter à mon abonnement",
+    "addLabel": "Ajouter à mon abonnement : {app}",
+    "addTitle": "Ajouter « {app} » à mon abonnement",
+    "addBody": "Activée tout de suite ; se retire à tout moment depuis « Mon abonnement ». L'écart au prorata va sur la facture suivante.",
+    "addConfirmMonthly": "Ajouter pour {amount} HT par mois",
+    "addConfirmYearly": "Ajouter pour {amount} HT par an",
+    "offerCaption": "Prix de l'app et nouveau total",
+    "pricePerMonth": "{amount} HT par mois",
+    "pricePerYear": "{amount} HT par an",
+    "prorata": "Au prorata jusqu'au {date}",
+    "newTotalMonthly": "Nouveau total mensuel",
+    "newTotalYearly": "Nouveau total annuel",
+    "changePlan": "Choisir une offre",
+    "changePlanLabel": "Choisir une offre qui comprend {app}",
+    "managed": "Votre abonnement est réglé par l'équipe Symbola.",
+    "errors": {
+      "forbidden": "Seule la Propriétaire de l'organisation gère les apps.",
+      "unknown_module": "Cette app n'existe pas.",
+      "already_enabled": "Cette app est déjà activée.",
+      "self_service": "Ajoutez cette app à votre abonnement : la demande n'est plus nécessaire.",
+      "not_found": "Cette demande n'est plus en attente.",
+      "managed": "Cette app ne s'ajoute pas ici : votre abonnement est réglé par l'équipe Symbola ou passe par « Mon abonnement »."
     }
   },
   "AdminPlans": {

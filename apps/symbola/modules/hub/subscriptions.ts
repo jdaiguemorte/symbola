@@ -15,6 +15,7 @@ import { organizationSubscriptions } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 import type { PlanCatalog } from "@symbola/starter-templates";
 import { MODULE_KEYS } from "./module-registry";
+import { settleModuleRequests } from "./module-requests";
 import { closeOrganizationAtSubscriptionEnd } from "./organization-closures";
 import { getPlanCatalog } from "./plan-catalog";
 import { upsertOrganizationModule } from "./repository";
@@ -97,6 +98,8 @@ export async function isOrganizationReadOnly(db: AppDatabase, organizationId: st
 async function applyEntitlements(db: AppDatabase, organizationId: string, catalog: PlanCatalog, subscription: SubscriptionSelection): Promise<string[]> {
   const entitled = entitledModules(catalog, subscription, MODULE_KEYS);
   for (const moduleKey of MODULE_KEYS) await upsertOrganizationModule(db, { organizationId, moduleKey, enabled: entitled.has(moduleKey) });
+  // Lot 63g (HUB-06, HUB-15 ; ADR 0108) : les apps demandées et désormais ouvertes ; la planner est prévenue.
+  await settleModuleRequests(db, { organizationId, moduleKeys: [...entitled] });
   return [...entitled];
 }
 
