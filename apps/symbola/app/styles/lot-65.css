@@ -10,6 +10,19 @@
   div.form-grid > label:not(:has(> input[type="checkbox"], > input[type="radio"])) {
     @apply self-stretch justify-between;
   }
+  /* Même règle pour un groupe « libellé + champ, puis aide » (.field-group) : sur ordinateur, les
+     groupes d'une rangée partagent leurs lignes (sous-grille) ; le champ se cale en bas de la ligne
+     des libellés, l'aide commence à la même hauteur. Au-delà de trois éléments, le groupe reste tel
+     quel. */
+  @media (width >= 640px) {
+    .form-grid > .field-group:not(:has(> :nth-child(4))):has(> label:first-child:not(:has(> input[type="checkbox"], > input[type="radio"]))) {
+      @apply row-span-3 grid gap-y-1;
+      grid-template-rows: subgrid;
+    }
+    .form-grid > .field-group:not(:has(> :nth-child(4))) > label:first-child:not(:has(> input[type="checkbox"], > input[type="radio"])) {
+      @apply self-stretch justify-between;
+    }
+  }
   /* « field-fit » : le libellé prend la largeur de son champ court, mais jamais plus que sa case ; un
      libellé long revient à la ligne au lieu de déborder sur la colonne voisine (« Délai de paiement
      des clients professionnels » passait sous « Taux des pénalités de retard »). */
@@ -46,9 +59,6 @@
   .vendor-choice-popover .vendor-choice-results > li > .notice {
     @apply w-full;
   }
-  .vendor-choice-popover .vendor-choice-results button {
-    @apply w-auto flex-row items-center;
-  }
   .vendor-choice-who {
     @apply flex min-w-0 flex-1 flex-col gap-1;
   }
@@ -65,8 +75,13 @@
   }
 
   /* 65b (M14 B) : la fenêtre du poste, plus large pour la comparaison côte à côte. */
-  dialog.window.window-long:has(.slot-comparison, .window-rubrics) {
-    @apply w-[min(1100px,calc(100vw-2rem))];
+  @media (width >= 640px) {
+    dialog.window.window-long:has(.slot-comparison, .window-rubrics) {
+      @apply w-[min(1100px,calc(100vw-2rem))];
+    }
+  }
+  .window-rubrics-body .section-head {
+    @apply flex-wrap;
   }
   .slot-comparison {
     @apply w-full border-collapse text-body;
@@ -103,5 +118,57 @@
   }
   .slot-window-details > summary {
     @apply min-h-11 cursor-pointer content-center font-medium text-primary;
+  }
+
+  /* 65c (HUB-08, UX-01 ; M15) : « À traiter en premier » par nature, en lignes compactes. */
+  .today-first .today-part + .today-part {
+    @apply mt-3 border-t border-line pt-2;
+  }
+  .today-part-head {
+    @apply flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1;
+  }
+  .today-part-head > h3 {
+    @apply m-0 text-label font-semibold text-ink-muted;
+  }
+  .today-part-link {
+    @apply text-label font-medium;
+  }
+  .today-first .today-items > .today-item {
+    @apply py-1;
+  }
+  .today-first .today-item-body {
+    @apply flex-row flex-wrap items-baseline gap-x-3;
+  }
+  .today-first .today-item-meta,
+  .today-first .today-item-tags {
+    @apply m-0;
+  }
+  /* Le calendrier, sous la liste, sur toute la largeur ; ses trois vues. */
+  #calendrier {
+    @apply mt-4 scroll-mt-4;
+  }
+  .today-calendar .section-head {
+    @apply flex-wrap gap-y-2;
+  }
+  .today-calendar-views {
+    @apply max-md:hidden;
+  }
+  .calendar-month.calendar-month-week .calendar-day {
+    @apply min-h-40;
+  }
+  .calendar-month.calendar-month-week .calendar-item {
+    @apply flex-wrap;
+  }
+  .calendar-list {
+    @apply m-0 mt-2 grid list-none gap-3 p-0;
+  }
+  .calendar-list ul {
+    @apply m-0 flex list-none flex-col gap-1 p-0;
+  }
+  .calendar-list .calendar-item {
+    @apply flex-wrap px-2 py-1 text-body;
+  }
+  .calendar-list > li[aria-current="date"] .calendar-week-day {
+    @apply text-primary;
   }
 }

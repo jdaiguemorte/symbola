@@ -5897,9 +5897,6 @@
   .vendor-choice-results {
     @apply m-0 flex list-none flex-col gap-1 p-0;
   }
-  .vendor-choice-results button {
-    @apply flex w-full flex-col items-start gap-1 rounded-md border-0 bg-transparent px-2 py-2 text-left text-ink hover:bg-ground;
-  }
   .vendor-choice-more {
     @apply flex flex-col items-start gap-2 border-t border-line pt-2;
   }
