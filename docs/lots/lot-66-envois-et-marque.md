@@ -1,7 +1,6 @@
 # Lot 66 — Les envois et la marque de la planner
 
-**Statut** : spécification, **à valider par Julien avant le code**. D1, D2 et D6 tranchées le 22/11 ;
-D3 à D5 en attente (recommandation retenue en l'absence d'avis contraire). Maquettes M17 à M20 dans
+**Statut** : spécification **validée par Julien le 22/11/2026** (D1 à D6). Maquettes M17 à M20 dans
 `docs/maquette/Envois-et-marque.html`.
 
 **Origine** : demandes de Julien du 22/11/2026, après la recette staging (lot 65) :
@@ -32,9 +31,9 @@ de `lot-65-retours-staging` ; la PR vise main une fois le lot 65 fusionné.
 |---|---|
 | D1 — Heure d'envoi | **Une heure par automatisme** (a). |
 | D2 — Rappel du jour J : qui le reçoit | **Des cibles à cocher, par défaut la planner elle-même** : seule « Vous (la planner) » est cochée au départ ; prestataires retenus, équipe du jour et mariés se cochent au besoin. |
-| D3 — Quand | En attente ; (a) retenue sans avis contraire : la veille ou le matin même, une heure par cible. |
-| D4 — Qui l'envoie | En attente ; (a) retenue sans avis contraire : Symbola, toujours. |
-| D5 — Signature | En attente ; (a) retenue sans avis contraire : une par membre, sur un modèle commun. |
+| D3 — Quand | **La veille ou le matin même, une heure par cible** (a, validé le 22/11). |
+| D4 — Qui l'envoie | **Symbola, toujours** (a, validé le 22/11). |
+| D5 — Signature | **Une par membre, sur un modèle commun de l'organisation** (a, validé le 22/11). |
 | D6 — « Envoyé avec Symbola » | **Retiré de tous les e-mails de la planner** (a) : toutes les offres sont payantes, et le domaine de Symbola reste présent sur les e-mails techniques. |
 
 Détail des options :

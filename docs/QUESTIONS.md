@@ -949,9 +949,9 @@ Spécification `docs/lots/lot-66-envois-et-marque.md`, maquettes M17 à M20.
 - **D1 — Heure d'envoi** : **une heure par automatisme** (Julien, 22/11).
 - **D2 — Rappel du jour J** : **des cibles à cocher, par défaut la planner elle-même** (Julien,
   22/11) ; prestataires retenus, équipe du jour et mariés se cochent au besoin.
-- **D3 — Moment du rappel** : la veille ou le matin même, une heure par cible (proposition).
-- **D4 — Qui envoie le rappel** : Symbola, toujours (proposition).
-- **D5 — Signature** : une par membre, sur un modèle commun de l'organisation (proposition).
+- **D3 — Moment du rappel** : la veille ou le matin même, une heure par cible (validé le 22/11).
+- **D4 — Qui envoie le rappel** : Symbola, toujours (validé le 22/11).
+- **D5 — Signature** : une par membre, sur un modèle commun de l'organisation (validé le 22/11).
 - **D6 — « Envoyé avec Symbola »** : **retiré de tous les e-mails de la planner** (Julien, 22/11) :
   toutes les offres sont payantes, et le domaine de Symbola reste présent sur les e-mails
   techniques.
