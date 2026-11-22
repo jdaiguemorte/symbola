@@ -168,7 +168,7 @@ export function SignatureForm({
       </div>
       <section aria-labelledby={`${id}-preview-title`}>
         <h2 id={`${id}-preview-title`}>{t("previewTitle")}</h2>
-        <div className="mail-preview" role="region" aria-label={t("previewTitle")} aria-live="polite" tabIndex={0}>
+        <div className="mail-preview" role="region" aria-label={t("previewLabel")} aria-live="polite" tabIndex={0}>
           <div className={`mail-preview-card mail-font-${font}`}>
             <div className="mail-preview-body">
               <p>{t("previewBody")}</p>

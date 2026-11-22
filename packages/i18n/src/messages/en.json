@@ -12688,6 +12688,7 @@
     "hiddenNote": "Your organisation does not show some elements: {elements}.",
     "profileTitle": "My signature",
     "profileBody": "Your name, job title and links at the end of the e-mails you send.",
-    "profileLink": "Fill in my signature"
+    "profileLink": "Fill in my signature",
+    "previewLabel": "Preview of my signature"
   }
 }

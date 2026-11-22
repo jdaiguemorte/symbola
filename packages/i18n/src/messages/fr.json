@@ -12688,6 +12688,7 @@
     "hiddenNote": "Votre organisation n'affiche pas certains éléments : {elements}.",
     "profileTitle": "Ma signature",
     "profileBody": "Votre nom, votre fonction et vos liens à la fin des e-mails que vous envoyez.",
-    "profileLink": "Remplir ma signature"
+    "profileLink": "Remplir ma signature",
+    "previewLabel": "Aperçu de ma signature"
   }
 }
