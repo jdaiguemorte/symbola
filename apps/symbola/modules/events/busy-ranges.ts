@@ -1,4 +1,4 @@
-// Lot 64 (HUB-29, RDV-02 ; D1 à D6 ; ADR 0108) — plages occupées, sans accès à la base : la règle qui
+// Lot 64 (HUB-29, RDV-02 ; D1 à D6 ; ADR 0109) — plages occupées, sans accès à la base : la règle qui
 // s'applique à un évènement (son réglage propre, sinon celle de son type, sinon celle des évènements
 // sans type), la plage en instants UTC (heure locale du fuseau de l'évènement, heure d'été comprise)
 // et ce qui bloque (statuts sûrs ; options et reports en cours selon le réglage de l'organisation).

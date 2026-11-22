@@ -1,4 +1,4 @@
--- Lot 64 (RDV-01 ; D8 ; ADR 0108) : quelques mots sur un type de rendez-vous, affichés sur la page de
+-- Lot 64 (RDV-01 ; D8 ; ADR 0109) : quelques mots sur un type de rendez-vous, affichés sur la page de
 -- réservation à côté du calendrier (300 caractères au plus). Schéma appointments seulement. Ajout
 -- seul : compatible avec la version précédente du code (ARC-14).
 ALTER TABLE "appointments"."appointment_types" ADD COLUMN "description" text;--> statement-breakpoint

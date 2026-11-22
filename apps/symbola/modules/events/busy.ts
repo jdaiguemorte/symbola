@@ -1,4 +1,4 @@
-// Lot 64 (HUB-29, RDV-02 ; D1 à D6 ; ADR 0108) — plages occupées : règles des types, réglage propre
+// Lot 64 (HUB-29, RDV-02 ; D1 à D6 ; ADR 0109) — plages occupées : règles des types, réglage propre
 // d'un évènement, réglages de l'organisation, et plages d'une fenêtre pour le flux d'agenda et la page
 // de rendez-vous. Accès aux données du module events ; exposé seulement par service.ts (ADR 0011).
 import { and, eq, gte, inArray, isNotNull, lte, ne, sql } from "drizzle-orm";

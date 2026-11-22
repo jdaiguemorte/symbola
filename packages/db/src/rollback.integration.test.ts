@@ -190,7 +190,7 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
-  it("lot 64 (HUB-29, RDV-02 ; D1, D6, D8 ; ADR 0108) — 0202 et 0203 : la base refuse une plage incomplète, hors bornes ou à l'envers ; annulation refusée tant qu'un réglage ou une description existe, puis tout est retiré", async () => {
+  it("lot 64 (HUB-29, RDV-02 ; D1, D6, D8 ; ADR 0109) — 0202 et 0203 : la base refuse une plage incomplète, hors bornes ou à l'envers ; annulation refusée tant qu'un réglage ou une description existe, puis tout est retiré", async () => {
     await migrateAll();
     const organizationId = randomUUID();
     const [event] = await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`;

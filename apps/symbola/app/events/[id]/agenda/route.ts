@@ -1,4 +1,4 @@
-// Lot 64 (HUB-29 ; D5 ; ADR 0108) — « Ajouter à mon agenda » : un fichier iCalendar d'un seul évènement,
+// Lot 64 (HUB-29 ; D5 ; ADR 0109) — « Ajouter à mon agenda » : un fichier iCalendar d'un seul évènement,
 // sa plage occupée, marquée « occupé » (TRANSP:OPAQUE), à importer dans l'agenda principal que lit un
 // outil de réservation extérieur (TidyCal, Calendly…). Le fichier importé ne suit pas les changements :
 // l'écran le dit. Contrôles côté serveur : session, rôle planner, organisation, module souscrit,

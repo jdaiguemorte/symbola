@@ -1,4 +1,4 @@
--- Lot 64 (HUB-29, RDV-02 ; D1, D2, D6 ; ADR 0108) : plages occupées. Une règle par type d'évènement
+-- Lot 64 (HUB-29, RDV-02 ; D1, D2, D6 ; ADR 0109) : plages occupées. Une règle par type d'évènement
 -- (nulle = celle de départ de sa clé, event-types.json), un réglage propre par évènement (nul = la
 -- règle de son type) et les réglages de l'organisation (règle des évènements sans type, une option
 -- bloque-t-elle l'agenda). Début et fin : un jour relatif à la date de l'évènement (-7 à 7) et une

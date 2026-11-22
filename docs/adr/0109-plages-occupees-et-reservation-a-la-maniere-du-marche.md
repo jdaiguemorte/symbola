@@ -1,4 +1,4 @@
-# ADR 0108 — Plages occupées par type et par évènement ; réservation à la manière des outils du marché
+# ADR 0109 — Plages occupées par type et par évènement ; réservation à la manière des outils du marché
 
 - Statut : accepté. Spécification du lot 64 validée par Julien le 21/11/2026 : décisions D1 à D9
   retenues dans leur option recommandée (a) ; maquettes M1 à M10.

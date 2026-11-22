@@ -193,7 +193,7 @@ le choix du créneau, Typeform pour les questions). Maquettes M6 à M10, même f
     question est obligatoire (D7).
 - **M8 — Choisir un créneau** (`app/reserver/[adresse]`, et le même composant pour le
   déplacement par `/rdv` ; `/rendez-vous/nouveau` garde sa saisie libre de l'heure, l'équipe
-  pouvant poser un rendez-vous hors des créneaux proposés, écart noté dans l'ADR 0108). Une fenêtre en trois colonnes : le
+  pouvant poser un rendez-vous hors des créneaux proposés, écart noté dans l'ADR 0109). Une fenêtre en trois colonnes : le
   rendez-vous, le mois, les heures du jour choisi.
   - Un jour sans créneau est barré et grisé, sans en dire la raison.
   - Un clic sur une heure la transforme en « 10:00 | Suivant ».
@@ -279,7 +279,7 @@ Décisions de la partie B (validées le 21/11/2026 : option a) :
 - `apps/symbola/modules/appointments/service.ts` (plages au lieu de jours).
 - `apps/symbola/app/events/parametres/plages-occupees/` (neuf), fiche
   `app/events/[id]/`, route du fichier `.ics` d'un évènement, écran d'abonnement.
-- Traductions FR/EN, aide, `docs/gap.csv` (HUB-29, RDV-02), ADR 0108.
+- Traductions FR/EN, aide, `docs/gap.csv` (HUB-29, RDV-02), ADR 0109.
 - Partie B : `app/rendez-vous/disponibilites`, `app/rendez-vous/reglages/types/[id]`,
   `app/reserver/[adresse]` (composant de choix du créneau, réemployé par `/rendez-vous/nouveau`
   et `/rdv`), questions une par une ; si D8 (a), migration 0203 dans `appointments`.

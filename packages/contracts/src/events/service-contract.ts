@@ -72,7 +72,7 @@ export type EventSummary = {
 // perdu ou annulé ; avec son type, pour l'intitulé (« Mariage — Léa & Maxime »).
 export type CalendarEvent = EventSummary & { eventTypeId: string | null };
 
-// Lot 64 (HUB-29, RDV-02 ; D1 à D6 ; ADR 0108) — plages occupées. Début et fin : un jour relatif à la
+// Lot 64 (HUB-29, RDV-02 ; D1 à D6 ; ADR 0109) — plages occupées. Début et fin : un jour relatif à la
 // date de l'évènement (-7 à 7) et une heure locale « HH:MM » (fuseau de l'évènement).
 export type BusyRule = { startDayOffset: number; startTime: string; endDayOffset: number; endTime: string };
 export type BusyRuleSource = "event" | "type" | "fallback";

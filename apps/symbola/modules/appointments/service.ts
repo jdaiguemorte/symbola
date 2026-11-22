@@ -499,7 +499,7 @@ export async function listCalendarSourcesInError(organizationId: string): Promis
 
 // —— Créneaux (RDV-02) ————————————————————————————————————————————————————————————
 
-// D6, revu au lot 64 (RDV-02 ; D2, D3 ; ADR 0108) : les plages occupées des évènements qui bloquent
+// D6, revu au lot 64 (RDV-02 ; D2, D3 ; ADR 0109) : les plages occupées des évènements qui bloquent
 // (heures réglées par type ou par évènement, la veille et le lendemain compris), pour la personne qui
 // reçoit : ceux de son équipe, ou sans équipe (si le module Évènements est ouvert).
 async function eventBusy(organizationId: string, hostUserId: string, now: Date, horizonDays: number): Promise<Range[]> {

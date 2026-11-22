@@ -4245,7 +4245,7 @@ export {
   type LateTask,
 } from "./planning";
 
-// Lot 64 (HUB-29, RDV-02 ; D1 à D6 ; ADR 0108) : plages occupées.
+// Lot 64 (HUB-29, RDV-02 ; D1 à D6 ; ADR 0109) : plages occupées.
 import { getBusySettings, setBusySettings, listEventTypeBusyRules, setEventTypeBusyRule, getEventBusy, setEventBusyRule, listBusyRanges, listEventBusyRanges } from "./busy";
 export { BusyRuleInvalidError, getBusySettings, setBusySettings, listEventTypeBusyRules, setEventTypeBusyRule, getEventBusy, setEventBusyRule, listBusyRanges, listEventBusyRanges } from "./busy";
 export { busyRuleMinutes, isValidBusyRule, BUSY_DAY_OFFSET_MAX, BUSY_DAY_OFFSET_MIN } from "./busy-ranges";

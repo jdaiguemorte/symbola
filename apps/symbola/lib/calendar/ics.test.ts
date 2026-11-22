@@ -40,7 +40,7 @@ describe("HUB-29 — Flux ICS par utilisateur et par évènement (lot 38b, RFC 5
   });
 });
 
-describe("HUB-29 — Plages occupées : « occupé » ou provisoire dans l'agenda (lot 64, ADR 0108)", () => {
+describe("HUB-29 — Plages occupées : « occupé » ou provisoire dans l'agenda (lot 64, ADR 0109)", () => {
   const now = new Date("2026-11-21T10:00:00Z");
   const range = { start: { dateTime: new Date("2027-06-12T06:00:00Z") }, end: { dateTime: new Date("2027-06-12T20:00:00Z") } };
 
