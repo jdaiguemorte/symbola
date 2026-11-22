@@ -15,10 +15,23 @@ import { formatAmount, formatCalendarDate, type Locale } from "@symbola/i18n";
 import { BudgetLineIcon } from "@/app/budget-line-icon";
 import { setVendorPaymentPaidAction } from "@/app/budget/[eventId]/actions";
 import { SlotWindow, type SlotPanel, type SlotRubric } from "./slot-window";
+import { ConfirmDialog } from "@/app/ui/confirm-dialog";
+import { removeVendorSlotAction } from "./vendor-slot-actions";
 import { signedAmount, type BudgetVendorRow, type BudgetVendorTotals, type RowPayment } from "./budget-vendor-rows";
 import { VendorChoice } from "./vendor-choice";
 
 const COLUMNS = 8;
+
+// Lot 65g : un poste vide se supprime sans rien perdre.
+function removable(row: BudgetVendorRow, choice: { comparing: number }): boolean {
+  return (
+    row.vendorNames.length === 0 &&
+    choice.comparing === 0 &&
+    row.payments.length === 0 &&
+    row.attachments.length === 0 &&
+    row.lines.every((line) => !line.estimatedAmountCents && !line.quotedAmountCents && !line.committedAmountCents && !line.paidAmountCents)
+  );
+}
 
 export function BudgetVendorsTable({
   eventId,
@@ -44,7 +57,7 @@ export function BudgetVendorsTable({
   initialSlotId: string | null;
   slotPanels: Record<string, SlotPanel>;
   // Prestataires en comparaison (hors écartés et retenus) et devis reçus, par poste.
-  choices: Record<string, { comparing: number; quotes: number }>;
+  choices: Record<string, { comparing: number; quotes: number; signature?: string }>;
   // Le carnet filtré pour le poste, et la demande de devis.
   catalogHrefs: Record<string, string>;
   consultationHrefs: Record<string, string>;
@@ -69,7 +82,7 @@ export function BudgetVendorsTable({
   const editing = editingIndex >= 0 ? editingIndex : null;
   // Un clic sur la ligne l'ouvre, sauf sur un lien, un bouton ou un champ.
   const onRowClick = (event: MouseEvent<HTMLTableRowElement>, index: number) => {
-    if ((event.target as HTMLElement).closest("a, button, input, select, textarea, label, [role='group']")) return;
+    if ((event.target as HTMLElement).closest("a, button, input, select, textarea, label, dialog, [role='group']")) return;
     open(index);
   };
   const money = (cents: number) => formatAmount(cents, locale);
@@ -205,6 +218,23 @@ export function BudgetVendorsTable({
                         {t("open")}
                         <span className="sr-only"> {t("openFor", { slot: row.label })}</span>
                       </button>
+                      {/* Lot 65g (PRE-02 ; recette staging du 22/11/2026) : un évènement n'a pas besoin de tous
+                          les postes ; « Supprimer » à côté d'« Ouvrir », après confirmation, pour un poste vide
+                          (ni prestataire, ni montant, ni échéance, ni pièce) : rien ne se perd. Un poste qui en a
+                          se retire depuis ses réglages. */}
+                      {removable(row, choice) ? (
+                        <ConfirmDialog
+                          trigger={t("removeSlot")}
+                          triggerLabel={t("removeSlotFor", { slot: row.label })}
+                          triggerClassName="button-ghost"
+                          title={t("removeSlotTitle", { slot: row.label })}
+                          body={t("removeSlotBody")}
+                          confirmLabel={t("removeSlotConfirm")}
+                          cancelLabel={t("removeSlotCancel")}
+                          action={removeVendorSlotAction}
+                          fields={{ eventId, vendorSlotId: row.slotId }}
+                        />
+                      ) : null}
                     </td>
                   </tr>
                   {unfoldedRow ? (
@@ -275,6 +305,7 @@ export function BudgetVendorsTable({
           vendorsAvailable={vendorsAvailable}
           vendorTypes={vendorTypes}
           catalogHref={catalogHrefs[editingRow.slotId] ?? "/prestataires"}
+          candidatesSignature={choices[editingRow.slotId]?.signature ?? ""}
           consultationHref={consultationHrefs[editingRow.slotId] ?? "#"}
           onClose={() => setEditingId(null)}
           onMove={(step) => setEditingId(rows[editing + step]?.slotId ?? null)}

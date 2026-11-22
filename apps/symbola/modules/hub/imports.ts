@@ -14,6 +14,7 @@ import {
   EVENT_SHEET_TECHNICAL_COLUMNS,
   LOW_CONFIDENCE_THRESHOLD,
   looksLikePdf,
+  normalizeLabel,
   proposeMapping,
   proposeVendorsExportMapping,
   readImportFile,
@@ -85,6 +86,9 @@ export type StartImportInput = {
   entityType: ImportEntityType;
   fileName: string;
   bytes: Uint8Array;
+  // Lot 65g (HUB-14, BUD-04) : import lancé depuis un évènement (tâches, lignes de budget), vérifié
+  // par l'appelant : toutes les lignes vont dans cet évènement.
+  targetEventId?: string | null;
   now?: Date;
 };
 
@@ -130,6 +134,7 @@ export async function startImport(db: AppDatabase, input: StartImportInput): Pro
     sourceLineNumbers: table.sourceLineNumbers,
     rowCount: table.rows.length,
     neutralizedCells: table.neutralizedCells,
+    targetEventId: (input.entityType === "tasks" || input.entityType === "budget_lines") && input.targetEventId ? input.targetEventId : null,
     expiresAt: new Date(now.getTime() + limits.draftRetentionDays * DAY_MS),
     createdAt: now,
     updatedAt: now,
@@ -358,7 +363,11 @@ export async function getImportColumns(
   // Export du carnet d'un logiciel tiers reconnu : sa correspondance prime.
   const profile = planningSoftwareProfile().vendors;
   const known = row.entityType === "vendors" ? proposeVendorsExportMapping(row, profile, fields.map((field) => field.key)) : null;
+  // Lot 65g (HUB-14, BUD-04) : une colonne calculée (« Différence », « Reste à payer ») sans
+  // équivalent est ignorée d'office ; Symbola la recalcule.
+  const computed = new Set((starterImportSynonyms().ignored[row.entityType] ?? []).map((label) => normalizeLabel(label).join(" ")));
   const annexDecision = (columnIndex: number): "ignore" | "free" | null => {
+    if (!generic[columnIndex]?.fieldKey && computed.has(normalizeLabel(row.headers[columnIndex] ?? "").join(" "))) return "ignore";
     const field = known?.[columnIndex]?.profileField;
     if (!field || known?.[columnIndex]?.fieldKey) return null;
     if (profile.annexColumns?.ignore.includes(field)) return "ignore";
@@ -493,6 +502,8 @@ export type ImportWorkingSet = {
   sourceLineNumbers: number[];
   mapping: ImportColumnChoice[];
   matching: ImportMatching | null;
+  // Lot 65g : l'évènement de toutes les lignes, pour un import lancé depuis un évènement.
+  targetEventId: string | null;
 };
 
 export async function getImportWorkingSet(
@@ -514,6 +525,7 @@ export async function getImportWorkingSet(
     sourceLineNumbers: row.sourceLineNumbers ?? row.rows.map((_, index) => index + 2),
     mapping: row.mapping,
     matching: row.matching,
+    targetEventId: row.targetEventId ?? null,
   };
 }
 

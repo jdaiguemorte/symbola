@@ -8,7 +8,7 @@ import AxeBuilder from "./axe";
 import { expect, test, type Page } from "@playwright/test";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
-import { openSettingsTab, readyOrganization, signIn } from "./helpers";
+import { readyOrganization, signIn } from "./helpers";
 
 const isPhone = (page: Page) => (page.viewportSize()?.width ?? 1280) < 640;
 
@@ -62,7 +62,10 @@ test("UX-13 — Les champs d'une rangée sont alignés ; un libellé ajusté res
   await page.goto("/devis/parametres");
   await expect(page.getByRole("heading", { name: "Clients professionnels" })).toBeVisible();
   expect(await gridDefects(page)).toEqual([]);
-  await openSettingsTab(page, "Mentions et logo");
+  // « Mentions et logo » : l'onglet de Paramètres › Entreprise et TVA.
+  await page.goto("/parametres");
+  await page.getByRole("tab", { name: "Mentions et logo" }).or(page.getByRole("link", { name: "Mentions et logo", exact: true })).first().click();
+  await expect(page.getByRole("heading", { name: "Informations du professionnel" })).toBeVisible();
   expect(await gridDefects(page)).toEqual([]);
 });
 
@@ -79,7 +82,7 @@ test("UX-13 — Dans le panneau des réglages, l'aide se déplie en tête du pan
   await help.locator("summary").click();
   await expect(help).toHaveAttribute("open", "");
   // Un seul panneau à droite : pas de tiroir d'aide par-dessus.
-  await expect(page.getByRole("complementary")).toHaveCount(1);
+  await expect(page.getByRole("complementary", { name: /^Aide : / })).toHaveCount(0);
   expect(await gridDefects(page)).toEqual([]);
   const result = await new AxeBuilder({ page }).analyze();
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);

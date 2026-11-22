@@ -622,6 +622,10 @@ export const imports = hubSchema.table("imports", {
   appliedAt: timestamp("applied_at", { withTimezone: true }),
   undoneAt: timestamp("undone_at", { withTimezone: true }),
   result: jsonb("result").$type<ImportResult | null>(),
+  // Lot 65g (HUB-14, BUD-04 ; recette staging du 22/11/2026) : import lancé depuis un évènement (tâches,
+  // lignes de budget) : toutes les lignes vont dans cet évènement, sans colonne pour le désigner.
+  // Identifiant opaque (pas de clé étrangère entre schémas).
+  targetEventId: uuid("target_event_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).

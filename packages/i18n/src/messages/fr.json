@@ -3857,7 +3857,8 @@
       "nothingSaved": "Rien n'est encore enregistré. Vous pouvez fermer : l'import continue.",
       "close": "Fermer"
     },
-    "typesCombinedFrom": "Vient de {labels} : plusieurs métiers sur la même fiche"
+    "typesCombinedFrom": "Vient de {labels} : plusieurs métiers sur la même fiche",
+    "targetEvent": "Les lignes iront dans l'évènement « {names} » : votre fichier n'a pas besoin de colonne pour le désigner."
   },
   "Privacy": {
     "title": "Données personnelles",
@@ -8678,7 +8679,9 @@
       "event": "L'évènement, dit aux clients : « votre mariage »",
       "event_date": "La date de l'évènement",
       "place": "Le lieu de réception",
-      "organization": "Le nom de votre entreprise"
+      "organization": "Le nom de votre entreprise",
+      "brochure": "Le lien de votre brochure, valable 30 jours ; créé à l'envoi",
+      "booking_link": "Votre page de réservation de rendez-vous, ou des créneaux à compléter si elle n'est pas ouverte"
     },
     "create": "Créer le modèle",
     "save": "Enregistrer",
@@ -8732,6 +8735,7 @@
     "sendFromSymbola": "{count, plural, one {Envoyer depuis Symbola} other {Envoyer depuis Symbola à # personnes}}",
     "openInMail": "Ouvrir dans ma messagerie",
     "sendHint": "« Envoyer depuis Symbola » : l'e-mail part à l'image de votre entreprise, les réponses arrivent à votre adresse, et il est rangé dans l'historique du contact ; les relances partent de cet envoi. « Ouvrir dans ma messagerie » : vous l'envoyez vous-même, il est noté « préparé ».",
+    "prepareHint": "« Préparer l'e-mail » : Symbola met le message en forme, vous l'ouvrez dans votre messagerie ou le copiez, puis « J'ai envoyé » le note dans l'activité de l'évènement.",
     "sent": "{count, plural, one {Message envoyé et rangé dans l'historique.} other {Message envoyé à # personnes et rangé dans l'historique.}}",
     "sentDeferred": "Message rangé dans l'historique ; la messagerie ne répond pas, il partira dès que possible.",
     "prepared": "Message noté « préparé » ; votre messagerie s'ouvre.",
@@ -12543,7 +12547,13 @@
     "detailsTitle": "Statut, devis et notes de chaque prestataire",
     "documentsEmpty": "Aucune pièce pour ce poste.",
     "consultationLink": "Demander des devis (brief, envoi aux prestataires)",
-    "addMore": "+ Ajouter"
+    "addMore": "+ Ajouter",
+    "removeSlot": "Supprimer",
+    "removeSlotFor": "Supprimer le poste « {slot} »",
+    "removeSlotTitle": "Supprimer le poste « {slot} » ?",
+    "removeSlotBody": "Ce poste n'a ni prestataire, ni montant, ni échéance : il disparaît de cet évènement. Pour le garder sans le chercher, cochez plutôt « Non requis » dans ses réglages.",
+    "removeSlotConfirm": "Supprimer le poste",
+    "removeSlotCancel": "Annuler"
   },
   "TaskCategories": {
     "title": "Catégories des tâches",

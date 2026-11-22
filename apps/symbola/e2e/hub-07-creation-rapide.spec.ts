@@ -133,7 +133,8 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   await page.getByRole("link", { name: "Écrire au client" }).click();
   await expect(page.getByRole("heading", { name: "Écrire au client", level: 1 })).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Texte" })).toHaveValue(/^Bonjour /);
-  await expect(page.getByRole("button", { name: "Ouvrir dans ma messagerie" })).toBeVisible();
+  // Lot 65d (ADR 0110) : par défaut, la planner l'envoie de sa messagerie, préparé par Symbola.
+  await expect(page.getByRole("button", { name: "Préparer l'e-mail" })).toBeVisible();
   await page.goto(`/events/${setup.lea}`);
 
   // CRM-04 sur la fiche : la date de l'évènement annonce les autres évènements de ce jour.

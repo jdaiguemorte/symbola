@@ -7,6 +7,8 @@ import { getImportLimits, listImports, type ImportEntityType, type ImportLimits,
 import { requirePlanner } from "@/lib/guards";
 import { availableImportEntityTypes } from "./access";
 import { NewImportForm } from "./new-import-form";
+import { eventNames, getEvent } from "@/modules/events/service";
+import { isValidId } from "@/app/events/module-access";
 
 // Lot 5 — import de données (PRD §7) : point d'entrée et journal des imports.
 // Lot 14 (IMP-09) : les deux reprises depuis l'outil actuel, en premier.
@@ -19,7 +21,7 @@ const OTHER = "autre";
 // des évènements propose les fiches PDF et le tableur.
 const SCREEN_GROUPS: Record<string, readonly ImportEntityType[]> = { evenements: ["event_sheets", "events"] };
 
-export default async function ImportPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
+export default async function ImportPage({ searchParams }: { searchParams: Promise<{ type?: string; evenement?: string }> }) {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
 
@@ -30,7 +32,8 @@ export default async function ImportPage({ searchParams }: { searchParams: Promi
   const available = await availableImportEntityTypes(organizationId);
   const takeovers = TAKEOVER_TYPES.filter((type) => available.includes(type));
   const others = available.filter((type) => !(TAKEOVER_TYPES as readonly string[]).includes(type));
-  const requested = (await searchParams).type;
+  const query = await searchParams;
+  const requested = query.type;
   const group = requested && Object.hasOwn(SCREEN_GROUPS, requested) ? SCREEN_GROUPS[requested]!.filter((type) => available.includes(type)) : [];
   const direct = available.find((type) => type === requested) ?? null;
   const chosen: string | null =
@@ -38,6 +41,10 @@ export default async function ImportPage({ searchParams }: { searchParams: Promi
   const formTypes: ImportEntityType[] = chosen === OTHER ? others : group.length > 0 ? group : direct ? [direct] : [];
   const isTakeover = (TAKEOVER_TYPES as readonly string[]).includes(chosen ?? "");
   const formTitle = chosen === OTHER ? t("otherFileTitle") : group.length > 0 ? t(`screenGroup.${chosen}`) : isTakeover ? t(`takeover.${chosen}.title`) : direct ? t(`entityType.${direct}`) : "";
+  // Lot 65g (HUB-14, BUD-04) : lancé depuis un évènement, l'import de tâches ou de lignes de budget va
+  // dans cet évènement ; un évènement d'une autre organisation n'est pas reconnu (SEC-13).
+  const target =
+    (direct === "budget_lines" || direct === "tasks") && query.evenement && isValidId(query.evenement) ? await getEvent(organizationId, query.evenement).catch(() => null) : null;
   const db = appDatabase();
   const [journal, limits]: [ImportSummary[], ImportLimits] = await Promise.all([listImports(db, organizationId), getImportLimits(db)]);
   const tiles = [
@@ -76,7 +83,7 @@ export default async function ImportPage({ searchParams }: { searchParams: Promi
               </a>
             </p>
           ) : null}
-          <NewImportForm key={chosen} entityTypes={formTypes} defaultEntityType={formTypes.length === 1 || group.length > 0 ? formTypes[0]! : null} maxSizeLabel={formatFileSize(limits.maxBytes, locale)} maxSheets={limits.maxSheets} />
+          <NewImportForm key={chosen} target={target ? { eventId: target.id, names: eventNames(target.clients, target.name) } : null} entityTypes={formTypes} defaultEntityType={formTypes.length === 1 || group.length > 0 ? formTypes[0]! : null} maxSizeLabel={formatFileSize(limits.maxBytes, locale)} maxSheets={limits.maxSheets} />
         </section>
       ) : null}
 

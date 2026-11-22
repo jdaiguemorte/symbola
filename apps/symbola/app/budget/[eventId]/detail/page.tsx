@@ -64,7 +64,7 @@ export default async function EventBudgetPage({ params }: { params: Promise<{ ev
         actions={
           <>
             {/* Lot 63b (HUB-14) : importer un budget depuis l'écran. */}
-            <Link href="/import?type=budget_lines#import-form" className="button-link">
+            <Link href={`/import?type=budget_lines&evenement=${eventId}#import-form`} className="button-link">
               {t("importHere")}
             </Link>
             <Link href={`/events/${eventId}?onglet=budget`} className="button-link">

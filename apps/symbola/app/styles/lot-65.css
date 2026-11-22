@@ -16,8 +16,12 @@
      cette forme (un libellé en tête, trois éléments au plus) : sinon la grille reste telle quelle. */
   @media (width >= 640px) {
     .form-grid:not(:has(> .field-group > :first-child:not(label), > .field-group > label:first-child > input[type="checkbox"], > .field-group > label:first-child > input[type="radio"], > .field-group > :nth-child(4))) > .field-group {
-      @apply row-span-3 grid gap-y-1;
+      @apply row-span-2 grid gap-y-1;
       grid-template-rows: subgrid;
+    }
+    /* Autant de lignes que d'éléments : une ligne vide ajouterait l'écart de la grille. */
+    .form-grid:not(:has(> .field-group > :first-child:not(label), > .field-group > label:first-child > input[type="checkbox"], > .field-group > label:first-child > input[type="radio"], > .field-group > :nth-child(4))):has(> .field-group > :nth-child(3)) > .field-group {
+      @apply row-span-3;
     }
     .form-grid:not(:has(> .field-group > :first-child:not(label), > .field-group > label:first-child > input[type="checkbox"], > .field-group > label:first-child > input[type="radio"], > .field-group > :nth-child(4))) > .field-group > label:first-child {
       @apply self-stretch justify-between;
@@ -195,5 +199,18 @@
   }
   .reminder-template[open] > summary {
     @apply mb-2;
+  }
+
+  /* 65g (HUB-14 ; recette staging du 22/11/2026) : l'écran des colonnes d'un import prend toute la
+     largeur de l'écran (un formulaire de saisie est limité à 48rem, et range ses enfants à la largeur
+     de leur contenu) ; la liste des champs n'est plus coupée alors qu'il reste de la place à droite. */
+  .app-main > main.import-assistant > form#columns-form {
+    @apply w-full max-w-none;
+  }
+  .import-assistant form > .columns-map {
+    @apply w-full min-w-0 self-stretch;
+  }
+  .import-assistant .columns-map select {
+    @apply min-w-40 max-w-full;
   }
 }

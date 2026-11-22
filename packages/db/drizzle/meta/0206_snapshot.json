@@ -1,5 +1,5 @@
 {
-  "id": "126ade97-17df-44d5-9887-fa878958707a",
+  "id": "c5cbbec1-1df4-4594-a963-9d1899eb550c",
   "prevId": "8536484a-d42c-4840-84d9-fe01c8bcfb0c",
   "version": "7",
   "dialect": "postgresql",
@@ -19076,7 +19076,7 @@
       "checkConstraints": {
         "automation_runs_key_check": {
           "name": "automation_runs_key_check",
-          "value": "\"hub\".\"automation_runs\".\"key\" in ('quote_signed_confirm_event', 'payment_due_reminder', 'rsvp_reminder', 'client_task_reminder', 'invoice_reminder', 'proposal_expiry_reminder', 'prospect_follow_up', 'vendor_roadmap', 'risk_radar', 'day_reminder')"
+          "value": "\"hub\".\"automation_runs\".\"key\" in ('quote_signed_confirm_event', 'payment_due_reminder', 'rsvp_reminder', 'client_task_reminder', 'invoice_reminder', 'proposal_expiry_reminder', 'prospect_follow_up', 'vendor_roadmap', 'risk_radar')"
         },
         "automation_runs_result_check": {
           "name": "automation_runs_result_check",
@@ -19137,12 +19137,6 @@
         "last_run_on": {
           "name": "last_run_on",
           "type": "date",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "send_time": {
-          "name": "send_time",
-          "type": "time",
           "primaryKey": false,
           "notNull": false
         },
@@ -19218,15 +19212,11 @@
       "checkConstraints": {
         "automations_key_check": {
           "name": "automations_key_check",
-          "value": "\"hub\".\"automations\".\"key\" in ('quote_signed_confirm_event', 'payment_due_reminder', 'rsvp_reminder', 'client_task_reminder', 'invoice_reminder', 'proposal_expiry_reminder', 'prospect_follow_up', 'vendor_roadmap', 'risk_radar', 'day_reminder')"
+          "value": "\"hub\".\"automations\".\"key\" in ('quote_signed_confirm_event', 'payment_due_reminder', 'rsvp_reminder', 'client_task_reminder', 'invoice_reminder', 'proposal_expiry_reminder', 'prospect_follow_up', 'vendor_roadmap', 'risk_radar')"
         },
         "automations_days_check": {
           "name": "automations_days_check",
           "value": "\"hub\".\"automations\".\"days\" is null or \"hub\".\"automations\".\"days\" between 1 and 60"
-        },
-        "automations_send_time_check": {
-          "name": "automations_send_time_check",
-          "value": "\"hub\".\"automations\".\"send_time\" is null or (extract(minute from \"hub\".\"automations\".\"send_time\")::int % 15 = 0 and extract(second from \"hub\".\"automations\".\"send_time\") = 0)"
         }
       },
       "isRLSEnabled": false
@@ -20330,132 +20320,6 @@
         "contacts_company_ids_check": {
           "name": "contacts_company_ids_check",
           "value": "(\"hub\".\"contacts\".\"kind\" = 'company' or (\"hub\".\"contacts\".\"company_id_number\" is null and \"hub\".\"contacts\".\"vat_number\" is null)) and (\"hub\".\"contacts\".\"company_id_number\" is null or \"hub\".\"contacts\".\"company_id_number\" ~ '^[0-9]{9}([0-9]{5})?$') and (\"hub\".\"contacts\".\"vat_number\" is null or (\"hub\".\"contacts\".\"vat_number\" = upper(replace(\"hub\".\"contacts\".\"vat_number\", ' ', '')) and \"hub\".\"contacts\".\"vat_number\" <> ''))"
-        }
-      },
-      "isRLSEnabled": false
-    },
-    "hub.day_reminder_targets": {
-      "name": "day_reminder_targets",
-      "schema": "hub",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "target": {
-          "name": "target",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "enabled": {
-          "name": "enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "moment": {
-          "name": "moment",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "send_time": {
-          "name": "send_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_by": {
-          "name": "updated_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "day_reminder_targets_organization_idx": {
-          "name": "day_reminder_targets_organization_idx",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "day_reminder_targets_target_idx": {
-          "name": "day_reminder_targets_target_idx",
-          "columns": [
-            {
-              "expression": "organization_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "target",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "day_reminder_targets_target_check": {
-          "name": "day_reminder_targets_target_check",
-          "value": "\"hub\".\"day_reminder_targets\".\"target\" in ('planner', 'vendors', 'team', 'clients')"
-        },
-        "day_reminder_targets_moment_check": {
-          "name": "day_reminder_targets_moment_check",
-          "value": "\"hub\".\"day_reminder_targets\".\"moment\" in ('eve', 'morning')"
-        },
-        "day_reminder_targets_time_check": {
-          "name": "day_reminder_targets_time_check",
-          "value": "extract(minute from \"hub\".\"day_reminder_targets\".\"send_time\")::int % 15 = 0 and extract(second from \"hub\".\"day_reminder_targets\".\"send_time\") = 0"
         }
       },
       "isRLSEnabled": false
@@ -21688,6 +21552,12 @@
         "result": {
           "name": "result",
           "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "target_event_id": {
+          "name": "target_event_id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -26187,77 +26057,6 @@
         "risk_rules_threshold_check": {
           "name": "risk_rules_threshold_check",
           "value": "\"hub\".\"risk_rules\".\"threshold_days\" between 0 and 365"
-        }
-      },
-      "isRLSEnabled": false
-    },
-    "hub.sending_settings": {
-      "name": "sending_settings",
-      "schema": "hub",
-      "columns": {
-        "organization_id": {
-          "name": "organization_id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "default_send_time": {
-          "name": "default_send_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_by": {
-          "name": "updated_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "sending_settings_organization_id_organizations_id_fk": {
-          "name": "sending_settings_organization_id_organizations_id_fk",
-          "tableFrom": "sending_settings",
-          "tableTo": "organizations",
-          "schemaTo": "hub",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "sending_settings_time_check": {
-          "name": "sending_settings_time_check",
-          "value": "extract(minute from \"hub\".\"sending_settings\".\"default_send_time\")::int % 15 = 0 and extract(second from \"hub\".\"sending_settings\".\"default_send_time\") = 0"
         }
       },
       "isRLSEnabled": false

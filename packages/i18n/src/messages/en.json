@@ -3857,7 +3857,8 @@
       "nothingSaved": "Nothing is saved yet. You can close this: the import goes on.",
       "close": "Close"
     },
-    "typesCombinedFrom": "From {labels}: several trades on the same record"
+    "typesCombinedFrom": "From {labels}: several trades on the same record",
+    "targetEvent": "The lines will go into the “{names}” event: your file needs no column to name it."
   },
   "Privacy": {
     "title": "Personal data",
@@ -8678,7 +8679,9 @@
       "event": "The event, as told to the clients: “your wedding”",
       "event_date": "The event date",
       "place": "The reception venue",
-      "organization": "Your business name"
+      "organization": "Your business name",
+      "brochure": "The link to your brochure, valid for 30 days; created when sending",
+      "booking_link": "Your appointment booking page, or slots to fill in if it is not open"
     },
     "create": "Create the template",
     "save": "Save",
@@ -8732,6 +8735,7 @@
     "sendFromSymbola": "{count, plural, one {Send from Symbola} other {Send from Symbola to # people}}",
     "openInMail": "Open in my mail app",
     "sendHint": "\"Send from Symbola\": the email goes out in your company's style, replies reach your address, and it is filed in the contact's history; follow-ups count from this message. \"Open in my mail app\": you send it yourself, it is recorded as \"prepared\".",
+    "prepareHint": "\"Prepare the email\": Symbola lays out the message, you open it in your mail app or copy it, then \"I've sent it\" records it in the event's activity.",
     "sent": "{count, plural, one {Message sent and filed in the history.} other {Message sent to # people and filed in the history.}}",
     "sentDeferred": "Message filed in the history; the mail server is not answering, it will go out as soon as possible.",
     "prepared": "Message recorded as \"prepared\"; your mail app opens.",
@@ -12543,7 +12547,13 @@
     "detailsTitle": "Status, quote and notes of each vendor",
     "documentsEmpty": "No document for this item.",
     "consultationLink": "Request quotes (brief, sending to vendors)",
-    "addMore": "+ Add"
+    "addMore": "+ Add",
+    "removeSlot": "Delete",
+    "removeSlotFor": "Delete the “{slot}” item",
+    "removeSlotTitle": "Delete the “{slot}” item?",
+    "removeSlotBody": "This item has no vendor, amount or instalment: it disappears from this event. To keep it without looking for a vendor, tick “Not required” in its settings instead.",
+    "removeSlotConfirm": "Delete the item",
+    "removeSlotCancel": "Cancel"
   },
   "TaskCategories": {
     "title": "Task categories",

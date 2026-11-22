@@ -1,4 +1,4 @@
--- Annulation de 0206 (lot 66) : l'heure propre des automatismes, l'heure par défaut et le rappel du
+-- Annulation de 0207 (lot 66) : l'heure propre des automatismes, l'heure par défaut et le rappel du
 -- jour J disparaissent ; les envois reviennent au premier passage horaire de 9 h. Refusée tant qu'un
 -- réglage a été posé (il serait perdu sans que la planner le sache).
 DO $$

@@ -353,7 +353,9 @@ export function rowEventReference(values: Record<string, ImportValue>): { eventD
   return { eventDate: text(values.eventDate), clients };
 }
 
-function resolveEvent(row: ParsedImportRow, events: EventCandidate[]): ImportRowEvent {
+function resolveEvent(row: ParsedImportRow, events: EventCandidate[], targetEventId: string | null = null): ImportRowEvent {
+  // Lot 65g (HUB-14, BUD-04) : import lancé depuis un évènement : toutes ses lignes y vont.
+  if (targetEventId && events.some((event) => event.id === targetEventId)) return { rowIndex: row.rowIndex, eventId: targetEventId, score: 100 };
   const reference = rowEventReference(row.values);
   if (reference.clients.length === 0) return { rowIndex: row.rowIndex, eventId: null, score: 0 };
   const scores = events
@@ -404,7 +406,7 @@ export async function computeImportMatching(organizationId: string, set: ImportW
     const events = await listEventCandidates(organizationId);
     const itemsByEvent = new Map<string, LabelCandidate[]>();
     for (const row of rows) {
-      const resolution = resolveEvent(row, events);
+      const resolution = resolveEvent(row, events, set.targetEventId);
       rowEvents.push(resolution);
       const label = rowLabel(set.entityType, row.values);
       if (!resolution.eventId || !label) continue;
