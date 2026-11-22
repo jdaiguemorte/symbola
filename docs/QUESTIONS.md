@@ -931,6 +931,11 @@ envoie pour moi »), pour la pièce jointe et les relances automatiques. Les mes
 - Le décompte de la spécification (17 modèles de la relation, 18 techniques) ne correspond pas au
   partage validé du § 1 de la note (14 et 21, avec `task_reminder` côté relation) : c'est le partage
   validé qui est appliqué. **À confirmer par Julien** si un modèle doit changer de liste.
+- **Le jour J** : le décalage du programme validé sur le téléphone (JRJ-05) prévient les prestataires
+  concernés par le modèle `program_published`, rangé côté relation. Par défaut, il dépose donc un
+  message « À envoyer » par prestataire au lieu de l'envoyer. En plein mariage, la planner a-t-elle le
+  temps de les envoyer elle-même ? Proposition : ranger ce message du jour J (et lui seul) avec les
+  messages envoyés par Symbola. **À trancher par Julien.**
 
 Fait au lot 65d2 : migration **0205** (schéma hub), réglage dans Paramètres › Modèles d'e-mails,
 fenêtre « Préparer l'e-mail », éléments « À envoyer » ; ADR 0110.
