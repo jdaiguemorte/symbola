@@ -110,3 +110,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0108 — Écran « Apps » et demandes d'activation pendant le pilote](0108-ecran-apps-et-demandes-d-activation.md)
 - [0110 — Les messages de la relation sont préparés par Symbola et envoyés par la planner ; l'envoi par Symbola reste en option](0110-messages-de-la-relation-prepares-pour-la-planner.md)
 - [0111 — La fenêtre du poste ; comparer avant de retenir](0111-fenetre-du-poste-comparer-avant-de-retenir.md)
+- [0114 — Tâches périodiques : ne visiter que les organisations qui ont du travail](0114-taches-periodiques-sans-visiter-chaque-organisation.md)
