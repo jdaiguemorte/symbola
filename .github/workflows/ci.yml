@@ -119,7 +119,10 @@ jobs:
     runs-on: ubuntu-latest
     # Lot 33 : chaque connexion passe par le lien, Mailpit et Logto ; les parcours tournent en
     # série (un seul worker par job).
-    timeout-minutes: 45
+    # 23/11/2026 (lots 65 et 66) : une moitié atteignait 43 à 45 min avec ses reprises et a été coupée
+    # sur main (d64419a) ; la limite passe à 60 min. Trois tiers déplaçaient la mesure du serveur
+    # (NFR-02) en tête d'un tiers, où elle mesurait 412 à 450 ms : les deux moitiés restent.
+    timeout-minutes: 60
     # Lot 40c (NFR-17 à NFR-19, NFR-01, NFR-02 ; ADR 0078) : la suite sous Chromium (ordinateur et
     # 375 px, axe-core en WCAG 2.2 AA, mesures du temps de réponse, clavier, zoom à 200 %), et les
     # parcours des scénarios rejoués sous Firefox et WebKit, à 360 et à 1 920 px, et SC-10 à 150 %.
