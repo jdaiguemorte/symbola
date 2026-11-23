@@ -303,6 +303,7 @@ import {
   releaseProgramNotification,
 } from "./program-versions";
 import { endTimeAfter, MINUTES_PER_DAY } from "@/lib/program-spans";
+import { memoizePerRequest } from "@/lib/request-memo";
 import type {
   PendingDecision,
   UncontractedVendor,
@@ -617,8 +618,16 @@ function toEventDetail(event: EventRecord, clients: EventClientRow[]): EventDeta
   };
 }
 
+// NFR-02 (ADR 0115) : la fiche d'un évènement et la liste des évènements sont demandées par plusieurs
+// composants d'un même écran ; elles sont lues une fois par affichage (lib/request-memo.ts). Les
+// lignes rendues sont partagées entre ces composants : aucun ne les modifie.
+type EventFilters = Parameters<typeof findEvents>[1];
+const findEventsOnce = memoizePerRequest((organizationId: string, filters: string) => findEvents(organizationId, JSON.parse(filters) as EventFilters));
+const readEvents = (organizationId: string, filters: EventFilters) => findEventsOnce(organizationId, JSON.stringify(filters));
+const readEvent = memoizePerRequest(findEventById);
+
 export async function listEvents(input: ListEventsInput): Promise<EventSummary[]> {
-  const rows = await findEvents(input.organizationId, {
+  const rows = await readEvents(input.organizationId, {
     statusIn: input.statusIn,
     year: input.year,
     search: input.search,
@@ -634,7 +643,7 @@ export async function listEvents(input: ListEventsInput): Promise<EventSummary[]
 // Lot 38b (HUB-29 ; D11) — les évènements du flux de calendrier de l'équipe : datés, ni essai, ni
 // perdus ou annulés.
 export async function listCalendarEvents(organizationId: string): Promise<CalendarEvent[]> {
-  const rows = await findEvents(organizationId, {});
+  const rows = await readEvents(organizationId, {});
   return rows
     .filter(({ event }) => event.eventDate !== null && !event.isDemo && event.status !== "cancelled")
     .map(({ event, clients }) => ({ ...toEventSummary(event, clients), eventTypeId: event.eventTypeId }));
@@ -646,7 +655,7 @@ export async function listCalendarEvents(organizationId: string): Promise<Calend
 export async function listStaleProspects(organizationId: string, days: number, now: Date = new Date()): Promise<StaleProspect[]> {
   // Lot 34a (D2) : les options ; l'appelant écarte celles qui ont un devis envoyé (relancées par
   // le devis).
-  const rows = await findEvents(organizationId, { statusIn: ["option"] });
+  const rows = await readEvents(organizationId, { statusIn: ["option"] });
   return rows
     .filter(({ event }) => !event.isDemo)
     .map(({ event, clients }) => ({
@@ -660,7 +669,7 @@ export async function listStaleProspects(organizationId: string, days: number, n
 }
 
 export async function getEvent(organizationId: string, eventId: string): Promise<EventDetail | null> {
-  const result = await findEventById(organizationId, eventId);
+  const result = await readEvent(organizationId, eventId);
   if (!result) return null;
   return toEventDetail(result.event, result.clients);
 }
@@ -3596,7 +3605,7 @@ export async function listLinkedContactIds(organizationId: string, contactIds?: 
 export async function listEventsOfContact(organizationId: string, contactId: string): Promise<EventSummary[]> {
   const ids = new Set(await findEventIdsOfContact(organizationId, contactId));
   if (ids.size === 0) return [];
-  return (await findEvents(organizationId, {}))
+  return (await readEvents(organizationId, {}))
     .filter((row) => ids.has(row.event.id) && !row.event.isDemo)
     .map((row) => toEventSummary(row.event, row.clients));
 }

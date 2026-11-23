@@ -37,6 +37,7 @@ import {
 import { sendOrganizationEmail } from "./emails";
 import { defaultNotificationSettings, deliveryPlan, digestDue, localClock, notificationRetentionDays, typeDefaults } from "./notification-rules";
 import { getPushSender } from "./push";
+import { memoizePerRequest } from "@/lib/request-memo";
 
 type Tx = Parameters<Parameters<typeof withOrganization>[2]>[0];
 type Locale = "fr" | "en";
@@ -221,7 +222,7 @@ export async function listNotifications(organizationId: string, userId: string, 
   return rows.map(toView);
 }
 
-export async function countUnreadNotifications(organizationId: string, userId: string): Promise<number> {
+async function countUnreadNotificationsUncached(organizationId: string, userId: string): Promise<number> {
   const [row] = await inOrganization(organizationId, (tx) =>
     tx
       .select({ total: count() })
@@ -230,6 +231,8 @@ export async function countUnreadNotifications(organizationId: string, userId: s
   );
   return row?.total ?? 0;
 }
+// NFR-02 (ADR 0115) : le nombre de notifications non lues (cloche du menu) : une lecture par affichage (lib/request-memo.ts).
+export const countUnreadNotifications = memoizePerRequest(countUnreadNotificationsUncached);
 
 // Lue : elle ne part plus par push ni par e-mail immédiat (la personne l'a vue). Rien pour une
 // notification d'un autre compte : elle n'existe pas pour celui-ci.

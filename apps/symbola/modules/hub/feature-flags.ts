@@ -7,6 +7,7 @@ import { recordAudit } from "@symbola/db/audit";
 import type { AppDatabase } from "@symbola/db/client";
 import { featureFlagOrganizations, featureFlags } from "@symbola/db/schema/hub";
 import { withActorContext } from "@symbola/db/with-organization";
+import { memoizePerRequest } from "@/lib/request-memo";
 
 // Les fonctions derrière un interrupteur. « subscription_self_service » : l'abonnement en libre-service
 // (HUB-27), requis seulement à l'ouverture commerciale ; ouvert, il démarre l'essai à l'inscription et
@@ -18,7 +19,7 @@ export function isFeatureFlagKey(value: string): value is FeatureFlagKey {
   return (FEATURE_FLAG_KEYS as readonly string[]).includes(value);
 }
 
-export async function isFeatureEnabled(db: AppDatabase, organizationId: string | null, key: string): Promise<boolean> {
+async function isFeatureEnabledUncached(db: AppDatabase, organizationId: string | null, key: string): Promise<boolean> {
   if (!isFeatureFlagKey(key)) return false;
   const [flag] = await db.select({ openToAll: featureFlags.openToAll }).from(featureFlags).where(eq(featureFlags.key, key));
   if (flag?.openToAll) return true;
@@ -29,6 +30,8 @@ export async function isFeatureEnabled(db: AppDatabase, organizationId: string |
     .where(and(eq(featureFlagOrganizations.flagKey, key), eq(featureFlagOrganizations.organizationId, organizationId)));
   return Boolean(opened);
 }
+// NFR-02 (ADR 0115) : l'ouverture d'une fonction : une lecture par affichage (lib/request-memo.ts).
+export const isFeatureEnabled = memoizePerRequest(isFeatureEnabledUncached);
 
 export type FeatureFlagView = { key: FeatureFlagKey; openToAll: boolean; organizationIds: string[] };
 

@@ -8,6 +8,7 @@ import { privacyRequests, privacySettings } from "@symbola/db/schema/hub";
 import { withOrganization } from "@symbola/db/with-organization";
 import { daysBetween, isDueSoon, parisDate, requestDueDate } from "@symbola/privacy";
 import { starterContractRules, starterPrivacySettings, type StarterPrivacySettings } from "@symbola/starter-templates";
+import { memoizePerRequest } from "@/lib/request-memo";
 
 export const PRIVACY_REQUEST_TYPES = ["access", "rectification", "erasure", "portability", "objection"] as const;
 export type PrivacyRequestType = (typeof PRIVACY_REQUEST_TYPES)[number];
@@ -42,7 +43,7 @@ const REASON_MAX = 2000;
 
 // —— Réglages ———————————————————————————————————————————————————————————
 
-export async function getPrivacySettings(db: AppDatabase, organizationId: string): Promise<PrivacySettings> {
+async function getPrivacySettingsUncached(db: AppDatabase, organizationId: string): Promise<PrivacySettings> {
   return withOrganization(db, organizationId, async (tx) => {
     const [row] = await tx.select().from(privacySettings).where(eq(privacySettings.organizationId, organizationId));
     if (row) {
@@ -65,6 +66,8 @@ export async function getPrivacySettings(db: AppDatabase, organizationId: string
     return settings;
   });
 }
+// NFR-02 (ADR 0115) : les réglages RGPD de l'organisation : une lecture par affichage (lib/request-memo.ts).
+export const getPrivacySettings = memoizePerRequest(getPrivacySettingsUncached);
 
 export async function updatePrivacySettings(db: AppDatabase, organizationId: string, settings: PrivacySettings): Promise<void> {
   if (Object.values(settings).some((value) => !Number.isInteger(value) || value <= 0 || value > 1200)) {
@@ -200,7 +203,7 @@ export async function listPrivacyRequests(db: AppDatabase, organizationId: strin
 }
 
 // Tableau de bord du hub : demandes en cours dont l'échéance est proche ou passée.
-export async function listDueSoonPrivacyRequests(db: AppDatabase, organizationId: string, now: Date = new Date()): Promise<PrivacyRequestView[]> {
+async function listDueSoonPrivacyRequestsUncached(db: AppDatabase, organizationId: string, now: Date = new Date()): Promise<PrivacyRequestView[]> {
   const today = parisDate(now);
   const settings = await getPrivacySettings(db, organizationId);
   const rows = await withOrganization(db, organizationId, (tx) =>
@@ -212,6 +215,8 @@ export async function listDueSoonPrivacyRequests(db: AppDatabase, organizationId
   );
   return rows.map((row) => toView(row, today, settings.requestAlertDays)).filter((view) => view.dueSoon);
 }
+// NFR-02 (ADR 0115) : les demandes RGPD à échéance proche (alerte du menu et de l'accueil) : une lecture par affichage (lib/request-memo.ts).
+export const listDueSoonPrivacyRequests = memoizePerRequest(listDueSoonPrivacyRequestsUncached);
 
 // « Quand elle prolonge une demande complexe, alors le motif est obligatoire
 // et l'échéance passe à trois mois au total. » Une seule prolongation.

@@ -5,6 +5,7 @@ import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import type { AppDatabase } from "@symbola/db/client";
 import { backupRuns, helpProgress, invitations, memberships, organizationModules, organizationProfiles, organizations, platformSettings, users, vatRegimeChanges } from "@symbola/db/schema/hub";
 import type { Language } from "./types";
+import { memoizePerRequest } from "@/lib/request-memo";
 
 export async function insertOrganization(
   db: AppDatabase,
@@ -70,6 +71,11 @@ export async function findOrganizationModule(db: AppDatabase, organizationId: st
   return row ?? null;
 }
 
+// NFR-02 (ADR 0115) : toutes les lignes de modules d'une organisation, en une requête.
+export async function findOrganizationModules(db: AppDatabase, organizationId: string) {
+  return db.select().from(organizationModules).where(eq(organizationModules.organizationId, organizationId));
+}
+
 export async function upsertOrganizationModule(
   db: AppDatabase,
   input: { organizationId: string; moduleKey: string; enabled: boolean },
@@ -89,10 +95,12 @@ export async function findOrganizationLanguage(db: AppDatabase, organizationId: 
   return row?.language === "en" ? "en" : "fr";
 }
 
-export async function findOrganizationProfile(db: AppDatabase, organizationId: string) {
+async function findOrganizationProfileUncached(db: AppDatabase, organizationId: string) {
   const [row] = await db.select().from(organizationProfiles).where(eq(organizationProfiles.organizationId, organizationId));
   return row ?? null;
 }
+// NFR-02 (ADR 0115) : le profil de l'organisation, demandé par plusieurs composants : une lecture par affichage (lib/request-memo.ts).
+export const findOrganizationProfile = memoizePerRequest(findOrganizationProfileUncached);
 
 export async function upsertOrganizationProfileFields(
   db: AppDatabase,
@@ -169,9 +177,11 @@ export async function updatePlatformComplianceChecks(db: AppDatabase, value: { d
 }
 
 // Lot 10 — progression d'un compte dans l'aide (visites focus, tutoriels).
-export async function findHelpProgress(db: AppDatabase, userId: string) {
+async function findHelpProgressUncached(db: AppDatabase, userId: string) {
   return db.select().from(helpProgress).where(eq(helpProgress.userId, userId));
 }
+// NFR-02 (ADR 0115) : la progression de l'aide, demandée par le menu, la page et ses visites : une lecture par affichage (lib/request-memo.ts).
+export const findHelpProgress = memoizePerRequest(findHelpProgressUncached);
 
 export async function upsertHelpProgress(
   db: AppDatabase,

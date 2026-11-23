@@ -16,7 +16,7 @@ import { getLinkPrivacyNotice } from "./privacy-requests";
 import {
   findInvitationByTokenHash,
   findOrganizationById,
-  findOrganizationModule,
+  findOrganizationModules,
   findOrganizationLanguage,
   findOrganizationProfile,
   findPlatformSettings,
@@ -40,6 +40,7 @@ import {
   updatePlatformRequiredMentions,
   updatePlatformComplianceChecks,
 } from "./repository";
+import { memoizePerRequest } from "@/lib/request-memo";
 import type { Language } from "./types";
 
 // Lot 6 (RGPD-04) — demandes d'exercice de droits et réglages RGPD.
@@ -503,8 +504,12 @@ export async function listPendingTeamInvitations(db: AppDatabase, organizationId
 // Absence de ligne = état par défaut du module (ADR 0079) : ouvert pour les quatre
 // modules du pilote, fermé pour les rendez-vous et les invités tant que l'Admin ne
 // les a pas ouverts.
+// NFR-02 (ADR 0115) : un écran demande l'état de plusieurs modules, depuis le menu, la page et ses
+// composants ; les lignes de l'organisation sont lues une fois par affichage (lib/request-memo.ts).
+const readOrganizationModules = memoizePerRequest((db: AppDatabase, organizationId: string) => findOrganizationModules(db, organizationId));
+
 export async function isModuleEnabled(db: AppDatabase, organizationId: string, moduleKey: ModuleKey): Promise<boolean> {
-  const row = await findOrganizationModule(db, organizationId, moduleKey);
+  const row = (await readOrganizationModules(db, organizationId)).find((candidate) => candidate.moduleKey === moduleKey);
   return row?.enabled ?? moduleEnabledByDefault(moduleKey);
 }
 

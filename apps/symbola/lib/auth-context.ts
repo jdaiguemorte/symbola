@@ -9,12 +9,14 @@
 // ADR 0017) est câblée séparément, au niveau de chaque page protégée
 // (voir app/page.tsx), pas ici.
 import { createHash } from "node:crypto";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { registerActorResolver, type Actor } from "@symbola/db/actor";
 import { appDatabase } from "@symbola/db/client";
 import { findSessionActor, isPlannerRole, requireUser, type AuthResult } from "@symbola/auth";
 import { isOrganizationReadOnly } from "@/modules/hub/service";
 import { applyReadOnly, type PlannerAuthOptions } from "./read-only";
+import { memoizePerRequest } from "./request-memo";
+import { requestMethod } from "./request-method";
 
 // Lot 24b (SEC-05) : nom et réglages du cookie partagés avec le middleware.
 export { SESSION_COOKIE_NAME } from "./session-cookie";
@@ -50,12 +52,13 @@ export async function resolveRequestActor(): Promise<Actor | null> {
 
 registerActorResolver(resolveRequestActor);
 
+// NFR-02 (ADR 0115) : la session est lue (et son expiration repoussée) une fois par affichage, et non
+// à chaque garde de la mise en page, de la page et de ses composants ; la clé est le jeton.
+const readUser = memoizePerRequest((token: string | undefined) => requireUser(appDatabase(), token));
+
 export async function getAuthContext(): Promise<AuthResult> {
   const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-
-  const db = appDatabase();
-  return await requireUser(db, token);
+  return await readUser(cookieStore.get(SESSION_COOKIE_NAME)?.value);
 }
 
 // PRD-EVT-06 : écrans et actions de la planner. L'Admin y reçoit « forbidden » : le type oblige chaque page à le traiter, et
@@ -69,15 +72,8 @@ export function toPlannerAuth(result: AuthResult): PlannerAuthResult {
 }
 
 // Lot 54 (HUB-27, D2 ; ADR 0101) : une écriture d'un espace en lecture seule (fin d'essai) est refusée
-// comme « forbidden » (lib/read-only.ts).
-// Hors d'une requête (traitement de fond, test), aucune méthode : rien n'est refusé à ce titre.
-export async function requestMethod(): Promise<string | null> {
-  try {
-    return (await headers()).get("x-symbola-method");
-  } catch {
-    return null;
-  }
-}
+// comme « forbidden » (lib/read-only.ts). Hors d'une requête, aucune méthode : rien n'est refusé.
+export { requestMethod };
 
 export async function getPlannerAuthContext(options: PlannerAuthOptions = {}): Promise<PlannerAuthResult> {
   return applyReadOnly(toPlannerAuth(await getAuthContext()), options, await requestMethod(), (organizationId) => isOrganizationReadOnly(appDatabase(), organizationId));
