@@ -119,28 +119,26 @@ jobs:
     runs-on: ubuntu-latest
     # Lot 33 : chaque connexion passe par le lien, Mailpit et Logto ; les parcours tournent en
     # série (un seul worker par job).
-    timeout-minutes: 45
+    # 23/11/2026 (lots 65 et 66) : une moitié atteignait 43 à 45 min avec ses reprises et a été coupée
+    # sur main (d64419a) ; la limite passe à 60 min. Trois tiers déplaçaient la mesure du serveur
+    # (NFR-02) en tête d'un tiers, où elle mesurait 412 à 450 ms : les deux moitiés restent.
+    timeout-minutes: 60
     # Lot 40c (NFR-17 à NFR-19, NFR-01, NFR-02 ; ADR 0078) : la suite sous Chromium (ordinateur et
     # 375 px, axe-core en WCAG 2.2 AA, mesures du temps de réponse, clavier, zoom à 200 %), et les
     # parcours des scénarios rejoués sous Firefox et WebKit, à 360 et à 1 920 px, et SC-10 à 150 %.
     # 18/11/2026 (lots 41, 46, 49) : la suite sous Chromium dépassait les 45 min d'un job ; elle est
     # partagée en deux moitiés (--shard), chacune sur son runner, avec sa propre base et ses
     # propres services : environ 20 min chacune au lieu de 40.
-    # 23/11/2026 (lots 65 et 66) : une moitié atteignait 43 à 45 min avec ses reprises et a été
-    # coupée sur main ; la suite est partagée en trois tiers (environ 30 min chacun).
     strategy:
       fail-fast: false
       matrix:
         include:
-          - partie: Chromium, ordinateur et 375 px, axe-core, mesures, tiers 1 sur 3
+          - partie: Chromium, ordinateur et 375 px, axe-core, mesures, moitié 1 sur 2
             navigateurs: chromium
-            projets: --project=desktop --project=mobile-375 --shard=1/3
-          - partie: Chromium, ordinateur et 375 px, axe-core, mesures, tiers 2 sur 3
+            projets: --project=desktop --project=mobile-375 --shard=1/2
+          - partie: Chromium, ordinateur et 375 px, axe-core, mesures, moitié 2 sur 2
             navigateurs: chromium
-            projets: --project=desktop --project=mobile-375 --shard=2/3
-          - partie: Chromium, ordinateur et 375 px, axe-core, mesures, tiers 3 sur 3
-            navigateurs: chromium
-            projets: --project=desktop --project=mobile-375 --shard=3/3
+            projets: --project=desktop --project=mobile-375 --shard=2/2
           - partie: scénarios sous Firefox et WebKit, 360 et 1 920 px, zoom à 150 %
             navigateurs: chromium firefox webkit
             projets: --project=firefox --project=webkit --project=mobile-360 --project=desktop-1920 --project=zoom-150
