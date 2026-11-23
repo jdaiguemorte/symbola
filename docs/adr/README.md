@@ -113,3 +113,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0112 — L'heure d'envoi de chaque automatisme ; des envois à l'heure exacte](0112-heure-d-envoi-des-automatismes.md)
 - [0113 — La signature de chaque membre et la marque de la planner dans ses e-mails](0113-signature-et-marque-des-emails.md)
 - [0114 — Tâches périodiques : ne visiter que les organisations qui ont du travail](0114-taches-periodiques-sans-visiter-chaque-organisation.md)
+- [0115 — Une lecture par affichage, et JSON laissé à Node](0115-une-lecture-par-affichage.md)

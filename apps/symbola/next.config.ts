@@ -53,7 +53,10 @@ const nextConfig: NextConfig = {
   // hachage de mot de passe dans l'app depuis le lot 33, ADR 0067).
   // @react-pdf/renderer (PRD-EVT-05) charge ses polices et sa mise en page
   // depuis node_modules à l'exécution : même traitement.
-  serverExternalPackages: ["postgres", "@react-pdf/renderer"],
+  // NFR-02 (ADR 0115) : pdfjs-dist aussi. Sa version « legacy », passée dans le bundler, remplaçait
+  // JSON.stringify de tout le processus par celui de core-js, bien plus lent, avec lequel React
+  // écrit chaque page ; chargé par Node, il laisse JSON intact (et n'est lu qu'à l'import d'un PDF).
+  serverExternalPackages: ["postgres", "@react-pdf/renderer", "pdfjs-dist"],
   // pdfkit (sous @react-pdf/renderer) charge ses polices standard
   // (Helvetica…) par un alias interne (`#standard-fonts/…`) que le traçage
   // de la sortie standalone ne suit pas : sans cette inclusion, l'image
