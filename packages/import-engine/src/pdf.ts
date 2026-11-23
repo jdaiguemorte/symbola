@@ -4,7 +4,14 @@
 // formulaires (XFA) ignorés ; la version 6 de pdfjs n'évalue plus jamais de
 // code (chemin de la faille CVE-2024-4367 retiré). Taille, nombre de pages
 // et durée bornés ; le fichier n'est jamais gardé.
-import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
+type Pdfjs = typeof import("pdfjs-dist/legacy/build/pdf.mjs");
+
+// NFR-02 : pdfjs n'est chargé qu'à la lecture d'un PDF, jamais au démarrage du serveur.
+let pdfjsModule: Promise<Pdfjs> | null = null;
+function loadPdfjs(): Promise<Pdfjs> {
+  pdfjsModule ??= import("pdfjs-dist/legacy/build/pdf.mjs");
+  return pdfjsModule;
+}
 
 // Côté serveur, pdfjs lit le PDF dans le même processus avec son module de
 // lecture (pdf.worker.mjs), qu'il importe sinon par un chemin relatif à son
@@ -68,6 +75,7 @@ export async function readPdfText(bytes: Uint8Array, limits: PdfLimits = DEFAULT
   if (bytes.length > limits.maxBytes) return { ok: false, reason: "too_large" };
   if (!looksLikePdf(bytes)) return { ok: false, reason: "not_pdf" };
 
+  const { getDocument } = await loadPdfjs();
   await ensureWorkerModule();
   // pdfjs prend la main sur le tampon : on lui en donne une copie.
   const task = getDocument({
