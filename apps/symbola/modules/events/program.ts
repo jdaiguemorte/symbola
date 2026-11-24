@@ -23,6 +23,8 @@ type ProgramLine = {
   startTime: string;
   endTime: string | null;
   participants: ProgramLineParticipant[];
+  // Lot 67d (CHR-06) : le jour de la séquence (celui de son temps fort) ; absent : jour inconnu.
+  day?: string | null;
 };
 
 export function sortProgramItems<T extends { startTime: string }>(items: T[]): T[] {
@@ -55,15 +57,37 @@ export type ProgramOverlapWarning = { participant: string; itemIds: [string, str
 
 // PRD PRD-EVT-05 : « l'app le signale sans bloquer » — un avertissement par
 // paire de lignes et par intervenant, dans l'ordre du programme.
-export function findProgramOverlaps(lines: ProgramLine[]): ProgramOverlapWarning[] {
+// Lot 67d (CHR-06 ; recette du 24/11/2026, R09) : un avertissement doit mériter d'être lu.
+// - Les clients de l'évènement sont de toutes les séquences : un intervenant libre dont le rôle est
+//   celui d'un client (« Marié - Valentin », rôles donnés par l'appelant, des données) n'est jamais
+//   signalé. Le rôle seul compte, pas le prénom ; un poste prestataire reste un prestataire.
+// - Deux séquences de jours différents (veille et jour J) ne se chevauchent pas.
+export type ProgramOverlapRoles = { clientRoles: readonly string[]; roleSeparator: string };
+
+const roleKey = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, "");
+
+function isClient(participant: ProgramLineParticipant, roles: ProgramOverlapRoles | undefined): boolean {
+  if (!roles || participant.vendorSlotId) return false;
+  const role = participant.label.split(roles.roleSeparator)[0] ?? participant.label;
+  return roles.clientRoles.some((candidate) => roleKey(candidate) === roleKey(role));
+}
+
+export function findProgramOverlaps(lines: ProgramLine[], roles?: ProgramOverlapRoles): ProgramOverlapWarning[] {
   const sorted = sortProgramItems(lines);
   const warnings: ProgramOverlapWarning[] = [];
   for (const [index, first] of sorted.entries()) {
     for (const second of sorted.slice(index + 1)) {
+      if ((first.day ?? null) !== (second.day ?? null)) continue;
       if (!overlaps(intervalOf(first), intervalOf(second))) continue;
       const secondKeys = new Set(second.participants.map(participantKey));
       const reported = new Set<string>();
       for (const participant of first.participants) {
+        if (isClient(participant, roles)) continue;
         const key = participantKey(participant);
         if (!secondKeys.has(key) || reported.has(key)) continue;
         reported.add(key);

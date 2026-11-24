@@ -15,6 +15,8 @@ const model: ProgramPdfModel = {
   columns: ["Heure", "Déroulé", "Lieu", "Intervenants", "Note interne"],
   rows: Array.from({ length: 60 }, (_, index) => ({
     time: "15:00 – 16:00 · 1 h",
+    hours: "15:00 – 16:00",
+    duration: "1 h",
     label: `Cérémonie ${index} — vin d'honneur, pièce montée`,
     responsible: index % 2 === 0 ? "Responsable : Camille" : null,
     location: "Église Saint-Paul",

@@ -1411,12 +1411,15 @@ export default async function EventDetailPage({
             <section aria-labelledby="program-overlaps-title" className="notice notice-attention program-overlaps">
               <h3 id="program-overlaps-title">{t("programOverlapsTitle")}</h3>
               <ul>
-                {program.overlaps.map((overlap) => (
-                  <li key={`${overlap.participant}-${overlap.itemIds.join("-")}`}>
-                    {t("programOverlap", {
-                      participant: overlap.participant,
-                      first: programLabels.get(overlap.itemIds[0]) ?? "",
-                      second: programLabels.get(overlap.itemIds[1]) ?? "",
+                {/* Lot 67d (CHR-06 ; R09) : une ligne par intervenant, ses chevauchements à la suite. */}
+                {[...new Set(program.overlaps.map((overlap) => overlap.participant))].map((participant) => (
+                  <li key={participant}>
+                    {t("programOverlapsOf", {
+                      participant,
+                      pairs: program.overlaps
+                        .filter((overlap) => overlap.participant === participant)
+                        .map((overlap) => t("programOverlapPair", { first: programLabels.get(overlap.itemIds[0]) ?? "", second: programLabels.get(overlap.itemIds[1]) ?? "" }))
+                        .join(t("programOverlapPairSeparator")),
                     })}
                   </li>
                 ))}

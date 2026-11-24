@@ -65,6 +65,55 @@ describe("PRD-EVT-05 — Chevauchements d'un même intervenant", () => {
   });
 });
 
+describe("CHR-06 — Des chevauchements qui méritent d'être lus (lot 67d ; recette du 24/11/2026, R09)", () => {
+  const roles = { clientRoles: ["Marié", "Mariée", "Mariés"], roleSeparator: " - " };
+
+  it("les clients de l'évènement, reconnus par leur rôle, ne sont jamais signalés : ils sont de toutes les séquences", () => {
+    const lines = [
+      line("laique", "15:00", "16:00", ["Marié - Valentin", "Mariée - Mélanie", "Photographe"]),
+      line("civile", "15:30", "16:30", ["Marié - Valentin", "Mariée - Mélanie"]),
+      line("soiree", "19:00", "02:00", ["Mariés"]),
+      line("bal", "22:00", "22:30", ["Mariés"]),
+    ];
+    expect(findProgramOverlaps(lines, roles)).toEqual([]);
+  });
+
+  it("le rôle seul compte, pas le prénom : « Témoin - Valentin » reste signalé", () => {
+    const lines = [line("a", "15:00", "16:00", ["Témoin - Valentin"]), line("b", "15:30", "16:30", ["Témoin - Valentin"])];
+    expect(findProgramOverlaps(lines, roles)).toEqual([{ participant: "Témoin - Valentin", itemIds: ["a", "b"] }]);
+  });
+
+  it("un prestataire reste signalé, même sur des séquences où les clients sont aussi", () => {
+    const lines = [
+      line("preparatifs", "12:30", "14:00", ["Photographe", "Mariée - Mélanie"]),
+      line("habillage", "13:00", "13:30", ["Photographe", "Marié - Valentin"]),
+    ];
+    expect(findProgramOverlaps(lines, roles)).toEqual([{ participant: "Photographe", itemIds: ["preparatifs", "habillage"] }]);
+  });
+
+  it("le rôle s'écrit avec ou sans majuscule ni accent, avec ou sans nom", () => {
+    const lines = [line("a", "15:00", "16:00", ["mariee", "MARIÉ - Valentin"]), line("b", "15:30", "16:30", ["Mariée", "marié - valentin"])];
+    expect(findProgramOverlaps(lines, roles)).toEqual([]);
+  });
+
+  it("un poste prestataire nommé comme un rôle de client reste un prestataire", () => {
+    const slot = (id: string, start: string, end: string): Line => ({ id, startTime: start, endTime: end, participants: [{ vendorSlotId: "slot-1", label: "Mariés" }] });
+    expect(findProgramOverlaps([slot("a", "15:00", "16:00"), slot("b", "15:30", "16:30")], roles)).toHaveLength(1);
+  });
+
+  it("deux séquences de jours différents ne se chevauchent pas ; le même jour, si", () => {
+    const eve = { ...line("veille", "19:00", "23:00", ["DJ"]), day: "2026-12-04" };
+    const party = { ...line("soiree", "19:00", "02:00", ["DJ"]), day: "2026-12-05" };
+    const dinner = { ...line("repas", "20:00", "22:00", ["DJ"]), day: "2026-12-05" };
+    expect(findProgramOverlaps([eve, party, dinner], roles)).toEqual([{ participant: "DJ", itemIds: ["soiree", "repas"] }]);
+  });
+
+  it("sans rôles de clients fournis, la règle d'origine s'applique", () => {
+    const lines = [line("a", "15:00", "16:00", ["Mariée - Mélanie"]), line("b", "15:30", "16:30", ["Mariée - Mélanie"])];
+    expect(findProgramOverlaps(lines)).toHaveLength(1);
+  });
+});
+
 describe("PRD-EVT-05 — Variantes du programme exporté", () => {
   it("la variante « mariés » retire les notes internes, la variante « prestataires » les garde", () => {
     const items = [{ id: "a", internalNote: "Prévoir les alliances" }];

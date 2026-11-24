@@ -41,17 +41,20 @@ export function starterDayChecklists(locale: Locale): StarterDayChecklist[] {
 const dayOfSchema = z.object({
   version: z.literal(1),
   mainMomentName: translated,
+  // Lot 67d (EVT-04) : nom du jour créé pour la veille et pour le lendemain d'un évènement de plusieurs jours.
+  eveMomentName: translated,
+  nextDayMomentName: translated,
   shiftThresholdMinutes: z.number().int().min(1).max(120),
   photoMaxSide: z.number().int().min(320).max(8000),
   photoMaxBytes: z.number().int().min(100_000).max(20 * 1024 * 1024),
   refreshSeconds: z.number().int().min(5).max(300),
 });
 
-export type StarterDayOfSettings = { mainMomentName: string; shiftThresholdMinutes: number; photoMaxSide: number; photoMaxBytes: number; refreshSeconds: number };
+export type StarterDayOfSettings = { mainMomentName: string; eveMomentName: string; nextDayMomentName: string; shiftThresholdMinutes: number; photoMaxSide: number; photoMaxBytes: number; refreshSeconds: number };
 
 export function starterDayOfSettings(locale: Locale): StarterDayOfSettings {
   const settings = dayOfSchema.parse(dayOfFile);
-  return { ...settings, mainMomentName: settings.mainMomentName[locale] };
+  return { ...settings, mainMomentName: settings.mainMomentName[locale], eveMomentName: settings.eveMomentName[locale], nextDayMomentName: settings.nextDayMomentName[locale] };
 }
 
 const columnSynonyms = z.object({ fr: z.array(z.string().min(1)), en: z.array(z.string().min(1)) });

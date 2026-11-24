@@ -16,7 +16,7 @@ import type { ProgramImportPreview, ProgramImportResult, ProgramImportRow, Progr
 import { getImportLimits } from "@/modules/hub/service";
 import { DAY_UUID } from "./day-of";
 import { ensureMainKeyMoment } from "./main-moment";
-import { foldText, mapProgramColumns, programRowsFromExport, proposeSpeakerSlot, readProgramRows, speakerKind, type ProgramSlotOption } from "./program-import-rules";
+import { dayMomentName, foldText, mapProgramColumns, programRowsFromExport, proposeSpeakerSlot, readProgramRows, speakerKind, type ProgramSlotOption } from "./program-import-rules";
 
 // Lot 63b (CHR-08) — le PDF de programme de l'ancien logiciel : les séquences et les intervenants de
 // son en-tête, chacun rapproché d'un poste prestataire de l'évènement (proposé, ou choisi par la
@@ -68,6 +68,9 @@ export async function importProgram(input: {
   // null : l'aperçu seulement ; sinon les lignes écartées par la planner.
   apply: { skipLines: number[] } | null;
   mainMomentName: string;
+  // Lot 67d (EVT-04) : noms de la veille et du lendemain ; absents, le nom du jour J (comme avant).
+  eveMomentName?: string;
+  nextDayMomentName?: string;
   // Lot 63b, PDF de l'ancien logiciel : poste choisi pour chaque intervenant de l'en-tête (null : en
   // texte), et fiches du carnet pour signaler un prestataire qui n'est pas encore sur l'évènement.
   speakerSlots?: Record<number, string | null>;
@@ -91,6 +94,7 @@ export async function importProgram(input: {
     return { eventDate: event.eventDate, moments, slots };
   });
   if (!context) return null;
+  const dayNames = { main: input.mainMomentName, eve: input.eveMomentName ?? input.mainMomentName, nextDay: input.nextDayMomentName ?? input.mainMomentName };
   const limits = await getImportLimits(db);
   if (input.bytes.length === 0) return { status: "rejected", reason: "empty" };
   if (input.bytes.length > limits.maxBytes) return { status: "rejected", reason: "too_large" };
@@ -113,7 +117,7 @@ export async function importProgram(input: {
     const newMoments = [...new Set(pdf.preview.rows.map((row) => row.momentDate).filter((date): date is string => date !== null))]
       .filter((date) => date !== context.eventDate && !context.moments.some((moment) => moment.date === date))
       .sort()
-      .map((date) => ({ name: input.mainMomentName, date }));
+      .map((date) => ({ name: dayMomentName(date, context.eventDate, dayNames), date }));
     preview = { ...pdf.preview, newMoments };
   } else {
     const read = readImportFile(input.bytes, { maxBytes: limits.maxBytes, maxRows: limits.maxRows });
@@ -163,12 +167,13 @@ export async function importProgram(input: {
         if (sameDay) keyMomentId = sameDay.id;
         else if (row.momentDate === context.eventDate) keyMomentId = await ensureMainKeyMoment(tx, input.organizationId, input.eventId, input.mainMomentName);
         else {
-          const key = `${row.momentDate}|${foldText(input.mainMomentName)}`;
+          const dayName = dayMomentName(row.momentDate, context.eventDate, dayNames);
+          const key = `${row.momentDate}|${foldText(dayName)}`;
           keyMomentId = momentIds.get(key) ?? null;
           if (!keyMomentId) {
             const [created] = await tx
               .insert(keyMoments)
-              .values({ organizationId: input.organizationId, eventId: input.eventId, name: input.mainMomentName, date: row.momentDate, position: momentIds.size })
+              .values({ organizationId: input.organizationId, eventId: input.eventId, name: dayName, date: row.momentDate, position: momentIds.size })
               .returning({ id: keyMoments.id });
             keyMomentId = created!.id;
             momentIds.set(key, keyMomentId);

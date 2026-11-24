@@ -1,8 +1,8 @@
 # Lot 67 — Retours de la recette du 24/11/2026 (staging, version 38b47b3)
 
 **Statut** : plan validé par Julien le 24/11, précisions du même jour intégrées (R03, R06, R07, R09) ;
-spécification validée par Julien le 24/11. Faits : 67a, 67b, 67c et 67e (parcours Playwright à voir en CI ;
-l'écran de 67e n'a pas été regardé dans un navigateur en local). À faire : 67d.
+spécification validée par Julien le 24/11. Faits : 67a, 67b, 67c, 67d et 67e (parcours Playwright à voir en CI ;
+l'écran de 67e n'a pas été regardé dans un navigateur en local).
 
 Source : le compte rendu de recette de la planner pilote du 24/11/2026 (20 minutes sur le staging,
 11 retours R01 à R11, captures à l'appui). Le compte rendu n'est pas versé au dépôt (captures de
@@ -135,11 +135,12 @@ d'être écrite.
   intervenant libre est reconnu comme client par son rôle seul, lu dans le profil d'import
   (`clientRoles` : « Marié », « Mariée »… ; « Marié - Valentin » est un client). Le prénom ne
   compte pas.
-- Pas d'avertissement quand une séquence est entièrement contenue dans l'autre (« Soirée » et
-  « Ouverture de bal »).
-- Pas d'avertissement entre deux séquences de jours différents.
-- Les avertissements restants sont regroupés par intervenant : « Photographe : Préparatifs Mélanie
-  et Habillage Valentin, en même temps ».
+- La règle « une séquence contenue dans une autre n'est pas signalée » est **écartée** : elle aurait
+  aussi fait taire le seul avertissement utile de la recette (le photographe sur « Préparatifs » et
+  « Habillage », dont l'une peut contenir l'autre). Les onze autres lignes venaient des mariés.
+- Pas d'avertissement entre deux séquences de jours différents (le jour est celui du temps fort).
+- Les avertissements restants sont regroupés par intervenant : « Photographe, en même temps :
+  « Préparatifs Mélanie » et « Habillage Valentin ». »
 - Tests unitaires : les douze cas de la capture n'en laissent qu'un, celui du photographe.
 
 **CHR-07, EVT-04 — Un programme sur plusieurs jours (décision du 24/11)**
@@ -149,8 +150,11 @@ d'être écrite.
 - Un jour créé par l'import pour une date autre que celle de l'évènement ne s'appelle plus
   « Jour J » : « Veille » pour la veille, « Lendemain » pour le lendemain, sinon la date seule. Le
   nom reste modifiable.
-- Les jours déjà créés à tort sous le nom « Jour J » ne sont pas renommés d'office : l'écran propose
-  de les renommer.
+- Les jours déjà créés à tort sous le nom « Jour J » ne sont pas renommés d'office ; la planner les
+  renomme dans les temps forts de l'évènement. La proposition de renommage à l'écran n'est pas
+  faite dans ce lot.
+- Reste à faire, hors de ce lot : un modèle de programme appliqué avec un décalage de jour nomme
+  encore ce jour « Jour J » (`applyProgramTemplateRows`).
 - Les deux PDF séparent les jours par un titre (« Veille — vendredi 4 décembre 2026 »), dans l'ordre
   des dates.
 

@@ -202,3 +202,15 @@ export function programRowsFromExport(
   }
   return { rows, problems };
 }
+
+// Lot 67d (EVT-04, CHR-07 ; décision du 24/11/2026) — le nom du jour qu'un import crée pour une date
+// sans temps fort. Seul le jour de l'évènement est le « Jour J » : la veille et le lendemain portent
+// leur nom, un autre jour sa date (JJ/MM/AAAA). Avant, tous s'appelaient « Jour J ».
+export type DayMomentNames = { main: string; eve: string; nextDay: string };
+
+export function dayMomentName(date: string, eventDate: string | null, names: DayMomentNames): string {
+  const written = `${date.slice(8, 10)}/${date.slice(5, 7)}/${date.slice(0, 4)}`;
+  if (!eventDate) return written;
+  const days = Math.round((Date.parse(`${date}T00:00:00Z`) - Date.parse(`${eventDate}T00:00:00Z`)) / 86_400_000);
+  return days === 0 ? names.main : days === -1 ? names.eve : days === 1 ? names.nextDay : written;
+}
