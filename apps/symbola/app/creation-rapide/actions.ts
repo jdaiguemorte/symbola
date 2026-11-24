@@ -115,12 +115,10 @@ function refresh(eventId: string | null): void {
   if (eventId) revalidatePath(`/events/${eventId}`);
 }
 
-export async function quickCreateProspectAction(_prev: QuickCreateState, formData: FormData): Promise<QuickCreateState> {
-  const t = await getTranslations("QuickCreate");
+// Le prospect d'un formulaire court (prénom, type, source, date facultative), créé avec son planner
+// principal et ses dossiers. Partagé par « Prospect » et, lot 67c, par « Devis pour un nouveau prospect ».
+async function createQuickProspect(access: { organizationId: string; userId: string }, formData: FormData): Promise<{ error: string } | { id: string; firstName: string }> {
   const tEvents = await getTranslations("Events");
-  const access = await planner();
-  if (!access) return { error: tEvents("unauthenticated") };
-  if (!access.modules.events) return { error: tEvents("moduleUnavailable") };
   const { organizationId } = access;
   const locale = (await getLocale()) as Locale;
   const eventType = (await ensureEventTypes(organizationId, locale)).find((type) => type.id === field(formData, "eventTypeId"));
@@ -145,10 +143,21 @@ export async function quickCreateProspectAction(_prev: QuickCreateState, formDat
   await makeCreatorLead(organizationId, created.id, access.userId);
   // Lot 63c (DOC-01, M8) : les dossiers proposés à chaque évènement.
   await createTypedDocumentFolders(organizationId, created.id, locale === "en" ? "en" : "fr");
+  return { id: created.id, firstName };
+}
+
+export async function quickCreateProspectAction(_prev: QuickCreateState, formData: FormData): Promise<QuickCreateState> {
+  const t = await getTranslations("QuickCreate");
+  const tEvents = await getTranslations("Events");
+  const access = await planner();
+  if (!access) return { error: tEvents("unauthenticated") };
+  if (!access.modules.events) return { error: tEvents("moduleUnavailable") };
+  const created = await createQuickProspect(access, formData);
+  if ("error" in created) return { error: created.error };
   refresh(created.id);
   // Lot 39b (UX-09) : l'évènement est créé, le brouillon de la saisie n'a plus lieu d'être.
   await discardMyFormDraft("event-quick");
-  return { done: { message: t("prospectDone", { name: firstName }), href: `/events/${created.id}` }, nonce: Date.now() };
+  return { done: { message: t("prospectDone", { name: created.firstName }), href: `/events/${created.id}` }, nonce: Date.now() };
 }
 
 export async function quickCreateTaskAction(_prev: QuickCreateState, formData: FormData): Promise<QuickCreateState> {
@@ -213,16 +222,30 @@ export async function quickCreateQuoteAction(_prev: QuickCreateState, formData: 
   const access = await planner();
   if (!access) return { error: tQuotes("unauthenticated") };
   if (!access.modules.events || !access.modules.quotes) return { error: tQuotes("moduleUnavailable") };
-  const eventId = field(formData, "eventId");
-  if (!isValidId(eventId) || !(await getEvent(access.organizationId, eventId))) return { error: t("chooseEventError") };
+  // Lot 67c (HUB-07, FAC-01 ; recette du 24/11/2026, R05) : un devis se prépare souvent pour un
+  // prospect qui n'existe pas encore. « Pour un nouveau prospect » le crée, puis son devis.
+  const forProspect = field(formData, "for") === "prospect";
+  let eventId = field(formData, "eventId");
+  let prospectName: string | null = null;
+  if (forProspect) {
+    const created = await createQuickProspect(access, formData);
+    if ("error" in created) return { error: created.error };
+    eventId = created.id;
+    prospectName = created.firstName;
+  } else if (!isValidId(eventId) || !(await getEvent(access.organizationId, eventId))) return { error: t("chooseEventError") };
   let quote;
   try {
     quote = await createQuote({ organizationId: access.organizationId, eventId, createdByUserId: access.userId });
   } catch (error) {
+    // Le prospect, lui, est créé : on le dit, avec le lien vers sa fiche.
+    if (prospectName !== null) {
+      refresh(eventId);
+      return { done: { message: t("quoteFailedProspectKept", { name: prospectName }), href: `/events/${eventId}` }, nonce: Date.now() };
+    }
     if (error instanceof EventNotFoundError) return { error: t("chooseEventError") };
     return { error: await unexpectedActionError(error) };
   }
   refresh(eventId);
   revalidatePath("/devis");
-  return { done: { message: t("quoteDone", { number: quote.number }), href: `/devis/${quote.id}` }, nonce: Date.now() };
+  return { done: { message: prospectName !== null ? t("quoteDoneForProspect", { number: quote.number, name: prospectName }) : t("quoteDone", { number: quote.number }), href: `/devis/${quote.id}` }, nonce: Date.now() };
 }

@@ -140,14 +140,14 @@ export function QuickCreate({ modules }: { modules: QuickModules }) {
               <p>{t("unavailable")}</p>
             ) : kind === "prospect" ? (
               <ProspectForm key={round} options={options} />
+            ) : kind === "quote" ? (
+              <QuoteForm key={round} options={options} />
             ) : options.events.length === 0 ? (
               <p>{t("noEvents")}</p>
             ) : kind === "task" ? (
               <TaskForm key={round} options={options} />
-            ) : kind === "expense" ? (
-              <ExpenseForm key={round} options={options} />
             ) : (
-              <QuoteForm key={round} options={options} />
+              <ExpenseForm key={round} options={options} />
             )}
           </>
         ) : null}
@@ -195,11 +195,26 @@ function EventSelect({ options, value, onChange }: { options: QuickCreateOptions
 function ProspectForm({ options }: { options: QuickCreateOptions }) {
   const t = useTranslations("QuickCreate");
   const [state, action, pending] = useActionState(quickCreateProspectAction, {});
-  const [date, setDate] = useState("");
   return (
     <form action={action}>
       {/* Lot 39b (UX-09) : la saisie est gardée et se reprend sur tout appareil. */}
       <DraftKeeper formKey="event-quick" submission={state} saved={Boolean("done" in state && state.done)} />
+      <ProspectFields options={options} />
+      <button type="submit" disabled={pending}>
+        {t("submit.prospect")}
+      </button>
+      <Outcome state={state} />
+    </form>
+  );
+}
+
+// Les champs d'un prospect : type d'évènement, prénom, source, date facultative. Partagés par
+// « Prospect » et « Devis pour un nouveau prospect » (lot 67c).
+function ProspectFields({ options }: { options: QuickCreateOptions }) {
+  const t = useTranslations("QuickCreate");
+  const [date, setDate] = useState("");
+  return (
+    <>
       <label>
         {t("eventType")}
         <select name="eventTypeId" required defaultValue={options.eventTypes[0]?.id ?? ""}>
@@ -232,11 +247,7 @@ function ProspectForm({ options }: { options: QuickCreateOptions }) {
         <input type="date" name="eventDate" value={date} onChange={(event) => setDate(event.target.value)} />
       </label>
       <SameDayNotice date={date} />
-      <button type="submit" disabled={pending}>
-        {t("submit.prospect")}
-      </button>
-      <Outcome state={state} />
-    </form>
+    </>
   );
 }
 
@@ -354,10 +365,24 @@ function ExpenseForm({ options }: { options: QuickCreateOptions }) {
 function QuoteForm({ options }: { options: QuickCreateOptions }) {
   const t = useTranslations("QuickCreate");
   const [state, action, pending] = useActionState(quickCreateQuoteAction, {});
+  const hasEvents = options.events.length > 0;
+  const [target, setTarget] = useState<"event" | "prospect">(hasEvents ? "event" : "prospect");
   return (
     <form action={action}>
-      <EventSelect options={options} />
-      <p className="meta">{t("quoteHint")}</p>
+      {/* Lot 67c (HUB-07, FAC-01 ; R05) : pour un évènement existant, ou pour un nouveau prospect. */}
+      <fieldset>
+        <legend>{t("quoteFor")}</legend>
+        <label>
+          <input type="radio" name="for" value="event" checked={target === "event"} disabled={!hasEvents} onChange={() => setTarget("event")} />
+          {t("quoteForEvent")}
+        </label>
+        <label>
+          <input type="radio" name="for" value="prospect" checked={target === "prospect"} onChange={() => setTarget("prospect")} />
+          {t("quoteForProspect")}
+        </label>
+      </fieldset>
+      {target === "event" ? <EventSelect options={options} /> : <ProspectFields options={options} />}
+      <p className="meta">{t(target === "event" ? "quoteHint" : "quoteHintProspect")}</p>
       <button type="submit" disabled={pending}>
         {t("submit.quote")}
       </button>

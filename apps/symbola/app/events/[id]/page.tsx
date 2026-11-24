@@ -115,7 +115,7 @@ import { VendorCandidates } from "./vendor-candidates";
 import { BudgetLineIcon } from "@/app/budget-line-icon";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { PlannedAmountForm, SlotIconForm } from "./budget-line-forms";
-import { buildBudgetVendorRows } from "./budget-vendor-rows";
+import { buildBudgetVendorRows, signedAmount } from "./budget-vendor-rows";
 import { BudgetVendorsTable } from "./budget-vendors-table";
 import { AddPlaceForm, EditPlaceForm } from "./place-forms";
 import { TaskAttachmentUploadForm, TaskCommentForm } from "./task-extra-forms";
@@ -949,6 +949,33 @@ export default async function EventDetailPage({
                 <SettingsLink href="/events/parametres" back="event" label={t("vendorSlotsSettings")} />
               </div>
             </div>
+            {/* Lot 67c (BUD-02 ; recette du 24/11/2026, R06) : les totaux en tête, sans descendre au pied
+                d'un tableau de vingt lignes (qui les garde). */}
+            {budgetRows && vendorSlots.length > 0 ? (
+              <dl className="health-tiles budget-totals" aria-label={tBudgetVendors("totalsLabel")}>
+                <div>
+                  <dt>{tBudgetVendors("columnPlanned")}</dt>
+                  <dd>{formatAmount(budgetRows.totals.plannedCents, locale)}</dd>
+                </div>
+                <div>
+                  <dt>{tBudgetVendors("columnActual")}</dt>
+                  <dd>{formatAmount(budgetRows.totals.actualCents, locale)}</dd>
+                  <dd className="health-detail">{tBudgetVendors("engagedDetail", { amount: formatAmount(budgetRows.totals.engagedCents, locale) })}</dd>
+                </div>
+                <div>
+                  <dt>{tBudgetVendors("columnVariance")}</dt>
+                  <dd>{signedAmount(budgetRows.totals.varianceCents, (cents) => formatAmount(cents, locale))}</dd>
+                </div>
+                <div>
+                  <dt>{tBudgetVendors("columnPaid")}</dt>
+                  <dd>{formatAmount(budgetRows.totals.paidCents, locale)}</dd>
+                </div>
+                <div>
+                  <dt>{tBudgetVendors("columnRemaining")}</dt>
+                  <dd>{formatAmount(budgetRows.totals.remainingCents, locale)}</dd>
+                </div>
+              </dl>
+            ) : null}
             <p id="vendor-progress-label">{t("vendorProgress", { booked: progress.booked, required: progress.required })}</p>
             {/* Lot 28a (BUD-02) : le dépassement du seuil d'alerte, en haut du budget. */}
             {budgetView.envelope?.exceeded ? (

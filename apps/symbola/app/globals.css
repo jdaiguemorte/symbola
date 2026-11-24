@@ -3567,6 +3567,11 @@
   .health-tiles > div {
     @apply flex flex-col gap-1 rounded-md border border-line p-3;
   }
+  /* Lot 67c (BUD-02 ; R06) : les cinq totaux du budget, deux par rangée en 375 px, cinq de front
+     sur un écran d'ordinateur. */
+  .health-tiles.budget-totals {
+    @apply mb-4 grid-cols-2 md:grid-cols-5;
+  }
   .health-tiles dt {
     @apply text-label text-ink-muted;
   }

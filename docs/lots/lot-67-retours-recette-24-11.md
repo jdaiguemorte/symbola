@@ -1,8 +1,8 @@
 # Lot 67 — Retours de la recette du 24/11/2026 (staging, version 38b47b3)
 
 **Statut** : plan validé par Julien le 24/11, précisions du même jour intégrées (R03, R06, R07, R09) ;
-spécification validée par Julien le 24/11. Faits : 67a, 67b et 67e (parcours Playwright à voir en CI ;
-l'écran de 67e n'a pas été regardé dans un navigateur en local). À faire : 67c, 67d.
+spécification validée par Julien le 24/11. Faits : 67a, 67b, 67c et 67e (parcours Playwright à voir en CI ;
+l'écran de 67e n'a pas été regardé dans un navigateur en local). À faire : 67d.
 
 Source : le compte rendu de recette de la planner pilote du 24/11/2026 (20 minutes sur le staging,
 11 retours R01 à R11, captures à l'appui). Le compte rendu n'est pas versé au dépôt (captures de
@@ -105,8 +105,7 @@ d'être écrite.
 - « Un nouveau prospect » demande ce que demande « Créer › Prospect » (prénom, type d'évènement,
   source, date facultative), crée le prospect, puis le devis en brouillon, et ouvre le devis.
 - Si la création du devis échoue, le prospect reste, et le message le dit avec un lien vers lui.
-- Le bouton « Nouveau devis » de la page Devis suit la même règle s'il a la même limite (à vérifier
-  au début du paquet).
+- La page Devis n'a pas de bouton « Nouveau devis » propre : la création passe par « Créer ».
 - Tests : action (les deux chemins, l'échec du devis) ; Playwright en ordinateur et en 375 px.
 
 **UX-08 — Le bouton d'un écran vide fait quelque chose (R08)**
@@ -115,9 +114,10 @@ d'être écrite.
 
 - Sur « Modèles de devis » vide, le bouton principal est « Ajouter le modèle de départ » ; un lien
   « Partir d'un devis existant » mène aux devis. Plus de bouton « Créer un modèle » vers une ancre.
-- Même correction sur « Modèles de messages ».
-- Un test parcourt les écrans vides : aucun bouton principal ne pointe une ancre de la même page
-  déjà visible.
+- Sur « Modèles de messages » vide : « Ajouter les modèles de départ », et « Écrire mon propre
+  modèle », qui mène au formulaire plus bas.
+- Un test de convention : aucun écran vide n'a pour action une ancre de sa page, hors cas nommés
+  avec leur raison (la zone de dépôt des documents).
 
 **BUD-02 — Les totaux du budget en haut (R06)**
 (`apps/symbola/app/events/[id]/page.tsx`, `apps/symbola/app/events/[id]/budget-vendors-table.tsx`)

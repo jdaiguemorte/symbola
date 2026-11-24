@@ -41,7 +41,21 @@ export default async function QuoteTemplatesPage() {
       </p>
       {templates.length === 0 ? (
         // Lot 39c (UX-08) : l'écran vide enseigne.
-        <EmptyState screen="quoteTemplates" title={t("noTemplatesTitle")} actionHref="#modeles-de-depart" />
+        // Lot 67c (UX-08 ; R08) : le bouton de l'écran vide fait la chose (il pointait une ancre visible).
+        <EmptyState
+          screen="quoteTemplates"
+          title={t("noTemplatesTitle")}
+          action={
+            <>
+              <form action={addStarterTemplatesAction}>
+                <button type="submit">{t("addStarterTemplates")}</button>
+              </form>
+              <Link href="/devis" className="button-link">
+                {t("startFromQuote")}
+              </Link>
+            </>
+          }
+        />
       ) : (
         <ul className="item-list" aria-label={t("templatesTitle")}>
           {templates.map((template) => (
@@ -67,9 +81,11 @@ export default async function QuoteTemplatesPage() {
           ))}
         </ul>
       )}
-      <form action={addStarterTemplatesAction} id="modeles-de-depart">
-        <button type="submit">{t("addStarterTemplates")}</button>
-      </form>
+      {templates.length > 0 ? (
+        <form action={addStarterTemplatesAction} id="modeles-de-depart">
+          <button type="submit">{t("addStarterTemplates")}</button>
+        </form>
+      ) : null}
       <p className="meta">
         {t("templatesFromQuoteHint")} <Link href="/devis">{t("quotesLink")}</Link>
       </p>

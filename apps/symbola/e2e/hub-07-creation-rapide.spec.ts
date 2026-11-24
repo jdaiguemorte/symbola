@@ -113,10 +113,24 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   await page.getByRole("button", { name: "Créer", exact: true }).click();
   await quickMenu(page).getByRole("button", { name: "Devis" }).click();
   const quote = page.getByRole("dialog", { name: "Nouveau devis" });
-  await expect(quote.getByLabel("Évènement")).toHaveValue(setup.lea);
+  await expect(quote.getByLabel("Évènement", { exact: true })).toHaveValue(setup.lea);
   await quote.getByRole("button", { name: "Créer le devis" }).click();
   await expect(quote.getByRole("status")).toContainText(/Devis D-\d{4}-\d{4} créé, en brouillon\./);
   await quote.getByRole("link", { name: "Ouvrir" }).click();
+  await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
+
+  // Lot 67c (HUB-07, FAC-01 ; recette du 24/11/2026, R05) : un devis pour un nouveau prospect, créé
+  // avec lui, sans passer d'abord par « Prospect ».
+  await page.getByRole("button", { name: "Créer", exact: true }).click();
+  await quickMenu(page).getByRole("button", { name: "Devis" }).click();
+  const prospectQuote = page.getByRole("dialog", { name: "Nouveau devis" });
+  await prospectQuote.getByLabel("Un nouveau prospect").check();
+  await expect(prospectQuote.getByLabel("Évènement", { exact: true })).toHaveCount(0);
+  await prospectQuote.getByLabel("Prénom du client").fill("Zoé");
+  await prospectQuote.getByLabel("Source du contact").selectOption({ index: 1 });
+  await prospectQuote.getByRole("button", { name: "Créer le devis" }).click();
+  await expect(prospectQuote.getByRole("status")).toContainText(/Prospect Zoé créé, avec le devis D-\d{4}-\d{4} en brouillon\./);
+  await prospectQuote.getByRole("link", { name: "Ouvrir" }).click();
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
 
   // Tout est arrivé : la tâche au rétroplanning, la dépense au budget avec le montant du devis.

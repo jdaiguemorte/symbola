@@ -39,7 +39,23 @@ export default async function MessageTemplatesPage({ searchParams }: { searchPar
       <ScreenHelp title={tHelp("messageTemplates.title")} body={tHelp("messageTemplates.body")} />
       {added !== undefined && /^\d+$/.test(added) ? <p role="status">{t("startersAdded", { count: Number(added) })}</p> : null}
       {/* Lot 39c (UX-08) : l'écran vide enseigne. */}
-      {templates.length === 0 ? <EmptyState screen="messageTemplates" title={t("empty")} actionHref="#modeles-de-depart" /> : null}
+      {/* Lot 67c (UX-08 ; R08) : le bouton de l'écran vide ajoute les modèles de départ ; un lien mène au formulaire. */}
+      {templates.length === 0 ? (
+        <EmptyState
+          screen="messageTemplates"
+          title={t("empty")}
+          action={
+            <>
+              <form action={addStarterMessageTemplatesAction}>
+                <button type="submit">{t("addStarters")}</button>
+              </form>
+              <Link href="#message-template-new-title" className="button-link">
+                {t("writeOwn")}
+              </Link>
+            </>
+          }
+        />
+      ) : null}
       {templates.length > 0 ? (
         <ul className="item-list" aria-label={t("title")}>
           {templates.map((template) => (
@@ -58,11 +74,13 @@ export default async function MessageTemplatesPage({ searchParams }: { searchPar
           ))}
         </ul>
       ) : null}
-      <form action={addStarterMessageTemplatesAction} id="modeles-de-depart">
-        <button type="submit" className="button-ghost">
-          {t("addStarters")}
-        </button>
-      </form>
+      {templates.length > 0 ? (
+        <form action={addStarterMessageTemplatesAction} id="modeles-de-depart">
+          <button type="submit" className="button-ghost">
+            {t("addStarters")}
+          </button>
+        </form>
+      ) : null}
       <section aria-labelledby="message-template-new-title" className="settings-block">
         <h2 id="message-template-new-title">{t("newTitle")}</h2>
         <MessageTemplateForm
