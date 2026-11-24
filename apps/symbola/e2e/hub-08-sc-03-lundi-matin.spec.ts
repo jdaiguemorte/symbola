@@ -113,13 +113,13 @@ test("SC-03 / HUB-08 / UX-01 / UX-06 / EVT-02 — lundi matin : les urgences, an
   const first = page.getByRole("region", { name: "À traiter en premier" });
   const items = first.getByRole("listitem");
   await expect(items).toHaveCount(7);
-  const tasks = first.getByRole("list", { name: /^Tâches \(\d+\)$/ });
+  const tasks = first.getByRole("list", { name: /^Tâches en retard ou à faire sous 14 jours \(\d+\)$/ });
   await expect(tasks.getByRole("listitem").nth(0)).toContainText("Relancer la mairie");
   await expect(tasks.getByRole("listitem").nth(0)).toContainText("Chloé & Paul");
   await expect(tasks.getByRole("listitem").nth(0)).toContainText("En retard de 5 jours");
   await expect(tasks.getByRole("listitem").nth(0)).toContainText("Vous");
   await expect(tasks.getByRole("listitem").nth(1)).toContainText("Faire signer le contrat du photographe");
-  await expect(first.getByRole("link", { name: "Voir dans Tâches ›" })).toHaveAttribute("href", "/taches");
+  await expect(first.getByRole("link", { name: "Voir toutes les tâches ›" })).toHaveAttribute("href", "/taches");
   const payments = first.getByRole("list", { name: /^Paiements \(\d+\)$/ });
   await expect(payments.getByRole("listitem").first()).toContainText("Acompte à la signature");
   await expect(payments.getByRole("listitem").first()).toContainText("Attend le client");

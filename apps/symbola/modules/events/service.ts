@@ -4426,6 +4426,7 @@ export {
   setTaskMilestone,
   spawnDueRecurringTasks,
   suggestedClientTerms,
+  updateStandaloneTask,
   type LateTask,
 } from "./planning";
 

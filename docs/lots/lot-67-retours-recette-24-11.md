@@ -1,8 +1,8 @@
 # Lot 67 — Retours de la recette du 24/11/2026 (staging, version 38b47b3)
 
 **Statut** : plan validé par Julien le 24/11, précisions du même jour intégrées (R03, R06, R07, R09) ;
-spécification validée par Julien le 24/11. Faits : 67a et 67e (parcours Playwright à voir en CI ;
-l'écran de 67e n'a pas été regardé dans un navigateur en local). À faire : 67b, 67c, 67d.
+spécification validée par Julien le 24/11. Faits : 67a, 67b et 67e (parcours Playwright à voir en CI ;
+l'écran de 67e n'a pas été regardé dans un navigateur en local). À faire : 67c, 67d.
 
 Source : le compte rendu de recette de la planner pilote du 24/11/2026 (20 minutes sur le staging,
 11 retours R01 à R11, captures à l'appui). Le compte rendu n'est pas versé au dépôt (captures de
@@ -78,7 +78,8 @@ d'être écrite.
 
 - Sur « Aujourd'hui », la partie des tâches s'intitule « Tâches en retard ou à faire sous 14 jours
   (4) » ; le nombre de jours vient de l'horizon de l'accueil, pas du texte.
-- Son lien donne le total : « Voir les 9 tâches ».
+- Son lien dit où mène la suite : « Voir toutes les tâches ». Le total n'y figure pas : le compter
+  demanderait de lire toutes les tâches à chaque affichage de l'accueil (NFR-02, ADR 0115).
 - La pastille « en retard » du menu et le résumé de la page Tâches comptent aussi les tâches hors
   évènement. Les trois nombres (accueil, menu, page) sont cohérents entre eux.
 - Tests : unitaires des parties ; intégration avec une tâche d'évènement et une tâche hors évènement

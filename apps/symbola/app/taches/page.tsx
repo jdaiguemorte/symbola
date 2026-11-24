@@ -15,12 +15,13 @@ import { ensureTaskCategories } from "@/lib/events/task-categories";
 import { isValidId } from "@/app/events/module-access";
 import { responsibleValue } from "@/app/events/[id]/task-responsible";
 import { TaskDialog } from "./task-dialog";
-import { AddStandaloneTaskForm } from "./standalone-tasks";
+import { AddStandaloneTaskForm, EditStandaloneTask } from "./standalone-tasks";
 import { completeStandaloneTaskAction, deleteStandaloneTaskAction } from "./standalone-actions";
 import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 import { SettingsLink } from "@/app/settings-link";
 import { TaskTable } from "./task-table";
+import { countTasks } from "@/lib/task-counts";
 import { TaskCalendar } from "./task-calendar";
 import { responsibleLabels } from "@/lib/vocabulary";
 
@@ -65,16 +66,17 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const openedVendors = opened
     ? (await listVendorCandidates(organizationId, opened.eventId)).filter((candidate) => ENGAGED_CANDIDATE_STATUSES.includes(candidate.status)).map((candidate) => ({ candidateId: candidate.id, name: candidate.vendorName }))
     : [];
-  const overdue = all.filter((task) => task.overdue).length;
   // Lot 53 (CHR-10, D6) : les tâches hors évènement (TVA, assurance…), avec leur répétition.
   const standalone = await listStandaloneTasks(organizationId, { includeDone: view === "toutes" });
   const tStandalone = await getTranslations("StandaloneTasks");
+  // Lot 67b (HUB-08, CHR-10 ; R01) : l'en-tête compte les tâches d'évènement et hors évènement.
+  const counts = countTasks(all, standalone, today);
 
   return (
     <main>
       <PageHeader
         title={t("allTasksTitle")}
-        subtitle={<span>{t("allTasksSummary", { count: all.filter((task) => !task.done).length, overdue })}</span>}
+        subtitle={<span>{t("allTasksSummary", { count: counts.todo, overdue: counts.overdue })}</span>}
         actions={<SettingsLink href="/events/modeles" back="tasks" label={t("taskTemplatesSettings")} />}
       />
       <ScreenHelp title={tHelp("allTasks.title")} body={tHelp("allTasks.body")} />
@@ -159,6 +161,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
                     </button>
                   </form>
                 )}
+                {/* Lot 67b (CHR-10 ; R02) : une tâche à faire se modifie. */}
+                {task.done ? null : <EditStandaloneTask task={{ id: task.id, label: task.label, dueDate: task.dueDate, recurrence: task.recurrence }} />}
                 <form action={deleteStandaloneTaskAction}>
                   <input type="hidden" name="taskId" value={task.id} />
                   <button type="submit" className="button-secondary" aria-label={tStandalone("removeLabel", { label: task.label })}>

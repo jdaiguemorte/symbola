@@ -42,7 +42,7 @@ import {
   isModuleEnabled,
   listDueSoonPrivacyRequests,
 } from "@/modules/hub/service";
-import { listOrganizationTasks } from "@/modules/events/service";
+import { overdueTaskCount } from "@/lib/task-counts";
 import { getDocumentSettings } from "@/modules/quotes/service";
 import { portalTheme, portalThemeCss } from "@/lib/portal/theme";
 import { getAuthContext } from "@/lib/auth-context";
@@ -351,16 +351,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
   }
   const isAdmin = auth.user.role === "admin";
   // Pastille « en retard » du menu Tâches (PRD-HUB-02).
-  const overdue =
-    events && organizationId
-      ? (
-          await listOrganizationTasks({
-            organizationId,
-            today: parisToday(),
-            horizonDays: 0,
-          })
-        ).filter((task) => task.overdue).length
-      : 0;
+  // Lot 67b (HUB-08, CHR-10 ; R01) : les tâches hors évènement en retard comptent aussi, comme sur
+  // « Aujourd'hui » et sur la page Tâches ; les deux lectures partent ensemble.
+  const overdue = events && organizationId ? await overdueTaskCount(organizationId, parisToday()) : 0;
 
   // Paramètres : une pastille par solution souscrite (L11-HUB-12, lot 11).
   // Lot 13 (L13-HUB-16) : une rubrique par sujet, rangées en quatre groupes ;

@@ -123,6 +123,5 @@
   "app/rgpd/purge/purge-form.tsx",
   "app/rgpd/reglages/settings-form.tsx",
   "app/rgpd/search-form.tsx",
-  "app/rsvp/rsvp-app.tsx",
-  "app/taches/standalone-tasks.tsx"
+  "app/rsvp/rsvp-app.tsx"
 ]

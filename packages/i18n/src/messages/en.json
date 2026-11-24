@@ -1416,7 +1416,7 @@
     },
     "standaloneTasks": {
       "title": "Tasks outside events",
-      "body": "A task without an event appears in “Today” when due. Once checked, a repeating task creates the next one."
+      "body": "A task without an event appears in “Today” when due. Once checked, a repeating task creates the next one. A task outside events is changed with “Edit” (title, due date, repetition). The header and the menu's “overdue” badge count event tasks and tasks outside events."
     },
     "eventClosing": {
       "title": "Event closing",
@@ -7415,14 +7415,14 @@
     },
     "parts": {
       "follow_ups": "Follow-ups and messages ({count})",
-      "tasks": "Tasks ({count})",
+      "tasks": "Tasks overdue or due within {days} days ({count})",
       "payments": "Payments ({count})",
       "decisions": "Decisions and signatures ({count})",
       "prospects": "Prospects and enquiries ({count})",
       "others": "To look at ({count})"
     },
     "partLink": {
-      "tasks": "See in Tasks",
+      "tasks": "See all tasks",
       "payments": "See payments received",
       "pipeline": "See prospects",
       "event": "See the event"
@@ -11362,6 +11362,14 @@
     "dayReminderLink": "Set the day-of reminder ›"
   },
   "StandaloneTasks": {
+    "edit": "Edit",
+    "editLabel": "Edit “{label}”",
+    "editTitle": "Edit the task",
+    "editClose": "Close",
+    "editCancel": "Cancel",
+    "editSave": "Save",
+    "editRecurrenceHint": "The repetition only changes this task and the next ones; tasks already done stay as they are.",
+    "notFound": "This task no longer exists.",
     "title": "Tasks outside events",
     "intro": "VAT return, insurance, bookkeeping: what does not depend on any event. A task can repeat; the next one is created when this one is done, or on its date.",
     "label": "Task",

@@ -1416,7 +1416,7 @@
     },
     "standaloneTasks": {
       "title": "Tâches hors évènement",
-      "body": "Une tâche sans évènement apparaît dans « Aujourd'hui » à son échéance. Cochée, une tâche qui se répète fait naître la suivante."
+      "body": "Une tâche sans évènement apparaît dans « Aujourd'hui » à son échéance. Cochée, une tâche qui se répète fait naître la suivante. Une tâche hors évènement se modifie par « Modifier » (intitulé, échéance, répétition). L'en-tête et la pastille « en retard » du menu comptent les tâches des évènements et les tâches hors évènement."
     },
     "eventClosing": {
       "title": "Clôture d'un évènement",
@@ -7415,14 +7415,14 @@
     },
     "parts": {
       "follow_ups": "Relances et messages ({count})",
-      "tasks": "Tâches ({count})",
+      "tasks": "Tâches en retard ou à faire sous {days} jours ({count})",
       "payments": "Paiements ({count})",
       "decisions": "Décisions et signatures ({count})",
       "prospects": "Prospects et demandes ({count})",
       "others": "À regarder ({count})"
     },
     "partLink": {
-      "tasks": "Voir dans Tâches",
+      "tasks": "Voir toutes les tâches",
       "payments": "Voir les encaissements",
       "pipeline": "Voir les prospects",
       "event": "Voir l'évènement"
@@ -11362,6 +11362,14 @@
     "dayReminderLink": "Régler le rappel du jour J ›"
   },
   "StandaloneTasks": {
+    "edit": "Modifier",
+    "editLabel": "Modifier « {label} »",
+    "editTitle": "Modifier la tâche",
+    "editClose": "Fermer",
+    "editCancel": "Annuler",
+    "editSave": "Enregistrer",
+    "editRecurrenceHint": "La répétition ne change que cette tâche et les suivantes ; celles déjà faites restent telles quelles.",
+    "notFound": "Cette tâche n'existe plus.",
     "title": "Tâches hors évènement",
     "intro": "Déclaration de TVA, assurance, comptabilité : ce qui ne dépend d'aucun évènement. Une tâche peut se répéter ; la suivante se crée quand celle-ci est faite, ou à sa date.",
     "label": "Tâche",

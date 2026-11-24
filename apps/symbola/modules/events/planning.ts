@@ -59,6 +59,24 @@ export async function addStandaloneTask(organizationId: string, input: unknown):
   return toStandalone(row!);
 }
 
+// Lot 67b (CHR-10 ; recette du 24/11/2026, R02) — modifier l'intitulé, l'échéance et la répétition.
+// Seule cette tâche change : une occurrence déjà faite et la suivante déjà née gardent les leurs. Une
+// tâche d'évènement, supprimée ou d'une autre organisation n'est pas trouvée (RLS, event_id nul exigé).
+export async function updateStandaloneTask(organizationId: string, taskId: string, input: unknown, now: Date = new Date()): Promise<StandaloneTask> {
+  if (!UUID.test(taskId)) throw new PlanningInputError("not_found");
+  const parsed = standaloneTaskInputSchema.safeParse(input);
+  if (!parsed.success || Number.isNaN(Date.parse(`${parsed.data.dueDate}T00:00:00Z`))) throw new PlanningInputError("task");
+  const [row] = await inOrganization(organizationId, (tx) =>
+    tx
+      .update(eventTasks)
+      .set({ label: parsed.data.label, dueDate: parsed.data.dueDate, recurrence: parsed.data.recurrence, updatedAt: now })
+      .where(and(eq(eventTasks.id, taskId), isNull(eventTasks.eventId), isNull(eventTasks.deletedAt)))
+      .returning(),
+  );
+  if (!row) throw new PlanningInputError("not_found");
+  return toStandalone(row);
+}
+
 async function spawnNext(tx: Tx, organizationId: string, row: typeof eventTasks.$inferSelect, today: string, now: Date): Promise<boolean> {
   if (!row.recurrence || !shouldSpawnNext({ recurrence: row.recurrence, recurrenceSpawnedAt: row.recurrenceSpawnedAt, doneAt: row.doneAt, dueDate: row.dueDate }, today)) return false;
   // Une seule fois : la ligne n'est marquée que si personne ne l'a fait entre-temps.
