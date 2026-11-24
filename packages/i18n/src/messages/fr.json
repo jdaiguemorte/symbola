@@ -794,7 +794,7 @@
     },
     "importMatches": {
       "title": "Rapprocher des éléments existants",
-      "body": "Quand une ligne ressemble à un prestataire déjà au carnet, la ligne du fichier et la fiche existante s'affichent côte à côte (nom, métier, ville, e-mail, téléphone, nombre d'évènements), les différences écrites en toutes lettres. Choisissez « C'est le même », « Ce sont deux prestataires » ou « Décider plus tard ». Si seul le prénom est commun, la proposition est « À vérifier » et ce sont deux prestataires tant que vous ne dites pas le contraire. Filtrez « À vérifier », « Nouveaux », « Mises à jour » ; « Tout accepter » valide les propositions sûres."
+      "body": "Quand une ligne ressemble à un prestataire déjà au carnet, la ligne du fichier et la fiche existante s'affichent côte à côte (nom, métier, ville, e-mail, téléphone, nombre d'évènements), les différences écrites en toutes lettres. Choisissez « C'est le même », « Ce sont deux prestataires » ou « Décider plus tard ». Si seul le prénom est commun, la proposition est « À vérifier » et ce sont deux prestataires tant que vous ne dites pas le contraire. Filtrez « À vérifier », « Nouveaux », « Mises à jour » ; « Tout accepter » valide les propositions sûres. Tant qu'un rapprochement proposé attend votre décision, « Continuer » reste sur cet écran : décidez ligne par ligne, ou en une fois par « Valider les rapprochements proposés » ou « Créer les lignes comme nouvelles ». Dans un budget, une ligne sans poste reprend celui de la ligne du dessus, et l'écran le signale."
     },
     "importGaps": {
       "title": "Rapport des écarts",
@@ -3295,6 +3295,7 @@
     },
     "fileLabel": "Fichier (CSV, Excel .xlsx ou JSON)",
     "fileHint": "Taille maximale : {maxSize}. L'encodage, le séparateur et la ligne d'en-tête sont reconnus automatiquement.",
+    "pdfHint": "Un PDF ne se lit pas ici. Deux PDF sont repris ailleurs : les fiches d'évènement, par leur tuile ci-dessus, et le programme, depuis l'onglet « Programme du jour J » de l'évènement.",
     "startImport": "Lire le fichier",
     "reading": "Lecture en cours…",
     "missingEntityType": "Choisissez ce que contient le fichier.",
@@ -3470,6 +3471,11 @@
     "matchesIntro": "Une ligne qui ressemble à un élément existant peut le mettre à jour au lieu de créer un doublon. Validez les rapprochements proposés un par un ou en lot, refusez-les, ou rapprochez une ligne à la main. Rien n'est encore enregistré dans vos modules.",
     "matchesRejectedNotice": "{count, plural, one {# ligne contient} other {# lignes contiennent}} une valeur invalide ou un champ obligatoire vide : elles seront listées au rapport des écarts.",
     "acceptAllMatches": "{count, plural, one {Valider le rapprochement proposé} other {Valider les # rapprochements proposés}}",
+    "matchesUndecidedTitle": "{count, plural, one {# rapprochement attend votre décision} other {# rapprochements attendent votre décision}}",
+    "matchesUndecidedBody": "L'import ne peut pas être confirmé tant qu'il en reste. Décidez-les ligne par ligne ci-dessous, ou en une fois : rapprocher met à jour l'élément existant, créer ajoute une nouvelle ligne.",
+    "matchesUndecidedBodyContacts": "L'import ne peut pas être confirmé tant qu'il en reste. Décidez-les ligne par ligne ci-dessous, ou validez-les en une fois.",
+    "refuseAllMatches": "{count, plural, one {Créer la ligne comme nouvelle} other {Créer les # lignes comme nouvelles}}",
+    "blockerLink": { "matches_undecided": "Décider les rapprochements", "columns_undecided": "Décider des colonnes" },
     "acceptSelectedMatches": "Valider la sélection",
     "refuseSelectedMatches": "Refuser la sélection",
     "rowHeading": "Ligne {line} : {title}",
@@ -3512,6 +3518,7 @@
     "rejectedFileSuffix": "lignes-rejetees",
     "rowError": {
       "required_missing": "{field} : champ obligatoire manquant",
+      "required_missing_column": "la colonne « {column} » est vide (champ obligatoire « {field} »)",
       "invalid_date": "{field} : date invalide ({value})",
       "invalid_amount": "{field} : montant invalide ({value})",
       "invalid_percentage": "{field} : pourcentage invalide ({value})",
@@ -3597,6 +3604,7 @@
     "rejectedTooManySheets": "Trop de fiches à la fois : déposez-les en plusieurs fois.",
     "gapsRejectedSheet": "Fiche « {file} » : {reasons}",
     "rowSameAs": "Cette fiche décrit le même événement que la ligne {line} : rapprochez-la de l'événement existant ou ne gardez que l'une des deux.",
+    "rowCarriedSlot": "(poste repris de la ligne {line})",
     "sheetStatusIntro": "Statut proposé pour chaque évènement (confirmé si la date est à venir et un lieu connu, réalisé si elle est passée). Changez-le si besoin : il est enregistré dès que vous le choisissez.",
     "sheetStatusSaved": "Statut enregistré.",
     "sheetStatusFailed": "Erreur : le statut n'a pas pu être enregistré. Réessayez.",
@@ -3659,6 +3667,7 @@
       "columns": "{recognized, plural, one {# colonne reconnue} other {# colonnes reconnues}}{kept, plural, =0 {} other {, # en note sur la fiche}}{ignored, plural, =0 {} one {, # ignorée} other {, # ignorées}}",
       "types": "{labels, plural, one {# libellé} other {# libellés}}, {created, plural, =0 {aucun type créé} one {# type créé} other {# types créés}}{unclassified, plural, =0 {} other {, # à classer}}",
       "matches": "{creations, plural, one {# nouveau} other {# nouveaux}}, {updates, plural, =0 {aucune mise à jour} one {# mise à jour} other {# mises à jour}}",
+      "matchesUndecided": "{count, plural, one {# rapprochement à décider} other {# rapprochements à décider}}",
       "rows": "{excluded, plural, =0 {toutes les lignes gardées} one {# ligne écartée} other {# lignes écartées}}"
     },
     "stepCurrent": "en cours",

@@ -8,5 +8,7 @@ export function reasonText(t: (key: string, values?: Record<string, string>) => 
   // Lot 36b (D11) : ligne écartée selon une colonne (son intitulé, la valeur de la cellule).
   if (reason.code === "excluded_by_filter") return t("rowError.excluded_by_filter", { field: reason.fieldKey ?? "", value: reason.value || t("rowsEmptyValue") });
   const field = t(`field.${reason.fieldKey}`);
+  // Lot 67a (HUB-14 ; R03) : la colonne du fichier à remplir, puis le champ de Symbola.
+  if (reason.code === "required_missing" && reason.column) return t("rowError.required_missing_column", { column: reason.column, field });
   return reason.value ? t(`rowError.${reason.code}`, { field, value: reason.value }) : t(`rowError.${reason.code}`, { field, value: "" });
 }

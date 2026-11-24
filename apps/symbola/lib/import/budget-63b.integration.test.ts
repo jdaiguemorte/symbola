@@ -81,6 +81,30 @@ describe("BUD-01, BUD-03, HUB-14 — Budget importé complet (lot 63b)", () => {
     expect((await listBudgetLines(planner.organizationId, planner.eventId)).lines).toEqual([]);
   });
 
+  // Lot 67a (HUB-14, BUD-01 ; recette du 24/11/2026, R03) : le poste écrit une seule fois par groupe.
+  it("un budget dont le poste n'est écrit qu'une fois : aucune ligne rejetée, chaque ligne sous son poste", async () => {
+    const planner = await plannerWithWedding();
+    const importId = await importBudget(
+      planner,
+      "Date du mariage;Prénom client 1;Nom client 1;Poste;Libellé;Prévu;Réel\n" +
+        "12/06/2027;Élodie;Durand;Traiteur;Repas;5 000;4 800\n" +
+        "12/06/2027;Élodie;Durand;;Vin d'honneur;1 200;1 108\n" +
+        "12/06/2027;Élodie;Durand;;Boissons;405;405\n" +
+        "12/06/2027;Élodie;Durand;Musique;DJ;1 500;1 500\n",
+    );
+    const matches = await getImportMatchesView(planner.organizationId, importId);
+    expect(matches!.rows.map((row) => [row.values.slotLabel, row.errors.length, row.carried?.slotLabel])).toEqual([
+      ["Traiteur", 0, undefined],
+      ["Traiteur", 0, 2],
+      ["Traiteur", 0, 2],
+      ["Musique", 0, undefined],
+    ]);
+    expect(await confirmImport({ ...planner, importId })).toMatchObject({ status: "applied" });
+    const { lines } = await listBudgetLines(planner.organizationId, planner.eventId);
+    expect(lines).toHaveLength(4);
+    expect(lines.reduce((sum, line) => sum + (line.estimatedAmountCents ?? 0), 0)).toBe(810500);
+  });
+
   it("sans dates, l'import fait comme avant : le réglé va sur la ligne, aucune échéance n'est inventée", async () => {
     const planner = await plannerWithWedding();
     const importId = await importBudget(planner, "Date du mariage;Prénom client 1;Nom client 1;Poste;Prévu;Réel;Réglé;Acompte;Solde\n" + "12/06/2027;Élodie;Durand;Fleuriste;1 000;1 200;300;300;900\n");

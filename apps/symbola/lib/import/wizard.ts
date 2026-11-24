@@ -117,13 +117,22 @@ export function importWizardSteps(input: StepInput): ImportWizardStep[] {
   const proposed = rows.filter((row) => row.match?.status === "proposed" || row.sameAsLine !== undefined || (row.match?.toVerify === true && row.match.reviewed !== true)).length;
   const updates = rows.filter((row) => row.match?.status === "accepted" || (input.entityType === "contacts" && row.sameAsLine !== undefined && !row.ignored)).length;
   const ignored = rows.filter((row) => row.ignored).length;
+  // Lot 67a (HUB-14 ; recette du 24/11, R04) : une proposition sans décision bloque la confirmation.
+  // « Continuer » ne la décide pas : l'étape n'est pas terminée, et la ligne n'est pas « nouvelle ».
+  const undecidedMatches = undecidedMatchCount(input.matches?.rows ?? []);
   steps.push({
     key: "matches",
-    done: previousDone && input.matches !== null && (input.reviewed.matches === true || proposed === 0),
-    summary: input.matches !== null ? { key: "matches", values: { updates, creations: rows.length - updates - ignored, proposed } } : null,
+    done: previousDone && input.matches !== null && undecidedMatches === 0 && (input.reviewed.matches === true || proposed === 0),
+    summary: input.matches !== null ? { key: "matches", values: { updates, creations: rows.length - updates - ignored - undecidedMatches, proposed, undecided: undecidedMatches } } : null,
   });
   steps.push({ key: "confirm", done: false, summary: null });
   return steps;
+}
+
+// Lot 67a (HUB-14) — les rapprochements proposés que la planner n'a ni validés ni refusés : ceux qui
+// empêchent de confirmer l'import (même règle que l'aperçu, `matches_undecided`).
+export function undecidedMatchCount(rows: Pick<MatchesView["rows"][number], "errors" | "ignored" | "match">[]): number {
+  return rows.filter((row) => row.errors.length === 0 && !row.ignored && row.match?.status === "proposed").length;
 }
 
 export async function getImportWizard(organizationId: string, importId: string): Promise<ImportWizard | null> {

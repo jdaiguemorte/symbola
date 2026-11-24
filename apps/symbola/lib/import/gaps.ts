@@ -8,7 +8,8 @@ import { EVENT_SHEET_COLUMNS, type RowError } from "@symbola/import-engine";
 import { getImportWorkingSet, isGapColumn, type ImportWorkingSet } from "@/modules/hub/service";
 import { getImportMatchesView } from "./matching";
 
-export type RejectionReason = RowError | { code: "event_not_found"; fieldKey: null; value: "" };
+// `column` (lot 67a) : intitulé de la colonne du fichier rattachée au champ obligatoire resté vide.
+export type RejectionReason = (RowError & { column?: string }) | { code: "event_not_found"; fieldKey: null; value: "" };
 
 export type GapColumnView = {
   columnIndex: number;
@@ -53,9 +54,16 @@ export async function getImportGapsView(organizationId: string, importId: string
     decision: choice.target === "free" ? ("keep" as const) : choice.target === "ignore" ? ("ignore" as const) : ("undecided" as const),
   }));
 
+  const columnOf = new Map(
+    set.mapping.flatMap((choice) => (choice.target === "field" && choice.fieldKey && set.headers[choice.columnIndex] ? [[choice.fieldKey, set.headers[choice.columnIndex]!] as const] : [])),
+  );
   const rejected = matches.rows
     .map((row) => {
-      const reasons: RejectionReason[] = [...row.errors];
+      // Lot 67a (HUB-14 ; R03) : un champ obligatoire vide nomme la colonne du fichier à remplir.
+      const reasons: RejectionReason[] = row.errors.map((error) => {
+        const column = error.code === "required_missing" ? columnOf.get(error.fieldKey) : undefined;
+        return column ? { ...error, column } : error;
+      });
       if (row.errors.length === 0 && row.event && !row.event.candidate) reasons.push({ code: "event_not_found", fieldKey: null, value: "" });
       const source = set.entityType === "event_sheets" ? set.rows[row.rowIndex]?.[EVENT_SHEET_COLUMNS.indexOf("source")] : undefined;
       return { rowIndex: row.rowIndex, lineNumber: row.lineNumber, reasons, ...(source ? { source } : {}) };

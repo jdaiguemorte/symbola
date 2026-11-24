@@ -32,9 +32,11 @@ export type ParsedImportRow = {
   // Colonnes gardées en champ libre (IMP-04) : intitulé → texte brut.
   extra: Record<string, string>;
   errors: RowError[];
+  // Lot 67a : champs repris de la ligne du dessus → numéro de la ligne du fichier d'où vient la valeur.
+  carried?: Record<string, number>;
 };
 
-export type RowFieldDefinition = MappableField & { required?: true; choices?: readonly string[] };
+export type RowFieldDefinition = MappableField & { required?: true; choices?: readonly string[]; carryDown?: true };
 
 export type ColumnAssignment = { columnIndex: number; fieldKey: string | null; target: "field" | "none" | "free" | "ignore" };
 
@@ -69,9 +71,14 @@ export function parseImportRows(input: {
   const booleanTrue = new Set(input.synonyms.booleans.true.map(normalized));
   const booleanFalse = new Set(input.synonyms.booleans.false.map(normalized));
 
+  // Lot 67a (HUB-14, BUD-01) : dernière valeur lue d'un champ « à reporter », et sa ligne du fichier.
+  const lastCarried = new Map<string, { value: ImportValue; lineNumber: number }>();
+
   return input.rows.map((row, rowIndex) => {
     const values: Record<string, ImportValue> = {};
     const errors: RowError[] = [];
+    const lineNumber = input.sourceLineNumbers[rowIndex] ?? rowIndex + 1;
+    let carried: Record<string, number> | undefined;
 
     for (const assignment of mapped) {
       const field = fieldsByKey.get(assignment.fieldKey) as RowFieldDefinition;
@@ -126,6 +133,23 @@ export function parseImportRows(input: {
       }
     }
 
+    // Une ligne qui porte une autre valeur reconnue reprend la valeur du dessus ; une ligne sans rien
+    // d'autre ne reprend rien.
+    for (const assignment of mapped) {
+      const field = fieldsByKey.get(assignment.fieldKey) as RowFieldDefinition;
+      if (!field.carryDown) continue;
+      const value = values[field.key];
+      if (value !== null && value !== undefined) {
+        lastCarried.set(field.key, { value, lineNumber });
+        continue;
+      }
+      const previous = lastCarried.get(field.key);
+      const hasOther = mapped.some((other) => other.fieldKey !== field.key && (row[other.columnIndex] ?? "").trim() !== "");
+      if (!previous || !hasOther || errors.some((error) => error.fieldKey === field.key)) continue;
+      values[field.key] = previous.value;
+      (carried ??= {})[field.key] = previous.lineNumber;
+    }
+
     for (const field of input.fields) {
       if (!field.required) continue;
       const value = values[field.key];
@@ -141,6 +165,6 @@ export function parseImportRows(input: {
       if (raw !== "") extra[input.headers[assignment.columnIndex] || `#${assignment.columnIndex + 1}`] = raw;
     }
 
-    return { rowIndex, lineNumber: input.sourceLineNumbers[rowIndex] ?? rowIndex + 1, values, extra, errors };
+    return { rowIndex, lineNumber, values, extra, errors, ...(carried ? { carried } : {}) };
   });
 }

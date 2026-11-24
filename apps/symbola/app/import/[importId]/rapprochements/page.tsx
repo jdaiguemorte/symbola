@@ -7,7 +7,7 @@ import { ActionBar } from "@/app/ui/action-bar";
 import type { ImportValue, PersonName } from "@symbola/import-engine";
 import { contactRowTitle, rowEventReference, type MatchesRowView } from "@/lib/import/matching";
 import { onlyOneNameInCommon } from "@/lib/import/vendor-compare";
-import { importStepHref, SAFE_MATCH_SCORE } from "@/lib/import/wizard";
+import { importStepHref, SAFE_MATCH_SCORE, undecidedMatchCount } from "@/lib/import/wizard";
 import type { EventCandidate } from "@/lib/import/candidates";
 import { ImportHeader } from "../../import-header";
 import { importStepContext, wantsAbandon } from "../../step-context";
@@ -88,6 +88,9 @@ export default async function ImportMatchesPage({
   const compared = shown.filter((row) => row.compare && row.match);
   const tabled = shown.filter((row) => !(row.compare && row.match));
   const safeCount = valid.filter((row) => row.match?.status === "proposed" && row.match.score >= SAFE_MATCH_SCORE).length;
+  // Lot 67a (HUB-14 ; R04) : les propositions sans décision bloquent la confirmation ; l'écran le dit,
+  // en alerte après un « Continuer » refusé (« ?reste=1 »), avec les deux gestes en lot.
+  const undecided = undecidedMatchCount(view.rows);
   const base = importStepHref(importId, "matches");
   const href = (values: { filtre?: Filter; page?: number }) => `${base}?filtre=${values.filtre ?? filter}${values.page && values.page > 1 ? `&page=${values.page}` : ""}`;
   const previousStep = wizard.steps.some((step) => step.key === "types") ? "types" : wizard.steps.some((step) => step.key === "rows") ? "rows" : "columns";
@@ -116,6 +119,31 @@ export default async function ImportMatchesPage({
           </Link>
         ))}
       </nav>
+
+      {undecided > 0 ? (
+        <section id="rapprochements-a-decider" className="notice notice-attention" role={query.reste === "1" ? "alert" : "status"} aria-labelledby="matches-undecided-title">
+          <h2 id="matches-undecided-title">{t("matchesUndecidedTitle", { count: undecided })}</h2>
+          <p>{t(view.entityType === "contacts" ? "matchesUndecidedBodyContacts" : "matchesUndecidedBody")}</p>
+          <div className="row-actions">
+            <form action={decideMatchesAction}>
+              <input type="hidden" name="importId" value={importId} />
+              <input type="hidden" name="decision" value="accept_all" />
+              <button type="submit" className="button-secondary">
+                {t("acceptAllMatches", { count: undecided })}
+              </button>
+            </form>
+            {view.entityType === "contacts" ? null : (
+              <form action={decideMatchesAction}>
+                <input type="hidden" name="importId" value={importId} />
+                <input type="hidden" name="decision" value="refuse_all" />
+                <button type="submit" className="button-secondary">
+                  {t("refuseAllMatches", { count: undecided })}
+                </button>
+              </form>
+            )}
+          </div>
+        </section>
+      ) : null}
 
       {safeCount > 0 ? (
         <form action={decideMatchesAction} className="primary-action matches-accept-safe">
@@ -243,6 +271,8 @@ export default async function ImportMatchesPage({
                     <th scope="row">
                       {title}
                       {row.sameAsLine !== undefined ? <span className="meta"> {t(isContacts ? "rowSameEmail" : "rowSameAs", { line: row.sameAsLine })}</span> : null}
+                      {/* Lot 67a (HUB-14, BUD-01 ; R03) : le poste repris de la ligne du dessus se vérifie ici. */}
+                      {row.carried?.slotLabel !== undefined ? <span className="meta"> {t("rowCarriedSlot", { line: row.carried.slotLabel })}</span> : null}
                       {row.event ? (
                         <span className="meta"> {row.event.candidate ? t("rowEvent", { event: eventTitle(row.event.candidate), score: row.event.score }) : t("rowEventNotFound")}</span>
                       ) : null}

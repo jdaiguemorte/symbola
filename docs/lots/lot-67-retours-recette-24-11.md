@@ -1,7 +1,8 @@
 # Lot 67 — Retours de la recette du 24/11/2026 (staging, version 38b47b3)
 
 **Statut** : plan validé par Julien le 24/11, précisions du même jour intégrées (R03, R06, R07, R09) ;
-spécification à valider avant le code.
+spécification validée par Julien le 24/11. Fait : 67a (parcours Playwright à voir en CI). À faire : 67e,
+67b, 67c, 67d.
 
 Source : le compte rendu de recette de la planner pilote du 24/11/2026 (20 minutes sur le staging,
 11 retours R01 à R11, captures à l'appui). Le compte rendu n'est pas versé au dépôt (captures de
@@ -38,7 +39,9 @@ d'être écrite.
 - **Étant donné** un fichier de budget où le poste n'est écrit que sur la première ligne de chaque
   groupe, **quand** on l'importe, **alors** une ligne sans poste mais avec un montant ou un libellé
   reprend le poste de la ligne précédente. Les 20 lignes du fichier de la recette sont importables.
-- Une plage de cellules fusionnées d'un fichier Excel vaut sa première cellule pour toute la plage.
+- Une cellule fusionnée d'Excel se lit comme sa première cellule suivie de cellules vides : le report
+  la couvre, pour le poste seulement. Les fusions ne sont pas recopiées ailleurs (un montant
+  fusionné sur trois lignes serait compté trois fois).
 - Le report ne vaut que pour les champs déclarés « à reporter » dans la définition du type d'import
   (ici `slotLabel` du budget). Aucun autre type ne change de comportement.
 - Une ligne entièrement vide ne reprend rien et reste ignorée. La première ligne sans poste reste
@@ -215,7 +218,7 @@ reconnu ni proposé) ; Playwright du parcours en ordinateur et en 375 px.
 poste sans changement de schéma ; sinon la migration est annoncée avant d'être écrite.
 
 En attendant, dans 67a : l'écran d'import dit quels PDF sont lus (fiches d'évènement, programme) et
-« Un autre fichier » propose aussi « Prestataires » (carnet).
+où. « Prestataires » a déjà sa tuile au-dessus de « Un autre fichier » : rien à ajouter à la liste.
 
 ---
 

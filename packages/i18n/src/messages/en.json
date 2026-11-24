@@ -794,7 +794,7 @@
     },
     "importMatches": {
       "title": "Matching existing records",
-      "body": "When a row looks like a vendor already in your book, the file row and the existing record are shown side by side (name, trade, city, email, phone, number of events), with the differences spelled out. Choose “It's the same”, “These are two vendors” or “Decide later”. If only the first name is shared, the suggestion is “To check” and they stay two vendors unless you say otherwise. Filter “To check”, “New”, “Updates”; “Accept all” confirms the safe suggestions."
+      "body": "When a row looks like a vendor already in your book, the file row and the existing record are shown side by side (name, trade, city, email, phone, number of events), with the differences spelled out. Choose “It's the same”, “These are two vendors” or “Decide later”. If only the first name is shared, the suggestion is “To check” and they stay two vendors unless you say otherwise. Filter “To check”, “New”, “Updates”; “Accept all” confirms the safe suggestions. While a suggested match is waiting for your decision, “Continue” stays on this screen: decide row by row, or all at once with “Accept the suggested matches” or “Create the rows as new”. In a budget, a row without a budget line takes the one from the row above, and the screen says so."
     },
     "importGaps": {
       "title": "Gaps report",
@@ -3295,6 +3295,7 @@
     },
     "fileLabel": "File (CSV, Excel .xlsx or JSON)",
     "fileHint": "Maximum size: {maxSize}. Encoding, separator and header row are detected automatically.",
+    "pdfHint": "A PDF cannot be read here. Two kinds of PDF are taken over elsewhere: event sheets, from their tile above, and the schedule, from the event’s “Wedding day schedule” tab.",
     "startImport": "Read the file",
     "reading": "Reading…",
     "missingEntityType": "Choose what the file contains.",
@@ -3470,6 +3471,11 @@
     "matchesIntro": "A row that looks like an existing record can update it instead of creating a duplicate. Accept the suggested matches one by one or in bulk, refuse them, or match a row by hand. Nothing is saved in your modules yet.",
     "matchesRejectedNotice": "{count, plural, one {# row has} other {# rows have}} an invalid value or an empty required field: they will be listed in the gaps report.",
     "acceptAllMatches": "{count, plural, one {Accept the suggested match} other {Accept the # suggested matches}}",
+    "matchesUndecidedTitle": "{count, plural, one {# match is waiting for your decision} other {# matches are waiting for your decision}}",
+    "matchesUndecidedBody": "The import cannot be confirmed while any remain. Decide them row by row below, or all at once: accepting updates the existing item, creating adds a new row.",
+    "matchesUndecidedBodyContacts": "The import cannot be confirmed while any remain. Decide them row by row below, or accept them all at once.",
+    "refuseAllMatches": "{count, plural, one {Create the row as new} other {Create the # rows as new}}",
+    "blockerLink": { "matches_undecided": "Decide the matches", "columns_undecided": "Decide the columns" },
     "acceptSelectedMatches": "Accept selected",
     "refuseSelectedMatches": "Refuse selected",
     "rowHeading": "Row {line}: {title}",
@@ -3512,6 +3518,7 @@
     "rejectedFileSuffix": "rejected-rows",
     "rowError": {
       "required_missing": "{field}: required field missing",
+      "required_missing_column": "the “{column}” column is empty (required field “{field}”)",
       "invalid_date": "{field}: invalid date ({value})",
       "invalid_amount": "{field}: invalid amount ({value})",
       "invalid_percentage": "{field}: invalid percentage ({value})",
@@ -3597,6 +3604,7 @@
     "rejectedTooManySheets": "Too many sheets at once: upload them in several goes.",
     "gapsRejectedSheet": "Sheet “{file}”: {reasons}",
     "rowSameAs": "This sheet describes the same event as row {line}: match it with the existing event or keep only one of them.",
+    "rowCarriedSlot": "(budget line taken from row {line})",
     "sheetStatusIntro": "Suggested status for each event (confirmed when the date is ahead and a venue is known, done when it has passed). Change it if needed: it is saved as soon as you choose it.",
     "sheetStatusSaved": "Status saved.",
     "sheetStatusFailed": "Error: the status could not be saved. Try again.",
@@ -3659,6 +3667,7 @@
       "columns": "{recognized, plural, one {# column recognised} other {# columns recognised}}{kept, plural, =0 {} other {, # kept as notes}}{ignored, plural, =0 {} other {, # ignored}}",
       "types": "{labels, plural, one {# label} other {# labels}}, {created, plural, =0 {no type created} one {# type created} other {# types created}}{unclassified, plural, =0 {} other {, # to sort}}",
       "matches": "{creations, plural, other {# new}}, {updates, plural, =0 {no update} one {# update} other {# updates}}",
+      "matchesUndecided": "{count, plural, one {# match to decide} other {# matches to decide}}",
       "rows": "{excluded, plural, =0 {all rows kept} one {# row set aside} other {# rows set aside}}"
     },
     "stepCurrent": "in progress",

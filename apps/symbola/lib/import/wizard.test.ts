@@ -33,8 +33,25 @@ describe("IMP-11 — Assistant linéaire", () => {
     expect(nextImportStep(steps)).toBe("types");
     steps = importWizardSteps({ ...base, mapping: [field(0)], matches, reviewed: { types: true } });
     expect(nextImportStep(steps)).toBe("matches");
+    // Lot 67a (HUB-14 ; R04) : « Continuer » ne vaut pas décision, la proposition attend toujours.
     steps = importWizardSteps({ ...base, mapping: [field(0)], matches, reviewed: { types: true, matches: true } });
+    expect(nextImportStep(steps)).toBe("matches");
+    steps = importWizardSteps({ ...base, mapping: [field(0)], matches: { rows: [row(0, "accepted")], vendorTypes }, reviewed: { types: true, matches: true } });
     expect(nextImportStep(steps)).toBe("confirm");
+  });
+
+  it("HUB-14 (lot 67a) — un rapprochement proposé sans décision : étape non terminée, comptée « à décider » et non « nouveau »", () => {
+    const matches = { rows: [row(0, "proposed"), row(1, "proposed"), row(2, null), row(3, "refused")], vendorTypes: [] } as never;
+    const steps = importWizardSteps({ ...base, entityType: "budget_lines", mapping: [field(0)], matches, reviewed: { matches: true } });
+    const step = steps.find((entry) => entry.key === "matches");
+    expect(step).toMatchObject({ done: false, summary: { values: { undecided: 2, creations: 2, updates: 0 } } });
+    expect(nextImportStep(steps)).toBe("matches");
+  });
+
+  it("HUB-14 (lot 67a) — une fois tout décidé, l'étape est terminée sans « Continuer » de plus", () => {
+    const matches = { rows: [row(0, "accepted"), row(1, "refused")], vendorTypes: [] } as never;
+    const steps = importWizardSteps({ ...base, entityType: "budget_lines", mapping: [field(0)], matches, reviewed: { matches: true } });
+    expect(steps.find((entry) => entry.key === "matches")).toMatchObject({ done: true, summary: { values: { undecided: 0, creations: 1, updates: 1 } } });
   });
 
   it("hors prestataires, pas d'étape « Types » ; un fichier encore en lecture reste à l'étape « Fichier »", () => {

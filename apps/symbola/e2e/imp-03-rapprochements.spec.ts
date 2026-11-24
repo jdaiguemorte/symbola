@@ -76,6 +76,13 @@ test("IMP-03 — rapprochements validés, refusés et ajoutés à la main", asyn
   await expect(row("Animation DJ")).toContainText("Animation DJ (100 %)");
   await expectNoAxeViolation(page);
 
+  // Lot 67a (HUB-14 ; recette du 24/11, R04) : « Continuer » sans décider reste sur l'écran, qui le dit.
+  await continueButton.click();
+  await expect(page).toHaveURL(/\/rapprochements\?filtre=a-verifier&reste=1/);
+  await expect(page.getByRole("alert").filter({ hasText: "2 rapprochements attendent votre décision" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Étapes de l'import" }).getByRole("listitem").filter({ hasText: "Doublons" })).toContainText("2 rapprochements à décider");
+  await expectNoAxeViolation(page);
+
   // Valider un rapprochement, en refuser un autre.
   await page.getByRole("button", { name: "Mettre à jour l'existant pour Fleurs" }).click();
   await expect(filters.getByRole("link", { name: "Mises à jour · 1" })).toBeVisible();
