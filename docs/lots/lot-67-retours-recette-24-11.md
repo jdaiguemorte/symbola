@@ -1,8 +1,8 @@
 # Lot 67 — Retours de la recette du 24/11/2026 (staging, version 38b47b3)
 
 **Statut** : plan validé par Julien le 24/11, précisions du même jour intégrées (R03, R06, R07, R09) ;
-spécification validée par Julien le 24/11. Fait : 67a (parcours Playwright à voir en CI). À faire : 67e,
-67b, 67c, 67d.
+spécification validée par Julien le 24/11. Faits : 67a et 67e (parcours Playwright à voir en CI ;
+l'écran de 67e n'a pas été regardé dans un navigateur en local). À faire : 67b, 67c, 67d.
 
 Source : le compte rendu de recette de la planner pilote du 24/11/2026 (20 minutes sur le staging,
 11 retours R01 à R11, captures à l'appui). Le compte rendu n'est pas versé au dépôt (captures de
@@ -18,6 +18,7 @@ Branche : `lot-67-retours-recette-24-11`, une seule pull request vers `main`.
 | R07, besoin | La planner veut reprendre, depuis un PDF, les **prestataires retenus d'un évènement**, pour ne pas les ressaisir. Ce n'est pas l'import du carnet. Paquet 67e, cadré sur le PDF fourni par Julien le 24/11. |
 | R09, clients | Les clients sont reconnus par leur **rôle seul** (« Marié », « Mariée »…), pas par leur prénom. |
 | R06, « À trouver » et « Engagé » | Pas un défaut d'affichage : l'évènement de la recette est un évènement fini repris par import, dont les prestataires n'ont pas pu être rattachés. 67e y répond. |
+| 67e, forme | Décision de Julien du 24/11 : un **aperçu dans l'onglet** « Budget et prestataires », sur le modèle de l'import du programme PDF (lot 63b), sans assistant ni journal d'import. Pas d'annulation en un geste : on corrige par « Ne plus retenir » sur le poste et en supprimant la fiche créée. Aucune migration. |
 | Programme sur deux jours | L'évènement de la recette dure deux jours : tout commence la veille, le mariage civil est le samedi. La veille ne doit pas s'appeler « Jour J », et les PDF doivent séparer les jours. |
 
 ## Paquets
@@ -168,7 +169,7 @@ d'être écrite.
 - Une séquence plus haute qu'une page se coupe entre deux pages, l'en-tête des colonnes répété.
 - Les deux PDF régénérés sont joints à la pull request pour relecture.
 
-### 67e — Reprendre d'un PDF les prestataires retenus d'un évènement (R07 ; migration : à vérifier)
+### 67e — Reprendre d'un PDF les prestataires retenus d'un évènement (R07 ; fait, sans migration)
 
 **HUB-14, PRE-02, BUD-04** — besoin (décision du 24/11) : depuis l'évènement, déposer le PDF qui
 liste ses prestataires retenus ; Symbola retrouve ou crée chaque fiche du carnet et la retient sur
@@ -185,37 +186,37 @@ Le PDF porte des données personnelles réelles : il n'entre pas dans le dépôt
 un PDF fictif de même forme, fabriqué pour l'occasion.
 
 Critères :
-- **Entrée** : « Importer » de l'onglet « Budget et prestataires » propose « Prestataires retenus
-  (PDF) ». Le même fichier déposé dans l'import central est reconnu et demande l'évènement.
+- **Entrée** : l'onglet « Budget et prestataires » porte « Reprendre les prestataires retenus
+  (PDF) » (`?reprendre=1` l'ouvre). L'import central n'est pas concerné.
 - **Reconnaissance** : par les intitulés du profil du logiciel (`import-profiles.json`, données de
   `packages/starter-templates`), lus par `packages/import-engine/src/pdf.ts` (ADR 0034). Les
   colonnes se reconstruisent par la position du texte ; une cellule vide reste vide, sans décaler
   la ligne. Aucune nouvelle dépendance.
 - **Évènement** : la date et les clients de l'en-tête sont comparés à l'évènement ouvert ; s'ils
   diffèrent, l'écran le dit et demande confirmation avant d'aller plus loin.
-- **Carnet** : chaque ligne passe par le rapprochement existant de l'import des prestataires (fiche
-  existante complétée, ou fiche créée). Le contact se lit « Prénom NOM » ; plusieurs numéros, les
+- **Carnet** : la fiche au même nom est proposée (aux accents près) ; sinon une fiche est créée. La
+  planner choisit une autre fiche si besoin. Une fiche existante n'est pas modifiée. Le contact se lit « Prénom NOM » ; plusieurs numéros, les
   entités HTML et l'Instagram se nettoient comme dans l'export Excel (`vendors-export.ts`).
-- **Type** : un type inconnu du carnet passe par l'étape des types existante (rattacher ou créer),
-  types combinés compris (« Coiffeur(se) - Maquilleur(se) »).
+- **Type** : une fiche créée prend le métier du carnet au même libellé ou synonyme ; sinon elle
+  reste « à classer ». Aucun métier n'est créé ici (l'import du carnet garde cette étape).
 - **Poste** : chaque prestataire est proposé sur la ligne du budget de son métier ; la planner
-  corrige ou choisit « Nouvelle ligne ». Deux prestataires d'un même métier vont sur la même ligne
-  ou sur deux lignes, au choix. Une ligne déjà pourvue n'est jamais remplacée d'office.
+  corrige ou choisit « Nouvelle ligne ». Un mot voisin ne suffit pas (« Photobooth » ne va pas sur
+  « Photographe »). Deux prestataires d'un même métier sans ligne partagent la ligne créée. Un
+  prestataire déjà retenu sur une ligne le reste : la reprise ajoute, elle ne remplace pas.
 - **Retenir** : à la confirmation, chaque prestataire est retenu sur son poste, comme par le geste
   « Retenir » de la fenêtre du poste (ADR 0111). Les montants de la ligne ne changent pas.
 - **Planner** : la ligne dont le rôle est celui de la planner (`plannerRoles` du profil) est
   écartée, et l'aperçu le dit.
-- **Annulation** : l'import s'annule comme les autres ; les fiches créées et les rattachements
-  disparaissent, une fiche modifiée depuis est signalée.
+- **Rejeu** : relancée sur le même fichier, la reprise n'écrit rien de plus (fiches retrouvées,
+  prestataires déjà retenus).
+- **Pas d'annulation en un geste** (décision du 24/11) : « Ne plus retenir » sur le poste, et
+  suppression de la fiche créée dans le carnet.
 - **Effet attendu sur R06** : après la reprise, les lignes du budget de l'évènement fini portent
   leur prestataire ; « À trouver » ne reste que sur les postes vraiment vides.
 
 Tests : lecture du PDF fictif (colonnes, cellules vides, ligne de la planner) ; intégration de la
 reprise et de son annulation ; isolation (un évènement d'une autre organisation n'est jamais
 reconnu ni proposé) ; Playwright du parcours en ordinateur et en 375 px.
-
-À vérifier au début du paquet : si le journal d'import sait déjà annuler un rattachement à un
-poste sans changement de schéma ; sinon la migration est annoncée avant d'être écrite.
 
 En attendant, dans 67a : l'écran d'import dit quels PDF sont lus (fiches d'évènement, programme) et
 où. « Prestataires » a déjà sa tuile au-dessus de « Un autre fichier » : rien à ajouter à la liste.
@@ -225,8 +226,8 @@ où. « Prestataires » a déjà sa tuile au-dessus de « Un autre fichier » : 
 ## ADR à écrire
 
 - Aucun pour 67a à 67d, sauf si le report d'une valeur à l'import s'étend à d'autres types.
-- Un ADR pour 67e : la reprise des prestataires retenus d'un évènement (nouveau type d'import,
-  rattachement au poste, annulation).
+- Aucun pour 67e non plus : la reprise réemploie le modèle de l'import du programme (ADR 0091) et
+  le geste « Retenir » (ADR 0111), sans nouveau type d'import.
 
 ## Tests et rejeu
 

@@ -138,6 +138,7 @@ import { getDayReport, listKeyMoments } from "@/modules/events/service";
 import { getGuestEventSummary, getGuestModuleState } from "@/modules/guests/service";
 import { AddKeyMomentForm, EditKeyMomentForm } from "./key-moments";
 import { ProgramImportForm } from "./program-import-form";
+import { VendorsImportForm } from "./vendors-import-form";
 import { DayReminderCard } from "./day-reminder-card";
 import { dayReportSections, reportHandovers } from "./bilan/day-report-view";
 import { dayReportWords } from "./bilan/report-words";
@@ -160,7 +161,7 @@ const LINK_STATUS_KEYS = {
 const TABS = ["apercu", "budget", "retroplanning", "programme", "devis", "maries", "documents", "invites"] as const;
 type Tab = (typeof TABS)[number];
 
-type SearchParams = { importer?: string; cote?: string; groupe?: string; sansReponse?: string; suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string };
+type SearchParams = { importer?: string; reprendre?: string; cote?: string; groupe?: string; sansReponse?: string; suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string };
 
 // Lot 28a (PRE-02) : postes pourvus (un prestataire retenu) ou non requis.
 const SETTLED_SLOT_STATUSES = new Set<string>(["retained", "contract_signed", "paid_off", "not_required"]);
@@ -959,6 +960,8 @@ export default async function EventDetailPage({
               </p>
             ) : null}
             <progress aria-labelledby="vendor-progress-label" value={progress.booked} max={Math.max(progress.required, 1)} />
+            {/* Lot 67e (HUB-14, PRE-02 ; R07) : reprendre d'un PDF les prestataires retenus de l'évènement. */}
+            {vendorsAvailable ? <VendorsImportForm eventId={event.id} open={query.reprendre === "1"} /> : null}
             {vendorSlots.length === 0 ? <p>{t("noVendorSlots")}</p> : null}
             {vendorSlots.length > 0 ? (
               <BudgetVendorsTable
