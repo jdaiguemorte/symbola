@@ -348,6 +348,12 @@ sur des valeurs vides, « Aujourd'hui » au lendemain d'une reprise.
 Les maquettes emploient les jetons actuels de `DESIGN.md` (ADR 0057). Aucune règle n'est écrite
 dans `DESIGN.md` avant la porte 3 : le Design System se construit sur les maquettes validées.
 
+**Couleurs à venir (A3).** Chaque constat qui touche à la couleur (action principale, états, alertes,
+liens) est aussi lu avec le futur trio bleu, orange, crème. Deux points sont à instruire dès la
+synthèse : l'orange ne porte pas de texte sur fond clair (contraste insuffisant) et ne doit pas se
+confondre avec la couleur d'une alerte ou d'un retard ; le rôle de chaque couleur (action, accent,
+fond) se fixe avant tout nuancier. Les valeurs exactes des trois couleurs sont à donner par Julien.
+
 Ordre des maquettes : Aujourd'hui, Évènements, Tâches, Prestataires, reprise et import, premiers
 pas et aide, Paramètres. Chaque maquette est rejouée par les profils concernés avant d'être
 présentée.
@@ -376,7 +382,7 @@ présentée.
 | --- | --- | --- |
 | A1 | Quels outils d'origine simuler pour la reprise ? | Deux : le tableur d'une planner et les exports d'un logiciel spécialisé, à la forme des fichiers reçus en recette le 24/11, avec des données inventées. |
 | A2 | Seuil des zones d'action : trois en 1 440 px, deux en 375 px ? | Oui pour mesurer ; la synthèse dira si le seuil tient. |
-| A3 | Les jetons de `DESIGN.md` (couleurs, polices, rayons) sont-ils remis en question ? | Non, sauf si un constat l'exige (contraste, affordance d'un bouton) ; le constat le dira à la porte 2. |
+| A3 | Les jetons de `DESIGN.md` (couleurs, polices, rayons) sont-ils remis en question ? | Non, sauf si un constat l'exige (contraste, affordance d'un bouton). **Nuance de Julien (24/11)** : les couleurs de Symbola changeront sans doute pour suivre un futur logo, bleu vif, orange et crème (le dessin peut encore bouger, les trois couleurs restent). Les recommandations et les maquettes proposent donc quelques associations de couleurs qui anticipent ce passage, à côté de la version aux jetons actuels. |
 | A4 | Les Paramètres sur téléphone | Mesurés par l'outil sur toutes les rubriques ; joués par le panel sur ordinateur, sauf Notifications et Mon compte. |
 | A5 | Montrer les maquettes à la planner pilote avant le Design System | Oui, à la porte 3, si Julien le souhaite ; rien ne lui est envoyé sans lui. |
 | A6 | La fiche d'évènement : quatre onglets en profondeur, les quatre autres à leur entrée | Oui ; la barre d'onglets elle-même est auditée en entier. |
