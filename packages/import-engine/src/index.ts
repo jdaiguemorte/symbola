@@ -82,6 +82,7 @@ export {
   type ProgramExportRow,
   type ProgramExportSpeaker,
 } from "./third-party/program-export";
+export { parseEventVendorsExport, type EventVendorsExport, type EventVendorsExportResult, type EventVendorsExportRow } from "./third-party/event-vendors-export";
 export {
   cleanVendorImportText,
   detectVendorsExport,

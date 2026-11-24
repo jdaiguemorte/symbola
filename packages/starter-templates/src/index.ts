@@ -598,18 +598,35 @@ const programExportProfileSchema = z.object({
   clientRoles: z.array(z.string().min(1)),
   maxPages: z.number().int().positive().max(100),
 });
+// Lot 67e (HUB-14, PRE-02) : export « prestataires d'un évènement », en PDF (titre et colonnes).
+const eventVendorsExportProfileSchema = z.object({
+  title: z.string().min(1),
+  columnHeaders: z.object({ type: z.string().min(1), name: z.string().min(1), contact: z.string().min(1), email: z.string().min(1), phone: z.string().min(1), instagram: z.string().min(1) }),
+  maxPages: z.number().int().positive().max(100),
+});
 const importProfilesSchema = z.object({
-  planningSoftware: z.object({ vendors: vendorsExportProfileSchema, eventSheet: eventSheetProfileSchema, programExport: programExportProfileSchema }),
+  planningSoftware: z.object({
+    vendors: vendorsExportProfileSchema,
+    eventSheet: eventSheetProfileSchema,
+    programExport: programExportProfileSchema,
+    eventVendorsExport: eventVendorsExportProfileSchema,
+  }),
 });
 
 export type VendorsExportProfile = z.infer<typeof vendorsExportProfileSchema>;
 export type EventSheetProfile = z.infer<typeof eventSheetProfileSchema>;
 export type ProgramExportProfile = z.infer<typeof programExportProfileSchema>;
+export type EventVendorsExportProfile = z.infer<typeof eventVendorsExportProfileSchema>;
 
 const importProfiles = importProfilesSchema.parse(importProfilesFile);
 
 // Export d'un logiciel de planification tiers (prestataires en Excel, fiches événement en PDF).
-export function planningSoftwareProfile(): { vendors: VendorsExportProfile; eventSheet: EventSheetProfile; programExport: ProgramExportProfile } {
+export function planningSoftwareProfile(): {
+  vendors: VendorsExportProfile;
+  eventSheet: EventSheetProfile;
+  programExport: ProgramExportProfile;
+  eventVendorsExport: EventVendorsExportProfile;
+} {
   return importProfiles.planningSoftware;
 }
 
