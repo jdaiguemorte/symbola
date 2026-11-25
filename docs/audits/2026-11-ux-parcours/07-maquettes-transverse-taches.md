@@ -111,29 +111,55 @@ guillemets quand ils s'écartent de la proposition. Les maquettes sont corrigée
 | M3 | Sur l'accueil, une tâche confiée aux mariés garde-t-elle « Fait » ? | **Oui.** Aucun bouton de relance : « la relance est à la main de la wedding planner, on ne rajoute pas de bouton » | Inchangé ; la règle est écrite sous « Aujourd'hui » (page 1) |
 | M4 | Le nom du mariage, dans la ligne, est-il un lien ? | **Sur « Aujourd'hui » seulement**, séparé du titre, cible de 44 px sur téléphone ; texte simple dans « Tâches » et dans la fiche | Ligne allégée d'« Aujourd'hui » à 1 440 et 375 px (pages 1 et 3) ; le lien d'en-tête du panneau reste (P-11) |
 | M5 | Quelle forme pour le message de retour ? | **Bandeau sombre**, comme proposé | Fond `ink` (#14181F), texte blanc ; « Annuler » en `night-accent` (#5FD3B8) : **9,7:1** sur l'encre ; texte secondaire en `night-ink-muted` (#A9B3C1) : **8,4:1** (il était en #C9D0DA, hors jetons) ; la coche reste blanche (page 4) |
-| M6 | « Annuler » seul garde-t-il le sens de « défaire » ? | **Oui.** « Annuler l'évènement » toujours en entier, « Garder l'évènement » pour renoncer | Règle écrite page 4 et au lexique ; « Vous pourrez le rétablir depuis sa fiche » reste marqué à vérifier |
+| M6 | « Annuler » seul garde-t-il le sens de « défaire » ? | **Oui.** « Annuler l'évènement » toujours en entier, « Garder l'évènement » pour renoncer | Règle écrite page 4 et au lexique ; « Vous pourrez le rétablir depuis sa fiche » vérifié contre l'app (voir les contrôles ci-dessous) |
 | M7 | Le compte quitte-t-il le bas du menu latéral ? | **Oui**, pour un menu sous le prénom dans la barre du haut | Contrôlé à 911 px de large (C-82) : la barre fait 679 px, le texte d'aide de la recherche passait sur trois lignes et sortait de la barre. Corrigé : sous 760 px de barre, il devient « Rechercher… ». Recherche, « Créer », notifications, aide et compte tiennent alors sans rien couper, toutes de 44 px de haut, le compte finissant à 631 px (page 3) |
 | M8 | L'option active d'une bascule | **En encre**, pleine, texte blanc ; la règle vaut pour toutes les bascules et tous les filtres actifs | Écrit au tableau des états (page 5) |
 | M9 | La recherche du haut (C-12) | **Maquette validée comme cible, en deux temps** : la barre fixe et le type des résultats avec ce volet ; la recherche dans les réglages au volet « Paramètres » | Écrit en tête de la maquette (page 3) |
 | M10 | Le seuil de « Bientôt » | **Sept jours, réglable par organisation**, rangé dans une rubrique existante des Paramètres (à choisir au volet « Paramètres »), sans écran de réglage neuf | Écrit au tableau des états (page 5) |
-| M11 | Le lexique (page 5) | **Validé, avec deux corrections** : le panneau d'une tâche dit « Fermer » (M1) ; « Fait » est le seul libellé du geste, dans le panneau, sur la ligne et en lot (plus de « Marquer comme faite ») | Lignes « Annuler (seul) », « Fermer » et « Fait · Rouvrir » réécrites ; « Fait » partout. L'onglet « Tâches » à la place de « Rétroplanning » n'a pas reçu de réponse : la proposition reste, marquée **à confirmer avec la planner pilote**, non tranchée |
-| M12 | La troisième réponse de « Où en est-il ? » (D8) | **Deux réponses seulement** (« Une demande en cours », « Signé, en préparation ») ; la reprise sort de la liste, en ligne à part dessous : « Vous le suivez déjà dans un autre logiciel ou un tableur ? Reprendre ses fichiers » | Page 3, à 1 440 et 375 px. **Variante non rejouée par le panel** |
+| M11 | Le lexique (page 5) | **Validé, avec deux corrections** : le panneau d'une tâche dit « Fermer » (M1) ; « Fait » est le seul libellé du geste, dans le panneau, sur la ligne et en lot (plus de « Marquer comme faite ») | Lignes « Annuler (seul) », « Fermer » et « Fait · Rouvrir » réécrites ; « Fait » partout. L'onglet de la fiche s'appelle « Tâches » : « Tâches convient pour le nom d'onglet » (Julien, précision du 25/11) |
+| M12 | La troisième réponse de « Où en est-il ? » (D8) | **Deux réponses seulement** (« Une demande en cours », « Signé, en préparation ») ; la reprise sort de la liste, en ligne à part dessous : « Vous le suivez déjà dans un autre logiciel ou un tableur ? Reprendre ses fichiers » | Page 3, à 1 440 et 375 px. Retenue **sans essai par le panel** : « Lance ta ligne à part sans essai panel » (Julien, précision du 25/11) |
 | M13 | Une réponse cochée d'avance dans « Où en est-il ? » | **Aucune.** « Créer l'évènement » reste actif ; cliqué sans réponse, il écrit sous la question « Choisissez où en est cet évènement » (pas de bouton grisé muet) | Page 3, état « cliqué sans réponse » à 1 440 px |
 
-**Ce qui reste à vérifier :**
+**Les trois contrôles demandés par Julien, et leur résultat :**
 
-1. « Vous pourrez le rétablir depuis sa fiche » (M6) : à vérifier contre l'app, au lot de réalisation,
-   avant d'écrire le texte. Il faut savoir ce que fait vraiment l'annulation d'un évènement : liens
-   coupés, tâches mises de côté, retour possible.
-2. M12 n'a pas été rejoué par le panel : la ligne « Reprendre ses fichiers » est à faire essayer
-   (Sophie, Clémence) au rejeu du volet « Reprise et import » ou du lot de réalisation.
-3. L'onglet « Tâches » à la place de « Rétroplanning » (M11) : à confirmer avec la planner pilote.
-4. La rubrique des Paramètres qui portera le seuil de « Bientôt » (M10) et la recherche dans les
+1. **Contraste d'« Annuler » sur le bandeau sombre (M5)** : `night-accent` #5FD3B8 sur `ink`
+   #14181F, **9,7:1** (seuil WCAG AA : 4,5:1 pour le texte, 3:1 pour le bord du bouton). Le texte
+   secondaire, en `night-ink-muted` #A9B3C1, est à **8,4:1**. Tenu.
+2. **Barre du haut à 911 px de large (M7, C-82)** : la barre mesure 679 px à côté du menu latéral
+   de 232 px. Au premier contrôle, le texte d'aide de la recherche passait sur trois lignes et
+   sortait de la barre : **non tenu**. Corrigé : sous 760 px de barre, il devient « Rechercher… ».
+   Recherche, « Créer », notifications, aide et compte tiennent alors sur une ligne, sans rien
+   couper ; toutes les commandes font 44 px de haut et la dernière finit à 631 px. **Tenu après
+   correction.** Seule la barre a été mesurée : le contenu des écrans à cette largeur (le tableau
+   d'une fiche, par exemple) relève de chaque volet.
+3. **« Vous pourrez le rétablir depuis sa fiche » (M6), contre l'app** : la phrase est vraie en
+   partie, mais « tout revient comme avant » était faux.
+   - La fiche d'un évènement annulé a un bouton « Réactiver (repasse en Option) »
+     (`app/events/[id]/change-status-form.tsx`, `reactivateEvent` dans `modules/events/service.ts`) :
+     on peut donc le rétablir depuis sa fiche.
+   - L'évènement revient en « Option », c'est-à-dire en demande en cours, et non à son statut d'avant
+     (`canSetStatus` dans `modules/events/lifecycle.ts` : depuis « Annulé », seule « Option » est
+     permise).
+   - Les liens des clients et des prestataires ne sont pas révoqués : ils sont refusés tant que
+     l'évènement est annulé, et se rouvrent quand il est rétabli.
+   - À l'annulation, l'app annonce aussi : les rappels s'arrêtent, les factures d'acompte
+     programmées ne partent plus, les factures déjà émises restent avec un avoir proposé pour
+     chacune. Les « 11 tâches mises de côté » de la maquette n'existaient pas dans l'app.
+
+   La fenêtre de la page 4 dit maintenant ce que fait l'app : « il revient comme demande en cours,
+   à confirmer de nouveau », le lien qui se rouvre, les rappels et les acomptes, l'avoir. Reste à
+   accorder les mots au lot de réalisation : « Réactiver » dans l'app, « rétablir » dans la
+   maquette. Non vérifié : ce que deviennent, au rétablissement, les rappels et les acomptes
+   programmés.
+
+**Ce qui reste :**
+
+1. M12 est retenue sans essai par le panel, à la demande de Julien : la ligne « Reprendre ses
+   fichiers » n'a été essayée par aucun profil.
+2. La rubrique des Paramètres qui portera le seuil de « Bientôt » (M10) et la recherche dans les
    réglages (M9) : au volet « Paramètres ».
-5. M7 à 911 px : seule la barre du haut a été mesurée. Le menu latéral tenait déjà à 911 × 512. Le
-   contenu des écrans à cette largeur (le tableau d'une fiche, par exemple) relève de chaque volet.
-6. M2 : la barre de sélection est dessinée à l'ordinateur, pas encore essayée par un profil ; elle
-   est à rejouer avec la page « Tâches » au lot de réalisation.
+3. M2 : la barre de sélection est dessinée à l'ordinateur, pas encore essayée par un profil.
+4. M6 : « Réactiver » (app) ou « rétablir » (maquette), un seul mot à choisir au lot de réalisation.
 
 ## 4. Ce que les maquettes supposent hors de l'écran
 
@@ -246,7 +272,7 @@ par type.
 ## 8. La porte 3 de ce volet
 
 Passée le 25/11/2026 : Julien a tranché M1 à M13 (§ 3) sur les maquettes des pages 1 à 5 et les
-corrections du rejeu (§ 6). Restent les vérifications listées à la fin du § 3.
+corrections du rejeu (§ 6). Les trois contrôles demandés sont faits (fin du § 3) ; restent les points listés après eux.
 
 Ce volet validé, ses règles de forme alimentent le Design System (phase 6) et les maquettes
 du volet 2 (reprise et import) partent de la ligne type, du panneau et des messages fixés ici.
