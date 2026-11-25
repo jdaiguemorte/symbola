@@ -193,9 +193,12 @@ export function GuidedTour({
         </h2>
         <p id={bodyId}>{step.body}</p>
         <div className="tour-actions">
-          <button type="button" className="button-ghost tour-skip" onClick={() => close(false)}>
-            {labels.skip}
-          </button>
+          {/* Lot 69 (C-02) : à la dernière étape il n'y a plus rien à passer, « Terminer » suffit. */}
+          {lastStep ? null : (
+            <button type="button" className="button-ghost tour-skip" onClick={() => close(false)}>
+              {labels.skip}
+            </button>
+          )}
           <span className="tour-nav">
             {index > 0 ? (
               <button type="button" className="button-secondary" onClick={() => setIndex(index - 1)}>

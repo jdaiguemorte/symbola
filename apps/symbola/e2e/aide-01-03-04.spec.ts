@@ -69,6 +69,8 @@ test("HUB-11 / AIDE-03 — visite guidée de l'accueil, aide consultable", async
   await expect(tour).toContainText("4 sur 4");
   // Dernière étape : le « ? », d'où la visite se relance.
   await expect(tour.getByRole("heading", { name: "L'aide de chaque écran", level: 2 })).toBeVisible();
+  // Lot 69 (C-02) : à la dernière étape, « Passer la visite » n'a plus de sens ; « Terminer » reste.
+  await expect(tour.getByRole("button", { name: "Passer la visite" })).toHaveCount(0);
   await tour.getByRole("button", { name: "Terminer" }).click();
   await expect(tour).toHaveCount(0);
 

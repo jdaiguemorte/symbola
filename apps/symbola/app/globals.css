@@ -1993,7 +1993,7 @@
     @apply mt-2 flex flex-wrap items-center justify-between gap-2;
   }
   .tour-nav {
-    @apply flex gap-2;
+    @apply ml-auto flex gap-2;
   }
   .tour-skip {
     @apply !px-0;
