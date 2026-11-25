@@ -1412,7 +1412,7 @@
     },
     "clientTerms": {
       "title": "Client terms",
-      "body": "The term chosen for a type replaces “the couple” or “the clients” where Symbola names your clients, and fills '{{client_term}}' in your e-mails and future documents. Each change is saved when you leave the field; “Undo the last change” takes it back."
+      "body": "The term chosen for a type replaces “the couple” or “the clients” where Symbola names your clients, and slips into your e-mails and future documents. Each change is saved when you leave the field; “Undo the last change” takes it back."
     },
     "standaloneTasks": {
       "title": "Tasks outside events",
@@ -11424,7 +11424,7 @@
   },
   "ClientTerms": {
     "title": "Terms for the clients",
-    "intro": "For each event type, choose the word for your clients (“the couple”, “the clients”, “the sponsor”…), with its gender and number. It is used on screens, in e-mails ('{{client_term}}') and in future documents; a document already issued keeps its text.",
+    "intro": "For each event type, choose the word for your clients (“the couple”, “the clients”, “the sponsor”…), with its gender and number. It is used on screens, in e-mails and in future documents; a document already issued keeps its text.",
     "type": "Type",
     "term": "Term",
     "gender": "Gender",

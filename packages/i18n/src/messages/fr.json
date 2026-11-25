@@ -1412,7 +1412,7 @@
     },
     "clientTerms": {
       "title": "Termes des clients",
-      "body": "Le terme choisi pour un type remplace « les mariés » ou « les clients » là où Symbola nomme vos clients, et remplit '{{terme_clients}}' dans vos e-mails et vos documents à venir. Chaque modification s'enregistre quand vous quittez le champ ; « Annuler la dernière modification » la reprend."
+      "body": "Le terme choisi pour un type remplace « les mariés » ou « les clients » là où Symbola nomme vos clients, et se glisse dans vos e-mails et vos documents à venir. Chaque modification s'enregistre quand vous quittez le champ ; « Annuler la dernière modification » la reprend."
     },
     "standaloneTasks": {
       "title": "Tâches hors évènement",
@@ -11424,7 +11424,7 @@
   },
   "ClientTerms": {
     "title": "Termes pour désigner les clients",
-    "intro": "Pour chaque type d'évènement, choisissez le mot qui désigne vos clients (« les mariés », « les clients », « le commanditaire »…), avec son genre et son nombre. Il s'emploie dans les écrans, dans les e-mails ('{{terme_clients}}') et dans les documents à venir ; un document déjà émis garde son texte.",
+    "intro": "Pour chaque type d'évènement, choisissez le mot qui désigne vos clients (« les mariés », « les clients », « le commanditaire »…), avec son genre et son nombre. Il s'emploie dans les écrans, dans les e-mails et dans les documents à venir ; un document déjà émis garde son texte.",
     "type": "Type",
     "term": "Terme",
     "gender": "Genre",
