@@ -4982,6 +4982,7 @@
     "exportPdf": "Exporter en PDF",
     "empty": "Aucun prestataire ne correspond à ces filtres.",
     "emptyNoTypes": "Votre carnet est vide. Commencez par ajouter un prestataire, ou créez vos types dans les paramètres du carnet.",
+    "emptyBook": "Votre carnet est vide. Ajoutez un prestataire pour commencer.",
     "travel": "{km} km · ≈ {minutes} min (estimation)",
     "travelHint": "Trajets estimés : distance à vol d'oiseau × détour, à vitesse moyenne (réglable dans les paramètres).",
     "demo": "Exemple",

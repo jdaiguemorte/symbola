@@ -16,7 +16,7 @@ import { mapAssets } from "@/lib/map/tiles";
 import { PageTour } from "@/app/page-tour";
 import { SettingsLink } from "@/app/settings-link";
 import { addVendorToSlotAction, archiveVendorAction } from "./actions";
-import { activeFilters, clearFiltersHref, queryString, RADIUS_CHOICES, UNCLASSIFIED_FAMILY, type BookQuery } from "./filters";
+import { activeFilters, clearFiltersHref, queryString, RADIUS_CHOICES, UNCLASSIFIED_FAMILY, vendorBookEmptyState, type BookQuery } from "./filters";
 import { isVendorsModuleEnabled } from "./module-access";
 import { loadBookSelection } from "./selection";
 import { VendorMap, type MapPoint } from "./vendor-map";
@@ -78,6 +78,7 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
   const countOf = new Map(counts.map((entry) => [entry.typeId, entry.count]));
   const familyCountOf = new Map(familyCounts.families.map((entry) => [entry.familyId, entry.count]));
   const total = familyCounts.total;
+  const emptyState = vendorBookEmptyState({ total, results: results.length, types: types.length });
   const familyCount = (familyId: string) => familyCountOf.get(familyId) ?? 0;
   const unclassifiedTypes = types.filter((type) => type.familyId === null);
   const unclassifiedCount = familyCountOf.get(null) ?? 0;
@@ -353,7 +354,9 @@ export default async function VendorBookPage({ searchParams }: { searchParams: P
             </p>
           </div>
           {/* Lot 39c (UX-08) : l'écran vide enseigne. */}
-          {results.length === 0 ? types.length === 0 ? <EmptyState screen="vendors" title={t("emptyNoTypes")} actionHref="/prestataires/nouveau" /> : <p>{t("empty")}</p> : null}
+          {emptyState === "noTypes" ? <EmptyState screen="vendors" title={t("emptyNoTypes")} actionHref="/prestataires/nouveau" /> : null}
+          {emptyState === "book" ? <EmptyState screen="vendors" title={t("emptyBook")} actionHref="/prestataires/nouveau" /> : null}
+          {emptyState === "filters" ? <p>{t("empty")}</p> : null}
           <ul className="vendor-results">
             {results.map((vendor) => {
               const trades = vendor.typeIds.flatMap((typeId) => (typeById.has(typeId) ? [typeById.get(typeId)!] : []));

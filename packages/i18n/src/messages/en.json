@@ -4982,6 +4982,7 @@
     "exportPdf": "Export as PDF",
     "empty": "No vendor matches these filters.",
     "emptyNoTypes": "Your vendor book is empty. Start by adding a vendor, or create your types in the vendor book settings.",
+    "emptyBook": "Your vendor book is empty. Add a vendor to get started.",
     "travel": "{km} km · ≈ {minutes} min (estimate)",
     "travelHint": "Estimated travel: straight-line distance × detour factor, at average speed (adjustable in the settings).",
     "demo": "Example",
