@@ -199,7 +199,7 @@ export function SlotComparison({ eventId, slotId, slotLabel, locale, version, ad
                       </>
                     )}
                     {/* Lot 65d (M16) : la relance d'un prestataire encore en lice ou retenu se note. */}
-                    {!column.dismissed ? <NoteReminderButton eventId={eventId} candidateId={column.candidateId} vendorName={column.vendorName} className="button-ghost" /> : null}
+                    {!column.dismissed ? <NoteReminderButton eventId={eventId} candidateId={column.candidateId} vendorName={column.vendorName} className="button-ghost" onSaved={() => void load()} /> : null}
                     {confirm?.candidateId === column.candidateId ? (
                       <div className="notice notice-attention">
                         <p role="alert">{confirm.message}</p>
