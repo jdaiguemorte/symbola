@@ -3342,7 +3342,7 @@
     },
     "fileLabel": "Fichier (CSV, Excel .xlsx ou JSON)",
     "fileHint": "Taille maximale : {maxSize}. L'encodage, le séparateur et la ligne d'en-tête sont reconnus automatiquement.",
-    "pdfHint": "Un PDF ne se lit pas ici. Deux PDF sont repris ailleurs : les fiches d'évènement, par leur tuile ci-dessus, et le programme, depuis l'onglet « Programme du jour J » de l'évènement.",
+    "pdfHint": "Un PDF ne se lit pas ici. Trois PDF sont repris ailleurs : les fiches d'évènement, par leur tuile ci-dessus ; le programme, depuis l'onglet « Programme du jour J » de l'évènement ; et les prestataires retenus, depuis l'onglet « Prestataires » de l'évènement, par « Reprendre les prestataires retenus (PDF) ».",
     "startImport": "Lire le fichier",
     "reading": "Lecture en cours…",
     "missingEntityType": "Choisissez ce que contient le fichier.",

@@ -17,3 +17,20 @@ describe("UX-10, HUB-24 — Aucune formule technique dans l'aide des termes clie
     });
   }
 });
+
+describe("HUB-14, UX-10 — L'écran d'import cite les trois PDF repris ailleurs (C-51, lot 69)", () => {
+  it("fr : fiches d'évènement, programme et prestataires retenus", () => {
+    const hint = frMessages.Import.pdfHint;
+    expect(hint).toContain("fiches d'évènement");
+    expect(hint).toContain("Programme du jour J");
+    expect(hint).toContain("prestataires retenus");
+    expect(hint).toContain("Trois PDF");
+  });
+  it("en : event sheets, schedule and retained vendors", () => {
+    const hint = enMessages.Import.pdfHint;
+    expect(hint).toMatch(/event sheets/i);
+    expect(hint).toContain("Wedding day schedule");
+    expect(hint).toMatch(/retained vendors/i);
+    expect(hint).toContain("Three");
+  });
+});
