@@ -215,9 +215,9 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 /* Message de retour (toast) */
 .toast{display:flex;align-items:center;gap:12px;background:var(--ink);color:#fff;border-radius:12px;padding:8px 8px 8px 16px;box-shadow:var(--float);font-size:15px;min-height:56px;position:relative;overflow:hidden}
 .toast .tx{flex:1;min-width:0}
-.toast .tx small{display:block;color:#C9D0DA;font-size:13px}
-.toast .ub{display:inline-flex;align-items:center;flex:none;height:40px;padding:0 14px;border-radius:8px;border:1px solid #fff;background:transparent;color:#fff;font:600 14px var(--f-body);white-space:nowrap}
-.toast .cl{display:inline-flex;align-items:center;justify-content:center;flex:none;width:40px;height:40px;border:0;background:transparent;color:#C9D0DA;font-size:20px}
+.toast .tx small{display:block;color:#A9B3C1;font-size:13px}
+.toast .ub{display:inline-flex;align-items:center;flex:none;height:40px;padding:0 14px;border-radius:8px;border:1px solid #5FD3B8;background:transparent;color:#5FD3B8;font:600 14px var(--f-body);white-space:nowrap}
+.toast .cl{display:inline-flex;align-items:center;justify-content:center;flex:none;width:40px;height:40px;border:0;background:transparent;color:#A9B3C1;font-size:20px}
 .toast .bar{position:absolute;left:0;bottom:0;height:3px;width:62%;background:#5FD3B8}
 .toast.ok-ic:before{content:"✓";font-weight:700;color:#5FD3B8;margin-right:-4px}
 .toast.err{background:#fff;color:var(--ink);border:1px solid var(--critical)}
@@ -262,10 +262,30 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 .fait.on{background:var(--ground);border-color:var(--line);color:var(--ink)}
 .notice.info{background:var(--ground);border:1px solid var(--line)}
 .choice.on{background:#fff}
-.toast .bar{background:#C9D0DA}
+.toast .bar{background:#A9B3C1}
 .toast.ok-ic:before{color:#fff}
 
 .btn.toggle[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* Porte 3 du volet 1 (25/11/2026) */
+/* M5 : « Annuler » du message de retour en accent de nuit (night-accent #5FD3B8 sur ink #14181F : 9,7:1) ;
+   texte secondaire en night-ink-muted (8,4:1). */
+.toast.err .ub{border-color:var(--line-strong);color:var(--ink)}
+/* M4 : le lien d'évènement d'« Aujourd'hui », séparé du titre ; 44 px de haut sur téléphone. */
+.ev.evl{color:var(--primary);justify-self:start;max-width:100%}
+.evl-m{display:inline-flex;align-items:center;min-height:44px;margin:-8px 0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%}
+/* M2 : barre des actions groupées, collée sous la liste, nette à l'ordinateur. */
+.selbar{position:absolute;bottom:0;right:0;display:flex;align-items:center;gap:10px;padding:12px 48px 12px 24px;background:var(--surface);border-top:2px solid var(--ink);box-shadow:0 -8px 24px rgba(20,24,31,.12);z-index:8}
+.selbar .n{font:600 17px/1.2 var(--f-title);white-space:nowrap;padding-right:12px;margin-right:4px;border-right:1px solid var(--line)}
+/* M13 : erreur sous la question. */
+.q-err{display:flex;align-items:center;gap:8px;margin-top:8px;color:var(--critical);font-size:14px;font-weight:500}
+.choice.err-b{border-color:var(--critical)}
+/* M7 : à 911 px (C-82), la barre du haut tient sans rien couper : sous 760 px de barre, le texte
+   d'aide de la recherche devient « Rechercher… ». */
+.tb{container-type:inline-size}
+.tb .search{white-space:nowrap;min-width:0}
+.tb .search .ph-s{display:none}
+@container (max-width:760px){.tb .search .ph-l{display:none}.tb .search .ph-s{display:inline}.tb .search{flex:1 1 auto}}
 
 </style>
 </head>
@@ -276,7 +296,7 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <header>
 <h1>Lot 68 · maquettes du volet 1 : le transverse et « Tâches »</h1>
 <p>Phase 5 de l'audit UX des parcours, premier volet de l'ordre validé à la porte 2 (<a href="../../audits/2026-11-ux-parcours/06-decisions-porte-2.md">décisions de la porte 2</a>). Aucune page de l'app n'est modifiée ; <code>DESIGN.md</code> n'est pas touché avant la porte 3.</p>
-<p>Chaque maquette met côte à côte l'écran d'aujourd'hui (capture du relevé, ou description quand le relevé n'a pas de capture) et l'écran proposé, en 1 440 et en 375 px, vide, rempli et repris quand ils diffèrent. Sous chaque maquette : les constats traités et les règles de forme appliquées (D10). La note qui accompagne ces pages, avec les choix laissés à Julien, est <a href="../../audits/2026-11-ux-parcours/07-maquettes-transverse-taches.md">07-maquettes-transverse-taches.md</a>.</p>
+<p>Chaque maquette met côte à côte l'écran d'aujourd'hui (capture du relevé, ou description quand le relevé n'a pas de capture) et l'écran proposé, en 1 440 et en 375 px, vide, rempli et repris quand ils diffèrent. Sous chaque maquette : les constats traités et les règles de forme appliquées (D10). La note qui accompagne ces pages, avec les décisions de Julien à la porte 3 (25/11/2026), est <a href="../../audits/2026-11-ux-parcours/07-maquettes-transverse-taches.md">07-maquettes-transverse-taches.md</a>.</p>
 <p>Données fictives seulement. Couleurs : les jetons actuels de <code>DESIGN.md</code>, aucune teinte du futur trio bleu, orange, crème ; la répartition A retenue à la porte 2 (« orange de marque seulement ») est appliquée en rôles. Polices : Inter et Space Grotesk si elles sont installées, sinon celles du système (aucune ressource externe).</p>
 </header>
 <section class="mock">

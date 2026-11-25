@@ -2,7 +2,7 @@
 
 Date : 25/11/2026, par Claude Code. Premier volet de l'ordre validé à la porte 2
 ([06-decisions-porte-2.md](06-decisions-porte-2.md), § 3). Cette note accompagne les maquettes ; elle
-dit ce qui est proposé, ce que Julien doit trancher, et ce qui n'est pas traité. Aucun écran de l'app
+dit ce qui est proposé, ce que Julien a tranché à la porte 3 (§ 3), et ce qui n'est pas traité. Aucun écran de l'app
 n'est modifié et `DESIGN.md` n'est pas touché : le Design System s'écrit après la porte 3.
 
 ## 1. Les livrables
@@ -43,8 +43,9 @@ fictives (agence « Atelier Roussel », Camille et son collègue Bastien, quatre
   (sans menu), téléphone (trois étages, commandes de 44 px).
 - **Un seul panneau** : la fenêtre longue de `DESIGN.md` (860 px, deux colonnes), ouverte de partout,
   en page entière sur téléphone. Un seul libellé, « Qui s'en charge » ; « Rang et jalon » devient
-  « Place dans le rétroplanning » et « Étape clé » ; « Supprimer » passe dans le menu du panneau ; le
-  bouton plein est l'action de la tâche, « Marquer comme faite ».
+  « Place dans le rétroplanning » et « Étape clé » ; « Supprimer » passe dans le menu du panneau. Pied : « Fait » à
+  gauche, « Fermer » et « Enregistrer » (le bouton plein) à droite ; « Fermer » demande « Fermer sans
+  enregistrer ? » s'il reste des changements (M1).
 - **Créer** : « Nouvelle tâche » en haut de l'écran ; le même panneau en mode création ; le premier
   champ est l'évènement, avec « Aucun évènement » en tête de liste ; la répétition n'apparaît que sans
   évènement. Le formulaire du bas de page disparaît.
@@ -56,8 +57,8 @@ fictives (agence « Atelier Roussel », Camille et son collègue Bastien, quatre
 - **Changer la date** : un seul nom et un seul petit panneau (raccourcis datés en clair et « Autre
   date »), depuis la ligne, le panneau et la sélection ; « Annuler » dans le message de retour.
   « Reporter » est rendu à l'évènement.
-- **Sélection en lot** : on y entre par « Sélectionner » ; la barre d'actions flotte en bas sans
-  pousser la liste ; sur téléphone, elle remplace la barre du bas et chaque choix s'ouvre en panneau du
+- **Sélection en lot** : on y entre par « Sélectionner » ; la barre d'actions se colle au bas de la
+  liste sans la pousser, bordée d'encre, le nombre de tâches choisies en tête (M2) ; sur téléphone, elle remplace la barre du bas et chaque choix s'ouvre en panneau du
   bas.
 - **Vide** : trois textes (rien encore, tout est fait, aucun résultat) ; dans l'espace neuf, l'état
   vide porte la seule action principale. **Repris** : un mariage repris sans tâches est signalé dans la
@@ -75,14 +76,15 @@ fictives (agence « Atelier Roussel », Camille et son collègue Bastien, quatre
   perd 200 px) ; « Apps » devient « Tous les modules ».
 - **« + Créer »** : Nouvel évènement, Tâche, Prestataire, Contact, Devis, Dépense, chacun avec une
   phrase, et le contexte écrit (« Tâche pour Léa & Maxime »). **D8** : « Nouvel évènement » pose
-  « Où en est-il ? » ; « je le reprends » mène à la reprise (« Continuer vers la reprise ») ; le
-  client est un champ.
-- **Recherche** : résultats rangés par type et comptés, réglages compris, Entrée ouvre le premier.
+  « Où en est-il ? », à deux réponses, aucune cochée d'avance ; la reprise est une ligne à part,
+  « Reprendre ses fichiers » (M12, M13) ; le client est un champ.
+- **Recherche** : résultats rangés par type et comptés, Entrée ouvre le premier ; les réglages
+  viennent au volet « Paramètres » (M9).
 - **Téléphone (D4)** : barre du haut de 60 px (titre, recherche, créer, notifications, aide) ; barre
   du bas Aujourd'hui, Évènements, Tâches, Prestataires, Plus ; « Plus » en panneau du bas, « Se
   déconnecter » en dernier, à part.
 - **Retour après action** : un message en bas à gauche du contenu (au-dessus de la barre du bas sur
-  téléphone), un à la fois, avec « Annuler » en vrai bouton et une barre de temps ; dix secondes quand
+  téléphone), un à la fois, avec « Annuler » en vrai bouton, en accent de nuit, et une barre de temps ; dix secondes quand
   on peut défaire. Un catalogue des cas (défaire, supprimer, créer, copier, échec).
 - **Danger** : trois niveaux (se défait : pas de question, « Annuler » et Corbeille ; touche des
   tiers : fenêtre avec la conséquence et « Garder … » ; ne se défait pas : une case à cocher en plus).
@@ -91,29 +93,47 @@ fictives (agence « Atelier Roussel », Camille et son collègue Bastien, quatre
 - **Lexique** : un tableau des mots, un des verbes, un des mots incompris ; la colonne « On n'écrit
   plus » sert de liste de départ au contrôle automatique des textes (P-15).
 - **États et teintes (répartition A, en rôles)** : un mot et une icône par état ; la couleur d'action
-  (l'émeraude aujourd'hui, le bleu demain) ne porte que l'action et les liens : « Faite »,
-  « Enregistré » et les bandeaux d'information passent en neutre ; l'attente d'un tiers et
+  (l'émeraude aujourd'hui, le bleu demain) ne porte que l'action et les liens : « Faite »
+  et les bandeaux d'information passent en neutre ; l'attente d'un tiers et
   l'échéance proche (« Dans 4 jours », icône d'horloge) sont neutres, l'ambre quitte les listes ; le
   rouge ne dit que le vrai retard et n'habille plus « Supprimer ». L'orange n'apparaît dans aucune
   maquette : il est réservé au logo, aux illustrations et aux écrans vides.
 
-## 3. Les choix laissés à Julien
+## 3. Les décisions de Julien (porte 3, 25/11/2026)
 
-| # | Question | Proposé dans les maquettes | Autre voie |
+Julien a tranché M1 à M13 un par un le 25/11/2026, dans la session d'audit. Ses mots sont entre
+guillemets quand ils s'écartent de la proposition. Les maquettes sont corrigées en conséquence.
+
+| # | Question | Décision | Dans les maquettes |
 | --- | --- | --- | --- |
-| M1 | Le panneau d'une tâche s'enregistre-t-il champ par champ ? | Oui, à la sortie de chaque champ, « Enregistré à 14 h 32 » ; seule la création a son bouton « Créer la tâche » (dans l'esprit de D7) | Un bouton « Enregistrer » en pied, comme aujourd'hui |
-| M2 | Comment entre-t-on en sélection en lot ? | Par un bouton « Sélectionner » ; la case n'existe qu'en mode sélection (elle ne côtoie jamais « Fait ») | Case toujours visible en tête de ligne ; plus rapide pour les habitués, mais la confusion de C-35 revient |
-| M3 | Sur l'accueil, une tâche confiée aux mariés garde-t-elle « Fait » ? | Oui : la planner coche après un appel ; la ligne reste la même partout | Pas d'action rapide pour ce qui attend un tiers ; le titre ouvre le panneau |
-| M4 | Le nom du mariage, dans la ligne, est-il un lien ? | Non : texte simple ; le filtre « Évènement », l'en-tête de groupe (« Ouvrir la fiche ») et le menu « Ouvrir l'évènement » y mènent | Lien vers la fiche : une seconde cible par ligne, contre D10 |
-| M5 | Quelle forme pour le message de retour ? | Fond encre, texte blanc, accent de nuit (jetons existants) : il se distingue des bandeaux de la page | Fond `primary-soft` de la règle « Messages » du lot 62, avec une ombre |
-| M6 | « Annuler » seul garde-t-il le sens de « défaire » ? | Oui, et « Annuler l'évènement » garde toujours son complément, jamais à côté d'un « Annuler » seul | « Défaire » pour le message de retour |
-| M7 | Le compte quitte-t-il le bas du menu latéral ? | Oui, pour un menu sous le prénom dans la barre du haut | Le garder en bas, replié |
-| M8 | L'option active d'une bascule (« Liste / Calendrier ») | Pleine, en encre, texte blanc | Rester en émeraude, mais pleine (aujourd'hui fond pâle à 1,16:1) |
-| M9 | La recherche du haut (C-12, « à trancher ») | Résultats par type, réglages compris, Entrée ouvre le premier | La laisser en l'état tant qu'aucun profil ne l'a essayée |
-| M10 | Le seuil de « Bientôt » (état neutre, icône d'horloge) | Sept jours, à régler par organisation (aucune règle métier en dur, CLAUDE.md § 2) | Un autre seuil de départ |
-| M12 | La troisième réponse de « Où en est-il ? » (D8) | « Suivi dans un autre logiciel ou un tableur » : au rejeu, « Déjà en cours chez moi, je le reprends » a été lu « je l'avais commencé sur papier » (Sophie, Clémence) | Garder le libellé de D8 et préciser dessous « vous avez des fichiers » |
-| M13 | Aucune réponse cochée d'avance dans « Où en est-il ? » | Oui, à la suite du rejeu (Sophie, Clémence) ; l'assistant de démarrage, lui, garde sa réponse cochée d'avance (acquis du § 6 de la synthèse) | Cocher « Une demande en cours » |
-| M11 | Chaque ligne du lexique (page 5) | Proposée ; les mots du budget, des prestataires, de la reprise et des Paramètres sont à confirmer dans leurs volets | Mot à mot |
+| M1 | Le panneau d'une tâche s'enregistre-t-il champ par champ ? | **Non.** « je préfère un bouton enregistrer sur cette maquette mais le reste est très bien » | Pied du panneau : « Fait » à gauche, « Fermer » et « Enregistrer » à droite ; avec des changements, « Fermer », la croix et Échap demandent « Fermer sans enregistrer ? » (« Revenir à la tâche », « Fermer sans enregistrer », « Enregistrer et fermer »). « … enregistrée à 14 h 32 · Annuler la modification » est retiré. Sur téléphone, « ← Tâches » joue le rôle de « Fermer » (page 1) |
+| M2 | Comment entre-t-on en sélection en lot ? | **Par le bouton « Sélectionner »**, avec une réserve : « si sur téléphone, le menu est visible, sur desktop, le bandeau est moins évident pour les choix » | À l'ordinateur, la barre se colle au bas de la liste, de toute sa largeur, bord d'encre et ombre, « 3 tâches sélectionnées » en tête, boutons de taille normale (page 2) |
+| M3 | Sur l'accueil, une tâche confiée aux mariés garde-t-elle « Fait » ? | **Oui.** Aucun bouton de relance : « la relance est à la main de la wedding planner, on ne rajoute pas de bouton » | Inchangé ; la règle est écrite sous « Aujourd'hui » (page 1) |
+| M4 | Le nom du mariage, dans la ligne, est-il un lien ? | **Sur « Aujourd'hui » seulement**, séparé du titre, cible de 44 px sur téléphone ; texte simple dans « Tâches » et dans la fiche | Ligne allégée d'« Aujourd'hui » à 1 440 et 375 px (pages 1 et 3) ; le lien d'en-tête du panneau reste (P-11) |
+| M5 | Quelle forme pour le message de retour ? | **Bandeau sombre**, comme proposé | Fond `ink` (#14181F), texte blanc ; « Annuler » en `night-accent` (#5FD3B8) : **9,7:1** sur l'encre ; texte secondaire en `night-ink-muted` (#A9B3C1) : **8,4:1** (il était en #C9D0DA, hors jetons) ; la coche reste blanche (page 4) |
+| M6 | « Annuler » seul garde-t-il le sens de « défaire » ? | **Oui.** « Annuler l'évènement » toujours en entier, « Garder l'évènement » pour renoncer | Règle écrite page 4 et au lexique ; « Vous pourrez le rétablir depuis sa fiche » reste marqué à vérifier |
+| M7 | Le compte quitte-t-il le bas du menu latéral ? | **Oui**, pour un menu sous le prénom dans la barre du haut | Contrôlé à 911 px de large (C-82) : la barre fait 679 px, le texte d'aide de la recherche passait sur trois lignes et sortait de la barre. Corrigé : sous 760 px de barre, il devient « Rechercher… ». Recherche, « Créer », notifications, aide et compte tiennent alors sans rien couper, toutes de 44 px de haut, le compte finissant à 631 px (page 3) |
+| M8 | L'option active d'une bascule | **En encre**, pleine, texte blanc ; la règle vaut pour toutes les bascules et tous les filtres actifs | Écrit au tableau des états (page 5) |
+| M9 | La recherche du haut (C-12) | **Maquette validée comme cible, en deux temps** : la barre fixe et le type des résultats avec ce volet ; la recherche dans les réglages au volet « Paramètres » | Écrit en tête de la maquette (page 3) |
+| M10 | Le seuil de « Bientôt » | **Sept jours, réglable par organisation**, rangé dans une rubrique existante des Paramètres (à choisir au volet « Paramètres »), sans écran de réglage neuf | Écrit au tableau des états (page 5) |
+| M11 | Le lexique (page 5) | **Validé, avec deux corrections** : le panneau d'une tâche dit « Fermer » (M1) ; « Fait » est le seul libellé du geste, dans le panneau, sur la ligne et en lot (plus de « Marquer comme faite ») | Lignes « Annuler (seul) », « Fermer » et « Fait · Rouvrir » réécrites ; « Fait » partout. L'onglet « Tâches » à la place de « Rétroplanning » n'a pas reçu de réponse : la proposition reste, marquée **à confirmer avec la planner pilote**, non tranchée |
+| M12 | La troisième réponse de « Où en est-il ? » (D8) | **Deux réponses seulement** (« Une demande en cours », « Signé, en préparation ») ; la reprise sort de la liste, en ligne à part dessous : « Vous le suivez déjà dans un autre logiciel ou un tableur ? Reprendre ses fichiers » | Page 3, à 1 440 et 375 px. **Variante non rejouée par le panel** |
+| M13 | Une réponse cochée d'avance dans « Où en est-il ? » | **Aucune.** « Créer l'évènement » reste actif ; cliqué sans réponse, il écrit sous la question « Choisissez où en est cet évènement » (pas de bouton grisé muet) | Page 3, état « cliqué sans réponse » à 1 440 px |
+
+**Ce qui reste à vérifier :**
+
+1. « Vous pourrez le rétablir depuis sa fiche » (M6) : à vérifier contre l'app, au lot de réalisation,
+   avant d'écrire le texte. Il faut savoir ce que fait vraiment l'annulation d'un évènement : liens
+   coupés, tâches mises de côté, retour possible.
+2. M12 n'a pas été rejoué par le panel : la ligne « Reprendre ses fichiers » est à faire essayer
+   (Sophie, Clémence) au rejeu du volet « Reprise et import » ou du lot de réalisation.
+3. L'onglet « Tâches » à la place de « Rétroplanning » (M11) : à confirmer avec la planner pilote.
+4. La rubrique des Paramètres qui portera le seuil de « Bientôt » (M10) et la recherche dans les
+   réglages (M9) : au volet « Paramètres ».
+5. M7 à 911 px : seule la barre du haut a été mesurée. Le menu latéral tenait déjà à 911 × 512. Le
+   contenu des écrans à cette largeur (le tableau d'une fiche, par exemple) relève de chaque volet.
+6. M2 : la barre de sélection est dessinée à l'ordinateur, pas encore essayée par un profil ; elle
+   est à rejouer avec la page « Tâches » au lot de réalisation.
 
 ## 4. Ce que les maquettes supposent hors de l'écran
 
@@ -183,16 +203,16 @@ par type.
 | Sur téléphone, voir ses tâches demande quatre gestes ; le panneau des filtres arrive pré-réglé | Hugo, Camille | « Mes tâches » sur la liste et en tête du panneau ; le panneau s'ouvre sur les réglages en cours |
 | Compteurs qui ne se recoupent pas ; pastille « 2 » inchangée après un report ; retards affichés dans un espace neuf ; « 90 jours avant le jour J » faux | Camille, Nadia, Clémence | Données des maquettes remises en cohérence (8 + 34 = 42, fiche à 20 tâches, pastille à 1 après le report, aucune pastille dans un espace neuf, « 195 jours ») |
 | La tâche cochée par erreur absente des tâches faites ; « Par » ambigu | Nadia, Valérie | « Choisir le fleuriste » en tête des faites ; colonne « Cochée par » |
-| Une réponse cochée d'avance dans « Où en est-il ? » ; « je le reprends » mal compris ; « rétroplanning » non expliqué | Sophie, Clémence | Aucune réponse cochée ; troisième réponse « Suivi dans un autre logiciel ou un tableur » ; « la liste des tâches se crée aujourd'hui » (M12, M13) |
+| Une réponse cochée d'avance dans « Où en est-il ? » ; « je le reprends » mal compris ; « rétroplanning » non expliqué | Sophie, Clémence | Aucune réponse cochée ; troisième réponse « Suivi dans un autre logiciel ou un tableur » ; « la liste des tâches se crée aujourd'hui ». Depuis la porte 3 : deux réponses et une ligne « Reprendre ses fichiers » à part (M12, M13) |
 | Après la création, statut faux et pas de suite | Clémence | Statut « Signé, en préparation » ; « Voir ses tâches » dans le message |
 | Dans l'espace neuf, « Nouvelle tâche » en bouton plein alors que les tâches naissent d'un évènement | Clémence | « Nouvel évènement » en action principale de l'état vide |
 | L'annulation d'un évènement ne dit pas si l'on peut revenir en arrière ; « leur lien » flou | Sophie, Clémence | « Vous pourrez le rétablir depuis sa fiche » ; « leur lien personnel » ; tâches « mises de côté » (texte à caler sur le comportement réel) |
-| Panneau : « Enregistré » ne dit pas quoi, pas d'« Annuler » ; « Fermer » collé au bouton plein | Sophie | « Note enregistrée à 14 h 32 · Annuler la modification » ; plus de « Fermer » en pied (la croix et Échap ferment) |
+| Panneau : « Enregistré » ne dit pas quoi, pas d'« Annuler » ; « Fermer » collé au bouton plein | Sophie | « Note enregistrée à 14 h 32 · Annuler la modification » ; plus de « Fermer » en pied. Remplacé à la porte 3 : « Fermer » et « Enregistrer », avec « Fermer sans enregistrer ? » (M1) |
 | « Annuler 10 s » pris pour un bouton ; tâche à supprimer mal nommée | Hugo | Le panneau nomme la tâche en titre ; « Supprimer la tâche » seul |
 | « catégorie et note plus bas » ne mène nulle part ; « Reprendre une liste » ambigu | Camille | « + Ajouter une catégorie ou une note » ; « Reprendre la liste de votre tableur », « Partir d'un modèle Symbola » |
 | « Échap » ; « Elle quitte la liste dans 6 secondes » | Sophie | « Un clic ailleurs ferme » ; « « Annuler » reste 10 secondes ; ensuite, « Rouvrir » » |
 | « Se déconnecter » en gris, pris pour un bouton éteint | Clémence | En encre, séparé |
-| Recherche : où mène Entrée | Nadia | Aide sous la liste : « Entrée ouvre le résultat surligné · flèches pour choisir » (M9 reste ouvert) |
+| Recherche : où mène Entrée | Nadia | Aide sous la liste : « Entrée ouvre le résultat surligné · flèches pour choisir » (M9 tranché à la porte 3) |
 
 **Non corrigé, et pourquoi** :
 
@@ -215,23 +235,18 @@ par type.
 - Vérifié dans le navigateur aux deux tailles : aucune commande de moins de 44 px dans les cadres de
   375 px, aucun débordement de côté, aucun libellé de bouton sur deux lignes (contrôle par script sur
   les cinq pages, puis lecture à l'œil). Les titres de tâche peuvent passer sur deux lignes sur
-  téléphone, c'est voulu.
+  téléphone, c'est voulu. Refait après les corrections de la porte 3, aux deux tailles : mêmes
+  résultats ; la barre du haut mesurée en plus à 911 px (§ 3, M7).
 - Pas de version aux couleurs du trio : les valeurs ne sont pas connues. La répartition A est
   appliquée en rôles aux jetons actuels ; la page 5 dit le rôle de chaque teinte. L'« À vérifier »
   et l'« Erreur » gardent leurs fonds d'alerte (règle du lot 62) : le crème ne leur servira pas.
 - Quelques états « avant » n'ont pas de capture au relevé (panneaux, sélection, erreurs, menu
   « Reporter ») : ils sont décrits à partir des constats.
 
-## 8. Ce que Julien valide à la porte 3 de ce volet
+## 8. La porte 3 de ce volet
 
-1. La ligne type d'une tâche, ses quatre formes et le panneau unique (pages 1 et 2), M1 à M4.
-2. L'écran « Tâches » : création, filtres, « Changer la date », sélection, vides, tâches faites.
-3. La barre du haut, « + Créer », « Nouvel évènement » (D8), la recherche (M9), la barre du bas (D4),
-   M7.
-4. Le message de retour (M5, M6), les trois niveaux de danger, l'erreur de saisie.
-5. Le lexique, ligne par ligne (M11), et le tableau des états et des teintes, lu dans la
-   répartition A (M8, M10).
-6. Les corrections issues du rejeu (§ 6), dont M12 et M13.
+Passée le 25/11/2026 : Julien a tranché M1 à M13 (§ 3) sur les maquettes des pages 1 à 5 et les
+corrections du rejeu (§ 6). Restent les vérifications listées à la fin du § 3.
 
-Une fois ce volet validé, ses règles de forme alimentent le Design System (phase 6) et les maquettes
+Ce volet validé, ses règles de forme alimentent le Design System (phase 6) et les maquettes
 du volet 2 (reprise et import) partent de la ligne type, du panneau et des messages fixés ici.
