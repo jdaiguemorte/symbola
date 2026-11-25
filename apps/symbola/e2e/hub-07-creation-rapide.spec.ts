@@ -113,7 +113,8 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   await page.getByRole("button", { name: "Créer", exact: true }).click();
   await quickMenu(page).getByRole("button", { name: "Devis" }).click();
   const quote = page.getByRole("dialog", { name: "Nouveau devis" });
-  await expect(quote.getByLabel("Évènement", { exact: true })).toHaveValue(setup.lea);
+  // Le choix « Un évènement existant » (lot 67c) porte aussi le mot : la liste se désigne par son rôle.
+  await expect(quote.getByRole("combobox")).toHaveValue(setup.lea);
   await quote.getByRole("button", { name: "Créer le devis" }).click();
   await expect(quote.getByRole("status")).toContainText(/Devis D-\d{4}-\d{4} créé, en brouillon\./);
   await quote.getByRole("link", { name: "Ouvrir" }).click();
@@ -125,7 +126,7 @@ test("HUB-07 / UX-03 / CRM-04 — créer un prospect, une tâche, une dépense e
   await quickMenu(page).getByRole("button", { name: "Devis" }).click();
   const prospectQuote = page.getByRole("dialog", { name: "Nouveau devis" });
   await prospectQuote.getByLabel("Un nouveau prospect").check();
-  await expect(prospectQuote.getByLabel("Évènement", { exact: true })).toHaveCount(0);
+  await expect(prospectQuote.getByLabel("Type d'évènement")).toBeVisible();
   await prospectQuote.getByLabel("Prénom du client").fill("Zoé");
   await prospectQuote.getByLabel("Source du contact").selectOption({ index: 1 });
   await prospectQuote.getByRole("button", { name: "Créer le devis" }).click();
