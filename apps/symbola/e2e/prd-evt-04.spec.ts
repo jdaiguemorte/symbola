@@ -89,7 +89,7 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await openEventTab(page, "Synthèse");
   await page.waitForLoadState("networkidle");
   await page.getByRole("link", { name: "Modifier les informations" }).click();
-  await page.getByLabel("Date de l'évènement").fill("2027-06-12");
+  await page.getByLabel("Date de l'évènement", { exact: true }).fill("2027-06-12");
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();
   await page.getByRole("link", { name: "Fermer le panneau" }).click();
@@ -114,7 +114,7 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await expect(page.getByRole("button", { name: "Marquer « Réserver le lieu » comme à faire" })).toBeVisible();
   await openEventTab(page, "Synthèse");
   await page.getByRole("link", { name: "Modifier les informations" }).click();
-  await page.getByLabel("Date de l'évènement").fill("2027-06-19");
+  await page.getByLabel("Date de l'évènement", { exact: true }).fill("2027-06-19");
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();
   await page.getByRole("link", { name: "Fermer le panneau" }).click();

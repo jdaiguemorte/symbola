@@ -105,7 +105,7 @@ test("L12-HUB-13 — un clic sur une date libre de l'agenda crée un évènement
   await expect(page).toHaveURL(/\/events\/new\?date=\d{4}-\d{2}-\d{2}&type=evenement$/);
   const date = new URL(page.url()).searchParams.get("date")!;
   await expect(page.getByRole("heading", { name: "Nouvel évènement" })).toBeVisible();
-  await expect(page.getByLabel("Date de l'évènement")).toHaveValue(date);
+  await expect(page.getByLabel("Date de l'évènement", { exact: true })).toHaveValue(date);
 
   await page.getByLabel("Prénom du premier marié").fill("Léa");
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });

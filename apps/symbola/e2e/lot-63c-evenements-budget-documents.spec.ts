@@ -95,7 +95,7 @@ test("EVT-01, EVT-07, CHR-01 — « Nouveau » sur les trois vues ; un mariage c
   ], weddingTypeId);
   await page.reload();
   await types.selectOption({ value: weddingTypeId });
-  await page.getByLabel("Date de l'évènement").fill("2027-06-12");
+  await page.getByLabel("Date de l'évènement", { exact: true }).fill("2027-06-12");
   const proposal = page.getByRole("checkbox", { name: /Partir du rétroplanning « Mariage — 12 mois » \(2 tâches\)/ });
   await expect(proposal).toBeChecked();
   await page.getByText("Voir les tâches").click();

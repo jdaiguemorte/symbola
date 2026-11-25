@@ -62,7 +62,7 @@ test("SC-01 / PAR-01 / UX-04 — le premier quart d'heure sur téléphone : de l
   // 4. Elle crée le mariage de Léa et Maxime : nom, date, type.
   await page.getByLabel("Prénom du premier marié").fill("Léa");
   await page.getByLabel("Prénom du second marié (facultatif)").fill("Maxime");
-  await page.getByLabel("Date de l'évènement").fill("2027-06-12");
+  await page.getByLabel("Date de l'évènement", { exact: true }).fill("2027-06-12");
   await page.getByRole("button", { name: "Créer l'évènement" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   const eventUrl = page.url();

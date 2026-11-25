@@ -162,7 +162,7 @@ test("HUB-11 / AIDE-06 — tutoriel dans le panneau latéral : proposé à la pr
   await panel.getByRole("link", { name: "Aller à l'écran de l'étape" }).click();
   await page.waitForLoadState("networkidle");
   await page.getByRole("link", { name: "Modifier les informations" }).click();
-  await page.getByLabel("Date de l'évènement").fill("2029-05-19");
+  await page.getByLabel("Date de l'évènement", { exact: true }).fill("2029-05-19");
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();
   // Le panneau d'édition passait devant le tutoriel (sur téléphone, il occupe l'écran) : on le ferme.

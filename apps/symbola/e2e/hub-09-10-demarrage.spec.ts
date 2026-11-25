@@ -131,7 +131,7 @@ test("HUB-10 / PAR-01 — l'exemple est étiqueté « Exemple » et ne contacte 
   await expect(page.getByRole("link", { name: "Revoir l'exemple" })).toBeVisible();
   await page.getByLabel("Prénom du premier marié").fill("Chloé");
   await page.getByLabel("Prénom du second marié (facultatif)").fill("Hugo");
-  await page.getByLabel("Date de l'évènement").fill("2027-09-18");
+  await page.getByLabel("Date de l'évènement", { exact: true }).fill("2027-09-18");
   await page.getByRole("button", { name: "Créer l'évènement" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}\?exemple=proposer$/);
   const eventUrl = page.url().replace(/\?.*$/, "");

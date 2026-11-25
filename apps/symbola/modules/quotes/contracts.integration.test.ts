@@ -254,7 +254,7 @@ describe("FAC-04 / DOC-02 — Génération : chaque problème est nommé, et blo
     expect(contract.version).toBe(1);
     expect(contract.templateVersion).toBe(template.version);
     const object = contract.clauses.find((clause) => clause.title === "Objet")!;
-    expect(object.body).toBe(`Le présent contrat porte sur l'organisation de l'événement du 18 septembre 2027, Domaine des Tilleuls, Senlis, selon le devis ${sent.number} joint.`);
+    expect(object.body).toBe(`Le présent contrat porte sur l'organisation de l'évènement du 18 septembre 2027, Domaine des Tilleuls, Senlis, selon le devis ${sent.number} joint.`);
     expect(contract.clauses.find((clause) => clause.title === "Parties")!.body).toContain("Léa Martin et Maxime Durand");
     expect(contract.clauses.find((clause) => clause.title === "Prix et paiement")!.body).toContain("Les sommes versées d'avance sont des acomptes.");
 
