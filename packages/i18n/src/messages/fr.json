@@ -7372,7 +7372,8 @@
       "quotes": "devis et encaissements",
       "budget": "budget",
       "guests": "invités",
-      "appointments": "rendez-vous"
+      "appointments": "rendez-vous",
+      "vendors": "prestataires"
     },
     "calendar": {
       "kind": {

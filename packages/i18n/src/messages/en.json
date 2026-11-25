@@ -7372,7 +7372,8 @@
       "quotes": "quotes and payments",
       "budget": "budget",
       "guests": "guests",
-      "appointments": "appointments"
+      "appointments": "appointments",
+      "vendors": "vendors"
     },
     "calendar": {
       "kind": {
