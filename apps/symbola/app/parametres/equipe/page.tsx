@@ -81,7 +81,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
       ) : null}
 
       <div className="list-table-wrap" role="region" aria-labelledby="team-title" tabIndex={0}>
-        <table className="list-table">
+        <table className="list-table team-table">
           <caption id="team-title">{t("listTitle")}</caption>
           <thead>
             <tr>
