@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lot 68 · Tâches : l'écran, créer, filtrer, dater, sélectionner</title>
+<style>
+/* Jetons de DESIGN.md (ADR 0057), sans aucune valeur nouvelle. Polices : Inter et Space Grotesk si
+   elles sont installées, sinon la police du système (aucune dépendance externe). */
+:root{--primary:#0F6E5C;--on-primary:#FFFFFF;--primary-soft:#E3F1EE;--primary-strong:#0B5A4B;--ground:#F6F7F9;--surface:#FFFFFF;--ink:#14181F;--muted:#5A6372;--line:#DDE1E7;--line-strong:#838C99;--attention:#9A5B00;--attention-soft:#FBF0DC;--critical:#B3261E;--critical-soft:#FBE9E7;--float:0 8px 24px rgba(20,24,31,.12);
+--f-body:Inter,"Inter var",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;--f-title:"Space Grotesk",Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;--kd:.45}
+*{box-sizing:border-box}
+
+body{margin:0;background:#E9ECF0;color:var(--ink);font:15px/1.5 var(--f-body)}
+h1,h2,h3,h4{font-family:var(--f-title);font-weight:600;margin:0}
+a{color:var(--primary)}
+button{font:inherit;color:inherit}
+/* ——— Le document qui présente les maquettes ——— */
+.doc{max-width:1680px;margin:0 auto;padding:32px 32px 96px}
+.doc>header{max-width:980px}
+.doc>header h1{font-size:32px;line-height:1.15}
+.doc>header p{color:var(--muted);margin:8px 0}
+.crumbs{font-size:13px;margin-bottom:12px}
+.toolbar-doc{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px -32px 0;padding:10px 32px;background:rgba(233,236,240,.96);border-bottom:1px solid var(--line)}
+.toolbar-doc .lbl{font-size:13px;color:var(--muted);margin-right:4px}
+.toolbar-doc button,.toc a{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);text-decoration:none;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer}
+.toolbar-doc button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.part{margin-top:64px;padding-top:16px;border-top:2px solid var(--line-strong);font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mock{margin-top:40px;scroll-margin-top:72px}
+.mock>h2{font-size:22px}
+.mock>.intro{color:var(--muted);max-width:980px;margin:4px 0 16px}
+.size{margin:24px 0 8px;font:600 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+.pair.m{grid-template-columns:repeat(auto-fill,375px);gap:24px 32px}
+.side{min-width:0}
+.cap{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:13px;color:var(--muted)}
+.cap b{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;background:#fff;border:1px solid var(--line-strong);color:var(--ink)}
+.cap b.new{background:var(--primary);border-color:var(--primary);color:#fff}
+.dwrap{width:100%;overflow:hidden;border-radius:12px;border:1px solid var(--line-strong);background:var(--ground)}
+.dwrap>.ui-d,.dwrap>img{zoom:var(--kd)}.dwrap>img{display:block}
+body.reel .pair:not(.m){grid-template-columns:minmax(0,1fr)}
+body.reel .dwrap{overflow-x:auto}
+body.reel .dwrap>.ui-d,body.reel .dwrap>img{zoom:1}
+.mwrap{width:377px;border:1px solid var(--line-strong);border-radius:20px;overflow:hidden;background:var(--ground)}
+.mwrap>img{display:block;width:375px}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:16px 40px;margin:20px 0 0;padding:16px 20px;background:var(--surface);border:1px solid var(--line);border-radius:16px;font-size:14px}
+.rules h4{font:600 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.rules ul{margin:0;padding-left:18px}
+.rules li{margin:3px 0}
+.rules .count{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.rules .count span{display:inline-flex;height:26px;align-items:center;padding:0 10px;border-radius:999px;background:var(--ground);border:1px solid var(--line);font-size:12px;font-weight:500}
+.note-avant{padding:16px;font-size:14px;color:var(--muted);background:#fff}
+.callout{font-size:12px;font-weight:600;color:#fff;background:#4B3BD9;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;font-family:var(--f-body)}
+.legend-callouts{font-size:13px;margin:8px 0 0;padding-left:0;list-style:none;display:grid;gap:4px}
+.legend-callouts li{display:flex;gap:8px;align-items:flex-start}
+table.doc-t{border-collapse:collapse;width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px}
+table.doc-t th{text-align:left;font:600 12px var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--ground)}
+table.doc-t td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.doc-t td s{color:var(--muted)}
+
+/* ——— L'app : cadre d'ordinateur (1 440 px) ——— */
+svg[aria-hidden]{width:20px;height:20px;flex:none}
+.fait svg,.btn.sm svg{width:16px;height:16px}
+.pill svg{width:14px;height:14px}
+.in svg{width:18px;height:18px;color:var(--muted)}
+.small svg{width:16px;height:16px;vertical-align:-3px}
+.ui-d{width:1440px;min-height:900px;display:grid;grid-template-columns:232px 1fr;background:var(--ground);position:relative;font-size:15px;overflow:hidden}
+.ui-d.short{min-height:0}
+.sb{background:var(--surface);border-right:1px solid var(--line);padding:20px 16px;display:flex;flex-direction:column;gap:2px}
+.logo{display:flex;align-items:center;gap:10px;font:600 20px var(--f-title);padding:4px 8px 20px}
+.logo i{width:26px;height:26px;border-radius:999px;border:2.5px solid var(--primary);position:relative;display:inline-block}
+.logo i:after{content:"";position:absolute;left:6px;top:3px;width:12px;height:16px;border-radius:999px;border:2.5px solid var(--primary)}
+.nav{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-size:15px;white-space:nowrap}
+.nav svg{width:20px;height:20px;flex:none}
+.nav.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.nav .cnt{margin-left:auto;font-size:12px;font-weight:600;height:22px;padding:0 8px;border-radius:999px;display:inline-flex;align-items:center;background:var(--critical-soft);color:var(--critical);white-space:nowrap}
+.sb hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+.main{min-width:0;display:flex;flex-direction:column}
+.tb{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;height:68px;padding:0 48px;background:var(--surface);border-bottom:1px solid var(--line)}
+.tb.old{background:transparent;border:0;height:88px}
+.search{width:520px;height:44px;border:1px solid var(--line-strong);border-radius:6px;padding:0 14px;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:15px;background:#fff}
+.search svg{width:18px;height:18px;flex:none}
+.kbd{margin-left:auto;font:500 12px var(--f-body);border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--muted)}
+.tb .sp{flex:1}
+.iconbtn{width:44px;height:44px;border-radius:10px;border:1px solid transparent;background:transparent;display:inline-flex;align-items:center;justify-content:center;position:relative;flex:none;color:var(--ink)}
+.iconbtn svg{width:20px;height:20px}
+.iconbtn.bd{border-color:var(--line-strong);background:#fff}
+.iconbtn .badge{position:absolute;top:4px;right:4px;min-width:18px;height:18px;border-radius:999px;background:var(--critical);color:#fff;font:600 11px/18px var(--f-body);text-align:center;padding:0 4px}
+.avatar{width:32px;height:32px;border-radius:999px;background:var(--ground);border:1px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font:600 12px var(--f-body);color:var(--ink);flex:none}
+.avatar.sm{width:24px;height:24px;font-size:11px}
+.avatar.couple{border-style:dashed}
+.acct{display:flex;align-items:center;gap:8px;height:44px;padding:0 8px 0 6px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:14px}
+.ct{padding:28px 48px 48px;max-width:1208px;width:100%}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
+.ph h1{font-size:22px;line-height:1.25}
+.ph .sub{color:var(--muted);font-size:14px;margin-top:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px}
+.card+.card{margin-top:16px}
+.card h3{font-size:17px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:12px;align-items:center}
+.wrap{flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 16px;border-radius:10px;font:600 15px var(--f-body);border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);white-space:nowrap;cursor:default}
+.btn svg{width:18px;height:18px}
+.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.danger{border-color:var(--critical);color:var(--critical);background:#fff}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--primary);padding:0 10px}
+.btn.sm{height:36px;padding:0 12px;font-size:14px;border-radius:8px}
+.btn.block{width:100%}
+.link{color:var(--primary);text-decoration:underline;text-underline-offset:3px}
+.field{display:flex;flex-direction:column;gap:6px;font:500 13px/1.35 var(--f-body)}
+.in{height:44px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;padding:0 12px;display:flex;align-items:center;font:400 15px var(--f-body);color:var(--ink);gap:8px;min-width:0}
+.in.ph-t{color:var(--muted)}
+.in.sel{justify-content:space-between}
+.in.sel:after{content:"";width:8px;height:8px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg) translateY(-3px);flex:none}
+.in.area{height:88px;align-items:flex-start;padding-top:10px}
+.in.err{border:2px solid var(--critical)}
+.in.focus{outline:3px solid var(--primary);outline-offset:1px}
+.err-msg{color:var(--critical);font:500 13px var(--f-body);display:flex;gap:6px;align-items:flex-start}
+.req{color:var(--ink)}
+.hint{color:var(--muted);font:400 13px var(--f-body)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font:500 13px var(--f-body);background:var(--ground);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.pill.late{background:var(--critical-soft);color:var(--critical);border-color:transparent}
+.pill.soon{background:var(--attention-soft);color:var(--attention);border-color:transparent}
+.pill.ok{background:var(--primary-soft);color:var(--primary);border-color:transparent}
+.pill .x{font-size:14px;margin-left:2px}
+.switch{width:40px;height:24px;border-radius:999px;background:var(--line-strong);position:relative;flex:none;display:inline-block}
+.switch:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:999px;background:#fff}
+.switch.on{background:var(--primary)}.switch.on:after{left:19px}
+.chk{width:20px;height:20px;border:1.5px solid var(--line-strong);border-radius:4px;background:#fff;flex:none;display:inline-flex;align-items:center;justify-content:center}
+.chk.on{background:var(--primary);border-color:var(--primary)}
+.chk.on:after{content:"";width:5px;height:10px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg) translate(-1px,-1px)}
+.radio{width:20px;height:20px;border:1.5px solid var(--line-strong);border-radius:999px;background:#fff;flex:none;position:relative}
+.radio.on{border:6px solid var(--primary)}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:10px;padding:3px;gap:2px;background:#fff}
+.seg span{height:36px;padding:0 14px;border-radius:7px;display:inline-flex;align-items:center;font:500 14px var(--f-body)}
+.seg span.on{background:var(--ink);color:#fff}
+.dim{position:absolute;inset:0;background:rgba(20,24,31,.45);z-index:20}
+.pop{position:absolute;z-index:30;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--float)}
+.menu{padding:6px;min-width:260px}
+.menu .mi{display:flex;flex-direction:column;justify-content:center;min-height:44px;padding:8px 12px;border-radius:8px;font-size:15px}
+.menu .mi small{display:block;color:var(--muted);font-size:13px;line-height:1.35}
+.menu .mi.hl{background:var(--ground)}
+.menu .mi.d{color:var(--critical)}
+.menu hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.mark{outline:2px dashed #4B3BD9;outline-offset:4px;border-radius:12px}
+.co{position:absolute;z-index:40}
+
+/* ——— La ligne type d'une tâche ——— */
+.tlist{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.thead,.tl{display:grid;grid-template-columns:minmax(0,1fr) 190px 210px 170px 72px 44px;gap:16px;align-items:center;padding:0 16px 0 24px}
+.tl.no-evt,.thead.no-evt{grid-template-columns:minmax(0,1fr) 210px 170px 72px 44px}
+.tl.sel,.thead.sel{grid-template-columns:24px minmax(0,1fr) 190px 210px 170px 116px}
+.thead{height:44px;font:500 13px var(--f-body);color:var(--muted);border-bottom:1px solid var(--line)}
+.grp{padding:16px 24px 8px;font:600 15px var(--f-title);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+.grp small{font:400 13px var(--f-body);color:var(--muted)}
+.tl{min-height:60px;border-bottom:1px solid var(--line)}
+.tl:last-child{border-bottom:0}
+.tl.checked{background:#F7FAF9}
+.tl.done .tt{color:var(--muted);text-decoration-color:var(--line)}
+.tt{color:var(--ink);font-weight:500;text-decoration:underline;text-decoration-color:var(--line-strong);text-decoration-thickness:1px;text-underline-offset:4px}
+.ev{color:var(--ink);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.none{color:var(--muted)}
+.due{font-size:14px;line-height:1.3;white-space:nowrap}
+.due b{font-weight:500;display:block}
+.due span{font-size:13px;color:var(--muted)}
+.due.late b,.due.late span{color:var(--critical)}
+.due.soon span{color:var(--attention)}
+.st-ic{display:inline-flex;width:14px;height:14px;border-radius:999px;align-items:center;justify-content:center;font:700 10px/1 var(--f-body);margin-right:4px;vertical-align:-1px}
+.late .st-ic{background:var(--critical);color:#fff}
+.soon .st-ic{border:1.5px solid var(--attention);color:var(--attention)}
+.who{display:flex;align-items:center;gap:8px;font-size:14px;white-space:nowrap;overflow:hidden}
+.who em{font-style:normal;color:var(--muted)}
+.more{width:44px;height:44px;border-radius:10px;border:1px solid transparent;background:transparent;display:inline-flex;align-items:center;justify-content:center;color:var(--ink);flex:none}
+.more:before{content:"";width:4px;height:4px;border-radius:999px;background:currentColor;box-shadow:-7px 0 0 currentColor,7px 0 0 currentColor}
+.more.bd{border-color:var(--line)}
+.fait{height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line-strong);background:#fff;font:600 14px var(--f-body);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.fait.on{background:var(--primary-soft);border-color:transparent;color:var(--primary)}
+/* Accueil : ligne allégée */
+.tl.light{grid-template-columns:minmax(0,1fr) 170px 210px 150px 72px;padding-left:20px}
+/* Téléphone */
+.ui-m{width:375px;height:812px;position:relative;background:var(--ground);overflow:hidden;font-size:15px;display:flex;flex-direction:column}
+.ui-m.auto{height:auto;min-height:812px}
+.mtb{display:flex;align-items:center;gap:2px;height:60px;padding:0 6px 0 16px;background:#fff;border-bottom:1px solid var(--line);flex:none;position:relative;z-index:3}
+.mtb h1{font-size:20px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mtb .back{display:inline-flex;align-items:center;gap:4px;height:44px;color:var(--primary);font-weight:600;text-decoration:none;margin-left:-6px;padding:0 6px;flex:1}
+.mbody{flex:1;overflow:hidden;position:relative}
+.mpad{padding:16px}
+.mbb{position:absolute;left:0;right:0;bottom:0;height:72px;padding:0 0 8px;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:1.1fr 1.15fr .85fr 1.15fr .75fr;z-index:25}
+.mbb a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);text-decoration:none;font:500 13px/1.1 var(--f-body);letter-spacing:-.01em;position:relative;white-space:nowrap;min-height:56px}
+.mbb a svg{width:22px;height:22px}
+.mbb a.on{color:var(--primary);font-weight:600}
+.mbb a.on:before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--primary)}
+.mbb .b{position:absolute;top:6px;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:999px;background:var(--critical);color:#fff;font:600 11px/18px var(--f-body);text-align:center;padding:0 4px}
+.tlm{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 6px;align-items:center;padding:12px 6px 12px 16px;background:#fff;border-bottom:1px solid var(--line)}
+.tlm.sel{grid-template-columns:44px minmax(0,1fr);padding-left:4px}
+.tlm .chkc{width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.tlm .txt{min-width:0}
+.tlm .tt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:600;line-height:1.35}
+.tlm .meta{font-size:13px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tlm .meta.late{color:var(--critical);font-weight:500}
+.tlm .meta.soon{color:var(--attention)}
+.tlm .fait{height:44px}
+.mgrp{padding:14px 16px 6px;font:600 14px var(--f-title);color:var(--ink);display:flex;justify-content:space-between}
+.mgrp small{font:400 13px var(--f-body);color:var(--muted)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;box-shadow:var(--float);z-index:30;padding:8px 0 16px}
+.sheet .grab{width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:4px auto 8px}
+.sheet .si{display:flex;align-items:center;gap:14px;min-height:52px;padding:0 20px;font-size:16px}
+.sheet .si svg{width:22px;height:22px;color:var(--muted)}
+.sheet .si.d{color:var(--ink);font-size:15px}
+.sheet hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.sticky-act{position:absolute;left:0;right:0;bottom:0;padding:12px 16px 20px;background:#fff;border-top:1px solid var(--line);z-index:6}
+/* Message de retour (toast) */
+.toast{display:flex;align-items:center;gap:12px;background:var(--ink);color:#fff;border-radius:12px;padding:8px 8px 8px 16px;box-shadow:var(--float);font-size:15px;min-height:56px;position:relative;overflow:hidden}
+.toast .tx{flex:1;min-width:0}
+.toast .tx small{display:block;color:#A9B3C1;font-size:13px}
+.toast .ub{display:inline-flex;align-items:center;flex:none;height:40px;padding:0 14px;border-radius:8px;border:1px solid #5FD3B8;background:transparent;color:#5FD3B8;font:600 14px var(--f-body);white-space:nowrap}
+.toast .cl{display:inline-flex;align-items:center;justify-content:center;flex:none;width:40px;height:40px;border:0;background:transparent;color:#A9B3C1;font-size:20px}
+.toast .bar{position:absolute;left:0;bottom:0;height:3px;width:62%;background:#5FD3B8}
+.toast.ok-ic:before{content:"✓";font-weight:700;color:#5FD3B8;margin-right:-4px}
+.toast.err{background:#fff;color:var(--ink);border:1px solid var(--critical)}
+.toast.err .ub{border-color:var(--line-strong);color:var(--ink)}
+.notice{border-radius:10px;padding:12px 16px;font-size:14px;display:flex;gap:12px;align-items:flex-start}
+.notice.info{background:var(--primary-soft)}
+.notice.warn{background:var(--attention-soft)}
+.notice.err{background:var(--critical-soft)}
+.notice b{font-weight:600}
+.filters{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.filters .field{min-width:0}
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.count-line{display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px;font-size:14px;color:var(--muted)}
+.empty{text-align:left;padding:40px;border:1px dashed var(--line-strong);border-radius:16px;background:#fff}
+.empty h3{font-size:19px;margin-bottom:6px}
+.window{position:absolute;z-index:30;background:#fff;border-radius:16px;box-shadow:var(--float);display:flex;flex-direction:column;overflow:hidden}
+.window .wh{display:flex;align-items:flex-start;gap:12px;padding:20px 20px 16px 28px;border-bottom:1px solid var(--line)}
+.window .wb{padding:24px 28px;display:grid;gap:20px}
+.window .wf{display:flex;align-items:center;gap:12px;padding:16px 28px;border-top:1px solid var(--line);background:#fff}
+.sec-t{font:600 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.choice{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid var(--line-strong);border-radius:10px}
+.choice.on{border:2px solid var(--primary);background:var(--primary-soft);padding:13px 15px}
+.choice b{display:block;font-weight:600}
+.choice span{font-size:14px;color:var(--muted)}
+.swatch{display:inline-block;width:28px;height:28px;border-radius:6px;border:1px solid var(--line);vertical-align:middle}
+.ph-box{border:1px dashed var(--line-strong);border-radius:12px;padding:16px;color:var(--muted);font-size:13px;background:repeating-linear-gradient(45deg,#fff,#fff 8px,#F9FAFB 8px,#F9FAFB 16px)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:16px 0 20px}
+.tabs span{height:44px;display:inline-flex;align-items:center;padding:0 14px;font-size:15px;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.tabs span.on{color:var(--ink);font-weight:600;border-color:var(--primary)}
+
+.ui-m .seg{padding:0;border-radius:10px;overflow:hidden}.ui-m .seg span{height:44px;border-radius:0}
+.fait svg{width:16px;height:16px}
+
+@media (max-width:1100px){.toolbar-doc{position:static}}
+
+/* Répartition A (porte 2, § 6) appliquée en rôles : la couleur d'action ne porte que l'action et les
+   liens ; l'attente et « bientôt » sont neutres avec une icône ; le rouge reste le retard. */
+.pill.soon{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.pill.ok{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.due.soon span,.tlm .meta.soon,.hint.soon-h{color:var(--muted)}
+.soon .st-ic,.soon-h .st-ic{border:0;width:auto;height:auto;font:500 13px/1 var(--f-body);color:var(--ink)}
+.fait.on{background:var(--ground);border-color:var(--line);color:var(--ink)}
+.notice.info{background:var(--ground);border:1px solid var(--line)}
+.choice.on{background:#fff}
+.toast .bar{background:#A9B3C1}
+.toast.ok-ic:before{color:#fff}
+
+.btn.toggle[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* Porte 3 du volet 1 (25/11/2026) */
+/* M5 : « Annuler » du message de retour en accent de nuit (night-accent #5FD3B8 sur ink #14181F : 9,7:1) ;
+   texte secondaire en night-ink-muted (8,4:1). */
+.toast.err .ub{border-color:var(--line-strong);color:var(--ink)}
+/* M4 : le lien d'évènement d'« Aujourd'hui », séparé du titre ; 44 px de haut sur téléphone. */
+.ev.evl{color:var(--primary);justify-self:start;max-width:100%}
+.evl-m{display:inline-flex;align-items:center;min-height:44px;margin:-8px 0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%}
+/* M2 : barre des actions groupées, collée sous la liste, nette à l'ordinateur. */
+.selbar{position:absolute;bottom:0;right:0;display:flex;align-items:center;gap:10px;padding:12px 48px 12px 24px;background:var(--surface);border-top:2px solid var(--ink);box-shadow:0 -8px 24px rgba(20,24,31,.12);z-index:8}
+.selbar .n{font:600 17px/1.2 var(--f-title);white-space:nowrap;padding-right:12px;margin-right:4px;border-right:1px solid var(--line)}
+/* M13 : erreur sous la question. */
+.q-err{display:flex;align-items:center;gap:8px;margin-top:8px;color:var(--critical);font-size:14px;font-weight:500}
+.choice.err-b{border-color:var(--critical)}
+/* M7 : à 911 px (C-82), la barre du haut tient sans rien couper : sous 760 px de barre, le texte
+   d'aide de la recherche devient « Rechercher… ». */
+.tb{container-type:inline-size}
+.tb .search{white-space:nowrap;min-width:0}
+.tb .search .ph-s{display:none}
+@container (max-width:760px){.tb .search .ph-l{display:none}.tb .search .ph-s{display:inline}.tb .search{flex:1 1 auto}}
+
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true"><symbol id="i-today" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="12" cy="14.5" r="1.6"/></symbol><symbol id="i-events" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4M8 13.5h3M8 16.5h6"/></symbol><symbol id="i-tasks" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5l1.8 1.8L9 5M4 12.5l1.8 1.8L9 11M4 18.5l1.8 1.8L9 17M12 7h8M12 13h8M12 19h8"/></symbol><symbol id="i-contacts" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7.5 17.5c1-2.2 2.6-3.2 4.5-3.2s3.5 1 4.5 3.2"/></symbol><symbol id="i-rdv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="15" cy="15" r="3"/><path d="M15 13.6V15l1 .8"/></symbol><symbol id="i-vendors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol><symbol id="i-quotes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7l4 4v13H7z"/><path d="M14 3.5v4h4M9.5 12h6M9.5 15.5h6"/></symbol><symbol id="i-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6" width="17" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></symbol><symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></symbol><symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4L18 18M6 18l1.6-1.6M16.4 7.6L18 6"/></symbol><symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.4"/><circle cx="12" cy="16.8" r=".6"/></symbol><symbol id="i-learn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-4.5L21 9l-9 4.5z"/><path d="M7 11v4.5c1.4 1.3 3 2 5 2s3.6-.7 5-2V11"/></symbol><symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></symbol><symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></symbol><symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-more" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/></symbol><symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></symbol><symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></symbol><symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></symbol><symbol id="i-clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5l-6.8 6.8a2 2 0 0 0 2.8 2.8l7-7a4 4 0 0 0-5.7-5.7l-7 7a6 6 0 0 0 8.5 8.5l5.2-5.2"/></symbol><symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.5 3.8-5.3 7-5.3s5.8 1.8 7 5.3"/></symbol><symbol id="i-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4.5H6v15h8M10.5 12H20M16.5 8.5L20 12l-3.5 3.5"/></symbol><symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol><symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></symbol><symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></symbol><symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5M7.5 9.5L12 5l4.5 4.5M5 19.5h14"/></symbol></svg>
+<div class="doc">
+<div class="crumbs"><a href="index.html">Lot 68 · maquettes du volet 1</a> › Tâches : l'écran, créer, filtrer, dater, sélectionner</div>
+<header>
+<h1>Tâches : l'écran, créer, filtrer, dater, sélectionner</h1>
+<p>L'écran « Tâches » refait autour de la ligne type (page précédente) : un bouton de création en haut, avec ou sans évènement ; des filtres nommés par évènement, personne et période ; un seul geste pour changer une date ; une sélection en lot qui ne fait pas sauter la liste ; des écrans vides qui disent ce qui se passe ; un chemin pour retrouver une tâche faite par erreur.</p>
+<p>Données fictives : une agence de deux personnes (Camille, qui regarde l'écran, et Bastien), quatre mariages. Mercredi 25 novembre 2026.</p>
+</header>
+<div class="toolbar-doc"><span class="lbl">Cadres d'ordinateur :</span><button data-mode="cote" aria-pressed="true">Côte à côte, réduits</button><button data-mode="reel" aria-pressed="false">L'un sous l'autre, taille réelle</button>
+<span class="lbl" style="margin-left:16px">Aller à :</span>
+<ul class="toc"><li><a href="#rempli">L'écran rempli</a></li><li><a href="#creer">Créer</a></li><li><a href="#filtres">Filtrer</a></li><li><a href="#date">Changer une date</a></li><li><a href="#lot">Sélection en lot</a></li><li><a href="#vide">Vide et repris</a></li><li><a href="#faites">Tâches faites</a></li></ul></div>
+
+<!-- ============================================================ -->
+<section class="mock" id="rempli">
+<h2>L'écran rempli (1 440 px)</h2>
+<p class="intro">Trois zones : l'en-tête avec la seule action principale, « Nouvelle tâche » ; la barre de filtres et de vue ; la liste. Le décompte dit combien de lignes la liste montre sur combien.</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b> aucun bouton de création, filtres sans nom, trois boutons par ligne</div>
+<div class="dwrap"><img src="../../audits/2026-11-ux-parcours/preuves/taches-1440.jpg" width="1440" alt="Tâches aujourd'hui"></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b></div>
+<div class="dwrap"><div class="ui-d"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav on"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<div class="ph"><div><h1>Tâches</h1><div class="sub">Les tâches de tous vos évènements et de l'agence</div></div><span class="btn p"><svg aria-hidden="true"><use href="#i-plus"/></svg>Nouvelle tâche</span></div>
+<div class="card" style="padding:16px 20px">
+<div class="filters"><label class="field">Évènement<span class="in sel" style="width:210px">Tous</span></label><label class="field">Qui s'en charge<span class="in sel" style="width:180px">Tout le monde</span></label><label class="field">Période<span class="in sel" style="width:210px">Toutes</span></label><label class="field">Catégorie<span class="in sel" style="width:170px">Toutes</span></label><label class="field">État<span class="in sel" style="width:140px">À faire</span></label></div>
+</div>
+<div class="count-line"><span><b style="color:var(--ink)">8 tâches à faire</b> sur 42 · 2 en retard</span><span class="row" style="gap:8px">Grouper par<span class="in sel" style="width:170px;height:36px;font-size:14px">Mois</span><span class="seg"><span class="on">Liste</span><span>Calendrier</span></span><span class="btn sm">Sélectionner</span></span></div>
+<div class="tlist">
+<div class="thead"><span>Tâche</span><span>Évènement</span><span>Échéance</span><span>Qui s'en charge</span><span></span><span></span></div>
+<div class="grp">Novembre 2026 <small>4 tâches</small></div>
+<div class="tl"><span class="tt">Faire signer le contrat du photographe</span><span class="ev">Léa & Maxime</span><span class="due late"><b>ven. 20 nov.</b><span><span class="st-ic">!</span>En retard de 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Faire signer le contrat du photographe »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Faire signer le contrat du photographe »"></span></div>
+<div class="tl"><span class="tt">Confirmer la voiture des mariés</span><span class="ev">Léa & Maxime</span><span class="due late"><b>sam. 21 nov.</b><span><span class="st-ic">!</span>En retard de 4 jours</span></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Fait : « Confirmer la voiture des mariés »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Confirmer la voiture des mariés »"></span></div>
+<div class="tl"><span class="tt">Choisir le fleuriste</span><span class="ev">Léa & Maxime</span><span class="due soon"><b>dim. 29 nov.</b><span><span class="st-ic">◷</span>Dans 4 jours</span></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait" aria-label="Fait : « Choisir le fleuriste »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Choisir le fleuriste »"></span></div>
+<div class="tl"><span class="tt">Organiser la dégustation finale</span><span class="ev">Inès & Paul</span><span class="due soon"><b>lun. 30 nov.</b><span><span class="st-ic">◷</span>Dans 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Organiser la dégustation finale »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Organiser la dégustation finale »"></span></div>
+<div class="grp">Décembre 2026 <small>4 tâches</small></div>
+<div class="tl"><span class="tt">Déclaration de TVA du trimestre</span><span class="ev none">Hors évènement</span><span class="due"><b>mar. 1er déc.</b></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Déclaration de TVA du trimestre »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Déclaration de TVA du trimestre »"></span></div>
+<div class="tl"><span class="tt">Valider le faire-part du brunch</span><span class="ev">Léa & Maxime</span><span class="due"><b>jeu. 3 déc.</b></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait" aria-label="Fait : « Valider le faire-part du brunch »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Valider le faire-part du brunch »"></span></div>
+<div class="tl"><span class="tt">Réserver le photobooth</span><span class="ev">Chloé & Samuel</span><span class="due"><b>ven. 11 déc.</b></span><span class="who"><span class="avatar sm">ML</span>Maison Lumen</span><span class="fait" aria-label="Fait : « Réserver le photobooth »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Réserver le photobooth »"></span></div>
+<div class="tl"><span class="tt">Envoyer le plan de table au traiteur</span><span class="ev">Inès & Paul</span><span class="due"><b>lun. 14 déc.</b></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Fait : « Envoyer le plan de table au traiteur »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Envoyer le plan de table au traiteur »"></span></div>
+</div>
+</div></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul>
+<li>C-31 : « Nouvelle tâche » en haut à droite, comme tout écran de liste.</li>
+<li>C-33 : quatre filtres nommés (Évènement, Qui s'en charge, Période, État), un tri, un décompte « 8 sur 42 ».</li>
+<li>C-34, C-35 : la ligne type (page précédente).</li>
+<li>C-14 (en partie, volet « Aujourd'hui ») : « Qui s'en charge » donne la charge de chacun dans une agence.</li>
+</ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Zones d'action : 3 (en-tête, filtres, liste)</span><span>Action principale : Nouvelle tâche</span><span>Ligne : 1 cible, Fait, ⋯</span></div>
+<ul><li>« Sélectionner » est un bouton discret : la sélection n'est pas la tâche courante de l'écran.</li><li>Barre de filtres de <code>DESIGN.md</code> (lot 63) : libellé au-dessus, même hauteur.</li><li>Le bouton « Réglages » n'est plus sur l'écran : son sort relève du volet « Paramètres » (C-11).</li></ul></div>
+</div>
+</section>
+
+<section class="mock">
+<h2>L'écran rempli (375 px)</h2>
+<div class="pair m">
+<div class="side"><div class="cap"><b>Aujourd'hui</b></div><div class="mwrap"><img src="../../audits/2026-11-ux-parcours/preuves/taches-375.jpg" alt="Tâches sur téléphone aujourd'hui"></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> filtres repliés</div><div class="mwrap"><div class="ui-m"><div class="mtb"><h1>Tâches</h1><span class="iconbtn" aria-label="Rechercher"><svg aria-hidden="true"><use href="#i-search"/></svg></span><span class="iconbtn" aria-label="Créer"><svg aria-hidden="true"><use href="#i-plus"/></svg></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span></div><div class="mbody">
+<div class="mpad" style="padding-bottom:8px"><div class="row" style="gap:8px"><span class="btn" style="flex:1;justify-content:flex-start"><svg aria-hidden="true"><use href="#i-filter"/></svg>Filtres</span><span class="btn toggle" aria-pressed="false">Mes tâches</span><span class="iconbtn bd" aria-label="Voir en calendrier"><svg aria-hidden="true"><use href="#i-cal"/></svg></span></div>
+<div class="small muted" style="margin-top:10px"><b style="color:var(--ink)">8 tâches à faire</b> sur 42 · 2 en retard</div></div>
+<div class="mgrp">Novembre 2026 <small>4</small></div>
+<div class="tlm"><div class="txt"><span class="tt">Faire signer le contrat du photographe</span><div class="meta">Léa & Maxime · Vous</div><div class="meta late">En retard de 5 jours · ven. 20 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
+<div class="tlm"><div class="txt"><span class="tt">Confirmer la voiture des mariés</span><div class="meta">Léa & Maxime · Bastien</div><div class="meta late">En retard de 4 jours · sam. 21 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
+<div class="tlm"><div class="txt"><span class="tt">Choisir le fleuriste</span><div class="meta">Léa & Maxime · Les mariés</div><div class="meta soon">◷ Dans 4 jours · dim. 29 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
+<div class="tlm"><div class="txt"><span class="tt">Organiser la dégustation finale</span><div class="meta">Inès & Paul · Vous</div><div class="meta soon">◷ Dans 5 jours · lun. 30 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
+<div class="mgrp">Décembre 2026 <small>4</small></div>
+<div class="tlm"><div class="txt"><span class="tt">Déclaration de TVA du trimestre</span><div class="meta">Hors évènement · Vous</div><div class="meta plain">mar. 1er déc.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
+</div>
+<div class="sticky-act" style="bottom:72px;border:0;background:transparent;padding:0 16px 12px;display:flex;justify-content:flex-end"><span class="btn p" style="box-shadow:var(--float)"><svg aria-hidden="true"><use href="#i-plus"/></svg>Nouvelle tâche</span></div>
+<nav class="mbb" aria-label="Navigation principale"><a><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> « Filtres » ouvert</div><div class="mwrap"><div class="ui-m"><div class="mtb"><h1>Tâches</h1><span class="iconbtn" aria-label="Rechercher"><svg aria-hidden="true"><use href="#i-search"/></svg></span><span class="iconbtn" aria-label="Créer"><svg aria-hidden="true"><use href="#i-plus"/></svg></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span></div><div class="mbody"><div class="dim"></div>
+<div class="sheet" style="padding-bottom:20px"><div class="grab"></div>
+<div class="row" style="padding:0 8px 8px 20px;justify-content:space-between"><h3 style="font-size:17px">Filtres</h3><span class="btn ghost">Effacer</span></div>
+<div style="display:grid;gap:14px;padding:0 16px">
+<div class="row" style="gap:6px"><span class="btn toggle" aria-pressed="true" style="padding:0 12px">Mes tâches</span><span class="btn toggle" aria-pressed="false" style="padding:0 12px">En retard</span><span class="btn toggle" aria-pressed="false" style="padding:0 12px">Cette semaine</span></div>
+<label class="field">Évènement<span class="in sel">Tous</span></label>
+<label class="field">Qui s'en charge<span class="in sel">Vous</span></label>
+<label class="field">Période<span class="in sel">Toutes</span></label>
+<label class="field">Catégorie<span class="in sel">Toutes</span></label>
+<label class="field">Grouper par<span class="in sel">Mois</span></label>
+<span class="btn p block" style="margin-top:6px">Voir les 4 tâches</span></div></div>
+</div><nav class="mbb" aria-label="Navigation principale"><a><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul><li>C-77, C-81 : la liste avant les filtres ; les filtres dans un panneau du bas qui dit combien de tâches il montrera (« Voir les 4 tâches ») ; « Mes tâches » en un toucher, sur la liste et en tête du panneau (rejeu : Hugo, Camille).</li><li>C-33, C-32 : les mêmes cinq filtres et le regroupement qu'à l'ordinateur ; le panneau s'ouvre sur les réglages en cours.</li></ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Cibles ≥ 44 px</span><span>Une action principale par vue</span></div><ul><li>Dans le panneau des filtres, le seul bouton plein est « Voir les 4 tâches ».</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="creer">
+<h2>Créer une tâche, avec ou sans évènement</h2>
+<p class="intro">« Nouvelle tâche », « + Créer › Tâche » et « Nouvelle tâche » de la fiche ouvrent le même panneau, en mode création. Le premier choix est l'évènement : « Aucun évènement » est en tête de liste et dit ce qu'il sert à noter. Depuis la fiche, ou quand un évènement est filtré, il est déjà choisi. La répétition n'apparaît que pour une tâche sans évènement.</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b> le formulaire « Tâches hors évènement » est en bas de la page ; « Créer › Tâche » exige un évènement sans le dire</div>
+<div class="dwrap"><img src="../../audits/2026-11-ux-parcours/preuves/taches-vide-1440.jpg" width="1440" alt="Tâches vide, formulaire hors évènement en bas"></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> le panneau en mode création, liste « Évènement » ouverte</div>
+<div class="dwrap"><div class="ui-d"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav on"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct"><div class="ph"><div><h1>Tâches</h1><div class="sub">Les tâches de tous vos évènements et de l'agence</div></div><span class="btn p"><svg aria-hidden="true"><use href="#i-plus"/></svg>Nouvelle tâche</span></div><div class="ph-box" style="height:520px">La liste, sous le fond assombri.</div></div></div>
+<div class="dim"></div>
+<div class="window" role="dialog" aria-label="Nouvelle tâche" style="left:290px;top:70px;width:860px">
+<div class="wh"><h3 style="flex:1;font-size:22px;padding-top:6px">Nouvelle tâche</h3><span class="iconbtn" aria-label="Fermer"><svg aria-hidden="true"><use href="#i-close"/></svg></span></div>
+<div class="wb" style="grid-template-columns:1fr 1fr;gap:20px 32px">
+<label class="field" style="grid-column:1/3"><span>Tâche <span class="req">*</span></span><span class="in">Déclaration de TVA du trimestre</span></label>
+<div style="position:relative"><label class="field">Évènement<span class="in sel focus">Aucun évènement</span></label>
+<div class="pop menu" style="left:0;top:76px;width:380px;z-index:40">
+<div class="mi hl">Aucun évènement<small>Ce qui ne dépend d'aucun mariage : TVA, assurance, comptabilité</small></div><hr>
+<div class="mi">Léa &amp; Maxime<small>Mariage · 12 juin 2027</small></div>
+<div class="mi">Inès &amp; Paul<small>Mariage · 4 septembre 2027</small></div>
+<div class="mi">Chloé &amp; Samuel<small>Mariage · 18 septembre 2027</small></div>
+<div class="mi">Séminaire Atelier Nord<small>Évènement d'entreprise · 9 avril 2027</small></div></div></div>
+<label class="field"><span>Échéance <span class="req">*</span></span><span class="in"><svg aria-hidden="true"><use href="#i-cal"/></svg>mar. 1er déc. 2026</span></label>
+<label class="field">Qui s'en charge<span class="in sel"><span class="row" style="gap:8px"><span class="avatar sm">CR</span>Vous</span></span></label>
+<label class="field">Répétition<span class="in sel">Tous les trois mois</span><span class="hint">La suivante se crée quand celle-ci est faite.</span></label>
+<label class="field">Catégorie<span class="in sel">Agence</span></label>
+<label class="field">Note<span class="in ph-t">Facultatif</span></label>
+<div class="hint" style="grid-column:1/3">* obligatoire</div>
+</div>
+<div class="wf"><span style="flex:1"></span><span class="btn">Fermer</span><span class="btn p">Créer la tâche</span></div>
+</div></div></div></div>
+</div>
+<div class="pair m" style="margin-top:24px">
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, page entière</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Tâches</a></div><div class="mbody mpad" style="display:grid;gap:16px;align-content:start">
+<h2 style="font-size:20px">Nouvelle tâche</h2>
+<label class="field"><span>Tâche <span class="req">*</span></span><span class="in">Déclaration de TVA du trimestre</span></label>
+<label class="field">Évènement<span class="in sel">Aucun évènement</span><span class="hint">Ce qui ne dépend d'aucun mariage : TVA, assurance.</span></label>
+<label class="field"><span>Échéance <span class="req">*</span></span><span class="in"><svg aria-hidden="true"><use href="#i-cal"/></svg>mar. 1er déc. 2026</span></label>
+<label class="field">Qui s'en charge<span class="in sel">Vous</span></label>
+<label class="field">Répétition<span class="in sel">Tous les trois mois</span></label>
+<span class="btn ghost" style="justify-self:start;padding:0">+ Ajouter une catégorie ou une note</span>
+<div class="hint">* obligatoire</div>
+</div><div class="sticky-act"><span class="btn p block">Créer la tâche</span></div></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, depuis la fiche « Léa &amp; Maxime »</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Léa &amp; Maxime</a></div><div class="mbody mpad" style="display:grid;gap:16px;align-content:start">
+<h2 style="font-size:20px">Nouvelle tâche</h2>
+<label class="field"><span>Tâche <span class="req">*</span></span><span class="in ph-t">Par exemple : réserver la navette des invités</span></label>
+<label class="field">Évènement<span class="in sel">Léa &amp; Maxime</span><span class="hint">Choisi d'office : vous venez de sa fiche.</span></label>
+<label class="field"><span>Échéance <span class="req">*</span></span><span class="in ph-t"><svg aria-hidden="true"><use href="#i-cal"/></svg>Choisir une date</span><span class="hint">Ou en jours avant le jour J : <span class="link">compter depuis le 12 juin 2027</span></span></label>
+<label class="field">Qui s'en charge<span class="in sel">Vous</span></label>
+<div class="hint">* obligatoire</div>
+</div><div class="sticky-act"><span class="btn p block">Créer la tâche</span></div></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul>
+<li>C-31 : un seul chemin de création, trouvé en haut de l'écran ; l'évènement est facultatif et le dit ; plus de formulaire en bas de page ni de troisième formulaire dans le Rétroplanning.</li>
+<li>C-04 : « * » sur les champs obligatoires avant l'envoi, « * obligatoire » sous le formulaire (règle du lot 63).</li>
+<li>C-38 : c'est le même panneau qu'une tâche existante, en mode création.</li>
+<li>Acquis gardé : depuis une fiche, le bon mariage est déjà choisi (PC-03/Nadia).</li>
+</ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Une action principale : Créer la tâche</span><span>Fenêtre longue, deux colonnes</span></div>
+<ul><li>Le bouton dit ce qu'il fait : « Créer la tâche », pas « Valider ».</li><li>Chaque choix de la liste a une phrase qui dit ce qu'il est (menu d'un bouton, lot 63).</li><li>L'échéance en jours avant le jour J est une question ouverte pour le lot de réalisation : voir la note.</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="filtres">
+<h2>Filtrer : un mariage, une personne, une période (1 440 px)</h2>
+<p class="intro">Chaque filtre posé devient une pastille qui se retire seule ; « Effacer les filtres » apparaît dès qu'un filtre est posé. Le tri par évènement regroupe la liste par mariage. Ici : les tâches de Bastien, sur les quinze jours qui viennent.</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b> une agence de 33 tâches : « Planner » ne dit pas qui ; on ne filtre pas par mariage</div>
+<div class="dwrap"><img src="../../audits/2026-11-ux-parcours/preuves/taches-agence-1920.jpg" width="1440" alt="Tâches d'une agence aujourd'hui"></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> deux filtres posés, tri par évènement</div>
+<div class="dwrap"><div class="ui-d"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav on"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<div class="ph"><div><h1>Tâches</h1><div class="sub">Les tâches de tous vos évènements et de l'agence</div></div><span class="btn p"><svg aria-hidden="true"><use href="#i-plus"/></svg>Nouvelle tâche</span></div>
+<div class="card" style="padding:16px 20px">
+<div class="filters"><label class="field">Évènement<span class="in sel" style="width:210px">Tous</span></label><label class="field">Qui s'en charge<span class="in sel" style="width:180px">Bastien</span></label><label class="field">Période<span class="in sel" style="width:210px">Les 15 prochains jours</span></label><label class="field">Catégorie<span class="in sel" style="width:170px">Toutes</span></label><label class="field">État<span class="in sel" style="width:140px">À faire</span></label></div>
+<div class="chips"><span class="pill">Bastien <span class="x" aria-label="Retirer le filtre Bastien">×</span></span><span class="pill">Les 15 prochains jours <span class="x" aria-label="Retirer le filtre de période">×</span></span><span class="link small">Effacer les filtres</span></div>
+</div>
+<div class="count-line"><span><b style="color:var(--ink)">4 tâches</b> sur 11 à faire · filtrées</span><span class="row" style="gap:8px">Grouper par<span class="in sel" style="width:170px;height:36px;font-size:14px">Évènement</span><span class="seg"><span class="on">Liste</span><span>Calendrier</span></span><span class="btn sm">Sélectionner</span></span></div>
+<div class="tlist">
+<div class="thead"><span>Tâche</span><span>Évènement</span><span>Échéance</span><span>Qui s'en charge</span><span></span><span></span></div>
+<div class="grp">Léa &amp; Maxime <small>12 juin 2027 · 2 tâches · <span class="link">Ouvrir la fiche</span></small></div>
+<div class="tl"><span class="tt">Confirmer la voiture des mariés</span><span class="ev">Léa & Maxime</span><span class="due late"><b>sam. 21 nov.</b><span><span class="st-ic">!</span>En retard de 4 jours</span></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Fait : « Confirmer la voiture des mariés »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Confirmer la voiture des mariés »"></span></div>
+<div class="tl"><span class="tt">Envoyer la feuille de route au DJ</span><span class="ev">Léa & Maxime</span><span class="due"><b>mer. 2 déc.</b></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Fait : « Envoyer la feuille de route au DJ »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Envoyer la feuille de route au DJ »"></span></div>
+<div class="grp">Inès &amp; Paul <small>4 septembre 2027 · 2 tâches · <span class="link">Ouvrir la fiche</span></small></div>
+<div class="tl"><span class="tt">Envoyer le plan de table au traiteur</span><span class="ev">Inès & Paul</span><span class="due soon"><b>lun. 30 nov.</b><span><span class="st-ic">◷</span>Dans 5 jours</span></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Fait : « Envoyer le plan de table au traiteur »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Envoyer le plan de table au traiteur »"></span></div>
+<div class="tl"><span class="tt">Réserver les hébergements des témoins</span><span class="ev">Inès & Paul</span><span class="due"><b>jeu. 10 déc.</b></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Fait : « Réserver les hébergements des témoins »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Réserver les hébergements des témoins »"></span></div>
+</div>
+</div></div></div></div>
+</div>
+
+<div class="size">En retard, par personne (rejeu : Valérie, Nadia)</div>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b> « Tout le monde / Planner / Mariés » : pas de collègue, pas de regroupement</div>
+<div class="dwrap"><img src="../../audits/2026-11-ux-parcours/preuves/taches-agence-1920.jpg" width="1440" alt="Tâches d'une agence aujourd'hui"></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> Période « En retard », groupé par « Qui s'en charge »</div>
+<div class="dwrap"><div class="ui-d"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav on"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<div class="ph"><div><h1>Tâches</h1><div class="sub">Les tâches de tous vos évènements et de l'agence</div></div><span class="btn p"><svg aria-hidden="true"><use href="#i-plus"/></svg>Nouvelle tâche</span></div>
+<div class="card" style="padding:16px 20px">
+<div class="filters"><label class="field">Évènement<span class="in sel" style="width:210px">Tous</span></label><label class="field">Qui s'en charge<span class="in sel" style="width:180px">Tout le monde</span></label><label class="field">Période<span class="in sel" style="width:210px">En retard</span></label><label class="field">Catégorie<span class="in sel" style="width:170px">Toutes</span></label><label class="field">État<span class="in sel" style="width:140px">À faire</span></label></div>
+<div class="chips"><span class="pill">En retard <span class="x" aria-label="Retirer le filtre En retard">×</span></span><span class="link small">Effacer les filtres</span></div></div>
+<div class="count-line"><span><b style="color:var(--ink)">5 tâches en retard</b> sur 11 à faire · 3 personnes</span><span class="row" style="gap:8px">Grouper par<span class="in sel" style="width:170px;height:36px;font-size:14px">Qui s'en charge</span><span class="seg"><span class="on">Liste</span><span>Calendrier</span></span><span class="btn sm">Sélectionner</span></span></div>
+<div class="tlist">
+<div class="thead"><span>Tâche</span><span>Évènement</span><span>Échéance</span><span>Qui s'en charge</span><span></span><span></span></div>
+<div class="grp">Bastien <small>2 en retard · 6 à faire</small></div>
+<div class="tl"><span class="tt">Confirmer la voiture des mariés</span><span class="ev">Léa & Maxime</span><span class="due late"><b>sam. 21 nov.</b><span><span class="st-ic">!</span>En retard de 4 jours</span></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Fait : « Confirmer la voiture des mariés »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Confirmer la voiture des mariés »"></span></div>
+<div class="tl"><span class="tt">Relancer le traiteur pour le menu enfant</span><span class="ev">Inès & Paul</span><span class="due late"><b>lun. 23 nov.</b><span><span class="st-ic">!</span>En retard de 2 jours</span></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Fait : « Relancer le traiteur pour le menu enfant »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Relancer le traiteur pour le menu enfant »"></span></div>
+<div class="grp">Vous <small>2 en retard · 4 à faire</small></div>
+<div class="tl"><span class="tt">Faire signer le contrat du photographe</span><span class="ev">Léa & Maxime</span><span class="due late"><b>ven. 20 nov.</b><span><span class="st-ic">!</span>En retard de 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Faire signer le contrat du photographe »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Faire signer le contrat du photographe »"></span></div>
+<div class="tl"><span class="tt">Envoyer le devis du séminaire</span><span class="ev">Séminaire Atelier Nord</span><span class="due late"><b>mar. 24 nov.</b><span><span class="st-ic">!</span>En retard de 1 jour</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Envoyer le devis du séminaire »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Envoyer le devis du séminaire »"></span></div>
+<div class="grp">Les clients <small>1 en retard · 1 à faire</small></div>
+<div class="tl"><span class="tt">Choisir la musique de la cérémonie</span><span class="ev">Chloé & Samuel</span><span class="due late"><b>dim. 22 nov.</b><span><span class="st-ic">!</span>En retard de 3 jours</span></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait" aria-label="Fait : « Choisir la musique de la cérémonie »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Choisir la musique de la cérémonie »"></span></div>
+</div></div></div></div></div></div>
+</div>
+
+<div class="size">Les choix de chaque filtre</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,300px);gap:24px;align-items:start">
+<div><div class="field" style="margin-bottom:6px">Évènement</div><div class="pop menu" style="position:static"><div class="mi hl">Tous</div><div class="mi">Hors évènement</div><hr><div class="mi">Léa &amp; Maxime<small>12 juin 2027</small></div><div class="mi">Inès &amp; Paul<small>4 septembre 2027</small></div><div class="mi">Chloé &amp; Samuel<small>18 septembre 2027</small></div></div></div>
+<div><div class="field" style="margin-bottom:6px">Qui s'en charge</div><div class="pop menu" style="position:static"><div class="mi">Tout le monde</div><div class="mi">Vous</div><div class="mi hl">Bastien</div><hr><div class="mi">Les clients<small>Les mariés, ou le client de l'évènement</small></div><div class="mi">Les prestataires</div></div></div>
+<div><div class="field" style="margin-bottom:6px">Période</div><div class="pop menu" style="position:static"><div class="mi">Toutes</div><div class="mi">En retard</div><div class="mi">Cette semaine</div><div class="mi hl">Les 15 prochains jours<small>Retards compris</small></div><div class="mi">Ce mois-ci</div><div class="mi">Entre deux dates…</div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul>
+<li>C-33 : filtres par évènement, personne, période et catégorie, nommés, distincts ; regroupement par mois, évènement ou personne ; le nom du mariage devient un en-tête de groupe avec « Ouvrir la fiche ».</li><li>C-14, C-32 (rejeu : Valérie, Nadia) : « En retard » groupé par « Qui s'en charge » donne les retards de toute l'équipe sur un écran, avec le compte de chacun.</li>
+<li>C-32 : « Vous » et les collègues par leur prénom ; « Planner » disparaît comme valeur ; « Les clients » regroupe les mariés et tout client d'évènement (C-85).</li>
+<li>« En retard » passe de la rangée de pastilles au filtre « Période » ; « À faire / Faites / Toutes » devient « État ».</li>
+</ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Barre de filtres (lot 63)</span><span>Décompte « 4 sur 11 »</span></div>
+<ul><li>Chaque filtre actif est une pastille qui se retire seule ; l'option active n'est plus un fond vert pâle (C-83).</li><li>Les filtres et le tri sont gardés quand on passe au calendrier (acquis).</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="date">
+<h2>Changer une date : un seul geste, un seul nom</h2>
+<p class="intro">« Changer la date… » remplace « Reporter ▾ », « Modifier » et « Décaler de… ». Le même petit panneau s'ouvre depuis le menu de la ligne et, pour plusieurs tâches, depuis la barre de sélection. Un raccourci s'applique tout de suite, avec « Annuler » dans le message de retour. « Reporter » ne sert plus qu'à l'évènement.</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b></div><div class="dwrap"><div class="ui-d short" style="min-height:600px"><div style="grid-column:1/3;padding:48px" class="note-avant">
+<p style="font-size:22px;color:var(--ink);font-family:var(--f-title);font-weight:600;margin:0 0 16px">Quatre chemins pour changer une échéance (C-36)</p>
+<ol style="font-size:20px;line-height:1.6;color:var(--ink)"><li>« Reporter ▾ » sur la ligne : demain, dans une semaine, une date.</li><li>« Modifier » : la fenêtre de la tâche, champ « Échéance » au format « 11/29/2026 ».</li><li>Un clic sur la date de la ligne.</li><li>En lot : « Décaler de… » (déjà à 7 jours).</li></ol>
+<p style="font-size:20px">Dans le Rétroplanning, le menu « Reporter » s'ouvre coupé ou vide et ne se ferme ni par Échap ni par un clic dehors (à revérifier dans l'app). « 2 tâches décalées de 7 jours. » n'offre pas d'annulation (C-09).</p></div></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> « Changer la date… » depuis le menu de la ligne</div>
+<div class="dwrap"><div class="ui-d short" style="min-height:600px"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav on"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct" style="position:relative"><div class="tlist">
+<div class="tl"><span class="tt">Faire signer le contrat du photographe</span><span class="ev">Léa & Maxime</span><span class="due late"><b>ven. 20 nov.</b><span><span class="st-ic">!</span>En retard de 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Faire signer le contrat du photographe »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Faire signer le contrat du photographe »"></span></div>
+<div class="tl"><span class="tt">Confirmer la voiture des mariés</span><span class="ev">Léa & Maxime</span><span class="due late"><b>sam. 21 nov.</b><span><span class="st-ic">!</span>En retard de 4 jours</span></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Fait : « Confirmer la voiture des mariés »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Confirmer la voiture des mariés »"></span></div>
+<div class="tl"><span class="tt">Choisir le fleuriste</span><span class="ev">Léa & Maxime</span><span class="due soon"><b>dim. 29 nov.</b><span><span class="st-ic">◷</span>Dans 4 jours</span></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait" aria-label="Fait : « Choisir le fleuriste »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Choisir le fleuriste »"></span></div>
+<div class="tl"><span class="tt">Organiser la dégustation finale</span><span class="ev">Inès & Paul</span><span class="due soon"><b>lun. 30 nov.</b><span><span class="st-ic">◷</span>Dans 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Organiser la dégustation finale »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Organiser la dégustation finale »"></span></div>
+</div>
+<div class="pop" style="right:48px;top:150px;width:340px;padding:16px" role="dialog" aria-label="Changer la date de « Confirmer la voiture des mariés »">
+<div class="row" style="justify-content:space-between;margin-bottom:4px"><b>Changer la date</b><span class="iconbtn" style="width:36px;height:36px" aria-label="Fermer"><svg aria-hidden="true"><use href="#i-close"/></svg></span></div>
+<div class="small muted" style="margin-bottom:12px">Confirmer la voiture des mariés · prévue le sam. 21 nov.</div>
+<div style="display:grid;gap:8px">
+<span class="btn sm" style="justify-content:space-between">Demain<span class="muted" style="font-weight:400">jeu. 26 nov.</span></span>
+<span class="btn sm" style="justify-content:space-between">Lundi prochain<span class="muted" style="font-weight:400">lun. 30 nov.</span></span>
+<span class="btn sm" style="justify-content:space-between">Dans une semaine<span class="muted" style="font-weight:400">mer. 2 déc.</span></span></div>
+<div class="field" style="margin-top:14px">Autre date<div class="row" style="gap:8px"><span class="in" style="flex:1"><svg aria-hidden="true"><use href="#i-cal"/></svg>jj/mm/aaaa</span><span class="btn sm">Enregistrer</span></div></div>
+<div class="hint" style="margin-top:10px">Un clic ailleurs ferme sans rien changer.</div>
+</div>
+<div style="position:absolute;left:48px;bottom:-110px;width:520px"><div class="toast ok-ic"><div class="tx">Date changée : lun. 30 nov.<small>Confirmer la voiture des mariés</small></div><span class="ub">Annuler</span><span class="cl" aria-label="Fermer">×</span><span class="bar"></span></div></div>
+</div></div></div></div></div>
+</div>
+<div class="pair m" style="margin-top:24px">
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px : le même panneau, en bas</div><div class="mwrap"><div class="ui-m"><div class="mtb"><h1>Tâches</h1><span class="iconbtn" aria-label="Rechercher"><svg aria-hidden="true"><use href="#i-search"/></svg></span><span class="iconbtn" aria-label="Créer"><svg aria-hidden="true"><use href="#i-plus"/></svg></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span></div><div class="mbody">
+<div class="tlm"><div class="txt"><span class="tt">Faire signer le contrat du photographe</span><div class="meta">Léa & Maxime · Vous</div><div class="meta late">En retard de 5 jours · ven. 20 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
+<div class="tlm"><div class="txt"><span class="tt">Confirmer la voiture des mariés</span><div class="meta">Léa & Maxime · Bastien</div><div class="meta late">En retard de 4 jours · sam. 21 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
+<div class="dim"></div>
+<div class="sheet"><div class="grab"></div><div style="padding:0 16px">
+<h3 style="font-size:17px">Changer la date</h3><div class="small muted" style="margin:2px 0 14px">Confirmer la voiture des mariés · prévue le sam. 21 nov.</div>
+<div style="display:grid;gap:8px">
+<span class="btn" style="justify-content:space-between">Demain<span class="muted" style="font-weight:400">jeu. 26 nov.</span></span>
+<span class="btn" style="justify-content:space-between">Lundi prochain<span class="muted" style="font-weight:400">lun. 30 nov.</span></span>
+<span class="btn" style="justify-content:space-between">Dans une semaine<span class="muted" style="font-weight:400">mer. 2 déc.</span></span>
+<span class="btn" style="justify-content:space-between">Autre date…<svg aria-hidden="true"><use href="#i-cal"/></svg></span></div>
+</div></div></div><nav class="mbb" aria-label="Navigation principale"><a><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px : après un raccourci</div><div class="mwrap"><div class="ui-m"><div class="mtb"><h1>Tâches</h1><span class="iconbtn" aria-label="Rechercher"><svg aria-hidden="true"><use href="#i-search"/></svg></span><span class="iconbtn" aria-label="Créer"><svg aria-hidden="true"><use href="#i-plus"/></svg></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">1</span></span><span class="iconbtn" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span></div><div class="mbody">
+<div class="mgrp">Novembre 2026 <small>4</small></div>
+<div class="tlm"><div class="txt"><span class="tt">Faire signer le contrat du photographe</span><div class="meta">Léa & Maxime · Vous</div><div class="meta late">En retard de 5 jours · ven. 20 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
+<div class="tlm"><div class="txt"><span class="tt">Choisir le fleuriste</span><div class="meta">Léa & Maxime · Les mariés</div><div class="meta soon">◷ Dans 4 jours · dim. 29 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
+<div class="tlm"><div class="txt"><span class="tt">Confirmer la voiture des mariés</span><div class="meta">Léa & Maxime · Bastien</div><div class="meta soon">◷ Dans 5 jours · lun. 30 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
+<div class="tlm"><div class="txt"><span class="tt">Organiser la dégustation finale</span><div class="meta">Inès & Paul · Vous</div><div class="meta soon">◷ Dans 5 jours · lun. 30 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
+<div style="position:absolute;left:12px;right:12px;bottom:84px"><div class="toast ok-ic"><div class="tx">Date changée : lun. 30 nov.<small>Confirmer la voiture des mariés</small></div><span class="ub">Annuler</span><span class="bar"></span></div></div>
+</div><nav class="mbb" aria-label="Navigation principale"><a><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="1 en retard">1</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul><li>C-36 : un seul geste et un seul nom, « Changer la date », sur la ligne, dans le panneau de la tâche et en lot ; le panneau se ferme par Échap et par un clic ailleurs ; sur téléphone, il s'ouvre en bas, de toute la largeur.</li><li>C-87 : « Reporter » est rendu à l'évènement.</li><li>C-09 : « Annuler » dans le message de retour, aussi après un changement en lot.</li></ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Pas de bouton plein dans le petit panneau</span><span>Cibles ≥ 44 px sur téléphone</span></div><ul><li>Chaque raccourci dit sa date en clair, au format français.</li><li>La ligne déplacée garde sa place jusqu'au prochain affichage, puis rejoint son ordre.</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="lot">
+<h2>La sélection en lot</h2>
+<p class="intro">« Sélectionner » passe la liste en mode sélection (décision M2) : une case apparaît en tête de chaque ligne, « Fait » et « ⋯ » s'effacent, et une barre se colle au bas de la liste, de toute sa largeur, sans la pousser. À l'ordinateur, elle est aussi nette que sur téléphone : bord d'encre, nombre de tâches choisies en tête, boutons de taille normale. « Terminer » ou Échap rend la liste.</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b></div><div class="dwrap"><div class="ui-d short" style="min-height:600px"><div style="grid-column:1/3;padding:48px" class="note-avant">
+<p style="font-size:22px;color:var(--ink);font-family:var(--f-title);font-weight:600;margin:0 0 16px">Ce que montre le relevé (C-40)</p>
+<p style="font-size:20px">Une case carrée sans libellé en tête de chaque ligne, à côté du rond « Fait » (C-35).</p>
+<p style="font-size:20px">Cocher la première insère la barre « 1 tâche sélectionnée » au-dessus du tableau : la liste descend de 74 px et le clic suivant tombe à côté.</p>
+<p style="font-size:20px">Acquis à garder : « Décaler de… » déjà à 7, « Responsable », « Catégorie », et le message « 2 tâches décalées de 7 jours. »</p></div></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> trois tâches cochées, la barre collée au bas de la liste</div>
+<div class="dwrap"><div class="ui-d"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav on"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<div class="ph"><div><h1>Tâches</h1><div class="sub">Les tâches de tous vos évènements et de l'agence</div></div><span class="btn p"><svg aria-hidden="true"><use href="#i-plus"/></svg>Nouvelle tâche</span></div>
+<div class="card" style="padding:16px 20px"><div class="filters"><label class="field">Évènement<span class="in sel" style="width:210px">Tous</span></label><label class="field">Qui s'en charge<span class="in sel" style="width:180px">Tout le monde</span></label><label class="field">Période<span class="in sel" style="width:210px">Toutes</span></label><label class="field">Catégorie<span class="in sel" style="width:170px">Toutes</span></label><label class="field">État<span class="in sel" style="width:140px">À faire</span></label></div></div>
+<div class="count-line"><span><b style="color:var(--ink)">8 tâches à faire</b> sur 42</span><span class="row" style="gap:8px"><span class="link small">Tout sélectionner (8)</span><span class="btn sm">Terminer</span></span></div>
+<div class="tlist">
+<div class="thead sel"><span></span><span>Tâche</span><span>Évènement</span><span>Échéance</span><span>Qui s'en charge</span><span></span></div>
+<div class="tl checked sel"><span class="chk on" role="checkbox"></span><span class="tt">Faire signer le contrat du photographe</span><span class="ev">Léa & Maxime</span><span class="due late"><b>ven. 20 nov.</b><span><span class="st-ic">!</span>En retard de 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span></span></div>
+<div class="tl checked sel"><span class="chk on" role="checkbox"></span><span class="tt">Confirmer la voiture des mariés</span><span class="ev">Léa & Maxime</span><span class="due late"><b>sam. 21 nov.</b><span><span class="st-ic">!</span>En retard de 4 jours</span></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span></span></div>
+<div class="tl sel"><span class="chk" role="checkbox"></span><span class="tt">Choisir le fleuriste</span><span class="ev">Léa & Maxime</span><span class="due soon"><b>dim. 29 nov.</b><span><span class="st-ic">◷</span>Dans 4 jours</span></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span></span></div>
+<div class="tl checked sel"><span class="chk on" role="checkbox"></span><span class="tt">Organiser la dégustation finale</span><span class="ev">Inès & Paul</span><span class="due soon"><b>lun. 30 nov.</b><span><span class="st-ic">◷</span>Dans 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span></span></div>
+<div class="tl sel"><span class="chk" role="checkbox"></span><span class="tt">Déclaration de TVA du trimestre</span><span class="ev none">Hors évènement</span><span class="due"><b>mar. 1er déc.</b></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span></span></div>
+<div class="tl sel"><span class="chk" role="checkbox"></span><span class="tt">Valider le faire-part du brunch</span><span class="ev">Léa & Maxime</span><span class="due"><b>jeu. 3 déc.</b></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span></span></div>
+<div class="tl sel"><span class="chk" role="checkbox"></span><span class="tt">Réserver le photobooth</span><span class="ev">Chloé & Samuel</span><span class="due"><b>ven. 11 déc.</b></span><span class="who"><span class="avatar sm">ML</span>Maison Lumen</span><span></span></div>
+</div></div></div>
+<div class="selbar" role="toolbar" aria-label="Actions sur 3 tâches sélectionnées" style="left:232px">
+<span class="n">3 tâches sélectionnées</span>
+<span class="btn"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="btn">Changer la date…</span><span class="btn">Confier à…</span><span class="btn">Catégorie…</span><span class="more bd" aria-label="Autres actions, dont Supprimer"></span><span style="flex:1"></span><span class="btn ghost">Terminer</span></div>
+<div class="pop" style="left:700px;bottom:82px;width:360px;padding:16px">
+<b>Changer la date de 3 tâches</b>
+<div style="display:grid;gap:10px;margin-top:12px">
+<div class="row" style="gap:10px"><span class="radio on"></span>Décaler de<span class="in" style="width:64px;height:36px;justify-content:center">7</span>jours</div>
+<div class="row" style="gap:10px"><span class="radio"></span>Toutes au<span class="in ph-t" style="width:150px;height:36px">jj/mm/aaaa</span></div></div>
+<div class="row" style="margin-top:14px;justify-content:flex-end;gap:8px"><span class="btn sm">Fermer</span><span class="btn sm p">Appliquer à 3 tâches</span></div></div>
+</div></div></div>
+</div>
+<div class="pair m" style="margin-top:24px">
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, mode sélection</div><div class="mwrap"><div class="ui-m"><div class="mtb"><h1 style="font-size:17px">3 sélectionnées</h1><span class="btn ghost">Tout (8)</span><span class="btn ghost">Terminer</span></div><div class="mbody">
+<div class="mgrp">Novembre 2026 <small>4</small></div>
+<div class="tlm sel"><span class="chkc"><span class="chk on"></span></span><div class="txt"><span class="tt">Faire signer le contrat du photographe</span><div class="meta">Léa & Maxime · Vous</div><div class="meta late">En retard de 5 jours · ven. 20 nov.</div></div></div>
+<div class="tlm sel"><span class="chkc"><span class="chk on"></span></span><div class="txt"><span class="tt">Confirmer la voiture des mariés</span><div class="meta">Léa & Maxime · Bastien</div><div class="meta late">En retard de 4 jours · sam. 21 nov.</div></div></div>
+<div class="tlm sel"><span class="chkc"><span class="chk"></span></span><div class="txt"><span class="tt">Choisir le fleuriste</span><div class="meta">Léa & Maxime · Les mariés</div><div class="meta soon">◷ Dans 4 jours · dim. 29 nov.</div></div></div>
+<div class="tlm sel"><span class="chkc"><span class="chk on"></span></span><div class="txt"><span class="tt">Organiser la dégustation finale</span><div class="meta">Inès & Paul · Vous</div><div class="meta soon">◷ Dans 5 jours · lun. 30 nov.</div></div></div>
+<div class="tlm sel"><span class="chkc"><span class="chk"></span></span><div class="txt"><span class="tt">Déclaration de TVA du trimestre</span><div class="meta">Hors évènement · Vous</div><div class="meta plain">mar. 1er déc.</div></div></div>
+</div>
+<nav class="mbb" style="grid-template-columns:repeat(4,1fr)" aria-label="Actions sur la sélection"><a><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</a><a><svg aria-hidden="true"><use href="#i-cal"/></svg>Date</a><a><svg aria-hidden="true"><use href="#i-user"/></svg>Confier</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav>
+</div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, « Confier » ouvert</div><div class="mwrap"><div class="ui-m"><div class="mtb"><h1 style="font-size:17px">3 sélectionnées</h1><span class="btn ghost">Terminer</span></div><div class="mbody">
+<div class="tlm sel"><span class="chkc"><span class="chk on"></span></span><div class="txt"><span class="tt">Faire signer le contrat du photographe</span><div class="meta">Léa & Maxime · Vous</div><div class="meta late">En retard de 5 jours · ven. 20 nov.</div></div></div>
+<div class="tlm sel"><span class="chkc"><span class="chk on"></span></span><div class="txt"><span class="tt">Confirmer la voiture des mariés</span><div class="meta">Léa & Maxime · Bastien</div><div class="meta late">En retard de 4 jours · sam. 21 nov.</div></div></div>
+<div class="dim"></div>
+<div class="sheet"><div class="grab"></div><div style="padding:0 20px 8px"><h3 style="font-size:17px">Confier 3 tâches à…</h3></div>
+<div class="si"><span class="avatar">CR</span>Vous</div><div class="si"><span class="avatar">BL</span>Bastien</div><div class="si"><span class="avatar couple">M</span>Les clients de chaque évènement</div><hr><div class="si"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Un prestataire…</div></div>
+</div></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul>
+<li>C-40 : la barre ne s'insère plus au-dessus du tableau : elle se colle au bas de la liste, qui ne bouge pas ; sur téléphone, elle remplace la barre du bas et les choix s'ouvrent en panneau du bas, de toute la largeur.</li>
+<li>C-35 : la case de sélection n'existe qu'en mode sélection ; elle ne côtoie jamais « Fait ».</li>
+<li>C-36 : « Décaler de… » devient « Changer la date de 3 tâches », avec ses deux façons ; le bouton dit combien de tâches il touche.</li>
+<li>C-09 : « 3 tâches décalées de 7 jours. Annuler » (voir la page « Retour après action »).</li>
+</ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Une barre d'actions, au même endroit</span><span>Supprimer dans « ⋯ », séparé</span></div>
+<ul><li>M2 (porte 3) : on entre en sélection par le bouton « Sélectionner ». Réserve de Julien : à l'ordinateur, la barre doit se voir autant que sur téléphone ; d'où le bord d'encre, l'ombre, le nombre de tâches en tête et des boutons de taille normale.</li><li>« Fait » est le seul mot du geste, en lot comme sur une ligne (M11).</li><li>Le passage en mode sélection décale les lignes de 40 px d'un coup, à la demande ; plus rien ne bouge pendant qu'on coche.</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="vide">
+<h2>L'écran vide, et le mariage repris sans tâches</h2>
+<p class="intro">Trois situations, trois textes : rien encore (espace neuf), tout est fait, et aucune tâche ne répond aux filtres. Un quatrième cas vient de la reprise : un mariage repris dont les tâches sont restées dans l'ancien outil.</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b> « tout est à jour » pour un espace vide ; le seul bouton plein est en bas</div>
+<div class="dwrap"><img src="../../audits/2026-11-ux-parcours/preuves/taches-vide-1440.jpg" width="1440" alt="Tâches vide aujourd'hui"></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> espace neuf : rien encore</div>
+<div class="dwrap"><div class="ui-d"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav on"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches</a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<div class="ph"><div><h1>Tâches</h1><div class="sub">Les tâches de tous vos évènements et de l'agence</div></div></div>
+<div class="empty"><h3>Pas encore de tâche</h3>
+<p style="margin:0 0 8px;max-width:720px">Les tâches d'un mariage arrivent avec son rétroplanning dès que vous créez l'évènement : chacune a son échéance, comptée depuis le jour J. Vous pouvez aussi noter ici ce qui ne dépend d'aucun mariage.</p>
+<p class="muted small" style="margin:0 0 20px">Par exemple : « Envoyer les faire-part », six semaines avant le jour J ; « Déclaration de TVA », tous les trois mois.</p>
+<div class="row"><span class="btn p"><svg aria-hidden="true"><use href="#i-plus"/></svg>Nouvel évènement</span><span class="btn">Nouvelle tâche hors évènement</span><span class="link small">Lire l'aide</span></div></div>
+</div></div></div></div>
+</div>
+<div class="pair" style="margin-top:24px">
+<div class="side"><div class="cap"><b class="new">Proposé</b> tout est fait</div>
+<div class="dwrap"><div class="ui-d short" style="min-height:560px"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav on"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches</a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<div class="ph"><div><h1>Tâches</h1><div class="sub">Les tâches de tous vos évènements et de l'agence</div></div><span class="btn p"><svg aria-hidden="true"><use href="#i-plus"/></svg>Nouvelle tâche</span></div>
+<div class="card" style="padding:16px 20px"><div class="filters"><label class="field">Évènement<span class="in sel" style="width:210px">Tous</span></label><label class="field">Qui s'en charge<span class="in sel" style="width:180px">Tout le monde</span></label><label class="field">Période<span class="in sel" style="width:210px">Toutes</span></label><label class="field">Catégorie<span class="in sel" style="width:170px">Toutes</span></label><label class="field">État<span class="in sel" style="width:140px">À faire</span></label></div></div>
+<div class="empty" style="margin-top:16px"><h3><svg aria-hidden="true"><use href="#i-check"/></svg> Tout est fait</h3><p style="margin:0 0 16px">Aucune tâche à faire : les 42 tâches de vos 4 évènements sont faites. La prochaine arrive le lun. 14 déc. (Inès &amp; Paul).</p><span class="link small">Voir les tâches faites</span></div>
+</div></div></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> filtres sans résultat</div>
+<div class="dwrap"><div class="ui-d short" style="min-height:560px"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav on"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<div class="ph"><div><h1>Tâches</h1><div class="sub">Les tâches de tous vos évènements et de l'agence</div></div><span class="btn p"><svg aria-hidden="true"><use href="#i-plus"/></svg>Nouvelle tâche</span></div>
+<div class="card" style="padding:16px 20px"><div class="filters"><label class="field">Évènement<span class="in sel" style="width:210px">Chloé &amp; Samuel</span></label><label class="field">Qui s'en charge<span class="in sel" style="width:180px">Bastien</span></label><label class="field">Période<span class="in sel" style="width:210px">En retard</span></label><label class="field">Catégorie<span class="in sel" style="width:170px">Toutes</span></label><label class="field">État<span class="in sel" style="width:140px">À faire</span></label></div>
+<div class="chips"><span class="pill">Chloé &amp; Samuel <span class="x">×</span></span><span class="pill">Bastien <span class="x">×</span></span><span class="pill">En retard <span class="x">×</span></span><span class="link small">Effacer les filtres</span></div></div>
+<div class="empty" style="margin-top:16px"><h3>Aucune tâche ne répond à ces trois filtres</h3><p style="margin:0 0 16px">Bastien n'a aucune tâche en retard sur « Chloé &amp; Samuel ». Il a 4 tâches à faire sur cet évènement.</p><div class="row"><span class="btn">Effacer les filtres</span><span class="link small">Retirer « En retard »</span></div></div>
+</div></div></div></div></div>
+</div>
+<div class="pair" style="margin-top:24px">
+<div class="side"><div class="cap"><b>Aujourd'hui</b> un mariage repris : l'onglet « Rétroplanning » dit « 0 tâche faite sur 0 » et parle des modèles</div>
+<div class="dwrap"><img src="../../audits/2026-11-ux-parcours/preuves/fiche-reprise-retroplanning-1440.jpg" width="1440" alt="Fiche d'un mariage repris, onglet Rétroplanning"></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> repris : le mariage sans tâches est signalé dans la liste</div>
+<div class="dwrap"><div class="ui-d"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav on"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<div class="ph"><div><h1>Tâches</h1><div class="sub">Les tâches de tous vos évènements et de l'agence</div></div><span class="btn p"><svg aria-hidden="true"><use href="#i-plus"/></svg>Nouvelle tâche</span></div>
+<div class="notice warn" style="margin-bottom:16px"><span><b>À vérifier : « Léa &amp; Hugo », repris le 24 nov., n'a pas encore de tâches.</b><br>Ses tâches sont restées dans votre ancien outil. Reprenez votre liste depuis un tableur, ou partez d'un modèle de rétroplanning : les échéances déjà passées ne seront pas mises en retard.</span><span style="flex:1"></span><span class="row" style="gap:8px;flex:none"><span class="btn sm">Reprendre la liste de votre tableur</span><span class="btn sm">Partir d'un modèle Symbola</span></span></div>
+<div class="card" style="padding:16px 20px"><div class="filters"><label class="field">Évènement<span class="in sel" style="width:210px">Tous</span></label><label class="field">Qui s'en charge<span class="in sel" style="width:180px">Tout le monde</span></label><label class="field">Période<span class="in sel" style="width:210px">Toutes</span></label><label class="field">Catégorie<span class="in sel" style="width:170px">Toutes</span></label><label class="field">État<span class="in sel" style="width:140px">À faire</span></label></div></div>
+<div class="count-line"><span><b style="color:var(--ink)">3 tâches à faire</b> sur 30 · 1 évènement sans tâches</span></div>
+<div class="tlist">
+<div class="thead"><span>Tâche</span><span>Évènement</span><span>Échéance</span><span>Qui s'en charge</span><span></span><span></span></div>
+<div class="tl"><span class="tt">Organiser la dégustation finale</span><span class="ev">Inès & Paul</span><span class="due soon"><b>lun. 30 nov.</b><span><span class="st-ic">◷</span>Dans 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Organiser la dégustation finale »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Organiser la dégustation finale »"></span></div>
+<div class="tl"><span class="tt">Déclaration de TVA du trimestre</span><span class="ev none">Hors évènement</span><span class="due"><b>mar. 1er déc.</b></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Déclaration de TVA du trimestre »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Déclaration de TVA du trimestre »"></span></div>
+<div class="tl"><span class="tt">Réserver le photobooth</span><span class="ev">Chloé & Samuel</span><span class="due"><b>ven. 11 déc.</b></span><span class="who"><span class="avatar sm">ML</span>Maison Lumen</span><span class="fait" aria-label="Fait : « Réserver le photobooth »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Réserver le photobooth »"></span></div>
+</div></div></div></div></div></div>
+</div>
+<div class="pair m" style="margin-top:24px">
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, espace neuf</div><div class="mwrap"><div class="ui-m"><div class="mtb"><h1>Tâches</h1><span class="iconbtn" aria-label="Rechercher"><svg aria-hidden="true"><use href="#i-search"/></svg></span><span class="iconbtn" aria-label="Créer"><svg aria-hidden="true"><use href="#i-plus"/></svg></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg></span><span class="iconbtn" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span></div><div class="mbody mpad">
+<div class="empty" style="padding:24px 20px"><h3>Pas encore de tâche</h3><p style="margin:0 0 8px">Les tâches d'un mariage arrivent avec son rétroplanning dès que vous créez l'évènement. Vous pouvez aussi noter ici ce qui ne dépend d'aucun mariage.</p><p class="muted small" style="margin:0 0 16px">Par exemple : « Déclaration de TVA », tous les trois mois.</p>
+<div style="display:grid;gap:8px"><span class="btn p block"><svg aria-hidden="true"><use href="#i-plus"/></svg>Nouvel évènement</span><span class="btn block">Nouvelle tâche hors évènement</span></div></div>
+</div><nav class="mbb" aria-label="Navigation principale"><a><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches</a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, mariage repris sans tâches</div><div class="mwrap"><div class="ui-m"><div class="mtb"><h1>Tâches</h1><span class="iconbtn" aria-label="Rechercher"><svg aria-hidden="true"><use href="#i-search"/></svg></span><span class="iconbtn" aria-label="Créer"><svg aria-hidden="true"><use href="#i-plus"/></svg></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span></div><div class="mbody">
+<div class="mpad" style="padding-bottom:8px"><div class="notice warn" style="flex-direction:column;gap:10px"><span><b>À vérifier : « Léa &amp; Hugo », repris le 24 nov., n'a pas encore de tâches.</b> Elles sont restées dans votre ancien outil.</span><div style="display:grid;gap:8px;width:100%"><span class="btn block">Reprendre la liste de votre tableur</span><span class="btn block">Partir d'un modèle Symbola</span></div></div>
+<div class="row" style="gap:8px;margin-top:12px"><span class="btn" style="flex:1;justify-content:flex-start"><svg aria-hidden="true"><use href="#i-filter"/></svg>Filtres</span></div></div>
+<div class="tlm"><div class="txt"><span class="tt">Organiser la dégustation finale</span><div class="meta">Inès & Paul · Vous</div><div class="meta soon">◷ Dans 5 jours · lun. 30 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
+<div class="tlm"><div class="txt"><span class="tt">Déclaration de TVA du trimestre</span><div class="meta">Hors évènement · Vous</div><div class="meta plain">mar. 1er déc.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
+</div><nav class="mbb" aria-label="Navigation principale"><a><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul>
+<li>C-37 : « rien encore », « tout est fait » et « aucun résultat » ont trois textes ; dans l'espace neuf, l'état vide porte la seule action principale, « Nouvel évènement », puisque les tâches naissent d'un évènement (rejeu : Clémence), et l'en-tête n'a pas de second bouton plein.</li>
+<li>C-55, C-56 (volet reprise) : un mariage repris sans tâches n'est plus « à jour » : il est signalé, avec deux suites.</li>
+<li>D11, C-54 : « Reprendre la liste de votre tableur » mène à la page de reprise (2e vague), qui accueille la liste « à faire » d'un tableur.</li>
+<li>P-01 : partir d'un modèle sur un mariage repris ne met pas en retard les échéances déjà passées (règle à spécifier au volet reprise).</li>
+</ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>État vide : titre, phrase, exemple, action, aide</span><span>Une action principale</span></div>
+<ul><li>Gabarit des états vides d'« Évènements » et du carnet, repris (acquis H-TX-42).</li><li>Le bandeau « À vérifier : » suit la règle des messages du lot 62 : le texte dit ce que c'est avant la couleur.</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="faites">
+<h2>Retrouver une tâche faite par erreur, une fois « Annuler » passé (D1)</h2>
+<p class="intro">« État : Faites » trie par date de fin, la plus récente en tête, et la ligne remplace « Fait » par « Rouvrir ». On y arrive par le filtre, par « Les revoir » sous « À traiter en premier » sur l'accueil, ou par le panneau de la tâche.</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b></div><div class="dwrap"><div class="ui-d short" style="min-height:600px"><div style="grid-column:1/3;padding:48px" class="note-avant">
+<p style="font-size:22px;color:var(--ink);font-family:var(--f-title);font-weight:600;margin:0 0 16px">Ce qu'a montré la vérification D1</p>
+<p style="font-size:20px">« Annuler » rend bien la tâche à sa place, mais disparaît après dix secondes.</p>
+<p style="font-size:20px">Ensuite, la tâche se rouvre par « Rouvrir » dans « Tâches › Toutes », triée par échéance : à 8 000 px de défilement sur 13 000, au milieu des tâches à faire.</p></div></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> État : Faites, les plus récentes en tête</div>
+<div class="dwrap"><div class="ui-d"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav on"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<div class="ph"><div><h1>Tâches</h1><div class="sub">Les tâches de tous vos évènements et de l'agence</div></div><span class="btn p"><svg aria-hidden="true"><use href="#i-plus"/></svg>Nouvelle tâche</span></div>
+<div class="card" style="padding:16px 20px"><div class="filters"><label class="field">Évènement<span class="in sel" style="width:210px">Tous</span></label><label class="field">Qui s'en charge<span class="in sel" style="width:180px">Tout le monde</span></label><label class="field">Période<span class="in sel" style="width:210px">Toutes</span></label><label class="field">Catégorie<span class="in sel" style="width:170px">Toutes</span></label><label class="field">État<span class="in sel" style="width:140px">Faites</span></label></div>
+<div class="chips"><span class="pill">Faites <span class="x">×</span></span><span class="link small">Effacer les filtres</span></div></div>
+<div class="count-line"><span><b style="color:var(--ink)">34 tâches faites</b> sur 42</span><span class="row" style="gap:8px">Grouper par<span class="in sel" style="width:170px;height:36px;font-size:14px">Jour</span></span></div>
+<div class="tlist">
+<div class="thead"><span>Tâche</span><span>Évènement</span><span>Faite le</span><span>Cochée par</span><span></span><span></span></div>
+<div class="grp">Aujourd'hui <small>3 tâches</small></div>
+<div class="tl done"><span class="tt">Choisir le fleuriste</span><span class="ev">Léa & Maxime</span><span class="due plain"><b>25 nov. à 14 h 40</b><span>Échéance : 29 nov.</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait">Rouvrir</span><span class="more" aria-label="Autres actions pour « Choisir le fleuriste »"></span></div>
+<div class="tl done"><span class="tt">Envoyer l'acompte au DJ</span><span class="ev">Inès & Paul</span><span class="due plain"><b>25 nov. à 11 h 05</b><span>Échéance : 27 nov.</span></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait">Rouvrir</span><span class="more" aria-label="Autres actions pour « Envoyer l'acompte au DJ »"></span></div>
+<div class="tl done"><span class="tt">Choisir les alliances</span><span class="ev">Léa & Maxime</span><span class="due plain"><b>25 nov. à 9 h 12</b><span>Échéance : 30 nov.</span></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait">Rouvrir</span><span class="more" aria-label="Autres actions pour « Choisir les alliances »"></span></div>
+<div class="grp">Hier <small>2 tâches</small></div>
+<div class="tl done"><span class="tt">Réserver la salle du brunch</span><span class="ev">Léa & Maxime</span><span class="due plain"><b>24 nov. à 18 h 20</b><span>Échéance : 24 nov.</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait">Rouvrir</span><span class="more" aria-label="Autres actions pour « Réserver la salle du brunch »"></span></div>
+<div class="tl done"><span class="tt">Relire le contrat du traiteur</span><span class="ev">Chloé & Samuel</span><span class="due plain"><b>24 nov. à 10 h 02</b><span>Échéance : 1er déc.</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait">Rouvrir</span><span class="more" aria-label="Autres actions pour « Relire le contrat du traiteur »"></span></div>
+</div></div></div></div></div>
+</div>
+<div class="pair m" style="margin-top:24px">
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px</div><div class="mwrap"><div class="ui-m"><div class="mtb"><h1>Tâches</h1><span class="iconbtn" aria-label="Rechercher"><svg aria-hidden="true"><use href="#i-search"/></svg></span><span class="iconbtn" aria-label="Créer"><svg aria-hidden="true"><use href="#i-plus"/></svg></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span></div><div class="mbody">
+<div class="mpad" style="padding-bottom:8px"><div class="row" style="gap:8px"><span class="btn" style="flex:1;justify-content:flex-start"><svg aria-hidden="true"><use href="#i-filter"/></svg>Filtres<span class="pill" style="margin-left:auto;height:22px">1</span></span></div>
+<div class="small muted" style="margin-top:10px"><b style="color:var(--ink)">34 tâches faites</b> sur 42 · les plus récentes en tête</div></div>
+<div class="mgrp">Aujourd'hui <small>3</small></div>
+<div class="tlm"><div class="txt"><span class="tt">Choisir le fleuriste</span><div class="meta">Léa & Maxime · Vous</div><div class="meta">Cochée à 14 h 40 par vous</div></div><span class="fait">Rouvrir</span><span class="more"></span></div>
+<div class="tlm"><div class="txt"><span class="tt">Envoyer l'acompte au DJ</span><div class="meta">Inès & Paul · Bastien</div><div class="meta">Cochée à 11 h 05 par Bastien</div></div><span class="fait">Rouvrir</span><span class="more"></span></div>
+<div class="tlm"><div class="txt"><span class="tt">Choisir les alliances</span><div class="meta">Léa & Maxime · Les mariés</div><div class="meta">Cochée à 9 h 12 par les mariés</div></div><span class="fait">Rouvrir</span><span class="more"></span></div>
+<div class="mgrp">Hier <small>2</small></div>
+<div class="tlm"><div class="txt"><span class="tt">Réserver la salle du brunch</span><div class="meta">Léa & Maxime · Vous</div><div class="meta">Cochée à 18 h 20 par vous</div></div><span class="fait">Rouvrir</span><span class="more"></span></div>
+</div><nav class="mbb" aria-label="Navigation principale"><a><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul><li>D1 (P-16) : une tâche faite par erreur se retrouve en deux gestes, en tête de liste, avec qui l'a faite et quand.</li><li>C-38 : « Rouvrir » prend la place de « Fait » ; la ligne garde sa forme.</li></ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Même ligne, autre action rapide</span></div><ul><li>Les colonnes changent de titre avec l'état : « Faite le », « Cochée par » (qui a coché, pas qui s'en chargeait : rejeu, Valérie).</li><li>Pas de barré : une tâche faite reste lisible, en gris.</li></ul></div>
+</div>
+</section>
+
+</div>
+<script>
+(function(){
+  function fit(){document.querySelectorAll('.dwrap').forEach(function(w){
+    var k=document.body.classList.contains('reel')?1:Math.min(1,w.clientWidth/1440);w.style.setProperty('--kd',k);});}
+  window.addEventListener('resize',fit);fit();
+  document.querySelectorAll('[data-mode]').forEach(function(b){b.addEventListener('click',function(){
+    document.body.classList.toggle('reel',b.dataset.mode==='reel');
+    document.querySelectorAll('[data-mode]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});fit();});});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lot 68 · Transverse : barre du haut, « Créer », barre du bas</title>
+<style>
+/* Jetons de DESIGN.md (ADR 0057), sans aucune valeur nouvelle. Polices : Inter et Space Grotesk si
+   elles sont installées, sinon la police du système (aucune dépendance externe). */
+:root{--primary:#0F6E5C;--on-primary:#FFFFFF;--primary-soft:#E3F1EE;--primary-strong:#0B5A4B;--ground:#F6F7F9;--surface:#FFFFFF;--ink:#14181F;--muted:#5A6372;--line:#DDE1E7;--line-strong:#838C99;--attention:#9A5B00;--attention-soft:#FBF0DC;--critical:#B3261E;--critical-soft:#FBE9E7;--float:0 8px 24px rgba(20,24,31,.12);
+--f-body:Inter,"Inter var",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;--f-title:"Space Grotesk",Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;--kd:.45}
+*{box-sizing:border-box}
+
+body{margin:0;background:#E9ECF0;color:var(--ink);font:15px/1.5 var(--f-body)}
+h1,h2,h3,h4{font-family:var(--f-title);font-weight:600;margin:0}
+a{color:var(--primary)}
+button{font:inherit;color:inherit}
+/* ——— Le document qui présente les maquettes ——— */
+.doc{max-width:1680px;margin:0 auto;padding:32px 32px 96px}
+.doc>header{max-width:980px}
+.doc>header h1{font-size:32px;line-height:1.15}
+.doc>header p{color:var(--muted);margin:8px 0}
+.crumbs{font-size:13px;margin-bottom:12px}
+.toolbar-doc{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px -32px 0;padding:10px 32px;background:rgba(233,236,240,.96);border-bottom:1px solid var(--line)}
+.toolbar-doc .lbl{font-size:13px;color:var(--muted);margin-right:4px}
+.toolbar-doc button,.toc a{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);text-decoration:none;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer}
+.toolbar-doc button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.part{margin-top:64px;padding-top:16px;border-top:2px solid var(--line-strong);font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mock{margin-top:40px;scroll-margin-top:72px}
+.mock>h2{font-size:22px}
+.mock>.intro{color:var(--muted);max-width:980px;margin:4px 0 16px}
+.size{margin:24px 0 8px;font:600 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+.pair.m{grid-template-columns:repeat(auto-fill,375px);gap:24px 32px}
+.side{min-width:0}
+.cap{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:13px;color:var(--muted)}
+.cap b{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;background:#fff;border:1px solid var(--line-strong);color:var(--ink)}
+.cap b.new{background:var(--primary);border-color:var(--primary);color:#fff}
+.dwrap{width:100%;overflow:hidden;border-radius:12px;border:1px solid var(--line-strong);background:var(--ground)}
+.dwrap>.ui-d,.dwrap>img{zoom:var(--kd)}.dwrap>img{display:block}
+body.reel .pair:not(.m){grid-template-columns:minmax(0,1fr)}
+body.reel .dwrap{overflow-x:auto}
+body.reel .dwrap>.ui-d,body.reel .dwrap>img{zoom:1}
+.mwrap{width:377px;border:1px solid var(--line-strong);border-radius:20px;overflow:hidden;background:var(--ground)}
+.mwrap>img{display:block;width:375px}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:16px 40px;margin:20px 0 0;padding:16px 20px;background:var(--surface);border:1px solid var(--line);border-radius:16px;font-size:14px}
+.rules h4{font:600 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.rules ul{margin:0;padding-left:18px}
+.rules li{margin:3px 0}
+.rules .count{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.rules .count span{display:inline-flex;height:26px;align-items:center;padding:0 10px;border-radius:999px;background:var(--ground);border:1px solid var(--line);font-size:12px;font-weight:500}
+.note-avant{padding:16px;font-size:14px;color:var(--muted);background:#fff}
+.callout{font-size:12px;font-weight:600;color:#fff;background:#4B3BD9;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;font-family:var(--f-body)}
+.legend-callouts{font-size:13px;margin:8px 0 0;padding-left:0;list-style:none;display:grid;gap:4px}
+.legend-callouts li{display:flex;gap:8px;align-items:flex-start}
+table.doc-t{border-collapse:collapse;width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px}
+table.doc-t th{text-align:left;font:600 12px var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--ground)}
+table.doc-t td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.doc-t td s{color:var(--muted)}
+
+/* ——— L'app : cadre d'ordinateur (1 440 px) ——— */
+svg[aria-hidden]{width:20px;height:20px;flex:none}
+.fait svg,.btn.sm svg{width:16px;height:16px}
+.pill svg{width:14px;height:14px}
+.in svg{width:18px;height:18px;color:var(--muted)}
+.small svg{width:16px;height:16px;vertical-align:-3px}
+.ui-d{width:1440px;min-height:900px;display:grid;grid-template-columns:232px 1fr;background:var(--ground);position:relative;font-size:15px;overflow:hidden}
+.ui-d.short{min-height:0}
+.sb{background:var(--surface);border-right:1px solid var(--line);padding:20px 16px;display:flex;flex-direction:column;gap:2px}
+.logo{display:flex;align-items:center;gap:10px;font:600 20px var(--f-title);padding:4px 8px 20px}
+.logo i{width:26px;height:26px;border-radius:999px;border:2.5px solid var(--primary);position:relative;display:inline-block}
+.logo i:after{content:"";position:absolute;left:6px;top:3px;width:12px;height:16px;border-radius:999px;border:2.5px solid var(--primary)}
+.nav{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-size:15px;white-space:nowrap}
+.nav svg{width:20px;height:20px;flex:none}
+.nav.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.nav .cnt{margin-left:auto;font-size:12px;font-weight:600;height:22px;padding:0 8px;border-radius:999px;display:inline-flex;align-items:center;background:var(--critical-soft);color:var(--critical);white-space:nowrap}
+.sb hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+.main{min-width:0;display:flex;flex-direction:column}
+.tb{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;height:68px;padding:0 48px;background:var(--surface);border-bottom:1px solid var(--line)}
+.tb.old{background:transparent;border:0;height:88px}
+.search{width:520px;height:44px;border:1px solid var(--line-strong);border-radius:6px;padding:0 14px;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:15px;background:#fff}
+.search svg{width:18px;height:18px;flex:none}
+.kbd{margin-left:auto;font:500 12px var(--f-body);border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--muted)}
+.tb .sp{flex:1}
+.iconbtn{width:44px;height:44px;border-radius:10px;border:1px solid transparent;background:transparent;display:inline-flex;align-items:center;justify-content:center;position:relative;flex:none;color:var(--ink)}
+.iconbtn svg{width:20px;height:20px}
+.iconbtn.bd{border-color:var(--line-strong);background:#fff}
+.iconbtn .badge{position:absolute;top:4px;right:4px;min-width:18px;height:18px;border-radius:999px;background:var(--critical);color:#fff;font:600 11px/18px var(--f-body);text-align:center;padding:0 4px}
+.avatar{width:32px;height:32px;border-radius:999px;background:var(--ground);border:1px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font:600 12px var(--f-body);color:var(--ink);flex:none}
+.avatar.sm{width:24px;height:24px;font-size:11px}
+.avatar.couple{border-style:dashed}
+.acct{display:flex;align-items:center;gap:8px;height:44px;padding:0 8px 0 6px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:14px}
+.ct{padding:28px 48px 48px;max-width:1208px;width:100%}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
+.ph h1{font-size:22px;line-height:1.25}
+.ph .sub{color:var(--muted);font-size:14px;margin-top:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px}
+.card+.card{margin-top:16px}
+.card h3{font-size:17px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:12px;align-items:center}
+.wrap{flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 16px;border-radius:10px;font:600 15px var(--f-body);border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);white-space:nowrap;cursor:default}
+.btn svg{width:18px;height:18px}
+.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.danger{border-color:var(--critical);color:var(--critical);background:#fff}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--primary);padding:0 10px}
+.btn.sm{height:36px;padding:0 12px;font-size:14px;border-radius:8px}
+.btn.block{width:100%}
+.link{color:var(--primary);text-decoration:underline;text-underline-offset:3px}
+.field{display:flex;flex-direction:column;gap:6px;font:500 13px/1.35 var(--f-body)}
+.in{height:44px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;padding:0 12px;display:flex;align-items:center;font:400 15px var(--f-body);color:var(--ink);gap:8px;min-width:0}
+.in.ph-t{color:var(--muted)}
+.in.sel{justify-content:space-between}
+.in.sel:after{content:"";width:8px;height:8px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg) translateY(-3px);flex:none}
+.in.area{height:88px;align-items:flex-start;padding-top:10px}
+.in.err{border:2px solid var(--critical)}
+.in.focus{outline:3px solid var(--primary);outline-offset:1px}
+.err-msg{color:var(--critical);font:500 13px var(--f-body);display:flex;gap:6px;align-items:flex-start}
+.req{color:var(--ink)}
+.hint{color:var(--muted);font:400 13px var(--f-body)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font:500 13px var(--f-body);background:var(--ground);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.pill.late{background:var(--critical-soft);color:var(--critical);border-color:transparent}
+.pill.soon{background:var(--attention-soft);color:var(--attention);border-color:transparent}
+.pill.ok{background:var(--primary-soft);color:var(--primary);border-color:transparent}
+.pill .x{font-size:14px;margin-left:2px}
+.switch{width:40px;height:24px;border-radius:999px;background:var(--line-strong);position:relative;flex:none;display:inline-block}
+.switch:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:999px;background:#fff}
+.switch.on{background:var(--primary)}.switch.on:after{left:19px}
+.chk{width:20px;height:20px;border:1.5px solid var(--line-strong);border-radius:4px;background:#fff;flex:none;display:inline-flex;align-items:center;justify-content:center}
+.chk.on{background:var(--primary);border-color:var(--primary)}
+.chk.on:after{content:"";width:5px;height:10px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg) translate(-1px,-1px)}
+.radio{width:20px;height:20px;border:1.5px solid var(--line-strong);border-radius:999px;background:#fff;flex:none;position:relative}
+.radio.on{border:6px solid var(--primary)}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:10px;padding:3px;gap:2px;background:#fff}
+.seg span{height:36px;padding:0 14px;border-radius:7px;display:inline-flex;align-items:center;font:500 14px var(--f-body)}
+.seg span.on{background:var(--ink);color:#fff}
+.dim{position:absolute;inset:0;background:rgba(20,24,31,.45);z-index:20}
+.pop{position:absolute;z-index:30;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--float)}
+.menu{padding:6px;min-width:260px}
+.menu .mi{display:flex;flex-direction:column;justify-content:center;min-height:44px;padding:8px 12px;border-radius:8px;font-size:15px}
+.menu .mi small{display:block;color:var(--muted);font-size:13px;line-height:1.35}
+.menu .mi.hl{background:var(--ground)}
+.menu .mi.d{color:var(--critical)}
+.menu hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.mark{outline:2px dashed #4B3BD9;outline-offset:4px;border-radius:12px}
+.co{position:absolute;z-index:40}
+
+/* ——— La ligne type d'une tâche ——— */
+.tlist{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.thead,.tl{display:grid;grid-template-columns:minmax(0,1fr) 190px 210px 170px 72px 44px;gap:16px;align-items:center;padding:0 16px 0 24px}
+.tl.no-evt,.thead.no-evt{grid-template-columns:minmax(0,1fr) 210px 170px 72px 44px}
+.tl.sel,.thead.sel{grid-template-columns:24px minmax(0,1fr) 190px 210px 170px 116px}
+.thead{height:44px;font:500 13px var(--f-body);color:var(--muted);border-bottom:1px solid var(--line)}
+.grp{padding:16px 24px 8px;font:600 15px var(--f-title);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+.grp small{font:400 13px var(--f-body);color:var(--muted)}
+.tl{min-height:60px;border-bottom:1px solid var(--line)}
+.tl:last-child{border-bottom:0}
+.tl.checked{background:#F7FAF9}
+.tl.done .tt{color:var(--muted);text-decoration-color:var(--line)}
+.tt{color:var(--ink);font-weight:500;text-decoration:underline;text-decoration-color:var(--line-strong);text-decoration-thickness:1px;text-underline-offset:4px}
+.ev{color:var(--ink);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.none{color:var(--muted)}
+.due{font-size:14px;line-height:1.3;white-space:nowrap}
+.due b{font-weight:500;display:block}
+.due span{font-size:13px;color:var(--muted)}
+.due.late b,.due.late span{color:var(--critical)}
+.due.soon span{color:var(--attention)}
+.st-ic{display:inline-flex;width:14px;height:14px;border-radius:999px;align-items:center;justify-content:center;font:700 10px/1 var(--f-body);margin-right:4px;vertical-align:-1px}
+.late .st-ic{background:var(--critical);color:#fff}
+.soon .st-ic{border:1.5px solid var(--attention);color:var(--attention)}
+.who{display:flex;align-items:center;gap:8px;font-size:14px;white-space:nowrap;overflow:hidden}
+.who em{font-style:normal;color:var(--muted)}
+.more{width:44px;height:44px;border-radius:10px;border:1px solid transparent;background:transparent;display:inline-flex;align-items:center;justify-content:center;color:var(--ink);flex:none}
+.more:before{content:"";width:4px;height:4px;border-radius:999px;background:currentColor;box-shadow:-7px 0 0 currentColor,7px 0 0 currentColor}
+.more.bd{border-color:var(--line)}
+.fait{height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line-strong);background:#fff;font:600 14px var(--f-body);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.fait.on{background:var(--primary-soft);border-color:transparent;color:var(--primary)}
+/* Accueil : ligne allégée */
+.tl.light{grid-template-columns:minmax(0,1fr) 170px 210px 150px 72px;padding-left:20px}
+/* Téléphone */
+.ui-m{width:375px;height:812px;position:relative;background:var(--ground);overflow:hidden;font-size:15px;display:flex;flex-direction:column}
+.ui-m.auto{height:auto;min-height:812px}
+.mtb{display:flex;align-items:center;gap:2px;height:60px;padding:0 6px 0 16px;background:#fff;border-bottom:1px solid var(--line);flex:none;position:relative;z-index:3}
+.mtb h1{font-size:20px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mtb .back{display:inline-flex;align-items:center;gap:4px;height:44px;color:var(--primary);font-weight:600;text-decoration:none;margin-left:-6px;padding:0 6px;flex:1}
+.mbody{flex:1;overflow:hidden;position:relative}
+.mpad{padding:16px}
+.mbb{position:absolute;left:0;right:0;bottom:0;height:72px;padding:0 0 8px;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:1.1fr 1.15fr .85fr 1.15fr .75fr;z-index:25}
+.mbb a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);text-decoration:none;font:500 13px/1.1 var(--f-body);letter-spacing:-.01em;position:relative;white-space:nowrap;min-height:56px}
+.mbb a svg{width:22px;height:22px}
+.mbb a.on{color:var(--primary);font-weight:600}
+.mbb a.on:before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--primary)}
+.mbb .b{position:absolute;top:6px;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:999px;background:var(--critical);color:#fff;font:600 11px/18px var(--f-body);text-align:center;padding:0 4px}
+.tlm{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 6px;align-items:center;padding:12px 6px 12px 16px;background:#fff;border-bottom:1px solid var(--line)}
+.tlm.sel{grid-template-columns:44px minmax(0,1fr);padding-left:4px}
+.tlm .chkc{width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.tlm .txt{min-width:0}
+.tlm .tt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:600;line-height:1.35}
+.tlm .meta{font-size:13px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tlm .meta.late{color:var(--critical);font-weight:500}
+.tlm .meta.soon{color:var(--attention)}
+.tlm .fait{height:44px}
+.mgrp{padding:14px 16px 6px;font:600 14px var(--f-title);color:var(--ink);display:flex;justify-content:space-between}
+.mgrp small{font:400 13px var(--f-body);color:var(--muted)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;box-shadow:var(--float);z-index:30;padding:8px 0 16px}
+.sheet .grab{width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:4px auto 8px}
+.sheet .si{display:flex;align-items:center;gap:14px;min-height:52px;padding:0 20px;font-size:16px}
+.sheet .si svg{width:22px;height:22px;color:var(--muted)}
+.sheet .si.d{color:var(--ink);font-size:15px}
+.sheet hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.sticky-act{position:absolute;left:0;right:0;bottom:0;padding:12px 16px 20px;background:#fff;border-top:1px solid var(--line);z-index:6}
+/* Message de retour (toast) */
+.toast{display:flex;align-items:center;gap:12px;background:var(--ink);color:#fff;border-radius:12px;padding:8px 8px 8px 16px;box-shadow:var(--float);font-size:15px;min-height:56px;position:relative;overflow:hidden}
+.toast .tx{flex:1;min-width:0}
+.toast .tx small{display:block;color:#A9B3C1;font-size:13px}
+.toast .ub{display:inline-flex;align-items:center;flex:none;height:40px;padding:0 14px;border-radius:8px;border:1px solid #5FD3B8;background:transparent;color:#5FD3B8;font:600 14px var(--f-body);white-space:nowrap}
+.toast .cl{display:inline-flex;align-items:center;justify-content:center;flex:none;width:40px;height:40px;border:0;background:transparent;color:#A9B3C1;font-size:20px}
+.toast .bar{position:absolute;left:0;bottom:0;height:3px;width:62%;background:#5FD3B8}
+.toast.ok-ic:before{content:"✓";font-weight:700;color:#5FD3B8;margin-right:-4px}
+.toast.err{background:#fff;color:var(--ink);border:1px solid var(--critical)}
+.toast.err .ub{border-color:var(--line-strong);color:var(--ink)}
+.notice{border-radius:10px;padding:12px 16px;font-size:14px;display:flex;gap:12px;align-items:flex-start}
+.notice.info{background:var(--primary-soft)}
+.notice.warn{background:var(--attention-soft)}
+.notice.err{background:var(--critical-soft)}
+.notice b{font-weight:600}
+.filters{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.filters .field{min-width:0}
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.count-line{display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px;font-size:14px;color:var(--muted)}
+.empty{text-align:left;padding:40px;border:1px dashed var(--line-strong);border-radius:16px;background:#fff}
+.empty h3{font-size:19px;margin-bottom:6px}
+.window{position:absolute;z-index:30;background:#fff;border-radius:16px;box-shadow:var(--float);display:flex;flex-direction:column;overflow:hidden}
+.window .wh{display:flex;align-items:flex-start;gap:12px;padding:20px 20px 16px 28px;border-bottom:1px solid var(--line)}
+.window .wb{padding:24px 28px;display:grid;gap:20px}
+.window .wf{display:flex;align-items:center;gap:12px;padding:16px 28px;border-top:1px solid var(--line);background:#fff}
+.sec-t{font:600 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.choice{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid var(--line-strong);border-radius:10px}
+.choice.on{border:2px solid var(--primary);background:var(--primary-soft);padding:13px 15px}
+.choice b{display:block;font-weight:600}
+.choice span{font-size:14px;color:var(--muted)}
+.swatch{display:inline-block;width:28px;height:28px;border-radius:6px;border:1px solid var(--line);vertical-align:middle}
+.ph-box{border:1px dashed var(--line-strong);border-radius:12px;padding:16px;color:var(--muted);font-size:13px;background:repeating-linear-gradient(45deg,#fff,#fff 8px,#F9FAFB 8px,#F9FAFB 16px)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:16px 0 20px}
+.tabs span{height:44px;display:inline-flex;align-items:center;padding:0 14px;font-size:15px;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.tabs span.on{color:var(--ink);font-weight:600;border-color:var(--primary)}
+
+.ui-m .seg{padding:0;border-radius:10px;overflow:hidden}.ui-m .seg span{height:44px;border-radius:0}
+.fait svg{width:16px;height:16px}
+
+@media (max-width:1100px){.toolbar-doc{position:static}}
+
+/* Répartition A (porte 2, § 6) appliquée en rôles : la couleur d'action ne porte que l'action et les
+   liens ; l'attente et « bientôt » sont neutres avec une icône ; le rouge reste le retard. */
+.pill.soon{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.pill.ok{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.due.soon span,.tlm .meta.soon,.hint.soon-h{color:var(--muted)}
+.soon .st-ic,.soon-h .st-ic{border:0;width:auto;height:auto;font:500 13px/1 var(--f-body);color:var(--ink)}
+.fait.on{background:var(--ground);border-color:var(--line);color:var(--ink)}
+.notice.info{background:var(--ground);border:1px solid var(--line)}
+.choice.on{background:#fff}
+.toast .bar{background:#A9B3C1}
+.toast.ok-ic:before{color:#fff}
+
+.btn.toggle[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* Porte 3 du volet 1 (25/11/2026) */
+/* M5 : « Annuler » du message de retour en accent de nuit (night-accent #5FD3B8 sur ink #14181F : 9,7:1) ;
+   texte secondaire en night-ink-muted (8,4:1). */
+.toast.err .ub{border-color:var(--line-strong);color:var(--ink)}
+/* M4 : le lien d'évènement d'« Aujourd'hui », séparé du titre ; 44 px de haut sur téléphone. */
+.ev.evl{color:var(--primary);justify-self:start;max-width:100%}
+.evl-m{display:inline-flex;align-items:center;min-height:44px;margin:-8px 0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%}
+/* M2 : barre des actions groupées, collée sous la liste, nette à l'ordinateur. */
+.selbar{position:absolute;bottom:0;right:0;display:flex;align-items:center;gap:10px;padding:12px 48px 12px 24px;background:var(--surface);border-top:2px solid var(--ink);box-shadow:0 -8px 24px rgba(20,24,31,.12);z-index:8}
+.selbar .n{font:600 17px/1.2 var(--f-title);white-space:nowrap;padding-right:12px;margin-right:4px;border-right:1px solid var(--line)}
+/* M13 : erreur sous la question. */
+.q-err{display:flex;align-items:center;gap:8px;margin-top:8px;color:var(--critical);font-size:14px;font-weight:500}
+.choice.err-b{border-color:var(--critical)}
+/* M7 : à 911 px (C-82), la barre du haut tient sans rien couper : sous 760 px de barre, le texte
+   d'aide de la recherche devient « Rechercher… ». */
+.tb{container-type:inline-size}
+.tb .search{white-space:nowrap;min-width:0}
+.tb .search .ph-s{display:none}
+@container (max-width:760px){.tb .search .ph-l{display:none}.tb .search .ph-s{display:inline}.tb .search{flex:1 1 auto}}
+
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true"><symbol id="i-today" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="12" cy="14.5" r="1.6"/></symbol><symbol id="i-events" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4M8 13.5h3M8 16.5h6"/></symbol><symbol id="i-tasks" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5l1.8 1.8L9 5M4 12.5l1.8 1.8L9 11M4 18.5l1.8 1.8L9 17M12 7h8M12 13h8M12 19h8"/></symbol><symbol id="i-contacts" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7.5 17.5c1-2.2 2.6-3.2 4.5-3.2s3.5 1 4.5 3.2"/></symbol><symbol id="i-rdv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="15" cy="15" r="3"/><path d="M15 13.6V15l1 .8"/></symbol><symbol id="i-vendors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol><symbol id="i-quotes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7l4 4v13H7z"/><path d="M14 3.5v4h4M9.5 12h6M9.5 15.5h6"/></symbol><symbol id="i-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6" width="17" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></symbol><symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></symbol><symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4L18 18M6 18l1.6-1.6M16.4 7.6L18 6"/></symbol><symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.4"/><circle cx="12" cy="16.8" r=".6"/></symbol><symbol id="i-learn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-4.5L21 9l-9 4.5z"/><path d="M7 11v4.5c1.4 1.3 3 2 5 2s3.6-.7 5-2V11"/></symbol><symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></symbol><symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></symbol><symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-more" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/></symbol><symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></symbol><symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></symbol><symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></symbol><symbol id="i-clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5l-6.8 6.8a2 2 0 0 0 2.8 2.8l7-7a4 4 0 0 0-5.7-5.7l-7 7a6 6 0 0 0 8.5 8.5l5.2-5.2"/></symbol><symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.5 3.8-5.3 7-5.3s5.8 1.8 7 5.3"/></symbol><symbol id="i-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4.5H6v15h8M10.5 12H20M16.5 8.5L20 12l-3.5 3.5"/></symbol><symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol><symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></symbol><symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></symbol><symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5M7.5 9.5L12 5l4.5 4.5M5 19.5h14"/></symbol></svg>
+<div class="doc">
+<div class="crumbs"><a href="index.html">Lot 68 · maquettes du volet 1</a> › Transverse : barre du haut, « Créer », barre du bas</div>
+<header>
+<h1>Transverse : la barre du haut, « + Créer », la barre du bas du téléphone</h1>
+<p>La barre du haut reste en place quand la page défile ; « + Créer » liste tous les objets que l'on crée, évènement compris, avec une seule entrée « Nouvel évènement » (D8) ; le compte passe dans la barre du haut. Sur téléphone, la barre du haut tient en 60 px et le menu devient une barre du bas à cinq entrées (D4).</p>
+</header>
+<div class="toolbar-doc"><span class="lbl">Cadres d'ordinateur :</span><button data-mode="cote" aria-pressed="true">Côte à côte, réduits</button><button data-mode="reel" aria-pressed="false">L'un sous l'autre, taille réelle</button>
+<span class="lbl" style="margin-left:16px">Aller à :</span>
+<ul class="toc"><li><a href="#haut">Barre du haut</a></li><li><a href="#creer">« + Créer »</a></li><li><a href="#evenement">Nouvel évènement</a></li><li><a href="#recherche">Recherche</a></li><li><a href="#telephone">Téléphone</a></li></ul></div>
+
+<!-- ============================================================ -->
+<section class="mock" id="haut">
+<h2>La barre du haut, et ce qu'elle devient quand la page défile (1 440 px)</h2>
+<p class="intro">Une barre blanche de 68 px, fixée en haut : recherche, « + Créer », notifications, aide de l'écran, compte. Le compte (« Connecté comme », « Créer une autre organisation », « Se déconnecter ») quitte le bas du menu latéral pour un menu sous le prénom : le menu latéral tient alors à 150 % de zoom.</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b> la barre part avec la page ; le compte est en bas du menu, l'adresse coupée</div>
+<div class="dwrap"><img src="../../audits/2026-11-ux-parcours/preuves/aujourdhui-1440.jpg" width="1440" alt="Accueil aujourd'hui, barre du haut"></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> une fiche défilée de 1 200 px : la barre est toujours là ; menu du compte ouvert</div>
+<div class="dwrap"><div class="ui-d"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav on"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<div class="small muted" style="margin-bottom:12px">… défilé de 1 200 px dans la fiche « Léa &amp; Maxime », onglet Tâches</div>
+<div class="tlist">
+<div class="grp">Mars 2027 <small>6 tâches</small></div>
+<div class="tl no-evt"><span class="tt">Envoyer les faire-part</span><span class="due"><b>ven. 5 mars</b></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Envoyer les faire-part »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Envoyer les faire-part »"></span></div>
+<div class="tl no-evt"><span class="tt">Valider le menu définitif avec le traiteur</span><span class="due"><b>lun. 15 mars</b></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Fait : « Valider le menu définitif avec le traiteur »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Valider le menu définitif avec le traiteur »"></span></div>
+<div class="tl no-evt"><span class="tt">Choisir la musique de la cérémonie</span><span class="due"><b>sam. 20 mars</b></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait" aria-label="Fait : « Choisir la musique de la cérémonie »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Choisir la musique de la cérémonie »"></span></div>
+<div class="tl no-evt"><span class="tt">Réserver la navette des invités</span><span class="due"><b>mer. 24 mars</b></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Réserver la navette des invités »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Réserver la navette des invités »"></span></div>
+<div class="tl no-evt"><span class="tt">Faire l'essai coiffure et maquillage</span><span class="due"><b>sam. 27 mars</b></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait" aria-label="Fait : « Faire l'essai coiffure et maquillage »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Faire l'essai coiffure et maquillage »"></span></div>
+<div class="tl no-evt"><span class="tt">Confirmer les horaires du photographe</span><span class="due"><b>mar. 30 mars</b></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Confirmer les horaires du photographe »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Confirmer les horaires du photographe »"></span></div>
+<div class="grp">Avril 2027 <small>5 tâches</small></div>
+<div class="tl no-evt"><span class="tt">Envoyer le plan de table au traiteur</span><span class="due"><b>jeu. 8 avr.</b></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Fait : « Envoyer le plan de table au traiteur »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Envoyer le plan de table au traiteur »"></span></div>
+<div class="tl no-evt"><span class="tt">Préparer la feuille de route des prestataires</span><span class="due"><b>lun. 19 avr.</b></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Préparer la feuille de route des prestataires »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Préparer la feuille de route des prestataires »"></span></div>
+</div></div></div>
+<div class="pop menu" style="right:48px;top:62px;width:300px">
+<div style="padding:10px 12px 8px"><b>Camille Roussel</b><div class="small muted" style="overflow-wrap:anywhere">camille.roussel@exemple.test</div><div class="small muted">Atelier Roussel · titulaire</div></div><hr>
+<div class="mi">Mon compte<small>Nom, connexion, sécurité</small></div>
+<div class="mi">Changer d'organisation<small>Ou en créer une autre</small></div><hr>
+<div class="mi">Se déconnecter</div></div>
+</div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul>
+<li>C-12 : la barre reste en haut ; « + Créer » et la recherche sont toujours à un geste, même au milieu d'une fiche.</li>
+<li>C-13 : l'adresse du compte n'est plus coupée (elle passe à la ligne dans le menu) ; « 2 en retard » tient sur une ligne.</li>
+<li>C-82 (en partie) : sans le bloc du compte, le menu latéral perd 200 px et tient à 911 × 512. M7 (porte 3) : la barre du haut tient aussi à 911 px de large, sans rien couper (contrôle dans la note, § 3).</li>
+<li>C-10, C-90 : « Apps » devient « Tous les modules » (voir le lexique).</li>
+</ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Barre : 5 commandes</span><span>« + Créer » en bouton secondaire</span></div>
+<ul><li>« + Créer » reste secondaire : l'action principale est celle de l'écran (« Nouvelle tâche » sur « Tâches »).</li><li>« Se déconnecter » est la dernière ligne du menu du compte, à part.</li><li>La pastille « 2 en retard » du menu reste rouge : c'est un vrai retard. Les tutoriels n'y ajoutent plus de pastille permanente (volet « Premiers pas »).</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="creer">
+<h2>« + Créer » : tout ce qui se crée, et rien d'autre (1 440 px)</h2>
+<p class="intro">Six entrées, dans l'ordre de la journée d'une planner, chacune avec une phrase. « Prospect » disparaît : c'est la première réponse de « Nouvel évènement » (D8). Depuis une fiche, la tâche et la dépense sont déjà rattachées au mariage, et le menu le dit.</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b> Prospect, Tâche, Dépense, Devis ; « Raccourci : touche N »</div>
+<div class="dwrap"><img src="../../audits/2026-11-ux-parcours/preuves/menu-creer-1440.jpg" width="1440" alt="Menu Créer aujourd'hui"></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> ouvert depuis la fiche « Léa &amp; Maxime »</div>
+<div class="dwrap"><div class="ui-d"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav on"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<div class="ph-box" style="height:150px">En-tête de la fiche « Léa &amp; Maxime » (volet « Évènements »).</div>
+<div class="tabs"><span>Synthèse</span><span>Budget et prestataires</span><span class="on">Tâches</span><span>Programme du jour J</span><span>Devis et factures</span><span>Mariés</span><span>Documents</span></div>
+<div class="tlist">
+<div class="tl no-evt"><span class="tt">Faire signer le contrat du photographe</span><span class="due late"><b>ven. 20 nov.</b><span><span class="st-ic">!</span>En retard de 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Faire signer le contrat du photographe »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Faire signer le contrat du photographe »"></span></div>
+<div class="tl no-evt"><span class="tt">Confirmer la voiture des mariés</span><span class="due late"><b>sam. 21 nov.</b><span><span class="st-ic">!</span>En retard de 4 jours</span></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Fait : « Confirmer la voiture des mariés »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Confirmer la voiture des mariés »"></span></div>
+<div class="tl no-evt"><span class="tt">Choisir le fleuriste</span><span class="due soon"><b>dim. 29 nov.</b><span><span class="st-ic">◷</span>Dans 4 jours</span></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait" aria-label="Fait : « Choisir le fleuriste »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Choisir le fleuriste »"></span></div>
+</div></div></div>
+<div class="pop menu" style="left:782px;top:62px;width:380px">
+<div class="mi">Nouvel évènement<small>Une demande, un mariage signé, ou un mariage que vous reprenez</small></div>
+<div class="mi hl">Tâche pour Léa &amp; Maxime<small>Ou sans évènement : vous le choisirez dans le formulaire</small></div>
+<div class="mi">Prestataire<small>Une fiche dans votre carnet</small></div>
+<div class="mi">Contact<small>Un client, un proche, un lieu</small></div>
+<div class="mi">Devis pour Léa &amp; Maxime</div>
+<div class="mi">Dépense pour Léa &amp; Maxime<small>Une ligne réelle dans son budget</small></div>
+<hr><div class="small muted" style="padding:6px 12px">Touche N pour ouvrir ce menu</div>
+</div>
+</div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul>
+<li>C-03 : « + Créer » propose aussi l'évènement, le prestataire et le contact ; ses entrées portent les mêmes noms que les boutons des écrans (« Nouvel évènement », « Nouvelle tâche »).</li>
+<li>D8 : une seule entrée « Nouvel évènement », qui ouvre le même formulaire que le bouton d'« Évènements ».</li>
+<li>C-31 : « Tâche » dit que l'évènement est facultatif.</li>
+<li>C-81 : le raccourci clavier est dit en bas du menu, et seulement sur ordinateur.</li>
+</ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Menu d'un bouton (lot 63)</span><span>Une phrase par choix</span></div><ul><li>Le contexte de l'écran est écrit dans l'entrée (« pour Léa &amp; Maxime »), pas deviné.</li><li>Échap ou un clic ailleurs ferme le menu.</li></ul></div>
+</div>
+</section>
+
+<section class="mock" id="evenement">
+<h2>« Nouvel évènement » : la question « Où en est-il ? » (D8)</h2>
+<p class="intro">Deux réponses (décision M12) ; le statut choisi règle ce qui est créé avec (liste des tâches, budget, relances). La reprise d'un mariage suivi ailleurs sort de la liste : une ligne à part, sous la question, mène à la page de reprise (2e vague) au lieu de créer un mariage vide. Aucune réponse n'est cochée d'avance (M13) : « Créer l'évènement » reste actif et, cliqué sans réponse, le dit sous la question. « Pour un client existant » devient un champ. Le dessin complet de la création relève du volet « Évènements » (C-25).</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b></div><div class="dwrap"><div class="ui-d short" style="min-height:700px"><div style="grid-column:1/3;padding:48px" class="note-avant">
+<p style="font-size:22px;color:var(--ink);font-family:var(--f-title);font-weight:600;margin:0 0 16px">Trois portes pour un évènement (C-03, C-25)</p>
+<ol style="font-size:20px;line-height:1.6;color:var(--ink)"><li>« + Créer › Prospect » : un mariage créé comme prospect, avec un seul prénom (PC-02/Sophie).</li><li>« Évènements › Nouveau » : « Nouvel évènement » ou « Pour un client existant ».</li><li>L'état vide : « Créer un évènement ».</li></ol>
+<p style="font-size:20px">Un mariage déjà signé, ou suivi dans un autre outil, n'a pas d'entrée : il naît « en retard de 166 jours » (C-67).</p></div></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> « Créer l'évènement » cliqué sans réponse</div>
+<div class="dwrap"><div class="ui-d short" style="min-height:780px"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav on"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct"><div class="ph-box" style="height:400px">L'écran d'où l'on vient, sous le fond assombri.</div></div></div>
+<div class="dim"></div>
+<div class="window" role="dialog" aria-label="Nouvel évènement" style="left:430px;top:40px;width:620px">
+<div class="wh"><h3 style="flex:1;font-size:22px;padding-top:6px">Nouvel évènement</h3><span class="iconbtn" aria-label="Fermer"><svg aria-hidden="true"><use href="#i-close"/></svg></span></div>
+<div class="wb" style="gap:16px">
+<div><div class="field" style="margin-bottom:8px"><span>Où en est-il ? <span class="req">*</span></span></div>
+<div style="display:grid;gap:8px">
+<div class="choice err-b"><span class="radio"></span><div><b>Une demande en cours</b><span>Vous en parlez, rien n'est signé.</span></div></div>
+<div class="choice err-b"><span class="radio"></span><div><b>Signé, en préparation</b><span>Le contrat est signé, même si vous aviez commencé sur papier : la liste des tâches se crée aujourd'hui.</span></div></div></div>
+<div class="q-err" role="alert"><span class="st-ic" style="background:var(--critical);color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">!</span>Choisissez où en est cet évènement.</div>
+<div class="small" style="margin-top:12px">Vous le suivez déjà dans un autre logiciel ou un tableur ? <span class="link">Reprendre ses fichiers</span></div></div>
+<div style="display:grid;grid-template-columns:1fr 200px;gap:16px">
+<label class="field"><span>Nom de l'évènement <span class="req">*</span></span><span class="in ph-t">Par exemple : Léa &amp; Maxime</span></label>
+<label class="field">Date<span class="in ph-t"><svg aria-hidden="true"><use href="#i-cal"/></svg>Pas encore fixée</span></label></div>
+<label class="field">Client<span class="in ph-t"><svg aria-hidden="true"><use href="#i-search"/></svg>Nouveau client, ou chercher dans vos contacts</span></label>
+<div class="hint">* obligatoire</div>
+</div>
+<div class="wf"><span style="flex:1"></span><span class="btn">Fermer</span><span class="btn p">Créer l'évènement</span></div>
+</div></div></div></div>
+</div>
+<div class="pair m" style="margin-top:24px">
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, « Signé, en préparation » choisi</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Aujourd'hui</a></div><div class="mbody mpad" style="display:grid;gap:14px;align-content:start">
+<h2 style="font-size:20px">Nouvel évènement</h2>
+<div><div class="field" style="margin-bottom:8px"><span>Où en est-il ? <span class="req">*</span></span></div><div style="display:grid;gap:8px">
+<div class="choice"><span class="radio"></span><div><b>Une demande en cours</b><span>Rien n'est signé.</span></div></div>
+<div class="choice on"><span class="radio on"></span><div><b>Signé, en préparation</b><span>Même commencé sur papier : la liste des tâches se crée aujourd'hui.</span></div></div></div>
+<div class="small" style="margin-top:10px">Vous le suivez déjà dans un autre logiciel ou un tableur ? <a class="link" style="display:inline-flex;align-items:center;min-height:44px">Reprendre ses fichiers</a></div></div>
+<label class="field"><span>Nom de l'évènement <span class="req">*</span></span><span class="in">Léa &amp; Hugo</span></label>
+</div><div class="sticky-act"><span class="btn p block">Créer l'évènement</span></div></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul><li>D8, C-25, C-03 : une seule entrée, une question, deux réponses ; aucune n'est cochée d'avance (M13) ; sans réponse, « Créer l'évènement » ne reste pas muet : il écrit « Choisissez où en est cet évènement » sous la question.</li><li>M12 (porte 3) : la reprise n'est plus une réponse ; une ligne à part, « Vous le suivez déjà dans un autre logiciel ou un tableur ? Reprendre ses fichiers », mène à la page de reprise. Au rejeu, « je le reprends » se lisait « j'ai commencé sur papier » (Sophie, Clémence). Cette variante n'a pas été rejouée par le panel.</li><li>C-67 : un mariage signé ou repris n'est plus créé comme une demande vieille de six mois (règles au volet « Premiers pas »).</li><li>C-51 : la reprise a une porte au premier niveau.</li></ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Fenêtre courte, une colonne</span><span>Une action principale</span></div><ul><li>« * » dans le libellé, à côté du mot, jamais seul sur sa ligne (C-25).</li><li>La date peut rester « pas encore fixée » : rien n'est déduit (P-02).</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="recherche">
+<h2>La recherche du haut (1 440 px)</h2>
+<p class="intro">Les résultats sont rangés par type, avec leur nombre ; Entrée ouvre le premier résultat, surligné. Décision M9 : la maquette est la cible, en deux temps. Avec ce volet : la barre fixe et le type des résultats. Au volet « Paramètres » : la recherche dans les réglages (la rubrique « Paramètres · 1 » ci-dessous).</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b></div><div class="dwrap"><div class="ui-d short" style="min-height:560px"><div style="grid-column:1/3;padding:48px" class="note-avant">
+<p style="font-size:22px;color:var(--ink);font-family:var(--f-title);font-weight:600;margin:0 0 16px">Ce que dit l'audit (C-12, à trancher)</p>
+<p style="font-size:20px">La recherche ne trouve aucun réglage (« relance », « reprendre »), ne dit pas le type de ses résultats et en répète ; Entrée ouvre la page de résultats, pas l'action proposée.</p></div></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> « relan » tapé</div>
+<div class="dwrap"><div class="ui-d short" style="min-height:560px"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav on"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct"><div class="ph-box" style="height:380px">L'écran courant.</div></div></div>
+<div class="pop menu" style="left:280px;top:62px;width:520px;padding:8px">
+<div class="in focus" style="margin-bottom:8px"><svg aria-hidden="true"><use href="#i-search"/></svg><span style="color:var(--ink)">relan</span></div>
+<div class="sec-t" style="padding:4px 12px 0">Tâches · 2</div>
+<div class="mi hl">Relancer le traiteur pour le menu<small>Léa &amp; Maxime · dans 6 jours</small></div>
+<div class="mi">Relancer les invités sans réponse<small>Inès &amp; Paul · 14 déc.</small></div>
+<div class="sec-t" style="padding:8px 12px 0">Paramètres · 1</div>
+<div class="mi">Relances automatiques<small>Paramètres › Messages</small></div>
+<div class="sec-t" style="padding:8px 12px 0">Aide · 1</div>
+<div class="mi">Noter une relance de prestataire<small>Article du centre d'aide</small></div>
+<hr><div class="small muted" style="padding:6px 12px">Entrée ouvre le résultat surligné · flèches pour choisir · <span class="link">tous les résultats pour « relan »</span></div></div>
+</div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul><li>C-12 : résultats typés et comptés, réglages compris, Entrée ouvre le résultat surligné ; chaque résultat dit où il mène.</li><li>C-74 (volet « Paramètres ») : la recherche des réglages passe par la même barre.</li></ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Un résultat surligné</span><span>Une phrase par résultat</span></div><ul><li>Sur téléphone, la loupe ouvre la même liste en page entière.</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="telephone">
+<h2>Le téléphone : barre du haut de 60 px, barre du bas à cinq entrées (D4)</h2>
+<p class="intro">En haut : le nom de l'écran, puis quatre boutons de 44 px (recherche, créer, notifications, aide). En bas : Aujourd'hui, Évènements, Tâches, Prestataires, et « Plus » pour le reste. « Plus » ouvre un panneau du bas qui se ferme par Échap, par un glissé ou par un clic dehors ; « Se déconnecter » y est en dernier, à part.</p>
+<div class="pair m">
+<div class="side"><div class="cap"><b>Aujourd'hui</b> barre du haut de 160 px, « Menu » en haut</div><div class="mwrap"><img src="../../audits/2026-11-ux-parcours/preuves/taches-375.jpg" alt="Tâches sur téléphone aujourd'hui"></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> « Aujourd'hui », rempli</div><div class="mwrap"><div class="ui-m"><div class="mtb"><h1>Aujourd'hui</h1><span class="iconbtn" aria-label="Rechercher"><svg aria-hidden="true"><use href="#i-search"/></svg></span><span class="iconbtn" aria-label="Créer"><svg aria-hidden="true"><use href="#i-plus"/></svg></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span></div><div class="mbody">
+<div class="mpad" style="padding-bottom:4px"><div class="small muted">Mercredi 25 novembre · 4 évènements en cours</div></div>
+<div class="mgrp">À traiter en premier <small>7</small></div>
+<div class="tlm" style="grid-template-columns:minmax(0,1fr) auto;padding-right:16px"><div class="txt"><span class="tt">Faire signer le contrat du photographe</span><div class="row" style="gap:0;min-width:0"><a class="link evl-m">Léa & Maxime</a><span class="meta" style="margin:0"> · Vous</span></div><div class="meta late">En retard de 5 jours · ven. 20 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span></div>
+<div class="tlm" style="grid-template-columns:minmax(0,1fr) auto;padding-right:16px"><div class="txt"><span class="tt">Confirmer la voiture des mariés</span><div class="row" style="gap:0;min-width:0"><a class="link evl-m">Léa & Maxime</a><span class="meta" style="margin:0"> · Bastien</span></div><div class="meta late">En retard de 4 jours · sam. 21 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span></div>
+<div class="tlm" style="grid-template-columns:minmax(0,1fr) auto;padding-right:16px"><div class="txt"><span class="tt">Choisir le fleuriste</span><div class="row" style="gap:0;min-width:0"><a class="link evl-m">Léa & Maxime</a><span class="meta" style="margin:0"> · Les mariés</span></div><div class="meta soon">◷ Dans 4 jours · dim. 29 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span></div>
+<div class="tlm" style="grid-template-columns:minmax(0,1fr) auto;padding-right:16px"><div class="txt"><span class="tt">Organiser la dégustation finale</span><div class="row" style="gap:0;min-width:0"><a class="link evl-m">Inès & Paul</a><span class="meta" style="margin:0"> · Vous</span></div><div class="meta soon">◷ Dans 5 jours · lun. 30 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span></div>
+<div class="mpad"><div class="ph-box">Relances, paiements, mes évènements : volet « Aujourd'hui ».</div></div>
+</div><nav class="mbb" aria-label="Navigation principale"><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> « Plus » ouvert</div><div class="mwrap"><div class="ui-m"><div class="mtb"><h1>Aujourd'hui</h1><span class="iconbtn" aria-label="Rechercher"><svg aria-hidden="true"><use href="#i-search"/></svg></span><span class="iconbtn" aria-label="Créer"><svg aria-hidden="true"><use href="#i-plus"/></svg></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span></div><div class="mbody"><div class="dim"></div>
+<div class="sheet" style="bottom:72px;border-radius:16px 16px 0 0"><div class="grab"></div>
+<div class="si"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</div><div class="si"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</div><div class="si"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</div><div class="si"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</div><hr>
+<div class="si"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</div><div class="si"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</div><div class="si"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</div><div class="si"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</div><hr>
+<div class="si"><svg aria-hidden="true"><use href="#i-user"/></svg>Camille · Atelier Roussel</div><div class="si d"><svg aria-hidden="true"><use href="#i-logout"/></svg>Se déconnecter</div></div>
+</div><nav class="mbb" aria-label="Navigation principale"><a><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> « + » (Créer) ouvert</div><div class="mwrap"><div class="ui-m"><div class="mtb"><h1>Aujourd'hui</h1><span class="iconbtn" aria-label="Rechercher"><svg aria-hidden="true"><use href="#i-search"/></svg></span><span class="iconbtn" aria-label="Créer"><svg aria-hidden="true"><use href="#i-plus"/></svg></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span></div><div class="mbody"><div class="dim"></div>
+<div class="sheet" style="bottom:72px"><div class="grab"></div><div style="padding:0 20px 6px"><h3 style="font-size:17px">Créer</h3></div>
+<div class="si" style="flex-direction:column;align-items:flex-start;justify-content:center;gap:0;min-height:60px">Nouvel évènement<small class="muted" style="font-size:13px">Demande, mariage signé ou repris</small></div>
+<div class="si" style="flex-direction:column;align-items:flex-start;justify-content:center;gap:0;min-height:60px">Tâche<small class="muted" style="font-size:13px">Avec ou sans évènement</small></div>
+<div class="si">Prestataire</div><div class="si">Contact</div><div class="si">Devis</div><div class="si">Dépense</div></div>
+</div><nav class="mbb" aria-label="Navigation principale"><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul>
+<li>D4, C-84 : barre du bas à cinq entrées ; « Plus » ne pousse plus la page, se ferme par Échap, et « Se déconnecter » n'est plus la fin du menu principal.</li>
+<li>C-81 : barre du haut de 60 px au lieu de 160 ; ni « ⌘K », ni « Raccourci : touche N », ni recherche coupée à « Recher » : la loupe ouvre la recherche en page entière.</li>
+<li>C-77, C-80 (en partie) : le contenu arrive dès 60 px.</li>
+<li>Acquis gardé : « Aujourd'hui » sur téléphone, des lignes et « Fait » sous le pouce (H-MA-37).</li>
+</ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Barre d'onglets : 5 entrées au plus (DESIGN.md)</span><span>Cibles ≥ 44 px</span></div>
+<ul><li>Libellés de la barre du bas en 13 px, sur une ligne ; l'entrée active porte un trait et sa couleur, pas la couleur seule.</li><li>La pastille « 2 » de « Tâches » a pour nom accessible « 2 en retard ».</li></ul></div>
+</div>
+</section>
+
+</div>
+<script>
+(function(){
+  function fit(){document.querySelectorAll('.dwrap').forEach(function(w){
+    var k=document.body.classList.contains('reel')?1:Math.min(1,w.clientWidth/1440);w.style.setProperty('--kd',k);});}
+  window.addEventListener('resize',fit);fit();
+  document.querySelectorAll('[data-mode]').forEach(function(b){b.addEventListener('click',function(){
+    document.body.classList.toggle('reel',b.dataset.mode==='reel');
+    document.querySelectorAll('[data-mode]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});fit();});});
+})();
+</script>
+</body>
+</html>
