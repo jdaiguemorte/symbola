@@ -253,6 +253,18 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 
 @media (max-width:1100px){.toolbar-doc{position:static}}
 
+/* Répartition A (porte 2, § 6) appliquée en rôles : la couleur d'action ne porte que l'action et les
+   liens ; l'attente et « bientôt » sont neutres avec une icône ; le rouge reste le retard. */
+.pill.soon{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.pill.ok{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.due.soon span,.tlm .meta.soon,.hint.soon-h{color:var(--muted)}
+.soon .st-ic,.soon-h .st-ic{border:0;width:auto;height:auto;font:500 13px/1 var(--f-body);color:var(--ink)}
+.fait.on{background:var(--ground);border-color:var(--line);color:var(--ink)}
+.notice.info{background:var(--ground);border:1px solid var(--line)}
+.choice.on{background:#fff}
+.toast .bar{background:#C9D0DA}
+.toast.ok-ic:before{color:#fff}
+
 </style>
 </head>
 <body>
@@ -263,7 +275,7 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <h1>Lot 68 · maquettes du volet 1 : le transverse et « Tâches »</h1>
 <p>Phase 5 de l'audit UX des parcours, premier volet de l'ordre validé à la porte 2 (<a href="../../audits/2026-11-ux-parcours/06-decisions-porte-2.md">décisions de la porte 2</a>). Aucune page de l'app n'est modifiée ; <code>DESIGN.md</code> n'est pas touché avant la porte 3.</p>
 <p>Chaque maquette met côte à côte l'écran d'aujourd'hui (capture du relevé, ou description quand le relevé n'a pas de capture) et l'écran proposé, en 1 440 et en 375 px, vide, rempli et repris quand ils diffèrent. Sous chaque maquette : les constats traités et les règles de forme appliquées (D10). La note qui accompagne ces pages, avec les choix laissés à Julien, est <a href="../../audits/2026-11-ux-parcours/07-maquettes-transverse-taches.md">07-maquettes-transverse-taches.md</a>.</p>
-<p>Données fictives seulement. Couleurs : les jetons actuels de <code>DESIGN.md</code>, aucune teinte du futur trio bleu, orange, crème. Polices : Inter et Space Grotesk si elles sont installées, sinon celles du système (aucune ressource externe).</p>
+<p>Données fictives seulement. Couleurs : les jetons actuels de <code>DESIGN.md</code>, aucune teinte du futur trio bleu, orange, crème ; la répartition A retenue à la porte 2 (« orange de marque seulement ») est appliquée en rôles. Polices : Inter et Space Grotesk si elles sont installées, sinon celles du système (aucune ressource externe).</p>
 </header>
 <section class="mock">
 <h2>Tâches</h2>
@@ -277,7 +289,7 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <tr><th style="width:36%">Page</th><th>Ce qu'elle montre</th><th style="width:22%">Constats</th></tr>
 <tr><td><a href="03-transverse-barres.html">3. Barre du haut, « + Créer », barre du bas</a></td><td>La barre du haut fixe, le menu du compte, « + Créer » et « Nouvel évènement » avec « Où en est-il ? », la recherche, la barre du bas du téléphone et « Plus ».</td><td>C-03, C-12, C-13, C-81, C-84 ; D4, D8</td></tr>
 <tr><td><a href="04-transverse-retours.html">4. Retour après action, danger, erreur</a></td><td>Le message de retour et ses cas ; les trois niveaux de danger ; l'erreur de saisie.</td><td>C-04, C-08, C-09</td></tr>
-<tr><td><a href="05-transverse-mots-etats.html">5. Lexique, états et teintes</a></td><td>Les mots des objets, les verbes, les mots incompris ; chaque état avec son mot, son icône, sa teinte, et son rôle au passage au trio.</td><td>C-83, C-85 à C-90</td></tr>
+<tr><td><a href="05-transverse-mots-etats.html">5. Lexique, états et teintes</a></td><td>Les mots des objets, les verbes, les mots incompris ; chaque état avec son mot, son icône, sa teinte, et son rôle dans la répartition A.</td><td>C-83, C-85 à C-90</td></tr>
 </table>
 </section>
 

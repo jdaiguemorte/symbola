@@ -253,6 +253,18 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 
 @media (max-width:1100px){.toolbar-doc{position:static}}
 
+/* Répartition A (porte 2, § 6) appliquée en rôles : la couleur d'action ne porte que l'action et les
+   liens ; l'attente et « bientôt » sont neutres avec une icône ; le rouge reste le retard. */
+.pill.soon{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.pill.ok{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.due.soon span,.tlm .meta.soon,.hint.soon-h{color:var(--muted)}
+.soon .st-ic,.soon-h .st-ic{border:0;width:auto;height:auto;font:500 13px/1 var(--f-body);color:var(--ink)}
+.fait.on{background:var(--ground);border-color:var(--line);color:var(--ink)}
+.notice.info{background:var(--ground);border:1px solid var(--line)}
+.choice.on{background:#fff}
+.toast .bar{background:#C9D0DA}
+.toast.ok-ic:before{color:#fff}
+
 </style>
 </head>
 <body>
@@ -322,7 +334,7 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <div class="tlist">
 <div class="tl no-evt"><span class="tt">Faire signer le contrat du photographe</span><span class="due late"><b>ven. 20 nov.</b><span><span class="st-ic">!</span>En retard de 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Marquer « Faire signer le contrat du photographe » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Faire signer le contrat du photographe »"></span></div>
 <div class="tl no-evt"><span class="tt">Confirmer la voiture des mariés</span><span class="due late"><b>sam. 21 nov.</b><span><span class="st-ic">!</span>En retard de 4 jours</span></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Marquer « Confirmer la voiture des mariés » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Confirmer la voiture des mariés »"></span></div>
-<div class="tl no-evt"><span class="tt">Choisir le fleuriste</span><span class="due soon"><b>dim. 29 nov.</b><span><span class="st-ic">·</span>Dans 4 jours</span></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait" aria-label="Marquer « Choisir le fleuriste » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Choisir le fleuriste »"></span></div>
+<div class="tl no-evt"><span class="tt">Choisir le fleuriste</span><span class="due soon"><b>dim. 29 nov.</b><span><span class="st-ic">◷</span>Dans 4 jours</span></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait" aria-label="Marquer « Choisir le fleuriste » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Choisir le fleuriste »"></span></div>
 </div></div></div>
 <div class="pop menu" style="left:782px;top:62px;width:380px">
 <div class="mi">Nouvel évènement<small>Une demande, un mariage signé, ou un mariage que vous reprenez</small></div>
@@ -429,8 +441,8 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <div class="mgrp">À traiter en premier <small>7</small></div>
 <div class="tlm" style="grid-template-columns:minmax(0,1fr) auto;padding-right:16px"><div class="txt"><span class="tt">Faire signer le contrat du photographe</span><div class="meta">Léa & Maxime · Vous</div><div class="meta late">En retard de 5 jours · ven. 20 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span></div>
 <div class="tlm" style="grid-template-columns:minmax(0,1fr) auto;padding-right:16px"><div class="txt"><span class="tt">Confirmer la voiture des mariés</span><div class="meta">Léa & Maxime · Bastien</div><div class="meta late">En retard de 4 jours · sam. 21 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span></div>
-<div class="tlm" style="grid-template-columns:minmax(0,1fr) auto;padding-right:16px"><div class="txt"><span class="tt">Choisir le fleuriste</span><div class="meta">Léa & Maxime · Les mariés</div><div class="meta soon">Dans 4 jours · dim. 29 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span></div>
-<div class="tlm" style="grid-template-columns:minmax(0,1fr) auto;padding-right:16px"><div class="txt"><span class="tt">Organiser la dégustation finale</span><div class="meta">Inès & Paul · Vous</div><div class="meta soon">Dans 5 jours · lun. 30 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span></div>
+<div class="tlm" style="grid-template-columns:minmax(0,1fr) auto;padding-right:16px"><div class="txt"><span class="tt">Choisir le fleuriste</span><div class="meta">Léa & Maxime · Les mariés</div><div class="meta soon">◷ Dans 4 jours · dim. 29 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span></div>
+<div class="tlm" style="grid-template-columns:minmax(0,1fr) auto;padding-right:16px"><div class="txt"><span class="tt">Organiser la dégustation finale</span><div class="meta">Inès & Paul · Vous</div><div class="meta soon">◷ Dans 5 jours · lun. 30 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span></div>
 <div class="mpad"><div class="ph-box">Relances, paiements, mes évènements : volet « Aujourd'hui ».</div></div>
 </div><nav class="mbb" aria-label="Navigation principale"><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
 <div class="side"><div class="cap"><b class="new">Proposé</b> « Plus » ouvert</div><div class="mwrap"><div class="ui-m"><div class="mtb"><h1>Aujourd'hui</h1><span class="iconbtn" aria-label="Rechercher"><svg aria-hidden="true"><use href="#i-search"/></svg></span><span class="iconbtn" aria-label="Créer"><svg aria-hidden="true"><use href="#i-plus"/></svg></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span></div><div class="mbody"><div class="dim"></div>

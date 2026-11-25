@@ -253,6 +253,18 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 
 @media (max-width:1100px){.toolbar-doc{position:static}}
 
+/* Répartition A (porte 2, § 6) appliquée en rôles : la couleur d'action ne porte que l'action et les
+   liens ; l'attente et « bientôt » sont neutres avec une icône ; le rouge reste le retard. */
+.pill.soon{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.pill.ok{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.due.soon span,.tlm .meta.soon,.hint.soon-h{color:var(--muted)}
+.soon .st-ic,.soon-h .st-ic{border:0;width:auto;height:auto;font:500 13px/1 var(--f-body);color:var(--ink)}
+.fait.on{background:var(--ground);border-color:var(--line);color:var(--ink)}
+.notice.info{background:var(--ground);border:1px solid var(--line)}
+.choice.on{background:#fff}
+.toast .bar{background:#C9D0DA}
+.toast.ok-ic:before{color:#fff}
+
 </style>
 </head>
 <body>
@@ -283,7 +295,7 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <div class="tl"><span class="tt">Faire signer le contrat du photographe</span><span class="ev">Léa & Maxime</span><span class="due late"><b>ven. 20 nov.</b><span><span class="st-ic">!</span>En retard de 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Marquer « Faire signer le contrat du photographe » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Faire signer le contrat du photographe »"></span></div>
 <div class="tl"><span class="tt">Confirmer la voiture des mariés</span><span class="ev">Léa & Maxime</span><span class="due late"><b>sam. 21 nov.</b><span><span class="st-ic">!</span>En retard de 4 jours</span></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Marquer « Confirmer la voiture des mariés » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Confirmer la voiture des mariés »"></span></div>
 <div class="tl done"><span class="tt">Choisir le fleuriste</span><span class="ev">Léa &amp; Maxime</span><span class="due"><b>dim. 29 nov.</b><span>Faite à l'instant</span></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait on"><svg aria-hidden="true"><use href="#i-check"/></svg>Faite</span><span class="more"></span></div>
-<div class="tl"><span class="tt">Organiser la dégustation finale</span><span class="ev">Inès & Paul</span><span class="due soon"><b>lun. 30 nov.</b><span><span class="st-ic">·</span>Dans 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Marquer « Organiser la dégustation finale » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Organiser la dégustation finale »"></span></div>
+<div class="tl"><span class="tt">Organiser la dégustation finale</span><span class="ev">Inès & Paul</span><span class="due soon"><b>lun. 30 nov.</b><span><span class="st-ic">◷</span>Dans 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Marquer « Organiser la dégustation finale » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Organiser la dégustation finale »"></span></div>
 <div class="tl"><span class="tt">Déclaration de TVA du trimestre</span><span class="ev none">Hors évènement</span><span class="due"><b>mar. 1er déc.</b></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Marquer « Déclaration de TVA du trimestre » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Déclaration de TVA du trimestre »"></span></div>
 </div></div></div>
 <div style="position:absolute;left:280px;bottom:24px;width:520px;z-index:10"><div class="toast ok-ic"><div class="tx">Tâche faite : Choisir le fleuriste<small>Elle quitte la liste dans 6 secondes</small></div><span class="ub">Annuler</span><span class="cl" aria-label="Fermer">×</span><span class="bar"></span></div></div>
@@ -295,7 +307,7 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <div class="tlm"><div class="txt"><span class="tt">Faire signer le contrat du photographe</span><div class="meta">Léa & Maxime · Vous</div><div class="meta late">En retard de 5 jours · ven. 20 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
 <div class="tlm"><div class="txt"><span class="tt">Confirmer la voiture des mariés</span><div class="meta">Léa & Maxime · Bastien</div><div class="meta late">En retard de 4 jours · sam. 21 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
 <div class="tlm"><div class="txt"><span class="tt" style="color:var(--muted)">Choisir le fleuriste</span><div class="meta">Léa &amp; Maxime · Les mariés</div><div class="meta">Faite à l'instant</div></div><span class="fait on"><svg aria-hidden="true"><use href="#i-check"/></svg>Faite</span><span class="more"></span></div>
-<div class="tlm"><div class="txt"><span class="tt">Organiser la dégustation finale</span><div class="meta">Inès & Paul · Vous</div><div class="meta soon">Dans 5 jours · lun. 30 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
+<div class="tlm"><div class="txt"><span class="tt">Organiser la dégustation finale</span><div class="meta">Inès & Paul · Vous</div><div class="meta soon">◷ Dans 5 jours · lun. 30 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
 <div style="position:absolute;left:12px;right:12px;bottom:84px;z-index:7"><div class="toast ok-ic"><div class="tx">Tâche faite<small>Choisir le fleuriste</small></div><span class="ub">Annuler</span><span class="bar"></span></div></div>
 </div><nav class="mbb" aria-label="Navigation principale"><a><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
 <div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, après « Créer l'évènement »</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Évènements</a><span class="iconbtn" aria-label="Créer"><svg aria-hidden="true"><use href="#i-plus"/></svg></span><span class="iconbtn" aria-label="Aide"><svg aria-hidden="true"><use href="#i-help"/></svg></span></div><div class="mbody mpad">
@@ -311,7 +323,7 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <li>P-07 : le message redit les nombres (« avec 42 tâches et son budget »).</li>
 </ul></div>
 <div><h4>Règles de forme appliquées</h4><div class="count"><span>Une place : bas gauche du contenu</span><span>Un message à la fois</span></div>
-<ul><li>Dix secondes quand on peut défaire, cinq sinon ; le temps s'arrête tant que la souris ou le focus est sur le message.</li><li>Le message ne couvre ni « Fait », ni l'action principale : il se pose sous la liste à gauche, au-dessus de la barre du bas sur téléphone.</li><li>Fond encre et accent de nuit (jetons existants) : choix à confirmer, voir la note.</li></ul></div>
+<ul><li>Dix secondes quand on peut défaire, cinq sinon ; le temps s'arrête tant que la souris ou le focus est sur le message.</li><li>Le message ne couvre ni « Fait », ni l'action principale : il se pose sous la liste à gauche, au-dessus de la barre du bas sur téléphone.</li><li>Fond encre, texte blanc, sans teinte d'état (répartition A) : choix à confirmer, voir la note.</li></ul></div>
 </div>
 </section>
 
@@ -324,7 +336,7 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <div><div class="cap">Création : on propose d'y aller</div><div class="toast ok-ic"><div class="tx">Prestataire ajouté au carnet<small>Atelier Pivoine · fleuriste</small></div><span class="ub">Ouvrir sa fiche</span><span class="cl">×</span></div></div>
 <div><div class="cap">Copie</div><div class="toast ok-ic"><div class="tx">Message copié<small>Collez-le dans votre messagerie</small></div><span class="cl">×</span></div></div>
 <div><div class="cap">Échec : rien n'est perdu, on peut réessayer</div><div class="toast err"><div class="tx"><b style="color:var(--critical)">Erreur :</b> la tâche n'a pas été enregistrée<small style="color:var(--muted)">Connexion perdue. Votre saisie est gardée.</small></div><span class="ub">Réessayer</span><span class="cl" style="color:var(--muted)">×</span></div></div>
-<div><div class="cap">Enregistrement d'un champ (dans le panneau, à côté du champ)</div><div class="card" style="padding:12px 16px"><div class="row"><span class="in" style="flex:1"><svg aria-hidden="true"><use href="#i-cal"/></svg>dim. 29 nov. 2026</span><span class="small" style="color:var(--primary);font-weight:600"><svg aria-hidden="true"><use href="#i-check"/></svg> Enregistré</span></div></div></div>
+<div><div class="cap">Enregistrement d'un champ (dans le panneau, à côté du champ)</div><div class="card" style="padding:12px 16px"><div class="row"><span class="in" style="flex:1"><svg aria-hidden="true"><use href="#i-cal"/></svg>dim. 29 nov. 2026</span><span class="small muted" style="font-weight:600"><svg aria-hidden="true"><use href="#i-check"/></svg> Enregistré</span></div></div></div>
 </div>
 </section>
 

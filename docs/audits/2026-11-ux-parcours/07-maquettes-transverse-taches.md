@@ -25,7 +25,9 @@ D10 (zones d'action, action principale, ligne à une cible, une action rapide et
 d'ordinateur sont réduits pour tenir côte à côte ; le bouton « L'un sous l'autre, taille réelle » les
 montre à 1 440 px.
 
-Forme : jetons actuels de `DESIGN.md` seulement, aucune teinte du futur trio ; polices Inter et
+Forme : jetons actuels de `DESIGN.md` seulement, aucune teinte du futur trio ; la répartition des
+couleurs retenue à la porte 2, **A, « orange de marque seulement »** ([06, § 6](06-decisions-porte-2.md)),
+est appliquée en rôles (voir § 2) ; polices Inter et
 Space Grotesk si elles sont installées, sinon celles du système (aucune ressource externe) ; données
 fictives (agence « Atelier Roussel », Camille et son collègue Bastien, quatre mariages).
 
@@ -86,9 +88,12 @@ fictives (agence « Atelier Roussel », Camille et son collègue Bastien, quatre
   résumé en tête à partir de deux erreurs ; « * » avant l'envoi ; bouton jamais grisé sans raison.
 - **Lexique** : un tableau des mots, un des verbes, un des mots incompris ; la colonne « On n'écrit
   plus » sert de liste de départ au contrôle automatique des textes (P-15).
-- **États et teintes** : une teinte, un sens, un mot et une icône par état ; l'émeraude ne porte plus
-  que l'action, l'ambre que « bientôt », le rouge que le vrai retard ; l'attente d'un tiers est neutre.
-  Pour chaque rôle, ce qu'il deviendra avec le trio, sans valeur.
+- **États et teintes (répartition A, en rôles)** : un mot et une icône par état ; la couleur d'action
+  (l'émeraude aujourd'hui, le bleu demain) ne porte que l'action et les liens : « Faite »,
+  « Enregistré » et les bandeaux d'information passent en neutre ; l'attente d'un tiers et
+  l'échéance proche (« Dans 4 jours », icône d'horloge) sont neutres, l'ambre quitte les listes ; le
+  rouge ne dit que le vrai retard et n'habille plus « Supprimer ». L'orange n'apparaît dans aucune
+  maquette : il est réservé au logo, aux illustrations et aux écrans vides.
 
 ## 3. Les choix laissés à Julien
 
@@ -103,7 +108,7 @@ fictives (agence « Atelier Roussel », Camille et son collègue Bastien, quatre
 | M7 | Le compte quitte-t-il le bas du menu latéral ? | Oui, pour un menu sous le prénom dans la barre du haut | Le garder en bas, replié |
 | M8 | L'option active d'une bascule (« Liste / Calendrier ») | Pleine, en encre, texte blanc | Rester en émeraude, mais pleine (aujourd'hui fond pâle à 1,16:1) |
 | M9 | La recherche du haut (C-12, « à trancher ») | Résultats par type, réglages compris, Entrée ouvre le premier | La laisser en l'état tant qu'aucun profil ne l'a essayée |
-| M10 | Le seuil de « Bientôt » | Sept jours, à régler par organisation (aucune règle métier en dur, CLAUDE.md § 2) | Un autre seuil de départ |
+| M10 | Le seuil de « Bientôt » (état neutre, icône d'horloge) | Sept jours, à régler par organisation (aucune règle métier en dur, CLAUDE.md § 2) | Un autre seuil de départ |
 | M11 | Chaque ligne du lexique (page 5) | Proposée ; les mots du budget, des prestataires, de la reprise et des Paramètres sont à confirmer dans leurs volets | Mot à mot |
 
 ## 4. Ce que les maquettes supposent hors de l'écran
@@ -150,8 +155,9 @@ fictives (agence « Atelier Roussel », Camille et son collègue Bastien, quatre
   375 px, aucun débordement de côté, aucun libellé de bouton sur deux lignes (contrôle par script sur
   les cinq pages, puis lecture à l'œil). Les titres de tâche peuvent passer sur deux lignes sur
   téléphone, c'est voulu.
-- Pas de version aux couleurs du trio : les valeurs ne sont pas connues. La page 5 dit le rôle de
-  chaque teinte ; les trois répartitions du § 8 de la synthèse restent à dessiner quand elles le seront.
+- Pas de version aux couleurs du trio : les valeurs ne sont pas connues. La répartition A est
+  appliquée en rôles aux jetons actuels ; la page 5 dit le rôle de chaque teinte. L'« À vérifier »
+  et l'« Erreur » gardent leurs fonds d'alerte (règle du lot 62) : le crème ne leur servira pas.
 - Quelques états « avant » n'ont pas de capture au relevé (panneaux, sélection, erreurs, menu
   « Reporter ») : ils sont décrits à partir des constats.
 
@@ -162,7 +168,8 @@ fictives (agence « Atelier Roussel », Camille et son collègue Bastien, quatre
 3. La barre du haut, « + Créer », « Nouvel évènement » (D8), la recherche (M9), la barre du bas (D4),
    M7.
 4. Le message de retour (M5, M6), les trois niveaux de danger, l'erreur de saisie.
-5. Le lexique, ligne par ligne (M11), et le tableau des états et des teintes (M8, M10).
+5. Le lexique, ligne par ligne (M11), et le tableau des états et des teintes, lu dans la
+   répartition A (M8, M10).
 6. Le rejeu des maquettes par le panel avant la porte 3 : oui ou non.
 
 Une fois ce volet validé, ses règles de forme alimentent le Design System (phase 6) et les maquettes

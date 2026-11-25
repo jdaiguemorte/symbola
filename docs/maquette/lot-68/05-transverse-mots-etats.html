@@ -253,6 +253,18 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 
 @media (max-width:1100px){.toolbar-doc{position:static}}
 
+/* Répartition A (porte 2, § 6) appliquée en rôles : la couleur d'action ne porte que l'action et les
+   liens ; l'attente et « bientôt » sont neutres avec une icône ; le rouge reste le retard. */
+.pill.soon{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.pill.ok{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.due.soon span,.tlm .meta.soon,.hint.soon-h{color:var(--muted)}
+.soon .st-ic,.soon-h .st-ic{border:0;width:auto;height:auto;font:500 13px/1 var(--f-body);color:var(--ink)}
+.fait.on{background:var(--ground);border-color:var(--line);color:var(--ink)}
+.notice.info{background:var(--ground);border:1px solid var(--line)}
+.choice.on{background:#fff}
+.toast .bar{background:#C9D0DA}
+.toast.ok-ic:before{color:#fff}
+
 </style>
 </head>
 <body>
@@ -261,7 +273,7 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <div class="crumbs"><a href="index.html">Lot 68 · maquettes du volet 1</a> › Transverse : lexique, états et teintes</div>
 <header>
 <h1>Transverse : le lexique, les états et leurs teintes</h1>
-<p>Un mot par objet, une graphie, un verbe par geste (P-15) ; une teinte par sens, et aucun état qui ne tienne qu'à la couleur (P-21). Les maquettes des autres pages appliquent déjà ces choix. Les teintes sont celles de <code>DESIGN.md</code> aujourd'hui ; le passage au bleu, à l'orange et au crème ne fixe ici aucune valeur : il dit seulement quel rôle chaque teinte devra porter.</p>
+<p>Un mot par objet, une graphie, un verbe par geste (P-15) ; une teinte par sens, et aucun état qui ne tienne qu'à la couleur (P-21). Les maquettes des autres pages appliquent déjà ces choix. Les teintes sont celles de <code>DESIGN.md</code> aujourd'hui ; la répartition des couleurs retenue à la porte 2 est la <b>A, « orange de marque seulement »</b> (<a href="../../audits/2026-11-ux-parcours/06-decisions-porte-2.md">décisions, § 6</a>) : elle est appliquée ici en rôles, sans fixer aucune valeur.</p>
 </header>
 <div class="toolbar-doc"><span class="lbl">Aller à :</span>
 <ul class="toc"><li><a href="#objets">Les mots des objets</a></li><li><a href="#verbes">Les verbes</a></li><li><a href="#incompris">Mots à remplacer</a></li><li><a href="#etats">États et teintes</a></li><li><a href="#avant-apres">Avant, après</a></li></ul></div>
@@ -329,18 +341,18 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <!-- ============================================================ -->
 <section class="mock" id="etats">
 <h2>Les états et leurs teintes</h2>
-<p class="intro">Une teinte, un sens. Chaque état a aussi un mot et, quand la place le permet, une icône : on le lit en noir et blanc. Colonne de droite : ce que chaque rôle deviendra avec le trio bleu, orange, crème, sans valeur fixée (§ 8 de la synthèse).</p>
+<p class="intro">Une teinte, un sens. Chaque état a aussi un mot et, quand la place le permet, une icône : on le lit en noir et blanc. Colonne de droite : le rôle de chaque teinte dans la répartition A retenue à la porte 2, sans valeur fixée.</p>
 <table class="doc-t" style="max-width:1240px">
-<tr><th style="width:20%">Sens</th><th style="width:26%">Rendu (jetons actuels)</th><th>Règle</th><th style="width:24%">Au passage au trio</th></tr>
-<tr><td><b>Action</b> : bouton principal, lien, entrée active</td><td><span class="btn p sm">Nouvelle tâche</span> <span class="link">Ouvrir la fiche</span></td><td>Émeraude, et rien d'autre ne l'est : ni statut, ni titre de tâche, ni barre d'avancement, ni bandeau. Un lien est toujours souligné.</td><td>Une nuance foncée du bleu (texte blanc dessus, 4,5:1).</td></tr>
+<tr><th style="width:20%">Sens</th><th style="width:26%">Rendu (jetons actuels)</th><th>Règle</th><th style="width:24%">Répartition A (porte 2)</th></tr>
+<tr><td><b>Action</b> : bouton principal, lien, entrée active</td><td><span class="btn p sm">Nouvelle tâche</span> <span class="link">Ouvrir la fiche</span></td><td>Émeraude, et rien d'autre ne l'est : ni statut, ni titre de tâche, ni barre d'avancement, ni bandeau. Un lien est toujours souligné.</td><td>Le bleu, dans une nuance foncée (texte blanc dessus, 4,5:1) ; l'orange jamais sur un bouton.</td></tr>
 <tr><td><b>Titre-lien d'un objet</b> dans une liste</td><td><span class="tt">Choisir le fleuriste</span></td><td>Encre, soulignée d'un trait gris : reconnaissable sans survol, sans prendre la couleur de l'action.</td><td>Inchangé (encre).</td></tr>
 <tr><td><b>En retard</b></td><td><span class="due late"><b>sam. 21 nov.</b><span><span class="st-ic">!</span>En retard de 4 jours</span></span></td><td>Rouge, mot « En retard de N jours », icône « ! ». Seulement pour un vrai retard : jamais pour décorer « Supprimer », ni pour une date d'import (P-01, P-02).</td><td>Rouge, inchangé ; distinct de l'orange par le mot et l'icône.</td></tr>
-<tr><td><b>Bientôt</b> : échéance dans les 7 jours</td><td><span class="due soon"><b>dim. 29 nov.</b><span><span class="st-ic">·</span>Dans 4 jours</span></span></td><td>Ambre, mot « Dans N jours », icône cerclée. C'est le seul sens de l'ambre.</td><td>Selon la répartition retenue (A, B ou C du § 8) : ambre recalé, ou orange en encre foncée sur fond orangé.</td></tr>
-<tr><td><b>Attend quelqu'un</b> (les mariés, un prestataire)</td><td><span class="who"><span class="avatar sm couple">M</span>Les mariés</span> <span class="pill">Attend les mariés</span></td><td>Neutre : la personne et son mot. L'ambre ne sert plus à « Mariés » ni à « Priorité haute ».</td><td>Neutre, inchangé.</td></tr>
-<tr><td><b>Fait</b></td><td><span class="pill ok">✓ Faite le 25 nov.</span> <span class="tt" style="color:var(--muted)">Choisir les alliances</span></td><td>Gris pour la ligne, sans barré ; pastille « Faite » avec coche. Le vert clair ne dit que « fait » et « enregistré ».</td><td>Une teinte de réussite à part, jamais le bleu de l'action.</td></tr>
+<tr><td><b>Bientôt</b> : échéance dans les 7 jours</td><td><span class="due soon"><b>dim. 29 nov.</b><span><span class="st-ic">◷</span>Dans 4 jours</span></span></td><td>Neutre : mot « Dans N jours » et icône d'horloge. L'ambre ne sert plus à une échéance.</td><td>Neutre ; l'orange n'entre pas dans les listes.</td></tr>
+<tr><td><b>Attend quelqu'un</b> (les mariés, un prestataire)</td><td><span class="who"><span class="avatar sm couple">M</span>Les mariés</span> <span class="pill">Attend les mariés</span></td><td>Neutre : la personne, son mot et une icône. L'ambre ne sert plus à « Mariés » ni à « Priorité haute ».</td><td>Pastille neutre avec icône.</td></tr>
+<tr><td><b>Fait</b></td><td><span class="pill ok">✓ Faite le 25 nov.</span> <span class="tt" style="color:var(--muted)">Choisir les alliances</span></td><td>Gris pour la ligne, sans barré ; pastille neutre « Faite » avec coche. La couleur d'action ne dit plus « fait » ni « enregistré ».</td><td>Neutre avec coche, jamais le bleu.</td></tr>
 <tr><td><b>Filtre ou option active</b></td><td><span class="seg" style="display:inline-flex"><span class="on">Liste</span><span>Calendrier</span></span> <span class="pill">Bastien <span class="x">×</span></span></td><td>Option active pleine (encre, texte blanc) ; filtre posé : pastille avec « × ». Plus de fond vert pâle à 1,16:1.</td><td>Inchangé (encre).</td></tr>
 <tr><td><b>Partagé</b> avec le client</td><td><span class="pill">◉ Partagé</span></td><td>Neutre, mot et icône (règle existante de <code>DESIGN.md</code>).</td><td>Neutre.</td></tr>
-<tr><td><b>Message d'information, à vérifier, erreur</b></td><td><span class="notice info" style="display:inline-flex;padding:4px 10px">Information</span> <span class="notice warn" style="display:inline-flex;padding:4px 10px">À vérifier :</span> <span class="notice err" style="display:inline-flex;padding:4px 10px">Erreur :</span></td><td>Règle du lot 62 : le texte dit d'abord ce que c'est.</td><td>Le crème ne sert pas à la fois de fond de page et de fond d'« À vérifier ».</td></tr>
+<tr><td><b>Message d'information, à vérifier, erreur</b></td><td><span class="notice info" style="display:inline-flex;padding:4px 10px">Information</span> <span class="notice warn" style="display:inline-flex;padding:4px 10px">À vérifier :</span> <span class="notice err" style="display:inline-flex;padding:4px 10px">Erreur :</span></td><td>Règle du lot 62 : le texte dit d'abord ce que c'est. L'information n'est plus sur le fond de la couleur d'action : fond neutre bordé.</td><td>Crème pour la page et l'information ; jamais pour « À vérifier » ni « Erreur ».</td></tr>
 </table>
 </section>
 
@@ -357,15 +369,15 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <div class="thead"><span>Tâche</span><span>Évènement</span><span>Échéance</span><span>Qui s'en charge</span><span></span><span></span></div>
 <div class="tl"><span class="tt">Faire signer le contrat du photographe</span><span class="ev">Léa & Maxime</span><span class="due late"><b>ven. 20 nov.</b><span><span class="st-ic">!</span>En retard de 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Marquer « Faire signer le contrat du photographe » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Faire signer le contrat du photographe »"></span></div>
 <div class="tl"><span class="tt">Confirmer la voiture des mariés</span><span class="ev">Léa & Maxime</span><span class="due late"><b>sam. 21 nov.</b><span><span class="st-ic">!</span>En retard de 4 jours</span></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Marquer « Confirmer la voiture des mariés » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Confirmer la voiture des mariés »"></span></div>
-<div class="tl"><span class="tt">Choisir le fleuriste</span><span class="ev">Léa & Maxime</span><span class="due soon"><b>dim. 29 nov.</b><span><span class="st-ic">·</span>Dans 4 jours</span></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait" aria-label="Marquer « Choisir le fleuriste » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Choisir le fleuriste »"></span></div>
-<div class="tl"><span class="tt">Organiser la dégustation finale</span><span class="ev">Inès & Paul</span><span class="due soon"><b>lun. 30 nov.</b><span><span class="st-ic">·</span>Dans 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Marquer « Organiser la dégustation finale » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Organiser la dégustation finale »"></span></div>
+<div class="tl"><span class="tt">Choisir le fleuriste</span><span class="ev">Léa & Maxime</span><span class="due soon"><b>dim. 29 nov.</b><span><span class="st-ic">◷</span>Dans 4 jours</span></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait" aria-label="Marquer « Choisir le fleuriste » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Choisir le fleuriste »"></span></div>
+<div class="tl"><span class="tt">Organiser la dégustation finale</span><span class="ev">Inès & Paul</span><span class="due soon"><b>lun. 30 nov.</b><span><span class="st-ic">◷</span>Dans 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Marquer « Organiser la dégustation finale » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Organiser la dégustation finale »"></span></div>
 <div class="tl"><span class="tt">Déclaration de TVA du trimestre</span><span class="ev none">Hors évènement</span><span class="due"><b>mar. 1er déc.</b></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Marquer « Déclaration de TVA du trimestre » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Déclaration de TVA du trimestre »"></span></div>
 <div class="tl"><span class="tt">Valider le faire-part du brunch</span><span class="ev">Léa & Maxime</span><span class="due"><b>jeu. 3 déc.</b></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait" aria-label="Marquer « Valider le faire-part du brunch » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Valider le faire-part du brunch »"></span></div>
 </div></div></div></div></div></div>
 </div>
 <div class="rules">
-<div><h4>Constats traités</h4><ul><li>C-83 : l'option active d'un filtre n'est plus un vert à 1,16:1 ; les titres de tâche se lisent comme des liens partout ; l'ambre n'a plus qu'un sens ; le vert n'en porte plus que deux (action, fait).</li><li>C-34 : le rouge ne distingue plus que les vrais retards.</li></ul></div>
-<div><h4>Règles de forme appliquées</h4><div class="count"><span>Un état = un mot + une icône + une teinte</span></div><ul><li>Aucune nouvelle valeur de couleur : tout vient des jetons de <code>DESIGN.md</code>.</li><li>Les trois répartitions du trio (§ 8) restent à étudier quand les valeurs seront connues ; la table ci-dessus dit ce qui ne doit pas bouger.</li></ul></div>
+<div><h4>Constats traités</h4><ul><li>C-83 : l'option active d'un filtre n'est plus un vert à 1,16:1 ; les titres de tâche se lisent comme des liens partout ; l'ambre ne sert plus aux listes ; le vert ne porte plus que l'action et les liens (répartition A).</li><li>C-34 : le rouge ne distingue plus que les vrais retards.</li></ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Un état = un mot + une icône + une teinte</span></div><ul><li>Aucune nouvelle valeur de couleur : tout vient des jetons de <code>DESIGN.md</code>.</li><li>Répartition A appliquée en rôles ; les valeurs du bleu, de l'orange et du crème restent à donner par Julien.</li></ul></div>
 </div>
 </section>
 
