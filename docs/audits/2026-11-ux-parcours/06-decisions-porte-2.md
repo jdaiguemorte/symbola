@@ -49,9 +49,20 @@ part, lancé sans attendre le Design System. Le lot 68 reste un lot d'audit : il
 Julien lance les maquettes et le lot de corrections depuis des sessions séparées, sur un modèle plus
 léger que celui de l'audit.
 
-## 6. Reste ouvert
+## 6. Couleurs
 
-- Les couleurs (§ 8 de la synthèse) : répartition des rôles du futur trio bleu, orange, crème, et
-  valeurs exactes des trois teintes.
+Répartition retenue (§ 8 de la synthèse) : **A, orange de marque seulement**. Le bleu porte l'action
+et les liens, et rien d'autre (ni statut positif, ni avancement, ni bandeau). L'orange reste au
+logo, aux illustrations et aux écrans vides : jamais dans une liste ni sur un bouton. Le crème sert
+de fond de page et de bandeau d'information, pas de fond d'alerte. L'attente quitte l'ambre pour une
+teinte ou une pastille neutre avec icône ; le rouge reste le retard et n'habille plus une commande
+répétée ; un état se lit sans la couleur.
+
+Les valeurs exactes des trois teintes ne sont pas connues : les maquettes restent aux jetons actuels
+de `DESIGN.md` et n'appliquent cette répartition qu'en rôles.
+
+## 7. Reste ouvert
+
+- Les valeurs exactes du bleu, de l'orange et du crème, à donner par Julien.
 - Les points « à vérifier dans l'app avant maquette » et « sur un vrai navigateur français » du § 9
   de la synthèse, hors D1, D9 et C-82 réglés ci-dessus.
