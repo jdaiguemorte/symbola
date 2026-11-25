@@ -284,6 +284,9 @@ observations d'un spécialiste, à garder pour les maquettes.
 
 ### Désaccords à trancher par Julien
 
+**Tranchés le 25/11/2026 (porte 2)** : voir [06-decisions-porte-2.md](06-decisions-porte-2.md), qui fait foi.
+D1 et D9 sont réglés par vérification dans l'app, C-82 est confirmé par une mesure.
+
 | # | Question | D'un côté | De l'autre | Constat |
 | --- | --- | --- | --- | --- |
 | D1 | L'annulation de « Fait » rend-elle toujours la tâche à sa place ? | Camille : oui, immédiat (note 3) | Nadia et Hugo, dans l'agence : la tâche ne revient pas, ou sous un autre mariage ; message « Today.source.vendors » | C-17 |
