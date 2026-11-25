@@ -3342,7 +3342,7 @@
     },
     "fileLabel": "File (CSV, Excel .xlsx or JSON)",
     "fileHint": "Maximum size: {maxSize}. Encoding, separator and header row are detected automatically.",
-    "pdfHint": "A PDF cannot be read here. Three kinds of PDF are taken over elsewhere: event sheets, from their tile above; the schedule, from the event’s “Wedding day schedule” tab; and retained vendors, from the event’s “Vendors” tab, with “Take over the selected vendors (PDF)”.",
+    "pdfHint": "A PDF cannot be read here. Three kinds of PDF are taken over elsewhere: event sheets, from their tile above; the schedule, from the event’s “Wedding day schedule” tab; and retained vendors, from the event’s “Budget and vendors” tab, with “Take over the selected vendors (PDF)”.",
     "startImport": "Read the file",
     "reading": "Reading…",
     "missingEntityType": "Choose what the file contains.",
