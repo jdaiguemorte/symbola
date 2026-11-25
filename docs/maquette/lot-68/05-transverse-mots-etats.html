@@ -209,7 +209,7 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 .sheet .grab{width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:4px auto 8px}
 .sheet .si{display:flex;align-items:center;gap:14px;min-height:52px;padding:0 20px;font-size:16px}
 .sheet .si svg{width:22px;height:22px;color:var(--muted)}
-.sheet .si.d{color:var(--muted);font-size:15px}
+.sheet .si.d{color:var(--ink);font-size:15px}
 .sheet hr{border:0;border-top:1px solid var(--line);margin:6px 0}
 .sticky-act{position:absolute;left:0;right:0;bottom:0;padding:12px 16px 20px;background:#fff;border-top:1px solid var(--line);z-index:6}
 /* Message de retour (toast) */
@@ -264,6 +264,8 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 .choice.on{background:#fff}
 .toast .bar{background:#C9D0DA}
 .toast.ok-ic:before{color:#fff}
+
+.btn.toggle[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
 
 </style>
 </head>
@@ -363,7 +365,7 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <div class="side"><div class="cap"><b>Aujourd'hui</b> rouge, ambre et vert pour neuf sens</div><div class="dwrap"><img src="../../audits/2026-11-ux-parcours/preuves/taches-1440.jpg" width="1440" alt="Tâches aujourd'hui"></div></div>
 <div class="side"><div class="cap"><b class="new">Proposé</b> une teinte, un sens</div><div class="dwrap"><div class="ui-d"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav on"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg>Rechercher un évènement, une tâche, un prestataire…<span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
 <div class="ph"><div><h1>Tâches</h1><div class="sub">Les tâches de tous vos évènements et de l'agence</div></div><span class="btn p"><svg aria-hidden="true"><use href="#i-plus"/></svg>Nouvelle tâche</span></div>
-<div class="card" style="padding:16px 20px"><div class="filters"><label class="field">Évènement<span class="in sel" style="width:220px">Tous</span></label><label class="field">Qui s'en charge<span class="in sel" style="width:200px">Tout le monde</span></label><label class="field">Période<span class="in sel" style="width:190px">Toutes</span></label><label class="field">État<span class="in sel" style="width:150px">À faire</span></label><span style="flex:1"></span><span class="seg"><span class="on">Liste</span><span>Calendrier</span></span></div></div>
+<div class="card" style="padding:16px 20px"><div class="filters"><label class="field">Évènement<span class="in sel" style="width:210px">Tous</span></label><label class="field">Qui s'en charge<span class="in sel" style="width:180px">Tout le monde</span></label><label class="field">Période<span class="in sel" style="width:210px">Toutes</span></label><label class="field">Catégorie<span class="in sel" style="width:170px">Toutes</span></label><label class="field">État<span class="in sel" style="width:140px">À faire</span></label></div></div>
 <div class="count-line"><span><b style="color:var(--ink)">8 tâches à faire</b> sur 42 · 2 en retard</span></div>
 <div class="tlist">
 <div class="thead"><span>Tâche</span><span>Évènement</span><span>Échéance</span><span>Qui s'en charge</span><span></span><span></span></div>

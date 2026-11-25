@@ -209,7 +209,7 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 .sheet .grab{width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:4px auto 8px}
 .sheet .si{display:flex;align-items:center;gap:14px;min-height:52px;padding:0 20px;font-size:16px}
 .sheet .si svg{width:22px;height:22px;color:var(--muted)}
-.sheet .si.d{color:var(--muted);font-size:15px}
+.sheet .si.d{color:var(--ink);font-size:15px}
 .sheet hr{border:0;border-top:1px solid var(--line);margin:6px 0}
 .sticky-act{position:absolute;left:0;right:0;bottom:0;padding:12px 16px 20px;background:#fff;border-top:1px solid var(--line);z-index:6}
 /* Message de retour (toast) */
@@ -264,6 +264,8 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 .choice.on{background:#fff}
 .toast .bar{background:#C9D0DA}
 .toast.ok-ic:before{color:#fff}
+
+.btn.toggle[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
 
 </style>
 </head>

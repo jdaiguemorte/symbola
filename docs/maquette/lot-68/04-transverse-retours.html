@@ -209,7 +209,7 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 .sheet .grab{width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:4px auto 8px}
 .sheet .si{display:flex;align-items:center;gap:14px;min-height:52px;padding:0 20px;font-size:16px}
 .sheet .si svg{width:22px;height:22px;color:var(--muted)}
-.sheet .si.d{color:var(--muted);font-size:15px}
+.sheet .si.d{color:var(--ink);font-size:15px}
 .sheet hr{border:0;border-top:1px solid var(--line);margin:6px 0}
 .sticky-act{position:absolute;left:0;right:0;bottom:0;padding:12px 16px 20px;background:#fff;border-top:1px solid var(--line);z-index:6}
 /* Message de retour (toast) */
@@ -265,6 +265,8 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 .toast .bar{background:#C9D0DA}
 .toast.ok-ic:before{color:#fff}
 
+.btn.toggle[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+
 </style>
 </head>
 <body>
@@ -298,7 +300,7 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <div class="tl"><span class="tt">Organiser la dégustation finale</span><span class="ev">Inès & Paul</span><span class="due soon"><b>lun. 30 nov.</b><span><span class="st-ic">◷</span>Dans 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Marquer « Organiser la dégustation finale » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Organiser la dégustation finale »"></span></div>
 <div class="tl"><span class="tt">Déclaration de TVA du trimestre</span><span class="ev none">Hors évènement</span><span class="due"><b>mar. 1er déc.</b></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Marquer « Déclaration de TVA du trimestre » comme faite"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Déclaration de TVA du trimestre »"></span></div>
 </div></div></div>
-<div style="position:absolute;left:280px;bottom:24px;width:520px;z-index:10"><div class="toast ok-ic"><div class="tx">Tâche faite : Choisir le fleuriste<small>Elle quitte la liste dans 6 secondes</small></div><span class="ub">Annuler</span><span class="cl" aria-label="Fermer">×</span><span class="bar"></span></div></div>
+<div style="position:absolute;left:280px;bottom:24px;width:520px;z-index:10"><div class="toast ok-ic"><div class="tx">Tâche faite : Choisir le fleuriste<small>« Annuler » reste 10 secondes ; ensuite, « Rouvrir » dans les tâches faites</small></div><span class="ub">Annuler</span><span class="cl" aria-label="Fermer">×</span><span class="bar"></span></div></div>
 </div></div></div>
 </div>
 <div class="pair m" style="margin-top:24px">
@@ -311,9 +313,9 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <div style="position:absolute;left:12px;right:12px;bottom:84px;z-index:7"><div class="toast ok-ic"><div class="tx">Tâche faite<small>Choisir le fleuriste</small></div><span class="ub">Annuler</span><span class="bar"></span></div></div>
 </div><nav class="mbb" aria-label="Navigation principale"><a><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
 <div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, après « Créer l'évènement »</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Évènements</a><span class="iconbtn" aria-label="Créer"><svg aria-hidden="true"><use href="#i-plus"/></svg></span><span class="iconbtn" aria-label="Aide"><svg aria-hidden="true"><use href="#i-help"/></svg></span></div><div class="mbody mpad">
-<h2 style="font-size:22px">Léa &amp; Maxime</h2><div class="small muted" style="margin:4px 0 16px">Demande en cours · date pas encore fixée</div>
+<h2 style="font-size:22px">Léa &amp; Maxime</h2><div class="small muted" style="margin:4px 0 16px">Signé, en préparation · date pas encore fixée</div>
 <div class="ph-box" style="height:300px">Fiche de l'évènement (volet « Évènements »).</div>
-<div style="position:absolute;left:12px;right:12px;bottom:84px;z-index:7"><div class="toast ok-ic"><div class="tx">Évènement créé<small>Léa &amp; Maxime, avec 42 tâches et son budget</small></div><span class="cl" aria-label="Fermer">×</span></div></div>
+<div style="position:absolute;left:12px;right:12px;bottom:84px;z-index:7"><div class="toast ok-ic"><div class="tx">Évènement créé<small>Avec 42 tâches et son budget</small></div><span class="ub">Voir ses tâches</span><span class="cl" aria-label="Fermer">×</span></div></div>
 </div><nav class="mbb" aria-label="Navigation principale"><a><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
 </div>
 <div class="rules">
@@ -358,8 +360,8 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <div class="window" role="alertdialog" aria-label="Annuler l'évènement Léa & Maxime ?" style="left:460px;top:120px;width:560px">
 <div class="wh"><h3 style="flex:1;font-size:22px;padding-top:6px">Annuler l'évènement « Léa &amp; Maxime » ?</h3><span class="iconbtn" aria-label="Fermer"><svg aria-hidden="true"><use href="#i-close"/></svg></span></div>
 <div class="wb" style="gap:12px">
-<p style="margin:0">Le mariage du 12 juin 2027 passe à « Annulé ». Il sort des listes et de l'accueil ; vous le retrouvez avec le filtre « Annulés ».</p>
-<ul style="margin:0;padding-left:20px;font-size:14px"><li>Les mariés et 6 prestataires perdent l'accès à leur lien.</li><li>Les 11 tâches à faire sont retirées ; les devis et factures restent.</li><li>Personne n'est prévenu par Symbola : <span class="link">préparer un message</span>.</li></ul>
+<p style="margin:0">Le mariage du 12 juin 2027 passe à « Annulé ». Il sort des listes et de l'accueil ; vous le retrouvez avec le filtre « Annulés ». <b>Vous pourrez le rétablir depuis sa fiche</b> : tout revient comme avant.</p>
+<ul style="margin:0;padding-left:20px;font-size:14px"><li>Les mariés et 6 prestataires ne peuvent plus ouvrir leur lien personnel vers Symbola.</li><li>Les 11 tâches à faire sont mises de côté ; les devis et factures restent.</li><li>Personne n'est prévenu par Symbola : <span class="link">préparer un message</span>.</li></ul>
 <label class="field" style="margin-top:4px">Motif (pour vous)<span class="in ph-t">Facultatif</span></label>
 </div>
 <div class="wf"><span class="btn">Garder l'évènement</span><span style="flex:1"></span><span class="btn danger">Annuler l'évènement</span></div>
@@ -369,17 +371,17 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <div class="side"><div class="cap"><b>Aujourd'hui</b> fiche sur téléphone</div><div class="mwrap"><img src="../../audits/2026-11-ux-parcours/preuves/fiche-evenement-375.jpg" alt="Fiche d'un évènement sur téléphone aujourd'hui"></div></div>
 <div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, niveau 2</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Léa &amp; Maxime</a></div><div class="mbody mpad" style="display:grid;gap:12px;align-content:start">
 <h2 style="font-size:20px">Annuler l'évènement « Léa &amp; Maxime » ?</h2>
-<p style="margin:0">Le mariage du 12 juin 2027 passe à « Annulé ». Il sort des listes ; vous le retrouvez avec le filtre « Annulés ».</p>
-<ul style="margin:0;padding-left:20px;font-size:14px"><li>Les mariés et 6 prestataires perdent l'accès à leur lien.</li><li>Les 11 tâches à faire sont retirées.</li><li>Personne n'est prévenu par Symbola.</li></ul>
+<p style="margin:0">Le mariage du 12 juin 2027 passe à « Annulé ». <b>Vous pourrez le rétablir depuis sa fiche.</b></p>
+<ul style="margin:0;padding-left:20px;font-size:14px"><li>Les mariés et 6 prestataires ne peuvent plus ouvrir leur lien personnel.</li><li>Les 11 tâches à faire sont mises de côté.</li><li>Personne n'est prévenu par Symbola.</li></ul>
 <label class="field">Motif (pour vous)<span class="in ph-t">Facultatif</span></label>
 </div><div class="sticky-act" style="display:grid;gap:8px"><span class="btn danger block">Annuler l'évènement</span><span class="btn block">Garder l'évènement</span></div></div></div></div>
 <div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, niveau 1 : « Supprimer » une tâche</div><div class="mwrap"><div class="ui-m"><div class="mtb"><h1>Tâches</h1><span class="iconbtn" aria-label="Rechercher"><svg aria-hidden="true"><use href="#i-search"/></svg></span><span class="iconbtn" aria-label="Créer"><svg aria-hidden="true"><use href="#i-plus"/></svg></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span></div><div class="mbody">
 <div class="tlm"><div class="txt"><span class="tt">Faire signer le contrat du photographe</span><div class="meta">Léa & Maxime · Vous</div><div class="meta late">En retard de 5 jours · ven. 20 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
 <div class="tlm"><div class="txt"><span class="tt">Confirmer la voiture des mariés</span><div class="meta">Léa & Maxime · Bastien</div><div class="meta late">En retard de 4 jours · sam. 21 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more"></span></div>
 <div class="dim"></div>
-<div class="sheet"><div class="grab"></div><div style="padding:0 20px 4px" class="small muted">Réserver le photobooth</div>
+<div class="sheet"><div class="grab"></div><div style="padding:0 20px 8px"><h3 style="font-size:17px">Réserver le photobooth</h3><div class="small muted">Chloé &amp; Samuel · ven. 11 déc.</div></div>
 <div class="si"><svg aria-hidden="true"><use href="#i-cal"/></svg>Changer la date…</div><div class="si"><svg aria-hidden="true"><use href="#i-user"/></svg>Confier à…</div><div class="si"><svg aria-hidden="true"><use href="#i-events"/></svg>Ouvrir l'évènement</div><hr>
-<div class="si" style="color:var(--critical)">Supprimer<span class="small muted" style="margin-left:auto">Annuler 10 s</span></div></div>
+<div class="si" style="color:var(--critical)">Supprimer la tâche</div></div>
 </div><nav class="mbb" aria-label="Navigation principale"><a><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
 </div>
 <div class="rules">
@@ -389,7 +391,7 @@ svg[aria-hidden]{width:20px;height:20px;flex:none}
 <li>C-80 (en partie) : sur téléphone, la confirmation ouvre une page entière au lieu de deux petits liens voisins.</li>
 </ul></div>
 <div><h4>Règles de forme appliquées</h4><div class="count"><span>Bouton de danger du lot 62</span><span>Renoncer : bouton nommé, à gauche</span></div>
-<ul><li>Le texte de la conséquence est un exemple : il se cale sur ce que fait vraiment l'annulation au lot de réalisation (à vérifier dans le code).</li><li>Sur téléphone, « Garder l'évènement » est le bouton le plus bas, le plus proche du pouce.</li></ul></div>
+<ul><li>Le texte de la conséquence est un exemple : il se cale sur ce que fait vraiment l'annulation au lot de réalisation (à vérifier dans le code). Il dit toujours si l'on peut revenir en arrière, et comment (rejeu : Sophie).</li><li>Sur téléphone, « Garder l'évènement » est le bouton le plus bas, le plus proche du pouce.</li></ul></div>
 </div>
 </section>
 

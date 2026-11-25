@@ -48,9 +48,11 @@ fictives (agence « Atelier Roussel », Camille et son collègue Bastien, quatre
 - **Créer** : « Nouvelle tâche » en haut de l'écran ; le même panneau en mode création ; le premier
   champ est l'évènement, avec « Aucun évènement » en tête de liste ; la répétition n'apparaît que sans
   évènement. Le formulaire du bas de page disparaît.
-- **Filtres** : Évènement, Qui s'en charge, Période, État ; un tri ; « 8 tâches à faire sur 42 » ;
-  chaque filtre posé devient une pastille. Sur téléphone, un bouton « Filtres » ouvre un panneau du
-  bas qui finit par « Voir les 2 tâches ».
+- **Filtres** : Évènement, Qui s'en charge, Période, Catégorie, État ; « Grouper par » (mois,
+  évènement, qui s'en charge) ; « 8 tâches à faire sur 42 » ; chaque filtre posé devient une
+  pastille. « En retard » groupé par personne donne les retards de toute l'équipe sur un écran. Sur
+  téléphone, « Mes tâches » en un toucher, et un bouton « Filtres » ouvre un panneau du bas qui finit
+  par « Voir les 4 tâches ».
 - **Changer la date** : un seul nom et un seul petit panneau (raccourcis datés en clair et « Autre
   date »), depuis la ligne, le panneau et la sélection ; « Annuler » dans le message de retour.
   « Reporter » est rendu à l'évènement.
@@ -109,6 +111,8 @@ fictives (agence « Atelier Roussel », Camille et son collègue Bastien, quatre
 | M8 | L'option active d'une bascule (« Liste / Calendrier ») | Pleine, en encre, texte blanc | Rester en émeraude, mais pleine (aujourd'hui fond pâle à 1,16:1) |
 | M9 | La recherche du haut (C-12, « à trancher ») | Résultats par type, réglages compris, Entrée ouvre le premier | La laisser en l'état tant qu'aucun profil ne l'a essayée |
 | M10 | Le seuil de « Bientôt » (état neutre, icône d'horloge) | Sept jours, à régler par organisation (aucune règle métier en dur, CLAUDE.md § 2) | Un autre seuil de départ |
+| M12 | La troisième réponse de « Où en est-il ? » (D8) | « Suivi dans un autre logiciel ou un tableur » : au rejeu, « Déjà en cours chez moi, je le reprends » a été lu « je l'avais commencé sur papier » (Sophie, Clémence) | Garder le libellé de D8 et préciser dessous « vous avez des fichiers » |
+| M13 | Aucune réponse cochée d'avance dans « Où en est-il ? » | Oui, à la suite du rejeu (Sophie, Clémence) ; l'assistant de démarrage, lui, garde sa réponse cochée d'avance (acquis du § 6 de la synthèse) | Cocher « Une demande en cours » |
 | M11 | Chaque ligne du lexique (page 5) | Proposée ; les mots du budget, des prestataires, de la reprise et des Paramètres sont à confirmer dans leurs volets | Mot à mot |
 
 ## 4. Ce que les maquettes supposent hors de l'écran
@@ -144,11 +148,68 @@ fictives (agence « Atelier Roussel », Camille et son collègue Bastien, quatre
 | Vue « Calendrier » de « Tâches » | Acquis (garde les filtres, liste par jour sur téléphone) ; pas de constat | — |
 | Points « à vérifier dans l'app » de C-36 (menu « Reporter » coupé, fenêtre « Modifier » du Rétroplanning) | Non revérifiés : la proposition supprime ces deux chemins | — |
 
-## 6. Limites
+## 6. Rejeu par le panel
 
-- **Les maquettes n'ont pas été rejouées par les profils du panel.** Le cadrage prévoit que chaque
-  maquette soit rejouée par les profils concernés avant d'être présentée ; ce volet est rendu sans ce
-  rejeu, qui peut se faire avant la porte 3 ou à la demande de Julien (PC-06 et PC-03 en priorité).
+Le 25/11/2026, à la demande de Julien, six passages, un agent par profil, avec le protocole de la
+phase 3 adapté à des écrans statiques : chaque profil ne reçoit que sa fiche, un parcours en étapes
+et les captures des écrans « Proposé », sans les textes d'explication ni l'écran d'aujourd'hui.
+Journaux et correspondance des captures : [03-panel/rejeu-volet-1/](03-panel/rejeu-volet-1/README.md).
+
+| Parcours | Profil | Taille | Notes des étapes | Abandons | Mesures |
+| --- | --- | --- | --- | --- | --- |
+| PC-06 Tâches | Valérie (L68-SU-C) | 1 440 | 2 · 1 · 2 · 3 · 3 · 2 · 2 | Aucun | Liste d'une personne en deux gestes : tenue ; même forme dans « Tâches » et la fiche : en partie |
+| PC-06 Tâches | Camille (SU-01) | 375, puis 1 440 | 2 · 3 · 2 · 3 · 3 · 2 | Aucun | Liste d'une personne : non tenue sur téléphone, tenue sur ordinateur ; même forme : tenue |
+| PC-03/PC-06 téléphone | Hugo (SU-03) | 375 | 3 · 3 · 1 · 2 · 2 · 2 · 2 | Aucun | Par quoi commencer en trente secondes : tenue ; deux gestes : en partie |
+| PC-03 Lundi matin | Nadia (SU-02) | 1 440 | 3 · 3 · 2 · 1 · 2 · 3 | Aucun | Trente secondes : tenue ; deux gestes : en partie ; qui est en retard dans l'équipe : non tenue |
+| Transverse, premiers pas | Clémence (L68-SU-D) | 375 | 2 · 2 · 1 · 2 · 3 · 2 · 2 | Aucun | Action nommée en dix secondes : tenue sauf après la création |
+| Transverse, revenir en arrière | Sophie (SU-04) | 1 440 | 2 · 3 · 2 · 2 · 2 · 2 · 3 | Aucun | Revenir en arrière : en partie ; aucun message incompris : tenue ; aucun mot anglais : tenue |
+
+À comparer à la phase 3 sur les mêmes gestes : créer une tâche sans évènement passe de 0 (Valérie,
+Camille) à 3 et 2 ; filtrer par évènement de 0 à 1 (la catégorie manquait) ; « Fait » puis
+« Annuler » reste à 3 ; aucune note 0, aucun abandon.
+
+**Ce qui a plu** (plusieurs profils) : « Fait » puis « Annuler » ; les raccourcis de « Changer la
+date » ; « Changer la date de 3 tâches » ; la création sans évènement et sa phrase « TVA,
+assurance » ; les messages d'erreur sous le champ, qui gardent la saisie ; « Faites » puis
+« Rouvrir » ; « Garder l'évènement » ; le menu « + Créer » qui dit le contexte ; la recherche rangée
+par type.
+
+**Corrigé dans les maquettes après le rejeu** (commit suivant 7d81ea1f) :
+
+| Ce qu'a relevé le panel | Profils | Correction |
+| --- | --- | --- |
+| Pas de vue « en retard, par personne » | Valérie, Nadia | « Grouper par » (mois, évènement, qui s'en charge) remplace « Trier par » ; nouvelle maquette « En retard, par personne » (page 2, Filtrer) |
+| Pas de filtre « Catégorie » (constat C-33, oublié) | Valérie | Cinquième filtre, à l'ordinateur, dans la fiche et sur téléphone |
+| Sur téléphone, voir ses tâches demande quatre gestes ; le panneau des filtres arrive pré-réglé | Hugo, Camille | « Mes tâches » sur la liste et en tête du panneau ; le panneau s'ouvre sur les réglages en cours |
+| Compteurs qui ne se recoupent pas ; pastille « 2 » inchangée après un report ; retards affichés dans un espace neuf ; « 90 jours avant le jour J » faux | Camille, Nadia, Clémence | Données des maquettes remises en cohérence (8 + 34 = 42, fiche à 20 tâches, pastille à 1 après le report, aucune pastille dans un espace neuf, « 195 jours ») |
+| La tâche cochée par erreur absente des tâches faites ; « Par » ambigu | Nadia, Valérie | « Choisir le fleuriste » en tête des faites ; colonne « Cochée par » |
+| Une réponse cochée d'avance dans « Où en est-il ? » ; « je le reprends » mal compris ; « rétroplanning » non expliqué | Sophie, Clémence | Aucune réponse cochée ; troisième réponse « Suivi dans un autre logiciel ou un tableur » ; « la liste des tâches se crée aujourd'hui » (M12, M13) |
+| Après la création, statut faux et pas de suite | Clémence | Statut « Signé, en préparation » ; « Voir ses tâches » dans le message |
+| Dans l'espace neuf, « Nouvelle tâche » en bouton plein alors que les tâches naissent d'un évènement | Clémence | « Nouvel évènement » en action principale de l'état vide |
+| L'annulation d'un évènement ne dit pas si l'on peut revenir en arrière ; « leur lien » flou | Sophie, Clémence | « Vous pourrez le rétablir depuis sa fiche » ; « leur lien personnel » ; tâches « mises de côté » (texte à caler sur le comportement réel) |
+| Panneau : « Enregistré » ne dit pas quoi, pas d'« Annuler » ; « Fermer » collé au bouton plein | Sophie | « Note enregistrée à 14 h 32 · Annuler la modification » ; plus de « Fermer » en pied (la croix et Échap ferment) |
+| « Annuler 10 s » pris pour un bouton ; tâche à supprimer mal nommée | Hugo | Le panneau nomme la tâche en titre ; « Supprimer la tâche » seul |
+| « catégorie et note plus bas » ne mène nulle part ; « Reprendre une liste » ambigu | Camille | « + Ajouter une catégorie ou une note » ; « Reprendre la liste de votre tableur », « Partir d'un modèle Symbola » |
+| « Échap » ; « Elle quitte la liste dans 6 secondes » | Sophie | « Un clic ailleurs ferme » ; « « Annuler » reste 10 secondes ; ensuite, « Rouvrir » » |
+| « Se déconnecter » en gris, pris pour un bouton éteint | Clémence | En encre, séparé |
+| Recherche : où mène Entrée | Nadia | Aide sous la liste : « Entrée ouvre le résultat surligné · flèches pour choisir » (M9 reste ouvert) |
+
+**Non corrigé, et pourquoi** :
+
+- « Contacts » et « Prestataires » semblent faire la même chose dans « Plus » (Hugo) : question des
+  volets « Prestataires » et « Contacts » (C-65 reporté, D11).
+- « Vous » désigne la personne connectée ; un assistant qui joue Hugo sur l'espace de Camille s'y
+  perd : biais du test, pas de l'écran.
+- La fiche n'a pas « Grouper par » (Valérie) : elle groupe par mois ; à voir au volet « Évènements ».
+- Vues enregistrées (Valérie) : nouvelle fonction, hors des maquettes ; proposée comme suite au lot
+  de réalisation si Julien la veut.
+- À 360 px (Hugo), les titres longs et la barre du bas seraient justes : à mesurer sur l'écran réel.
+
+## 7. Limites
+
+- Le rejeu est fait sur des captures statiques : les profils disent où ils cliqueraient, sans
+  cliquer. Comme en phase 3, les profils et l'auteur des maquettes sont des agents du même modèle :
+  leurs jugements ne sont pas indépendants. Sophie a jugé à 1 440 px ce qu'elle verrait à 911 px.
   Bastien n'est pas un profil du panel : c'est le collègue fictif des maquettes, nommé ainsi pour ne
   pas se confondre avec le profil Hugo.
 - Vérifié dans le navigateur aux deux tailles : aucune commande de moins de 44 px dans les cadres de
@@ -161,7 +222,7 @@ fictives (agence « Atelier Roussel », Camille et son collègue Bastien, quatre
 - Quelques états « avant » n'ont pas de capture au relevé (panneaux, sélection, erreurs, menu
   « Reporter ») : ils sont décrits à partir des constats.
 
-## 7. Ce que Julien valide à la porte 3 de ce volet
+## 8. Ce que Julien valide à la porte 3 de ce volet
 
 1. La ligne type d'une tâche, ses quatre formes et le panneau unique (pages 1 et 2), M1 à M4.
 2. L'écran « Tâches » : création, filtres, « Changer la date », sélection, vides, tâches faites.
@@ -170,7 +231,7 @@ fictives (agence « Atelier Roussel », Camille et son collègue Bastien, quatre
 4. Le message de retour (M5, M6), les trois niveaux de danger, l'erreur de saisie.
 5. Le lexique, ligne par ligne (M11), et le tableau des états et des teintes, lu dans la
    répartition A (M8, M10).
-6. Le rejeu des maquettes par le panel avant la porte 3 : oui ou non.
+6. Les corrections issues du rejeu (§ 6), dont M12 et M13.
 
 Une fois ce volet validé, ses règles de forme alimentent le Design System (phase 6) et les maquettes
 du volet 2 (reprise et import) partent de la ligne type, du panneau et des messages fixés ici.
