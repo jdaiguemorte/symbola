@@ -16,7 +16,13 @@ export async function ImportHeader({ wizard, current, abandon }: { wizard: Impor
     state: step.key === current ? ("current" as const) : step.done ? ("done" as const) : ("todo" as const),
     // L'étape « Fichier » ne se rouvre pas : on recommence un import.
     href: step.done && step.key !== "file" ? importStepHref(wizard.importId, step.key) : null,
-    summary: step.done && step.summary ? t(`summary.${step.summary.key}`, step.summary.values) : null,
+    // Lot 67a (HUB-14 ; R04) : des rapprochements sans décision se lisent dans la frise.
+    summary:
+      step.done && step.summary
+        ? t(`summary.${step.summary.key}`, step.summary.values)
+        : step.key === "matches" && (step.summary?.values.undecided ?? 0) > 0
+          ? t("summary.matchesUndecided", { count: step.summary!.values.undecided! })
+          : null,
   }));
   return (
     <>

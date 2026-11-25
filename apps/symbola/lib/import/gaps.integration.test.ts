@@ -128,7 +128,8 @@ describe("IMP-04 — Rapport des écarts", () => {
     expect(view?.rowCount).toBe(4);
     expect(view?.rejected).toEqual([
       { rowIndex: 1, lineNumber: 3, reasons: [{ fieldKey: "dueDate", code: "invalid_date", value: "31/02/2027" }] },
-      { rowIndex: 2, lineNumber: 4, reasons: [{ fieldKey: "label", code: "required_missing", value: "" }] },
+      // Lot 67a (HUB-14 ; R03) : le motif nomme la colonne du fichier à remplir.
+      { rowIndex: 2, lineNumber: 4, reasons: [{ fieldKey: "label", code: "required_missing", value: "", column: "Tâche" }] },
       { rowIndex: 3, lineNumber: 5, reasons: [{ code: "event_not_found", fieldKey: null, value: "" }] },
     ]);
 

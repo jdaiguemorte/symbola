@@ -1166,7 +1166,7 @@ async function touchProgram(tx: Tx, eventId: string): Promise<void> {
 export async function findEventProgram(
   organizationId: string,
   eventId: string,
-): Promise<{ event: EventRow; items: ProgramItemWithParticipants[] } | null> {
+): Promise<{ event: EventRow; items: ProgramItemWithParticipants[]; moments: { id: string; name: string; date: string }[] } | null> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
     const [event] = await tx.select().from(events).where(eq(events.id, eventId));
@@ -1176,7 +1176,11 @@ export async function findEventProgram(
       .from(programItems)
       .where(eq(programItems.eventId, eventId))
       .orderBy(asc(programItems.startTime), asc(programItems.createdAt));
-    return { event, items: await withParticipants(tx, items) };
+    // Lot 67d (CHR-06) : le jour de chaque temps fort, pour ne comparer que les séquences d'un même jour.
+    const moments = items.some((item) => item.keyMomentId !== null)
+      ? await tx.select({ id: keyMoments.id, name: keyMoments.name, date: keyMoments.date }).from(keyMoments).where(eq(keyMoments.eventId, eventId)).orderBy(asc(keyMoments.date), asc(keyMoments.position))
+      : [];
+    return { event, items: await withParticipants(tx, items), moments };
   });
 }
 

@@ -53,6 +53,12 @@ describe("CHR-08 — Programme du jour J depuis le PDF de l'ancien logiciel (imp
     const { organizationId, eventId, djSlotId, catererSlotId } = await wedding();
     const applied = await importEventProgram({ organizationId, eventId, bytes: pdf("programme-jour-j.pdf"), apply: { skipLines: [] } });
     expect(applied).toMatchObject({ status: "applied", items: 12, moments: 2, skipped: 0 });
+    // Lot 67d (EVT-04 ; décision du 24/11/2026) : la veille et le lendemain portent leur nom, plus « Jour J ».
+    expect((await listKeyMoments(organizationId, eventId)).map((moment) => [moment.date, moment.name])).toEqual([
+      ["2027-06-11", "Veille"],
+      ["2027-06-12", "Jour J"],
+      ["2027-06-13", "Lendemain"],
+    ]);
     const program = await getEventProgram(organizationId, eventId);
     const byLabel = new Map(program.items.map((item) => [item.label, item]));
     expect(byLabel.get("Animation surprise")!.hiddenFromClients).toBe(true);

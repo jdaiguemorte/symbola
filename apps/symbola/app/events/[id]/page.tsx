@@ -115,7 +115,7 @@ import { VendorCandidates } from "./vendor-candidates";
 import { BudgetLineIcon } from "@/app/budget-line-icon";
 import { isBudgetModuleEnabled } from "@/app/budget/module-access";
 import { PlannedAmountForm, SlotIconForm } from "./budget-line-forms";
-import { buildBudgetVendorRows } from "./budget-vendor-rows";
+import { buildBudgetVendorRows, signedAmount } from "./budget-vendor-rows";
 import { BudgetVendorsTable } from "./budget-vendors-table";
 import { AddPlaceForm, EditPlaceForm } from "./place-forms";
 import { TaskAttachmentUploadForm, TaskCommentForm } from "./task-extra-forms";
@@ -138,6 +138,7 @@ import { getDayReport, listKeyMoments } from "@/modules/events/service";
 import { getGuestEventSummary, getGuestModuleState } from "@/modules/guests/service";
 import { AddKeyMomentForm, EditKeyMomentForm } from "./key-moments";
 import { ProgramImportForm } from "./program-import-form";
+import { VendorsImportForm } from "./vendors-import-form";
 import { DayReminderCard } from "./day-reminder-card";
 import { dayReportSections, reportHandovers } from "./bilan/day-report-view";
 import { dayReportWords } from "./bilan/report-words";
@@ -160,7 +161,7 @@ const LINK_STATUS_KEYS = {
 const TABS = ["apercu", "budget", "retroplanning", "programme", "devis", "maries", "documents", "invites"] as const;
 type Tab = (typeof TABS)[number];
 
-type SearchParams = { importer?: string; cote?: string; groupe?: string; sansReponse?: string; suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string };
+type SearchParams = { importer?: string; reprendre?: string; cote?: string; groupe?: string; sansReponse?: string; suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string };
 
 // Lot 28a (PRE-02) : postes pourvus (un prestataire retenu) ou non requis.
 const SETTLED_SLOT_STATUSES = new Set<string>(["retained", "contract_signed", "paid_off", "not_required"]);
@@ -948,6 +949,33 @@ export default async function EventDetailPage({
                 <SettingsLink href="/events/parametres" back="event" label={t("vendorSlotsSettings")} />
               </div>
             </div>
+            {/* Lot 67c (BUD-02 ; recette du 24/11/2026, R06) : les totaux en tête, sans descendre au pied
+                d'un tableau de vingt lignes (qui les garde). */}
+            {budgetRows && vendorSlots.length > 0 ? (
+              <dl className="health-tiles budget-totals" aria-label={tBudgetVendors("totalsLabel")}>
+                <div>
+                  <dt>{tBudgetVendors("columnPlanned")}</dt>
+                  <dd>{formatAmount(budgetRows.totals.plannedCents, locale)}</dd>
+                </div>
+                <div>
+                  <dt>{tBudgetVendors("columnActual")}</dt>
+                  <dd>{formatAmount(budgetRows.totals.actualCents, locale)}</dd>
+                  <dd className="health-detail">{tBudgetVendors("engagedDetail", { amount: formatAmount(budgetRows.totals.engagedCents, locale) })}</dd>
+                </div>
+                <div>
+                  <dt>{tBudgetVendors("columnVariance")}</dt>
+                  <dd>{signedAmount(budgetRows.totals.varianceCents, (cents) => formatAmount(cents, locale))}</dd>
+                </div>
+                <div>
+                  <dt>{tBudgetVendors("columnPaid")}</dt>
+                  <dd>{formatAmount(budgetRows.totals.paidCents, locale)}</dd>
+                </div>
+                <div>
+                  <dt>{tBudgetVendors("columnRemaining")}</dt>
+                  <dd>{formatAmount(budgetRows.totals.remainingCents, locale)}</dd>
+                </div>
+              </dl>
+            ) : null}
             <p id="vendor-progress-label">{t("vendorProgress", { booked: progress.booked, required: progress.required })}</p>
             {/* Lot 28a (BUD-02) : le dépassement du seuil d'alerte, en haut du budget. */}
             {budgetView.envelope?.exceeded ? (
@@ -959,6 +987,8 @@ export default async function EventDetailPage({
               </p>
             ) : null}
             <progress aria-labelledby="vendor-progress-label" value={progress.booked} max={Math.max(progress.required, 1)} />
+            {/* Lot 67e (HUB-14, PRE-02 ; R07) : reprendre d'un PDF les prestataires retenus de l'évènement. */}
+            {vendorsAvailable ? <VendorsImportForm eventId={event.id} open={query.reprendre === "1"} /> : null}
             {vendorSlots.length === 0 ? <p>{t("noVendorSlots")}</p> : null}
             {vendorSlots.length > 0 ? (
               <BudgetVendorsTable
@@ -1381,12 +1411,15 @@ export default async function EventDetailPage({
             <section aria-labelledby="program-overlaps-title" className="notice notice-attention program-overlaps">
               <h3 id="program-overlaps-title">{t("programOverlapsTitle")}</h3>
               <ul>
-                {program.overlaps.map((overlap) => (
-                  <li key={`${overlap.participant}-${overlap.itemIds.join("-")}`}>
-                    {t("programOverlap", {
-                      participant: overlap.participant,
-                      first: programLabels.get(overlap.itemIds[0]) ?? "",
-                      second: programLabels.get(overlap.itemIds[1]) ?? "",
+                {/* Lot 67d (CHR-06 ; R09) : une ligne par intervenant, ses chevauchements à la suite. */}
+                {[...new Set(program.overlaps.map((overlap) => overlap.participant))].map((participant) => (
+                  <li key={participant}>
+                    {t("programOverlapsOf", {
+                      participant,
+                      pairs: program.overlaps
+                        .filter((overlap) => overlap.participant === participant)
+                        .map((overlap) => t("programOverlapPair", { first: programLabels.get(overlap.itemIds[0]) ?? "", second: programLabels.get(overlap.itemIds[1]) ?? "" }))
+                        .join(t("programOverlapPairSeparator")),
                     })}
                   </li>
                 ))}

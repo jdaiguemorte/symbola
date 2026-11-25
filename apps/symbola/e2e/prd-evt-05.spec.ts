@@ -107,7 +107,7 @@ test("PRD-EVT-05 — programme du jour J depuis un modèle, chevauchement signal
   await expect(added.locator(".program-who")).toContainText("Photographe, Témoin");
   await expect(added).toContainText("Note interne : Prévoir les alliances");
   await expect(page.getByRole("region", { name: "Chevauchements à vérifier" })).toContainText(
-    "Photographe est prévu à la fois sur « Photos de groupe » et sur « Photos des invités ».",
+    "Photographe, en même temps : « Photos de groupe » et « Photos des invités ».",
   );
   await expectNoAxeViolation(page);
 

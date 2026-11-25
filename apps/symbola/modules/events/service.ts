@@ -20,7 +20,7 @@ import { organizationLinksClosed } from "./closed-organization";
 import { randomUUID } from "node:crypto";
 import { parseEnv } from "@symbola/env";
 import { MailQuotaExceededError, reserveOrganizationMail } from "@symbola/mail";
-import { starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, starterDayOfSettings, starterEventDocumentFolders, type StarterEventDocumentFolder, type StarterLinkProfile } from "@symbola/starter-templates";
+import { planningSoftwareProfile, starterClientTaskReminders, starterDemoEvent, starterExampleEvent, starterLinkExpiry, starterLinkProfiles, starterProgram, starterRetroplanning, starterTutorialEvent, starterVendorSlots, starterDayOfSettings, starterEventDocumentFolders, type StarterEventDocumentFolder, type StarterLinkProfile } from "@symbola/starter-templates";
 import {
   postponeEventRow,
   confirmPostponementRow,
@@ -1843,9 +1843,15 @@ export async function getEventProgram(organizationId: string, eventId: string): 
   const result = await findEventProgram(organizationId, eventId);
   if (!result) throw new EventNotFoundError();
   const items = sortProgramItems(result.items.map(toProgramItem));
+  const momentDates = new Map(result.moments.map((moment) => [moment.id, moment.date]));
   return {
     items,
-    overlaps: findProgramOverlaps(items),
+    moments: result.moments,
+    // Lot 67d (CHR-06 ; R09) : les clients (par leur rôle) ne sont pas signalés ; chaque jour à part.
+    overlaps: findProgramOverlaps(
+      items.map((item) => ({ ...item, day: item.keyMomentId ? (momentDates.get(item.keyMomentId) ?? null) : null })),
+      planningSoftwareProfile().programExport,
+    ),
     updatedAt: result.event.programUpdatedAt?.toISOString() ?? null,
   };
 }
@@ -3819,7 +3825,9 @@ export async function importEventProgram(input: {
   speakerSlots?: Record<number, string | null>;
   catalogVendors?: { id: string; name: string; city: string | null }[];
 }): Promise<ProgramImportResult> {
-  const result = await importProgram({ ...input, mainMomentName: await mainMomentName(input.organizationId) });
+  // Lot 67d (EVT-04) : la veille et le lendemain portent leur nom, plus celui du jour J.
+  const dayOf = starterDayOfSettings(await getOrganizationLanguage(appDatabase(), input.organizationId));
+  const result = await importProgram({ ...input, mainMomentName: dayOf.mainMomentName, eveMomentName: dayOf.eveMomentName, nextDayMomentName: dayOf.nextDayMomentName });
   if (!result) throw new EventNotFoundError();
   return result;
 }
@@ -4426,6 +4434,7 @@ export {
   setTaskMilestone,
   spawnDueRecurringTasks,
   suggestedClientTerms,
+  updateStandaloneTask,
   type LateTask,
 } from "./planning";
 

@@ -3,7 +3,7 @@
 // d'écrire. Règles pures (le fichier est lu par le moteur d'import, formules neutralisées).
 import { describe, expect, it } from "vitest";
 import { starterProgramImportColumns } from "@symbola/starter-templates";
-import { mapProgramColumns, parseClock, programRowsFromExport, proposeSpeakerSlot, readProgramRows, speakerKind } from "./program-import-rules";
+import { mapProgramColumns, parseClock, programRowsFromExport, proposeSpeakerSlot, readProgramRows, speakerKind, dayMomentName } from "./program-import-rules";
 
 const columns = starterProgramImportColumns();
 
@@ -143,5 +143,24 @@ describe("CHR-08 — Programme du jour J depuis le PDF de l'ancien logiciel (rat
   it("sans poste choisi pour son intervenant, l'interlocuteur reste en texte", () => {
     const { rows } = programRowsFromExport(program, { eventDate: "2027-06-12" }, new Map([[0, null]]), new Map());
     expect(rows[0]!.participants).toEqual([{ vendorSlotId: null, label: "DJ - Félix" }, { vendorSlotId: null, label: "Gaspard" }]);
+  });
+});
+
+describe("EVT-04 — Le nom du jour créé par un import (lot 67d)", () => {
+  const names = { main: "Jour J", eve: "Veille", nextDay: "Lendemain" };
+
+  it("seul le jour de l'évènement est le « Jour J » ; la veille et le lendemain portent leur nom", () => {
+    expect(dayMomentName("2026-12-05", "2026-12-05", names)).toBe("Jour J");
+    expect(dayMomentName("2026-12-04", "2026-12-05", names)).toBe("Veille");
+    expect(dayMomentName("2026-12-06", "2026-12-05", names)).toBe("Lendemain");
+  });
+
+  it("un autre jour porte sa date ; la veille d'un 1er janvier est bien le 31 décembre", () => {
+    expect(dayMomentName("2026-12-02", "2026-12-05", names)).toBe("02/12/2026");
+    expect(dayMomentName("2026-12-31", "2027-01-01", names)).toBe("Veille");
+  });
+
+  it("sans date d'évènement, le jour porte sa date", () => {
+    expect(dayMomentName("2026-12-04", null, names)).toBe("04/12/2026");
   });
 });

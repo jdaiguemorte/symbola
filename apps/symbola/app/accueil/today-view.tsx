@@ -8,7 +8,7 @@ import { formatCalendarDate, type Locale } from "@symbola/i18n";
 import type { EventSummary } from "@symbola/contracts";
 import { eventNames } from "@/modules/events/service";
 import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "@/app/events/event-status";
-import { daysUntil, TODAY_GROUPS, type RankedItem, type RankedToday, type TodayGroup } from "@/lib/today/rank";
+import { daysUntil, TODAY_GROUPS, type RankedItem, type RankedToday, type TodayGroup, TODAY_HORIZON_DAYS } from "@/lib/today/rank";
 import { isActiveEvent, type TodaySource, type TodayWords } from "@/lib/today/load";
 import { HOME_FIRST_COUNT, todayParts } from "@/lib/today/parts";
 import { completeTaskAction } from "./actions";
@@ -134,7 +134,8 @@ export async function TodayFirst({ ranked, locale, modules }: { ranked: RankedTo
         parts.map((part) => (
           <div key={part.nature} className="today-part">
             <div className="today-part-head">
-              <h3 id={`today-part-${part.nature}`}>{t(`parts.${part.nature}`, { count: part.total })}</h3>
+              {/* Lot 67b (HUB-08 ; R01) : la partie des tâches dit son horizon (retard ou échéance proche). */}
+              <h3 id={`today-part-${part.nature}`}>{t(`parts.${part.nature}`, { count: part.total, days: TODAY_HORIZON_DAYS })}</h3>
               {part.link ? (
                 <Link href={part.link.href} className="today-part-link">
                   {t(`partLink.${part.link.kind}`)} ›

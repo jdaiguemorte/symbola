@@ -31,6 +31,9 @@ export type ImportFieldDefinition = {
   kind: ImportFieldKind;
   required?: true;
   choices?: readonly string[];
+  // Lot 67a (HUB-14, BUD-01) : cellule vide = la valeur de la ligne du dessus (poste écrit une seule
+  // fois, ou cellule fusionnée), si la ligne porte une autre valeur reconnue.
+  carryDown?: true;
 };
 
 // Lot 36b (HUB-14) : un champ obligatoire parmi plusieurs (un contact a un nom, de sa colonne ou
@@ -76,7 +79,7 @@ export const IMPORT_FIELDS: Record<ImportEntityType, readonly ImportFieldDefinit
   ],
   budget_lines: [
     ...EVENT_REFERENCE,
-    { key: "slotLabel", kind: "text", required: true },
+    { key: "slotLabel", kind: "text", required: true, carryDown: true },
     // Lot 28b (BUD-01, Q33) : plusieurs lignes par catégorie (poste).
     { key: "lineLabel", kind: "text" },
     { key: "vendorName", kind: "text" },

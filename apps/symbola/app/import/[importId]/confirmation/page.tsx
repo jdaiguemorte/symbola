@@ -10,6 +10,7 @@ import { ActionBar } from "@/app/ui/action-bar";
 import { getImportPreview, type PreviewRow } from "@/lib/import/apply";
 import { getImportGapsView } from "@/lib/import/gaps";
 import { contactRowTitle, rowEventReference } from "@/lib/import/matching";
+import Link from "next/link";
 import { importStepHref } from "@/lib/import/wizard";
 import { listVendorTags } from "@/modules/vendors/service";
 import { STATUS_LABEL_KEYS } from "@/app/events/event-status";
@@ -190,7 +191,21 @@ export default async function ImportConfirmationPage({
           <p>{t("confirmBlocked")}</p>
           <ul>
             {preview.blockers.map((blocker) => (
-              <li key={blocker}>{t(`blocker.${blocker}`)}</li>
+              <li key={blocker}>
+                {t(`blocker.${blocker}`)}
+                {/* Lot 67a (HUB-14 ; R04) : chaque blocage mène à l'écran qui le lève. */}
+                {blocker === "matches_undecided" ? (
+                  <>
+                    {" "}
+                    <Link href={`${importStepHref(importId, "matches")}?filtre=a-verifier`}>{t("blockerLink.matches_undecided")}</Link>
+                  </>
+                ) : blocker === "columns_undecided" ? (
+                  <>
+                    {" "}
+                    <Link href={`/import/${importId}/ecarts`}>{t("blockerLink.columns_undecided")}</Link>
+                  </>
+                ) : null}
+              </li>
             ))}
           </ul>
         </div>

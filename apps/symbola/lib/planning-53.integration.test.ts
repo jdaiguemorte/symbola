@@ -25,6 +25,7 @@ import {
   setEventTeamMember,
   setTaskMilestone,
   spawnDueRecurringTasks,
+  updateStandaloneTask,
   addVendorCandidate,
   addEventVendorSlot,
   updateVendorCandidate,
@@ -87,6 +88,42 @@ describe("CHR-10 — Tâches hors évènement et tâches récurrentes (lot 53, D
     await expect(addStandaloneTask(a.organizationId, { label: "", dueDate: "2027-13-40", recurrence: "daily" })).rejects.toBeInstanceOf(PlanningInputError);
     await deleteStandaloneTask(a.organizationId, task.id);
     expect(await listStandaloneTasks(a.organizationId)).toEqual([]);
+  });
+});
+
+describe("CHR-10 — Modifier une tâche hors évènement (lot 67b ; recette du 24/11/2026, R02)", () => {
+  it("l'intitulé, l'échéance et la répétition se modifient ; la tâche garde son identité", async () => {
+    const { organizationId } = await workspace();
+    const task = await addStandaloneTask(organizationId, { label: "Déclaration de TVA", dueDate: "2027-01-20", recurrence: null });
+    const updated = await updateStandaloneTask(organizationId, task.id, { label: "Déclaration de TVA du trimestre", dueDate: "2027-01-24", recurrence: "quarterly" });
+    expect(updated).toMatchObject({ id: task.id, label: "Déclaration de TVA du trimestre", dueDate: "2027-01-24", recurrence: "quarterly", done: false });
+    expect(await listStandaloneTasks(organizationId)).toEqual([updated]);
+  });
+
+  it("changer la répétition ne touche pas une occurrence déjà faite ni la suivante déjà née", async () => {
+    const { organizationId } = await workspace();
+    const task = await addStandaloneTask(organizationId, { label: "Point comptable", dueDate: "2027-01-10", recurrence: "monthly" });
+    await setStandaloneTaskDone(organizationId, task.id, true, new Date("2027-01-10T09:00:00Z"), "2027-01-10");
+    const [next] = await listStandaloneTasks(organizationId);
+    await updateStandaloneTask(organizationId, next!.id, { label: "Point comptable", dueDate: next!.dueDate, recurrence: null });
+    const all = await listStandaloneTasks(organizationId, { includeDone: true });
+    expect(all.map((entry) => [entry.dueDate, entry.recurrence, entry.done])).toEqual([
+      ["2027-01-10", "monthly", true],
+      ["2027-02-10", null, false],
+    ]);
+  });
+
+  it("abus : une autre organisation ne modifie pas la tâche ; une tâche d'évènement ou supprimée non plus ; une saisie invalide est refusée", async () => {
+    const a = await workspace();
+    const b = await workspace();
+    const task = await addStandaloneTask(a.organizationId, { label: "Assurance", dueDate: "2027-03-01", recurrence: "yearly" });
+    const change = { label: "Détournée", dueDate: "2027-03-02", recurrence: null };
+    await expect(updateStandaloneTask(b.organizationId, task.id, change)).rejects.toBeInstanceOf(PlanningInputError);
+    await expect(updateStandaloneTask(a.organizationId, task.id, { label: "", dueDate: "2027-13-40", recurrence: "daily" })).rejects.toBeInstanceOf(PlanningInputError);
+    await expect(updateStandaloneTask(a.organizationId, "pas-un-identifiant", change)).rejects.toBeInstanceOf(PlanningInputError);
+    expect(await listStandaloneTasks(a.organizationId)).toEqual([task]);
+    await deleteStandaloneTask(a.organizationId, task.id);
+    await expect(updateStandaloneTask(a.organizationId, task.id, change)).rejects.toBeInstanceOf(PlanningInputError);
   });
 });
 

@@ -131,14 +131,17 @@
   .app-main > main > .today-first > h2 {
     @apply mb-1;
   }
+  /* Lot 67b : le titre de la partie des tâches est plus long ; sur téléphone le lien passe dessous,
+     tout près de la première ligne. Il y garde une cible de 24 px (WCAG 2.5.8) et un espace sous lui.
+     Sur ordinateur rien ne change : les lignes restent compactes, le calendrier reste à l'écran. */
   .today-part-head {
-    @apply flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1;
+    @apply flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 max-sm:mb-1;
   }
   .today-part-head > h3 {
     @apply m-0 text-label font-semibold text-ink-muted;
   }
   .today-part-link {
-    @apply text-label font-medium;
+    @apply text-label font-medium max-sm:inline-flex max-sm:min-h-6 max-sm:items-center;
   }
   .today-first .today-items > .today-item {
     @apply py-1;

@@ -436,6 +436,8 @@ export type MatchesRowView = {
   lineNumber: number;
   values: Record<string, ImportValue>;
   errors: RowError[];
+  // Lot 67a (HUB-14, BUD-01) : champs repris de la ligne du dessus → ligne du fichier d'origine.
+  carried?: Record<string, number>;
   // Tâches et lignes de budget : événement reconnu, ou null (introuvable).
   event?: { eventId: string | null; score: number; candidate: EventCandidate | null };
   match: (ImportMatch & { label: string | null; event: EventCandidate | null }) | null;
@@ -526,6 +528,7 @@ export async function getImportMatchesView(organizationId: string, importId: str
       lineNumber: row.lineNumber,
       values: row.values,
       errors: row.errors,
+      ...(row.carried ? { carried: row.carried } : {}),
       ...(hasEventReference
         ? {
             event: {

@@ -171,6 +171,19 @@
         "Couple"
       ],
       "maxPages": 30
+    },
+    "eventVendorsExport": {
+      "_comment": "Lot 67e (HUB-14, PRE-02) — export « prestataires d'un évènement » du même logiciel, en PDF paysage : en-tête (date de l'évènement, clients), titre, puis un tableau Type · Nom · Contact · E-mail · Téléphone · Instagram, une ligne par prestataire retenu. Les colonnes se repèrent par leurs titres et leur position ; le pied de page et les rôles de la planner sont ceux de programExport, les mois ceux de eventSheet.",
+      "title": "Export des Prestataires",
+      "columnHeaders": {
+        "type": "Type de Prestataire",
+        "name": "Nom",
+        "contact": "Contact",
+        "email": "E-mail",
+        "phone": "Téléphone",
+        "instagram": "Instagram"
+      },
+      "maxPages": 10
     }
   }
 }

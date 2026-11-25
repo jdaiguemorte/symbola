@@ -574,7 +574,7 @@
     },
     "eventsDetail": {
       "title": "Event page",
-      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; « Edit the details », at the top of the event profile, opens a panel where they are edited, the event's time zone included. The top timeline shows where it stands: Option, Confirmed, In preparation, Event day, Closed. Click a step to set it; « Event day » applies by itself on the day of the event, and closing is offered from the next day. « Postpone the event… » asks for the new date: once you confirm the postponement, the planning's due dates follow, except tasks already done and those whose date you set by hand; the ones that would fall in the past are listed first. « Cancel the event… » asks for a reason: the data stays, links close, reminders and scheduled deposit invoices stop, and a credit note is offered for each issued invoice. The « Event profile » gathers estimated and confirmed guests, venues, contacts, style and notes; venues are managed in the « Day programme » tab (address, town, times, on-site contact), the first being the reception venue. In the same tab, each sequence of the schedule is a line: “Edit” opens it in place, “Add a sequence” creates one; nothing is sent until you click “Save the schedule”, which says how many lines are waiting, and “Discard changes” brings back the saved schedule. A task can be given to you, to the couple or to a retained vendor, who ticks it in their space; its attachments and comments stay within the team. Ticked by mistake, a task comes back with « Undo », for ten seconds. The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). In « Budget and vendors », each row says where the choice stands (« Selected », « 2 being compared », « To find »); « + Add vendors » offers, for each record of the trade in your directory, « Compare » or « Select », never automatically. The item window compares vendors side by side (quote, availability, worked together before, last follow-up, note): « Select », « Set aside », then « Change vendor » or « Unselect », without deleting the line; « Next item » moves on. Each tab has a « Settings » link to its templates.",
+      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; « Edit the details », at the top of the event profile, opens a panel where they are edited, the event's time zone included. The top timeline shows where it stands: Option, Confirmed, In preparation, Event day, Closed. Click a step to set it; « Event day » applies by itself on the day of the event, and closing is offered from the next day. « Postpone the event… » asks for the new date: once you confirm the postponement, the planning's due dates follow, except tasks already done and those whose date you set by hand; the ones that would fall in the past are listed first. « Cancel the event… » asks for a reason: the data stays, links close, reminders and scheduled deposit invoices stop, and a credit note is offered for each issued invoice. The « Event profile » gathers estimated and confirmed guests, venues, contacts, style and notes; venues are managed in the « Day programme » tab (address, town, times, on-site contact), the first being the reception venue. In the same tab, each sequence of the schedule is a line: “Edit” opens it in place, “Add a sequence” creates one; nothing is sent until you click “Save the schedule”, which says how many lines are waiting, and “Discard changes” brings back the saved schedule. A task can be given to you, to the couple or to a retained vendor, who ticks it in their space; its attachments and comments stay within the team. Ticked by mistake, a task comes back with « Undo », for ten seconds. The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). In « Budget and vendors », each row says where the choice stands (« Selected », « 2 being compared », « To find »); « + Add vendors » offers, for each record of the trade in your directory, « Compare » or « Select », never automatically. The item window compares vendors side by side (quote, availability, worked together before, last follow-up, note): « Select », « Set aside », then « Change vendor » or « Unselect », without deleting the line; « Next item » moves on. « Take over the selected vendors (PDF) » reads the vendors export from your previous software: each vendor is found in the directory or created, then selected on the line of their trade, after your check. Each tab has a « Settings » link to its templates. Overlap warnings leave out your clients, who attend every sequence, and are read day by day. PDFs separate the days of a multi-day schedule; the team version puts the internal note under each sequence.",
       "faq": [
         {
           "q": "How do I mark an event as lost?",
@@ -794,7 +794,7 @@
     },
     "importMatches": {
       "title": "Matching existing records",
-      "body": "When a row looks like a vendor already in your book, the file row and the existing record are shown side by side (name, trade, city, email, phone, number of events), with the differences spelled out. Choose “It's the same”, “These are two vendors” or “Decide later”. If only the first name is shared, the suggestion is “To check” and they stay two vendors unless you say otherwise. Filter “To check”, “New”, “Updates”; “Accept all” confirms the safe suggestions."
+      "body": "When a row looks like a vendor already in your book, the file row and the existing record are shown side by side (name, trade, city, email, phone, number of events), with the differences spelled out. Choose “It's the same”, “These are two vendors” or “Decide later”. If only the first name is shared, the suggestion is “To check” and they stay two vendors unless you say otherwise. Filter “To check”, “New”, “Updates”; “Accept all” confirms the safe suggestions. While a suggested match is waiting for your decision, “Continue” stays on this screen: decide row by row, or all at once with “Accept the suggested matches” or “Create the rows as new”. In a budget, a row without a budget line takes the one from the row above, and the screen says so."
     },
     "importGaps": {
       "title": "Gaps report",
@@ -1416,7 +1416,7 @@
     },
     "standaloneTasks": {
       "title": "Tasks outside events",
-      "body": "A task without an event appears in “Today” when due. Once checked, a repeating task creates the next one."
+      "body": "A task without an event appears in “Today” when due. Once checked, a repeating task creates the next one. A task outside events is changed with “Edit” (title, due date, repetition). The header and the menu's “overdue” badge count event tasks and tasks outside events."
     },
     "eventClosing": {
       "title": "Event closing",
@@ -1528,6 +1528,49 @@
     "link": "Help",
     "tutorialsCount": "Tutorials done: {completed} of {total}",
     "tutorialsLink": "Tutorials"
+  },
+  "EventVendorsImport": {
+    "title": "Take over the selected vendors (PDF)",
+    "hint": "The “Export des Prestataires” PDF from your previous software, for this event. Each vendor is found in your directory, or created, then selected on the budget line of their trade. Nothing is written before you agree; amounts do not change.",
+    "fileLabel": "PDF file",
+    "preview": "Read the file",
+    "refresh": "Read again with these choices",
+    "reading": "Reading the file…",
+    "previewTitle": "{count, plural, =0 {No vendor read} one {# vendor read} other {# vendors read}}",
+    "header": "File for: {clients} — {date}.",
+    "headerNoClients": "clients not stated",
+    "headerNoDate": "date not stated",
+    "headerDifferent": "The date in this file is not this event's date. Check that it is the right file.",
+    "headerConfirm": "This is the file for this event",
+    "plannerSkipped": "Row not taken over, it is you: {names}.",
+    "columnFile": "In the file",
+    "columnVendor": "Directory entry",
+    "columnSlot": "Budget line",
+    "columnSkip": "Do not take over",
+    "chooseVendor": "Directory entry for {name}",
+    "chooseSlot": "Budget line for {name}",
+    "vendorNew": "Create the entry (trade to classify)",
+    "vendorNewTyped": "Create the entry ({type})",
+    "vendorFound": "Found in the directory",
+    "slotNew": "New line “{type}”",
+    "alreadyRetained": "Already selected",
+    "skipLine": "Do not take over {name}",
+    "applyHint": "A vendor already selected on a line stays: the takeover adds, it does not replace. To go back, use « Unselect » in the line's window.",
+    "apply": "{count, plural, =0 {Nothing to take over} one {Take over # vendor} other {Take over # vendors}}",
+    "applied": "{retained, plural, =0 {No vendor selected} one {# vendor selected} other {# vendors selected}}, {createdVendors, plural, =0 {no entry created} one {# entry created} other {# entries created}}, {createdSlots, plural, =0 {no line created} one {# line created} other {# lines created}}.",
+    "appliedAlready": "{count, plural, one {# was already selected.} other {# were already selected.}}",
+    "unauthenticated": "Your session has expired. Sign in again.",
+    "moduleUnavailable": "This takeover needs the Events and Vendors modules.",
+    "fileMissing": "Choose the PDF file.",
+    "eventNotFound": "Event not found.",
+    "rejected": {
+      "empty": "The file is empty.",
+      "too_large": "The file is too large.",
+      "infected": "The file was rejected by the antivirus.",
+      "too_many_pages": "The file has too many pages.",
+      "not_event_vendors_pdf": "This file is not an event's “Export des Prestataires” PDF. For the whole directory, go to Vendors, “Import”.",
+      "header_unconfirmed": "The file's date is not this event's date: tick the confirmation to continue."
+    }
   },
   "Events": {
     "title": "Events",
@@ -1722,6 +1765,9 @@
     "programExportVendors": "Download the “team” PDF (internal notes included)",
     "programOverlapsTitle": "Overlaps to check",
     "programOverlap": "{participant} is scheduled on both “{first}” and “{second}”.",
+    "programOverlapsOf": "{participant}, at the same time: {pairs}.",
+    "programOverlapPair": "“{first}” and “{second}”",
+    "programOverlapPairSeparator": "; ",
     "noProgramItems": "No line in the schedule.",
     "editProgramItem": "Edit line {label}",
     "removeProgramItem": "Delete line {label}",
@@ -2970,6 +3016,7 @@
     "templateCopyName": "{name} (copy)",
     "removeTemplate": "Delete template {name}",
     "addStarterTemplates": "Add the starter template",
+    "startFromQuote": "Start from an existing quote",
     "templatesFromQuoteHint": "To create a template, save a quote as a template from its page.",
     "quotesLink": "See quotes",
     "pdfOptionChosen": "option chosen",
@@ -3295,6 +3342,7 @@
     },
     "fileLabel": "File (CSV, Excel .xlsx or JSON)",
     "fileHint": "Maximum size: {maxSize}. Encoding, separator and header row are detected automatically.",
+    "pdfHint": "A PDF cannot be read here. Two kinds of PDF are taken over elsewhere: event sheets, from their tile above, and the schedule, from the event’s “Wedding day schedule” tab.",
     "startImport": "Read the file",
     "reading": "Reading…",
     "missingEntityType": "Choose what the file contains.",
@@ -3470,6 +3518,11 @@
     "matchesIntro": "A row that looks like an existing record can update it instead of creating a duplicate. Accept the suggested matches one by one or in bulk, refuse them, or match a row by hand. Nothing is saved in your modules yet.",
     "matchesRejectedNotice": "{count, plural, one {# row has} other {# rows have}} an invalid value or an empty required field: they will be listed in the gaps report.",
     "acceptAllMatches": "{count, plural, one {Accept the suggested match} other {Accept the # suggested matches}}",
+    "matchesUndecidedTitle": "{count, plural, one {# match is waiting for your decision} other {# matches are waiting for your decision}}",
+    "matchesUndecidedBody": "The import cannot be confirmed while any remain. Decide them row by row below, or all at once: accepting updates the existing item, creating adds a new row.",
+    "matchesUndecidedBodyContacts": "The import cannot be confirmed while any remain. Decide them row by row below, or accept them all at once.",
+    "refuseAllMatches": "{count, plural, one {Create the row as new} other {Create the # rows as new}}",
+    "blockerLink": { "matches_undecided": "Decide the matches", "columns_undecided": "Decide the columns" },
     "acceptSelectedMatches": "Accept selected",
     "refuseSelectedMatches": "Refuse selected",
     "rowHeading": "Row {line}: {title}",
@@ -3512,6 +3565,7 @@
     "rejectedFileSuffix": "rejected-rows",
     "rowError": {
       "required_missing": "{field}: required field missing",
+      "required_missing_column": "the “{column}” column is empty (required field “{field}”)",
       "invalid_date": "{field}: invalid date ({value})",
       "invalid_amount": "{field}: invalid amount ({value})",
       "invalid_percentage": "{field}: invalid percentage ({value})",
@@ -3597,6 +3651,7 @@
     "rejectedTooManySheets": "Too many sheets at once: upload them in several goes.",
     "gapsRejectedSheet": "Sheet “{file}”: {reasons}",
     "rowSameAs": "This sheet describes the same event as row {line}: match it with the existing event or keep only one of them.",
+    "rowCarriedSlot": "(budget line taken from row {line})",
     "sheetStatusIntro": "Suggested status for each event (confirmed when the date is ahead and a venue is known, done when it has passed). Change it if needed: it is saved as soon as you choose it.",
     "sheetStatusSaved": "Status saved.",
     "sheetStatusFailed": "Error: the status could not be saved. Try again.",
@@ -3659,6 +3714,7 @@
       "columns": "{recognized, plural, one {# column recognised} other {# columns recognised}}{kept, plural, =0 {} other {, # kept as notes}}{ignored, plural, =0 {} other {, # ignored}}",
       "types": "{labels, plural, one {# label} other {# labels}}, {created, plural, =0 {no type created} one {# type created} other {# types created}}{unclassified, plural, =0 {} other {, # to sort}}",
       "matches": "{creations, plural, other {# new}}, {updates, plural, =0 {no update} one {# update} other {# updates}}",
+      "matchesUndecided": "{count, plural, one {# match to decide} other {# matches to decide}}",
       "rows": "{excluded, plural, =0 {all rows kept} one {# row set aside} other {# rows set aside}}"
     },
     "stepCurrent": "in progress",
@@ -5988,6 +6044,7 @@
       "events_decision_engaged": "Client choice committed (supplier booked, follow-up tasks)",
       "events_vendor_retention_changed": "Booked supplier changed by the team",
       "events_program_imported": "Schedule imported from a spreadsheet",
+      "events_vendors_imported": "Selected vendors taken over from a PDF",
       "events_day_shift_applied": "Event-day shift confirmed and published",
       "events_day_report_downloaded": "Event-day report downloaded",
       "quotes_transfer_declared": "Transfer declared by the payer",
@@ -7362,14 +7419,14 @@
     },
     "parts": {
       "follow_ups": "Follow-ups and messages ({count})",
-      "tasks": "Tasks ({count})",
+      "tasks": "Tasks overdue or due within {days} days ({count})",
       "payments": "Payments ({count})",
       "decisions": "Decisions and signatures ({count})",
       "prospects": "Prospects and enquiries ({count})",
       "others": "To look at ({count})"
     },
     "partLink": {
-      "tasks": "See in Tasks",
+      "tasks": "See all tasks",
       "payments": "See payments received",
       "pipeline": "See prospects",
       "event": "See the event"
@@ -7455,6 +7512,12 @@
     "expenseLabel": "Label",
     "amount": "Vendor's quote amount, incl. VAT (optional)",
     "quoteHint": "The quote is created as a numbered draft; you compose it next.",
+    "quoteFor": "Who is this quote for?",
+    "quoteForEvent": "An existing event",
+    "quoteForProspect": "A new prospect",
+    "quoteHintProspect": "The prospect is created, then its quote as a numbered draft; you compose it afterwards.",
+    "quoteDoneForProspect": "Prospect {name} created, with draft quote {number}.",
+    "quoteFailedProspectKept": "Prospect {name} was created, but its quote could not be. Create it from the prospect's page.",
     "prospectDone": "Prospect {name} created.",
     "taskDone": "Task “{label}” added.",
     "expenseDone": "Expense “{label}” saved.",
@@ -8693,6 +8756,7 @@
     "questionsMaxReached": "Five questions at most."
   },
   "MessageTemplates": {
+    "writeOwn": "Write my own template",
     "title": "Message templates",
     "subtitle": "Your standard messages to clients: “Write to the client”, on the record, fills them in and opens your mailbox.",
     "empty": "No message template yet.",
@@ -11309,6 +11373,14 @@
     "dayReminderLink": "Set the day-of reminder ›"
   },
   "StandaloneTasks": {
+    "edit": "Edit",
+    "editLabel": "Edit “{label}”",
+    "editTitle": "Edit the task",
+    "editClose": "Close",
+    "editCancel": "Cancel",
+    "editSave": "Save",
+    "editRecurrenceHint": "The repetition only changes this task and the next ones; tasks already done stay as they are.",
+    "notFound": "This task no longer exists.",
     "title": "Tasks outside events",
     "intro": "VAT return, insurance, bookkeeping: what does not depend on any event. A task can repeat; the next one is created when this one is done, or on its date.",
     "label": "Task",
@@ -12556,6 +12628,8 @@
     "scheduleNeedsLine": "First enter this item's planned or actual amount (“Amounts” section): the schedule is computed from it.",
     "total": "Total",
     "engagedTotal": "of which committed",
+    "totalsLabel": "Budget totals",
+    "engagedDetail": "of which committed: {amount}",
     "legend": "Variance = actual − planned: “+” above plan, “−” below, the sign always shown. Paid = paid instalments; left to pay = actual − paid. “Committed”: quote accepted or contract signed.",
     "detailLink": "Budget detail (simulation, excl. VAT, exports)",
     "windowBack": "Back to the budget",

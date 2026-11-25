@@ -59,7 +59,7 @@ test("IMP-04 — colonne gardée en champ libre, lignes rejetées et leur CSV", 
   await expect(page).toHaveURL(/\/confirmation$/);
   await expect(page.getByRole("navigation", { name: "Étapes de l'import" }).getByRole("listitem").filter({ hasText: "Colonnes" })).toContainText("3 colonnes reconnues, 1 en note sur la fiche");
   await expect(page.getByRole("region", { name: "Ce que va faire l'import" })).toContainText("Remarque");
-  await expect(page.getByText("Ligne 3 : Unité : champ obligatoire manquant")).toBeVisible();
+  await expect(page.getByText("Ligne 3 : la colonne « Unité » est vide (champ obligatoire « Unité »)")).toBeVisible();
   await expect(page.getByText("Ligne 4 : Prix unitaire HT : montant invalide (abc)")).toBeVisible();
   await expect(page.getByText("2 lignes sur 3 ne seront pas importées.", { exact: false })).toBeVisible();
   await expectNoAxeViolation(page);
@@ -71,7 +71,7 @@ test("IMP-04 — colonne gardée en champ libre, lignes rejetées et leur CSV", 
   const csv = readFileSync((await download.path())!, "utf-8");
   expect(csv).toBe(
     "\ufeffMotif du rejet;Intitulé;Unité;Prix HT;Remarque\r\n" +
-      "Unité : champ obligatoire manquant;DJ;;950;\r\n" +
+      "la colonne « Unité » est vide (champ obligatoire « Unité »);DJ;;950;\r\n" +
       "Prix unitaire HT : montant invalide (abc);Photo;jour;abc;\r\n",
   );
 });

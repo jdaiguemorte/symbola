@@ -62,7 +62,7 @@ describe("PRD-EVT-05 — Contenu du PDF du programme", () => {
     const model = buildProgramPdfModel({ program, variant: "couple", labels, locale: "fr", heading: "Inès & Sacha", logo: null, organizationName: "Atelier" });
     expect(model.columns).toEqual(["Heure", "Déroulé", "Lieu", "Intervenants"]);
     expect(JSON.stringify(model)).not.toContain("Prévoir les alliances");
-    expect(model.rows[0]).toEqual({ time: "15:00 – 16:00 · 1 h", label: "Cérémonie", responsible: "Responsable : Camille", location: "Mairie", participants: "Photographe, Officiant", note: null });
+    expect(model.rows[0]).toEqual({ time: "15:00 – 16:00 · 1 h", hours: "15:00 – 16:00", duration: "1 h", label: "Cérémonie", responsible: "Responsable : Camille", location: "Mairie", participants: "Photographe, Officiant", note: null });
   });
 
   it("variante « prestataires » : les notes internes sont présentes", () => {
@@ -114,8 +114,8 @@ describe("PRD-EVT-05 — Contenu du PDF du programme", () => {
     const model = buildProgramPdfModel({ program: vendorPdfProgram(view, "Traiteur", view.version.publishedAt), variant: "couple", labels: { ...labels, participants: "Votre poste" }, locale: "fr", heading: "Inès", logo: null, organizationName: "Atelier", versionLabel: "Version 2" });
     expect(model.columns).toEqual(["Heure", "Déroulé", "Lieu", "Votre poste"]);
     expect(model.rows).toEqual([
-      { time: "15:00 – 16:00 · 1 h", label: "Cérémonie", responsible: null, location: "", participants: "", note: null },
-      { time: "22:45", label: "Soirée", responsible: "Responsable : Camille", location: "Orangerie", participants: "Traiteur", note: null },
+      { time: "15:00 – 16:00 · 1 h", hours: "15:00 – 16:00", duration: "1 h", label: "Cérémonie", responsible: null, location: "", participants: "", note: null },
+      { time: "22:45", hours: "22:45", duration: null, label: "Soirée", responsible: "Responsable : Camille", location: "Orangerie", participants: "Traiteur", note: null },
     ]);
     expect(JSON.stringify(model)).not.toMatch(/Mairie|Photographe|Officiant|alliances/);
   });
@@ -132,5 +132,64 @@ describe("PRD-EVT-05 — Contenu du PDF du programme", () => {
       watermark: "Document fictif",
     });
     expect(model.watermark).toBe("Document fictif");
+  });
+});
+
+describe("CHR-07, EVT-04 — PDF d'un programme de plusieurs jours, heures lisibles (lot 67d ; recette du 24/11/2026, R10)", () => {
+  const item = (id: string, startTime: string, endTime: string | null, label: string, keyMomentId: string | null) => ({
+    id,
+    eventId: "e",
+    startTime,
+    endTime,
+    label,
+    location: null,
+    internalNote: null,
+    responsible: null,
+    participants: [],
+    keyMomentId,
+    hiddenFromClients: false,
+  });
+  const twoDays = {
+    items: [
+      item("d1", "07:00", "11:00", "Installation salle", "jour-j"),
+      item("v1", "12:00", null, "Récupérer les clés", "veille"),
+      item("v2", "12:15", "13:30", "Installation cérémonie", "veille"),
+      item("d2", "11:00", null, "Arrivée du photographe", "jour-j"),
+      item("d3", "11:00", "11:30", "Brunch", "jour-j"),
+    ],
+    moments: [
+      { id: "veille", name: "Veille", date: "2026-12-04" },
+      { id: "jour-j", name: "Jour J", date: "2026-12-05" },
+    ],
+    overlaps: [],
+    updatedAt: null,
+  };
+  const build = (input: typeof twoDays | typeof program) => buildProgramPdfModel({ program: input, variant: "couple", labels, locale: "fr", heading: "Mélanie & Valentin", logo: null, organizationName: "Atelier" });
+
+  it("sépare les jours par un titre, dans l'ordre des dates ; les heures se lisent jour par jour", () => {
+    const model = build(twoDays);
+    expect(model.days?.map((day) => [day.heading, day.rows.map((row) => row.label)])).toEqual([
+      ["Veille — 4 décembre 2026", ["Récupérer les clés", "Installation cérémonie"]],
+      ["Jour J — 5 décembre 2026", ["Installation salle", "Arrivée du photographe", "Brunch"]],
+    ]);
+  });
+
+  it("une fin absente vaut la séquence suivante du même jour, pas celle d'un autre jour", () => {
+    const keys = build(twoDays).rows.find((row) => row.label === "Récupérer les clés");
+    expect(keys).toMatchObject({ hours: "12:00 – 12:15", duration: "15 min" });
+  });
+
+  it("l'heure et la durée sont deux textes : la plage sur une ligne, la durée dessous", () => {
+    expect(build(twoDays).rows.find((row) => row.label === "Installation salle")).toMatchObject({ hours: "07:00 – 11:00", duration: "4 h" });
+  });
+
+  it("une séquence sans durée n'affiche que son heure, sans « · 0 min »", () => {
+    const arrival = build(twoDays).rows.find((row) => row.label === "Arrivée du photographe");
+    expect(arrival).toMatchObject({ time: "11:00", hours: "11:00", duration: null });
+  });
+
+  it("un programme d'un seul jour n'a pas de titre de jour", () => {
+    expect(build(program).days?.map((day) => day.heading)).toEqual([null]);
+    expect(build({ ...twoDays, items: twoDays.items.filter((entry) => entry.keyMomentId === "jour-j") }).days?.map((day) => day.heading)).toEqual([null]);
   });
 });

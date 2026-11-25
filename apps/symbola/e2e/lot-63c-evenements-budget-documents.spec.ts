@@ -157,6 +157,10 @@ test("BUD-01, BUD-03, BUD-04 — Budget et prestataires : réel, écart, réglé
   await page.keyboard.press("Escape");
   await expect(caterer.getByText("Engagé", { exact: true })).toBeVisible();
   await expect(table.getByRole("row", { name: /dont engagé/ })).toContainText("8 400,00 €");
+  // Lot 67c (BUD-02 ; recette du 24/11/2026, R06) : les totaux se lisent aussi en tête de l'onglet.
+  const totals = page.getByRole("definition").filter({ hasText: "dont engagé : 8 400,00 €" });
+  await expect(totals).toBeVisible();
+  await expect(page.getByLabel("Totaux du budget").getByText("Reste à payer")).toBeVisible();
 
   // « + Ajouter des prestataires » sur la ligne des fleurs (lot 65b, M14 C) : le fleuriste du carnet,
   // sans rien taper ; « Comparer » ne le retient pas, « Retenir » le retient.

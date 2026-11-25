@@ -235,6 +235,8 @@ export const AUDIT_ACTIONS = {
   "guests.caterer_summary.downloaded": { category: "export", objectType: "event" },
   // Lot 51 (CHR-08) : chrono importé d'un tableur (nombre de séquences et de temps forts créés).
   "events.program.imported": { category: "emission", objectType: "event" },
+  // Lot 67e (HUB-14, PRE-02) : prestataires retenus d'un évènement repris d'un PDF.
+  "events.vendors.imported": { category: "emission", objectType: "event" },
   // Lot 51 (JRJ-05) : décalage du jour J validé par la planner, appliqué et diffusé aux prestataires.
   "events.day_shift.applied": { category: "partage", objectType: "event" },
   // Lot 51 (PAR-08, étape 7) : bilan du lendemain exporté en PDF (jamais son contenu).

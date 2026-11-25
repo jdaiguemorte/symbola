@@ -82,7 +82,7 @@ function toLines(items: { item: PdfTextItem; page: number }[]): Line[] {
 
 const pad = (value: number) => String(value).padStart(2, "0");
 
-function frenchDate(text: string, calendar: Calendar): string | null {
+export function frenchDate(text: string, calendar: Calendar): string | null {
   const months = calendar.months.map(foldProgramText);
   const match = /(\d{1,2}) (\p{L}+) (\d{4})/u.exec(foldProgramText(text));
   if (!match) return null;

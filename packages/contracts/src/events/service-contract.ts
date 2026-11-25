@@ -555,6 +555,9 @@ export type ProgramOverlap = { participant: string; itemIds: [string, string] };
 
 export type EventProgram = {
   items: ProgramItem[];
+  // Lot 67d (EVT-04, CHR-07) : les temps forts de l'évènement (un jour chacun), pour séparer les
+  // jours d'un programme de plusieurs jours (PDF). Absent : un seul jour.
+  moments?: { id: string; name: string; date: string }[];
   overlaps: ProgramOverlap[];
   // Date de version du PDF : dernière modification du programme (ISO 8601).
   updatedAt: string | null;

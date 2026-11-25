@@ -97,6 +97,8 @@ export function NewImportForm({
               />
             </label>
             <p id="import-file-hint">{t("fileHint", { maxSize: maxSizeLabel })}</p>
+            {/* Lot 67a (HUB-14 ; recette du 24/11, R07) : dire quels PDF se lisent, et où. */}
+            <p className="meta">{t("pdfHint")}</p>
           </>
         )}
         <button type="submit" disabled={pending}>

@@ -6,7 +6,7 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { parisToday } from "@symbola/i18n";
-import { addStandaloneTask, deleteStandaloneTask, PlanningInputError, setStandaloneTaskDone } from "@/modules/events/service";
+import { addStandaloneTask, deleteStandaloneTask, PlanningInputError, setStandaloneTaskDone, updateStandaloneTask } from "@/modules/events/service";
 import { requirePlanner } from "@/lib/guards";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 
@@ -21,6 +21,27 @@ export async function addStandaloneTaskAction(_prev: StandaloneTaskFormState, fo
     await addStandaloneTask(auth.user.organizationId, { label: String(formData.get("label") ?? ""), dueDate: String(formData.get("dueDate") ?? ""), recurrence: recurrence === "" ? null : recurrence });
   } catch (error) {
     if (error instanceof PlanningInputError) return { error: t("invalid") };
+    throw error;
+  }
+  revalidatePath("/taches");
+  revalidatePath("/");
+  return { success: true };
+}
+
+// Lot 67b (CHR-10 ; R02) — modifier une tâche hors évènement, depuis sa fenêtre.
+export async function updateStandaloneTaskAction(_prev: StandaloneTaskFormState, formData: FormData): Promise<StandaloneTaskFormState> {
+  const auth = await requirePlanner();
+  const t = await getTranslations("StandaloneTasks");
+  if (!(await isEventsModuleEnabled(auth.user.organizationId))) return { error: t("invalid") };
+  const recurrence = String(formData.get("recurrence") ?? "");
+  try {
+    await updateStandaloneTask(auth.user.organizationId, String(formData.get("taskId") ?? ""), {
+      label: String(formData.get("label") ?? ""),
+      dueDate: String(formData.get("dueDate") ?? ""),
+      recurrence: recurrence === "" ? null : recurrence,
+    });
+  } catch (error) {
+    if (error instanceof PlanningInputError) return { error: t(error.reason === "not_found" ? "notFound" : "invalid") };
     throw error;
   }
   revalidatePath("/taches");

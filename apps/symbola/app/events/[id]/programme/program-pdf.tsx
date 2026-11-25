@@ -17,14 +17,23 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontFamily: "Helvetica-Bold", marginBottom: 4 },
   heading: { fontSize: 13, marginBottom: 2 },
   variant: { fontSize: 10, color: "#444444", marginBottom: 14 },
-  row: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: "#999999", paddingVertical: 5 },
+  // Lot 67d (CHR-07 ; recette du 24/11/2026, R10 et R11) : quatre colonnes dans les deux versions.
+  // L'heure tient sur une ligne, la durée dessous ; la note interne passe sous la séquence, sur
+  // toute la largeur, au lieu d'une cinquième colonne étroite.
+  row: { borderBottomWidth: 0.5, borderBottomColor: "#999999", paddingVertical: 5 },
+  line: { flexDirection: "row" },
   headRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: "#111111", paddingBottom: 4 },
   headCell: { fontFamily: "Helvetica-Bold" },
-  time: { width: "14%" },
-  label: { width: "26%", paddingRight: 6 },
-  location: { width: "20%", paddingRight: 6 },
-  participants: { width: "20%", paddingRight: 6 },
-  note: { width: "20%" },
+  time: { width: "17%", paddingRight: 6 },
+  duration: { fontSize: 9, color: "#555555", marginTop: 1 },
+  label: { width: "33%", paddingRight: 6 },
+  labelText: { fontFamily: "Helvetica-Bold" },
+  responsible: { fontSize: 9, color: "#444444", marginTop: 1 },
+  location: { width: "22%", paddingRight: 6 },
+  participants: { width: "28%" },
+  note: { marginLeft: "17%", marginTop: 4, paddingLeft: 6, borderLeftWidth: 1.5, borderLeftColor: "#bbbbbb" },
+  noteLabel: { fontSize: 9, fontFamily: "Helvetica-Bold", color: "#444444" },
+  day: { fontSize: 12, fontFamily: "Helvetica-Bold", marginTop: 14, marginBottom: 4 },
   empty: { marginTop: 12 },
   watermark: {
     position: "absolute",
@@ -38,13 +47,11 @@ const styles = StyleSheet.create({
   },
 });
 
-const WIDE = { label: "32%", location: "26%", participants: "28%" };
-
 export function ProgramPdfDocument({ model }: { model: ProgramPdfModel }) {
-  // Sans colonne de notes, les autres colonnes se partagent la largeur.
-  const columnStyles = model.showNotes
-    ? [styles.time, styles.label, styles.location, styles.participants, styles.note]
-    : [styles.time, { width: WIDE.label, paddingRight: 6 }, { width: WIDE.location, paddingRight: 6 }, { width: WIDE.participants }];
+  const columnStyles = [styles.time, styles.label, styles.location, styles.participants];
+  // Un seul bloc quand le modèle ne sépare pas les jours.
+  const days = model.days ?? [{ heading: null, rows: model.rows }];
+  const noteLabel = model.columns[4] ?? "";
 
   return (
     <Document title={`${model.title} — ${model.heading}`} author={model.organizationName} language={model.language}>
@@ -67,23 +74,46 @@ export function ProgramPdfDocument({ model }: { model: ProgramPdfModel }) {
         <Text style={styles.variant}>{model.variant}</Text>
 
         <View style={styles.headRow} fixed>
-          {model.columns.map((column, index) => (
+          {model.columns.slice(0, 4).map((column, index) => (
             <Text key={column} style={[styles.headCell, columnStyles[index]!]}>
               {column}
             </Text>
           ))}
         </View>
         {model.rows.length === 0 ? <Text style={styles.empty}>{model.empty}</Text> : null}
-        {model.rows.map((row, index) => (
-          <View key={index} style={styles.row} wrap={false}>
-            <Text style={columnStyles[0]!}>{row.time}</Text>
-            <Text style={columnStyles[1]!}>
-              {row.label}
-              {row.responsible ? `\n${row.responsible}` : ""}
-            </Text>
-            <Text style={columnStyles[2]!}>{row.location}</Text>
-            <Text style={columnStyles[3]!}>{row.participants}</Text>
-            {model.showNotes ? <Text style={columnStyles[4]!}>{row.note ?? ""}</Text> : null}
+        {days.map((day, dayIndex) => (
+          <View key={dayIndex}>
+            {day.heading ? (
+              <Text style={styles.day} minPresenceAhead={60}>
+                {day.heading}
+              </Text>
+            ) : null}
+            {day.rows.map((row, index) => (
+              <View key={index} style={styles.row}>
+                {/* La ligne de la séquence ne se coupe pas ; sa note, longue, peut passer à la page suivante. */}
+                <View style={styles.line} wrap={false}>
+                  <View style={styles.time}>
+                    <Text>{row.hours}</Text>
+                    {row.duration ? <Text style={styles.duration}>{row.duration}</Text> : null}
+                  </View>
+                  <View style={styles.label}>
+                    <Text style={styles.labelText}>{row.label}</Text>
+                    {row.responsible ? <Text style={styles.responsible}>{row.responsible}</Text> : null}
+                  </View>
+                  <Text style={styles.location}>{row.location}</Text>
+                  <Text style={styles.participants}>{row.participants}</Text>
+                </View>
+                {model.showNotes && row.note ? (
+                  <View style={styles.note}>
+                    {/* Un seul texte : le titre de la note ne reste jamais seul en bas de page. */}
+                    <Text orphans={3} widows={2}>
+                      <Text style={styles.noteLabel}>{`${noteLabel}\n`}</Text>
+                      {row.note}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            ))}
           </View>
         ))}
       </Page>
