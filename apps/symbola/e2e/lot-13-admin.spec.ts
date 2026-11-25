@@ -70,10 +70,10 @@ test("L13-HUB-17 / L13-HUB-18 — console d'Administration : vue d'ensemble, der
     if (await toggle.isVisible()) await toggle.click();
 
     await expect(page.getByRole("status").filter({ hasText: /services/ })).toBeVisible();
-    await expect(page.getByRole("list", { name: "Chiffres de toutes les organisations" })).toContainText("Événements créés ce mois");
+    await expect(page.getByRole("list", { name: "Chiffres de toutes les organisations" })).toContainText("Évènements créés ce mois");
     const todo = page.getByRole("region", { name: "À faire" });
     await expect(todo.getByRole("listitem").filter({ hasText: "Dernière sauvegarde" })).toContainText("Faite le");
-    await expect(page.getByRole("img", { name: /Événements créés par mois/ })).toBeVisible();
+    await expect(page.getByRole("img", { name: /Évènements créés par mois/ })).toBeVisible();
     // Aucune donnée métier : ni le nom d'un marié, ni un montant.
     await expect(page.getByText(secretName)).toHaveCount(0);
     await expectNoAxeViolation(page);
@@ -102,11 +102,11 @@ test("L13-HUB-17 / L13-HUB-18 — console d'Administration : vue d'ensemble, der
     const table = page.getByRole("region", { name: "Toutes les organisations" });
     await expect(table.getByRole("row")).toHaveCount(2);
     const row = table.getByRole("row", { name: new RegExp(organizationName) });
-    await expect(row).toContainText("Événements");
+    await expect(row).toContainText("Évènements");
     await row.getByRole("link", { name: organizationName }).click();
     const panel = page.getByRole("complementary", { name: organizationName });
     // Lot 16 (L16-ARC-01) : le bouton nomme le module dans la langue de l'écran.
-    await expect(panel.getByRole("button", { name: /Événements : activé/ })).toBeVisible();
+    await expect(panel.getByRole("button", { name: /Évènements : activé/ })).toBeVisible();
     await expect(panel).toContainText("titulaire");
     await expect(page.getByText(secretName)).toHaveCount(0);
     await expectNoAxeViolation(page);

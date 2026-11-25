@@ -1,4 +1,4 @@
-// Lot 10 (AIDE-08) — recherche globale : un nom de client ouvre l'événement,
+// Lot 10 (AIDE-08) — recherche globale : un nom de client ouvre l'évènement,
 // un mot d'aide mène à l'écran qui en parle ; résultats instantanés au
 // clavier, et page /recherche. En taille ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
@@ -14,7 +14,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("AIDE-08 — rechercher un événement par le nom du client, et une aide par un mot", async ({ page }) => {
+test("AIDE-08 — rechercher un évènement par le nom du client, et une aide par un mot", async ({ page }) => {
   const email = `planner-recherche-${randomUUID()}@symbola.test`;
   const firstName = `Marion${randomUUID().slice(0, 6)}`;
   const { sql, db } = createAppConnection();
@@ -40,7 +40,7 @@ test("AIDE-08 — rechercher un événement par le nom du client, et une aide pa
   await signInByLink(page, email);
   await expect(page).toHaveURL("/");
 
-  // Résultats instantanés : flèche bas puis Entrée ouvre l'événement.
+  // Résultats instantanés : flèche bas puis Entrée ouvre l'évènement.
   const box = page.getByRole("combobox", { name: "Rechercher" });
   await box.fill(firstName.toLowerCase());
   const options = page.getByRole("option");

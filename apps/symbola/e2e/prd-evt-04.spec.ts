@@ -1,5 +1,5 @@
 // PRD-EVT-04 — rétroplanning : modèles (dont le modèle de départ), application
-// à un événement daté, événement sans date, recalcul proposé au changement
+// à un évènement daté, évènement sans date, recalcul proposé au changement
 // de date, ajout, coche et réordonnancement des tâches. En taille
 // ordinateur et en 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
@@ -75,12 +75,12 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
-  // Lot 12 (L12-EVT-13) : le rétroplanning s'ouvre une fois l'événement confirmé.
+  // Lot 12 (L12-EVT-13) : le rétroplanning s'ouvre une fois l'évènement confirmé.
   await page.waitForLoadState("networkidle");
   await changeEventStatus(page, "Confirmé");
   await expect(page.getByText("Statut mis à jour.")).toBeVisible();
   await openEventTab(page, "Rétroplanning");
-  await expect(page.getByText("Ajoutez une date à l'événement pour appliquer un modèle de rétroplanning.")).toBeVisible();
+  await expect(page.getByText("Ajoutez une date à l'évènement pour appliquer un modèle de rétroplanning.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Appliquer le modèle" })).toHaveCount(0);
 
   // Lot 34a (EVT-01, D8) puis lot 63a : à sa première date (onglet Synthèse, « Modifier les
@@ -89,7 +89,7 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await openEventTab(page, "Synthèse");
   await page.waitForLoadState("networkidle");
   await page.getByRole("link", { name: "Modifier les informations" }).click();
-  await page.getByLabel("Date de l'événement").fill("2027-06-12");
+  await page.getByLabel("Date de l'évènement").fill("2027-06-12");
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();
   await page.getByRole("link", { name: "Fermer le panneau" }).click();
@@ -114,7 +114,7 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await expect(page.getByRole("button", { name: "Marquer « Réserver le lieu » comme à faire" })).toBeVisible();
   await openEventTab(page, "Synthèse");
   await page.getByRole("link", { name: "Modifier les informations" }).click();
-  await page.getByLabel("Date de l'événement").fill("2027-06-19");
+  await page.getByLabel("Date de l'évènement").fill("2027-06-19");
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();
   await page.getByRole("link", { name: "Fermer le panneau" }).click();

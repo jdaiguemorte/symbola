@@ -1,4 +1,4 @@
-// PRD-BUD-04 — le marié invité voit le budget de son événement (poste, estimé,
+// PRD-BUD-04 — le marié invité voit le budget de son évènement (poste, estimé,
 // engagé, écart, totaux) en lecture seule, sans aucun formulaire, et les
 // écrans budget de la planner lui restent fermés. En taille ordinateur et
 // en 375 px, axe-core sur chaque écran.
@@ -19,7 +19,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("PRD-BUD-04 — le marié consulte le budget de son événement en lecture seule", async ({ page, browser }) => {
+test("PRD-BUD-04 — le marié consulte le budget de son évènement en lecture seule", async ({ page, browser }) => {
   test.setTimeout(150_000);
   const email = `planner-bud04-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-bud04-e2e";

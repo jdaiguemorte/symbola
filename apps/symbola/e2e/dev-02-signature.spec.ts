@@ -78,7 +78,7 @@ test("DEV-02 — envoyer un devis en signature, signer par le lien reçu, archiv
   await freeLine.getByRole("button", { name: "Ajouter la ligne" }).click();
   await expect(freeLine.getByText("Ligne ajoutée.")).toBeVisible();
 
-  // Signataire saisi sur le devis (rubrique « Contrat et signature »), pré-rempli depuis les mariés de l'événement.
+  // Signataire saisi sur le devis (rubrique « Contrat et signature »), pré-rempli depuis les mariés de l'évènement.
   await openQuoteRubric(page, "contrat");
   const send = page.getByRole("form", { name: "Faire signer" });
   const first = send.getByRole("group", { name: "Signataire 1" });

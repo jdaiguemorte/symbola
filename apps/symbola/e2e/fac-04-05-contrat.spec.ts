@@ -124,10 +124,10 @@ test("FAC-04 / DOC-03 / FAC-05 / SC-02 étapes 4 à 7 — contrat généré (pro
   await page.goto(`/devis/${setup.quoteId}?rubrique=contrat`);
   const section = page.getByRole("region", { name: "Contrat" });
   await expect(section).toContainText("Base à adapter, à faire relire par un professionnel du droit.");
-  await expect(section).toContainText("Lieu de l'événement : vide");
+  await expect(section).toContainText("Lieu de l'évènement : vide");
   await expect(section).toContainText("Clause « Annulation et report » : texte encore à rédiger ou à compléter");
 
-  // La clause se rédige dans le modèle (sa version augmente), le lieu sur la fiche de l'événement.
+  // La clause se rédige dans le modèle (sa version augmente), le lieu sur la fiche de l'évènement.
   await section.getByRole("link", { name: /^Modifier le modèle/ }).click();
   await page.getByText("Modifier la clause « Annulation et report »").click();
   const clause = page.getByRole("form", { name: "Modifier la clause « Annulation et report »" });
@@ -138,7 +138,7 @@ test("FAC-04 / DOC-03 / FAC-05 / SC-02 étapes 4 à 7 — contrat généré (pro
   await page.goto(`/events/${setup.eventId}`);
   // Lot 32a (D5) : les formulaires de la synthèse sont repliés.
   await page.getByRole("link", { name: "Modifier les informations" }).click();
-  const venue = page.getByRole("form", { name: "Lieu de l'événement" });
+  const venue = page.getByRole("form", { name: "Lieu de l'évènement" });
   await venue.getByLabel("Lieu", { exact: true }).fill("Domaine des Tilleuls");
   await venue.getByLabel("Ville").fill("Senlis");
   await venue.getByRole("button", { name: "Enregistrer le lieu" }).click();
@@ -203,7 +203,7 @@ test("FAC-04 / DOC-03 / FAC-05 / SC-02 étapes 4 à 7 — contrat généré (pro
   const evidence = await page.request.get(await section.getByRole("link", { name: "Télécharger le dossier de preuve (PDF)" }).getAttribute("href").then((href) => href!), { maxRedirects: 0 });
   expect(evidence.status()).toBe(200);
   expect(evidence.headers()["content-type"]).toBe("application/pdf");
-  // Worker des événements (toutes les 15 secondes) : la facture d'acompte part d'elle-même.
+  // Worker des évènements (toutes les 15 secondes) : la facture d'acompte part d'elle-même.
   await page.goto(`/devis/${setup.quoteId}?rubrique=factures`);
   const invoices = page.getByRole("region", { name: "Factures" });
   await expect(async () => {
@@ -214,7 +214,7 @@ test("FAC-04 / DOC-03 / FAC-05 / SC-02 étapes 4 à 7 — contrat généré (pro
 
   // Lot 34a (EVT-05, D6) : la signature a confirmé l'option.
   await page.goto(`/events/${setup.eventId}`);
-  await expect(page.getByRole("list", { name: "Statut de l'événement" }).getByRole("listitem").filter({ hasText: "Confirmé" })).toHaveAttribute("aria-current", "step");
+  await expect(page.getByRole("list", { name: "Statut de l'évènement" }).getByRole("listitem").filter({ hasText: "Confirmé" })).toHaveAttribute("aria-current", "step");
 });
 
 test("HUB-21 / JUR-20 — Modèles de contrat : bandeau « à adapter », version et date de revue, variables documentées", async ({ page }) => {

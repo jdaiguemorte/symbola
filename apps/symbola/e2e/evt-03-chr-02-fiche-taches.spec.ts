@@ -74,7 +74,7 @@ test("EVT-03 / CHR-02 — fiche d'identité, lieu complet, tâche confiée au fl
 
   // EVT-03 (D10) : le lieu de réception, premier lieu de la liste, reçoit horaires et contact.
   await page.goto(`/events/${eventId}?onglet=programme`);
-  const places = page.getByRole("region", { name: "Lieux de l'événement" });
+  const places = page.getByRole("region", { name: "Lieux de l'évènement" });
   await expect(places).toContainText("Lieu de réception");
   await page.waitForLoadState("networkidle");
   await places.locator("summary", { hasText: "Modifier « Domaine des Tilleuls »" }).click();

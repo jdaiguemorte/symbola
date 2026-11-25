@@ -1,5 +1,5 @@
 // Lot 14d (IMP-09) — la page « Importer » présente d'abord les deux reprises
-// depuis l'outil actuel (prestataires, fiches événement), avec la façon
+// depuis l'outil actuel (prestataires, fiches évènement), avec la façon
 // d'obtenir le fichier ; une carte présélectionne son type d'import ; la
 // fiche d'exemple (PDF fictif) se télécharge et s'importe. En taille
 // ordinateur et en 375 px, axe-core.
@@ -45,7 +45,7 @@ test("IMP-09 — les reprises depuis l'outil actuel en premier, avec une fiche d
   await expect(tiles.getByRole("link")).toHaveCount(4);
   await expect(tiles.getByRole("link").nth(0)).toContainText("Reprendre mes contacts");
   await expect(tiles.getByRole("link").nth(1)).toContainText("Reprendre mes prestataires");
-  await expect(tiles.getByRole("link").nth(2)).toContainText("Reprendre mes événements");
+  await expect(tiles.getByRole("link").nth(2)).toContainText("Reprendre mes évènements");
   await expect(tiles.getByRole("link").nth(3)).toContainText("Un autre fichier");
   await expectNoAxeViolation(page);
 
@@ -62,14 +62,14 @@ test("IMP-09 — les reprises depuis l'outil actuel en premier, avec une fiche d
   await expectNoAxeViolation(page);
 
   // La fiche d'exemple : un PDF fictif, téléchargé puis importé.
-  await tiles.getByRole("link", { name: /Reprendre mes événements/ }).click();
-  const sheets = page.getByRole("region", { name: "Reprendre mes événements" });
+  await tiles.getByRole("link", { name: /Reprendre mes évènements/ }).click();
+  const sheets = page.getByRole("region", { name: "Reprendre mes évènements" });
   await expect(sheets).toContainText("téléchargez sa fiche en PDF");
   const link = sheets.getByRole("link", { name: "Télécharger une fiche d'exemple (PDF fictif) pour essayer" });
   const response = await page.request.get((await link.getAttribute("href"))!);
   expect(response.status()).toBe(200);
   expect(response.headers()["content-type"]).toContain("application/pdf");
-  await page.getByLabel("Fiches événement (PDF, une ou plusieurs)").setInputFiles({ name: "fiche-evenement-exemple.pdf", mimeType: "application/pdf", buffer: await response.body() });
+  await page.getByLabel("Fiches évènement (PDF, une ou plusieurs)").setInputFiles({ name: "fiche-evenement-exemple.pdf", mimeType: "application/pdf", buffer: await response.body() });
   await page.getByRole("button", { name: "Lire le fichier" }).click();
   await waitForSheetsRead(page);
   await expect(page.getByLabel(/Ligne 1 : Léa MARTIN & Hugo BERNARD/)).toBeVisible();

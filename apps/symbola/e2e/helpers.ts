@@ -43,10 +43,10 @@ export async function logout(page: Page): Promise<void> {
   await page.waitForURL((url) => url.origin === APP_ORIGIN && url.pathname === "/login", { timeout: 30_000 });
 }
 
-// Fiche événement en onglets (lot 8) : ouvre l'onglet dont le nom commence
+// Fiche évènement en onglets (lot 8) : ouvre l'onglet dont le nom commence
 // par `name` (« Budget 1/3 », « Rétroplanning 2 en retard »…).
 export async function openEventTab(page: Page, name: string): Promise<void> {
-  const tabs = page.getByRole("navigation", { name: "Sections de l'événement" });
+  const tabs = page.getByRole("navigation", { name: "Sections de l'évènement" });
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   await tabs.getByRole("link", { name: new RegExp(`^${escaped}`) }).click();
   await expect(tabs.getByRole("link", { name: new RegExp(`^${escaped}`) })).toHaveAttribute("aria-current", "page");
@@ -86,7 +86,7 @@ export async function readyOrganization(db: Parameters<typeof createOrganization
 export async function changeEventStatus(page: Page, status: string): Promise<void> {
   await page.getByRole("button", { name: `Passer en ${status}` }).click();
   await page.getByRole("form", { name: "Confirmer le changement de statut" }).getByRole("button", { name: "Confirmer" }).click();
-  await expect(page.getByRole("list", { name: "Statut de l'événement" }).getByRole("listitem").filter({ hasText: status })).toHaveAttribute("aria-current", "step");
+  await expect(page.getByRole("list", { name: "Statut de l'évènement" }).getByRole("listitem").filter({ hasText: status })).toHaveAttribute("aria-current", "step");
 }
 
 // Lot 13 (AIDE-11), revu au lot 63f (ADR 0104) — tiroir de l'aide d'un écran (« Aide : <écran> »),

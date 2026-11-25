@@ -76,8 +76,8 @@ test("HUB-13 — exporter, télécharger, puis reprendre l'archive dans un espac
   await expectNoAxeViolation(page);
 
   // 3. Le mariage est là.
-  await clickMenuLink(page, "Événements");
-  await expect(page.getByRole("region", { name: "Liste des événements" }).getByRole("link", { name: `Léa ${marker}` })).toBeVisible();
+  await clickMenuLink(page, "Évènements");
+  await expect(page.getByRole("region", { name: "Liste des évènements" }).getByRole("link", { name: `Léa ${marker}` })).toBeVisible();
 });
 
 test("HUB-13 (D6) — une Planner n'a ni la rubrique, ni l'écran, ni la route d'envoi", async ({ page }) => {

@@ -112,7 +112,7 @@ test("CRM-01 et CRM-02 (SU-01, PAR-02) — la demande arrive dans « Aujourd'hui
 
   await page.goto("/events/pipeline");
   // Lot 63c (EVT-07, M7) : le même en-tête que la liste ; « Colonnes » est la vue en cours.
-  await expect(page.getByRole("heading", { level: 1, name: "Événements" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Évènements" })).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Affichage" }).getByRole("link", { name: "Colonnes" })).toHaveAttribute("aria-current", "page");
   await expectAccessible(page);
   await expectNoHorizontalScroll(page);

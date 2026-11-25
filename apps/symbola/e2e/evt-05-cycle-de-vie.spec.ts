@@ -88,7 +88,7 @@ test("EVT-01 / EVT-05 / CHR-01 — l'option naît avec son rétroplanning ; repo
 
   // EVT-01 (D8) : l'option a déjà son rétroplanning.
   await page.goto(`/events/${eventId}?onglet=retroplanning`);
-  const steps = page.getByRole("list", { name: "Statut de l'événement" });
+  const steps = page.getByRole("list", { name: "Statut de l'évènement" });
   await expect(steps.getByRole("listitem").filter({ hasText: "Option" })).toHaveAttribute("aria-current", "step");
   await expect(page.getByText("Dégustation chez le traiteur").first()).toBeVisible();
   // Attend l'hydratation : un envoi avant elle partirait sans retour d'erreur.
@@ -123,7 +123,7 @@ test("EVT-05 / FAC-13 — annuler nomme l'évènement et exige un motif ; un avo
 
   // La signature a confirmé l'option.
   await page.goto(`/events/${eventId}`);
-  const steps = page.getByRole("list", { name: "Statut de l'événement" });
+  const steps = page.getByRole("list", { name: "Statut de l'évènement" });
   await expect(steps.getByRole("listitem").filter({ hasText: "Confirmé" })).toHaveAttribute("aria-current", "step");
   await page.waitForLoadState("networkidle");
 

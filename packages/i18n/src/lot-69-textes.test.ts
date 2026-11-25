@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import enMessages from "./messages/en.json";
 import frMessages from "./messages/fr.json";
+import agencyFr from "./messages/vocabulary/clients.fr.json";
 
 describe("UX-10, HUB-24 — Aucune formule technique dans l'aide des termes clients (C-76, lot 69)", () => {
   const texts = {
@@ -32,5 +33,29 @@ describe("HUB-14, UX-10 — L'écran d'import cite les trois PDF repris ailleurs
     expect(hint).toContain("Wedding day schedule");
     expect(hint).toMatch(/retained vendors/i);
     expect(hint).toContain("Three");
+  });
+});
+
+// Lot 69 (UX-10, UX-13, HUB-19 ; C-89) : une seule graphie, celle du cahier des charges et de CLAUDE.md.
+function stringValues(node: unknown): string[] {
+  if (typeof node === "string") return [node];
+  if (Array.isArray(node)) return node.flatMap(stringValues);
+  if (node && typeof node === "object") return Object.values(node).flatMap(stringValues);
+  return [];
+}
+
+describe("UX-10, UX-13 — « évènement » est la seule graphie affichée (C-89, lot 69)", () => {
+  const OLD_SPELLING = /[ÉéEe]vén?ement|ÉVÉNEMENT/;
+  it("fr.json : aucune valeur n'écrit « événement »", () => {
+    const found = stringValues(frMessages).filter((value) => /[ÉéEe]vénement|ÉVÉNEMENT/.test(value));
+    expect(found.slice(0, 5)).toEqual([]);
+  });
+  it("le vocabulaire d'agence (clients.fr.json) non plus", () => {
+    const found = stringValues(agencyFr).filter((value) => /[ÉéEe]vénement|ÉVÉNEMENT/.test(value));
+    expect(found.slice(0, 5)).toEqual([]);
+  });
+  it("la graphie voulue est bien présente", () => {
+    expect(stringValues(frMessages).some((value) => value.includes("évènement"))).toBe(true);
+    expect(OLD_SPELLING.test("évènement")).toBe(false);
   });
 });

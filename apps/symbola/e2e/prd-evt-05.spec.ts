@@ -1,5 +1,5 @@
 // PRD-EVT-05 — programme du jour J : modèle de départ, lignes triées par
-// heure, intervenants (postes de l'événement et texte libre),
+// heure, intervenants (postes de l'évènement et texte libre),
 // chevauchement signalé sans bloquer, export PDF en deux variantes. En
 // taille ordinateur et en 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";

@@ -2,7 +2,7 @@
 // le plan de table depuis l'onglet « Documents » de la fiche, le choisit sur l'écran
 // du jour J, garde le jour J sur l'appareil ; en mode avion, le plan de table s'ouvre
 // (SC-08 étape 3). Tests d'abus : document d'une autre organisation, pièce d'un autre
-// événement glissée dans le formulaire du choix. En taille ordinateur et en 375 px,
+// évènement glissée dans le formulaire du choix. En taille ordinateur et en 375 px,
 // axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
@@ -59,7 +59,7 @@ test("JRJ-04 / SC-08 étape 3 — le plan de table envoyé, embarqué, s'ouvre e
 
   // Onglet « Documents » de la fiche : envoi du plan de table.
   await page.goto(`/events/${eventId}?onglet=documents`);
-  await expect(page.getByRole("heading", { name: "Documents de l'événement" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Documents de l'évènement" })).toBeVisible();
   await page.getByLabel("Intitulé").fill("Plan de table");
   await page.getByLabel("Fichier (PDF ou image, 20 Mo au plus)").setInputFiles({ name: "plan.pdf", mimeType: "application/pdf", buffer: TINY_PDF });
   await page.getByRole("button", { name: "Envoyer le document" }).click();
@@ -77,7 +77,7 @@ test("JRJ-04 / SC-08 étape 3 — le plan de table envoyé, embarqué, s'ouvre e
   await page.getByRole("button", { name: "Enregistrer le choix" }).click();
   const documents = page.getByRole("region", { name: "Documents" });
   await expect(documents.getByRole("link", { name: "Plan de table", exact: true })).toBeVisible();
-  await expect(documents).toContainText("Document de l'événement");
+  await expect(documents).toContainText("Document de l'évènement");
 
   // Garder sur l'appareil, puis le mode avion.
   await page.getByRole("button", { name: "Garder sur cet appareil" }).click();
@@ -104,7 +104,7 @@ test("JRJ-04 / SC-08 étape 3 — le plan de table envoyé, embarqué, s'ouvre e
   await context.setOffline(false);
 });
 
-test("JRJ-04 — abus : document d'une autre organisation, pièce d'un autre événement glissée dans le choix : refus", async ({ page }) => {
+test("JRJ-04 — abus : document d'une autre organisation, pièce d'un autre évènement glissée dans le choix : refus", async ({ page }) => {
   test.setTimeout(120_000);
   const mine = await organization();
   const other = await organization();
@@ -118,7 +118,7 @@ test("JRJ-04 — abus : document d'une autre organisation, pièce d'un autre év
   const theirDocument = await attach(other, theirEventId, "Plan de Bérénice");
   await login(page, mine.email);
 
-  // Ni le document d'une autre organisation, ni celui d'un autre événement, par l'écran du jour J.
+  // Ni le document d'une autre organisation, ni celui d'un autre évènement, par l'écran du jour J.
   for (const path of [
     `/jour-j/${eventId}/documents/event_document/${theirDocument.id}`,
     `/jour-j/${theirEventId}/documents/event_document/${theirDocument.id}`,
@@ -130,7 +130,7 @@ test("JRJ-04 — abus : document d'une autre organisation, pièce d'un autre év
   expect((await page.request.get(`/events/${theirEventId}/documents/${theirDocument.id}`)).status()).toBe(404);
   expect((await page.request.get(`/jour-j/${eventId}/documents/event_document/${mineDocument.id}`)).status()).toBe(200);
 
-  // Une pièce d'un autre événement glissée dans le formulaire du choix est ignorée.
+  // Une pièce d'un autre évènement glissée dans le formulaire du choix est ignorée.
   await page.goto(`/jour-j/${eventId}`);
   await page.getByText("Choisir les documents embarqués").click();
   await page.getByRole("checkbox", { name: /Plan de table/ }).evaluate((input, value) => {

@@ -1,4 +1,4 @@
-// Lot 16 (L16-HUB-21) — vocabulaire selon le métier : une agence événementielle lit
+// Lot 16 (L16-HUB-21) — vocabulaire selon le métier : une agence évènementielle lit
 // « le client » là où une wedding planner lit « les mariés ». Ordinateur et
 // 375 px, axe-core.
 import { randomUUID } from "node:crypto";
@@ -30,7 +30,7 @@ async function plannerOf(metier: "wedding_planner" | "event_agency") {
   return { email, password };
 }
 
-test("L16-HUB-21 — une agence événementielle lit « contact » et « clients », une wedding planner « mariés »", async ({ page, browser }) => {
+test("L16-HUB-21 — une agence évènementielle lit « contact » et « clients », une wedding planner « mariés »", async ({ page, browser }) => {
   const agency = await plannerOf("event_agency");
   await login(page, agency.email, agency.password);
   await page.goto("/events/new");

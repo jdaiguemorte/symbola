@@ -1,4 +1,4 @@
-// IMP-05 — parcours complet d'un import d'événements : aperçu (créations, mises
+// IMP-05 — parcours complet d'un import d'évènements : aperçu (créations, mises
 // à jour, lignes rejetées), confirmation avec source par défaut, champ libre
 // visible sur la fiche, journal, puis annulation. En taille ordinateur et en
 // 375 px, axe-core sur chaque écran.
@@ -52,7 +52,7 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
   await openSettingsTab(page, "Importer");
   // Lot 16 (IMP-11) : « Un autre fichier », puis le contenu.
   await page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" }).getByRole("link", { name: /Un autre fichier/ }).click();
-  await page.getByLabel("Événements et leurs clients (une ligne par événement)").check();
+  await page.getByLabel("Évènements et leurs clients (une ligne par évènement)").check();
   await page.getByLabel("Fichier (CSV, Excel .xlsx ou JSON)").setInputFiles({
     name: "mariages.csv",
     mimeType: "text/csv",
@@ -71,7 +71,7 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
   await expect(page).toHaveURL(/\/colonnes$/);
   await page.getByLabel("Champ pour la colonne « E-mail »").selectOption({ label: "Une note sur la fiche" });
   await continueButton.click();
-  // Doublons : l'événement existant est mis à jour.
+  // Doublons : l'évènement existant est mis à jour.
   await expect(page).toHaveURL(/\/rapprochements/);
   await page.getByRole("button", { name: /Mettre à jour l'existant pour Élodie Durand/ }).click();
   await continueButton.click();
@@ -84,12 +84,12 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
   await expect(page.getByText("Ligne 2 : Élodie Durand, le 12 juin 2027")).toBeVisible();
   await expectNoAxeViolation(page);
 
-  await page.getByLabel("Source pour les événements sans source").selectOption({ label: "Instagram" });
-  await page.getByRole("button", { name: "Importer 2 événements" }).click();
+  await page.getByLabel("Source pour les évènements sans source").selectOption({ label: "Instagram" });
+  await page.getByRole("button", { name: "Importer 2 évènements" }).click();
   await expect(page).toHaveURL(/\/journal$/);
   // Lot 63b (HUB-14, UX-07) : la fin d'import s'annonce comme telle.
   await expect(page.getByRole("heading", { name: "Import terminé" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Voir les 2 événements" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Voir les 2 évènements" })).toBeVisible();
   // Lot 63b (HUB-14, UX-07) : le bilan d'abord ; le détail du journal est replié.
   await page.getByText("Détails du journal (fichier, auteur, dates)").click();
   await expect(page.getByText("1 création, 1 mise à jour, aucune ligne inchangée, 1 ligne rejetée")).toBeVisible();
@@ -104,7 +104,7 @@ test("IMP-05 — aperçu, confirmation, champ libre sur la fiche, journal et ann
   await expect(imported).toContainText("elodie@example.org");
   await expectNoAxeViolation(page);
 
-  // Annulation : l'événement créé disparaît, l'événement mis à jour revient.
+  // Annulation : l'évènement créé disparaît, l'évènement mis à jour revient.
   await page.goto("/import");
   await page.getByRole("link", { name: "mariages.csv" }).click();
   // Lot 63b (HUB-14, UX-07) : l'annulation est repliée sous le bilan.

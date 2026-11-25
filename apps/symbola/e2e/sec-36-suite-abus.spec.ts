@@ -135,7 +135,7 @@ test("SC-S3 — avec le lien d'un prestataire, il demande le budget, les devis d
 });
 
 // Lot 26a (SEC-14, SEC-15, SEC-17 ; ADR 0053) : liens personnels.
-test("SC-S4 — un lien de marié expiré, puis le lien d'un autre événement : refus, nouveau lien proposé, rien de révélé", async ({ page }) => {
+test("SC-S4 — un lien de marié expiré, puis le lien d'un autre évènement : refus, nouveau lien proposé, rien de révélé", async ({ page }) => {
   const { organizationId, owner, event } = await organization("S4");
   const theirs = await event("Inès");
   const another = await event("Bérénice");
@@ -161,7 +161,7 @@ test("SC-S4 — un lien de marié expiré, puis le lien d'un autre événement :
   await expect(page.getByRole("status")).toContainText("Votre demande est transmise");
   await expect(page.locator("main")).not.toContainText("Inès");
 
-  // Un lien valable n'ouvre que son événement : le portail ne lit aucun
+  // Un lien valable n'ouvre que son évènement : le portail ne lit aucun
   // identifiant dans l'adresse, et les écrans de la planner restent fermés.
   const valid = await link(null);
   await page.goto(valid.url);

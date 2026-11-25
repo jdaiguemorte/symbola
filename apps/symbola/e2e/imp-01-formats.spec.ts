@@ -49,14 +49,14 @@ test("IMP-01 — un CSV Excel est lu, un .xls refusé, l'import en cours abandon
   // Un ancien fichier Excel est refusé avec un message qui dit quoi faire.
   // Lot 16 (IMP-11) : « Un autre fichier » propose le choix détaillé des contenus.
   await page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" }).getByRole("link", { name: /Un autre fichier/ }).click();
-  await page.getByLabel("Événements et leurs clients (une ligne par événement)").check();
+  await page.getByLabel("Évènements et leurs clients (une ligne par évènement)").check();
   await page.getByLabel("Fichier (CSV, Excel .xlsx ou JSON)").setInputFiles(corpusFile("libreoffice.xls", "application/vnd.ms-excel"));
   await page.getByRole("button", { name: "Lire le fichier" }).click();
   await expect(page.getByText("Ce format de fichier n'est pas accepté")).toContainText("ancien fichier Excel (.xls)");
   await expectNoAxeViolation(page);
 
   // Un CSV d'Excel français (Windows-1252, point-virgule) est reconnu.
-  await page.getByLabel("Événements et leurs clients (une ligne par événement)").check();
+  await page.getByLabel("Évènements et leurs clients (une ligne par évènement)").check();
   await page.getByLabel("Fichier (CSV, Excel .xlsx ou JSON)").setInputFiles(corpusFile("excel-fr-windows1252.csv", "text/csv"));
   await page.getByRole("button", { name: "Lire le fichier" }).click();
   await expect(page.getByRole("heading", { name: "Import de « excel-fr-windows1252.csv »" })).toBeVisible();

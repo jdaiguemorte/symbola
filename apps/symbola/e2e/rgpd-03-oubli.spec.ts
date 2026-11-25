@@ -72,8 +72,8 @@ test("RGPD-03 — la titulaire prévisualise puis valide l'oubli ; la demande se
   // Aperçu : rien n'est encore modifié.
   await page.getByRole("button", { name: "Aperçu de l'oubli" }).click();
   const preview = page.getByRole("region", { name: "Aperçu de l'oubli" });
-  await expect(preview).toContainText(`Anonymisée — Événements · Client : Élodie ${lastName}`);
-  await expect(preview).toContainText("Supprimée — Événements · Tâche : Réserver le traiteur");
+  await expect(preview).toContainText(`Anonymisée — Évènements · Client : Élodie ${lastName}`);
+  await expect(preview).toContainText("Supprimée — Évènements · Tâche : Réserver le traiteur");
   await expectNoAxeViolation(page);
 
   await preview.getByLabel("Je confirme l'oubli : cette opération est irréversible.").check();
@@ -84,7 +84,7 @@ test("RGPD-03 — la titulaire prévisualise puis valide l'oubli ; la demande se
   await page.getByRole("link", { name: "Voir le détail de l'effacement et la preuve" }).click();
   await expect(page.getByRole("heading", { name: `Demande d'oubli : Élodie ${lastName}` })).toBeVisible();
   await expect(page.getByRole("status")).toContainText("Terminé : tous les modules ont répondu");
-  await expect(page.getByText(/Événements : accusé le/)).toBeVisible();
+  await expect(page.getByText(/Évènements : accusé le/)).toBeVisible();
   await expect(page.getByLabel("Message")).toHaveValue(new RegExp(`Bonjour Élodie ${lastName}`));
   const proofHref = await page.getByRole("link", { name: "Télécharger la preuve (PDF)" }).getAttribute("href");
   expect((await (await page.request.get(proofHref!)).body()).subarray(0, 5).toString("latin1")).toBe("%PDF-");

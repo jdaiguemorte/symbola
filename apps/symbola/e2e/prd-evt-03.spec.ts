@@ -1,7 +1,7 @@
 // PRD-EVT-03 — lignes du budget (lot 12, ex-« postes ») : liste par défaut (modèle de départ),
 // barre d'avancement, prestataire retenu (nom obligatoire avec un montant, montant
 // facultatif ; lot 28a, PRE-02), case « Non requis », postes modifiables
-// événement par événement. En
+// évènement par évènement. En
 // taille ordinateur et en 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
@@ -49,7 +49,7 @@ test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et prestat
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
   await expectNoAxeViolation(page);
 
-  // Un nouvel événement reçoit les 11 lignes par défaut.
+  // Un nouvel évènement reçoit les 11 lignes par défaut.
   await page.goto("/events/new");
   await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Camille");
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
@@ -86,14 +86,14 @@ test("PRD-EVT-03 — lignes du budget par défaut, barre d'avancement et prestat
   await page.getByRole("button", { name: "Vidéaste", exact: true }).click();
   await openSlotRubric(page, "Vidéaste", "Réglages du poste");
   const videographer = slotWindow(page, "Vidéaste").getByRole("group", { name: "Vidéaste" });
-  await videographer.getByLabel("Ligne non requise pour cet événement").check();
+  await videographer.getByLabel("Ligne non requise pour cet évènement").check();
   await videographer.getByRole("button", { name: "Enregistrer la ligne" }).click();
   await expect(videographer.getByText("Ligne enregistrée.")).toBeVisible();
   await closeSlotWindow(page, "Vidéaste");
   await expect(page.getByText("1 ligne pourvue sur 10")).toBeVisible();
 
-  // Lignes modifiables événement par événement.
-  await page.getByLabel("Nouvelle ligne du budget pour cet événement").fill("Wedding designer");
+  // Lignes modifiables évènement par évènement.
+  await page.getByLabel("Nouvelle ligne du budget pour cet évènement").fill("Wedding designer");
   await page.getByRole("button", { name: "Ajouter la ligne", exact: true }).click();
   await expect(page.getByRole("button", { name: "Wedding designer", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Papeterie", exact: true }).click();

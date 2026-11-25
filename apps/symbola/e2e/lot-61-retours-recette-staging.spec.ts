@@ -58,17 +58,17 @@ test("UX-13 (L13-HUB-16) — Les rubriques du menu des Paramètres s'ouvrent dan
     await openSettingsRubric(page, name);
     await expect(page).toHaveURL(path, { timeout: 30_000 });
     // Le menu des réglages reste affiché, la rubrique y est allumée ; le menu principal allume
-    // « Paramètres », plus « Devis et factures » ni « Événements ».
+    // « Paramètres », plus « Devis et factures » ni « Évènements ».
     await expect(rubrics.getByRole("link", { name, exact: true })).toHaveAttribute("aria-current", "page");
     await openMenu(page);
     await expect(mainMenu(page).getByRole("link", { name: "Paramètres", exact: true })).toHaveAttribute("aria-current", "page");
     await expect(mainMenu(page).getByRole("link", { name: "Devis et factures", exact: true })).not.toHaveAttribute("aria-current", "page");
-    await expect(mainMenu(page).getByRole("link", { name: "Événements", exact: true })).not.toHaveAttribute("aria-current", "page");
+    await expect(mainMenu(page).getByRole("link", { name: "Évènements", exact: true })).not.toHaveAttribute("aria-current", "page");
   }
   // Les deux rubriques de relances ne se confondent plus : chacune dit son objet et renvoie à l'autre.
   await page.goto("/devis/relances");
   await expect(page.getByRole("heading", { level: 1, name: "Relances de devis et de paiement" })).toBeVisible();
-  await page.getByRole("link", { name: "Événements, Relances des prospects" }).click();
+  await page.getByRole("link", { name: "Évènements, Relances des prospects" }).click();
   await expect(page).toHaveURL("/parametres/relances");
   await expect(page.getByRole("heading", { level: 1, name: "Relances des prospects" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Ventes, Relances de devis et de paiement" })).toBeVisible();

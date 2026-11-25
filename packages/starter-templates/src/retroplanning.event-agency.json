@@ -1,7 +1,7 @@
 {
   "version": 1,
   "name": {
-    "fr": "Rétroplanning événement d'entreprise (modèle de départ)",
+    "fr": "Rétroplanning évènement d'entreprise (modèle de départ)",
     "en": "Corporate event timeline (starter template)"
   },
   "items": [
@@ -10,7 +10,7 @@
       "offsetDays": -180,
       "responsible": "clients",
       "label": {
-        "fr": "Valider le brief et les objectifs de l'événement",
+        "fr": "Valider le brief et les objectifs de l'évènement",
         "en": "Approve the event brief and goals"
       }
     },

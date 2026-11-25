@@ -192,7 +192,7 @@ test("EVT-07 / CHR-03 — le portefeuille en liste et en calendrier, la charge p
   await agenda.getByRole("link", { name: "Voir l'année" }).click();
   await expect(page).toHaveURL(/agenda=12/);
   await expect(page).toHaveURL(/affichage=calendrier/);
-  await expect(agenda.getByText(/2 événements (ce week-end|ce jour-là)/).first()).toBeAttached();
+  await expect(agenda.getByText(/2 évènements (ce week-end|ce jour-là)/).first()).toBeAttached();
   await expectNoAxeViolation(page);
 
   // Tâches : le calendrier du mois ; chaque tâche s'ouvre dans sa fenêtre, sur l'écran (lot 63d).

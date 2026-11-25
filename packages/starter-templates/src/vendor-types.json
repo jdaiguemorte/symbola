@@ -505,7 +505,7 @@
     {
       "key": "planner",
       "label": {
-        "fr": "Organisation d'événements",
+        "fr": "Organisation d'évènements",
         "en": "Event planning"
       },
       "fields": []

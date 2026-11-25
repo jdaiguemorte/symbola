@@ -1,5 +1,5 @@
 // RGPD-01 — recherche transverse : la titulaire retrouve une personne et les
-// données de son événement, groupées par module ; rien d'une autre
+// données de son évènement, groupées par module ; rien d'une autre
 // organisation ; un collaborateur n'a pas accès au module. En taille
 // ordinateur et en 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
@@ -33,7 +33,7 @@ async function seedWedding(db: ReturnType<typeof createAppConnection>["db"], org
   });
 }
 
-test("RGPD-01 — la titulaire retrouve une personne et les données de son événement ; un collaborateur n'a pas accès", async ({ page }) => {
+test("RGPD-01 — la titulaire retrouve une personne et les données de son évènement ; un collaborateur n'a pas accès", async ({ page }) => {
   const ownerEmail = `owner-rgpd01-${randomUUID()}@symbola.test`;
   const memberEmail = `member-rgpd01-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-rgpd01-e2e";
@@ -62,11 +62,11 @@ test("RGPD-01 — la titulaire retrouve une personne et les données de son év�
   await page.getByLabel("Nom").fill(`elodie ${lastName.toUpperCase()}`);
   await page.getByRole("button", { name: "Rechercher", exact: true }).click();
   await expect(page.getByRole("heading", { name: /données trouvées/ })).toBeVisible();
-  const eventsGroup = page.getByRole("region", { name: "Événements" });
+  const eventsGroup = page.getByRole("region", { name: "Évènements" });
   await expect(eventsGroup).toContainText(`Client : Élodie ${lastName}`);
   await expect(eventsGroup).toContainText("(trouvée par la recherche)");
   await expect(eventsGroup).toContainText("Tâche : Réserver le traiteur");
-  await expect(eventsGroup).toContainText("(liée à son événement)");
+  await expect(eventsGroup).toContainText("(liée à son évènement)");
   await expect(page.getByText("Tâche d'une autre organisation")).toHaveCount(0);
   await expect(page.getByText("Résultat incomplet")).toHaveCount(0);
   // Les termes cherchés ne passent jamais par l'URL.

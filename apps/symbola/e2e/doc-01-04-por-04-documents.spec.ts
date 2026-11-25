@@ -56,7 +56,7 @@ async function wedding(options: { document?: boolean } = {}) {
 
 async function openDocumentsTab(page: Page, eventId: string) {
   await page.goto(`/events/${eventId}?onglet=documents`);
-  await expect(page.getByRole("heading", { name: "Documents de l'événement" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Documents de l'évènement" })).toBeVisible();
 }
 
 async function openManage(page: Page, label: string) {

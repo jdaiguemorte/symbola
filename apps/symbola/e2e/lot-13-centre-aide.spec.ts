@@ -37,8 +37,8 @@ test("AIDE-12 — une vignette par écran avec sa capture, une fiche avec captur
   await login(page, owner.email, owner.password);
 
   await page.goto("/aide");
-  const events = page.getByRole("region", { name: "Événements" });
-  const tile = events.getByRole("link", { name: /Fiche de l'événement/ });
+  const events = page.getByRole("region", { name: "Évènements" });
+  const tile = events.getByRole("link", { name: /Fiche de l'évènement/ });
   await expect(tile).toBeVisible();
   await expect(tile.locator("img")).toHaveAttribute("src", "/aide/captures/eventsDetail.jpg");
   await expect(page.getByRole("region", { name: "Devis et factures" })).toBeVisible();
@@ -53,27 +53,27 @@ test("AIDE-12 — une vignette par écran avec sa capture, une fiche avec captur
 
   await tile.click();
   await expect(page).toHaveURL(/\/aide\/ecrans\/eventsDetail$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Aide : Fiche de l'événement");
-  const capture = page.getByRole("img", { name: "Capture de l'écran « Fiche de l'événement », visite guidée ouverte" });
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Aide : Fiche de l'évènement");
+  const capture = page.getByRole("img", { name: "Capture de l'écran « Fiche de l'évènement », visite guidée ouverte" });
   await expect(capture).toBeVisible();
   expect(await capture.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(1280);
   await expect(page.getByRole("region", { name: "La visite de cet écran" }).getByRole("listitem")).toHaveCount(5);
-  await expect(page.getByText("Comment marquer un événement perdu ?")).toBeVisible();
-  await expect(page.getByText("Cet écran s'ouvre depuis la fiche d'un événement.")).toBeVisible();
+  await expect(page.getByText("Comment marquer un évènement perdu ?")).toBeVisible();
+  await expect(page.getByText("Cet écran s'ouvre depuis la fiche d'un évènement.")).toBeVisible();
   await expectNoAxeViolation(page);
 
   // Depuis la fiche d'un écran, sa visite se relance sur l'écran lui-même.
   await page.goto("/aide/ecrans/eventsList");
   await page.getByRole("link", { name: "Revoir la visite sur l'écran" }).click();
   await expect(page).toHaveURL(/\/events\?visite=revoir$/);
-  await expect(tourDialog(page, "Liste des événements")).toBeVisible();
+  await expect(tourDialog(page, "Liste des évènements")).toBeVisible();
 });
 
 test("AIDE-12 — chaque public ne voit que ses écrans", async ({ page }) => {
   const member = await account("member");
   await login(page, member.email, member.password);
   await page.goto("/aide");
-  await expect(page.getByRole("link", { name: /Liste des événements/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Liste des évènements/ })).toBeVisible();
   // Les données personnelles sont réservées à la titulaire.
   await expect(page.getByRole("link", { name: /Données personnelles/ })).toHaveCount(0);
   const response = await page.goto("/aide/ecrans/privacySearch");
@@ -90,7 +90,7 @@ test("AIDE-12 — l'Admin ne voit que l'aide de la console, sans capture d'organ
   // l'illustration générique.
   await expect(console.locator("img").first()).toBeVisible();
   await expect(console.locator('img:not([src="/aide/illustration-ecran.svg"])')).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "Événements" })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Évènements" })).toHaveCount(0);
   await expectNoAxeViolation(page);
   const response = await page.goto("/aide/ecrans/eventsList");
   expect(response?.status()).toBe(404);

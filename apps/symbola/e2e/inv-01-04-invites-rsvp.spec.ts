@@ -170,7 +170,7 @@ test("ARC-07 (lot 49) — sans le module Invités, ni onglet, ni rubrique, ni pa
     const fiche = await page.goto(`/events/${org.eventId}?onglet=invites`);
     expect(fiche!.status(), combination).toBeLessThan(500);
     // Dans la barre d'onglets seulement : sur l'onglet Invités, le filtre « Tous » de la liste mène à la même adresse.
-    const tabs = page.getByRole("navigation", { name: "Sections de l'événement" });
+    const tabs = page.getByRole("navigation", { name: "Sections de l'évènement" });
     await expect(tabs.locator(`a[href="/events/${org.eventId}?onglet=invites"]`), combination).toHaveCount(events && guests ? 1 : 0);
     const settings = await page.goto("/events/parametres/regimes");
     expect(settings!.status(), combination).toBeLessThan(500);

@@ -116,7 +116,7 @@ test("L21-HUB-29 — chaque groupe du menu des réglages a son icône et un titr
   const nav = page.getByRole("navigation", { name: "Rubriques des paramètres" });
   const titles = nav.locator(".settings-nav-title");
   expect(await titles.count()).toBeGreaterThanOrEqual(3);
-  await expect(titles.filter({ hasText: "Événements" })).toBeVisible();
+  await expect(titles.filter({ hasText: "Évènements" })).toBeVisible();
   for (const title of await titles.all()) {
     await expect(title.locator("svg")).toHaveCount(1);
     expect(await title.evaluate((element) => getComputedStyle(element).textTransform)).toBe("none");

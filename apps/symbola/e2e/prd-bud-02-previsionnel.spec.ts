@@ -1,5 +1,5 @@
 // PRD-BUD-02 — confirmer la simulation en budget estimé depuis la fiche
-// événement, tableau des cinq montants et de l'écart, modification de l'engagé à la main.
+// évènement, tableau des cinq montants et de l'écart, modification de l'engagé à la main.
 // En taille ordinateur et en 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
@@ -69,7 +69,7 @@ test("PRD-BUD-02 — confirmer la simulation en budget estimé, puis suivre esti
   await page.getByRole("button", { name: "Simuler" }).click();
   await expect(page.getByText("250,00 €", { exact: false })).toBeVisible();
 
-  // Pas encore de bandeau avant confirmation (événement toujours prospect).
+  // Pas encore de bandeau avant confirmation (évènement toujours prospect).
   await page.goto(eventUrl);
   await page.waitForLoadState("networkidle");
   await expect(page.getByRole("heading", { name: "Faire de la simulation le budget estimé" })).toHaveCount(0);

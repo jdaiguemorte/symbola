@@ -1,4 +1,4 @@
-// PRD-EVT-01/02/07 — liste des événements, étapes d'un événement et source du
+// PRD-EVT-01/02/07 — liste des évènements, étapes d'un évènement et source du
 // prospect : parcours complet d'une planner, en taille ordinateur et en
 // 375 px (les deux projets Playwright), avec contrôle axe-core par écran.
 import { randomUUID } from "node:crypto";
@@ -36,13 +36,13 @@ test("PRD-EVT-07 — la planner paramètre ses sources et motifs de perte, puis 
 }) => {
   await createPlanner(page);
 
-  await clickMenuLink(page, "Événements");
+  await clickMenuLink(page, "Évènements");
   await expect(page).toHaveURL(/\/events$/);
   await expectNoAxeViolation(page);
 
   // Lot 63c (UX-09, ADR 0107) : la roue « Réglages » ouvre les réglages dans le panneau latéral, au-dessus
   // de la liste ; la page complète garde son adresse.
-  await page.getByRole("link", { name: "Paramètres des événements" }).first().click();
+  await page.getByRole("link", { name: "Paramètres des évènements" }).first().click();
   await expect(page.getByRole("complementary", { name: "Réglages" })).toBeVisible();
   await expect(page.getByRole("complementary", { name: "Réglages" }).getByRole("heading", { level: 1 })).toBeVisible();
   await page.goto("/events/parametres");
@@ -109,7 +109,7 @@ test("PRD-EVT-01/02 / EVT-05 — un prospect apparaît dans la liste en Option, 
 
   // PRD-EVT-01 : le prospect sans date est listé « Date à définir », avec son statut (Option, lot 34a).
   await page.goto("/events");
-  // L13-EVT-18 : une ligne du tableau par événement.
+  // L13-EVT-18 : une ligne du tableau par évènement.
   const item = page.getByRole("row", { name: new RegExp(`${firstName} & Sacha`) });
   await expect(item).toContainText("Date à définir");
   await expect(item).toContainText("Option");
@@ -120,7 +120,7 @@ test("PRD-EVT-01/02 / EVT-05 — un prospect apparaît dans la liste en Option, 
   expect(years).not.toContain("1");
   const heights = await Promise.all(
     ["search", "status", "source", "year"].map(
-      async (name) => (await page.getByRole("search", { name: "Filtrer les événements" }).locator(`[name="${name}"]`).boundingBox())!.height,
+      async (name) => (await page.getByRole("search", { name: "Filtrer les évènements" }).locator(`[name="${name}"]`).boundingBox())!.height,
     ),
   );
   expect(new Set(heights.map((height) => Math.round(height))).size).toBe(1);

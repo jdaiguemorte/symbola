@@ -1,5 +1,5 @@
 // HUB-11 (lot 63f, ADR 0104 : la visite guidée remplace les repères du lot 13) — visite de la fiche
-// d'un événement : étapes dans l'ordre, la zone de chaque étape claire, Échap ; centre d'aide (état
+// d'un évènement : étapes dans l'ordre, la zone de chaque étape claire, Échap ; centre d'aide (état
 // des visites, préférence de lancement automatique, AIDE-07). En taille
 // ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
@@ -19,7 +19,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("HUB-11 / AIDE-07 — visite de la fiche d'un événement, et centre d'aide", async ({ page }) => {
+test("HUB-11 / AIDE-07 — visite de la fiche d'un évènement, et centre d'aide", async ({ page }) => {
   test.setTimeout(90_000);
   const email = `planner-aide-${randomUUID()}@symbola.test`;
   const { sql, db } = createAppConnection();
@@ -39,9 +39,9 @@ test("HUB-11 / AIDE-07 — visite de la fiche d'un événement, et centre d'aide
   // La visite de l'accueil se lance d'elle-même ; on la passe.
   await skipTour(page, "Aujourd'hui");
 
-  // Fiche d'un événement : cinq étapes, la première sur les onglets, éclairés.
+  // Fiche d'un évènement : cinq étapes, la première sur les onglets, éclairés.
   await page.goto(`/events/${eventId}`);
-  const tour = tourDialog(page, "Fiche de l'événement");
+  const tour = tourDialog(page, "Fiche de l'évènement");
   await expect(tour).toContainText("1 sur 5");
   await expect(tour.getByRole("heading", { name: "Les onglets", level: 2 })).toBeFocused();
   const spotOn = async (target: string) => {
@@ -65,18 +65,18 @@ test("HUB-11 / AIDE-07 — visite de la fiche d'un événement, et centre d'aide
 
   // Centre d'aide : état des visites, préférence.
   await clickMenuLink(page, "Aide");
-  const events = page.getByRole("region", { name: "Événements" });
-  await expect(events.getByRole("link", { name: /Fiche de l'événement/ })).toContainText("Visite faite");
-  await expect(events.getByRole("link", { name: /Liste des événements/ })).toContainText("À découvrir");
+  const events = page.getByRole("region", { name: "Évènements" });
+  await expect(events.getByRole("link", { name: /Fiche de l'évènement/ })).toContainText("Visite faite");
+  await expect(events.getByRole("link", { name: /Liste des évènements/ })).toContainText("À découvrir");
   await expectNoAxeViolation(page);
   await page.getByLabel("Lancer la visite guidée et proposer les tutoriels à la première ouverture d'un écran").uncheck();
   await expect
     .poll(async () => (await page.context().cookies()).find((cookie) => cookie.name === "symbola_visites_auto")?.value)
     .toBe("0");
   await page.goto("/events");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Événements");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Évènements");
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toHaveAttribute("aria-expanded", "false");
-  await expect(tourDialog(page, "Liste des événements")).toHaveCount(0);
+  await expect(tourDialog(page, "Liste des évènements")).toHaveCount(0);
 });
 
 test("L10-HUB-11 — l'Admin voit la prise en main de chaque compte d'équipe", async ({ page }) => {
@@ -162,7 +162,7 @@ test("HUB-11 / AIDE-06 — tutoriel dans le panneau latéral : proposé à la pr
   await panel.getByRole("link", { name: "Aller à l'écran de l'étape" }).click();
   await page.waitForLoadState("networkidle");
   await page.getByRole("link", { name: "Modifier les informations" }).click();
-  await page.getByLabel("Date de l'événement").fill("2029-05-19");
+  await page.getByLabel("Date de l'évènement").fill("2029-05-19");
   await page.getByRole("button", { name: "Changer la date" }).click();
   await expect(page.getByText("Date mise à jour.")).toBeVisible();
   // Le panneau d'édition passait devant le tutoriel (sur téléphone, il occupe l'écran) : on le ferme.

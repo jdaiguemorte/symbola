@@ -85,15 +85,15 @@ test("BUD-09 / BUD-10 — taux de TVA d'une ligne, HT pour un client professionn
   expect(pdf.suggestedFilename()).toMatch(/^budget-\d{4}-\d{2}-\d{2}\.pdf$/);
   expect((await readFile((await pdf.path())!)).subarray(0, 5).toString("latin1")).toBe("%PDF-");
 
-  // Le devis de l'événement est à un professionnel : HT sous chaque TTC, sans réglage.
+  // Le devis de l'évènement est à un professionnel : HT sous chaque TTC, sans réglage.
   const quote = await createQuote({ organizationId: planner.organizationId, eventId, createdByUserId: planner.userId });
   await setQuoteClientKind(planner.organizationId, quote.id, "professional");
   await page.reload();
-  await expect(page.getByText(/^Client professionnel \(devis de l'événement\)/)).toBeVisible();
+  await expect(page.getByText(/^Client professionnel \(devis de l'évènement\)/)).toBeVisible();
   await expect(table.getByRole("row").filter({ hasText: "Modifier « Traiteur »" })).toContainText("HT 1 090,91 €");
   await expectNoAxeViolation(page);
 
-  // L'export d'un événement d'une autre organisation répond comme un objet inexistant.
+  // L'export d'un évènement d'une autre organisation répond comme un objet inexistant.
   const other = await plannerOrganization();
   const otherEventId = await weddingWithCaterer(other.organizationId, other.userId);
   expect((await page.request.get(`/budget/${otherEventId}/export?format=xlsx`)).status()).toBe(404);

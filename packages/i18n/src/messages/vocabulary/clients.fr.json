@@ -4,7 +4,7 @@
       "body": "Un prénom de contact et la source suffisent pour créer le prospect ; la date, le lieu et le budget se complètent plus tard. Depuis l'agenda, une date libre ouvre ce formulaire avec la date déjà remplie."
     },
     "eventsDetail": {
-      "body": "Tout l'événement, en onglets. La frise du haut montre où il en est : cliquez l'étape suivante pour avancer. Le bandeau « Prochaine étape » dit quoi faire maintenant (envoyer le devis, appliquer le rétroplanning, créer le lien du client). Chaque onglet a son lien « Réglages » vers ses modèles.",
+      "body": "Tout l'évènement, en onglets. La frise du haut montre où il en est : cliquez l'étape suivante pour avancer. Le bandeau « Prochaine étape » dit quoi faire maintenant (envoyer le devis, appliquer le rétroplanning, créer le lien du client). Chaque onglet a son lien « Réglages » vers ses modèles.",
       "faq": {
         "3": {
           "q": "Que voient les clients ?",
@@ -21,7 +21,7 @@
     "eventsProgramTemplates": {
       "faq": {
         "0": {
-          "a": "Oui, depuis la fiche de l'événement : en PDF, version clients (sans notes internes) ou version prestataires."
+          "a": "Oui, depuis la fiche de l'évènement : en PDF, version clients (sans notes internes) ou version prestataires."
         }
       }
     },
@@ -49,14 +49,14 @@
           "a": "Oui : elles sont signalées « à faire par les clients », et cochées dès qu'ils les ont faites dans leur espace."
         }
       },
-      "title": "Les tâches de tous vos événements",
-      "body": "Les tâches de tous vos événements, triées par échéance. Filtrez « En retard » pour rattraper, ou par qui la réalise ; cochez une tâche faite. Cliquez-la pour la modifier sur la fiche de son événement."
+      "title": "Les tâches de tous vos évènements",
+      "body": "Les tâches de tous vos évènements, triées par échéance. Filtrez « En retard » pour rattraper, ou par qui la réalise ; cochez une tâche faite. Cliquez-la pour la modifier sur la fiche de son évènement."
     },
     "budgetSettings": {
       "faq": {
         "0": {
-          "q": "Faut-il une répartition par type d'événement ?",
-          "a": "C'est utile si vos événements se ressemblent par gamme : créez-en plusieurs et choisissez la bonne sur chaque budget."
+          "q": "Faut-il une répartition par type d'évènement ?",
+          "a": "C'est utile si vos évènements se ressemblent par gamme : créez-en plusieurs et choisissez la bonne sur chaque budget."
         }
       }
     }
@@ -73,7 +73,7 @@
     "programPdfCouple": "Version clients",
     "noActivity": "Aucune activité des clients pour l'instant.",
     "activityFormerClient": "Un client",
-    "trialNoInvite": "Pendant l'essai, aucun lien n'est envoyé : les liens ne se créent que sur un vrai événement.",
+    "trialNoInvite": "Pendant l'essai, aucun lien n'est envoyé : les liens ne se créent que sur un vrai évènement.",
     "trialStepQuote": "Composez un devis fictif, faites-le signer par le client fictif sur la page de signature d'essai, puis émettez ses factures (série DEMO, en filigrane).",
     "tabClients": "Clients",
     "columnClients": "Clients",
@@ -85,17 +85,17 @@
     },
     "clientContactTitle": "Coordonnées des clients",
     "programPdfFileCouple": "programme-clients",
-    "taskColumnEvent": "Événement"
+    "taskColumnEvent": "Évènement"
   },
   "Quotes": {
     "clientIndividual": "Particulier (le client)",
     "signingLinksHint": "Un client n'a pas reçu l'e-mail ? Envoyez-lui son lien ci-dessus (clic droit, « Copier le lien »). Chaque lien est personnel.",
-    "quoteEventColumn": "Événement"
+    "quoteEventColumn": "Évènement"
   },
   "Import": {
     "takeover": {
       "event_sheets": {
-        "what": "Chaque fiche devient un événement : clients et leurs coordonnées, date, lieux et horaires, budget souhaité. Le statut est proposé d'après la date ; vous le changez dans l'aperçu."
+        "what": "Chaque fiche devient un évènement : clients et leurs coordonnées, date, lieux et horaires, budget souhaité. Le statut est proposé d'après la date ; vous le changez dans l'aperçu."
       }
     }
   },
@@ -123,10 +123,10 @@
     }
   },
   "Home": {
-    "agendaLegendConfirmed": "Événement confirmé"
+    "agendaLegendConfirmed": "Évènement confirmé"
   },
   "ClientSpace": {
-    "title": "Mon événement"
+    "title": "Mon évènement"
   },
   "DayOf": {
     "clientsTitle": "Les clients"

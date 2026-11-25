@@ -1,5 +1,5 @@
 // DEV-01 — catalogue, composition d'un devis depuis la fiche d'un
-// événement, envoi (version figée), PDF, puis nouvelle version. En taille
+// évènement, envoi (version figée), PDF, puis nouvelle version. En taille
 // ordinateur et en 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
@@ -20,7 +20,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-test("DEV-01 — composer un devis depuis un événement, l'envoyer, le télécharger et en créer une V2", async ({ page }) => {
+test("DEV-01 — composer un devis depuis un évènement, l'envoyer, le télécharger et en créer une V2", async ({ page }) => {
   test.setTimeout(120_000);
   const email = `planner-dev01-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-dev01-e2e";
@@ -76,7 +76,7 @@ test("DEV-01 — composer un devis depuis un événement, l'envoyer, le téléch
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page.getByRole("heading", { name: "Inès" })).toBeVisible();
   await openEventTab(page, "Mes devis et factures");
-  await expect(page.getByText("Aucun devis pour cet événement.")).toBeVisible();
+  await expect(page.getByText("Aucun devis pour cet évènement.")).toBeVisible();
   await page.getByRole("button", { name: "Créer un devis" }).click();
   await expect(page).toHaveURL(/\/devis\/[0-9a-f-]{36}$/);
   const quoteUrl = page.url();
@@ -120,7 +120,7 @@ test("DEV-01 — composer un devis depuis un événement, l'envoyer, le téléch
   await expect(page.getByRole("link", { name: "Télécharger le PDF (version 1)" })).toBeVisible();
   await expectNoAxeViolation(page);
 
-  // La fiche de l'événement liste le devis.
+  // La fiche de l'évènement liste le devis.
   await page.getByRole("link", { name: "Inès" }).click();
   await openEventTab(page, "Mes devis et factures");
   await expect(page.getByRole("link", { name: /^D-\d{4}-0001$/ })).toBeVisible();

@@ -25,7 +25,7 @@ async function expectNoAxeViolation(page: Page) {
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }
 
-// Une organisation prête, sa titulaire, et un événement, un devis et un
+// Une organisation prête, sa titulaire, et un évènement, un devis et un
 // prestataire créés par les services des modules.
 async function organizationWithObjects(label: string) {
   const email = `owner-sec13-${label}-${randomUUID()}@symbola.test`;

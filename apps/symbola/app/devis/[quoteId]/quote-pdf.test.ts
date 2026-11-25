@@ -140,7 +140,7 @@ describe("DEV-01 — PDF du devis", () => {
     expect(result.seller.lines).toEqual(["1 rue des Lilas, 69001 Lyon", "bonjour@atelier.example · 06 12 34 56 78"]);
     expect(result.dates).toEqual([
       { label: "Établi le", value: "15 mars 2027" },
-      { label: "Événement", value: "18 septembre 2027" },
+      { label: "Évènement", value: "18 septembre 2027" },
       { label: "Valable jusqu'au", value: "14 avril 2027" },
     ]);
     expect(result.legalMention).toBe("TVA non applicable, art. 293 B du CGI");
@@ -178,7 +178,7 @@ describe("DEV-01 — PDF du devis", () => {
     expect(result.legalMention).toBe("Mention courante");
     expect(result.intro).toBe("Nouvelle introduction");
     expect(result.appearance.font).toBe("modern");
-    expect(result.dates).toEqual([{ label: "Événement", value: "18 septembre 2027" }]);
+    expect(result.dates).toEqual([{ label: "Évènement", value: "18 septembre 2027" }]);
   });
 
   it("un devis d'essai porte le filigrane « Document fictif » et son numéro DEMO", () => {

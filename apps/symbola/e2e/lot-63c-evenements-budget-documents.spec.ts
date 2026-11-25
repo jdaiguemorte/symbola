@@ -73,7 +73,7 @@ test("EVT-01, EVT-07, CHR-01 — « Nouveau » sur les trois vues ; un mariage c
   // Un seul en-tête sur les trois vues, avec « Nouveau » au même endroit.
   for (const [view, path] of [["Liste", "/events"], ["Colonnes", "/events/pipeline"], ["Calendrier", "/events?affichage=calendrier"]] as const) {
     await page.goto(path);
-    await expect(page.getByRole("heading", { level: 1, name: "Événements" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Évènements" })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Affichage" }).getByRole("link", { name: view })).toHaveAttribute("aria-current", "page");
     await expect(page.getByRole("button", { name: "Nouveau", exact: true })).toBeVisible();
   }
@@ -88,14 +88,14 @@ test("EVT-01, EVT-07, CHR-01 — « Nouveau » sur les trois vues ; un mariage c
   await expect(page).toHaveURL(/\/events\/new\?type=evenement$/);
 
   // Le type a un modèle : la case est cochée pour un évènement confirmé.
-  const types = page.getByLabel("Type d'événement");
+  const types = page.getByLabel("Type d'évènement");
   await createTaskTemplate(setup.organizationId, "Mariage — 12 mois", [
     { label: "Réserver le lieu", offsetDays: -365, responsible: "planner" },
     { label: "Plan de table", offsetDays: -14, responsible: "clients" },
   ], weddingTypeId);
   await page.reload();
   await types.selectOption({ value: weddingTypeId });
-  await page.getByLabel("Date de l'événement").fill("2027-06-12");
+  await page.getByLabel("Date de l'évènement").fill("2027-06-12");
   const proposal = page.getByRole("checkbox", { name: /Partir du rétroplanning « Mariage — 12 mois » \(2 tâches\)/ });
   await expect(proposal).toBeChecked();
   await page.getByText("Voir les tâches").click();
@@ -113,10 +113,10 @@ test("EVT-01, EVT-07, CHR-01 — « Nouveau » sur les trois vues ; un mariage c
 
   // Retour au mariage, sans client (facultatif pour un évènement confirmé) : il faut alors un nom (Q43).
   await types.selectOption({ value: weddingTypeId });
-  await page.getByRole("button", { name: "Créer l'événement" }).click();
+  await page.getByRole("button", { name: "Créer l'évènement" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Sans client, donnez un nom à l'évènement." })).toBeVisible({ timeout: 20_000 });
   await page.getByLabel(/Nom de l'évènement/).fill("Mariage Bernard");
-  await page.getByRole("button", { name: "Créer l'événement" }).click();
+  await page.getByRole("button", { name: "Créer l'évènement" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}/, { timeout: 20_000 });
   const eventId = /\/events\/([0-9a-f-]{36})/.exec(page.url())![1]!;
   expect((await listEventTasks(setup.organizationId, eventId)).map((task) => task.label).sort()).toEqual(["Plan de table", "Réserver le lieu"]);

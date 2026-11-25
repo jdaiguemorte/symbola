@@ -128,7 +128,7 @@ test("BUD-02 — l'alerte précède l'engagement : le dépassement chiffré du s
   await expect(candidates.getByRole("listitem", { name: "Les Tables de Flandre" }).getByLabel("Statut")).toHaveValue("retained");
   await expect(candidates.getByRole("listitem", { name: "Maison Verdier" }).getByLabel("Statut")).toHaveValue("dismissed");
 
-  // L'engagé suit (événement interne traité en différé) ; le bandeau rappelle le dépassement.
+  // L'engagé suit (évènement interne traité en différé) ; le bandeau rappelle le dépassement.
   const banner = page.getByRole("alert").filter({ hasText: "L'engagé dépasse de 2 480,00 € le seuil d'alerte (90 % de l'enveloppe)." });
   await expect(async () => {
     await page.goto(`/events/${wedding.eventId}?onglet=budget`);
@@ -136,7 +136,7 @@ test("BUD-02 — l'alerte précède l'engagement : le dépassement chiffré du s
   }).toPass({ timeout: 30_000 });
   await expectNoAxeViolation(page);
 
-  // Sur le budget : enveloppe, seuil, alerte ; le seuil se relève pour cet événement.
+  // Sur le budget : enveloppe, seuil, alerte ; le seuil se relève pour cet évènement.
   await page.goto(`/budget/${wedding.eventId}/detail`);
   await page.waitForLoadState("networkidle");
   const envelope = page.getByRole("region", { name: "Enveloppe et seuil d'alerte" });
@@ -146,7 +146,7 @@ test("BUD-02 — l'alerte précède l'engagement : le dépassement chiffré du s
   await expect(envelope.getByRole("definition").filter({ hasText: "520,00 €" })).toBeVisible();
   await expect(envelope.getByRole("alert")).toContainText("2 480,00 €");
   await expectNoAxeViolation(page);
-  await envelope.getByLabel(/Seuil de cet événement/).fill("100");
+  await envelope.getByLabel(/Seuil de cet évènement/).fill("100");
   await envelope.getByRole("button", { name: "Enregistrer le seuil" }).click();
   await expect(envelope.getByText("Seuil enregistré.")).toBeVisible();
   await expect(envelope.getByRole("alert")).toHaveCount(0);
