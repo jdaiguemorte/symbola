@@ -3607,7 +3607,7 @@
     "journalResultValue": "{created, plural, =0 {aucune création} one {# création} other {# créations}}, {updated, plural, =0 {aucune mise à jour} one {# mise à jour} other {# mises à jour}}, {unchanged, plural, =0 {aucune ligne inchangée} one {# ligne inchangée} other {# lignes inchangées}}, {rejected, plural, =0 {aucune ligne rejetée} one {# ligne rejetée} other {# lignes rejetées}}",
     "undoTitle": "Annuler cet import",
     "undoIntro": "Les éléments créés seront supprimés et les éléments mis à jour retrouveront leurs valeurs précédentes. Annulation possible jusqu'au {date}.",
-    "undoWhat": "L'annulation supprime {created, plural, =0 {aucun élément créé} one {l'élément créé} other {les # éléments créés}} et remet {updated, plural, =0 {rien d'autre} one {l'élément mis à jour comme avant} other {les # éléments mis à jour comme avant}}.",
+    "undoWhat": "L'annulation {created, plural, =0 {{updated, plural, =0 {ne supprime rien.} one {remet l'élément mis à jour comme avant.} other {remet les # éléments mis à jour comme avant.}}} one {supprime l'élément créé{updated, plural, =0 {.} one { et remet l'élément mis à jour comme avant.} other { et remet les # éléments mis à jour comme avant.}}} other {supprime les # éléments créés{updated, plural, =0 {.} one { et remet l'élément mis à jour comme avant.} other { et remet les # éléments mis à jour comme avant.}}}}",
     "undoModifiedNamed": "{count, plural, one {Une fiche a été modifiée à la main depuis l'import :} other {# fiches ont été modifiées à la main depuis l'import :}}",
     "undoModifiedAt": "modifiée le {date}",
     "undoModifiedSince": "modifiée depuis l'import",

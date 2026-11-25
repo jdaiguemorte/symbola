@@ -3607,7 +3607,7 @@
     "journalResultValue": "{created, plural, =0 {no creation} one {# creation} other {# creations}}, {updated, plural, =0 {no update} one {# update} other {# updates}}, {unchanged, plural, =0 {no unchanged row} one {# unchanged row} other {# unchanged rows}}, {rejected, plural, =0 {no rejected row} one {# rejected row} other {# rejected rows}}",
     "undoTitle": "Undo this import",
     "undoIntro": "Created records will be deleted and updated records will get their previous values back. Undo is possible until {date}.",
-    "undoWhat": "Undoing deletes {created, plural, =0 {no created item} one {the created item} other {the # created items}} and restores {updated, plural, =0 {nothing else} one {the updated item as it was} other {the # updated items as they were}}.",
+    "undoWhat": "Undoing {created, plural, =0 {{updated, plural, =0 {deletes nothing.} one {restores the updated item as it was.} other {restores the # updated items as they were.}}} one {deletes the created item{updated, plural, =0 {.} one { and restores the updated item as it was.} other { and restores the # updated items as they were.}}} other {deletes the # created items{updated, plural, =0 {.} one { and restores the updated item as it was.} other { and restores the # updated items as they were.}}}}",
     "undoModifiedNamed": "{count, plural, one {One record was edited by hand since the import:} other {# records were edited by hand since the import:}}",
     "undoModifiedAt": "edited on {date}",
     "undoModifiedSince": "edited since the import",
