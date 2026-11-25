@@ -20,7 +20,7 @@ du volet 1, ajoutées au sommaire :
 | [8. Doublons, confirmation, bilan](../../maquette/lot-68/08-reprise-doublons-bilan.html) | Ranger dans les postes de l'espace sans fondre ; le doublon possible ; « Vérifier » ; le bilan ; retirer un import ; la table des nombres | C-57, C-58, C-61, C-66 ; P-07 |
 | [9. La fiche d'un mariage repris](../../maquette/lot-68/09-reprise-fiche.html) | « À compléter » ; d'où vient chaque valeur ; budget « à répartir » ; fiche complétée ; liste des évènements ; « Aujourd'hui » au lendemain | C-53, C-55, C-56, C-61, C-64 |
 | [10. Les prestataires retenus](../../maquette/lot-68/10-reprise-prestataires.html) | L'arrêt quand le fichier nomme un autre couple ; l'aperçu lisible et les contrats ; le bilan | C-53, C-62, C-66 ; D11 |
-| [11. Le programme repris d'un PDF](../../maquette/lot-68/11-reprise-programme.html) | Journées par leur date, aucune heure déduite ; « à compléter » dans l'onglet et avant le partage ; l'annuaire proposé au carnet | C-63 ; D5 |
+| [11. Le programme repris d'un PDF](../../maquette/lot-68/11-reprise-programme.html) | « Veille », « Jour J », « Lendemain » (R11), aucune heure déduite ; « à compléter » dans l'onglet et avant le partage ; l'annuaire proposé au carnet | C-63 ; D5 |
 | [12. Les messages d'erreur de l'import](../../maquette/lot-68/12-reprise-erreurs.html) | Mauvais fichier au mauvais endroit ; erreur de colonne ; lignes à corriger à l'écran ; catalogue ; les mots de l'import | C-60 ; P-18 |
 
 Chaque maquette met l'écran d'aujourd'hui (capture du relevé, ou description tirée des constats et du
@@ -82,8 +82,8 @@ recalculés sur ces fichiers (page 8, « Les nombres ») : prévu 36 450,00 €,
   et compare ; l'aperçu prend toute la largeur, le poste proposé s'y lit en entier, trois lignes
   seulement sont « À vérifier » ; la question « Leurs contrats sont-ils signés ? » (tous, aucun,
   ligne par ligne) ; un bilan et un retrait d'ensemble.
-- **Le programme repris d'un PDF selon D5** (page 11) : chaque journée par sa date, « la veille »,
-  « le jour J », « le lendemain » en petit ; « Fin non renseignée » au lieu d'une heure déduite ;
+- **Le programme repris d'un PDF selon D5** (page 11) : un seul « Jour J », la veille et le
+  lendemain nommés ainsi, un autre jour par sa date, la date complète écrite à côté (R11) ; « Fin non renseignée » au lieu d'une heure déduite ;
   « 19 h – 2 h, le lendemain » ; un repère sans durée ; les lieux de la fiche restent des lieux ;
   dans l'onglet, « À compléter : 5 heures de fin », et sur chaque moment « Heure de fin » ou
   « Ponctuel » ; « Partager… » sur un programme incomplet ouvre d'abord une fenêtre qui le dit ; le
@@ -95,31 +95,36 @@ recalculés sur ces fichiers (page 8, « Les nombres ») : prévu 36 450,00 €,
   des mots de l'import (doublon possible, retirer, continuer, non renseigné, moment) complète le
   lexique.
 
-## 3. Les choix laissés à Julien
+## 3. Les choix laissés à Julien, et ses décisions
 
-Chaque choix a une proposition (celle des maquettes) et l'autre voie. Le marqueur « choix Rn » des
-pages renvoie ici.
+Chaque choix avait une proposition (celle des maquettes) et l'autre voie. **Décision de Julien à la
+porte 3, le 25/11/2026 : « Tout en proposition, sauf R11 = b ».** Les dix-sept autres choix sont
+retenus tels que proposés ; pour R11, l'autre voie l'emporte : le nommage du lot 67d (« Veille »,
+« Jour J », « Lendemain », une autre date en JJ/MM/AAAA) est gardé, et la phrase de D5 « chaque
+journée prend sa date pour nom » ne s'applique plus. Les pages 6 à 12 sont corrigées en conséquence :
+la page 11 nomme les journées « Veille », « Jour J », « Lendemain » avec la date complète à côté, et
+les mentions « choix Rn » des pages renvoient à la décision.
 
-| # | Question | Proposition (dans les maquettes) | L'autre voie |
-| --- | --- | --- | --- |
-| R1 | Une page de reprise par mariage, ou une page pour toute l'agence ? | **Par mariage** : six lignes, la ligne du carnet partagée entre tous (déjà faite au deuxième mariage). « Reprendre un autre mariage » repart d'une page neuve | Une page d'agence qui liste tous les mariages à reprendre et leurs fichiers ; plus longue, mais une vue d'ensemble pour qui reprend sept mariages |
-| R2 | Le carnet passe-t-il en premier ? | **Oui**, ligne 1 : les prestataires retenus sont alors retrouvés au lieu d'être créés deux fois (l'ordre que l'app impose aujourd'hui sans le dire) | Le mariage d'abord, le carnet en dernier ou hors de la page ; plus naturel, mais des fiches en double à rapprocher ensuite |
-| R3 | La fin de l'assistant de démarrage | **« Reprendre un mariage en cours » en bouton plein** quand la réponse « Que voulez-vous remplacer ? » cite un tableur ou un logiciel ; « Créer un nouveau mariage » sinon (D6) | Les deux choix au même rang, quelle que soit la réponse |
-| R4 | Le compteur « 3 fichiers sur 6 » compte-t-il une ligne couverte par un import encore en cours ? | **Oui** (la ligne 4, remplie par le budget en cours, est comptée) | Non : elle ne compte qu'une fois le budget importé (plus strict, P-07) |
-| R5 | Les questions de l'assistant ont-elles une réponse cochée d'avance ? | **Aucune**, comme « Où en est-il ? » (M13) ; chaque réponse dit son résultat | Cocher la réponse probable (« Acompte versé » lu comme payé) : un geste de moins, au risque d'un clic sans lecture |
-| R6 | Le mot pour défaire un import terminé | **« Retirer cet import… »** : « Annuler » seul est réservé aux dix secondes (M6) | Garder « Annuler cet import », le texte actuel |
-| R7 | La provenance des valeurs sur la fiche | **À la demande**, par l'interrupteur « D'où viennent ces valeurs ? » | Toujours visible tant que la reprise n'est pas complétée |
-| R8 | Qu'est-ce qu'une ligne de budget « complète » ? | **Prestataire retenu et prévu connu** | Prestataire, prévu et contrat signé ; ou garder la règle actuelle (« Retenu » suffit) en changeant seulement le mot |
-| R9 | Le bloc « À compléter » une fois tout fait | **Une ligne « Reprise complétée le … », puis disparaît au bout de sept jours** | Reste replié jusqu'au jour J ; ou disparaît tout de suite |
-| R10 | Quand le fichier nomme-t-il « un autre couple » ? | **Quand aucun des deux mariés ne concorde, prénom et nom** (accents et casse ignorés) ; « Martin » seul ne suffit pas | Dès qu'un des deux ne concorde pas (plus d'alertes, dont les noms de jeune fille) |
-| R11 | Le nom des journées d'un programme repris | **La date** (« Vendredi 11 juin 2027 »), « la veille » en petit : D5 à la lettre | Ce que fait l'app depuis le lot 67d (décision du 24/11, lue dans le code) : « Veille », « Jour J », « Lendemain », une autre date en JJ/MM/AAAA. Les deux décisions se contredisent : **à trancher** |
-| R12 | Un moment sans heure de fin | **« Ponctuel »**, notion nouvelle qui le retire du compte des heures manquantes | Exiger une fin partout (une arrivée dure un quart d'heure) ; plus simple à construire, plus de saisie |
-| R13 | Partager un programme incomplet | **Permis après une fenêtre** qui liste les heures manquantes ; les destinataires lisent « heure de fin à venir » ; « Compléter d'abord » est l'action principale | Bloqué tant que des heures manquent (lecture stricte de D5) |
-| R14 | Où va l'annuaire du programme ? | **Au carnet** : les téléphones complètent les fiches, un absent y est créé (D5 le dit) | Dans les « contacts du jour J » du programme, qui existent dans l'app et restent vides aujourd'hui |
-| R15 | « Moment » à la place de « séquence » dans le programme | **« Moment »** (lexique de la page 12) | Garder « séquence », le mot actuel de l'onglet |
-| R16 | Les tâches non faites dont l'échéance est passée, dans une liste reprise | **L'assistant demande** : les garder (en retard, comme dans le tableur), les redater, ou les dire faites | Toujours les garder à leur date, sans question (le retard est celui du fichier) |
-| R17 | Un poste de départ sans ligne dans le fichier | **Demandé** : le garder « à trouver » ou le retirer de ce mariage | Le garder sans question (comportement actuel), au prix de faux « À trouver » (C-61) |
-| R18 | L'écran « Importer » des Paramètres accepte-t-il encore un budget, des tâches ou une fiche ? | **Oui**, en demandant « Pour quel mariage ? » (page 7) | Non : ces fichiers ne passent plus que par la page de reprise ; l'écran ne garde que contacts, carnet et listes de l'espace |
+| # | Question | Proposition | L'autre voie | Décision (25/11) |
+| --- | --- | --- | --- | --- |
+| R1 | Une page de reprise par mariage, ou une page pour toute l'agence ? | **Par mariage** : six lignes, la ligne du carnet partagée entre tous (déjà faite au deuxième mariage). « Reprendre un autre mariage » repart d'une page neuve | Une page d'agence qui liste tous les mariages à reprendre et leurs fichiers ; plus longue, mais une vue d'ensemble pour qui reprend sept mariages | Proposition retenue |
+| R2 | Le carnet passe-t-il en premier ? | **Oui**, ligne 1 : les prestataires retenus sont alors retrouvés au lieu d'être créés deux fois (l'ordre que l'app impose aujourd'hui sans le dire) | Le mariage d'abord, le carnet en dernier ou hors de la page ; plus naturel, mais des fiches en double à rapprocher ensuite | Proposition retenue |
+| R3 | La fin de l'assistant de démarrage | **« Reprendre un mariage en cours » en bouton plein** quand la réponse « Que voulez-vous remplacer ? » cite un tableur ou un logiciel ; « Créer un nouveau mariage » sinon (D6) | Les deux choix au même rang, quelle que soit la réponse | Proposition retenue |
+| R4 | Le compteur « 3 fichiers sur 6 » compte-t-il une ligne couverte par un import encore en cours ? | **Oui** (la ligne 4, remplie par le budget en cours, est comptée) | Non : elle ne compte qu'une fois le budget importé (plus strict, P-07) | Proposition retenue |
+| R5 | Les questions de l'assistant ont-elles une réponse cochée d'avance ? | **Aucune**, comme « Où en est-il ? » (M13) ; chaque réponse dit son résultat | Cocher la réponse probable (« Acompte versé » lu comme payé) : un geste de moins, au risque d'un clic sans lecture | Proposition retenue |
+| R6 | Le mot pour défaire un import terminé | **« Retirer cet import… »** : « Annuler » seul est réservé aux dix secondes (M6) | Garder « Annuler cet import », le texte actuel | Proposition retenue |
+| R7 | La provenance des valeurs sur la fiche | **À la demande**, par l'interrupteur « D'où viennent ces valeurs ? » | Toujours visible tant que la reprise n'est pas complétée | Proposition retenue |
+| R8 | Qu'est-ce qu'une ligne de budget « complète » ? | **Prestataire retenu et prévu connu** | Prestataire, prévu et contrat signé ; ou garder la règle actuelle (« Retenu » suffit) en changeant seulement le mot | Proposition retenue |
+| R9 | Le bloc « À compléter » une fois tout fait | **Une ligne « Reprise complétée le … », puis disparaît au bout de sept jours** | Reste replié jusqu'au jour J ; ou disparaît tout de suite | Proposition retenue |
+| R10 | Quand le fichier nomme-t-il « un autre couple » ? | **Quand aucun des deux mariés ne concorde, prénom et nom** (accents et casse ignorés) ; « Martin » seul ne suffit pas | Dès qu'un des deux ne concorde pas (plus d'alertes, dont les noms de jeune fille) | Proposition retenue |
+| R11 | Le nom des journées d'un programme repris | **La date** (« Vendredi 11 juin 2027 »), « la veille » en petit : D5 à la lettre | Ce que fait l'app depuis le lot 67d (décision du 24/11, lue dans le code) : « Veille », « Jour J », « Lendemain », une autre date en JJ/MM/AAAA. Les deux décisions se contredisent : **à trancher** | **L'autre voie** : « Veille », « Jour J », « Lendemain » |
+| R12 | Un moment sans heure de fin | **« Ponctuel »**, notion nouvelle qui le retire du compte des heures manquantes | Exiger une fin partout (une arrivée dure un quart d'heure) ; plus simple à construire, plus de saisie | Proposition retenue |
+| R13 | Partager un programme incomplet | **Permis après une fenêtre** qui liste les heures manquantes ; les destinataires lisent « heure de fin à venir » ; « Compléter d'abord » est l'action principale | Bloqué tant que des heures manquent (lecture stricte de D5) | Proposition retenue |
+| R14 | Où va l'annuaire du programme ? | **Au carnet** : les téléphones complètent les fiches, un absent y est créé (D5 le dit) | Dans les « contacts du jour J » du programme, qui existent dans l'app et restent vides aujourd'hui | Proposition retenue |
+| R15 | « Moment » à la place de « séquence » dans le programme | **« Moment »** (lexique de la page 12) | Garder « séquence », le mot actuel de l'onglet | Proposition retenue |
+| R16 | Les tâches non faites dont l'échéance est passée, dans une liste reprise | **L'assistant demande** : les garder (en retard, comme dans le tableur), les redater, ou les dire faites | Toujours les garder à leur date, sans question (le retard est celui du fichier) | Proposition retenue |
+| R17 | Un poste de départ sans ligne dans le fichier | **Demandé** : le garder « à trouver » ou le retirer de ce mariage | Le garder sans question (comportement actuel), au prix de faux « À trouver » (C-61) | Proposition retenue |
+| R18 | L'écran « Importer » des Paramètres accepte-t-il encore un budget, des tâches ou une fiche ? | **Oui**, en demandant « Pour quel mariage ? » (page 7) | Non : ces fichiers ne passent plus que par la page de reprise ; l'écran ne garde que contacts, carnet et listes de l'espace | Proposition retenue |
 
 ## 4. Ce que les maquettes supposent du comportement de l'app
 
@@ -214,7 +219,7 @@ maquette la traite.
 | Synthèse · interlocuteurs | « Léa MARTIN », « POITIERS » | Pages 7 et 9 : casse de l'app, montrée avant, « Garder les capitales » |
 | Synthèse · notes | « — » alors que « Notes » était annoncé | Pages 7 et 9 : la note va dans « Notes » |
 | Synthèse · « Champs importés » | Hors calcul, sans espace des milliers | Pages 7 et 9 : supprimé, chaque valeur à sa place |
-| Synthèse · temps forts | Trois « Jour J » | Pages 9 et 11 : noms des moments, journées par leur date (choix R11) |
+| Synthèse · temps forts | Trois « Jour J » | Pages 9 et 11 : noms des moments, journées « Veille », « Jour J », « Lendemain » (R11) |
 | Synthèse · invités, style, équipe | « — » sans le dire | Page 9 : « non renseigné », invités dans « À compléter » |
 | Budget · noms des lignes | Mots de l'ancien outil, postes en double | Page 8 : rangement dans les postes de l'espace ; page 10 : poste proposé lisible |
 | Budget · montants | PDF : « — » partout ; tableur : « Réglé 0,00 € » | Page 9 : « non renseigné » et total « à répartir » ; page 7 : acomptes payés |
@@ -223,7 +228,7 @@ maquette la traite.
 | Budget · lignes fondues | Trois « Traiteur » en une | Page 8 : chaque ligne reste une ligne |
 | Budget · poste de chaque prestataire | Illisible, vu après validation | Page 10 : poste en entier, « À vérifier » sur trois lignes |
 | Rétroplanning · tâches | Vide sans raison, ou modèle mis en retard ; pas de porte | Page 6 : ligne « Liste « à faire » » ; page 7 : import de la liste ; page 9 : « Les tâches » dans « À compléter » ; volet 1, page 2 : « Reprendre une liste » |
-| Programme · titres des journées | « Jour J » ×3, tableau sans titre | Page 11 : date, lieux gardés comme lieux |
+| Programme · titres des journées | « Jour J » ×3, tableau sans titre | Page 11 : un seul « Jour J », « Veille » et « Lendemain », date complète à côté (R11) ; lieux gardés comme lieux |
 | Programme · « Lieu » et « Qui » | Vides ou faux (« Mariée - Clémence ») | Page 11 : poste et personne ; page 10 : contrôle du couple |
 | Programme · heures de fin | Déduites | Page 11 : « Fin non renseignée », « à compléter », « Ponctuel » |
 | Programme · contacts du jour J | Annuaire perdu | Page 11 : dit au bilan, proposé au carnet (choix R14) |
@@ -272,6 +277,6 @@ prestataires retenus, page 10 ; mauvais fichier, page 12).
 
 ## 9. La porte 3 de ce volet
 
-Julien tranche R1 à R18 (§ 3), R11 en premier : D5 et la décision du lot 67d se contredisent sur le
-nom des journées. Ce volet validé, ses formes (page de reprise, question avec résultat chiffré,
+**Choix tranchés le 25/11/2026** (§ 3) : R1 à R18 retenus tels que proposés, sauf R11, où le
+nommage du lot 67d l'emporte sur la phrase de D5. Ce volet tranché, ses formes (page de reprise, question avec résultat chiffré,
 bilan aux mêmes nombres, « non renseigné », provenance) rejoignent le Design System (phase 6).
