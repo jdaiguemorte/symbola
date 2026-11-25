@@ -1,6 +1,6 @@
 # Lot 69 — Corrections simples de l'audit UX des parcours (lot 68)
 
-**Statut** : spécification à valider par Julien. Aucun code avant sa réponse.
+**Statut** : spécification validée par Julien le 25/11/2026 (« Valider, attendre #180 ») ; lot 67 fusionné (#180), branche rebasée sur `main` ; **réalisée** (voir § 7).
 **Branche** : `lot-69-corrections-audit-ux` (une pull request vers `main`).
 
 Sources, à lire par `git show origin/lot-68-audit-ux-parcours:<chemin>` tant que la PR #181 n'est pas
@@ -277,3 +277,31 @@ produit par un script rejouable (`tools/referentiel/…`, non conservé s'il n'a
 3. **C-20 et C-06 écartés** vers les maquettes, comme au § 2 : d'accord ?
 4. **Statut traduit à l'aperçu (n° 9 c)** limité aux fiches d'évènement : d'accord, ou on laisse
    les statuts bruts partout et on ne corrige que dates, accents et sommes ?
+
+## 7. Réalisation (26/11/2026)
+
+Seize corrections livrées, une par commit (ordre de la PR), deux lignes du tableau écartées comme au § 2.
+
+- **Écarts à la spécification**
+  - **n° 8 (tuile « Reprendre mes contacts » encadrée) : non reproduit.** Le code ne marque
+    `aria-current` que la tuile choisie, et aucune quand le type demandé n'est pas une tuile
+    (`/import?type=budget_lines`) ; l'encadré vu à l'audit est très probablement l'état « survol » ou le
+    focus après l'ancre `#import-form`. Aucun changement de style ; le comportement attendu est tenu
+    par un test (`C-59` de `lot-69-corrections-audit-ux.spec.ts`).
+  - **n° 6 et n° 10** : leurs parcours sont dans `lot-69-corrections-audit-ux.spec.ts` (une seule
+    atelier de données) plutôt que dans `evt-03-chr-02-fiche-taches.spec.ts`.
+  - **n° 2, 4, 5, 7** : écrits d'abord en test rouge, sauf le n° 5 dont test et fonction ont été écrits
+    ensemble (fonction pure de quatre lignes).
+  - **n° 2** : l'éditeur de modèles d'e-mails liste déjà la variable (`email-template-rules.ts`) ;
+    seule l'aide d'écran change.
+  - **n° 7** : l'onglet s'appelle « Budget et prestataires » (pas « Prestataires »).
+  - **n° 3** : le remplacement touche aussi des textes à portée juridique (modèle de contrat, mention
+    d'information des liens personnels) : **graphie seulement**, aucun mot ni clause changé ; à garder
+    en tête pour la relecture de l'avocat et de la DPO. Le type de départ « Organisation d'évènements »
+    garde l'ancienne graphie parmi ses synonymes de reconnaissance.
+- **Mesures du paquet D** : défauts reproduits en chiffres avant correctif (champ « Où ? » à 26 px,
+  pastille « 2 en retard » à 43 px de haut, débordements de 37 px (budget) et 62 px (équipe),
+  astérisque à 25 px du texte, montants jusqu'à 589 px en 375 px), puis verts.
+- **Non vérifié en local** : `hub-13-reprise-export` et `imp-09-reprise` échouent ici (module
+  `@napi-rs/canvas` absent de ce poste, lecture de PDF) ; ils ne touchent pas aux fichiers modifiés,
+  la CI tranche.

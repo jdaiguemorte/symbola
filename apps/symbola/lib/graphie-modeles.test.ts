@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-const DIR = path.dirname(fileURLToPath(import.meta.url));
+const DIR = fileURLToPath(new URL("../../../packages/starter-templates/src/", import.meta.url));
 const RECOGNITION_FILES = new Set(["import-synonyms.json", "import-profiles.json", "vendor-type-synonyms.json"]);
 
 function shownStrings(node: unknown, key = ""): string[] {
