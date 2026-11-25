@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lot 68 · Reprise : le programme repris d'un PDF</title>
+<style>
+/* Jetons de DESIGN.md (ADR 0057), sans aucune valeur nouvelle. Polices : Inter et Space Grotesk si
+   elles sont installées, sinon la police du système (aucune dépendance externe). */
+:root{--primary:#0F6E5C;--on-primary:#FFFFFF;--primary-soft:#E3F1EE;--primary-strong:#0B5A4B;--ground:#F6F7F9;--surface:#FFFFFF;--ink:#14181F;--muted:#5A6372;--line:#DDE1E7;--line-strong:#838C99;--attention:#9A5B00;--attention-soft:#FBF0DC;--critical:#B3261E;--critical-soft:#FBE9E7;--float:0 8px 24px rgba(20,24,31,.12);
+--f-body:Inter,"Inter var",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;--f-title:"Space Grotesk",Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;--kd:.45}
+*{box-sizing:border-box}
+
+body{margin:0;background:#E9ECF0;color:var(--ink);font:15px/1.5 var(--f-body)}
+h1,h2,h3,h4{font-family:var(--f-title);font-weight:600;margin:0}
+a{color:var(--primary)}
+button{font:inherit;color:inherit}
+/* ——— Le document qui présente les maquettes ——— */
+.doc{max-width:1680px;margin:0 auto;padding:32px 32px 96px}
+.doc>header{max-width:980px}
+.doc>header h1{font-size:32px;line-height:1.15}
+.doc>header p{color:var(--muted);margin:8px 0}
+.crumbs{font-size:13px;margin-bottom:12px}
+.toolbar-doc{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px -32px 0;padding:10px 32px;background:rgba(233,236,240,.96);border-bottom:1px solid var(--line)}
+.toolbar-doc .lbl{font-size:13px;color:var(--muted);margin-right:4px}
+.toolbar-doc button,.toc a{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);text-decoration:none;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer}
+.toolbar-doc button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.part{margin-top:64px;padding-top:16px;border-top:2px solid var(--line-strong);font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mock{margin-top:40px;scroll-margin-top:72px}
+.mock>h2{font-size:22px}
+.mock>.intro{color:var(--muted);max-width:980px;margin:4px 0 16px}
+.size{margin:24px 0 8px;font:600 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+.pair.m{grid-template-columns:repeat(auto-fill,375px);gap:24px 32px}
+.side{min-width:0}
+.cap{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:13px;color:var(--muted)}
+.cap b{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;background:#fff;border:1px solid var(--line-strong);color:var(--ink)}
+.cap b.new{background:var(--primary);border-color:var(--primary);color:#fff}
+.dwrap{width:100%;overflow:hidden;border-radius:12px;border:1px solid var(--line-strong);background:var(--ground)}
+.dwrap>.ui-d,.dwrap>img{zoom:var(--kd)}.dwrap>img{display:block}
+body.reel .pair:not(.m){grid-template-columns:minmax(0,1fr)}
+body.reel .dwrap{overflow-x:auto}
+body.reel .dwrap>.ui-d,body.reel .dwrap>img{zoom:1}
+.mwrap{width:377px;border:1px solid var(--line-strong);border-radius:20px;overflow:hidden;background:var(--ground)}
+.mwrap>img{display:block;width:375px}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:16px 40px;margin:20px 0 0;padding:16px 20px;background:var(--surface);border:1px solid var(--line);border-radius:16px;font-size:14px}
+.rules h4{font:600 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.rules ul{margin:0;padding-left:18px}
+.rules li{margin:3px 0}
+.rules .count{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.rules .count span{display:inline-flex;height:26px;align-items:center;padding:0 10px;border-radius:999px;background:var(--ground);border:1px solid var(--line);font-size:12px;font-weight:500}
+.note-avant{padding:16px;font-size:14px;color:var(--muted);background:#fff}
+.callout{font-size:12px;font-weight:600;color:#fff;background:#4B3BD9;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;font-family:var(--f-body)}
+.legend-callouts{font-size:13px;margin:8px 0 0;padding-left:0;list-style:none;display:grid;gap:4px}
+.legend-callouts li{display:flex;gap:8px;align-items:flex-start}
+table.doc-t{border-collapse:collapse;width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px}
+table.doc-t th{text-align:left;font:600 12px var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--ground)}
+table.doc-t td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.doc-t td s{color:var(--muted)}
+
+/* ——— L'app : cadre d'ordinateur (1 440 px) ——— */
+svg[aria-hidden]{width:20px;height:20px;flex:none}
+.fait svg,.btn.sm svg{width:16px;height:16px}
+.pill svg{width:14px;height:14px}
+.in svg{width:18px;height:18px;color:var(--muted)}
+.small svg{width:16px;height:16px;vertical-align:-3px}
+.ui-d{width:1440px;min-height:900px;display:grid;grid-template-columns:232px 1fr;background:var(--ground);position:relative;font-size:15px;overflow:hidden}
+.ui-d.short{min-height:0}
+.sb{background:var(--surface);border-right:1px solid var(--line);padding:20px 16px;display:flex;flex-direction:column;gap:2px}
+.logo{display:flex;align-items:center;gap:10px;font:600 20px var(--f-title);padding:4px 8px 20px}
+.logo i{width:26px;height:26px;border-radius:999px;border:2.5px solid var(--primary);position:relative;display:inline-block}
+.logo i:after{content:"";position:absolute;left:6px;top:3px;width:12px;height:16px;border-radius:999px;border:2.5px solid var(--primary)}
+.nav{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-size:15px;white-space:nowrap}
+.nav svg{width:20px;height:20px;flex:none}
+.nav.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.nav .cnt{margin-left:auto;font-size:12px;font-weight:600;height:22px;padding:0 8px;border-radius:999px;display:inline-flex;align-items:center;background:var(--critical-soft);color:var(--critical);white-space:nowrap}
+.sb hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+.main{min-width:0;display:flex;flex-direction:column}
+.tb{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;height:68px;padding:0 48px;background:var(--surface);border-bottom:1px solid var(--line)}
+.tb.old{background:transparent;border:0;height:88px}
+.search{width:520px;height:44px;border:1px solid var(--line-strong);border-radius:6px;padding:0 14px;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:15px;background:#fff}
+.search svg{width:18px;height:18px;flex:none}
+.kbd{margin-left:auto;font:500 12px var(--f-body);border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--muted)}
+.tb .sp{flex:1}
+.iconbtn{width:44px;height:44px;border-radius:10px;border:1px solid transparent;background:transparent;display:inline-flex;align-items:center;justify-content:center;position:relative;flex:none;color:var(--ink)}
+.iconbtn svg{width:20px;height:20px}
+.iconbtn.bd{border-color:var(--line-strong);background:#fff}
+.iconbtn .badge{position:absolute;top:4px;right:4px;min-width:18px;height:18px;border-radius:999px;background:var(--critical);color:#fff;font:600 11px/18px var(--f-body);text-align:center;padding:0 4px}
+.avatar{width:32px;height:32px;border-radius:999px;background:var(--ground);border:1px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font:600 12px var(--f-body);color:var(--ink);flex:none}
+.avatar.sm{width:24px;height:24px;font-size:11px}
+.avatar.couple{border-style:dashed}
+.acct{display:flex;align-items:center;gap:8px;height:44px;padding:0 8px 0 6px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:14px}
+.ct{padding:28px 48px 48px;max-width:1208px;width:100%}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
+.ph h1{font-size:22px;line-height:1.25}
+.ph .sub{color:var(--muted);font-size:14px;margin-top:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px}
+.card+.card{margin-top:16px}
+.card h3{font-size:17px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:12px;align-items:center}
+.wrap{flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 16px;border-radius:10px;font:600 15px var(--f-body);border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);white-space:nowrap;cursor:default}
+.btn svg{width:18px;height:18px}
+.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.danger{border-color:var(--critical);color:var(--critical);background:#fff}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--primary);padding:0 10px}
+.btn.sm{height:36px;padding:0 12px;font-size:14px;border-radius:8px}
+.btn.block{width:100%}
+.link{color:var(--primary);text-decoration:underline;text-underline-offset:3px}
+.field{display:flex;flex-direction:column;gap:6px;font:500 13px/1.35 var(--f-body)}
+.in{height:44px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;padding:0 12px;display:flex;align-items:center;font:400 15px var(--f-body);color:var(--ink);gap:8px;min-width:0}
+.in.ph-t{color:var(--muted)}
+.in.sel{justify-content:space-between}
+.in.sel:after{content:"";width:8px;height:8px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg) translateY(-3px);flex:none}
+.in.area{height:88px;align-items:flex-start;padding-top:10px}
+.in.err{border:2px solid var(--critical)}
+.in.focus{outline:3px solid var(--primary);outline-offset:1px}
+.err-msg{color:var(--critical);font:500 13px var(--f-body);display:flex;gap:6px;align-items:flex-start}
+.req{color:var(--ink)}
+.hint{color:var(--muted);font:400 13px var(--f-body)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font:500 13px var(--f-body);background:var(--ground);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.pill.late{background:var(--critical-soft);color:var(--critical);border-color:transparent}
+.pill.soon{background:var(--attention-soft);color:var(--attention);border-color:transparent}
+.pill.ok{background:var(--primary-soft);color:var(--primary);border-color:transparent}
+.pill .x{font-size:14px;margin-left:2px}
+.switch{width:40px;height:24px;border-radius:999px;background:var(--line-strong);position:relative;flex:none;display:inline-block}
+.switch:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:999px;background:#fff}
+.switch.on{background:var(--primary)}.switch.on:after{left:19px}
+.chk{width:20px;height:20px;border:1.5px solid var(--line-strong);border-radius:4px;background:#fff;flex:none;display:inline-flex;align-items:center;justify-content:center}
+.chk.on{background:var(--primary);border-color:var(--primary)}
+.chk.on:after{content:"";width:5px;height:10px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg) translate(-1px,-1px)}
+.radio{width:20px;height:20px;border:1.5px solid var(--line-strong);border-radius:999px;background:#fff;flex:none;position:relative}
+.radio.on{border:6px solid var(--primary)}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:10px;padding:3px;gap:2px;background:#fff}
+.seg span{height:36px;padding:0 14px;border-radius:7px;display:inline-flex;align-items:center;font:500 14px var(--f-body)}
+.seg span.on{background:var(--ink);color:#fff}
+.dim{position:absolute;inset:0;background:rgba(20,24,31,.45);z-index:20}
+.pop{position:absolute;z-index:30;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--float)}
+.menu{padding:6px;min-width:260px}
+.menu .mi{display:flex;flex-direction:column;justify-content:center;min-height:44px;padding:8px 12px;border-radius:8px;font-size:15px}
+.menu .mi small{display:block;color:var(--muted);font-size:13px;line-height:1.35}
+.menu .mi.hl{background:var(--ground)}
+.menu .mi.d{color:var(--critical)}
+.menu hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.mark{outline:2px dashed #4B3BD9;outline-offset:4px;border-radius:12px}
+.co{position:absolute;z-index:40}
+
+/* ——— La ligne type d'une tâche ——— */
+.tlist{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.thead,.tl{display:grid;grid-template-columns:minmax(0,1fr) 190px 210px 170px 72px 44px;gap:16px;align-items:center;padding:0 16px 0 24px}
+.tl.no-evt,.thead.no-evt{grid-template-columns:minmax(0,1fr) 210px 170px 72px 44px}
+.tl.sel,.thead.sel{grid-template-columns:24px minmax(0,1fr) 190px 210px 170px 116px}
+.thead{height:44px;font:500 13px var(--f-body);color:var(--muted);border-bottom:1px solid var(--line)}
+.grp{padding:16px 24px 8px;font:600 15px var(--f-title);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+.grp small{font:400 13px var(--f-body);color:var(--muted)}
+.tl{min-height:60px;border-bottom:1px solid var(--line)}
+.tl:last-child{border-bottom:0}
+.tl.checked{background:#F7FAF9}
+.tl.done .tt{color:var(--muted);text-decoration-color:var(--line)}
+.tt{color:var(--ink);font-weight:500;text-decoration:underline;text-decoration-color:var(--line-strong);text-decoration-thickness:1px;text-underline-offset:4px}
+.ev{color:var(--ink);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.none{color:var(--muted)}
+.due{font-size:14px;line-height:1.3;white-space:nowrap}
+.due b{font-weight:500;display:block}
+.due span{font-size:13px;color:var(--muted)}
+.due.late b,.due.late span{color:var(--critical)}
+.due.soon span{color:var(--attention)}
+.st-ic{display:inline-flex;width:14px;height:14px;border-radius:999px;align-items:center;justify-content:center;font:700 10px/1 var(--f-body);margin-right:4px;vertical-align:-1px}
+.late .st-ic{background:var(--critical);color:#fff}
+.soon .st-ic{border:1.5px solid var(--attention);color:var(--attention)}
+.who{display:flex;align-items:center;gap:8px;font-size:14px;white-space:nowrap;overflow:hidden}
+.who em{font-style:normal;color:var(--muted)}
+.more{width:44px;height:44px;border-radius:10px;border:1px solid transparent;background:transparent;display:inline-flex;align-items:center;justify-content:center;color:var(--ink);flex:none}
+.more:before{content:"";width:4px;height:4px;border-radius:999px;background:currentColor;box-shadow:-7px 0 0 currentColor,7px 0 0 currentColor}
+.more.bd{border-color:var(--line)}
+.fait{height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line-strong);background:#fff;font:600 14px var(--f-body);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.fait.on{background:var(--primary-soft);border-color:transparent;color:var(--primary)}
+/* Accueil : ligne allégée */
+.tl.light{grid-template-columns:minmax(0,1fr) 170px 210px 150px 72px;padding-left:20px}
+/* Téléphone */
+.ui-m{width:375px;height:812px;position:relative;background:var(--ground);overflow:hidden;font-size:15px;display:flex;flex-direction:column}
+.ui-m.auto{height:auto;min-height:812px}
+.mtb{display:flex;align-items:center;gap:2px;height:60px;padding:0 6px 0 16px;background:#fff;border-bottom:1px solid var(--line);flex:none;position:relative;z-index:3}
+.mtb h1{font-size:20px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mtb .back{display:inline-flex;align-items:center;gap:4px;height:44px;color:var(--primary);font-weight:600;text-decoration:none;margin-left:-6px;padding:0 6px;flex:1}
+.mbody{flex:1;overflow:hidden;position:relative}
+.mpad{padding:16px}
+.mbb{position:absolute;left:0;right:0;bottom:0;height:72px;padding:0 0 8px;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:1.1fr 1.15fr .85fr 1.15fr .75fr;z-index:25}
+.mbb a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);text-decoration:none;font:500 13px/1.1 var(--f-body);letter-spacing:-.01em;position:relative;white-space:nowrap;min-height:56px}
+.mbb a svg{width:22px;height:22px}
+.mbb a.on{color:var(--primary);font-weight:600}
+.mbb a.on:before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--primary)}
+.mbb .b{position:absolute;top:6px;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:999px;background:var(--critical);color:#fff;font:600 11px/18px var(--f-body);text-align:center;padding:0 4px}
+.tlm{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 6px;align-items:center;padding:12px 6px 12px 16px;background:#fff;border-bottom:1px solid var(--line)}
+.tlm.sel{grid-template-columns:44px minmax(0,1fr);padding-left:4px}
+.tlm .chkc{width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.tlm .txt{min-width:0}
+.tlm .tt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:600;line-height:1.35}
+.tlm .meta{font-size:13px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tlm .meta.late{color:var(--critical);font-weight:500}
+.tlm .meta.soon{color:var(--attention)}
+.tlm .fait{height:44px}
+.mgrp{padding:14px 16px 6px;font:600 14px var(--f-title);color:var(--ink);display:flex;justify-content:space-between}
+.mgrp small{font:400 13px var(--f-body);color:var(--muted)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;box-shadow:var(--float);z-index:30;padding:8px 0 16px}
+.sheet .grab{width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:4px auto 8px}
+.sheet .si{display:flex;align-items:center;gap:14px;min-height:52px;padding:0 20px;font-size:16px}
+.sheet .si svg{width:22px;height:22px;color:var(--muted)}
+.sheet .si.d{color:var(--ink);font-size:15px}
+.sheet hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.sticky-act{position:absolute;left:0;right:0;bottom:0;padding:12px 16px 20px;background:#fff;border-top:1px solid var(--line);z-index:6}
+/* Message de retour (toast) */
+.toast{display:flex;align-items:center;gap:12px;background:var(--ink);color:#fff;border-radius:12px;padding:8px 8px 8px 16px;box-shadow:var(--float);font-size:15px;min-height:56px;position:relative;overflow:hidden}
+.toast .tx{flex:1;min-width:0}
+.toast .tx small{display:block;color:#A9B3C1;font-size:13px}
+.toast .ub{display:inline-flex;align-items:center;flex:none;height:40px;padding:0 14px;border-radius:8px;border:1px solid #5FD3B8;background:transparent;color:#5FD3B8;font:600 14px var(--f-body);white-space:nowrap}
+.toast .cl{display:inline-flex;align-items:center;justify-content:center;flex:none;width:40px;height:40px;border:0;background:transparent;color:#A9B3C1;font-size:20px}
+.toast .bar{position:absolute;left:0;bottom:0;height:3px;width:62%;background:#5FD3B8}
+.toast.ok-ic:before{content:"✓";font-weight:700;color:#5FD3B8;margin-right:-4px}
+.toast.err{background:#fff;color:var(--ink);border:1px solid var(--critical)}
+.toast.err .ub{border-color:var(--line-strong);color:var(--ink)}
+.notice{border-radius:10px;padding:12px 16px;font-size:14px;display:flex;gap:12px;align-items:flex-start}
+.notice.info{background:var(--primary-soft)}
+.notice.warn{background:var(--attention-soft)}
+.notice.err{background:var(--critical-soft)}
+.notice b{font-weight:600}
+.filters{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.filters .field{min-width:0}
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.count-line{display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px;font-size:14px;color:var(--muted)}
+.empty{text-align:left;padding:40px;border:1px dashed var(--line-strong);border-radius:16px;background:#fff}
+.empty h3{font-size:19px;margin-bottom:6px}
+.window{position:absolute;z-index:30;background:#fff;border-radius:16px;box-shadow:var(--float);display:flex;flex-direction:column;overflow:hidden}
+.window .wh{display:flex;align-items:flex-start;gap:12px;padding:20px 20px 16px 28px;border-bottom:1px solid var(--line)}
+.window .wb{padding:24px 28px;display:grid;gap:20px}
+.window .wf{display:flex;align-items:center;gap:12px;padding:16px 28px;border-top:1px solid var(--line);background:#fff}
+.sec-t{font:600 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.choice{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid var(--line-strong);border-radius:10px}
+.choice.on{border:2px solid var(--primary);background:var(--primary-soft);padding:13px 15px}
+.choice b{display:block;font-weight:600}
+.choice span{font-size:14px;color:var(--muted)}
+.swatch{display:inline-block;width:28px;height:28px;border-radius:6px;border:1px solid var(--line);vertical-align:middle}
+.ph-box{border:1px dashed var(--line-strong);border-radius:12px;padding:16px;color:var(--muted);font-size:13px;background:repeating-linear-gradient(45deg,#fff,#fff 8px,#F9FAFB 8px,#F9FAFB 16px)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:16px 0 20px}
+.tabs span{height:44px;display:inline-flex;align-items:center;padding:0 14px;font-size:15px;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.tabs span.on{color:var(--ink);font-weight:600;border-color:var(--primary)}
+
+.ui-m .seg{padding:0;border-radius:10px;overflow:hidden}.ui-m .seg span{height:44px;border-radius:0}
+.fait svg{width:16px;height:16px}
+
+@media (max-width:1100px){.toolbar-doc{position:static}}
+
+/* Répartition A (porte 2, § 6) appliquée en rôles : la couleur d'action ne porte que l'action et les
+   liens ; l'attente et « bientôt » sont neutres avec une icône ; le rouge reste le retard. */
+.pill.soon{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.pill.ok{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.due.soon span,.tlm .meta.soon,.hint.soon-h{color:var(--muted)}
+.soon .st-ic,.soon-h .st-ic{border:0;width:auto;height:auto;font:500 13px/1 var(--f-body);color:var(--ink)}
+.fait.on{background:var(--ground);border-color:var(--line);color:var(--ink)}
+.notice.info{background:var(--ground);border:1px solid var(--line)}
+.choice.on{background:#fff}
+.toast .bar{background:#A9B3C1}
+.toast.ok-ic:before{color:#fff}
+
+.btn.toggle[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* Porte 3 du volet 1 (25/11/2026) */
+/* M5 : « Annuler » du message de retour en accent de nuit (night-accent #5FD3B8 sur ink #14181F : 9,7:1) ;
+   texte secondaire en night-ink-muted (8,4:1). */
+.toast.err .ub{border-color:var(--line-strong);color:var(--ink)}
+/* M4 : le lien d'évènement d'« Aujourd'hui », séparé du titre ; 44 px de haut sur téléphone. */
+.ev.evl{color:var(--primary);justify-self:start;max-width:100%}
+.evl-m{display:inline-flex;align-items:center;min-height:44px;margin:-8px 0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%}
+/* M2 : barre des actions groupées, collée sous la liste, nette à l'ordinateur. */
+.selbar{position:absolute;bottom:0;right:0;display:flex;align-items:center;gap:10px;padding:12px 48px 12px 24px;background:var(--surface);border-top:2px solid var(--ink);box-shadow:0 -8px 24px rgba(20,24,31,.12);z-index:8}
+.selbar .n{font:600 17px/1.2 var(--f-title);white-space:nowrap;padding-right:12px;margin-right:4px;border-right:1px solid var(--line)}
+/* M13 : erreur sous la question. */
+.q-err{display:flex;align-items:center;gap:8px;margin-top:8px;color:var(--critical);font-size:14px;font-weight:500}
+.choice.err-b{border-color:var(--critical)}
+/* M7 : à 911 px (C-82), la barre du haut tient sans rien couper : sous 760 px de barre, le texte
+   d'aide de la recherche devient « Rechercher… ». */
+.tb{container-type:inline-size}
+.tb .search{white-space:nowrap;min-width:0}
+.tb .search .ph-s{display:none}
+@container (max-width:760px){.tb .search .ph-l{display:none}.tb .search .ph-s{display:inline}.tb .search{flex:1 1 auto}}
+
+/* Volet 2 (reprise et import) : formes ajoutées, toutes aux jetons de DESIGN.md. Les formes du volet 1
+   (ligne type, panneau, message de retour, erreur de saisie, états) sont reprises telles quelles. */
+.num{font-variant-numeric:tabular-nums}
+.r{text-align:right}
+.nr{color:var(--muted)}
+.back-l{display:inline-flex;align-items:center;gap:4px;min-height:44px;color:var(--primary);font-weight:600;text-decoration:none;font-size:15px;margin:-8px 0 4px -6px;padding:0 6px}
+.back-l svg{width:18px;height:18px}
+/* La page de reprise : une ligne par fichier attendu */
+.files{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.fl{display:grid;grid-template-columns:40px minmax(0,1fr) 250px 210px;gap:16px;align-items:center;padding:18px 24px;border-bottom:1px solid var(--line)}
+.fl:last-child{border-bottom:0}
+.fl .n{width:32px;height:32px;border-radius:999px;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font:600 14px var(--f-body);color:var(--ink);background:#fff}
+.fl.done .n{background:var(--ink);border-color:var(--ink);color:#fff}
+.fl.next{background:#FAFBFC;box-shadow:inset 3px 0 0 var(--ink)}
+.fl h3{font:600 16px/1.3 var(--f-title)}
+.fl .d{font-size:14px;color:var(--muted);margin-top:2px}
+.fl .st{font-size:14px;line-height:1.35}
+.fl .st b{font-weight:600;display:flex;align-items:center;gap:6px}
+.fl .st span{display:block;color:var(--muted);font-size:13px}
+.fl .act{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.fl .act .link{font-size:14px;min-height:32px;display:inline-flex;align-items:center}
+.sti{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;font:700 11px/1 var(--f-body);flex:none}
+.sti.ok{background:var(--ink);color:#fff}
+.sti.run{border:1.5px solid var(--ink);color:var(--ink)}
+.sti.todo{border:1.5px dashed var(--line-strong)}
+.sti.skip{border:1.5px solid var(--line-strong);color:var(--muted)}
+.sti.warn{background:var(--attention);color:#fff}
+.flm{background:#fff;border-bottom:1px solid var(--line);padding:14px 16px;display:grid;grid-template-columns:32px minmax(0,1fr);gap:4px 12px}
+.flm .n{width:28px;height:28px;border-radius:999px;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font:600 13px var(--f-body);background:#fff}
+.flm.done .n{background:var(--ink);border-color:var(--ink);color:#fff}
+.flm.next{box-shadow:inset 3px 0 0 var(--ink);background:#FAFBFC}
+.flm h3{font:600 15px/1.3 var(--f-title)}
+.flm .st{font-size:13px;color:var(--muted);margin-top:2px}
+.flm .st b{color:var(--ink);font-weight:600}
+.flm .acts{grid-column:2;display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.prog{height:6px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:8px}
+.prog i{display:block;height:100%;background:var(--ink)}
+/* L'assistant d'import : étapes */
+.wiz{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:4px 0 24px;padding:0;list-style:none}
+.wiz li{border-top:3px solid var(--line);padding:8px 2px 0;font-size:13px;color:var(--muted);line-height:1.35}
+.wiz li b{display:block;color:var(--ink);font-weight:600;font-size:14px}
+.wiz li.done{border-color:var(--ink)}
+.wiz li.on{border-color:var(--primary)}
+.wiz li.on b{color:var(--primary)}
+.wizm{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--muted);margin:0 0 12px}
+.wizm b{color:var(--ink)}
+.q{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 24px}
+.q+.q{margin-top:16px}
+.q h3{font-size:17px;margin-bottom:4px}
+.q .why{font-size:14px;color:var(--muted);margin:0 0 12px}
+.q .opts{display:grid;gap:8px}
+.choice .res{display:block;margin-top:4px;font-size:13px;color:var(--ink)}
+.choice .res .num{font-weight:600}
+.understood{display:grid;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.understood>div{display:grid;grid-template-columns:minmax(0,1fr) 24px minmax(0,1.3fr) auto;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);font-size:14px}
+.understood>div:last-child{border-bottom:0}
+.understood .from{font-weight:500}
+.understood .arrow{color:var(--muted);text-align:center}
+.understood .hdr{font:600 12px var(--f-body);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--ground)}
+/* Tableaux de données dans la maquette */
+.dt{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px}
+.dt th{text-align:left;font:500 13px var(--f-body);color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);background:#fff;white-space:nowrap}
+.dt td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.dt tr:last-child td{border-bottom:0}
+.dt td.num,.dt th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dt tr.sub td{background:var(--ground);font-weight:600}
+.dt tr.total td{font-weight:600;border-top:1px solid var(--line-strong)}
+.dt .sm{display:block;font-size:13px;color:var(--muted)}
+.dt .in{height:40px}
+/* Provenance d'une valeur : une marque neutre, jamais une teinte d'état */
+.src{display:inline-flex;align-items:center;gap:4px;font:500 12px var(--f-body);color:var(--muted);white-space:nowrap}
+.src:before{content:"";width:12px;height:14px;border:1.4px solid var(--muted);border-radius:2px;flex:none;background:linear-gradient(var(--muted),var(--muted)) 3px 4px/5px 1.2px no-repeat,linear-gradient(var(--muted),var(--muted)) 3px 7px/5px 1.2px no-repeat}
+.kv{display:grid;grid-template-columns:180px minmax(0,1fr);gap:8px 16px;font-size:14px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0}
+/* Bloc « À compléter » d'un mariage repris */
+.todo-l{display:grid;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.todo-l>div{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);font-size:14px}
+.todo-l>div:last-child{border-bottom:0}
+.todo-l b{font-weight:600}
+.todo-l .sm{display:block;color:var(--muted);font-size:13px}
+.box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 24px}
+.box h3{font-size:17px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.stat b{display:block;font:600 22px/1.2 var(--f-title)}
+.stat span{font-size:13px;color:var(--muted)}
+.drop{border:1.5px dashed var(--line-strong);border-radius:12px;padding:24px;display:flex;align-items:center;gap:16px;background:#fff}
+.drop svg{width:28px;height:28px;color:var(--muted)}
+.tag{display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:6px;font:500 12px var(--f-body);background:var(--ground);border:1px solid var(--line);color:var(--ink);white-space:nowrap}
+.cmp{display:grid;grid-template-columns:140px minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;font-size:14px}
+.cmp>span{padding:9px 12px;border-bottom:1px solid var(--line)}
+.cmp>span.h{font:600 12px var(--f-body);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--ground)}
+.cmp>span.k{color:var(--muted)}
+.cmp>span.chg{font-weight:600}
+.cmp>span:nth-last-child(-n+4){border-bottom:0}
+.prog-day{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
+.prog-day+.prog-day{margin-top:12px}
+.prog-day h4{font:600 16px var(--f-title);padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+.prog-day h4 small{font:400 13px var(--f-body);color:var(--muted)}
+.seq{display:grid;grid-template-columns:150px minmax(0,1fr) 220px;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);font-size:14px;align-items:baseline}
+.seq:last-child{border-bottom:0}
+.seq .h{font-variant-numeric:tabular-nums;font-weight:600}
+.seq .h small{display:block;font-weight:400;color:var(--muted);font-size:13px}
+.seq .h .miss{display:block;font-weight:500;color:var(--attention);font-size:13px}
+.seqm{padding:10px 16px;border-bottom:1px solid var(--line);font-size:14px;background:#fff}
+.seqm .h{font-weight:600;font-variant-numeric:tabular-nums}
+.seqm .h .miss{color:var(--attention);font-weight:500}
+.seqm .w{color:var(--muted);font-size:13px}
+.ae{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font:600 13px var(--f-body);background:var(--attention-soft);color:var(--attention);white-space:nowrap}
+.ae:before{content:"!";display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:999px;background:var(--attention);color:#fff;font:700 10px/1 var(--f-body)}
+.notice.warn b,.notice.err b{display:inline}
+.err-l{color:var(--critical);font-weight:600}
+.ic-err{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:999px;background:var(--critical);color:#fff;font:700 11px/1 var(--f-body);flex:none;margin-top:2px}
+.cardm{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.cardm+.cardm{margin-top:8px}
+.cardm .t{font-weight:600}
+.cardm .s{font-size:13px;color:var(--muted)}
+.mrow{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:6px 0}
+.mrow span:last-child{font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true"><symbol id="i-today" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="12" cy="14.5" r="1.6"/></symbol><symbol id="i-events" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4M8 13.5h3M8 16.5h6"/></symbol><symbol id="i-tasks" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5l1.8 1.8L9 5M4 12.5l1.8 1.8L9 11M4 18.5l1.8 1.8L9 17M12 7h8M12 13h8M12 19h8"/></symbol><symbol id="i-contacts" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7.5 17.5c1-2.2 2.6-3.2 4.5-3.2s3.5 1 4.5 3.2"/></symbol><symbol id="i-rdv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="15" cy="15" r="3"/><path d="M15 13.6V15l1 .8"/></symbol><symbol id="i-vendors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol><symbol id="i-quotes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7l4 4v13H7z"/><path d="M14 3.5v4h4M9.5 12h6M9.5 15.5h6"/></symbol><symbol id="i-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6" width="17" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></symbol><symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></symbol><symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4L18 18M6 18l1.6-1.6M16.4 7.6L18 6"/></symbol><symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.4"/><circle cx="12" cy="16.8" r=".6"/></symbol><symbol id="i-learn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-4.5L21 9l-9 4.5z"/><path d="M7 11v4.5c1.4 1.3 3 2 5 2s3.6-.7 5-2V11"/></symbol><symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></symbol><symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></symbol><symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-more" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/></symbol><symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></symbol><symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></symbol><symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></symbol><symbol id="i-clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5l-6.8 6.8a2 2 0 0 0 2.8 2.8l7-7a4 4 0 0 0-5.7-5.7l-7 7a6 6 0 0 0 8.5 8.5l5.2-5.2"/></symbol><symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.5 3.8-5.3 7-5.3s5.8 1.8 7 5.3"/></symbol><symbol id="i-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4.5H6v15h8M10.5 12H20M16.5 8.5L20 12l-3.5 3.5"/></symbol><symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol><symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></symbol><symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></symbol><symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5M7.5 9.5L12 5l4.5 4.5M5 19.5h14"/></symbol></svg>
+<div class="doc">
+<div class="crumbs"><a href="index.html">Lot 68 · maquettes des volets 1 et 2</a> › Reprise : le programme repris d'un PDF</div>
+<header>
+<h1>Reprise : le programme du jour J repris d'un PDF</h1>
+<p>Décision D5 (porte 2) : le programme repris d'un PDF n'est pas bon à diffuser tel quel. Une heure que le fichier ne donne pas reste vide et se dit « non renseignée », jamais déduite. Chaque journée prend sa date pour nom. <b>Porte 3 (R11) : Julien retient le nommage du lot 67d</b> : « Veille », « Jour J », « Lendemain », et la date en JJ/MM/AAAA pour un autre jour ; la date complète reste écrite à côté. Le bilan liste ce qui n'est pas repris (l'annuaire) et propose de le reprendre dans le carnet. Tant que des heures manquent, le programme porte « à compléter » avant tout partage. Exemple : « Léa &amp; Hugo », trois journées, douze moments.</p>
+</header>
+<div class="toolbar-doc"><span class="lbl">Cadres d'ordinateur :</span><button data-mode="cote" aria-pressed="true">Côte à côte, réduits</button><button data-mode="reel" aria-pressed="false">L'un sous l'autre, taille réelle</button>
+<span class="lbl" style="margin-left:16px">Aller à :</span>
+<ul class="toc"><li><a href="#apercu">L'aperçu</a></li><li><a href="#onglet">L'onglet du programme</a></li><li><a href="#partage">Avant de partager</a></li><li><a href="#bilan">Le bilan et l'annuaire</a></li></ul></div>
+
+<!-- ============================================================ -->
+<section class="mock" id="apercu">
+<h2>L'aperçu : chaque journée nommée une fois, aucune heure inventée</h2>
+<p class="intro">Les heures sont lues telles quelles : un début seul garde une fin « non renseignée » ; « 19:00 - 02:00 » finit le lendemain et le dit ; « 11:00 - 00:00 » (fin vide dans l'export) n'a pas de fin ; une ligne sans interlocuteur (« Coucher du soleil ») est un repère, sans durée. Les lieux et heures de la fiche d'évènement restent des lieux : ils ne deviennent plus deux moments nommés « Domaine des Tilleuls ».</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b> le programme repris (C-63, H-MI-16, H-MI-18)</div><div class="dwrap"><div class="ui-d short" style="min-height:900px"><div style="grid-column:1/3;padding:48px" class="note-avant">
+<p style="font-size:22px;color:var(--ink);font-family:var(--f-title);font-weight:600;margin:0 0 16px">Ce que l'audit a vu, et ce que dit le code</p>
+<ul style="font-size:20px;line-height:1.6;color:var(--ink)"><li>Trois journées nommées « Jour J » (11, 12 et 13 juin), trois temps forts « Jour J » sur la Synthèse. Depuis le lot 67 (24/11), l'import nomme « Veille », « Jour J », « Lendemain », une autre date en JJ/MM/AAAA (lu dans le code).</li><li>Des fins inventées : « 00:30 – 11:00 · 10 h 30 » (vu à l'audit). Le code actuel laisse la fin vide à l'import, mais rien ne le dit à l'écran.</li><li>Un tableau sans titre : les lieux et heures de la fiche devenus des séquences « Domaine des Tilleuls ».</li><li>L'annuaire (huit intervenants, avec téléphones) sert à rattacher les séquences, puis disparaît : « Aucun contact du jour J. »</li><li>Inès juge pourtant ce programme « bien repris » : rien ne lui montre ce qui manque.</li></ul></div></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 1 440 px, étape « Vérifier »</div>
+<div class="dwrap"><div class="ui-d" style="min-height:1180px"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav on"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<a class="back-l"><svg aria-hidden="true"><use href="#i-back"/></svg>Reprendre « Léa &amp; Hugo »</a>
+<div class="ph"><div><h1>Programme du jour J de « Léa &amp; Hugo »</h1><div class="sub">programme-jour-j.pdf · 3 pages · rien n'est écrit avant votre accord</div></div><span class="btn">Abandonner cet import…</span></div>
+<ol class="wiz"><li class="done"><b>Fichier</b>Léa et Hugo, 12 juin 2027</li><li class="done"><b>Interlocuteurs</b>7 rattachés à un poste</li><li class="on"><b>Vérifier</b>Ce qui va être écrit</li><li style="visibility:hidden"></li><li style="visibility:hidden"></li></ol>
+<div class="box" style="margin-bottom:16px;display:flex;gap:32px;align-items:center">
+<div class="stat"><b class="num">3</b><span>journées</span></div><div class="stat"><b class="num">12</b><span>moments, dont 1 repère</span></div><div class="stat"><b class="num">7</b><span>heures de fin non renseignées</span></div><div class="stat"><b class="num">1</b><span>moment caché des mariés</span></div>
+<div style="flex:1;font-size:14px;border-left:1px solid var(--line);padding-left:24px">Non repris : <b>l'annuaire</b> (8 intervenants et leurs téléphones). Le bilan vous proposera de les ajouter au carnet.</div>
+</div>
+<div class="prog-day"><h4>Veille <small>vendredi 11 juin 2027 · 3 moments</small></h4>
+<div class="seq"><span class="h">12 h<span class="miss">Fin non renseignée</span></span><span>Récupérer les clés</span><span class="muted">Lieu de réception (Claire) · vous</span></div>
+<div class="seq"><span class="h">12 h 15 – 13 h 30</span><span>Installation de l'espace cérémonie<span class="sm muted" style="display:block;font-size:13px">Mettre les housses sur les chaises · Installer l'arche</span></span><span class="muted">Lieu de réception (Claire) · vous</span></div>
+<div class="seq"><span class="h">19 h – 2 h<small>le lendemain</small></span><span>Soirée de la veille</span><span class="muted">Traiteur (Paul)</span></div>
+</div>
+<div class="prog-day"><h4>Jour J <small>samedi 12 juin 2027 · 7 moments</small></h4>
+<div class="seq"><span class="h">10 h<span class="miss">Fin non renseignée</span></span><span>Arrivée d'Iris</span><span class="muted">Coiffure et maquillage (Iris)</span></div>
+<div class="seq"><span class="h">11 h<span class="miss">Fin non renseignée</span></span><span>Repas à la charge des mariés<span class="sm muted" style="display:block;font-size:13px">Votre fichier donnait « 11:00 - 00:00 » : une fin à minuit, laissée vide</span></span><span class="muted">Les mariés</span></div>
+<div class="seq"><span class="h">12 h<span class="miss">Fin non renseignée</span></span><span>Habillage du marié</span><span class="muted">Photographe (Léa) · Gaspard</span></div>
+<div class="seq"><span class="h">14 h<span class="miss">Fin non renseignée</span></span><span>Arrivée du DJ</span><span class="muted">Musique et animation (Roussel)</span></div>
+<div class="seq"><span class="h">15 h 30 – 16 h 30</span><span>Cérémonie laïque</span><span class="muted">Les mariés · Photographe · vous</span></div>
+<div class="seq"><span class="h">21 h 18<small>repère</small></span><span>Coucher du soleil</span><span class="muted">—</span></div>
+<div class="seq"><span class="h">21 h 30 – 21 h 45</span><span>Animation surprise <span class="tag" style="margin-left:6px">Cachée des mariés</span></span><span class="muted">Musique et animation · vous</span></div>
+</div>
+<div class="prog-day"><h4>Lendemain <small>dimanche 13 juin 2027 · 2 moments</small></h4>
+<div class="seq"><span class="h">0 h 30<span class="miss">Fin non renseignée</span></span><span>Fin de soirée</span><span class="muted">Musique et animation (Félix)</span></div>
+<div class="seq"><span class="h">11 h<span class="miss">Fin non renseignée</span></span><span>Brunch</span><span class="muted">Traiteur (Paul) · Lieu de réception</span></div>
+</div>
+<div class="row" style="margin-top:20px"><span class="btn">Retour</span><span style="flex:1"></span><span class="btn p">Importer les 12 moments</span></div>
+</div></div></div></div></div>
+</div>
+<div class="pair m" style="margin-top:24px">
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, même étape</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Reprendre</a></div><div class="mbody">
+<div class="mpad" style="padding-bottom:10px"><div class="wizm"><span>Étape 3 sur 3 · <b>Vérifier</b></span><span>12 moments</span></div><div class="small">3 journées · <b>7 fins non renseignées</b> · annuaire non repris</div></div>
+<div style="background:#fff;border-top:1px solid var(--line)"><div class="mgrp" style="background:#fff">Veille <small>ven. 11 juin 2027</small></div>
+<div class="seqm"><div class="h">12 h · <span class="miss">fin non renseignée</span></div><div>Récupérer les clés</div><div class="w">Lieu de réception (Claire)</div></div>
+<div class="seqm"><div class="h">19 h – 2 h, le lendemain</div><div>Soirée de la veille</div><div class="w">Traiteur (Paul)</div></div>
+<div class="mgrp" style="background:#fff">Jour J <small>sam. 12 juin 2027</small></div>
+<div class="seqm"><div class="h">10 h · <span class="miss">fin non renseignée</span></div><div>Arrivée d'Iris</div><div class="w">Coiffure et maquillage (Iris)</div></div>
+<div class="seqm"><div class="h">15 h 30 – 16 h 30</div><div>Cérémonie laïque</div><div class="w">Les mariés · Photographe · vous</div></div></div>
+</div><div class="sticky-act"><span class="btn p block">Importer les 12 moments</span></div></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul>
+<li>C-63, D5 : aucune heure déduite ; « Fin non renseignée » écrit à la place, sept fois ; une fin à minuit dans l'export est dite et laissée vide.</li>
+<li>C-63, R11 (porte 3) : un seul « Jour J » ; la veille et le lendemain portent leur nom, un autre jour sa date (règle du lot 67d, gardée) ; la date complète est écrite à côté du nom.</li>
+<li>C-63, P-11 : plus de tableau sans titre ; les lieux de la fiche restent des lieux.</li>
+<li>C-62 : « Qui » dit le poste et la personne (« Traiteur (Paul) ») ; un nom sans poste reste en texte (« Gaspard ») ; la vérification du couple (page 10) écarte « Mariée - Clémence ».</li>
+<li>C-60 : heures à la française (« 12 h 15 »), plus « 12:15 ».</li>
+</ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Une valeur absente se dit</span><span>« À vérifier » en texte, pas en fond</span></div>
+<ul><li>« Fin non renseignée » est écrit en teinte d'alerte, sous l'heure : il se lit sans la couleur.</li><li>Le repère est un mot (« repère ») et pas une icône seule.</li><li>Les acquis sont gardés : « Cachée des mariés », la description en lignes (sans les retours à la ligne perdus).</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="onglet">
+<h2>L'onglet du programme : « À compléter » tant que des heures manquent</h2>
+<p class="intro">En tête de l'onglet, un bandeau dit combien d'heures manquent et mène à la première. Sur chaque moment concerné, deux gestes : saisir l'heure de fin, ou dire que le moment est ponctuel (une arrivée, un repère), ce qui le retire du compte. Le bandeau disparaît à zéro.</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b> « Pas encore diffusé… », aucune marque de ce qui manque</div><div class="dwrap"><div class="ui-d short" style="min-height:760px"><div style="grid-column:1/3;padding:48px" class="note-avant">
+<p style="font-size:22px;color:var(--ink);font-family:var(--f-title);font-weight:600;margin:0 0 16px">L'onglet aujourd'hui (PC-09)</p>
+<ul style="font-size:20px;line-height:1.6;color:var(--ink)"><li>Inès : « bien repris, trois jours (11, 12, 13 juin) avec séquences, lieux et notes internes ».</li><li>Martine, sur un autre espace : deux séquences nommées « Domaine des Tilleuls » et « Église Saint-Exemple de Villefictive », colonnes « Séquence » et « Qui » vides.</li><li>Rien ne dit qu'une heure n'a pas été donnée par le fichier ; le programme peut être diffusé tel quel.</li></ul></div></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 1 440 px, deux réglées, cinq restent</div>
+<div class="dwrap"><div class="ui-d" style="min-height:900px"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav on"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<div class="ph" style="margin-bottom:8px"><div><h1 style="font-size:26px">Léa &amp; Hugo</h1><div class="sub">Mariage · 12 juin 2027 · <b style="color:var(--ink);font-weight:600">Signé, en préparation</b> · <span class="src">repris le 24 nov.</span></div></div></div>
+<div class="tabs"><span>Synthèse</span><span>Budget et prestataires</span><span>Tâches</span><span class="on">Programme du jour J <span class="ae" style="height:22px;font-size:12px;margin-left:4px">À compléter</span></span><span>Invités</span><span>Documents</span></div>
+<div class="notice warn" style="margin-bottom:16px;align-items:center"><span><b>À compléter : 5 heures de fin non renseignées.</b> Votre PDF ne les donnait pas. Saisissez-les, ou indiquez qu'un moment est ponctuel. Le programme n'est pas encore partagé.</span><span style="flex:1"></span><span class="btn sm">Aller à la première</span></div>
+<div class="row" style="justify-content:space-between;margin-bottom:12px"><span class="small muted">12 moments sur 3 journées · repris de programme-jour-j.pdf le 24 nov.</span><span class="row" style="gap:8px"><span class="btn">Ajouter un moment</span><span class="btn">Partager…</span></span></div>
+<div class="prog-day"><h4>Veille <small>vendredi 11 juin 2027 · 3 moments</small></h4>
+<div class="seq"><span class="h">12 h – 12 h 15</span><span>Récupérer les clés</span><span class="muted">Lieu de réception (Claire)</span></div>
+<div class="seq"><span class="h">12 h 15 – 13 h 30</span><span>Installation de l'espace cérémonie</span><span class="muted">Lieu de réception (Claire)</span></div>
+<div class="seq"><span class="h">19 h – 2 h<small>le lendemain</small></span><span>Soirée de la veille</span><span class="muted">Traiteur (Paul)</span></div>
+</div>
+<div class="prog-day"><h4>Jour J <small>samedi 12 juin 2027 · 7 moments</small></h4>
+<div class="seq"><span class="h">10 h<small>ponctuel</small></span><span>Arrivée d'Iris</span><span class="muted">Coiffure et maquillage (Iris)</span></div>
+<div class="seq" style="background:#FFFCF5"><span class="h">11 h<span class="miss">Fin non renseignée</span></span><span>Repas à la charge des mariés</span><span class="row" style="gap:6px;justify-content:flex-end"><span class="btn sm">Heure de fin</span><span class="btn sm">Ponctuel</span></span></div>
+<div class="seq" style="background:#FFFCF5"><span class="h">12 h<span class="miss">Fin non renseignée</span></span><span>Habillage du marié</span><span class="row" style="gap:6px;justify-content:flex-end"><span class="btn sm">Heure de fin</span><span class="btn sm">Ponctuel</span></span></div>
+<div class="seq" style="background:#FFFCF5"><span class="h">14 h<span class="miss">Fin non renseignée</span></span><span>Arrivée du DJ</span><span class="row" style="gap:6px;justify-content:flex-end"><span class="btn sm">Heure de fin</span><span class="btn sm">Ponctuel</span></span></div>
+<div class="seq"><span class="h">15 h 30 – 16 h 30</span><span>Cérémonie laïque</span><span class="muted">Les mariés · Photographe · vous</span></div>
+<div class="seq"><span class="h">21 h 18<small>repère</small></span><span>Coucher du soleil</span><span class="muted">—</span></div>
+</div>
+</div></div></div></div></div>
+</div>
+<div class="pair m" style="margin-top:24px">
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, même onglet</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Léa &amp; Hugo</a><span class="iconbtn" aria-label="Partager"><svg aria-hidden="true"><use href="#i-upload"/></svg></span></div><div class="mbody">
+<div class="mpad" style="padding-bottom:10px"><h2 style="font-size:19px">Programme du jour J</h2>
+<div class="notice warn" style="margin-top:10px;flex-direction:column;gap:4px"><b>À compléter : 5 heures de fin</b><span class="small">Non données par votre PDF. Pas encore partagé.</span></div></div>
+<div style="background:#fff;border-top:1px solid var(--line)"><div class="mgrp" style="background:#fff">Jour J <small>sam. 12 juin 2027</small></div>
+<div class="seqm"><div class="h">10 h · ponctuel</div><div>Arrivée d'Iris</div><div class="w">Coiffure et maquillage (Iris)</div></div>
+<div class="seqm" style="background:#FFFCF5"><div class="h">11 h · <span class="miss">fin non renseignée</span></div><div>Repas à la charge des mariés</div><div class="row" style="gap:8px;margin-top:8px"><span class="btn sm" style="height:44px">Heure de fin</span><span class="btn sm" style="height:44px">Ponctuel</span></div></div>
+<div class="seqm" style="background:#FFFCF5"><div class="h">12 h · <span class="miss">fin non renseignée</span></div><div>Habillage du marié</div><div class="row" style="gap:8px;margin-top:8px"><span class="btn sm" style="height:44px">Heure de fin</span><span class="btn sm" style="height:44px">Ponctuel</span></div></div></div>
+</div><nav class="mbb" aria-label="Navigation principale"><a><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul>
+<li>D5, C-63, P-06 : une valeur absente porte une marque jusqu'à ce que la planner la règle ; « à compléter » est visible dans l'onglet et dans sa barre.</li>
+<li>C-55 : « À compléter » du programme est aussi un point de la fiche (page 9).</li>
+</ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Deux gestes par manque</span><span>Le compteur baisse</span></div>
+<ul><li>« Ponctuel » est une notion nouvelle du programme, à spécifier au lot de réalisation (R12, porte 3).</li><li>Les lignes à compléter ont le fond d'« À vérifier » ; leurs deux boutons sont les seules actions de la ligne.</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="partage">
+<h2>Avant de partager : « à compléter » se dit avant que le programme ne parte</h2>
+<p class="intro">« Partager… » sur un programme incomplet ouvre d'abord une fenêtre qui le dit, avec le nombre et la liste des heures qui manquent. L'action principale est de compléter ; partager reste possible, et ce que verront les destinataires est dit.</p>
+<div class="pair">
+<div class="side"><div class="cap"><b class="new">Proposé</b> 1 440 px, « Partager… » avec 5 heures manquantes</div>
+<div class="dwrap"><div class="ui-d short" style="min-height:700px"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav on"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct"><div class="ph-box" style="height:500px">L'onglet du programme, sous le fond assombri.</div></div></div>
+<div class="dim"></div>
+<div class="window" role="dialog" aria-label="Partager le programme" style="left:450px;top:90px;width:580px">
+<div class="wh"><h3 style="flex:1;font-size:22px;padding-top:6px">Le programme n'est pas complet</h3><span class="iconbtn" aria-label="Fermer"><svg aria-hidden="true"><use href="#i-close"/></svg></span></div>
+<div class="wb" style="gap:12px">
+<p style="margin:0"><b>5 heures de fin sont non renseignées.</b> Les mariés et les prestataires verraient ces moments sans fin, marqués « heure de fin à venir ».</p>
+<ul style="margin:0;padding-left:20px;font-size:14px"><li>Jour J : Repas à la charge des mariés (11 h), Habillage du marié (12 h), Arrivée du DJ (14 h)</li><li>Lendemain : Fin de soirée (0 h 30), Brunch (11 h)</li></ul>
+</div>
+<div class="wf"><span class="btn">Partager quand même</span><span style="flex:1"></span><span class="btn p">Compléter d'abord</span></div>
+</div></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, même fenêtre en page entière</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Programme</a></div><div class="mbody mpad" style="display:grid;gap:12px;align-content:start">
+<h2 style="font-size:20px">Le programme n'est pas complet</h2>
+<p style="margin:0"><b>5 heures de fin non renseignées.</b> Les destinataires verraient « heure de fin à venir ».</p>
+<ul style="margin:0;padding-left:20px;font-size:14px"><li>Repas à la charge des mariés</li><li>Habillage du marié</li><li>Arrivée du DJ</li><li>Fin de soirée, Brunch</li></ul>
+</div><div class="sticky-act" style="display:grid;gap:8px"><span class="btn p block">Compléter d'abord</span><span class="btn block">Partager quand même</span></div></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul><li>D5 : « à compléter » avant tout partage ; le partage n'est pas interdit, il est éclairé (R13, porte 3).</li><li>C-63 : plus de durée fausse envoyée aux prestataires.</li></ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Fenêtre courte</span><span>Action principale : la voie sûre</span></div><ul><li>Ce n'est pas un danger (rien ne se perd) : pas de bouton rouge ; « Partager quand même » est un bouton secondaire nommé.</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="bilan">
+<h2>Le bilan : ce qui n'est pas repris, et l'annuaire proposé au carnet</h2>
+<p class="intro">Le bilan redit les nombres de l'aperçu et nomme ce qui est resté dans le fichier : l'annuaire des intervenants. « Les ajouter au carnet » ouvre la liste des huit : ceux déjà au carnet sont reconnus et leur téléphone peut compléter la fiche ; un intervenant absent du carnet y serait créé ; les mariés et l'agence sont écartés.</p>
+<div class="pair m">
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, le bilan</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Reprendre</a></div><div class="mbody mpad" style="display:grid;gap:10px;align-content:start">
+<h2 style="font-size:19px">Programme repris dans « Léa &amp; Hugo »</h2>
+<div class="small muted">programme-jour-j.pdf · 24 nov. à 18 h 31</div>
+<div class="cardm"><div class="mrow"><span>Journées</span><span>3</span></div><div class="mrow"><span>Moments</span><span>12, dont 1 repère</span></div><div class="mrow"><span>Fins non renseignées</span><span>7</span></div></div>
+<div class="cardm"><div class="t">Non repris : l'annuaire</div><div class="s" style="margin-bottom:8px">8 intervenants et leurs téléphones.</div><span class="btn block">Les ajouter au carnet</span></div>
+<span class="btn danger block">Retirer cet import…</span>
+</div><div class="sticky-act"><span class="btn p block">Compléter le programme</span></div></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, « Les ajouter au carnet »</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Bilan</a></div><div class="mbody mpad" style="display:grid;gap:8px;align-content:start">
+<h2 style="font-size:19px">L'annuaire du programme</h2>
+<p class="small muted" style="margin:0">5 prestataires, tous dans votre carnet : 3 téléphones à ajouter. 3 écartés.</p>
+<div class="cardm"><div class="row" style="justify-content:space-between"><div><div class="t">Iris Morel · Iris Beauté</div><div class="s">Dans le carnet · ajouter le 06 39 98 02 02</div></div><span class="chk on" style="width:24px;height:24px"></span></div></div>
+<div class="cardm"><div class="row" style="justify-content:space-between"><div><div class="t">Félix Roussel · Nuit Blanche Sono</div><div class="s">Dans le carnet · ajouter le 06 39 98 02 03</div></div><span class="chk on" style="width:24px;height:24px"></span></div></div>
+<div class="cardm"><div class="row" style="justify-content:space-between"><div><div class="t">Claire Fontaine · Domaine des Tilleuls</div><div class="s">Dans le carnet · déjà à jour</div></div></div></div>
+<p class="small" style="margin:0"><span class="link" style="display:inline-flex;min-height:44px;align-items:center">+ 2 autres (Paul Verdier, Léa Marchand)</span></p>
+<p class="small muted" style="margin:4px 0 0">Écartés : les deux mariés (déjà sur la fiche) et votre agence.</p>
+</div><div class="sticky-act"><span class="btn p block">Ajouter les 3 téléphones</span></div></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul><li>D5, C-63 : le bilan liste ce qui n'est pas repris et propose de reprendre l'annuaire dans le carnet ; « Aucun contact du jour J » n'arrive plus sans explication.</li><li>C-58 : 12 moments, 7 fins non renseignées : les nombres de l'aperçu.</li></ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Bilan au gabarit de la page 8</span></div><ul><li>L'annuaire va au carnet, comme le dit D5 (R14, porte 3) ; les « contacts du jour J » du programme restent à part.</li></ul></div>
+</div>
+</section>
+
+</div>
+<script>
+(function(){
+  function fit(){document.querySelectorAll('.dwrap').forEach(function(w){
+    var k=document.body.classList.contains('reel')?1:Math.min(1,w.clientWidth/1440);w.style.setProperty('--kd',k);});}
+  window.addEventListener('resize',fit);fit();
+  document.querySelectorAll('[data-mode]').forEach(function(b){b.addEventListener('click',function(){
+    document.body.classList.toggle('reel',b.dataset.mode==='reel');
+    document.querySelectorAll('[data-mode]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});fit();});});
+})();
+</script>
+</body>
+</html>

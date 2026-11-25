@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lot 68 · Reprise : doublons, confirmation et bilan</title>
+<style>
+/* Jetons de DESIGN.md (ADR 0057), sans aucune valeur nouvelle. Polices : Inter et Space Grotesk si
+   elles sont installées, sinon la police du système (aucune dépendance externe). */
+:root{--primary:#0F6E5C;--on-primary:#FFFFFF;--primary-soft:#E3F1EE;--primary-strong:#0B5A4B;--ground:#F6F7F9;--surface:#FFFFFF;--ink:#14181F;--muted:#5A6372;--line:#DDE1E7;--line-strong:#838C99;--attention:#9A5B00;--attention-soft:#FBF0DC;--critical:#B3261E;--critical-soft:#FBE9E7;--float:0 8px 24px rgba(20,24,31,.12);
+--f-body:Inter,"Inter var",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;--f-title:"Space Grotesk",Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;--kd:.45}
+*{box-sizing:border-box}
+
+body{margin:0;background:#E9ECF0;color:var(--ink);font:15px/1.5 var(--f-body)}
+h1,h2,h3,h4{font-family:var(--f-title);font-weight:600;margin:0}
+a{color:var(--primary)}
+button{font:inherit;color:inherit}
+/* ——— Le document qui présente les maquettes ——— */
+.doc{max-width:1680px;margin:0 auto;padding:32px 32px 96px}
+.doc>header{max-width:980px}
+.doc>header h1{font-size:32px;line-height:1.15}
+.doc>header p{color:var(--muted);margin:8px 0}
+.crumbs{font-size:13px;margin-bottom:12px}
+.toolbar-doc{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px -32px 0;padding:10px 32px;background:rgba(233,236,240,.96);border-bottom:1px solid var(--line)}
+.toolbar-doc .lbl{font-size:13px;color:var(--muted);margin-right:4px}
+.toolbar-doc button,.toc a{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);text-decoration:none;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer}
+.toolbar-doc button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.part{margin-top:64px;padding-top:16px;border-top:2px solid var(--line-strong);font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mock{margin-top:40px;scroll-margin-top:72px}
+.mock>h2{font-size:22px}
+.mock>.intro{color:var(--muted);max-width:980px;margin:4px 0 16px}
+.size{margin:24px 0 8px;font:600 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+.pair.m{grid-template-columns:repeat(auto-fill,375px);gap:24px 32px}
+.side{min-width:0}
+.cap{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:13px;color:var(--muted)}
+.cap b{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;background:#fff;border:1px solid var(--line-strong);color:var(--ink)}
+.cap b.new{background:var(--primary);border-color:var(--primary);color:#fff}
+.dwrap{width:100%;overflow:hidden;border-radius:12px;border:1px solid var(--line-strong);background:var(--ground)}
+.dwrap>.ui-d,.dwrap>img{zoom:var(--kd)}.dwrap>img{display:block}
+body.reel .pair:not(.m){grid-template-columns:minmax(0,1fr)}
+body.reel .dwrap{overflow-x:auto}
+body.reel .dwrap>.ui-d,body.reel .dwrap>img{zoom:1}
+.mwrap{width:377px;border:1px solid var(--line-strong);border-radius:20px;overflow:hidden;background:var(--ground)}
+.mwrap>img{display:block;width:375px}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:16px 40px;margin:20px 0 0;padding:16px 20px;background:var(--surface);border:1px solid var(--line);border-radius:16px;font-size:14px}
+.rules h4{font:600 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.rules ul{margin:0;padding-left:18px}
+.rules li{margin:3px 0}
+.rules .count{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.rules .count span{display:inline-flex;height:26px;align-items:center;padding:0 10px;border-radius:999px;background:var(--ground);border:1px solid var(--line);font-size:12px;font-weight:500}
+.note-avant{padding:16px;font-size:14px;color:var(--muted);background:#fff}
+.callout{font-size:12px;font-weight:600;color:#fff;background:#4B3BD9;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;font-family:var(--f-body)}
+.legend-callouts{font-size:13px;margin:8px 0 0;padding-left:0;list-style:none;display:grid;gap:4px}
+.legend-callouts li{display:flex;gap:8px;align-items:flex-start}
+table.doc-t{border-collapse:collapse;width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px}
+table.doc-t th{text-align:left;font:600 12px var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--ground)}
+table.doc-t td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.doc-t td s{color:var(--muted)}
+
+/* ——— L'app : cadre d'ordinateur (1 440 px) ——— */
+svg[aria-hidden]{width:20px;height:20px;flex:none}
+.fait svg,.btn.sm svg{width:16px;height:16px}
+.pill svg{width:14px;height:14px}
+.in svg{width:18px;height:18px;color:var(--muted)}
+.small svg{width:16px;height:16px;vertical-align:-3px}
+.ui-d{width:1440px;min-height:900px;display:grid;grid-template-columns:232px 1fr;background:var(--ground);position:relative;font-size:15px;overflow:hidden}
+.ui-d.short{min-height:0}
+.sb{background:var(--surface);border-right:1px solid var(--line);padding:20px 16px;display:flex;flex-direction:column;gap:2px}
+.logo{display:flex;align-items:center;gap:10px;font:600 20px var(--f-title);padding:4px 8px 20px}
+.logo i{width:26px;height:26px;border-radius:999px;border:2.5px solid var(--primary);position:relative;display:inline-block}
+.logo i:after{content:"";position:absolute;left:6px;top:3px;width:12px;height:16px;border-radius:999px;border:2.5px solid var(--primary)}
+.nav{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-size:15px;white-space:nowrap}
+.nav svg{width:20px;height:20px;flex:none}
+.nav.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.nav .cnt{margin-left:auto;font-size:12px;font-weight:600;height:22px;padding:0 8px;border-radius:999px;display:inline-flex;align-items:center;background:var(--critical-soft);color:var(--critical);white-space:nowrap}
+.sb hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+.main{min-width:0;display:flex;flex-direction:column}
+.tb{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;height:68px;padding:0 48px;background:var(--surface);border-bottom:1px solid var(--line)}
+.tb.old{background:transparent;border:0;height:88px}
+.search{width:520px;height:44px;border:1px solid var(--line-strong);border-radius:6px;padding:0 14px;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:15px;background:#fff}
+.search svg{width:18px;height:18px;flex:none}
+.kbd{margin-left:auto;font:500 12px var(--f-body);border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--muted)}
+.tb .sp{flex:1}
+.iconbtn{width:44px;height:44px;border-radius:10px;border:1px solid transparent;background:transparent;display:inline-flex;align-items:center;justify-content:center;position:relative;flex:none;color:var(--ink)}
+.iconbtn svg{width:20px;height:20px}
+.iconbtn.bd{border-color:var(--line-strong);background:#fff}
+.iconbtn .badge{position:absolute;top:4px;right:4px;min-width:18px;height:18px;border-radius:999px;background:var(--critical);color:#fff;font:600 11px/18px var(--f-body);text-align:center;padding:0 4px}
+.avatar{width:32px;height:32px;border-radius:999px;background:var(--ground);border:1px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font:600 12px var(--f-body);color:var(--ink);flex:none}
+.avatar.sm{width:24px;height:24px;font-size:11px}
+.avatar.couple{border-style:dashed}
+.acct{display:flex;align-items:center;gap:8px;height:44px;padding:0 8px 0 6px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:14px}
+.ct{padding:28px 48px 48px;max-width:1208px;width:100%}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
+.ph h1{font-size:22px;line-height:1.25}
+.ph .sub{color:var(--muted);font-size:14px;margin-top:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px}
+.card+.card{margin-top:16px}
+.card h3{font-size:17px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:12px;align-items:center}
+.wrap{flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 16px;border-radius:10px;font:600 15px var(--f-body);border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);white-space:nowrap;cursor:default}
+.btn svg{width:18px;height:18px}
+.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.danger{border-color:var(--critical);color:var(--critical);background:#fff}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--primary);padding:0 10px}
+.btn.sm{height:36px;padding:0 12px;font-size:14px;border-radius:8px}
+.btn.block{width:100%}
+.link{color:var(--primary);text-decoration:underline;text-underline-offset:3px}
+.field{display:flex;flex-direction:column;gap:6px;font:500 13px/1.35 var(--f-body)}
+.in{height:44px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;padding:0 12px;display:flex;align-items:center;font:400 15px var(--f-body);color:var(--ink);gap:8px;min-width:0}
+.in.ph-t{color:var(--muted)}
+.in.sel{justify-content:space-between}
+.in.sel:after{content:"";width:8px;height:8px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg) translateY(-3px);flex:none}
+.in.area{height:88px;align-items:flex-start;padding-top:10px}
+.in.err{border:2px solid var(--critical)}
+.in.focus{outline:3px solid var(--primary);outline-offset:1px}
+.err-msg{color:var(--critical);font:500 13px var(--f-body);display:flex;gap:6px;align-items:flex-start}
+.req{color:var(--ink)}
+.hint{color:var(--muted);font:400 13px var(--f-body)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font:500 13px var(--f-body);background:var(--ground);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.pill.late{background:var(--critical-soft);color:var(--critical);border-color:transparent}
+.pill.soon{background:var(--attention-soft);color:var(--attention);border-color:transparent}
+.pill.ok{background:var(--primary-soft);color:var(--primary);border-color:transparent}
+.pill .x{font-size:14px;margin-left:2px}
+.switch{width:40px;height:24px;border-radius:999px;background:var(--line-strong);position:relative;flex:none;display:inline-block}
+.switch:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:999px;background:#fff}
+.switch.on{background:var(--primary)}.switch.on:after{left:19px}
+.chk{width:20px;height:20px;border:1.5px solid var(--line-strong);border-radius:4px;background:#fff;flex:none;display:inline-flex;align-items:center;justify-content:center}
+.chk.on{background:var(--primary);border-color:var(--primary)}
+.chk.on:after{content:"";width:5px;height:10px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg) translate(-1px,-1px)}
+.radio{width:20px;height:20px;border:1.5px solid var(--line-strong);border-radius:999px;background:#fff;flex:none;position:relative}
+.radio.on{border:6px solid var(--primary)}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:10px;padding:3px;gap:2px;background:#fff}
+.seg span{height:36px;padding:0 14px;border-radius:7px;display:inline-flex;align-items:center;font:500 14px var(--f-body)}
+.seg span.on{background:var(--ink);color:#fff}
+.dim{position:absolute;inset:0;background:rgba(20,24,31,.45);z-index:20}
+.pop{position:absolute;z-index:30;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--float)}
+.menu{padding:6px;min-width:260px}
+.menu .mi{display:flex;flex-direction:column;justify-content:center;min-height:44px;padding:8px 12px;border-radius:8px;font-size:15px}
+.menu .mi small{display:block;color:var(--muted);font-size:13px;line-height:1.35}
+.menu .mi.hl{background:var(--ground)}
+.menu .mi.d{color:var(--critical)}
+.menu hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.mark{outline:2px dashed #4B3BD9;outline-offset:4px;border-radius:12px}
+.co{position:absolute;z-index:40}
+
+/* ——— La ligne type d'une tâche ——— */
+.tlist{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.thead,.tl{display:grid;grid-template-columns:minmax(0,1fr) 190px 210px 170px 72px 44px;gap:16px;align-items:center;padding:0 16px 0 24px}
+.tl.no-evt,.thead.no-evt{grid-template-columns:minmax(0,1fr) 210px 170px 72px 44px}
+.tl.sel,.thead.sel{grid-template-columns:24px minmax(0,1fr) 190px 210px 170px 116px}
+.thead{height:44px;font:500 13px var(--f-body);color:var(--muted);border-bottom:1px solid var(--line)}
+.grp{padding:16px 24px 8px;font:600 15px var(--f-title);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+.grp small{font:400 13px var(--f-body);color:var(--muted)}
+.tl{min-height:60px;border-bottom:1px solid var(--line)}
+.tl:last-child{border-bottom:0}
+.tl.checked{background:#F7FAF9}
+.tl.done .tt{color:var(--muted);text-decoration-color:var(--line)}
+.tt{color:var(--ink);font-weight:500;text-decoration:underline;text-decoration-color:var(--line-strong);text-decoration-thickness:1px;text-underline-offset:4px}
+.ev{color:var(--ink);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.none{color:var(--muted)}
+.due{font-size:14px;line-height:1.3;white-space:nowrap}
+.due b{font-weight:500;display:block}
+.due span{font-size:13px;color:var(--muted)}
+.due.late b,.due.late span{color:var(--critical)}
+.due.soon span{color:var(--attention)}
+.st-ic{display:inline-flex;width:14px;height:14px;border-radius:999px;align-items:center;justify-content:center;font:700 10px/1 var(--f-body);margin-right:4px;vertical-align:-1px}
+.late .st-ic{background:var(--critical);color:#fff}
+.soon .st-ic{border:1.5px solid var(--attention);color:var(--attention)}
+.who{display:flex;align-items:center;gap:8px;font-size:14px;white-space:nowrap;overflow:hidden}
+.who em{font-style:normal;color:var(--muted)}
+.more{width:44px;height:44px;border-radius:10px;border:1px solid transparent;background:transparent;display:inline-flex;align-items:center;justify-content:center;color:var(--ink);flex:none}
+.more:before{content:"";width:4px;height:4px;border-radius:999px;background:currentColor;box-shadow:-7px 0 0 currentColor,7px 0 0 currentColor}
+.more.bd{border-color:var(--line)}
+.fait{height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line-strong);background:#fff;font:600 14px var(--f-body);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.fait.on{background:var(--primary-soft);border-color:transparent;color:var(--primary)}
+/* Accueil : ligne allégée */
+.tl.light{grid-template-columns:minmax(0,1fr) 170px 210px 150px 72px;padding-left:20px}
+/* Téléphone */
+.ui-m{width:375px;height:812px;position:relative;background:var(--ground);overflow:hidden;font-size:15px;display:flex;flex-direction:column}
+.ui-m.auto{height:auto;min-height:812px}
+.mtb{display:flex;align-items:center;gap:2px;height:60px;padding:0 6px 0 16px;background:#fff;border-bottom:1px solid var(--line);flex:none;position:relative;z-index:3}
+.mtb h1{font-size:20px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mtb .back{display:inline-flex;align-items:center;gap:4px;height:44px;color:var(--primary);font-weight:600;text-decoration:none;margin-left:-6px;padding:0 6px;flex:1}
+.mbody{flex:1;overflow:hidden;position:relative}
+.mpad{padding:16px}
+.mbb{position:absolute;left:0;right:0;bottom:0;height:72px;padding:0 0 8px;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:1.1fr 1.15fr .85fr 1.15fr .75fr;z-index:25}
+.mbb a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);text-decoration:none;font:500 13px/1.1 var(--f-body);letter-spacing:-.01em;position:relative;white-space:nowrap;min-height:56px}
+.mbb a svg{width:22px;height:22px}
+.mbb a.on{color:var(--primary);font-weight:600}
+.mbb a.on:before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--primary)}
+.mbb .b{position:absolute;top:6px;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:999px;background:var(--critical);color:#fff;font:600 11px/18px var(--f-body);text-align:center;padding:0 4px}
+.tlm{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 6px;align-items:center;padding:12px 6px 12px 16px;background:#fff;border-bottom:1px solid var(--line)}
+.tlm.sel{grid-template-columns:44px minmax(0,1fr);padding-left:4px}
+.tlm .chkc{width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.tlm .txt{min-width:0}
+.tlm .tt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:600;line-height:1.35}
+.tlm .meta{font-size:13px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tlm .meta.late{color:var(--critical);font-weight:500}
+.tlm .meta.soon{color:var(--attention)}
+.tlm .fait{height:44px}
+.mgrp{padding:14px 16px 6px;font:600 14px var(--f-title);color:var(--ink);display:flex;justify-content:space-between}
+.mgrp small{font:400 13px var(--f-body);color:var(--muted)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;box-shadow:var(--float);z-index:30;padding:8px 0 16px}
+.sheet .grab{width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:4px auto 8px}
+.sheet .si{display:flex;align-items:center;gap:14px;min-height:52px;padding:0 20px;font-size:16px}
+.sheet .si svg{width:22px;height:22px;color:var(--muted)}
+.sheet .si.d{color:var(--ink);font-size:15px}
+.sheet hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.sticky-act{position:absolute;left:0;right:0;bottom:0;padding:12px 16px 20px;background:#fff;border-top:1px solid var(--line);z-index:6}
+/* Message de retour (toast) */
+.toast{display:flex;align-items:center;gap:12px;background:var(--ink);color:#fff;border-radius:12px;padding:8px 8px 8px 16px;box-shadow:var(--float);font-size:15px;min-height:56px;position:relative;overflow:hidden}
+.toast .tx{flex:1;min-width:0}
+.toast .tx small{display:block;color:#A9B3C1;font-size:13px}
+.toast .ub{display:inline-flex;align-items:center;flex:none;height:40px;padding:0 14px;border-radius:8px;border:1px solid #5FD3B8;background:transparent;color:#5FD3B8;font:600 14px var(--f-body);white-space:nowrap}
+.toast .cl{display:inline-flex;align-items:center;justify-content:center;flex:none;width:40px;height:40px;border:0;background:transparent;color:#A9B3C1;font-size:20px}
+.toast .bar{position:absolute;left:0;bottom:0;height:3px;width:62%;background:#5FD3B8}
+.toast.ok-ic:before{content:"✓";font-weight:700;color:#5FD3B8;margin-right:-4px}
+.toast.err{background:#fff;color:var(--ink);border:1px solid var(--critical)}
+.toast.err .ub{border-color:var(--line-strong);color:var(--ink)}
+.notice{border-radius:10px;padding:12px 16px;font-size:14px;display:flex;gap:12px;align-items:flex-start}
+.notice.info{background:var(--primary-soft)}
+.notice.warn{background:var(--attention-soft)}
+.notice.err{background:var(--critical-soft)}
+.notice b{font-weight:600}
+.filters{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.filters .field{min-width:0}
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.count-line{display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px;font-size:14px;color:var(--muted)}
+.empty{text-align:left;padding:40px;border:1px dashed var(--line-strong);border-radius:16px;background:#fff}
+.empty h3{font-size:19px;margin-bottom:6px}
+.window{position:absolute;z-index:30;background:#fff;border-radius:16px;box-shadow:var(--float);display:flex;flex-direction:column;overflow:hidden}
+.window .wh{display:flex;align-items:flex-start;gap:12px;padding:20px 20px 16px 28px;border-bottom:1px solid var(--line)}
+.window .wb{padding:24px 28px;display:grid;gap:20px}
+.window .wf{display:flex;align-items:center;gap:12px;padding:16px 28px;border-top:1px solid var(--line);background:#fff}
+.sec-t{font:600 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.choice{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid var(--line-strong);border-radius:10px}
+.choice.on{border:2px solid var(--primary);background:var(--primary-soft);padding:13px 15px}
+.choice b{display:block;font-weight:600}
+.choice span{font-size:14px;color:var(--muted)}
+.swatch{display:inline-block;width:28px;height:28px;border-radius:6px;border:1px solid var(--line);vertical-align:middle}
+.ph-box{border:1px dashed var(--line-strong);border-radius:12px;padding:16px;color:var(--muted);font-size:13px;background:repeating-linear-gradient(45deg,#fff,#fff 8px,#F9FAFB 8px,#F9FAFB 16px)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:16px 0 20px}
+.tabs span{height:44px;display:inline-flex;align-items:center;padding:0 14px;font-size:15px;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.tabs span.on{color:var(--ink);font-weight:600;border-color:var(--primary)}
+
+.ui-m .seg{padding:0;border-radius:10px;overflow:hidden}.ui-m .seg span{height:44px;border-radius:0}
+.fait svg{width:16px;height:16px}
+
+@media (max-width:1100px){.toolbar-doc{position:static}}
+
+/* Répartition A (porte 2, § 6) appliquée en rôles : la couleur d'action ne porte que l'action et les
+   liens ; l'attente et « bientôt » sont neutres avec une icône ; le rouge reste le retard. */
+.pill.soon{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.pill.ok{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.due.soon span,.tlm .meta.soon,.hint.soon-h{color:var(--muted)}
+.soon .st-ic,.soon-h .st-ic{border:0;width:auto;height:auto;font:500 13px/1 var(--f-body);color:var(--ink)}
+.fait.on{background:var(--ground);border-color:var(--line);color:var(--ink)}
+.notice.info{background:var(--ground);border:1px solid var(--line)}
+.choice.on{background:#fff}
+.toast .bar{background:#A9B3C1}
+.toast.ok-ic:before{color:#fff}
+
+.btn.toggle[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* Porte 3 du volet 1 (25/11/2026) */
+/* M5 : « Annuler » du message de retour en accent de nuit (night-accent #5FD3B8 sur ink #14181F : 9,7:1) ;
+   texte secondaire en night-ink-muted (8,4:1). */
+.toast.err .ub{border-color:var(--line-strong);color:var(--ink)}
+/* M4 : le lien d'évènement d'« Aujourd'hui », séparé du titre ; 44 px de haut sur téléphone. */
+.ev.evl{color:var(--primary);justify-self:start;max-width:100%}
+.evl-m{display:inline-flex;align-items:center;min-height:44px;margin:-8px 0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%}
+/* M2 : barre des actions groupées, collée sous la liste, nette à l'ordinateur. */
+.selbar{position:absolute;bottom:0;right:0;display:flex;align-items:center;gap:10px;padding:12px 48px 12px 24px;background:var(--surface);border-top:2px solid var(--ink);box-shadow:0 -8px 24px rgba(20,24,31,.12);z-index:8}
+.selbar .n{font:600 17px/1.2 var(--f-title);white-space:nowrap;padding-right:12px;margin-right:4px;border-right:1px solid var(--line)}
+/* M13 : erreur sous la question. */
+.q-err{display:flex;align-items:center;gap:8px;margin-top:8px;color:var(--critical);font-size:14px;font-weight:500}
+.choice.err-b{border-color:var(--critical)}
+/* M7 : à 911 px (C-82), la barre du haut tient sans rien couper : sous 760 px de barre, le texte
+   d'aide de la recherche devient « Rechercher… ». */
+.tb{container-type:inline-size}
+.tb .search{white-space:nowrap;min-width:0}
+.tb .search .ph-s{display:none}
+@container (max-width:760px){.tb .search .ph-l{display:none}.tb .search .ph-s{display:inline}.tb .search{flex:1 1 auto}}
+
+/* Volet 2 (reprise et import) : formes ajoutées, toutes aux jetons de DESIGN.md. Les formes du volet 1
+   (ligne type, panneau, message de retour, erreur de saisie, états) sont reprises telles quelles. */
+.num{font-variant-numeric:tabular-nums}
+.r{text-align:right}
+.nr{color:var(--muted)}
+.back-l{display:inline-flex;align-items:center;gap:4px;min-height:44px;color:var(--primary);font-weight:600;text-decoration:none;font-size:15px;margin:-8px 0 4px -6px;padding:0 6px}
+.back-l svg{width:18px;height:18px}
+/* La page de reprise : une ligne par fichier attendu */
+.files{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.fl{display:grid;grid-template-columns:40px minmax(0,1fr) 250px 210px;gap:16px;align-items:center;padding:18px 24px;border-bottom:1px solid var(--line)}
+.fl:last-child{border-bottom:0}
+.fl .n{width:32px;height:32px;border-radius:999px;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font:600 14px var(--f-body);color:var(--ink);background:#fff}
+.fl.done .n{background:var(--ink);border-color:var(--ink);color:#fff}
+.fl.next{background:#FAFBFC;box-shadow:inset 3px 0 0 var(--ink)}
+.fl h3{font:600 16px/1.3 var(--f-title)}
+.fl .d{font-size:14px;color:var(--muted);margin-top:2px}
+.fl .st{font-size:14px;line-height:1.35}
+.fl .st b{font-weight:600;display:flex;align-items:center;gap:6px}
+.fl .st span{display:block;color:var(--muted);font-size:13px}
+.fl .act{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.fl .act .link{font-size:14px;min-height:32px;display:inline-flex;align-items:center}
+.sti{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;font:700 11px/1 var(--f-body);flex:none}
+.sti.ok{background:var(--ink);color:#fff}
+.sti.run{border:1.5px solid var(--ink);color:var(--ink)}
+.sti.todo{border:1.5px dashed var(--line-strong)}
+.sti.skip{border:1.5px solid var(--line-strong);color:var(--muted)}
+.sti.warn{background:var(--attention);color:#fff}
+.flm{background:#fff;border-bottom:1px solid var(--line);padding:14px 16px;display:grid;grid-template-columns:32px minmax(0,1fr);gap:4px 12px}
+.flm .n{width:28px;height:28px;border-radius:999px;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font:600 13px var(--f-body);background:#fff}
+.flm.done .n{background:var(--ink);border-color:var(--ink);color:#fff}
+.flm.next{box-shadow:inset 3px 0 0 var(--ink);background:#FAFBFC}
+.flm h3{font:600 15px/1.3 var(--f-title)}
+.flm .st{font-size:13px;color:var(--muted);margin-top:2px}
+.flm .st b{color:var(--ink);font-weight:600}
+.flm .acts{grid-column:2;display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.prog{height:6px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:8px}
+.prog i{display:block;height:100%;background:var(--ink)}
+/* L'assistant d'import : étapes */
+.wiz{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:4px 0 24px;padding:0;list-style:none}
+.wiz li{border-top:3px solid var(--line);padding:8px 2px 0;font-size:13px;color:var(--muted);line-height:1.35}
+.wiz li b{display:block;color:var(--ink);font-weight:600;font-size:14px}
+.wiz li.done{border-color:var(--ink)}
+.wiz li.on{border-color:var(--primary)}
+.wiz li.on b{color:var(--primary)}
+.wizm{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--muted);margin:0 0 12px}
+.wizm b{color:var(--ink)}
+.q{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 24px}
+.q+.q{margin-top:16px}
+.q h3{font-size:17px;margin-bottom:4px}
+.q .why{font-size:14px;color:var(--muted);margin:0 0 12px}
+.q .opts{display:grid;gap:8px}
+.choice .res{display:block;margin-top:4px;font-size:13px;color:var(--ink)}
+.choice .res .num{font-weight:600}
+.understood{display:grid;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.understood>div{display:grid;grid-template-columns:minmax(0,1fr) 24px minmax(0,1.3fr) auto;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);font-size:14px}
+.understood>div:last-child{border-bottom:0}
+.understood .from{font-weight:500}
+.understood .arrow{color:var(--muted);text-align:center}
+.understood .hdr{font:600 12px var(--f-body);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--ground)}
+/* Tableaux de données dans la maquette */
+.dt{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px}
+.dt th{text-align:left;font:500 13px var(--f-body);color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);background:#fff;white-space:nowrap}
+.dt td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.dt tr:last-child td{border-bottom:0}
+.dt td.num,.dt th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dt tr.sub td{background:var(--ground);font-weight:600}
+.dt tr.total td{font-weight:600;border-top:1px solid var(--line-strong)}
+.dt .sm{display:block;font-size:13px;color:var(--muted)}
+.dt .in{height:40px}
+/* Provenance d'une valeur : une marque neutre, jamais une teinte d'état */
+.src{display:inline-flex;align-items:center;gap:4px;font:500 12px var(--f-body);color:var(--muted);white-space:nowrap}
+.src:before{content:"";width:12px;height:14px;border:1.4px solid var(--muted);border-radius:2px;flex:none;background:linear-gradient(var(--muted),var(--muted)) 3px 4px/5px 1.2px no-repeat,linear-gradient(var(--muted),var(--muted)) 3px 7px/5px 1.2px no-repeat}
+.kv{display:grid;grid-template-columns:180px minmax(0,1fr);gap:8px 16px;font-size:14px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0}
+/* Bloc « À compléter » d'un mariage repris */
+.todo-l{display:grid;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.todo-l>div{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);font-size:14px}
+.todo-l>div:last-child{border-bottom:0}
+.todo-l b{font-weight:600}
+.todo-l .sm{display:block;color:var(--muted);font-size:13px}
+.box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 24px}
+.box h3{font-size:17px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.stat b{display:block;font:600 22px/1.2 var(--f-title)}
+.stat span{font-size:13px;color:var(--muted)}
+.drop{border:1.5px dashed var(--line-strong);border-radius:12px;padding:24px;display:flex;align-items:center;gap:16px;background:#fff}
+.drop svg{width:28px;height:28px;color:var(--muted)}
+.tag{display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:6px;font:500 12px var(--f-body);background:var(--ground);border:1px solid var(--line);color:var(--ink);white-space:nowrap}
+.cmp{display:grid;grid-template-columns:140px minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;font-size:14px}
+.cmp>span{padding:9px 12px;border-bottom:1px solid var(--line)}
+.cmp>span.h{font:600 12px var(--f-body);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--ground)}
+.cmp>span.k{color:var(--muted)}
+.cmp>span.chg{font-weight:600}
+.cmp>span:nth-last-child(-n+4){border-bottom:0}
+.prog-day{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
+.prog-day+.prog-day{margin-top:12px}
+.prog-day h4{font:600 16px var(--f-title);padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+.prog-day h4 small{font:400 13px var(--f-body);color:var(--muted)}
+.seq{display:grid;grid-template-columns:150px minmax(0,1fr) 220px;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);font-size:14px;align-items:baseline}
+.seq:last-child{border-bottom:0}
+.seq .h{font-variant-numeric:tabular-nums;font-weight:600}
+.seq .h small{display:block;font-weight:400;color:var(--muted);font-size:13px}
+.seq .h .miss{display:block;font-weight:500;color:var(--attention);font-size:13px}
+.seqm{padding:10px 16px;border-bottom:1px solid var(--line);font-size:14px;background:#fff}
+.seqm .h{font-weight:600;font-variant-numeric:tabular-nums}
+.seqm .h .miss{color:var(--attention);font-weight:500}
+.seqm .w{color:var(--muted);font-size:13px}
+.ae{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font:600 13px var(--f-body);background:var(--attention-soft);color:var(--attention);white-space:nowrap}
+.ae:before{content:"!";display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:999px;background:var(--attention);color:#fff;font:700 10px/1 var(--f-body)}
+.notice.warn b,.notice.err b{display:inline}
+.err-l{color:var(--critical);font-weight:600}
+.ic-err{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:999px;background:var(--critical);color:#fff;font:700 11px/1 var(--f-body);flex:none;margin-top:2px}
+.cardm{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.cardm+.cardm{margin-top:8px}
+.cardm .t{font-weight:600}
+.cardm .s{font-size:13px;color:var(--muted)}
+.mrow{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:6px 0}
+.mrow span:last-child{font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true"><symbol id="i-today" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="12" cy="14.5" r="1.6"/></symbol><symbol id="i-events" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4M8 13.5h3M8 16.5h6"/></symbol><symbol id="i-tasks" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5l1.8 1.8L9 5M4 12.5l1.8 1.8L9 11M4 18.5l1.8 1.8L9 17M12 7h8M12 13h8M12 19h8"/></symbol><symbol id="i-contacts" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7.5 17.5c1-2.2 2.6-3.2 4.5-3.2s3.5 1 4.5 3.2"/></symbol><symbol id="i-rdv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="15" cy="15" r="3"/><path d="M15 13.6V15l1 .8"/></symbol><symbol id="i-vendors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol><symbol id="i-quotes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7l4 4v13H7z"/><path d="M14 3.5v4h4M9.5 12h6M9.5 15.5h6"/></symbol><symbol id="i-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6" width="17" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></symbol><symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></symbol><symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4L18 18M6 18l1.6-1.6M16.4 7.6L18 6"/></symbol><symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.4"/><circle cx="12" cy="16.8" r=".6"/></symbol><symbol id="i-learn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-4.5L21 9l-9 4.5z"/><path d="M7 11v4.5c1.4 1.3 3 2 5 2s3.6-.7 5-2V11"/></symbol><symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></symbol><symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></symbol><symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-more" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/></symbol><symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></symbol><symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></symbol><symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></symbol><symbol id="i-clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5l-6.8 6.8a2 2 0 0 0 2.8 2.8l7-7a4 4 0 0 0-5.7-5.7l-7 7a6 6 0 0 0 8.5 8.5l5.2-5.2"/></symbol><symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.5 3.8-5.3 7-5.3s5.8 1.8 7 5.3"/></symbol><symbol id="i-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4.5H6v15h8M10.5 12H20M16.5 8.5L20 12l-3.5 3.5"/></symbol><symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol><symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></symbol><symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></symbol><symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5M7.5 9.5L12 5l4.5 4.5M5 19.5h14"/></symbol></svg>
+<div class="doc">
+<div class="crumbs"><a href="index.html">Lot 68 · maquettes des volets 1 et 2</a> › Reprise : doublons, confirmation et bilan</div>
+<header>
+<h1>Reprise : les doublons, la confirmation avant écriture, le bilan</h1>
+<p>Trois écrans qui doivent dire la même chose avec les mêmes nombres. Les doublons : chaque décision montre ce qui distingue les lignes et ce que deviendra chaque valeur ; une ligne du fichier reste une ligne. La confirmation : ce qui va être écrit, tel qu'il sera. Le bilan : les mêmes nombres, ce qui n'a pas été repris, et « Retirer cet import » à vue. Exemple : le budget de « Juliette &amp; Romain » (budget.csv, 14 lignes).</p>
+</header>
+<div class="toolbar-doc"><span class="lbl">Cadres d'ordinateur :</span><button data-mode="cote" aria-pressed="true">Côte à côte, réduits</button><button data-mode="reel" aria-pressed="false">L'un sous l'autre, taille réelle</button>
+<span class="lbl" style="margin-left:16px">Aller à :</span>
+<ul class="toc"><li><a href="#doublons">Postes et doublons</a></li><li><a href="#verifier">Vérifier</a></li><li><a href="#bilan">Bilan</a></li><li><a href="#retirer">Retirer un import</a></li><li><a href="#nombres">Les nombres</a></li></ul></div>
+
+<!-- ============================================================ -->
+<section class="mock" id="doublons">
+<h2>Postes et doublons : ranger dans les mots de l'espace, sans rien fondre (C-57, C-61)</h2>
+<p class="intro">L'étape s'appelle « Doublons ». Elle a deux parties. Les postes : chaque poste du fichier est rangé sous un poste de l'espace (« Lieu » sous « Lieu de réception ») ; les lignes ne se fondent jamais, trois lignes « Traiteur » restent trois lignes. Les prestataires : ceux qui ressemblent à une fiche du carnet sans lui être identiques sont montrés côte à côte, avec ce qui les distingue. Seuls les cas douteux demandent une décision ; « Continuer » répond toujours, et dit ce qui reste.</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b> « 25 rapprochements attendent votre décision », trois boutons de lot</div><div class="dwrap"><img src="../../audits/2026-11-ux-parcours/preuves/import-rapprochements-1440.jpg" width="1440" alt="Écran des doublons aujourd'hui"></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 1 440 px, 3 choix à faire</div>
+<div class="dwrap"><div class="ui-d" style="min-height:1180px"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav on"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<a class="back-l"><svg aria-hidden="true"><use href="#i-back"/></svg>Reprendre « Juliette &amp; Romain »</a>
+<div class="ph"><div><h1>Budget de « Juliette &amp; Romain »</h1><div class="sub">budget.csv · 14 lignes · rien n'est écrit avant votre accord</div></div><span class="btn">Abandonner cet import…</span></div>
+<ol class="wiz"><li class="done"><b>Fichier</b>14 lignes de budget</li><li class="done"><b>Colonnes</b>9 sur 9 reconnues</li><li class="done"><b>Questions</b>Acomptes payés</li><li class="on"><b>Doublons</b>3 choix à faire</li><li><b>Vérifier</b></li></ol>
+<div class="sec-t" style="display:flex;justify-content:space-between"><span>Postes : 8 postes du fichier, 9 postes dans ce mariage</span><span style="text-transform:none;letter-spacing:0;font-weight:400">Chaque ligne du fichier reste une ligne</span></div>
+<table class="dt" style="margin-bottom:24px">
+<tr><th style="width:24%">Dans votre fichier</th><th style="width:30%">Rangé sous le poste</th><th>Pourquoi</th></tr>
+<tr><td>Lieu <span class="sm">2 lignes · 7 340,00 € prévus</span></td><td><span class="in sel">Lieu de réception</span></td><td class="muted">Nom proche</td></tr>
+<tr><td>Traiteur <span class="sm">3 lignes · 17 100,00 € prévus</span></td><td><span class="in sel">Traiteur</span></td><td class="muted">Même nom · les 3 lignes gardent leur détail : vin d'honneur et dîner, brunch, vins</td></tr>
+<tr><td>Fleurs <span class="sm">2 lignes · 2 720,00 € prévus</span></td><td><span class="in sel">Fleuriste</span></td><td class="muted">Nom proche</td></tr>
+<tr style="background:#FFFCF5"><td><b>Photo et vidéo</b> <span class="sm">2 lignes · 5 100,00 € prévus</span></td><td><div style="display:grid;gap:6px"><span class="in sel">« Reportage photo » → Photographe</span><span class="in sel">« Film » → Vidéaste</span></div></td><td><span class="ae">À vérifier</span><div class="small" style="margin-top:6px">Un poste du fichier, deux chez vous : rangé d'après le détail de chaque ligne.</div><div class="row" style="margin-top:8px;gap:8px"><span class="btn sm">C'est juste</span></div></td></tr>
+<tr><td>Musique <span class="sm">2 lignes · 2 050,00 € prévus</span></td><td><span class="in sel">Musique et animation</span></td><td class="muted">Nom proche</td></tr>
+<tr><td>Transport, Coiffure et maquillage <span class="sm">1 ligne chacun</span></td><td><span class="in sel">Mêmes postes</span></td><td class="muted">Même nom</td></tr>
+<tr><td>Papeterie <span class="sm">1 ligne · 780,00 € prévus</span></td><td><span class="in sel">Nouveau poste « Papeterie »</span></td><td class="muted">Aucun poste proche dans ce mariage</td></tr>
+<tr><td class="muted">Rien dans votre fichier</td><td>Tenues <span class="sm">poste de départ, à trouver</span></td><td><div class="row" style="gap:8px"><span class="btn sm">Le garder « à trouver »</span><span class="btn sm">Le retirer de ce mariage</span></div></td></tr>
+</table>
+<div class="sec-t">Prestataires : 7 noms, 6 trouvés tels quels dans votre carnet</div>
+<div class="box" style="padding:16px 20px">
+<div class="row" style="justify-content:space-between;align-items:baseline;margin-bottom:10px"><h3>« Élodie Beauté » est-elle une fiche de votre carnet ?</h3><span class="small muted">Doublon possible · ligne 14 du fichier</span></div>
+<div class="cmp">
+<span class="h"></span><span class="h">Dans votre fichier</span><span class="h">Dans votre carnet</span><span class="h">Si c'est la même</span>
+<span class="k">Nom</span><span>Élodie Beauté</span><span>Élodie Perrot · Beauté</span><span>Élodie Perrot · Beauté</span>
+<span class="k">Métier</span><span>Coiffure et maquillage</span><span>Coiffure et maquillage</span><span>Coiffure et maquillage</span>
+<span class="k">Ville</span><span class="nr">non renseignée</span><span>Vertou</span><span>Vertou</span>
+<span class="k">Sur ce mariage</span><span>460,00 € prévus</span><span class="nr">aucun mariage</span><span class="chg">Retenue sur « Coiffure et maquillage »</span>
+</div>
+<div class="small muted" style="margin:10px 0 12px">Ce qui les rapproche : le même prénom, le même métier, et « Beauté » dans les deux noms. Le téléphone ne peut pas être comparé : votre budget n'en a pas.</div>
+<div class="row" style="gap:8px"><span class="btn">C'est la même fiche</span><span class="btn">Ce n'est pas la même : créer une fiche</span></div>
+</div>
+<div class="row" style="margin-top:20px;align-items:flex-start"><span class="btn">Retour</span><span style="flex:1"></span><div style="display:grid;justify-items:end;gap:6px"><span class="btn p">Continuer</span><span class="q-err" style="margin:0"><span class="ic-err" style="margin:0">!</span>Encore 3 choix : <span class="link">Photo et vidéo</span>, <span class="link">Tenues</span>, <span class="link">Élodie Beauté</span></span></div></div>
+</div></div></div></div></div>
+</div>
+<div class="pair m" style="margin-top:24px">
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, un poste à vérifier</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Reprendre</a><span class="iconbtn" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span></div><div class="mbody mpad" style="display:grid;gap:10px;align-content:start">
+<div class="wizm"><span>Étape 4 sur 5 · <b>Doublons</b></span><span>Choix 1 sur 3</span></div>
+<h2 style="font-size:19px">« Photo et vidéo » : un poste chez vous, deux chez Symbola</h2>
+<p class="small muted" style="margin:0">Chaque ligne est rangée d'après son détail. Les lignes ne se fondent pas.</p>
+<div class="cardm"><div class="t">Reportage photo, journée complète</div><div class="s">2 900,00 € prévus</div><label class="field" style="margin-top:8px">Poste<span class="in sel">Photographe</span></label></div>
+<div class="cardm"><div class="t">Film</div><div class="s">2 200,00 € prévus</div><label class="field" style="margin-top:8px">Poste<span class="in sel">Vidéaste</span></label></div>
+<p class="small" style="margin:0"><span class="link" style="display:inline-flex;min-height:44px;align-items:center">Voir les 7 autres postes, rangés sans doute</span></p>
+</div><div class="sticky-act" style="display:grid;gap:8px"><span class="btn p block">C'est juste, choix suivant</span></div></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, le doublon possible</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Reprendre</a></div><div class="mbody mpad" style="display:grid;gap:10px;align-content:start">
+<div class="wizm"><span>Étape 4 sur 5 · <b>Doublons</b></span><span>Choix 3 sur 3</span></div>
+<h2 style="font-size:19px">« Élodie Beauté » est-elle une fiche de votre carnet ?</h2>
+<div class="cardm"><div class="s">Dans votre fichier</div><div class="t">Élodie Beauté</div><div class="s">Coiffure et maquillage · ville non renseignée</div></div>
+<div class="cardm"><div class="s">Dans votre carnet</div><div class="t">Élodie Perrot · Beauté</div><div class="s">Coiffure et maquillage · Vertou</div></div>
+<p class="small muted" style="margin:0">Même prénom, même métier. Si c'est la même, elle est retenue sur « Coiffure et maquillage ».</p>
+</div><div class="sticky-act" style="display:grid;gap:8px"><span class="btn p block">C'est la même fiche</span><span class="btn block">Non : créer une fiche</span></div></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul>
+<li>C-57 : plus de « rapprochement », de « ressemblance 63 % », de « propositions sûres » ni de « vos modules » : un doublon possible, et ce qui rapproche les deux en mots. Plus de trois boutons de lot de même poids.</li>
+<li>C-57, H-MI-13 : trois lignes « Traiteur » restent trois lignes ; le détail qui les distingue est écrit. Aujourd'hui, le code range plusieurs lignes d'un même poste sur la première ligne de ce poste, l'une écrasant l'autre (lu dans le code ; l'audit avait vu une somme de 17 100,00 €).</li>
+<li>C-61, P-01 : l'import range dans les postes de l'espace ; le poste de départ sans ligne n'est plus laissé « À trouver » en silence : la planner le garde ou le retire.</li>
+<li>P-16 : « Continuer » n'est jamais muet ; il dit les choix qui restent, avec un lien vers chacun.</li>
+</ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Une action principale : « Continuer »</span><span>Comparaison en colonnes</span></div>
+<ul><li>« Si c'est la même » montre la fiche telle qu'elle sera ; la valeur qui change est en gras (P-03).</li><li>Le seul marquage d'un cas douteux est « À vérifier » (fond d'alerte du lot 62), avec le mot ; pas de pourcentage.</li><li>Sur téléphone, un choix par écran ; le bouton plein valide et passe au suivant.</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="verifier">
+<h2>Vérifier : ce qui va être écrit, tel qu'il sera (C-58)</h2>
+<p class="intro">Avant d'écrire, l'écran donne les nombres que le bilan redira, et le budget tel qu'il sera, poste par poste. Le bouton dit ce qu'il fait et combien (« Importer les 14 lignes »).</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b> « Ce que va faire l'import »</div><div class="dwrap"><div class="ui-d short" style="min-height:900px"><div style="grid-column:1/3;padding:48px" class="note-avant">
+<p style="font-size:22px;color:var(--ink);font-family:var(--f-title);font-weight:600;margin:0 0 16px">Avant d'écrire, aujourd'hui (C-58, lu dans le code)</p>
+<ul style="font-size:20px;line-height:1.6;color:var(--ink)"><li>L'écran annonce « Fiches créées » et « Fiches mises à jour » en lignes du fichier ; le bilan compte d'autres choses (lignes ayant créé un élément, puis « ignorées (vides, en erreur ou inchangées) ») : une mise à jour annoncée peut finir « inchangée ».</li><li>PC-02 : « Fiches créées 6 · mises à jour 8 » devient « 14 créés · 0 mis à jour » ; « 16 prestataires placés » pour 25 fiches.</li><li>Ni total de contrôle (prévu, réel, réglé), ni fiche ou budget tels qu'ils seront.</li></ul></div></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 1 440 px, étape « Vérifier »</div>
+<div class="dwrap"><div class="ui-d" style="min-height:1120px"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav on"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<a class="back-l"><svg aria-hidden="true"><use href="#i-back"/></svg>Reprendre « Juliette &amp; Romain »</a>
+<div class="ph"><div><h1>Budget de « Juliette &amp; Romain »</h1><div class="sub">budget.csv · rien n'est encore écrit</div></div><span class="btn">Abandonner cet import…</span></div>
+<ol class="wiz"><li class="done"><b>Fichier</b>14 lignes</li><li class="done"><b>Colonnes</b>9 sur 9</li><li class="done"><b>Questions</b>Acomptes payés</li><li class="done"><b>Doublons</b>Tenues retiré</li><li class="on"><b>Vérifier</b>Ce qui va être écrit</li></ol>
+<div class="box" style="margin-bottom:16px">
+<div class="grid3" style="grid-template-columns:repeat(5,minmax(0,1fr))">
+<div class="stat"><b class="num">14</b><span>lignes dans 9 postes, dont 1 nouveau</span></div>
+<div class="stat"><b class="num">36 450,00 €</b><span>prévus</span></div>
+<div class="stat"><b class="num">27 502,00 €</b><span>réels (7 lignes non renseignées)</span></div>
+<div class="stat"><b class="num">8 727,00 €</b><span>réglés : 6 acomptes</span></div>
+<div class="stat"><b class="num">18 775,00 €</b><span>à payer : 5 soldes, du 20 févr. au 20 mars 2027</span></div>
+</div>
+<div class="small" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">7 prestataires retenus (tous dans votre carnet) · <b>aucune échéance en retard, aucune relance, aucune tâche créée</b> · non repris : rien</div>
+</div>
+<table class="dt">
+<tr><th>Poste · ligne</th><th>Prestataire</th><th class="num">Prévu</th><th class="num">Réel</th><th class="num">Réglé</th><th class="num">Reste à payer</th><th>Prochaine échéance</th></tr>
+<tr class="sub"><td colspan="7">Lieu de réception</td></tr>
+<tr><td>Location du domaine, samedi et dimanche</td><td>Domaine de la Roche Fictive</td><td class="num">6 500,00 €</td><td class="num">6 500,00 €</td><td class="num">1 950,00 €</td><td class="num">4 550,00 €</td><td>20 févr. 2027</td></tr>
+<tr><td>Chambres des témoins</td><td>Domaine de la Roche Fictive</td><td class="num">840,00 €</td><td class="num nr">non renseigné</td><td class="num">—</td><td class="num">—</td><td></td></tr>
+<tr class="sub"><td colspan="7">Traiteur</td></tr>
+<tr><td>Vin d'honneur et dîner, 110 couverts</td><td>Maison Bellerive</td><td class="num">13 200,00 €</td><td class="num">13 640,00 €</td><td class="num">4 000,00 €</td><td class="num">9 640,00 €</td><td>6 mars 2027</td></tr>
+<tr><td>Brunch du dimanche, 60 couverts</td><td>Maison Bellerive</td><td class="num">2 100,00 €</td><td class="num nr">non renseigné</td><td class="num">—</td><td class="num">—</td><td></td></tr>
+<tr><td>Vins et champagne</td><td class="nr">à trouver</td><td class="num">1 800,00 €</td><td class="num nr">non renseigné</td><td class="num">—</td><td class="num">—</td><td></td></tr>
+<tr><td colspan="7" class="muted small">+ 7 postes, 9 lignes : <span class="link">tout afficher</span></td></tr>
+<tr class="total"><td>Total</td><td></td><td class="num">36 450,00 €</td><td class="num">27 502,00 €</td><td class="num">8 727,00 €</td><td class="num">18 775,00 €</td><td></td></tr>
+</table>
+<div class="row" style="margin-top:20px"><span class="btn">Retour</span><span style="flex:1"></span><span class="btn p">Importer les 14 lignes</span></div>
+</div></div></div></div></div>
+</div>
+<div class="pair m" style="margin-top:24px">
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, même étape</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Reprendre</a></div><div class="mbody mpad" style="display:grid;gap:10px;align-content:start">
+<div class="wizm"><span>Étape 5 sur 5 · <b>Vérifier</b></span><span>budget.csv</span></div>
+<h2 style="font-size:19px">Ce qui va être écrit dans « Juliette &amp; Romain »</h2>
+<div class="cardm"><div class="mrow"><span>Lignes</span><span>14 dans 9 postes</span></div><div class="mrow"><span>Prévu</span><span>36 450,00 €</span></div><div class="mrow"><span>Réel</span><span>27 502,00 €</span></div><div class="mrow"><span>Réglé · 6 acomptes</span><span>8 727,00 €</span></div><div class="mrow"><span>À payer · 5 soldes</span><span>18 775,00 €</span></div><div class="mrow"><span>Prestataires retenus</span><span>7</span></div></div>
+<p class="small" style="margin:0"><b>Aucune échéance en retard, aucune relance, aucune tâche.</b> Non repris : rien.</p>
+<p class="small" style="margin:0"><span class="link" style="display:inline-flex;min-height:44px;align-items:center">Voir les 14 lignes, poste par poste</span></p>
+</div><div class="sticky-act"><span class="btn p block">Importer les 14 lignes</span></div></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul>
+<li>C-58, P-07 : un total de contrôle (prévu, réel, réglé, reste) et le budget tel qu'il sera ; les nombres annoncés sont ceux que le bilan redira, comptés de la même façon.</li>
+<li>C-53 : l'écran dit en clair ce que l'import ne fera pas : ni retard, ni relance, ni tâche.</li>
+<li>C-55, P-06 : un réel vide s'écrit « non renseigné » ; il n'est pas compté comme 0 € dans le total réel.</li>
+</ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Une action principale, chiffrée</span><span>Chiffres alignés à droite</span></div>
+<ul><li>Les montants en chiffres de même largeur, alignés à droite, avec l'espace des milliers et « € » (C-56).</li><li>Le tableau montre les deux premiers postes ; « tout afficher » déplie le reste sans quitter l'écran.</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="bilan">
+<h2>Le bilan : les mêmes nombres, ce qui n'a pas été repris, « Retirer cet import » (C-58, C-66)</h2>
+<p class="intro">Le bilan reprend mot pour mot les nombres de « Vérifier ». Il liste ce qui n'a pas été repris, avec la raison et une suite. « Retirer cet import… » est un bouton de danger visible, pas une pastille à déplier, avec la date limite. Après « Importer », un message de retour sombre (volet 1, page 4) mène au budget ; la page de reprise coche sa ligne.</p>
+<div class="pair">
+<div class="side"><div class="cap"><b>Aujourd'hui</b> « Import terminé »</div><div class="dwrap"><div class="ui-d short" style="min-height:900px"><div style="grid-column:1/3;padding:48px" class="note-avant">
+<p style="font-size:22px;color:var(--ink);font-family:var(--f-title);font-weight:600;margin:0 0 16px">Le bilan aujourd'hui (C-58, C-66)</p>
+<ul style="font-size:20px;line-height:1.6;color:var(--ink)"><li>Trois pastilles vertes ; « 14 créés · 0 mis à jour » après « 6 créées · 8 mises à jour ».</li><li>« Annuler cet import » (90 jours) est un détail à déplier ; son texte se relit mal (« … et remet rien d'autre. ») ; on ne le retrouve qu'en bas de `/import`.</li><li>Ce que l'annulation garde n'est pas dit à l'avance : les éléments retouchés à la main depuis, un évènement qui a reçu un devis, un contact devenu client (lu dans le code).</li><li>Aucun lien vers le mariage ni vers ce qu'il reste à faire.</li></ul></div></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 1 440 px, juste après « Importer les 14 lignes »</div>
+<div class="dwrap"><div class="ui-d" style="min-height:960px"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav on"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct">
+<a class="back-l"><svg aria-hidden="true"><use href="#i-back"/></svg>Reprendre « Juliette &amp; Romain »</a>
+<div class="ph"><div><h1>Budget repris dans « Juliette &amp; Romain »</h1><div class="sub">budget.csv · importé aujourd'hui à 10 h 21 par Camille</div></div><span class="btn p">Voir le budget</span></div>
+<div class="box" style="margin-bottom:16px">
+<div class="grid3" style="grid-template-columns:repeat(5,minmax(0,1fr))">
+<div class="stat"><b class="num">14</b><span>lignes dans 9 postes, dont 1 nouveau</span></div>
+<div class="stat"><b class="num">36 450,00 €</b><span>prévus</span></div>
+<div class="stat"><b class="num">27 502,00 €</b><span>réels (7 lignes non renseignées)</span></div>
+<div class="stat"><b class="num">8 727,00 €</b><span>réglés : 6 acomptes</span></div>
+<div class="stat"><b class="num">18 775,00 €</b><span>à payer : 5 soldes, du 20 févr. au 20 mars 2027</span></div>
+</div>
+<div class="small" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">7 prestataires retenus (tous dans votre carnet) · aucune échéance en retard, aucune relance, aucune tâche créée</div>
+</div>
+<div class="grid2">
+<div class="box"><h3 style="margin-bottom:8px">Ce qui n'a pas été repris</h3>
+<p style="margin:0 0 10px">Rien de votre fichier : les 14 lignes et les 9 colonnes sont dans le budget.</p>
+<h3 style="margin:16px 0 8px;font-size:15px">Ce que vous avez choisi</h3>
+<ul style="margin:0;padding-left:18px;font-size:14px"><li>6 acomptes payés aux dates du fichier.</li><li>« Photo et vidéo » rangé sous Photographe et Vidéaste.</li><li>« Élodie Beauté » : la fiche « Élodie Perrot · Beauté » du carnet.</li><li>Poste de départ « Tenues » retiré de ce mariage.</li></ul></div>
+<div class="box"><h3 style="margin-bottom:8px">Et maintenant</h3>
+<p style="margin:0 0 10px;font-size:14px">Ligne 3 de la reprise cochée. Suivant : <b>Liste « à faire »</b>.</p>
+<span class="btn">Retour à la reprise</span>
+<hr style="border:0;border-top:1px solid var(--line);margin:18px 0 14px">
+<p class="small muted" style="margin:0 0 10px">Un import se retire jusqu'au 23 févr. 2027 (90 jours).</p>
+<span class="btn danger">Retirer cet import…</span></div>
+</div>
+</div></div>
+<div style="position:absolute;left:280px;bottom:24px;width:520px;z-index:10"><div class="toast ok-ic"><div class="tx">Budget repris : 14 lignes<small>Juliette &amp; Romain · 36 450,00 € prévus</small></div><span class="ub">Voir le budget</span><span class="cl" aria-label="Fermer">×</span></div></div>
+</div></div></div>
+</div>
+<div class="pair m" style="margin-top:24px">
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, le bilan</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Reprendre</a></div><div class="mbody mpad" style="display:grid;gap:10px;align-content:start">
+<h2 style="font-size:19px">Budget repris dans « Juliette &amp; Romain »</h2>
+<div class="small muted">budget.csv · aujourd'hui à 10 h 21</div>
+<div class="cardm"><div class="mrow"><span>Lignes</span><span>14 dans 9 postes</span></div><div class="mrow"><span>Prévu</span><span>36 450,00 €</span></div><div class="mrow"><span>Réel</span><span>27 502,00 €</span></div><div class="mrow"><span>Réglé · 6 acomptes</span><span>8 727,00 €</span></div><div class="mrow"><span>À payer · 5 soldes</span><span>18 775,00 €</span></div></div>
+<p class="small" style="margin:0">Non repris : rien. Aucun retard, aucune relance.</p>
+<span class="btn block">Retour à la reprise</span>
+<p class="small muted" style="margin:4px 0 0">Se retire jusqu'au 23 févr. 2027.</p>
+<span class="btn danger block">Retirer cet import…</span>
+</div><div class="sticky-act"><span class="btn p block">Voir le budget</span></div></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul>
+<li>C-58, P-07 : mêmes cinq nombres, mêmes mots qu'à « Vérifier » ; plus de « créés », « mis à jour », « ignorés » comptés autrement.</li>
+<li>C-66, P-16 : « Retirer cet import… » visible, avec sa date limite ; le texte « … et remet rien d'autre » disparaît.</li>
+<li>D5 : le bilan liste ce qui n'est pas repris (rien ici ; l'annuaire pour un programme, page 11).</li>
+<li>C-09 : le message de retour du volet 1, avec « Voir le budget ».</li>
+</ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Une action principale : « Voir le budget »</span><span>Danger de niveau 2</span></div>
+<ul><li>« Retirer » plutôt qu'« Annuler » : « Annuler » seul ne sert qu'à défaire dans les dix secondes (M6). Retenu par Julien (R6, porte 3).</li><li>Le bouton de danger a la forme du volet 1 : fond blanc, bord et texte rouges, à part, sous sa date limite.</li><li>« Ce que vous avez choisi » rappelle les réponses : on sait d'où vient chaque nombre.</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="retirer">
+<h2>Retirer un import : danger de niveau 2, avec ce qui reste</h2>
+<p class="intro">La fenêtre dit ce qui part, ce qui reste et pourquoi, et propose de renoncer par un bouton nommé. Ce qui a été modifié à la main depuis l'import reste par défaut (c'est déjà la règle de l'app) ; la case permet de le retirer aussi.</p>
+<div class="pair">
+<div class="side"><div class="cap"><b class="new">Proposé</b> 1 440 px, « Retirer cet import… »</div>
+<div class="dwrap"><div class="ui-d short" style="min-height:720px"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav on"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct"><div class="ph-box" style="height:520px">Le bilan, sous le fond assombri.</div></div></div>
+<div class="dim"></div>
+<div class="window" role="alertdialog" aria-label="Retirer l'import budget.csv ?" style="left:450px;top:90px;width:580px">
+<div class="wh"><h3 style="flex:1;font-size:22px;padding-top:6px">Retirer l'import « budget.csv » ?</h3><span class="iconbtn" aria-label="Fermer"><svg aria-hidden="true"><use href="#i-close"/></svg></span></div>
+<div class="wb" style="gap:12px">
+<p style="margin:0">Le budget de « Juliette &amp; Romain » revient à ce qu'il était avant 10 h 21 aujourd'hui.</p>
+<ul style="margin:0;padding-left:20px;font-size:14px"><li>Partent : 14 lignes, le poste « Papeterie », les 6 acomptes réglés et les 5 soldes.</li><li>Restent : les 7 fiches du carnet (elles viennent de l'import « prestataires.csv ») et le poste « Tenues », remis « à trouver ».</li><li>2 lignes modifiées depuis à la main (Traiteur, Lieu de réception) restent aussi.</li></ul>
+<label class="row" style="gap:10px;font-size:14px"><span class="chk"></span>Retirer aussi les 2 lignes modifiées depuis</label>
+<p class="small muted" style="margin:0">Vous pourrez redéposer le fichier depuis la page de reprise.</p>
+</div>
+<div class="wf"><span class="btn">Garder l'import</span><span style="flex:1"></span><span class="btn danger">Retirer l'import</span></div>
+</div></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, même fenêtre en page entière</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Bilan</a></div><div class="mbody mpad" style="display:grid;gap:12px;align-content:start">
+<h2 style="font-size:20px">Retirer l'import « budget.csv » ?</h2>
+<p style="margin:0">Le budget de « Juliette &amp; Romain » revient à ce qu'il était avant 10 h 21.</p>
+<ul style="margin:0;padding-left:20px;font-size:14px"><li>Partent : 14 lignes, les acomptes et les soldes.</li><li>Restent : les 7 fiches du carnet, et 2 lignes modifiées depuis.</li></ul>
+<label class="row" style="gap:10px;font-size:14px;min-height:44px"><span class="chk"></span>Retirer aussi les 2 lignes modifiées</label>
+</div><div class="sticky-act" style="display:grid;gap:8px"><span class="btn danger block">Retirer l'import</span><span class="btn block">Garder l'import</span></div></div></div></div>
+</div>
+<div class="rules">
+<div><h4>Constats traités</h4><ul>
+<li>C-66, P-17 : la forme de danger du volet 1 (niveau 2 : la conséquence, puis « Garder l'import » à gauche).</li>
+<li>C-66 : « Restent » dit à l'avance ce que l'annulation actuelle garde sans le dire (éléments retouchés, fiches d'un autre import).</li>
+<li>C-66 : pour les prestataires retenus d'un PDF, le même bouton retire tout l'import ; plus seulement « Ne plus retenir », poste par poste.</li>
+</ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Niveau 2 : touche des données repérées</span><span>Renoncer : bouton nommé</span></div>
+<ul><li>Le niveau 2 plutôt que le 3 : rien n'est perdu de ce qui existait avant l'import, et le fichier se redépose.</li><li>Sur téléphone, « Garder l'import » est le plus bas, sous le pouce.</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="nombres">
+<h2>Les nombres, d'un écran à l'autre</h2>
+<p class="intro">Un même nombre, un même mot, à chaque écran où il apparaît. Contrôle fait sur les fichiers fictifs (`docs/audits/2026-11-ux-parcours/donnees/tableur-planner/budget.csv`).</p>
+<table class="doc-t" style="max-width:1240px">
+<tr><th>Nombre</th><th>Calcul sur le fichier</th><th>« Questions »</th><th>« Vérifier »</th><th>Bilan</th><th>Page de reprise</th></tr>
+<tr><td>Lignes</td><td>14 lignes non vides</td><td>—</td><td>14 dans 9 postes</td><td>14 dans 9 postes</td><td>« Budget · Repris »</td></tr>
+<tr><td>Prévu</td><td>somme de « Prévu »</td><td>—</td><td>36 450,00 €</td><td>36 450,00 €</td><td>—</td></tr>
+<tr><td>Réel</td><td>somme des « Réel » remplis (7)</td><td>—</td><td>27 502,00 €</td><td>27 502,00 €</td><td>—</td></tr>
+<tr><td>Réglé</td><td>1 950 + 4 000 + 675 + 870 + 420 + 812</td><td>8 727,00 €</td><td>8 727,00 €</td><td>8 727,00 €</td><td>—</td></tr>
+<tr><td>À payer</td><td>4 550 + 9 640 + 1 575 + 2 030 + 980 = réel − réglé</td><td>18 775,00 €</td><td>18 775,00 €</td><td>18 775,00 €</td><td>—</td></tr>
+<tr><td>Prestataires retenus</td><td>noms distincts de « Prestataire »</td><td>7 noms</td><td>7</td><td>7</td><td>« 7 prestataires »</td></tr>
+</table>
+</section>
+
+</div>
+<script>
+(function(){
+  function fit(){document.querySelectorAll('.dwrap').forEach(function(w){
+    var k=document.body.classList.contains('reel')?1:Math.min(1,w.clientWidth/1440);w.style.setProperty('--kd',k);});}
+  window.addEventListener('resize',fit);fit();
+  document.querySelectorAll('[data-mode]').forEach(function(b){b.addEventListener('click',function(){
+    document.body.classList.toggle('reel',b.dataset.mode==='reel');
+    document.querySelectorAll('[data-mode]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});fit();});});
+})();
+</script>
+</body>
+</html>
