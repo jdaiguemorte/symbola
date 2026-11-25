@@ -1,0 +1,506 @@
+[
+  {
+    "titre": "Aujourd'hui, un matin ordinaire",
+    "zone": "Aujourd'hui",
+    "image": "preuves/aujourdhui-1440.jpg",
+    "taille": "1440",
+    "legende": "L'accueil de Camille : sept lignes à traiter, un bandeau de réglage au-dessus, aucun bouton principal.",
+    "constats": [
+      {
+        "id": "C-18",
+        "texte": "Le bandeau « Votre fiche entreprise n'est pas encore complète. La compléter » passe avant les urgences ; l'écran n'a aucun bouton principal.",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-19",
+        "texte": "Sept titres en lien, sept boutons de trois libellés (« Fait », « Ouvrir », « Noter une relance ») et trois liens « Voir… » dans une seule carte.",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-20",
+        "texte": "« 6 points demandent votre attention » pour sept lignes.",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-16",
+        "texte": "Le titre ouvre la fenêtre de la tâche, pas le mariage ; « Léa & Maxime », à côté, n'est pas un lien.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-21",
+        "texte": "« Attend Maison Haddad » : ni nom de contact ni téléphone.",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-13",
+        "texte": "La pastille « 2 en retard » passe sur deux lignes dans le menu.",
+        "gravite": "détail",
+        "verdict": "confirmé"
+      }
+    ]
+  },
+  {
+    "titre": "Aujourd'hui, espace neuf",
+    "zone": "Aujourd'hui",
+    "image": "preuves/aujourdhui-vide-1440.jpg",
+    "taille": "1440",
+    "legende": "Un espace sans aucun évènement : l'écran dit que tout est à jour.",
+    "constats": [
+      {
+        "id": "C-15",
+        "texte": "« Rien ne presse : tout est à jour. » au-dessus d'un calendrier vide : aucune invitation à créer un premier mariage.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-51",
+        "texte": "Rien ne propose de reprendre des mariages en cours : ni l'accueil, ni le menu.",
+        "gravite": "bloque",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-18",
+        "texte": "Le seul aplat de couleur est le bandeau « Votre fiche entreprise n'est pas encore complète ».",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      }
+    ]
+  },
+  {
+    "titre": "La fiche d'un évènement",
+    "zone": "Évènements",
+    "image": "preuves/fiche-evenement-1440.jpg",
+    "taille": "1440",
+    "legende": "« Léa & Maxime » : la première ligne utile est aux deux tiers de l'écran.",
+    "constats": [
+      {
+        "id": "C-22",
+        "texte": "Avant le contenu : type, quatre boutons égaux, frise, « Reporter l'évènement… », « Annuler l'évènement… », onglets ; aucun bouton principal.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-23",
+        "texte": "La barre s'arrête à « Mariés » : « Documents » et « Invités » sont hors de vue, sans flèche.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-24",
+        "texte": "« Reporter » est posé seul sous la liste, sans dire quelle tâche il reporte.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-27",
+        "texte": "La frise redit le statut déjà porté par la pastille « En préparation » ; rien ne montre que ses ronds se cliquent.",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-89",
+        "texte": "« Date de l'événement » et « Reporter l'évènement… » : deux graphies sur le même écran.",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      }
+    ]
+  },
+  {
+    "titre": "Tâches sur ordinateur",
+    "zone": "Tâches",
+    "image": "preuves/taches-1440.jpg",
+    "taille": "1440",
+    "legende": "Onze tâches à faire : le titre est serré, les boutons prennent la place.",
+    "constats": [
+      {
+        "id": "C-34",
+        "texte": "Titres sur deux lignes dans une colonne étroite, « Catégorie » vide, « Qui la réalise » sur deux lignes, « Supprimer » rouge sur chaque ligne.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-35",
+        "texte": "Deux cases voisines par ligne : un carré sans libellé et un rond sous « Fait ».",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-33",
+        "texte": "Six pastilles de filtre sans nom de groupe ; aucun filtre par évènement, par catégorie ni par semaine.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-31",
+        "texte": "Aucun bouton pour créer une tâche en haut de l'écran : seul « Réglages ».",
+        "gravite": "bloque",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-83",
+        "texte": "Les titres de tâche sont des liens noirs sans soulignement ; le filtre actif ne tient qu'à un fond vert pâle.",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      }
+    ]
+  },
+  {
+    "titre": "Tâches sur téléphone",
+    "zone": "Téléphone et zoom",
+    "image": "preuves/taches-375.jpg",
+    "taille": "375",
+    "legende": "Le même écran en 375 px : la première tâche arrive en bas, sans sa date.",
+    "constats": [
+      {
+        "id": "C-77",
+        "texte": "Le tableau est coupé à « CA » : l'échéance, la personne et les actions sont hors de l'écran ; le titre tient sur trois lignes.",
+        "gravite": "bloque",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-35",
+        "texte": "La case de sélection et le rond « Fait » sont côte à côte, sous le pouce.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-33",
+        "texte": "Deux groupes de filtres mêlés sur trois rangées ; « Mariés » seul sur la sienne.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-81",
+        "texte": "La recherche est coupée à « Recher » et affiche « ⌘K » ; la barre du haut prend 160 px.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      }
+    ]
+  },
+  {
+    "titre": "Le carnet de prestataires",
+    "zone": "Prestataires",
+    "image": "preuves/prestataires-1440.jpg",
+    "taille": "1440",
+    "legende": "Douze prestataires : trois tiennent à l'écran, sans métier ni ville.",
+    "constats": [
+      {
+        "id": "C-43",
+        "texte": "Le champ « Où ? » est un carré de 26 px ; « dans un rayon de » flotte sur un pavé blanc.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-44",
+        "texte": "Chaque ligne : un nom, « Non placé sur la carte », « Archiver » ; la carte vide prend la moitié de l'écran ; « 12 » écrit cinq fois.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-41",
+        "texte": "La seule action d'une ligne est « Archiver » : rien pour rattacher le prestataire à un mariage.",
+        "gravite": "bloque",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-42",
+        "texte": "Aucun voyant de pièce manquante ou expirée dans la liste.",
+        "gravite": "bloque",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-47",
+        "texte": "Deux pastilles seulement, « Tous · 12 » et « À classer · 12 » : pas de filtre par métier dans ce jeu de données.",
+        "gravite": "freine",
+        "verdict": "à trancher"
+      },
+      {
+        "id": "C-45",
+        "texte": "Ni tri ni case à cocher : seuls « Exporter en CSV » et « Exporter en PDF ».",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      }
+    ]
+  },
+  {
+    "titre": "« Budget et prestataires » sur téléphone",
+    "zone": "Téléphone et zoom",
+    "image": "preuves/budget-prestataires-375.jpg",
+    "taille": "375",
+    "legende": "Les libellés sont là, les montants sont hors du cadre.",
+    "constats": [
+      {
+        "id": "C-78",
+        "texte": "« Prévu », « Réel », « Écart », « Réglé », « Reste à payer », « Prochaine échéance » sans aucune valeur à l'écran.",
+        "gravite": "bloque",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-80",
+        "texte": "La barre d'onglets ne montre que « Synthèse » et « Budget et prestataires » : six onglets sont cachés.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-86",
+        "texte": "« 6 lignes pourvues sur 9 », puis « Retenu » et « Engagé » sur le même poste.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-88",
+        "texte": "« Importer » et « Reprendre les prestataires retenus (PDF) » à quelques lignes l'un de l'autre.",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      }
+    ]
+  },
+  {
+    "titre": "L'import : l'accueil",
+    "zone": "Reprise et import",
+    "image": "preuves/import-accueil-1440.jpg",
+    "taille": "1440",
+    "legende": "« Importer des données », rangé dans les Paramètres, sous « Prestataires et données ».",
+    "constats": [
+      {
+        "id": "C-59",
+        "texte": "Quatre cartes « Reprendre mes… » sans air de bouton ; les imports passés ou en cours sont plus bas, dans le journal.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-51",
+        "texte": "La reprise vit dans Paramètres › « Prestataires et données » › « Importer » ; rien ne dit l'ordre des fichiers.",
+        "gravite": "bloque",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-73",
+        "texte": "« Importer » voisine avec « Données personnelles », « Reprendre un export » et « Fermer l'espace ».",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-88",
+        "texte": "Le titre dit « Importer », la question « Que voulez-vous reprendre ? », le menu « Reprendre un export ».",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-74",
+        "texte": "Deux champs de recherche côte à côte : « Chercher un réglage » et la recherche du haut.",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      }
+    ]
+  },
+  {
+    "titre": "L'import : les doublons",
+    "zone": "Reprise et import",
+    "image": "preuves/import-rapprochements-1440.jpg",
+    "taille": "1440",
+    "legende": "Second import du même carnet : vingt-cinq décisions à prendre.",
+    "constats": [
+      {
+        "id": "C-57",
+        "texte": "Trois boutons de lot de même poids ; « Continuer », plein, alors que « l'import ne peut pas être confirmé tant qu'il en reste ».",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-90",
+        "texte": "L'étape s'appelle « Doublons », l'écran parle de « rapprochements », de « propositions sûres » et de « vos modules ».",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-59",
+        "texte": "« Abandonner l'import » est un petit lien souligné en haut à droite.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      }
+    ]
+  },
+  {
+    "titre": "La fiche d'un mariage repris",
+    "zone": "Reprise et import",
+    "image": "preuves/fiche-reprise-synthese-1440.jpg",
+    "taille": "1440",
+    "legende": "« Léa & Hugo », repris d'un autre outil la veille.",
+    "constats": [
+      {
+        "id": "C-53",
+        "texte": "Douze « Contrat de … à faire signer · Depuis le 24 novembre 2026 » pour des prestataires déjà retenus (« Voir 9 de plus »).",
+        "gravite": "bloque",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-64",
+        "texte": "« Type à préciser », « Confirmé » daté du jour de l'import, « Source du prospect : Outil actuel ».",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-55",
+        "texte": "« 11/11 » sur l'onglet du budget ; rien, dans l'en-tête, ne marque le mariage comme repris.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-23",
+        "texte": "Le septième onglet se lit « Documen » ; « Invités » est hors de vue.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-24",
+        "texte": "Sous « Prochaine action », un second bloc : « Prochaine étape : créer les liens des mariés ».",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      }
+    ]
+  },
+  {
+    "titre": "Le premier mariage, dix secondes après sa création",
+    "zone": "Premiers pas",
+    "image": "preuves/premier-mariage-retards-1440.jpg",
+    "taille": "1440",
+    "legende": "Compte neuf : la visite guidée s'ouvre sur une fiche déjà « en retard ».",
+    "constats": [
+      {
+        "id": "C-67",
+        "texte": "« En retard de 68 jours », « Tâche confiée au client », « Tâches · 5 en retard » sur un mariage créé à l'instant.",
+        "gravite": "bloque",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-01",
+        "texte": "La visite « 2 sur 5 » s'ouvre seule et couvre le bandeau « Prochaine étape ».",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-24",
+        "texte": "« Prochaine action », puis « Prochaine étape », avec un bouton plein sur toute la largeur ; « Reporter » seul à gauche.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-10",
+        "texte": "« Tutoriels 0/11 », « Aide », « Apps » dans le menu, en plus de la visite.",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-13",
+        "texte": "La pastille « 5 en retard » sur deux lignes.",
+        "gravite": "détail",
+        "verdict": "confirmé"
+      }
+    ]
+  },
+  {
+    "titre": "Une visite guidée sur téléphone",
+    "zone": "Transverse",
+    "image": "preuves/visite-etape-sans-cadre-375.jpg",
+    "taille": "375",
+    "legende": "Étape 2 sur 4 de la visite d'« Aujourd'hui » : rien n'est encadré.",
+    "constats": [
+      {
+        "id": "C-02",
+        "texte": "« Le reste, par urgence » : la bulle parle d'une zone que l'écran, grisé, ne montre pas.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-01",
+        "texte": "La bulle couvre le bas de la liste que la planner venait lire.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-19",
+        "texte": "« Fait », « Ouvrir », « Noter une relance » : trois boutons de trois tailles dans la même colonne.",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      }
+    ]
+  },
+  {
+    "titre": "Les Paramètres sur téléphone",
+    "zone": "Paramètres",
+    "image": "preuves/parametres-notifications-375.jpg",
+    "taille": "375",
+    "legende": "« Notifications », ouvert par son adresse : le réglage est un écran et demi plus bas.",
+    "constats": [
+      {
+        "id": "C-79",
+        "texte": "Le premier écran ne montre que le menu des Paramètres ; le titre « Notifications » n'y est pas.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-72",
+        "texte": "Dix rubriques déjà, avant la fin du seul groupe « Mon entreprise ».",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-71",
+        "texte": "« Modèles d'e-mails » et « Modèles de messages » ; « Radar des risques » à côté de « Notifications ».",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-81",
+        "texte": "La recherche du haut, coupée à « Recher », avec « ⌘K ».",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-74",
+        "texte": "Un second champ, « Chercher un réglage », juste dessous.",
+        "gravite": "gêne",
+        "verdict": "confirmé"
+      }
+    ]
+  },
+  {
+    "titre": "L'aide d'écran",
+    "zone": "Transverse",
+    "image": "preuves/aide-ecran-taches-375.jpg",
+    "taille": "375",
+    "legende": "Le « ? » de « Tâches », sur téléphone : un paragraphe sur un tiers de l'écran.",
+    "constats": [
+      {
+        "id": "C-05",
+        "texte": "Un seul paragraphe gris, qui énumère « Modifier », « Reporter », « Supprimer » : des commandes que le téléphone ne montre pas ; titre « Les tâches de tous vos mariages ».",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-06",
+        "texte": "Pas de « Revoir la visite » ici : « Tâches » n'a pas de visite.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-33",
+        "texte": "Derrière, deux groupes de filtres sans nom.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      },
+      {
+        "id": "C-81",
+        "texte": "« Recher » et « ⌘K » dans la barre du haut.",
+        "gravite": "freine",
+        "verdict": "confirmé"
+      }
+    ]
+  }
+]
