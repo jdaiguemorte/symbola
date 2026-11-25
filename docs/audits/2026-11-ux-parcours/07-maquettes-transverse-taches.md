@@ -107,7 +107,7 @@ guillemets quand ils s'écartent de la proposition. Les maquettes sont corrigée
 | # | Question | Décision | Dans les maquettes |
 | --- | --- | --- | --- |
 | M1 | Le panneau d'une tâche s'enregistre-t-il champ par champ ? | **Non.** « je préfère un bouton enregistrer sur cette maquette mais le reste est très bien » | Pied du panneau : « Fait » à gauche, « Fermer » et « Enregistrer » à droite ; avec des changements, « Fermer », la croix et Échap demandent « Fermer sans enregistrer ? » (« Revenir à la tâche », « Fermer sans enregistrer », « Enregistrer et fermer »). « … enregistrée à 14 h 32 · Annuler la modification » est retiré. Sur téléphone, « ← Tâches » joue le rôle de « Fermer » (page 1) |
-| M2 | Comment entre-t-on en sélection en lot ? | **Par le bouton « Sélectionner »**, avec une réserve : « si sur téléphone, le menu est visible, sur desktop, le bandeau est moins évident pour les choix » | À l'ordinateur, la barre se colle au bas de la liste, de toute sa largeur, bord d'encre et ombre, « 3 tâches sélectionnées » en tête, boutons de taille normale (page 2) |
+| M2 | Comment entre-t-on en sélection en lot ? | **Par le bouton « Sélectionner »**, avec une réserve : « si sur téléphone, le menu est visible, sur desktop, le bandeau est moins évident pour les choix » | À l'ordinateur, la barre se colle au bas de la liste, de toute sa largeur, bord d'encre et ombre, « 3 tâches sélectionnées » en tête, boutons de taille normale (page 2). Validée sans essai par le panel : « Ok pour la barre. » (Julien, 25/11) |
 | M3 | Sur l'accueil, une tâche confiée aux mariés garde-t-elle « Fait » ? | **Oui.** Aucun bouton de relance : « la relance est à la main de la wedding planner, on ne rajoute pas de bouton » | Inchangé ; la règle est écrite sous « Aujourd'hui » (page 1) |
 | M4 | Le nom du mariage, dans la ligne, est-il un lien ? | **Sur « Aujourd'hui » seulement**, séparé du titre, cible de 44 px sur téléphone ; texte simple dans « Tâches » et dans la fiche | Ligne allégée d'« Aujourd'hui » à 1 440 et 375 px (pages 1 et 3) ; le lien d'en-tête du panneau reste (P-11) |
 | M5 | Quelle forme pour le message de retour ? | **Bandeau sombre**, comme proposé | Fond `ink` (#14181F), texte blanc ; « Annuler » en `night-accent` (#5FD3B8) : **9,7:1** sur l'encre ; texte secondaire en `night-ink-muted` (#A9B3C1) : **8,4:1** (il était en #C9D0DA, hors jetons) ; la coche reste blanche (page 4) |
@@ -147,9 +147,9 @@ guillemets quand ils s'écartent de la proposition. Les maquettes sont corrigée
      chacune. Les « 11 tâches mises de côté » de la maquette n'existaient pas dans l'app.
 
    La fenêtre de la page 4 dit maintenant ce que fait l'app : « il revient comme demande en cours,
-   à confirmer de nouveau », le lien qui se rouvre, les rappels et les acomptes, l'avoir. Reste à
-   accorder les mots au lot de réalisation : « Réactiver » dans l'app, « rétablir » dans la
-   maquette. Non vérifié : ce que deviennent, au rétablissement, les rappels et les acomptes
+   à confirmer de nouveau », le lien qui se rouvre, les rappels et les acomptes, l'avoir. Mot retenu
+   par Julien : « On garde la maquette pour rétablir. » L'app s'y accordera au lot de réalisation,
+   « rétablir » à la place de « Réactiver ». Non vérifié : ce que deviennent, au rétablissement, les rappels et les acomptes
    programmés.
 
 **Ce qui reste :**
@@ -158,8 +158,6 @@ guillemets quand ils s'écartent de la proposition. Les maquettes sont corrigée
    fichiers » n'a été essayée par aucun profil.
 2. La rubrique des Paramètres qui portera le seuil de « Bientôt » (M10) et la recherche dans les
    réglages (M9) : au volet « Paramètres ».
-3. M2 : la barre de sélection est dessinée à l'ordinateur, pas encore essayée par un profil.
-4. M6 : « Réactiver » (app) ou « rétablir » (maquette), un seul mot à choisir au lot de réalisation.
 
 ## 4. Ce que les maquettes supposent hors de l'écran
 
@@ -271,8 +269,12 @@ par type.
 
 ## 8. La porte 3 de ce volet
 
-Passée le 25/11/2026 : Julien a tranché M1 à M13 (§ 3) sur les maquettes des pages 1 à 5 et les
-corrections du rejeu (§ 6). Les trois contrôles demandés sont faits (fin du § 3) ; restent les points listés après eux.
+**Volet 1 validé par Julien le 25/11/2026.** Il a tranché M1 à M13 (§ 3) sur les maquettes des
+pages 1 à 5 et les corrections du rejeu (§ 6), puis répondu aux précisions : onglet « Tâches »,
+M12 sans essai par le panel, « rétablir » retenu (« On garde la maquette pour rétablir. »), barre de
+sélection à l'ordinateur acceptée (« Ok pour la barre. »). Les trois contrôles demandés sont faits
+(fin du § 3). Restent seulement les points renvoyés à d'autres volets ou au lot de réalisation,
+listés après eux.
 
 Ce volet validé, ses règles de forme alimentent le Design System (phase 6) et les maquettes
 du volet 2 (reprise et import) partent de la ligne type, du panneau et des messages fixés ici.
