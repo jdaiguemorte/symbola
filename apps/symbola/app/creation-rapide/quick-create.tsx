@@ -59,6 +59,12 @@ export function QuickCreate({ modules }: { modules: QuickModules }) {
     if (menuOpen) firstItem.current?.focus();
   }, [menuOpen]);
 
+  // Lot 67c (HUB-07) : « Ouvrir » mène à ce qui vient d'être créé ; la fenêtre se ferme à l'arrivée,
+  // au lieu de rester ouverte par-dessus la page.
+  useEffect(() => {
+    if (dialog.current?.open) dialog.current.close();
+  }, [pathname]);
+
   // Les évènements, sources et types se chargent à la première ouverture sur cet écran, et restent
   // chargés quand le menu se referme sur le choix d'une entrée.
   const wanted = menuOpen || kind !== null;
