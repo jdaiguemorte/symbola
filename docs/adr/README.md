@@ -114,3 +114,4 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0113 — La signature de chaque membre et la marque de la planner dans ses e-mails](0113-signature-et-marque-des-emails.md)
 - [0114 — Tâches périodiques : ne visiter que les organisations qui ont du travail](0114-taches-periodiques-sans-visiter-chaque-organisation.md)
 - [0115 — Une lecture par affichage, et JSON laissé à Node](0115-une-lecture-par-affichage.md)
+- [0116 — Le Design System de Symbola : `DESIGN.md` en règles, composants, motifs et lexique](0116-design-system.md)
