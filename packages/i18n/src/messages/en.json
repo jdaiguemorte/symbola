@@ -534,7 +534,7 @@
     },
     "profile": {
       "title": "My account and security",
-      "body": "Choose the language Symbola uses for you. Your password and two-factor authentication protect your account; \"Forget all my devices\" asks for the code again on trusted devices. \"Sign out all my other devices\" closes your other sessions, for example after losing a phone. “My signature”: your name, job title and links at the end of the e-mails you send.",
+      "body": "Your first and last name: your team sees them in “Who’s doing it” and in notifications (never the couple or vendors); each one is saved on its own when you leave the field. Choose the language Symbola uses for you. Your password and two-factor authentication protect your account; \"Forget all my devices\" asks for the code again on trusted devices. \"Sign out all my other devices\" closes your other sessions, for example after losing a phone. “My signature”: your name, job title and links at the end of the e-mails you send.",
       "faq": [
         {
           "q": "How do I change my password?",
