@@ -34,7 +34,6 @@ export default async function EmailTemplatePage({ params, searchParams }: { para
   const locale = templateLocale(query.langue, await getLocale());
   const t = await getTranslations("EmailTemplates");
   const tHelp = await getTranslations("Help");
-  const tCommon = await getTranslations("Common");
   const [template, preview, profile] = await Promise.all([
     getEmailTemplate(organizationId, kind, locale),
     previewEmailTemplate({ organizationId, kind, locale }),
@@ -77,7 +76,7 @@ export default async function EmailTemplatePage({ params, searchParams }: { para
           title={t("resetTitle")}
           body={t("resetBody")}
           confirmLabel={t("reset")}
-          cancelLabel={tCommon("cancel")}
+          keepLabel={t("resetKeep")}
           action={resetEmailTemplateAction}
           fields={{ kind, locale }}
         />

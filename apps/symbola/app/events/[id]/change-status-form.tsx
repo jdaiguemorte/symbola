@@ -5,7 +5,14 @@
 // chaque étape franchie avec sa date. « Jour J » s'applique de lui-même (D3). Un clic sur une autre
 // étape demande confirmation. « Reporter l'évènement… » demande la nouvelle date ; « Annuler
 // l'évènement… » demande le motif et nomme l'évènement (UX-07) ; un annulé se réactive en Option.
-import { useActionState, useEffect, useState } from "react";
+// Lot 70b (UX-07, EVT-05 ; M6, C-08, C-87, C-80) : « Annuler l'évènement… » et « Reporter
+// l'évènement… » sont au niveau 2 du danger (ils touchent les clients et les prestataires) : une
+// fenêtre qui nomme l'évènement, dit ce que fait vraiment l'app et propose de renoncer par un bouton
+// nommé (« Garder l'évènement », « Garder la date »). Un annulé se rétablit par « Rétablir
+// l'évènement » (il revient en Option). Chaque changement est dit dans le message de retour.
+import { useActionState, useEffect, useRef, useState } from "react";
+import { ConfirmDialog } from "@/app/ui/confirm-dialog";
+import { useFeedback } from "@/app/ui/feedback";
 import { FreeTextNotice } from "@/app/ui/free-text-notice";
 import { useTranslations } from "next-intl";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
@@ -44,7 +51,7 @@ export function ChangeStatusForm({
   const [postponeState, postponeAction, postponing] = useActionState(postponeEventAction, initialState);
   const [reactivateState, reactivateAction, reactivating] = useActionState(reactivateEventAction, initialState);
   const [asked, setAsked] = useState<EventPhase | null>(null);
-  const [asking, setAsking] = useState<"cancel" | "postpone" | null>(null);
+
   const [lossReasonId, setLossReasonId] = useState("");
   const [lossReasonNote, setLossReasonNote] = useState("");
   const [undecided, setUndecided] = useState(false);
@@ -52,14 +59,30 @@ export function ChangeStatusForm({
   const offTrack = currentStatus === "postponed" || currentStatus === "cancelled";
   const currentIndex = offTrack ? -1 : STEPS.indexOf(phase);
   const reason = reasons.find((candidate) => candidate.id === lossReasonId);
-  const error = state.error ?? cancelState.error ?? postponeState.error ?? reactivateState.error;
-  const done = state.success || cancelState.success || postponeState.success || reactivateState.success;
+  const error = state.error ?? reactivateState.error;
+  const feedback = useFeedback();
 
   // Le statut a changé : la question posée n'a plus lieu d'être.
   useEffect(() => {
     setAsked(null);
-    setAsking(null);
   }, [currentStatus]);
+
+  // Lot 70b (UX-07, C-09) : chaque changement est dit dans le message de retour, au même endroit.
+  const announced = useRef<object | null>(null);
+  useEffect(() => {
+    const changes: [ChangeStatusFormState, () => { title: string; detail?: string }][] = [
+      [state, () => ({ title: t("statusChanged") })],
+      [cancelState, () => ({ title: t("statusCancelledMessage", { names: eventNames }) })],
+      [postponeState, () => ({ title: t("statusPostponedMessage", { names: eventNames }) })],
+      [reactivateState, () => ({ title: t("statusRestoredMessage", { names: eventNames }), detail: t("statusRestoredDetail") })],
+    ];
+    for (const [changed, message] of changes) {
+      if (changed.success && announced.current !== changed) {
+        announced.current = changed;
+        feedback?.show(message());
+      }
+    }
+  }, [state, cancelState, postponeState, reactivateState, feedback, eventNames, t]);
 
   function when(step: EventPhase, index: number): string | null {
     if (step === "day_of") return eventDate ? formatCalendarDate(eventDate, locale) : null;
@@ -109,21 +132,83 @@ export function ChangeStatusForm({
           </p>
           <form action={reactivateAction}>
             <input type="hidden" name="eventId" value={eventId} />
-            <button type="submit" className="button-ghost" disabled={busy}>
-              {t("reactivate")}
+            <button type="submit" className="button-secondary" disabled={busy}>
+              {t("restoreEvent")}
             </button>
           </form>
         </div>
       ) : (
         <div className="timeline-actions">
           {currentStatus === "confirmed" || currentStatus === "in_preparation" ? (
-            <button type="button" className="timeline-lost timeline-postpone" aria-expanded={asking === "postpone"} disabled={busy} onClick={() => setAsking(asking === "postpone" ? null : "postpone")}>
-              {t("postponeAsk")}
-            </button>
+            <ConfirmDialog
+              level={2}
+              trigger={t("postponeAsk")}
+              triggerLabel={t("postponeAsk")}
+              triggerClassName="timeline-lost timeline-postpone"
+              triggerDisabled={busy}
+              title={t("postponeTitle", { names: eventNames })}
+              body={t("postponeBody")}
+              confirmLabel={t("confirmPostpone")}
+              keepLabel={t("keepDate")}
+              action={postponeAction}
+              pending={postponing}
+              fields={{ eventId }}
+            >
+              <label>
+                {t("postponeNewDate")}
+                <input type="date" name="newDate" disabled={undecided} />
+              </label>
+              <label className="choice-item">
+                <input type="checkbox" name="undecided" value="1" checked={undecided} onChange={(event) => setUndecided(event.target.checked)} />
+                <span>{t("postponeUndecided")}</span>
+              </label>
+              <p className="muted">{t("postponeHint")}</p>
+              {postponeState.error ? <p role="alert">{postponeState.error}</p> : null}
+            </ConfirmDialog>
           ) : null}
-          <button type="button" className="timeline-lost" aria-expanded={asking === "cancel"} disabled={busy} onClick={() => setAsking(asking === "cancel" ? null : "cancel")}>
-            {t("cancelAsk")}
-          </button>
+          <ConfirmDialog
+            level={2}
+            trigger={t("cancelAsk")}
+            triggerLabel={t("cancelAsk")}
+            triggerClassName="timeline-lost"
+            triggerDisabled={busy}
+            title={t("cancelTitle", { names: eventNames })}
+            body={t("cancelBody")}
+            confirmLabel={t("confirmCancel")}
+            keepLabel={t("keepEvent")}
+            action={cancelAction}
+            pending={cancelling}
+            fields={{ eventId }}
+          >
+            <ul className="confirm-dialog-consequences">
+              <li>{t("cancelRestore")}</li>
+              <li>{t("cancelLinks")}</li>
+              <li>{t("cancelReminders")}</li>
+              <li>{t("cancelInvoices")}</li>
+              <li>{t("cancelNobody")}</li>
+            </ul>
+            <label>
+              {t("cancelReason")}
+              <select name="lossReasonId" value={lossReasonId} onChange={(event) => setLossReasonId(event.target.value)} required>
+                <option value="">{t("sourceChoose")}</option>
+                {reasons.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {reason?.isFreeText ? (
+              <>
+                <label>
+                  {t("lossReasonNote")}
+                  <textarea name="lossReasonNote" value={lossReasonNote} onChange={(event) => setLossReasonNote(event.target.value)} required />
+                </label>
+                <FreeTextNotice />
+              </>
+            ) : null}
+            {cancelState.error ? <p role="alert">{cancelState.error}</p> : null}
+          </ConfirmDialog>
         </div>
       )}
 
@@ -141,58 +226,7 @@ export function ChangeStatusForm({
         </form>
       ) : null}
 
-      {asking === "postpone" ? (
-        <form action={postponeAction} className="stack loss-form" aria-label={t("postponeAsk")}>
-          <input type="hidden" name="eventId" value={eventId} />
-          <label>
-            {t("postponeNewDate")}
-            <input type="date" name="newDate" disabled={undecided} required={!undecided} />
-          </label>
-          <label className="choice-item">
-            <input type="checkbox" name="undecided" value="1" checked={undecided} onChange={(event) => setUndecided(event.target.checked)} />
-            <span>{t("postponeUndecided")}</span>
-          </label>
-          <p className="muted">{t("postponeHint")}</p>
-          <button type="submit" disabled={busy}>
-            {t("confirmPostpone")}
-          </button>
-        </form>
-      ) : null}
-
-      {asking === "cancel" && currentStatus !== "cancelled" ? (
-        <form action={cancelAction} className="stack loss-form" aria-label={t("cancelTitle", { names: eventNames })}>
-          <input type="hidden" name="eventId" value={eventId} />
-          <p>
-            <strong>{t("cancelTitle", { names: eventNames })}</strong>
-          </p>
-          <p className="muted">{t("cancelBody")}</p>
-          <label>
-            {t("lossReason")}
-            <select name="lossReasonId" value={lossReasonId} onChange={(event) => setLossReasonId(event.target.value)} required>
-              <option value="">{t("sourceChoose")}</option>
-              {reasons.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          {reason?.isFreeText ? (
-            <>
-              <label>
-                {t("lossReasonNote")}
-                <textarea name="lossReasonNote" value={lossReasonNote} onChange={(event) => setLossReasonNote(event.target.value)} required />
-              </label>
-              <FreeTextNotice />
-            </>
-          ) : null}
-          <button type="submit" disabled={busy}>
-            {t("confirmCancel")}
-          </button>
-        </form>
-      ) : null}
       {error ? <p role="alert">{error}</p> : null}
-      {done && !error ? <p role="status">{t("statusChanged")}</p> : null}
     </div>
   );
 }

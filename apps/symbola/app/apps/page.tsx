@@ -142,7 +142,7 @@ export default async function AppsPage({ searchParams }: { searchParams: Promise
                       title={t("requestTitle", { app: label })}
                       body={t("requestBody")}
                       confirmLabel={t("requestConfirm")}
-                      cancelLabel={t("cancel")}
+                      keepLabel={t("cancel")}
                       action={requestAppAction}
                       fields={{ moduleKey: app.key }}
                       tone="primary"
@@ -156,7 +156,7 @@ export default async function AppsPage({ searchParams }: { searchParams: Promise
                       title={t("addTitle", { app: label })}
                       body={t("addBody")}
                       confirmLabel={t(offer.period === "yearly" ? "addConfirmYearly" : "addConfirmMonthly", { amount: formatAmount(offer.priceCents, locale) })}
-                      cancelLabel={t("cancel")}
+                      keepLabel={t("cancel")}
                       action={addAppToSubscriptionAction}
                       fields={{ moduleKey: app.key }}
                       tone="primary"

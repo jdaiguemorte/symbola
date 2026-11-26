@@ -5,7 +5,12 @@
 // champs suffisent : le type, la date et le nom du client (facultatif pour un évènement confirmé).
 // Le rétroplanning du type est proposé (case cochée pour un évènement confirmé) ; un type sans
 // modèle reçoit une astuce et un panneau pour en créer un, sans quitter le formulaire.
-import { useActionState, useState } from "react";
+import { useActionState, useMemo, useRef, useState } from "react";
+import { ErrorSummary } from "@/app/ui/error-summary";
+import { FieldError } from "@/app/ui/field-error";
+import { useFieldValidation } from "@/app/ui/use-field-validation";
+import { useRetryableAction } from "@/app/ui/use-retryable-action";
+import { newEventFieldsSchema } from "@/lib/forms/new-event-fields";
 import { useTranslations } from "next-intl";
 import { RequiredLegend, RequiredMark } from "@/app/ui/required-mark";
 import { DraftKeeper } from "@/app/ui/draft-keeper";
@@ -40,11 +45,18 @@ export function NewProspectForm({
 }) {
   const t = useTranslations("Events");
   const initialState: NewProspectFormState = {};
-  const [state, formAction, pending] = useActionState(createProspectAction, initialState);
+  const tFeedback = useTranslations("Feedback");
+  const formRef = useRef<HTMLFormElement>(null);
+  // Lot 70b (NFR-16) : la connexion coupée à l'envoi ne perd rien ; le message propose « Réessayer ».
+  const createAction = useRetryableAction(createProspectAction, formRef, tFeedback("eventNotCreated"));
+  const [state, formAction, pending] = useActionState(createAction, initialState);
   const [eventTypeId, setEventTypeId] = useState(eventTypes[0]?.id ?? "");
   const [status, setStatus] = useState<"option" | "confirmed">("option");
   const confirmed = mode === "confirmed" || (mode === "client" && status === "confirmed");
   const rules = newEventRules(mode, confirmed);
+  // Lot 70b (UX-10) : validation écrite par Symbola, le même schéma qu'au serveur.
+  const schema = useMemo(() => newEventFieldsSchema({ ...rules, nameRequiredWithoutClient: !rules.clientRequired }), [mode, confirmed]);
+  const validation = useFieldValidation(schema, state.fieldErrors);
   // Lot 32b (CRM-04) : la date suivie, pour signaler les évènements du même jour avant l'enregistrement.
   const [eventDate, setEventDate] = useState(initialDate);
   const eventType = eventTypes.find((type) => type.id === eventTypeId);
@@ -61,10 +73,16 @@ export function NewProspectForm({
 
   return (
     <>
-      <form action={formAction}>
+      <form ref={formRef} action={formAction} noValidate onSubmit={validation.onSubmit} onInput={validation.onInput}>
         {/* Lot 39b (UX-09) : la saisie est gardée et se reprend sur tout appareil. */}
         <DraftKeeper formKey={mode === "prospect" ? "event-new" : `event-new-${mode}`} submission={state} />
         <input type="hidden" name="mode" value={mode} />
+        <ErrorSummary
+          errors={validation.errors}
+          labels={{ firstName1: labels.client1FirstName, contactId1: tContacts("pickerClient1"), name: t("eventName"), prospectSourceId: t("source") }}
+          fieldId={validation.fieldId}
+          summaryKey="summaryEvent"
+        />
         <RequiredLegend text={tCommon("requiredLegend")} />
         {mode === "client" ? (
           <fieldset className="choice-row">
@@ -101,17 +119,22 @@ export function NewProspectForm({
           <label>
             {t("eventName")}
             {mode === "confirmed" ? <span className="meta"> {t("eventNameHint")}</span> : null}
-            <input type="text" name="name" maxLength={200} />
+            <input type="text" name="name" maxLength={200} {...validation.fieldProps("name")} />
+            <FieldError id={validation.errorId("name")} message={validation.errorFor("name")} />
           </label>
         ) : null}
         {mode === "client" ? (
-          <ContactPicker name="contactId1" legend={`${tContacts("pickerClient1")} *`} initial={initialContact} searchLabel={t("existingClientSearch")} />
+          <>
+            <ContactPicker name="contactId1" legend={`${tContacts("pickerClient1")} *`} initial={initialContact} searchLabel={t("existingClientSearch")} />
+            <FieldError id={validation.errorId("contactId1")} message={validation.errorFor("contactId1")} />
+          </>
         ) : (
           <ContactPicker name="contactId1" legend={rules.clientRequired ? `${tContacts("pickerClient1")} *` : t("clientOptionalLegend")} initial={initialContact}>
             <label>
               {labels.client1FirstName}
               {rules.clientRequired ? <RequiredMark /> : null}
-              <input type="text" name="firstName1" required={rules.clientRequired} />
+              <input type="text" name="firstName1" required={rules.clientRequired} {...validation.fieldProps("firstName1")} />
+              <FieldError id={validation.errorId("firstName1")} message={validation.errorFor("firstName1")} />
             </label>
             <label>
               {labels.client1LastName}
@@ -132,7 +155,7 @@ export function NewProspectForm({
         <label>
           {t("source")}
           {rules.sourceRequired ? <RequiredMark /> : null}
-          <select name="prospectSourceId" required={rules.sourceRequired} defaultValue="">
+          <select name="prospectSourceId" required={rules.sourceRequired} defaultValue="" {...validation.fieldProps("prospectSourceId")}>
             <option value="" disabled={rules.sourceRequired}>
               {rules.sourceRequired ? t("sourceChoose") : t("sourceNone")}
             </option>
@@ -142,6 +165,7 @@ export function NewProspectForm({
               </option>
             ))}
           </select>
+          <FieldError id={validation.errorId("prospectSourceId")} message={validation.errorFor("prospectSourceId")} />
         </label>
         <label>
           {t("venueName")}

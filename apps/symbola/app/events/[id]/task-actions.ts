@@ -2,6 +2,8 @@
 
 // PRD-EVT-04 — actions du rétroplanning et de la date sur la fiche d'un événement.
 import { offerUndo } from "@/lib/undo";
+import { fieldErrors, formValues, translatedFieldErrors } from "@/lib/forms/field-validation";
+import { taskFieldsSchema } from "@/lib/forms/task-fields";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import {
@@ -28,7 +30,8 @@ import {
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
 
-export type TaskFormState = { error?: string; success?: boolean; recalculationProposed?: boolean };
+// Lot 70b (UX-10) : `fieldErrors`, les erreurs de saisie traduites, sous les champs.
+export type TaskFormState = { error?: string; success?: boolean; recalculationProposed?: boolean; fieldErrors?: Record<string, string> };
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -117,10 +120,11 @@ export async function addEventTaskAction(_prevState: TaskFormState, formData: Fo
 
   const eventId = String(formData.get("eventId") ?? "");
   if (!isValidId(eventId)) return { error: t("eventNotFound") };
+  // Lot 70b (UX-10) : le même schéma qu'à l'écran ; les erreurs vont sous les champs.
+  const invalid = fieldErrors(taskFieldsSchema, formValues(formData));
+  if (invalid.length > 0) return { fieldErrors: translatedFieldErrors(invalid, await getTranslations("Validation")) };
   const label = String(formData.get("label") ?? "").trim();
-  if (!label) return { error: t("missingLabel") };
   const dueDate = String(formData.get("dueDate") ?? "");
-  if (!DATE_PATTERN.test(dueDate)) return { error: t("invalidDate") };
   const responsible = readResponsible(formData);
   if (!responsible) return { error: t("invalidResponsible") };
 

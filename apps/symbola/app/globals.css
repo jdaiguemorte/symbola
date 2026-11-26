@@ -2636,11 +2636,44 @@
   .confirm-dialog .confirm-dialog-details p {
     @apply m-0;
   }
+  .confirm-dialog .confirm-dialog-form {
+    @apply m-0 grid gap-4;
+  }
+  .confirm-dialog .confirm-dialog-details {
+    @apply mb-0;
+  }
   .confirm-dialog .confirm-dialog-actions {
     @apply m-0 flex w-full flex-wrap justify-end gap-2;
   }
+  /* Lot 70b (UX-07 ; M6, C-08) : le bouton de danger a toujours la même allure (lot 62) : fond blanc,
+     bord et texte rouges ; il ne répond pas tant que la case du niveau 3 n'est pas cochée. */
   .confirm-dialog .confirm-dialog-actions button.confirm-dialog-confirm {
-    @apply min-h-11 border-critical bg-critical px-4 text-body font-semibold text-on-primary hover:border-critical hover:bg-critical;
+    @apply min-h-11 px-4 text-body;
+  }
+  .confirm-dialog .confirm-dialog-actions button.confirm-dialog-confirm:disabled {
+    @apply cursor-not-allowed opacity-60;
+  }
+  .confirm-dialog .confirm-dialog-consequences {
+    @apply m-0 grid list-disc gap-1 pl-6;
+  }
+  .confirm-dialog .confirm-dialog-acknowledge {
+    @apply flex items-start gap-2 rounded-md border border-critical bg-critical-soft p-3;
+  }
+  .confirm-dialog .confirm-dialog-acknowledge input {
+    @apply mt-1 size-4 shrink-0;
+  }
+  /* Sur téléphone, la confirmation d'un danger prend la page ; « Garder … » est le bouton le plus bas,
+     le plus proche du pouce (C-80). */
+  @media (max-width: 639px) {
+    .confirm-dialog.confirm-dialog-danger {
+      @apply m-0 h-dvh max-h-none w-screen max-w-none rounded-none border-0;
+    }
+    .confirm-dialog.confirm-dialog-danger .confirm-dialog-actions {
+      @apply flex-col-reverse;
+    }
+    .confirm-dialog.confirm-dialog-danger .confirm-dialog-actions button {
+      @apply w-full;
+    }
   }
   .vendor-row-archive {
     @apply self-start;
@@ -3535,24 +3568,61 @@
   .today-event > .today-item-tags {
     @apply sm:ml-auto;
   }
-  /* D7 : « Tâche faite. Annuler », dix secondes, au-dessus du bouton d'aide. */
-  .undo-notice {
-    @apply fixed right-4 bottom-20 left-4 z-40 mx-auto flex max-w-md flex-wrap items-center justify-between gap-3 rounded-lg bg-ink px-4 py-2 text-label text-on-primary shadow-float;
+  /* Lot 70b (UX-07, UX-15 ; M5, C-09 ; page 4 des maquettes du lot 68) — le message de retour, un seul
+     pour toute l'app (app/ui/feedback.tsx). Une place : en bas à gauche de la zone de contenu (dernier
+     enfant de « app-main », collé au bas de la fenêtre) ; sur téléphone, de toute la largeur, au-dessus
+     de la pastille « Reprendre ». Fond encre, texte blanc, secondaire `night-ink-muted` (8,4:1),
+     « Annuler » en `night-accent` (9,7:1), bouton de 40 px ; une barre montre le temps qui reste. */
+  .feedback-region {
+    @apply pointer-events-none sticky bottom-[4.5rem] z-40 mt-4 sm:bottom-4;
   }
-  .undo-notice form {
+  .feedback {
+    @apply pointer-events-auto relative flex w-full items-center gap-3 overflow-hidden rounded-lg bg-ink py-2 pr-2 pl-4 text-on-primary shadow-float sm:w-auto sm:max-w-[30rem];
+  }
+  .feedback-icon {
+    @apply inline-flex size-[18px] shrink-0 items-center justify-center text-body-strong text-on-primary;
+  }
+  .feedback-text {
+    @apply min-w-0 flex-1;
+  }
+  .feedback-text p {
     @apply m-0;
   }
-  .undo-notice .button-ghost {
-    @apply !text-on-primary underline;
+  .feedback-title {
+    @apply text-body text-on-primary;
   }
-  /* Lot 39a (UX-07) : « Voir la corbeille », lisible sur le fond sombre du bandeau. */
-  .undo-notice a {
-    @apply text-on-primary underline;
+  .feedback-detail {
+    @apply text-label text-night-ink-muted;
   }
-  /* Lot 39c (UX-07) : l'offre après une coche (task-undo.tsx) se pose au-dessus de celle d'une
-     suppression quand les deux restent à l'écran. */
-  .undo-notice ~ .task-undo > .undo-notice {
-    @apply bottom-32;
+  .app-main .feedback button.feedback-action,
+  .app-main .feedback a.feedback-action {
+    @apply inline-flex min-h-10 shrink-0 items-center rounded-md border-0 bg-transparent px-3 text-body-strong text-night-accent no-underline hover:bg-night-surface;
+  }
+  .app-main .feedback button.feedback-close {
+    @apply inline-flex size-10 shrink-0 items-center justify-center rounded-md border-0 bg-transparent p-0 text-heading text-night-ink-muted hover:bg-night-surface hover:text-on-primary;
+  }
+  .app-main .feedback button:focus-visible,
+  .app-main .feedback a:focus-visible {
+    outline: 2px solid var(--color-night-accent);
+    outline-offset: 2px;
+  }
+  .feedback-error .feedback-icon {
+    @apply rounded-full border-2 border-on-primary text-label font-semibold;
+  }
+  /* La barre du temps : elle se vide en dix (ou cinq) secondes, et s'arrête avec le message. */
+  .feedback-timer {
+    @apply absolute bottom-0 left-0 h-[3px] w-full origin-left bg-night-ink-muted;
+    animation-name: feedback-timer;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+  .feedback[data-paused="true"] .feedback-timer {
+    animation-play-state: paused;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .feedback-timer {
+      animation: none;
+    }
   }
 }
 
@@ -6082,9 +6152,6 @@
   .task-bulk-count {
     @apply mr-2 text-body text-primary;
   }
-  .task-bulk-status {
-    @apply text-label text-primary;
-  }
 
   /* La fenêtre de la tâche : une colonne ; avec ses rubriques (rétroplanning), jusqu'à 860 px, le
      sommaire à gauche. Sur téléphone, elle occupe l'écran, avec « Retour ». */
@@ -6341,5 +6408,41 @@
   }
   .app-offer .num {
     @apply text-right whitespace-nowrap;
+  }
+}
+
+/* Lot 70b (UX-07) : la barre du temps du message de retour. */
+@keyframes feedback-timer {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* Lot 70b (UX-10 ; P-18, C-04 ; page 4 des maquettes du lot 68) — l'erreur sous le champ et le résumé en
+   tête. L'erreur ne tient pas à la couleur : le mot « Erreur : », l'icône « ! », le bord de 2 px. */
+@layer components {
+  .field-error {
+    @apply m-0 mt-1 flex items-start gap-2 text-label text-critical;
+  }
+  .field-error-icon {
+    @apply inline-flex size-4 shrink-0 items-center justify-center rounded-full bg-critical text-label leading-none font-semibold text-on-primary;
+  }
+  .error-summary {
+    @apply mb-2 rounded-md border-2 border-critical bg-critical-soft p-3 text-body text-ink;
+  }
+  .error-summary p {
+    @apply m-0;
+  }
+  .error-summary strong {
+    @apply text-critical;
+  }
+  .error-summary ul {
+    @apply m-0 mt-1 flex list-none flex-wrap gap-x-3 p-0;
+  }
+  .error-summary a {
+    @apply text-critical underline;
   }
 }

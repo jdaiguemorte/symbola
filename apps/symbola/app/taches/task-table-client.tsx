@@ -14,6 +14,7 @@ import { useTranslations } from "next-intl";
 import { toggleEventTaskAction } from "@/app/events/[id]/task-actions";
 import { TaskCheck } from "./task-check";
 import { bulkTasksAction, deleteTaskAction, setTaskDueDateAction, type TaskRowState } from "./task-row-actions";
+import { useFeedback } from "@/app/ui/feedback";
 import { CategorySwatch } from "./category-swatch";
 
 export type TaskTableRow = {
@@ -42,10 +43,19 @@ function fromControl(event: MouseEvent): boolean {
   return (event.target as HTMLElement).closest("a, button, input, select, label, summary, details, form") !== null;
 }
 
+// Lot 70b (UX-07, C-09) : le résultat d'un geste s'affiche dans le message de retour du gabarit.
+function useSuccessFeedback(state: TaskRowState) {
+  const feedback = useFeedback();
+  useEffect(() => {
+    if (state.success) feedback?.show({ title: state.success });
+  }, [state, feedback]);
+}
+
 function DueCell({ row }: { row: TaskTableRow }) {
   const t = useTranslations("Events");
   const [editing, setEditing] = useState(false);
   const [state, action, pending] = useActionState(setTaskDueDateAction, {} as TaskRowState);
+  useSuccessFeedback(state);
   const form = useRef<HTMLFormElement>(null);
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -98,6 +108,7 @@ function PostponeMenu({ row, tomorrow, nextWeek }: { row: TaskTableRow; tomorrow
   const t = useTranslations("Events");
   const [state, action, pending] = useActionState(setTaskDueDateAction, {} as TaskRowState);
   const menu = useRef<HTMLDetailsElement>(null);
+  useSuccessFeedback(state);
   useEffect(() => {
     if (state.success && menu.current) menu.current.open = false;
   }, [state]);
@@ -144,7 +155,7 @@ function ReopenButton({ row }: { row: TaskTableRow }) {
   );
 }
 
-function BulkBar({ ids, categories, onClear, onDone }: { ids: string[]; categories: Option[]; onClear: () => void; onDone: (message: string) => void }) {
+function BulkBar({ ids, categories, onClear, onDone }: { ids: string[]; categories: Option[]; onClear: () => void; onDone: (message: string, undoOffered: boolean) => void }) {
   const t = useTranslations("Events");
   const [state, action, pending] = useActionState(bulkTasksAction, {} as TaskRowState);
   const [days, setDays] = useState("7");
@@ -152,7 +163,7 @@ function BulkBar({ ids, categories, onClear, onDone }: { ids: string[]; categori
   // annoncé sous la barre, qui disparaît avec la sélection.
   useEffect(() => {
     if (!state.success) return;
-    onDone(state.success);
+    onDone(state.success, state.undoOffered === true);
     onClear();
   }, [state, onClear, onDone]);
   return (
@@ -250,8 +261,12 @@ export function TaskTableClient({
     if (selectAll.current) selectAll.current.indeterminate = shown.length > 0 && !allSelected;
   }, [shown.length, allSelected]);
   const clear = useMemo(() => () => setSelected(new Set()), []);
-  const [bulkMessage, setBulkMessage] = useState("");
-  const done = useMemo(() => (message: string) => setBulkMessage(message), []);
+  // Lot 70b (UX-07, C-09) : le résultat d'une action en lot va au message de retour du gabarit ; une
+  // suppression y a déjà son « Annuler » (offre posée par le serveur), qu'il ne faut pas remplacer.
+  const feedback = useFeedback();
+  const done = useMemo(() => (message: string, undoOffered: boolean) => {
+    if (!undoOffered) feedback?.show({ title: message });
+  }, [feedback]);
   const toggle = (id: string) =>
     setSelected((current) => {
       const next = new Set(current);
@@ -264,9 +279,6 @@ export function TaskTableClient({
   return (
     <div>
       {shown.length > 0 ? <BulkBar ids={shown} categories={categories} onClear={clear} onDone={done} /> : null}
-      <div role="status" className="task-bulk-status">
-        {shown.length === 0 ? bulkMessage : ""}
-      </div>
       <div role="region" aria-label={t("taskTableRegion", { caption })} tabIndex={0}>
         <table className="data-table tasks-table">
           <caption className="sr-only">{caption}</caption>
