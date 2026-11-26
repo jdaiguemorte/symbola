@@ -966,7 +966,8 @@ Ouverts ; chacun a sa recommandation.
    panneau enregistre » (patrons d'interface), UX-09 « Enregistrement automatique », et interdit
    « un bouton « Enregistrer » dont l'oubli fait perdre le travail ». M1 retient « Enregistrer » et
    « Fermer », avec « Fermer sans enregistrer ? » s'il reste des changements. Proposition : garder
-   M1 (rien ne se perd sans le dire) et l'écrire dans un ADR qui complète les ADR 0074 et 0107.
+   M1 (rien ne se perd sans le dire) et l'écrire dans un ADR qui complète les ADR 0074 et 0107. **Tranché
+   le 26/11 par Julien : « Oui, l'ADR ».**
 2. **Une tâche supprimée dans la Corbeille (UX-07, HUB-17)**. La maquette le promet ; l'ADR 0073
    (D6) fait de la tâche un élément qui s'annule dix secondes puis disparaît. Proposition : la
    Corbeille, trente jours, avenant à l'ADR 0073 (décision A5 du lot). **Tranché le 26/11 par Julien :

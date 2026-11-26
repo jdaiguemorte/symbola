@@ -638,7 +638,7 @@ réalise, si Julien confirme.
    bouton « Enregistrer » dont l'oubli fait perdre le travail ». La garde « Fermer sans
    enregistrer ? » empêche la perte silencieuse ; le brouillon (`DraftKeeper`, ADR 0074) peut
    garder la saisie si l'onglet se ferme. → **ADR à écrire** (paquet 70c), complète les ADR 0074
-   et 0107.
+   et 0107. Tranché le 26/11 par Julien : « Oui, l'ADR ».
 2. **La tâche dans la Corbeille (A5, tranchée en (a) le 26/11)** : avenant à l'ADR 0073 (D6), dans le sens d'UX-07 et
    de HUB-17.
 3. **L'onglet « Tâches » de la fiche** : le cahier des charges nomme les onglets du cockpit
