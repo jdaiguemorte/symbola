@@ -956,6 +956,36 @@ Spécification `docs/lots/lot-66-envois-et-marque.md`, maquettes M17 à M20.
   toutes les offres sont payantes, et le domaine de Symbola reste présent sur les e-mails
   techniques.
 
+### Q47 — Lot 70 : réaliser le volet 1 des maquettes, six écarts avec le cahier des charges (26 novembre 2026)
+
+Relevés en écrivant la spécification `docs/lots/lot-70-taches-et-transverse.md` (§ 7 et § 9), à
+partir des maquettes validées le 25/11 (`docs/audits/2026-11-ux-parcours/07-maquettes-transverse-taches.md`).
+Ouverts ; chacun a sa recommandation.
+
+1. **Enregistrer le panneau d'une tâche par un bouton (M1)**. Le cahier des charges dit « Fermer le
+   panneau enregistre » (patrons d'interface), UX-09 « Enregistrement automatique », et interdit
+   « un bouton « Enregistrer » dont l'oubli fait perdre le travail ». M1 retient « Enregistrer » et
+   « Fermer », avec « Fermer sans enregistrer ? » s'il reste des changements. Proposition : garder
+   M1 (rien ne se perd sans le dire) et l'écrire dans un ADR qui complète les ADR 0074 et 0107. **Tranché
+   le 26/11 par Julien : « Oui, l'ADR ».**
+2. **Une tâche supprimée dans la Corbeille (UX-07, HUB-17)**. La maquette le promet ; l'ADR 0073
+   (D6) fait de la tâche un élément qui s'annule dix secondes puis disparaît. Proposition : la
+   Corbeille, trente jours, avenant à l'ADR 0073 (décision A5 du lot). **Tranché le 26/11 par Julien :
+   « Oui, Corbeille ».**
+3. **Nom de l'onglet du cockpit**. Le cahier des charges cite « Planning » ; l'app dit
+   « Rétroplanning » ; M11 retient « Tâches ». Proposition : « Tâches », noté dans `gap.csv`. **Tranché le 26/11 par Julien : « Oui, Tâches »** (sans ADR).
+4. **États d'une tâche**. Le cahier des charges cite « À faire, En cours, En attente d'un tiers,
+   Fait, En retard ». Les maquettes n'ont pas « En cours » et ajoutent « Bientôt » (« Dans N jours »,
+   seuil de M10). Proposition : pas d'« En cours » pour une tâche (personne ne l'a demandé au
+   panel), « Bientôt » ajouté ; ADR si Julien confirme. **Tranché le 26/11 par Julien : « Oui, sans En
+   cours »** (ADR au paquet 70a).
+5. **« Prospect » hors de « + Créer » (HUB-07)**. D8 le remplace par « Nouvel évènement › Une
+   demande en cours », qui crée la même chose. Proposition : d'accord, noté dans `gap.csv`. **Tranché le 26/11 par Julien : « Oui, le
+   retirer ».**
+6. **Créer un évènement en trois champs, nom, date, type (EVT-01)**. La maquette n'a pas le type.
+   Proposition : le champ « Type » n'apparaît que si l'organisation a plusieurs types. **Tranché le
+   26/11 par Julien : « Oui, si plusieurs ».**
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que
