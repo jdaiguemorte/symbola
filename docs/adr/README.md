@@ -114,3 +114,5 @@ Un fichier par décision structurante, numéroté. Pour changer une décision : 
 - [0113 — La signature de chaque membre et la marque de la planner dans ses e-mails](0113-signature-et-marque-des-emails.md)
 - [0114 — Tâches périodiques : ne visiter que les organisations qui ont du travail](0114-taches-periodiques-sans-visiter-chaque-organisation.md)
 - [0115 — Une lecture par affichage, et JSON laissé à Node](0115-une-lecture-par-affichage.md)
+- [0116 — Les tâches vont à la Corbeille (avenant à l'ADR 0073)](0116-taches-dans-la-corbeille.md)
+- [0117 — Les états d'une tâche : sans « En cours », avec « Bientôt »](0117-etats-d-une-tache.md)
