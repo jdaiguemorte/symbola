@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lot 68 · Évènements : l'en-tête de la fiche, ses onglets et sa frise</title>
+<style>
+/* Jetons de DESIGN.md (ADR 0057), sans aucune valeur nouvelle. Polices : Inter et Space Grotesk si
+   elles sont installées, sinon la police du système (aucune dépendance externe). */
+:root{--primary:#0F6E5C;--on-primary:#FFFFFF;--primary-soft:#E3F1EE;--primary-strong:#0B5A4B;--ground:#F6F7F9;--surface:#FFFFFF;--ink:#14181F;--muted:#5A6372;--line:#DDE1E7;--line-strong:#838C99;--attention:#9A5B00;--attention-soft:#FBF0DC;--critical:#B3261E;--critical-soft:#FBE9E7;--float:0 8px 24px rgba(20,24,31,.12);
+--f-body:Inter,"Inter var",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;--f-title:"Space Grotesk",Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;--kd:.45}
+*{box-sizing:border-box}
+
+body{margin:0;background:#E9ECF0;color:var(--ink);font:15px/1.5 var(--f-body)}
+h1,h2,h3,h4{font-family:var(--f-title);font-weight:600;margin:0}
+a{color:var(--primary)}
+button{font:inherit;color:inherit}
+/* ——— Le document qui présente les maquettes ——— */
+.doc{max-width:1680px;margin:0 auto;padding:32px 32px 96px}
+.doc>header{max-width:980px}
+.doc>header h1{font-size:32px;line-height:1.15}
+.doc>header p{color:var(--muted);margin:8px 0}
+.crumbs{font-size:13px;margin-bottom:12px}
+.toolbar-doc{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px -32px 0;padding:10px 32px;background:rgba(233,236,240,.96);border-bottom:1px solid var(--line)}
+.toolbar-doc .lbl{font-size:13px;color:var(--muted);margin-right:4px}
+.toolbar-doc button,.toc a{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);text-decoration:none;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer}
+.toolbar-doc button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.part{margin-top:64px;padding-top:16px;border-top:2px solid var(--line-strong);font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mock{margin-top:40px;scroll-margin-top:72px}
+.mock>h2{font-size:22px}
+.mock>.intro{color:var(--muted);max-width:980px;margin:4px 0 16px}
+.size{margin:24px 0 8px;font:600 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+.pair.m{grid-template-columns:repeat(auto-fill,375px);gap:24px 32px}
+.side{min-width:0}
+.cap{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:13px;color:var(--muted)}
+.cap b{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;background:#fff;border:1px solid var(--line-strong);color:var(--ink)}
+.cap b.new{background:var(--primary);border-color:var(--primary);color:#fff}
+.dwrap{width:100%;overflow:hidden;border-radius:12px;border:1px solid var(--line-strong);background:var(--ground)}
+.dwrap>.ui-d,.dwrap>img{zoom:var(--kd)}.dwrap>img{display:block}
+body.reel .pair:not(.m){grid-template-columns:minmax(0,1fr)}
+body.reel .dwrap{overflow-x:auto}
+body.reel .dwrap>.ui-d,body.reel .dwrap>img{zoom:1}
+.mwrap{width:377px;border:1px solid var(--line-strong);border-radius:20px;overflow:hidden;background:var(--ground)}
+.mwrap>img{display:block;width:375px}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:16px 40px;margin:20px 0 0;padding:16px 20px;background:var(--surface);border:1px solid var(--line);border-radius:16px;font-size:14px}
+.rules h4{font:600 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.rules ul{margin:0;padding-left:18px}
+.rules li{margin:3px 0}
+.rules .count{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.rules .count span{display:inline-flex;height:26px;align-items:center;padding:0 10px;border-radius:999px;background:var(--ground);border:1px solid var(--line);font-size:12px;font-weight:500}
+.note-avant{padding:16px;font-size:14px;color:var(--muted);background:#fff}
+.callout{font-size:12px;font-weight:600;color:#fff;background:#4B3BD9;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;font-family:var(--f-body)}
+.legend-callouts{font-size:13px;margin:8px 0 0;padding-left:0;list-style:none;display:grid;gap:4px}
+.legend-callouts li{display:flex;gap:8px;align-items:flex-start}
+table.doc-t{border-collapse:collapse;width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px}
+table.doc-t th{text-align:left;font:600 12px var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--ground)}
+table.doc-t td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.doc-t td s{color:var(--muted)}
+
+/* ——— L'app : cadre d'ordinateur (1 440 px) ——— */
+svg[aria-hidden]{width:20px;height:20px;flex:none}
+.fait svg,.btn.sm svg{width:16px;height:16px}
+.pill svg{width:14px;height:14px}
+.in svg{width:18px;height:18px;color:var(--muted)}
+.small svg{width:16px;height:16px;vertical-align:-3px}
+.ui-d{width:1440px;min-height:900px;display:grid;grid-template-columns:232px 1fr;background:var(--ground);position:relative;font-size:15px;overflow:hidden}
+.ui-d.short{min-height:0}
+.sb{background:var(--surface);border-right:1px solid var(--line);padding:20px 16px;display:flex;flex-direction:column;gap:2px}
+.logo{display:flex;align-items:center;gap:10px;font:600 20px var(--f-title);padding:4px 8px 20px}
+.logo i{width:26px;height:26px;border-radius:999px;border:2.5px solid var(--primary);position:relative;display:inline-block}
+.logo i:after{content:"";position:absolute;left:6px;top:3px;width:12px;height:16px;border-radius:999px;border:2.5px solid var(--primary)}
+.nav{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-size:15px;white-space:nowrap}
+.nav svg{width:20px;height:20px;flex:none}
+.nav.on{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.nav .cnt{margin-left:auto;font-size:12px;font-weight:600;height:22px;padding:0 8px;border-radius:999px;display:inline-flex;align-items:center;background:var(--critical-soft);color:var(--critical);white-space:nowrap}
+.sb hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+.main{min-width:0;display:flex;flex-direction:column}
+.tb{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;height:68px;padding:0 48px;background:var(--surface);border-bottom:1px solid var(--line)}
+.tb.old{background:transparent;border:0;height:88px}
+.search{width:520px;height:44px;border:1px solid var(--line-strong);border-radius:6px;padding:0 14px;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:15px;background:#fff}
+.search svg{width:18px;height:18px;flex:none}
+.kbd{margin-left:auto;font:500 12px var(--f-body);border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--muted)}
+.tb .sp{flex:1}
+.iconbtn{width:44px;height:44px;border-radius:10px;border:1px solid transparent;background:transparent;display:inline-flex;align-items:center;justify-content:center;position:relative;flex:none;color:var(--ink)}
+.iconbtn svg{width:20px;height:20px}
+.iconbtn.bd{border-color:var(--line-strong);background:#fff}
+.iconbtn .badge{position:absolute;top:4px;right:4px;min-width:18px;height:18px;border-radius:999px;background:var(--critical);color:#fff;font:600 11px/18px var(--f-body);text-align:center;padding:0 4px}
+.avatar{width:32px;height:32px;border-radius:999px;background:var(--ground);border:1px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font:600 12px var(--f-body);color:var(--ink);flex:none}
+.avatar.sm{width:24px;height:24px;font-size:11px}
+.avatar.couple{border-style:dashed}
+.acct{display:flex;align-items:center;gap:8px;height:44px;padding:0 8px 0 6px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:14px}
+.ct{padding:28px 48px 48px;max-width:1208px;width:100%}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
+.ph h1{font-size:22px;line-height:1.25}
+.ph .sub{color:var(--muted);font-size:14px;margin-top:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px}
+.card+.card{margin-top:16px}
+.card h3{font-size:17px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:12px;align-items:center}
+.wrap{flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 16px;border-radius:10px;font:600 15px var(--f-body);border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);white-space:nowrap;cursor:default}
+.btn svg{width:18px;height:18px}
+.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.danger{border-color:var(--critical);color:var(--critical);background:#fff}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--primary);padding:0 10px}
+.btn.sm{height:36px;padding:0 12px;font-size:14px;border-radius:8px}
+.btn.block{width:100%}
+.link{color:var(--primary);text-decoration:underline;text-underline-offset:3px}
+.field{display:flex;flex-direction:column;gap:6px;font:500 13px/1.35 var(--f-body)}
+.in{height:44px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;padding:0 12px;display:flex;align-items:center;font:400 15px var(--f-body);color:var(--ink);gap:8px;min-width:0}
+.in.ph-t{color:var(--muted)}
+.in.sel{justify-content:space-between}
+.in.sel:after{content:"";width:8px;height:8px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg) translateY(-3px);flex:none}
+.in.area{height:88px;align-items:flex-start;padding-top:10px}
+.in.err{border:2px solid var(--critical)}
+.in.focus{outline:3px solid var(--primary);outline-offset:1px}
+.err-msg{color:var(--critical);font:500 13px var(--f-body);display:flex;gap:6px;align-items:flex-start}
+.req{color:var(--ink)}
+.hint{color:var(--muted);font:400 13px var(--f-body)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font:500 13px var(--f-body);background:var(--ground);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.pill.late{background:var(--critical-soft);color:var(--critical);border-color:transparent}
+.pill.soon{background:var(--attention-soft);color:var(--attention);border-color:transparent}
+.pill.ok{background:var(--primary-soft);color:var(--primary);border-color:transparent}
+.pill .x{font-size:14px;margin-left:2px}
+.switch{width:40px;height:24px;border-radius:999px;background:var(--line-strong);position:relative;flex:none;display:inline-block}
+.switch:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:999px;background:#fff}
+.switch.on{background:var(--primary)}.switch.on:after{left:19px}
+.chk{width:20px;height:20px;border:1.5px solid var(--line-strong);border-radius:4px;background:#fff;flex:none;display:inline-flex;align-items:center;justify-content:center}
+.chk.on{background:var(--primary);border-color:var(--primary)}
+.chk.on:after{content:"";width:5px;height:10px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg) translate(-1px,-1px)}
+.radio{width:20px;height:20px;border:1.5px solid var(--line-strong);border-radius:999px;background:#fff;flex:none;position:relative}
+.radio.on{border:6px solid var(--primary)}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:10px;padding:3px;gap:2px;background:#fff}
+.seg span{height:36px;padding:0 14px;border-radius:7px;display:inline-flex;align-items:center;font:500 14px var(--f-body)}
+.seg span.on{background:var(--ink);color:#fff}
+.dim{position:absolute;inset:0;background:rgba(20,24,31,.45);z-index:20}
+.pop{position:absolute;z-index:30;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--float)}
+.menu{padding:6px;min-width:260px}
+.menu .mi{display:flex;flex-direction:column;justify-content:center;min-height:44px;padding:8px 12px;border-radius:8px;font-size:15px}
+.menu .mi small{display:block;color:var(--muted);font-size:13px;line-height:1.35}
+.menu .mi.hl{background:var(--ground)}
+.menu .mi.d{color:var(--critical)}
+.menu hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.mark{outline:2px dashed #4B3BD9;outline-offset:4px;border-radius:12px}
+.co{position:absolute;z-index:40}
+
+/* ——— La ligne type d'une tâche ——— */
+.tlist{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.thead,.tl{display:grid;grid-template-columns:minmax(0,1fr) 190px 210px 170px 72px 44px;gap:16px;align-items:center;padding:0 16px 0 24px}
+.tl.no-evt,.thead.no-evt{grid-template-columns:minmax(0,1fr) 210px 170px 72px 44px}
+.tl.sel,.thead.sel{grid-template-columns:24px minmax(0,1fr) 190px 210px 170px 116px}
+.thead{height:44px;font:500 13px var(--f-body);color:var(--muted);border-bottom:1px solid var(--line)}
+.grp{padding:16px 24px 8px;font:600 15px var(--f-title);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+.grp small{font:400 13px var(--f-body);color:var(--muted)}
+.tl{min-height:60px;border-bottom:1px solid var(--line)}
+.tl:last-child{border-bottom:0}
+.tl.checked{background:#F7FAF9}
+.tl.done .tt{color:var(--muted);text-decoration-color:var(--line)}
+.tt{color:var(--ink);font-weight:500;text-decoration:underline;text-decoration-color:var(--line-strong);text-decoration-thickness:1px;text-underline-offset:4px}
+.ev{color:var(--ink);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.none{color:var(--muted)}
+.due{font-size:14px;line-height:1.3;white-space:nowrap}
+.due b{font-weight:500;display:block}
+.due span{font-size:13px;color:var(--muted)}
+.due.late b,.due.late span{color:var(--critical)}
+.due.soon span{color:var(--attention)}
+.st-ic{display:inline-flex;width:14px;height:14px;border-radius:999px;align-items:center;justify-content:center;font:700 10px/1 var(--f-body);margin-right:4px;vertical-align:-1px}
+.late .st-ic{background:var(--critical);color:#fff}
+.soon .st-ic{border:1.5px solid var(--attention);color:var(--attention)}
+.who{display:flex;align-items:center;gap:8px;font-size:14px;white-space:nowrap;overflow:hidden}
+.who em{font-style:normal;color:var(--muted)}
+.more{width:44px;height:44px;border-radius:10px;border:1px solid transparent;background:transparent;display:inline-flex;align-items:center;justify-content:center;color:var(--ink);flex:none}
+.more:before{content:"";width:4px;height:4px;border-radius:999px;background:currentColor;box-shadow:-7px 0 0 currentColor,7px 0 0 currentColor}
+.more.bd{border-color:var(--line)}
+.fait{height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line-strong);background:#fff;font:600 14px var(--f-body);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.fait.on{background:var(--primary-soft);border-color:transparent;color:var(--primary)}
+/* Accueil : ligne allégée */
+.tl.light{grid-template-columns:minmax(0,1fr) 170px 210px 150px 72px;padding-left:20px}
+/* Téléphone */
+.ui-m{width:375px;height:812px;position:relative;background:var(--ground);overflow:hidden;font-size:15px;display:flex;flex-direction:column}
+.ui-m.auto{height:auto;min-height:812px}
+.mtb{display:flex;align-items:center;gap:2px;height:60px;padding:0 6px 0 16px;background:#fff;border-bottom:1px solid var(--line);flex:none;position:relative;z-index:3}
+.mtb h1{font-size:20px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mtb .back{display:inline-flex;align-items:center;gap:4px;height:44px;color:var(--primary);font-weight:600;text-decoration:none;margin-left:-6px;padding:0 6px;flex:1}
+.mbody{flex:1;overflow:hidden;position:relative}
+.mpad{padding:16px}
+.mbb{position:absolute;left:0;right:0;bottom:0;height:72px;padding:0 0 8px;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:1.1fr 1.15fr .85fr 1.15fr .75fr;z-index:25}
+.mbb a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);text-decoration:none;font:500 13px/1.1 var(--f-body);letter-spacing:-.01em;position:relative;white-space:nowrap;min-height:56px}
+.mbb a svg{width:22px;height:22px}
+.mbb a.on{color:var(--primary);font-weight:600}
+.mbb a.on:before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--primary)}
+.mbb .b{position:absolute;top:6px;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:999px;background:var(--critical);color:#fff;font:600 11px/18px var(--f-body);text-align:center;padding:0 4px}
+.tlm{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 6px;align-items:center;padding:12px 6px 12px 16px;background:#fff;border-bottom:1px solid var(--line)}
+.tlm.sel{grid-template-columns:44px minmax(0,1fr);padding-left:4px}
+.tlm .chkc{width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.tlm .txt{min-width:0}
+.tlm .tt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:600;line-height:1.35}
+.tlm .meta{font-size:13px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tlm .meta.late{color:var(--critical);font-weight:500}
+.tlm .meta.soon{color:var(--attention)}
+.tlm .fait{height:44px}
+.mgrp{padding:14px 16px 6px;font:600 14px var(--f-title);color:var(--ink);display:flex;justify-content:space-between}
+.mgrp small{font:400 13px var(--f-body);color:var(--muted)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;box-shadow:var(--float);z-index:30;padding:8px 0 16px}
+.sheet .grab{width:40px;height:4px;border-radius:999px;background:var(--line-strong);margin:4px auto 8px}
+.sheet .si{display:flex;align-items:center;gap:14px;min-height:52px;padding:0 20px;font-size:16px}
+.sheet .si svg{width:22px;height:22px;color:var(--muted)}
+.sheet .si.d{color:var(--ink);font-size:15px}
+.sheet hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.sticky-act{position:absolute;left:0;right:0;bottom:0;padding:12px 16px 20px;background:#fff;border-top:1px solid var(--line);z-index:6}
+/* Message de retour (toast) */
+.toast{display:flex;align-items:center;gap:12px;background:var(--ink);color:#fff;border-radius:12px;padding:8px 8px 8px 16px;box-shadow:var(--float);font-size:15px;min-height:56px;position:relative;overflow:hidden}
+.toast .tx{flex:1;min-width:0}
+.toast .tx small{display:block;color:#A9B3C1;font-size:13px}
+.toast .ub{display:inline-flex;align-items:center;flex:none;height:40px;padding:0 14px;border-radius:8px;border:1px solid #5FD3B8;background:transparent;color:#5FD3B8;font:600 14px var(--f-body);white-space:nowrap}
+.toast .cl{display:inline-flex;align-items:center;justify-content:center;flex:none;width:40px;height:40px;border:0;background:transparent;color:#A9B3C1;font-size:20px}
+.toast .bar{position:absolute;left:0;bottom:0;height:3px;width:62%;background:#5FD3B8}
+.toast.ok-ic:before{content:"✓";font-weight:700;color:#5FD3B8;margin-right:-4px}
+.toast.err{background:#fff;color:var(--ink);border:1px solid var(--critical)}
+.toast.err .ub{border-color:var(--line-strong);color:var(--ink)}
+.notice{border-radius:10px;padding:12px 16px;font-size:14px;display:flex;gap:12px;align-items:flex-start}
+.notice.info{background:var(--primary-soft)}
+.notice.warn{background:var(--attention-soft)}
+.notice.err{background:var(--critical-soft)}
+.notice b{font-weight:600}
+.filters{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.filters .field{min-width:0}
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.count-line{display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px;font-size:14px;color:var(--muted)}
+.empty{text-align:left;padding:40px;border:1px dashed var(--line-strong);border-radius:16px;background:#fff}
+.empty h3{font-size:19px;margin-bottom:6px}
+.window{position:absolute;z-index:30;background:#fff;border-radius:16px;box-shadow:var(--float);display:flex;flex-direction:column;overflow:hidden}
+.window .wh{display:flex;align-items:flex-start;gap:12px;padding:20px 20px 16px 28px;border-bottom:1px solid var(--line)}
+.window .wb{padding:24px 28px;display:grid;gap:20px}
+.window .wf{display:flex;align-items:center;gap:12px;padding:16px 28px;border-top:1px solid var(--line);background:#fff}
+.sec-t{font:600 13px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.choice{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid var(--line-strong);border-radius:10px}
+.choice.on{border:2px solid var(--primary);background:var(--primary-soft);padding:13px 15px}
+.choice b{display:block;font-weight:600}
+.choice span{font-size:14px;color:var(--muted)}
+.swatch{display:inline-block;width:28px;height:28px;border-radius:6px;border:1px solid var(--line);vertical-align:middle}
+.ph-box{border:1px dashed var(--line-strong);border-radius:12px;padding:16px;color:var(--muted);font-size:13px;background:repeating-linear-gradient(45deg,#fff,#fff 8px,#F9FAFB 8px,#F9FAFB 16px)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:16px 0 20px}
+.tabs span{height:44px;display:inline-flex;align-items:center;padding:0 14px;font-size:15px;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.tabs span.on{color:var(--ink);font-weight:600;border-color:var(--primary)}
+
+.ui-m .seg{padding:0;border-radius:10px;overflow:hidden}.ui-m .seg span{height:44px;border-radius:0}
+.fait svg{width:16px;height:16px}
+
+@media (max-width:1100px){.toolbar-doc{position:static}}
+
+/* Répartition A (porte 2, § 6) appliquée en rôles : la couleur d'action ne porte que l'action et les
+   liens ; l'attente et « bientôt » sont neutres avec une icône ; le rouge reste le retard. */
+.pill.soon{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.pill.ok{background:var(--ground);color:var(--ink);border-color:var(--line)}
+.due.soon span,.tlm .meta.soon,.hint.soon-h{color:var(--muted)}
+.soon .st-ic,.soon-h .st-ic{border:0;width:auto;height:auto;font:500 13px/1 var(--f-body);color:var(--ink)}
+.fait.on{background:var(--ground);border-color:var(--line);color:var(--ink)}
+.notice.info{background:var(--ground);border:1px solid var(--line)}
+.choice.on{background:#fff}
+.toast .bar{background:#A9B3C1}
+.toast.ok-ic:before{color:#fff}
+
+.btn.toggle[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* Porte 3 du volet 1 (25/11/2026) */
+/* M5 : « Annuler » du message de retour en accent de nuit (night-accent #5FD3B8 sur ink #14181F : 9,7:1) ;
+   texte secondaire en night-ink-muted (8,4:1). */
+.toast.err .ub{border-color:var(--line-strong);color:var(--ink)}
+/* M4 : le lien d'évènement d'« Aujourd'hui », séparé du titre ; 44 px de haut sur téléphone. */
+.ev.evl{color:var(--primary);justify-self:start;max-width:100%}
+.evl-m{display:inline-flex;align-items:center;min-height:44px;margin:-8px 0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%}
+/* M2 : barre des actions groupées, collée sous la liste, nette à l'ordinateur. */
+.selbar{position:absolute;bottom:0;right:0;display:flex;align-items:center;gap:10px;padding:12px 48px 12px 24px;background:var(--surface);border-top:2px solid var(--ink);box-shadow:0 -8px 24px rgba(20,24,31,.12);z-index:8}
+.selbar .n{font:600 17px/1.2 var(--f-title);white-space:nowrap;padding-right:12px;margin-right:4px;border-right:1px solid var(--line)}
+/* M13 : erreur sous la question. */
+.q-err{display:flex;align-items:center;gap:8px;margin-top:8px;color:var(--critical);font-size:14px;font-weight:500}
+.choice.err-b{border-color:var(--critical)}
+/* M7 : à 911 px (C-82), la barre du haut tient sans rien couper : sous 760 px de barre, le texte
+   d'aide de la recherche devient « Rechercher… ». */
+.tb{container-type:inline-size}
+.tb .search{white-space:nowrap;min-width:0}
+.tb .search .ph-s{display:none}
+@container (max-width:760px){.tb .search .ph-l{display:none}.tb .search .ph-s{display:inline}.tb .search{flex:1 1 auto}}
+
+/* Volet 2 (reprise et import) : formes ajoutées, toutes aux jetons de DESIGN.md. Les formes du volet 1
+   (ligne type, panneau, message de retour, erreur de saisie, états) sont reprises telles quelles. */
+.num{font-variant-numeric:tabular-nums}
+.r{text-align:right}
+.nr{color:var(--muted)}
+.back-l{display:inline-flex;align-items:center;gap:4px;min-height:44px;color:var(--primary);font-weight:600;text-decoration:none;font-size:15px;margin:-8px 0 4px -6px;padding:0 6px}
+.back-l svg{width:18px;height:18px}
+/* La page de reprise : une ligne par fichier attendu */
+.files{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.fl{display:grid;grid-template-columns:40px minmax(0,1fr) 250px 210px;gap:16px;align-items:center;padding:18px 24px;border-bottom:1px solid var(--line)}
+.fl:last-child{border-bottom:0}
+.fl .n{width:32px;height:32px;border-radius:999px;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font:600 14px var(--f-body);color:var(--ink);background:#fff}
+.fl.done .n{background:var(--ink);border-color:var(--ink);color:#fff}
+.fl.next{background:#FAFBFC;box-shadow:inset 3px 0 0 var(--ink)}
+.fl h3{font:600 16px/1.3 var(--f-title)}
+.fl .d{font-size:14px;color:var(--muted);margin-top:2px}
+.fl .st{font-size:14px;line-height:1.35}
+.fl .st b{font-weight:600;display:flex;align-items:center;gap:6px}
+.fl .st span{display:block;color:var(--muted);font-size:13px}
+.fl .act{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.fl .act .link{font-size:14px;min-height:32px;display:inline-flex;align-items:center}
+.sti{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;font:700 11px/1 var(--f-body);flex:none}
+.sti.ok{background:var(--ink);color:#fff}
+.sti.run{border:1.5px solid var(--ink);color:var(--ink)}
+.sti.todo{border:1.5px dashed var(--line-strong)}
+.sti.skip{border:1.5px solid var(--line-strong);color:var(--muted)}
+.sti.warn{background:var(--attention);color:#fff}
+.flm{background:#fff;border-bottom:1px solid var(--line);padding:14px 16px;display:grid;grid-template-columns:32px minmax(0,1fr);gap:4px 12px}
+.flm .n{width:28px;height:28px;border-radius:999px;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font:600 13px var(--f-body);background:#fff}
+.flm.done .n{background:var(--ink);border-color:var(--ink);color:#fff}
+.flm.next{box-shadow:inset 3px 0 0 var(--ink);background:#FAFBFC}
+.flm h3{font:600 15px/1.3 var(--f-title)}
+.flm .st{font-size:13px;color:var(--muted);margin-top:2px}
+.flm .st b{color:var(--ink);font-weight:600}
+.flm .acts{grid-column:2;display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.prog{height:6px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:8px}
+.prog i{display:block;height:100%;background:var(--ink)}
+/* L'assistant d'import : étapes */
+.wiz{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:4px 0 24px;padding:0;list-style:none}
+.wiz li{border-top:3px solid var(--line);padding:8px 2px 0;font-size:13px;color:var(--muted);line-height:1.35}
+.wiz li b{display:block;color:var(--ink);font-weight:600;font-size:14px}
+.wiz li.done{border-color:var(--ink)}
+.wiz li.on{border-color:var(--primary)}
+.wiz li.on b{color:var(--primary)}
+.wizm{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--muted);margin:0 0 12px}
+.wizm b{color:var(--ink)}
+.q{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 24px}
+.q+.q{margin-top:16px}
+.q h3{font-size:17px;margin-bottom:4px}
+.q .why{font-size:14px;color:var(--muted);margin:0 0 12px}
+.q .opts{display:grid;gap:8px}
+.choice .res{display:block;margin-top:4px;font-size:13px;color:var(--ink)}
+.choice .res .num{font-weight:600}
+.understood{display:grid;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.understood>div{display:grid;grid-template-columns:minmax(0,1fr) 24px minmax(0,1.3fr) auto;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);font-size:14px}
+.understood>div:last-child{border-bottom:0}
+.understood .from{font-weight:500}
+.understood .arrow{color:var(--muted);text-align:center}
+.understood .hdr{font:600 12px var(--f-body);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--ground)}
+/* Tableaux de données dans la maquette */
+.dt{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px}
+.dt th{text-align:left;font:500 13px var(--f-body);color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);background:#fff;white-space:nowrap}
+.dt td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.dt tr:last-child td{border-bottom:0}
+.dt td.num,.dt th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dt tr.sub td{background:var(--ground);font-weight:600}
+.dt tr.total td{font-weight:600;border-top:1px solid var(--line-strong)}
+.dt .sm{display:block;font-size:13px;color:var(--muted)}
+.dt .in{height:40px}
+/* Provenance d'une valeur : une marque neutre, jamais une teinte d'état */
+.src{display:inline-flex;align-items:center;gap:4px;font:500 12px var(--f-body);color:var(--muted);white-space:nowrap}
+.src:before{content:"";width:12px;height:14px;border:1.4px solid var(--muted);border-radius:2px;flex:none;background:linear-gradient(var(--muted),var(--muted)) 3px 4px/5px 1.2px no-repeat,linear-gradient(var(--muted),var(--muted)) 3px 7px/5px 1.2px no-repeat}
+.kv{display:grid;grid-template-columns:180px minmax(0,1fr);gap:8px 16px;font-size:14px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0}
+/* Bloc « À compléter » d'un mariage repris */
+.todo-l{display:grid;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.todo-l>div{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);font-size:14px}
+.todo-l>div:last-child{border-bottom:0}
+.todo-l b{font-weight:600}
+.todo-l .sm{display:block;color:var(--muted);font-size:13px}
+.box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 24px}
+.box h3{font-size:17px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.stat b{display:block;font:600 22px/1.2 var(--f-title)}
+.stat span{font-size:13px;color:var(--muted)}
+.drop{border:1.5px dashed var(--line-strong);border-radius:12px;padding:24px;display:flex;align-items:center;gap:16px;background:#fff}
+.drop svg{width:28px;height:28px;color:var(--muted)}
+.tag{display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:6px;font:500 12px var(--f-body);background:var(--ground);border:1px solid var(--line);color:var(--ink);white-space:nowrap}
+.cmp{display:grid;grid-template-columns:140px minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;font-size:14px}
+.cmp>span{padding:9px 12px;border-bottom:1px solid var(--line)}
+.cmp>span.h{font:600 12px var(--f-body);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--ground)}
+.cmp>span.k{color:var(--muted)}
+.cmp>span.chg{font-weight:600}
+.cmp>span:nth-last-child(-n+4){border-bottom:0}
+.prog-day{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
+.prog-day+.prog-day{margin-top:12px}
+.prog-day h4{font:600 16px var(--f-title);padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+.prog-day h4 small{font:400 13px var(--f-body);color:var(--muted)}
+.seq{display:grid;grid-template-columns:150px minmax(0,1fr) 220px;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);font-size:14px;align-items:baseline}
+.seq:last-child{border-bottom:0}
+.seq .h{font-variant-numeric:tabular-nums;font-weight:600}
+.seq .h small{display:block;font-weight:400;color:var(--muted);font-size:13px}
+.seq .h .miss{display:block;font-weight:500;color:var(--attention);font-size:13px}
+.seqm{padding:10px 16px;border-bottom:1px solid var(--line);font-size:14px;background:#fff}
+.seqm .h{font-weight:600;font-variant-numeric:tabular-nums}
+.seqm .h .miss{color:var(--attention);font-weight:500}
+.seqm .w{color:var(--muted);font-size:13px}
+.ae{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font:600 13px var(--f-body);background:var(--attention-soft);color:var(--attention);white-space:nowrap}
+.ae:before{content:"!";display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:999px;background:var(--attention);color:#fff;font:700 10px/1 var(--f-body)}
+.notice.warn b,.notice.err b{display:inline}
+.err-l{color:var(--critical);font-weight:600}
+.ic-err{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:999px;background:var(--critical);color:#fff;font:700 11px/1 var(--f-body);flex:none;margin-top:2px}
+.cardm{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.cardm+.cardm{margin-top:8px}
+.cardm .t{font-weight:600}
+.cardm .s{font-size:13px;color:var(--muted)}
+.mrow{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:6px 0}
+.mrow span:last-child{font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+
+
+/* Volet 3 (Aujourd'hui, Évènements) : formes ajoutées, toutes aux jetons de DESIGN.md. Les formes des
+   volets 1 et 2 (ligne type, panneau, message de retour, danger, « À compléter », provenance) sont reprises
+   telles quelles. */
+.fwrap{width:913px;max-width:100%;overflow:auto;border:1px solid var(--line-strong);border-radius:12px;background:var(--ground)}
+.ui-d.w911{width:911px;height:512px;min-height:0}
+.ui-d.w911 .sb{overflow:hidden}
+.ui-d.w911 .ct{padding:20px 24px 24px}
+.ui-d.w911 .tb{padding:0 24px}
+.ui-d.w911 .stepper li+li:before{width:16px;margin:0 8px}
+.ui-d.w911 .oh h1{font-size:24px}
+.ui-d.w911 .tabs{margin:12px 0 16px}
+.ui-d.w911 .tl.no-evt{grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"t t f m" "d w f m";gap:2px 16px;padding:10px 12px 10px 24px}
+.ui-d.w911 .tl.no-evt .tt{grid-area:t}
+.ui-d.w911 .tl.no-evt .due{grid-area:d}
+.ui-d.w911 .tl.no-evt .due b{display:inline;margin-right:6px}
+.ui-d.w911 .tl.no-evt .due>span{display:inline}
+.ui-d.w911 .tl.no-evt .who{grid-area:w}
+.ui-d.w911 .tl.no-evt .fait{grid-area:f}
+.ui-d.w911 .tl.no-evt .more{grid-area:m}
+/* En-tête d'un objet (P-09) : retour, nom, faits, frise d'une ligne, une action et un menu */
+.oh{position:relative}
+.oh .t-row{display:flex;align-items:flex-start;gap:16px}
+.oh h1{font-size:26px;line-height:1.2}
+.oh .facts{color:var(--muted);font-size:14px;margin-top:4px}
+.oh .facts b{color:var(--ink);font-weight:600}
+.oh .acts{margin-left:auto;display:flex;gap:8px;flex:none;align-items:center}
+.stepper{display:flex;align-items:center;flex-wrap:nowrap;margin:14px 0 0;padding:0;list-style:none;font-size:13px;min-width:0}
+.stepper li{display:flex;align-items:center;gap:8px;white-space:nowrap;color:var(--muted);flex:none}
+.stepper li+li:before{content:"";width:24px;height:1px;background:var(--line-strong);margin:0 10px;flex:none}
+.stepper .dot{width:20px;height:20px;border-radius:999px;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font:700 11px/1 var(--f-body);background:#fff;color:var(--muted);flex:none}
+.stepper li.done{color:var(--ink)}
+.stepper li.done .dot{background:var(--ink);border-color:var(--ink);color:#fff}
+.stepper li.now{color:var(--ink);font-weight:600}
+.stepper li.now .dot{border:6px solid var(--ink)}
+.stepper small{font-weight:400;color:var(--muted);font-size:13px}
+.stepper .go{margin-left:16px}
+.tabs .tc{margin-left:6px;font-size:13px;color:var(--muted);font-weight:400}
+.tabs .tc.late{color:var(--critical);font-weight:500}
+.tabs .tmore{margin-left:auto;gap:6px}
+.tabs .tmore:after{content:"";width:7px;height:7px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg) translateY(-2px)}
+.sticky-h{display:flex;align-items:center;gap:12px;height:52px;padding:0 48px;background:#fff;border-bottom:1px solid var(--line);font-size:15px}
+.sticky-h b{font:600 17px var(--f-title)}
+/* Téléphone : onglets qui défilent, l'ouvert toujours visible, une flèche dit la suite */
+.mtabs{display:flex;overflow:hidden;background:#fff;border-bottom:1px solid var(--line);position:relative;padding-left:4px;flex:none}
+.mtabs span{flex:none;height:44px;display:inline-flex;align-items:center;padding:0 12px;color:var(--muted);white-space:nowrap;border-bottom:3px solid transparent}
+.mtabs span.on{color:var(--ink);font-weight:600;border-color:var(--primary)}
+.mtabs span .tc{margin-left:4px;font-size:12px}
+.mtabs span .tc.late{color:var(--critical);font-weight:600}
+.mtabs .nx{position:absolute;right:0;top:0;bottom:0;width:44px;padding:0;justify-content:center;background:#fff;border-left:1px solid var(--line);border-bottom:0;color:var(--ink)}
+.mtabs .nx svg{width:18px;height:18px}
+.msteps{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.msteps b{color:var(--ink);font-weight:600}
+/* « Aujourd'hui » : la ligne d'« À traiter en premier » (ligne allégée du volet 1, plus le contact) */
+.tl.l3{grid-template-columns:minmax(0,1fr) 150px 180px 190px 168px;padding-left:20px;min-height:64px}
+.tl.l3 .tx{min-width:0;padding:10px 0}
+.tl.l3 .tx .tt{display:inline}
+.tl.l3 .cl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl.l3 .cl svg{width:14px;height:14px;flex:none}
+.tl.l3 .qa{justify-self:start}
+.tl.l3 .who{white-space:nowrap}
+.fait.w{min-width:0}
+.part-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:14px 24px 8px 20px;border-top:1px solid var(--line)}
+.part-h h4{font:600 15px var(--f-title)}
+.part-h h4 small{font:400 13px var(--f-body);color:var(--muted);margin-left:6px}
+.part-h .link{font-size:14px}
+.kpi{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.kpi span{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;font:500 13px var(--f-body);background:#fff;border:1px solid var(--line)}
+.kpi span.late{color:var(--critical);border-color:transparent;background:var(--critical-soft)}
+.late-t{color:var(--critical);font-weight:500}
+.late-t:before{content:"!";display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:999px;background:var(--critical);color:#fff;font:700 10px/1 var(--f-body);margin-right:5px;vertical-align:-1px}
+.mbar{height:6px;border-radius:999px;background:var(--line);overflow:hidden;width:72px;display:inline-block;vertical-align:middle;margin-right:8px}
+.mbar i{display:block;height:100%;background:var(--ink)}
+.tlm .cl{font-size:13px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:4px}
+.tlm .tel{display:inline-flex;align-items:center;gap:4px;min-height:44px;margin:-8px 0;color:var(--primary);text-decoration:underline;text-underline-offset:3px}
+.tlm .tel svg{width:14px;height:14px}
+.mpart{padding:14px 16px 6px;font:600 14px var(--f-title);display:flex;justify-content:space-between;align-items:baseline;background:var(--ground)}
+.mpart small{font:400 13px var(--f-body);color:var(--muted)}
+.mpart .link{font:500 13px var(--f-body);display:inline-flex;align-items:center;min-height:44px;margin:-14px 0 -10px}
+.empty2{background:#fff;border:1px solid var(--line);border-radius:16px;padding:32px 40px}
+.empty2 h2{font-size:22px}
+.empty2 .steps{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:0;border-top:1px solid var(--line)}
+.empty2 .steps li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+.empty2 .steps li b{font-weight:600}
+.empty2 .steps .n{width:24px;height:24px;border-radius:999px;border:1.5px solid var(--line-strong);display:inline-flex;align-items:center;justify-content:center;font:600 12px var(--f-body)}
+.aside-line{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);margin-top:12px}
+.sum-line{display:block;margin-top:4px;font-size:14px;color:var(--muted)}
+.sum-line b{color:var(--ink);font-weight:600}
+/* Tableaux de la vue d'agence et de la liste */
+.dt td.nm{font-weight:500}
+.dt .tt{font-weight:500}
+.dt tr.quiet td{color:var(--muted)}
+.who-c{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.daygrp td{background:var(--ground);font:600 13px var(--f-body);color:var(--ink);padding:8px 12px}
+/* Programme */
+.pg-day{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.pg-day+.pg-day{margin-top:16px}
+.pg-day .dh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.pg-day .dh h4{font:600 17px var(--f-title)}
+.pg-day .dh h4 small{font:400 14px var(--f-body);color:var(--muted);margin-left:8px}
+.pg-l{display:grid;grid-template-columns:150px minmax(0,1fr) 200px 180px 44px;gap:12px;align-items:center;min-height:52px;padding:0 8px 0 16px;border-bottom:1px solid var(--line);font-size:14px}
+.pg-l .h{font-variant-numeric:tabular-nums;font-weight:600}
+.pg-l .h small{display:block;font-weight:400;color:var(--muted);font-size:13px}
+.pg-l .h .miss{display:block;font-weight:500;color:var(--attention);font-size:13px}
+.pg-l .w{color:var(--muted)}
+.pg-l.open{display:block;padding:16px;background:#FAFBFC;box-shadow:inset 3px 0 0 var(--ink)}
+.pg-add{display:flex;align-items:center;gap:8px;min-height:48px;padding:0 16px;color:var(--primary);font-weight:600;font-size:14px}
+.savebar{position:absolute;left:232px;right:0;bottom:0;display:flex;align-items:center;gap:12px;padding:12px 48px;background:#fff;border-top:2px solid var(--ink);box-shadow:0 -8px 24px rgba(20,24,31,.12);z-index:8}
+/* Fenêtre longue : rubriques à gauche */
+.wlong{display:grid;grid-template-columns:200px minmax(0,1fr);min-height:0}
+.wlong nav{border-right:1px solid var(--line);padding:16px 8px;display:grid;gap:2px;align-content:start}
+.wlong nav span{display:flex;align-items:center;min-height:40px;padding:0 12px;border-radius:8px;font-size:14px}
+.wlong nav span.on{background:var(--ground);font-weight:600}
+.wlong .wb{grid-template-columns:1fr 1fr;gap:16px 20px;align-content:start}
+.ro{display:flex;align-items:center;gap:8px;min-height:44px;font-size:15px}
+
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true"><symbol id="i-today" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="12" cy="14.5" r="1.6"/></symbol><symbol id="i-events" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4M8 13.5h3M8 16.5h6"/></symbol><symbol id="i-tasks" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5l1.8 1.8L9 5M4 12.5l1.8 1.8L9 11M4 18.5l1.8 1.8L9 17M12 7h8M12 13h8M12 19h8"/></symbol><symbol id="i-contacts" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7.5 17.5c1-2.2 2.6-3.2 4.5-3.2s3.5 1 4.5 3.2"/></symbol><symbol id="i-rdv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="15" cy="15" r="3"/><path d="M15 13.6V15l1 .8"/></symbol><symbol id="i-vendors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol><symbol id="i-quotes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7l4 4v13H7z"/><path d="M14 3.5v4h4M9.5 12h6M9.5 15.5h6"/></symbol><symbol id="i-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6" width="17" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></symbol><symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></symbol><symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4L18 18M6 18l1.6-1.6M16.4 7.6L18 6"/></symbol><symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.4"/><circle cx="12" cy="16.8" r=".6"/></symbol><symbol id="i-learn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-4.5L21 9l-9 4.5z"/><path d="M7 11v4.5c1.4 1.3 3 2 5 2s3.6-.7 5-2V11"/></symbol><symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></symbol><symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></symbol><symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-more" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/></symbol><symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></symbol><symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5L16 12l-6.5 6.5"/></symbol><symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></symbol><symbol id="i-clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 7.5l-6.8 6.8a2 2 0 0 0 2.8 2.8l7-7a4 4 0 0 0-5.7-5.7l-7 7a6 6 0 0 0 8.5 8.5l5.2-5.2"/></symbol><symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.5 3.8-5.3 7-5.3s5.8 1.8 7 5.3"/></symbol><symbol id="i-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4.5H6v15h8M10.5 12H20M16.5 8.5L20 12l-3.5 3.5"/></symbol><symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol><symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></symbol><symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></symbol><symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5M7.5 9.5L12 5l4.5 4.5M5 19.5h14"/></symbol><symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h3l1.5 4-2 1.5a11 11 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2 2A16 16 0 0 1 4.5 5.5a2 2 0 0 1 2-2z"/></symbol></svg>
+<div class="doc">
+<div class="crumbs"><a href="index.html">Lot 68 · maquettes des volets 1 à 3</a> › Évènements : l'en-tête de la fiche, ses onglets et sa frise</div>
+<header>
+<h1>Évènements : l'en-tête de la fiche, ses onglets et sa frise</h1>
+<p>L'en-tête d'un évènement tenu en 200 px à 1 440 px, à 911 × 512 et sur téléphone, avec tous ses onglets ; la frise du statut. Exemple : « Léa &amp; Maxime », mariage du samedi 12 juin 2027, Atelier Roussel, le mercredi 25 novembre 2026. La Synthèse et le panneau « Modifier les informations » sont à la page suivante ; la liste et le programme, à la page 17.</p>
+<p>Formes reprises : menu « ⋯ » et danger de niveau 2 (volet 1, page 4), ligne type d'une tâche dans la fiche (volet 1, page 1), mots de « Nouvel évènement » (M12), barre du bas du téléphone (D4).</p>
+</header>
+<div class="toolbar-doc"><span class="lbl">Cadres d'ordinateur :</span><button data-mode="cote" aria-pressed="true">Côte à côte, réduits</button><button data-mode="reel" aria-pressed="false">L'un sous l'autre, taille réelle</button>
+<span class="lbl" style="margin-left:16px">Aller à :</span>
+<ul class="toc"><li><a href="#entete">En-tête et onglets</a></li><li><a href="#e911">À 911 × 512</a></li><li><a href="#telephone">Téléphone</a></li><li><a href="#frise">La frise</a></li></ul></div>
+
+<!-- ============================================================ -->
+<section class="mock" id="entete">
+<h2>L'en-tête de la fiche, tenu en 200 px, et tous ses onglets (C-22, C-23)</h2>
+<p class="intro">Aujourd'hui, la fiche empile dix zones d'action avant son contenu, et la première ligne utile arrive à 552 px. Proposé : le retour, le nom, les faits sur une ligne, la frise sur une ligne, une seule action et un menu. Le statut est dit une fois, par la frise. Le type et la source passent dans « Informations » ; « Messages », « Voir comme Léa Martin », « Jour J », « Reporter » et « Annuler l'évènement » passent dans le menu « ⋯ ». Les huit onglets tiennent sur 1 112 px ; l'onglet ouvert est marqué, chacun dit son nombre utile.</p>
+<div class="pair"><div class="side"><div class="cap"><b>Aujourd'hui</b> dix zones d'action ; onglets coupés à « Documen » ; première ligne utile à 552 px</div><div class="dwrap"><img src="../../audits/2026-11-ux-parcours/preuves/fiche-evenement-1440.jpg" width="1440" alt="Fiche d'un évènement aujourd'hui"></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 1 440 px, « Léa &amp; Maxime », onglet « Synthèse »</div><div class="dwrap"><div class="ui-d" style="min-height:900px"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav on"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct"><div class="oh">
+<a class="back-l"><svg aria-hidden="true"><use href="#i-back"/></svg>Évènements</a>
+<div class="t-row"><div style="min-width:0"><h1>Léa &amp; Maxime</h1><div class="facts">Mariage · samedi 12 juin 2027 · dans 199 jours · Manoir des Aulnes, Poitiers</div></div><div class="acts"><span class="btn">Écrire aux mariés</span><span class="more bd" aria-label="Autres actions pour Léa & Maxime"></span></div></div>
+<div class="row" style="gap:0;align-items:center;margin-top:14px"><ol class="stepper" style="margin:0" aria-label="Où en est l'évènement"><li class="done"><span class="dot">✓</span>Une demande en cours <small>12 mars</small></li><li class="now" aria-current="step"><span class="dot"></span>Signé, en préparation <small>depuis le 2 avr.</small></li><li class=""><span class="dot">3</span>Jour J <small>12 juin</small></li><li class=""><span class="dot">4</span>Clôturé</li></ol></div>
+</div><nav class="tabs" aria-label="Onglets de l'évènement"><span class="on" aria-current="page">Synthèse</span><span>Budget et prestataires<span class="tc">6 sur 9</span></span><span>Tâches<span class="tc late">2 en retard</span></span><span>Programme</span><span>Devis et factures<span class="tc">3</span></span><span>Mariés</span><span>Documents<span class="tc">4</span></span><span>Invités</span></nav><div class="box" style="padding:20px 0 0;overflow:hidden">
+<div class="row" style="justify-content:space-between;padding:0 24px 12px"><h3>Prochaines actions</h3><span class="small muted">6 points d'ici 14 jours, dont <span class="late-t">2 en retard</span></span></div>
+<div class="tlist" style="border:0;border-top:1px solid var(--line);border-radius:0">
+<div class="tl no-evt"><span class="tt">Faire signer le contrat du photographe</span><span class="due late"><b>ven. 20 nov.</b><span><span class="st-ic">!</span>En retard de 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Faire signer le contrat du photographe »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Faire signer le contrat du photographe »"></span></div>
+<div class="tl no-evt"><span class="tt">Confirmer la voiture des mariés</span><span class="due late"><b>sam. 21 nov.</b><span><span class="st-ic">!</span>En retard de 4 jours</span></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Fait : « Confirmer la voiture des mariés »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Confirmer la voiture des mariés »"></span></div>
+<div class="tl no-evt"><span class="tt">Choisir le fleuriste</span><span class="due soon"><b>dim. 29 nov.</b><span><span class="st-ic">◷</span>Dans 4 jours</span></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait" aria-label="Fait : « Choisir le fleuriste »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Choisir le fleuriste »"></span></div>
+</div>
+<div class="row" style="justify-content:space-between;padding:12px 24px;border-top:1px solid var(--line)"><span class="small muted">3 autres : la relance du traiteur, l'acompte du traiteur, le faire-part du brunch</span><span class="btn sm">Tout afficher</span></div>
+</div><div class="grid2" style="margin-top:16px"><div class="box"><div class="row" style="justify-content:space-between;margin-bottom:10px"><h3>Temps forts</h3><span class="link small">Gérer</span></div><div class="mrow"><span>Soirée de la veille</span><span>ven. 11 juin · 19 h</span></div><div class="mrow"><span>Cérémonie laïque</span><span>sam. 12 juin · 15 h 30</span></div><div class="mrow"><span>Dîner</span><span>sam. 12 juin · 20 h</span></div><div class="mrow"><span>Brunch</span><span>dim. 13 juin · 11 h</span></div></div><div class="box"><div class="row" style="justify-content:space-between;margin-bottom:10px"><h3>Où en est le mariage</h3></div>
+<div class="mrow"><span>Tâches</span><span><span class="mbar"><i style="width:70%"></i></span>14 sur 20 · <span class="late-t">2 en retard</span></span></div>
+<div class="mrow"><span>Budget</span><span>31 200,00 € engagés sur 40 000,00 €</span></div>
+<div class="mrow"><span>Prestataires</span><span>6 postes retenus sur 9</span></div>
+<div class="mrow"><span>Décisions des mariés</span><span>1 en attente</span></div></div></div></div></div></div></div></div></div><div class="pair" style="margin-top:24px"><div class="side"><div class="pop menu" style="position:static;width:320px">
+<div class="mi">Messages<small>Les fils de discussion de ce mariage</small></div>
+<div class="mi">Voir comme Léa Martin<small>Son espace, tel qu'elle le voit</small></div>
+<div class="mi">Ouvrir le Jour J<small>L'écran du terrain, à garder sur le téléphone ; proposé ici dès J-7</small></div>
+<div class="mi">Changer le type…<small>Mariage</small></div><hr>
+<div class="mi">Reporter l'évènement…<small>Garder le mariage, changer sa date</small></div>
+<div class="mi d">Annuler l'évènement…<small>Il passe à « Annulé » ; vous pourrez le rétablir</small></div></div></div>
+<div class="side"><table class="doc-t"><tr><th style="width:38%">Dans l'en-tête aujourd'hui</th><th>Où il passe</th></tr>
+<tr><td>Statut en pastille, et frise de cinq étapes</td><td>La frise seule, sur une ligne (choix E1 : quatre étapes)</td></tr>
+<tr><td>« Type d'événement : » et « Changer le type »</td><td>Dans les faits (« Mariage ») ; on le change par le menu ou « Informations »</td></tr>
+<tr><td>« Source du prospect : Recette »</td><td>« Informations », sur la Synthèse</td></tr>
+<tr><td>« Messages », « Écrire au client », « Voir comme … », « Jour J »</td><td>Une action visible, « Écrire aux mariés » (choix E4) ; les autres au menu « ⋯ ». « Ouvrir le Jour J » prend la place de l'action à J-7</td></tr>
+<tr><td>« Reporter l'évènement… », « Annuler l'évènement… »</td><td>Au menu « ⋯ », en bas, à part ; « Annuler l'évènement » en entier (M6), fenêtre de niveau 2 (page 4)</td></tr>
+<tr><td>« Prochaine étape » au-dessus des onglets</td><td>Une ligne des « Prochaines actions » de la Synthèse, jamais un bandeau (page 16)</td></tr>
+<tr><td>« Rétroplanning », « Programme du jour J »</td><td>« Tâches » (volet 1), « Programme » : « Jour J » ne nomme plus que l'étape et l'écran du terrain</td></tr>
+</table></div></div><div class="rules">
+<div><h4>Constats traités</h4><ul><li>C-22, P-09 : retour, nom, faits, frise, une action et un menu ; en-tête mesuré à 1 440 px : voir la note (cible 200 px).</li>
+<li>C-23 : les huit onglets visibles à 1 440 px, l'ouvert marqué d'un trait et en gras, avec son nombre (« 6 sur 9 », « 2 en retard »).</li>
+<li>C-27 : le statut est dit une fois.</li>
+<li>C-89 (rappel) : une seule graphie, « évènement ».</li></ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Zones d'action : 3 (en-tête, onglets, contenu)</span><span>Une action et un menu</span><span>Le statut dit une fois</span></div>
+<ul><li>Le nombre d'un onglet dit ce qui demande attention, avec son mot : « 2 en retard » en rouge et « ! » ; les autres en gris.</li>
+<li>Le menu « ⋯ » suit la forme du volet 1 : une phrase par choix, le danger en bas, séparé.</li>
+<li>« Jour J » ne nomme plus un bouton, une étape et un onglet : l'onglet devient « Programme », l'écran du terrain s'ouvre par « Ouvrir le Jour J ».</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="e911">
+<h2>À 911 × 512 (portable à 150 %) : la première action se lit sans défiler</h2>
+<p class="intro">La même fiche dans une fenêtre de 911 × 512, la taille où l'audit a mesuré le menu coupé (C-82). L'en-tête passe sur deux lignes de faits ; la frise ne garde la date que de l'étape en cours ; les onglets qui ne tiennent pas passent dans « Plus ▾ », l'onglet ouvert restant toujours visible. En défilant, une barre fine garde le nom, la date, le statut et les onglets.</p>
+<div class="size">En haut de la fiche</div><div class="fwrap"><div class="ui-d w911"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav on"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="ct"><div class="oh">
+<a class="back-l"><svg aria-hidden="true"><use href="#i-back"/></svg>Évènements</a>
+<div class="t-row"><div style="min-width:0"><h1>Léa &amp; Maxime</h1><div class="facts">Mariage · sam. 12 juin 2027 · dans 199 jours<br>Manoir des Aulnes, Poitiers</div></div><div class="acts"><span class="btn">Écrire aux mariés</span><span class="more bd" aria-label="Autres actions pour Léa & Maxime"></span></div></div>
+<div class="row" style="gap:0;align-items:center;margin-top:14px"><ol class="stepper" style="margin:0" aria-label="Où en est l'évènement"><li class="done"><span class="dot">✓</span>Demande</li><li class="now" aria-current="step"><span class="dot"></span>Signé, en préparation <small>depuis le 2 avr.</small></li><li class=""><span class="dot">3</span>Jour J</li><li class=""><span class="dot">4</span>Clôturé</li></ol></div>
+</div><nav class="tabs" aria-label="Onglets de l'évènement"><span class="on" aria-current="page">Synthèse</span><span>Budget et prestataires<span class="tc">6 sur 9</span></span><span>Tâches<span class="tc late">2 en retard</span></span><span class="tmore">Plus</span></nav><div class="box" style="padding:20px 0 0;overflow:hidden">
+<div class="row" style="justify-content:space-between;padding:0 24px 12px"><h3>Prochaines actions</h3><span class="small muted">6 points d'ici 14 jours, dont <span class="late-t">2 en retard</span></span></div>
+<div class="tlist" style="border:0;border-top:1px solid var(--line);border-radius:0">
+<div class="tl no-evt"><span class="tt">Faire signer le contrat du photographe</span><span class="due late"><b>ven. 20 nov.</b><span><span class="st-ic">!</span>En retard de 5 jours</span></span><span class="who"><span class="avatar sm">CR</span>Vous</span><span class="fait" aria-label="Fait : « Faire signer le contrat du photographe »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Faire signer le contrat du photographe »"></span></div>
+<div class="tl no-evt"><span class="tt">Confirmer la voiture des mariés</span><span class="due late"><b>sam. 21 nov.</b><span><span class="st-ic">!</span>En retard de 4 jours</span></span><span class="who"><span class="avatar sm">BL</span>Bastien</span><span class="fait" aria-label="Fait : « Confirmer la voiture des mariés »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Confirmer la voiture des mariés »"></span></div>
+<div class="tl no-evt"><span class="tt">Choisir le fleuriste</span><span class="due soon"><b>dim. 29 nov.</b><span><span class="st-ic">◷</span>Dans 4 jours</span></span><span class="who"><span class="avatar sm couple">M</span>Les mariés</span><span class="fait" aria-label="Fait : « Choisir le fleuriste »"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions pour « Choisir le fleuriste »"></span></div>
+</div>
+
+</div></div></div></div></div><div class="size">En défilant : la barre fine reste</div><div class="fwrap"><div class="ui-d w911"><aside class="sb"><div class="logo"><i></i>Symbola</div><a class="nav"><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="nav on"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a class="nav"><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="cnt">2 en retard</span></a><a class="nav"><svg aria-hidden="true"><use href="#i-contacts"/></svg>Contacts</a><a class="nav"><svg aria-hidden="true"><use href="#i-rdv"/></svg>Rendez-vous</a><a class="nav"><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a class="nav"><svg aria-hidden="true"><use href="#i-quotes"/></svg>Devis et factures</a><a class="nav"><svg aria-hidden="true"><use href="#i-money"/></svg>Encaissements</a><hr><a class="nav"><svg aria-hidden="true"><use href="#i-grid"/></svg>Tous les modules</a><a class="nav"><svg aria-hidden="true"><use href="#i-gear"/></svg>Paramètres</a><a class="nav"><svg aria-hidden="true"><use href="#i-learn"/></svg>Tutoriels</a><a class="nav"><svg aria-hidden="true"><use href="#i-help"/></svg>Aide</a></aside><div class="main"><div class="tb"><div class="search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="ph-l">Rechercher un évènement, une tâche, un prestataire…</span><span class="ph-s">Rechercher…</span><span class="kbd">⌘K</span></div><span class="btn" data-k="creer"><svg aria-hidden="true"><use href="#i-plus"/></svg>Créer</span><span class="sp"></span><span class="iconbtn" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg><span class="badge">2</span></span><span class="iconbtn bd" aria-label="Aide de cet écran"><svg aria-hidden="true"><use href="#i-help"/></svg></span><span class="acct"><span class="avatar sm">CR</span>Camille</span></div><div class="sticky-h" style="padding:0 24px;height:auto;flex-direction:column;align-items:stretch;gap:0;padding-top:8px"><div class="row" style="gap:10px"><b>Léa &amp; Maxime</b><span class="small muted">sam. 12 juin 2027 · Signé, en préparation</span><span style="flex:1"></span><span class="more" aria-label="Autres actions"></span></div><nav class="tabs" aria-label="Onglets de l'évènement" style="margin:0;border-bottom:0"><span class="on" aria-current="page">Synthèse</span><span>Budget et prestataires<span class="tc">6 sur 9</span></span><span>Tâches<span class="tc late">2 en retard</span></span><span class="tmore">Plus</span></nav></div><div class="ct"><div class="box"><h3 style="margin-bottom:10px">Temps forts</h3><div class="mrow"><span>Soirée de la veille</span><span>ven. 11 juin · 19 h</span></div><div class="mrow"><span>Cérémonie laïque</span><span>sam. 12 juin · 15 h 30</span></div><div class="mrow"><span>Brunch</span><span>dim. 13 juin · 11 h</span></div></div>
+<div class="box" style="margin-top:16px"><h3 style="margin-bottom:10px">Informations</h3><dl class="kv" style="grid-template-columns:130px minmax(0,1fr)"><dt>Mariés</dt><dd>Léa Martin · Maxime Roux</dd><dt>Invités</dt><dd>120 prévus · 38 réponses</dd><dt>Lieux</dt><dd>Manoir des Aulnes, 14 h 30</dd></dl></div></div></div></div></div><div class="rules">
+<div><h4>Constats traités</h4><ul><li>C-22, C-82 : à 911 × 512, la première action de la fiche est dans le premier écran (aujourd'hui, l'en-tête seul dépasse l'écran).</li>
+<li>C-23 : les onglets ne sont jamais coupés en plein mot : ce qui ne tient pas passe dans « Plus ▾ ».</li>
+<li>C-80 (ordinateur) : changer d'onglet garde la barre fine en place, au lieu de renvoyer en haut de la page.</li></ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Onglet ouvert toujours visible</span><span>Rien de coupé en plein mot</span></div>
+<ul><li>Le menu latéral coupé à cette hauteur (C-82) relève du volet « Paramètres » ; il n'est pas redessiné ici.</li>
+<li>La barre fine apparaît quand l'en-tête sort de l'écran ; elle porte le menu « ⋯ », pas l'action de l'en-tête.</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="telephone">
+<h2>Sur téléphone : 224 px jusqu'aux onglets au lieu de 800, l'onglet ouvert toujours visible (C-80)</h2>
+<p class="intro">Le nom, la date, le lieu et l'étape en cours, puis les onglets, qui défilent de côté : une flèche dit qu'il y en a d'autres, et l'onglet ouvert est amené dans le cadre. Changer d'onglet garde la barre des onglets en haut, sous le nom du mariage, au lieu de renvoyer au début de la page. Toutes les actions de l'en-tête sont dans le menu « ⋯ », en panneau du bas.</p>
+<div class="pair m" style="margin-top:24px"><div class="side"><div class="cap"><b>Aujourd'hui</b> 800 px d'en-tête ; deux onglets visibles sur huit</div><div class="mwrap"><img src="../../audits/2026-11-ux-parcours/preuves/fiche-evenement-375.jpg" alt="Fiche sur téléphone aujourd'hui"></div></div>
+<div class="side"><div class="cap"><b>Aujourd'hui</b> onglets coupés, l'ouvert hors de vue</div><div class="mwrap"><img src="../../audits/2026-11-ux-parcours/preuves/fiche-onglets-375.jpg" alt="Onglets de la fiche sur téléphone aujourd'hui"></div></div></div><div class="pair m" style="margin-top:24px"><div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, « Synthèse »</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Évènements</a><span class="more" aria-label="Autres actions"></span></div><div class="mbody "><div class="mpad" style="padding:12px 16px 12px;background:#fff"><h2 style="font-size:22px;line-height:1.2">Léa &amp; Maxime</h2><div class="small muted" style="margin-top:2px">12 juin 2027 · dans 199 jours<br>Manoir des Aulnes, Poitiers</div>
+<div class="msteps"><span class="dot" style="width:16px;height:16px;border-radius:999px;border:5px solid var(--ink);display:inline-block"></span><b>Signé, en préparation</b> · étape 2 sur 4 <span class="link" style="display:inline-flex;min-height:44px;align-items:center;margin:-12px 0 -12px 4px">Les étapes</span></div></div><div class="mtabs" role="tablist"><span class="on">Synthèse</span><span>Budget<span class="tc">6/9</span></span><span>Tâches<span class="tc late">2</span></span><span>Programme</span><span>Devis<span class="tc">3</span></span><span>Mariés</span><span>Documents<span class="tc">4</span></span><span>Invités</span><span class="nx" aria-label="Onglets suivants"><svg aria-hidden="true"><use href="#i-chev"/></svg></span></div><div class="mpart" style="background:var(--ground)">Prochaines actions <small>6 · <span class="late-t">2 en retard</span></small></div>
+<div class="tlm"><div class="txt"><span class="tt">Faire signer le contrat du photographe</span><div class="meta">Vous</div><div class="meta late">En retard de 5 jours · ven. 20 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions"></span></div>
+<div class="tlm"><div class="txt"><span class="tt">Confirmer la voiture des mariés</span><div class="meta">Bastien</div><div class="meta late">En retard de 4 jours · sam. 21 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions"></span></div>
+<div class="tlm"><div class="txt"><span class="tt">Choisir le fleuriste</span><div class="meta">Les mariés</div><div class="meta ">Dans 4 jours · dim. 29 nov.</div></div><span class="fait"><svg aria-hidden="true"><use href="#i-check"/></svg>Fait</span><span class="more" aria-label="Autres actions"></span></div>
+<div style="padding:4px 16px"><span class="link small" style="display:inline-flex;min-height:44px;align-items:center">Les 3 autres</span></div></div><nav class="mbb" aria-label="Navigation principale"><a><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, onglet « Programme » : la barre reste en haut</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Évènements</a><b style="font:600 16px var(--f-title);margin-right:auto;margin-left:-40px">Léa &amp; Maxime</b><span class="more" aria-label="Autres actions"></span></div><div class="mbody "><div class="mtabs" role="tablist"><span class="nx" style="left:0;right:auto;border-left:0;border-right:1px solid var(--line)" aria-label="Onglets précédents"><svg aria-hidden="true"><use href="#i-back"/></svg></span><span style="width:40px;padding:0"></span><span>Tâches<span class="tc late">2</span></span><span class="on">Programme</span><span>Devis<span class="tc">3</span></span><span>Mariés</span><span>Documents<span class="tc">4</span></span><span>Invités</span><span class="nx" aria-label="Onglets suivants"><svg aria-hidden="true"><use href="#i-chev"/></svg></span></div><div class="mpad" style="padding:12px 16px"><div class="row" style="justify-content:space-between"><h3 style="font-size:17px">Programme</h3><span class="small muted">3 journées · 21 moments</span></div></div>
+<div class="mpart">Veille <small>ven. 11 juin 2027</small></div>
+<div class="seqm"><div class="h">19 h – 23 h</div><div>Soirée de la veille</div><div class="w">Manoir des Aulnes · Traiteur</div></div>
+<div class="mpart">Jour J <small>sam. 12 juin 2027</small></div>
+<div class="seqm"><div class="h">14 h 30 – 15 h 15</div><div>Arrivée des invités</div><div class="w">Manoir des Aulnes</div></div>
+<div class="seqm"><div class="h">15 h 30 – 16 h 15</div><div>Cérémonie laïque</div><div class="w">Jardin · Officiante</div></div></div><nav class="mbb" aria-label="Navigation principale"><a><svg aria-hidden="true"><use href="#i-today"/></svg>Aujourd'hui</a><a class="on" aria-current="page"><svg aria-hidden="true"><use href="#i-events"/></svg>Évènements</a><a><svg aria-hidden="true"><use href="#i-tasks"/></svg>Tâches<span class="b" aria-label="2 en retard">2</span></a><a><svg aria-hidden="true"><use href="#i-vendors"/></svg>Prestataires</a><a><svg aria-hidden="true"><use href="#i-more"/></svg>Plus</a></nav></div></div></div>
+<div class="side"><div class="cap"><b class="new">Proposé</b> 375 px, le menu « ⋯ »</div><div class="mwrap"><div class="ui-m"><div class="mtb"><a class="back"><svg aria-hidden="true"><use href="#i-back"/></svg>Évènements</a><span class="more" aria-label="Autres actions"></span></div><div class="mbody "><div class="mpad" style="padding:12px 16px 12px;background:#fff"><h2 style="font-size:22px;line-height:1.2">Léa &amp; Maxime</h2><div class="small muted" style="margin-top:2px">12 juin 2027 · dans 199 jours<br>Manoir des Aulnes, Poitiers</div>
+<div class="msteps"><span class="dot" style="width:16px;height:16px;border-radius:999px;border:5px solid var(--ink);display:inline-block"></span><b>Signé, en préparation</b> · étape 2 sur 4 <span class="link" style="display:inline-flex;min-height:44px;align-items:center;margin:-12px 0 -12px 4px">Les étapes</span></div></div><div class="mtabs" role="tablist"><span class="on">Synthèse</span><span>Budget<span class="tc">6/9</span></span><span>Tâches<span class="tc late">2</span></span><span>Programme</span><span>Devis<span class="tc">3</span></span><span>Mariés</span><span>Documents<span class="tc">4</span></span><span>Invités</span><span class="nx" aria-label="Onglets suivants"><svg aria-hidden="true"><use href="#i-chev"/></svg></span></div></div><div class="dim"></div><div class="sheet"><div class="grab"></div><div style="padding:0 20px 8px"><h3 style="font-size:17px">Léa &amp; Maxime</h3></div>
+<div class="si">Écrire aux mariés</div><div class="si">Messages</div><div class="si">Voir comme Léa Martin</div><div class="si">Changer le type…</div><hr>
+<div class="si">Reporter l'évènement…</div><div class="si" style="color:var(--critical)">Annuler l'évènement…</div></div></div></div></div></div><div class="rules">
+<div><h4>Constats traités</h4><ul><li>C-80, P-20 : onglets à 224 px et première action à 262 px (mesurés), au lieu de 800 px d'en-tête ; aucun défilement de côté du contenu ; l'onglet ouvert est visible.</li>
+<li>C-80 : « Reporter » et « Annuler l'évènement » ne sont plus deux petits liens voisins : ils sont au menu, séparés, en entier (M6).</li>
+<li>C-22 : sur téléphone, l'en-tête n'a pas de bouton ; l'action d'ordinateur (« Écrire aux mariés ») est en tête du menu.</li></ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Cibles ≥ 44 px</span><span>Onglet ouvert visible</span><span>Pas de défilement de côté du contenu</span></div>
+<ul><li>Les onglets défilent de côté dans leur barre (et elle seule) ; une flèche de 44 px en bout de barre dit la suite et y mène (choix E3).</li>
+<li>« Les étapes » ouvre la frise complète dans un panneau du bas, avec ses dates.</li>
+<li>Les noms des onglets se raccourcissent sur téléphone seulement (« Budget », « Devis ») ; les nombres restent.</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="mock" id="frise">
+<h2>La frise : elle dit où en est l'évènement, et un seul bouton dit l'étape suivante (C-27)</h2>
+<p class="intro">Aujourd'hui, chaque rond de la frise change le statut sans en avoir l'air, la question s'ouvre loin du clic, et l'on ne sait pas si « Clôturé » se clique. Proposé : la frise se lit, elle ne se clique pas. Quand une étape se franchit à la main, un bouton nommé l'annonce au bout de la frise, et sa question s'ouvre juste dessous. « Jour J » vient seul, le jour même. Reporter et annuler restent au menu « ⋯ » (M6).</p>
+<div style="display:grid;gap:24px;max-width:1112px">
+<div><div class="sec-t">Une demande en cours</div><div class="card" style="padding:16px 20px"><div class="row" style="gap:0;align-items:center;margin-top:14px"><ol class="stepper" style="margin:0" aria-label="Où en est l'évènement"><li class="now" aria-current="step"><span class="dot"></span>Une demande en cours <small>depuis le 2 nov.</small></li><li class=""><span class="dot">2</span>Signé, en préparation</li><li class=""><span class="dot">3</span>Jour J <small>18 sept.</small></li><li class=""><span class="dot">4</span>Clôturé</li></ol><span class="go"><span class="btn">Le contrat est signé…</span></span></div><div class="card" role="dialog" aria-label="Passer en signé" style="margin:12px 0 0 300px;max-width:440px;box-shadow:var(--float);padding:16px 20px"><h3 style="font-size:17px">Le contrat d'Inès &amp; Paul est signé ?</h3><p class="small" style="margin:6px 0 12px">L'évènement passe en « Signé, en préparation » à cette date. Ensuite, la Synthèse vous propose de créer sa liste de tâches (page 16).</p><label class="field">Signé le<span class="in" style="width:200px"><svg aria-hidden="true"><use href="#i-cal"/></svg>mer. 25 nov. 2026</span></label><div class="row" style="margin-top:14px"><span class="btn">Garder en demande</span><span style="flex:1"></span><span class="btn p">Passer en signé</span></div></div></div></div>
+<div><div class="sec-t">Signé, en préparation</div><div class="card" style="padding:16px 20px"><div class="row" style="gap:0;align-items:center;margin-top:14px"><ol class="stepper" style="margin:0" aria-label="Où en est l'évènement"><li class="done"><span class="dot">✓</span>Une demande en cours <small>12 mars</small></li><li class="now" aria-current="step"><span class="dot"></span>Signé, en préparation <small>depuis le 2 avr.</small></li><li class=""><span class="dot">3</span>Jour J <small>12 juin</small></li><li class=""><span class="dot">4</span>Clôturé</li></ol></div><p class="small muted" style="margin:12px 0 0">Rien à cliquer : « Jour J » vient seul le 12 juin, dans le fuseau de l'évènement.</p></div></div>
+<div><div class="sec-t">Le lendemain du jour J</div><div class="card" style="padding:16px 20px"><div class="row" style="gap:0;align-items:center;margin-top:14px"><ol class="stepper" style="margin:0" aria-label="Où en est l'évènement"><li class="done"><span class="dot">✓</span>Une demande en cours <small>12 mars</small></li><li class="done"><span class="dot">✓</span>Signé, en préparation <small>2 avr.</small></li><li class="done"><span class="dot">✓</span>Jour J</li><li class=""><span class="dot">4</span>Clôturé</li></ol><span class="go"><span class="btn">Clôturer l'évènement…</span></span></div><p class="small muted" style="margin:12px 0 0">« Clôturer » ouvre la liste de clôture (lot 58) ; l'étape se coche quand elle est finie.</p></div></div>
+<div><div class="sec-t">Reporté</div><div class="card" style="padding:16px 20px"><div class="row" style="gap:12px;flex-wrap:wrap"><span class="pill"><b style="font-weight:600">Reporté</b> · le 12 juin 2027 n'est plus la date</span><span class="small muted">Nouvelle date à fixer ; les tâches attendent. Avant de confirmer, la liste des tâches qui tomberaient dans le passé.</span><span style="flex:1"></span><span class="btn">Fixer la nouvelle date…</span></div></div></div>
+<div><div class="sec-t">Annulé</div><div class="card" style="padding:16px 20px"><div class="row" style="gap:12px;flex-wrap:wrap"><span class="pill"><b style="font-weight:600">Annulé</b> le 25 nov. · motif : budget</span><span style="flex:1"></span><span class="btn">Rétablir l'évènement…</span></div><p class="small muted" style="margin:10px 0 0">Il revient comme demande en cours ; les liens des mariés et des prestataires se rouvrent.</p><div class="notice warn" style="margin-top:10px"><span><b>À vérifier :</b> 2 factures émises. Un avoir vous est proposé pour chacune. <span class="link">Voir les factures</span></span></div></div></div>
+<div><div class="sec-t">Archivé</div><div class="card" style="padding:16px 20px"><div class="row" style="gap:12px;flex-wrap:wrap"><span class="pill"><b style="font-weight:600">Archivé</b> · lecture seule</span><span style="flex:1"></span><span class="btn">Ouvrir la clôture</span></div><p class="small muted" style="margin:10px 0 0">Il se désarchive depuis sa clôture (lot 58).</p></div></div>
+<div><div class="sec-t">Rétablir : la question (niveau 2)</div><div class="card" style="padding:16px 20px"><h3 style="font-size:17px">Rétablir « Léa &amp; Maxime » ?</h3><p class="small" style="margin:6px 0 0">Le mariage revient comme demande en cours, à confirmer de nouveau par « Le contrat est signé… ». Les mariés et 6 prestataires peuvent de nouveau ouvrir leur lien personnel. Les rappels reprennent ; les factures d'acompte annulées ne repartent pas seules.</p><div class="row" style="margin-top:14px"><span class="btn">Garder annulé</span><span style="flex:1"></span><span class="btn p">Rétablir l'évènement</span></div></div></div>
+</div><div class="rules">
+<div><h4>Constats traités</h4><ul><li>C-27, P-17 : la frise ne change plus le statut d'un clic invisible ; la question s'ouvre sous le bouton cliqué ; « Clôturé » se dit « Clôturer l'évènement… » quand c'est le moment.</li>
+<li>C-25 : « Confirmé » et « En préparation » ne font plus qu'une étape, avec les mots de « Nouvel évènement » (choix E1).</li>
+<li>M6 : « Annuler l'évènement » en entier, « rétablir » pour revenir (« On garde la maquette pour rétablir »).</li></ul></div>
+<div><h4>Règles de forme appliquées</h4><div class="count"><span>Le statut dit une fois</span><span>Un bouton nommé pour l'étape suivante (choix E2)</span><span>Danger au menu</span></div>
+<ul><li>Les étapes passées gardent leur date (« ✓ Une demande en cours, 12 mars ») ; l'étape en cours dit depuis quand.</li>
+<li>Reporté et Annulé remplacent la frise par une ligne qui dit l'état, la date et la seule suite possible ; la teinte reste neutre : l'état se lit au mot.</li>
+<li>« Rétablir » touche des tiers (les liens se rouvrent) : fenêtre de niveau 2 du volet 1. Ce que deviennent les rappels et les acomptes au rétablissement n'est pas vérifié dans le code : le texte est à caler au lot de réalisation.</li></ul></div>
+</div>
+</section>
+
+</div>
+<script>
+(function(){
+  function fit(){document.querySelectorAll('.dwrap').forEach(function(w){
+    var k=document.body.classList.contains('reel')?1:Math.min(1,w.clientWidth/1440);w.style.setProperty('--kd',k);});}
+  window.addEventListener('resize',fit);fit();
+  document.querySelectorAll('[data-mode]').forEach(function(b){b.addEventListener('click',function(){
+    document.body.classList.toggle('reel',b.dataset.mode==='reel');
+    document.querySelectorAll('[data-mode]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});fit();});});
+})();
+</script>
+</body>
+</html>
