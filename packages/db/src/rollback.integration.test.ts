@@ -327,6 +327,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
 
   it("lot 66b (JRJ-01 ; D2 à D4) — 0210 : les modèles du rappel du jour J se modifient ; annulation refusée tant qu'un modèle est modifié, puis la liste revient", async () => {
     await migrateAll();
+    await rollbackNewerThan(LOT_66[0]!);
     const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0210') returning id`;
     const organizationId = organization!.id;
     await target`insert into hub.email_templates (organization_id, kind, locale, subject, body) values (${organizationId}, 'day_reminder_planner', 'fr', 'Rappel', 'Bonjour {{prénom}}, {{lien}}')`;
