@@ -643,7 +643,7 @@ réalise, si Julien confirme.
    de HUB-17.
 3. **L'onglet « Tâches » de la fiche** : le cahier des charges nomme les onglets du cockpit
    « Synthèse, Planning, Budget… » ; l'app disait « Rétroplanning », la maquette dit « Tâches »
-   (M11). → à noter dans `gap.csv` ; ADR court si Julien le souhaite.
+   (M11). → noté dans `gap.csv`, sans ADR (tranché le 26/11 par Julien : « Oui, Tâches »).
 4. **Les états d'une tâche** : le cahier des charges cite « À faire, En cours, En attente d'un
    tiers, Fait, En retard ». Les maquettes n'ont pas « En cours », ajoutent « Bientôt » (« Dans N
    jours ») et disent l'attente par la personne (« Les mariés »). → à confirmer (Q47) ; ADR si

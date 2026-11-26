@@ -973,7 +973,7 @@ Ouverts ; chacun a sa recommandation.
    Corbeille, trente jours, avenant à l'ADR 0073 (décision A5 du lot). **Tranché le 26/11 par Julien :
    « Oui, Corbeille ».**
 3. **Nom de l'onglet du cockpit**. Le cahier des charges cite « Planning » ; l'app dit
-   « Rétroplanning » ; M11 retient « Tâches ». Proposition : « Tâches », noté dans `gap.csv`.
+   « Rétroplanning » ; M11 retient « Tâches ». Proposition : « Tâches », noté dans `gap.csv`. **Tranché le 26/11 par Julien : « Oui, Tâches »** (sans ADR).
 4. **États d'une tâche**. Le cahier des charges cite « À faire, En cours, En attente d'un tiers,
    Fait, En retard ». Les maquettes n'ont pas « En cours » et ajoutent « Bientôt » (« Dans N jours »,
    seuil de M10). Proposition : pas d'« En cours » pour une tâche (personne ne l'a demandé au
