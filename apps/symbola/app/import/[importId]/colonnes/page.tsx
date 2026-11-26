@@ -5,7 +5,9 @@ import { notFound } from "next/navigation";
 import { ScreenHelp } from "@/app/screen-help";
 import { ActionBar } from "@/app/ui/action-bar";
 import { getImportColumns } from "@/modules/hub/service";
+import { STATUS_LABEL_KEYS } from "@/app/events/event-status";
 import { columnDecisionValue, columnNeedsChoice } from "@/lib/import/columns";
+import { displayImportCell } from "@/lib/import/display";
 import { ImportHeader } from "../../import-header";
 import { importStepContext, wantsAbandon } from "../../step-context";
 import { ColumnsForm, type ColumnRow } from "./columns-form";
@@ -33,10 +35,18 @@ export default async function ImportColumnsPage({
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
   const draft = wizard.draft;
+  // Lot 69 (C-56, C-60) : les valeurs se lisent comme à la confirmation (accents, dates, sommes) ; le
+  // code de statut d'une fiche d'évènement se lit en mots. Affichage seulement.
+  const tEvents = await getTranslations("Events");
+  const isEventFile = wizard.entityType === "event_sheets" || wizard.entityType === "events";
+  const statusLabel = isEventFile
+    ? (value: string) => (value in STATUS_LABEL_KEYS ? tEvents(STATUS_LABEL_KEYS[value as keyof typeof STATUS_LABEL_KEYS]) : null)
+    : undefined;
+  const show = (value: string) => displayImportCell(value, { locale, statusLabel });
   const rows: ColumnRow[] = view.columns.map((column) => ({
     columnIndex: column.columnIndex,
     name: column.header || t("unnamedColumn", { number: column.columnIndex + 1 }),
-    samples: column.samples,
+    samples: column.samples.map(show),
     value: columnDecisionValue(column, view.lowConfidenceThreshold),
     confidence: column.proposedFieldKey ? column.confidence : null,
     proposal: column.proposedFieldKey && column.confidence < view.lowConfidenceThreshold && !column.saved ? column.proposedFieldKey : null,
@@ -88,7 +98,7 @@ export default async function ImportColumnsPage({
               {draft.previewRows.map((row, rowIndex) => (
                 <tr key={rowIndex}>
                   {row.map((cell, cellIndex) => (
-                    <td key={cellIndex}>{cell}</td>
+                    <td key={cellIndex}>{show(cell)}</td>
                   ))}
                 </tr>
               ))}
@@ -101,7 +111,7 @@ export default async function ImportColumnsPage({
         importId={view.importId}
         rows={rows}
         fields={view.fields.map((field) => ({ key: field.key, required: field.required === true }))}
-        firstRow={draft.previewRows[0] ?? []}
+        firstRow={(draft.previewRows[0] ?? []).map(show)}
       />
       <ActionBar label={t("actionBarLabel")} backHref="/import" backLabel={t("back")}>
         <button type="submit" form="columns-form">

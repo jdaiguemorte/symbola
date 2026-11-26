@@ -152,3 +152,12 @@ export function clearFiltersHref(path: string, query: BookQuery, filters: BookFi
   const keys = [...BAR_FILTER_KEYS, ...Object.keys(filters.fieldInputs)];
   return `${path}${queryString(query, Object.fromEntries(keys.map((key) => [key, ""])))}`;
 }
+
+// Lot 69 (UX-08, UX-10 ; C-69) : ce que dit la liste quand elle est vide. « Filtres » seulement s'il y a
+// des fiches que les filtres écartent ; sinon, c'est le carnet qui est vide.
+export type VendorBookEmptyState = "noTypes" | "book" | "filters";
+export function vendorBookEmptyState({ total, results, types }: { total: number; results: number; types: number }): VendorBookEmptyState | null {
+  if (results > 0) return null;
+  if (total > 0) return "filters";
+  return types === 0 ? "noTypes" : "book";
+}

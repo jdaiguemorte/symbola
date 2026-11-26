@@ -1,4 +1,4 @@
-// Lot 12 — fiche événement (L12-EVT-12 à L12-EVT-15) et agenda cliquable (L12-HUB-13), en taille
+// Lot 12 — fiche évènement (L12-EVT-12 à L12-EVT-15) et agenda cliquable (L12-HUB-13), en taille
 // ordinateur et en 375 px, axe-core. Le premier démarrage (ONB-03/04) est devenu le questionnaire
 // d'accueil du lot 33b : e2e/hub-09-10-demarrage.spec.ts.
 import { randomUUID } from "node:crypto";
@@ -52,7 +52,7 @@ test("L12-EVT-12 / L12-EVT-13 / L12-EVT-15 / EVT-01 — statut en boutons, rétr
 
   // Lot 13 (L13-EVT-19) : frise du statut ; l'étape choisie se confirme, puis
   // le rétroplanning est proposé.
-  const steps = page.getByRole("list", { name: "Statut de l'événement" });
+  const steps = page.getByRole("list", { name: "Statut de l'évènement" });
   await expect(steps.getByRole("listitem").filter({ hasText: "Option" })).toHaveAttribute("aria-current", "step");
   await changeEventStatus(page, "Confirmé");
   // Sur l'onglet Rétroplanning, le modèle s'applique sur place ; ailleurs,
@@ -71,7 +71,7 @@ test("L12-EVT-12 / L12-EVT-13 / L12-EVT-15 / EVT-01 — statut en boutons, rétr
   await expectNoAxeViolation(page);
 });
 
-test("L12-HUB-13 — un clic sur une date libre de l'agenda crée un événement à cette date", async ({ page }) => {
+test("L12-HUB-13 — un clic sur une date libre de l'agenda crée un évènement à cette date", async ({ page }) => {
   const account = await owner(true);
   await createProspectSource(account.organizationId, "Salon");
   await login(page, account.email, account.password, /\/$/);
@@ -101,15 +101,15 @@ test("L12-HUB-13 — un clic sur une date libre de l'agenda crée un événement
   // fermés (ci-dessus), puis le menu lui-même.
   const menu = await new AxeBuilder({ page }).include("details.agenda-create[open] > ul").analyze();
   expect(menu.violations, JSON.stringify(menu.violations, null, 2)).toEqual([]);
-  await day.getByRole("link", { name: "Créer un événement à cette date" }).click();
+  await day.getByRole("link", { name: "Créer un évènement à cette date" }).click();
   await expect(page).toHaveURL(/\/events\/new\?date=\d{4}-\d{2}-\d{2}&type=evenement$/);
   const date = new URL(page.url()).searchParams.get("date")!;
-  await expect(page.getByRole("heading", { name: "Nouvel événement" })).toBeVisible();
-  await expect(page.getByLabel("Date de l'événement")).toHaveValue(date);
+  await expect(page.getByRole("heading", { name: "Nouvel évènement" })).toBeVisible();
+  await expect(page.getByLabel("Date de l'évènement", { exact: true })).toHaveValue(date);
 
   await page.getByLabel("Prénom du premier marié").fill("Léa");
   await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
-  await page.getByRole("button", { name: "Créer l'événement" }).click();
+  await page.getByRole("button", { name: "Créer l'évènement" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
-  await expect(page.getByRole("list", { name: "Statut de l'événement" }).getByRole("listitem").filter({ hasText: "Confirmé" })).toHaveAttribute("aria-current", "step");
+  await expect(page.getByRole("list", { name: "Statut de l'évènement" }).getByRole("listitem").filter({ hasText: "Confirmé" })).toHaveAttribute("aria-current", "step");
 });

@@ -34,11 +34,14 @@ export function NoteReminderButton({
   candidateId,
   vendorName,
   className,
+  onSaved,
 }: {
   eventId: string;
   candidateId: string;
   vendorName: string;
   className?: string;
+  // Lot 69 (UX-15 ; C-50) : un tableau chargé côté navigateur (la comparaison d'un poste) se relit ici.
+  onSaved?: (() => void) | undefined;
 }) {
   const t = useTranslations("Today.reminder");
   const tCommon = useTranslations("Common");
@@ -83,6 +86,7 @@ export function NoteReminderButton({
     if (!state.saved) return;
     setOpen(false);
     router.refresh();
+    onSaved?.();
   }, [state, router]);
 
   const copy = async () => {

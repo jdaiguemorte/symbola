@@ -80,13 +80,13 @@ test("AIDE-02 — essai guidé du module Devis : devis fictif signé et facturé
   await newPlanner(page, "essai-devis");
 
   await page.goto("/events");
-  await skipTour(page, "Liste des événements");
+  await skipTour(page, "Liste des évènements");
   // Lot 20 (décision 2) : l'essai se lance depuis l'aide de l'écran.
   await page.getByRole("button", { name: "Aide sur cet écran" }).click();
-  await helpPanel(page, "Liste des événements").getByRole("button", { name: "Démarrer l'essai" }).click();
+  await helpPanel(page, "Liste des évènements").getByRole("button", { name: "Démarrer l'essai" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   // La visite de la fiche se lance d'elle-même ; ce parcours la passe.
-  await skipTour(page, "Fiche de l'événement");
+  await skipTour(page, "Fiche de l'évènement");
   const trialUrl = page.url();
   await expect(page.getByText(/Composez un devis fictif/)).toBeVisible();
   await page.waitForLoadState("networkidle");

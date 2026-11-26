@@ -61,7 +61,7 @@ test("PRD-EVT-06 / UX-11 / SEC-17 — le marié ouvre son lien sans inscription,
   const organization = await plannerOrganization();
   await loginAndSetupMfa(planner, organization.email);
 
-  // La planner prépare l'événement : une tâche des mariés, une note interne.
+  // La planner prépare l'évènement : une tâche des mariés, une note interne.
   await planner.goto("/events/parametres/sources");
   await planner.getByLabel("Nouvelle source").fill("Salon");
   await planner.getByRole("button", { name: "Ajouter la source" }).click();

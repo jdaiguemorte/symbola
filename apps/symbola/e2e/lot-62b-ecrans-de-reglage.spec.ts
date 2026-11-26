@@ -145,7 +145,7 @@ test("UX-13 — Menu des Paramètres : groupes repliables, rubrique ouverte visi
   await expect(rubrics.getByRole("link")).toHaveText(["Relances des prospects", "Relances de devis et de paiement"]);
   await expect(rubrics.getByRole("status")).toHaveText("2 réglages trouvés");
   await search.fill("evenement");
-  await expect(rubrics.getByRole("link", { name: "Types d'événements", exact: true })).toBeVisible();
+  await expect(rubrics.getByRole("link", { name: "Types d'évènements", exact: true })).toBeVisible();
   await expect(rubrics.getByRole("link", { name: "Modèles d'évènement", exact: true })).toBeVisible();
   await search.fill("zzz");
   await expect(rubrics.getByRole("link")).toHaveCount(0);
@@ -380,7 +380,7 @@ test("UX-13 / UX-09 / UX-07 — Listes éditables : enregistrement à la sortie 
   // Types d'évènements : le nom et « vos clients sont » s'enregistrent en quittant le champ.
   await page.goto("/events/parametres/types");
   await page.waitForLoadState("networkidle");
-  const types = page.getByRole("region", { name: "Tableau des types d'événements" });
+  const types = page.getByRole("region", { name: "Tableau des types d'évènements" });
   await types.getByRole("textbox", { name: "Nom du type Séminaire" }).fill("Séminaire d'entreprise");
   await types.getByRole("textbox", { name: "Nom du type Séminaire" }).blur();
   await expect(status.filter({ hasText: SAVED })).toBeVisible();
@@ -391,10 +391,10 @@ test("UX-13 / UX-09 / UX-07 — Listes éditables : enregistrement à la sortie 
   await expect(types.getByRole("combobox", { name: "Vos clients pour le type Séminaire d'entreprise" })).toHaveValue("couple");
   // Un type qui a des évènements ouvre sa ligne : il ne part qu'en confiant ses évènements à un autre.
   await types.getByRole("button", { name: "Supprimer le type Mariage" }).click();
-  await expect(types.getByLabel("Les événements du type Mariage passent au type")).toBeVisible();
+  await expect(types.getByLabel("Les évènements du type Mariage passent au type")).toBeVisible();
   await expect(types.getByRole("button", { name: "Supprimer le type", exact: true })).toBeDisabled();
   await types.getByRole("button", { name: "Annuler", exact: true }).click();
-  await expect(types.getByLabel("Les événements du type Mariage passent au type")).toHaveCount(0);
+  await expect(types.getByLabel("Les évènements du type Mariage passent au type")).toHaveCount(0);
   // Un type sans évènement part d'un geste.
   await types.getByRole("button", { name: "Supprimer le type Séminaire d'entreprise" }).click();
   await expect(types.getByRole("textbox", { name: "Nom du type Séminaire d'entreprise" })).toHaveCount(0);

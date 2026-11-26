@@ -66,7 +66,7 @@ test("PRD-BUD-01 — modèle de répartition, simulation et ajustement d'une lig
   await page.getByRole("button", { name: "Créer le prospect" }).click();
   await expect(page.getByRole("heading", { name: "Camille" })).toBeVisible();
 
-  // PRD-BUD-01 : accès à la simulation depuis la fiche événement.
+  // PRD-BUD-01 : accès à la simulation depuis la fiche évènement.
   // Lot 12 (L12-EVT-17) : le budget est un onglet de la fiche ; le module
   // Budget s'ouvre depuis son lien.
   await openEventTab(page, "Budget");

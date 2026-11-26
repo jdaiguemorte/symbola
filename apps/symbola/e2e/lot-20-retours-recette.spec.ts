@@ -4,7 +4,7 @@
 // (AIDE-16), cartes du rétroplanning alignées (L20-EVT-20), archivage d'un
 // prestataire depuis le carnet avec confirmation (L20-PRE-17), étiquettes par
 // famille avec paliers (décision 5), vocabulaire des écrans qui mêlent les
-// événements (décision 6). En taille ordinateur et en 375 px, axe-core.
+// évènements (décision 6). En taille ordinateur et en 375 px, axe-core.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
@@ -154,7 +154,7 @@ test("Décision 5 — étiquettes : paliers repérés puis rangés, choix unique
   await expect(page.getByRole("checkbox", { name: "Accès PMR" })).toHaveCount(0);
 });
 
-test("Décision 6 — Tâches : vocabulaire neutre quand les événements sont de plusieurs types, celui de l'événement sur chaque ligne", async ({ page }) => {
+test("Décision 6 — Tâches : vocabulaire neutre quand les évènements sont de plusieurs types, celui de l'évènement sur chaque ligne", async ({ page }) => {
   test.setTimeout(90_000);
   const email = `planner-lot20-vocab-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-lot20-e2e";

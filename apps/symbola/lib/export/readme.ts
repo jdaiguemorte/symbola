@@ -27,7 +27,7 @@ export function exportReadme(input: { organizationName: string; generatedAt: Dat
     "- Les secrets : sessions, jetons et codes des liens personnels, invitations en attente. Un lien se recrée ; une invitation se renvoie.",
     "- Les identifiants de connexion : ils sont chez le fournisseur d'identité. L'équipe est listée (adresse, rôle) dans hub/team_members.",
     "- Les données d'essai et d'exemple (essais guidés, série DEMO).",
-    "- Les données d'exploitation de Symbola : sauvegardes, réglages de la plateforme, événements internes, adresses IP des connexions, historique technique des imports.",
+    "- Les données d'exploitation de Symbola : sauvegardes, réglages de la plateforme, évènements internes, adresses IP des connexions, historique technique des imports.",
     "",
     "Reprendre l'archive : dans un espace Symbola vide, Paramètres, Importer, « Reprendre un export Symbola ».",
     "Format documenté : docs/export/format-v1.md et docs/schemas/export/v1 du dépôt de Symbola.",

@@ -39,7 +39,7 @@ test("AIDE-10 — parcours des tutoriels, un seul en cours à la fois", async ({
   const activity = page.getByRole("region", { name: "Préparer votre activité" });
   // Lot 18 (AIDE-13) : personnaliser ses documents est conseillé en premier.
   await expect(activity.getByRole("link", { name: /Personnaliser vos devis et factures/ })).toContainText("Conseillé ensuite");
-  await expect(page.getByRole("region", { name: "Autres tutoriels" })).toContainText("Importer ses événements existants");
+  await expect(page.getByRole("region", { name: "Autres tutoriels" })).toContainText("Importer ses évènements existants");
   await expectNoAxeViolation(page);
 
   // Un tutoriel en cours : il est mis en avant, et en commencer un autre demande de choisir.

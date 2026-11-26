@@ -1,0 +1,76 @@
+/* Lot 69 — corrections simples de l'audit UX (lot 68). Règles propres à ce lot ; mêmes jetons que
+   globals.css (DESIGN.md), aucun style en ligne (CSP). Chargé avant globals.css : à précision égale,
+   une règle de globals.css l'emporte, d'où des sélecteurs un cran plus précis. */
+@layer components {
+  /* C-43 — « Où ? » : le second libellé (« dans un rayon de ») prenait toute la largeur (`label` de base :
+     w-full) et laissait 26 px au champ du lieu. Le rayon garde sa largeur propre, le lieu le reste ;
+     sans fond de carte (la barre de filtres a le sien). */
+  .filter-bar fieldset.filter-where {
+    @apply bg-transparent;
+  }
+  .filter-bar .filter-where-row label:first-child {
+    @apply min-w-40;
+  }
+  .filter-bar .filter-where-row label:not(:first-child) {
+    @apply w-auto shrink-0;
+  }
+  @media (width < 768px) {
+    .filter-bar .filter-where-row {
+      @apply flex-wrap;
+    }
+    .filter-bar .filter-where-row label:first-child {
+      @apply basis-full;
+    }
+  }
+
+  /* C-13 — menu latéral : la pastille (« 2 en retard ») reste sur une ligne ; l'adresse du compte,
+     jamais coupée, passe à la ligne là où elle doit. */
+  html .nav-count {
+    @apply shrink-0 whitespace-nowrap;
+  }
+  html .app-user .app-user-email {
+    overflow-wrap: anywhere;
+  }
+
+  /* C-49 — la ligne d'un poste du budget : les boutons passent à la ligne au lieu de sortir du cadre. */
+  .list-table.budget-vendors td.actions {
+    @apply w-auto whitespace-normal;
+  }
+  .list-table.budget-vendors td.actions > .row-wrap {
+    @apply justify-end;
+  }
+
+  /* C-75 — tableau de l'équipe : l'adresse et les liens (« Retirer l'accès de … ») se coupent plutôt
+     que d'élargir le tableau. */
+  .list-table.team-table :is(th, td) {
+    overflow-wrap: anywhere;
+  }
+  .list-table.team-table .row-wrap > a {
+    @apply whitespace-normal;
+  }
+
+  /* C-25 — un libellé qui porte un astérisque garde le texte et la marque sur une même ligne ; le champ
+     passe dessous, sur toute la largeur. */
+  label:has(> .required-mark) {
+    @apply flex-row flex-wrap items-baseline gap-x-0 gap-y-2;
+  }
+  label:has(> .required-mark) > :is(input, select, textarea) {
+    @apply basis-full;
+  }
+
+  /* C-81 — « ⌘K » et « Raccourci : touche N » n'ont de sens qu'avec un clavier. */
+  @media (width < 768px), (pointer: coarse) {
+    html .search-box-shortcut,
+    html .quick-create-hint {
+      @apply hidden;
+    }
+  }
+
+  /* C-78 — cartes du budget en dessous de 640 px : le tableau garde `min-w-[560px]` de `.list-table` et
+     chaque carte sortait du cadre. */
+  @media (width < 640px) {
+    .list-table.budget-vendors {
+      @apply min-w-0;
+    }
+  }
+}

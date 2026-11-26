@@ -6,8 +6,8 @@
         "target": "home-first",
         "title": { "fr": "Votre priorité du jour", "en": "Your priority today" },
         "body": {
-          "fr": "Les trois points les plus urgents, tous évènements confondus, calculés sur vos devis, vos tâches et vos dates. Chaque ligne dit qui doit agir et propose l'action en un clic.",
-          "en": "The three most urgent items across all events, worked out from your quotes, tasks and dates. Each line says who has to act and offers the action in one click."
+          "fr": "Les points les plus urgents, tous évènements confondus, calculés sur vos devis, vos tâches et vos dates. Chaque ligne dit qui doit agir et propose l'action en un clic.",
+          "en": "The most urgent items across all events, worked out from your quotes, tasks and dates. Each line says who has to act and offers the action in one click."
         }
       },
       {
@@ -40,8 +40,8 @@
         "target": "events-list",
         "title": { "fr": "La liste", "en": "The list" },
         "body": {
-          "fr": "Vos prospects et vos évènements à venir ; cliquez une ligne pour ouvrir la fiche.",
-          "en": "Your prospects and upcoming events; click a row to open its page."
+          "fr": "Vos prospects et vos évènements à venir ; ouvrez une ligne pour voir la fiche.",
+          "en": "Your prospects and upcoming events; open a row to see its page."
         }
       },
       {
@@ -140,8 +140,8 @@
         "target": "vendor-results",
         "title": { "fr": "La liste et la carte", "en": "List and map" },
         "body": {
-          "fr": "Survolez une fiche pour voir son repère sur la carte, et inversement.",
-          "en": "Hover over a record to see its pin on the map, and vice versa."
+          "fr": "Chaque fiche a son repère sur la carte : touchez l'un pour retrouver l'autre.",
+          "en": "Each record has its pin on the map: touch one to find the other."
         }
       },
       {

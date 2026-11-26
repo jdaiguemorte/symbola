@@ -40,12 +40,12 @@ test("L13-HUB-16 — Paramètres en rubriques, lignes du budget modifiées dans 
   // Le menu latéral range les rubriques en groupes ; chacune a son adresse.
   await clickMenuLink(page, "Paramètres");
   const sections = page.getByRole("navigation", { name: "Rubriques des paramètres" });
-  for (const group of ["Mon entreprise", "Événements", "Ventes", "Prestataires et données"]) {
+  for (const group of ["Mon entreprise", "Évènements", "Ventes", "Prestataires et données"]) {
     await expect(sections.getByText(group, { exact: true })).toBeVisible();
   }
   // Lot 62b (D2) : seul le groupe de la rubrique ouverte est déplié ; un autre s'ouvre d'un clic.
   await expect(sections.getByRole("link", { name: "Lignes du budget", exact: true })).toBeHidden();
-  await sections.getByRole("button", { name: "Événements", exact: true }).click();
+  await sections.getByRole("button", { name: "Évènements", exact: true }).click();
   await sections.getByRole("link", { name: "Lignes du budget", exact: true }).click();
   await expect(page).toHaveURL(/\/events\/parametres$/);
   await expect(sections.getByRole("link", { name: "Lignes du budget", exact: true })).toHaveAttribute("aria-current", "page");

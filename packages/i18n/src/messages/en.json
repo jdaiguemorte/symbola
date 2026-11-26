@@ -1412,7 +1412,7 @@
     },
     "clientTerms": {
       "title": "Client terms",
-      "body": "The term chosen for a type replaces “the couple” or “the clients” where Symbola names your clients, and fills '{{client_term}}' in your e-mails and future documents. Each change is saved when you leave the field; “Undo the last change” takes it back."
+      "body": "The term chosen for a type replaces “the couple” or “the clients” where Symbola names your clients, and slips into your e-mails and future documents. Each change is saved when you leave the field; “Undo the last change” takes it back."
     },
     "standaloneTasks": {
       "title": "Tasks outside events",
@@ -3342,7 +3342,7 @@
     },
     "fileLabel": "File (CSV, Excel .xlsx or JSON)",
     "fileHint": "Maximum size: {maxSize}. Encoding, separator and header row are detected automatically.",
-    "pdfHint": "A PDF cannot be read here. Two kinds of PDF are taken over elsewhere: event sheets, from their tile above, and the schedule, from the event’s “Wedding day schedule” tab.",
+    "pdfHint": "A PDF cannot be read here. Three kinds of PDF are taken over elsewhere: event sheets, from their tile above; the schedule, from the event’s “Wedding day schedule” tab; and retained vendors, from the event’s “Budget and vendors” tab, with “Take over the selected vendors (PDF)”.",
     "startImport": "Read the file",
     "reading": "Reading…",
     "missingEntityType": "Choose what the file contains.",
@@ -3607,7 +3607,7 @@
     "journalResultValue": "{created, plural, =0 {no creation} one {# creation} other {# creations}}, {updated, plural, =0 {no update} one {# update} other {# updates}}, {unchanged, plural, =0 {no unchanged row} one {# unchanged row} other {# unchanged rows}}, {rejected, plural, =0 {no rejected row} one {# rejected row} other {# rejected rows}}",
     "undoTitle": "Undo this import",
     "undoIntro": "Created records will be deleted and updated records will get their previous values back. Undo is possible until {date}.",
-    "undoWhat": "Undoing deletes {created, plural, =0 {no created item} one {the created item} other {the # created items}} and restores {updated, plural, =0 {nothing else} one {the updated item as it was} other {the # updated items as they were}}.",
+    "undoWhat": "Undoing {created, plural, =0 {{updated, plural, =0 {deletes nothing.} one {restores the updated item as it was.} other {restores the # updated items as they were.}}} one {deletes the created item{updated, plural, =0 {.} one { and restores the updated item as it was.} other { and restores the # updated items as they were.}}} other {deletes the # created items{updated, plural, =0 {.} one { and restores the updated item as it was.} other { and restores the # updated items as they were.}}}}",
     "undoModifiedNamed": "{count, plural, one {One record was edited by hand since the import:} other {# records were edited by hand since the import:}}",
     "undoModifiedAt": "edited on {date}",
     "undoModifiedSince": "edited since the import",
@@ -4982,6 +4982,7 @@
     "exportPdf": "Export as PDF",
     "empty": "No vendor matches these filters.",
     "emptyNoTypes": "Your vendor book is empty. Start by adding a vendor, or create your types in the vendor book settings.",
+    "emptyBook": "Your vendor book is empty. Add a vendor to get started.",
     "travel": "{km} km · ≈ {minutes} min (estimate)",
     "travelHint": "Estimated travel: straight-line distance × detour factor, at average speed (adjustable in the settings).",
     "demo": "Example",
@@ -7372,7 +7373,8 @@
       "quotes": "quotes and payments",
       "budget": "budget",
       "guests": "guests",
-      "appointments": "appointments"
+      "appointments": "appointments",
+      "vendors": "vendors"
     },
     "calendar": {
       "kind": {
@@ -11423,7 +11425,7 @@
   },
   "ClientTerms": {
     "title": "Terms for the clients",
-    "intro": "For each event type, choose the word for your clients (“the couple”, “the clients”, “the sponsor”…), with its gender and number. It is used on screens, in e-mails ('{{client_term}}') and in future documents; a document already issued keeps its text.",
+    "intro": "For each event type, choose the word for your clients (“the couple”, “the clients”, “the sponsor”…), with its gender and number. It is used on screens, in e-mails and in future documents; a document already issued keeps its text.",
     "type": "Type",
     "term": "Term",
     "gender": "Gender",

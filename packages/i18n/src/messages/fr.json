@@ -72,7 +72,7 @@
     "administration": "Exploitation",
     "onboardingIncomplete": "Votre fiche entreprise n'est pas encore complète.",
     "completeProfile": "La compléter",
-    "events": "Événements",
+    "events": "Évènements",
     "budgetModels": "Modèles de budget",
     "quoteCatalog": "Catalogue des devis",
     "quoteSettings": "Paramètres des devis",
@@ -100,9 +100,9 @@
     "agendaLegend": "Légende",
     "agendaLegendConfirmed": "Mariage confirmé",
     "agendaLegendTentative": "Date posée sur un prospect",
-    "agendaLegendTwo": "Plusieurs événements le même jour ou le même week-end",
-    "agendaWeekendCount": "{count} événements ce week-end",
-    "agendaDayCount": "{count} événements ce jour-là",
+    "agendaLegendTwo": "Plusieurs évènements le même jour ou le même week-end",
+    "agendaWeekendCount": "{count} évènements ce week-end",
+    "agendaDayCount": "{count} évènements ce jour-là",
     "agendaWeekdays": [
       "L",
       "M",
@@ -133,7 +133,7 @@
     "setupLocked": "Les menus s'ouvrent quand le démarrage est terminé.",
     "agendaCreateOn": "Créer le {date}",
     "agendaCreateProspect": "Créer un prospect à cette date",
-    "agendaCreateEvent": "Créer un événement à cette date",
+    "agendaCreateEvent": "Créer un évènement à cette date",
     "followUpTitle": "À traiter",
     "followUpEmpty": "Rien à relancer pour le moment.",
     "followUpQuote": "Relancer le devis {number} · {names}",
@@ -175,7 +175,7 @@
     "lastLogin": "Dernière connexion",
     "since": "depuis {month}",
     "moduleNames": {
-      "events": "Événements",
+      "events": "Évènements",
       "budget": "Budget",
       "quotes": "Devis",
       "vendors": "Prestataires",
@@ -295,7 +295,7 @@
     "metier": "Métier",
     "metierUnset": "Non renseigné",
     "metierWeddingPlanner": "Wedding planner",
-    "metierAutre": "Autre métier de l'événementiel",
+    "metierAutre": "Autre métier de l'évènementiel",
     "metierPrecision": "Précisez (si « autre »)",
     "profileSaved": "Fiche entreprise enregistrée.",
     "vatRegimeTitle": "Régime de TVA",
@@ -397,7 +397,7 @@
     "privacyLegend": "Données personnelles (RGPD)",
     "privacyExportRetentionDays": "Durée pendant laquelle un export RGPD reste téléchargeable (jours)",
     "organizationExportRetentionDays": "Durée pendant laquelle l'export complet d'une organisation reste téléchargeable (jours)",
-    "importMaxSheets": "Fiches événement PDF déposées à la fois",
+    "importMaxSheets": "Fiches évènement PDF déposées à la fois",
     "mailLegend": "Envois d'e-mails",
     "mailHourlyCap": "Plafond d'e-mails par organisation et par heure (signataires, mariés invités)",
     "requiredMentionsTitle": "Mentions requises sur les documents",
@@ -541,16 +541,16 @@
       ]
     },
     "eventsList": {
-      "title": "Liste des événements",
-      "body": "Tous vos prospects et événements en cours ; « Terminés » garde ceux clôturés ou annulés. « Liste », « Colonnes » ou « Calendrier », toujours au même endroit : le tableau filtrable, les options rangées par étape, ou les mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues. Commencez par « Nouveau » (prospect, évènement confirmé ou client existant), ou filtrez la liste par nom, statut, source ou année. Pour découvrir le module sans risque, lancez l'essai guidé ci-dessous.",
+      "title": "Liste des évènements",
+      "body": "Tous vos prospects et évènements en cours ; « Terminés » garde ceux clôturés ou annulés. « Liste », « Colonnes » ou « Calendrier », toujours au même endroit : le tableau filtrable, les options rangées par étape, ou les mois à venir. Dessous, la charge des douze prochains mois ; deux évènements le même jour sont signalés dans les deux vues. Commencez par « Nouveau » (prospect, évènement confirmé ou client existant), ou filtrez la liste par nom, statut, source ou année. Pour découvrir le module sans risque, lancez l'essai guidé ci-dessous.",
       "faq": [
         {
-          "q": "Où retrouver un événement passé ?",
-          "a": "Dans « Terminés », en haut de la liste : il garde les événements réalisés et perdus, avec les mêmes filtres."
+          "q": "Où retrouver un évènement passé ?",
+          "a": "Dans « Terminés », en haut de la liste : il garde les évènements réalisés et perdus, avec les mêmes filtres."
         },
         {
           "q": "Pourquoi une année manque-t-elle dans le filtre ?",
-          "a": "Le filtre ne propose que les années où vous avez des événements, plus l'année en cours et la suivante."
+          "a": "Le filtre ne propose que les années où vous avez des évènements, plus l'année en cours et la suivante."
         },
         {
           "q": "L'essai guidé laisse-t-il des traces ?",
@@ -563,8 +563,8 @@
       "body": "« Nouveau » propose trois choix. Un prospect : un prénom de marié et la source du contact suffisent ; la date, le lieu et le budget se complètent plus tard. Un évènement confirmé : le type et la date suffisent, le client est facultatif (un shooting photo). Pour un client existant : choisissez-le par la recherche, son nom et ses coordonnées ne sont pas ressaisis. Si le type a un modèle de rétroplanning, le formulaire le propose (case cochée pour un évènement confirmé) ; sinon, une astuce permet d'en créer un sans quitter le formulaire. Si la date tombe le même jour qu'un autre évènement confirmé ou en option, Symbola le signale avant l'enregistrement, sans l'empêcher.",
       "faq": [
         {
-          "q": "Quelle différence entre prospect et événement ?",
-          "a": "Un prospect n'a pas encore signé. Il devient un événement confirmé quand vous changez son statut sur la frise de sa fiche, ou à la signature du devis."
+          "q": "Quelle différence entre prospect et évènement ?",
+          "a": "Un prospect n'a pas encore signé. Il devient un évènement confirmé quand vous changez son statut sur la frise de sa fiche, ou à la signature du devis."
         },
         {
           "q": "Une source manque dans la liste ?",
@@ -573,16 +573,16 @@
       ]
     },
     "eventsDetail": {
-      "title": "Fiche de l'événement",
-      "body": "Tout l'événement, en onglets. La « Synthèse » s'ouvre sur la prochaine action et qui doit agir, puis la santé de l'événement (planning, budget, décisions du client) et les quatorze prochains jours ; « Modifier les informations », en tête de la fiche d'identité, ouvre un panneau où elles se modifient, fuseau de l'évènement compris. La frise du haut montre où il en est : Option, Confirmé, En préparation, Jour J, Clôturé. Cliquez une étape pour la poser ; « Jour J » s'applique de lui-même le jour de l'évènement, et la clôture vous est proposée dès le lendemain. « Reporter l'évènement… » demande la nouvelle date : à la confirmation du report, les échéances du rétroplanning suivent, sauf les tâches faites et celles dont vous avez fixé la date ; celles qui tomberaient dans le passé sont listées avant. « Annuler l'évènement… » demande un motif : les données restent, les liens se ferment, les rappels et les factures d'acompte programmées s'arrêtent, et un avoir vous est proposé pour chaque facture émise. La « Fiche d'identité » rassemble les invités estimés et confirmés, les lieux, les interlocuteurs, le style et les notes ; les lieux se gèrent dans l'onglet « Programme du jour J » (adresse, ville, horaires, contact sur place), le premier étant le lieu de réception. Dans ce même onglet, chaque séquence du programme est une ligne : « Modifier » l'ouvre sur place, « Ajouter une séquence » en crée une ; rien ne part tant que vous n'avez pas cliqué « Enregistrer le programme », qui dit combien de lignes attendent, et « Annuler les modifications » rend le programme enregistré. Les chevauchements signalés ne concernent pas vos clients, présents à toutes les séquences, et se lisent jour par jour. Les PDF séparent les jours d'un programme de plusieurs jours ; la version équipe place la note interne sous chaque séquence. Une tâche se confie à vous, aux mariés ou à un prestataire retenu, qui la coche dans son espace ; ses pièces jointes et ses commentaires restent dans l'équipe. Cochée par erreur, une tâche se rétablit par « Annuler », pendant dix secondes. Le bandeau « Prochaine étape » propose l'étape du parcours (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Dans « Budget et prestataires », chaque ligne dit où en est le choix (« Retenu », « 2 en comparaison », « À trouver ») ; « + Ajouter des prestataires » propose, pour chaque fiche du carnet du métier, « Comparer » ou « Retenir », jamais d'office. La fenêtre du poste compare les prestataires côte à côte (devis, disponibilité, déjà travaillé ensemble, dernière relance, note) : « Retenir », « Écarter », puis « Changer de prestataire » ou « Ne plus retenir », sans supprimer la ligne ; « Poste suivant » enchaîne. « Reprendre les prestataires retenus (PDF) » lit l'export des prestataires de votre ancien logiciel : chaque prestataire est retrouvé dans le carnet ou créé, puis retenu sur la ligne de son métier, après votre contrôle. Chaque onglet a son lien « Réglages » vers ses modèles.",
+      "title": "Fiche de l'évènement",
+      "body": "Tout l'évènement, en onglets. La « Synthèse » s'ouvre sur la prochaine action et qui doit agir, puis la santé de l'évènement (planning, budget, décisions du client) et les quatorze prochains jours ; « Modifier les informations », en tête de la fiche d'identité, ouvre un panneau où elles se modifient, fuseau de l'évènement compris. La frise du haut montre où il en est : Option, Confirmé, En préparation, Jour J, Clôturé. Cliquez une étape pour la poser ; « Jour J » s'applique de lui-même le jour de l'évènement, et la clôture vous est proposée dès le lendemain. « Reporter l'évènement… » demande la nouvelle date : à la confirmation du report, les échéances du rétroplanning suivent, sauf les tâches faites et celles dont vous avez fixé la date ; celles qui tomberaient dans le passé sont listées avant. « Annuler l'évènement… » demande un motif : les données restent, les liens se ferment, les rappels et les factures d'acompte programmées s'arrêtent, et un avoir vous est proposé pour chaque facture émise. La « Fiche d'identité » rassemble les invités estimés et confirmés, les lieux, les interlocuteurs, le style et les notes ; les lieux se gèrent dans l'onglet « Programme du jour J » (adresse, ville, horaires, contact sur place), le premier étant le lieu de réception. Dans ce même onglet, chaque séquence du programme est une ligne : « Modifier » l'ouvre sur place, « Ajouter une séquence » en crée une ; rien ne part tant que vous n'avez pas cliqué « Enregistrer le programme », qui dit combien de lignes attendent, et « Annuler les modifications » rend le programme enregistré. Les chevauchements signalés ne concernent pas vos clients, présents à toutes les séquences, et se lisent jour par jour. Les PDF séparent les jours d'un programme de plusieurs jours ; la version équipe place la note interne sous chaque séquence. Une tâche se confie à vous, aux mariés ou à un prestataire retenu, qui la coche dans son espace ; ses pièces jointes et ses commentaires restent dans l'équipe. Cochée par erreur, une tâche se rétablit par « Annuler », pendant dix secondes. Le bandeau « Prochaine étape » propose l'étape du parcours (envoyer le devis, appliquer le rétroplanning, créer les liens des mariés). Dans « Budget et prestataires », chaque ligne dit où en est le choix (« Retenu », « 2 en comparaison », « À trouver ») ; « + Ajouter des prestataires » propose, pour chaque fiche du carnet du métier, « Comparer » ou « Retenir », jamais d'office. La fenêtre du poste compare les prestataires côte à côte (devis, disponibilité, déjà travaillé ensemble, dernière relance, note) : « Retenir », « Écarter », puis « Changer de prestataire » ou « Ne plus retenir », sans supprimer la ligne ; « Poste suivant » enchaîne. « Reprendre les prestataires retenus (PDF) » lit l'export des prestataires de votre ancien logiciel : chaque prestataire est retrouvé dans le carnet ou créé, puis retenu sur la ligne de son métier, après votre contrôle. Chaque onglet a son lien « Réglages » vers ses modèles.",
       "faq": [
         {
-          "q": "Comment marquer un événement perdu ?",
+          "q": "Comment marquer un évènement perdu ?",
           "a": "Avec le lien « Marquer perdu… » sous la frise : il demande le motif, qui sert à vos statistiques."
         },
         {
           "q": "Le rétroplanning est vide, pourquoi ?",
-          "a": "Il démarre quand l'événement est confirmé : appliquez alors un modèle depuis l'onglet Rétroplanning."
+          "a": "Il démarre quand l'évènement est confirmé : appliquez alors un modèle depuis l'onglet Rétroplanning."
         },
         {
           "q": "La date change : que deviennent les tâches ?",
@@ -620,11 +620,11 @@
     },
     "eventsSettings": {
       "title": "Lignes du budget",
-      "body": "Les lignes que reçoit chaque nouvel événement (lieu, traiteur, photographe…). Elles ont été préparées selon votre métier : ajoutez, renommez, réordonnez en glissant. Un changement vaut pour les prochains événements, pas pour ceux déjà créés.",
+      "body": "Les lignes que reçoit chaque nouvel évènement (lieu, traiteur, photographe…). Elles ont été préparées selon votre métier : ajoutez, renommez, réordonnez en glissant. Un changement vaut pour les prochains évènements, pas pour ceux déjà créés.",
       "faq": [
         {
-          "q": "Changer une ligne modifie-t-il les événements existants ?",
-          "a": "Non : seuls les nouveaux événements reçoivent la liste modifiée ; ajoutez la ligne à la main sur un événement déjà créé."
+          "q": "Changer une ligne modifie-t-il les évènements existants ?",
+          "a": "Non : seuls les nouveaux évènements reçoivent la liste modifiée ; ajoutez la ligne à la main sur un évènement déjà créé."
         },
         {
           "q": "Où sont les sources et les motifs de perte ?",
@@ -634,21 +634,21 @@
     },
     "eventsTemplates": {
       "title": "Modèles de rétroplanning",
-      "body": "Vos listes de tâches types, placées avant ou après la date de l'événement (J-365, J-30, jour J…). « Nouveau modèle » demande son nom puis l'ouvre ; vous pouvez aussi charger le modèle de départ. Cliquez un modèle pour voir ses tâches : une tâche s'ajoute ou se modifie dans le panneau de droite. Rattaché à un type d'évènement, un modèle s'applique de lui-même à la création d'un évènement daté de ce type, option comprise (sans modèle pour ce type, le premier modèle créé) ; il s'applique aussi depuis l'onglet Rétroplanning.",
+      "body": "Vos listes de tâches types, placées avant ou après la date de l'évènement (J-365, J-30, jour J…). « Nouveau modèle » demande son nom puis l'ouvre ; vous pouvez aussi charger le modèle de départ. Cliquez un modèle pour voir ses tâches : une tâche s'ajoute ou se modifie dans le panneau de droite. Rattaché à un type d'évènement, un modèle s'applique de lui-même à la création d'un évènement daté de ce type, option comprise (sans modèle pour ce type, le premier modèle créé) ; il s'applique aussi depuis l'onglet Rétroplanning.",
       "faq": [
         {
-          "q": "Modifier un modèle change-t-il les événements en cours ?",
-          "a": "Non : un modèle est copié dans l'événement au moment où vous l'appliquez ; les événements déjà préparés ne bougent pas."
+          "q": "Modifier un modèle change-t-il les évènements en cours ?",
+          "a": "Non : un modèle est copié dans l'évènement au moment où vous l'appliquez ; les évènements déjà préparés ne bougent pas."
         }
       ]
     },
     "eventsProgramTemplates": {
       "title": "Modèles de programme",
-      "body": "Vos déroulés types du jour J, moment par moment. « Nouveau modèle » demande son nom puis l'ouvre ; cliquez un modèle pour voir ses lignes. Une ligne s'ajoute ou se modifie dans le panneau de droite, sans être recréée. Un modèle s'applique depuis l'onglet Programme d'un événement ; les intervenants qui portent le nom d'une ligne du budget y sont reliés.",
+      "body": "Vos déroulés types du jour J, moment par moment. « Nouveau modèle » demande son nom puis l'ouvre ; cliquez un modèle pour voir ses lignes. Une ligne s'ajoute ou se modifie dans le panneau de droite, sans être recréée. Un modèle s'applique depuis l'onglet Programme d'un évènement ; les intervenants qui portent le nom d'une ligne du budget y sont reliés.",
       "faq": [
         {
           "q": "Peut-on télécharger le programme ?",
-          "a": "Oui, depuis la fiche de l'événement : en PDF, version mariés (sans notes internes) ou version prestataires."
+          "a": "Oui, depuis la fiche de l'évènement : en PDF, version mariés (sans notes internes) ou version prestataires."
         }
       ]
     },
@@ -662,7 +662,7 @@
     },
     "budgetSettings": {
       "title": "Répartition du budget",
-      "body": "Une répartition partage un budget total entre vos lignes, en pourcentages qui font 100 %. Créez-en une pour proposer des montants estimés quand vous simulez le budget d'un événement. Elle est facultative : un événement a un budget dès sa création. Le seuil d'alerte (90 % par défaut) déclenche une alerte quand l'engagé d'un événement dépasserait cette part de son enveloppe.",
+      "body": "Une répartition partage un budget total entre vos lignes, en pourcentages qui font 100 %. Créez-en une pour proposer des montants estimés quand vous simulez le budget d'un évènement. Elle est facultative : un évènement a un budget dès sa création. Le seuil d'alerte (90 % par défaut) déclenche une alerte quand l'engagé d'un évènement dépasserait cette part de son enveloppe.",
       "faq": [
         {
           "q": "Faut-il une répartition par type de mariage ?",
@@ -671,8 +671,8 @@
       ]
     },
     "budgetDetail": {
-      "title": "Budget de l'événement",
-      "body": "Le suivi courant du budget est dans l'onglet « Budget et prestataires » de la fiche : par poste, prévu, réel, écart, réglé, reste à payer et prochaine échéance ; la ligne se déplie sur son échéancier, et « Ouvrir » (ou un clic sur la ligne) ouvre la fenêtre du poste, en cinq rubriques : Prestataires, Montants, Échéancier, Documents et Réglages du poste. Cette page en garde le détail. Chaque poste de l'événement est une catégorie ; elle porte des lignes (« Dîner, 120 couverts », « Vin d'honneur »…), chacune avec son prestataire et cinq montants : l'estimé, le réel (le montant du devis), l'engagé (rempli quand vous retenez le prestataire), le payé et le reste à payer, calculé. « Modifier » ouvre une ligne sur place : changez son libellé, son prestataire, son taux et ses montants, sur autant de lignes que vous voulez, puis « Enregistrer le budget » les écrit ensemble ; « Annuler les modifications » rend le budget enregistré. La simulation et sa répartition par poste se replient une fois les lignes posées ; la répartition s'enregistre de même, d'un seul « Enregistrer la répartition ». Sous chaque ligne, joignez le devis, le contrat ou la facture, et posez les échéances (acompte, solde ; un pourcentage porte sur l'engagé du prestataire) : payées, elles font le payé de la ligne, et les prochaines apparaissent dans « Aujourd'hui ». L'enveloppe est le budget souhaité du client ; au-delà du seuil d'alerte, un bandeau le signale, et retenir un prestataire demande une confirmation. Les montants se saisissent TTC, chaque ligne avec son taux de TVA (20 % par défaut) ; si le devis de l'événement est à un client professionnel, le HT s'affiche sous chaque montant. « Exporter en XLSX » ou « en PDF » reprend le budget et les échéances, aux couleurs de vos documents.",
+      "title": "Budget de l'évènement",
+      "body": "Le suivi courant du budget est dans l'onglet « Budget et prestataires » de la fiche : par poste, prévu, réel, écart, réglé, reste à payer et prochaine échéance ; la ligne se déplie sur son échéancier, et « Ouvrir » (ou un clic sur la ligne) ouvre la fenêtre du poste, en cinq rubriques : Prestataires, Montants, Échéancier, Documents et Réglages du poste. Cette page en garde le détail. Chaque poste de l'évènement est une catégorie ; elle porte des lignes (« Dîner, 120 couverts », « Vin d'honneur »…), chacune avec son prestataire et cinq montants : l'estimé, le réel (le montant du devis), l'engagé (rempli quand vous retenez le prestataire), le payé et le reste à payer, calculé. « Modifier » ouvre une ligne sur place : changez son libellé, son prestataire, son taux et ses montants, sur autant de lignes que vous voulez, puis « Enregistrer le budget » les écrit ensemble ; « Annuler les modifications » rend le budget enregistré. La simulation et sa répartition par poste se replient une fois les lignes posées ; la répartition s'enregistre de même, d'un seul « Enregistrer la répartition ». Sous chaque ligne, joignez le devis, le contrat ou la facture, et posez les échéances (acompte, solde ; un pourcentage porte sur l'engagé du prestataire) : payées, elles font le payé de la ligne, et les prochaines apparaissent dans « Aujourd'hui ». L'enveloppe est le budget souhaité du client ; au-delà du seuil d'alerte, un bandeau le signale, et retenir un prestataire demande une confirmation. Les montants se saisissent TTC, chaque ligne avec son taux de TVA (20 % par défaut) ; si le devis de l'évènement est à un client professionnel, le HT s'affiche sous chaque montant. « Exporter en XLSX » ou « en PDF » reprend le budget et les échéances, aux couleurs de vos documents.",
       "faq": [
         {
           "q": "Les mariés voient-ils le budget ?",
@@ -684,7 +684,7 @@
         },
         {
           "q": "Pourquoi le HT ne s'affiche-t-il pas ?",
-          "a": "Le HT s'affiche pour un client professionnel : choisissez « Professionnel » comme type de client sur le devis de l'événement. Sans devis, le client est un particulier et le budget reste en TTC."
+          "a": "Le HT s'affiche pour un client professionnel : choisissez « Professionnel » comme type de client sur le devis de l'évènement. Sans devis, le client est un particulier et le budget reste en TTC."
         }
       ]
     },
@@ -780,7 +780,7 @@
     },
     "importFile": {
       "title": "Importer des données",
-      "body": "Choisissez ce que vous reprenez : vos contacts (CSV ou Excel), vos prestataires ou vos fiches événement depuis votre outil actuel, ou un autre fichier. Chaque écran (prestataires, évènements, contacts, budget, programme, invités) a aussi son bouton « Importer », réglé sur le bon type. Dès le clic, une fenêtre montre où en est la lecture. Rien n'est enregistré avant la confirmation, et un import s'annule depuis son bilan.",
+      "body": "Choisissez ce que vous reprenez : vos contacts (CSV ou Excel), vos prestataires ou vos fiches évènement depuis votre outil actuel, ou un autre fichier. Chaque écran (prestataires, évènements, contacts, budget, programme, invités) a aussi son bouton « Importer », réglé sur le bon type. Dès le clic, une fenêtre montre où en est la lecture. Rien n'est enregistré avant la confirmation, et un import s'annule depuis son bilan.",
       "faq": [
         {
           "q": "Que devient mon fichier ?",
@@ -810,7 +810,7 @@
     },
     "privacySearch": {
       "title": "Données personnelles",
-      "body": "Consultez tout ce que vous détenez sur une personne : saisissez un e-mail, un téléphone ou un nom (accents et casse ignorés). La recherche interroge chaque module puis les événements de la personne ; un module qui ne répond pas est signalé. Pour exporter ou effacer, enregistrez la demande : son dossier vous guide.",
+      "body": "Consultez tout ce que vous détenez sur une personne : saisissez un e-mail, un téléphone ou un nom (accents et casse ignorés). La recherche interroge chaque module puis les évènements de la personne ; un module qui ne répond pas est signalé. Pour exporter ou effacer, enregistrez la demande : son dossier vous guide.",
       "faq": [
         {
           "q": "Une personne demande ses données : que faire ?",
@@ -854,11 +854,11 @@
     },
     "allQuotes": {
       "title": "Vos devis",
-      "body": "Tous vos devis et factures, avec leur statut. En tête, les trois chiffres de l'année : signé, facturé (moins les avoirs) et encaissé (moins les annulations, arrhes comprises). Un devis se crée depuis la fiche de son événement ; les factures d'acompte et de solde, depuis le devis signé. « Réglages » mène à la numérotation, au catalogue et à l'apparence des documents.",
+      "body": "Tous vos devis et factures, avec leur statut. En tête, les trois chiffres de l'année : signé, facturé (moins les avoirs) et encaissé (moins les annulations, arrhes comprises). Un devis se crée depuis la fiche de son évènement ; les factures d'acompte et de solde, depuis le devis signé. « Réglages » mène à la numérotation, au catalogue et à l'apparence des documents.",
       "faq": [
         {
           "q": "Pourquoi ne puis-je pas créer un devis ici ?",
-          "a": "Un devis appartient toujours à un événement : créez-le depuis la fiche de l'événement, il y reste rattaché."
+          "a": "Un devis appartient toujours à un évènement : créez-le depuis la fiche de l'évènement, il y reste rattaché."
         }
       ]
     },
@@ -874,7 +874,7 @@
     },
     "adminActivity": {
       "title": "Activité des organisations",
-      "body": "Des statistiques d'usage : comptes, comptes connectés sur 30 jours, dernière connexion, nombre d'événements, de devis et de factures créés chaque mois, et le dernier relevé du stockage (nombre de fichiers et volume). Jamais un nom, un montant, un nom de fichier ni un contenu ; les essais guidés ne comptent pas."
+      "body": "Des statistiques d'usage : comptes, comptes connectés sur 30 jours, dernière connexion, nombre d'évènements, de devis et de factures créés chaque mois, et le dernier relevé du stockage (nombre de fichiers et volume). Jamais un nom, un montant, un nom de fichier ni un contenu ; les essais guidés ne comptent pas."
     },
     "adminClosures": {
       "title": "Espaces fermés",
@@ -886,15 +886,15 @@
     },
     "adminOnboarding": {
       "title": "Prise en main des organisations",
-      "body": "Pour chaque compte d'équipe : les tutoriels terminés et en cours, et la dernière activité d'aide. De quoi repérer qui a besoin d'un coup de main, sans aucune donnée d'événement."
+      "body": "Pour chaque compte d'équipe : les tutoriels terminés et en cours, et la dernière activité d'aide. De quoi repérer qui a besoin d'un coup de main, sans aucune donnée d'évènement."
     },
     "vendorBook": {
       "title": "Le carnet de prestataires",
-      "body": "Chaque prestataire a une seule fiche, réutilisée d'un événement à l'autre. Filtrez par famille avec les pastilles du haut, puis par type, étiquette, ou autour d'un lieu. Une ligne ouvre sa fiche à droite ; « Archiver » la retire du carnet après confirmation. Le filtre « Évaluation » ne garde que les prestataires notés au moins tant d'étoiles.",
+      "body": "Chaque prestataire a une seule fiche, réutilisée d'un évènement à l'autre. Filtrez par famille avec les pastilles du haut, puis par type, étiquette, ou autour d'un lieu. Une ligne ouvre sa fiche à droite ; « Archiver » la retire du carnet après confirmation. Le filtre « Évaluation » ne garde que les prestataires notés au moins tant d'étoiles.",
       "faq": [
         {
           "q": "Comment comparer plusieurs devis pour une ligne ?",
-          "a": "Depuis la ligne du budget d'un événement, ajoutez les prestataires consultés, notez leurs devis, puis retenez-en un."
+          "a": "Depuis la ligne du budget d'un évènement, ajoutez les prestataires consultés, notez leurs devis, puis retenez-en un."
         },
         {
           "q": "Un prestataire n'apparaît pas sur la carte ?",
@@ -925,8 +925,8 @@
       "body": "Chaque type du fichier est rangé dans une famille : rattaché à un type de votre carnet, à un type de départ créé une seule fois pour tous ses synonymes, ou laissé « à classer ». Changez ce que devient un libellé, ou créez-le dans la famille de votre choix."
     },
     "eventTypes": {
-      "title": "Types d'événements",
-      "body": "Chaque événement a un type : mariage, séminaire, anniversaire… Le type dit qui sont vos clients, les mariés ou un client, et la fiche, le programme et l'espace client en suivent le vocabulaire. Renommez un type, choisissez qui sont ses clients, ajoutez-en ; un type qui a des événements ne se supprime qu'en les confiant à un autre. Chaque modification s'enregistre quand vous quittez le champ ; « Annuler la dernière modification » la reprend."
+      "title": "Types d'évènements",
+      "body": "Chaque évènement a un type : mariage, séminaire, anniversaire… Le type dit qui sont vos clients, les mariés ou un client, et la fiche, le programme et l'espace client en suivent le vocabulaire. Renommez un type, choisissez qui sont ses clients, ajoutez-en ; un type qui a des évènements ne se supprime qu'en les confiant à un autre. Chaque modification s'enregistre quand vous quittez le champ ; « Annuler la dernière modification » la reprend."
     },
     "quotesDocuments": {
       "title": "Documents",
@@ -990,7 +990,7 @@
       "faq": [
         {
           "q": "Archiver efface-t-il son historique ?",
-          "a": "Non : la fiche quitte le carnet, mais ses prestations restent sur vos événements et budgets."
+          "a": "Non : la fiche quitte le carnet, mais ses prestations restent sur vos évènements et budgets."
         }
       ]
     },
@@ -1000,7 +1000,7 @@
     },
     "search": {
       "title": "Recherche",
-      "body": "La barre du haut cherche dans toute votre organisation : événements et clients, devis et factures, tâches et fiches d'aide. Tapez un nom, un numéro de devis ou un mot comme « TVA ». Le raccourci ⌘K (Ctrl K sur PC) y place le curseur depuis n'importe quel écran."
+      "body": "La barre du haut cherche dans toute votre organisation : évènements et clients, devis et factures, tâches et fiches d'aide. Tapez un nom, un numéro de devis ou un mot comme « TVA ». Le raccourci ⌘K (Ctrl K sur PC) y place le curseur depuis n'importe quel écran."
     },
     "tutorials": {
       "title": "Tutoriels",
@@ -1044,11 +1044,11 @@
         },
         {
           "q": "Quand la copie s'efface-t-elle ?",
-          "a": "Le lendemain de l'événement à minuit, quand vous vous déconnectez de cet appareil, quand un autre compte s'y connecte, ou par « Retirer de cet appareil ». Elle ne s'efface pas quand votre session expire : le jour J préparé la veille reste lisible le matin."
+          "a": "Le lendemain de l'évènement à minuit, quand vous vous déconnectez de cet appareil, quand un autre compte s'y connecte, ou par « Retirer de cet appareil ». Elle ne s'efface pas quand votre session expire : le jour J préparé la veille reste lisible le matin."
         },
         {
           "q": "Et si je perds mon téléphone ?",
-          "a": "« Déconnecter tous mes autres appareils », depuis un autre appareil, ferme sa session, mais n'atteint pas un téléphone sans réseau : la copie y reste lisible jusqu'au lendemain de l'événement. Gardez votre téléphone verrouillé par un code."
+          "a": "« Déconnecter tous mes autres appareils », depuis un autre appareil, ferme sa session, mais n'atteint pas un téléphone sans réseau : la copie y reste lisible jusqu'au lendemain de l'évènement. Gardez votre téléphone verrouillé par un code."
         },
         {
           "q": "Comment embarquer le plan de table ?",
@@ -1094,11 +1094,11 @@
     },
     "quotesTemplates": {
       "title": "Modèles de devis",
-      "body": "Un modèle par type d'événement : sections, lignes, options, échéancier type et acompte ou arrhes. « Nouveau devis » sur la fiche de l'événement part du modèle de son type ; modifier un modèle ensuite ne change aucun devis déjà créé, qui garde la version dont il vient. Le modèle de départ est à adapter : prix, conditions, échéancier."
+      "body": "Un modèle par type d'évènement : sections, lignes, options, échéancier type et acompte ou arrhes. « Nouveau devis » sur la fiche de l'évènement part du modèle de son type ; modifier un modèle ensuite ne change aucun devis déjà créé, qui garde la version dont il vient. Le modèle de départ est à adapter : prix, conditions, échéancier."
     },
     "contractTemplates": {
       "title": "Modèles de contrat",
-      "body": "Un modèle par type d'événement : un titre et des clauses ordonnées, chacune obligatoire ou facultative, avec des variables entre accolades et un rôle légal (information précontractuelle, rétractation, acompte…). À la génération, Symbola remplit les variables depuis le devis, l'événement et votre organisation, et nomme tout ce qui manque. Chaque modification augmente la version ; les contrats déjà générés gardent leur texte. Le modèle de départ est une base à adapter, à faire relire par un professionnel du droit : indiquez la date de la dernière relecture."
+      "body": "Un modèle par type d'évènement : un titre et des clauses ordonnées, chacune obligatoire ou facultative, avec des variables entre accolades et un rôle légal (information précontractuelle, rétractation, acompte…). À la génération, Symbola remplit les variables depuis le devis, l'évènement et votre organisation, et nomme tout ce qui manque. Chaque modification augmente la version ; les contrats déjà générés gardent leur texte. Le modèle de départ est une base à adapter, à faire relire par un professionnel du droit : indiquez la date de la dernière relecture."
     },
     "signup": {
       "title": "Créer votre espace",
@@ -1412,7 +1412,7 @@
     },
     "clientTerms": {
       "title": "Termes des clients",
-      "body": "Le terme choisi pour un type remplace « les mariés » ou « les clients » là où Symbola nomme vos clients, et remplit '{{terme_clients}}' dans vos e-mails et vos documents à venir. Chaque modification s'enregistre quand vous quittez le champ ; « Annuler la dernière modification » la reprend."
+      "body": "Le terme choisi pour un type remplace « les mariés » ou « les clients » là où Symbola nomme vos clients, et se glisse dans vos e-mails et vos documents à venir. Chaque modification s'enregistre quand vous quittez le champ ; « Annuler la dernière modification » la reprend."
     },
     "standaloneTasks": {
       "title": "Tâches hors évènement",
@@ -1573,11 +1573,11 @@
     }
   },
   "Events": {
-    "title": "Événements",
-    "moduleUnavailable": "Le module Événements n'est pas activé pour votre organisation.",
+    "title": "Évènements",
+    "moduleUnavailable": "Le module Évènements n'est pas activé pour votre organisation.",
     "unauthenticated": "Votre session a expiré. Reconnectez-vous puis recommencez.",
     "newProspect": "Nouveau prospect",
-    "settingsLink": "Paramètres des événements",
+    "settingsLink": "Paramètres des évènements",
     "tabsLabel": "Période",
     "tabUpcoming": "À venir",
     "tabPast": "Terminés",
@@ -1588,7 +1588,7 @@
     "filter": "Filtrer",
     "noClient": "Mariés non renseignés",
     "dateUnset": "Date à définir",
-    "noResults": "Aucun événement ne correspond à ces critères.",
+    "noResults": "Aucun évènement ne correspond à ces critères.",
     "statusConfirmed": "Confirmé",
     "templateEventType": "Type d'évènement",
     "templateEventTypeNone": "Aucun : ne s'applique pas de lui-même",
@@ -1641,8 +1641,8 @@
     "client2LastName": "Nom du second marié (facultatif)",
     "source": "Source du prospect",
     "sourceChoose": "Choisir…",
-    "noSourcesYet": "Chaque prospect est rattaché à sa source (Instagram, salon, bouche-à-oreille…). Ajoutez vos sources dans les <link>Paramètres des événements</link>, ou chargez la liste de départ en un clic, modifiable ensuite.",
-    "eventDate": "Date de l'événement",
+    "noSourcesYet": "Chaque prospect est rattaché à sa source (Instagram, salon, bouche-à-oreille…). Ajoutez vos sources dans les <link>Paramètres des évènements</link>, ou chargez la liste de départ en un clic, modifiable ensuite.",
+    "eventDate": "Date de l'évènement",
     "venueName": "Lieu",
     "venueCity": "Ville",
     "createProspect": "Créer le prospect",
@@ -1655,7 +1655,7 @@
     "invalidStatus": "Ce statut n'existe pas.",
     "missingLossReason": "Choisissez un motif.",
     "missingLossReasonNote": "Ce motif demande une précision.",
-    "settingsTitle": "Paramètres des événements",
+    "settingsTitle": "Paramètres des évènements",
     "sourcesTitle": "Sources de prospect",
     "newSourceLabel": "Nouvelle source",
     "addSource": "Ajouter la source",
@@ -1668,7 +1668,7 @@
     "freeTextTag": "précision demandée",
     "missingLabel": "Le libellé est obligatoire.",
     "sourceAll": "Toutes",
-    "eventNotFound": "Cet événement est introuvable.",
+    "eventNotFound": "Cet évènement est introuvable.",
     "statusChanged": "Statut mis à jour.",
     "taskTableRegion": "Tableau : {caption}",
     "vendorSlotsTable": "Lignes du budget",
@@ -1685,21 +1685,21 @@
     "vendorSlotStatus": "Statut",
     "vendorName": "Prestataire",
     "vendorAmount": "Montant en euros (facultatif)",
-    "vendorSlotNotRequired": "Ligne non requise pour cet événement",
+    "vendorSlotNotRequired": "Ligne non requise pour cet évènement",
     "retainedVendorName": "Ajouter un prestataire retenu (nom)",
     "retainedVendorAmount": "Montant de son devis en euros (facultatif)",
     "confirmRetainedVendor": "Retenir {vendor} malgré le dépassement",
     "saveVendorSlot": "Enregistrer la ligne",
     "vendorSlotSaved": "Ligne enregistrée.",
-    "newVendorSlotLabel": "Nouvelle ligne du budget pour cet événement",
+    "newVendorSlotLabel": "Nouvelle ligne du budget pour cet évènement",
     "addVendorSlot": "Ajouter la ligne",
     "removeVendorSlot": "Retirer la ligne « {label} »",
-    "noVendorSlots": "Aucune ligne de budget pour cet événement. Ajoutez-en une, ou définissez vos lignes par défaut dans les paramètres.",
+    "noVendorSlots": "Aucune ligne de budget pour cet évènement. Ajoutez-en une, ou définissez vos lignes par défaut dans les paramètres.",
     "vendorSlotNotFound": "Cette ligne du budget est introuvable.",
     "missingVendorName": "Indiquez le nom du prestataire retenu pour saisir un montant.",
     "invalidAmount": "Montant invalide. Exemple : 2 500,50",
     "defaultVendorSlotsTitle": "Lignes du budget par défaut",
-    "defaultVendorSlotsIntro": "Chaque nouvel événement reçoit ces lignes (lieu, traiteur, photographe…) ; vous y suivez prestataires, devis et montants (estimé, réel, engagé, payé), et vous les modifiez ensuite événement par événement.",
+    "defaultVendorSlotsIntro": "Chaque nouvel évènement reçoit ces lignes (lieu, traiteur, photographe…) ; vous y suivez prestataires, devis et montants (estimé, réel, engagé, payé), et vous les modifiez ensuite évènement par évènement.",
     "noDefaultVendorSlots": "Aucune ligne par défaut pour l'instant.",
     "newDefaultVendorSlotLabel": "Nouvelle ligne par défaut",
     "addDefaultVendorSlot": "Ajouter la ligne",
@@ -1710,7 +1710,7 @@
     "tasksTitle": "Rétroplanning",
     "taskTemplatesTitle": "Modèles de rétroplanning",
     "taskTemplatesLink": "Modèles de rétroplanning",
-    "taskTemplatesIntro": "Chaque tâche d'un modèle a un intitulé, un décalage en jours par rapport à la date de l'événement (-365 pour J-365, 0 pour le jour J) et un responsable. Appliqué à un événement daté, le modèle crée les tâches avec leurs échéances.",
+    "taskTemplatesIntro": "Chaque tâche d'un modèle a un intitulé, un décalage en jours par rapport à la date de l'évènement (-365 pour J-365, 0 pour le jour J) et un responsable. Appliqué à un évènement daté, le modèle crée les tâches avec leurs échéances.",
     "noTaskTemplates": "Aucun modèle de rétroplanning pour l'instant.",
     "noTaskTemplateItems": "Ce modèle ne contient encore aucune tâche.",
     "newTaskTemplateTitle": "Nouveau modèle",
@@ -1720,7 +1720,7 @@
     "starterRetroplanningLoaded": "Modèle de départ chargé : adaptez-le à votre façon de travailler.",
     "addTaskTemplateItem": "Ajouter la tâche au modèle",
     "taskTemplateItemAdded": "Tâche ajoutée au modèle.",
-    "taskOffsetDays": "Décalage en jours (négatif avant l'événement, positif après)",
+    "taskOffsetDays": "Décalage en jours (négatif avant l'évènement, positif après)",
     "offsetEventDay": "Jour J",
     "offsetBefore": "J-{days}",
     "offsetAfter": "J+{days}",
@@ -1729,16 +1729,16 @@
     "taskTemplateToApply": "Modèle à appliquer",
     "applyTaskTemplate": "Appliquer le modèle",
     "taskTemplateApplied": "Modèle appliqué : les tâches ont été créées.",
-    "taskTemplateNeedsDate": "Ajoutez une date à l'événement pour appliquer un modèle de rétroplanning.",
+    "taskTemplateNeedsDate": "Ajoutez une date à l'évènement pour appliquer un modèle de rétroplanning.",
     "recalculationPendingFirst": "Répondez d'abord à la proposition de recalcul des échéances.",
     "recalculationTitle": "Recalcul des échéances",
-    "recalculationProposal": "La date de l'événement a été {direction, select, later {repoussée} other {avancée}} de {days, plural, one {# jour} other {# jours}}. Décaler d'autant {count, plural, one {la tâche non faite} other {les # tâches non faites}} ?",
+    "recalculationProposal": "La date de l'évènement a été {direction, select, later {repoussée} other {avancée}} de {days, plural, one {# jour} other {# jours}}. Décaler d'autant {count, plural, one {la tâche non faite} other {les # tâches non faites}} ?",
     "recalculationAccept": "Décaler les échéances",
     "recalculationDecline": "Garder les échéances",
     "changeEventDate": "Changer la date",
     "eventDateChanged": "Date mise à jour.",
     "invalidDate": "Date invalide.",
-    "noTasks": "Aucune tâche pour cet événement.",
+    "noTasks": "Aucune tâche pour cet évènement.",
     "newTask": "Nouvelle tâche",
     "taskLabel": "Intitulé de la tâche",
     "taskDueDate": "Échéance",
@@ -1773,7 +1773,7 @@
     "removeProgramItem": "Supprimer la ligne {label}",
     "removeProgramLine": "Retirer la ligne {label}",
     "programItemNotFound": "Ligne du programme introuvable.",
-    "programParticipantNotFound": "Un intervenant choisi n'est pas une ligne du budget de cet événement.",
+    "programParticipantNotFound": "Un intervenant choisi n'est pas une ligne du budget de cet évènement.",
     "programStartTime": "Heure de début",
     "programEndTime": "Heure de fin (facultative)",
     "programItemLabel": "Intitulé de la ligne",
@@ -1812,7 +1812,7 @@
     "invalidTime": "Heure invalide.",
     "programTemplatesTitle": "Modèles de programme",
     "programTemplatesLink": "Modèles de programme",
-    "programTemplatesIntro": "Un modèle de programme est une liste de moments (heures, intitulé, lieu, intervenants). Appliqué à un événement, il ajoute ses moments au programme ; un intervenant qui porte le nom d'une ligne du budget de l'événement y est relié.",
+    "programTemplatesIntro": "Un modèle de programme est une liste de moments (heures, intitulé, lieu, intervenants). Appliqué à un évènement, il ajoute ses moments au programme ; un intervenant qui porte le nom d'une ligne du budget de l'évènement y est relié.",
     "noProgramTemplates": "Aucun modèle de programme pour l'instant.",
     "noProgramTemplateItems": "Ce modèle ne contient encore aucune ligne.",
     "newProgramTemplateTitle": "Nouveau modèle de programme",
@@ -1839,7 +1839,7 @@
     "activityTaskUndone": "{actor} a décoché « {task} ».",
     "activityFormerClient": "Un marié",
     "trialTitle": "Essai guidé",
-    "trialIntro": "Découvrez le module sur un mariage fictif déjà préparé (budget, rétroplanning, programme du jour J) : changez son statut, retenez un prestataire, cochez des tâches, exportez le programme. Rien ne touche vos vrais événements, et tout est supprimé à la fin de l'essai (ou au bout de 24 h).",
+    "trialIntro": "Découvrez le module sur un mariage fictif déjà préparé (budget, rétroplanning, programme du jour J) : changez son statut, retenez un prestataire, cochez des tâches, exportez le programme. Rien ne touche vos vrais évènements, et tout est supprimé à la fin de l'essai (ou au bout de 24 h).",
     "trialStart": "Démarrer l'essai",
     "trialResume": "Reprendre l'essai en cours",
     "trialEnded": "Essai terminé : ses données fictives ont été supprimées.",
@@ -1857,11 +1857,11 @@
     "exampleRemove": "Supprimer l'exemple",
     "exampleKeep": "Le garder pour l'instant",
     "exampleRemoved": "L'exemple et ses données fictives ont été supprimés.",
-    "trialNoInvite": "Pendant l'essai, aucun lien n'est envoyé : les liens ne se créent que sur un vrai événement.",
+    "trialNoInvite": "Pendant l'essai, aucun lien n'est envoyé : les liens ne se créent que sur un vrai évènement.",
     "demoWatermark": "Document fictif",
     "budgetLink": "Budget",
     "confirmBudgetTitle": "Faire de la simulation le budget estimé",
-    "confirmBudgetBody": "L'événement est confirmé et une simulation existe déjà : vous pouvez en faire l'estimé, ligne par ligne.",
+    "confirmBudgetBody": "L'évènement est confirmé et une simulation existe déjà : vous pouvez en faire l'estimé, ligne par ligne.",
     "confirmAsPlanned": "En faire le budget estimé",
     "trialStepQuote": "Composez un devis fictif, faites-le signer par le marié fictif sur la page de signature d'essai, puis émettez ses factures (série DEMO, en filigrane).",
     "trialStartQuote": "Essayer un devis fictif",
@@ -1874,7 +1874,7 @@
     "lossReasonsIntro": "Pourquoi une option n'a pas abouti, ou pourquoi un évènement est annulé. Demandé à l'annulation.",
     "tabOverview": "Synthèse",
     "tabClients": "Mariés",
-    "backToEvents": "← Tous les événements",
+    "backToEvents": "← Tous les évènements",
     "tasksOverdueCount": "{count, plural, one {# en retard} other {# en retard}}",
     "vendorSlotsSettings": "Paramètres des lignes du budget par défaut",
     "vendorSlotsFilter": "Filtrer les lignes",
@@ -1906,7 +1906,7 @@
     "taskStatusDone": "Faite",
     "taskStatusOverdue": "En retard",
     "taskStatusTodo": "À faire",
-    "eventTabsLabel": "Sections de l'événement",
+    "eventTabsLabel": "Sections de l'évènement",
     "allTasksTitle": "Tâches",
     "allTasksSummary": "{count, plural, =0 {Aucune tâche à faire} one {# tâche à faire} other {# tâches à faire}} · {overdue} en retard",
     "allTasksEmpty": "Aucune tâche à faire : tout est à jour.",
@@ -1918,10 +1918,10 @@
     "lineIconFor": "Icône de « {line} »",
     "saveIcon": "Enregistrer l'icône",
     "iconSaved": "✓ Icône enregistrée.",
-    "statusStepsLabel": "Statut de l'événement",
-    "proposeRetroplanningTitle": "L'événement est confirmé : appliquer le rétroplanning ?",
-    "proposeRetroplanningBody": "Les tâches sont calculées depuis la date de l'événement. Choisissez le modèle (le vôtre est déjà sélectionné).",
-    "placesTitle": "Lieux de l'événement",
+    "statusStepsLabel": "Statut de l'évènement",
+    "proposeRetroplanningTitle": "L'évènement est confirmé : appliquer le rétroplanning ?",
+    "proposeRetroplanningBody": "Les tâches sont calculées depuis la date de l'évènement. Choisissez le modèle (le vôtre est déjà sélectionné).",
+    "placesTitle": "Lieux de l'évènement",
     "placesHint": "Saisis une fois, ils se choisissent ensuite dans le programme.",
     "noPlaces": "Aucun lieu pour l'instant.",
     "placeFromBook": "du carnet de prestataires",
@@ -1932,13 +1932,13 @@
     "placeAdded": "✓ Lieu ajouté.",
     "placeLabelRequired": "Le nom du lieu est obligatoire.",
     "addSuggestedPlace": "Ajouter « {place} »",
-    "newConfirmedEvent": "Nouvel événement",
-    "createConfirmedEvent": "Créer l'événement",
-    "filtersLabel": "Filtrer les événements",
+    "newConfirmedEvent": "Nouvel évènement",
+    "createConfirmedEvent": "Créer l'évènement",
+    "filtersLabel": "Filtrer les évènements",
     "yearAll": "Toutes",
     "tabUpcomingCount": "À venir · {count}",
     "tabPastCount": "Terminés · {count}",
-    "listLabel": "Liste des événements",
+    "listLabel": "Liste des évènements",
     "columnClients": "Mariés",
     "columnDate": "Date",
     "addBudgetLineButton": "+ Ajouter une ligne",
@@ -1951,14 +1951,14 @@
     "sourcesReasonsTitle": "Sources et motifs",
     "timelineAfter": "après le {date}",
     "timelineConfirmLabel": "Confirmer le changement de statut",
-    "timelineConfirm": "Passer l'événement en « {status} » ?",
+    "timelineConfirm": "Passer l'évènement en « {status} » ?",
     "timelineConfirmButton": "Confirmer",
     "timelineCancel": "Annuler",
     "nextStepLater": "Plus tard",
     "nextStep": {
       "send_quote": {
         "title": "Prochaine étape : envoyer le devis",
-        "body": "Le prospect attend votre proposition. Composez le devis depuis cet événement et envoyez-le.",
+        "body": "Le prospect attend votre proposition. Composez le devis depuis cet évènement et envoyez-le.",
         "action": "Préparer le devis"
       },
       "apply_retroplanning": {
@@ -1968,7 +1968,7 @@
       },
       "prepare_program": {
         "title": "Prochaine étape : préparer le programme du jour J",
-        "body": "L'événement approche et son programme est vide. Partez d'un modèle ou ajoutez les premiers moments.",
+        "body": "L'évènement approche et son programme est vide. Partez d'un modèle ou ajoutez les premiers moments.",
         "action": "Ouvrir le programme"
       },
       "invite_clients": {
@@ -1988,7 +1988,7 @@
     "moveLineDown": "Descendre la ligne « {label} »",
     "lineMoved": "« {label} » est maintenant en position {position} sur {total}.",
     "lineMoveFailed": "L'ordre n'a pas pu être enregistré : la liste a changé, rechargez la page.",
-    "defaultVendorSlotsReorderHint": "Glissez une ligne pour changer l'ordre, ou utilisez les flèches : les nouveaux événements reçoivent les lignes dans cet ordre.",
+    "defaultVendorSlotsReorderHint": "Glissez une ligne pour changer l'ordre, ou utilisez les flèches : les nouveaux évènements reçoivent les lignes dans cet ordre.",
     "kpiWanted": "Budget souhaité",
     "wantedBudget": "Budget souhaité par les clients (€)",
     "wantedBudgetSave": "Enregistrer le budget souhaité",
@@ -2004,13 +2004,13 @@
     "clientContactSave": "Enregistrer les coordonnées de {name}",
     "clientContactSaved": "Coordonnées enregistrées.",
     "clientContactInvalidEmail": "Adresse e-mail illisible.",
-    "eventType": "Type d'événement",
+    "eventType": "Type d'évènement",
     "eventTypeNone": "Type à préciser",
-    "missingEventType": "Choisissez le type de l'événement.",
+    "missingEventType": "Choisissez le type de l'évènement.",
     "changeEventType": "Changer le type",
-    "eventTypeSaved": "Type de l'événement enregistré.",
-    "eventTypeOf": "Type de l'événement {names}",
-    "actionsLabel": "Actions des événements",
+    "eventTypeSaved": "Type de l'évènement enregistré.",
+    "eventTypeOf": "Type de l'évènement {names}",
+    "actionsLabel": "Actions des évènements",
     "newTemplateButton": "Nouveau modèle",
     "templateLineCount": "{count, plural, =0 {Aucune ligne} one {# ligne} other {# lignes}}",
     "templateTaskCount": "{count, plural, =0 {Aucune tâche} one {# tâche} other {# tâches}}",
@@ -2036,8 +2036,8 @@
     "templateColumnTask": "Tâche",
     "deleteTemplate": "Supprimer ce modèle",
     "deleteTemplateTitle": "Supprimer le modèle « {name} » ?",
-    "deleteProgramTemplateBody": "Les programmes déjà appliqués aux événements ne changent pas.",
-    "deleteTaskTemplateBody": "Les tâches déjà créées sur les événements restent.",
+    "deleteProgramTemplateBody": "Les programmes déjà appliqués aux évènements ne changent pas.",
+    "deleteTaskTemplateBody": "Les tâches déjà créées sur les évènements restent.",
     "deleteTemplateConfirm": "Supprimer le modèle",
     "mailQuotaReached": "Plafond d'envois atteint : votre organisation a envoyé le nombre maximal d'e-mails de l'heure. Réessayez dans {minutes} minutes.",
     "budgetLinesDetail": "{count} lignes pour « {line} » : les détailler sur le budget",
@@ -2077,7 +2077,7 @@
     "linkSharedSlots": "Catégories du budget partagées",
     "linkSharedSlotsHint": "Seulement ces catégories, sans total général.",
     "linkExpiresOn": "Valable jusqu'au (facultatif)",
-    "linkExpiresOnHint": "Par défaut : 30 jours après l'événement.",
+    "linkExpiresOnHint": "Par défaut : 30 jours après l'évènement.",
     "createLink": "Créer le lien et l'envoyer",
     "linkCreated": "Lien envoyé à {email}.",
     "linkRenewed": "Nouveau lien envoyé à {email}. L'ancien ne fonctionne plus.",
@@ -2099,7 +2099,7 @@
     "linkBudgetScopeSelected": "Seulement les catégories choisies",
     "linkInvalidName": "Indiquez le nom de la personne.",
     "linkInvalidExpiry": "La date de validité n'est pas valable.",
-    "linkInvalidChoice": "Ce choix n'est pas possible pour cet événement.",
+    "linkInvalidChoice": "Ce choix n'est pas possible pour cet évènement.",
     "linkNotFound": "Ce lien a été retiré.",
     "linkRenewalsTitle": "Demandes de nouveau lien",
     "linkRenewalLine": "{name} demande un nouveau lien — {event}",
@@ -2111,7 +2111,7 @@
     "createVendorLinkIntro": "Le prestataire voit la date, les lieux, les lignes du programme où figure son poste et votre contact. Ni prix, ni budget, ni autres prestataires.",
     "noLinkVendors": "Aucun prestataire retenu pour l'instant : retenez-en un dans l'onglet Budget pour lui créer un lien.",
     "linkVendor": "Prestataire retenu",
-    "linkVendorExpiresOnHint": "Par défaut : 7 jours après l'événement.",
+    "linkVendorExpiresOnHint": "Par défaut : 7 jours après l'évènement.",
     "createVendorLink": "Créer le lien du prestataire et l'envoyer",
     "linkReminders": "Rappels par e-mail des tâches",
     "linkRemindersHint": "Sept jours avant l'échéance, la veille, puis le lendemain d'un retard ; un e-mail par jour au plus.",
@@ -2119,7 +2119,7 @@
     "linkPreview": "Voir comme {name}",
     "linkPreviewBanner": "Aperçu : ce que voit {name}",
     "linkPreviewNote": "Les boutons sont inactifs et les fichiers ne s'ouvrent pas dans l'aperçu ; rien n'est noté sur le lien.",
-    "linkPreviewBack": "Retour à la fiche de l'événement",
+    "linkPreviewBack": "Retour à la fiche de l'évènement",
     "activityDecisionMade": "{actor} a répondu : « {task} ».",
     "dayOfLink": "Jour J",
     "tabDocuments": "Documents",
@@ -2135,7 +2135,7 @@
     "programShiftUndone": "Décalage annulé : les séquences suivantes ont repris leurs heures.",
     "programShiftOutOfDay": "Décaler les séquences suivantes en ferait passer une hors de la journée (après minuit) : déplacez-les à la main.",
     "venueInvalid": "Le nom du lieu et la ville sont limités à 200 caractères.",
-    "venueFormTitle": "Lieu de l'événement",
+    "venueFormTitle": "Lieu de l'évènement",
     "venueSave": "Enregistrer le lieu",
     "venueSaved": "✓ Lieu enregistré.",
     "activityVendorReminded": "Relance de {task} notée.",
@@ -2442,7 +2442,7 @@
     "modelsTitle": "Modèles de répartition",
     "noModels": "Aucun modèle de répartition pour l'instant.",
     "noModelsYet": "Créez d'abord un modèle de répartition dans les paramètres du budget avant de simuler un budget.",
-    "noVendorSlotsYet": "Ajoutez d'abord des lignes du budget par défaut dans les paramètres des événements.",
+    "noVendorSlotsYet": "Ajoutez d'abord des lignes du budget par défaut dans les paramètres des évènements.",
     "removeModel": "Supprimer le modèle « {name} »",
     "newModelTitle": "Nouveau modèle",
     "modelName": "Nom du modèle",
@@ -2482,7 +2482,7 @@
     "allocationModel": "Modèle de répartition",
     "chooseModel": "Choisir un modèle",
     "simulate": "Simuler",
-    "eventNotFound": "Cet événement n'existe pas ou plus.",
+    "eventNotFound": "Cet évènement n'existe pas ou plus.",
     "missingModel": "Choisissez un modèle de répartition.",
     "invalidTotalAmount": "Le budget total doit être un montant positif.",
     "invalidGuestCount": "Le nombre d'invités doit être un nombre entier positif ou nul.",
@@ -2525,7 +2525,7 @@
     "quoteLineNotFound": "Ligne de budget introuvable.",
     "quotesOf": "Devis joints — {label}",
     "openQuote": "Ouvrir le devis {number} — {label} ({size})",
-    "backToEvent": "Retour à la fiche de l'événement",
+    "backToEvent": "Retour à la fiche de l'évènement",
     "envelopeTitle": "Enveloppe et seuil d'alerte",
     "envelopeWanted": "Budget souhaité du client",
     "envelopeSimulation": "Total de la simulation",
@@ -2534,13 +2534,13 @@
     "envelopeThreshold": "Seuil d'alerte",
     "envelopeShare": "{amount} ({percent} %)",
     "envelopeExceeded": "L'engagé dépasse de {amount} le seuil d'alerte ({percent} % de l'enveloppe).",
-    "envelopeMissing": "Pas encore d'enveloppe : saisissez le budget souhaité sur la fiche de l'événement, ou simulez le budget.",
-    "eventThreshold": "Seuil de cet événement, en % de l'enveloppe (vide : celui de l'organisation, {percent} %)",
+    "envelopeMissing": "Pas encore d'enveloppe : saisissez le budget souhaité sur la fiche de l'évènement, ou simulez le budget.",
+    "eventThreshold": "Seuil de cet évènement, en % de l'enveloppe (vide : celui de l'organisation, {percent} %)",
     "saveThreshold": "Enregistrer le seuil",
     "thresholdSaved": "Seuil enregistré.",
     "thresholdInvalid": "Le seuil est un nombre entier de 1 à 500 %.",
     "thresholdTitle": "Seuil d'alerte",
-    "thresholdIntro": "Une alerte s'affiche quand l'engagé d'un événement dépasserait ce pourcentage de son enveloppe (le budget souhaité du client), avant de retenir le prestataire. Chaque événement peut l'ajuster.",
+    "thresholdIntro": "Une alerte s'affiche quand l'engagé d'un évènement dépasserait ce pourcentage de son enveloppe (le budget souhaité du client), avant de retenir le prestataire. Chaque évènement peut l'ajuster.",
     "organizationThreshold": "Seuil d'alerte, en % de l'enveloppe",
     "vendorColumn": "Prestataire",
     "addLine": "Ajouter une ligne",
@@ -2602,7 +2602,7 @@
     "lineVatRateInvalid": "Saisissez un taux de TVA entre 0 et 100 %, par exemple 20 ou 5,5.",
     "htAmount": "HT {amount}",
     "vatModeIndividual": "Montants TTC (client particulier).",
-    "vatModeProfessional": "Client professionnel (devis de l'événement) : montants TTC, et HT en dessous, calculé au taux de chaque ligne.",
+    "vatModeProfessional": "Client professionnel (devis de l'évènement) : montants TTC, et HT en dessous, calculé au taux de chaque ligne.",
     "exportTitle": "Exporter le budget",
     "exportXlsx": "Exporter en XLSX",
     "exportPdf": "Exporter en PDF",
@@ -2690,11 +2690,11 @@
     "vatRegimeInProfile": "Le régime de TVA, l'adresse et le SIREN imprimés sur vos devis se règlent dans",
     "organizationSettingsLink": "les paramètres de l'organisation",
     "eventQuotesTitle": "Mes devis et factures",
-    "noEventQuotes": "Aucun devis pour cet événement.",
+    "noEventQuotes": "Aucun devis pour cet évènement.",
     "createQuote": "Créer un devis",
     "quoteTitle": "Devis {number}",
     "demoQuote": "Devis d'essai : données fictives, numéroté dans la série DEMO.",
-    "forEvent": "Événement :",
+    "forEvent": "Évènement :",
     "statusLabel": "Statut",
     "statusDraft": "Brouillon",
     "statusSent": "Envoyé",
@@ -2910,7 +2910,7 @@
     "allQuotesIntro": "Tous vos devis ; ouvrez-en un pour l'envoyer, le faire signer et le facturer.",
     "allQuotesFilter": "Filtrer par statut",
     "allQuotesAll": "Tous ({count})",
-    "allQuotesEmpty": "Aucun devis pour l'instant. Créez-en un depuis la fiche d'un événement, onglet « Devis ».",
+    "allQuotesEmpty": "Aucun devis pour l'instant. Créez-en un depuis la fiche d'un évènement, onglet « Devis ».",
     "allQuotesNoneForFilter": "Aucun devis avec ce statut.",
     "quoteNumberColumn": "Numéro",
     "quoteEventColumn": "Mariage",
@@ -2990,7 +2990,7 @@
     "chooseOptionsForClient": "Enregistrer le choix pour le client",
     "optionsSaved": "Choix enregistré : le total suit.",
     "saveAsTemplate": "Enregistrer comme modèle",
-    "saveAsTemplateHint": "Sections, lignes, options, échéancier (« à la signature », « N jours avant l'événement ») et acompte ou arrhes deviennent un modèle, pour le prochain devis type.",
+    "saveAsTemplateHint": "Sections, lignes, options, échéancier (« à la signature », « N jours avant l'évènement ») et acompte ou arrhes deviennent un modèle, pour le prochain devis type.",
     "templateTarget": "Modèle",
     "templateTargetNew": "Nouveau modèle",
     "templateTargetReplace": "Remplacer « {name} » (version {version})",
@@ -3005,8 +3005,8 @@
     "noTemplatesTitle": "Aucun modèle pour l'instant",
     "noTemplatesHint": "Un modèle fait un devis type en moins de cinq minutes. Partez du modèle de départ, ou enregistrez un devis comme modèle depuis sa page.",
     "templateVersion": "Version {version}",
-    "templateAllEventTypes": "Tous les types d'événement",
-    "templateEventType": "Type d'événement",
+    "templateAllEventTypes": "Tous les types d'évènement",
+    "templateEventType": "Type d'évènement",
     "templateCounts": "{sections, plural, one {# section} other {# sections}}, {lines, plural, one {# ligne} other {# lignes}} dont {options, plural, one {# option} other {# options}}, {schedule, plural, one {# échéance} other {# échéances}}",
     "renameTemplate": "Enregistrer",
     "renameTemplateNamed": "Renommer le modèle {name}",
@@ -3140,7 +3140,7 @@
     "pdfQuoteVersion": "Version {version}",
     "pdfQuoteIssuedOn": "Établi le",
     "pdfValidUntil": "Valable jusqu'au",
-    "pdfEventDate": "Événement",
+    "pdfEventDate": "Évènement",
     "pdfScheduleTitle": "Échéancier",
     "pdfPaymentTitle": "Règlement",
     "pdfScheduleLine": "{label}, le {date}",
@@ -3248,7 +3248,7 @@
     "responsiblePlanner": "Suivi par votre planner",
     "downloadProgram": "Télécharger le programme (PDF)",
     "budgetTitle": "Budget",
-    "noBudgetYet": "Votre planner n'a pas encore partagé de budget pour cet événement.",
+    "noBudgetYet": "Votre planner n'a pas encore partagé de budget pour cet évènement.",
     "quotesTitle": "Devis",
     "quoteNumber": "Devis {number} (version {version})",
     "quoteToSign": "à signer",
@@ -3328,8 +3328,8 @@
     "noModuleAvailable": "Aucun module de votre abonnement ne reçoit encore d'import.",
     "entityTypeLegend": "Que contient le fichier ?",
     "entityType": {
-      "events": "Événements et leurs clients (une ligne par événement)",
-      "tasks": "Tâches d'événements",
+      "events": "Évènements et leurs clients (une ligne par évènement)",
+      "tasks": "Tâches d'évènements",
       "budget_lines": "Lignes de budget",
       "catalog_items": "Articles du catalogue",
       "vendor_slots": "Lignes du budget par défaut",
@@ -3337,12 +3337,12 @@
       "loss_reasons": "Motifs de perte",
       "payment_methods": "Modes de paiement",
       "vendors": "Prestataires du carnet (une ligne par prestataire)",
-      "event_sheets": "Fiches événement (PDF, une fiche par événement)",
+      "event_sheets": "Fiches évènement (PDF, une fiche par évènement)",
       "contacts": "Contacts (une ligne par personne : clients, prospects…)"
     },
     "fileLabel": "Fichier (CSV, Excel .xlsx ou JSON)",
     "fileHint": "Taille maximale : {maxSize}. L'encodage, le séparateur et la ligne d'en-tête sont reconnus automatiquement.",
-    "pdfHint": "Un PDF ne se lit pas ici. Deux PDF sont repris ailleurs : les fiches d'évènement, par leur tuile ci-dessus, et le programme, depuis l'onglet « Programme du jour J » de l'évènement.",
+    "pdfHint": "Un PDF ne se lit pas ici. Trois PDF sont repris ailleurs : les fiches d'évènement, par leur tuile ci-dessus ; le programme, depuis l'onglet « Programme du jour J » de l'évènement ; et les prestataires retenus, depuis l'onglet « Budget et prestataires » de l'évènement, par « Reprendre les prestataires retenus (PDF) ».",
     "startImport": "Lire le fichier",
     "reading": "Lecture en cours…",
     "missingEntityType": "Choisissez ce que contient le fichier.",
@@ -3421,11 +3421,11 @@
       "client1LastName": "Client 1 — nom",
       "client2FirstName": "Client 2 — prénom",
       "client2LastName": "Client 2 — nom",
-      "eventDate": "Date de l'événement",
+      "eventDate": "Date de l'évènement",
       "venueName": "Lieu",
       "venueCity": "Ville du lieu",
       "prospectSource": "Source du prospect",
-      "status": "Statut de l'événement",
+      "status": "Statut de l'évènement",
       "label": "Intitulé",
       "dueDate": "Échéance",
       "responsible": "Responsable",
@@ -3529,8 +3529,8 @@
     "rowWithoutLabel": "sans intitulé",
     "eventWithoutClients": "clients non renseignés",
     "eventTitle": "{clients}, le {date}",
-    "rowEvent": "Événement : {event} (ressemblance {score} %)",
-    "rowEventNotFound": "Événement introuvable ou ambigu parmi vos événements : cette ligne sera rejetée.",
+    "rowEvent": "Évènement : {event} (ressemblance {score} %)",
+    "rowEventNotFound": "Évènement introuvable ou ambigu parmi vos évènements : cette ligne sera rejetée.",
     "rowMatch": "Ressemble à : {element} (ressemblance {score} %)",
     "matchStatus": {
       "proposed": "proposé",
@@ -3571,7 +3571,7 @@
       "invalid_percentage": "{field} : pourcentage invalide ({value})",
       "invalid_boolean": "{field} : valeur non reconnue, attendu oui ou non ({value})",
       "invalid_choice": "{field} : valeur non reconnue ({value})",
-      "event_not_found": "événement introuvable ou ambigu parmi vos événements",
+      "event_not_found": "évènement introuvable ou ambigu parmi vos évènements",
       "sheet_rejected": "Fiche refusée : {value}",
       "invalid_email": "{field} : adresse e-mail illisible ({value})",
       "excluded_by_filter": "écartée : « {field} » vaut « {value} »"
@@ -3584,9 +3584,9 @@
     "previewUpdatesTitle": "{count, plural, one {Mise à jour (échantillon)} other {Mises à jour (échantillon des # lignes)}}",
     "previewRejectedLink": "{count, plural, one {Voir la ligne rejetée} other {Voir les # lignes rejetées}}",
     "confirmIntro": "La confirmation enregistre tout l'import d'un coup, ou rien en cas d'erreur. Vous pourrez l'annuler ensuite depuis le journal des imports.",
-    "defaultSourceLabel": "Source pour les événements sans source",
+    "defaultSourceLabel": "Source pour les évènements sans source",
     "defaultSourcePlaceholder": "Choisissez une source",
-    "defaultSourceRequired": "Choisissez la source des événements qui n'en ont pas.",
+    "defaultSourceRequired": "Choisissez la source des évènements qui n'en ont pas.",
     "confirmImport": "Confirmer l'import",
     "confirming": "Import en cours…",
     "confirmFailed": "L'import n'a pas pu être enregistré : rien n'a été écrit. Réessayez, ou vérifiez qu'aucun élément rapproché n'a été supprimé entre-temps.",
@@ -3596,7 +3596,7 @@
       "matches_undecided": "des rapprochements proposés attendent votre décision.",
       "nothing_to_import": "aucune ligne à importer.",
       "vat_rate_unknown": "des articles n'ont pas de taux de TVA et votre taux par défaut n'est pas renseigné (Paramètres).",
-      "no_prospect_source": "des événements n'ont pas de source et votre liste de sources est vide (paramètres des événements)."
+      "no_prospect_source": "des évènements n'ont pas de source et votre liste de sources est vide (paramètres des évènements)."
     },
     "journalEntryTitle": "Import de « {fileName} »",
     "journalAuthor": "Auteur",
@@ -3607,7 +3607,7 @@
     "journalResultValue": "{created, plural, =0 {aucune création} one {# création} other {# créations}}, {updated, plural, =0 {aucune mise à jour} one {# mise à jour} other {# mises à jour}}, {unchanged, plural, =0 {aucune ligne inchangée} one {# ligne inchangée} other {# lignes inchangées}}, {rejected, plural, =0 {aucune ligne rejetée} one {# ligne rejetée} other {# lignes rejetées}}",
     "undoTitle": "Annuler cet import",
     "undoIntro": "Les éléments créés seront supprimés et les éléments mis à jour retrouveront leurs valeurs précédentes. Annulation possible jusqu'au {date}.",
-    "undoWhat": "L'annulation supprime {created, plural, =0 {aucun élément créé} one {l'élément créé} other {les # éléments créés}} et remet {updated, plural, =0 {rien d'autre} one {l'élément mis à jour comme avant} other {les # éléments mis à jour comme avant}}.",
+    "undoWhat": "L'annulation {created, plural, =0 {{updated, plural, =0 {ne supprime rien.} one {remet l'élément mis à jour comme avant.} other {remet les # éléments mis à jour comme avant.}}} one {supprime l'élément créé{updated, plural, =0 {.} one { et remet l'élément mis à jour comme avant.} other { et remet les # éléments mis à jour comme avant.}}} other {supprime les # éléments créés{updated, plural, =0 {.} one { et remet l'élément mis à jour comme avant.} other { et remet les # éléments mis à jour comme avant.}}}}",
     "undoModifiedNamed": "{count, plural, one {Une fiche a été modifiée à la main depuis l'import :} other {# fiches ont été modifiées à la main depuis l'import :}}",
     "undoModifiedAt": "modifiée le {date}",
     "undoModifiedSince": "modifiée depuis l'import",
@@ -3616,12 +3616,12 @@
     "undoModifiedLegend": "{count, plural, one {Élément modifié à la main depuis l'import} other {# éléments modifiés à la main depuis l'import}}",
     "undoModifiedIntro": "Sans confirmation, ils sont gardés tels quels. Cochez ceux que vous voulez annuler quand même : vos modifications seront perdues.",
     "undoForce": "Annuler quand même : {title}",
-    "undoUsedElsewhereIntro": "Ces événements ont reçu un devis depuis l'import : ils sont toujours gardés.",
+    "undoUsedElsewhereIntro": "Ces évènements ont reçu un devis depuis l'import : ils sont toujours gardés.",
     "undoSubmit": "Annuler l'import",
     "undoExpired": "Le délai d'annulation de cet import est passé.",
     "undoResult": "{undone, plural, =0 {Aucun élément annulé} one {# élément annulé} other {# éléments annulés}} ; {kept, plural, =0 {aucun gardé car modifié} one {# gardé car modifié à la main} other {# gardés car modifiés à la main}} ; {used, plural, =0 {aucun gardé car utilisé} one {# gardé car utilisé ailleurs} other {# gardés car utilisés ailleurs}}.",
     "itemKind": {
-      "event": "Événement : {title}",
+      "event": "Évènement : {title}",
       "task": "Tâche : {title}",
       "event_vendor_slot": "Ligne du budget : {title}",
       "budget_line": "Ligne de budget : {title}",
@@ -3646,11 +3646,11 @@
     "vendorTypeMatched": "Rapproché de « {type} » ({score} %)",
     "vendorTypeExisting": "Types de votre carnet",
     "vendorTypesSave": "Enregistrer les types",
-    "sheetsLabel": "Fiches événement (PDF, une ou plusieurs)",
-    "sheetsHint": "Jusqu'à {count} fiches à la fois, {maxSize} au plus chacune. Chaque fiche devient un événement.",
+    "sheetsLabel": "Fiches évènement (PDF, une ou plusieurs)",
+    "sheetsHint": "Jusqu'à {count} fiches à la fois, {maxSize} au plus chacune. Chaque fiche devient un évènement.",
     "rejectedTooManySheets": "Trop de fiches à la fois : déposez-les en plusieurs fois.",
     "gapsRejectedSheet": "Fiche « {file} » : {reasons}",
-    "rowSameAs": "Cette fiche décrit le même événement que la ligne {line} : rapprochez-la de l'événement existant ou ne gardez que l'une des deux.",
+    "rowSameAs": "Cette fiche décrit le même évènement que la ligne {line} : rapprochez-la de l'évènement existant ou ne gardez que l'une des deux.",
     "rowCarriedSlot": "(poste repris de la ligne {line})",
     "sheetStatusIntro": "Statut proposé pour chaque évènement (confirmé si la date est à venir et un lieu connu, réalisé si elle est passée). Changez-le si besoin : il est enregistré dès que vous le choisissez.",
     "sheetStatusSaved": "Statut enregistré.",
@@ -3663,11 +3663,11 @@
       "no_text": "aucun texte lisible (fiche scannée en image ?)",
       "unreadable": "PDF illisible",
       "timeout": "lecture trop longue",
-      "not_event_sheet": "ce n'est pas une fiche événement de l'outil actuel",
+      "not_event_sheet": "ce n'est pas une fiche évènement de l'outil actuel",
       "infected": "fichier refusé par l'antivirus"
     },
     "takeoverTitle": "Reprendre vos données depuis votre outil actuel",
-    "takeoverIntro": "Vous utilisiez déjà un logiciel de planification ? Reprenez d'abord votre carnet de prestataires, puis vos événements : Symbola reconnaît ses exports et corrige leurs défauts courants (colonnes inversées, caractères mal codés, codes postaux tronqués).",
+    "takeoverIntro": "Vous utilisiez déjà un logiciel de planification ? Reprenez d'abord votre carnet de prestataires, puis vos évènements : Symbola reconnaît ses exports et corrige leurs défauts courants (colonnes inversées, caractères mal codés, codes postaux tronqués).",
     "takeoverExampleSheet": "Télécharger une fiche d'exemple (PDF fictif) pour essayer",
     "takeover": {
       "contacts": {
@@ -3683,10 +3683,10 @@
         "start": "Importer mes prestataires"
       },
       "event_sheets": {
-        "title": "Reprendre mes événements",
-        "how": "Dans votre outil actuel, ouvrez chaque événement et téléchargez sa fiche en PDF. Déposez-les ensuite toutes en une fois.",
-        "what": "Chaque fiche devient un événement : mariés et leurs coordonnées, date, lieux et horaires, budget souhaité. Le statut est proposé d'après la date ; vous le changez dans l'aperçu.",
-        "start": "Importer mes fiches événement"
+        "title": "Reprendre mes évènements",
+        "how": "Dans votre outil actuel, ouvrez chaque évènement et téléchargez sa fiche en PDF. Déposez-les ensuite toutes en une fois.",
+        "what": "Chaque fiche devient un évènement : mariés et leurs coordonnées, date, lieux et horaires, budget souhaité. Le statut est proposé d'après la date ; vous le changez dans l'aperçu.",
+        "start": "Importer mes fiches évènement"
       }
     },
     "jobReadSheetsTitle": "Lecture des fiches",
@@ -3826,15 +3826,15 @@
     "effectsRejected": "Lignes rejetées",
     "startQuestion": "Que voulez-vous reprendre ?",
     "otherFileTitle": "Un autre fichier",
-    "otherFileBody": "Événements, tâches, lignes de budget, catalogue, listes… depuis un tableur (CSV, Excel) ou un fichier JSON.",
+    "otherFileBody": "Évènements, tâches, lignes de budget, catalogue, listes… depuis un tableur (CSV, Excel) ou un fichier JSON.",
     "screenGroup": {
       "evenements": "Importer des évènements"
     },
     "resumeImport": "Reprendre",
     "resumeImportFor": "Reprendre l'import de {file}",
     "importButton": {
-      "events": "Importer {count, plural, one {# événement} other {# événements}}",
-      "event_sheets": "Importer {count, plural, one {# événement} other {# événements}}",
+      "events": "Importer {count, plural, one {# évènement} other {# évènements}}",
+      "event_sheets": "Importer {count, plural, one {# évènement} other {# évènements}}",
       "tasks": "Importer {count, plural, one {# tâche} other {# tâches}}",
       "budget_lines": "Importer {count, plural, one {# ligne de budget} other {# lignes de budget}}",
       "catalog_items": "Importer {count, plural, one {# article} other {# articles}}",
@@ -3847,8 +3847,8 @@
     },
     "finishLink": {
       "vendors": "{count, plural, one {Voir le prestataire} other {Voir les # prestataires}}",
-      "events": "{count, plural, one {Voir l'événement} other {Voir les # événements}}",
-      "event_sheets": "{count, plural, one {Voir l'événement} other {Voir les # événements}}",
+      "events": "{count, plural, one {Voir l'évènement} other {Voir les # évènements}}",
+      "event_sheets": "{count, plural, one {Voir l'évènement} other {Voir les # évènements}}",
       "tasks": "{count, plural, one {Voir la tâche} other {Voir les # tâches}}",
       "catalog_items": "{count, plural, one {Voir l'article} other {Voir les # articles}}",
       "contacts": "{count, plural, one {Voir le contact} other {Voir les # contacts}}"
@@ -3923,7 +3923,7 @@
   "Privacy": {
     "title": "Données personnelles",
     "ownerOnly": "Ce module est réservé à la titulaire du compte.",
-    "searchIntro": "Cherchez une personne par son e-mail, son téléphone ou son nom (au moins un) : l'app interroge chaque module et rassemble toutes ses données, ainsi que celles de ses événements.",
+    "searchIntro": "Cherchez une personne par son e-mail, son téléphone ou son nom (au moins un) : l'app interroge chaque module et rassemble toutes ses données, ainsi que celles de ses évènements.",
     "emailLabel": "E-mail",
     "phoneLabel": "Téléphone",
     "nameLabel": "Nom",
@@ -3936,10 +3936,10 @@
     "noData": "Aucune donnée ne correspond à cette personne.",
     "noDataIncomplete": "Aucune donnée trouvée dans les modules qui ont répondu ; le résultat reste incomplet.",
     "directMatch": "(trouvée par la recherche)",
-    "relatedMatch": "(liée à son événement)",
+    "relatedMatch": "(liée à son évènement)",
     "importedField": "{name} (champ importé)",
     "module": {
-      "events": "Événements",
+      "events": "Évènements",
       "budget": "Budget",
       "quotes": "Devis et factures",
       "hub": "Comptes, imports et demandes RGPD",
@@ -3947,7 +3947,7 @@
       "floorplans": "Plans de salle"
     },
     "kind": {
-      "event": "Événement",
+      "event": "Évènement",
       "event_client": "Client",
       "event_vendor_slot": "Ligne du budget",
       "task": "Tâche",
@@ -3973,9 +3973,9 @@
       "contract": "Contrat",
       "contract_signer_act": "Acte d'un signataire de contrat",
       "event_day_contact": "Contact du jour J",
-      "event_document": "Document de l'événement",
+      "event_document": "Document de l'évènement",
       "event_document_folder": "Dossier de documents",
-      "event_place": "Lieu de l'événement",
+      "event_place": "Lieu de l'évènement",
       "quote_options_choice": "Choix des options d'un devis",
       "task_attachment": "Pièce jointe d'une tâche",
       "task_comment": "Commentaire d'une tâche",
@@ -4003,7 +4003,7 @@
       "buyer2Name": "Acheteur 2",
       "buyer2BillingAddress": "Adresse de l'acheteur 2",
       "status": "Statut",
-      "eventDate": "Date de l'événement",
+      "eventDate": "Date de l'évènement",
       "venueName": "Lieu",
       "venueCity": "Ville",
       "dueDate": "Échéance",
@@ -4263,7 +4263,7 @@
     "searchSubtitle": "Consultez les données d'une personne. Pour les exporter ou les effacer, enregistrez la demande : son dossier vous guide.",
     "createFromSearchTitle": "Enregistrer une demande pour cette personne",
     "createFromSearchHint": "Un export ou un effacement part toujours d'une demande enregistrée : c'est sa trace, avec l'échéance légale.",
-    "caseManualHint": "Corrigez les données dans l'écran concerné (fiche de l'événement, du client…), puis marquez l'action faite à l'étape suivante.",
+    "caseManualHint": "Corrigez les données dans l'écran concerné (fiche de l'évènement, du client…), puis marquez l'action faite à l'étape suivante.",
     "caseTitle": "{type} — {person}",
     "caseFacts": "Reçue le {received} · échéance le {due}",
     "backToRequests": "Toutes les demandes",
@@ -4305,7 +4305,7 @@
     "exportExpired": "(expiré)",
     "caseActionDoneOn": "Action faite le {date}.",
     "caseManualIntro": {
-      "rectification": "Corrigez les données dans l'écran concerné (fiche de l'événement, du client, du prestataire), puis confirmez ici.",
+      "rectification": "Corrigez les données dans l'écran concerné (fiche de l'évènement, du client, du prestataire), puis confirmez ici.",
       "objection": "Cessez d'utiliser les données pour le traitement concerné (relances, prospection…), puis confirmez ici."
     },
     "caseMarkActionDone": "J'ai fait la modification",
@@ -4400,7 +4400,7 @@
     "neverLoggedIn": "Aucune connexion pour l'instant",
     "monthlyTable": "Activité mensuelle de {organization}",
     "month": "Mois",
-    "events": "Événements créés",
+    "events": "Évènements créés",
     "quotes": "Devis créés",
     "invoices": "Factures émises",
     "storage": "Stockage au relevé de {month} : {files, plural, one {# fichier} other {# fichiers}}, {volume}",
@@ -4422,12 +4422,12 @@
   "HelpCenter": {
     "items": {
       "event-page": {
-        "title": "La fiche d'un événement",
-        "description": "Créez un événement d'exemple et parcourez ses onglets : statut, prestataires, rétroplanning, programme."
+        "title": "La fiche d'un évènement",
+        "description": "Créez un évènement d'exemple et parcourez ses onglets : statut, prestataires, rétroplanning, programme."
       },
       "retroplanning-template": {
         "title": "À quoi sert un modèle de rétroplanning ?",
-        "description": "Créez un modèle d'exemple, appliquez-le à un événement fictif et regardez les échéances suivre la date."
+        "description": "Créez un modèle d'exemple, appliquez-le à un évènement fictif et regardez les échéances suivre la date."
       },
       "catalog": {
         "title": "Saisir son catalogue de prestations",
@@ -4442,7 +4442,7 @@
         "description": "Sur un devis signé d'exemple, émettez la facture d'acompte puis celle du solde."
       },
       "budget-simulation": {
-        "title": "Simuler le budget d'un événement",
+        "title": "Simuler le budget d'un évènement",
         "description": "Répartissez un budget d'exemple par ligne, puis comparez l'estimé et l'engagé."
       },
       "day-program": {
@@ -4454,8 +4454,8 @@
         "description": "Un lien personnel par client, sans compte : voyez ce qu'ils voient, leurs tâches, le programme et le budget, sans vos notes internes."
       },
       "import": {
-        "title": "Importer ses événements existants",
-        "description": "Importez une fiche événement d'exemple (PDF fictif) et vérifiez l'aperçu avant de confirmer."
+        "title": "Importer ses évènements existants",
+        "description": "Importez une fiche évènement d'exemple (PDF fictif) et vérifiez l'aperçu avant de confirmer."
       },
       "vendor-quotes": {
         "title": "Comparer plusieurs devis pour une ligne du budget",
@@ -4479,7 +4479,7 @@
     "stateSeen": "Visite faite",
     "results": "Écrans trouvés : {count}",
     "groups": {
-      "events": "Événements",
+      "events": "Évènements",
       "vendors": "Prestataires",
       "quotes": "Devis et factures",
       "budget": "Budget",
@@ -4497,14 +4497,14 @@
     "faqTitle": "Questions fréquentes",
     "openScreen": "Ouvrir cet écran",
     "replayTour": "Revoir la visite sur l'écran",
-    "fromEvent": "Cet écran s'ouvre depuis la fiche d'un événement.",
-    "fromQuote": "Cet écran s'ouvre depuis un devis, sur la fiche de son événement.",
-    "fromBudget": "Cet écran s'ouvre depuis l'onglet Budget de la fiche d'un événement.",
+    "fromEvent": "Cet écran s'ouvre depuis la fiche d'un évènement.",
+    "fromQuote": "Cet écran s'ouvre depuis un devis, sur la fiche de son évènement.",
+    "fromBudget": "Cet écran s'ouvre depuis l'onglet Budget de la fiche d'un évènement.",
     "fromImport": "Cette étape suit le dépôt d'un fichier dans « Importer »."
   },
   "Search": {
     "label": "Rechercher",
-    "placeholder": "Rechercher un événement, un devis, une tâche, une aide…",
+    "placeholder": "Rechercher un évènement, un devis, une tâche, une aide…",
     "shortcut": "⌘K",
     "submit": "Rechercher",
     "title": "Recherche",
@@ -4512,7 +4512,7 @@
     "noResults": "Aucun résultat pour « {term} ». Essayez un nom de client, un numéro de devis ou un mot comme « TVA ».",
     "tooShort": "Tapez au moins 2 caractères.",
     "onlyYourOrganization": "Seules les données de votre organisation sont cherchées.",
-    "groupEvents": "Événements",
+    "groupEvents": "Évènements",
     "groupDocuments": "Devis et factures",
     "groupTasks": "Tâches et prestataires",
     "groupHelp": "Aide et écrans",
@@ -4535,7 +4535,7 @@
   },
   "AdminOnboarding": {
     "title": "Prise en main des organisations",
-    "intro": "Visites et tutoriels suivis par chaque compte d'équipe. Aucune donnée d'événement : seulement la progression dans l'aide, pour savoir qui a besoin d'un coup de main.",
+    "intro": "Visites et tutoriels suivis par chaque compte d'équipe. Aucune donnée d'évènement : seulement la progression dans l'aide, pour savoir qui a besoin d'un coup de main.",
     "summary": "Indicateurs de prise en main",
     "averageProgress": "Progression moyenne",
     "recentDone": "Tutoriels terminés sur 30 jours",
@@ -4578,14 +4578,14 @@
       "steps": [
         {
           "title": "Comprendre",
-          "body": "Chaque événement a sa fiche : statut, prestataires, rétroplanning, programme, devis et clients, rangés en onglets. Créons un anniversaire fictif pour la parcourir."
+          "body": "Chaque évènement a sa fiche : statut, prestataires, rétroplanning, programme, devis et clients, rangés en onglets. Créons un anniversaire fictif pour la parcourir."
         },
         {
           "title": "Créer l'exemple",
           "body": "Symbola crée « l'anniversaire des 40 ans de Camille », avec son budget et ses tâches de départ."
         },
         {
-          "title": "Confirmer l'événement",
+          "title": "Confirmer l'évènement",
           "body": "Ouvrez l'exemple, onglet Synthèse, et passez son statut à « Confirmé », comme lorsqu'un client donne son accord."
         },
         {
@@ -4594,11 +4594,11 @@
         },
         {
           "title": "Cocher une tâche",
-          "body": "Dans l'onglet Rétroplanning, cochez une tâche faite : la progression de l'événement se met à jour."
+          "body": "Dans l'onglet Rétroplanning, cochez une tâche faite : la progression de l'évènement se met à jour."
         },
         {
           "title": "Terminer",
-          "body": "Vous savez suivre un événement de bout en bout. L'exemple va être supprimé."
+          "body": "Vous savez suivre un évènement de bout en bout. L'exemple va être supprimé."
         }
       ]
     },
@@ -4608,7 +4608,7 @@
       "steps": [
         {
           "title": "Comprendre",
-          "body": "Un modèle de rétroplanning liste une fois pour toutes les tâches d'un type d'événement, avec leur délai avant le jour J. Appliqué à un événement, il crée toutes les tâches avec leur date."
+          "body": "Un modèle de rétroplanning liste une fois pour toutes les tâches d'un type d'évènement, avec leur délai avant le jour J. Appliqué à un évènement, il crée toutes les tâches avec leur date."
         },
         {
           "title": "Créer l'exemple",
@@ -4616,7 +4616,7 @@
         },
         {
           "title": "Regarder le modèle",
-          "body": "Le modèle apparaît dans Paramètres › Événements › Modèles de rétroplanning : chaque tâche a son délai (par exemple 90 jours avant) et qui la réalise."
+          "body": "Le modèle apparaît dans Paramètres › Évènements › Modèles de rétroplanning : chaque tâche a son délai (par exemple 90 jours avant) et qui la réalise."
         },
         {
           "title": "Appliquer le modèle",
@@ -4624,11 +4624,11 @@
         },
         {
           "title": "Déplacer la date",
-          "body": "Onglet Synthèse, ouvrez « Modifier les informations » et changez la date de l'événement : Symbola propose de recalculer les échéances. Acceptez et regardez-les suivre."
+          "body": "Onglet Synthèse, ouvrez « Modifier les informations » et changez la date de l'évènement : Symbola propose de recalculer les échéances. Acceptez et regardez-les suivre."
         },
         {
           "title": "Garder ou supprimer",
-          "body": "L'événement d'exemple va être supprimé. Voulez-vous garder « Séminaire express » comme base de vos propres modèles ?"
+          "body": "L'évènement d'exemple va être supprimé. Voulez-vous garder « Séminaire express » comme base de vos propres modèles ?"
         }
       ]
     },
@@ -4662,7 +4662,7 @@
       "steps": [
         {
           "title": "Comprendre",
-          "body": "Un devis se compose depuis la fiche d'un événement, s'envoie, puis se signe en ligne par vos clients. Signé, il confirme l'événement."
+          "body": "Un devis se compose depuis la fiche d'un évènement, s'envoie, puis se signe en ligne par vos clients. Signé, il confirme l'évènement."
         },
         {
           "title": "Créer l'exemple",
@@ -4738,7 +4738,7 @@
       "steps": [
         {
           "title": "Comprendre",
-          "body": "Le programme du jour J liste les moments de l'événement, heure par heure, avec les prestataires concernés. Il se télécharge en deux versions : pour les clients et pour les prestataires."
+          "body": "Le programme du jour J liste les moments de l'évènement, heure par heure, avec les prestataires concernés. Il se télécharge en deux versions : pour les clients et pour les prestataires."
         },
         {
           "title": "Créer l'exemple",
@@ -4762,7 +4762,7 @@
       "steps": [
         {
           "title": "Comprendre",
-          "body": "Vos clients peuvent suivre la préparation de leur événement dans leur propre espace : leurs tâches, le programme et le budget, jamais vos notes internes ni vos autres événements."
+          "body": "Vos clients peuvent suivre la préparation de leur évènement dans leur propre espace : leurs tâches, le programme et le budget, jamais vos notes internes ni vos autres évènements."
         },
         {
           "title": "Créer l'exemple",
@@ -4786,7 +4786,7 @@
       "steps": [
         {
           "title": "Comprendre",
-          "body": "L'import reprend vos données existantes : les fiches événement en PDF de votre outil actuel, ou un tableau (Excel, CSV ou JSON). Vous vérifiez un aperçu, puis confirmez. Un import confirmé se défait pendant le délai d'annulation."
+          "body": "L'import reprend vos données existantes : les fiches évènement en PDF de votre outil actuel, ou un tableau (Excel, CSV ou JSON). Vous vérifiez un aperçu, puis confirmez. Un import confirmé se défait pendant le délai d'annulation."
         },
         {
           "title": "Préparer",
@@ -4794,15 +4794,15 @@
         },
         {
           "title": "Commencer un import",
-          "body": "Ouvrez Importer des données, téléchargez la fiche d'exemple (un PDF fictif) depuis « Reprendre mes événements », puis choisissez « Fiches événement (PDF, une fiche par événement) » et déposez-la. Allez jusqu'à l'aperçu."
+          "body": "Ouvrez Importer des données, téléchargez la fiche d'exemple (un PDF fictif) depuis « Reprendre mes évènements », puis choisissez « Fiches évènement (PDF, une fiche par évènement) » et déposez-la. Allez jusqu'à l'aperçu."
         },
         {
           "title": "Vérifier avant de confirmer",
-          "body": "L'aperçu montre l'événement qui sera créé, avec son statut proposé, et les fiches refusées avec leur motif. Rien n'est enregistré tant que vous ne confirmez pas : comme c'est un essai, abandonnez l'import."
+          "body": "L'aperçu montre l'évènement qui sera créé, avec son statut proposé, et les fiches refusées avec leur motif. Rien n'est enregistré tant que vous ne confirmez pas : comme c'est un essai, abandonnez l'import."
         },
         {
           "title": "Terminer",
-          "body": "Vous savez reprendre vos événements existants, une ou plusieurs fiches à la fois."
+          "body": "Vous savez reprendre vos évènements existants, une ou plusieurs fiches à la fois."
         }
       ]
     },
@@ -4814,7 +4814,7 @@
         },
         {
           "title": "Préparer",
-          "body": "Symbola crée un événement d'exemple (un gala d'association) et, si vous avez le carnet de prestataires, deux traiteurs d'exemple. Tout sera supprimé à la fin."
+          "body": "Symbola crée un évènement d'exemple (un gala d'association) et, si vous avez le carnet de prestataires, deux traiteurs d'exemple. Tout sera supprimé à la fin."
         },
         {
           "title": "Consulter deux prestataires",
@@ -4948,15 +4948,15 @@
   },
   "VendorBook": {
     "title": "Carnet de prestataires",
-    "subtitle": "{count, plural, =0 {Aucun prestataire} one {# prestataire} other {# prestataires}} · un seul exemplaire de chacun, réutilisé d'un événement à l'autre",
+    "subtitle": "{count, plural, =0 {Aucun prestataire} one {# prestataire} other {# prestataires}} · un seul exemplaire de chacun, réutilisé d'un évènement à l'autre",
     "moduleUnavailable": "Le carnet de prestataires n'est pas disponible pour votre organisation.",
     "settingsLink": "Paramètres du carnet",
     "newVendor": "Nouveau prestataire",
-    "newVendorHint": "Une fiche par prestataire : vous la retrouverez pour chaque événement, avec l'historique de vos prestations.",
+    "newVendorHint": "Une fiche par prestataire : vous la retrouverez pour chaque évènement, avec l'historique de vos prestations.",
     "backToBook": "Retour au carnet",
     "targetTitle": "Ajouter à la ligne « {slot} » — {event}",
     "targetHint": "Choisissez un prestataire ci-dessous : il sera ajouté aux prestataires consultés de cette ligne du budget.",
-    "targetBack": "Revenir à la fiche de l'événement",
+    "targetBack": "Revenir à la fiche de l'évènement",
     "allTypes": "Tous",
     "filtersLabel": "Filtres du carnet",
     "filterText": "Nom ou ville",
@@ -4982,6 +4982,7 @@
     "exportPdf": "Exporter en PDF",
     "empty": "Aucun prestataire ne correspond à ces filtres.",
     "emptyNoTypes": "Votre carnet est vide. Commencez par ajouter un prestataire, ou créez vos types dans les paramètres du carnet.",
+    "emptyBook": "Votre carnet est vide. Ajoutez un prestataire pour commencer.",
     "travel": "{km} km · ≈ {minutes} min (estimation)",
     "travelHint": "Trajets estimés : distance à vol d'oiseau × détour, à vitesse moyenne (réglable dans les paramètres).",
     "demo": "Exemple",
@@ -5025,14 +5026,14 @@
     "searchAround": "Chercher autour de {vendor}",
     "historyTitle": "Historique avec vous",
     "averagePrice": "Prix moyen pratiqué : {amount}",
-    "historyEmpty": "Ce prestataire n'a encore été consulté pour aucun événement.",
-    "historyEvent": "Événement",
+    "historyEmpty": "Ce prestataire n'a encore été consulté pour aucun évènement.",
+    "historyEvent": "Évènement",
     "historyDate": "Date",
     "historySlot": "Ligne du budget",
     "historyOutcome": "Issue",
     "historyQuoted": "Prix réel",
     "historyFinal": "Prix final",
-    "historyUnnamed": "Événement",
+    "historyUnnamed": "Évènement",
     "outcomeSelected": "Retenu",
     "outcomeNotSelected": "Non retenu",
     "outcomePending": "En cours",
@@ -5220,7 +5221,7 @@
     "settingsTravelExample": "Exemple avec ces réglages : un prestataire à {crow} km à vol d'oiseau → environ {km} km de route, ≈ {minutes} min.",
     "archiveShort": "Archiver",
     "archiveConfirmTitle": "Archiver {vendor} ?",
-    "archiveConfirmBody": "La fiche quitte le carnet et n'est plus proposée pour vos événements. Ses prestations restent sur vos événements et budgets.",
+    "archiveConfirmBody": "La fiche quitte le carnet et n'est plus proposée pour vos évènements. Ses prestations restent sur vos évènements et budgets.",
     "archiveConfirm": "Archiver la fiche",
     "archiveCancel": "Annuler",
     "tagSave": "Enregistrer l'étiquette",
@@ -5528,7 +5529,7 @@
       "2": "Votre entreprise",
       "3": "Votre régime de TVA",
       "4": "Vos devis et factures",
-      "5": "Le budget d'un événement",
+      "5": "Le budget d'un évènement",
       "6": "D'où viennent vos clients, pourquoi un projet échoue",
       "7": "Vos modèles"
     },
@@ -5537,7 +5538,7 @@
       "2": "Ces informations apparaissent sur vos devis et factures.",
       "3": "Il fixe les mentions légales de vos devis et factures. Un changement plus tard se fera avec une date d'effet.",
       "4": "Votre logo et votre couleur sur chaque devis, facture et programme du jour J. Facultatif : tout se modifie plus tard dans Paramètres › Ventes › Documents.",
-      "5": "Les lignes du budget de chaque nouvel événement : vous y suivez prestataires consultés, devis et montants. Nous avons préparé celles de votre métier, avec leur icône : renommez, changez l'icône, retirez ou ajoutez.",
+      "5": "Les lignes du budget de chaque nouvel évènement : vous y suivez prestataires consultés, devis et montants. Nous avons préparé celles de votre métier, avec leur icône : renommez, changez l'icône, retirez ou ajoutez.",
       "6": "La source est demandée à chaque nouveau prospect ; le motif quand un projet est perdu. Elles servent à vos statistiques.",
       "7": "Nous avons préparé un rétroplanning, un programme du jour J et une répartition du budget. Vous les modifierez quand vous voudrez."
     },
@@ -5548,11 +5549,11 @@
         "body": "Organisation de mariages."
       },
       "event_agency": {
-        "title": "Agence événementielle",
+        "title": "Agence évènementielle",
         "body": "Séminaires, soirées d'entreprise, lancements…"
       },
       "autre": {
-        "title": "Autre métier de l'événementiel",
+        "title": "Autre métier de l'évènementiel",
         "body": "Nous partons des paramètres d'une agence, à adapter."
       }
     },
@@ -5634,7 +5635,7 @@
     "modelCount": "{name} ({count} lignes)",
     "modelNone": "aucun",
     "modelEditLater": "Voir ou modifier",
-    "modelsHint": "Le rétroplanning s'applique quand un événement est confirmé ; la répartition propose des montants estimés si vous le souhaitez.",
+    "modelsHint": "Le rétroplanning s'applique quand un évènement est confirmé ; la répartition propose des montants estimés si vous le souhaitez.",
     "finish": "Terminer et découvrir Symbola",
     "alreadyDone": "Le démarrage est terminé : vos menus sont ouverts.",
     "ownerOnly": "Seule la titulaire du compte peut faire le démarrage.",
@@ -5648,10 +5649,10 @@
     "notFound": "Élément introuvable.",
     "iconLabel": "Icône",
     "lineNameLabel": "Nom de la ligne",
-    "panelAddHint": "La ligne sera proposée à chaque nouvel événement ; les événements existants ne changent pas.",
-    "eventTypesQuestion": "Quels événements organisez-vous ?",
-    "eventTypesHint": "Vous pourrez en ajouter ou en retirer dans Paramètres › Types d'événements. Sans mariage, le carnet de prestataires ne propose pas les types propres au mariage (robe de mariée, officiant…).",
-    "eventTypesRequired": "Cochez au moins un type d'événement.",
+    "panelAddHint": "La ligne sera proposée à chaque nouvel évènement ; les évènements existants ne changent pas.",
+    "eventTypesQuestion": "Quels évènements organisez-vous ?",
+    "eventTypesHint": "Vous pourrez en ajouter ou en retirer dans Paramètres › Types d'évènements. Sans mariage, le carnet de prestataires ne propose pas les types propres au mariage (robe de mariée, officiant…).",
+    "eventTypesRequired": "Cochez au moins un type d'évènement.",
     "documentsColorLegend": "Couleur des documents",
     "documentsLater": "Plus tard",
     "documentsSaved": "Couleur enregistrée.",
@@ -5661,7 +5662,7 @@
     "groupCompany": "Mon entreprise",
     "company": "Entreprise et TVA",
     "account": "Mon compte",
-    "groupEvents": "Événements",
+    "groupEvents": "Évènements",
     "budgetLines": "Lignes du budget",
     "sourcesReasons": "Sources et motifs",
     "retroplanning": "Rétroplanning",
@@ -5678,7 +5679,7 @@
     "vendorTravel": "Estimation des trajets",
     "import": "Importer",
     "privacy": "Données personnelles",
-    "eventTypes": "Types d'événements",
+    "eventTypes": "Types d'évènements",
     "documents": "Documents",
     "privacyAlerts": "{count, plural, one {# demande RGPD en alerte} other {# demandes RGPD en alerte}}",
     "activityLog": "Journal d'activité",
@@ -5765,7 +5766,7 @@
     "stages": {
       "activity": "Préparer votre activité",
       "templates": "Préparer vos modèles",
-      "first_event": "Votre premier événement",
+      "first_event": "Votre premier évènement",
       "sales": "Vendre et facturer",
       "clients": "Avec les mariés",
       "other": "Autres tutoriels"
@@ -5819,7 +5820,7 @@
     "activeOrganizations": "Organisations actives (30 jours)",
     "teamAccounts": "Comptes d'équipe",
     "activeAccounts": "Connectés sur 30 jours",
-    "eventsThisMonth": "Événements créés ce mois",
+    "eventsThisMonth": "Évènements créés ce mois",
     "outOf": "{count} sur {total}",
     "todoTitle": "À faire",
     "expiredInvitations": "{count, plural, =0 {Aucune invitation expirée} one {# invitation expirée} other {# invitations expirées}}",
@@ -5828,8 +5829,8 @@
     "nothingToDo": "Rien à faire",
     "lastBackup": "Dernière sauvegarde",
     "trendTitle": "Activité des 6 derniers mois",
-    "trendLabel": "Événements créés par mois : {values}",
-    "trendNote": "Événements créés par mois, toutes organisations, sans nom ni montant ; les essais ne comptent pas.",
+    "trendLabel": "Évènements créés par mois : {values}",
+    "trendNote": "Évènements créés par mois, toutes organisations, sans nom ni montant ; les essais ne comptent pas.",
     "seeOrganizations": "Voir les organisations",
     "seeHealth": "Voir la santé des services"
   },
@@ -5855,11 +5856,11 @@
     "failed": "L'envoi a échoué. Vérifiez votre connexion, puis réessayez."
   },
   "EventTypes": {
-    "title": "Types d'événements",
-    "intro": "Le type d'un événement dit qui sont vos clients : les mariés, ou un client (particulier ou entreprise). Les écrans de l'événement, son programme et l'espace client en suivent le vocabulaire.",
-    "tableLabel": "Tableau des types d'événements",
+    "title": "Types d'évènements",
+    "intro": "Le type d'un évènement dit qui sont vos clients : les mariés, ou un client (particulier ou entreprise). Les écrans de l'évènement, son programme et l'espace client en suivent le vocabulaire.",
+    "tableLabel": "Tableau des types d'évènements",
     "columnLabel": "Type",
-    "columnEvents": "Événements",
+    "columnEvents": "Évènements",
     "columnActions": "Actions",
     "label": "Nom du type",
     "labelFor": "Nom du type {label}",
@@ -5867,15 +5868,15 @@
     "audienceFor": "Vos clients pour le type {label}",
     "audienceCouple": "les mariés",
     "audienceClients": "un client",
-    "eventsCount": "{count, plural, =0 {aucun} one {# événement} other {# événements}}",
+    "eventsCount": "{count, plural, =0 {aucun} one {# évènement} other {# évènements}}",
     "add": "Ajouter le type",
     "added": "Type ajouté.",
     "remove": "Supprimer",
     "removeFor": "Supprimer le type {label}",
-    "moveToFor": "Les événements du type {label} passent au type",
+    "moveToFor": "Les évènements du type {label} passent au type",
     "invalid": "Nom du type obligatoire (80 caractères au plus).",
-    "inUse": "Ce type a des événements : choisissez le type qui les reprend.",
-    "last": "Gardez au moins un type d'événement.",
+    "inUse": "Ce type a des évènements : choisissez le type qui les reprend.",
+    "last": "Gardez au moins un type d'évènement.",
     "notFound": "Ce type n'existe plus.",
     "moveToChoose": "Choisir un type",
     "removeConfirm": "Supprimer le type",
@@ -5909,7 +5910,7 @@
     "deleted": "Suppression : {object}",
     "objectGeneric": "un élément",
     "openQuote": "Voir le devis",
-    "openEvent": "Voir l'événement",
+    "openEvent": "Voir l'évènement",
     "reasonLabel": "Motif : {reason}",
     "sessionsRevoked": "{count, plural, =0 {aucune autre session} one {# session fermée} other {# sessions fermées}}",
     "refusedRoute": "Adresse demandée : {route}",
@@ -6109,17 +6110,17 @@
       "budget_event_budget_items": "poste d'une simulation de budget",
       "budget_event_budgets": "simulation de budget",
       "events_default_vendor_slots": "poste de prestataire par défaut",
-      "events_event_activities": "activité d'un événement",
+      "events_event_activities": "activité d'un évènement",
       "events_event_client_accesses": "accès à un espace client",
-      "events_event_clients": "client d'un événement",
-      "events_event_places": "lieu d'un événement",
+      "events_event_clients": "client d'un évènement",
+      "events_event_places": "lieu d'un évènement",
       "events_event_status_history": "historique des statuts",
       "events_event_tasks": "tâche",
-      "events_event_types": "type d'événement",
+      "events_event_types": "type d'évènement",
       "events_event_vendor_candidate_notes": "note sur un prestataire envisagé",
       "events_event_vendor_candidates": "prestataire envisagé",
       "events_event_vendor_slots": "poste de prestataire",
-      "events_events": "événement",
+      "events_events": "évènement",
       "events_loss_reasons": "motif de perte",
       "events_program_item_participants": "participant au programme",
       "events_program_items": "moment du programme",
@@ -6168,7 +6169,7 @@
       "events_event_links": "lien personnel",
       "events_event_link_shared_slots": "catégorie partagée d'un lien",
       "events_event_decisions": "décision du client",
-      "events_event_documents": "document de l'événement",
+      "events_event_documents": "document de l'évènement",
       "events_event_day_documents": "document embarqué pour le jour J",
       "events_event_day_contacts": "contact du jour J",
       "events_event_task_attachments": "pièce jointe d'une tâche",
@@ -6307,7 +6308,7 @@
       "hub_day_reminder_targets": "réglage du rappel du jour J"
     },
     "modules": {
-      "events": "Événements",
+      "events": "Évènements",
       "budget": "Budget",
       "quotes": "Devis",
       "vendors": "Prestataires",
@@ -6533,7 +6534,7 @@
     "title": "Votre espace prestataire",
     "unavailable": "Cet espace est indisponible pour le moment. Contactez votre organisateur.",
     "yourRole": "{vendor} — {slot}",
-    "eventDate": "Date de l'événement",
+    "eventDate": "Date de l'évènement",
     "dateUnset": "à venir",
     "placesTitle": "Les lieux",
     "noPlaces": "Les lieux ne sont pas encore indiqués.",
@@ -6652,8 +6653,8 @@
       "choice": "Choix invalide.",
       "comment": "Commentaire trop long.",
       "answered": "Cette décision a déjà une réponse.",
-      "demo": "Pas de décision sur un événement d'essai.",
-      "gone": "Cet événement n'est plus disponible.",
+      "demo": "Pas de décision sur un évènement d'essai.",
+      "gone": "Cet évènement n'est plus disponible.",
       "subject": "Choisissez ce que le client doit décider."
     },
     "engageNotice": "Votre choix est transmis à {planner} ; le contrat se signe directement avec le prestataire.",
@@ -6666,8 +6667,8 @@
     "feedbackSaved": "Avis enregistré."
   },
   "DayOf": {
-    "backToEvent": "Retour à la fiche de l'événement",
-    "noClient": "Événement",
+    "backToEvent": "Retour à la fiche de l'évènement",
+    "noClient": "Évènement",
     "sections": "Sur cet écran",
     "navProgram": "Programme",
     "navPlaces": "Lieux",
@@ -6693,8 +6694,8 @@
     "copyTitle": "Sur cet appareil",
     "copyUnsupported": "Ce navigateur ne permet pas de garder le jour J pour l'ouvrir sans réseau.",
     "copyAbsent": "Ce jour J n'est pas encore gardé sur cet appareil.",
-    "copyExpired": "L'événement est passé : le jour J ne se garde plus sur l'appareil.",
-    "copyKeepHint": "Le programme, les lieux, les contacts et le PDF resteront lisibles sans réseau, jusqu'au lendemain de l'événement à minuit. Ils s'effacent aussi si vous vous déconnectez.",
+    "copyExpired": "L'évènement est passé : le jour J ne se garde plus sur l'appareil.",
+    "copyKeepHint": "Le programme, les lieux, les contacts et le PDF resteront lisibles sans réseau, jusqu'au lendemain de l'évènement à minuit. Ils s'effacent aussi si vous vous déconnectez.",
     "copyKeep": "Garder sur cet appareil",
     "copyWorking": "Copie en cours…",
     "copyReady": "Prêt hors ligne. Mis à jour le {date}.",
@@ -6714,7 +6715,7 @@
     "installIphone": "iPhone : dans Safari, touchez Partager, puis « Sur l'écran d'accueil ».",
     "installAndroid": "Android : dans Chrome, ouvrez le menu ⋮, puis « Installer l'application » (ou « Ajouter à l'écran d'accueil »).",
     "documentOrigin": {
-      "event_document": "Document de l'événement",
+      "event_document": "Document de l'évènement",
       "signed_quote": "Devis signé",
       "budget_attachment": "Pièce du budget",
       "candidate_quote": "Devis du prestataire"
@@ -6853,10 +6854,10 @@
     "open": "{title}, le {date}"
   },
   "Manifest": {
-    "description": "Préparer vos événements, et les vivre même sans réseau le jour J."
+    "description": "Préparer vos évènements, et les vivre même sans réseau le jour J."
   },
   "EventDocuments": {
-    "title": "Documents de l'événement",
+    "title": "Documents de l'évènement",
     "intro": "Devis et factures des prestataires, contrats, plan de table, plans d'accès : déposez-les ici, dites ce que c'est, et chaque pièce va dans son dossier. Vos devis et factures s'y retrouvent aussi, en lecture.",
     "empty": "Aucun document pour l'instant.",
     "addTitle": "Ajouter un document",
@@ -6870,7 +6871,7 @@
     "fileUnsupported": "Ce type de fichier n'est pas accepté : un PDF ou une image.",
     "fileInfected": "Le fichier a été refusé par l'antivirus.",
     "labelInvalid": "Donnez un intitulé de 200 caractères au plus.",
-    "notFound": "Document ou événement introuvable.",
+    "notFound": "Document ou évènement introuvable.",
     "unauthorized": "Vous n'avez pas accès à cette action.",
     "embedded": "embarqué pour le jour J",
     "rename": "Renommer",
@@ -6879,7 +6880,7 @@
     "remove": "Supprimer",
     "removeLabel": "Supprimer « {label} »",
     "chooseForDayOf": "Choisir les documents à embarquer pour le jour J",
-    "dayOfLater": "Une fois l'événement confirmé et daté, vous choisirez sur l'écran du jour J les documents à garder sur le téléphone.",
+    "dayOfLater": "Une fois l'évènement confirmé et daté, vous choisirez sur l'écran du jour J les documents à garder sur le téléphone.",
     "folder": "Dossier",
     "folderMisc": "Divers",
     "folderInvalid": "Ce dossier n'existe plus : rechargez la page.",
@@ -6999,7 +7000,7 @@
     "nameInvalid": "Donnez un nom de 120 caractères au plus.",
     "roleInvalid": "Le rôle tient en 120 caractères au plus.",
     "phoneInvalid": "Donnez un numéro de téléphone (chiffres, espaces, +, points ou tirets).",
-    "notFound": "Contact ou événement introuvable.",
+    "notFound": "Contact ou évènement introuvable.",
     "unauthorized": "Vous n'avez pas accès à cette action."
   },
   "Contracts": {
@@ -7027,7 +7028,7 @@
     "noTemplatesTitle": "Aucun modèle de contrat",
     "noTemplatesHint": "Ajoutez le modèle de départ, à adapter, ou créez le vôtre.",
     "templateVersion": "Version {version}",
-    "templateAllEventTypes": "Tous les types d'événement",
+    "templateAllEventTypes": "Tous les types d'évènement",
     "templateReviewed": "dernière revue juridique le {date}",
     "templateNotReviewed": "aucune revue juridique datée",
     "templateClauseCount": "{count, plural, one {# clause} other {# clauses}}",
@@ -7036,7 +7037,7 @@
     "templateName": "Nom du modèle",
     "templateTitle": "Titre du contrat",
     "templateTitleDefault": "Contrat de prestation de services",
-    "templateEventType": "Type d'événement",
+    "templateEventType": "Type d'évènement",
     "templateReviewedOn": "Date de la dernière revue juridique",
     "templateReviewedOnHint": "La date à laquelle votre conseil a relu ce modèle. Elle figure sur chaque contrat généré.",
     "updateTemplate": "Enregistrer le modèle",
@@ -7070,10 +7071,10 @@
     "moveClauseDown": "Descendre « {title} »",
     "removeClause": "Supprimer « {title} »",
     "variablesTitle": "Variables",
-    "variablesHint": "Écrivez une variable entre accolades : à la génération, elle prend la valeur du devis, de l'événement ou de votre organisation. Une variable vide empêche la génération.",
+    "variablesHint": "Écrivez une variable entre accolades : à la génération, elle prend la valeur du devis, de l'évènement ou de votre organisation. Une variable vide empêche la génération.",
     "variable_client_noms": "Noms des clients",
-    "variable_evenement_date": "Date de l'événement",
-    "variable_evenement_lieu": "Lieu de l'événement",
+    "variable_evenement_date": "Date de l'évènement",
+    "variable_evenement_lieu": "Lieu de l'évènement",
     "variable_devis_numero": "Numéro du devis",
     "variable_devis_total_ttc": "Total du devis (TTC)",
     "variable_devis_echeancier": "Échéancier du devis",
@@ -7372,7 +7373,8 @@
       "quotes": "devis et encaissements",
       "budget": "budget",
       "guests": "invités",
-      "appointments": "rendez-vous"
+      "appointments": "rendez-vous",
+      "vendors": "prestataires"
     },
     "calendar": {
       "kind": {
@@ -7530,7 +7532,7 @@
     "title": "Exporter mes données",
     "subtitle": "Toutes les données de votre entreprise, gratuitement et à tout moment.",
     "ownerOnly": "Cet écran est réservé à la Propriétaire du compte.",
-    "intro": "L'export rassemble tout ce que votre entreprise a saisi ou reçu dans Symbola : événements, clients, tâches, programmes, prestataires, budgets, devis, contrats, factures, encaissements, réglages, registre RGPD et journal d'activité, avec vos documents.",
+    "intro": "L'export rassemble tout ce que votre entreprise a saisi ou reçu dans Symbola : évènements, clients, tâches, programmes, prestataires, budgets, devis, contrats, factures, encaissements, réglages, registre RGPD et journal d'activité, avec vos documents.",
     "formatTitle": "Le format",
     "format": "Une archive ZIP : vos données en JSON (la référence) et en CSV (pour un tableur), le schéma de chaque table, vos fichiers, et un fichier LISEZMOI qui décrit le tout. Le format est documenté et stable.",
     "excludedTitle": "Ce qui n'est pas exporté",
@@ -10703,7 +10705,7 @@
     },
     "lawyerNote": "Pénalités d'un particulier : question posée à l'avocat (taux maximal, mentions). En attendant, rien n'est mentionné sans clause au contrat.",
     "seeAlso": "Le suivi de vos prospects (délais d'alerte dans « Aujourd'hui », relances préparées) se règle ailleurs :",
-    "seeAlsoLink": "Événements, Relances des prospects"
+    "seeAlsoLink": "Évènements, Relances des prospects"
   },
   "VendorRecords": {
     "unauthorized": "Action non autorisée.",
@@ -11423,7 +11425,7 @@
   },
   "ClientTerms": {
     "title": "Termes pour désigner les clients",
-    "intro": "Pour chaque type d'évènement, choisissez le mot qui désigne vos clients (« les mariés », « les clients », « le commanditaire »…), avec son genre et son nombre. Il s'emploie dans les écrans, dans les e-mails ('{{terme_clients}}') et dans les documents à venir ; un document déjà émis garde son texte.",
+    "intro": "Pour chaque type d'évènement, choisissez le mot qui désigne vos clients (« les mariés », « les clients », « le commanditaire »…), avec son genre et son nombre. Il s'emploie dans les écrans, dans les e-mails et dans les documents à venir ; un document déjà émis garde son texte.",
     "type": "Type",
     "term": "Terme",
     "gender": "Genre",

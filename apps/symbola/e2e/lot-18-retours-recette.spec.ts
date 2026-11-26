@@ -55,7 +55,7 @@ test("Lot 18 — menu, « Plus d'options », pastille des tutoriels et estimatio
   await expect(mainMenu(page).getByRole("link", { name: "Devis et factures", exact: true })).not.toHaveAttribute("aria-current", "page");
 
   // L18-HUB-24, revu au lot 20 (décision 2) : plus de « Plus d'options » ; la
-  // barre des Événements ne garde que « Nouveau prospect ».
+  // barre des Évènements ne garde que « Nouveau prospect ».
   await page.goto("/events");
   // Lot 63c (EVT-01, M7) : « Nouveau » propose prospect, évènement confirmé ou client existant.
   await expect(page.getByRole("button", { name: "Nouveau", exact: true })).toBeVisible();
@@ -70,7 +70,7 @@ test("Lot 18 — menu, « Plus d'options », pastille des tutoriels et estimatio
   }
   const resume = page.getByRole("link", { name: /^Reprendre : / });
   await page.goto("/events");
-  await expect(page.getByRole("heading", { level: 1, name: "Événements" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Évènements" })).toBeVisible();
   await expect(resume).toHaveCount(0);
   await page.goto("/tutoriels");
   await expect(resume).toBeVisible();

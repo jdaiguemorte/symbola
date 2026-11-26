@@ -1,4 +1,4 @@
-// Lot 13 (L13-EVT-19) — fiche événement : frise datée du statut, bandeau
+// Lot 13 (L13-EVT-19) — fiche évènement : frise datée du statut, bandeau
 // « Prochaine étape », vue d'ensemble en chiffres. Ordinateur et 375 px,
 // axe-core.
 import { randomUUID } from "node:crypto";
@@ -40,7 +40,7 @@ test("L13-EVT-19 — frise datée du statut, prochaine étape et chiffres clés"
   // Option (lot 34a, EVT-05) : la frise date l'étape en cours ; le bandeau propose le devis.
   await page.goto(`/events/${event.id}`);
   const today = formatCalendarDate(parisToday(), "fr");
-  const steps = page.getByRole("list", { name: "Statut de l'événement" });
+  const steps = page.getByRole("list", { name: "Statut de l'évènement" });
   await expect(steps.getByRole("listitem").filter({ hasText: "Option" })).toContainText(today);
   await expect(steps.getByRole("listitem").filter({ hasText: "Clôturé" })).toContainText("après le");
   await expect(page.getByRole("heading", { name: "Prochaine étape : envoyer le devis" })).toBeVisible();

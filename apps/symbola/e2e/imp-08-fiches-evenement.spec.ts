@@ -1,7 +1,7 @@
-// Lot 14c (IMP-08) — reprise des événements depuis les fiches PDF d'un
+// Lot 14c (IMP-08) — reprise des évènements depuis les fiches PDF d'un
 // logiciel de planification tiers (fiches entièrement fictives du corpus) :
 // dépôt de plusieurs fiches dont une refusée, motif au rapport des écarts,
-// statut choisi dans l'aperçu, confirmation, fiche événement complétée
+// statut choisi dans l'aperçu, confirmation, fiche évènement complétée
 // (coordonnées des mariés, budget souhaité, lieux), annulation. En taille
 // ordinateur et en 375 px, axe-core sur chaque écran.
 import { randomUUID } from "node:crypto";
@@ -35,7 +35,7 @@ async function waitForSheetsRead(page: Page) {
   await expect.poll(() => page.url().endsWith("/confirmation"), { timeout: 30_000 }).toBe(true);
 }
 
-test("IMP-08 — reprendre ses événements depuis les fiches PDF de l'outil actuel", async ({ page }) => {
+test("IMP-08 — reprendre ses évènements depuis les fiches PDF de l'outil actuel", async ({ page }) => {
   const email = `planner-imp08-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-imp08-e2e";
   const { sql, db } = createAppConnection();
@@ -49,9 +49,9 @@ test("IMP-08 — reprendre ses événements depuis les fiches PDF de l'outil act
   await loginAndSetupMfa(page, email, password);
 
   await openSettingsTab(page, "Importer");
-  // Lot 16 (IMP-11) : la tuile « Reprendre mes événements » ouvre le dépôt des fiches.
-  await page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" }).getByRole("link", { name: /Reprendre mes événements/ }).click();
-  await page.getByLabel("Fiches événement (PDF, une ou plusieurs)").setInputFiles([
+  // Lot 16 (IMP-11) : la tuile « Reprendre mes évènements » ouvre le dépôt des fiches.
+  await page.getByRole("navigation", { name: "Que voulez-vous reprendre ?" }).getByRole("link", { name: /Reprendre mes évènements/ }).click();
+  await page.getByLabel("Fiches évènement (PDF, une ou plusieurs)").setInputFiles([
     { name: "fiche-evenement-complete.pdf", mimeType: "application/pdf", buffer: readFileSync(corpus("fiche-evenement-complete.pdf")) },
     { name: "fiche-evenement-trois-lieux.pdf", mimeType: "application/pdf", buffer: readFileSync(corpus("fiche-evenement-trois-lieux.pdf")) },
     { name: "pas-une-fiche.pdf", mimeType: "application/pdf", buffer: Buffer.from("Nom;Ville\nA;B", "utf-8") },
@@ -82,8 +82,8 @@ test("IMP-08 — reprendre ses événements depuis les fiches PDF de l'outil act
   await expect(page.getByLabel(/Ligne 2 : Chloé PETIT & Antoine ROUX/)).toHaveValue("option");
   await expectNoAxeViolation(page);
 
-  await page.getByLabel("Source pour les événements sans source").selectOption({ label: "Outil actuel" });
-  await page.getByRole("button", { name: "Importer 2 événements" }).click();
+  await page.getByLabel("Source pour les évènements sans source").selectOption({ label: "Outil actuel" });
+  await page.getByRole("button", { name: "Importer 2 évènements" }).click();
   // Lot 63b (HUB-14, UX-07) : le bilan d'abord ; le détail du journal est replié.
   await page.getByText("Détails du journal (fichier, auteur, dates)").click();
   await expect(page.getByText("2 créations, aucune mise à jour, aucune ligne inchangée, 1 ligne rejetée")).toBeVisible();
@@ -102,7 +102,7 @@ test("IMP-08 — reprendre ses événements depuis les fiches PDF de l'outil act
   await expect(lea.getByText("Coordonnées enregistrées.")).toBeVisible();
   await expectNoAxeViolation(page);
 
-  // Annulation : l'événement modifié à la main est signalé ; l'autre disparaît.
+  // Annulation : l'évènement modifié à la main est signalé ; l'autre disparaît.
   await page.goto("/import");
   await page.getByRole("link", { name: /fiche-evenement-complete\.pdf/ }).click();
   // Lot 63b (HUB-14, UX-07) : l'annulation est repliée sous le bilan.

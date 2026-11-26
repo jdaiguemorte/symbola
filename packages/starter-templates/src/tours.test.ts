@@ -29,4 +29,16 @@ describe("HUB-11 — Visite guidée : contenu en fichier de données", () => {
       starterTour("fr", key).forEach((step, index) => expect(starterTour("en", key)[index]!.body).not.toBe(step.body));
     }
   });
+
+  // Lot 69 (UX-05, UX-10, HUB-11 ; C-02) : la visite se lit aussi sur téléphone, sans geste de souris,
+  // et ne compte pas un chiffre que l'écran ne tient pas (l'accueil montre sept lignes).
+  it("aucune étape ne cite un geste de souris, ni « trois points »", () => {
+    for (const locale of ["fr", "en"] as const) {
+      for (const key of TOUR_KEYS) {
+        for (const step of starterTour(locale, key)) {
+          expect(step.body, `${locale} ${key} ${step.target}`).not.toMatch(/survol|cliquez|hover|click a row|three most|trois points/i);
+        }
+      }
+    }
+  });
 });

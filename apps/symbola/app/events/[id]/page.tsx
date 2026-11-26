@@ -1173,9 +1173,12 @@ export default async function EventDetailPage({
             {!event.eventDate ? (
               <p>{t("taskTemplateNeedsDate")}</p>
             ) : templates.length === 0 ? (
-              <p>
-                {t("noTaskTemplates")} <Link href="/events/modeles">{t("taskTemplatesLink")}</Link>
-              </p>
+              // Lot 69 (CHR-01 ; C-39) : la phrase n'a de sens que s'il n'y a encore aucune tâche.
+              tasks.length === 0 ? (
+                <p>
+                  {t("noTaskTemplates")} <Link href="/events/modeles">{t("taskTemplatesLink")}</Link>
+                </p>
+              ) : null
             ) : !recalculation.pending ? (
               <ApplyTaskTemplateForm eventId={event.id} templates={templates} />
             ) : null}

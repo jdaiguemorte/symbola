@@ -210,31 +210,34 @@ export function BudgetVendorsTable({
                       )}
                     </td>
                     <td className="actions">
-                      <button type="button" className="button-ghost budget-unfold" aria-expanded={unfoldedRow} aria-controls={scheduleId} onClick={() => toggle(row.slotId)}>
-                        {unfoldedRow ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
-                        <span className="sr-only">{t(unfoldedRow ? "foldSchedule" : "unfoldSchedule", { slot: row.label })}</span>
-                      </button>
-                      <button type="button" className="button-secondary" onClick={() => open(index)} aria-haspopup="dialog">
-                        {t("open")}
-                        <span className="sr-only"> {t("openFor", { slot: row.label })}</span>
-                      </button>
-                      {/* Lot 65g (PRE-02 ; recette staging du 22/11/2026) : un évènement n'a pas besoin de tous
-                          les postes ; « Supprimer » à côté d'« Ouvrir », après confirmation, pour un poste vide
-                          (ni prestataire, ni montant, ni échéance, ni pièce) : rien ne se perd. Un poste qui en a
-                          se retire depuis ses réglages. */}
-                      {removable(row, choice) ? (
-                        <ConfirmDialog
-                          trigger={t("removeSlot")}
-                          triggerLabel={t("removeSlotFor", { slot: row.label })}
-                          triggerClassName="button-ghost"
-                          title={t("removeSlotTitle", { slot: row.label })}
-                          body={t("removeSlotBody")}
-                          confirmLabel={t("removeSlotConfirm")}
-                          cancelLabel={t("removeSlotCancel")}
-                          action={removeVendorSlotAction}
-                          fields={{ eventId, vendorSlotId: row.slotId }}
-                        />
-                      ) : null}
+                      <div className="row-wrap">
+                        <button type="button" className="button-ghost budget-unfold" aria-expanded={unfoldedRow} aria-controls={scheduleId} onClick={() => toggle(row.slotId)}>
+                          {unfoldedRow ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
+                          <span className="sr-only">{t(unfoldedRow ? "foldSchedule" : "unfoldSchedule", { slot: row.label })}</span>
+                        </button>
+                        <button type="button" className="button-secondary" onClick={() => open(index)} aria-haspopup="dialog">
+                          {t("open")}
+                          <span className="sr-only"> {t("openFor", { slot: row.label })}</span>
+                        </button>
+                        {/* Lot 65g (PRE-02 ; recette staging du 22/11/2026) : un évènement n'a pas besoin de tous
+                            les postes ; « Supprimer » à côté d'« Ouvrir », après confirmation, pour un poste vide
+                            (ni prestataire, ni montant, ni échéance, ni pièce) : rien ne se perd. Un poste qui en a
+                            se retire depuis ses réglages. */}
+                        {removable(row, choice) ? (
+                          <ConfirmDialog
+                            trigger={t("removeSlot")}
+                            triggerLabel={t("removeSlotFor", { slot: row.label })}
+                            triggerClassName="button-ghost"
+                            title={t("removeSlotTitle", { slot: row.label })}
+                            body={t("removeSlotBody")}
+                            confirmLabel={t("removeSlotConfirm")}
+                            cancelLabel={t("removeSlotCancel")}
+                            action={removeVendorSlotAction}
+                            fields={{ eventId, vendorSlotId: row.slotId }}
+                          />
+                        ) : null}
+                    
+                      </div>
                     </td>
                   </tr>
                   {unfoldedRow ? (

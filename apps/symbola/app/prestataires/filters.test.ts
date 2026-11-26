@@ -1,7 +1,7 @@
 // Lot 63a (PRE-01, PRE-11 ; recette du 21/11/2026) — filtres actifs du carnet en pastilles
 // retirables, et « Effacer les filtres » qui garde la famille, le type et la vue.
 import { describe, expect, it } from "vitest";
-import { activeFilters, clearFiltersHref, parseBookFilters, type ActiveFilterLabels } from "./filters";
+import { activeFilters, clearFiltersHref, parseBookFilters, vendorBookEmptyState, type ActiveFilterLabels } from "./filters";
 
 const TAG = "11111111-1111-4111-8111-111111111111";
 const FAMILY = "22222222-2222-4222-8222-222222222222";
@@ -35,5 +35,20 @@ describe("PRE-01, PRE-11 — Filtres actifs et remise à zéro (lot 63a)", () =>
 
   it("sans filtre, aucune pastille", () => {
     expect(activeFilters("/prestataires", { famille: FAMILY }, parseBookFilters({ famille: FAMILY }, []), labels)).toEqual([]);
+  });
+});
+
+describe("UX-08, UX-10 — Le carnet vide ne parle pas de filtres (C-69, lot 69)", () => {
+  it("aucune fiche et aucun type : on invite à créer des types ou à ajouter un prestataire", () => {
+    expect(vendorBookEmptyState({ total: 0, results: 0, types: 0 })).toBe("noTypes");
+  });
+  it("aucune fiche mais des types : le carnet est vide, jamais « filtres »", () => {
+    expect(vendorBookEmptyState({ total: 0, results: 0, types: 9 })).toBe("book");
+  });
+  it("douze fiches et un filtre qui n'en garde aucune : « filtres »", () => {
+    expect(vendorBookEmptyState({ total: 12, results: 0, types: 9 })).toBe("filters");
+  });
+  it("des résultats : rien à dire", () => {
+    expect(vendorBookEmptyState({ total: 12, results: 3, types: 9 })).toBeNull();
   });
 });

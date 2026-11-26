@@ -1,5 +1,5 @@
 // Lot 24a — ARC-07 (et preuve de l'écart ARC-01, ADR 0062) : l'app est jouée
-// avec chacune des 16 combinaisons des quatre modules (Événements, Budget,
+// avec chacune des 16 combinaisons des quatre modules (Évènements, Budget,
 // Devis, Prestataires). Pour chacune : l'accueil, le menu, la recherche et les
 // écrans de chaque module s'affichent sans erreur ; le menu ne montre que les
 // modules souscrits ; un lien vers un module absent mène à « indisponible »
@@ -23,12 +23,12 @@ import { createVendor } from "../modules/vendors/service";
 import { mainMenu, readyOrganization, signIn as signInByLink } from "./helpers";
 
 // Écran d'entrée de chaque module, et son lien au menu (le budget s'ouvre
-// depuis l'événement : pas d'entrée au menu).
+// depuis l'évènement : pas d'entrée au menu).
 const MODULE_HOME: Record<ModuleKey, string> = { events: "/events", budget: "/budget/parametres", quotes: "/devis", vendors: "/prestataires" };
 const MENU_LINK: Record<ModuleKey, string | null> = { events: "/events", budget: null, quotes: "/devis", vendors: "/prestataires" };
 // Message « indisponible » propre à chaque module, et forme générale.
 const MODULE_UNAVAILABLE: Record<ModuleKey, string> = {
-  events: "Le module Événements n'est pas activé pour votre organisation.",
+  events: "Le module Évènements n'est pas activé pour votre organisation.",
   budget: "Le module Budget n'est pas activé pour votre organisation.",
   quotes: "Le module Devis n'est pas activé pour votre organisation.",
   vendors: "Le carnet de prestataires n'est pas disponible pour votre organisation.",

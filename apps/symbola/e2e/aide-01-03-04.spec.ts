@@ -69,6 +69,8 @@ test("HUB-11 / AIDE-03 — visite guidée de l'accueil, aide consultable", async
   await expect(tour).toContainText("4 sur 4");
   // Dernière étape : le « ? », d'où la visite se relance.
   await expect(tour.getByRole("heading", { name: "L'aide de chaque écran", level: 2 })).toBeVisible();
+  // Lot 69 (C-02) : à la dernière étape, « Passer la visite » n'a plus de sens ; « Terminer » reste.
+  await expect(tour.getByRole("button", { name: "Passer la visite" })).toHaveCount(0);
   await tour.getByRole("button", { name: "Terminer" }).click();
   await expect(tour).toHaveCount(0);
 
@@ -110,7 +112,7 @@ test("HUB-11 / AIDE-03 — visite guidée de l'accueil, aide consultable", async
   // groupée par rubrique, et se cherche (l'aide, pas les données).
   await clickMenuLink(page, "Aide");
   await expect(page.getByRole("heading", { name: "Aide", level: 1 })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Événements" }).getByRole("link", { name: /Liste des événements/ })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Évènements" }).getByRole("link", { name: /Liste des évènements/ })).toBeVisible();
   violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);
 
@@ -118,7 +120,7 @@ test("HUB-11 / AIDE-03 — visite guidée de l'accueil, aide consultable", async
   await expect(page.getByRole("heading", { name: "Exploitation de la suite" })).toHaveCount(0);
   await page.getByLabel("Rechercher dans l'aide").fill("TVA");
   await expect(page.getByRole("link", { name: /Entreprise et TVA/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Liste des événements/ })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /Liste des évènements/ })).toHaveCount(0);
   await expect(page.locator(".help-search").getByRole("status")).toContainText("Écrans trouvés");
 
   await page.getByLabel("Rechercher dans l'aide").fill("xyznotfound");

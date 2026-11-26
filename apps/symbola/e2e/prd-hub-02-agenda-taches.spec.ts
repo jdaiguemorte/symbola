@@ -74,7 +74,7 @@ test("PRD-HUB-02 / HUB-08 — agenda des mariages, tâches cochées depuis « Au
   await expect(agenda.getByRole("link", { name: "3 mois" })).toHaveAttribute("aria-current", "true");
   const weekend = agenda.locator("summary", { hasText: firstName });
   await expect(agenda.getByText(`${firstName} & Sacha`).first()).toBeVisible();
-  await expect(agenda.getByText("2 événements ce week-end").first()).toBeAttached();
+  await expect(agenda.getByText("2 évènements ce week-end").first()).toBeAttached();
   await expectNoAxeViolation(page);
 
   // « Voir l'année » : 12 mois ; le choix est retenu.

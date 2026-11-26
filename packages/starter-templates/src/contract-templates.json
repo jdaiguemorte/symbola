@@ -35,7 +35,7 @@
             "en": "Purpose"
           },
           "body": {
-            "fr": "Le présent contrat porte sur l'organisation de l'événement du {evenement.date}, {evenement.lieu}, selon le devis {devis.numero} joint.",
+            "fr": "Le présent contrat porte sur l'organisation de l'évènement du {evenement.date}, {evenement.lieu}, selon le devis {devis.numero} joint.",
             "en": "This contract covers the planning of the event on {evenement.date}, {evenement.lieu}, as set out in the attached quote {devis.numero}."
           },
           "optional": false,

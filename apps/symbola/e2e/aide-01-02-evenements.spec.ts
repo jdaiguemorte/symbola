@@ -1,4 +1,4 @@
-// AIDE-11/02, HUB-11 (lot 63f, ADR 0104) — module événements : visite guidée lancée à la première
+// AIDE-11/02, HUB-11 (lot 63f, ADR 0104) — module évènements : visite guidée lancée à la première
 // ouverture, relancée depuis « ? › Revoir la visite », puis essai guidé sur un mariage fictif,
 // supprimé à la fin de l'essai. En taille ordinateur et en 375 px,
 // axe-core sur chaque écran.
@@ -22,7 +22,7 @@ async function expectNoAxeViolation(page: Page) {
 // Visite lancée d'office (sans la préférence posée par la configuration des autres parcours).
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test("HUB-11 / AIDE-02 — visite du module événements, puis essai guidé supprimé à la fin", async ({ page }) => {
+test("HUB-11 / AIDE-02 — visite du module évènements, puis essai guidé supprimé à la fin", async ({ page }) => {
   test.setTimeout(90_000);
   const email = `planner-aide-evt-${randomUUID()}@symbola.test`;
   const password = "mot-de-passe-aide-evt-e2e";
@@ -37,16 +37,16 @@ test("HUB-11 / AIDE-02 — visite du module événements, puis essai guidé supp
 
   // HUB-11 : la visite se lance d'office à la première ouverture.
   await page.goto("/events");
-  const tour = tourDialog(page, "Liste des événements");
+  const tour = tourDialog(page, "Liste des évènements");
   await expect(tour.getByRole("heading", { name: "La liste", level: 2 })).toBeFocused();
   await expectNoAxeViolation(page);
   await tour.getByRole("button", { name: "Suivant" }).click();
   await expect(tour.getByRole("heading", { name: "Nouveau prospect", level: 2 })).toBeVisible();
   await expect(tour).toContainText("2 sur 5");
-  await skipTour(page, "Liste des événements");
+  await skipTour(page, "Liste des évènements");
 
   // Déjà vue : elle ne revient plus d'elle-même, mais depuis « ? › Revoir la visite ».
-  const panel = helpPanel(page, "Liste des événements");
+  const panel = helpPanel(page, "Liste des évènements");
   await page.reload();
   await expect(page.getByRole("button", { name: "Aide sur cet écran" })).toBeVisible();
   await expect(tour).toHaveCount(0);
@@ -64,7 +64,7 @@ test("HUB-11 / AIDE-02 — visite du module événements, puis essai guidé supp
   await panel.getByRole("button", { name: "Démarrer l'essai" }).click();
   await expect(page).toHaveURL(/\/events\/[0-9a-f-]{36}$/);
   // La visite de la fiche se lance d'elle-même ; ce parcours la passe.
-  await skipTour(page, "Fiche de l'événement");
+  await skipTour(page, "Fiche de l'évènement");
   const trialUrl = page.url();
   const trialId = trialUrl.split("/").pop()!;
   await expect(page.getByRole("heading", { name: "Exemple — données fictives" })).toBeVisible();
@@ -94,7 +94,7 @@ test("HUB-11 / AIDE-02 — visite du module événements, puis essai guidé supp
   await expect(page).toHaveURL(/\/events\?essai=termine$/);
   await expect(page.getByText("Essai terminé : ses données fictives ont été supprimées.")).toBeVisible();
   await expect(page.getByRole("row", { name: /Camille & Sacha/ })).toHaveCount(0);
-  // Plus aucun événement : l'essai est aussi proposé dans la page.
+  // Plus aucun évènement : l'essai est aussi proposé dans la page.
   await expect(page.getByRole("region", { name: "Essai guidé" }).getByRole("button", { name: "Démarrer l'essai" })).toBeVisible();
   await page.goto(trialUrl);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Page introuvable");

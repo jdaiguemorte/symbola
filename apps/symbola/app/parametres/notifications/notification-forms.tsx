@@ -32,7 +32,12 @@ export function PreferencesForm({ rows }: { rows: { type: NotificationType; labe
               <tr key={row.type}>
                 <th scope="row">
                   {row.label}
-                  {row.immediate ? <span className="badge">{t("settings.immediate")}</span> : null}
+                  {row.immediate ? (
+                    <>
+                      {" "}
+                      <span className="badge">{t("settings.immediate")}</span>
+                    </>
+                  ) : null}
                 </th>
                 {CHANNELS.map((channel) => (
                   <td key={channel}>
