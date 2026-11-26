@@ -547,7 +547,7 @@ l'autre voie. Celles qui touchent le cahier des charges sont aussi dans `docs/QU
 | A2 | **À qui reviennent les tâches « Planner » existantes ?** | **Tranché le 26/11 par Julien : « Oui, cette règle ».** Au planner principal de l'évènement (lot 52) s'il y en a un ; sinon à la personne qui a créé la tâche, si elle est encore membre ; sinon à la titulaire. Tâches hors évènement : à leur créatrice | Laisser la personne vide (« À attribuer ») et laisser l'agence trier |
 | A3 | **Une nouvelle tâche, par défaut, est à qui ?** | **Tranché le 26/11 par Julien : « Oui, à qui la crée ».** À la personne qui la crée (« Vous »), depuis tous les écrans | Au planner principal de l'évènement quand on crée depuis la fiche |
 | A4 | **Tâches d'un membre dont l'accès est retiré.** | **Tranché le 26/11 par Julien : « Oui, restent ».** Elles restent à son nom, affiché « {nom} (accès retiré) » ; au retrait de l'accès, la titulaire voit « 12 tâches restent à son nom · Les confier à… » ; rien n'est réattribué sans elle | Les passer d'office à la titulaire |
-| A5 | **Une tâche supprimée va-t-elle dans la Corbeille ?** La maquette validée le dit ; l'ADR 0073 (D6) en fait un « élément » qui s'annule dix secondes puis disparaît. | (a) Oui, trente jours, un lot en une seule ligne : c'est ce que la planner a validé, et ce que dit UX-07. Avenant à l'ADR 0073 | (b) Garder l'ADR 0073 et corriger le texte de la maquette (« Annuler » seulement, pas de Corbeille) |
+| A5 | **Une tâche supprimée va-t-elle dans la Corbeille ?** La maquette validée le dit ; l'ADR 0073 (D6) en fait un « élément » qui s'annule dix secondes puis disparaît. | **Tranché le 26/11 par Julien : « Oui, Corbeille ».** (a) Oui, trente jours, un lot en une seule ligne : c'est ce que la planner a validé, et ce que dit UX-07. Avenant à l'ADR 0073 | (b) Garder l'ADR 0073 et corriger le texte de la maquette (« Annuler » seulement, pas de Corbeille) |
 | A6 | **La « Priorité » (Haute) disparaît des maquettes.** Elle a été ajoutée au lot 63 à la demande de la planner. | La garder dans le panneau (case « Prioritaire ») et sur la ligne en mot et icône neutres (« ↑ Prioritaire »), sans ambre | La retirer de l'écran (les données restent) |
 | A7 | **Ajouter une « Note » à la tâche** (nouvelle colonne). | Oui, 2 000 caractères, interne à l'agence, jamais vue des mariés ni des prestataires, marquée « Note interne » | Pas de note : on se sert des commentaires |
 | A8 | **Échéance « en jours avant le jour J »** à la création depuis la fiche (question laissée ouverte par la maquette). | Oui : « Choisir une date » ou « {n} jours avant le jour J » ; la tâche garde alors sa date relative (DAT-07) et suit la date de l'évènement | Une date seulement ; la date relative reste réservée aux tâches nées d'un modèle |
@@ -607,7 +607,7 @@ réalise, si Julien confirme.
    enregistrer ? » empêche la perte silencieuse ; le brouillon (`DraftKeeper`, ADR 0074) peut
    garder la saisie si l'onglet se ferme. → **ADR à écrire** (paquet 70c), complète les ADR 0074
    et 0107.
-2. **La tâche dans la Corbeille (A5 en (a))** : avenant à l'ADR 0073 (D6), dans le sens d'UX-07 et
+2. **La tâche dans la Corbeille (A5, tranchée en (a) le 26/11)** : avenant à l'ADR 0073 (D6), dans le sens d'UX-07 et
    de HUB-17.
 3. **L'onglet « Tâches » de la fiche** : le cahier des charges nomme les onglets du cockpit
    « Synthèse, Planning, Budget… » ; l'app disait « Rétroplanning », la maquette dit « Tâches »

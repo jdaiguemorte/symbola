@@ -969,7 +969,8 @@ Ouverts ; chacun a sa recommandation.
    M1 (rien ne se perd sans le dire) et l'écrire dans un ADR qui complète les ADR 0074 et 0107.
 2. **Une tâche supprimée dans la Corbeille (UX-07, HUB-17)**. La maquette le promet ; l'ADR 0073
    (D6) fait de la tâche un élément qui s'annule dix secondes puis disparaît. Proposition : la
-   Corbeille, trente jours, avenant à l'ADR 0073 (décision A5 du lot).
+   Corbeille, trente jours, avenant à l'ADR 0073 (décision A5 du lot). **Tranché le 26/11 par Julien :
+   « Oui, Corbeille ».**
 3. **Nom de l'onglet du cockpit**. Le cahier des charges cite « Planning » ; l'app dit
    « Rétroplanning » ; M11 retient « Tâches ». Proposition : « Tâches », noté dans `gap.csv`.
 4. **États d'une tâche**. Le cahier des charges cite « À faire, En cours, En attente d'un tiers,
