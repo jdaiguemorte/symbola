@@ -129,12 +129,13 @@ Tout reste dans le schéma `events` (module des tâches), sauf mention. Aucune c
 | 0213 | `0213_lot70a_events_task_note.sql` | Ajoute `event_tasks.note text` (nullable, 2 000 caractères au plus, sans caractère de contrôle) | Le panneau de la maquette a un champ « Note » qui n'existe pas aujourd'hui (décision A7) |
 | 0214 | `0214_lot70a_events_soon_days.sql` | Ajoute `events.planning_health_settings.soon_days integer` (1 à 30). Sans ligne ou sans valeur : 7 | M10 : seuil de « Bientôt » réglable par organisation. L'écran de réglage attend le volet « Paramètres » (§ 8) ; la valeur est lue dès ce lot |
 | 0215 | `0215_lot70a_events_task_change_snapshots.sql` | Table technique `events.task_change_snapshots` (`id`, `organization_id`, `user_id`, `payload jsonb`, `expires_at`), RLS par organisation, purgée par la tâche horaire après dix minutes | « Annuler » après « Changer la date » ou « Confier à » (C-09) : il faut garder les valeurs d'avant (jusqu'à 500 tâches en lot), que le cookie d'annulation actuel (`lib/undo.ts`, nature et identifiant seulement) ne peut pas porter. Décision A18 |
+| 0216 | `0216_lot70a_hub_user_names.sql` | **Schéma `hub`** (accord de Julien, A1, 26/11) : ajoute `hub.users.first_name` et `hub.users.last_name` (`text`, nullables, 1 à 80 caractères, sans caractère de contrôle) | A1 : nommer un collègue (« Bastien ») et ses initiales (« BL ») ; le nom appartient à la personne, pas à l'organisation, d'où `users` et non `memberships` |
 
 La **Corbeille des tâches** (décision A5) ne demande pas de migration : `deleted_at` suffit ; ce
 qui change, c'est le délai de purge des tâches (dix minutes aujourd'hui, `ELEMENT_PURGE_MINUTES`,
 `packages/contracts/src/trash.ts`) et la liste de la Corbeille. C'est un avenant à l'ADR 0073.
 
-Aucune migration ne touche le schéma `hub` si la décision A1 est prise en (a).
+Une seule migration touche le schéma `hub` (0216, A1) ; elle passe par le service du hub et `packages/auth`, jamais par le module `events`.
 
 ### 3.3 Contrats (`packages/contracts`)
 
@@ -175,6 +176,7 @@ Rien d'incompatible : les anciennes valeurs restent lues. **Aucun nouvel événe
 | `events.event_tasks` | `assignee_user_id` | identifiant | Membre de l'équipe qui s'en charge, jamais son nom. Tant que la tâche existe ; l'identifiant d'un accès retiré ne désigne plus personne (comme `day_checkpoints.user_id`) |
 | `events.event_tasks` | `done_by_user_id` | identifiant | Membre qui a coché. Même règle |
 | `events.event_tasks` | `note` | contenu_libre | Note interne, jamais montrée aux mariés ni aux prestataires. Effacée par une demande d'oubli qui vise l'évènement (RGPD-03), exportée avec les tâches (HUB-13) |
+| `hub.users` | `first_name`, `last_name` | identité | Saisis par la personne dans Mon compte (A1). Montrés aux membres de ses organisations seulement, jamais aux mariés, aux prestataires ni dans un journal. Gardés tant que le compte existe ; effacés avec le compte ; exportés avec l'équipe (HUB-13), non repris par la reprise d'un export dans une autre organisation |
 | `events.task_change_snapshots` | `payload` | technique (dates et identifiants) | Aucune donnée personnelle ; purgée après dix minutes |
 
 Le contrat `privacy/v1` du module `events` (find, export, anonymize, erase) couvre ces colonnes.
@@ -192,7 +194,7 @@ transverses dont la ligne et le panneau ont besoin, puis les écrans.
 
 | Paquet | Contenu | Dépend de | Migrations |
 | --- | --- | --- | --- |
-| **70a** Données des tâches | Colonnes et service (§ 3) ; « Qui s'en charge » propose les collègues dans les formulaires **actuels** ; la Corbeille des tâches ; le seuil « Bientôt » lu | — | 0211 à 0215 |
+| **70a** Données des tâches | Colonnes et service (§ 3) ; « Qui s'en charge » propose les collègues dans les formulaires **actuels** ; la Corbeille des tâches ; le seuil « Bientôt » lu | — | 0211 à 0216 |
 | **70b** Retour, danger, erreur | Le message de retour unique ; les trois niveaux de danger ; la validation écrite par Symbola ; « Annuler l'évènement » et « Rétablir » | — (peut partir en même temps que 70a) | — |
 | **70c** La ligne type et le panneau | Ligne type sur « Tâches », la fiche, « Aujourd'hui », le téléphone ; panneau unique (édition et création) ; « Changer la date… » ; onglet « Tâches » de la fiche | 70a, 70b | — |
 | **70d** L'écran « Tâches » | « Nouvelle tâche » en haut, liste unique avec les tâches hors évènement, filtres, « Grouper par », décompte, sélection en lot, états vides, tâches faites | 70c | — |
@@ -225,7 +227,8 @@ l'exigence (`describe('CHR-02 — Qui s'en charge : un collègue', …)`).
 | `app/events/[id]/task-forms.tsx` (`ResponsibleSelect:20-46`), `app/creation-rapide/actions.ts:163-186`, `app/taches/task-row-actions.ts` (`bulkTasksAction:136`) | Planner, clients, prestataire | « Vous », chaque collègue par son nom (A1), les clients (le mot du type d'évènement), chaque prestataire de l'évènement. Écrans inchangés sinon : la forme vient au paquet 70c |
 | `modules/events/links-repository.ts:398,434` (le lien des mariés coche) | Ligne `event_activities` seulement | Écrit aussi `done_by_kind = 'clients'` |
 | `lib/today/rank.ts` (`TODAY_HORIZON_DAYS = 14`) | Horizon de l'accueil | Inchangé (l'horizon d'« Aujourd'hui » relève du volet « Aujourd'hui ») ; seul l'état « Bientôt » de la ligne lit `soon_days` |
-| `packages/auth/src/team.ts` (`listTeam:23`) | `{id, email, role, …}` | Ajoute le nom affiché (A1) |
+| `packages/auth/src/team.ts` (`listTeam:23`) | `{id, email, role, …}` | Ajoute `firstName`, `lastName` (A1) |
+| Mon compte (`app/compte/…`, écran du profil) | Pas de nom | Deux champs « Prénom » et « Nom », enregistrés seuls (D7 de la porte 2, réglage isolé : « Enregistré » à côté du champ). Tant que le prénom est vide : le début de l'adresse s'affiche (« bastien »), et une ligne discrète sur l'accueil du membre propose « Indiquez votre prénom pour que l'équipe vous reconnaisse » (fermable). À la création d'un compte (`create-account`, invitation d'un membre), le prénom et le nom peuvent être donnés d'avance |
 
 **Critères d'acceptation**
 
@@ -516,6 +519,7 @@ est proposé ici (C1) et relu par Julien avec la PR de chaque paquet.
 | « + Créer » | les six entrées et leurs phrases (§ 5.5) · Tâche pour {évènement} · Touche N pour ouvrir ce menu | the six entries and their lines · Task for {event} · Press N to open this menu |
 | Nouvel évènement | Où en est-il ? · Une demande en cours · Vous en parlez, rien n'est signé. · Signé, en préparation · Le contrat est signé, même si vous aviez commencé sur papier : la liste des tâches se crée aujourd'hui. · Choisissez où en est cet évènement. · Vous le suivez déjà dans un autre logiciel ou un tableur ? · Reprendre ses fichiers · Nom de l'évènement · Par exemple : Léa & Maxime · Pas encore fixée · Nouveau client, ou chercher dans vos contacts · Créer l'évènement | Where does it stand? · An ongoing enquiry · You're discussing it, nothing is signed. · Signed, in preparation · The contract is signed, even if you started on paper: the task list is created today. · Choose where this event stands. · Already tracking it in another tool or a spreadsheet? · Import your files · Event name · For example: Léa & Maxime · Not set yet · New client, or search your contacts · Create event |
 | Recherche | Tâches · {n} … · Entrée ouvre le résultat surligné · flèches pour choisir · tous les résultats pour « {texte} » | Tasks · {n} … · Enter opens the highlighted result · arrows to choose · all results for "{text}" |
+| Mon compte (A1) | Prénom · Nom · Enregistré · Indiquez votre prénom pour que l'équipe vous reconnaisse. | First name · Last name · Saved · Add your first name so your team recognises you. |
 | Téléphone | Plus · {n} en retard (nom accessible) | More · {n} late |
 | Messages de retour | Tâche faite : {tâche} · « Annuler » reste 10 secondes ; ensuite, « Rouvrir » dans les tâches faites · Date changée : {date} · {n} tâches décalées de {j} jours · Tâche supprimée : {tâche} · Elle reste dans la Corbeille des Paramètres · Tâche enregistrée : {tâche} · Évènement créé · Avec {n} tâches et son budget · Voir ses tâches · Erreur : la tâche n'a pas été enregistrée · Connexion perdue. Votre saisie est gardée. · Réessayer · Annuler | Task done: {task} · "Undo" stays 10 seconds; then "Reopen" in done tasks · Date changed: {date} · {n} tasks shifted by {d} days · Task deleted: {task} · It stays in the Bin in Settings · Task saved: {task} · Event created · With {n} tasks and its budget · See its tasks · Error: the task wasn't saved · Connection lost. Your input is kept. · Try again · Undo |
 | Danger | Annuler l'évènement « {nom} » ? · (conséquences, § 5.2) · Garder l'évènement · Annuler l'évènement · Rétablir l'évènement · Motif (pour vous) · Je comprends que {objet} ne pourra pas être récupéré | Cancel the event "{name}"? · … · Keep the event · Cancel the event · Restore the event · Reason (for you) · I understand that {object} can't be recovered |
@@ -539,7 +543,7 @@ l'autre voie. Celles qui touchent le cahier des charges sont aussi dans `docs/QU
 
 | # | Question | Recommandation | Autre voie |
 | --- | --- | --- | --- |
-| A1 | **Quel nom pour un collègue ?** Un compte n'a pas de nom chez Symbola (`hub.users` n'a que l'e-mail). | (a) Le nom de sa signature d'e-mails s'il l'a rempli (Mon compte › Ma signature, lot 66c), sinon le début de son adresse (« bastien » pour bastien@…) ; aucune migration du schéma `hub` | (b) Un champ « Prénom » dans Mon compte (migration du schéma `hub`), demandé à la première connexion |
+| A1 | **Quel nom pour un collègue ?** Un compte n'a pas de nom chez Symbola (`hub.users` n'a que l'e-mail). | **Tranché le 26/11 par Julien : « je préfère les champs qui reprennent prénom/nom dans mon compte. »** Deux champs « Prénom » et « Nom » dans Mon compte (migration 0216 du schéma `hub`) ; sur une ligne, le prénom ; dans le panneau et les menus, prénom et nom ; initiales des deux. En attendant qu'ils soient remplis, le début de l'adresse | (écartée) le nom de la signature d'e-mails, sinon le début de l'adresse |
 | A2 | **À qui reviennent les tâches « Planner » existantes ?** | Au planner principal de l'évènement (lot 52) s'il y en a un ; sinon à la personne qui a créé la tâche, si elle est encore membre ; sinon à la titulaire. Tâches hors évènement : à leur créatrice | Laisser la personne vide (« À attribuer ») et laisser l'agence trier |
 | A3 | **Une nouvelle tâche, par défaut, est à qui ?** | À la personne qui la crée (« Vous »), depuis tous les écrans | Au planner principal de l'évènement quand on crée depuis la fiche |
 | A4 | **Tâches d'un membre dont l'accès est retiré.** | Elles restent à son nom, affiché « {nom} (accès retiré) » ; au retrait de l'accès, la titulaire voit « 12 tâches restent à son nom · Les confier à… » ; rien n'est réattribué sans elle | Les passer d'office à la titulaire |
