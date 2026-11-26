@@ -182,8 +182,9 @@ identifiant unique et la date (ARC-05). Aucun libellé ni nom dans la charge (SE
   service à partir de `listTeam`, `packages/auth/src/team.ts`) ; toute autre valeur est refusée
   par une erreur qui ne dit pas si ce compte existe ailleurs.
 - Une Planner qui ne voit pas tous les évènements (réglage du lot 52) ne voit dans « Tâches » que
-  les tâches des évènements de son équipe et les tâches hors évènement qui lui sont confiées ou
-  qu'elle a créées. **À trancher (A20)** : qui voit les tâches hors évènement d'un collègue ?
+  les tâches des évènements de son équipe et les tâches hors évènement qui lui sont confiées, qu'elle
+  a créées ou qui n'ont personne. Toutes les autres personnes de l'équipe voient toutes les tâches
+  hors évènement (A20, tranchée le 26/11).
 - Un lien des mariés qui coche une tâche écrit `done_by_kind = 'clients'`, jamais un identifiant
   de compte. Le portail ne montre jamais le nom d'un collègue : seulement « l'agence ».
 - L'Admin d'exploitation n'a accès à aucune de ces colonnes (SEC-09).
@@ -594,7 +595,7 @@ l'autre voie. Celles qui touchent le cahier des charges sont aussi dans `docs/QU
 | A17 | **Barre du bas si « Prestataires » n'est pas souscrit.** | **Tranché le 26/11 par Julien : « Oui, remplacer ».** La quatrième place prend la première entrée de « Plus » disponible (Contacts) ; jamais une entrée « indisponible » dans la barre | Quatre entrées seulement |
 | A18 | **« Annuler » après un changement de date ou de personne** demande de garder les valeurs d'avant : une table technique (migration 0215), purgée après dix minutes. | **Tranché le 26/11 par Julien : « Oui, la table ».** Oui | Pas d'« Annuler » sur ces gestes (contraire à C-09 et UX-07) |
 | A19 | **Prévenir un collègue** à qui l'on confie une tâche ? | **Tranché le 26/11 par Julien : « Notifier dès ce lot ».** Nouvel événement `events.task.assigned` et nouvelle sorte de notification `task_assigned` (migration 0217 du schéma `hub`), détaillés au § 3.3 ; dans l'app et au récapitulatif quotidien par défaut, coupable par chacun ; jamais pour soi-même | (écartée) attendre le lot d'« Aujourd'hui » |
-| A20 | **Qui voit les tâches hors évènement ?** | Toute l'équipe (ce sont les tâches de l'agence), comme aujourd'hui ; une Planner restreinte ne voit que les siennes et celles qui n'ont pas de personne | Chacun ne voit que les siennes |
+| A20 | **Qui voit les tâches hors évènement ?** | **Tranché le 26/11 par Julien : « Oui, l'équipe ».** Toute l'équipe (ce sont les tâches de l'agence), comme aujourd'hui ; une Planner restreinte ne voit que celles qui lui sont confiées, qu'elle a créées ou qui n'ont personne | Chacun ne voit que les siennes |
 | A21 | **Vue par défaut de l'onglet « Tâches » de la fiche** : aujourd'hui « Toutes » ; la maquette montre « À faire ». | « À faire », comme l'écran « Tâches » (un seul patron) ; « 14 faites sur 20 » reste en tête | Garder « Toutes » dans la fiche |
 | A22 | **« Dupliquer la tâche »** apparaît dans le menu du panneau, sans exister aujourd'hui. | Oui : copie titre, évènement, personne, catégorie, note ; échéance vide à choisir | Le retirer du menu |
 
