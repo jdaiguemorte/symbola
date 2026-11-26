@@ -2,7 +2,7 @@
 // évènement, rendre un élément ou un objet, lister la corbeille, purger. Les suppressions courantes
 // restent dans leurs fichiers (repository, places, task-comments, documents) ; exposé seulement par
 // service.ts (ADR 0011). Toute lecture ici voit la corbeille (includingDeleted, inTrash).
-import { and, eq, inArray, isNotNull, isNull, lt } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, lt, sql } from "drizzle-orm";
 import { includingDeleted } from "@symbola/db/actor";
 import {
   dayPhotos,
@@ -28,9 +28,10 @@ import { candidateQuoteKeys } from "./vendor-candidates";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export type EventTrashKind = "event" | "document" | "taskTemplate" | "programTemplate";
+// Lot 70a (A5 ; ADR 0116) : « task », une tâche ou les tâches supprimées d'un même geste.
+export type EventTrashKind = "event" | "document" | "taskTemplate" | "programTemplate" | "task";
 
-export type TrashedEventRow = { kind: EventTrashKind; id: string; label: string | null; eventId: string | null; deletedAt: Date; deletedBy: string | null };
+export type TrashedEventRow = { kind: EventTrashKind; id: string; label: string | null; eventId: string | null; deletedAt: Date; deletedBy: string | null; count?: number };
 
 async function deleteFiles(keys: string[]): Promise<void> {
   if (keys.length === 0) return;
@@ -123,13 +124,33 @@ export async function listTrashedEventRows(organizationId: string): Promise<Tras
     for (const row of documents) rows.push({ kind: "document", id: row.id, label: row.label, eventId: row.eventId, deletedAt: row.deletedAt!, deletedBy: row.deletedBy });
     for (const row of tasks) rows.push({ kind: "taskTemplate", id: row.id, label: row.label, eventId: null, deletedAt: row.deletedAt!, deletedBy: row.deletedBy });
     for (const row of programs) rows.push({ kind: "programTemplate", id: row.id, label: row.label, eventId: null, deletedAt: row.deletedAt!, deletedBy: row.deletedBy });
+    // Lot 70a (A5) : les tâches supprimées d'un même geste (même date et même auteur, à la microseconde
+    // près, comme « Annuler ») font une seule ligne ; celles d'un évènement à la corbeille le suivent.
+    const taskGroups = await tx.execute<{ id: string; label: string; event_id: string | null; deleted_at: string; deleted_by: string | null; count: number }>(sql`
+      select (array_agg(t.id order by t.position, t.id))[1] as id,
+             (array_agg(t.label order by t.position, t.id))[1] as label,
+             case when count(distinct coalesce(t.event_id::text, '-')) = 1 then (array_agg(t.event_id))[1] end as event_id,
+             t.deleted_at, t.deleted_by, count(*)::int as count
+      from ${eventTasks} as t
+      where t.deleted_at is not null
+        and (t.event_id is null or exists (select 1 from ${events} as e where e.id = t.event_id and e.deleted_at is null))
+      group by t.deleted_at, t.deleted_by`);
+    for (const row of taskGroups) {
+      rows.push({ kind: "task", id: row.id, label: row.label, eventId: row.event_id, deletedAt: new Date(row.deleted_at), deletedBy: row.deleted_by, ...(row.count > 1 ? { count: row.count } : {}) });
+    }
     return rows;
   });
+}
+
+// La ligne d'une tâche (et de son geste) est-elle à la corbeille ?
+async function isTaskTrashed(organizationId: string, taskId: string): Promise<boolean> {
+  return inTrash(organizationId, async (tx) => (await tx.select({ id: eventTasks.id }).from(eventTasks).where(and(eq(eventTasks.id, taskId), isNotNull(eventTasks.deletedAt)))).length > 0);
 }
 
 // Un objet précis est-il à la corbeille (restauration, suppression définitive) ?
 export async function isEventObjectTrashed(organizationId: string, kind: EventTrashKind, id: string): Promise<boolean> {
   if (!UUID.test(id)) return false;
+  if (kind === "task") return isTaskTrashed(organizationId, id);
   const table = kind === "event" ? events : kind === "document" ? eventDocuments : kind === "taskTemplate" ? taskTemplates : programTemplates;
   return inTrash(organizationId, async (tx) => (await tx.select({ id: table.id }).from(table).where(and(eq(table.id, id), isNotNull(table.deletedAt)))).length > 0);
 }
@@ -140,17 +161,15 @@ export async function isEventObjectTrashed(organizationId: string, kind: EventTr
 // pièces jointes des tâches.
 export async function purgeEventElements(organizationId: string, before: Date): Promise<number> {
   return includingDeleted(async () => {
+    // Lot 70a (A5 ; ADR 0116) : les tâches ne sont plus des éléments purgés dix minutes après ; elles
+    // restent trente jours à la corbeille (purgeTrashedEventObjects).
     const result = await inTrash(organizationId, async (tx) => {
-      const taskIds = (await tx.select({ id: eventTasks.id }).from(eventTasks).where(and(isNotNull(eventTasks.deletedAt), lt(eventTasks.deletedAt, before)))).map((row) => row.id);
-      const attachments =
-        taskIds.length > 0 ? await tx.select({ key: eventTaskAttachments.fileKey }).from(eventTaskAttachments).where(inArray(eventTaskAttachments.taskId, taskIds)) : [];
       const comments = await tx.delete(eventTaskComments).where(and(isNotNull(eventTaskComments.deletedAt), lt(eventTaskComments.deletedAt, before))).returning({ id: eventTaskComments.id });
       const items = await tx.delete(programItems).where(and(isNotNull(programItems.deletedAt), lt(programItems.deletedAt, before))).returning({ id: programItems.id });
       const places = await tx.delete(eventPlaces).where(and(isNotNull(eventPlaces.deletedAt), lt(eventPlaces.deletedAt, before))).returning({ id: eventPlaces.id });
       // Lot 49 (D2) : temps forts supprimés de la fiche.
       const moments = await tx.delete(keyMoments).where(and(isNotNull(keyMoments.deletedAt), lt(keyMoments.deletedAt, before))).returning({ id: keyMoments.id });
-      if (taskIds.length > 0) await tx.delete(eventTasks).where(inArray(eventTasks.id, taskIds));
-      return { count: comments.length + items.length + places.length + moments.length + taskIds.length, keys: attachments.map((row) => row.key) };
+      return { count: comments.length + items.length + places.length + moments.length, keys: [] as string[] };
     });
     await deleteFiles(result.keys);
     return result.count;
@@ -184,6 +203,28 @@ export async function purgeTrashedEvents(organizationId: string, eventIds: strin
 
 type ObjectFilter = { before: Date } | { kind: Exclude<EventTrashKind, "event">; id: string };
 
+// Lot 70a (A5) : les tâches marquées avant la date (tâche horaire), ou celles du même geste qu'une tâche
+// (suppression définitive) ; leurs pièces jointes partent avec elles, fichiers compris.
+async function purgeTrashedTasks(organizationId: string, filter: ObjectFilter): Promise<number> {
+  if (!("before" in filter) && (filter.kind !== "task" || !UUID.test(filter.id))) return 0;
+  const result = await inTrash(organizationId, async (tx) => {
+    const condition =
+      "before" in filter
+        ? and(isNotNull(eventTasks.deletedAt), lt(eventTasks.deletedAt, filter.before))
+        : and(
+            isNotNull(eventTasks.deletedAt),
+            sql`exists (select 1 from ${eventTasks} as anchor where anchor.id = ${filter.id} and anchor.deleted_at = ${eventTasks.deletedAt} and anchor.deleted_by is not distinct from ${eventTasks.deletedBy})`,
+          );
+    const taskIds = (await tx.select({ id: eventTasks.id }).from(eventTasks).where(condition)).map((row) => row.id);
+    if (taskIds.length === 0) return { count: 0, keys: [] as string[] };
+    const attachments = await tx.select({ key: eventTaskAttachments.fileKey }).from(eventTaskAttachments).where(inArray(eventTaskAttachments.taskId, taskIds));
+    await tx.delete(eventTasks).where(inArray(eventTasks.id, taskIds));
+    return { count: taskIds.length, keys: attachments.map((row) => row.key) };
+  });
+  await deleteFiles(result.keys);
+  return result.count;
+}
+
 function objectCondition(table: typeof eventDocuments | typeof taskTemplates | typeof programTemplates, kind: EventTrashKind, filter: ObjectFilter) {
   if ("before" in filter) return and(isNotNull(table.deletedAt), lt(table.deletedAt, filter.before));
   if (filter.kind !== kind || !UUID.test(filter.id)) return undefined;
@@ -194,7 +235,7 @@ function objectCondition(table: typeof eventDocuments | typeof taskTemplates | t
 // seul (suppression définitive par la titulaire).
 export async function purgeTrashedEventObjects(organizationId: string, filter: ObjectFilter): Promise<number> {
   return includingDeleted(async () => {
-    let count = 0;
+    let count = await purgeTrashedTasks(organizationId, filter);
     const documentCondition = objectCondition(eventDocuments, "document", filter);
     if (documentCondition) {
       const ids = await inTrash(organizationId, async (tx) => (await tx.select({ id: eventDocuments.id }).from(eventDocuments).where(documentCondition)).map((row) => row.id));

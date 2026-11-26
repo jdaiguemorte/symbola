@@ -11091,8 +11091,14 @@
         "label": "App activated",
         "text": "The “{module}” app is active.",
         "action": "See the app"
+      },
+      "task_assigned": {
+        "label": "A task is assigned to you",
+        "text": "{count, plural, one {{by} assigned you “{label}”.} other {{by} assigned you # tasks.}}",
+        "action": "See my tasks"
       }
     },
+    "someone": "A colleague",
     "center": {
       "title": "Notifications",
       "intro": "What happened and what is waiting for you. Each notification leads to the screen where you can act.",

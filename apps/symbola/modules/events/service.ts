@@ -10,7 +10,7 @@ export { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } 
 // Lot 34a (EVT-05) : les règles du cycle de vie, pour les écrans et lib/.
 import { getPipeline as getPipelineOf } from "./pipeline";
 import { countRequestsToReview, findNewRequestRows } from "./prospects-repository";
-import type { Pipeline } from "@symbola/contracts";
+import type { ListTasksInput, Pipeline, TaskList, TaskListItem } from "@symbola/contracts";
 export { canPostpone, canSetStatus, closingDue, eventPhase, FINISHED_STATUSES, FIRM_STATUSES, IN_PROGRESS_STATUSES, isInProgress, MANUAL_STATUSES, TENTATIVE_STATUSES, TIMELINE_PHASES } from "./lifecycle";
 import type { EventStatus as LifecycleStatus } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
@@ -170,7 +170,7 @@ import {
   parisStartOfDay,
 } from "./link-tokens";
 import { reminderTaskLines, reminderThreshold, reminderThresholdStart, type ReminderTask } from "./task-reminders";
-import { clientTermForEvent as clientTermOf } from "./planning";
+import { clientTermForEvent as clientTermOf, getTaskSoonDays } from "./planning";
 import type { AutomationHooks, DayReminderSetting, PreparedEmailView, RelationDraft } from "@symbola/contracts";
 import { DAY_REMINDER_TARGETS, ENGAGED_CANDIDATE_STATUSES, dayReminderSettingSchema } from "@symbola/contracts";
 import { recordAudit } from "@symbola/db/audit";
@@ -191,7 +191,10 @@ import { addPlace, listPlaces, makeReceptionPlace, removePlace, restorePlace, up
 import { attachFile, getAttachmentFile, listAttachments, listEventAttachments, removeAttachment } from "./task-attachments";
 import { addComment, listComments, removeComment, restoreComment } from "./task-comments";
 import { addStarterCategories, countByCategory, createCategory, listCategories, moveCategory, removeCategory, TaskCategoryNotFoundError, updateCategory } from "./task-categories";
-import { changeTasks, removeTasks, restoreTasksDeletedWith } from "./task-bulk";
+import { changeTasks, changeTasksKeepingUndo, removeTasks, restoreTasksDeletedWith, undoTasksChange, type UndoableTaskChange } from "./task-bulk";
+import { actingMemberId, assertAssignable, normalizeTaskNote } from "./task-assignment";
+import { countOpenTasksOf, findEventTaskRow, findTaskList } from "./task-list";
+import { taskDueState } from "./due-state";
 import { listTrashedEventRows, restoreDocumentRow, restoreEventRow, restoreProgramTemplateRow, restoreTaskTemplateRow, trashEventRow } from "./trash";
 import { createStorageClient, deletePrivateObject, detectFileType, PrivateObjectNotFoundError, readPrivateObject, scanBuffer, uploadPrivateObject } from "@symbola/files";
 import {
@@ -1494,7 +1497,18 @@ function toEventTask(row: EventTaskRow): EventTask {
     // Lot 63d (CHR-03).
     categoryId: row.categoryId,
     priority: row.priority,
+    // Lot 70a (CHR-02, CHR-04 ; A1 à A4, A7, A9).
+    assigneeUserId: row.assigneeUserId,
+    doneAt: row.doneAt?.toISOString() ?? null,
+    doneBy: row.doneByKind ? { kind: row.doneByKind, userId: row.doneByUserId } : null,
+    note: row.note,
   };
+}
+
+// Lot 70a (§ 3.4) : ce qu'un lien (mariés, prestataire) lit d'une tâche — ni la note interne, ni la
+// personne de l'agence, ni l'identifiant d'un collègue (« l'agence » seulement).
+function toLinkTask(task: EventTask): EventTask {
+  return { ...task, note: null, assigneeUserId: null, doneBy: task.doneBy ? { kind: task.doneBy.kind, userId: null } : null };
 }
 
 export async function listTaskTemplates(organizationId: string): Promise<TaskTemplate[]> {
@@ -1592,8 +1606,15 @@ export async function applyTaskTemplate(organizationId: string, eventId: string,
   }
 }
 
-export async function listEventTasks(organizationId: string, eventId: string): Promise<EventTask[]> {
-  return (await findEventTasks(organizationId, eventId)).map(toEventTask);
+// Lot 70a (UX-06 ; Q47-4) : avec la date du jour, chaque tâche porte son état d'échéance.
+export async function listEventTasks(organizationId: string, eventId: string, today?: string): Promise<EventTask[]> {
+  const rows = await findEventTasks(organizationId, eventId);
+  if (today === undefined) return rows.map(toEventTask);
+  const soonDays = await getTaskSoonDays(organizationId);
+  return rows.map((row) => {
+    const task = toEventTask(row);
+    return { ...task, dueState: taskDueState(task, today, soonDays) };
+  });
 }
 
 // Noms affichés d'un événement : prénoms des mariés (« Inès & Sacha »). Lot 63c (Q43) : le nom de
@@ -1615,14 +1636,18 @@ export async function listOrganizationTasks(input: ListOrganizationTasksInput): 
   const rows = await findOrganizationTasks(input.organizationId, { until, includeDone: input.includeDone ?? false });
   if (rows.length === 0) return [];
   const eventsById = new Map((await listEvents({ organizationId: input.organizationId })).map((event) => [event.id, event]));
+  const soonDays = await getTaskSoonDays(input.organizationId);
   return rows.flatMap((row) => {
     const event = row.eventId ? eventsById.get(row.eventId) : undefined;
     if (!event) return [];
     const task = toEventTask(row);
+    // Lot 70a (UX-06 ; Q47-4) : un seul calcul de l'état d'échéance (due-state.ts).
+    const dueState = taskDueState(task, input.today, soonDays);
     return [
       {
         ...task,
-        overdue: !task.done && task.dueDate < input.today,
+        dueState,
+        overdue: dueState?.kind === "late",
         event: { id: event.id, names: eventNames(event.clients, event.name), eventDate: event.eventDate, status: event.status, isDemo: event.isDemo },
       },
     ];
@@ -1635,7 +1660,11 @@ export async function addEventTask(organizationId: string, eventId: string, task
   assertDate(task.dueDate);
   if (!TASK_RESPONSIBLES.includes(task.responsible)) throw new RangeError("responsable inconnu");
   if (task.priority !== undefined && !TASK_PRIORITIES.includes(task.priority)) throw new RangeError("priorité inconnue");
-  const row = await insertEventTask(organizationId, eventId, { ...task, label: normalizeLabel(task.label) });
+  // Lot 70a (CHR-02 ; A3, A7) : un membre actif de l'organisation, sinon la personne qui crée ; note interne.
+  if (task.assigneeUserId) await assertAssignable(organizationId, task.assigneeUserId);
+  const note = normalizeTaskNote(task.note);
+  const actorId = await actingMemberId();
+  const row = await insertEventTask(organizationId, eventId, { ...task, label: normalizeLabel(task.label), note }, actorId);
   if (!row) throw new EventNotFoundError();
   if (row === "invalid_vendor") throw new TaskVendorInvalidError();
   if (row === "invalid_category") throw new TaskCategoryNotFoundError();
@@ -1649,7 +1678,11 @@ export async function updateEventTask(input: UpdateEventTaskInput): Promise<Even
   }
   if (input.priority !== undefined && !TASK_PRIORITIES.includes(input.priority)) throw new RangeError("priorité inconnue");
   const label = input.label === undefined ? undefined : normalizeLabel(input.label);
-  const row = await updateEventTaskRow({ ...input, label });
+  // Lot 70a (CHR-02 ; A1 à A4, A7) : un membre actif de l'organisation ; la note, nettoyée.
+  if (input.assigneeUserId) await assertAssignable(input.organizationId, input.assigneeUserId);
+  const note = normalizeTaskNote(input.note);
+  const actorId = await actingMemberId();
+  const row = await updateEventTaskRow({ ...input, label, note, actorId });
   if (!row) throw new EventTaskNotFoundError();
   if (row === "invalid_vendor") throw new TaskVendorInvalidError();
   if (row === "invalid_category") throw new TaskCategoryNotFoundError();
@@ -1676,7 +1709,52 @@ export async function removeEventTask(organizationId: string, taskId: string): P
 export const TASK_PRIORITIES: TaskPriority[] = ["high", "normal"];
 
 export async function changeEventTasks(organizationId: string, taskIds: string[], change: BulkTaskChange): Promise<number> {
-  return changeTasks(organizationId, taskIds, change);
+  // Lot 70a (CHR-02 ; A19) : « Confier à » n'accepte qu'un membre actif de l'organisation.
+  if (change.kind === "assign") await assertAssignable(organizationId, change.userId);
+  return changeTasks(organizationId, taskIds, change, await actingMemberId());
+}
+
+// Lot 70a (UX-07 ; C-09, A18) — « Changer la date » et « Confier à » avec « Annuler » : les valeurs d'avant
+// sont gardées dix minutes ; seule la personne qui a fait le geste les rend.
+export async function changeTasksWithUndo(input: { organizationId: string; userId: string; taskIds: string[]; change: UndoableTaskChange; now?: Date }): Promise<{ changed: number; undoId: string | null }> {
+  if (input.change.kind === "assign") await assertAssignable(input.organizationId, input.change.userId);
+  return changeTasksKeepingUndo({ ...input, actorId: await actingMemberId() });
+}
+
+export async function undoTaskChange(input: { organizationId: string; userId: string; undoId: string; now?: Date }): Promise<number> {
+  return undoTasksChange(input);
+}
+
+// Lot 70a (CHR-02, CHR-03, CHR-10 ; A20) — la liste unique des tâches de l'organisation, filtrée et comptée.
+export async function listTasks(input: ListTasksInput): Promise<TaskList> {
+  assertDate(input.today);
+  const filters = input.filters ?? {};
+  const [{ rows, total }, soonDays] = await Promise.all([findTaskList({ organizationId: input.organizationId, today: input.today, viewer: input.viewer, filters }), getTaskSoonDays(input.organizationId)]);
+  const eventIds = new Set(rows.flatMap((row) => (row.eventId ? [row.eventId] : [])));
+  const eventsById = eventIds.size > 0 ? new Map((await listEvents({ organizationId: input.organizationId })).filter((event) => eventIds.has(event.id)).map((event) => [event.id, event])) : new Map<string, EventSummary>();
+  const tasks: TaskListItem[] = rows.map((row) => {
+    const task = toEventTask(row);
+    const event = row.eventId ? eventsById.get(row.eventId) : undefined;
+    return {
+      ...task,
+      eventId: row.eventId,
+      dueState: taskDueState(task, input.today, soonDays),
+      event: event ? { id: event.id, names: eventNames(event.clients, event.name), eventDate: event.eventDate, status: event.status, isDemo: event.isDemo } : null,
+    };
+  });
+  return { tasks, total, filtered: tasks.length, late: tasks.filter((task) => task.dueState?.kind === "late").length, soonDays };
+}
+
+// Lot 70a (A19) : ce qu'une notification lit d'une tâche (titre court, état, personne), par son identifiant.
+export async function getTaskBrief(organizationId: string, taskId: string): Promise<{ label: string; done: boolean; assigneeUserId: string | null; eventId: string | null } | null> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(taskId)) return null;
+  const row = await findEventTaskRow(organizationId, taskId);
+  return row ? { label: row.label, done: row.doneAt !== null, assigneeUserId: row.assigneeUserId, eventId: row.eventId } : null;
+}
+
+// Lot 70a (A4) : les tâches à faire restées au nom d'une personne (par exemple après le retrait de son accès).
+export async function countOpenTasksAssignedTo(organizationId: string, userId: string): Promise<number> {
+  return countOpenTasksOf(organizationId, userId);
 }
 
 export async function removeEventTasks(organizationId: string, taskIds: string[]): Promise<number> {
@@ -2868,7 +2946,8 @@ export async function getLinkEventView(organizationId: string, linkId: string): 
   return {
     // Résumé seulement : ni source du prospect ni motif de perte.
     event: toEventSummary(found.event, found.clients),
-    tasks,
+    // Lot 70a (§ 3.4) : ni note interne ni personne de l'agence dans un lien.
+    tasks: tasks ? tasks.map(toLinkTask) : null,
     program: program ? clientProgramView(program) : null,
   };
 }
@@ -2887,7 +2966,7 @@ export async function setLinkTaskDone(organizationId: string, linkId: string, ta
     toggleLinkTaskRow({ organizationId, linkId, eventId: access.eventId, taskId, done }),
   );
   if (result.status === "denied") throw new LinkAccessDeniedError();
-  return toEventTask(result.task);
+  return toLinkTask(toEventTask(result.task));
 }
 
 export async function getLinkNamesByIds(organizationId: string, linkIds: string[]): Promise<Record<string, string>> {
@@ -3672,9 +3751,11 @@ export async function listTrashedEventObjects(organizationId: string): Promise<T
   return includingDeleted(() =>
     Promise.all(
       rows.map(async (row) => {
-        const event = row.kind === "event" ? await getEvent(organizationId, row.id) : null;
-        const label = row.kind === "event" ? (event ? eventNames(event.clients, event.name) : "") : (row.label ?? "");
-        return { kind: row.kind, id: row.id, label, eventId: row.eventId, deletedAt: row.deletedAt, deletedBy: row.deletedBy };
+        // Lot 70a (A5) : un lot de tâches se dit par son évènement (« 3 tâches de Léa & Maxime »).
+        const named = row.kind === "event" || (row.kind === "task" && row.count !== undefined && row.eventId !== null);
+        const event = named ? await getEvent(organizationId, row.kind === "event" ? row.id : row.eventId!) : null;
+        const label = named ? (event ? eventNames(event.clients, event.name) : "") : (row.label ?? "");
+        return { kind: row.kind, id: row.id, label, eventId: row.eventId, deletedAt: row.deletedAt, deletedBy: row.deletedBy, ...(row.count !== undefined ? { count: row.count } : {}) };
       }),
     ),
   );
@@ -4435,8 +4516,17 @@ export {
   spawnDueRecurringTasks,
   suggestedClientTerms,
   updateStandaloneTask,
+  // Lot 70a (UX-06, CHR-05 ; M10) : seuil de « Bientôt ».
+  getTaskSoonDays,
+  setTaskSoonDays,
   type LateTask,
 } from "./planning";
+
+// Lot 70a (CHR-02 ; A3, A7) : la personne qui s'en charge (refus comme un objet inexistant), la note interne ;
+// (UX-06 ; Q47-4) l'état d'échéance, un seul calcul pour tous les écrans ; (UX-07 ; A18) les valeurs d'avant.
+export { TaskAssigneeNotFoundError, TaskNoteInvalidError } from "./task-assignment";
+export { DEFAULT_SOON_DAYS, dueStateAt, taskDueState } from "./due-state";
+export { purgeTaskChangeSnapshots, TASK_UNDO_MINUTES, type UndoableTaskChange } from "./task-bulk";
 
 // Lot 64 (HUB-29, RDV-02 ; D1 à D6 ; ADR 0109) : plages occupées.
 import { getBusySettings, setBusySettings, listEventTypeBusyRules, setEventTypeBusyRule, getEventBusy, setEventBusyRule, listBusyRanges, listEventBusyRanges } from "./busy";

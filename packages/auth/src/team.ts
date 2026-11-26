@@ -15,6 +15,9 @@ import { hashSessionToken } from "./session-token";
 export type TeamMember = {
   id: string;
   email: string;
+  // Lot 70a (A1) : prénom et nom saisis par la personne (nuls tant qu'elle ne les a pas donnés).
+  firstName: string | null;
+  lastName: string | null;
   role: MembershipRole;
   lastLoginAt: Date | null;
   disabledAt: Date | null;
@@ -22,7 +25,7 @@ export type TeamMember = {
 
 export async function listTeam(db: AppDatabase, organizationId: string): Promise<TeamMember[]> {
   return db
-    .select({ id: users.id, email: users.email, role: memberships.role, lastLoginAt: users.lastLoginAt, disabledAt: memberships.disabledAt })
+    .select({ id: users.id, email: users.email, firstName: users.firstName, lastName: users.lastName, role: memberships.role, lastLoginAt: users.lastLoginAt, disabledAt: memberships.disabledAt })
     .from(memberships)
     .innerJoin(users, eq(users.id, memberships.userId))
     .where(eq(memberships.organizationId, organizationId))

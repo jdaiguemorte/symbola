@@ -4,7 +4,7 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatDateTime, type Locale } from "@symbola/i18n";
 import { eventNames, listEvents } from "@/modules/events/service";
-import { isModuleEnabled, listNotifications, notificationActionLabel, notificationText, notificationTypeLabel } from "@/modules/hub/service";
+import { isModuleEnabled, listNotifications, notificationActionLabel, notificationPeople, notificationText, notificationTypeLabel } from "@/modules/hub/service";
 import { appDatabase } from "@symbola/db/client";
 import { requirePlanner } from "@/lib/guards";
 import { ScreenHelp } from "@/app/screen-help";
@@ -17,6 +17,8 @@ export default async function NotificationsPage() {
   const tHelp = await getTranslations("Help");
   const locale = (await getLocale()) as Locale;
   const notifications = await listNotifications(organizationId, auth.user.id);
+  // Lot 70a (A19) : le prénom de qui a confié une tâche, lu à l'affichage.
+  const people = await notificationPeople(organizationId, notifications);
   const names = (await isModuleEnabled(appDatabase(), organizationId, "events"))
     ? new Map((await listEvents({ organizationId })).map((event) => [event.id, eventNames(event.clients, event.name)]))
     : new Map<string, string>();
@@ -51,7 +53,7 @@ export default async function NotificationsPage() {
                     {notificationTypeLabel(notification.type, locale)}
                     {notification.readAt === null ? <span className="badge badge-terracotta">{t("center.unread")}</span> : null}
                   </p>
-                  <p className="notification-text">{notificationText(notification, locale)}</p>
+                  <p className="notification-text">{notificationText(notification, locale, people)}</p>
                   <p className="notification-meta">{[event, formatDateTime(new Date(notification.createdAt), locale)].filter(Boolean).join(" · ")}</p>
                 </div>
                 <form action={openNotificationAction} className="notification-action">

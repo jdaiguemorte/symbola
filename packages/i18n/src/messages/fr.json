@@ -11091,8 +11091,14 @@
         "label": "App activée",
         "text": "L'app « {module} » est activée.",
         "action": "Voir l'app"
+      },
+      "task_assigned": {
+        "label": "Une tâche vous est confiée",
+        "text": "{count, plural, one {{by} vous a confié « {label} ».} other {# tâches vous ont été confiées par {by}.}}",
+        "action": "Voir mes tâches"
       }
     },
+    "someone": "Un collègue",
     "center": {
       "title": "Notifications",
       "intro": "Ce qui s'est passé et ce qui vous attend. Chaque notification mène à l'écran où agir.",

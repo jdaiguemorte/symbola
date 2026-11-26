@@ -57,6 +57,8 @@ export { isAccountingReaderRole, isPlannerRole, isProfessionalRole, requiresMfa,
 // Lot 24b (SEC-06, décision D3) : équipe, retrait d'un accès, déconnexion de tous les appareils.
 // Lot 52 (HUB-04) : le retrait ferme aussi les sessions du fournisseur d'identité.
 export { listTeam, removeMember, revokeOtherSessions, type ProviderSessionCloser, type RemoveMemberOutcome, type TeamMember } from "./team";
+// Lot 70a (CHR-02 ; A1) : prénom et nom d'une personne de l'équipe.
+export { getUserNames, PERSON_NAME_MAX, PersonNamesInvalidError, personFullName, personInitials, personNamesSchema, personShortName, setUserNames, type PersonNames, type PersonNamesInput } from "./person-names";
 // Lot 52 (HUB-05, SEC-08) : sessions et appareils d'un compte, « Ce n'est pas moi ».
 export {
   closeAccountSession,

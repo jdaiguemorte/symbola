@@ -2,6 +2,7 @@
 // modules/events/ (ADR 0011).
 import { and, asc, desc, eq, exists, gt, gte, inArray, isNotNull, isNull, lte, notInArray, or, sql } from "drizzle-orm";
 import { inTrash, markDeleted, UNMARKED } from "@symbola/db/soft-delete";
+import { actingMemberId, emitTaskAssignments } from "./task-assignment";
 import { appDatabase } from "@symbola/db/client";
 import {
   dayReminderOverrides,
@@ -854,6 +855,8 @@ export async function applyTaskTemplateRows(
   templateId: string,
 ): Promise<ApplyTaskTemplateResult> {
   const db = appDatabase();
+  // Lot 70a (A3) : les tâches « planner » du modèle sont à la personne qui l'applique.
+  const actorId = await actingMemberId();
   return await withOrganization(db, organizationId, async (tx) => {
     const [event] = await tx.select().from(events).where(eq(events.id, eventId));
     if (!event) return { status: "event_not_found" };
@@ -884,6 +887,7 @@ export async function applyTaskTemplateRows(
                 // DAT-07 : la tâche garde sa date relative.
                 offsetDays: item.offsetDays,
                 responsible: item.responsible,
+                assigneeUserId: item.responsible === "planner" ? actorId : null,
                 position: start + index,
               })),
             )
@@ -949,7 +953,18 @@ async function isEngagedCandidate(tx: Tx, eventId: string, candidateId: string |
 export async function insertEventTask(
   organizationId: string,
   eventId: string,
-  task: { label: string; dueDate: string; responsible: TaskResponsible; vendorCandidateId?: string | null | undefined; categoryId?: string | null | undefined; priority?: TaskPriority | undefined },
+  task: {
+    label: string;
+    dueDate: string;
+    responsible: TaskResponsible;
+    vendorCandidateId?: string | null | undefined;
+    categoryId?: string | null | undefined;
+    priority?: TaskPriority | undefined;
+    // Lot 70a (A3) : déjà vérifié par le service ; sans valeur, la personne qui agit.
+    assigneeUserId?: string | null | undefined;
+    note?: string | null | undefined;
+  },
+  actorId: string | null = null,
 ): Promise<EventTaskRow | null | "invalid_vendor" | "invalid_category"> {
   const db = appDatabase();
   return await withOrganization(db, organizationId, async (tx) => {
@@ -963,11 +978,15 @@ export async function insertEventTask(
     const position = await nextTaskPosition(tx, eventId);
     // Lot 34a (DAT-07, D5) : une tâche créée à la main sur un événement daté est relative.
     const offsetDays = event.eventDate ? daysBetween(event.eventDate, task.dueDate) : null;
+    // Lot 70a (CHR-02 ; A3) : une tâche « planner » est à la personne choisie, sinon à qui la crée.
+    const assigneeUserId = task.responsible === "planner" ? (task.assigneeUserId !== undefined ? task.assigneeUserId : actorId) : null;
     const [row] = await tx
       .insert(eventTasks)
-      .values({ organizationId, eventId, label: task.label, dueDate: task.dueDate, responsible: task.responsible, vendorCandidateId, offsetDays, position, categoryId: task.categoryId ?? null, priority: task.priority ?? "normal" })
+      .values({ organizationId, eventId, label: task.label, dueDate: task.dueDate, responsible: task.responsible, vendorCandidateId, offsetDays, position, categoryId: task.categoryId ?? null, priority: task.priority ?? "normal", assigneeUserId, note: task.note ?? null })
       .returning();
     if (!row) throw new Error("ajout de la tâche échoué");
+    // Lot 70a (A19) : confiée à un collègue, il en est prévenu (même transaction).
+    await emitTaskAssignments(tx, [{ organizationId, taskId: row.id, eventId, before: null, after: assigneeUserId, done: false, isDemo: event.isDemo, actorId }]);
     if (!event.tasksScheduledFor && event.eventDate) {
       await tx.update(events).set({ tasksScheduledFor: event.eventDate }).where(eq(events.id, eventId));
     }
@@ -985,12 +1004,21 @@ export async function updateEventTaskRow(input: {
   done?: boolean | undefined;
   categoryId?: string | null | undefined;
   priority?: TaskPriority | undefined;
+  // Lot 70a : déjà vérifiés par le service (membre actif, note normalisée).
+  assigneeUserId?: string | null | undefined;
+  note?: string | null | undefined;
+  actorId?: string | null | undefined;
 }): Promise<EventTaskRow | null | "invalid_vendor" | "invalid_category"> {
   const db = appDatabase();
   return await withOrganization(db, input.organizationId, async (tx) => {
     const [current] = await tx.select().from(eventTasks).where(eq(eventTasks.id, input.taskId));
     if (!current) return null;
     const responsible = input.responsible ?? current.responsible;
+    const actorId = input.actorId ?? null;
+    // Lot 70a (CHR-02 ; A3) : la personne ne vaut que pour une tâche « planner » ; reprise à l'agence, la
+    // tâche revient à qui agit, sauf choix.
+    const assigneeUserId =
+      responsible !== "planner" ? null : input.assigneeUserId !== undefined ? input.assigneeUserId : current.responsible !== "planner" ? actorId : current.assigneeUserId;
     const vendorCandidateId = responsible === "vendor" ? (input.vendorCandidateId !== undefined ? input.vendorCandidateId : current.vendorCandidateId) : null;
     const vendorChanged = responsible === "vendor" && (responsible !== current.responsible || vendorCandidateId !== current.vendorCandidateId);
     if (vendorChanged && (current.eventId === null || !(await isEngagedCandidate(tx, current.eventId, vendorCandidateId)))) return "invalid_vendor";
@@ -1009,11 +1037,19 @@ export async function updateEventTaskRow(input: {
         ...(input.categoryId !== undefined ? { categoryId: input.categoryId } : {}),
         ...(input.priority !== undefined ? { priority: input.priority } : {}),
         ...(moved ? { fixedAt: current.fixedAt ?? new Date() } : {}),
+        assigneeUserId,
+        ...(input.note !== undefined ? { note: input.note } : {}),
         updatedAt: new Date(),
       })
       .where(eq(eventTasks.id, input.taskId))
       .returning();
-    return updated ?? null;
+    if (!updated) return null;
+    // Lot 70a (A19) : la tâche passe à un collègue (même transaction ; rien si l'écriture échoue).
+    if (assigneeUserId !== current.assigneeUserId) {
+      const [event] = current.eventId ? await tx.select({ isDemo: events.isDemo }).from(events).where(eq(events.id, current.eventId)) : [];
+      await emitTaskAssignments(tx, [{ organizationId: input.organizationId, taskId: updated.id, eventId: updated.eventId, before: current.assigneeUserId, after: assigneeUserId, done: updated.doneAt !== null, isDemo: event?.isDemo ?? false, actorId }]);
+    }
+    return updated;
   });
 }
 
@@ -1671,7 +1707,7 @@ export async function insertDemoEvent(organizationId: string, data: DemoEventDat
     if (data.tasks.length > 0) {
       await tx
         .insert(eventTasks)
-        .values(data.tasks.map((task, position) => ({ organizationId, eventId: event.id, ...task, position })));
+        .values(data.tasks.map((task, position) => ({ organizationId, eventId: event.id, ...task, assigneeUserId: task.responsible === "planner" ? data.createdByUserId : null, position })));
     }
     for (const programItem of data.programItems) {
       const { participantLabels, ...values } = programItem;

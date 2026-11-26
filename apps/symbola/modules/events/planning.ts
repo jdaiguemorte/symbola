@@ -12,8 +12,9 @@ import { appDatabase } from "@symbola/db/client";
 import { inTrash, markDeleted } from "@symbola/db/soft-delete";
 import { withOrganization } from "@symbola/db/with-organization";
 import { events, eventTasks, eventTypes, eventTypeVocabulary, planningHealthSettings } from "@symbola/db/schema/events";
-import { clientTermSchema, planningHealthThresholdsSchema, standaloneTaskInputSchema, type ClientTerm, type EventTypeVocabularyView, type PlanningHealthView, type StandaloneTask } from "@symbola/contracts";
-import { starterClientTerms, starterPlanningHealth } from "@symbola/starter-templates";
+import { clientTermSchema, planningHealthThresholdsSchema, standaloneTaskInputSchema, taskSoonDaysSchema, type ClientTerm, type EventTypeVocabularyView, type PlanningHealthView, type StandaloneTask } from "@symbola/contracts";
+import { starterClientTerms, starterPlanningHealth, starterTaskSoonDays } from "@symbola/starter-templates";
+import { actingMemberId, assertAssignable, emitTaskAssignments } from "./task-assignment";
 import { IN_PROGRESS_STATUSES } from "./lifecycle";
 import { nextOccurrence, planningHealth, shouldSpawnNext, type HealthThresholds } from "./planning-rules";
 
@@ -53,10 +54,16 @@ export async function listStandaloneTasks(organizationId: string, options: { unt
 export async function addStandaloneTask(organizationId: string, input: unknown): Promise<StandaloneTask> {
   const parsed = standaloneTaskInputSchema.safeParse(input);
   if (!parsed.success || Number.isNaN(Date.parse(`${parsed.data.dueDate}T00:00:00Z`))) throw new PlanningInputError("task");
-  const [row] = await inOrganization(organizationId, (tx) =>
-    tx.insert(eventTasks).values({ organizationId, eventId: null, label: parsed.data.label, dueDate: parsed.data.dueDate, recurrence: parsed.data.recurrence, responsible: "planner" }).returning(),
-  );
-  return toStandalone(row!);
+  // Lot 70a (CHR-02 ; A3, A19) : à la personne choisie (membre actif), sinon à qui la crée.
+  if (parsed.data.assigneeUserId !== undefined) await assertAssignable(organizationId, parsed.data.assigneeUserId);
+  const actorId = await actingMemberId();
+  const assigneeUserId = parsed.data.assigneeUserId ?? actorId;
+  const row = await inOrganization(organizationId, async (tx) => {
+    const [inserted] = await tx.insert(eventTasks).values({ organizationId, eventId: null, label: parsed.data.label, dueDate: parsed.data.dueDate, recurrence: parsed.data.recurrence, responsible: "planner", assigneeUserId }).returning();
+    await emitTaskAssignments(tx, [{ organizationId, taskId: inserted!.id, eventId: null, before: null, after: assigneeUserId, done: false, isDemo: false, actorId }]);
+    return inserted!;
+  });
+  return toStandalone(row);
 }
 
 // Lot 67b (CHR-10 ; recette du 24/11/2026, R02) — modifier l'intitulé, l'échéance et la répétition.
@@ -86,7 +93,8 @@ async function spawnNext(tx: Tx, organizationId: string, row: typeof eventTasks.
     .where(and(eq(eventTasks.id, row.id), isNull(eventTasks.recurrenceSpawnedAt)))
     .returning({ id: eventTasks.id });
   if (claimed.length === 0) return false;
-  await tx.insert(eventTasks).values({ organizationId, eventId: null, label: row.label, dueDate: nextOccurrence(row.dueDate, row.recurrence), recurrence: row.recurrence, responsible: "planner" });
+  // Lot 70a : la suivante garde sa personne et sa note.
+  await tx.insert(eventTasks).values({ organizationId, eventId: null, label: row.label, dueDate: nextOccurrence(row.dueDate, row.recurrence), recurrence: row.recurrence, responsible: "planner", assigneeUserId: row.assigneeUserId, note: row.note });
   return true;
 }
 
@@ -152,6 +160,25 @@ export async function listLatePlannerTasks(organizationId: string, today: string
 }
 
 // --- Santé du planning (CHR-05) ---
+
+// Lot 70a (UX-06, CHR-05 ; M10) — seuil de « Bientôt » d'une tâche : celui de l'organisation, sinon la
+// valeur de départ (planning-health.json). L'écran de réglage attend le volet « Paramètres ».
+export async function getTaskSoonDays(organizationId: string): Promise<number> {
+  const [row] = await inOrganization(organizationId, (tx) => tx.select({ soonDays: planningHealthSettings.soonDays }).from(planningHealthSettings).where(eq(planningHealthSettings.organizationId, organizationId)));
+  return row?.soonDays ?? starterTaskSoonDays();
+}
+
+export async function setTaskSoonDays(organizationId: string, days: number): Promise<number> {
+  if (!taskSoonDaysSchema.safeParse(days).success) throw new RangeError("seuil « Bientôt » hors de 1 à 30 jours");
+  const health = starterPlanningHealth();
+  await inOrganization(organizationId, (tx) =>
+    tx
+      .insert(planningHealthSettings)
+      .values({ organizationId, ...health, soonDays: days })
+      .onConflictDoUpdate({ target: planningHealthSettings.organizationId, set: { soonDays: days, updatedAt: new Date() } }),
+  );
+  return days;
+}
 
 export async function getPlanningHealthThresholds(organizationId: string): Promise<HealthThresholds> {
   const [row] = await inOrganization(organizationId, (tx) => tx.select().from(planningHealthSettings).where(eq(planningHealthSettings.organizationId, organizationId)));
