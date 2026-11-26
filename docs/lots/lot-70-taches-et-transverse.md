@@ -1,7 +1,7 @@
 # Lot 70 — Réaliser le volet 1 des maquettes : « Tâches » et le transverse
 
-**Statut** : spécification ; décisions A1 à A22 et Q47 tranchées par Julien le 26/11 ; **validation
-d'ensemble à donner avant tout code** (le lot change le schéma de
+**Statut** : **spécification validée par Julien le 26/11/2026** (« Je valide ») ; décisions A1 à A22 et
+Q47 tranchées le même jour (le lot change le schéma de
 données du module `events` et un parcours P0, PAR-03).
 **Branche de la spécification** : `lot-70-taches-et-transverse` (une PR vers `main`, ce fichier et
 `docs/QUESTIONS.md` seulement). Chaque paquet aura ensuite sa branche `lot-70<x>-…` et sa PR.
