@@ -10,11 +10,11 @@
 // 4. Coupure réseau (NFR-16) : « Erreur : la tâche n'a pas été enregistrée … Réessayer », saisie gardée.
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { addEventTask, addLossReasons, changeEventStatus, createProspect, createProspectSource } from "../modules/events/service";
-import { readyOrganization, signIn } from "./helpers";
+import { feedback, readyOrganization, signIn } from "./helpers";
 
 async function expectNoAxeViolation(page: Page, include?: string) {
   const builder = new AxeBuilder({ page });
@@ -68,10 +68,6 @@ function contrast(foreground: string, background: string): number {
   return (light! + 0.05) / (dark! + 0.05);
 }
 
-function feedback(page: Page): Locator {
-  return page.locator(".feedback-region .feedback");
-}
-
 for (const size of [
   { name: "1 440 px", width: 1440, height: 900 },
   { name: "375 px", width: 375, height: 812 },
@@ -95,7 +91,7 @@ for (const size of [
       const message = feedback(page);
       await expect(message).toHaveCount(1);
       await expect(message).toContainText("Tâche faite : Choisir le fleuriste");
-      await expect(page.getByRole("status").filter({ hasText: "Tâche faite : Choisir le fleuriste" })).toBeVisible();
+      await expect(feedback(page).filter({ hasText: "Tâche faite : Choisir le fleuriste" })).toBeVisible();
       const undo = message.getByRole("button", { name: "Annuler", exact: true });
       await expect(undo).toBeVisible();
 
@@ -183,9 +179,9 @@ for (const size of [
       await page.getByRole("button", { name: "Annuler l'évènement…" }).click();
       await dialog.getByLabel("Motif (pour vous)").selectOption({ index: 1 });
       await dialog.getByRole("button", { name: "Annuler l'évènement", exact: true }).click();
-      await expect(page.getByRole("status").filter({ hasText: "Évènement annulé : Léa & Maxime" })).toBeVisible();
+      await expect(feedback(page).filter({ hasText: "Évènement annulé : Léa & Maxime" })).toBeVisible();
       await page.getByRole("button", { name: "Rétablir l'évènement" }).click();
-      await expect(page.getByRole("status").filter({ hasText: "Évènement rétabli : Léa & Maxime" })).toBeVisible();
+      await expect(feedback(page).filter({ hasText: "Évènement rétabli : Léa & Maxime" })).toBeVisible();
       await expect(page.getByRole("list", { name: "Statut de l'évènement" }).getByRole("listitem").filter({ hasText: "Option" })).toHaveAttribute("aria-current", "step");
       await expect(page.getByRole("button", { name: /Réactiver/ })).toHaveCount(0);
     });
@@ -215,7 +211,7 @@ for (const size of [
       await expect(dialog.getByText("Donnez un nom à la tâche, par exemple « Réserver la navette ».")).toHaveCount(0);
       await dialog.locator('input[name="dueDate"]').fill("2027-03-02");
       await dialog.getByRole("button", { name: "Enregistrer" }).click();
-      await expect(page.getByRole("status").filter({ hasText: "Tâche enregistrée : Choisir la fleuriste" })).toBeVisible();
+      await expect(feedback(page).filter({ hasText: "Tâche enregistrée : Choisir la fleuriste" })).toBeVisible();
     });
 
     test("NFR-16 — la connexion coupée à l'enregistrement : « Réessayer », la saisie gardée", async ({ page, context }) => {
@@ -237,7 +233,7 @@ for (const size of [
       await expect(label).toHaveValue("Réserver la navette des invités");
       await context.setOffline(false);
       await message.getByRole("button", { name: "Réessayer" }).click();
-      await expect(page.getByRole("status").filter({ hasText: "Tâche enregistrée : Réserver la navette des invités" })).toBeVisible();
+      await expect(feedback(page).filter({ hasText: "Tâche enregistrée : Réserver la navette des invités" })).toBeVisible();
     });
   });
 }

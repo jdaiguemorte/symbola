@@ -13,7 +13,7 @@ import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { addDefaultVendorSlots, createEventLink, createProspect, createProspectSource, listEventVendorSlots } from "../modules/events/service";
 import { updateBudgetLine } from "../modules/budget/service";
-import { openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
+import { feedback, openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
 
 const MAILPIT_API = "http://localhost:8025/api/v1";
 const PASSWORD = "mot-de-passe-evt06-e2e";
@@ -80,7 +80,7 @@ test("PRD-EVT-06 / UX-11 / SEC-17 — le marié ouvre son lien sans inscription,
   await newTask.getByLabel("Échéance").fill("2027-03-10");
   await newTask.getByLabel("Responsable").selectOption("clients");
   await newTask.getByRole("button", { name: "Ajouter la tâche" }).click();
-  await expect(planner.getByRole("status").getByText(/^Tâche ajoutée : /)).toBeVisible();
+  await expect(feedback(planner).getByText(/^Tâche ajoutée : /)).toBeVisible();
 
   await openEventTab(planner, "Programme du jour J");
   // Lot 62c (D1) : la séquence s'ajoute dans la liste, puis « Enregistrer le programme ».

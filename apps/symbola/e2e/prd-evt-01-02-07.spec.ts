@@ -6,7 +6,7 @@ import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
-import { clickMenuLink, readyOrganization, changeEventStatus, signIn as signInByLink } from "./helpers";
+import { changeEventStatus, clickMenuLink, feedback, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -157,7 +157,7 @@ test("PRD-EVT-01/02 / EVT-05 — un prospect apparaît dans la liste en Option, 
 
   await page.getByLabel("Précision sur le motif").fill("Le couple a choisi un autre lieu.");
   await page.getByRole("button", { name: "Annuler l'évènement", exact: true }).click();
-  await expect(page.getByRole("status").filter({ hasText: `Évènement annulé : ${firstName} & Sacha` })).toBeVisible();
+  await expect(feedback(page).filter({ hasText: `Évènement annulé : ${firstName} & Sacha` })).toBeVisible();
   await expect(page.locator("form p[role=alert]")).toHaveCount(0);
 
   // Les évènements annulés sont dans l'onglet séparé « Terminés ».

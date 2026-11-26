@@ -8,7 +8,7 @@ import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { expect, test, type Page } from "@playwright/test";
 import { addEventVendorSlot, addVendorCandidate, createEventLink, createProspect, createProspectSource, updateVendorCandidate } from "../modules/events/service";
-import { readyOrganization, signIn } from "./helpers";
+import { feedback, readyOrganization, signIn } from "./helpers";
 
 const PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1");
 
@@ -94,7 +94,7 @@ test("EVT-03 / CHR-02 — fiche d'identité, lieu complet, tâche confiée au fl
   await newTask.getByLabel("Échéance").fill("2027-06-11");
   await newTask.getByLabel("Responsable").selectOption({ label: "Prestataire : Fleurs de Lys" });
   await newTask.getByRole("button", { name: "Ajouter la tâche" }).click();
-  await expect(page.getByRole("status").getByText(/^Tâche ajoutée : /)).toBeVisible();
+  await expect(feedback(page).getByText(/^Tâche ajoutée : /)).toBeVisible();
 
   // D13 : commentaire et pièce jointe, dans la fenêtre de la tâche (lot 63d).
   await page.getByRole("link", { name: "Livrer les fleurs", exact: true }).click();

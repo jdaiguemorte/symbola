@@ -10,7 +10,7 @@ import { createUser } from "@symbola/auth";
 import { parisToday } from "@symbola/i18n";
 import { expect, test, type Page } from "@playwright/test";
 import { addEventTask, changeEventStatus, createProspect, createProspectSource } from "../modules/events/service";
-import { clickMenuLink, readyOrganization, signIn as signInByLink } from "./helpers";
+import { clickMenuLink, feedback, readyOrganization, signIn as signInByLink } from "./helpers";
 
 async function loginAndSetupMfa(page: Page, email: string, _password: string) {
   // Lot 33 : lien magique et fournisseur d'identité (e2e/helpers.ts).
@@ -102,7 +102,7 @@ test("PRD-HUB-02 / HUB-08 — agenda des mariages, tâches cochées depuis « Au
   await expect(first.getByRole("listitem").nth(1)).toContainText("Attend le client");
   await expect(page.getByText("Tâche lointaine")).toHaveCount(0);
   await first.getByRole("button", { name: "Fait : « Relancer le traiteur »" }).click();
-  const undo = page.getByRole("status").filter({ hasText: "Tâche faite : Relancer le traiteur" });
+  const undo = feedback(page).filter({ hasText: "Tâche faite : Relancer le traiteur" });
   await expect(undo).toBeVisible();
   await expect(first.getByText("Relancer le traiteur")).toHaveCount(0);
   await undo.getByRole("button", { name: "Annuler" }).click();

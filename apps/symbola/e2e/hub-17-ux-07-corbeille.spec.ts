@@ -10,7 +10,7 @@ import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { addEventTask, createProspect, createProspectSource } from "../modules/events/service";
 import { createContact } from "../modules/hub/service";
-import { openSettingsTab, readyOrganization, signIn } from "./helpers";
+import { feedback, openSettingsTab, readyOrganization, signIn } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -54,7 +54,7 @@ test("UX-07 — une tâche supprimée revient par « Annuler » pendant dix seco
   await page.goto(`/events/${setup.eventId}?onglet=retroplanning&tache=${setup.taskId}`);
   // Lot 63d : la fenêtre de la tâche, ouverte par l'adresse, propose « Supprimer la tâche ».
   await page.getByRole("dialog", { name: "Modifier la tâche" }).getByRole("button", { name: "Supprimer la tâche", exact: true }).click();
-  const banner = page.getByRole("status").filter({ hasText: "Tâche supprimée." });
+  const banner = feedback(page).filter({ hasText: "Tâche supprimée." });
   await expect(banner).toBeVisible();
   await expect(page.getByText("Envoyer les faire-part")).toHaveCount(0);
   await banner.getByRole("button", { name: "Annuler" }).click();
@@ -72,7 +72,7 @@ test("HUB-17 — un évènement supprimé va à la corbeille et revient avec son
   await expect(page.getByText("L'évènement va à la corbeille avec tout son contenu ; il se restaure pendant 30 jours.")).toBeVisible();
   await page.getByRole("button", { name: "Supprimer l'évènement" }).click();
   await expect(page).toHaveURL(/\/events$/);
-  const banner = page.getByRole("status").filter({ hasText: "Évènement mis à la corbeille." });
+  const banner = feedback(page).filter({ hasText: "Évènement mis à la corbeille." });
   await expect(banner).toBeVisible();
   // Lot 70b (M5) : le message dit où le retrouver.
   await expect(banner).toContainText("À retrouver dans la Corbeille des Paramètres pendant 30 jours.");
@@ -92,7 +92,7 @@ test("HUB-17 — un évènement supprimé va à la corbeille et revient avec son
   await page.goto(`/contacts/${setup.contactId}`);
   await page.getByRole("button", { name: "Supprimer le contact" }).click();
   await expect(page).toHaveURL(/\/contacts$/);
-  await expect(page.getByRole("status").filter({ hasText: "Contact mis à la corbeille." })).toBeVisible();
+  await expect(feedback(page).filter({ hasText: "Contact mis à la corbeille." })).toBeVisible();
   await page.goto("/parametres/corbeille");
   await page.getByRole("button", { name: "Supprimer définitivement Rose Fleuriste" }).click();
   const dialog = page.getByRole("dialog", { name: "Supprimer définitivement Contact « Rose Fleuriste » ?" });

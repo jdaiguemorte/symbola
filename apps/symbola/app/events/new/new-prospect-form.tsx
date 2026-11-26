@@ -56,11 +56,12 @@ export function NewProspectForm({
   const rules = newEventRules(mode, confirmed);
   // Lot 70b (UX-10) : validation écrite par Symbola, le même schéma qu'au serveur.
   const schema = useMemo(() => newEventFieldsSchema({ ...rules, nameRequiredWithoutClient: !rules.clientRequired }), [mode, confirmed]);
-  const validation = useFieldValidation(schema, state.fieldErrors);
   // Lot 32b (CRM-04) : la date suivie, pour signaler les évènements du même jour avant l'enregistrement.
   const [eventDate, setEventDate] = useState(initialDate);
   const eventType = eventTypes.find((type) => type.id === eventTypeId);
   const labels = clientLabels[eventType?.audience ?? "couple"];
+  // Le prénom manquant se dit dans le vocabulaire du type (ADR 0045), comme au serveur.
+  const validation = useFieldValidation(schema, state.fieldErrors, { clientFirstNameRequired: labels.missingFirstName });
   const tContacts = useTranslations("Contacts");
   const tCommon = useTranslations("Common");
   // Les modèles créés dans le panneau s'ajoutent à ceux de la page.

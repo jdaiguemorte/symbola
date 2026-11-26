@@ -13,7 +13,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { addLossReasons, createEventType, createProspect, createProspectSource, createTaskTemplate, listEventTasks } from "../modules/events/service";
 import { saveOnboardingStep } from "../modules/hub/service";
 import { actOnFakeSignature, addQuoteLine, addScheduleItem, createQuote, issueDepositInvoice, sendQuote, sendQuoteForSignature } from "../modules/quotes/service";
-import { changeEventStatus, readyOrganization, signIn } from "./helpers";
+import { changeEventStatus, feedback, readyOrganization, signIn } from "./helpers";
 import { minimalPdf } from "../lib/test-fixtures/pdf";
 
 const PASSWORD = "mot-de-passe-cycle-e2e";
@@ -149,7 +149,7 @@ test("EVT-05 / FAC-13 — annuler nomme l'évènement et exige un motif ; un avo
   await expectNoAxeViolation(page);
 
   await page.getByRole("button", { name: "Rétablir l'évènement" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Évènement rétabli : Léa & Hugo" })).toBeVisible();
+  await expect(feedback(page).filter({ hasText: "Évènement rétabli : Léa & Hugo" })).toBeVisible();
   await expect(steps.getByRole("listitem").filter({ hasText: "Option" })).toHaveAttribute("aria-current", "step");
   await expect(invoices).toHaveCount(0);
 });

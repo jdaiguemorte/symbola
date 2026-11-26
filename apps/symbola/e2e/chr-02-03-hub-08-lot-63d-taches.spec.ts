@@ -12,7 +12,7 @@ import AxeBuilder from "./axe";
 import { addDefaultVendorSlots, addEventTask, createProspect, createProspectSource, listEventVendorSlots } from "../modules/events/service";
 import { addBudgetLine, addVendorPayment } from "../modules/budget/service";
 import { postponedDueDate } from "../lib/tasks/postpone";
-import { readyOrganization, signIn } from "./helpers";
+import { feedback, readyOrganization, signIn } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -65,7 +65,7 @@ test("CHR-02, UX-07 — tâches : rond « Fait » annulable, actions groupées, 
 
   // SC-03, étape 3 : une tâche cochée par erreur s'annule.
   await page.getByRole("button", { name: "Marquer « Envoyer le questionnaire » comme faite" }).click();
-  const undo = page.getByRole("status").filter({ hasText: "Envoyer le questionnaire" });
+  const undo = feedback(page).filter({ hasText: "Envoyer le questionnaire" });
   await undo.getByRole("button", { name: "Annuler" }).click();
   await expect(page.getByRole("button", { name: "Marquer « Envoyer le questionnaire » comme faite" })).toBeVisible();
 
@@ -77,7 +77,7 @@ test("CHR-02, UX-07 — tâches : rond « Fait » annulable, actions groupées, 
   await bulk.getByText("Catégorie", { exact: true }).first().click();
   await bulk.getByLabel("Catégorie").selectOption({ label: "Prestataires" });
   await bulk.getByRole("button", { name: "Appliquer" }).last().click();
-  await expect(page.getByRole("status").filter({ hasText: "Catégorie changée pour 2 tâches." })).toBeVisible();
+  await expect(feedback(page).filter({ hasText: "Catégorie changée pour 2 tâches." })).toBeVisible();
   await expect(row(page, "Confirmer le menu")).toContainText("Prestataires");
 
   // « Reporter » : à demain, la date est écrite dans le menu.
@@ -99,7 +99,7 @@ test("CHR-02, UX-07 — tâches : rond « Fait » annulable, actions groupées, 
 
   // « Supprimer » agit tout de suite ; « Annuler » la rend.
   await page.getByRole("button", { name: "Supprimer « Confirmer le menu »" }).click();
-  const banner = page.getByRole("status").filter({ hasText: "Tâche supprimée." });
+  const banner = feedback(page).filter({ hasText: "Tâche supprimée." });
   await expect(row(page, "Confirmer le menu")).toHaveCount(0);
   await banner.getByRole("button", { name: "Annuler" }).click();
   await expect(page.getByText("C'est rétabli.")).toBeVisible();

@@ -58,7 +58,12 @@ export async function createProspectAction(
   const rules = newEventRules(mode, confirmed);
   // Lot 70b (UX-10) : le même schéma qu'à l'écran ; les erreurs vont sous les champs.
   const invalid = fieldErrors(newEventFieldsSchema({ ...rules, nameRequiredWithoutClient: !rules.clientRequired }), formValues(formData));
-  if (invalid.length > 0) return { fieldErrors: translatedFieldErrors(invalid, await getTranslations("Validation")) };
+  if (invalid.length > 0) {
+    // Le prénom manquant se dit dans le vocabulaire du type (ADR 0045).
+    const tValidation = await getTranslations("Validation");
+    const locale = (await getLocale()) as Locale;
+    return { fieldErrors: translatedFieldErrors(invalid, (key) => (key === "clientFirstNameRequired" ? eventsMessageFor(locale, eventType.audience, "missingFirstName") : tValidation(key))) };
+  }
   if (rules.existingContactOnly && !contactId1) return { error: t("missingExistingContact") };
   if (rules.clientRequired && !firstName1 && !contactId1) return { error: eventsMessageFor((await getLocale()) as Locale, eventType.audience, "missingFirstName") };
   if (rules.sourceRequired && !prospectSourceId) return { error: t("missingSource") };

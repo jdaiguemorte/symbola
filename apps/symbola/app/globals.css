@@ -3573,11 +3573,13 @@
      enfant de « app-main », collé au bas de la fenêtre) ; sur téléphone, de toute la largeur, au-dessus
      de la pastille « Reprendre ». Fond encre, texte blanc, secondaire `night-ink-muted` (8,4:1),
      « Annuler » en `night-accent` (9,7:1), bouton de 40 px ; une barre montre le temps qui reste. */
-  /* La zone reste dans la page même vide (annonce fiable aux lecteurs d'écran), sans l'allure des
-     messages « status » ordinaires. */
-  .feedback-region,
-  .feedback-region:empty {
-    @apply pointer-events-none sticky bottom-[4.5rem] z-40 mx-0 mt-4 mb-0 block rounded-none bg-transparent p-0 text-ink sm:bottom-4;
+  /* La zone (`aria-live`) reste dans la page même vide, pour une annonce fiable aux lecteurs d'écran ;
+     vide, elle ne prend aucune place. */
+  .feedback-region {
+    @apply pointer-events-none sticky bottom-[4.5rem] z-40 block sm:bottom-4;
+  }
+  .feedback-region:not(:empty) {
+    @apply mt-4;
   }
   /* Dans une fenêtre modale ouverte : la même place, au-dessus de la fenêtre. */
   .feedback-region.feedback-region-floating {

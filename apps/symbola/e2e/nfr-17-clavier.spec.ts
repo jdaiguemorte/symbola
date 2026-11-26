@@ -9,7 +9,7 @@
 // En taille ordinateur, où le menu est affiché : c'est là que le clavier sert.
 import { expect, test, type Page } from "@playwright/test";
 import { atelier40c, type Atelier40c } from "./atelier-40c";
-import { signIn } from "./helpers";
+import { feedback, signIn } from "./helpers";
 
 let setup: Atelier40c;
 
@@ -97,12 +97,12 @@ test("NFR-17 — PAR-03 au clavier : cocher une tâche, puis « Annuler »", asy
   expect(await tabUntil(page, () => document.activeElement?.getAttribute("aria-label") === "Marquer « Confirmer le lieu » comme faite")).toBe(true);
   expect((await focusIsVisible(page)).visible).toBe(true);
   await page.keyboard.press("Enter");
-  const offer = page.getByRole("status").filter({ hasText: "Tâche faite : Confirmer le lieu" });
+  const offer = feedback(page).filter({ hasText: "Tâche faite : Confirmer le lieu" });
   await expect(offer).toBeVisible();
   const undo = offer.getByRole("button", { name: "Annuler" });
   await undo.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("status").filter({ hasText: "Tâche remise à faire : Confirmer le lieu" })).toBeVisible();
+  await expect(feedback(page).filter({ hasText: "Tâche remise à faire : Confirmer le lieu" })).toBeVisible();
 });
 
 test("NFR-17 — PAR-06 au clavier : le portail des mariés se parcourt, chaque élément montre son focus", async ({ page }) => {

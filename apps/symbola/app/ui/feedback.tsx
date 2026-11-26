@@ -10,7 +10,7 @@
 // - Dix secondes quand on peut défaire (« Annuler ») ou réessayer, cinq sinon ; une barre montre le
 //   temps qui reste ; il s'arrête tant que la souris ou le focus est sur le message.
 // - Fond encre, texte blanc, secondaire `night-ink-muted` (8,4:1), « Annuler » en `night-accent`
-//   (9,7:1), bouton de 40 px ; annoncé aux lecteurs d'écran (zone `status`, toujours présente).
+//   (9,7:1), bouton de 40 px ; annoncé aux lecteurs d'écran (zone `aria-live`, toujours présente).
 // - Quand une fenêtre modale est ouverte (fenêtre de la tâche), le reste de la page est inerte : la zone
 //   passe dans la fenêtre, pour que « Réessayer » ou « Annuler » reste à portée, puis revient à sa place.
 import Link from "next/link";
@@ -38,6 +38,9 @@ export function useFeedback(): FeedbackValue | null {
 
 let sequence = 0;
 
+// Le temps qu'une zone montée vide à sa nouvelle place soit prise en compte avant d'être remplie.
+const PLACE_DELAY_MS = 60;
+
 export function FeedbackProvider({ children }: { children: ReactNode }) {
   const t = useTranslations("Feedback");
   const [state, setState] = useState<FeedbackState>(initialFeedback);
@@ -46,12 +49,29 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   const hovered = useRef(false);
   // La fenêtre modale ouverte au moment du message, s'il y en a une.
   const [host, setHost] = useState<HTMLDialogElement | null>(null);
+  const hostRef = useRef<HTMLDialogElement | null>(null);
+  // Une zone qui vient de changer de place est d'abord montée vide : un lecteur d'écran ne lit pas une
+  // zone qui arrive déjà remplie, il lit ce qui s'écrit dans une zone déjà là.
+  const [ready, setReady] = useState(true);
   const focused = useRef(false);
+
+  const place = useCallback((next: HTMLDialogElement | null) => {
+    if (hostRef.current === next) return;
+    hostRef.current = next;
+    setHost(next);
+    setReady(false);
+  }, []);
+
+  useEffect(() => {
+    if (ready) return;
+    const timer = window.setTimeout(() => setReady(true), PLACE_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [ready, host]);
 
   const show = useCallback((next: FeedbackInput) => {
     sequence += 1;
     const modal = [...document.querySelectorAll("dialog")].reverse().find((dialog) => dialog.open && dialog.matches(":modal")) ?? null;
-    setHost(modal);
+    place(modal);
     setInput(next);
     setState((current) =>
       showFeedback(
@@ -60,21 +80,23 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
         Date.now(),
       ),
     );
-  }, []);
+  }, [place]);
 
-  // La fenêtre se ferme : la zone revient à sa place, le message avec elle.
+  // La fenêtre se ferme ou quitte la page : la zone revient aussitôt à sa place, le message avec elle.
   useEffect(() => {
     if (!host) return;
-    const back = () => setHost(null);
-    host.addEventListener("close", back);
-    const watch = window.setInterval(() => {
-      if (!host.isConnected || !host.open) back();
-    }, 250);
-    return () => {
-      host.removeEventListener("close", back);
-      window.clearInterval(watch);
+    const check = () => {
+      if (!host.isConnected || !host.open) place(null);
     };
-  }, [host]);
+    host.addEventListener("close", check);
+    const observer = new MutationObserver(check);
+    observer.observe(host, { attributes: true, attributeFilter: ["open"] });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      host.removeEventListener("close", check);
+      observer.disconnect();
+    };
+  }, [host, place]);
 
   const dismiss = useCallback(() => {
     hovered.current = false;
@@ -98,7 +120,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   };
 
   const value = useMemo(() => ({ show, dismiss }), [show, dismiss]);
-  const message = state.message;
+  const message = ready ? state.message : null;
   const action = input?.action;
   const total = message ? (message.action?.kind === "undo" || message.action?.kind === "retry" ? 10_000 : 5_000) : 0;
 
@@ -111,7 +133,9 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
 
   function region(className: string) {
     return (
-      <div className={className} role="status" aria-label={t("region")}>
+      // Une zone `aria-live`, toujours présente, et non un `status` : elle ne se confond pas avec les
+      // messages des formulaires de l'écran.
+      <div className={className} aria-live="polite" aria-atomic="true" aria-label={t("region")}>
         {message ? (
           <div
             key={message.id}

@@ -5,9 +5,10 @@
 // le schéma Zod partagé avec le serveur (lib/forms) dit ce qui manque ; l'envoi est retenu, chaque champ
 // en erreur reçoit son message (FieldError), un résumé s'affiche à partir de deux erreurs
 // (ErrorSummary), le focus va au premier champ en erreur. La saisie n'est jamais effacée. Les erreurs
-// renvoyées par le serveur (même schéma) s'affichent de la même façon.
+// renvoyées par le serveur (même schéma) s'affichent de la même façon, et le focus va de même au
+// premier champ en erreur : son message, lié au champ, est lu.
 import { useTranslations } from "next-intl";
-import { useCallback, useId, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useId, useState, type FormEvent } from "react";
 import type { z } from "zod";
 import { fieldErrors, formValues } from "@/lib/forms/field-validation";
 
@@ -40,7 +41,9 @@ export function focusField(form: HTMLFormElement | null, field: string): void {
   element.focus();
 }
 
-export function useFieldValidation(schema: z.ZodType, serverErrors?: Record<string, string>): FieldValidation {
+// `messages` remplace un message du catalogue par un texte déjà traduit (le prénom manquant, dit dans
+// le vocabulaire du type d'évènement, ADR 0045).
+export function useFieldValidation(schema: z.ZodType, serverErrors?: Record<string, string>, messages?: Record<string, string>): FieldValidation {
   const t = useTranslations("Validation");
   const prefix = useId();
   const [clientErrors, setClientErrors] = useState<[string, string][] | null>(null);
@@ -59,6 +62,14 @@ export function useFieldValidation(schema: z.ZodType, serverErrors?: Record<stri
   const errorId = useCallback((field: string) => `${prefix}-${field}-error`, [prefix]);
   const errorFor = (field: string) => errors.find(([name]) => name === field)?.[1];
 
+  // Des erreurs arrivent du serveur : le focus va au premier champ en erreur, comme à l'écran.
+  useEffect(() => {
+    const first = Object.keys(serverErrors ?? {})[0];
+    if (!first) return;
+    const element = document.getElementById(fieldId(first));
+    focusField(element?.closest("form") ?? null, first);
+  }, [serverErrors, fieldId]);
+
   return {
     errors,
     errorFor,
@@ -73,7 +84,7 @@ export function useFieldValidation(schema: z.ZodType, serverErrors?: Record<stri
         return true;
       }
       event.preventDefault();
-      setClientErrors(entries.map((entry) => [entry.field, t(entry.key)]));
+      setClientErrors(entries.map((entry) => [entry.field, messages?.[entry.key] ?? t(entry.key)]));
       focusField(event.currentTarget, entries[0]!.field);
       return false;
     },
