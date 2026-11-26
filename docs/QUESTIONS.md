@@ -978,7 +978,8 @@ Ouverts ; chacun a sa recommandation.
    seuil de M10). Proposition : pas d'« En cours » pour une tâche (personne ne l'a demandé au
    panel), « Bientôt » ajouté ; ADR si Julien confirme.
 5. **« Prospect » hors de « + Créer » (HUB-07)**. D8 le remplace par « Nouvel évènement › Une
-   demande en cours », qui crée la même chose. Proposition : d'accord, noté dans `gap.csv`.
+   demande en cours », qui crée la même chose. Proposition : d'accord, noté dans `gap.csv`. **Tranché le 26/11 par Julien : « Oui, le
+   retirer ».**
 6. **Créer un évènement en trois champs, nom, date, type (EVT-01)**. La maquette n'a pas le type.
    Proposition : le champ « Type » n'apparaît que si l'organisation a plusieurs types.
 
