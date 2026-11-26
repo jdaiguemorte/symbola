@@ -131,13 +131,18 @@ factures. Les onze tutoriels d'aujourd'hui sont tous rangés ; les autres sous �
 bien démarrer » (accueil, « Aide ») et ce parcours ne font qu'une liste. Plus de pastille « 0/11 » au
 menu ; « Conseillé ensuite » devient « Ensuite ». « Changer de parcours » dans un panneau.
 
-## 3. Les choix, retenus par défaut
+## 3. Les choix, et la décision de Julien
+
+**Décision de Julien, le 26/11/2026** : « tout en proposition, on garde B1 à B17 ». Les dix-sept
+choix sont **retenus tels que proposés**, de même que les décisions antérieures complétées ou contredites
+ci-dessous (page 13, R3, page 6, § 6 de la synthèse). Aucun contact du support n'est ajouté au centre d'aide,
+comme dans les maquettes (§ 6).
 
 **Règle de Julien du 26/11/2026** (rappelée en [09, § 3](09-maquettes-aujourdhui-evenements.md)) : les
 propositions des nouvelles maquettes sont retenues par défaut et priment sur les décisions antérieures
 qu'elles contredisent ; on vérifie qu'aucune fonction majeure ne disparaît (§ 3 bis) ; l'ergonomie cible
-est celle des maquettes. Les dix-sept choix ci-dessous sont donc **retenus tels que proposés**, sauf avis
-contraire de Julien. L'autre voie est donnée pour mémoire.
+est celle des maquettes. Les dix-sept choix ci-dessous étaient donc retenus par défaut ; Julien les a
+confirmés. L'autre voie est donnée pour mémoire.
 
 Décisions antérieures que ce volet contredit ou complète, la maquette l'emportant :
 
@@ -316,7 +321,7 @@ faire » à 40 px, les titres des tâches soulignés dans l'étape 2, la liste d
 | « Prénom du premier marié » pour une mariée, pas de nom de famille (PC-01) | Réglé par la fenêtre de D8 (« Nom de l'évènement ») et la fiche des mariés ; la fiche des mariés n'est pas redessinée | Volet 3 (page 16) |
 | Champs de date à l'américaine (« mm/dd/yyyy ») | À vérifier sur un vrai navigateur français (§ 9 de la synthèse) | Hors maquette |
 | Le déroulé d'un tutoriel et son panneau latéral | Aucun constat du panel ; non redessinés | — |
-| Un contact du support dans le centre d'aide | L'app n'en a pas ; en ajouter un est une décision d'exploitation, pas une forme | Question ouverte pour Julien |
+| Un contact du support dans le centre d'aide | L'app n'en a pas ; en ajouter un est une décision d'exploitation, pas une forme | Non ajouté, comme proposé (décision du 26/11/2026) ; à rouvrir avec l'exploitation si besoin |
 | Paramètres du budget et catalogue des devis (leurs visites) | Gardées, raccourcies ; écrans hors de ce volet | Volet « Paramètres » ; module devis |
 
 ## 7. Limites
@@ -333,6 +338,6 @@ faire » à 40 px, les titres des tâches soulignés dans l'étape 2, la liste d
 
 ## 8. La porte 3 de ce volet
 
-Les dix-sept choix B1 à B17 sont retenus par défaut selon la règle du 26/11/2026. Julien peut en
-renverser un en citant son numéro ; les maquettes seront alors corrigées. Les formes de ce volet
+Volet validé par Julien le 26/11/2026 : B1 à B17 retenus tels que proposés, les maquettes restent en
+l'état. Les formes de ce volet
 rejoignent ensuite le Design System (phase 6) avec celles des volets 1 à 4.
