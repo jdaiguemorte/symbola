@@ -12919,7 +12919,6 @@
     "datePlaceholder": "dd/mm/yyyy"
   },
   "Feedback": {
-    "region": "Messages",
     "close": "Close the message",
     "undo": "Undo",
     "retry": "Try again",

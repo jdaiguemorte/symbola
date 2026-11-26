@@ -12919,7 +12919,6 @@
     "datePlaceholder": "jj/mm/aaaa"
   },
   "Feedback": {
-    "region": "Messages",
     "close": "Fermer le message",
     "undo": "Annuler",
     "retry": "Réessayer",

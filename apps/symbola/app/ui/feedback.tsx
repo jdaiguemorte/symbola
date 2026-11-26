@@ -134,8 +134,9 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   function region(className: string) {
     return (
       // Une zone `aria-live`, toujours présente, et non un `status` : elle ne se confond pas avec les
-      // messages des formulaires de l'écran.
-      <div className={className} aria-live="polite" aria-atomic="true" aria-label={t("region")}>
+      // messages des formulaires de l'écran. Sans nom : un `div` sans rôle n'en accepte pas
+      // (aria-prohibited-attr), et le lecteur d'écran n'annonce que le message, pas la zone.
+      <div className={className} aria-live="polite" aria-atomic="true">
         {message ? (
           <div
             key={message.id}
