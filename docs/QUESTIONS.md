@@ -986,6 +986,23 @@ Ouverts ; chacun a sa recommandation.
    Proposition : le champ « Type » n'apparaît que si l'organisation a plusieurs types. **Tranché le
    26/11 par Julien : « Oui, si plusieurs ».**
 
+### Q48 — Lot 71 : la reprise d'un mariage en cours n'a pas de scénario Synthetic User (27 novembre 2026)
+
+Relevé en écrivant la spécification `docs/lots/lot-71-reprise-et-import.md` (décision I11, § 9).
+Ouvert.
+
+Le cahier des charges veut qu'une exigence soit terminée quand « le scénario Synthetic User concerné
+passe sans blocage » (§ 1), et la règle C4 un rejeu par lot. Or aucun scénario du § 17 ne reprend un
+mariage en cours : SC-10 reprend 600 contacts, SC-01 crée un mariage. La reprise (HUB-14, PAR-01)
+n'a donc pas de preuve de bout en bout.
+
+Proposition : un scénario local `SC-R1 · Reprendre un mariage en cours` dans `docs/recette/`
+(Camille, SU-01, reprend « Juliette & Romain » depuis les tableurs fictifs du lot 68 ; puis Sophie,
+SU-04, écran à 150 %, reprend « Léa & Hugo » depuis les fichiers du logiciel de planning ; mesures :
+aucun retard ni relance né de l'import, mêmes nombres à « Vérifier » et au bilan, ce qui reste à
+compléter cité sans hésiter, retrait possible), rejoué à chaque paquet du lot 71. À trancher : le
+scénario reste-t-il local, ou entre-t-il au § 17 du cahier des charges comme SC-13 ?
+
 ## Remarques sur le nouveau document lui-même
 
 - Les tableaux PRE, INV, POR, DOC, MSG, JRJ, RPT et TPS sont placés en annexe (§ 20), alors que
