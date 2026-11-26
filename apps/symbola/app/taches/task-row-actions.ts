@@ -15,14 +15,14 @@ import {
   EventTaskNotFoundError,
   removeEventTask,
   removeEventTasks,
-  TASK_RESPONSIBLES,
+  TaskAssigneeNotFoundError,
   TaskCategoryNotFoundError,
   TaskLabelRequiredError,
   TaskVendorInvalidError,
   updateEventTask,
   type BulkTaskChange,
-  type TaskResponsible,
 } from "@/modules/events/service";
+import { readResponsibleValue } from "@/app/events/[id]/task-responsible";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { offerUndo } from "@/lib/undo";
 import { isPostponeChoice, postponedDueDate } from "@/lib/tasks/postpone";
@@ -49,20 +49,17 @@ function knownError(error: unknown, t: Awaited<ReturnType<typeof getTranslations
   if (error instanceof EventTaskNotFoundError || error instanceof EventNotFoundError) return t("taskNotFound");
   if (error instanceof TaskLabelRequiredError) return t("missingLabel");
   if (error instanceof TaskVendorInvalidError) return t("taskVendorInvalid");
+  // Lot 70a (§ 3.4) : un compte qui n'est pas un membre actif répond comme une tâche introuvable.
+  if (error instanceof TaskAssigneeNotFoundError) return t("taskNotFound");
   if (error instanceof TaskCategoryNotFoundError) return t("taskCategoryInvalid");
   if (error instanceof BulkTaskChangeInvalidError) return t("tasksBulkInvalid");
   if (error instanceof RangeError) return t("invalidDate");
   throw error;
 }
 
-// « vendor:<id> » confie la tâche à ce prestataire retenu sur l'évènement (lot 34b).
-function readResponsible(value: string): { responsible: TaskResponsible; vendorCandidateId: string | null } | null {
-  if (value.startsWith("vendor:")) {
-    const vendorCandidateId = value.slice("vendor:".length);
-    return isValidId(vendorCandidateId) ? { responsible: "vendor", vendorCandidateId } : null;
-  }
-  return value !== "vendor" && TASK_RESPONSIBLES.includes(value as TaskResponsible) ? { responsible: value as TaskResponsible, vendorCandidateId: null } : null;
-}
+// « vendor:<id> » confie la tâche à ce prestataire retenu sur l'évènement (lot 34b) ; lot 70a (A1) :
+// « member:<id> » à ce collègue (vérifié par le service).
+const readResponsible = readResponsibleValue;
 
 const saveSchema = z.object({
   taskId: z.string().refine(isValidId),
@@ -128,7 +125,8 @@ export async function deleteTaskAction(formData: FormData): Promise<void> {
 const bulkSchema = z.object({
   op: z.enum(["shift", "responsible", "category", "delete"]),
   days: z.coerce.number().int().optional(),
-  responsible: z.enum(["planner", "clients"]).optional(),
+  // Lot 70a (A1) : « member:<id> » confie les tâches à ce collègue.
+  responsible: z.union([z.enum(["planner", "clients"]), z.string().regex(/^member:[0-9a-f-]{36}$/i)]).optional(),
   categoryId: z.string().optional(),
 });
 
@@ -159,8 +157,9 @@ export async function bulkTasksAction(_prev: TaskRowState, formData: FormData): 
       if (parsed.data.days === undefined) return { error: t("tasksBulkInvalid") };
       change = { kind: "shift", days: parsed.data.days };
     } else if (op === "responsible") {
-      if (!parsed.data.responsible) return { error: t("invalidResponsible") };
-      change = { kind: "responsible", responsible: parsed.data.responsible };
+      const choice = parsed.data.responsible ? readResponsibleValue(parsed.data.responsible) : null;
+      if (!choice || choice.responsible === "vendor") return { error: t("invalidResponsible") };
+      change = choice.assigneeUserId ? { kind: "assign", userId: choice.assigneeUserId } : { kind: "responsible", responsible: choice.responsible };
     } else {
       const categoryId = parsed.data.categoryId ? parsed.data.categoryId : null;
       if (categoryId !== null && !isValidId(categoryId)) return { error: t("taskCategoryInvalid") };
@@ -169,7 +168,7 @@ export async function bulkTasksAction(_prev: TaskRowState, formData: FormData): 
     const count = await changeEventTasks(organizationId, taskIds, change);
     refresh();
     const message =
-      change.kind === "shift" ? t("tasksBulkShifted", { count, days: change.days }) : change.kind === "responsible" ? t("tasksBulkResponsibleDone", { count }) : t("tasksBulkCategoryDone", { count });
+      change.kind === "shift" ? t("tasksBulkShifted", { count, days: change.days }) : change.kind === "responsible" || change.kind === "assign" ? t("tasksBulkResponsibleDone", { count }) : t("tasksBulkCategoryDone", { count });
     return { success: message, done: count };
   } catch (error) {
     return { error: knownError(error, t) };

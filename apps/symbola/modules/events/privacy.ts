@@ -276,8 +276,9 @@ export const eventsPrivacy: PrivacyContractV1 = {
       }
       records.push(...(await candidateRecords(tx, eventIds, (values) => recordMatches(values, terms))));
       for (const task of await tx.select().from(eventTasks).where(inArray(eventTasks.eventId, eventIds))) {
-        if (recordMatches(importedValues(task.importedFields), terms)) {
-          records.push({ module: MODULE, kind: "task", recordId: task.id, label: task.label, fields: importedFieldsOf(task.importedFields), eventId: task.eventId });
+        // Lot 70a (A7) : la note interne peut nommer la personne.
+        if (recordMatches([...importedValues(task.importedFields), task.note], terms)) {
+          records.push({ module: MODULE, kind: "task", recordId: task.id, label: task.label, fields: compact({ note: task.note, ...importedFieldsOf(task.importedFields) }), eventId: task.eventId });
         }
       }
       const items = await tx.select().from(programItems).where(inArray(programItems.eventId, eventIds));
@@ -403,7 +404,8 @@ export const eventsPrivacy: PrivacyContractV1 = {
           kind: "task",
           recordId: task.id,
           label: task.label,
-          fields: compact({ dueDate: task.dueDate, responsible: task.responsible, done: task.doneAt ? "true" : "false", ...importedFieldsOf(task.importedFields) }),
+          // Lot 70a (A7) : la note interne sort avec la tâche (HUB-13, RGPD-02).
+          fields: compact({ dueDate: task.dueDate, responsible: task.responsible, done: task.doneAt ? "true" : "false", note: task.note, ...importedFieldsOf(task.importedFields) }),
           eventId: task.eventId,
         });
       }

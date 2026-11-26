@@ -254,6 +254,9 @@ export async function eraseEventsData(input: ErasureInput): Promise<ErasurePlanI
       fileKeys.push(...messageFiles.map((file) => file.key));
       await tx.delete(messages).where(inArray(messages.eventId, eventIds));
       await tx.delete(messageTopics).where(inArray(messageTopics.eventId, eventIds));
+      // Lot 70a (A7, RGPD-03) : la note interne des tâches (texte libre) ; la tâche, sa personne et sa date
+      // de fin restent (identifiants de l'équipe, jamais un nom).
+      await tx.update(eventTasks).set({ note: null, updatedAt: now }).where(inArray(eventTasks.eventId, eventIds));
       // Lot 34b (CHR-02) : commentaires et pièces jointes des tâches de l'événement.
       await tx.delete(eventTaskComments).where(inArray(eventTaskComments.eventId, eventIds));
       const attachments = await tx.delete(eventTaskAttachments).where(inArray(eventTaskAttachments.eventId, eventIds)).returning({ key: eventTaskAttachments.fileKey });

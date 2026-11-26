@@ -15,18 +15,18 @@ import {
   releaseEventTask,
   removeEventTask,
   resolveTaskRecalculation,
-  TASK_RESPONSIBLES,
+  TaskAssigneeNotFoundError,
   TaskVendorInvalidError,
   TaskLabelRequiredError,
   TaskRecalculationPendingError,
   TaskTemplateNotFoundError,
   updateEventTask,
-  type TaskResponsible,
   PlanningInputError,
   setTaskMilestone,
 } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
+import { readResponsibleValue, type ResponsibleChoice } from "./task-responsible";
 
 export type TaskFormState = { error?: string; success?: boolean; recalculationProposed?: boolean };
 
@@ -40,13 +40,9 @@ async function authorize(t: Awaited<ReturnType<typeof getTranslations>>) {
 }
 
 // Lot 34b (CHR-02, D12) : « vendor:<id> » confie la tâche à ce prestataire retenu sur l'événement.
-function readResponsible(formData: FormData): { responsible: TaskResponsible; vendorCandidateId: string | null } | null {
-  const value = String(formData.get("responsible") ?? "");
-  if (value.startsWith("vendor:")) {
-    const vendorCandidateId = value.slice("vendor:".length);
-    return isValidId(vendorCandidateId) ? { responsible: "vendor", vendorCandidateId } : null;
-  }
-  return value !== "vendor" && TASK_RESPONSIBLES.includes(value as TaskResponsible) ? { responsible: value as TaskResponsible, vendorCandidateId: null } : null;
+// Lot 70a (CHR-02 ; A1) : « member:<id> » la confie à ce collègue (vérifié par le service).
+function readResponsible(formData: FormData): ResponsibleChoice | null {
+  return readResponsibleValue(String(formData.get("responsible") ?? ""));
 }
 
 // Erreurs métier connues → message traduit ; le reste remonte.
@@ -58,6 +54,8 @@ function taskErrorMessage(error: unknown, t: Awaited<ReturnType<typeof getTransl
   if (error instanceof TaskRecalculationPendingError) return t("recalculationPendingFirst");
   if (error instanceof TaskLabelRequiredError) return t("missingLabel");
   if (error instanceof TaskVendorInvalidError) return t("taskVendorInvalid");
+  // Lot 70a (§ 3.4) : un compte qui n'est pas un membre actif répond comme une tâche introuvable.
+  if (error instanceof TaskAssigneeNotFoundError) return t("taskNotFound");
   if (error instanceof RangeError) return t("invalidDate");
   throw error;
 }

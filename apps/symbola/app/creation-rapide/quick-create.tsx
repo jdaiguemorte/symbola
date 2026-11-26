@@ -274,6 +274,7 @@ function TaskForm({ options }: { options: QuickCreateOptions }) {
       <fieldset>
         <legend>{t("responsible")}</legend>
         <label>
+          {/* Lot 70a (A3) : « planner » sans personne nommée = la personne qui crée (« Vous »). */}
           <input type="radio" name="responsible" value="planner" defaultChecked />
           {t("responsiblePlanner")}
         </label>
