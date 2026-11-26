@@ -2,7 +2,7 @@
 // modules/events/ (ADR 0011).
 import { and, asc, desc, eq, exists, gt, gte, inArray, isNotNull, isNull, lte, notInArray, or, sql } from "drizzle-orm";
 import { inTrash, markDeleted, UNMARKED } from "@symbola/db/soft-delete";
-import { actingMemberId, emitTaskAssignments } from "./task-assignment";
+import { actingMemberId, assertAssignable, emitTaskAssignments } from "./task-assignment";
 import { appDatabase } from "@symbola/db/client";
 import {
   dayReminderOverrides,
@@ -960,7 +960,7 @@ export async function insertEventTask(
     vendorCandidateId?: string | null | undefined;
     categoryId?: string | null | undefined;
     priority?: TaskPriority | undefined;
-    // Lot 70a (A3) : déjà vérifié par le service ; sans valeur, la personne qui agit.
+    // Lot 70a (A3) : vérifié ici, dans la transaction ; sans valeur, la personne qui agit.
     assigneeUserId?: string | null | undefined;
     note?: string | null | undefined;
   },
@@ -971,6 +971,8 @@ export async function insertEventTask(
     // Clé étrangère vérifiée sans RLS : on contrôle que l'événement est visible.
     const [event] = await tx.select().from(events).where(eq(events.id, eventId));
     if (!event) return null;
+    // Revue du 70a : la personne choisie est un membre actif, lu dans la même transaction que l'écriture.
+    if (task.responsible === "planner" && task.assigneeUserId) await assertAssignable(tx, organizationId, task.assigneeUserId);
     const vendorCandidateId = task.responsible === "vendor" ? (task.vendorCandidateId ?? null) : null;
     if (task.responsible === "vendor" && !(await isEngagedCandidate(tx, eventId, vendorCandidateId))) return "invalid_vendor";
     // Lot 63d (CHR-03) : seulement une catégorie de l'organisation (même contrôle que l'événement).
@@ -1004,7 +1006,7 @@ export async function updateEventTaskRow(input: {
   done?: boolean | undefined;
   categoryId?: string | null | undefined;
   priority?: TaskPriority | undefined;
-  // Lot 70a : déjà vérifiés par le service (membre actif, note normalisée).
+  // Lot 70a : note déjà normalisée par le service ; la personne est vérifiée ici, dans la transaction.
   assigneeUserId?: string | null | undefined;
   note?: string | null | undefined;
   actorId?: string | null | undefined;
@@ -1019,6 +1021,9 @@ export async function updateEventTaskRow(input: {
     // tâche revient à qui agit, sauf choix.
     const assigneeUserId =
       responsible !== "planner" ? null : input.assigneeUserId !== undefined ? input.assigneeUserId : current.responsible !== "planner" ? actorId : current.assigneeUserId;
+    // Revue du 70a : une nouvelle personne doit être un membre actif (même transaction) ; la personne
+    // actuelle, même retirée (A4), reste sans être revérifiée.
+    if (responsible === "planner" && input.assigneeUserId && input.assigneeUserId !== current.assigneeUserId) await assertAssignable(tx, input.organizationId, input.assigneeUserId);
     const vendorCandidateId = responsible === "vendor" ? (input.vendorCandidateId !== undefined ? input.vendorCandidateId : current.vendorCandidateId) : null;
     const vendorChanged = responsible === "vendor" && (responsible !== current.responsible || vendorCandidateId !== current.vendorCandidateId);
     if (vendorChanged && (current.eventId === null || !(await isEngagedCandidate(tx, current.eventId, vendorCandidateId)))) return "invalid_vendor";

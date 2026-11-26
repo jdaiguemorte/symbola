@@ -439,6 +439,9 @@ export async function importTaskRows(input: { organizationId: string; rows: Impo
           dueDate: row.values.dueDate as string,
           responsible: (row.values.responsible as TaskResponsible | null) ?? "planner",
           assigneeUserId: ((row.values.responsible as TaskResponsible | null) ?? "planner") === "planner" ? actorId : null,
+          // Revue du 70a (A9, « seulement le sûr ») : une tâche importée déjà faite n'a pas d'auteur de coche
+          // (« — ») ; celle qui importe ne l'a pas cochée. C'est pourquoi le déclencheur 0212 n'agit qu'à la
+          // mise à jour, jamais à l'insertion.
           doneAt: row.values.done === true ? new Date() : null,
           position: (last?.value ?? -1) + 1,
           importedFields: Object.keys(row.importedFields).length > 0 ? row.importedFields : null,

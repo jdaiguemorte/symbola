@@ -14,7 +14,7 @@ import { withOrganization } from "@symbola/db/with-organization";
 import { events, eventTasks, eventTypes, eventTypeVocabulary, planningHealthSettings } from "@symbola/db/schema/events";
 import { clientTermSchema, planningHealthThresholdsSchema, standaloneTaskInputSchema, taskSoonDaysSchema, type ClientTerm, type EventTypeVocabularyView, type PlanningHealthView, type StandaloneTask } from "@symbola/contracts";
 import { starterClientTerms, starterPlanningHealth, starterTaskSoonDays } from "@symbola/starter-templates";
-import { actingMemberId, assertAssignable, emitTaskAssignments } from "./task-assignment";
+import { actingMemberId, assertAssignable, emitTaskAssignments, stillAssignable } from "./task-assignment";
 import { IN_PROGRESS_STATUSES } from "./lifecycle";
 import { nextOccurrence, planningHealth, shouldSpawnNext, type HealthThresholds } from "./planning-rules";
 
@@ -55,10 +55,11 @@ export async function addStandaloneTask(organizationId: string, input: unknown):
   const parsed = standaloneTaskInputSchema.safeParse(input);
   if (!parsed.success || Number.isNaN(Date.parse(`${parsed.data.dueDate}T00:00:00Z`))) throw new PlanningInputError("task");
   // Lot 70a (CHR-02 ; A3, A19) : à la personne choisie (membre actif), sinon à qui la crée.
-  if (parsed.data.assigneeUserId !== undefined) await assertAssignable(organizationId, parsed.data.assigneeUserId);
   const actorId = await actingMemberId();
   const assigneeUserId = parsed.data.assigneeUserId ?? actorId;
   const row = await inOrganization(organizationId, async (tx) => {
+    // Revue du 70a : vérifié dans la transaction de l'écriture.
+    if (parsed.data.assigneeUserId !== undefined) await assertAssignable(tx, organizationId, parsed.data.assigneeUserId);
     const [inserted] = await tx.insert(eventTasks).values({ organizationId, eventId: null, label: parsed.data.label, dueDate: parsed.data.dueDate, recurrence: parsed.data.recurrence, responsible: "planner", assigneeUserId }).returning();
     await emitTaskAssignments(tx, [{ organizationId, taskId: inserted!.id, eventId: null, before: null, after: assigneeUserId, done: false, isDemo: false, actorId }]);
     return inserted!;
@@ -93,8 +94,10 @@ async function spawnNext(tx: Tx, organizationId: string, row: typeof eventTasks.
     .where(and(eq(eventTasks.id, row.id), isNull(eventTasks.recurrenceSpawnedAt)))
     .returning({ id: eventTasks.id });
   if (claimed.length === 0) return false;
-  // Lot 70a : la suivante garde sa personne et sa note.
-  await tx.insert(eventTasks).values({ organizationId, eventId: null, label: row.label, dueDate: nextOccurrence(row.dueDate, row.recurrence), recurrence: row.recurrence, responsible: "planner", assigneeUserId: row.assigneeUserId, note: row.note });
+  // Lot 70a : la suivante garde sa personne et sa note ; revue du 70a (A4) : une personne qui n'est plus
+  // active ne la reprend pas, la suivante reste à confier.
+  const assigneeUserId = await stillAssignable(tx, organizationId, row.assigneeUserId);
+  await tx.insert(eventTasks).values({ organizationId, eventId: null, label: row.label, dueDate: nextOccurrence(row.dueDate, row.recurrence), recurrence: row.recurrence, responsible: "planner", assigneeUserId, note: row.note });
   return true;
 }
 

@@ -13,7 +13,6 @@ import { randomUUID } from "node:crypto";
 import { listTeam } from "@symbola/auth";
 import { EVT_TASK_ASSIGNED, EVT_TASK_ASSIGNED_VERSION, TASK_NOTE_MAX, type TaskAssignedPayload } from "@symbola/contracts";
 import { currentActor } from "@symbola/db/actor";
-import { appDatabase } from "@symbola/db/client";
 import { emitDomainEvent } from "@symbola/db/events/emit";
 import type { withOrganization } from "@symbola/db/with-organization";
 
@@ -43,11 +42,22 @@ export async function actingMemberId(): Promise<string | null> {
 }
 
 // Un membre actif de l'organisation, à qui l'on peut confier une tâche : la titulaire ou une Planner.
-export async function assertAssignable(organizationId: string, userId: string): Promise<void> {
-  if (!UUID.test(userId)) throw new TaskAssigneeNotFoundError();
-  const team = await listTeam(appDatabase(), organizationId);
+// Revue du 70a : lu dans la transaction de l'écriture (tx), jamais avant elle.
+async function isAssignable(tx: Tx, organizationId: string, userId: string): Promise<boolean> {
+  if (!UUID.test(userId)) return false;
+  const team = await listTeam(tx, organizationId);
   const member = team.find((entry) => entry.id === userId && !entry.disabledAt);
-  if (!member || (member.role !== "owner" && member.role !== "member")) throw new TaskAssigneeNotFoundError();
+  return member !== undefined && (member.role === "owner" || member.role === "member");
+}
+
+export async function assertAssignable(tx: Tx, organizationId: string, userId: string): Promise<void> {
+  if (!(await isAssignable(tx, organizationId, userId))) throw new TaskAssigneeNotFoundError();
+}
+
+// Revue du 70a (A4) : une personne rendue par « Annuler » ou reprise par la répétition suivante doit être
+// encore active ; sinon la tâche reste à confier (null).
+export async function stillAssignable(tx: Tx, organizationId: string, userId: string | null): Promise<string | null> {
+  return userId !== null && (await isAssignable(tx, organizationId, userId)) ? userId : null;
 }
 
 // A7 : note interne, retours à la ligne gardés ; vide : effacée.

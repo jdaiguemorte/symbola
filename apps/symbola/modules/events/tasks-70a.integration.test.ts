@@ -36,6 +36,7 @@ import {
   removeEventTasks,
   setEventTeamMember,
   setLinkTaskDone,
+  setStandaloneTaskDone,
   setTaskSoonDays,
   TaskAssigneeNotFoundError,
   TaskNoteInvalidError,
@@ -145,6 +146,30 @@ describe("CHR-02 — Qui s'en charge : un collègue (critères 1 à 3)", () => {
     await withDb((db) => import("@symbola/auth").then(({ removeMember }) => removeMember(db, { organizationId: team.organizationId, userId: team.lea, removedByUserId: team.camille })));
     expect(await countOpenTasksAssignedTo(team.organizationId, team.lea)).toBe(1);
     expect((await listEventTasks(team.organizationId, eventId))[0]?.assigneeUserId).toBe(team.lea);
+  });
+
+  // Revue du 70a : la fenêtre « Modifier la tâche » ne renvoie pas la personne qu'on ne peut plus choisir.
+  it("A4 : la tâche d'un accès retiré s'enregistre sans changer de personne ; la redonner à l'accès retiré reste refusé", async () => {
+    const team = await agency();
+    const eventId = await wedding(team.organizationId, team.camille);
+    const task = await as(team.camille, () => addEventTask(team.organizationId, eventId, { label: "Visiter le domaine", dueDate: "2027-03-12", responsible: "planner", assigneeUserId: team.lea }));
+    const other = await as(team.camille, () => addEventTask(team.organizationId, eventId, { label: "Goûter le menu", dueDate: "2027-03-13", responsible: "planner" }));
+    await withDb((db) => import("@symbola/auth").then(({ removeMember }) => removeMember(db, { organizationId: team.organizationId, userId: team.lea, removedByUserId: team.camille })));
+    const saved = await as(team.camille, () => updateEventTask({ organizationId: team.organizationId, taskId: task.id, label: "Visiter le domaine", dueDate: "2027-03-12", priority: "high" }));
+    expect([saved.priority, saved.assigneeUserId]).toEqual(["high", team.lea]);
+    // Sa valeur actuelle, renvoyée telle quelle, ne change rien ; la donner à une autre tâche est refusé.
+    expect((await as(team.camille, () => updateEventTask({ organizationId: team.organizationId, taskId: task.id, assigneeUserId: team.lea }))).assigneeUserId).toBe(team.lea);
+    await expect(as(team.camille, () => updateEventTask({ organizationId: team.organizationId, taskId: other.id, assigneeUserId: team.lea }))).rejects.toBeInstanceOf(TaskAssigneeNotFoundError);
+  });
+
+  it("A4 : la répétition suivante d'une tâche d'un accès retiré reste à confier", async () => {
+    const team = await agency();
+    const task = await as(team.camille, () => addStandaloneTask(team.organizationId, { label: "Déclaration de TVA", dueDate: "2027-03-31", recurrence: "quarterly", assigneeUserId: team.lea }));
+    await withDb((db) => import("@symbola/auth").then(({ removeMember }) => removeMember(db, { organizationId: team.organizationId, userId: team.lea, removedByUserId: team.camille })));
+    await as(team.camille, () => setStandaloneTaskDone(team.organizationId, task.id, true, new Date("2027-03-31T10:00:00Z"), "2027-03-31"));
+    const { eventTasks } = await import("@symbola/db/schema/events");
+    const rows = await withOrganization(appDatabase(), team.organizationId, (tx) => tx.select({ dueDate: eventTasks.dueDate, assigneeUserId: eventTasks.assigneeUserId }).from(eventTasks).where(eq(eventTasks.label, "Déclaration de TVA")));
+    expect(rows.sort((x, y) => x.dueDate.localeCompare(y.dueDate))).toEqual([{ dueDate: "2027-03-31", assigneeUserId: team.lea }, { dueDate: "2027-06-30", assigneeUserId: null }]);
   });
 
   it("passer la tâche aux clients efface la personne ; la reprendre la redonne à qui agit", async () => {
@@ -354,6 +379,31 @@ describe("UX-07 — « Annuler » un changement de date ou de personne (A18)", (
     expect((await listEventTasks(team.organizationId, eventId)).map((row) => row.assigneeUserId)).toEqual([team.lea, team.lea]);
     expect(await undoTaskChange({ organizationId: team.organizationId, userId: team.camille, undoId: assigned.undoId! })).toBe(2);
     expect((await listEventTasks(team.organizationId, eventId)).map((row) => row.assigneeUserId)).toEqual([team.camille, team.bastien]);
+  });
+
+  // Revue du 70a : seuls les champs du geste reviennent, et une personne retirée entre-temps ne revient pas.
+  it("annuler un report ne défait pas la personne choisie entre-temps ; annuler « Confier à » ne défait pas la date", async () => {
+    const team = await agency();
+    const eventId = await wedding(team.organizationId, team.camille);
+    const a = await as(team.camille, () => addEventTask(team.organizationId, eventId, { label: "A", dueDate: "2027-03-12", responsible: "planner" }));
+    const moved = await as(team.camille, () => changeTasksWithUndo({ organizationId: team.organizationId, userId: team.camille, taskIds: [a.id], change: { kind: "setDate", date: "2027-04-01" } }));
+    await as(team.bastien, () => updateEventTask({ organizationId: team.organizationId, taskId: a.id, assigneeUserId: team.bastien }));
+    expect(await undoTaskChange({ organizationId: team.organizationId, userId: team.camille, undoId: moved.undoId! })).toBe(1);
+    expect((await listEventTasks(team.organizationId, eventId)).map((row) => [row.dueDate, row.assigneeUserId])).toEqual([["2027-03-12", team.bastien]]);
+    const assigned = await as(team.camille, () => changeTasksWithUndo({ organizationId: team.organizationId, userId: team.camille, taskIds: [a.id], change: { kind: "assign", userId: team.lea } }));
+    await as(team.bastien, () => updateEventTask({ organizationId: team.organizationId, taskId: a.id, dueDate: "2027-05-02" }));
+    expect(await undoTaskChange({ organizationId: team.organizationId, userId: team.camille, undoId: assigned.undoId! })).toBe(1);
+    expect((await listEventTasks(team.organizationId, eventId)).map((row) => [row.dueDate, row.assigneeUserId])).toEqual([["2027-05-02", team.bastien]]);
+  });
+
+  it("A4 : annuler « Confier à » ne rend pas la tâche à une personne dont l'accès a été retiré entre-temps", async () => {
+    const team = await agency();
+    const eventId = await wedding(team.organizationId, team.camille);
+    const a = await as(team.camille, () => addEventTask(team.organizationId, eventId, { label: "A", dueDate: "2027-03-12", responsible: "planner", assigneeUserId: team.lea }));
+    const assigned = await as(team.camille, () => changeTasksWithUndo({ organizationId: team.organizationId, userId: team.camille, taskIds: [a.id], change: { kind: "assign", userId: team.bastien } }));
+    await withDb((db) => import("@symbola/auth").then(({ removeMember }) => removeMember(db, { organizationId: team.organizationId, userId: team.lea, removedByUserId: team.camille })));
+    expect(await undoTaskChange({ organizationId: team.organizationId, userId: team.camille, undoId: assigned.undoId! })).toBe(1);
+    expect((await listEventTasks(team.organizationId, eventId)).map((row) => [row.responsible, row.assigneeUserId])).toEqual([["planner", null]]);
   });
 
   it("passé dix minutes, « Annuler » ne répond plus", async () => {

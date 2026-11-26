@@ -11,7 +11,7 @@ import { events, eventTasks, taskChangeSnapshots, type TaskChangeSnapshotPayload
 import { withOrganization } from "@symbola/db/with-organization";
 import type { BulkTaskChange } from "@symbola/contracts";
 import { isVisibleCategory, TaskCategoryNotFoundError } from "./task-categories";
-import { emitTaskAssignments } from "./task-assignment";
+import { assertAssignable, emitTaskAssignments, stillAssignable } from "./task-assignment";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // Un tableau des tâches tient quelques centaines de lignes ; au-delà, la demande n'est pas un geste.
@@ -41,8 +41,8 @@ function assertChange(change: BulkTaskChange): void {
   if (change.kind === "assign" && !UUID.test(change.userId)) throw new BulkTaskChangeInvalidError();
 }
 
-// Le changement dans la transaction de l'appelant. « assign » : le membre est déjà vérifié par le service
-// (membre actif de l'organisation) ; actorId : le membre qui agit (A19).
+// Le changement dans la transaction de l'appelant. « assign » : le membre est vérifié ici, dans la même
+// transaction (membre actif de l'organisation) ; actorId : le membre qui agit (A19).
 async function applyChange(tx: Tx, organizationId: string, ids: string[], change: BulkTaskChange, actorId: string | null): Promise<number> {
   const now = new Date();
   const selected = inArray(eventTasks.id, ids);
@@ -91,6 +91,7 @@ async function applyChange(tx: Tx, organizationId: string, ids: string[], change
       break;
     // Lot 70a (CHR-02 ; A19) : « Confier à un membre » ; une notification par destinataire pour le lot.
     case "assign": {
+      await assertAssignable(tx, organizationId, change.userId);
       const before = await tx
         .select({ id: eventTasks.id, eventId: eventTasks.eventId, assigneeUserId: eventTasks.assigneeUserId, doneAt: eventTasks.doneAt, isDemo: events.isDemo })
         .from(eventTasks)
@@ -154,7 +155,9 @@ export async function changeTasksKeepingUndo(input: { organizationId: string; us
 }
 
 // Rend les valeurs d'avant, une seule fois ; ni d'une autre personne, ni d'une autre organisation, ni
-// passé le délai. Renvoie le nombre de tâches rendues.
+// passé le délai. Renvoie le nombre de tâches rendues. Revue du 70a : seuls les champs que le geste a
+// changés reviennent (la date et l'état « fixée », ou le responsable et la personne) : annuler un report
+// ne défait pas la personne choisie entre-temps. Une personne qui n'est plus active ne revient pas (A4).
 export async function undoTasksChange(input: { organizationId: string; userId: string; undoId: string; now?: Date }): Promise<number> {
   if (!UUID.test(input.undoId) || !UUID.test(input.userId)) return 0;
   const now = input.now ?? new Date();
@@ -166,9 +169,13 @@ export async function undoTasksChange(input: { organizationId: string; userId: s
     if (!snapshot) return 0;
     let restored = 0;
     for (const task of snapshot.payload.tasks) {
+      const values =
+        snapshot.payload.kind === "date"
+          ? { dueDate: task.dueDate, fixedAt: task.fixedAt ? new Date(task.fixedAt) : null }
+          : { responsible: task.responsible, vendorCandidateId: task.vendorCandidateId, assigneeUserId: task.responsible === "planner" ? await stillAssignable(tx, input.organizationId, task.assigneeUserId) : null };
       const rows = await tx
         .update(eventTasks)
-        .set({ dueDate: task.dueDate, fixedAt: task.fixedAt ? new Date(task.fixedAt) : null, responsible: task.responsible, vendorCandidateId: task.vendorCandidateId, assigneeUserId: task.assigneeUserId, updatedAt: now })
+        .set({ ...values, updatedAt: now })
         .where(eq(eventTasks.id, task.id))
         .returning({ id: eventTasks.id });
       restored += rows.length;

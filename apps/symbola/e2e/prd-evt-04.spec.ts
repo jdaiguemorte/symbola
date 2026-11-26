@@ -103,7 +103,8 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   const row = (label: string) => page.getByRole("row", { name: new RegExp(label) });
   await expect(page.getByRole("columnheader", { name: "juin 2026" })).toBeVisible();
   await expect(row("Réserver le lieu")).toContainText("ven. 12 juin");
-  await expect(row("Réserver le lieu")).toContainText("Planner");
+  // Lot 70a (A3) : une tâche créée par un modèle est à qui l'applique : « Vous ».
+  await expect(row("Réserver le lieu")).toContainText("Vous");
   await expect(page.getByRole("columnheader", { name: "février 2027" })).toBeVisible();
   await expect(row("Envoyer les faire-part")).toContainText("ven. 12 févr.");
   await expect(row("Envoyer les faire-part")).toContainText("Mariés");

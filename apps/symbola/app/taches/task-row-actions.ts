@@ -22,7 +22,7 @@ import {
   updateEventTask,
   type BulkTaskChange,
 } from "@/modules/events/service";
-import { readResponsibleValue } from "@/app/events/[id]/task-responsible";
+import { readResponsibleEdit, readResponsibleValue, UNCHANGED_RESPONSIBLE } from "@/app/events/[id]/task-responsible";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { offerUndo } from "@/lib/undo";
 import { isPostponeChoice, postponedDueDate } from "@/lib/tasks/postpone";
@@ -59,16 +59,27 @@ function knownError(error: unknown, t: Awaited<ReturnType<typeof getTranslations
 
 // « vendor:<id> » confie la tâche à ce prestataire retenu sur l'évènement (lot 34b) ; lot 70a (A1) :
 // « member:<id> » à ce collègue (vérifié par le service).
-const readResponsible = readResponsibleValue;
 
 const saveSchema = z.object({
   taskId: z.string().refine(isValidId),
   label: z.string().trim().min(1).max(300),
   dueDate: z.string().regex(DATE),
-  responsible: z.string(),
+  // Revue du 70a : absent = personne inchangée (readResponsibleEdit).
+  responsible: z.string().optional(),
   categoryId: z.string(),
   priority: z.enum(["high", "normal"]),
 });
+
+// Revue du 70a : le message dit le champ en cause (auparavant, tout refus hors libellé disait « date »).
+function saveErrorMessage(fields: (PropertyKey | undefined)[], t: Awaited<ReturnType<typeof getTranslations<"Events">>>): string {
+  if (fields.includes("taskId")) return t("taskNotFound");
+  if (fields.includes("label")) return t("missingLabel");
+  if (fields.includes("dueDate")) return t("invalidDate");
+  if (fields.includes("responsible")) return t("invalidResponsible");
+  if (fields.includes("categoryId")) return t("taskCategoryInvalid");
+  // Seule la priorité reste : elle ne peut être fausse que forgée.
+  return t("taskNotFound");
+}
 
 // La fenêtre de la tâche : « Enregistrer ».
 export async function saveTaskAction(_prev: TaskRowState, formData: FormData): Promise<TaskRowState> {
@@ -76,13 +87,13 @@ export async function saveTaskAction(_prev: TaskRowState, formData: FormData): P
   const organizationId = await organizationOrNull();
   if (!organizationId) return { error: t("unauthenticated") };
   const parsed = saveSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { error: parsed.error.issues.some((issue) => issue.path[0] === "label") ? t("missingLabel") : t("invalidDate") };
-  const responsible = readResponsible(parsed.data.responsible);
+  if (!parsed.success) return { error: saveErrorMessage(parsed.error.issues.map((issue) => issue.path[0]), t) };
+  const responsible = readResponsibleEdit(parsed.data.responsible);
   if (!responsible) return { error: t("invalidResponsible") };
   const categoryId = parsed.data.categoryId === "" ? null : parsed.data.categoryId;
   if (categoryId !== null && !isValidId(categoryId)) return { error: t("taskCategoryInvalid") };
   try {
-    await updateEventTask({ organizationId, taskId: parsed.data.taskId, label: parsed.data.label, dueDate: parsed.data.dueDate, ...responsible, categoryId, priority: parsed.data.priority });
+    await updateEventTask({ organizationId, taskId: parsed.data.taskId, label: parsed.data.label, dueDate: parsed.data.dueDate, ...(responsible === UNCHANGED_RESPONSIBLE ? {} : responsible), categoryId, priority: parsed.data.priority });
   } catch (error) {
     return { error: knownError(error, t) };
   }

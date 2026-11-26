@@ -10,7 +10,7 @@ import {
   updateEventTaskAction,
   type TaskFormState,
 } from "./task-actions";
-import { RESPONSIBLE_LABEL_KEYS, responsibleValue, type TaskMemberOption } from "./task-responsible";
+import { RESPONSIBLE_LABEL_KEYS, responsibleSelection, responsibleValue, UNCHANGED_RESPONSIBLE, type TaskMemberOption } from "./task-responsible";
 import { SameDayNotice } from "../same-day-notice";
 
 // Lot 34b (CHR-02, D12) : prestataires engagés sur l'événement, à qui une tâche peut être confiée.
@@ -18,16 +18,16 @@ export type TaskVendorOption = { candidateId: string; name: string };
 
 
 // Lot 70a (CHR-02 ; A1, A3, A4) : « Vous », chaque collègue par son nom, les clients, chaque prestataire
-// retenu. Une tâche restée à un accès retiré, ou sans personne nommée, garde sa valeur (choix désactivé).
+// retenu. Une tâche restée à un accès retiré, ou sans personne nommée, garde sa valeur : l'option porte
+// « inchangé », que le navigateur envoie (une option désactivée ne l'est pas : l'enregistrement échouait).
 export function ResponsibleSelect({ value, onChange, vendors, members = [] }: { value: string; onChange: (value: string) => void; vendors: TaskVendorOption[]; members?: TaskMemberOption[] }) {
   const t = useTranslations("Events");
   const active = members.filter((member) => !member.removed);
-  const removed = members.find((member) => member.removed && `member:${member.id}` === value);
-  const known = value === "clients" || active.some((member) => `member:${member.id}` === value) || vendors.some((vendor) => `vendor:${vendor.candidateId}` === value) || (value === "planner" && active.length === 0);
+  const { selected, unchanged } = responsibleSelection(value, members, vendors.map((vendor) => vendor.candidateId));
   return (
     <label>
       {t("taskResponsible")}
-      <select name="responsible" value={value} onChange={(event) => onChange(event.target.value)}>
+      <select name="responsible" value={selected} onChange={(event) => onChange(event.target.value === UNCHANGED_RESPONSIBLE ? value : event.target.value)}>
         {active.length === 0 ? <option value="planner">{t(RESPONSIBLE_LABEL_KEYS.planner)}</option> : null}
         {active.map((member) => (
           <option key={member.id} value={`member:${member.id}`}>
@@ -41,9 +41,9 @@ export function ResponsibleSelect({ value, onChange, vendors, members = [] }: { 
           </option>
         ))}
         {/* Prestataire retiré de l'événement, accès retiré (A4) ou personne nommée : la tâche reste à confier. */}
-        {!known ? (
-          <option value={value} disabled>
-            {removed ? t("responsibleMemberRemoved", { name: removed.name }) : value === "planner" ? t("responsibleNobody") : t("responsibleVendorRemoved")}
+        {unchanged ? (
+          <option value={UNCHANGED_RESPONSIBLE}>
+            {unchanged.kind === "removedMember" ? t("responsibleMemberRemoved", { name: unchanged.name }) : unchanged.kind === "nobody" ? t("responsibleNobody") : t("responsibleVendorRemoved")}
           </option>
         ) : null}
       </select>

@@ -192,7 +192,7 @@ import { attachFile, getAttachmentFile, listAttachments, listEventAttachments, r
 import { addComment, listComments, removeComment, restoreComment } from "./task-comments";
 import { addStarterCategories, countByCategory, createCategory, listCategories, moveCategory, removeCategory, TaskCategoryNotFoundError, updateCategory } from "./task-categories";
 import { changeTasks, changeTasksKeepingUndo, removeTasks, restoreTasksDeletedWith, undoTasksChange, type UndoableTaskChange } from "./task-bulk";
-import { actingMemberId, assertAssignable, normalizeTaskNote } from "./task-assignment";
+import { actingMemberId, normalizeTaskNote } from "./task-assignment";
 import { countOpenTasksOf, findEventTaskRow, findTaskList } from "./task-list";
 import { taskDueState } from "./due-state";
 import { listTrashedEventRows, restoreDocumentRow, restoreEventRow, restoreProgramTemplateRow, restoreTaskTemplateRow, trashEventRow } from "./trash";
@@ -1660,8 +1660,8 @@ export async function addEventTask(organizationId: string, eventId: string, task
   assertDate(task.dueDate);
   if (!TASK_RESPONSIBLES.includes(task.responsible)) throw new RangeError("responsable inconnu");
   if (task.priority !== undefined && !TASK_PRIORITIES.includes(task.priority)) throw new RangeError("priorité inconnue");
-  // Lot 70a (CHR-02 ; A3, A7) : un membre actif de l'organisation, sinon la personne qui crée ; note interne.
-  if (task.assigneeUserId) await assertAssignable(organizationId, task.assigneeUserId);
+  // Lot 70a (CHR-02 ; A3, A7) : un membre actif de l'organisation (vérifié dans la transaction de
+  // l'écriture), sinon la personne qui crée ; note interne.
   const note = normalizeTaskNote(task.note);
   const actorId = await actingMemberId();
   const row = await insertEventTask(organizationId, eventId, { ...task, label: normalizeLabel(task.label), note }, actorId);
@@ -1678,8 +1678,8 @@ export async function updateEventTask(input: UpdateEventTaskInput): Promise<Even
   }
   if (input.priority !== undefined && !TASK_PRIORITIES.includes(input.priority)) throw new RangeError("priorité inconnue");
   const label = input.label === undefined ? undefined : normalizeLabel(input.label);
-  // Lot 70a (CHR-02 ; A1 à A4, A7) : un membre actif de l'organisation ; la note, nettoyée.
-  if (input.assigneeUserId) await assertAssignable(input.organizationId, input.assigneeUserId);
+  // Lot 70a (CHR-02 ; A1 à A4, A7) : un membre actif de l'organisation (vérifié dans la transaction de
+  // l'écriture) ; la note, nettoyée.
   const note = normalizeTaskNote(input.note);
   const actorId = await actingMemberId();
   const row = await updateEventTaskRow({ ...input, label, note, actorId });
@@ -1709,15 +1709,13 @@ export async function removeEventTask(organizationId: string, taskId: string): P
 export const TASK_PRIORITIES: TaskPriority[] = ["high", "normal"];
 
 export async function changeEventTasks(organizationId: string, taskIds: string[], change: BulkTaskChange): Promise<number> {
-  // Lot 70a (CHR-02 ; A19) : « Confier à » n'accepte qu'un membre actif de l'organisation.
-  if (change.kind === "assign") await assertAssignable(organizationId, change.userId);
+  // Lot 70a (CHR-02 ; A19) : « Confier à » n'accepte qu'un membre actif de l'organisation (task-bulk.ts).
   return changeTasks(organizationId, taskIds, change, await actingMemberId());
 }
 
 // Lot 70a (UX-07 ; C-09, A18) — « Changer la date » et « Confier à » avec « Annuler » : les valeurs d'avant
 // sont gardées dix minutes ; seule la personne qui a fait le geste les rend.
 export async function changeTasksWithUndo(input: { organizationId: string; userId: string; taskIds: string[]; change: UndoableTaskChange; now?: Date }): Promise<{ changed: number; undoId: string | null }> {
-  if (input.change.kind === "assign") await assertAssignable(input.organizationId, input.change.userId);
   return changeTasksKeepingUndo({ ...input, actorId: await actingMemberId() });
 }
 

@@ -10,8 +10,12 @@ ALTER TABLE "events"."event_tasks" ADD CONSTRAINT "event_tasks_assignee_check" C
 -- principal de son évènement (lot 52) s'il est encore membre actif ; sinon à la personne qui l'a créée, si
 -- elle l'est encore ; sinon à la titulaire (la plus ancienne adhésion « owner » active). Une tâche hors
 -- évènement n'a pas de planner principal : elle revient à sa créatrice, sinon à la titulaire. Seules les
--- tâches sans personne changent : la migration se rejoue sans rien changer. Lecture seule de hub (qui est
--- membre) ; l'horodatage des lignes n'est pas touché (ce n'est pas une modification de la planner).
+-- tâches sans personne changent : la migration se rejoue sans rien changer. L'horodatage des lignes n'est
+-- pas touché (ce n'est pas une modification de la planner).
+-- Exception assumée à « une migration ne touche que son schéma » (DAT-09, ADR 0036) : cette étape LIT
+-- hub.memberships (qui est membre actif, et avec quel rôle), sans rien y écrire ; aucune clé ni dépendance
+-- durable vers hub n'est créée. Une migration ne passe pas par service.ts : c'est la seule lecture possible
+-- pour reprendre les tâches existantes, une seule fois, au déploiement. Revue du 70a.
 ALTER TABLE "events"."event_tasks" DISABLE TRIGGER "event_tasks_stamp";
 --> statement-breakpoint
 UPDATE "events"."event_tasks" AS t

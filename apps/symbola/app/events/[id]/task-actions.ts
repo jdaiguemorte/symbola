@@ -26,7 +26,7 @@ import {
 } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
-import { readResponsibleValue, type ResponsibleChoice } from "./task-responsible";
+import { readResponsibleCreate, readResponsibleEdit, UNCHANGED_RESPONSIBLE, type ResponsibleChoice } from "./task-responsible";
 
 export type TaskFormState = { error?: string; success?: boolean; recalculationProposed?: boolean };
 
@@ -42,7 +42,7 @@ async function authorize(t: Awaited<ReturnType<typeof getTranslations>>) {
 // Lot 34b (CHR-02, D12) : « vendor:<id> » confie la tâche à ce prestataire retenu sur l'événement.
 // Lot 70a (CHR-02 ; A1) : « member:<id> » la confie à ce collègue (vérifié par le service).
 function readResponsible(formData: FormData): ResponsibleChoice | null {
-  return readResponsibleValue(String(formData.get("responsible") ?? ""));
+  return readResponsibleCreate(String(formData.get("responsible") ?? ""));
 }
 
 // Erreurs métier connues → message traduit ; le reste remonte.
@@ -143,11 +143,13 @@ export async function updateEventTaskAction(_prevState: TaskFormState, formData:
   if (!label) return { error: t("missingLabel") };
   const dueDate = String(formData.get("dueDate") ?? "");
   if (!DATE_PATTERN.test(dueDate)) return { error: t("invalidDate") };
-  const responsible = readResponsible(formData);
+  // Revue du 70a : champ absent ou « inchangé » (valeur qu'on ne peut plus choisir) = personne inchangée.
+  const raw = formData.get("responsible");
+  const responsible = readResponsibleEdit(raw === null ? null : String(raw));
   if (!responsible) return { error: t("invalidResponsible") };
 
   try {
-    await updateEventTask({ organizationId: access.organizationId, taskId, label, dueDate, ...responsible });
+    await updateEventTask({ organizationId: access.organizationId, taskId, label, dueDate, ...(responsible === UNCHANGED_RESPONSIBLE ? {} : responsible) });
   } catch (error) {
     return { error: taskErrorMessage(error, t) };
   }

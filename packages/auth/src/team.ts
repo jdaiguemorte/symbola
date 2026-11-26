@@ -23,7 +23,8 @@ export type TeamMember = {
   disabledAt: Date | null;
 };
 
-export async function listTeam(db: AppDatabase, organizationId: string): Promise<TeamMember[]> {
+// Revue du 70a : accepte aussi une transaction, pour vérifier un membre dans la transaction d'écriture.
+export async function listTeam(db: Pick<AppDatabase, "select">, organizationId: string): Promise<TeamMember[]> {
   return db
     .select({ id: users.id, email: users.email, firstName: users.firstName, lastName: users.lastName, role: memberships.role, lastLoginAt: users.lastLoginAt, disabledAt: memberships.disabledAt })
     .from(memberships)
