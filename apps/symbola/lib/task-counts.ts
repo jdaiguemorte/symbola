@@ -2,7 +2,7 @@
 // menu, la page Tâches et « Aujourd'hui » : les tâches des évènements en cours et les tâches hors
 // évènement. Avant, la pastille du menu et l'en-tête de la page ignoraient les secondes, et les trois
 // nombres se contredisaient.
-import { listOrganizationTasks, listStandaloneTasks } from "@/modules/events/service";
+import { listOrganizationTasks, listStandaloneTasks, taskDueState } from "@/modules/events/service";
 
 type Dated = { done: boolean; dueDate: string };
 
@@ -11,7 +11,8 @@ export function countTasks(eventTasks: readonly (Dated & { overdue: boolean })[]
   const open = standalone.filter((task) => !task.done);
   return {
     todo: eventTasks.filter((task) => !task.done).length + open.length,
-    overdue: eventTasks.filter((task) => task.overdue).length + open.filter((task) => task.dueDate < today).length,
+    // Lot 70a (UX-06 ; Q47-4) : un seul calcul de l'état d'échéance (modules/events/due-state.ts).
+    overdue: eventTasks.filter((task) => task.overdue).length + open.filter((task) => taskDueState(task, today)?.kind === "late").length,
   };
 }
 

@@ -12,6 +12,9 @@ import { isEventsModuleEnabled } from "../events/module-access";
 import { isAppointmentsModuleEnabled } from "@/modules/appointments/service";
 import { SignOutEverywhereForm } from "../sign-out-everywhere-form";
 import { LanguageForm } from "./language-form";
+import { NamesForm } from "./names-form";
+import { getUserNames } from "@symbola/auth";
+import { appDatabase } from "@symbola/db/client";
 
 export default async function ProfilePage() {
   const auth = await requireSignedIn();
@@ -44,6 +47,8 @@ export default async function ProfilePage() {
     <main>
       <h1>{t("title")}</h1>
       <ScreenHelp title={tHelp("profile.title")} body={tHelp("profile.body")} />
+      {/* Lot 70a (CHR-02 ; A1) : le nom sous lequel l'équipe voit la personne, pour une personne de l'équipe. */}
+      {auth.user.role !== "admin" ? <NamesForm {...await getUserNames(appDatabase(), auth.user.id)} /> : null}
       <LanguageForm currentLanguage={auth.user.language ?? "fr"} />
       {/* Lot 66c (HUB-18 ; D5) : la signature des e-mails, pour une personne de l'équipe qui envoie. */}
       {auth.user.role === "owner" || auth.user.role === "member" ? (

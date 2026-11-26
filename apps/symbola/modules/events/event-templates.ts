@@ -4,6 +4,7 @@
 // case, les prestataires retenus (contacts professionnels). Le contrôle « aucune donnée personnelle »
 // (template-rules) refuse tout enregistrement qui en contient. Les lignes du budget (module Budget)
 // sont ajoutées par lib/events/event-templates, qui orchestre les deux modules (ADR 0011).
+import { actingMemberId } from "./task-assignment";
 import { and, asc, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import { appDatabase } from "@symbola/db/client";
 import { withOrganization } from "@symbola/db/with-organization";
@@ -133,6 +134,8 @@ export async function removeEventTemplate(organizationId: string, templateId: st
 // leurs dates recalculées, postes, prestataires gardés (présélectionnés), une tâche par questionnaire.
 // Le programme passe par le service (temps fort du jour) ; renvoie les postes créés, par libellé.
 export async function applyTemplateStructures(input: { organizationId: string; eventId: string; eventDate: string; content: EventTemplateContent; locale: "fr" | "en" }): Promise<Map<string, string>> {
+  // Lot 70a (A3) : les tâches « planner » sont à la personne qui applique le modèle.
+  const actorId = await actingMemberId();
   return inOrganization(input.organizationId, async (tx) => {
     const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, input.eventId));
     if (!event) throw new EventNotFoundError();
@@ -149,6 +152,7 @@ export async function applyTemplateStructures(input: { organizationId: string; e
           offsetDays: task.offsetDays,
           dueDate: dueDateFor(input.eventDate, task.offsetDays) ?? input.eventDate,
           responsible: task.responsible,
+          assigneeUserId: task.responsible === "planner" ? actorId : null,
           isMilestone: task.isMilestone,
           position,
         })),

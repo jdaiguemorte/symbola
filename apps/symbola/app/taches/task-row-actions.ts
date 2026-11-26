@@ -15,14 +15,14 @@ import {
   EventTaskNotFoundError,
   removeEventTask,
   removeEventTasks,
-  TASK_RESPONSIBLES,
+  TaskAssigneeNotFoundError,
   TaskCategoryNotFoundError,
   TaskLabelRequiredError,
   TaskVendorInvalidError,
   updateEventTask,
   type BulkTaskChange,
-  type TaskResponsible,
 } from "@/modules/events/service";
+import { readResponsibleEdit, readResponsibleValue, UNCHANGED_RESPONSIBLE } from "@/app/events/[id]/task-responsible";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { offerUndo } from "@/lib/undo";
 import { isPostponeChoice, postponedDueDate } from "@/lib/tasks/postpone";
@@ -49,29 +49,37 @@ function knownError(error: unknown, t: Awaited<ReturnType<typeof getTranslations
   if (error instanceof EventTaskNotFoundError || error instanceof EventNotFoundError) return t("taskNotFound");
   if (error instanceof TaskLabelRequiredError) return t("missingLabel");
   if (error instanceof TaskVendorInvalidError) return t("taskVendorInvalid");
+  // Lot 70a (§ 3.4) : un compte qui n'est pas un membre actif répond comme une tâche introuvable.
+  if (error instanceof TaskAssigneeNotFoundError) return t("taskNotFound");
   if (error instanceof TaskCategoryNotFoundError) return t("taskCategoryInvalid");
   if (error instanceof BulkTaskChangeInvalidError) return t("tasksBulkInvalid");
   if (error instanceof RangeError) return t("invalidDate");
   throw error;
 }
 
-// « vendor:<id> » confie la tâche à ce prestataire retenu sur l'évènement (lot 34b).
-function readResponsible(value: string): { responsible: TaskResponsible; vendorCandidateId: string | null } | null {
-  if (value.startsWith("vendor:")) {
-    const vendorCandidateId = value.slice("vendor:".length);
-    return isValidId(vendorCandidateId) ? { responsible: "vendor", vendorCandidateId } : null;
-  }
-  return value !== "vendor" && TASK_RESPONSIBLES.includes(value as TaskResponsible) ? { responsible: value as TaskResponsible, vendorCandidateId: null } : null;
-}
+// « vendor:<id> » confie la tâche à ce prestataire retenu sur l'évènement (lot 34b) ; lot 70a (A1) :
+// « member:<id> » à ce collègue (vérifié par le service).
 
 const saveSchema = z.object({
   taskId: z.string().refine(isValidId),
   label: z.string().trim().min(1).max(300),
   dueDate: z.string().regex(DATE),
-  responsible: z.string(),
+  // Revue du 70a : absent = personne inchangée (readResponsibleEdit).
+  responsible: z.string().optional(),
   categoryId: z.string(),
   priority: z.enum(["high", "normal"]),
 });
+
+// Revue du 70a : le message dit le champ en cause (auparavant, tout refus hors libellé disait « date »).
+function saveErrorMessage(fields: (PropertyKey | undefined)[], t: Awaited<ReturnType<typeof getTranslations<"Events">>>): string {
+  if (fields.includes("taskId")) return t("taskNotFound");
+  if (fields.includes("label")) return t("missingLabel");
+  if (fields.includes("dueDate")) return t("invalidDate");
+  if (fields.includes("responsible")) return t("invalidResponsible");
+  if (fields.includes("categoryId")) return t("taskCategoryInvalid");
+  // Seule la priorité reste : elle ne peut être fausse que forgée.
+  return t("taskNotFound");
+}
 
 // La fenêtre de la tâche : « Enregistrer ».
 export async function saveTaskAction(_prev: TaskRowState, formData: FormData): Promise<TaskRowState> {
@@ -79,13 +87,13 @@ export async function saveTaskAction(_prev: TaskRowState, formData: FormData): P
   const organizationId = await organizationOrNull();
   if (!organizationId) return { error: t("unauthenticated") };
   const parsed = saveSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { error: parsed.error.issues.some((issue) => issue.path[0] === "label") ? t("missingLabel") : t("invalidDate") };
-  const responsible = readResponsible(parsed.data.responsible);
+  if (!parsed.success) return { error: saveErrorMessage(parsed.error.issues.map((issue) => issue.path[0]), t) };
+  const responsible = readResponsibleEdit(parsed.data.responsible);
   if (!responsible) return { error: t("invalidResponsible") };
   const categoryId = parsed.data.categoryId === "" ? null : parsed.data.categoryId;
   if (categoryId !== null && !isValidId(categoryId)) return { error: t("taskCategoryInvalid") };
   try {
-    await updateEventTask({ organizationId, taskId: parsed.data.taskId, label: parsed.data.label, dueDate: parsed.data.dueDate, ...responsible, categoryId, priority: parsed.data.priority });
+    await updateEventTask({ organizationId, taskId: parsed.data.taskId, label: parsed.data.label, dueDate: parsed.data.dueDate, ...(responsible === UNCHANGED_RESPONSIBLE ? {} : responsible), categoryId, priority: parsed.data.priority });
   } catch (error) {
     return { error: knownError(error, t) };
   }
@@ -128,7 +136,8 @@ export async function deleteTaskAction(formData: FormData): Promise<void> {
 const bulkSchema = z.object({
   op: z.enum(["shift", "responsible", "category", "delete"]),
   days: z.coerce.number().int().optional(),
-  responsible: z.enum(["planner", "clients"]).optional(),
+  // Lot 70a (A1) : « member:<id> » confie les tâches à ce collègue.
+  responsible: z.union([z.enum(["planner", "clients"]), z.string().regex(/^member:[0-9a-f-]{36}$/i)]).optional(),
   categoryId: z.string().optional(),
 });
 
@@ -159,8 +168,9 @@ export async function bulkTasksAction(_prev: TaskRowState, formData: FormData): 
       if (parsed.data.days === undefined) return { error: t("tasksBulkInvalid") };
       change = { kind: "shift", days: parsed.data.days };
     } else if (op === "responsible") {
-      if (!parsed.data.responsible) return { error: t("invalidResponsible") };
-      change = { kind: "responsible", responsible: parsed.data.responsible };
+      const choice = parsed.data.responsible ? readResponsibleValue(parsed.data.responsible) : null;
+      if (!choice || choice.responsible === "vendor") return { error: t("invalidResponsible") };
+      change = choice.assigneeUserId ? { kind: "assign", userId: choice.assigneeUserId } : { kind: "responsible", responsible: choice.responsible };
     } else {
       const categoryId = parsed.data.categoryId ? parsed.data.categoryId : null;
       if (categoryId !== null && !isValidId(categoryId)) return { error: t("taskCategoryInvalid") };
@@ -169,7 +179,7 @@ export async function bulkTasksAction(_prev: TaskRowState, formData: FormData): 
     const count = await changeEventTasks(organizationId, taskIds, change);
     refresh();
     const message =
-      change.kind === "shift" ? t("tasksBulkShifted", { count, days: change.days }) : change.kind === "responsible" ? t("tasksBulkResponsibleDone", { count }) : t("tasksBulkCategoryDone", { count });
+      change.kind === "shift" ? t("tasksBulkShifted", { count, days: change.days }) : change.kind === "responsible" || change.kind === "assign" ? t("tasksBulkResponsibleDone", { count }) : t("tasksBulkCategoryDone", { count });
     return { success: message, done: count };
   } catch (error) {
     return { error: knownError(error, t) };

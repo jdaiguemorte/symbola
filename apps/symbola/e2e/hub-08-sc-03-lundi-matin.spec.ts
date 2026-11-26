@@ -7,7 +7,7 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
 import { createAppConnection } from "@symbola/db/client";
-import { createUser } from "@symbola/auth";
+import { createUser, setUserNames } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import {
   addEventTask,
@@ -52,6 +52,8 @@ async function lundiMatin() {
     await saveOnboardingStep(db, organizationId, { vatRegime: "franchise", vatRateDefaultBasisPoints: null, metier: "wedding_planner" });
     const email = `camille-${randomUUID()}@symbola.test`;
     const owner = await createUser(db, { organizationId, email, password: PASSWORD, role: "owner" });
+    // Lot 70a (CHR-02) : Camille a son prénom, comme dans le jeu fictif ; sinon l'accueil le lui propose.
+    await setUserNames(db, owner.id, { firstName: "Camille", lastName: "Durand" });
     const source = await createProspectSource(organizationId, "Salon");
     const wedding = async (first: string, second: string, days: number, confirmed: boolean) => {
       const event = await createProspect({ organizationId, createdByUserId: owner.id, prospectSourceId: source.id, clients: [{ firstName: first }, { firstName: second }], eventDate: parisDay(days) });

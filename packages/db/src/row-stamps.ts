@@ -32,6 +32,8 @@ export const TECHNICAL_TABLES: Record<string, string> = {
   "hub.ownership_transfers": "demande de transfert de propriété, tracée au journal d'audit à la demande et à la confirmation",
   "hub.identity_change_alerts": "alerte annoncée par le webhook du fournisseur d'identité, écrite par le système",
   "quotes.number_series": "compteur de numérotation, verrouillé en transaction",
+  // Lot 70a (UX-07 ; A18) : valeurs d'avant un changement de date ou de personne, pour « Annuler ».
+  "events.task_change_snapshots": "valeurs d'avant d'un geste sur des tâches (auteur : user_id), purgées après dix minutes",
   "quotes.signature_webhook_log": "trace technique des appels du fournisseur de signature (received_at)",
 };
 

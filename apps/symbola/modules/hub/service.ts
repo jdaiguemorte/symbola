@@ -1494,6 +1494,7 @@ export {
   markAllNotificationsRead,
   markNotificationRead,
   notificationActionLabel,
+  notificationPeople,
   notificationRecipients,
   notificationText,
   notificationTypeLabel,

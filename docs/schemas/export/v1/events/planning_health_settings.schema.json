@@ -24,6 +24,18 @@
       "minimum": -9007199254740991,
       "maximum": 9007199254740991
     },
+    "soonDays": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
@@ -64,6 +76,7 @@
     "watchPoints",
     "latePoints",
     "milestoneWeight",
+    "soonDays",
     "createdAt",
     "createdBy",
     "updatedAt",

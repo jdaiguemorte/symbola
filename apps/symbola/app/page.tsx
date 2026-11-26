@@ -20,6 +20,7 @@ import { loadPageTour } from "@/lib/help/page-tour";
 import { longDate, MyEvents, TodayFirst, TodayRest, todayWords, UnavailableNotice } from "./accueil/today-view";
 import { UndoTaskNotice } from "./accueil/today-client";
 import { OnboardingChecklist } from "./accueil/onboarding-checklist";
+import { NamesPrompt } from "./accueil/names-prompt";
 import { loadOnboardingChecklist } from "@/lib/onboarding/checklist";
 import { TodayCalendar } from "./accueil/today-calendar";
 import { isCalendarView, isMonthKey, isWeekKey, mondayOf, type CalendarView } from "@/lib/today/calendar";
@@ -138,6 +139,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           {tHome("onboardingIncomplete")} <Link href="/parametres">{tHome("completeProfile")}</Link>
         </p>
       ) : null}
+      {/* Lot 70a (A1) : le prénom, pour que l'équipe reconnaisse la personne. */}
+      <NamesPrompt userId={auth.user.id} />
       {mailQuota?.reached && mailQuota.resumesAt ? (
         <p className="notice" role="alert">
           {tHome("mailQuotaReached", { sent: mailQuota.sent, cap: mailQuota.cap, time: formatDateTime(mailQuota.resumesAt, locale) })}

@@ -144,7 +144,9 @@ export const EVENTS_EXPORT_ENTITIES: readonly ExportEntitySpec[] = [
   { table: vendorReminders, ...ofEvent, parents: { candidateId: "event_vendor_candidates", noteId: "event_vendor_candidate_notes" } },
   // Lot 66b (JRJ-01 ; D2, D3) : le rappel du jour J réglé pour l'évènement.
   { table: dayReminderOverrides, ...ofEvent },
-  { table: eventTasks, ...ofEvent },
+  // Lot 70a (§ 3.5) : la personne qui s'en charge et celle qui a coché sont des comptes de l'organisation
+  // d'origine ; la reprise dans une autre organisation les remet à nul (« qui a coché » garde sa sorte).
+  { table: eventTasks, ...ofEvent, importTransform: (row) => ({ ...row, assigneeUserId: null, doneByUserId: null }) },
   { table: eventTaskComments, ...ofEvent },
   { table: eventTaskAttachments, ...ofEvent, files: ["fileKey"] },
   { table: programItems, ...ofEvent },
@@ -199,6 +201,8 @@ export const EVENTS_EXPORT_EXCLUSIONS: Readonly<Record<string, string>> = {
   event_task_reminders: "technique : rappels déjà envoyés par les liens, qui ne sont pas repris",
   // Lot 55 (POR-11).
   link_push_subscriptions: "technique : abonnements push des appareils des clients (adresse du service de push, clés publiques), propres à chaque appareil",
+  // Lot 70a (A18).
+  task_change_snapshots: "technique : valeurs d'avant d'un changement de date ou de personne, pour « Annuler », purgées après dix minutes",
 };
 
 export function exportEventsData(organizationId: string, context: ModuleExportContext): Promise<ModuleExport> {

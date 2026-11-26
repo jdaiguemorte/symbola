@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { RequiredLegend, RequiredMark } from "@/app/ui/required-mark";
 import { ResponsibleSelect, type TaskVendorOption } from "@/app/events/[id]/task-forms";
+import type { TaskMemberOption } from "@/app/events/[id]/task-responsible";
 import { deleteTaskAction, saveTaskAction, type TaskRowState } from "./task-row-actions";
 
 export type TaskDialogTask = {
@@ -30,6 +31,7 @@ export function TaskDialog({
   closeHref,
   categories,
   vendors = [],
+  members = [],
   eventLink,
   sections = [],
   children,
@@ -39,6 +41,8 @@ export function TaskDialog({
   closeHref: string;
   categories: { id: string; label: string }[];
   vendors?: TaskVendorOption[];
+  // Lot 70a (CHR-02 ; A1) : les collègues proposés dans « Qui s'en charge ».
+  members?: TaskMemberOption[];
   // Écran « Tâches » : l'évènement de la tâche, et son rétroplanning.
   eventLink?: { href: string; label: string; names: string };
   // Rubriques de plus (rétroplanning), rendues par le serveur dans `children`.
@@ -127,7 +131,7 @@ export function TaskDialog({
                   </span>
                   <input type="date" name="dueDate" className="field-date" required value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
                 </label>
-                <ResponsibleSelect value={responsible} onChange={setResponsible} vendors={vendors} />
+                <ResponsibleSelect value={responsible} onChange={setResponsible} vendors={vendors} members={members} />
               </div>
               <div className="field-row">
                 <label>

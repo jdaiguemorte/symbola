@@ -1,0 +1,7 @@
+-- Lot 70a (CHR-02, HUB-15 ; A19, « Notifier dès ce lot », 26/11/2026) : sorte de notification
+-- « task_assigned », une tâche confiée à la personne par un collègue (événement events.task.assigned).
+-- Schéma hub seulement ; la liste des sortes s'élargit : compatible avec l'image précédente (ARC-14).
+ALTER TABLE "hub"."notification_preferences" DROP CONSTRAINT "notification_preferences_type_check";--> statement-breakpoint
+ALTER TABLE "hub"."notifications" DROP CONSTRAINT "notifications_type_check";--> statement-breakpoint
+ALTER TABLE "hub"."notification_preferences" ADD CONSTRAINT "notification_preferences_type_check" CHECK ("hub"."notification_preferences"."type" in ('prospect_request', 'quote_signed', 'quote_expired', 'transfer_declared', 'client_decision', 'vendor_answer', 'iban_to_verify', 'document_expiring', 'task_overdue', 'milestone_late', 'risk_alert', 'day_of_alert', 'client_message', 'email_bounced', 'module_activated', 'task_assigned'));--> statement-breakpoint
+ALTER TABLE "hub"."notifications" ADD CONSTRAINT "notifications_type_check" CHECK ("hub"."notifications"."type" in ('prospect_request', 'quote_signed', 'quote_expired', 'transfer_declared', 'client_decision', 'vendor_answer', 'iban_to_verify', 'document_expiring', 'task_overdue', 'milestone_late', 'risk_alert', 'day_of_alert', 'client_message', 'email_bounced', 'module_activated', 'task_assigned'));

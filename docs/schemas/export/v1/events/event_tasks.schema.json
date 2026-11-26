@@ -219,6 +219,51 @@
         "high",
         "normal"
       ]
+    },
+    "assigneeUserId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "doneByKind": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "member",
+            "clients",
+            "vendor"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "doneByUserId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "note": {
+      "type": [
+        "string",
+        "null"
+      ]
     }
   },
   "required": [
@@ -244,7 +289,11 @@
     "recurrenceSpawnedAt",
     "isMilestone",
     "categoryId",
-    "priority"
+    "priority",
+    "assigneeUserId",
+    "doneByKind",
+    "doneByUserId",
+    "note"
   ],
   "additionalProperties": false,
   "$defs": {

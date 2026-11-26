@@ -5,6 +5,7 @@
 import type { FileDownload } from "../file-download";
 import type { MonthlyCount } from "../usage";
 import type { EventsSearchResults } from "../search";
+import type { TaskDueState } from "./planning";
 // Lot 34a (EVT-05, ADR 0055) : statuts stockés ; EventPhase ajoute « Jour J », qui s'applique de
 // lui-même le jour de l'événement, dans son fuseau (décision D3).
 export type EventStatus = "option" | "confirmed" | "in_preparation" | "closed" | "postponed" | "cancelled";
@@ -438,7 +439,28 @@ export type EventTask = {
   // Lot 63d (CHR-03) : catégorie (nulle : sans catégorie) et priorité.
   categoryId: string | null;
   priority: TaskPriority;
+  // Lot 70a (CHR-02 ; A1 à A4) : le membre de l'équipe qui s'en charge (responsable « planner »
+  // seulement ; « planner » veut dire « quelqu'un de l'agence »). Nul : personne de nommé.
+  assigneeUserId: string | null;
+  // Lot 70a (CHR-04 ; D1, A9) : quand et par qui la tâche a été cochée (qui a coché, pas qui s'en
+  // chargeait) ; nul pour une tâche à faire, ou quand l'auteur n'est pas connu (tâches d'avant le lot).
+  doneAt: string | null;
+  doneBy: TaskDoneBy | null;
+  // Lot 70a (A7) : note interne à l'agence, jamais montrée aux mariés ni aux prestataires.
+  note: string | null;
+  // Lot 70a (UX-06, CHR-05 ; Q47-4) : état d'échéance, calculé là où le jour est connu (listes) ;
+  // null pour une tâche faite.
+  dueState?: TaskDueState | null;
 };
+
+// Lot 70a (D1, A9) : qui a coché — un membre (et lequel), les clients par leur lien, un prestataire
+// par le sien. userId n'est rempli que pour un membre ; jamais l'identifiant d'un lien.
+export const TASK_DONE_BY_KINDS = ["member", "clients", "vendor"] as const;
+export type TaskDoneByKind = (typeof TASK_DONE_BY_KINDS)[number];
+export type TaskDoneBy = { kind: TaskDoneByKind; userId: string | null };
+
+// Lot 70a (A7) : 2 000 caractères au plus.
+export const TASK_NOTE_MAX = 2000;
 
 export type EventTaskInput = {
   label: string;
@@ -447,14 +469,21 @@ export type EventTaskInput = {
   vendorCandidateId?: string | null;
   categoryId?: string | null;
   priority?: TaskPriority;
+  // Lot 70a (A3) : sans valeur, la tâche « planner » est à la personne qui la crée.
+  assigneeUserId?: string | null;
+  note?: string | null;
 };
 
 // Lot 63d (CHR-02, UX-07) : actions groupées sur des tâches choisies dans un tableau.
+// Lot 70a (§ 3.3) : « Fait », « Confier à un membre » et « Toutes au <date> ».
 export type BulkTaskChange =
   | { kind: "shift"; days: number }
   | { kind: "responsible"; responsible: Exclude<TaskResponsible, "vendor"> }
   | { kind: "category"; categoryId: string | null }
-  | { kind: "priority"; priority: TaskPriority };
+  | { kind: "priority"; priority: TaskPriority }
+  | { kind: "done" }
+  | { kind: "assign"; userId: string }
+  | { kind: "setDate"; date: string };
 
 // Lot 34b (CHR-02, D13) : pièces jointes et fil de commentaires d'une tâche, réservés à l'équipe.
 export type EventTaskAttachment = { id: string; taskId: string; eventId: string; label: string; mime: string; sizeBytes: number; createdAt: string };
@@ -476,6 +505,59 @@ export type ListOrganizationTasksInput = {
   includeDone?: boolean;
 };
 
+// —— Lot 70a (CHR-02, CHR-03, CHR-10 ; § 3.3) : une seule liste des tâches de l'organisation ——————————
+// Les tâches d'évènement et hors évènement ensemble, filtrées dans la base, avec le total et le nombre
+// filtré (« 8 tâches à faire sur 42 »). Une tâche d'un évènement annulé ou clôturé n'y est pas.
+
+export const TASK_LIST_STATES = ["todo", "done", "all"] as const;
+export type TaskListState = (typeof TASK_LIST_STATES)[number];
+
+export type TaskListEventFilter = { kind: "event"; eventId: string } | { kind: "none" };
+// « Vous », un membre, les clients, les prestataires ; absent : tout le monde.
+export type TaskListAssigneeFilter = { kind: "me" } | { kind: "member"; userId: string } | { kind: "clients" } | { kind: "vendors" };
+// En retard ; cette semaine (lundi à dimanche) ; les quinze prochains jours, retards compris ; ce mois-ci ;
+// entre deux dates (comprises).
+export type TaskListPeriod = { kind: "late" } | { kind: "week" } | { kind: "fortnight" } | { kind: "month" } | { kind: "between"; from: string; to: string };
+
+export type TaskListFilters = {
+  event?: TaskListEventFilter;
+  assignee?: TaskListAssigneeFilter;
+  period?: TaskListPeriod;
+  categoryId?: string;
+  // « À faire » par défaut.
+  state?: TaskListState;
+};
+
+// Ce que voit la personne (lot 52, A20) : la Propriétaire et, si le réglage est ouvert, toute Planner
+// voient tout ; une Planner restreinte voit les tâches des évènements de son équipe et, hors évènement,
+// celles qui lui sont confiées, qu'elle a créées ou qui n'ont personne.
+export type TaskListViewer = { userId: string; role: "owner" | "member"; allPlannersSeeAll: boolean };
+
+export type ListTasksInput = {
+  organizationId: string;
+  today: string;
+  viewer: TaskListViewer;
+  filters?: TaskListFilters;
+};
+
+export type TaskListItem = Omit<EventTask, "eventId" | "dueState"> & {
+  eventId: string | null;
+  dueState: TaskDueState | null;
+  event: { id: string; names: string; eventDate: string | null; status: EventStatus; isDemo: boolean } | null;
+};
+
+export type TaskList = {
+  tasks: TaskListItem[];
+  // Toutes les tâches que la personne voit, faites comprises, sans filtre.
+  total: number;
+  // Celles qui répondent aux filtres (tasks.length).
+  filtered: number;
+  // Parmi elles, celles en retard.
+  late: number;
+  // Seuil de « Bientôt » de l'organisation (M10).
+  soonDays: number;
+};
+
 export type UpdateEventTaskInput = {
   organizationId: string;
   taskId: string;
@@ -486,6 +568,8 @@ export type UpdateEventTaskInput = {
   done?: boolean | undefined;
   categoryId?: string | null | undefined;
   priority?: TaskPriority | undefined;
+  assigneeUserId?: string | null | undefined;
+  note?: string | null | undefined;
 };
 
 export type TaskRecalculation = {

@@ -91,8 +91,15 @@ const planningHealthSchema = z.object({
   watchPoints: z.number().int().min(1).max(100),
   latePoints: z.number().int().min(1).max(100),
   milestoneWeight: z.number().int().min(1).max(10),
+  // Lot 70a (M10) : seuil de « Bientôt », en jours.
+  soonDays: z.number().int().min(1).max(30),
 });
 const planningHealth = planningHealthSchema.parse(planningHealthFile);
+
+// Lot 70a (UX-06, CHR-05 ; M10) : seuil de départ de l'état « Bientôt » d'une tâche.
+export function starterTaskSoonDays(): number {
+  return planningHealth.soonDays;
+}
 
 export function starterPlanningHealth(): { watchPoints: number; latePoints: number; milestoneWeight: number } {
   return { watchPoints: planningHealth.watchPoints, latePoints: planningHealth.latePoints, milestoneWeight: planningHealth.milestoneWeight };

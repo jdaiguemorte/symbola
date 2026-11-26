@@ -95,6 +95,9 @@ const TEAM_ENTITY = "team_members";
 const teamMemberSchema = z.strictObject({
   userId: z.guid(),
   email: z.string(),
+  // Lot 70a (A1) : prénom et nom saisis par la personne ; non repris dans une autre organisation.
+  firstName: z.string().nullable(),
+  lastName: z.string().nullable(),
   role: z.enum(membershipRoleEnum.enumValues),
   disabledAt: z.iso.datetime().nullable(),
 });
@@ -164,7 +167,7 @@ export async function exportHubData(organizationId: string, context: ModuleExpor
   const team = await listTeam(db, organizationId);
   exported.entities.push({
     name: TEAM_ENTITY,
-    rows: team.map((member) => ({ userId: member.id, email: member.email, role: member.role, disabledAt: member.disabledAt?.toISOString() ?? null })),
+    rows: team.map((member) => ({ userId: member.id, email: member.email, firstName: member.firstName, lastName: member.lastName, role: member.role, disabledAt: member.disabledAt?.toISOString() ?? null })),
   });
   return exported;
 }

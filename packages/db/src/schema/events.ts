@@ -474,6 +474,8 @@ export type TaskRecurrence = (typeof TASK_RECURRENCES)[number];
 // Prestataires, Administratif, Jour J au départ, fichier de données traduisible) et priorité d'une tâche.
 // La couleur est un code « #rrggbb » choisi dans une palette de données ; le libellé s'affiche toujours
 // avec elle (jamais la couleur seule).
+// Lot 70a (D1, A9) : qui a coché une tâche.
+export const TASK_DONE_BY_KINDS = ["member", "clients", "vendor"] as const;
 export const TASK_PRIORITIES = ["high", "normal"] as const;
 export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 
@@ -543,8 +545,23 @@ export const eventTasks = eventsSchema.table("event_tasks", {
   // Lot 63d (CHR-03) : catégorie (facultative ; retirée, la tâche reste sans catégorie) et priorité.
   categoryId: uuid("category_id").references(() => taskCategories.id, { onDelete: "set null" }),
   priority: text("priority", { enum: TASK_PRIORITIES }).notNull().default("normal"),
+  // Lot 70a (CHR-02 ; A1 à A4, migration 0211) : le membre de l'équipe qui s'en charge, seulement pour une
+  // tâche « planner » (quelqu'un de l'agence). Pas de clé étrangère vers hub (avenant de l'ADR 0012) : le
+  // service n'accepte qu'un membre actif de l'organisation. Un accès retiré garde ses tâches (A4).
+  assigneeUserId: uuid("assignee_user_id"),
+  // Lot 70a (CHR-04 ; D1, A9, migration 0212) : qui a coché la tâche — un membre (et lequel), les clients
+  // par leur lien, un prestataire par le sien ; nuls pour une tâche à faire, ou quand ce n'est pas connu.
+  doneByKind: text("done_by_kind", { enum: TASK_DONE_BY_KINDS }),
+  doneByUserId: uuid("done_by_user_id"),
+  // Lot 70a (A7, migration 0213) : note interne à l'agence, jamais montrée aux mariés ni aux prestataires.
+  note: text("note"),
 }, (table) => [
   index("event_tasks_organization_idx").on(table.organizationId),
+  index("event_tasks_assignee_idx").on(table.organizationId, table.assigneeUserId),
+  check("event_tasks_assignee_check", sql`${table.assigneeUserId} is null or ${table.responsible} = 'planner'`),
+  index("event_tasks_done_at_idx").on(table.organizationId, table.doneAt.desc()),
+  check("event_tasks_note_check", sql`${table.note} is null or (char_length(${table.note}) between 1 and 2000 and ${table.note} !~ '[\\x01-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]')`),
+  check("event_tasks_done_by_check", sql`(${table.doneByKind} is null or ${table.doneByKind} in ('member', 'clients', 'vendor')) and (${table.doneAt} is not null or (${table.doneByKind} is null and ${table.doneByUserId} is null)) and (${table.doneByUserId} is null or ${table.doneByKind} = 'member')`),
   index("event_tasks_category_idx").on(table.categoryId),
   check("event_tasks_priority_check", sql`${table.priority} in ('high', 'normal')`),
   index("event_tasks_vendor_candidate_idx").on(table.vendorCandidateId),
@@ -2076,6 +2093,9 @@ export const planningHealthSettings = eventsSchema.table(
     watchPoints: integer("watch_points").notNull(),
     latePoints: integer("late_points").notNull(),
     milestoneWeight: integer("milestone_weight").notNull(),
+    // Lot 70a (UX-06, CHR-05 ; M10, migration 0214) : seuil de « Bientôt » d'une tâche, en jours ; nul : la
+    // valeur de départ (planning-health.json). L'écran de réglage attend le volet « Paramètres ».
+    soonDays: integer("soon_days"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
     createdBy: uuid("created_by"),
@@ -2086,8 +2106,37 @@ export const planningHealthSettings = eventsSchema.table(
     uniqueIndex("planning_health_settings_organization_idx").on(table.organizationId),
     check("planning_health_settings_points_check", sql`${table.watchPoints} between 1 and 100 and ${table.latePoints} between 1 and 100 and ${table.watchPoints} <= ${table.latePoints}`),
     check("planning_health_settings_weight_check", sql`${table.milestoneWeight} between 1 and 10`),
+    check("planning_health_settings_soon_days_check", sql`${table.soonDays} is null or ${table.soonDays} between 1 and 30`),
   ],
 );
+
+// Lot 70a (UX-07 ; C-09, A18, migration 0215) — valeurs d'avant un « Changer la date » ou un « Confier à »
+// (jusqu'à 500 tâches en lot), pour « Annuler » pendant dix secondes : le cookie d'annulation (lib/undo.ts)
+// ne porte que la nature et un identifiant. Table technique : des identifiants et des dates, aucune donnée
+// personnelle ; purgée par la tâche horaire dix minutes après (expires_at).
+export const taskChangeSnapshots = eventsSchema.table(
+  "task_change_snapshots",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").notNull(),
+    // Le membre qui a fait le geste : lui seul peut l'annuler.
+    userId: uuid("user_id").notNull(),
+    payload: jsonb("payload").$type<TaskChangeSnapshotPayload>().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("task_change_snapshots_organization_idx").on(table.organizationId),
+    index("task_change_snapshots_expires_idx").on(table.expiresAt),
+  ],
+);
+
+// Ce que « Annuler » remet, tâche par tâche : l'échéance, son état « fixée » (DAT-07), le responsable et la
+// personne. Aucun libellé.
+export type TaskChangeSnapshotPayload = {
+  kind: "date" | "assignee";
+  tasks: { id: string; dueDate: string; fixedAt: string | null; responsible: "planner" | "clients" | "vendor"; vendorCandidateId: string | null; assigneeUserId: string | null }[];
+};
 
 // Lot 64 (HUB-29, RDV-02 ; D1, D2) — réglages des plages occupées, par organisation : la règle des
 // évènements sans type, et si une option (ou un report en cours) bloque l'agenda. Sans ligne, les

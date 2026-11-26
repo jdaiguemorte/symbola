@@ -64,6 +64,7 @@ import { createQuoteAction, startQuotesTrialAction } from "@/app/devis/actions";
 import { isQuotesModuleEnabled } from "@/app/devis/module-access";
 import { QUOTE_STATUS_LABEL_KEYS } from "@/app/devis/quote-display";
 import { requirePlanner } from "@/lib/guards";
+import { taskMemberOptions } from "@/lib/tasks/members";
 import { EventTeamCard } from "./team-card";
 import { EventBusyCard } from "./busy-card";
 import { ensureEventTypes } from "@/lib/events/event-types";
@@ -434,6 +435,8 @@ export default async function EventDetailPage({
   const selectedIndex = selectedTask ? sameMonth.findIndex((task) => task.id === selectedTask.id) : -1;
   // Lot 34b (CHR-02, D12, D13) : prestataires engagés à qui confier une tâche ; pièces jointes et
   // commentaires de la tâche ouverte, avec l'adresse de l'auteur (équipe).
+  // Lot 70a (CHR-02 ; A1) : les collègues de « Qui s'en charge ».
+  const taskMembers = await taskMemberOptions(organizationId, auth.user.id);
   const taskVendors =
     tab === "retroplanning"
       ? (await listVendorCandidates(organizationId, id)).filter((candidate) => ENGAGED_CANDIDATE_STATUSES.includes(candidate.status)).map((candidate) => ({ candidateId: candidate.id, name: candidate.vendorName }))
@@ -1208,9 +1211,10 @@ export default async function EventDetailPage({
                 selectedTaskId={selectedTask?.id ?? null}
                 openHref={(task) => retroQuery({ tache: task.id })}
                 categories={taskCategories}
+                members={taskMembers}
               />
             ) : null}
-            <AddEventTaskForm eventId={event.id} vendors={taskVendors} />
+            <AddEventTaskForm eventId={event.id} vendors={taskVendors} members={taskMembers} />
           </section>
           {selectedTask ? (
             <TaskDialog
@@ -1219,6 +1223,7 @@ export default async function EventDetailPage({
               closeHref={retroQuery({})}
               categories={taskCategories.map((category) => ({ id: category.id, label: category.label }))}
               vendors={taskVendors}
+              members={taskMembers}
               sections={[
                 { id: "task-dialog-more", title: t("taskDialogMore") },
                 { id: "task-dialog-attachments", title: t("taskAttachmentsTitle") },

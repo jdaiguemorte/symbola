@@ -1478,6 +1478,55 @@
       "when": 1795377824076,
       "tag": "0210_lot66b_hub_day_reminder_templates",
       "breakpoints": true
+    },
+    {
+      "idx": 211,
+      "version": "7",
+      "when": 1795698433900,
+      "tag": "0211_lot70a_events_task_assignee",
+      "breakpoints": true
+    },
+    {
+      "idx": 212,
+      "version": "7",
+      "when": 1795698494205,
+      "tag": "0212_lot70a_events_task_done_by",
+      "breakpoints": true
+    },
+    {
+      "idx": 213,
+      "version": "7",
+      "when": 1795698542146,
+      "tag": "0213_lot70a_events_task_note",
+      "breakpoints": true
+    },
+    {
+      "idx": 214,
+      "version": "7",
+      "when": 1795698555540,
+      "tag": "0214_lot70a_events_soon_days",
+      "breakpoints": true
+    },
+    {
+      "idx": 215,
+      "version": "7",
+      "when": 1795698570750,
+      "tag": "0215_lot70a_events_task_change_snapshots",
+      "breakpoints": true
+    },
+    {
+      "idx": 216,
+      "version": "7",
+      "when": 1795698606408,
+      "tag": "0216_lot70a_hub_user_names",
+      "breakpoints": true
+    },
+    {
+      "idx": 217,
+      "version": "7",
+      "when": 1795698617509,
+      "tag": "0217_lot70a_hub_notification_task_assigned",
+      "breakpoints": true
     }
   ]
 }
