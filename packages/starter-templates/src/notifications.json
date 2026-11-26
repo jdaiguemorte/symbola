@@ -16,7 +16,8 @@
     "day_of_alert": { "immediate": true, "dayOf": true, "channels": { "app": true, "email": true, "push": true } },
     "client_message": { "immediate": true, "dayOf": false, "channels": { "app": true, "email": true, "push": true } },
     "email_bounced": { "immediate": true, "dayOf": false, "channels": { "app": true, "email": true, "push": true } },
-    "module_activated": { "immediate": true, "dayOf": false, "channels": { "app": true, "email": true, "push": false } }
+    "module_activated": { "immediate": true, "dayOf": false, "channels": { "app": true, "email": true, "push": false } },
+    "task_assigned": { "immediate": false, "dayOf": false, "channels": { "app": true, "email": true, "push": false } }
   },
   "settings": {
     "digestEnabled": true,

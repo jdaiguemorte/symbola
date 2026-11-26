@@ -3,6 +3,7 @@
 // (scripts d'annulation, refus quand des données en dépendent ou dans le
 // désordre), aller (migrations rejouées).
 import { randomBytes, randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
@@ -102,6 +103,18 @@ const LOT_65 = ["0206_lot65g_hub_import_target_event", "0205_lot65d_hub_relation
 // Lot 66 : heures d'envoi et rappel du jour J (0207, hub), réglages du rappel par évènement (0208,
 // events) ; les plus récentes, annulées d'abord.
 // Lot 66c : marque des e-mails, signatures et libellés de bouton (0209, hub), après 0207 et 0208.
+// Lot 70a : personne qui s'en charge (0211), qui a coché (0212), note (0213), seuil « Bientôt » (0214),
+// valeurs d'avant pour « Annuler » (0215), prénom et nom des comptes (0216, hub), sorte de notification
+// « task_assigned » (0217, hub) ; les plus récentes, annulées d'abord.
+const LOT_70A = [
+  "0217_lot70a_hub_notification_task_assigned",
+  "0216_lot70a_hub_user_names",
+  "0215_lot70a_events_task_change_snapshots",
+  "0214_lot70a_events_soon_days",
+  "0213_lot70a_events_task_note",
+  "0212_lot70a_events_task_done_by",
+  "0211_lot70a_events_task_assignee",
+];
 const LOT_66 = ["0210_lot66b_hub_day_reminder_templates", "0209_lot66c_hub_email_branding", "0208_lot66_events_day_reminder_overrides", "0207_lot66_hub_sending_times"];
 // Lot 63e : métiers d'une fiche (0198) puis retrait de vendors.type_id (0199) ; fusionné après les
 // lots 63c et 63d, il s'annule d'abord.
@@ -136,7 +149,7 @@ const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
 // 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_66, ...LOT_65, ...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
+const LOT_36 = [...LOT_70A, ...LOT_66, ...LOT_65, ...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
 // Lot 63c : l'ordre des annulations des lots récents, de la plus récente à la plus ancienne, se lit
 // dans cette seule liste. Un nouveau lot ajoute sa liste en tête de LOT_36, et rien d'autre : les
 // tests annulent par rollbackNewerThan et rollbackThrough, jamais par une suite écrite à la main.
@@ -199,6 +212,119 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
+  it("lot 70a (CHR-02, CHR-04 ; A2, A9) — 0211 et 0212 : chaque tâche « planner » reçoit sa personne et chaque tâche faite son auteur quand c'est sûr ; rejouées, elles ne changent rien ; annulations refusées tant qu'une note, un seuil ou un nom existent, puis tout est retiré", async () => {
+    await migrateAll();
+    await rollbackThrough(LOT_70A[6]!);
+    const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0211') returning id`;
+    const organizationId = organization!.id;
+    const person = async (name: string, role: "owner" | "member", disabled = false) => {
+      const [user] = await target<{ id: string }[]>`insert into hub.users (email) values (${`${name}-${organizationId}@example.test`}) returning id`;
+      await target`insert into hub.memberships (user_id, organization_id, role, disabled_at) values (${user!.id}, ${organizationId}, ${role}, ${disabled ? new Date().toISOString() : null})`;
+      return user!.id;
+    };
+    const camille = await person("camille", "owner");
+    const lea = await person("lea", "member");
+    const sam = await person("sam", "member");
+    const gone = await person("gone", "member", true);
+    const event = async () => (await target<{ id: string }[]>`insert into events.events (organization_id) values (${organizationId}) returning id`)[0]!.id;
+    const [withLead, withoutLead, orphan] = [await event(), await event(), await event()];
+    await target`insert into events.event_team_members (organization_id, event_id, user_id, role) values (${organizationId}, ${withLead}, ${lea}, 'lead')`;
+    const task = async (eventId: string | null, createdBy: string | null, responsible = "planner", doneAt: string | null = null) =>
+      (await target<{ id: string }[]>`insert into events.event_tasks (organization_id, event_id, label, due_date, responsible, created_by, done_at) values (${organizationId}, ${eventId}, 'Tâche', '2027-03-01', ${responsible}, ${createdBy}, ${doneAt}) returning id`)[0]!.id;
+    const ofLead = await task(withLead, sam);
+    const ofCreator = await task(withoutLead, sam);
+    const ofGone = await task(orphan, gone);
+    const standalone = await task(null, lea);
+    const forClients = await task(withLead, sam, "clients", "2027-02-01T10:00:00Z");
+    const forVendor = await task(withLead, sam, "clients", "2027-02-02T10:00:00Z");
+    const byMember = await task(withLead, sam, "planner", "2027-02-03T10:00:00Z");
+    const unknown = await task(withLead, sam, "planner", "2027-02-04T10:00:00Z");
+    const reopened = await task(withLead, sam, "clients", "2027-02-05T10:00:00Z");
+    const [clientLink] = await target<{ id: string }[]>`insert into events.event_links (organization_id, event_id, audience, person_name, email) values (${organizationId}, ${withLead}, 'client', 'Léa', ${`lien-${organizationId}@example.test`}) returning id`;
+    const activity = (taskId: string, kind: "task_done" | "task_undone", actor: { link?: string; user?: string }, at: string) =>
+      target`insert into events.event_activities (organization_id, event_id, actor_link_id, actor_user_id, kind, task_id, task_label, created_at) values (${organizationId}, ${withLead}, ${actor.link ?? null}, ${actor.user ?? null}, ${kind}, ${taskId}, 'Tâche', ${at})`;
+    await activity(forClients, "task_done", { link: clientLink!.id }, "2027-02-01T10:00:00Z");
+    await activity(byMember, "task_done", { user: lea }, "2027-02-03T10:00:00Z");
+    // Cochée par le lien, décochée, recochée sans trace : rien de sûr.
+    await activity(reopened, "task_done", { link: clientLink!.id }, "2027-02-05T09:00:00Z");
+    await activity(reopened, "task_undone", { user: lea }, "2027-02-05T09:30:00Z");
+    const before = await target<{ updated_at: Date }[]>`select updated_at from events.event_tasks where id = ${ofLead}`;
+
+    await migrateAll();
+    const assignees = new Map((await target<{ id: string; assignee_user_id: string | null }[]>`select id, assignee_user_id from events.event_tasks where organization_id = ${organizationId}`).map((row) => [row.id, row.assignee_user_id]));
+    expect(assignees.get(ofLead)).toBe(lea);
+    expect(assignees.get(ofCreator)).toBe(sam);
+    expect(assignees.get(ofGone)).toBe(camille);
+    expect(assignees.get(standalone)).toBe(lea);
+    expect(assignees.get(forClients)).toBeNull();
+    const doneBy = new Map((await target<{ id: string; done_by_kind: string | null; done_by_user_id: string | null }[]>`select id, done_by_kind, done_by_user_id from events.event_tasks where organization_id = ${organizationId}`).map((row) => [row.id, `${row.done_by_kind}/${row.done_by_user_id}`]));
+    expect(doneBy.get(forClients)).toBe("clients/null");
+    expect(doneBy.get(byMember)).toBe(`member/${lea}`);
+    expect(doneBy.get(unknown)).toBe("null/null");
+    expect(doneBy.get(reopened)).toBe("null/null");
+    expect(doneBy.get(forVendor)).toBe("null/null");
+    // L'horodatage des lignes n'a pas bougé : ce n'est pas une modification de la planner.
+    expect((await target<{ updated_at: Date }[]>`select updated_at from events.event_tasks where id = ${ofLead}`)[0]!.updated_at).toEqual(before[0]!.updated_at);
+
+    // Rejouées, les deux étapes de données ne changent rien.
+    for (const tag of [LOT_70A[6]!, LOT_70A[5]!]) {
+      const file = readFileSync(new URL(`../drizzle/${tag}.sql`, import.meta.url), "utf8");
+      const update = file.split("--> statement-breakpoint").map((part) => part.trim()).find((part) => part.startsWith('UPDATE "events"."event_tasks"'));
+      expect(update, tag).toBeDefined();
+      const result = await target.unsafe(update!);
+      expect(result.count, tag).toBe(0);
+    }
+
+    // La base refuse une personne sur une tâche des clients, un auteur sans coche, une note trop longue.
+    await expect(target`update events.event_tasks set assignee_user_id = ${lea} where id = ${forClients}`).rejects.toThrow(/event_tasks_assignee_check/);
+    await expect(target`insert into events.event_tasks (organization_id, event_id, label, due_date, done_by_kind) values (${organizationId}, ${withLead}, 'Tâche', '2027-03-01', 'clients')`).rejects.toThrow(/event_tasks_done_by_check/);
+    await expect(target`update events.event_tasks set done_by_kind = 'clients', done_by_user_id = ${lea} where id = ${byMember}`).rejects.toThrow(/event_tasks_done_by_check/);
+    // Une tâche à faire n'a jamais d'auteur de coche : le déclencheur l'efface.
+    await target`update events.event_tasks set done_by_kind = 'member', done_by_user_id = ${lea} where id = ${ofLead}`;
+    expect((await target<{ done_by_kind: string | null }[]>`select done_by_kind from events.event_tasks where id = ${ofLead}`)[0]!.done_by_kind).toBeNull();
+    await expect(target`update events.event_tasks set note = ${"x".repeat(2001)} where id = ${ofLead}`).rejects.toThrow(/event_tasks_note_check/);
+    await expect(target`update events.event_tasks set note = ${"bip\u0007"} where id = ${ofLead}`).rejects.toThrow(/event_tasks_note_check/);
+    await target`update events.event_tasks set note = ${"Rappeler le traiteur\nà 10 h"} where id = ${ofLead}`;
+    await expect(target`update hub.users set first_name = ${"x".repeat(81)} where id = ${lea}`).rejects.toThrow(/users_first_name_check/);
+    await target`update hub.users set first_name = 'Léa', last_name = 'Martin' where id = ${lea}`;
+    await target`insert into events.planning_health_settings (organization_id, watch_points, late_points, milestone_weight, soon_days) values (${organizationId}, 1, 4, 3, 5)`;
+    await expect(target`update events.planning_health_settings set soon_days = 31 where organization_id = ${organizationId}`).rejects.toThrow(/planning_health_settings_soon_days_check/);
+
+    // Déclencheur : rouvrir efface l'auteur ; recocher sous l'identité d'un lien donne « clients ».
+    await target`update events.event_tasks set done_at = null where id = ${byMember}`;
+    expect((await target<{ done_by_kind: string | null }[]>`select done_by_kind from events.event_tasks where id = ${byMember}`)[0]!.done_by_kind).toBeNull();
+    await target`update events.event_tasks set done_at = null where id = ${reopened}`;
+    await target.begin(async (tx) => {
+      await tx`select set_config('app.actor_kind', 'link', true), set_config('app.actor_id', ${clientLink!.id}, true)`;
+      await tx`update events.event_tasks set done_at = now() where id = ${reopened}`;
+    });
+    expect((await target<{ done_by_kind: string | null; done_by_user_id: string | null }[]>`select done_by_kind, done_by_user_id from events.event_tasks where id = ${reopened}`)[0]).toEqual({ done_by_kind: "clients", done_by_user_id: null });
+
+    // Annulations : la sorte de notification et ses lignes partent ; nom, seuil, note bloquent.
+    await target`insert into hub.notifications (organization_id, user_id, type, object_key, href) values (${organizationId}, ${lea}, 'task_assigned', 'assign:1', '/taches')`;
+    await rollback(LOT_70A[0]!);
+    expect((await target`select 1 from hub.notifications where organization_id = ${organizationId}`).length).toBe(0);
+    await expect(rollback(LOT_70A[1]!)).rejects.toThrow(/prénom ou un nom/);
+    await target`update hub.users set first_name = null, last_name = null where id = ${lea}`;
+    await rollback(LOT_70A[1]!);
+    expect(await hasColumn("hub", "users", "first_name")).toBe(false);
+    await rollback(LOT_70A[2]!);
+    await expect(rollback(LOT_70A[3]!)).rejects.toThrow(/seuil « Bientôt »/);
+    await target`delete from events.planning_health_settings where organization_id = ${organizationId}`;
+    await rollback(LOT_70A[3]!);
+    await expect(rollback(LOT_70A[4]!)).rejects.toThrow(/ont une note/);
+    await target`update events.event_tasks set note = null where organization_id = ${organizationId}`;
+    await rollback(LOT_70A[4]!);
+    await rollback(LOT_70A[5]!);
+    await rollback(LOT_70A[6]!);
+    for (const column of ["assignee_user_id", "done_by_kind", "done_by_user_id", "note"]) expect(await hasColumn("events", "event_tasks", column)).toBe(false);
+    const [table] = await target<{ name: string | null }[]>`select to_regclass('events.task_change_snapshots')::text as name`;
+    expect(table!.name).toBeNull();
+    await target`delete from events.event_activities where organization_id = ${organizationId}`;
+    await target`delete from events.event_tasks where organization_id = ${organizationId}`;
+    await migrateAll();
+  });
+
   it("lot 66b (JRJ-01 ; D2 à D4) — 0210 : les modèles du rappel du jour J se modifient ; annulation refusée tant qu'un modèle est modifié, puis la liste revient", async () => {
     await migrateAll();
     const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0210') returning id`;
