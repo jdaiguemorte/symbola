@@ -3,5 +3,7 @@
   "_comment": "Lot 53 (CHR-05) — seuils de départ de l'indicateur de santé du planning. Chaque tâche en retard compte 1 point, un jalon en retard compte milestoneWeight points ; « à surveiller » à partir de watchPoints, « en retard » à partir de latePoints.",
   "watchPoints": 1,
   "latePoints": 4,
-  "milestoneWeight": 3
+  "milestoneWeight": 3,
+  "_soonDays": "Lot 70a (UX-06, CHR-05 ; M10) — une tâche à faire dont l'échéance tombe dans soonDays jours au plus (au-delà de demain) est dite « Bientôt » ; réglable par organisation (events.planning_health_settings.soon_days).",
+  "soonDays": 7
 }

@@ -12,7 +12,7 @@ import { and, asc, count, desc, eq, inArray, isNull, lt, lte, or, sql } from "dr
 import { createTranslator } from "next-intl";
 import frMessages from "@symbola/i18n/messages/fr.json";
 import enMessages from "@symbola/i18n/messages/en.json";
-import { listTeam } from "@symbola/auth";
+import { listTeam, personShortName } from "@symbola/auth";
 import { appDatabase } from "@symbola/db/client";
 import { withOrganization } from "@symbola/db/with-organization";
 import { notificationPreferences, notifications, notificationSettings, pushSubscriptions, users } from "@symbola/db/schema/hub";
@@ -326,8 +326,18 @@ export function notificationTypeLabel(type: NotificationType, locale: Locale): s
   return translatorFor(locale)(`types.${type}.label`);
 }
 
-// La phrase complète (centre, corps d'un e-mail), avec ses libellés courts.
-export function notificationText(view: Pick<NotificationView, "type" | "params">, locale: Locale): string {
+// Lot 70a (A19, SEC-20) : une notification garde l'identifiant de la personne qui a agi (« by »), jamais son
+// nom ; le nom (prénom, sinon le début de l'adresse) est lu à l'affichage, parmi l'équipe de l'organisation.
+export async function notificationPeople(organizationId: string, views: Pick<NotificationView, "params">[]): Promise<Map<string, string>> {
+  const ids = new Set(views.flatMap((view) => (typeof view.params.by === "string" && UUID.test(view.params.by) ? [view.params.by] : [])));
+  if (ids.size === 0) return new Map();
+  const team = await listTeam(appDatabase(), organizationId);
+  return new Map(team.filter((member) => ids.has(member.id)).map((member) => [member.id, personShortName(member)]));
+}
+
+// La phrase complète (centre, corps d'un e-mail), avec ses libellés courts. people : les noms lus par
+// notificationPeople ; une personne inconnue (compte supprimé) devient « Un collègue ».
+export function notificationText(view: Pick<NotificationView, "type" | "params">, locale: Locale, people: ReadonlyMap<string, string> = new Map()): string {
   // Un montant est gardé en centimes et écrit dans la langue de la personne.
   // Les nombres restent des nombres (accord « jour » ou « jours »).
   const params: Record<string, string | number> = Object.fromEntries(Object.entries(view.params).map(([key, value]) => (key === "amountCents" && typeof value === "number" ? ["amount", formatAmount(value, locale)] : [key, value])));
@@ -336,6 +346,7 @@ export function notificationText(view: Pick<NotificationView, "type" | "params">
     const summary = risk(`rules.${view.params.rule}.alert` as "rules.vendor_without_contract.alert", params);
     return summary === MISSING ? notificationTypeLabel(view.type, locale) : translatorFor(locale)("types.risk_alert.text", { summary });
   }
+  if (typeof view.params.by === "string") params.by = people.get(view.params.by) ?? translatorFor(locale)("someone");
   // Lot 63g (HUB-06 ; ADR 0108) : l'app activée est nommée dans la langue de la personne (plans.json).
   if (view.type === "module_activated" && typeof view.params.module === "string") {
     const app = starterAppCatalog().find((entry) => entry.key === view.params.module);
@@ -380,6 +391,7 @@ export async function deliverDueNotifications(organizationId: string, now: Date 
   );
   if (due.length === 0) return { emails: 0, pushes: 0 };
   const people = await userLocales([...new Set(due.map((row) => row.userId))]);
+  const names = await notificationPeople(organizationId, due.map(toView));
   let emails = 0;
   let pushes = 0;
   for (const row of due) {
@@ -394,7 +406,7 @@ export async function deliverDueNotifications(organizationId: string, now: Date 
             to: person.email,
             kind: "notification_alert",
             locale: person.locale,
-            values: { alert: notificationText(view, person.locale), link: absolute(row.href) },
+            values: { alert: notificationText(view, person.locale, names), link: absolute(row.href) },
             idempotencyKey: `notification:${row.id}`,
           });
           state = "sent";
@@ -458,7 +470,8 @@ export async function sendDueDigests(organizationId: string, extraLines: (userId
         .orderBy(asc(notifications.createdAt))
         .limit(100),
     );
-    const lines = [...pending.filter((row) => !row.readAt).map((row) => `- ${notificationText(toView(row), person.locale)}`), ...(await extraLines(userId, person.locale)).map((line) => `- ${line}`)];
+    const names = await notificationPeople(organizationId, pending.map(toView));
+    const lines = [...pending.filter((row) => !row.readAt).map((row) => `- ${notificationText(toView(row), person.locale, names)}`), ...(await extraLines(userId, person.locale)).map((line) => `- ${line}`)];
     if (lines.length > 0) {
       try {
         await sendOrganizationEmail({

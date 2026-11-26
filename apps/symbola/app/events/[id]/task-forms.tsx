@@ -8,7 +8,7 @@ import { useFieldValidation } from "@/app/ui/use-field-validation";
 import { useRetryableAction } from "@/app/ui/use-retryable-action";
 import { taskFieldsSchema } from "@/lib/forms/task-fields";
 import { useTranslations } from "next-intl";
-import type { EventTask, TaskResponsible, TaskTemplate } from "@/modules/events/service";
+import type { EventTask, TaskTemplate } from "@/modules/events/service";
 import {
   addEventTaskAction,
   applyTaskTemplateAction,
@@ -16,34 +16,40 @@ import {
   updateEventTaskAction,
   type TaskFormState,
 } from "./task-actions";
-import { RESPONSIBLE_LABEL_KEYS, responsibleValue } from "./task-responsible";
+import { RESPONSIBLE_LABEL_KEYS, responsibleSelection, responsibleValue, UNCHANGED_RESPONSIBLE, type TaskMemberOption } from "./task-responsible";
 import { SameDayNotice } from "../same-day-notice";
 
 // Lot 34b (CHR-02, D12) : prestataires engagés sur l'événement, à qui une tâche peut être confiée.
 export type TaskVendorOption = { candidateId: string; name: string };
 
 
-export function ResponsibleSelect({ value, onChange, vendors }: { value: string; onChange: (value: string) => void; vendors: TaskVendorOption[] }) {
+// Lot 70a (CHR-02 ; A1, A3, A4) : « Vous », chaque collègue par son nom, les clients, chaque prestataire
+// retenu. Une tâche restée à un accès retiré, ou sans personne nommée, garde sa valeur : l'option porte
+// « inchangé », que le navigateur envoie (une option désactivée ne l'est pas : l'enregistrement échouait).
+export function ResponsibleSelect({ value, onChange, vendors, members = [] }: { value: string; onChange: (value: string) => void; vendors: TaskVendorOption[]; members?: TaskMemberOption[] }) {
   const t = useTranslations("Events");
-  const known = value === "planner" || value === "clients" || vendors.some((vendor) => `vendor:${vendor.candidateId}` === value);
+  const active = members.filter((member) => !member.removed);
+  const { selected, unchanged } = responsibleSelection(value, members, vendors.map((vendor) => vendor.candidateId));
   return (
     <label>
       {t("taskResponsible")}
-      <select name="responsible" value={value} onChange={(event) => onChange(event.target.value)}>
-        {(["planner", "clients"] as TaskResponsible[]).map((key) => (
-          <option key={key} value={key}>
-            {t(RESPONSIBLE_LABEL_KEYS[key])}
+      <select name="responsible" value={selected} onChange={(event) => onChange(event.target.value === UNCHANGED_RESPONSIBLE ? value : event.target.value)}>
+        {active.length === 0 ? <option value="planner">{t(RESPONSIBLE_LABEL_KEYS.planner)}</option> : null}
+        {active.map((member) => (
+          <option key={member.id} value={`member:${member.id}`}>
+            {member.me ? t("responsibleYou") : member.name}
           </option>
         ))}
+        <option value="clients">{t(RESPONSIBLE_LABEL_KEYS.clients)}</option>
         {vendors.map((vendor) => (
           <option key={vendor.candidateId} value={`vendor:${vendor.candidateId}`}>
             {t("responsibleVendorNamed", { name: vendor.name })}
           </option>
         ))}
-        {/* Prestataire retiré de l'événement : la tâche reste à confier. */}
-        {!known ? (
-          <option value={value} disabled>
-            {t("responsibleVendorRemoved")}
+        {/* Prestataire retiré de l'événement, accès retiré (A4) ou personne nommée : la tâche reste à confier. */}
+        {unchanged ? (
+          <option value={UNCHANGED_RESPONSIBLE}>
+            {unchanged.kind === "removedMember" ? t("responsibleMemberRemoved", { name: unchanged.name }) : unchanged.kind === "nobody" ? t("responsibleNobody") : t("responsibleVendorRemoved")}
           </option>
         ) : null}
       </select>
@@ -104,7 +110,7 @@ export function ApplyTaskTemplateForm({ eventId, templates }: { eventId: string;
   );
 }
 
-export function AddEventTaskForm({ eventId, vendors = [] }: { eventId: string; vendors?: TaskVendorOption[] }) {
+export function AddEventTaskForm({ eventId, vendors = [], members = [] }: { eventId: string; vendors?: TaskVendorOption[]; members?: TaskMemberOption[] }) {
   const t = useTranslations("Events");
   const tFeedback = useTranslations("Feedback");
   const feedback = useFeedback();
@@ -117,7 +123,9 @@ export function AddEventTaskForm({ eventId, vendors = [] }: { eventId: string; v
   const validation = useFieldValidation(taskFieldsSchema, state.fieldErrors);
   const [label, setLabel] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [responsible, setResponsible] = useState("planner");
+  // Lot 70a (A3) : par défaut, « Vous ».
+  const me = members.find((member) => member.me && !member.removed);
+  const [responsible, setResponsible] = useState(me ? `member:${me.id}` : "planner");
   // Une tâche ajoutée vide le formulaire pour la suivante (le message de retour la nomme) ; une erreur
   // garde la saisie.
   useEffect(() => {
@@ -145,7 +153,7 @@ export function AddEventTaskForm({ eventId, vendors = [] }: { eventId: string; v
             <input type="date" name="dueDate" className="field-date" required value={dueDate} onChange={(event) => setDueDate(event.target.value)} {...validation.fieldProps("dueDate")} />
             <FieldError id={validation.errorId("dueDate")} message={validation.errorFor("dueDate")} />
           </label>
-          <ResponsibleSelect value={responsible} onChange={setResponsible} vendors={vendors} />
+          <ResponsibleSelect value={responsible} onChange={setResponsible} vendors={vendors} members={members} />
         </div>
         <button type="submit" className="button-secondary" disabled={pending}>
           {t("addTask")}
@@ -156,7 +164,7 @@ export function AddEventTaskForm({ eventId, vendors = [] }: { eventId: string; v
   );
 }
 
-export function EditEventTaskForm({ eventId, task, vendors = [] }: { eventId: string; task: EventTask; vendors?: TaskVendorOption[] }) {
+export function EditEventTaskForm({ eventId, task, vendors = [], members = [] }: { eventId: string; task: EventTask; vendors?: TaskVendorOption[]; members?: TaskMemberOption[] }) {
   const t = useTranslations("Events");
   const initialState: TaskFormState = {};
   const [state, formAction, pending] = useActionState(updateEventTaskAction, initialState);
@@ -180,7 +188,7 @@ export function EditEventTaskForm({ eventId, task, vendors = [] }: { eventId: st
             {t("taskDueDate")}
             <input type="date" name="dueDate" className="field-date" required value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
           </label>
-          <ResponsibleSelect value={responsible} onChange={setResponsible} vendors={vendors} />
+          <ResponsibleSelect value={responsible} onChange={setResponsible} vendors={vendors} members={members} />
           <button type="submit" disabled={pending}>
             {t("saveTask")}
           </button>

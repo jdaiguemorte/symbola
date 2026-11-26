@@ -17,18 +17,18 @@ import {
   releaseEventTask,
   removeEventTask,
   resolveTaskRecalculation,
-  TASK_RESPONSIBLES,
+  TaskAssigneeNotFoundError,
   TaskVendorInvalidError,
   TaskLabelRequiredError,
   TaskRecalculationPendingError,
   TaskTemplateNotFoundError,
   updateEventTask,
-  type TaskResponsible,
   PlanningInputError,
   setTaskMilestone,
 } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
+import { readResponsibleCreate, readResponsibleEdit, UNCHANGED_RESPONSIBLE, type ResponsibleChoice } from "./task-responsible";
 
 // Lot 70b (UX-10) : `fieldErrors`, les erreurs de saisie traduites, sous les champs.
 export type TaskFormState = { error?: string; success?: boolean; recalculationProposed?: boolean; fieldErrors?: Record<string, string> };
@@ -43,13 +43,9 @@ async function authorize(t: Awaited<ReturnType<typeof getTranslations>>) {
 }
 
 // Lot 34b (CHR-02, D12) : « vendor:<id> » confie la tâche à ce prestataire retenu sur l'événement.
-function readResponsible(formData: FormData): { responsible: TaskResponsible; vendorCandidateId: string | null } | null {
-  const value = String(formData.get("responsible") ?? "");
-  if (value.startsWith("vendor:")) {
-    const vendorCandidateId = value.slice("vendor:".length);
-    return isValidId(vendorCandidateId) ? { responsible: "vendor", vendorCandidateId } : null;
-  }
-  return value !== "vendor" && TASK_RESPONSIBLES.includes(value as TaskResponsible) ? { responsible: value as TaskResponsible, vendorCandidateId: null } : null;
+// Lot 70a (CHR-02 ; A1) : « member:<id> » la confie à ce collègue (vérifié par le service).
+function readResponsible(formData: FormData): ResponsibleChoice | null {
+  return readResponsibleCreate(String(formData.get("responsible") ?? ""));
 }
 
 // Erreurs métier connues → message traduit ; le reste remonte.
@@ -61,6 +57,8 @@ function taskErrorMessage(error: unknown, t: Awaited<ReturnType<typeof getTransl
   if (error instanceof TaskRecalculationPendingError) return t("recalculationPendingFirst");
   if (error instanceof TaskLabelRequiredError) return t("missingLabel");
   if (error instanceof TaskVendorInvalidError) return t("taskVendorInvalid");
+  // Lot 70a (§ 3.4) : un compte qui n'est pas un membre actif répond comme une tâche introuvable.
+  if (error instanceof TaskAssigneeNotFoundError) return t("taskNotFound");
   if (error instanceof RangeError) return t("invalidDate");
   throw error;
 }
@@ -149,11 +147,13 @@ export async function updateEventTaskAction(_prevState: TaskFormState, formData:
   if (!label) return { error: t("missingLabel") };
   const dueDate = String(formData.get("dueDate") ?? "");
   if (!DATE_PATTERN.test(dueDate)) return { error: t("invalidDate") };
-  const responsible = readResponsible(formData);
+  // Revue du 70a : champ absent ou « inchangé » (valeur qu'on ne peut plus choisir) = personne inchangée.
+  const raw = formData.get("responsible");
+  const responsible = readResponsibleEdit(raw === null ? null : String(raw));
   if (!responsible) return { error: t("invalidResponsible") };
 
   try {
-    await updateEventTask({ organizationId: access.organizationId, taskId, label, dueDate, ...responsible });
+    await updateEventTask({ organizationId: access.organizationId, taskId, label, dueDate, ...(responsible === UNCHANGED_RESPONSIBLE ? {} : responsible) });
   } catch (error) {
     return { error: taskErrorMessage(error, t) };
   }

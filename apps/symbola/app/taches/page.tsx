@@ -18,6 +18,7 @@ import { TaskDialog } from "./task-dialog";
 import { AddStandaloneTaskForm, EditStandaloneTask } from "./standalone-tasks";
 import { completeStandaloneTaskAction, deleteStandaloneTaskAction } from "./standalone-actions";
 import { requirePlanner } from "@/lib/guards";
+import { taskMemberOptions } from "@/lib/tasks/members";
 import { isEventsModuleEnabled } from "@/app/events/module-access";
 import { SettingsLink } from "@/app/settings-link";
 import { TaskTable } from "./task-table";
@@ -56,6 +57,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const href = (changes: Record<string, string>) =>
     `/taches?${new URLSearchParams({ vue: view, qui: owner, ...(calendar ? { affichage: "calendrier", mois: month } : {}), ...changes }).toString()}`;
   const categories = await ensureTaskCategories(organizationId, locale);
+  // Lot 70a (CHR-02 ; A1) : les collègues de « Qui s'en charge ».
+  const members = await taskMemberOptions(organizationId, auth.user.id);
   // La tâche ouverte dans la fenêtre : cherchée aussi parmi les faites (cochée depuis « Toutes »).
   const openId = query.tache && isValidId(query.tache) ? query.tache : null;
   const opened = openId
@@ -122,6 +125,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             openHref={(task) => href({ tache: task.id })}
             responsibleLabel={(task) => labelOf(task.eventId, task.responsible)}
             categories={categories}
+            members={members}
           />
         ) : null}
       </section>
@@ -132,6 +136,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
           closeHref={href({})}
           categories={categories.map((category) => ({ id: category.id, label: category.label }))}
           vendors={openedVendors}
+          members={members}
           eventLink={{ href: `/events/${opened.eventId}?onglet=retroplanning&tache=${opened.id}`, label: t("taskDialogOpenEvent"), names: opened.event.names }}
         />
       ) : null}

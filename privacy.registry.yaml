@@ -61,6 +61,26 @@ fields:
     anonymization: >-
       Supprimée avec le compte (oubli ou purge).
   - schema: hub
+    table: users
+    field: first_name
+    category: identifiant
+    retention: >-
+      Lot 70a (CHR-02 ; A1) : prénom saisi par la personne dans Mon compte, pour que l'équipe la
+      reconnaisse (« Qui s'en charge », notifications). Montré aux membres de ses organisations
+      seulement, jamais aux mariés, aux prestataires ni dans un journal. Gardé tant que le compte existe.
+    anonymization: >-
+      Supprimé avec le compte ; exporté avec l'équipe (HUB-13, hub/team_members), non repris par la
+      reprise d'un export dans une autre organisation. La personne l'efface en vidant le champ.
+  - schema: hub
+    table: users
+    field: last_name
+    category: identifiant
+    retention: >-
+      Lot 70a (CHR-02 ; A1) : nom saisi par la personne dans Mon compte (menus, initiales). Même
+      visibilité que le prénom. Gardé tant que le compte existe.
+    anonymization: >-
+      Supprimé avec le compte ; exporté avec l'équipe (HUB-13), non repris dans une autre organisation.
+  - schema: hub
     table: privacy_purges
     field: lines
     category: contenu_libre
@@ -253,6 +273,46 @@ fields:
       tâche existe. Voir RGPD-03/RGPD-05.
     anonymization: >-
       Effacés (null) lors d'une demande d'oubli (RGPD-03).
+  - schema: events
+    table: event_tasks
+    field: assignee_user_id
+    category: identifiant
+    retention: >-
+      Lot 70a (CHR-02 ; A1 à A4) : membre de l'équipe qui s'en charge (identifiant, jamais son nom).
+      Tant que la tâche existe ; l'identifiant d'un accès retiré reste (A4), celui d'un compte supprimé ne
+      désigne plus personne (comme day_checkpoints.user_id).
+    anonymization: >-
+      Supprimé avec la tâche ; remis à nul par la reprise d'un export dans une autre organisation.
+  - schema: events
+    table: event_tasks
+    field: done_by_user_id
+    category: identifiant
+    retention: >-
+      Lot 70a (CHR-04 ; D1, A9) : membre qui a coché la tâche (« Cochée par »), identifiant seulement ;
+      effacé quand la tâche est rouverte. Un lien coche « clients » ou « vendor », jamais son identifiant.
+      Tant que la tâche existe.
+    anonymization: >-
+      Supprimé avec la tâche ; remis à nul par la reprise d'un export dans une autre organisation.
+  - schema: events
+    table: event_tasks
+    field: note
+    category: contenu_libre
+    retention: >-
+      Lot 70a (A7) : note interne à l'agence (2 000 caractères), jamais montrée aux mariés ni aux
+      prestataires, ni par un lien. Tant que la tâche existe ; exportée avec les tâches (HUB-13, RGPD-02).
+    anonymization: >-
+      Effacée (null) par une demande d'oubli qui vise l'évènement (RGPD-03) ; trouvée par la recherche
+      RGPD (RGPD-01).
+  - schema: events
+    table: task_change_snapshots
+    field: payload
+    category: identifiant
+    retention: >-
+      Lot 70a (UX-07 ; A18) : valeurs d'avant d'un « Changer la date » ou d'un « Confier à » (dates,
+      responsable, identifiants de tâches, de prestataires retenus et de membres), aucun libellé ni nom.
+      Purgée par la tâche horaire dix minutes après.
+    anonymization: >-
+      Aucune donnée personnelle à anonymiser ; non exportée (technique).
   - schema: events
     table: event_vendor_slots
     field: imported_fields

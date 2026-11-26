@@ -983,7 +983,8 @@ async function followUpTaskList(organizationId: string): Promise<{ label: string
 
 // Les tâches de suivi d'un prestataire retenu, rattachées à lui (follow_up_candidate_id) ; échéances
 // comptées depuis aujourd'hui, dans le fuseau de l'évènement.
-async function insertFollowUpTasks(tx: Tx, organizationId: string, candidate: CandidateRow, tasks: { label: string; dueInDays: number }[], now: Date): Promise<string[]> {
+// Lot 70a (A3) : elles sont à la personne qui a retenu le prestataire.
+async function insertFollowUpTasks(tx: Tx, organizationId: string, candidate: CandidateRow, tasks: { label: string; dueInDays: number }[], now: Date, assigneeUserId: string | null): Promise<string[]> {
   if (tasks.length === 0) return [];
   const [event] = await tx.select({ timeZone: events.timeZone }).from(events).where(eq(events.id, candidate.eventId));
   const today = dateInTimeZone(now, event?.timeZone ?? "Europe/Paris");
@@ -996,6 +997,7 @@ async function insertFollowUpTasks(tx: Tx, organizationId: string, candidate: Ca
         label: task.label.split("{{prestataire}}").join(candidate.vendorName).split("{{vendor}}").join(candidate.vendorName).slice(0, 200),
         dueDate: addDays(today, task.dueInDays),
         responsible: "planner" as const,
+        assigneeUserId,
         position: 10_000 + index,
         fixedAt: now,
         followUpCandidateId: candidate.id,
@@ -1043,7 +1045,7 @@ export async function engageOptionChoice(tx: Tx, input: { organizationId: string
   const wasEngaged = isEngaged(chosen.status);
   const [updated] = await tx.update(eventVendorCandidates).set({ status: wasEngaged ? chosen.status : "retained", dismissalReason: null, updatedAt: input.now }).where(eq(eventVendorCandidates.id, chosen.id)).returning();
   if (updated && !wasEngaged) await publishRetention(tx, input.organizationId, updated, input.bookedByUserId);
-  const taskIds = wasEngaged ? [] : await insertFollowUpTasks(tx, input.organizationId, chosen, input.tasks, input.now);
+  const taskIds = wasEngaged ? [] : await insertFollowUpTasks(tx, input.organizationId, chosen, input.tasks, input.now, input.bookedByUserId);
   await tx.update(eventDecisions).set({ engagedAt: input.now }).where(eq(eventDecisions.id, decision.id));
   await appendAudit(tx, { organizationId: input.organizationId, action: "events.decision.engaged", objectId: decision.eventId, details: { decisionId: decision.id, tasks: taskIds.length } });
   await emitDomainEvent(tx, {
@@ -1083,7 +1085,7 @@ export async function changeRetained(input: ChangeRetainedVendorInput): Promise<
       if (!isEngaged(target.status)) {
         const [updated] = await tx.update(eventVendorCandidates).set({ status: "retained", dismissalReason: null, updatedAt: now }).where(eq(eventVendorCandidates.id, target.id)).returning();
         if (updated) await publishRetention(tx, input.organizationId, updated, input.userId);
-        await insertFollowUpTasks(tx, input.organizationId, target, tasks, now);
+        await insertFollowUpTasks(tx, input.organizationId, target, tasks, now, input.userId);
       }
     } else {
       const setAside = candidates.filter((candidate) => candidate.status === "dismissed" && candidate.dismissalReason === "other_chosen");

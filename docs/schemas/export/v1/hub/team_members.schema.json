@@ -12,6 +12,18 @@
     "email": {
       "type": "string"
     },
+    "firstName": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "lastName": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "role": {
       "type": "string",
       "enum": [
@@ -36,6 +48,8 @@
   "required": [
     "userId",
     "email",
+    "firstName",
+    "lastName",
     "role",
     "disabledAt"
   ],

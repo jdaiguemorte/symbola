@@ -15,7 +15,7 @@ Sources de vérité :
 - `docs/CAHIER_DES_CHARGES.md` : **la référence** (décision Q2 du 11/11/2026). Son § 1 t'est
   adressé (protocole, règles d'arbitrage, définition de « terminé ») ; ses exigences sont
   numérotées (`HUB-01`, `SEC-14`…) ; ses Synthetic Users et scénarios (§ 16 et 17) font la preuve.
-- `DESIGN.md` : jetons de design (ADR 0057).
+- `DESIGN.md` : le Design System : jetons (ADR 0057), règles de forme, composants, motifs et lexique (ADR 0116) ; page de référence `docs/maquette/lot-68/34-design-system-reference.html`.
 - `docs/gap.csv` et `docs/GAP_REPORT.md` : écart exigence par exigence et plan des lots (§ 7 et 9).
 - `docs/QUESTIONS.md` : décisions de Julien (Q1 à Q32, C1 à C5) et questions ouvertes.
 - `docs/lots/` : spécification du lot en cours, validée par Julien avant le code.

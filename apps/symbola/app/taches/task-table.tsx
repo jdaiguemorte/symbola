@@ -5,9 +5,9 @@
 // les lignes (libellés traduits, dates écrites, adresse de la fenêtre de chaque tâche).
 import { getTranslations } from "next-intl/server";
 import { formatMonth, formatShortCalendarDate, type Locale } from "@symbola/i18n";
-import { monthKey, type EventTask, type TaskCategory } from "@/modules/events/service";
+import { monthKey, taskDueState, type EventTask, type TaskCategory } from "@/modules/events/service";
 import { postponedDueDate } from "@/lib/tasks/postpone";
-import { RESPONSIBLE_LABEL_KEYS } from "@/app/events/[id]/task-responsible";
+import { RESPONSIBLE_LABEL_KEYS, type TaskMemberOption } from "@/app/events/[id]/task-responsible";
 import { TaskTableClient, type TaskTableMonth } from "./task-table-client";
 
 export type TaskRow = EventTask & { event?: { id: string; names: string } };
@@ -22,6 +22,7 @@ export async function TaskTable({
   openHref,
   responsibleLabel,
   categories,
+  members = [],
 }: {
   tasks: TaskRow[];
   locale: Locale;
@@ -34,6 +35,8 @@ export async function TaskTable({
   // Lot 20 (décision 6) : libellé dans le vocabulaire de l'événement de la ligne.
   responsibleLabel?: (task: TaskRow) => string;
   categories: TaskCategory[];
+  // Lot 70a (CHR-02 ; A1) : les collègues, pour nommer la personne d'une tâche et la confier en lot.
+  members?: TaskMemberOption[];
 }) {
   const t = await getTranslations("Events");
   // Lot 39c (UX-07) : les textes du bandeau « Annuler », les mêmes que sur « Aujourd'hui ».
@@ -41,6 +44,14 @@ export async function TaskTable({
   const categoryById = new Map(categories.map((category) => [category.id, category]));
   const months = new Map<string, TaskTableMonth>();
   const undoMessages: Record<string, { done: string; reopened: string }> = {};
+  // Lot 70a (CHR-02 ; A1, A4) : « Vous » pour la personne qui regarde, le nom pour les autres.
+  const memberById = new Map(members.map((member) => [member.id, member]));
+  const assigneeLabel = (task: TaskRow): string | null => {
+    const member = task.responsible === "planner" && task.assigneeUserId ? memberById.get(task.assigneeUserId) : undefined;
+    if (!member) return null;
+    if (member.me) return t("responsibleYou");
+    return member.removed ? t("responsibleMemberRemoved", { name: member.name }) : member.name;
+  };
   for (const task of tasks) {
     const key = monthKey(task.dueDate);
     const month = months.get(key) ?? { key, label: formatMonth(`${key}-01`, locale), rows: [] };
@@ -52,10 +63,11 @@ export async function TaskTable({
       dueDate: task.dueDate,
       dueLabel: formatShortCalendarDate(task.dueDate, locale),
       done: task.done,
-      overdue: !task.done && task.dueDate < today,
+      // Lot 70a (UX-06 ; Q47-4) : un seul calcul de l'état d'échéance.
+      overdue: taskDueState(task, today)?.kind === "late",
       priority: task.priority,
       category: category ? { label: category.label, color: category.color } : null,
-      responsibleLabel: responsibleLabel ? responsibleLabel(task) : t(RESPONSIBLE_LABEL_KEYS[task.responsible]),
+      responsibleLabel: assigneeLabel(task) ?? (responsibleLabel ? responsibleLabel(task) : t(RESPONSIBLE_LABEL_KEYS[task.responsible])),
       responsibleKind: task.responsible,
       event: task.event ? { names: task.event.names, href: `/events/${task.event.id}?onglet=retroplanning` } : null,
       href: openHref(task),
@@ -73,6 +85,7 @@ export async function TaskTable({
       categories={categories.map((category) => ({ value: category.id, label: category.label }))}
       postponeDates={{ tomorrow: formatShortCalendarDate(postponedDueDate("tomorrow", now), locale), nextWeek: formatShortCalendarDate(postponedDueDate("next_week", now), locale) }}
       undoMessages={undoMessages}
+      members={members.filter((member) => !member.removed).map((member) => ({ value: `member:${member.id}`, label: member.me ? t("responsibleYou") : member.name }))}
     />
   );
 }

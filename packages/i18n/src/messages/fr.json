@@ -274,7 +274,17 @@
     "securityTitle": "Sécurité du compte",
     "securityBody": "Votre mot de passe, vos clés d'accès et votre double authentification se gèrent dans votre espace de connexion.",
     "securityLink": "Ouvrir mon espace de connexion",
-    "sessionsLink": "Mes sessions : les appareils connectés à mon compte"
+    "sessionsLink": "Mes sessions : les appareils connectés à mon compte",
+    "namesTitle": "Votre nom",
+    "namesBody": "L’équipe vous voit sous ce nom dans « Qui s’en charge » et les notifications. Jamais les mariés ni les prestataires.",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "namesSave": "Enregistrer",
+    "namesSaved": "Enregistré",
+    "namesInvalid": "80 caractères au plus, sans caractère spécial invisible.",
+    "namesPrompt": "Indiquez votre prénom pour que l’équipe vous reconnaisse.",
+    "namesPromptLink": "Indiquer mon prénom",
+    "namesPromptDismiss": "Fermer"
   },
   "Settings": {
     "title": "Paramètres",
@@ -524,7 +534,7 @@
     },
     "profile": {
       "title": "Mon compte et la sécurité",
-      "body": "Choisissez la langue dans laquelle Symbola s'affiche pour vous. Votre mot de passe et votre double authentification protègent votre compte ; « Oublier tous mes appareils » redemande le code sur les appareils de confiance. « Déconnecter tous mes autres appareils » ferme vos autres sessions, par exemple après la perte d'un téléphone. « Ma signature » : votre nom, votre fonction et vos liens à la fin des e-mails que vous envoyez.",
+      "body": "Votre prénom et votre nom : l'équipe vous voit ainsi dans « Qui s'en charge » et les notifications (jamais les mariés ni les prestataires) ; chacun s'enregistre seul quand vous quittez le champ. Choisissez la langue dans laquelle Symbola s'affiche pour vous. Votre mot de passe et votre double authentification protègent votre compte ; « Oublier tous mes appareils » redemande le code sur les appareils de confiance. « Déconnecter tous mes autres appareils » ferme vos autres sessions, par exemple après la perte d'un téléphone. « Ma signature » : votre nom, votre fonction et vos liens à la fin des e-mails que vous envoyez.",
       "faq": [
         {
           "q": "Comment changer mon mot de passe ?",
@@ -2445,7 +2455,10 @@
     "statusCancelledMessage": "Évènement annulé : {names}",
     "statusPostponedMessage": "Évènement reporté : {names}",
     "statusRestoredMessage": "Évènement rétabli : {names}",
-    "statusRestoredDetail": "Il est revenu en « Option », à confirmer de nouveau."
+    "statusRestoredDetail": "Il est revenu en « Option », à confirmer de nouveau.",
+    "responsibleYou": "Vous",
+    "responsibleMemberRemoved": "{name} (accès retiré)",
+    "responsibleNobody": "Personne pour l’instant"
   },
   "Budget": {
     "title": "Budget",
@@ -8881,7 +8894,8 @@
       "contractTemplate": "Modèle de contrat",
       "messageTemplate": "Modèle de message",
       "appointmentType": "Type de rendez-vous",
-      "appointment": "Rendez-vous"
+      "appointment": "Rendez-vous",
+      "task": "Tâche"
     },
     "deletedBy": "Supprimé le {date} par {author}",
     "deletedOn": "Supprimé le {date}",
@@ -8932,7 +8946,9 @@
     },
     "eventAssistant": "Comme assistant de cet évènement, vous ne pouvez pas le supprimer : demandez à son planner principal ou à la Propriétaire.",
     "deleteForGoodKeep": "Garder dans la Corbeille",
-    "deleteForGoodAcknowledge": "Je comprends que « {name} » ne pourra pas être récupéré."
+    "deleteForGoodAcknowledge": "Je comprends que « {name} » ne pourra pas être récupéré.",
+    "taskBatch": "{count} tâches de {event}",
+    "taskBatchNoEvent": "{count} tâches"
   },
   "Drafts": {
     "found": "Brouillon du {date} retrouvé.",
@@ -11108,8 +11124,14 @@
         "label": "App activée",
         "text": "L'app « {module} » est activée.",
         "action": "Voir l'app"
+      },
+      "task_assigned": {
+        "label": "Une tâche vous est confiée",
+        "text": "{count, plural, one {{by} vous a confié « {label} ».} other {# tâches vous ont été confiées par {by}.}}",
+        "action": "Voir mes tâches"
       }
     },
+    "someone": "Un collègue",
     "center": {
       "title": "Notifications",
       "intro": "Ce qui s'est passé et ce qui vous attend. Chaque notification mène à l'écran où agir.",

@@ -5,6 +5,7 @@
 // création reste sur l'écran et se confirme par un message et un lien. Contrôles côté serveur :
 // session planner, organisation, module souscrit, évènement de l'organisation (RLS), entrées
 // validées ; mêmes services et mêmes règles que les formulaires de chaque écran.
+import { readResponsibleCreate } from "@/app/events/[id]/task-responsible";
 import { revalidatePath } from "next/cache";
 import { unexpectedActionError } from "@/lib/action-errors";
 import { discardMyFormDraft } from "@/lib/form-drafts";
@@ -172,12 +173,14 @@ export async function quickCreateTaskAction(_prev: QuickCreateState, formData: F
   if (!label) return { error: tEvents("missingLabel") };
   const dueDate = field(formData, "dueDate");
   if (!DATE.test(dueDate)) return { error: tEvents("invalidDate") };
-  const responsible = field(formData, "responsible");
-  if (responsible !== "planner" && responsible !== "clients") return { error: tEvents("invalidResponsible") };
+  // Lot 70a (CHR-02 ; A1, A3) : « Vous » (planner, la personne qui crée), un collègue (« member:<id> »), les clients.
+  const choice = readResponsibleCreate(field(formData, "responsible"));
+  if (!choice || choice.responsible === "vendor") return { error: tEvents("invalidResponsible") };
   try {
-    await addEventTask(access.organizationId, eventId, { label, dueDate, responsible });
+    await addEventTask(access.organizationId, eventId, { label, dueDate, responsible: choice.responsible, ...(choice.assigneeUserId ? { assigneeUserId: choice.assigneeUserId } : {}) });
   } catch (error) {
     if (error instanceof RangeError) return { error: tEvents("invalidDate") };
+    if ((error as Error).name === "TaskAssigneeNotFoundError") return { error: tEvents("taskNotFound") };
     if ((error as Error).name === "EventNotFoundError") return { error: tEvents("eventNotFound") };
     return { error: await unexpectedActionError(error) };
   }

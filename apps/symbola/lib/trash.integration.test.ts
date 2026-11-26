@@ -158,7 +158,9 @@ describe("UX-07 — Annuler plutôt que confirmer", () => {
 });
 
 describe("DAT-03 — Suppression logique datée, puis purge réelle par tâche de fond", () => {
-  it("un élément retiré est purgé après dix minutes, pas avant", async () => {
+  // Lot 70a (A5 ; ADR 0117, avenant à l'ADR 0073) : une tâche n'est plus un élément purgé dix minutes
+  // après ; elle reste trente jours à la corbeille.
+  it("une tâche retirée s'annule, puis reste à la corbeille après dix minutes, et la purge l'efface après trente jours", async () => {
     const organizationId = await organization();
     const { eventId, taskId } = await wedding(organizationId);
     await removeEventTask(organizationId, taskId);
@@ -168,6 +170,11 @@ describe("DAT-03 — Suppression logique datée, puis purge réelle par tâche d
 
     await removeEventTask(organizationId, taskId);
     await purgeOrganizationTrash(organizationId, new Date(Date.now() + 11 * MINUTE));
+    await undoDeletion({ organizationId, userId: plannerId, kind: "task", id: taskId });
+    expect(await listEventTasks(organizationId, eventId)).toHaveLength(1);
+
+    await removeEventTask(organizationId, taskId);
+    await purgeOrganizationTrash(organizationId, new Date(Date.now() + 30 * DAY + MINUTE));
     await expect(undoDeletion({ organizationId, userId: plannerId, kind: "task", id: taskId })).rejects.toBeInstanceOf(TrashItemNotFoundError);
   });
 

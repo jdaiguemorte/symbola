@@ -117,12 +117,20 @@ export const users = hubSchema.table("users", {
   // Lot 52 (SEC-08, D6) : empreinte des facteurs d'authentification connus chez le fournisseur
   // (identifiants et natures, hachés), pour reconnaître un changement de facteur annoncé par le webhook.
   mfaFactorsFingerprint: text("mfa_factors_fingerprint"),
+  // Lot 70a (CHR-02 ; A1, accord de Julien du 26/11/2026, migration 0216) : prénom et nom de la personne,
+  // saisis par elle dans Mon compte ; montrés aux membres de ses organisations seulement (« Bastien »,
+  // initiales « BL »). Nuls : le début de l'adresse en tient lieu.
+  firstName: text("first_name"),
+  lastName: text("last_name"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   updatedBy: uuid("updated_by"),
-});
+}, (table) => [
+  check("users_first_name_check", sql`${table.firstName} is null or (char_length(${table.firstName}) between 1 and 80 and ${table.firstName} !~ '[[:cntrl:]]')`),
+  check("users_last_name_check", sql`${table.lastName} is null or (char_length(${table.lastName}) between 1 and 80 and ${table.lastName} !~ '[[:cntrl:]]')`),
+]);
 
 // AIDE-01 : une visite guidée se relance à volonté, mais ne s'affiche
 // automatiquement qu'à la première ouverture d'un module — une ligne ici
@@ -1411,6 +1419,8 @@ export const NOTIFICATION_TYPE_KEYS = [
   "email_bounced",
   // Lot 63g (HUB-06, HUB-15 ; ADR 0108) : l'app demandée pendant le pilote est activée.
   "module_activated",
+  // Lot 70a (CHR-02, HUB-15 ; A19) : une tâche est confiée à la personne par un collègue.
+  "task_assigned",
 ] as const;
 const NOTIFICATION_TYPES_SQL = sql.raw(NOTIFICATION_TYPE_KEYS.map((key) => `'${key}'`).join(", "));
 export const NOTIFICATION_CHANNEL_KEYS = ["app", "email", "push"] as const;

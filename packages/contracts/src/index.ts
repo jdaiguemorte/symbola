@@ -106,6 +106,17 @@ export type {
   TaskTemplateItem,
   TaskTemplateItemInput,
   UpdateEventTaskInput,
+  TaskDoneBy,
+  TaskDoneByKind,
+  TaskList,
+  TaskListAssigneeFilter,
+  TaskListEventFilter,
+  TaskListFilters,
+  TaskListItem,
+  TaskListPeriod,
+  TaskListState,
+  TaskListViewer,
+  ListTasksInput,
   EventProgram,
   ProgramChanges,
   ProgramItem,
@@ -170,6 +181,8 @@ export type {
 } from "./events/service-contract";
 export type { DayHelper, DayHelperInput, EventTeamMember, EventTeamRole } from "./events/service-contract";
 export { DAY_DOCUMENT_SOURCES, DECISION_KINDS, ENGAGED_CANDIDATE_STATUSES, EVENT_TEAM_ROLES, LINK_AUDIENCES, LINK_BUDGET_SCOPES, LINK_RUBRICS, VENDOR_CANDIDATE_STATUSES } from "./events/service-contract";
+// Lot 70a (CHR-02, CHR-04 ; A7, A9) : qui a coché une tâche, note interne, états de la liste.
+export { TASK_DONE_BY_KINDS, TASK_LIST_STATES, TASK_NOTE_MAX } from "./events/service-contract";
 export type {
   AdjustEventBudgetItemInput,
   AdjustEventBudgetItemsInput,

@@ -32,7 +32,7 @@ Le format est décrit dans `docs/export/format-v1.md`.
 | `privacy_erasures` | `id`, `requestId`, `status`, `items`, `acks`, `createdByUserId`, `createdAt`, `completedAt`, `createdBy` | [privacy_erasures.schema.json](hub/privacy_erasures.schema.json) |
 | `privacy_purges` | `id`, `period`, `status`, `lines`, `items`, `acks`, `createdByUserId`, `createdAt`, `completedAt`, `createdBy` | [privacy_purges.schema.json](hub/privacy_purges.schema.json) |
 | `activity_journal` | `id`, `occurredAt`, `actorKind`, `actorId`, `action`, `category`, `objectType`, `objectId`, `details`, `reason` | [activity_journal.schema.json](hub/activity_journal.schema.json) |
-| `team_members` | `userId`, `email`, `role`, `disabledAt` | [team_members.schema.json](hub/team_members.schema.json) |
+| `team_members` | `userId`, `email`, `firstName`, `lastName`, `role`, `disabledAt` | [team_members.schema.json](hub/team_members.schema.json) |
 
 Tables non exportées :
 
@@ -96,7 +96,7 @@ Tables non exportées :
 | `vendor_coordination_settings` | `briefDeadlineDays`, `briefReminder`, `roadmapMonth`, `roadmapWeek`, `roadmapAlertDays`, `followUpTasks`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_coordination_settings.schema.json](events/vendor_coordination_settings.schema.json) |
 | `prospect_follow_up_settings` | `id`, `enabled`, `autoSend`, `steps`, `brochureStorageKey`, `brochureFileName`, `brochureSizeBytes`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [prospect_follow_up_settings.schema.json](events/prospect_follow_up_settings.schema.json) |
 | `event_type_vocabulary` | `id`, `eventTypeId`, `locale`, `term`, `gender`, `number`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_type_vocabulary.schema.json](events/event_type_vocabulary.schema.json) |
-| `planning_health_settings` | `id`, `watchPoints`, `latePoints`, `milestoneWeight`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [planning_health_settings.schema.json](events/planning_health_settings.schema.json) |
+| `planning_health_settings` | `id`, `watchPoints`, `latePoints`, `milestoneWeight`, `soonDays`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [planning_health_settings.schema.json](events/planning_health_settings.schema.json) |
 | `busy_settings` | `id`, `optionsBlock`, `fallbackStartDayOffset`, `fallbackStartTime`, `fallbackEndDayOffset`, `fallbackEndTime`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [busy_settings.schema.json](events/busy_settings.schema.json) |
 | `questionnaire_templates` | `id`, `eventTypeId`, `name`, `locale`, `starterKey`, `version`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [questionnaire_templates.schema.json](events/questionnaire_templates.schema.json) |
 | `questionnaire_template_items` | `id`, `templateId`, `version`, `position`, `itemKey`, `label`, `help`, `nature`, `choices`, `eventField`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [questionnaire_template_items.schema.json](events/questionnaire_template_items.schema.json) |
@@ -121,7 +121,7 @@ Tables non exportées :
 | `event_vendor_candidate_notes` | `id`, `candidateId`, `body`, `visibleToClients`, `createdByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_vendor_candidate_notes.schema.json](events/event_vendor_candidate_notes.schema.json) |
 | `vendor_reminders` | `id`, `eventId`, `candidateId`, `channel`, `remindedOn`, `recallOn`, `noteId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [vendor_reminders.schema.json](events/vendor_reminders.schema.json) |
 | `day_reminder_overrides` | `id`, `eventId`, `target`, `enabled`, `moment`, `sendTime`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [day_reminder_overrides.schema.json](events/day_reminder_overrides.schema.json) |
-| `event_tasks` | `id`, `eventId`, `label`, `dueDate`, `offsetDays`, `fixedAt`, `responsible`, `vendorCandidateId`, `followUpCandidateId`, `doneAt`, `position`, `importedFields`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy`, `recurrence`, `recurrenceSpawnedAt`, `isMilestone`, `categoryId`, `priority` | [event_tasks.schema.json](events/event_tasks.schema.json) |
+| `event_tasks` | `id`, `eventId`, `label`, `dueDate`, `offsetDays`, `fixedAt`, `responsible`, `vendorCandidateId`, `followUpCandidateId`, `doneAt`, `position`, `importedFields`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy`, `recurrence`, `recurrenceSpawnedAt`, `isMilestone`, `categoryId`, `priority`, `assigneeUserId`, `doneByKind`, `doneByUserId`, `note` | [event_tasks.schema.json](events/event_tasks.schema.json) |
 | `event_task_comments` | `id`, `eventId`, `taskId`, `authorUserId`, `body`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy`, `deletedAt`, `deletedBy` | [event_task_comments.schema.json](events/event_task_comments.schema.json) |
 | `event_task_attachments` | `id`, `eventId`, `taskId`, `label`, `fileKey`, `mime`, `sizeBytes`, `uploadedByUserId`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` | [event_task_attachments.schema.json](events/event_task_attachments.schema.json) |
 | `program_items` | `id`, `eventId`, `startTime`, `endTime`, `label`, `location`, `internalNote`, `responsible`, `keyMomentId`, `hiddenFromClients`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deletedAt`, `deletedBy` | [program_items.schema.json](events/program_items.schema.json) |
@@ -159,6 +159,7 @@ Tables non exportées :
 - `event_link_sessions` — secret : sessions ouvertes par les liens personnels (jetons hachés)
 - `event_task_reminders` — technique : rappels déjà envoyés par les liens, qui ne sont pas repris
 - `link_push_subscriptions` — technique : abonnements push des appareils des clients (adresse du service de push, clés publiques), propres à chaque appareil
+- `task_change_snapshots` — technique : valeurs d'avant d'un changement de date ou de personne, pour « Annuler », purgées après dix minutes
 
 ## Module `budget`
 

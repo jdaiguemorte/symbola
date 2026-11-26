@@ -12,6 +12,7 @@ import {
   listTrashedEventObjects,
   purgeEventElements,
   purgeTrashedEventObjects,
+  purgeTaskChangeSnapshots,
   purgeTrashedEvents,
   restoreEvent,
   restoreEventDocument,
@@ -151,6 +152,10 @@ export async function restoreFromTrash(organizationId: string, kind: TrashKind, 
     case "taskTemplate":
       restored = await restoreTaskTemplate(organizationId, id);
       break;
+    // Lot 70a (A5 ; ADR 0117) : la tâche, et celles supprimées du même geste.
+    case "task":
+      restored = (await restoreEventTasksDeletedWith(organizationId, id)) > 0;
+      break;
     case "programTemplate":
       restored = await restoreProgramTemplate(organizationId, id);
       break;
@@ -252,6 +257,8 @@ export async function purgeOrganizationTrash(organizationId: string, now: Date =
   elements += await purgeHubElements(organizationId, elementsBefore);
   elements += await purgeQuotesElements(organizationId, elementsBefore);
   elements += await purgeBudgetElements(organizationId, elementsBefore);
+  // Lot 70a (UX-07 ; A18) : les valeurs d'avant d'un changement de date ou de personne, passé dix minutes.
+  await purgeTaskChangeSnapshots(organizationId, now);
   const expiredEvents = await listTrashedEventIdsBefore(organizationId, objectsBefore);
   await purgeEvents(organizationId, expiredEvents);
   let objects = expiredEvents.length;

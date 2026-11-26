@@ -41,7 +41,8 @@ export default async function TrashPage({ searchParams }: { searchParams: Promis
       {items.length > 0 ? (
         <ul className="item-list" aria-label={t("title")}>
           {items.map((item) => {
-            const name = item.label || t("unnamed");
+            // Lot 70a (A5) : des tâches supprimées d'un même geste font une ligne (« 3 tâches de Léa & Maxime »).
+            const name = item.count ? (item.eventId && item.label ? t("taskBatch", { count: item.count, event: item.label }) : t("taskBatchNoEvent", { count: item.count })) : item.label || t("unnamed");
             const author = item.deletedBy ? authors.get(item.deletedBy) : undefined;
             return (
               <li key={`${item.kind}:${item.id}`}>

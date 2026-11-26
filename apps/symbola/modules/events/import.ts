@@ -2,6 +2,7 @@
 // service.ts : écriture d'un lot de lignes en une transaction, relecture de
 // l'état des éléments écrits, annulation. Jamais d'élément d'essai (ADR
 // 0008) : un rapprochement vers un événement d'essai est ignoré.
+import { actingMemberId } from "./task-assignment";
 import { and, asc, eq, isNotNull, max, sql } from "drizzle-orm";
 import {
   EVT_EVENT_CREATED,
@@ -399,6 +400,8 @@ async function taskState(tx: Tx, taskId: string): Promise<Values | null> {
 }
 
 export async function importTaskRows(input: { organizationId: string; rows: ImportApplyRow[] }): Promise<ImportApplyResult> {
+  // Lot 70a (A3) : une tâche « planner » importée est à la personne qui importe.
+  const actorId = await actingMemberId();
   return inTransaction(input.organizationId, async (tx) => {
     const items: ImportedItem[] = [];
     let unchanged = 0;
@@ -435,6 +438,10 @@ export async function importTaskRows(input: { organizationId: string; rows: Impo
           label: text(row.values.label) ?? "",
           dueDate: row.values.dueDate as string,
           responsible: (row.values.responsible as TaskResponsible | null) ?? "planner",
+          assigneeUserId: ((row.values.responsible as TaskResponsible | null) ?? "planner") === "planner" ? actorId : null,
+          // Revue du 70a (A9, « seulement le sûr ») : une tâche importée déjà faite n'a pas d'auteur de coche
+          // (« — ») ; celle qui importe ne l'a pas cochée. C'est pourquoi le déclencheur 0212 n'agit qu'à la
+          // mise à jour, jamais à l'insertion.
           doneAt: row.values.done === true ? new Date() : null,
           position: (last?.value ?? -1) + 1,
           importedFields: Object.keys(row.importedFields).length > 0 ? row.importedFields : null,

@@ -274,7 +274,17 @@
     "securityTitle": "Account security",
     "securityBody": "Your password, passkeys and two-step verification are managed in your sign-in space.",
     "securityLink": "Open my sign-in space",
-    "sessionsLink": "My sessions: the devices signed in to my account"
+    "sessionsLink": "My sessions: the devices signed in to my account",
+    "namesTitle": "Your name",
+    "namesBody": "Your team sees this name in “Who’s doing it” and in notifications. Never the couple or vendors.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "namesSave": "Save",
+    "namesSaved": "Saved",
+    "namesInvalid": "80 characters at most, without hidden special characters.",
+    "namesPrompt": "Add your first name so your team recognises you.",
+    "namesPromptLink": "Add my first name",
+    "namesPromptDismiss": "Close"
   },
   "Settings": {
     "title": "Settings",
@@ -524,7 +534,7 @@
     },
     "profile": {
       "title": "My account and security",
-      "body": "Choose the language Symbola uses for you. Your password and two-factor authentication protect your account; \"Forget all my devices\" asks for the code again on trusted devices. \"Sign out all my other devices\" closes your other sessions, for example after losing a phone. “My signature”: your name, job title and links at the end of the e-mails you send.",
+      "body": "Your first and last name: your team sees them in “Who’s doing it” and in notifications (never the couple or vendors); each one is saved on its own when you leave the field. Choose the language Symbola uses for you. Your password and two-factor authentication protect your account; \"Forget all my devices\" asks for the code again on trusted devices. \"Sign out all my other devices\" closes your other sessions, for example after losing a phone. “My signature”: your name, job title and links at the end of the e-mails you send.",
       "faq": [
         {
           "q": "How do I change my password?",
@@ -2445,7 +2455,10 @@
     "statusCancelledMessage": "Event cancelled: {names}",
     "statusPostponedMessage": "Event postponed: {names}",
     "statusRestoredMessage": "Event restored: {names}",
-    "statusRestoredDetail": "It went back to “Option”, to be confirmed again."
+    "statusRestoredDetail": "It went back to “Option”, to be confirmed again.",
+    "responsibleYou": "You",
+    "responsibleMemberRemoved": "{name} (access removed)",
+    "responsibleNobody": "Nobody yet"
   },
   "Budget": {
     "title": "Budget",
@@ -8881,7 +8894,8 @@
       "contractTemplate": "Contract template",
       "messageTemplate": "Message template",
       "appointmentType": "Appointment type",
-      "appointment": "Appointment"
+      "appointment": "Appointment",
+      "task": "Task"
     },
     "deletedBy": "Deleted on {date} by {author}",
     "deletedOn": "Deleted on {date}",
@@ -8932,7 +8946,9 @@
     },
     "eventAssistant": "As an assistant on this event, you cannot delete it: ask its lead planner or the Owner.",
     "deleteForGoodKeep": "Keep in the Bin",
-    "deleteForGoodAcknowledge": "I understand that “{name}” can't be recovered."
+    "deleteForGoodAcknowledge": "I understand that “{name}” can't be recovered.",
+    "taskBatch": "{count} tasks from {event}",
+    "taskBatchNoEvent": "{count} tasks"
   },
   "Drafts": {
     "found": "Draft from {date} found.",
@@ -11108,8 +11124,14 @@
         "label": "App activated",
         "text": "The “{module}” app is active.",
         "action": "See the app"
+      },
+      "task_assigned": {
+        "label": "A task is assigned to you",
+        "text": "{count, plural, one {{by} assigned you “{label}”.} other {{by} assigned you # tasks.}}",
+        "action": "See my tasks"
       }
     },
+    "someone": "A colleague",
     "center": {
       "title": "Notifications",
       "intro": "What happened and what is waiting for you. Each notification leads to the screen where you can act.",

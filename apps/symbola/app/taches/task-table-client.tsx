@@ -155,7 +155,7 @@ function ReopenButton({ row }: { row: TaskTableRow }) {
   );
 }
 
-function BulkBar({ ids, categories, onClear, onDone }: { ids: string[]; categories: Option[]; onClear: () => void; onDone: (message: string, undoOffered: boolean) => void }) {
+function BulkBar({ ids, categories, members, onClear, onDone }: { ids: string[]; categories: Option[]; members: Option[]; onClear: () => void; onDone: (message: string, undoOffered: boolean) => void }) {
   const t = useTranslations("Events");
   const [state, action, pending] = useActionState(bulkTasksAction, {} as TaskRowState);
   const [days, setDays] = useState("7");
@@ -190,8 +190,14 @@ function BulkBar({ ids, categories, onClear, onDone }: { ids: string[]; categori
           <div className="row-menu-panel row-menu-date">
             <label>
               {t("taskResponsible")}
-              <select name="responsible" defaultValue="planner">
-                <option value="planner">{t("responsiblePlanner")}</option>
+              {/* Lot 70a (CHR-02 ; A1) : « Vous », chaque collègue par son nom, les clients. */}
+              <select name="responsible" defaultValue={members[0]?.value ?? "planner"}>
+                {members.length === 0 ? <option value="planner">{t("responsiblePlanner")}</option> : null}
+                {members.map((member) => (
+                  <option key={member.value} value={member.value}>
+                    {member.label}
+                  </option>
+                ))}
                 <option value="clients">{t("responsibleClients")}</option>
               </select>
             </label>
@@ -239,6 +245,7 @@ export function TaskTableClient({
   categories,
   postponeDates,
   undoMessages,
+  members = [],
 }: {
   months: TaskTableMonth[];
   caption: string;
@@ -248,6 +255,7 @@ export function TaskTableClient({
   postponeDates: { tomorrow: string; nextWeek: string };
   // Textes du bandeau « Annuler » d'une tâche cochée, par tâche (lot 39c).
   undoMessages: Record<string, { done: string; reopened: string }>;
+  members?: Option[];
 }) {
   const t = useTranslations("Events");
   const router = useRouter();
@@ -278,7 +286,7 @@ export function TaskTableClient({
 
   return (
     <div>
-      {shown.length > 0 ? <BulkBar ids={shown} categories={categories} onClear={clear} onDone={done} /> : null}
+      {shown.length > 0 ? <BulkBar ids={shown} categories={categories} members={members} onClear={clear} onDone={done} /> : null}
       <div role="region" aria-label={t("taskTableRegion", { caption })} tabIndex={0}>
         <table className="data-table tasks-table">
           <caption className="sr-only">{caption}</caption>
