@@ -977,7 +977,8 @@ Ouverts ; chacun a sa recommandation.
 4. **États d'une tâche**. Le cahier des charges cite « À faire, En cours, En attente d'un tiers,
    Fait, En retard ». Les maquettes n'ont pas « En cours » et ajoutent « Bientôt » (« Dans N jours »,
    seuil de M10). Proposition : pas d'« En cours » pour une tâche (personne ne l'a demandé au
-   panel), « Bientôt » ajouté ; ADR si Julien confirme.
+   panel), « Bientôt » ajouté ; ADR si Julien confirme. **Tranché le 26/11 par Julien : « Oui, sans En
+   cours »** (ADR au paquet 70a).
 5. **« Prospect » hors de « + Créer » (HUB-07)**. D8 le remplace par « Nouvel évènement › Une
    demande en cours », qui crée la même chose. Proposition : d'accord, noté dans `gap.csv`. **Tranché le 26/11 par Julien : « Oui, le
    retirer ».**

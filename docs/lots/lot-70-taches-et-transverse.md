@@ -1,6 +1,7 @@
 # Lot 70 — Réaliser le volet 1 des maquettes : « Tâches » et le transverse
 
-**Statut** : spécification, **à valider par Julien avant tout code** (le lot change le schéma de
+**Statut** : spécification ; décisions A1 à A22 et Q47 tranchées par Julien le 26/11 ; **validation
+d'ensemble à donner avant tout code** (le lot change le schéma de
 données du module `events` et un parcours P0, PAR-03).
 **Branche de la spécification** : `lot-70-taches-et-transverse` (une PR vers `main`, ce fichier et
 `docs/QUESTIONS.md` seulement). Chaque paquet aura ensuite sa branche `lot-70<x>-…` et sa PR.
@@ -646,8 +647,8 @@ réalise, si Julien confirme.
    (M11). → noté dans `gap.csv`, sans ADR (tranché le 26/11 par Julien : « Oui, Tâches »).
 4. **Les états d'une tâche** : le cahier des charges cite « À faire, En cours, En attente d'un
    tiers, Fait, En retard ». Les maquettes n'ont pas « En cours », ajoutent « Bientôt » (« Dans N
-   jours ») et disent l'attente par la personne (« Les mariés »). → à confirmer (Q47) ; ADR si
-   « En cours » est écarté.
+   jours ») et disent l'attente par la personne (« Les mariés »). → tranché le 26/11 par Julien : « Oui, sans En cours » ;
+   ADR au paquet 70a.
 5. **« Prospect » hors de « + Créer » (HUB-07)**, remplacé par « Nouvel évènement › Une demande en
    cours » (D8, A12). Pas de perte de fonction ; à noter dans `gap.csv`.
 6. **Trois champs pour créer un évènement (EVT-01 : nom, date, type)** : la maquette n'a pas le
