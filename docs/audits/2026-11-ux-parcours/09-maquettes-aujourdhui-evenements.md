@@ -115,10 +115,19 @@ sont pas retouchées.
   passe dans son menu ; un doublon possible se dit « À vérifier : » ; la barre « Enregistrer le
   programme » reste.
 
-## 3. Les choix laissés à Julien
+## 3. Les choix laissés à Julien, et sa décision
 
-Seize choix, à trancher un par un. Pour chacun : où regarder, la proposition (celle des maquettes),
-l'autre voie, et ma recommandation.
+**Décision de Julien, le 26/11/2026** : « toutes les décisions qui remettent en cause les précédentes à
+cause des nouvelles maquettes sont bonnes : on fait confiance par défaut aux choix poussés par ces
+nouvelles maquettes. On vérifie que des fonctionnalités majeures ne disparaissent pas. Mais
+l'ergonomie cible est celle des maquettes. »
+
+Les seize choix ci-dessous sont donc **retenus tels que proposés** (A1 à A7, E1 à E9). Là où une
+maquette de ce volet contredit une décision antérieure, la maquette l'emporte : l'ordre de l'accueil de
+M15 (A5), le compte des points de M15 (A1), la date de « Léa & Maxime » dans la liste de la page 9
+(§ 1). La vérification demandée (aucune fonction majeure ne disparaît) est au § 3 bis.
+
+Pour mémoire, chaque choix avec où regarder, la proposition, l'autre voie et la recommandation :
 
 ### Aujourd'hui
 
@@ -145,6 +154,43 @@ l'autre voie, et ma recommandation.
 | E7 | Une colonne d'avancement dans la liste (C-29, C-14) | Page 17, « La liste » | « Tâches faites » (« 14 sur 20 · 2 en retard ») | Liste légère ; l'avancement seulement dans la vue d'agence (A7) | **La proposition** : une planner seule n'a pas la vue d'agence ; la liste est sa vue d'ensemble |
 | E8 | La charge des douze prochains mois (C-29) | Page 17, « La liste » (intro) | Dans la vue « Calendrier » | Sous la liste, réduite aux mois qui ont un évènement ; ou supprimée | **La proposition** : c'est une lecture du calendrier, pas de la liste |
 | E9 | « Les 14 prochains jours » sur la Synthèse (C-28) | Page 16, « La Synthèse » | Fondu dans la suite : mêmes lignes, même horizon que l'accueil | Garder le bloc, sous la suite, en calendrier de quinze jours | **La proposition** : deux blocs disaient la même chose avec deux comptes différents |
+
+## 3 bis. Aucune fonction majeure ne disparaît
+
+Inventaire, écran par écran, de ce que l'app fait aujourd'hui (lu dans le code, § 5) et de l'endroit où
+les maquettes le placent. Les lignes marquées « rétabli » manquaient à la première version des maquettes
+et y ont été ajoutées le 26/11/2026, après la décision de Julien.
+
+| Écran | Fonction d'aujourd'hui | Dans les maquettes |
+| --- | --- | --- |
+| Aujourd'hui | « À traiter en premier » par nature, « Fait », « Noter une relance », retour « Annuler » | Gardés (pages 13, 14) |
+| Aujourd'hui | « Ensuite » (au-delà de sept lignes) | « Tout afficher » au bas de la carte (page 14) |
+| Aujourd'hui | Calendrier mois et semaine (lot 65c) | Gardé, sous « Mes évènements » (A5) |
+| Aujourd'hui | « Risques » (radar du matin) | Lignes « À regarder » ; radar coupé : Paramètres (A6) |
+| Aujourd'hui | Alertes : plafond d'e-mails, rappels arrêtés, demandes RGPD, reprise du questionnaire, source indisponible | Gardées en tête (page 13, table) |
+| Aujourd'hui | « Pour bien démarrer » ; bandeau « fiche entreprise » | Une seule ligne « Pour bien démarrer », qui porte la fiche entreprise |
+| Aujourd'hui | « Mes évènements » | Gardé, avec les retards |
+| Liste | Recherche, statut, source, année ; À venir, Terminés, Archivés | Gardés ; « Source du prospect » devient « Venu par » (**rétabli**) |
+| Liste | Vues Liste, **Colonnes** (demandes par étape), Calendrier | Les trois dans la bascule (**rétabli** : « Colonnes ») |
+| Liste | « Importer », « Réglages » | Au menu « ⋯ » à côté de « Nouvel évènement » (**rétabli**) ; le bouton « Réglages » des écrans reste au volet « Paramètres » (C-11) |
+| Liste | Essai guidé, état vide, étiquette « Exemple » | Gardés (état vide et aide de l'écran) |
+| Liste | Charge des douze mois | Vue « Calendrier » (E8) |
+| Fiche, en-tête | Type, « Messages », « Écrire au client », « Voir comme … », « Jour J », « Reporter », « Annuler l'évènement » | Une action et le menu « ⋯ » (page 15) |
+| Fiche, frise | Statut posé à la main, report et sa confirmation (tâches qui tomberaient dans le passé), annulation et motif, réactivation, clôture | Bouton d'étape, ligne « Reporté » (la liste avant confirmation, **rétabli** dans le texte), « Annulé » et « Rétablir », « Clôturer » |
+| Fiche, frise | Archivé (lecture seule), avoirs proposés à l'annulation | Ligne « Archivé » et « À vérifier : 2 factures émises » (**rétablis**, page 15) |
+| Fiche, Synthèse | Prochaine action, Prochaine étape, santé et « Pourquoi », 14 jours | Une seule suite ; « Où en est le mariage » et « Pourquoi ces nombres ? » (E9) |
+| Fiche, Synthèse | Équipe, plage occupée, fiche d'identité, temps forts (ajouter, modifier), rendez-vous, échanges du prospect, fil | Gardés en blocs ou en lignes d'« Informations » ; « Gérer » sur « Temps forts » (**rétabli**) |
+| Fiche, Synthèse | Capacité du lieu dépassée, « faire de la simulation le budget estimé », bilan du lendemain, essai guidé, exemple à supprimer | Gardés (page 16, table) (**rétablis**) |
+| Fiche, Synthèse | « Champs importés » | Retiré au volet 2 (page 9) : chaque valeur à sa place |
+| Fiche, informations | Date, fuseau, budget souhaité, lieu, fiche d'identité, notes confidentielles | Cinq rubriques, un « Enregistrer » ; la date d'un mariage signé passe par le report (E5) |
+| Programme | Moments, ajout, modification, retrait, enregistrement groupé | Ligne ouverte en place, « Retirer » au menu, barre « Enregistrer » |
+| Programme | Partage et prévenir les destinataires, versions, deux PDF, agenda, import (deux portes), modèles, réglages | « Partager… » et le menu « ⋯ », dont « Versions partagées » (**rétabli**) |
+| Programme | Chevauchements, décalage des moments suivants | « À vérifier : » en tête ; décalage gardé, plus « Décaler tout le programme… » au menu (**rétablis**) |
+| Programme | Lieux (et lieu tiré du carnet), contacts du jour J, rappel du jour J | Trois blocs sous les journées (**rétablis**) |
+
+Non redessinés et non touchés : les onglets « Budget et prestataires » (volet « Prestataires »),
+« Tâches » (volet 1), « Devis et factures », « Mariés » (liens, décisions), « Documents »,
+« Invités ». Aucune maquette n'y retire rien.
 
 ## 4. Ce que les maquettes supposent du comportement de l'app
 
@@ -264,5 +310,7 @@ manquante devant « · ».
 
 ## 8. La porte 3 de ce volet
 
-À venir : Julien tranche A1 à A7 et E1 à E9 un par un. Les maquettes seront corrigées selon ses
-réponses, puis ce volet rejoindra le Design System (phase 6) avec les volets 1 et 2.
+**Volet 3 tranché par Julien le 26/11/2026** : les seize choix retenus tels que proposés, les maquettes
+de ce volet primant sur les décisions antérieures qu'elles contredisent, sous réserve qu'aucune fonction
+majeure ne disparaisse (§ 3 bis). Ses formes rejoignent le Design System (phase 6) avec les volets 1
+et 2.
