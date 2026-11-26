@@ -293,7 +293,7 @@ describe("UX-06, CHR-05 — Seuil « Bientôt » réglé par l'organisation (cri
   });
 });
 
-describe("HUB-17, UX-07 — La Corbeille des tâches (critère 7, A5, ADR 0116)", () => {
+describe("HUB-17, UX-07 — La Corbeille des tâches (critère 7, A5, ADR 0117)", () => {
   it("une tâche supprimée reste trente jours dans la Corbeille et se restaure à sa place ; la purge l'efface ensuite", async () => {
     const team = await agency();
     const eventId = await wedding(team.organizationId, team.camille);

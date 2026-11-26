@@ -1,4 +1,4 @@
-// Lot 70a (UX-06, CHR-05, UX-01 ; M10, Q47-4 ; ADR 0117) — l'état d'échéance d'une tâche à faire, calculé
+// Lot 70a (UX-06, CHR-05, UX-01 ; M10, Q47-4 ; ADR 0118) — l'état d'échéance d'une tâche à faire, calculé
 // à un seul endroit et lu par tous les écrans (ligne de « Tâches », fiche, « Aujourd'hui », téléphone) :
 // en retard, aujourd'hui, demain, bientôt (jusqu'au seuil réglé par l'organisation), plus tard. Les
 // dates sont des jours (« AAAA-MM-JJ ») ; « aujourd'hui » est le jour à Paris : un changement d'heure ne

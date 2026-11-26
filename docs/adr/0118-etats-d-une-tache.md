@@ -1,4 +1,4 @@
-# ADR 0117 — Les états d'une tâche : sans « En cours », avec « Bientôt »
+# ADR 0118 — Les états d'une tâche : sans « En cours », avec « Bientôt »
 
 - Statut : accepté (lot 70a ; décision Q47-4 de Julien du 26/11/2026, « Oui, sans En cours »)
 - Date : 2026-11-26

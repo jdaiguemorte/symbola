@@ -1,4 +1,4 @@
-// Lot 70a (UX-06, CHR-05, UX-01 ; M10, Q47-4 ; ADR 0117) — l'état d'échéance d'une tâche, un seul calcul
+// Lot 70a (UX-06, CHR-05, UX-01 ; M10, Q47-4 ; ADR 0118) — l'état d'échéance d'une tâche, un seul calcul
 // pour tous les écrans, avec une horloge simulée : veille, jour même, lendemain, septième et huitième
 // jour, seuil réglé, passage à l'heure d'été et à l'heure d'hiver (dates à Paris).
 import { describe, expect, it } from "vitest";

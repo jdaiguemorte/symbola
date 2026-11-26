@@ -152,7 +152,7 @@ export async function restoreFromTrash(organizationId: string, kind: TrashKind, 
     case "taskTemplate":
       restored = await restoreTaskTemplate(organizationId, id);
       break;
-    // Lot 70a (A5 ; ADR 0116) : la tâche, et celles supprimées du même geste.
+    // Lot 70a (A5 ; ADR 0117) : la tâche, et celles supprimées du même geste.
     case "task":
       restored = (await restoreEventTasksDeletedWith(organizationId, id)) > 0;
       break;

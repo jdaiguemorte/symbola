@@ -158,7 +158,7 @@ describe("UX-07 — Annuler plutôt que confirmer", () => {
 });
 
 describe("DAT-03 — Suppression logique datée, puis purge réelle par tâche de fond", () => {
-  // Lot 70a (A5 ; ADR 0116, avenant à l'ADR 0073) : une tâche n'est plus un élément purgé dix minutes
+  // Lot 70a (A5 ; ADR 0117, avenant à l'ADR 0073) : une tâche n'est plus un élément purgé dix minutes
   // après ; elle reste trente jours à la corbeille.
   it("une tâche retirée s'annule, puis reste à la corbeille après dix minutes, et la purge l'efface après trente jours", async () => {
     const organizationId = await organization();

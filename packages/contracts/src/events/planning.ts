@@ -44,7 +44,7 @@ export const clientTermSchema = z.object({ term: z.string().trim().min(1).max(40
 // Le terme réglé de chaque type, par langue (null : le vocabulaire du type, mariés ou clients).
 export type EventTypeVocabularyView = { eventTypeId: string; label: string; audience: "couple" | "clients"; terms: { fr: ClientTerm | null; en: ClientTerm | null } };
 
-// —— Lot 70a (CHR-02, UX-06, CHR-05 ; A19, Q47-4 ; ADR 0116, ADR 0117) ——————————————————————————
+// —— Lot 70a (CHR-02, UX-06, CHR-05 ; A19, Q47-4 ; ADR 0117, ADR 0118) ——————————————————————————
 
 // L'état d'échéance d'une tâche à faire, le même partout (ligne, accueil, téléphone) : en retard (avant
 // aujourd'hui), aujourd'hui, demain, bientôt (jusqu'au seuil de l'organisation), plus tard. Pas d'état

@@ -28,7 +28,7 @@ import { candidateQuoteKeys } from "./vendor-candidates";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Lot 70a (A5 ; ADR 0116) : « task », une tâche ou les tâches supprimées d'un même geste.
+// Lot 70a (A5 ; ADR 0117) : « task », une tâche ou les tâches supprimées d'un même geste.
 export type EventTrashKind = "event" | "document" | "taskTemplate" | "programTemplate" | "task";
 
 export type TrashedEventRow = { kind: EventTrashKind; id: string; label: string | null; eventId: string | null; deletedAt: Date; deletedBy: string | null; count?: number };
@@ -161,7 +161,7 @@ export async function isEventObjectTrashed(organizationId: string, kind: EventTr
 // pièces jointes des tâches.
 export async function purgeEventElements(organizationId: string, before: Date): Promise<number> {
   return includingDeleted(async () => {
-    // Lot 70a (A5 ; ADR 0116) : les tâches ne sont plus des éléments purgés dix minutes après ; elles
+    // Lot 70a (A5 ; ADR 0117) : les tâches ne sont plus des éléments purgés dix minutes après ; elles
     // restent trente jours à la corbeille (purgeTrashedEventObjects).
     const result = await inTrash(organizationId, async (tx) => {
       const comments = await tx.delete(eventTaskComments).where(and(isNotNull(eventTaskComments.deletedAt), lt(eventTaskComments.deletedAt, before))).returning({ id: eventTaskComments.id });

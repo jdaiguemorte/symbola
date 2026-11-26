@@ -8,7 +8,7 @@ export const ELEMENT_PURGE_MINUTES = 10;
 export const FORM_DRAFT_RETENTION_DAYS = 30;
 
 // Lot 46 (ADR 0082) : types de rendez-vous et rendez-vous.
-// Lot 70a (A5 ; ADR 0116, avenant à l'ADR 0073) : une tâche supprimée reste trente jours à la corbeille ;
+// Lot 70a (A5 ; ADR 0117, avenant à l'ADR 0073) : une tâche supprimée reste trente jours à la corbeille ;
 // les tâches supprimées d'un même geste y sont une seule ligne (l'identifiant est celui de l'une d'elles).
 export const TRASH_KINDS = ["event", "contact", "document", "taskTemplate", "programTemplate", "quoteTemplate", "contractTemplate", "messageTemplate", "appointmentType", "appointment", "task"] as const;
 export type TrashKind = (typeof TRASH_KINDS)[number];
