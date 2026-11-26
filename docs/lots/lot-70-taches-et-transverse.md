@@ -597,7 +597,7 @@ l'autre voie. Celles qui touchent le cahier des charges sont aussi dans `docs/QU
 | A19 | **Prévenir un collègue** à qui l'on confie une tâche ? | **Tranché le 26/11 par Julien : « Notifier dès ce lot ».** Nouvel événement `events.task.assigned` et nouvelle sorte de notification `task_assigned` (migration 0217 du schéma `hub`), détaillés au § 3.3 ; dans l'app et au récapitulatif quotidien par défaut, coupable par chacun ; jamais pour soi-même | (écartée) attendre le lot d'« Aujourd'hui » |
 | A20 | **Qui voit les tâches hors évènement ?** | **Tranché le 26/11 par Julien : « Oui, l'équipe ».** Toute l'équipe (ce sont les tâches de l'agence), comme aujourd'hui ; une Planner restreinte ne voit que celles qui lui sont confiées, qu'elle a créées ou qui n'ont personne | Chacun ne voit que les siennes |
 | A21 | **Vue par défaut de l'onglet « Tâches » de la fiche** : aujourd'hui « Toutes » ; la maquette montre « À faire ». | **Tranché le 26/11 par Julien : « Oui, À faire ».** « À faire », comme l'écran « Tâches » (un seul patron) ; « 14 faites sur 20 » reste en tête | Garder « Toutes » dans la fiche |
-| A22 | **« Dupliquer la tâche »** apparaît dans le menu du panneau, sans exister aujourd'hui. | Oui : copie titre, évènement, personne, catégorie, note ; échéance vide à choisir | Le retirer du menu |
+| A22 | **« Dupliquer la tâche »** apparaît dans le menu du panneau, sans exister aujourd'hui. | **Tranché le 26/11 par Julien : « Oui, dupliquer ».** Oui : copie titre, évènement, personne, catégorie, note ; échéance vide à choisir | Le retirer du menu |
 
 **Points qui ne demandent pas de décision mais méritent d'être sus** :
 
