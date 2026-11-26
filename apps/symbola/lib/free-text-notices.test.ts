@@ -69,6 +69,9 @@ const WITHOUT_ENTRY: Record<string, string> = {
   "hub.privacy_purges.lines": "relevé écrit par l'app à la purge, sans saisie",
   "events.events.imported_fields": "valeurs reprises d'un fichier importé, sans saisie à l'écran",
   "events.event_tasks.imported_fields": "valeurs reprises d'un fichier importé, sans saisie à l'écran",
+  // Lot 70a (A7) : la colonne existe, le champ arrive avec le panneau de la tâche (paquet 70c), qui portera
+  // sa mise en garde (« Note interne »), et sortira alors de cette liste.
+  "events.event_tasks.note": "pas encore de champ à l'écran : le panneau de la tâche (paquet 70c) l'apporte avec sa mise en garde",
   "events.event_vendor_slots.imported_fields": "valeurs reprises d'un fichier importé, sans saisie à l'écran",
   "quotes.catalog_items.imported_fields": "valeurs reprises d'un fichier importé, sans saisie à l'écran",
   "vendors.vendors.imported_fields": "valeurs reprises d'un fichier importé, sans saisie à l'écran",

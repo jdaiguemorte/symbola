@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import type { EventTask, TaskResponsible, TaskTemplate } from "@/modules/events/service";
+import type { EventTask, TaskTemplate } from "@/modules/events/service";
 import {
   addEventTaskAction,
   applyTaskTemplateAction,

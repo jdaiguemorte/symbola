@@ -51,6 +51,8 @@ export async function saveNameFieldAction(_prev: NameFieldState, formData: FormD
 
 // La ligne « Indiquez votre prénom » de l'accueil, fermée par la personne (sur cet appareil).
 export async function dismissNamesPromptAction(): Promise<void> {
+  const auth = await getAuthContext();
+  if (auth.status !== "authenticated") return;
   (await cookies()).set(NAMES_PROMPT_COOKIE, "ferme", { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax", httpOnly: true });
   revalidatePath("/");
 }
