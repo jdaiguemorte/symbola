@@ -11,9 +11,12 @@
 //   temps qui reste ; il s'arrête tant que la souris ou le focus est sur le message.
 // - Fond encre, texte blanc, secondaire `night-ink-muted` (8,4:1), « Annuler » en `night-accent`
 //   (9,7:1), bouton de 40 px ; annoncé aux lecteurs d'écran (zone `status`, toujours présente).
+// - Quand une fenêtre modale est ouverte (fenêtre de la tâche), le reste de la page est inerte : la zone
+//   passe dans la fenêtre, pour que « Réessayer » ou « Annuler » reste à portée, puis revient à sa place.
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { initialFeedback, isExpired, pauseFeedback, remainingMs, resumeFeedback, showFeedback, type FeedbackActionKind, type FeedbackState } from "./feedback-model";
 
 export type FeedbackInput = {
@@ -41,10 +44,14 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   const [input, setInput] = useState<FeedbackInput | null>(null);
   const [pending, startTransition] = useTransition();
   const hovered = useRef(false);
+  // La fenêtre modale ouverte au moment du message, s'il y en a une.
+  const [host, setHost] = useState<HTMLDialogElement | null>(null);
   const focused = useRef(false);
 
   const show = useCallback((next: FeedbackInput) => {
     sequence += 1;
+    const modal = [...document.querySelectorAll("dialog")].reverse().find((dialog) => dialog.open && dialog.matches(":modal")) ?? null;
+    setHost(modal);
     setInput(next);
     setState((current) =>
       showFeedback(
@@ -54,6 +61,20 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
       ),
     );
   }, []);
+
+  // La fenêtre se ferme : la zone revient à sa place, le message avec elle.
+  useEffect(() => {
+    if (!host) return;
+    const back = () => setHost(null);
+    host.addEventListener("close", back);
+    const watch = window.setInterval(() => {
+      if (!host.isConnected || !host.open) back();
+    }, 250);
+    return () => {
+      host.removeEventListener("close", back);
+      window.clearInterval(watch);
+    };
+  }, [host]);
 
   const dismiss = useCallback(() => {
     hovered.current = false;
@@ -84,7 +105,13 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   return (
     <FeedbackContext.Provider value={value}>
       {children}
-      <div className="feedback-region" role="status" aria-label={t("region")}>
+      {host ? createPortal(region("feedback-region feedback-region-floating"), host) : region("feedback-region")}
+    </FeedbackContext.Provider>
+  );
+
+  function region(className: string) {
+    return (
+      <div className={className} role="status" aria-label={t("region")}>
         {message ? (
           <div
             key={message.id}
@@ -151,8 +178,8 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
           </div>
         ) : null}
       </div>
-    </FeedbackContext.Provider>
-  );
+    );
+  }
 }
 
 // Un message venu du serveur (offre d'annulation posée par une action, retour à l'accueil après

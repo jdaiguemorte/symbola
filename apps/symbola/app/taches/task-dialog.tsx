@@ -60,7 +60,20 @@ export function TaskDialog({
   const feedback = useFeedback();
   const formRef = useRef<HTMLFormElement>(null);
   // Lot 70b (NFR-16) : la connexion coupée à l'envoi ne perd rien ; le message propose « Réessayer ».
-  const saveAction = useRetryableAction(saveTaskAction, formRef, tFeedback("taskNotSaved"));
+  // Enregistrée : la fenêtre se ferme et le message le dit, dès la réponse (la page qui suit remonte
+  // la fenêtre avec les nouvelles valeurs : un effet sur l'état n'aurait pas le temps de partir).
+  const saveAction = useRetryableAction(
+    async (previous: TaskRowState, formData: FormData) => {
+      const result = await saveTaskAction(previous, formData);
+      if (result.success) {
+        feedback?.show({ title: tFeedback("taskSaved", { label: String(formData.get("label") ?? "").trim() }) });
+        close();
+      }
+      return result;
+    },
+    formRef,
+    tFeedback("taskNotSaved"),
+  );
   const [state, action, pending] = useActionState(saveAction, {} as TaskRowState);
   // Lot 70b (UX-10) : validation écrite par Symbola, le même schéma qu'au serveur.
   const validation = useFieldValidation(taskFieldsSchema, state.fieldErrors);
@@ -83,12 +96,6 @@ export function TaskDialog({
     router.replace(closeHref, { scroll: false });
   };
 
-  // Enregistrée : la fenêtre se ferme, la ligne montre les nouvelles valeurs ; le message le dit.
-  useEffect(() => {
-    if (!state.success) return;
-    feedback?.show({ title: tFeedback("taskSaved", { label: label.trim() }) });
-    close();
-  }, [state]);
 
   const long = sections.length > 0;
   return (
