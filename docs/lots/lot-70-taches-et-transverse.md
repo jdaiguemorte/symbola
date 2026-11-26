@@ -130,12 +130,13 @@ Tout reste dans le schéma `events` (module des tâches), sauf mention. Aucune c
 | 0214 | `0214_lot70a_events_soon_days.sql` | Ajoute `events.planning_health_settings.soon_days integer` (1 à 30). Sans ligne ou sans valeur : 7 | M10 : seuil de « Bientôt » réglable par organisation. L'écran de réglage attend le volet « Paramètres » (§ 8) ; la valeur est lue dès ce lot |
 | 0215 | `0215_lot70a_events_task_change_snapshots.sql` | Table technique `events.task_change_snapshots` (`id`, `organization_id`, `user_id`, `payload jsonb`, `expires_at`), RLS par organisation, purgée par la tâche horaire après dix minutes | « Annuler » après « Changer la date » ou « Confier à » (C-09) : il faut garder les valeurs d'avant (jusqu'à 500 tâches en lot), que le cookie d'annulation actuel (`lib/undo.ts`, nature et identifiant seulement) ne peut pas porter. Décision A18 |
 | 0216 | `0216_lot70a_hub_user_names.sql` | **Schéma `hub`** (accord de Julien, A1, 26/11) : ajoute `hub.users.first_name` et `hub.users.last_name` (`text`, nullables, 1 à 80 caractères, sans caractère de contrôle) | A1 : nommer un collègue (« Bastien ») et ses initiales (« BL ») ; le nom appartient à la personne, pas à l'organisation, d'où `users` et non `memberships` |
+| 0217 | `0217_lot70a_hub_notification_task_assigned.sql` | **Schéma `hub`** : ajoute `task_assigned` aux contraintes `notifications_type_check` et `notification_preferences_type_check` (liste `NOTIFICATION_TYPES`) ; retour arrière : retire la valeur après avoir effacé les notifications de cette sorte | A19 : prévenir le collègue à qui l'on confie une tâche |
 
 La **Corbeille des tâches** (décision A5) ne demande pas de migration : `deleted_at` suffit ; ce
 qui change, c'est le délai de purge des tâches (dix minutes aujourd'hui, `ELEMENT_PURGE_MINUTES`,
 `packages/contracts/src/trash.ts`) et la liste de la Corbeille. C'est un avenant à l'ADR 0073.
 
-Une seule migration touche le schéma `hub` (0216, A1) ; elle passe par le service du hub et `packages/auth`, jamais par le module `events`.
+Deux migrations touchent le schéma `hub` (0216 pour A1, 0217 pour A19) ; elles passent par le service du hub et `packages/auth`, jamais par le module `events`.
 
 ### 3.3 Contrats (`packages/contracts`)
 
@@ -151,9 +152,29 @@ Changements **compatibles** (ajouts) :
 - les actions en lot gagnent « Fait », « Confier à un membre » et « Toutes au <date> » ;
 - `TRASH_KINDS` gagne `task` (si A5 en (a)).
 
-Rien d'incompatible : les anciennes valeurs restent lues. **Aucun nouvel événement
-`domain_events`** : les tâches n'en émettent pas aujourd'hui, et ce lot n'en a pas besoin
-(la notification d'un collègue à qui l'on confie une tâche est la décision A19).
+Rien d'incompatible : les anciennes valeurs restent lues.
+
+**Un nouvel événement `domain_events`, `events.task.assigned` (A19, tranchée le 26/11 : « Notifier
+dès ce lot »)**. Schéma versionné (v1) dans `packages/contracts/src/events/planning.ts` :
+`{ taskId, eventId | null, assigneeUserId, assignedByUserId }`, avec l'`organization_id`, un
+identifiant unique et la date (ARC-05). Aucun libellé ni nom dans la charge (SEC-20).
+
+- **Quand il part** : dans la même transaction que l'écriture (outbox), chaque fois qu'une tâche à
+  faire passe à un membre (création, panneau, « Confier à… », lot, reprise par A4), **sauf** si ce
+  membre est la personne qui agit (on ne se notifie pas soi-même), si la tâche est déjà faite, ou si
+  l'évènement est de démonstration (`is_demo`). « Annuler » dans les dix secondes ne retire pas une
+  notification déjà créée : elle mène à la tâche, qui dit à qui elle est.
+- **En lot** : un événement par tâche ; le consommateur regroupe par destinataire en une seule
+  notification (« 3 tâches vous ont été confiées »), clé d'objet `assign:<destinataire>:<lot>`.
+- **Le consommateur** (`lib/notification-sources.ts`, `NOTIFICATION_CONSUMERS`) appelle `notify` du
+  hub avec `userIds: [assigneeUserId]` et la sorte `task_assigned` ; idempotent (clé
+  `<taskId>:<id de l'événement>`) ; il revérifie que le destinataire est encore membre actif.
+  Lien : le panneau de la tâche (`/taches?tache=<id>`). Paramètres : le titre de la tâche (court)
+  et le nombre ; le nom de la personne qui confie est lu à l'affichage depuis son identifiant,
+  jamais gardé dans la notification.
+- **Réglages de départ** (`packages/starter-templates/src/notifications.json`) : dans l'app, et dans
+  le récapitulatif quotidien par e-mail ; pas d'envoi immédiat ni de push. Chacun la coupe dans ses
+  réglages de notifications (HUB-15 : « chaque type se coupe séparément »).
 
 ### 3.4 Droits et isolation (SEC-10 à SEC-13)
 
@@ -194,7 +215,7 @@ transverses dont la ligne et le panneau ont besoin, puis les écrans.
 
 | Paquet | Contenu | Dépend de | Migrations |
 | --- | --- | --- | --- |
-| **70a** Données des tâches | Colonnes et service (§ 3) ; « Qui s'en charge » propose les collègues dans les formulaires **actuels** ; la Corbeille des tâches ; le seuil « Bientôt » lu | — | 0211 à 0216 |
+| **70a** Données des tâches | Colonnes et service (§ 3) ; « Qui s'en charge » propose les collègues dans les formulaires **actuels** ; la Corbeille des tâches ; le seuil « Bientôt » lu | — | 0211 à 0217 |
 | **70b** Retour, danger, erreur | Le message de retour unique ; les trois niveaux de danger ; la validation écrite par Symbola ; « Annuler l'évènement » et « Rétablir » | — (peut partir en même temps que 70a) | — |
 | **70c** La ligne type et le panneau | Ligne type sur « Tâches », la fiche, « Aujourd'hui », le téléphone ; panneau unique (édition et création) ; « Changer la date… » ; onglet « Tâches » de la fiche | 70a, 70b | — |
 | **70d** L'écran « Tâches » | « Nouvelle tâche » en haut, liste unique avec les tâches hors évènement, filtres, « Grouper par », décompte, sélection en lot, états vides, tâches faites | 70c | — |
@@ -250,6 +271,12 @@ l'exigence (`describe('CHR-02 — Qui s'en charge : un collègue', …)`).
    pendant trente jours ; un lot supprimé y est une seule ligne (« 3 tâches de Léa & Maxime ») ;
    la purge l'efface ensuite.
 8. Une note s'enregistre, se lit dans le panneau, n'apparaît dans aucun portail ni aucun lien.
+9. Confier une tâche à Bastien lui crée une notification « Camille vous a confié « {tâche} » »,
+   une seule même si le worker rejoue l'événement ; se confier une tâche à soi-même, ou confier une
+   tâche d'un évènement de démonstration, n'en crée aucune ; un lot de trois tâches donne une seule
+   notification « 3 tâches vous ont été confiées ».
+10. La sorte « Une tâche vous est confiée » paraît dans les réglages de notifications et se coupe ;
+    coupée, plus rien n'arrive par ce canal.
 
 **Tests**
 
@@ -262,6 +289,9 @@ l'exigence (`describe('CHR-02 — Qui s'en charge : un collègue', …)`).
   refusé ; le filtre `qui=<membre de B>` ne rend rien ; un lien des mariés d'un évènement ne coche
   pas la tâche d'un autre ; l'Admin ne lit aucune de ces tables ; une Planner restreinte ne voit
   pas les tâches d'un évènement hors de son équipe.
+- Événement : schéma `events.task.assigned` v1 validé (`packages/contracts`) ; publié dans la
+  transaction (une erreur d'écriture n'en publie aucun) ; consommateur idempotent ; isolation : un
+  événement d'une organisation ne notifie jamais un membre d'une autre.
 - RGPD : le registre déclare les nouveaux champs (test existant du registre) ; `find`, `export`,
   `anonymize`, `erase` les couvrent.
 
@@ -520,6 +550,7 @@ est proposé ici (C1) et relu par Julien avec la PR de chaque paquet.
 | Nouvel évènement | Où en est-il ? · Une demande en cours · Vous en parlez, rien n'est signé. · Signé, en préparation · Le contrat est signé, même si vous aviez commencé sur papier : la liste des tâches se crée aujourd'hui. · Choisissez où en est cet évènement. · Vous le suivez déjà dans un autre logiciel ou un tableur ? · Reprendre ses fichiers · Nom de l'évènement · Par exemple : Léa & Maxime · Pas encore fixée · Nouveau client, ou chercher dans vos contacts · Créer l'évènement | Where does it stand? · An ongoing enquiry · You're discussing it, nothing is signed. · Signed, in preparation · The contract is signed, even if you started on paper: the task list is created today. · Choose where this event stands. · Already tracking it in another tool or a spreadsheet? · Import your files · Event name · For example: Léa & Maxime · Not set yet · New client, or search your contacts · Create event |
 | Recherche | Tâches · {n} … · Entrée ouvre le résultat surligné · flèches pour choisir · tous les résultats pour « {texte} » | Tasks · {n} … · Enter opens the highlighted result · arrows to choose · all results for "{text}" |
 | Mon compte (A1) | Prénom · Nom · Enregistré · Indiquez votre prénom pour que l'équipe vous reconnaisse. | First name · Last name · Saved · Add your first name so your team recognises you. |
+| Notification (A19) | {prénom} vous a confié « {tâche} » · {n} tâches vous ont été confiées par {prénom} · Une tâche vous est confiée (réglages) | {first name} assigned you "{task}" · {first name} assigned you {n} tasks · A task is assigned to you (settings) |
 | Téléphone | Plus · {n} en retard (nom accessible) | More · {n} late |
 | Messages de retour | Tâche faite : {tâche} · « Annuler » reste 10 secondes ; ensuite, « Rouvrir » dans les tâches faites · Date changée : {date} · {n} tâches décalées de {j} jours · Tâche supprimée : {tâche} · Elle reste dans la Corbeille des Paramètres · Tâche enregistrée : {tâche} · Évènement créé · Avec {n} tâches et son budget · Voir ses tâches · Erreur : la tâche n'a pas été enregistrée · Connexion perdue. Votre saisie est gardée. · Réessayer · Annuler | Task done: {task} · "Undo" stays 10 seconds; then "Reopen" in done tasks · Date changed: {date} · {n} tasks shifted by {d} days · Task deleted: {task} · It stays in the Bin in Settings · Task saved: {task} · Event created · With {n} tasks and its budget · See its tasks · Error: the task wasn't saved · Connection lost. Your input is kept. · Try again · Undo |
 | Danger | Annuler l'évènement « {nom} » ? · (conséquences, § 5.2) · Garder l'évènement · Annuler l'évènement · Rétablir l'évènement · Motif (pour vous) · Je comprends que {objet} ne pourra pas être récupéré | Cancel the event "{name}"? · … · Keep the event · Cancel the event · Restore the event · Reason (for you) · I understand that {object} can't be recovered |
@@ -562,7 +593,7 @@ l'autre voie. Celles qui touchent le cahier des charges sont aussi dans `docs/QU
 | A16 | **Contrôle des textes en cliquet** (les mots des autres volets tenus en exception). | **Tranché le 26/11 par Julien : « Oui, en cliquet ».** Oui | Tout corriger dans ce lot (déborde sur les volets pas encore maquettés) |
 | A17 | **Barre du bas si « Prestataires » n'est pas souscrit.** | **Tranché le 26/11 par Julien : « Oui, remplacer ».** La quatrième place prend la première entrée de « Plus » disponible (Contacts) ; jamais une entrée « indisponible » dans la barre | Quatre entrées seulement |
 | A18 | **« Annuler » après un changement de date ou de personne** demande de garder les valeurs d'avant : une table technique (migration 0215), purgée après dix minutes. | **Tranché le 26/11 par Julien : « Oui, la table ».** Oui | Pas d'« Annuler » sur ces gestes (contraire à C-09 et UX-07) |
-| A19 | **Prévenir un collègue** à qui l'on confie une tâche ? | Pas dans ce lot : il la voit dans « Mes tâches » et sur son accueil ; la notification (HUB-15, lot 53) se décide au volet « Aujourd'hui » | Une notification dans l'app dès ce lot (nouvel événement `events.task.assigned`) |
+| A19 | **Prévenir un collègue** à qui l'on confie une tâche ? | **Tranché le 26/11 par Julien : « Notifier dès ce lot ».** Nouvel événement `events.task.assigned` et nouvelle sorte de notification `task_assigned` (migration 0217 du schéma `hub`), détaillés au § 3.3 ; dans l'app et au récapitulatif quotidien par défaut, coupable par chacun ; jamais pour soi-même | (écartée) attendre le lot d'« Aujourd'hui » |
 | A20 | **Qui voit les tâches hors évènement ?** | Toute l'équipe (ce sont les tâches de l'agence), comme aujourd'hui ; une Planner restreinte ne voit que les siennes et celles qui n'ont pas de personne | Chacun ne voit que les siennes |
 | A21 | **Vue par défaut de l'onglet « Tâches » de la fiche** : aujourd'hui « Toutes » ; la maquette montre « À faire ». | « À faire », comme l'écran « Tâches » (un seul patron) ; « 14 faites sur 20 » reste en tête | Garder « Toutes » dans la fiche |
 | A22 | **« Dupliquer la tâche »** apparaît dans le menu du panneau, sans exister aujourd'hui. | Oui : copie titre, évènement, personne, catégorie, note ; échéance vide à choisir | Le retirer du menu |
@@ -586,7 +617,7 @@ l'autre voie. Celles qui touchent le cahier des charges sont aussi dans `docs/QU
 | La rubrique qui portera le seuil « Bientôt » (M10) | Paramètres | La valeur est gardée (0214) et lue ; 7 jours pour tout le monde ; pas d'écran de réglage |
 | Le sort du bouton « Réglages » des écrans (C-11) | Paramètres | Il quitte « Tâches » et l'onglet de la fiche (le lien du modèle est dans la phrase) ; ailleurs il reste |
 | La mesure du menu et du panneau d'aide à 911 × 512 hors barre (C-82) | Paramètres | Seule la barre et le menu latéral sont mesurés |
-| Les autres sections d'« Aujourd'hui », ses compteurs (C-20), la vue d'agence (C-14), la notification d'un collègue (A19) | Aujourd'hui | Seule la ligne des tâches change, et « Les revoir » |
+| Les autres sections d'« Aujourd'hui », ses compteurs (C-20), la vue d'agence (C-14) | Aujourd'hui | Seule la ligne des tâches change, et « Les revoir » |
 | L'en-tête de la fiche en 200 px, l'ordre et le dessin des onglets (C-80, P-09), « Grouper par » dans la fiche, la création complète d'un évènement (C-25) | Évènements | L'onglet est renommé ; la création pose « Où en est-il ? », le reste se complète depuis la fiche (A14) ; la fenêtre « Modifier les informations » du volet 3 (maquette 16, PR #186) n'est pas construite ici |
 | « Contacts » et « Prestataires » côte à côte dans « Plus » ; les mots du budget (« poste ») ; « famille » | Prestataires, Contacts | Entrées gardées telles quelles ; mots en exception du lexique |
 | La règle des échéances passées d'un mariage repris ou signé (P-01, C-67, A11) ; « Reprendre la liste de votre tableur » vers la page de reprise refaite (C-54) | Reprise et import (maquettes du volet 2, pas encore réalisées) ; Premiers pas | Les deux liens mènent aux écrans actuels (page d'import, application d'un modèle) |
