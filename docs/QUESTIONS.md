@@ -981,7 +981,8 @@ Ouverts ; chacun a sa recommandation.
    demande en cours », qui crée la même chose. Proposition : d'accord, noté dans `gap.csv`. **Tranché le 26/11 par Julien : « Oui, le
    retirer ».**
 6. **Créer un évènement en trois champs, nom, date, type (EVT-01)**. La maquette n'a pas le type.
-   Proposition : le champ « Type » n'apparaît que si l'organisation a plusieurs types.
+   Proposition : le champ « Type » n'apparaît que si l'organisation a plusieurs types. **Tranché le
+   26/11 par Julien : « Oui, si plusieurs ».**
 
 ## Remarques sur le nouveau document lui-même
 
