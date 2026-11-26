@@ -80,7 +80,7 @@ test("PRD-EVT-06 / UX-11 / SEC-17 — le marié ouvre son lien sans inscription,
   await newTask.getByLabel("Échéance").fill("2027-03-10");
   await newTask.getByLabel("Responsable").selectOption("clients");
   await newTask.getByRole("button", { name: "Ajouter la tâche" }).click();
-  await expect(planner.getByText("Tâche ajoutée.")).toBeVisible();
+  await expect(planner.getByRole("status").getByText(/^Tâche ajoutée : /)).toBeVisible();
 
   await openEventTab(planner, "Programme du jour J");
   // Lot 62c (D1) : la séquence s'ajoute dans la liste, puis « Enregistrer le programme ».

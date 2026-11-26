@@ -134,7 +134,7 @@ test("PRD-EVT-04 — modèle de rétroplanning appliqué, recalcul des échéanc
   await newTask.getByLabel("Échéance").fill("2027-02-25");
   await newTask.getByLabel("Responsable").selectOption("clients");
   await newTask.getByRole("button", { name: "Ajouter la tâche" }).click();
-  await expect(page.getByText("Tâche ajoutée.")).toBeVisible();
+  await expect(page.getByRole("status").getByText(/^Tâche ajoutée : /)).toBeVisible();
   const order = async () => (await page.getByRole("rowheader").allTextContents()).filter((text) => ["Essayage", "Envoyer les faire-part"].includes(text));
   await expect.poll(order).toEqual(["Envoyer les faire-part", "Essayage"]);
   await page.getByRole("link", { name: "Essayage", exact: true }).click();

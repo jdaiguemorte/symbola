@@ -136,7 +136,7 @@ test("SC-03 / HUB-08 / UX-01 / UX-06 / EVT-02 — lundi matin : les urgences, an
 
   // Étape 3 (D7) : cochée par erreur, la tâche est faite tout de suite ; « Annuler » la rétablit.
   await items.nth(0).getByRole("button", { name: "Fait : « Relancer la mairie »" }).click();
-  const undo = page.getByRole("status").filter({ hasText: "Tâche « Relancer la mairie » faite." });
+  const undo = page.getByRole("status").filter({ hasText: "Tâche faite : Relancer la mairie" });
   await expect(undo).toBeVisible();
   await expect(first).not.toContainText("Relancer la mairie");
   await expectNoAxeViolation(page);

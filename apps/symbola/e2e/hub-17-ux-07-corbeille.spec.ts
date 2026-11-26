@@ -1,7 +1,8 @@
 // Lot 39a (HUB-17, UX-07, DAT-03 ; décisions D2 à D6 ; ADR 0073) — supprimer une tâche puis
 // « Annuler » ; supprimer un évènement (« Annuler » proposé dix secondes), le retrouver dans
 // Paramètres › Corbeille et le restaurer avec son contenu ; supprimer définitivement (la titulaire,
-// confirmation qui nomme l'objet). En taille ordinateur et en 375 px, axe-core.
+// confirmation qui nomme l'objet). En taille ordinateur et en 375 px, axe-core. Lot 70b : le message de
+// retour unique ; « Supprimer définitivement » au niveau 3 (case à cocher).
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "./axe";
 import { expect, test, type Page } from "@playwright/test";
@@ -73,7 +74,8 @@ test("HUB-17 — un évènement supprimé va à la corbeille et revient avec son
   await expect(page).toHaveURL(/\/events$/);
   const banner = page.getByRole("status").filter({ hasText: "Évènement mis à la corbeille." });
   await expect(banner).toBeVisible();
-  await expect(banner.getByRole("link", { name: "Voir la corbeille" })).toBeVisible();
+  // Lot 70b (M5) : le message dit où le retrouver.
+  await expect(banner).toContainText("À retrouver dans la Corbeille des Paramètres pendant 30 jours.");
 
   await openSettingsTab(page, "Corbeille");
   await expect(page.getByRole("heading", { name: "Corbeille", level: 1 })).toBeVisible();
@@ -95,7 +97,12 @@ test("HUB-17 — un évènement supprimé va à la corbeille et revient avec son
   await page.getByRole("button", { name: "Supprimer définitivement Rose Fleuriste" }).click();
   const dialog = page.getByRole("dialog", { name: "Supprimer définitivement Contact « Rose Fleuriste » ?" });
   await expect(dialog).toBeVisible();
-  await dialog.getByRole("button", { name: "Supprimer définitivement" }).click();
+  // Lot 70b (M6) : niveau 3 du danger ; le bouton ne répond qu'une fois la case cochée.
+  const confirm = dialog.getByRole("button", { name: "Supprimer définitivement" });
+  await expect(confirm).toBeDisabled();
+  await expect(dialog.getByRole("button", { name: "Garder dans la Corbeille" })).toBeVisible();
+  await dialog.getByLabel("Je comprends que « Rose Fleuriste » ne pourra pas être récupéré.").check();
+  await confirm.click();
   await expect(page.getByText("C'est effacé pour de bon.")).toBeVisible();
   await expect(page.getByText("La corbeille est vide.")).toBeVisible();
 });

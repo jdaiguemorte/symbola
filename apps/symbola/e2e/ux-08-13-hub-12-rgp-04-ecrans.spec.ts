@@ -98,12 +98,12 @@ test("UX-07 et UX-15 — une tâche cochée l'est tout de suite, et « Annuler �
   // Écran « Tâches », vue « À faire » : la tâche cochée quitte la liste, le bandeau reste.
   await page.goto("/taches");
   await page.getByRole("button", { name: "Marquer « Réserver le traiteur » comme faite" }).click();
-  const offer = page.getByRole("status").filter({ hasText: "Tâche « Réserver le traiteur » faite." });
+  const offer = page.getByRole("status").filter({ hasText: "Tâche faite : Réserver le traiteur" });
   await expect(offer.getByRole("button", { name: "Annuler" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Marquer « Réserver le traiteur » comme faite" })).toHaveCount(0);
   await expectNoAxeViolation(page);
   await offer.getByRole("button", { name: "Annuler" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Tâche « Réserver le traiteur » remise à faire." })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Tâche remise à faire : Réserver le traiteur" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Marquer « Réserver le traiteur » comme faite" })).toBeVisible();
 
   // Rétroplanning, en 375 px : sans « Annuler », la coche reste après dix secondes ; décocher ne
@@ -111,7 +111,7 @@ test("UX-07 et UX-15 — une tâche cochée l'est tout de suite, et « Annuler �
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto(`/events/${eventId}?onglet=retroplanning`);
   await page.getByRole("button", { name: "Marquer « Choisir les faire-part » comme faite" }).click();
-  const second = page.getByRole("status").filter({ hasText: "Tâche « Choisir les faire-part » faite." });
+  const second = page.getByRole("status").filter({ hasText: "Tâche faite : Choisir les faire-part" });
   await expect(second.getByRole("button", { name: "Annuler" })).toBeVisible();
   await expectNoAxeViolation(page);
   await expect(second).toHaveCount(0, { timeout: 15_000 });

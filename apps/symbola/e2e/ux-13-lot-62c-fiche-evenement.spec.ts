@@ -366,7 +366,7 @@ test("UX-05, UX-07 — rétroplanning : cibles de 44 px ; cocher une tâche gard
   await check.click();
   await expect(page.getByRole("button", { name: "Marquer « Choisir le traiteur » comme à faire" })).toBeVisible();
   await expect.poll(async () => (await listEventTasks(setup.organizationId, setup.eventId)).find((task) => task.label === "Choisir le traiteur")?.done).toBe(true);
-  const undo = page.getByRole("status").filter({ hasText: "Tâche « Choisir le traiteur » faite." });
+  const undo = page.getByRole("status").filter({ hasText: "Tâche faite : Choisir le traiteur" });
   await undo.getByRole("button", { name: "Annuler" }).click();
   await expect(page.getByRole("button", { name: "Marquer « Choisir le traiteur » comme faite" })).toBeVisible();
   await expect.poll(async () => (await listEventTasks(setup.organizationId, setup.eventId)).find((task) => task.label === "Choisir le traiteur")?.done).toBe(false);

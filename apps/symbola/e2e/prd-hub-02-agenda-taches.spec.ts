@@ -102,7 +102,7 @@ test("PRD-HUB-02 / HUB-08 — agenda des mariages, tâches cochées depuis « Au
   await expect(first.getByRole("listitem").nth(1)).toContainText("Attend le client");
   await expect(page.getByText("Tâche lointaine")).toHaveCount(0);
   await first.getByRole("button", { name: "Fait : « Relancer le traiteur »" }).click();
-  const undo = page.getByRole("status").filter({ hasText: "Tâche « Relancer le traiteur » faite." });
+  const undo = page.getByRole("status").filter({ hasText: "Tâche faite : Relancer le traiteur" });
   await expect(undo).toBeVisible();
   await expect(first.getByText("Relancer le traiteur")).toHaveCount(0);
   await undo.getByRole("button", { name: "Annuler" }).click();

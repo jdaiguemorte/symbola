@@ -96,10 +96,12 @@ test("EVT-01 / EVT-05 / CHR-01 — l'option naît avec son rétroplanning ; repo
   await changeEventStatus(page, "Confirmé");
 
   // D4 : la nouvelle date ; le report attend sa confirmation.
+  // Lot 70b (M6) : niveau 2 du danger, une fenêtre qui nomme l'évènement ; on renonce par « Garder la date ».
   await page.getByRole("button", { name: "Reporter l'évènement…" }).click();
-  const postpone = page.getByRole("form", { name: "Reporter l'évènement…" });
+  const postpone = page.getByRole("dialog", { name: "Reporter l'évènement « Léa & Hugo » ?" });
+  await expect(postpone.getByRole("button", { name: "Garder la date" })).toBeVisible();
   await postpone.getByLabel("Nouvelle date").fill(newDate);
-  await postpone.getByRole("button", { name: "Reporter", exact: true }).click();
+  await postpone.getByRole("button", { name: "Reporter l'évènement", exact: true }).click();
 
   const card = page.getByRole("region", { name: "Confirmer le report" });
   await expect(card).toContainText("Cette tâche tomberait dans le passé :");
@@ -127,11 +129,14 @@ test("EVT-05 / FAC-13 — annuler nomme l'évènement et exige un motif ; un avo
   await expect(steps.getByRole("listitem").filter({ hasText: "Confirmé" })).toHaveAttribute("aria-current", "step");
   await page.waitForLoadState("networkidle");
 
+  // Lot 70b (M6) : niveau 2 du danger ; « Garder l'évènement » pour renoncer, aucun « Annuler » seul.
   await page.getByRole("button", { name: "Annuler l'évènement…" }).click();
-  const form = page.getByRole("form", { name: "Annuler l'évènement Léa & Hugo ?" });
+  const form = page.getByRole("dialog", { name: "Annuler l'évènement « Léa & Hugo » ?" });
   await expect(form).toContainText("un avoir vous est proposé pour chacune");
-  await expect(form.getByLabel("Motif de perte ou d'annulation")).toHaveAttribute("required", "");
-  await form.getByLabel("Motif de perte ou d'annulation").selectOption({ label: "Séparation" });
+  await expect(form.getByRole("button", { name: "Garder l'évènement" })).toBeVisible();
+  await expect(form.getByRole("button", { name: "Annuler", exact: true })).toHaveCount(0);
+  await expect(form.getByLabel("Motif (pour vous)")).toHaveAttribute("required", "");
+  await form.getByLabel("Motif (pour vous)").selectOption({ label: "Séparation" });
   await expectNoAxeViolation(page);
   await form.getByRole("button", { name: "Annuler l'évènement", exact: true }).click();
 
@@ -143,7 +148,8 @@ test("EVT-05 / FAC-13 — annuler nomme l'évènement et exige un motif ; un avo
   await expect(page.locator("p.badge", { hasText: /^Annulé · / })).toBeVisible();
   await expectNoAxeViolation(page);
 
-  await page.getByRole("button", { name: "Réactiver (repasse en Option)" }).click();
+  await page.getByRole("button", { name: "Rétablir l'évènement" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Évènement rétabli : Léa & Hugo" })).toBeVisible();
   await expect(steps.getByRole("listitem").filter({ hasText: "Option" })).toHaveAttribute("aria-current", "step");
   await expect(invoices).toHaveCount(0);
 });

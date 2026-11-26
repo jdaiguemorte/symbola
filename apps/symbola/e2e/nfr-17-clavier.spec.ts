@@ -97,12 +97,12 @@ test("NFR-17 — PAR-03 au clavier : cocher une tâche, puis « Annuler »", asy
   expect(await tabUntil(page, () => document.activeElement?.getAttribute("aria-label") === "Marquer « Confirmer le lieu » comme faite")).toBe(true);
   expect((await focusIsVisible(page)).visible).toBe(true);
   await page.keyboard.press("Enter");
-  const offer = page.getByRole("status").filter({ hasText: "Tâche « Confirmer le lieu » faite." });
+  const offer = page.getByRole("status").filter({ hasText: "Tâche faite : Confirmer le lieu" });
   await expect(offer).toBeVisible();
   const undo = offer.getByRole("button", { name: "Annuler" });
   await undo.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("status").filter({ hasText: "Tâche « Confirmer le lieu » remise à faire." })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Tâche remise à faire : Confirmer le lieu" })).toBeVisible();
 });
 
 test("NFR-17 — PAR-06 au clavier : le portail des mariés se parcourt, chaque élément montre son focus", async ({ page }) => {

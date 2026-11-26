@@ -149,15 +149,15 @@ test("PRD-EVT-01/02 / EVT-05 — un prospect apparaît dans la liste en Option, 
   // Attend l'hydratation : un envoi avant elle partirait sans retour d'erreur.
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Annuler l'évènement…" }).click();
-  await expect(page.getByRole("form", { name: `Annuler l'évènement ${firstName} & Sacha ?` })).toBeVisible();
-  await expect(page.getByLabel("Motif de perte ou d'annulation")).toHaveAttribute("required", "");
-  await page.getByLabel("Motif de perte ou d'annulation").selectOption({ label: "Autre" });
+  await expect(page.getByRole("dialog", { name: `Annuler l'évènement « ${firstName} & Sacha » ?` })).toBeVisible();
+  await expect(page.getByLabel("Motif (pour vous)")).toHaveAttribute("required", "");
+  await page.getByLabel("Motif (pour vous)").selectOption({ label: "Autre" });
   await expect(page.getByLabel("Précision sur le motif")).toHaveAttribute("required", "");
   await expectNoAxeViolation(page);
 
   await page.getByLabel("Précision sur le motif").fill("Le couple a choisi un autre lieu.");
   await page.getByRole("button", { name: "Annuler l'évènement", exact: true }).click();
-  await expect(page.getByText("Statut mis à jour.")).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: `Évènement annulé : ${firstName} & Sacha` })).toBeVisible();
   await expect(page.locator("form p[role=alert]")).toHaveCount(0);
 
   // Les évènements annulés sont dans l'onglet séparé « Terminés ».
