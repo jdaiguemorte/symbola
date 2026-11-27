@@ -93,8 +93,8 @@ test("HUB-11 / AIDE-03 — visite guidée de l'accueil, aide consultable", async
   await page.goto("/taches");
   await help.click();
   await expect(help).toHaveAttribute("aria-expanded", "true");
-  const tasksPanel = helpPanel(page, "Les tâches de tous vos mariages");
-  await expect(tasksPanel).toContainText("triées par échéance");
+  const tasksPanel = helpPanel(page, "Les tâches de tous vos évènements");
+  await expect(tasksPanel).toContainText("en une seule liste");
   await expect(tasksPanel.getByRole("button", { name: "Revoir la visite" })).toHaveCount(0);
   violations = await new AxeBuilder({ page }).analyze();
   expect(violations.violations, JSON.stringify(violations.violations, null, 2)).toEqual([]);

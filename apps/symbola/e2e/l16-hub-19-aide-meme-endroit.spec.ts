@@ -52,7 +52,7 @@ test("L16-HUB-19 — le « ? » au même endroit sur tous les écrans, un tiroir
   const help = page.getByRole("button", { name: "Aide sur cet écran" });
   await help.click();
   await expect(help).toHaveAttribute("aria-expanded", "true");
-  const panel = helpPanel(page, "Les tâches de tous vos mariages");
+  const panel = helpPanel(page, "Les tâches de tous vos évènements");
   await expect(panel).toBeVisible();
   const viewport = page.viewportSize()!;
   if (viewport.width >= 1024) {
