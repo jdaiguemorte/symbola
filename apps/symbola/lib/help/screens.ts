@@ -54,7 +54,7 @@ export const HELP_SCREENS: HelpScreen[] = [
   // Lot 44 (CRM-01, CRM-02) : « Suivre vos demandes en colonnes », « Mettre le formulaire sur votre
   // site », et les étapes du pipeline.
   { key: "eventsPipeline", group: "events", audience: "team", module: "events", path: "/events/pipeline", capture: false },
-  { key: "eventsContactForm", group: "events", audience: "team", module: "events", ownerOnly: true, path: "/events/parametres/contact", capture: false },
+  { key: "eventsContactForm", group: "events", audience: "team", module: "events", ownerOnly: true, path: "/events/parametres/etapes#contact", capture: false },
   { key: "eventsPipelineStages", group: "events", audience: "team", module: "events", ownerOnly: true, path: "/events/parametres/etapes", capture: false },
   // Lot 45 (CRM-06, POR-07, HUB-21) : relire une relance, questionnaires d'un évènement, modèles.
   { key: "followUpReview", group: "events", audience: "team", module: "events", path: null, capture: false },
@@ -62,7 +62,7 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "questionnaireTemplates", group: "events", audience: "team", module: "events", path: "/events/parametres/questionnaires", capture: false },
   { key: "followUps", group: "events", audience: "team", module: "events", path: "/parametres/relances", capture: true },
   // Lot 53 (HUB-24, CHR-10) : termes des clients par type, tâches hors évènement (écran Tâches).
-  { key: "clientTerms", group: "events", audience: "team", module: "events", path: "/events/parametres/termes", capture: false },
+  { key: "clientTerms", group: "events", audience: "team", module: "events", path: "/events/parametres/types#termes", capture: false },
   // Lot 49 (INV-01 à INV-04, INV-07) : onglet Invités de la fiche, liste des régimes et allergies.
   { key: "guests", group: "events", audience: "team", module: "guests", path: null, capture: false },
   { key: "dietaryOptions", group: "events", audience: "team", module: "guests", path: "/events/parametres/regimes", capture: false },
@@ -70,7 +70,7 @@ export const HELP_SCREENS: HelpScreen[] = [
   // traiteur (sur le plan), types de repas.
   { key: "seatingPlan", group: "events", audience: "team", module: "guests", path: null, capture: false },
   { key: "catererSummary", group: "events", audience: "team", module: "guests", path: null, capture: false },
-  { key: "mealTypes", group: "events", audience: "team", module: "guests", path: "/events/parametres/repas", capture: false },
+  { key: "mealTypes", group: "events", audience: "team", module: "guests", path: "/events/parametres/regimes#repas", capture: false },
   // Lot 60 (L60-PLA-01 à L60-PLA-05) : plans de salle des lieux et des évènements.
   { key: "floorplanEvent", group: "events", audience: "team", module: "floorplans", path: null, capture: false },
   // Lot 51 (JRJ-06, CHR-08) : modèles des listes du jour J ; import d'un chrono (onglet Programme).
@@ -133,7 +133,11 @@ export const HELP_SCREENS: HelpScreen[] = [
   { key: "budgetCashCalendar", group: "budget", audience: "team", module: "budget", path: null, capture: false },
   // Mon entreprise et mon compte
   { key: "home", group: "company", audience: "team", path: "/", tour: "hub", capture: true },
-  { key: "settings", group: "company", audience: "team", path: "/parametres", capture: true },
+  // Lot 74g (G1, G2) : l'accueil des Paramètres ; « Entreprise et TVA » devient deux rubriques ; « Vos données ».
+  { key: "settingsHome", group: "company", audience: "team", path: "/parametres", capture: false },
+  { key: "settings", group: "company", audience: "team", path: "/parametres/entreprise", capture: true },
+  { key: "companyMentions", group: "company", audience: "team", path: "/parametres/mentions", capture: false },
+  { key: "yourData", group: "data", audience: "team", path: "/donnees", capture: false },
   { key: "profile", group: "company", audience: "team", path: "/profil", capture: true },
   // Lot 52 (HUB-05) : « Mes sessions » (appareils du compte : pas de capture).
   { key: "sessions", group: "company", audience: "team", path: "/securite", capture: false },
