@@ -989,7 +989,8 @@ Ouverts ; chacun a sa recommandation.
 ### Q48 — Lot 71 : la reprise d'un mariage en cours n'a pas de scénario Synthetic User (27 novembre 2026)
 
 Relevé en écrivant la spécification `docs/lots/lot-71-reprise-et-import.md` (décision I11, § 9).
-Ouvert.
+**Tranché en partie le 27/11 par Julien : le scénario local `SC-R1` est accepté.** Reste ouvert :
+son entrée au § 17 du cahier des charges.
 
 Le cahier des charges veut qu'une exigence soit terminée quand « le scénario Synthetic User concerné
 passe sans blocage » (§ 1), et la règle C4 un rejeu par lot. Or aucun scénario du § 17 ne reprend un
