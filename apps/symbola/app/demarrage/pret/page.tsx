@@ -131,7 +131,7 @@ export default async function ReadyPage() {
         {eventsEnabled ? (
           <>
             <h3>{t("ready.preparedTitle")}</h3>
-            <ul className="ready-list ready-prepared">
+            <ul className="ready-list">
               <li>
                 {template ? t("ready.prepared.tasks", { name: template.name, count: template.items.length }) : t("ready.prepared.noTasks")}{" "}
                 <Link href="/events/modeles">{t("ready.prepared.tasksLink")}</Link>
