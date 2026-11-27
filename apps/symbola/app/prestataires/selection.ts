@@ -37,7 +37,8 @@ export type BookSelection = {
 
 const VENDOR_REFERENCE = /^fiche:([0-9a-f-]{36})$/i;
 
-export async function loadBookSelection(organizationId: string, query: BookQuery): Promise<BookSelection> {
+// Lot 73b : options.ids, l'export de la sélection (seulement ces fiches).
+export async function loadBookSelection(organizationId: string, query: BookQuery, options: { ids?: string[] } = {}): Promise<BookSelection> {
   const [families, types, tags, tagGroups] = await Promise.all([
     listVendorFamilies(organizationId),
     listVendorTypes(organizationId),
@@ -78,6 +79,7 @@ export async function loadBookSelection(organizationId: string, query: BookQuery
   }
 
   const importFilter = await importFilterOf(organizationId, query, "vendor");
-  const results = await findVendors({ ...toFindInput(organizationId, { ...filters, aroundText }, center), ...(importFilter ? { ids: importFilter.ids } : {}) });
+  const ids = options.ids && importFilter ? options.ids.filter((id) => importFilter.ids.includes(id)) : (options.ids ?? importFilter?.ids);
+  const results = await findVendors({ ...toFindInput(organizationId, { ...filters, aroundText }, center), ...(ids ? { ids } : {}) });
   return { families, types, tags, tagGroups, filters: { ...filters, aroundText }, center, centerNotFound, results, target, importFilter };
 }

@@ -4,6 +4,7 @@
 // (C-25), « ⌘K » et « touche N » (C-81), cartes du budget en 375 px (C-78) ; puis les deux comportements :
 // phrase des modèles de rétroplanning (C-39) et tableau de relance relu (C-50). Tailles : ordinateur et
 // 375 px (projets Playwright) ; les mesures propres à une taille se règlent par `setViewportSize`.
+import { bookFilters } from "./vendor-book";
 import { randomUUID } from "node:crypto";
 import { createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
@@ -123,13 +124,16 @@ test.describe("lot 69 — mises en page mesurées", () => {
     await signIn(page, setup.email, /\/$/);
   });
 
-  test("C-43 — le champ « Où ? » du carnet est assez large, sur la ligne de « dans un rayon de », sans fond de carte", async ({
+  // Lot 73b (maquette 18) : « Où ? » et « Rayon » sont deux filtres libellés, côte à côte ; sur téléphone,
+  // dans le panneau « Filtres ».
+  test("C-43 — le champ « Où ? » du carnet est assez large, sur la ligne de « Rayon », sans fond de carte", async ({
     page,
   }) => {
     await page.goto("/prestataires");
-    const where = page.locator("fieldset.filter-where");
+    await bookFilters(page);
+    const where = page.locator(".vendor-filter-where");
     const input = where.locator('input[name="autour"]');
-    const radius = where.locator('select[name="rayon"]');
+    const radius = page.locator('select[name="rayon"]');
     const width = page.viewportSize()!.width;
     const field = await box(input);
     expect(field.height).toBeGreaterThanOrEqual(36);

@@ -8,6 +8,7 @@ import { discardMyFormDraft } from "@/lib/form-drafts";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
+import { z } from "zod";
 import { VENDOR_SOCIAL_NETWORKS } from "@symbola/contracts";
 import { addVendorCandidate, VendorCandidateNotFoundError } from "@/modules/events/service";
 import {
@@ -15,6 +16,14 @@ import {
   arrangeVendorTags,
   seedStarterVendorTags,
   archiveVendor,
+  archiveVendors,
+  restoreVendorsTags,
+  setVendorsPrimaryType,
+  tagVendors,
+  unarchiveVendors,
+  VENDOR_BULK_MAX,
+  type VendorTagsSnapshot,
+  type VendorTypeAssignment,
   createVendor,
   createVendorTag,
   createVendorTagGroup,
@@ -50,6 +59,7 @@ import { organizationTagCatalog } from "@/lib/vendors/tag-catalog";
 import type { VendorTagArrangement, VendorTagSeedResult } from "@symbola/contracts";
 import { isValidId } from "@/app/events/module-access";
 import { isVendorsModuleEnabled } from "./module-access";
+import { encodeVendorIds } from "./book-row";
 
 // Lot 63e (ADR 0107) : intent dit ce que la fenêtre fait une fois la rubrique enregistrée (passer à la
 // suivante, ou se fermer).
@@ -385,4 +395,74 @@ export async function saveTravelSettingsAction(_prev: VendorFormState, formData:
   }
   revalidatePath("/prestataires/parametres/trajet");
   return { success: true };
+}
+
+// Lot 73b (PRE-01, UX-07, UX-15 ; spécification du lot 73, § 4.5 et § 5.2, critères 7 et 9) — les actions
+// en lot du carnet : « Ajouter une étiquette… », « Archiver… », et l'enregistrement de l'écran « Classer ».
+// Session, organisation, module à chaque appel ; identifiants validés, puis revérifiés par le service dans
+// l'organisation : un seul identifiant d'ailleurs fait tout refuser, par le message « inexistant ».
+// Chacune dit combien de fiches elle a touchées ; l'étiquette et l'archivage s'annulent (dix secondes) par
+// les valeurs d'avant, rendues au navigateur (des identifiants, aucun nom) et revérifiées ici.
+export type VendorBulkResult = { ok: boolean; count?: number; message?: string; error?: string; previous?: VendorTagsSnapshot; archivedIds?: string[]; classifiedIds?: string[]; reviewCode?: string };
+
+const bulkIdsSchema = z.array(z.uuid()).min(1).max(VENDOR_BULK_MAX);
+const snapshotSchema = z.array(z.object({ id: z.uuid(), tagIds: z.array(z.uuid()).max(200) })).min(1).max(VENDOR_BULK_MAX);
+const assignmentsSchema = z.array(z.object({ vendorId: z.uuid(), typeId: z.uuid(), replaces: z.uuid().nullable().optional() })).min(1).max(VENDOR_BULK_MAX);
+
+async function bulk<T>(run: (organizationId: string, t: Awaited<ReturnType<typeof getTranslations<"VendorBook">>>) => Promise<VendorBulkResult>, parsed: { success: boolean; data?: T }): Promise<VendorBulkResult> {
+  const t = await getTranslations("VendorBook");
+  const access = await authorize();
+  if (!access) return { ok: false, error: t("unauthorized") };
+  if (!parsed.success) return { ok: false, error: t("bulk.notFound") };
+  try {
+    const result = await run(access.organizationId, t);
+    revalidatePath("/prestataires");
+    return result;
+  } catch (error) {
+    if (error instanceof VendorNotFoundError || error instanceof VendorTagNotFoundError || error instanceof VendorTypeNotFoundError) return { ok: false, error: t("bulk.notFound") };
+    throw error;
+  }
+}
+
+export async function tagVendorsAction(vendorIds: string[], tagId: string): Promise<VendorBulkResult> {
+  const parsed = z.object({ ids: bulkIdsSchema, tagId: z.uuid() }).safeParse({ ids: vendorIds, tagId });
+  return bulk(async (organizationId, t) => {
+    const { changed, previous } = await tagVendors(organizationId, parsed.data!.ids, parsed.data!.tagId);
+    return { ok: true, count: changed, previous, message: t("bulk.tagged", { count: changed }) };
+  }, parsed);
+}
+
+export async function restoreVendorsTagsAction(previous: VendorTagsSnapshot): Promise<VendorBulkResult> {
+  const parsed = snapshotSchema.safeParse(previous);
+  return bulk(async (organizationId, t) => {
+    const count = await restoreVendorsTags(organizationId, parsed.data!);
+    return { ok: true, count, message: t("bulk.undone", { count }) };
+  }, parsed);
+}
+
+export async function archiveVendorsAction(vendorIds: string[]): Promise<VendorBulkResult> {
+  const parsed = bulkIdsSchema.safeParse(vendorIds);
+  return bulk(async (organizationId, t) => {
+    const archivedIds = await archiveVendors(organizationId, parsed.data!);
+    return { ok: true, count: archivedIds.length, archivedIds, message: t("bulk.archived", { count: archivedIds.length }) };
+  }, parsed);
+}
+
+export async function unarchiveVendorsAction(vendorIds: string[]): Promise<VendorBulkResult> {
+  const parsed = bulkIdsSchema.safeParse(vendorIds);
+  return bulk(async (organizationId, t) => {
+    const count = await unarchiveVendors(organizationId, parsed.data!);
+    return { ok: true, count, message: t("bulk.undone", { count }) };
+  }, parsed);
+}
+
+// L'écran « Classer » : rien n'est enregistré avant ce geste ; il rend les fiches classées, que « Revoir »
+// rouvre (P13).
+export async function classifyVendorsAction(assignments: VendorTypeAssignment[]): Promise<VendorBulkResult> {
+  const parsed = assignmentsSchema.safeParse(assignments);
+  return bulk(async (organizationId, t) => {
+    const changed = await setVendorsPrimaryType(organizationId, parsed.data!);
+    const classifiedIds = parsed.data!.map((assignment) => assignment.vendorId);
+    return { ok: true, count: classifiedIds.length, classifiedIds, reviewCode: encodeVendorIds(classifiedIds), message: t("classify.done", { count: changed.length }) };
+  }, parsed);
 }
