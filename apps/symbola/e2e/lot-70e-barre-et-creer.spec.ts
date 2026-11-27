@@ -9,7 +9,7 @@ import { createUser, setUserNames } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { addEventTask, addEventVendorSlot, changeEventStatus, createProspect, createProspectSource, listEvents } from "../modules/events/service";
 import { saveOnboardingStep, setModuleEnabled } from "../modules/hub/service";
-import { feedback, readyOrganization, signIn as signInByLink } from "./helpers";
+import { feedback, openMenu, readyOrganization, signIn as signInByLink } from "./helpers";
 
 // `within` : un menu ouvert se contrôle seul ; les petites cibles de la page qu'il recouvre en partie ne
 // sont pas les siennes (la page se contrôle menu fermé).
@@ -330,15 +330,21 @@ test.describe("lot 70e — téléphone", () => {
     expect(box.x + box.width).toBeLessThanOrEqual(375);
     await expectNoAxeViolation(page, ".quick-create");
     await page.keyboard.press("Escape");
-    await accountButton(page).click();
-    const account = (await accountMenu(page).boundingBox())!;
-    expect(account.x).toBeGreaterThanOrEqual(0);
-    expect(account.x + account.width).toBeLessThanOrEqual(375);
-    await expectNoAxeViolation(page, ".account-menu");
+    // Lot 70f : sur téléphone, le compte n'est plus dans la barre du haut mais en bas de « Plus » ; son
+    // adresse et « Se déconnecter » y tiennent dans l'écran.
+    await expect(accountButton(page)).toBeHidden();
+    await openMenu(page);
+    const sheet = (await page.locator("#app-menu").boundingBox())!;
+    expect(sheet.x).toBeGreaterThanOrEqual(0);
+    expect(sheet.x + sheet.width).toBeLessThanOrEqual(375);
+    await expect(page.locator("#app-menu").getByRole("button", { name: "Se déconnecter" })).toBeVisible();
+    await expectNoAxeViolation(page, ".app-sidebar");
   });
 });
 
-// WCAG 2.4.11 (focus non masqué) : la barre fixe ne doit pas cacher ce que le clavier atteint. C'est la
+// WCAG 2.4.11 (focus non masqué) : la barre fixe ne doit pas cacher ce que le clavier atteint. Lot 70f : sur
+// téléphone, les deux barres (celle du haut, de 60 px, et la barre du bas) ; le lien d'évitement, posé
+// au-dessus de tout, n'est pas caché. C'est la
 // contrepartie de `e2e/axe.ts`, qui remonte en haut de page avant d'analyser (une cible que le parcours vient
 // de faire défiler sous la barre était signalée « partiellement masquée » à tort) : ici, on vérifie
 // directement ce que la barre peut casser.
@@ -349,20 +355,19 @@ test.describe("lot 70e — la barre fixe ne masque pas le focus", () => {
     for (let stop = 0; stop < stops; stop += 1) {
       await page.keyboard.press("Tab");
       const state = await page.evaluate(() => {
-        const bar = document.querySelector<HTMLElement>(".app-topbar")!;
+        const bars = [...document.querySelectorAll<HTMLElement>(".app-topbar, .app-tabbar")].filter((bar) => getComputedStyle(bar).display !== "none");
         const active = document.activeElement as HTMLElement | null;
-        if (!active || active === document.body || bar.contains(active)) return null;
-        const barBox = bar.getBoundingClientRect();
+        if (!active || active === document.body || active.classList.contains("skip-link") || bars.some((bar) => bar.contains(active))) return null;
         const box = active.getBoundingClientRect();
         // Seul un élément visible dans la fenêtre compte (un lien d'évitement caché hors écran n'en est pas un).
         if (box.width === 0 || box.height === 0 || box.bottom <= 0 || box.top >= window.innerHeight) return null;
         // Recouvrement dans les deux sens : le menu latéral, à gauche de la barre, ne la croise pas.
-        const overlaps = box.top < barBox.bottom - 1 && box.bottom > barBox.top + 1 && barBox.bottom > 0 && box.left < barBox.right - 1 && box.right > barBox.left + 1;
-        return { scrollY: window.scrollY, overlaps, label: (active.getAttribute("aria-label") ?? active.textContent ?? active.tagName).trim().slice(0, 50), barBottom: barBox.bottom, top: box.top };
+        const covering = bars.map((bar) => bar.getBoundingClientRect()).find((barBox) => box.top < barBox.bottom - 1 && box.bottom > barBox.top + 1 && barBox.bottom > 0 && box.left < barBox.right - 1 && box.right > barBox.left + 1);
+        return { scrollY: window.scrollY, overlaps: Boolean(covering), label: (active.getAttribute("aria-label") ?? active.textContent ?? active.tagName).trim().slice(0, 50), barTop: covering?.top ?? 0, barBottom: covering?.bottom ?? 0, top: box.top };
       });
       if (!state) continue;
       scrolled = Math.max(scrolled, state.scrollY);
-      if (state.overlaps) hidden.push(`${state.label} (haut ${Math.round(state.top)} px sous une barre qui finit à ${Math.round(state.barBottom)} px)`);
+      if (state.overlaps) hidden.push(`${state.label} (haut ${Math.round(state.top)} px sous une barre de ${Math.round(state.barTop)} à ${Math.round(state.barBottom)} px)`);
     }
     return { scrolled, hidden };
   }
@@ -398,7 +403,7 @@ test.describe("lot 70e — la barre fixe ne masque pas le focus", () => {
       const target = document.getElementById("ancre-profonde")!.getBoundingClientRect();
       return { sticky: getComputedStyle(document.querySelector(".app-topbar")!).position === "sticky", below: target.top - bar.bottom };
     });
-    // Sur ordinateur (barre fixe) la cible arrive sous la barre ; sur téléphone la barre défile avec la page.
+    // La barre est fixe sur ordinateur et, depuis le lot 70f, sur téléphone : la cible arrive sous elle.
     if (measure.sticky) expect(measure.below).toBeGreaterThanOrEqual(-1);
     // Le lien d'évitement mène au contenu principal, sous la barre : page défilée, on l'active au clavier.
     await page.evaluate(() => window.scrollTo(0, 1500));

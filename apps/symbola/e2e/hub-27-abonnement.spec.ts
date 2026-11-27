@@ -15,7 +15,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { starterPlanCatalog } from "@symbola/starter-templates";
 import { expect, test, type Page } from "@playwright/test";
 import { runSubscriptionPass, setFeatureFlagForOrganization, startTrial } from "../modules/hub/service";
-import { clickMenuLink, mainMenu, openMenu, readyOrganization, signIn } from "./helpers";
+import { clickMenuLink, closeMenu, mainMenu, openMenu, readyOrganization, signIn } from "./helpers";
 
 const catalog = starterPlanCatalog();
 const SOLO = catalog.plans.find((plan) => plan.key === "solo")!.labels.fr;
@@ -55,6 +55,8 @@ test("HUB-27 — essai, passage à la suite Solo (Rendez-vous fermé à la requ�
   // L'essai ouvre la suite complète : les Rendez-vous sont au menu.
   await openMenu(page);
   await expect(mainMenu(page).getByRole("link", { name: "Rendez-vous", exact: true })).toBeVisible();
+  // Lot 70f : sur téléphone, « Plus » se pose au-dessus de la page ; le refermer avant d'y agir.
+  await closeMenu(page);
 
   await banner.getByRole("link", { name: "Choisir une offre" }).click();
   await expect(page).toHaveURL(/\/parametres\/abonnement$/);

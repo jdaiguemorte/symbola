@@ -8,7 +8,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { addMembership, createUser } from "@symbola/auth";
 import { createAppConnection } from "@symbola/db/client";
 import { users } from "@symbola/db/schema/hub";
-import { crossIdentityProvider, latestMagicLink, provisionTestMfa, readyOrganization, signIn } from "./helpers";
+import { crossIdentityProvider, latestMagicLink, openAccountMenu, openMenu, provisionTestMfa, readyOrganization, signIn } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
   const result = await new AxeBuilder({ page }).analyze();
@@ -99,27 +99,40 @@ test("HUB-02 — plusieurs organisations : passer de l'une à l'autre, en créer
     await sql.end();
   }
   await signIn(page, email, /\/$/);
-  // Lot 70e (M7) : le changement d'organisation est dans le menu du compte, sous le prénom.
-  await page.locator(".account-menu-button").click();
+  // Lot 70e (M7) : le changement d'organisation est dans le menu du compte, sous le prénom. Lot 70f : sur
+  // téléphone, en bas de « Plus », replié sous « Changer d'organisation ».
+  const phone = (page.viewportSize()?.width ?? 1280) < 768;
+  await openAccountMenu(page);
+  if (phone) await page.locator("#app-menu").getByText("Changer d'organisation").click();
   const select = page.getByLabel("Organisation");
   await expect(select.locator("option")).toHaveText([first, second].sort());
   await select.selectOption({ label: second });
   await page.getByRole("button", { name: "Ouvrir" }).click();
-  // On était déjà sur l'accueil : attendre ce qui change, l'organisation ouverte. Lot 70e (C-09) : après la
-  // bascule le menu du compte se referme, le focus revient sur son bouton et l'organisation ouverte se lit
-  // sur ce bouton, sans rouvrir le menu.
-  const account = page.locator(".account-menu-button");
-  await expect(account).toContainText(second);
-  await expect(account).toHaveAttribute("aria-expanded", "false");
-  await expect(account).toBeFocused();
-  await account.click();
+  if (phone) {
+    // Sur téléphone, l'organisation ouverte se lit à côté du prénom, en bas de « Plus ».
+    await expect(page.locator("#app-menu .app-sheet-identity")).toContainText(second);
+    await page.goto("/");
+    await openMenu(page);
+    await expect(page.locator("#app-menu .app-sheet-identity")).toContainText(second);
+    await page.locator("#app-menu").getByText("Changer d'organisation").click();
+  } else {
+    // On était déjà sur l'accueil : attendre ce qui change, l'organisation ouverte. Lot 70e (C-09) : après la
+    // bascule le menu du compte se referme, le focus revient sur son bouton et l'organisation ouverte se lit
+    // sur ce bouton, sans rouvrir le menu.
+    const account = page.locator(".account-menu-button");
+    await expect(account).toContainText(second);
+    await expect(account).toHaveAttribute("aria-expanded", "false");
+    await expect(account).toBeFocused();
+    await account.click();
+  }
   await expect(page.getByLabel("Organisation").locator("option:checked")).toHaveText(second);
   await expect(page).toHaveURL(/\/$/);
   // Envoi du formulaire puis redirection : deux navigations ; analyser une fois la page posée.
   await page.waitForLoadState("networkidle");
   await expectNoAxeViolation(page);
 
-  await expect(account).toHaveAttribute("aria-expanded", "true");
+  // Le menu du compte (ou « Plus », sur téléphone) est resté ouvert pendant l'analyse.
+  await expect(page.locator(phone ? 'button[aria-controls="app-menu"]' : ".account-menu-button")).toHaveAttribute("aria-expanded", "true");
   await page.getByRole("button", { name: "Créer une autre organisation" }).click();
   await expect(page).toHaveURL(/\/demarrage$/);
 });

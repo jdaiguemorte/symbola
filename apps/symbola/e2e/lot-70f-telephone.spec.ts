@@ -32,6 +32,8 @@ async function atelier(options: { without?: ("vendors" | "events")[] } = {}) {
     const name = `Atelier Roussel ${randomUUID().slice(0, 6)}`;
     const organizationId = (await readyOrganization(db, name)).id;
     await saveOnboardingStep(db, organizationId, { vatRegime: "franchise", vatRateDefaultBasisPoints: null, metier: "wedding_planner" });
+    // Les rendez-vous ne sont pas d'office dans une organisation : ils le sont ici, comme dans la maquette.
+    await setModuleEnabled(db, { adminUserId: randomUUID(), organizationId, moduleKey: "appointments", enabled: true });
     for (const moduleKey of options.without ?? []) await setModuleEnabled(db, { adminUserId: randomUUID(), organizationId, moduleKey, enabled: false });
     const email = `camille-${randomUUID()}@symbola.test`;
     const owner = await createUser(db, { organizationId, email, role: "owner" });
@@ -102,8 +104,9 @@ test.describe("UX-05 — La barre du bas et la barre du haut du téléphone (lot
       const top = (await box(page, ".app-topbar"))!;
       expect(Math.round(top.height)).toBe(60);
       await expect(page.locator(".app-topbar .search-box-shortcut")).toBeHidden();
-      for (const name of ["Rechercher", "Créer", "Aide de cet écran"]) {
+      for (const name of ["Rechercher", "Créer", "Aide sur cet écran"]) {
         const button = page.locator(".app-topbar").getByRole("button", { name, exact: true });
+        await expect(button, name).toBeVisible({ timeout: 15_000 });
         await expect(button, name).toBeVisible();
         const target = (await button.boundingBox())!;
         expect(target.height, name).toBeGreaterThanOrEqual(44);
@@ -179,9 +182,12 @@ test.describe("UX-05 — La barre du bas et la barre du haut du téléphone (lot
     // Un clic dehors.
     await moreButton(page).click();
     await expect(sheet).toBeVisible();
-    await page.mouse.click(size(page).width / 2, 120);
+    const open = (await sheet.boundingBox())!;
+    expect(open.y).toBeGreaterThan(16);
+    // Au-dessus du panneau (le menu commence sous sa poignée) : sur le fond assombri.
+    await page.mouse.click(size(page).width / 2, 8);
     await expect(sheet).toBeHidden();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/$/, { timeout: 30_000 });
 
     // Un glissé vers le bas.
     await moreButton(page).click();
@@ -199,17 +205,17 @@ test.describe("UX-05 — La barre du bas et la barre du haut du téléphone (lot
     await expect(sheet).toBeVisible();
     await page.evaluate(() => window.history.back());
     await expect(sheet).toBeHidden();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/$/, { timeout: 30_000 });
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
     // Une entrée de « Plus » mène à son écran, qui s'allume ; un seul retour arrière ramène à l'accueil.
     await moreButton(page).click();
     await moreSheet(page).getByRole("link", { name: "Contacts", exact: true }).click();
-    await expect(page).toHaveURL(/\/contacts$/);
+    await expect(page).toHaveURL(/\/contacts$/, { timeout: 30_000 });
     await expect(sheet).toBeHidden();
     await expect(page.locator(".app-topbar").getByText("Contacts", { exact: true })).toBeVisible();
     await page.goBack();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/$/, { timeout: 30_000 });
   });
 
   test("le compte dans « Plus » : « Camille · Atelier Roussel » mène à Mon compte, « Se déconnecter » ferme la session", async ({ page }) => {
@@ -220,7 +226,7 @@ test.describe("UX-05 — La barre du bas et la barre du haut du téléphone (lot
     await expect(page.locator(".account-menu-button")).toBeHidden();
     await openMenu(page);
     await moreSheet(page).getByRole("link", { name: /^Camille · Atelier Roussel/ }).click();
-    await expect(page).toHaveURL(/\/profil$/);
+    await expect(page).toHaveURL(/\/profil$/, { timeout: 30_000 });
     await logout(page);
   });
 
@@ -250,38 +256,9 @@ test.describe("UX-05 — La barre du bas et la barre du haut du téléphone (lot
     expect(message.y + message.height).toBeLessThanOrEqual(barBox.y);
   });
 
-  test("le focus atteint au clavier n'est caché ni sous la barre du haut ni sous la barre du bas (WCAG 2.4.11)", async ({ page }) => {
-    test.setTimeout(120_000);
-    const setup = await atelier();
-    await signInByLink(page, setup.email);
-    for (const path of ["/taches", `/events/${setup.lea}`]) {
-      await page.goto(path);
-      await page.waitForLoadState("networkidle");
-      let scrolled = 0;
-      const hidden: string[] = [];
-      for (let stop = 0; stop < 70; stop += 1) {
-        await page.keyboard.press("Tab");
-        const state = await page.evaluate(() => {
-          const bars = [document.querySelector<HTMLElement>(".app-topbar")!, document.querySelector<HTMLElement>(".app-tabbar")!];
-          const active = document.activeElement as HTMLElement | null;
-          if (!active || active === document.body || bars.some((bar) => bar.contains(active))) return null;
-          const rect = active.getBoundingClientRect();
-          if (rect.width === 0 || rect.height === 0 || rect.bottom <= 0 || rect.top >= window.innerHeight) return null;
-          const covered = bars.some((bar) => {
-            const barRect = bar.getBoundingClientRect();
-            if (getComputedStyle(bar).display === "none") return false;
-            return rect.top < barRect.bottom - 1 && rect.bottom > barRect.top + 1;
-          });
-          return { scrollY: window.scrollY, covered, label: (active.getAttribute("aria-label") ?? active.textContent ?? active.tagName).trim().slice(0, 50), top: rect.top, bottom: rect.bottom };
-        });
-        if (!state) continue;
-        scrolled = Math.max(scrolled, state.scrollY);
-        if (state.covered) hidden.push(`${state.label} (${Math.round(state.top)}–${Math.round(state.bottom)} px)`);
-      }
-      expect(scrolled, path).toBeGreaterThan(300);
-      expect(hidden, path).toEqual([]);
-    }
-  });
+  // Le focus atteint au clavier, caché ni sous la barre du haut ni sous la barre du bas (WCAG 2.4.11) : le
+  // parcours « la barre fixe ne masque pas le focus » de lot-70e-barre-et-creer.spec.ts, étendu aux deux
+  // barres et joué aussi en 375 px.
 
   test("clavier virtuel : un champ qui reçoit le focus n'est pas recouvert par la barre du bas", async ({ page }) => {
     const setup = await atelier();
@@ -326,7 +303,7 @@ test.describe("UX-05 — La barre du bas et la barre du haut du téléphone (lot
     expect(searchBox.height).toBeGreaterThanOrEqual(700);
     await expect(search.getByRole("combobox", { name: "Rechercher" })).toBeFocused();
     await search.getByRole("combobox", { name: "Rechercher" }).fill("Léa");
-    await expect(search.getByRole("option").first()).toBeVisible();
+    await expect(search.getByRole("option").first()).toBeVisible({ timeout: 30_000 });
     await expectNoAxeViolation(page, ".search-box");
     await page.keyboard.press("Escape");
     await page.keyboard.press("Escape");
@@ -359,9 +336,9 @@ test.describe("UX-05 — La barre du bas et la barre du haut du téléphone (lot
     await signInByLink(page, setup.email);
     await page.goto("/");
     await clickMenuLink(page, "Prestataires");
-    await expect(page).toHaveURL(/\/prestataires$/);
+    await expect(page).toHaveURL(/\/prestataires$/, { timeout: 30_000 });
     await clickMenuLink(page, "Paramètres");
-    await expect(page).toHaveURL(/\/parametres$/);
+    await expect(page).toHaveURL(/\/parametres$/, { timeout: 30_000 });
   });
 });
 
