@@ -15,8 +15,11 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // d'emblée comme premier client.
 // Lot 70e (D8, C-03) : une seule forme, « Nouvel évènement » ; les anciennes adresses (?type=evenement,
 // ?type=client) ouvrent la même.
-export default async function NewEventPage({ searchParams }: { searchParams: Promise<{ date?: string; contact?: string }> }) {
+// Lot 74a (HUB-10, PAR-01 ; R3) : « Entrer un mariage en cours » (fin de l'assistant, mariages suivis sur papier)
+// ouvre la fenêtre réglée sur « Signé, en préparation » (?ou=signe) ; sinon rien n'est choisi d'avance (M13).
+export default async function NewEventPage({ searchParams }: { searchParams: Promise<{ date?: string; contact?: string; ou?: string }> }) {
   const query = await searchParams;
+  const initialStanding = query.ou === "signe" ? "signed" : null;
   const initialDate = query.date && /^\d{4}-\d{2}-\d{2}$/.test(query.date) ? query.date : "";
   const auth = await requirePlanner();
 
@@ -45,6 +48,7 @@ export default async function NewEventPage({ searchParams }: { searchParams: Pro
         clientLabels={clientFieldLabelsByAudience(locale)}
         initialContact={initialContact}
         initialDate={initialDate}
+        initialStanding={initialStanding}
       />
     </main>
   );

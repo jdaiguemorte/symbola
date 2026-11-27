@@ -1,0 +1,104 @@
+/* Lot 74a (HUB-09, HUB-10, PAR-01, UX-04 ; C-68 ; page 22 des maquettes du lot 68) — l'assistant de démarrage,
+   « Votre espace est prêt » et la ligne « pas tout à fait prêt » de l'accueil. Jetons de DESIGN.md seulement. */
+@layer components {
+  .onboarding {
+    @apply mx-auto flex w-full max-w-3xl flex-col gap-4;
+  }
+  .onboarding-head {
+    @apply flex flex-col gap-2;
+  }
+  .onboarding-progress {
+    @apply m-0 text-label text-ink-muted;
+  }
+  .onboarding-bar {
+    @apply h-1.5 w-full appearance-none overflow-hidden rounded-full border-0 bg-line;
+    accent-color: var(--color-primary);
+  }
+  .onboarding-bar::-webkit-progress-bar {
+    @apply rounded-full bg-line;
+  }
+  .onboarding-bar::-webkit-progress-value {
+    @apply rounded-full bg-primary;
+  }
+  .onboarding-bar::-moz-progress-bar {
+    @apply rounded-full bg-primary;
+  }
+  .onboarding-question {
+    @apply flex flex-col gap-3;
+  }
+  .onboarding-question h1 {
+    @apply m-0;
+  }
+  .choice-cards-two {
+    @apply sm:grid-cols-2;
+  }
+  .onboarding-previous {
+    @apply inline-flex min-h-11 items-center;
+  }
+  /* « Question précédente » : à côté de « Continuer » à l'ordinateur, en haut sur téléphone. */
+  .onboarding-previous-top {
+    @apply hidden;
+  }
+
+  /* La ligne « Votre espace n'est pas tout à fait prêt » de l'accueil : une ligne d'état, pas un bandeau. */
+  .setup-line {
+    @apply flex flex-wrap items-center justify-between gap-3 rounded-md border border-line bg-surface px-4 py-3;
+  }
+  .setup-line p {
+    @apply m-0;
+  }
+
+  /* « Votre espace est prêt ». */
+  .onboarding-ready {
+    @apply mx-auto flex w-full max-w-3xl flex-col gap-4;
+  }
+  .onboarding-ready h1 {
+    @apply m-0;
+  }
+  .ready-example {
+    @apply mt-3 flex flex-wrap items-center gap-2;
+  }
+  .ready-example form button {
+    @apply !min-h-11;
+  }
+  .ready-answer-list {
+    @apply m-0 grid grid-cols-1 gap-2;
+  }
+  .ready-answer-list > div {
+    @apply grid grid-cols-1 gap-1 sm:grid-cols-[12rem_minmax(0,1fr)];
+  }
+  .ready-answer-list dt {
+    @apply font-semibold;
+  }
+  .ready-answer-list dd {
+    @apply m-0;
+  }
+  .ready-prepared a,
+  .ready-links a {
+    @apply inline-flex min-h-11 items-center;
+  }
+  .ready-links {
+    @apply m-0 flex flex-wrap gap-x-6;
+  }
+
+  /* Sur téléphone et sur un écran bas (911 × 512, zoom), « Continuer » reste collé en bas : jamais sous le pli. */
+  @media (width < 768px), (height < 640px) {
+    .question-actions {
+      @apply sticky bottom-0 z-20 -mx-4 border-t border-line bg-surface px-4 py-3;
+    }
+  }
+  @media (width < 768px) {
+    .question-actions button {
+      @apply w-full justify-center;
+    }
+    .onboarding-previous-top {
+      @apply block;
+    }
+    .onboarding-previous-bottom {
+      @apply hidden;
+    }
+    .ready-example {
+      @apply hidden;
+    }
+  }
+}

@@ -5,7 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { formatDateTime, type Locale } from "@symbola/i18n";
 import { organizationMailQuota } from "@symbola/mail";
 import { appDatabase } from "@symbola/db/client";
-import { getOrganizationProfile, getSetupState, isModuleEnabled, recentEmailVariableProblems, SETUP_STEPS } from "@/modules/hub/service";
+import { getOrganizationProfile, getSetupState, isModuleEnabled, recentEmailVariableProblems } from "@/modules/hub/service";
 import { listEventTasks, listOrganizationTasks, listStandaloneTasks } from "@/modules/events/service";
 import { buildTaskLines } from "@/lib/tasks/task-lines";
 import { taskMemberOptions } from "@/lib/tasks/members";
@@ -23,6 +23,8 @@ import { longDate, MyEvents, TodayFirst, TodayRest, todayWords, UnavailableNotic
 import { UndoTaskNotice } from "./accueil/today-client";
 import { OnboardingChecklist } from "./accueil/onboarding-checklist";
 import { NamesPrompt } from "./accueil/names-prompt";
+import { SetupNotReadyLine } from "./accueil/setup-line";
+import { resumedThisSession } from "@/lib/onboarding/resume";
 import { loadOnboardingChecklist } from "@/lib/onboarding/checklist";
 import { TodayCalendar } from "./accueil/today-calendar";
 import { isCalendarView, isMonthKey, isWeekKey, mondayOf, type CalendarView } from "@/lib/today/calendar";
@@ -83,7 +85,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   ]);
   const modules = { events: eventsEnabled, quotes, budget, guests, appointments, vendors };
   const resumeQuestionnaire = auth.user.role === "owner" && !setup.completed;
-  const tOnboarding = await getTranslations("Onboarding");
+  // Lot 74a (HUB-09, PAR-01 ; C-68 ; critères 1 et 2) : l'assistant d'abord. Pas encore commencé, la titulaire y
+  // est menée à chaque fois ; commencé, une fois par session (puis la ligne « pas tout à fait prêt »).
+  if (resumeQuestionnaire && (setup.step === 1 || !(await resumedThisSession()))) redirect(setup.step === 1 ? "/demarrage" : "/demarrage/reprendre");
   // ONB-01 : guide vers la fiche entreprise sans jamais bloquer l'entrée ; lot 33b (PAR-01, « à
   // éviter ») : seulement une fois le questionnaire fini et l'espace prêt, jamais avant.
   const onboardingIncomplete = setup.completed && (await getOrganizationProfile(db, organizationId)).completedAt === null;
@@ -154,11 +158,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <h1>{t("title")}</h1>
         <p className="today-summary">{t("summary", { date: longDate(now, locale), events: activeEvents, points: ranked.points })}</p>
       </div>
-      {resumeQuestionnaire ? (
-        <p className="notice" role="status">
-          {tOnboarding("resume", { count: SETUP_STEPS - setup.step + 1 })} <Link href="/demarrage">{tOnboarding("resumeLink")}</Link>
-        </p>
-      ) : null}
+      {resumeQuestionnaire ? <SetupNotReadyLine organizationId={organizationId} step={setup.step} /> : null}
       {onboardingIncomplete ? (
         <p role="status">
           {tHome("onboardingIncomplete")} <Link href="/parametres">{tHome("completeProfile")}</Link>
