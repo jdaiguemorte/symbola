@@ -120,6 +120,9 @@ const LOT_70A = [
 // Lot 73a : nom court et « demandée d'habitude » des natures de pièces (0234, vendors), date de rétention
 // d'un prestataire rattaché et son déclencheur (0235, events) ; les plus récentes.
 const LOT_73A = ["0235_lot73a_events_candidate_retained_at", "0234_lot73a_vendors_document_kind_usage"];
+// Lot 74a : réponses « mariages en cours » et « TVA à dire » de l'assistant de démarrage (0244, hub) ; la plus
+// récente.
+const LOT_74A = ["0244_lot74a_hub_onboarding_answers"];
 // Lot 71a : reprise d'un mariage (0218, 0219, hub), origine et dates non renseignées (0220), contrat
 // déclaré (0221), forme des moments (0222, events), total à répartir (0223, budget) ; les plus récentes.
 const LOT_71A = [
@@ -164,7 +167,7 @@ const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
 // 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_73A, ...LOT_72A, ...LOT_71A, ...LOT_70A, ...LOT_66, ...LOT_65, ...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
+const LOT_36 = [...LOT_74A, ...LOT_73A, ...LOT_72A, ...LOT_71A, ...LOT_70A, ...LOT_66, ...LOT_65, ...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
 // Lot 63c : l'ordre des annulations des lots récents, de la plus récente à la plus ancienne, se lit
 // dans cette seule liste. Un nouveau lot ajoute sa liste en tête de LOT_36, et rien d'autre : les
 // tests annulent par rollbackNewerThan et rollbackThrough, jamais par une suite écrite à la main.
@@ -227,6 +230,24 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
+  it("lot 74a (HUB-09 ; B3, B5, L74-D4) — 0244 s'annule et se rejoue sur une base vide ; « mariages en cours » n'accepte que oui ou non, le drapeau de TVA est faux d'office", async () => {
+    await migrateAll();
+    const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0244') returning id`;
+    const organizationId = organization!.id;
+    const [profile] = await target<{ has_ongoing_events: string | null; vat_answer_pending: boolean }[]>`insert into hub.organization_profiles (organization_id) values (${organizationId}) returning has_ongoing_events, vat_answer_pending`;
+    expect(profile).toEqual({ has_ongoing_events: null, vat_answer_pending: false });
+    await target`update hub.organization_profiles set has_ongoing_events = 'yes', vat_answer_pending = true where organization_id = ${organizationId}`;
+    await expect(target`update hub.organization_profiles set has_ongoing_events = 'maybe' where organization_id = ${organizationId}`).rejects.toThrow(/has_ongoing_events_check/);
+
+    await rollbackNewerThan(LOT_74A[0]!);
+    await rollback(LOT_74A[0]!);
+    for (const column of ["has_ongoing_events", "vat_answer_pending"]) expect(await hasColumn("hub", "organization_profiles", column)).toBe(false);
+    // La fiche reste, avec ses autres réponses.
+    expect(await target`select organization_id from hub.organization_profiles where organization_id = ${organizationId}`).toHaveLength(1);
+    await migrateAll();
+    expect(await hasColumn("hub", "organization_profiles", "has_ongoing_events")).toBe(true);
+  });
+
   it("lot 73a (PRE-05, PRE-02) — 0234 et 0235 s'annulent et se rejouent sur une base vide ; le déclencheur pose et efface la date de rétention", async () => {
     await migrateAll();
     const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0234') returning id`;
@@ -1962,10 +1983,10 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     // Lot 72a : « En préparation » n'existe qu'avant 0225 ; son annulation remet la valeur, que
     // l'annulation de 0132 doit encore ramener à « confirmé ».
     // Lot 73a : ses migrations, plus récentes, s'annulent avant celles du 72a.
-    for (const tag of [...LOT_73A, ...LOT_72A]) await rollback(tag);
+    for (const tag of [...LOT_74A, ...LOT_73A, ...LOT_72A]) await rollback(tag);
     await inOrganization((tx) => tx`update events.events set status = 'in_preparation' where id = ${ids.confirmed!}`);
 
-    for (const tag of [...LOT_36.slice(LOT_73A.length + LOT_72A.length), ...LOT_35A, ...LOT_34B, ...LOT_34A]) await rollback(tag);
+    for (const tag of [...LOT_36.slice(LOT_74A.length + LOT_73A.length + LOT_72A.length), ...LOT_35A, ...LOT_34B, ...LOT_34A]) await rollback(tag);
     const back = await inOrganization((tx) => tx<{ id: string; status: string }[]>`select id, status::text as status from events.events where id in (${ids.prospect!}, ${ids.confirmed!}, ${ids.done!}, ${ids.lost!})`);
     expect(Object.fromEntries(back.map((row) => [row.id, row.status]))).toEqual({ [ids.prospect!]: "prospect", [ids.confirmed!]: "confirmed", [ids.done!]: "done", [ids.lost!]: "lost" });
     expect(await hasColumn("events", "event_tasks", "offset_days")).toBe(false);

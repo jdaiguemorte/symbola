@@ -23,6 +23,11 @@
 # L'état d'avant d'un ajout à un mariage (events.task_change_snapshots, pour « Annuler ») ne garde
 # que des identifiants et des statuts, aucun nom, et disparaît après une minute au plus.
 #
+# Assistant de démarrage (lot 74a, HUB-09 ; spécification du lot 74, § 4.4) : aucun champ nouveau.
+# hub.organization_profiles.has_ongoing_events (« Avez-vous déjà des mariages en cours ? ») et
+# vat_answer_pending (« Je ne sais pas encore » pour la TVA) sont des réponses de l'organisation, sans
+# personne ; exportées avec la fiche (HUB-13) et effacées avec elle.
+#
 # Flux de calendrier (lot 38b, HUB-29, D12, ADR 0072) : aucun champ nouveau. L'adresse secrète d'une
 # personne de l'équipe (hub.calendar_feeds n'en garde que l'empreinte) livre à l'agenda qu'elle
 # abonne les prénoms des clients (hub.contacts), le type, la date et le lieu des évènements datés,
