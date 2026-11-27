@@ -10,6 +10,7 @@
 // « Caché des mariés » est repris ; le résumé des invités est ignoré.
 import type { ProgramExportProfile } from "@symbola/starter-templates";
 import { decodeHtmlEntities, tidyText } from "../cleanup";
+import { neutralizeTexts } from "../neutralize";
 import type { PdfPage, PdfTextItem } from "../pdf";
 
 export type ProgramExportSpeaker = { role: string; company: string | null; contact: string | null; phone: string | null };
@@ -37,7 +38,8 @@ export type ProgramExportRow = {
 
 export type ProgramExport = { title: string | null; eventDate: string | null; speakers: ProgramExportSpeaker[]; rows: ProgramExportRow[] };
 
-export type ProgramExportResult = { ok: true; program: ProgramExport } | { ok: false; reason: "not_program_export" };
+// Lot 71a (SEC-21) : `neutralized`, le nombre de textes du fichier neutralisés (=, +, - ou @ en tête).
+export type ProgramExportResult = { ok: true; program: ProgramExport; neutralized: number } | { ok: false; reason: "not_program_export" };
 
 type Calendar = { weekdays: readonly string[]; months: readonly string[] };
 type Line = { page: number; y: number; x: number; text: string };
@@ -316,5 +318,7 @@ export function parseProgramExport(pages: PdfPage[], profile: ProgramExportProfi
       marker: contacts.length === 0,
     });
   });
-  return { ok: true, program: { title, eventDate, speakers, rows } };
+  // Lot 71a (SEC-21) : chaque texte lu passe par la neutralisation des cellules avant d'être gardé.
+  const safe = neutralizeTexts({ title, eventDate, speakers, rows });
+  return { ok: true, program: safe.value, neutralized: safe.neutralized };
 }

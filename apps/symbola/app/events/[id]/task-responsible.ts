@@ -11,7 +11,7 @@ export const RESPONSIBLE_LABEL_KEYS: Record<TaskResponsible, string> = {
 
 // Lot 70a (A1, A4) : un collègue proposé dans « Qui s'en charge » — son nom (prénom et nom, sinon le
 // début de l'adresse), « Vous » pour la personne qui regarde, et un accès retiré (sa tâche reste à son nom).
-export type TaskMemberOption = { id: string; name: string; me: boolean; removed: boolean };
+export type TaskMemberOption = { id: string; name: string; shortName?: string; initials?: string; me: boolean; removed: boolean };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const RESPONSIBLES: readonly string[] = ["planner", "clients", "vendor"];

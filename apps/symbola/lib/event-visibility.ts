@@ -13,6 +13,11 @@ async function viewerOf(auth: Viewer) {
   return { userId: auth.user.id, role: auth.user.role === "owner" ? ("owner" as const) : ("member" as const), allPlannersSeeAll };
 }
 
+// Lot 70c : la personne qui regarde la liste des tâches (lot 70a, A20).
+export async function taskListViewer(auth: Viewer): Promise<{ userId: string; role: "owner" | "member"; allPlannersSeeAll: boolean }> {
+  return viewerOf(auth);
+}
+
 // null : tous les évènements de l'organisation.
 export async function visibleEventScope(auth: Viewer): Promise<Set<string> | null> {
   return visibleEventIds(auth.user.organizationId, await viewerOf(auth));

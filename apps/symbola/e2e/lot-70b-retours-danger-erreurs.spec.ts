@@ -83,9 +83,10 @@ for (const size of [
       test.setTimeout(120_000);
       const setup = await atelier();
       await signIn(page, setup.email, /\/$/);
-      await page.goto(`/events/${setup.eventId}?onglet=retroplanning`);
+      // Lot 70c : la ligne type ; l'État « Toutes » garde la ligne faite à sa place, avec « Rouvrir ».
+      await page.goto(`/events/${setup.eventId}?onglet=taches&etat=toutes`);
       await page.waitForLoadState("networkidle");
-      const check = page.locator(".task-check button").first();
+      const check = page.locator(".task-lines .task-done-button").first();
       await check.click();
 
       const message = feedback(page);
@@ -100,7 +101,9 @@ for (const size of [
       const viewport = page.viewportSize()!;
       expect(box.x).toBeLessThan(viewport.width / 2);
       expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
-      expect(box.y + box.height).toBeGreaterThan(viewport.height - 120);
+      // Lot 70c : la liste de la fiche est courte ; le message se pose dessous, ou en bas de l'écran.
+      const listBottom = await page.locator(".task-lines").evaluate((element) => element.getBoundingClientRect().bottom);
+      expect(box.y + box.height > viewport.height - 120 || box.y >= listBottom).toBe(true);
       const checkBox = (await check.boundingBox())!;
       const overlaps = !(checkBox.x > box.x + box.width || checkBox.x + checkBox.width < box.x || checkBox.y > box.y + box.height || checkBox.y + checkBox.height < box.y);
       expect(overlaps).toBe(false);
@@ -126,7 +129,7 @@ for (const size of [
       await undo.click();
       await expect(message).toContainText("Tâche remise à faire : Choisir le fleuriste");
       await expect(feedback(page)).toHaveCount(1);
-      await expect(page.locator('.task-check button[aria-pressed="false"]').first()).toBeVisible();
+      await expect(page.locator(".task-lines .task-done-button:not([data-done])").first()).toBeVisible();
       await expectNoHorizontalScroll(page);
       await expectNoAxeViolation(page);
     });
@@ -135,11 +138,11 @@ for (const size of [
       test.setTimeout(120_000);
       const setup = await atelier();
       await signIn(page, setup.email, /\/$/);
-      await page.goto(`/events/${setup.eventId}?onglet=retroplanning`);
+      await page.goto(`/events/${setup.eventId}?onglet=taches`);
       await page.waitForLoadState("networkidle");
-      await page.locator('.task-check button[aria-pressed="false"]').first().click();
+      await page.locator(".task-lines .task-done-button:not([data-done])").first().click();
       await expect(feedback(page)).toContainText("Tâche faite : Choisir le fleuriste");
-      await page.locator('.task-check button[aria-pressed="false"]').first().click();
+      await page.locator(".task-lines .task-done-button:not([data-done])").first().click();
       await expect(feedback(page)).toContainText("Tâche faite : Réserver la navette");
       await expect(feedback(page)).toHaveCount(1);
       await expect(page.locator(".feedback-region")).toHaveCount(1);
@@ -190,15 +193,15 @@ for (const size of [
       test.setTimeout(120_000);
       const setup = await atelier();
       await signIn(page, setup.email, /\/$/);
-      await page.goto(`/events/${setup.eventId}?onglet=retroplanning&tache=${setup.firstTaskId}`);
-      const dialog = page.getByRole("dialog", { name: "Modifier la tâche" });
+      await page.goto(`/events/${setup.eventId}?onglet=taches&tache=${setup.firstTaskId}`);
+      const dialog = page.getByRole("dialog", { name: "Choisir le fleuriste" });
       await expect(dialog).toBeVisible();
       const label = dialog.getByRole("textbox", { name: /Tâche/ }).first();
       await label.fill("");
       await dialog.locator('input[name="dueDate"]').fill("");
       // Aucune bulle du navigateur : le formulaire est en noValidate, Symbola parle.
-      expect(await dialog.locator("form.task-dialog-form").evaluate((form) => (form as HTMLFormElement).noValidate)).toBe(true);
-      await dialog.getByRole("button", { name: "Enregistrer" }).click();
+      expect(await dialog.locator("form.task-panel-main").evaluate((form) => (form as HTMLFormElement).noValidate)).toBe(true);
+      await dialog.getByRole("button", { name: "Enregistrer", exact: true }).click();
       await expect(dialog.getByRole("alert")).toContainText("Erreur : 2 champs à remplir avant d'enregistrer la tâche.");
       await expect(dialog.getByText("Donnez un nom à la tâche, par exemple « Réserver la navette ».")).toBeVisible();
       await expect(dialog.getByText("Choisissez une date d'échéance.")).toBeVisible();
@@ -210,7 +213,7 @@ for (const size of [
       await label.fill("Choisir la fleuriste");
       await expect(dialog.getByText("Donnez un nom à la tâche, par exemple « Réserver la navette ».")).toHaveCount(0);
       await dialog.locator('input[name="dueDate"]').fill("2027-03-02");
-      await dialog.getByRole("button", { name: "Enregistrer" }).click();
+      await dialog.getByRole("button", { name: "Enregistrer", exact: true }).click();
       await expect(feedback(page).filter({ hasText: "Tâche enregistrée : Choisir la fleuriste" })).toBeVisible();
     });
 
@@ -218,14 +221,14 @@ for (const size of [
       test.setTimeout(120_000);
       const setup = await atelier();
       await signIn(page, setup.email, /\/$/);
-      await page.goto(`/events/${setup.eventId}?onglet=retroplanning&tache=${setup.secondTaskId}`);
-      const dialog = page.getByRole("dialog", { name: "Modifier la tâche" });
+      await page.goto(`/events/${setup.eventId}?onglet=taches&tache=${setup.secondTaskId}`);
+      const dialog = page.getByRole("dialog", { name: "Réserver la navette" });
       await expect(dialog).toBeVisible();
       await page.waitForLoadState("networkidle");
       const label = dialog.getByRole("textbox", { name: /Tâche/ }).first();
       await label.fill("Réserver la navette des invités");
       await context.setOffline(true);
-      await dialog.getByRole("button", { name: "Enregistrer" }).click();
+      await dialog.getByRole("button", { name: "Enregistrer", exact: true }).click();
       const message = feedback(page);
       await expect(message).toContainText("Erreur : la tâche n'a pas été enregistrée");
       await expect(message).toContainText("Connexion perdue. Votre saisie est gardée.");
@@ -245,9 +248,9 @@ test("UX-10 — « Nouvel évènement » envoyé vide : les erreurs de Symbola, 
   await page.goto("/events/new");
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: /Créer/ }).last().click();
-  // Le prénom manquant se dit dans le vocabulaire du type (ADR 0045) : ici, un mariage.
-  await expect(page.getByText("Le prénom du premier marié est obligatoire.")).toBeVisible();
-  await expect(page.getByText("Choisissez d'où vient la demande.")).toBeVisible();
+  // Lot 70e : deux erreurs seulement, la réponse à « Où en est-il ? » et le nom.
+  await expect(page.getByText("Donnez un nom à l'évènement, par exemple « Léa & Maxime ».")).toBeVisible();
+  await expect(page.getByText("Choisissez où en est cet évènement.")).toBeVisible();
   await expect(page.getByRole("alert").filter({ hasText: "Erreur : 2 champs à remplir avant de créer l'évènement." })).toBeVisible();
   await expect(page).toHaveURL(/\/events\/new/);
   await expectNoAxeViolation(page, "main");

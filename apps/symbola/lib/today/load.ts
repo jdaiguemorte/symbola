@@ -24,6 +24,7 @@ import {
   listFinishedUnseenQuestionnaires,
   listReadyFollowUps,
   listStandaloneTasks,
+  taskDueState,
   closingDue,
   listEventClosings,
 } from "@/modules/events/service";
@@ -129,8 +130,10 @@ async function eventItems({ organizationId, words, locale, today, now, events, n
       dueOn: task.dueDate,
       since: null,
       actor: mine ? { kind: "you" } : { kind: "client" },
-      href: `/events/${task.eventId}?onglet=retroplanning&tache=${task.id}`,
+      href: `/events/${task.eventId}?onglet=taches&tache=${task.id}`,
       action: mine ? { kind: "check_task", eventId: task.eventId, taskId: task.id } : { kind: "open" },
+      // Lot 70c (D3, M3) : la ligne type ; une tâche confiée aux mariés garde « Fait ».
+      task: { ...task, event: { id: task.event.id, names: task.event.names } },
     });
   }
   // Lot 53 (CHR-10, D6) : les tâches hors évènement (TVA, assurance…) apparaissent comme les autres.
@@ -147,6 +150,19 @@ async function eventItems({ organizationId, words, locale, today, now, events, n
       actor: { kind: "you" },
       href: "/taches#hors-evenement",
       action: { kind: "check_standalone_task", taskId: task.id },
+      task: {
+        id: task.id,
+        eventId: null,
+        event: null,
+        label: task.label,
+        dueDate: task.dueDate,
+        responsible: "planner",
+        vendorCandidateId: null,
+        assigneeUserId: task.assigneeUserId ?? null,
+        priority: task.priority ?? "normal",
+        done: task.done,
+        dueState: taskDueState(task, today),
+      },
     });
   }
   for (const decision of await listPendingDecisions(organizationId)) {

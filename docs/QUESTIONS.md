@@ -1004,28 +1004,75 @@ aucun retard ni relance né de l'import, mêmes nombres à « Vérifier » et au
 compléter cité sans hésiter, retrait possible), rejoué à chaque paquet du lot 71. À trancher : le
 scénario reste-t-il local, ou entre-t-il au § 17 du cahier des charges comme SC-13 ?
 
-### Q50 — Lot 73 : réaliser le volet 4 des maquettes (« Prestataires »), trois écarts avec le cahier des charges (27 novembre 2026)
+### Q49 — Lot 72 : réaliser le volet 3 des maquettes, trois écarts avec le cahier des charges (27 novembre 2026)
 
-Numéro choisi pour ne pas croiser les spécifications écrites en même temps : Q48 est au lot 71, Q49
-est laissé au lot 72, Q51 au lot 74. Relevés en écrivant `docs/lots/lot-73-prestataires.md` (§ 7 et
-§ 8), à partir des maquettes du volet 4 (`docs/audits/2026-11-ux-parcours/10-maquettes-prestataires.md`),
-dont les choix V1 à V14 sont retenus par défaut et pas encore confirmés par Julien (décision P1 du
-lot). Ouverts ; chacun a sa recommandation.
+Relevés en écrivant la spécification `docs/lots/lot-72-aujourdhui-et-evenements.md` (§ 7 et § 8), à
+partir des maquettes validées le 26/11 (`docs/audits/2026-11-ux-parcours/09-maquettes-aujourdhui-evenements.md`).
+Tous tranchés le 27/11 par Julien.
 
-1. **« Pressenti » remplacé à l'écran par « en comparaison » (PRE-02, choix V7, décision P2 du lot)**.
-   Le cahier des charges nomme les statuts « Pressenti, Consulté, Devis reçu, Retenu, Contrat signé,
-   Soldé » ; la maquette dit « en comparaison » (avec « devis reçu » en détail) et le bouton « Mettre
-   en comparaison ». Les valeurs en base ne changent pas. Proposition : suivre la maquette, noter
-   l'écart dans `gap.csv` et un court ADR.
+1. **Les statuts d'un évènement (EVT-05)**. Le cahier des charges cite « Option, Confirmé, En
+   préparation, Jour J, Clôturé, Reporté, Annulé ». La frise retenue (E1) n'affiche que quatre étapes :
+   « Une demande en cours », « Signé, en préparation », « Jour J », « Clôturé », Reporté et Annulé étant
+   des lignes d'état. **Tranché le 27/11 par Julien (J1)** : « En préparation » est retiré de la base
+   (migration 0225, les évènements passent en « Confirmé ») ; un seul statut, affiché « Signé, en
+   préparation ». Aucune règle de l'app ne distinguait les deux, et rien n'est en production. Écart
+   noté dans `gap.csv`, ADR au paquet 72a.
+2. **Les onglets du cockpit (patrons d'interface)**. Le cahier des charges cite « Synthèse, Planning,
+   Budget, Prestataires, Invités, Documents, Jour J ». L'app aura « Synthèse, Budget et prestataires,
+   Tâches, Programme, Devis et factures, Mariés, Documents, Invités » (« Tâches » tranché en Q47 ;
+   « Programme » au lieu de « Jour J », choix E6, parce que « Jour J » nomme déjà l'étape et l'écran du
+   terrain). Proposition : noté dans `gap.csv`, sans ADR. **Tranché le 27/11 par Julien** (validation de la spécification).
+3. **Le cockpit (EVT-02)** : « bandeau de santé » sous l'en-tête et « échéances des quatorze jours ».
+   La santé descend dans « Où en est le mariage », sous la suite ; les quatorze jours se fondent dans la
+   suite, avec les mêmes lignes et les mêmes nombres que l'accueil (E9). Les trois actions les plus
+   urgentes restent visibles sans défiler sur un écran de 13 pouces. Proposition : noté dans `gap.csv`,
+   sans ADR. **Tranché le 27/11 par Julien** (validation de la spécification).
+
+### Q50 — Lot 73 : réaliser le volet 4 des maquettes (« Prestataires »), trois écarts avec le cahier des charges (27 novembre 2026, tranchée)
+
+Relevés en écrivant `docs/lots/lot-73-prestataires.md` (§ 7 et § 8), à partir des maquettes du volet 4
+(`docs/audits/2026-11-ux-parcours/10-maquettes-prestataires.md`), dont Julien a confirmé les choix V1 à
+V14 le 27/11 (décision P1 du lot). **Tranchés le 27/11 par Julien** avec les décisions P2 et P14 du lot.
+
+1. **« Pressenti » remplacé à l'écran par « en comparaison » (PRE-02, choix V7, décision P2)**. Le
+   cahier des charges nomme les statuts « Pressenti, Consulté, Devis reçu, Retenu, Contrat signé,
+   Soldé » ; l'écran dit « en comparaison » (avec « devis reçu » en détail), le bouton « Mettre en
+   comparaison », et un retenu sans contrat signé « Retenu, contrat non signé » (P5). Les valeurs en
+   base ne changent pas. **Tranché : d'accord** ; noté dans `gap.csv` et dans un ADR (paquet 73a,
+   premier numéro libre au moment du code).
 2. **« Catégorie » (PRE-01, PRE-11) contre « famille » puis « métier »**. L'app et la maquette disent
    « famille » et « métier ». Proposition : garder les mots de l'app, comme le recommande S13 du Design
-   System (porte 4) ; noté dans `gap.csv`, sans ADR.
-3. **« Engagé » hors de la ligne du budget (BUD-01, cinq montants ; SC-04 « la ligne passe à
-   engagé »)**. La maquette retire la pastille « Engagé » et le sous-total « dont engagé », gardés par
-   Julien le 21/11 (Q42, point 1) : la maquette contredit cette décision (décision P14 du lot).
-   Proposition : écrire « engagé » sous le montant réel de la ligne et en tête (« Réel, tout engagé »),
-   sans pastille verte ; les cinq montants restent dans la fenêtre du poste ; noté dans `gap.csv`, sans
-   ADR.
+   System ; noté dans `gap.csv`, sans ADR. **Suit S13**, pas encore tranché à la porte 4.
+3. **Le mot « engagé » quitte l'écran (BUD-01, SC-04 ; décision P14, contre la décision du 21/11,
+   Q42, point 1)**. BUD-01 veut cinq montants (estimé, devisé, engagé, payé, reste) ; SC-04 dit « la
+   ligne passe à « engagé » ». **Tranché par Julien** : ni pastille ni mot « engagé » sur la ligne (le
+   réel, et l'état du contrat en mots) ; en tête « Réel, tout signé » quand tous les contrats le sont,
+   sinon « Réel · dont 27 000,00 € signés » (« réel dont x milliers signés Ok ») ; l'engagé reste
+   calculé, en base et dans les exports. **SC-04 étape 5 se lit « la ligne dit « Contrat signé » »**.
+   Un montant exigé ne s'affiche plus et un scénario change de mot : **un ADR** (le même que le point
+   1), `gap.csv` (BUD-01 et la note de SC-04).
+
+### Q51 — Lot 74 : réaliser les volets 5 et 6 des maquettes, trois écarts avec le cahier des charges (27 novembre 2026, tranchée)
+
+Relevés en écrivant la spécification `docs/lots/lot-74-premiers-pas-aide-parametres.md` (§ 9 et
+§ 10). **Tous trois tranchés le 27/11 par Julien**, qui pose la règle : une divergence se tranche
+en faveur de la décision la plus récente. (Numéro choisi après Q48 du lot 71, en laissant Q49 et
+Q50 aux lots 72 et 73 écrits en même temps ; à renuméroter à la fusion si besoin.)
+
+1. **Le volume annuel quitte le questionnaire d'accueil (B2)**. HUB-09 cite le volume parmi les
+   questions, et l'étape 2 de SC-01 dit « douze par an ». La maquette validée (B2) le sort de
+   l'assistant, puisqu'il n'est lu nulle part, et le met dans la fiche de l'entreprise. Proposition :
+   accepter l'écart (HUB-09 dit aussi « tout reste modifiable dans les réglages »), ADR court au
+   paquet 74a, `gap.csv` (HUB-09) et compte rendu de SC-01. Décision L74-D5 du lot. **Tranché : écart accepté** (B2, plus récente, l'emporte).
+2. **Les formulaires de réglage à champs liés s'enregistrent par un bouton (D7)**. Même écart avec
+   UX-09 que M1 (Q47, point 1) : barre collée en bas, jamais grisée, question à la sortie, brouillon
+   gardé. Proposition : un avenant à l'ADR de M1, au paquet 74h. **Tranché : D7 l'emporte**, avenant
+   écrit au paquet 74h.
+3. **« Je ne sais pas encore » pour la TVA (B5)**. Point fiscal : en attendant la réponse, la note 11
+   garde la franchise en base, dont la mention part sur les devis. Je ne tranche pas. Proposition :
+   aucun devis envoyé tant que la réponse manque (le brouillon reste possible), à faire confirmer par
+   l'expert-comptable. Décision L74-D4 du lot. **Tranché : « il faut qu'elle choisisse »** : aucun devis envoyé tant
+   que la réponse manque, le brouillon reste possible.
 
 ## Remarques sur le nouveau document lui-même
 

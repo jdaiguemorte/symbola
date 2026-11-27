@@ -2,6 +2,8 @@
 // premier », le reste par groupe (replié au-delà de quatre lignes), puis « Mes évènements ». Lot 65c :
 // sept lignes en premier, par nature. Chaque ligne dit ce qu'il faut faire, pour quel évènement, quand, qui doit agir,
 // et propose l'action en un clic.
+import { TaskLine } from "@/app/ui/task-line";
+import type { TaskLineView } from "@/lib/tasks/task-line";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatCalendarDate, type Locale } from "@symbola/i18n";
@@ -75,7 +77,11 @@ function actorLabel(item: RankedItem, t: TodayTranslator): string {
   return item.actor.kind === "vendor" ? t("actor.vendor", { name: item.actor.name }) : t(`actor.${item.actor.kind}`);
 }
 
-export async function TodayItemLine({ item, locale, returnTo }: { item: RankedItem; locale: Locale; returnTo: "home" | "event" }) {
+export async function TodayItemLine({ item, locale, returnTo, taskLine }: { item: RankedItem; locale: Locale; returnTo: "home" | "event"; taskLine?: TaskLineView | undefined }) {
+  // Lot 70c (CHR-02, HUB-08 ; D3, M3, M4) : une tâche prend la ligne type allégée — titre en encre qui ouvre
+  // le panneau, nom du mariage en lien séparé vers sa fiche, échéance et son état, qui s'en charge, « Fait »
+  // (confiée aux mariés comprise), sans menu ; « Ouvrir » disparaît.
+  if (taskLine) return <TaskLine line={taskLine} form="today" shortcuts={[]} assignOptions={[]} />;
   const t = await getTranslations("Today");
   const meta = [returnTo === "home" ? item.eventNames : null, item.detail].filter((part): part is string => Boolean(part)).join(" · ");
   return (
@@ -122,8 +128,22 @@ export async function TodayItemLine({ item, locale, returnTo }: { item: RankedIt
 // Lot 65c (HUB-08, UX-01 ; maquette M15 retouchée) — « À traiter en premier » : sept lignes au plus,
 // par priorité puis par délai, découpées par nature (relances, tâches, paiements, décisions…) ;
 // chaque partie dit son nombre et mène à sa page quand elle existe.
-export async function TodayFirst({ ranked, locale, modules }: { ranked: RankedToday; locale: Locale; modules: { quotes: boolean; events: boolean } }) {
+export async function TodayFirst({
+  ranked,
+  locale,
+  modules,
+  taskLines = {},
+  doneToday = 0,
+}: {
+  ranked: RankedToday;
+  locale: Locale;
+  modules: { quotes: boolean; events: boolean };
+  taskLines?: Record<string, TaskLineView>;
+  // Lot 70c (D1) : « 3 tâches faites aujourd'hui · Les revoir ».
+  doneToday?: number;
+}) {
   const t = await getTranslations("Today");
+  const tLine = await getTranslations("TaskLine");
   const parts = todayParts(ranked, modules);
   return (
     <section className="card today-first" aria-labelledby="today-first-title" data-tour="home-first">
@@ -144,9 +164,14 @@ export async function TodayFirst({ ranked, locale, modules }: { ranked: RankedTo
             </div>
             <ul className="today-items" aria-labelledby={`today-part-${part.nature}`}>
               {part.items.map((item) => (
-                <TodayItemLine key={item.key} item={item} locale={locale} returnTo="home" />
+                <TodayItemLine key={item.key} item={item} locale={locale} returnTo="home" taskLine={item.task ? taskLines[item.task.id] : undefined} />
               ))}
             </ul>
+            {part.nature === "tasks" && doneToday > 0 ? (
+              <p className="today-done-today">
+                {tLine("doneToday", { count: doneToday })} · <Link href="/taches?etat=faites">{tLine("review")}</Link>
+              </p>
+            ) : null}
           </div>
         ))
       )}
@@ -155,7 +180,7 @@ export async function TodayFirst({ ranked, locale, modules }: { ranked: RankedTo
 }
 
 // Le reste (au-delà des sept), par groupe, replié au-delà de quatre lignes ; sous le calendrier.
-export async function TodayRest({ ranked, locale }: { ranked: RankedToday; locale: Locale }) {
+export async function TodayRest({ ranked, locale, taskLines = {} }: { ranked: RankedToday; locale: Locale; taskLines?: Record<string, TaskLineView> }) {
   const t = await getTranslations("Today");
   const first = new Set(ranked.all.slice(0, HOME_FIRST_COUNT).map((item) => item.key));
   const rest = TODAY_GROUPS.map((group) => ({ group, items: ranked.groups[group].filter((item) => !first.has(item.key)) })).filter((entry) => entry.items.length > 0);
@@ -168,7 +193,7 @@ export async function TodayRest({ ranked, locale }: { ranked: RankedToday; local
           <h3 id={`today-group-${group}`}>{t(`group.${group}`)}</h3>
           <ul className="today-items" aria-labelledby={`today-group-${group}`}>
             {items.slice(0, GROUP_VISIBLE).map((item) => (
-              <TodayItemLine key={item.key} item={item} locale={locale} returnTo="home" />
+              <TodayItemLine key={item.key} item={item} locale={locale} returnTo="home" taskLine={item.task ? taskLines[item.task.id] : undefined} />
             ))}
           </ul>
           {items.length > GROUP_VISIBLE ? (
@@ -176,7 +201,7 @@ export async function TodayRest({ ranked, locale }: { ranked: RankedToday; local
               <summary>{t("more", { count: items.length - GROUP_VISIBLE })}</summary>
               <ul className="today-items">
                 {items.slice(GROUP_VISIBLE).map((item) => (
-                  <TodayItemLine key={item.key} item={item} locale={locale} returnTo="home" />
+                  <TodayItemLine key={item.key} item={item} locale={locale} returnTo="home" taskLine={item.task ? taskLines[item.task.id] : undefined} />
                 ))}
               </ul>
             </details>

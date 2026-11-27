@@ -12,6 +12,9 @@ export type StandaloneTask = {
   recurrence: TaskRecurrenceValue | null;
   done: boolean;
   doneAt: string | null;
+  // Lot 70c (CHR-02 ; D3) : de quoi écrire sa ligne type comme les autres (qui s'en charge, priorité).
+  assigneeUserId?: string | null;
+  priority?: "high" | "normal";
 };
 
 export const standaloneTaskInputSchema = z.object({

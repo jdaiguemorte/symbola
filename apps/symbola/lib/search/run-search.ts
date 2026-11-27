@@ -3,13 +3,14 @@
 // écrans (textes traduits). Partagée par la page /recherche et la réponse JSON
 // de la recherche instantanée.
 import { getLocale, getTranslations } from "next-intl/server";
-import { formatCalendarDate, type Locale } from "@symbola/i18n";
+import { formatCalendarDate, parisToday, type Locale } from "@symbola/i18n";
 import { appDatabase } from "@symbola/db/client";
 import { foldSearchText, searchWords } from "@symbola/db/search";
 import { globalSearch, isModuleEnabled } from "@/modules/hub/service";
 import { TUTORIALS, tutorialHref } from "@/lib/help/catalog";
 import { SCREENS } from "./screens";
 import { STATUS_LABEL_KEYS } from "@/app/events/event-status";
+import { dayDistance, dayPhrase } from "./search-day";
 import type { EventStatus } from "@/modules/events/service";
 
 const QUOTE_STATUS_KEYS: Record<string, string> = {
@@ -20,7 +21,9 @@ const QUOTE_STATUS_KEYS: Record<string, string> = {
   expired: "statusExpired",
 };
 
-export type SearchGroupKey = "contacts" | "events" | "documents" | "tasks" | "help";
+// Lot 70e (HUB-12 ; M9) : l'ordre des groupes, chacun compté à l'écran : tâches, évènements, contacts,
+// prestataires, devis et factures, aide.
+export type SearchGroupKey = "tasks" | "events" | "contacts" | "vendors" | "documents" | "help";
 export type SearchItem = { title: string; detail: string; href: string };
 export type SearchGroup = { key: SearchGroupKey; label: string; items: SearchItem[] };
 
@@ -58,13 +61,32 @@ export async function runSearch(input: { organizationId: string; role: string; t
   };
   const names = (eventId: string) => found.eventNames[eventId] || t("noClientName");
 
+  const today = parisToday();
+  // « dans 6 jours », « demain », « il y a 3 jours » : où l'on en est, pour dire où mène un résultat.
+  const when = (date: string): string => {
+    const phrase = dayPhrase(dayDistance(today, date));
+    if (phrase.kind === "today") return t("dayToday");
+    if (phrase.kind === "tomorrow") return t("dayTomorrow");
+    if (phrase.kind === "yesterday") return t("dayYesterday");
+    return phrase.kind === "future" ? t("dayFuture", { days: phrase.days }) : t("dayPast", { days: phrase.days });
+  };
+
   const groups: SearchGroup[] = [
+    {
+      key: "tasks",
+      label: t("groupTasks"),
+      items: found.tasks.map((task) => ({
+        title: task.label,
+        detail: [task.eventNames || t("noClientName"), t("taskDue", { when: when(task.dueDate) })].join(" · "),
+        href: `/events/${task.eventId}?onglet=taches&tache=${task.id}`,
+      })),
+    },
     {
       key: "events",
       label: t("groupEvents"),
       items: found.events.map((event) => ({
         title: event.names || t("noClientName"),
-        detail: [event.eventDate ? formatCalendarDate(event.eventDate, locale) : t("noDate"), event.venueName, tEvents(STATUS_LABEL_KEYS[event.status as EventStatus] ?? "statusOption")]
+        detail: [event.eventDate ? when(event.eventDate) : t("noDate"), event.venueName, tEvents(STATUS_LABEL_KEYS[event.status as EventStatus] ?? "statusOption")]
           .filter(Boolean)
           .join(" · "),
         href: `/events/${event.id}`,
@@ -77,6 +99,24 @@ export async function runSearch(input: { organizationId: string; role: string; t
       label: t("groupContacts"),
       items: found.contacts.map((contact) => ({ title: contact.displayName, detail: [contact.email, contact.city].filter(Boolean).join(" · "), href: `/contacts/${contact.id}` })),
     },
+    // Lot 70e : les prestataires du carnet, puis les postes de budget de chaque évènement (un prestataire
+    // consulté ou retenu), ne se mêlent plus aux tâches.
+    {
+      key: "vendors",
+      label: t("groupVendors"),
+      items: [
+        ...found.book.map((vendor) => ({
+          title: vendor.name,
+          detail: [t("vendorBookDetail"), vendor.typeLabel, vendor.city].filter(Boolean).join(" · "),
+          href: `/prestataires/${vendor.id}`,
+        })),
+        ...found.vendors.map((vendor) => ({
+          title: vendor.vendorName ? t("vendorTitle", { vendor: vendor.vendorName, slot: vendor.label }) : vendor.label,
+          detail: vendor.eventNames || t("noClientName"),
+          href: `/events/${vendor.eventId}?onglet=budget&poste=${vendor.id}`,
+        })),
+      ],
+    },
     {
       key: "documents",
       label: t("groupDocuments"),
@@ -86,27 +126,6 @@ export async function runSearch(input: { organizationId: string; role: string; t
           title: t("invoiceTitle", { number: invoice.number, names: names(invoice.eventId) }),
           detail: t("invoiceIssued", { date: formatCalendarDate(invoice.issuedOn, locale) }),
           href: `/devis/factures/${invoice.id}`,
-        })),
-      ],
-    },
-    {
-      key: "tasks",
-      label: t("groupTasks"),
-      items: [
-        ...found.tasks.map((task) => ({
-          title: t("taskTitle", { label: task.label, names: task.eventNames || t("noClientName") }),
-          detail: t("taskDue", { date: formatCalendarDate(task.dueDate, locale) }),
-          href: `/events/${task.eventId}?onglet=retroplanning&tache=${task.id}`,
-        })),
-        ...found.vendors.map((vendor) => ({
-          title: vendor.vendorName ? t("vendorTitle", { vendor: vendor.vendorName, slot: vendor.label }) : vendor.label,
-          detail: vendor.eventNames || t("noClientName"),
-          href: `/events/${vendor.eventId}?onglet=budget&poste=${vendor.id}`,
-        })),
-        ...found.book.map((vendor) => ({
-          title: vendor.name,
-          detail: [t("vendorBookDetail"), vendor.typeLabel, vendor.city].filter(Boolean).join(" · "),
-          href: `/prestataires/${vendor.id}`,
         })),
       ],
     },

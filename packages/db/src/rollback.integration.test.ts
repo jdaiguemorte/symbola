@@ -115,6 +115,16 @@ const LOT_70A = [
   "0212_lot70a_events_task_done_by",
   "0211_lot70a_events_task_assignee",
 ];
+// Lot 71a : reprise d'un mariage (0218, 0219, hub), origine et dates non renseignées (0220), contrat
+// déclaré (0221), forme des moments (0222, events), total à répartir (0223, budget) ; les plus récentes.
+const LOT_71A = [
+  "0223_lot71a_budget_unallocated_totals",
+  "0222_lot71a_events_program_timing",
+  "0221_lot71a_events_takeover_contract",
+  "0220_lot71a_events_origin_and_unknown_dates",
+  "0219_lot71a_hub_imports_takeover",
+  "0218_lot71a_hub_takeovers",
+];
 const LOT_66 = ["0210_lot66b_hub_day_reminder_templates", "0209_lot66c_hub_email_branding", "0208_lot66_events_day_reminder_overrides", "0207_lot66_hub_sending_times"];
 // Lot 63e : métiers d'une fiche (0198) puis retrait de vendors.type_id (0199) ; fusionné après les
 // lots 63c et 63d, il s'annule d'abord.
@@ -149,7 +159,7 @@ const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
 // 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_70A, ...LOT_66, ...LOT_65, ...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
+const LOT_36 = [...LOT_71A, ...LOT_70A, ...LOT_66, ...LOT_65, ...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
 // Lot 63c : l'ordre des annulations des lots récents, de la plus récente à la plus ancienne, se lit
 // dans cette seule liste. Un nouveau lot ajoute sa liste en tête de LOT_36, et rien d'autre : les
 // tests annulent par rollbackNewerThan et rollbackThrough, jamais par une suite écrite à la main.
@@ -212,6 +222,54 @@ afterAll(async () => {
 // Lot 47 : chaque test remonte la chaîne des annulations, qui s'allonge à chaque lot ; la limite par
 // défaut (5 s) ne suffit plus sur un poste chargé.
 describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)", { timeout: 60_000 }, () => {
+  it("lot 71a (HUB-14 ; ADR 0119) — 0218 à 0223 : chaque annulation refuse tant qu'une reprise, un évènement repris, un contrat déclaré, un moment ponctuel ou un total à répartir existe ; 0219 efface les imports des deux sortes nouvelles et recrée le type ; tout se rejoue", async () => {
+    await migrateAll();
+    const [organization] = await target<{ id: string }[]>`insert into hub.organizations (name) values ('Atelier 0218') returning id`;
+    const organizationId = organization!.id;
+    const [event] = await target<{ id: string }[]>`insert into events.events (organization_id, origin) values (${organizationId}, 'takeover') returning id`;
+    const eventId = event!.id;
+    const [slot] = await target<{ id: string }[]>`insert into events.event_vendor_slots (organization_id, event_id, label) values (${organizationId}, ${eventId}, 'Traiteur') returning id`;
+    await target`insert into events.event_vendor_candidates (organization_id, event_id, vendor_slot_id, vendor_name, status, takeover_contract) values (${organizationId}, ${eventId}, ${slot!.id}, 'Maison Exemple', 'retained', 'unknown')`;
+    await target`insert into events.program_items (organization_id, event_id, start_time, label, timing) values (${organizationId}, ${eventId}, '21:18', 'Coucher du soleil', 'marker')`;
+    await target`insert into budget.unallocated_totals (organization_id, event_id, committed_cents, paid_cents) values (${organizationId}, ${eventId}, 2165050, 320000)`;
+    const [takeover] = await target<{ id: string }[]>`insert into hub.takeovers (organization_id, event_id) values (${organizationId}, ${eventId}) returning id`;
+    const [program] = await target<{ id: string }[]>`
+      insert into hub.imports (organization_id, created_by_user_id, entity_type, file_name, file_format, file_size_bytes, header_row_index, headers, row_count, expires_at, takeover_id, leftovers)
+      values (${organizationId}, gen_random_uuid(), 'program', 'programme.pdf', 'pdf', 42, 0, '[]'::jsonb, 0, now() + interval '7 days', ${takeover!.id}, '{"directory":[]}'::jsonb) returning id`;
+    await target`insert into hub.takeover_steps (organization_id, takeover_id, kind, state, import_id, decided_at) values (${organizationId}, ${takeover!.id}, 'program', 'in_progress', ${program!.id}, now())`;
+
+    await rollbackNewerThan(LOT_71A[0]!);
+    await expect(rollback(LOT_71A[0]!)).rejects.toThrow(/totaux à répartir/);
+    await target`delete from budget.unallocated_totals where organization_id = ${organizationId}`;
+    await rollback(LOT_71A[0]!);
+    expect(await target`select to_regclass('budget.unallocated_totals') as name`).toEqual([{ name: null }]);
+    await expect(rollback(LOT_71A[1]!)).rejects.toThrow(/ponctuels ou des repères/);
+    await target`update events.program_items set timing = 'span' where organization_id = ${organizationId}`;
+    await rollback(LOT_71A[1]!);
+    await expect(rollback(LOT_71A[2]!)).rejects.toThrow(/contrat déclaré/);
+    await target`update events.event_vendor_candidates set takeover_contract = null where organization_id = ${organizationId}`;
+    await rollback(LOT_71A[2]!);
+    await expect(rollback(LOT_71A[3]!)).rejects.toThrow(/origine ou une date non renseignée/);
+    await target`update events.events set origin = 'created' where organization_id = ${organizationId}`;
+    await rollback(LOT_71A[3]!);
+    expect(await hasColumn("events", "events", "origin")).toBe(false);
+    // 0219 : l'import du programme quitte le journal ; la ligne de reprise l'oublie ; le type perd ses valeurs.
+    await rollback(LOT_71A[4]!);
+    expect(await entityTypes()).not.toContain("program");
+    expect(await entityTypes()).not.toContain("event_vendors");
+    expect(await target`select id from hub.imports where id = ${program!.id}`).toHaveLength(0);
+    expect(await hasColumn("hub", "imports", "leftovers")).toBe(false);
+    expect(await hasColumn("hub", "platform_settings", "import_leftovers_retention_days")).toBe(false);
+    await expect(rollback(LOT_71A[5]!)).rejects.toThrow(/reprises de mariage/);
+    await target`delete from hub.takeovers where organization_id = ${organizationId}`;
+    await rollback(LOT_71A[5]!);
+    expect(await target`select to_regclass('hub.takeovers') as name`).toEqual([{ name: null }]);
+
+    await migrateAll();
+    expect(await entityTypes()).toEqual(expect.arrayContaining(["event_vendors", "program"]));
+    expect(await hasColumn("budget", "unallocated_totals", "committed_cents")).toBe(true);
+  });
+
   it("lot 70a (CHR-02, CHR-04 ; A2, A9) — 0211 et 0212 : chaque tâche « planner » reçoit sa personne et chaque tâche faite son auteur quand c'est sûr ; rejouées, elles ne changent rien ; annulations refusées tant qu'une note, un seuil ou un nom existent, puis tout est retiré", async () => {
     await migrateAll();
     await rollbackThrough(LOT_70A[6]!);
@@ -302,7 +360,8 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
 
     // Annulations : la sorte de notification et ses lignes partent ; nom, seuil, note bloquent.
     await target`insert into hub.notifications (organization_id, user_id, type, object_key, href) values (${organizationId}, ${lea}, 'task_assigned', 'assign:1', '/taches')`;
-    await rollback(LOT_70A[0]!);
+    // Lot 71a : les migrations plus récentes que 0217 s'annulent d'abord.
+    await rollbackThrough(LOT_70A[0]!);
     expect((await target`select 1 from hub.notifications where organization_id = ${organizationId}`).length).toBe(0);
     await expect(rollback(LOT_70A[1]!)).rejects.toThrow(/prénom ou un nom/);
     await target`update hub.users set first_name = null, last_name = null where id = ${lea}`;

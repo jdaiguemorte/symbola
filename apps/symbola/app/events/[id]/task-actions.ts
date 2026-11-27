@@ -2,33 +2,12 @@
 
 // PRD-EVT-04 — actions du rétroplanning et de la date sur la fiche d'un événement.
 import { offerUndo } from "@/lib/undo";
-import { fieldErrors, formValues, translatedFieldErrors } from "@/lib/forms/field-validation";
-import { taskFieldsSchema } from "@/lib/forms/task-fields";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
-import {
-  addEventTask,
-  applyTaskTemplate,
-  changeEventDate,
-  EventDateRequiredError,
-  EventNotFoundError,
-  EventTaskNotFoundError,
-  moveEventTask,
-  releaseEventTask,
-  removeEventTask,
-  resolveTaskRecalculation,
-  TaskAssigneeNotFoundError,
-  TaskVendorInvalidError,
-  TaskLabelRequiredError,
-  TaskRecalculationPendingError,
-  TaskTemplateNotFoundError,
-  updateEventTask,
-  PlanningInputError,
-  setTaskMilestone,
-} from "@/modules/events/service";
+import { applyTaskTemplate, changeEventDate, EventDateRequiredError, EventNotFoundError, EventTaskNotFoundError, moveEventTask, releaseEventTask, removeEventTask, resolveTaskRecalculation, TaskAssigneeNotFoundError, TaskVendorInvalidError, TaskLabelRequiredError, TaskRecalculationPendingError, TaskTemplateNotFoundError, updateEventTask, PlanningInputError, setTaskMilestone } from "@/modules/events/service";
 import { getPlannerAuthContext } from "@/lib/auth-context";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
-import { readResponsibleCreate, readResponsibleEdit, UNCHANGED_RESPONSIBLE, type ResponsibleChoice } from "./task-responsible";
+
 
 // Lot 70b (UX-10) : `fieldErrors`, les erreurs de saisie traduites, sous les champs.
 export type TaskFormState = { error?: string; success?: boolean; recalculationProposed?: boolean; fieldErrors?: Record<string, string> };
@@ -40,12 +19,6 @@ async function authorize(t: Awaited<ReturnType<typeof getTranslations>>) {
   if (auth.status !== "authenticated" || !auth.user.organizationId) return { error: t("unauthenticated") } as const;
   if (!(await isEventsModuleEnabled(auth.user.organizationId))) return { error: t("moduleUnavailable") } as const;
   return { organizationId: auth.user.organizationId } as const;
-}
-
-// Lot 34b (CHR-02, D12) : « vendor:<id> » confie la tâche à ce prestataire retenu sur l'événement.
-// Lot 70a (CHR-02 ; A1) : « member:<id> » la confie à ce collègue (vérifié par le service).
-function readResponsible(formData: FormData): ResponsibleChoice | null {
-  return readResponsibleCreate(String(formData.get("responsible") ?? ""));
 }
 
 // Erreurs métier connues → message traduit ; le reste remonte.
@@ -104,56 +77,6 @@ export async function applyTaskTemplateAction(_prevState: TaskFormState, formDat
 
   try {
     await applyTaskTemplate(access.organizationId, eventId, templateId);
-  } catch (error) {
-    return { error: taskErrorMessage(error, t) };
-  }
-  revalidatePath(`/events/${eventId}`);
-  return { success: true };
-}
-
-export async function addEventTaskAction(_prevState: TaskFormState, formData: FormData): Promise<TaskFormState> {
-  const t = await getTranslations("Events");
-  const access = await authorize(t);
-  if ("error" in access) return { error: access.error };
-
-  const eventId = String(formData.get("eventId") ?? "");
-  if (!isValidId(eventId)) return { error: t("eventNotFound") };
-  // Lot 70b (UX-10) : le même schéma qu'à l'écran ; les erreurs vont sous les champs.
-  const invalid = fieldErrors(taskFieldsSchema, formValues(formData));
-  if (invalid.length > 0) return { fieldErrors: translatedFieldErrors(invalid, await getTranslations("Validation")) };
-  const label = String(formData.get("label") ?? "").trim();
-  const dueDate = String(formData.get("dueDate") ?? "");
-  const responsible = readResponsible(formData);
-  if (!responsible) return { error: t("invalidResponsible") };
-
-  try {
-    await addEventTask(access.organizationId, eventId, { label, dueDate, ...responsible });
-  } catch (error) {
-    return { error: taskErrorMessage(error, t) };
-  }
-  revalidatePath(`/events/${eventId}`);
-  return { success: true };
-}
-
-export async function updateEventTaskAction(_prevState: TaskFormState, formData: FormData): Promise<TaskFormState> {
-  const t = await getTranslations("Events");
-  const access = await authorize(t);
-  if ("error" in access) return { error: access.error };
-
-  const eventId = String(formData.get("eventId") ?? "");
-  const taskId = String(formData.get("taskId") ?? "");
-  if (!isValidId(eventId) || !isValidId(taskId)) return { error: t("taskNotFound") };
-  const label = String(formData.get("label") ?? "").trim();
-  if (!label) return { error: t("missingLabel") };
-  const dueDate = String(formData.get("dueDate") ?? "");
-  if (!DATE_PATTERN.test(dueDate)) return { error: t("invalidDate") };
-  // Revue du 70a : champ absent ou « inchangé » (valeur qu'on ne peut plus choisir) = personne inchangée.
-  const raw = formData.get("responsible");
-  const responsible = readResponsibleEdit(raw === null ? null : String(raw));
-  if (!responsible) return { error: t("invalidResponsible") };
-
-  try {
-    await updateEventTask({ organizationId: access.organizationId, taskId, label, dueDate, ...(responsible === UNCHANGED_RESPONSIBLE ? {} : responsible) });
   } catch (error) {
     return { error: taskErrorMessage(error, t) };
   }

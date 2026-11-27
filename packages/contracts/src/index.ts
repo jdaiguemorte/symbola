@@ -325,6 +325,7 @@ export {
   EVENT_STATUS_CHOICES,
   IMPORT_ENTITY_TYPES,
   IMPORT_FIELDS,
+  IMPORT_FILE_ENTITY_TYPES,
   IMPORT_REQUIRED_ONE_OF,
   TASK_RESPONSIBLE_CHOICES,
   type ImportEntityType,
@@ -340,6 +341,31 @@ export type {
   ImportUndoOutcome,
 } from "./import/apply";
 export { sameImportValue } from "./import/compare";
+// Lot 71a (HUB-14 ; ADR 0119) : les réponses de l'étape « Questions » et la reprise d'un mariage.
+export {
+  CONTRACTS_ANSWERS,
+  DEPOSITS_PAID_ANSWERS,
+  depositPaidFor,
+  EVENT_STAGE_ANSWERS,
+  eventStatusForStage,
+  NAME_CASE_ANSWERS,
+  PAST_DUE_TASKS_ANSWERS,
+  takeoverContractFor,
+  type ImportAnswers,
+  type TakeoverContract,
+} from "./import/questions";
+export {
+  isStepSettled,
+  nextTakeoverStep,
+  TAKEOVER_STEP_IMPORT_KINDS,
+  TAKEOVER_STEP_KINDS,
+  TAKEOVER_STEP_STATES,
+  takeoverProgress,
+  type TakeoverStepKind,
+  type TakeoverStepState,
+  type TakeoverStepView,
+  type TakeoverView,
+} from "./takeover/takeover";
 export type {
   FindVendorsInput,
   SaveVendorResult,

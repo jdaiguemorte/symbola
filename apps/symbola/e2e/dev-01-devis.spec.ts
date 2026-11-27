@@ -7,6 +7,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
+import { createEventByForm } from "./new-event";
 import { openQuoteForm } from "./devis-rubriques";
 import { saveOnboardingStep } from "../modules/hub/service";
 
@@ -70,10 +71,7 @@ test("DEV-01 — composer un devis depuis un évènement, l'envoyer, le téléch
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
-  await page.goto("/events/new");
-  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Inès");
-  await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
-  await page.getByRole("button", { name: "Créer le prospect" }).click();
+  await createEventByForm(page, { name: "Inès", clientFirstName: "Inès" });
   await expect(page.getByRole("heading", { name: "Inès" })).toBeVisible();
   await openEventTab(page, "Mes devis et factures");
   await expect(page.getByText("Aucun devis pour cet évènement.")).toBeVisible();

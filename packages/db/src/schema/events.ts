@@ -117,6 +117,8 @@ export const eventTypes = eventsSchema.table(
   ],
 );
 
+export const EVENT_ORIGINS = ["created", "takeover"] as const;
+
 export const events = eventsSchema.table("events", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
@@ -191,8 +193,14 @@ export const events = eventsSchema.table("events", {
   busyStartTime: time("busy_start_time"),
   busyEndDayOffset: integer("busy_end_day_offset"),
   busyEndTime: time("busy_end_time"),
+  // Lot 71a (HUB-14, P-06 ; migration 0220, ADR 0119) : « created » (créé dans Symbola) ou « takeover »
+  // (créé par la reprise d'un mariage en cours). Le filtre « Origine » et l'étiquette « Repris » se
+  // lisent ici, sans aller chercher le hub à chaque ligne.
+  origin: text("origin", { enum: EVENT_ORIGINS }).notNull().default("created"),
 }, (table) => [
   index("events_organization_idx").on(table.organizationId),
+  index("events_origin_idx").on(table.organizationId, table.origin),
+  check("events_origin_check", sql`${table.origin} in ('created', 'takeover')`),
   ...busyRuleChecks("events", { startDay: table.busyStartDayOffset, startTime: table.busyStartTime, endDay: table.busyEndDayOffset, endTime: table.busyEndTime }, true),
   check("events_time_zone_check", sql`char_length(${table.timeZone}) between 1 and 64`),
   check("events_name_check", sql`${table.name} is null or char_length(${table.name}) between 1 and 200`),
@@ -234,6 +242,9 @@ export const eventStatusHistory = eventsSchema.table("event_status_history", {
   // par le formulaire de contact public).
   changedByUserId: uuid("changed_by_user_id"),
   changedAt: timestamp("changed_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 71a (C-64 ; migration 0220) : faux quand changed_at n'est pas la vraie date du changement (un
+  // statut repris d'un ancien outil, daté du jour de l'import) : « Signé le : non renseigné ».
+  dateKnown: boolean("date_known").notNull().default(true),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
 }, (table) => [index("event_status_history_organization_idx").on(table.organizationId)]);
@@ -292,6 +303,8 @@ export const eventVendorSlots = eventsSchema.table("event_vendor_slots", {
 export const VENDOR_CANDIDATE_STATUSES = ["shortlisted", "contacted", "quote_received", "retained", "contract_signed", "paid_off", "dismissed"] as const;
 export const vendorCandidateStatusEnum = eventsSchema.enum("vendor_candidate_status", VENDOR_CANDIDATE_STATUSES);
 
+export const TAKEOVER_CONTRACTS = ["signed", "unsigned", "unknown"] as const;
+
 // Lot 11 (L11-EVT-10) — prestataires consultés pour un poste. vendor_id
 // référence une fiche du carnet (module vendors, ADR 0031) sans clé
 // étrangère entre schémas ; le nom reste en clair pour fonctionner sans le
@@ -328,6 +341,10 @@ export const eventVendorCandidates = eventsSchema.table("event_vendor_candidates
   remindedAt: timestamp("reminded_at", { withTimezone: true }),
   dismissalReason: text("dismissal_reason"),
   invoiceDocumentId: uuid("invoice_document_id").references((): AnyPgColumn => eventDocuments.id, { onDelete: "set null" }),
+  // Lot 71a (C-53 ; décisions I1 et I2 ; migration 0221) : le contrat déclaré à la reprise (« signed »,
+  // « unsigned », « unknown ») ; nul pour un prestataire retenu hors reprise. Un prestataire retenu par une
+  // reprise ne devient jamais d'office une relance « à faire signer ».
+  takeoverContract: text("takeover_contract", { enum: TAKEOVER_CONTRACTS }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
@@ -335,6 +352,7 @@ export const eventVendorCandidates = eventsSchema.table("event_vendor_candidates
   updatedBy: uuid("updated_by"),
 }, (table) => [
   index("event_vendor_candidates_organization_idx").on(table.organizationId),
+  check("event_vendor_candidates_takeover_contract_check", sql`${table.takeoverContract} is null or ${table.takeoverContract} in ('signed', 'unsigned', 'unknown')`),
   index("event_vendor_candidates_brief_idx").on(table.briefId),
   check("event_vendor_candidates_availability_check", sql`${table.availability} is null or ${table.availability} in ('available', 'unavailable')`),
   check("event_vendor_candidates_answer_message_check", sql`${table.answerMessage} is null or char_length(${table.answerMessage}) between 1 and 1000`),
@@ -552,6 +570,10 @@ export const eventTasks = eventsSchema.table("event_tasks", {
   // Lot 70a (CHR-04 ; D1, A9, migration 0212) : qui a coché la tâche — un membre (et lequel), les clients
   // par leur lien, un prestataire par le sien ; nuls pour une tâche à faire, ou quand ce n'est pas connu.
   doneByKind: text("done_by_kind", { enum: TASK_DONE_BY_KINDS }),
+  // Lot 71a (P-01 ; migration 0220) : faux quand done_at est une date technique (l'heure de l'import d'une
+  // tâche reprise déjà faite) : « Faite · date de fin non renseignée ». done_at reste rempli pour les tris
+  // et la contrainte event_tasks_done_by_check.
+  doneDateKnown: boolean("done_date_known").notNull().default(true),
   doneByUserId: uuid("done_by_user_id"),
   // Lot 70a (A7, migration 0213) : note interne à l'agence, jamais montrée aux mariés ni aux prestataires.
   note: text("note"),
@@ -574,6 +596,8 @@ export const eventTasks = eventsSchema.table("event_tasks", {
 // PRD-EVT-05 : programme du jour J d'un événement. Heures sans date (« HH:MM »),
 // le jour étant celui de l'événement ; une heure de fin antérieure au
 // début signifie que la ligne se termine après minuit.
+export const PROGRAM_ITEM_TIMINGS = ["span", "point", "marker"] as const;
+
 export const programItems = eventsSchema.table("program_items", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull(),
@@ -594,6 +618,9 @@ export const programItems = eventsSchema.table("program_items", {
   // Lot 63b (CHR-08 ; Q44, migration 0201) : cachée des mariés (espace, programme diffusé, PDF
   // « mariés ») ; visible de l'équipe et des prestataires concernés.
   hiddenFromClients: boolean("hidden_from_clients").notNull().default(false),
+  // Lot 71a (R12 ; migration 0222) : « span » (un début et une fin, la fin pouvant rester à saisir),
+  // « point » (ponctuel : pas de fin attendue) ou « marker » (repère sans durée, « Coucher du soleil »).
+  timing: text("timing", { enum: PROGRAM_ITEM_TIMINGS }).notNull().default("span"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
@@ -606,6 +633,7 @@ export const programItems = eventsSchema.table("program_items", {
   index("program_items_organization_idx").on(table.organizationId),
   index("program_items_key_moment_idx").on(table.keyMomentId),
   check("program_items_responsible_check", sql`${table.responsible} is null or char_length(${table.responsible}) between 1 and 120`),
+  check("program_items_timing_check", sql`${table.timing} in ('span', 'point', 'marker')`),
 ]);
 
 // PRD-EVT-05 : intervenants d'une ligne — un poste prestataire de l'événement

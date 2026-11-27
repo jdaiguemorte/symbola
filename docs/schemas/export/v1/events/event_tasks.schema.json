@@ -247,6 +247,9 @@
         }
       ]
     },
+    "doneDateKnown": {
+      "type": "boolean"
+    },
     "doneByUserId": {
       "anyOf": [
         {
@@ -292,6 +295,7 @@
     "priority",
     "assigneeUserId",
     "doneByKind",
+    "doneDateKnown",
     "doneByUserId",
     "note"
   ],

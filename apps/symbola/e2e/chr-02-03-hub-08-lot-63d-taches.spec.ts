@@ -1,6 +1,6 @@
-// Lot 63d (CHR-02, CHR-03, HUB-08, BUD-11, UX-07 ; recette du 21/11/2026, maquettes M3 et M6) — le
-// tableau des tâches agit sur la ligne (rond « Fait » annulable, sélection et actions groupées,
-// « Reporter », « Supprimer » annulable, fenêtre de la tâche), le même dans le rétroplanning ; les
+// Lot 63d (CHR-02, CHR-03, HUB-08, BUD-11, UX-07 ; recette du 21/11/2026, maquettes M3 et M6) — les
+// tâches agissent sur la ligne (« Fait » annulable, sélection et actions groupées, « Changer la date »,
+// « Supprimer » annulable, panneau de la tâche : ligne type du lot 70c), la même dans la fiche ; les
 // catégories se règlent dans les Paramètres ; « Aujourd'hui » montre le calendrier du mois (la semaine
 // en cours sur téléphone), échéances de paiement comprises. En taille ordinateur et en 375 px, avec axe-core.
 import { randomUUID } from "node:crypto";
@@ -11,7 +11,6 @@ import { formatShortCalendarDate, parisToday } from "@symbola/i18n";
 import AxeBuilder from "./axe";
 import { addDefaultVendorSlots, addEventTask, createProspect, createProspectSource, listEventVendorSlots } from "../modules/events/service";
 import { addBudgetLine, addVendorPayment } from "../modules/budget/service";
-import { postponedDueDate } from "../lib/tasks/postpone";
 import { feedback, readyOrganization, signIn } from "./helpers";
 
 async function expectNoAxeViolation(page: Page) {
@@ -53,66 +52,74 @@ async function wedding() {
   }
 }
 
-const row = (page: Page, label: string) => page.getByRole("row", { name: new RegExp(label) });
+// Lot 70c : la ligne type remplace le tableau (une ligne de liste, plus une rangée).
+const row = (page: Page, label: string) => page.locator(".task-line").filter({ has: page.getByRole("link", { name: label, exact: true }) });
 
-test("CHR-02, UX-07 — tâches : rond « Fait » annulable, actions groupées, « Reporter », fenêtre, « Supprimer » annulable ; le même tableau dans le rétroplanning", async ({ page }) => {
+test("CHR-02, UX-07 — tâches : « Fait » annulable, sélection et actions groupées, « Changer la date », panneau, « Supprimer » annulable ; la même ligne dans la fiche", async ({ page }) => {
   test.setTimeout(180_000);
   const setup = await wedding();
   await signIn(page, setup.email);
   await page.goto("/taches");
-  await expect(page.getByRole("checkbox", { name: "Tout sélectionner" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sélectionner" })).toBeVisible();
   await expectNoAxeViolation(page);
 
   // SC-03, étape 3 : une tâche cochée par erreur s'annule.
-  await page.getByRole("button", { name: "Marquer « Envoyer le questionnaire » comme faite" }).click();
+  await row(page, "Envoyer le questionnaire").getByRole("button", { name: /^Fait/ }).click();
   const undo = feedback(page).filter({ hasText: "Envoyer le questionnaire" });
   await undo.getByRole("button", { name: "Annuler" }).click();
-  await expect(page.getByRole("button", { name: "Marquer « Envoyer le questionnaire » comme faite" })).toBeVisible();
+  await expect(row(page, "Envoyer le questionnaire").getByRole("button", { name: /^Fait/ })).toBeVisible();
 
-  // Deux tâches choisies, rangées d'un coup dans « Prestataires ».
-  await page.getByRole("checkbox", { name: "Sélectionner « Envoyer le questionnaire »" }).check();
-  await page.getByRole("checkbox", { name: "Sélectionner « Confirmer le menu »" }).check();
-  const bulk = page.getByRole("form", { name: "Actions sur les tâches sélectionnées" });
+  // Lot 70c (M2) : « Sélectionner » montre les cases ; deux tâches rangées d'un coup dans « Prestataires ».
+  await page.getByRole("button", { name: "Sélectionner" }).click();
+  await page.getByRole("checkbox", { name: "Choisir « Envoyer le questionnaire »" }).check();
+  await page.getByRole("checkbox", { name: "Choisir « Confirmer le menu »" }).check();
+  // Lot 70d : la barre de sélection, collée au bas de la liste ; « Catégorie… » (dans « Plus » sur téléphone).
+  const bulk = page.getByRole("region", { name: "Actions sur les tâches sélectionnées" });
   await expect(bulk).toContainText("2 tâches sélectionnées");
-  await bulk.getByText("Catégorie", { exact: true }).first().click();
-  await bulk.getByLabel("Catégorie").selectOption({ label: "Prestataires" });
-  await bulk.getByRole("button", { name: "Appliquer" }).last().click();
-  await expect(feedback(page).filter({ hasText: "Catégorie changée pour 2 tâches." })).toBeVisible();
-  await expect(row(page, "Confirmer le menu")).toContainText("Prestataires");
+  if ((page.viewportSize()?.width ?? 1440) < 640) {
+    await bulk.getByRole("button", { name: "Plus" }).click();
+    await page.getByRole("menuitem", { name: "Catégorie…" }).click();
+  } else {
+    await bulk.getByRole("button", { name: "Catégorie…" }).click();
+  }
+  await page.getByRole("dialog", { name: "Catégorie de 2 tâches" }).getByRole("button", { name: "Prestataires" }).click();
+  await expect(feedback(page).filter({ hasText: "Catégorie changée pour 2 tâches" })).toBeVisible();
 
-  // « Reporter » : à demain, la date est écrite dans le menu.
-  const tomorrow = formatShortCalendarDate(postponedDueDate("tomorrow"), "fr");
-  await page.getByText("Reporter", { exact: true }).nth(2).click();
-  await page.getByRole("button", { name: `Demain (${tomorrow})` }).click();
-  await expect(row(page, "Préparer la facture")).toContainText(tomorrow);
+  // « Changer la date… » : « Demain », la date est écrite dans le petit panneau.
+  const tomorrow = formatShortCalendarDate(inDays(1), "fr");
+  await row(page, "Préparer la facture d'acompte").getByRole("button", { name: "Autres actions pour « Préparer la facture d'acompte »" }).click();
+  await page.getByRole("menuitem", { name: /^Changer la date…/ }).click();
+  await page.getByRole("dialog", { name: "Changer la date" }).getByRole("button", { name: new RegExp(`^Demain ${tomorrow}`) }).click();
+  await expect(row(page, "Préparer la facture d'acompte")).toContainText(tomorrow);
 
-  // La fenêtre de la tâche : priorité haute, enregistrée, la ligne le dit.
-  await page.getByRole("link", { name: "Modifier « Confirmer le menu »" }).click();
-  const window = page.getByRole("dialog", { name: "Modifier la tâche" });
-  await expect(window.getByLabel(/^Tâche/)).toHaveValue("Confirmer le menu");
-  await expect(window).toContainText("* obligatoire");
+  // Le panneau de la tâche : prioritaire, enregistrée, la ligne le dit.
+  await page.getByRole("link", { name: "Confirmer le menu", exact: true }).click();
+  const panel = page.getByRole("dialog", { name: "Confirmer le menu" });
+  await expect(panel.getByLabel(/^Tâche/)).toHaveValue("Confirmer le menu");
+  await expect(panel.getByLabel("Catégorie")).toHaveValue(/.+/);
+  await expect(panel).toContainText("* obligatoire");
   await expectNoAxeViolation(page);
-  await window.getByLabel("Priorité").selectOption("high");
-  await window.getByRole("button", { name: "Enregistrer" }).click();
-  await expect(window).toHaveCount(0);
-  await expect(row(page, "Confirmer le menu")).toContainText("Haute");
+  await panel.getByLabel("Prioritaire").check();
+  await panel.getByRole("button", { name: "Enregistrer", exact: true }).click();
+  await expect(panel).toHaveCount(0);
+  await expect(row(page, "Confirmer le menu")).toContainText("Prioritaire");
 
-  // « Supprimer » agit tout de suite ; « Annuler » la rend.
-  await page.getByRole("button", { name: "Supprimer « Confirmer le menu »" }).click();
-  const banner = feedback(page).filter({ hasText: "Tâche supprimée." });
+  // « Supprimer », dans le menu, agit tout de suite ; « Annuler » la rend.
+  await row(page, "Confirmer le menu").getByRole("button", { name: "Autres actions pour « Confirmer le menu »" }).click();
+  await page.getByRole("menuitem", { name: /^Supprimer/ }).click();
+  const banner = feedback(page).filter({ hasText: "Tâche supprimée" });
   await expect(row(page, "Confirmer le menu")).toHaveCount(0);
   await banner.getByRole("button", { name: "Annuler" }).click();
-  await expect(page.getByText("C'est rétabli.")).toBeVisible();
+  await expect(feedback(page).filter({ hasText: "C'est rétabli" })).toBeVisible();
   await page.reload();
-  await expect(row(page, "Confirmer le menu")).toContainText("Prestataires");
+  await expect(row(page, "Confirmer le menu")).toContainText("Prioritaire");
 
-  // Le rétroplanning de l'évènement emploie le même tableau.
-  await page.goto(`/events/${setup.eventId}?onglet=retroplanning`);
-  await expect(page.getByRole("checkbox", { name: "Tout sélectionner" })).toBeVisible();
-  await expect(row(page, "Confirmer le menu")).toContainText("Haute");
+  // L'onglet « Tâches » de la fiche emploie la même ligne et le même panneau.
+  await page.goto(`/events/${setup.eventId}?onglet=taches`);
+  await expect(row(page, "Confirmer le menu")).toContainText("Prioritaire");
   await page.getByRole("link", { name: "Confirmer le menu", exact: true }).click();
-  const retroWindow = page.getByRole("dialog", { name: "Modifier la tâche" });
-  await expect(retroWindow.getByRole("heading", { name: "Commentaires de l'équipe" })).toBeVisible();
+  const eventPanel = page.getByRole("dialog", { name: "Confirmer le menu" });
+  await expect(eventPanel.getByRole("heading", { name: "Commentaires" })).toBeVisible();
   await expectNoAxeViolation(page);
 });
 

@@ -8,6 +8,7 @@ import { createAppConnection } from "@symbola/db/client";
 import { createUser } from "@symbola/auth";
 import { expect, test, type Page } from "@playwright/test";
 import { openEventTab, readyOrganization, signIn as signInByLink } from "./helpers";
+import { createEventByForm } from "./new-event";
 import { openQuoteForm, openQuoteRubric } from "./devis-rubriques";
 import { saveOnboardingStep } from "../modules/hub/service";
 
@@ -56,10 +57,7 @@ test("DEV-03 — échéancier, encaissements à venir, retard et paiement", asyn
   await page.getByLabel("Nouvelle source").fill("Salon");
   await page.getByRole("button", { name: "Ajouter la source" }).click();
   await expect(page.getByText("Source ajoutée.")).toBeVisible();
-  await page.goto("/events/new");
-  await page.getByLabel(/^Prénom du premier marié( \*)?$/).fill("Lou");
-  await page.getByLabel("Source du prospect").selectOption({ label: "Salon" });
-  await page.getByRole("button", { name: "Créer le prospect" }).click();
+  await createEventByForm(page, { name: "Lou", clientFirstName: "Lou" });
   await expect(page.getByRole("heading", { name: "Lou" })).toBeVisible();
   await page.waitForLoadState("networkidle");
   await openEventTab(page, "Mes devis et factures");

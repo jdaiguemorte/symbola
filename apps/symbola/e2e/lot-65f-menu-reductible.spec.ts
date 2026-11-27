@@ -107,7 +107,8 @@ test.describe("Lot 65f — Menu latéral réductible", () => {
       await expect(link).toBeVisible();
       expect((await tipBox(link))!.width).toBeLessThanOrEqual(1);
     }
-    await expect(page.getByRole("button", { name: "Se déconnecter" })).toBeVisible();
+    // Lot 70e (M7) : le compte est dans la barre du haut, plus au bas du menu.
+    await expect(page.locator(".account-menu-button")).toBeVisible();
     await expect(page.getByRole("link", { name: "Symbola" })).toBeVisible();
 
     // Survol : le nom en infobulle, à droite du menu ; Échap la masque.
@@ -132,8 +133,9 @@ test.describe("Lot 65f — Menu latéral réductible", () => {
     await expectBeside((await tipBox(today))!, today);
     await expectNoAxeViolation(page);
 
-    // Menu plus haut que la fenêtre, et défilé : la bulle reste en face de son lien.
-    await page.setViewportSize({ width: 1280, height: 480 });
+    // Menu plus haut que la fenêtre, et défilé : la bulle reste en face de son lien. Lot 70e : à partir de
+    // 640 px de haut le menu se resserre pour tenir en entier (911 × 512) ; on descend donc à 360 px.
+    await page.setViewportSize({ width: 1280, height: 360 });
     const help = menu.getByRole("link", { name: "Aide", exact: true });
     await help.hover();
     await expect.poll(async () => (await tipBox(help))!.width).toBeGreaterThan(30);

@@ -10,7 +10,7 @@ export { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } 
 // Lot 34a (EVT-05) : les règles du cycle de vie, pour les écrans et lib/.
 import { getPipeline as getPipelineOf } from "./pipeline";
 import { countRequestsToReview, findNewRequestRows } from "./prospects-repository";
-import type { ListTasksInput, Pipeline, TaskList, TaskListItem } from "@symbola/contracts";
+import type { ListTasksInput, Pipeline, TaskList, TaskListItem, TaskRecurrenceValue } from "@symbola/contracts";
 export { canPostpone, canSetStatus, closingDue, eventPhase, FINISHED_STATUSES, FIRM_STATUSES, IN_PROGRESS_STATUSES, isInProgress, MANUAL_STATUSES, TENTATIVE_STATUSES, TIMELINE_PHASES } from "./lifecycle";
 import type { EventStatus as LifecycleStatus } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
@@ -193,7 +193,7 @@ import { addComment, listComments, removeComment, restoreComment } from "./task-
 import { addStarterCategories, countByCategory, createCategory, listCategories, moveCategory, removeCategory, TaskCategoryNotFoundError, updateCategory } from "./task-categories";
 import { changeTasks, changeTasksKeepingUndo, removeTasks, restoreTasksDeletedWith, undoTasksChange, type UndoableTaskChange } from "./task-bulk";
 import { actingMemberId, normalizeTaskNote } from "./task-assignment";
-import { countOpenTasksOf, findEventTaskRow, findTaskList } from "./task-list";
+import { countOpenTasksOf, findEventIdsWithoutTasks, findEventTaskRow, findTaskList } from "./task-list";
 import { taskDueState } from "./due-state";
 import { listTrashedEventRows, restoreDocumentRow, restoreEventRow, restoreProgramTemplateRow, restoreTaskTemplateRow, trashEventRow } from "./trash";
 import { createStorageClient, deletePrivateObject, detectFileType, PrivateObjectNotFoundError, readPrivateObject, scanBuffer, uploadPrivateObject } from "@symbola/files";
@@ -1727,7 +1727,7 @@ export async function undoTaskChange(input: { organizationId: string; userId: st
 export async function listTasks(input: ListTasksInput): Promise<TaskList> {
   assertDate(input.today);
   const filters = input.filters ?? {};
-  const [{ rows, total }, soonDays] = await Promise.all([findTaskList({ organizationId: input.organizationId, today: input.today, viewer: input.viewer, filters }), getTaskSoonDays(input.organizationId)]);
+  const [{ rows, total, todoTotal, todoByWho }, soonDays] = await Promise.all([findTaskList({ organizationId: input.organizationId, today: input.today, viewer: input.viewer, filters }), getTaskSoonDays(input.organizationId)]);
   const eventIds = new Set(rows.flatMap((row) => (row.eventId ? [row.eventId] : [])));
   const eventsById = eventIds.size > 0 ? new Map((await listEvents({ organizationId: input.organizationId })).filter((event) => eventIds.has(event.id)).map((event) => [event.id, event])) : new Map<string, EventSummary>();
   const tasks: TaskListItem[] = rows.map((row) => {
@@ -1740,7 +1740,34 @@ export async function listTasks(input: ListTasksInput): Promise<TaskList> {
       event: event ? { id: event.id, names: eventNames(event.clients, event.name), eventDate: event.eventDate, status: event.status, isDemo: event.isDemo } : null,
     };
   });
-  return { tasks, total, filtered: tasks.length, late: tasks.filter((task) => task.dueState?.kind === "late").length, soonDays };
+  return { tasks, total, filtered: tasks.length, late: tasks.filter((task) => task.dueState?.kind === "late").length, soonDays, todoTotal, todoByWho };
+}
+
+// Lot 70d (UX-08, C-55) : parmi des évènements de l'organisation, ceux qui n'ont encore aucune tâche (un
+// mariage repris dont les tâches sont restées dans l'ancien outil).
+export async function eventIdsWithoutTasks(organizationId: string, eventIds: string[]): Promise<string[]> {
+  return findEventIdsWithoutTasks(organizationId, eventIds);
+}
+
+// Lot 70c (CHR-02 ; D3) : une tâche pour son panneau, d'évènement ou non, avec son état d'échéance et sa
+// répétition. Une tâche d'un évènement que la personne ne voit pas (autre organisation, équipe restreinte,
+// lot 52) n'est pas trouvée, avec la même réponse qu'une tâche inexistante.
+export type TaskDetail = TaskListItem & { recurrence: TaskRecurrenceValue | null };
+
+export async function getTask(organizationId: string, taskId: string, today: string): Promise<TaskDetail | null> {
+  assertDate(today);
+  const row = await findEventTaskRow(organizationId, taskId);
+  if (!row || row.deletedAt) return null;
+  const detail = row.eventId ? await getEvent(organizationId, row.eventId) : null;
+  if (row.eventId && !detail) return null;
+  const task = toEventTask(row);
+  return {
+    ...task,
+    eventId: row.eventId,
+    dueState: taskDueState(task, today, await getTaskSoonDays(organizationId)),
+    event: detail ? { id: detail.id, names: eventNames(detail.clients, detail.name), eventDate: detail.eventDate, status: detail.status, isDemo: detail.isDemo } : null,
+    recurrence: row.recurrence ?? null,
+  };
 }
 
 // Lot 70a (A19) : ce qu'une notification lit d'une tâche (titre court, état, personne), par son identifiant.
@@ -3024,7 +3051,7 @@ export async function sendClientTaskReminders(organizationId: string, now: Date 
       if (recorded === 0) continue;
       await depositPreparedEmail({ organizationId, kind: "task_reminder", eventId: link.eventId, recipientType: "event_link", recipientId: link.id, origin: "automation", automationKey: "client_task_reminder", sourceKey: `task-reminder:${link.id}:${today}` });
       sent += 1;
-      await hooks.onRun?.({ objectKey: link.id, href: `/events/${link.eventId}?onglet=retroplanning`, result: "sent" });
+      await hooks.onRun?.({ objectKey: link.id, href: `/events/${link.eventId}?onglet=taches`, result: "sent" });
       continue;
     }
     try {
@@ -3039,7 +3066,7 @@ export async function sendClientTaskReminders(organizationId: string, now: Date 
     if (recorded === 0) continue;
     await sendOrganizationEmail({ organizationId, to: link.email, kind: "task_reminder", locale, values, reserve: false });
     sent += 1;
-    await hooks.onRun?.({ objectKey: link.id, href: `/events/${link.eventId}?onglet=retroplanning`, result: "sent" });
+    await hooks.onRun?.({ objectKey: link.id, href: `/events/${link.eventId}?onglet=taches`, result: "sent" });
   }
   return sent;
 }
@@ -4524,6 +4551,8 @@ export {
 // (UX-06 ; Q47-4) l'état d'échéance, un seul calcul pour tous les écrans ; (UX-07 ; A18) les valeurs d'avant.
 export { TaskAssigneeNotFoundError, TaskNoteInvalidError } from "./task-assignment";
 export { DEFAULT_SOON_DAYS, dueStateAt, taskDueState } from "./due-state";
+// Lot 70c (CHR-03) : les périodes des filtres de l'onglet « Tâches » de la fiche.
+export { periodRange } from "./task-filters";
 export { purgeTaskChangeSnapshots, TASK_UNDO_MINUTES, type UndoableTaskChange } from "./task-bulk";
 
 // Lot 64 (HUB-29, RDV-02 ; D1 à D6 ; ADR 0109) : plages occupées.
@@ -5026,3 +5055,6 @@ function dayReminderOpenItems(slots: { label: string; status: string }[], tasks:
   ];
   return lines.length > 0 ? lines.slice(0, 20).join("\n") : t("dayReminder.nothingOpen");
 }
+
+// Lot 70e (A14) : la source et un client de plus, complétés depuis la fiche.
+export { addEventClient, EventClientsFullError, InvalidProspectSourceError, setEventProspectSource } from "./event-origin";

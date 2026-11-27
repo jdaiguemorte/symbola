@@ -5,58 +5,16 @@ import { VenueCapacityNotice, VenueFindings } from "./venue-findings";
 import { PageHeader } from "@/app/ui/page-header";
 import { listCalendarFeeds, listPreparedEmails } from "@/modules/hub/service";
 import { ImportedFields } from "../../imported-fields";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import {
-  formatAmount,
-  formatCalendarDate,
-  formatDate,
-  formatDateTimeIn,
-  formatFileSize,
-  parisToday,
-  type Locale,
-} from "@symbola/i18n";
+import { formatAmount, formatCalendarDate, formatDate, formatDateTimeIn, parisToday, type Locale } from "@symbola/i18n";
 import { ENGAGED_CANDIDATE_STATUSES } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
 import { EventAppointments } from "./event-appointments";
 import { isFloorplansAvailable } from "@/app/plans-de-salle/access";
 import { ProspectExchanges } from "./prospect-exchanges";
 import { appDatabase } from "@symbola/db/client";
-import { clientTermForEvent,
-  listTaskAttachments,
-  listTaskComments,
-  getEvent,
-  getEventProgram,
-  getEventProgramPublication,
-  listProgramRecipients,
-  proposeProgramShift,
-  getEventStatusDates,
-  closingDue,
-  eventNames,
-  getTaskRecalculation,
-  previewTaskRecalculation,
-  getActiveEventsTrial,
-  listEventActivity,
-  getEventProspectRequest,
-  listEventDecisions,
-  listEventDocuments,
-  listEventDayContacts,
-  listDayDocumentChoices,
-  listEventLinks,
-  listLinkProfiles,
-  listEventTasks,
-  listEventVendorSlots,
-  listVendorCandidates,
-  listVendorFollowUps,
-  listEventPlaces,
-  listTaskTemplates,
-  listLossReasons,
-  listProgramTemplates,
-  listProspectSources,
-  summarizeVendorSlots,
-  type EventVendorSlot,
-  getEventIdentityState,
-} from "@/modules/events/service";
+import { clientTermForEvent, getEvent, getEventProgram, getEventProgramPublication, listProgramRecipients, proposeProgramShift, getEventStatusDates, closingDue, eventNames, getTaskRecalculation, previewTaskRecalculation, getActiveEventsTrial, listEventActivity, getEventProspectRequest, listEventDecisions, listEventDocuments, listEventDayContacts, listDayDocumentChoices, listEventLinks, listLinkProfiles, listEventTasks, periodRange, listEventVendorSlots, listVendorCandidates, listVendorFollowUps, listEventPlaces, listTaskTemplates, listLossReasons, listProgramTemplates, listProspectSources, summarizeVendorSlots, type EventVendorSlot, getEventIdentityState } from "@/modules/events/service";
 import { getEventBudget, listBudgetLines } from "@/modules/budget/service";
 import { confirmEventBudgetAction } from "@/app/budget/[eventId]/actions";
 import { listEventQuotes, listQuoteInvoices, listQuoteTemplates } from "@/modules/quotes/service";
@@ -85,30 +43,27 @@ import { EditDialog } from "@/app/ui/edit-dialog";
 import { commitDecisionExpenseAction, replaceDecisionAction, retainDecisionChoiceAction, withdrawDecisionAction } from "./decision-actions";
 import { answerSentence } from "@/app/portail/client-decisions";
 import { choiceName, decisionLabel } from "@/app/portail/decision-label";
-import { requestAudience } from "@/lib/vocabulary";
+import { clientFieldLabelsByAudience, requestAudience } from "@/lib/vocabulary";
+import { AddClientForm, EventSourceForm } from "./event-origin-forms";
 import { ProgramEditor } from "./program-editor";
 import { ProgramShiftProposal, type ShiftProposalView } from "./program-shift";
 import { durationText } from "@/lib/program-spans";
 import { programSpanWords } from "@/lib/program-span-words";
 import { ApplyProgramTemplateForm, ProgramNotifyForm, ProgramPublishForm } from "./program-forms";
 import { CalendarAddressForm } from "../../calendar-address-form";
-import { setTaskMilestoneAction,
-  releaseEventTaskAction,
-  moveEventTaskAction,
-  resolveRecalculationAction,
-} from "./task-actions";
-import {
-  AddEventTaskForm,
-  ApplyTaskTemplateForm,
-  EventDateForm,
-} from "./task-forms";
-import { responsibleValue } from "./task-responsible";
-import { TaskDialog } from "@/app/taches/task-dialog";
+import { resolveRecalculationAction } from "./task-actions";
+import { ApplyTaskTemplateForm, EventDateForm } from "./task-forms";
+import { TaskPanelLoader, panelFromQuery } from "@/app/ui/task-panel-loader";
+import { TaskLineBoard } from "@/app/ui/task-line-board";
+import { TaskFiltersForm } from "@/app/ui/task-filters-form";
+import { buildTaskLines, clientsTerms, engagedVendors, linesByMonth } from "@/lib/tasks/task-lines";
+import { nameInitials } from "@/lib/tasks/task-line";
+import { filterEventTasks, filterFormValues, filtersQuery, readEventTaskFilters } from "@/lib/tasks/event-task-filters";
+import { legacyTaskTabRedirect } from "@/lib/tasks/task-tab";
 import { ensureTaskCategories } from "@/lib/events/task-categories";
 import { PageTour } from "../../page-tour";
 import { loadPageTour } from "@/lib/help/page-tour";
 import { SettingsLink } from "@/app/settings-link";
-import { TaskTable } from "@/app/taches/task-table";
 import { EVENT_STATUS_CLASSES, STATUS_LABEL_KEYS } from "../event-status";
 import { removeVendorSlotAction } from "./vendor-slot-actions";
 import { AddVendorSlotForm, VendorSlotForm } from "./vendor-slot-forms";
@@ -119,8 +74,6 @@ import { PlannedAmountForm, SlotIconForm } from "./budget-line-forms";
 import { buildBudgetVendorRows, signedAmount } from "./budget-vendor-rows";
 import { BudgetVendorsTable } from "./budget-vendors-table";
 import { AddPlaceForm, EditPlaceForm } from "./place-forms";
-import { TaskAttachmentUploadForm, TaskCommentForm } from "./task-extra-forms";
-import { removeTaskAttachmentAction, removeTaskCommentAction } from "./task-extra-actions";
 import { AddDayContactForm } from "./day-contact-forms";
 import { removeDayContactAction } from "./day-contact-actions";
 import { makeReceptionPlaceAction, removePlaceAction } from "./place-actions";
@@ -159,10 +112,10 @@ const LINK_STATUS_KEYS = {
 // qu'une longue page ; l'onglet actif est dans l'adresse (?onglet=).
 // Lot 29b (JRJ-04) : onglet « Documents » (plan de table, plans, plan B).
 // Lot 49 (INV-01 à INV-04) : onglet « Invités », si le module est ouvert (ARC-06).
-const TABS = ["apercu", "budget", "retroplanning", "programme", "devis", "maries", "documents", "invites"] as const;
+const TABS = ["apercu", "budget", "taches", "programme", "devis", "maries", "documents", "invites"] as const;
 type Tab = (typeof TABS)[number];
 
-type SearchParams = { importer?: string; reprendre?: string; cote?: string; groupe?: string; sansReponse?: string; suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string };
+type SearchParams = { importer?: string; reprendre?: string; cote?: string; groupe?: string; sansReponse?: string; suppression?: string; exemple?: string; onglet?: string; poste?: string; tache?: string; vue?: string; qui?: string; filtre?: string; visite?: string; decalage?: string; depuis?: string; fait?: string; evenement?: string; modifier?: string; periode?: string; categorie?: string; etat?: string; nouvelle?: string; copie?: string };
 
 // Lot 28a (PRE-02) : postes pourvus (un prestataire retenu) ou non requis.
 const SETTLED_SLOT_STATUSES = new Set<string>(["retained", "contract_signed", "paid_off", "not_required"]);
@@ -195,6 +148,10 @@ export default async function EventDetailPage({
     );
   }
   if (!isValidId(id)) notFound();
+  // Lot 70c (CHR-02 ; C-39) : l'ancien onglet « Rétroplanning » (recherche, notifications, e-mails déjà
+  // partis) ouvre l'onglet « Tâches », avec la même tâche.
+  const legacy = legacyTaskTabRedirect(id, query);
+  if (legacy) redirect(legacy);
 
   const event = await getEvent(organizationId, id);
   if (!event) notFound();
@@ -421,35 +378,28 @@ export default async function EventDetailPage({
     return quotes.length > 0 ? quotes.reduce((sum, amount) => sum + amount, 0) : null;
   };
 
-  // PRD-EVT-04 : filtres du rétroplanning (vue, responsable), tâche choisie.
-  const taskView = query.vue === "a-faire" || query.vue === "en-retard" ? query.vue : "toutes";
-  const taskOwner = query.qui === "planner" || query.qui === "clients" ? query.qui : "tous";
-  const shownTasks = tasks.filter((task) => {
-    if (taskOwner !== "tous" && task.responsible !== taskOwner) return false;
-    if (taskView === "a-faire") return !task.done;
-    if (taskView === "en-retard") return !task.done && task.dueDate < today;
-    return true;
-  });
-  const selectedTask = tasks.find((task) => task.id === query.tache) ?? null;
-  const sameMonth = selectedTask ? tasks.filter((task) => task.dueDate.slice(0, 7) === selectedTask.dueDate.slice(0, 7)) : [];
-  const selectedIndex = selectedTask ? sameMonth.findIndex((task) => task.id === selectedTask.id) : -1;
-  // Lot 34b (CHR-02, D12, D13) : prestataires engagés à qui confier une tâche ; pièces jointes et
-  // commentaires de la tâche ouverte, avec l'adresse de l'auteur (équipe).
-  // Lot 70a (CHR-02 ; A1) : les collègues de « Qui s'en charge ».
-  const taskMembers = await taskMemberOptions(organizationId, auth.user.id);
-  const taskVendors =
-    tab === "retroplanning"
-      ? (await listVendorCandidates(organizationId, id)).filter((candidate) => ENGAGED_CANDIDATE_STATUSES.includes(candidate.status)).map((candidate) => ({ candidateId: candidate.id, name: candidate.vendorName }))
-      : [];
-  // Lot 63d (CHR-03) : catégories des tâches (celles de départ à la première visite).
-  const taskCategories = tab === "retroplanning" ? await ensureTaskCategories(organizationId, locale) : [];
-  const taskAttachments = selectedTask ? await listTaskAttachments(organizationId, selectedTask.id) : [];
-  const taskComments = selectedTask ? await listTaskComments(organizationId, selectedTask.id) : [];
-  const commentAuthors = taskComments.length > 0 ? new Map((await listTeam(appDatabase(), organizationId)).map((member) => [member.id, member.email])) : new Map<string, string>();
-  const retroQuery = (changes: Record<string, string>) => {
-    const values: Record<string, string> = { vue: taskView, qui: taskOwner, ...changes };
-    return tabHref("retroplanning", values);
-  };
+  // Lot 70c (CHR-02, CHR-03, EVT-03 ; A21, C-39) : l'onglet « Tâches » — filtres Qui s'en charge, Période,
+  // Catégorie, État (« À faire » par défaut), ligne type sans la colonne Évènement, panneau unique.
+  const taskFilters = readEventTaskFilters(query);
+  const taskMembers = tab === "taches" ? await taskMemberOptions(organizationId, auth.user.id) : [];
+  const taskCategories = tab === "taches" ? await ensureTaskCategories(organizationId, locale) : [];
+  const dueTasks = tab === "taches" ? await listEventTasks(organizationId, id, today) : [];
+  const shownTasks = filterEventTasks(dueTasks, taskFilters, { today, meId: auth.user.id, periodRange });
+  const taskQuery = (changes: Record<string, string>) => tabHref("taches", { ...filtersQuery(taskFilters), ...changes });
+  const taskVendors = tab === "taches" ? await engagedVendors(organizationId, [id]) : new Map<string, { candidateId: string; name: string }[]>();
+  const taskLines =
+    tab === "taches"
+      ? await buildTaskLines({
+          organizationId,
+          locale,
+          tasks: shownTasks.map((task) => ({ ...task, event: null })),
+          members: taskMembers,
+          vendors: taskVendors,
+          href: (task) => taskQuery({ tache: task.id }),
+        })
+      : null;
+  const taskPanel = tab === "taches" ? panelFromQuery(query, isValidId, id) : null;
+  const tLine = await getTranslations("TaskLine");
 
   // Lot 26a : personnes et catégories proposées dans les formulaires des liens.
   const linkClients = event.clients.map((client) => ({ id: client.id, name: [client.firstName, client.lastName].filter(Boolean).join(" "), email: client.email ?? null }));
@@ -520,7 +470,6 @@ export default async function EventDetailPage({
   const activeDemo = event.isDemo || query.exemple === "proposer" ? await getActiveEventsTrial(organizationId) : null;
   const undoneTask = query.fait && query.evenement === event.id ? (tasks.find((task) => task.id === query.fait && task.done) ?? null) : null;
   const tToday = await getTranslations("Today");
-  const tHealth = await getTranslations("PlanningHealth");
   const clientTerm = await clientTermForEvent(organizationId, event.id, locale === "en" ? "en" : "fr");
 
   // AIDE-05 : visite focus de la fiche, à la première ouverture.
@@ -533,9 +482,9 @@ export default async function EventDetailPage({
     { key: "apercu", label: t("tabOverview"), href: tabHref("apercu") },
     { key: "budget", label: t("vendorSlotsTitle"), href: tabHref("budget"), count: `${progress.booked}/${progress.required}` },
     {
-      key: "retroplanning",
-      label: t("tasksTitle"),
-      href: tabHref("retroplanning"),
+      key: "taches",
+      label: tLine("tabTitle"),
+      href: tabHref("taches"),
       ...(overdueCount > 0 ? { count: t("tasksOverdueCount", { count: overdueCount }), alert: true } : {}),
     },
     { key: "programme", label: t("programTitle"), href: tabHref("programme") },
@@ -549,7 +498,7 @@ export default async function EventDetailPage({
   // Lot 32a (UX-01, D5) : sur la synthèse, la prochaine action vient d'abord ; le bandeau de la
   // prochaine étape passe juste dessous. Sur les autres onglets, il reste au-dessus des onglets.
   const stepBanner =
-    step && !(step === "apply_retroplanning" && tab === "retroplanning") ? (
+    step && !(step === "apply_retroplanning" && tab === "taches") ? (
       <NextStepBanner storageKey={`symbola_prochaine_etape_${event.id}_${step}`} title={t(`nextStep.${step}.title`)} laterLabel={t("nextStepLater")}>
         {step === "apply_retroplanning" ? (
           <>
@@ -1127,18 +1076,22 @@ export default async function EventDetailPage({
         />
       ) : null}
 
-      {/* PRD-EVT-04 : rétroplanning en tableau. */}
-      {/* Lot 63d (CHR-02, CHR-03 ; maquette M6) : le même tableau que l'écran « Tâches » ; la tâche s'ouvre
-          dans une fenêtre (Q42 bis, ADR 0107), plus dans un panneau à côté. */}
-      {tab === "retroplanning" ? (
+      {/* PRD-EVT-04 ; lot 70c (CHR-02, CHR-03, EVT-03 ; C-33, C-38, C-39, A21) : l'onglet « Tâches » (le
+          rétroplanning est ce qui les fabrique, cité sous le titre) ; « Nouvelle tâche » en haut, les filtres,
+          la ligne type sans la colonne Évènement, et le panneau unique de la tâche. */}
+      {tab === "taches" ? (
         <>
           <section className="card" aria-labelledby="tasks-title">
             <div className="section-head">
-              <h2 id="tasks-title">{t("tasksTitle")}</h2>
-              <SettingsLink href="/events/modeles" back="event" label={t("taskTemplatesSettings")} />
+              <h2 id="tasks-title">{tLine("tabTitle")}</h2>
+              {/* L'action principale de l'onglet, sauf quand le bandeau « Prochaine étape » en propose déjà une. */}
+              <Link href={taskQuery({ nouvelle: "1" })} scroll={false} className={stepBanner ? "button-link" : "button-link button-link-primary"}>
+                {tLine("newTask")}
+              </Link>
             </div>
             <p className="meta">
-              <span>{t("tasksSummary", { done: tasks.filter((task) => task.done).length, total: tasks.length, overdue: overdueCount })}</span>
+              {tLine("tabSummary", { done: tasks.filter((task) => task.done).length, total: tasks.length, late: overdueCount })}
+              {event.eventDate ? ` · ${tLine("tabCounted", { date: formatCalendarDate(event.eventDate, locale) })}` : ""} · <Link href="/events/modeles">{tLine("tabTemplates")}</Link>
             </p>
             {/* Lot 34a (D4) : pendant un report, les échéances suivent à la confirmation du report. */}
             {recalculation.pending && event.status !== "postponed" ? (
@@ -1185,138 +1138,44 @@ export default async function EventDetailPage({
             ) : !recalculation.pending ? (
               <ApplyTaskTemplateForm eventId={event.id} templates={templates} />
             ) : null}
-            <div className="toolbar">
-              <nav aria-label={t("tasksViewFilter")} className="pills">
-                {(["toutes", "a-faire", "en-retard"] as const).map((view) => (
-                  <Link key={view} href={retroQuery({ vue: view })} aria-current={taskView === view ? "true" : undefined}>
-                    {t(view === "toutes" ? "tasksViewAll" : view === "a-faire" ? "tasksViewTodo" : "tasksViewOverdue")}
-                  </Link>
-                ))}
-              </nav>
-              <nav aria-label={t("tasksOwnerFilter")} className="pills">
-                {(["tous", "planner", "clients"] as const).map((owner) => (
-                  <Link key={owner} href={retroQuery({ qui: owner })} aria-current={taskOwner === owner ? "true" : undefined}>
-                    {t(owner === "tous" ? "tasksOwnerAll" : owner === "planner" ? "responsiblePlanner" : "responsibleClients")}
-                  </Link>
-                ))}
-              </nav>
-            </div>
-            {tasks.length === 0 ? <p>{t("noTasks")}</p> : shownTasks.length === 0 ? <p>{t("noTasksForFilter")}</p> : null}
-            {shownTasks.length > 0 ? (
-              <TaskTable
-                tasks={shownTasks}
-                locale={locale}
-                today={today}
-                caption={t("tasksTitle")}
-                selectedTaskId={selectedTask?.id ?? null}
-                openHref={(task) => retroQuery({ tache: task.id })}
-                categories={taskCategories}
-                members={taskMembers}
+            <TaskFiltersForm
+              action={`/events/${event.id}`}
+              hidden={{ onglet: "taches" }}
+              filters={filterFormValues(taskFilters)}
+              who={[
+                { value: "moi", label: tLine("you") },
+                ...taskMembers.filter((member) => !member.me && !member.removed).map((member) => ({ value: `member:${member.id}`, label: member.name })),
+                { value: "clients", label: (await clientsTerms(organizationId, locale))(event.id) },
+                { value: "prestataires", label: tLine("filterVendors") },
+              ]}
+              categories={taskCategories.map((category) => ({ value: category.id, label: category.label }))}
+            />
+            {tasks.length === 0 ? <p>{tLine("emptyEvent")}</p> : shownTasks.length === 0 ? <p>{tLine("emptyFiltered")}</p> : null}
+            {taskLines && shownTasks.length > 0 ? (
+              <TaskLineBoard
+                groups={linesByMonth(taskLines.lines, locale)}
+                form="event"
+                label={tLine("tabTitle")}
+                shortcuts={taskLines.shortcuts}
+                assignOptions={taskLines.assignOptions}
+                categories={taskCategories.map((category) => ({ value: category.id, label: category.label }))}
+                members={taskMembers.filter((member) => !member.removed).map((member) => ({ value: `member:${member.id}`, label: member.me ? tLine("you") : member.name, initials: member.initials ?? nameInitials(member.name) }))}
+                clientsLabel={(await clientsTerms(organizationId, locale))(event.id)}
               />
             ) : null}
-            <AddEventTaskForm eventId={event.id} vendors={taskVendors} members={taskMembers} />
           </section>
-          {selectedTask ? (
-            <TaskDialog
-              key={`${selectedTask.id}-${selectedTask.dueDate}-${selectedTask.label}-${selectedTask.responsible}`}
-              task={{ id: selectedTask.id, label: selectedTask.label, dueDate: selectedTask.dueDate, responsible: responsibleValue(selectedTask), categoryId: selectedTask.categoryId, priority: selectedTask.priority }}
-              closeHref={retroQuery({})}
-              categories={taskCategories.map((category) => ({ id: category.id, label: category.label }))}
-              vendors={taskVendors}
-              members={taskMembers}
-              sections={[
-                { id: "task-dialog-more", title: t("taskDialogMore") },
-                { id: "task-dialog-attachments", title: t("taskAttachmentsTitle") },
-                { id: "task-dialog-comments", title: t("taskCommentsTitle") },
-              ]}
-            >
-              <section id="task-dialog-more" aria-labelledby="task-more-title" className="stack">
-                <h3 id="task-more-title">{t("taskDialogMore")}</h3>
-                <ImportedFields fields={selectedTask.importedFields} compact />
-                {/* Lot 53 (CHR-05) : un jalon en retard pèse plus sur la santé du planning. */}
-                {selectedTask.responsible === "planner" ? (
-                  <form action={setTaskMilestoneAction} className="row-wrap">
-                    {selectedTask.isMilestone ? <span className="badge badge-terracotta">{tHealth("milestone")}</span> : null}
-                    <input type="hidden" name="eventId" value={event.id} />
-                    <input type="hidden" name="taskId" value={selectedTask.id} />
-                    <input type="hidden" name="milestone" value={selectedTask.isMilestone ? "false" : "true"} />
-                    {/* Lot 63d : dans la fenêtre de la tâche, le texte visible suffit (WCAG 2.5.3). */}
-                    <button type="submit" className="button-ghost">
-                      {tHealth(selectedTask.isMilestone ? "milestoneOff" : "milestoneOn")}
-                    </button>
-                  </form>
-                ) : null}
-                {/* Lot 34a (DAT-07) : déplacée à la main, la tâche est fixée ; elle peut redevenir relative. */}
-                {selectedTask.fixed && selectedTask.offsetDays !== null && event.eventDate ? (
-                  <form action={releaseEventTaskAction} className="row-wrap">
-                    <span className="badge">{t("taskFixed")}</span>
-                    <input type="hidden" name="eventId" value={event.id} />
-                    <input type="hidden" name="taskId" value={selectedTask.id} />
-                    <button type="submit" className="button-ghost">
-                      {t("taskRelease")}
-                    </button>
-                  </form>
-                ) : null}
-                <form action={moveEventTaskAction} className="row-wrap">
-                  <input type="hidden" name="eventId" value={event.id} />
-                  <input type="hidden" name="taskId" value={selectedTask.id} />
-                  <button type="submit" name="direction" value="up" className="button-secondary" disabled={selectedIndex <= 0}>
-                    {t("moveTaskUp", { label: selectedTask.label })}
-                  </button>
-                  <button type="submit" name="direction" value="down" className="button-secondary" disabled={selectedIndex === sameMonth.length - 1}>
-                    {t("moveTaskDown", { label: selectedTask.label })}
-                  </button>
-                </form>
-              </section>
-              <section id="task-dialog-attachments" aria-labelledby="task-attachments-title" className="stack">
-                <h3 id="task-attachments-title">{t("taskAttachmentsTitle")}</h3>
-                {taskAttachments.length === 0 ? <p className="muted">{t("taskAttachmentsEmpty")}</p> : null}
-                {taskAttachments.length > 0 ? (
-                  <ul className="item-list">
-                    {taskAttachments.map((attachment) => (
-                      <li key={attachment.id} className="row-wrap">
-                        <a href={`/events/${event.id}/taches/${selectedTask.id}/pieces/${attachment.id}`}>{attachment.label}</a>
-                        <span className="muted">{formatFileSize(attachment.sizeBytes, locale)}</span>
-                        <form action={removeTaskAttachmentAction}>
-                          <input type="hidden" name="eventId" value={event.id} />
-                          <input type="hidden" name="attachmentId" value={attachment.id} />
-                          <button type="submit" className="button-ghost">
-                            {t("taskAttachmentRemove", { label: attachment.label })}
-                          </button>
-                        </form>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-                <TaskAttachmentUploadForm eventId={event.id} taskId={selectedTask.id} />
-              </section>
-              <section id="task-dialog-comments" aria-labelledby="task-comments-title" className="stack">
-                <h3 id="task-comments-title">{t("taskCommentsTitle")}</h3>
-                {taskComments.length === 0 ? <p className="muted">{t("taskCommentsEmpty")}</p> : null}
-                {taskComments.length > 0 ? (
-                  <ol className="item-list task-comments">
-                    {taskComments.map((comment) => (
-                      <li key={comment.id}>
-                        <p className="meta">
-                          {(comment.authorUserId ? commentAuthors.get(comment.authorUserId) : null) ?? t("taskCommentFormerMember")} — {eventTime(comment.createdAt)}
-                        </p>
-                        <p className="task-comment-body">{comment.body}</p>
-                        {comment.authorUserId === auth.user.id ? (
-                          <form action={removeTaskCommentAction}>
-                            <input type="hidden" name="eventId" value={event.id} />
-                            <input type="hidden" name="commentId" value={comment.id} />
-                            <button type="submit" className="button-ghost">
-                              {t("taskCommentRemove")}
-                            </button>
-                          </form>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ol>
-                ) : null}
-                <TaskCommentForm eventId={event.id} taskId={selectedTask.id} />
-              </section>
-            </TaskDialog>
+          {taskPanel ? (
+            <TaskPanelLoader
+              organizationId={organizationId}
+              userId={auth.user.id}
+              role={auth.user.role}
+              locale={locale}
+              today={today}
+              open={taskPanel}
+              closeHref={taskQuery({})}
+              backLabel={eventNames(event.clients, event.name)}
+              screenHref={(params) => taskQuery(params)}
+            />
           ) : null}
         </>
       ) : null}
@@ -1566,6 +1425,23 @@ export default async function EventDetailPage({
           <p className="meta">
             <Link href="/devis/modeles">{tQuotes("templatesLink")}</Link>
           </p>
+        </section>
+      ) : null}
+
+      {/* Lot 70e (A14) : la source et un client de plus, que « Nouvel évènement » ne demande plus. */}
+      {tab === "maries" && !event.archivedAt ? (
+        <section className="card" aria-labelledby="event-origin-title">
+          <h2 id="event-origin-title">{t("originTitle")}</h2>
+          <EventSourceForm eventId={event.id} sources={sources.map((candidate) => ({ id: candidate.id, label: candidate.label }))} current={event.prospectSourceId} />
+          {event.clients.length < 2 ? (
+            <AddClientForm
+              eventId={event.id}
+              labels={{
+                firstName: clientFieldLabelsByAudience(locale)[eventTypes.find((type) => type.id === event.eventTypeId)?.audience ?? "couple"][event.clients.length === 0 ? "client1FirstName" : "client2FirstName"],
+                lastName: clientFieldLabelsByAudience(locale)[eventTypes.find((type) => type.id === event.eventTypeId)?.audience ?? "couple"][event.clients.length === 0 ? "client1LastName" : "client2LastName"],
+              }}
+            />
+          ) : null}
         </section>
       ) : null}
 

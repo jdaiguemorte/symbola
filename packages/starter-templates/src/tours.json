@@ -46,10 +46,10 @@
       },
       {
         "target": "new-prospect",
-        "title": { "fr": "Nouveau prospect", "en": "New prospect" },
+        "title": { "fr": "Nouvel évènement", "en": "New event" },
         "body": {
-          "fr": "Un prénom et la source du contact suffisent pour commencer.",
-          "en": "A first name and the contact source are enough to start."
+          "fr": "Dites où en est l'évènement et donnez-lui un nom : le reste se complète depuis sa fiche.",
+          "en": "Say where the event stands and give it a name: the rest is completed from its page."
         }
       },
       {

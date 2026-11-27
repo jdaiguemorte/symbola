@@ -87,7 +87,7 @@ test("EVT-01 / EVT-05 / CHR-01 — l'option naît avec son rétroplanning ; repo
   await signIn(page, email, /\/$/);
 
   // EVT-01 (D8) : l'option a déjà son rétroplanning.
-  await page.goto(`/events/${eventId}?onglet=retroplanning`);
+  await page.goto(`/events/${eventId}?onglet=taches`);
   const steps = page.getByRole("list", { name: "Statut de l'évènement" });
   await expect(steps.getByRole("listitem").filter({ hasText: "Option" })).toHaveAttribute("aria-current", "step");
   await expect(page.getByText("Dégustation chez le traiteur").first()).toBeVisible();
