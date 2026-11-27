@@ -1,5 +1,6 @@
 export { readImportFile } from "./read";
-export { neutralizeCell, needsNeutralization } from "./neutralize";
+export { neutralizeCell, neutralizeTexts, needsNeutralization } from "./neutralize";
+export { appNameCase } from "./name-case";
 export { parseDelimited } from "./csv";
 // Lecteur ZIP, aussi utilisé pour vérifier l'archive de l'export RGPD (RGPD-02).
 export { ZipArchive } from "./zip";

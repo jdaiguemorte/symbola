@@ -161,6 +161,8 @@ describe("DAT-13 — Chaque entité a un format d'export stable et documenté", 
       doneByKind: null,
       doneByUserId: null,
       note: null,
+      // Lot 71a (P-01) : une tâche reprise faite garde une date technique, marquée « non renseignée ».
+      doneDateKnown: true,
     };
     expect(tasks.safeParse(task).success).toBe(true);
     expect(tasks.safeParse({ ...task, doneByKind: "someone" }).success).toBe(false);

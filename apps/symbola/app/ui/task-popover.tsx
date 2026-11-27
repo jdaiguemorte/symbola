@@ -37,17 +37,29 @@ export function usePopover(): PopoverHandle {
     element.style.left = `${Math.round(left)}px`;
   }, []);
 
+  // Fermé (Échap, clic ailleurs, choix fait) : le focus revient au bouton d'origine s'il est encore là. Posé
+  // à la première ouverture : un panneau peut n'être monté qu'à ce moment-là (lot 70d, NFR-02).
+  const bound = useRef<HTMLElement | null>(null);
+  const bind = useCallback((element: HTMLDivElement) => {
+    if (bound.current === element) return;
+    bound.current = element;
+    element.addEventListener("toggle", (event: Event) => {
+      if ((event as ToggleEvent).newState === "closed" && anchorRef.current?.isConnected && element.contains(document.activeElement)) anchorRef.current.focus();
+    });
+  }, []);
+
   const open = useCallback(
     (anchor: HTMLElement | null) => {
       const element = ref.current;
       if (!element) return;
+      bind(element);
       anchorRef.current = anchor;
       if (!element.matches(":popover-open")) element.showPopover();
       place();
       // Le premier choix reçoit le focus.
       element.querySelector<HTMLElement>("[data-autofocus], button, input, select, a")?.focus();
     },
-    [place],
+    [place, bind],
   );
 
   const close = useCallback(() => {
@@ -56,18 +68,8 @@ export function usePopover(): PopoverHandle {
   }, []);
 
   useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    // Fermé (Échap, clic ailleurs, choix fait) : le focus revient au bouton d'origine s'il est encore là.
-    const onToggle = (event: Event) => {
-      if ((event as ToggleEvent).newState === "closed" && anchorRef.current?.isConnected && element.contains(document.activeElement)) anchorRef.current.focus();
-    };
-    element.addEventListener("toggle", onToggle);
     window.addEventListener("resize", place);
-    return () => {
-      element.removeEventListener("toggle", onToggle);
-      window.removeEventListener("resize", place);
-    };
+    return () => window.removeEventListener("resize", place);
   }, [place]);
 
   return { open, close, id, ref };

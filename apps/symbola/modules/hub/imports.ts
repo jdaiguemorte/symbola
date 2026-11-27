@@ -3,7 +3,20 @@ import { randomUUID } from "node:crypto";
 // service.ts. IMP-01 : réception du fichier (taille, antivirus, lecture),
 // import en cours gardé en attente ; rien n'est écrit dans les modules avant
 // la confirmation (IMP-05).
-import { IMPORT_FIELDS, IMPORT_REQUIRED_ONE_OF, type ImportEntityType, type ImportFieldDefinition } from "@symbola/contracts";
+import {
+  CONTRACTS_ANSWERS,
+  DEPOSITS_PAID_ANSWERS,
+  EVENT_STAGE_ANSWERS,
+  IMPORT_FIELDS,
+  IMPORT_FILE_ENTITY_TYPES,
+  IMPORT_REQUIRED_ONE_OF,
+  NAME_CASE_ANSWERS,
+  PAST_DUE_TASKS_ANSWERS,
+  type ImportAnswers,
+  type ImportEntityType,
+  type ImportFieldDefinition,
+} from "@symbola/contracts";
+import { z } from "zod";
 import { appDatabase, type AppDatabase } from "@symbola/db/client";
 import type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult, ImportVendorTypeTarget } from "@symbola/db/schema/hub";
 import { parseEnv } from "@symbola/env";
@@ -42,8 +55,9 @@ import {
 } from "./import-repository";
 import { cancelImportJobs, createImportJob, isReadingSheets, listImportJobs, type ImportJobView } from "./import-jobs";
 import { findPlatformSettings, insertDefaultPlatformSettings } from "./repository";
+import { clearExpiredImportLeftovers } from "./takeovers";
 
-export { IMPORT_ENTITY_TYPES, type ImportEntityType } from "@symbola/contracts";
+export { IMPORT_ENTITY_TYPES, IMPORT_FILE_ENTITY_TYPES, type ImportEntityType } from "@symbola/contracts";
 export type { ImportColumnChoice, ImportMatch, ImportMatching, ImportResult, ImportRowEvent, ImportVendorTypeChoice, ImportVendorTypeTarget } from "@symbola/db/schema/hub";
 
 // Module qui reçoit chaque type d'éléments : un type dont le module n'est pas
@@ -61,9 +75,12 @@ export const IMPORT_ENTITY_MODULE: Record<ImportEntityType, "events" | "budget" 
   vendors: "vendors",
   event_sheets: "events",
   contacts: "hub",
+  event_vendors: "events",
+  program: "events",
 };
 
-export type ImportLimits = { maxBytes: number; maxRows: number; maxSheets: number; draftRetentionDays: number; undoRetentionDays: number };
+// Lot 71a (I4) : leftoversRetentionDays, durée de l'annuaire non repris d'un programme (90 jours).
+export type ImportLimits = { maxBytes: number; maxRows: number; maxSheets: number; draftRetentionDays: number; undoRetentionDays: number; leftoversRetentionDays: number };
 
 export async function getImportLimits(db: AppDatabase): Promise<ImportLimits> {
   let settings = await findPlatformSettings(db);
@@ -78,6 +95,7 @@ export async function getImportLimits(db: AppDatabase): Promise<ImportLimits> {
     maxSheets: settings.importMaxSheets,
     draftRetentionDays: settings.importDraftRetentionDays,
     undoRetentionDays: settings.importUndoRetentionDays,
+    leftoversRetentionDays: settings.importLeftoversRetentionDays,
   };
 }
 
@@ -102,6 +120,8 @@ export type StartImportResult =
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export async function startImport(db: AppDatabase, input: StartImportInput): Promise<StartImportResult> {
+  // Lot 71a : un PDF de prestataires retenus ou de programme ne passe pas encore par ici (paquet 71e).
+  if (!IMPORT_FILE_ENTITY_TYPES.includes(input.entityType)) throw new Error("sorte d'import non acceptée par l'envoi de fichier");
   const now = input.now ?? new Date();
   const limits = await getImportLimits(db);
   // Taille d'abord : un fichier trop gros n'est ni analysé ni lu.
@@ -484,10 +504,16 @@ export async function cancelImport(db: AppDatabase, organizationId: string, impo
 }
 
 // Purge horaire (lib/import-purge.ts) : les lignes en attente d'un import
-// abandonné sans être confirmé sont effacées à son expiration.
+// abandonné sans être confirmé sont effacées à son expiration. Lot 71a
+// (SEC-21) : ses traitements s'arrêtent et les fiches PDF encore gardées dans
+// le stockage sont supprimées, sans attendre le traitement de fond.
 export async function purgeExpiredImportDrafts(db: AppDatabase, organizationIds: string[], now: Date = new Date()): Promise<number> {
   let purged = 0;
-  for (const organizationId of organizationIds) purged += await cancelExpiredDrafts(db, organizationId, now);
+  for (const organizationId of organizationIds) {
+    const expired = await cancelExpiredDrafts(db, organizationId, now);
+    for (const importId of expired) await cancelImportJobs(db, organizationId, importId, now);
+    purged += expired.length;
+  }
   return purged;
 }
 
@@ -534,7 +560,58 @@ export async function saveImportMatching(
   db: AppDatabase,
   input: { organizationId: string; importId: string; matching: ImportMatching; now?: Date },
 ): Promise<boolean> {
-  return updateDraftMatching(db, input.organizationId, input.importId, input.matching, input.now ?? new Date());
+  // Lot 71a : les réponses de l'étape « Questions » restent quand les rapprochements sont recalculés.
+  const answers = input.matching.answers ?? (await findImport(db, input.organizationId, input.importId))?.matching?.answers;
+  return updateDraftMatching(db, input.organizationId, input.importId, answers ? { ...input.matching, answers } : input.matching, input.now ?? new Date());
+}
+
+// —— Lot 71a (HUB-14 ; ADR 0119) : réponses de l'étape « Questions » ————————————————————————
+
+// Réponses validées (entrée externe : Zod, CLAUDE.md § 5) ; aucune n'est cochée d'avance.
+const importAnswersSchema = z.strictObject({
+  targetEvent: z.guid().optional(),
+  depositsPaid: z.strictObject({ answer: z.enum(DEPOSITS_PAID_ANSWERS), paidRows: z.array(z.number().int().nonnegative()).max(5000).optional() }).optional(),
+  contracts: z.strictObject({ answer: z.enum(CONTRACTS_ANSWERS), signedRows: z.array(z.number().int().nonnegative()).max(5000).optional() }).optional(),
+  pastDueTasks: z.strictObject({ answer: z.enum(PAST_DUE_TASKS_ANSWERS), date: z.iso.date().optional() }).optional(),
+  eventTypeId: z.guid().optional(),
+  eventStage: z.enum(EVENT_STAGE_ANSWERS).optional(),
+  prospectSourceId: z.guid().optional(),
+  nameCase: z.enum(NAME_CASE_ANSWERS).optional(),
+});
+
+export class ImportAnswersInvalidError extends Error {
+  constructor() {
+    super("réponses invalides");
+    this.name = "ImportAnswersInvalidError";
+  }
+}
+
+// Les réponses d'un import en cours (les identifiants qu'elles citent sont contrôlés à l'écriture, par
+// le module qui les reçoit). false : import inconnu, d'une autre organisation ou déjà terminé.
+export async function saveImportAnswers(db: AppDatabase, input: { organizationId: string; importId: string; answers: unknown; now?: Date }): Promise<boolean> {
+  const parsed = importAnswersSchema.safeParse(input.answers);
+  if (!parsed.success) throw new ImportAnswersInvalidError();
+  const row = await findImport(db, input.organizationId, input.importId);
+  if (!row || row.status !== "draft") return false;
+  const matching: ImportMatching = { ...(row.matching ?? { matches: [], rowEvents: [] }), answers: parsed.data };
+  return updateDraftMatching(db, input.organizationId, input.importId, matching, input.now ?? new Date());
+}
+
+export async function getImportAnswers(db: AppDatabase, organizationId: string, importId: string): Promise<ImportAnswers | null> {
+  const answers = (await findImport(db, organizationId, importId))?.matching?.answers;
+  if (!answers) return null;
+  const parsed = importAnswersSchema.safeParse(answers);
+  return parsed.success ? (parsed.data as ImportAnswers) : null;
+}
+
+// Purge horaire (lib/import-purge.ts) : ce qu'un import n'avait pas repris (l'annuaire d'un programme)
+// est effacé passé la durée réglée par l'Admin (I4), et dès qu'il est abandonné ou retiré.
+export async function purgeExpiredImportLeftovers(db: AppDatabase, organizationIds: string[], now: Date = new Date()): Promise<number> {
+  const { leftoversRetentionDays } = await getImportLimits(db);
+  const appliedBefore = new Date(now.getTime() - leftoversRetentionDays * DAY_MS);
+  let cleared = 0;
+  for (const organizationId of organizationIds) cleared += await clearExpiredImportLeftovers(db, organizationId, appliedBefore);
+  return cleared;
 }
 
 // Décision de la planner sur des rapprochements proposés : un par un ou en

@@ -27,6 +27,17 @@
 # « symbola-jour-j-file ») garde, jusqu'à leur envoi, les pointages, décalages, incidents, cases,
 # remises et photos faits sans réseau ; seule l'action de son auteur part, avec sa session. Elle
 # n'est pas chiffrée par l'application (verrouillage du téléphone) et se vide à l'envoi.
+#
+# Reprise d'un mariage en cours (lot 71a, ADR 0119) : hub.takeovers et hub.takeover_steps ne portent
+# aucune donnée personnelle (identifiants, dates, états) ; effacées avec le mariage (corbeille,
+# RGPD-03) et avec l'organisation. budget.unallocated_totals (montants, sans personne) suit le budget de
+# l'évènement ; events.events.origin est technique. Fiches PDF déposées (objets
+# imports/<organisation>/<import>/<n>.bin du stockage privé) : chiffrées, lues puis effacées, et
+# effacées aussi à l'abandon du brouillon, à l'arrêt d'une lecture en échec et à l'expiration du
+# brouillon (7 jours, purge horaire) — jamais gardées au-delà ; leur nom et leur clé sont dans
+# hub.import_jobs.payload, déclaré plus bas. L'effacement définitif d'un mariage efface aussi les
+# valeurs du journal de ses imports (previous, written, leftovers, fields) ; seule une trace sans donnée
+# personnelle reste (date, sorte de fichier, nombres du bilan).
 version: 1
 fields:
   - schema: hub
@@ -254,6 +265,32 @@ fields:
       délai d'annulation (90 jours), puis effacées par la purge horaire.
     anonymization: >-
       Effacées (null) lors d'une demande d'oubli (RGPD-03).
+  - schema: hub
+    table: imports
+    field: leftovers
+    category: contact
+    retention: >-
+      Lot 71a (R14, décision I4 de Julien du 27/11/2026, à confirmer par le DPO) : ce qu'un import
+      n'a pas repris et qui peut l'être plus tard — l'annuaire d'un programme du jour J (noms, rôles,
+      téléphones des intervenants, dont des invités du mariage : famille, témoins). Gardé 90 jours
+      après l'import (platform_settings.import_leftovers_retention_days, réglé par l'Admin), puis
+      effacé par la purge horaire ; effacé aussi à l'abandon ou à l'expiration du brouillon, au
+      retrait de l'import, dès que la planner l'a ajouté au carnet ou écarté, et à l'effacement
+      définitif du mariage. Jamais exporté, jamais montré hors du bilan de l'import. Les
+      professionnels ajoutés au carnet suivent ensuite la conservation du carnet (vendors.vendors).
+    anonymization: >-
+      Effacé (null) lors d'une demande d'oubli (RGPD-03) qui vise un nom ou un téléphone qu'il
+      contient.
+  - schema: hub
+    table: import_items
+    field: fields
+    category: identifiant
+    retention: >-
+      Lot 71a (R7, décision I9) : noms des champs qu'un import a écrits sur un élément (« eventDate »,
+      « notes »…), sans aucune valeur, pour « D'où viennent ces valeurs ? » ; gardés tant que
+      l'élément existe, effacés à l'effacement définitif du mariage.
+    anonymization: >-
+      Rien à anonymiser : aucune valeur ; effacés avec les valeurs du journal du mariage.
   - schema: events
     table: events
     field: imported_fields

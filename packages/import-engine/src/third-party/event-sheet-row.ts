@@ -38,8 +38,10 @@ export type EventSheetColumn = (typeof EVENT_SHEET_COLUMNS)[number];
 
 // Colonnes gardées en champ libre sur la fiche (décision K : montants
 // d'information, jamais recalculés en faux paiements) ; colonnes techniques
-// jamais écrites.
-export const EVENT_SHEET_FREE_COLUMNS: readonly EventSheetColumn[] = ["note", "paid", "balance", "total"];
+// jamais écrites. Lot 71a (C-56) : plus aucune — la note va dans « Notes », le
+// total et le réglé au total « à répartir » du budget, le solde (recalculé)
+// n'est pas repris.
+export const EVENT_SHEET_FREE_COLUMNS: readonly EventSheetColumn[] = [];
 export const EVENT_SHEET_TECHNICAL_COLUMNS: readonly EventSheetColumn[] = ["source", "rejection"];
 
 export type EventSheetRejection = "not_pdf" | "too_large" | "encrypted" | "too_many_pages" | "no_text" | "unreadable" | "timeout" | "not_event_sheet" | "infected";
