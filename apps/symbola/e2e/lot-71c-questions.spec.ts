@@ -70,7 +70,12 @@ async function dropFile(page: Page, file: { name: string; mimeType: string; buff
   await page.getByLabel(/^Fichier/).first().setInputFiles(file);
   await page.getByRole("button", { name: "Lire le fichier" }).click();
   await expect(page).toHaveURL(/\/import\/[0-9a-f-]{36}\/(colonnes|questions)$/, { timeout: 30_000 });
-  if (page.url().endsWith("/colonnes")) await actions(page).getByRole("button", { name: "Continuer" }).click();
+  if (page.url().endsWith("/colonnes")) {
+    // « Détail » est proposé sous le seuil de confiance : la planner le confirme.
+    const detail = page.getByLabel("Champ pour la colonne « Détail »");
+    if ((await detail.count()) > 0) await detail.selectOption({ label: "Libellé de la ligne" });
+    await actions(page).getByRole("button", { name: "Continuer" }).click();
+  }
   await expect(page).toHaveURL(/\/questions$/, { timeout: 30_000 });
 }
 

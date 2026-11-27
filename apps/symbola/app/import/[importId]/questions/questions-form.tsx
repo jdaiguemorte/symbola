@@ -4,7 +4,7 @@
 // d'avance (R5). Chaque réponse dit ce qu'elle donnera ; « Certains seulement » et « Ligne par ligne »
 // cochent ligne par ligne, et le total suit. « Continuer » sans réponse écrit sous la question ce qui
 // manque (forme du lot 70b) ; les autres choix restent.
-import { useActionState, useMemo, useState } from "react";
+import { startTransition, useActionState, useMemo, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import type { ImportAnswers } from "@symbola/contracts";
 import { formatAmount, type Locale } from "@symbola/i18n";
@@ -99,8 +99,16 @@ export function QuestionsForm({ model }: { model: QuestionsFormModel }) {
   };
   const signedVendors = model.contracts ? model.contracts.vendors.filter((vendor) => vendor.rowIndexes.some((row) => signedRows.has(row))).length : 0;
 
+  // Envoyé à la main : une action de formulaire remet le formulaire à zéro après la réponse, ce qui
+  // décocherait les réponses déjà données quand il en manque une (« les autres choix restent »).
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    startTransition(() => formAction(data));
+  };
+
   return (
-    <form action={formAction} id="questions-form" className="stack import-questions-form" noValidate aria-busy={pending}>
+    <form onSubmit={submit} id="questions-form" className="stack import-questions-form" noValidate aria-busy={pending}>
       <input type="hidden" name="importId" value={model.importId} />
       {state.missing.length > 1 ? (
         <p role="alert" className="field-error">
