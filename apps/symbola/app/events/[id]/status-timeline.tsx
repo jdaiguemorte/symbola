@@ -345,8 +345,7 @@ export function StatusTimeline(props: StatusTimelineProps) {
       {/* Sur téléphone : l'étape en cours, et « Les étapes » en panneau du bas (avec le geste). */}
       <p className="event-timeline-compact">
         {current ? <strong>{tTimeline(STEP_KEYS[current])}</strong> : null}
-        {currentIndex >= 0 ? <span> · {t("stepOf", { n: currentIndex + 1 })}</span> : null}
-        <span> · </span>
+        {currentIndex >= 0 ? <span className="event-timeline-step-of"> · {t("stepOf", { n: currentIndex + 1 })}</span> : null}
         <button ref={opener} type="button" className="button-ghost event-steps-open" aria-haspopup="dialog" onClick={() => sheet.open(opener.current)}>
           {t("steps")}
         </button>
