@@ -180,8 +180,8 @@ test("Décision 6 — Tâches : vocabulaire neutre quand les évènements sont d
   // Lot 70c (D3) : la ligne type — titre, évènement, échéance, « Qui s'en charge » — remplace le tableau.
   const line = (label: string) => page.locator(".task-line").filter({ has: page.getByRole("link", { name: label, exact: true }) });
   await expect(page.locator(".task-lines-head")).toContainText("Qui s'en charge");
-  // Le filtre qui mêle tous les évènements emploie le mot neutre.
-  await expect(page.getByRole("link", { name: "Clients", exact: true })).toBeVisible();
+  // Le filtre qui mêle tous les évènements emploie le mot neutre (lot 70d : une option de « Qui s'en charge »).
+  await expect(page.locator('select[name="qui"]').first().locator("option", { hasText: /^Les clients$/ })).toHaveCount(1);
   // Chaque ligne, le terme de son évènement : « Les mariés » pour un mariage, « Les clients » pour un séminaire.
   await expect(line("Choisir les alliances").locator(".task-line-who")).toHaveText(/Les mariés$/);
   await expect(line("Valider le traiteur").locator(".task-line-who")).toHaveText(/Les clients$/);

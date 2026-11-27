@@ -6,11 +6,13 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatCalendarDate, formatMonth, type Locale } from "@symbola/i18n";
-import type { OrganizationTask } from "@symbola/contracts";
 import { addMonths } from "@/app/agenda/calendar";
 import { monthGrid } from "@/lib/portfolio/portfolio";
 import type { TaskCategory } from "@/modules/events/service";
 import { CategorySwatch } from "./category-swatch";
+
+// Lot 70d (CHR-10) : la liste unique, tâches hors évènement comprises.
+export type CalendarTask = { id: string; label: string; dueDate: string; done: boolean; overdue: boolean; event: { names: string } | null; categoryId: string | null; priority: string };
 
 export async function TaskCalendar({
   month,
@@ -22,18 +24,19 @@ export async function TaskCalendar({
   categories,
 }: {
   month: string;
-  tasks: OrganizationTask[];
+  tasks: CalendarTask[];
   today: string;
   locale: Locale;
   href: (month: string) => string;
-  taskHref: (task: OrganizationTask) => string;
+  taskHref: (task: CalendarTask) => string;
   categories: TaskCategory[];
 }) {
   const categoryById = new Map(categories.map((category) => [category.id, category]));
   const t = await getTranslations("Events");
+  const tLine = await getTranslations("TaskLine");
   const tHome = await getTranslations("Home");
   const weekdays = tHome.raw("agendaWeekdays") as string[];
-  const byDate = new Map<string, OrganizationTask[]>();
+  const byDate = new Map<string, CalendarTask[]>();
   for (const task of tasks) byDate.set(task.dueDate, [...(byDate.get(task.dueDate) ?? []), task]);
   const inMonth = tasks.filter((task) => task.dueDate.startsWith(month)).length;
   return (
@@ -80,7 +83,7 @@ export async function TaskCalendar({
                       <Link href={taskHref(task)} scroll={false}>
                         {task.label}
                       </Link>
-                      <span className="task-calendar-event">{task.event.names}</span>
+                      <span className="task-calendar-event">{task.event?.names ?? tLine("noEvent")}</span>
                       {task.categoryId && categoryById.get(task.categoryId) ? (
                         <span className="task-category">
                           <CategorySwatch color={categoryById.get(task.categoryId)!.color} />

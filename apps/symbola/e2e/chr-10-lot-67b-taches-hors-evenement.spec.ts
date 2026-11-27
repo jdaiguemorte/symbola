@@ -24,11 +24,12 @@ test("CHR-10 — modifier une tâche hors évènement ; elle compte dans l'en-t�
   await signIn(page, email, /\/$/);
   await page.goto("/taches");
 
-  // R01 : la tâche hors évènement compte dans l'en-tête (elle était ignorée).
-  await expect(page.getByRole("main")).toContainText("1 tâche à faire · 1 en retard");
+  // R01 : la tâche hors évènement compte dans le décompte (elle était ignorée). Lot 70d : une seule liste,
+  // « 1 tâche à faire sur 1 · 1 en retard ».
+  await expect(page.locator(".task-count")).toHaveText("1 tâche à faire sur 1 · 1 en retard");
 
   // R02, lot 70c : le titre de la ligne ouvre le panneau unique de la tâche.
-  const list = page.locator("#hors-evenement");
+  const list = page.locator(".task-lines");
   await list.getByRole("link", { name: "Déclaration de TVA", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "Déclaration de TVA" });
   await expect(dialog).toBeVisible();
@@ -44,5 +45,5 @@ test("CHR-10 — modifier une tâche hors évènement ; elle compte dans l'en-t�
   await expect(item).toContainText("24 janv.");
   await expect(item).toContainText("Hors évènement");
   // Repoussée, elle n'est plus en retard.
-  await expect(page.getByRole("main")).toContainText("1 tâche à faire · 0 en retard");
+  await expect(page.locator(".task-count")).toHaveText("1 tâche à faire sur 1");
 });
