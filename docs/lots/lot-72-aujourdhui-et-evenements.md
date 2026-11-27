@@ -1,6 +1,6 @@
 # Lot 72 — Réaliser le volet 3 des maquettes : « Aujourd'hui » et « Évènements »
 
-**Statut** : **spécification à valider par Julien** ; J1 à J13 tranchées le 27/11, J14 ouverte (§ 7). Le lot change
+**Statut** : **spécification à valider par Julien** ; décisions J1 à J14 tranchées le 27/11 (§ 7). Le lot change
 le schéma de données du module `events` (trois migrations, 0224 à 0226) et deux parcours P0 (PAR-03, et PAR-02
 par la frise et la liste) : la validation vaut accord pour cette migration.
 **Branche de la spécification** : `lot-72-aujourdhui-et-evenements` (une PR vers `main`, ce fichier et
@@ -589,8 +589,8 @@ fusionné.
 
 ## 7. Ambiguïtés et décisions à prendre par Julien
 
-Numérotées **J1 à J14** (propres à ce lot). Pour chacune : où regarder, la proposition, l'autre voie,
-ma recommandation. Je les pose une par une. Celles qui touchent le cahier des charges sont aussi dans
+Numérotées **J1 à J14** (propres à ce lot), **toutes tranchées par Julien le 27/11**. Pour chacune : où
+regarder, la proposition, l'autre voie, la décision. Celles qui touchent le cahier des charges sont aussi dans
 `docs/QUESTIONS.md` (Q49).
 
 | # | Question | Où regarder | Proposition | L'autre voie | Recommandation |
@@ -608,7 +608,7 @@ ma recommandation. Je les pose une par une. Celles qui touchent le cahier des ch
 | J11 | **Les nombres des onglets** : la maquette montre « 6 sur 9 », « 2 en retard », « Devis et factures 3 », « Documents 4 », rien sur « Mariés », « Programme », « Invités » | Page 15, règle « le nombre d'un onglet dit ce qui demande attention » | Budget : postes complets sur requis (I7) ; Tâches : « N en retard » en rouge, sinon « 14 sur 20 » en gris ; Devis et factures et Documents : leur nombre en gris (comme aujourd'hui) ; Invités : « 38 réponses sur 120 » quand le module est ouvert ; Programme et Mariés : rien | Ne garder que les nombres qui demandent attention (Budget, Tâches) | **Tranché le 27/11 par Julien : « Oui, comme proposé »** |
 | J12 | **« Rétablir l'évènement » : que deviennent les rappels et les acomptes ?** La maquette le laisse à vérifier dans le code | Page 15, « Rétablir : la question » ; `reactivateEvent` (`service.ts:744`) | Écrire le texte de la fenêtre d'après ce que fait le code au moment du paquet 72d (vérifié par un test d'intégration), sans changer la règle ; si le code ne rouvre pas les liens ou ne relance pas les rappels, le dire tel quel | Changer la règle pour qu'elle colle au texte de la maquette (liens rouverts, rappels repris) | **Tranché le 27/11 par Julien : « Oui, dire le vrai »** |
 | J13 | **La Synthèse et l'accueil d'une Planner restreinte** : la suite de la fiche montre-t-elle les lignes confiées à une collègue ? | Page 16, « En préparation » | Oui : sur la fiche, toutes les lignes de l'évènement, toutes personnes confondues (« Bastien » sur la ligne) ; « Moi » ne vaut que pour l'accueil | Appliquer « Moi » aussi sur la fiche | **Tranché le 27/11 par Julien : « Oui, tout sur la fiche »** |
-| J14 | **La rubrique « Mariés » de « Modifier les informations »** : le lot 70e a mis « Source et clients » dans l'onglet « Mariés » ; la maquette 16 a une rubrique « Mariés » dans la fenêtre | Page 16 ; note `lot-70e-etat.md` ; onglet `maries` | La rubrique montre les mariés (noms, contacts, en lecture) avec « Gérer dans l'onglet Mariés » ; « Venu par » passe dans « Type et origine » et quitte la carte du 70e | Déplacer toute la gestion des clients (ajout, second client, contacts) dans la fenêtre | **La proposition** : un seul endroit pour gérer les clients (l'onglet, qui porte aussi les liens et les décisions), la fenêtre pour les faits de l'évènement |
+| J14 | **La rubrique « Mariés » de « Modifier les informations »** : le lot 70e a mis « Source et clients » dans l'onglet « Mariés » ; la maquette 16 a une rubrique « Mariés » dans la fenêtre | Page 16 ; note `lot-70e-etat.md` ; onglet `maries` | La rubrique montre les mariés (noms, contacts, en lecture) avec « Gérer dans l'onglet Mariés » ; « Venu par » passe dans « Type et origine » et quitte la carte du 70e | Déplacer toute la gestion des clients (ajout, second client, contacts) dans la fenêtre | **Tranché le 27/11 par Julien : « Oui, en lecture »** |
 
 **Points qui ne demandent pas de décision mais méritent d'être sus**
 
