@@ -3,7 +3,7 @@
 // /v1/events si ce module est extrait en app autonome.
 import { deleteDayReminderOverrideRow, findDayReminderEventRows, findDayReminderOverrideRows, findLinkVendorRecordId, findUpcomingEventTimeZones, upsertDayReminderOverrideRow } from "./repository";
 import { z } from "zod";
-import { formatCalendarDate, isTimeZone, parisDaysSince, parisToday } from "@symbola/i18n";
+import { dateInTimeZone, formatCalendarDate, isTimeZone, parisDaysSince, parisToday } from "@symbola/i18n";
 import { canSetStatus, eventPhase } from "./lifecycle";
 import { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } from "./errors";
 export { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } from "./errors";
@@ -11,7 +11,7 @@ export { DemoEventRestrictionError, EventNotFoundError, LinkAccessDeniedError } 
 import { getPipeline as getPipelineOf } from "./pipeline";
 import { countRequestsToReview, findNewRequestRows } from "./prospects-repository";
 import type { ListTasksInput, Pipeline, TaskList, TaskListItem, TaskRecurrenceValue } from "@symbola/contracts";
-export { canPostpone, canSetStatus, closingDue, eventPhase, FINISHED_STATUSES, FIRM_STATUSES, IN_PROGRESS_STATUSES, isInProgress, MANUAL_STATUSES, TENTATIVE_STATUSES, TIMELINE_PHASES } from "./lifecycle";
+export { canPostpone, canSetStatus, closingDue, displayStep, eventPhase, FINISHED_STATUSES, FIRM_STATUSES, IN_PROGRESS_STATUSES, isInProgress, MANUAL_STATUSES, TENTATIVE_STATUSES, TIMELINE_PHASES } from "./lifecycle";
 import type { EventStatus as LifecycleStatus } from "@symbola/contracts";
 import { listTeam } from "@symbola/auth";
 import { includingDeleted, SYSTEM_ACTOR, withActor } from "@symbola/db/actor";
@@ -40,6 +40,8 @@ import {
   insertDemoEvent,
   findEventActivity,
   findEventStatusChanges,
+  countTasksByEvent,
+  StatusChangedMeanwhileError,
   applyProgramTemplateRows,
   applyTaskTemplateRows,
   deleteProgramItem,
@@ -337,6 +339,8 @@ import type {
   EventsSearchResults,
   MonthlyCount,
   ChangeEventStatusInput,
+  MarkContractSignedInput,
+  EventTaskProgress,
   CreateProspectInput,
   CreateProspectResult,
   DefaultVendorSlot,
@@ -638,9 +642,22 @@ export async function listEvents(input: ListEventsInput): Promise<EventSummary[]
   });
   // Lot 58 (PAR-09, étape 5) : un évènement archivé sort des listes courantes, reste consultable.
   const archived = input.archived ?? "include";
-  return rows
+  const summaries = rows
     .filter(({ event }) => (archived === "include" ? true : archived === "only" ? event.archivedAt !== null : event.archivedAt === null))
     .map(({ event, clients }) => toEventSummary(event, clients));
+  if (!input.withTaskProgress) return summaries;
+  // Lot 72a (EVT-07, UX-01) : « Tâches faites » de la liste, en une requête groupée.
+  const progress = await taskProgressByEvent(input.organizationId, summaries.map((event) => event.id), parisToday());
+  return summaries.map((event) => ({ ...event, taskProgress: progress.get(event.id) ?? { done: 0, total: 0, late: 0 } }));
+}
+
+// Lot 72a (EVT-07, UX-01 ; critère 9) — tâches faites, total et en retard de chaque évènement demandé
+// (zéro pour un évènement sans tâche, ou d'une autre organisation : la base ne le lit pas).
+export async function taskProgressByEvent(organizationId: string, eventIds: string[], today: string): Promise<Map<string, EventTaskProgress>> {
+  assertDate(today);
+  const ids = [...new Set(eventIds)].filter((id) => UUID_PATTERN.test(id));
+  const counts = new Map((await countTasksByEvent(organizationId, ids, today)).map((row) => [row.eventId, { done: row.done, total: row.total, late: row.late }]));
+  return new Map(ids.map((id) => [id, counts.get(id) ?? { done: 0, total: 0, late: 0 }]));
 }
 
 // Lot 38b (HUB-29 ; D11) — les évènements du flux de calendrier de l'équipe : datés, ni essai, ni
@@ -738,7 +755,44 @@ export async function changeEventStatus(input: ChangeEventStatusInput): Promise<
 }
 
 export async function cancelEvent(input: { organizationId: string; eventId: string; changedByUserId: string; lossReasonId: string | null; lossReasonNote: string | null }): Promise<void> {
-  await changeEventStatus({ ...input, toStatus: "cancelled" });
+  // Lot 72a (migration 0224) : l'annulation est datée du jour, dans le fuseau de l'évènement.
+  await assertEventWritableRow(input.organizationId, input.eventId);
+  const found = await findEventById(input.organizationId, input.eventId);
+  if (!found) throw new EventNotFoundError();
+  if (found.event.status === "cancelled") throw new EventStatusTransitionError();
+  await updateEventStatus({ ...input, toStatus: "cancelled", effectiveOn: dateInTimeZone(new Date(), found.event.timeZone) });
+}
+
+// Lot 72a (EVT-05 ; E2, J2 ; critère 8) — « Le contrat est signé… » : une demande en cours (Option)
+// passe à « Confirmé » à la date de signature choisie. Refusée dans le futur (fuseau de l'évènement) et
+// plus d'un an avant la création de l'évènement ; aucune tâche n'est créée (la Synthèse propose ensuite le
+// rétroplanning). Un évènement d'une autre organisation répond comme un évènement inexistant.
+export class ContractSignedDateError extends Error {
+  constructor(readonly reason: "invalid" | "future" | "too_early") {
+    super("date de signature refusée");
+    this.name = "ContractSignedDateError";
+  }
+}
+
+const SIGNED_ON_MAX_YEARS_BEFORE_CREATION = 1;
+
+export async function markContractSigned(input: MarkContractSignedInput): Promise<void> {
+  await assertEventWritableRow(input.organizationId, input.eventId);
+  const found = await findEventById(input.organizationId, input.eventId);
+  if (!found) throw new EventNotFoundError();
+  const { event } = found;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.signedOn) || Number.isNaN(Date.parse(`${input.signedOn}T00:00:00Z`)) || new Date(`${input.signedOn}T00:00:00Z`).toISOString().slice(0, 10) !== input.signedOn) throw new ContractSignedDateError("invalid");
+  if (input.signedOn > dateInTimeZone(input.now ?? new Date(), event.timeZone)) throw new ContractSignedDateError("future");
+  const created = dateInTimeZone(event.createdAt, event.timeZone);
+  const earliest = `${Number(created.slice(0, 4)) - SIGNED_ON_MAX_YEARS_BEFORE_CREATION}${created.slice(4)}`;
+  if (input.signedOn < earliest) throw new ContractSignedDateError("too_early");
+  if (!canSetStatus(event.status, "confirmed") || event.status !== "option") throw new EventStatusTransitionError();
+  try {
+    await updateEventStatus({ organizationId: input.organizationId, eventId: input.eventId, changedByUserId: input.changedByUserId, toStatus: "confirmed", effectiveOn: input.signedOn, expectFrom: "option" });
+  } catch (error) {
+    if (error instanceof StatusChangedMeanwhileError) throw new EventStatusTransitionError();
+    throw error;
+  }
 }
 
 export async function reactivateEvent(input: { organizationId: string; eventId: string; changedByUserId: string }): Promise<void> {
@@ -3318,9 +3372,12 @@ export async function listPendingLinkRenewals(organizationId: string): Promise<{
 
 // Lot 13 (L13-EVT-19) — date (calendrier de Paris) du dernier passage dans
 // chaque statut : la frise de la fiche affiche la date de chaque étape.
+// Lot 72a (J2, migration 0224) : la date effective d'abord (« Signé le »), sinon le jour du changement
+// dans le fuseau de l'évènement.
 export async function getEventStatusDates(organizationId: string, eventId: string): Promise<EventStatusDates> {
   const dates: EventStatusDates = {};
-  for (const change of await findEventStatusChanges(organizationId, eventId)) dates[change.toStatus] = parisToday(change.changedAt);
+  const timeZone = (await readEvent(organizationId, eventId))?.event.timeZone ?? "Europe/Paris";
+  for (const change of await findEventStatusChanges(organizationId, eventId)) dates[change.toStatus] = change.effectiveOn ?? dateInTimeZone(change.changedAt, timeZone);
   return dates;
 }
 
@@ -3560,6 +3617,8 @@ const _contractCheck: EventsServiceContract = {
   getEvent,
   createProspect,
   changeEventStatus,
+  markContractSigned,
+  taskProgressByEvent,
   listProspectSources,
   createProspectSource,
   listLossReasons,
@@ -4602,7 +4661,7 @@ export async function closeEventWithBudget(input: { organizationId: string; even
   await assertEventWritableRow(input.organizationId, input.eventId);
   const event = await getEvent(input.organizationId, input.eventId);
   if (!event) throw new EventNotFoundError();
-  if (event.status === "confirmed" || event.status === "in_preparation") await changeEventStatus({ organizationId: input.organizationId, eventId: input.eventId, changedByUserId: input.userId, toStatus: "closed" });
+  if (event.status === "confirmed") await changeEventStatus({ organizationId: input.organizationId, eventId: input.eventId, changedByUserId: input.userId, toStatus: "closed" });
   return closeEventRow(input);
 }
 

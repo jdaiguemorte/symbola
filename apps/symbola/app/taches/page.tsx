@@ -59,7 +59,7 @@ type SearchParams = TaskScreenQuery & { tache?: string; nouvelle?: string; copie
 // 500 lignes à chaque affichage.
 const FIRST_LINES = 100;
 
-const IN_PROGRESS = new Set(["option", "confirmed", "in_preparation", "postponed"]);
+const IN_PROGRESS = new Set(["option", "confirmed", "postponed"]);
 
 // Les valeurs des listes des filtres, lues de l'adresse canonique.
 function filterValues(view: TaskScreenView): ScreenFilterValues {

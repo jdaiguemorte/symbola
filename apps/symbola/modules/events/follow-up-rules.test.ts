@@ -66,7 +66,7 @@ describe("CRM-06 — Aucune relance après une réponse ou un refus (D3)", () =>
     expect(followUpStopReason(facts({ lastAnsweredAt: later }))).toBe("answered");
     expect(followUpStopReason(facts({ lastStageChangeAt: later }))).toBe("stage_changed");
     expect(followUpStopReason(facts({ status: "confirmed" }))).toBe("confirmed");
-    expect(followUpStopReason(facts({ status: "in_preparation" }))).toBe("confirmed");
+    expect(followUpStopReason(facts({ status: "closed" }))).toBe("confirmed");
     expect(followUpStopReason(facts({ status: "cancelled" }))).toBe("lost");
     expect(followUpStopReason(facts({ lastProspectActionAt: later }))).toBe("prospect_action");
     expect(followUpStopReason(facts({ lastPlannerMessageAt: later }))).toBe("new_message");

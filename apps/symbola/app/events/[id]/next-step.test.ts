@@ -36,7 +36,7 @@ describe("L13-EVT-19 — Prochaine étape de la fiche événement", () => {
     expect(nextStep({ ...base, taskCount: 0, programItemCount: 0, eventDate: "2026-12-01", clientLinkCount: 0 })).toBe("apply_retroplanning");
   });
   it("en préparation : la suite de la préparation, comme un confirmé", () => {
-    expect(nextStep({ ...base, status: "in_preparation", clientLinkCount: 0 })).toBe("invite_clients");
+    expect(nextStep({ ...base, status: "confirmed", clientLinkCount: 0 })).toBe("invite_clients");
   });
   it("reporté, clôturé, annulé ou essai : pas de bandeau", () => {
     for (const status of ["postponed", "closed", "cancelled"] as const) expect(nextStep({ ...base, status, taskCount: 0 })).toBeNull();

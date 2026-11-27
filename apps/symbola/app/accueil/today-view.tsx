@@ -227,7 +227,7 @@ export async function MyEvents({ events, ranked, today, locale }: { events: Even
         <ul className="today-events">
           {active.map((event) => {
             const days = event.eventDate ? daysUntil(event.eventDate, today) : null;
-            const points = ranked.attentionByEvent.get(event.id) ?? 0;
+            const points = ranked.pointsByEvent.get(event.id) ?? 0;
             return (
               <li key={event.id} className="today-event">
                 <Link href={`/events/${event.id}`} className="today-item-title">

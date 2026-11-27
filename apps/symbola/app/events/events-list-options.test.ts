@@ -19,6 +19,6 @@ describe("L13-EVT-18 — Liste des événements : filtres", () => {
   });
 
   it("compte les événements à venir (option, confirmé, en préparation, reporté) et terminés (clôturé, annulé)", () => {
-    expect(tabCounts(["option", "confirmed", "closed", "cancelled", "postponed", "in_preparation"])).toEqual({ upcoming: 4, past: 2 });
+    expect(tabCounts(["option", "confirmed", "closed", "cancelled", "postponed", "confirmed"])).toEqual({ upcoming: 4, past: 2 });
   });
 });
