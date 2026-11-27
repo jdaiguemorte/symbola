@@ -124,7 +124,8 @@ test.describe("EVT-02 — La fiche d'un mariage repris (lot 71f)", () => {
     const panel = page.getByRole("dialog").or(page.locator(".side-panel")).first();
     await panel.getByLabel("Invités estimés").fill("120");
     await panel.getByRole("button", { name: "Enregistrer la fiche" }).click();
-    await page.goto(`/events/${setup.lea.eventId}`);
+    await expect(panel.getByText("Fiche enregistrée.")).toBeVisible();
+    // La fiche se relit sans rechargement : le point passe en bas, coché.
     await expect(checklist(page)).toContainText("6 points · 1 fait");
     await expect(page.locator(".takeover-point").last()).toHaveAttribute("data-point", "guests");
     await expect(point(page, "guests")).toContainText("Fait");
@@ -181,8 +182,8 @@ test.describe("EVT-02 — La fiche d'un mariage repris (lot 71f)", () => {
     const lea = page.getByRole("row", { name: /Léa & Hugo/ });
     await expect(lea.getByRole("link", { name: /Repris · 6 points à compléter/ })).toHaveAttribute("href", `/reprise/${setup.lea.takeoverId}`);
     await expect(page.getByRole("row", { name: /Léa & Maxime/ }).locator(".takeover-mark")).toHaveCount(0);
+    // Le filtre s'applique dès le choix.
     await page.getByLabel("Origine").selectOption("repris");
-    await page.getByRole("button", { name: "Filtrer" }).click();
     await expect(page).toHaveURL(/origine=repris/);
     await expect(page.getByRole("row", { name: /Léa & Hugo/ })).toBeVisible();
     await expect(page.getByRole("row", { name: /Léa & Maxime/ })).toHaveCount(0);
@@ -199,7 +200,7 @@ test.describe("EVT-02 — La fiche d'un mariage repris (lot 71f)", () => {
     const section = page.getByRole("region", { name: "Reprises en cours" });
     await expect(section).toContainText("Léa & Hugo");
     await expect(section).toContainText("6 points à compléter");
-    await expect(section.getByRole("link", { name: "Léa & Hugo" })).toHaveAttribute("href", `/events/${setup.lea.eventId}`);
+    await expect(section.getByRole("link", { name: "Léa & Hugo", exact: true })).toHaveAttribute("href", `/events/${setup.lea.eventId}`);
     await expect(section.getByRole("link", { name: "Voir ce qui reste pour Léa & Hugo" })).toHaveAttribute("href", `/events/${setup.lea.eventId}#a-completer`);
     await expect(page.getByRole("main")).not.toContainText("à faire signer");
     await expectNoSideScroll(page);
