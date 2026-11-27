@@ -7162,3 +7162,299 @@
     @apply text-critical underline;
   }
 }
+
+/* Lot 70d (CHR-02, CHR-03, CHR-10, UX-07, UX-08, UX-12, UX-15 ; C-31, C-33, C-37, C-40, D1, M2, M8 ; page 2
+   des maquettes du lot 68) — l'écran « Tâches » : la barre de filtres de DESIGN.md (libellé au-dessus, même
+   hauteur) et ses pastilles « × » ; la ligne du décompte, « Grouper par », « Liste / Calendrier » et
+   « Sélectionner » (bouton discret) ; la barre de sélection collée au bas de la liste, sans la pousser :
+   bord d'encre, ombre, nombre de tâches en tête, boutons de taille normale (réserve de Julien sur M2) ;
+   les tâches faites, en gris, sans barré. Sur téléphone, la liste passe avant les filtres (« Filtres »,
+   « Mes tâches »), leur panneau s'ouvre en bas, « Nouvelle tâche » flotte en bas à droite, et la barre de
+   sélection se pose en bas de l'écran. Une option active est en encre, plus en fond vert pâle (M8). */
+@layer components {
+  .task-screen {
+    @apply pb-4;
+  }
+  .task-screen-list {
+    @apply mt-4;
+  }
+  /* D1 : une tâche faite reste lisible, en gris, sans barré. */
+  .task-line[data-done="true"] .task-title-link {
+    @apply text-ink-muted;
+    text-decoration-line: underline;
+  }
+  .task-board-tools {
+    @apply flex min-h-11 flex-wrap items-center justify-between gap-x-4 gap-y-2;
+  }
+  .task-board-summary {
+    @apply min-w-0;
+  }
+  .task-board-options,
+  .task-board-select {
+    @apply flex flex-wrap items-center gap-3;
+  }
+  .task-count {
+    @apply m-0 text-body text-ink-muted;
+  }
+  .task-select-button {
+    @apply text-ink;
+  }
+  .task-group-by {
+    @apply m-0 flex w-auto max-w-none flex-row items-center gap-2 text-label text-ink-muted;
+  }
+  .task-group-by select {
+    @apply w-auto;
+  }
+  .task-lines-group-link {
+    @apply ml-auto text-label font-normal;
+  }
+  .task-lines-month {
+    @apply flex-wrap;
+  }
+  .task-lines-month .task-lines-count {
+    @apply whitespace-nowrap;
+  }
+  @media (max-width: 639px) {
+    .task-lines-group-link {
+      @apply inline-flex min-h-11 items-center;
+    }
+  }
+  .task-line-ticked {
+    @apply hidden;
+  }
+
+  /* Les filtres. */
+  .task-screen-filters {
+    @apply mb-2;
+  }
+  .task-filters-desktop {
+    @apply flex flex-nowrap;
+  }
+  /* Les cinq filtres sur une ligne, à parts égales (maquette, page 2). */
+  .task-filters-desktop .task-filter {
+    @apply min-w-32 flex-1;
+  }
+  .task-filters-desktop .task-filter select {
+    @apply w-full;
+  }
+  @media (max-width: 1023px) {
+    .task-filters-desktop {
+      @apply flex-wrap;
+    }
+  }
+  .task-mine {
+    @apply self-end;
+  }
+  .task-mine[aria-current="true"],
+  .task-chip[aria-current="true"] {
+    @apply border-ink bg-ink text-on-primary hover:text-on-primary;
+  }
+  .task-chips {
+    @apply m-0 mb-2 flex list-none flex-wrap items-center gap-2 p-0;
+  }
+  .task-chip {
+    @apply inline-flex min-h-9 items-center gap-1 rounded-full border border-line-strong bg-surface px-3 text-label font-medium text-ink no-underline hover:border-ink hover:text-ink;
+  }
+  .task-chips-clear {
+    @apply inline-flex min-h-9 items-center text-label;
+  }
+  .task-filters-phone {
+    @apply hidden;
+  }
+  .task-filters-count {
+    @apply ml-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-ink px-1 text-label text-on-primary;
+  }
+  .task-filters-sheet {
+    @apply m-0 mt-auto max-h-[85dvh] w-full max-w-none overflow-y-auto rounded-t-lg border border-line bg-surface p-4 pb-6 text-ink shadow-float;
+  }
+  .task-filters-sheet:not([open]) {
+    @apply hidden;
+  }
+  .task-filters-sheet::backdrop {
+    background: color-mix(in srgb, var(--color-ink) 35%, transparent);
+  }
+  .task-filters-sheet-head {
+    @apply mb-3 flex items-center gap-3;
+  }
+  .task-filters-sheet-head h2 {
+    @apply m-0 mr-auto text-heading;
+  }
+  .task-quick {
+    @apply m-0 mb-3 flex list-none flex-wrap gap-2 p-0;
+  }
+  .task-filters-sheet-fields {
+    @apply flex flex-col gap-3;
+  }
+  .task-filters-sheet-fields .task-filter,
+  .task-filters-sheet-fields .task-group-by {
+    @apply w-full min-w-0 flex-col items-stretch gap-1;
+  }
+  .task-filters-sheet-fields .task-group-by select {
+    @apply w-full;
+  }
+  .task-filters-show {
+    @apply mt-4 w-full justify-center;
+  }
+  .task-filters-display {
+    @apply mt-3;
+  }
+
+  /* États vides et mariage repris. */
+  .task-empty {
+    @apply my-4;
+  }
+  .task-to-check {
+    @apply my-3 border border-line bg-surface text-ink;
+  }
+  .task-to-check p {
+    @apply m-0;
+  }
+  .task-to-check p + p {
+    @apply mt-2;
+  }
+
+  /* La barre de sélection. */
+  .task-board[data-selecting="true"] .task-lines {
+    @apply pb-2;
+  }
+  .task-bulk {
+    @apply sticky bottom-2 z-20 my-3 flex flex-row flex-wrap items-center gap-x-4 gap-y-2 rounded-md border-2 border-ink bg-surface px-4 py-3 shadow-float;
+  }
+  .task-bulk-count {
+    @apply m-0 mr-auto text-body-strong;
+  }
+  .task-bulk-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+  .task-bulk-short,
+  .task-bulk-narrow {
+    @apply hidden;
+  }
+  .task-bulk-more {
+    @apply min-w-11 justify-center;
+  }
+  .task-bulk-panel {
+    @apply w-96;
+  }
+  .task-bulk-form {
+    @apply m-0 flex max-w-none flex-col gap-2 px-2 pb-1;
+  }
+  .task-bulk-choice {
+    @apply m-0 flex min-h-11 w-full max-w-none flex-row items-center gap-2 text-body;
+  }
+  .task-bulk-choice input[type="radio"] {
+    @apply h-5 w-5;
+  }
+  .task-bulk-days {
+    @apply w-20;
+  }
+  .task-bulk-choice input[type="date"] {
+    @apply w-auto;
+  }
+  .task-bulk-form-actions {
+    @apply flex justify-end gap-2 border-t border-line pt-2;
+  }
+
+  @media (max-width: 639px) {
+    .task-filters-desktop {
+      @apply hidden;
+    }
+    .task-filters-phone {
+      @apply flex flex-wrap items-center gap-2;
+    }
+    .task-chip,
+    .task-chips-clear {
+      @apply min-h-11;
+    }
+    .task-board-tools {
+      @apply mt-2;
+    }
+    .task-board-options .task-group-by,
+    .task-board-options .segmented {
+      @apply hidden;
+    }
+    /* « Nouvelle tâche » flotte en bas à droite (au-dessus de la future barre du bas, paquet 70f). */
+    .task-new-button {
+      @apply fixed right-4 z-20 shadow-float;
+      bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
+    .task-screen:has(.task-board[data-selecting="true"]) .task-new-button {
+      @apply hidden;
+    }
+    /* La liste avant les filtres, sans carte autour : la première tâche arrive vite (critère 9 du 70c). */
+    .app-main > main.task-screen > .task-screen-list {
+      @apply my-0 rounded-none border-0 bg-transparent p-0;
+    }
+    .task-screen .page-header {
+      @apply mb-1 flex-nowrap items-center;
+    }
+    .task-screen .page-header h1 {
+      @apply m-0;
+    }
+    .task-screen .page-header .meta {
+      @apply hidden;
+    }
+    .task-screen .task-board-tools {
+      @apply mt-1 flex-nowrap;
+    }
+    .task-screen .task-count {
+      @apply text-label;
+    }
+    .task-screen .task-board,
+    .task-screen .task-lines {
+      @apply mt-0;
+    }
+    .task-screen .task-lines-head + .task-lines-group .task-lines-month {
+      @apply mt-1;
+    }
+    .task-screen .task-screen-filters {
+      @apply mb-0;
+    }
+    /* La date de l'échéance sur toute la largeur, sous « Fait » et « ⋯ » : rien n'est coupé. */
+    .task-screen .task-line:not(:has(> .task-line-select)) {
+      grid-template-areas:
+        "title title actions"
+        "event who actions"
+        "due due due";
+    }
+    /* La place de « Nouvelle tâche », qui flotte : la dernière ligne reste visible. */
+    .task-screen {
+      @apply mb-12 pb-12;
+    }
+    .task-line-done-on .task-line-date,
+    .task-line-done-on .task-state {
+      @apply hidden;
+    }
+    .task-line-ticked {
+      @apply inline;
+    }
+    /* En mode sélection, la barre se pose en bas de l'écran, de toute la largeur. */
+    .task-bulk {
+      @apply fixed inset-x-0 bottom-0 m-0 rounded-none rounded-t-lg border-x-0 border-b-0 px-3 py-2;
+      padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+    }
+    .task-bulk-actions {
+      @apply w-full flex-nowrap justify-between gap-1;
+    }
+    .task-bulk-actions > button {
+      @apply min-h-11 flex-1 justify-center px-2;
+    }
+    .task-bulk-long,
+    .task-bulk-wide {
+      @apply hidden;
+    }
+    .task-bulk-short {
+      @apply inline;
+    }
+    .task-bulk-narrow {
+      @apply flex;
+    }
+    .task-bulk-panel {
+      @apply w-full;
+    }
+    /* La place de la barre de sélection, posée en bas de l'écran. */
+    .task-board[data-selecting="true"] {
+      @apply mb-12 pb-12;
+    }
+  }
+}

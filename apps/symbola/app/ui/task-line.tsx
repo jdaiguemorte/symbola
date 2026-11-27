@@ -20,7 +20,9 @@ import { TaskDatePanel, type DateShortcutOption } from "./task-date-panel";
 import { TaskAssignPanel, type AssignOption } from "./task-assign-panel";
 import { TaskPopover, usePopover } from "./task-popover";
 
-export type TaskLineGroup = { key: string; label: string; lines: TaskLineView[] };
+// Lot 70d : un en-tête de groupe peut dire autre chose que son nombre de tâches (« 12 juin 2027 · 2 tâches »,
+// « 2 en retard · 6 à faire ») et mener ailleurs (« Ouvrir la fiche »).
+export type TaskLineGroup = { key: string; label: string; lines: TaskLineView[]; detail?: string; link?: { href: string; label: string } };
 
 function DueIcon({ icon }: { icon: "late" | "clock" | null }) {
   if (icon === "late") return <span className="task-state-icon" aria-hidden="true">!</span>;
@@ -128,6 +130,7 @@ export function TaskLine({
   selecting = false,
   selected = false,
   onSelect,
+  doneColumns = false,
 }: {
   line: TaskLineView;
   form: TaskLineForm;
@@ -136,9 +139,12 @@ export function TaskLine({
   selecting?: boolean;
   selected?: boolean;
   onSelect?: () => void;
+  // Lot 70d (D1) : la vue « Faites » : « Faite le » et « Cochée par » à la place de l'échéance et de la personne.
+  doneColumns?: boolean;
 }) {
   const t = useTranslations("TaskLine");
   const parts = lineParts(form);
+  const done = doneColumns ? line.doneInfo : null;
   return (
     <li className="task-line" data-form={form} data-due={line.due?.kind ?? undefined} data-done={line.done ? "true" : undefined} data-selected={selected ? "true" : undefined}>
       {selecting ? (
@@ -169,21 +175,40 @@ export function TaskLine({
           )}
         </span>
       ) : null}
-      <span className="task-line-due">
-        <span className="task-line-date">{line.dateLabel}</span>
-        {line.due ? (
-          <span className="task-state" data-kind={line.due.kind}>
-            <DueIcon icon={line.due.icon} />
-            {line.due.text}
+      {done ? (
+        <>
+          <span className="task-line-due task-line-done-on">
+            <span className="task-line-date">{t("doneAtTime", { date: done.date, time: done.time })}</span>
+            <span className="task-state">{t("dueOn", { date: line.dateLabel })}</span>
+            {/* Sur téléphone : « Cochée à 14 h 40 par vous ». */}
+            <span className="task-line-ticked">{done.byInSentence ? t("tickedAt", { time: done.time, who: done.byInSentence }) : t("tickedAtUnknown", { time: done.time })}</span>
           </span>
-        ) : null}
-      </span>
-      <span className="task-line-who">
-        <span className="task-avatar" aria-hidden="true">
-          {line.who.initials ?? "–"}
-        </span>
-        <span className="task-who-name">{line.who.name}</span>
-      </span>
+          <span className="task-line-who">
+            <span className="task-avatar" aria-hidden="true">
+              {done.initials ?? "–"}
+            </span>
+            <span className="task-who-name">{done.by ?? t("doneByUnknown")}</span>
+          </span>
+        </>
+      ) : (
+        <>
+          <span className="task-line-due">
+            <span className="task-line-date">{line.dateLabel}</span>
+            {line.due ? (
+              <span className="task-state" data-kind={line.due.kind}>
+                <DueIcon icon={line.due.icon} />
+                {line.due.text}
+              </span>
+            ) : null}
+          </span>
+          <span className="task-line-who">
+            <span className="task-avatar" aria-hidden="true">
+              {line.who.initials ?? "–"}
+            </span>
+            <span className="task-who-name">{line.who.name}</span>
+          </span>
+        </>
+      )}
       {selecting ? null : (
         <span className="task-line-actions">
           <TaskDoneButton taskId={line.id} label={line.label} done={line.done} />
@@ -203,6 +228,7 @@ export function TaskLineList({
   selecting = false,
   selected,
   onToggle,
+  doneColumns = false,
 }: {
   groups: TaskLineGroup[];
   form: TaskLineForm;
@@ -213,6 +239,7 @@ export function TaskLineList({
   selecting?: boolean;
   selected?: Set<string>;
   onToggle?: (id: string) => void;
+  doneColumns?: boolean;
 }) {
   const t = useTranslations("TaskLine");
   const parts = lineParts(form);
@@ -223,15 +250,20 @@ export function TaskLineList({
         <div className="task-lines-head" aria-hidden="true" id={headId}>
           <span>{t("colTask")}</span>
           {parts.eventColumn ? <span>{t("colEvent")}</span> : null}
-          <span>{t("colDue")}</span>
-          <span>{t("colWho")}</span>
+          <span>{doneColumns ? t("colDoneOn") : t("colDue")}</span>
+          <span>{doneColumns ? t("colTickedBy") : t("colWho")}</span>
         </div>
       )}
       {groups.map((group) => (
         <div key={group.key} className="task-lines-group">
           {group.label ? (
             <h3 className="task-lines-month">
-              {group.label} <span className="task-lines-count">{t("monthCount", { count: group.lines.length })}</span>
+              {group.label} <span className="task-lines-count">{group.detail ?? t("monthCount", { count: group.lines.length })}</span>
+              {group.link ? (
+                <Link href={group.link.href} className="task-lines-group-link">
+                  {group.link.label}
+                </Link>
+              ) : null}
             </h3>
           ) : null}
           <ul className="task-lines-list" aria-label={group.label ? t("listLabel", { group: group.label }) : label}>
@@ -244,6 +276,7 @@ export function TaskLineList({
                 assignOptions={assignOptions[line.eventId ?? "none"] ?? assignOptions.none ?? []}
                 selecting={selecting}
                 selected={selected?.has(line.id) ?? false}
+                doneColumns={doneColumns}
                 {...(onToggle ? { onSelect: () => onToggle(line.id) } : {})}
               />
             ))}
