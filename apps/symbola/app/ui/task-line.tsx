@@ -13,7 +13,7 @@ import Link from "next/link";
 import { useRef, useState, useTransition, type KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { lineParts, nameInitials, type TaskLineForm, type TaskLineView } from "@/lib/tasks/task-line";
+import { lineParts, type TaskLineForm, type TaskLineView } from "@/lib/tasks/task-line";
 import { deleteTaskAction } from "@/app/taches/task-row-actions";
 import { TaskDoneButton } from "./task-done-button";
 import { TaskDatePanel, type DateShortcutOption } from "./task-date-panel";
@@ -185,7 +185,7 @@ export function TaskLine({
           </span>
           <span className="task-line-who">
             <span className="task-avatar" aria-hidden="true">
-              {done.by ? nameInitials(done.by) : "–"}
+              {done.initials ?? "–"}
             </span>
             <span className="task-who-name">{done.by ?? t("doneByUnknown")}</span>
           </span>

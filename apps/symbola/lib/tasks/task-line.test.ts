@@ -108,7 +108,7 @@ describe("Lot 70d, D1 — une tâche faite dit quand et par qui elle a été coc
 
   it("faite par vous, par un collègue, par les mariés ; « non connu » ne nomme personne (A9)", () => {
     const at = "2026-11-25T13:40:00.000Z";
-    expect(buildTaskLine(task({ done: true, doneAt: at, doneBy: { kind: "member", userId: ME } }), done).doneInfo).toEqual({ day: "2026-11-25", date: "le 2026-11-25", time: "14 h 40", by: "you", byInSentence: "doneByYou" });
+    expect(buildTaskLine(task({ done: true, doneAt: at, doneBy: { kind: "member", userId: ME } }), done).doneInfo).toEqual({ day: "2026-11-25", date: "le 2026-11-25", time: "14 h 40", by: "you", byInSentence: "doneByYou", initials: "CR" });
     expect(buildTaskLine(task({ done: true, doneAt: at, doneBy: { kind: "member", userId: BASTIEN } }), done).doneInfo?.by).toBe("Bastien");
     expect(buildTaskLine(task({ done: true, doneAt: at, doneBy: { kind: "clients", userId: null } }), done).doneInfo).toMatchObject({ by: "Les mariés", byInSentence: "les mariés" });
     expect(buildTaskLine(task({ done: true, doneAt: at, doneBy: null }), done).doneInfo?.by).toBeNull();

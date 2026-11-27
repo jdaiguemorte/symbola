@@ -6972,6 +6972,17 @@
   .task-lines-group-link {
     @apply ml-auto text-label font-normal;
   }
+  .task-lines-month {
+    @apply flex-wrap;
+  }
+  .task-lines-month .task-lines-count {
+    @apply whitespace-nowrap;
+  }
+  @media (max-width: 639px) {
+    .task-lines-group-link {
+      @apply inline-flex min-h-11 items-center;
+    }
+  }
   .task-line-ticked {
     @apply hidden;
   }
@@ -6981,7 +6992,19 @@
     @apply mb-2;
   }
   .task-filters-desktop {
-    @apply flex;
+    @apply flex flex-nowrap;
+  }
+  /* Les cinq filtres sur une ligne, à parts égales (maquette, page 2). */
+  .task-filters-desktop .task-filter {
+    @apply min-w-32 flex-1;
+  }
+  .task-filters-desktop .task-filter select {
+    @apply w-full;
+  }
+  @media (max-width: 1023px) {
+    .task-filters-desktop {
+      @apply flex-wrap;
+    }
   }
   .task-mine {
     @apply self-end;

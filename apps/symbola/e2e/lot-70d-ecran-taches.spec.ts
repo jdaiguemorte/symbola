@@ -131,6 +131,12 @@ test.describe("Lot 70d — l'écran « Tâches »", () => {
     await expect(panel).toBeVisible();
     await expect(panel.getByRole("button", { name: "Créer la tâche" })).toBeVisible();
     await expect(panel.getByLabel("Évènement")).toHaveValue("");
+    // « + Créer › Tâche » (lot 70e) ouvre le même panneau, et depuis une fiche, l'évènement est choisi.
+    await page.goto(`/events/${setup.lea}`);
+    await page.getByRole("button", { name: "Créer", exact: true }).click();
+    await page.getByRole("link", { name: /^Tâche pour Léa & Maxime/ }).click();
+    await expect(page).toHaveURL(new RegExp(`/taches\\?nouvelle=1&evenement=${setup.lea}`));
+    await expect(page.getByRole("dialog", { name: "Nouvelle tâche" }).getByLabel("Évènement")).toHaveValue(setup.lea);
   });
 
   test("CHR-03 crit. 2 — chaque filtre a un nom ; une pastille par filtre posé ; « Effacer les filtres » ; gardés au calendrier et au retour d'une fiche", async ({ page }) => {

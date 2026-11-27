@@ -89,7 +89,7 @@ export type TaskLineContext = {
 // est sûr (A9) : sinon, rien.
 // `by` : en tête de colonne (« Vous », « Bastien », « Les mariés ») ; `byInSentence` : dans « Cochée à 14 h 40
 // par vous » (« vous », « Bastien », « les mariés »).
-export type TaskLineDone = { day: string; date: string; time: string; by: string | null; byInSentence: string | null };
+export type TaskLineDone = { day: string; date: string; time: string; by: string | null; byInSentence: string | null; initials: string | null };
 
 export type TaskLineView = {
   id: string;
@@ -112,19 +112,20 @@ export type TaskLineView = {
   doneInfo: TaskLineDone | null;
 };
 
-function doneByName(task: TaskLineSource, context: TaskLineContext): { by: string; byInSentence: string } | null {
+function doneByName(task: TaskLineSource, context: TaskLineContext): { by: string; byInSentence: string; initials: string } | null {
   const by = task.doneBy;
   if (!by) return null;
   if (by.kind === "clients") {
     const clients = context.clientsLabel(task.eventId);
-    return { by: clients, byInSentence: clients.toLocaleLowerCase("fr") };
+    return { by: clients, byInSentence: clients.toLocaleLowerCase("fr"), initials: nameInitials(clients) };
   }
-  if (by.kind === "vendor") return { by: context.t("doneByVendorName"), byInSentence: context.t("doneByVendor") };
+  if (by.kind === "vendor") return { by: context.t("doneByVendorName"), byInSentence: context.t("doneByVendor"), initials: nameInitials(context.t("doneByVendorName")) };
   const member = by.userId ? context.members.find((candidate) => candidate.id === by.userId) : undefined;
   if (!member) return null;
-  if (member.me) return { by: context.t("you"), byInSentence: context.t("doneByYou") };
+  const initials = member.initials ?? nameInitials(member.name);
+  if (member.me) return { by: context.t("you"), byInSentence: context.t("doneByYou"), initials };
   const name = member.shortName ?? member.name;
-  return { by: name, byInSentence: name };
+  return { by: name, byInSentence: name, initials };
 }
 
 function whoOf(task: TaskLineSource, context: TaskLineContext): { name: string; initials: string | null } {
@@ -153,7 +154,7 @@ export function responsibleValueOf(task: Pick<TaskLineSource, "responsible" | "v
 
 function doneInfoOf(task: TaskLineSource, doneAt: string, format: NonNullable<TaskLineContext["formatDone"]>, context: TaskLineContext): TaskLineDone {
   const who = doneByName(task, context);
-  return { ...format(doneAt), by: who?.by ?? null, byInSentence: who?.byInSentence ?? null };
+  return { ...format(doneAt), by: who?.by ?? null, byInSentence: who?.byInSentence ?? null, initials: who?.initials ?? null };
 }
 
 export function buildTaskLine(task: TaskLineSource, context: TaskLineContext): TaskLineView {
