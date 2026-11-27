@@ -3,6 +3,8 @@
 // prochaine échéance ; l'engagé en pastille et en sous-total « dont engagé ». Règles pures, testées
 // avec une horloge simulée (`today`, date de Paris).
 import type { BudgetLine, BudgetLineAttachment, EventVendorSlot, VendorPayment } from "@symbola/contracts";
+// Fichier sans base du module Budget : ce calcul sert aussi dans les composants du navigateur.
+import { slotActualCents } from "@/modules/budget/actual";
 
 export type RowPayment = VendorPayment & { lineLabel: string; late: boolean };
 export type RowAttachment = BudgetLineAttachment & { lineId: string; lineLabel: string };
@@ -51,7 +53,8 @@ export function buildBudgetVendorRows(slots: EventVendorSlot[], categories: { ev
     const lines = categories.find((category) => category.eventVendorSlotId === slot.id)?.lines ?? [];
     const plannedCents = sumOf(lines.map((line) => line.estimatedAmountCents));
     const retained = sumOf(slot.retainedVendors.map((vendor) => vendor.quoteAmountCents));
-    const actualCents = sumOf(lines.map((line) => line.quotedAmountCents ?? line.committedAmountCents)) ?? retained;
+    // Lot 73a (P9) : le même calcul que le montant d'un mariage sur la fiche d'un prestataire.
+    const actualCents = slotActualCents(lines) ?? retained;
     const paidCents = sumOf(lines.map((line) => line.paidAmountCents)) ?? 0;
     const payments = lines
       .flatMap((line) => line.payments.map((payment) => ({ ...payment, lineLabel: line.label, late: payment.status !== "paid" && payment.dueOn < today })))
