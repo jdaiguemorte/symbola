@@ -65,6 +65,14 @@
     "hiddenFromClients": {
       "type": "boolean"
     },
+    "timing": {
+      "type": "string",
+      "enum": [
+        "span",
+        "point",
+        "marker"
+      ]
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
@@ -135,6 +143,7 @@
     "responsible",
     "keyMomentId",
     "hiddenFromClients",
+    "timing",
     "createdAt",
     "updatedAt",
     "createdBy",
