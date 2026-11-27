@@ -554,6 +554,16 @@ cite son tag (contrôle de la CI, `packages/db/src/migration-compatibility.test.
   reprise appliquée ne se défait pas d'elle-même (les types fusionnés n'existent plus) : prendre la
   sauvegarde du déploiement si elle doit l'être.
 
+- **`0225_lot72a_events_drop_in_preparation`** (lot 72a, EVT-05, décision J1, ADR 0121) : le statut
+  « En préparation » disparaît. La migration passe à « Confirmé » les évènements, les reports en cours
+  et les lignes d'historique qui le portaient, puis recrée l'énumération `events.event_status` sans
+  lui. L'ancienne version de l'app peut encore écrire cette valeur (frise) : `deploy.sh` arrête
+  `symbola` le temps de la migration (quelques secondes). Rien ne se perd : aucune règle ne distinguait
+  les deux statuts. **Retour arrière** : `pnpm --filter @symbola/db rollback --
+  0225_lot72a_events_drop_in_preparation` remet la valeur dans l'énumération (les évènements convertis
+  restent « Confirmé »), puis l'image précédente. `0224_lot72a_events_status_effective_date` ajoute
+  seulement une colonne facultative.
+
 ### Migrations livrées avant le lot 40a (déploiement d'ensemble)
 
 `deploy.sh` les applique d'un coup, `symbola` arrêté pendant ce temps :

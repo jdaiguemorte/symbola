@@ -1527,6 +1527,20 @@
       "when": 1795698617509,
       "tag": "0217_lot70a_hub_notification_task_assigned",
       "breakpoints": true
+    },
+    {
+      "idx": 224,
+      "version": "7",
+      "when": 1795777355092,
+      "tag": "0224_lot72a_events_status_effective_date",
+      "breakpoints": true
+    },
+    {
+      "idx": 225,
+      "version": "7",
+      "when": 1795777363823,
+      "tag": "0225_lot72a_events_drop_in_preparation",
+      "breakpoints": true
     }
   ]
 }

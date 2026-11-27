@@ -29,10 +29,10 @@ export const pipelineStages = eventsSchema.table(
   (table) => [index("pipeline_stages_organization_idx").on(table.organizationId), check("pipeline_stages_label_check", sql`char_length(${table.label}) between 1 and 60`)],
 );
 
+// Lot 72a (J1, ADR 0121, migration 0225) : « En préparation » retiré ; un évènement signé est « confirmed ».
 export const eventStatusEnum = eventsSchema.enum("event_status", [
   "option",
   "confirmed",
-  "in_preparation",
   "closed",
   "postponed",
   "cancelled",
