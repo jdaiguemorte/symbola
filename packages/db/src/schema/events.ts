@@ -234,6 +234,10 @@ export const eventStatusHistory = eventsSchema.table("event_status_history", {
   // par le formulaire de contact public).
   changedByUserId: uuid("changed_by_user_id"),
   changedAt: timestamp("changed_at", { withTimezone: true }).defaultNow().notNull(),
+  // Lot 72a (EVT-05 ; E2, J2, migration 0224) : la date effective du changement, quand elle n'est pas le
+  // jour du clic (« Signé le », un contrat signé sur papier) ; posée aussi à l'annulation. Nulle pour les
+  // lignes d'avant : elles se lisent à changed_at, dans le fuseau de l'évènement.
+  effectiveOn: date("effective_on"),
   // Lot 23 (DAT-06) : auteur et dates de la ligne (core.stamp_row).
   createdBy: uuid("created_by"),
 }, (table) => [index("event_status_history_organization_idx").on(table.organizationId)]);

@@ -5,7 +5,10 @@ import { z } from "zod";
 // Lot 34a (EVT-05, ADR 0055, D2) — statuts stockés du cycle de vie ; « Jour J » s'affiche de
 // lui-même et n'est jamais publié. Version 2 des deux événements ; un événement de version 1 reste
 // lisible, ses statuts traduits par la correspondance de D2.
-export const EVENT_STATUSES = ["option", "confirmed", "in_preparation", "closed", "postponed", "cancelled"] as const;
+// Lot 72a (J1, ADR 0121) : « En préparation » (in_preparation) est retiré. Un événement déjà publié qui le
+// porte reste lisible : il se lit « confirmed » (EVENT_STATUSES_READ). Aucun événement ne le publie plus.
+export const EVENT_STATUSES = ["option", "confirmed", "closed", "postponed", "cancelled"] as const;
+const RETIRED_STATUS = "in_preparation";
 export const EVENT_STATUSES_V1 = ["prospect", "quote_sent", "confirmed", "done", "lost"] as const;
 type EventStatusValue = (typeof EVENT_STATUSES)[number];
 type EventStatusV1 = (typeof EVENT_STATUSES_V1)[number];
@@ -18,6 +21,9 @@ const V1_TO_V2: Record<EventStatusV1, EventStatusValue> = {
   lost: "cancelled",
 };
 
+// Statut lu dans le journal (version 2) : la valeur retirée se lit « confirmed ».
+const storedStatusSchema = z.enum([...EVENT_STATUSES, RETIRED_STATUS]).transform((status): EventStatusValue => (status === RETIRED_STATUS ? "confirmed" : status));
+
 export function eventStatusFromV1(status: EventStatusV1): EventStatusValue {
   return V1_TO_V2[status];
 }
@@ -27,7 +33,7 @@ export const EVT_EVENT_CREATED_VERSION = 2;
 
 export const eventCreatedPayloadSchema = z.object({
   eventId: z.string().uuid(),
-  status: z.enum(EVENT_STATUSES),
+  status: storedStatusSchema,
 });
 
 export type EventCreatedPayload = z.infer<typeof eventCreatedPayloadSchema>;
@@ -43,8 +49,8 @@ export const EVT_EVENT_STATUS_CHANGED_VERSION = 2;
 
 export const eventStatusChangedPayloadSchema = z.object({
   eventId: z.string().uuid(),
-  fromStatus: z.enum(EVENT_STATUSES).nullable(),
-  toStatus: z.enum(EVENT_STATUSES),
+  fromStatus: storedStatusSchema.nullable(),
+  toStatus: storedStatusSchema,
   changedByUserId: z.string().uuid(),
 });
 
