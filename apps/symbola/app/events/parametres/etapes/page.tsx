@@ -1,6 +1,8 @@
 // Lot 44 (CRM-02 ; D9 ; ADR 0084) — Paramètres › Étapes du pipeline : la liste de l'organisation,
 // copiée des données de départ, que la titulaire renomme, complète, réordonne et réduit (une à dix).
 // Une étape n'est qu'un repère à l'intérieur du statut Option : « Gagné » et « Perdu » n'en sont pas.
+// Lot 74g (§ 7.1) : « Demandes : étapes et formulaire de contact », une rubrique, deux blocs ; l'ancienne
+// adresse du formulaire (/events/parametres/contact) mène au second (#contact). Le patron vient au 74i.
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { listPipelineStages, PIPELINE_MAX_STAGES, PIPELINE_MIN_STAGES } from "@/modules/events/service";
@@ -9,6 +11,7 @@ import { ScreenHelp } from "@/app/screen-help";
 import { isEventsModuleEnabled } from "../../module-access";
 import { addStageAction } from "./actions";
 import { StageList } from "./stage-list";
+import { ContactFormBlock } from "../contact/contact-form-block";
 
 const REFUSALS = ["label", "too_many", "too_few", "not_found", "not_empty", "destination"] as const;
 
@@ -16,10 +19,12 @@ export default async function PipelineStagesSettingsPage({ searchParams }: { sea
   const auth = await requireOwner();
   const t = await getTranslations("Pipeline.settings");
   const tHelp = await getTranslations("Help");
+  const tMenu = await getTranslations("SettingsMenu");
+  const title = tMenu("rubrics.pipeline.label");
   if (!auth) {
     return (
       <main>
-        <h1>{t("title")}</h1>
+        <h1>{title}</h1>
         <p>{t("ownerOnly")}</p>
       </main>
     );
@@ -28,7 +33,7 @@ export default async function PipelineStagesSettingsPage({ searchParams }: { sea
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
       <main>
-        <h1>{t("title")}</h1>
+        <h1>{title}</h1>
         <p>{t("moduleUnavailable")}</p>
       </main>
     );
@@ -40,8 +45,10 @@ export default async function PipelineStagesSettingsPage({ searchParams }: { sea
 
   return (
     <main>
-      <h1>{t("title")}</h1>
-      <ScreenHelp title={tHelp("eventsPipelineStages.title")} body={tHelp("eventsPipelineStages.body")} />
+      <h1>{title}</h1>
+      <ScreenHelp title={tHelp("eventsPipelineStages.title")} body={`${tHelp("eventsPipelineStages.body")} ${tHelp("eventsContactForm.body")}`} />
+      <section aria-labelledby="stages-title" className="settings-block">
+      <h2 id="stages-title">{t("title")}</h2>
       <p>{t("intro", { min: PIPELINE_MIN_STAGES, max: PIPELINE_MAX_STAGES })}</p>
       <p>
         <Link href="/events/pipeline">{t("back")}</Link>
@@ -49,14 +56,14 @@ export default async function PipelineStagesSettingsPage({ searchParams }: { sea
       {refusal ? <p role="alert">{t(`refusal.${refusal}`)}</p> : null}
       {/* Lot 62b (UX-13, D1) : tableau éditable, enregistré à la sortie du champ. */}
       <section className="card" aria-labelledby="pipeline-stages-title">
-        <h2 id="pipeline-stages-title" className="sr-only">
+        <h3 id="pipeline-stages-title" className="sr-only">
           {t("tableLabel")}
-        </h2>
+        </h3>
         <StageList stages={stages.map((stage) => ({ id: stage.id, label: stage.label, cardCount: stage.cardCount }))} minimum={PIPELINE_MIN_STAGES} />
       </section>
       {stages.length < PIPELINE_MAX_STAGES ? (
         <section className="card" aria-labelledby="pipeline-stage-new">
-          <h2 id="pipeline-stage-new">{t("newStage")}</h2>
+          <h3 id="pipeline-stage-new">{t("newStage")}</h3>
           <form action={addStageAction} className="form-inline">
             <label>
               {t("newStageName")}
@@ -66,6 +73,10 @@ export default async function PipelineStagesSettingsPage({ searchParams }: { sea
           </form>
         </section>
       ) : null}
+      </section>
+      <section id="contact" aria-labelledby="contact-title" className="settings-block">
+        <ContactFormBlock organizationId={organizationId} />
+      </section>
     </main>
   );
 }

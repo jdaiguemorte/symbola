@@ -15,11 +15,12 @@ export default async function VendorCoordinationSettingsPage() {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("VendorCoordination");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
       <main>
-        <h1>{t("settings.title")}</h1>
+        <h1>{tMenu("rubrics.vendorCoordination.label")}</h1>
         <p>{t("unavailable")}</p>
       </main>
     );
@@ -29,7 +30,7 @@ export default async function VendorCoordinationSettingsPage() {
   const settings = await getVendorCoordinationSettings(organizationId, locale, profile.metier);
   return (
     <main>
-      <h1>{t("settings.title")}</h1>
+      <h1>{tMenu("rubrics.vendorCoordination.label")}</h1>
       <ScreenHelp title={tHelp("vendorCoordinationSettings.title")} body={tHelp("vendorCoordinationSettings.body")} />
       <p>{t("settings.intro")}</p>
       <div>

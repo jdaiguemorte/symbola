@@ -13,11 +13,12 @@ export default async function DayChecklistTemplatesPage() {
   const auth = await requirePlanner();
   const organizationId = auth.user.organizationId;
   const t = await getTranslations("DayChecklists");
+  const tMenu = await getTranslations("SettingsMenu");
   const tHelp = await getTranslations("Help");
   if (!(await isEventsModuleEnabled(organizationId))) {
     return (
       <main>
-        <h1>{t("title")}</h1>
+        <h1>{tMenu("rubrics.dayChecklists.label")}</h1>
         <p>{t("unavailable")}</p>
       </main>
     );
@@ -25,7 +26,7 @@ export default async function DayChecklistTemplatesPage() {
   const templates = await listDayChecklistTemplates(organizationId, (await getLocale()) === "en" ? "en" : "fr");
   return (
     <main>
-      <h1>{t("title")}</h1>
+      <h1>{tMenu("rubrics.dayChecklists.label")}</h1>
       <ScreenHelp title={tHelp("dayChecklists.title")} body={tHelp("dayChecklists.body")} />
       <p>{t("intro")}</p>
       {/* Lot 62b (UX-13, D1) : un tableau, une ligne par modèle. */}
