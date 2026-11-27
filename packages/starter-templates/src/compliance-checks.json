@@ -54,7 +54,7 @@
     {
       "key": "vatOnDebitsUnset",
       "documents": ["quote", "invoice"],
-      "target": "/parametres#tva-debits",
+      "target": "/parametres/entreprise#tva-debits",
       "title": { "fr": "Option pour la TVA sur les débits non renseignée", "en": "Option for VAT on an accrual basis not filled in" },
       "why": { "fr": "Depuis la réforme, la facture d'une entreprise assujettie dit si elle a opté pour le paiement de la TVA d'après les débits.", "en": "Since the reform, the invoice of a VAT-registered business states whether it opted to pay VAT on an accrual basis." }
     },
