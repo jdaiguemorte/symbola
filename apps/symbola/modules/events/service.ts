@@ -602,6 +602,7 @@ function toEventSummary(event: EventRecord, clients: EventClientRow[]): EventSum
     eventTypeId: event.eventTypeId,
     name: event.name,
     archivedAt: event.archivedAt?.toISOString() ?? null,
+    origin: event.origin,
   };
 }
 
@@ -639,6 +640,7 @@ export async function listEvents(input: ListEventsInput): Promise<EventSummary[]
     year: input.year,
     search: input.search,
     prospectSourceId: input.prospectSourceId,
+    origin: input.origin,
   });
   // Lot 58 (PAR-09, étape 5) : un évènement archivé sort des listes courantes, reste consultable.
   const archived = input.archived ?? "include";
@@ -1969,6 +1971,7 @@ function toProgramItem({ item, participants }: ProgramItemWithParticipants): Pro
     responsible: item.responsible,
     keyMomentId: item.keyMomentId,
     hiddenFromClients: item.hiddenFromClients,
+    timing: item.timing,
     participants: participants.map(
       ({ row, vendorSlotLabel }): ProgramParticipant => ({
         vendorSlotId: row.vendorSlotId,
@@ -3385,6 +3388,15 @@ export async function getEventStatusDates(organizationId: string, eventId: strin
   return dates;
 }
 
+// Lot 71f (C-64) : « Signé le » d'un évènement confirmé : la date de son passage à Confirmé, ou « non
+// renseigné » quand la reprise ne la connaissait pas (`date_known = false`) ; null s'il n'est pas confirmé.
+export async function getEventSignedOn(organizationId: string, eventId: string): Promise<{ known: true; on: string } | { known: false } | null> {
+  const timeZone = (await readEvent(organizationId, eventId))?.event.timeZone ?? "Europe/Paris";
+  const confirmed = (await findEventStatusChanges(organizationId, eventId)).filter((change) => change.toStatus === "confirmed").at(-1);
+  if (!confirmed) return null;
+  return confirmed.dateKnown ? { known: true, on: confirmed.effectiveOn ?? dateInTimeZone(confirmed.changedAt, timeZone) } : { known: false };
+}
+
 export async function listEventActivity(organizationId: string, eventId: string): Promise<EventActivity[]> {
   return (await findEventActivity(organizationId, eventId)).map(({ activity, actorName, vendorName }) => ({
     id: activity.id,
@@ -3582,6 +3594,7 @@ export {
   importVendorSlotsForBudget,
   readImportedEventsElements,
   undoImportedEventsElements,
+  unchangedImportedEventFields,
 } from "./import";
 
 const _contractCheck: EventsServiceContract = {

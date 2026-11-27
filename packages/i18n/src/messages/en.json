@@ -468,7 +468,7 @@
     },
     "home": {
       "title": "Today",
-      "body": "What needs your attention, across all events, in the next fourteen days. An item is something to do or keep an eye on in the next fourteen days: each item is one line, and the number at the top (“7 items to handle in the next 14 days, 2 late”) counts them all. Late items come first, oldest first, then everything else by date, whoever has to act. Nothing comes before the list except an alert that blocks a sending or an obligation (email cap, stopped reminders, a GDPR request coming due). “Handle first” shows the first seven items, grouped by kind (follow-ups and messages, tasks, payments, decisions and signatures, prospects, “To watch” for the risk radar alerts); a group says “4 of 7” when it is not shown in full, and “Show all”, at the bottom of the card, opens the rest in place. Each line gives its wedding (a link to its page), its due date in words and who has to act: “You”, a colleague, “Waiting for the client” or the vendor awaited, with, under the title, the name and phone number of the person to call (on a phone, one tap calls). A task's title opens its panel over the home screen, and “Close” brings you back to the same line; “Done” ticks it, with “Undo” for ten seconds; “Log a reminder” records a reminder made to a vendor; “Review them” shows the tasks done today. Below, “My events”: each wedding in progress, its countdown and its items (“6 items, 2 late”, “No tasks yet”, “Up to date”). Then the calendar: your events, appointments, tasks in their category colour and unpaid vendor payment due dates; “‹”, “Today” and “›” page through it, “Month”, “Week” and “List” change the view, a click on a day shows its detail. On a phone, the current week. At the bottom, “Getting started” lists the steps left; “Hide” removes it for you, on all your devices. In a new space, the screen offers one thing only: create your first wedding, or import a wedding in progress if you already track your weddings in a spreadsheet or other software. “To send”: a relationship message prepared by Symbola (reminder, brief…), to send from your own mailbox; one click opens the “Prepare the email” window. On a phone, the bottom bar leads to Today, Events, Tasks (with the number of late tasks) and Vendors; “More” opens the rest: Contacts, Appointments, Quotes and invoices, Payments, All modules, Settings, Tutorials, Help, then your account and “Log out”. It closes with Escape, a swipe down, a tap outside or the back button. A module you don't have leaves its place in the bar to the next entry of “More”.",
+      "body": "What needs your attention, across all events, in the next fourteen days. An item is something to do or keep an eye on in the next fourteen days: each item is one line, and the number at the top (“7 items to handle in the next 14 days, 2 late”) counts them all. Late items come first, oldest first, then everything else by date, whoever has to act. Nothing comes before the list except an alert that blocks a sending or an obligation (email cap, stopped reminders, a GDPR request coming due). “Handle first” shows the first seven items, grouped by kind (follow-ups and messages, tasks, payments, decisions and signatures, prospects, “To watch” for the risk radar alerts); a group says “4 of 7” when it is not shown in full, and “Show all”, at the bottom of the card, opens the rest in place. Each line gives its wedding (a link to its page), its due date in words and who has to act: “You”, a colleague, “Waiting for the client” or the vendor awaited, with, under the title, the name and phone number of the person to call (on a phone, one tap calls). A task's title opens its panel over the home screen, and “Close” brings you back to the same line; “Done” ticks it, with “Undo” for ten seconds; “Log a reminder” records a reminder made to a vendor; “Review them” shows the tasks done today. Below, “My events”: each wedding in progress, its countdown and its items (“6 items, 2 late”, “No tasks yet”, “Up to date”). Then the calendar: your events, appointments, tasks in their category colour and unpaid vendor payment due dates; “‹”, “Today” and “›” page through it, “Month”, “Week” and “List” change the view, a click on a day shows its detail. On a phone, the current week. At the bottom, “Getting started” lists the steps left; “Hide” removes it for you, on all your devices. In a new space, the screen offers one thing only: create your first wedding, or import a wedding in progress if you already track your weddings in a spreadsheet or other software. “To send”: a relationship message prepared by Symbola (reminder, brief…), to send from your own mailbox; one click opens the “Prepare the email” window. On a phone, the bottom bar leads to Today, Events, Tasks (with the number of late tasks) and Vendors; “More” opens the rest: Contacts, Appointments, Quotes and invoices, Payments, All modules, Settings, Tutorials, Help, then your account and “Log out”. It closes with Escape, a swipe down, a tap outside or the back button. A module you don't have leaves its place in the bar to the next entry of “More”. « Takeovers in progress » lists first the weddings you are taking over from another tool, with what is left; they do not count in the number of items.",
       "faq": [
         {
           "q": "How do I change the follow-up delays for quotes and prospects?",
@@ -552,7 +552,7 @@
     },
     "eventsList": {
       "title": "Event list",
-      "body": "All your prospects and ongoing events; « Finished » keeps those closed or cancelled. « List », « Columns » or « Calendar », always in the same place: the filterable table, options by stage, or the coming months. Below, the workload over the next twelve months; two events on the same day are flagged in both views. Start with « New event » (an ongoing enquiry, or a signed event), or filter the list by name, status, source or year. To try the module safely, start the guided trial below.",
+      "body": "All your prospects and ongoing events; « Finished » keeps those closed or cancelled. « List », « Columns » or « Calendar », always in the same place: the filterable table, options by stage, or the coming months. Below, the workload over the next twelve months; two events on the same day are flagged in both views. Start with « New event » (an ongoing enquiry, or a signed event), or filter the list by name, status, source or year. To try the module safely, start the guided trial below. A wedding taken over shows « Taken over », with where its takeover stands, until it is completed; the « Origin » filter separates weddings taken over from those created in Symbola.",
       "faq": [
         {
           "q": "Where do I find a past event?",
@@ -584,7 +584,7 @@
     },
     "eventsDetail": {
       "title": "Event page",
-      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; « Edit the details », at the top of the event profile, opens a panel where they are edited, the event's time zone included. At the top, the name, date and venue, one action (« Write to the couple », then « Open the big day » a few days before, as set in Settings › Big day checklists) and the « ⋯ » menu for the rest: Messages, View as, the big day screen, Change type…, then, apart, Postpone and Cancel the event. The steps show where the event stands, without being clickable: an ongoing enquiry, signed and in preparation, big day, closed. « The contract is signed… » turns an enquiry into signed, on the signing date, which can be in the past; « Big day » comes by itself on the event day, and « Close the event… » is offered from the next day. « Postpone the event… » asks for the new date: the event is « Postponed » until « Set the new date… », which first lists the tasks that would fall in the past; due dates then follow, except tasks already done and those whose date you set. « Cancel the event… » opens a window that says what will happen and asks for a reason: the data stays, links close, reminders and scheduled deposit invoices stop, and a credit note is offered for each issued invoice; « Keep the event » backs out. « Restore the event… » brings it back as an ongoing enquiry: links reopen, reminders resume. Tabs stay at the top as you scroll; on a narrow screen, those that do not fit are under « More ». The « Event profile » gathers estimated and confirmed guests, venues, contacts, style and notes; venues are managed in the « Day programme » tab (address, town, times, on-site contact), the first being the reception venue. In the same tab, each sequence of the schedule is a line: “Edit” opens it in place, “Add a sequence” creates one; nothing is sent until you click “Save the schedule”, which says how many lines are waiting, and “Discard changes” brings back the saved schedule. The « Tasks » tab shows the event's tasks, « To do » first, with their filters (who's doing it, period, category, state) and « New task », the event already chosen; under the title, the count and the date the planning's due dates are counted from. A task can be given to you, a colleague, the couple or a retained vendor, who ticks it in their space; its attachments, comments and note stay within the team. Its panel shows its « Place in the planning » (how many days before the big day, and whether it is a key step). Ticked by mistake, a task comes back with « Undo » for ten seconds, then with « Reopen task ». The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). In « Budget and vendors », each row says where the choice stands (« Selected », « 2 being compared », « To find »); « + Add vendors » offers, for each record of the trade in your directory, « Compare » (the item stays open) or « Select » (it fills the item), never automatically. The item window compares vendors side by side (quote, availability, worked together before, last follow-up, note): « Select », « Set aside », then « Change vendor » or « Unselect », without deleting the line; « Next item » moves on. « Take over the selected vendors (PDF) » reads the vendors export from your previous software: each vendor is found in the directory or created, then selected on the line of their trade, after your check. Each tab has a « Settings » link to its templates. Overlap warnings leave out your clients, who attend every sequence, and are read day by day. PDFs separate the days of a multi-day schedule; the team version puts the internal note under each sequence.",
+      "body": "The whole event, in tabs. The « Summary » opens on the next action and who has to act, then the event's health (planning, budget, client decisions) and the next fourteen days; « Edit the details », at the top of the event profile, opens a panel where they are edited, the event's time zone included. At the top, the name, date and venue, one action (« Write to the couple », then « Open the big day » a few days before, as set in Settings › Big day checklists) and the « ⋯ » menu for the rest: Messages, View as, the big day screen, Change type…, then, apart, Postpone and Cancel the event. The steps show where the event stands, without being clickable: an ongoing enquiry, signed and in preparation, big day, closed. « The contract is signed… » turns an enquiry into signed, on the signing date, which can be in the past; « Big day » comes by itself on the event day, and « Close the event… » is offered from the next day. « Postpone the event… » asks for the new date: the event is « Postponed » until « Set the new date… », which first lists the tasks that would fall in the past; due dates then follow, except tasks already done and those whose date you set. « Cancel the event… » opens a window that says what will happen and asks for a reason: the data stays, links close, reminders and scheduled deposit invoices stop, and a credit note is offered for each issued invoice; « Keep the event » backs out. « Restore the event… » brings it back as an ongoing enquiry: links reopen, reminders resume. Tabs stay at the top as you scroll; on a narrow screen, those that do not fit are under « More ». The « Event profile » gathers estimated and confirmed guests, venues, contacts, style and notes; venues are managed in the « Day programme » tab (address, town, times, on-site contact), the first being the reception venue. In the same tab, each sequence of the schedule is a line: “Edit” opens it in place, “Add a sequence” creates one; nothing is sent until you click “Save the schedule”, which says how many lines are waiting, and “Discard changes” brings back the saved schedule. The « Tasks » tab shows the event's tasks, « To do » first, with their filters (who's doing it, period, category, state) and « New task », the event already chosen; under the title, the count and the date the planning's due dates are counted from. A task can be given to you, a colleague, the couple or a retained vendor, who ticks it in their space; its attachments, comments and note stay within the team. Its panel shows its « Place in the planning » (how many days before the big day, and whether it is a key step). Ticked by mistake, a task comes back with « Undo » for ten seconds, then with « Reopen task ». The « Next step » banner suggests the next stage (send the quote, apply the planning, create the couple's links). In « Budget and vendors », each row says where the choice stands (« Selected », « 2 being compared », « To find »); « + Add vendors » offers, for each record of the trade in your directory, « Compare » (the item stays open) or « Select » (it fills the item), never automatically. The item window compares vendors side by side (quote, availability, worked together before, last follow-up, note): « Select », « Set aside », then « Change vendor » or « Unselect », without deleting the line; « Next item » moves on. « Take over the selected vendors (PDF) » reads the vendors export from your previous software: each vendor is found in the directory or created, then selected on the line of their trade, after your check. Each tab has a « Settings » link to its templates. Overlap warnings leave out your clients, who attend every sequence, and are read day by day. PDFs separate the days of a multi-day schedule; the team version puts the internal note under each sequence. A wedding taken over from another tool says « Taken over on … » under its header, with the link to its takeover; while something is missing, « To complete after the takeover » replaces the next action: each item says what is missing, with its button, and moves to the bottom once done. « Where do these values come from? » shows the file of each value taken over.",
       "faq": [
         {
           "q": "How do I mark an event as lost?",
@@ -1528,7 +1528,7 @@
     },
     "takeover": {
       "title": "Take over an ongoing wedding",
-      "body": "One page per wedding tracked in another tool: six files, in the order to drop them (the vendor book, once for the whole business; the wedding, by its PDF sheet or its name and date; the budget; the booked vendors; the to-do list; the day-of schedule). The next line holds the main button. \"I don't have this file\" settles a line without leaving it pending, and is undone by \"Drop a file\". An import left halfway shows on its line, with \"Continue\". Nothing is written without your approval, and each import can be removed from its summary for 90 days: the deadline is written at the end of the page.",
+      "body": "One page per wedding tracked in another tool: six files, in the order to drop them (the vendor book, once for the whole business; the wedding, by its PDF sheet or its name and date; the budget; the booked vendors; the to-do list; the day-of schedule). The next line holds the main button. \"I don't have this file\" settles a line without leaving it pending, and is undone by \"Drop a file\". An import left halfway shows on its line, with \"Continue\". Nothing is written without your approval, and each import can be removed from its summary for 90 days: the deadline is written at the end of the page. Once the takeover is finished, the wedding's page says what is left to complete (amounts to allocate, unsigned contracts, tasks, end times, the couple's link, guests), with the same numbers as this page.",
       "faq": [
         {
           "q": "My budget already names the vendors: should I drop their list?",
@@ -13447,6 +13447,7 @@
     "doneBody": "What your files did not give: {list}. They are to complete on the wedding's page.",
     "point": {
       "amounts": "the amounts to allocate to the items",
+      "contracts": "{count, plural, one {# unsigned contract} other {# unsigned contracts}}",
       "tasks": "the tasks",
       "endTimes": "{count, plural, one {# end time in the schedule} other {# end times in the schedule}}",
       "clientLink": "the couple's personal link",
@@ -13477,6 +13478,110 @@
     "notFound": "This takeover cannot be found.",
     "oneSheet": "One sheet only for this wedding: drop its PDF on its own.",
     "backToTakeover": "Back to the takeover"
+  },
+  "TakeoverSheet": {
+    "origin": "Taken over on {date} {files, plural, =0 {} one {from # file} other {from # files}}",
+    "originLink": "See the takeover",
+    "checklistTitle": "To complete after the takeover",
+    "checklistCount": "{total, plural, one {# item} other {# items}} · {done} done",
+    "checklistLabel": "What is left to complete after the takeover",
+    "pointDone": "Done",
+    "point": {
+      "amounts": {
+        "title": "{count, plural, =0 {Amounts to allocate} one {Amount for # vendor} other {Amounts for # vendors}}",
+        "bodyRemaining": "Your file gave a total, not the detail: {amount} to allocate across the items.",
+        "body": "The planned amount of these items is not provided.",
+        "bodyDone": "Every retained item has its amount; nothing is left to allocate.",
+        "action": "Enter the amounts"
+      },
+      "contracts": {
+        "title": "{count, plural, =0 {Contracts} one {# unsigned contract} other {# unsigned contracts}}",
+        "body": "{names}: unsigned or not provided, as you said during the takeover. No reminder is created.",
+        "bodyDone": "The contracts taken over are signed.",
+        "action": "See the items"
+      },
+      "tasks": {
+        "title": "Tasks",
+        "body": "Left in your former tool. Deadlines already past will not be marked late.",
+        "bodyDone": "The wedding's tasks are here.",
+        "action": "Take over a list",
+        "actionTemplate": "Start from a template"
+      },
+      "endTimes": {
+        "title": "{count, plural, =0 {Programme end times} one {# end time in the programme} other {# end times in the programme}}",
+        "body": "Not provided in the file. The programme shows “to complete” while they are missing.",
+        "bodyDone": "Every moment of the programme has its end time.",
+        "action": "Complete"
+      },
+      "clientLink": {
+        "title": "The couple's personal link",
+        "body": "So they can see their programme and documents.",
+        "bodyDone": "The couple have their link.",
+        "action": "Create the links"
+      },
+      "guests": {
+        "title": "Number of guests",
+        "body": "Not provided in the files taken over.",
+        "bodyDone": "The number of guests is entered.",
+        "action": "Enter"
+      }
+    },
+    "completed": "Takeover completed on {date}",
+    "completedBody": "{count, plural, one {The item is done.} other {All # items are done.}}",
+    "completedReview": "Review the list",
+    "planningNoOpinion": "No tasks yet: no opinion",
+    "budgetFromFile": "{amount} actual",
+    "budgetEnvelope": "envelope {envelope}",
+    "budgetFromFileDetail": "According to your file; {paid} paid; {allocated} allocated across the items.",
+    "vendorsSummary": "{retained} retained · {signed, plural, =0 {no signed contract} one {# signed contract} other {# signed contracts}}",
+    "notProvided": "not provided",
+    "sourceNotProvided": "not provided",
+    "signedOn": "Signed on",
+    "provenanceShow": "Where do these values come from?",
+    "provenanceHide": "Hide where the values come from",
+    "provenanceYou": "you, during the takeover",
+    "provenanceFile": "File: {file}",
+    "unallocatedTitle": "To complete: {amount} actual according to your file, of which {paid} paid.",
+    "unallocatedBody": "Your former tool did not export the detail per vendor. Enter the amount of each item: the amount left to allocate goes down as you go.",
+    "unallocatedTiles": "What your file says",
+    "tileEnvelope": "envelope",
+    "tileFromFile": "actual according to the file",
+    "tileAllocated": "allocated across the items",
+    "tileRemaining": "left to allocate",
+    "contract": {
+      "signed": "contract signed",
+      "unsigned": "contract not signed",
+      "unknown": "contract not provided"
+    },
+    "markFiles": "Taken over · {settled} of {total} files",
+    "markPoints": "Taken over · {count, plural, one {# item to complete} other {# items to complete}}",
+    "markLabel": "{mark} — open the takeover of {event}",
+    "originFilter": "Origin",
+    "originAll": "All",
+    "originTakeover": "Taken over",
+    "originCreated": "Created in Symbola",
+    "inProgressTitle": "Takeovers in progress",
+    "inProgressCount": "{count, plural, one {# wedding} other {# weddings}}",
+    "inProgressFiles": "{settled} of {total} files",
+    "inProgressRunning": "import {step} in progress",
+    "inProgressFinished": "takeover finished {when}",
+    "inProgressPoints": "{count, plural, one {# item to complete} other {# items to complete}}",
+    "inProgressSeeRest": "See what is left",
+    "inProgressContinue": "Continue",
+    "inProgressSeeRestFor": "See what is left for {event}",
+    "inProgressContinueFor": "Continue the takeover of {event}",
+    "today": "today",
+    "yesterday": "yesterday",
+    "onDate": "on {date}",
+    "runningStep": {
+      "vendor_book": "of the vendor book",
+      "event": "of the event sheet",
+      "budget": "of the budget",
+      "event_vendors": "of the retained vendors",
+      "tasks": "of the tasks",
+      "program": "of the programme"
+    },
+    "vendorCompletion": "{complete, plural, =0 {No complete item} one {# complete item} other {# complete items}} of {total}"
   },
   "EventHeader": {
     "back": {

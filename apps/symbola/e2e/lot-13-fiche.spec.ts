@@ -51,7 +51,7 @@ test("L13-EVT-19 — frise datée du statut, prochaine étape et chiffres clés"
 
   // Lot 32a (EVT-02, D5) : la synthèse dit la prochaine action et la santé de l'évènement.
   await expect(page.getByRole("heading", { name: "Prochaine action" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Santé de l'évènement" })).toContainText("0 sur 0 tâches faites");
+  await expect(page.getByRole("region", { name: "Santé de l'évènement" })).toContainText("Pas encore de tâches : pas d'avis");
   await expect(page.getByRole("region", { name: "Santé de l'évènement" })).toContainText("Aucune en attente");
   await expectNoAxeViolation(page);
 

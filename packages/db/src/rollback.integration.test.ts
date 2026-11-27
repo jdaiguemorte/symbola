@@ -1,3 +1,7 @@
+// COMMENT AJOUTER LES MIGRATIONS D'UN NOUVEAU LOT (lot 75) : l'ordre des annulations se lit dans le journal de
+// Drizzle (NEWEST_FIRST), jamais dans une liste à tenir à la main. Le test du lot déclare seulement ses propres
+// tags (const LOT_xx, du plus récent au plus ancien), commence par `rollbackNewerThan(LOT_xx[0])`, puis s'annule.
+// Ne touchez ni LOT_36, ni LOT_33, ni LOT_26 : ils se recalculent seuls, et les lots suivants sont absorbés.
 // Lot 15 (DB-01, ADR 0036) — migrations des lots 14 et 15 annulables, contre un
 // vrai PostgreSQL, sur une base temporaire dédiée : aller (migrations), retour
 // (scripts d'annulation, refus quand des données en dépendent ou dans le
@@ -18,6 +22,15 @@ const folders = {
   migrations: new URL("../drizzle", import.meta.url).pathname,
   rollbacks: new URL("../drizzle-rollback", import.meta.url).pathname,
 };
+// Journal de Drizzle : toutes les migrations dans l'ordre où elles s'appliquent ; les annulations se font
+// dans l'ordre inverse (la dernière appliquée d'abord, ADR 0036).
+const JOURNAL_TAGS = readJournal(folders.migrations).entries.map((entry) => entry.tag);
+// Les tags de `oldest` (comprise) à la plus récente, de la plus récente à `oldest`.
+function newestFirstDownTo(oldest: string): string[] {
+  const index = JOURNAL_TAGS.indexOf(oldest);
+  if (index < 0) throw new Error(`${oldest} absente du journal de Drizzle`);
+  return JOURNAL_TAGS.slice(index).reverse();
+}
 let admin: postgres.Sql;
 let target: postgres.Sql;
 
@@ -166,11 +179,11 @@ const LOT_37A = ["0137_lot37a_events_documents"];
 const LOT_36B = ["0136_lot36b_contacts_members"];
 const LOT_36A = ["0135_lot36a_contacts"];
 // 0140 à 0138 (lot 37b), 0137 (lot 37a), puis 0136 (ses liens pointent vers les contacts), puis 0135.
-const LOT_36 = [...LOT_73A, ...LOT_72D, ...LOT_72A, ...LOT_71A, ...LOT_70A, ...LOT_66, ...LOT_65, ...LOT_64, ...LOT_63B, ...LOT_63G, ...LOT_63E, ...LOT_63D, ...LOT_63C, ...LOT_55, ...LOT_54, ...LOT_60, ...LOT_58, ...LOT_35C, ...LOT_35B, ...LOT_53, ...LOT_52, ...LOT_48B, ...LOT_48A, ...LOT_45, ...LOT_43, ...LOT_51, ...LOT_47, ...LOT_44, ...LOT_50, ...LOT_46, ...LOT_41, ...LOT_49, ...LOT_40B, ...LOT_39B, ...LOT_39A, ...LOT_38B, ...LOT_38A, ...LOT_37B, ...LOT_37A, ...LOT_36B, ...LOT_36A];
+const LOT_36 = newestFirstDownTo("0135_lot36a_contacts");
 // Lot 63c : l'ordre des annulations des lots récents, de la plus récente à la plus ancienne, se lit
-// dans cette seule liste. Un nouveau lot ajoute sa liste en tête de LOT_36, et rien d'autre : les
-// tests annulent par rollbackNewerThan et rollbackThrough, jamais par une suite écrite à la main.
-const NEWEST_FIRST = LOT_36;
+// dans le journal. Un nouveau lot n'ajoute rien ici : les tests annulent par rollbackNewerThan et
+// rollbackThrough, jamais par une suite écrite à la main.
+const NEWEST_FIRST = JOURNAL_TAGS.slice().reverse();
 
 // Annule toutes les migrations plus récentes que `tag` (exclue), dans l'ordre.
 async function rollbackNewerThan(tag: string) {
@@ -189,7 +202,7 @@ const LOT_34B = ["0133_lot34b_events_fiche_tasks"];
 const LOT_34A = ["0132_lot34a_events_lifecycle"];
 const LOT_33B = ["0131_lot33b_hub_onboarding"];
 const LOT_33A = ["0130_lot33a_hub_drop_passwords", "0129_lot33a_hub_memberships"];
-const LOT_33 = [...LOT_36, ...LOT_35A, ...LOT_34B, ...LOT_34A, ...LOT_33B, ...LOT_33A];
+const LOT_33 = newestFirstDownTo("0129_lot33a_hub_memberships");
 const LOT_32A = ["0128_lot32a_events_activity_vendor", "0127_lot32a_events_activity_vendor_kind"];
 const LOT_31C = ["0126_lot31c_quotes_payment_terms_receipts", "0125_lot31c_quotes_receipt_series"];
 const LOT_31B = ["0124_lot31b_hub_contract_retention", "0123_lot31b_quotes_contracts", "0122_lot31b_quotes_client_kind"];
@@ -200,7 +213,7 @@ const LOT_29B = "0117_lot29b_events_documents";
 const LOT_27B = "0116_lot27b_events_decisions";
 const LOT_27A = ["0115_lot27a_budget_payment_declarations", "0114_lot27a_events_task_reminders"];
 const LOT_26B = "0113_lot26b_events_vendor_links";
-const LOT_26 = [...LOT_33, ...LOT_32A, ...LOT_31C, ...LOT_31B, ...LOT_31A, LOT_30B, LOT_30A, LOT_29B, LOT_27B, ...LOT_27A, LOT_26B, "0112_lot26a_events_drop_client_accesses", "0111_lot26a_hub_roles_notice", "0110_lot26a_core_link_actor", "0109_lot26a_events_links"];
+const LOT_26 = newestFirstDownTo("0109_lot26a_events_links");
 async function rollbackLot26() {
   for (const tag of LOT_26) await rollback(tag);
 }
@@ -1990,7 +2003,7 @@ describe("DB-01 — Migrations des types énumérés annulables (lots 14 et 15)"
     expect(created!.status).toBe("option");
     // Lot 72a : « En préparation » n'existe qu'avant 0225 ; son annulation remet la valeur, que
     // l'annulation de 0132 doit encore ramener à « confirmé ».
-    // Lot 73a, lot 72d : les migrations plus récentes s'annulent d'abord (NEWEST_FIRST, quel qu'en soit le nombre).
+    // Les lots plus récents s'annulent avant ceux du 72a, quel qu'en soit le nombre.
     await rollbackThrough(LOT_72A[1]!);
     await inOrganization((tx) => tx`update events.events set status = 'in_preparation' where id = ${ids.confirmed!}`);
 
