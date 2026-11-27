@@ -990,7 +990,7 @@ Ouverts ; chacun a sa recommandation.
 
 Relevés en écrivant la spécification `docs/lots/lot-72-aujourdhui-et-evenements.md` (§ 7 et § 8), à
 partir des maquettes validées le 26/11 (`docs/audits/2026-11-ux-parcours/09-maquettes-aujourdhui-evenements.md`).
-Ouverts ; chacun a sa recommandation. (Q48 est celle du lot 71, pas encore fusionnée.)
+Tous tranchés le 27/11 par Julien. (Q48 est celle du lot 71, pas encore fusionnée.)
 
 1. **Les statuts d'un évènement (EVT-05)**. Le cahier des charges cite « Option, Confirmé, En
    préparation, Jour J, Clôturé, Reporté, Annulé ». La frise retenue (E1) n'affiche que quatre étapes :
@@ -1003,12 +1003,12 @@ Ouverts ; chacun a sa recommandation. (Q48 est celle du lot 71, pas encore fusio
    Budget, Prestataires, Invités, Documents, Jour J ». L'app aura « Synthèse, Budget et prestataires,
    Tâches, Programme, Devis et factures, Mariés, Documents, Invités » (« Tâches » tranché en Q47 ;
    « Programme » au lieu de « Jour J », choix E6, parce que « Jour J » nomme déjà l'étape et l'écran du
-   terrain). Proposition : noté dans `gap.csv`, sans ADR.
+   terrain). Proposition : noté dans `gap.csv`, sans ADR. **Tranché le 27/11 par Julien** (validation de la spécification).
 3. **Le cockpit (EVT-02)** : « bandeau de santé » sous l'en-tête et « échéances des quatorze jours ».
    La santé descend dans « Où en est le mariage », sous la suite ; les quatorze jours se fondent dans la
    suite, avec les mêmes lignes et les mêmes nombres que l'accueil (E9). Les trois actions les plus
    urgentes restent visibles sans défiler sur un écran de 13 pouces. Proposition : noté dans `gap.csv`,
-   sans ADR.
+   sans ADR. **Tranché le 27/11 par Julien** (validation de la spécification).
 
 ## Remarques sur le nouveau document lui-même
 

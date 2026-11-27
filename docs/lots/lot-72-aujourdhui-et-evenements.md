@@ -1,6 +1,7 @@
 # Lot 72 — Réaliser le volet 3 des maquettes : « Aujourd'hui » et « Évènements »
 
-**Statut** : **spécification à valider par Julien** ; décisions J1 à J14 tranchées le 27/11 (§ 7). Le lot change
+**Statut** : **spécification validée par Julien le 27/11/2026** (« Je valide ») ; décisions J1 à J14
+tranchées le même jour (§ 7). Le lot change
 le schéma de données du module `events` (trois migrations, 0224 à 0226) et deux parcours P0 (PAR-03, et PAR-02
 par la frise et la liste) : la validation vaut accord pour cette migration.
 **Branche de la spécification** : `lot-72-aujourdhui-et-evenements` (une PR vers `main`, ce fichier et
