@@ -52,9 +52,9 @@ test("HUB-06 — la Propriétaire voit les apps, demande « Plans de salle », l
 
   await signIn(page, ownerEmail);
   await openMenu(page);
-  await mainMenu(page).getByRole("link", { name: "Apps", exact: true }).click();
+  await mainMenu(page).getByRole("link", { name: "Tous les modules", exact: true }).click();
   await expect(page).toHaveURL(/\/apps$/);
-  await expect(page.getByRole("heading", { level: 1, name: "Apps" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Tous les modules" })).toBeVisible();
   await expect(page.getByText("Pendant le pilote", { exact: true })).toBeVisible();
 
   // Chaque app du catalogue, avec son état, ce qu'elle apporte et où la trouver.
@@ -113,7 +113,7 @@ test("HUB-06 — la Propriétaire voit les apps, demande « Plans de salle », l
   const planner = await team.newPage();
   await signIn(planner, plannerEmail);
   await openMenu(planner);
-  await expect(mainMenu(planner).getByRole("link", { name: "Apps", exact: true })).toHaveCount(0);
+  await expect(mainMenu(planner).getByRole("link", { name: "Tous les modules", exact: true })).toHaveCount(0);
   await planner.goto("/apps");
   await expect(planner.getByText("Cet écran est réservé à la Propriétaire de l'organisation.")).toBeVisible();
   await team.close();

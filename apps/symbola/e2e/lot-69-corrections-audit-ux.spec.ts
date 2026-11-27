@@ -161,9 +161,11 @@ test.describe("lot 69 — mises en page mesurées", () => {
     const count = page.locator(".app-sidebar .nav-count").first();
     await expect(count).toContainText("2");
     expect((await box(count)).height).toBeLessThanOrEqual(28);
-    const user = page.locator(".app-sidebar .app-user").first();
+    // Lot 70e (M7) : le compte est dans la barre du haut ; son menu lit l'adresse en entier.
+    await page.locator(".account-menu-button").click();
+    const email = page.locator(".account-menu-identity > span").first();
     expect(
-      await user.evaluate(
+      await email.evaluate(
         (element) => element.scrollWidth - element.clientWidth,
       ),
     ).toBeLessThanOrEqual(0);
@@ -242,7 +244,7 @@ test.describe("lot 69 — mises en page mesurées", () => {
     expect(gap).toBeLessThan(8);
   });
 
-  test("C-81 — « ⌘K » et « Raccourci : touche N » ne s'affichent que sur ordinateur", async ({
+  test("C-81 — « ⌘K » et « Touche N pour ouvrir ce menu » ne s'affichent que sur ordinateur", async ({
     page,
   }) => {
     await page.goto("/");
@@ -259,7 +261,7 @@ test.describe("lot 69 — mises en page mesurées", () => {
       .getByRole("button", { name: "Créer", exact: true })
       .first()
       .click();
-    const hint = page.getByText("Raccourci : touche N");
+    const hint = page.getByText("Touche N pour ouvrir ce menu");
     if (wide) await expect(hint).toBeVisible();
     else await expect(hint).toBeHidden();
   });

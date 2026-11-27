@@ -27,24 +27,13 @@ describe("UX-10 — Erreurs de saisie écrites par Symbola (lot 70b)", () => {
     expect(fieldErrors(taskFieldsSchema, { label: "x".repeat(301), dueDate: "2027-06-12" })).toEqual([{ field: "label", key: "taskLabelTooLong" }]);
   });
 
-  it("Nouvel évènement : le prénom du client ou un contact, et la source quand ils sont demandés", () => {
-    const schema = newEventFieldsSchema({ clientRequired: true, sourceRequired: true, existingContactOnly: false, nameRequiredWithoutClient: false });
-    expect(fieldErrors(schema, { firstName1: "", contactId1: "", prospectSourceId: "" })).toEqual([
-      { field: "firstName1", key: "clientFirstNameRequired" },
-      { field: "prospectSourceId", key: "sourceRequired" },
+  it("Nouvel évènement : sans réponse à « Où en est-il ? » ni nom, les deux erreurs sont dites, dans l'ordre (lot 70e)", () => {
+    expect(fieldErrors(newEventFieldsSchema, { standing: "", name: "  " })).toEqual([
+      { field: "standing", key: "standingRequired" },
+      { field: "name", key: "eventNameRequired" },
     ]);
-    expect(fieldErrors(schema, { firstName1: "", contactId1: "0b1f8f52-6d1b-4a5c-9a43-6c1f0b0f6a11", prospectSourceId: "x" })).toEqual([]);
-  });
-
-  it("Nouvel évènement confirmé sans client : le nom de l'évènement est demandé", () => {
-    const schema = newEventFieldsSchema({ clientRequired: false, sourceRequired: false, existingContactOnly: false, nameRequiredWithoutClient: true });
-    expect(fieldErrors(schema, { firstName1: "", contactId1: "", name: "" })).toEqual([{ field: "name", key: "eventNameRequired" }]);
-    expect(fieldErrors(schema, { firstName1: "Léa", contactId1: "", name: "" })).toEqual([]);
-  });
-
-  it("Client existant : il faut le choisir dans les contacts", () => {
-    const schema = newEventFieldsSchema({ clientRequired: true, sourceRequired: false, existingContactOnly: true, nameRequiredWithoutClient: false });
-    expect(fieldErrors(schema, { contactId1: "" })).toEqual([{ field: "contactId1", key: "existingContactRequired" }]);
+    expect(fieldErrors(newEventFieldsSchema, { standing: "signed", name: "Léa & Maxime" })).toEqual([]);
+    expect(fieldErrors(newEventFieldsSchema, { standing: "import", name: "Léa & Maxime" })).toEqual([{ field: "standing", key: "standingRequired" }]);
   });
 
   it("Changer la date : une date est demandée", () => {
@@ -60,7 +49,7 @@ describe("UX-10 — Erreurs de saisie écrites par Symbola (lot 70b)", () => {
   });
 
   it("chaque message existe en français et en anglais (C1)", () => {
-    const keys = ["taskLabelRequired", "taskLabelTooLong", "dueDateRequired", "dateInvalid", "clientFirstNameRequired", "sourceRequired", "existingContactRequired", "eventNameRequired", "summary", "summaryLink", "errorPrefix"];
+    const keys = ["taskLabelRequired", "taskLabelTooLong", "dueDateRequired", "dateInvalid", "standingRequired", "eventNameRequired", "summary", "summaryLink", "errorPrefix"];
     for (const key of keys) {
       expect((fr as { Validation: Record<string, string> }).Validation[key], `fr ${key}`).toBeTruthy();
       expect((en as { Validation: Record<string, string> }).Validation[key], `en ${key}`).toBeTruthy();
