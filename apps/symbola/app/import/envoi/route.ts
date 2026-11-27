@@ -13,6 +13,9 @@ import { receiveUpload, uploadResponse } from "@/lib/uploads/receive";
 import { availableImportEntityTypes, parseEntityType } from "../access";
 import { getEvent } from "@/modules/events/service";
 import { isValidId } from "@/app/events/module-access";
+import { parseStepKind } from "@/app/reprise/access";
+import { taskListViewer } from "@/lib/event-visibility";
+import { takeoverForUpload } from "@/lib/takeover/flow";
 
 const REJECTION_MESSAGES: Record<ImportRejectionReason, string> = {
   empty: "rejectedEmpty",
@@ -44,16 +47,29 @@ export async function POST(request: Request): Promise<Response> {
     return uploadResponse({ error: t("missingEntityType") });
   }
   const db = appDatabase();
+  // Lot 71b (HUB-14) : le fichier d'une ligne de reprise. La reprise est de l'organisation et visible
+  // de la personne, la sorte du fichier est celle de sa ligne ; sinon, rien n'est lu (SEC-13).
+  const takeoverId = String(formData.get("takeoverId") ?? "");
+  const takeoverKind = parseStepKind(formData.get("takeoverKind"));
+  const fromTakeover = takeoverId !== "" || takeoverKind !== null;
+  const takeover =
+    fromTakeover && isValidId(takeoverId) && takeoverKind
+      ? await takeoverForUpload({ organizationId, userId: user.id, viewer: await taskListViewer({ user: { id: user.id, role: user.role, organizationId } }) }, takeoverId, takeoverKind)
+      : null;
+  if (fromTakeover && (!takeover || takeover.entityType !== entityType)) return uploadResponse({ error: t("importNotFound") });
   // Lot 14c (IMP-08) : une ou plusieurs fiches événement PDF.
   if (entityType === "event_sheets") {
     const files = formData.getAll("file").filter((entry): entry is File => entry instanceof File && entry.size > 0);
     if (files.length === 0) return uploadResponse({ error: t("missingFile") });
+    // Lot 71b : une reprise, un mariage, une fiche.
+    if (takeover && files.length > 1) return uploadResponse({ error: (await getTranslations("Takeover"))("oneSheet") });
     const started = await startEventSheetsImport(db, {
       organizationId,
       userId: user.id,
       files: await Promise.all(files.map(async (entry) => ({ fileName: entry.name, bytes: new Uint8Array(await entry.arrayBuffer()) }))),
     });
     if (started.status === "rejected") return uploadResponse({ error: t(started.reason === "too_many_files" ? "rejectedTooManySheets" : "missingFile") });
+    if (takeover) await takeover.attach(started.importId);
     revalidatePath("/import");
     return uploadResponse({ redirect: `/import/${started.importId}` });
   }
@@ -62,7 +78,11 @@ export async function POST(request: Request): Promise<Response> {
 
   // Lot 65g (HUB-14, BUD-04) : l'évènement d'où l'import est lancé, s'il est bien de l'organisation.
   const targetId = String(formData.get("targetEventId") ?? "");
-  const targetEventId = (entityType === "budget_lines" || entityType === "tasks") && isValidId(targetId) && (await getEvent(organizationId, targetId).catch(() => null)) ? targetId : null;
+  const targetEventId = takeover
+    ? takeover.targetEventId
+    : (entityType === "budget_lines" || entityType === "tasks") && isValidId(targetId) && (await getEvent(organizationId, targetId).catch(() => null))
+      ? targetId
+      : null;
   const result = await startImport(db, { organizationId, userId: user.id, entityType, fileName: file.name, bytes: new Uint8Array(await file.arrayBuffer()), targetEventId });
   if (result.status === "rejected") {
     // Journalisé sans le nom du fichier ni son contenu (CLAUDE.md §5).
@@ -70,6 +90,9 @@ export async function POST(request: Request): Promise<Response> {
     const reason = t(REJECTION_MESSAGES[result.reason]);
     return uploadResponse({ error: result.hint ? `${reason} ${t(HINT_MESSAGES[result.hint])}` : reason });
   }
+  // Lot 71b : rattaché à sa ligne avant l'enregistrement des colonnes (un budget qui nomme ses
+  // prestataires couvre leur ligne dès ce moment).
+  if (takeover) await takeover.attach(result.importId);
   // Lot 16 (IMP-11) : rien à décider sur les colonnes, l'étape est faite d'office.
   await saveColumnsIfNothingToDecide(organizationId, result.importId);
   revalidatePath("/import");

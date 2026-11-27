@@ -17,6 +17,7 @@
 @import "./styles/lot-65f.css";
 @import "./styles/lot-66c.css";
 @import "./styles/lot-63b-import.css";
+@import "./styles/lot-71b-reprise.css";
 @source "../../../packages/ui/src";
 
 @theme {
@@ -2323,22 +2324,8 @@
   .action-bar-main {
     @apply flex items-center gap-2;
   }
-  /* Départ : trois tuiles. */
-  .import-tiles {
-    @apply mt-3 grid grid-cols-1 gap-3 md:grid-cols-3;
-  }
-  .import-tile {
-    @apply flex flex-col gap-1 rounded-lg border border-line bg-surface p-4 text-ink no-underline hover:border-primary;
-  }
-  .import-tile[aria-current="true"] {
-    @apply border-primary bg-primary-soft;
-  }
-  .import-tile-title {
-    @apply font-semibold;
-  }
-  .import-tile-body {
-    @apply text-label text-ink-muted;
-  }
+  /* Lot 71b : les tuiles du départ sont devenues les trois boutons de « Reprendre et importer »
+     (app/styles/lot-71b-reprise.css). */
   .types-group {
     @apply my-6;
   }

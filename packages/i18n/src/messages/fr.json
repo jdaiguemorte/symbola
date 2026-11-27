@@ -78,7 +78,7 @@
     "quoteSettings": "Paramètres des devis",
     "quotePayments": "Encaissements",
     "eReporting": "E-reporting",
-    "importData": "Importer des données",
+    "importData": "Reprendre et importer",
     "privacy": "Données personnelles (RGPD)",
     "home": "Accueil",
     "navLabel": "Menu principal",
@@ -153,7 +153,8 @@
     "contacts": "Contacts",
     "appointments": "Rendez-vous",
     "settingsAppointments": "Types et page de réservation",
-    "appointmentAvailability": "Mes disponibilités"
+    "appointmentAvailability": "Mes disponibilités",
+    "takeover": "Reprendre un mariage en cours"
   },
   "Admin": {
     "createOrganizationTitle": "Créer une organisation",
@@ -788,8 +789,8 @@
       ]
     },
     "importFile": {
-      "title": "Importer des données",
-      "body": "Choisissez ce que vous reprenez : vos contacts (CSV ou Excel), vos prestataires ou vos fiches évènement depuis votre outil actuel, ou un autre fichier. Chaque écran (prestataires, évènements, contacts, budget, programme, invités) a aussi son bouton « Importer », réglé sur le bon type. Dès le clic, une fenêtre montre où en est la lecture. Rien n'est enregistré avant la confirmation, et un import s'annule depuis son bilan.",
+      "title": "Reprendre et importer",
+      "body": "Ce qui n'appartient à aucun mariage : vos contacts, votre carnet de prestataires, les listes de votre espace (sources des clients, catalogue, motifs de perte). Un mariage en cours se reprend par sa page de reprise, qui dit quels fichiers déposer et dans quel ordre. Un import laissé en plan est rappelé en tête de l'écran, avec « Continuer ». Dès le clic, une fenêtre montre où en est la lecture. Rien n'est enregistré avant la confirmation, et un import se retire depuis son bilan.",
       "faq": [
         {
           "q": "Que devient mon fichier ?",
@@ -1524,6 +1525,20 @@
     "mySignature": {
       "title": "Ma signature",
       "body": "Votre signature s'ajoute à la fin des e-mails que vous envoyez depuis Symbola : nom affiché, fonction, téléphone, site, jusqu'à quatre liens et une petite photo facultative. L'aperçu montre le rendu en direct ; enregistrez pour l'appliquer. Votre organisation choisit les éléments affichés. Un envoi automatique porte la signature choisie par la titulaire. Dans la fenêtre « Préparer l'e-mail », « Ajouter ma signature » la reprend en texte à la fin du message. Votre signature est effacée si votre accès à l'organisation est retiré."
+    },
+    "takeover": {
+      "title": "Reprendre un mariage en cours",
+      "body": "Une page par mariage suivi dans un autre outil : six fichiers, dans l'ordre où les déposer (le carnet de prestataires, une fois pour toute l'agence ; le mariage, par sa fiche PDF ou son nom et sa date ; le budget ; les prestataires retenus ; la liste « à faire » ; le programme du jour J). La ligne suivante porte le bouton principal. « Je n'ai pas ce fichier » règle une ligne sans la laisser en suspens, et se défait par « Déposer un fichier ». Un import laissé en plan se retrouve à sa ligne, avec « Continuer ». Rien n'est écrit avant votre accord, et chaque import se retire depuis son bilan pendant 90 jours : la date limite est écrite à la fin de la page.",
+      "faq": [
+        {
+          "q": "Mon budget nomme déjà les prestataires : faut-il déposer leur liste ?",
+          "a": "Non. Dès que les colonnes du budget sont choisies, la ligne « Prestataires retenus » passe « Avec le budget ». « Déposer un fichier quand même » reste possible."
+        },
+        {
+          "q": "Le mariage saisi reçoit-il un rétroplanning ?",
+          "a": "Non : il est « Signé, en préparation », et ses tâches viennent de votre liste. Sans liste, vous pourrez partir d'un modèle depuis la fiche."
+        }
+      ]
     }
   },
   "Aide": {
@@ -2341,7 +2356,7 @@
     "archivedTag": "Archivé",
     "archivedEmpty": "Aucun évènement archivé.",
     "floorplanLink": "Plan de salle de l'évènement",
-    "importHere": "Importer",
+    "importHere": "Reprendre et importer",
     "viewColumns": "Colonnes",
     "sourceNone": "Aucune",
     "taskTemplateUnavailable": "Ce rétroplanning n'est plus disponible pour ce type. Rechargez la page.",
@@ -3334,8 +3349,8 @@
     "backToQuote": "Revenir au devis"
   },
   "Import": {
-    "title": "Importer des données",
-    "intro": "Reprenez vos données depuis un autre outil ou un tableur, en 5 étapes. Rien n'est enregistré dans vos modules avant la confirmation, et un import confirmé reste annulable.",
+    "title": "Reprendre et importer",
+    "intro": "Contacts, carnet de prestataires, listes de votre espace. Rien n'est écrit avant votre accord.",
     "unauthenticated": "Session expirée : reconnectez-vous.",
     "noModuleAvailable": "Aucun module de votre abonnement ne reçoit encore d'import.",
     "entityTypeLegend": "Que contient le fichier ?",
@@ -3414,12 +3429,10 @@
     "unnamedColumn": "Colonne {number}",
     "cancelImport": "Abandonner l'import",
     "backToImports": "Retour aux imports",
-    "journalTitle": "Journal des imports",
+    "journalTitle": "Vos imports",
     "journalEmpty": "Aucun import pour l'instant.",
     "journalDate": "Date",
     "journalFile": "Fichier",
-    "journalEntityType": "Contenu",
-    "journalRows": "Lignes",
     "journalStatus": "État",
     "status": {
       "draft": "en cours",
@@ -3684,29 +3697,7 @@
       "not_event_sheet": "ce n'est pas une fiche évènement de l'outil actuel",
       "infected": "fichier refusé par l'antivirus"
     },
-    "takeoverTitle": "Reprendre vos données depuis votre outil actuel",
-    "takeoverIntro": "Vous utilisiez déjà un logiciel de planification ? Reprenez d'abord votre carnet de prestataires, puis vos évènements : Symbola reconnaît ses exports et corrige leurs défauts courants (colonnes inversées, caractères mal codés, codes postaux tronqués).",
     "takeoverExampleSheet": "Télécharger une fiche d'exemple (PDF fictif) pour essayer",
-    "takeover": {
-      "contacts": {
-        "title": "Reprendre mes contacts",
-        "how": "Dans votre tableur ou votre outil actuel, enregistrez la liste de vos contacts au format CSV ou Excel : une ligne par personne, avec son nom (ou « NOM Prénom » dans une seule colonne), son e-mail, son téléphone, ses notes.",
-        "what": "Chaque ligne devient un contact : nom, coordonnées et notes. Une adresse e-mail déjà connue complète le contact qui la porte ; les lignes de vos prestataires peuvent être écartées.",
-        "start": "Importer mes contacts"
-      },
-      "vendors": {
-        "title": "Reprendre mes prestataires",
-        "how": "Dans votre outil actuel, ouvrez la liste de vos prestataires et exportez-la au format Excel (.xlsx), sans retoucher le fichier.",
-        "what": "Chaque ligne devient une fiche du carnet : coordonnées, site et réseaux, SIRET ; les critères deviennent des étiquettes, les prestations vont dans la note. Les types sont rapprochés des vôtres ou créés.",
-        "start": "Importer mes prestataires"
-      },
-      "event_sheets": {
-        "title": "Reprendre mes évènements",
-        "how": "Dans votre outil actuel, ouvrez chaque évènement et téléchargez sa fiche en PDF. Déposez-les ensuite toutes en une fois.",
-        "what": "Chaque fiche devient un évènement : mariés et leurs coordonnées, date, lieux et horaires, budget souhaité. Le statut est proposé d'après la date ; vous le changez dans l'aperçu.",
-        "start": "Importer mes fiches évènement"
-      }
-    },
     "jobReadSheetsTitle": "Lecture des fiches",
     "jobReadSheets": "Lecture des fiches",
     "jobPlaceVendorsTitle": "Placement sur la carte",
@@ -3842,14 +3833,9 @@
     "effectsTags": "Étiquettes créées",
     "effectsFreeColumns": "Colonnes gardées en note sur la fiche",
     "effectsRejected": "Lignes rejetées",
-    "startQuestion": "Que voulez-vous reprendre ?",
-    "otherFileTitle": "Un autre fichier",
-    "otherFileBody": "Évènements, tâches, lignes de budget, catalogue, listes… depuis un tableur (CSV, Excel) ou un fichier JSON.",
     "screenGroup": {
       "evenements": "Importer des évènements"
     },
-    "resumeImport": "Reprendre",
-    "resumeImportFor": "Reprendre l'import de {file}",
     "importButton": {
       "events": "Importer {count, plural, one {# évènement} other {# évènements}}",
       "event_sheets": "Importer {count, plural, one {# évènement} other {# évènements}}",
@@ -3936,7 +3922,60 @@
       "close": "Fermer"
     },
     "typesCombinedFrom": "Vient de {labels} : plusieurs métiers sur la même fiche",
-    "targetEvent": "Les lignes iront dans l'évènement « {names} » : votre fichier n'a pas besoin de colonne pour le désigner."
+    "targetEvent": "Les lignes iront dans l'évènement « {names} » : votre fichier n'a pas besoin de colonne pour le désigner.",
+    "weddingTitle": "Un mariage en cours ?",
+    "weddingBody": "Passez par sa page de reprise : elle dit quels fichiers déposer, dans quel ordre, et les rattache au bon mariage.",
+    "weddingLink": "Reprendre un mariage en cours",
+    "draftFor": "Import en cours : {file}, pour « {event} ». Arrêté à « {step} ».",
+    "draftAlone": "Import en cours : {file}. Arrêté à « {step} ».",
+    "draftContinue": "Continuer",
+    "draftContinueFor": "Continuer l'import de {file}",
+    "chooseTitle": "Que voulez-vous importer ?",
+    "choice": {
+      "contacts": {
+        "title": "Des contacts",
+        "body": "Clients, prospects, invités. Tableur."
+      },
+      "vendors": {
+        "title": "Un carnet de prestataires",
+        "body": "Pour tous vos mariages. Tableur."
+      },
+      "autre": {
+        "title": "Une autre liste",
+        "body": "Sources des clients, catalogue, motifs de perte, évènements… Tableur ou JSON."
+      }
+    },
+    "journalFor": "Pour",
+    "journalLink": "Suite",
+    "journalSeeSummary": "Voir le bilan",
+    "journalSeeSummaryFor": "Voir le bilan de {file}",
+    "forKind": {
+      "events": "Évènements",
+      "tasks": "Tâches",
+      "budget_lines": "Budget",
+      "catalog_items": "Catalogue",
+      "vendor_slots": "Postes de départ",
+      "prospect_sources": "Sources",
+      "loss_reasons": "Motifs de perte",
+      "payment_methods": "Modes de paiement",
+      "vendors": "Carnet",
+      "event_sheets": "Fiches évènement",
+      "contacts": "Contacts",
+      "event_vendors": "Prestataires retenus",
+      "program": "Programme"
+    },
+    "journalState": {
+      "draft": "En cours",
+      "applied": "Repris",
+      "undone": "Retiré",
+      "cancelled": "Abandonné"
+    },
+    "journalEntityType": "Contenu",
+    "how": {
+      "contacts": "Dans votre tableur ou votre outil actuel, enregistrez la liste de vos contacts au format CSV ou Excel : une ligne par personne, avec son nom (ou « NOM Prénom » dans une seule colonne), son e-mail, son téléphone, ses notes.",
+      "vendors": "Dans votre outil actuel, ouvrez la liste de vos prestataires et exportez-la au format Excel (.xlsx), sans retoucher le fichier.",
+      "event_sheets": "Dans votre outil actuel, ouvrez chaque évènement et téléchargez sa fiche en PDF. Déposez-les ensuite toutes en une fois."
+    }
   },
   "Privacy": {
     "title": "Données personnelles",
@@ -5332,7 +5371,7 @@
       "max": "{field} : au plus {value}",
       "eq": "{field} : {value}"
     },
-    "importVendors": "Importer",
+    "importVendors": "Reprendre et importer",
     "importFilterPill": "Import du {date}",
     "importFilterCreated": "Import du {date} : créés",
     "importFilterUpdated": "Import du {date} : mis à jour",
@@ -5520,7 +5559,14 @@
       "noEventsModule": "Le module Évènements n'est pas souscrit : vos premiers pas commencent par la liste de prise en main de l'accueil.",
       "goHome": "Aller à l'accueil",
       "noSource": "Ajoutez d'abord une source de prospects dans les Paramètres des évènements.",
-      "dateRequired": "Indiquez la date de l'évènement : le rétroplanning se calcule à partir d'elle."
+      "dateRequired": "Indiquez la date de l'évènement : le rétroplanning se calcule à partir d'elle.",
+      "takeoverTitle": "Reprendre un mariage en cours",
+      "takeoverIntro": "Vous suivez aujourd'hui vos mariages dans {tools}. Pour ne rien ressaisir, reprenez d'abord un mariage en cours : Symbola vous dit quels fichiers déposer, dans quel ordre.",
+      "takeoverBody": "Six fichiers au plus : carnet, fiche, budget, prestataires, liste « à faire », programme. Environ 30 minutes par mariage. Rien n'est écrit avant votre accord.",
+      "takeoverStart": "Reprendre un mariage en cours",
+      "takeoverCreate": "Créer un nouveau mariage",
+      "takeoverElsewhere": "Vous suivez déjà des mariages ailleurs ?",
+      "toolsAnd": "{first} et {last}"
     },
     "vatRegime": {
       "franchise": "franchise en base de TVA",
@@ -5705,7 +5751,7 @@
     "vendorTypes": "Types de prestataires",
     "vendorTags": "Étiquettes",
     "vendorTravel": "Estimation des trajets",
-    "import": "Importer",
+    "import": "Reprendre et importer",
     "privacy": "Données personnelles",
     "eventTypes": "Types d'évènements",
     "documents": "Documents",
@@ -9083,8 +9129,9 @@
       "settings": "Aller aux Paramètres",
       "trash": "Ouvrir la corbeille",
       "help": "Ouvrir l'aide",
-      "import": "Importer un fichier",
-      "appointments": "Voir les rendez-vous"
+      "import": "Reprendre et importer",
+      "appointments": "Voir les rendez-vous",
+      "takeover": "Reprendre un mariage en cours"
     }
   },
   "Shortcuts": {
@@ -13244,5 +13291,141 @@
     "profileHint": "Nom, connexion, sécurité",
     "switch": "Changer d'organisation",
     "switchHint": "Ou en créer une autre"
+  },
+  "Takeover": {
+    "title": "Reprendre un mariage en cours",
+    "titleEvent": "Reprendre « {event} »",
+    "intro": "Déposez les fichiers de votre ancien outil, dans cet ordre. Rien n'est écrit avant votre accord ; chaque import se retire pendant {days} jours.",
+    "nothingWritten": "rien n'est écrit avant votre accord",
+    "eventDate": "Mariage du {date}",
+    "eventNoDate": "Mariage sans date",
+    "startedToday": "reprise commencée aujourd'hui à {time}",
+    "startedOn": "reprise commencée le {date} à {time}",
+    "progress": "{settled, plural, =0 {0 fichier} one {# fichier} other {# fichiers}} sur {total}",
+    "stepsLabel": "Les fichiers à reprendre, dans l'ordre",
+    "step": {
+      "vendor_book": {
+        "title": "Carnet de prestataires",
+        "body": "Le tableur ou l'export de votre carnet. Il sert à tous vos mariages : on le reprend une fois, en premier.",
+        "format": "Tableur (CSV, Excel)"
+      },
+      "event": {
+        "title": "Le mariage",
+        "body": "La fiche exportée de votre logiciel, ou les noms et la date si vous le suivez dans un tableur.",
+        "format": "PDF, ou saisie"
+      },
+      "budget": {
+        "title": "Budget",
+        "body": "Postes, prévu, réel, acomptes versés, soldes.",
+        "format": "Tableur (CSV, Excel)"
+      },
+      "event_vendors": {
+        "title": "Prestataires retenus",
+        "body": "L'export « Prestataires » de votre logiciel. Si votre budget les nomme déjà, rien à faire.",
+        "format": "PDF"
+      },
+      "tasks": {
+        "title": "Liste « à faire »",
+        "body": "Vos tâches : faites ou non, échéance, qui s'en charge.",
+        "format": "Tableur (CSV, Excel)"
+      },
+      "program": {
+        "title": "Programme du jour J",
+        "body": "Le déroulé exporté de votre logiciel, ou votre tableur.",
+        "format": "PDF"
+      }
+    },
+    "state": {
+      "todo": "À faire",
+      "in_progress": "En cours",
+      "no_file": "Pas de fichier",
+      "covered": "Avec le budget",
+      "waiting": "Après le mariage",
+      "importedAt": "Repris à {time}",
+      "importedOn": "Repris le {date}",
+      "createdAt": "Créé à {time}",
+      "createdOn": "Créé le {date}"
+    },
+    "shape": {
+      "done": "Fait",
+      "running": "En cours",
+      "todo": "À faire",
+      "none": "Réglé sans fichier"
+    },
+    "detail": {
+      "forAllWeddings": "{file} · pour tous vos mariages",
+      "droppedAt": "{file} · déposé à {time}",
+      "droppedOn": "{file} · déposé le {date}",
+      "entered": "Saisi : {event}",
+      "enteredWithDate": "Saisi : {event}, {date}",
+      "signed": "Signé, en préparation",
+      "chosenOn": "Choisi le {date}",
+      "stoppedAt": "Arrêté à « {step} »",
+      "covered": "{count, plural, =0 {Votre budget nomme ses prestataires : ils seront retenus avec lui.} one {Votre budget nomme # prestataire : il sera retenu avec lui.} other {Votre budget nomme # prestataires : ils seront retenus avec lui.}}",
+      "coveredNoFile": "Aucun fichier à déposer",
+      "doneByHand": "Repris depuis la fiche du mariage"
+    },
+    "figure": {
+      "vendors": "{count, plural, =0 {aucune fiche} one {# fiche} other {# fiches}}",
+      "budgetLines": "{count, plural, =0 {aucune ligne} one {# ligne} other {# lignes}}",
+      "tasks": "{count, plural, =0 {aucune tâche} one {# tâche} other {# tâches}}",
+      "events": "{count, plural, =0 {aucun évènement} one {# évènement} other {# évènements}}",
+      "rows": "{count, plural, =0 {aucune ligne} one {# ligne} other {# lignes}}"
+    },
+    "action": {
+      "drop": "Déposer le fichier",
+      "dropSheet": "Déposer la fiche",
+      "enterNames": "Saisir les noms et la date",
+      "noFile": "Je n'ai pas ce fichier",
+      "continue": "Continuer",
+      "abandon": "Abandonner cet import…",
+      "seeSummary": "Voir le bilan",
+      "openEvent": "Ouvrir la fiche",
+      "dropAgain": "Déposer un fichier",
+      "dropAnyway": "Déposer un fichier quand même"
+    },
+    "actionFor": "{action} : {step}",
+    "abandonTitle": "Abandonner l'import « {file} » ?",
+    "abandonBody": "Le fichier et vos choix sont effacés ; rien n'a encore été importé. La ligne redevient à faire.",
+    "abandonConfirm": "Abandonner l'import",
+    "abandonKeep": "Garder l'import",
+    "several": "Un fichier qui contient plusieurs choses (un budget qui nomme les prestataires, par exemple) coche toutes les lignes qu'il remplit.",
+    "howToExport": "Comment exporter depuis mon logiciel ?",
+    "laterOnEvent": "Ce qui restera à compléter à la main (montants manquants, liens des mariés, invités…) s'affichera sur la fiche du mariage.",
+    "doneSummary": "Reprise terminée le {date} à {time}",
+    "doneTitle": "{count, plural, =0 {Reprise terminée. Vos fichiers donnaient tout ce que Symbola sait vérifier ; relisez la fiche du mariage.} one {Reprise terminée. Il reste # point à compléter à la main.} other {Reprise terminée. Il reste # points à compléter à la main.}}",
+    "doneBody": "Ce que vos fichiers ne donnaient pas : {list}. Ils sont à compléter sur la fiche du mariage.",
+    "point": {
+      "amounts": "les montants à répartir sur les postes",
+      "tasks": "les tâches",
+      "endTimes": "{count, plural, one {# heure de fin du programme} other {# heures de fin du programme}}",
+      "clientLink": "le lien personnel des mariés",
+      "guests": "le nombre d'invités"
+    },
+    "openToComplete": "Ouvrir « À compléter »",
+    "withdrawUntil": "Chaque import se retire depuis son bilan jusqu'au {date} ({days} jours).",
+    "another": "Reprendre un autre mariage",
+    "openTitle": "Reprises en cours",
+    "openUnnamed": "Mariage pas encore saisi",
+    "openLine": "« {event} » · {progress}",
+    "openContinue": "Continuer la reprise de « {event} »",
+    "formBack": "Reprendre un mariage",
+    "formTitle": "Le mariage que vous reprenez",
+    "formIntro": "Le reste viendra de vos fichiers. Il sera « Signé, en préparation » ; ses tâches viendront de votre liste, pas d'un modèle.",
+    "formName": "Nom de l'évènement",
+    "formNamePlaceholder": "Juliette & Romain",
+    "formDate": "Date",
+    "formType": "Type d'évènement",
+    "formSubmit": "Continuer la reprise",
+    "formSaving": "Enregistrement…",
+    "backTo": "Reprendre « {event} »",
+    "backToNew": "Reprendre un mariage en cours",
+    "feedbackImported": "{step} repris : {figure}",
+    "feedbackSeeSummary": "Voir le bilan",
+    "feedbackEvent": "Mariage enregistré : {event}",
+    "feedbackEventDetail": "Signé, en préparation ; ses tâches viendront de votre liste.",
+    "notFound": "Cette reprise est introuvable.",
+    "oneSheet": "Une seule fiche pour ce mariage : déposez son PDF seul.",
+    "backToTakeover": "Retour à la reprise"
   }
 }

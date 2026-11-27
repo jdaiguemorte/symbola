@@ -13,6 +13,8 @@ import { getPlannerAuthContext } from "@/lib/auth-context";
 import { importEventVendors, type EventVendorsImportResult } from "@/lib/vendors/event-vendors-import";
 import type { EventVendorsImportChoice } from "@/lib/vendors/event-vendors-import-rules";
 import { isEventsModuleEnabled, isValidId } from "../module-access";
+import { taskListViewer } from "@/lib/event-visibility";
+import { markTakeoverPdfStepDone } from "@/lib/takeover/flow";
 
 export type EventVendorsImportState = { error?: string; result?: EventVendorsImportResult };
 
@@ -44,7 +46,15 @@ export async function importEventVendorsAction(_prev: EventVendorsImportState, f
   const apply = formData.get("intent") === "apply" ? { confirmHeader: formData.get("confirmHeader") === "1" } : null;
   try {
     const result = await importEventVendors({ organizationId, userId: auth.user.id, eventId, bytes: new Uint8Array(await file.arrayBuffer()), choices, apply });
-    if (result.status === "applied") revalidatePath(`/events/${eventId}`);
+    if (result.status === "applied") {
+      revalidatePath(`/events/${eventId}`);
+      // Lot 71b (HUB-14) : ouvert depuis la page de reprise, il coche sa ligne (provisoire, paquet 71e).
+      const takeoverId = String(formData.get("takeoverId") ?? "");
+      if (isValidId(takeoverId)) {
+        const user = { id: auth.user.id, role: auth.user.role, organizationId };
+        if (await markTakeoverPdfStepDone({ organizationId, userId: auth.user.id, viewer: await taskListViewer({ user }) }, { takeoverId, kind: "event_vendors", eventId })) revalidatePath(`/reprise/${takeoverId}`);
+      }
+    }
     return { result };
   } catch (error) {
     if (error instanceof EventNotFoundError) return { error: t("eventNotFound") };

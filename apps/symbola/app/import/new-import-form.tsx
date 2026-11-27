@@ -13,10 +13,13 @@ export function NewImportForm({
   maxSheets,
   defaultEntityType = null,
   target = null,
+  takeover = null,
 }: {
   entityTypes: ImportEntityType[];
   // Lot 65g (HUB-14, BUD-04) : l'évènement d'où l'import est lancé ; toutes les lignes y vont.
   target?: { eventId: string; names: string } | null;
+  // Lot 71b (HUB-14) : la ligne de reprise d'où vient le fichier ; l'import y est rattaché.
+  takeover?: { takeoverId: string; kind: string } | null;
   maxSizeLabel: string;
   maxSheets: number;
   // Lot 14 (IMP-09) : type choisi depuis une carte de reprise.
@@ -56,6 +59,12 @@ export function NewImportForm({
         }}
       >
         {/* Lot 16 (IMP-11) : une reprise choisie par sa tuile n'a plus de choix à faire. */}
+        {takeover ? (
+          <>
+            <input type="hidden" name="takeoverId" value={takeover.takeoverId} />
+            <input type="hidden" name="takeoverKind" value={takeover.kind} />
+          </>
+        ) : null}
         {target ? (
           <>
             <input type="hidden" name="targetEventId" value={target.eventId} />
@@ -79,7 +88,7 @@ export function NewImportForm({
           <>
             <label>
               {t("sheetsLabel")}
-              <input key="sheets" type="file" name="file" accept=".pdf,application/pdf" multiple required aria-describedby="import-file-hint" />
+              <input key="sheets" type="file" name="file" accept=".pdf,application/pdf" multiple={maxSheets > 1} required aria-describedby="import-file-hint" />
             </label>
             <p id="import-file-hint">{t("sheetsHint", { maxSize: maxSizeLabel, count: maxSheets })}</p>
           </>

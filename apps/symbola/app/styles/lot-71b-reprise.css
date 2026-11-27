@@ -1,0 +1,192 @@
+/* Lot 71b (HUB-14, UX-08 ; maquette 06 du lot 68) — la page « Reprendre un mariage en cours ». Jetons de
+   DESIGN.md seulement (ADR 0057), aucun style en ligne (CSP). Un état se lit sans la couleur : rond plein
+   et coche (fait), rond tracé (en cours), pointillés (à faire), tiret (sans fichier, avec le budget) ;
+   la ligne suivante a le trait d'encre, aucune teinte d'état (répartition A). */
+@layer components {
+  .takeover-back {
+    @apply m-0 mb-1;
+  }
+  .takeover-back a {
+    @apply inline-flex min-h-11 items-center font-semibold no-underline;
+  }
+  .takeover-head {
+    @apply mb-4 flex flex-wrap items-start justify-between gap-4;
+  }
+  .takeover-head h1 {
+    @apply m-0;
+  }
+  .takeover-head .meta {
+    @apply m-0 mt-1 max-w-3xl;
+  }
+  .takeover-progress {
+    @apply m-0 inline-flex min-h-9 shrink-0 items-center rounded-full border border-line bg-surface px-4 text-label font-semibold text-ink;
+  }
+
+  .takeover-steps {
+    @apply m-0 list-none overflow-hidden rounded-lg border border-line bg-surface p-0;
+  }
+  .takeover-step {
+    @apply grid items-center gap-4 border-b border-line px-6 py-4;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 15rem 13rem;
+  }
+  .takeover-step:last-child {
+    @apply border-b-0;
+  }
+  .takeover-step-next {
+    @apply bg-ground;
+    box-shadow: inset 3px 0 0 var(--color-ink);
+  }
+  .takeover-page {
+    @apply max-w-6xl;
+  }
+  .takeover-step-what {
+    @apply min-w-0;
+  }
+  .takeover-step-number {
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] border-line-strong bg-surface text-label font-semibold text-ink;
+  }
+  .takeover-step-done .takeover-step-number {
+    @apply border-ink bg-ink text-on-primary;
+  }
+  .takeover-step-title {
+    @apply m-0 font-display text-heading;
+  }
+  .takeover-step-body {
+    @apply m-0 mt-1 text-label text-ink-muted;
+  }
+  .takeover-step-state {
+    @apply m-0 text-label;
+  }
+  .takeover-step-state strong {
+    @apply flex items-center gap-2 font-semibold;
+  }
+  .takeover-step-state > span {
+    @apply block text-ink-muted;
+  }
+  .takeover-shape {
+    @apply inline-flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full text-label leading-none font-bold;
+  }
+  .takeover-shape-done {
+    @apply bg-ink text-on-primary;
+  }
+  .takeover-shape-running {
+    @apply border-[1.5px] border-ink;
+  }
+  .takeover-shape-todo {
+    @apply border-[1.5px] border-dashed border-line-strong;
+  }
+  .takeover-shape-none {
+    @apply border-[1.5px] border-line-strong text-ink-muted;
+  }
+  .takeover-step-actions {
+    @apply flex flex-col items-end gap-1;
+  }
+  .takeover-step-actions form {
+    @apply m-0 w-auto;
+  }
+  /* Un formulaire d'un seul bouton est compact par règle : ici, chaque commande garde ses 44 px. */
+  .takeover-step-actions form button {
+    @apply !min-h-11;
+  }
+  .takeover-step .takeover-step-link,
+  .takeover-step-actions button.takeover-step-link {
+    @apply inline-flex !min-h-11 items-center border-0 bg-transparent px-2 text-label font-medium text-primary underline underline-offset-2 hover:bg-transparent hover:text-ink;
+  }
+
+  .takeover-done {
+    @apply mb-4 rounded-lg border border-line bg-surface p-6;
+  }
+  .takeover-done h2 {
+    @apply m-0 text-heading;
+  }
+  .takeover-done p {
+    @apply my-2 max-w-3xl;
+  }
+  .takeover-open h2 {
+    @apply m-0 text-heading;
+  }
+  .takeover-open ul {
+    @apply m-0 mt-2 list-none p-0;
+  }
+  .takeover-open a {
+    @apply inline-flex min-h-11 items-center;
+  }
+  .takeover-foot {
+    @apply mt-4 text-label text-ink-muted;
+  }
+  .takeover-foot a {
+    @apply inline-flex min-h-11 items-center;
+  }
+
+  .takeover-event-page,
+  .takeover-event-form {
+    @apply max-w-xl;
+  }
+  .takeover-event-submit {
+    @apply mt-4;
+  }
+
+  /* Reprendre et importer (I6) : trois boutons de même rang, aucun plein. */
+  .import-choices {
+    @apply my-3 grid gap-3;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  }
+  .import-choice {
+    @apply flex min-h-11 flex-col items-start gap-1 rounded-md border border-line-strong bg-surface px-4 py-3 text-ink no-underline hover:border-ink hover:text-ink;
+  }
+  .import-choice[aria-current="true"] {
+    @apply border-2 border-ink;
+  }
+  .import-choice-title {
+    @apply font-semibold;
+  }
+  .import-choice-body {
+    @apply text-label text-ink-muted;
+  }
+  .import-wedding {
+    @apply my-4;
+  }
+  .import-wedding h2 {
+    @apply m-0 text-heading;
+  }
+  .import-draft a,
+  .import-wedding a,
+  .list-table td a.import-journal-link {
+    @apply inline-flex min-h-11 items-center;
+  }
+
+  /* Fin de l'assistant de démarrage (I5) : la reprise d'abord, la création en second. */
+  .ready-takeover-actions {
+    @apply mt-4 flex flex-wrap gap-3;
+  }
+  .ready-takeover-elsewhere a {
+    @apply inline-flex min-h-11 items-center;
+  }
+
+  @media (width < 768px) {
+    .takeover-step {
+      @apply gap-x-3 gap-y-2 px-4 py-3;
+      grid-template-columns: 2rem minmax(0, 1fr);
+    }
+    .takeover-step-number {
+      @apply h-7 w-7;
+    }
+    .takeover-step-body {
+      @apply hidden;
+    }
+    .takeover-step-state,
+    .takeover-step-actions {
+      @apply col-start-2;
+    }
+    .takeover-step-actions {
+      @apply flex-row flex-wrap items-center;
+    }
+    /* Sur téléphone, les deux boutons de la fin de l'assistant collés en bas, le principal en haut. */
+    .ready-takeover-actions {
+      @apply sticky bottom-0 z-10 -mx-4 flex-col border-t border-line bg-surface px-4 py-3;
+    }
+    .ready-takeover-actions > * {
+      @apply w-full justify-center;
+    }
+  }
+}

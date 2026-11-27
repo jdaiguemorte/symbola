@@ -12,6 +12,7 @@ import { isValidId } from "../../access";
 import { retryImportJobAction } from "../../actions";
 import { JobProgress } from "../../job-progress";
 import { undoImportAction } from "./actions";
+import { takeoverBackLink } from "@/lib/takeover/flow";
 
 function count(value: string | undefined): number | null {
   const number = Number(value);
@@ -65,7 +66,10 @@ export default async function ImportJournalPage({
   const placeJob = jobs.find((job) => job.kind === "place_vendors");
 
   const t = await getTranslations("Import");
+  const tTakeover = await getTranslations("Takeover");
   const tHelp = await getTranslations("Help");
+  // Lot 71b (HUB-14) : le bilan d'un import de reprise ramène à sa page.
+  const back = await takeoverBackLink(organizationId, importId);
   const locale = (await getLocale()) as Locale;
   const query = await searchParams;
   const undone = count(query.annule);
@@ -132,7 +136,11 @@ export default async function ImportJournalPage({
 
   return (
     <main>
-      {finishHref ? (
+      {back ? (
+        <p className="takeover-back">
+          <Link href={back.href}>‹ {back.eventName ? tTakeover("backTo", { event: back.eventName }) : tTakeover("backToNew")}</Link>
+        </p>
+      ) : finishHref ? (
         <p>
           <Link href={finishHref}>‹ {t(`finishBack.${view.entityType}`)}</Link>
         </p>

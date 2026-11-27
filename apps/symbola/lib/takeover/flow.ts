@@ -26,9 +26,11 @@ import {
   createTakeover,
   getEventTakeover,
   getImportLimits,
+  getImportTakeoverId,
   getTakeover,
   listImportSummaries,
   listTakeovers,
+  markTakeoverStepImported,
   previewTakeover,
   settleTakeoverStep,
   TakeoverDemoEventError,
@@ -268,4 +270,44 @@ export async function takeoverForUpload(
       await attachImportToTakeoverStep(db(), { organizationId: actor.organizationId, userId: actor.userId, takeoverId: view.id, kind, importId, viewer: actor.viewer });
     },
   };
+}
+
+// L'import vient d'une reprise : l'en-tête de ses étapes et son bilan ramènent à sa page (« ← Reprendre
+// « Juliette & Romain » »), la confirmation y revient. null hors reprise.
+export async function takeoverBackLink(organizationId: string, importId: string): Promise<{ takeoverId: string; href: string; eventName: string | null } | null> {
+  const takeoverId = await getImportTakeoverId(db(), organizationId, importId);
+  if (!takeoverId) return null;
+  const view = await getTakeover(db(), organizationId, takeoverId);
+  if (!view) return null;
+  return { takeoverId, href: `/reprise/${takeoverId}`, eventName: (await eventFacts(organizationId, view.eventId)).name };
+}
+
+// « Pour » du journal de « Reprendre et importer » : le mariage visé par un import, s'il y en a un.
+export async function importEventNames(organizationId: string, imports: readonly Pick<ImportSummary, "id" | "targetEventId" | "takeoverId">[]): Promise<Map<string, string>> {
+  const names = new Map<string, string>();
+  const takeoverEvents = new Map<string, string | null>();
+  for (const entry of imports) {
+    let eventId = entry.targetEventId;
+    if (!eventId && entry.takeoverId) {
+      if (!takeoverEvents.has(entry.takeoverId)) takeoverEvents.set(entry.takeoverId, (await getTakeover(db(), organizationId, entry.takeoverId))?.eventId ?? null);
+      eventId = takeoverEvents.get(entry.takeoverId) ?? null;
+    }
+    if (!eventId) continue;
+    const { name } = await eventFacts(organizationId, eventId);
+    if (name) names.set(entry.id, name);
+  }
+  return names;
+}
+
+// Provisoire jusqu'au paquet 71e : un PDF de prestataires retenus ou de programme, ouvert depuis la
+// page de reprise et écrit sur la fiche du mariage, coche sa ligne. Une reprise d'une autre
+// organisation, hors de vue, ou d'un autre mariage : rien ne change (SEC-13).
+export async function markTakeoverPdfStepDone(actor: TakeoverActor, input: { takeoverId: string; kind: "event_vendors" | "program"; eventId: string }): Promise<boolean> {
+  try {
+    await markTakeoverStepImported(db(), { organizationId: actor.organizationId, userId: actor.userId, takeoverId: input.takeoverId, kind: input.kind, eventId: input.eventId, viewer: actor.viewer });
+    return true;
+  } catch (error) {
+    if (error instanceof TakeoverNotFoundError) return false;
+    throw error;
+  }
 }

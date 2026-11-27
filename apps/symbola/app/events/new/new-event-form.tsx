@@ -97,10 +97,11 @@ export function NewEventForm({
         ))}
         <FieldError id={validation.errorId("standing")} message={validation.errorFor("standing")} />
       </fieldset>
-      {/* M12 : la reprise n'est pas une réponse, c'est une porte à part, sans créer d'évènement. */}
+      {/* M12 : la reprise n'est pas une réponse, c'est une porte à part, sans créer d'évènement. Lot 71b :
+          elle mène à la page « Reprendre un mariage en cours ». */}
       <p className="new-event-import">
         {t("importPrompt")}{" "}
-        <Link href="/import?type=evenements#import-form">{t("importLink")}</Link>
+        <Link href="/reprise">{t("importLink")}</Link>
       </p>
       <label>
         {t("newName")}

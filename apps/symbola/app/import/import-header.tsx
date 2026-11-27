@@ -6,10 +6,16 @@ import { getTranslations } from "next-intl/server";
 import { Stepper } from "@/app/ui/stepper";
 import { importStepHref, type ImportStepKey, type ImportWizard } from "@/lib/import/wizard";
 import { cancelImportAction } from "./actions";
+import { requirePlanner } from "@/lib/guards";
+import { takeoverBackLink } from "@/lib/takeover/flow";
 
 export async function ImportHeader({ wizard, current, abandon }: { wizard: ImportWizard; current: ImportStepKey; abandon: boolean }) {
   const t = await getTranslations("Import");
+  const tTakeover = await getTranslations("Takeover");
   const here = importStepHref(wizard.importId, current);
+  // Lot 71b (HUB-14 ; P-12) : ouvert depuis une reprise, l'import le dit en tête et y ramène.
+  const auth = await requirePlanner();
+  const back = await takeoverBackLink(auth.user.organizationId, wizard.importId);
   const steps = wizard.steps.map((step) => ({
     key: step.key,
     label: t(`wizardStep.${step.key}`),
@@ -26,6 +32,11 @@ export async function ImportHeader({ wizard, current, abandon }: { wizard: Impor
   }));
   return (
     <>
+      {back ? (
+        <p className="takeover-back">
+          <Link href={back.href}>‹ {back.eventName ? tTakeover("backTo", { event: back.eventName }) : tTakeover("backToNew")}</Link>
+        </p>
+      ) : null}
       <div className="import-head">
         <h1>{t("wizardTitle", { fileName: wizard.fileName })}</h1>
         <Link href={`${here}?abandon=1`} className="import-abandon" scroll={false}>
